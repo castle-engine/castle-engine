@@ -738,25 +738,6 @@ type
     procedure ExecuteAll(Node: TVRMLNode);
   end;
 
-  { Private stuff for TVRMLNode.DeepCopy and friends implementation. }
-  TVRMLNodeDeepCopyState = class
-  private
-    { These two lists must always have exactly the same length. }
-    Original, New: TVRMLNodesList;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    { Return a copy or OriginalNode.
-
-      To keep sharing of nodes (DEF/USE mechanism) within the newly
-      created copy, we need a list of already duplicated children.
-      This method uses and updates such list. When called for the
-      first time with OriginalNode, it actually creates a duplicate
-      (by OriginalNode.DeepCopy). Next time, it will just return
-      this copy. }
-    function DeepCopy(OriginalNode: TVRMLNode): TVRMLNode;
-  end;
-
 {$I vrmlnodes_node.inc}
 
   TVRMLNodeClassesList = class(TList)
@@ -5387,38 +5368,6 @@ var
 begin
   for I := 0 to Length - 1 do
     Items[I](Node);
-end;
-
-{ TVRMLNodeDeepCopyState ----------------------------------------------------- }
-
-constructor TVRMLNodeDeepCopyState.Create;
-begin
-  inherited;
-  Original := TVRMLNodesList.Create;
-  New := TVRMLNodesList.Create;
-end;
-
-destructor TVRMLNodeDeepCopyState.Destroy;
-begin
-  FreeAndNil(Original);
-  FreeAndNil(New);
-  inherited;
-end;
-
-function TVRMLNodeDeepCopyState.DeepCopy(OriginalNode: TVRMLNode): TVRMLNode;
-var
-  I: Integer;
-begin
-  Assert(New.Count = Original.Count);
-
-  I := Original.IndexOf(OriginalNode);
-  if I = -1 then
-  begin
-    { DeepCopyCore will expand (Original, New) lists by (OriginalNode, Result).
-      This is needed, see DeepCopyCore comments. }
-    Result := OriginalNode.DeepCopyCore(Self);
-  end else
-    Result := New[I];
 end;
 
 { unit init/fini ------------------------------------------------------------ }
