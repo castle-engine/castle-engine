@@ -2702,7 +2702,20 @@ type
     { @groupEnd }
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames;
-      FieldValue, IsClauseAllowed: boolean); virtual;
+      FieldValue, IsClauseAllowed: boolean);
+
+    { Parse interface declaration encoded in XML.
+
+      Note that classic VRML parser has here IsClauseAllowed: boolean
+      parameter, this was set to @true when parsing InterfaceDeclarations
+      of special nodes (Script, ComposedShader etc.), since they could
+      have IS clause (at least, as far as I understood the spec).
+      But for X3D XML encoding, it's not available, since (AFAI understand
+      the X3D XML encoding spec) the <IS> element inside node body may
+      point from nodeField to any interface field of this node, including
+      InterfaceDeclarations. So ParseISStatement handles this. }
+    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames;
+      FieldValue: boolean);
 
     { Save this interface declaration to stream.
       This assumes that it starts at the beginning of the line,
@@ -6494,7 +6507,7 @@ procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer; Names: TVRMLNames;
   FieldValue, IsClauseAllowed: boolean);
 var
   FieldTypeName: string;
-  Kind: TVRMLAccessType;
+  Access: TVRMLAccessType;
   FieldType: TVRMLFieldClass;
   Name: string;
 begin
@@ -6505,10 +6518,10 @@ begin
   if Lexer.Token = vtKeyword then
   begin
     case Lexer.TokenKeyword of
-      vkEventIn, vkInputOnly: Kind := atInputOnly;
-      vkEventOut, vkOutputOnly: Kind := atOutputOnly;
-      vkField, vkInitializeOnly: Kind := atInitializeOnly;
-      vkExposedField, vkInputOutput: Kind := atInputOutput;
+      vkEventIn, vkInputOnly: Access := atInputOnly;
+      vkEventOut, vkOutputOnly: Access := atOutputOnly;
+      vkField, vkInitializeOnly: Access := atInitializeOnly;
+      vkExposedField, vkInputOutput: Access := atInputOutput;
       else raise EVRMLParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
     end;
@@ -6529,15 +6542,15 @@ begin
   Name := Lexer.TokenName;
 
   { we know everything now to create Event/Field instance }
-  case Kind of
+  case Access of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := TVRMLEvent.Create(ParentNode, Name, FieldType, Kind = atInputOnly);
+      FieldOrEvent := TVRMLEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
       begin
         FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name);
-        Field.Exposed := Kind = atInputOutput;
+        Field.Exposed := Access = atInputOutput;
       end;
-    else raise EInternalError.Create('Kind ? in TVRMLInterfaceDeclaration.Parse');
+    else raise EInternalError.Create('Access ? in TVRMLInterfaceDeclaration.Parse');
   end;
 
   Lexer.NextToken;
@@ -6552,6 +6565,77 @@ begin
       Field.Parse(Lexer, Names, IsClauseAllowed) else
     if IsClauseAllowed then
       Field.ParseIsClause(Lexer);
+  end;
+
+  FieldOrEvent.ParentInterfaceDeclaration := Self;
+end;
+
+procedure TVRMLInterfaceDeclaration.ParseXML(
+  Element: TDOMElement; Names: TVRMLNames; FieldValue: boolean);
+var
+  Access: TVRMLAccessType;
+  AccessIndex: Integer;
+  AccessName: string;
+  FieldTypeName: string;
+  FieldType: TVRMLFieldClass;
+  Name, FieldActualValue: string;
+begin
+  { clear instance before parsing }
+  FieldOrEvent.Free;
+  FieldOrEvent := nil;
+
+  { calculate Access }
+  if DOMGetAttribute(Element, 'accessType', AccessName) then
+  begin
+    AccessIndex := ArrayPosStr(AccessName,
+      ['inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput']);
+    if AccessIndex <> -1 then
+      Access := TVRMLAccessType(AccessIndex) else
+      raise EX3DXmlError.CreateFmt('Access type "%s" unknown', [AccessName]);
+  end else
+    raise EX3DXmlError.Create('Missing access type in X3D interface declaration');
+
+  { calculate FieldType }
+  if DOMGetAttribute(Element, 'type', FieldTypeName) then
+  begin
+    FieldType := VRMLFieldsManager.FieldTypeNameToClass(FieldTypeName);
+    if FieldType = nil then
+      raise EX3DXmlError.CreateFmt('Field type "%s" unknown', [FieldTypeName]);
+  end else
+    raise EX3DXmlError.Create('Missing field type in X3D interface declaration');
+
+  if not DOMGetAttribute(Element, 'name', Name) then
+    raise EX3DXmlError.Create('Missing name in X3D interface declaration');
+
+  { we know everything now to create Event/Field instance }
+  case Access of
+    atInputOnly, atOutputOnly:
+      FieldOrEvent := TVRMLEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
+    atInitializeOnly, atInputOutput:
+      begin
+        FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name);
+        Field.Exposed := Access = atInputOutput;
+      end;
+    else raise EInternalError.Create('AccessType ?');
+  end;
+
+  if Event <> nil then
+  begin
+    { Classic VRML parser has here
+        if IsClauseAllowed then Event.Parse(Lexer);
+      but for X3D XML encoding this is not needed, see comments above. }
+  end else
+  begin
+    if FieldValue then
+    begin
+      if DOMGetAttribute(Element, 'value', FieldActualValue) then
+        Field.ParseXMLAttribute(FieldActualValue, Names) else
+        ParseFieldValueFromElement(Field, Element, Names);
+    end;
+
+    { Classic VRML parser has here
+        else if IsClauseAllowed then Field.ParseIsClause(Lexer);
+      but for X3D XML encoding this is not needed, see comments above. }
   end;
 
   FieldOrEvent.ParentInterfaceDeclaration := Self;
@@ -7279,7 +7363,7 @@ begin
       begin
         I := TVRMLInterfaceDeclaration.Create(nil);
         InterfaceDeclarations.Add(I);
-        ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto, Names);
+        I.ParseXML(Iter.Current, Names, not ExternalProto);
       end else
         VRMLWarning(vwSerious, 'X3D XML: only <field> elements expected in prototype interface');
     end;

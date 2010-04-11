@@ -49,9 +49,6 @@ const
     Names: TVRMLNames); forward;
   procedure ParseExternalPrototype(Proto: TVRMLExternalPrototype;
     Element: TDOMElement; Names: TVRMLNames); forward;
-  procedure ParseInterfaceDeclaration(
-    I: TVRMLInterfaceDeclaration; Element: TDOMElement;
-    FieldValue: boolean; Names: TVRMLNames); forward;
 
   { Checks is Element a correct <connect> element, extracting
     nodeField and protoField value. Returns @true if all Ok, otherwise
@@ -246,7 +243,7 @@ const
           begin
             IDecl := TVRMLInterfaceDeclaration.Create(Node);
             try
-              ParseInterfaceDeclaration(IDecl, I.Current, true, Names);
+              IDecl.ParseXML(I.Current, Names, true);
               IDecl.PositionInParent := PositionInParent;
               if IDecl.AccessType in Node.HasInterfaceDeclarations then
               begin
@@ -556,89 +553,6 @@ const
       DOMGetAttribute(Element, SAttrContainerField, ContainerField);
 
     except FreeAndNil(Result); raise end;
-  end;
-
-  { This is equivalent to TVRMLInterfaceDeclaration.Parse
-    in classic VRML parser.
-
-    Note that in classic VRML parser we had here IsClauseAllowed: boolean
-    parameter, this was set to @true when parsing InterfaceDeclarations
-    of special nodes (Script, ComposedShader etc.), since they could
-    have IS clause (at least, as far as I understood the spec).
-    But for X3D XML encoding, it's not available, since (AFAI understand
-    the X3D XML encoding spec) the <IS> element inside node body may
-    point from nodeField to any interface field of this node, including
-    InterfaceDeclarations. So ParseISStatement handles this. }
-  procedure ParseInterfaceDeclaration(
-    I: TVRMLInterfaceDeclaration; Element: TDOMElement;
-    FieldValue: boolean; Names: TVRMLNames);
-  var
-    AccessType: TVRMLAccessType;
-    AccessTypeIndex: Integer;
-    AccessTypeName: string;
-    FieldTypeName: string;
-    FieldType: TVRMLFieldClass;
-    Name, FieldActualValue: string;
-  begin
-    { clear instance before parsing }
-    I.FieldOrEvent.Free;
-    I.FieldOrEvent := nil;
-
-    { calculate AccessType }
-    if DOMGetAttribute(Element, 'accessType', AccessTypeName) then
-    begin
-      AccessTypeIndex := ArrayPosStr(AccessTypeName,
-        ['inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput']);
-      if AccessTypeIndex <> -1 then
-        AccessType := TVRMLAccessType(AccessTypeIndex) else
-        raise EX3DXmlError.CreateFmt('Access type "%s" unknown', [AccessTypeName]);
-    end else
-      raise EX3DXmlError.Create('Missing access type in X3D interface declaration');
-
-    { calculate FieldType }
-    if DOMGetAttribute(Element, 'type', FieldTypeName) then
-    begin
-      FieldType := VRMLFieldsManager.FieldTypeNameToClass(FieldTypeName);
-      if FieldType = nil then
-        raise EX3DXmlError.CreateFmt('Field type "%s" unknown', [FieldTypeName]);
-    end else
-      raise EX3DXmlError.Create('Missing field type in X3D interface declaration');
-
-    if not DOMGetAttribute(Element, 'name', Name) then
-      raise EX3DXmlError.Create('Missing name in X3D interface declaration');
-
-    { we know everything now to create Event/Field instance }
-    case AccessType of
-      atInputOnly, atOutputOnly:
-        I.FieldOrEvent := TVRMLEvent.Create(I.ParentNode, Name, FieldType, AccessType = atInputOnly);
-      atInitializeOnly, atInputOutput:
-        begin
-          I.FieldOrEvent := FieldType.CreateUndefined(I.ParentNode, Name);
-          I.Field.Exposed := AccessType = atInputOutput;
-        end;
-      else raise EInternalError.Create('AccessType ?');
-    end;
-
-    if I.Event <> nil then
-    begin
-      { Classic VRML parser has here
-          if IsClauseAllowed then I.Event.Parse(Lexer);
-        but for X3D XML encoding this is not needed, see comments above. }
-    end else
-    begin
-      if FieldValue then
-      begin
-        if DOMGetAttribute(Element, 'value', FieldActualValue) then
-          I.Field.ParseXMLAttribute(FieldActualValue, Names) else
-          ParseFieldValueFromElement(I.Field, Element, Names);
-      end;
-
-      { Classic VRML parser has here
-          else if IsClauseAllowed then I.Field.ParseIsClause(Lexer);
-        but for X3D XML encoding this is not needed, see comments above. }
-    end;
-
-    I.FieldOrEvent.ParentInterfaceDeclaration := I;
   end;
 
   { Equivalent to TVRMLPrototype.Parse }
