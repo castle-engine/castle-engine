@@ -1970,8 +1970,8 @@ var
 
 { global procedures ---------------------------------------------------------- }
 
-{$I vrmlnodes_parse_classic.inc}
-{$I vrmlnodes_parse_xml.inc}
+{$I vrmlnodes_encoding_classic.inc}
+{$I vrmlnodes_encoding_xml.inc}
 
 { Create and assign all State.Nodes. }
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
@@ -2246,8 +2246,8 @@ uses
 {$I vrmlnodes_97_nurbs.inc}
 {$I vrmlnodes_kambi.inc}
 {$I vrmlnodes_avalon.inc}
-{$I vrmlnodes_parse_classic.inc}
-{$I vrmlnodes_parse_xml.inc}
+{$I vrmlnodes_encoding_classic.inc}
+{$I vrmlnodes_encoding_xml.inc}
 
 resourcestring
   SExpectedInterfaceDeclaration =
