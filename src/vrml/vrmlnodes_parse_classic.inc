@@ -71,6 +71,19 @@ function ParseVRMLFile(const FileName: string;
   AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode; overload;
 
+{ Write VRML file with given root Node.
+  This includes writing VRML header '#VRML ...'.
+
+  @param(PrecedingComment
+    If PrecedingComment <> '' then we will write a comment
+    '# '+ PrecedingComment at the beginning. This is for you
+    to optionally put name of the generator program or source filename
+    or time/date of generation etc.) }
+procedure SaveToVRMLFile(Node: TVRMLNode;
+  Stream: TStream; const PrecedingComment: string); overload;
+procedure SaveToVRMLFile(Node: TVRMLNode;
+  const Filename, PrecedingComment: string); overload;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -638,6 +651,116 @@ begin
   try
     Result := ParseVRMLFile(Stream, WWWBasePath);
   finally FreeAndNil(Stream) end;
+end;
+
+{ saving --------------------------------------------------------------------- }
+
+procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
+  const PrecedingComment: string);
+var
+  SaveProperties: TVRMLSaveToStreamProperties;
+
+  procedure SaveProfile;
+  begin
+    if (Node is TVRMLRootNode_2) and
+       (TVRMLRootNode_2(Node).X3DProfile <> '') then
+      SaveProperties.Writeln('PROFILE ' + TVRMLRootNode_2(Node).X3DProfile + NL) else
+      { Just output some profile, as every X3D file should have this.
+        We actually don't detect for now in any way which profile
+        would be best. }
+      SaveProperties.Writeln('PROFILE Interchange' + NL);
+  end;
+
+  procedure SaveComponents;
+  var
+    I: Integer;
+  begin
+    if Node is TVRMLRootNode_2 then
+      for I := 0 to TVRMLRootNode_2(Node).X3DComponentNames.Count - 1 do
+      begin
+        SaveProperties.Writeln(Format('COMPONENT %s:%d' + NL,
+          [ TVRMLRootNode_2(Node).X3DComponentNames[I],
+            TVRMLRootNode_2(Node).X3DComponentLevels[I] ]));
+      end;
+  end;
+
+  procedure SaveMetas;
+  var
+    I: Integer;
+  begin
+    if Node is TVRMLRootNode_2 then
+      for I := 0 to TVRMLRootNode_2(Node).X3DMetaKeys.Count - 1 do
+      begin
+        SaveProperties.Writeln(Format('META %s %s' + NL,
+          [ StringToVRMLStringToken(TVRMLRootNode_2(Node).X3DMetaKeys[I]),
+            StringToVRMLStringToken(TVRMLRootNode_2(Node).X3DMetaValues[I])]));
+      end;
+  end;
+
+const
+  VRML10Header = '#VRML V1.0 ascii';
+  VRML20Header = '#VRML V2.0 utf8';
+  X3DHeader = '#X3D V%d.%d utf8';
+var
+  VerMajor, VerMinor, SuggestionPriority: Integer;
+  VRMLHeader: string;
+  NodeNames: TVRMLNodeNames;
+begin
+  NodeNames := TVRMLNodeNames.Create(false);
+  SaveProperties := TVRMLSaveToStreamProperties.Create(Stream);
+  try
+    if not Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
+    begin
+      { If nothing is suggested, we use X3D 3.2. Reason:
+        - For now, SuggestedVRMLVersion doesn't check IsClauseNames.
+          But if IsClauseNames is present anywhere, then this must use VRML >= 2.0
+          features ("IS" is keyword only in VRML >= 2.0,
+          it will not be understood in VRML 1.0).
+        - Besides, we should promote newer VRML standard. }
+
+      VerMajor := 3;
+      VerMinor := 2;
+    end;
+
+    if VerMajor <= 1 then
+      VRMLHeader := VRML10Header else
+    if VerMajor = 2 then
+      VRMLHeader := VRML20Header else
+    if VerMajor >= 3 then
+      VRMLHeader := Format(X3DHeader, [VerMajor, VerMinor]);
+
+    SaveProperties.VerMajor := VerMajor;
+    SaveProperties.VerMinor := VerMinor;
+
+    SaveProperties.Writeln(VRMLHeader + NL { yes, one more NL, to look good });
+    if PrecedingComment <> '' then
+      SaveProperties.Writeln('# '+PrecedingComment + NL);
+
+    if VerMajor >= 3 then
+    begin
+      SaveProfile;
+      SaveComponents;
+      SaveMetas;
+    end;
+
+    { Node may be TVRMLRootNode_* here, that's OK,
+      TVRMLRootNode_*.SaveToStream will magically handle this right. }
+    Node.SaveToStream(SaveProperties, NodeNames);
+  finally
+    FreeAndNil(SaveProperties);
+    FreeAndNil(NodeNames);
+  end;
+end;
+
+procedure SaveToVRMLFile(Node: TVRMLNode;
+  const Filename, PrecedingComment: string);
+var
+  Stream: TFileStream;
+begin
+  Stream := TFileStream.Create(Filename, fmCreate);
+  try
+    SaveToVRMLFile(Node, Stream, PrecedingComment);
+  finally Stream.Free end;
 end;
 
 {$endif read_implementation}
