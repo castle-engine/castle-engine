@@ -44,33 +44,24 @@ type
 
 function LoadX3DXmlAsVRML(const FileName: string;
   Gzipped: boolean; PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
-var
-  WWWBasePath: string;
-
-  { X3D version numbers. }
-  VRMLVerMajor: Integer;
-  VRMLVerMinor: Integer;
-
-  { TODO: each USE must occur after it's DEF,
-    does X3D XML encoding guarantee this? }
-  Names: TVRMLNames;
 
 const
   SAttrContainerField = 'containerField';
   SAttrDEF = 'DEF';
 
   function ParseXMLNode(Element: TDOMElement;
-    out ContainerField: string;
+    out ContainerField: string; Names: TVRMLNames;
     NilIfUnresolvedUSE: boolean): TVRMLNode; forward;
   function ParseVRMLStatements(Element: TDOMElement;
     ParseX3DHeader: boolean;
-    X3DHeaderElement: TDOMElement): TVRMLNode; forward;
-  procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement); forward;
+    X3DHeaderElement: TDOMElement; Names: TVRMLNames): TVRMLNode; forward;
+  procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement;
+    Names: TVRMLNames); forward;
   procedure ParseExternalPrototype(Proto: TVRMLExternalPrototype;
-    Element: TDOMElement); forward;
+    Element: TDOMElement; Names: TVRMLNames); forward;
   procedure ParseInterfaceDeclaration(
     I: TVRMLInterfaceDeclaration; Element: TDOMElement;
-    FieldValue: boolean); forward;
+    FieldValue: boolean; Names: TVRMLNames); forward;
 
   { Checks is Element a correct <connect> element, extracting
     nodeField and protoField value. Returns @true if all Ok, otherwise
@@ -102,7 +93,8 @@ const
   end;
 
   { Look only inside Element children, to read SFNode / MFNode field value. }
-  procedure ParseFieldValueFromElement(Field: TVRMLField; Element: TDOMElement);
+  procedure ParseFieldValueFromElement(Field: TVRMLField; Element: TDOMElement;
+    Names: TVRMLNames);
   var
     Child: TVRMLNode;
     SF: TSFNode;
@@ -115,7 +107,7 @@ const
       while I.GetNext do
       begin
         Child := ParseXMLNode(I.Current,
-          ContainerFieldDummy { ignore containerField }, true);
+          ContainerFieldDummy { ignore containerField }, Names, true);
         if Child <> nil then
         begin
           if Field is TSFNode then
@@ -168,7 +160,7 @@ const
     This is roughly equivalent to TVRMLNode.Parse in classic VRML encoding
     parser. }
   procedure ParseNodeBody(Node: TVRMLNode;
-    Element: TDOMElement);
+    Element: TDOMElement; Names: TVRMLNames);
   var
     PositionInParent: Integer;
 
@@ -251,20 +243,20 @@ const
             Proto := TVRMLPrototype.Create;
             Proto.PositionInParent := PositionInParent;
             Node.Prototypes.Add(Proto);
-            ParsePrototype(Proto, I.Current);
+            ParsePrototype(Proto, I.Current, Names);
           end else
           if I.Current.TagName = 'ExternProtoDeclare' then
           begin
             ExternProto := TVRMLExternalPrototype.Create;
             ExternProto.PositionInParent := PositionInParent;
             Node.Prototypes.Add(ExternProto);
-            ParseExternalPrototype(ExternProto, I.Current);
+            ParseExternalPrototype(ExternProto, I.Current, Names);
           end else
           if I.Current.TagName = 'field' then
           begin
             IDecl := TVRMLInterfaceDeclaration.Create(Node);
             try
-              ParseInterfaceDeclaration(IDecl, I.Current, true);
+              ParseInterfaceDeclaration(IDecl, I.Current, true, Names);
               IDecl.PositionInParent := PositionInParent;
               if IDecl.AccessType in Node.HasInterfaceDeclarations then
               begin
@@ -281,7 +273,7 @@ const
             end;
           end else
           begin
-            Child := ParseXMLNode(I.Current, ContainerField, true);
+            Child := ParseXMLNode(I.Current, ContainerField, Names, true);
             if Child <> nil then
             begin
               Child.PositionInParent := PositionInParent;
@@ -412,7 +404,7 @@ const
       be better.)
   *)
   function ParseXMLNode(Element: TDOMElement;
-    out ContainerField: string;
+    out ContainerField: string; Names: TVRMLNames;
     NilIfUnresolvedUSE: boolean): TVRMLNode;
 
     procedure ParseNamedNode(const NodeName: string);
@@ -440,8 +432,8 @@ const
 
         if (Proto is TVRMLExternalPrototype) and
            (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
-          Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, WWWBasePath) else
-          Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, WWWBasePath, Proto);
+          Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
+          Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
 
         { parse field values from <fieldValue> elements }
         ProtoIter := TXMLElementIterator.Create(Element);
@@ -467,7 +459,7 @@ const
 
               if DOMGetAttribute(ProtoIter.Current, 'value', FieldActualValue) then
                 Result.Fields[FieldIndex].ParseXMLAttribute(FieldActualValue, Names) else
-                ParseFieldValueFromElement(Result.Fields[FieldIndex], ProtoIter.Current);
+                ParseFieldValueFromElement(Result.Fields[FieldIndex], ProtoIter.Current, Names);
 
               Result.Fields[FieldIndex].PositionInParent := PositionInParent;
             end else
@@ -497,14 +489,14 @@ const
       end else
       begin
         NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName,
-          VRMLVerMajor, VRMLVerMinor);
+          Names.VRMLVerMajor, Names.VRMLVerMinor);
         if NodeClass <> nil then
         begin
-          Result := NodeClass.Create(NodeName, WWWBasePath);
-          ParseNodeBody(Result, Element);
+          Result := NodeClass.Create(NodeName, Names.WWWBasePath);
+          ParseNodeBody(Result, Element, Names);
         end else
         begin
-          Result := TVRMLUnknownNode.CreateUnknown(NodeName, WWWBasePath, NodeTypeName);
+          Result := TVRMLUnknownNode.CreateUnknown(NodeName, Names.WWWBasePath, NodeTypeName);
 
           { In classic VRML parser, we had special TVRMLUnknownNode.Parse
             that performed the "magic" trick of
@@ -589,7 +581,7 @@ const
     InterfaceDeclarations. So ParseISStatement handles this. }
   procedure ParseInterfaceDeclaration(
     I: TVRMLInterfaceDeclaration; Element: TDOMElement;
-    FieldValue: boolean);
+    FieldValue: boolean; Names: TVRMLNames);
   var
     AccessType: TVRMLAccessType;
     AccessTypeIndex: Integer;
@@ -648,7 +640,7 @@ const
       begin
         if DOMGetAttribute(Element, 'value', FieldActualValue) then
           I.Field.ParseXMLAttribute(FieldActualValue, Names) else
-          ParseFieldValueFromElement(I.Field, Element);
+          ParseFieldValueFromElement(I.Field, Element, Names);
       end;
 
       { Classic VRML parser has here
@@ -664,7 +656,7 @@ const
     in classic VRML parser. }
   procedure ParseInterfaceDeclarations(
     Proto: TVRMLPrototypeBase;
-    Element: TDOMElement; ExternalProto: boolean);
+    Element: TDOMElement; ExternalProto: boolean; Names: TVRMLNames);
   var
     I: TVRMLInterfaceDeclaration;
     Iter: TXMLElementIterator;
@@ -677,7 +669,7 @@ const
         begin
           I := TVRMLInterfaceDeclaration.Create(nil);
           Proto.InterfaceDeclarations.Add(I);
-          ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto);
+          ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto, Names);
         end else
           VRMLWarning(vwSerious, 'X3D XML: only <field> elements expected in prototype interface');
       end;
@@ -685,13 +677,14 @@ const
   end;
 
   { Equivalent to TVRMLPrototype.Parse }
-  procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement);
+  procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement;
+    Names: TVRMLNames);
   var
     OldNames: TVRMLNames;
     Name: string;
     E: TDOMElement;
   begin
-    Proto.WWWBasePath := WWWBasePath;
+    Proto.WWWBasePath := Names.WWWBasePath;
 
     if DOMGetAttribute(Element, 'name', Name) then
       Proto.Name := Name else
@@ -699,7 +692,7 @@ const
 
     E := DOMGetChildElement(Element, 'ProtoInterface', false);
     if E <> nil then
-      ParseInterfaceDeclarations(Proto, E, false);
+      ParseInterfaceDeclarations(Proto, E, false, Names);
 
     E := DOMGetChildElement(Element, 'ProtoBody', false);
     if E = nil then
@@ -716,10 +709,11 @@ const
       are available inside, but nested prototypes inside are not
       available outside. }
     OldNames := Names;
-    Names := TVRMLNames.Create(true, WWWBasePath, VRMLVerMajor, VRMLVerMinor);
+    Names := TVRMLNames.Create(true,
+      OldNames.WWWBasePath, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
     try
       Names.Prototypes.Assign(OldNames.Prototypes);
-      Proto.Node := ParseVRMLStatements(E, false, nil);
+      Proto.Node := ParseVRMLStatements(E, false, nil, Names);
     finally
       FreeAndNil(Names);
       Names := OldNames;
@@ -730,17 +724,17 @@ const
 
   { Equivalent to TVRMLExternalPrototype.Parse }
   procedure ParseExternalPrototype(Proto: TVRMLExternalPrototype;
-    Element: TDOMElement);
+    Element: TDOMElement; Names: TVRMLNames);
   var
     Name, URLListValue: string;
   begin
-    Proto.WWWBasePath := WWWBasePath;
+    Proto.WWWBasePath := Names.WWWBasePath;
 
     if DOMGetAttribute(Element, 'name', Name) then
       Proto.Name := Name else
       raise EX3DXmlError.Create('Missing "name" for <ExternProtoDeclare> element');
 
-    ParseInterfaceDeclarations(Proto, Element, true);
+    ParseInterfaceDeclarations(Proto, Element, true, Names);
 
     if DOMGetAttribute(Element, 'url', URLListValue) then
       Proto.URLList.ParseXMLAttribute(URLListValue, Names) else
@@ -764,17 +758,17 @@ const
     returns everything read wrapped in artifical TVRMLRootNode_2 instance. }
   function ParseVRMLStatements(Element: TDOMElement;
     ParseX3DHeader: boolean;
-    X3DHeaderElement: TDOMElement): TVRMLNode;
+    X3DHeaderElement: TDOMElement; Names: TVRMLNames): TVRMLNode;
   var
     PositionInParent: Integer;
 
     { Create root group node. }
     function CreateRootNode: TVRMLNode;
     begin
-      Result := TVRMLRootNode_2.Create('', WWWBasePath);
+      Result := TVRMLRootNode_2.Create('', Names.WWWBasePath);
       TVRMLRootNode_2(Result).ForceVersion := true;
-      TVRMLRootNode_2(Result).ForceVersionMajor := VRMLVerMajor;
-      TVRMLRootNode_2(Result).ForceVersionMinor := VRMLVerMinor;
+      TVRMLRootNode_2(Result).ForceVersionMajor := Names.VRMLVerMajor;
+      TVRMLRootNode_2(Result).ForceVersionMinor := Names.VRMLVerMinor;
     end;
 
     procedure ParseProfile;
@@ -850,8 +844,8 @@ const
         Result.Prototypes.Add(Proto);
 
         if Proto is TVRMLPrototype then
-          ParsePrototype(Proto as TVRMLPrototype, Element) else
-          ParseExternalPrototype(Proto as TVRMLExternalPrototype, Element);
+          ParsePrototype(Proto as TVRMLPrototype, Element, Names) else
+          ParseExternalPrototype(Proto as TVRMLExternalPrototype, Element, Names);
       end;
 
       procedure ParseRouteStatement;
@@ -889,7 +883,7 @@ const
         NewNode: TVRMLNode;
         ContainerFieldDummy: string;
       begin
-        NewNode := ParseXMLNode(Element, ContainerFieldDummy, false);
+        NewNode := ParseXMLNode(Element, ContainerFieldDummy, Names, false);
         NewNode.PositionInParent := PositionInParent;
         Result.SmartAddChild(NewNode);
       end;
@@ -934,11 +928,15 @@ const
 var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
-
+  Version: string;
+  WWWBasePath: string;
+  VRMLVerMajor: Integer;
+  VRMLVerMinor: Integer;
   { Eventually used to decompress gzip file. }
   Stream: TStream;
-
-  Version: string;
+  { TODO: each USE must occur after it's DEF,
+    does X3D XML encoding guarantee this? }
+  Names: TVRMLNames;
 begin
   WWWBasePath := ExtractFilePath(ExpandFileName(FileName));
 
@@ -978,7 +976,7 @@ begin
       { X3D XML requires AutoRemove = true below }
       Names := TVRMLNames.Create(true, WWWBasePath, VRMLVerMajor, VRMLVerMinor);
       try
-        Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement);
+        Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement, Names);
 
         if PrototypeNames <> nil then
           PrototypeNames.Assign(Names.Prototypes);
