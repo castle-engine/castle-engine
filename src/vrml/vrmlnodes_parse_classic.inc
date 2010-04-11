@@ -164,18 +164,18 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
     begin
       if (Proto is TVRMLExternalPrototype) and
          (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
-        Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, '') else
-        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, '', Proto);
+        Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
+        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
     end else
     begin
       NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName,
         Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
       if NodeClass <> nil then
       begin
-        Result := NodeClass.Create(nodename, '');
+        Result := NodeClass.Create(nodename, Names.WWWBasePath);
       end else
       begin
-        Result := TVRMLUnknownNode.CreateUnknown(nodename, '', NodeTypeName);
+        Result := TVRMLUnknownNode.CreateUnknown(nodename, Names.WWWBasePath, NodeTypeName);
       end;
     end;
 

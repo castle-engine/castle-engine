@@ -1182,6 +1182,9 @@ type
       feature). }
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); virtual;
 
+    { Parse node body, i.e. mainly node's fields. }
+    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
+
     { Konstruktor. Inicjuje wszystko (jak to konstruktor), w szczegolnosci :
       @unorderedList(
         @item(inicjuje NodeName, WWWBasePath na podstawie podanych tu parametrow)
@@ -4693,6 +4696,223 @@ begin
     ExportItem.Parse(Lexer, Names);
     ExportItem.PositionInParent := APositionInParent;
   end;
+end;
+
+procedure TVRMLNode.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+var
+  Position: Integer;
+
+  procedure ParseXMLAttributes;
+  var
+    Attr: TDOMAttr;
+    AttrNode: TDOMNode;
+    AttrIndex, Index: Integer;
+  begin
+    { enumerate over all attributes }
+    for AttrIndex := 0 to Element.Attributes.Length - 1 do
+    begin
+      AttrNode := Element.Attributes[AttrIndex];
+      Assert(AttrNode.NodeType = ATTRIBUTE_NODE);
+      Attr := AttrNode as TDOMAttr;
+
+      { containerField and DEF attributes are handled in ParseNode,
+        we can safely ignore them now. }
+      if (Attr.Name = SAttrContainerField) or
+         (Attr.Name = SAttrDEF) then
+        Continue;
+
+      Index := Fields.IndexOf(Attr.Name);
+      if Index >= 0 then
+      begin
+        Fields[Index].ParseXMLAttribute(Attr.Value, Names);
+        Fields[Index].PositionInParent := Position;
+        Inc(Position);
+      end else
+        VRMLWarning(vwSerious, 'Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.Name + '" in node "' + NodeTypeName + '"');
+    end;
+  end;
+
+  procedure ParseXMLChildrenNodes;
+  var
+    FieldIndex: Integer;
+    Child: TVRMLNode;
+    ContainerField: string;
+    SF: TSFNode;
+    MF: TMFNode;
+    Route: TVRMLRoute;
+    I: TXMLElementIterator;
+    Proto: TVRMLPrototype;
+    ExternProto: TVRMLExternalPrototype;
+    IDecl: TVRMLInterfaceDeclaration;
+    Import: TVRMLImport;
+    ExportItem: TVRMLExport;
+  begin
+    I := TXMLElementIterator.Create(Element);
+    try
+      while I.GetNext do
+      begin
+        if I.Current.TagName = 'ROUTE' then
+        begin
+          Route := TVRMLRoute.Create;
+          Route.PositionInParent := Position;
+          Routes.Add(Route);
+          Route.ParseXML(I.Current, Names);
+        end else
+        if I.Current.TagName = 'IS' then
+        begin
+          ParseISStatement(Self, I.Current, Position);
+        end else
+        if I.Current.TagName = 'IMPORT' then
+        begin
+          Import := TVRMLImport.Create;
+          Import.PositionInParent := Position;
+          ImportsList.Add(Import);
+          Import.ParseXML(I.Current, Names);
+        end else
+        if I.Current.TagName = 'EXPORT' then
+        begin
+          ExportItem := TVRMLExport.Create;
+          ExportItem.PositionInParent := Position;
+          ExportsList.Add(ExportItem);
+          ExportItem.ParseXML(I.Current, Names);
+        end else
+        if I.Current.TagName = 'ProtoDeclare' then
+        begin
+          Proto := TVRMLPrototype.Create;
+          Proto.PositionInParent := Position;
+          Prototypes.Add(Proto);
+          Proto.ParseXML(I.Current, Names);
+        end else
+        if I.Current.TagName = 'ExternProtoDeclare' then
+        begin
+          ExternProto := TVRMLExternalPrototype.Create;
+          ExternProto.PositionInParent := Position;
+          Prototypes.Add(ExternProto);
+          ExternProto.ParseXML(I.Current, Names);
+        end else
+        if I.Current.TagName = 'field' then
+        begin
+          IDecl := TVRMLInterfaceDeclaration.Create(Self);
+          try
+            IDecl.ParseXML(I.Current, Names, true);
+            IDecl.PositionInParent := Position;
+            if IDecl.AccessType in HasInterfaceDeclarations then
+            begin
+              InterfaceDeclarations.Add(IDecl);
+              PostAddInterfaceDeclaration(IDecl);
+            end else
+            begin
+              FreeAndNil(IDecl);
+              VRMLWarning(vwSerious, 'X3D XML: specified <field> inside node, but this node doesn''t allow interface declaration with such accessType');
+            end;
+          except
+            FreeAndNil(IDecl);
+            raise;
+          end;
+        end else
+        begin
+          Child := ParseXMLNode(I.Current, ContainerField, Names, true);
+          if Child <> nil then
+          begin
+            Child.PositionInParent := Position;
+            FieldIndex := Fields.IndexOf(ContainerField);
+
+            if (FieldIndex = -1) and
+               (ContainerField <> Child.DefaultContainerField) and
+               (Child.DefaultContainerField <> '') then
+            begin
+              { Retry with DefaultContainerField value, since it exists
+                and is different than current ContainerField. }
+              FieldIndex := Fields.IndexOf(Child.DefaultContainerField);
+              if FieldIndex >= 0 then
+                VRMLWarning(vwSerious, 'X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + NodeTypeName + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeded');
+            end;
+
+            if FieldIndex >= 0 then
+            begin
+              if Fields[FieldIndex] is TSFNode then
+              begin
+                SF := Fields[FieldIndex] as TSFNode;
+                { Although field doesn't have a set position in XML X3D
+                  encoding, when saving later in classic encoding we
+                  need some order of fields. This is yet another problem
+                  with non-unique names, something defined in XML X3D
+                  may be not possible to save in other encoding:
+
+                  <Group>
+                    <Shape> ... <Appearance DEF="XXX" ....> </Shape>
+                    <ROUTE ... using "XXX" name ...>
+                    <Shape> ... <Appearance DEF="XXX" ....> </Shape>
+                    <ROUTE ... using "XXX" name ...>
+                  </Group>
+
+                  This is uneasy to save in classic encoding, since
+                  you cannot insert ROUTE in the middle of "children"
+                  field of Group node in classic encoding.
+                }
+                Fields[FieldIndex].PositionInParent := Position;
+                SF.Value := Child;
+                SF.WarningIfChildNotAllowed(Child);
+              end else
+              if Fields[FieldIndex] is TMFNode then
+              begin
+                MF := Fields[FieldIndex] as TMFNode;
+                Fields[FieldIndex].PositionInParent := Position;
+                MF.AddItem(Child);
+                MF.WarningIfChildNotAllowed(Child);
+              end else
+              begin
+                Child.FreeIfUnused;
+                Child := nil;
+                VRMLWarning(vwSerious, 'X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
+              end;
+            end else
+            begin
+              try
+                VRMLWarning(vwSerious, 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + NodeTypeName + '"');
+              finally
+                Child.FreeIfUnused;
+                Child := nil;
+              end;
+            end;
+          end;
+        end;
+        Inc(Position);
+      end;
+    finally FreeAndNil(I) end;
+  end;
+
+  procedure ParseXMLCdata;
+  var
+    I: TXMLCDataIterator;
+  begin
+    CDataExists := false;
+    CData := '';
+
+    I := TXMLCDataIterator.Create(Element);
+    try
+      if I.GetNext then
+      begin
+        CDataExists := true;
+        if not CDataAllowed then
+          VRMLWarning(vwSerious, Format('VRML / X3D node %s doesn''t allow CDATA section, but it''s specified',
+            [NodeTypeName]));
+        { append all CData sections to CData }
+        repeat
+          CData := CData + I.Current;
+        until not I.GetNext;
+      end;
+    finally FreeAndNil(I) end;
+  end;
+
+begin
+  Position := 0;
+  { The order below is important: first parse XML attributes,
+    then elements, since VRML DEF mechanism says that DEF order
+    is significant. }
+  ParseXMLAttributes;
+  ParseXMLChildrenNodes;
+  ParseXMLCdata;
 end;
 
 type
