@@ -59,7 +59,7 @@ const
   SAttrContainerField = 'containerField';
   SAttrDEF = 'DEF';
 
-  function ParseNode(Element: TDOMElement;
+  function ParseXMLNode(Element: TDOMElement;
     out ContainerField: string;
     NilIfUnresolvedUSE: boolean): TVRMLNode; forward;
   function ParseVRMLStatements(Element: TDOMElement;
@@ -114,7 +114,7 @@ const
     try
       while I.GetNext do
       begin
-        Child := ParseNode(I.Current,
+        Child := ParseXMLNode(I.Current,
           ContainerFieldDummy { ignore containerField }, true);
         if Child <> nil then
         begin
@@ -281,7 +281,7 @@ const
             end;
           end else
           begin
-            Child := ParseNode(I.Current, ContainerField, true);
+            Child := ParseXMLNode(I.Current, ContainerField, true);
             if Child <> nil then
             begin
               Child.PositionInParent := PositionInParent;
@@ -411,8 +411,7 @@ const
       unknown field / proto etc. name, so error message for the user should
       be better.)
   *)
-
-  function ParseNode(Element: TDOMElement;
+  function ParseXMLNode(Element: TDOMElement;
     out ContainerField: string;
     NilIfUnresolvedUSE: boolean): TVRMLNode;
 
@@ -890,7 +889,7 @@ const
         NewNode: TVRMLNode;
         ContainerFieldDummy: string;
       begin
-        NewNode := ParseNode(Element, ContainerFieldDummy, false);
+        NewNode := ParseXMLNode(Element, ContainerFieldDummy, false);
         NewNode.PositionInParent := PositionInParent;
         Result.SmartAddChild(NewNode);
       end;
