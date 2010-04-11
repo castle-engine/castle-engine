@@ -75,46 +75,6 @@ begin
   Result := true;
 end;
 
-{ Look only inside Element children, to read SFNode / MFNode field value. }
-procedure ParseFieldValueFromElement(Field: TVRMLField; Element: TDOMElement;
-  Names: TVRMLNames);
-var
-  Child: TVRMLNode;
-  SF: TSFNode;
-  MF: TMFNode;
-  I: TXMLElementIterator;
-  ContainerFieldDummy: string;
-begin
-  I := TXMLElementIterator.Create(Element);
-  try
-    while I.GetNext do
-    begin
-      Child := ParseXMLNode(I.Current,
-        ContainerFieldDummy { ignore containerField }, Names, true);
-      if Child <> nil then
-      begin
-        if Field is TSFNode then
-        begin
-          SF := Field as TSFNode;
-          SF.Value := Child;
-          SF.WarningIfChildNotAllowed(Child);
-        end else
-        if Field is TMFNode then
-        begin
-          MF := Field as TMFNode;
-          MF.AddItem(Child);
-          MF.WarningIfChildNotAllowed(Child);
-        end else
-        begin
-          Child.FreeIfUnused;
-          Child := nil;
-          VRMLWarning(vwSerious, 'X3D field "' + Field.Name + '" is not SFNode or MFNode, but a node value (XML element) is specified');
-        end;
-      end;
-    end;
-  finally FreeAndNil(I) end;
-end;
-
 procedure ParseISStatement(Node: TVRMLNode; ISElement: TDOMElement;
   var PositionInParent: Integer);
 var
@@ -221,7 +181,7 @@ function ParseXMLNode(Element: TDOMElement;
 
             if DOMGetAttribute(ProtoIter.Current, 'value', FieldActualValue) then
               Result.Fields[FieldIndex].ParseXMLAttribute(FieldActualValue, Names) else
-              ParseFieldValueFromElement(Result.Fields[FieldIndex], ProtoIter.Current, Names);
+              Result.Fields[FieldIndex].ParseXMLElement(ProtoIter.Current, Names);
 
             Result.Fields[FieldIndex].PositionInParent := PositionInParent;
           end else

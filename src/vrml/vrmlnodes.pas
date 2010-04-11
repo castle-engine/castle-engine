@@ -1975,6 +1975,7 @@ type
     property Value: TVRMLNode read FValue write SetValue;
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
+    procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2104,6 +2105,7 @@ type
 
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
+    procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -6121,6 +6123,31 @@ begin
   end;
 end;
 
+procedure TSFNode.ParseXMLElement(Element: TDOMElement; Names: TObject);
+var
+  Child: TVRMLNode;
+  I: TXMLElementIterator;
+  ContainerFieldDummy: string;
+begin
+  I := TXMLElementIterator.Create(Element);
+  try
+    if I.GetNext then
+    begin
+      Child := ParseXMLNode(I.Current,
+        ContainerFieldDummy { ignore containerField }, Names as TVRMLNames, true);
+      if Child <> nil then
+      begin
+        Value := Child;
+        WarningIfChildNotAllowed(Child);
+      end;
+
+      if I.GetNext then
+        VRMLWarning(vwSerious, Format('X3D field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
+          [Name, I.Current.TagName]));
+    end;
+  finally FreeAndNil(I) end;
+end;
+
 procedure TSFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject);
 begin
@@ -6466,6 +6493,27 @@ begin
     AddItem(Node);
     WarningIfChildNotAllowed(Node);
   end;
+end;
+
+procedure TMFNode.ParseXMLElement(Element: TDOMElement; Names: TObject);
+var
+  Child: TVRMLNode;
+  I: TXMLElementIterator;
+  ContainerFieldDummy: string;
+begin
+  I := TXMLElementIterator.Create(Element);
+  try
+    while I.GetNext do
+    begin
+      Child := ParseXMLNode(I.Current,
+        ContainerFieldDummy { ignore containerField }, Names as TVRMLNames, true);
+      if Child <> nil then
+      begin
+        AddItem(Child);
+        WarningIfChildNotAllowed(Child);
+      end;
+    end;
+  finally FreeAndNil(I) end;
 end;
 
 function TMFNode.EqualsDefaultValue: boolean;
@@ -6855,7 +6903,7 @@ begin
     begin
       if DOMGetAttribute(Element, 'value', FieldActualValue) then
         Field.ParseXMLAttribute(FieldActualValue, Names) else
-        ParseFieldValueFromElement(Field, Element, Names);
+        Field.ParseXMLElement(Element, Names);
     end;
 
     { Classic VRML parser has here

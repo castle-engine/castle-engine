@@ -20,7 +20,7 @@ unit VRMLFields;
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  Images, KambiStringUtils, KambiInterfaces, VRMLTime;
+  Images, KambiStringUtils, KambiInterfaces, VRMLTime, DOM;
 
 {$define read_interface}
 
@@ -382,6 +382,12 @@ type
       Implementation in this class creates a Lexer to parse the string,
       and calls ParseXMLAttributeLexer. }
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); virtual;
+
+    { Parse field's value from XML Element children.
+      This is used to read SFNode / MFNode field value inside <field>
+      (for interface declaration default field value) and <fieldValue>
+      inside <ProtoInstance>. }
+    procedure ParseXMLElement(Element: TDOMElement; Names: TObject); virtual;
 
     { Save the field to the stream.
       If the current field value equals default value and
@@ -2061,7 +2067,7 @@ procedure DecodeImageColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 
 implementation
 
-uses Math, VRMLErrors, VRMLNodes;
+uses Math, VRMLErrors, VRMLNodes, KambiXMLUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -2465,6 +2471,18 @@ begin
         VRMLWarning(vwSerious, 'Error when parsing field "' + Name + '" value: ' + E.Message);
     end;
   finally FreeAndNil(Lexer) end;
+end;
+
+procedure TVRMLField.ParseXMLElement(Element: TDOMElement; Names: TObject);
+var
+  I: TXMLElementIterator;
+begin
+  I := TXMLElementIterator.Create(Element);
+  try
+    if I.GetNext then
+      VRMLWarning(vwSerious, Format('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',
+        [Name, I.Current.TagName]));
+  finally FreeAndNil(I) end;
 end;
 
 procedure TVRMLField.VRMLFieldAssignCommon(Source: TVRMLField);
