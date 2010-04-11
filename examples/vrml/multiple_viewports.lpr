@@ -234,7 +234,7 @@ var
 begin
   NewFileName := FileName;
   if Window.FileDialog('Open 3D file', NewFileName, true,
-    LoadAsVRML_FileFilters) then
+    LoadVRML_FileFilters) then
   begin
     try
       Scene.Load(NewFileName);

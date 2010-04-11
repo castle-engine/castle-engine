@@ -346,7 +346,7 @@ var
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveToVRMLFile(Node, Stream, PrecedingComment);
+    SaveVRMLClassic(Node, Stream, PrecedingComment);
     WritelnStr(Stream, SceneSuffix);
   finally Stream.Free end;
 end;

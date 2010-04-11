@@ -1183,7 +1183,7 @@ begin
       begin
         S := ExtractFilePath(VrmlFileName);
         if Glwin.FileDialog('Open VRML model', S, true,
-          LoadAsVRML_FileFilters) then
+          LoadVRML_FileFilters) then
         begin
           LoadScene(S);
           VrmlFileName := S;

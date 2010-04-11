@@ -509,7 +509,7 @@ begin
       begin
         S := ExtractFilePath(SceneFileName);
         if Glwin.FileDialog('Open 3d model (VRML etc.) file', S, true,
-          LoadAsVRML_FileFilters) then
+          LoadVRML_FileFilters) then
         begin
           SceneForShadow.BeforeNodesFree; { loading Scene will free also SceneForShadow.RootNode }
 
@@ -595,9 +595,9 @@ begin
 
   { calculate RootNode }
   if SceneFileName <> '' then
-    RootNode := LoadAsVRML(SceneFileName, true) else
+    RootNode := LoadVRML(SceneFileName, true) else
     { use box, just to show anything }
-    RootNode := ParseVRMLFileFromString('#VRML V1.0 ascii' + LineEnding +  'Cube { }', '');
+    RootNode := LoadVRMLClassicFromString('#VRML V1.0 ascii' + LineEnding +  'Cube { }', '');
 
   Scene := TVRMLGLScene.Create(nil);
   try

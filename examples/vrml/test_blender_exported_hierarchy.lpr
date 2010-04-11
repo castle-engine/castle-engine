@@ -49,7 +49,7 @@ var
     allow class procedures to be passed directly as method pointers. }
   Dummy: TDummy = nil;
 begin
-  Node := ParseVRMLFile(Parameters[1], true);
+  Node := LoadVRMLClassic(Parameters[1], true);
   try
     Node.TraverseBlenderObjects(@Dummy.Traverse);
   finally FreeAndNil(Node) end;

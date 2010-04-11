@@ -575,7 +575,7 @@ begin
         NodeMatrix := TNodeMatrixTransform_1.Create('ShadowCasterNav_Matrix', '');
         try
           NodeMatrix.FdMatrix.Value := ShadowCasterNav.Matrix;
-          SavetoVRMLFile(NodeMatrix, StdOutStream, '');
+          SaveVRMLClassic(NodeMatrix, StdOutStream, '');
         finally NodeMatrix.Free end;
       end;
     30:
@@ -681,7 +681,7 @@ begin
     { init vrml-related objects }
     VRMLWarning := @VRMLWarning_Write;
     LightSet := TVRMLLightSetGL.Create(
-      ParseVRMLFile(LightSetVrmlName, false), true, 0, -1);
+      LoadVRMLClassic(LightSetVrmlName, false), true, 0, -1);
     Scene := TVRMLGLScene.Create(nil);
     Scene.Load(SceneVrmlName);
     Scene.Optimization := roSceneAsAWhole;

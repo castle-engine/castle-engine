@@ -48,7 +48,7 @@ var
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveToVRMLFile(Node, Stream, '');
+    SaveVRMLClassic(Node, Stream, '');
     WritelnStr(Stream, StringReplace(SceneSuffix, '$(CoordinateNodeName)',
       CoordinateNodeName, [rfReplaceAll, rfIgnoreCase]));
   finally Stream.Free end;
