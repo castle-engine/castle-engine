@@ -62,7 +62,6 @@ var
 const
   SAttrContainerField = 'containerField';
   SAttrDEF = 'DEF';
-  SNull = 'NULL';
 
   function ParseNode(Element: TDOMElement;
     out ContainerField: string;
