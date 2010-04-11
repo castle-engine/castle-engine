@@ -90,6 +90,15 @@
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
     FEventsProcessor: TVRMLEventsProcessor;
+
+    { Internally used by PROTO instantiating mechanism,
+      in TVRMLPrototypeNode.InstantiateIsClauses
+      and TVRMLPrototypeNode.Instantiate.
+
+      This is always @false outside of TVRMLPrototypeNode.Instantiate
+      implementation (as TVRMLPrototypeNode.Instantiate sets it to @true
+      and changes back to @false for appropriate nodes). }
+    NeedsInstantiateIsClause: boolean;
   protected
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }

@@ -1327,6 +1327,8 @@ type
   private
     FPrototype: TVRMLPrototypeBase;
 
+    procedure PrepareInstantiateIsClause(Node, Child: TVRMLNode);
+
     (*This searches Node for fields/events with "IS" clauses, and handles them:
       for fields, this means copying field value from Self to Child
       (and setting ValueFromIsClause).
@@ -1334,7 +1336,7 @@ type
       from/to Self to/from Child.
 
       Handled IS clauses are removed (to not be seen by next calls
-      of InstantiateHandleIsClauses on the same node, or on it's copy,
+      of InstantiateIsClauses on the same node, or on it's copy,
       see below).
 
       It also descends recursively into all children nodes.
@@ -1362,7 +1364,7 @@ type
       "IS againstring". Which means that when expanding PressedText,
       we have to process everything again, to eventually fill "againstring"
       value. *)
-    procedure InstantiateHandleIsClauses(Node, Child: TVRMLNode);
+    procedure InstantiateIsClauses(Node, Child: TVRMLNode);
 
     { Handle "IS" clause on Destination field/event, by copying it's value
       from Source.
@@ -3776,7 +3778,7 @@ begin
   end;
 end;
 
-procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
+procedure TVRMLPrototypeNode.InstantiateIsClauses(
   Node, Child: TVRMLNode);
 
   { In terminology of VRML/X3D specs,
@@ -3935,13 +3937,45 @@ procedure TVRMLPrototypeNode.InstantiateHandleIsClauses(
 var
   I: Integer;
 begin
+  { The NeedsInstantiateIsClause flag is needed for InstantiateIsClauses.
+     By checking this flag (and setting back to @false after handling):
+
+     1. We ensure that every node is expanded only once (otherwise,
+        in case of funny DEF/USE usage, we could process the same node twice
+        by InstantiateIsClauses).
+
+     2. We avoid instantiating "IS" clauses in nodes outside the NodeCopy.
+        Such nodes with "IS" clauses may be added by InstantiateIsClauses,
+        when our own PROTO has fields with SFNode / MFNode type,
+        and they contain "IS" clauses that should be handled by other
+        (outer) proto. See e.g. kambi_vrml_test_suite/vrml_2/proto_nested_expand.wrl
+        testcase.
+
+     (The 2nd point could also be fixed by simply moving recursive call to
+     Child.DirectEnumerateAll(@InstantiateIsClauses) to the beginning,
+     not the end, of InstantiateIsClauses. But this would leave 1st point
+     unfixed.) }
+
+  if not Child.NeedsInstantiateIsClause then Exit;
+  Child.NeedsInstantiateIsClause := false;
+
   for I := 0 to Child.Fields.Count - 1 do
     ExpandField(Child.Fields[I]);
 
   for I := 0 to Child.Events.Count - 1 do
     ExpandEvent(Child.Events[I]);
 
-  Child.DirectEnumerateAll(@InstantiateHandleIsClauses);
+  Child.DirectEnumerateAll(@InstantiateIsClauses);
+end;
+
+procedure TVRMLPrototypeNode.PrepareInstantiateIsClause(
+  Node, Child: TVRMLNode);
+begin
+  if not Child.NeedsInstantiateIsClause then
+  begin
+    Child.NeedsInstantiateIsClause := true;
+    Child.DirectEnumerateAll(@PrepareInstantiateIsClause);
+  end;
 end;
 
 function TVRMLPrototypeNode.Instantiate: TVRMLNode;
@@ -3964,7 +3998,12 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
       (NodeCopy.PrototypeInstanceHelpers = nil));
 
     try
-      InstantiateHandleIsClauses(nil, NodeCopy);
+      { First, set NeedsInstantiateIsClause := true everywhere
+        inside NodeCopy. (We can assume that NeedsInstantiateIsClause
+        was @false everywhere before this.) }
+      PrepareInstantiateIsClause(nil, NodeCopy);
+
+      InstantiateIsClauses(nil, NodeCopy);
     except
       FreeAndNil(NodeCopy);
       raise;
@@ -4055,8 +4094,8 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
       FPrototypeInstanceHelpers := Result.PrototypeInstanceHelpers;
     end;
 
-    { Note: set PrototypeInstance to @true *after* InstantiateHandleIsClauses,
-      otherwise InstantiateHandleIsClauses would not enter this node.
+    { Note: set PrototypeInstance to @true *after* InstantiateIsClauses,
+      otherwise InstantiateIsClauses would not enter this node.
       TODO: bad comment above? }
     Result.FPrototypeInstance := true;
     Result.FPrototypeInstanceSourceNode := Self;
