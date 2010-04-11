@@ -42,10 +42,6 @@ type
   EX3DXmlNotAllowedError = class(EX3DXmlError);
   EX3DXmlUnknownNodeNotAllowed = class(EX3DXmlError);
 
-{ TODO: X3D IMPORT/EXPORT is not handled yet, and it's not even parsed
-  by this unit.
-  See 4.3.12 IMPORT/EXPORT statement syntax. }
-
 function LoadX3DXmlAsVRML(const FileName: string;
   Gzipped: boolean; PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 var
