@@ -35,9 +35,6 @@ type
   EX3DXmlNotAllowedError = class(EX3DXmlError);
   EX3DXmlUnknownNodeNotAllowed = class(EX3DXmlError);
 
-function LoadX3DXmlAsVRML(const FileName: string;
-  Gzipped: boolean; PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
-
 const
   SAttrContainerField = 'containerField';
   SAttrDEF = 'DEF';
@@ -918,6 +915,8 @@ const
     except FreeAndNil(Result); raise end;
   end;
 
+function LoadX3DXmlAsVRML(const FileName: string;
+  Gzipped: boolean; PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
