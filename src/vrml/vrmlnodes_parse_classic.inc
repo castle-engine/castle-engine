@@ -31,25 +31,6 @@ const
   'All files|*|' +
   '*VRML (not compressed) (*.wrl)|*.wrl';
 
-(*
-  Parse VRML node. This parses
-  @preformatted([ DEF <nodename> ] <nodetype> { node-content })
-  or
-  @preformatted(USE <nodename>)
-
-  If we will find USE clause but node name will be unknown, the normal
-  behavior (when NilIfUnresolvedUSE = @false, default) is to raise
-  EVRMLParserError (just like in case of many other errors).
-  However, this is a particular parsing error, because we can probably
-  pretty safely continue parsing, ignoring this error.
-  So if you pass NilIfUnresolvedUSE = @true, this function will do
-  VRMLWarning and simply return @nil.
-
-  @raises(EVRMLParserError On various parsing errors.)
-*)
-function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
-  NilIfUnresolvedUSE: boolean = false): TVRMLNode;
-
 { Parse whole VRML file, return it's root node.
 
   Note that you must pass here TPeekCharStream class, not just any
@@ -130,8 +111,24 @@ begin
   ParseIgnoreToMatchingBracket(Lexer, Names, 0, 1);
 end;
 
+(*
+  Parse VRML node. This parses
+  @preformatted([ DEF <nodename> ] <nodetype> { node-content })
+  or
+  @preformatted(USE <nodename>)
+
+  If we will find USE clause but node name will be unknown, the normal
+  behavior (when NilIfUnresolvedUSE = @false, default) is to raise
+  EVRMLParserError (just like in case of many other errors).
+  However, this is a particular parsing error, because we can probably
+  pretty safely continue parsing, ignoring this error.
+  So if you pass NilIfUnresolvedUSE = @true, this function will do
+  VRMLWarning and simply return @nil.
+
+  @raises(EVRMLParserError On various parsing errors.)
+*)
 function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
-  NilIfUnresolvedUSE: boolean = false): TVRMLNode;
+  NilIfUnresolvedUSE: boolean): TVRMLNode;
 
   procedure ParseNamedNode(const nodename: string);
   var
@@ -453,7 +450,7 @@ var
     var
       NewNode: TVRMLNode;
     begin
-      NewNode := ParseNode(Lexer, Names);
+      NewNode := ParseNode(Lexer, Names, false);
       NewNode.PositionInParent := PositionInParent;
       Result.SmartAddChild(NewNode);
     end;

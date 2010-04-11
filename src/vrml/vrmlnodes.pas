@@ -4485,7 +4485,7 @@ begin
     begin
       if ParsingAllowedChildren then
       begin
-        ChildNode := ParseNode(Lexer, Names);
+        ChildNode := ParseNode(Lexer, Names, false);
         ChildNode.PositionInParent := Position;
         AddChild(ChildNode);
       end else
@@ -6428,7 +6428,7 @@ procedure TMFNode.ParseValue(Lexer: TVRMLLexer; Names: TObject);
   var
     Node: TVRMLNode;
   begin
-    Node := ParseNode(Lexer, Names as TVRMLNames);
+    Node := ParseNode(Lexer, Names as TVRMLNames, false);
     AddItem(Node);
     WarningIfChildNotAllowed(Node);
   end;
