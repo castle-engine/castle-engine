@@ -45,10 +45,6 @@ const
   function ParseVRMLStatements(Element: TDOMElement;
     ParseX3DHeader: boolean;
     X3DHeaderElement: TDOMElement; Names: TVRMLNames): TVRMLNode; forward;
-  procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement;
-    Names: TVRMLNames); forward;
-  procedure ParseExternalPrototype(Proto: TVRMLExternalPrototype;
-    Element: TDOMElement; Names: TVRMLNames); forward;
 
   { Checks is Element a correct <connect> element, extracting
     nodeField and protoField value. Returns @true if all Ok, otherwise
@@ -230,14 +226,14 @@ const
             Proto := TVRMLPrototype.Create;
             Proto.PositionInParent := PositionInParent;
             Node.Prototypes.Add(Proto);
-            ParsePrototype(Proto, I.Current, Names);
+            Proto.ParseXML(I.Current, Names);
           end else
           if I.Current.TagName = 'ExternProtoDeclare' then
           begin
             ExternProto := TVRMLExternalPrototype.Create;
             ExternProto.PositionInParent := PositionInParent;
             Node.Prototypes.Add(ExternProto);
-            ParseExternalPrototype(ExternProto, I.Current, Names);
+            ExternProto.ParseXML(I.Current, Names);
           end else
           if I.Current.TagName = 'field' then
           begin
@@ -555,75 +551,6 @@ const
     except FreeAndNil(Result); raise end;
   end;
 
-  { Equivalent to TVRMLPrototype.Parse }
-  procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement;
-    Names: TVRMLNames);
-  var
-    OldNames: TVRMLNames;
-    Name: string;
-    E: TDOMElement;
-  begin
-    Proto.WWWBasePath := Names.WWWBasePath;
-
-    if DOMGetAttribute(Element, 'name', Name) then
-      Proto.Name := Name else
-      raise EX3DXmlError.Create('Missing "name" for <ProtoDeclare> element');
-
-    E := DOMGetChildElement(Element, 'ProtoInterface', false);
-    if E <> nil then
-      Proto.ParseInterfaceDeclarationsXML(false, E, Names);
-
-    E := DOMGetChildElement(Element, 'ProtoBody', false);
-    if E = nil then
-      raise EX3DXmlError.Create('Missing <ProtoBody> inside <ProtoDeclare> element');
-
-    Proto.Node.Free; Proto.Node := nil;
-
-    { VRML 2.0 spec explicitly says that inside prototype has it's own DEF/USE
-      scope, completely independent from the outside.
-
-      Also prototype name scope is local within the prototype,
-      however it starts from current prototype name scope (not empty,
-      like in case of Names.Nodes). So prototypes defined outside
-      are available inside, but nested prototypes inside are not
-      available outside. }
-    OldNames := Names;
-    Names := TVRMLNames.Create(true,
-      OldNames.WWWBasePath, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
-    try
-      Names.Prototypes.Assign(OldNames.Prototypes);
-      Proto.Node := ParseVRMLStatements(E, false, nil, Names);
-    finally
-      FreeAndNil(Names);
-      Names := OldNames;
-    end;
-
-    Names.Prototypes.Bind(Proto);
-  end;
-
-  { Equivalent to TVRMLExternalPrototype.Parse }
-  procedure ParseExternalPrototype(Proto: TVRMLExternalPrototype;
-    Element: TDOMElement; Names: TVRMLNames);
-  var
-    Name, URLListValue: string;
-  begin
-    Proto.WWWBasePath := Names.WWWBasePath;
-
-    if DOMGetAttribute(Element, 'name', Name) then
-      Proto.Name := Name else
-      raise EX3DXmlError.Create('Missing "name" for <ExternProtoDeclare> element');
-
-    Proto.ParseInterfaceDeclarationsXML(true, Element, Names);
-
-    if DOMGetAttribute(Element, 'url', URLListValue) then
-      Proto.URLList.ParseXMLAttribute(URLListValue, Names) else
-      raise EX3DXmlError.Create('Missing "url" for <ExternProtoDeclare> element');
-
-    Names.Prototypes.Bind(Proto);
-
-    Proto.LoadReferenced;
-  end;
-
   { This parses a sequence of X3D statements: any number of nodes,
     (external) protypes, routes. This is good to use to parse whole VRML file,
     or a (non-external) prototype content.
@@ -722,9 +649,7 @@ const
 
         Result.Prototypes.Add(Proto);
 
-        if Proto is TVRMLPrototype then
-          ParsePrototype(Proto as TVRMLPrototype, Element, Names) else
-          ParseExternalPrototype(Proto as TVRMLExternalPrototype, Element, Names);
+        Proto.ParseXML(Element, Names);
       end;
 
       procedure ParseRouteStatement;

@@ -2957,8 +2957,11 @@ type
     property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
       read FInterfaceDeclarations;
 
-    { Parse prototype, and add it to Names.Prototypes by @link(Bind). }
+    { Parse prototype, and add it to Names.Prototypes by @link(Bind).
+      @groupBegin }
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); virtual; abstract;
+    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); virtual; abstract;
+    { @groupEnd }
 
     { The base URL path used to resolve urls inside.
       For now, used by EXTERNPROTO urls.
@@ -2977,6 +2980,7 @@ type
     destructor Destroy; override;
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
+    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     { These are actual prototype contents: all nodes, prototypes, routes
@@ -3017,6 +3021,7 @@ type
     property URLList: TMFString read FURLList;
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
+    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     property ReferencedPrototype: TVRMLPrototype read FReferencedPrototype;
@@ -7439,6 +7444,50 @@ begin
   Names.Prototypes.Bind(Self);
 end;
 
+procedure TVRMLPrototype.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+var
+  OldNames: TVRMLNames;
+  NewName: string;
+  E: TDOMElement;
+begin
+  WWWBasePath := Names.WWWBasePath;
+
+  if DOMGetAttribute(Element, 'name', NewName) then
+    Name := NewName else
+    raise EX3DXmlError.Create('Missing "name" for <ProtoDeclare> element');
+
+  E := DOMGetChildElement(Element, 'ProtoInterface', false);
+  if E <> nil then
+    ParseInterfaceDeclarationsXML(false, E, Names);
+
+  E := DOMGetChildElement(Element, 'ProtoBody', false);
+  if E = nil then
+    raise EX3DXmlError.Create('Missing <ProtoBody> inside <ProtoDeclare> element');
+
+  FreeAndNil(FNode);
+
+  { VRML 2.0 spec explicitly says that inside prototype has it's own DEF/USE
+    scope, completely independent from the outside.
+
+    Also prototype name scope is local within the prototype,
+    however it starts from current prototype name scope (not empty,
+    like in case of Names.Nodes). So prototypes defined outside
+    are available inside, but nested prototypes inside are not
+    available outside. }
+  OldNames := Names;
+  Names := TVRMLNames.Create(true,
+    OldNames.WWWBasePath, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
+  try
+    Names.Prototypes.Assign(OldNames.Prototypes);
+    Node := ParseVRMLStatements(E, false, nil, Names);
+  finally
+    FreeAndNil(Names);
+    Names := OldNames;
+  end;
+
+  Names.Prototypes.Bind(Self);
+end;
+
 procedure TVRMLPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
   OldNodeNames: TVRMLNodeNames;
@@ -7492,6 +7541,27 @@ begin
   ParseInterfaceDeclarations(true, Lexer, Names);
 
   URLList.Parse(Lexer, Names, false);
+
+  Names.Prototypes.Bind(Self);
+
+  LoadReferenced;
+end;
+
+procedure TVRMLExternalPrototype.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+var
+  NewName, URLListValue: string;
+begin
+  WWWBasePath := Names.WWWBasePath;
+
+  if DOMGetAttribute(Element, 'name', NewName) then
+    Name := NewName else
+    raise EX3DXmlError.Create('Missing "name" for <ExternProtoDeclare> element');
+
+  ParseInterfaceDeclarationsXML(true, Element, Names);
+
+  if DOMGetAttribute(Element, 'url', URLListValue) then
+    URLList.ParseXMLAttribute(URLListValue, Names) else
+    raise EX3DXmlError.Create('Missing "url" for <ExternProtoDeclare> element');
 
   Names.Prototypes.Bind(Self);
 
