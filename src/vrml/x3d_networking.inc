@@ -149,13 +149,13 @@
       CanReload = @false. }
     procedure AfterLoadInlined; virtual;
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
+    procedure ParseAfter(Names: TVRMLNames); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
 
     private FFdload: TSFBool;
     public property Fdload: TSFBool read FFdload;
@@ -448,7 +448,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeInline.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TNodeInline.ParseAfter(Names: TVRMLNames);
 begin
   inherited;
   LoadInlined(false);

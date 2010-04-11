@@ -212,6 +212,9 @@
        ParseNodeBodyElement. *)
     procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TVRMLNodeNames); virtual;
+
+    { Called at the end of parsing (in both classic and XML encoding). }
+    procedure ParseAfter(Names: TVRMLNames); virtual;
   public
     { Node fields.
 
@@ -1634,6 +1637,8 @@ begin
   Lexer.NextToken;
 
   FWWWBasePath := Names.WWWBasePath;
+
+  ParseAfter(Names);
 end;
 
 function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
@@ -2045,6 +2050,12 @@ begin
   ParseXMLAttributes;
   ParseXMLChildrenNodes;
   ParseXMLCdata;
+
+  ParseAfter(Names);
+end;
+
+procedure TVRMLNode.ParseAfter(Names: TVRMLNames);
+begin
 end;
 
 type
