@@ -189,8 +189,7 @@ const
 implementation
 
 uses Object3DGEO, Object3Ds, Object3DOBJ, VRMLCameraUtils,
-  KambiStringUtils, VRMLAnimation, ColladaToVRML,
-  X3DXmlToVRML;
+  KambiStringUtils, VRMLAnimation, ColladaToVRML;
 
 {
   Note: for VRML 1.0, remember that you may want to embed returned

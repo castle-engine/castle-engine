@@ -33,8 +33,7 @@ uses
   vrmlshapeoctree,
   vrmltime,
   vrmltriangle,
-  vrmltriangleoctree,
-  x3dxmltovrml
+  vrmltriangleoctree
   ;
 
 implementation

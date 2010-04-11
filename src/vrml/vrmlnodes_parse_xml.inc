@@ -13,14 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Read X3D encoded in XML. }
-unit X3DXmlToVRML;
+{ Global routines for parsing XML X3D encoding. }
 
-{$I kambiconf.inc}
-
-interface
-
-uses VRMLNodes, Classes;
+{$ifdef read_interface}
 
 { Read X3D encoded in XML, and convert it to VRML/X3D nodes graph.
 
@@ -31,11 +26,9 @@ function LoadX3DXmlAsVRML(const FileName: string;
   Gzipped: boolean;
   PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
 
-implementation
+{$endif read_interface}
 
-uses SysUtils, DOM, KambiXMLRead, KambiUtils, KambiXMLUtils,
-  VRMLLexer, VRMLErrors, VRMLFields, KambiZStream,
-  KambiClassUtils, KambiStringUtils;
+{$ifdef read_implementation}
 
 type
   EX3DXmlError = class(EVRMLError);
@@ -985,4 +978,4 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-end.
+{$endif read_implementation}

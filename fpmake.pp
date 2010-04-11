@@ -110,7 +110,6 @@ begin
     P.Targets.AddUnit('vrmltime.pas');
     P.Targets.AddUnit('vrmltriangle.pas');
     P.Targets.AddUnit('vrmltriangleoctree.pas');
-    P.Targets.AddUnit('x3dxmltovrml.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'vrml' + PathDelim + 'opengl');
     P.Targets.AddUnit('kambiscenemanager.pas');

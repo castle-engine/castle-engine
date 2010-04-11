@@ -125,8 +125,8 @@
     @item(
       We handle VRML 1.0, VRML 2.0 (aka 97) and X3D (aka VRML 3.x).
 
-      Every correct VRML / X3D file in classic encoding should be parsed
-      by this unit. (For X3D XML encoding, see X3DXMLToVRML unit).
+      Every correct VRML / X3D file in classic and XML encoding should be parsed
+      by this unit.
       See [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]
       for much more detailed information about supported features.)
 
@@ -3373,6 +3373,7 @@ var
 { global procedures ---------------------------------------------------------- }
 
 {$I vrmlnodes_parse_classic.inc}
+{$I vrmlnodes_parse_xml.inc}
 
 { SaveToVRMLFile writes whole VRML file with given root Node.
   This includes writing VRML header '#VRML ...'.
@@ -3661,6 +3662,7 @@ uses
 {$I vrmlnodes_kambi.inc}
 {$I vrmlnodes_avalon.inc}
 {$I vrmlnodes_parse_classic.inc}
+{$I vrmlnodes_parse_xml.inc}
 
 resourcestring
   SExpectedInterfaceDeclaration =
