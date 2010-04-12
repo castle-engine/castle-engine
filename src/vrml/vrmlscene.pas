@@ -925,6 +925,18 @@ type
       BeforeNodesFree(false)) produces events from stacks CheckForDeletedNodes. }
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual;
 
+    { Call Node.FreeRemovingFromAllParents, making sure that changes
+      to our VRML node graph are allowed. This makes sure we call
+      BeforeNodesFree befor freeing, and ChangedAll afterwards.
+
+      This avoids a common pitfall with relying on TVRMLShape or such
+      existence between BeforeNodesFree and ChangedAll.
+      BeforeNodesFree may free all our TVRMLShape instances, so if you
+      want to free TVRMLNode from our graph --- you typically want to
+      get this TVRMLNode instance *before* calling BeforeNodesFree.
+      Using this method to free the node ensures this. }
+    procedure NodeFreeRemovingFromAllParents(Node: TVRMLNode);
+
     { Notify scene that potentially everything changed
       in the VRML graph. This includes adding/removal of some nodes within
       RootNode graph and changing their fields' values.
@@ -2658,6 +2670,13 @@ begin
     FShapes := TVRMLShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
   end;
+end;
+
+procedure TVRMLScene.NodeFreeRemovingFromAllParents(Node: TVRMLNode);
+begin
+  BeforeNodesFree;
+  Node.FreeRemovingFromAllParents;
+  ChangedAll;
 end;
 
 procedure TVRMLScene.ChangedAll;
