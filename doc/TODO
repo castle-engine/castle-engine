@@ -502,6 +502,9 @@ kambi_vrml_game_engine/examples/plane_mirror_and_shadow)
 http://delphi.mozdev.org/ for recent fpc)
 
 - And then physics engine and X3D rigid body component
+  http://www.xj3d.org/extensions/rigid_physics_examples.html
+  file:///home/michalis/doc/web3d.org/X3DPublicSpecifications/ISO-IEC-FDIS-19775-1.2-x3d_spec_edition_2/Part01/components/rigid_physics.html
+
 - And then particle engine
 ------------------------------------------------------------------------------
 - shadows for VRML browsers finish:
