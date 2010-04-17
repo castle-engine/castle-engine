@@ -2740,51 +2740,71 @@ begin
   if Log and LogChanges then
     WritelnLog('VRML changes', 'ChangedAll');
 
-  BeforeNodesFree(true);
+  { We want to defer all GeometryChanged until later, because at the end
+    of ChangedAll we will want to send GeometryChanged anyway
+    with ScheduledGeometryChangedAll := true. So it would be a waste
+    of time to call GeometryChanged earlier.
 
-  BackgroundStack.CheckForDeletedNodes(RootNode, true);
-  FogStack.CheckForDeletedNodes(RootNode, true);
-  NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
-  ViewpointStack.CheckForDeletedNodes(RootNode, true);
+    In particular, RootNode.Traverse may call UpdateLODLevel which may
+    call GeometryChanged. It calls GeometryChanged *without*
+    SomeLocalGeometryChanged, which would be an error: as our
+    BeforeNodesFree in fact already means some geometry stuff is destroyed
+    already. So we even *cannot* call GeometryChanged from RootNode.Traverse
+    (or we should add ScheduleGeometryChanged right after BeforeNodesFree,
+    but it's useless if we do it again at the end anyway...).
 
-  Validities := [];
-
-  { Clear variables after removing fvTrianglesList* from Validities }
-  InvalidateTrianglesList(false);
-  InvalidateTrianglesList(true);
-  InvalidateTrianglesListShadowCasters;
-
-  { Clear variables after removing fvManifoldAndBorderEdges from Validities }
-  InvalidateManifoldAndBorderEdges;
-
-  ChangedAll_TraversedLights := TDynActiveLightArray.Create;
+    Testcase: view3dscene, select and "edit->remove selected geometry node"
+    on a scene with LOD, e.g. t85.wrl from http://tatraportal.com/drracer/.
+    Without the Begin/EndGeometryChangedSchedule, it will crash. }
+  BeginGeometryChangedSchedule;
   try
-    { Clean Shapes, ShapeLODs }
-    FreeAndNil(FShapes);
-    FShapes := TVRMLShapeTreeGroup.Create(Self);
-    ShapeLODs.Clear;
 
-    if RootNode <> nil then
-    begin
-      Traverser := TChangedAllTraverser.Create;
-      try
-        Traverser.ParentScene := Self;
-        { We just created FShapes as TVRMLShapeTreeGroup, so this cast
-          is safe }
-        Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
-        Traverser.Active := true;
-        RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
-      finally FreeAndNil(Traverser) end;
+    BeforeNodesFree(true);
 
-      UpdateVRML2ActiveLights;
+    BackgroundStack.CheckForDeletedNodes(RootNode, true);
+    FogStack.CheckForDeletedNodes(RootNode, true);
+    NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
+    ViewpointStack.CheckForDeletedNodes(RootNode, true);
 
-      if ProcessEvents then
-        CollectNodesForEvents;
-    end;
-  finally FreeAndNil(ChangedAll_TraversedLights) end;
+    Validities := [];
 
-  ScheduledGeometryChangedAll := true;
-  ScheduleGeometryChanged;
+    { Clear variables after removing fvTrianglesList* from Validities }
+    InvalidateTrianglesList(false);
+    InvalidateTrianglesList(true);
+    InvalidateTrianglesListShadowCasters;
+
+    { Clear variables after removing fvManifoldAndBorderEdges from Validities }
+    InvalidateManifoldAndBorderEdges;
+
+    ChangedAll_TraversedLights := TDynActiveLightArray.Create;
+    try
+      { Clean Shapes, ShapeLODs }
+      FreeAndNil(FShapes);
+      FShapes := TVRMLShapeTreeGroup.Create(Self);
+      ShapeLODs.Clear;
+
+      if RootNode <> nil then
+      begin
+        Traverser := TChangedAllTraverser.Create;
+        try
+          Traverser.ParentScene := Self;
+          { We just created FShapes as TVRMLShapeTreeGroup, so this cast
+            is safe }
+          Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
+          Traverser.Active := true;
+          RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
+        finally FreeAndNil(Traverser) end;
+
+        UpdateVRML2ActiveLights;
+
+        if ProcessEvents then
+          CollectNodesForEvents;
+      end;
+    finally FreeAndNil(ChangedAll_TraversedLights) end;
+
+    ScheduledGeometryChangedAll := true;
+    ScheduleGeometryChanged;
+  finally EndGeometryChangedSchedule end;
 
   VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   DoViewpointsChanged;
