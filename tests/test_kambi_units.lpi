@@ -169,7 +169,7 @@
   <CompilerOptions>
     <Version Value="8"/>
     <SearchPaths>
-      <OtherUnitFiles Value="../vrml/opengl/examples/shadow_fields/"/>
+      <OtherUnitFiles Value="../examples/vrml/shadow_fields/"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
