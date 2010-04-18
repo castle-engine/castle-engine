@@ -886,29 +886,11 @@
     public property FdMap: TSFEnum read FFdMap;
   end;
 
-  { gdy chcemy operowac na scenie juz po jej zaladowaniu, bezposrednio
-    lub poprzez metode w rodzaju TVRMLNode.EnumerateNodes, jest istotne
-    gdzie w hierarchii sceny znajduja sie Inlined nodes. Odpowiadam :
-    sa one SubNode'ami WWWInline. Mozesz testowac ChildrenCount <> 0
-    aby sprawdzic czy Inlined zostaly juz zaladowane. Mozesz
-    zazadac ich natychmiastowego zaladowania uzywajac LoadInlined.
-
-    TODO : naturalnie tylko FdName jako nazwa pliku na lokalnym
-    systemie plikow jest obslugiwana chwilowo. W ogole, generalnie
-    to fajnie byloby gdyby TVRMLScene.Create przyjmowalo URL a nie
-    filename albo jeszcze lepiej gdyby miec strumien TURLDataStream
-    ktory moze podawac dane identyfikowane przez URL...
-    Moze nie w najblizszym czasie, ale zamierzam cos takiego kiedys
-    zaimplementowac - szkielet (dla http) juz zrobilem w iswb. }
   TNodeWWWInline = class(TNodeX3DChildNode, IVRMLInlineNode)
   private
     BeforeTraversePushedState: boolean;
 
-    { Is the inline currently loaded. This means "loaded",
-      not "successfully loaded": when Loaded := true,
-      we condider "url" field as handled, and loaded *if possible*.
-      If "url" didn't contain anything useful, Loaded is still set to @true,
-      to avoid constantly trying to reload. }
+    { See TNodeInline.Loaded. }
     Loaded: boolean;
     FInlined: TVRMLNode;
   protected
@@ -920,8 +902,7 @@
     procedure LoadInlined(CanReload: boolean);
     procedure UnLoadInlined;
 
-    { Call this to indicate that you loaded the inline contents directly,
-      by using AddChild yourself. }
+    { See TNodeInline.LoadedInlineDirectly. }
     procedure LoadedInlineDirectly;
 
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -944,11 +925,7 @@
 
     class function ChildrenSaveToStream: boolean; override;
 
-    { The inlined VRML content (loaded from inlined url).
-      @nil if not yet loaded, or no loading was successful.
-
-      This is also kept in VRML 1.0 children as Children[0],
-      but for future it's better to not depend on that. }
+    { See TNodeInline.Inlined. }
     property Inlined: TVRMLNode read FInlined;
   end;
 {$endif read_interface}

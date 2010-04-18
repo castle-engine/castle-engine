@@ -125,6 +125,16 @@
     procedure LoadInlined(CanReload: boolean);
   end;
 
+  { Inline node.
+
+    The loaded inline contents are accessible in the @link(Inlined) object.
+    Currently this is also kept in the Children list
+    of this node. Originally, Children list is for VRML 1.0 children,
+    but for inline node this is just used for inlined content (regardless
+    of VRML/X3D version).
+
+    This means that most methods, like TVRMLNode.EnumerateNodes,
+    descend into inlined content normally. }
   TNodeInline = class(TVRMLGroupingNode, INodeX3DBoundedObject, INodeX3DUrlObject,
     IVRMLInlineNode)
   private
