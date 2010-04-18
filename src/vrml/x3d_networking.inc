@@ -499,19 +499,24 @@ begin
   FInlined := nil;
 
   for I := 0 to FdUrl.Items.Count - 1 do
-  begin
-    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
-    try
-      FInlined := LoadVRML(FullUrl, false);
-      Break;
-    except
-      on E: Exception do
-        { Careful here, as VRMLWarning may also raise exception. }
-        VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-          ' occured when trying to load '+
-          'inline file from URL "' + FullUrl + ' : ' + E.Message);
+    { For VRML 1.0 WWWInline, an item on "url" (alias "name") field
+      may be empty, and should be nicely ignored then.
+      For VRML >= 2.0 we also can ignore it (otherwise confusing warning
+      about unrecognized 3D model file extension for dir name is done). }
+    if FdUrl.Items[I] <> '' then
+    begin
+      FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+      try
+        FInlined := LoadVRML(FullUrl, false);
+        Break;
+      except
+        on E: Exception do
+          { Careful here, as VRMLWarning may also raise exception. }
+          VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
+            ' occured when trying to load '+
+            'inline file from URL "' + FullUrl + ' : ' + E.Message);
+      end;
     end;
-  end;
 
   if FInlined <> nil then
   begin
