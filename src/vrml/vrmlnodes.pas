@@ -1814,6 +1814,16 @@ type
     function Bound(const Name: string): TVRMLPrototypeBase;
   end;
 
+  TVRMLImportableNames = class(TStringListCaseSens)
+  public
+    destructor Destroy; override;
+
+    { Bind Exported names to given Inline node name.
+      Exported instance becomes owner by this TVRMLImportableNames instance.
+      InlineName must be <> '' here. }
+    procedure Bind(const InlineName: string; Exported: TVRMLNodeNames);
+  end;
+
   { Container tracking VRML/X3D node and prototype names during parsing.
     Used by both classic and XML VRML/X3D readers. }
   TVRMLNames = class
@@ -1824,7 +1834,7 @@ type
     FPrototypes: TVRMLPrototypeNames;
     FImported: TVRMLNodeNames;
     FExported: TVRMLNodeNames;
-    FImportable: TStringList;
+    FImportable: TVRMLImportableNames;
   public
     constructor Create(const AAutoRemoveNodes: boolean;
       const AWWWBasePath: string;
@@ -1885,7 +1895,7 @@ type
       (there's no way to IMPORT from unnamed Inline nodes).
       Objects[] of this list are instances of TVRMLNodeNames
       corresponding to exported names within the inline. }
-    property Importable: TStringList read FImportable;
+    property Importable: TVRMLImportableNames read FImportable;
 
     procedure DoExport(E: TVRMLExport);
     procedure DoImport(I: TVRMLImport);
@@ -5230,6 +5240,30 @@ begin
     Result := nil;
 end;
 
+{ TVRMLImportableNames ------------------------------------------------------- }
+
+destructor TVRMLImportableNames.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Objects[I].Free;
+  inherited;
+end;
+
+procedure TVRMLImportableNames.Bind(const InlineName: string; Exported: TVRMLNodeNames);
+var
+  I: Integer;
+begin
+  I := IndexOf(InlineName);
+  if I = -1 then
+    AddObject(InlineName, Exported) else
+  begin
+    Objects[I].Free;
+    Objects[I] := Exported;
+  end;
+end;
+
 { TVRMLNames ----------------------------------------------------------------- }
 
 constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean;
@@ -5244,7 +5278,7 @@ begin
   FPrototypes := TVRMLPrototypeNames.Create;
   FImported := TVRMLNodeNames.Create(AAutoRemoveNodes);
   FExported := TVRMLNodeNames.Create(AAutoRemoveNodes);
-  FImportable := TStringList.Create;
+  FImportable := TVRMLImportableNames.Create;
 end;
 
 destructor TVRMLNames.Destroy;
@@ -5280,7 +5314,7 @@ begin
   ImportedNamesIndex := Importable.IndexOf(I.InlineNodeName);
   if ImportedNamesIndex = -1 then
   begin
-    VRMLWarning(vwSerious, Format('Inline node name "%s" not found, cannot IMPORT', [I.InlineNodeName]));
+    VRMLWarning(vwSerious, Format('Inline node name "%s" not found (or nothing was EXPORTed from it), cannot IMPORT', [I.InlineNodeName]));
     Exit;
   end;
 

@@ -173,8 +173,11 @@
       contents are always loaded. It will be called at the end of Parse
       (this is needed to handle VRML/X3D IMPORT/EXPORT mechanism),
       it will also be called in BeforeTraverse (in case you constructed node
-      by code, not by parsing). }
-    procedure LoadInlined(CanReload: boolean);
+      by code, not by parsing).
+
+      @param(Exported If non-nil, we will assign here node names
+        exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
+    procedure LoadInlined(CanReload: boolean; Exported: TVRMLNodeNames = nil);
 
     procedure UnLoadInlined;
 
@@ -453,9 +456,28 @@ begin
 end;
 
 procedure TNodeInline.ParseAfter(Names: TVRMLNames);
+var
+  Exported: TVRMLNodeNames;
 begin
   inherited;
-  LoadInlined(false);
+
+  if NodeName <> '' then
+    Exported := TVRMLNodeNames.Create(false) else
+    Exported := nil;
+
+  LoadInlined(false, Exported);
+
+  { do not add Exported to Importable list, if nothing was exported.
+    This just saves the size of the Importable list. }
+  if (Exported <> nil) and (Exported.Count = 0) then
+    FreeAndNil(Exported);
+
+  if Exported <> nil then
+  begin
+    { connect Exported nodes with our inline NodeName }
+    Assert(NodeName <> '');
+    Names.Importable.Bind(NodeName, Exported);
+  end;
 end;
 
 procedure TNodeInline.UnLoadInlined;
@@ -465,7 +487,7 @@ begin
   Loaded := false;
 end;
 
-procedure TNodeInline.LoadInlined(CanReload: boolean);
+procedure TNodeInline.LoadInlined(CanReload: boolean; Exported: TVRMLNodeNames = nil);
 
   { The Inlined contents are usually TVRMLRootNode_*,
     but they should not be saved as such. Although usually this doesn't
@@ -485,6 +507,8 @@ var
   I: Integer;
   FullUrl: string;
 begin
+  if Exported <> nil then Exported.Clear;
+
   if Loaded then
   begin
     if CanReload then UnLoadInlined else Exit;
@@ -507,7 +531,7 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
       try
-        FInlined := LoadVRML(FullUrl, false);
+        FInlined := LoadVRML(FullUrl, false, nil, Exported);
         Break;
       except
         on E: Exception do

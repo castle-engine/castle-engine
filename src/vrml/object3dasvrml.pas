@@ -102,9 +102,13 @@ procedure LoadMD3Sequence(
   @param(PrototypeNames If <> @nil, will be filled with global
     prototype namespace at the end of parsing the file.
     This will only be used if loaded file is VRML/X3D.
-    Useful mostly for EXTERNPROTO implementation.) }
+    Useful mostly for EXTERNPROTO implementation.)
+
+  @param(Exported If non-nil, we will assign here node names
+    exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
 function LoadVRML(const filename: string; AllowStdIn: boolean = false;
-  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames = nil;
+  Exported: TVRMLNodeNames = nil): TVRMLNode;
 
 { Deprecated name for LoadVRML. @deprecated }
 function LoadAsVRML(const filename: string; AllowStdIn: boolean = false;
@@ -814,7 +818,8 @@ begin
 end;
 
 function LoadVRML(const filename: string; AllowStdIn: boolean;
-  PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames;
+  Exported: TVRMLNodeNames): TVRMLNode;
 const
   GzExt = '.gz';
   Extensions: array [0..14] of string =
@@ -827,8 +832,10 @@ const
 var
   Ext: string;
 begin
+  if Exported <> nil then Exported.Clear;
+
   if AllowStdIn and (FileName = '-') then
-    result := LoadVRMLClassic('-', true, PrototypeNames) else
+    result := LoadVRMLClassic('-', true, PrototypeNames, Exported) else
   begin
     Ext := ExtractFileExt(filename);
     if Ext = '.gz' then
@@ -837,11 +844,11 @@ begin
       0: result := LoadGEO(filename);
       1: result := Load3DS(filename);
       2: result := LoadWavefrontOBJ(filename);
-      3..9: result := LoadVRMLClassic(filename, false, PrototypeNames);
+      3..9: result := LoadVRMLClassic(filename, false, PrototypeNames, Exported);
       10: Result := LoadMD3(FileName);
       11: Result := LoadCollada(FileName);
-      12: Result := LoadX3DXml(FileName, false, PrototypeNames);
-      13, 14: Result := LoadX3DXml(FileName, true, PrototypeNames);
+      12: Result := LoadX3DXml(FileName, false, PrototypeNames, Exported);
+      13, 14: Result := LoadX3DXml(FileName, true, PrototypeNames, Exported);
       else raise Exception.CreateFmt(
         'Unrecognized file extension "%s" for 3D model file "%s"',
         [Ext, FileName]);

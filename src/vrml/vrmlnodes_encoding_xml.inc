@@ -20,11 +20,15 @@
 { Read X3D encoded in XML, and convert it to VRML/X3D nodes graph.
 
   @param(PrototypeNames If <> @nil, will be filled with global
-  prototype namespace at the end of parsing the file.
-  Useful mostly for EXTERNPROTO implementation.) }
+    prototype namespace at the end of parsing the file.
+    Useful mostly for EXTERNPROTO implementation.)
+
+  @param(Exported If non-nil, we will assign here node names
+    exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
 function LoadX3DXml(const FileName: string;
   Gzipped: boolean;
-  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames = nil;
+  Exported: TVRMLNodeNames = nil): TVRMLNode;
 
 {$endif read_interface}
 
@@ -469,7 +473,8 @@ begin
 end;
 
 function LoadX3DXml(const FileName: string;
-  Gzipped: boolean; PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
+  Gzipped: boolean; PrototypeNames: TVRMLPrototypeNames;
+  Exported: TVRMLNodeNames): TVRMLNode;
 var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
@@ -525,6 +530,8 @@ begin
 
         if PrototypeNames <> nil then
           PrototypeNames.Assign(Names.Prototypes);
+        if Exported <> nil then
+          Exported.Assign(Names.Exported);
       finally FreeAndNil(Names) end;
     finally FreeAndNil(Doc) end;
   finally FreeAndNil(Stream) end;

@@ -48,10 +48,14 @@ const
     prototype namespace at the end of parsing the file.
     Useful mostly for EXTERNPROTO implementation.)
 
+  @param(Exported If non-nil, we will assign here node names
+    exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.)
+
   @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
 function LoadVRMLClassic(Stream: TPeekCharStream;
   const WWWBasePath: string;
-  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode; overload;
+  PrototypeNames: TVRMLPrototypeNames = nil;
+  Exported: TVRMLNodeNames = nil): TVRMLNode; overload;
 
 function LoadVRMLClassicFromString(const VRMLContents: string;
   const WWWBasePath: string): TVRMLNode; overload;
@@ -70,7 +74,8 @@ function LoadVRMLClassicFromString(const VRMLContents: string;
     Useful mostly for EXTERNPROTO implementation.) }
 function LoadVRMLClassic(const FileName: string;
   AllowStdIn: boolean;
-  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode; overload;
+  PrototypeNames: TVRMLPrototypeNames = nil;
+  Exported: TVRMLNodeNames = nil): TVRMLNode; overload;
 
 { Deprecated name for LoadVRMLClassic. @deprecated }
 function ParseVRMLFile(const FileName: string;
@@ -565,7 +570,8 @@ end;
 
 function LoadVRMLClassic(Stream: TPeekCharStream;
   const WWWBasePath: string;
-  PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames;
+  Exported: TVRMLNodeNames): TVRMLNode;
 var
   Lexer: TVRMLLexer;
   Names: TVRMLNames;
@@ -577,12 +583,15 @@ begin
       Result := ParseVRMLStatements(Lexer, Names, vtEnd, true);
       if PrototypeNames <> nil then
         PrototypeNames.Assign(Names.Prototypes);
+      if Exported <> nil then
+        Exported.Assign(Names.Exported);
     finally FreeAndNil(Names) end;
   finally FreeAndNil(Lexer) end;
 end;
 
 function LoadVRMLClassic(const FileName: string; AllowStdIn: boolean;
-  PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
+  PrototypeNames: TVRMLPrototypeNames;
+  Exported: TVRMLNodeNames): TVRMLNode;
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
     const WWWBasePath: string): TVRMLNode;
@@ -591,7 +600,7 @@ function LoadVRMLClassic(const FileName: string; AllowStdIn: boolean;
   begin
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := LoadVRMLClassic(Stream, WWWBasePath, PrototypeNames);
+      Result := LoadVRMLClassic(Stream, WWWBasePath, PrototypeNames, Exported);
     finally Stream.Free end;
   end;
 
