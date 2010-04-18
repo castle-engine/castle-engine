@@ -23,7 +23,16 @@
     This way TNodeX3DGroupingNode and TNodeStaticGroup inherit
     also from X3DChildNode. }
   TVRMLGroupingNode = class(TNodeX3DChildNode)
+  private
+    BeforeTraversePushedState: boolean;
   protected
+    { If @true (default implementation in this class), then this really
+      behaves like a grouping node. If @false, this allows everything
+      to "leak out" (transform changes, VRML 1.0 state changes etc.).
+      Possibility useful for VRML 1.0 extension
+      http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_wwwinline_separate }
+    function SeparateGroup: boolean; virtual;
+
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   end;
@@ -295,12 +304,21 @@ type
     end;
   end;
 
+function TVRMLGroupingNode.SeparateGroup: boolean;
+begin
+  Result := true;
+end;
+
 procedure TVRMLGroupingNode.BeforeTraverse(
   StateStack: TVRMLGraphTraverseStateStack);
 var
   Enumerator: TGeneralGroupingEnumerator;
 begin
   inherited;
+
+  BeforeTraversePushedState := SeparateGroup;
+  if not BeforeTraversePushedState then Exit;
+
   StateStack.Push;
 
   (*We append all directional lights to the current State.
@@ -383,7 +401,9 @@ end;
 procedure TVRMLGroupingNode.AfterTraverse(
   StateStack: TVRMLGraphTraverseStateStack);
 begin
-  StateStack.Pop;
+  if BeforeTraversePushedState then
+    StateStack.Pop;
+
   inherited;
 end;
 

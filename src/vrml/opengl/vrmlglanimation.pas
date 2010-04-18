@@ -818,38 +818,12 @@ procedure TVRMLGLAnimation.LoadCore(
         'Different nodes classes: "%s" and "%s"',
         [Model1.ClassName, Model2.ClassName]);
 
-    {$ifndef VER_THAT_SUPPORTS_INTERFACES_WITHOUT_BUGS}
-
-    { This ugly version (without using interfaces) is only to support
-      compilation with FPC 2.0.4, it will be removed at some point.
-
-      Later: arrghh. This was under "ifdef VER2_0", and the cleaner version
-      seemed to work with FPC 2.2.0...
-      well, but it doesn't, crashed with access violation when Model1,2 are
-      of TNodeComposedShader (for example, try on
-      kambi_vrml_test_suite/kanim/specular_demo_phong_shading/specular_demo.kanim).
-      That's because TNodeComposedShader has some interfaces...
-      Screw this, don't use interfaces for now. Ugly hack below will be used. }
-
-    if Model1 is TNodeWWWInline then
-    begin
-      TNodeWWWInline(Model1).LoadInlined(false);
-      TNodeWWWInline(Model2).LoadInlined(false);
-    end else
+    { Make sure that *Inline content is loaded now. }
     if Model1 is TNodeInline then
     begin
       TNodeInline(Model1).LoadInlined(false);
       TNodeInline(Model2).LoadInlined(false);
     end;
-    {$else}
-    if Supports(Model1, IVRMLInlineNode) and
-       Supports(Model2, IVRMLInlineNode) then
-      begin
-        { Make sure that *Inline content is loaded now. }
-        (Model1 as IVRMLInlineNode).LoadInlined(false);
-        (Model2 as IVRMLInlineNode).LoadInlined(false);
-      end;
-    {$endif}
 
     if Model1.NodeName <> Model2.NodeName then
       raise EModelsStructureDifferent.CreateFmt(
@@ -915,16 +889,15 @@ procedure TVRMLGLAnimation.LoadCore(
       begin
         { Check fields for equality.
 
-          Some special fields like TNodeWWWInline.FdName do not
+          Some special fields like TNodeInline.FdUrl do not
           have to be equal, as they don't have any role for the
-          "real" meaning of the model. I mean, if TNodeWWWInline
-          children (loaded from pointed file) have the same structure,
+          "real" meaning of the model. I mean, if TNodeInline.Inlined
+          contents (loaded from pointed file) have the same structure,
           then we're happy. And it's handy to allow this --- see e.g.
           examples/models/gus_1_final.wrl and
           examples/models/gus_2_final.wrl trick. }
 
         if not (
-           ( (Model1 is TNodeWWWInline)         and (Model1.Fields[I].Name = 'name') ) or
            ( (Model1 is TNodeInline)            and (Model1.Fields[I].Name = 'url') ) or
            Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon)
            ) then
@@ -1098,10 +1071,6 @@ procedure TVRMLGLAnimation.LoadCore(
         inside inline nodes --- otherwise, they could be loaded again
         (adding content to already existing nodes, making content loaded
         more than once). }
-      if Result is TNodeWWWInline then
-      begin
-        TNodeWWWInline(Result).LoadedInlineDirectly;
-      end else
       if Result is TNodeInline then
       begin
         TNodeInline(Result).LoadedInlineDirectly;

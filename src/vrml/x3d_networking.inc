@@ -99,32 +99,6 @@
       CurrentRootNode: TVRMLNode): boolean;
   end;
 
-  { Interface implemented by all Inline VRML nodes. }
-  IVRMLInlineNode = interface(IVRMLNode)
-  ['{70E19208-A2EF-4883-BD04-E7EFF7932F3A}']
-    { Call LoadInlined to load inlined VRML content @bold(now).
-      If Inlined is already loaded,
-      than: if CanReload = @true Inlined will be freed and loaded again,
-      else (if CanReload = @false) nothing will happen.
-
-      Note that this has a really simple support for "load" field
-      (this concerns VRML 97 amendment 1 "InlineLoadControl.load" and
-      X3D (actually used also in VRML 97 handling) "Inline.load" fields).
-      It simply doesn't do any loading when load = @false.
-
-      Note that this doesn't perform setting the "load" field,
-      or sending any notifications to EventsProcessor
-      about "load" field. It's the caller's job to keep loaded state
-      synchronized with "load" field value.
-
-      LoadInlined(false) will be called automatically, to ensure the inlined
-      contents are always loaded. It will be called at the end of Parse
-      (this is needed to handle VRML/X3D IMPORT/EXPORT mechanism),
-      it will also be called in BeforeTraverse (in case you constructed node
-      by code, not by parsing). }
-    procedure LoadInlined(CanReload: boolean);
-  end;
-
   { Inline node.
 
     The loaded inline contents are accessible in the @link(Inlined) object.
@@ -135,8 +109,7 @@
 
     This means that most methods, like TVRMLNode.EnumerateNodes,
     descend into inlined content normally. }
-  TNodeInline = class(TVRMLGroupingNode, INodeX3DBoundedObject, INodeX3DUrlObject,
-    IVRMLInlineNode)
+  TNodeInline = class(TVRMLGroupingNode, INodeX3DBoundedObject, INodeX3DUrlObject)
   private
     procedure EventLoadReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -181,7 +154,28 @@
 
     class function ChildrenSaveToStream: boolean; override;
 
+    { Load inlined VRML content @bold(now).
+      If @link(Inlined) is already loaded:
+      if CanReload = @true then it will be freed and loaded again,
+      else (if CanReload = @false) nothing will happen.
+
+      Note that this has a really simple support for "load" field
+      (this concerns VRML 97 amendment 1 "InlineLoadControl.load" and
+      X3D (actually used also in VRML 97 handling) "Inline.load" fields).
+      It simply doesn't do any loading when "load" = @false.
+
+      Note that this doesn't perform setting the "load" field,
+      or sending any notifications to EventsProcessor
+      about "load" field. It's the caller's job to keep loaded state
+      synchronized with "load" field value.
+
+      LoadInlined(false) will be called automatically, to ensure the inlined
+      contents are always loaded. It will be called at the end of Parse
+      (this is needed to handle VRML/X3D IMPORT/EXPORT mechanism),
+      it will also be called in BeforeTraverse (in case you constructed node
+      by code, not by parsing). }
     procedure LoadInlined(CanReload: boolean);
+
     procedure UnLoadInlined;
 
     { Call this to indicate that you loaded the inline contents directly,
@@ -202,7 +196,7 @@
     has a "load" field. So InlineLoadControl doesn't really have much use...
     InlineLoadControl is implemented mostly for compatibility with VRML 97.
     It has additional "children" output field. }
-  TNodeInlineLoadControl = class(TNodeInline, IVRMLInlineNode)
+  TNodeInlineLoadControl = class(TNodeInline)
   protected
     procedure AfterLoadInlined; override;
   public
@@ -564,7 +558,17 @@ end;
 procedure TNodeInline.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  LoadInlined(false);
+
+  try
+    LoadInlined(false);
+  except
+    { LoadInlined may easily fail with exception, it's imprtant in such case
+      to still do AfterTraverse, to make "inherited AfterTraverse",
+      to finalize what "inherited BeginTraverse" did: usually StateStack.Pop. }
+    inherited AfterTraverse(StateStack);
+    raise;
+  end;
+
   Inc(StateStack.Top.InsideInline);
 end;
 

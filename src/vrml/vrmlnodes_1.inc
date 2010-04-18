@@ -886,47 +886,25 @@
     public property FdMap: TSFEnum read FFdMap;
   end;
 
-  TNodeWWWInline = class(TNodeX3DChildNode, IVRMLInlineNode)
-  private
-    BeforeTraversePushedState: boolean;
+  { VRML 1.0 WWWInline node.
 
-    { See TNodeInline.Loaded. }
-    Loaded: boolean;
-    FInlined: TVRMLNode;
+    This is implemented as a descendant of VRML 2.0/X3D Inline node
+    class. This way VRML 1.0 actually gets a couple of VRML 2.0/X3D extensions.
+    The VRML 2.0/X3D field "url" is renamed here to VRML 1.0 field "name".
+    (Note that this means that WWWInline.name is actually MFString,
+    not just SFString like VRML 1.0 spec says.) }
+  TNodeWWWInline = class(TNodeInline)
   protected
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
-    procedure ParseAfter(Names: TVRMLNames); override;
+    function SeparateGroup: boolean; override;
   public
-    procedure LoadInlined(CanReload: boolean);
-    procedure UnLoadInlined;
-
-    { See TNodeInline.LoadedInlineDirectly. }
-    procedure LoadedInlineDirectly;
-
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-
-    private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
-
-    private FFdBboxSize: TSFVec3f;
-    public property FdBboxSize: TSFVec3f read FFdBboxSize;
-
-    private FFdBboxCenter: TSFVec3f;
-    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
-
-    private FFdSeparate: TSFBool;
-    public property FdSeparate: TSFBool read FFdSeparate;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
 
-    class function ChildrenSaveToStream: boolean; override;
-
-    { See TNodeInline.Inlined. }
-    property Inlined: TVRMLNode read FInlined;
+    private FFdSeparate: TSFBool;
+    public property FdSeparate: TSFBool read FFdSeparate;
   end;
 {$endif read_interface}
 
@@ -2478,22 +2456,18 @@ constructor TNodeWWWInline.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  FFdname := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdname);
+  { change "url" field to "name", with default value being an empty string }
+  FdUrl.AddAlternativeName('name', 1);
+  FdUrl.Items.Count := 1;
+  FdUrl.Items[0] := '';
+  FdUrl.AssignDefaultValueFromValue;
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(0, 0, 0));
-  Fields.Add(FFdbboxSize);
-
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
-  Fields.Add(FFdbboxCenter);
+  { bboxSize is (0, 0, 0) in VRMl 1.0 (in VRML 2.0/X3D it's (-1, -1, -1)) }
+  FFdbboxSize.Value := Vector3Single(0, 0, 0);
+  FFdbboxSize.AssignDefaultValueFromValue;
 
   FFdseparate := TSFBool.Create(Self, 'separate', true);
   Fields.Add(FFdseparate);
-
-  fParsingAllowedChildren := false;
-  fAllowedChildren := true;
-
-  FInlined := nil;
 end;
 
 class function TNodeWWWInline.ClassNodeTypeName: string;
@@ -2501,131 +2475,9 @@ begin
   result := 'WWWInline';
 end;
 
-procedure TNodeWWWInline.ParseAfter(Names: TVRMLNames);
+function TNodeWWWInline.SeparateGroup: boolean;
 begin
-  inherited;
-  LoadInlined(false);
-end;
-
-procedure TNodeWWWInline.UnLoadInlined;
-begin
-  RemoveAllChildren;
-  FInlined := nil;
-  Loaded := false;
-end;
-
-procedure TNodeWWWInline.LoadInlined(CanReload: boolean);
-
-  { The Inlined contents are usually TVRMLRootNode_*,
-    but they should not be saved as such. Although usually this doesn't
-    get saved (since we do not save inline contents), but it may happen
-    if you copy VRML nodes around, e.g. "expanding" inlines like
-    castle-process-3d-model.
-
-    Doing this inside local procedure to limit lifetime of IVRMLRootNode,
-    to secure against http://bugs.freepascal.org/view.php?id=10374 }
-  procedure InlinedIsNotRootNode;
-  begin
-    if Supports(FInlined, IVRMLRootNode) then
-      (FInlined as IVRMLRootNode).SaveAsRootNode := false;
-  end;
-
-var
-  FullUrl: string;
-begin
-  if Loaded then
-  begin
-    if CanReload then UnLoadInlined else exit;
-  end;
-
-  Assert(not Loaded);
-  Assert(FInlined = nil);
-  Assert(ChildrenCount = 0);
-
-  FInlined := nil;
-
-  FullUrl := PathFromWWWBasePath(FdName.Value);
-  try
-    FInlined := LoadVRML(FullUrl, false);
-  except
-    on E: Exception do
-      { Careful here, as VRMLWarning may also raise exception. }
-      VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-        ' occured when trying to load '+
-        'inline file from URL "' + FullUrl + ' : ' + E.Message);
-  end;
-
-  if FInlined <> nil then
-  begin
-    InlinedIsNotRootNode;
-    AddChild(FInlined);
-  end;
-
-  { Whether or not we successfully got FInlined <> nil, we always set
-    Loaded to true here. This way we will not try to reload this inline
-    at next BeforeTraverse (this would be bad, as we already did
-    VRMLWarning in case loading failed and such). }
-  Loaded := true;
-end;
-
-procedure TNodeWWWInline.LoadedInlineDirectly;
-begin
-  Loaded := true;
-  if ChildrenCount <> 0 then
-    FInlined := Children[0] else
-    FInlined := nil;
-end;
-
-function TNodeWWWInline.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
-var
-  ResultI: TNodeWWWInline;
-begin
-  Result := inherited DeepCopyCore(CopyState);
-  ResultI := Result as TNodeWWWInline;
-
-  { Since inherited copied our Children, we should also set "Loaded"
-    and "Inlined" field to the same value. }
-  ResultI.Loaded := Loaded;
-  if ResultI.ChildrenCount <> 0 then
-    ResultI.FInlined := ResultI.Children[0] else
-    ResultI.FInlined := nil;
-end;
-
-procedure TNodeWWWInline.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
-begin
-  inherited;
-
-  { We save here BeforeTraversePushedState, to be safe in case
-    someone will change FdSeparate.Value between BeforeTraverse
-    and AfterTraverse. }
-  BeforeTraversePushedState := FdSeparate.Value;
-  if BeforeTraversePushedState then
-    StateStack.Push;
-
-  try
-    LoadInlined(false);
-  except
-    if BeforeTraversePushedState then
-      StateStack.Pop;
-    raise;
-  end;
-
-  Inc(StateStack.Top.InsideInline);
-end;
-
-procedure TNodeWWWInline.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
-begin
-  Dec(StateStack.Top.InsideInline);
-
-  if BeforeTraversePushedState then
-    StateStack.Pop;
-
-  inherited;
-end;
-
-class function TNodeWWWInline.ChildrenSaveToStream: boolean;
-begin
-  Result := false;
+  Result := FdSeparate.Value;
 end;
 
 function TNodeWWWInline.SuggestedVRMLVersion(
