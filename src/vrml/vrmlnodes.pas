@@ -1789,7 +1789,8 @@ type
       itself for AnyNodeDestructionNotifications. }
     property AutoRemove: boolean read FAutoRemove;
 
-    procedure Bind(Node: TVRMLNode);
+    procedure Bind(Node: TVRMLNode); overload;
+    procedure Bind(Node: TVRMLNode; const BindToName: string); overload;
 
     { Find node bound to given name. @nil if none. }
     function Bound(const Name: string): TVRMLNode;
@@ -1885,6 +1886,9 @@ type
       Objects[] of this list are instances of TVRMLNodeNames
       corresponding to exported names within the inline. }
     property Importable: TStringList read FImportable;
+
+    procedure DoExport(E: TVRMLExport);
+    procedure DoImport(I: TVRMLImport);
   end;
 
 { TraverseStateLastNodesClasses ---------------------------------------------- }
@@ -5051,7 +5055,7 @@ begin
   end else
     ImportedNodeAlias := ImportedNodeName;
 
-  { TODO: Names.Import() call }
+  Names.DoImport(Self);
 end;
 
 procedure TVRMLImport.ParseXML(Element: TDOMElement; Names: TVRMLNames);
@@ -5075,7 +5079,7 @@ begin
   if not DOMGetAttribute(Element, 'AS', ImportedNodeAlias) then
     ImportedNodeAlias := ImportedNodeName;
 
-  { TODO: Names.Import() call }
+  Names.DoImport(Self);
 end;
 
 procedure TVRMLImport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
@@ -5113,7 +5117,7 @@ begin
   end else
     ExportedNodeAlias := ExportedNodeName;
 
-  { TODO: Names.Export() call }
+  Names.DoExport(Self);
 end;
 
 procedure TVRMLExport.ParseXML(Element: TDOMElement; Names: TVRMLNames);
@@ -5127,7 +5131,7 @@ begin
   if not DOMGetAttribute(Element, 'AS', ExportedNodeAlias) then
     ExportedNodeAlias := ExportedNodeName;
 
-  { TODO: Names.Export() call }
+  Names.DoExport(Self);
 end;
 
 procedure TVRMLExport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
@@ -5171,17 +5175,22 @@ begin
     Delete(I);
 end;
 
-procedure TVRMLNodeNames.Bind(Node: TVRMLNode);
+procedure TVRMLNodeNames.Bind(Node: TVRMLNode; const BindToName: string);
 var
   I: Integer;
 begin
-  if Node.NodeName <> '' then
+  if BindToName <> '' then
   begin
-    I := IndexOf(Node.NodeName);
+    I := IndexOf(BindToName);
     if I <> -1 then
       Objects[I] := Node else
-      AddObject(Node.NodeName, Node);
+      AddObject(BindToName, Node);
   end;
+end;
+
+procedure TVRMLNodeNames.Bind(Node: TVRMLNode);
+begin
+  Bind(Node, Node.NodeName);
 end;
 
 function TVRMLNodeNames.Bound(const Name: string): TVRMLNode;
@@ -5246,6 +5255,45 @@ begin
   FreeAndNil(FExported);
   FreeAndNil(FImportable);
   inherited;
+end;
+
+procedure TVRMLNames.DoExport(E: TVRMLExport);
+var
+  ExportedNode: TVRMLNode;
+begin
+  ExportedNode := Nodes.Bound(E.ExportedNodeName);
+  if ExportedNode = nil then
+  begin
+    VRMLWarning(vwSerious, Format('Exported node name "%s" not found', [E.ExportedNodeName]));
+    Exit;
+  end;
+
+  Exported.Bind(ExportedNode, E.ExportedNodeAlias);
+end;
+
+procedure TVRMLNames.DoImport(I: TVRMLImport);
+var
+  ImportedNames: TVRMLNodeNames;
+  ImportedNamesIndex: Integer;
+  ImportedNode: TVRMLNode;
+begin
+  ImportedNamesIndex := Importable.IndexOf(I.InlineNodeName);
+  if ImportedNamesIndex = -1 then
+  begin
+    VRMLWarning(vwSerious, Format('Inline node name "%s" not found, cannot IMPORT', [I.InlineNodeName]));
+    Exit;
+  end;
+
+  ImportedNames := Importable.Objects[ImportedNamesIndex] as TVRMLNodeNames;
+
+  ImportedNode := ImportedNames.Bound(I.ImportedNodeName) as TVRMLNode;
+  if ImportedNode = nil then
+  begin
+    VRMLWarning(vwSerious, Format('Imported node name "%s" not found in inline "%s"', [I.ImportedNodeName, I.InlineNodeName]));
+    Exit;
+  end;
+
+  Imported.Bind(ImportedNode, I.ImportedNodeAlias);
 end;
 
 { global procedures ---------------------------------------------------------- }
