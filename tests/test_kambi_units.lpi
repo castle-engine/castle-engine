@@ -151,7 +151,7 @@
         <Loaded Value="True"/>
       </Unit14>
       <Unit15>
-        <Filename Value="../vrml/opengl/examples/shadow_fields/testshadowfields.pas"/>
+        <Filename Value="../examples/vrml/shadow_fields/testshadowfields.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TestShadowFields"/>
         <CursorPos X="1" Y="1"/>
