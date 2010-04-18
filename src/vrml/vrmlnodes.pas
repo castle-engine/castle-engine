@@ -1590,7 +1590,7 @@ type
       RemoveFromDestructionNotification: boolean = true);
 
     procedure SetEnding(const NodeName, FieldOrEventName: string;
-      NodeNames: TVRMLNodeNames;
+      Names: TVRMLNames;
       var Node: TVRMLNode; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
@@ -1643,8 +1643,9 @@ type
     { Set source/destination of the route.
 
       This does everything that VRML parser should
-      do when parsed VRML route. It looks for given node name in
-      NodeNames, then it looks for field/event within this node,
+      do when parsed VRML route. It looks for given node name
+      (in Names.Nodes, then Names.Imported),
+      then it looks for field/event within this node,
       and if everything is successfull --- sets route properties.
 
       If something goes wrong, VRMLWarning is generated
@@ -1653,11 +1654,11 @@ type
       @groupBegin }
     procedure SetSource(
       const SourceNodeName, SourceFieldOrEventName: string;
-      NodeNames: TVRMLNodeNames);
+      Names: TVRMLNames);
 
     procedure SetDestination(
       const DestinationNodeName, DestinationFieldOrEventName: string;
-      NodeNames: TVRMLNodeNames);
+      Names: TVRMLNames);
     { @groupEnd }
 
     { These set source/destination of the route in more direct way.
@@ -4696,8 +4697,8 @@ begin
 
   Lexer.NextToken;
 
-  SetSource     (SourceNodeName     , SourceEventName     , Names.Nodes);
-  SetDestination(DestinationNodeName, DestinationEventName, Names.Nodes);
+  SetSource     (SourceNodeName     , SourceEventName     , Names);
+  SetDestination(DestinationNodeName, DestinationEventName, Names);
 end;
 
 procedure TVRMLRoute.ParseXML(Element: TDOMElement; Names: TVRMLNames);
@@ -4720,8 +4721,8 @@ begin
   DestinationNodeName := RequiredAttrib('toNode');
   DestinationEventName := RequiredAttrib('toField');
 
-  SetSource     (SourceNodeName     , SourceEventName     , Names.Nodes);
-  SetDestination(DestinationNodeName, DestinationEventName, Names.Nodes);
+  SetSource     (SourceNodeName     , SourceEventName     , Names);
+  SetDestination(DestinationNodeName, DestinationEventName, Names);
 end;
 
 procedure TVRMLRoute.UnsetEnding(
@@ -4818,7 +4819,7 @@ begin
 end;
 
 procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
-  NodeNames: TVRMLNodeNames;
+  Names: TVRMLNames;
   var Node: TVRMLNode; var Event: TVRMLEvent;
   const DestEnding: boolean);
 var
@@ -4828,7 +4829,9 @@ begin
   UnsetEnding(Node, Event, DestEnding);
 
   try
-    N := NodeNames.Bound(NodeName);
+    N := Names.Nodes.Bound(NodeName);
+    if N = nil then
+      N := Names.Imported.Bound(NodeName);
     if N = nil then
       raise ERouteSetEndingError.CreateFmt('Route %s node name "%s" not found',
         [ DestEndingNames[DestEnding], NodeName ]);
@@ -4863,18 +4866,18 @@ end;
 
 procedure TVRMLRoute.SetSource(
   const SourceNodeName, SourceFieldOrEventName: string;
-  NodeNames: TVRMLNodeNames);
+  Names: TVRMLNames);
 begin
   SetEnding(SourceNodeName, SourceFieldOrEventName,
-    NodeNames, FSourceNode, FSourceEvent, false);
+    Names, FSourceNode, FSourceEvent, false);
 end;
 
 procedure TVRMLRoute.SetDestination(
   const DestinationNodeName, DestinationFieldOrEventName: string;
-  NodeNames: TVRMLNodeNames);
+  Names: TVRMLNames);
 begin
   SetEnding(DestinationNodeName, DestinationFieldOrEventName,
-    NodeNames, FDestinationNode, FDestinationEvent, true);
+    Names, FDestinationNode, FDestinationEvent, true);
 end;
 
 procedure TVRMLRoute.SetEndingDirectly(
