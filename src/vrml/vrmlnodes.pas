@@ -2064,6 +2064,9 @@ const
   DefaultRenderedTextureWidth  = 128;
   DefaultRenderedTextureHeight = 128;
 
+  DefaultShadowMapScale = 1.1;
+  DefaultShadowMapBias = 4.0;
+
 { TODO: these Detail parameters below should depend on object's distance
   from viewer. But there is a problem : we need those parameters defined
   when implementing Vertices/TrianglesCount and Triangulate. }

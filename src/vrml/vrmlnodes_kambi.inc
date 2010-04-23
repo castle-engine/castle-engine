@@ -692,10 +692,10 @@ begin
   FFdlight := TSFNode.Create(Self, 'light', [TNodeX3DLightNode]);
   Fields.Add(FFdlight);
 
-  FFdscale := TSFFloat.Create(Self, 'scale', 1.1, { MustBeNonnegative } true);
+  FFdscale := TSFFloat.Create(Self, 'scale', DefaultShadowMapScale, { MustBeNonnegative } true);
   Fields.Add(FFdscale);
 
-  FFdbias := TSFFloat.Create(Self, 'bias', 4.0, { MustBeNonnegative } true);
+  FFdbias := TSFFloat.Create(Self, 'bias', DefaultShadowMapBias, { MustBeNonnegative } true);
   Fields.Add(FFdbias);
 
   FFdcompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');
