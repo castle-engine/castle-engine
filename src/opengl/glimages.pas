@@ -263,7 +263,7 @@ function ImageDrawPartToDisplayList(
   to an image file or to TRGBImage object.
 
   Sidenote: useful function to generate image
-  filename for game screenshots is @link(FnameAutoInc) in @link(KambiUtils)
+  filename for game screenshots is @link(FileNameAutoInc) in @link(KambiUtils)
   unit.
 
   It does glReadBuffer(ReadBuffer) and then glReadPixels
