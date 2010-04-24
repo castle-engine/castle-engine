@@ -2237,7 +2237,7 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 
 begin
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
-  SaveDepth(FileNameAutoInc('/tmp/framebuffer_depth.png'));
+  SaveDepth('/tmp/framebuffer_depth.png');
 {$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}
 
   if Framebuffer <> 0 then
