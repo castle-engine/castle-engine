@@ -162,7 +162,7 @@ begin
     {$ifdef VRMLENGINE_TRUNK_AVAILABLE}
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'kambi_vrml_test_suite');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'castle' + PathDelim + 'data');
-    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'vrml_engine_doc' + PathDelim + 'examples');
+    TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'vrml_engine_doc');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'rift' + PathDelim + 'data');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'www' + PathDelim + 'htdocs');
     {$endif VRMLENGINE_TRUNK_AVAILABLE}
