@@ -1274,7 +1274,9 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     TextureCoordinateGenerator. }
-  FFdprojectedLight := TSFNode.Create(Self, 'projectedLight', [TNodeX3DLightNode]);
+  FFdprojectedLight := TSFNode.Create(Self, 'projectedLight',
+    [TNodeSpotLight_1, TNodeDirectionalLight_1,
+     TNodeSpotLight_2, TNodeDirectionalLight_2]);
   Fields.Add(FFdprojectedLight);
 end;
 
