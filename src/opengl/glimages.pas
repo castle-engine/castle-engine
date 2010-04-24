@@ -2209,8 +2209,37 @@ begin
   end;
 end;
 
+{ A debug trick, saves depth buffer of the generated framebuffer image
+  to a filename (/tmp/framebuffer_depth.png, change the code below
+  if you want other filename). Useful e.g. to visualize captured shadow maps. }
+{ $define DEBUG_SAVE_FRAMEBUFFER_DEPTH}
+
 procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
+
+{$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
+  procedure SaveDepth(const FileName: string);
+  var
+    PackData: TPackNotAlignedData;
+    Image: TGrayscaleImage;
+  begin
+    Image := TGrayscaleImage.Create(Width, Height);
+    try
+      BeforePackImage(PackData, Image);
+      try
+        glReadPixels(0, 0, Width, Height, GL_DEPTH_COMPONENT,
+          ImageGLType(Image), Image.RawPixels);
+      finally AfterPackImage(PackData, Image) end;
+
+      SaveImage(Image, FileName);
+    finally FreeAndNil(Image) end;
+  end;
+{$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}
+
 begin
+{$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
+  SaveDepth(FileNameAutoInc('/tmp/framebuffer_depth.png'));
+{$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}
+
   if Framebuffer <> 0 then
   begin
     Assert(FramebufferBound);
