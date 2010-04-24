@@ -1174,7 +1174,7 @@ begin
   case MenuItem.IntData of
     50: NextBumpMappingMethod;
     60: NextCamera;
-    100: Glwin.SaveScreenDialog(FNameAutoInc(Parameters[0] + '_screen_%d.png'));
+    100: Glwin.SaveScreenDialog(FileNameAutoInc(SUnformattable(Parameters[0]) + '_screen_%d.png'));
     200: Glwin.Close;
     300: ShiftByHand := not ShiftByHand;
     400: EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;

@@ -103,7 +103,7 @@ const
     '  ExpandPosixFileName FILENAME'+nl+
     '    Just like ExpandFileName, but returns path with only "/".' +nl+
     '    Useful for Makefiles, that poorly handle things with "\" inside.' +nl+
-    '  FnameAutoInc FNAME-PATTERN'+nl+
+    '  FileNameAutoInc FNAME-PATTERN'+nl+
     '  UpperCase STR - print STR upper case. Conversion respects current locale.'+nl+
     '  LowerCase STR - print STR lower case. Conversion respects current locale.'+nl+
     '  ReplaceAll STR OLD-PATTERN NEW-PATTERN '+nl+
@@ -171,7 +171,7 @@ const
     (Param:'substring'; ParCountRequired:-1; CommandResult: crString),
     (Param:'appendtofilename'; ParCountRequired: 2; CommandResult: crString),
     (Param:'expandfilename'; ParCountRequired: 1; CommandResult: crString),
-    (Param:'fnameautoinc'; ParCountRequired: 1; CommandResult: crString),
+    (Param:'filenameautoinc'; ParCountRequired: 1; CommandResult: crString),
     (Param:'uppercase'; ParCountRequired: 1; CommandResult: crString),
     (Param:'lowercase'; ParCountRequired: 1; CommandResult: crString),
     (Param:'expandposixfilename'; ParCountRequired: 1; CommandResult: crString),
@@ -242,7 +242,7 @@ begin
       end;
   14: ResultStr := AppendToFilename(Parameters[1], Parameters[2]);
   15: ResultStr := ExpandFileName(Parameters[1]);
-  16: ResultStr := FnameAutoInc(Parameters[1]);
+  16: ResultStr := FileNameAutoInc(Parameters[1]);
   17: ResultStr := AnsiUpperCase(Parameters[1]);
   18: ResultStr := AnsiLowerCase(Parameters[1]);
   19: ResultStr := ExpandPosixFileName(Parameters[1]);

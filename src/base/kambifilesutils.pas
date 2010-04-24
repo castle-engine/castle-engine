@@ -453,12 +453,26 @@ procedure FileMove(const SourceFname, DestFname: string; CanOverwrite: boolean {
   2. Better error message (that will always contain NewDir). }
 procedure ChangeDir(const NewDir: string);
 
-{ FnameAutoInc robi Format(fname_pattern, [i]) zwiekszajac i od 0 az
-  skonstruuje nazwe pliku ktory nie istnieje. Slowem, niech fname
-  bedzie czyms w rodzaju "save_screen_%d.bmp" - FnameAutoInc
-  z takim parametrem podstawi za %d najmniejsza liczbe nieujemna taka
-  ze nie istnieje plik o tej nazwie. }
-function FnameAutoInc(const fname_pattern: string): string;
+{ Substitute %d in given filename pattern with successive numbers,
+  until the filename doesn't exist.
+
+  The idea is to start with number = 0 and do
+  @code(Format(FileNamePattern, [number])), until you find non-existing
+  filename. Example filename pattern is @code(screenshot_%d.png),
+  by saving to this filename you're relatively sure that each save goes
+  to a new file. Since we use standard @code(Format) function,
+  you can use e.g. @code(screenshot_%04d.png) to have a number inside
+  the filename always at least 4 digits long.
+
+  Note that it's possible on every OS that some other program,
+  or a second copy of your own program, will write to the filename
+  between FileNameAutoInc determined it doesn't exist and you opened the file.
+  So using this cannot guarantee that you really always write to a new file
+  (use proper file open modes for this). }
+function FileNameAutoInc(const FileNamePattern: string): string;
+
+{ Deprecated name for FileNameAutoInc. @deprecated }
+function FnameAutoInc(const FileNamePattern: string): string;
 
 { Zwroc katalog nadrzedny do katalogu DirName.
   DirName moze byc absolutna sciezka, ale nie musi.
@@ -1061,15 +1075,20 @@ begin
 
 end;
 
-function FnameAutoInc(const fname_pattern: string): string;
+function FileNameAutoInc(const FileNamePattern: string): string;
 var i: integer;
 begin
  i := 0;
  repeat
-  result := Format(fname_pattern,[i]);
+  result := Format(FileNamePattern,[i]);
   if not FileExists(result) then exit;
   Inc(i);
  until false;
+end;
+
+function FnameAutoInc(const FileNamePattern: string): string;
+begin
+  Result := FileNameAutoInc(FileNamePattern);
 end;
 
 { Note: the only things here that makes this function belong to

@@ -498,7 +498,7 @@ begin
       if FdLogFile.Value <> '' then
       begin
         WriteStream := TFileStream.Create(
-          FNameAutoInc(ProgramName + '_logger_' +
+          FileNameAutoInc(ProgramName + '_logger_' +
             ExtractOnlyFileName(FdLogFile.Value) + '_%d.log'), fmCreate);
         OwnsWriteStream := true;
       end else

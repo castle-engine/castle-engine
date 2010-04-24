@@ -94,7 +94,7 @@ begin
         with Scene do Attributes.UseFog := not Attributes.UseFog;
         Glw.PostRedisplay;
       end;
-    K_F5: glwin.SaveScreenDialog(FNameAutoInc('fog_culling_screen_%d.png'));
+    K_F5: glwin.SaveScreenDialog(FileNameAutoInc('fog_culling_screen_%d.png'));
   end;
 end;
 

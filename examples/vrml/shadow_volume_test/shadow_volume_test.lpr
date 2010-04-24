@@ -598,7 +598,7 @@ begin
         IsRenderShadowCaster := not IsRenderShadowCaster;
         Glwin.PostRedisplay;
       end;
-    120: Glwin.SaveScreenDialog(FNameAutoInc(Parameters[0] + '_screen_%d.png'));
+    120: Glwin.SaveScreenDialog(FileNameAutoInc(SUnformattable(Parameters[0]) + '_screen_%d.png'));
     130: SetViewpointForWholeScene;
   end;
 end;
