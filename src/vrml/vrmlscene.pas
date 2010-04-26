@@ -3200,6 +3200,7 @@ var
   SI: TVRMLShapeTreeIterator;
   NodeInfo: PTransformNodeInfo;
   TransformShapesParentInfo: TShapesParentInfo;
+  TexCoord: TVRMLNode;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
@@ -3381,9 +3382,8 @@ begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if (SI.Current.Geometry is TNodeX3DComposedGeometryNode) and
-             (TNodeX3DComposedGeometryNode(SI.Current.Geometry).
-               FdTexCoord.Value = Node) then
+          if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
+             (TexCoord = Node) then
             ChangedShapeFields(SI.Current, Node, FieldOrEvent, Field,
               false, false, false, false);
       finally FreeAndNil(SI) end;
