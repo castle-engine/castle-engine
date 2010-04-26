@@ -6,7 +6,7 @@ ALL_OUTPUT := glsl_bump_mapping.vs.inc glsl_bump_mapping.fs.inc \
   glsl_parallax_bump_mapping.vs.inc glsl_parallax_bump_mapping.fs.inc
 
 .PHONY: all
-all: $(ALL_OUTPUT);
+all: $(ALL_OUTPUT)
 
 glsl_bump_mapping.vs.inc: glsl_bump_mapping.vs
 	file_to_pascal_string $< $@
