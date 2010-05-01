@@ -105,6 +105,9 @@
     private FFdtextureTransform: TSFNode;
     public property FdtextureTransform: TSFNode read FFdtextureTransform;
 
+    private FFdReceiveShadows: TMFNode;
+    public property FdReceiveShadows: TMFNode read FFdReceiveShadows;
+
     { This returns FdShaders.Items[Index], if it's a shader node suitable for GLSL
       shader. Otherwise returns @nil. This checks the class of
       FdShaders.Items[Index] and it's @code(language) field. }
@@ -490,6 +493,10 @@ begin
 
   FFdtextureTransform := TSFNode.Create(Self, 'textureTransform', [TNodeX3DTextureTransformNode]);
   Fields.Add(FFdtextureTransform);
+
+  FFdReceiveShadows := TMFNode.Create(Self, 'receiveShadows', [TNodeX3DLightNode]);
+  FFdReceiveShadows.Exposed := false;
+  Fields.Add(FFdReceiveShadows);
 
   { In edition 2 of X3D XML encoding, this is empty... but in earlier
     versions, this was "appearance" and this seems more sensible,

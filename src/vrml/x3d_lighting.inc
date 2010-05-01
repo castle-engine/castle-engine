@@ -60,6 +60,9 @@
     private FFdUp: TSFVec3f;
     public property FdUp: TSFVec3f read FFdUp;
 
+    private FFdDefaultShadowMap: TSFNode;
+    public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
+
     { Transformation of this light node.
       Normal lights can be instanced many times within the scene, with
       various transformation, so @italic(this transformation property
@@ -289,6 +292,10 @@ begin
 
   FFdUp := TSFVec3f.Create(Self, 'up', Vector3Single(0, 1, 0));
   Fields.Add(FFdUp);
+
+  FFdDefaultShadowMap := TSFNode.Create(Self, 'defaultShadowMap', [TNodeGeneratedShadowMap]);
+  FFdDefaultShadowMap.Exposed := false;
+  Fields.Add(FFdDefaultShadowMap);
 
   DefaultContainerField := 'children';
 
