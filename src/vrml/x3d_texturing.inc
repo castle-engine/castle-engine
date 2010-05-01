@@ -1042,8 +1042,8 @@ begin
       WasCacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
-      if EventsProcessor <> nil then
-        EventDuration_Changed.Send(FDuration, EventsProcessor.GetTime);
+      if EventsEngine <> nil then
+        EventDuration_Changed.Send(FDuration, EventsEngine.GetTime);
       Break;
     except
       on E: Exception do

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TVRMLEventsProcessor (ancestor of TVRMLScene, with which the nodes
+{ TVRMLEventsEngine (ancestor of TVRMLScene, with which the nodes
   implementations interact) and related types. }
 
 {$ifdef read_interface}
@@ -26,7 +26,7 @@
   end;
 
   { Basic abstract object that can handle VRML/X3D events. }
-  TVRMLEventsProcessor = class(T3D)
+  TVRMLEventsEngine = class(T3D)
   protected
     procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TVRMLField); virtual; abstract;
   public

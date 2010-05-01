@@ -89,7 +89,7 @@
     FCDataExists: boolean;
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
-    FEventsProcessor: TVRMLEventsProcessor;
+    FEventsEngine: TVRMLEventsEngine;
 
     { Internally used by PROTO instantiating mechanism,
       in TVRMLPrototypeNode.InstantiateIsClauses
@@ -943,7 +943,7 @@
 
       Doesn't copy things which are dependent on container hierarchy.
       (So copying them would be more dangerous than useful.)
-      This means: DestructionNotifications, EventsProcessor, ParentNodes,
+      This means: DestructionNotifications, EventsEngine, ParentNodes,
       ParentFields. ParentNodes and ParentFields will be set for children
       anyway (to appropriate copies).
 
@@ -1108,7 +1108,7 @@
 
       Currently this can be only an instance of TVRMLScene class.
       TVRMLScene.ProcessEvents is always @true while it's set
-      as EventsProcessor.
+      as EventsEngine.
 
       Note: While it is possble and perfectly fine to have
       the same VRML node included in more than one TVRMLScene instance,
@@ -1120,8 +1120,8 @@
       change it to something like TVRMLScenesList). This is also the reason
       why this shouldn't be treated as a "parent TVRMLScene" for arbritrary
       purposes, it's only for events processing things! }
-    property EventsProcessor: TVRMLEventsProcessor
-      read FEventsProcessor write FEventsProcessor;
+    property EventsEngine: TVRMLEventsEngine
+      read FEventsEngine write FEventsEngine;
 
     { This will be always called by VRML parsers after adding new item
       to our InterfaceDeclarations.

@@ -301,17 +301,17 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
     { In practice, this should always return true, as script is
       run only when ProcessEvents := true, script node always has
       ParentNode assigned, and when ProcessEvents = true then
-      EventsProcessor is also assigned.
+      EventsEngine is also assigned.
       But we secure here, and work like this wasn't required.
 
       This way you could use scripting even without ProcessEvents
       (just to set initializeOnly). Useless, but possible. }
 
     Result := (FieldOrEvent.ParentNode <> nil) and
-      (TVRMLNode(FieldOrEvent.ParentNode).EventsProcessor <> nil);
+      (TVRMLNode(FieldOrEvent.ParentNode).EventsEngine <> nil);
     if Result then
     begin
-      Time := TVRMLNode(FieldOrEvent.ParentNode).EventsProcessor.GetTime;
+      Time := TVRMLNode(FieldOrEvent.ParentNode).EventsEngine.GetTime;
     end;
   end;
 

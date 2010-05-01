@@ -270,7 +270,7 @@ var
     I: Integer;
   begin
     if (EventOrigin <> nil) and
-       (Geometry.EventsProcessor <> nil) then
+       (Geometry.EventsEngine <> nil) then
     begin
       { This is all simple, since we ignore topToBottom, leftToRight.
         Also, we don't honour the rule that the upper line of the text
@@ -282,7 +282,7 @@ var
         So the lacks of current Text rendering implementation
         make this somewhat simple :) }
 
-      Time := Geometry.EventsProcessor.GetTime;
+      Time := Geometry.EventsEngine.GetTime;
 
       FinalRowHeight := CurrentFont.RowHeight * Spacing * YScale;
 

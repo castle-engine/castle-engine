@@ -165,7 +165,7 @@
       It simply doesn't do any loading when "load" = @false.
 
       Note that this doesn't perform setting the "load" field,
-      or sending any notifications to EventsProcessor
+      or sending any notifications to EventsEngine
       about "load" field. It's the caller's job to keep loaded state
       synchronized with "load" field value.
 
@@ -397,10 +397,10 @@ begin
     whether exposed event handler was already done or not (depends
     on the of calbacks on OnReceive list).
 
-    Even better, I know that notification to EventsProcessor
+    Even better, I know that notification to EventsEngine
     (from exposed eventIn handler)
     is done *after* running our eventOut handler.
-    This means that EventsProcessor will be notified about
+    This means that EventsEngine will be notified about
     changes *after* EventLoadReceive or EventUrlReceive changed the nodes
     to load/unload, so TVRMLScene.ChangedAll will be called with
     the *new* graph state, so it will properly update everything to
@@ -665,12 +665,12 @@ begin
     For now it's not really important (user doesn't see
     where it's loaded), but it will be later for scripts. }
 
-  if EventChildren.SendNeeded and (EventsProcessor <> nil) then
+  if EventChildren.SendNeeded and (EventsEngine <> nil) then
   begin
     ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.Name);
     try
       ChildrenToSend.AddItem(FInlined);
-      EventChildren.Send(ChildrenToSend, EventsProcessor.GetTime);
+      EventChildren.Send(ChildrenToSend, EventsEngine.GetTime);
     finally FreeAndNil(ChildrenToSend) end;
   end;
 end;

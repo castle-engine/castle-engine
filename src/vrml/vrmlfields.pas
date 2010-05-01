@@ -2327,9 +2327,9 @@ begin
     { Tests:
     if not ValuePossiblyChanged then
       writeln('ignored field ', Name, ' change, since values the same'); }
-    if (ParNode.EventsProcessor <> nil) and
+    if (ParNode.EventsEngine <> nil) and
        ValuePossiblyChanged then
-      ParNode.EventsProcessor.ChangedFields(ParNode, Event);
+      ParNode.EventsEngine.ChangedFields(ParNode, Event);
   end;
 end;
 

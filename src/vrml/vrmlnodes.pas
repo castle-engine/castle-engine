@@ -319,7 +319,7 @@ type
   TVRMLTextureNode = class;
   TNodeBlendMode = class;
   TNodeX3DTextureNode = class;
-  TVRMLEventsProcessor = class;
+  TVRMLEventsEngine = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -1765,7 +1765,7 @@ type
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLExport;
   end;
 
-{$I vrmlnodes_eventsprocessor.inc}
+{$I vrmlnodes_eventsengine.inc}
 
 { Node names ----------------------------------------------------------------- }
 

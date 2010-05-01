@@ -619,8 +619,8 @@ procedure TNodeElevationGrid.EventSet_HeightReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdHeight.Assign(Value);
-  if EventsProcessor <> nil then
-    EventsProcessor.ChangedFields(Self, FdHeight);
+  if EventsEngine <> nil then
+    EventsEngine.ChangedFields(Self, FdHeight);
 end;
 
 constructor TNodeExtrusion.Create(const ANodeName: string;
@@ -987,32 +987,32 @@ procedure TNodeExtrusion.EventSet_crossSectionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcrossSection.Assign(Value);
-  if EventsProcessor <> nil then
-    EventsProcessor.ChangedFields(Self, FdcrossSection);
+  if EventsEngine <> nil then
+    EventsEngine.ChangedFields(Self, FdcrossSection);
 end;
 
 procedure TNodeExtrusion.EventSet_orientationReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Fdorientation.Assign(Value);
-  if EventsProcessor <> nil then
-    EventsProcessor.ChangedFields(Self, Fdorientation);
+  if EventsEngine <> nil then
+    EventsEngine.ChangedFields(Self, Fdorientation);
 end;
 
 procedure TNodeExtrusion.EventSet_scaleReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Fdscale.Assign(Value);
-  if EventsProcessor <> nil then
-    EventsProcessor.ChangedFields(Self, Fdscale);
+  if EventsEngine <> nil then
+    EventsEngine.ChangedFields(Self, Fdscale);
 end;
 
 procedure TNodeExtrusion.EventSet_spineReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Fdspine.Assign(Value);
-  if EventsProcessor <> nil then
-    EventsProcessor.ChangedFields(Self, Fdspine);
+  if EventsEngine <> nil then
+    EventsEngine.ChangedFields(Self, Fdspine);
 end;
 
 constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string;
@@ -1103,32 +1103,32 @@ procedure TNodeIndexedFaceSet_2.EventSet_colorIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcolorIndex.Assign(Value);
-  if EventsProcessor <> nil then
-    EventsProcessor.ChangedFields(Self, FdcolorIndex);
+  if EventsEngine <> nil then
+    EventsEngine.ChangedFields(Self, FdcolorIndex);
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_coordIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcoordIndex.Assign(Value);
-  if EventsProcessor <> nil then
-    EventsProcessor.ChangedFields(Self, FdcoordIndex);
+  if EventsEngine <> nil then
+    EventsEngine.ChangedFields(Self, FdcoordIndex);
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_normalIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdnormalIndex.Assign(Value);
-  if EventsProcessor <> nil then
-    EventsProcessor.ChangedFields(Self, FdnormalIndex);
+  if EventsEngine <> nil then
+    EventsEngine.ChangedFields(Self, FdnormalIndex);
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_texCoordIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdtexCoordIndex.Assign(Value);
-  if EventsProcessor <> nil then
-    EventsProcessor.ChangedFields(Self, FdtexCoordIndex);
+  if EventsEngine <> nil then
+    EventsEngine.ChangedFields(Self, FdtexCoordIndex);
 end;
 
 constructor TNodeSphere_2.Create(const ANodeName: string;

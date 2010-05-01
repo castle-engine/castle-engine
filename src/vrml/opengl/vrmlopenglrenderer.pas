@@ -2462,7 +2462,7 @@ var
   I: Integer;
   UniformName: string;
   GLSLProgramCache: PGLSLProgramCache;
-  EventsProcessor: TVRMLEventsProcessor;
+  EventsEngine: TVRMLEventsEngine;
 begin
   if Event.ParentExposedField = nil then
     UniformName := Event.Name else
@@ -2483,15 +2483,15 @@ begin
       SetUniformFromField(GLSLProgramCache^.GLSLProgram, UniformName, Value);
 
       { Although ExposedEvents implementation already sends notification
-        about changes to EventsProcessor, we can also get here
+        about changes to EventsEngine, we can also get here
         by eventIn invocation (which doesn't trigger
-        EventsProcessor.ChangedFields, since it doesn't change a field...).
+        EventsEngine.ChangedFields, since it doesn't change a field...).
         So we should explicitly do VisibleChangeHere here, to make sure
         it gets called when uniform changed. }
 
-      EventsProcessor := GLSLProgramCache^.ProgramNode.EventsProcessor;
-      if EventsProcessor <> nil then
-        EventsProcessor.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+      EventsEngine := GLSLProgramCache^.ProgramNode.EventsEngine;
+      if EventsEngine <> nil then
+        EventsEngine.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 
       Exit;
     end;
@@ -4490,9 +4490,9 @@ var
     { If update = 'NEXT_FRAME_ONLY', change it to 'NONE' now }
     if UpdateIndex = 1 then
     begin
-      if TextureNode.EventsProcessor <> nil then
+      if TextureNode.EventsEngine <> nil then
         SavedHandler.FdUpdate.EventIn.Send('NONE',
-          TextureNode.EventsProcessor.GetTime) else
+          TextureNode.EventsEngine.GetTime) else
         SavedHandler.FdUpdate.Value := 'NONE';
     end;
 

@@ -135,7 +135,7 @@ var
   ParameterValue, ParameterTime: TKamScriptValue;
 begin
   if Initialized and
-     (EventsProcessor <> nil) then
+     (EventsEngine <> nil) then
   begin
     if Log then
       WritelnLog('VRML Script', 'Executing "' + FunctionName + '"');
@@ -145,11 +145,11 @@ begin
         begin
           I := CompiledScriptContents.IndexOfName(FunctionName);
           if I <> -1 then
-            EventsProcessor.ExecuteCompiledScript(CompiledScriptContents.ValueFromIndex[I], ReceivedValue) else
+            EventsEngine.ExecuteCompiledScript(CompiledScriptContents.ValueFromIndex[I], ReceivedValue) else
           if CompiledScriptContents.IndexOf(FunctionName) <> -1 then
             { If FunctionName exists, without any value, then just execute
               the handler of the same name. }
-            EventsProcessor.ExecuteCompiledScript(FunctionName, ReceivedValue);
+            EventsEngine.ExecuteCompiledScript(FunctionName, ReceivedValue);
         end;
       stKambiScript:
         begin
@@ -161,7 +161,7 @@ begin
           end else
             ParameterValue := nil;
           ParameterTime := TKamScriptFloat.Create(true,
-            EventsProcessor.GetTime.Seconds);
+            EventsEngine.GetTime.Seconds);
           try
             KambiScriptVariables.BeforeExecute;
             try

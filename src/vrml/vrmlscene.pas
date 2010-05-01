@@ -506,7 +506,7 @@ type
 
     Also, VRML2ActiveLights are magically updated for all states in
     @link(Shapes) tree. This is crucial for lights rendering in VRML >= 2.0. }
-  TVRMLScene = class(TVRMLEventsProcessor)
+  TVRMLScene = class(TVRMLEventsEngine)
   private
     FOwnsRootNode: boolean;
     FShapes: TVRMLShapeTree;
@@ -1462,11 +1462,11 @@ type
       "untie" this node (and all it's children) from this TVRMLScene instance.
 
       Reason: when ProcessEvents is activated,
-      we set Self as node's EventsProcessor to get event
+      we set Self as node's EventsEngine to get event
       changes notifications to ChangedXxx methods.
       When ProcessEvents is deactivated (including when this TVRMLScene
       instance is released) we revert this. If you add new node
-      to VRML graph, we make sure (in ChangedAll) that EventsProcessor
+      to VRML graph, we make sure (in ChangedAll) that EventsEngine
       is set correctly for all new nodes. Buf if you deleted a node
       from our graph, we have no chance to remove this...
       You have to call UnregisterProcessEvents then manually,
@@ -4833,7 +4833,7 @@ end;
 
 procedure TVRMLScene.CollectNodeForEvents(Node: TVRMLNode);
 begin
-  Node.EventsProcessor := Self;
+  Node.EventsEngine := Self;
 
   if Node is TNodeKeySensor then
     KeySensorNodes.AddIfNotExists(Node) else
@@ -4886,7 +4886,7 @@ begin
     try
       { We have to initialize scripts only after all other initialization
         is done, in particular after CollectNodeForEvents was called
-        for all and set their EventsProcessor. Reason: scripts
+        for all and set their EventsEngine. Reason: scripts
         initialize() methods may already cause some events, that should
         notify us appropriately.
 
@@ -4898,7 +4898,7 @@ end;
 
 procedure TVRMLScene.UnCollectForEvents(Node: TVRMLNode);
 begin
-  Node.EventsProcessor := nil;
+  Node.EventsEngine := nil;
 end;
 
 procedure TVRMLScene.ScriptsDeInitialize(Node: TVRMLNode);
