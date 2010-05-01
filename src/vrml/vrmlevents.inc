@@ -81,8 +81,16 @@
 
       The Field instance doesn't become owned in any way by the TVRMLEvent.
       That is, it's the caller responsibility to free the Field instance
-      at any comfortable time, possibly right after calling Send. }
+      at any comfortable time, possibly right after calling Send.
+
+      Overloaded versions without explicit Time parameter just take time
+      from ParentNode.EventsEngine.GetTime. If ParentNode is @nil
+      (which should not happen with normal fields within nodes)
+      or if ParentNode.EventsEngine is @nil (which may happen only if events
+      processing is not turned on, that is TVRMLScene.ProcessEvents is @false)
+      then event is not send. }
     procedure Send(Field: TVRMLField; const Time: TVRMLTime);
+    procedure Send(Field: TVRMLField);
 
     { Send a value to event.
 
@@ -117,6 +125,24 @@
     procedure SendArray(const Value: array of TVector2Single; const Time: TVRMLTime);
     procedure SendArray(const Value: array of TVector3Single; const Time: TVRMLTime);
     procedure SendArray(const Value: array of TVector4Single; const Time: TVRMLTime);
+
+    procedure Send(const Value: LongInt);
+    procedure Send(const Value: boolean);
+    procedure Send(const Value: string);
+    procedure Send(const Value: TVector2Single);
+    procedure Send(const Value: TVector3Single);
+    procedure Send(const Value: TVector4Single);
+    procedure Send(const Value: Single);
+    procedure Send(const Value: Double);
+    procedure Send(const Value: TMatrix3Single);
+    procedure Send(const Value: TMatrix4Single);
+    procedure Send(const Value: TMatrix3Double);
+    procedure Send(const Value: TMatrix4Double);
+
+    procedure SendArray(const Value: array of string);
+    procedure SendArray(const Value: array of TVector2Single);
+    procedure SendArray(const Value: array of TVector3Single);
+    procedure SendArray(const Value: array of TVector4Single);
     { @groupEnd }
 
     { Notifications about receiving an item. For input fields,
@@ -424,6 +450,125 @@ begin
   try
     Send(Field, Time);
   finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(Field: TVRMLField);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Field, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: LongInt);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: boolean);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: string);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: TVector2Single);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: TVector3Single);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: TVector4Single);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: Single);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: Double);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: TMatrix3Single);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: TMatrix4Single);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: TMatrix3Double);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.Send(const Value: TMatrix4Double);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.SendArray(const Value: array of string);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    SendArray(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.SendArray(const Value: array of TVector2Single);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    SendArray(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.SendArray(const Value: array of TVector3Single);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    SendArray(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+end;
+
+procedure TVRMLEvent.SendArray(const Value: array of TVector4Single);
+begin
+  if (ParentNode <> nil) and
+     (TVRMLNode(ParentNode).EventsEngine <> nil) then
+    SendArray(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
 end;
 
 function TVRMLEvent.SendNeeded: boolean;
