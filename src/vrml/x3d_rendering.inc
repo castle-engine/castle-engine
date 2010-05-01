@@ -307,7 +307,7 @@
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); virtual;
 
-    { Return node's list of texture coordinates. Returns @false if node
+    { Node's texture coordinates. Returns @false if node
       cannot have texture coordinates.
 
       Returns @true and sets ATexCoord to a node defining texture coords.
@@ -316,9 +316,21 @@
       ATexCoord can also be set to @nil in this case, which means that
       this node has a field for texCoord, but it's empty right now.
 
-      In base TVRMLGeometryNode class this always returns @false. }
+      In base TVRMLGeometryNode class this looks at TexCoordField,
+      eventually returns @false. }
     function TexCoord(State: TVRMLGraphTraverseState;
       out ATexCoord: TVRMLNode): boolean; virtual;
+
+    { Node's texCoord field, or @nil if not available.
+      Various nodes may have different exact rules about what is
+      allowed here, but everything allows TextureCoordinateGenerator
+      instance.
+
+      This gives you more possibilities than the @link(TexCoord) method
+      (as you can assign texCoord using this), however it may be not available
+      in all cases --- for example VRML 1.0 nodes do not have texCoord field,
+      but they may have a texture coordinate node (from the state). }
+    function TexCoordField: TSFNode; virtual;
 
     { Converts this node to another node class that may be better supported.
 
@@ -391,8 +403,7 @@
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
-    function TexCoord(State: TVRMLGraphTraverseState;
-      out ATexCoord: TVRMLNode): boolean; override;
+    function TexCoordField: TSFNode; override;
 
     { Returns color.point field, assuming that color is set and
       specifies Color node. Otherwise returns @nil. }
@@ -876,7 +887,17 @@ end;
 function TVRMLGeometryNode.TexCoord(State: TVRMLGraphTraverseState;
   out ATexCoord: TVRMLNode): boolean;
 begin
-  Result := false;
+  Result := TexCoordField <> nil;
+  if Result and
+     (TexCoordField.Value <> nil) and
+     TexCoordField.CurrentChildAllowed then
+    ATexCoord := TexCoordField.Value else
+    ATexCoord := nil;
+end;
+
+function TVRMLGeometryNode.TexCoordField: TSFNode;
+begin
+  Result := nil;
 end;
 
 function TVRMLGeometryNode.Proxy: TVRMLGeometryNode;
@@ -947,14 +968,9 @@ begin
     ACoord := nil;
 end;
 
-function TNodeX3DComposedGeometryNode.TexCoord(State: TVRMLGraphTraverseState;
-  out ATexCoord: TVRMLNode): boolean;
+function TNodeX3DComposedGeometryNode.TexCoordField: TSFNode;
 begin
-  Result := true;
-  if (FdTexCoord.Value <> nil) and
-     FdTexCoord.CurrentChildAllowed then
-    ATexCoord := FdTexCoord.Value else
-    ATexCoord := nil;
+  Result := FdTexCoord;
 end;
 
 function TNodeX3DComposedGeometryNode.Color: TMFVec3f;

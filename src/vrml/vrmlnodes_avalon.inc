@@ -64,8 +64,7 @@
 
     function Proxy: TVRMLGeometryNode; override;
 
-    function TexCoord(State: TVRMLGraphTraverseState;
-      out ATexCoord: TVRMLNode): boolean; override;
+    function TexCoordField: TSFNode; override;
   end;
 
   TNodeLogger = class(TNodeX3DChildNode)
@@ -390,14 +389,9 @@ begin
   FdtexCoord.EnumerateValid(Func);
 end;
 
-function TNodeTeapot.TexCoord(State: TVRMLGraphTraverseState;
-  out ATexCoord: TVRMLNode): boolean;
+function TNodeTeapot.TexCoordField: TSFNode;
 begin
-  Result := true;
-  if (FdTexCoord.Value <> nil) and
-     FdTexCoord.CurrentChildAllowed then
-    ATexCoord := FdTexCoord.Value else
-    ATexCoord := nil;
+  Result := FdTexCoord;
 end;
 
 constructor TNodeLogger.Create(const ANodeName: string;
