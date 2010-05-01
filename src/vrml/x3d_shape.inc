@@ -32,6 +32,9 @@
   TNodeComposedShader = class;
 
   TNodeX3DShapeNode = class(TNodeX3DChildNode, INodeX3DBoundedObject)
+  private
+    function GetAppearance: TNodeAppearance;
+    procedure SetAppearance(const Value: TNodeAppearance);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -54,9 +57,9 @@
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
 
     { This is a shortcut for FdAppearance.Value.
-      If anything makes this impossible (Apperance field is NULL, or wrong class)
-      then returns @nil. }
-    function Appearance: TNodeAppearance;
+      If anything makes this impossible (Apperance field is NULL,
+      or wrong class) then returns @nil. }
+    property Appearance: TNodeAppearance read GetAppearance write SetAppearance;
 
     { This is a shortcut for FdAppearance.Value.FdTexture.Value.
       If anything makes this impossible (Apperance field is NULL,
@@ -418,12 +421,17 @@ begin
   inherited;
 end;
 
-function TNodeX3DShapeNode.Appearance: TNodeAppearance;
+function TNodeX3DShapeNode.GetAppearance: TNodeAppearance;
 begin
   if (FdAppearance.Value <> nil) and
      (FdAppearance.Value is TNodeAppearance) then
     Result := TNodeAppearance(FdAppearance.Value) else
     Result := nil;
+end;
+
+procedure TNodeX3DShapeNode.SetAppearance(const Value: TNodeAppearance);
+begin
+  FdAppearance.Value := Value;
 end;
 
 function TNodeX3DShapeNode.Texture: TNodeX3DTextureNode;
