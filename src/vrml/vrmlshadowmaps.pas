@@ -32,8 +32,8 @@ uses VRMLNodes;
       shader.)
   ) }
 procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
-  const ShadowMapDefaultSize: Cardinal;
-  const VisualizeShadowMapDepths: boolean);
+  const DefaultShadowMapSize: Cardinal;
+  const DefaultVisualizeShadowMap: boolean);
 
 implementation
 
@@ -61,12 +61,12 @@ type
 type
   TDynLightArray = class(TDynArray_1)
   public
-    ShadowMapDefaultSize: Cardinal;
-    VisualizeShadowMapDepths: boolean;
-    ShadowMapShaders: array [0..1] of TNodeComposedShader;
+    DefaultShadowMapSize: Cardinal;
+    DefaultVisualizeShadowMap: boolean;
+    ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
     function FindLight(Light: TNodeX3DLightNode): PLight;
-    function CreateShadowMapShader(const BaseTexCount: Cardinal):
-      TNodeComposedShader;
+    function CreateShadowMapShader(const VisualizeShadowMap: boolean;
+      const BaseTexCount: Cardinal): TNodeComposedShader;
     procedure HandleShape(Node: TVRMLNode);
   end;
 
@@ -99,10 +99,10 @@ begin
     Result^.ShadowMap.NodeName := LightUniqueName + '_Automatic_ShadowMap';
     Result^.ShadowMap.FdLight.Value := Light;
     Result^.ShadowMap.FdUpdate.Value := 'ALWAYS';
-    Result^.ShadowMap.FdSize.Value := ShadowMapDefaultSize;
+    Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
   end;
 
-  if VisualizeShadowMapDepths then
+  if DefaultVisualizeShadowMap then
     Result^.ShadowMap.FdCompareMode.Value := 'NONE';
 
   { create new TextureCoordinateGenerator node }
@@ -129,8 +129,8 @@ begin
   Node.PostAddInterfaceDeclaration(IDecl);
 end;
 
-function TDynLightArray.CreateShadowMapShader(const BaseTexCount: Cardinal):
-  TNodeComposedShader;
+function TDynLightArray.CreateShadowMapShader(const VisualizeShadowMap: boolean;
+  const BaseTexCount: Cardinal): TNodeComposedShader;
 const
   ShadowMapFragmentShader: array [boolean, 0..MaxBaseTextures] of string =
   ( ( {$I shadow_map_0.fs.inc}, {$I shadow_map_1.fs.inc} ),
@@ -152,7 +152,7 @@ begin
   Part.FdType.Value := 'FRAGMENT';
   Part.FdUrl.Items.Count := 1;
   Part.FdUrl.Items[0] := NL + ShadowMapFragmentShader[
-    VisualizeShadowMapDepths, BaseTexCount];
+    VisualizeShadowMap, BaseTexCount];
 
   Result.FdParts.AddItem(Part);
 end;
@@ -184,6 +184,7 @@ var
     OldTexCoord: TVRMLNode;
     NewTexCoord: TNodeMultiTextureCoordinate;
     OriginalTextures, OriginalTexCoords: Cardinal;
+    VisualizeShadowMap: boolean;
   begin
     Light := FindLight(LightNode);
 
@@ -260,9 +261,12 @@ var
     App.FdTexture.Value := NewTexture;
     TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField.Value := NewTexCoord;
 
-    if ShadowMapShaders[OriginalTexCoords] = nil then
-      ShadowMapShaders[OriginalTexCoords] := CreateShadowMapShader(OriginalTexCoords);
-    App.FdShaders.AddItem(ShadowMapShaders[OriginalTexCoords]);
+    VisualizeShadowMap := Light^.ShadowMap.FdCompareMode.Value = 'NONE';
+
+    if ShadowMapShaders[VisualizeShadowMap, OriginalTexCoords] = nil then
+      ShadowMapShaders[VisualizeShadowMap, OriginalTexCoords] :=
+        CreateShadowMapShader(VisualizeShadowMap, OriginalTexCoords);
+    App.FdShaders.AddItem(ShadowMapShaders[VisualizeShadowMap, OriginalTexCoords]);
   end;
 
 var
@@ -290,15 +294,15 @@ begin
 end;
 
 procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
-  const ShadowMapDefaultSize: Cardinal;
-  const VisualizeShadowMapDepths: boolean);
+  const DefaultShadowMapSize: Cardinal;
+  const DefaultVisualizeShadowMap: boolean);
 var
   Lights: TDynLightArray;
 begin
   Lights := TDynLightArray.Create;
   try
-    Lights.ShadowMapDefaultSize := ShadowMapDefaultSize;
-    Lights.VisualizeShadowMapDepths := VisualizeShadowMapDepths;
+    Lights.DefaultShadowMapSize := DefaultShadowMapSize;
+    Lights.DefaultVisualizeShadowMap := DefaultVisualizeShadowMap;
 
     { Enumerate all (active and not) shapes for the receiveShadows
       calculations. In case a shape is not active, it may become active later
