@@ -276,14 +276,14 @@ begin
 
   { HandleLight needs here a shape with geometry with texCoord.
     Better check it here, before we start changing anything. }
-  if (Shape.FdGeometry.Value = nil) or
-     (not (Shape.FdGeometry.Value is TVRMLGeometryNode)) or
-     (TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField = nil) then
-    Exit;
+  if Shape.FdGeometry.Value = nil then Exit;
 
-    { TODO:
-          VRMLWarning(vwIgnorable, 'Shape geometry ' + Shape.FdGeometry.Value.NodeTypeName + ' does not have texCoord, cannot be shadow maps receiver.');
-    }
+  if (not (Shape.FdGeometry.Value is TVRMLGeometryNode)) or
+     (TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField = nil) then
+  begin
+    VRMLWarning(vwIgnorable, 'Geometry node "' + Shape.FdGeometry.Value.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
+    Exit;
+  end;
 
   App := Shape.Appearance;
   if App = nil then Exit;
