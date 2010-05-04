@@ -1744,7 +1744,8 @@ type
         @item(TWalkCamera.PreferGravityUpForRotations,)
         @item(TWalkCamera.PreferGravityUpForMoving,)
         @item(TWalkCamera.IgnoreAllInputs,)
-        @item(TWalkCamera.CameraPreferredHeight.)
+        @item(TWalkCamera.CameraPreferredHeight,)
+        @item(TWalkCamera.HeadBobbing, TWalkCamera.HeadBobbingDistance.)
       )
 
       This also calls CameraBindToViewpoint at the end,
@@ -5859,6 +5860,14 @@ begin
   if Result is TExamineCamera then
   begin
     TExamineCamera(Result).Init(Box, CameraRadius);
+  end;
+
+  if (Result is TWalkCamera) and
+     (NavigationNode <> nil) and
+     (NavigationNode is TNodeKambiNavigationInfo) then
+  begin
+    TWalkCamera(Result).HeadBobbing := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbing.Value;
+    TWalkCamera(Result).HeadBobbingDistance := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbingDistance.Value;
   end;
 
   CameraBindToViewpoint(Result, false);

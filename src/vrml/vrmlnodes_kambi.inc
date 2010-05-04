@@ -218,6 +218,12 @@
     private FFdoctreeCollidableTriangles: TSFNode;
     public property FdoctreeCollidableTriangles: TSFNode read FFdoctreeCollidableTriangles;
 
+    private FFdHeadBobbing: TSFFloat;
+    public property FdHeadBobbing: TSFFloat read FFdHeadBobbing;
+
+    private FFdHeadBobbingDistance: TSFFloat;
+    public property FdHeadBobbingDistance: TSFFloat read FFdHeadBobbingDistance;
+
     { Return value of appropriate FdOctreeXxx field.
       Returns @nil if the field doesn't have allowed (TNodeKambiOctreeProperties)
       value (or if the field is actually @nil, naturally). }
@@ -605,6 +611,12 @@ begin
   FFdoctreeCollidableTriangles := TSFNode.Create(Self, 'octreeCollidableTriangles', [TNodeKambiOctreeProperties]);
   FFdoctreeCollidableTriangles.Exposed := false;
   Fields.Add(FFdoctreeCollidableTriangles);
+
+  FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', DefaultHeadBobbing, true);
+  Fields.Add(FFdHeadBobbing);
+
+  FFdHeadBobbingDistance := TSFFloat.Create(Self, 'headBobbingDistance', DefaultHeadBobbingDistance, true);
+  Fields.Add(FdHeadBobbingDistance);
 end;
 
 class function TNodeKambiNavigationInfo.ClassNodeTypeName: string;
