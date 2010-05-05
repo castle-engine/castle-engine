@@ -299,6 +299,7 @@ begin
     10: LoadVertexProgramMenu;
     20: LoadFragmentProgramMenu;
     30: LoadGLSLProgramMenu;
+    200: Glwin.Close;
   end;
 end;
 
