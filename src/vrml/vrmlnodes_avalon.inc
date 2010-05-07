@@ -348,7 +348,7 @@ const
   TeapotManifoldCoord: array [0..0] of TVector3Single = ((0, 0, 0));
   TeapotManifoldCoordIndex: array [0..0] of LongInt = (0);
 }
-  {$I teapot_data/teapot.inc}
+  {$I teapot/teapot.inc}
 var
   CoordNode: TNodeCoordinate;
   IFS: TNodeIndexedFaceSet_2 absolute Result;
