@@ -343,10 +343,12 @@ end;
 
 function TNodeTeapot.Proxy: TVRMLGeometryNode;
 const
-  TeapotCoord {$I teapot_data/teapot_coord.inc};
-  TeapotCoordIndex {$I teapot_data/teapot_coord_index.inc};
-  TeapotManifoldCoord {$I teapot_data/teapot_manifold_coord.inc};
-  TeapotManifoldCoordIndex {$I teapot_data/teapot_manifold_coord_index.inc};
+{ TeapotCoord: array [0..0] of TVector3Single = ((0, 0, 0));
+  TeapotCoordIndex: array [0..0] of LongInt = (0);
+  TeapotManifoldCoord: array [0..0] of TVector3Single = ((0, 0, 0));
+  TeapotManifoldCoordIndex: array [0..0] of LongInt = (0);
+}
+  {$I teapot_data/teapot.inc}
 var
   CoordNode: TNodeCoordinate;
   IFS: TNodeIndexedFaceSet_2 absolute Result;
