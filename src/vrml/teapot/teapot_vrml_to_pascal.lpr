@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Convert teapot VRML file teapot_for_avalon_node.wrl into Pascal source file
+{ Convert teapot VRML file teapot.wrl into Pascal source file
   with 4 Teapot constants.
   This way we get Utah teapot coordinate data in Pascal. }
 
@@ -59,7 +59,7 @@ var
   end;
 
 begin
-  Model := LoadVRMLClassic('teapot_for_avalon_node.wrl', false);
+  Model := LoadVRMLClassic('teapot.wrl', false);
   try
     HandleCoords('Mesh_001', 'Manifold');
     HandleCoords('Mesh', '');
