@@ -61,7 +61,7 @@ var
 begin
   Model := LoadVRMLClassic('teapot.wrl', false);
   try
-    HandleCoords('Mesh_001', 'Manifold');
-    HandleCoords('Mesh', '');
+    HandleCoords('TeapotManifold', 'Manifold');
+    HandleCoords('Teapot', '');
   finally FreeAndNil(Model) end;
 end.
