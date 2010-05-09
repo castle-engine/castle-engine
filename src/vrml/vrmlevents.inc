@@ -16,7 +16,7 @@
 
 {$ifdef read_interface}
 
-  { VRML event. }
+  { }
   TVRMLEventReceive = procedure (Event: TVRMLEvent; Value: TVRMLField;
     const Time: TVRMLTime) of object;
 
@@ -34,6 +34,7 @@
       const Time: TVRMLTime);
   end;
 
+  { VRML event. }
   TVRMLEvent = class(TVRMLFieldOrEvent)
   private
     FFieldClass: TVRMLFieldClass;
