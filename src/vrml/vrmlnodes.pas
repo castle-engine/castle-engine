@@ -2224,6 +2224,7 @@ uses
 {$I vrmlnodes_verticesandtrianglescounting.inc}
 {$I vrmlnodes_triangulating.inc}
 {$I vrmlnodes_coordpolygons.inc}
+{$I vrmlnodes_eventsengine.inc}
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}

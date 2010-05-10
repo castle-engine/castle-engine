@@ -25,8 +25,23 @@
     procedure Set_Bind(Node: TNodeX3DBindableNode; const Value: boolean); virtual; abstract;
   end;
 
-  { Basic abstract object that can handle VRML/X3D events. }
-  TVRMLEventsEngine = class(T3D)
+  { Abstract 3D object notified about changes to VRML/X3D nodes/fields. }
+  TVRMLChangesEngine = class(T3D)
+  public
+    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField); virtual; abstract;
+  end;
+
+  TObjectsListItem_8 = TVRMLChangesEngine;
+  {$I objectslist_8.inc}
+  TVRMLChangesEnginesList = class(TObjectsList_8)
+  public
+    { Notify listeners about a node/field change.
+      See TVRMLScene.ChangedFields for exact specification. }
+    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField);
+  end;
+
+  { Abstract 3D handling VRML/X3D events. }
+  TVRMLEventsEngine = class(TVRMLChangesEngine)
   protected
     procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TVRMLField); virtual; abstract;
   public
@@ -35,10 +50,18 @@
     function GetNavigationInfoStack: TVRMLBindableStackBasic; virtual; abstract;
     function GetBackgroundStack: TVRMLBindableStackBasic; virtual; abstract;
     function GetFogStack: TVRMLBindableStackBasic; virtual; abstract;
-
-    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField); virtual; abstract;
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
+{$I objectslist_8.inc}
+
+procedure TVRMLChangesEnginesList.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I].ChangedFields(Node, Field);
+end;
+
 {$endif read_implementation}
