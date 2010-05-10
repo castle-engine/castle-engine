@@ -36,7 +36,7 @@
     function GetBackgroundStack: TVRMLBindableStackBasic; virtual; abstract;
     function GetFogStack: TVRMLBindableStackBasic; virtual; abstract;
 
-    procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent); virtual; abstract;
+    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField); virtual; abstract;
   end;
 {$endif read_interface}
 

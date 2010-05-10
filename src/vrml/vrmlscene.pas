@@ -812,7 +812,7 @@ type
       Pass InactiveOnly = @true is you know that shape is fully in inactive
       VRML graph part (inactive Switch, LOD etc. children). }
     procedure ChangedShapeFields(Shape: TVRMLShape;
-      Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent; Field: TVRMLField;
+      Node: TVRMLNode; Field: TVRMLField;
       const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean); virtual;
 
     { Create TVRMLShape (or descendant) instance suitable for this
@@ -967,12 +967,12 @@ type
       the field's instance to ChangedFields. This often allows
       for even more optimizations (as then we know exactly what changed).
       Or you can pass field's eventIn or eventOut that you used to change.
-      For ChangedFields(Node, FieldOrEvent) call,
-      FieldOrEvent must belong to the given Node.
+      For ChangedFields(Node, Field) call,
+      Field must belong to the given Node.
       It's usually more comfortable to use ChangedField(Field) if
       only one field was changed.
 
-      Pass FieldOrEvent = @nil if you don't know this, or if many fields changed.
+      Pass Field = @nil if you don't know this, or if many fields changed.
 
       It's acceptable to pass here a Node that
       isn't in our VRML graph part (isn't reachable from RootNode).
@@ -986,7 +986,7 @@ type
       from one of State.LastNodes[]. So we really handle all cases here,
       and passing any node is fine here, and we'll try to intelligently
       detect what this change implicates for this VRML scene. }
-    procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent); override;
+    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField); override;
 
     { Notify scene that you changed only the value of given field.
 
@@ -2812,7 +2812,7 @@ begin
 end;
 
 procedure TVRMLScene.ChangedShapeFields(Shape: TVRMLShape;
-  Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent; Field: TVRMLField;
+  Node: TVRMLNode; Field: TVRMLField;
   const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean);
 begin
   { Eventual clearing of Validities items because shape changed
@@ -2876,7 +2876,6 @@ type
     Shapes: PShapesParentInfo;
     ProximitySensorNum: Cardinal;
     ChangingNode: TVRMLNode;
-    ChangingFieldOrEvent: TVRMLFieldOrEvent;
     ChangingField: TVRMLField;
     ChangingNodeOccurences: Integer; //< -1 if not known
     ChangingNodeFoundCount: Cardinal;
@@ -3014,7 +3013,7 @@ begin
       { TransformOnly = @true, suitable for roSeparateShapesNoTransform,
         they don't have Transform compiled in display list. }
       ParentScene.ChangedShapeFields(Shape,
-        ChangingNode, ChangingFieldOrEvent, ChangingField,
+        ChangingNode, ChangingField,
         true, Inactive <> 0, false, false);
 
       if Inactive = 0 then
@@ -3124,10 +3123,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ChangedFields(Node: TVRMLNode;
-  FieldOrEvent: TVRMLFieldOrEvent);
-var
-  Field: TVRMLField;
+procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
 
   procedure ChangedTimeDependentNode(Handler: TTimeDependentNodeHandler);
   var
@@ -3204,16 +3200,6 @@ var
   TexCoord: TVRMLNode;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
-
-  { calculate Field: either FieldOrEvent, or (if FieldOrEvent is an
-    exposed event) undelying FieldOrEvent.ParentField, or @nil if not possible. }
-  if FieldOrEvent <> nil then
-  begin
-    if FieldOrEvent is TVRMLEvent then
-      Field := TVRMLEvent(FieldOrEvent).ParentExposedField else
-      Field := FieldOrEvent as TVRMLField;
-  end else
-    Field := nil;
 
   if Log and LogChanges then
     DoLogChanges;
@@ -3317,7 +3303,7 @@ begin
           if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
              (Coord.ParentNode = Node) then
           begin
-            ChangedShapeFields(SI.Current, Node, FieldOrEvent, Field,
+            ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, false
               { We pass PossiblyLocalGeometryChanged = false,
                 as we'll do ScheduledLocalGeometryChangedCoord := true
@@ -3340,7 +3326,7 @@ begin
       try
         while SI.GetNext do
           if SI.Current.State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
-            ChangedShapeFields(SI.Current, Node, FieldOrEvent, Field,
+            ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, true);
       finally FreeAndNil(SI) end;
     end else
@@ -3360,7 +3346,7 @@ begin
 	     ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
 	     ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
 	     ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
-            ChangedShapeFields(SI.Current, Node, FieldOrEvent, Field,
+            ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, false);
       finally FreeAndNil(SI) end;
     end else
@@ -3372,7 +3358,7 @@ begin
       try
         while SI.GetNext do
           if SI.Current.State.ParentShape.Material = Node then
-            ChangedShapeFields(SI.Current, Node, FieldOrEvent, Field,
+            ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, false);
       finally FreeAndNil(SI) end;
     end else
@@ -3385,7 +3371,7 @@ begin
         while SI.GetNext do
           if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
              (TexCoord = Node) then
-            ChangedShapeFields(SI.Current, Node, FieldOrEvent, Field,
+            ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, false);
       finally FreeAndNil(SI) end;
     end else
@@ -3403,7 +3389,7 @@ begin
              (SI.Current.State.ParentShape.FdAppearance.Value is TNodeAppearance) and
              AppearanceUsesTextureTransform(
                TNodeAppearance(SI.Current.State.ParentShape.FdAppearance.Value), Node) then
-            ChangedShapeFields(SI.Current, Node, FieldOrEvent, Field,
+            ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, false);
       finally FreeAndNil(SI) end;
     end else
@@ -3420,7 +3406,7 @@ begin
         while SI.GetNext do
           if SI.Current.Geometry = Node then
           begin
-            ChangedShapeFields(SI.Current, Node, FieldOrEvent, Field,
+            ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, false
               { We pass PossiblyLocalGeometryChanged = false,
                 as we'll do ScheduledLocalGeometryChangedCoord := true
@@ -3471,7 +3457,6 @@ begin
           TransformChangeHelper.Shapes := @TransformShapesParentInfo;
           TransformChangeHelper.ProximitySensorNum := 0;
           TransformChangeHelper.ChangingNode := Node;
-          TransformChangeHelper.ChangingFieldOrEvent := FieldOrEvent;
           TransformChangeHelper.ChangingField := Field;
           TransformChangeHelper.AnythingChanged := false;
           TransformChangeHelper.Inside := false;
@@ -3591,7 +3576,7 @@ begin
         while SI.GetNext do
         begin
           if SI.Current.UsesTexture(TVRMLTextureNode(Node)) then
-            ChangedShapeFields(SI.Current, Node, FieldOrEvent, Field,
+            ChangedShapeFields(SI.Current, Node, Field,
               false, false, true, false);
         end;
       finally FreeAndNil(SI) end;
