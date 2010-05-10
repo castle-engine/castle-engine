@@ -432,8 +432,12 @@ begin
 
   FBuggyGenerateMipmap := IsMesa and (not MesaVersionAtLeast(7, 5, 0));
 
-  { Confirmed bug on 9.10 and 10.3. Some 8.x (on chantal) worked fine.
-    Assuming bug present on all >= 9.x. }
+  { Confirmed bug on 9.10 and 10.3 (on hp ProBook "czarny").
+    On 8.12 (MacBook Pro "chantal") worked fine.
+    Assuming bug present on all >= 9.x.
+
+    Internal version numbering: "Catalyst 8.12" is "fglrx 8.561".
+    "Catalyst 9.1" is "fglrx 8.573". }
   FBuggyLightModelTwoSide := IsFglrx and ReleaseExists and (Release >= 8573);
   if BuggyLightModelTwoSide then
     FBuggyLightModelTwoSideMessage := 'Detected fglrx (ATI proprietary Linux drivers) version >= 9.x. ' + 'Setting GL_LIGHT_MODEL_TWO_SIDE to GL_TRUE may cause nasty bugs on some shaders (see http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14), so disabling two-sided lighting.' else
