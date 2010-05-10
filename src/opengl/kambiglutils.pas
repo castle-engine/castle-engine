@@ -2435,8 +2435,11 @@ function GLInformationString: string;
         '  Vendor NVidia: %s' +nl+
         '  Vendor Mesa: %s (Mesa parsed version major: %d, minor: %d, release: %d)' +nl+
         '  Vendor ATI: %s (fglrx: %s)' +nl+
+        nl+
         '  Buggy glPushAttrib(GL_POINT_SET): %s' +nl+
-        '  Buggy glDrawPixels for odd widths: %s',
+        '  Buggy glDrawPixels for odd widths: %s' +nl+
+        '  Buggy glGenerateMipmapEXT: %s' +nl+
+        '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s',
         [ BoolToStr[Version.VendorNVidia],
 
           BoolToStr[Version.IsMesa],
@@ -2445,7 +2448,9 @@ function GLInformationString: string;
           BoolToStr[Version.IsVendorATI], BoolToStr[Version.IsFglrx],
 
           BoolToStr[Version.BuggyPointSetAttrib],
-          BoolToStr[Version.BuggyDrawOddWidth]
+          BoolToStr[Version.BuggyDrawOddWidth],
+          BoolToStr[Version.BuggyGenerateMipmap],
+          BoolToStr[Version.BuggyLightModelTwoSide]
         ]);
   end;
 

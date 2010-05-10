@@ -72,6 +72,8 @@ type
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
     FBuggyGenerateMipmap: boolean;
+    FBuggyLightModelTwoSide: boolean;
+    FBuggyLightModelTwoSideMessage: string;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
   public
@@ -158,6 +160,10 @@ type
       no problems. }
     property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
 
+    { Detect buggy GL_LIGHT_MODEL_TWO_SIDE := GL_TRUE behavior.
+      See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
+    property BuggyLightModelTwoSide: boolean read FBuggyLightModelTwoSide;
+    property BuggyLightModelTwoSideMessage: string read FBuggyLightModelTwoSideMessage;
   end;
 
 var
@@ -424,6 +430,11 @@ begin
   FBuggyDrawOddWidth := IsVendorATI;
 
   FBuggyGenerateMipmap := IsMesa and (not MesaVersionAtLeast(7, 5, 0));
+
+  FBuggyLightModelTwoSide := {$ifdef CPUX86_64} IsFglrx {$else} false {$endif};
+  if BuggyLightModelTwoSide then
+    FBuggyLightModelTwoSideMessage := 'Detected fglrx (ATI proprietary Linux drivers) on x86_64 architecture. ' + 'Setting GL_LIGHT_MODEL_TWO_SIDE to GL_TRUE may cause nasty bugs on some shaders (see http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14), so disabling two-side lighting.' else
+    FBuggyLightModelTwoSideMessage := '';
 end;
 
 finalization

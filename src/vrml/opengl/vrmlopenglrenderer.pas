@@ -3785,7 +3785,11 @@ begin
    glEnable(GL_NORMALIZE);
    glPointSize(Attributes.PointSize);
    glEnable(GL_DEPTH_TEST);
-   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
+   if not GLVersion.BuggyLightModelTwoSide then
+     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
+   if Log then
+     WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
 
    { While rendering Indexed_Faces_Or_Triangles we may temporarily
      enable/disable GL_CULL_FACE and change glCullFace. We want to make
