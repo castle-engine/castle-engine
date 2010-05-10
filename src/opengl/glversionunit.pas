@@ -418,12 +418,13 @@ begin
   FBuggyPointSetAttrib := IsMesa and IsPrefix('Mesa DRI Intel', Renderer);
 
   { Initially, I wanted t set this when fglrx is detected with version 9.x.
-    But I really don't see anything clearly indicating fglrx version,
-    maybe the last number in GL_VERSION4? But it's 8494 for 9.2 version...
-    As a completely blind and probably incorrect guess,
-    I assumed that Release >= 8490 indicates 9.x, and used
 
-      IsFglrx and ReleaseExists and (Release >= 8490)
+    This can be detected by looking at the last number in GL_VERSION,
+    it's an internal fglrx version number (9.x is an "official" Catalyst
+    version). Looking at http://www2.ati.com/drivers/linux/catalyst_91_linux.pdf
+    (linked from http://wiki.cchtml.com/index.php/Catalyst_9.1)
+    the 9.1 release corresponds to internal number 8.573,
+    which I think is encoded directly in Release number we have here.
 
     Later: I'll just do this do every ATI, since Mac OS X GPU has the same
     problem on rendered_texture.x3dv test. }
