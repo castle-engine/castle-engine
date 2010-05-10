@@ -607,6 +607,10 @@ type
     property ProcessedInActiveLight: boolean
       read FProcessedInActiveLight write FProcessedInActiveLight
       default false;
+
+    { Notify node's EventsEngine that the value of this field changed.
+      TODO: should notify all containing scenes. }
+    procedure Changed;
   end;
 
   TVRMLFieldClass = class of TVRMLField;
@@ -2298,7 +2302,6 @@ end;
 procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TVRMLTime);
 var
-  ParNode: TVRMLNode;
   ValuePossiblyChanged: boolean;
 begin
   Assert(Exposed);
@@ -2320,16 +2323,22 @@ begin
 
   FExposedEvents[false].Send(Value, Time);
 
-  { Also, notify ParentEventProcessor about this change. }
+  { Tests:
+  if not ValuePossiblyChanged then
+    writeln('ignored field ', Name, ' change, since values the same'); }
+  if ValuePossiblyChanged then
+    Changed;
+end;
+
+procedure TVRMLField.Changed;
+var
+  ParNode: TVRMLNode;
+begin
   if ParentNode <> nil then
   begin
     ParNode := ParentNode as TVRMLNode;
-    { Tests:
-    if not ValuePossiblyChanged then
-      writeln('ignored field ', Name, ' change, since values the same'); }
-    if (ParNode.EventsEngine <> nil) and
-       ValuePossiblyChanged then
-      ParNode.EventsEngine.ChangedFields(ParNode, Event);
+    if ParNode.EventsEngine <> nil then
+      ParNode.EventsEngine.ChangedFields(ParNode, Self);
   end;
 end;
 
