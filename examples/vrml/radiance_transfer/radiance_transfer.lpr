@@ -28,7 +28,8 @@ program radiance_transfer;
 uses VectorMath, Boxes3D, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, RenderStateUnit,
   KambiGLUtils, VRMLGLScene, Cameras, KeysMouse, KambiSceneManager,
-  KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLCubeMap;
+  KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLCubeMap,
+  KambiStringUtils;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
