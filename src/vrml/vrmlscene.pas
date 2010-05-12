@@ -3655,9 +3655,12 @@ begin
 
         For other fields, even VisibleChangeHere isn't needed. }
 
-      if (Field = nil) or
-         (Field = TNodeGeneratedCubeMapTexture(Node).FdUpdate) then
-        VisibleChangeHere([]);
+      if Field = TNodeGeneratedCubeMapTexture(Node).FdUpdate then
+      begin
+        if TNodeGeneratedCubeMapTexture(Node).FdUpdate.Value <> 'NONE' then
+          VisibleChangeHere([]);
+      end;
+
       Exit;
     end else
     if Node is TNodeRenderedTexture then
@@ -3668,8 +3671,12 @@ begin
          (Field = TNodeRenderedTexture(Node).FdDepthMap) then
         { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
         VisibleChangeHere([vcVisibleGeometry]) else
-      if (Field = TNodeRenderedTexture(Node).FdUpdate) then
-        VisibleChangeHere([]);
+      if Field = TNodeRenderedTexture(Node).FdUpdate then
+      begin
+        if TNodeRenderedTexture(Node).FdUpdate.Value <> 'NONE' then
+          VisibleChangeHere([]);
+      end;
+
       Exit;
     end else
     if Node is TNodeGeneratedShadowMap then
@@ -3680,8 +3687,12 @@ begin
          (Field = TNodeGeneratedShadowMap(Node).FdLight) then
         { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
         VisibleChangeHere([vcVisibleGeometry]) else
-      if (Field = TNodeGeneratedShadowMap(Node).FdUpdate) then
-        VisibleChangeHere([]);
+      if Field = TNodeGeneratedShadowMap(Node).FdUpdate then
+      begin
+        if TNodeGeneratedShadowMap(Node).FdUpdate.Value <> 'NONE' then
+          VisibleChangeHere([]);
+      end;
+
       Exit;
     end else
     begin
