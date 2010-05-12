@@ -31,14 +31,6 @@
     private FEventisValid: TVRMLEvent;
     public property EventisValid: TVRMLEvent read FEventisValid;
 
-    { Just a shortcut for EventIsSelected.Send,
-      using current EventsEngine. }
-    procedure EventIsSelectedSend(const Value: boolean);
-
-    { Just a shortcut for EventIsValid.Send,
-      using current EventsEngine. }
-    procedure EventIsValidSend(const Value: boolean);
-
     private FFdlanguage: TSFString;
     public property Fdlanguage: TSFString read FFdlanguage;
   end;
@@ -208,18 +200,6 @@ begin
   { X3D specification comment: ["CG"|"GLSL"|"HLSL"|...] }
 
   DefaultContainerField := 'shaders';
-end;
-
-procedure TNodeX3DShaderNode.EventIsSelectedSend(const Value: boolean);
-begin
-  if EventsEngine <> nil then
-    EventIsSelected.Send(Value, EventsEngine.GetTime);
-end;
-
-procedure TNodeX3DShaderNode.EventIsValidSend(const Value: boolean);
-begin
-  if EventsEngine <> nil then
-    EventIsValid.Send(Value, EventsEngine.GetTime);
 end;
 
 constructor TNodeX3DVertexAttributeNode.Create(const ANodeName: string;

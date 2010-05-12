@@ -114,7 +114,7 @@ procedure TGLSLRenderer.Prepare(State: TVRMLGraphTraverseState);
 begin
   try
     GLSLProgram := Renderer.Cache.GLSLProgram_IncReference(Node);
-    Node.EventIsSelectedSend(true);
+    Node.EventIsSelected.Send(true);
 
     { Only if GLSL program successfully created, prepare all texture nodes
       in Node.InterfaceDeclarations. These will be passed to uniform
@@ -128,7 +128,7 @@ begin
     begin
       VRMLWarning(vwSerious, 'Error when initializing GLSL shader : ' + E.Message);
       GLSLProgram := nil;
-      Node.EventIsSelectedSend(false);
+      Node.EventIsSelected.Send(false);
     end;
   end;
 end;
@@ -324,7 +324,7 @@ begin
           or "language" field was bad.
           So at least send him "isSelected" = false, if it's X3DShaderNode. }
         if State.ParentShape.Appearance.FdShaders.Items[I] is TNodeX3DShaderNode then
-          (State.ParentShape.Appearance.FdShaders.Items[I] as TNodeX3DShaderNode).EventIsSelectedSend(false);
+          (State.ParentShape.Appearance.FdShaders.Items[I] as TNodeX3DShaderNode).EventIsSelected.Send(false);
       end;
     end;
   end;

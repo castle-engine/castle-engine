@@ -61,18 +61,17 @@ begin
     (Scene.Time is already incremented for us by SceneManager.) }
 
   { Note that in this simple example you could avoid calling ChangedXxx by using
-      TransformBox2.FdRotation.EventIn.Send(Vector4Single(1, 0, 0, Scene.Time));
-    That is, changing field's value by event automatically calls appropriate
-    ChangedField method.
+      TransformBox2.FdRotation.Send(Vector4Single(1, 0, 0, Scene.Time));
+    That is, changing field's value by Send automatically calls
+    appropriate ChangedField method. It also uses appropriate event,
+    in case VRML events are working and this is exposed field.
 
-    Below we show the more tedious way, by manually calling ChangedField, as:
-    1. it allows you to change anything in the VRML graph (as opposed to
-       sending events, that generally allow you to change only exposed fields).
-    2. it's sometimes more efficient, as there are many ChangedXxx methods
-       and sometimes (when really intensively changing VRML graph) you
-       can avoid calling ChangedXxx after every change. E.g. you can
-       just call ChangedFields(Node, nil) once after changing many fields
-       of given node. }
+    Below we show the more tedious way, by manually calling ChangedField,
+    as it's sometimes more efficient, as there are many ChangedXxx methods
+    and sometimes (when really intensively changing VRML graph) you
+    can avoid calling ChangedXxx after every change. E.g. you can
+    just call ChangedFields(Node, nil) once after changing many fields
+    of given node. }
 
   TransformBox2.FdRotation.RotationRad := Scene.Time.Seconds;
   Scene.ChangedField(TransformBox2.FdRotation);

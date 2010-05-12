@@ -2629,7 +2629,7 @@ begin
   Result := TGLSLProgram.Create;
   try
     LoadGLSLProgram(Result, ProgramNode);
-    ProgramNode.EventIsValidSend(true);
+    ProgramNode.EventIsValid.Send(true);
   except
     { In case of problems with initializing GLSL program, free the program
       and reraise exception. Caller of GLSLProgram_IncReference will
@@ -2637,7 +2637,7 @@ begin
       and record that this shader program failed to initialize by recording
       GLSLProgram = nil). }
     FreeAndNil(Result);
-    ProgramNode.EventIsValidSend(false);
+    ProgramNode.EventIsValid.Send(false);
     raise;
   end;
 
@@ -4493,12 +4493,7 @@ var
   begin
     { If update = 'NEXT_FRAME_ONLY', change it to 'NONE' now }
     if UpdateIndex = 1 then
-    begin
-      if TextureNode.EventsEngine <> nil then
-        SavedHandler.FdUpdate.EventIn.Send('NONE',
-          TextureNode.EventsEngine.GetTime) else
-        SavedHandler.FdUpdate.Value := 'NONE';
-    end;
+      SavedHandler.FdUpdate.Send('NONE');
 
     SavedHandler.UpdateNeeded := false;
   end;
