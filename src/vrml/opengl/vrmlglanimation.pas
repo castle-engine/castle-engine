@@ -301,7 +301,13 @@ type
 
     { You can read anything from Scenes below. But you cannot set some
       things: don't set their scenes Attributes properties.
-      Use only our @link(Attributes). }
+      Use only our @link(Attributes).
+
+      The scenes here have TVRMLScene.Static set to @true, which means
+      we assume you will not modify their VRML nodes graph (by TVRMLField.Send
+      and such). Note that this doesn't prevent you from enabling
+      TVRMLScene.ProcessEvents on the first scene (TVRMLScene.ProcessEvents
+      will be property handled regardless of TVRMLScene.Static value). }
     property Scenes[I: Integer]: TVRMLGLScene read GetScenes;
     function ScenesCount: Integer;
 
@@ -689,6 +695,8 @@ begin
   Optimization := FParentAnimation.Optimization;
 
   Load(ARootNode, AOwnsRootNode);
+
+  Static := true;
 end;
 
 procedure TVRMLGLAnimationScene.DoGeometryChanged;

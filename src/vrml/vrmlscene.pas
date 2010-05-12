@@ -517,6 +517,7 @@ type
     FFileName: string;
     FInput_PointingDeviceActivate: TInputShortcut;
     FOwnsInput_PointingDeviceActivate: boolean;
+    FStatic: boolean;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -527,6 +528,7 @@ type
 
     procedure SetFileName(const AValue: string);
     procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
+    procedure SetStatic(const Value: boolean);
   private
     TransformNodesInfo: TDynTransformNodeInfoArray;
 
@@ -833,6 +835,18 @@ type
       You can override it in descendants to create something more specialized. }
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
+
+    { Static scene will not be automatically notified about the changes
+      to the field values. This means that TVRMLField.Send and
+      TVRMLField.Changed will not notify this scene. This makes a
+      small optimization when you know you will not modify scene's VRML graph
+      besides loading (or you're prepared to do it by manually calling
+      Scene.ChangedFields etc.).
+
+      Note that when the ProcessEvents is @true, the scene will be
+      notified about changes to it's nodes anyway, regardless of
+      @name value. }
+    property Static: boolean read FStatic write SetStatic default false;
   protected
     GeneratedTextures: TDynGeneratedTextureArray;
 
@@ -2238,12 +2252,13 @@ begin
     as ScheduleChangedAll does a lot of calls (although probably is fast
     anyway when RootNode = nil). }
 
-  ChangeListeners.Add(Self);
+  ChangeListeners.Add(Self); { by default FStatic is false }
 end;
 
 destructor TVRMLScene.Destroy;
 begin
-  ChangeListeners.Remove(Self);
+  if ChangeListeners <> nil then
+    ChangeListeners.Remove(Self);
 
   { This also frees related lists, like KeySensorNodes,
     and does UnregisterProcessEvents(RootNode). }
@@ -4962,6 +4977,17 @@ begin
       if RenderState <> nil then
         RenderState.OnCameraChanged.Remove(@CameraChanged);
     end;
+  end;
+end;
+
+procedure TVRMLScene.SetStatic(const Value: boolean);
+begin
+  if FStatic <> Value then
+  begin
+    FStatic := Value;
+    if Value then
+      ChangeListeners.Remove(Self) else
+      ChangeListeners.Add(Self);
   end;
 end;
 

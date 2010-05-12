@@ -612,7 +612,9 @@ type
       read FProcessedInActiveLight write FProcessedInActiveLight
       default false;
 
-    { Notify ChangeListeners that the value of this field changed. }
+    { Notify ChangeListeners that the value of this field changed.
+      Also notify ParentNode.EventsEngine, regardless if it's included
+      in the ChangeListeners list. }
     procedure Changed;
 
     { Set the value of the field, notifying the scenes and events engine.
@@ -2426,9 +2428,17 @@ begin
 end;
 
 procedure TVRMLField.Changed;
+var
+  Parent: TVRMLNode;
 begin
   if ParentNode <> nil then
-    ChangeListeners.ChangedFields(ParentNode as TVRMLNode, Self);
+  begin
+    Parent := ParentNode as TVRMLNode;
+    ChangeListeners.ChangedFields(Parent, Self);
+    if (Parent.EventsEngine <> nil) and
+       (ChangeListeners.IndexOf(Parent.EventsEngine) < 0) then
+      Parent.EventsEngine.ChangedFields(Parent, Self);
+  end;
 end;
 
 procedure TVRMLField.Send(Value: TVRMLField);
