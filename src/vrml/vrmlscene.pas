@@ -835,18 +835,6 @@ type
       You can override it in descendants to create something more specialized. }
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
-
-    { Static scene will not be automatically notified about the changes
-      to the field values. This means that TVRMLField.Send and
-      TVRMLField.Changed will not notify this scene. This makes a
-      small optimization when you know you will not modify scene's VRML graph
-      besides loading (or you're prepared to do it by manually calling
-      Scene.ChangedFields etc.).
-
-      Note that when the ProcessEvents is @true, the scene will be
-      notified about changes to it's nodes anyway, regardless of
-      @name value. }
-    property Static: boolean read FStatic write SetStatic default false;
   protected
     GeneratedTextures: TDynGeneratedTextureArray;
 
@@ -1887,6 +1875,18 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+
+    { Static scene will not be automatically notified about the changes
+      to the field values. This means that TVRMLField.Send and
+      TVRMLField.Changed will not notify this scene. This makes a
+      small optimization when you know you will not modify scene's VRML graph
+      besides loading (or you're prepared to do it by manually calling
+      Scene.ChangedFields etc.).
+
+      Note that when the ProcessEvents is @true, the scene will be
+      notified about changes to it's nodes anyway, regardless of
+      @name value. }
+    property Static: boolean read FStatic write SetStatic default false;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing @link(Time).
