@@ -2237,10 +2237,14 @@ begin
     would set. This is (potentially) a small time saving,
     as ScheduleChangedAll does a lot of calls (although probably is fast
     anyway when RootNode = nil). }
+
+  ChangeListeners.Add(Self);
 end;
 
 destructor TVRMLScene.Destroy;
 begin
+  ChangeListeners.Remove(Self);
+
   { This also frees related lists, like KeySensorNodes,
     and does UnregisterProcessEvents(RootNode). }
   ProcessEvents := false;

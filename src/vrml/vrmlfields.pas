@@ -523,10 +523,14 @@ type
         Usually it's required the Source class to be equal to our class,
         if Source classes cannot be assigned we raise EVRMLFieldCannotAssignClass.)
 
-      @raises(EVRMLFieldAssign (Previous two exceptions also inherit from this.)
+      @raises(EVRMLFieldAssign
         Raised in case of any field assignment problem. It's guaranteed that
         in case of such problem, our value will not be modified before
-        raising the exception.)
+        raising the exception.
+
+        EVRMLFieldAssignInvalidClass inherits from EVRMLFieldAssign,
+        so actually EVRMLFieldAssignInvalidClass is just a special case of this
+        exceptiion.)
 
       @italic(Descendants implementors notes):
 
@@ -608,9 +612,29 @@ type
       read FProcessedInActiveLight write FProcessedInActiveLight
       default false;
 
-    { Notify node's EventsEngine that the value of this field changed.
-      TODO: should notify all containing scenes. }
+    { Notify ChangeListeners that the value of this field changed. }
     procedure Changed;
+
+    { Set the value of the field, notifying the scenes and events engine.
+      This sets the value of this field in the nicest possible way for
+      any possible TVRMLScene (with events on or off) containing the node
+      with this field.
+
+      Precise specification:
+
+      @unorderedList(
+        @item(If this is an exposed field and we have events engine working:
+
+          We will send this value through
+          it's input event. In this case, this is equivalent to doing
+          @code(EventIn.Send(Value, EventsEngine.Time)).
+          The scenes (including events engine) will be notified correctly
+          by exposed events handler already.)
+
+        @item(Otherwise, we will just set the fields value.
+          And then notify the scenes (including events engine).)
+      ) }
+    procedure Send(Value: TVRMLField);
   end;
 
   TVRMLFieldClass = class of TVRMLField;
@@ -853,6 +877,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: boolean); overload;
   end;
 
   { SFEnum VRML field.
@@ -936,6 +962,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: Single); overload;
   end;
 
   { SFDouble VRML field. }
@@ -970,6 +998,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: Double); overload;
   end;
 
   TSFTime = class(TSFDouble)
@@ -1051,11 +1081,14 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: LongInt); virtual; overload;
   end;
 
   TSFInt32 = class(TSFLong)
   public
     class function VRMLTypeName: string; override;
+    procedure Send(const AValue: LongInt); override;
   end;
 
   TSFMatrix3f = class(TVRMLSingleField)
@@ -1086,6 +1119,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TMatrix3Single); overload;
   end;
 
   TSFMatrix3d = class(TVRMLSingleField)
@@ -1116,6 +1151,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TMatrix3Double); overload;
   end;
 
   TSFMatrix4f = class(TVRMLSingleField)
@@ -1155,11 +1192,14 @@ type
     function AverageScaleTransform: Single;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TMatrix4Single); virtual; overload;
   end;
 
   { VRML 1.0 SFMatrix field. }
   TSFMatrix = class(TSFMatrix4f)
     class function VRMLTypeName: string; override;
+    procedure Send(const AValue: TMatrix4Single); override;
   end;
 
   TSFMatrix4d = class(TVRMLSingleField)
@@ -1190,6 +1230,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TMatrix4Double); overload;
   end;
 
   TSFRotation = class(TVRMLSingleField)
@@ -1245,6 +1287,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TVector4Single); overload;
   end;
 
   TSFString = class(TVRMLSingleField)
@@ -1275,6 +1319,8 @@ type
     class function VRMLTypeName: string; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
+
+    procedure Send(const AValue: string); overload;
   end;
 
   TSFVec2f = class(TVRMLSingleField)
@@ -1305,6 +1351,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TVector2Single); overload;
   end;
 
   TSFVec3f = class(TVRMLSingleField)
@@ -1335,11 +1383,14 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TVector3Single); virtual; overload;
   end;
 
   TSFColor = class(TSFVec3f)
   public
     class function VRMLTypeName: string; override;
+    procedure Send(const AValue: TVector3Single); override;
   end;
 
   TSFVec4f = class(TVRMLSingleField)
@@ -1370,11 +1421,14 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TVector4Single); virtual; overload;
   end;
 
   TSFColorRGBA = class(TSFVec4f)
   public
     class function VRMLTypeName: string; override;
+    procedure Send(const AValue: TVector4Single); override;
   end;
 
   TSFVec2d = class(TVRMLSingleField)
@@ -1405,6 +1459,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TVector2Double); overload;
   end;
 
   TSFVec3d = class(TVRMLSingleField)
@@ -1435,6 +1491,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TVector3Double); overload;
   end;
 
   TSFVec4d = class(TVRMLSingleField)
@@ -1464,6 +1522,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: TVector4Double); overload;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -1512,6 +1572,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of boolean); overload;
   end;
 
   TMFLong = class(TVRMLSimpleMultField)
@@ -1579,11 +1641,14 @@ type
     procedure VRMLWarning_WrongVertexIndex(
       const GeometryNodeTypeName: string;
       const VertexNum: Integer; const CoordCount: Integer);
+
+    procedure Send(const AValue: array of LongInt); virtual; overload;
   end;
 
   TMFInt32 = class(TMFLong)
   public
     class function VRMLTypeName: string; override;
+    procedure Send(const AValue: array of LongInt); override;
   end;
 
   TMFMatrix3f = class(TVRMLSimpleMultField)
@@ -1613,6 +1678,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of TMatrix3Single); overload;
   end;
 
   TMFMatrix3d = class(TVRMLSimpleMultField)
@@ -1642,6 +1709,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of TMatrix3Double); overload;
   end;
 
   TMFMatrix4f = class(TVRMLSimpleMultField)
@@ -1671,6 +1740,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of TMatrix4Single); overload;
   end;
 
   TMFMatrix4d = class(TVRMLSimpleMultField)
@@ -1700,6 +1771,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of TMatrix4Double); overload;
   end;
 
   TMFVec2f = class(TVRMLSimpleMultField)
@@ -1737,6 +1810,8 @@ type
       and both will produce clear VRMLWarning. }
     property ItemsSafe[Index: Integer]: TVector2Single
       read GetItemsSafe write SetItemsSafe;
+
+    procedure Send(const AValue: array of TVector2Single); overload;
   end;
 
   TMFVec3f = class(TVRMLSimpleMultField)
@@ -1774,11 +1849,14 @@ type
       and both will produce clear VRMLWarning. }
     property ItemsSafe[Index: Integer]: TVector3Single
       read GetItemsSafe write SetItemsSafe;
+
+    procedure Send(const AValue: array of TVector3Single); virtual; overload;
   end;
 
   TMFColor = class(TMFVec3f)
   public
     class function VRMLTypeName: string; override;
+    procedure Send(const AValue: array of TVector3Single); override;
   end;
 
   TMFVec4f = class(TVRMLSimpleMultField)
@@ -1816,10 +1894,13 @@ type
       and both will produce clear VRMLWarning. }
     property ItemsSafe[Index: Integer]: TVector4Single
       read GetItemsSafe write SetItemsSafe;
+
+    procedure Send(const AValue: array of TVector4Single); virtual; overload;
   end;
 
   TMFColorRGBA = class(TMFVec4f)
     class function VRMLTypeName: string; override;
+    procedure Send(const AValue: array of TVector4Single); override;
   end;
 
   TMFVec2d = class(TVRMLSimpleMultField)
@@ -1849,6 +1930,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of TVector2Double); overload;
   end;
 
   TMFVec3d = class(TVRMLSimpleMultField)
@@ -1878,6 +1961,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of TVector3Double); overload;
   end;
 
   TMFVec4d = class(TVRMLSimpleMultField)
@@ -1907,6 +1992,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of TVector4Double); overload;
   end;
 
   TMFRotation = class(TVRMLSimpleMultField)
@@ -1937,6 +2024,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of TVector4Single); overload;
   end;
 
   TMFFloat = class(TVRMLSimpleMultField)
@@ -1967,6 +2056,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of Single); overload;
   end;
 
   TMFDouble = class(TVRMLSimpleMultField)
@@ -1997,6 +2088,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    procedure Send(const AValue: array of Double); overload;
   end;
 
   TMFTime = class(TMFDouble)
@@ -2031,6 +2124,8 @@ type
     class function VRMLTypeName: string; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
+
+    procedure Send(const AValue: array of string); overload;
   end;
 
   { Stores information about available VRML field classes.
@@ -2331,14 +2426,26 @@ begin
 end;
 
 procedure TVRMLField.Changed;
-var
-  ParNode: TVRMLNode;
 begin
   if ParentNode <> nil then
+    ChangeListeners.ChangedFields(ParentNode as TVRMLNode, Self);
+end;
+
+procedure TVRMLField.Send(Value: TVRMLField);
+var
+  ValuePossiblyChanged: boolean;
+begin
+  if Exposed and (ParentNode <> nil) and
+    ( (ParentNode as TVRMLNode).EventsEngine <> nil ) then
   begin
-    ParNode := ParentNode as TVRMLNode;
-    if ParNode.EventsEngine <> nil then
-      ParNode.EventsEngine.ChangedFields(ParNode, Self);
+    EventIn.Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+  end else
+  begin
+    ValuePossiblyChanged := not FastEqualsValue(Value);
+    { Call AssignValue regardless of ValuePossiblyChanged.
+      Reason: AssignValue also removes "IS" clause. }
+    AssignValue(Value);
+    if ValuePossiblyChanged then Changed;
   end;
 end;
 
@@ -2962,6 +3069,16 @@ begin
   Result := 'SFBool';
 end;
 
+procedure TSFBool.Send(const AValue: Boolean);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFBool.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFFloat ------------------------------------------------------------------- }
 
 procedure TSFFloat.SetValue(const AValue: Single);
@@ -3063,6 +3180,16 @@ begin
   Result := 'SFFloat';
 end;
 
+procedure TSFFloat.Send(const AValue: Single);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFFloat.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFDouble -------------------------------------------------------------------- }
 
 constructor TSFDouble.Create(AParentNode: TVRMLFileItem;
@@ -3151,6 +3278,16 @@ end;
 class function TSFDouble.VRMLTypeName: string;
 begin
   Result := 'SFDouble';
+end;
+
+procedure TSFDouble.Send(const AValue: Double);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFDouble.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFTime -------------------------------------------------------------------- }
@@ -3522,11 +3659,31 @@ begin
   Result := 'SFLong';
 end;
 
+procedure TSFLong.Send(const AValue: LongInt);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFLong.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFInt32 ------------------------------------------------------------------- }
 
 class function TSFInt32.VRMLTypeName: string;
 begin
   Result := 'SFInt32';
+end;
+
+procedure TSFInt32.Send(const AValue: LongInt);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFInt32.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { ----------------------------------------------------------------------------
@@ -3624,6 +3781,16 @@ begin
   DefaultValue := Value;
   DefaultValueExists := true;
 end;
+
+procedure TSF_CLASS.Send(const AValue: TSF_STATIC_ITEM);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSF_CLASS.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
 }
 
 {$define TSF_CLASS := TSFMatrix3f}
@@ -3698,6 +3865,16 @@ end;
 class function TSFMatrix.VRMLTypeName: string;
 begin
   Result := 'SFMatrix';
+end;
+
+procedure TSFMatrix.Send(const AValue: TMatrix4Single);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFMatrix.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFRotation ---------------------------------------------------------------- }
@@ -3850,6 +4027,16 @@ begin
   Result := 'SFRotation';
 end;
 
+procedure TSFRotation.Send(const AValue: Tvector4Single);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFRotation.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFString ------------------------------------------------------------------ }
 
 constructor TSFString.Create(AParentNode: TVRMLFileItem;
@@ -3949,6 +4136,16 @@ begin
     Value := AttributeValue;
 end;
 
+procedure TSFString.Send(const AValue: AnsiString);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFString.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { ----------------------------------------------------------------------------
   Common SF fields based on vectors implementation }
 
@@ -4030,6 +4227,16 @@ begin
   DefaultValue := Value;
   DefaultValueExists := true;
 end;
+
+procedure TSF_CLASS.Send(const AValue: TSF_STATIC_ITEM);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSF_CLASS.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
 }
 
 {$define TSF_CLASS := TSFVec2f}
@@ -4083,6 +4290,16 @@ begin
   Result := 'SFColor';
 end;
 
+procedure TSFColor.Send(const AValue: TVector3Single);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFColor.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFVec4f ------------------------------------------------------------------- }
 
 class function TSFVec4f.VRMLTypeName: string;
@@ -4095,6 +4312,16 @@ end;
 class function TSFColorRGBA.VRMLTypeName: string;
 begin
   Result := 'SFColorRGBA';
+end;
+
+procedure TSFColorRGBA.Send(const AValue: TVector4Single);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TSFColorRGBA.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFVec2d ------------------------------------------------------------------- }
@@ -4443,6 +4670,16 @@ begin
        end;
     else DefaultValuesCount := -1;
   end;
+end;
+
+procedure TMF_CLASS.Send(const AValue: array of TMF_STATIC_ITEM);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TMF_CLASS.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 }
 
@@ -4851,6 +5088,16 @@ begin
   Result := 'MFInt32';
 end;
 
+procedure TMFInt32.Send(const AValue: array of LongInt);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TMFInt32.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TMFMatrix3f ------------------------------------------------------------------- }
 
 class function TMFMatrix3f.VRMLTypeName: string;
@@ -4938,6 +5185,16 @@ begin
   Result := 'MFColor';
 end;
 
+procedure TMFColor.Send(const AValue: array of TVector3Single);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TMFColor.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TMFVec4f ------------------------------------------------------------------- }
 
 class function TMFVec4f.VRMLTypeName: string;
@@ -4969,6 +5226,16 @@ end;
 class function TMFColorRGBA.VRMLTypeName: string;
 begin
   Result := 'MFColorRGBA';
+end;
+
+procedure TMFColorRGBA.Send(const AValue: array of TVector4Single);
+var
+  FieldValue: TVRMLField;
+begin
+  FieldValue := TMFColorRGBA.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { TMFVec2d ------------------------------------------------------------------- }
