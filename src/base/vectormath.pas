@@ -425,6 +425,11 @@ type
     { Convert to TDynVector4SingleArray, with 4th vector component in
       new array set to constant W. }
     function ToVector4Single(const W: Single): TDynVector4SingleArray;
+
+    { When two vertexes on the list are closer than MergeDistance,
+      set them truly (exactly) equal.
+      Returns how many vertex positions were changed. }
+    function MergeCloseVertexes(MergeDistance: Single): Cardinal;
   end;
 
   TDynArrayItem_2 = TVector2Single;
@@ -2293,6 +2298,44 @@ begin
   Result := TDynVector4SingleArray.Create(Count);
   for I := 0 to High do
     Result.Items[I] := Vector4Single(Items[I], W);
+end;
+
+function TDynVector3SingleArray.MergeCloseVertexes(MergeDistance: Single): Cardinal;
+var
+  V1, V2: PVector3Single;
+  I, J: Integer;
+begin
+  MergeDistance := Sqr(MergeDistance);
+  Result := 0;
+
+  V1 := PVector3Single(Items);
+  for I := 0 to High do
+  begin
+    { Find vertexes closer to Items[I], and merge them.
+
+      Note that this is not optimal: we could avoid processing
+      here Items[I] that were detected previously (and possibly merged)
+      as being equal to some previous items. But in practice this seems
+      not needed, as there are not many merged vertices in typical situation,
+      so time saving would be minimal (and small temporary memory cost
+      introduced). }
+
+    V2 := PVector3Single(Pointers[I + 1]);
+    for J := I + 1 to High do
+    begin
+      if PointsDistanceSqr(V1^, V2^) < MergeDistance then
+        { We do the VectorsPerfectlyEqual comparison only to get nice Result.
+          But this *is* an important value for the user, so it's worth it. }
+        if not VectorsPerfectlyEqual(V1^, V2^) then
+        begin
+          V2^ := V1^;
+          Inc(Result);
+        end;
+      Inc(V2);
+    end;
+
+    Inc(V1);
+  end;
 end;
 
 { TDynVector2SingleArray ----------------------------------------------------- }
