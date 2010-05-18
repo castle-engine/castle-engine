@@ -280,14 +280,24 @@ function MessageInputQueryCardinal(glwin: TGLWindow; const Title: string;
 function MessageInputQueryCardinalHex(glwin: TGLWindow; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
 
+{ Ask user to input a floating-point number.
+
+  If you give non-empty ValueAsString, it will be used to show
+  the initial value for the user. Otherwise, we will just show
+  FloatToStr(Value), which sometimes may be too ugly.
+  For example Value = 0.01 cannot be precisely represented as a floating point
+  number, and FloatToStr shows that this is really something like 0.0099xxxxx.
+
+  @groupBegin }
 function MessageInputQuery(glwin: TGLWindow; const Title: string;
-  var Value: Extended; TextAlign: TTextAlign): boolean;
+  var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
 function MessageInputQuery(glwin: TGLWindow; const Title: string;
-  var Value: Single; TextAlign: TTextAlign): boolean;
+  var Value: Single; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 function MessageInputQuery(glwin: TGLWindow; const Title: string;
-  var Value: Double; TextAlign: TTextAlign): boolean;
+  var Value: Double; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
 {$endif not EXTENDED_EQUALS_DOUBLE}
+{ @groupEnd }
 
 function MessageInputQueryVector3Single(
   glwin: TGLWindow; const Title: string;
@@ -1539,11 +1549,13 @@ end;
 { MessageInputQuery on floats ------------------------------------------------ }
 
 function MessageInputQuery(glwin: TGLWindow; const Title: string;
-  var Value: Extended; TextAlign: TTextAlign): boolean;
+  var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var s: string;
 begin
  Result := false;
- s := FloatToStr(Value);
+ if ValueAsString <> '' then
+   S := ValueAsString else
+   S := FloatToStr(Value);
  if MessageInputQuery(glwin, Title, s, TextAlign) then
  begin
   try
@@ -1559,24 +1571,24 @@ begin
 end;
 
 function MessageInputQuery(glwin: TGLWindow; const Title: string;
-  var Value: Single; TextAlign: TTextAlign): boolean;
+  var Value: Single; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var
   ValueExtended: Extended;
 begin
   ValueExtended := Value;
-  Result := MessageInputQuery(glwin, Title, ValueExtended, TextAlign);
+  Result := MessageInputQuery(glwin, Title, ValueExtended, TextAlign, ValueAsString);
   if Result then
     Value := ValueExtended;
 end;
 
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 function MessageInputQuery(glwin: TGLWindow; const Title: string;
-  var Value: Double; TextAlign: TTextAlign): boolean;
+  var Value: Double; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var
   ValueExtended: Extended;
 begin
   ValueExtended := Value;
-  Result := MessageInputQuery(glwin, Title, ValueExtended, TextAlign);
+  Result := MessageInputQuery(glwin, Title, ValueExtended, TextAlign, ValueAsString);
   if Result then
     Value := ValueExtended;
 end;
