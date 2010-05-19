@@ -38,7 +38,7 @@ var
     C := IFS.FdCoord.Value as TNodeCoordinate;
 
     Merged := C.FdPoint.Items.MergeCloseVertexes(0.001);
-    Writeln(ErrOutput, 'Merged close vertexes on mesh ', BlenderName, ': ', Merged, ' count.');
+    Writeln(ErrOutput, 'Merged close vertexes on mesh ', BlenderName, ': ', Merged, ' changed.');
 
     Writeln('Teapot' + PascalName + 'Coord: array [0..', C.FdPoint.Count - 1, '] of TVector3Single = (');
     for I := 0 to C.FdPoint.Count - 1 do
