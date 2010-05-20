@@ -851,12 +851,14 @@ begin
 
   FWalkProjectionNear := Box3DAvgSize(SceneBoundingBox) * 0.05;
   FWalkProjectionFar  := Box3DAvgSize(SceneBoundingBox) * 20.0;
-  FAngleOfViewY := 30.0;
-  FAngleOfViewX := AdjustViewAngleDegToAspectRatio(
-    AngleOfViewY, ContainerWidth / ContainerHeight);
 
-  ProjectionGLPerspective(AngleOfViewY, ContainerWidth / ContainerHeight,
-    WalkProjectionNear, WalkProjectionFar);
+  FPerspectiveView := true;
+  FPerspectiveViewAngles[1] := 30.0;
+  FPerspectiveViewAngles[0] := AdjustViewAngleDegToAspectRatio(
+    FPerspectiveViewAngles[1], ContainerWidth / ContainerHeight);
+
+  ProjectionGLPerspective(FPerspectiveViewAngles[1],
+    ContainerWidth / ContainerHeight, WalkProjectionNear, WalkProjectionFar);
 
   Scene.BackgroundSkySphereRadius :=
     TBackgroundGL.NearFarToSkySphereRadius(

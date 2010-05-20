@@ -421,11 +421,12 @@ begin
   { For z-fail, we use far projection plane in infinity. }
   FWalkProjectionFar  := ZFarInfinity;
 
-  FAngleOfViewY := 30.0;
-  FAngleOfViewX := AdjustViewAngleDegToAspectRatio(
-    AngleOfViewY, ContainerWidth / ContainerHeight);
+  FPerspectiveView := true;
+  FPerspectiveViewAngles[1] := 30.0;
+  FPerspectiveViewAngles[0] := AdjustViewAngleDegToAspectRatio(
+    FPerspectiveViewAngles[1], ContainerWidth / ContainerHeight);
 
-  ProjectionGLPerspective(AngleOfViewY, ContainerWidth / ContainerHeight,
+  ProjectionGLPerspective(FPerspectiveViewAngles[1], ContainerWidth / ContainerHeight,
     WalkProjectionNear, WalkProjectionFar);
   UpdateCameraProjectionMatrix;
 end;
