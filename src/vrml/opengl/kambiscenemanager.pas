@@ -52,8 +52,9 @@ type
     procedure ItemsAndCameraCursorChange(Sender: TObject);
   protected
     { These variables are writeable from overridden ApplyProjection. }
-    FAngleOfViewX: Single;
-    FAngleOfViewY: Single;
+    FPerspectiveView: boolean;
+    FPerspectiveViewAngles: TVector2Single;
+    FOrthoViewDimensions: TVector4Single;
     FWalkProjectionNear: Single;
     FWalkProjectionFar : Single;
 
@@ -67,7 +68,8 @@ type
       sensible perspective projection.
 
       Takes care of updating Camera.ProjectionMatrix,
-      AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar.
+      PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
+      WalkProjectionNear, WalkProjectionFar.
 
       This is automatically called at the beginning of our Render method,
       if it's needed.
@@ -175,12 +177,20 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Camera angles of view, in degrees.
+    { Camera projection properties.
+
+      When PerspectiveView is @true, then PerspectiveViewAngles
+      specify angles of view (horizontal and vertical), in degrees.
+      When PerspectiveView is @false, then OrthoViewDimensions
+      specify dimensions of ortho window (in the order: -X, -Y, +X, +Y,
+      just like X3D OrthoViewpoint.fieldOfView).
+
       Set by every ApplyProjection call.
 
       @groupBegin }
-    property AngleOfViewX: Single read FAngleOfViewX write FAngleOfViewX;
-    property AngleOfViewY: Single read FAngleOfViewY write FAngleOfViewY;
+    property PerspectiveView: boolean read FPerspectiveView write FPerspectiveView;
+    property PerspectiveViewAngles: TVector2Single read FPerspectiveViewAngles write FPerspectiveViewAngles;
+    property OrthoViewDimensions: TVector4Single read FOrthoViewDimensions write FOrthoViewDimensions;
     { @groupEnd }
 
     { Projection near/far values, for Walk navigation.
@@ -758,7 +768,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit;
+uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit, RaysWindow;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -949,7 +959,8 @@ begin
     begin
       Camera.CustomRay(
         CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ContainerHeight,
-        NewX, NewY, AngleOfViewX, AngleOfViewY, RayOrigin, RayDirection);
+        NewX, NewY, PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
+        RayOrigin, RayDirection);
       MouseMove3D(RayOrigin, RayDirection);
     end;
   end;
@@ -1064,8 +1075,13 @@ var
   var
     ProjectionMatrix: TMatrix4f;
   begin
+    FPerspectiveView := true;
+    FPerspectiveViewAngles[1] := 45.0;
+    FPerspectiveViewAngles[0] := AdjustViewAngleDegToAspectRatio(
+      FPerspectiveViewAngles[1], CorrectWidth / CorrectHeight);
+
     glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
-    ProjectionGLPerspective(45.0, CorrectWidth / CorrectHeight,
+    ProjectionGLPerspective(PerspectiveViewAngles[1], CorrectWidth / CorrectHeight,
       Box3DAvgSize(Box, 1.0) * 0.01,
       Box3DMaxSize(Box, 1.0) * 10.0);
 
@@ -1091,7 +1107,8 @@ begin
     if GetMainScene <> nil then
       GetMainScene.GLProjection(Camera, Box,
         CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ShadowVolumesPossible,
-        FAngleOfViewX, FAngleOfViewY, FWalkProjectionNear, FWalkProjectionFar) else
+        FPerspectiveView, FPerspectiveViewAngles, FOrthoViewDimensions,
+        FWalkProjectionNear, FWalkProjectionFar) else
       DefaultGLProjection;
 
     ApplyProjectionNeeded := false;

@@ -336,12 +336,16 @@ type
       to TGLUIWindow.Controls or TKamOpenGLControl.Controls before
       using this method.
 
-      ViewAngleDegX, ViewAngleDegY are your camera view angles.
+      PerspectiveView, PerspectiveViewAngles and OrthoViewDimensions
+      describe your projection, required for calculating the ray properly.
+      See TKamSceneManager.PerspectiveView for their specification.
 
       WindowX, WindowY are given in the same style as MouseX, MouseY:
       WindowX = 0 is left, WindowY = 0 is top. }
     procedure Ray(const WindowX, WindowY: Integer;
-      const ViewAngleDegX, ViewAngleDegY: Single;
+      const PerspectiveView: boolean;
+      const PerspectiveViewAngles: TVector2Single;
+      const OrthoViewDimensions: TVector4Single;
       out Ray0, RayVector: TVector3Single);
 
     { Calculate a ray picked by current mouse position on the window.
@@ -350,14 +354,18 @@ type
       to TGLUIWindow.Controls or TKamOpenGLControl.Controls before
       using this method. }
     procedure MouseRay(
-      const ViewAngleDegX, ViewAngleDegY: Single;
+      const PerspectiveView: boolean;
+      const PerspectiveViewAngles: TVector2Single;
+      const OrthoViewDimensions: TVector4Single;
       out Ray0, RayVector: TVector3Single);
 
     { Calculate a ray picked by WindowX, WindowY position on the viewport,
       assuming current viewport dimensions are as given.
       This doesn't look at our container sizes at all.
 
-      ViewAngleDegX, ViewAngleDegY are your camera view angles.
+      PerspectiveView, PerspectiveViewAngles and OrthoViewDimensions
+      describe your projection, required for calculating the ray properly.
+      See TKamSceneManager.PerspectiveView for their specification.
 
       WindowX, WindowY are given in the same style as MouseX, MouseY:
       WindowX = 0 is left, WindowY = 0 is top.
@@ -367,7 +375,9 @@ type
       const ViewportLeft, ViewportBottom: Integer;
       const ViewportWidth, ViewportHeight, WindowHeight: Cardinal;
       const WindowX, WindowY: Integer;
-      const ViewAngleDegX, ViewAngleDegY: Single;
+      const PerspectiveView: boolean;
+      const PerspectiveViewAngles: TVector2Single;
+      const OrthoViewDimensions: TVector4Single;
       out Ray0, RayVector: TVector3Single);
   end;
 
@@ -1660,40 +1670,48 @@ begin
 end;
 
 procedure TCamera.Ray(const WindowX, WindowY: Integer;
-  const ViewAngleDegX, ViewAngleDegY: Single;
+  const PerspectiveView: boolean;
+  const PerspectiveViewAngles: TVector2Single;
+  const OrthoViewDimensions: TVector4Single;
   out Ray0, RayVector: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.Ray');
   CustomRay(0, 0, ContainerWidth, ContainerHeight, ContainerHeight,
-    WindowX, WindowY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
+    WindowX, WindowY,
+    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, Ray0, RayVector);
 end;
 
 procedure TCamera.MouseRay(
-  const ViewAngleDegX, ViewAngleDegY: Single;
+  const PerspectiveView: boolean;
+  const PerspectiveViewAngles: TVector2Single;
+  const OrthoViewDimensions: TVector4Single;
   out Ray0, RayVector: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.MouseRay');
   CustomRay(0, 0, ContainerWidth, ContainerHeight, ContainerHeight,
-    Container.MouseX, Container.MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
+    Container.MouseX, Container.MouseY,
+    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, Ray0, RayVector);
 end;
 
 procedure TCamera.CustomRay(
   const ViewportLeft, ViewportBottom: Integer;
   const ViewportWidth, ViewportHeight, WindowHeight: Cardinal;
   const WindowX, WindowY: Integer;
-  const ViewAngleDegX, ViewAngleDegY: Single;
+  const PerspectiveView: boolean;
+  const PerspectiveViewAngles: TVector2Single;
+  const OrthoViewDimensions: TVector4Single;
   out Ray0, RayVector: TVector3Single);
 var
   Pos, Dir, Up: TVector3Single;
 begin
   GetCameraVectors(Pos, Dir, Up);
-  Ray0 := Pos;
 
-  RayVector := PrimaryRay(
+  PrimaryRay(
     WindowX - ViewportLeft, (WindowHeight - WindowY) - ViewportBottom,
     ViewportWidth, ViewportHeight,
     Pos, Dir, Up,
-    ViewAngleDegX, ViewAngleDegY);
+    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
+    Ray0, RayVector);
 end;
 
 { TExamineCamera ------------------------------------------------------------ }

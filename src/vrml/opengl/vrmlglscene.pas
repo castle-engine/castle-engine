@@ -1325,10 +1325,13 @@ type
       const Box: TBox3D;
       const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
       const ForceZFarInfinity: boolean;
-      out AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single);
+      out PerspectiveView: boolean;
+      out PerspectiveViewAngles: TVector2Single;
+      out OrthoViewDimensions: TVector4Single;
+      out WalkProjectionNear, WalkProjectionFar: Single);
 
-    { GLProjection version when you're not interested in resulting
-      AngleOfView*, WalkProjection* values. Should not be used ---
+    { Simplified GLProjection version. Useful when you're not interested
+      in resulting projection properties. Should not be used ---
       this is only a temporary proc for compatibility, to compile old examples.
       @deprecated }
     procedure GLProjection(ACamera: TCamera;
@@ -4638,19 +4641,25 @@ procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
   const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
   const ForceZFarInfinity: boolean);
 var
-  AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single;
+  PerspectiveView: boolean;
+  PerspectiveViewAngles: TVector2Single;
+  OrthoViewDimensions: TVector4Single;
+  WalkProjectionNear, WalkProjectionFar: Single;
 begin
   GLProjection(ACamera, Box,
-    ViewportX, ViewportY, ViewportWidth, ViewportHeight,
-    ForceZFarInfinity,
-    AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar);
+    ViewportX, ViewportY, ViewportWidth, ViewportHeight, ForceZFarInfinity,
+    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
+    WalkProjectionNear, WalkProjectionFar);
 end;
 
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
   const Box: TBox3D;
   const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
   const ForceZFarInfinity: boolean;
-  out AngleOfViewX, AngleOfViewY, WalkProjectionNear, WalkProjectionFar: Single);
+  out PerspectiveView: boolean;
+  out PerspectiveViewAngles: TVector2Single;
+  out OrthoViewDimensions: TVector4Single;
+  out WalkProjectionNear, WalkProjectionFar: Single);
 
   procedure UpdateCameraProjectionMatrix;
   var
@@ -4673,44 +4682,54 @@ var
     if ForceZFarInfinity then
       WalkProjectionFar := ZFarInfinity;
 
-    ProjectionGLPerspective(AngleOfViewY, ViewportWidth / ViewportHeight,
-      ZNear, WalkProjectionFar);
+    PerspectiveView := true;
+    { PerspectiveViewAngles is already calculated here.
+      For now, we calculate correct PerspectiveViewAngles regardless
+      of whether we actually apply perspective or orthogonal projection. }
+
+    ProjectionGLPerspective(PerspectiveViewAngles[1],
+      ViewportWidth / ViewportHeight, ZNear, WalkProjectionFar);
   end;
 
   procedure DoOrthographic;
   var
     FieldOfView: TDynSingleArray;
     MaxSize: Single;
-    Left, Right, Bottom, Top: Single;
   begin
     MaxSize := Box3DMaxSize(Box, { any dummy value } 1.0);
 
-    { default left / right / bottom / top, when not OrthoViewpoint }
-    Left   := -MaxSize / 2;
-    Right  :=  MaxSize / 2;
-    Bottom := -MaxSize / 2;
-    Top    :=  MaxSize / 2;
+    PerspectiveView := false;
 
-    { update left / right / bottom / top using OrthoViewpoint.fieldOfView }
+    { default OrthoViewDimensions, when not OrthoViewpoint }
+    OrthoViewDimensions[0] := -MaxSize / 2;
+    OrthoViewDimensions[1] := -MaxSize / 2;
+    OrthoViewDimensions[2] :=  MaxSize / 2;
+    OrthoViewDimensions[3] :=  MaxSize / 2;
+
+    { update OrthoViewDimensions using OrthoViewpoint.fieldOfView }
     if (ViewpointNode <> nil) and
        (ViewpointNode is TNodeOrthoViewpoint) then
     begin
-      { default left / right / bottom / top, for OrthoViewpoint }
-      Left   := -1;
-      Right  :=  1;
-      Bottom := -1;
-      Top    :=  1;
+      { default OrthoViewDimensions, for OrthoViewpoint }
+      OrthoViewDimensions[0] := -1;
+      OrthoViewDimensions[1] := -1;
+      OrthoViewDimensions[2] :=  1;
+      OrthoViewDimensions[3] :=  1;
 
       FieldOfView := TNodeOrthoViewpoint(ViewpointNode).FdFieldOfView.Items;
-      { Beware: order of OrthoViewpoint.fieldOfView is different
-        than typical OpenGL and our ProjectionGLOrtho. }
-      if FieldOfView.High >= 0 then Left   := FieldOfView.Items[0];
-      if FieldOfView.High >= 1 then Bottom := FieldOfView.Items[1];
-      if FieldOfView.High >= 2 then Right  := FieldOfView.Items[2];
-      if FieldOfView.High >= 3 then Top    := FieldOfView.Items[3];
+      if FieldOfView.High >= 0 then OrthoViewDimensions[0] := FieldOfView.Items[0];
+      if FieldOfView.High >= 1 then OrthoViewDimensions[1] := FieldOfView.Items[1];
+      if FieldOfView.High >= 2 then OrthoViewDimensions[2] := FieldOfView.Items[2];
+      if FieldOfView.High >= 3 then OrthoViewDimensions[3] := FieldOfView.Items[3];
     end;
 
-    ProjectionGLOrtho(Left, Right, Bottom, Top,
+    ProjectionGLOrtho(
+      { Beware: order of OrthoViewpoint.fieldOfView and OrthoViewDimensions
+        is different than typical OpenGL and our ProjectionGLOrtho params. }
+      OrthoViewDimensions[0],
+      OrthoViewDimensions[2],
+      OrthoViewDimensions[1],
+      OrthoViewDimensions[3],
       ZNear, WalkProjectionFar);
   end;
 
@@ -4726,14 +4745,14 @@ begin
     PerspectiveFieldOfView := TNodeViewpoint(ViewpointNode).FdFieldOfView.Value else
     PerspectiveFieldOfView := DefaultViewpointFieldOfView;
 
-  AngleOfViewX := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(
+  PerspectiveViewAngles[0] := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(
     PerspectiveFieldOfView, ViewportWidth / ViewportHeight));
 
-  AngleOfViewY := AdjustViewAngleDegToAspectRatio(
-    AngleOfViewX, ViewportHeight / ViewportWidth);
+  PerspectiveViewAngles[1] := AdjustViewAngleDegToAspectRatio(
+    PerspectiveViewAngles[0], ViewportHeight / ViewportWidth);
 
   { Tests:
-    Writeln(Format('Angle of view: x %f, y %f', [AngleOfViewX, AngleOfViewY])); }
+    Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
 
   if NavigationInfoStack.Top <> nil then
     VisibilityLimit := (NavigationInfoStack.Top as TNodeNavigationInfo).

@@ -122,8 +122,13 @@ type
       to poprawiany jest CamUp aby byc prostopadly (a NIE camDirection). }
     CamPosition, CamDirection, CamUp: TVector3Single;
 
-    { ViewAngleDegX i ViewAngleDegY to rozpietosc obiektywu w stopniach. }
-    ViewAngleDegX, ViewAngleDegY: Single;
+    { Camera projection properties.
+      See TKamSceneManager.PerspectiveView for specification.
+      @groupBegin }
+    PerspectiveView: boolean;
+    PerspectiveViewAngles: TVector2Single;
+    OrthoViewDimensions: TVector4Single;
+    { @groupEnd }
 
     SceneBGColor: TVector3Single;
 
@@ -192,7 +197,7 @@ type
   TClassicRayTracer = class(TRayTracer)
   public
     procedure Execute; override;
-    
+
   public
     { InitialDepth to ograniczenie raytracera na globokosc drzewa promieni - tak jak
       zad.2 z rgk, tzn. InitialDepth = 0 oznacza tylko promienie prierw,
@@ -222,7 +227,7 @@ type
   public
     constructor Create;
     procedure Execute; override;
-    
+
   public
     { MinDepth i RRoulContinue razem ustalaja warunki konczenia sciezki.
       Wyglada to tak ze do glebokosci rekursji MinDepth wchodzimy na pewno,
@@ -566,10 +571,11 @@ var
   RaysWindow: TRaysWindow;
 
   procedure DoPixel(const x, y: Cardinal);
+  var
+    Ray0, RayVector: TVector3Single;
   begin
-    Image.SetColorRGB(x, y,
-      Trace(CamPosition, RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height),
-        InitialDepth, nil, false));
+    RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height, Ray0, RayVector);
+    Image.SetColorRGB(x, y, Trace(Ray0, RayVector, InitialDepth, nil, false));
   end;
 
 var
@@ -581,8 +587,8 @@ begin
   RaysWindow := nil;
   SFCurve := nil;
   try
-    RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp,
-      ViewAngleDegX, ViewAngleDegY);
+    RaysWindow := TRaysWindow.CreateDescendant(CamPosition, CamDirection, CamUp,
+      PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
 
     { Using any other kind of space filling curve doesn't have any
       noticeable impact right now for classic ray tracer, since
@@ -1138,7 +1144,7 @@ var
 
   procedure DoPixel(const x, y: Cardinal);
   var
-    PixColor, PrimaryRayVector: TVector3Single;
+    PixColor, PrimaryRay0, PrimaryRayVector: TVector3Single;
     SampleNum: Integer;
   begin
     { generuj pixel x, y. calculate PixColor }
@@ -1147,19 +1153,17 @@ var
       { gdy PrimarySamplesCount = 1 to wysylamy jeden promien pierwotny
         i ten promien NIE jest losowany na rzutni w zakresie pixela
         x, y ale przechodzi dokladnie przez srodek pixela x, y. }
-      PrimaryRayVector := RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height);
-      PixColor := Trace(CamPosition, PrimaryRayVector, MinDepth,
-        nil, false, false);
+      RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height, PrimaryRay0, PrimaryRayVector);
+      PixColor := Trace(PrimaryRay0, PrimaryRayVector, MinDepth, nil, false, false);
     end else
     begin
       PixColor := ZeroVector3Single;
       for SampleNum := 0 to PrimarySamplesCount - 1 do
       begin
-        PrimaryRayVector := RaysWindow.PrimaryRay(
+        RaysWindow.PrimaryRay(
           x + Random - 0.5, y + Random - 0.5,
-          Image.Width, Image.Height);
-        PixColor += Trace(CamPosition, PrimaryRayVector, MinDepth,
-          nil, false, false);
+          Image.Width, Image.Height, PrimaryRay0, PrimaryRayVector);
+        PixColor += Trace(PrimaryRay0, PrimaryRayVector, MinDepth, nil, false, false);
       end;
       PixColor *= 1 / PrimarySamplesCount;
     end;
@@ -1200,8 +1204,8 @@ begin
     {$endif}
 
     { calculate RaysWindow }
-    RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp,
-      ViewAngleDegX, ViewAngleDegY);
+    RaysWindow := TRaysWindow.CreateDescendant(CamPosition, CamDirection, CamUp,
+      PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
 
     { calculate SFCurve }
     SFCurve := SFCurveClass.Create(Image.Width, Image.Height);

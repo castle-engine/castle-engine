@@ -42,28 +42,20 @@ function AdjustViewAngleRadToAspectRatio(const FirstViewAngleRad,
   SecondToFirstRatio: Single): Single;
 { @groupEnd }
 
-{ Calculate primary rays for given camera settings
-  and screen size.
-
-  This has just two methods: constructor and PrimaryRay that calculates
-  the direction of primary ray. For typical ray-tracer usage,
-  you call constructor only once, and then call PrimaryRay for each pixel.
-  So constructor does some slightly more time-consuming work
-  (initializes Window* from angles, correct CamUp to be perfectly
-  orthogonal to CamDrection). In PrimaryRay we just use them. }
 type
+  { Calculate primary rays for given camera settings
+    and screen size.
+
+    This has just two methods: constructor and PrimaryRay that calculates
+    the position and direction of the primary ray. For typical ray-tracer usage,
+    you call constructor only once, and then call PrimaryRay for each pixel.
+    This way constructor can do some slightly more time-consuming work,
+    and in PrimaryRay we can reuse some calculation results. }
   TRaysWindow = class
   private
-    FWindowZ, FWindowWidth, FWindowHeight: Single;
     FCamPosition, FCamDirection, FCamUp: TVector3Single;
-    FViewAngleDegX, FViewAngleDegY: Single;
   public
-    property WindowZ: Single read FWindowZ;
-    property WindowWidth: Single read FWindowWidth;
-    property WindowHeight: Single read FWindowHeight;
-
-    { Camera and view angles, initialized in constructor.
-
+    { Camera vectors. Initialized in the constructor.
       Note that CamUp may be changed in constructor, to be always perfectly
       orthogonal to CamDriection.
 
@@ -71,15 +63,19 @@ type
     property CamPosition: TVector3Single read FCamPosition;
     property CamDirection: TVector3Single read FCamDirection;
     property CamUp: TVector3Single read FCamUp;
-
-    property ViewAngleDegX: Single read FViewAngleDegX;
-    property ViewAngleDegY: Single read FViewAngleDegY;
     { @groupEnd }
 
-    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-      AViewAngleDegX, AViewAngleDegY: Single);
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single);
 
-    { Calculate direction of the primary ray cast from CamPosition,
+    { Create appropriate non-abstract descendant
+      (TPerspectiveRaysWindow or TOrthographicRaysWindow). }
+    class function CreateDescendant(
+      const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+      const APerspectiveView: boolean;
+      const APerspectiveViewAngles: TVector2Single;
+      const AOrthoViewDimensions: TVector4Single): TRaysWindow;
+
+    { Calculate position and direction of the primary ray cast from CamPosition,
       going through the pixel X, Y.
 
       X, Y coordinates start from (0, 0) if bottom left (like in typical 2D
@@ -90,22 +86,55 @@ type
       paraller to view direction). But you can provide non-integer X, Y,
       useful for multisampling (taking many samples within the pixel,
       like (X, Y) = (PixX + Random - 0.5, PixY + Random - 0.5)). }
-    function PrimaryRay(const x, y: Single;
-      const ScreenWidth, ScreenHeight: Integer): TVector3Single;
+    procedure PrimaryRay(const x, y: Single;
+      const ScreenWidth, ScreenHeight: Integer;
+      out Ray0, RayDirection: TVector3Single); virtual; abstract;
   end;
 
-{ Calculate direction of the primary ray cast from CamPosition,
+  TPerspectiveRaysWindow = class(TRaysWindow)
+  private
+    WindowZ, WindowWidth, WindowHeight: Single;
+    PerspectiveViewAngles: TVector2Single;
+  public
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+      const APerspectiveViewAngles: TVector2Single);
+
+    procedure PrimaryRay(const x, y: Single;
+      const ScreenWidth, ScreenHeight: Integer;
+      out Ray0, RayDirection: TVector3Single); override;
+  end;
+
+  TOrthographicRaysWindow = class(TRaysWindow)
+  private
+    OrthoViewDimensions: TVector4Single;
+    CamSide: TVector3Single;
+  public
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+      const AOrthoViewDimensions: TVector4Single);
+
+    procedure PrimaryRay(const x, y: Single;
+      const ScreenWidth, ScreenHeight: Integer;
+      out Ray0, RayDirection: TVector3Single); override;
+  end;
+
+{ Calculate position and direction of the primary ray cast from CamPosition,
   going through the pixel X, Y.
   Takes into account camera 3D settings and screen sizes.
+
+  See TKamSceneManager.PerspectiveView for specification
+  of projection properties PerspectiveView etc.
 
   This simply creates and uses TRaysWindow instance, which is not optimal
   if you will want to ask for PrimaryRay many times with the same camera
   and window settings. Better use TRaysWindow class directly then.
   For things like picking interactively objects with mouse this is usually
   fast enough (camera will change anyway on each move). }
-function PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
+procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
   const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single): TVector3Single;
+  const PerspectiveView: boolean;
+  const PerspectiveViewAngles: TVector2Single;
+  const OrthoViewDimensions: TVector4Single;
+  out Ray0, RayDirection: TVector3Single);
 
 implementation
 
@@ -146,39 +175,63 @@ end;
 { TRaysWindow ------------------------------------------------------------ }
 
 constructor TRaysWindow.Create(
+  const ACamPosition, ACamDirection, ACamUp: TVector3Single);
+begin
+  inherited Create;
+
+  FCamPosition := ACamPosition;
+  FCamDirection := ACamDirection;
+  FCamUp := ACamUp;
+
+  { fix CamUp }
+  MakeVectorsOrthoOnTheirPlane(FCamUp, FCamDirection);
+end;
+
+class function TRaysWindow.CreateDescendant(
   const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-  AViewAngleDegX, AViewAngleDegY: Single);
+  const APerspectiveView: boolean;
+  const APerspectiveViewAngles: TVector2Single;
+  const AOrthoViewDimensions: TVector4Single): TRaysWindow;
+begin
+  if APerspectiveView then
+    Result := TPerspectiveRaysWindow.Create(
+      ACamPosition, ACamDirection, ACamUp, APerspectiveViewAngles) else
+    Result := TOrthographicRaysWindow.Create(
+      ACamPosition, ACamDirection, ACamUp, AOrthoViewDimensions);
+end;
+
+{ TPerspectiveRaysWindow ----------------------------------------------------- }
+
+constructor TPerspectiveRaysWindow.Create(
+  const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+  const APerspectiveViewAngles: TVector2Single);
 const
   WindowDistance = 1;  { dowolna stala > 0, moze kiedys na cos sie przyda }
 begin
- inherited Create;
+  inherited Create(ACamPosition, ACamDirection, ACamUp);
 
- FCamPosition := ACamPosition;
- FCamDirection := ACamDirection;
- FCamUp := ACamUp;
- FViewAngleDegX := AViewAngleDegX;
- FViewAngleDegY := AViewAngleDegY;
+  PerspectiveViewAngles := APerspectiveViewAngles;
 
- { popraw CamUp }
- MakeVectorsOrthoOnTheirPlane(FCamUp, FCamDirection);
-
- { oblicz rzutnie pomijajac Cam* i przyjmujac ze kamera jest
-   w punkcie (0, 0, 0) skierowana w (0, 0, -1) i ma up w (0, 1, 0) }
- FWindowZ := -WindowDistance;
- { wiemy ze szerokosc rzutni / 2 / Abs(WindowZ) = tg (ViewAngleX / 2).
-   Wiec szerokosc rzutni = tg(ViewAngleX / 2) * Abs(WindowZ) * 2;
-   podobnie wysokosc rzutni = tg(ViewAngleY / 2) * Abs(WindowZ) * 2; }
- FWindowWidth := Tan(DegToRad(ViewAngleDegX) / 2) * Abs(WindowZ) * 2;
- FWindowHeight := Tan(DegToRad(ViewAngleDegY) / 2) * Abs(WindowZ) * 2;
+  { oblicz rzutnie pomijajac Cam* i przyjmujac ze kamera jest
+    w punkcie (0, 0, 0) skierowana w (0, 0, -1) i ma up w (0, 1, 0) }
+  WindowZ := -WindowDistance;
+  { wiemy ze szerokosc rzutni / 2 / Abs(WindowZ) = tg (ViewAngleX / 2).
+    Wiec szerokosc rzutni = tg(ViewAngleX / 2) * Abs(WindowZ) * 2;
+    podobnie wysokosc rzutni = tg(ViewAngleY / 2) * Abs(WindowZ) * 2; }
+  WindowWidth  := Tan(DegToRad(PerspectiveViewAngles[0]) / 2) * Abs(WindowZ) * 2;
+  WindowHeight := Tan(DegToRad(PerspectiveViewAngles[1]) / 2) * Abs(WindowZ) * 2;
 end;
 
-function TRaysWindow.PrimaryRay(const x, y: Single;
-  const ScreenWidth, ScreenHeight: Integer): TVector3Single;
+procedure TPerspectiveRaysWindow.PrimaryRay(const x, y: Single;
+  const ScreenWidth, ScreenHeight: Integer;
+  out Ray0, RayDirection: TVector3Single);
 begin
+ Ray0 := CamPosition;
+
  { wyznacz kierunek promienia pierwotnego.
    X z zakresu 0..ScreenWidth-1 ma dawac promienie dokladnie przez srodek
    pixela na rzutni, analogicznie Y. }
- result := Vector3Single(
+ RayDirection := Vector3Single(
    MapRange(x+0.5, 0, ScreenWidth , -WindowWidth /2, WindowWidth /2),
    MapRange(y+0.5, 0, ScreenHeight, -WindowHeight/2, WindowHeight/2),
    WindowZ);
@@ -188,23 +241,59 @@ begin
    (wtedy traktowalibysmy RayVector jako punkt na polprostej promienia,
    a nie jako kierunek. Wiec musielibysmy wtedy od RayVector z powrotem
    odjac CamPosition, zupelnie bez sensu skoro mozemy je juz teraz pominac). }
- Result := MatrixMultPoint(
+ RayDirection := MatrixMultPoint(
    TransformToCoordsNoScaleMatrix(ZeroVector3Single,
      CamDirection >< CamUp,
      CamUp,
-     -CamDirection), result);
+     -CamDirection), RayDirection);
 end;
 
-function PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single): TVector3Single;
-var RaysWindow: TRaysWindow;
+{ TOrthographicRaysWindow ---------------------------------------------------- }
+
+constructor TOrthographicRaysWindow.Create(
+  const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+  const AOrthoViewDimensions: TVector4Single);
 begin
- RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp,
-   ViewAngleDegX, ViewAngleDegY);
- try
-  result := RaysWindow.PrimaryRay(x, y, ScreenWidth, ScreenHeight);
- finally RaysWindow.Free end;
+  inherited Create(ACamPosition, ACamDirection, ACamUp);
+
+  { we want to have CamUp always normalized }
+  NormalizeTo1st(FCamUp);
+
+  { we want to have CamSide, also always normalized }
+  CamSide := CamDirection >< CamUp;
+  NormalizeTo1st(CamSide);
+
+  OrthoViewDimensions := AOrthoViewDimensions;
+end;
+
+procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
+  const ScreenWidth, ScreenHeight: Integer;
+  out Ray0, RayDirection: TVector3Single);
+begin
+  Ray0 := CamPosition;
+  Ray0 += VectorScale(CamSide, MapRange(X + 0.5, 0, ScreenWidth,
+    OrthoViewDimensions[0], OrthoViewDimensions[2]));
+  Ray0 += VectorScale(CamUp, MapRange(Y + 0.5, 0, ScreenHeight,
+    OrthoViewDimensions[1], OrthoViewDimensions[3]));
+  RayDirection := CamDirection;
+end;
+
+{ global functions ----------------------------------------------------------- }
+
+procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
+  const CamPosition, CamDirection, CamUp: TVector3Single;
+  const PerspectiveView: boolean;
+  const PerspectiveViewAngles: TVector2Single;
+  const OrthoViewDimensions: TVector4Single;
+  out Ray0, RayDirection: TVector3Single);
+var
+  RaysWindow: TRaysWindow;
+begin
+  RaysWindow := TRaysWindow.CreateDescendant(CamPosition, CamDirection, CamUp,
+    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
+  try
+    RaysWindow.PrimaryRay(x, y, ScreenWidth, ScreenHeight, Ray0, RayDirection);
+  finally RaysWindow.Free end;
 end;
 
 end.
