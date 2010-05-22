@@ -328,8 +328,9 @@ unit GLWindow;
     Known problems:
     (they are specific to GLWINDOW_GLUT and will not be fixed.
     Just use other GLWINDOW_xxx backend if you don't want these problems):
-    - Lack of Application.ProcessMesssages (although freeglut allows me to fix it,
-      maybe I'll do it someday)
+    - When original glut (the one by Mark Kilgard,
+      as opposed to newer freeglut from http://freeglut.sourceforge.net/)
+      is used, Application.ProcessMesssages cannot be implemented.
     - Application.Run does never return (because it must be implemented as a
       single call to glutMainLoop)
     - Key up / down (with K_xxx constants) are rather poorly simulated.
@@ -399,7 +400,7 @@ unit GLWindow;
   - Create a file glwindow_foo.inc with contents from
     glwindow_implementation_template.inc
     and conditionally include it from glwindow_implementation_specific.inc.
-  - Adjust defining GLWINDOW_HAS_PROCESS_MESSAGE,
+  - Adjust defining
     GLWINDOW_HAS_VIDEO_CHANGE and GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN
     for your implementation.
   - Implement all methods in glwindow_foo.inc. You wil find the specification
@@ -495,22 +496,6 @@ unit GLWindow;
     {$define GLWINDOW_GTK_WITH_XLIB}
   {$endif}
 {$endif}
-
-{ An important property of a GLWindow implementation is whether such
-  implementation can provide TGLWindowManager.ProcessMessage method.
-  E.g. glut implementation cannot provide this. Xlib and WinAPI can.
-  We're defining symbol GLWINDOW_HAS_PROCESS_MESSAGE for such implementations.
-  A special include file GLWindow_has_process_message.inc is provided
-  to help such implementations.
-  Implementations without TGLWindowManager.ProcessMessage usually use some
-  higher-level interface. They are slightly easier to implement, but they
-  lack functionality -- I need TGLWindowManager.ProcessMessage to do such
-  things as GLWinMessages. }
-{$undef GLWINDOW_HAS_PROCESS_MESSAGE}
-{$ifdef GLWINDOW_WINAPI}  {$define GLWINDOW_HAS_PROCESS_MESSAGE} {$endif}
-{$ifdef GLWINDOW_XLIB}    {$define GLWINDOW_HAS_PROCESS_MESSAGE} {$endif}
-{$ifdef GLWINDOW_GTK_ANY} {$define GLWINDOW_HAS_PROCESS_MESSAGE} {$endif}
-{$ifdef GLWINDOW_TEMPLATE}{$define GLWINDOW_HAS_PROCESS_MESSAGE} {$endif}
 
 { Does implementation implement TryVideoChange and VideoReset methods ?
   (if this will not be defined, we will use TryVideoChange that always
@@ -2067,12 +2052,10 @@ type
       const xpos, ypos, SavedAreaWidth,
         SavedAreaHeight: integer): TGLuint; overload;
 
-    {$ifndef GLWINDOW_GLUT}
     { This asks user where to save the file (using @link(FileDialog),
       as default filename taking ProposedFname), if user accepts
       calls glwin.SaveScreen(user-chosen-file-name); }
     procedure SaveScreenDialog(ProposedFileName: string);
-    {$endif}
 
     { @groupbegin
 
@@ -2182,8 +2165,6 @@ type
 
     { dialog boxes using GUI ------------------------------------------------ }
 
-    {$ifndef GLWINDOW_GLUT}
-
     { About all dialogs:
       - Behaviour of callbacks:
         callbacks of Application and callbacks of other TGLWindow MAY be called while
@@ -2195,9 +2176,8 @@ type
           TGLMode.Free
       - How does these dialogs look like ?
         Under GTK and WinAPI implementations we use native dialogs of these.
-        Under Xlib implementation we simply fallback on
+        Under Xlib and freeglut implementation we simply fallback on
         GLWinMessages.Message*.
-        Under glut this is not implemented.
     }
 
     { Title is some dialog title.
@@ -2257,8 +2237,6 @@ type
     { Simple yes/no question dialog box. }
     function MessageYesNo(const S: string;
       const MessageType: TGLWindowMessageType = mtQuestion): boolean;
-
-    {$endif not GLWINDOW_GLUT}
   end;
 
   { This is a special exception that is always catched and silenced
@@ -2836,10 +2814,8 @@ type
       implementation, in glwindow_winsystem.inc.
       Is there really any good reason why we can't remove this behavior ?
     }
-    {$ifdef GLWINDOW_HAS_PROCESS_MESSAGE}
     function ProcessMessage(AllowSuspend: boolean): boolean;
     function ProcessAllMessages: boolean;
-    {$endif}
 
     { zamknij wszystkie okna TGLWindow, spraw by ProcessMessage zwracalo false i
       w rezultacie spowoduj zakonczenie procedury Run jesli dziala.
@@ -2906,7 +2882,8 @@ uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes, EnumerateFiles {$endif}
   {$ifdef GLWINDOW_WINAPI}, GLWinModes, GLWindowWinAPIMenu {$endif}
-  {$ifdef GLWINDOW_XLIB}, GLWinMessages {$endif};
+  {$ifdef GLWINDOW_XLIB}, GLWinMessages {$endif}
+  {$ifdef GLWINDOW_GLUT}, GLWinMessages {$endif};
 
 {$define read_implementation}
 
@@ -3597,7 +3574,6 @@ begin
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
-{$ifndef GLWINDOW_GLUT}
 procedure TGLWindow.SaveScreenDialog(ProposedFileName: string);
 begin
   if FileDialog('Save screen to file', ProposedFileName, false,
@@ -3628,7 +3604,6 @@ begin
   if Result then
     Color := Vector3Byte(ColorSingle);
 end;
-{$endif}
 
 { ----------------------------------------------------------------------------
   Get/Set callbacks State }

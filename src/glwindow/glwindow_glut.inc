@@ -43,6 +43,8 @@ private
 
 {$ifdef read_implementation}
 
+{$I glwindow_dialogs_by_glwinmessages.inc}
+
 { some conversions ------------------------------------------------- }
 
 function CharToKey(c: char): TKey;
@@ -478,6 +480,22 @@ begin
   if ActiveCount = 0 then Exit;
 
   glutMainLoop;
+end;
+
+function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
+begin
+  Result := true;
+  if Assigned(glutMainLoopEvent) then
+    glutMainLoopEvent() else
+    raise Exception.Create('glutMainLoopEvent not found (probably this is not freeglut, see freeglut.sourceforge.net). This implies that ProcessMessage (and friends, like modal boxes) cannot be implemented');
+end;
+
+function TGLApplication.ProcessAllMessages: boolean;
+begin
+  Result := true;
+  if Assigned(glutMainLoopEvent) then
+    glutMainLoopEvent() else
+    raise Exception.Create('glutMainLoopEvent not found (probably this is not freeglut, see freeglut.sourceforge.net). This implies that ProcessMessage (and friends, like modal boxes) cannot be implemented');
 end;
 
 procedure TGLApplication.QuitWhenNoWindowsActive;

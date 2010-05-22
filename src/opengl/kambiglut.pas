@@ -519,6 +519,9 @@ var
   { GLUT debugging sub-API. }
   glutReportErrors: procedure; {$ifdef GLUT_CDECL} cdecl; {$endif} {$ifdef GLUT_STDCALL} stdcall; {$endif}
 
+  { glutMainLoopEvent is available only when we use freeglut, otherwise @nil }
+  glutMainLoopEvent: procedure; {$ifdef GLUT_CDECL} cdecl; {$endif} {$ifdef GLUT_STDCALL} stdcall; {$endif}
+
   { GLUT device control sub-API. }
   { glutSetKeyRepeat modes. }
 const
@@ -805,6 +808,12 @@ initialization
  Pointer(glutLeaveGameMode) := libglut.Symbol('glutLeaveGameMode');
  Pointer(glutGameModeGet) := libglut.Symbol('glutGameModeGet');
  }
+
+ try
+   Pointer(glutMainLoopEvent) := libglut.Symbol('glutMainLoopEvent');
+ except
+   on EDynLibError do Pointer(glutMainLoopEvent) := nil;
+ end;
 
  {$ifndef MSWINDOWS}
  GLUT_STROKE_ROMAN := libglut.Symbol('glutStrokeRoman');

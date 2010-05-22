@@ -125,11 +125,6 @@ end;
 
 { TGLApplication ---------------------------------------------------------- }
 
-{ Note: you can avoid implementing ProcessMessage and ProcessAllMessages
-  if you don't define GLWINDOW_HAS_PROCESS_MESSAGE for your backend.
-  But it's a good idea to try to implement them, as they allow some
-  other features, like GLWinModes and GLWinMessages. }
-
 function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
 begin
   { TODO }
