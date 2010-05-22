@@ -2704,31 +2704,34 @@ type
     property OnTimer: TProcedure read FOnTimer write FOnTimer; { = nil }
     property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec; { = 1000 }
 
-    { Przetwarzaj pewna ilosc messagy WindowSystemu (moze zero, moze kilka ?)
-      po drodze wywolujac OnDraw / Idle / Resize itd. w miare potrzeby
-      dispatchujac odpowiednie messagy (a wiec i zdarzenia) do odpowiednich
-      obiektow TGLWindow.
+    { Process some messages from the window system.
+      During this, messages are processed and passed
+      to the appropriate TGLWindow windows, calling appropriate mathotds
+      and callbacks like TGLWindow.OnDraw, TGLWindow.OnIdle and many others.
 
-      Zwraca false jesli wywolano Quit (bezposrednio lub wywolujac
-      Close na ostatnim okienku (Close tez mozna wywolac bezposrednio
-      lub user moze kliknac na jakis przycisk "Zamknij"))
-      Aplikacja chcaca cos robiæ w oczekiwaniu na zajscie warunku BB
-      powinna robia tak :
+      This is very useful for implementing stuff like modal dialog boxes,
+      and generally any kind of "display something until something happens".
+      You want to control then yourself the event loop, like
 
-      while not BB do Application.ProcessMessages;
+@longCode(#
+  while not SomethingHappened do Application.ProcessMessages;
+#)
 
-      W GLWindow, inaczej niz w jakims wiekszym systemie jak np. VCL czy WinAPI,
-      programista ma prosta i pelna kontrole nad programem, wiêc mo¿na bez problemu
-      napisaæ program tak, ¿eby bylo jasne i¿ w danym stanie programu uzytkownik
-      nie mo¿e spowodowaæ wywolania procedury QuitGL. Przed taka pêtla nale¿y
-      wiêc wprowadziæ program w taki stan ¿e prêdzej czy pózniej MUSI zajsæ
-      BB, a potem go z tego stanu wyprowadziæ.
+      Commonly this is used together with TGLWindow state push / pop
+      routines in GLWinModes. They allow you to temporary replace
+      all TGLWindow callbacks with new ones, and later restore the old ones.
 
-      Gdyby jednak mo¿liwosæ zakoñcenia programu w takiej pêtli byla dopuszczona,
-      nale¿aloby napisaæ pêtlê postaci
 
-      while not BB do
-       if not Application.ProcessMessage then break;
+      ProcessMessages returns @true if we should continue, thas is
+      if @link(Quit) method was not called (directly or by closing
+      the last window). If you want to check it (if your state
+      allows the user at all to close the application during modal box or such)
+      you can do:
+
+@longCode(#
+  while not SomethingHappened do
+    if not Application.ProcessMessage then break;
+#)
 
       Co mozna zakladac lub nie o dzialaniu petli ProcessGLWinMessages ?
        - jezeli windManager zasypuje nam message'ami moze sie okazac
@@ -2775,27 +2778,24 @@ type
 
          User is always hungry.
 
-         ProcessAllMessages wywoluje w petli ProcessMessage(false, WasAnyMessage)
-         i konczy gdy ProcessMessage zwrocilo false lub WasAnyMessage = false.
-         ProcessAllMessages robi wiec jakby flush - synchronizuje nas z window
-         managerem, upewniajac sie ze przetworzylismy WSZYSTKIE message'y jakie
-         mielismy do wykonania. ProcessAllMessages jest uzyteczne gdy robimy
-         cos chcac co jakis czas wywolywac ProcessMessage i chcemy byc pewni
-         ze przetwarzamy wszystkie message'y od window managera (ze jestesmy
-         na biezaco) - bo byc moze np. jezeli user przycisnie Escape to chcemy
-         zrezygnowac z robienia dlugo trwajacej rzeczy. W ten sytuacji robienie
-         tylko ProcessMessage co jakis czas nie jest wystarczajaco dobrym pomyslem
-         bo np. gdy user przesunie myszke my dostaniemy mnostwo message'y mouseMove
-         i jezeli potem user przycisnie Escape to my DLUGO DLUGO tego nie zauwazymy
-         bo bedziemy przetwarzali zdarzenia mouseMove. W rezultacie bedziemy
-         kontynuowali obliczenia mimo ze user wcisnal Escape. Zle ! Chcemy byc
-         na biezaco z message'ami jezeli zamierzamy na nie reagowac.
-         Wiec wtedy mozna uzyc ProcessAllMessages - wywoluj to co jakis czas
-         i wtedy masz pewnosc ze jestes na biezaco z window managerem.
-         Przyklad uzycia : RaytraceToWindow w view3dscene.
-         Nigdy nie wywoluj ProcessAllMessages w petli (powinienes wtedy uzywac
-         ProcessMessage) - uzywaj tego tylko jesli robisz duzo rzeczy pomiedzy
-         kolejnymi wywolaniami ProcessAllMessages.
+         ProcessAllMessages processes all pending messages.
+
+         Contrast this with ProcessMessage method, that processes only a single
+         event. Or no event at all (when no events were pending and
+         AllowSuspend = @false). This means that after calling ProcessMessage
+         once, you may have many messages left in the queue (especially
+         mouse move together with key presses typically makes a lot of
+         events). So it's not good to use if you want to react timely to
+         some user requests, e.g. when you do something time-consuming
+         and allow user to break the task with Escape key.
+
+         ProcessAllMessages is like
+         calling in a loop something like ProcessMessage(false), ends when
+         ProcessMessage didn't process any message (it's internally returned
+         by ProcessMessage2) or when quit was called (or last window closed).
+
+         So ProcessAllMessages makes sure we have processed all pending events,
+         thus we are up-to-date with window system requests.
 
       Note that if you let some exception to be raised out of
       some event (like OnXxx) then this window may be closed
