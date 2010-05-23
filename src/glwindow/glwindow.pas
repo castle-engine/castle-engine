@@ -868,17 +868,9 @@ type
       guaranteed) }
     procedure SwapBuffers;
 
-    { Processing recursively from MainMenu, set ParentWindow of all TMenuEntry
-      to AParentWindow. This is valid NOP if MainMenu = nil.
-      This is called from Init, MainMenuChanged (with AParentWindow = Self)
-      and from Close (with AParentWindow = nil). }
-    procedure MainMenuSetParent(AParentWindow: TGLWindow);
-
     { This is called by MainMenuChanged. This can assume that (not Closed) and
       (MainMenu <> nil). This should update whole user interface
-      (implementation-specific) to show new contents of MainMenu.
-      This does not update ParentWindow fields of TMenuEntry, this will be
-      already done in MainMenuChanged. }
+      (implementation-specific) to show new contents of MainMenu. }
     procedure MainMenuChangedImplDepend;
 
     { This is something internal for communicating between GLWindowMenu and
@@ -2939,7 +2931,13 @@ destructor TGLWindow.Destroy;
 begin
  Close; { <- This will be ignored if already Closed }
 
- if OwnsMainMenu then FreeAndNil(FMainMenu);
+ if OwnsMainMenu then
+   FreeAndNil(FMainMenu) else
+ if FMainMenu <> nil then
+ begin
+   FMainMenu.ParentWindow := nil; { clear Self from FMainMenu.ParentWindow }
+   FMainMenu := nil;
+ end;
 
  FreeAndNil(FFps);
  FreeAndNil(FPressed);
@@ -2992,8 +2990,6 @@ begin
   Pressed.Clear;
   fmousePressed := [];
   EventInitCalled := false;
-
-  MainMenuSetParent(Self);
 
   FClosed := false; { w tym miejscu, przed InitImplDepend i wywolaniem
     OnInit + OnResize, bo te rzeczy moga rzucic wyjatki a w reakcji na wyjatek
@@ -3123,8 +3119,6 @@ begin
   closeerrors := '';
   CloseImplDepend;
 
-  MainMenuSetParent(nil);
-
   FClosed := true;
 
   { Note: it is important here that ActiveRemove will not raise any error
@@ -3145,26 +3139,10 @@ begin
  end;
 end;
 
-procedure TGLWindow.MainMenuSetParent(AParentWindow: TGLWindow);
-
-  procedure SetMe(Entry: TMenuEntry);
-  var i: Integer;
-  begin
-   Entry.ParentWindow := AParentWindow;
-   if Entry is TMenu then
-   for i := 0 to TMenu(Entry).EntriesCount-1 do
-    SetMe(TMenu(Entry).Entries[i]);
-  end;
-
-begin
- if MainMenu <> nil then SetMe(MainMenu);
-end;
-
 procedure TGLWindow.MainMenuChanged;
 begin
  if Closed then Exit;
  Check(MainMenu <> nil, 'MainMenu must not be nil when you call MainMenuChanged');
- MainMenuSetParent(Self);
  MainMenuChangedImplDepend;
 end;
 
@@ -3471,9 +3449,12 @@ begin
   if (not Closed) and ((MainMenu <> nil) <> (Value <> nil)) then
    raise EInternalError.Create('While TGLWindow is not Closed, '+
      'you can''t set MainMenu from nil to non-nil or from non-nil to nil');
+
+  if FMainMenu <> nil then FMainMenu.ParentWindow := Self;
   FMainMenu := Value;
-  if not Closed then
-   MainMenuChanged;
+  if FMainMenu <> nil then FMainMenu.ParentWindow := Self;
+
+  MainMenuChanged;
  end;
 end;
 

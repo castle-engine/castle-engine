@@ -25,20 +25,32 @@
     expands to submenu. }
   TMenuEntry = class
   private
-    FHandle: Pointer;
-    { if ParentWindow <> nil, TGLWindow(ParentWindow).MainMenuChanged. }
+    { if CorrectParentWindow <> nil, CorrectParentWindow.MainMenuChanged. }
     procedure Changed;
   private
-    { This is something internal for proper communication between this module
-      and GLWindow.
+    { Stuff internal for proper communication between menu and
+      TGLWindow implementation. }
 
-      This will be updated by glwindow in Init and MainMenuChanged
-      (to Self) and in Close (to nil). This will be done processing from MainMenu
-      recursively. This will be used by TMenuEntry to do Changed. }
+    { ParentWindow to call MainMenuChanged.
+
+      Used only on root menu item
+      (the one with ParentMenu = @nil). From TMenuEntry implementations,
+      you should use CorrentParentWindow, that looks for it recursively.
+      This way we only have to update it on SetMainMenu (no need to keep
+      it recursively updated in all TMenuEntry instances). }
     ParentWindow: TGLWindow;
+
+    { Internal handle of this menu item within GLWindow backend.
+      This is used by GLWindow backend implementation, to store the
+      intgernal resource corresponding to this menu entry.
+      The exact interpretation depends on GLWindow backend,
+      and should not be messed with. }
+    Handle: Pointer;
 
     FParentMenu: TMenu;
     FParentMenuPosition: Cardinal;
+
+    function CorrectParentWindow: TGLWindow;
   public
     { This is the parent TMenu that has this item in it's Entries list.
       @nil is there is not parent menu yet (e.g. because it's not assigned
@@ -49,15 +61,6 @@
       ParentMenu.Entries[ParentMenuPosition] should be always equal to Self
       (as long as ParentMenu <> @nil. }
     property ParentMenuPosition: Cardinal read FParentMenuPosition;
-
-    { Internal handle of this menu item within GLWindow backend.
-      This is used by GLWindow backend implementation, to store the
-      intgernal resource corresponding to this menu entry.
-      The exact interpretation depends on GLWindow backend,
-      and should not be messed with.
-
-      @exclude }
-    property Handle: Pointer read FHandle write FHandle;
   end;
 
   TObjectsListItem_2 = TMenuEntry;
@@ -453,11 +456,6 @@ function SQuoteMenuEntryCaption(const S: string): string;
 
   Such separation makes implementation of these things simple --
   it's not cluttered with GTK/Xlib/WinAPI/Glut specific details.
-  Implementation of GLWindows-specific things is also simple --
-  usually it's only one large function that is called from Init
-  and from trivial TGLWindow.MainMenuChangedImplDepend.
-  However, such implementation is not efficient. So maybe this
-  will change in the future.
 }
 
 {$I objectslist_2.inc}
@@ -465,9 +463,19 @@ function SQuoteMenuEntryCaption(const S: string): string;
 
 { TMenuEntry ------------------------------------------------------------ }
 
-procedure TMenuEntry.Changed;
+function TMenuEntry.CorrectParentWindow: TGLWindow;
 begin
- if ParentWindow <> nil then TGLWindow(ParentWindow).MainMenuChanged;
+  if ParentMenu = nil then
+    Result := ParentWindow else
+    Result := ParentMenu.CorrectParentWindow;
+end;
+
+procedure TMenuEntry.Changed;
+var
+  P: TGLWindow;
+begin
+  P := CorrectParentWindow;
+  if P <> nil then P.MainMenuChanged;
 end;
 
 { TMenuEntryWithCaption ---------------------------------------- }

@@ -22,7 +22,7 @@ program menu_test_alternative;
 
 uses GL, GLU, GLWindow;
 
-var 
+var
   Glw: TGLWindow;
   FirstMainMenu, SecondMainMenu: TMenu;
 
@@ -79,6 +79,7 @@ begin
   { start }
   glw.InitAndRun;
  finally
+  glw.MainMenu := nil;
   FirstMainMenu.Free;
   SecondMainMenu.Free;
  end;
