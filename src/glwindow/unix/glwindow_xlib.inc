@@ -444,6 +444,11 @@ begin
   { does nothing }
 end;
 
+procedure TGLWindow.MenuUpdate(Entry: TMenuEntry);
+begin
+  { does nothing }
+end;
+
 procedure TGLWindow.SwapBuffers;
 begin
  glXSwapBuffers(Application.XDisplay, windowXID);

@@ -581,11 +581,6 @@ unit GLWindow;
     to test
 
   menu things:
-  - The method of updating menu (always rebuild menu by MenuFinalize / MenuInitialize)
-    is awfully simple. Well, it works prefectly, because menus are small
-    and it's not a problem to update them whole. But it should be improved.
-    Probably the only visible problem is that if you use "tearoffs" with
-    GTK menu, they disappear on menu change.
   - For WinAPI, glut: impl Enabled
 }
 
@@ -891,6 +886,17 @@ type
     procedure MenuInitialize;
     procedure MenuFinalize;
     { @groupEnd }
+
+    { Notification that menu Entry properties changed.
+      This is called only when MainMenu <> nil and Entry is contained
+      inside our MainMenu. Also, this is called only when not Closed.
+
+      Only local Entry properties changed, no other menu entry (even
+      child menu entry for submenus) was changed. The idea is that sloppy
+      backend may simply do here MenuFinalize + MenuInitialize,
+      but a better backend may do something more efficient,
+      like updating only this specific Entry resources. }
+    procedure MenuUpdate(Entry: TMenuEntry);
 
     procedure CreateImplDepend;
 

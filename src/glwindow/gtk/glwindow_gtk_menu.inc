@@ -401,3 +401,9 @@ begin
     This will take care of removing window_menu_bar appropriately. }
   gtk_widget_destroy(GTK_WIDGET(window_menu_bar));
 end;
+
+procedure TGLWindow.MenuUpdate(Entry: TMenuEntry);
+begin
+  MenuFinalize;
+  MenuInitialize;
+end;

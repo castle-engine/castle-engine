@@ -25,9 +25,11 @@
     expands to submenu. }
   TMenuEntry = class
   private
-    { if CorrectParentWindow <> nil,
-      CorrectParentWindow.MenuFinalize + MenuInitialize. }
-    procedure Changed;
+    { if CorrectParentWindow <> nil and window not closed,
+      call CorrectParentWindow.Menu*. }
+    procedure MenuInitialize;
+    procedure MenuFinalize;
+    procedure MenuUpdate;
   private
     { Stuff internal for proper communication between menu and
       TGLWindow implementation. }
@@ -471,16 +473,28 @@ begin
     Result := ParentMenu.CorrectParentWindow;
 end;
 
-procedure TMenuEntry.Changed;
+procedure TMenuEntry.MenuInitialize;
 var
   P: TGLWindow;
 begin
   P := CorrectParentWindow;
-  if (P <> nil) and (not P.Closed) then
-  begin
-    P.MenuFinalize;
-    P.MenuInitialize;
-  end;
+  if (P <> nil) and (not P.Closed) then P.MenuInitialize;
+end;
+
+procedure TMenuEntry.MenuFinalize;
+var
+  P: TGLWindow;
+begin
+  P := CorrectParentWindow;
+  if (P <> nil) and (not P.Closed) then P.MenuFinalize;
+end;
+
+procedure TMenuEntry.MenuUpdate;
+var
+  P: TGLWindow;
+begin
+  P := CorrectParentWindow;
+  if (P <> nil) and (not P.Closed) then P.MenuUpdate(Self);
 end;
 
 { TMenuEntryWithCaption ---------------------------------------- }
@@ -495,7 +509,7 @@ end;
 procedure TMenuEntryWithCaption.SetCaption(const Value: String);
 begin
   FCaption := Value;
-  Changed;
+  MenuUpdate;
 end;
 
 procedure TMenuEntryWithCaption.SetEnabled(Value: boolean);
@@ -503,7 +517,7 @@ begin
   if FEnabled <> Value then
   begin
     FEnabled := Value;
-    Changed;
+    MenuUpdate;
   end;
 end;
 
@@ -535,6 +549,8 @@ procedure TMenu.Insert(Index: Integer; Value: TMenuEntry);
 var
   I: Integer;
 begin
+  MenuFinalize;
+
   FEntries.Insert(Index, Value);
 
   { update Value.FParentMenu }
@@ -545,7 +561,7 @@ begin
   for I := Index to EntriesCount - 1 do
     FEntries[I].FParentMenuPosition := I;
 
-  Changed;
+  MenuInitialize;
 end;
 
 procedure TMenu.Append(Value: TMenuEntry);
@@ -557,6 +573,8 @@ procedure TMenu.EntryDelete(Index: Integer);
 var
   I: Integer;
 begin
+  MenuFinalize;
+
   FEntries[Index].Free;
   FEntries.Delete(Index);
 
@@ -564,13 +582,14 @@ begin
   for I := Index to EntriesCount - 1 do
     FEntries[I].FParentMenuPosition := I;
 
-  Changed;
+  MenuInitialize;
 end;
 
 procedure TMenu.EntriesDeleteAll;
 begin
+  MenuFinalize;
   FEntries.FreeContents;
-  Changed;
+  MenuInitialize;
 end;
 
 function TMenu.AppendRadioGroup(const Items: array of string;
@@ -687,7 +706,7 @@ end;
 
 procedure TMenuItemChecked.DoAutoCheckedToggle;
 begin
-  { Changing Checked will also call Changed; }
+  { Changing Checked will also call MenuUpdate; }
   Checked := not Checked;
 end;
 
@@ -706,7 +725,7 @@ begin
  if Value <> Checked then
  begin
   FChecked := Value;
-  Changed;
+  MenuUpdate;
  end;
 end;
 
@@ -792,10 +811,13 @@ begin
   end else
   begin
     if not Checked then
-      Group.FSelected := nil;
+      Group.Selected := nil;
   end;
 
-  Changed;
+  MenuUpdate;
+  { this MenuUpdate is only for this menu item.
+    Group.SetSelected takes care to notify about the changes
+    the rest of the group. }
 end;
 
 procedure TMenuItemRadio.DoAutoCheckedToggle;
@@ -845,6 +867,8 @@ var
   I: Integer;
   Item: TMenuItemRadio;
 begin
+  Items[0].MenuFinalize;
+
   FSelected := Value;
 
   for I := 0 to Count - 1 do
@@ -854,8 +878,8 @@ begin
   end;
 
   { Note that for efficiency we operate here on internal FChecked field
-    and call Changed only once. }
-  Items[0].Changed;
+    and call MenuFinalize/MenuInitialize only once. }
+  Items[0].MenuInitialize;
 end;
 
 (*

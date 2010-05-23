@@ -575,6 +575,12 @@ begin
    'SetMenu');
 end;
 
+procedure TGLWindow.MenuUpdate(Entry: TMenuEntry);
+begin
+  MenuFinalize;
+  MenuInitialize;
+end;
+
 procedure TGLWindow.InitWinSystemDepend;
 
   { Both SetPixelFormat* set pixel format (required context capabilities)

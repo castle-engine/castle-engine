@@ -268,6 +268,12 @@ begin
   DoDestroyMenu(MainMenu);
 end;
 
+procedure TGLWindow.MenuUpdate(Entry: TMenuEntry);
+begin
+  MenuFinalize;
+  MenuInitialize;
+end;
+
 { ------------------------------------------------------------------------------
   procedury obslugujace TGLWindow poprzez GLUTa }
 
