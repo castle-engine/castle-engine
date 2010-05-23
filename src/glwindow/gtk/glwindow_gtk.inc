@@ -64,14 +64,6 @@ private
   window_menu_bar: PGtkMenuBar;
   window_accel_group: PGtkAccelGroup;
 
-  { This will initialize window_menu_bar and insert it to window_vbox.
-    It will not clear the previous value of window_menu_bar,
-    it does not try to remove previous window_menu_bar from window_vbox
-    etc. - you have to take care of that yourself. This simply assumes
-    that window_vbox is empty and current value of window_menu_bar
-    has no meaning. }
-  procedure init_window_menu_bar;
-
   { Run ADialog as a modal window.
     ADialog will be made modal (and "transient" for us in the GtkWindow variant).
 
@@ -823,20 +815,6 @@ begin
   {$endif}
 end;
 
-procedure TGLWindow.MainMenuChangedImplDepend;
-begin
-  if MenuRecreateForbidden = 0 then
-  begin
-    { According to GTK docs (at gtk_container_remove),
-      the simplest way to remove window_menu_bar from window_vbox is to simply
-      do gtk_widget_destroy on window_menu_bar.
-      This will take care of removing window_menu_bar appropriately. }
-    gtk_widget_destroy(GTK_WIDGET(window_menu_bar));
-
-    init_window_menu_bar;
-  end;
-end;
-
 procedure TGLWindow.SwapBuffers;
 begin
  {$ifdef GLWINDOW_GTK_2}
@@ -1171,7 +1149,7 @@ begin
 
   window_vbox := PGtkVBox(gtk_vbox_new(g_false, VBoxSpacing));
   gtk_widget_show(GTK_WIDGET(window_vbox));
-  init_window_menu_bar;
+  MenuInitialize;
   gtk_box_pack_end_defaults(PGtkBox(window_vbox), GLAreaContainer);
   gtk_container_add(GTK_CONTAINER(WindowGtk), GTK_WIDGET(window_vbox));
  end else

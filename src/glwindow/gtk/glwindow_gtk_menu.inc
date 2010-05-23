@@ -138,7 +138,15 @@ begin
    Pointer(PtrUInt(MenuItem.SmallId)));
 end;
 
-procedure TGLWindow.init_window_menu_bar;
+{ MenuInitialize will initialize window_menu_bar and insert it to window_vbox.
+
+  It will not clear the previous value of window_menu_bar,
+  it does not try to remove previous window_menu_bar from window_vbox
+  etc. - you have to take care of that yourself. This simply assumes
+  that window_vbox is empty and current value of window_menu_bar
+  has no meaning. }
+
+procedure TGLWindow.MenuInitialize;
 
   { This tells GTK that key shortcut to Item is as specified in
     Key and CharKey. Key and Charkey are taken from TMenuItem.Key/CharKey
@@ -376,7 +384,20 @@ procedure TGLWindow.init_window_menu_bar;
   end;
 
 begin
- window_menu_bar := get_main_menu;
- gtk_box_pack_start(PGtkBox(window_vbox), GTK_WIDGET(window_menu_bar),
-   g_false, g_false, 0);
+  if MenuRecreateForbidden <> 0 then Exit;
+
+  window_menu_bar := get_main_menu;
+  gtk_box_pack_start(PGtkBox(window_vbox), GTK_WIDGET(window_menu_bar),
+    g_false, g_false, 0);
+end;
+
+procedure TGLWindow.MenuFinalize;
+begin
+  if MenuRecreateForbidden <> 0 then Exit;
+
+  { According to GTK docs (at gtk_container_remove),
+    the simplest way to remove window_menu_bar from window_vbox is to simply
+    do gtk_widget_destroy on window_menu_bar.
+    This will take care of removing window_menu_bar appropriately. }
+  gtk_widget_destroy(GTK_WIDGET(window_menu_bar));
 end;

@@ -25,13 +25,6 @@ private
   procedure GlutDoKeyDown(Key: TKey; c: char);
   procedure UpdateGlutModifiers;
 
-  { Assuming that MainMenu <> nil, this creates new glut menu and sets it
-    as current. menuByGlut is registered as a callback of this menu.
-    This menu is initialized with contents of MainMenu and is attached
-    to right mouse button.
-    On exit, glut's current menu is this main menu. }
-  procedure InitMainMenu;
-
   procedure UpdateCursor;
 {$endif read_tglwindow_interface}
 
@@ -197,7 +190,7 @@ begin
  Result := true;
 end;
 
-procedure TGLWindow.InitMainMenu;
+procedure TGLWindow.MenuInitialize;
 
   procedure AddToCurrentMenuAllEntries(Menu: TMenu); forward;
 
@@ -253,11 +246,10 @@ begin
  glutAttachMenu(GLUT_RIGHT_BUTTON);
 end;
 
-procedure TGLWindow.MainMenuChangedImplDepend;
+procedure TGLWindow.MenuFinalize;
 begin
  { TODO: I should do this recursively ? }
  glutDestroyMenu(glutGetMenu());
- InitMainMenu;
 end;
 
 { ------------------------------------------------------------------------------
@@ -393,7 +385,7 @@ begin
  UpdateCursor;
 
  { menu }
- if MainMenu<> nil then InitMainMenu;
+ if MainMenu <> nil then MenuInitialize;
 end;
 
 procedure TGLWindow.PostRedisplay;

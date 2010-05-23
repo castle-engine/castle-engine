@@ -562,13 +562,17 @@ begin
  Result := true;
 end;
 
-procedure TGLWindow.MainMenuChangedImplDepend;
+procedure TGLWindow.MenuFinalize;
 var Old_H_Menu: HMenu;
 begin
  Old_H_Menu := GetMenu(H_Wnd);
+ KambiOSCheck( DestroyMenu(Old_H_Menu), 'DestroyMenu(Old_H_Menu)');
+end;
+
+procedure TGLWindow.MenuInitialize;
+begin
  KambiOSCheck( SetMenu(H_Wnd, WindowsMenuFromGLWindowMenu(MainMenu, true)),
    'SetMenu');
- KambiOSCheck( DestroyMenu(Old_H_Menu), 'DestroyMenu(Old_H_Menu)');
 end;
 
 procedure TGLWindow.InitWinSystemDepend;

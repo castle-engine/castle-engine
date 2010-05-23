@@ -25,13 +25,14 @@
     expands to submenu. }
   TMenuEntry = class
   private
-    { if CorrectParentWindow <> nil, CorrectParentWindow.MainMenuChanged. }
+    { if CorrectParentWindow <> nil,
+      CorrectParentWindow.MenuFinalize + MenuInitialize. }
     procedure Changed;
   private
     { Stuff internal for proper communication between menu and
       TGLWindow implementation. }
 
-    { ParentWindow to call MainMenuChanged.
+    { ParentWindow to call MenuFinalize, MenuInitialize.
 
       Used only on root menu item
       (the one with ParentMenu = @nil). From TMenuEntry implementations,
@@ -475,7 +476,11 @@ var
   P: TGLWindow;
 begin
   P := CorrectParentWindow;
-  if P <> nil then P.MainMenuChanged;
+  if (P <> nil) and (not P.Closed) then
+  begin
+    P.MenuFinalize;
+    P.MenuInitialize;
+  end;
 end;
 
 { TMenuEntryWithCaption ---------------------------------------- }

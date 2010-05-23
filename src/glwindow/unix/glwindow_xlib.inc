@@ -434,9 +434,14 @@ begin
  Result := true;
 end;
 
-procedure TGLWindow.MainMenuChangedImplDepend;
+procedure TGLWindow.MenuInitialize;
 begin
- { no operation }
+  { does nothing }
+end;
+
+procedure TGLWindow.MenuFinalize;
+begin
+  { does nothing }
 end;
 
 procedure TGLWindow.SwapBuffers;

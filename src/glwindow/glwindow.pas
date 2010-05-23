@@ -581,7 +581,7 @@ unit GLWindow;
     to test
 
   menu things:
-  - The method of updating menu (always rebuild menu in MainMenuChanged)
+  - The method of updating menu (always rebuild menu by MenuFinalize / MenuInitialize)
     is awfully simple. Well, it works prefectly, because menus are small
     and it's not a problem to update them whole. But it should be improved.
     Probably the only visible problem is that if you use "tearoffs" with
@@ -868,26 +868,29 @@ type
       guaranteed) }
     procedure SwapBuffers;
 
-    { This is called by MainMenuChanged. This can assume that (not Closed) and
-      (MainMenu <> nil). This should update whole user interface
-      (implementation-specific) to show new contents of MainMenu. }
-    procedure MainMenuChangedImplDepend;
+    { MenuInitialize should cause backend to build whole menu resources
+      for MainMenu, MenuFinalize to free them.
 
-    { This is something internal for communicating between GLWindowMenu and
-      TGLWindow.
+      MenuFinalize is called before changing MainMenu structure
+      in arbitrary way, MenuInitialize is called after.
+      Backend should just free / initialize resources related to menu.
+      MenuInitialize may assume that MenuFinalize was already called
+      (so no need to try to free in MenuInitialize again).
 
-      This is called from GLWindowMenu after every change in MainMenu that
-      should be reflected in user interface. It's called only when
-      MainMenu <> nil.
-      Note: state of MainMenu <> nil must not change, i.e. you can't use this
-      to remove or add main menu to window. You can call this method
-      only if MainMenu <> nil when you did Init on this object and
-      then you changed something in MainMenu.Items.
+      Implementatio of this can assume that MainMenu <> nil now.
+      Also it may assume that Closed = false.
 
-      This is also called from SetMainMenu when (not Closed).
+      Note: if backend wants, it may itself call these from
+      InitImplDepend / CloseImplDepend. Of course, when you call them
+      yourself, you have to make sure on your own that all assumptions
+      are satisfied. In practice, MenuFinalize should clear all the variables
+      to the state right after constructor (zero, nil etc.),
+      and MenuInitialize expect them as such, and then everything will work Ok.
 
-      Calling this on a closed window is a valid NOP. }
-    procedure MainMenuChanged;
+      @groupBegin }
+    procedure MenuInitialize;
+    procedure MenuFinalize;
+    { @groupEnd }
 
     procedure CreateImplDepend;
 
@@ -2991,9 +2994,11 @@ begin
   fmousePressed := [];
   EventInitCalled := false;
 
-  FClosed := false; { w tym miejscu, przed InitImplDepend i wywolaniem
-    OnInit + OnResize, bo te rzeczy moga rzucic wyjatki a w reakcji na wyjatek
-    chcemy wywolac Close ktore do dzialania wymaga aby bylo not FClosed. }
+  { Set Closed to false.
+    W tym miejscu, przed InitImplDepend i wywolaniem  OnInit + OnResize, bo
+   - te rzeczy moga rzucic wyjatki a w reakcji na wyjatek
+     chcemy wywolac Close ktore do dzialania wymaga aby bylo not FClosed. }
+  FClosed := false;
 
   { Najwazniejsze : zrob to co implementacja zrobic musi.
     Mozesz stad smialo wywolywac DoResize, beda ignorowane dzieki temu
@@ -3137,13 +3142,6 @@ begin
   if closeerrors <> '' then
    raise Exception.Create('Error(errors?) while trying to close GlWindow : '+nl+closeerrors);
  end;
-end;
-
-procedure TGLWindow.MainMenuChanged;
-begin
- if Closed then Exit;
- Check(MainMenu <> nil, 'MainMenu must not be nil when you call MainMenuChanged');
- MainMenuChangedImplDepend;
 end;
 
 procedure TGLWindow.SetAutoRedisplay(value: boolean);
@@ -3450,11 +3448,19 @@ begin
    raise EInternalError.Create('While TGLWindow is not Closed, '+
      'you can''t set MainMenu from nil to non-nil or from non-nil to nil');
 
-  if FMainMenu <> nil then FMainMenu.ParentWindow := Self;
-  FMainMenu := Value;
-  if FMainMenu <> nil then FMainMenu.ParentWindow := Self;
+  if FMainMenu <> nil then
+  begin
+    if not Closed then MenuFinalize;
+    FMainMenu.ParentWindow := nil;
+  end;
 
-  MainMenuChanged;
+  FMainMenu := Value;
+
+  if FMainMenu <> nil then
+  begin
+    FMainMenu.ParentWindow := Self;
+    if not Closed then MenuInitialize;
+  end;
  end;
 end;
 

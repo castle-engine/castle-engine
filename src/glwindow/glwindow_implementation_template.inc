@@ -25,9 +25,14 @@
 
 { TGLWindow ------------------------------------------------------------------ }
 
-procedure TGLWindow.MainMenuChangedImplDepend;
+procedure TGLWindow.MenuInitialize;
 begin
-  { TODO }
+  { TODO (may do nothing if you do not care about displaying menu) }
+end;
+
+procedure TGLWindow.MenuFinalize;
+begin
+  { TODO (may do nothing if you do not care about displaying menu) }
 end;
 
 procedure TGLWindow.SwapBuffers;
