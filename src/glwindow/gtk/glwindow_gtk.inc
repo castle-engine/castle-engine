@@ -61,7 +61,6 @@ private
 
   { These things are inited only when (MainMenu <> nil) and (not Closed). }
   window_vbox: PGtkVBox;
-  window_menu_bar: PGtkMenuBar;
   window_accel_group: PGtkAccelGroup;
 
   { Run ADialog as a modal window.
@@ -958,7 +957,7 @@ const
   VBoxSpacing = 2;
 
   procedure set_default_glarea_size(Width, Height: Integer);
-  { This requires window_menu_bar to be initialized (only if MainMenu <> nil,
+  { This requires MainMenu.Handle to be initialized (only if MainMenu <> nil,
     of course ) }
   var WindowWidth, WindowHeight: Integer;
       WindowReq: TGtkRequisition;
@@ -978,7 +977,7 @@ const
    WindowHeight := Height;
    if MainMenu <> nil then
    begin
-    gtk_widget_size_request(GTK_WIDGET(window_menu_bar), @WindowReq);
+    gtk_widget_size_request(GTK_WIDGET(MainMenu.Handle), @WindowReq);
     WindowHeight += WindowReq.Height + VBoxSpacing;
    end;
    gtk_window_set_default_size(WindowGtk, WindowWidth, WindowHeight);

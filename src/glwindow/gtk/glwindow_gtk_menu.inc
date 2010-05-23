@@ -138,13 +138,14 @@ begin
    Pointer(PtrUInt(MenuItem.SmallId)));
 end;
 
-{ MenuInitialize will initialize window_menu_bar and insert it to window_vbox.
+{ MenuInitialize will initialize MainMenu.Handle (to GtkMenuBar)
+  and insert it to window_vbox.
 
-  It will not clear the previous value of window_menu_bar,
-  it does not try to remove previous window_menu_bar from window_vbox
-  etc. - you have to take care of that yourself. This simply assumes
-  that window_vbox is empty and current value of window_menu_bar
-  has no meaning. }
+  It will not clear the previous value of MainMenu.Handle,
+  it does not try to remove previous MainMenu.Handle from window_vbox
+  etc. --- you have to take care of that yourself. This simply assumes
+  that window_vbox is empty and current value of MainMenu.Handle
+  is clear. }
 
 procedure TGLWindow.MenuInitialize;
 
@@ -247,8 +248,8 @@ procedure TGLWindow.MenuInitialize;
   { Assuming MainMenu <> nil, builds appropriate GtkMenuBar.
     Signals signal_menu_item_activate and signal_menu_bar_activation are
     registered. Everything that should be shown is shown.
-    You just have to insert resulting object in your window. }
-  function get_main_menu: PGtkMenuBar;
+    You just have to insert MainMenu.Handle in your window. }
+  procedure make_main_menu;
 
     function MenuEntryToGtkMenuItem(Entry: TMenuEntry): PGtkMenuItem;
 
@@ -362,17 +363,16 @@ procedure TGLWindow.MenuInitialize;
 
   var i: Integer;
   begin
-   Result := PGtkMenuBar(gtk_menu_bar_new());
-   MainMenu.Handle := Result;
+   MainMenu.Handle := PGtkMenuBar(gtk_menu_bar_new());
 
-   gtk_widget_set_sensitive(GTK_WIDGET(Result), MainMenu.Enabled);
+   gtk_widget_set_sensitive(GTK_WIDGET(MainMenu.Handle), MainMenu.Enabled);
 
-   gtk_widget_show(GTK_WIDGET(Result));
+   gtk_widget_show(GTK_WIDGET(MainMenu.Handle));
    for i := 0 to MainMenu.EntriesCount - 1 do
     { Don't put TMenuSeparator in menu bar because that would look ugly. }
     if not (MainMenu.Entries[i] is TMenuSeparator) then
      gtk_menu_bar_append(
-       {$ifdef GLWINDOW_GTK_2} GTK_WIDGET {$endif} (Result),
+       {$ifdef GLWINDOW_GTK_2} GTK_WIDGET {$endif} (MainMenu.Handle),
        GTK_WIDGET( MenuEntryToGtkMenuItem(MainMenu.Entries[i]) ));
 
    { How to catch the moment when the menu bar is opened/selected/clicked
@@ -382,15 +382,15 @@ procedure TGLWindow.MenuInitialize;
      There is no way do this nicely in GTK 1 ?
      So I'm using threre very non-elegant soltuion to catch button-press-event.
      GTK 1 does not allow user to enter menu by F10 or some other key like that. }
-   gtk_signal_connect(GTK_OBJECT(Result), 'button-press-event',
+   gtk_signal_connect(GTK_OBJECT(MainMenu.Handle), 'button-press-event',
      GTK_SIGNAL_FUNC(@signal_menu_bar_activation), Self);
   end;
 
 begin
   if MenuRecreateForbidden <> 0 then Exit;
 
-  window_menu_bar := get_main_menu;
-  gtk_box_pack_start(PGtkBox(window_vbox), GTK_WIDGET(window_menu_bar),
+  make_main_menu;
+  gtk_box_pack_start(PGtkBox(window_vbox), GTK_WIDGET(MainMenu.Handle),
     g_false, g_false, 0);
 end;
 
@@ -415,10 +415,10 @@ begin
   if MenuRecreateForbidden <> 0 then Exit;
 
   { According to GTK docs (at gtk_container_remove),
-    the simplest way to remove window_menu_bar from window_vbox is to simply
-    do gtk_widget_destroy on window_menu_bar.
-    This will take care of removing window_menu_bar appropriately. }
-  gtk_widget_destroy(GTK_WIDGET(window_menu_bar));
+    the simplest way to remove GtkMenuBar (in MainMenu.Handle)
+    from window_vbox is to simply do gtk_widget_destroy on MainMenu.Handle.
+    This will take care of removing MainMenu.Handle appropriately. }
+  gtk_widget_destroy(GTK_WIDGET(MainMenu.Handle));
 
   { Set Handle := nil everywhere }
   ClearMenuHandles(MainMenu);
