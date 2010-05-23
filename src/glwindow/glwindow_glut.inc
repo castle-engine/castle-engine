@@ -445,6 +445,7 @@ end;
 
 procedure TGLWindow.CloseImplDepend;
 begin
+ if MainMenu <> nil then MenuFinalize;
  glutDestroyWindow(glutHwnd);
  glutHwnd := 0;
 end;

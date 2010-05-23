@@ -1316,7 +1316,8 @@ begin
    for calling unref on GLAreaGtk. }
  GLAreaGtk := nil;
 
- window_menu_bar := nil;
+ if MainMenu <> nil then MenuFinalize;
+
  window_vbox := nil;
 
  {$ifdef GLWINDOW_GTK_2}
