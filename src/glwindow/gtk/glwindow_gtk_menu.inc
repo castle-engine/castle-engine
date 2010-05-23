@@ -424,6 +424,25 @@ begin
   ClearMenuHandles(MainMenu);
 end;
 
+{ GTK >= 2.16 already includes "gtk_menu_item_set_label":
+  http://library.gnome.org/devel/gtk/2.21/GtkMenuItem.html#gtk-menu-item-set-label
+  But we cannot use GTK 2.16 (e.g. Debian stable still only has
+  GTK 2.12 on 2010-05;
+  on http://vrmlengine.sourceforge.net/view3dscene.php#section_depends
+  we promise GTK 2.6 should work).
+
+  So we implement it ourselves, following ideas from
+  http://mail.gnome.org/archives/gtk-app-devel-list/2003-October/msg00171.html
+  http://mail.gnome.org/archives/gtk-app-devel-list/2003-October/msg00180.html }
+procedure gtk_menu_item_set_label(EntryGtk: PGtkMenuItem; Caption: PChar);
+var
+  LabelGtk: PGtkWidget;
+begin
+  LabelGtk := gtk_bin_get_child(PGtkBin(EntryGtk));
+  if (LabelGtk <> nil) and GTK_IS_LABEL(LabelGtk) then
+    gtk_label_set_text_with_mnemonic(PGtkLabel(LabelGtk), Caption);
+end;
+
 procedure TGLWindow.MenuUpdate(Entry: TMenuEntry);
 var
   EntryGtk: PGtkWidget;
