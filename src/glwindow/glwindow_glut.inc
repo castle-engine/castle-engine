@@ -247,9 +247,25 @@ begin
 end;
 
 procedure TGLWindow.MenuFinalize;
+
+  procedure DoDestroyMenu(MenuEntry: TMenuEntry);
+  var
+    I: Integer;
+    Menu: TMenu;
+  begin
+    if MenuEntry is TMenu then
+    begin
+      Menu := TMenu(MenuEntry);
+      for I := 0 to Menu.EntriesCount - 1 do
+        DoDestroyMenu(Menu[I]);
+      glutDestroyMenu(PtrInt(Menu.Handle));
+      Menu.Handle := nil;
+    end;
+  end;
+
 begin
- { TODO: I should do this recursively ? }
- glutDestroyMenu(glutGetMenu());
+  { Recursively call glutDestroyMenu on all menus created by MenuInitialize. }
+  DoDestroyMenu(MainMenu);
 end;
 
 { ------------------------------------------------------------------------------
