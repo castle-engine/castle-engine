@@ -204,8 +204,10 @@ procedure TGLWindow.InitMainMenu;
   procedure AddToCurrentMenu(Entry: TMenuEntry);
   { Note: under glut I COULD use TPointerSInt(Item) instead of Item.SmallId.
     But, still, using Item.SmallId is just a little safer. }
-  var CurrentMenu, SubMenu: Integer;
-      TrueCaption: string;
+  var
+    CurrentMenu: Integer;
+    TrueCaption: string;
+    SubMenu: TMenu;
   begin
    if Entry is TMenuItem then
    begin
@@ -228,12 +230,13 @@ procedure TGLWindow.InitMainMenu;
     glutAddMenuEntry('------', -1) else
    if Entry is TMenu then
    begin
+    SubMenu := TMenu(Entry);
     CurrentMenu := glutGetMenu();
     try
-     SubMenu := glutCreateMenu(@menuByGlut);
+     SubMenu.Handle := Pointer(glutCreateMenu(@menuByGlut));
      AddToCurrentMenuAllEntries(TMenu(Entry));
     finally glutSetMenu(CurrentMenu) end;
-    glutAddSubMenu(PChar(SRemoveMnemonics(TMenu(Entry).Caption)), SubMenu);
+    glutAddSubMenu(PChar(SRemoveMnemonics(TMenu(Entry).Caption)), PtrInt(SubMenu.Handle));
    end else
     raise EInternalError.Create('Not implemented TMenuEntry subclass');
   end;
@@ -245,7 +248,7 @@ procedure TGLWindow.InitMainMenu;
   end;
 
 begin
- glutCreateMenu(@menuByGlut);
+ MainMenu.Handle := Pointer(glutCreateMenu(@menuByGlut));
  AddToCurrentMenuAllEntries(MainMenu);
  glutAttachMenu(GLUT_RIGHT_BUTTON);
 end;

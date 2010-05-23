@@ -25,6 +25,7 @@
     expands to submenu. }
   TMenuEntry = class
   private
+    FHandle: Pointer;
     { if ParentWindow <> nil, TGLWindow(ParentWindow).MainMenuChanged. }
     procedure Changed;
   private
@@ -48,6 +49,15 @@
       ParentMenu.Entries[ParentMenuPosition] should be always equal to Self
       (as long as ParentMenu <> @nil. }
     property ParentMenuPosition: Cardinal read FParentMenuPosition;
+
+    { Internal handle of this menu item within GLWindow backend.
+      This is used by GLWindow backend implementation, to store the
+      intgernal resource corresponding to this menu entry.
+      The exact interpretation depends on GLWindow backend,
+      and should not be messed with.
+
+      @exclude }
+    property Handle: Pointer read FHandle write FHandle;
   end;
 
   TObjectsListItem_2 = TMenuEntry;
