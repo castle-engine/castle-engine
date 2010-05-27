@@ -31,6 +31,10 @@ const
   'All files|*|' +
   '*VRML (not compressed) (*.wrl)|*.wrl';
 
+  SaveX3DClassic_FileFilters =
+  'All files|*|' +
+  '*X3D classic (*.x3dv)|*.x3dv';
+
 { Load VRML/X3D file in classic encoding from stream. Return it's root node.
 
   Note that you must pass here TPeekCharStream class, not just any
