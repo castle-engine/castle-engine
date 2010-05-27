@@ -347,25 +347,22 @@ procedure TGLWindow.MenuInitialize;
      end else
       raise EInternalError.Create('Not implemented TMenuEntry subclass');
 
+     Entry.Handle := Result;
+
      if Entry is TMenuEntryWithCaption then
-     begin
-       gtk_widget_set_sensitive(GTK_WIDGET(Result),
-         TMenuEntryWithCaption(Entry).Enabled);
-     end;
+       MenuUpdateEnabled(TMenuEntryWithCaption(Entry));
 
      gtk_signal_connect(GTK_OBJECT(Result), 'select',
        GTK_SIGNAL_FUNC(@signal_menu_item_select), Self);
 
      gtk_widget_show(GTK_WIDGET(Result));
-
-     Entry.Handle := Result;
     end;
 
   var i: Integer;
   begin
    MainMenu.Handle := PGtkMenuBar(gtk_menu_bar_new());
 
-   gtk_widget_set_sensitive(GTK_WIDGET(MainMenu.Handle), MainMenu.Enabled);
+   MenuUpdateEnabled(MainMenu);
 
    gtk_widget_show(GTK_WIDGET(MainMenu.Handle));
    for i := 0 to MainMenu.EntriesCount - 1 do
