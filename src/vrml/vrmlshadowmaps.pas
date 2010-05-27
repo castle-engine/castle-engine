@@ -113,22 +113,6 @@ begin
   Result^.TexGen.FdMode.Value := 'PROJECTION';
 end;
 
-{ Add to node InterfaceDeclarations (this should only be used with nodes
-  having HasInterfaceDeclarations = @true, like Script or ComposedShader)
-  given field (making it only not exposed). }
-procedure AddCustomInitializeOnly(Node: TVRMLNode; Field: TVRMLField);
-var
-  IDecl: TVRMLInterfaceDeclaration;
-begin
-  Field.Exposed := false;
-
-  IDecl := TVRMLInterfaceDeclaration.Create(Node);
-  IDecl.FieldOrEvent := Field;
-  Field.ParentInterfaceDeclaration := IDecl;
-  Node.InterfaceDeclarations.Add(IDecl);
-  Node.PostAddInterfaceDeclaration(IDecl);
-end;
-
 function TDynLightArray.CreateShadowMapShader(const VisualizeShadowMap: boolean;
   const BaseTexCount: Cardinal): TNodeComposedShader;
 const
@@ -145,8 +129,8 @@ begin
   Result.NodeName := 'Shader_ShadowMap_' + IntToStr(BaseTexCount) + 'Textures';
   Result.FdLanguage.Value := 'GLSL';
   for I := 0 to BaseTexCount - 1 do
-    AddCustomInitializeOnly(Result, TSFInt32.Create(Result, 'texture' + IntToStr(I), I));
-  AddCustomInitializeOnly(Result, TSFInt32.Create(Result, 'shadowMap', BaseTexCount));
+    Result.AddCustomInitializeOnly(TSFInt32.Create(Result, 'texture' + IntToStr(I), I));
+  Result.AddCustomInitializeOnly(TSFInt32.Create(Result, 'shadowMap', BaseTexCount));
 
   Part := TNodeShaderPart.Create('', '');
   Part.FdType.Value := 'FRAGMENT';

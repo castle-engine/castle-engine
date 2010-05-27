@@ -1132,6 +1132,11 @@
       to new fields/events, for example Script node may register here
       to receive notification when input event is received. }
     procedure PostAddInterfaceDeclaration(IDecl: TVRMLInterfaceDeclaration); virtual;
+
+    { Add to node InterfaceDeclarations given field (making it not exposed).
+      This should only be used with nodes having
+      HasInterfaceDeclarations = @true, like Script or ComposedShader. }
+    procedure AddCustomInitializeOnly(Field: TVRMLField);
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -3078,6 +3083,19 @@ end;
 procedure TVRMLNode.PostAddInterfaceDeclaration(IDecl: TVRMLInterfaceDeclaration);
 begin
   IDecl.AddFieldOrEvent(Self);
+end;
+
+procedure TVRMLNode.AddCustomInitializeOnly(Field: TVRMLField);
+var
+  IDecl: TVRMLInterfaceDeclaration;
+begin
+  Field.Exposed := false;
+
+  IDecl := TVRMLInterfaceDeclaration.Create(Self);
+  IDecl.FieldOrEvent := Field;
+  Field.ParentInterfaceDeclaration := IDecl;
+  InterfaceDeclarations.Add(IDecl);
+  PostAddInterfaceDeclaration(IDecl);
 end;
 
 { TVRMLNodesList ------------------------------------------------------------- }
