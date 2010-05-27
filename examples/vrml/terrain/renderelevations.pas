@@ -18,7 +18,7 @@ unit RenderElevations;
 
 interface
 
-uses Elevations;
+uses VectorMath, Elevations;
 
 { Drawing of TElevation (relies only on TElevation.Height method).
 
@@ -51,9 +51,12 @@ procedure DrawGrid(Grid: TElevationGrid);
 procedure RenderElevationsInitGL;
 procedure RenderElevationsCloseGL;
 
+{ Returns same colors as used by DrawElevation. }
+function ColorFromHeight(Elevation: TElevation; Height: Single): TVector3Single;
+
 implementation
 
-uses GL, GLU, GLExt, VectorMath, KambiGLUtils, KambiUtils, SysUtils;
+uses GL, GLU, GLExt, KambiGLUtils, KambiUtils, SysUtils;
 
 var
   ElevationVbo: TGLuint;
@@ -73,7 +76,7 @@ begin
   glDeleteBuffersARB(1, @ElevationIndexVbo);
 end;
 
-function ColorFromHeight(const H: Single): TVector3Single;
+function ColorFromHeightCore(const H: Single): TVector3Single;
 begin
   { Colors strategy from http://www.ii.uni.wroc.pl/~anl/dyd/PGK/pracownia.html }
   if      (H < 0  )  then Result := Vector3Single(0,       0,         1) { blue }
@@ -81,6 +84,24 @@ begin
   else if (H < 1000) then Result := Vector3Single(H/500-1, 1,         0) { yellow }
   else if (H < 1500) then Result := Vector3Single(1,       H/500-2.0, 0) { red }
   else Result := Vector3Single(1, 1, 1);                                 { white }
+end;
+
+function ColorFromHeight(Elevation: TElevation; Height: Single): TVector3Single;
+begin
+  if Elevation is TElevationGrid then
+  begin
+    { For TElevationGrid, Height is original GridHeight result. }
+    Height /= GridHeightScale;
+  end else
+  begin
+    { scale height down by Amplitude, to keep nice colors regardless of Amplitude }
+    if Elevation is TElevationNoise then
+      Height /= TElevationNoise(Elevation).Amplitude;
+    { some hacks to hit interesting colors }
+    Height := Height  * 2000 - 1000;
+  end;
+
+  Result := ColorFromHeightCore(Height);
 end;
 
 type
@@ -116,8 +137,6 @@ var
   CountSteps, CountSteps1, CountStepsQ: Cardinal;
 
   procedure CalculatePositionColor(var P: TElevationPoint; const I, J: Cardinal);
-  var
-    HForColor: Single;
   begin
     { set XY to cover (X1, Y1) ... (X2, Y2) rectangle with our elevation }
     P.Position[0] := (X2 - X1) * I / (CountSteps-1) + X1;
@@ -125,20 +144,7 @@ var
 
     P.Position[2] := Elevation.Height(P.Position[0], P.Position[1]);
 
-    HForColor := P.Position[2];
-    if Elevation is TElevationGrid then
-    begin
-      { For TElevationGrid, HForColor is original GridHeight result. }
-      HForColor /= GridHeightScale;
-    end else
-    begin
-      { scale height down by Amplitude, to keep nice colors regardless of Amplitude }
-      if Elevation is TElevationNoise then
-        HForColor /= TElevationNoise(Elevation).Amplitude;
-      { some hacks to hit interesting colors }
-      HForColor := HForColor  * 2000 - 1000;
-    end;
-    P.Color := ColorFromHeight(HForColor);
+    P.Color := ColorFromHeight(Elevation, P.Position[2]);
   end;
 
   procedure CalculateNormal(const I, J: Cardinal);
@@ -383,7 +389,7 @@ procedure DrawGrid(Grid: TElevationGrid);
     HForColor: Single;
   begin
     HForColor := Grid.GridHeight(I, J);
-    glColorv(ColorFromHeight(HForColor));
+    glColorv(ColorFromHeightCore(HForColor));
 
     glVertexv(Vector3Single(
       (GridX2 - GridX1) * I / Grid.GridSizeX + GridX1,

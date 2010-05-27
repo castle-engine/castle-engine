@@ -479,13 +479,17 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
     TexRock: TNodeImageTexture;
     Part: TNodeShaderPart;
     Appearance: TNodeAppearance;
+    Color: TNodeColor;
   begin
     CountSteps := 1 shl Subdivision + 1;
     Size := BaseSize * 2;
+    { Note about XY (our TElevation) -> XZ (X3D ElevationNode) conversion:
+      we change Y into Z, this also means that Z must go into the other
+      direction (when Y increases, Z decreases) to produce the same look. }
     MinX := WalkCamera.Position[0] - Size/2;
-    MinZ := WalkCamera.Position[1] - Size/2;
+    MinZ := WalkCamera.Position[1] + Size/2; // Z direction is inverted
     MaxX := WalkCamera.Position[0] + Size/2;
-    MaxZ := WalkCamera.Position[1] + Size/2;
+    MaxZ := WalkCamera.Position[1] - Size/2; // Z direction is inverted
 
     Root := TVRMLRootNode_2.Create('', '');
     try
@@ -501,12 +505,19 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
       Grid.FdZSpacing.Value := Size / (CountSteps - 1);
       Grid.FdHeight.Items.Count := CountSteps * CountSteps;
 
+      Color := TNodeColor.Create('', '');
+      Grid.FdColor.Value := Color;
+      Color.FdColor.Items.Count := CountSteps * CountSteps;
+
       for X := 0 to CountSteps - 1 do
         for Z := 0 to CountSteps - 1 do
         begin
-          Grid.FdHeight.Items[X + Z * CountSteps] := Elevation.Height(
+          Grid.FdHeight.Items.Items[X + Z * CountSteps] := Elevation.Height(
             MapRange(X, 0, CountSteps, MinX, MaxX),
             MapRange(Z, 0, CountSteps, MinZ, MaxZ));
+
+          Color.FdColor.Items.Items[X + Z * CountSteps] :=
+            ColorFromHeight(Elevation, Grid.FdHeight.Items[X + Z * CountSteps]);
         end;
 
       if AddShadersTextures then
@@ -700,7 +711,7 @@ begin
     M.Append(Radio);
 
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Export to _X3D (pure geometry) ...', 1000));
+    M.Append(TMenuItem.Create('Export to _X3D (basic) ...', 1000));
     M.Append(TMenuItem.Create('Export to _X3D (with our shaders and textures) ...', 1001));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Walk', 120, 'c', Camera = WalkCamera, true));
