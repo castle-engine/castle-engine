@@ -520,11 +520,14 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
             ColorFromHeight(Elevation, Grid.FdHeight.Items[X + Z * CountSteps]);
         end;
 
+      Appearance := TNodeAppearance.Create('', '');
+      Shape.FdAppearance.Value := Appearance;
+
+      { add any material, to be lit (even without shaders) }
+      Appearance.FdMaterial.Value := TNodeMaterial_2.Create('', '');
+
       if AddShadersTextures then
       begin
-        Appearance := TNodeAppearance.Create('', '');
-        Shape.FdAppearance.Value := Appearance;
-
         Shader := TNodeComposedShader.Create('', '');
         Appearance.FdShaders.AddItem(Shader);
         Shader.FdLanguage.Value := 'GLSL';
