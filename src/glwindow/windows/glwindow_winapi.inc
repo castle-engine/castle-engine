@@ -575,7 +575,19 @@ begin
    'SetMenu');
 end;
 
-procedure TGLWindow.MenuUpdate(Entry: TMenuEntry);
+procedure TGLWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+begin
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+procedure TGLWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+begin
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+procedure TGLWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   MenuFinalize;
   MenuInitialize;

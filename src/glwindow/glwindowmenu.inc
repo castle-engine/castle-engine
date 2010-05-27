@@ -29,7 +29,6 @@
       call CorrectParentWindow.Menu*. }
     procedure MenuInitialize;
     procedure MenuFinalize;
-    procedure MenuUpdate;
   private
     { Stuff internal for proper communication between menu and
       TGLWindow implementation. }
@@ -489,14 +488,6 @@ begin
   if (P <> nil) and (not P.Closed) then P.MenuFinalize;
 end;
 
-procedure TMenuEntry.MenuUpdate;
-var
-  P: TGLWindow;
-begin
-  P := CorrectParentWindow;
-  if (P <> nil) and (not P.Closed) then P.MenuUpdate(Self);
-end;
-
 { TMenuEntryWithCaption ---------------------------------------- }
 
 constructor TMenuEntryWithCaption.Create(const ACaption: String);
@@ -507,17 +498,25 @@ begin
 end;
 
 procedure TMenuEntryWithCaption.SetCaption(const Value: String);
+var
+  P: TGLWindow;
 begin
   FCaption := Value;
-  MenuUpdate;
+
+  P := CorrectParentWindow;
+  if (P <> nil) and (not P.Closed) then P.MenuUpdateCaption(Self);
 end;
 
 procedure TMenuEntryWithCaption.SetEnabled(Value: boolean);
+var
+  P: TGLWindow;
 begin
   if FEnabled <> Value then
   begin
     FEnabled := Value;
-    MenuUpdate;
+
+    P := CorrectParentWindow;
+    if (P <> nil) and (not P.Closed) then P.MenuUpdateEnabled(Self);
   end;
 end;
 
@@ -706,7 +705,6 @@ end;
 
 procedure TMenuItemChecked.DoAutoCheckedToggle;
 begin
-  { Changing Checked will also call MenuUpdate; }
   Checked := not Checked;
 end;
 
@@ -721,11 +719,15 @@ begin
 end;
 
 procedure TMenuItemChecked.SetChecked(Value: boolean);
+var
+  P: TGLWindow;
 begin
  if Value <> Checked then
  begin
   FChecked := Value;
-  MenuUpdate;
+
+  P := CorrectParentWindow;
+  if (P <> nil) and (not P.Closed) then P.MenuUpdateChecked(Self);
  end;
 end;
 
@@ -802,7 +804,10 @@ end;
 
 procedure TMenuItemRadio.SetChecked(Value: boolean);
 begin
-  FChecked := Value;
+  { MenuUpdateChecked inside inherited here is only for this menu item.
+    Later Group.SetSelected takes care to notify about the changes
+    the rest of the group. }
+  inherited;
 
   if Group.Selected <> Self then
   begin
@@ -813,11 +818,6 @@ begin
     if not Checked then
       Group.Selected := nil;
   end;
-
-  MenuUpdate;
-  { this MenuUpdate is only for this menu item.
-    Group.SetSelected takes care to notify about the changes
-    the rest of the group. }
 end;
 
 procedure TMenuItemRadio.DoAutoCheckedToggle;

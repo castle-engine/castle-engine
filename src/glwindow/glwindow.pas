@@ -891,12 +891,17 @@ type
       This is called only when MainMenu <> nil and Entry is contained
       inside our MainMenu. Also, this is called only when not Closed.
 
-      Only local Entry properties changed, no other menu entry (even
-      child menu entry for submenus) was changed. The idea is that sloppy
+      Only appropriate local Entry properties changed, no other menu entry
+      (even child menu entry for submenus) was changed. The idea is that sloppy
       backend may simply do here MenuFinalize + MenuInitialize,
       but a better backend may do something more efficient,
-      like updating only this specific Entry resources. }
-    procedure MenuUpdate(Entry: TMenuEntry);
+      like updating only this specific Entry resources.
+
+      @groupBegin }
+    procedure MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+    procedure MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+    procedure MenuUpdateChecked(Entry: TMenuItemChecked);
+    { @groupEnd }
 
     procedure CreateImplDepend;
 

@@ -35,7 +35,21 @@ begin
   { TODO (may do nothing if you do not care about displaying menu) }
 end;
 
-procedure TGLWindow.MenuUpdate(Entry: TMenuEntry);
+procedure TGLWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+begin
+  { TODO (may do nothing if you do not care about displaying menu;
+    may do MenuFinalize + MenuInitialize if you display menu,
+    but don't care about updating it fast) }
+end;
+
+procedure TGLWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+begin
+  { TODO (may do nothing if you do not care about displaying menu;
+    may do MenuFinalize + MenuInitialize if you display menu,
+    but don't care about updating it fast) }
+end;
+
+procedure TGLWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,

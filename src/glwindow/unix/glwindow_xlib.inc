@@ -444,7 +444,17 @@ begin
   { does nothing }
 end;
 
-procedure TGLWindow.MenuUpdate(Entry: TMenuEntry);
+procedure TGLWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+begin
+  { does nothing }
+end;
+
+procedure TGLWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+begin
+  { does nothing }
+end;
+
+procedure TGLWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   { does nothing }
 end;

@@ -443,45 +443,51 @@ begin
     gtk_label_set_text_with_mnemonic(PGtkLabel(LabelGtk), Caption);
 end;
 
-procedure TGLWindow.MenuUpdate(Entry: TMenuEntry);
+{ Extract PGtkWidget corresponding to given Entry.
+  Returns @false (and does log warning, and sets EntryGtk to nil) if failed. }
+function CheckEntryGtk(Entry: TMenuEntryWithCaption; out EntryGtk: PGtkWidget): boolean;
+begin
+  EntryGtk := PGtkWidget(Entry.Handle);
+  Result := EntryGtk <> nil;
+  if (not Result) and Log then
+    WritelnLog('Menu', 'Warning: menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
+end;
+
+procedure TGLWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 var
   EntryGtk: PGtkWidget;
-  EntryCap: TMenuEntryWithCaption;
 begin
-  { assume Entry.Caption, Enabled, Checked changed }
+  if not CheckEntryGtk(Entry, EntryGtk) then Exit;
 
-  if Entry is TMenuEntryWithCaption then
-  begin
-    EntryCap := TMenuEntryWithCaption(Entry);
+  { MainMenu is a little special: it's Caption is ignored,
+    and it's not really a GtkMenuItem so gtk_menu_item_set_label call
+    would be invalid. }
+  if Entry <> MainMenu then
+    gtk_menu_item_set_label(PGtkMenuItem(EntryGtk), PChar(Entry.Caption));
+end;
 
-    EntryGtk := PGtkWidget(Entry.Handle);
-    if EntryGtk = nil then
-    begin
-      if Log then
-        WritelnLog('Menu', 'Warning: menu entry "' + EntryCap.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
-      Exit;
-    end;
+procedure TGLWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+var
+  EntryGtk: PGtkWidget;
+begin
+  if not CheckEntryGtk(Entry, EntryGtk) then Exit;
 
-    { MainMenu is a little special: it's Caption is ignored,
-      and it's not really a GtkMenuItem so gtk_menu_item_set_label call
-      would be invalid. }
-    if Entry <> MainMenu then
-      gtk_menu_item_set_label(PGtkMenuItem(EntryGtk), PChar(EntryCap.Caption));
+  gtk_widget_set_sensitive(PGtkWidget(EntryGtk), Entry.Enabled);
+end;
 
-    gtk_widget_set_sensitive(PGtkWidget(EntryGtk), EntryCap.Enabled);
+procedure TGLWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
+var
+  EntryGtk: PGtkWidget;
+begin
+  if not CheckEntryGtk(Entry, EntryGtk) then Exit;
 
-    if Entry is TMenuItemChecked then
-    begin
-      { Use MenuItemBlock, otherwise gtk_check_menu_item_set_active will
-        call signal_menu_item_activate (which is pointless, and breaks
-        assertion there). }
-      MenuItemBlock(PGtkMenuItem(EntryGtk), TMenuItem(Entry));
-      try
-        gtk_check_menu_item_set_active(PGtkCheckMenuItem(EntryGtk),
-          TMenuItemChecked(Entry).Checked);
-      finally
-        MenuItemUnblock(PGtkMenuItem(EntryGtk), TMenuItem(Entry));
-      end;
-    end;
+  { Use MenuItemBlock, otherwise gtk_check_menu_item_set_active will
+    call signal_menu_item_activate (which is pointless, and breaks
+    assertion there). }
+  MenuItemBlock(PGtkMenuItem(EntryGtk), Entry);
+  try
+    gtk_check_menu_item_set_active(PGtkCheckMenuItem(EntryGtk), Entry.Checked);
+  finally
+    MenuItemUnblock(PGtkMenuItem(EntryGtk), Entry);
   end;
 end;
