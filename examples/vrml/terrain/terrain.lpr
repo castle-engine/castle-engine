@@ -392,9 +392,8 @@ var
   Prefix: string;
 begin
   GLSLProgram.DetachAllShaders;
-  if Fog then
-    Prefix := '#define FOG' + NL else
-    Prefix := '';
+  Prefix := '#define HEIGHT_IS_Z' + NL;
+  if Fog then Prefix += '#define FOG' + NL;
   GLSLProgram.AttachVertexShader(Prefix + FileToString('elevation.vs'));
   GLSLProgram.AttachFragmentShader(Prefix + FileToString('elevation.fs'));
   { For this test program, we eventually allow shader to run in software.
