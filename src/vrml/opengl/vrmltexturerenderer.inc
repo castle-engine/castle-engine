@@ -85,7 +85,7 @@
     { Bind texture for OpenGL (without enabling it).
 
       Just like Enable, returns @false when texture node was not successfully
-      prepared for OpenGL. Returns @true when is was successfully bound
+      prepared for OpenGL. Returns @true when it was successfully bound
       (caller can be sure then that given texture unit is currently active). }
     function Bind(const TextureUnit: Cardinal): boolean; virtual; abstract;
 
