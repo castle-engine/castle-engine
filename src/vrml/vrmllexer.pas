@@ -31,15 +31,20 @@ type
   { Valid keywords for all VRML / X3D versions. }
   TVRMLKeyword = (vkDEF, vkEXTERNPROTO, vkFALSE, vkIS, vkNULL, vkPROTO, vkROUTE,
     vkTO, vkTRUE, vkUSE, vkEventIn, vkEventOut, vkExposedField, vkField,
+    { Below keywords are X3D-only as far as specification is concerned.
+      However, we decide to support IMPORT/EXPORT for older VRML versions
+      too (the downside is that you cannot name your nodes like this,
+      but the upside is that you can use these features in all VRML versions.) } { }
+    vkAS, vkEXPORT, vkIMPORT,
     { X3D-only keywords below } { }
-    vkAS, vkCOMPONENT, vkEXPORT, vkIMPORT, vkMETA, vkPROFILE,
+    vkCOMPONENT, vkMETA, vkPROFILE,
     vkInputOnly, vkOutputOnly, vkInputOutput, vkInitializeOnly);
 
   TVRMLKeywords = set of TVRMLKeyword;
 
 const
   VRML10Keywords = [vkDEF, vkUSE, vkFALSE, vkTRUE];
-  VRML20Keywords = [vkDEF .. vkField];
+  VRML20Keywords = [vkDEF .. vkIMPORT];
   X3DKeywords = [Low(TVRMLKeyword) .. High(TVRMLKeyword)] -
     [vkEventIn, vkEventOut, vkExposedField, vkField];
 
@@ -333,7 +338,8 @@ const
   VRMLKeywords: array[TVRMLKeyword]of string = (
     'DEF', 'EXTERNPROTO', 'FALSE', 'IS', 'NULL', 'PROTO', 'ROUTE',
     'TO', 'TRUE', 'USE', 'eventIn', 'eventOut', 'exposedField', 'field',
-    'AS', 'COMPONENT', 'EXPORT', 'IMPORT', 'META', 'PROFILE',
+    'AS', 'EXPORT', 'IMPORT',
+    'COMPONENT', 'META', 'PROFILE',
     'inputOnly', 'outputOnly', 'inputOutput', 'initializeOnly'
     );
 
