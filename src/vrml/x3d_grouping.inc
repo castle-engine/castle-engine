@@ -182,6 +182,15 @@
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    { Set properties to force saving this node graph as X3D.
+      If we're already configured to save as X3D (major version >= 3)
+      then do nothing. Otherwise, sets major/minor versions
+      (by default: for X3D 3.2; make sure AMajor is >= 3)
+      and sets X3D profile (default: Interchange). }
+    procedure ForceSaveAsX3D(const AMajor: Integer = 3;
+      const AMinor: Integer = 2;
+      const AProfile: string = 'Interchange');
   end;
 
   TNodeStaticGroup = class(TVRMLGroupingNode, INodeX3DBoundedObject)
@@ -621,6 +630,20 @@ begin
   Res.X3DComponentLevels.Assign(X3DComponentLevels);
   Res.X3DMetaKeys.Assign(X3DMetaKeys);
   Res.X3DMetaValues.Assign(X3DMetaValues);
+end;
+
+procedure TVRMLRootNode_2.ForceSaveAsX3D(const AMajor: Integer = 3;
+  const AMinor: Integer = 2;
+  const AProfile: string = 'Interchange');
+begin
+  if (not ForceVersion) or
+     (ForceVersionMajor < 3) then
+  begin
+    ForceVersion := true;
+    ForceVersionMajor := AMajor;
+    ForceVersionMinor := AMinor;
+    X3DProfile := AProfile;
+  end;
 end;
 
 constructor TNodeStaticGroup.Create(const ANodeName: string;
