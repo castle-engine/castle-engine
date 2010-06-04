@@ -1133,10 +1133,11 @@
       to receive notification when input event is received. }
     procedure PostAddInterfaceDeclaration(IDecl: TVRMLInterfaceDeclaration); virtual;
 
-    { Add to node InterfaceDeclarations given field (making it not exposed).
+    { Add to node InterfaceDeclarations given field.
+      Sets the field's exposed to given Exposed parameter, for comfort.
       This should only be used with nodes having
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
-    procedure AddCustomInitializeOnly(Field: TVRMLField);
+    procedure AddCustomField(Field: TVRMLField; const Exposed: boolean = false);
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -1149,7 +1150,7 @@
 
 {$ifdef read_implementation}
 
-{ TVRMLNodeDeepCopyStatea ----------------------------------------------------- }
+{ TVRMLNodeDeepCopyState ----------------------------------------------------- }
 
 constructor TVRMLNodeDeepCopyState.Create;
 begin
@@ -3085,11 +3086,11 @@ begin
   IDecl.AddFieldOrEvent(Self);
 end;
 
-procedure TVRMLNode.AddCustomInitializeOnly(Field: TVRMLField);
+procedure TVRMLNode.AddCustomField(Field: TVRMLField; const Exposed: boolean);
 var
   IDecl: TVRMLInterfaceDeclaration;
 begin
-  Field.Exposed := false;
+  Field.Exposed := Exposed;
 
   IDecl := TVRMLInterfaceDeclaration.Create(Self);
   IDecl.FieldOrEvent := Field;

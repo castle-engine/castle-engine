@@ -129,8 +129,8 @@ begin
   Result.NodeName := 'Shader_ShadowMap_' + IntToStr(BaseTexCount) + 'Textures';
   Result.FdLanguage.Value := 'GLSL';
   for I := 0 to BaseTexCount - 1 do
-    Result.AddCustomInitializeOnly(TSFInt32.Create(Result, 'texture' + IntToStr(I), I));
-  Result.AddCustomInitializeOnly(TSFInt32.Create(Result, 'shadowMap', BaseTexCount));
+    Result.AddCustomField(TSFInt32.Create(Result, 'texture' + IntToStr(I), I));
+  Result.AddCustomField(TSFInt32.Create(Result, 'shadowMap', BaseTexCount));
 
   Part := TNodeShaderPart.Create('', '');
   Part.FdType.Value := 'FRAGMENT';
