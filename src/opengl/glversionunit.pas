@@ -115,11 +115,7 @@ type
       Reported to Ubuntu as
       https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/312830,
       let them report upstream if needed.
-      For now this is @true just always when IsMesa is detected
-      and Renderer indicates "Mesa DRI Intel...".
-      Avoiding GL_POINT_SET doesn't hurt us much. Feel free to investigate
-      various Mesa versions and report to me which version does / does not
-      need BuggyPointSetAttrib = @true. }
+      Not observed with Mesa 7.6 in Ubuntu 10.4. }
     property BuggyPointSetAttrib: boolean read FBuggyPointSetAttrib;
 
     { Detect fglrx (ATI Radeon on Linux) with buggy drawing of images
@@ -415,7 +411,8 @@ begin
   FIsVendorATI := (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI');
   FIsFglrx := {$ifdef LINUX} IsVendorATI {$else} false {$endif};
 
-  FBuggyPointSetAttrib := IsMesa and IsPrefix('Mesa DRI Intel', Renderer);
+  FBuggyPointSetAttrib := IsMesa and IsPrefix('Mesa DRI Intel', Renderer)
+    and (not MesaVersionAtLeast(7, 6, 0));
 
   { Initially, I wanted t set this when fglrx is detected with version 9.x.
 
