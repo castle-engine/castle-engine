@@ -1795,7 +1795,11 @@ begin
 
   RenderToTexture.RenderEnd;
 
-  if NeedsMipmaps then
+  { depth maps (created by TextureDepth_IncReference, with GL_DEPTH_COMPONENT)
+    cannot have mipmaps regenerated. On Mesa 7.6 (ubuntu 10.4, Mesa DRI Intel
+    on "domek") glGenerateMipmapEXT even causes "invalid operation" OpenGL
+    error (test e.g. view3dscene on rendered_texture.x3dv). }
+  if NeedsMipmaps and (not DepthMap) then
     RenderToTexture.GenerateMipmap;
 
   NeedsRestoreViewport := true;
