@@ -431,10 +431,9 @@ begin
     if IdCompare(Header.ID, 'fmt ') then
     begin
       Stream.ReadBuffer(Format, SizeOf(Format));
-      { interpretuj dane w Format }
       if Format.FormatTag <> 1 then
         raise EInvalidWAV.Create('Loading WAV files not in PCM format not implemented');
-      { ustal FDataFormat }
+      { calculate FDataFormat }
       case Format.Channels of
         1: if Format.FormatSpecific = 8 then
              FDataFormat := AL_FORMAT_MONO8 else
@@ -444,7 +443,7 @@ begin
              FDataFormat := AL_FORMAT_STEREO16;
         else raise EInvalidWAV.Create('Only WAV files with 1 or 2 channels are allowed');
       end;
-      { ustal FFrequency }
+      { calculate FFrequency }
       FFrequency := Format.SamplesPerSec;
     end else
 
@@ -452,7 +451,7 @@ begin
     begin
       if Data <> nil then
         raise EInvalidWAV.Create('WAV file must not contain mulitple data chunks');
-      { ustal FDataSize i FData (i FData^) }
+      { calculate FDataSize and FData (and FData^) }
       FDataSize := Header.Len;
       FData := GetMem(DataSize);
       Stream.ReadBuffer(Data^, DataSize);
