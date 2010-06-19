@@ -17,24 +17,25 @@
 
 unit Object3Ds;
 
-{TODO
-- properties that are read from 3ds but not used anywhere (not in
-  Object3DOpenGL nor in Object3DAsVRML) because their exact
-  interpretation is not known for me:
-    TCamera3ds.CamLens
-    TMaterialMap3ds.U/VOffset (I don't know wheteher use it before of after
-      U/VScale, again I need some test 3ds scenes to check that)
-    TMaterial3ds.TextureMap2
-    TMaterial3ds.ShininessStrenth, TransparencyFalloff, ReflectBlur
-- TFace3ds.Wrap interpretation is known but it is not used by Object3DOpenGL
-  nor Object3DAsVRML (because
-  1. implementing it requires some mess in code
-     since this Wrap is the property of _each face_ (instead of _each texture_,
-     which would be simpler to map to OpenGL and VRML)
-  2. and I don't have enough test 3ds scenes with textures to really
-     see the difference. So, I will probably implement it someday when
-     I'll need it.
-  )
+{ TODO
+  - properties that are read from 3ds but not used anywhere (not in
+    Object3DOpenGL nor in Object3DAsVRML) because their exact
+    interpretation is not known for me:
+      TCamera3ds.CamLens
+      TMaterialMap3ds.U/VOffset (I don't know wheteher use it before of after
+        U/VScale, again I need some test 3ds scenes to check that)
+      TMaterial3ds.TextureMap2
+      TMaterial3ds.ShininessStrenth, TransparencyFalloff, ReflectBlur
+
+  - TFace3ds.Wrap interpretation is known but it is not used by Object3DOpenGL
+    nor Object3DAsVRML (because
+    1. implementing it requires some mess in code
+       since this Wrap is the property of _each face_ (instead of _each texture_,
+       which would be simpler to map to OpenGL and VRML)
+    2. and I don't have enough test 3ds scenes with textures to really
+       see the difference. So, I will probably implement it someday when
+       I'll need it.
+    )
 }
 
 interface
@@ -48,30 +49,17 @@ type
   { }
   TScene3ds = class;
 
-  { @abstract(This is an abstract class that wraps OBJBLOCK chunk of 3DS file:
-    trimesh, camera or light source.)
+  { @abstract(Abstract class for 3DS triangle mesh, camera or light source.)
 
-    Jej nieabstrakcyjni potomkowie to TCamera3ds, TLight3ds i najwazniejszy
-    TTrimesh3ds. Uzywaj funkcji CreateObject3Ds aby odczytac ze strumienia
-    chunk OBJBLOCK i rozpoznac automatycznie jaki z trzech wymienionych rodzai
-    on opisuje i stworzyc egzemplarz odpowiedniej nieabstrakcyjnej klasy.
-    Nigdy nie konstruuj obiektow dokladnie tej klasy !
-
-    O ile dobrze rozumiem 3dsy OBJBLOCK to ALBO jedno Trimesh, albo jedno light,
-    albo jedna Camera. Kod TObjects3ds i hierarchia wszystkich podklas
-    sa oparte na tym zalozeniu : jeden chunk OBJBLOCK daje jeden
-    z tych trzech obiektow.
-
-    Kamery i swiatla beda mialy EmptyBoundingBox (podobnie jak Trimeshe
-    bez zadnych vertexow; moga takie byc). }
+    Use CreateObject3Ds method to read contents from stream,
+    creating appropriate non-abstract TObject3Ds descendant. }
   TObject3Ds = class
   private
     FName: string;
     FScene: TScene3ds;
   public
     property Name: string read FName;
-    { Scena do ktorej nalezy ten obiekt; chwilowo uzywane tylko w
-      trimeshach do wiazania sie z odpowiednimi materialami }
+    { Scene containing this object. }
     property Scene: Tscene3ds read FScene;
     constructor Create(const AName: string; AScene: TScene3ds;
       Stream: TStream; ObjectEndPos: Int64); virtual;
@@ -83,52 +71,50 @@ type
     VertsIndices: TVector3Cardinal;
     EdgeFlags: packed array[0..2]of boolean;
     Wrap: packed array[0..1]of boolean;
-    { index in Scene.Materials.
-      -1 means "not specified in 3ds file" and implicated that face
-      uses default material. There ARE some 3ds that have faces without
-      material defined - for example therack.3ds. }
+    { Index to the Scene.Materials.
+      -1 means "not specified in 3DS file" and means that face
+      uses default material. There are some 3DS that have faces without
+      material defined --- for example therack.3ds. }
     FaceMaterialIndex: Integer;
-    {ten rekord moze byc rozszerzany aby objac wiecej wlasciwosci Face z 3ds}
   end;
-  TArray_Face3ds = packed array[0..MaxInt div SizeOf(TFace3ds)-1]of TFace3ds;
+  TArray_Face3ds = packed array [0 .. MaxInt div SizeOf(TFace3ds) - 1] of TFace3ds;
   PArray_Face3ds = ^TArray_Face3ds;
 
-  { TVertex3ds reprezentuje cala informacje o vertexach jaka zgromadzilismy
-    czytajac chunk danego trimesha. }
+  { Vertex information from 3DS. }
   TVertex3ds = packed record
     Pos: TVector3Single;
-    { jesli obiekt not HasTexCoords to wszystkie TexCoord = (0, 0) }
+    { Texture coordinates. (0, 0) if the object doesn't have texture coords
+      (HasTexCoords is @false). }
     TexCoord: TVector2Single;
-    {ten rekord moze byc rozszerzany aby objac wiecej wlasciwosci Vertexa z 3ds}
   end;
-  TArray_Vertex3ds = packed array[0..MaxInt div SizeOf(TVertex3ds)-1]of TVertex3ds;
+  TArray_Vertex3ds = packed array [0 .. MaxInt div SizeOf(TVertex3ds) - 1] of TVertex3ds;
   PArray_Vertex3ds = ^TArray_Vertex3ds;
 
-  { @abstract(This class wraps OBJBLOCK chunk of 3DS file with VERTLIST subchunk.
-    Putting it simpler, this represents a set of triangles.) }
+  { Triangle mesh. }
   TTrimesh3ds = class(TObject3Ds)
   private
     FVertsCount, FFacesCount: Word;
     FHasTexCoords: boolean;
     FBoundingBox: TBox3D;
   public
-    { Verts i Faces read-only from outside }
+    { Vertexes and faces. Read-only from outside of this class.
+      @groupBegin }
     Verts: PArray_Vertex3ds;
     Faces: PArray_Face3ds;
-    { czy Verts mialy zapisane w pliku TexCoords ? }
+    { @groupEnd }
+    { Do the vertexes have meaningful texture coordinates? }
     property HasTexCoords: boolean read FHasTexCoords;
-    { pamietaj ze przypadek VertsCount = FacesCount = 0 jest mozliwy,
-      np. 0155.3ds. }
+    { Number of vertexes and faces.
+      Remember that VertsCount = FacesCount = 0 is possible, e.g. 0155.3ds.
+      @groupBegin }
     property VertsCount: Word read FVertsCount;
     property FacesCount: Word read FFacesCount;
+    { @groupEnd }
 
-    { constructor TTrimesh3ds ma za zadanie odczytac caly chunk
-      CHUNK_OBJBLOCK. Zaklada on ze przed chwila ze strumienia
-      odczytano chunk header o id = CHUNK_OBJBLOCK i jakims len
-      z ktorego wynika ze gdy Stream.Position >= ObjectEndPos
-      to juz jestesmy za tym obiekte,.
-      Potem odczytano AName. (czyli teraz mozna przystapic
-      do odczytywania subchunkow). }
+    { Constructor reading OBJBLOCK 3DS chunk into triangle mesh.
+      Assumes that we just read from stream chunk header (with id =
+      CHUNK_OBJBLOCK and length indicating thatStream.Position >= ObjectEndPos
+      is after the object), then we read AName (so now we can read subchunks). }
     constructor Create(const AName: string; AScene: TScene3ds;
       Stream: TStream; ObjectEndPos: Int64); override;
     destructor Destroy; override;
@@ -149,14 +135,12 @@ type
       Stream: TStream; ObjectEndPos: Int64); override;
     destructor Destroy; override;
 
-    { Zwroc transformacje ktorej zaaplikowanie jest rownoznaczne z
-      uwzglednieniem tej kamery. Innymi slowy, w OpenGLu zamiast gluLookAt(...)
-      wywoluj glMultMatrix(Camera.Matrix) (a czasami glLoadMatrix wystarczy). }
+    { Transformation of this camera. }
     function Matrix: TMatrix4Single;
 
-    { liczone na podstawie CamPos i CamTarget }
+    { Camera direction. Calculated from CamPos and CamTarget. }
     function CamDir: TVector3Single;
-    { liczone na podstawie CamDir i CamBank }
+    { Camera up. Calculated from CamDir and CamBank. }
     function CamUp: TVector3Single;
   end;
 
@@ -184,14 +168,16 @@ type
   private
     FBoundingBox: TBox3D;
   public
-    {Trimeshes objects on this list are created and destroyed by TScene3ds
-     object - so Trimeshes property is read-only from outside of this class !
-     Same goes with Lights, Cameras and Materials.}
+    { Triangle meshes, cameras and other properties of the scene.
+      They are created and destroyed by TScene3ds
+      object --- so these fields are read-only from outside of this class.
+      @groupBegin }
     Trimeshes: TTrimesh3dsList;
     Cameras: TCamera3dsList;
     Lights: TLight3dsList;
     Materials: TMaterial3dsList;
-    {Wersja Autodeska uzyta do stworzenia tego 3ds'a}
+    { @groupEnd }
+    { Autodesk version used to create this 3DS. }
     Version: LongWord;
     constructor Create(Stream: TStream); reintroduce; overload;
     constructor Create(const filename: string); reintroduce; overload;
@@ -200,10 +186,10 @@ type
     function SumTrimeshesVertsCount: Cardinal;
     function SumTrimeshesFacesCount: Cardinal;
 
-    procedure WritelnSceneInfo; {output some info about 3ds file}
+    procedure WritelnSceneInfo; {< Output some info about this 3DS file. }
 
-    { jezeli istanieje kamera o numerze CamNumber to zwraca jej Matrix,
-      wpp. zwraca IdentityMatrix. }
+    { Return transformation of Cameras[CamNumber], unless it doesn't exist
+      --- then return identity matrix. }
     function TryCameraMatrix(CamNumber: integer): TMatrix4Single;
 
     function BoundingBox: TBox3D; override;
@@ -225,6 +211,9 @@ implementation
 
   It contains a lists trimeshes, cameras and lights. They are all TObject3Ds,
   and correspond to OBJBLOCK chunk, with inside TRIMESH, CAMERA or LIGHT chunk.
+  As far as I understand, OBJBLOCK in 3DS may contain only *one* of
+  trimesh, light or camera. We assume this.
+  - Trimesh wraps OBJBLOCK chunk with VERTLIST subchunk.
 
   Moreover TScene3ds has a list of TMaterial3ds, that correspond
   to the MATERIAL chunk. }
