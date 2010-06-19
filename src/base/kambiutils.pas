@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Kambi (Michalis Kamburelis) various basic utilities.)
+{ @abstract(Various basic utilities.) Developed for Kambi VRML game engine,
+  although stuff here is generally usable.
 
   @unorderedList(
     @item(
