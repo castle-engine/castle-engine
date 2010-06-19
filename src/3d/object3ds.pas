@@ -13,30 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Read 3d object description from 3DS files.)
-
-  Struktura klas w tym module stara sie oddac funkcjonalna strukture
-  modelu 3ds a nie dokladna strukture pliku 3ds. Dlatego mniej wiecej
-  mamy tutaj pewien szkielet hierarchii chunkow 3ds ale w pewnych
-  miejscach splaszczony i dostosowany do szczegolnych wlasciwosci
-  roznych rzeczy.
-
-  TScene3ds odpowiada calemu plikowi 3ds czyli chunkowi MAIN a jednoczesnie
-  (poniewaz w ogole nie odczytujemy KeyFramera) chunkowi OBJMESH.
-  TScene3ds zawiera trzy listy obiektow : liste Trimesh'ow, kamer i
-  swiatel. Wszystkie te trzy obiekty odpowiadaja chunkowi
-  OBJBLOCK ktory zawiera jeden z trzech chunkow (odpowiednio) TRIMESH,
-  CAMERA lub LIGHT. Wszystkie te trzy klasy wywodza sie z klasy
-  TObject3Ds ktora reprezentuje dowolny chunk OBJBLOCK i ktora
-  tym samym obejmuje rzeczy ktore sa wspolne dla trimeshow, kamer i
-  swiatel.
-
-  Dodatkowo TScene3ds ma liste obiektow TMaterial3ds ktore reprezentuja
-  chunki MATERIAL.
-
-  Based on [http://www.martinreddy.net/gfx/3d/3DS.spec]
-  (or some earlier version of this, I don't remember...).
-}
+{ @abstract(Read 3D object from a 3DS file.) }
 
 unit Object3Ds;
 
@@ -68,6 +45,7 @@ uses KambiUtils, Classes, KambiClassUtils, SysUtils, Object3DsMaterial,
 {$define read_interface}
 
 type
+  { }
   TScene3ds = class;
 
   { @abstract(This is an abstract class that wraps OBJBLOCK chunk of 3DS file:
@@ -237,6 +215,19 @@ function CreateObject3Ds(AScene: Tscene3ds; Stream: TStream;
 {$undef read_interface}
 
 implementation
+
+{ 3DS reading mostly based on spec from
+  [http://www.martinreddy.net/gfx/3d/3DS.spec].
+
+  TScene3ds corresponds to the whole 3DS file,
+  that is the MAIN chunk, and also (since we don't handle keyframes from 3DS)
+  the OBJMESH chunk.
+
+  It contains a lists trimeshes, cameras and lights. They are all TObject3Ds,
+  and correspond to OBJBLOCK chunk, with inside TRIMESH, CAMERA or LIGHT chunk.
+
+  Moreover TScene3ds has a list of TMaterial3ds, that correspond
+  to the MATERIAL chunk. }
 
 {$define read_implementation}
 {$I objectslist_1.inc}
