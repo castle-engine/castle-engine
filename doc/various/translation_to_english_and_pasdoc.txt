@@ -138,7 +138,7 @@ D   progressgl.pas
   images/
 D   dds.pas
 D   fftwutils.pas
--   images.pas
+D   images.pas
 D   imagescache.pas
 D   imagesfftw.pas
 D   kambipasjpeg.pas

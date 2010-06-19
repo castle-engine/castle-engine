@@ -13,145 +13,43 @@
   ----------------------------------------------------------------------------
 }
 
-{ Loading, saving, processing 2D images.
-  Storing image in memory, loading and saving from/to files in various
+(*Loading, saving, and processing of 2D (and 3D) images.
+  Storing images in the memory, loading and saving them from/to files in various
   formats, resizing, converting to grayscale, copying and merging,
-  various other image operations --- it's all here.
+  many other image operations --- it's all here.
 
-  The most important class here is @link(TImage),
-  with two most often used descendants @link(TRGBImage) and @link(TRGBAlphaImage).
-  Other useful descendants are @link(TGrayscaleImage), @link(TGrayscaleAlphaImage)
-  and @link(TRGBEImage). These descendants correspond to possible
-  ways to encode color in memory. But you are free to create
-  more descendants of TImage in your own units if you want to encode
-  in pixel something different.
+  The most important class here is @link(TImage).
+  It represents an image as a simple uncompressed array of pixels.
+  Descendants of TImage define what exactly is a "pixel".
+  We have 8-bit color images
+  (@link(TRGBAlphaImage), @link(TRGBImage),
+  @link(TGrayscaleAlphaImage) and @link(TGrayscaleImage)).
+  We also have an image with floating-point precision and range:
+  @link(TRGBEImage).
+  You are free to create more descendants of TImage in your own units
+  if you want to encode the pixel differently.
 
-  We also handle various types of image files.
-  @unorderedList(
-    @item(png (reading/writing using libpng, this is the only format
-      supported natively (wthout running any external program) for now
-      that allows us to read alpha channel))
-    @item(jpeg (using pasjpeg package (it's libjpeg rewritten in Pascal)))
-    @item(bmp)
-    @item(rgbe (format of images created by Radiance, this is basically just
-      an RLE compressed storage format for Greg Ward's TRGBEImage image memory
-      format. Also it allows to write colors in XYZ (CIE) instead of RGB.
-      Note that, while it's common to load file format RGBE to
-      class TRGBEImage (with "memory format" RGBE), it's not necessary,
-      you can also save normal RGB to RGBE files or load RGBE files to
-      normal RGB (although this will strip floating point precision of RGBE).))
-    @item(ppm)
-    @item(Other image formats are handled by converting them
-      "under the hood" using external programs. This means that we may
-      call external program to handle them.
-      This is available only if this unit is compiled with FPC
-      (i.e. not with Delphi) on platforms where ExecuteProcess is
-      implemented, and of course appropriate external tool must
-      be available.
-      See glViewImage docs
-      [http://vrmlengine.sourceforge.net/glviewimage.php]
-      for details what external programs are used.
-      )
-  )
-  All image file formats are enumerated by @link(TImageFormat) type.
-  Of course the set of such formats also may be extended with time.
+  When reading and writing image files, we understand various image
+  formats. See TImageFormat documentation for a current list of supported
+  formats, with comments specific to particular formats.
+  The basic loading and saving procedures and LoadImage and SaveImage.
 
-  Historia:
-    Kiedys ten modul zawieral zaledwie definicje strukurki TRGBImage
-    i kilka podstawowych operacji na niej, na potrzeby ladowania tekstur
-    dla OpenGL'a. Nie moglem do tego uzywac klas z modulu Graphics Delphi
-    bo chcialem tez dzialac pod FPC ktore nie ma jeszcze gotowego GUI
-    a modul Graphics musi byc przeciez z takim GUI zintegrowany,
-    poprzez klase TCanvas. Z czasem zobaczylem ze zasadniczy modul Graphics
-    Borlanda i tak nie oferowal mi zbyt wiele, w zasadzie zaczynajac i konczac
-    swoje mozliwosci na formacie bmp, ktory zreszta byl zapisywany i odczytywany
-    poprzez funkcje WinAPI (pod VCLem) lub Qt (po CLXem) wiec w zasadzie
-    i tak implementacja formatow plikow graficznych byla gdzie indziej.
-    Tymczasem ja nie potrzebowalem zadnego GUI - na poczatek, na potrzeby
-    OpenGL'a, wystarczala mi prosta procedurka ktora zaladowalaby obrazek
-    z pliku w dowolnym formacie (no, przynajmniej BMP, PNG i JPG, a wiec
-    cos prostego, cos skompresowanego i cos skompresowanego stratnie)
-    do tablicy 2 wymiarowej ktorej kazdy element bylby 3-ka bajtow RGB.
-    Funkcja ktora to robi nazywa sie teraz LoadImage(..., [TRGBImage], ...).
+  Example usage of this unit:
 
-    Znalazlem libpng i libjpeg ktore pozwolily mi latwo opanowac formaty
-    png i jpg. Implementacja formatu bmp samemu okazala sie dziecinnie prosta.
+@longCode(#
+  var
+    Image: TImage;
+  begin
+    Image := LoadImage('image.png', [], []);
+    { scale the image to be 2x smaller }
+    Image.Resize(Image.Width div 2, Image.Height div 2);
+    SaveImage(Image, 'newimage.png');
+  end;
+#)
 
-    W ktoryms momencie zorientowalem sie ze ten modul powinien byc
-    uniezalezniony od OpenGLa. Duzo pozniej, uzaleznilem ten modul od VectorMath
-    jako ze trojka RGB lub czworka RGBA czy RGBE to w koncu tez wektor
-    i moze korzystac z rozlicznych operacji zdefiniowanych juz w VectorMath.
-
-    Dodalem formaty plikow PPM (przy okazji PGK na uniwerku), PCX
-    (ze starego DOSowego kodu w TP), IPL (aby zaladowac obrazki z cornell boxa
-    na RGK na uniwerku) i w chwili gdy to pisze dodaje format RGBE
-    (aby moc zapisywac precyzyjne rysunki ktore dostaje od raytracera).
-
-    Formaty w pamieci tez sie rozszerzyly : do TRGBImage doszedl TRGBAlphaImage
-    (abym mogl miec kanal alpha dla obrazkow),
-    w tym momencie dodaje tez format RGBE,
-    pozniej dodalem tez formaty grayscale (TGrayscaleImage, TGrayscaleAlphaImage).
-
-  OpenGL independency:
-    While this unit is obviously useful when you're using OpenGL
-    (to load OpenGL textures etc.), it is not dependent on OpenGL in any way.
-    This has many obvious advantages, you can use this unit without using
-    OpenGL and without having any OpenGL context prepared.
-
-  O przydatnosci formatu RGBE i generalnie formatow ktore umozliwiaja
-  reprezentowanie koloru RGB jako 3xfloat zamiast 3xbajt, a wiec z duzo wieksza
-  precyzja:
-    Np. zalozmy ze mamy bardzo bardzo ciemny obrazek :
-    dajmy na to, kazdy pixel = 3 wartosci, rgb, i maksymalna skladowa
-    kazdego koloru jest < 1/512. Taki obrazek wyswietlony na ekranie
-    bedzie wygladal jak czarny, jasne. Ale jezeli taki obrazek w
-    rzeczywistosci zawiera jakies niezerowe kolory to rozjasnienie
-    tego obrazka przez przeskalowanie wszystkich skladowych powinno
-    ujawnic zawartosc obrazka. Lecz niestety - jezeli obrazek
-    zostal zapisany w postaci w rodzaju TRGBImage z modulu Images
-    to skladowe < 1/512 zostaly z pewnoscia zapisane jako 0 (zera!),
-    a wiec rozjasnianie przez mnozenie skladowych nie ma sensu -
-    - taki obrazek jest juz do niczego, stracilismy cala informacje przy
-    zaokraglaniu floatow z zakresu 0..1 do zakresu 0..255.
-
-    Mozna zastanawiac sie kiedy taka precyzja jest potrzebna. Odpowiedz brzmi :
-    przy generowaniu realistycznych obrazkow, np. w VRMLRayTracer, obrazki moga
-    czesto wyjsc bardzo ciemne a mimo to zawierajace istotne informacje
-    w kontrastach miedzy ciemnymi kolorami.
-    Ponadto chcielibysmy w raytracerach swobodnie reprezentowac tez liczby
-    powyzej 1 bo w obrazkach jakie wychodza z raytracera wazne sa nie tyle
-    ale proporcje miedzy nimi. Scinanie wartosci do zakresu 0..1 nie jest
-    najlepszym pomyslem, potencjalnie tracimy wtedy informacje jakie zawarte
-    byly w bardzo jasnych kolorach (trzeba bylo dopiero sciemnic obrazek
-    zeby je zobaczyc).
-
-    Rozwiazaniem jest wiec aby przechowywac w pamieci i zapisywac obrazek
-    nie robiac tak brutalnego zaokraglania wartosci kolorow. Swietnym
-    rozwiazaniem, ktore nie tworzy zbyt duzych obrazkow jest format
-    rgbe (to samo co picture Radiance'a) Grega Warda, i to wlasnie
-    jest format TRGBEImage obrazka w pamieci i ifRGBE obrazka w pliku
-    (ifRGBE to jest zasadniczo zrzut danych TRGBEImage z naglowkiem i
-    spakowany prosta kompresja RLE). Przy okazji do Radiance'a jest dolaczonych
-    wiele programow ktore potrafia wykorzystac ta precyzje o ktorej mowilem
-    wyzej i wykonywac jakies przetwarzanie obrazkow, m.in. pfilt i ximage.
-
-  Some notes about png and zlib:
-    Since 2004-01-16 situation is clear and simple:
-
-    Every time you try to load/save from/to a PNG file,
-    SavePNG or LoadPNG or other functions may raise exception
-    ELibPngNotAvailable if libpng is not installed
-    (i.e. PngLibraryName not found).
-
-    This means that you don't have to install libpng+zlib on every system
-    that must run programs that use this unit. You will only need libpng+zlib
-    present at runtime if you want to load/save from/to PNG file at runtime.
-
-    If you write a program that will never ever load/save a PNG file,
-    just don't worry: even if your program uses this unit, Images,
-    (that uses KambiPng and KambiZlib units), your program will
-    *not* require libpng or zlib to be installed.
-}
+  This unit is of course not dependent on OpenGL or any other rendering
+  library. See GLImages for OpenGL image operations (for textures and others).
+*)
 
 unit Images;
 
@@ -177,9 +75,9 @@ type
 
 { Colors ------------------------------------------------------------ }
 
-{ Returns if two RGB colors are be considered equal,
-  i.e. each component in Color1 is different than corresponding
-  component in Color2 by Tolerance or less. }
+{ Check if the two RGB colors are equal, ignoring small differences.
+  All three color components may differ by at most Tolerance.
+  When Tolerance is 0, this is a normal (exact) comparison. }
 function EqualRGB(const Color1, Color2: TVector3Byte; Tolerance: Byte): boolean;
 
 { TImage ------------------------------------------------------------- }
@@ -217,16 +115,20 @@ type
 
     property RawPixels: Pointer read FRawPixels;
 
-    { True means that RawPixels = nil.
-      If @true, then you know Width * Height * Depth must be 0,
-      so either Width = 0 or Height = 0 or Depth = 0.
-      @false means that RawPixels <> nil and Width * Height * Depth <> 0,
-      so all Width > 0 and Height > 0 and Depth > 0. }
+    { Is an image empty.
+
+      @true means that RawPixels = @nil,
+      and Width * Height * Depth = 0
+      (so either Width = 0 or Height = 0 or Depth = 0).
+
+      @false means that RawPixels <> nil and Width * Height * Depth <> 0
+      (so all Width > 0 and Height > 0 and Depth > 0, since they are
+      Cardinal (unsigned) always). }
     function IsNull: boolean;
 
-    { Does an image have alpha channel.
+    { Does an image have an alpha channel.
 
-      You may also be interested in AlphaChannelType.
+      You may also be interested in the AlphaChannelType.
       AlphaChannelType answers always atNone if HasAlpha = false,
       and always atSimpleYesNo or atFullRange if HasAlpha = true.
       But AlphaChannelType may perform longer analysis of pixels
@@ -239,7 +141,7 @@ type
       alpha channel. }
     function HasAlpha: boolean; virtual;
 
-    { @abstract(Check does image have an alpha channel,
+    { @abstract(Check does an image have an alpha channel,
       and if yes analyze alpha channel: is it a single yes-no (only full
       or none values), or does it have alpha values in between?)
 
@@ -299,39 +201,37 @@ type
       const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType;
   end;
 
-  { TImage is an abstract class representing image as a simple array of pixels.
-    RawPixels is a pointer to Width * Height * Depth of values of some
-    type, let's call it TPixel. TPixel specifies the color of the pixel
-    (but potentially can also represent some other values
-    in some descendants of TImage, not only color).
-    But TPixel type is not defined anywhere, because TImage class
-    does not specify what exactly TPixel is, as there are many possible
-    representations for a color. What exactly is TPixel is specified
-    by TImage descendant class. E.g.TRGBImage class encodes colors
-    as RGB encoded in 3 bytes using TVector3Byte type.
-    TRGBAlphaImage encodes colors as 4 bytes, RGB+Alpha.
-    RGBE encodes colors as 4 bytes, RGB+Exponent.
+  { An abstract class representing image as a simple array of pixels.
+    RawPixels is a pointer to Width * Height * Depth of pixels.
+
+    What exactly is a "pixel" is undefined in this class. Each descendant
+    of TImage defines it's own pixel encoding and interpretation.
+    The only requirement is that all pixels have the same size (PixelSize).
+    For example, for TRGBImage a "pixel" is a TVector3Byte type
+    representing a (red, green, blue) color value.
 
     When Depth > 1, the image is actually a 3D (not just 2D!) image.
     We call the particular 2D layers then "slices".
-    TODO: This is currently (2009-04-19) not perfectly polished,
-    and possibly not handled by all methods, so be careful when using this.
-    Many TImage methods (and functions in other units, like GLImages)
-    still operate only on the 1st "slice", that is the 2D image on Depth = 0.
+    Although some TImage methods (and functions in other units, like GLImages)
+    still operate only on the 1st "slice", that is the 2D image on Depth = 0
+    --- be careful. But many methods correctly take the depth into consideration.
 
     Pixels in RawPixels are ordered in slices, each slice is ordered in rows,
     in each row pixels are specified
     from left to right, rows are specified starting from lower row to upper.
     This means that you can think of RawPixels as
-      ^(packed array[0..Depth - 1, 0..Height - 1, 0..Width - 1] of TPixel)
-    Then RawPixels^[z, y, x] is color of pixel at position z, x, y.
 
-    Note that specifying rows from lower to upper is an OpenGL standard,
+@longCode(#
+  ^(packed array[0..Depth - 1, 0..Height - 1, 0..Width - 1] of TPixel)
+#)
+
+    Assuming the above definition, RawPixels^[z, y, x]
+    is color of pixel at position z, x, y.
+
+    Note that specifying rows from lower to upper follows an OpenGL standard,
     this makes using this unit with OpenGL straightforward.
-    See unit @link(KambiGLUtils) for many routines that use TImage with
-    OpenGL.
 
-    Don't ever operate on RawPixels pointer directly -- allocating, reallocating,
+    Don't ever operate on RawPixels pointer directly --- allocating, reallocating,
     freeing memory pointed to by RawPixels is handled inside this class.
     You must only worry to always free created TImage instances
     (like with any class).
@@ -346,12 +246,16 @@ type
     value can be treated as valid pointer to 0 bytes).
 
     Note about coordinates:
-    1. all X, Y, Z coordinates of pixels are 0-based
-       (X in range 0..Width-1, and Y in 0..Height-1, and Z in 0..Depth-1).
-    2. if documentation for some method does not specify otherwise,
-       correctness of coordinates is *not* checked in method,
-       which can lead to various errors at runtime if you will pass
-       incorrect coordinates to given routine.
+
+    @orderedList(
+      @item(All X, Y, Z coordinates of pixels are 0-based
+        (X in range 0..Width-1, and Y in 0..Height-1, and Z in 0..Depth-1).)
+
+      @item(If documentation for some method does not specify otherwise,
+        correctness of coordinates is *not* checked in method,
+        which can lead to various errors at runtime if you will pass
+        incorrect coordinates to given routine.)
+    )
   }
   TImage = class(TEncodedImage)
   private
@@ -381,8 +285,8 @@ type
       It sets Width = Height = 0 and RawPixels = nil. }
     procedure Null;
 
-    { This changes Width and Height to given AWidth, AHeight.
-      RawPixels is changed to point to new memory.
+    { Change Width and Height to given AWidth, AHeight.
+      RawPixels is changed to point to the new memory.
       Previous image contents are lost. (use one of the other methods,
       like @link(Resize), if you want to change image size preserving
       it's contents) }
@@ -390,10 +294,10 @@ type
       const AWidth, AHeight: Cardinal;
       const ADepth: Cardinal = 1);
 
-    { This is size of TPixel in bytes for this TImage descendant. }
+    { Size of TPixel in bytes for this TImage descendant. }
     class function PixelSize: Cardinal; virtual; abstract;
 
-    { This is number of color components in TPixel.
+    { Number of color components in TPixel.
 
       E.g. RGB is 3 components and RGB+Alpha is 4 components,
       RGB+Exponent is 3 components (because it describes only
@@ -401,20 +305,21 @@ type
       to correctly interpret these, it's not a 4th component)). }
     class function ColorComponentsCount: Cardinal; virtual; abstract;
 
-    { Returns pointer to (x, y, z) pixel of image.
+    { Pointer to the (x, y, z) pixel of image.
 
       Note that they don't check X, Y, Z correctness in any way,
       it's your responsibility to always pass 0 <= X < Width and
       0 <= Y < Height and 0 <= Z < Depth.
 
-      Note that this function *should* be reintroduced in descendants
+      Note that this function @italic(should) be reintroduced in descendants
       to return the same value but typecasted to something better then Pointer
       (something like ^TPixel). }
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): Pointer;
 
-    { Same thing as @link(PixelPtr) but always with X = 0.
+    { Pointer to the first pixel in the Y row of the image.
+      Same thing as @link(PixelPtr) but always with X = 0.
 
-      Note that this function *should* be reintroduced in descendants
+      Note that this function @italic(should) be reintroduced in descendants
       to return the same value but typecasted to something better then Pointer,
       preferably something like ^(array of TPixel). }
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): Pointer;
@@ -429,8 +334,7 @@ type
       call inherited in descendants when overriding this method. }
     procedure InvertRGBColors; virtual;
 
-    { This should set color of pixel to Red, Green, Blue to given
-      value (as 3 single values).
+    { Set the RGB color portion of the pixel.
 
       In case of descendants that have more then RGB components,
       other color components are not touched (e.g. in case of TRGBAlphaImage
@@ -446,14 +350,14 @@ type
       X, Y coordinates because their correctness is not checked here. }
     procedure SetColorRGB(const X, Y: Integer; const v: TVector3Single); virtual;
 
-    { This returns the new created object that has exactly the same class
+    { Create a new object that has exactly the same class
       and the same contents as this object.
       (note: no, this function is *not* constructor, because it's implemented
       in TImage, but it always returns some descendant of TImage). }
     function MakeCopy: TImage;
 
-    { This changes our Width and Height and appropriately stretches
-      our contents.
+    { Change Width and Height and appropriately stretch
+      image contents.
 
       If ResizeToX or ResizeToY is 0 then it means to take
       Width or Height, respectively.
@@ -470,7 +374,7 @@ type
     procedure Resize(ResizeToX, ResizeToY: Cardinal;
       const ProgressTitle: string = '');
 
-    { This creates new TImage instance with size ResizeToX, ResizeToY
+    { Create a new TImage instance with size ResizeToX, ResizeToY
       and pixels copied from us and appropriately stretched.
       Class of new instance is the same as our class.
 
@@ -496,13 +400,13 @@ type
       (modulo), so e.g. 4 again does nothing, 5 rotates by 90 degrees and so on. }
     procedure Rotate(const Angle: Integer);
 
-    { Returns new instance with the same class as our and size
+    { Create a new instance with the same class, and size
       TileX * Width and TileY * Height and contents being our contents
       duplicated (tiled).
       Must be TileX, TileY > 0. }
     function MakeTiled(TileX, TileY: Cardinal): TImage;
 
-    { Extracts rectangular area of this image.
+    { Extract rectangular area of this image.
       X0 and Y0 are start position (lower-left corner),
       ExtractWidth, ExtractHeight specify size of area.
 
@@ -511,7 +415,7 @@ type
       @link(EImagePosOutOfRange) is raised. }
     function MakeExtracted(X0, Y0, ExtractWidth, ExtractHeight: Cardinal): TImage;
 
-    { Sets all image pixels to the same value Pixel.
+    { Set all image pixels to the same value.
       This is implemented only in descendants that represent a pixel
       as a TVector4Byte (e.g. TRGBAlphaImage, TRGBEImage) or TVector3Byte
       (e.g. TRGBImage, 4th component is ignored in this case).
@@ -521,7 +425,7 @@ type
       descendants when overriding this method. }
     procedure Clear(const Pixel: TVector4Byte); virtual;
 
-    { Checks do all image pixels have the same value Pixel.
+    { Check do all image pixels have the same value Pixel.
       This is implemented only in descendants that represent a pixel
       as TVector4Byte or TVector3Byte (4th component is ignored in this
       case), just like method @link(Clear).
@@ -531,7 +435,8 @@ type
       descendants when overriding this method. }
     function IsClear(const Pixel: TVector4Byte): boolean; virtual;
 
-    { This is a useful routine for many various conversions of image colors.
+    { Multiply each RGB color by a matrix.
+      This is a useful routine for many various conversions of image colors.
       Every pixel's RGB color is multiplied by given Matrix,
       i.e. PixelRGBColor := Matrix * PixelRGBColor.
 
@@ -566,7 +471,8 @@ type
       descendants when overriding this method. }
     procedure TransformRGB(const Matrix: TMatrix3Single); virtual;
 
-    { If ColorModulator = nil then this procedure does nothing.
+    { Process each pixel by given function.
+      If ColorModulator = nil then this procedure does nothing.
       Else, every RGB color value of an image will be transformed using
       ColorModulator.
 
@@ -590,7 +496,7 @@ type
      function MakeModulatedRGB(
        const ColorModulator: TColorModulatorByteFunc): TImage;
 
-    { Converts image colors to grayscale.
+    { Convert image colors to grayscale.
 
       Implemented if and only if ModulateRGB is implemented.
       When image has alpha channel, alpha channel value
@@ -605,14 +511,14 @@ type
 
     {$ifdef FPC}
 
-    { This converts every image color using Color*Convert function from VectorMath.
+    { Convert every image color using Color*Convert function from VectorMath.
       "Channel" parameter determines which Color*Convert function to use
       (Red, Green or Blue), must be 0, 1 or 2.
 
       Implemented if and only if ModulateRGB is implemented. }
     procedure ConvertToChannelRGB(Channel: Integer);
 
-    { This converts every image color using Color*Strip function from VectorMath.
+    { Converts every image color using Color*Strip function from VectorMath.
       "Channel" parameter determines which Color*Strip function to use
       (Red, Green or Blue), must be 0, 1 or 2.
 
@@ -621,9 +527,8 @@ type
 
     {$endif FPC}
 
-    { This returns true only if given Image and this image have the same
-      classes, the same sizes (Width, Height) and contain exactly
-      the same values in RawPixels. }
+    { Check if given Image has the same class, the same sizes
+      (Width, Height) and contains exactly the same pixel values. }
     function IsEqual(Image: TImage): boolean;
 
     { This is like IsEqual, but is compares only given parts of the images.
@@ -783,23 +688,27 @@ var
 { TImageClass and arrays of TImageClasses ----------------------------- }
 
 type
+  { }
   TImageClass = class of TImage;
   TEncodedImageClass = class of TEncodedImage;
 
   { Note: Don't name it TDynImageClassesArray,
     as such naming convention is reserved for TDynArray_Base descendants. }
+  { }
   TDynArrayImageClasses = array of TImageClass;
 
-{ True if ImageClass is one of the items ImageClasses array
-  or inherits from (i.e. is descendant of) one of them. }
+{ Check is ImageClass one of the items in the ImageClasses array,
+  or a descendant of one of them. }
 function InImageClasses(ImageClass: TImageClass;
   const ImageClasses: array of TImageClass): boolean; overload;
 
-{ This is a shortcut for InImageClasses(Image.ClassType, ImageClasses) }
+{ Check is Image class one of the items in the ImageClasses array,
+  or a descendant of one of them.
+  This is a shortcut for InImageClasses(Image.ClassType, ImageClasses). }
 function InImageClasses(Image: TImage;
   const ImageClasses: array of TImageClass): boolean; overload;
 
-{ True if both arrays contain exactly the same classes in the same order.
+(*Check if both arrays contain exactly the same classes in the same order.
 
   May be extended in the future to do better checks and return true
   also if both array contain the same classes but in different order,
@@ -810,16 +719,21 @@ function InImageClasses(Image: TImage;
   The problem is that this function should be lighting fast
   (as the main purpose of it is to use it in constructions like
   setting property values, e.g.
-    if ImageClassesArraysEqual(Value, SomeProperty) then
-    begin
-     SomeProperty := Value;
-     ... do some lengthy operations to update new value of SomeProperty ...
-    end;
+
+@longCode(#
+  if ImageClassesArraysEqual(Value, SomeProperty) then
+  begin
+    SomeProperty := Value;
+    { ... do some lengthy operations to update new value of SomeProperty ... }
+  end;
+#)
   ), and doing smarter checks may cost us a little time.
 
   So for now this function returns
-  - true if for sure both arrays contain the same classes and
-  - false if *possibly* they don't contain the same classes. }
+  @unorderedList(
+    @item @true if for sure both arrays contain the same classes and
+    @item @false if @italic(possibly) they don't contain the same classes.
+  ) *)
 function ImageClassesEqual(const Ar1, Ar2: array of TImageClass): boolean;
 
 procedure ImageClassesAssign(var Variable: TDynArrayImageClasses;
@@ -833,7 +747,7 @@ type
   TGrayscaleImage = class;
   TGrayscaleAlphaImage = class;
 
-  { Here pixel is represented as TVector3Byte (red, green, blue) }
+  { Image with pixel represented as a TVector3Byte (red, green, blue). }
   TRGBImage = class(TImage)
   private
     function GetRGBPixels: PVector3Byte;
@@ -857,7 +771,7 @@ type
     procedure TransformRGB(const Matrix: TMatrix3Single); override;
     procedure ModulateRGB(const ColorModulator: TColorModulatorByteFunc); override;
 
-    { This functions creates new TRGBAlphaImage object with RGB colors
+    { Create a new TRGBAlphaImage object with RGB colors
       copied from this object, but alpha of each pixel is set
       to some random value (whatever was at that particular memory
       place at that time). }
@@ -875,7 +789,7 @@ type
       const AlphaColor: TVector3Byte; Tolerance: Byte;
       AlphaOnColor: Byte; AlphaOnNoColor: Byte): TRGBAlphaImage;
 
-    { Converts image to TRGBEImage format.
+    { Convert image to an TRGBEImage format.
 
       Although RGBE format offers superior precision compared to RGB on 3 bytes,
       there is a slight chance of some unnoticeable loss of information
@@ -894,15 +808,16 @@ type
 
     function ToGrayscale: TGrayscaleImage;
 
-    { Draws horizontal line. Must be y1 <= y2, else it is NOOP. }
+    { Draw horizontal line. Must be y1 <= y2, else it is NOOP. }
     procedure HorizontalLine(const x1, x2, y: Integer;
       const Color: TVector3Byte);
 
-    { Draws vertical line. Must be x1 <= x2, else it is NOOP. }
+    { Draw vertical line. Must be x1 <= x2, else it is NOOP. }
     procedure VerticalLine(const x, y1, y2: Integer;
       const Color: TVector3Byte);
 
-    { This is a very special constructor.
+    { Create image by merging two images according to a (third) mask image.
+      This is a very special constructor.
       It creates image with the same size as MapImage.
       It also resizes ReplaceWhiteImage, ReplaceBlackImage
       to the size of MapImage.
@@ -910,8 +825,12 @@ type
       Then it inits color of each pixel of our image with
       combined colors of two pixels on the same coordinates from
       ReplaceWhiteImage, ReplaceBlackImage, something like
-        Pixel[x, y] := ReplaceWhiteImage[x, y] * S +
-                       ReplaceBlackImage[x, y] * (S-1)
+
+@preformatted(
+  Pixel[x, y] := ReplaceWhiteImage[x, y] * S +
+                 ReplaceBlackImage[x, y] * (S-1);
+)
+
       where S = average of red, gree, blue of color MapImage[x, y].
 
       This means that final image will look like ReplaceWhiteImage
@@ -949,14 +868,15 @@ type
     procedure TransformRGB(const Matrix: TMatrix3Single); override;
     procedure ModulateRGB(const ColorModulator: TColorModulatorByteFunc); override;
 
-    { Sets alpha of every pixel to either AlphaOnColor
+    { Set alpha of every pixel to either AlphaOnColor
       (when color of pixel is equal to AlphaColor with Tolerance,
       see @link(EqualRGB)) or AlphaOnNoColor. }
     procedure AlphaDecide(const AlphaColor: TVector3Byte;
       Tolerance: Byte; AlphaOnColor: Byte; AlphaOnNoColor: Byte);
 
-    { This initializes image contents: RGB channels from RGB image,
-      alpha channel from Grayscale image. Given RGB and Grayscale
+    { Copy RGB contents from one image, and alpha contents from the other.
+      RGB channels are copied from the RGB image,
+      alpha channel is copied from the Grayscale image. Given RGB and Grayscale
       images must have the same size, and this is the resulting
       size of this image after Compose call. }
     procedure Compose(RGB: TRGBImage; AGrayscale: TGrayscaleImage);
@@ -973,14 +893,7 @@ type
     function ToRGBImage: TRGBImage;
   end;
 
-  { Color is encoded as 3 mantisas + 1 exponent,
-    this is Greg Ward's format described in"Graphic Gems" gem II.5.
-    This gives
-    1. High floating-point-like precision for colors
-    2. Color expressed in RGBE format consist of 3 non-negative values,
-       not necessarily <= 1.0.
-    And all this while pixel is only 4 bytes long (instead of typical
-    3 x single, 12 bytes). }
+  { Image with high-precision colors encoded as 3 mantisas + 1 exponent. }
   TRGBEImage = class(TImage)
   private
     function GetRGBEPixels: PVector4Byte;
@@ -1052,7 +965,7 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TImage); override;
   end;
 
-  { Grayscale image with alpha channel.
+  { Grayscale image with an alpha channel.
     Each pixel is two bytes: grayscale + alpha. }
   TGrayscaleAlphaImage = class(TImage)
   private
@@ -1081,17 +994,16 @@ type
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
 
-{ Encode RGB color as Greg Ward's Red + Green + Blue + Exponent format,
-  thus allowing you to encode 12 bytes (3 * SizeOf(Single) = 3 * 4 = 12)
-  in 4 bytes (4 * SizeOf(Byte) = 4), usually without any significant
-  loss.
+{ Encode RGB color as Red + Green + Blue + Exponent format.
+  This allows you to encode high-precision colors in 4 bytes,
+  see ifRGBE for pointers why this is useful.
 
-  Each component of V (red, green, blue) is from range
+  Each component of V (red, green, blue) must be from range
   [0, +infinity), not merely from [0, 1].
-  I.e. V must have only nonnegative values. }
+  That is, V must have only nonnegative values. }
 function Vector3ToRGBE(const v: TVector3Single): TVector4Byte;
 
-{ Decode Red + Green + Blue + Exponent back into RGB 3 x Single. }
+{ Decode Red + Green + Blue + Exponent back into RGB (3 floats). }
 function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
 
 { loading image (format-specific) ---------------------------------------
@@ -1183,7 +1095,7 @@ function LoadIPL(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
-{ Load RGBE image file format.
+{ Load RGBE image.
   This low-level function can load to TRGBEImage (preserving image data)
   or to TRGBImage (loosing floating point precision of RGBE format). }
 function LoadRGBE(Stream: TStream;
@@ -1236,8 +1148,72 @@ procedure SaveDDS(Img: TImage; Stream: TStream);
 
 type
   { }
-  TImageFormat = (ifBMP, ifPNG, ifJPEG, ifPCX, ifPPM, ifIPL, ifRGBE,
-    ifGIF, ifTGA, ifSGI, ifTIFF, ifJP2, ifEXR, ifDDS);
+  TImageFormat = (
+    { We handle uncompressed BMP images. }
+    ifBMP,
+
+    { We handle PNG file format fully, both reading and writing,
+      through the libpng library.
+
+      Note that currently this is the only format supported natively
+      (wthout running any external program) that allows an alpha channel.
+
+      Trying to read / write PNG file when libpng is not installed
+      (through LoadImage, SaveImage, LoadPNG, SavePNG and others)
+      will raise exception ELibPngNotAvailable. Note that the check
+      for availability of libpng is done only once you try to load/save PNG file.
+      You can perfectly compile and even run your programs without
+      PNG installed, until you try to load/save PNG format. }
+    ifPNG,
+
+    { We handle JPEG images. We use the PasJPEG code, which means
+      that jpeg support is compiled-in and doesn't require any external
+      library. }
+    ifJPEG,
+
+    ifPCX,
+    ifPPM,
+    ifIPL,
+
+    { High-dynamic range image format, originally used by Radiance.
+      See e.g. the pfilt and ximage programs from the Radiance package
+      for processing such images.
+
+      The float color values are encoded smartly as 4 bytes:
+      3 mantisas for RGB and 1 byte for an Exponent.
+      This is the Greg Ward's RGBE color encoding described in the
+      "Graphic Gems" (gem II.5). This allows high floating-point-like precision,
+      and possibility to encode any value >= 0 (not necessarily <= 1),
+      keeping the pixel only 4 bytes long.
+
+      Encoding a color values with float precision is very useful.
+      Otherwise, when synthesized / photographed images are
+      very dark / very bright, simply encoding them in traditional fixed-point
+      pixel format looses color precision. So potentially important but small
+      differences are lost in fixed-point formats.
+      And color values are clamped to [0..1] range.
+      On the other hand, keeping colors as floats preserves
+      everything, and allows to process images later.
+
+      It's most useful and natural to load/save these files as TRGBEImage,
+      this way you keep the floating-point precision inside memory.
+      However, you can also load/convert such image format
+      to normal 8-bits image formats (like TRGBImage),
+      if you're Ok with losing some of the precision. }
+    ifRGBE,
+
+    { GIF, TGA, SGI, TIFF, Jpeg2000, OpenEXR image formats are supported
+      by converting them  "under the hood" with ImageMagick.
+
+      This is available only if this unit is compiled with FPC
+      (i.e. not with Delphi) on platforms where ExecuteProcess is
+      implemented. And ImageMagick must be installed and available on $PATH. }
+    ifGIF, ifTGA, ifSGI, ifTIFF, ifJP2, ifEXR,
+
+    { We handle fully DDS (DirectDraw Surface) image format.
+      See also TDDSImage class in DDS unit,
+      this exposes even more features of the DDS image format. }
+    ifDDS);
   TImageFormats = set of TImageFormat;
 
   TImageLoadFunc = function (Stream: TStream;
@@ -1399,35 +1375,46 @@ const
 
   DefaultSaveImageFormat: TImageFormat = ifBMP;
 
-{ znajdz TImageFormat ktore ma podane dane fileext. fileext moze byc z poczatkowa
-  kropka (a wiec tak jak zwraca je ExtractFileExt) lub bez. Zwraca false i nie
-  zmienia ImgFormat jesli nie ma formatu o danym fileext. }
-function FileExtToImageFormat(fileext: string;
+{ Find image file format with given file extension.
+  FileExt may, but doesn't have to, contain the leading dot.
+  Returns @false if no format matching given extension. }
+function FileExtToImageFormat(FileExt: string;
   OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
 
-{ jak wyzej, ale jesli nie ma formatu o danym fileext to zwraca DefFormat. }
-function FileExtToImageFormatDef(const fileext: string;
+{ Find image file format with given file extension, return default
+  format if not found.
+  Like FileExtToImageFormat, but returns DefFormat if no matching format found. }
+function FileExtToImageFormatDef(const FileExt: string;
   OnlyLoadable, OnlySaveable: boolean; DefFormat: TImageFormat): TImageFormat;
 
-{ jak FileExtToImageFormat ale tutaj interesuje nas tylko czy MOZESZ
-  taki TImageFormat znalezc, a nie : jaki on jest. }
-function IsFileExtToImageFormat(const fileext: string;
+{ Check do we handle image file format with given file extension.
+  Like FileExtToImageFormat, except here we just check if the file extension
+  is a handled format --- we are not interested in actual TImageFormat value. }
+function IsFileExtToImageFormat(const FileExt: string;
   OnlyLoadable, OnlySaveable: boolean): boolean;
 
-{ j.w. z OnlyLoadable = true, OnlySaveable = false. }
-function IsFileExtLoadableImage(const fileext: string): boolean;
+{ Check do we handle loading image file format with given file extension.
+  Like IsFileExtToImageFormat, with OnlyLoadable = @true, OnlySaveable = @false. }
+function IsFileExtLoadableImage(const FileExt: string): boolean;
 
 type
   ENoExistingImageExt = class(Exception);
 
-{ zadana jest nazwa pliku s, bez koncowego rozszerzenia (takze bez koncowej kropki
-  przed rozszerzeniem). Probuje doklejac rozszerzenia sposrod ImageFormatInfos[].exts
-  az znajdzie takie ze po doklejeniu plik istnieje (NormalFileExists).
+{ Find an existing filename by appending known image files extensions.
+  Treat a given string S like a filename with a trailing dot and an extension.
+  For each known image file extension, try to append it (with leading dot)
+  and check does the file exists (as a regular file, that is by
+  NormalFileExists).
 
-  Jesli nie znajdzie - wersja Try zwroci '', wersja bez Try rzuci wyjatek
-  ENoExistingImageExt. Jesli znajdzie - zwraca nazwe pliku
-  z doklejonym rozszerzeniem. Jesli OnlyLoadable, bedzie szukal tylko wsrod
-  formatow loadable. }
+  If found --- return complete file name. If not found,
+  FindExistingImageExt raises ENoExistingImageExt,
+  while TryFindExistingImageExt returns ''.
+
+  @raises(ENoExistingImageExt FindExistingImageExt raises this if no existing
+    image file can be found.)
+
+  @param(OnlyLoadable If @true, will try to append only image file extensions
+    that we can load.) }
 function FindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
 function TryFindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
 
@@ -1454,6 +1441,7 @@ function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
 { loading image -------------------------------------------------------------- }
 
 type
+  { }
   EImageFormatNotSupported = class(Exception);
 
 const
@@ -1463,14 +1451,18 @@ const
 { TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
   zawartosci. }
 
-{ LoadImage is the ultimate procedure to load image from file.
+(*The ultimate procedure to load an image from a file.
 
-  Two simple example use cases:
-    Image := LoadImage('filename.png', [], []);
-  (when you don't care what TImage descendant you get) or
-    ImageRGB := LoadImage('filename.png', [TRGBImage], []) as TRGBImage;
-  (when you insist to get TRGBImage, not e.g. TRGBAlphaImage in case png
-  image in file has some alpha channel).
+  Simple examples:
+
+@longCode(#
+  { When you don't care what TImage descendant you get: }
+  Image := LoadImage('filename.png', [], []);
+
+  { When you insist on getting TRGBImage, that is 8-bit color image
+    without an alpha channel. }
+  ImageRGB := LoadImage('filename.png', [TRGBImage], []) as TRGBImage;
+#)
 
   Image file format is guess from FileName (or filename extension
   in TypeExt (may but doesn't have to contain leading dot),
@@ -1491,12 +1483,17 @@ const
   If PNG file will not be grayscale and not have alpha channel,
   LoadImage will return TRGBImage descendant, as before.
   But if PNG fill *will* have alpha channel then
-  1. if ForbiddenConvs does not contain [ilcAlphaDelete],
-     LoadImage will simply ignore (strip) alpha channel and return you TRGBImage
-  2. if ForbiddenConvs does contain [ilcAlphaDelete],
-     LoadImage will exit with exception EUnableToLoadImage.
-     This is sometimes safer, since you can't accidentaly ignore alpha
-     channel that was present in file.
+
+  @orderedList(
+
+    @item(if ForbiddenConvs does not contain [ilcAlphaDelete],
+      LoadImage will simply ignore (strip) alpha channel and return you TRGBImage)
+
+    @item(if ForbiddenConvs does contain [ilcAlphaDelete],
+      LoadImage will exit with exception EUnableToLoadImage.
+      This is sometimes safer, since you can't accidentaly ignore alpha
+      channel that was present in file.)
+  )
 
   Similar thing for grayscale: if image file was grayscale but you requested
   only TRGBImage, then grayscale may be "expanded" into full three-channel
@@ -1527,7 +1524,7 @@ const
     This can happen only if format is totally unknown (e.g. not recognized
     FileName extension) or if image format has no Load method at all.)
 
-  @groupBegin }
+  @groupBegin *)
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions)
@@ -1549,6 +1546,7 @@ function LoadImage(const filename: string;
 { saving image --------------------------------------------------------------- }
 
 type
+  { }
   EUnableToSaveImage = class(Exception);
 
 { Save image to a file.
@@ -1584,7 +1582,7 @@ procedure SaveImage(const img: TImage; const typeext: string; Stream: TStream); 
 procedure SaveImage(const Img: TImage; const fname: string); overload;
 { @groupEnd }
 
-{ inne przetwarzanie obrazkow TImage ------------------------------------- }
+{ Other TImage processing ---------------------------------------------------- }
 
 { Add and set constant alpha channel of given image.
   If image doesn't have alpha channel, we will create new Img instance
@@ -2099,6 +2097,7 @@ begin
     (Image.ClassType = ClassType) and
     (Image.Width = Width) and
     (Image.Height = Height) and
+    (Image.Depth = Depth) and
     (CompareMem(Image.RawPixels, RawPixels, Width * Height * PixelSize));
 end;
 
@@ -3198,19 +3197,19 @@ end;
 
 { file formats managing ---------------------------------------------------------------- }
 
-function FileExtToImageFormat(fileext: string;
+function FileExtToImageFormat(FileExt: string;
   OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
 var iff: TImageFormat;
     i: integer;
 begin
- if SCharIs(fileext, 1, '.') then Delete(fileext, 1, 1);
- fileext := AnsiLowerCase(fileext);
+ if SCharIs(FileExt, 1, '.') then Delete(FileExt, 1, 1);
+ FileExt := AnsiLowerCase(FileExt);
  for iff := Low(iff) to High(iff) do
  begin
   if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
      ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
   for i := 1 to ImageFormatInfos[iff].extsCount do
-   if fileext = ImageFormatInfos[iff].exts[i] then
+   if FileExt = ImageFormatInfos[iff].exts[i] then
    begin
     ImgFormat := iff;
     result := true;
@@ -3220,22 +3219,22 @@ begin
  result := false;
 end;
 
-function FileExtToImageFormatDef(const fileext: string;
+function FileExtToImageFormatDef(const FileExt: string;
   OnlyLoadable, OnlySaveable: boolean; DefFormat: TImageFormat): TImageFormat;
 begin
- if not FileExtToImageFormat(fileext, OnlyLoadable, OnlySaveable, result) then
+ if not FileExtToImageFormat(FileExt, OnlyLoadable, OnlySaveable, result) then
   result := DefFormat;
 end;
 
-function IsFileExtToImageFormat(const fileext: string; OnlyLoadable, OnlySaveable: boolean): boolean;
+function IsFileExtToImageFormat(const FileExt: string; OnlyLoadable, OnlySaveable: boolean): boolean;
 var dummy: TImageFormat;
 begin
- result := FileExtToImageFormat(fileext, OnlyLoadable, OnlySaveable, dummy);
+ result := FileExtToImageFormat(FileExt, OnlyLoadable, OnlySaveable, dummy);
 end;
 
-function IsFileExtLoadableImage(const fileext: string): boolean;
+function IsFileExtLoadableImage(const FileExt: string): boolean;
 begin
- result := IsFileExtToImageFormat(fileext, true, false);
+ result := IsFileExtToImageFormat(FileExt, true, false);
 end;
 
 function TryFindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
