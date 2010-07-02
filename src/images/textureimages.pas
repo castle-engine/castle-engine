@@ -80,7 +80,7 @@ const
   { All image classes that may be handled by OpenGL.
     Some of them may require specific OpenGL extensions or versions
     (like S3TC or float textures). }
-  TextureImageClassesAll: array [0..4] of TEncodedImageClass = (
+  TextureImageClassesAll: array [0..5] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
