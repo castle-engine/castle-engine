@@ -25,7 +25,7 @@
   (@link(TRGBAlphaImage), @link(TRGBImage),
   @link(TGrayscaleAlphaImage) and @link(TGrayscaleImage)).
   We also have an image with floating-point precision and range:
-  @link(TRGBEImage).
+  @link(TRGBFloatImage).
   You are free to create more descendants of TImage in your own units
   if you want to encode the pixel differently.
 
@@ -417,7 +417,7 @@ type
 
     { Set all image pixels to the same value.
       This is implemented only in descendants that represent a pixel
-      as a TVector4Byte (e.g. TRGBAlphaImage, TRGBEImage) or TVector3Byte
+      as a TVector4Byte (e.g. TRGBAlphaImage) or TVector3Byte
       (e.g. TRGBImage, 4th component is ignored in this case).
 
       In this class this simply raises EInternalError to say 'not implemented'.
@@ -743,7 +743,7 @@ procedure ImageClassesAssign(var Variable: TDynArrayImageClasses;
 
 type
   TRGBAlphaImage = class;
-  TRGBEImage = class;
+  TRGBFloatImage = class;
   TGrayscaleImage = class;
   TGrayscaleAlphaImage = class;
 
@@ -789,22 +789,22 @@ type
       const AlphaColor: TVector3Byte; Tolerance: Byte;
       AlphaOnColor: Byte; AlphaOnNoColor: Byte): TRGBAlphaImage;
 
-    { Convert image to an TRGBEImage format.
+    { Convert image to an TRGBFloatImage format.
 
-      Although RGBE format offers superior precision compared to RGB on 3 bytes,
+      Although float format offers superior precision compared to 8bit RGB,
       there is a slight chance of some unnoticeable loss of information
       in such convertion, since floating-point values are involved
       in calculation.
 
       But generally this conversion is relatively safe (contrary to
-      convertion RGBE -> RGB, which must be lossy).
+      convertion float -> 8-bit RGB, which must be lossy).
 
       But still you should note that doing such convertion has little
-      sense since RGBE is useful only when you have colors that can't
-      be expressed as simple RGB on 3 bytes. But by using this convertion
-      you initially fill RGBE image with data that does not have
+      sense since float format is useful only when you have colors that can't
+      be expressed as simple 8-bit RGB. But by using this convertion
+      you initially fill float image with data that does not have
       precision beyond standard 0..255 discreet range for each RGB component... }
-    function ToRGBEImage: TRGBEImage;
+    function ToRGBFloat: TRGBFloatImage;
 
     function ToGrayscale: TGrayscaleImage;
 
@@ -893,33 +893,30 @@ type
     function ToRGBImage: TRGBImage;
   end;
 
-  { Image with high-precision colors encoded as 3 mantisas + 1 exponent. }
-  TRGBEImage = class(TImage)
+  { Image with high-precision RGB colors encoded as 3 floats. }
+  TRGBFloatImage = class(TImage)
   private
-    function GetRGBEPixels: PVector4Byte;
+    function GetRGBFloatPixels: PVector3Single;
   public
-    { This is the same pointer as RawPixels, only typecasted to PVector4Byte }
-    property RGBEPixels: PVector4Byte read GetRGBEPixels;
+    { This is the same pointer as RawPixels, only typecasted to PVector3Single }
+    property RGBFloatPixels: PVector3Single read GetRGBFloatPixels;
 
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
 
-    function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector4Byte;
-    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector4Byte;
+    function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector3Single;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Single;
 
     procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
-    procedure Clear(const Pixel: TVector4Byte); override;
-    function IsClear(const Pixel: TVector4Byte): boolean; override;
+    procedure Clear(const Pixel: TVector3Single); reintroduce;
+    function IsClear(const Pixel: TVector3Single): boolean; reintroduce;
 
-    { Converts TRGBEImage to TRGBImage.
-      Colors in pixels are simply rounded using
-      Vector3Byte(VectorRGBETo3Single()).
+    { Converts TRGBFloatImage to TRGBImage.
+      Colors in pixels are simply rounded using @link(Vector3Byte).
       So such convertion not only kills the floating-point
-      precision in RGBE format but also clamps color components
-      to 1.0 (because colors in RGBE format consist of 3 non-negative values,
-      not necessarily <= 1.0. But converting them to simple RGB on 3 bytes
-      clamps values > 1.0 down to 1.0 (they are converted to High(Byte)). }
+      precision in float format but also clamps color components
+      to 0..1. }
     function ToRGBImage: TRGBImage;
 
     {$ifdef FPC}
@@ -996,7 +993,7 @@ type
 
 { Encode RGB color as Red + Green + Blue + Exponent format.
   This allows you to encode high-precision colors in 4 bytes,
-  see ifRGBE for pointers why this is useful.
+  see ifRGBE image format for pointers why this is useful.
 
   Each component of V (red, green, blue) must be from range
   [0, +infinity), not merely from [0, 1].
@@ -1096,7 +1093,7 @@ function LoadIPL(Stream: TStream;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
 { Load RGBE image.
-  This low-level function can load to TRGBEImage (preserving image data)
+  This low-level function can load to TRGBFloatImage (preserving image data)
   or to TRGBImage (loosing floating point precision of RGBE format). }
 function LoadRGBE(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
@@ -1195,7 +1192,7 @@ type
       On the other hand, keeping colors as floats preserves
       everything, and allows to process images later.
 
-      It's most useful and natural to load/save these files as TRGBEImage,
+      It's most useful and natural to load/save these files as TRGBFloatImage,
       this way you keep the floating-point precision inside memory.
       However, you can also load/convert such image format
       to normal 8-bits image formats (like TRGBImage),
@@ -1248,14 +1245,14 @@ type
     lcRGB,
     lcRGB_RGBA,
     lcG_GA_RGB_RGBA,
-    lcRGB_RGBE
+    lcRGB_RGBFloat
   );
 
   { Possible TImage classes supported by Save method of this file format. }
   TImageSaveHandledClasses = (
     scRGB,
     scG_GA_RGB_RGBA,
-    scRGB_RGBE
+    scRGB_RGBFloat
   );
 
   { A type to index TImageFormatInfo.Exts array and also for TImageFormatInfo.ExtsCount.
@@ -1339,8 +1336,8 @@ const
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'RGBE (RGB+Exponent) image';
       ExtsCount: 2; Exts: ('rgbe', 'pic', '');
-      Load: @LoadRGBE; LoadedClasses: lcRGB_RGBE;
-      Save: @SaveRGBE; SavedClasses: scRGB_RGBE; ),
+      Load: @LoadRGBE; LoadedClasses: lcRGB_RGBFloat;
+      Save: @SaveRGBE; SavedClasses: scRGB_RGBFloat; ),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       ExtsCount: 1; Exts: ('gif', '', '');
@@ -1503,7 +1500,7 @@ const
   AllowedImageClasses = [TRGBAlphaImage] but given PNG image does not
   have alpha channel. In this case LoadImage may add "dummy" alpha channel
   (everywhere equal to 1.0 or High(Byte)).
-  Similar thing when you e.g. gave AllowedImageClasses = [TRGBEImage]
+  Similar thing when you e.g. gave AllowedImageClasses = [TRGBFloatImage]
   but you're loading from PNG image. In this case you want float precision,
   but image file cannot offer it. So LoadImage can simply convert
   discreet values to appropriating floating point values.
@@ -1554,24 +1551,25 @@ type
   File format is determined by given FileName, filename extension (TypeExt)
   or just given explicitly as Format parameter.
 
-  Img class does @bold(not)
+  Image class does @bold(not)
   affect the created image file format, on the assumption that the
   "memory format" of the image (what TImage descendant is used)
   can be orthogonal to the actual "file format" used to save this file.
 
   Tries to write the image preserving it as closely as possible in this
   image format. When it's not possible, according conversions may be done:
-  floating point precision of TRGBEImage may be lost (if saving
-  to any file format besides RGBE file), alpha channel may be lost,
+  floating point precision of TRGBFloatImage may be lost (if saving
+  to any file format besides RGBE file, although saving to OpenEXR may also
+  preserve it once implemented), alpha channel may be lost,
   grayscale may be expanded and such.
 
   Although not absolutely all conversions are implemented for now.
   You can be sure that
   all image formats (that allow any saving at all) can be saved
-  from TRGBImage. Also TRGBEImage can be saved to RGBE file.
+  from TRGBImage. Also TRGBFloatImage can be saved to RGBE file.
   Also PNG format supports full collection (grayscale/rgb, alpha/no alpha
-  are all perfectly possible in PNG file; and TRGBEImage will be just converted
-  to RGB before saving to PNG).
+  are all perfectly possible in PNG file; and TRGBFloatImage will be just converted
+  to 8-bit RGB before saving to PNG).
 
   @raises(EUnableToSaveImage When it's not possible to save image,
     because of Img class (memory format) and/or image file format.)
@@ -1591,7 +1589,7 @@ procedure SaveImage(const Img: TImage; const fname: string); overload;
 procedure ImageAlphaConstTo1st(var Img: TImage; const AlphaConst: byte);
 
 { Choose TImage descendant best matching for this image file format.
-  The only purpose of this for now is to pick TRGBEImage for RGBE files,
+  The only purpose of this for now is to pick TRGBFloatImage for RGBE files,
   chooses TRGBImage for anything else.
 
   For the overloaded version with FileName, file format is determined
@@ -2485,22 +2483,23 @@ begin
  Result.AlphaDecide(AlphaColor, Tolerance, AlphaOnColor, AlphaOnNoColor);
 end;
 
-function TRGBImage.ToRGBEImage: TRGBEImage;
-var pRGBE: PVector4Byte;
-    pRGB: PVector3Byte;
-    i: Cardinal;
+function TRGBImage.ToRGBFloat: TRGBFloatImage;
+var
+  PFloat: PVector3Single;
+  PByte: PVector3Byte;
+  i: Cardinal;
 begin
- result := TRGBEImage.Create(Width, Height);
- try
-  pRGB := RGBPixels;
-  pRGBE := Result.RGBEPixels;
-  for i := 1 to Width * Height do
-  begin
-   pRGBE^:=Vector3ToRGBE( Vector3Single(pRGB^) );
-   Inc(pRGB);
-   Inc(pRGBE);
-  end;
- except Result.Free; raise end;
+  result := TRGBFloatImage.Create(Width, Height);
+  try
+    PByte := RGBPixels;
+    PFloat := Result.RGBFloatPixels;
+    for i := 1 to Width * Height do
+    begin
+      PFloat^ := Vector3Single(PByte^);
+      Inc(PByte);
+      Inc(PFloat);
+    end;
+  except Result.Free; raise end;
 end;
 
 function TRGBImage.ToGrayscale: TGrayscaleImage;
@@ -2773,107 +2772,129 @@ begin
   end;
 end;
 
-{ TRGBEImage ------------------------------------------------------------ }
+{ TRGBFloatImage ------------------------------------------------------------ }
 
-function TRGBEImage.GetRGBEPixels: PVector4Byte;
+function TRGBFloatImage.GetRGBFloatPixels: PVector3Single;
 begin
- Result := PVector4Byte(RawPixels);
+  Result := PVector3Single(RawPixels);
 end;
 
-class function TRGBEImage.PixelSize: Cardinal;
+class function TRGBFloatImage.PixelSize: Cardinal;
 begin
- Result := 4;
+  Result := SizeOf(TVector3Single);
 end;
 
-class function TRGBEImage.ColorComponentsCount: Cardinal;
+class function TRGBFloatImage.ColorComponentsCount: Cardinal;
 begin
- Result := 3;
+  Result := 3;
 end;
 
-function TRGBEImage.PixelPtr(const X, Y, Z: Cardinal): PVector4Byte;
+function TRGBFloatImage.PixelPtr(const X, Y, Z: Cardinal): PVector3Single;
 begin
- Result := PVector4Byte(inherited PixelPtr(X, Y, Z));
+  Result := PVector3Single(inherited PixelPtr(X, Y, Z));
 end;
 
-function TRGBEImage.RowPtr(const Y, Z: Cardinal): PArray_Vector4Byte;
+function TRGBFloatImage.RowPtr(const Y, Z: Cardinal): PArray_Vector3Single;
 begin
- Result := PArray_Vector4Byte(inherited RowPtr(Y, Z));
+  Result := PArray_Vector3Single(inherited RowPtr(Y, Z));
 end;
 
-procedure TRGBEImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
+procedure TRGBFloatImage.SetColorRGB(const x, y: Integer; const V: TVector3Single);
 begin
- PVector4Byte(PixelPtr(x, y))^:=Vector3ToRGBE(v);
+  PVector3Single(PixelPtr(x, y))^ := V;
 end;
 
-procedure TRGBEImage.Clear(const Pixel: TVector4Byte);
+procedure TRGBFloatImage.Clear(const Pixel: TVector3Single);
+var
+  P: PVector3Single;
+  I: Cardinal;
 begin
- FillDWord(RawPixels^, Width*Height, LongWord(Pixel));
-end;
-
-function TRGBEImage.IsClear(const Pixel: TVector4Byte): boolean;
-begin
- Result := IsMemDWordFilled(RawPixels^, Width*Height, LongWord(Pixel));
-end;
-
-function TRGBEImage.ToRGBImage: TRGBImage;
-var pRGBE: PVector4Byte;
-    pRGB: PVector3Byte;
-    i: Cardinal;
-begin
- Result := TRGBImage.Create(Width, Height);
- try
-  pRGB := Result.RGBPixels;
-  pRGBE := RGBEPixels;
-  for i := 1 to Width * Height do
+  P := RGBFloatPixels;
+  for I := 1 to Width * Height do
   begin
-   pRGB^:=Vector3Byte( VectorRGBETo3Single(pRGBE^) );
-   Inc(pRGB);
-   Inc(pRGBE);
+    Move(Pixel, P^, SizeOf(TVector3Single));
+    Inc(P);
   end;
- except Result.Free; raise end;
+end;
+
+function TRGBFloatImage.IsClear(const Pixel: TVector3Single): boolean;
+var
+  P: PVector3Single;
+  I: Cardinal;
+begin
+  P := RGBFloatPixels;
+  for I := 1 to Width * Height do
+  begin
+    if not CompareMem(@Pixel, P, SizeOf(TVector3Single)) then
+    begin
+      Result := false;
+      Exit;
+    end;
+    Inc(P);
+  end;
+  Result := true;
+end;
+
+function TRGBFloatImage.ToRGBImage: TRGBImage;
+var
+  PFloat: PVector3Single;
+  PByte: PVector3Byte;
+  i: Cardinal;
+begin
+  Result := TRGBImage.Create(Width, Height);
+  try
+    PByte := Result.RGBPixels;
+    PFloat := RGBFloatPixels;
+    for i := 1 to Width * Height do
+    begin
+      PByte^ := Vector3Byte(PFloat^);
+      Inc(PByte);
+      Inc(PFloat);
+    end;
+  except Result.Free; raise end;
 end;
 
 {$ifdef FPC}
-procedure TRGBEImage.ScaleColors(const Scale: Single);
-var pRGBE: PVector4Byte;
-    i: Cardinal;
+procedure TRGBFloatImage.ScaleColors(const Scale: Single);
+var
+  pFloat: PVector3Single;
+  i: Cardinal;
 begin
- pRGBE := RGBEPixels;
- for i := 1 to Width * Height do
- begin
-  pRGBE^:=Vector3ToRGBE( VectorScale( VectorRGBETo3Single(pRGBE^), Scale) );
-  Inc(pRGBE);
- end;
+  PFloat := RGBFloatPixels;
+  for i := 1 to Width * Height do
+  begin
+    PFloat^ := VectorScale(PFloat^, Scale);
+    Inc(PFloat);
+  end;
 end;
 
-procedure TRGBEImage.ExpColors(const Exp: Single);
-var pRGBE: PVector4Byte;
-    i: Cardinal;
+procedure TRGBFloatImage.ExpColors(const Exp: Single);
+var
+  pFloat: PVector3Single;
+  i: Cardinal;
 begin
- pRGBE := RGBEPixels;
- for i := 1 to Width * Height do
- begin
-  pRGBE^:=Vector3ToRGBE( VectorExpComponents( VectorRGBETo3Single(pRGBE^), Exp) );
-  Inc(pRGBE);
- end;
+  PFloat := RGBFloatPixels;
+  for i := 1 to Width * Height do
+  begin
+    PFloat^ := VectorExpComponents(PFloat^, Exp);
+    Inc(PFloat);
+  end;
 end;
 {$endif}
 
-procedure TRGBEImage.LerpWith(const Value: Single; SecondImage: TImage);
+procedure TRGBFloatImage.LerpWith(const Value: Single; SecondImage: TImage);
 var
-  SelfPtr: PVector4Byte;
-  SecondPtr: PVector4Byte;
+  SelfPtr: PVector3Single;
+  SecondPtr: PVector3Single;
   I: Cardinal;
 begin
   LerpSimpleCheckConditions(SecondImage);
 
-  SelfPtr := RGBEPixels;
-  SecondPtr := TRGBEImage(SecondImage).RGBEPixels;
+  SelfPtr := RGBFloatPixels;
+  SecondPtr := TRGBFloatImage(SecondImage).RGBFloatPixels;
   for I := 1 to Width * Height do
   begin
-    SelfPtr^ := Vector3ToRGBE(Lerp(Value,
-      VectorRGBETo3Single(SelfPtr^),
-      VectorRGBETo3Single(SecondPtr^)));
+    SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
     Inc(SelfPtr);
     Inc(SecondPtr);
   end;
@@ -3324,12 +3345,13 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewImage;
   end;
 
-  procedure ImageRGBToRGBETo1st(var Image: TImage);
-  var NewResult: TImage;
+  procedure ImageRGBToFloatTo1st(var Image: TImage);
+  var
+    NewResult: TImage;
   begin
-   NewResult := (Image as TRGBImage).ToRGBEImage;
-   Image.Free;
-   Image := NewResult;
+    NewResult := (Image as TRGBImage).ToRGBFloat;
+    Image.Free;
+    Image := NewResult;
   end;
 
 const
@@ -3350,11 +3372,11 @@ begin
                ClassAllowed(TGrayscaleImage) or
                ClassAllowed(TGrayscaleAlphaImage) then
               Result := Load(Stream, AllowedImageClasses, ForbiddenConvs) else
-            if ClassAllowed(TRGBEImage) and
+            if ClassAllowed(TRGBFloatImage) and
                (not (ilcFloatPrecAdd in ForbiddenConvs)) then
             begin
               Result := Load(Stream, [TRGBImage], ForbiddenConvs);
-              ImageRGBToRGBETo1st(result);
+              ImageRGBToFloatTo1st(result);
             end else
               raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
           end;
@@ -3365,11 +3387,11 @@ begin
               Result := Load(Stream, AllowedImageClasses, ForbiddenConvs) else
 {TODO:            if ClassAllowed(TGrayscaleImage) or
                ClassAllowed(TGrayscaleAlphaImage) }
-            if ClassAllowed(TRGBEImage) and
+            if ClassAllowed(TRGBFloatImage) and
                (not (ilcFloatPrecAdd in ForbiddenConvs)) then
             begin
               Result := Load(Stream, [TRGBImage], ForbiddenConvs);
-              ImageRGBToRGBETo1st(result);
+              ImageRGBToFloatTo1st(result);
             end else
               raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
           end;
@@ -3398,17 +3420,17 @@ begin
                 ImageAlphaConstTo1st(Result, DummyDefaultAlpha);
                 ImageGrayscaleAlphaTo1st(Result);
               end else }
-              if ClassAllowed(TRGBEImage) and
+              if ClassAllowed(TRGBFloatImage) and
                  (not (ilcFloatPrecAdd in ForbiddenConvs)) then
               begin
-                ImageRGBToRGBETo1st(result);
+                ImageRGBToFloatTo1st(result);
               end else
                 raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
             end;
           end;
-        lcRGB_RGBE:
+        lcRGB_RGBFloat:
           begin
-            if ClassAllowed(TRGBEImage) or
+            if ClassAllowed(TRGBFloatImage) or
                ClassAllowed(TRGBImage) then
               Result := LoadRGBE(Stream, AllowedImageClasses, ForbiddenConvs) else
             begin
@@ -3513,9 +3535,9 @@ begin
         begin
           if Img is TRGBImage then
             Save(Img, Stream) else
-          if Img is TRGBEImage then
+          if Img is TRGBFloatImage then
           begin
-            ImgRGB := TRGBEImage(Img).ToRGBImage;
+            ImgRGB := TRGBFloatImage(Img).ToRGBImage;
             try
               SaveImage(ImgRGB, Format, Stream);
             finally ImgRGB.Free end;
@@ -3529,19 +3551,19 @@ begin
              (Img is TGrayscaleImage) or
              (Img is TGrayscaleAlphaImage) then
             Save(Img, Stream) else
-          if Img is TRGBEImage then
+          if Img is TRGBFloatImage then
           begin
-            ImgRGB := TRGBEImage(Img).ToRGBImage;
+            ImgRGB := TRGBFloatImage(Img).ToRGBImage;
             try
               SaveImage(ImgRGB, Format, Stream);
             finally ImgRGB.Free end;
           end else
             raise EUnableToSaveImage.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
-      scRGB_RGBE:
+      scRGB_RGBFloat:
         begin
           if (Img is TRGBImage) or
-             (Img is TRGBEImage) then
+             (Img is TRGBFloatImage) then
             Save(Img, Stream) else
             raise EUnableToSaveImage.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
@@ -3593,14 +3615,16 @@ end;
 
 function ImageClassBestForSavingToFormat(const FileName: string): TImageClass;
 begin
- Result := ImageClassBestForSavingToFormat(
-   FileExtToImageFormatDef(ExtractFileExt(Filename), false, true,
-     DefaultSaveImageFormat));
+  Result := ImageClassBestForSavingToFormat(
+    FileExtToImageFormatDef(ExtractFileExt(Filename), false, true,
+      DefaultSaveImageFormat));
 end;
 
 function ImageClassBestForSavingToFormat(ImgFormat: TImageFormat): TImageClass;
 begin
- if ImgFormat = ifRGBE then Result := TRGBEImage else Result := TRGBImage;
+  if ImgFormat = ifRGBE then
+    Result := TRGBFloatImage else
+    Result := TRGBImage;
 end;
 
 { unit initialization / finalization ----------------------------------------- }

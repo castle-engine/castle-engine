@@ -85,8 +85,8 @@ const
 
 { Load image suitable for a texture.
   This will load image to memory formats supported by common
-  3D libraries (like OpenGL), for example it will never return
-  TRGBEImage (rgb+exponent).
+  3D libraries (like OpenGL), for example it will never return TRGBFloatImage
+  (although OpenGL may support it, but we cannot be sure at this point).
   It may return S3TC encoded image.
 
   If the image comes from a DDS file, it will also return it

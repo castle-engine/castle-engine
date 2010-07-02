@@ -698,7 +698,7 @@ begin
     (Image is TS3TCImage) or
     (Image is TRGBImage) or
     (Image is TRGBAlphaImage) or
-    (Image is TRGBEImage);
+    (Image is TRGBFloatImage);
 end;
 
 procedure TGLSingleTextureNode.EnableAll(

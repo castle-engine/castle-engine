@@ -69,15 +69,15 @@ const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;
      wszystko powinno zawsze isc OK i wynik powinien miec typ TRGBImage. }
    DoTest('rgb.ppm', [TRGBImage], [], TRGBImage);
    DoTest('rgb.ppm', [TRGBImage], [ilcAlphaAdd], TRGBImage);
-   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBEImage], [], TRGBImage);
-   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBEImage], [ilcAlphaAdd], TRGBImage);
-   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBEImage], AllImageLoadConversions, TRGBImage);
+   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [], TRGBImage);
+   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [ilcAlphaAdd], TRGBImage);
+   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], AllImageLoadConversions, TRGBImage);
 
-   DoFailTest('rgb.ppm', [TRGBAlphaImage, TRGBEImage], AllImageLoadConversions);
-   DoFailTest('rgb.ppm', [TRGBAlphaImage, TRGBEImage], [ilcAlphaAdd, ilcFloatPrecAdd]);
-   DoTest('rgb.ppm', [TRGBAlphaImage, TRGBEImage], [ilcAlphaAdd], TRGBEImage);
-   DoTest('rgb.ppm', [TRGBAlphaImage, TRGBEImage], [ilcFloatPrecAdd], TRGBAlphaImage);
-   DoTest('rgb.ppm', [TRGBAlphaImage, TRGBEImage], [], TRGBAlphaImage);
+   DoFailTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], AllImageLoadConversions);
+   DoFailTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], [ilcAlphaAdd, ilcFloatPrecAdd]);
+   DoTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], [ilcAlphaAdd], TRGBFloatImage);
+   DoTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], [ilcFloatPrecAdd], TRGBAlphaImage);
+   DoTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], [], TRGBAlphaImage);
   end;
 
 begin
@@ -90,20 +90,20 @@ begin
  DoTest('alpha.png', [TRGBImage], [], TRGBImage);
  DoTest('alpha.png', [TRGBImage], [ilcAlphaAdd], TRGBImage);
  DoFailTest('alpha.png', [TRGBImage], [ilcAlphaDelete]);
- DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBEImage], [], TRGBAlphaImage);
- DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBEImage], [ilcAlphaAdd], TRGBAlphaImage);
- DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBEImage], AllImageLoadConversions, TRGBAlphaImage);
- DoTest('alpha.png', [TRGBEImage], [], TRGBEImage);
- DoTest('alpha.png', [TRGBEImage], [ilcAlphaAdd], TRGBEImage);
- DoFailTest('alpha.png', [TRGBEImage], [ilcFloatPrecAdd]);
- DoFailTest('alpha.png', [TRGBEImage], [ilcAlphaDelete]);
- DoFailTest('alpha.png', [TRGBEImage], AllImageLoadConversions);
+ DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [], TRGBAlphaImage);
+ DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [ilcAlphaAdd], TRGBAlphaImage);
+ DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], AllImageLoadConversions, TRGBAlphaImage);
+ DoTest('alpha.png', [TRGBFloatImage], [], TRGBFloatImage);
+ DoTest('alpha.png', [TRGBFloatImage], [ilcAlphaAdd], TRGBFloatImage);
+ DoFailTest('alpha.png', [TRGBFloatImage], [ilcFloatPrecAdd]);
+ DoFailTest('alpha.png', [TRGBFloatImage], [ilcAlphaDelete]);
+ DoFailTest('alpha.png', [TRGBFloatImage], AllImageLoadConversions);
 
  { zaladuj obrazek z rgbe }
  DoTest('rgbe.rgbe', [TRGBImage], [], TRGBImage);
  DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], [], TRGBImage);
- DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBEImage], [], TRGBEImage);
- DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBEImage], AllImageLoadConversions, TRGBEImage);
+ DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [], TRGBFloatImage);
+ DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], AllImageLoadConversions, TRGBFloatImage);
  DoFailTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], [ilcFloatPrecDelete]);
  DoTest('rgbe.rgbe', [TRGBAlphaImage], [], TRGBAlphaImage);
  DoFailTest('rgbe.rgbe', [TRGBAlphaImage], [ilcFloatPrecDelete]);
@@ -121,13 +121,13 @@ end;
 
 procedure TTestImages.TestImageClassBestForSavingToFormat;
 begin
- Assert(ImageClassBestForSavingToFormat('ala.rgbe') = TRGBEImage);
- Assert(ImageClassBestForSavingToFormat('blah.rgbe') = TRGBEImage);
+ Assert(ImageClassBestForSavingToFormat('ala.rgbe') = TRGBFloatImage);
+ Assert(ImageClassBestForSavingToFormat('blah.rgbe') = TRGBFloatImage);
  Assert(ImageClassBestForSavingToFormat('ala.foo') = TRGBImage);
  Assert(ImageClassBestForSavingToFormat('blah.png') = TRGBImage);
  Assert(ImageClassBestForSavingToFormat('ala.bmp') = TRGBImage);
 
- Assert(ImageClassBestForSavingToFormat(ifRGBE) = TRGBEImage);
+ Assert(ImageClassBestForSavingToFormat(ifRGBE) = TRGBFloatImage);
  Assert(ImageClassBestForSavingToFormat(ifPNG) = TRGBImage);
 end;
 

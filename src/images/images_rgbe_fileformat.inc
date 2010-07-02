@@ -149,7 +149,8 @@ var
   xyzFormat: boolean;
   x, y, RGBEWidth, RGBEHeight: Integer;
   RGBERow: PArray_Vector4Byte;
-  ImageRow: PArray_Vector3Byte;
+  FloatRow: PArray_Vector3Single;
+  ByteRow: PArray_Vector3Byte;
 begin
   { read header }
   { klauzula FORMAT= moze nie wystapic w pliku, wtedy przyjmij xyzFormat = false }
@@ -169,75 +170,91 @@ begin
 
   Result := nil;
   try
-    if ClassAllowed(TRGBEImage) then
-    begin
-      Result := TRGBEImage.Create(RGBEWidth, RGBEHeight);
-      for y := result.Height-1 downto 0 do
-        ReadRGBERow( Result.RowPtr(y) );
-    end else
-    if ClassAllowed(TRGBImage) then
-    begin
-      DoingConversion(ilcFloatPrecDelete);
-      Result := TRGBImage.Create(RGBEWidth, RGBEHeight);
-
-      RGBERow := GetMem(SizeOf(TVector4Byte) * result.Width);
-      try
+    RGBERow := GetMem(SizeOf(TVector4Byte) * RGBEWidth);
+    try
+      if ClassAllowed(TRGBFloatImage) then
+      begin
+        Result := TRGBFloatImage.Create(RGBEWidth, RGBEHeight);
         for y := result.Height-1 downto 0 do
         begin
           ReadRGBERow(RGBERow);
-          ImageRow := PArray_Vector3Byte(Result.RowPtr(y));
-          for x := 0 to result.Width-1 do
-            ImageRow^[x] := Vector3Byte( VectorRGBETo3Single(RGBERow^[x]) )
+          FloatRow := Result.RowPtr(y);
+          for x := 0 to result.Width - 1 do
+            FloatRow^[x] := VectorRGBETo3Single(RGBERow^[x]);
         end;
-      finally FreeMemNiling(Pointer(RGBERow)) end;
-    end else
-      raise EUnableToLoadImage.CreateFmt('Cannot load RGBE file to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+      end else
+      if ClassAllowed(TRGBImage) then
+      begin
+        DoingConversion(ilcFloatPrecDelete);
+        Result := TRGBImage.Create(RGBEWidth, RGBEHeight);
+        for y := result.Height-1 downto 0 do
+        begin
+          ReadRGBERow(RGBERow);
+          ByteRow := Result.RowPtr(y);
+          for x := 0 to result.Width - 1 do
+            ByteRow^[x] := Vector3Byte( VectorRGBETo3Single(RGBERow^[x]) );
+        end;
+      end else
+        raise EUnableToLoadImage.CreateFmt('Cannot load RGBE file to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+    finally FreeMemNiling(Pointer(RGBERow)) end;
   except Result.Free; raise end;
 end;
 
 procedure SaveRGBE(Img: TImage; Stream: TStream);
-var pPixelRGB: PVector3Byte;
-    x, y: Integer;
-    rgbe: TVector4Byte;
+var
+  PByte: PVector3Byte;
+  PFloat: PVector3Single;
+  x, y: Integer;
+  RGBE: TVector4Byte;
 begin
- if not ((Img is TRGBImage) or (Img is TRGBEImage)) then
-   raise EUnableToSaveImage.CreateFmt('Saving to RGBE image class %s not possible', [Img.ClassName]);
+  if not ((Img is TRGBImage) or (Img is TRGBFloatImage)) then
+    raise EUnableToSaveImage.CreateFmt('Saving to RGBE image class %s not possible', [Img.ClassName]);
 
- WriteStr(Stream,'#?RADIANCE'#10+
-                 'FORMAT=32-bit_rle_rgbe'#10+
-		 'SOFTWARE='+ProgramName+' by Michalis Kamburelis (Kambi)'#10+
-		 #10+
-		 '-Y '+IntToStr(Img.Height)+' +X '+IntToStr(Img.Width)+#10);
+  WriteStr(Stream,'#?RADIANCE'#10 +
+                  'FORMAT=32-bit_rle_rgbe'#10 +
+                  'SOFTWARE=' + ProgramName + #10 +
+                  #10 +
+                  '-Y '+IntToStr(Img.Height)+' +X '+IntToStr(Img.Width)+#10);
 
- { Ktos moglby pomyslec ze powinienem napisac powyzej '+Y' zamiast '-Y',
-   bo przeciez taki format jest zgodny z kolejnoscia pixli w Img.
-   Ale nie wszystkie programy umieja odczytywac obrazki zapisane w orientacji
-   innej niz (-Y, +X) (nie umie nawet ximage Radiance'a ani display z
-   ImageMagicka wiec prawde mowiac w ogole nie wiem jaki program umie;
-   moje wlasne tez nie, I didn't implement it since it's not used by anything. }
+  { Theoretically, I could use above '+Y' instead of '-Y'.
+    '+Y' is more natural ordering for me, consistent with OpenGL and my TImage.
 
- if Img is TRGBImage then
- begin
-  for y := Img.Height-1 downto 0 do
+    However, it turns out that many (all?) programs cannot handle orientation
+    other than (-Y, +X). This applies even for ximage from Radiance,
+    or display from ImageMagick. Because of this, even our own LoadRGBE above
+    handles only (-Y, +X). So, honestly, it seems that there exists no program
+    able to handle anything else than (-Y, +X). }
+
+  if Img is TRGBImage then
   begin
-   pPixelRGB := Img.RowPtr(y);
-   for x := 0 to Img.Width-1 do
-   begin
-    rgbe := Vector3ToRGBE( Vector3Single(pPixelRGB^) );
-    Stream.WriteBuffer(rgbe, SizeOf(rgbe));
-    Inc(pPixelRGB);
-   end;
+    for y := Img.Height - 1 downto 0 do
+    begin
+      PByte := Img.RowPtr(y);
+      for x := 0 to Img.Width - 1 do
+      begin
+        RGBE := Vector3ToRGBE( Vector3Single(PByte^) );
+        Stream.WriteBuffer(RGBE, SizeOf(RGBE));
+        Inc(PByte);
+      end;
+    end;
+  end else
+  begin
+    for y := Img.Height - 1 downto 0 do
+    begin
+      PFloat := Img.RowPtr(y);
+      for x := 0 to Img.Width - 1 do
+      begin
+        RGBE := Vector3ToRGBE(PFloat^);
+        Stream.WriteBuffer(RGBE, SizeOf(RGBE));
+        Inc(PFloat);
+      end;
+    end;
   end;
- end else
- begin
-  for y := Img.Height-1 downto 0 do
-   Stream.WriteBuffer(Img.RowPtr(y)^, SizeOf(TVector4Byte) * Img.Width);
- end;
 end;
 
 { simple helper funcs ---------------------------------------- }
 
 procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
 begin
- SaveRGBE(Img, Stream);
+  SaveRGBE(Img, Stream);
 end;

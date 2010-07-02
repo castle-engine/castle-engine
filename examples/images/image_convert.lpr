@@ -26,8 +26,8 @@ var
   { optional params }
   ResizeX: Cardinal = 0;
   ResizeY: Cardinal = 0;
-  RGBEScale: Single = 1.0;
-  RGBEGamma: Single = 1.0;
+  FloatScale: Single = 1.0;
+  FloatGamma: Single = 1.0;
   WasParam_GrayScale: boolean = false;
   Param_ConvertToChannel: Integer = -1; { -1 means "don't convert" }
   Param_StripToChannel: Integer = -1; { -1 means "don't convert" }
@@ -64,16 +64,16 @@ const
              'Additional params with no fixed position:' +nl+
              '-s <float> or' +nl+
              '--scale <float>' +nl+
-             '  Valid only if input file is in RGBE format (error will be raised' +nl+
-             '  if this param is specified when input file is not in RGBE format).' +nl+
+             '  Valid only if input file has a float format (this is currently' +nl+
+             '  the case only for RGBE (Radiance) image format).' +nl+
              '  Effect : before writing output image, scales each pixel color' +nl+
              '  (it''s red, green and blue value) by <float>.' +nl+
-             '  Multiple --scale-rgbe _cummulate_ : e.g.' +nl+
-             '  "--scale-rgbe 1.5 --scale-rgbe 2" would have the same effect as' +nl+
-             '  "--scale-rgbe 3".' +nl+
+             '  Multiple --scale *cummulate* : e.g.' +nl+
+             '  "--scale 1.5 --scale 2" would have the same effect as' +nl+
+             '  "--scale 3".' +nl+
              '-g <float>' +nl+
              '--gamma <float>' +nl+
-             '  Similiar to --scale - valid only when input is RGBE,' +nl+
+             '  Similiar to --scale - valid only when input has float precision,' +nl+
              '  multiple params are cummulated, default is 1.0.' +nl+
              '  Each component is raised to 1/<float>.' +nl+
              '' +nl+
@@ -89,8 +89,8 @@ const
              '');
            ProgramBreak;
          end;
-      1: RGBEScale *= StrToFloat(Argument);
-      2: RGBEGamma *= StrToFloat(Argument);
+      1: FloatScale *= StrToFloat(Argument);
+      2: FloatGamma *= StrToFloat(Argument);
       3: WasParam_GrayScale := true;
       4: Param_ConvertToChannel := StrToInt(Argument);
       5: Param_StripToChannel := StrToInt(Argument);
@@ -118,15 +118,15 @@ begin
   { do. }
   Img := LoadImage(InputImageName, [], [], ResizeX, ResizeY);
   try
-    if RGBEScale <> 1.0 then
+    if FloatScale <> 1.0 then
     begin
-      Check(Img is TRGBEImage, '--scale <> 1.0 but input image is not in RGBE format');
-      (Img as TRGBEImage).ScaleColors(RGBEScale);
+      Check(Img is TRGBFloatImage, '--scale <> 1.0 but input image is not in a float (like Radiance RGBE) format');
+      (Img as TRGBFloatImage).ScaleColors(FloatScale);
     end;
-    if RGBEGamma <> 1.0 then
+    if FloatGamma <> 1.0 then
     begin
-      Check(Img is TRGBEImage, '--gamma <> 1.0 but input image is not in RGBE format');
-      (Img as TRGBEImage).ExpColors(1/RGBEGamma);
+      Check(Img is TRGBFloatImage, '--gamma <> 1.0 but input image is not in a float (like Radiance RGBE) format');
+      (Img as TRGBFloatImage).ExpColors(1/FloatGamma);
     end;
 
     if WasParam_GrayScale then

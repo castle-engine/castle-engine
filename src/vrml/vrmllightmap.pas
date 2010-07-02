@@ -57,7 +57,7 @@ type
 
   Wyliczone pixele zapisuje przy pomocy TImage.SetColorRGB, a wiec
   uwagi wypowiedziane przy RaytraceTo1st odnosnie straty nie tylko precyzji
-  ale i zakresu kolorow przy uzywaniu formatow Image innych niz TRGBEImage
+  ale i zakresu kolorow przy uzywaniu formatow Image innych niz TRGBFloatImage
   dotycza takze tej procedury.
 }
 procedure TriangleLightMapTo1st(const Image: TImage;

@@ -61,7 +61,7 @@ type
 
       We will write on image using TImage.SetColorRGB
       method, so this method must be implemented in Image class you use
-      (it's implemented in all 3 classes TRGBImage, TRGBAlphaImage, TRGBEImage
+      (it's implemented in all 3 classes TRGBImage, TRGBAlphaImage, TRGBFloatImage
       in Images unit, so usually you just don't worry about that).
 
       Dla kazdego pixela w ktorym promien trafia na obiekt
@@ -69,14 +69,13 @@ type
       Nie dotykamy kanalu Alpha obrazka TRGBAlphaImage.
       (kiedys mialem tu mechanizm obslugi
       tego kanalu ale zbytnio mi zawadzal a i tak nie byl uzywany, dlatego
-      go wylaczylem). Akceptujemy naturalnie obrazki TRGBEImage i bedziemy w nich
-      zapisywali precyzyjne kolory --- de facto format TRGBEImage zaimplementowalem
+      go wylaczylem). Akceptujemy naturalnie obrazki TRGBFloatImage i bedziemy w nich
+      zapisywali precyzyjne kolory --- de facto format TRGBFloatImage zaimplementowalem
       wlasnie po to zeby raytracery w tym module mogly zapisywac obrazki
       precyzyjnie, z kolorami jako 3xFloat.
 
-      Ponadto, gdy uzywasz dowolnego formatu innego niz TRGBEImage (patrzac
-      przyszlosciowo : dowolnego formatu z precyzja i zakresem float) tracisz nie
-      tylko precyzje : kolory 3xSingle sa konwertowane na 3xByte a
+      Ponadto, gdy uzywasz dowolnego formatu innego niz TRGBFloatImage
+      tracisz nie tylko precyzje : kolory 3xSingle sa konwertowane na 3xByte a
       konwersja Byte->Single jest robiona
       tak jak VectorMath.Vector3Byte : zakres Single 0-1 jest skalowany na
       zakres bajtu 0-255, jezeli wartosc Single jest wieksza niz 1 (co jest

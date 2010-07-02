@@ -74,7 +74,7 @@ function VRML97Emission(const IntersectNode: TVRMLTriangle;
   clamped do (0, 1) (robienie clamp przez te funkcje byloby czysta strata
   czasu, i tak te funkcje sa zazwyczaj opakowane w wiekszy kod liczacy
   kolory i ten nadrzedny kod musi robic clamp - o ile chce, np. raytracer
-  zapisujacy kolory do rgbe nie musi nigdzie robic clamp). }
+  zapisujacy kolory do float nie musi nigdzie robic clamp). }
 function VRML97LightContribution(const Light: TActiveLight;
   const Intersection: TVector3Single; const IntersectNode: TVRMLTriangle;
   const CamPosition: TVector3Single): TVector3Single;
