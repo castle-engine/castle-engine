@@ -70,18 +70,23 @@ uses Images, DDS, KambiUtils, VideosCache;
 {$define read_interface}
 
 const
+  { Image classes that are handled by absolutely all OpenGL versions. }
   TextureImageClasses: array [0..3] of TImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
     TGrayscaleAlphaImage);
 
+  { All image classes that may be handled by OpenGL.
+    Some of them may require specific OpenGL extensions or versions
+    (like S3TC or float textures). }
   TextureImageClassesAll: array [0..4] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
     TGrayscaleAlphaImage,
-    TS3TCImage);
+    TS3TCImage,
+    TRGBFloatImage);
 
 { Load image suitable for a texture.
   This will load image to memory formats supported by common
