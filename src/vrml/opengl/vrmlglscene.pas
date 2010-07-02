@@ -4437,14 +4437,25 @@ begin
 end;
 
 procedure TVRMLGLScene.Render(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup;
-  InShadow: boolean);
+  TransparentGroup: TTransparentGroup; InShadow: boolean);
+var
+  RestoreGLSLShaders: boolean;
 begin
   if Exists then
   begin
+    { When rendering to Variance Shadow Map, caller uses it's own shader.
+      Our own shaders must be turned off. }
+    RestoreGLSLShaders := (RenderState.Target = rtVarianceShadowMap)
+      and Attributes.GLSLShaders;
+    if RestoreGLSLShaders then
+      Attributes.GLSLShaders := false;
+
     if InShadow then
       RenderFrustum(Frustum, TransparentGroup, @LightRenderInShadow) else
       RenderFrustum(Frustum, TransparentGroup, nil);
+
+    if RestoreGLSLShaders then
+      Attributes.GLSLShaders := true;
   end;
 end;
 

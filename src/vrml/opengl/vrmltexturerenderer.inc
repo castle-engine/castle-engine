@@ -398,6 +398,7 @@
     RenderToTexture: TGLRenderToTexture;
     { VarianceShadowMaps calculated at the PrepareCore time. }
     VarianceShadowMaps: boolean;
+    VarianceShadowMapsProgram: TGLSLProgram;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       ANode: TNodeX3DTextureNode): boolean; override;
@@ -2220,6 +2221,7 @@ var
   TextureWrap: TTextureWrap2D;
 begin
   VarianceShadowMaps := Renderer.Attributes.VarianceShadowMaps and
+    (TGLSLProgram.ClassSupport <> gsNone) and
     (GL_ATI_texture_float or GL_ARB_texture_float);
 
   { TODO: fix TextureNode.FdSize.Value if needed }
@@ -2233,8 +2235,13 @@ begin
   begin
     if Log then
       WritelnLog('Shadows', 'Using Variance Shadow Maps');
+
     GLName := Renderer.Cache.TextureFloat_IncReference(
       TextureNode, TextureWrap, Size, Size);
+
+    VarianceShadowMapsProgram := TGLSLProgram.Create;
+    VarianceShadowMapsProgram.AttachFragmentShader({$I glsl/variance_shadow_map_generate.fs.inc});
+    VarianceShadowMapsProgram.Link(true);
   end else
   begin
     if not GL_ARB_depth_texture then
@@ -2265,6 +2272,9 @@ begin
       Renderer.Cache.TextureDepth_DecReference(GLName);
     GLName := 0;
   end;
+
+  if VarianceShadowMapsProgram <> nil then
+    FreeAndNil(VarianceShadowMapsProgram);
 end;
 
 function TGLGeneratedShadowMap.Bind(const TextureUnit: Cardinal): boolean;
@@ -2298,7 +2308,10 @@ begin
   { Render view for shadow map }
   ProjectionMatrix := Light.MapProjectionMatrix;
 
-  RenderState.Target := rtShadowMap;
+  if VarianceShadowMaps then
+    RenderState.Target := rtVarianceShadowMap else
+    RenderState.Target := rtShadowMap;
+
   RenderState.CameraFromMatrix(
     Light.MapModelviewMatrix,
     Light.MapModelviewRotationMatrix,
@@ -2320,7 +2333,10 @@ begin
         glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
         glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
 
-        Render;
+        if VarianceShadowMaps then VarianceShadowMapsProgram.Enable;
+          Render;
+        if VarianceShadowMaps then VarianceShadowMapsProgram.Disable;
+
       glPopAttrib;
 
       glMatrixMode(GL_PROJECTION);

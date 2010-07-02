@@ -46,7 +46,10 @@ type
     { Rendering color buffer contents to cube map texture. }
     rtCubeMapEnvironment,
     { Rendering depth buffer contents to shadow map texture. }
-    rtShadowMap);
+    rtShadowMap,
+    { Rendering with a special VSM shader to capture shadow map texture
+      (in the normal color buffer). }
+    rtVarianceShadowMap);
 
   { Common knowledge about currently rendered 3D state.
     This is basically just a collection of global variables that

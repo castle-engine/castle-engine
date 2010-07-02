@@ -743,7 +743,11 @@ type
       read FBumpMappingMaximum write SetBumpMappingMaximum
       default bmNone;
 
-    { @abstract(Use shaders defined in VRML file in GLSL language ?) }
+    { @abstract(Use shaders defined in VRML file in GLSL language ?)
+
+      When this is @false, the renderer does not control GLSL shaders
+      (it does not set any GLSL program active etc.). Which means that
+      the caller is free to apply any shader for the whole rendered scene. }
     property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
       default true;
 
@@ -3424,7 +3428,19 @@ procedure TVRMLRenderingAttributes.SetGLSLShaders(const Value: boolean);
 begin
   if GLSLShaders <> Value then
   begin
-    BeforeChange;
+    { TODO: this is a huge hack for VSM: changing GLSLShaders is done
+      inside TVRMLGLScene.Render, to allow using our own VSM shader
+      generating depth. In that case, we really do not want to trigger
+      BeforeChange when changing Attributes.GLSLShaders value
+      (this would cause CloseGLRenderer on all scenes, thus freeing
+      VSM texture and shader resources currently used... bad idea).
+
+      Eventually, this should be solved one day by throwing away
+      display lists, using only VBO, and allowing changes to Attributes
+      happen without any speed penalty (no need for any costly BeforeChange
+      and such). }
+    if not VarianceShadowMaps then
+      BeforeChange;
     FGLSLShaders := Value;
   end;
 end;
