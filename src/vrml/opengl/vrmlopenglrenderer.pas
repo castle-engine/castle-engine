@@ -387,6 +387,7 @@ type
 const
   DefaultBumpMappingMaximum = bmNone;
   DefaultFirstGLFreeLight = 1;
+  DefaultVarianceShadowMaps = false;
 
 type
   { These are various properties that control rendering done
@@ -806,12 +807,11 @@ type
       (bilinear, mipmaps, anisotropic filtering). So shadows look much nicer
       from very close and very far distances.
 
-      It is currently off by default, as it's in the testing phase.
-      Note that it requires, for now, that your scene doesn't use any
+      TODO: It requires, for now, that your scene doesn't use any
       GLSL shaders (otherwise they will disable the default VSM shader
       that generates proper depths). }
     property VarianceShadowMaps: boolean read FVarianceShadowMaps
-      write SetVarianceShadowMaps default false;
+      write SetVarianceShadowMaps default DefaultVarianceShadowMaps;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -3143,7 +3143,7 @@ begin
   FGLSLShaders := true;
   FTextureModeGrayscale := GL_MODULATE;
   FTextureModeRGB := GL_MODULATE;
-  FVarianceShadowMaps := false;
+  FVarianceShadowMaps := DefaultVarianceShadowMaps;
 end;
 
 procedure TVRMLRenderingAttributes.BeforeChange;
