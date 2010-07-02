@@ -279,6 +279,8 @@ var
   GL_EXT_framebuffer_object: boolean;
   GL_ARB_occlusion_query: boolean;
   GL_EXT_packed_depth_stencil: boolean;
+  GL_ATI_texture_float: boolean;
+  GL_ARB_texture_float: boolean;
 
 {$ifdef NEEDS_FOG_COORD_FIX}
 var
@@ -1324,6 +1326,8 @@ begin
  GL_EXT_framebuffer_object := Load_GL_EXT_framebuffer_object;
  GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
  GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;
+ GL_ATI_texture_float := Load_GL_ATI_texture_float;
+ GL_ARB_texture_float := Load_GL_ARB_texture_float;
 
  GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
 

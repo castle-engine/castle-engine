@@ -396,6 +396,8 @@
   TGLGeneratedShadowMap = class(TGLSingleTextureNode)
   private
     RenderToTexture: TGLRenderToTexture;
+    { VarianceShadowMaps calculated at the PrepareCore time. }
+    VarianceShadowMaps: boolean;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       ANode: TNodeX3DTextureNode): boolean; override;
@@ -2217,11 +2219,8 @@ procedure TGLGeneratedShadowMap.PrepareCore(State: TVRMLGraphTraverseState);
 var
   TextureWrap: TTextureWrap2D;
 begin
-  if not GL_ARB_depth_texture then
-  begin
-    VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_depth_texture, cannot use GeneratedShadowMap nodes');
-    Exit;
-  end;
+  VarianceShadowMaps := Renderer.Attributes.VarianceShadowMaps and
+    (GL_ATI_texture_float or GL_ARB_texture_float);
 
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;
@@ -2230,12 +2229,27 @@ begin
   TextureWrap[0] := GL_CLAMP;
   TextureWrap[1] := GL_CLAMP;
 
-  GLName := Renderer.Cache.TextureDepth_IncReference(
-    TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size);
+  if VarianceShadowMaps then
+  begin
+    if Log then
+      WritelnLog('Shadows', 'Using Variance Shadow Maps');
+    GLName := Renderer.Cache.TextureFloat_IncReference(
+      TextureNode, TextureWrap, Size, Size);
+  end else
+  begin
+    if not GL_ARB_depth_texture then
+    begin
+      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_depth_texture, cannot use GeneratedShadowMap nodes');
+      Exit;
+    end;
+
+    GLName := Renderer.Cache.TextureDepth_IncReference(
+      TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size);
+  end;
 
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
   RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
-  RenderToTexture.DepthTexture := true;
+  RenderToTexture.DepthTexture := not VarianceShadowMaps;
   RenderToTexture.Stencil := false;
   RenderToTexture.GLContextInit;
 end;
@@ -2246,7 +2260,9 @@ begin
 
   if GLName <> 0 then
   begin
-    Renderer.Cache.TextureDepth_DecReference(GLName);
+    if VarianceShadowMaps then
+      Renderer.Cache.TextureFloat_DecReference(GLName) else
+      Renderer.Cache.TextureDepth_DecReference(GLName);
     GLName := 0;
   end;
 end;

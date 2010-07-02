@@ -948,21 +948,23 @@ type
   {$I dynarray_11.inc}
   TDynTexture3DCacheArray = TDynArray_11;
 
-  TTextureDepthCache = record
+  { For now, depth and float textures require the same fields.
+    TODO: change this into an old-style "object" hierarchy. }
+  TTextureDepthOrFloatCache = record
     { For now, this may be TNodeGeneratedShadowMap or TNodeRenderedTexture. }
     InitialNode: TNodeX3DTextureNode;
     Wrap: TTextureWrap2D;
     References: Cardinal;
     GLName: TGLuint;
   end;
-  PTextureDepthCache = ^TTextureDepthCache;
+  PTextureDepthOrFloatCache = ^TTextureDepthOrFloatCache;
 
-  TDynArrayItem_13 = TTextureDepthCache;
-  PDynArrayItem_13 = PTextureDepthCache;
+  TDynArrayItem_13 = TTextureDepthOrFloatCache;
+  PDynArrayItem_13 = PTextureDepthOrFloatCache;
   {$define DYNARRAY_13_IS_STRUCT}
   {$define DYNARRAY_13_IS_INIT_FINI_TYPE}
   {$I dynarray_13.inc}
-  TDynTextureDepthCacheArray = TDynArray_13;
+  TDynTextureDepthOrFloatCacheArray = TDynArray_13;
 
   { Note that Attributes and State are owned by this record
     (TVRMLOpenGLRendererContextCache will make sure about creating/destroying
@@ -1040,7 +1042,7 @@ type
     TextureVideoCaches: TDynTextureVideoCacheArray;
     TextureCubeMapCaches: TDynTextureCubeMapCacheArray;
     Texture3DCaches: TDynTexture3DCacheArray;
-    TextureDepthCaches: TDynTextureDepthCacheArray;
+    TextureDepthOrFloatCaches: TDynTextureDepthOrFloatCacheArray;
     ShapeCaches: TDynShapeCacheArray;
     ShapeNoTransformCaches: TDynShapeCacheArray;
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
@@ -1107,6 +1109,14 @@ type
       const Width, Height: Cardinal): TGLuint;
 
     procedure TextureDepth_DecReference(
+      const TextureGLName: TGLuint);
+
+    { Increase / decrease reference to float16 texture.
+      Required ARB_texture_float or ATI_texture_float before calling this. }
+    function TextureFloat_IncReference(Node: TNodeX3DTextureNode;
+      const TextureWrap: TTextureWrap2D;
+      const Width, Height: Cardinal): TGLuint;
+    procedure TextureFloat_DecReference(
       const TextureGLName: TGLuint);
 
     { Load given 3D texture to OpenGL, using our cache.
@@ -1683,7 +1693,7 @@ begin
   TextureVideoCaches := TDynTextureVideoCacheArray.Create;
   TextureCubeMapCaches := TDynTextureCubeMapCacheArray.Create;
   Texture3DCaches := TDynTexture3DCacheArray.Create;
-  TextureDepthCaches := TDynTextureDepthCacheArray.Create;
+  TextureDepthOrFloatCaches := TDynTextureDepthOrFloatCacheArray.Create;
   ShapeCaches := TDynShapeCacheArray.Create;
   ShapeNoTransformCaches := TDynShapeCacheArray.Create;
   RenderBeginCaches := TDynRenderBeginEndCacheArray.Create;
@@ -1745,11 +1755,11 @@ begin
     FreeAndNil(Texture3DCaches);
   end;
 
-  if TextureDepthCaches <> nil then
+  if TextureDepthOrFloatCaches <> nil then
   begin
-    Assert(TextureDepthCaches.Count = 0, 'Some references to depth texture still exist' +
+    Assert(TextureDepthOrFloatCaches.Count = 0, 'Some references to depth or float texture still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
-    FreeAndNil(TextureDepthCaches);
+    FreeAndNil(TextureDepthOrFloatCaches);
   end;
 
   if ShapeCaches <> nil then
@@ -2238,11 +2248,11 @@ function TVRMLOpenGLRendererContextCache.TextureDepth_IncReference(
   const Width, Height: Cardinal): TGLuint;
 var
   I: Integer;
-  TextureCached: PTextureDepthCache;
+  TextureCached: PTextureDepthOrFloatCache;
 begin
-  for I := 0 to TextureDepthCaches.High do
+  for I := 0 to TextureDepthOrFloatCaches.High do
   begin
-    TextureCached := TextureDepthCaches.Pointers[I];
+    TextureCached := TextureDepthOrFloatCaches.Pointers[I];
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.Wrap = TextureWrap) then
@@ -2294,7 +2304,7 @@ begin
   end else
     VRMLWarning(vwIgnorable, 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
 
-  TextureCached := TextureDepthCaches.Add;
+  TextureCached := TextureDepthOrFloatCaches.Add;
   TextureCached^.InitialNode := Node;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
@@ -2309,23 +2319,96 @@ procedure TVRMLOpenGLRendererContextCache.TextureDepth_DecReference(
 var
   I: Integer;
 begin
-  for I := 0 to TextureDepthCaches.High do
-    if TextureDepthCaches.Items[I].GLName = TextureGLName then
+  for I := 0 to TextureDepthOrFloatCaches.High do
+    if TextureDepthOrFloatCaches.Items[I].GLName = TextureGLName then
     begin
-      Dec(TextureDepthCaches.Items[I].References);
+      Dec(TextureDepthOrFloatCaches.Items[I].References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : Depth texture ', PointerToStr(TextureDepthCaches.Items[I].InitialNode), ' : ', TextureDepthCaches.Items[I].References);
+      Writeln('-- : Depth texture ', PointerToStr(TextureDepthOrFloatCaches.Items[I].InitialNode), ' : ', TextureDepthOrFloatCaches.Items[I].References);
       {$endif}
-      if TextureDepthCaches.Items[I].References = 0 then
+      if TextureDepthOrFloatCaches.Items[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TextureDepthCaches.Items[I].GLName));
-        TextureDepthCaches.Delete(I, 1);
+        glDeleteTextures(1, @(TextureDepthOrFloatCaches.Items[I].GLName));
+        TextureDepthOrFloatCaches.Delete(I, 1);
       end;
       Exit;
     end;
 
   raise EInternalError.CreateFmt(
     'TVRMLOpenGLRendererContextCache.TextureDepth_DecReference: no reference ' +
+    'found to texture %d', [TextureGLName]);
+end;
+
+function TVRMLOpenGLRendererContextCache.TextureFloat_IncReference(
+  Node: TNodeX3DTextureNode;
+  const TextureWrap: TTextureWrap2D;
+  const Width, Height: Cardinal): TGLuint;
+var
+  I: Integer;
+  TextureCached: PTextureDepthOrFloatCache;
+begin
+  for I := 0 to TextureDepthOrFloatCaches.High do
+  begin
+    TextureCached := TextureDepthOrFloatCaches.Pointers[I];
+
+    if (TextureCached^.InitialNode = Node) and
+       (TextureCached^.Wrap = TextureWrap) then
+    begin
+      Inc(TextureCached^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('++ : Float texture ', PointerToStr(Node), ' : ', TextureCached^.References);
+      {$endif}
+      Exit(TextureCached^.GLName);
+    end;
+  end;
+
+  glGenTextures(1, @Result);
+  glBindTexture(GL_TEXTURE_2D, Result);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
+
+  { Do not init any texture image. Just initialize texture sizes
+    and both internal and external formats to GL_DEPTH_COMPONENT_ARB
+    (will match depth buffer precision). }
+  glTexImage2d(GL_TEXTURE_2D, 0, GL_RGB16F_ARB { same thing as GL_RGB_FLOAT16_ATI },
+    Width, Height, 0, GL_RGB, GL_FLOAT, nil);
+
+  TextureCached := TextureDepthOrFloatCaches.Add;
+  TextureCached^.InitialNode := Node;
+  TextureCached^.References := 1;
+  TextureCached^.GLName := Result;
+
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('++ : Float texture ', PointerToStr(Node), ' : ', 1);
+  {$endif}
+end;
+
+procedure TVRMLOpenGLRendererContextCache.TextureFloat_DecReference(
+  const TextureGLName: TGLuint);
+var
+  I: Integer;
+begin
+  for I := 0 to TextureDepthOrFloatCaches.High do
+    if TextureDepthOrFloatCaches.Items[I].GLName = TextureGLName then
+    begin
+      Dec(TextureDepthOrFloatCaches.Items[I].References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('-- : Float texture ', PointerToStr(TextureDepthOrFloatCaches.Items[I].InitialNode), ' : ', TextureDepthOrFloatCaches.Items[I].References);
+      {$endif}
+      if TextureDepthOrFloatCaches.Items[I].References = 0 then
+      begin
+        glDeleteTextures(1, @(TextureDepthOrFloatCaches.Items[I].GLName));
+        TextureDepthOrFloatCaches.Delete(I, 1);
+      end;
+      Exit;
+    end;
+
+  raise EInternalError.CreateFmt(
+    'TVRMLOpenGLRendererContextCache.TextureFloat_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
 end;
 
