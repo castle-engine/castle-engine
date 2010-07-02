@@ -198,30 +198,9 @@ type
       be used. }
     function ReallyUseHierarchicalOcclusionQuery: boolean;
   protected
-    procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); override;
-    procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); override;
-    procedure SetOnVertexColor(const Value: TVertexColorFunction); override;
-    procedure SetSmoothShading(const Value: boolean); override;
+    procedure BeforeChange; override;
     procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); override;
     procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); override;
-    procedure SetLighting(const Value: boolean); override;
-    procedure SetUseSceneLights(const Value: boolean); override;
-    procedure SetFirstGLFreeLight(const Value: Cardinal); override;
-    procedure SetLastGLFreeLight(const Value: integer); override;
-    procedure SetControlMaterials(const Value: boolean); override;
-    procedure SetControlTextures(const Value: boolean); override;
-    procedure SetEnableTextures(const Value: boolean); override;
-    procedure SetFirstGLFreeTexture(const Value: Cardinal); override;
-    procedure SetLastGLFreeTexture(const Value: integer); override;
-    procedure SetTextureMinFilter(const Value: TGLint); override;
-    procedure SetTextureMagFilter(const Value: TGLint); override;
-    procedure SetPointSize(const Value: TGLFloat); override;
-    procedure SetUseFog(const Value: boolean); override;
-    procedure SetBumpMappingMaximum(const Value: TBumpMappingMethod); override;
-    procedure SetGLSLShaders(const Value: boolean); override;
-    procedure SetPureGeometry(const Value: boolean); override;
-    procedure SetTextureModeGrayscale(const Value: TGLenum); override;
-    procedure SetTextureModeRGB(const Value: TGLenum); override;
 
     procedure SetBlending(const Value: boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
@@ -4981,22 +4960,26 @@ begin
     (TVRMLSceneRenderingAttributes(SecondValue).UseHierarchicalOcclusionQuery = UseHierarchicalOcclusionQuery);
 end;
 
-{ Interfejs Renderera mowi ze zeby zmienic atrybut renderer musi byc wolny
-  od aktualnego kontekstu OpenGLa, wiec musimy przed zmiana atrybutu
-  wywolac przynajmniej Renderer.UnprepareAll.
+procedure TVRMLSceneRenderingAttributes.BeforeChange;
+begin
+  inherited;
 
-  Prawda jest taka ze my tez musimy byc wolni - nie mozemy miec zadnych
-  przeliczonych display-list, nic takiego, bo wlasnie zmiana Attributes renderera
-  moze te rzeczy zdezaktualizowac - z innymi attrib renderer bedzie dawal
-  co innego.
+  { TVRMLOpenGLRenderer requires that attributes may be changed only when
+    nothing is prepared. So we have to do at least Renderer.UnprepareAll.
+    In practice, we have to do more: TVRMLGLScene must also be disconnected
+    from OpenGL, no display lists or such, since their state also depends
+    on the rendering results.
 
-  Wiec kazda zmiana atrybutu musi byc poprzedzona ScenesCloseGLRenderer. }
+    So full CloseGLRenderer is needed. }
+
+  FScenes.CloseGLRenderer;
+end;
 
 procedure TVRMLSceneRenderingAttributes.SetBlending(const Value: boolean);
 begin
   if Blending <> Value then
   begin
-    FScenes.CloseGLRenderer;
+    BeforeChange;
     FBlending := Value;
   end;
 end;
@@ -5006,7 +4989,7 @@ procedure TVRMLSceneRenderingAttributes.SetBlendingSourceFactor(
 begin
   if BlendingSourceFactor <> Value then
   begin
-    FScenes.CloseGLRenderer;
+    BeforeChange;
     FBlendingSourceFactor := Value;
   end;
 end;
@@ -5016,7 +4999,7 @@ procedure TVRMLSceneRenderingAttributes.SetBlendingDestinationFactor(
 begin
   if BlendingDestinationFactor <> Value then
   begin
-    FScenes.CloseGLRenderer;
+    BeforeChange;
     FBlendingDestinationFactor := Value;
   end;
 end;
@@ -5025,7 +5008,7 @@ procedure TVRMLSceneRenderingAttributes.SetBlendingSort(const Value: boolean);
 begin
   if BlendingSort <> Value then
   begin
-    FScenes.CloseGLRenderer;
+    BeforeChange;
     FBlendingSort := Value;
   end;
 end;
@@ -5034,7 +5017,7 @@ procedure TVRMLSceneRenderingAttributes.SetControlBlending(const Value: boolean)
 begin
   if ControlBlending <> Value then
   begin
-    FScenes.CloseGLRenderer;
+    BeforeChange;
     FControlBlending := Value;
   end;
 end;
@@ -5044,7 +5027,7 @@ procedure TVRMLSceneRenderingAttributes.SetOnBeforeShapeRender(
 begin
   if OnBeforeShapeRender <> Value then
   begin
-    FScenes.CloseGLRenderer;
+    BeforeChange;
     FOnBeforeShapeRender := Value;
   end;
 end;
@@ -5063,52 +5046,12 @@ begin
   end;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetOnBeforeGLVertex(
-  const Value: TBeforeGLVertexProc);
-begin
-  if OnBeforeGLVertex <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetOnRadianceTransfer(
-  const Value: TRadianceTransferFunction);
-begin
-  if OnRadianceTransfer <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetOnVertexColor(
-  const Value: TVertexColorFunction);
-begin
-  if OnVertexColor <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetSmoothShading(const Value: boolean);
-begin
-  if SmoothShading <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
 procedure TVRMLSceneRenderingAttributes.SetColorModulatorSingle(
   const Value: TColorModulatorSingleFunc);
 begin
   if ColorModulatorSingle <> Value then
   begin
     FScenes.FBackgroundInvalidate;
-    FScenes.CloseGLRenderer;
     inherited;
   end;
 end;
@@ -5119,170 +5062,6 @@ begin
   if ColorModulatorByte <> Value then
   begin
     FScenes.FBackgroundInvalidate;
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetLighting(const Value: boolean);
-begin
-  if Lighting <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetUseSceneLights(const Value: boolean);
-begin
-  if UseSceneLights <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetFirstGLFreeLight(const Value: Cardinal);
-begin
-  if FirstGLFreeLight <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetLastGLFreeLight(const Value: integer);
-begin
-  if LastGLFreeLight <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetControlMaterials(const Value: boolean);
-begin
-  if ControlMaterials <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetControlTextures(const Value: boolean);
-begin
-  if ControlTextures <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetEnableTextures(const Value: boolean);
-begin
-  if EnableTextures <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetFirstGLFreeTexture(const Value: Cardinal);
-begin
-  if FirstGLFreeTexture <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetLastGLFreeTexture(const Value: integer);
-begin
-  if LastGLFreeTexture <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
-begin
-  if TextureMinFilter <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
-begin
-  if TextureMagFilter <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetPointSize(const Value: TGLFloat);
-begin
-  if PointSize <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetUseFog(const Value: boolean);
-begin
-  if UseFog <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetBumpMappingMaximum(
-  const Value: TBumpMappingMethod);
-begin
-  if BumpMappingMaximum <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetGLSLShaders(const Value: boolean);
-begin
-  if GLSLShaders <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetPureGeometry(const Value: boolean);
-begin
-  if PureGeometry <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
-begin
-  if TextureModeGrayscale <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
-begin
-  if TextureModeRGB <> Value then
-  begin
-    FScenes.CloseGLRenderer;
     inherited;
   end;
 end;

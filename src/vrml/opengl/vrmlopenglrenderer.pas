@@ -423,8 +423,11 @@ type
     FPureGeometry: boolean;
     FTextureModeGrayscale: TGLenum;
     FTextureModeRGB: TGLenum;
+    FVarianceShadowMaps: boolean;
   protected
-    { In this class these methods just set value on given property.
+    { These methods just set the value on given property,
+      eventually calling BeforeChange.
+
       In descendants you can do something more here, like automatic
       calling UnprepareAll of related TVRMLOpenGLRenderer
       (this is not done here, as this would be dangerous ---
@@ -455,8 +458,12 @@ type
     procedure SetPureGeometry(const Value: boolean); virtual;
     procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
     procedure SetTextureModeRGB(const Value: TGLenum); virtual;
-
+    procedure SetVarianceShadowMaps(const Value: boolean); virtual;
     { @groupEnd }
+
+    { Called always before a rendering attribute (that is, any property
+      of this class that has an effect on rendering) changes. }
+    procedure BeforeChange; virtual;
   public
     constructor Create; virtual;
 
@@ -792,6 +799,19 @@ type
     property TextureModeRGB: TGLenum
       read FTextureModeRGB write SetTextureModeRGB default GL_MODULATE;
     { @groupEnd }
+
+    { Try to use variance shadow maps.
+      See http://www.punkuser.net/vsm/ . This may generally produce superior
+      results, as shadow maps can be then filtered like normal textures
+      (bilinear, mipmaps, anisotropic filtering). So shadows look much nicer
+      from very close and very far distances.
+
+      It is currently off by default, as it's in the testing phase.
+      Note that it requires, for now, that your scene doesn't use any
+      GLSL shaders (otherwise they will disable the default VSM shader
+      that generates proper depths). }
+    property VarianceShadowMaps: boolean read FVarianceShadowMaps
+      write SetVarianceShadowMaps default false;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -3123,132 +3143,243 @@ begin
   FGLSLShaders := true;
   FTextureModeGrayscale := GL_MODULATE;
   FTextureModeRGB := GL_MODULATE;
+  FVarianceShadowMaps := false;
+end;
+
+procedure TVRMLRenderingAttributes.BeforeChange;
+begin
+  { Nothing to do in this class. }
 end;
 
 procedure TVRMLRenderingAttributes.SetOnBeforeGLVertex(
   const Value: TBeforeGLVertexProc);
 begin
-  FOnBeforeGLVertex := Value;
+  if OnBeforeGLVertex <> Value then
+  begin
+    BeforeChange;
+    FOnBeforeGLVertex := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetOnRadianceTransfer(
   const Value: TRadianceTransferFunction);
 begin
-  FOnRadianceTransfer := Value;
+  if OnRadianceTransfer <> Value then
+  begin
+    BeforeChange;
+    FOnRadianceTransfer := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetOnVertexColor(
   const Value: TVertexColorFunction);
 begin
-  FOnVertexColor := Value;
+  if OnVertexColor <> Value then
+  begin
+    BeforeChange;
+    FOnVertexColor := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetSmoothShading(const Value: boolean);
 begin
-  FSmoothShading := Value;
+  if SmoothShading <> Value then
+  begin
+    BeforeChange;
+    FSmoothShading := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetColorModulatorSingle(
   const Value: TColorModulatorSingleFunc);
 begin
-  FColorModulatorSingle := Value;
+  if ColorModulatorSingle <> Value then
+  begin
+    BeforeChange;
+    FColorModulatorSingle := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetColorModulatorByte(
   const Value: TColorModulatorByteFunc);
 begin
-  FColorModulatorByte := Value;
+  if ColorModulatorByte <> Value then
+  begin
+    BeforeChange;
+    FColorModulatorByte := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetLighting(const Value: boolean);
 begin
-  FLighting := Value;
+  if Lighting <> Value then
+  begin
+    BeforeChange;
+    FLighting := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetUseSceneLights(const Value: boolean);
 begin
-  FUseSceneLights := Value;
+  if UseSceneLights <> Value then
+  begin
+    BeforeChange;
+    FUseSceneLights := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetFirstGLFreeLight(const Value: Cardinal);
 begin
-  FFirstGLFreeLight := Value;
+  if FirstGLFreeLight <> Value then
+  begin
+    BeforeChange;
+    FFirstGLFreeLight := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetLastGLFreeLight(const Value: integer);
 begin
-  FLastGLFreeLight := Value;
+  if LastGLFreeLight <> Value then
+  begin
+    BeforeChange;
+    FLastGLFreeLight := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetControlMaterials(const Value: boolean);
 begin
-  FControlMaterials := Value;
+  if ControlMaterials <> Value then
+  begin
+    BeforeChange;
+    FControlMaterials := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetControlTextures(const Value: boolean);
 begin
-  FControlTextures := Value;
+  if ControlTextures <> Value then
+  begin
+    BeforeChange;
+    FControlTextures := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetEnableTextures(const Value: boolean);
 begin
-  FEnableTextures := Value;
+  if EnableTextures <> Value then
+  begin
+    BeforeChange;
+    FEnableTextures := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetFirstGLFreeTexture(const Value: Cardinal);
 begin
-  FFirstGLFreeTexture := Value;
+  if FirstGLFreeTexture <> Value then
+  begin
+    BeforeChange;
+    FFirstGLFreeTexture := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetLastGLFreeTexture(const Value: integer);
 begin
-  FLastGLFreeTexture := Value;
+  if LastGLFreeTexture <> Value then
+  begin
+    BeforeChange;
+    FLastGLFreeTexture := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
 begin
-  FTextureMinFilter := Value;
+  if TextureMinFilter <> Value then
+  begin
+    BeforeChange;
+    FTextureMinFilter := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
 begin
-  FTextureMagFilter := Value;
+  if TextureMagFilter <> Value then
+  begin
+    BeforeChange;
+    FTextureMagFilter := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetPointSize(const Value: TGLFloat);
 begin
-  FPointSize := Value;
+  if PointSize <> Value then
+  begin
+    BeforeChange;
+    FPointSize := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetUseFog(const Value: boolean);
 begin
-  FUseFog := Value;
+  if UseFog <> Value then
+  begin
+    BeforeChange;
+    FUseFog := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetBumpMappingMaximum(
   const Value: TBumpMappingMethod);
 begin
-  FBumpMappingMaximum := Value;
+  if BumpMappingMaximum <> Value then
+  begin
+    BeforeChange;
+    FBumpMappingMaximum := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetGLSLShaders(const Value: boolean);
 begin
-  FGLSLShaders := Value;
+  if GLSLShaders <> Value then
+  begin
+    BeforeChange;
+    FGLSLShaders := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetPureGeometry(const Value: boolean);
 begin
-  FPureGeometry := Value;
+  if PureGeometry <> Value then
+  begin
+    BeforeChange;
+    FPureGeometry := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
 begin
-  FTextureModeGrayscale := Value;
+  if TextureModeGrayscale <> Value then
+  begin
+    BeforeChange;
+    FTextureModeGrayscale := Value;
+  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
 begin
-  FTextureModeRGB := Value;
+  if TextureModeRGB <> Value then
+  begin
+    BeforeChange;
+    FTextureModeRGB := Value;
+  end;
+end;
+
+procedure TVRMLRenderingAttributes.SetVarianceShadowMaps(const Value: boolean);
+begin
+  if VarianceShadowMaps <> Value then
+  begin
+    BeforeChange;
+    FVarianceShadowMaps := Value;
+  end;
 end;
 
 function TVRMLRenderingAttributes.SmoothNormalsGLU: TGLenum;
