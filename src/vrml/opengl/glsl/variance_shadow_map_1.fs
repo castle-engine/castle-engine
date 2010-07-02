@@ -1,6 +1,8 @@
 uniform sampler2D texture0;
 uniform sampler2D shadowMap;
 
+float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord);
+
 void main(void)
 {
   float shadow = variance_shadow(shadowMap, gl_TexCoord[1]);

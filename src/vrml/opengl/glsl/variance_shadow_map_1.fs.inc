@@ -3,6 +3,8 @@
 'uniform sampler2D texture0;' + LineEnding + 
 'uniform sampler2D shadowMap;' + LineEnding + 
 '' + LineEnding + 
+'float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord);' + LineEnding + 
+'' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  float shadow = variance_shadow(shadowMap, gl_TexCoord[1]);' + LineEnding + 

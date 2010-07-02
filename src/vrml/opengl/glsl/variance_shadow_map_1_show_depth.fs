@@ -4,6 +4,8 @@
 uniform sampler2D texture0;
 uniform sampler2D shadowMap;
 
+float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord);
+
 void main(void)
 {
   /* Always get alpha from the 1st tex, to honour alpha-test of leaves */

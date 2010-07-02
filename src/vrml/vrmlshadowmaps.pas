@@ -116,10 +116,18 @@ end;
 function TDynLightArray.CreateShadowMapShader(const VisualizeShadowMap: boolean;
   const BaseTexCount: Cardinal): TNodeComposedShader;
 const
-  ShadowMapFragmentShader: array [boolean, 0..MaxBaseTextures] of string =
-  ( ( {$I shadow_map_0.fs.inc}, {$I shadow_map_1.fs.inc} ),
-    { TODO: no shadow_map_0_depth.fs.inc version }
-    ( {$I shadow_map_0.fs.inc}, {$I shadow_map_1_show_depth.fs.inc} )
+  VarianceShadowMaps = false; { TODO: hardcoded }
+  ShadowMapFragmentShader: array [boolean, boolean, 0..MaxBaseTextures] of string =
+  ( { Variance Shadow Maps = false }
+    ( ( {$I shadow_map_0.fs.inc}, {$I shadow_map_1.fs.inc} ),
+      { TODO: no shadow_map_0_depth.fs.inc version }
+      ( {$I shadow_map_0.fs.inc}, {$I shadow_map_1_show_depth.fs.inc} )
+    ),
+    { Variance Shadow Maps = true }
+    ( ( {$I variance_shadow_map_0.fs.inc}, {$I variance_shadow_map_1.fs.inc} ),
+      { TODO: no shadow_map_0_depth.fs.inc version }
+      ( {$I variance_shadow_map_0.fs.inc}, {$I variance_shadow_map_1_show_depth.fs.inc} )
+    )
   );
 var
   I: Integer;
@@ -136,9 +144,17 @@ begin
   Part.FdType.Value := 'FRAGMENT';
   Part.FdUrl.Items.Count := 1;
   Part.FdUrl.Items[0] := NL + ShadowMapFragmentShader[
-    VisualizeShadowMap, BaseTexCount];
-
+    VarianceShadowMaps, VisualizeShadowMap, BaseTexCount];
   Result.FdParts.AddItem(Part);
+  
+  if VarianceShadowMaps then
+  begin
+    Part := TNodeShaderPart.Create('', '');
+    Part.FdType.Value := 'FRAGMENT';
+    Part.FdUrl.Items.Count := 1;
+    Part.FdUrl.Items[0] := NL + {$I variance_shadow_map_common.fs.inc};
+    Result.FdParts.AddItem(Part);
+  end;
 end;
 
 procedure TDynLightArray.HandleShape(Node: TVRMLNode);

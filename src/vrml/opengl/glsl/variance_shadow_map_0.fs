@@ -1,5 +1,7 @@
 uniform sampler2D shadowMap;
 
+float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord);
+
 void main(void)
 {
   gl_FragColor = variance_shadow(shadowMap, gl_TexCoord[0]) * gl_Color;

@@ -3,7 +3,7 @@
 '/* Extract shadow (how light is the point) from variance shadow map.' + LineEnding + 
 '   This closely follows VSM presentation, slide 16. */' + LineEnding + 
 '' + LineEnding + 
-'function variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord)' + LineEnding + 
+'float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord)' + LineEnding + 
 '{' + LineEnding + 
 '  /* When coord2 is outside (0, 0) - (1, 1) square,' + LineEnding + 
 '     it''s always in the shadow. Otherwise shadows would be stretched' + LineEnding + 
