@@ -6,7 +6,7 @@
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base/;../src/base/templates/;../src/base/unix/;../src/base/windows/;../src/opengl/;../src/opengl/windows/;../src/audio/;../src/kambiscript/;../src/3d/"/>
+        <IncludeFiles Value="../src/base/;../src/base/templates/;../src/base/unix/;../src/base/windows/;../src/opengl/;../src/opengl/windows/;../src/audio/;../src/kambiscript/;../src/3d/;../src/vrml/opengl/glsl/"/>
         <OtherUnitFiles Value="../src/base/;../src/3d/;../src/3d/opengl/;../src/vrml/;../src/vrml/opengl/;../src/images/;../src/fonts/;../src/fonts/windows/;../src/opengl/;../src/opengl/windows/;../src/audio/;../src/net/;../src/kambiscript/;../src/ui/;../src/ui/opengl/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="168">
+    <Files Count="172">
       <Item1>
         <Filename Value="../src/3d/backgroundbase.pas"/>
         <UnitName Value="BackgroundBase"/>
@@ -582,156 +582,172 @@
         <UnitName Value="Object3DAsVRML"/>
       </Item131>
       <Item132>
-        <Filename Value="../src/vrml/opengl/glsl_bump_mapping.fs.inc"/>
+        <Filename Value="../src/vrml/opengl/glsl/bump_mapping.fs.inc"/>
         <Type Value="Include"/>
       </Item132>
       <Item133>
-        <Filename Value="../src/vrml/opengl/glsl_bump_mapping.vs.inc"/>
+        <Filename Value="../src/vrml/opengl/glsl/bump_mapping.vs.inc"/>
         <Type Value="Include"/>
       </Item133>
       <Item134>
-        <Filename Value="../src/vrml/opengl/glsl_parallax_bump_mapping.fs.inc"/>
+        <Filename Value="../src/vrml/opengl/glsl/parallax_bump_mapping.fs.inc"/>
         <Type Value="Include"/>
       </Item134>
       <Item135>
-        <Filename Value="../src/vrml/opengl/glsl_parallax_bump_mapping.vs.inc"/>
+        <Filename Value="../src/vrml/opengl/glsl/parallax_bump_mapping.vs.inc"/>
         <Type Value="Include"/>
       </Item135>
       <Item136>
-        <Filename Value="../src/vrml/opengl/kambiscenemanager.pas"/>
-        <HasRegisterProc Value="True"/>
-        <UnitName Value="KambiSceneManager"/>
+        <Filename Value="../src/vrml/opengl/glsl/shadow_map_0.fs.inc"/>
+        <Type Value="Include"/>
       </Item136>
       <Item137>
-        <Filename Value="../src/vrml/opengl/vrmlbumpmappingrenderer.inc"/>
+        <Filename Value="../src/vrml/opengl/glsl/shadow_map_1.fs.inc"/>
         <Type Value="Include"/>
       </Item137>
       <Item138>
+        <Filename Value="../src/vrml/opengl/glsl/shadow_map_1_show_depth.fs.inc"/>
+        <Type Value="Include"/>
+      </Item138>
+      <Item139>
+        <Filename Value="../src/vrml/opengl/glsl/variance_shadow_map_generate.fs.inc"/>
+        <Type Value="Include"/>
+      </Item139>
+      <Item140>
+        <Filename Value="../src/vrml/opengl/kambiscenemanager.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="KambiSceneManager"/>
+      </Item140>
+      <Item141>
+        <Filename Value="../src/vrml/opengl/vrmlbumpmappingrenderer.inc"/>
+        <Type Value="Include"/>
+      </Item141>
+      <Item142>
         <Filename Value="../src/vrml/opengl/vrmlglanimation.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="VRMLGLAnimation"/>
-      </Item138>
-      <Item139>
+      </Item142>
+      <Item143>
         <Filename Value="../src/vrml/opengl/vrmlglheadlight.pas"/>
         <UnitName Value="VRMLGLHeadLight"/>
-      </Item139>
-      <Item140>
+      </Item143>
+      <Item144>
         <Filename Value="../src/vrml/opengl/vrmlglscene.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="VRMLGLScene"/>
-      </Item140>
-      <Item141>
-        <Filename Value="../src/vrml/opengl/vrmllightsetgl.pas"/>
-        <UnitName Value="VRMLLightSetGL"/>
-      </Item141>
-      <Item142>
-        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer.inc"/>
-        <Type Value="Include"/>
-      </Item142>
-      <Item143>
-        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer_simple_nodes.inc"/>
-        <Type Value="Include"/>
-      </Item143>
-      <Item144>
-        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer_x3d_geometry2d.inc"/>
-        <Type Value="Include"/>
       </Item144>
       <Item145>
-        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer_x3d_geometry3d.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/vrml/opengl/vrmllightsetgl.pas"/>
+        <UnitName Value="VRMLLightSetGL"/>
       </Item145>
       <Item146>
-        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer_x3d_rendering.inc"/>
+        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer.inc"/>
         <Type Value="Include"/>
       </Item146>
       <Item147>
-        <Filename Value="../src/vrml/opengl/vrmlopenglrenderer.pas"/>
-        <UnitName Value="VRMLOpenGLRenderer"/>
+        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer_simple_nodes.inc"/>
+        <Type Value="Include"/>
       </Item147>
       <Item148>
-        <Filename Value="../src/vrml/opengl/vrmlopenglrenderer_render_materials.inc"/>
+        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer_x3d_geometry2d.inc"/>
         <Type Value="Include"/>
       </Item148>
       <Item149>
-        <Filename Value="../src/vrml/vrmlanimation.pas"/>
-        <UnitName Value="VRMLAnimation"/>
+        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer_x3d_geometry3d.inc"/>
+        <Type Value="Include"/>
       </Item149>
       <Item150>
-        <Filename Value="../src/vrml/vrmlcamerautils.pas"/>
-        <UnitName Value="VRMLCameraUtils"/>
+        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer_x3d_rendering.inc"/>
+        <Type Value="Include"/>
       </Item150>
       <Item151>
-        <Filename Value="../src/vrml/vrmlerrors.pas"/>
-        <UnitName Value="VRMLErrors"/>
+        <Filename Value="../src/vrml/opengl/vrmlopenglrenderer.pas"/>
+        <UnitName Value="VRMLOpenGLRenderer"/>
       </Item151>
       <Item152>
-        <Filename Value="../src/vrml/vrmlfields.pas"/>
-        <UnitName Value="VRMLFields"/>
+        <Filename Value="../src/vrml/opengl/vrmlopenglrenderer_render_materials.inc"/>
+        <Type Value="Include"/>
       </Item152>
       <Item153>
-        <Filename Value="../src/vrml/vrmlgeometry.pas"/>
-        <UnitName Value="VRMLGeometry"/>
+        <Filename Value="../src/vrml/vrmlanimation.pas"/>
+        <UnitName Value="VRMLAnimation"/>
       </Item153>
       <Item154>
-        <Filename Value="../src/vrml/vrmlheadlight.pas"/>
-        <UnitName Value="VRMLHeadLight"/>
+        <Filename Value="../src/vrml/vrmlcamerautils.pas"/>
+        <UnitName Value="VRMLCameraUtils"/>
       </Item154>
       <Item155>
-        <Filename Value="../src/vrml/vrmllexer.pas"/>
-        <UnitName Value="VRMLLexer"/>
+        <Filename Value="../src/vrml/vrmlerrors.pas"/>
+        <UnitName Value="VRMLErrors"/>
       </Item155>
       <Item156>
-        <Filename Value="../src/vrml/vrmllightmap.pas"/>
-        <UnitName Value="VRMLLightMap"/>
+        <Filename Value="../src/vrml/vrmlfields.pas"/>
+        <UnitName Value="VRMLFields"/>
       </Item156>
       <Item157>
-        <Filename Value="../src/vrml/vrmllightset.pas"/>
-        <UnitName Value="VRMLLightSet"/>
+        <Filename Value="../src/vrml/vrmlgeometry.pas"/>
+        <UnitName Value="VRMLGeometry"/>
       </Item157>
       <Item158>
-        <Filename Value="../src/vrml/vrmlnodes.pas"/>
-        <UnitName Value="VRMLNodes"/>
+        <Filename Value="../src/vrml/vrmlheadlight.pas"/>
+        <UnitName Value="VRMLHeadLight"/>
       </Item158>
       <Item159>
-        <Filename Value="../src/vrml/vrmlnodesdetailoptions.pas"/>
-        <UnitName Value="VRMLNodesDetailOptions"/>
+        <Filename Value="../src/vrml/vrmllexer.pas"/>
+        <UnitName Value="VRMLLexer"/>
       </Item159>
       <Item160>
-        <Filename Value="../src/vrml/vrmlraytracer.pas"/>
-        <UnitName Value="VRMLRayTracer"/>
+        <Filename Value="../src/vrml/vrmllightmap.pas"/>
+        <UnitName Value="VRMLLightMap"/>
       </Item160>
       <Item161>
-        <Filename Value="../src/vrml/vrmlrendereroptimization.pas"/>
-        <UnitName Value="VRMLRendererOptimization"/>
+        <Filename Value="../src/vrml/vrmllightset.pas"/>
+        <UnitName Value="VRMLLightSet"/>
       </Item161>
       <Item162>
-        <Filename Value="../src/vrml/vrmlscene.pas"/>
-        <UnitName Value="VRMLScene"/>
+        <Filename Value="../src/vrml/vrmlnodes.pas"/>
+        <UnitName Value="VRMLNodes"/>
       </Item162>
       <Item163>
-        <Filename Value="../src/vrml/vrmlscenewaypoints.pas"/>
-        <UnitName Value="VRMLSceneWaypoints"/>
+        <Filename Value="../src/vrml/vrmlnodesdetailoptions.pas"/>
+        <UnitName Value="VRMLNodesDetailOptions"/>
       </Item163>
       <Item164>
-        <Filename Value="../src/vrml/vrmlshape.pas"/>
-        <UnitName Value="VRMLShape"/>
+        <Filename Value="../src/vrml/vrmlraytracer.pas"/>
+        <UnitName Value="VRMLRayTracer"/>
       </Item164>
       <Item165>
-        <Filename Value="../src/vrml/vrmlshapeoctree.pas"/>
-        <UnitName Value="VRMLShapeOctree"/>
+        <Filename Value="../src/vrml/vrmlrendereroptimization.pas"/>
+        <UnitName Value="VRMLRendererOptimization"/>
       </Item165>
       <Item166>
-        <Filename Value="../src/vrml/vrmltime.pas"/>
-        <UnitName Value="VRMLTime"/>
+        <Filename Value="../src/vrml/vrmlscene.pas"/>
+        <UnitName Value="VRMLScene"/>
       </Item166>
       <Item167>
-        <Filename Value="../src/vrml/vrmltriangle.pas"/>
-        <UnitName Value="VRMLTriangle"/>
+        <Filename Value="../src/vrml/vrmlscenewaypoints.pas"/>
+        <UnitName Value="VRMLSceneWaypoints"/>
       </Item167>
       <Item168>
+        <Filename Value="../src/vrml/vrmlshape.pas"/>
+        <UnitName Value="VRMLShape"/>
+      </Item168>
+      <Item169>
+        <Filename Value="../src/vrml/vrmlshapeoctree.pas"/>
+        <UnitName Value="VRMLShapeOctree"/>
+      </Item169>
+      <Item170>
+        <Filename Value="../src/vrml/vrmltime.pas"/>
+        <UnitName Value="VRMLTime"/>
+      </Item170>
+      <Item171>
+        <Filename Value="../src/vrml/vrmltriangle.pas"/>
+        <UnitName Value="VRMLTriangle"/>
+      </Item171>
+      <Item172>
         <Filename Value="../src/vrml/vrmltriangleoctree.pas"/>
         <UnitName Value="VRMLTriangleOctree"/>
-      </Item168>
+      </Item172>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
