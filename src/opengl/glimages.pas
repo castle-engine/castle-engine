@@ -144,29 +144,15 @@ const
 { These functions return appropriate GL_xxx format and type
   for given TImage descendant. If you will pass here Img
   that is not a descendant of one of TextureImageClassesAll
-  or PixelsImageClasses,
-  they will return GL_INVALID_ENUM.
+  or PixelsImageClasses, they will return GL_INVALID_ENUM
+  (which is for sure different than any valid value like GL_RGB, GL_RGBA
+  in OpenGL API).
 
-  Note that OpenGL does not guarantee that GL_INVALID_ENUM <> GL_RGB, GL_RGBA
-  etc. (even if every OpenGL implementation has constants defined that in a way
-  that satisfies this). So better to not assume that instead of
-  checking InImageClasses(MyImage, PixelsImageClasses)
-  you can simply check ImageGLFormat(MyImage) <> GL_INVALID_ENUM.
-
-  (But this fact can be used to make routines in this unit like
-  ImageDraw work faster, because I don't guarantee anywhere that
-  ImageDraw will check at runtime that passed Image has class
-  in PixelsImageClasses. So ImageDraw simply passes to OpenGL values
-  returned by ImageGLFormat/Type, so in case of incorrect
-  Image class OpenGL will get GL_INVALID_ENUM. Since it's not guaranteed
-  that GL_INVALID_ENUM <> GL_RGB etc., it's not guaranteed that OpenGL
-  will singal error, but it was never guaranteed that ImageDraw will
-  signal some error in this case.
-
-  So this way ImageDraw does not do any checks using GLImageFormats,
-  even when compiled with -dDEBUG. Everything is done in OpenGL.
-  And, in practice, current OpenGL implementations *will* signal errors
-  so things are checked.).
+  Note that some routines, like ImageDraw, do not check that
+  an image is of appropriate class (e.g. PixelsImageClasses for ImageDraw).
+  Instead they may use ImageGLFormat results blindly, for speed.
+  So when you try to draw an invalid image class, they may
+  pass GL_INVALID_ENUM to OpenGL, and you get OpenGL errors.
 
   ImageGLInternalFormat works with TS3TCImage classes also, returning
   appropriate GL_COMPRESSED_*_S3TC_*_EXT, suitable for glCompressedTexImage2D.
@@ -851,6 +837,8 @@ begin
     Result := GL_LUMINANCE else
   if Img is TGrayscaleAlphaImage then
     Result := GL_LUMINANCE_ALPHA else
+  if Img is TRGBFloatImage then
+    Result := GL_RGB else
     Result := GL_INVALID_ENUM;
 end;
 
@@ -878,6 +866,8 @@ begin
      (Img is TGrayscaleImage) or
      (Img is TGrayscaleAlphaImage) then
     Result := GL_UNSIGNED_BYTE else
+  if Img is TRGBFloatImage then
+    Result := GL_FLOAT else
     Result := GL_INVALID_ENUM;
 end;
 
@@ -2209,12 +2199,32 @@ begin
   end;
 end;
 
-{ A debug trick, saves depth buffer of the generated framebuffer image
-  to a filename (/tmp/framebuffer_depth.png, change the code below
+{ A debug trick, saves color or depth buffer of the generated framebuffer image
+  to a filename (/tmp/framebuffer_color/depth.png, change the code below
   if you want other filename). Useful e.g. to visualize captured shadow maps. }
 { $define DEBUG_SAVE_FRAMEBUFFER_DEPTH}
+{ $define DEBUG_SAVE_FRAMEBUFFER_COLOR}
 
 procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
+
+{$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
+  procedure SaveColor(const FileName: string);
+  var
+    PackData: TPackNotAlignedData;
+    Image: TImage;
+  begin
+    Image := TRGBImage.Create(Width, Height);
+    try
+      BeforePackImage(PackData, Image);
+      try
+        glReadPixels(0, 0, Width, Height, ImageGLFormat(Image),
+          ImageGLType(Image), Image.RawPixels);
+      finally AfterPackImage(PackData, Image) end;
+
+      SaveImage(Image, FileName);
+    finally FreeAndNil(Image) end;
+  end;
+{$endif DEBUG_SAVE_FRAMEBUFFER_COLOR}
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
   procedure SaveDepth(const FileName: string);
@@ -2236,6 +2246,10 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 {$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}
 
 begin
+{$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
+  if not DepthTexture then
+    SaveColor('/tmp/framebuffer_color.png');
+{$endif DEBUG_SAVE_FRAMEBUFFER_COLOR}
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
   SaveDepth('/tmp/framebuffer_depth.png');
 {$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}
