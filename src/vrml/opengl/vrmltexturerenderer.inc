@@ -2226,6 +2226,14 @@ begin
     (TGLSLProgram.ClassSupport <> gsNone) and
     (GL_ATI_texture_float or GL_ARB_texture_float);
 
+  if Log then
+    WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.VarianceShadowMaps = %s, GLSL support = %s, ATI_texture_float = %s, ARB_texture_float = %s)',
+      [ BoolToStr[VarianceShadowMaps],
+        BoolToStr[Renderer.Attributes.VarianceShadowMaps],
+        GLSupportNames[TGLSLProgram.ClassSupport],
+        BoolToStr[GL_ATI_texture_float],
+        BoolToStr[GL_ARB_texture_float] ]));
+
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;
 
@@ -2246,9 +2254,6 @@ begin
 
   if VarianceShadowMaps then
   begin
-    if Log then
-      WritelnLog('Shadows', 'Using Variance Shadow Maps');
-
     GLName := Renderer.Cache.TextureFloat_IncReference(
       TextureNode, MinFilter, GL_LINEAR, TextureWrap, Size, Size, true);
 
