@@ -399,6 +399,7 @@
     { VarianceShadowMaps calculated at the PrepareCore time. }
     VarianceShadowMaps: boolean;
     VarianceShadowMapsProgram: TGLSLProgram;
+    NeedsMipmaps: boolean;
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
       ANode: TNodeX3DTextureNode): boolean; override;
@@ -2219,6 +2220,7 @@ end;
 procedure TGLGeneratedShadowMap.PrepareCore(State: TVRMLGraphTraverseState);
 var
   TextureWrap: TTextureWrap2D;
+  MinFilter: TGLint;
 begin
   VarianceShadowMaps := Renderer.Attributes.VarianceShadowMaps and
     (TGLSLProgram.ClassSupport <> gsNone) and
@@ -2231,13 +2233,24 @@ begin
   TextureWrap[0] := GL_CLAMP;
   TextureWrap[1] := GL_CLAMP;
 
+  { calculate MinFilter, NeedsMipmaps }
+  if VarianceShadowMaps and HasGenerateMipmap then
+  begin
+    NeedsMipmaps := true;
+    MinFilter := GL_LINEAR_MIPMAP_LINEAR;
+  end else
+  begin
+    NeedsMipmaps := false;
+    MinFilter := GL_LINEAR;
+  end;
+
   if VarianceShadowMaps then
   begin
     if Log then
       WritelnLog('Shadows', 'Using Variance Shadow Maps');
 
     GLName := Renderer.Cache.TextureFloat_IncReference(
-      TextureNode, TextureWrap, Size, Size);
+      TextureNode, MinFilter, GL_LINEAR, TextureWrap, Size, Size, true);
 
     VarianceShadowMapsProgram := TGLSLProgram.Create;
     VarianceShadowMapsProgram.AttachFragmentShader({$I glsl/variance_shadow_map_generate.fs.inc});
@@ -2344,6 +2357,9 @@ begin
     glMatrixMode(GL_MODELVIEW);
 
   RenderToTexture.RenderEnd;
+
+  if NeedsMipmaps then
+    RenderToTexture.GenerateMipmap;
 
   NeedsRestoreViewport := true;
 end;

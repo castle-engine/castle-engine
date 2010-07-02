@@ -1115,11 +1115,15 @@ type
     procedure TextureDepth_DecReference(
       const TextureGLName: TGLuint);
 
-    { Increase / decrease reference to float16 texture.
-      Required ARB_texture_float or ATI_texture_float before calling this. }
+    { Increase / decrease reference to a float texture.
+      Required ARB_texture_float or ATI_texture_float before calling this.
+      Precision32 = @true requires 32-bit full Single floats,
+      Precision32 = @false requires 16-bit (half) floats. }
     function TextureFloat_IncReference(Node: TNodeX3DTextureNode;
+      const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureWrap: TTextureWrap2D;
-      const Width, Height: Cardinal): TGLuint;
+      const Width, Height: Cardinal;
+      const Precision32: boolean): TGLuint;
     procedure TextureFloat_DecReference(
       const TextureGLName: TGLuint);
 
@@ -2311,6 +2315,7 @@ begin
   TextureCached := TextureDepthOrFloatCaches.Add;
   TextureCached^.InitialNode := Node;
   TextureCached^.References := 1;
+  TextureCached^.Wrap := TextureWrap;
   TextureCached^.GLName := Result;
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -2345,11 +2350,14 @@ end;
 
 function TVRMLOpenGLRendererContextCache.TextureFloat_IncReference(
   Node: TNodeX3DTextureNode;
+  const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureWrap: TTextureWrap2D;
-  const Width, Height: Cardinal): TGLuint;
+  const Width, Height: Cardinal;
+  const Precision32: boolean): TGLuint;
 var
   I: Integer;
   TextureCached: PTextureDepthOrFloatCache;
+  InternalFormat: TGLenum;
 begin
   for I := 0 to TextureDepthOrFloatCaches.High do
   begin
@@ -2369,22 +2377,28 @@ begin
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_2D, Result);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TextureMagFilter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TextureMinFilter);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
 
-  { Do not init any texture image. Just initialize texture sizes
-    and both internal and external formats to GL_DEPTH_COMPONENT_ARB
-    (will match depth buffer precision). }
-  glTexImage2d(GL_TEXTURE_2D, 0, GL_RGB16F_ARB { same thing as GL_RGB_FLOAT16_ATI },
+  if Precision32 then
+    InternalFormat := GL_RGB32F_ARB { same thing as GL_RGB_FLOAT32_ATI } else
+    InternalFormat := GL_RGB16F_ARB { same thing as GL_RGB_FLOAT16_ATI };
+
+  { Do not init any texture image. Just initialize texture sizes and formats. }
+  glTexImage2d(GL_TEXTURE_2D, 0, InternalFormat,
     Width, Height, 0, GL_RGB, GL_FLOAT, nil);
 
   TextureCached := TextureDepthOrFloatCaches.Add;
   TextureCached^.InitialNode := Node;
   TextureCached^.References := 1;
+  TextureCached^.Wrap := TextureWrap;
   TextureCached^.GLName := Result;
+  { Hm, we probably should store TextureMinFilter, TextureMagFilter, Precision32
+    inside TextureCached as well... Ignore this, useless for now ---
+    one Node will require only one float texture anyway. }
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
   Writeln('++ : Float texture ', PointerToStr(Node), ' : ', 1);
