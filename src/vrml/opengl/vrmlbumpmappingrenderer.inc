@@ -169,13 +169,13 @@ procedure TBumpMappingRenderer.Prepare(State: TVRMLGraphTraverseState);
                 ProgramDefines += '';
 
               BmProgram.AttachVertexShader(
-                ProgramDefines + {$I glsl_parallax_bump_mapping.vs.inc});
+                ProgramDefines + {$I parallax_bump_mapping.vs.inc});
               BmProgram.AttachFragmentShader(
-                ProgramDefines + {$I glsl_parallax_bump_mapping.fs.inc});
+                ProgramDefines + {$I parallax_bump_mapping.fs.inc});
             end else
             begin
-              BmProgram.AttachVertexShader({$I glsl_bump_mapping.vs.inc});
-              BmProgram.AttachFragmentShader({$I glsl_bump_mapping.fs.inc});
+              BmProgram.AttachVertexShader({$I bump_mapping.vs.inc});
+              BmProgram.AttachFragmentShader({$I bump_mapping.fs.inc});
             end;
 
             BmProgram.Link(true);

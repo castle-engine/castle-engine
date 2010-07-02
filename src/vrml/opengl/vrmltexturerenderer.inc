@@ -2253,7 +2253,7 @@ begin
       TextureNode, MinFilter, GL_LINEAR, TextureWrap, Size, Size, true);
 
     VarianceShadowMapsProgram := TGLSLProgram.Create;
-    VarianceShadowMapsProgram.AttachFragmentShader({$I glsl/variance_shadow_map_generate.fs.inc});
+    VarianceShadowMapsProgram.AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
     VarianceShadowMapsProgram.Link(true);
   end else
   begin
