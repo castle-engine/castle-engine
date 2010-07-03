@@ -2237,9 +2237,11 @@ begin
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;
 
-  { In this case, clamp to border is Ok? TODO: test here }
-  TextureWrap[0] := GL_CLAMP;
-  TextureWrap[1] := GL_CLAMP;
+  { At least in case of float textures for VSM, CLAMP_TO_EDGE is needed
+    (instead of standard clamp to border). Didn't see any difference
+    for depth textures. }
+  TextureWrap[0] := KamGL_CLAMP_TO_EDGE;
+  TextureWrap[1] := KamGL_CLAMP_TO_EDGE;
 
   { calculate MinFilter, NeedsMipmaps }
   if VarianceShadowMaps and HasGenerateMipmap then
