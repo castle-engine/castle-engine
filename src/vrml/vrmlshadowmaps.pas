@@ -327,6 +327,7 @@ procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
   const PCF: TPercentageCloserFiltering);
 var
   Lights: TDynLightArray;
+  I: Integer;
 begin
   Lights := TDynLightArray.Create;
   try
@@ -341,10 +342,17 @@ begin
       shape already. }
     Model.EnumerateNodes(TNodeShape, @Lights.HandleShape, false);
 
-    { no need to call FreeIfUnused on eventually created ShadowMapShaders,
-      or ShadowMap or TexGen instances: they are all constructed smartly,
-      such that we know that they are constructed only when are actually
-      used (referenced by Model). }
+    { Although we try to construct things only when they will be actually
+      used (so no unused nodes should remain now for free), actually
+      there is a chance something remained unused if HandleLight failed
+      with VRMLWarning after FindLight. }
+    for I := 0 to Lights.Count - 1 do
+    begin
+      Lights.Items[I].ShadowMap.FreeIfUnused;
+      Lights.Items[I].ShadowMap := nil;
+      Lights.Items[I].TexGen.FreeIfUnused;
+      Lights.Items[I].TexGen := nil;
+    end;
   finally FreeAndNil(Lights) end;
 end;
 
