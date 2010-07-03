@@ -1,0 +1,120 @@
+{ -*- buffer-read-only: t -*- }
+{ DON'T EDIT -- this file was automatically generated from "shadow_map_common.fs" }
+'/* Define exactly one of PCF* symbols, or none (to not use any PCF).' + LineEnding + 
+'   Note: this is handled by the VRMLShadowMap unit, when including this shader,' + LineEnding + 
+'   automatically. */' + LineEnding + 
+'//#define PCF4' + LineEnding + 
+'//#define PCF4_BILINEAR' + LineEnding + 
+'//#define PCF16' + LineEnding + 
+'' + LineEnding + 
+'/* This should match texture size in pixels, to make perfect PCF. */' + LineEnding + 
+'#define SIZE 1024.0' + LineEnding + 
+'' + LineEnding + 
+'float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord)' + LineEnding + 
+'{' + LineEnding + 
+'  /* When coord2 is outside (0, 0) - (1, 1) square,' + LineEnding + 
+'     it''s always in the shadow. Otherwise shadows would be stretched' + LineEnding + 
+'     over whole scene, due to clamping. */' + LineEnding + 
+'  vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;' + LineEnding + 
+'  if (coord2.s < 0.0 || coord2.s > 1.0 ||' + LineEnding + 
+'      coord2.t < 0.0 || coord2.t > 1.0)' + LineEnding + 
+'    return 0.0;' + LineEnding + 
+'' + LineEnding + 
+'#ifdef PCF4_BILINEAR' + LineEnding + 
+'' + LineEnding + 
+'  /* We have to scale up/down by texture SIZE to make the floor/fract' + LineEnding + 
+'     perform real bilinear filtering.' + LineEnding + 
+'     This also means that we have to handle xy and z separately. */' + LineEnding + 
+'  vec2 tc_full = SIZE * coord2;' + LineEnding + 
+'  float z = shadowMapCoord.z / shadowMapCoord.w;' + LineEnding + 
+'' + LineEnding + 
+'  vec2 tc = floor(tc_full.xy);' + LineEnding + 
+'  vec2 f = fract(tc_full.xy);' + LineEnding + 
+'  vec2 f1 = vec2(1.0, 1.0) - f;' + LineEnding + 
+'' + LineEnding + 
+'  return (' + LineEnding + 
+'    shadow2D(shadowMap, vec3( tc.x        / SIZE,  tc.y        / SIZE, z)).r * f1.x * f1.y +' + LineEnding + 
+'    shadow2D(shadowMap, vec3( tc.x        / SIZE, (tc.y + 1.0) / SIZE, z)).r * f1.x *  f.y +' + LineEnding + 
+'    shadow2D(shadowMap, vec3((tc.x + 1.0) / SIZE,  tc.y        / SIZE, z)).r *  f.x * f1.y +' + LineEnding + 
+'    shadow2D(shadowMap, vec3((tc.x + 1.0) / SIZE, (tc.y + 1.0) / SIZE, z)).r *  f.x *  f.y' + LineEnding + 
+'    ) / 2.0; /* TODO: why /2.0 instead of /4.0 needed? */' + LineEnding + 
+'' + LineEnding + 
+'#elif defined(PCF4)' + LineEnding + 
+'' + LineEnding + 
+'  /* PCF with 2x2 kernel */' + LineEnding + 
+'  float offset = shadowMapCoord.w / SIZE;' + LineEnding + 
+'  return (' + LineEnding + 
+'    shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset, -offset, 0.0, 0.0)).r +' + LineEnding + 
+'    shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset,  offset, 0.0, 0.0)).r +' + LineEnding + 
+'    shadow2DProj(shadowMap, shadowMapCoord + vec4( offset,  offset, 0.0, 0.0)).r +' + LineEnding + 
+'    shadow2DProj(shadowMap, shadowMapCoord + vec4( offset, -offset, 0.0, 0.0)).r' + LineEnding + 
+'    ) / 4.0;' + LineEnding + 
+'' + LineEnding + 
+'#elif defined(PCF16)' + LineEnding + 
+'' + LineEnding + 
+'  float offset = shadowMapCoord.w / SIZE;' + LineEnding + 
+'  return' + LineEnding + 
+'    (' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding + 
+'' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding + 
+'' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 0.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5,  offset * 1.5, 0.0, 0.0)).r +' + LineEnding + 
+'' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 1.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 0.5, 0.0, 0.0)).r +' + LineEnding + 
+'      shadow2DProj(shadowMap, shadowMapCoord + vec4( offset * 0.5, -offset * 1.5, 0.0, 0.0)).r' + LineEnding + 
+'    )' + LineEnding + 
+'    / 16.0;' + LineEnding + 
+'#else' + LineEnding + 
+'  /* No PCF */' + LineEnding + 
+'  return shadow2DProj(shadowMap, shadowMapCoord).r;' + LineEnding + 
+'#endif' + LineEnding + 
+'' + LineEnding + 
+'}' + LineEnding + 
+'' + LineEnding + 
+'/* Debug function, to display depth (distances) of the texture directly.' + LineEnding + 
+'' + LineEnding + 
+'   This way shadow_map_1_show_depth.fs may be used instead of shadow_map_1.fs.' + LineEnding + 
+'   Note that you have to use compareMode "NONE" inside GeneratedShadowMap' + LineEnding + 
+'   (otherwise getting it as sampler2D may not be sensible, depends on GPU).' + LineEnding + 
+'' + LineEnding + 
+'   Note: it''s possible to see the depths without the GLSL at all too:' + LineEnding + 
+'   1. use compareMode "NONE" inside GeneratedShadowMap' + LineEnding + 
+'   2. to avoid mixing with the normal color texture and material' + LineEnding + 
+'      (that make it difficult to actually see the depth variations)' + LineEnding + 
+'      you can use "REPLACE" mode mapping with GeneratedShadowMap.' + LineEnding + 
+'' + LineEnding + 
+'      For example, replace all' + LineEnding + 
+'        texture MultiTexture {' + LineEnding + 
+'      with' + LineEnding + 
+'        texture MultiTexture { mode [ "REPLACE / MODULATE", "REPLACE / MODULATE" ]' + LineEnding + 
+'      inside sunny_street_processed.x3dv.' + LineEnding + 
+'      By using "REPLACE / MODULATE" instead of "REPLACE" we allow to' + LineEnding + 
+'      modulate alpha (and only replace RGB channels), this allows' + LineEnding + 
+'      alpha-test texture of the leaves still work Ok.' + LineEnding + 
+'*/' + LineEnding + 
+'float shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord)' + LineEnding + 
+'{' + LineEnding + 
+'  vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;' + LineEnding + 
+'' + LineEnding + 
+'  /* When coord2 is outside (0, 0) - (1, 1) square, set d = 0.' + LineEnding + 
+'     Otherwise texture would be visible stretched due to clamping. */' + LineEnding + 
+'  if (coord2.s < 0.0 || coord2.s > 1.0 ||' + LineEnding + 
+'      coord2.t < 0.0 || coord2.t > 1.0)' + LineEnding + 
+'    return 0.0; else' + LineEnding + 
+'    return texture2D(shadowMap, coord2).z;' + LineEnding + 
+'' + LineEnding + 
+'  // d = pow(d, 4.0); // makes shadows a little more contrasting' + LineEnding + 
+'}' + LineEnding + 
+''

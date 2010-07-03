@@ -20,6 +20,9 @@ interface
 
 uses VRMLNodes;
 
+type
+  TPercentageCloserFiltering = (pcfNone, pcf4, pcf4Bilinear, pcf16);
+
 { Automatically handle VRML/X3D "receiveShadows" field
   by inserting appropriate lower-level nodes.
 
@@ -33,7 +36,8 @@ uses VRMLNodes;
   ) }
 procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
   const DefaultShadowMapSize: Cardinal;
-  const DefaultVisualizeShadowMap: boolean);
+  const DefaultVisualizeShadowMap: boolean;
+  const PCF: TPercentageCloserFiltering);
 
 implementation
 
@@ -63,6 +67,7 @@ type
   public
     DefaultShadowMapSize: Cardinal;
     DefaultVisualizeShadowMap: boolean;
+    PCF: TPercentageCloserFiltering;
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
     function FindLight(Light: TNodeX3DLightNode): PLight;
     function CreateShadowMapShader(const VisualizeShadowMap: boolean;
@@ -132,6 +137,10 @@ const
       ( {$I variance_shadow_map_0.fs.inc}, {$I variance_shadow_map_1_show_depth.fs.inc} )
     )
   );
+  ShadowMapFragmentShaderCommon: array [boolean] of string =
+  ( {$I shadow_map_common.fs.inc}, {$I variance_shadow_map_common.fs.inc} );
+  PCFDefine: array [TPercentageCloserFiltering] of string =
+  ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
 var
   I: Integer;
   Part: TNodeShaderPart;
@@ -150,14 +159,13 @@ begin
     VarianceShadowMaps, VisualizeShadowMap, BaseTexCount];
   Result.FdParts.AddItem(Part);
 
-  if VarianceShadowMaps then
-  begin
-    Part := TNodeShaderPart.Create('', '');
-    Part.FdType.Value := 'FRAGMENT';
-    Part.FdUrl.Items.Count := 1;
-    Part.FdUrl.Items[0] := NL + {$I variance_shadow_map_common.fs.inc};
-    Result.FdParts.AddItem(Part);
-  end;
+  Part := TNodeShaderPart.Create('', '');
+  Part.FdType.Value := 'FRAGMENT';
+  Part.FdUrl.Items.Count := 1;
+  { PCFDefine actually is useless for VSM, but no harm in including it. }
+  Part.FdUrl.Items[0] := NL + PCFDefine[PCF] + NL +
+    ShadowMapFragmentShaderCommon[VarianceShadowMaps];
+  Result.FdParts.AddItem(Part);
 end;
 
 procedure TDynLightArray.HandleShape(Node: TVRMLNode);
@@ -298,7 +306,8 @@ end;
 
 procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
   const DefaultShadowMapSize: Cardinal;
-  const DefaultVisualizeShadowMap: boolean);
+  const DefaultVisualizeShadowMap: boolean;
+  const PCF: TPercentageCloserFiltering);
 var
   Lights: TDynLightArray;
 begin
@@ -306,6 +315,7 @@ begin
   try
     Lights.DefaultShadowMapSize := DefaultShadowMapSize;
     Lights.DefaultVisualizeShadowMap := DefaultVisualizeShadowMap;
+    Lights.PCF := PCF;
 
     { Enumerate all (active and not) shapes for the receiveShadows
       calculations. In case a shape is not active, it may become active later
