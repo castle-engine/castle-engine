@@ -24,9 +24,12 @@ uses
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs, VRMLHeadLight,
-  RenderStateUnit, Base3D;
+  RenderStateUnit, Base3D, VRMLShadowMaps;
 
 {$define read_interface}
+
+const
+  DefaultShadowMapsDefaultSize = 256;
 
 type
   { }
@@ -518,6 +521,10 @@ type
     FInput_PointingDeviceActivate: TInputShortcut;
     FOwnsInput_PointingDeviceActivate: boolean;
     FStatic: boolean;
+    FShadowMaps: boolean;
+    FShadowMapsPCF: TPercentageCloserFiltering;
+    FShadowMapsVisualizeDepth: boolean;
+    FShadowMapsDefaultSize: Cardinal;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -1952,6 +1959,56 @@ type
       That is, @code(Scene.FileName := Scene.FileName;) will not reload
       the scene (you have to use explicit @link(Load) for this.). }
     property FileName: string read FFileName write SetFileName;
+
+    { At loading, process the scene to support shadow maps.
+      This happens at the @link(Load) method call,
+      and it makes "receiveShadows" field automatically handled.
+
+      Note that this is not the only way to make shadow maps.
+      VRML author can always make shadow maps by using lower-level nodes, see
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_maps].
+      When using these lower-level nodes, this property does not matter
+      This property (and related ones
+      like ShadowMapsPCF, ShadowMapsVisualizeDepth, ShadowMapsDefaultSize)
+      is relevant only for handling shadows by the "receiveShadows" field. }
+    property ShadowMaps: boolean read FShadowMaps write FShadowMaps default true;
+
+    { Use Percentage Closer Filtering to improve shadow maps look.
+
+      Affects how shadow maps are handled for the "receiveShadows"
+      field.  This is taken into account at the scene @link(Load) time,
+      and only if @link(ShadowMaps) is @true. }
+    property ShadowMapsPCF: TPercentageCloserFiltering
+      read FShadowMapsPCF write FShadowMapsPCF default pcf16;
+
+    { Visualize depths stored in the shadow maps, instead of using them to
+      actually make shadow.
+
+      Affects how shadow maps are handled for the "receiveShadows"
+      field.  This is taken into account at the scene @link(Load) time,
+      and only if @link(ShadowMaps) is @true.
+
+      Even without turning this on, VRML author can always activate it
+      explicitly for specific lights. For this, you have to use
+      @code(X3DLightNode.defaultShadowMap) field,
+      and place a GeneratedShadowMap node there. If the
+      @code(GeneratedShadowMap.compareMode) is set to @code('NONE'),
+      we will always visualize depths of this shadow map. }
+    property ShadowMapsVisualizeDepth: boolean
+     read FShadowMapsVisualizeDepth write FShadowMapsVisualizeDepth default false;
+
+    { Default shadow map texture size.
+
+      Affects how shadow maps are handled for the "receiveShadows"
+      field.  This is taken into account at the scene @link(Load) time,
+      and only if @link(ShadowMaps) is @true.
+
+      VRML author can always override this by placing a @code(GeneratedShadowMap)
+      node inside light's @code(defaultShadowMap) field. In this case,
+      @code(GeneratedShadowMap.size) determines shadow map size. }
+    property ShadowMapsDefaultSize: Cardinal
+      read FShadowMapsDefaultSize write FShadowMapsDefaultSize
+      default DefaultShadowMapsDefaultSize;
   end;
 
 {$undef read_interface}
@@ -2245,6 +2302,11 @@ begin
   FInput_PointingDeviceActivate := TInputShortcut.Create(K_None, K_None, #0, true, mbLeft);
   FOwnsInput_PointingDeviceActivate := true;
 
+  FShadowMaps := true;
+  FShadowMapsPCF := pcf16;
+  FShadowMapsVisualizeDepth := false;
+  FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
+
   { We could call here ScheduleChangedAll (or directly ChangedAll),
     but there should be no need. FRootNode remains nil,
     and our current state should be equal to what ScheduleChangedAll
@@ -2308,6 +2370,11 @@ begin
 
   RootNode := ARootNode;
   OwnsRootNode := AOwnsRootNode;
+
+  if ShadowMaps then
+    ProcessShadowMapsReceivers(RootNode, ShadowMapsDefaultSize,
+      ShadowMapsVisualizeDepth, ShadowMapsPCF);
+
   ScheduleChangedAll;
 
   if AResetTime then

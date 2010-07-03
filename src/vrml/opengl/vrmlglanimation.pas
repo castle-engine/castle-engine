@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
   KambiUtils, Boxes3D, KambiClassUtils, VRMLAnimation, KeysMouse,
-  KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle;
+  KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle, VRMLShadowMaps;
 
 {$define read_interface}
 
@@ -90,11 +90,20 @@ type
     FTimePlayingSpeed: Single;
     FTimeAtLoad: TKamTime;
     FTime: TKamTime;
+    FShadowMaps: boolean;
+    FShadowMapsPCF: TPercentageCloserFiltering;
+    FShadowMapsVisualizeDepth: boolean;
+    FShadowMapsDefaultSize: Cardinal;
 
     ValidBoundingBox: boolean;
     FBoundingBox: TBox3D;
     FOptimization: TGLRendererOptimization;
     FCollisionUseLastScene: boolean;
+
+    procedure SetShadowMaps(const Value: boolean);
+    procedure SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
+    procedure SetShadowMapsVisualizeDepth(const Value: boolean);
+    procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
     procedure SetOptimization(const Value: TGLRendererOptimization);
 
@@ -641,6 +650,19 @@ type
     property CollisionUseLastScene: boolean
       read FCollisionUseLastScene
       write FCollisionUseLastScene default false;
+
+    { At loading, process the animation to support shadow maps.
+      See TVRMLScene.ShadowMaps and related properties for documentation.
+      @groupBegin }
+    property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
+    property ShadowMapsPCF: TPercentageCloserFiltering
+      read FShadowMapsPCF write SetShadowMapsPCF default pcf16;
+    property ShadowMapsVisualizeDepth: boolean
+     read FShadowMapsVisualizeDepth write SetShadowMapsVisualizeDepth default false;
+    property ShadowMapsDefaultSize: Cardinal
+      read FShadowMapsDefaultSize write SetShadowMapsDefaultSize
+      default DefaultShadowMapsDefaultSize;
+    { @groupEnd }
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;
@@ -693,6 +715,10 @@ begin
   inherited CreateProvidedRenderer(nil, AProvidedRenderer);
 
   Optimization := FParentAnimation.Optimization;
+  ShadowMaps := FParentAnimation.ShadowMaps;
+  ShadowMapsPCF := FParentAnimation.ShadowMapsPCF;
+  ShadowMapsVisualizeDepth := FParentAnimation.ShadowMapsVisualizeDepth;
+  ShadowMapsDefaultSize := FParentAnimation.ShadowMapsDefaultSize;
 
   Load(ARootNode, AOwnsRootNode);
 
@@ -761,6 +787,10 @@ begin
   FTimeBackwards := false;
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
+  FShadowMaps := true;
+  FShadowMapsPCF := pcf16;
+  FShadowMapsVisualizeDepth := false;
+  FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 end;
 
 constructor TVRMLGLAnimation.CreateCustomCache(AOwner: TComponent;
@@ -2013,6 +2043,66 @@ begin
   inherited;
   if Loaded then
     CurrentScene.VisibleChangeNotification(Changes);
+end;
+
+procedure TVRMLGLAnimation.SetShadowMaps(const Value: boolean);
+var
+  I: Integer;
+begin
+  if Value <> FShadowMaps then
+  begin
+    FShadowMaps := Value;
+    if FScenes <> nil then
+    begin
+      for I := 0 to FScenes.High do
+        FScenes[I].ShadowMaps := Value;
+    end;
+  end;
+end;
+
+procedure TVRMLGLAnimation.SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
+var
+  I: Integer;
+begin
+  if Value <> FShadowMapsPCF then
+  begin
+    FShadowMapsPCF := Value;
+    if FScenes <> nil then
+    begin
+      for I := 0 to FScenes.High do
+        FScenes[I].ShadowMapsPCF := Value;
+    end;
+  end;
+end;
+
+procedure TVRMLGLAnimation.SetShadowMapsVisualizeDepth(const Value: boolean);
+var
+  I: Integer;
+begin
+  if Value <> FShadowMapsVisualizeDepth then
+  begin
+    FShadowMapsVisualizeDepth := Value;
+    if FScenes <> nil then
+    begin
+      for I := 0 to FScenes.High do
+        FScenes[I].ShadowMapsVisualizeDepth := Value;
+    end;
+  end;
+end;
+
+procedure TVRMLGLAnimation.SetShadowMapsDefaultSize(const Value: Cardinal);
+var
+  I: Integer;
+begin
+  if Value <> FShadowMapsDefaultSize then
+  begin
+    FShadowMapsDefaultSize := Value;
+    if FScenes <> nil then
+    begin
+      for I := 0 to FScenes.High do
+        FScenes[I].ShadowMapsDefaultSize := Value;
+    end;
+  end;
 end;
 
 end.
