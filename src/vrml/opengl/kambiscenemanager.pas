@@ -1231,23 +1231,32 @@ var
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
-  UsedBackground := Background;
-  if UsedBackground <> nil then
+  if RenderState.Target = rtVarianceShadowMap then
   begin
-    glLoadMatrix(RenderState.CameraRotationMatrix);
-
-    if BackgroundWireframe then
-    begin
-      { Color buffer needs clear *now*, before drawing background. }
-      glClear(GL_COLOR_BUFFER_BIT);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      try
-        UsedBackground.Render;
-      finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
-    end else
-      UsedBackground.Render;
-  end else
+    { When rendering to VSM, we want to clear the screen to max depths (1, 1^2). }
     ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glClearColor(1.0, 1.0, 0.0, 1.0); // saved by GL_COLOR_BUFFER_BIT
+  end else
+  begin
+    UsedBackground := Background;
+    if UsedBackground <> nil then
+    begin
+      glLoadMatrix(RenderState.CameraRotationMatrix);
+
+      if BackgroundWireframe then
+      begin
+        { Color buffer needs clear *now*, before drawing background. }
+        glClear(GL_COLOR_BUFFER_BIT);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        try
+          UsedBackground.Render;
+        finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
+      end else
+        UsedBackground.Render;
+    end else
+      ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
+  end;
 
   if ShadowVolumesPossible and
      ShadowVolumes and
@@ -1255,6 +1264,9 @@ begin
     ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
 
   glClear(ClearBuffers);
+
+  if RenderState.Target = rtVarianceShadowMap then
+    glPopAttrib;
 
   glLoadMatrix(RenderState.CameraMatrix);
 
