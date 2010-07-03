@@ -97,10 +97,13 @@ begin
   begin
     Result^.ShadowMap := TNodeGeneratedShadowMap.Create('', '');
     Result^.ShadowMap.NodeName := LightUniqueName + '_Automatic_ShadowMap';
-    Result^.ShadowMap.FdLight.Value := Light;
     Result^.ShadowMap.FdUpdate.Value := 'ALWAYS';
     Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
   end;
+  { Regardless if this is taken from defaultShadowMap or created,
+    always set "light" to our light. This way user doesn't have to
+    specify defaultShadowMap.light is the same light. }
+  Result^.ShadowMap.FdLight.Value := Light;
 
   if DefaultVisualizeShadowMap then
     Result^.ShadowMap.FdCompareMode.Value := 'NONE';
@@ -146,7 +149,7 @@ begin
   Part.FdUrl.Items[0] := NL + ShadowMapFragmentShader[
     VarianceShadowMaps, VisualizeShadowMap, BaseTexCount];
   Result.FdParts.AddItem(Part);
-  
+
   if VarianceShadowMaps then
   begin
     Part := TNodeShaderPart.Create('', '');
