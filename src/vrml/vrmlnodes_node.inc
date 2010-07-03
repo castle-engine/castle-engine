@@ -54,6 +54,7 @@
     fNodeName: string;
     FWWWBasePath: string;
     FChildren, FParentNodes: TVRMLNodesList;
+    FKeepExisting: Cardinal;
     function GetChildrenItem(i: integer): TVRMLNode;
     function GetParentNodesItem(i: integer): TVRMLNode;
     procedure SetChildrenItem(I: Integer; Value: TVRMLNode);
@@ -388,6 +389,22 @@
 #)
        }
     procedure FreeIfUnused;
+
+    { Increase KeepExisting property value to disable automatic freeing
+      of the node when unused.
+      This may be useful in cases when you remove the node from VRML graph
+      hierarchy, but you want to keep a valid reference to it anyway
+      (for example, maybe you'll free it later by hand or add it somewhere
+      else).
+
+      Simple methods KeepExistingBegin and KeepExistingEnd simply increase /
+      decrease KeepExisting value by 1. This is the most usual usage.
+
+      @groupBegin }
+    property KeepExisting: Cardinal read FKeepExisting write FKeepExisting;
+    procedure KeepExistingBegin;
+    procedure KeepExistingEnd;
+    { @groupEnd }
 
     { AllowedChildren okresla jakie dzieci moga byc dziecmi tego node'a.
       Warunek ten bedzie sprawdzany w AddChild wiec nigdy nie uda ci sie dodac
@@ -1275,13 +1292,24 @@ end;
 procedure TVRMLNode.FreeIfUnused;
 begin
   if (FParentNodes.Count = 0) and
-     (FParentFields.Count = 0) then
+     (FParentFields.Count = 0) and
+     (KeepExisting = 0) then
   begin
     { This is written as "Self.Destroy" to actually do the desctruction,
       freeing memory etc. If I would just call it "Destroy", it would
       perform what destructor does but leaving object instance unfreed. }
     Self.Destroy;
   end;
+end;
+
+procedure TVRMLNode.KeepExistingBegin;
+begin
+  Inc(FKeepExisting);
+end;
+
+procedure TVRMLNode.KeepExistingEnd;
+begin
+  Dec(FKeepExisting);
 end;
 
 procedure TVRMLNode.AddChild(Index: Integer; child: TVRMLNode);
