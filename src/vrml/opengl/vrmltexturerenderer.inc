@@ -2222,6 +2222,11 @@ var
   TextureWrap: TTextureWrap2D;
   MinFilter: TGLint;
 begin
+  { Float texture extensions: there is also NV_float_buffer,
+    which is the only way for a float texture on old nvidia GPUs.
+    But it's only for NV_texture_rectangle, without bilinear filtering
+    or mipmapping, so it's not useful for VSM at all. }
+
   VarianceShadowMaps := Renderer.Attributes.VarianceShadowMaps and
     (TGLSLProgram.ClassSupport <> gsNone) and
     (GL_ATI_texture_float or GL_ARB_texture_float);
