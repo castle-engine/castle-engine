@@ -24,3 +24,15 @@ float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord)
     return variance / (variance + m_d * m_d);
   }
 }
+
+float variance_shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord)
+{
+  vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;
+
+  /* When coord2 is outside (0, 0) - (1, 1) square, set d = 0.
+     Otherwise texture would be visible stretched due to clamping. */
+  if (coord2.s < 0.0 || coord2.s > 1.0 ||
+      coord2.t < 0.0 || coord2.t > 1.0)
+    return 0.0; else
+    return texture2D(shadowMap, coord2).x;
+}

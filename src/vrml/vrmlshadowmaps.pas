@@ -148,14 +148,16 @@ const
   VarianceShadowMaps = false; { TODO: hardcoded }
   ShadowMapFragmentShader: array [boolean, boolean, 0..MaxBaseTextures] of string =
   ( { Variance Shadow Maps = false }
-    ( ( {$I shadow_map_0.fs.inc}, {$I shadow_map_1.fs.inc} ),
-      { TODO: no shadow_map_0_depth.fs.inc version }
-      ( {$I shadow_map_0.fs.inc}, {$I shadow_map_1_show_depth.fs.inc} )
+    ( ( {$I shadow_map_0.fs.inc},
+        {$I shadow_map_1.fs.inc} ),
+      ( {$I shadow_map_0_show_depth.fs.inc},
+        {$I shadow_map_1_show_depth.fs.inc} )
     ),
     { Variance Shadow Maps = true }
-    ( ( {$I variance_shadow_map_0.fs.inc}, {$I variance_shadow_map_1.fs.inc} ),
-      { TODO: no shadow_map_0_depth.fs.inc version }
-      ( {$I variance_shadow_map_0.fs.inc}, {$I variance_shadow_map_1_show_depth.fs.inc} )
+    ( ( {$I variance_shadow_map_0.fs.inc},
+        {$I variance_shadow_map_1.fs.inc} ),
+      ( {$I variance_shadow_map_0_show_depth.fs.inc},
+        {$I variance_shadow_map_1_show_depth.fs.inc} )
     )
   );
   ShadowMapFragmentShaderCommon: array [boolean] of string =

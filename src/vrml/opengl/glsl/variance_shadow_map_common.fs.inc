@@ -26,4 +26,16 @@
 '    return variance / (variance + m_d * m_d);' + LineEnding + 
 '  }' + LineEnding + 
 '}' + LineEnding + 
+'' + LineEnding + 
+'float variance_shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord)' + LineEnding + 
+'{' + LineEnding + 
+'  vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;' + LineEnding + 
+'' + LineEnding + 
+'  /* When coord2 is outside (0, 0) - (1, 1) square, set d = 0.' + LineEnding + 
+'     Otherwise texture would be visible stretched due to clamping. */' + LineEnding + 
+'  if (coord2.s < 0.0 || coord2.s > 1.0 ||' + LineEnding + 
+'      coord2.t < 0.0 || coord2.t > 1.0)' + LineEnding + 
+'    return 0.0; else' + LineEnding + 
+'    return texture2D(shadowMap, coord2).x;' + LineEnding + 
+'}' + LineEnding + 
 ''
