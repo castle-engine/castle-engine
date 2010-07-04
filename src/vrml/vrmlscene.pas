@@ -536,6 +536,10 @@ type
     procedure SetFileName(const AValue: string);
     procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
     procedure SetStatic(const Value: boolean);
+    procedure SetShadowMaps(const Value: boolean);
+    procedure SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
+    procedure SetShadowMapsVisualizeDepth(const Value: boolean);
+    procedure SetShadowMapsDefaultSize(const Value: Cardinal);
   private
     TransformNodesInfo: TDynTransformNodeInfoArray;
 
@@ -1971,7 +1975,7 @@ type
       This property (and related ones
       like ShadowMapsPCF, ShadowMapsVisualizeDepth, ShadowMapsDefaultSize)
       is relevant only for handling shadows by the "receiveShadows" field. }
-    property ShadowMaps: boolean read FShadowMaps write FShadowMaps default true;
+    property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
 
     { Use Percentage Closer Filtering to improve shadow maps look.
 
@@ -1979,7 +1983,7 @@ type
       field.  This is taken into account at the scene @link(Load) time,
       and only if @link(ShadowMaps) is @true. }
     property ShadowMapsPCF: TPercentageCloserFiltering
-      read FShadowMapsPCF write FShadowMapsPCF default pcf16;
+      read FShadowMapsPCF write SetShadowMapsPCF default pcf16;
 
     { Visualize depths stored in the shadow maps, instead of using them to
       actually make shadow.
@@ -1995,7 +1999,7 @@ type
       @code(GeneratedShadowMap.compareMode) is set to @code('NONE'),
       we will always visualize depths of this shadow map. }
     property ShadowMapsVisualizeDepth: boolean
-     read FShadowMapsVisualizeDepth write FShadowMapsVisualizeDepth default false;
+     read FShadowMapsVisualizeDepth write SetShadowMapsVisualizeDepth default false;
 
     { Default shadow map texture size.
 
@@ -2007,7 +2011,7 @@ type
       node inside light's @code(defaultShadowMap) field. In this case,
       @code(GeneratedShadowMap.size) determines shadow map size. }
     property ShadowMapsDefaultSize: Cardinal
-      read FShadowMapsDefaultSize write FShadowMapsDefaultSize
+      read FShadowMapsDefaultSize write SetShadowMapsDefaultSize
       default DefaultShadowMapsDefaultSize;
   end;
 
@@ -2371,9 +2375,8 @@ begin
   RootNode := ARootNode;
   OwnsRootNode := AOwnsRootNode;
 
-  if ShadowMaps then
-    ProcessShadowMapsReceivers(RootNode, ShadowMapsDefaultSize,
-      ShadowMapsVisualizeDepth, ShadowMapsPCF);
+  ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
+    ShadowMapsVisualizeDepth, ShadowMapsPCF);
 
   ScheduleChangedAll;
 
@@ -6367,6 +6370,58 @@ begin
       Result.Point := Intersection;
       Result.Hierarchy.Add(Self);
     end;
+  end;
+end;
+
+procedure TVRMLScene.SetShadowMaps(const Value: boolean);
+begin
+  if FShadowMaps <> Value then
+  begin
+    FShadowMaps := Value;
+
+    BeforeNodesFree;
+    ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
+      ShadowMapsVisualizeDepth, ShadowMapsPCF);
+    ScheduleChangedAll;
+  end;
+end;
+
+procedure TVRMLScene.SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
+begin
+  if FShadowMapsPCF <> Value then
+  begin
+    FShadowMapsPCF := Value;
+
+    BeforeNodesFree;
+    ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
+      ShadowMapsVisualizeDepth, ShadowMapsPCF);
+    ScheduleChangedAll;
+  end;
+end;
+
+procedure TVRMLScene.SetShadowMapsVisualizeDepth(const Value: boolean);
+begin
+  if FShadowMapsVisualizeDepth <> Value then
+  begin
+    FShadowMapsVisualizeDepth := Value;
+
+    BeforeNodesFree;
+    ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
+      ShadowMapsVisualizeDepth, ShadowMapsPCF);
+    ScheduleChangedAll;
+  end;
+end;
+
+procedure TVRMLScene.SetShadowMapsDefaultSize(const Value: Cardinal);
+begin
+  if FShadowMapsDefaultSize <> Value then
+  begin
+    FShadowMapsDefaultSize := Value;
+
+    BeforeNodesFree;
+    ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
+      ShadowMapsVisualizeDepth, ShadowMapsPCF);
+    ScheduleChangedAll;
   end;
 end;
 

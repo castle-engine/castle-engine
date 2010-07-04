@@ -30,6 +30,12 @@ const
 { Automatically handle VRML/X3D "receiveShadows" field
   by inserting appropriate lower-level nodes.
 
+  If Enable is @true, the appropriate lower-level nodes are added,
+  or replaced (if they already existed, because you call
+  ProcessShadowMapsReceivers again).
+  If Enable is @false, the appropriate nodes (added by previous calls to
+  ProcessShadowMapsReceivers) will be removed instead.
+
   For each shape with "receiveShadows", we:
   @orderedList(
     @item(extend it's "texture" field with appropriate GeneratedShadowMap,)
@@ -39,6 +45,7 @@ const
       shader.)
   ) }
 procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
+  const Enable: boolean;
   const DefaultShadowMapSize: Cardinal;
   const DefaultVisualizeShadowMap: boolean;
   const PCF: TPercentageCloserFiltering);
@@ -69,6 +76,7 @@ type
 type
   TDynLightArray = class(TDynArray_1)
   public
+    Enable: boolean;
     DefaultShadowMapSize: Cardinal;
     DefaultVisualizeShadowMap: boolean;
     PCF: TPercentageCloserFiltering;
@@ -332,6 +340,7 @@ begin
 end;
 
 procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
+  const Enable: boolean;
   const DefaultShadowMapSize: Cardinal;
   const DefaultVisualizeShadowMap: boolean;
   const PCF: TPercentageCloserFiltering);
@@ -341,6 +350,7 @@ var
 begin
   Lights := TDynLightArray.Create;
   try
+    Lights.Enable := Enable;
     Lights.DefaultShadowMapSize := DefaultShadowMapSize;
     Lights.DefaultVisualizeShadowMap := DefaultVisualizeShadowMap;
     Lights.PCF := PCF;
