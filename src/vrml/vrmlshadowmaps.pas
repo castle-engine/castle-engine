@@ -306,6 +306,13 @@ var
 begin
   Shape := Node as TNodeShape;
 
+  App := Shape.Appearance;
+  if App = nil then Exit;
+
+  { Check are receiveShadows empty, so we don't check TexCoord existence
+    when there's no need. }
+  if App.FdReceiveShadows.Count = 0 then Exit;
+
   { HandleLight needs here a shape with geometry with texCoord.
     Better check it here, before we start changing anything. }
   if Shape.FdGeometry.Value = nil then Exit;
@@ -316,9 +323,6 @@ begin
     VRMLWarning(vwIgnorable, 'Geometry node "' + Shape.FdGeometry.Value.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
     Exit;
   end;
-
-  App := Shape.Appearance;
-  if App = nil then Exit;
 
   for I := 0 to App.FdReceiveShadows.Count - 1 do
     if App.FdReceiveShadows.Items[I] is TNodeX3DLightNode then
