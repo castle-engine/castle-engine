@@ -52,13 +52,16 @@ procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
 
 implementation
 
-uses SysUtils, KambiUtils, VRMLFields, VRMLErrors;
+uses SysUtils, KambiUtils, VRMLFields, VRMLErrors, KambiStringUtils;
 
 {$define read_interface}
 {$define read_implementation}
 
 const
   MaxBaseTextures = 1;
+  { Suffix of VRML node names created by ProcessShadowMapsReceivers
+    transformation. }
+  NodeNameSuffix = '_generated_by_ProcessShadowMapsReceivers';
 
 type
   { Information about light source relevant for shadow maps. }
@@ -81,9 +84,21 @@ type
     DefaultVisualizeShadowMap: boolean;
     PCF: TPercentageCloserFiltering;
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
+
+    { Find existing or add new TLight record for this light node.
+      If Enable, this also creates shadow map and texture generator nodes
+      for this light. }
     function FindLight(Light: TNodeX3DLightNode): PLight;
+
     function CreateShadowMapShader(const VisualizeShadowMap: boolean;
       const BaseTexCount: Cardinal): TNodeComposedShader;
+
+    { Handle Appearance.shaders field for shadow maps.
+      Adds, replaces or removes shaders, based on Enabled state and whether
+      our shader is already there. }
+    procedure HandleShaders(Shaders: TMFNode;
+      const VisualizeShadowMap: boolean; const BaseTexCount: Cardinal);
+
     procedure HandleShape(Node: TVRMLNode);
   end;
 
@@ -98,6 +113,13 @@ begin
   { add a new TLight record }
   Result := Add;
   Result^.Light := Light;
+
+  if not Enable then
+  begin
+    Result^.ShadowMap := nil;
+    Result^.TexGen := nil;
+    Exit;
+  end;
 
   { Assign unique nodenames to the created ShadowMap and TexGen nodes,
     this way when saving they will be shared by DEF/USE.
@@ -130,14 +152,19 @@ begin
   end else
   begin
     Result^.ShadowMap := TNodeGeneratedShadowMap.Create('', '');
-    Result^.ShadowMap.NodeName := LightUniqueName + '_Automatic_ShadowMap';
     Result^.ShadowMap.FdUpdate.Value := 'ALWAYS';
     Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
   end;
+
   { Regardless if this is taken from defaultShadowMap or created,
     always set "light" to our light. This way user doesn't have to
     specify defaultShadowMap.light is the same light. }
   Result^.ShadowMap.FdLight.Value := Light;
+
+  { Regardless if this is taken from defaultShadowMap or created,
+    set NodeName, such that it has NodeNameSuffix. This is needed for
+    HandleShadowMap, so that it can be removed later. }
+  Result^.ShadowMap.NodeName := LightUniqueName + '_ShadowMap' + NodeNameSuffix;
 
   if DefaultVisualizeShadowMap then
     Result^.ShadowMap.FdCompareMode.Value := 'NONE';
@@ -145,7 +172,7 @@ begin
   { create new TextureCoordinateGenerator node }
 
   Result^.TexGen := TNodeTextureCoordinateGenerator.Create('', '');
-  Result^.TexGen.NodeName := LightUniqueName + '_Automatic_TexGen';
+  Result^.TexGen.NodeName := LightUniqueName + '_TexGen' + NodeNameSuffix;
   Result^.TexGen.FdProjectedLight.Value := Light;
   Result^.TexGen.FdMode.Value := 'PROJECTION';
 end;
@@ -177,7 +204,7 @@ var
   Part: TNodeShaderPart;
 begin
   Result := TNodeComposedShader.Create('', '');
-  Result.NodeName := 'Shader_ShadowMap_' + IntToStr(BaseTexCount) + 'Textures';
+  Result.NodeName := 'Shader_ShadowMap_' + IntToStr(BaseTexCount) + 'Textures' + NodeNameSuffix;
   Result.FdLanguage.Value := 'GLSL';
   for I := 0 to BaseTexCount - 1 do
     Result.AddCustomField(TSFInt32.Create(Result, 'texture' + IntToStr(I), I));
@@ -199,19 +226,162 @@ begin
   Result.FdParts.AddItem(Part);
 end;
 
+procedure TDynLightArray.HandleShaders(Shaders: TMFNode;
+  const VisualizeShadowMap: boolean; const BaseTexCount: Cardinal);
+begin
+  if Enable then
+  begin
+    if ShadowMapShaders[VisualizeShadowMap, BaseTexCount] = nil then
+      ShadowMapShaders[VisualizeShadowMap, BaseTexCount] :=
+        CreateShadowMapShader(VisualizeShadowMap, BaseTexCount);
+
+    { We have to remove previous shaders, regardless if they were our own
+      shaders or custom user shaders. This will be done only for shapes
+      with receiveShadows, so no harm happens to other stuff. }
+    Shaders.ClearItems;
+    Shaders.AddItem(ShadowMapShaders[VisualizeShadowMap, BaseTexCount]);
+  end else
+  begin
+    { Detect if it's our own shader (by checking NodeNameSuffix).
+      Only then, remove it. }
+    if (Shaders.Count = 1) and
+       IsSuffix(NodeNameSuffix, Shaders.Items[0].NodeName) then
+      Shaders.ClearItems;
+  end;
+end;
+
 procedure TDynLightArray.HandleShape(Node: TVRMLNode);
+
+  { Add/Remove/Replace ShadowMap to the textures used by the material
+    (TODO: and by shaders, in the future; for now, we overuse the fact
+    that our shaders will get normal textures anyway).
+
+    Converts Texture to MultiTexture, to add the shadow map
+    preserving old texture.
+
+    Returns the count of textures in TexturesCount, not counting the last
+    ShadowMap texture. }
+  procedure HandleShadowMap(var Texture: TVRMLNode;
+    const ShadowMap: TNodeGeneratedShadowMap; out TexturesCount: Cardinal);
+  var
+    MTexture: TNodeMultiTexture;
+  begin
+    { calculate MTexture and TexturesCount }
+    if (Texture <> nil) and
+       (Texture is TNodeMultiTexture) then
+    begin
+      { if Texture already is MultiTexture, then we're already Ok }
+      MTexture := TNodeMultiTexture(Texture);
+      TexturesCount := MTexture.FdTexture.Count;
+
+      { If the last texture is the one we want to add
+        (this also implies that ShadowMap is non-nil and so Enable is true)
+        then we're all set, nothing more to do.
+        This may happen, as HandleLight may iterate many times over
+        the same light. }
+      if (TexturesCount <> 0) and
+         (MTexture.FdTexture.Items.Last = ShadowMap) then
+      begin
+        Dec(TexturesCount);
+        Exit;
+      end;
+
+      { Remove old GeneratedShadowMap that we added there. }
+      if (TexturesCount <> 0) and
+         IsSuffix(NodeNameSuffix, MTexture.FdTexture.Items.Last.NodeName) then
+      begin
+        MTexture.FdTexture.RemoveItem(TexturesCount - 1);
+        Dec(TexturesCount);
+      end;
+    end else
+    begin
+      MTexture := TNodeMultiTexture.Create('', '');
+      if Texture <> nil then
+      begin
+        { set position in parent only for more deterministic output
+          (new "texture" field on the same position) }
+        MTexture.PositionInParent := Texture.PositionInParent;
+        MTexture.FdTexture.AddItem(Texture);
+        TexturesCount := 1;
+      end else
+        TexturesCount := 0;
+      Texture := MTexture;
+    end;
+
+    Assert(Texture = MTexture);
+    Assert(TexturesCount = MTexture.FdTexture.Count);
+
+    if Enable then
+      MTexture.FdTexture.AddItem(ShadowMap);
+  end;
+
+  { Add/Remove/Replace to the texCoord field.
+
+    Converts texCoord to multi tex coord, to preserve previous tex coord.
+
+    Returns the count of texCoords in TexCoordsCount, not counting the last
+    TexGen node. }
+  procedure HandleTexGen(var TexCoord: TVRMLNode;
+    const TexGen: TNodeTextureCoordinateGenerator; out TexCoordsCount: Cardinal);
+  var
+    MTexCoord: TNodeMultiTextureCoordinate;
+  begin
+    { calculate MTexCoord and TexCoordsCount }
+    if (TexCoord <> nil) and
+       (TexCoord is TNodeMultiTextureCoordinate) then
+    begin
+      { if TexCoord already is MultiTextureCoordinate, then we're already Ok }
+      MTexCoord := TNodeMultiTextureCoordinate(TexCoord);
+      TexCoordsCount := MTexCoord.FdTexCoord.Count;
+
+      { If the last texcoord is the one we want to add
+        (this also implies that TexGen is non-nil and so Enable is true)
+        then we're all set, nothing more to do.
+        This may happen, as HandleLight may iterate many times over
+        the same light. }
+      if (TexCoordsCount <> 0) and
+         (MTexCoord.FdTexCoord.Items.Last = TexGen) then
+      begin
+        Dec(TexCoordsCount);
+        Exit;
+      end;
+
+      { Remove old TextureCoordinate that we added there. }
+      if (TexCoordsCount <> 0) and
+         IsSuffix(NodeNameSuffix, MTexCoord.FdTexCoord.Items.Last.NodeName) then
+      begin
+        MTexCoord.FdTexCoord.RemoveItem(TexCoordsCount - 1);
+        Dec(TexCoordsCount);
+      end;
+    end else
+    begin
+      MTexCoord := TNodeMultiTextureCoordinate.Create('', '');
+      if TexCoord <> nil then
+      begin
+        { set position in parent only for more deterministic output
+          (new "texCoord" field on the same position) }
+        MTexCoord.PositionInParent := TexCoord.PositionInParent;
+        MTexCoord.FdTexCoord.AddItem(TexCoord);
+        TexCoordsCount := 1;
+      end else
+        TexCoordsCount := 0;
+      TexCoord := MTexCoord;
+    end;
+
+    Assert(TexCoord = MTexCoord);
+    Assert(TexCoordsCount = MTexCoord.FdTexCoord.Count);
+
+    if Enable then
+      MTexCoord.FdTexCoord.AddItem(TexGen);
+  end;
+
 var
   Shape: TNodeShape;
   App: TNodeAppearance;
 
-  { This:
-    1. adds ShadowMap to the textures used by the material and by shaders
-       (converting texture to MultiTexture, to add the shadow map
-       preserving old texture.)
-    2. adds TexGen to the texCoord field,
-       (converting texCoord to multi tex coord, to preserve
-       previous tex coord.)
-    3. adds appropriate shader to the shaders field.
+  { 1. Add/Remove/Replace ShadowMap
+    2. Add/Remove/Replace TexGen
+    3. Add/Remove/Replace shader to the shaders field.
 
     TODO: finish handling multiple shadow maps on the same mesh.
     This should basically already work (we check is old texture / texCoord
@@ -221,94 +391,38 @@ var
   procedure HandleLight(LightNode: TNodeX3DLightNode);
   var
     Light: PLight;
-    OldTexture: TVRMLNode;
-    NewTexture: TNodeMultiTexture;
-    OldTexCoord: TVRMLNode;
-    NewTexCoord: TNodeMultiTextureCoordinate;
-    OriginalTextures, OriginalTexCoords: Cardinal;
+    Texture: TVRMLNode;
+    TexCoord: TVRMLNode;
+    TexturesCount, TexCoordsCount: Cardinal;
     VisualizeShadowMap: boolean;
   begin
     Light := FindLight(LightNode);
 
-    OldTexture := Shape.Texture;
-    OldTexCoord := TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField.Value;
+    Texture := Shape.Texture;
+    HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
+    App.FdTexture.Value := Texture;
 
-    OriginalTextures := 0;
-    OriginalTexCoords := 0;
+    TexCoord := TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField.Value;
+    HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount);
+    TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField.Value := TexCoord;
 
-    { calculate NewTexture and OriginalTextures }
-    if (OldTexture <> nil) and
-       (OldTexture is TNodeMultiTexture) then
+    if TexCoordsCount <> TexturesCount then
     begin
-      { if texture already is MultiTexture, then we're already Ok }
-      NewTexture := TNodeMultiTexture(OldTexture);
-      OriginalTextures := NewTexture.FdTexture.Count;
-    end else
-    begin
-      NewTexture := TNodeMultiTexture.Create('', '');
-      if OldTexture <> nil then
-      begin
-        { set position in parent only for more deterministic output
-          (new "texture" field on the same position) }
-        NewTexture.PositionInParent := OldTexture.PositionInParent;
-        NewTexture.FdTexture.AddItem(OldTexture);
-        OriginalTextures := 1;
-      end;
-    end;
-
-    { calculate NewTexCoord and OriginalTexCoords }
-    if (OldTexCoord <> nil) and
-       (OldTexCoord is TNodeMultiTextureCoordinate) then
-    begin
-      { if texCoord already is MultiTextureCoordinate, then we're already Ok }
-      NewTexCoord := TNodeMultiTextureCoordinate(OldTexCoord);
-      OriginalTexCoords := NewTexCoord.FdTexCoord.Count;
-    end else
-    begin
-      NewTexCoord := TNodeMultiTextureCoordinate.Create('', '');
-      if OldTexCoord <> nil then
-      begin
-        { set position in parent only for more deterministic output
-          (new "texCoord" field on the same position) }
-        NewTexCoord.PositionInParent := OldTexCoord.PositionInParent;
-        NewTexCoord.FdTexCoord.AddItem(OldTexCoord);
-        OriginalTexCoords := 1;
-      end;
-    end;
-
-    { At this point we didn't do much yet (we only eventually
-      converted texture and texCoord to be in multi-texture versions).
-      So check and just exit if we decide this node is already processed,
-      or some trouble may occur. }
-
-    if (NewTexture.FdTexture.Items.IndexOf(Light^.ShadowMap) <> -1) and
-       (NewTexCoord.FdTexCoord.Items.IndexOf(Light^.TexGen) <> -1) then
-      Exit;
-
-    if OriginalTexCoords <> OriginalTextures then
-    begin
-      VRMLWarning(vwIgnorable, 'Texture units used by the Appearance.texture non-equal with used by texCoord. This is too complicated setup to easily use shadow maps by the "receiveShadows".');
+      VRMLWarning(vwIgnorable, Format('Texture units (%d) used by the Appearance.texture non-equal with used by texCoord (%d). This is too complicated setup to easily use shadow maps by the "receiveShadows".',
+        [TexturesCount, TexCoordsCount]));
       Exit;
     end;
 
-    if OriginalTexCoords > MaxBaseTextures then
+    if TexCoordsCount > MaxBaseTextures then
     begin
-      VRMLWarning(vwIgnorable, Format('Shadow map shader for %d base textures not implemented yet.', [OriginalTexCoords]));
+      VRMLWarning(vwIgnorable, Format('Shadow map shader for %d base textures not implemented yet.', [TexCoordsCount]));
       Exit;
     end;
 
-    NewTexture.FdTexture.AddItem(Light^.ShadowMap);
-    NewTexCoord.FdTexCoord.AddItem(Light^.TexGen);
+    VisualizeShadowMap := (Light^.ShadowMap <> nil) and
+      (Light^.ShadowMap.FdCompareMode.Value = 'NONE');
 
-    App.FdTexture.Value := NewTexture;
-    TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField.Value := NewTexCoord;
-
-    VisualizeShadowMap := Light^.ShadowMap.FdCompareMode.Value = 'NONE';
-
-    if ShadowMapShaders[VisualizeShadowMap, OriginalTexCoords] = nil then
-      ShadowMapShaders[VisualizeShadowMap, OriginalTexCoords] :=
-        CreateShadowMapShader(VisualizeShadowMap, OriginalTexCoords);
-    App.FdShaders.AddItem(ShadowMapShaders[VisualizeShadowMap, OriginalTexCoords]);
+    HandleShaders(App.FdShaders, VisualizeShadowMap, TexCoordsCount);
   end;
 
 var
@@ -366,13 +480,14 @@ begin
       used (so no unused nodes should remain now for free), actually
       there is a chance something remained unused if HandleLight failed
       with VRMLWarning after FindLight. }
-    for I := 0 to Lights.Count - 1 do
-    begin
-      Lights.Items[I].ShadowMap.FreeIfUnused;
-      Lights.Items[I].ShadowMap := nil;
-      Lights.Items[I].TexGen.FreeIfUnused;
-      Lights.Items[I].TexGen := nil;
-    end;
+    if Enable then
+      for I := 0 to Lights.Count - 1 do
+      begin
+        Lights.Items[I].ShadowMap.FreeIfUnused;
+        Lights.Items[I].ShadowMap := nil;
+        Lights.Items[I].TexGen.FreeIfUnused;
+        Lights.Items[I].TexGen := nil;
+      end;
   finally FreeAndNil(Lights) end;
 end;
 
