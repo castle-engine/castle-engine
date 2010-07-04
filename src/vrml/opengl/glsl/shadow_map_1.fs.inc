@@ -8,7 +8,7 @@
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  gl_FragColor = texture2D(texture0, gl_TexCoord[0].st) * gl_Color;' + LineEnding + 
-'  gl_FragColor.rgb = mix(gl_FragColor.rgb / 2.0, gl_FragColor.rgb,' + LineEnding + 
+'  gl_FragColor.rgb = mix(gl_FragColor.rgb / 4.0, gl_FragColor.rgb,' + LineEnding + 
 '    shadow(shadowMap, gl_TexCoord[1]));' + LineEnding + 
 '' + LineEnding + 
 '  /* Alternative ideas:' + LineEnding + 
