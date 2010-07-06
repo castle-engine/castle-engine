@@ -493,6 +493,10 @@ var
   Lights: TDynLightArray;
   I: Integer;
 begin
+  { This is valid situation (TVRMLScene.RootNode may be nil).
+    Nothing to do then. }
+  if Model = nil then Exit;
+
   Lights := TDynLightArray.Create;
   try
     Lights.Enable := Enable;
