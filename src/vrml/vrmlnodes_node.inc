@@ -2038,7 +2038,7 @@ var
               begin
                 MF := Fields[FieldIndex] as TMFNode;
                 Fields[FieldIndex].PositionInParent := Position;
-                MF.AddItem(Child);
+                MF.Add(Child);
                 MF.WarningIfChildNotAllowed(Child);
               end else
               begin
@@ -2604,7 +2604,7 @@ procedure TVRMLNode.SmartAddChild(Node: TVRMLNode);
 begin
   if ChildrenField = nil then
     AddChild(Node) else
-    ChildrenField.AddItem(Node);
+    ChildrenField.Add(Node);
 end;
 
 function TVRMLNode.GetSmartChildren(Index: Integer): TVRMLNode;
@@ -2625,7 +2625,7 @@ function TVRMLNode.SmartExtractChild(Index: Integer): TVRMLNode;
 begin
   if ChildrenField = nil then
     Result := ExtractChild(Index) else
-    Result := ChildrenField.ExtractItem(Index);
+    Result := ChildrenField.Extract(Index);
 end;
 
 function TVRMLNode.SuggestedVRMLVersion(
@@ -2766,11 +2766,11 @@ begin
         Func(Self, NewNode);
         if NewNode <> MF.Items[J] then
         begin
-          MF.RemoveItem(J);
+          MF.Delete(J);
           Inc(Result);
           if NewNode <> nil then
           begin
-            MF.AddItem(J, NewNode);
+            MF.Add(J, NewNode);
             Inc(J);
           end;
         end else
@@ -2981,7 +2981,7 @@ begin
   begin
     MF := TMFNode(Destination);
     for J := 0 to MF.Count - 1 do
-      MF.ReplaceItem(J, CopyState.DeepCopy(MF.Items[J]));
+      MF.Replace(J, CopyState.DeepCopy(MF.Items[J]));
   end;
 end;
 

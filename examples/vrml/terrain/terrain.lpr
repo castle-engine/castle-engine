@@ -493,7 +493,7 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
     Root := TVRMLRootNode_2.Create('', '');
     try
       Shape := TNodeShape.Create('', '');
-      Root.FdChildren.AddItem(Shape);
+      Root.FdChildren.Add(Shape);
 
       Grid := TNodeElevationGrid.Create('', '');
       Shape.FdGeometry.Value := Grid;
@@ -528,7 +528,7 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
       if AddShadersTextures then
       begin
         Shader := TNodeComposedShader.Create('', '');
-        Appearance.FdShaders.AddItem(Shader);
+        Appearance.FdShaders.Add(Shader);
         Shader.FdLanguage.Value := 'GLSL';
 
         { Add shader. Setup everything, like for rendering (without fog). }
@@ -549,12 +549,12 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
         Shader.AddCustomField(TSFFloat.Create(Shader, 'tex_scale', 0.8));
 
         Part := TNodeShaderPart.Create('', '');
-        Shader.FdParts.AddItem(Part);
+        Shader.FdParts.Add(Part);
         Part.FdType.Value := 'FRAGMENT';
         Part.FdUrl.Items.Add('elevation.fs');
 
         Part := TNodeShaderPart.Create('', '');
-        Shader.FdParts.AddItem(Part);
+        Shader.FdParts.Add(Part);
         Part.FdType.Value := 'VERTEX';
         Part.FdUrl.Items.Add('elevation.vs');
       end;

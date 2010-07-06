@@ -239,14 +239,14 @@ begin
   Part.FdUrl.Items.Count := 1;
   Part.FdUrl.Items[0] := NL + FragmentShader[VisualizeShadowMap, BaseTexCount];
   Part.VSMContents := VSMFragmentShader[VisualizeShadowMap, BaseTexCount];
-  Result.FdParts.AddItem(Part);
+  Result.FdParts.Add(Part);
 
   Part := TNodeShaderPartShadowMap.Create('', '');
   Part.FdType.Value := 'FRAGMENT';
   Part.FdUrl.Items.Count := 1;
   Part.FdUrl.Items[0] := NL + PCFDefine[PCF] + NL + FragmentShaderCommon;
   Part.VSMContents := VSMFragmentShaderCommon;
-  Result.FdParts.AddItem(Part);
+  Result.FdParts.Add(Part);
 end;
 
 procedure TDynLightArray.HandleShaders(Shaders: TMFNode;
@@ -269,15 +269,15 @@ begin
     { We have to remove previous shaders, regardless if they were our own
       shaders or custom user shaders. This will be done only for shapes
       with receiveShadows, so no harm happens to other stuff. }
-    Shaders.ClearItems;
-    Shaders.AddItem(ShadowMapShaders[VisualizeShadowMap, BaseTexCount]);
+    Shaders.Clear;
+    Shaders.Add(ShadowMapShaders[VisualizeShadowMap, BaseTexCount]);
   end else
   begin
     { Detect if it's our own shader (by checking NodeNameSuffix).
       Only then, remove it. }
     if (Shaders.Count = 1) and
        IsSuffix(NodeNameSuffix, Shaders.Items[0].NodeName) then
-      Shaders.ClearItems;
+      Shaders.Clear;
   end;
 end;
 
@@ -321,7 +321,7 @@ procedure TDynLightArray.HandleShape(Node: TVRMLNode);
       if (TexturesCount <> 0) and
          IsSuffix(NodeNameSuffix, MTexture.FdTexture.Items.Last.NodeName) then
       begin
-        MTexture.FdTexture.RemoveItem(TexturesCount - 1);
+        MTexture.FdTexture.Delete(TexturesCount - 1);
         Dec(TexturesCount);
       end;
     end else
@@ -332,7 +332,7 @@ procedure TDynLightArray.HandleShape(Node: TVRMLNode);
         { set position in parent only for more deterministic output
           (new "texture" field on the same position) }
         MTexture.PositionInParent := Texture.PositionInParent;
-        MTexture.FdTexture.AddItem(Texture);
+        MTexture.FdTexture.Add(Texture);
         TexturesCount := 1;
       end else
         TexturesCount := 0;
@@ -343,7 +343,7 @@ procedure TDynLightArray.HandleShape(Node: TVRMLNode);
     Assert(TexturesCount = MTexture.FdTexture.Count);
 
     if Enable then
-      MTexture.FdTexture.AddItem(ShadowMap);
+      MTexture.FdTexture.Add(ShadowMap);
   end;
 
   { Add/Remove/Replace to the texCoord field.
@@ -381,7 +381,7 @@ procedure TDynLightArray.HandleShape(Node: TVRMLNode);
       if (TexCoordsCount <> 0) and
          IsSuffix(NodeNameSuffix, MTexCoord.FdTexCoord.Items.Last.NodeName) then
       begin
-        MTexCoord.FdTexCoord.RemoveItem(TexCoordsCount - 1);
+        MTexCoord.FdTexCoord.Delete(TexCoordsCount - 1);
         Dec(TexCoordsCount);
       end;
     end else
@@ -392,7 +392,7 @@ procedure TDynLightArray.HandleShape(Node: TVRMLNode);
         { set position in parent only for more deterministic output
           (new "texCoord" field on the same position) }
         MTexCoord.PositionInParent := TexCoord.PositionInParent;
-        MTexCoord.FdTexCoord.AddItem(TexCoord);
+        MTexCoord.FdTexCoord.Add(TexCoord);
         TexCoordsCount := 1;
       end else
         TexCoordsCount := 0;
@@ -403,7 +403,7 @@ procedure TDynLightArray.HandleShape(Node: TVRMLNode);
     Assert(TexCoordsCount = MTexCoord.FdTexCoord.Count);
 
     if Enable then
-      MTexCoord.FdTexCoord.AddItem(TexGen);
+      MTexCoord.FdTexCoord.Add(TexGen);
   end;
 
 var

@@ -1019,7 +1019,7 @@ procedure TVRMLGLAnimation.LoadCore(
               Field1.Items.Items[I] := Field2.Items.Items[I]
             but I can't call this directly, I must use Field1.ReplaceChild
             to not mess reference counts. }
-          Field1.ReplaceItem(I, Field2.Items.Items[I]);
+          Field1.Replace(I, Field2.Items.Items[I]);
         end else
           Result := false;
       end;
@@ -1091,8 +1091,8 @@ procedure TVRMLGLAnimation.LoadCore(
       I: Integer;
     begin
       for I := 0 to Field1.Items.Count - 1 do
-        Target.AddItem(VRMLModelLerp(A, Field1.Items.Items[I],
-                                        Field2.Items.Items[I]));
+        Target.Add(VRMLModelLerp(A, Field1.Items.Items[I],
+                                    Field2.Items.Items[I]));
     end;
 
   var

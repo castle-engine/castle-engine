@@ -1152,7 +1152,7 @@ var
         end else
         begin
           Shape := TNodeShape.Create('', WWWBasePath);
-          ParentGroup.FdChildren.AddItem(Shape);
+          ParentGroup.FdChildren.Add(Shape);
           Shape.FdGeometry.Value := Geometries[GeometryIndex];
 
           AddMaterial(Shape, GeometriesMaterialNames[GeometryIndex],
@@ -1201,10 +1201,10 @@ var
               Group := TNodeMatrixTransform_2.Create('', WWWBasePath);
               TNodeMatrixTransform_2(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
             end;
-            ParentGroup.FdChildren.AddItem(Group);
+            ParentGroup.FdChildren.Add(Group);
 
             Shape := TNodeShape.Create('', WWWBasePath);
-            Group.FdChildren.AddItem(Shape);
+            Group.FdChildren.Add(Shape);
             Shape.FdGeometry.Value := Geometries[GeometryIndex];
 
             AddMaterial(Shape, GeometriesMaterialNames[GeometryIndex],
@@ -1232,7 +1232,7 @@ var
       NewNodeTransform: TNodeTransform_2;
     begin
       NewNodeTransform := TNodeTransform_2.Create('', WWWBasePath);
-      NodeTransform.FdChildren.AddItem(NewNodeTransform);
+      NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
       Result := NewNodeTransform;
@@ -1243,7 +1243,7 @@ var
       NewNodeTransform: TNodeMatrixTransform_2;
     begin
       NewNodeTransform := TNodeMatrixTransform_2.Create('', WWWBasePath);
-      NodeTransform.FdChildren.AddItem(NewNodeTransform);
+      NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
       Result := NewNodeTransform;
@@ -1262,7 +1262,7 @@ var
       NodeId := '';
 
     NodeTransform := TNodeTransform_2.Create(NodeId, WWWBasePath);
-    ParentGroup.FdChildren.AddItem(NodeTransform);
+    ParentGroup.FdChildren.Add(NodeTransform);
 
     { First iterate to gather all transformations.
 
@@ -1397,7 +1397,7 @@ var
               '<visual_scene> element "%s"', [VisualSceneId]));
           end else
           begin
-            ResultModel.FdChildren.AddItem(VisualScenes[VisualSceneIndex]);
+            ResultModel.FdChildren.Add(VisualScenes[VisualSceneIndex]);
           end;
         end;
       end;
@@ -1408,7 +1408,7 @@ var
       Group: TNodeGroup_2;
     begin
       Group := TNodeGroup_2.Create(SceneId, WWWBasePath);
-      ResultModel.FdChildren.AddItem(Group);
+      ResultModel.FdChildren.Add(Group);
 
       ReadNodesSequence(Group, SceneElement);
     end;
@@ -1438,7 +1438,7 @@ var
 
     Group := TNodeGroup_2.Create(VisualSceneId, WWWBasePath);
     VisualScenes.Add(Group);
-    VisualScenesSwitch.FdChildren.AddItem(Group);
+    VisualScenesSwitch.FdChildren.Add(Group);
 
     ReadNodesSequence(Group, VisualSceneElement);
   end;
@@ -1463,7 +1463,7 @@ var
       converting. }
 
     VisualScenesSwitch := TNodeSwitch_2.Create(LibraryId, WWWBasePath);
-    ResultModel.FdChildren.AddItem(VisualScenesSwitch);
+    ResultModel.FdChildren.Add(VisualScenesSwitch);
 
     Children := LibraryElement.ChildNodes;
     try
@@ -1546,7 +1546,7 @@ var
     Info: TNodeInfo;
   begin
     Info := TNodeInfo.Create('', WWWBasePath);
-    Element.FdChildren.AddItem(Info);
+    Element.FdChildren.Add(Info);
     Info.FdString.Value := S;
   end;
 

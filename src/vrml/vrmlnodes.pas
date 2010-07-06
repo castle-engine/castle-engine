@@ -966,22 +966,26 @@ type
     { Lists items of this field.
 
       Do not modify this list explicitly. Use only methods in this class
-      like AddItem (they take care of calling appropriate
+      like @link(Add). They take care of calling appropriate
       AddParentField / RemoveParentField, otherwise you
-      could break reference-counting of nodes by ParentFields). }
+      could break reference-counting of nodes by ParentFields. }
     property Items: TVRMLNodesList read FItems;
 
+    procedure Add(Node: TVRMLNode); overload;
+    procedure Add(Position: Integer; Node: TVRMLNode); overload;
+
+    { @deprecated Deprecated names for @link(Add). }
     procedure AddItem(Node: TVRMLNode); overload;
     procedure AddItem(Position: Integer; Node: TVRMLNode); overload;
 
-    procedure RemoveItem(Index: Integer);
+    procedure Delete(Index: Integer);
     { Remove child with given Index, and return it, @italic(never freeing it).
       This is analogous to TVRMLNode.ExtractChild, see there for more
       explanation. }
-    function ExtractItem(Index: Integer): TVRMLNode;
-    procedure ClearItems;
+    function Extract(Index: Integer): TVRMLNode;
+    procedure Clear;
     procedure AssignItems(SourceItems: TVRMLNodesList);
-    procedure ReplaceItem(Index: Integer; Node: TVRMLNode);
+    procedure Replace(Index: Integer; Node: TVRMLNode);
 
     { Just a shortcut for Items.Count }
     function Count: integer; override;
@@ -1010,9 +1014,9 @@ type
 
       Child must not be @nil.
 
-      VRMLWarning message will suggest that this Child is used as value
-      of this node. In other words, you should only pass as Child
-      a node that you want to add (e.g. by AddItem) to this field,
+      VRMLWarning message will suggest that this Child is added to
+      this node. In other words, you should only pass as Child
+      a node that you want to add (e.g. by @link(Add)) to this field,
       otherwise VRMLWarning message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TVRMLNode);
 
@@ -1027,10 +1031,10 @@ type
     property DefaultItems: TVRMLNodesList read FDefaultItems;
 
     { Operate on DefaultItems, just like analogous AssignItems and
-      ClearItems.
+      Clear.
       @groupBegin }
     procedure AssignDefaultItems(SourceItems: TVRMLNodesList);
-    procedure ClearDefaultItems;
+    procedure ClearDefault;
     { @groupEnd }
 
     property DefaultValueExists: boolean
@@ -2951,8 +2955,8 @@ end;
 
 destructor TMFNode.Destroy;
 begin
-  ClearItems;
-  ClearDefaultItems;
+  Clear;
+  ClearDefault;
   FreeAndNil(FItems);
   FreeAndNil(FDefaultItems);
   FreeAndNil(FAllowedChildren);
@@ -2991,25 +2995,35 @@ begin
   Result := Items.Count;
 end;
 
-procedure TMFNode.AddItem(Node: TVRMLNode);
+procedure TMFNode.Add(Node: TVRMLNode);
 begin
   Items.Add(Node);
   Node.AddParentField(Self);
 end;
 
-procedure TMFNode.AddItem(Position: Integer; Node: TVRMLNode);
+procedure TMFNode.Add(Position: Integer; Node: TVRMLNode);
 begin
   Items.Insert(Position, Node);
   Node.AddParentField(Self);
 end;
 
-procedure TMFNode.RemoveItem(Index: Integer);
+procedure TMFNode.AddItem(Node: TVRMLNode);
+begin
+  Add(Node);
+end;
+
+procedure TMFNode.AddItem(Position: Integer; Node: TVRMLNode); overload;
+begin
+  Add(Position, Node);
+end;
+
+procedure TMFNode.Delete(Index: Integer);
 begin
   Items[Index].RemoveParentField(Self);
   Items.Delete(Index);
 end;
 
-function TMFNode.ExtractItem(Index: Integer): TVRMLNode;
+function TMFNode.Extract(Index: Integer): TVRMLNode;
 begin
   Result := Items[Index];
 
@@ -3020,7 +3034,7 @@ begin
   Items.Delete(Index);
 end;
 
-procedure TMFNode.ReplaceItem(Index: Integer; Node: TVRMLNode);
+procedure TMFNode.Replace(Index: Integer; Node: TVRMLNode);
 begin
   if FItems[Index] <> Node then
   begin
@@ -3030,7 +3044,7 @@ begin
   end;
 end;
 
-procedure TMFNode.ClearItems;
+procedure TMFNode.Clear;
 var
   I: Integer;
 begin
@@ -3039,7 +3053,7 @@ begin
   FItems.Count := 0;
 end;
 
-procedure TMFNode.ClearDefaultItems;
+procedure TMFNode.ClearDefault;
 var
   I: Integer;
 begin
@@ -3052,7 +3066,7 @@ procedure TMFNode.AssignItems(SourceItems: TVRMLNodesList);
 var
   I: Integer;
 begin
-  ClearItems;
+  Clear;
 
   Items.Assign(SourceItems);
 
@@ -3064,7 +3078,7 @@ procedure TMFNode.AssignDefaultItems(SourceItems: TVRMLNodesList);
 var
   I: Integer;
 begin
-  ClearDefaultItems;
+  ClearDefault;
 
   DefaultItems.Assign(SourceItems);
 
@@ -3104,12 +3118,12 @@ procedure TMFNode.ParseValue(Lexer: TVRMLLexer; Names: TObject);
     Node: TVRMLNode;
   begin
     Node := ParseNode(Lexer, Names as TVRMLNames, false);
-    AddItem(Node);
+    Add(Node);
     WarningIfChildNotAllowed(Node);
   end;
 
 begin
-  ClearItems;
+  Clear;
 
   { Note that we ignore commas here, because MFNode is in VRML 2.0 only. }
   if Lexer.Token = vtOpenSqBracket then
@@ -3138,7 +3152,7 @@ begin
     VRMLWarning(vwSerious, Format('Invalid node name for MFNode field: "%s"', [AttributeValue]));
   end else
   begin
-    AddItem(Node);
+    Add(Node);
     WarningIfChildNotAllowed(Node);
   end;
 end;
@@ -3157,7 +3171,7 @@ begin
         ContainerFieldDummy { ignore containerField }, Names as TVRMLNames, true);
       if Child <> nil then
       begin
-        AddItem(Child);
+        Add(Child);
         WarningIfChildNotAllowed(Child);
       end;
     end;

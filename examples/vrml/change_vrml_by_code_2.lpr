@@ -82,9 +82,9 @@ begin
     begin
       Transform[I, J] := TNodeTransform_2.Create('', '');
       Transform[I, J].FdTranslation.Value := Vector3Single(I * 2, J * 2, 0);
-      Transform[I, J].FdChildren.AddItem(Shape);
+      Transform[I, J].FdChildren.Add(Shape);
 
-      Result.FdChildren.AddItem(Transform[I, J]);
+      Result.FdChildren.Add(Transform[I, J]);
     end;
 end;
 

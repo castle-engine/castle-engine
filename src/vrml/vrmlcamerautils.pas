@@ -246,7 +246,7 @@ begin
            ViewpointNode.Position.Value := ZeroVector3Single;
            ViewpointNode.FdOrientation.Value := Orientation;
 
-           Transform_2.FdChildren.AddItem(ViewpointNode);
+           Transform_2.FdChildren.Add(ViewpointNode);
 
            Result := Transform_2;
          end;

@@ -462,7 +462,7 @@ begin
   MF := Value as TMFNode;
   for I := 0 to MF.Count - 1 do
     if FdChildren.Items.IndexOf(MF.Items[I]) = -1 then
-      FdChildren.AddItem(MF.Items[I]);
+      FdChildren.Add(MF.Items[I]);
 
   { X3D spec says explicitly
     "A children field is not allowed to contain nodes that are

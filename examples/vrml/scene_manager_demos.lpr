@@ -112,7 +112,7 @@ begin
   Scene2Transform := TNodeTransform_2.Create('', '');
   Scene2Transform.FdRotation.Axis := Vector3Single(1, 0, 0);
   Scene2Transform.FdRotation.RotationRad := -Pi/2;
-  Scene2Transform.FdChildren.AddItem(Scene2.RootNode);
+  Scene2Transform.FdChildren.Add(Scene2.RootNode);
   Scene2.RootNode := Scene2Transform;
   Scene2.ChangedAll; { notify Scene2 that RootNode contents changed }
 

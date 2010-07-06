@@ -669,7 +669,7 @@ begin
   begin
     ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.Name);
     try
-      ChildrenToSend.AddItem(FInlined);
+      ChildrenToSend.Add(FInlined);
       EventChildren.Send(ChildrenToSend, EventsEngine.GetTime);
     finally FreeAndNil(ChildrenToSend) end;
   end;
