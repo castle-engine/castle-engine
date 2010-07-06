@@ -6392,10 +6392,13 @@ begin
   begin
     FShadowMapsPCF := Value;
 
-    BeforeNodesFree;
-    ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
-      ShadowMapsVisualizeDepth, ShadowMapsPCF);
-    ScheduleChangedAll;
+    if ShadowMaps then { if not ShadowMaps, then no need to reprocess }
+    begin
+      BeforeNodesFree;
+      ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
+        ShadowMapsVisualizeDepth, ShadowMapsPCF);
+      ScheduleChangedAll;
+    end;
   end;
 end;
 
@@ -6405,10 +6408,13 @@ begin
   begin
     FShadowMapsVisualizeDepth := Value;
 
-    BeforeNodesFree;
-    ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
-      ShadowMapsVisualizeDepth, ShadowMapsPCF);
-    ScheduleChangedAll;
+    if ShadowMaps then { if not ShadowMaps, then no need to reprocess }
+    begin
+      BeforeNodesFree;
+      ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
+        ShadowMapsVisualizeDepth, ShadowMapsPCF);
+      ScheduleChangedAll;
+    end;
   end;
 end;
 
@@ -6418,10 +6424,13 @@ begin
   begin
     FShadowMapsDefaultSize := Value;
 
-    BeforeNodesFree;
-    ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
-      ShadowMapsVisualizeDepth, ShadowMapsPCF);
-    ScheduleChangedAll;
+    if ShadowMaps then { if not ShadowMaps, then no need to reprocess }
+    begin
+      BeforeNodesFree;
+      ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
+        ShadowMapsVisualizeDepth, ShadowMapsPCF);
+      ScheduleChangedAll;
+    end;
   end;
 end;
 
