@@ -1160,7 +1160,8 @@ type
       const Time: TVRMLTime);
 
     function GLSLProgram_IncReference(
-      ProgramNode: TNodeComposedShader): TGLSLProgram;
+      ProgramNode: TNodeComposedShader;
+      AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
     procedure GLSLProgram_DecReference(var GLSLProgram: TGLSLProgram);
   public
     constructor Create;
@@ -1667,7 +1668,7 @@ implementation
 
 uses Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog,
-  RenderStateUnit, VRMLCameraUtils, RaysWindow;
+  RenderStateUnit, VRMLCameraUtils, RaysWindow, VRMLShadowMaps;
 
 {$define read_implementation}
 {$I dynarray_2.inc}
@@ -2624,7 +2625,8 @@ begin
 end;
 
 function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
-  ProgramNode: TNodeComposedShader): TGLSLProgram;
+  ProgramNode: TNodeComposedShader;
+  AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
 
   procedure LoadGLSLProgram(GLSLProgram: TGLSLProgram;
     ProgramNode: TNodeComposedShader);
@@ -2648,6 +2650,10 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
       if ProgramNode.FdParts.Items[I] is TNodeShaderPart then
       begin
         Part := TNodeShaderPart(ProgramNode.FdParts.Items[I]);
+
+        if Part is TNodeShaderPartShadowMap then
+          TNodeShaderPartShadowMap(Part).VarianceShadowMapsEnabled :=
+            TGLGeneratedShadowMap.ClassVarianceShadowMaps(AAttributes);
 
         PartType := UpperCase(Part.FdType.Value);
         if PartType <> Part.FdType.Value then

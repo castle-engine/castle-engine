@@ -423,6 +423,10 @@
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
       Light: TNodeX3DLightNode);
+
+    { Check would we use Variance Shadow Maps with current ARenderer
+      attributes and OpenGL version/extensions. }
+    class function ClassVarianceShadowMaps(Attributes: TVRMLRenderingAttributes): boolean;
   end;
 
 {$endif read_interface}
@@ -2217,6 +2221,14 @@ begin
   Result := TNodeGeneratedShadowMap(inherited TextureNode);
 end;
 
+class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
+  Attributes: TVRMLRenderingAttributes): boolean;
+begin
+  Result := Attributes.VarianceShadowMaps and
+    (TGLSLProgram.ClassSupport <> gsNone) and
+    (GL_ATI_texture_float or GL_ARB_texture_float);
+end;
+
 procedure TGLGeneratedShadowMap.PrepareCore(State: TVRMLGraphTraverseState);
 var
   TextureWrap: TTextureWrap2D;
@@ -2227,9 +2239,7 @@ begin
     But it's only for NV_texture_rectangle, without bilinear filtering
     or mipmapping, so it's not useful for VSM at all. }
 
-  VarianceShadowMaps := Renderer.Attributes.VarianceShadowMaps and
-    (TGLSLProgram.ClassSupport <> gsNone) and
-    (GL_ATI_texture_float or GL_ARB_texture_float);
+  VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.Attributes);
 
   if Log then
     WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.VarianceShadowMaps = %s, GLSL support = %s, ATI_texture_float = %s, ARB_texture_float = %s)',

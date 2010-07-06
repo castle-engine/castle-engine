@@ -50,12 +50,40 @@ procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
   const DefaultVisualizeShadowMap: boolean;
   const PCF: TPercentageCloserFiltering);
 
+type
+  { Shadow map shader, either a normal one or a special designed for
+    Variance Shadow Maps. This is used to choose from VRMLOpenGLRenderer
+    whether we want VSM or not.
+
+    This is dirty internal stuff.
+    @exclude }
+  TNodeShaderPartShadowMap = class(TNodeShaderPart)
+  private
+    VSMContents: string;
+  public
+    { Use a different, special shader code designed for Variance Shadow Maps.
+      If you set this to @true, LoadContents will return a special hardcoded
+      VSM shader. }
+    VarianceShadowMapsEnabled: boolean;
+    function LoadContents: string; override;
+  end;
+
 implementation
 
 uses SysUtils, KambiUtils, VRMLFields, VRMLErrors, KambiStringUtils;
 
 {$define read_interface}
 {$define read_implementation}
+
+function TNodeShaderPartShadowMap.LoadContents: string;
+begin
+  if VarianceShadowMapsEnabled then
+  begin
+    Result := VSMContents;
+    FUsedFullUrl := 'INTERNAL-VARIANCE-SHADOW-MAP-SHADER';
+  end else
+    Result := inherited;
+end;
 
 const
   MaxBaseTextures = 1;
@@ -180,28 +208,25 @@ end;
 function TDynLightArray.CreateShadowMapShader(const VisualizeShadowMap: boolean;
   const BaseTexCount: Cardinal): TNodeComposedShader;
 const
-  VarianceShadowMaps = false; { TODO: hardcoded }
-  ShadowMapFragmentShader: array [boolean, boolean, 0..MaxBaseTextures] of string =
-  ( { Variance Shadow Maps = false }
+  FragmentShader: array [boolean, 0..MaxBaseTextures] of string =
     ( ( {$I shadow_map_0.fs.inc},
         {$I shadow_map_1.fs.inc} ),
       ( {$I shadow_map_0_show_depth.fs.inc},
         {$I shadow_map_1_show_depth.fs.inc} )
-    ),
-    { Variance Shadow Maps = true }
+    );
+  VSMFragmentShader: array [boolean, 0..MaxBaseTextures] of string =
     ( ( {$I variance_shadow_map_0.fs.inc},
         {$I variance_shadow_map_1.fs.inc} ),
       ( {$I variance_shadow_map_0_show_depth.fs.inc},
         {$I variance_shadow_map_1_show_depth.fs.inc} )
-    )
-  );
-  ShadowMapFragmentShaderCommon: array [boolean] of string =
-  ( {$I shadow_map_common.fs.inc}, {$I variance_shadow_map_common.fs.inc} );
+    );
+  FragmentShaderCommon = {$I shadow_map_common.fs.inc};
+  VSMFragmentShaderCommon = {$I variance_shadow_map_common.fs.inc};
   PCFDefine: array [TPercentageCloserFiltering] of string =
   ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
 var
   I: Integer;
-  Part: TNodeShaderPart;
+  Part: TNodeShaderPartShadowMap;
 begin
   Result := TNodeComposedShader.Create('', '');
   Result.NodeName := 'Shader_ShadowMap_' + IntToStr(BaseTexCount) + 'Textures' + NodeNameSuffix;
@@ -210,19 +235,18 @@ begin
     Result.AddCustomField(TSFInt32.Create(Result, 'texture' + IntToStr(I), I));
   Result.AddCustomField(TSFInt32.Create(Result, 'shadowMap', BaseTexCount));
 
-  Part := TNodeShaderPart.Create('', '');
+  Part := TNodeShaderPartShadowMap.Create('', '');
   Part.FdType.Value := 'FRAGMENT';
   Part.FdUrl.Items.Count := 1;
-  Part.FdUrl.Items[0] := NL + ShadowMapFragmentShader[
-    VarianceShadowMaps, VisualizeShadowMap, BaseTexCount];
+  Part.FdUrl.Items[0] := NL + FragmentShader[VisualizeShadowMap, BaseTexCount];
+  Part.VSMContents := VSMFragmentShader[VisualizeShadowMap, BaseTexCount];
   Result.FdParts.AddItem(Part);
 
-  Part := TNodeShaderPart.Create('', '');
+  Part := TNodeShaderPartShadowMap.Create('', '');
   Part.FdType.Value := 'FRAGMENT';
   Part.FdUrl.Items.Count := 1;
-  { PCFDefine actually is useless for VSM, but no harm in including it. }
-  Part.FdUrl.Items[0] := NL + PCFDefine[PCF] + NL +
-    ShadowMapFragmentShaderCommon[VarianceShadowMaps];
+  Part.FdUrl.Items[0] := NL + PCFDefine[PCF] + NL + FragmentShaderCommon;
+  Part.VSMContents := VSMFragmentShaderCommon;
   Result.FdParts.AddItem(Part);
 end;
 

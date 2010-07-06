@@ -129,7 +129,7 @@
   end;
 
   TNodeShaderPart = class(TNodeX3DNode, INodeX3DUrlObject)
-  private
+  protected
     FUsedFullUrl: string;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -152,7 +152,7 @@
       then this will propagate this exception).
 
       Sets UsedFullUrl. }
-    function LoadContents: string;
+    function LoadContents: string; virtual;
 
     { Once the LoadContents is called, this is set to the URL that was used to load
       the shader contents, or '' if no URL was used, or something

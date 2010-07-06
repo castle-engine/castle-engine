@@ -113,7 +113,7 @@ procedure TGLSLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
 begin
   try
-    GLSLProgram := Renderer.Cache.GLSLProgram_IncReference(Node);
+    GLSLProgram := Renderer.Cache.GLSLProgram_IncReference(Node, Renderer.Attributes);
     Node.EventIsSelected.Send(true);
 
     { Only if GLSL program successfully created, prepare all texture nodes
