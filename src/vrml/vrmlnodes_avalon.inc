@@ -317,7 +317,7 @@ begin
   FFdmanifold.Exposed := false;
   Fields.Add(FFdmanifold);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeMultiTextureCoordinate]);
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
   Fields.Add(FFdtexCoord);
 end;
 

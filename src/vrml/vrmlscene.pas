@@ -2224,7 +2224,7 @@ begin
 
         - For GeneratedShadowMap, the shape where it's used, and actually
           the whole place where it's used in the VRML graph, doesn't matter.
-          (GeneratedShadowMap makes view from it's projectedLight).
+          (GeneratedShadowMap makes view from it's light).
           Same thing for RenderedTexture (it makes view from specified viewpoint).
 
           So we can simply ignore duplicates (placing them

@@ -40,7 +40,7 @@ const
   @orderedList(
     @item(extend it's "texture" field with appropriate GeneratedShadowMap,)
     @item(extend it's "texCoord" field with appropriate
-      TextureCoordinateGenerator (with mode="PROJECTION"),)
+      ProjectedTextureCoordinate,)
     @item(override appearance's "shaders", to use appropriate shadow map
       shader.)
   ) }
@@ -96,7 +96,7 @@ type
   TLight = record
     Light: TNodeX3DLightNode;
     ShadowMap: TNodeGeneratedShadowMap;
-    TexGen: TNodeTextureCoordinateGenerator;
+    TexGen: TNodeProjectedTextureCoordinate;
   end;
   PLight = ^TLight;
 
@@ -197,12 +197,11 @@ begin
   if DefaultVisualizeShadowMap then
     Result^.ShadowMap.FdCompareMode.Value := 'NONE';
 
-  { create new TextureCoordinateGenerator node }
+  { create new ProjectedTextureCoordinate node }
 
-  Result^.TexGen := TNodeTextureCoordinateGenerator.Create('', '');
+  Result^.TexGen := TNodeProjectedTextureCoordinate.Create('', '');
   Result^.TexGen.NodeName := LightUniqueName + '_TexGen' + NodeNameSuffix;
-  Result^.TexGen.FdProjectedLight.Value := Light;
-  Result^.TexGen.FdMode.Value := 'PROJECTION';
+  Result^.TexGen.FdProjector.Value := Light;
 end;
 
 function TDynLightArray.CreateShadowMapShader(const VisualizeShadowMap: boolean;
@@ -258,6 +257,14 @@ begin
     if ShadowMapShaders[VisualizeShadowMap, BaseTexCount] = nil then
       ShadowMapShaders[VisualizeShadowMap, BaseTexCount] :=
         CreateShadowMapShader(VisualizeShadowMap, BaseTexCount);
+
+    { If this exact shader node is already present (maybe we process
+      the same shape more than once?), then do nothing.
+      Note: we should, in such case, have Shaders.Count = 1...
+      unless user took the processed VRML and messed with it.
+      So better not check/depend on it. }
+    if Shaders.Items.IndexOf(ShadowMapShaders[VisualizeShadowMap, BaseTexCount]) <> -1 then
+      Exit;
 
     { We have to remove previous shaders, regardless if they were our own
       shaders or custom user shaders. This will be done only for shapes
@@ -346,7 +353,7 @@ procedure TDynLightArray.HandleShape(Node: TVRMLNode);
     Returns the count of texCoords in TexCoordsCount, not counting the last
     TexGen node. }
   procedure HandleTexGen(var TexCoord: TVRMLNode;
-    const TexGen: TNodeTextureCoordinateGenerator; out TexCoordsCount: Cardinal);
+    const TexGen: TNodeProjectedTextureCoordinate; out TexCoordsCount: Cardinal);
   var
     MTexCoord: TNodeMultiTextureCoordinate;
   begin

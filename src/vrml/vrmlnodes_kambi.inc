@@ -278,6 +278,17 @@
     public property FdcompareMode: TSFString read FFdcompareMode;
   end;
 
+  TNodeProjectedTextureCoordinate = class(TNodeX3DTextureCoordinateNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdprojector: TSFNode;
+    public property Fdprojector: TSFNode read FFdprojector;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -700,7 +711,7 @@ begin
     for traversing (in DirectEnumerateActive), because the light doesn't
     shine here. We don't want
     to override it's transform with transformation of this
-    TextureCoordinateGenerator. }
+    GeneratedShadowMap. }
   FFdlight := TSFNode.Create(Self, 'light', [TNodeX3DLightNode]);
   Fields.Add(FFdlight);
 
@@ -733,6 +744,33 @@ begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
+constructor TNodeProjectedTextureCoordinate.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  { Note that projector node is not enumerated as an active node
+    for traversing (in DirectEnumerateActive), because the light doesn't
+    shine here. We don't want
+    to override it's transform with transformation of this
+    ProjectedTextureCoordinate. }
+  FFdprojector := TSFNode.Create(Self, 'projector',
+    [TNodeSpotLight_1, TNodeDirectionalLight_1,
+     TNodeSpotLight_2, TNodeDirectionalLight_2,
+     TNodeX3DViewpointNode]);
+  Fields.Add(FFdprojector);
+end;
+
+class function TNodeProjectedTextureCoordinate.ClassNodeTypeName: string;
+begin
+  Result := 'ProjectedTextureCoordinate';
+end;
+
+class function TNodeProjectedTextureCoordinate.URNMatching(const URN: string): boolean;
+begin
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -744,7 +782,8 @@ begin
     TNodeKambiInline,
     TNodeKambiNavigationInfo,
     TNodeKambiOctreeProperties,
-    TNodeGeneratedShadowMap
+    TNodeGeneratedShadowMap,
+    TNodeProjectedTextureCoordinate
   ]);
 end;
 

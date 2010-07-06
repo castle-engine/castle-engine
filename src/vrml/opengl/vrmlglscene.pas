@@ -1443,12 +1443,17 @@ end;
 
 function TVRMLGLShape.EnableDisplayList: boolean;
 
-  function TexGenModeDisablesDL(const S: string): boolean;
+  function TexGenDisablesDL(Node: TVRMLNode): boolean;
   begin
     Result :=
-      (S = 'WORLDSPACEREFLECTIONVECTOR') or
-      (S = 'WORLDSPACENORMAL') or
-      (S = 'PROJECTION');
+    (
+      Node is TNodeTextureCoordinateGenerator and
+      ((TNodeTextureCoordinateGenerator(Node).FdMode.Value = 'WORLDSPACEREFLECTIONVECTOR') or
+       (TNodeTextureCoordinateGenerator(Node).FdMode.Value = 'WORLDSPACENORMAL') or
+       (TNodeTextureCoordinateGenerator(Node).FdMode.Value = 'PROJECTION')
+      )
+    ) or
+    ( Node is TNodeProjectedTextureCoordinate );
   end;
 
 var
@@ -1466,26 +1471,20 @@ begin
     if FEnableDisplayList then
     begin
       { If texture coord is TextureCoordinateGenerator node
-        with mode = "WORLDSPACEREFLECTIONVECTOR", or if it's
-        MultiTextureCoordinate with such item as a child,
+        with some modes depending on camera (or ProjectedTextureCoordinate),
+        or if it's MultiTextureCoordinate with such item as a child,
         then disable display lists. }
       if Geometry.TexCoord(State, TexCoord) and
          (TexCoord <> nil) then
       begin
-        if TexCoord is TNodeTextureCoordinateGenerator then
-        begin
-          if TexGenModeDisablesDL(TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value) then
-            FEnableDisplayList := false;
-        end else
+        if TexGenDisablesDL(TexCoord) then
+          FEnableDisplayList := false else
         if TexCoord is TNodeMultiTextureCoordinate then
         begin
           MulTexC := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Items;
           for I := 0 to MulTexC.Count - 1 do
-          begin
-            if (MulTexC[I] is TNodeTextureCoordinateGenerator) and
-               TexGenModeDisablesDL(TNodeTextureCoordinateGenerator(MulTexC[I]).FdMode.Value) then
+            if TexGenDisablesDL(MulTexC[I]) then
               FEnableDisplayList := false;
-          end;
         end;
       end;
     end;

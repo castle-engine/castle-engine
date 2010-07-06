@@ -324,7 +324,7 @@
     { Node's texCoord field, or @nil if not available.
       Various nodes may have different exact rules about what is
       allowed here, but everything allows TextureCoordinateGenerator
-      instance.
+      and ProjectedTextureCoordinate instances.
 
       This gives you more possibilities than the @link(TexCoord) method
       (as you can assign texCoord using this), however it may be not available
