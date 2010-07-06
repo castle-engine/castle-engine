@@ -963,6 +963,12 @@ type
     property AllowedChildrenAll: boolean
       read FAllowedChildrenAll write FAllowedChildrenAll;
 
+    { TODO:
+      Replace TMFNode.Items by a list with notifications?
+      Although leave TMFNode methods with trivial implementations
+      (TMFNode.Add calls Items.Add), because this way you don't have to write
+      "Items." everywhere. }
+
     { Lists items of this field.
 
       Do not modify this list explicitly. Use only methods in this class
