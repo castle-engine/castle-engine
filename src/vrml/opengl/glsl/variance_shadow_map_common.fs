@@ -3,6 +3,9 @@
 
 float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord)
 {
+  /* Avoid back-projecting shadows. */
+  if (shadowMapCoord.z < 0.0) return 0.0;
+
   /* When coord2 is outside (0, 0) - (1, 1) square,
      it's always in the shadow. Otherwise shadows would be stretched
      over whole scene, due to clamping. */
@@ -27,6 +30,9 @@ float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord)
 
 float variance_shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord)
 {
+  /* Avoid back-projecting shadows. */
+  if (shadowMapCoord.z < 0.0) return 0.0;
+
   vec2 coord2 = shadowMapCoord.st / shadowMapCoord.q;
 
   /* When coord2 is outside (0, 0) - (1, 1) square, set d = 0.
