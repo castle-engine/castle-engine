@@ -455,7 +455,7 @@ var
         the ray so it can get to the light.
 
         We also take into account here that things with
-        KambiAppearance.shadowCaster = FALSE do not block light.
+        Appearance.shadowCaster = FALSE do not block light.
 
         We also take into account that the light may be on the opposide
         side of the plane than from where RayVector came.

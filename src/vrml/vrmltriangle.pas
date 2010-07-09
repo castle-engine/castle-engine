@@ -129,7 +129,7 @@ type
     { Returns @true for triangles that should be ignored by shadow rays.
       Returns @true for transparent triangles
       (with Material.Transparency > 0) and non-shadow-casting triangles
-      (with KambiAppearance.shadowCaster = FALSE).
+      (with Appearance.shadowCaster = FALSE).
 
       @seealso TVRMLBaseTrianglesOctree.IgnoreForShadowRays }
     function IgnoreForShadowRays: boolean;
@@ -641,7 +641,7 @@ type
 
     { This ignores (that is, returns @true) transparent triangles
       (with Material.Transparency > 0) and non-shadow-casting triangles
-      (with KambiAppearance.shadowCaster = FALSE).
+      (with Appearance.shadowCaster = FALSE).
 
       This is suitable for T3DTriangleIgnoreFunc function, you can pass
       this to RayCollision and such. }
@@ -877,8 +877,8 @@ function TVRMLTriangle.IgnoreForShadowRays: boolean;
     Result :=
       (Shape <> nil) and
       (Shape.FdAppearance.Value <> nil) and
-      (Shape.FdAppearance.Value is TNodeKambiAppearance) and
-      (not TNodeKambiAppearance(Shape.FdAppearance.Value).FdShadowCaster.Value);
+      (Shape.FdAppearance.Value is TNodeAppearance) and
+      (not TNodeAppearance(Shape.FdAppearance.Value).FdShadowCaster.Value);
   end;
 
 begin

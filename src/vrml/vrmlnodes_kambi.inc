@@ -164,9 +164,6 @@
     private FFdBlendMode: TSFNode;
     public property FdBlendMode: TSFNode read FFdBlendMode;
 
-    private FFdShadowCaster: TSFBool;
-    public property FdShadowCaster: TSFBool read FFdShadowCaster;
-
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -528,9 +525,6 @@ begin
 
   FFdblendMode := TSFNode.Create(Self, 'blendMode', [TNodeBlendMode]);
   Fields.Add(FFdblendMode);
-
-  FFdShadowCaster := TSFBool.Create(Self, 'shadowCaster', true);
-  Fields.Add(FFdShadowCaster);
 end;
 
 constructor TNodeKambiInline.Create(const ANodeName: string; const AWWWBasePath: string);

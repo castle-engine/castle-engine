@@ -3670,10 +3670,10 @@ begin
         end;
       finally FreeAndNil(SI) end;
     end else
-    if (Node is TNodeKambiAppearance) and
-       (TNodeKambiAppearance(Node).FdShadowCaster = Field) then
+    if (Node is TNodeAppearance) and
+       (TNodeAppearance(Node).FdShadowCaster = Field) then
     begin
-      { When KambiAppearance.shadowCaster field changed, then
+      { When Appearance.shadowCaster field changed, then
         TrianglesListShadowCasters and Manifold/BorderEdges change. }
       InvalidateTrianglesListShadowCasters;
       InvalidateManifoldAndBorderEdges;
@@ -4561,8 +4561,8 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
       Result := not (
         (Shape <> nil) and
         (Shape.FdAppearance.Value <> nil) and
-        (Shape.FdAppearance.Value is TNodeKambiAppearance) and
-        (not TNodeKambiAppearance(Shape.FdAppearance.Value).FdShadowCaster.Value));
+        (Shape.FdAppearance.Value is TNodeAppearance) and
+        (not TNodeAppearance(Shape.FdAppearance.Value).FdShadowCaster.Value));
     end;
 
   var

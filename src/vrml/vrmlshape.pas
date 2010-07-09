@@ -454,7 +454,7 @@ type
     function UsesTexture(Node: TNodeX3DTextureNode): boolean;
 
     { Check is shape a shadow caster. Looks at Shape's
-      KambiAppearance.shadowCaster field (see
+      Appearance.shadowCaster field (see
       http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_caster). }
     function ShadowCaster: boolean;
   end;
@@ -1254,8 +1254,8 @@ begin
   begin
     A := S.FdAppearance.Value;
     if (A <> nil) and
-       (A is TNodeKambiAppearance) then
-      Result := TNodeKambiAppearance(A).FdShadowCaster.Value;
+       (A is TNodeAppearance) then
+      Result := TNodeAppearance(A).FdShadowCaster.Value;
   end;
 end;
 

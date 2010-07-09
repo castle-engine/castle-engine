@@ -111,6 +111,9 @@
     private FFdReceiveShadows: TMFNode;
     public property FdReceiveShadows: TMFNode read FFdReceiveShadows;
 
+    private FFdShadowCaster: TSFBool;
+    public property FdShadowCaster: TSFBool read FFdShadowCaster;
+
     { This returns FdShaders.Items[Index], if it's a shader node suitable for GLSL
       shader. Otherwise returns @nil. This checks the class of
       FdShaders.Items[Index] and it's @code(language) field. }
@@ -505,6 +508,9 @@ begin
   FFdReceiveShadows := TMFNode.Create(Self, 'receiveShadows', [TNodeX3DLightNode]);
   FFdReceiveShadows.Exposed := false;
   Fields.Add(FFdReceiveShadows);
+
+  FFdShadowCaster := TSFBool.Create(Self, 'shadowCaster', true);
+  Fields.Add(FFdShadowCaster);
 
   { In edition 2 of X3D XML encoding, this is empty... but in earlier
     versions, this was "appearance" and this seems more sensible,
