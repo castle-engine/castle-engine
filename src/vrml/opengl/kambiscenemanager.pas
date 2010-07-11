@@ -20,8 +20,8 @@ interface
 
 uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, GLShadowVolumeRenderer, GL, UIControls, Base3D,
-  KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL, KambiUtils, KambiClassUtils;
-
+  KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL, KambiUtils, KambiClassUtils,
+  GLShaders, GLImages;
 
 {$define read_interface}
 
@@ -48,6 +48,15 @@ type
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
     FAlwaysApplyProjection: boolean;
+
+    { If a texture rectangle for screen effects is ready, then
+      ScreenEffectTexture is non-zero and ScreenEffectRTT.
+      Also, ScreenEffectTextureWidth/Height indicate size of the texture,
+      as well as ScreenEffectRTT.Width/Height. }
+    ScreenEffectTexture: TGLuint;
+    ScreenEffectTextureWidth: Cardinal;
+    ScreenEffectTextureHeight: Cardinal;
+    ScreenEffectRTT: TGLRenderToTexture;
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
   protected
@@ -121,7 +130,11 @@ type
     { Render everything (by RenderFromViewEverything) on the screen.
       Takes care to set RenderState (Target = rtScreen and camera as given),
       and takes care to apply glScissor if not FullSize,
-      and calls RenderFromViewEverything. }
+      and calls RenderFromViewEverything.
+
+      Takes care of using ScreenEffects. For this,
+      before we render to the actual screen,
+      we may render a couple times to a texture by a framebuffer. }
     procedure RenderOnScreen(ACamera: TCamera);
 
     { The background used during rendering.
@@ -173,6 +186,8 @@ type
       out AboveGround: P3DTriangle); virtual; abstract;
     procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
     { @groupEnd }
+
+    function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -249,6 +264,25 @@ type
       If you want you can override it to specialize CreateDefaultCamera
       for specific viewport classes. }
     function CreateDefaultCamera(AOwner: TComponent): TCamera; virtual; abstract;
+
+    { Screen effects are shaders that post-process the rendered screen.
+      If any screen effects are active, we will automatically render
+      screen to a temporary texture rectangle, processing it with
+      each shader.
+
+      By default, screen effects come from GetMainScene.ScreenEffects,
+      so the effects may be defined by VRML/X3D author using ScreenEffect
+      nodes (see TODO docs).
+      Descendants may override GetScreenEffects and ScreenEffectsCount,
+      to add screen effects by code. Possibly each viewport may have it's
+      own, different screen effects.
+
+      @groupBegin }
+    property ScreenEffects [Index: Integer]: TGLSLProgram read GetScreenEffects;
+    function ScreenEffectsCount: Integer; virtual;
+    { @groupEnd }
+
+    procedure GLContextClose; override;
   published
     { Viewport dimensions where the 3D world will be drawn.
       When FullSize is @true (the default), the viewport always fills
@@ -442,7 +476,6 @@ type
     property AlwaysApplyProjection: boolean
       read FAlwaysApplyProjection write FAlwaysApplyProjection default true;
   end;
-
 
   TObjectsListItem_1 = TKamAbstractViewport;
   {$I objectslist_1.inc}
@@ -768,7 +801,8 @@ procedure Register;
 
 implementation
 
-uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit, RaysWindow;
+uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit, RaysWindow, GLExt,
+  KambiLog;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1275,27 +1309,143 @@ begin
   RenderFromView3D;
 end;
 
+procedure RenderScreenEffect(ViewportPtr: Pointer);
+var
+  Viewport: TKamAbstractViewport absolute ViewportPtr;
+begin
+  with Viewport do
+  begin
+    glLoadIdentity()
+    { Although shaders will typically ignore glColor, for consistency
+      we want to have a fully determined state. That is, this must work
+      reliably even if you comment out ScreenEffects[*].Enable/Disable
+      commands below. }
+    { TODO: for now only 1 effect }
+    glColor3f(1, 1, 1);
+    ScreenEffects[0].Enable;
+      ScreenEffects[0].SetUniform('screen', 0);
+      glBegin(GL_QUADS);
+        glTexCoord2i(0, 0);
+        glVertex2i(0, 0);
+        glTexCoord2i(ScreenEffectTextureWidth, 0);
+        glVertex2i(CorrectWidth, 0);
+        glTexCoord2i(ScreenEffectTextureWidth, ScreenEffectTextureHeight);
+        glVertex2i(CorrectWidth, CorrectHeight);
+        glTexCoord2i(0, ScreenEffectTextureHeight);
+        glVertex2i(0, CorrectHeight);
+      glEnd();
+    ScreenEffects[0].Disable;
+  end;
+end;
+
 procedure TKamAbstractViewport.RenderOnScreen(ACamera: TCamera);
 begin
-  if not FullSize then
-  begin
-    glPushAttrib(GL_SCISSOR_BIT);
-      { Use Scissor to limit what glClear clears. }
-      glScissor(Left, Bottom, Width, Height); // saved by GL_SCISSOR_BIT
-      glEnable(GL_SCISSOR_TEST); // saved by GL_SCISSOR_BIT
-  end;
-
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(ACamera);
-  RenderFromViewEverything;
 
-  if not FullSize then
+  if GL_ARB_texture_rectangle and (ScreenEffectsCount <> 0) then
+  begin
+    { We need a temporary texture rectangle, for screen effect. }
+    if (ScreenEffectTexture = 0) or
+       (ScreenEffectRTT = nil) or
+       (ScreenEffectTextureWidth  <> CorrectWidth ) or
+       (ScreenEffectTextureHeight <> CorrectHeight) then
+    begin
+      glFreeTexture(ScreenEffectTexture);
+      FreeAndNil(ScreenEffectRTT);
+
+      { create new texture rectangle. }
+      glGenTextures(1, @ScreenEffectTexture);
+      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTexture);
+      ScreenEffectTextureWidth := CorrectWidth;
+      ScreenEffectTextureHeight := CorrectHeight;
+      { TODO: or GL_LINEAR? Allow to config this and eventually change
+        before each screen effect? }
+      glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, KamGL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, KamGL_CLAMP_TO_EDGE);
+      { We never load image contents, so we also do not have to care about
+        pixel packing. }
+      glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGB8,
+        ScreenEffectTextureWidth,
+        ScreenEffectTextureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nil);
+
+      { create new TGLRenderToTexture (usually, framebuffer object) }
+      ScreenEffectRTT := TGLRenderToTexture.Create(
+        ScreenEffectTextureWidth, ScreenEffectTextureHeight);
+      ScreenEffectRTT.SetTexture(ScreenEffectTexture, GL_TEXTURE_RECTANGLE_ARB);
+      ScreenEffectRTT.CompleteTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
+      ScreenEffectRTT.GLContextInit;
+
+      if Log then
+        WritelnLog('Screen effects', Format('Created texture rectangle for screen effects, with size %d x %d',
+          [ ScreenEffectTextureWidth,
+            ScreenEffectTextureHeight ]));
+    end;
+
+    ScreenEffectRTT.RenderBegin;
+    { We have to adjust glViewport }
+    if not FullSize then
+      glViewport(0, 0, CorrectWidth, CorrectHeight);
+    RenderFromViewEverything;
+    { Restore glViewport set by ApplyProjection }
+    if not FullSize then
+      glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
+    ScreenEffectRTT.RenderEnd;
+
+    glPushAttrib(GL_ENABLE_BIT);
+      glDisable(GL_LIGHTING);
+      glDisable(GL_DEPTH_TEST);
+      glDisable(GL_TEXTURE_2D);
+      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTexture);
+      glEnable(GL_TEXTURE_RECTANGLE_ARB);
+      { Note that there's no need to worry about CorrectLeft / CorrectBottom,
+        here or inside RenderScreenEffect, because we're already within
+        glViewport that takes care of this. }
+      glProjectionPushPopOrtho2D(@RenderScreenEffect, Self, 0, CorrectWidth, 0, CorrectHeight);
+      glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
     glPopAttrib;
+  end else
+  begin
+    { Rendering directly to the screen, when no screen effects are used. }
+    if not FullSize then
+    begin
+      glPushAttrib(GL_SCISSOR_BIT);
+        { Use Scissor to limit what glClear clears. }
+        glScissor(Left, Bottom, Width, Height); // saved by GL_SCISSOR_BIT
+        glEnable(GL_SCISSOR_TEST); // saved by GL_SCISSOR_BIT
+    end;
+
+    RenderFromViewEverything;
+
+    if not FullSize then
+      glPopAttrib;
+  end;
 end;
 
 function TKamAbstractViewport.DrawStyle: TUIControlDrawStyle;
 begin
   Result := ds3D;
+end;
+
+function TKamAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
+begin
+  Result := nil; { no Index is valid, since ScreenEffectsCount = 0 in this class }
+  { TODO: use GetMainScene.ScreenEffects[Index] }
+end;
+
+function TKamAbstractViewport.ScreenEffectsCount: Integer;
+begin
+  Result := 0;
+  { TODO: use GetMainScene.ScreenEffectsCount }
+end;
+
+procedure TKamAbstractViewport.GLContextClose;
+begin
+  glFreeTexture(ScreenEffectTexture);
+  FreeAndNil(ScreenEffectRTT);
+  inherited;
 end;
 
 { TKamAbstractViewportsList -------------------------------------------------- }

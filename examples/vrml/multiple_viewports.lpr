@@ -26,7 +26,7 @@
 uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, Math, GLControls,
   KambiUtils, KambiGLUtils, OpenGLFonts, VRMLGLAnimation, GL3D,
-  Object3DAsVRML, VRMLErrors;
+  Object3DAsVRML, VRMLErrors, GLShaders;
 
 { TBackground ---------------------------------------------------------------- }
 
@@ -103,7 +103,7 @@ procedure TMyViewport.Draw;
 begin
   inherited;
 
-  glPushAttrib(GL_ENABLE_BIT or GL_LINE_BIT or GL_COLOR_BUFFER_BIT or GL_ENABLE_BIT or GL_POLYGON_BIT);
+  glPushAttrib(GL_ENABLE_BIT or GL_LINE_BIT or GL_COLOR_BUFFER_BIT or GL_POLYGON_BIT);
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
     glProjectionPushPopOrtho2D(@ViewportDraw2D, Self, 0, Width, 0, Height);
@@ -147,6 +147,60 @@ begin
     glLineWidth(1); { saved by GL_LINE_BIT }
     inherited;
   glPopAttrib;
+end;
+
+{ TScreenEffectDemoViewport -------------------------------------------------- }
+
+type
+  TScreenEffectDemoViewport = class(TMyViewport)
+  private
+    GLSLProgram: TGLSLProgram;
+  protected
+    function GetScreenEffects(const Index: Integer): TGLSLProgram; override;
+  public
+    function ScreenEffectsCount: Integer; override;
+    procedure GLContextInit; override;
+    procedure GLContextClose; override;
+  end;
+
+function TScreenEffectDemoViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
+begin
+  if Index = 0 then
+    Result := GLSLProgram else
+    Result := nil;
+end;
+
+function TScreenEffectDemoViewport.ScreenEffectsCount: Integer;
+begin
+  if GLSLProgram <> nil then Result := 1 else Result := 0;
+end;
+
+procedure TScreenEffectDemoViewport.GLContextInit;
+begin
+  inherited;
+  if (TGLSLProgram.ClassSupport <> gsNone) and
+     GL_ARB_texture_rectangle then
+  begin
+    GLSLProgram := TGLSLProgram.Create;
+    GLSLProgram.AttachFragmentShader(
+      'uniform sampler2DRect screen;' +NL+
+      'void main (void)' +NL+
+      '{' +NL+
+//      '  gl_FragColor = texture2DRect(screen, gl_TexCoord[0].st);' +NL+
+//      '  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0) - texture2DRect(screen, gl_TexCoord[0].st);' +NL+
+      '  gl_FragColor = ( texture2DRect(screen, vec2(gl_TexCoord[0].s - 1.0, gl_TexCoord[0].t)) - texture2DRect(screen, vec2(gl_TexCoord[0].s + 1.0, gl_TexCoord[0].t)) ) + vec4(1.0) / 2.0;' +NL+
+      '}');
+    { For this test program, we eventually allow shader to run in software }
+    GLSLProgram.Link(false);
+    GLSLProgram.UniformNotFoundAction := uaWarning; //uaWarningAlsoOnTypeMismatch;
+    Writeln(GLSLProgram.DebugInfo);
+  end;
+end;
+
+procedure TScreenEffectDemoViewport.GLContextClose;
+begin
+  FreeAndNil(GLSLProgram);
+  inherited;
 end;
 
 { ---------------------------------------------------------------------------- }
@@ -296,6 +350,9 @@ begin
   { one viewport shows only wireframe }
   Viewports[0] := TWireViewport.Create(Application);
   Viewports[0].Caption := 'Wireframe view';
+
+  Viewports[2] := TScreenEffectDemoViewport.Create(Application);
+  Viewports[2].Caption := 'Screen effect shader';
 
   for I := 0 to High(Viewports) do
   begin

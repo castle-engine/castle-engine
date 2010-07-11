@@ -281,6 +281,7 @@ var
   GL_EXT_packed_depth_stencil: boolean;
   GL_ATI_texture_float: boolean;
   GL_ARB_texture_float: boolean;
+  GL_ARB_texture_rectangle: boolean;
 
 {$ifdef NEEDS_FOG_COORD_FIX}
 var
@@ -1328,6 +1329,7 @@ begin
  GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;
  GL_ATI_texture_float := Load_GL_ATI_texture_float;
  GL_ARB_texture_float := Load_GL_ARB_texture_float;
+ GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
 
  GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
 
