@@ -183,6 +183,7 @@ begin
   begin
     GLSLProgram := TGLSLProgram.Create;
     GLSLProgram.AttachFragmentShader(
+      '#extension GL_ARB_texture_rectangle : enable' +nl+
       'uniform sampler2DRect screen;' +NL+
       'void main (void)' +NL+
       '{' +NL+

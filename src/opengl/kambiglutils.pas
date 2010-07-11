@@ -311,6 +311,7 @@ var
   GLMaxTextureMaxAnisotropyEXT: Single;
   GLQueryCounterBits: TGLint;
   GLMaxRenderbufferSize: TGLuint;
+  GLMaxRectangleTextureSize: Cardinal;
   { @groupEnd }
 
 { Initialize all extensions and OpenGL versions.
@@ -1370,6 +1371,10 @@ begin
    end;
  end else
    GLMaxRenderbufferSize := 0;
+
+ if GL_ARB_texture_rectangle then
+   GLMaxRectangleTextureSize := glGetInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB) else
+   GLMaxRectangleTextureSize := 0;
 end;
 {$endif}
 
@@ -2516,6 +2521,13 @@ function GLInformationString: string;
       Result := 'EXT_framebuffer_object not available';
   end;
 
+  function GetMaxRectangleTextureSize: string;
+  begin
+    if GL_ARB_texture_rectangle then
+      Result := IntToStr(GLMaxRectangleTextureSize) else
+      Result := 'ARB_texture_rectangle not available';
+  end;
+
 begin
  result:=
   'OpenGL information (detected by ' + ProgramName +'):' +nl+
@@ -2600,6 +2612,7 @@ begin
   '  Max texture units: ' + GetMaxTextureUnits +nl+
   '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
   '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
+  '  Max rectangle texture size: ' + GetMaxRectangleTextureSize +nl+
   '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
   '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
     GetQueryCounterBits +nl+
