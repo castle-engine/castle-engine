@@ -1315,7 +1315,7 @@ var
 begin
   with Viewport do
   begin
-    glLoadIdentity()
+    glLoadIdentity();
     { Although shaders will typically ignore glColor, for consistency
       we want to have a fully determined state. That is, this must work
       reliably even if you comment out ScreenEffects[*].Enable/Disable
