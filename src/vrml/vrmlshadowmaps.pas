@@ -406,6 +406,37 @@ procedure TDynLightArray.HandleShape(Node: TVRMLNode);
       MTexCoord.FdTexCoord.Add(TexGen);
   end;
 
+  { Change textureTransform into MultiTextureTransform if necessary.
+    Otherwise, user's TextureTransform could get ignored, because X3D spec
+    says that:
+
+      "If using a MultiTexture node with a geometry node without
+      a MultiTextureTransform node, identity matrices are assumed
+      for all channels."
+
+    IOW, direct TextureTransform is ignored when using MultiTexture.
+    Only MultiTextureTransform is taken into account.
+    And our HandleShadowMap just changed your texture into MultiTexture.
+
+    We do not add/remove from there anything (we do not need any
+    texture transforms there, X3D will assume identity for texture units
+    without corresponding TextureTransform node, this is Ok). }
+  procedure HandleTextureTransform(var TextureTransform: TVRMLNode);
+  var
+    MultiTT: TNodeMultiTextureTransform;
+  begin
+    if (TextureTransform <> nil) and
+       (TextureTransform is TNodeTextureTransform) then
+    begin
+      MultiTT := TNodeMultiTextureTransform.Create('', '');
+      { set position in parent only for more deterministic output
+	(new "texture" field on the same position) }
+      MultiTT.PositionInParent := TextureTransform.PositionInParent;
+      MultiTT.FdTextureTransform.Add(TextureTransform);
+      TextureTransform := MultiTT;
+    end;
+  end;
+
 var
   Shape: TNodeShape;
   App: TNodeAppearance;
@@ -422,7 +453,7 @@ var
   procedure HandleLight(LightNode: TNodeX3DLightNode);
   var
     Light: PLight;
-    Texture: TVRMLNode;
+    Texture, TextureTransform: TVRMLNode;
     TexCoord: TVRMLNode;
     TexturesCount, TexCoordsCount: Cardinal;
     VisualizeShadowMap: boolean;
@@ -436,6 +467,10 @@ var
     TexCoord := TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField.Value;
     HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount);
     TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField.Value := TexCoord;
+
+    TextureTransform := App.FdTextureTransform.Value;
+    HandleTextureTransform(TextureTransform);
+    App.FdTextureTransform.Value := TextureTransform;
 
     if TexCoordsCount <> TexturesCount then
     begin
