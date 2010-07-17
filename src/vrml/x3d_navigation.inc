@@ -126,6 +126,15 @@
 
     private FFdretainUserOffsets: TSFBool;
     public property FdretainUserOffsets: TSFBool read FFdretainUserOffsets;
+
+    { Matrices for projecting texture from this viewpoint,
+      for ProjectedTextureCoordinate.
+      Override MapProjectionMatrix for subclasses (MapModelviewMatrix
+      is already correctly defined here).
+      @groupBegin }
+    function MapProjectionMatrix: TMatrix4Single; virtual;
+    function MapModelviewMatrix: TMatrix4Single;
+    { @groupEnd }
   end;
 
   TNodeBillboard = class(TNodeX3DGroupingNode)
@@ -292,6 +301,7 @@
 
     function Position: TSFVec3f; override;
     class function ProjectionType: TProjectionType; override;
+    function MapProjectionMatrix: TMatrix4Single; override;
   end;
 
   TNodeViewpoint = class(TNodeX3DViewpointNode)
@@ -335,6 +345,7 @@
     class function ViewpointAngleOfView(
       FieldOfView: Single;
       const ThisToOtherSizeRatio: Single): Single;
+    function MapProjectionMatrix: TMatrix4Single; override;
   end;
 
   TNodeViewpointGroup = class(TNodeX3DChildNode)
@@ -470,6 +481,19 @@ begin
   Fields.Add(FFdretainUserOffsets);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeX3DViewpointNode.MapProjectionMatrix: TMatrix4Single;
+begin
+  Result := IdentityMatrix4Single;
+end;
+
+function TNodeX3DViewpointNode.MapModelviewMatrix: TMatrix4Single;
+var
+  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+begin
+  GetCameraVectors(CamPos, CamDir, CamUp, GravityUp);
+  Result := LookDirMatrix(CamPos, CamDir, CamUp);
 end;
 
 constructor TNodeBillboard.Create(const ANodeName: string;
@@ -816,6 +840,31 @@ begin
   Result := ptOrthographic;
 end;
 
+function TNodeOrthoViewpoint.MapProjectionMatrix: TMatrix4Single;
+var
+  OrthoViewDimensions: TVector4Single;
+begin
+  { default OrthoViewDimensions, for OrthoViewpoint }
+  OrthoViewDimensions[0] := -1;
+  OrthoViewDimensions[1] := -1;
+  OrthoViewDimensions[2] :=  1;
+  OrthoViewDimensions[3] :=  1;
+
+  if FdFieldOfView.Items.High >= 0 then OrthoViewDimensions[0] := FdFieldOfView.Items[0];
+  if FdFieldOfView.Items.High >= 1 then OrthoViewDimensions[1] := FdFieldOfView.Items[1];
+  if FdFieldOfView.Items.High >= 2 then OrthoViewDimensions[2] := FdFieldOfView.Items[2];
+  if FdFieldOfView.Items.High >= 3 then OrthoViewDimensions[3] := FdFieldOfView.Items[3];
+
+  Result := OrthoProjMatrix(
+    { Beware: order of OrthoViewpoint.fieldOfView and OrthoViewDimensions
+      is different than typical OpenGL and our OrthoProjMatrix params. }
+    OrthoViewDimensions[0],
+    OrthoViewDimensions[2],
+    OrthoViewDimensions[1],
+    OrthoViewDimensions[3],
+    1, 100); { TODO: near, far projection testing values }
+end;
+
 constructor TNodeViewpoint.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -894,6 +943,15 @@ begin
     if Result > Pi then
       Result := Pi;
   end;
+end;
+
+function TNodeViewpoint.MapProjectionMatrix: TMatrix4Single;
+begin
+  { TODO: for currently bound viewpoint, we should honour
+    fieldOfView and aspect ratio of current window? }
+  Result := PerspectiveProjMatrixRad(
+    FdFieldOfView.Value, 1,
+    1, 100); { TODO: near, far projection testing values }
 end;
 
 constructor TNodeViewpointGroup.Create(const ANodeName: string;

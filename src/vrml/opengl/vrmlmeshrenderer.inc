@@ -1370,6 +1370,59 @@ var
             [SuccessName, FailName]));
       end;
 
+      { Get projector matrices from a TextureCoordinateGenerator or
+        ProjectedTextureCoordinate node.
+        If this projector is a correct light source or viewpoint,
+        then get it's projection and modelview matrix and return @true.
+        Returns @false (and does correct VRMLWarning)
+        if it's empty or incorrect. }
+      function GetProjectorMatrices(Generator: TVRMLNode;
+        out Projection, Modelview: TMatrix4Single): boolean;
+      var
+        ProjectorValue: TVRMLNode; { possible ProjectorLight or ProjectorViewpoint }
+        ProjectorLight: TNodeX3DLightNode;
+        ProjectorViewpoint: TNodeX3DViewpointNode;
+      begin
+        Result := false;
+
+        if GenNode is TNodeTextureCoordinateGenerator then
+        begin
+          ProjectorValue := TNodeTextureCoordinateGenerator(GenNode).FdProjectedLight.Value;
+          if (ProjectorValue <> nil) and
+             (ProjectorValue is TNodeX3DLightNode) then
+	  begin
+            ProjectorLight := TNodeX3DLightNode(ProjectorValue);
+	    Projection := ProjectorLight.MapProjectionMatrix;
+	    Modelview := ProjectorLight.MapModelviewMatrix;
+	    Result := true;
+	  end else
+            VRMLWarning(vwSerious, 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
+        end else
+        if GenNode is TNodeProjectedTextureCoordinate then
+        begin
+          ProjectorValue := TNodeProjectedTextureCoordinate(GenNode).FdProjector.Value;
+          if (ProjectorValue <> nil) and
+             (ProjectorValue is TNodeX3DLightNode) then
+	  begin
+            ProjectorLight := TNodeX3DLightNode(ProjectorValue);
+	    Projection := ProjectorLight.MapProjectionMatrix;
+	    Modelview := ProjectorLight.MapModelviewMatrix;
+	    Result := true;
+	  end else
+          if (ProjectorValue <> nil) and
+             (ProjectorValue is TNodeX3DViewpointNode) then
+	  begin
+            ProjectorViewpoint := TNodeX3DViewpointNode(ProjectorValue);
+	    Projection := ProjectorViewpoint.MapProjectionMatrix;
+	    Modelview := ProjectorViewpoint.MapModelviewMatrix;
+	    Result := true;
+	  end else
+            VRMLWarning(vwSerious, 'ProjectedTextureCoordinate.projector is NULL or incorrect');
+        end else
+          { This should not actually happen (GenNode passed here should be like this) }
+          VRMLWarning(vwSerious, 'Invalid texture generator node');
+      end;
+
     const
       ProjectionScalingMatrix: TMatrix4Single =
       ( (0.5,   0,   0, 0),
@@ -1378,8 +1431,7 @@ var
         (0.5, 0.5, 0.5, 1) );
     var
       ProjectionM: TMatrix4Single;
-      ProjectorValue: TVRMLNode; { possible Projector }
-      Projector: TNodeX3DLightNode;
+      ProjectorProjectionMatrix, ProjectorModelviewMatrix: TMatrix4Single;
     begin
       case Gen of
         tgSphere:
@@ -1474,36 +1526,16 @@ var
           end;
         tgProjection:
           begin
-            Projector := nil;
-
-            if GenNode is TNodeTextureCoordinateGenerator then
-            begin
-              ProjectorValue := TNodeTextureCoordinateGenerator(GenNode).FdProjectedLight.Value;
-              if (ProjectorValue <> nil) and
-                 (ProjectorValue is TNodeX3DLightNode) then
-                Projector := TNodeX3DLightNode(ProjectorValue) else
-                VRMLWarning(vwSerious, 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
-            end else
-            if GenNode is TNodeProjectedTextureCoordinate then
-            begin
-              ProjectorValue := TNodeProjectedTextureCoordinate(GenNode).FdProjector.Value;
-              if (ProjectorValue <> nil) and
-                 (ProjectorValue is TNodeX3DLightNode) then
-                Projector := TNodeX3DLightNode(ProjectorValue) else
-                VRMLWarning(vwSerious, 'ProjectedTextureCoordinate.projector is NULL or incorrect');
-            end else
-              { This should not actually happen (GenNode passed here should be like this) }
-              VRMLWarning(vwSerious, 'Invalid texture generator node');
-
-            if Projector <> nil then
+            if GetProjectorMatrices(GenNode,
+              ProjectorProjectionMatrix, ProjectorModelviewMatrix) then
             begin
               glPushMatrix;
                 glLoadMatrix(RenderState.CameraMatrix);
                 ProjectionM := MatrixMult(
                   ProjectionScalingMatrix,
                   MatrixMult(
-                    Projector.MapProjectionMatrix,
-                    Projector.MapModelviewMatrix));
+                    ProjectorProjectionMatrix,
+                    ProjectorModelviewMatrix));
 
                 glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
                 glTexGenv(GL_S, GL_EYE_PLANE, MatrixRow(ProjectionM, 0));
