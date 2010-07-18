@@ -87,9 +87,10 @@
     function MapProjectionMatrix: TMatrix4Single; virtual;
     function MapModelviewMatrix: TMatrix4Single; virtual;
     function MapModelviewRotationMatrix: TMatrix4Single; virtual;
-    function MapPosition: TVector3Single; virtual;
-    function MapDirection: TVector3Single; virtual;
-    function MapUp: TVector3Single; virtual;
+
+    function MapPositionLocal: TVector3Single; virtual;
+    function MapDirectionLocal: TVector3Single; virtual;
+    procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single);
     { @groupEnd }
   end;
 
@@ -150,9 +151,8 @@
     function MapProjectionMatrix: TMatrix4Single; override;
     function MapModelviewMatrix: TMatrix4Single; override;
     function MapModelviewRotationMatrix: TMatrix4Single; override;
-    function MapPosition: TVector3Single; override;
-    function MapDirection: TVector3Single; override;
-    function MapUp: TVector3Single; override;
+    function MapPositionLocal: TVector3Single; override;
+    function MapDirectionLocal: TVector3Single; override;
   end;
 
   TVRMLPositionalLightNode = class(TVRMLLightNode)
@@ -247,9 +247,8 @@
     function MapProjectionMatrix: TMatrix4Single; override;
     function MapModelviewMatrix: TMatrix4Single; override;
     function MapModelviewRotationMatrix: TMatrix4Single; override;
-    function MapPosition: TVector3Single; override;
-    function MapDirection: TVector3Single; override;
-    function MapUp: TVector3Single; override;
+    function MapPositionLocal: TVector3Single; override;
+    function MapDirectionLocal: TVector3Single; override;
   end;
 
 {$endif read_interface}
@@ -290,7 +289,7 @@ begin
   FFdProjectionFar := TSFFloat.Create(Self, 'projectionFar', 100);
   Fields.Add(FFdProjectionFar);
 
-  FFdUp := TSFVec3f.Create(Self, 'up', Vector3Single(0, 1, 0));
+  FFdUp := TSFVec3f.Create(Self, 'up', ZeroVector3Single);
   Fields.Add(FFdUp);
 
   FFdDefaultShadowMap := TSFNode.Create(Self, 'defaultShadowMap', [TNodeGeneratedShadowMap]);
@@ -325,19 +324,28 @@ begin
   Result := IdentityMatrix4Single;
 end;
 
-function TNodeX3DLightNode.MapPosition: TVector3Single;
+function TNodeX3DLightNode.MapPositionLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
-function TNodeX3DLightNode.MapDirection: TVector3Single;
+function TNodeX3DLightNode.MapDirectionLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
-function TNodeX3DLightNode.MapUp: TVector3Single;
+procedure TNodeX3DLightNode.GetCameraVectors(out Pos, Dir, Up: TVector3Single);
 begin
-  Result := ZeroVector3Single;
+  Pos := MatrixMultPoint    (Transform, MapPositionLocal);
+  Dir := MatrixMultDirection(Transform, MapDirectionLocal);
+  Up  := MatrixMultDirection(Transform, FdUp.Value);
+
+  { When the "up" vector is parallel to the dir (in particular,
+    when "up" field has a default zero value) then adjust up vector.
+    Note: when "up" is not parallel, then MapModelviewMatrix will
+    take care of adjusting it to be orthogonal. }
+  if VectorsParallel(Up, Dir) then
+    Up := AnyOrthogonalVector(Dir);
 end;
 
 function TVRMLLightNode.CreateActiveLight(
@@ -409,28 +417,29 @@ begin
 end;
 
 function TVRMLDirectionalLightNode.MapModelviewMatrix: TMatrix4Single;
+var
+  Pos, Dir, Up: TVector3Single;
 begin
-  Result := LookDirMatrix(MapPosition, MapDirection, MapUp);
+  GetCameraVectors(Pos, Dir, Up);
+  Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
 function TVRMLDirectionalLightNode.MapModelviewRotationMatrix: TMatrix4Single;
+var
+  Pos, Dir, Up: TVector3Single;
 begin
-  Result := LookDirMatrix(ZeroVector3Single, MapDirection, MapUp);
+  GetCameraVectors(Pos, Dir, Up);
+  Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TVRMLDirectionalLightNode.MapPosition: TVector3Single;
+function TVRMLDirectionalLightNode.MapPositionLocal: TVector3Single;
 begin
-  Result := MatrixMultPoint(Transform, FdProjectionLocation.Value);
+  Result := FdProjectionLocation.Value;
 end;
 
-function TVRMLDirectionalLightNode.MapDirection: TVector3Single;
+function TVRMLDirectionalLightNode.MapDirectionLocal: TVector3Single;
 begin
-  Result := MatrixMultDirection(Transform, FdDirection.Value);
-end;
-
-function TVRMLDirectionalLightNode.MapUp: TVector3Single;
-begin
-  Result := MatrixMultDirection(Transform, FdUp.Value);
+  Result := FdDirection.Value;
 end;
 
 constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -673,28 +682,29 @@ begin
 end;
 
 function TNodeSpotLight_2.MapModelviewMatrix: TMatrix4Single;
+var
+  Pos, Dir, Up: TVector3Single;
 begin
-  Result := LookDirMatrix(MapPosition, MapDirection, MapUp);
+  GetCameraVectors(Pos, Dir, Up);
+  Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
 function TNodeSpotLight_2.MapModelviewRotationMatrix: TMatrix4Single;
+var
+  Pos, Dir, Up: TVector3Single;
 begin
-  Result := LookDirMatrix(ZeroVector3Single, MapDirection, MapUp);
+  GetCameraVectors(Pos, Dir, Up);
+  Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TNodeSpotLight_2.MapPosition: TVector3Single;
+function TNodeSpotLight_2.MapPositionLocal: TVector3Single;
 begin
-  Result := MatrixMultPoint(Transform, FdLocation.Value);
+  Result := FdLocation.Value;
 end;
 
-function TNodeSpotLight_2.MapDirection: TVector3Single;
+function TNodeSpotLight_2.MapDirectionLocal: TVector3Single;
 begin
-  Result := MatrixMultDirection(Transform, FdDirection.Value);
-end;
-
-function TNodeSpotLight_2.MapUp: TVector3Single;
-begin
-  Result := MatrixMultDirection(Transform, FdUp.Value);
+  Result := FdDirection.Value;
 end;
 
 procedure RegisterLightingNodes;
