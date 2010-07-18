@@ -502,7 +502,7 @@ procedure TMySceneManager.RenderFromView3D;
 
         glPushMatrix;
           NewZ := Elements.Items[I].Normal;
-          NewX := AnyPerpVector(NewZ);
+          NewX := AnyOrthogonalVector(NewZ);
           NewY := VectorProduct(NewZ, NewX);
           glMultMatrix(TransformToCoordsMatrix(Elements.Items[I].Position,
             NewX, NewY, NewZ));

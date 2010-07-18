@@ -2385,7 +2385,7 @@ begin
       Side := VectorProduct(Direction, GravityUp);
       if ZeroVector(Side) then
       begin
-        FDirection := AnyPerpVector(GravityUp);
+        FDirection := AnyOrthogonalVector(GravityUp);
         FUp := GravityUp;
       end;
     end else
@@ -3326,7 +3326,7 @@ begin
         by menu and press Home (Input_GravityUp). }
 
       FUp := GravityUp;
-      FDirection := AnyPerpVector(FUp);
+      FDirection := AnyOrthogonalVector(FUp);
       ScheduleVisibleChange;
     end else
       Up := GravityUp;

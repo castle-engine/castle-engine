@@ -1004,7 +1004,7 @@ begin
   { calculate Orientation from Tangent.
     For this, we treat Tangent like "camera direction", and we have to set
     "camera up" as anything orthogonal to direction. }
-  Orientation := CamDirUp2Orient(Tangent, AnyPerpVector(Tangent));
+  Orientation := CamDirUp2Orient(Tangent, AnyOrthogonalVector(Tangent));
 
   EventValue_Changed.Send(Orientation, Time);
 end;

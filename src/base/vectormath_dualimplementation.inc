@@ -839,7 +839,7 @@ begin
   MakeVectorsAngleRadOnTheirPlane(v1, v2, Pi/2);
 end;
 
-function AnyPerpVector(const v: TYPE_VECTOR3): TYPE_VECTOR3;
+function AnyOrthogonalVector(const v: TYPE_VECTOR3): TYPE_VECTOR3;
 begin
  if Zero(v[0]) and Zero(v[1]) then
  begin

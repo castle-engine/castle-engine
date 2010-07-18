@@ -133,7 +133,7 @@ begin
  for i := 1 to 10 do
  try
   v := RandomVector;
-  Assert( VectorsPerp(AnyPerpVector(v), v) );
+  Assert( VectorsPerp(AnyOrthogonalVector(v), v) );
   { I has to comment it out -- it fails too often due to floating point
     inaccuracy. }
   { Assert( VectorsParallel(VectorScale(v, Random*10), v) ); }
@@ -141,7 +141,7 @@ begin
   Assert( VectorsParallel(ZeroVector3Single, v) );
  except
   Writeln('and failed : v = ',VectorToNiceStr(v),
-    ' anyPerp = ',VectorToNiceStr(AnyPerpVector(v)));
+    ' anyPerp = ',VectorToNiceStr(AnyOrthogonalVector(v)));
   raise;
  end;
 

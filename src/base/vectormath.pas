@@ -1296,11 +1296,12 @@ function MatricesPerfectlyEqual(const M1, M2: TMatrix4Double): boolean; overload
 function VectorsPerp(const v1, v2: TVector3Single): boolean; overload;
 function VectorsPerp(const v1, v2: TVector3Double): boolean; overload;
 
-{ Czy dwa wektory rownolegle, czyli jeden jest przeskalowanym drugim.
-  Zauwaz ze zgodnie z ta definicja gdy v1 lub v2 to wektor zerowy
-  to odp. = true. }
+{ Are the two vectors parallel (one is a scaled version of another).
+  In particular, if one of the vectors is zero, then this is @true.
+  @groupBegin }
 function VectorsParallel(const v1, v2: TVector3Single): boolean; overload;
 function VectorsParallel(const v1, v2: TVector3Double): boolean; overload;
+{ @groupEnd }
 
 { spraw zeby miedzy wektorem v1 a v2 byl kat angle poprzez ew. zmiane
   wektora v1. Wektory v1 i v2 NIE MOGA BYC ROWNOLEGLE, czyli musza
@@ -1338,14 +1339,19 @@ procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Single;
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Double;
   const v2: TVector3Double); overload;
 
-{ zwraca wektor prostopadly do v. Jesli v jest niezerowy to wynik tez bedzie
-  niezerowy. Uzywa do tego prostej sztuczki : dwa wektory 3d sa prostopadle
-  gdy DotProduct = 0 czyli v[0]*result[0] + v[1]*result[1] + v[2]*result[2] = 0.
-  Wezmy wiec result = <v[1], -v[0], 0> i mamy result ktore jest na pewno
-  prostopadle do v. Pozostaje tylko zabezpieczyc sie zeby nie wziac
-  v[1] i v[0] podczas gdy jedyna niezerowa skladowa wektora jest v[2] - i juz. }
-function AnyPerpVector(const v: TVector3Single): TVector3Single; overload;
-function AnyPerpVector(const v: TVector3Double): TVector3Double; overload;
+{ Return, deterministically, some vector orthogonal to V.
+  When V is non-zero, then the result is non-zero.
+
+  This uses a simple trick to make an orthogonal vector:
+  if you take @code(Result := (V[1], -V[0], 0)) then the dot product
+  between the Result and V is zero, so they are orthogonal.
+  There's also a small check needed to use a similar but different version
+  when the only non-zero component of V is V[2].
+
+  @groupBegin }
+function AnyOrthogonalVector(const v: TVector3Single): TVector3Single; overload;
+function AnyOrthogonalVector(const v: TVector3Double): TVector3Double; overload;
+{ @groupEnd }
 
 function IsLineParallelToPlane(const lineVector: TVector3Single; const plane: TVector4Single): boolean; overload;
 function IsLineParallelToPlane(const lineVector: TVector3Double; const plane: TVector4Double): boolean; overload;
@@ -1355,9 +1361,8 @@ function IsLineParallelToSimplePlane(const lineVector: TVector3Single;
 function IsLineParallelToSimplePlane(const lineVector: TVector3Double;
   const PlaneConstCoord: integer): boolean; overload;
 
-{ Assuming that Vector1 and Vector2 are parallel (that is, one of them
-  is just a scaled version of another) question is:
-  do they point in the same direction ?
+{ Assuming that Vector1 and Vector2 are parallel,
+  do they point in the same direction?
 
   This assumes that both vectors are non-zero.
   If one of the vectors is zero, the result is undefined --- false or true.
@@ -1367,30 +1372,41 @@ function AreParallelVectorsSameDirection(
 function AreParallelVectorsSameDirection(
   const Vector1, Vector2: TVector3Double): boolean; overload;
 
-{ oblicz rzut prostopadly punktu point na plaszczyzne plane.
-  Czyli znajdz najblizszy do point punkt na plaszczyznie plane. }
+{ Orthogonally project a point on a plane, that is find a closest
+  point to Point lying on a Plane.
+  @groupBegin }
 function PointOnPlaneClosestToPoint(const plane: TVector4Single; const point: TVector3Single): TVector3Single; overload;
 function PointOnPlaneClosestToPoint(const plane: TVector4Double; const point: TVector3Double): TVector3Double; overload;
+{ @groupEnd }
 
 function PointToPlaneDistanceSqr(const Point: TVector3Single;
   const Plane: TVector4Single): Single; overload;
 function PointToPlaneDistanceSqr(const Point: TVector3Double;
   const Plane: TVector4Double): Double; overload;
 
-{ Some related note: distance of plane from origin (0,0,0) may be simply
-  obtained by Abs(Plane[3]) when Plane is Normalized. }
+{ Distance from a point to a plane (with already normalized direction).
+
+  Note: distance of the plane from origin point (0,0,0) may be simply
+  obtained by Abs(Plane[3]) when Plane is Normalized.
+  @groupBegin }
 function PointToNormalizedPlaneDistance(const Point: TVector3Single;
   const Plane: TVector4Single): Single; overload;
 function PointToNormalizedPlaneDistance(const Point: TVector3Double;
   const Plane: TVector4Double): Double; overload;
+{ @groupEnd }
 
-{ Note that calculating this costs you one Sqrt
+{ Distance from a point to a plane.
+
+  Note that calculating this costs you one Sqrt
   (contrary to PointToPlaneDistanceSqr or
-  PointToNormalizedPlaneDistance) }
+  PointToNormalizedPlaneDistance).
+
+  @groupBegin }
 function PointToPlaneDistance(const Point: TVector3Single;
   const Plane: TVector4Single): Single; overload;
 function PointToPlaneDistance(const Point: TVector3Double;
   const Plane: TVector4Double): Double; overload;
+{ @groupEnd }
 
 function PointToSimplePlaneDistance(const point: TVector3Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single): Single; overload;
