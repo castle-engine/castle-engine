@@ -257,7 +257,7 @@
 const
   FallbackProjectionNear = 1;
   FallbackProjectionFar = 100;
-  FallbackProjectionRectangle: TVector4Single = (-10, 10, -10, 10);
+  FallbackProjectionRectangle: TVector4Single = (-10, -10, 10, 10);
 
 constructor TNodeX3DLightNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -428,7 +428,9 @@ begin
   R := FdProjectionRectangle.Value;
   if PerfectlyZeroVector(R) then R := FallbackProjectionRectangle;
 
-  Result := OrthoProjMatrix(R[0], R[1], R[2], R[3], N, F);
+  { Beware: order of projectionRectangle
+    is different than typical OpenGL and our OrthoProjMatrix params. }
+  Result := OrthoProjMatrix(R[0], R[2], R[1], R[3], N, F);
 end;
 
 function TVRMLDirectionalLightNode.MapModelviewMatrix: TMatrix4Single;
