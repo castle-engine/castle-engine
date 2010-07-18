@@ -254,6 +254,11 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+const
+  FallbackProjectionNear = 1;
+  FallbackProjectionFar = 100;
+  FallbackProjectionRectangle: TVector4Single = (-10, 10, -10, 10);
+
 constructor TNodeX3DLightNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -283,10 +288,10 @@ begin
   FFdshowProxyGeometry := TSFBool.Create(Self, 'showProxyGeometry', false);
   Fields.Add(FFdshowProxyGeometry);
 
-  FFdProjectionNear := TSFFloat.Create(Self, 'projectionNear', 1);
+  FFdProjectionNear := TSFFloat.Create(Self, 'projectionNear', 0);
   Fields.Add(FFdProjectionNear);
 
-  FFdProjectionFar := TSFFloat.Create(Self, 'projectionFar', 100);
+  FFdProjectionFar := TSFFloat.Create(Self, 'projectionFar', 0);
   Fields.Add(FFdProjectionFar);
 
   FFdUp := TSFVec3f.Create(Self, 'up', ZeroVector3Single);
@@ -386,10 +391,10 @@ begin
   FFddirection.ProcessedInActiveLight := true;
 
   FFdProjectionRectangle := TSFVec4f.Create(Self, 'projectionRectangle',
-    Vector4Single(-10, 10, -10, 10));
+    ZeroVector4Single);
   Fields.Add(FFdProjectionRectangle);
 
-  FFdprojectionLocation := TSFVec3f.Create(Self, 'projectionLocation', Vector3Single(0, 0, 0));
+  FFdprojectionLocation := TSFVec3f.Create(Self, 'projectionLocation', ZeroVector3Single);
   Fields.Add(FFdprojectionLocation);
 end;
 
@@ -407,13 +412,23 @@ begin
 end;
 
 function TVRMLDirectionalLightNode.MapProjectionMatrix: TMatrix4Single;
+var
+  N, F: Single;
+  R: TVector4Single;
 begin
-  Result := OrthoProjMatrix(
-    FdProjectionRectangle.Value[0],
-    FdProjectionRectangle.Value[1],
-    FdProjectionRectangle.Value[2],
-    FdProjectionRectangle.Value[3],
-    FdProjectionNear.Value, FdProjectionFar.Value);
+  { If author didn't provide and VRMLShadowMaps unit didn't calculate
+    values for some fields, then use FallbackProjection* defaults here. }
+
+  N := FdProjectionNear.Value;
+  if N = 0 then N := FallbackProjectionNear;
+
+  F := FdProjectionFar.Value;
+  if F = 0 then F := FallbackProjectionFar;
+
+  R := FdProjectionRectangle.Value;
+  if PerfectlyZeroVector(R) then R := FallbackProjectionRectangle;
+
+  Result := OrthoProjMatrix(R[0], R[1], R[2], R[3], N, F);
 end;
 
 function TVRMLDirectionalLightNode.MapModelviewMatrix: TMatrix4Single;
@@ -670,15 +685,22 @@ end;
 
 function TNodeSpotLight_2.MapProjectionMatrix: TMatrix4Single;
 var
-  ProjectionAngle: Single;
+  Angle, N, F: Single;
 begin
-  if FdprojectionAngle.Value <= 0 then
-    ProjectionAngle := 2 * FdCutOffAngle.Value else
-    ProjectionAngle := FdprojectionAngle.Value;
+  { If author didn't provide and VRMLShadowMaps unit didn't calculate
+    values for some fields, then use FallbackProjection* defaults here. }
 
-  Result := PerspectiveProjMatrixRad(
-    ProjectionAngle, 1,
-    FdProjectionNear.Value, FdProjectionFar.Value);
+  if FdprojectionAngle.Value <= 0 then
+    Angle := 2 * FdCutOffAngle.Value else
+    Angle := FdprojectionAngle.Value;
+
+  N := FdProjectionNear.Value;
+  if N = 0 then N := FallbackProjectionNear;
+
+  F := FdProjectionFar.Value;
+  if F = 0 then F := FallbackProjectionFar;
+
+  Result := PerspectiveProjMatrixRad(Angle, 1, N, F);
 end;
 
 function TNodeSpotLight_2.MapModelviewMatrix: TMatrix4Single;
