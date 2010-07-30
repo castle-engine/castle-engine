@@ -436,7 +436,7 @@ type
     (scaled around MoveAmount point). }
   TExamineCamera = class(TCamera)
   private
-    FMoveAMount, FModelBoxMiddle: TVector3Single;
+    FMoveAMount, FCenterOfRotation: TVector3Single;
     FRotations: TQuaternion;
     { Speed of rotations.
 
@@ -454,11 +454,11 @@ type
     FModelBox: TBox3D;
 
     AnimationBeginMoveAmount: TVector3Single;
-    AnimationBeginModelBoxMiddle: TVector3Single;
+    AnimationBeginCenterOfRotation: TVector3Single;
     AnimationBeginRotations: TQuaternion;
     AnimationBeginScaleFactor: Single;
     AnimationEndMoveAmount: TVector3Single;
-    AnimationEndModelBoxMiddle: TVector3Single;
+    AnimationEndCenterOfRotation: TVector3Single;
     AnimationEndRotations: TQuaternion;
     AnimationEndScaleFactor: Single;
 
@@ -467,6 +467,7 @@ type
     procedure SetScaleFactor(const Value: Single);
     procedure SetMoveAmount(const Value: TVector3Single);
     procedure SetModelBox(const Value: TBox3D);
+    procedure SetCenterOfRotation(const Value: TVector3Single);
   private
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -523,6 +524,8 @@ type
       Actually, @link(Init) method does the above for you. }
     property MoveAmount: TVector3Single read FMoveAmount write SetMoveAmount;
 
+    property CenterOfRotation: TVector3Single read FCenterOfRotation write SetCenterOfRotation;
+
     { How the model is scaled. Scaling is done around MoveAmount added to
       the middle of ModelBox. @italic(May never be zero (or too near zero).) }
     property ScaleFactor: Single
@@ -531,6 +534,7 @@ type
     { The aproximate size of 3D model that will be viewed.
       This is the crucial property of this class that you have to set,
       to make the navigation work best.
+      Setting this sets also CenterOfRotation to the middle of the box.
 
       The idea is that usually this is the only property that you have to set.
       ScaleFactor, MoveAmount, RotationsAnim will be almost directly
@@ -1863,19 +1867,19 @@ end;
 
 function TExamineCamera.Matrix: TMatrix4Single;
 begin
-  Result := TranslationMatrix(VectorAdd(MoveAmount, FModelBoxMiddle));
+  Result := TranslationMatrix(VectorAdd(MoveAmount, FCenterOfRotation));
   Result := MatrixMult(Result, QuatToRotationMatrix(Rotations));
   Result := MatrixMult(Result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
-  Result := MatrixMult(Result, TranslationMatrix(VectorNegate(FModelBoxMiddle)));
+  Result := MatrixMult(Result, TranslationMatrix(VectorNegate(FCenterOfRotation)));
 end;
 
 function TExamineCamera.MatrixInverse: TMatrix4Single;
 begin
   { This inverse always exists, assuming ScaleFactor is <> 0. }
-  Result := TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FModelBoxMiddle)));
+  Result := TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FCenterOfRotation)));
   Result := MatrixMult(QuatToRotationMatrix(QuatConjugate(Rotations)), Result);
   Result := MatrixMult(ScalingMatrix(Vector3Single(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)), Result);
-  Result := MatrixMult(TranslationMatrix(FModelBoxMiddle), Result);
+  Result := MatrixMult(TranslationMatrix(FCenterOfRotation), Result);
 end;
 
 function TExamineCamera.RotationMatrix: TMatrix4Single;
@@ -1895,10 +1899,10 @@ begin
 
   if Animation then
   begin
-    FMoveAmount     := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginMoveAmount    , AnimationEndMoveAmount);
-    FModelBoxMiddle := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginModelBoxMiddle, AnimationEndModelBoxMiddle);
-    FRotations     := NLerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginRotations     , AnimationEndRotations);
-    FScaleFactor    := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginScaleFactor   , AnimationEndScaleFactor);
+    FMoveAmount       := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginMoveAmount      , AnimationEndMoveAmount);
+    FCenterOfRotation := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginCenterOfRotation, AnimationEndCenterOfRotation);
+    FRotations       := NLerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginRotations       , AnimationEndRotations);
+    FScaleFactor      := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginScaleFactor     , AnimationEndScaleFactor);
     ScheduleVisibleChange;
 
     { Do not handle keys or rotations etc. }
@@ -2020,12 +2024,15 @@ begin FScaleFactor := Value; VisibleChange; end;
 procedure TExamineCamera.SetMoveAmount(const Value: TVector3Single);
 begin FMoveAmount := Value; VisibleChange; end;
 
+procedure TExamineCamera.SetCenterOfRotation(const Value: TVector3Single);
+begin FCenterOfRotation := Value; VisibleChange; end;
+
 procedure TExamineCamera.HomeNotNotify;
 begin
   if IsEmptyBox3D(FModelBox) then
     FMoveAmount := Vector3Single(0, 0, 0) { any dummy value } else
     FMoveAmount := VectorAdd(
-      VectorNegate(FModelBoxMiddle),
+      VectorNegate(FCenterOfRotation),
       Vector3Single(0, 0, -Box3DAvgSize(FModelBox)*2));
   FRotations := QuatIdentityRot;
   FRotationsAnim := ZeroVector3Single;
@@ -2042,8 +2049,8 @@ procedure TExamineCamera.SetModelBox(const Value: TBox3D);
 begin
   FModelBox := Value;
   if IsEmptyBox3D(FModelBox) then
-    FModelBoxMiddle := Vector3Single(0, 0, 0) { any dummy value } else
-    FModelBoxMiddle := Box3DMiddle(FModelBox);
+    FCenterOfRotation := Vector3Single(0, 0, 0) { any dummy value } else
+    FCenterOfRotation := Box3DMiddle(FModelBox);
   VisibleChange;
 end;
 
@@ -2221,12 +2228,12 @@ begin
   if OtherCamera is TExamineCamera then
   begin
     AnimationBeginMoveAmount := MoveAmount;
-    AnimationBeginModelBoxMiddle := FModelBoxMiddle;
+    AnimationBeginCenterOfRotation := FCenterOfRotation;
     AnimationBeginRotations := Rotations;
     AnimationBeginScaleFactor := ScaleFactor;
 
     AnimationEndMoveAmount := (OtherCamera as TExamineCamera).MoveAmount;
-    AnimationEndModelBoxMiddle := (OtherCamera as TExamineCamera).FModelBoxMiddle;
+    AnimationEndCenterOfRotation := (OtherCamera as TExamineCamera).FCenterOfRotation;
     AnimationEndRotations := (OtherCamera as TExamineCamera).Rotations;
     AnimationEndScaleFactor := (OtherCamera as TExamineCamera).ScaleFactor;
   end else
