@@ -436,7 +436,7 @@ type
     (scaled around MoveAmount point). }
   TExamineCamera = class(TCamera)
   private
-    FMoveAMount, FCenterOfRotation: TVector3Single;
+    FMoveAmount, FCenterOfRotation: TVector3Single;
     FRotations: TQuaternion;
     { Speed of rotations.
 
