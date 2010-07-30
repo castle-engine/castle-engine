@@ -21,7 +21,7 @@ unit Cameras;
 interface
 
 uses SysUtils, VectorMath, KambiUtils, KeysMouse, Boxes3D, Quaternions, Frustum,
-  UIControls, Classes, RaysWindow, Base3D;
+  UIControls, Classes, RaysWindow, Base3D, KambiTimeUtils;
 
 const
   DefaultFallingDownStartSpeed = 0.5;
@@ -229,6 +229,10 @@ type
     IsVisibleChangeScheduled: boolean;
     FIgnoreAllInputs: boolean;
 
+    Animation: boolean;
+    AnimationEndTime: TKamTime;
+    AnimationCurrentTime: TKamTime;
+
     { Private things related to frustum ---------------------------- }
 
     FFrustum: TFrustum;
@@ -379,6 +383,46 @@ type
       const PerspectiveViewAngles: TVector2Single;
       const OrthoViewDimensions: TVector4Single;
       out Ray0, RayVector: TVector3Single);
+
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
+
+    { Animate a camera smoothly into another camera settings.
+      This will gradually change our settings (only the most important
+      settings, that determine actual camera view, i.e. @link(Matrix) result)
+      into another camera.
+
+      Current OtherCamera settings will be internally copied during this call.
+      So you can even free OtherCamera instance immediately after calling this.
+
+      When we're during camera animation, @link(Idle) doesn't do other stuff
+      (e.g. gravity for TWalkCamera doesn't work, rotating for TExamineCamera
+      doesn't work). This also means that the key/mouse controls of the camera
+      do not work. Instead, we remember the source and target position
+      (at the time AnimateTo was called) of the camera,
+      and smoothly interpolate camera parameters to match the target.
+
+      Once the animation stops, @link(Idle) goes back to normal: gravity
+      in TWalkCamera works again, rotating in TExamineCamera works again etc.
+
+      Calling AnimateTo while the previous animation didn't finish yet
+      is OK. This simply cancels the previous animation,
+      and starts the new animation from the current position.
+
+      @italic(Descendants implementors notes:) In this class,
+      this method sets Animation, AnimationCurrentTime, AnimationEndTime
+      and @link(Idle) updates them. In descendants you have to:
+
+      @orderedList(
+        @item(In AnimateTo, store begin/end settings.)
+        @item(In Idle, update settings to interpolate between begin/end.)
+        @item(Key/mouse/idle events should ignore user input when Animation
+         is @true. (Although each Idle would override them anyway, but for
+         stability it's best to explicitly ignore them --- you never know
+         how often Idle will be called.))
+      ) }
+    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime);  virtual;
   end;
 
   TCameraClass = class of TCamera;
@@ -408,6 +452,16 @@ type
     FRotationsAnim: TVector3Single;
     FScaleFactor: Single;
     FModelBox: TBox3D;
+
+    AnimationBeginMoveAmount: TVector3Single;
+    AnimationBeginModelBoxMiddle: TVector3Single;
+    AnimationBeginRotations: TQuaternion;
+    AnimationBeginScaleFactor: Single;
+    AnimationEndMoveAmount: TVector3Single;
+    AnimationEndModelBoxMiddle: TVector3Single;
+    AnimationEndRotations: TQuaternion;
+    AnimationEndScaleFactor: Single;
+
     procedure SetRotationsAnim(const Value: TVector3Single);
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
@@ -538,6 +592,8 @@ type
 
     procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
+
+    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
   end;
 
   TWalkCamera = class;
@@ -574,6 +630,13 @@ type
     FAboveHeight: Single;
     FAboveGround: P3DTriangle;
     FMouseLook: boolean;
+
+    AnimationBeginPosition: TVector3Single;
+    AnimationBeginDirection: TVector3Single;
+    AnimationBeginUp: TVector3Single;
+    AnimationEndPosition: TVector3Single;
+    AnimationEndDirection: TVector3Single;
+    AnimationEndUp: TVector3Single;
 
     procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
@@ -1364,6 +1427,8 @@ type
     property AboveHeight: Single read FAboveHeight;
     property AboveGround: P3DTriangle read FAboveGround write FAboveGround;
     { @groupEnd }
+
+    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
   end;
 
 { See TWalkCamera.CorrectCameraPreferredHeight.
@@ -1714,6 +1779,25 @@ begin
     Ray0, RayVector);
 end;
 
+procedure TCamera.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+  if Animation then
+  begin
+    AnimationCurrentTime += CompSpeed;
+    if AnimationCurrentTime > AnimationEndTime then Animation := false;
+  end;
+end;
+
+procedure TCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
+begin
+  Animation := true;
+  AnimationEndTime := Time;
+  AnimationCurrentTime := 0;
+end;
+
 { TExamineCamera ------------------------------------------------------------ }
 
 constructor TExamineCamera.Create(AOwner: TComponent);
@@ -1807,6 +1891,20 @@ var i: integer;
     ModsDown: TModifierKeys;
     RotChange: Single;
 begin
+  inherited;
+
+  if Animation then
+  begin
+    FMoveAmount     := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginMoveAmount    , AnimationEndMoveAmount);
+    FModelBoxMiddle := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginModelBoxMiddle, AnimationEndModelBoxMiddle);
+    FRotations     := NLerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginRotations     , AnimationEndRotations);
+    FScaleFactor    := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginScaleFactor   , AnimationEndScaleFactor);
+    ScheduleVisibleChange;
+
+    { Do not handle keys or rotations etc. }
+    Exit;
+  end;
+
   { If given RotationsAnim component is zero, no need to change current Rotations.
     What's more important, this avoids the need to call VisibleChange,
     so things like PostRedisplay will not be continously called when
@@ -1838,16 +1936,16 @@ begin
     VisibleChange;
   end;
 
-  if IsEmptyBox3D(ModelBox) then
-    move_change := CompSpeed else
-    move_change := Box3DAvgSize(ModelBox) * CompSpeed;
-  rot_speed_change := 5 * CompSpeed;
-
-  { we will apply CompSpeed to scale_change later }
-  scale_change := 1.5;
-
-  if HandleMouseAndKeys and not IgnoreAllInputs then
+  if HandleMouseAndKeys and (not IgnoreAllInputs) then
   begin
+    if IsEmptyBox3D(ModelBox) then
+      move_change := CompSpeed else
+      move_change := Box3DAvgSize(ModelBox) * CompSpeed;
+    rot_speed_change := 5 * CompSpeed;
+
+    { we will apply CompSpeed to scale_change later }
+    scale_change := 1.5;
+
     ModsDown := ModifiersDown(Container.Pressed);
 
     if ModsDown = [mkCtrl] then
@@ -1953,7 +2051,7 @@ function TExamineCamera.EventDown(MouseEvent: boolean; Key: TKey;
   ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
-  if IgnoreAllInputs then Exit(false);
+  if IgnoreAllInputs or Animation then Exit(false);
 
   if Input_StopRotating.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
@@ -2043,9 +2141,8 @@ begin
 
   { Optimization, since MouseMove occurs very often: when nothing pressed,
     or should be ignored, do nothing. }
-  if (Container.MousePressed = []) or
-     (not MouseNavigation) or
-     IgnoreAllInputs then
+  if (Container.MousePressed = []) or (not MouseNavigation) or
+     IgnoreAllInputs or Animation then
     Exit;
 
   ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
@@ -2115,6 +2212,28 @@ end;
 function TExamineCamera.GetPosition: TVector3Single;
 begin
   Result := MatrixMultPoint(MatrixInverse, Vector3Single(0, 0, 0));
+end;
+
+procedure TExamineCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
+begin
+  inherited;
+
+  if OtherCamera is TExamineCamera then
+  begin
+    AnimationBeginMoveAmount := MoveAmount;
+    AnimationBeginModelBoxMiddle := FModelBoxMiddle;
+    AnimationBeginRotations := Rotations;
+    AnimationBeginScaleFactor := ScaleFactor;
+
+    AnimationEndMoveAmount := (OtherCamera as TExamineCamera).MoveAmount;
+    AnimationEndModelBoxMiddle := (OtherCamera as TExamineCamera).FModelBoxMiddle;
+    AnimationEndRotations := (OtherCamera as TExamineCamera).Rotations;
+    AnimationEndScaleFactor := (OtherCamera as TExamineCamera).ScaleFactor;
+  end else
+  begin
+    { TODO: if Examine camera has to animate to other camera, cancel. }
+    Animation := false;
+  end;
 end;
 
 { TWalkCamera ---------------------------------------------------------------- }
@@ -3140,7 +3259,20 @@ var
 var
   ModsDown: TModifierKeys;
 begin
+  inherited;
+
   PositionMouseLook;
+
+  if Animation then
+  begin
+    FPosition  := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginPosition , AnimationEndPosition);
+    FDirection := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginDirection, AnimationEndDirection);
+    FUp        := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp);
+    ScheduleVisibleChange;
+
+    { Do not handle keys or gravity etc. }
+    Exit;
+  end;
 
   ModsDown := ModifiersDown(Container.Pressed);
 
@@ -3304,7 +3436,7 @@ function TWalkCamera.EventDown(MouseEvent: boolean; Key: TKey;
   ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
-  if IgnoreAllInputs then Exit(false);
+  if IgnoreAllInputs or Animation then Exit(false);
 
   {$ifdef SINGLE_STEP_ROTATION}
   if Input_RightRot.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
@@ -3531,7 +3663,8 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if MouseLook and (not IgnoreAllInputs) and ContainerSizeKnown then
+  if MouseLook and (not IgnoreAllInputs) and ContainerSizeKnown and
+    (not Animation) then
   begin
     MiddleWidth := ContainerWidth div 2;
     MiddleHeight := ContainerHeight div 2;
@@ -3614,6 +3747,20 @@ end;
 function TWalkCamera.GetPosition: TVector3Single;
 begin
   Result := FPosition;
+end;
+
+procedure TWalkCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
+begin
+  inherited;
+
+  AnimationBeginPosition := Position;
+  AnimationBeginDirection := Direction;
+  AnimationBeginUp := Up;
+
+  OtherCamera.GetCameraVectors(
+    AnimationEndPosition,
+    AnimationEndDirection,
+    AnimationEndUp);
 end;
 
 { global ------------------------------------------------------------ }
