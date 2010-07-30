@@ -421,7 +421,15 @@ type
          is @true. (Although each Idle would override them anyway, but for
          stability it's best to explicitly ignore them --- you never know
          how often Idle will be called.))
-      ) }
+      )
+
+      TODO: for now, animating TExamineCamera to a TWalkCamera settings
+      doesn't work (the other way around works Ok).
+
+      TODO: for now, since TWalkCamera.Direction length affects the speed
+      of movement, so animating Direction may change also the speed of movement.
+      This will be fixed once we separate the TWalkCamera.Direction
+      from the speed of movement entirely. }
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime);  virtual;
   end;
 
