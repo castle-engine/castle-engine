@@ -21,7 +21,7 @@ interface
 uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL, KambiUtils, KambiClassUtils,
-  GLShaders, GLImages;
+  GLShaders, GLImages, KambiTimeUtils;
 
 {$define read_interface}
 
@@ -264,6 +264,18 @@ type
       If you want you can override it to specialize CreateDefaultCamera
       for specific viewport classes. }
     function CreateDefaultCamera(AOwner: TComponent): TCamera; virtual; abstract;
+
+    { Smoothly animate current @link(Camera) to a default camera settings.
+
+      Default camera settings are determined by calling CreateDefaultCamera.
+      See TCamera.AnimateTo for details what and how is animated.
+
+      Current @link(Camera) is created by CreateDefaultCamera if not assigned
+      yet at this point. (And the animation isn't done, since such camera
+      already stands at the default position.) This makes this method
+      consistent: after calling it, you always know that @link(Camera) is
+      assigned and going to the default position. }
+    procedure CameraAnimateToDefault(const Time: TKamTime);
 
     { Screen effects are shaders that post-process the rendered screen.
       If any screen effects are active, we will automatically render
@@ -1446,6 +1458,20 @@ begin
   glFreeTexture(ScreenEffectTexture);
   FreeAndNil(ScreenEffectRTT);
   inherited;
+end;
+
+procedure TKamAbstractViewport.CameraAnimateToDefault(const Time: TKamTime);
+var
+  DefCamera: TCamera;
+begin
+  if Camera = nil then
+    Camera := CreateDefaultCamera(nil) else
+  begin
+    DefCamera := CreateDefaultCamera(nil);
+    try
+      Camera.AnimateTo(DefCamera, Time);
+    finally FreeAndNil(DefCamera) end;
+  end;
 end;
 
 { TKamAbstractViewportsList -------------------------------------------------- }
