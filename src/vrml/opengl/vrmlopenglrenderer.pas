@@ -53,7 +53,7 @@
       Note: before engine 2.0.0 release, it was allowed to free some VRML nodes
       @italic(before) unpreparing them. This was depending on the fact that
       during unprepare we will not actually dereference pointers
-      (not look at nodes contents etc.). This is forbidded since 2010-03-25,
+      (not look at nodes contents etc.). This is forbidden since 2010-03-25,
       as it causes some difficult problems (like GLSLProgram_DecReference really
       needs to look at VRML nodes), and was inherently unclean and unsafe
       (it's not a nice programming practice to have a pointers that
