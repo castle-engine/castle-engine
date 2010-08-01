@@ -278,14 +278,14 @@ var
 begin
   Assert(not (CurrentGeometry is TVRMLGeometryNode_1));
 
-  if CurrentState.ParentShape = nil then
+  if CurrentState.ShapeNode = nil then
   begin
     VRMLWarning(vwSerious, 'VRML node "' + CurrentGeometry.NodeTypeName +
       '" can be specified only in a "geometry" field of "Shape" node');
     Exit;
   end;
 
-  Material := CurrentState.ParentShape.Material;
+  Material := CurrentState.ShapeNode.Material;
 
   IsNodeLit := NodeLit(CurrentGeometry);
 

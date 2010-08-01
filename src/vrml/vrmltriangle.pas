@@ -838,9 +838,9 @@ function TVRMLTriangle.MaterialInfo: TVRMLMaterialInfo;
 var
   M2: TNodeMaterial_2;
 begin
-  if State.ParentShape <> nil then
+  if State.ShapeNode <> nil then
   begin
-    M2 := State.ParentShape.Material;
+    M2 := State.ShapeNode.Material;
     if M2 <> nil then
       Result := M2.MaterialInfo else
       Result := nil;
@@ -852,9 +852,9 @@ function TVRMLTriangle.Transparency: Single;
 var
   M2: TNodeMaterial_2;
 begin
-  if State.ParentShape <> nil then
+  if State.ShapeNode <> nil then
   begin
-    M2 := State.ParentShape.Material;
+    M2 := State.ShapeNode.Material;
     if M2 <> nil then
       Result := M2.FdTransparency.Value else
       Result := 0;
@@ -873,7 +873,7 @@ function TVRMLTriangle.IgnoreForShadowRays: boolean;
   var
     Shape: TNodeX3DShapeNode;
   begin
-    Shape := State.ParentShape;
+    Shape := State.ShapeNode;
     Result :=
       (Shape <> nil) and
       (Shape.FdAppearance.Value <> nil) and

@@ -479,10 +479,10 @@ var
 
     { calculate material properties, taking into account VRML 1.0 and 2.0
       material. }
-    if IntersectNode^.State.ParentShape <> nil then
+    if IntersectNode^.State.ShapeNode <> nil then
     begin
       { VRML 2.0 }
-      M2 := IntersectNode^.State.ParentShape.Material;
+      M2 := IntersectNode^.State.ShapeNode.Material;
       if M2 <> nil then
       begin
         MaterialMirror := M2.FdMirror.Value;
@@ -635,10 +635,10 @@ end;
   var
     M: TNodeMaterial_2;
   begin
-    if Item.State.ParentShape <> nil then
+    if Item.State.ShapeNode <> nil then
     begin
       { VRML >= 2.0 }
-      M := Item.State.ParentShape.Material;
+      M := Item.State.ShapeNode.Material;
       if M <> nil then
         Result := M.FdEmissiveColor.Value else
         Result := ZeroVector3Single;

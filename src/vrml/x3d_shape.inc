@@ -415,12 +415,12 @@ end;
 procedure TNodeX3DShapeNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  StateStack.Top.ParentShape := Self;
+  StateStack.Top.ShapeNode := Self;
 end;
 
 procedure TNodeX3DShapeNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
-  StateStack.Top.ParentShape := nil;
+  StateStack.Top.ShapeNode := nil;
   inherited;
 end;
 

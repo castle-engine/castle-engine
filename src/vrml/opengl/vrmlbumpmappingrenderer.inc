@@ -271,7 +271,7 @@ begin
       try
         HeightMap := LoadGLTexture(HeightMapGrayscale,
             GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, TextureWrap);
-        HeightMapScale := State.ParentShape.HeightMapScale;
+        HeightMapScale := State.ShapeNode.HeightMapScale;
       finally
         if HeightMapGrayscale <> OriginalTexture then
           FreeAndNil(HeightMapGrayscale);
@@ -585,11 +585,11 @@ var
   ANode: TNodeKambiAppearance;
   BumpMappingRenderer: TBumpMappingRenderer;
 begin
-  if (State.ParentShape <> nil) and
-     (State.ParentShape.FdAppearance.Value <> nil) and
-     (State.ParentShape.FdAppearance.Value is TNodeKambiAppearance) then
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.FdAppearance.Value <> nil) and
+     (State.ShapeNode.FdAppearance.Value is TNodeKambiAppearance) then
   begin
-    ANode := TNodeKambiAppearance(State.ParentShape.FdAppearance.Value);
+    ANode := TNodeKambiAppearance(State.ShapeNode.FdAppearance.Value);
     if Node(ANode) = nil then
     begin
       BumpMappingRenderer := TBumpMappingRenderer.Create(ARenderer, ANode);
@@ -606,11 +606,11 @@ var
 begin
   Result := nil;
 
-  if (State.ParentShape <> nil) and
-     (State.ParentShape.FdAppearance.Value <> nil) and
-     (State.ParentShape.FdAppearance.Value is TNodeKambiAppearance) then
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.FdAppearance.Value <> nil) and
+     (State.ShapeNode.FdAppearance.Value is TNodeKambiAppearance) then
   begin
-    ANode := TNodeKambiAppearance(State.ParentShape.FdAppearance.Value);
+    ANode := TNodeKambiAppearance(State.ShapeNode.FdAppearance.Value);
     Result := Node(ANode);
     if Result <> nil then
     begin

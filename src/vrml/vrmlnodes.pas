@@ -455,8 +455,8 @@ type
     { This returns VRML1ActiveLights or VRML2ActiveLights, based on VRML
       flavor used to render with this state.
 
-      More precisely, it checks "VRML flavor" by looking at ParentShape:
-      when ParentShape is @nil, we're in VRML 1 mode, otherwise in VRML 2 mode. }
+      More precisely, it checks "VRML flavor" by looking at ShapeNode:
+      when ShapeNode is @nil, we're in VRML 1 mode, otherwise in VRML 2 mode. }
     function CurrentActiveLights: TDynActiveLightArray;
 
   public
@@ -504,7 +504,7 @@ type
       texture transformations don't accumulate like modelview transformations. }
     TextureTransform: TMatrix4Single;
 
-    ParentShape: TNodeX3DShapeNode;
+    ShapeNode: TNodeX3DShapeNode;
 
     constructor CreateCopy(Source: TVRMLGraphTraverseState);
     constructor Create(const ADefaultLastNodes: TTraverseStateLastNodes); overload;
@@ -550,15 +550,15 @@ type
       or some other TNodeX3DTextureNode descendant (cube map, 3d texture).
 
       Details:
-      If ParentShape <> nil, this returns texture node taken from
-      ParentShape.Texture (note that it may be nil, if Apperance
+      If ShapeNode <> nil, this returns texture node taken from
+      ShapeNode.Texture (note that it may be nil, if Apperance
       of Appearance.Texture node is NULL in VRML).
       Otherwise it returns texture from LastNodes.Texture2. }
     function Texture: TNodeX3DTextureNode;
 
     { Returns BlendMode for this state, or @nil if not present.
 
-      Details: if ParentShape <> nil (VRML >= 2.0), and it's Appearance <> nil, and it's
+      Details: if ShapeNode <> nil (VRML >= 2.0), and it's Appearance <> nil, and it's
       a KambiAppearance and it has BlendMode <> nil... then returns it.
       Otherwise @nil. }
     function BlendMode: TNodeBlendMode;
@@ -2396,7 +2396,7 @@ begin
 
   TextureTransform := IdentityMatrix4Single;
   FLastNodes := StateDefaultNodes;
-  ParentShape := nil;
+  ShapeNode := nil;
   InsideInline := 0;
   InsidePrototype := 0;
   InsideIgnoreCollision := 0;
@@ -2414,7 +2414,7 @@ begin
 
   TextureTransform := Source.TextureTransform;
   FLastNodes := Source.FLastNodes;
-  ParentShape := Source.ParentShape;
+  ShapeNode := Source.ShapeNode;
   InsideInline := Source.InsideInline;
   InsidePrototype := Source.InsidePrototype;
   InsideIgnoreCollision := Source.InsideIgnoreCollision;
@@ -2462,7 +2462,7 @@ begin
     MatricesPerfectlyEqual(Transform, SV.Transform) and
     (AverageScaleTransform = SV.AverageScaleTransform) and
     MatricesPerfectlyEqual(TextureTransform, SV.TextureTransform) and
-    (ParentShape = SV.ParentShape);
+    (ShapeNode = SV.ShapeNode);
 
   if Result then
   begin
@@ -2483,7 +2483,7 @@ begin
     TextureTransform are ignored by
     TVRMLOpenGLRenderer.RenderShapeNoTransform }
 
-  Result := (ParentShape = SecondValue.ParentShape);
+  Result := (ShapeNode = SecondValue.ShapeNode);
 
   if Result then
   begin
@@ -2495,9 +2495,9 @@ end;
 
 function TVRMLGraphTraverseState.Texture: TNodeX3DTextureNode;
 begin
-  if ParentShape = nil then
+  if ShapeNode = nil then
     Result := LastNodes.Texture2 else
-    Result := ParentShape.Texture;
+    Result := ShapeNode.Texture;
 end;
 
 function TVRMLGraphTraverseState.BlendMode: TNodeBlendMode;
@@ -2505,9 +2505,9 @@ var
   Node: TVRMLNode;
 begin
   Result := nil;
-  if ParentShape <> nil then
+  if ShapeNode <> nil then
   begin
-    Node := ParentShape.FdAppearance.Value;
+    Node := ShapeNode.FdAppearance.Value;
     if (Node <> nil) and (Node is TNodeKambiAppearance) then
     begin
       Node := TNodeKambiAppearance(Node).FdBlendMode.Value;
@@ -2519,7 +2519,7 @@ end;
 
 function TVRMLGraphTraverseState.CurrentActiveLights: TDynActiveLightArray;
 begin
-  if ParentShape = nil then
+  if ShapeNode = nil then
     Result := VRML1ActiveLights else
     Result := VRML2ActiveLights;
 end;

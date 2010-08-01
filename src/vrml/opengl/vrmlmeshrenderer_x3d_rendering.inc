@@ -167,13 +167,13 @@ begin
 
     if Color = nil then
     begin
-      if State.ParentShape = nil then
+      if State.ShapeNode = nil then
       begin
         VRMLWarning(vwSerious, 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
         Renderer.SetColor(White3Single);
       end else
       begin
-        Material := State.ParentShape.Material;
+        Material := State.ShapeNode.Material;
         if Material <> nil then
           Renderer.SetColor(Material.FdEmissiveColor.Value) else
           Renderer.SetColor(White3Single);
@@ -708,13 +708,13 @@ begin
        Material = NULL makes unlit white color) }
   if Color = nil then
   begin
-    if State.ParentShape = nil then
+    if State.ShapeNode = nil then
     begin
       VRMLWarning(vwSerious, 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
       Renderer.SetColor(White3Single);
     end else
     begin
-      Material := State.ParentShape.Material;
+      Material := State.ShapeNode.Material;
       if Material <> nil then
         Renderer.SetColor(Material.FdEmissiveColor.Value) else
         Renderer.SetColor(White3Single);

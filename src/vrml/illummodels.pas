@@ -148,9 +148,9 @@ var
   M1: TNodeMaterial_1;
   M2: TNodeMaterial_2;
 begin
-  if IntersectNode.State.ParentShape <> nil then
+  if IntersectNode.State.ShapeNode <> nil then
   begin
-    M2 := IntersectNode.State.ParentShape.Material;
+    M2 := IntersectNode.State.ShapeNode.Material;
     if M2 <> nil then
     begin
       if LightingCalculationOn then

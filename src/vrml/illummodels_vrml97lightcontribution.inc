@@ -72,9 +72,9 @@ begin
  {$ifndef CAMERA_INDEP}
  M1 := nil;
  M2 := nil;
- if IntersectNode.State.ParentShape <> nil then
+ if IntersectNode.State.ShapeNode <> nil then
  begin
-   M2 := IntersectNode.State.ParentShape.Material;
+   M2 := IntersectNode.State.ShapeNode.Material;
    if M2 <> nil then
    begin
      MaterialAmbientIntensity := M2.FdAmbientIntensity.Value;

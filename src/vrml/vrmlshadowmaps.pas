@@ -494,7 +494,7 @@ var
 var
   I: Integer;
 begin
-  ShapeNode := Shape.State.ParentShape;
+  ShapeNode := Shape.State.ShapeNode;
   if ShapeNode = nil then Exit; { Shadow maps not done for VRML <= 1.0 }
 
   App := ShapeNode.Appearance;

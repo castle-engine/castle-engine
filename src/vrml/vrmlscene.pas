@@ -828,7 +828,7 @@ type
 
     { Notify scene that you changed only given Shape.
       This means that you changed only fields within Shape.Geometry,
-      Shape.State.Last*, Shape.State.ParentShape. And you're sure that
+      Shape.State.Last*, Shape.State.ShapeNode. And you're sure that
       these nodes are not shared by other shapes using VRML DEF/USE
       mechanism.
 
@@ -3493,7 +3493,7 @@ begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if SI.Current.State.ParentShape.Material = Node then
+          if SI.Current.State.ShapeNode.Material = Node then
             ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, false);
       finally FreeAndNil(SI) end;
@@ -3520,11 +3520,11 @@ begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if (SI.Current.State.ParentShape <> nil) and
-             (SI.Current.State.ParentShape.FdAppearance.Value <> nil) and
-             (SI.Current.State.ParentShape.FdAppearance.Value is TNodeAppearance) and
+          if (SI.Current.State.ShapeNode <> nil) and
+             (SI.Current.State.ShapeNode.FdAppearance.Value <> nil) and
+             (SI.Current.State.ShapeNode.FdAppearance.Value is TNodeAppearance) and
              AppearanceUsesTextureTransform(
-               TNodeAppearance(SI.Current.State.ParentShape.FdAppearance.Value), Node) then
+               TNodeAppearance(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
             ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, false);
       finally FreeAndNil(SI) end;
@@ -4604,7 +4604,7 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
     var
       Shape: TNodeX3DShapeNode;
     begin
-      Shape := AShape.State.ParentShape;
+      Shape := AShape.State.ShapeNode;
       Result := not (
         (Shape <> nil) and
         (Shape.FdAppearance.Value <> nil) and

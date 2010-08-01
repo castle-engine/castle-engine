@@ -2856,7 +2856,7 @@ begin
       end;
     end;
   end else
-  if (StateStack.Top.ParentShape <> nil) and (ParentInfo <> nil) then
+  if (StateStack.Top.ShapeNode <> nil) and (ParentInfo <> nil) then
   begin
     { For VRML 2.0 exporter, the situation is actually quite similar, but
       we have to remove ME_ and OB_ prefixes from node names.

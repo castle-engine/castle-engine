@@ -3594,21 +3594,21 @@ var
   FontStyle: TNodeFontStyle_2;
 begin
   { przygotuj font }
-  if State.ParentShape = nil then
+  if State.ShapeNode = nil then
     PrepareFont(
       State.LastNodes.FontStyle.Family,
       State.LastNodes.FontStyle.Bold,
       State.LastNodes.FontStyle.Italic,
       State.LastNodes.FontStyle.TTF_Font) else
-  if (State.ParentShape.FdGeometry.Value <> nil) and
-     (State.ParentShape.FdGeometry.Value is TNodeText) then
+  if (State.ShapeNode.FdGeometry.Value <> nil) and
+     (State.ShapeNode.FdGeometry.Value is TNodeText) then
   begin
-    { We know that TNodeText(State.ParentShape.FdGeometry.Value)
+    { We know that TNodeText(State.ShapeNode.FdGeometry.Value)
       will be the shape node rendered along with this State.
       That's how it works in VRML 2.0: State actually contains
       reference to Shape that contains reference to geometry node,
       which means that actually State contains rendered node too. }
-    FontStyle := TNodeText(State.ParentShape.FdGeometry.Value).FontStyle;
+    FontStyle := TNodeText(State.ShapeNode.FdGeometry.Value).FontStyle;
     if FontStyle = nil then
       PrepareFont(
         TNodeFontStyle_2.DefaultFamily,
@@ -3621,15 +3621,15 @@ begin
         FontStyle.Italic,
         FontStyle.TTF_Font);
   end else
-  if (State.ParentShape.FdGeometry.Value <> nil) and
-     (State.ParentShape.FdGeometry.Value is TNodeText3D) then
+  if (State.ShapeNode.FdGeometry.Value <> nil) and
+     (State.ShapeNode.FdGeometry.Value is TNodeText3D) then
   begin
-    { We know that TNodeText3D(State.ParentShape.FdGeometry.Value)
+    { We know that TNodeText3D(State.ShapeNode.FdGeometry.Value)
       will be the shape node rendered along with this State.
       That's how it works in VRML 2.0: State actually contains
       reference to Shape that contains reference to geometry node,
       which means that actually State contains rendered node too. }
-    FontStyle := TNodeText3D(State.ParentShape.FdGeometry.Value).FontStyle;
+    FontStyle := TNodeText3D(State.ShapeNode.FdGeometry.Value).FontStyle;
     if FontStyle = nil then
       PrepareFont(
         TNodeFontStyle_2.DefaultFamily,
@@ -4155,8 +4155,8 @@ begin
   TextureTransformUnitsUsed := 0;
   TextureTransformUnitsUsedMore.Count := 0;
 
-  if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
-     (State.ParentShape.TextureTransform <> nil { VRML 2.0 with tex transform }) then
+  if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
+     (State.ShapeNode.TextureTransform <> nil { VRML 2.0 with tex transform }) then
   begin
     glMatrixMode(GL_TEXTURE);
 
@@ -4183,7 +4183,7 @@ begin
 
     { TODO: for bump mapping, TextureTransform should be done on more than one texture unit. }
 
-    if State.ParentShape = nil then
+    if State.ShapeNode = nil then
     begin
       { No multitexturing in VRML 1.0, just always transform first tex unit. }
       TextureTransformUnitsUsed := 1;
@@ -4192,7 +4192,7 @@ begin
       glMultMatrix(State.TextureTransform);
     end else
     begin
-      TextureTransform := State.ParentShape.TextureTransform;
+      TextureTransform := State.ShapeNode.TextureTransform;
       if TextureTransform <> nil then
       begin
         if TextureTransform is TNodeMultiTextureTransform then

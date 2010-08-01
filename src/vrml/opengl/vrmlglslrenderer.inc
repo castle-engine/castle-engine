@@ -296,12 +296,12 @@ begin
   { prepare GLSLProgram }
   if (not ARenderer.Attributes.PureGeometry) and
      ARenderer.Attributes.GLSLShaders and
-     (State.ParentShape <> nil) and
-     (State.ParentShape.Appearance <> nil) then
+     (State.ShapeNode <> nil) and
+     (State.ShapeNode.Appearance <> nil) then
   begin
-    for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do
+    for I := 0 to State.ShapeNode.Appearance.FdShaders.Items.Count - 1 do
     begin
-      ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
+      ProgramNode := State.ShapeNode.Appearance.GLSLShader(I);
       if ProgramNode <> nil then
       begin
         GLSLRenderer := Node(ProgramNode);
@@ -329,8 +329,8 @@ begin
         { GLSLShader(I) is nil, so this is not appropriate node class
           or "language" field was bad.
           So at least send him "isSelected" = false, if it's X3DShaderNode. }
-        if State.ParentShape.Appearance.FdShaders.Items[I] is TNodeX3DShaderNode then
-          (State.ParentShape.Appearance.FdShaders.Items[I] as TNodeX3DShaderNode).EventIsSelected.Send(false);
+        if State.ShapeNode.Appearance.FdShaders.Items[I] is TNodeX3DShaderNode then
+          (State.ShapeNode.Appearance.FdShaders.Items[I] as TNodeX3DShaderNode).EventIsSelected.Send(false);
       end;
     end;
   end;
@@ -343,12 +343,12 @@ var
   ProgramNode: TNodeComposedShader;
 begin
   Result := nil;
-  if (State.ParentShape <> nil) and
-     (State.ParentShape.Appearance <> nil) then
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.Appearance <> nil) then
   begin
-    for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do
+    for I := 0 to State.ShapeNode.Appearance.FdShaders.Items.Count - 1 do
     begin
-      ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
+      ProgramNode := State.ShapeNode.Appearance.GLSLShader(I);
       if ProgramNode <> nil then
       begin
         Result := Node(ProgramNode);

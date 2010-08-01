@@ -1631,7 +1631,7 @@ begin
             like IndexedTriangle[Fan/Strip]Set, QuadSet, since they
             have TexCoordIndex = CoordIndex (just taken from "index" field).
         }
-        if State.ParentShape <> nil then
+        if State.ShapeNode <> nil then
         begin
           TexImplementation := tcCoordIndexed;
 
@@ -2023,10 +2023,10 @@ begin
         VertexColor := Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]] else
         VertexColor := Color.ItemsSafe[IndexNum];
     end else
-    if (State.ParentShape <> nil) and
-       (State.ParentShape.Material <> nil) then
+    if (State.ShapeNode <> nil) and
+       (State.ShapeNode.Material <> nil) then
     begin
-      VertexColor := State.ParentShape.Material.FdDiffuseColor.Value;
+      VertexColor := State.ShapeNode.Material.FdDiffuseColor.Value;
     end else
       VertexColor := White3Single; { default fallback }
 

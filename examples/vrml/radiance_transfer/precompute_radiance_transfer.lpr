@@ -166,9 +166,9 @@ var
   M1: TNodeMaterial_1;
   M2: TNodeMaterial_2;
 begin
-  if State.ParentShape <> nil then
+  if State.ShapeNode <> nil then
   begin
-    M2 := State.ParentShape.Material;
+    M2 := State.ShapeNode.Material;
     if M2 <> nil then
       Result := M2.FdDiffuseColor.Value else
       { Default VRML 2.0 lighting properties. }
