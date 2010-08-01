@@ -749,6 +749,14 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
 
     procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
+
+    function ProjectionMatrix: TMatrix4Single; override;
+    function ModelviewMatrix: TMatrix4Single; override;
+    function ModelviewRotationMatrix: TMatrix4Single; override;
+    function LocationLocal: TVector3Single; override;
+    function DirectionLocal: TVector3Single; override;
+    procedure Box3DDistances(const Box: TBox3D;
+      out MinDistance, MaxDistance: Single); override;
   end;
 
   TNodeGroup_1 = class(TNodeX3DChildNode)
@@ -2206,6 +2214,60 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 1, 0, 1000);
+end;
+
+function TNodeSpotLight_1.ProjectionMatrix: TMatrix4Single;
+var
+  Angle, N, F: Single;
+begin
+  { If author didn't provide and VRMLShadowMaps unit didn't calculate
+    values for some fields, then use FallbackProjection* defaults here. }
+
+  { Implementation just like for TNodeSpotLight_2,
+    except I was too lazy to add here projectionAngle. }
+  Angle := 2 * FdCutOffAngle.Value;
+
+  N := FdProjectionNear.Value;
+  if N = 0 then N := FallbackProjectionNear;
+
+  F := FdProjectionFar.Value;
+  if F = 0 then F := FallbackProjectionFar;
+
+  Result := PerspectiveProjMatrixRad(Angle, 1, N, F);
+end;
+
+function TNodeSpotLight_1.ModelviewMatrix: TMatrix4Single;
+var
+  Pos, Dir, Up: TVector3Single;
+begin
+  GetCameraVectors(Pos, Dir, Up);
+  Result := LookDirMatrix(Pos, Dir, Up);
+end;
+
+function TNodeSpotLight_1.ModelviewRotationMatrix: TMatrix4Single;
+var
+  Pos, Dir, Up: TVector3Single;
+begin
+  GetCameraVectors(Pos, Dir, Up);
+  Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
+end;
+
+function TNodeSpotLight_1.LocationLocal: TVector3Single;
+begin
+  Result := FdLocation.Value;
+end;
+
+function TNodeSpotLight_1.DirectionLocal: TVector3Single;
+begin
+  Result := FdDirection.Value;
+end;
+
+procedure TNodeSpotLight_1.Box3DDistances(const Box: TBox3D;
+  out MinDistance, MaxDistance: Single);
+begin
+  { TODO: MaxDistance should be a little larger, as spot light rays
+    are not parallel. }
+  Box3DDirectionDistances(Box, Location, Direction, MinDistance, MaxDistance);
 end;
 
 constructor TNodeGroup_1.Create(const ANodeName: string; const AWWWBasePath: string);
