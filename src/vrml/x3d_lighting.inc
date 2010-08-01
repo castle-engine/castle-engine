@@ -81,17 +81,41 @@
     property Transform: TMatrix4Single read FTransform;
     { @groupEnd }
 
-    { Matrices and vectors for rendering shadow map from this light.
-      Identity in this class, override for subclases able to do shadow mapping.
+    { Matrices for rendering shadow map from this light.
+      Identity in this class, override for subclasses able to do shadow mapping.
       @groupBegin }
     function MapProjectionMatrix: TMatrix4Single; virtual;
     function MapModelviewMatrix: TMatrix4Single; virtual;
     function MapModelviewRotationMatrix: TMatrix4Single; virtual;
+    { @groupEnd }
 
+    { Light position, direction and up vectors.
+      Useful for example when you think of lights as cameras (for shadow maps).
+
+      MapDirectionLocal must be exactly zero for PointLight (that doesn't
+      have a direction).
+
+      @groupBegin }
     function MapPositionLocal: TVector3Single; virtual;
+    function MapPosition: TVector3Single;
     function MapDirectionLocal: TVector3Single; virtual;
+    function MapDirection: TVector3Single;
     procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single);
     { @groupEnd }
+
+    { Calculate distances between the given Box and this light source.
+      This is intended to capture the depth distances where the box
+      resides, useful for calculating e.g. depth ranges to capture in
+      the shadow maps.
+      Depending on light source type, various distance measures may be used,
+      appropriate to light sources projection.
+
+      Always MinDistance <= MaxDistance. They may be negative when
+      we measure along the light's direction.
+
+      @raises EBox3DEmpty When used with an empty box. }
+    procedure Box3DDistances(const Box: TBox3D;
+      out MinDistance, MaxDistance: Single); virtual; abstract;
   end;
 
   { This is the base class for all VRML / X3D light nodes.
@@ -153,6 +177,8 @@
     function MapModelviewRotationMatrix: TMatrix4Single; override;
     function MapPositionLocal: TVector3Single; override;
     function MapDirectionLocal: TVector3Single; override;
+    procedure Box3DDistances(const Box: TBox3D;
+      out MinDistance, MaxDistance: Single); override;
   end;
 
   TVRMLPositionalLightNode = class(TVRMLLightNode)
@@ -196,6 +222,10 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
+    function MapPositionLocal: TVector3Single; override;
+    procedure Box3DDistances(const Box: TBox3D;
+      out MinDistance, MaxDistance: Single); override;
   end;
 
   TNodeDirectionalLight_2 = class(TVRMLDirectionalLightNode)
@@ -258,6 +288,8 @@
     function MapModelviewRotationMatrix: TMatrix4Single; override;
     function MapPositionLocal: TVector3Single; override;
     function MapDirectionLocal: TVector3Single; override;
+    procedure Box3DDistances(const Box: TBox3D;
+      out MinDistance, MaxDistance: Single); override;
   end;
 
 {$endif read_interface}
@@ -341,6 +373,16 @@ end;
 function TNodeX3DLightNode.MapPositionLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
+end;
+
+function TNodeX3DLightNode.MapPosition: TVector3Single;
+begin
+  Result := MatrixMultPoint(Transform, MapPositionLocal);
+end;
+
+function TNodeX3DLightNode.MapDirection: TVector3Single;
+begin
+  Result := MatrixMultDirection(Transform, MapDirectionLocal);
 end;
 
 function TNodeX3DLightNode.MapDirectionLocal: TVector3Single;
@@ -468,6 +510,12 @@ begin
   Result := FdDirection.Value;
 end;
 
+procedure TVRMLDirectionalLightNode.Box3DDistances(const Box: TBox3D;
+  out MinDistance, MaxDistance: Single);
+begin
+  Box3DDirectionDistances(Box, MapPosition, MapDirection, MinDistance, MaxDistance);
+end;
+
 constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -536,6 +584,17 @@ end;
 class function TVRMLPointLightNode.ClassNodeTypeName: string;
 begin
   Result := 'PointLight';
+end;
+
+function TVRMLPointLightNode.MapPositionLocal: TVector3Single;
+begin
+  Result := FdLocation.Value;
+end;
+
+procedure TVRMLPointLightNode.Box3DDistances(const Box: TBox3D;
+  out MinDistance, MaxDistance: Single);
+begin
+  Box3DPointDistances(Box, MapPosition, MinDistance, MaxDistance);
 end;
 
 constructor TNodeDirectionalLight_2.Create(const ANodeName: string;
@@ -738,6 +797,14 @@ end;
 function TNodeSpotLight_2.MapDirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
+end;
+
+procedure TNodeSpotLight_2.Box3DDistances(const Box: TBox3D;
+  out MinDistance, MaxDistance: Single);
+begin
+  { TODO: MaxDistance should be a little larger, as spot light rays
+    are not parallel. }
+  Box3DDirectionDistances(Box, MapPosition, MapDirection, MinDistance, MaxDistance);
 end;
 
 procedure RegisterLightingNodes;

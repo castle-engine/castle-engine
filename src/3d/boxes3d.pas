@@ -421,6 +421,47 @@ function Box3DMaximumPlane(const Box: TBox3D;
 function Box3DMinimumPlane(const Box: TBox3D;
   const Direction: TVector3Single): TVector4Single;
 
+{ Calculate the distances between a given 3D point and a box.
+  MinDistance is the distance to the closest point of the box,
+  MaxDistance is the distance to the farthest point of the box.
+
+  Note that always MinDistance <= MaxDistance.
+  Note that both distances are always >= 0.
+
+  When the point is inside the box, it works correct too: minimum distance
+  is zero in this case.
+
+  @raises EBox3DEmpty When used with an empty box.
+
+  TODO: calculation of MinDistance is not perfect now. We assume that
+  the closest/farthest point of the box is one of the 8 box corners.
+  Which may not be true in case of the closest point, because it may
+  lie in the middle of some box face (imagine a sphere with increasing
+  radius reaching from a point to a box). So our minimum may be a *little*
+  too large. }
+procedure Box3DPointDistances(const Box: TBox3D; const P: TVector3Single;
+  out MinDistance, MaxDistance: Single);
+
+{ Calculate the distances along a direction to a box.
+  The idea is that you have a 3D plane orthogonal to direction Dir
+  and passing through Point. You can move this plane,
+  but you have to keep it's direction constant.
+  MinDistance is the minimal distance along the Dir that you can
+  move this plane, such that it touches the box.
+  MaxDistance is the maximum such distance.
+
+  Note that always MinDistance <= MaxDistance.
+  Note that one distance (MinDistance) or both distances may be negative.
+
+  As a practical example: imagine a DirectionalLight (light rays are
+  parallel) that has a location. Now MinDistance and MaxDistance give
+  ranges of depth where the Box is, as seen from the light source.
+
+  @raises EBox3DEmpty When used with an empty box. }
+procedure Box3DDirectionDistances(const Box: TBox3D;
+  const Point, Dir: TVector3Single;
+  out MinDistance, MaxDistance: Single);
+
 type
   TDynArrayItem_1 = TBox3D;
   PDynArrayItem_1 = PBox3D;
@@ -1648,6 +1689,95 @@ begin
   Result[3] := - (BoxBool[Direction[0] < 0][0] * Result[0] +
                   BoxBool[Direction[1] < 0][1] * Result[1] +
                   BoxBool[Direction[2] < 0][2] * Result[2]);
+end;
+
+procedure Box3DPointDistances(const Box: TBox3D; const P: TVector3Single;
+  out MinDistance, MaxDistance: Single);
+var
+  Dist0, Dist1: Single;
+  I: Integer;
+begin
+  CheckNonEmpty(Box);
+
+  MinDistance := 0;
+  MaxDistance := 0;
+
+  { For each coordinate (0, 1, 2), find which side of the box is closest.
+    Effectively, we find the closest of the 8 box corners.
+    The opposite corner is the farthest.
+    We want to calculate distance to this point, so we do it by the way. }
+  for I := 0 to 2 do
+  begin
+    Dist0 := Sqr(P[I] - Box[0][I]);
+    Dist1 := Sqr(P[I] - Box[1][I]);
+    if Dist0 < Dist1 then
+    begin
+      MinDistance += Dist0;
+      MaxDistance += Dist1;
+    end else
+    begin
+      MinDistance += Dist1;
+      MaxDistance += Dist0;
+    end;
+  end;
+
+  if Box3DPointInside(P, Box) then
+    MinDistance := 0;
+
+  { Because of floating point inaccuracy, MinDistance may be larger
+    by epsilon than MaxDistance? Fix it to be sure. }
+  { For now: just assert it: }
+  Assert(MinDistance <= MaxDistance);
+end;
+
+procedure Box3DDirectionDistances(const Box: TBox3D;
+  const Point, Dir: TVector3Single;
+  out MinDistance, MaxDistance: Single);
+var
+  B: TBox3DBool absolute Box;
+  XMin, YMin, ZMin: boolean;
+  MinPoint, MaxPoint: TVector3Single;
+  Coord: Integer;
+begin
+  CheckNonEmpty(Box);
+
+  XMin := Dir[0] < 0;
+  YMin := Dir[1] < 0;
+  ZMin := Dir[2] < 0;
+
+  MinPoint := PointOnLineClosestToPoint(Point, Dir,
+    Vector3Single(B[XMin][0], B[YMin][1], B[ZMin][2]));
+  MaxPoint := PointOnLineClosestToPoint(Point, Dir,
+    Vector3Single(B[not XMin][0], B[not YMin][1], B[not ZMin][2]));
+
+  MinDistance := PointsDistance(Point, MinPoint);
+  MaxDistance := PointsDistance(Point, MaxPoint);
+
+  { choose one of the 3 coordinates where Dir is largest, for best
+    numerical stability. We need to compare now and see which
+    distances should be negated. }
+  Coord := MaxAbsVectorCoord(Dir);
+
+  if Dir[Coord] > 0 then
+  begin
+    { So the distances to points that are *larger* on Coord are positive.
+      Others should be negative. }
+    if MinPoint[Coord] < Point[Coord] then
+      MinDistance := -MinDistance;
+    if MaxPoint[Coord] < Point[Coord] then
+      MaxDistance := -MaxDistance;
+  end else
+  begin
+    if MinPoint[Coord] > Point[Coord] then
+      MinDistance := -MinDistance;
+    if MaxPoint[Coord] > Point[Coord] then
+      MaxDistance := -MaxDistance;
+  end;
+
+  { Because of floating point inaccuracy, MinDistance may be larger
+    by epsilon than MaxDistance? Fix it to be sure. }
+  { For now: just assert it: }
+  Assert(MinDistance <= MaxDistance);
 end;
 
 end.

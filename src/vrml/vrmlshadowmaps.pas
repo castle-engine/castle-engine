@@ -70,7 +70,8 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, VRMLFields, VRMLErrors, KambiStringUtils;
+uses SysUtils, KambiUtils, VRMLFields, VRMLErrors, KambiStringUtils, Math,
+  Boxes3D, KambiLog, VectorMath;
 
 {$define read_interface}
 {$define read_implementation}
@@ -97,6 +98,7 @@ type
     Light: TNodeX3DLightNode;
     ShadowMap: TNodeGeneratedShadowMap;
     TexGen: TNodeProjectedTextureCoordinate;
+    MaxShadowReceiverDistance: Single;
   end;
   PLight = ^TLight;
 
@@ -112,6 +114,7 @@ type
     DefaultVisualizeShadowMap: boolean;
     PCF: TPercentageCloserFiltering;
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
+    ShadowCastersBox: TBox3D;
 
     { Find existing or add new TLight record for this light node.
       If Enable, this also creates shadow map and texture generator nodes
@@ -128,6 +131,10 @@ type
       const VisualizeShadowMap: boolean; const BaseTexCount: Cardinal);
 
     procedure HandleShape(Shape: TVRMLShape);
+
+    { Finish calculating light's projectionXxx parameters,
+      and assing them to the light node. }
+    procedure HandleLightAutomaticProjection(const L: TLight);
   end;
 
 function TDynLightArray.FindLight(Light: TNodeX3DLightNode): PLight;
@@ -141,6 +148,7 @@ begin
   { add a new TLight record }
   Result := Add;
   Result^.Light := Light;
+  Result^.MaxShadowReceiverDistance := 0;
 
   if not Enable then
   begin
@@ -457,6 +465,8 @@ var
     TexCoord: TVRMLNode;
     TexturesCount, TexCoordsCount: Cardinal;
     VisualizeShadowMap: boolean;
+    Box: TBox3D;
+    MinReceiverDistance, MaxReceiverDistance: Single;
   begin
     Light := FindLight(LightNode);
 
@@ -489,16 +499,40 @@ var
       (Light^.ShadowMap.FdCompareMode.Value = 'NONE');
 
     HandleShaders(App.FdShaders, VisualizeShadowMap, TexCoordsCount);
+
+    Box := Shape.BoundingBox;
+    if not IsEmptyBox3D(Box) then
+    begin
+      LightNode.Box3DDistances(Box, MinReceiverDistance, MaxReceiverDistance);
+      MaxTo1st(Light^.MaxShadowReceiverDistance, MaxReceiverDistance);
+      { We do not use MinReceiverDistance for anything }
+    end;
+  end;
+
+  procedure HandleShadowCaster;
+  begin
+    Box3DSumTo1st(ShadowCastersBox, Shape.BoundingBox);
   end;
 
 var
   I: Integer;
 begin
   ShapeNode := Shape.State.ShapeNode;
-  if ShapeNode = nil then Exit; { Shadow maps not done for VRML <= 1.0 }
+  if ShapeNode = nil then
+  begin
+    HandleShadowCaster;
+    Exit; { VRML <= 1.0 shapes cannot be shadow maps receivers }
+  end;
 
   App := ShapeNode.Appearance;
-  if App = nil then Exit;
+  if App = nil then
+  begin
+    HandleShadowCaster;
+    Exit;
+  end;
+
+  if App.FdShadowCaster.Value then
+    HandleShadowCaster;
 
   { Check are receiveShadows empty, so we don't check TexCoord existence
     when there's no need. }
@@ -520,6 +554,55 @@ begin
       HandleLight(TNodeX3DLightNode(App.FdReceiveShadows.Items[I]));
 end;
 
+procedure TDynLightArray.HandleLightAutomaticProjection(const L: TLight);
+var
+  ProjectionNear, ProjectionFar: Single;
+begin
+  if IsEmptyBox3D(ShadowCastersBox) then
+  begin
+    { No shadow casters? So any sensible values are fine. }
+    ProjectionNear := 0.1;
+    ProjectionFar := 1;
+  end else
+  begin
+    { Projection near/far must include all shadow casters between
+      light source and the shadow receivers. }
+    L.Light.Box3DDistances(ShadowCastersBox, ProjectionNear, ProjectionFar);
+    MaxTo1st(ProjectionNear, 0);
+    MinTo1st(ProjectionFar, L.MaxShadowReceiverDistance);
+
+    if ProjectionNear > ProjectionFar then
+    begin
+      { No *important* shadow casters? So any sensible values are fine. }
+      ProjectionNear := 0.1;
+      ProjectionFar := 1;
+    end else
+    begin
+      { So we know now that ProjectionNear >= 0 and
+        ProjectionFar >= ProjectionNear. }
+
+      { final correction of auto-calculated projectionFar: must be > 0 }
+      if ProjectionFar <= 0 then
+        ProjectionFar := 1;
+
+      { final correction of auto-calculated projectionNear: must be > 0,
+        and preferably > some epsilon of projectionFar (to avoid depth
+        precision problems). }
+      MaxTo1st(ProjectionNear, ProjectionFar / 1000);
+    end;
+  end;
+
+  if Log then
+    WritelnLog('Shadow Maps', Format('Auto-calculated light source %s projectionNear is %f, projectionFar is %f',
+      [L.Light.NodeTypeName, ProjectionNear, ProjectionFar]));
+
+  { Set light node's projectionXxx values, if they are needed. }
+  if L.Light.FdProjectionNear.Value = 0 then
+    L.Light.FdProjectionNear.Value := ProjectionNear;
+  if L.Light.FdProjectionFar.Value = 0 then
+    L.Light.FdProjectionFar.Value := ProjectionFar;
+end;
+
 procedure ProcessShadowMapsReceivers(Shapes: TVRMLShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal;
@@ -527,6 +610,7 @@ procedure ProcessShadowMapsReceivers(Shapes: TVRMLShapeTree;
   const PCF: TPercentageCloserFiltering);
 var
   Lights: TDynLightArray;
+  L: PLight;
   I: Integer;
 begin
   Lights := TDynLightArray.Create;
@@ -535,6 +619,7 @@ begin
     Lights.DefaultShadowMapSize := DefaultShadowMapSize;
     Lights.DefaultVisualizeShadowMap := DefaultVisualizeShadowMap;
     Lights.PCF := PCF;
+    Lights.ShadowCastersBox := EmptyBox3D;
 
     { Enumerate all (active and not) shapes for the receiveShadows
       calculations. In case a shape is not active, it may become active later
@@ -543,17 +628,21 @@ begin
       shape already. }
     Shapes.Traverse(@Lights.HandleShape, false);
 
-    { Although we try to construct things only when they will be actually
-      used (so no unused nodes should remain now for free), actually
-      there is a chance something remained unused if HandleLight failed
-      with VRMLWarning after FindLight. }
     if Enable then
       for I := 0 to Lights.Count - 1 do
       begin
-        Lights.Items[I].ShadowMap.FreeIfUnused;
-        Lights.Items[I].ShadowMap := nil;
-        Lights.Items[I].TexGen.FreeIfUnused;
-        Lights.Items[I].TexGen := nil;
+        L := Lights.Pointers[I];
+
+        Lights.HandleLightAutomaticProjection(L^);
+
+        { Although we try to construct things only when they will be actually
+          used (so no unused nodes should remain now for free), actually
+          there is a chance something remained unused if HandleLight failed
+          with VRMLWarning after FindLight. }
+        L^.ShadowMap.FreeIfUnused;
+        L^.ShadowMap := nil;
+        L^.TexGen.FreeIfUnused;
+        L^.TexGen := nil;
       end;
   finally FreeAndNil(Lights) end;
 end;
