@@ -44,7 +44,7 @@ const
     @item(override appearance's "shaders", to use appropriate shadow map
       shader.)
   ) }
-procedure ProcessShadowMapsReceivers(Shapes: TVRMLShapeTree;
+procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal;
   const DefaultVisualizeShadowMap: boolean;
@@ -115,6 +115,7 @@ type
     PCF: TPercentageCloserFiltering;
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
     ShadowCastersBox: TBox3D;
+    LightsCastingOnEverything: TVRMLNodesList;
 
     { Find existing or add new TLight record for this light node.
       If Enable, this also creates shadow map and texture generator nodes
@@ -135,6 +136,9 @@ type
     { Finish calculating light's projectionXxx parameters,
       and assing them to the light node. }
     procedure HandleLightAutomaticProjection(const L: TLight);
+
+    { Add light node to LightsCastingOnEverything, if shadows=TRUE. }
+    procedure HandleLightCastingOnEverything(Node: TVRMLNode);
   end;
 
 function TDynLightArray.FindLight(Light: TNodeX3DLightNode): PLight;
@@ -524,6 +528,9 @@ begin
     Exit; { VRML <= 1.0 shapes cannot be shadow maps receivers }
   end;
 
+  { TODO: it's possible that App = nil, but still
+    LightsCastingOnEverything.Count <> 0. We should create Appearance
+    node in this case. }
   App := ShapeNode.Appearance;
   if App = nil then
   begin
@@ -536,7 +543,8 @@ begin
 
   { Check are receiveShadows empty, so we don't check TexCoord existence
     when there's no need. }
-  if App.FdReceiveShadows.Count = 0 then Exit;
+  if (App.FdReceiveShadows.Count = 0) and
+     (LightsCastingOnEverything.Count = 0) then Exit;
 
   { HandleLight needs here a shape with geometry with texCoord.
     Better check it here, before we start changing anything. }
@@ -549,9 +557,20 @@ begin
     Exit;
   end;
 
+  { Treat lights on "receiveShadows" field and
+    lights on LightsCastingOnEverything list the same:
+    call HandleLight on them.
+
+    TODO: secure against light both on LightsCastingOnEverything
+    and "receiveShadows". In fact, remove duplicates from the sum
+    of both lists. }
+
   for I := 0 to App.FdReceiveShadows.Count - 1 do
     if App.FdReceiveShadows.Items[I] is TNodeX3DLightNode then
       HandleLight(TNodeX3DLightNode(App.FdReceiveShadows.Items[I]));
+
+  for I := 0 to LightsCastingOnEverything.Count - 1 do
+    HandleLight(TNodeX3DLightNode(LightsCastingOnEverything.Items[I]));
 end;
 
 procedure TDynLightArray.HandleLightAutomaticProjection(const L: TLight);
@@ -603,7 +622,13 @@ begin
     L.Light.FdProjectionFar.Value := ProjectionFar;
 end;
 
-procedure ProcessShadowMapsReceivers(Shapes: TVRMLShapeTree;
+procedure TDynLightArray.HandleLightCastingOnEverything(Node: TVRMLNode);
+begin
+  if TNodeX3DLightNode(Node).FdShadows.Value then
+    LightsCastingOnEverything.Add(Node);
+end;
+
+procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal;
   const DefaultVisualizeShadowMap: boolean;
@@ -613,6 +638,10 @@ var
   L: PLight;
   I: Integer;
 begin
+  { This is valid situation (TVRMLScene.RootNode may be nil).
+    Nothing to do then. }
+  if Model = nil then Exit;
+
   Lights := TDynLightArray.Create;
   try
     Lights.Enable := Enable;
@@ -620,6 +649,10 @@ begin
     Lights.DefaultVisualizeShadowMap := DefaultVisualizeShadowMap;
     Lights.PCF := PCF;
     Lights.ShadowCastersBox := EmptyBox3D;
+
+    { calculate Lights.LightsCastingOnEverything first }
+    Lights.LightsCastingOnEverything := TVRMLNodesList.Create;
+    Model.EnumerateNodes(TNodeX3DLightNode, @Lights.HandleLightCastingOnEverything, false);
 
     { Enumerate all (active and not) shapes for the receiveShadows
       calculations. In case a shape is not active, it may become active later
@@ -644,6 +677,8 @@ begin
         L^.TexGen.FreeIfUnused;
         L^.TexGen := nil;
       end;
+
+    FreeAndNil(Lights.LightsCastingOnEverything);
   finally FreeAndNil(Lights) end;
 end;
 

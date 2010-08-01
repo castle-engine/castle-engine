@@ -2927,8 +2927,8 @@ begin
 
   if ScheduledShadowMapsProcessing then
   begin
-    ProcessShadowMapsReceivers(Shapes, ShadowMaps, ShadowMapsDefaultSize,
-      ShadowMapsVisualizeDepth, ShadowMapsPCF);
+    ProcessShadowMapsReceivers(RootNode, Shapes, ShadowMaps,
+      ShadowMapsDefaultSize, ShadowMapsVisualizeDepth, ShadowMapsPCF);
     ScheduledShadowMapsProcessing := false;
   end;
 
