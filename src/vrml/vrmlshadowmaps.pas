@@ -18,7 +18,7 @@ unit VRMLShadowMaps;
 
 interface
 
-uses VRMLNodes;
+uses VRMLNodes, VRMLShape;
 
 type
   TPercentageCloserFiltering = (pcfNone, pcf4, pcf4Bilinear, pcf16);
@@ -44,7 +44,7 @@ const
     @item(override appearance's "shaders", to use appropriate shadow map
       shader.)
   ) }
-procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
+procedure ProcessShadowMapsReceivers(Shapes: TVRMLShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal;
   const DefaultVisualizeShadowMap: boolean;
@@ -127,7 +127,7 @@ type
     procedure HandleShaders(Shaders: TMFNode;
       const VisualizeShadowMap: boolean; const BaseTexCount: Cardinal);
 
-    procedure HandleShape(Node: TVRMLNode);
+    procedure HandleShape(Shape: TVRMLShape);
   end;
 
 function TDynLightArray.FindLight(Light: TNodeX3DLightNode): PLight;
@@ -281,7 +281,7 @@ begin
   end;
 end;
 
-procedure TDynLightArray.HandleShape(Node: TVRMLNode);
+procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
 
   { Add/Remove/Replace ShadowMap to the textures used by the material
     (TODO: and by shaders, in the future; for now, we overuse the fact
@@ -438,7 +438,7 @@ procedure TDynLightArray.HandleShape(Node: TVRMLNode);
   end;
 
 var
-  Shape: TNodeShape;
+  ShapeNode: TNodeX3DShapeNode;
   App: TNodeAppearance;
 
   { 1. Add/Remove/Replace ShadowMap
@@ -460,13 +460,13 @@ var
   begin
     Light := FindLight(LightNode);
 
-    Texture := Shape.Texture;
+    Texture := ShapeNode.Texture;
     HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
     App.FdTexture.Value := Texture;
 
-    TexCoord := TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField.Value;
+    TexCoord := TVRMLGeometryNode(ShapeNode.FdGeometry.Value).TexCoordField.Value;
     HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount);
-    TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField.Value := TexCoord;
+    TVRMLGeometryNode(ShapeNode.FdGeometry.Value).TexCoordField.Value := TexCoord;
 
     TextureTransform := App.FdTextureTransform.Value;
     HandleTextureTransform(TextureTransform);
@@ -494,9 +494,10 @@ var
 var
   I: Integer;
 begin
-  Shape := Node as TNodeShape;
+  ShapeNode := Shape.State.ParentShape;
+  if ShapeNode = nil then Exit; { Shadow maps not done for VRML <= 1.0 }
 
-  App := Shape.Appearance;
+  App := ShapeNode.Appearance;
   if App = nil then Exit;
 
   { Check are receiveShadows empty, so we don't check TexCoord existence
@@ -505,12 +506,12 @@ begin
 
   { HandleLight needs here a shape with geometry with texCoord.
     Better check it here, before we start changing anything. }
-  if Shape.FdGeometry.Value = nil then Exit;
+  if ShapeNode.FdGeometry.Value = nil then Exit;
 
-  if (not (Shape.FdGeometry.Value is TVRMLGeometryNode)) or
-     (TVRMLGeometryNode(Shape.FdGeometry.Value).TexCoordField = nil) then
+  if (not (ShapeNode.FdGeometry.Value is TVRMLGeometryNode)) or
+     (TVRMLGeometryNode(ShapeNode.FdGeometry.Value).TexCoordField = nil) then
   begin
-    VRMLWarning(vwIgnorable, 'Geometry node "' + Shape.FdGeometry.Value.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
+    VRMLWarning(vwIgnorable, 'Geometry node "' + ShapeNode.FdGeometry.Value.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
     Exit;
   end;
 
@@ -519,7 +520,7 @@ begin
       HandleLight(TNodeX3DLightNode(App.FdReceiveShadows.Items[I]));
 end;
 
-procedure ProcessShadowMapsReceivers(Model: TVRMLNode;
+procedure ProcessShadowMapsReceivers(Shapes: TVRMLShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal;
   const DefaultVisualizeShadowMap: boolean;
@@ -528,10 +529,6 @@ var
   Lights: TDynLightArray;
   I: Integer;
 begin
-  { This is valid situation (TVRMLScene.RootNode may be nil).
-    Nothing to do then. }
-  if Model = nil then Exit;
-
   Lights := TDynLightArray.Create;
   try
     Lights.Enable := Enable;
@@ -544,7 +541,7 @@ begin
       (e.g. by Switch.whichChoice change), and ProcessShadowMapsReceivers
       will not necessarily be run again. So we better account for this
       shape already. }
-    Model.EnumerateNodes(TNodeShape, @Lights.HandleShape, false);
+    Shapes.Traverse(@Lights.HandleShape, false);
 
     { Although we try to construct things only when they will be actually
       used (so no unused nodes should remain now for free), actually
