@@ -84,22 +84,22 @@
     { Matrices for rendering shadow map from this light.
       Identity in this class, override for subclasses able to do shadow mapping.
       @groupBegin }
-    function MapProjectionMatrix: TMatrix4Single; virtual;
-    function MapModelviewMatrix: TMatrix4Single; virtual;
-    function MapModelviewRotationMatrix: TMatrix4Single; virtual;
+    function ProjectionMatrix: TMatrix4Single; virtual;
+    function ModelviewMatrix: TMatrix4Single; virtual;
+    function ModelviewRotationMatrix: TMatrix4Single; virtual;
     { @groupEnd }
 
-    { Light position, direction and up vectors.
+    { Light location, direction and up vectors.
       Useful for example when you think of lights as cameras (for shadow maps).
 
-      MapDirectionLocal must be exactly zero for PointLight (that doesn't
+      DirectionLocal must be exactly zero for PointLight (that doesn't
       have a direction).
 
       @groupBegin }
-    function MapPositionLocal: TVector3Single; virtual;
-    function MapPosition: TVector3Single;
-    function MapDirectionLocal: TVector3Single; virtual;
-    function MapDirection: TVector3Single;
+    function LocationLocal: TVector3Single; virtual;
+    function Location: TVector3Single;
+    function DirectionLocal: TVector3Single; virtual;
+    function Direction: TVector3Single;
     procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single);
     { @groupEnd }
 
@@ -172,11 +172,11 @@
 
     procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
 
-    function MapProjectionMatrix: TMatrix4Single; override;
-    function MapModelviewMatrix: TMatrix4Single; override;
-    function MapModelviewRotationMatrix: TMatrix4Single; override;
-    function MapPositionLocal: TVector3Single; override;
-    function MapDirectionLocal: TVector3Single; override;
+    function ProjectionMatrix: TMatrix4Single; override;
+    function ModelviewMatrix: TMatrix4Single; override;
+    function ModelviewRotationMatrix: TMatrix4Single; override;
+    function LocationLocal: TVector3Single; override;
+    function DirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
   end;
@@ -223,7 +223,7 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    function MapPositionLocal: TVector3Single; override;
+    function LocationLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
   end;
@@ -283,11 +283,11 @@
 
     procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
 
-    function MapProjectionMatrix: TMatrix4Single; override;
-    function MapModelviewMatrix: TMatrix4Single; override;
-    function MapModelviewRotationMatrix: TMatrix4Single; override;
-    function MapPositionLocal: TVector3Single; override;
-    function MapDirectionLocal: TVector3Single; override;
+    function ProjectionMatrix: TMatrix4Single; override;
+    function ModelviewMatrix: TMatrix4Single; override;
+    function ModelviewRotationMatrix: TMatrix4Single; override;
+    function LocationLocal: TVector3Single; override;
+    function DirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
   end;
@@ -355,50 +355,50 @@ begin
   FTransform := StateStack.Top.Transform;
 end;
 
-function TNodeX3DLightNode.MapProjectionMatrix: TMatrix4Single;
+function TNodeX3DLightNode.ProjectionMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TNodeX3DLightNode.MapModelviewMatrix: TMatrix4Single;
+function TNodeX3DLightNode.ModelviewMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TNodeX3DLightNode.MapModelviewRotationMatrix: TMatrix4Single;
+function TNodeX3DLightNode.ModelviewRotationMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TNodeX3DLightNode.MapPositionLocal: TVector3Single;
+function TNodeX3DLightNode.LocationLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
-function TNodeX3DLightNode.MapPosition: TVector3Single;
+function TNodeX3DLightNode.Location: TVector3Single;
 begin
-  Result := MatrixMultPoint(Transform, MapPositionLocal);
+  Result := MatrixMultPoint(Transform, LocationLocal);
 end;
 
-function TNodeX3DLightNode.MapDirection: TVector3Single;
+function TNodeX3DLightNode.Direction: TVector3Single;
 begin
-  Result := MatrixMultDirection(Transform, MapDirectionLocal);
+  Result := MatrixMultDirection(Transform, DirectionLocal);
 end;
 
-function TNodeX3DLightNode.MapDirectionLocal: TVector3Single;
+function TNodeX3DLightNode.DirectionLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
 procedure TNodeX3DLightNode.GetCameraVectors(out Pos, Dir, Up: TVector3Single);
 begin
-  Pos := MatrixMultPoint    (Transform, MapPositionLocal);
-  Dir := MatrixMultDirection(Transform, MapDirectionLocal);
+  Pos := MatrixMultPoint    (Transform, LocationLocal);
+  Dir := MatrixMultDirection(Transform, DirectionLocal);
   Up  := MatrixMultDirection(Transform, FdUp.Value);
 
   { When the "up" vector is parallel to the dir (in particular,
     when "up" field has a default zero value) then adjust up vector.
-    Note: when "up" is not parallel, then MapModelviewMatrix will
+    Note: when "up" is not parallel, then ModelviewMatrix will
     take care of adjusting it to be orthogonal. }
   if VectorsParallel(Up, Dir) then
     Up := AnyOrthogonalVector(Dir);
@@ -462,7 +462,7 @@ begin
     Normalized( MatrixMultDirection(ActiveLight.Transform, FdDirection.Value) );
 end;
 
-function TVRMLDirectionalLightNode.MapProjectionMatrix: TMatrix4Single;
+function TVRMLDirectionalLightNode.ProjectionMatrix: TMatrix4Single;
 var
   N, F: Single;
   R: TVector4Single;
@@ -484,7 +484,7 @@ begin
   Result := OrthoProjMatrix(R[0], R[2], R[1], R[3], N, F);
 end;
 
-function TVRMLDirectionalLightNode.MapModelviewMatrix: TMatrix4Single;
+function TVRMLDirectionalLightNode.ModelviewMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -492,7 +492,7 @@ begin
   Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
-function TVRMLDirectionalLightNode.MapModelviewRotationMatrix: TMatrix4Single;
+function TVRMLDirectionalLightNode.ModelviewRotationMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -500,12 +500,12 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TVRMLDirectionalLightNode.MapPositionLocal: TVector3Single;
+function TVRMLDirectionalLightNode.LocationLocal: TVector3Single;
 begin
   Result := FdProjectionLocation.Value;
 end;
 
-function TVRMLDirectionalLightNode.MapDirectionLocal: TVector3Single;
+function TVRMLDirectionalLightNode.DirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
 end;
@@ -513,7 +513,7 @@ end;
 procedure TVRMLDirectionalLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
-  Box3DDirectionDistances(Box, MapPosition, MapDirection, MinDistance, MaxDistance);
+  Box3DDirectionDistances(Box, Location, Direction, MinDistance, MaxDistance);
 end;
 
 constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -586,7 +586,7 @@ begin
   Result := 'PointLight';
 end;
 
-function TVRMLPointLightNode.MapPositionLocal: TVector3Single;
+function TVRMLPointLightNode.LocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
@@ -594,7 +594,7 @@ end;
 procedure TVRMLPointLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
-  Box3DPointDistances(Box, MapPosition, MinDistance, MaxDistance);
+  Box3DPointDistances(Box, Location, MinDistance, MaxDistance);
 end;
 
 constructor TNodeDirectionalLight_2.Create(const ANodeName: string;
@@ -753,7 +753,7 @@ begin
   ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.AverageScaleTransform;
 end;
 
-function TNodeSpotLight_2.MapProjectionMatrix: TMatrix4Single;
+function TNodeSpotLight_2.ProjectionMatrix: TMatrix4Single;
 var
   Angle, N, F: Single;
 begin
@@ -773,7 +773,7 @@ begin
   Result := PerspectiveProjMatrixRad(Angle, 1, N, F);
 end;
 
-function TNodeSpotLight_2.MapModelviewMatrix: TMatrix4Single;
+function TNodeSpotLight_2.ModelviewMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -781,7 +781,7 @@ begin
   Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
-function TNodeSpotLight_2.MapModelviewRotationMatrix: TMatrix4Single;
+function TNodeSpotLight_2.ModelviewRotationMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -789,12 +789,12 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TNodeSpotLight_2.MapPositionLocal: TVector3Single;
+function TNodeSpotLight_2.LocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
 
-function TNodeSpotLight_2.MapDirectionLocal: TVector3Single;
+function TNodeSpotLight_2.DirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
 end;
@@ -804,7 +804,7 @@ procedure TNodeSpotLight_2.Box3DDistances(const Box: TBox3D;
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
-  Box3DDirectionDistances(Box, MapPosition, MapDirection, MinDistance, MaxDistance);
+  Box3DDirectionDistances(Box, Location, Direction, MinDistance, MaxDistance);
 end;
 
 procedure RegisterLightingNodes;

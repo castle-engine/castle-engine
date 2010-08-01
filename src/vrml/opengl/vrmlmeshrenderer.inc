@@ -1392,8 +1392,8 @@ var
              (ProjectorValue is TNodeX3DLightNode) then
 	  begin
             ProjectorLight := TNodeX3DLightNode(ProjectorValue);
-	    Projection := ProjectorLight.MapProjectionMatrix;
-	    Modelview := ProjectorLight.MapModelviewMatrix;
+	    Projection := ProjectorLight.ProjectionMatrix;
+	    Modelview := ProjectorLight.ModelviewMatrix;
 	    Result := true;
 	  end else
             VRMLWarning(vwSerious, 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
@@ -1405,16 +1405,16 @@ var
              (ProjectorValue is TNodeX3DLightNode) then
 	  begin
             ProjectorLight := TNodeX3DLightNode(ProjectorValue);
-	    Projection := ProjectorLight.MapProjectionMatrix;
-	    Modelview := ProjectorLight.MapModelviewMatrix;
+	    Projection := ProjectorLight.ProjectionMatrix;
+	    Modelview := ProjectorLight.ModelviewMatrix;
 	    Result := true;
 	  end else
           if (ProjectorValue <> nil) and
              (ProjectorValue is TNodeX3DViewpointNode) then
 	  begin
             ProjectorViewpoint := TNodeX3DViewpointNode(ProjectorValue);
-	    Projection := ProjectorViewpoint.MapProjectionMatrix;
-	    Modelview := ProjectorViewpoint.MapModelviewMatrix;
+	    Projection := ProjectorViewpoint.ProjectionMatrix;
+	    Modelview := ProjectorViewpoint.ModelviewMatrix;
 	    Result := true;
 	  end else
             VRMLWarning(vwSerious, 'ProjectedTextureCoordinate.projector is NULL or incorrect');

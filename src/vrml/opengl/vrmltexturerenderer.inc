@@ -2341,15 +2341,15 @@ begin
   if GLName = 0 then Exit;
 
   { Render view for shadow map }
-  ProjectionMatrix := Light.MapProjectionMatrix;
+  ProjectionMatrix := Light.ProjectionMatrix;
 
   if VarianceShadowMaps then
     RenderState.Target := rtVarianceShadowMap else
     RenderState.Target := rtShadowMap;
 
   RenderState.CameraFromMatrix(
-    Light.MapModelviewMatrix,
-    Light.MapModelviewRotationMatrix,
+    Light.ModelviewMatrix,
+    Light.ModelviewRotationMatrix,
     ProjectionMatrix);
 
   RenderToTexture.RenderBegin;

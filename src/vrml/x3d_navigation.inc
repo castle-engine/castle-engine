@@ -129,11 +129,11 @@
 
     { Matrices for projecting texture from this viewpoint,
       for ProjectedTextureCoordinate.
-      Override MapProjectionMatrix for subclasses (MapModelviewMatrix
+      Override ProjectionMatrix for subclasses (ModelviewMatrix
       is already correctly defined here).
       @groupBegin }
-    function MapProjectionMatrix: TMatrix4Single; virtual;
-    function MapModelviewMatrix: TMatrix4Single;
+    function ProjectionMatrix: TMatrix4Single; virtual;
+    function ModelviewMatrix: TMatrix4Single;
     { @groupEnd }
   end;
 
@@ -301,7 +301,7 @@
 
     function Position: TSFVec3f; override;
     class function ProjectionType: TProjectionType; override;
-    function MapProjectionMatrix: TMatrix4Single; override;
+    function ProjectionMatrix: TMatrix4Single; override;
   end;
 
   TNodeViewpoint = class(TNodeX3DViewpointNode)
@@ -345,7 +345,7 @@
     class function ViewpointAngleOfView(
       FieldOfView: Single;
       const ThisToOtherSizeRatio: Single): Single;
-    function MapProjectionMatrix: TMatrix4Single; override;
+    function ProjectionMatrix: TMatrix4Single; override;
   end;
 
   TNodeViewpointGroup = class(TNodeX3DChildNode)
@@ -483,12 +483,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TNodeX3DViewpointNode.MapProjectionMatrix: TMatrix4Single;
+function TNodeX3DViewpointNode.ProjectionMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TNodeX3DViewpointNode.MapModelviewMatrix: TMatrix4Single;
+function TNodeX3DViewpointNode.ModelviewMatrix: TMatrix4Single;
 var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
@@ -840,7 +840,7 @@ begin
   Result := ptOrthographic;
 end;
 
-function TNodeOrthoViewpoint.MapProjectionMatrix: TMatrix4Single;
+function TNodeOrthoViewpoint.ProjectionMatrix: TMatrix4Single;
 var
   OrthoViewDimensions: TVector4Single;
 begin
@@ -945,7 +945,7 @@ begin
   end;
 end;
 
-function TNodeViewpoint.MapProjectionMatrix: TMatrix4Single;
+function TNodeViewpoint.ProjectionMatrix: TMatrix4Single;
 begin
   { TODO: for currently bound viewpoint, we should honour
     fieldOfView and aspect ratio of current window? }
