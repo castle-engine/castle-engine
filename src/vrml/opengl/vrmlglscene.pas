@@ -1466,7 +1466,7 @@ begin
     { calculate EnableDisplayList }
     FEnableDisplayList := true;
 
-    EnumerateShapeTextures(@DisableDisplayListFromTexture);
+    EnumerateTextures(@DisableDisplayListFromTexture);
 
     if FEnableDisplayList then
     begin
@@ -3145,6 +3145,8 @@ var
 begin
   inherited;
 
+  if Dirty <> 0 then Exit;
+
   CheckFogChanged;
 
   case Optimization of
@@ -3247,6 +3249,8 @@ procedure TVRMLGLScene.Render(
   end;
 
 begin
+  if Dirty <> 0 then Exit;
+
   { I used to make here more complex "prepare" mechanism, that was trying
     to prepare for particular shapes only right before they are rendered
     (so instead of calling PrepareRender below, I was calling PrepareShape

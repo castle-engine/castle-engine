@@ -66,6 +66,9 @@ type
 
   TShapeTraverseFunc = procedure (Shape: TVRMLShape) of object;
 
+  TEnumerateShapeTexturesFunction = procedure (Shape: TVRMLShape;
+    Texture: TNodeX3DTextureNode) of object;
+
   { Tree of VRML shapes.
 
     Although VRML model already provides the tree (graph of VRML nodes),
@@ -122,10 +125,16 @@ type
       for mesh names. }
     function FindBlenderMesh(const BlenderMeshName: string;
       OnlyActive: boolean = false): TVRMLShape;
-  end;
 
-  TEnumerateShapeTexturesFunction = procedure (Shape: TVRMLShape;
-    Texture: TNodeX3DTextureNode) of object;
+    { Enumerate all single texture nodes (possibly) used by the shapes.
+      This looks into all shapes (not only active, so e.g. it looks into all
+      Switch/LOD children, not only the chosen one).
+
+      This looks into the Appearance.texture field (and if it's MultiTexture,
+      looks into it's children). Also it looks into shaders textures.
+      Also, for VRML 1.0, looks into LastNodes.Texture2. }
+    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); virtual; abstract;
+  end;
 
   { Shape is a geometry node @link(Geometry) instance and it's
     @link(State). For VRML >= 2.0, this usually corresponds to
@@ -443,11 +452,7 @@ type
       const CreaseAngle: Single): TDynVector3SingleArray;
     { @groupEnd }
 
-    { Enumerate to callback all single texture nodes possibly used by this shape.
-      This looks into appearance.texture field (and if it's MultiTexture,
-      looks into it's children). And looks into shaders textures.
-      Also, for VRML 1.0, looks into LastNodes.Texture2. }
-    procedure EnumerateShapeTextures(Enumerate: TEnumerateShapeTexturesFunction);
+    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
 
     { Is the texture node Node possibly used by this shape.
       This is equivalent to checking does EnumerateShapeTextures return this shape. }
@@ -487,6 +492,8 @@ type
       const OnlyCollidable: boolean = false): Cardinal; override;
 
     property Children: TVRMLShapeTreesList read FChildren;
+
+    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
   end;
 
   { Node of the TVRMLShapeTree representing an alternative,
@@ -1144,7 +1151,7 @@ begin
   Result := FNormals;
 end;
 
-procedure TVRMLShape.EnumerateShapeTextures(Enumerate: TEnumerateShapeTexturesFunction);
+procedure TVRMLShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
 
   procedure HandleSingleTextureNode(Tex: TVRMLNode);
   begin
@@ -1234,7 +1241,7 @@ begin
   try
     Helper.Node := Node;
     try
-      EnumerateShapeTextures(@Helper.HandleTexture);
+      EnumerateTextures(@Helper.HandleTexture);
       Result := false;
     except
       on BreakUsesTexture do Result := true;
@@ -1295,6 +1302,14 @@ begin
     ResultPart := FChildren.Items[I].ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
     Result += ResultPart;
   end;
+end;
+
+procedure TVRMLShapeTreeGroup.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FChildren.Count - 1 do
+    FChildren.Items[I].EnumerateTextures(Enumerate);
 end;
 
 { TVRMLShapeTreeSwitch ------------------------------------------------------- }

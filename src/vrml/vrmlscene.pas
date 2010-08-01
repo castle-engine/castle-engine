@@ -669,6 +669,15 @@ type
       will be bad. }
     ScheduledGeometryChangedAll: boolean;
 
+    { If @true, then next ChangedAll call will do ProcessShadowMapsReceivers
+      at the end.
+
+      ProcessShadowMapsReceivers are correctly called at the
+      right moment of ChangedAll, so that they have the necessary
+      information (Shapes) ready and their modifications (new GeneratedTextures
+      items) are accounted for. }
+    ScheduledShadowMapsProcessing: boolean;
+
     { Transformation of some shape changed. }
     ScheduledGeometrySomeCollidableTransformChanged: boolean;
     ScheduledGeometrySomeVisibleTransformChanged: boolean;
@@ -801,6 +810,17 @@ type
 
     procedure CameraChanged(RenderState: TRenderState);
   protected
+    { Value <> 0 means that our state isn't complete (for example,
+      we're in the middle of ChangedAll call).
+
+      Some callbacks *may* be called during such time: namely,
+      the progress call (e.g. done during constructing octrees).
+      As these callbacks may try to e.g. render our scene (which should
+      not be done on the dirty state), we have to protect ourselves
+      using this variable (e.g. Render routines will exit immediately
+      when Dirty <> 0). }
+    Dirty: Cardinal;
+
     { Called when LightNode fields changed, while LightNode is in
       active part of VRML graph. }
     procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
@@ -2374,9 +2394,7 @@ begin
 
   RootNode := ARootNode;
   OwnsRootNode := AOwnsRootNode;
-
-  ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
-    ShadowMapsVisualizeDepth, ShadowMapsPCF);
+  ScheduledShadowMapsProcessing := true;
 
   ScheduleChangedAll;
 
@@ -2628,10 +2646,6 @@ begin
       Shape.TriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
       Shape.Spatial := [ssTriangles];
     end;
-
-    { Add items to GeneratedTextures for this Shape, if it has any
-      generated textures. }
-    Shape.EnumerateShapeTextures(@ParentScene.GeneratedTextures.AddShapeTexture);
   end else
 
   if Node is TVRMLLightNode then
@@ -2827,6 +2841,18 @@ procedure TVRMLScene.ChangedAll;
 var
   Traverser: TChangedAllTraverser;
 begin
+  { We really need to use Dirty here, to forbid rendering during this.
+
+    For example, ProcessShadowMapsReceivers work assumes this:
+    otherwise, RootNode.Traverse may cause some progress Step call
+    which may call Render which may prepare GLSL shadow map shader
+    that will be freed by the following ProcessShadowMapsReceivers call.
+    Testcase: view3dscene open simple_shadow_map_teapots.x3dv, turn off
+    shadow maps "receiveShadows" handling, then turn it back on
+    --- will crash without "Dirty" variable safety. }
+  Inc(Dirty);
+  try
+
   if Log and LogChanges then
     WritelnLog('VRML changes', 'ChangedAll');
 
@@ -2898,6 +2924,27 @@ begin
 
   VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   DoViewpointsChanged;
+
+  if ScheduledShadowMapsProcessing then
+  begin
+    ProcessShadowMapsReceivers({Shapes}RootNode, ShadowMaps, ShadowMapsDefaultSize,
+      ShadowMapsVisualizeDepth, ShadowMapsPCF);
+    ScheduledShadowMapsProcessing := false;
+  end;
+
+  { Add items to GeneratedTextures for this Shape, if it has any
+    generated textures.
+
+    Do this *after* ProcessShadowMapsReceivers was run
+    (before ProcessShadowMapsReceivers we may have old GeneratedShadowMap nodes
+    that will be freed during ProcessShadowMapsReceivers,
+    and new nodes added by ProcessShadowMapsReceivers would be missing.)
+
+    Note that clearing GeneratedTextures was already done at the beginning
+    of ChangedAll (as part of BeforeNodesFree(true) call). }
+  Shapes.EnumerateTextures(@GeneratedTextures.AddShapeTexture);
+
+  finally Dec(Dirty) end;
 end;
 
 procedure TVRMLScene.ChangedShapeFields(Shape: TVRMLShape;
@@ -6379,9 +6426,7 @@ begin
   begin
     FShadowMaps := Value;
 
-    BeforeNodesFree;
-    ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
-      ShadowMapsVisualizeDepth, ShadowMapsPCF);
+    ScheduledShadowMapsProcessing := true;
     ScheduleChangedAll;
   end;
 end;
@@ -6394,9 +6439,7 @@ begin
 
     if ShadowMaps then { if not ShadowMaps, then no need to reprocess }
     begin
-      BeforeNodesFree;
-      ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
-        ShadowMapsVisualizeDepth, ShadowMapsPCF);
+      ScheduledShadowMapsProcessing := true;
       ScheduleChangedAll;
     end;
   end;
@@ -6410,9 +6453,7 @@ begin
 
     if ShadowMaps then { if not ShadowMaps, then no need to reprocess }
     begin
-      BeforeNodesFree;
-      ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
-        ShadowMapsVisualizeDepth, ShadowMapsPCF);
+      ScheduledShadowMapsProcessing := true;
       ScheduleChangedAll;
     end;
   end;
@@ -6426,9 +6467,7 @@ begin
 
     if ShadowMaps then { if not ShadowMaps, then no need to reprocess }
     begin
-      BeforeNodesFree;
-      ProcessShadowMapsReceivers(RootNode, ShadowMaps, ShadowMapsDefaultSize,
-        ShadowMapsVisualizeDepth, ShadowMapsPCF);
+      ScheduledShadowMapsProcessing := true;
       ScheduleChangedAll;
     end;
   end;
