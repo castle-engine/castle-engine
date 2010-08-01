@@ -165,20 +165,29 @@
     private FFdAttenuation: TSFVec3f;
     public property FdAttenuation: TSFVec3f read FFdAttenuation;
 
-    { Attenuation obliczaja attenuation (tzn. wzorek 1/max( attenuation[0] + ...)
-      zgodnie ze specyfik. VRMLa 97. Poniewaz obliczenie parametru DistanceToLight
-      moze czasem wiazac sie ze spora strata czasu mozesz sprawdzic najpierw
-      wartosc DistanceNeededForAttenuation --- jezeli jest false, to wartosc
-      parametru DistanceToLight dla Attenutaion() nie ma znaczenia (mozesz
-      podac cokolwiek).
+    { Calculate light intensity drop because of the distance to the light.
+      This follows the equation @code(1/max( attenuation[0] + ... ))
+      from the VRML/X3D specification.
 
-      PAMIETAJ --- DistanceToLight powinien byc w lights coordinate system.
-      TODO: raytracer nie realizuje teraz tego "PAMIETAJ" powyzej
-      TODO: nie wiem czy OpenGL realizuje to "PAMIETAJ" powyzej
-      w swoich swiatlach, check w OpenGL spec }
+      Since calculating the DistanceToLight for the @link(Attenuation)
+      method may be time-consuming in some situations,
+      you can check DistanceNeededForAttenuation first.
+      When the DistanceNeededForAttenuation returns @false,
+      then the value of DistanceToLight parameter is ignored (you can
+      pass anything).
+
+      Remember that the DistanceToLight should be a distance in the light source
+      local coordinate system.
+      TODO: our ray-tracer currently uses global coord system.
+      TODO: OpenGL renderer also uses global coord system, since OpenGL
+      attenuation is calculated after modelview transformation
+      (right? check).
+
+      @groupBegin }
     function DistanceNeededForAttenuation: boolean;
     function Attenuation(const DistanceToLight: Single): Single; overload;
     function Attenuation(const DistanceToLight: Double): Double; overload;
+    { @groupEnd }
 
     procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
   end;
