@@ -63,6 +63,9 @@
     private FFdDefaultShadowMap: TSFNode;
     public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
 
+    private FFdShadows: TSFBool;
+    public property FdShadows: TSFBool read FFdShadows;
+
     { Transformation of this light node.
       Normal lights can be instanced many times within the scene, with
       various transformation, so @italic(this transformation property
@@ -341,6 +344,10 @@ begin
   FFdDefaultShadowMap := TSFNode.Create(Self, 'defaultShadowMap', [TNodeGeneratedShadowMap]);
   FFdDefaultShadowMap.Exposed := false;
   Fields.Add(FFdDefaultShadowMap);
+
+  FFdShadows := TSFBool.Create(Self, 'shadows', false);
+  FFdShadows.Exposed := false;
+  Fields.Add(FFdShadows);
 
   DefaultContainerField := 'children';
 
