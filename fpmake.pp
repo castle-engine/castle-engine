@@ -40,6 +40,7 @@ begin
     begin
       P.Dependencies.Add('x11');
       P.Dependencies.Add('gtk2');
+      P.Dependencies.Add('cairo');
     end else
     if Defaults.OS in AllWindowsOSes then
     begin
