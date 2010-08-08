@@ -29,6 +29,7 @@ uses
   vrmlrendereroptimization,
   vrmlscene,
   vrmlscenewaypoints,
+  vrmlshadowmaps,
   vrmlshape,
   vrmlshapeoctree,
   vrmltime,
