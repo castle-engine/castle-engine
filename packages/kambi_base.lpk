@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="172">
+    <Files Count="173">
       <Item1>
         <Filename Value="../src/3d/backgroundbase.pas"/>
         <UnitName Value="BackgroundBase"/>
@@ -729,25 +729,29 @@
         <UnitName Value="VRMLSceneWaypoints"/>
       </Item167>
       <Item168>
-        <Filename Value="../src/vrml/vrmlshape.pas"/>
-        <UnitName Value="VRMLShape"/>
+        <Filename Value="../src/vrml/vrmlshadowmaps.pas"/>
+        <UnitName Value="VRMLShadowMaps"/>
       </Item168>
       <Item169>
-        <Filename Value="../src/vrml/vrmlshapeoctree.pas"/>
-        <UnitName Value="VRMLShapeOctree"/>
+        <Filename Value="../src/vrml/vrmlshape.pas"/>
+        <UnitName Value="VRMLShape"/>
       </Item169>
       <Item170>
-        <Filename Value="../src/vrml/vrmltime.pas"/>
-        <UnitName Value="VRMLTime"/>
+        <Filename Value="../src/vrml/vrmlshapeoctree.pas"/>
+        <UnitName Value="VRMLShapeOctree"/>
       </Item170>
       <Item171>
-        <Filename Value="../src/vrml/vrmltriangle.pas"/>
-        <UnitName Value="VRMLTriangle"/>
+        <Filename Value="../src/vrml/vrmltime.pas"/>
+        <UnitName Value="VRMLTime"/>
       </Item171>
       <Item172>
+        <Filename Value="../src/vrml/vrmltriangle.pas"/>
+        <UnitName Value="VRMLTriangle"/>
+      </Item172>
+      <Item173>
         <Filename Value="../src/vrml/vrmltriangleoctree.pas"/>
         <UnitName Value="VRMLTriangleOctree"/>
-      </Item172>
+      </Item173>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
