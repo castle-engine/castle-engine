@@ -4508,9 +4508,9 @@ var
 begin
   { make a copy to our class fields }
   CurrentShape := Shape;
-  CurrentState := Shape.State;
 
   CurrentGeometry := Shape.OriginalGeometry;
+  CurrentState := Shape.OriginalState;
 
   {$ifndef USE_VRML_NODES_TRIANGULATION}
   { We have to initalize MeshRenderer to something non-nil.
@@ -4522,7 +4522,7 @@ begin
   if not InitMeshRenderer(CurrentGeometry) then
   begin
     CurrentGeometry := Shape.Geometry;
-    Assert(CurrentGeometry <> nil);
+    CurrentState := Shape.State;
     if not ((CurrentGeometry <> Shape.OriginalGeometry) and
       InitMeshRenderer(CurrentGeometry)) then
     begin
