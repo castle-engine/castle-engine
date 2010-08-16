@@ -795,7 +795,16 @@ end;
 procedure TVRMLShape.FreeGeometry;
 begin
   if FGeometry[false] <> OriginalGeometry then
-    FreeAndNil(FGeometry[false]) else
+  begin
+    if FGeometry[true] = FGeometry[false] then
+      { Then either both FGeometry[] are nil (in which case we do no harm
+        by code below) or they are <> nil because
+        ProxyUsesOverTriangulate = false. In the 2nd case, we should
+        avoid freeing the same instance twice. }
+      FGeometry[true] := nil;
+
+    FreeAndNil(FGeometry[false]);
+  end else
     FGeometry[false] := nil;
 
   if FGeometry[true] <> OriginalGeometry then
@@ -1286,7 +1295,17 @@ begin
   if FGeometry[OverTriangulate] = nil then
   begin
     FGeometry[OverTriangulate] := OriginalGeometry.Proxy(State, OverTriangulate);
-    if FGeometry[OverTriangulate] = nil then
+    if FGeometry[OverTriangulate] <> nil then
+    begin
+      { We just used OriginalGeometry.Proxy successfully.
+        Let's now check can we fill the over FGeometry[] value for free.
+        If ProxyUsesOverTriangulate = false, then we can reuse
+        this Proxy. This may save us from unnecessarily calling Proxy
+        second time. }
+      if (FGeometry[not OverTriangulate] = nil) and
+          not OriginalGeometry.ProxyUsesOverTriangulate then
+        FGeometry[not OverTriangulate] := FGeometry[OverTriangulate];
+    end else
       FGeometry[OverTriangulate] := OriginalGeometry;
   end;
 

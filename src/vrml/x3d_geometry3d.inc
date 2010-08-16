@@ -273,6 +273,7 @@
 
     function Proxy(State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
@@ -1027,6 +1028,11 @@ begin
     IFS.FdCreaseAngle.Value := FdCreaseAngle.Value;
     IFS.FdConvex.Value := FdConvex.Value;
   except FreeAndNil(Result); raise end;
+end;
+
+function TNodeExtrusion.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
 end;
 
 procedure TNodeExtrusion.EventSet_crossSectionReceive(

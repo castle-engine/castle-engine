@@ -64,6 +64,7 @@
 
     function Proxy(State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
 
     function TexCoordField: TSFNode; override;
   end;
@@ -384,6 +385,11 @@ begin
       smooth later using fast CreateSmoothNormalsCoordinateNode routine. }
     IFS.FdCreaseAngle.Value := 4;
   except FreeAndNil(Result); raise end;
+end;
+
+function TNodeTeapot.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
 end;
 
 procedure TNodeTeapot.DirectEnumerateActive(

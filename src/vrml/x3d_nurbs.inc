@@ -174,6 +174,7 @@
 
     function Proxy(State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -248,6 +249,7 @@
 
     function Proxy(State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -826,6 +828,11 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
+function TNodeNurbsCurve_3.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
+end;
+
 { Coord implementation makes automatic, optimal and fast
   (without the need for Proxy call) LocalBoundingBox, BoundingBox
   implementation. }
@@ -1303,6 +1310,11 @@ begin
     { Note: In case of null / invalid / unhandled FdControlPoint.Value,
       we still return valid (just empty) IndexedQuadSet node. }
   except FreeAndNil(Result); raise end;
+end;
+
+function TNodeNurbsPatchSurface.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
 end;
 
 { Coord implementation makes automatic, optimal and fast

@@ -349,6 +349,12 @@
       When returns non-nil, result's NodeName is always equal to our NodeName. }
     function Proxy(State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; virtual;
+
+    { Does the @link(Proxy) method look at the OverTriangulate parameter
+      at all. Default implementation in TVRMLGeometryNode returns safer @true.
+      Descendants may override and return @false, to allow
+      e.g. more caching in TVRMLShape. }
+    function ProxyUsesOverTriangulate: boolean; virtual;
   end;
 
   { }
@@ -907,6 +913,11 @@ function TVRMLGeometryNode.Proxy(State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
   Result := nil;
+end;
+
+function TVRMLGeometryNode.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := true;
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }

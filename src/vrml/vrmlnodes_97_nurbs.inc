@@ -120,6 +120,7 @@
 
     function Proxy(State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -226,6 +227,7 @@
 
     function Proxy(State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -459,6 +461,11 @@ begin
       FreeAndNil(WeightDouble);
     end;
   except FreeAndNil(Result); raise end;
+end;
+
+function TNodeNurbsCurve_2.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
 end;
 
 { Coord implementation makes automatic, optimal and fast
@@ -713,6 +720,11 @@ begin
       FreeAndNil(WeightDouble);
     end;
   except FreeAndNil(Result); raise end;
+end;
+
+function TNodeNurbsSurface.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
 end;
 
 { Coord implementation makes automatic, optimal and fast
