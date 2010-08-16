@@ -18,7 +18,7 @@
 { Generate circle points.
   Circle is on const Y = Height, centered on XZ = (0, 0) with given Radius.
   We generate QuadricSlices points, writing them into Points array.
-  Order of coords is along +X, then -Z, then -X, then +Z.
+  Order of coords is along -Z, then -X, then +Z, then +X.
 
   When Radius = exactly 0, the points are guaranteed to be exactly equal.
 
@@ -35,7 +35,7 @@ var
 begin
   if Radius <> 0 then
   begin
-    Points^ := Vector3Single(0, Height, Radius);
+    Points^ := Vector3Single(0, Height, -Radius);
     Inc(Points);
 
     for I := 1 to QuadricSlices - 1 do
@@ -43,7 +43,7 @@ begin
       AngleRad := (I / QuadricSlices) * 2 * Pi;
       SinCos(AngleRad, AngleSin, AngleCos);
 
-      Points^ := Vector3Single(AngleSin * Radius, Height, AngleCos * Radius);
+      Points^ := Vector3Single(-AngleSin * Radius, Height, -AngleCos * Radius);
       Inc(Points);
     end;
   end else
@@ -60,20 +60,55 @@ begin
   end;
 end;
 
+{ Generate QuadricSlices points on a 2D circle of radius 1.
+  Shift things such that instead of [-1, 1] x [-1, 1],
+  circle is inside [0, 1] x [0, 1].
+
+  @param(InvertT Allows you to invert texture, suitable for top cap.) }
+procedure GenerateTexCoordCircle(const QuadricSlices: Cardinal;
+  Points: PVector2Single; const InvertT: boolean);
+var
+  AngleRad: Single;
+  AngleSin, AngleCos: Float;
+  I: integer;
+begin
+  if InvertT then
+    Points^ := Vector2Single(0.5, 1) else
+    Points^ := Vector2Single(0.5, 0);
+  Inc(Points);
+
+  for I := 1 to QuadricSlices - 1 do
+  begin
+    AngleRad := (I / QuadricSlices) * 2 * Pi;
+    SinCos(AngleRad, AngleSin, AngleCos);
+
+    AngleSin := -AngleSin;
+    if not InvertT then AngleCos := -AngleCos;
+
+    Points^ := Vector2Single((AngleSin + 1) / 2, (AngleCos + 1) / 2 );
+    Inc(Points);
+  end;
+end;
+
 { Make a cylinder (with bottom and top radius
   potentially different) or a cone (which is indicated by TopRadius = 0).
   Generates values suitable e.g. for VRML/X3D IndexedFaceSet.
   This is a universal utility, for both VRML 1.0 and >= 2.0.
 
-  When TopRadius = 0, then Top does not matter (we'll never make
-  a top cap in this case).
-
   Just like gluCylinder, it makes sense to implement cone and cylinder
   at once. *Especially* since for a correct normal vectors on cone top,
   we need to actually represent cone side faces as rectangles.
-  So the topology of the cone is really the same as the topology of cylinder. }
+  So the topology of the cone is really the same as the topology of cylinder.
+
+  @param(TexCoord Texture coordinates to generate.
+    Pass @nil if you don't need them.)
+
+  @param(TopRadius Radius of the upper cap.
+    May be = 0, then Top does not matter (we'll never make
+    a top cap in this case.)) }
 procedure CylinderCone_Proxy(CoordIndex: TDynLongIntArray;
   Coord: TDynVector3SingleArray; Normal: TDynVector3SingleArray;
+  TexCoord: TDynVector2SingleArray;
   OverTriangulate: boolean; const BottomRadius, TopRadius, Height: Single;
   const Bottom, Side, Top: boolean;
   KambiTriangulation: TNodeKambiTriangulation);
@@ -112,7 +147,9 @@ procedure CylinderCone_Proxy(CoordIndex: TDynLongIntArray;
   we would have to replicate the vertex coord anyway, because for OpenGL arrays
   we can pass only one index (there is no separate index for coords, normals etc.).
   So we would not save anything (and only increase the work needed for
-  OpenGL rendering). }
+  OpenGL rendering).
+
+  Besides, texCoordIndex would then have to be equal to normalIndex. }
 
 var
   QuadricSlices: Cardinal;
@@ -126,7 +163,7 @@ var
   begin
     SinCos((Angle / QuadricSlices) * 2 * Pi, AngleSin, AngleCos);
 
-    Result[0] := AngleSin;
+    Result[0] := -AngleSin;
 
     if TopRadius = 0 then
       { Why? Draw a ortho view of cone, and note that two triangles are
@@ -137,7 +174,7 @@ var
         It's Ok, this procedure is used now only for straight cylinder
         or a cone. }
       Result[1] := 0;
-    Result[2] := AngleCos;
+    Result[2] := -AngleCos;
 
     { When Result[1] is zero (straight cylinder), it's already normalized }
     if Result[1] <> 0 then
@@ -158,12 +195,10 @@ begin
     begin MatSides := 0; MatBottom := 1 end else
     begin MatSides := 0; MatBottom := 0 end;
 
- cyl: if State.LastNodes.MaterialBinding.FdValue.Value in
+  cyl: if State.LastNodes.MaterialBinding.FdValue.Value in
      [BIND_PER_PART, BIND_PER_PART_INDEXED] then
   begin MatSides := 0; MatTop := 1; MatBottom := 2 end else
   begin MatSides := 0; MatTop := 0; MatBottom := 0 end;
-
-  TODO: implicit tex coords?
 
   TODO: OverTriangulate honour
   }
@@ -172,16 +207,26 @@ begin
   begin
     BottomCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices;
-    Normal.Count := Normal.Count + QuadricSlices;
     GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, Coord.Pointers[BottomCircleIndex]);
+    Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
       Normal.Items[BottomCircleIndex + I] := Vector3Single(0, -1, 0);
+    if TexCoord <> nil then
+    begin
+      TexCoord.Count := TexCoord.Count + QuadricSlices;
+      GenerateTexCoordCircle(QuadricSlices, TexCoord.Pointers[BottomCircleIndex], false);
+    end;
 
     BottomMiddleIndex := Coord.Count;
     Coord.Count := Coord.Count + 1;
-    Normal.Count := Normal.Count + 1;
     Coord.Last := Vector3Single(0, -Height / 2, 0);
+    Normal.Count := Normal.Count + 1;
     Normal.Last := Vector3Single(0, -1, 0);
+    if TexCoord <> nil then
+    begin
+      TexCoord.Count := TexCoord.Count + 1;
+      TexCoord.Last := Vector2Single(0.5, 0.5);
+    end;
 
     BottomFaceIndex := CoordIndex.Count;
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
@@ -200,16 +245,26 @@ begin
   begin
     TopCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices;
-    Normal.Count := Normal.Count + QuadricSlices;
     GenerateCircle(QuadricSlices, TopRadius, Height / 2, Coord.Pointers[TopCircleIndex]);
+    Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
       Normal.Items[TopCircleIndex + I] := Vector3Single(0, 1, 0);
+    if TexCoord <> nil then
+    begin
+      TexCoord.Count := TexCoord.Count + QuadricSlices;
+      GenerateTexCoordCircle(QuadricSlices, TexCoord.Pointers[TopCircleIndex], true);
+    end;
 
     TopMiddleIndex := Coord.Count;
     Coord.Count := Coord.Count + 1;
-    Normal.Count := Normal.Count + 1;
     Coord.Last := Vector3Single(0, Height / 2, 0);
+    Normal.Count := Normal.Count + 1;
     Normal.Last := Vector3Single(0, 1, 0);
+    if TexCoord <> nil then
+    begin
+      TexCoord.Count := TexCoord.Count + 1;
+      TexCoord.Last := Vector2Single(0.5, 0.5);
+    end;
 
     TopFaceIndex := CoordIndex.Count;
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
@@ -228,18 +283,30 @@ begin
   begin
     { Generate another circles, instead of reusing Bottom/TopCircleIndex.
       That's because these vertices need different normal vectors anyway,
-      so we may as well duplicate their coords (see Cone reasoning). }
+      so we may as well duplicate their coords (see Cone reasoning).
+
+      We generate QuadricSlices + 1 edges (instead of making QuadricSlices
+      edges, and reusing the first edge for the last edge).
+      Reason: texture coordinates must be different at the last edge
+      (1.0) than the first (0.0).
+      Otherwise texture seam would not be correctly closed. }
     SideBottomCircleIndex := Coord.Count;
-    Coord.Count := Coord.Count + QuadricSlices;
-    Normal.Count := Normal.Count + QuadricSlices;
+    Coord.Count := Coord.Count + QuadricSlices + 1;
     GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, Coord.Pointers[SideBottomCircleIndex]);
+    Coord.Last := Coord.Items[SideBottomCircleIndex];
+    Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
       Normal.Items[SideBottomCircleIndex + I] := SideNormal(I);
+    Normal.Last := Normal.Items[SideBottomCircleIndex];
+    if TexCoord <> nil then
+    begin
+      TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
+      for I := 0 to QuadricSlices do
+        TexCoord.Items[SideBottomCircleIndex + I] := Vector2Single(I / QuadricSlices, 0);
+    end;
 
     SideTopCircleIndex := Coord.Count;
-    Coord.Count := Coord.Count + QuadricSlices;
-    Normal.Count := Normal.Count + QuadricSlices;
-
+    Coord.Count := Coord.Count + QuadricSlices + 1;
     { Even when TopRadius = 0 (we make a cone), we still generate
       QuadricSlices * top points, and we'll use them just like a cylinder
       does. This is the only way to get nice normals on cone sides:
@@ -256,8 +323,17 @@ begin
       must be equal; the only way to achieve this it to just duplicate
       top vertex on each face). }
     GenerateCircle(QuadricSlices, TopRadius, Height / 2, Coord.Pointers[SideTopCircleIndex]);
+    Coord.Last := Coord.Items[SideTopCircleIndex];
+    Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
       Normal.Items[SideTopCircleIndex + I] := Normal.Items[SideBottomCircleIndex + I];
+    Normal.Last := Normal.Items[SideTopCircleIndex];
+    if TexCoord <> nil then
+    begin
+      TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
+      for I := 0 to QuadricSlices do
+        TexCoord.Items[SideTopCircleIndex + I] := Vector2Single(I / QuadricSlices, 1);
+    end;
 
     SideFaceIndex := CoordIndex.Count;
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
@@ -265,16 +341,8 @@ begin
     begin
       CoordIndex.Items[SideFaceIndex + I * 5    ] := SideTopCircleIndex    + I;
       CoordIndex.Items[SideFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
-      if I <> QuadricSlices - 1 then
-      begin
-        CoordIndex.Items[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
-        CoordIndex.Items[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex    + I + 1;
-      end else
-      begin
-        CoordIndex.Items[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex;
-        CoordIndex.Items[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex;
-      end;
-
+      CoordIndex.Items[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+      CoordIndex.Items[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex    + I + 1;
       CoordIndex.Items[SideFaceIndex + I * 5 + 4] := -1;
     end;
   end;
@@ -286,6 +354,8 @@ function TNodeCylinder_2.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNod
 var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
+  TexCoordNode: TNodeTextureCoordinate;
+  TexCoords: TDynVector2SingleArray;
   IFS: TNodeIndexedFaceSet_2 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
@@ -297,8 +367,20 @@ begin
     IFS.FdNormal.Value := NormalNode;
     IFS.FdNormalPerVertex.Value := true;
 
+    if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
+    begin
+      { No need for CylinderCone_Proxy to create tex coords. }
+      IFS.FdTexCoord.Value := FdTexCoord.Value;
+      TexCoords := nil;
+    end else
+    begin
+      TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath);
+      IFS.FdTexCoord.Value := TexCoordNode;
+      TexCoords := TexCoordNode.FdPoint.Items;
+    end;
+
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
-      CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
       { TODO: use OverTriangulate in Cylinder_Proxy.
         We should probably have two different Proxy values,
         for both OverTriangulate values? }
@@ -307,8 +389,6 @@ begin
       State.LastNodes.KambiTriangulation);
 
     IFS.FdSolid.Value := FdSolid.Value;
-    if FdTexCoord.CurrentChildAllowed then
-      IFS.FdTexCoord.Value := FdTexCoord.Value;
 
     { Smooth everything. }
     IFS.FdCreaseAngle.Value := 4;
@@ -319,6 +399,8 @@ function TNodeCone_2.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
+  TexCoordNode: TNodeTextureCoordinate;
+  TexCoords: TDynVector2SingleArray;
   IFS: TNodeIndexedFaceSet_2 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
@@ -330,8 +412,20 @@ begin
     IFS.FdNormal.Value := NormalNode;
     IFS.FdNormalPerVertex.Value := true;
 
+    if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
+    begin
+      { No need for CylinderCone_Proxy to create tex coords. }
+      IFS.FdTexCoord.Value := FdTexCoord.Value;
+      TexCoords := nil;
+    end else
+    begin
+      TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath);
+      IFS.FdTexCoord.Value := TexCoordNode;
+      TexCoords := TexCoordNode.FdPoint.Items;
+    end;
+
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
-      CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
       { TODO: use OverTriangulate in Cone_Proxy.
         We should probably have two different Proxy values,
         for both OverTriangulate values? }
@@ -340,8 +434,6 @@ begin
       State.LastNodes.KambiTriangulation);
 
     IFS.FdSolid.Value := FdSolid.Value;
-    if FdTexCoord.CurrentChildAllowed then
-      IFS.FdTexCoord.Value := FdTexCoord.Value;
 
     { Smooth everything. }
     IFS.FdCreaseAngle.Value := 4;
@@ -354,6 +446,7 @@ function TNodeCylinder_1.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNod
 var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
+  TexCoordNode: TNodeTextureCoordinate2;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
@@ -365,8 +458,12 @@ begin
     NormalNode := TNodeNormal.Create('', WWWBasePath);
     //IFS.FdNormal.Value := NormalNode;
 
+    TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
+    //IFS.FdTexCoord.Value := TexCoordNode;
+
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
+      TexCoordNode.FdPoint.Items,
       { TODO: use OverTriangulate in Cone_Proxy.
         We should probably have two different Proxy values,
         for both OverTriangulate values? }
@@ -389,6 +486,7 @@ function TNodeCone_1.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
+  TexCoordNode: TNodeTextureCoordinate2;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
@@ -400,8 +498,12 @@ begin
     NormalNode := TNodeNormal.Create('', WWWBasePath);
     //IFS.FdNormal.Value := NormalNode;
 
+    TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
+    //IFS.FdTexCoord.Value := TexCoordNode;
+
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
+      TexCoordNode.FdPoint.Items,
       { TODO: use OverTriangulate in Cone_Proxy.
         We should probably have two different Proxy values,
         for both OverTriangulate values? }
