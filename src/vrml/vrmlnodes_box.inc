@@ -4,7 +4,14 @@ procedure Box_Proxy(CoordIndex: TDynLongIntArray;
   OverTriangulate: boolean; Sizes: TVector3Single;
   KambiTriangulation: TNodeKambiTriangulation);
 
-  { X1, Y1 specify the corner of the 1st vertex, we go CCW on the face
+var
+  Detail: TVector3Cardinal;
+
+  { Make a rectangle that changes along the RestOf3dCoords(ConstCoord, ...).
+    E.g. for ConstCoord = 0, it changes along YZ (so X below corresponds
+    actually to global Y, and Y below corresponds actually to global Z).
+
+    X1, Y1 specify the corner of the 1st vertex, we go CCW on the face
     to the (-X1, -Y1) corner. So the sign of X1, Y1 determine which side
     of the face is CCW.
 
@@ -13,9 +20,6 @@ procedure Box_Proxy(CoordIndex: TDynLongIntArray;
   procedure MakeRect(const ConstCoord: integer; const ConstCoordValue: Single;
     const X1, Y1: Single; const TexX1, TexY1: Single;
     const TextureSIsY: boolean = false);
-  var
-    FaceIndex, Index, C1, C2: integer;
-    X2, Y2, TexX2, TexY2: Single;
 
     function MakeTexCoord(const S, T: Single): TVector2Single;
     begin
@@ -30,63 +34,61 @@ procedure Box_Proxy(CoordIndex: TDynLongIntArray;
       end;
     end;
 
+  var
+    FaceIndex, Index, C1, C2: integer;
+    X2, Y2, TexX2, TexY2: Single;
+    I, J, NewCoords, ThisIndex: Integer;
+    N: TVector3Single;
   begin
-    // TODO: OverTriangulate = true
+    RestOf3dCoords(ConstCoord, C1, C2);
 
     Index := Coord.Count;
-    Coord.Count := Coord.Count + 4;
-    Normal.Count := Normal.Count + 4;
-    TexCoord.Count := TexCoord.Count + 4;
+    NewCoords := (Detail[C1] + 2) * (Detail[C2] + 2);
+    Coord.Count := Coord.Count + NewCoords;
+    Normal.Count := Normal.Count + NewCoords;
+    TexCoord.Count := TexCoord.Count + NewCoords;
 
     X2 := -X1;
     Y2 := -Y1;
     TexX2 := 1 - TexX1;
     TexY2 := 1 - TexY1;
 
-    RestOf3dCoords(ConstCoord, C1, C2);
-
-    Coord.Items[Index + 0][C1] :=  X1;
-    Coord.Items[Index + 0][C2] :=  Y1;
-    Coord.Items[Index + 0][ConstCoord] := ConstCoordValue;
-
-    Coord.Items[Index + 1][C1] :=  X2;
-    Coord.Items[Index + 1][C2] :=  Y1;
-    Coord.Items[Index + 1][ConstCoord] := ConstCoordValue;
-
-    Coord.Items[Index + 2][C1] :=  X2;
-    Coord.Items[Index + 2][C2] :=  Y2;
-    Coord.Items[Index + 2][ConstCoord] := ConstCoordValue;
-
-    Coord.Items[Index + 3][C1] :=  X1;
-    Coord.Items[Index + 3][C2] :=  Y2;
-    Coord.Items[Index + 3][ConstCoord] := ConstCoordValue;
-
+    { Normal vector is constant for the whole rectangle }
     if ConstCoordValue > 0 then
-      Normal.Items[Index][ConstCoord] :=  1 else
-      Normal.Items[Index][ConstCoord] := -1;
-    Normal.Items[Index][C1] := 0;
-    Normal.Items[Index][C2] := 0;
+      N[ConstCoord] :=  1 else
+      N[ConstCoord] := -1;
+    N[C1] := 0;
+    N[C2] := 0;
 
-    Normal.Items[Index + 1] := Normal.Items[Index];
-    Normal.Items[Index + 2] := Normal.Items[Index];
-    Normal.Items[Index + 3] := Normal.Items[Index];
+    for I := 0 to Detail[C1] + 1 do
+      for J := 0 to Detail[C2] + 1 do
+      begin
+        ThisIndex := Index + I * (Detail[C2] + 2) + J;
 
-    TexCoord.Items[Index + 0] :=  MakeTexCoord(TexX1, TexY1);
-    TexCoord.Items[Index + 1] :=  MakeTexCoord(TexX2, TexY1);
-    TexCoord.Items[Index + 2] :=  MakeTexCoord(TexX2, TexY2);
-    TexCoord.Items[Index + 3] :=  MakeTexCoord(TexX1, TexY2);
+        Coord.Items[ThisIndex][C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
+        Coord.Items[ThisIndex][C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
+        Coord.Items[ThisIndex][ConstCoord] := ConstCoordValue;
 
-    FaceIndex := CoordIndex.Count;
-    CoordIndex.Count := CoordIndex.Count + 5;
-    CoordIndex.Items[FaceIndex    ] := Index;
-    CoordIndex.Items[FaceIndex + 1] := Index + 1;
-    CoordIndex.Items[FaceIndex + 2] := Index + 2;
-    CoordIndex.Items[FaceIndex + 3] := Index + 3;
-    CoordIndex.Items[FaceIndex + 4] := -1;
+        Normal.Items[ThisIndex] := N;
+
+        TexCoord.Items[ThisIndex] := MakeTexCoord(
+          Lerp(I / (Detail[C1] + 1), TexX1, TexX2),
+          Lerp(J / (Detail[C2] + 1), TexY1, TexY2));
+      end;
+
+    for I := 1 to Detail[C1] + 1 do
+      for J := 1 to Detail[C2] + 1 do
+      begin
+        FaceIndex := CoordIndex.Count;
+        CoordIndex.Count := CoordIndex.Count + 5;
+        CoordIndex.Items[FaceIndex    ] := Index + (I - 1) * (Detail[C2] + 2) + J - 1;
+        CoordIndex.Items[FaceIndex + 1] := Index +  I      * (Detail[C2] + 2) + J - 1;
+        CoordIndex.Items[FaceIndex + 2] := Index +  I      * (Detail[C2] + 2) + J;
+        CoordIndex.Items[FaceIndex + 3] := Index + (I - 1) * (Detail[C2] + 2) + J;
+        CoordIndex.Items[FaceIndex + 4] := -1;
+      end;
   end;
 
-var
-  RectDivisions: Cardinal;
 begin
   { For VRML 1.0, some of these MF fields by default have non-empty content.
     It's safest to just clean them. }
@@ -95,7 +97,14 @@ begin
   Normal.Count := 0;
   TexCoord.Count := 0;
 
-  RectDivisions := KambiTriangulation.RectDivisions;
+  { Currently, all three Detail* used are always equal.
+    Although the code is written to support different Detail* values,
+    just in case in the future it will be useful. }
+  if OverTriangulate then
+    Detail[0] := KambiTriangulation.RectDivisions else
+    Detail[0] := 0;
+  Detail[1] := Detail[0];
+  Detail[2] := Detail[0];
 
   Sizes /= 2;
 
