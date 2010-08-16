@@ -503,6 +503,7 @@ function TNodeCylinder_1.Proxy(State: TVRMLGraphTraverseState;
 var
   CoordNode: TNodeCoordinate3;
   NormalNode: TNodeNormal;
+  NormalBinding: TNodeNormalBinding;
   TexCoordNode: TNodeTextureCoordinate2;
   ShapeHints: TNodeShapeHints;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
@@ -514,6 +515,13 @@ begin
 
     NormalNode := TNodeNormal.Create('', WWWBasePath);
     State.SetLastNodes(vsNormal, NormalNode, true);
+
+    NormalBinding := TNodeNormalBinding.Create('', WWWBasePath);
+    { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
+      so coordIndex chooses the normal. }
+    // TODO: works wrong, why?
+    NormalBinding.FdValue.Value := BIND_PER_VERTEX;
+    State.SetLastNodes(vsNormalBinding, NormalBinding, true);
 
     TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
@@ -534,6 +542,12 @@ begin
       FdParts.Flags[CYLINDER_PARTS_SIDES],
       FdParts.Flags[CYLINDER_PARTS_TOP],
       State.LastNodes.KambiTriangulation);
+
+    { For VRML 1.0, unfortunately textureCoordIndex must be set
+      (even though it's exactly equivalent to coordIndex).
+      This is a problem of VRML 1.0 "state" idea --- there is no
+      other way to "turn off" texture than to just use empty textureCoordIndex. }
+    IFS.FdTextureCoordIndex.Items.Assign(IFS.FdCoordIndex.Items);
   except FreeAndNil(Result); raise end;
 end;
 
@@ -542,6 +556,7 @@ function TNodeCone_1.Proxy(State: TVRMLGraphTraverseState;
 var
   CoordNode: TNodeCoordinate3;
   NormalNode: TNodeNormal;
+  NormalBinding: TNodeNormalBinding;
   TexCoordNode: TNodeTextureCoordinate2;
   ShapeHints: TNodeShapeHints;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
@@ -553,6 +568,13 @@ begin
 
     NormalNode := TNodeNormal.Create('', WWWBasePath);
     State.SetLastNodes(vsNormal, NormalNode, true);
+
+    NormalBinding := TNodeNormalBinding.Create('', WWWBasePath);
+    { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
+      so coordIndex chooses the normal. }
+    // TODO: works wrong, why?
+    NormalBinding.FdValue.Value := BIND_PER_VERTEX;
+    State.SetLastNodes(vsNormalBinding, NormalBinding, true);
 
     TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
@@ -571,5 +593,11 @@ begin
       OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
       FdParts.Flags[CONE_PARTS_BOTTOM], FdParts.Flags[CONE_PARTS_SIDES], false,
       State.LastNodes.KambiTriangulation);
+
+    { For VRML 1.0, unfortunately textureCoordIndex must be set
+      (even though it's exactly equivalent to coordIndex).
+      This is a problem of VRML 1.0 "state" idea --- there is no
+      other way to "turn off" texture than to just use empty textureCoordIndex. }
+    IFS.FdTextureCoordIndex.Items.Assign(IFS.FdCoordIndex.Items);
   except FreeAndNil(Result); raise end;
 end;
