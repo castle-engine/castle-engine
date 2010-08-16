@@ -118,7 +118,7 @@ type
       See TVRMLMaterialInfo for usage description.
 
       Returns @nil when no Material node is defined, this can happen
-      only for VRML 1.0.
+      only for VRML >= 2.0.
 
       Returned TVRMLMaterialInfo is valid only as long as the Material
       node (for VRML 1.0 or 2.0) on which it was based. }
