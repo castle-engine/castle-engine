@@ -213,12 +213,16 @@ var
   end;
 
 var
-  I: Integer;
+  I, J: Integer;
   BottomCircleIndex, BottomMiddleIndex, BottomFaceIndex: Integer;
   TopCircleIndex, TopMiddleIndex, TopFaceIndex: Integer;
-  SideBottomCircleIndex, SideTopCircleIndex, SideFaceIndex: Integer;
+  SideBottomCircleIndex, SideTopCircleIndex, MiddleCircleIndex,
+    MiddleFaceIndex, SideFaceIndex: Integer;
+  QuadricStacks: Cardinal;
+  Stack: Single;
 begin
   QuadricSlices := KambiTriangulation.QuadricSlices;
+  QuadricStacks := KambiTriangulation.QuadricStacks;
 
   { TODO: for VRML 1.0, assign MaterialIndex?
   cone: if State.LastNodes.MaterialBinding.FdValue.Value in
@@ -335,6 +339,44 @@ begin
       for I := 0 to QuadricSlices do
         TexCoord.Items[SideBottomCircleIndex + I] := Vector2Single(I / QuadricSlices, 0);
     end;
+
+    { Add additional "stacks" to the geometry. }
+    if OverTriangulate then
+      for J := 1 to QuadricStacks - 1 do
+      begin
+        { stack height, in range [0..1] (0 = bottom, 1 = top). }
+        Stack := J / QuadricStacks;
+
+        MiddleCircleIndex := Coord.Count;
+        Coord.Count := Coord.Count + QuadricSlices + 1;
+        GenerateCircle(QuadricSlices, Lerp(Stack, BottomRadius, TopRadius), -Height / 2 + Stack * Height, Coord.Pointers[MiddleCircleIndex]);
+        Coord.Last := Coord.Items[MiddleCircleIndex];
+        Normal.Count := Normal.Count + QuadricSlices + 1;
+        for I := 0 to QuadricSlices - 1 do
+          Normal.Items[MiddleCircleIndex + I] := Normal.Items[SideBottomCircleIndex + I];
+        Normal.Last := Normal.Items[MiddleCircleIndex];
+        if TexCoord <> nil then
+        begin
+          TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
+          for I := 0 to QuadricSlices do
+            TexCoord.Items[MiddleCircleIndex + I] := Vector2Single(I / QuadricSlices, Stack);
+        end;
+
+        MiddleFaceIndex := CoordIndex.Count;
+        CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
+        for I := 0 to QuadricSlices - 1 do
+        begin
+          CoordIndex.Items[MiddleFaceIndex + I * 5    ] := MiddleCircleIndex     + I;
+          CoordIndex.Items[MiddleFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
+          CoordIndex.Items[MiddleFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+          CoordIndex.Items[MiddleFaceIndex + I * 5 + 3] := MiddleCircleIndex     + I + 1;
+          CoordIndex.Items[MiddleFaceIndex + I * 5 + 4] := -1;
+        end;
+
+        { Next stack added. Now replace SideBottomCircleIndex,
+          to say that the the current circle is the bottom now. }
+        SideBottomCircleIndex := MiddleCircleIndex;
+      end;
 
     SideTopCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
