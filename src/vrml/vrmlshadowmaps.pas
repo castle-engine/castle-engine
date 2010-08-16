@@ -362,10 +362,14 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
 
     Converts texCoord to multi tex coord, to preserve previous tex coord.
 
+    May remove some texCoord nodes, knowing that only the 1st
+    RelevantTexCoordsCount nodes are used.
+
     Returns the count of texCoords in TexCoordsCount, not counting the last
     TexGen node. }
   procedure HandleTexGen(var TexCoord: TVRMLNode;
-    const TexGen: TNodeProjectedTextureCoordinate; out TexCoordsCount: Cardinal);
+    const TexGen: TNodeProjectedTextureCoordinate; out TexCoordsCount: Cardinal;
+    const RelevantTexCoordsCount: Cardinal);
   var
     MTexCoord: TNodeMultiTextureCoordinate;
   begin
@@ -415,7 +419,16 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
     Assert(TexCoordsCount = MTexCoord.FdTexCoord.Count);
 
     if Enable then
+    begin
+      { At this point, remove not relevant texCoords. }
+      if TexCoordsCount > RelevantTexCoordsCount then
+      begin
+        MTexCoord.FdTexCoord.TheCount := RelevantTexCoordsCount;
+        TexCoordsCount := MTexCoord.FdTexCoord.Count;
+      end;
+
       MTexCoord.FdTexCoord.Add(TexGen);
+    end;
   end;
 
   { Change textureTransform into MultiTextureTransform if necessary.
@@ -479,7 +492,7 @@ var
     App.FdTexture.Value := Texture;
 
     TexCoord := Shape.Geometry.TexCoordField.Value;
-    HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount);
+    HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount, TexturesCount);
     Shape.Geometry.TexCoordField.Value := TexCoord;
 
     TextureTransform := App.FdTextureTransform.Value;

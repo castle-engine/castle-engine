@@ -910,6 +910,7 @@ type
     FParentNode: TVRMLNode;
     FAllowedChildren: TVRMLNodeClassesList;
     FAllowedChildrenAll: boolean;
+    procedure SetCount(const Value: Integer);
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject); override;
@@ -974,8 +975,12 @@ type
     procedure AssignItems(SourceItems: TVRMLNodesList);
     procedure Replace(Index: Integer; Node: TVRMLNode);
 
-    { Just a shortcut for Items.Count }
-    function Count: integer; override;
+    { Count of items. When increasing this, remember that new items
+      will be @nil, and generally you should initialize them to
+      something else then @nil (VRML/X3D don't really allow
+      NULL items inside MFNode fields). }
+    function Count: Integer; override;
+    property TheCount: Integer read Count write SetCount;
 
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
@@ -3020,6 +3025,23 @@ end;
 function TMFNode.Count: integer;
 begin
   Result := Items.Count;
+end;
+
+procedure TMFNode.SetCount(const Value: Integer);
+var
+  I: Integer;
+begin
+  if Value < Items.Count then
+  begin
+    for I := Value to Items.Count - 1 do
+      Items[I].RemoveParentField(Self);
+    Items.Count := Value;
+  end else
+  if Value > Items.Count then
+  begin
+    { TObjectsList makes sure that increasing count sets new items to nil }
+    Items.Count := Value;
+  end;
 end;
 
 procedure TMFNode.Add(Node: TVRMLNode);
