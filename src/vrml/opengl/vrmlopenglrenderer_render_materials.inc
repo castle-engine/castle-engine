@@ -94,7 +94,8 @@ begin
     glEnable(GL_COLOR_MATERIAL);
   end;
 
-  { calculate material parameters: FogImmune, VRML1OnlyEmissive, VRML2Unlit }
+  { calculate material parameters:
+    M1, M2, FogImmune, VRML1OnlyEmissive, VRML2Unlit }
   if CurrentState.ShapeNode <> nil then
   begin
     M2 := CurrentState.ShapeNode.Material;
@@ -136,9 +137,9 @@ begin
     glDisable(GL_LIGHTING);
   end;
 
-  { set VRML 2.0 material. At the end, since this uses MaterialLit }
+  { set VRML 2.0 material. At the end, since this uses MaterialLit, M2 }
   if not (CurrentGeometry is TVRMLGeometryNode_1) then
-    Render_BindMaterial_2;
+    Render_MaterialsBegin_2(M2);
 end;
 
 procedure TVRMLOpenGLRenderer.Render_MaterialsEnd;
@@ -252,9 +253,8 @@ begin
 end;
 
 { Binds current VRML 2.0 Material. }
-procedure TVRMLOpenGLRenderer.Render_BindMaterial_2;
+procedure TVRMLOpenGLRenderer.Render_MaterialsBegin_2(Material: TNodeMaterial_2);
 var
-  Material: TNodeMaterial_2;
   UnLitColor: TVector3Single;
 begin
   Assert(not (CurrentGeometry is TVRMLGeometryNode_1));
@@ -265,8 +265,6 @@ begin
       '" can be specified only in a "geometry" field of "Shape" node');
     Exit;
   end;
-
-  Material := CurrentState.ShapeNode.Material;
 
   if Material <> nil then
   begin
