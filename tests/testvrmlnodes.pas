@@ -51,7 +51,7 @@ type
 
   private
     procedure DummyTriangleProc(const Tri: TTriangle3Single;
-      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+      Shape: TObject; State: TVRMLGraphTraverseState;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
@@ -868,7 +868,7 @@ begin
 end;
 
 procedure TTestVRMLNodes.DummyTriangleProc(const Tri: TTriangle3Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+  Shape: TObject; State: TVRMLGraphTraverseState;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
 end;
@@ -894,10 +894,10 @@ begin
           (N as TVRMLGeometryNode).VerticesCount(State, false);
           (N as TVRMLGeometryNode).TrianglesCount(State, true);
           (N as TVRMLGeometryNode).TrianglesCount(State, false);
-          (N as TVRMLGeometryNode).Triangulate(State, true, @DummyTriangleProc);
-          (N as TVRMLGeometryNode).Triangulate(State, false, @DummyTriangleProc);
-          (N as TVRMLGeometryNode).LocalTriangulate(State, true, @DummyTriangleProc);
-          (N as TVRMLGeometryNode).LocalTriangulate(State, false, @DummyTriangleProc);
+          (N as TVRMLGeometryNode).Triangulate(nil, State, true, @DummyTriangleProc);
+          (N as TVRMLGeometryNode).Triangulate(nil, State, false, @DummyTriangleProc);
+          (N as TVRMLGeometryNode).LocalTriangulate(nil, State, true, @DummyTriangleProc);
+          (N as TVRMLGeometryNode).LocalTriangulate(nil, State, false, @DummyTriangleProc);
         except
           on E: Exception do
           begin
