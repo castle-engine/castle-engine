@@ -478,9 +478,9 @@ var
     HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
     App.FdTexture.Value := Texture;
 
-    TexCoord := TVRMLGeometryNode(ShapeNode.FdGeometry.Value).TexCoordField.Value;
+    TexCoord := Shape.Geometry.TexCoordField.Value;
     HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount);
-    TVRMLGeometryNode(ShapeNode.FdGeometry.Value).TexCoordField.Value := TexCoord;
+    Shape.Geometry.TexCoordField.Value := TexCoord;
 
     TextureTransform := App.FdTextureTransform.Value;
     HandleTextureTransform(TextureTransform);
@@ -548,12 +548,9 @@ begin
 
   { HandleLight needs here a shape with geometry with texCoord.
     Better check it here, before we start changing anything. }
-  if ShapeNode.FdGeometry.Value = nil then Exit;
-
-  if (not (ShapeNode.FdGeometry.Value is TVRMLGeometryNode)) or
-     (TVRMLGeometryNode(ShapeNode.FdGeometry.Value).TexCoordField = nil) then
+  if Shape.Geometry.TexCoordField = nil then
   begin
-    VRMLWarning(vwIgnorable, 'Geometry node "' + ShapeNode.FdGeometry.Value.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
+    VRMLWarning(vwIgnorable, 'Geometry node "' + Shape.Geometry.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
     Exit;
   end;
 
