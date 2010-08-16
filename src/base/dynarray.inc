@@ -186,6 +186,7 @@
 
     { Add new item at the end of the array. Increases length by 1. }
     procedure Add(const Item: TDynArrayItem); overload;
+    procedure Add(const Item: TDynArrayItem; const DuplicateCount: Cardinal); overload;
 
     { Increase the length by 1, and return the pointer to the new item at the end. }
     function Add: PDynArrayItem; overload;
@@ -367,6 +368,16 @@ procedure TDynArray.Add(const Item: TDynArrayItem);
 begin
   IncLength;
   Items[Length-1] := Item;
+end;
+
+procedure TDynArray.Add(const Item: TDynArrayItem; const DuplicateCount: Cardinal);
+var
+  I, C: Integer;
+begin
+  C := Count;
+  Count := Count + DuplicateCount;
+  for I := C to Count - 1 do
+    Items[I] := Item;
 end;
 
 function TDynArray.Add: PDynArrayItem;
