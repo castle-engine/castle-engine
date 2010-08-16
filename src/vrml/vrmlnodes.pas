@@ -278,11 +278,6 @@ uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
 {$define read_interface}
 
 const
-  { }
-  CountTraverseStateLastNodes = 10;
-  HighTraverseStateLastNodes = CountTraverseStateLastNodes - 1;
-
-const
   DefaultMaterial_1AmbientColor: TVector3Single = (0.2, 0.2, 0.2);
   DefaultMaterial_2AmbientIntensity = 0.2;
   DefaultMaterialDiffuseColor: TVector3Single = (0.8, 0.8, 0.8);
@@ -325,12 +320,26 @@ type
 
   TVRMLNodeProc = procedure (node: TVRMLNode) of object;
 
+  TVRML1StateNode =
+  (
+    vsCoordinate3,
+    vsShapeHints,
+    vsFontStyle,
+    vsMaterial,
+    vsMaterialBinding,
+    vsNormal,
+    vsNormalBinding,
+    vsTexture2,
+    vsTextureCoordinate2,
+    vsKambiTriangulation
+  );
+
   { Nodes that wiill be saved inside TVRMLGraphTraverseState.LastNodes.
     These are nodes that affect how following nodes are rendered,
-    mostly (but not only) for VRML 1.0 "state". }
+    mostly for VRML 1.0 "state". }
   TTraverseStateLastNodes = record
     case Integer of
-      0: ( Nodes: array[0..HighTraverseStateLastNodes]of TVRMLNode; );
+      0: ( Nodes: array [TVRML1StateNode] of TVRMLNode; );
       1: ( Coordinate3 :TNodeCoordinate3;
            ShapeHints :TNodeShapeHints;
            FontStyle :TNodeFontStyle_1;
@@ -342,7 +351,7 @@ type
            TextureCoordinate2 :TNodeTextureCoordinate2;
            KambiTriangulation: TNodeKambiTriangulation;
            { additions here must be synchronized with additions to
-             TraverseStateLastNodesClasses }
+             TVRML1StateNode }
          );
   end;
 
@@ -1921,7 +1930,7 @@ type
 const
   { opis patrz TTraverseStateLastNodes }
   TraverseStateLastNodesClasses :
-    array[0..HighTraverseStateLastNodes] of TVRMLNodeClass =
+    array [TVRML1StateNode] of TVRMLNodeClass =
     ( TNodeCoordinate3, TNodeShapeHints, TNodeFontStyle_1,
       TNodeMaterial_1, TNodeMaterialBinding, TNodeNormal, TNodeNormalBinding,
       TNodeTexture2, TNodeTextureCoordinate2,
@@ -2441,8 +2450,8 @@ end;
 function TVRMLGraphTraverseState.Equals(SecondValue: TObject):
   boolean;
 var
-  I: Integer;
   SV: TVRMLGraphTraverseState;
+  SN: TVRML1StateNode;
 begin
   { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
     PointingDeviceSensors
@@ -2471,8 +2480,8 @@ begin
 
   if Result then
   begin
-    for I := 0 to HighTraverseStateLastNodes do
-      if SV.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
+    for SN := Low(SN) to High(SN) do
+      if SV.LastNodes.Nodes[SN] <> LastNodes.Nodes[SN] then
         Exit(false);
   end;
 end;
@@ -2480,7 +2489,7 @@ end;
 function TVRMLGraphTraverseState.EqualsNoTransform(
   SecondValue: TVRMLGraphTraverseState): boolean;
 var
-  I: Integer;
+  SN: TVRML1StateNode;
 begin
   { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
     PointingDeviceSensors,
@@ -2492,8 +2501,8 @@ begin
 
   if Result then
   begin
-    for I := 0 to HighTraverseStateLastNodes do
-      if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
+    for SN := Low(SN) to High(SN) do
+      if SecondValue.LastNodes.Nodes[SN] <> LastNodes.Nodes[SN] then
         Exit(false);
   end;
 end;
@@ -5377,18 +5386,18 @@ end;
 
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
 var
-  I: Integer;
+  SN: TVRML1StateNode;
 begin
-  for I := 0 to HighTraverseStateLastNodes do
-    StateNodes.Nodes[I] := TraverseStateLastNodesClasses[i].Create('', '');
+  for SN := Low(SN) to High(SN) do
+    StateNodes.Nodes[SN] := TraverseStateLastNodesClasses[SN].Create('', '');
 end;
 
 procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);
 var
-  I: Integer;
+  SN: TVRML1StateNode;
 begin
-  for I := 0 to HighTraverseStateLastNodes do
-    FreeAndNil(StateNodes.Nodes[i]);
+  for SN := Low(SN) to High(SN) do
+    FreeAndNil(StateNodes.Nodes[SN]);
 end;
 
 function KeyRange(Key: TDynSingleArray;

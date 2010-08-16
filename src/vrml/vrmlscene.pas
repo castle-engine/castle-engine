@@ -3343,7 +3343,9 @@ procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
   end;
 
 var
-  NodeLastNodesIndex, I: integer;
+  I: integer;
+  VRML1StateNodeIs: boolean;
+  VRML1StateNode: TVRML1StateNode;
   Coord: TMFVec3f;
   TransformChangeHelper: TTransformChangeHelper;
   SI: TVRMLShapeTreeIterator;
@@ -3351,7 +3353,7 @@ var
   TransformShapesParentInfo: TShapesParentInfo;
   TexCoord: TVRMLNode;
 begin
-  NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
+  VRML1StateNodeIs := Node.VRML1StateNode(VRML1StateNode);
 
   if Log and LogChanges then
     DoLogChanges;
@@ -3423,8 +3425,8 @@ begin
 
   if (RootNode = nil) or
      ( (not RootNode.IsNodePresent(Node, false)) and
-       ((NodeLastNodesIndex = -1) or
-         (StateDefaultNodes.Nodes[NodeLastNodesIndex] <> Node))
+       ((not VRML1StateNodeIs) or
+         (StateDefaultNodes.Nodes[VRML1StateNode] <> Node))
      ) then
     Exit;
   {$endif CHECK_NODE_PRESENCE}
@@ -3448,7 +3450,7 @@ begin
         So it affects coordinate-based nodes with this node.
 
         In fact, code below takes into account both VRML 1.0 and 2.0 situation,
-        that's why it's before "if NodeLastNodesIndex <> -1 then" branch. }
+        that's why it's before "if VRML1StateNodeIs then" branch. }
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
@@ -3470,14 +3472,14 @@ begin
           end;
       finally FreeAndNil(SI) end;
     end else
-    if NodeLastNodesIndex <> -1 then
+    if VRML1StateNodeIs then
     begin
       { Node is part of VRML 1.0 state, so it affects Shapes where
         it's present on State.LastNodes list. }
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if SI.Current.State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
+          if SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node then
             ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, true);
       finally FreeAndNil(SI) end;

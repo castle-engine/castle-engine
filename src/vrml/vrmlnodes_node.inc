@@ -784,9 +784,9 @@
     *)
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
-    { szuka tej klasy node'a (rzeczywistej koncowej klasy, z ClassType) w
-      TraverseStateLastNodesClasses. Zwraca indeks lub -1 jesli nie znalazl. }
-    class function TraverseStateLastNodesIndex: Integer;
+    { Do the nodes of (exactly) this class should be included
+      in VRML 1.0 state (see TVRMLGraphTraverseState.LastNodes). }
+    class function VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
 
     { Some of the nodes are meant to be handled only for specific
       VRML versions. This functions says whether this node is supposed
@@ -1534,7 +1534,7 @@ type
   procedure TTraverseEnumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
   var
-    LastNodesIndex: Integer;
+    StateNode: TVRML1StateNode;
     TraverseIntoChildren: boolean;
     ParentInfoForChildren: TTraversingInfo;
   begin
@@ -1564,9 +1564,8 @@ type
        (Child is NodeClass) then
       TraversingAfterFunc(Child, StateStack, ParentInfo);
 
-    LastNodesIndex := Child.TraverseStateLastNodesIndex;
-    if LastNodesIndex <> -1 then
-      StateStack.Top.FLastNodes.Nodes[LastNodesIndex] := Child;
+    if Child.VRML1StateNode(StateNode) then
+      StateStack.Top.FLastNodes.Nodes[StateNode] := Child;
   end;
 
 procedure TVRMLNode.TraverseInternal(StateStack: TVRMLGraphTraverseStateStack;
@@ -2568,15 +2567,20 @@ begin
   end;
 end;
 
-class function TVRMLNode.TraverseStateLastNodesIndex: Integer;
-{ zwraca indeks do tablicy TraverseStateLastNodesClasses taki ze element
-  na tej pozycji = NodeClass. Zwraca -1 jesli nie znalazl. }
+class function TVRMLNode.VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
+var
+  SN: TVRML1StateNode;
 begin
- { jestesmy w metodzie klasy, wiec Self to klasa (dlatego ponizej mozemy
-   porownywac TraverseStateLastNodesClasses[result] z Self) }
- for result := 0 to HighTraverseStateLastNodes do
-  if TraverseStateLastNodesClasses[result] = Self then Exit;
- result := -1;
+  { We're in "class function", so Self = reference to our class.
+    So simple comparison "Self = ..." is what we want. }
+  for SN := Low(SN) to High(SN) do
+    if TraverseStateLastNodesClasses[SN] = Self then
+    begin
+      StateNode := SN;
+      Result := true;
+      Exit;
+    end;
+  Result := false;
 end;
 
 class function TVRMLNode.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
