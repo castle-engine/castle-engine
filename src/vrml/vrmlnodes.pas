@@ -325,13 +325,9 @@ type
 
   TVRMLNodeProc = procedure (node: TVRMLNode) of object;
 
-  { Stala TraverseStateLastNodesClasses okresla jakie node'y beda zapamietywane
-    w TVRMLGraphTraverseState w LastNodes. TTraverseStateLastNodes to wlasnie
-    typ dla LastNodes, ktory dzieki wariantom pozwala zarowno iterowac
-    po swojej zawartosci (przez Nodes[]) jak i odwolywac sie do tej zawartosci
-    przez odpowiednie nazwy ktore juz maja odpowiednie typy
-    (np. zamiast "Rekord.TNodeCoordinate3(Nodes[0])" wystarczy
-    "Rekord.Coordinate3")  }
+  { Nodes that wiill be saved inside TVRMLGraphTraverseState.LastNodes.
+    These are nodes that affect how following nodes are rendered,
+    mostly (but not only) for VRML 1.0 "state". }
   TTraverseStateLastNodes = record
     case Integer of
       0: ( Nodes: array[0..HighTraverseStateLastNodes]of TVRMLNode; );
@@ -403,31 +399,35 @@ type
   { This describes current "state" (current transformation and such)
     when traversing VRML graph.
 
-    For VRML >= 2.0 this could be smaller, as VRML >= 2.0 doesn't need
-    to keep track of all these LastNodes. But we want to handle VRML 1.0
-    100% correctly still, so there we are.
-
-    Node'y ktore trafiaja na liste LastNodes (bo sa wsrod
-    TraverseStateLastNodesClasses) nie moga wplywac w zaden inny sposob na stan
-    tej klasy podczas wykonywania Traverse w Before/Middle/After Traverse.
-    Innymi slowy, gwarantuje sie ze zmiana wartosci na jakims polu jkaiegos
-    node'a z grupy LastNodesKinds nie wplynie w zaden sposob na sposob
-    w jaki powinien byc renderowany shape ktorego State nie zawiera
-    danego LastNode'a. Korzystam z tego w TVRMLScene.ChangedFields.
-
-    Podobnie swiatla trafiaja na ActiveLights i w zaden inny sposob nie moga
-    zmieniac State trawersowania. }
+    For VRML >= 2.0 this could be simpler, as VRML >= 2.0 doesn't need
+    to keep track for example of the @link(LastNodes).
+    But we want to still handle VRML 1.0, 100% correctly, so here we are:
+    this class contains whole state needed for any VRML/X3D version. }
   TVRMLGraphTraverseState = class
   private
     FLastNodes: TTraverseStateLastNodes;
     procedure CommonCreate;
   public
-    { nie, ParentsCount elementow Last* NIE odzwierciedla faktu ze sa one
-      podlegle TVRMLRenderState. W ogole ten obiekt nie zajmuje sie
-      zarzadzaniem tymi polami - on tylko przechowuje sobie ich wartosci.
-      W szczegolnosci wiec gwarantowane jest ze obiekty nigdy nie beda nil
-      ale ta gwarancja musi byc takze zapewniona przez kod ktory tworzy
-      ten obiekt przez Create. }
+    { Nodes that are saved during VRML/X3D traversing.
+      These nodes affect some following nodes in the graph,
+      mostly for VRML 1.0.
+
+      They are never @nil (traversing code must always take care to initialize
+      them to default nodes at the beginning).
+
+      Note that TVRMLGraphTraverseState doesn't own these nodes.
+      E.g. their TVRMLNode.ParentsCount doesn't take into account
+      that they are owned by this state.
+
+      For nodes that are within TraverseStateLastNodesClasses
+      (and thus are stored inside LastNodes): it's guaranteed
+      they don't affect the state (of this class) during traversing
+      (that is, they don't do anything special in
+      TVRMLNode.BeforeTraverse / TVRMLNode.MiddleTraverse / TVRMLNode.AfterTraverse).
+      So it's guaranteed that changing some field's value of a node
+      within TraverseStateLastNodesClasses affects @italic(only)
+      the shapes that have given node inside State.LastNodes.
+      TVRMLScene.ChangedFields depends on that. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
 
   public
@@ -449,7 +449,11 @@ type
       to be calculated later (VRML 2 spec says that they affect whole scene,
       based on their radius, and regardless of their position in VRML graph;
       so this is not possible to fill during Traverse call).
-      See how UpdateVRML2ActiveLights in TVRMLScene does this. }
+      See how UpdateVRML2ActiveLights in TVRMLScene does this.
+
+      It's guaranteed that VRML/X3D lights change only these
+      *ActiveLights properties during traversing, not anything else.
+      TVRMLScene.ChangedFields (may) depend on that. }
     VRML1ActiveLights, VRML2ActiveLights: TDynActiveLightArray;
 
     { This returns VRML1ActiveLights or VRML2ActiveLights, based on VRML
