@@ -76,6 +76,7 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
+{$ifdef CONE_NO_PROXY}
   TAbstractBoxRenderer = class(TPrimitiveRenderer)
   protected
     procedure RenderBox(const SizeX, SizeY, SizeZ: Single);
@@ -93,7 +94,6 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
-{$ifdef CONE_NO_PROXY}
   { Common class for quadric rendering, with some helper methods/properties. }
   TQuadricRenderer = class(TPrimitiveRenderer)
   private
@@ -549,6 +549,7 @@ end;
 
 { Box ------------------------------------------------------------------------ }
 
+{$ifdef CONE_NO_PROXY}
 procedure TAbstractBoxRenderer.RenderBox(const SizeX, SizeY, SizeZ: Single);
 var MatPerPart: boolean;
 
@@ -632,7 +633,6 @@ end;
 
 { TQuadricRenderer ----------------------------------------------------------- }
 
-{$ifdef CONE_NO_PROXY}
 constructor TQuadricRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;

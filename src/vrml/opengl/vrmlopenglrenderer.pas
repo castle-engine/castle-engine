@@ -4307,12 +4307,10 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       ExposedMeshRenderer := TCone_1Renderer.Create(Self) else
     if AGeometry is TNodeCone_2 then
       ExposedMeshRenderer := TCone_2Renderer.Create(Self) else
-{$endif}
     if AGeometry is TNodeCube_1 then
       ExposedMeshRenderer := TCube_1Renderer.Create(Self) else
     if AGeometry is TNodeBox then
       ExposedMeshRenderer := TBoxRenderer.Create(Self) else
-{$ifdef CONE_NO_PROXY}
     if AGeometry is TNodeCylinder_1 then
       ExposedMeshRenderer := TCylinder_1Renderer.Create(Self) else
     if AGeometry is TNodeCylinder_2 then

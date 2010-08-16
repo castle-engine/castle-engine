@@ -29,10 +29,16 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
+    private FFdtexCoord: TSFNode;
+    public property FdtexCoord: TSFNode read FFdtexCoord;
+    function TexCoordField: TSFNode; override;
+
+    function Proxy(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeCone_2 = class(TNodeX3DGeometryNode)
@@ -391,6 +397,9 @@ begin
   FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
+
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+  Fields.Add(FFdtexCoord);
 end;
 
 class function TNodeBox.ClassNodeTypeName: string;
@@ -412,6 +421,11 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeBox.TexCoordField: TSFNode;
+begin
+  Result := FdTexCoord;
 end;
 
 constructor TNodeCone_2.Create(const ANodeName: string;

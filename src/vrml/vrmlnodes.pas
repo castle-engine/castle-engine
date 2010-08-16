@@ -2229,6 +2229,7 @@ uses
 {$I vrmlnodes_eventsengine.inc}
 {$I vrmlnodes_cone_cylinder.inc}
 {$I vrmlnodes_sphere.inc}
+{$I vrmlnodes_box.inc}
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}
