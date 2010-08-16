@@ -4521,7 +4521,7 @@ begin
 
   if not InitMeshRenderer(CurrentGeometry) then
   begin
-    CurrentGeometry := Shape.Geometry.Proxy(CurrentState);
+    CurrentGeometry := Shape.Geometry.Proxy(CurrentState, true);
     if not ((CurrentGeometry <> nil) and InitMeshRenderer(CurrentGeometry)) then
     begin
       VRMLWarning(vwSerious,

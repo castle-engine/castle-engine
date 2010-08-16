@@ -345,7 +345,8 @@
 
       In the base TVRMLGeometryNode class, returns @nil indicating
       that no conversion is known. }
-    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; virtual;
+    function Proxy(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; virtual;
   end;
 
   { }
@@ -900,7 +901,8 @@ begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+function TVRMLGeometryNode.Proxy(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
   Result := nil;
 end;

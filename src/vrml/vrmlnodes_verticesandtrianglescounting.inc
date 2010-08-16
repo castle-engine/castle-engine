@@ -29,7 +29,7 @@ begin
       Result := 0;
   end else
   begin
-    P := Proxy(State);
+    P := Proxy(State, OverTriangulate);
     if P <> nil then
     begin
       try
@@ -45,7 +45,7 @@ function TVRMLGeometryNode.TrianglesCount(
 var
   P: TVRMLGeometryNode;
 begin
-  P := Proxy(State);
+  P := Proxy(State, OverTriangulate);
   if P <> nil then
   begin
     try

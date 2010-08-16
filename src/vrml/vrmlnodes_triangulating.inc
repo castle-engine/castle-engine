@@ -91,7 +91,7 @@ var
   P: TVRMLGeometryNode;
   ProxyRedirect: TProxyRedirect;
 begin
-  P := Proxy(State);
+  P := Proxy(State, OverTriangulate);
   if P <> nil then
   begin
     ProxyRedirect := TProxyRedirect.Create;

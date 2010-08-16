@@ -62,7 +62,8 @@
     private FFdtexCoord: TSFNode;
     public property FdtexCoord: TSFNode read FFdtexCoord;
 
-    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
+    function Proxy(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function TexCoordField: TSFNode; override;
   end;
@@ -341,7 +342,8 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-function TNodeTeapot.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+function TNodeTeapot.Proxy(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
 const
 { TeapotCoord: array [0..0] of TVector3Single = ((0, 0, 0));
   TeapotCoordIndex: array [0..0] of LongInt = (0);

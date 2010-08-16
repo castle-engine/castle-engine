@@ -85,7 +85,8 @@
     private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
+    function Proxy(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -124,7 +125,8 @@
     private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
+    function Proxy(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;

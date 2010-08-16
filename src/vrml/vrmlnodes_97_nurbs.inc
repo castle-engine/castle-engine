@@ -118,7 +118,8 @@
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
 
-    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
+    function Proxy(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -223,7 +224,8 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
+    function Proxy(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -440,7 +442,8 @@ begin
   Result := VerMajor = 2;
 end;
 
-function TNodeNurbsCurve_2.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+function TNodeNurbsCurve_2.Proxy(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   KnotDouble, WeightDouble: TDynDoubleArray;
 begin
@@ -668,7 +671,8 @@ begin
     true, 2, 0, 1000);
 end;
 
-function TNodeNurbsSurface.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+function TNodeNurbsSurface.Proxy(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   UKnotDouble, VKnotDouble, WeightDouble: TDynDoubleArray;
 begin

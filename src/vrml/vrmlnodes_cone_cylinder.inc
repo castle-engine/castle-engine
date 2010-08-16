@@ -234,8 +234,6 @@ begin
      [BIND_PER_PART, BIND_PER_PART_INDEXED] then
   begin MatSides := 0; MatTop := 1; MatBottom := 2 end else
   begin MatSides := 0; MatTop := 0; MatBottom := 0 end;
-
-  TODO: OverTriangulate honour
   }
 
   if Bottom then
@@ -412,7 +410,8 @@ end;
 
 { VRML 2 proxy --------------------------------------------------------------- }
 
-function TNodeCylinder_2.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+function TNodeCylinder_2.Proxy(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
@@ -443,10 +442,7 @@ begin
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
-      { TODO: use OverTriangulate in Cylinder_Proxy.
-        We should probably have two different Proxy values,
-        for both OverTriangulate values? }
-      true, FdRadius.Value, FdRadius.Value, FdHeight.Value,
+      OverTriangulate, FdRadius.Value, FdRadius.Value, FdHeight.Value,
       FdBottom.Value, FdSide.Value, FdTop.Value,
       State.LastNodes.KambiTriangulation);
 
@@ -457,7 +453,8 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeCone_2.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+function TNodeCone_2.Proxy(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
@@ -488,10 +485,7 @@ begin
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
-      { TODO: use OverTriangulate in Cone_Proxy.
-        We should probably have two different Proxy values,
-        for both OverTriangulate values? }
-      true, FdBottomRadius.Value, 0, FdHeight.Value,
+      OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
       FdBottom.Value, FdSide.Value, false,
       State.LastNodes.KambiTriangulation);
 
@@ -504,7 +498,8 @@ end;
 
 { VRML 1 proxy --------------------------------------------------------------- }
 
-function TNodeCylinder_1.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+function TNodeCylinder_1.Proxy(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
@@ -526,10 +521,7 @@ begin
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items,
-      { TODO: use OverTriangulate in Cone_Proxy.
-        We should probably have two different Proxy values,
-        for both OverTriangulate values? }
-      true, FdRadius.Value, FdRadius.Value, FdHeight.Value,
+      OverTriangulate, FdRadius.Value, FdRadius.Value, FdHeight.Value,
       FdParts.Flags[CYLINDER_PARTS_BOTTOM],
       FdParts.Flags[CYLINDER_PARTS_SIDES],
       FdParts.Flags[CYLINDER_PARTS_TOP],
@@ -544,7 +536,8 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeCone_1.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+function TNodeCone_1.Proxy(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
@@ -566,10 +559,7 @@ begin
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items,
-      { TODO: use OverTriangulate in Cone_Proxy.
-        We should probably have two different Proxy values,
-        for both OverTriangulate values? }
-      true, FdBottomRadius.Value, 0, FdHeight.Value,
+      OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
       FdParts.Flags[CONE_PARTS_BOTTOM], FdParts.Flags[CONE_PARTS_SIDES], false,
       State.LastNodes.KambiTriangulation);
 
