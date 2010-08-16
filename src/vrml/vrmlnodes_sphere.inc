@@ -245,8 +245,8 @@ begin
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
     ShapeHints := TNodeShapeHints.Create('', '');
-    { For VRML 1.0, Sphere is always solid. }
-    ShapeHints.FdshapeType.Value := SHTYPE_SOLID;
+    { For VRML 1.0, Sphere is never solid. }
+    ShapeHints.FdshapeType.Value := SHTYPE_UNKNOWN;
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
     { Smooth everything. Not really needed, we use explicit normal node now. }
     ShapeHints.FdCreaseAngle.Value := 4;
