@@ -1333,25 +1333,21 @@ type
     CurrentGeometry: TVRMLGeometryNode;
 
     { te zmienne sa wewnetrzne dla funkcji MeterialsBegin/End, BindMaterial }
-    Render_Material_ForcedLightDisable: boolean;
-    Render_Material_BoundMatNum: integer;
-    Render_Material_LastFogImmune: boolean;
+    MaterialLit: boolean;
+    Material1BoundNumber: integer;
+    MaterialTemporaryDisabledFog: boolean;
     Material_BoundOpacity: Single;
     MaterialFromColorEnabled: boolean;
 
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
-    procedure Render_BindMaterial_1(MatNum: integer;
-      const OutsideBeginEnd: boolean = true);
+    procedure Render_BindMaterial_1(MatNum: integer);
     procedure Render_BindMaterial_2;
     procedure Render_Material(
-      const Lit: boolean;
       const AmbientColor, DiffuseColor, SpecularColor,
         EmissiveColor: TVector3Single;
       const UnLitColor: TVector3Single;
-      const ShininessExp, Opacity: Single;
-      const FogImmune: boolean;
-      const OutsideBeginEnd: boolean);
+      const ShininessExp, Opacity: Single);
     procedure SetColor(const Color: TVector3Single);
 
     { Judge whether the node can be lit. }

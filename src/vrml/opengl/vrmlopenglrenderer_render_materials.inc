@@ -14,7 +14,12 @@
 }
 
 { Judge whether the node can be lit, looking only at Node (not at State,
-  Material etc.). }
+  Material etc.).
+
+  Assumes MeshRenderer,
+  MeshRenderer.BumpMappingMethod,
+  (MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation
+  are already calculated. }
 function TVRMLOpenGLRenderer.NodeLit(Node: TVRMLGeometryNode): boolean;
 begin
   if ( (MeshRenderer <> nil) and
@@ -60,36 +65,94 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.Render_MaterialsBegin;
+var
+  M1: TNodeMaterial_1;
+  M2: TNodeMaterial_2;
+  FogImmune, VRML1OnlyEmissive, VRML2Unlit: boolean;
 begin
-  Render_Material_ForcedLightDisable := false;
-  Render_Material_BoundMatNum := -1; { no material is bound now }
-  Render_Material_LastFogImmune := false;
+  Material1BoundNumber := -1; { no VRML 1.0 material is bound now }
 
+  { calculate and apply MaterialFromColorEnabled }
   Assert(not MaterialFromColorEnabled);
+  MaterialFromColorEnabled := (MeshRenderer <> nil) and
+    MeshRenderer.NeedsSetColor and NodeLit(CurrentGeometry);
+  if MaterialFromColorEnabled then
+  begin
+    { For lit nodes, we want to set both unlit glColor and lit glMaterial
+      in SetColor.
 
+      Using GL_COLOR_MATERIAL is the best way to do this, this also works
+      much faster and more memory-efficient (AFAIK, OpenGL is prepared
+      to handle different glColor-per-vertex efficiently, but changing
+      whole glMaterial-per-vertex is not efficient (as glColor is pushed
+      with vertex data into the pipeline, while changing material settings
+      requires flushing part of current pipeline)). }
+
+    glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+  end;
+
+  { calculate material parameters: FogImmune, VRML1OnlyEmissive, VRML2Unlit }
+  if CurrentState.ShapeNode <> nil then
+  begin
+    M2 := CurrentState.ShapeNode.Material;
+    FogImmune := (M2 <> nil) and M2.FdFogImmune.Value;
+    VRML1OnlyEmissive := false;
+    { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
+    VRML2Unlit := M2 = nil;
+  end else
+  begin
+    M1 := CurrentState.LastNodes.Material;
+    FogImmune := M1.FdFogImmune.Value;
+    { VRML 1.0 specification states that this is a special case
+      and we should treat EmissiveColor as precalculated color.
+      So we can turn lighting off to improve speed (in fact, we are supposed
+      to do that). }
+    VRML1OnlyEmissive := M1.OnlyEmissiveMaterial;
+    VRML2Unlit := false;
+  end;
+
+  { calculate and apply MaterialTemporaryDisabledFog }
+  MaterialTemporaryDisabledFog := FogEnabled and FogImmune;
+  if MaterialTemporaryDisabledFog then
+    glDisable(GL_FOG);
+
+  { calculate and apply MaterialLit }
+  MaterialLit := (not VRML1OnlyEmissive) and NodeLit(CurrentGeometry) and
+    (not VRML2Unlit);
+  if not MaterialLit then
+  begin
+    { PushAttrib is used to save GL_LIGHTING enabled state,
+      as we cannot predict it (it's up to the VRMLOpenGLRenderer caller
+      whether the light is turned on). Obviously we don't want to explicitly
+      query GL_LIGHTING enabled state, push/pop is better.
+
+      Note that we use GL_LIGHTING_BIT instead of GL_ENABLE_BIT:
+      GL_ENABLE_BIT would also push/pop GL_FOG enabled state,
+      and this could cause problems when mixed with fogImmune. }
+    glPushAttrib(GL_LIGHTING_BIT);
+    glDisable(GL_LIGHTING);
+  end;
+
+  { set VRML 2.0 material. At the end, since this uses MaterialLit }
   if not (CurrentGeometry is TVRMLGeometryNode_1) then
     Render_BindMaterial_2;
 end;
 
 procedure TVRMLOpenGLRenderer.Render_MaterialsEnd;
 begin
-  if Render_Material_ForcedLightDisable then
+  if not MaterialLit then
   begin
     glPopAttrib;
-    Render_Material_ForcedLightDisable := false;
+    MaterialLit := true; { restore default MaterialLit value, just in case }
   end;
 
-  { Other RenderShape calls start with
-    Render_Material_LastFogImmune = false, so they expect that the fog
-    is already enabled (if FogEnabled). Therefore, we have to reenable
-    here the fog if the last material had fogImmune. }
-  if FogEnabled then
+  { Enable fog again, if needed. This was next shape rendering will
+    start with fog enabled (if it should be, according to FogEnabled). }
+  if MaterialTemporaryDisabledFog then
   begin
-    if Render_Material_LastFogImmune then
-    begin
-      glEnable(GL_FOG);
-      Render_Material_LastFogImmune := false;
-    end;
+    glEnable(GL_FOG);
+    MaterialTemporaryDisabledFog := false;
   end;
 
   if MaterialFromColorEnabled then
@@ -99,35 +162,24 @@ begin
   end;
 end;
 
-{ OutsideBeginEnd is a hack to disable some Render_Material features
-  when we're within glBegin/glEnd. This is necessary for changing
-  VRML 1.0 materials within glBegin/glEnd. See
-  TIndexedFaceSet_1Renderer.RenderCoordinateBegin. }
+{ Apply material (both VRML 1.0 and 2.0).
+  Assumes MaterialLit is already calculated.
+
+  This is Ok to be called between glBegin/glEnd
+  (useful for VRML 1.0 with material binding per-vertex,
+  when TAbstractMatTexCoordinateRenderer.RenderVertex must call
+  Render_BindMaterial_1 (that calls this) within glBegin/glEnd). }
 procedure TVRMLOpenGLRenderer.Render_Material(
-  const Lit: boolean;
-  const AmbientColor, DiffuseColor, SpecularColor,
-    EmissiveColor: TVector3Single;
+  const AmbientColor, DiffuseColor, SpecularColor, EmissiveColor: TVector3Single;
   const UnLitColor: TVector3Single;
-  const ShininessExp, Opacity: Single;
-  const FogImmune: boolean;
-  const OutsideBeginEnd: boolean);
-{$ifdef TRANSPARENCY_BY_STIPPLE}
-var
-  Stipple: TPolygonStipple;
-{$endif}
+  const ShininessExp, Opacity: Single);
 begin
   if Attributes.PureGeometry or (not Attributes.ControlMaterials) then Exit;
 
   Material_BoundOpacity := Opacity;
 
-  if Lit then
+  if MaterialLit then
   begin
-    if OutsideBeginEnd and Render_Material_ForcedLightDisable then
-    begin
-      glPopAttrib;
-      Render_Material_ForcedLightDisable := false;
-    end;
-
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT,
       Vector4f(Attributes.ColorModulated(AmbientColor), Opacity));
     glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE,
@@ -145,79 +197,7 @@ begin
     glColorv(Vector4f(Attributes.ColorModulated(DiffuseColor), Opacity));
   end else
   begin
-    if OutsideBeginEnd and (not Render_Material_ForcedLightDisable) then
-    begin
-      { PushAttrib is used to save GL_LIGHTING enabled state,
-        as we cannot predict it (it's up to the VRMLOpenGLRenderer caller
-        whether the light is turned on). Obviously we don't want to explicitly
-        query GL_LIGHTING enabled state, push/pop is better.
-
-        Note that we use GL_LIGHTING_BIT instead of GL_ENABLE_BIT:
-        GL_ENABLE_BIT would also push/pop GL_FOG enabled state,
-        and this could cause problems when mixed with fogImmune. }
-      glPushAttrib(GL_LIGHTING_BIT);
-
-      glDisable(GL_LIGHTING);
-      Render_Material_ForcedLightDisable := true;
-    end;
-
     glColorv(Vector4f(Attributes.ColorModulated(UnLitColor), Opacity));
-  end;
-
-  if FogEnabled then
-  begin
-    { Render_Material_LastFogImmune is used to minimize
-      number of glDisable/Enable(GL_FOG) (as they can be potentially
-      expensive on some OpenGL implementations, if they init some
-      large state etc.) }
-    if OutsideBeginEnd and (Render_Material_LastFogImmune <> FogImmune) then
-    begin
-      if FogImmune then
-        glDisable(GL_FOG) else
-        glEnable(GL_FOG);
-      Render_Material_LastFogImmune := FogImmune;
-    end;
-  end;
-
-  {$ifdef TRANSPARENCY_BY_STIPPLE}
-  { This is an attempt at implementing transparency using
-    polygon stipple. This is called "low quality transparency" in ivview.
-    But this is SOOO ugly that I do not consider it really worth
-    maintaining. Really, using blending we can achieve MUCH better results. }
-  if OutsideBeginEnd and (Opacity < 1.0) then
-  begin
-    glEnable(GL_POLYGON_STIPPLE);
-    if Opacity >= 0.75 then
-      Stipple := ThreeQuartersStipple else
-      Stipple := HalftoneStipple;
-    //Stipple := RandomPolyStippleBy16(1 - Opacity);
-    glPolygonStipple(@Stipple);
-  end else
-    glDisable(GL_POLYGON_STIPPLE)
-  {$endif}
-
-  { MaterialFromColorEnabled should be enabled only below and disabled
-    back by MaterialsEnd. For many Render_BindMaterial_1 calls, it's
-    Ok if it's already enabled. }
-  if OutsideBeginEnd and
-     (MeshRenderer <> nil) and
-     MeshRenderer.NeedsSetColor and
-     NodeLit(CurrentGeometry) and
-     (not MaterialFromColorEnabled) then
-  begin
-    { For lit nodes, we want to set both unlit glColor and lit glMaterial
-      in SetColor.
-
-      Using GL_COLOR_MATERIAL is the best way to do this, this also works
-      much faster and more memory-efficient (AFAIK, OpenGL is prepared
-      to handle different glColor-per-vertex efficiently, but changing
-      whole glMaterial-per-vertex is not efficient (as glColor is pushed
-      with vertex data into the pipeline, while changing material settings
-      requires flushing part of current pipeline)). }
-
-    glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
-    MaterialFromColorEnabled := true;
   end;
 end;
 
@@ -225,16 +205,15 @@ end;
   number MatNum from CurrentState.LastNodes.Material.
   This is ignored when CurrentGeometry is not TVRMLGeometryNode_1
   (then VRML 2.0 approach to materials should be used). }
-procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer;
-  const OutsideBeginEnd: boolean = true);
+procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer);
 var
   UnlitColor: TVector3Single;
 begin
   if (not (CurrentGeometry is TVRMLGeometryNode_1)) or
-     (MatNum = Render_Material_BoundMatNum) then
+     (MatNum = Material1BoundNumber) then
     Exit;
 
-  Render_Material_BoundMatNum := MatNum;
+  Material1BoundNumber := MatNum;
 
   with CurrentState.LastNodes.Material do
   begin
@@ -260,20 +239,13 @@ begin
       UnlitColor := EmissiveColor3Single(MatNum);
 
     Render_Material(
-      { VRML 1.0 specification states that this is a special case
-        and we should treat EmissiveColor as precalculated color.
-        So we can turn lighting off to improve speed (in fact, we are supposed
-        to do that). }
-      (not OnlyEmissiveMaterial) and NodeLit(CurrentGeometry),
       AmbientColor3Single(MatNum),
       DiffuseColor3Single(MatNum),
       SpecularColor3Single(MatNum),
       EmissiveColor3Single(MatNum),
       UnlitColor,
       ShininessExp(MatNum),
-      Opacity(MatNum),
-      FdFogImmune.Value,
-      OutsideBeginEnd);
+      Opacity(MatNum));
   end;
 end;
 
@@ -281,7 +253,6 @@ end;
 procedure TVRMLOpenGLRenderer.Render_BindMaterial_2;
 var
   Material: TNodeMaterial_2;
-  IsNodeLit: boolean;
   UnLitColor: TVector3Single;
 begin
   Assert(not (CurrentGeometry is TVRMLGeometryNode_1));
@@ -295,8 +266,6 @@ begin
 
   Material := CurrentState.ShapeNode.Material;
 
-  IsNodeLit := NodeLit(CurrentGeometry);
-
   if Material <> nil then
   begin
     UnLitColor := White3Single;
@@ -307,7 +276,6 @@ begin
       UnLitColor := Material.FdDiffuseColor.Value;
 
     Render_Material(
-      IsNodeLit,
       VectorScale(Material.FdDiffuseColor.Value,
         Material.FdAmbientIntensity.Value),
       Material.FdDiffuseColor.Value,
@@ -315,20 +283,16 @@ begin
       Material.FdEmissiveColor.Value,
       UnLitColor,
       Material.ShininessExp,
-      Material.Opacity,
-      Material.FdFogImmune.Value, false);
+      Material.Opacity);
   end else
   begin
     Render_Material(
-      false,
       { Colors for lighting don't matter here }
       White3Single, White3Single, White3Single, White3Single,
       { From VRML 2.0 spec about Appearance node: when no Material is
         specified, object is unlit and unlit object color is (1, 1, 1). }
       White3Single,
-      0,
-      1,
-      false, false);
+      { shininess } 0, { opacity } 1);
   end;
 end;
 
@@ -349,7 +313,7 @@ end;
 
   Actually, setting the lit material color is not done if not NodeLit
   (no point in wasting 1 OpenGL call if material will never be used).
-  This optimization is implementd in Render_Material (although it affects
+  This optimization is implementd in Render_MaterialsBegin (although it affects
   this procedure). There we check for NodeLit before turning on
   GL_COLOR_MATERIAL, since when not NodeLit, material has never any use. }
 procedure TVRMLOpenGLRenderer.SetColor(const Color: TVector3Single);
@@ -361,6 +325,5 @@ begin
      (not Attributes.ControlMaterials) then
     Exit;
 
-  glColorv(Vector4f(Attributes.ColorModulated(Color),
-    Material_BoundOpacity));
+  glColorv(Vector4f(Attributes.ColorModulated(Color), Material_BoundOpacity));
 end;

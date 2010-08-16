@@ -166,7 +166,7 @@ type
     { @abstract(Will rendering of this node possibly call Renderer.SetColor?)
 
       In this class, returns @false, set to @true in descendants to allow
-      Renderer.MaterialsBegin do some preparations of you later plan to call
+      Renderer.MaterialsBegin do some preparations if you later plan to call
       SetColor. }
     function NeedsSetColor: boolean; virtual;
   end;
@@ -1946,9 +1946,9 @@ procedure TAbstractMatTexCoordinateRenderer.RenderVertex(IndexNum: Integer);
 begin
   case Mat1Implementation of
     miPerVertexCoordIndexed:
-      Renderer.Render_BindMaterial_1(CoordIndex.ItemsSafe[IndexNum], false);
+      Renderer.Render_BindMaterial_1(CoordIndex.ItemsSafe[IndexNum]);
     miPerVertexMatIndexed:
-      Renderer.Render_BindMaterial_1(MaterialIndex.ItemsSafe[IndexNum], false);
+      Renderer.Render_BindMaterial_1(MaterialIndex.ItemsSafe[IndexNum]);
   end;
 
   inherited;
