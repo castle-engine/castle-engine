@@ -119,17 +119,17 @@ procedure CylinderCone_Proxy(CoordIndex: TDynLongIntArray;
     when stacks = 1 (corresponding to our OverTriangulate = false).
 
     Ideas:
-    - We can't use a single vertex (with one normal)
+    1. We can't use a single vertex (with one normal)
       at the top of the cone, obviously. This would smooth our normal
       vector between all side faces.
 
-    - First real idea for a fix was to use QuadricSlices * top points,
+    2. First real idea for a fix was to use QuadricSlices * top points,
       and make each cone side face a triangle with different top vertex.
       However, this doesn't make cone side edges smooth: as each triangle
       has different normal vector at the top vertex, so normals are not
       matching on neighboring edges.
 
-    - Another idea was to cheat: represent each cone face as a quad.
+    3. Another idea was to cheat: represent each cone face as a quad.
       This means that each cone side face
       has 2 top vertexes, which may have different normal vectors.
 
@@ -151,9 +151,15 @@ procedure CylinderCone_Proxy(CoordIndex: TDynLongIntArray;
       This *would* work if OpenGL would rasterize quads, interpolating
       across them correctly.
 
-    After all, we use the last idea (each cone face is quad),
-    but only because it allows sharing the code between cone and cylinder.
-    It doesn't really make normals perfect on cone top.
+    After all, I use the 2. idea, duplicating top verts but not cheating
+    with quads. Reasons:
+    - since 3. doesn't work anyway, why waste memory
+      (and bandwidth to OpenGL) for sending dummy triangles?
+    - Besides, 3. makes TrianglesCount reported as more than the number
+      of items inside the octree (because degenerate triangles are removed).
+      While this is unavoidable in general (actual IndexedFaceSet may have
+      degenerate triangles), there's no need to cause confusion in this case
+      when we can avoid it.
 
   Why explicit normals?
 
@@ -386,9 +392,8 @@ begin
     SideTopCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
     { Even when TopRadius = 0 (we make a cone), we still generate
-      QuadricSlices * top points, and we'll use them just like a cylinder
-      does. See comments at the beginning about "How to make smooth
-      normals...". }
+      QuadricSlices * top points.
+      See comments at the beginning about "How to make smooth normals...". }
     GenerateCircle(QuadricSlices, TopRadius, Height / 2, Coord.Pointers[SideTopCircleIndex]);
     Coord.Last := Coord.Items[SideTopCircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
@@ -403,14 +408,33 @@ begin
     end;
 
     SideFaceIndex := CoordIndex.Count;
-    CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
-    for I := 0 to QuadricSlices - 1 do
+    if TopRadius <> 0 then
     begin
-      CoordIndex.Items[SideFaceIndex + I * 5    ] := SideTopCircleIndex    + I;
-      CoordIndex.Items[SideFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
-      CoordIndex.Items[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
-      CoordIndex.Items[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex    + I + 1;
-      CoordIndex.Items[SideFaceIndex + I * 5 + 4] := -1;
+      CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
+      for I := 0 to QuadricSlices - 1 do
+      begin
+        CoordIndex.Items[SideFaceIndex + I * 5    ] := SideTopCircleIndex    + I;
+        CoordIndex.Items[SideFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
+        CoordIndex.Items[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+        CoordIndex.Items[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex    + I + 1;
+        CoordIndex.Items[SideFaceIndex + I * 5 + 4] := -1;
+      end;
+    end else
+    begin
+      { We *could* use the above code, that treats each face as a quad,
+        even in case TopRadius = 0. OpenGL rendering works (in practice,
+        rects are converted into two triangles and one of them will not
+        do anything), octree construction works (degenerate triangle is
+        removed). But what's the point in wasting memory (and sending
+        to OpenGL dummy triangles) then? }
+      CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
+      for I := 0 to QuadricSlices - 1 do
+      begin
+        CoordIndex.Items[SideFaceIndex + I * 4    ] := SideBottomCircleIndex + I;
+        CoordIndex.Items[SideFaceIndex + I * 4 + 1] := SideBottomCircleIndex + I + 1;
+        CoordIndex.Items[SideFaceIndex + I * 4 + 2] := SideTopCircleIndex    + I + 1;
+        CoordIndex.Items[SideFaceIndex + I * 4 + 3] := -1;
+      end;
     end;
   end;
 end;
