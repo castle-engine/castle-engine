@@ -345,7 +345,7 @@
 
       In the base TVRMLGeometryNode class, returns @nil indicating
       that no conversion is known. }
-    function Proxy: TVRMLGeometryNode; virtual;
+    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; virtual;
   end;
 
   { }
@@ -900,7 +900,7 @@ begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.Proxy: TVRMLGeometryNode;
+function TVRMLGeometryNode.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
 begin
   Result := nil;
 end;

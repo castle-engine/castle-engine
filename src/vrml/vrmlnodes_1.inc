@@ -85,10 +85,11 @@
     private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
+    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
+
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeCube_1 = class(TVRMLGeometryNode_1)
@@ -123,10 +124,11 @@
     private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
+    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
+
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   { wspolny rodzic dla IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet }

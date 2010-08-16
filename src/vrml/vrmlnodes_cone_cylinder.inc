@@ -1,0 +1,419 @@
+{
+  Copyright 2002-2010 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Utilities for making cone and cylinder shapes. }
+
+{ Generate circle points.
+  Circle is on const Y = Height, centered on XZ = (0, 0) with given Radius.
+  We generate QuadricSlices points, writing them into Points array.
+  Order of coords is along +X, then -Z, then -X, then +Z.
+
+  When Radius = exactly 0, the points are guaranteed to be exactly equal.
+
+  Assumes QuadricSlices >= 1.
+
+  This is exactly like LOOP_OVER_CIRCLE macro,
+  except it adds points to Points[] instead of calling a procedure on them. }
+procedure GenerateCircle(const QuadricSlices: Cardinal;
+  const Radius, Height: Single; Points: PVector3Single);
+var
+  AngleRad: Single;
+  AngleSin, AngleCos: Float;
+  I: integer;
+begin
+  if Radius <> 0 then
+  begin
+    Points^ := Vector3Single(0, Height, Radius);
+    Inc(Points);
+
+    for I := 1 to QuadricSlices - 1 do
+    begin
+      AngleRad := (I / QuadricSlices) * 2 * Pi;
+      SinCos(AngleRad, AngleSin, AngleCos);
+
+      Points^ := Vector3Single(AngleSin * Radius, Height, AngleCos * Radius);
+      Inc(Points);
+    end;
+  end else
+  begin
+    { Actually, above code would also make points exactly equal.
+      But below is still faster. }
+    for I := 0 to QuadricSlices - 1 do
+    begin
+      Points^[0] := 0;
+      Points^[1] := Height;
+      Points^[2] := Height;
+      Inc(Points);
+    end;
+  end;
+end;
+
+{ Make a cylinder (with bottom and top radius
+  potentially different) or a cone (which is indicated by TopRadius = 0).
+  Generates values suitable e.g. for VRML/X3D IndexedFaceSet.
+  This is a universal utility, for both VRML 1.0 and >= 2.0.
+
+  When TopRadius = 0, then Top does not matter (we'll never make
+  a top cap in this case).
+
+  Just like gluCylinder, it makes sense to implement cone and cylinder
+  at once. *Especially* since for a correct normal vectors on cone top,
+  we need to actually represent cone side faces as rectangles.
+  So the topology of the cone is really the same as the topology of cylinder. }
+procedure CylinderCone_Proxy(CoordIndex: TDynLongIntArray;
+  Coord: TDynVector3SingleArray; Normal: TDynVector3SingleArray;
+  OverTriangulate: boolean; const BottomRadius, TopRadius, Height: Single;
+  const Bottom, Side, Top: boolean;
+  KambiTriangulation: TNodeKambiTriangulation);
+
+{ Why explicit normals?
+
+  Initial reasoning for cone:
+    To make correct normals at the top of the cone, we *have* to
+    calculate explicit normals. No other way: if we would use
+    one index for the top cone vertex, we would smooth too much
+    (the whole cone top would be smooth).
+    If we would use separate QuadricSlices * top points,
+    then we would have sharp edges at the top of the cone.
+    The key rule is that at the top vertex, face should be smoothed
+    with it's side neighbor faces, but not with other faces over the top.
+
+  Later reasoning:
+    Hm, actually, above is not true. We currently reuse
+    top points, making each cone side face a rectangle (instead of just
+    a triangle). This allows sharing the vertexes such that normals would
+    be Ok.
+
+    But, still, we can calculate normals here, so let's do it.
+    It's easy and already implemented.
+
+  We use normal not NULL, with normalPerVertex = TRUE, and normalIndex empty.
+  So coordIndex will be used to index normals.
+
+  Why not use specific normalIndex?
+
+  Using normalIndex would allow us to have shorter Coordinate array.
+  For example top/bottom circle, and cone top vertexes, would not have
+  to be duplicated in Coordinate array
+  (just because it needs different normals on different faces).
+  However, this is worthless optimization: for OpenGL vertex array rendering,
+  we would have to replicate the vertex coord anyway, because for OpenGL arrays
+  we can pass only one index (there is no separate index for coords, normals etc.).
+  So we would not save anything (and only increase the work needed for
+  OpenGL rendering). }
+
+var
+  QuadricSlices: Cardinal;
+
+  { For given angle, calculate side face normal vector.
+    Where Angle is in [0...QuadricSlices] range,
+    we will automatically adjust it for correct angle in radians. }
+  function SideNormal(const Angle: Single): TVector3Single;
+  var
+    AngleSin, AngleCos: Float;
+  begin
+    SinCos((Angle / QuadricSlices) * 2 * Pi, AngleSin, AngleCos);
+
+    Result[0] := AngleSin;
+
+    if TopRadius = 0 then
+      { Why? Draw a ortho view of cone, and note that two triangles are
+        similar, and notice a proportion
+        1 / Height = Result[1] / BottomRadius. }
+      Result[1] := BottomRadius / Height else
+      { This assumes that BottomRadius = TopRadius.
+        It's Ok, this procedure is used now only for straight cylinder
+        or a cone. }
+      Result[1] := 0;
+    Result[2] := AngleCos;
+
+    { When Result[1] is zero (straight cylinder), it's already normalized }
+    if Result[1] <> 0 then
+      NormalizeTo1st(Result);
+  end;
+
+var
+  I: Integer;
+  BottomCircleIndex, BottomMiddleIndex, BottomFaceIndex: Integer;
+  TopCircleIndex, TopMiddleIndex, TopFaceIndex: Integer;
+  SideBottomCircleIndex, SideTopCircleIndex, SideFaceIndex: Integer;
+begin
+  QuadricSlices := KambiTriangulation.QuadricSlices;
+
+  { TODO: for VRML 1.0, assign MaterialIndex?
+  cone: if State.LastNodes.MaterialBinding.FdValue.Value in
+     [BIND_PER_PART, BIND_PER_PART_INDEXED] then
+    begin MatSides := 0; MatBottom := 1 end else
+    begin MatSides := 0; MatBottom := 0 end;
+
+ cyl: if State.LastNodes.MaterialBinding.FdValue.Value in
+     [BIND_PER_PART, BIND_PER_PART_INDEXED] then
+  begin MatSides := 0; MatTop := 1; MatBottom := 2 end else
+  begin MatSides := 0; MatTop := 0; MatBottom := 0 end;
+
+  TODO: implicit tex coords?
+
+  TODO: OverTriangulate honour
+  }
+
+  if Bottom then
+  begin
+    BottomCircleIndex := Coord.Count;
+    Coord.Count := Coord.Count + QuadricSlices;
+    Normal.Count := Normal.Count + QuadricSlices;
+    GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, Coord.Pointers[BottomCircleIndex]);
+    for I := 0 to QuadricSlices - 1 do
+      Normal.Items[BottomCircleIndex + I] := Vector3Single(0, -1, 0);
+
+    BottomMiddleIndex := Coord.Count;
+    Coord.Count := Coord.Count + 1;
+    Normal.Count := Normal.Count + 1;
+    Coord.Last := Vector3Single(0, -Height / 2, 0);
+    Normal.Last := Vector3Single(0, -1, 0);
+
+    BottomFaceIndex := CoordIndex.Count;
+    CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
+    for I := 0 to QuadricSlices - 1 do
+    begin
+      if I <> QuadricSlices - 1 then
+        CoordIndex.Items[BottomFaceIndex + I * 4  ] := BottomCircleIndex + I + 1 else
+        CoordIndex.Items[BottomFaceIndex + I * 4  ] := BottomCircleIndex;
+      CoordIndex.Items[BottomFaceIndex + I * 4 + 1] := BottomCircleIndex + I;
+      CoordIndex.Items[BottomFaceIndex + I * 4 + 2] := BottomMiddleIndex;
+      CoordIndex.Items[BottomFaceIndex + I * 4 + 3] := -1;
+    end;
+  end;
+
+  if Top and (TopRadius <> 0) then
+  begin
+    TopCircleIndex := Coord.Count;
+    Coord.Count := Coord.Count + QuadricSlices;
+    Normal.Count := Normal.Count + QuadricSlices;
+    GenerateCircle(QuadricSlices, TopRadius, Height / 2, Coord.Pointers[TopCircleIndex]);
+    for I := 0 to QuadricSlices - 1 do
+      Normal.Items[TopCircleIndex + I] := Vector3Single(0, 1, 0);
+
+    TopMiddleIndex := Coord.Count;
+    Coord.Count := Coord.Count + 1;
+    Normal.Count := Normal.Count + 1;
+    Coord.Last := Vector3Single(0, Height / 2, 0);
+    Normal.Last := Vector3Single(0, 1, 0);
+
+    TopFaceIndex := CoordIndex.Count;
+    CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
+    for I := 0 to QuadricSlices - 1 do
+    begin
+      CoordIndex.Items[TopFaceIndex + I * 4    ] := TopCircleIndex + I;
+      if I <> QuadricSlices - 1 then
+        CoordIndex.Items[TopFaceIndex + I * 4 + 1] := TopCircleIndex + I + 1 else
+        CoordIndex.Items[TopFaceIndex + I * 4 + 1] := TopCircleIndex;
+      CoordIndex.Items[TopFaceIndex + I * 4 + 2] := TopMiddleIndex;
+      CoordIndex.Items[TopFaceIndex + I * 4 + 3] := -1;
+    end;
+  end;
+
+  if Side then
+  begin
+    { Generate another circles, instead of reusing Bottom/TopCircleIndex.
+      That's because these vertices need different normal vectors anyway,
+      so we may as well duplicate their coords (see Cone reasoning). }
+    SideBottomCircleIndex := Coord.Count;
+    Coord.Count := Coord.Count + QuadricSlices;
+    Normal.Count := Normal.Count + QuadricSlices;
+    GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, Coord.Pointers[SideBottomCircleIndex]);
+    for I := 0 to QuadricSlices - 1 do
+      Normal.Items[SideBottomCircleIndex + I] := SideNormal(I);
+
+    SideTopCircleIndex := Coord.Count;
+    Coord.Count := Coord.Count + QuadricSlices;
+    Normal.Count := Normal.Count + QuadricSlices;
+
+    { Even when TopRadius = 0 (we make a cone), we still generate
+      QuadricSlices * top points, and we'll use them just like a cylinder
+      does. This is the only way to get nice normals on cone sides:
+      cheat, and use rectangular faces in place of triangles.
+
+      This is also what OpenGL GLU quadrics do --- you have to use gluCylinder
+      with top radius 0 to get a cone. And at least SGI implementation
+      (see http://cgit.freedesktop.org/mesa/mesa/tree/src/glu/sgi/libutil/quad.c)
+      will actually use GL_QUAD_STRIP (just like for regular cylinder),
+      and the top vertex will be simply duplicated on each face.
+
+      This allows the normal vectors to be perfectly smooth across
+      cone side edges (for this, the two normals on adjacent edges
+      must be equal; the only way to achieve this it to just duplicate
+      top vertex on each face). }
+    GenerateCircle(QuadricSlices, TopRadius, Height / 2, Coord.Pointers[SideTopCircleIndex]);
+    for I := 0 to QuadricSlices - 1 do
+      Normal.Items[SideTopCircleIndex + I] := Normal.Items[SideBottomCircleIndex + I];
+
+    SideFaceIndex := CoordIndex.Count;
+    CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
+    for I := 0 to QuadricSlices - 1 do
+    begin
+      CoordIndex.Items[SideFaceIndex + I * 5    ] := SideTopCircleIndex    + I;
+      CoordIndex.Items[SideFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
+      if I <> QuadricSlices - 1 then
+      begin
+        CoordIndex.Items[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+        CoordIndex.Items[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex    + I + 1;
+      end else
+      begin
+        CoordIndex.Items[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex;
+        CoordIndex.Items[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex;
+      end;
+
+      CoordIndex.Items[SideFaceIndex + I * 5 + 4] := -1;
+    end;
+  end;
+end;
+
+{ VRML 2 proxy --------------------------------------------------------------- }
+
+function TNodeCylinder_2.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+var
+  CoordNode: TNodeCoordinate;
+  NormalNode: TNodeNormal;
+  IFS: TNodeIndexedFaceSet_2 absolute Result;
+begin
+  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  try
+    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+    IFS.FdCoord.Value := CoordNode;
+
+    NormalNode := TNodeNormal.Create('', WWWBasePath);
+    IFS.FdNormal.Value := NormalNode;
+    IFS.FdNormalPerVertex.Value := true;
+
+    CylinderCone_Proxy(IFS.FdCoordIndex.Items,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
+      { TODO: use OverTriangulate in Cylinder_Proxy.
+        We should probably have two different Proxy values,
+        for both OverTriangulate values? }
+      true, FdRadius.Value, FdRadius.Value, FdHeight.Value,
+      FdBottom.Value, FdSide.Value, FdTop.Value,
+      State.LastNodes.KambiTriangulation);
+
+    IFS.FdSolid.Value := FdSolid.Value;
+    if FdTexCoord.CurrentChildAllowed then
+      IFS.FdTexCoord.Value := FdTexCoord.Value;
+
+    { Smooth everything. }
+    IFS.FdCreaseAngle.Value := 4;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TNodeCone_2.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+var
+  CoordNode: TNodeCoordinate;
+  NormalNode: TNodeNormal;
+  IFS: TNodeIndexedFaceSet_2 absolute Result;
+begin
+  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  try
+    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+    IFS.FdCoord.Value := CoordNode;
+
+    NormalNode := TNodeNormal.Create('', WWWBasePath);
+    IFS.FdNormal.Value := NormalNode;
+    IFS.FdNormalPerVertex.Value := true;
+
+    CylinderCone_Proxy(IFS.FdCoordIndex.Items,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
+      { TODO: use OverTriangulate in Cone_Proxy.
+        We should probably have two different Proxy values,
+        for both OverTriangulate values? }
+      true, FdBottomRadius.Value, 0, FdHeight.Value,
+      FdBottom.Value, FdSide.Value, false,
+      State.LastNodes.KambiTriangulation);
+
+    IFS.FdSolid.Value := FdSolid.Value;
+    if FdTexCoord.CurrentChildAllowed then
+      IFS.FdTexCoord.Value := FdTexCoord.Value;
+
+    { Smooth everything. }
+    IFS.FdCreaseAngle.Value := 4;
+  except FreeAndNil(Result); raise end;
+end;
+
+{ VRML 1 proxy --------------------------------------------------------------- }
+
+function TNodeCylinder_1.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+var
+  CoordNode: TNodeCoordinate;
+  NormalNode: TNodeNormal;
+  IFS: TNodeIndexedFaceSet_1 absolute Result;
+begin
+  IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
+  try
+    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+    //TODO: damn, where to place this?
+    //IFS.FdCoord.Value := CoordNode;
+
+    NormalNode := TNodeNormal.Create('', WWWBasePath);
+    //IFS.FdNormal.Value := NormalNode;
+
+    CylinderCone_Proxy(IFS.FdCoordIndex.Items,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
+      { TODO: use OverTriangulate in Cone_Proxy.
+        We should probably have two different Proxy values,
+        for both OverTriangulate values? }
+      true, FdRadius.Value, FdRadius.Value, FdHeight.Value,
+      FdParts.Flags[CYLINDER_PARTS_BOTTOM],
+      FdParts.Flags[CYLINDER_PARTS_SIDES],
+      FdParts.Flags[CYLINDER_PARTS_TOP],
+      State.LastNodes.KambiTriangulation);
+
+    //TODO: ShapeHints?
+    //IFS.FdSolid.Value := true; { TODO: always true for VRML 1.0? check renderer }
+
+    { Smooth everything. }
+    //TODO: ShapeHints?
+    //IFS.FdCreaseAngle.Value := 4;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TNodeCone_1.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
+var
+  CoordNode: TNodeCoordinate;
+  NormalNode: TNodeNormal;
+  IFS: TNodeIndexedFaceSet_1 absolute Result;
+begin
+  IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
+  try
+    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+    //TODO: damn, where to place this?
+    //IFS.FdCoord.Value := CoordNode;
+
+    NormalNode := TNodeNormal.Create('', WWWBasePath);
+    //IFS.FdNormal.Value := NormalNode;
+
+    CylinderCone_Proxy(IFS.FdCoordIndex.Items,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
+      { TODO: use OverTriangulate in Cone_Proxy.
+        We should probably have two different Proxy values,
+        for both OverTriangulate values? }
+      true, FdBottomRadius.Value, 0, FdHeight.Value,
+      FdParts.Flags[CONE_PARTS_BOTTOM], FdParts.Flags[CONE_PARTS_SIDES], false,
+      State.LastNodes.KambiTriangulation);
+
+    //TODO: ShapeHints?
+    //IFS.FdSolid.Value := true; { TODO: always true for VRML 1.0? check renderer }
+
+    { Smooth everything. }
+    //TODO: ShapeHints?
+    //IFS.FdCreaseAngle.Value := 4;
+  except FreeAndNil(Result); raise end;
+end;

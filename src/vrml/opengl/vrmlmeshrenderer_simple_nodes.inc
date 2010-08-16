@@ -107,6 +107,7 @@ type
     property QuadricStacks: Cardinal read FQuadricStacks;
   end;
 
+{$ifdef CONE_NO_PROXY}
   TConeRenderer = class(TQuadricRenderer)
   protected
     procedure RenderCone(
@@ -144,6 +145,7 @@ type
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
+{$endif}
 
   TSphereRenderer = class(TQuadricRenderer)
   protected
@@ -670,8 +672,10 @@ end;
   CullBackFaces and FrontFaceCcw to true, and everything will work Ok!
 }
 
+
 { Cone ----------------------------------------------------------------------- }
 
+{$ifdef CONE_NO_PROXY}
 procedure TConeRenderer.RenderCone(
   const BottomRadius, Height: Single;
   const Side, Bottom: boolean);
@@ -817,7 +821,7 @@ begin
     Node.FdSide.Value,
     Node.FdTop.Value);
 end;
-
+{$endif}
 { Sphere --------------------------------------------------------------------- }
 
 procedure TSphereRenderer.RenderSphere(const Radius: Single);

@@ -1,3 +1,4 @@
+{$define CONE_NO_PROXY}
 {
   Copyright 2002-2010 Michalis Kamburelis.
 
@@ -4301,18 +4302,22 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       ExposedMeshRenderer := TTextRenderer.Create(Self) else
     if AGeometry is TNodeText3D then
       ExposedMeshRenderer := TText3DRenderer.Create(Self) else
+{$ifdef CONE_NO_PROXY}
     if AGeometry is TNodeCone_1 then
       ExposedMeshRenderer := TCone_1Renderer.Create(Self) else
     if AGeometry is TNodeCone_2 then
       ExposedMeshRenderer := TCone_2Renderer.Create(Self) else
+{$endif}
     if AGeometry is TNodeCube_1 then
       ExposedMeshRenderer := TCube_1Renderer.Create(Self) else
     if AGeometry is TNodeBox then
       ExposedMeshRenderer := TBoxRenderer.Create(Self) else
+{$ifdef CONE_NO_PROXY}
     if AGeometry is TNodeCylinder_1 then
       ExposedMeshRenderer := TCylinder_1Renderer.Create(Self) else
     if AGeometry is TNodeCylinder_2 then
       ExposedMeshRenderer := TCylinder_2Renderer.Create(Self) else
+{$endif}
     if AGeometry is TNodeSphere_1 then
       ExposedMeshRenderer := TSphere_1Renderer.Create(Self) else
     if AGeometry is TNodeSphere_2 then
@@ -4516,7 +4521,7 @@ begin
 
   if not InitMeshRenderer(CurrentGeometry) then
   begin
-    CurrentGeometry := Shape.Geometry.Proxy;
+    CurrentGeometry := Shape.Geometry.Proxy(CurrentState);
     if not ((CurrentGeometry <> nil) and InitMeshRenderer(CurrentGeometry)) then
     begin
       VRMLWarning(vwSerious,

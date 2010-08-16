@@ -141,7 +141,7 @@ begin
       Result := EmptyBox3D;
   end else
   begin
-    P := Proxy;
+    P := Proxy(State);
     if P <> nil then
     begin
       try
@@ -169,7 +169,7 @@ begin
       Result := EmptyBox3D;
   end else
   begin
-    P := Proxy;
+    P := Proxy(State);
     if P <> nil then
     begin
       try

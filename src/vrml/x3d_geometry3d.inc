@@ -36,6 +36,8 @@
   end;
 
   TNodeCone_2 = class(TNodeX3DGeometryNode)
+  protected
+    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -61,13 +63,20 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
+    private FFdtexCoord: TSFNode;
+    public property FdtexCoord: TSFNode read FFdtexCoord;
+    function TexCoordField: TSFNode; override;
+
+    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
+
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeCylinder_2 = class(TNodeX3DGeometryNode)
+  protected
+    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -96,10 +105,15 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
+    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
+
+    private FFdtexCoord: TSFNode;
+    public property FdtexCoord: TSFNode read FFdtexCoord;
+    function TexCoordField: TSFNode; override;
+
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeElevationGrid = class(TNodeX3DGeometryNode)
@@ -255,7 +269,7 @@
       field is non-empty and it's first and last points are equal. }
     function CrossSectionClosed: boolean;
 
-    function Proxy: TVRMLGeometryNode; override;
+    function Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
@@ -416,6 +430,9 @@ begin
   FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
+
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+  Fields.Add(FFdtexCoord);
 end;
 
 class function TNodeCone_2.ClassNodeTypeName: string;
@@ -442,6 +459,17 @@ end;
 class function TNodeCone_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
+end;
+
+procedure TNodeCone_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  inherited;
+  FdtexCoord.EnumerateValid(Func);
+end;
+
+function TNodeCone_2.TexCoordField: TSFNode;
+begin
+  Result := FdTexCoord;
 end;
 
 constructor TNodeCylinder_2.Create(const ANodeName: string;
@@ -474,6 +502,9 @@ begin
   FFdtop := TSFBool.Create(Self, 'top', true);
   FFdtop.Exposed := false;
   Fields.Add(FFdtop);
+
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+  Fields.Add(FFdtexCoord);
 end;
 
 class function TNodeCylinder_2.ClassNodeTypeName: string;
@@ -500,6 +531,17 @@ end;
 class function TNodeCylinder_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
+end;
+
+procedure TNodeCylinder_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  inherited;
+  FdtexCoord.EnumerateValid(Func);
+end;
+
+function TNodeCylinder_2.TexCoordField: TSFNode;
+begin
+  Result := FdTexCoord;
 end;
 
 constructor TNodeElevationGrid.Create(const ANodeName: string;
@@ -738,7 +780,7 @@ begin
                           CrossSectionPoints.Items[0]);
 end;
 
-function TNodeExtrusion.Proxy: TVRMLGeometryNode;
+function TNodeExtrusion.Proxy(State: TVRMLGraphTraverseState): TVRMLGeometryNode;
 
 { Some of the things that are non-optimal when you will render
   Extrusion using this Proxy instead of directly rendering node:
