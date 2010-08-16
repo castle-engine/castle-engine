@@ -423,8 +423,8 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
       { At this point, remove not relevant texCoords. }
       if TexCoordsCount > RelevantTexCoordsCount then
       begin
-        MTexCoord.FdTexCoord.TheCount := RelevantTexCoordsCount;
-        TexCoordsCount := MTexCoord.FdTexCoord.Count;
+        MTexCoord.FdTexCoord.Count := RelevantTexCoordsCount;
+        TexCoordsCount := RelevantTexCoordsCount;
       end;
 
       MTexCoord.FdTexCoord.Add(TexGen);

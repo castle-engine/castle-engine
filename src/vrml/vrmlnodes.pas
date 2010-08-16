@@ -910,10 +910,18 @@ type
     FParentNode: TVRMLNode;
     FAllowedChildren: TVRMLNodeClassesList;
     FAllowedChildrenAll: boolean;
-    procedure SetCount(const Value: Integer);
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject); override;
+    { Get or set the number of items.
+      When increasing this, remember that new items of TMFNode
+      will be @nil, and generally you should initialize them to
+      something else then @nil (VRML/X3D don't really allow
+      NULL items inside MFNode fields).
+      @groupBegin }
+    function GetCount: Integer; override;
+    procedure SetCount(const Value: Integer); override;
+    { @groupEnd }
   public
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
       const AName: string); override;
@@ -974,13 +982,6 @@ type
     procedure Clear;
     procedure AssignItems(SourceItems: TVRMLNodesList);
     procedure Replace(Index: Integer; Node: TVRMLNode);
-
-    { Count of items. When increasing this, remember that new items
-      will be @nil, and generally you should initialize them to
-      something else then @nil (VRML/X3D don't really allow
-      NULL items inside MFNode fields). }
-    function Count: Integer; override;
-    property TheCount: Integer read Count write SetCount;
 
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
@@ -3022,7 +3023,7 @@ begin
   end;
 end;
 
-function TMFNode.Count: integer;
+function TMFNode.GetCount: integer;
 begin
   Result := Items.Count;
 end;

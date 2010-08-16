@@ -676,8 +676,19 @@ type
   EVRMLMultFieldDifferentCount = class(Exception);
 
   TVRMLMultField = class(TVRMLField)
+  protected
+    { Get or set the number of items, see @link(Count).
+      @groupBegin }
+    function GetCount: Integer; virtual; abstract;
+    procedure SetCount(const Value: Integer); virtual; abstract;
+    { @groupEnd }
   public
-    function Count: integer; virtual; abstract;
+    { Number of items in this field.
+
+      Remember that increasing this generally sets new items to undefined
+      values (see SetCount documentation of particular descendant for docs).
+      So you usually want to initialize them afterwards to something correct. }
+    property Count: Integer read GetCount write SetCount;
 
     { If SecondValue.Count <> Count, raises EVRMLMultFieldDifferentCount }
     procedure CheckCountEqual(SecondValue: TVRMLMultField);
@@ -753,6 +764,15 @@ type
       In this class SaveToStreamDoNewLineAfterRawItem always returns @true
       (although SaveToStreamValue may sometimes ignore it, if it knows better). }
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; virtual;
+
+    { Get or set the number of items.
+      In TVRMLSimpleMultField descendants, these simply get/set RawItems.Count
+      (you could do it directly as well, since operating on RawItems directly
+      is Ok).
+      @groupBegin }
+    function GetCount: Integer; override;
+    procedure SetCount(const Value: Integer); override;
+    { @groupEnd }
   public
     { Items of this field.
 
@@ -760,9 +780,6 @@ type
       in descendants' constructor, it will be always freed in our
       destructor. }
     RawItems: TDynArrayBase;
-
-    { Number of items in this field. Simply returns RawItems.Count. }
-    function Count: integer; override;
 
     { A corresponding SF field class. All items that will be passed
       to RawItemsAdd will be of this class. }
@@ -2788,8 +2805,15 @@ begin
  inherited;
 end;
 
-function TVRMLSimpleMultField.Count: integer;
-begin result := RawItems.Count end;
+function TVRMLSimpleMultField.GetCount: Integer;
+begin
+  Result := RawItems.Count;
+end;
+
+procedure TVRMLSimpleMultField.SetCount(const Value: Integer);
+begin
+  RawItems.Count := Value;
+end;
 
 function TVRMLSimpleMultField.CreateItemBeforeParse: TVRMLSingleField;
 begin
