@@ -970,6 +970,9 @@ type
       Using this method to free the node ensures this. }
     procedure NodeFreeRemovingFromAllParents(Node: TVRMLNode);
 
+    { Remove the geometry of this shape from the scene. }
+    procedure RemoveShapeGeometry(Shape: TVRMLShape);
+
     { Notify scene that potentially everything changed
       in the VRML graph. This includes adding/removal of some nodes within
       RootNode graph and changing their fields' values.
@@ -2781,6 +2784,19 @@ begin
   BeforeNodesFree;
   Node.FreeRemovingFromAllParents;
   ChangedAll;
+end;
+
+procedure TVRMLScene.RemoveShapeGeometry(Shape: TVRMLShape);
+begin
+  { Do not use Shape.Geometry here, as it may be a temporary result
+    of OriginalGeometry.Proxy.
+
+    When the shape is freed (which happens in BeforeNodesFree called
+    at the beginning of  NodeFreeRemovingFromAllParents),
+    the proxy result is freed too. So using here Shape.Geometry
+    would not only not free what you think, it would also cause segfault. }
+
+  NodeFreeRemovingFromAllParents(Shape.OriginalGeometry);
 end;
 
 procedure TVRMLScene.ChangedAll;
