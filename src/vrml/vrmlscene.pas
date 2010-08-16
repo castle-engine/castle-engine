@@ -3479,7 +3479,8 @@ begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node then
+          if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node) or
+             (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = Node) then
             ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, true);
       finally FreeAndNil(SI) end;
