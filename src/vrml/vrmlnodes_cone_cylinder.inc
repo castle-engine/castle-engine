@@ -96,9 +96,8 @@ end;
   This is a universal utility, for both VRML 1.0 and >= 2.0.
 
   Just like gluCylinder, it makes sense to implement cone and cylinder
-  at once. *Especially* since for a correct normal vectors on cone top,
-  we need to actually represent cone side faces as rectangles.
-  So the topology of the cone is really the same as the topology of cylinder.
+  at once. Their topology is the same (yes, even at the cone top,
+  see comments in the implementation).
 
   @param(TexCoord Texture coordinates to generate.
     Pass @nil if you don't need them.)
@@ -113,43 +112,75 @@ procedure CylinderCone_Proxy(CoordIndex: TDynLongIntArray;
   const Bottom, Side, Top: boolean;
   KambiTriangulation: TNodeKambiTriangulation);
 
-{ Why explicit normals?
+{ How to make nice normals at the top of the cone?
 
-  Initial reasoning for cone:
-    To make correct normals at the top of the cone, we *have* to
-    calculate explicit normals. No other way: if we would use
-    one index for the top cone vertex, we would smooth too much
-    (the whole cone top would be smooth).
-    If we would use separate QuadricSlices * top points,
-    then we would have sharp edges at the top of the cone.
-    The key rule is that at the top vertex, face should be smoothed
-    with it's side neighbor faces, but not with other faces over the top.
+    It's simply impossible to get nice smooth normals without OverTriangulate.
+    OpenGL gluCylinder also fails to make smooth cone normals
+    when stacks = 1 (corresponding to our OverTriangulate = false).
 
-  Later reasoning:
-    Hm, actually, above is not true. We currently reuse
-    top points, making each cone side face a rectangle (instead of just
-    a triangle). This allows sharing the vertexes such that normals would
-    be Ok.
+    Ideas:
+    - We can't use a single vertex (with one normal)
+      at the top of the cone, obviously. This would smooth our normal
+      vector between all side faces.
 
-    But, still, we can calculate normals here, so let's do it.
-    It's easy and already implemented.
+    - First real idea for a fix was to use QuadricSlices * top points,
+      and make each cone side face a triangle with different top vertex.
+      However, this doesn't make cone side edges smooth: as each triangle
+      has different normal vector at the top vertex, so normals are not
+      matching on neighboring edges.
+
+    - Another idea was to cheat: represent each cone face as a quad.
+      This means that each cone side face
+      has 2 top vertexes, which may have different normal vectors.
+
+      This is also what OpenGL GLU quadrics do --- you have to use gluCylinder
+      with top radius 0 to get a cone. And at least SGI implementation
+      (see http://cgit.freedesktop.org/mesa/mesa/tree/src/glu/sgi/libutil/quad.c)
+      will actually use GL_QUAD_STRIP (just like for regular cylinder),
+      and the top vertex will be simply duplicated on each face.
+
+      For a moment I thought this will work, i.e. will make edges smooth.
+      Normals match across neighboring edges, right?
+
+      ... Except it doesn't. Probably because we simply split this
+      quad into 2 triangles (during IndexedFaceSet rendering).
+      And OpenGL quad rendering does the same, at least on chantal GPU.
+      So one triangle is simply empty (rasterization doesn't produce anything),
+      and the edges are still sharp.
+
+      This *would* work if OpenGL would rasterize quads, interpolating
+      across them correctly.
+
+    After all, we use the last idea (each cone face is quad),
+    but only because it allows sharing the code between cone and cylinder.
+    It doesn't really make normals perfect on cone top.
+
+  Why explicit normals?
+
+    Initially, I thought that explicit normals are needed to set
+    correct normals at the top of the cone. But, eventually,
+    I found out that it's impossible to make them really smooth
+    --- see the above discussion.
+
+    The current reason: because we can. It's easy and already implemented.
 
   We use normal not NULL, with normalPerVertex = TRUE, and normalIndex empty.
   So coordIndex will be used to index normals.
 
   Why not use specific normalIndex?
 
-  Using normalIndex would allow us to have shorter Coordinate array.
-  For example top/bottom circle, and cone top vertexes, would not have
-  to be duplicated in Coordinate array
-  (just because it needs different normals on different faces).
-  However, this is worthless optimization: for OpenGL vertex array rendering,
-  we would have to replicate the vertex coord anyway, because for OpenGL arrays
-  we can pass only one index (there is no separate index for coords, normals etc.).
-  So we would not save anything (and only increase the work needed for
-  OpenGL rendering).
+    Using normalIndex would allow us to have shorter Coordinate array.
+    For example top/bottom circle, and cone top vertexes, would not have
+    to be duplicated in Coordinate array
+    (just because it needs different normals on different faces).
+    However, this is worthless optimization: for OpenGL vertex array rendering,
+    we would have to replicate the vertex coord anyway, because for OpenGL arrays
+    we can pass only one index (there is no separate index for coords, normals etc.).
+    So we would not save anything (and only increase the work needed for
+    OpenGL rendering).
 
-  Besides, texCoordIndex would then have to be equal to normalIndex. }
+    Besides, texCoordIndex would then have to be equal to normalIndex.
+}
 
 var
   QuadricSlices: Cardinal;
@@ -283,7 +314,7 @@ begin
   begin
     { Generate another circles, instead of reusing Bottom/TopCircleIndex.
       That's because these vertices need different normal vectors anyway,
-      so we may as well duplicate their coords (see Cone reasoning).
+      so we may as well duplicate their coords.
 
       We generate QuadricSlices + 1 edges (instead of making QuadricSlices
       edges, and reusing the first edge for the last edge).
@@ -309,19 +340,8 @@ begin
     Coord.Count := Coord.Count + QuadricSlices + 1;
     { Even when TopRadius = 0 (we make a cone), we still generate
       QuadricSlices * top points, and we'll use them just like a cylinder
-      does. This is the only way to get nice normals on cone sides:
-      cheat, and use rectangular faces in place of triangles.
-
-      This is also what OpenGL GLU quadrics do --- you have to use gluCylinder
-      with top radius 0 to get a cone. And at least SGI implementation
-      (see http://cgit.freedesktop.org/mesa/mesa/tree/src/glu/sgi/libutil/quad.c)
-      will actually use GL_QUAD_STRIP (just like for regular cylinder),
-      and the top vertex will be simply duplicated on each face.
-
-      This allows the normal vectors to be perfectly smooth across
-      cone side edges (for this, the two normals on adjacent edges
-      must be equal; the only way to achieve this it to just duplicate
-      top vertex on each face). }
+      does. See comments at the beginning about "How to make smooth
+      normals...". }
     GenerateCircle(QuadricSlices, TopRadius, Height / 2, Coord.Pointers[SideTopCircleIndex]);
     Coord.Last := Coord.Items[SideTopCircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
