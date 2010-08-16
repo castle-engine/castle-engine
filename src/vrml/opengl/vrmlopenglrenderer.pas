@@ -4317,11 +4317,11 @@ procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
       ExposedMeshRenderer := TCylinder_1Renderer.Create(Self) else
     if AGeometry is TNodeCylinder_2 then
       ExposedMeshRenderer := TCylinder_2Renderer.Create(Self) else
-{$endif}
     if AGeometry is TNodeSphere_1 then
       ExposedMeshRenderer := TSphere_1Renderer.Create(Self) else
     if AGeometry is TNodeSphere_2 then
       ExposedMeshRenderer := TSphere_2Renderer.Create(Self) else
+{$endif}
     if AGeometry is TNodeRectangle2D then
       ExposedMeshRenderer := TRectangle2DRenderer.Create(Self) else
     if AGeometry is TNodePlane then
