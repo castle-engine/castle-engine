@@ -363,10 +363,16 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
+    private FFdtexCoord: TSFNode;
+    public property FdtexCoord: TSFNode read FFdtexCoord;
+    function TexCoordField: TSFNode; override;
+
+    function Proxy(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
 {$endif read_interface}
@@ -1196,6 +1202,9 @@ begin
   FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
+
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+  Fields.Add(FFdtexCoord);
 end;
 
 class function TNodeSphere_2.ClassNodeTypeName: string;
@@ -1222,6 +1231,11 @@ end;
 class function TNodeSphere_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
+end;
+
+function TNodeSphere_2.TexCoordField: TSFNode;
+begin
+  Result := FdTexCoord;
 end;
 
 procedure RegisterGeometry3DNodes;

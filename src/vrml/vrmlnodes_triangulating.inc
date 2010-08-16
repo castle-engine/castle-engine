@@ -16,11 +16,6 @@
 { TVRMLGeometryNode.Triangulate (calls LocalTriangulate)
   -----------------------------------------------------------------------------}
 
-{ just a shortcuts for names often used in this file }
-{$define QUADRIC_SLICES := (State.LastNodes.KambiTriangulation.QuadricSlices)}
-{$define QUADRIC_STACKS := (State.LastNodes.KambiTriangulation.QuadricStacks)}
-{$define RECT_DIVISIONS := (State.LastNodes.KambiTriangulation.RectDivisions)}
-
 type
   TTriangulateRedirect = class
     Transform: PMatrix4Single;
@@ -199,33 +194,6 @@ begin
 end;
 
 { metody LocalTriangulate konkretnych node'ow ---------------------------------}
-
-{$define LOOP_OVER_CIRCLE_DECLARE:=
-var
-  LOC_AngleRad: Single;
-  LOC_AngleSin, LOC_AngleCos: Float;
-  LOC_LastPt, LOC_Pt: TVector3Single;
-  LOC_i: integer;}
-
-{$define LOOP_OVER_CIRCLE:=
-begin
-  LOC_LastPt := Vector3Single(0, LOOP_OVER_CIRCLE_HEIGHT, LOOP_OVER_CIRCLE_RADIUS);
-
-  for LOC_i := 1 to QUADRIC_SLICES-1 do
-  begin
-    LOC_AngleRad := (LOC_i / QUADRIC_SLICES) * 2 * Pi;
-    SinCos(LOC_AngleRad, LOC_AngleSin, LOC_AngleCos);
-    LOC_Pt := Vector3Single(
-      LOC_AngleSin * LOOP_OVER_CIRCLE_RADIUS,
-      LOOP_OVER_CIRCLE_HEIGHT,
-      LOC_AngleCos * LOOP_OVER_CIRCLE_RADIUS);
-    LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
-    LOC_LastPt := LOC_Pt;
-  end;
-
-  LOC_Pt := Vector3Single(0, LOOP_OVER_CIRCLE_HEIGHT, LOOP_OVER_CIRCLE_RADIUS);
-  LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
-end;}
 
 procedure Box_LocalTriangulate(
   Shape: TObject; State: TVRMLGraphTraverseState;
@@ -448,138 +416,6 @@ procedure TNodePointSet_2.LocalTriangulate(Shape: TObject; State: TVRMLGraphTrav
 begin
   { No triangles }
 end;
-
-procedure Sphere_LocalTriangulate(
-  Shape: TObject;
-  State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-  const FdRadiusValue: Single);
-
-  procedure StackHigherLine(StackNum: integer; out Radius, Height: Single);
-  { dla StackNum = 0..QUADRIC_STACKS (tak, ta funkcja wyjatkowo akceptuje
-    StakNum = 0 bo wprawdzie warstwa o numerze 0 nie istnieje to jednak
-    istnieje jej gorna linia, to jest przeciez dolny wierzcholek sfery.)
-    oblicza promien i wysokosc (y) gornej obreczy warstwy StackNum. }
-  var
-    alfa, s, c: Float;
-  begin
-    { Policz Radius dla sfery o promieniu 1 i pomnoz przez FdRadiusValue.
-      Podobnie radzimy sobie z Height. }
-    { Dzielimy tutaj obrecz (poludniki) na QUADRIC_STACKS rownych
-      kawalkow. To jest duzo lepszy pomysl niz dzielic os sfery na
-      rowne kawalki; mozna to sprawdzic aktywujac na chwile ten stary
-      kod :
-        Radius := Sqrt( 1 - Sqr(1 - 2*StackNum/QUADRIC_STACKS) ) * FdRadiusValue;
-        Height:=(-1 + StackNum * 2/QUADRIC_STACKS) * FdRadiusValue;
-      On liczy Radius i Height dzielac os na rowne kawalki.
-      Mozna zobaczyc ze wyniki sa duzo gorsze, przy czubku sfera jest bardzo
-      nieproporcjonalnie gorzej triangulowana. Nawiasem mowiac
-      quadrici OpenGLa tez dziela obrecz, a nie os (no i bardzo dobrze),
-      sprawdzilem. }
-    alfa := Pi * StackNum / QUADRIC_STACKS;
-    SinCos(alfa, s, c);
-    Radius := s * FdRadiusValue;
-    Height := -c * FdRadiusValue;
-  end;
-
-var
-  BottomPt, TopPt: TVector3Single;
-  BottomAndTopStackRadius, BottomHeight, TopHeight :Single;
-
-  procedure LOOP_OVER_CIRCLE_PROC(LastPt, Pt: TVector3Single);
-  begin
-    NewTriangleProc(Triangle3Single(Pt, LastPt, BottomPt), Shape, State, 0, -1, -1);
-    Pt[1] := TopHeight;
-    LastPt[1] := TopHeight;
-    NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), Shape, State, 0, -1, -1);
-  end;
-
-var
-  AngleRad, LowRadius, HighRadius, LowHeight, HighHeight: Single;
-  HighLastPt, HighPt, LowLastPt, LowPt: TVector3Single;
-  i, StackNum: integer;
-  SinAngleRad, CosAngleRad: Float;
-LOOP_OVER_CIRCLE_DECLARE
-begin
-  { sfera jest zawsze triangulowana tak samo, bez wzgledu na OverTriangulate.
-    Robimy sfere UV (poludniki + rownolezniki), nie IcoSphere
-    (bo jakoscia sfery UV mozna latwiej (z wieksza dokladnoscia) sterowac).
-    Chociaz moze kiedys zmienie zdanie ?  }
-
-  { StackNum to numer robionego stack (w/g definicji stacks and slices z
-    OpenGLowych quadricow). StackNum zmienia sie od 1 do QUADRIC_STACKS,
-    w kazdej warstwie robimy QUADRIC_SLICES czworokatow (z wyjatkiem
-    warstw pierwszej i ostatniej, gdzie robimy trojkaty).
-    Zwracam uwage ze linii jest tak naprawde QUADRIC_STACKS+1,
-    ale prawdziwych linii (takich ktore nie skladaja sie tylko z jednego
-    zawsze tego samego pixla) jest QUADRIC_STACKS-1 }
-
-  { najpierw narysuj warstwe pierwsza i ostatnia, czyli dla StackNum = 1 i
-    QUADRIC_STACKS }
-  BottomPt := Vector3Single(0, -FdRadiusValue, 0);
-  TopPt := Vector3Single(0, FdRadiusValue, 0);
-  StackHigherLine(1, BottomAndTopStackRadius, BottomHeight);
-  TopHeight := -BottomHeight;
-
-  {$define LOOP_OVER_CIRCLE_RADIUS := BottomAndTopStackRadius}
-  {$define LOOP_OVER_CIRCLE_HEIGHT := BottomHeight}
-  LOOP_OVER_CIRCLE
-
-  for StackNum := 2 to QUADRIC_STACKS-1 do
-  begin
-    StackHigherLine(StackNum-1, LowRadius, LowHeight);
-    StackHigherLine(StackNum, HighRadius, HighHeight);
-
-    LowLastPt := Vector3Single(0, LowHeight, LowRadius);
-    HighLastPt := Vector3Single(0, HighHeight, HighRadius);
-
-    for i := 1 to QUADRIC_SLICES - 1 do
-    begin
-      AngleRad := (i/QUADRIC_SLICES)*2*Pi;
-      SinCos(AngleRad, SinAngleRad, CosAngleRad);
-
-      LowPt  := Vector3Single(SinAngleRad*LowRadius , LowHeight , CosAngleRad*LowRadius );
-      HighPt := Vector3Single(SinAngleRad*HighRadius, HighHeight, CosAngleRad*HighRadius);
-
-      { make quad }
-      NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), Shape, State, 0, -1, -1);
-      NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), Shape, State, 0, -1, -1);
-
-      LowLastPt := LowPt;
-      HighLastPt := HighPt;
-    end;
-
-    { By explicitly setting last 2 points (as opposed to using
-      AngleRad = 1 * 2 * Pi in the last "for" loop run above) I make
-      sure that vertexes positions match exactly. This is crucial to make
-      triangulated sphere's edges match exactly, for correct rendering
-      and for correct detection of Manifold/BorderEdges for shadows. }
-
-    LowPt := Vector3Single(0, LowHeight, LowRadius);
-    HighPt := Vector3Single(0, HighHeight, HighRadius);
-    { make quad }
-    NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), Shape, State, 0, -1, -1);
-    NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), Shape, State, 0, -1, -1);
-  end;
-end;
-
-procedure TNodeSphere_1.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
-begin
-  Sphere_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
-    FdRadius.Value);
-end;
-
-procedure TNodeSphere_2.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
-begin
-  Sphere_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
-    FdRadius.Value);
-end;
-
-{$undef QUADRIC_SLICES}
-{$undef QUADRIC_STACKS}
-{$undef RECT_DIVISIONS}
 
 { TNodeElevationGrid --------------------------------------------------------- }
 

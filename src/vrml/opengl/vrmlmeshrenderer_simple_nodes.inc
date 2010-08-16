@@ -93,6 +93,7 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
+{$ifdef CONE_NO_PROXY}
   { Common class for quadric rendering, with some helper methods/properties. }
   TQuadricRenderer = class(TPrimitiveRenderer)
   private
@@ -107,7 +108,6 @@ type
     property QuadricStacks: Cardinal read FQuadricStacks;
   end;
 
-{$ifdef CONE_NO_PROXY}
   TConeRenderer = class(TQuadricRenderer)
   protected
     procedure RenderCone(
@@ -145,7 +145,6 @@ type
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
-{$endif}
 
   TSphereRenderer = class(TQuadricRenderer)
   protected
@@ -164,6 +163,7 @@ type
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
+{$endif}
 
 { TPrimitiveRenderer --------------------------------------------------------- }
 
@@ -632,6 +632,7 @@ end;
 
 { TQuadricRenderer ----------------------------------------------------------- }
 
+{$ifdef CONE_NO_PROXY}
 constructor TQuadricRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
@@ -675,7 +676,6 @@ end;
 
 { Cone ----------------------------------------------------------------------- }
 
-{$ifdef CONE_NO_PROXY}
 procedure TConeRenderer.RenderCone(
   const BottomRadius, Height: Single;
   const Side, Bottom: boolean);
@@ -821,7 +821,7 @@ begin
     Node.FdSide.Value,
     Node.FdTop.Value);
 end;
-{$endif}
+
 { Sphere --------------------------------------------------------------------- }
 
 procedure TSphereRenderer.RenderSphere(const Radius: Single);
@@ -875,3 +875,4 @@ begin
   Node := Geometry as TNodeSphere_2;
   RenderSphere(Node.FdRadius.Value);
 end;
+{$endif}
