@@ -1424,7 +1424,7 @@ type
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
     procedure DrawTriangle(const Tri: TTriangle3Single;
-      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+      Shape: TObject; State: TVRMLGraphTraverseState;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
     {$endif}
 
@@ -4080,7 +4080,7 @@ end;
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
 procedure TVRMLOpenGLRenderer.DrawTriangle(const Tri: TTriangle3Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+  Shape: TObject; State: TVRMLGraphTraverseState;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   Render_BindMaterial_1(MatNum);
