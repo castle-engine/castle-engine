@@ -4510,26 +4510,28 @@ begin
   CurrentShape := Shape;
   CurrentState := Shape.State;
 
-  CurrentGeometry := Shape.Geometry;
+  CurrentGeometry := Shape.OriginalGeometry;
 
   {$ifndef USE_VRML_NODES_TRIANGULATION}
   { We have to initalize MeshRenderer to something non-nil.
 
-    First try to initialize from Shape.Geometry, if this fails
-    --- try to use Shape.Geometry.Proxy. This is to allow nodes with a Proxy
+    First try to initialize from Shape.OriginalGeometry, only if this fails
+    --- try to use Shape.Geometry (possibly through Proxy).
+    This is to allow nodes with a Proxy
     still be rendered using direct specialized method, if available. }
-
   if not InitMeshRenderer(CurrentGeometry) then
   begin
-    CurrentGeometry := Shape.Geometry.Proxy(CurrentState, true);
-    if not ((CurrentGeometry <> nil) and InitMeshRenderer(CurrentGeometry)) then
+    CurrentGeometry := Shape.Geometry;
+    Assert(CurrentGeometry <> nil);
+    if not ((CurrentGeometry <> Shape.OriginalGeometry) and
+      InitMeshRenderer(CurrentGeometry)) then
     begin
       VRMLWarning(vwSerious,
-        { We display for user Shape.Geometry.NodeTypeName, as it's
-          Shape.Geometry that cannot be rendered. User is not interested in
+        { We display for user Shape.OriginalGeometry.NodeTypeName, as it's
+          Shape.OriginalGeometry that cannot be rendered. User is not interested in
           the implementation fact that possibly actually proxy existed
           and could not be rendered either. }
-        'Rendering of node kind "' + Shape.Geometry.NodeTypeName + '" not implemented');
+        'Rendering of node kind "' + Shape.OriginalGeometry.NodeTypeName + '" not implemented');
       Exit;
     end;
   end;
@@ -4564,8 +4566,6 @@ begin
   finally
     FreeAndNil(ExposedMeshRenderer);
 
-    if CurrentGeometry <> Shape.Geometry then
-      FreeAndNil(CurrentGeometry);
     { Just for safety, force them @nil now }
     CurrentGeometry := nil;
     CurrentState := nil;

@@ -660,16 +660,16 @@ begin
   begin
     if CreaseAngle >= Pi then
     begin
-      Normals := Shape.NormalsSmooth(Geometry);
+      Normals := Shape.NormalsSmooth;
       NorImplementation := niPerVertexCoordIndexed;
     end else
     begin
-      Normals := Shape.NormalsCreaseAngle(Geometry, CreaseAngle);
+      Normals := Shape.NormalsCreaseAngle(CreaseAngle);
       NorImplementation := niPerVertexNonIndexed;
     end;
   end else
   begin
-    Normals := Shape.NormalsFlat(Geometry);
+    Normals := Shape.NormalsFlat;
     NorImplementation := niPerFace;
   end;
   NormalsCcw := true; { always generated from CCW }

@@ -103,7 +103,7 @@ type
     function FindGeometryNodeName(const GeometryNodeName: string;
       OnlyActive: boolean = false): TVRMLShape;
 
-    { Look for shae with Geometry that has a parent named ParentNodeName.
+    { Look for shape with Geometry that has a parent named ParentNodeName.
       Parent is searched by Geometry.TryFindParentNodeByName.
       Returns @nil if not found. }
     function FindShapeWithParentNamed(const ParentNodeName: string;
@@ -162,12 +162,16 @@ type
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
     Validities: TVRMLShapeValidities;
-    FGeometry: TVRMLGeometryNode;
     FState: TVRMLGraphTraverseState;
     FBoundingSphereCenter: TVector3Single;
     FBoundingSphereRadiusSqr: Single;
+    FOriginalGeometry: TVRMLGeometryNode;
+    FGeometry: array [boolean] of TVRMLGeometryNode;
 
     procedure ValidateBoundingSphere;
+    { Make FGeometry nil (unset), freeing eventual Proxy instances if necessary.
+      Next Geometry() call cause Proxy to be recalculated. }
+    procedure FreeGeometry;
   private
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
@@ -211,10 +215,17 @@ type
     procedure FreeOctreeTriangles;
   public
     constructor Create(AParentScene: TObject;
-      AGeometry: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
+      AOriginalGeometry: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
     destructor Destroy; override;
 
-    property Geometry: TVRMLGeometryNode read FGeometry;
+    { Original geometry node, that you get from a VRML/X3D graph. }
+    property OriginalGeometry: TVRMLGeometryNode read FOriginalGeometry;
+
+    { Geometry of this shape.
+      This may come from initial VRML/X3D node graph (see OriginalGeometry),
+      or it may be processed by @link(TVRMLGeometryNode.Proxy)
+      for easier handling. }
+    function Geometry(const OverTriangulate: boolean = true): TVRMLGeometryNode;
 
     { State of this shape.
       This object is owned by TVRMLShape class --- we will do State.Free
@@ -406,29 +417,19 @@ type
 
     { Create normals suitable for this shape.
 
-      You can call this only for GeometryProxy being coordinate-based
+      You can call this only when Geometry is coordinate-based
       VRML geometry, implementing Coord and having non-empty coordinates
-      (that is, GeometryProxy.Coord returns @true and sets ACoord <> @nil),
-      and having GeometryProxy.CoordIndex <> @nil.
-
-      GeometryProxy is the geometry of this shape. In cases when
-      our @link(Geometry) field is already a coordinate-based node,
-      you can and should simply pass it here. In cases when our Geometry
-      is not coordinate-based, but you have a Proxy that should be used
-      instead (see TVRMLGeometryNode.Proxy) you should pass here this proxy.
-      We assume that geometry of this proxy is directly derived from original
-      geometry defined by @link(Geometry) field --- for example,
-      normals will be cached until LocalGeometryChanged (or Changed
-      with PossiblyLocalGeometryChanged = @true).
+      (that is, Geometry.Coord returns @true and sets ACoord <> @nil),
+      and having Geometry.CoordIndex <> @nil.
 
       @unorderedList(
         @item(Smooth normals are perfectly smooth.
           They are per-vertex, calculated by CreateSmoothNormalsCoordinateNode.
           You can call this only for VRML coordinate-based
-          GeometryProxy implementing TVRMLGeometryNode.CoordPolygons.
+          Geometry implementing TVRMLGeometryNode.CoordPolygons.
 
           As an exception, you can call this even when coords are currently
-          empty (GeometryProxy.Coord returns @true but ACoord is @nil),
+          empty (Geometry.Coord returns @true but ACoord is @nil),
           then result is also @nil.)
 
         @item(Flat normals are per-face.
@@ -445,11 +446,12 @@ type
       Normals generated always point out from CCW (FromCCW = @true
       is passed to all Create*Normals internally).
 
+      Note that this always uses Geometry with OverTriangulate = @true.
+
       @groupBegin }
-    function NormalsSmooth(GeometryProxy: TVRMLGeometryNode): TDynVector3SingleArray;
-    function NormalsFlat(GeometryProxy: TVRMLGeometryNode): TDynVector3SingleArray;
-    function NormalsCreaseAngle(GeometryProxy: TVRMLGeometryNode;
-      const CreaseAngle: Single): TDynVector3SingleArray;
+    function NormalsSmooth: TDynVector3SingleArray;
+    function NormalsFlat: TDynVector3SingleArray;
+    function NormalsCreaseAngle(const CreaseAngle: Single): TDynVector3SingleArray;
     { @groupEnd }
 
     procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
@@ -642,7 +644,7 @@ begin
     while SI.GetNext do
     begin
       Result := SI.Current;
-      if Result.Geometry.NodeName = GeometryNodeName then Exit;
+      if Result.OriginalGeometry.NodeName = GeometryNodeName then Exit;
     end;
   finally FreeAndNil(SI) end;
   Result := nil;
@@ -658,7 +660,7 @@ begin
     while SI.GetNext do
     begin
       Result := SI.Current;
-      if Result.Geometry.TryFindParentByName(ParentNodeName) <> nil then Exit;
+      if Result.OriginalGeometry.TryFindParentByName(ParentNodeName) <> nil then Exit;
     end;
   finally FreeAndNil(SI) end;
   Result := nil;
@@ -676,8 +678,8 @@ begin
       Result := SI.Current;
 
       if { detect Blender meshes generated by VRML 1 exporter }
-         ( (Result.Geometry is TVRMLGeometryNode_1) and
-           (Result.Geometry.TryFindDirectParentByName(BlenderMeshName) <> nil) ) or
+         ( (Result.OriginalGeometry is TVRMLGeometryNode_1) and
+           (Result.OriginalGeometry.TryFindDirectParentByName(BlenderMeshName) <> nil) ) or
          { detect Blender meshes generated by VRML 2 (aka 97) exporter }
          ( (Result.State.ShapeNode <> nil) and
            (Result.State.ShapeNode.TryFindDirectParentByName(
@@ -691,13 +693,13 @@ end;
 { TVRMLShape -------------------------------------------------------------- }
 
 constructor TVRMLShape.Create(AParentScene: TObject;
-  AGeometry: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
+  AOriginalGeometry: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
 begin
   inherited Create(AParentScene);
 
   FTriangleOctreeLimits := DefLocalTriangleOctreeLimits;
 
-  FGeometry := AGeometry;
+  FOriginalGeometry := AOriginalGeometry;
   FState := AState;
 
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
@@ -707,6 +709,7 @@ end;
 
 destructor TVRMLShape.Destroy;
 begin
+  FreeGeometry;
   FreeAndNil(FNormals);
   FreeAndNil(FState);
   FreeOctreeTriangles;
@@ -733,7 +736,7 @@ function TVRMLShape.LocalBoundingBox: TBox3D;
 begin
   if not (svLocalBBox in Validities) then
   begin
-    FLocalBoundingBox := Geometry.LocalBoundingBox(State);
+    FLocalBoundingBox := Geometry(false).LocalBoundingBox(State);
     Include(Validities, svLocalBBox);
   end;
   Result := FLocalBoundingBox;
@@ -743,7 +746,7 @@ function TVRMLShape.BoundingBox: TBox3D;
 begin
   if not (svBBox in Validities) then
   begin
-    FBoundingBox := Geometry.BoundingBox(State);
+    FBoundingBox := Geometry(false).BoundingBox(State);
     Include(Validities, svBBox);
   end;
   Result := FBoundingBox;
@@ -755,14 +758,14 @@ begin
   begin
     if not (svVerticesCountOver in Validities) then
     begin
-      FVerticesCount[OverTriangulate] := Geometry.VerticesCount(State, OverTriangulate);
+      FVerticesCount[OverTriangulate] := Geometry(OverTriangulate).VerticesCount(State, OverTriangulate);
       Include(Validities, svVerticesCountOver);
     end;
   end else
   begin
     if not (svVerticesCountNotOver in Validities) then
     begin
-      FVerticesCount[OverTriangulate] := Geometry.VerticesCount(State, OverTriangulate);
+      FVerticesCount[OverTriangulate] := Geometry(OverTriangulate).VerticesCount(State, OverTriangulate);
       Include(Validities, svVerticesCountNotOver);
     end;
   end;
@@ -775,22 +778,35 @@ begin
   begin
     if not (svTrianglesCountOver in Validities) then
     begin
-      FTrianglesCount[OverTriangulate] := Geometry.TrianglesCount(State, OverTriangulate);
+      FTrianglesCount[OverTriangulate] := Geometry(OverTriangulate).TrianglesCount(State, OverTriangulate);
       Include(Validities, svTrianglesCountOver);
     end;
   end else
   begin
     if not (svTrianglesCountNotOver in Validities) then
     begin
-      FTrianglesCount[OverTriangulate] := Geometry.TrianglesCount(State, OverTriangulate);
+      FTrianglesCount[OverTriangulate] := Geometry(OverTriangulate).TrianglesCount(State, OverTriangulate);
       Include(Validities, svTrianglesCountNotOver);
     end;
   end;
   Result := FTrianglesCount[OverTriangulate];
 end;
 
+procedure TVRMLShape.FreeGeometry;
+begin
+  if FGeometry[false] <> OriginalGeometry then
+    FreeAndNil(FGeometry[false]) else
+    FGeometry[false] := nil;
+
+  if FGeometry[true] <> OriginalGeometry then
+    FreeAndNil(FGeometry[true]) else
+    FGeometry[true] := nil;
+end;
+
 procedure TVRMLShape.Changed(PossiblyLocalGeometryChanged: boolean);
 begin
+  FreeGeometry;
+
   if PossiblyLocalGeometryChanged then
   begin
     Validities := [];
@@ -884,10 +900,10 @@ begin
         Progress.Init(TrianglesCount(false), ProgressTitle, true);
         try
           TriangleOctreeToAdd := Result;
-          Geometry.LocalTriangulate(State, false,  @AddTriangleToOctreeProgress);
+          Geometry(false).LocalTriangulate(State, false,  @AddTriangleToOctreeProgress);
         finally Progress.Fini end;
       end else
-        Geometry.LocalTriangulate(State, false,  @Result.AddItemTriangle);
+        Geometry(false).LocalTriangulate(State, false,  @Result.AddItemTriangle);
     finally
       Result.Triangles.AllowedCapacityOverflow := 4;
     end;
@@ -1086,7 +1102,7 @@ begin
   {$endif}
 end;
 
-function TVRMLShape.NormalsSmooth(GeometryProxy: TVRMLGeometryNode): TDynVector3SingleArray;
+function TVRMLShape.NormalsSmooth: TDynVector3SingleArray;
 begin
   if not ((svNormals in Validities) and
           (FNormalsCached = ncSmooth)) then
@@ -1098,7 +1114,7 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    FNormals := CreateSmoothNormalsCoordinateNode(GeometryProxy, State, true);
+    FNormals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
     FNormalsCached := ncSmooth;
     Include(Validities, svNormals);
   end;
@@ -1106,7 +1122,7 @@ begin
   Result := FNormals;
 end;
 
-function TVRMLShape.NormalsFlat(GeometryProxy: TVRMLGeometryNode): TDynVector3SingleArray;
+function TVRMLShape.NormalsFlat: TDynVector3SingleArray;
 begin
   if not ((svNormals in Validities) and
           (FNormalsCached = ncFlat)) then
@@ -1118,8 +1134,8 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    FNormals := CreateFlatNormals(GeometryProxy.CoordIndex.Items,
-      GeometryProxy.Coordinates(State).Items, true);
+    FNormals := CreateFlatNormals(Geometry.CoordIndex.Items,
+      Geometry.Coordinates(State).Items, true);
     FNormalsCached := ncFlat;
     Include(Validities, svNormals);
   end;
@@ -1127,8 +1143,7 @@ begin
   Result := FNormals;
 end;
 
-function TVRMLShape.NormalsCreaseAngle(GeometryProxy: TVRMLGeometryNode;
-  const CreaseAngle: Single): TDynVector3SingleArray;
+function TVRMLShape.NormalsCreaseAngle(const CreaseAngle: Single): TDynVector3SingleArray;
 begin
   if not ((svNormals in Validities) and
           (FNormalsCached = ncCreaseAngle) and
@@ -1141,8 +1156,8 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    FNormals := CreateNormals(GeometryProxy.CoordIndex.Items,
-      GeometryProxy.Coordinates(State).Items, CreaseAngle, true);
+    FNormals := CreateNormals(Geometry.CoordIndex.Items,
+      Geometry.Coordinates(State).Items, CreaseAngle, true);
     FNormalsCached := ncCreaseAngle;
     FNormalsCreaseAngle := CreaseAngle;
     Include(Validities, svNormals);
@@ -1264,6 +1279,18 @@ begin
        (A is TNodeAppearance) then
       Result := TNodeAppearance(A).FdShadowCaster.Value;
   end;
+end;
+
+function TVRMLShape.Geometry(const OverTriangulate: boolean): TVRMLGeometryNode;
+begin
+  if FGeometry[OverTriangulate] = nil then
+  begin
+    FGeometry[OverTriangulate] := OriginalGeometry.Proxy(State, OverTriangulate);
+    if FGeometry[OverTriangulate] = nil then
+      FGeometry[OverTriangulate] := OriginalGeometry;
+  end;
+
+  Result := FGeometry[OverTriangulate];
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }

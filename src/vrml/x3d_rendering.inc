@@ -344,7 +344,9 @@
       a working and easy fallback.
 
       In the base TVRMLGeometryNode class, returns @nil indicating
-      that no conversion is known. }
+      that no conversion is known.
+
+      When returns non-nil, result's NodeName is always equal to our NodeName. }
     function Proxy(State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; virtual;
   end;
