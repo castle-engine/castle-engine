@@ -181,7 +181,6 @@
     2. I don't know if this is really good for users --- it adds
        another unit to your uses clause.
 
-
   Co do zapisywania VRMLa :
   - kazde pole zapisuje 1 lub wiecej calych linii
   - kazdy node zapisuje najpierw linie [DEF NodeName] NodeKindName {
@@ -365,7 +364,21 @@ type
   TVRMLGraphTraverseState = class
   private
     FLastNodes: TTraverseStateLastNodes;
+    FOwnedLastNodes: array [TVRML1StateNode] of boolean;
     procedure CommonCreate;
+
+    { Sets FLastNodes to NewLostNodes.
+
+      During doing this, old FLastNodes are freed if they were owned.
+      New nodes are not owned.
+
+      This takes care of checking for each TVRML1StateNode
+      if the old node is equal to new one. If yes, then the node
+      if not freed (regardless of "owned" status), and the "owned"
+      status is left as-is (not chaned to false).
+      This way calling thing like @code(AssignLastNodes(FLastNodes)),
+      is a valid harmless operation. }
+    procedure AssignLastNodes(const NewLostNodes: TTraverseStateLastNodes);
   public
     { Nodes that are saved during VRML/X3D traversing.
       These nodes affect some following nodes in the graph,
@@ -374,9 +387,12 @@ type
       They are never @nil (traversing code must always take care to initialize
       them to default nodes at the beginning).
 
-      Note that TVRMLGraphTraverseState doesn't own these nodes.
-      E.g. their TVRMLNode.ParentsCount doesn't take into account
+      Note that TVRMLGraphTraverseState instance doesn't have to own
+      these nodes (doesn't free them, and doesn't track of when they are
+      freed). E.g. nodes' TVRMLNode.ParentsCount doesn't take into account
       that they are owned by this state.
+      Although for some tricks (but not during normal VRML/X3D traversing)
+      some nodes are owned, by using SetLastNodes with OwnNode = @true.
 
       For nodes that are within TraverseStateLastNodesClasses
       (and thus are stored inside LastNodes): it's guaranteed
@@ -389,6 +405,8 @@ type
       TVRMLScene.ChangedFields depends on that. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
 
+    procedure SetLastNodes(const StateNode: TVRML1StateNode;
+      const Node: TVRMLNode; const OwnNode: boolean);
   public
     { Lights active in this state, two separate versions for each VRML flavor
       needed here.
@@ -2344,7 +2362,15 @@ begin
 end;
 
 destructor TVRMLGraphTraverseState.Destroy;
+var
+  SN: TVRML1StateNode;
 begin
+  for SN := Low(SN) to High(SN) do
+  begin
+    if FOwnedLastNodes[SN] then FLastNodes.Nodes[SN].Free;
+    FLastNodes.Nodes[SN] := nil;
+  end;
+
   FreeAndNil(VRML1ActiveLights);
   FreeAndNil(VRML2ActiveLights);
   FreeAndNil(PointingDeviceSensors);
@@ -2359,7 +2385,7 @@ begin
   InvertedTransform := IdentityMatrix4Single;
 
   TextureTransform := IdentityMatrix4Single;
-  FLastNodes := StateDefaultNodes;
+  AssignLastNodes(StateDefaultNodes);
   ShapeNode := nil;
   InsideInline := 0;
   InsidePrototype := 0;
@@ -2377,7 +2403,7 @@ begin
   AssignTransform(Source);
 
   TextureTransform := Source.TextureTransform;
-  FLastNodes := Source.FLastNodes;
+  AssignLastNodes(Source.FLastNodes);
   ShapeNode := Source.ShapeNode;
   InsideInline := Source.InsideInline;
   InsidePrototype := Source.InsidePrototype;
@@ -2486,6 +2512,35 @@ begin
   if ShapeNode = nil then
     Result := VRML1ActiveLights else
     Result := VRML2ActiveLights;
+end;
+
+procedure TVRMLGraphTraverseState.SetLastNodes(const StateNode: TVRML1StateNode;
+  const Node: TVRMLNode; const OwnNode: boolean);
+begin
+  if FLastNodes.Nodes[StateNode] <> Node then
+  begin
+    Assert(Node is TraverseStateLastNodesClasses[StateNode]);
+
+    if FOwnedLastNodes[StateNode] then
+      FreeAndNil(FLastNodes.Nodes[StateNode]);
+
+    FLastNodes.Nodes[StateNode] := Node;
+    FOwnedLastNodes[StateNode] := OwnNode;
+  end;
+end;
+
+procedure TVRMLGraphTraverseState.AssignLastNodes(
+  const NewLostNodes: TTraverseStateLastNodes);
+var
+  SN: TVRML1StateNode;
+begin
+  for SN := Low(SN) to High(SN) do
+    if FLastNodes.Nodes[SN] <> NewLostNodes.Nodes[SN] then
+    begin
+      if FOwnedLastNodes[SN] then FreeAndNil(FLastNodes.Nodes[SN]);
+      FOwnedLastNodes[SN] := false;
+      FLastNodes.Nodes[SN] := NewLostNodes.Nodes[SN];
+    end;
 end;
 
 { TVRMLGraphTraverseStateStack --------------------------------------------- }

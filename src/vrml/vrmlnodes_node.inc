@@ -1565,7 +1565,7 @@ type
       TraversingAfterFunc(Child, StateStack, ParentInfo);
 
     if Child.VRML1StateNode(StateNode) then
-      StateStack.Top.FLastNodes.Nodes[StateNode] := Child;
+      StateStack.Top.SetLastNodes(StateNode, Child, false);
   end;
 
 procedure TVRMLNode.TraverseInternal(StateStack: TVRMLGraphTraverseStateStack;

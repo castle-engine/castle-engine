@@ -501,22 +501,21 @@ end;
 function TNodeCylinder_1.Proxy(State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
-  CoordNode: TNodeCoordinate;
+  CoordNode: TNodeCoordinate3;
   NormalNode: TNodeNormal;
   TexCoordNode: TNodeTextureCoordinate2;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
   try
-    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
-    //TODO: damn, where to place this?
-    //IFS.FdCoord.Value := CoordNode;
+    CoordNode := TNodeCoordinate3.Create('', WWWBasePath);
+    State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
     NormalNode := TNodeNormal.Create('', WWWBasePath);
-    //IFS.FdNormal.Value := NormalNode;
+    State.SetLastNodes(vsNormal, NormalNode, true);
 
     TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
-    //IFS.FdTexCoord.Value := TexCoordNode;
+    State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
@@ -539,22 +538,21 @@ end;
 function TNodeCone_1.Proxy(State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
-  CoordNode: TNodeCoordinate;
+  CoordNode: TNodeCoordinate3;
   NormalNode: TNodeNormal;
   TexCoordNode: TNodeTextureCoordinate2;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
   try
-    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
-    //TODO: damn, where to place this?
-    //IFS.FdCoord.Value := CoordNode;
+    CoordNode := TNodeCoordinate3.Create('', WWWBasePath);
+    State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
     NormalNode := TNodeNormal.Create('', WWWBasePath);
-    //IFS.FdNormal.Value := NormalNode;
+    State.SetLastNodes(vsNormal, NormalNode, true);
 
     TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
-    //IFS.FdTexCoord.Value := TexCoordNode;
+    State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
