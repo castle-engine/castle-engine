@@ -17,7 +17,7 @@
 
   @param(MaterialIndex VRML 1.0 material index, generated like for
     material binding per part. Will be used with
-    material binding BIND_PER_VERTEX_INDEXED. Pass @nil if you don't
+    material binding BIND_PER_FACE_INDEXED. Pass @nil if you don't
     need it.) }
 procedure Box_Proxy(CoordIndex: TDynLongIntArray;
   Coord: TDynVector3SingleArray; Normal: TDynVector3SingleArray;
@@ -59,7 +59,7 @@ var
   var
     FaceIndex, Index, C1, C2: integer;
     X2, Y2, TexX2, TexY2: Single;
-    I, J, NewCoords, ThisIndex, WholeFaceIndex: Integer;
+    I, J, NewCoords, ThisIndex: Integer;
     N: TVector3Single;
   begin
     RestOf3dCoords(ConstCoord, C1, C2);
@@ -98,8 +98,6 @@ var
           Lerp(J / (Detail[C2] + 1), TexY1, TexY2));
       end;
 
-    WholeFaceIndex := CoordIndex.Count;
-
     for I := 1 to Detail[C1] + 1 do
       for J := 1 to Detail[C2] + 1 do
       begin
@@ -113,16 +111,7 @@ var
       end;
 
     if MaterialIndex <> nil then
-    begin
-      MaterialIndex.Count := CoordIndex.Count;
-      for I := WholeFaceIndex to MaterialIndex.Count - 1 do
-      begin
-        if CoordIndex.Items[I] <> -1 then
-          MaterialIndex.Items[I] := FaceMaterialIndex else
-          MaterialIndex.Items[I] := -1;
-      end;
-    end;
-
+      MaterialIndex.Add(FaceMaterialIndex, (Detail[C1] + 1) * (Detail[C2] + 1));
   end;
 
 begin
@@ -242,7 +231,7 @@ begin
        BIND_PER_FACE, BIND_PER_FACE_INDEXED] then
     begin
       MaterialIndex := IFS.FdMaterialIndex.Items;
-      MaterialBinding.FdValue.Value := BIND_PER_VERTEX_INDEXED;
+      MaterialBinding.FdValue.Value := BIND_PER_FACE_INDEXED;
     end else
     begin
       MaterialIndex := nil;

@@ -104,8 +104,12 @@ end;
 
   @param(MaterialIndex VRML 1.0 material index, generated like for
     material binding per part. Will be used with
-    material binding BIND_PER_VERTEX_INDEXED. Pass @nil if you don't
-    need it.)
+    material binding BIND_PER_FACE_INDEXED.
+    We use PER_FACE_INDEXED instead of PER_VERTEX_INDEXED because
+    PER_VERTEX_INDEXED isn't perfectly implemeted (see OutsideBeginEnd
+    notes), besides it matches our needs better.
+
+    Pass @nil if you don't need it.)
 
   @param(TopRadius Radius of the upper cap.
     May be = 0, then Top does not matter (we'll never make
@@ -282,20 +286,12 @@ begin
 
     if MaterialIndex <> nil then
     begin
-      MaterialIndex.Count := CoordIndex.Count;
       { fill materialIndex for bottom disk.
         For VRML 1.0 Cone (TopRadius = 0), this is material 1,
         for VRML 1.0 Cylinder this is material 2. }
-      for I := BottomFaceIndex to MaterialIndex.Count - 1 do
-      begin
-        if CoordIndex.Items[I] <> -1 then
-        begin
-          if TopRadius = 0 then
-            MaterialIndex.Items[I] := 1 else
-            MaterialIndex.Items[I] := 2;
-        end else
-          MaterialIndex.Items[I] := -1;
-      end;
+      if TopRadius = 0 then
+        MaterialIndex.Add(1, QuadricSlices) else
+        MaterialIndex.Add(2, QuadricSlices);
     end;
   end;
 
@@ -338,13 +334,9 @@ begin
 
     if MaterialIndex <> nil then
     begin
-      MaterialIndex.Count := CoordIndex.Count;
       { fill materialIndex for top disk (this will be called only for VRML 1.0
         Cylinder). }
-      for I := TopFaceIndex to MaterialIndex.Count - 1 do
-        if CoordIndex.Items[I] <> -1 then
-          MaterialIndex.Items[I] := 1 else
-          MaterialIndex.Items[I] := -1;
+      MaterialIndex.Add(1, QuadricSlices);
     end;
   end;
 
@@ -408,13 +400,7 @@ begin
         end;
 
         if MaterialIndex <> nil then
-        begin
-          MaterialIndex.Count := CoordIndex.Count;
-          for I := MiddleFaceIndex to MaterialIndex.Count - 1 do
-            if CoordIndex.Items[I] <> -1 then
-              MaterialIndex.Items[I] := 0 else
-              MaterialIndex.Items[I] := -1;
-        end;
+          MaterialIndex.Add(0, QuadricSlices);
 
         { Next stack added. Now replace SideBottomCircleIndex,
           to say that the the current circle is the bottom now. }
@@ -470,16 +456,8 @@ begin
     end;
 
     if MaterialIndex <> nil then
-    begin
-      MaterialIndex.Count := CoordIndex.Count;
-      for I := SideFaceIndex to MaterialIndex.Count - 1 do
-        if CoordIndex.Items[I] <> -1 then
-          MaterialIndex.Items[I] := 0 else
-          MaterialIndex.Items[I] := -1;
-    end;
+      MaterialIndex.Add(0, QuadricSlices);
   end;
-
-  Assert((MaterialIndex = nil) or (MaterialIndex.Count = CoordIndex.Count));
 end;
 
 { VRML 2 proxy --------------------------------------------------------------- }
@@ -618,7 +596,7 @@ begin
       [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     begin
       MaterialIndex := IFS.FdMaterialIndex.Items;
-      MaterialBinding.FdValue.Value := BIND_PER_VERTEX_INDEXED;
+      MaterialBinding.FdValue.Value := BIND_PER_FACE_INDEXED;
     end else
     begin
       MaterialIndex := nil;
@@ -689,7 +667,7 @@ begin
       [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     begin
       MaterialIndex := IFS.FdMaterialIndex.Items;
-      MaterialBinding.FdValue.Value := BIND_PER_VERTEX_INDEXED;
+      MaterialBinding.FdValue.Value := BIND_PER_FACE_INDEXED;
     end else
     begin
       MaterialIndex := nil;
