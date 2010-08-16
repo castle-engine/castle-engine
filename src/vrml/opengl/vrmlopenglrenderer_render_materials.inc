@@ -16,10 +16,12 @@
 { Judge whether the node can be lit, looking only at Node (not at State,
   Material etc.).
 
-  Assumes MeshRenderer,
-  MeshRenderer.BumpMappingMethod,
-  (MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation
-  are already calculated. }
+  Assumes already calculated:
+  - MeshRenderer,
+  - MeshRenderer.BumpMappingMethod
+    (set by TBumpMappingRenderer.Enable called from RenderTexturesBegin),
+  - (MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation
+    (set in TIndexedLineSet_1Renderer.Create). }
 function TVRMLOpenGLRenderer.NodeLit(Node: TVRMLGeometryNode): boolean;
 begin
   if ( (MeshRenderer <> nil) and
