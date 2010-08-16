@@ -54,7 +54,7 @@ begin
     begin
       Points^[0] := 0;
       Points^[1] := Height;
-      Points^[2] := Height;
+      Points^[2] := 0;
       Inc(Points);
     end;
   end;
