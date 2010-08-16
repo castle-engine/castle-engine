@@ -3553,12 +3553,12 @@ begin
     end else
     if Node is TVRMLGeometryNode then
     begin
-      { node jest Shape'm. Wiec wplynal tylko na Shapes gdzie wystepuje jako
-        Geometry. }
+      { Geometry nodes, affect only shapes that use them. }
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if SI.Current.Geometry = Node then
+          if (SI.Current.Geometry = Node) or
+             (SI.Current.OriginalGeometry = Node) then
           begin
             ChangedShapeFields(SI.Current, Node, Field,
               false, false, false, false
