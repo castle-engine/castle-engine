@@ -158,79 +158,29 @@
   This makes an excellent opportunity for writing various VRML
   processing tools, that can simply read the file, change whatever
   they want, and write the file back --- knowing that the "untouched"
-  parts of VRML graph are preserved nicely.
+  parts of VRML graph are preserved perfectly.
 
-  Takie unikanie dekonstrukcji pozwoli nam
-  @orderedList(
-    @item(
-      na unikniecie zbytniego przywiazania naszego kodu VRMLa do konkretnych
-      zastosowan. Poniewaz mamy cala informacje o scenie mozemy zrobic
-      wszystko co mozemy zrobic ze scena VRMLa - co nie byloby mozliwe gdybysmy
-      w czasie dekonstrukcji (np. wykonujac juz w czasie odczytu wszystkie
-      transformacje na macierzy i transformujac punkty) tracili jakas czesc
-      informacji.)
-
-    @item(
-      no i mozemy w ten sposob latwo wykorzystac nasz kod VRMLa do pisania
-      konwerterow innych formatow na VRMLa. Uzywajac modulu Object3DAsVRML
-      i tutejszego SaveVRMLClassic mamy sliczny konwerter 3ds, obj, geo -> VRML.)
-  )
-
-  Specyfikacja VRMLa 1.0 z dodanymi "moimi rozszerzeniami VMRLa"
-  [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php] stanowia
-  uzasadnienie dla wielu rzeczy ktore robimy w tym module.
-
-  24 sierpnia 2003: znaczne osiagniecie : wyeliminowalem typ TVRMLNodeKind
-    ktory wyliczal mi wszystkie istniajace klasy node'ow. Dzieki temu
-    typowi moglem latwo robic powiazania w stylu "dana nazwa wezla VRMLa
-    odpowiada jakiej podklasie TVRMLNode ?" : taki typ (razem z kilkoma
-    stalymi) przechowywal mi informacje o wszystkich istniejacych
-    koncowych podklasach TVRMLNode. Wada tego jednak byl fakt ze wszystkie
-    wezly VRMLa musialy byc zdefiniowane w tym jednym module. Nie mozna
-    bylo np. w malfunction zaimplementowac specjalnych node'ow w stylu
-    "MalfunctionLevel { fog TRUE }" do uzytku tylko przez malfunction.
-    To znaczy nie bylo praktycznie sensu definiowac potomkow typu
-    TVRMLNode w innych modulach niz VRMLNodes bo nawet jesli mogles zdefiniowac
-    podklasy TVRMLNode w innych modulach to i tak nie mogles ich uzyc
-    (bo zeby one byly widziane przez mechanizm odwzorowywania
-    "nazwa VRMLa -> podklasa TVRMLNode" musialy byc dodane do odpowiednich
-    stalych w TYM module...). Usunalem ta niedogodnosc eliminujac zupelnie
-    typ TVRMLNodeKind. Teraz nie ma zadnej stalej tablicy przechowujacej
-    jakies informacje na temat "wszystkich dostepnych node'ow" - ekwiwalentem
-    tego jest obiekt NodesManager w ktorym mozna w czasie wykonania programu
-    rejestrowac dowolne stworzone podklasy TVRMLNode (prawdopodobnie najsensowniej
-    jest robic to w sekcji initialization modulu; uzywaj tego podobnie jak
-    Picture.RegisterPictureClass z Graphics z VCLa Borlanda.).
-  Ciagle pozostaje niestety ograniczenie ze wszystkie wezly ktore maja byc
-    uwzgledniane w tablicy TVRMLGraphTraverseState.LastNodes musza byc
-    zadeklarowane w tym module. To powoduje ze ciagle nie mozemy przerzucic
-    implementacji wszystkich specyficznych node'ow do jakiegos osobnego modulu.
-    Ktoregos dnia, gdy ograniczenie to zacznie mi przeszkadzac, zapewne
-    to zaimplementuje (tablica TraverseStateLastNodesClasses bedzie musiala
-    byc wtedy zrobiona jako dynamiczna lista klas TVRMLNodeClass; problemem
-    jest tutaj ze TTraverseStateLastNodes bedzie wtedy takze musialo
-    byc struktura dynamiczna i proste zapytania LastNodes.Coordinate3 bedzie
-    musialo byc zastapione na cos mniej wygodnego i badziej czasochlonnego
-    podczas wykonywania : LastNodes.NodesFind[TNodeCoordinate3].)
-  Aby wykazac ze to rzeczywiscie dziala (i to dziala calkiem fajnie) zapisalem
-    w malfunction w LevelUnit cztery node'y specyficzne dla malfunction :
-    MalfunctionLevelInfo, Malfunction(NotMoving|CircleMoving|Hunting)Enemy.
-    Teraz definicje leveli malfunction nie potrzebuja ZADNYCH specjalnie
-    parsowanych wezlow Info. Zalety: parser+lekser VRMLa od razu robia
-    mi mnostwo checkow i podaja moim node'ow gotowy wynik. Kod parsowania
-    zawartosci wezlow Info byl bardzo prosty, mimo to teraz nie musimy
-    go juz w ogole pisac - wszystko zrzucamy na leksera+parsera VRMLa.
-    Ponadto nasze node'y dzialaja od razu w ramach wezlow VRMLa, a wiec
-    np. nie trzeba sobie wszedzie pisac co sie stanie jesli nie podasz tego
-    pola. W VRMLu jesli nie podasz pola to zostanie uzyta jego wartosc domyslna,
-    wystarczy powiedziec ile ona wynosi. Trzeba przyznac ze do tak prostych
-    zadan jak levele malfunction definiowanie wlasnych wezlow VRMLa zapewnia
-    duza elegancje w kodzie ale nie daje az tak wiele realnych zyskow.
+  Your own units can define new VRML/X3D nodes, by simply descending
+  from TVRMLNode (or other, more specialized, descendant).
+  This is possible thanks to NodesManager --- you should "register"
+  your new classes there, to be able to parse them.
 
   Examples of defining your own VRML node types (without modifying
   sources of this unit, or any other unit) are in these programs:
   - bezier_curves (VRMLBezierCurve)
-  - malfunction (LevelUnit)
+  - malfunction (unit LevelUnit) defined various nodes like
+    MalfunctionLevelInfo. This way "malfunction" specific data
+    is kept inside VRML/X3D nodes graph, it's parsed by our VRML/X3D parser
+    and such.
+
+  TODO:
+  - Eventually, moving all non-abstract nodes out of this unit
+    could be nice. But
+    1. for now, stuff that is inside TVRMLGraphTraverseState.LastNodes
+       must be defined in this unit
+    2. I don't know if this is really good for users --- it adds
+       another unit to your uses clause.
+
 
   Co do zapisywania VRMLa :
   - kazde pole zapisuje 1 lub wiecej calych linii
