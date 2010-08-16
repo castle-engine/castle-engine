@@ -504,6 +504,7 @@ var
   CoordNode: TNodeCoordinate3;
   NormalNode: TNodeNormal;
   TexCoordNode: TNodeTextureCoordinate2;
+  ShapeHints: TNodeShapeHints;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
@@ -516,6 +517,14 @@ begin
 
     TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
+
+    ShapeHints := TNodeShapeHints.Create('', '');
+    { For VRML 1.0, Cylinder is always solid. }
+    ShapeHints.FdshapeType.Value := SHTYPE_SOLID;
+    ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
+    { Smooth everything. Not really needed, we use explicit normal node now. }
+    ShapeHints.FdCreaseAngle.Value := 4;
+    State.SetLastNodes(vsShapeHints, ShapeHints, true);
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
@@ -525,13 +534,6 @@ begin
       FdParts.Flags[CYLINDER_PARTS_SIDES],
       FdParts.Flags[CYLINDER_PARTS_TOP],
       State.LastNodes.KambiTriangulation);
-
-    //TODO: ShapeHints?
-    //IFS.FdSolid.Value := true; { TODO: always true for VRML 1.0? check renderer }
-
-    { Smooth everything. }
-    //TODO: ShapeHints?
-    //IFS.FdCreaseAngle.Value := 4;
   except FreeAndNil(Result); raise end;
 end;
 
@@ -541,6 +543,7 @@ var
   CoordNode: TNodeCoordinate3;
   NormalNode: TNodeNormal;
   TexCoordNode: TNodeTextureCoordinate2;
+  ShapeHints: TNodeShapeHints;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
@@ -554,18 +557,19 @@ begin
     TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
+    ShapeHints := TNodeShapeHints.Create('', '');
+    { For VRML 1.0, Cone is always solid. }
+    ShapeHints.FdshapeType.Value := SHTYPE_SOLID;
+    ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
+    { Smooth everything. Not really needed, we use explicit normal node now. }
+    ShapeHints.FdCreaseAngle.Value := 4;
+    State.SetLastNodes(vsShapeHints, ShapeHints, true);
+
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items,
       OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
       FdParts.Flags[CONE_PARTS_BOTTOM], FdParts.Flags[CONE_PARTS_SIDES], false,
       State.LastNodes.KambiTriangulation);
-
-    //TODO: ShapeHints?
-    //IFS.FdSolid.Value := true; { TODO: always true for VRML 1.0? check renderer }
-
-    { Smooth everything. }
-    //TODO: ShapeHints?
-    //IFS.FdCreaseAngle.Value := 4;
   except FreeAndNil(Result); raise end;
 end;
