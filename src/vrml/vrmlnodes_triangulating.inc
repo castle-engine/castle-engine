@@ -49,55 +49,10 @@ begin
  finally tr.Free end;
 end;
 
-{ TVRMLGeometryNode.LocalTriangulate (using Proxy)
-  ---------------------------------------------------------------------------- }
-
-type
-  TProxyRedirect = class
-    NewTriangle: TNewTriangleProc;
-    SourceGeometry: TVRMLGeometryNode;
-    procedure Triangle(const Triangle: TTriangle3Single;
-      Shape: TObject; State: TVRMLGraphTraverseState;
-      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-  end;
-
-procedure TProxyRedirect.Triangle(const Triangle: TTriangle3Single;
-  Shape: TObject; State: TVRMLGraphTraverseState;
-  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-begin
-  { We have to change GeometryNode to SourceGeometry
-    (otherwise NewTriangle callback would receive a reference
-    to temporary instance of Proxy, which would be very wrong
-    --- for example, such triangle information could get stored in
-    VRML triangle octree, and then used when picking with mouse).
-
-    Also, since SourceGeometry has probably different idea of what
-    is "face" etc., MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd
-    are reset to standard values. }
-
-  NewTriangle(Triangle, Shape, State, 0, -1, -1);
-end;
-
 procedure TVRMLGeometryNode.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
-var
-  P: TVRMLGeometryNode;
-  ProxyRedirect: TProxyRedirect;
 begin
-  P := Proxy(State, OverTriangulate);
-  if P <> nil then
-  begin
-    ProxyRedirect := TProxyRedirect.Create;
-    try
-      ProxyRedirect.SourceGeometry := Self;
-      ProxyRedirect.NewTriangle := NewTriangleProc;
-      P.LocalTriangulate(Shape, State, OverTriangulate, @ProxyRedirect.Triangle);
-    finally
-      FreeAndNil(ProxyRedirect);
-      FreeAndNil(P);
-    end;
-  end else
-    raise EInternalError.Create('TVRMLGeometryNode.LocalTriangulate not overridden, and node without a Proxy');
+  raise EInternalError.Create('TVRMLGeometryNode.LocalTriangulate not overridden. You have to override it, or only use LocalTriangulate through TVRMLShape.LocalTriangulate (that may use a Proxy geometry if available)');
 end;
 
 { pomocnicze procedury LocalTriangulate* dla jakichs tworow geometrycznych

@@ -89,24 +89,7 @@
           Using Coord and CoordIndex, no other information is needed.)
 
         @item(
-          For other nodes, we check @link(Proxy) result. If it returns
-          non-nil, we will use it to calculate bounding boxes,
-          local and not local.
-
-          So for nodes with @link(Proxy) overridden, you don't have
-          to implement bounding box calculation, instead a @link(Proxy)
-          will be used. This will work Ok if @link(Proxy) node will
-          have bounding box calculation implemented (this includes
-          even the case when the proxy itself will delegate the work to
-          another @link(Proxy)).
-
-          You can always override these methods, if you don't want
-          to use proxy (for example, maybe there exists much faster
-          method to calculate bounding box, or maybe tighter
-          bounding box may be calculated directly).)
-
-        @item(
-          For other nodes (not coordinate-based and without a proxy):
+          For other nodes (not coordinate-based):
 
           The default implementation of LocalBoundingBox just calls
           BoundingBox with a specially modified State, such that
@@ -161,12 +144,6 @@
       VerticesCount is already implemented in this class.
       Using Coord method, no other information is needed.
 
-      For other nodes, the default implementation of
-      both VerticesCount and TrianglesCount in this TVRMLGeometryNode
-      class will use @link(Proxy) to do the work.
-      You should override these methods if Proxy is not available,
-      or some faster approach is possible.
-
       @groupBegin }
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual;
@@ -202,11 +179,7 @@
       na duzo trojkatow.
 
       @italic(Notes for descendants implementors:)
-
-      Default implementation of LocalTriangulate in this class uses
-      @link(Proxy), if it's non-nil. You have to override this if
-      @link(Proxy) is not available, or if you want to plug some more optimal
-      method.
+      Override LocalTriangulate.
 
       Triangulate is always implemented by simply calling LocalTriangulate
       and transforming each triangle.
@@ -337,18 +310,36 @@
 
       Typically, converts some complex geometry node (like
       Extrusion or Teapot) into more common node like IndexedFaceSet
-      or IndexedTriangleSet. Then many methods may try to use
-      this converted node by default, so it will act like a "proxy"
-      instead of actual node. In all cases, it should always
-      be possible to write an optimized method specially for given node
-      (i.e., not using Proxy), but the Proxy way may act as
-      a working and easy fallback.
+      or IndexedTriangleSet. TVRMLShape class wraps this method into
+      a more comfortable interface, that is TVRMLShape methods
+      simply automatically convert geometry nodes to their proxy versions
+      if needed.
 
       In the base TVRMLGeometryNode class, returns @nil indicating
       that no conversion is known.
 
-      When returns non-nil, result's NodeName is always equal to our NodeName. }
-    function Proxy(State: TVRMLGraphTraverseState;
+      When returns non-nil, result's NodeName must be equal
+      to our NodeName.
+
+      Some Proxy implementations (especially for VRML 1.0) will have
+      to create new State (TVRMLGraphTraverseState) instance along
+      with a new geometry node. You should do this by copying the State
+      into a new TVRMLGraphTraverseState instance, and modyfying
+      the State reference. Simply speaking, do
+
+      @longcode(#
+  State := TVRMLGraphTraverseState.CreateCopy(State);)
+#)
+
+      You should @italic(not) just modify the fields
+      of the provided State instance. (Reasoning: some proxy methods
+      rely on getting the original State, e.g. with original MaterialBinding,
+      not the transformed state, to work correctly. And some proxy methods
+      need to modify the state differently, depending on OverTriangulate
+      value.)
+
+      You can modify State variable only when returning non-nil geometry. }
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; virtual;
 
     { Does the @link(Proxy) method look at the OverTriangulate parameter
@@ -910,7 +901,7 @@ begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.Proxy(State: TVRMLGraphTraverseState;
+function TVRMLGeometryNode.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
   Result := nil;

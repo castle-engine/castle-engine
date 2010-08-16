@@ -33,7 +33,7 @@
     public property FdtexCoord: TSFNode read FFdtexCoord;
     function TexCoordField: TSFNode; override;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
@@ -73,7 +73,7 @@
     public property FdtexCoord: TSFNode read FFdtexCoord;
     function TexCoordField: TSFNode; override;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
@@ -112,7 +112,7 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     private FFdtexCoord: TSFNode;
@@ -277,7 +277,7 @@
       field is non-empty and it's first and last points are equal. }
     function CrossSectionClosed: boolean;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
 
@@ -373,7 +373,7 @@
     public property FdtexCoord: TSFNode read FFdtexCoord;
     function TexCoordField: TSFNode; override;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
@@ -804,7 +804,7 @@ begin
                           CrossSectionPoints.Items[0]);
 end;
 
-function TNodeExtrusion.Proxy(State: TVRMLGraphTraverseState;
+function TNodeExtrusion.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 
 { Some of the things that are non-optimal when you will render

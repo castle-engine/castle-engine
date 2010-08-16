@@ -128,7 +128,6 @@ end;
 function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 var
   C: TMFVec3f;
-  P: TVRMLGeometryNode;
 begin
   if Coord(State, C) then
   begin
@@ -140,23 +139,13 @@ begin
     end else
       Result := EmptyBox3D;
   end else
-  begin
-    P := Proxy(State, false);
-    if P <> nil then
-    begin
-      try
-        Result := P.BoundingBox(State);
-      finally FreeAndNil(P) end;
-    end else
-      Result := Box3DTransform(LocalBoundingBox(State), State.Transform);
-  end;
+    Result := Box3DTransform(LocalBoundingBox(State), State.Transform);
 end;
 
 function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
 var
   NewState: TVRMLGraphTraverseState;
   C: TMFVec3f;
-  P: TVRMLGeometryNode;
 begin
   if Coord(State, C) then
   begin
@@ -169,20 +158,11 @@ begin
       Result := EmptyBox3D;
   end else
   begin
-    P := Proxy(State, false);
-    if P <> nil then
-    begin
-      try
-        Result := P.LocalBoundingBox(State);
-      finally FreeAndNil(P) end;
-    end else
-    begin
-      NewState := TVRMLGraphTraverseState.CreateCopy(State);
-      try
-        NewState.Transform := IdentityMatrix4Single;
-        result := BoundingBox(NewState);
-      finally NewState.Free end;
-    end;
+    NewState := TVRMLGraphTraverseState.CreateCopy(State);
+    try
+      NewState.Transform := IdentityMatrix4Single;
+      result := BoundingBox(NewState);
+    finally NewState.Free end;
   end;
 end;
 

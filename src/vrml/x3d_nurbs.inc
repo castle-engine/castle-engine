@@ -172,7 +172,7 @@
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
@@ -247,7 +247,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
@@ -810,7 +810,7 @@ begin
   FreeAndNil(Knot);
 end;
 
-function TNodeNurbsCurve_3.Proxy(State: TVRMLGraphTraverseState;
+function TNodeNurbsCurve_3.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   ControlPoint: TDynVector3SingleArray;
@@ -1277,7 +1277,7 @@ begin
   FreeAndNil(VKnot);
 end;
 
-function TNodeNurbsPatchSurface.Proxy(State: TVRMLGraphTraverseState;
+function TNodeNurbsPatchSurface.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   ControlPoint: TDynVector3SingleArray;

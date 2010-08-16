@@ -102,12 +102,17 @@ end;
   @param(TexCoord Texture coordinates to generate.
     Pass @nil if you don't need them.)
 
+  @param(MaterialIndex VRML 1.0 material index, generated like for
+    material binding per part. Will be used with
+    material binding BIND_PER_VERTEX_INDEXED. Pass @nil if you don't
+    need it.)
+
   @param(TopRadius Radius of the upper cap.
     May be = 0, then Top does not matter (we'll never make
     a top cap in this case.)) }
 procedure CylinderCone_Proxy(CoordIndex: TDynLongIntArray;
   Coord: TDynVector3SingleArray; Normal: TDynVector3SingleArray;
-  TexCoord: TDynVector2SingleArray;
+  TexCoord: TDynVector2SingleArray; MaterialIndex: TDynLongIntArray;
   OverTriangulate: boolean; const BottomRadius, TopRadius, Height: Single;
   const Bottom, Side, Top: boolean;
   KambiTriangulation: TNodeKambiTriangulation);
@@ -232,22 +237,11 @@ begin
   CoordIndex.Count := 0;
   Coord.Count := 0;
   Normal.Count := 0;
-  TexCoord.Count := 0;
+  if TexCoord <> nil then TexCoord.Count := 0;
+  if MaterialIndex <> nil then MaterialIndex.Count := 0;
 
   QuadricSlices := KambiTriangulation.QuadricSlices;
   QuadricStacks := KambiTriangulation.QuadricStacks;
-
-  { TODO: for VRML 1.0, assign MaterialIndex?
-  cone: if State.LastNodes.MaterialBinding.FdValue.Value in
-     [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    begin MatSides := 0; MatBottom := 1 end else
-    begin MatSides := 0; MatBottom := 0 end;
-
-  cyl: if State.LastNodes.MaterialBinding.FdValue.Value in
-     [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-  begin MatSides := 0; MatTop := 1; MatBottom := 2 end else
-  begin MatSides := 0; MatTop := 0; MatBottom := 0 end;
-  }
 
   if Bottom then
   begin
@@ -284,6 +278,24 @@ begin
       CoordIndex.Items[BottomFaceIndex + I * 4 + 1] := BottomCircleIndex + I;
       CoordIndex.Items[BottomFaceIndex + I * 4 + 2] := BottomMiddleIndex;
       CoordIndex.Items[BottomFaceIndex + I * 4 + 3] := -1;
+    end;
+
+    if MaterialIndex <> nil then
+    begin
+      MaterialIndex.Count := CoordIndex.Count;
+      { fill materialIndex for bottom disk.
+        For VRML 1.0 Cone (TopRadius = 0), this is material 1,
+        for VRML 1.0 Cylinder this is material 2. }
+      for I := BottomFaceIndex to MaterialIndex.Count - 1 do
+      begin
+        if CoordIndex.Items[I] <> -1 then
+        begin
+          if TopRadius = 0 then
+            MaterialIndex.Items[I] := 1 else
+            MaterialIndex.Items[I] := 2;
+        end else
+          MaterialIndex.Items[I] := -1;
+      end;
     end;
   end;
 
@@ -322,6 +334,17 @@ begin
         CoordIndex.Items[TopFaceIndex + I * 4 + 1] := TopCircleIndex;
       CoordIndex.Items[TopFaceIndex + I * 4 + 2] := TopMiddleIndex;
       CoordIndex.Items[TopFaceIndex + I * 4 + 3] := -1;
+    end;
+
+    if MaterialIndex <> nil then
+    begin
+      MaterialIndex.Count := CoordIndex.Count;
+      { fill materialIndex for top disk (this will be called only for VRML 1.0
+        Cylinder). }
+      for I := TopFaceIndex to MaterialIndex.Count - 1 do
+        if CoordIndex.Items[I] <> -1 then
+          MaterialIndex.Items[I] := 1 else
+          MaterialIndex.Items[I] := -1;
     end;
   end;
 
@@ -384,6 +407,15 @@ begin
           CoordIndex.Items[MiddleFaceIndex + I * 5 + 4] := -1;
         end;
 
+        if MaterialIndex <> nil then
+        begin
+          MaterialIndex.Count := CoordIndex.Count;
+          for I := MiddleFaceIndex to MaterialIndex.Count - 1 do
+            if CoordIndex.Items[I] <> -1 then
+              MaterialIndex.Items[I] := 0 else
+              MaterialIndex.Items[I] := -1;
+        end;
+
         { Next stack added. Now replace SideBottomCircleIndex,
           to say that the the current circle is the bottom now. }
         SideBottomCircleIndex := MiddleCircleIndex;
@@ -436,12 +468,23 @@ begin
         CoordIndex.Items[SideFaceIndex + I * 4 + 3] := -1;
       end;
     end;
+
+    if MaterialIndex <> nil then
+    begin
+      MaterialIndex.Count := CoordIndex.Count;
+      for I := SideFaceIndex to MaterialIndex.Count - 1 do
+        if CoordIndex.Items[I] <> -1 then
+          MaterialIndex.Items[I] := 0 else
+          MaterialIndex.Items[I] := -1;
+    end;
   end;
+
+  Assert((MaterialIndex = nil) or (MaterialIndex.Count = CoordIndex.Count));
 end;
 
 { VRML 2 proxy --------------------------------------------------------------- }
 
-function TNodeCylinder_2.Proxy(State: TVRMLGraphTraverseState;
+function TNodeCylinder_2.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
@@ -472,7 +515,7 @@ begin
     end;
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
-      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
       OverTriangulate, FdRadius.Value, FdRadius.Value, FdHeight.Value,
       FdBottom.Value, FdSide.Value, FdTop.Value,
       State.LastNodes.KambiTriangulation);
@@ -484,7 +527,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeCone_2.Proxy(State: TVRMLGraphTraverseState;
+function TNodeCone_2.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
@@ -515,7 +558,7 @@ begin
     end;
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
-      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
       OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
       FdBottom.Value, FdSide.Value, false,
       State.LastNodes.KambiTriangulation);
@@ -529,7 +572,7 @@ end;
 
 { VRML 1 proxy --------------------------------------------------------------- }
 
-function TNodeCylinder_1.Proxy(State: TVRMLGraphTraverseState;
+function TNodeCylinder_1.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate3;
@@ -537,10 +580,15 @@ var
   NormalBinding: TNodeNormalBinding;
   TexCoordNode: TNodeTextureCoordinate2;
   ShapeHints: TNodeShapeHints;
+  MaterialBinding: TNodeMaterialBinding;
+  MaterialIndex: TDynLongIntArray;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
   try
+    { we have to modify State, so make a copy of it }
+    State := TVRMLGraphTraverseState.CreateCopy(State);
+
     CoordNode := TNodeCoordinate3.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
@@ -564,9 +612,23 @@ begin
     ShapeHints.FdCreaseAngle.Value := 4;
     State.SetLastNodes(vsShapeHints, ShapeHints, true);
 
+    { calculate MaterialBinding node and MaterialIndex }
+    MaterialBinding := TNodeMaterialBinding.Create('', '');
+    if State.LastNodes.MaterialBinding.FdValue.Value in
+      [BIND_PER_PART, BIND_PER_PART_INDEXED] then
+    begin
+      MaterialIndex := IFS.FdMaterialIndex.Items;
+      MaterialBinding.FdValue.Value := BIND_PER_VERTEX_INDEXED;
+    end else
+    begin
+      MaterialIndex := nil;
+      MaterialBinding.FdValue.Value := BIND_OVERALL;
+    end;
+    State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
+
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
-      TexCoordNode.FdPoint.Items,
+      TexCoordNode.FdPoint.Items, MaterialIndex,
       OverTriangulate, FdRadius.Value, FdRadius.Value, FdHeight.Value,
       FdParts.Flags[CYLINDER_PARTS_BOTTOM],
       FdParts.Flags[CYLINDER_PARTS_SIDES],
@@ -581,7 +643,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeCone_1.Proxy(State: TVRMLGraphTraverseState;
+function TNodeCone_1.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate3;
@@ -589,10 +651,15 @@ var
   NormalBinding: TNodeNormalBinding;
   TexCoordNode: TNodeTextureCoordinate2;
   ShapeHints: TNodeShapeHints;
+  MaterialBinding: TNodeMaterialBinding;
+  MaterialIndex: TDynLongIntArray;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
   try
+    { we have to modify State, so make a copy of it }
+    State := TVRMLGraphTraverseState.CreateCopy(State);
+
     CoordNode := TNodeCoordinate3.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
@@ -616,9 +683,23 @@ begin
     ShapeHints.FdCreaseAngle.Value := 4;
     State.SetLastNodes(vsShapeHints, ShapeHints, true);
 
+    { calculate MaterialBinding node and MaterialIndex }
+    MaterialBinding := TNodeMaterialBinding.Create('', '');
+    if State.LastNodes.MaterialBinding.FdValue.Value in
+      [BIND_PER_PART, BIND_PER_PART_INDEXED] then
+    begin
+      MaterialIndex := IFS.FdMaterialIndex.Items;
+      MaterialBinding.FdValue.Value := BIND_PER_VERTEX_INDEXED;
+    end else
+    begin
+      MaterialIndex := nil;
+      MaterialBinding.FdValue.Value := BIND_OVERALL;
+    end;
+    State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
+
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
-      TexCoordNode.FdPoint.Items,
+      TexCoordNode.FdPoint.Items, MaterialIndex,
       OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
       FdParts.Flags[CONE_PARTS_BOTTOM], FdParts.Flags[CONE_PARTS_SIDES], false,
       State.LastNodes.KambiTriangulation);

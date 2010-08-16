@@ -85,7 +85,7 @@
     private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
@@ -106,7 +106,7 @@
     private FFdDepth: TSFFloat;
     public property FdDepth: TSFFloat read FFdDepth;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
@@ -127,7 +127,7 @@
     private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
@@ -223,7 +223,7 @@
     private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    function Proxy(State: TVRMLGraphTraverseState;
+    function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;

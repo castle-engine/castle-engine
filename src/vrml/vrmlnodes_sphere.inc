@@ -1,3 +1,19 @@
+{
+  Copyright 2002-2010 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Make a sphere. }
 procedure Sphere_Proxy(CoordIndex: TDynLongIntArray;
   Coord: TDynVector3SingleArray; Normal: TDynVector3SingleArray;
   TexCoord: TDynVector2SingleArray;
@@ -42,7 +58,7 @@ begin
   CoordIndex.Count := 0;
   Coord.Count := 0;
   Normal.Count := 0;
-  TexCoord.Count := 0;
+  if TexCoord <> nil then TexCoord.Count := 0;
 
   QuadricSlices := KambiTriangulation.QuadricSlices;
   QuadricStacks := KambiTriangulation.QuadricStacks;
@@ -158,7 +174,7 @@ begin
   end;
 end;
 
-function TNodeSphere_2.Proxy(State: TVRMLGraphTraverseState;
+function TNodeSphere_2.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
@@ -200,7 +216,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeSphere_1.Proxy(State: TVRMLGraphTraverseState;
+function TNodeSphere_1.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate3;
@@ -208,6 +224,7 @@ var
   NormalBinding: TNodeNormalBinding;
   TexCoordNode: TNodeTextureCoordinate2;
   ShapeHints: TNodeShapeHints;
+  MaterialBinding: TNodeMaterialBinding;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
@@ -228,12 +245,17 @@ begin
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
     ShapeHints := TNodeShapeHints.Create('', '');
-    { For VRML 1.0, Cone is always solid. }
+    { For VRML 1.0, Sphere is always solid. }
     ShapeHints.FdshapeType.Value := SHTYPE_SOLID;
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
     { Smooth everything. Not really needed, we use explicit normal node now. }
     ShapeHints.FdCreaseAngle.Value := 4;
     State.SetLastNodes(vsShapeHints, ShapeHints, true);
+
+    { calculate MaterialBinding. Sphere has always only 1 material. }
+    MaterialBinding := TNodeMaterialBinding.Create('', '');
+    MaterialBinding.FdValue.Value := BIND_OVERALL;
+    State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
 
     Sphere_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,

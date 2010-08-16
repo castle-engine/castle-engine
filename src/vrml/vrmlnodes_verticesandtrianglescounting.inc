@@ -20,7 +20,6 @@ function TVRMLGeometryNode.VerticesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 var
   C: TMFVec3f;
-  P: TVRMLGeometryNode;
 begin
   if Coord(State, C) then
   begin
@@ -29,30 +28,15 @@ begin
       Result := 0;
   end else
   begin
-    P := Proxy(State, OverTriangulate);
-    if P <> nil then
-    begin
-      try
-        Result := P.VerticesCount(State, OverTriangulate);
-      finally FreeAndNil(P) end;
-    end else
-      raise EInternalError.Create('TVRMLGeometryNode.VerticesCount not overridden, and node not coordinate-based and without a Proxy');
+    raise EInternalError.Create('TVRMLGeometryNode.VerticesCount not overridden, and node not coordinate-based. You have to override it, or only use VerticesCount through TVRMLShape.VerticesCount (that may use a Proxy geometry if available)');
   end;
 end;
 
 function TVRMLGeometryNode.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  P: TVRMLGeometryNode;
 begin
-  P := Proxy(State, OverTriangulate);
-  if P <> nil then
-  begin
-    try
-      Result := P.TrianglesCount(State, OverTriangulate);
-    finally FreeAndNil(P) end;
-  end else
-    raise EInternalError.Create('TVRMLGeometryNode.TrianglesCount not overridden, and node without a Proxy');
+  raise EInternalError.Create('TVRMLGeometryNode.TrianglesCount not overridden. You have to override it, or only use TrianglesCount through TVRMLShape.TrianglesCount (that may use a Proxy geometry if available)');
+  Result := 0; { just to silence compiler warning }
 end;
 
 { just a shortcuts for names often used in this file }

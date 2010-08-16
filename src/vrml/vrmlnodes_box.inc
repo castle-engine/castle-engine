@@ -1,6 +1,27 @@
+{
+  Copyright 2002-2010 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Make a box.
+
+  @param(MaterialIndex VRML 1.0 material index, generated like for
+    material binding per part. Will be used with
+    material binding BIND_PER_VERTEX_INDEXED. Pass @nil if you don't
+    need it.) }
 procedure Box_Proxy(CoordIndex: TDynLongIntArray;
   Coord: TDynVector3SingleArray; Normal: TDynVector3SingleArray;
-  TexCoord: TDynVector2SingleArray;
+  TexCoord: TDynVector2SingleArray; MaterialIndex: TDynLongIntArray;
   OverTriangulate: boolean; Sizes: TVector3Single;
   KambiTriangulation: TNodeKambiTriangulation);
 
@@ -19,6 +40,7 @@ var
       goes along Y. Pass TextureSIsY = @true to change it.) }
   procedure MakeRect(const ConstCoord: integer; const ConstCoordValue: Single;
     const X1, Y1: Single; const TexX1, TexY1: Single;
+    const FaceMaterialIndex: Integer;
     const TextureSIsY: boolean = false);
 
     function MakeTexCoord(const S, T: Single): TVector2Single;
@@ -37,7 +59,7 @@ var
   var
     FaceIndex, Index, C1, C2: integer;
     X2, Y2, TexX2, TexY2: Single;
-    I, J, NewCoords, ThisIndex: Integer;
+    I, J, NewCoords, ThisIndex, WholeFaceIndex: Integer;
     N: TVector3Single;
   begin
     RestOf3dCoords(ConstCoord, C1, C2);
@@ -76,6 +98,8 @@ var
           Lerp(J / (Detail[C2] + 1), TexY1, TexY2));
       end;
 
+    WholeFaceIndex := CoordIndex.Count;
+
     for I := 1 to Detail[C1] + 1 do
       for J := 1 to Detail[C2] + 1 do
       begin
@@ -87,6 +111,18 @@ var
         CoordIndex.Items[FaceIndex + 3] := Index + (I - 1) * (Detail[C2] + 2) + J;
         CoordIndex.Items[FaceIndex + 4] := -1;
       end;
+
+    if MaterialIndex <> nil then
+    begin
+      MaterialIndex.Count := CoordIndex.Count;
+      for I := WholeFaceIndex to MaterialIndex.Count - 1 do
+      begin
+        if CoordIndex.Items[I] <> -1 then
+          MaterialIndex.Items[I] := FaceMaterialIndex else
+          MaterialIndex.Items[I] := -1;
+      end;
+    end;
+
   end;
 
 begin
@@ -95,7 +131,8 @@ begin
   CoordIndex.Count := 0;
   Coord.Count := 0;
   Normal.Count := 0;
-  TexCoord.Count := 0;
+  if TexCoord <> nil then TexCoord.Count := 0;
+  if MaterialIndex <> nil then MaterialIndex.Count := 0;
 
   { Currently, all three Detail* used are always equal.
     Although the code is written to support different Detail* values,
@@ -108,29 +145,15 @@ begin
 
   Sizes /= 2;
 
-  (*
-  TODO: VRML 1.0 materials:
-  var
-    MatPerPart: boolean;
-
-    const
-      { Material numbers, following VRML 1.0 spec for Cube node. }
-      MaterialsPerPart: array [0..2, boolean] of integer =
-      ( (2, 3), (5, 4), (1, 0) );
-
-    MatPerPart := State.LastNodes.MaterialBinding.FdValue.Value in [
-      BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
-  *)
-
-  MakeRect(0, -Sizes[0], +Sizes[1], -Sizes[2], 1, 0, true);
-  MakeRect(0,  Sizes[0], -Sizes[1], -Sizes[2], 0, 1, true);
-  MakeRect(1, -Sizes[1], -Sizes[0], -Sizes[2], 0, 0);
-  MakeRect(1,  Sizes[1], +Sizes[0], -Sizes[2], 1, 1);
-  MakeRect(2, -Sizes[2], +Sizes[0], -Sizes[1], 0, 0);
-  MakeRect(2,  Sizes[2], -Sizes[0], -Sizes[1], 0, 0);
+  MakeRect(0, -Sizes[0], +Sizes[1], -Sizes[2], 1, 0, 2, true);
+  MakeRect(0,  Sizes[0], -Sizes[1], -Sizes[2], 0, 1, 3, true);
+  MakeRect(1, -Sizes[1], -Sizes[0], -Sizes[2], 0, 0, 5);
+  MakeRect(1,  Sizes[1], +Sizes[0], -Sizes[2], 1, 1, 4);
+  MakeRect(2, -Sizes[2], +Sizes[0], -Sizes[1], 0, 0, 1);
+  MakeRect(2,  Sizes[2], -Sizes[0], -Sizes[1], 0, 0, 0);
 end;
 
-function TNodeBox.Proxy(State: TVRMLGraphTraverseState;
+function TNodeBox.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate;
@@ -161,7 +184,7 @@ begin
     end;
 
     Box_Proxy(IFS.FdCoordIndex.Items,
-      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
+      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
       OverTriangulate, FdSize.Value,
       State.LastNodes.KambiTriangulation);
 
@@ -172,7 +195,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeCube_1.Proxy(State: TVRMLGraphTraverseState;
+function TNodeCube_1.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   CoordNode: TNodeCoordinate3;
@@ -180,10 +203,15 @@ var
   NormalBinding: TNodeNormalBinding;
   TexCoordNode: TNodeTextureCoordinate2;
   ShapeHints: TNodeShapeHints;
+  MaterialBinding: TNodeMaterialBinding;
+  MaterialIndex: TDynLongIntArray;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
   try
+    { we have to modify State, so make a copy of it }
+    State := TVRMLGraphTraverseState.CreateCopy(State);
+
     CoordNode := TNodeCoordinate3.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
@@ -207,9 +235,24 @@ begin
     ShapeHints.FdCreaseAngle.Value := 0;
     State.SetLastNodes(vsShapeHints, ShapeHints, true);
 
+    { calculate MaterialBinding node and MaterialIndex }
+    MaterialBinding := TNodeMaterialBinding.Create('', '');
+    if State.LastNodes.MaterialBinding.FdValue.Value in
+      [BIND_PER_PART, BIND_PER_PART_INDEXED,
+       BIND_PER_FACE, BIND_PER_FACE_INDEXED] then
+    begin
+      MaterialIndex := IFS.FdMaterialIndex.Items;
+      MaterialBinding.FdValue.Value := BIND_PER_VERTEX_INDEXED;
+    end else
+    begin
+      MaterialIndex := nil;
+      MaterialBinding.FdValue.Value := BIND_OVERALL;
+    end;
+    State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
+
     Box_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
-      TexCoordNode.FdPoint.Items,
+      TexCoordNode.FdPoint.Items, MaterialIndex,
       OverTriangulate,
       Vector3Single(FdWidth.Value, FdHeight.Value, FdDepth.Value),
       State.LastNodes.KambiTriangulation);
