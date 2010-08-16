@@ -41,13 +41,18 @@ type
     { Initialize new triangle of VRML model.
       Given ATriangle must satisfy IsValidTriangle. }
     constructor Init(const ATriangle: TTriangle3Single;
-      AState: TVRMLGraphTraverseState; AGeometry: TVRMLGeometryNode;
+      AShape: TObject; AState: TVRMLGraphTraverseState;
       const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
 
     procedure UpdateWorld;
   public
+    { Shape containing this triangle.
+      This must be an instance of TVRMLShape, but due to unit dependencies
+      it cannot be declared such. }
+    Shape: TObject;
+    { State of this shape, containing various information about 3D shape.
+      This is a shortcut of TVRMLShape(Shape).State. }
     State: TVRMLGraphTraverseState;
-    Geometry: TVRMLGeometryNode;
     MatNum: integer;
 
     { If this triangle is part of a face created by coordIndex field
@@ -729,13 +734,13 @@ uses KambiStringUtils;
 { TVRMLTriangle  ------------------------------------------------------------- }
 
 constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
-  AState: TVRMLGraphTraverseState; AGeometry: TVRMLGeometryNode;
+  AShape: TObject; AState: TVRMLGraphTraverseState;
   const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
 begin
   inherited Init(ATriangle);
 
+  Shape := AShape;
   State := AState;
-  Geometry := AGeometry;
   MatNum := AMatNum;
   FaceCoordIndexBegin := AFaceCoordIndexBegin;
   FaceCoordIndexEnd := AFaceCoordIndexEnd;

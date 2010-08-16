@@ -26,20 +26,19 @@ type
     Transform: PMatrix4Single;
     NewTriangle: TNewTriangleProc;
     procedure LocalNewTriangle(const Tri: TTriangle3Single;
-      State: TVRMLGraphTraverseState;
-      GeometryNode: TVRMLGeometryNode;
+      Shape: TObject; State: TVRMLGraphTraverseState;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
   procedure TTriangulateRedirect.LocalNewTriangle(const Tri: TTriangle3Single;
-    State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+    Shape: TObject; State: TVRMLGraphTraverseState;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   begin
-    NewTriangle(TriangleTransform(Tri, Transform^), State, GeometryNode, MatNum,
+    NewTriangle(TriangleTransform(Tri, Transform^), Shape, State, MatNum,
       FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 
-procedure TVRMLGeometryNode.Triangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure TVRMLGeometryNode.Triangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var tr: TTriangulateRedirect;
 begin
  { klasa TTriangulateRedirect bedzie dzialala jako posrednik :
@@ -50,7 +49,7 @@ begin
  try
   tr.Transform := @(State.Transform);
   tr.NewTriangle := NewTriangleProc;
-  LocalTriangulate(State, OverTriangulate,
+  LocalTriangulate(Shape, State, OverTriangulate,
     {$ifdef FPC_OBJFPC} @ {$endif} tr.LocalNewTriangle);
  finally tr.Free end;
 end;
@@ -63,13 +62,12 @@ type
     NewTriangle: TNewTriangleProc;
     SourceGeometry: TVRMLGeometryNode;
     procedure Triangle(const Triangle: TTriangle3Single;
-      State: TVRMLGraphTraverseState;
-      GeometryNode: TVRMLGeometryNode;
+      Shape: TObject; State: TVRMLGraphTraverseState;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
 procedure TProxyRedirect.Triangle(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+  Shape: TObject; State: TVRMLGraphTraverseState;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   { We have to change GeometryNode to SourceGeometry
@@ -82,10 +80,10 @@ begin
     is "face" etc., MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd
     are reset to standard values. }
 
-  NewTriangle(Triangle, State, SourceGeometry, 0, -1, -1);
+  NewTriangle(Triangle, Shape, State, 0, -1, -1);
 end;
 
-procedure TVRMLGeometryNode.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TVRMLGeometryNode.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var
   P: TVRMLGeometryNode;
@@ -98,7 +96,7 @@ begin
     try
       ProxyRedirect.SourceGeometry := Self;
       ProxyRedirect.NewTriangle := NewTriangleProc;
-      P.LocalTriangulate(State, OverTriangulate, @ProxyRedirect.Triangle);
+      P.LocalTriangulate(Shape, State, OverTriangulate, @ProxyRedirect.Triangle);
     finally
       FreeAndNil(ProxyRedirect);
       FreeAndNil(P);
@@ -131,7 +129,7 @@ end;
 
 procedure LocalTriangulateRect(constCoord: integer;
   const constCoordValue, x1, y1, x2, y2: Single;
-  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+  Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc; MatNum: integer);
 var T: TTriangle3Single;
     i, c1, c2: integer;
@@ -143,18 +141,18 @@ var T: TTriangle3Single;
   end;
 
 begin
- Assert(not OverTriangulate); { TODO: OverTriangulate not used here so not impl yet}
+ // OverTriangulate = true not impl yet
 
  for i := 0 to 2 do T[i, constCoord] := constCoordValue;
  RestOf3dCoords(constCoord, c1, c2);
  TriAssign(0, x1, y1);
  TriAssign(1, x1, y2);
  TriAssign(2, x2, y2);
- NewTriangleProc(T, State, GeometryNode, MatNum, -1, -1);
+ NewTriangleProc(T, Shape, State, MatNum, -1, -1);
  TriAssign(0, x1, y1);
  TriAssign(1, x2, y2);
  TriAssign(2, x2, y1);
- NewTriangleProc(T, State, GeometryNode, MatNum, -1, -1);
+ NewTriangleProc(T, Shape, State, MatNum, -1, -1);
 end;
 
 { Text nodes ----------------------------------------------------------------- }
@@ -170,27 +168,27 @@ end;
   detection", and allow octree operations to optionally ignore
   such marked triangles. }
 
-procedure TNodeAsciiText_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeAsciiText_1.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var
   Box: TBox3D;
 begin
   Box := LocalBoundingBox(State);
   LocalTriangulateRect(2, 0, Box[0][0], Box[0][1], Box[1][0], Box[1][1],
-    State, Self, false, NewTriangleProc, 0);
+    Shape, State, false, NewTriangleProc, 0);
 end;
 
-procedure TNodeText.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeText.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var
   Box: TBox3D;
 begin
   Box := LocalBoundingBox(State);
   LocalTriangulateRect(2, 0, Box[0][0], Box[0][1], Box[1][0], Box[1][1],
-    State, Self, false, NewTriangleProc, 0);
+    Shape, State, false, NewTriangleProc, 0);
 end;
 
-procedure TNodeText3D.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeText3D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
   { TODO: don't really know what to do for Text3D here, I certainly
@@ -230,15 +228,14 @@ begin
 end;}
 
 procedure Box_LocalTriangulate(
-  Self: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState;
+  Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
   const SizeX, SizeY, SizeZ: Single);
 var
   MatPerPart: boolean;
 
   procedure LocalTriangulateBox3D(const Box: TBox3D;
-    State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+    Shape: TObject; State: TVRMLGraphTraverseState;
     OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
   const
     { Material numbers, following VRML 1.0 spec for Cube node. }
@@ -271,7 +268,7 @@ var
 
       if MatPerPart then MatNum := MaterialsPerPart[i, false] else MatNum := 0;
       LocalTriangulateRect(i, Box[0, i], C1Min, C2Min, C1Max, C2Max,
-        State, GeometryNode, OverTriangulate, NewTriangleProc, MatNum);
+        Shape, State, OverTriangulate, NewTriangleProc, MatNum);
 
       { Set C1Min, C1Max again, in case they were reverted. }
       C1Min := Box[0, c1];
@@ -281,7 +278,7 @@ var
 
       if MatPerPart then MatNum := MaterialsPerPart[i, true] else MatNum := 0;
       LocalTriangulateRect(i, Box[1, i], C1Min, C2Min, C1Max, C2Max,
-        State, GeometryNode, OverTriangulate, NewTriangleProc, MatNum);
+        Shape, State, OverTriangulate, NewTriangleProc, MatNum);
     end;
   end;
 
@@ -292,20 +289,20 @@ begin
     BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
   Box[0] := Vector3Single(-SizeX / 2, -SizeY / 2, -SizeZ / 2);
   Box[1] := Vector3Single( SizeX / 2,  SizeY / 2,  SizeZ / 2);
-  LocalTriangulateBox3D(box, State, Self, OverTriangulate, NewTriangleProc);
+  LocalTriangulateBox3D(box, Shape, State, OverTriangulate, NewTriangleProc);
 end;
 
-procedure TNodeCube_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeCube_1.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  Box_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+  Box_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
     FdWidth.Value, FdHeight.Value, FdDepth.Value);
 end;
 
-procedure TNodeBox.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeBox.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  Box_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+  Box_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
     FdSize.Value[0], FdSize.Value[1], FdSize.Value[2]);
 end;
 
@@ -316,7 +313,7 @@ type
   public
     { This is passed all the way, from IndexedFaceSet_LocalTriangulate
       down to TriangleIndexes. }
-    Geometry: TVRMLGeometryNode;
+    Shape: TObject;
     State: TVRMLGraphTraverseState;
     NewTriangleProc: TNewTriangleProc;
     Coord: TMFVec3f;
@@ -349,7 +346,7 @@ begin
   Tri[0] := Coord.ItemsSafe[FaceIndices^[TriIndices[0]]];
   Tri[1] := Coord.ItemsSafe[FaceIndices^[TriIndices[1]]];
   Tri[2] := Coord.ItemsSafe[FaceIndices^[TriIndices[2]]];
-  NewTriangleProc(Tri, State, Geometry, VRML1MaterialNumber,
+  NewTriangleProc(Tri, Shape, State, VRML1MaterialNumber,
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
@@ -379,7 +376,7 @@ begin
       Coord.Items.ItemsArray, @TriangleIndexes, 0);
 end;
 
-procedure TNodeIndexedFaceSet_1.LocalTriangulate(
+procedure TNodeIndexedFaceSet_1.LocalTriangulate(Shape: TObject;
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   NewTriangleProc: TNewTriangleProc);
 var
@@ -387,7 +384,7 @@ var
 begin
   Triangulator := TIndexedFaceSetTriangulator.Create;
   try
-    Triangulator.Geometry := Self;
+    Triangulator.Shape := Shape;
     Triangulator.State := State;
     Triangulator.NewTriangleProc := NewTriangleProc;
     Triangulator.Coord := State.LastNodes.Coordinate3.FdPoint;
@@ -399,7 +396,7 @@ begin
   finally FreeAndNil(Triangulator) end;
 end;
 
-procedure TNodeIndexedFaceSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeIndexedFaceSet_2.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var
   Triangulator: TIndexedFaceSetTriangulator;
@@ -408,7 +405,7 @@ begin
 
   Triangulator := TIndexedFaceSetTriangulator.Create;
   try
-    Triangulator.Geometry := Self;
+    Triangulator.Shape := Shape;
     Triangulator.State := State;
     Triangulator.NewTriangleProc := NewTriangleProc;
     Triangulator.Coord := Coordinates(State);
@@ -422,38 +419,38 @@ end;
 
 { Others --------------------------------------------------------------------- }
 
-procedure TNodeIndexedLineSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeIndexedLineSet_1.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
   { No triangles }
 end;
 
-procedure TNodeIndexedLineSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeIndexedLineSet_2.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
   { No triangles }
 end;
 
-procedure TNodeLineSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeLineSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
   { No triangles }
 end;
 
-procedure TNodePointSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodePointSet_1.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
   { No triangles }
 end;
 
-procedure TNodePointSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodePointSet_2.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
   { No triangles }
 end;
 
 procedure Sphere_LocalTriangulate(
-  Self: TVRMLGeometryNode;
+  Shape: TObject;
   State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
   const FdRadiusValue: Single);
@@ -491,10 +488,10 @@ var
 
   procedure LOOP_OVER_CIRCLE_PROC(LastPt, Pt: TVector3Single);
   begin
-    NewTriangleProc(Triangle3Single(Pt, LastPt, BottomPt), State, Self, 0, -1, -1);
+    NewTriangleProc(Triangle3Single(Pt, LastPt, BottomPt), Shape, State, 0, -1, -1);
     Pt[1] := TopHeight;
     LastPt[1] := TopHeight;
-    NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), State, Self, 0, -1, -1);
+    NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), Shape, State, 0, -1, -1);
   end;
 
 var
@@ -545,8 +542,8 @@ begin
       HighPt := Vector3Single(SinAngleRad*HighRadius, HighHeight, CosAngleRad*HighRadius);
 
       { make quad }
-      NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, 0, -1, -1);
-      NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), State, Self, 0, -1, -1);
+      NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), Shape, State, 0, -1, -1);
+      NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), Shape, State, 0, -1, -1);
 
       LowLastPt := LowPt;
       HighLastPt := HighPt;
@@ -561,22 +558,22 @@ begin
     LowPt := Vector3Single(0, LowHeight, LowRadius);
     HighPt := Vector3Single(0, HighHeight, HighRadius);
     { make quad }
-    NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, 0, -1, -1);
-    NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), State, Self, 0, -1, -1);
+    NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), Shape, State, 0, -1, -1);
+    NewTriangleProc(Triangle3Single(LowLastPt, HighPt, HighLastPt), Shape, State, 0, -1, -1);
   end;
 end;
 
-procedure TNodeSphere_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeSphere_1.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  Sphere_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+  Sphere_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
     FdRadius.Value);
 end;
 
-procedure TNodeSphere_2.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeSphere_2.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  Sphere_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+  Sphere_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
     FdRadius.Value);
 end;
 
@@ -586,7 +583,7 @@ end;
 
 { TNodeElevationGrid --------------------------------------------------------- }
 
-procedure TNodeElevationGrid.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeElevationGrid.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var
   I, J: Integer;
@@ -616,8 +613,8 @@ begin
           As far as I understand, no : ccw FALSE tells me that
           normals point download (normal y is negative) and I
           should eventually cull (if solid TRUE) the other side. }
-        NewTriangleProc(Triangle3Single(Last2, Last1, Next1), State, Self, 0, -1, -1);
-        NewTriangleProc(Triangle3Single(Last2, Next1, Next2), State, Self, 0, -1, -1);
+        NewTriangleProc(Triangle3Single(Last2, Last1, Next1), Shape, State, 0, -1, -1);
+        NewTriangleProc(Triangle3Single(Last2, Next1, Next2), Shape, State, 0, -1, -1);
 
         Last1 := Next1;
         Last2 := Next2;
@@ -631,6 +628,7 @@ end;
 type
   TExtrusionTriangleTriangulator = class
     Node: TNodeExtrusion;
+    Shape: TObject;
     State: TVRMLGraphTraverseState;
     NewTriangleProc: TNewTriangleProc;
     TransformCap: TMatrix4Single;
@@ -648,18 +646,18 @@ begin
       MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[0])),
       MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[2])),
       MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[1]))),
-      State, Node, 0, -1, -1);
+      Shape, State, 0, -1, -1);
   end else
   begin
     NewTriangleProc(Triangle3Single(
       MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[0])),
       MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[1])),
       MatrixMultPoint(TransformCap, Node.CrossSection3D(Tri[2]))),
-      State, Node, 0, -1, -1);
+      Shape, State, 0, -1, -1);
   end;
 end;
 
-procedure TNodeExtrusion.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeExtrusion.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 
   procedure DrawCap(const TransformCap: TMatrix4Single;
@@ -670,6 +668,7 @@ procedure TNodeExtrusion.LocalTriangulate(State: TVRMLGraphTraverseState;
     Triangulator := TExtrusionTriangleTriangulator.Create;
     try
       Triangulator.Node := Self;
+      Triangulator.Shape := Shape;
       Triangulator.State := State;
       Triangulator.NewTriangleProc := NewTriangleProc;
       Triangulator.TransformCap := TransformCap;
@@ -740,8 +739,8 @@ begin
           MakeCrossPoint(Cross[1, 1], 1, J);
 
           { Now make a quad using 4 Cross points }
-          NewTriangleProc(Triangle3Single(Cross[0, 0], Cross[1, 0], Cross[1, 1]), State, Self, 0, -1, -1);
-          NewTriangleProc(Triangle3Single(Cross[0, 0], Cross[1, 1], Cross[0, 1]), State, Self, 0, -1, -1);
+          NewTriangleProc(Triangle3Single(Cross[0, 0], Cross[1, 0], Cross[1, 1]), Shape, State, 0, -1, -1);
+          NewTriangleProc(Triangle3Single(Cross[0, 0], Cross[1, 1], Cross[0, 1]), Shape, State, 0, -1, -1);
 
           Cross[0, 0] := Cross[0, 1];
           Cross[1, 0] := Cross[1, 1];
@@ -801,7 +800,7 @@ type
     TAbstractCoordinateRenderer does OpenGL rendering and this is for
     OpenGL-independent triangulating. }
   TCoordinateTriangulator = class
-    Geometry: TVRMLGeometryNode;
+    Shape: TObject;
     State: TVRMLGraphTraverseState;
 
     VRML1MaterialBinding: Integer;
@@ -854,13 +853,13 @@ begin
     Triangle[0] := Coord.Items[Index(Indexes[0])];
     Triangle[1] := Coord.Items[Index(Indexes[1])];
     Triangle[2] := Coord.Items[Index(Indexes[2])];
-    NewTriangleProc(Triangle, State, Geometry, VRML1MaterialNumber, -1, -1);
+    NewTriangleProc(Triangle, Shape, State, VRML1MaterialNumber, -1, -1);
     I := 3;
     while I <= High(Indexes) do
     begin
       Triangle[1] := Triangle[2];
       Triangle[2] := Coord.Items[Index(Indexes[I])];
-      NewTriangleProc(Triangle, State, Geometry, VRML1MaterialNumber, -1, -1);
+      NewTriangleProc(Triangle, Shape, State, VRML1MaterialNumber, -1, -1);
       Inc(I);
     end;
   end;
@@ -870,6 +869,7 @@ end;
   using node's CoordPolygons method. }
 procedure LocalTriangulateCoordPolygons(
   Geometry: TVRMLGeometryNode;
+  Shape: TObject;
   State: TVRMLGraphTraverseState;
   VRML1MaterialBinding: Integer;
   VRML1MaterialIndex: TMFLong;
@@ -881,7 +881,7 @@ begin
 
   Triangulator := TCoordinateTriangulator.Create;
   try
-    Triangulator.Geometry := Geometry;
+    Triangulator.Shape := Shape;
     Triangulator.State := State;
     Triangulator.VRML1MaterialBinding := VRML1MaterialBinding;
     Triangulator.VRML1MaterialIndex := VRML1MaterialIndex;
@@ -896,74 +896,74 @@ begin
   finally FreeAndNil(Triangulator) end;
 end;
 
-procedure TNodeIndexedTriangleMesh_1.LocalTriangulate(
+procedure TNodeIndexedTriangleMesh_1.LocalTriangulate(Shape: TObject;
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   NewTriangleProc: TNewTriangleProc);
 begin
-  LocalTriangulateCoordPolygons(Self, State,
+  LocalTriangulateCoordPolygons(Self, Shape, State,
     State.LastNodes.MaterialBinding.FdValue.Value, FdMaterialIndex,
     NewTriangleProc);
 end;
 
-procedure TNodeIndexedTriangleSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeIndexedTriangleSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  LocalTriangulateCoordPolygons(Self, State,
+  LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
-procedure TNodeTriangleSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeTriangleSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  LocalTriangulateCoordPolygons(Self, State,
+  LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
-procedure TNodeIndexedTriangleFanSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeIndexedTriangleFanSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  LocalTriangulateCoordPolygons(Self, State,
+  LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
-procedure TNodeTriangleFanSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeTriangleFanSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  LocalTriangulateCoordPolygons(Self, State,
+  LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
-procedure TNodeIndexedTriangleStripSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeIndexedTriangleStripSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  LocalTriangulateCoordPolygons(Self, State,
+  LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
-procedure TNodeTriangleStripSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeTriangleStripSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  LocalTriangulateCoordPolygons(Self, State,
+  LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
-procedure TNodeIndexedQuadSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeIndexedQuadSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  LocalTriangulateCoordPolygons(Self, State,
+  LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
-procedure TNodeQuadSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeQuadSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  LocalTriangulateCoordPolygons(Self, State,
+  LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 { ---------------------------------------------------------------------------- }
 
-procedure Rectangle2D_LocalTriangulate(Self: TVRMLGeometryNode;
+procedure Rectangle2D_LocalTriangulate(Shape: TObject;
   State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
   FdSize: TSFVec2f);
@@ -980,29 +980,29 @@ begin
   Triangle[1] := V;
   V[0] := -V[0];
   Triangle[2] := V;
-  NewTriangleProc(Triangle, State, Self, 0, -1, -1);
+  NewTriangleProc(Triangle, Shape, State, 0, -1, -1);
 
   Triangle[1] := Triangle[2];
   V[1] := -V[1];
   Triangle[2] := V;
-  NewTriangleProc(Triangle, State, Self, 0, -1, -1);
+  NewTriangleProc(Triangle, Shape, State, 0, -1, -1);
 end;
 
-procedure TNodeRectangle2D.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeRectangle2D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  Rectangle2D_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+  Rectangle2D_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
     FdSize);
 end;
 
-procedure TNodePlane.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodePlane.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  Rectangle2D_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+  Rectangle2D_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
     FdSize);
 end;
 
-procedure TNodeCircle2D.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeCircle2D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
   { No triangles }

@@ -195,8 +195,7 @@ type
       Przed dodaniem duzej ilosci trojkatow sugerowane jest aby ustalic
       Triangles.AllowedCapacityCount na odpowiednio duza wartosc.  }
     procedure AddItemTriangle(const Triangle: TTriangle3Single;
-      State: TVRMLGraphTraverseState;
-      Geometry: TVRMLGeometryNode;
+      Shape: TObject; State: TVRMLGraphTraverseState;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   public
     { Direct collisions counter, to test octree efficiency.
@@ -525,13 +524,13 @@ begin
 end;
 
 procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; Geometry: TVRMLGeometryNode;
+  Shape: TObject; State: TVRMLGraphTraverseState;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   if IsValidTriangle(Triangle) then
   begin
     Triangles.Add^.Init(
-      Triangle, State, Geometry, MatNum,
+      Triangle, Shape, State, MatNum,
       FaceCoordIndexBegin, FaceCoordIndexEnd);
     TreeRoot.AddItem(Triangles.High);
   end;

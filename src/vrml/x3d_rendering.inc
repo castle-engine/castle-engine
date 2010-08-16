@@ -173,9 +173,9 @@
     { @groupEnd }
 
     { Triangulate node, calling NewTriangleProc for each triangle this node
-      defines. NewTriangleProc will be called with (Triangle, State, Node) where
-      Triangle will be the new triangle, State will always be the
-      State given here and Node will always be Self.
+      defines. NewTriangleProc will be called with (Triangle, Shape, State, ...) where
+      Triangle will be the new triangle, and Shape and State
+      are parameters passed here.
 
       The difference between LocalTriangulate and Triangulate is just like
       between LocalBoundingBox and BoundingBox: "local" version ignored
@@ -212,9 +212,10 @@
       and transforming each triangle.
 
       @groupBegin }
-    procedure Triangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+    procedure Triangulate(Shape: TObject; State: TVRMLGraphTraverseState;
+      OverTriangulate: boolean;
       NewTriangleProc: TNewTriangleProc);
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
       OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); virtual;
     { @groupEnd }
 
@@ -537,7 +538,7 @@
       override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
 
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -573,7 +574,7 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeIndexedTriangleSet = class(TNodeX3DComposedGeometryNode)
@@ -601,7 +602,7 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeIndexedTriangleStripSet = class(TNodeX3DComposedGeometryNode)
@@ -629,7 +630,7 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeLineSet = class(TNodeX3DGeometryNode)
@@ -670,7 +671,7 @@
     function Color: TMFVec3f;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeNormal = class(TNodeX3DNormalNode)
@@ -718,7 +719,7 @@
       override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
 
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -748,7 +749,7 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeTriangleSet = class(TNodeX3DComposedGeometryNode)
@@ -764,7 +765,7 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeTriangleStripSet = class(TNodeX3DComposedGeometryNode)
@@ -787,7 +788,7 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 {$endif read_interface}
 

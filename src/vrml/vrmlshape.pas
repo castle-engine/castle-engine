@@ -175,7 +175,7 @@ type
   private
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-      State: TVRMLGraphTraverseState; Geometry: TVRMLGeometryNode;
+      Shape: TObject; State: TVRMLGraphTraverseState;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TVRMLTriangleOctree;
@@ -464,6 +464,17 @@ type
       Appearance.shadowCaster field (see
       http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_caster). }
     function ShadowCaster: boolean;
+
+    { Triangulate shape.
+
+      These are comfortable and efficient wrappers over calling
+      TVRMLGeometryNode.Triangulate and TVRMLGeometryNode.LocalTriangulate
+      on Geometry.
+
+      @groupBegin }
+    procedure Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+    procedure LocalTriangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+    { @groupEnd }
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -886,11 +897,11 @@ end;
 
 procedure TVRMLShape.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; Geometry: TVRMLGeometryNode;
+  Shape: TObject; State: TVRMLGraphTraverseState;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Triangle, State, Geometry, MatNum,
+  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape, State, MatNum,
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
@@ -909,10 +920,10 @@ begin
         Progress.Init(TrianglesCount(false), ProgressTitle, true);
         try
           TriangleOctreeToAdd := Result;
-          Geometry(false).LocalTriangulate(State, false,  @AddTriangleToOctreeProgress);
+          LocalTriangulate(false, @AddTriangleToOctreeProgress);
         finally Progress.Fini end;
       end else
-        Geometry(false).LocalTriangulate(State, false,  @Result.AddItemTriangle);
+        LocalTriangulate(false, @Result.AddItemTriangle);
     finally
       Result.Triangles.AllowedCapacityOverflow := 4;
     end;
@@ -1310,6 +1321,29 @@ begin
   end;
 
   Result := FGeometry[OverTriangulate];
+end;
+
+procedure TVRMLShape.Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { Always pass the same OverTriangulate value to Geometry() and to Triangulate().
+    This is sensible:
+
+    1. if a node uses Proxy, then the OverTriangulate parameter
+       to the Geometry() will already cause using appropriate triangulation
+       during convertion to the IndexedFaceSet.
+       Such IndexedFaceSet will ignore OverTriangulate parameter
+       to Triangulate().
+
+    2. if a node does not use Proxy, then Geometry() parameter doesn't
+       matter. The parameter to Triangulate() then decides the triangulation.
+  }
+
+  Geometry(OverTriangulate).Triangulate(Self, State, OverTriangulate, NewTriangleProc);
+end;
+
+procedure TVRMLShape.LocalTriangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Geometry(OverTriangulate).LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc);
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }

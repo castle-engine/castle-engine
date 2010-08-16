@@ -4547,13 +4547,8 @@ begin
         Render_MaterialsBegin;
         try
           {$ifdef USE_VRML_NODES_TRIANGULATION}
-
-          { alternatywny prosty rendering przez LocalTriangulate, only to test
-            LocalTriangulate. We should use here OverTriagulate = true (but it's not
-            impl yet because I don't need it anywhere (well, I would use it here
-            but this is just some testing code)) }
-          CurrentGeometry.LocalTriangulate(currentState, false, @DrawTriangle);
-
+          { Simple rendering using LocalTriangulate. }
+          Shape.LocalTriangulate(true, @DrawTriangle);
           {$else}
 
           MeshRenderer.Render;

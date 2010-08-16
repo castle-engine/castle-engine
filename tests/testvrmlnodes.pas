@@ -894,11 +894,9 @@ begin
           (N as TVRMLGeometryNode).VerticesCount(State, false);
           (N as TVRMLGeometryNode).TrianglesCount(State, true);
           (N as TVRMLGeometryNode).TrianglesCount(State, false);
-// this is known to be not implemented for some nodes
-//          (N as TVRMLGeometryNode).Triangulate(State, true, @DummyTriangleProc);
+          (N as TVRMLGeometryNode).Triangulate(State, true, @DummyTriangleProc);
           (N as TVRMLGeometryNode).Triangulate(State, false, @DummyTriangleProc);
-// this is known to be not implemented for some nodes
-//          (N as TVRMLGeometryNode).LocalTriangulate(State, true, @DummyTriangleProc);
+          (N as TVRMLGeometryNode).LocalTriangulate(State, true, @DummyTriangleProc);
           (N as TVRMLGeometryNode).LocalTriangulate(State, false, @DummyTriangleProc);
         except
           on E: Exception do

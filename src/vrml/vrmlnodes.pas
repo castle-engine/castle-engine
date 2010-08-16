@@ -706,7 +706,7 @@ type
     procedure (ParentNode: TVRMLNode; var Node: TVRMLNode) of object;
 
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
-    State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+    Shape: TObject; State: TVRMLGraphTraverseState;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
 
   TSFNode = class;
@@ -2228,7 +2228,7 @@ uses
     Result := 0;
   end;
 
-  procedure TGeometryNotImplemented.LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  procedure TGeometryNotImplemented.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
   begin
   end;
 }
