@@ -2361,7 +2361,7 @@ begin
   InvertedTransform := IdentityMatrix4Single;
 
   TextureTransform := IdentityMatrix4Single;
-  FLastNodes := ADefaultLastNodes;
+  AssignLastNodes(ADefaultLastNodes);
 end;
 
 constructor TVRMLGraphTraverseState.Create;
