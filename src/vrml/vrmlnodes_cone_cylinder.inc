@@ -221,6 +221,13 @@ var
   QuadricStacks: Cardinal;
   Stack: Single;
 begin
+  { For VRML 1.0, some of these MF fields by default have non-empty content.
+    It's safest to just clean them. }
+  CoordIndex.Count := 0;
+  Coord.Count := 0;
+  Normal.Count := 0;
+  TexCoord.Count := 0;
+
   QuadricSlices := KambiTriangulation.QuadricSlices;
   QuadricStacks := KambiTriangulation.QuadricStacks;
 
@@ -519,7 +526,6 @@ begin
     NormalBinding := TNodeNormalBinding.Create('', WWWBasePath);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
-    // TODO: works wrong, why?
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
     State.SetLastNodes(vsNormalBinding, NormalBinding, true);
 
@@ -572,7 +578,6 @@ begin
     NormalBinding := TNodeNormalBinding.Create('', WWWBasePath);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
-    // TODO: works wrong, why?
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
     State.SetLastNodes(vsNormalBinding, NormalBinding, true);
 
