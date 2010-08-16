@@ -228,13 +228,21 @@ begin
           RadianceTransfer := TNodeIndexedFaceSet_1(Geometry).FdRadianceTransfer.Items else
           RadianceTransfer := nil;
 
+        { If we used Proxy to get Geometry, then don't calculate PRT.
+          We could calculate it, but it would not be used: it would not
+          be saved to the actual file, only to the temporary Proxy instance.
+          To make it work, we may in the future implement actually inserting
+          Proxy result into the VRML file. }
+        if Geometry <> SI.Current.OriginalGeometry then
+          RadianceTransfer := nil;
+
         if RadianceTransfer <> nil then
         begin
           { For PRT, we need a normal per-vertex, so always calculate
             smooth normals. Simple, and thanks to NormalsCalculator
             this works for all VRML coord-based nodes (and only for
             those RadianceTransfer is defined). }
-          Normals := SI.Current.NormalsSmooth(SI.Current.Geometry);
+          Normals := SI.Current.NormalsSmooth;
           ComputeTransfer(RadianceTransfer, Geometry.Coordinates(State).Items,
             State.Transform, DiffuseColor(State));
         end;
