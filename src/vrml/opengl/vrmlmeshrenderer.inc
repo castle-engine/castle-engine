@@ -1946,9 +1946,9 @@ procedure TAbstractMatTexCoordinateRenderer.RenderVertex(IndexNum: Integer);
 begin
   case Mat1Implementation of
     miPerVertexCoordIndexed:
-      Renderer.Render_BindMaterial_1(CoordIndex.ItemsSafe[IndexNum]);
+      Renderer.Render_BindMaterial_1(CoordIndex.ItemsSafe[IndexNum], false);
     miPerVertexMatIndexed:
-      Renderer.Render_BindMaterial_1(MaterialIndex.ItemsSafe[IndexNum]);
+      Renderer.Render_BindMaterial_1(MaterialIndex.ItemsSafe[IndexNum], false);
   end;
 
   inherited;

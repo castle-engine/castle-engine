@@ -936,23 +936,33 @@ begin
   {$ifndef DARWIN}
 
   { When we have material per-face or per-vertex, Render_BindMaterial_1
-    will be called during rendering. But Render_BindMaterial_1 doesn't
-    work all perfectly within glBegin...glEnd, it may do things not
-    allowed, like disable/enable lighting or fog
-    (although it works in the usual case, as changing glMaterial/Color is Ok).
+    will be called during rendering.
+
+    So we have to try hard to call Render_BindMaterial_1 outside of
+    glBegin/glEnd. So that we can pass OutsideBeginEnd = true,
+    which in turn allows Render_BindMaterial_1 to really work with
+    all the features (like disable/enable lighting or fog).
+    (Although the usual features, like changing glMaterial/Color, are Ok
+    even inside glBegin/glEnd).
+
+    One way to do it is to use GL_TRIANGLE_FAN that we begin/end for each
+    face. This way material per-face is set outside of glBegin/glEnd.
+    Material per-vertex is still limited (must be inside glBegin/glEnd),
+    but I treat it as unfixable.
 
     This also workarounds NVidia GeForce 5200 problems for material
     binding PER_FACE_INDEXED, see
     kambi_vrml_test_suite/vrml_1/material_per_face_problematic_on_nvidia_gf_5200.wrl
 
-    TODO: for per-vertex, this is actually still not correct.
-    The only way is to make Render_BindMaterial_1 always correct within glBegin/End,
-    by making some knowledge (like fogImmune or only-emissive)
-    known for the whole material (not just for it's index), and initialize
-    them in RenderMaterialBegin.
+    TODO: a better way would be to move everything that is not allowed
+    inside glBegin/glEnd outside of Render_BindMaterial_1.
+    This means that Render_MaterialsBegin needs to analyze the material
+    and decide if it's emission-only, or fog immune.
 
-    Then TryRenderingFaceAsFan should be called only to workaround this
+    Then TryRenderingFaceAsFan would not be needed, except to workaround this
     NVidia bug (possibly, only for thse NVidia models?).
+
+    Not worth the trouble for obsolete VRML 1.0, for now.
   }
 
   if Mat1Implementation in

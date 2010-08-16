@@ -99,13 +99,18 @@ begin
   end;
 end;
 
+{ OutsideBeginEnd is a hack to disable some Render_Material features
+  when we're within glBegin/glEnd. This is necessary for changing
+  VRML 1.0 materials within glBegin/glEnd. See
+  TIndexedFaceSet_1Renderer.RenderCoordinateBegin. }
 procedure TVRMLOpenGLRenderer.Render_Material(
   const Lit: boolean;
   const AmbientColor, DiffuseColor, SpecularColor,
     EmissiveColor: TVector3Single;
   const UnLitColor: TVector3Single;
   const ShininessExp, Opacity: Single;
-  const FogImmune: boolean);
+  const FogImmune: boolean;
+  const OutsideBeginEnd: boolean);
 {$ifdef TRANSPARENCY_BY_STIPPLE}
 var
   Stipple: TPolygonStipple;
@@ -117,7 +122,7 @@ begin
 
   if Lit then
   begin
-    if Render_Material_ForcedLightDisable then
+    if OutsideBeginEnd and Render_Material_ForcedLightDisable then
     begin
       glPopAttrib;
       Render_Material_ForcedLightDisable := false;
@@ -140,7 +145,7 @@ begin
     glColorv(Vector4f(Attributes.ColorModulated(DiffuseColor), Opacity));
   end else
   begin
-    if not Render_Material_ForcedLightDisable then
+    if OutsideBeginEnd and (not Render_Material_ForcedLightDisable) then
     begin
       { PushAttrib is used to save GL_LIGHTING enabled state,
         as we cannot predict it (it's up to the VRMLOpenGLRenderer caller
@@ -165,7 +170,7 @@ begin
       number of glDisable/Enable(GL_FOG) (as they can be potentially
       expensive on some OpenGL implementations, if they init some
       large state etc.) }
-    if Render_Material_LastFogImmune <> FogImmune then
+    if OutsideBeginEnd and (Render_Material_LastFogImmune <> FogImmune) then
     begin
       if FogImmune then
         glDisable(GL_FOG) else
@@ -179,7 +184,7 @@ begin
     polygon stipple. This is called "low quality transparency" in ivview.
     But this is SOOO ugly that I do not consider it really worth
     maintaining. Really, using blending we can achieve MUCH better results. }
-  if Opacity < 1.0 then
+  if OutsideBeginEnd and (Opacity < 1.0) then
   begin
     glEnable(GL_POLYGON_STIPPLE);
     if Opacity >= 0.75 then
@@ -194,7 +199,8 @@ begin
   { MaterialFromColorEnabled should be enabled only below and disabled
     back by MaterialsEnd. For many Render_BindMaterial_1 calls, it's
     Ok if it's already enabled. }
-  if (MeshRenderer <> nil) and
+  if OutsideBeginEnd and
+     (MeshRenderer <> nil) and
      MeshRenderer.NeedsSetColor and
      NodeLit(CurrentGeometry) and
      (not MaterialFromColorEnabled) then
@@ -219,7 +225,8 @@ end;
   number MatNum from CurrentState.LastNodes.Material.
   This is ignored when CurrentGeometry is not TVRMLGeometryNode_1
   (then VRML 2.0 approach to materials should be used). }
-procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer);
+procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer;
+  const OutsideBeginEnd: boolean = true);
 var
   UnlitColor: TVector3Single;
 begin
@@ -265,7 +272,8 @@ begin
       UnlitColor,
       ShininessExp(MatNum),
       Opacity(MatNum),
-      FdFogImmune.Value);
+      FdFogImmune.Value,
+      OutsideBeginEnd);
   end;
 end;
 
@@ -308,7 +316,7 @@ begin
       UnLitColor,
       Material.ShininessExp,
       Material.Opacity,
-      Material.FdFogImmune.Value);
+      Material.FdFogImmune.Value, false);
   end else
   begin
     Render_Material(
@@ -320,7 +328,7 @@ begin
       White3Single,
       0,
       1,
-      false);
+      false, false);
   end;
 end;
 

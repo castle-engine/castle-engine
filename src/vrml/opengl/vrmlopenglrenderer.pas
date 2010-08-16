@@ -1341,7 +1341,8 @@ type
 
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
-    procedure Render_BindMaterial_1(MatNum: integer);
+    procedure Render_BindMaterial_1(MatNum: integer;
+      const OutsideBeginEnd: boolean = true);
     procedure Render_BindMaterial_2;
     procedure Render_Material(
       const Lit: boolean;
@@ -1349,7 +1350,8 @@ type
         EmissiveColor: TVector3Single;
       const UnLitColor: TVector3Single;
       const ShininessExp, Opacity: Single;
-      const FogImmune: boolean);
+      const FogImmune: boolean;
+      const OutsideBeginEnd: boolean);
     procedure SetColor(const Color: TVector3Single);
 
     { Judge whether the node can be lit. }
