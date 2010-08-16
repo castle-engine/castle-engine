@@ -3396,40 +3396,21 @@ begin
     Exit;
 
   { We used to check here RootNode.IsNodePresent, to eliminate
-    changes to nodes not in our graph. This is not done now,
-    as in fact this check is not needed, and usually it wastes quite
-    some time (for example, profile
-    ../vrml/opengl/examples/change_vrml_by_code_2.lpr
-    when doing ChangedFields (not ChangedAll)).
+    changes to nodes not in our graph. This is not done now, because:
 
-    In most cases, when modifying graph by code, and always when
-    modifying graph by VRML events, the Node is known to be inside
-    our VRML graph... }
-  { $define CHECK_NODE_PRESENCE}
-  {$ifdef CHECK_NODE_PRESENCE}
+    1. This check is not usually needed, and usually it wastes quite
+       some time (for example, profile
+       ../vrml/opengl/examples/change_vrml_by_code_2.lpr
+       when doing ChangedFields (not ChangedAll)).
 
-  { Ignore this ChangedFields call if node is not in our VRML graph.
-    Exception is for StateDefaultNodes nodes (they are not present in RootNode
-    graph, but influence us).
+       In most cases, when modifying graph by code, and always when
+       modifying graph by VRML events, the Node is known to be inside
+       our VRML graph...
 
-    At some point, we ignored here changes to the inactive part of VRML graph,
-    by passing OnlyActive = true to IsNodePresent. (And assuming
-    that changing the node's field cannot change it's active state,
-    otherwise we would have to call IsNodePresent before and after
-    field's change.)
-
-    But now we have to allow processing nodes even in inactive part.
-    Reason? Our Shapes tree contains things from inactive part
-    (inactive Switch children), and they must be kept current just
-    like active parts. }
-
-  if (RootNode = nil) or
-     ( (not RootNode.IsNodePresent(Node, false)) and
-       ((not VRML1StateNodeIs) or
-         (StateDefaultNodes.Nodes[VRML1StateNode] <> Node))
-     ) then
-    Exit;
-  {$endif CHECK_NODE_PRESENCE}
+    2. Also, there are nodes that affect our graph but are outside
+       of it: StateDefaultNodes, and also all the nodes created
+       by Proxy methods (geometry and new state nodes).
+  }
 
   { Test other changes: }
 
