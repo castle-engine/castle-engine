@@ -877,7 +877,8 @@ procedure TTestVRMLNodes.TestGeometryNodesImplemented;
 var
   I: Integer;
   N: TVRMLNode;
-  State: TVRMLGraphTraverseState;
+  G, ProxyGeometry: TVRMLGeometryNode;
+  State, ProxyState: TVRMLGraphTraverseState;
 begin
   State := TVRMLGraphTraverseState.Create;
   try
@@ -887,17 +888,27 @@ begin
       try
         if N is TVRMLGeometryNode then
         try
-          { just test that abstract methods are overriden, and don't crash }
-          (N as TVRMLGeometryNode).BoundingBox(State);
-          (N as TVRMLGeometryNode).LocalBoundingBox(State);
-          (N as TVRMLGeometryNode).VerticesCount(State, true);
-          (N as TVRMLGeometryNode).VerticesCount(State, false);
-          (N as TVRMLGeometryNode).TrianglesCount(State, true);
-          (N as TVRMLGeometryNode).TrianglesCount(State, false);
-          (N as TVRMLGeometryNode).Triangulate(nil, State, true, @DummyTriangleProc);
-          (N as TVRMLGeometryNode).Triangulate(nil, State, false, @DummyTriangleProc);
-          (N as TVRMLGeometryNode).LocalTriangulate(nil, State, true, @DummyTriangleProc);
-          (N as TVRMLGeometryNode).LocalTriangulate(nil, State, false, @DummyTriangleProc);
+          G := TVRMLGeometryNode(N);
+
+          { test proxy may be created }
+          ProxyState := State;
+          ProxyGeometry := G.Proxy(ProxyState, false);
+
+          { test that methods are overriden correctly, and don't crash }
+          G.BoundingBox(State, ProxyGeometry, ProxyState);
+          G.LocalBoundingBox(State, ProxyGeometry, ProxyState);
+          G.VerticesCount(State, true, ProxyGeometry, ProxyState);
+          G.VerticesCount(State, false, ProxyGeometry, ProxyState);
+          G.TrianglesCount(State, true, ProxyGeometry, ProxyState);
+          G.TrianglesCount(State, false, ProxyGeometry, ProxyState);
+          G.Triangulate(nil, State, true, @DummyTriangleProc, ProxyGeometry, ProxyState);
+          G.Triangulate(nil, State, false, @DummyTriangleProc, ProxyGeometry, ProxyState);
+          G.LocalTriangulate(nil, State, true, @DummyTriangleProc, ProxyGeometry, ProxyState);
+          G.LocalTriangulate(nil, State, false, @DummyTriangleProc, ProxyGeometry, ProxyState);
+
+          { free proxy temp objects }
+          if ProxyGeometry <> nil then FreeAndNil(ProxyGeometry);
+          if ProxyState <> State then FreeAndNil(ProxyState);
         except
           on E: Exception do
           begin
