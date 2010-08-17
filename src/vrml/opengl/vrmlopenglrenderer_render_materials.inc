@@ -72,7 +72,8 @@ var
   M2: TNodeMaterial_2;
   FogImmune, VRML1OnlyEmissive, VRML2Unlit: boolean;
 begin
-  Material1BoundNumber := -1; { no VRML 1.0 material is bound now }
+  Material1BoundNumber := -1; { no VRML 1.0 material is bound now.
+    Initial Render_MaterialsBegin_1 will set it to 0. }
 
   { calculate and apply MaterialFromColorEnabled }
   Assert(not MaterialFromColorEnabled);
@@ -137,8 +138,9 @@ begin
     glDisable(GL_LIGHTING);
   end;
 
-  { set VRML 2.0 material. At the end, since this uses MaterialLit, M2 }
-  if not (CurrentGeometry is TVRMLGeometryNode_1) then
+  { set material. At the end, since this uses MaterialLit, M2. }
+  if CurrentGeometry is TVRMLGeometryNode_1 then
+    Render_BindMaterial_1(0, false) else
     Render_MaterialsBegin_2(M2);
 end;
 
@@ -207,8 +209,21 @@ end;
 { Sets current OpenGL material and color properties for material
   number MatNum from CurrentState.LastNodes.Material.
   This is ignored when CurrentGeometry is not TVRMLGeometryNode_1
-  (then VRML 2.0 approach to materials should be used). }
-procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer);
+  (then VRML 2.0 approach to materials should be used).
+
+  Pass InsideBeginEnd to indicate that this is (possibly) called
+  inside glBegin/glEnd. Then the faster (but more limited) approach
+  will be used. The faster approach uses GL_COLOR_MATERIAL, instead
+  of changing the whole glMaterial.
+
+  Reasoning: Changing whole glMaterial
+  is allowed but prohibitively slow within glBegin/glEnd (or just: too often,
+  like for each face or vertex). It also eats a *lot* of memory in case of
+  display lists (~130 MB for "castle" spider_queen and spider animations,
+  on NVidia GeForce FX 5200). So using GL_COLOR_MATERIAL is required
+  for sensible speed and memory use. }
+procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer;
+  const InsideBeginEnd: boolean);
 var
   UnlitColor: TVector3Single;
 begin

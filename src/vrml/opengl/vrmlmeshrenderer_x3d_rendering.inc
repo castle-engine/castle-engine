@@ -104,12 +104,11 @@ var
 begin
   Node := Geometry as TNodePointSet_1;
   { TODO: handle various possible material binding here }
-  Renderer.Render_BindMaterial_1(0);
 
   { TODO: use here Last :
     Normal, NormalBinding, TextureCoordinate2, Texture2.
     For now light is already disabled by Render_Material
-    from Render_BindMaterial_1 above. }
+    from Render_BindMaterial_1 at the beginning. }
 
   { Render_BindMaterial_1 set unlit color to emissiveColor,
     so we correct it now. }
@@ -401,6 +400,7 @@ constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 
     MaterialIndex := ANode.FdMaterialIndex;
     MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
+    UpdateMat1Implementation;
 
     SH := State.LastNodes.ShapeHints;
 
@@ -656,6 +656,7 @@ begin
 
   MaterialIndex := Node.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
+  UpdateMat1Implementation;
 
   NormalIndex := Node.FdNormalIndex;
   Normals := State.LastNodes.Normal.FdVector.Items;

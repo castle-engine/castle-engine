@@ -1341,7 +1341,7 @@ type
 
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
-    procedure Render_BindMaterial_1(MatNum: integer);
+    procedure Render_BindMaterial_1(MatNum: integer; const InsideBeginEnd: boolean);
     procedure Render_MaterialsBegin_2(Material: TNodeMaterial_2);
     procedure Render_Material(
       const AmbientColor, DiffuseColor, SpecularColor,
@@ -4081,7 +4081,7 @@ procedure TVRMLOpenGLRenderer.DrawTriangle(const Tri: TTriangle3Single;
   Shape: TObject; State: TVRMLGraphTraverseState;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
-  Render_BindMaterial_1(MatNum);
+  Render_BindMaterial_1(MatNum, false);
 
   glNormalv(TriangleNormal(Tri));
 

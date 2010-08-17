@@ -125,9 +125,8 @@ type
       before this, you have to see TVRMLOpenGLRender.RenderShape
       implementation.
 
-      Material for VRML 1.0: currently bound material is undefined
-      So for VRML 1.0, before you actually render anything for OpenGL,
-      you must call Render_BindMaterial_1 at least once.
+      Material for VRML 1.0: currently bound material is zero.
+      You can call Render_BindMaterial_1 inside.
       You cannot call glMaterial or glColor here --- this is the task of
       Render_BindMaterial_1.
 
@@ -447,6 +446,7 @@ type
 
     Usage:
     - Just set MaterialIndex and MaterialBinding using your node's fields.
+      Call UpdateMat1Implementation afterwards.
     - For VRML >= 2.0 nodes, you don't have to do anything.
       You can just leave MaterialBinding as default BIND_DEFAULT,
       but it really doesn't matter: the only effect of this class
@@ -467,12 +467,21 @@ type
     handled in this class. }
   TAbstractMatTexCoordinateRenderer = class(TAbstractTexCoordinateRenderer)
   private
+    { Must be set in constructor. MaterialsBegin (may someday) depend on this.
+
+      For this reason, call UpdateMat1Implementation inside descendant
+      constructor after changing this. }
     Mat1Implementation: TMaterials1Implementation;
   protected
     { You can leave MaterialIndex as nil if you are sure that
-      MaterialBinding will not be any _INDEXED value. }
+      MaterialBinding will not be any _INDEXED value.
+
+      Be sure to change these only inside constructor,
+      and call UpdateMat1Implementation afterwards. We want Mat1Implementation
+      ready after constructor. }
     MaterialIndex: TMFLong;
     MaterialBinding: Integer;
+    procedure UpdateMat1Implementation;
 
     procedure RenderVertex(IndexNum: Integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
@@ -612,8 +621,8 @@ type
   public
     destructor Destroy; override;
   protected
-    { This is calculated in constructor. Unlike similar TexImplementation,
-      MatImplementation (which are calculated only in RenderCoordsBegin).
+    { This is calculated in constructor. Unlike similar TexImplementation
+      (which is calculated only in RenderCoordsBegin).
       Reasons:
       - Descendants may want to change NorImplementation. In other words,
         full automatic detection only in TAbstractNorColMatTexCoordinateRenderer
@@ -1868,9 +1877,10 @@ constructor TAbstractMatTexCoordinateRenderer.Create(ARenderer: TVRMLOpenGLRende
 begin
   inherited;
   MaterialBinding := BIND_DEFAULT;
+  UpdateMat1Implementation;
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractMatTexCoordinateRenderer.UpdateMat1Implementation;
 
   function IndexListNotEmpty(MFIndexes: TMFLong): boolean;
   begin
@@ -1883,8 +1893,6 @@ procedure TAbstractMatTexCoordinateRenderer.RenderCoordinateBegin;
   end;
 
 begin
-  inherited;
-
   { Calculate Mat1Implementation }
 
   Mat1Implementation := miOverall;
@@ -1928,27 +1936,37 @@ begin
       materials.wrl from VRML 1.0 demos from
       [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php].
 
-      So I'm workaround this below by just using miOverall for old Mesa
+      So I workaround this below by just using miOverall for old Mesa
       versions. This causes incorrect rendering result, but at least
       it works and often looks "sensible".
+
+      TODO: possibly this is cured now by using GL_COLOR_MATERIAL for
+      Renderer.Render_BindMaterial_1 inside glBegin/glEnd.
+      Check, and eventually remove this workaround.
     }
     Mat1Implementation := miOverall;
   end;
 
   { TODO: we handle all material bindings, but we handle BIND_PER_PART
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
+end;
+
+procedure TAbstractMatTexCoordinateRenderer.RenderCoordinateBegin;
+begin
+  inherited;
 
   if Mat1Implementation = miOverall then
-    Renderer.Render_BindMaterial_1(0);
+    { For miOverall, job is already done by MaterialsBegin that bound index 0. }
+    Assert(Renderer.Material1BoundNumber = 0);
 end;
 
 procedure TAbstractMatTexCoordinateRenderer.RenderVertex(IndexNum: Integer);
 begin
   case Mat1Implementation of
     miPerVertexCoordIndexed:
-      Renderer.Render_BindMaterial_1(CoordIndex.ItemsSafe[IndexNum]);
+      Renderer.Render_BindMaterial_1(CoordIndex.ItemsSafe[IndexNum], true);
     miPerVertexMatIndexed:
-      Renderer.Render_BindMaterial_1(MaterialIndex.ItemsSafe[IndexNum]);
+      Renderer.Render_BindMaterial_1(MaterialIndex.ItemsSafe[IndexNum], true);
   end;
 
   inherited;
@@ -1962,9 +1980,9 @@ begin
 
   case Mat1Implementation of
     miPerFace:
-      Renderer.Render_BindMaterial_1(RangeNumber);
+      Renderer.Render_BindMaterial_1(RangeNumber, true);
     miPerFaceMatIndexed:
-      Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[RangeNumber]);
+      Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[RangeNumber], true);
   end;
 end;
 

@@ -343,7 +343,7 @@ begin
       MaxTo1st(MaxTextWidth, TextWidths.Items[I]);
     end;
 
-    Renderer.Render_BindMaterial_1(0);
+    Renderer.Render_BindMaterial_1(0, false);
 
     glPushMatrix;
       glScalef(1, YScale, 1);
@@ -555,7 +555,7 @@ var MatPerPart: boolean;
 
   procedure PartMat(MatNum: integer);
   begin
-   if MatPerPart then Renderer.Render_BindMaterial_1(MatNum);
+   if MatPerPart then Renderer.Render_BindMaterial_1(MatNum, false);
   end;
 
 var
@@ -572,7 +572,7 @@ begin
  MatPerPart := State.LastNodes.MaterialBinding.FdValue.Value in [
    BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
  if not MatPerPart then
-  Renderer.Render_BindMaterial_1(0); {use first material for the whole cube}
+  Renderer.Render_BindMaterial_1(0, false); {use first material for the whole cube}
 
  x2 := SizeX / 2; x1 := -x2;
  y2 := SizeY / 2; y1 := -y2;
@@ -684,7 +684,7 @@ begin
  {cone uses its own normals and we apply texture according to VRML specification.
   Cone uses only material 0 or materials 0 and 1.}
 
- Renderer.Render_BindMaterial_1(0);
+ Renderer.Render_BindMaterial_1(0, false);
 
  q := NewGLUQuadric(PrimitiveMake2DTextureCoords,
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
@@ -698,7 +698,7 @@ begin
   begin
    if State.LastNodes.MaterialBinding.FdValue.Value in
      [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    Renderer.Render_BindMaterial_1(1);
+    Renderer.Render_BindMaterial_1(1, false);
    RenderBottomDisk(q, BottomRadius);
   end;
   glPopMatrix;
@@ -751,7 +751,7 @@ begin
  {cylinder uses its own normals and we apply texture according to VRML
   specification. Cylinder uses only material 0 or materials 0, 1, 2}
 
- Renderer.Render_BindMaterial_1(0);
+ Renderer.Render_BindMaterial_1(0, false);
 
  q := NewGLUQuadric(PrimitiveMake2DTextureCoords,
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
@@ -767,7 +767,7 @@ begin
   begin
    if State.LastNodes.MaterialBinding.FdValue.Value in
        [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    Renderer.Render_BindMaterial_1(2);
+    Renderer.Render_BindMaterial_1(2, false);
    RenderBottomDisk(q, Radius);
   end;
 
@@ -775,7 +775,7 @@ begin
   begin
    if State.LastNodes.MaterialBinding.FdValue.Value in
        [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    Renderer.Render_BindMaterial_1(1);
+    Renderer.Render_BindMaterial_1(1, false);
    glTranslatef(0, 0, Height);
    gluDisk(q, 0, Radius, QuadricSlices, 1);
   end;
@@ -830,7 +830,7 @@ begin
  {whole sphere uses materail num 0 and his own normals and we apply
   texture according to VRML specification}
 
- Renderer.Render_BindMaterial_1(0);
+ Renderer.Render_BindMaterial_1(0, false);
 
  if PrimitiveMake2DTextureCoords then
  begin

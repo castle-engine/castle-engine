@@ -854,6 +854,7 @@ begin
 
   MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
+  UpdateMat1Implementation;
 
   SH := State.LastNodes.ShapeHints;
 
