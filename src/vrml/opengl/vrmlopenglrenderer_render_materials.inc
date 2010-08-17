@@ -353,16 +353,20 @@ begin
   end;
 end;
 
-{ Sets current color. Initially, this is designed for setting VRML 2.0
-  color, so it can be called after you called Render_BindMaterial_2.
+{ Sets current color. Version with 3 components preserves material alpha color.
+  Version with 4 components sets also the alpha component
+  (this is suitable for X3D ColorRGBA, that overrides material's alpha).
 
-  But it's also functional for VRML 1.0 --- although this is only for
-  OnRadianceTransfer or OnVertexColor now.
-  Normally, in VRML 1.0 Render_BindMaterial_1
+  It can be only called after you set up materials by MaterialsBegin
+  (that also calls the 1st BindMaterial_1 or MaterialsBegin_2 that
+  set the materials alpha). Initially, this was for implementing the VRML >= 2.0
+  Color/ColorRGBA nodes.
+  But it's also functional for VRML 1.0 --- when OnRadianceTransfer or
+  OnVertexColor are used. Normally, in VRML 1.0 Render_BindMaterial_1
   is the only way to change color.
 
-  This sets the RGB part of the unlit color,
-  and the RGB part of diffuseColor of lit material.
+  This sets the unlit color,
+  and the diffuseColor of lit material.
   This is good for VRML 2.0 nodes that use colors to either
   set precalculated color (when unlit, i.e. material is NULL)
   or to change diffuseColor (when lit, see specification "lighting equaltions",
@@ -383,4 +387,15 @@ begin
     Exit;
 
   glColorv(Vector4f(Attributes.ColorModulated(Color), Material_BoundOpacity));
+end;
+
+procedure TVRMLOpenGLRenderer.SetColor(const Color: TVector4Single);
+begin
+  if Attributes.PureGeometry or
+     (not Attributes.ControlMaterials) then
+    Exit;
+
+  { TODO: Attributes.ColorModulated not applied.
+    That's Ok, the whole idea of ColorModulated will be probably soon removed. }
+  glColorv(Color);
 end;

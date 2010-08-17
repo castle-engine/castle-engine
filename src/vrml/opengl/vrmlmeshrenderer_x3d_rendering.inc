@@ -133,6 +133,7 @@ var
 var
   Coord: TMFVec3f;
   Color: TMFColor;
+  ColorRGBA: TMFColorRGBA;
   Material: TNodeMaterial_2;
   I: Integer;
 begin
@@ -147,12 +148,14 @@ begin
     Coord := TNodeCoordinate(Node.FdCoord.Value).FdPoint;
 
     { PointSet color may come from various places:
-      1. Color node, for each point, if it's not NULL
+      1. Color or ColorRGBA node, for each point, if it's not NULL
       2. Material.emissiveColor, for every point
       3. If no material, we use default White3Single, for every point
          (following general spec remark at Material node that
          Material = NULL makes unlit white color) }
     Color := nil;
+    ColorRGBA := nil;
+
     if (Node.FdColor.Value <> nil) and
        (Node.FdColor.Value is TNodeColor) then
     begin
@@ -164,7 +167,18 @@ begin
       end;
     end;
 
-    if Color = nil then
+    if (Node.FdColor.Value <> nil) and
+       (Node.FdColor.Value is TNodeColorRGBA) then
+    begin
+      ColorRGBA := TNodeColorRGBA(Node.FdColor.Value).FdColor;
+      if ColorRGBA.Count < Coord.Count then
+      begin
+        VRMLWarning(vwSerious, 'Not enough colors specified for PointSet');
+        ColorRGBA := nil;
+      end;
+    end;
+
+    if (Color = nil) and (ColorRGBA = nil) then
     begin
       if State.ShapeNode = nil then
       begin
@@ -184,7 +198,9 @@ begin
       for I := 0 to Coord.Count - 1 do
       begin
         if Color <> nil then
-          Renderer.SetColor(Color.Items.Items[I]);
+          Renderer.SetColor(Color.Items.Items[I]) else
+        if ColorRGBA <> nil then
+          Renderer.SetColor(ColorRGBA.Items.Items[I]);
         DoGLVertex(Coord.Items.Items[i]);
       end;
     finally glEnd end;
