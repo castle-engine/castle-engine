@@ -36,6 +36,8 @@
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
+    function BoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
@@ -79,6 +81,8 @@
 
     function BoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
@@ -121,6 +125,8 @@
     public property FdtexCoord: TSFNode read FFdtexCoord;
     function TexCoordField: TSFNode; override;
 
+    function BoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
@@ -385,6 +391,8 @@
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
+    function BoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;

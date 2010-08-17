@@ -280,7 +280,7 @@ end;
 
 function Cone_BoundingBox(State: TVRMLGraphTraverseState;
   const BottomRadius, Height: Single;
-  const Sides, Bottom: boolean): TBox3D;
+  const Sides, Bottom, Local: boolean): TBox3D;
 var points: array[0..4]of TVector3Single;
     firstPoint: integer;
 begin
@@ -299,9 +299,9 @@ begin
   firstPoint := 1 { nie uwzgledniaj pierwszego punktu = szczytu stozka } else
   begin result := EmptyBox3D; exit end;
 
- result := CalculateBoundingBox(
-   @points[firstPoint],
-   High(points)+1-firstPoint, 0, State.Transform);
+ if Local then
+   Result := CalculateBoundingBox(@points[firstPoint], High(points)+1-firstPoint, 0) else
+   Result := CalculateBoundingBox(@points[firstPoint], High(points)+1-firstPoint, 0, State.Transform);
 end;
 
 function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState;
@@ -309,7 +309,7 @@ function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
-    FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM]);
+    FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], false);
 end;
 
 function TNodeCone_2.BoundingBox(State: TVRMLGraphTraverseState;
@@ -317,7 +317,23 @@ function TNodeCone_2.BoundingBox(State: TVRMLGraphTraverseState;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
-    FdSide.Value, FdBottom.Value);
+    FdSide.Value, FdBottom.Value, false);
+end;
+
+function TNodeCone_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  Result := Cone_BoundingBox(State,
+    FdBottomRadius.Value, FdHeight.Value,
+    FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], true);
+end;
+
+function TNodeCone_2.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  Result := Cone_BoundingBox(State,
+    FdBottomRadius.Value, FdHeight.Value,
+    FdSide.Value, FdBottom.Value, true);
 end;
 
 function Box_LocalBoundingBox(
@@ -340,6 +356,20 @@ function TNodeBox.LocalBoundingBox(State: TVRMLGraphTraverseState;
 begin
   Result := Box_LocalBoundingBox(
     FdSize.Value[0], FdSize.Value[1], FdSize.Value[2], State);
+end;
+
+function TNodeCube_1.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  { Override this, to avoid inherited using slower Proxy method. }
+  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+end;
+
+function TNodeBox.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  { Override this, to avoid inherited using slower Proxy method. }
+  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
 end;
 
 function Cylinder_LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -381,6 +411,20 @@ begin
     FdBottom.Value, FdSide.Value, FdTop.Value);
 end;
 
+function TNodeCylinder_1.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  { Override this, to avoid inherited using slower Proxy method. }
+  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+end;
+
+function TNodeCylinder_2.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  { Override this, to avoid inherited using slower Proxy method. }
+  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+end;
+
 function Sphere_LocalBoundingBox(const Radius: Single): TBox3D;
 begin
   Result := Box3D(
@@ -398,6 +442,20 @@ function TNodeSphere_2.LocalBoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
+end;
+
+function TNodeSphere_1.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  { Override this, to avoid inherited using slower Proxy method. }
+  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+end;
+
+function TNodeSphere_2.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  { Override this, to avoid inherited using slower Proxy method. }
+  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
 end;
 
 { TNodeElevationGrid --------------------------------------------------------- }

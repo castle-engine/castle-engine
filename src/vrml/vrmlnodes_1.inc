@@ -94,6 +94,8 @@
 
     function BoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
@@ -114,6 +116,8 @@
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
+    function BoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
@@ -136,6 +140,8 @@
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
+    function BoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
@@ -164,7 +170,7 @@
     function CoordIndex: TMFLong; override;
   end;
 
-  { wspolny rodzic dla IndexedFaceSet i IndexedTriangleMesh }
+  { Common ancestor for IndexedFaceSet and IndexedTriangleMesh. }
   TNodeIndexed_Faces_Or_Triangles_1 = class(TVRMLIndexedNode_1)
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
@@ -240,6 +246,8 @@
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
+    function BoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
