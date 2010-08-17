@@ -1338,6 +1338,8 @@ type
     MaterialTemporaryDisabledFog: boolean;
     Material_BoundOpacity: Single;
     MaterialFromColorEnabled: boolean;
+    { When MaterialFromColorEnabled is true, this indicates glMaterial component. }
+    MaterialFromColor: TGLenum;
 
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
@@ -1347,7 +1349,8 @@ type
       const AmbientColor, DiffuseColor, SpecularColor,
         EmissiveColor: TVector3Single;
       const UnLitColor: TVector3Single;
-      const ShininessExp, Opacity: Single);
+      const ShininessExp, Opacity: Single;
+      const InsideBeginEnd: boolean);
     procedure SetColor(const Color: TVector3Single);
 
     { Judge whether the node can be lit. }

@@ -75,26 +75,6 @@ begin
   Material1BoundNumber := -1; { no VRML 1.0 material is bound now.
     Initial Render_MaterialsBegin_1 will set it to 0. }
 
-  { calculate and apply MaterialFromColorEnabled }
-  Assert(not MaterialFromColorEnabled);
-  MaterialFromColorEnabled := (MeshRenderer <> nil) and
-    MeshRenderer.NeedsSetColor and NodeLit(CurrentGeometry);
-  if MaterialFromColorEnabled then
-  begin
-    { For lit nodes, we want to set both unlit glColor and lit glMaterial
-      in SetColor.
-
-      Using GL_COLOR_MATERIAL is the best way to do this, this also works
-      much faster and more memory-efficient (AFAIK, OpenGL is prepared
-      to handle different glColor-per-vertex efficiently, but changing
-      whole glMaterial-per-vertex is not efficient (as glColor is pushed
-      with vertex data into the pipeline, while changing material settings
-      requires flushing part of current pipeline)). }
-
-    glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
-  end;
-
   { calculate material parameters:
     M1, M2, FogImmune, VRML1OnlyEmissive, VRML2Unlit }
   if CurrentState.ShapeNode <> nil then
@@ -114,6 +94,44 @@ begin
       to do that). }
     VRML1OnlyEmissive := M1.OnlyEmissiveMaterial;
     VRML2Unlit := false;
+  end;
+
+  { calculate and apply MaterialFromColorEnabled }
+  Assert(not MaterialFromColorEnabled);
+  MaterialFromColorEnabled := (MeshRenderer <> nil) and
+    (MeshRenderer.NeedsBindMaterial1InsideBeginEnd or
+     MeshRenderer.NeedsSetColor) and NodeLit(CurrentGeometry);
+  if MaterialFromColorEnabled then
+  begin
+    { For lit nodes, we want to set both unlit glColor and lit glMaterial
+      in SetColor.
+
+      Using GL_COLOR_MATERIAL is the best way to do this, this also works
+      much faster and more memory-efficient (AFAIK, OpenGL is prepared
+      to handle different glColor-per-vertex efficiently, but changing
+      whole glMaterial-per-vertex is not efficient (as glColor is pushed
+      with vertex data into the pipeline, while changing material settings
+      requires flushing part of current pipeline)). }
+
+    { When both NeedsBindMaterial1InsideBeginEnd and NeedsSetColor
+      are true, what to do?
+
+      TAbstractColMatTexCoordinateRenderer
+      descends from TAbstractMatTexCoordinateRenderer,
+      so NeedsSetColor takes precence over material color.
+      So set MaterialFromColor following NeedsSetColor needs. }
+    if MeshRenderer.NeedsSetColor then
+      MaterialFromColor := GL_DIFFUSE else
+    begin
+      Assert(MeshRenderer.NeedsBindMaterial1InsideBeginEnd);
+      if (M1 <> nil) and VRML1OnlyEmissive then
+        MaterialFromColor := GL_EMISSION else
+        { Then assume it's the diffuse that changes most often }
+        MaterialFromColor := GL_DIFFUSE;
+    end;
+
+    glColorMaterial(GL_FRONT_AND_BACK, MaterialFromColor);
+    glEnable(GL_COLOR_MATERIAL);
   end;
 
   { calculate and apply MaterialTemporaryDisabledFog }
@@ -170,19 +188,40 @@ end;
 { Apply material (both VRML 1.0 and 2.0).
   Assumes MaterialLit is already calculated.
 
-  This is Ok to be called between glBegin/glEnd
-  (useful for VRML 1.0 with material binding per-vertex,
-  when TAbstractMatTexCoordinateRenderer.RenderVertex must call
-  Render_BindMaterial_1 (that calls this) within glBegin/glEnd). }
+  When not InsideBeginEnd, this sets full glMaterial and glColor.
+  This is Ok to be called even between glBegin/glEnd,
+  but it's very unoptimal then.
+
+  When InsideBeginEnd, we use limited but faster (when used often,
+  especially between glBegin/glEnd) version. It uses GL_COLOR_MATERIAL
+  (and depends on MaterialFromColorEnabled). }
 procedure TVRMLOpenGLRenderer.Render_Material(
   const AmbientColor, DiffuseColor, SpecularColor, EmissiveColor: TVector3Single;
   const UnLitColor: TVector3Single;
-  const ShininessExp, Opacity: Single);
+  const ShininessExp, Opacity: Single;
+  const InsideBeginEnd: boolean);
 begin
   if Attributes.PureGeometry or (not Attributes.ControlMaterials) then Exit;
 
   Material_BoundOpacity := Opacity;
 
+  { What does it mean when InsideBeginEnd is true but
+    MaterialFromColorEnabled is false?
+    Assuming that all classes correctly set NeedsBindMaterial1InsideBeginEnd
+    before using InsideBeginEnd = true.
+    It means that MaterialsBegin decided GL_COLOR_MATERIAL is not needed,
+    because NodeLit was false.
+
+    So don't worry about it, the later code will work fine then. }
+
+  if InsideBeginEnd and MaterialFromColorEnabled then
+  begin
+    case MaterialFromColor of
+      GL_DIFFUSE : glColorv(Vector4f(Attributes.ColorModulated(DiffuseColor), Opacity));
+      GL_EMISSION: glColorv(Vector4f(Attributes.ColorModulated(EmissiveColor), Opacity));
+      else raise EInternalError.Create('MaterialFromColor?');
+    end;
+  end else
   if MaterialLit then
   begin
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT,
@@ -226,6 +265,7 @@ procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer;
   const InsideBeginEnd: boolean);
 var
   UnlitColor: TVector3Single;
+  M: TNodeMaterial_1;
 begin
   if (not (CurrentGeometry is TVRMLGeometryNode_1)) or
      (MatNum = Material1BoundNumber) then
@@ -233,38 +273,38 @@ begin
 
   Material1BoundNumber := MatNum;
 
-  with CurrentState.LastNodes.Material do
-  begin
-    { Usually, UnlitColor should be from EmissiveColor3Single.
+  M := CurrentState.LastNodes.Material;
 
-      However, IndexedLineSet in VRML 1.0 is an exception. Note that
-      NodeLit may sometimes decide to draw it unlit, and sometimes lit
-      (this is contrary to other nodes, that are always lit or unlit;
-      well, forgetting about the "OnlyEmissiveMaterial" exceptional situation
-      for the moment).
+  { Usually, UnlitColor should be from EmissiveColor3Single.
 
-      If it's determined to be unlit by NodeLit
-      (so when OnlyEmissiveMaterial is @false, then only NodeLit = @false
-      can force using UnlitColor), we want the unlit color to be the same
-      as when it was lit but we were watching with GL_LIGHTING off.
-      Render_Material uses DiffuseColor in such case.
+    However, IndexedLineSet in VRML 1.0 is an exception. Note that
+    NodeLit may sometimes decide to draw it unlit, and sometimes lit
+    (this is contrary to other nodes, that are always lit or unlit;
+    well, forgetting about the "OnlyEmissiveMaterial" exceptional situation
+    for the moment).
 
-      Admittedly, I'm doing it all by just guessing what user may want...
-      VRML 1.0 spec doesn't specify here what should really be done, i.e. what
-      unlit color should be used. }
-    if (CurrentGeometry is TNodeIndexedLineSet_1) and (not OnlyEmissiveMaterial) then
-      UnlitColor := DiffuseColor3Single(MatNum) else
-      UnlitColor := EmissiveColor3Single(MatNum);
+    If it's determined to be unlit by NodeLit
+    (so when OnlyEmissiveMaterial is @false, then only NodeLit = @false
+    can force using UnlitColor), we want the unlit color to be the same
+    as when it was lit but we were watching with GL_LIGHTING off.
+    Render_Material uses DiffuseColor in such case.
 
-    Render_Material(
-      AmbientColor3Single(MatNum),
-      DiffuseColor3Single(MatNum),
-      SpecularColor3Single(MatNum),
-      EmissiveColor3Single(MatNum),
-      UnlitColor,
-      ShininessExp(MatNum),
-      Opacity(MatNum));
-  end;
+    Admittedly, I'm doing it all by just guessing what user may want...
+    VRML 1.0 spec doesn't specify here what should really be done, i.e. what
+    unlit color should be used. }
+  if (CurrentGeometry is TNodeIndexedLineSet_1) and (not M.OnlyEmissiveMaterial) then
+    UnlitColor := M.DiffuseColor3Single(MatNum) else
+    UnlitColor := M.EmissiveColor3Single(MatNum);
+
+  Render_Material(
+    M.AmbientColor3Single(MatNum),
+    M.DiffuseColor3Single(MatNum),
+    M.SpecularColor3Single(MatNum),
+    M.EmissiveColor3Single(MatNum),
+    UnlitColor,
+    M.ShininessExp(MatNum),
+    M.Opacity(MatNum),
+    InsideBeginEnd);
 end;
 
 { Binds current VRML 2.0 Material. }
@@ -298,7 +338,7 @@ begin
       Material.FdEmissiveColor.Value,
       UnLitColor,
       Material.ShininessExp,
-      Material.Opacity);
+      Material.Opacity, { inside glBegin/End } false);
   end else
   begin
     Render_Material(
@@ -307,7 +347,7 @@ begin
       { From VRML 2.0 spec about Appearance node: when no Material is
         specified, object is unlit and unlit object color is (1, 1, 1). }
       White3Single,
-      { shininess } 0, { opacity } 1);
+      { shininess } 0, { opacity } 1, { inside glBegin/End } false);
   end;
 end;
 

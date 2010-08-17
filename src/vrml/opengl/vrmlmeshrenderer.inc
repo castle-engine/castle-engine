@@ -168,6 +168,13 @@ type
       Renderer.MaterialsBegin do some preparations if you later plan to call
       SetColor. }
     function NeedsSetColor: boolean; virtual;
+
+    { @abstract(Will rendering of this node possibly call
+      Renderer.Render_BindMaterial_1 with InsideBeginEnd = @true?)
+
+      In this class, returns @false, set to @true in descendants to allow
+      Renderer.MaterialsBegin do some preparations. }
+    function NeedsBindMaterial1InsideBeginEnd: boolean; virtual;
   end;
 
   { Base abstract class for rendering nodes with explicit "coord" field.
@@ -489,6 +496,7 @@ type
     procedure RenderCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    function NeedsBindMaterial1InsideBeginEnd: boolean; override;
   end;
 
   { Enhances TAbstractMatTexCoordinateRenderer with the ability to handle
@@ -836,6 +844,11 @@ begin
 end;
 
 function TVRMLMeshRenderer.NeedsSetColor: boolean;
+begin
+  Result := false;
+end;
+
+function TVRMLMeshRenderer.NeedsBindMaterial1InsideBeginEnd: boolean;
 begin
   Result := false;
 end;
@@ -1984,6 +1997,13 @@ begin
     miPerFaceMatIndexed:
       Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[RangeNumber], true);
   end;
+end;
+
+function TAbstractMatTexCoordinateRenderer.NeedsBindMaterial1InsideBeginEnd: boolean;
+begin
+  Result := Mat1Implementation in
+    [ miPerFace, miPerFaceMatIndexed,
+      miPerVertexCoordIndexed, miPerVertexMatIndexed ];
 end;
 
 { TAbstractColMatTexCoordinateRenderer --------------------------------------- }
