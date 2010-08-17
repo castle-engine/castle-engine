@@ -328,13 +328,27 @@ begin
     CheckNodeBBoxAndTrisCount;
 
     InitializeNode(TNodeSphere_1_NastyProxy, TNodeSphere_1);
-    //CheckNodeBBoxAndTrisCount;
+    (*TODO: why does this fail with segfault inside ProxyShapeO.BoundingBox,
+
+#0  0x081b5b4f in TGI_BBOX_CALCULATOR__GETVERTEXFROMINDEX (INDEX=32, this=0xb67bdf80, result={4.6752597e-34, 5.62874266e-34, -3.96868563e-06}) at ./src/vrml/vrmlnodes_boundingboxes.inc:49
+#1  0x081787c0 in TVERTTRANSFORM_CALCULATOR__GETTRANSFORMED (INDEX=32, this=0xb67be6a0, result={-1.9994874, 5.68249765e-34, -1.9994874}) at /home/michalis/sources/vrmlengine/trunk/kambi_vrml_game_engine/src/3d/boxes3d.pas:824
+#2  0x0817864f in CALCULATEBOUNDINGBOXFROMINDICES (GETVERTINDEX=0x81b5c90 <TGI_BBOX_CALCULATOR__GETINDEX>, VERTSINDICESCOUNT=2940, GETVERTEX=0x8178790 <TVERTTRANSFORM_CALCULATOR__GETTRANSFORMED>, result={{-1.99952793, -1.99952078, 5.14164214e-34}, {-1.99952221, -1.99953985, 1.40129846e-45}}) at /home/michalis/sources/vrmlengine/trunk/kambi_vrml_game_engine/src/3d/boxes3d.pas:797
+#3  0x08178879 in CALCULATEBOUNDINGBOXFROMINDICES (GETVERTINDEX=0x81b5c90 <TGI_BBOX_CALCULATOR__GETINDEX>, VERTSINDICESCOUNT=2940, GETVERTEX=0x81b5af0 <TGI_BBOX_CALCULATOR__GETVERTEXFROMINDEX>, TRANSFORM={{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}, result={{-1.99952793, -1.99952078, 5.14164214e-34}, {-1.99952221, -1.99953985, 1.40129846e-45}}) at /home/michalis/sources/vrmlengine/trunk/kambi_vrml_game_engine/src/3d/boxes3d.pas:841
+#4  0x081b5da4 in INDEXEDCOORDS_BOUNDINGBOX (GEOMETRY=0xb67c9300, STATE=0xb67e9620, COORD=0xdeadbeef, COORDINDEX=0xb77c4260, result={{-1.99952793, -1.99952078, 5.14164214e-34}, {-1.99952221, -1.99953985, 1.40129846e-45}}) at ./src/vrml/vrmlnodes_boundingboxes.inc:83
+#5  0x081b60d1 in TVRMLGEOMETRYNODE__BOUNDINGBOX (STATE=0xb67e9620, PROXYGEOMETRY=0x0, PROXYSTATE=0x0, this=0xb67c9300, result={{-1.99952793, -1.99952078, 5.14164214e-34}, {-1.99952221, -1.99953985, 1.40129846e-45}}) at ./src/vrml/vrmlnodes_boundingboxes.inc:138
+#6  0x082ae1b9 in TVRMLSHAPE__BOUNDINGBOX (this=0xb64d6180, result={{-1.00000012, -1, 5.49513671e-34}, {5.68289621e-34, -1.99954653, 5.68289621e-34}}) at ./src/vrml/vrmlshape.pas:869
+#7  0x080817e4 in CHECKNODEBBOXANDTRISCOUNT (parentfp=0xbffff124) at tests/testvrmlnodesoptimizedproxy.pas:283
+#8  0x0808177a in TTESTVRMLNODESOPTIMIZEDPROXY__TESTGEOMETRYUSESOPTIMIZEDMETHODS (this=0xb67b9a80) at tests/testvrmlnodesoptimizedproxy.pas:332
+
+    ?*)
+    CheckNodeBBoxAndTrisCount;
 
     InitializeNode(TNodeSphere_2_NastyProxy, TNodeSphere_2);
     CheckNodeBBoxAndTrisCount;
-
+  finally
     FinalizeNode;
-  finally FreeAndNil(State) end;
+    FreeAndNil(State);
+  end;
 end;
 
 initialization
