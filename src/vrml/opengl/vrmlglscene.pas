@@ -2818,8 +2818,21 @@ begin
      Shape.EnableDisplayList and
      (not Renderer.Cache.Shape_IncReference_Existing(
        Attributes,
-       Shape.Geometry,
-       Shape.State,
+
+       { Always pass Shape.OriginalGeometry/State to
+         Renderer.Cache.Shape*_IncReference*.
+
+         This may allow to share more display lists (although not tested),
+         as more geometry nodes will have a chance to be equal.
+         Also it's important because Geometry/State is "fragile"
+         (may be freed during shape change, because Proxy is regenerated).
+
+         Actually, this is not that important for OriginalState:
+         we pass state copy anyway in Shape_IncReference_New,
+         and in Shape_IncReference_Existing we don't compare state by reference.
+         Still, seems consistent to pass OriginalState along with OriginalGeometry. }
+       Shape.OriginalGeometry,
+       Shape.OriginalState,
        FogNode, FogDistanceScaling,
        Shape.SSSX_DisplayList)) then
   begin
@@ -2847,7 +2860,7 @@ begin
       Shape.State);
     Renderer.Cache.Shape_IncReference_New(
       AttributesCopy,
-      Shape.Geometry,
+      Shape.OriginalGeometry,
       StateCopy,
       FogNode, FogDistanceScaling,
       Shape.SSSX_DisplayList);
@@ -2881,8 +2894,8 @@ begin
      Shape.EnableDisplayList and
      (not Renderer.Cache.ShapeNoTransform_IncReference_Existing(
        Attributes,
-       Shape.Geometry,
-       Shape.State,
+       Shape.OriginalGeometry,
+       Shape.OriginalState,
        FogNode, FogDistanceScaling,
        Shape.SSSX_DisplayList)) then
   begin
@@ -2910,7 +2923,7 @@ begin
       Shape.State);
     Renderer.Cache.ShapeNoTransform_IncReference_New(
       AttributesCopy,
-      Shape.Geometry,
+      Shape.OriginalGeometry,
       StateCopy,
       FogNode, FogDistanceScaling,
       Shape.SSSX_DisplayList);
