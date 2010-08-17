@@ -347,6 +347,17 @@
       Descendants may override and return @false, to allow
       e.g. more caching in TVRMLShape. }
     function ProxyUsesOverTriangulate: boolean; virtual;
+
+    { Returns color.point field, assuming that "color" field is set and
+      specifies Color (or ColorRGBA) node. Otherwise returns @nil.
+
+      Note that only one of Color and ColorRGBA may return non-nil,
+      since "color" field may contain only one of them.
+
+      @groupBegin }
+    function Color: TMFVec3f; virtual;
+    function ColorRGBA: TMFColorRGBA; virtual;
+    { @groupEnd }
   end;
 
   { }
@@ -406,9 +417,8 @@
 
     function TexCoordField: TSFNode; override;
 
-    { Returns color.point field, assuming that color is set and
-      specifies Color node. Otherwise returns @nil. }
-    function Color: TMFVec3f;
+    function Color: TMFVec3f; override;
+    function ColorRGBA: TMFColorRGBA; override;
 
     { Returns normal.vector, assuming that "normal" field is set
       and specified Normal node. Otherwise returns @nil. }
@@ -535,9 +545,8 @@
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndex: TMFLong; override;
 
-    { Returns color.point field, assuming that color is set and
-      specifies Color node. Otherwise returns @nil. }
-    function Color: TMFVec3f;
+    function Color: TMFVec3f; override;
+    function ColorRGBA: TMFColorRGBA; override;
   end;
 
   TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -657,9 +666,8 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
 
-    { Returns color.point field, assuming that color is set and
-      specifies Color node. Otherwise returns @nil. }
-    function Color: TMFVec3f;
+    function Color: TMFVec3f; override;
+    function ColorRGBA: TMFColorRGBA; override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -715,9 +723,8 @@
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
-    { Returns color.point field, assuming that color is set and
-      specifies Color node. Otherwise returns @nil. }
-    function Color: TMFVec3f;
+    function Color: TMFVec3f; override;
+    function ColorRGBA: TMFColorRGBA; override;
   end;
 
   TNodeTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -912,6 +919,16 @@ begin
   Result := true;
 end;
 
+function TVRMLGeometryNode.Color: TMFVec3f;
+begin
+  Result := nil;
+end;
+
+function TVRMLGeometryNode.ColorRGBA: TMFColorRGBA;
+begin
+  Result := nil;
+end;
+
 { Normal X3D spec nodes ------------------------------------------------------ }
 
 constructor TNodeX3DColorNode.Create(const ANodeName: string;
@@ -985,6 +1002,14 @@ begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColor) then
     Result := TNodeColor(FdColor.Value).FdColor else
+    Result := nil;
+end;
+
+function TNodeX3DComposedGeometryNode.ColorRGBA: TMFColorRGBA;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColorRGBA) then
+    Result := TNodeColorRGBA(FdColor.Value).FdColor else
     Result := nil;
 end;
 
@@ -1242,6 +1267,14 @@ begin
     Result := nil;
 end;
 
+function TNodeIndexedLineSet_2.ColorRGBA: TMFColorRGBA;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColorRGBA) then
+    Result := TNodeColorRGBA(FdColor.Value).FdColor else
+    Result := nil;
+end;
+
 function TNodeIndexedLineSet_2.CoordIndex: TMFLong;
 begin
   Result := FdCoordIndex;
@@ -1463,6 +1496,14 @@ begin
     Result := nil;
 end;
 
+function TNodeLineSet.ColorRGBA: TMFColorRGBA;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColorRGBA) then
+    Result := TNodeColorRGBA(FdColor.Value).FdColor else
+    Result := nil;
+end;
+
 function TNodeLineSet.CoordRangesCounts(
   out RangeCount: TDynLongIntArray;
   out SRanges, SRangeName: string;
@@ -1567,6 +1608,14 @@ begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColor) then
     Result := TNodeColor(FdColor.Value).FdColor else
+    Result := nil;
+end;
+
+function TNodePointSet_2.ColorRGBA: TMFColorRGBA;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColorRGBA) then
+    Result := TNodeColorRGBA(FdColor.Value).FdColor else
     Result := nil;
 end;
 

@@ -385,7 +385,7 @@ type
 
       For VRML >= 2.0, shape is transparent if material exists and
       has transparency > 0 (epsilon). It's also transparent if it has
-      non-empty ColorRGBA node inside "color" field.
+      ColorRGBA node inside "color" field.
 
       For VRML <= 1.0, for now shape is transparent if all it's
       transparent values (in VRML 1.0, material node has actually many
@@ -1049,10 +1049,7 @@ begin
       of triangles.  }
     Result := State.LastNodes.Material.AllMaterialsTransparent;
 
-  if (Geometry is TNodePointSet_2) and
-     (TNodePointSet_2(Geometry).FdColor.Value <> nil) and
-     (TNodePointSet_2(Geometry).FdColor.Value is TNodeColorRGBA) and
-     (TNodeColorRGBA(TNodePointSet_2(Geometry).FdColor.Value).FdColor.Count <> 0) then
+  if Geometry.ColorRGBA <> nil then
     Result := true;
 end;
 

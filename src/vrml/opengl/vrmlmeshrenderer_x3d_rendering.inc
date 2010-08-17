@@ -219,6 +219,7 @@ begin
   inherited;
 
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TNodeX3DComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -306,6 +307,7 @@ begin
   inherited;
 
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TNodeX3DComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -452,6 +454,7 @@ begin
   { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TNodeX3DComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -557,6 +560,7 @@ begin
   inherited;
 
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TNodeX3DComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -697,6 +701,7 @@ begin
     NodeILS := Geometry as TNodeIndexedLineSet_2;
 
     Color := NodeILS.Color;
+    ColorRGBA := NodeILS.ColorRGBA;
     ColorPerVertex := NodeILS.FdColorPerVertex.Value;
     ColorIndex := NodeILS.FdColorIndex;
   end else
@@ -705,6 +710,7 @@ begin
     NodeLS := Geometry as TNodeLineSet;
 
     Color := NodeLS.Color;
+    ColorRGBA := NodeLS.ColorRGBA;
     ColorPerVertex := true; { always true for LineSet }
   end;
 end;

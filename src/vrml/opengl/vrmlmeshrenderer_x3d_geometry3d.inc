@@ -263,6 +263,7 @@ var
 
   ColorPerVertex: boolean;
   Color: TMFVec3f;
+  ColorRGBA: TMFColorRGBA;
 
   procedure Vertex(const I, J: Integer; const V: TVector3Single);
   begin
@@ -280,7 +281,9 @@ var
       glNormalv(Normal.Items[I + J * XDimension]);
 
     if (Color <> nil) and ColorPerVertex then
-      Renderer.SetColor(Color.ItemsSafe[I + J * XDimension]);
+      Renderer.SetColor(Color.ItemsSafe[I + J * XDimension]) else
+    if (ColorRGBA <> nil) and ColorPerVertex then
+      Renderer.SetColor(ColorRGBA.ItemsSafe[I + J * XDimension]);
 
     DoGLVertex(V);
   end;
@@ -294,6 +297,7 @@ begin
   ZDimension := Node.FdZDimension.Value;
   ColorPerVertex := Node.FdColorPerVertex.Value;
   Color := Node.Color;
+  ColorRGBA := Node.ColorRGBA;
 
   if Node.IsNotEmpty then
   begin
@@ -312,12 +316,12 @@ begin
         values. true value on any field requires smooth shading,
         while false requires flat shading...
 
-        Current approach: if Color <> nil, then ColorPerVertex decides
+        Current approach: if Color/ColorRGBA <> nil, then ColorPerVertex decides
         about the shading (since it's usually more noticeable,
         and if the node is unlit it is the only thing noticeable).
         Otherwise NormalPerVertex decides. }
 
-      if Color <> nil then
+      if (Color <> nil) or (ColorRGBA <> nil) then
       begin
         if not ColorPerVertex then
           glShadeModel(GL_FLAT);
@@ -362,8 +366,9 @@ begin
                 I - 1 + (J - 1) * (XDimension - 1)]);
 
             if (Color <> nil) and not ColorPerVertex then
-              Renderer.SetColor(Color.ItemsSafe[
-                I - 1 + (J - 1) * (XDimension - 1)]);
+              Renderer.SetColor(Color.ItemsSafe[I - 1 + (J - 1) * (XDimension - 1)]) else
+            if (ColorRGBA <> nil) and not ColorPerVertex then
+              Renderer.SetColor(ColorRGBA.ItemsSafe[I - 1 + (J - 1) * (XDimension - 1)]);
 
             Vertex(I    , J, Next2);
             Vertex(I - 1, J, Next1);
@@ -382,7 +387,9 @@ end;
 
 function TElevationGridRenderer.NeedsSetColor: boolean;
 begin
-  Result := (Geometry as TNodeElevationGrid).Color <> nil;
+  Result :=
+    ((Geometry as TNodeElevationGrid).Color <> nil) or
+    ((Geometry as TNodeElevationGrid).ColorRGBA <> nil);
 end;
 
 { TIndexedFaceSetRenderer -------------------------------------------------- }
@@ -920,6 +927,7 @@ begin
 
   { calculate Color, ColorPerVertex, ColorIndex fields }
   Color := ANode.Color;
+  ColorRGBA := ANode.ColorRGBA;
   ColorPerVertex := ANode.FdColorPerVertex.Value;
   ColorIndex := ANode.FdColorIndex;
 end;

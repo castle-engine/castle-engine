@@ -191,9 +191,8 @@
       have any vertices/triangles etc. }
     function IsNotEmpty: boolean;
 
-    { Returns color.point field, assuming that color is set and
-      specifies Color node. Otherwise returns @nil. }
-    function Color: TMFVec3f;
+    function Color: TMFVec3f; override;
+    function ColorRGBA: TMFColorRGBA; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -678,6 +677,14 @@ begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColor) then
     Result := TNodeColor(FdColor.Value).FdColor else
+    Result := nil;
+end;
+
+function TNodeElevationGrid.ColorRGBA: TMFColorRGBA;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColorRGBA) then
+    Result := TNodeColorRGBA(FdColor.Value).FdColor else
     Result := nil;
 end;
 

@@ -502,9 +502,10 @@ type
   { Enhances TAbstractMatTexCoordinateRenderer with the ability to handle
     per-face or per-vertex VRML >= 2.0 colors.
 
-    - Usage: set Color, ColorPerVertex, ColorIndex.
+    - Usage: set Color or ColorRGBA (at most one of them), ColorPerVertex,
+      ColorIndex.
 
-      If Color = @nil, this class will not do anything.
+      If Color and ColorRGBA = @nil, this class will not do anything.
       Otherwise, colors will be used.
 
       ColorPerVertex specifies per-vertex or per-face.
@@ -528,14 +529,14 @@ type
       result is setting it to nil (when we detect that RadianceTransfer should
       not be used actually).
 
-      We will then ignore Color, ColorPerVertex, ColorIndex
+      We will then ignore Color, ColorRGBA, ColorPerVertex, ColorIndex
       settings --- only the colors returned by OnRadianceTransfer
       will be used.
 
     - Renderer.Attributes.OnVertexColor, if assigned,
       will be automatically used here to calculate color for each vertex.
       If this will be assigned, then the above things
-      (Color, ColorPerVertex, ColorIndex, RadianceTransfer)
+      (Color, ColorRGBA, ColorPerVertex, ColorIndex, RadianceTransfer)
       will be ignored -- only the colors returned by OnVertexColor will
       be used.
 
@@ -551,6 +552,7 @@ type
     procedure SetRadianceTransfer(const Value: TDynVector3SingleArray);
   protected
     Color: TMFVec3f;
+    ColorRGBA: TMFColorRGBA;
     ColorPerVertex: boolean;
     ColorIndex: TMFLong;
 
@@ -2092,6 +2094,14 @@ begin
     if CoordIndex <> nil then
       Renderer.SetColor(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]) else
       Renderer.SetColor(Color.ItemsSafe[IndexNum]);
+  end else
+  if (ColorRGBA <> nil) and ColorPerVertex then
+  begin
+    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+      Renderer.SetColor(ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]) else
+    if CoordIndex <> nil then
+      Renderer.SetColor(ColorRGBA.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]) else
+      Renderer.SetColor(ColorRGBA.ItemsSafe[IndexNum]);
   end;
 
   inherited;
@@ -2112,6 +2122,12 @@ begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
         Renderer.SetColor(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
         Renderer.SetColor(Color.ItemsSafe[RangeNumber]);
+    end else
+    if (ColorRGBA <> nil) and (not ColorPerVertex) then
+    begin
+      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+        Renderer.SetColor(ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
+        Renderer.SetColor(ColorRGBA.ItemsSafe[RangeNumber]);
     end;
   end;
 end;
@@ -2121,7 +2137,7 @@ begin
   Result :=
     Assigned(Renderer.Attributes.OnVertexColor) or
     (RadianceTransfer <> nil) or
-    (Color <> nil);
+    (Color <> nil) or (ColorRGBA <> nil);
 end;
 
 { TAbstractNorColMatTexCoordinateRenderer ----------------------------------------------------- }
