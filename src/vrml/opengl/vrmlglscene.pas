@@ -2822,8 +2822,10 @@ begin
        { Always pass Shape.OriginalGeometry/State to
          Renderer.Cache.Shape*_IncReference*.
 
-         This may allow to share more display lists (although not tested),
-         as more geometry nodes will have a chance to be equal.
+         This allows to share more display lists,
+         as more geometry nodes will have a chance to be equal
+         (confirmed on kambi_vrml_test_suite/kanim/specular_demo.kanim
+         --- same spheres, during whole animation).
          Also it's important because Geometry/State is "fragile"
          (may be freed during shape change, because Proxy is regenerated).
 
