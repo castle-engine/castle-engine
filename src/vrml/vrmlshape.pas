@@ -171,6 +171,13 @@ type
     FGeometry: array [boolean] of TVRMLGeometryNode;
     FState: array [boolean] of TVRMLGraphTraverseState;
 
+    { Just like Geometry() and State(), except return @nil if no proxy available
+      (when Geometry would return the same thing as OriginalGeometry).
+      @groupBegin }
+    function ProxyGeometry(const OverTriangulate: boolean): TVRMLGeometryNode;
+    function ProxyState(const OverTriangulate: boolean): TVRMLGraphTraverseState;
+    { @groupEnd }
+
     procedure ValidateBoundingSphere;
 
     { Make both FGeometry[OverTriangulate] and FState[OverTriangulate] set.
@@ -763,7 +770,8 @@ function TVRMLShape.LocalBoundingBox: TBox3D;
 begin
   if not (svLocalBBox in Validities) then
   begin
-    FLocalBoundingBox := Geometry(false).LocalBoundingBox(State(false));
+    FLocalBoundingBox := OriginalGeometry.LocalBoundingBox(OriginalState,
+      ProxyGeometry(false), ProxyState(false));
     Include(Validities, svLocalBBox);
   end;
   Result := FLocalBoundingBox;
@@ -773,28 +781,36 @@ function TVRMLShape.BoundingBox: TBox3D;
 begin
   if not (svBBox in Validities) then
   begin
-    FBoundingBox := Geometry(false).BoundingBox(State(false));
+    FBoundingBox := OriginalGeometry.BoundingBox(OriginalState,
+      ProxyGeometry(false), ProxyState(false));
     Include(Validities, svBBox);
   end;
   Result := FBoundingBox;
 end;
 
 function TVRMLShape.VerticesCount(OverTriangulate: boolean): Cardinal;
+
+  procedure Calculate;
+  begin
+    FVerticesCount[OverTriangulate] := OriginalGeometry.VerticesCount(
+      OriginalState, OverTriangulate,
+      ProxyGeometry(OverTriangulate),
+      ProxyState(OverTriangulate));
+  end;
+
 begin
   if OverTriangulate then
   begin
     if not (svVerticesCountOver in Validities) then
     begin
-      FVerticesCount[OverTriangulate] := Geometry(OverTriangulate).
-        VerticesCount(State(OverTriangulate), OverTriangulate);
+      Calculate;
       Include(Validities, svVerticesCountOver);
     end;
   end else
   begin
     if not (svVerticesCountNotOver in Validities) then
     begin
-      FVerticesCount[OverTriangulate] := Geometry(OverTriangulate).
-        VerticesCount(State(OverTriangulate), OverTriangulate);
+      Calculate;
       Include(Validities, svVerticesCountNotOver);
     end;
   end;
@@ -802,21 +818,28 @@ begin
 end;
 
 function TVRMLShape.TrianglesCount(OverTriangulate: boolean): Cardinal;
+
+  procedure Calculate;
+  begin
+    FTrianglesCount[OverTriangulate] := OriginalGeometry.TrianglesCount(
+      OriginalState, OverTriangulate,
+      ProxyGeometry(OverTriangulate),
+      ProxyState(OverTriangulate));
+  end;
+
 begin
   if OverTriangulate then
   begin
     if not (svTrianglesCountOver in Validities) then
     begin
-      FTrianglesCount[OverTriangulate] := Geometry(OverTriangulate).
-        TrianglesCount(State(OverTriangulate), OverTriangulate);
+      Calculate;
       Include(Validities, svTrianglesCountOver);
     end;
   end else
   begin
     if not (svTrianglesCountNotOver in Validities) then
     begin
-      FTrianglesCount[OverTriangulate] := Geometry(OverTriangulate).
-        TrianglesCount(State(OverTriangulate), OverTriangulate);
+      Calculate;
       Include(Validities, svTrianglesCountNotOver);
     end;
   end;
@@ -1382,30 +1405,45 @@ begin
   Result := FState[OverTriangulate];
 end;
 
+function TVRMLShape.ProxyGeometry(const OverTriangulate: boolean): TVRMLGeometryNode;
+begin
+  Result := Geometry(OverTriangulate);
+  if Result = OriginalGeometry then Result := nil;
+end;
+
+function TVRMLShape.ProxyState(const OverTriangulate: boolean): TVRMLGraphTraverseState;
+begin
+  if Geometry(OverTriangulate) <> OriginalGeometry then
+    Result := State(OverTriangulate) else
+    Result := nil;
+end;
+
 procedure TVRMLShape.Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  { Always pass the same OverTriangulate value to Geometry(), State()
+  { Always pass the same OverTriangulate value to ProxyGeometry/State(),
     and to Triangulate(). This is sensible:
 
     1. if a node uses Proxy, then the OverTriangulate parameter
-       to the Geometry() and State() will already cause using appropriate
+       to the ProxyGeometry/State() will already cause using appropriate
        triangulation during convertion to the IndexedFaceSet.
        Such IndexedFaceSet will ignore OverTriangulate parameter
        to Triangulate().
 
-    2. if a node does not use Proxy, then Geometry() and State() parameters
+    2. if a node does not use Proxy, then ProxyGeometry/State() parameters
        don't matter. The parameter to Triangulate() then decides
        the triangulation.
   }
 
-  Geometry(OverTriangulate).Triangulate(Self,
-    State(OverTriangulate), OverTriangulate, NewTriangleProc);
+  OriginalGeometry.Triangulate(Self, OriginalState, OverTriangulate, NewTriangleProc,
+    ProxyGeometry(OverTriangulate),
+    ProxyState(OverTriangulate));
 end;
 
 procedure TVRMLShape.LocalTriangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  Geometry(OverTriangulate).LocalTriangulate(Self,
-    State(OverTriangulate), OverTriangulate, NewTriangleProc);
+  OriginalGeometry.LocalTriangulate(Self, OriginalState, OverTriangulate, NewTriangleProc,
+    ProxyGeometry(OverTriangulate),
+    ProxyState(OverTriangulate));
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }
