@@ -214,78 +214,124 @@ end;
 
 procedure TTestVRMLNodesOptimizedProxy.TestGeometryUsesOptimizedMethods;
 var
-  G: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState;
-  Shape: TVRMLShape;
+  { Suffix O means OverTriangulate,
+           NO means not OverTriangulate }
+  NastyGeometry, GoodGeometry, ProxyGeometryO, ProxyGeometryNO: TVRMLGeometryNode;
+  State, ProxyStateO, ProxyStateNO: TVRMLGraphTraverseState;
+  NastyShape, ProxyShapeO, ProxyShapeNO: TVRMLShape;
 
   procedure FinalizeNode;
   begin
-    FreeAndNil(Shape);
-    FreeAndNil(G);
+    FreeAndNil(ProxyShapeO);
+    FreeAndNil(ProxyGeometryO);
+
+    if ProxyStateO <> State then
+      FreeAndNil(ProxyStateO) else
+      ProxyStateO := nil;
+
+    FreeAndNil(ProxyShapeNO);
+    FreeAndNil(ProxyGeometryNO);
+
+    if ProxyStateNO <> State then
+      FreeAndNil(ProxyStateNO) else
+      ProxyStateNO := nil;
+
+    FreeAndNil(GoodGeometry);
+    FreeAndNil(NastyShape);
+    FreeAndNil(NastyGeometry);
   end;
 
-  procedure InitializeNode(NodeClass: TVRMLNodeClass);
+  procedure InitializeNode(NodeClass: TVRMLNodeClass; GoodNodeClass: TVRMLNodeClass);
   begin
     FinalizeNode;
-    G := (NodeClass.Create('', '')) as TVRMLGeometryNode;
-    Shape := TVRMLShape.Create(nil, G, TVRMLGraphTraverseState.CreateCopy(State), nil);
+    NastyGeometry := (NodeClass.Create('', '')) as TVRMLGeometryNode;
+    NastyShape := TVRMLShape.Create(nil, NastyGeometry, TVRMLGraphTraverseState.CreateCopy(State), nil);
+
+    { create also proxy, inside it's own shape.
+      This can be used to test that proxy results, *if* they would be used,
+      would be the same. }
+    GoodGeometry := (GoodNodeClass.Create('', '')) as TVRMLGeometryNode;
+
+    ProxyStateO := State;
+    ProxyGeometryO := GoodGeometry.Proxy(ProxyStateO, true);
+    if ProxyGeometryO <> nil then
+      ProxyShapeO := TVRMLShape.Create(nil, ProxyGeometryO, TVRMLGraphTraverseState.CreateCopy(ProxyStateO), nil) else
+      ProxyShapeO := nil;
+
+    ProxyStateNO := State;
+    ProxyGeometryNO := GoodGeometry.Proxy(ProxyStateNO, false);
+    if ProxyGeometryNO <> nil then
+      ProxyShapeNO := TVRMLShape.Create(nil, ProxyGeometryNO, TVRMLGraphTraverseState.CreateCopy(ProxyStateNO), nil) else
+      ProxyShapeNO := nil;
+  end;
+
+  procedure AssertBoxEqual(const B1, B2: TBox3D);
+  begin
+    Assert(FloatsEqual(B1[0][0], B2[0][0], 0.1));
+    Assert(FloatsEqual(B1[0][1], B2[0][1], 0.1));
+    Assert(FloatsEqual(B1[0][2], B2[0][2], 0.1));
+    Assert(FloatsEqual(B1[1][0], B2[1][0], 0.1));
+    Assert(FloatsEqual(B1[1][1], B2[1][1], 0.1));
+    Assert(FloatsEqual(B1[1][2], B2[1][2], 0.1));
+  end;
+
+  { Check node has optimized (not using proxy) versions of
+    BoundingBox, LocalBoundingBox, TrianglesCount.
+    And check their results match results of the proxy. }
+  procedure CheckNodeBBoxAndTrisCount;
+  begin
+    AssertBoxEqual(NastyShape.BoundingBox, ProxyShapeO.BoundingBox);
+    AssertBoxEqual(NastyShape.BoundingBox, ProxyShapeNO.BoundingBox);
+    AssertBoxEqual(NastyShape.LocalBoundingBox, ProxyShapeO.LocalBoundingBox);
+    AssertBoxEqual(NastyShape.LocalBoundingBox, ProxyShapeNO.LocalBoundingBox);
+    Assert(NastyShape.TrianglesCount(false) = ProxyShapeNO.TrianglesCount(false));
+    Assert(NastyShape.TrianglesCount(true ) = ProxyShapeO .TrianglesCount(true ));
   end;
 
 begin
-  G := nil;
-  Shape := nil;
+  NastyGeometry := nil;
+  GoodGeometry := nil;
+  NastyShape := nil;
+  ProxyShapeO := nil;
+  ProxyShapeNO := nil;
+  ProxyStateO := nil;
+  ProxyStateNO := nil;
+  ProxyGeometryO := nil;
+  ProxyGeometryNO := nil;
   State := TVRMLGraphTraverseState.Create;
   try
 
     { create each node, and try to call the methods that should
-      be optimized (should *not* call the proxy). }
-    InitializeNode(TNodeCone_1_NastyProxy);
-    Shape.BoundingBox;
-    Shape.LocalBoundingBox;
-    Shape.TrianglesCount(false);
-    Shape.TrianglesCount(true);
+      be optimized (should *not* call the proxy).
+      For nodes that we know *have* some proxy, we can also compare
+      do the optimized results match the proxy results.
+      So we test do optimized BoundingBox etc.
+      1. are used
+      and
+      2. return correct result }
+    InitializeNode(TNodeCone_1_NastyProxy, TNodeCone_1);
+    CheckNodeBBoxAndTrisCount;
 
-    InitializeNode(TNodeCone_2_NastyProxy);
-    Shape.BoundingBox;
-    Shape.LocalBoundingBox;
-    Shape.TrianglesCount(false);
-    Shape.TrianglesCount(true);
+    InitializeNode(TNodeCone_2_NastyProxy, TNodeCone_2);
+    CheckNodeBBoxAndTrisCount;
 
-    InitializeNode(TNodeCylinder_1_NastyProxy);
-    Shape.BoundingBox;
-    Shape.LocalBoundingBox;
-    Shape.TrianglesCount(false);
-    Shape.TrianglesCount(true);
+    InitializeNode(TNodeCylinder_1_NastyProxy, TNodeCylinder_1);
+    CheckNodeBBoxAndTrisCount;
 
-    InitializeNode(TNodeCylinder_2_NastyProxy);
-    Shape.BoundingBox;
-    Shape.LocalBoundingBox;
-    Shape.TrianglesCount(false);
-    Shape.TrianglesCount(true);
+    InitializeNode(TNodeCylinder_2_NastyProxy, TNodeCylinder_2);
+    CheckNodeBBoxAndTrisCount;
 
-    InitializeNode(TNodeBox_NastyProxy);
-    Shape.BoundingBox;
-    Shape.LocalBoundingBox;
-    Shape.TrianglesCount(false);
-    Shape.TrianglesCount(true);
+    InitializeNode(TNodeBox_NastyProxy, TNodeBox);
+    CheckNodeBBoxAndTrisCount;
 
-    InitializeNode(TNodeCube_1_NastyProxy);
-    Shape.BoundingBox;
-    Shape.LocalBoundingBox;
-    Shape.TrianglesCount(false);
-    Shape.TrianglesCount(true);
+    InitializeNode(TNodeCube_1_NastyProxy, TNodeCube_1);
+    CheckNodeBBoxAndTrisCount;
 
-    InitializeNode(TNodeSphere_1_NastyProxy);
-    Shape.BoundingBox;
-    Shape.LocalBoundingBox;
-    Shape.TrianglesCount(false);
-    Shape.TrianglesCount(true);
+    InitializeNode(TNodeSphere_1_NastyProxy, TNodeSphere_1);
+    //CheckNodeBBoxAndTrisCount;
 
-    InitializeNode(TNodeSphere_2_NastyProxy);
-    Shape.BoundingBox;
-    Shape.LocalBoundingBox;
-    Shape.TrianglesCount(false);
-    Shape.TrianglesCount(true);
+    InitializeNode(TNodeSphere_2_NastyProxy, TNodeSphere_2);
+    CheckNodeBBoxAndTrisCount;
 
     FinalizeNode;
   finally FreeAndNil(State) end;
