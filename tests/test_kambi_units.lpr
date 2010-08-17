@@ -27,6 +27,7 @@ uses
   TestFNMatch,
   TestVRMLFields,
   TestVRMLNodes,
+  TestVRMLNodesOptimizedProxy,
   TestVRMLGLScene,
   TestVRMLScene,
   TestIntRects,
