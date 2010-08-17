@@ -1968,7 +1968,8 @@ procedure TAbstractMatTexCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  if Mat1Implementation = miOverall then
+  if (Geometry is TVRMLGeometryNode_1) and
+     (Mat1Implementation = miOverall) then
     { For miOverall, job is already done by MaterialsBegin that bound index 0. }
     Assert(Renderer.Material1BoundNumber = 0);
 end;
