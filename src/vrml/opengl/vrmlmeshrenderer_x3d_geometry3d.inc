@@ -410,6 +410,8 @@ begin
     - TRIANGLE_FAN workarounds NVidia GeForce 5200 bug for material
       binding PER_FACE_INDEXED, see
       kambi_vrml_test_suite/vrml_1/material_per_face_problematic_on_nvidia_gf_5200.wrl
+      Although the problem disappeared by itself after using GL_COLOR_MATERIAL
+      for VRML 1.0 per-face/vertex materials.
 
     Avantages of TRIANGLES:
 
