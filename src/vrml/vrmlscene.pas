@@ -859,7 +859,7 @@ type
 
       Example: TVRMLGLScene uses this to create TVRMLGLShape. }
     function CreateShape(AGeometry: TVRMLGeometryNode;
-      AState: TVRMLGraphTraverseState): TVRMLShape; virtual;
+      AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; virtual;
 
     { Create TVRMLHeadLight instance suitable for this TVRMLScene descendant.
       In this class, this simply creates new TVRMLHeadLight instance.
@@ -2533,9 +2533,9 @@ begin
 end;
 
 function TVRMLScene.CreateShape(AGeometry: TVRMLGeometryNode;
-  AState: TVRMLGraphTraverseState): TVRMLShape;
+  AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape;
 begin
-  Result := TVRMLShape.Create(Self, AGeometry, AState);
+  Result := TVRMLShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
 
 type
@@ -2636,7 +2636,7 @@ begin
   begin
     { Add shape to Shapes }
     Shape := ParentScene.CreateShape(Node as TVRMLGeometryNode,
-      TVRMLGraphTraverseState.CreateCopy(StateStack.Top));
+      TVRMLGraphTraverseState.CreateCopy(StateStack.Top), ParentInfo);
     ShapesGroup.Children.Add(Shape);
 
     { When Spatial contain ssDynamicCollisions, then each collidable

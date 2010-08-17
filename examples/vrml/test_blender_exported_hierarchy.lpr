@@ -21,36 +21,26 @@
   are always empty. }
 program test_blender_exported_hierarchy;
 
-uses SysUtils, KambiUtils, VRMLNodes;
+uses SysUtils, KambiUtils, VRMLShape, VRMLScene;
 
-type
-  TDummy = class
-    procedure Traverse(
-      BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
-      BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-      Geometry: TVRMLGeometryNode;
-      StateStack: TVRMLGraphTraverseStateStack);
-  end;
-
-procedure TDummy.Traverse(
-  BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
-  BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-  Geometry: TVRMLGeometryNode;
-  StateStack: TVRMLGraphTraverseStateStack);
+procedure Traverse(Shape: TVRMLShape);
 begin
   Writeln(
-    'Blender object "', BlenderObjectName, '" (VRML ', BlenderObjectNode.NodeTypeName, ') -> ' +
-              'mesh "', BlenderMeshName, '" (VRML ', BlenderMeshNode.NodeTypeName, ')');
+    'Blender object "', Shape.BlenderObjectName, '" (VRML ', Shape.BlenderObjectNode.NodeTypeName, ') -> ' +
+              'mesh "', Shape.BlenderMeshName, '" (VRML ', Shape.BlenderMeshNode.NodeTypeName, ')');
 end;
 
 var
-  Node: TVRMLNode;
-  { No need to actually create Dummy, this is used only because FPC doesn't
-    allow class procedures to be passed directly as method pointers. }
-  Dummy: TDummy = nil;
+  Scene: TVRMLScene;
+  SI: TVRMLShapeTreeIterator;
 begin
-  Node := LoadVRMLClassic(Parameters[1], true);
+  Scene := TVRMLScene.Create(nil);
   try
-    Node.TraverseBlenderObjects(@Dummy.Traverse);
-  finally FreeAndNil(Node) end;
+    Scene.Load(Parameters[1], true);
+
+    SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
+    try
+      while SI.GetNext do Traverse(SI.Current);
+    finally FreeAndNil(SI) end;
+  finally FreeAndNil(Scene) end;
 end.

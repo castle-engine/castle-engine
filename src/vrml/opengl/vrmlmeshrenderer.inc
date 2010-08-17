@@ -1286,7 +1286,7 @@ var
   begin
     Renderer.ActiveTexture(0);
 
-    LocalBBox := Geometry.LocalBoundingBox(State);
+    LocalBBox := Shape.LocalBoundingBox;
 
     { Calculate SCoord and TCoord. Following VRML spec:
       SCoord is the coord where LocalBBoxSize is largest,

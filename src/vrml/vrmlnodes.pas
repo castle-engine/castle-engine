@@ -673,13 +673,6 @@ type
     StateStack: TVRMLGraphTraverseStateStack;
     ParentInfo: PTraversingInfo) of object;
 
-  { Used as a callback by TVRMLNode.TraverseBlenderObjects. }
-  TBlenderTraversingFunc = procedure (
-    BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
-    BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-    GeometryNode: TVRMLGeometryNode;
-    StateStack: TVRMLGraphTraverseStateStack) of object;
-
   TEnumerateChildrenFunction =
     procedure (Node, Child: TVRMLNode) of object;
 

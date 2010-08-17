@@ -22,7 +22,8 @@ unit VRMLSceneWaypoints;
 
 interface
 
-uses SysUtils, KambiUtils, KambiClassUtils, VectorMath, Boxes3D, VRMLNodes;
+uses SysUtils, KambiUtils, KambiClassUtils, VectorMath, Boxes3D, VRMLNodes,
+  VRMLScene;
 
 {$define read_interface}
 
@@ -45,25 +46,15 @@ type
   TObjectsListItem_1 = TSceneWaypoint;
   {$I objectslist_1.inc}
   TSceneWaypointsList = class(TObjectsList_1)
-  private
-    NodesToRemove: TVRMLNodesList;
-    procedure TraverseForWaypoints(
-      BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
-      BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-      Geometry: TVRMLGeometryNode;
-      StateStack: TVRMLGraphTraverseStateStack);
   public
     { Shapes placed under the name Waypoint<index>_<ignored>
-      are removed from the Node, and are added as new waypoint with
+      are removed from the Scene, and are added as new waypoint with
       given index. Waypoint's Position is set to the middle point
       of shape's bounding box.
 
       Count of this list is enlarged, if necessary,
-      to include all waypoints indicated in the Node.
-
-      If the Node is part of some TVRMLScene instance, remember to call
-      scene's ChangedAll after this. }
-    procedure ExtractPositions(Node: TVRMLNode);
+      to include all waypoints indicated in the Scene. }
+    procedure ExtractPositions(Scene: TVRMLScene);
   end;
 
   TSceneSector = class
@@ -119,23 +110,13 @@ type
   TObjectsListItem_2 = TSceneSector;
   {$I objectslist_2.inc}
   TSceneSectorsList = class(TObjectsList_2)
-  private
-    NodesToRemove: TVRMLNodesList;
-    procedure TraverseForSectors(
-      BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
-      BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-      Geometry: TVRMLGeometryNode;
-      StateStack: TVRMLGraphTraverseStateStack);
   public
     { Shapes placed under the name Sector<index>_<ignored>
-      are removed from the Node, and are added to sector <index> BoundingBoxes.
+      are removed from the Scene, and are added to sector <index> BoundingBoxes.
 
       Count of this list is enlarged, if necessary,
-      to include all sectors indicated in the Node.
-
-      If the Node is part of some TVRMLScene instance, remember to call
-      scene's ChangedAll after this. }
-    procedure ExtractBoundingBoxes(Node: TVRMLNode);
+      to include all sectors indicated in the Scene. }
+    procedure ExtractBoundingBoxes(Scene: TVRMLScene);
 
     { This adds appropriate Waypoints to all sectors on this list,
       and adds appropriate Sectors to all Waypoints on given list.
@@ -185,7 +166,7 @@ type
 
 implementation
 
-uses KambiStringUtils;
+uses KambiStringUtils, VRMLShape;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -207,60 +188,66 @@ end;
 
 { TSceneWaypointsList -------------------------------------------------------- }
 
-procedure TSceneWaypointsList.TraverseForWaypoints(
-  BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
-  BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-  Geometry: TVRMLGeometryNode;
-  StateStack: TVRMLGraphTraverseStateStack);
+procedure TSceneWaypointsList.ExtractPositions(Scene: TVRMLScene);
+var
+  NodesToRemove: TVRMLNodesList;
 
-  procedure CreateNewWaypoint(const WaypointNodeName: string);
-  var
-    IgnoredBegin, WaypointIndex: Integer;
-    WaypointPosition: TVector3Single;
+  procedure TraverseForWaypoints(Shape: TVRMLShape);
+
+    procedure CreateNewWaypoint(const WaypointNodeName: string);
+    var
+      IgnoredBegin, WaypointIndex: Integer;
+      WaypointPosition: TVector3Single;
+    begin
+      { Calculate WaypointIndex }
+      IgnoredBegin := Pos('_', WaypointNodeName);
+      if IgnoredBegin = 0 then
+        WaypointIndex := StrToInt(WaypointNodeName) else
+        WaypointIndex := StrToInt(Copy(WaypointNodeName, 1, IgnoredBegin - 1));
+
+      WaypointPosition := Box3DMiddle(Shape.BoundingBox);
+
+      Count := Max(Count, WaypointIndex + 1);
+      if Items[WaypointIndex] <> nil then
+        raise Exception.CreateFmt('Waypoint %d is already initialized',
+          [WaypointIndex]);
+
+      Items[WaypointIndex] := TSceneWaypoint.Create;
+      Items[WaypointIndex].Position := WaypointPosition;
+
+      { Tests:
+      Writeln('Waypoint ', WaypointIndex, ': at position ',
+        VectorToNiceStr(WaypointPosition));}
+    end;
+
+  const
+    WaypointPrefix = 'Waypoint';
   begin
-    { Calculate WaypointIndex }
-    IgnoredBegin := Pos('_', WaypointNodeName);
-    if IgnoredBegin = 0 then
-      WaypointIndex := StrToInt(WaypointNodeName) else
-      WaypointIndex := StrToInt(Copy(WaypointNodeName, 1, IgnoredBegin - 1));
-
-    WaypointPosition := Box3DMiddle(Geometry.BoundingBox(StateStack.Top));
-
-    Count := Max(Count, WaypointIndex + 1);
-    if Items[WaypointIndex] <> nil then
-      raise Exception.CreateFmt('Waypoint %d is already initialized',
-        [WaypointIndex]);
-
-    Items[WaypointIndex] := TSceneWaypoint.Create;
-    Items[WaypointIndex].Position := WaypointPosition;
-
-    { Tests:
-    Writeln('Waypoint ', WaypointIndex, ': at position ',
-      VectorToNiceStr(WaypointPosition));}
+    if IsPrefix(WaypointPrefix, Shape.BlenderMeshName) then
+    begin
+      CreateNewWaypoint(SEnding(Shape.BlenderMeshName, Length(WaypointPrefix) + 1));
+      { Don't remove BlenderObjectNode now --- will be removed later.
+        This avoids problems with removing nodes while traversing. }
+      NodesToRemove.Add(Shape.BlenderObjectNode);
+    end;
   end;
 
-const
-  WaypointPrefix = 'Waypoint';
-begin
-  if IsPrefix(WaypointPrefix, BlenderMeshName) then
-  begin
-    CreateNewWaypoint(SEnding(BlenderMeshName, Length(WaypointPrefix) + 1));
-    { Don't remove BlenderObjectNode now --- will be removed later.
-      This avoids problems with removing nodes while traversing. }
-    NodesToRemove.Add(BlenderObjectNode);
-  end;
-end;
-
-procedure TSceneWaypointsList.ExtractPositions(Node: TVRMLNode);
 var
   I: Integer;
+  SI: TVRMLShapeTreeIterator;
 begin
   NodesToRemove := TVRMLNodesList.Create;
   try
-    Node.TraverseBlenderObjects(@TraverseForWaypoints);
+    SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
+    try
+      while SI.GetNext do TraverseForWaypoints(SI.Current);
+    finally SysUtils.FreeAndNil(SI) end;
+
     for I := 0 to NodesToRemove.Count - 1 do
       NodesToRemove.Items[I].FreeRemovingFromAllParents;
   finally NodesToRemove.Free end;
+
+  Scene.ChangedAll;
 end;
 
 { TSceneSector --------------------------------------------------------------- }
@@ -307,58 +294,64 @@ end;
 
 { TSceneSectorsList -------------------------------------------------------- }
 
-procedure TSceneSectorsList.TraverseForSectors(
-  BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
-  BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-  Geometry: TVRMLGeometryNode;
-  StateStack: TVRMLGraphTraverseStateStack);
+procedure TSceneSectorsList.ExtractBoundingBoxes(Scene: TVRMLScene);
+var
+  NodesToRemove: TVRMLNodesList;
 
-  procedure AddSectorBoundingBox(const SectorNodeName: string);
-  var
-    IgnoredBegin, SectorIndex: Integer;
-    SectorBoundingBox: TBox3D;
+  procedure TraverseForSectors(Shape: TVRMLShape);
+
+    procedure AddSectorBoundingBox(const SectorNodeName: string);
+    var
+      IgnoredBegin, SectorIndex: Integer;
+      SectorBoundingBox: TBox3D;
+    begin
+      { Calculate SectorIndex }
+      IgnoredBegin := Pos('_', SectorNodeName);
+      if IgnoredBegin = 0 then
+        SectorIndex := StrToInt(SectorNodeName) else
+        SectorIndex := StrToInt(Copy(SectorNodeName, 1, IgnoredBegin - 1));
+
+      SectorBoundingBox := Shape.BoundingBox;
+
+      Count := Max(Count, SectorIndex + 1);
+      if Items[SectorIndex] = nil then
+        Items[SectorIndex] := TSceneSector.Create;
+
+      Items[SectorIndex].BoundingBoxes.Add(SectorBoundingBox);
+
+      { Tests:
+      Writeln('Sector ', SectorIndex, ': added box ',
+        Box3DToNiceStr(SectorBoundingBox)); }
+    end;
+
+  const
+    SectorPrefix = 'Sector';
   begin
-    { Calculate SectorIndex }
-    IgnoredBegin := Pos('_', SectorNodeName);
-    if IgnoredBegin = 0 then
-      SectorIndex := StrToInt(SectorNodeName) else
-      SectorIndex := StrToInt(Copy(SectorNodeName, 1, IgnoredBegin - 1));
-
-    SectorBoundingBox := Geometry.BoundingBox(StateStack.Top);
-
-    Count := Max(Count, SectorIndex + 1);
-    if Items[SectorIndex] = nil then
-      Items[SectorIndex] := TSceneSector.Create;
-
-    Items[SectorIndex].BoundingBoxes.Add(SectorBoundingBox);
-
-    { Tests:
-    Writeln('Sector ', SectorIndex, ': added box ',
-      Box3DToNiceStr(SectorBoundingBox)); }
+    if IsPrefix(SectorPrefix, Shape.BlenderMeshName) then
+    begin
+      AddSectorBoundingBox(SEnding(Shape.BlenderMeshName, Length(SectorPrefix) + 1));
+      { Don't remove BlenderObjectNode now --- will be removed later.
+        This avoids problems with removing nodes while traversing. }
+      NodesToRemove.Add(Shape.BlenderObjectNode);
+    end;
   end;
 
-const
-  SectorPrefix = 'Sector';
-begin
-  if IsPrefix(SectorPrefix, BlenderMeshName) then
-  begin
-    AddSectorBoundingBox(SEnding(BlenderMeshName, Length(SectorPrefix) + 1));
-    { Don't remove BlenderObjectNode now --- will be removed later.
-      This avoids problems with removing nodes while traversing. }
-    NodesToRemove.Add(BlenderObjectNode);
-  end;
-end;
-
-procedure TSceneSectorsList.ExtractBoundingBoxes(Node: TVRMLNode);
 var
   I: Integer;
+  SI: TVRMLShapeTreeIterator;
 begin
   NodesToRemove := TVRMLNodesList.Create;
   try
-    Node.TraverseBlenderObjects(@TraverseForSectors);
+    SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
+    try
+      while SI.GetNext do TraverseForSectors(SI.Current);
+    finally SysUtils.FreeAndNil(SI) end;
+
     for I := 0 to NodesToRemove.Count - 1 do
       NodesToRemove.Items[I].FreeRemovingFromAllParents;
   finally NodesToRemove.Free end;
+
+  Scene.ChangedAll;
 end;
 
 procedure TSceneSectorsList.LinkToWaypoints(Waypoints: TSceneWaypointsList;

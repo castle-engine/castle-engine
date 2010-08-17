@@ -760,7 +760,7 @@ type
     procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
       Field: TVRMLField); override;
     function CreateShape(AGeometry: TVRMLGeometryNode;
-      AState: TVRMLGraphTraverseState): TVRMLShape; override;
+      AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; override;
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; override;
   public
@@ -1797,9 +1797,9 @@ begin
 end;
 
 function TVRMLGLScene.CreateShape(AGeometry: TVRMLGeometryNode;
-  AState: TVRMLGraphTraverseState): TVRMLShape;
+  AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape;
 begin
-  Result := TVRMLGLShape.Create(Self, AGeometry, AState);
+  Result := TVRMLGLShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
 
 procedure TVRMLGLScene.SetOptimization(const Value: TGLRendererOptimization);
