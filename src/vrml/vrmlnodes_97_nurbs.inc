@@ -122,8 +122,8 @@
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
   TNodeNurbsGroup = class(TNodeX3DGroupingNode)
@@ -229,8 +229,8 @@
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
   TNodeNurbsTextureSurface = class(TVRMLNode)
@@ -291,10 +291,14 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 {$endif read_interface}
 
@@ -478,16 +482,10 @@ begin
   ACoord := FdControlPoint;
 end;
 
-function TNodeNurbsCurve_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function TNodeNurbsCurve_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   Result := 0;
-end;
-
-function TNodeNurbsCurve_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin
-  if FdControlPoint.Count > 0 then
-    Result := ActualTessellation(FdTessellation.Value, FdControlPoint.Count) else
-    Result := 0;
 end;
 
 constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -737,7 +735,8 @@ begin
   ACoord := FdControlPoint;
 end;
 
-function TNodeNurbsSurface.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function TNodeNurbsSurface.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 var
   UTess, VTess: Cardinal;
 begin
@@ -747,20 +746,6 @@ begin
     UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
     VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
     Result := (UTess - 1) * (VTess - 1) * 2;
-  end else
-    Result := 0;
-end;
-
-function TNodeNurbsSurface.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  UTess, VTess: Cardinal;
-begin
-  if (FdUDimension.Value > 0) and
-     (FdVDimension.Value > 0) then
-  begin
-    UTess := ActualTessellation(FdUTessellation.Value, FdUDimension.Value);
-    VTess := ActualTessellation(FdVTessellation.Value, FdVDimension.Value);
-    Result := UTess * VTess;
   end else
     Result := 0;
 end;

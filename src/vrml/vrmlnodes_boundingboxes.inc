@@ -125,7 +125,8 @@ end;
 
 { TVRMLGeometryNode --------------------------------------------------------- }
 
-function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   C: TMFVec3f;
 begin
@@ -139,10 +140,15 @@ begin
     end else
       Result := EmptyBox3D;
   end else
-    Result := Box3DTransform(LocalBoundingBox(State), State.Transform);
+  begin
+    if ProxyGeometry <> nil then
+      Result := ProxyGeometry.BoundingBox(ProxyState, nil, nil) else
+      Result := Box3DTransform(LocalBoundingBox(State, ProxyGeometry, ProxyState), State.Transform);
+  end;
 end;
 
-function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   NewState: TVRMLGraphTraverseState;
   C: TMFVec3f;
@@ -158,11 +164,15 @@ begin
       Result := EmptyBox3D;
   end else
   begin
-    NewState := TVRMLGraphTraverseState.CreateCopy(State);
-    try
-      NewState.Transform := IdentityMatrix4Single;
-      result := BoundingBox(NewState);
-    finally NewState.Free end;
+    if ProxyGeometry <> nil then
+      Result := ProxyGeometry.LocalBoundingBox(ProxyState, nil, nil) else
+    begin
+      NewState := TVRMLGraphTraverseState.CreateCopy(State);
+      try
+        NewState.Transform := IdentityMatrix4Single;
+        result := BoundingBox(NewState, ProxyGeometry, ProxyState);
+      finally NewState.Free end;
+    end;
   end;
 end;
 
@@ -206,7 +216,8 @@ begin
   Result[1][2] := -Depth;
 end;
 
-function TNodeAsciiText_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeAsciiText_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Text_LocalBoundingBox(State,
     State.LastNodes.FontStyle.FdSize.Value,
@@ -217,7 +228,8 @@ begin
     0);
 end;
 
-function TNodeText.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeText.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -241,7 +253,8 @@ begin
     Size, Spacing, Justify, TTFont, FdString.Items, 0);
 end;
 
-function TNodeText3D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeText3D.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -291,14 +304,16 @@ begin
    High(points)+1-firstPoint, 0, State.Transform);
 end;
 
-function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM]);
 end;
 
-function TNodeCone_2.BoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeCone_2.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
@@ -313,13 +328,15 @@ begin
   result[1] := Vector3Single( SizeX/2,  SizeY/2,  SizeZ/2);
 end;
 
-function TNodeCube_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeCube_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Box_LocalBoundingBox(
     FdWidth.Value, FdHeight.Value, FdDepth.Value, State);
 end;
 
-function TNodeBox.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeBox.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Box_LocalBoundingBox(
     FdSize.Value[0], FdSize.Value[1], FdSize.Value[2], State);
@@ -346,7 +363,8 @@ begin
   result := EmptyBox3D;
 end;
 
-function TNodeCylinder_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeCylinder_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cylinder_LocalBoundingBox(State,
     FdHeight.Value, FdRadius.Value,
@@ -355,7 +373,8 @@ begin
     FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
 
-function TNodeCylinder_2.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeCylinder_2.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cylinder_LocalBoundingBox(State,
     FdHeight.Value, FdRadius.Value,
@@ -369,20 +388,22 @@ begin
     Vector3Single(+Radius, +Radius, +Radius) );
 end;
 
-function TNodeSphere_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeSphere_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
 end;
 
-function TNodeSphere_2.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeSphere_2.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
 end;
 
 { TNodeElevationGrid --------------------------------------------------------- }
 
-function TNodeElevationGrid.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3D;
+function TNodeElevationGrid.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   Y: Single;
   I: Integer;
@@ -410,8 +431,8 @@ end;
 
 { TNodeExtrusion --------------------------------------------------------- }
 
-function TNodeExtrusion.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3D;
+function TNodeExtrusion.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   I, J: Integer;
   E: TVRMLExtrusion;
@@ -437,8 +458,8 @@ begin
   finally FreeAndNil(E) end;
 end;
 
-function TNodeExtrusion.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3D;
+function TNodeExtrusion.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   I, J: Integer;
   E: TVRMLExtrusion;
@@ -468,19 +489,22 @@ end;
 
 { ---------------------------------------------------------------------------- }
 
-function TNodeRectangle2D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeRectangle2D.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result[0] := Vector3Single(-FdSize.Value[0] / 2, -FdSize.Value[1] / 2, 0);
   Result[1] := Vector3Single( FdSize.Value[1] / 2,  FdSize.Value[1] / 2, 0);
 end;
 
-function TNodePlane.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodePlane.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result[0] := Vector3Single(-FdSize.Value[0] / 2, -FdSize.Value[1] / 2, 0);
   Result[1] := Vector3Single( FdSize.Value[1] / 2,  FdSize.Value[1] / 2, 0);
 end;
 
-function TNodeCircle2D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+function TNodeCircle2D.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result[0] := Vector3Single(-FdRadius.Value, -FdRadius.Value, 0);
   Result[1] := Vector3Single( FdRadius.Value,  FdRadius.Value, 0);

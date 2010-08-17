@@ -2200,22 +2200,26 @@ uses
 {$define read_implementation}
 
 {$define GeometryNotImplemented :=
-  function TGeometryNotImplemented.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D;
+  function TGeometryNotImplemented.LocalBoundingBox(State: TVRMLGraphTraverseState;
+    ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
   begin
     Result := EmptyBox3D;
   end;
 
-  function TGeometryNotImplemented.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+  function TGeometryNotImplemented.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+    ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
   begin
     Result := 0;
   end;
 
-  function TGeometryNotImplemented.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+  function TGeometryNotImplemented.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+    ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
   begin
     Result := 0;
   end;
 
-  procedure TGeometryNotImplemented.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  procedure TGeometryNotImplemented.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+    ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
   begin
   end;
 }

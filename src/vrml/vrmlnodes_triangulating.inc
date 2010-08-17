@@ -33,7 +33,8 @@ type
       FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 
-procedure TVRMLGeometryNode.Triangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure TVRMLGeometryNode.Triangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 var tr: TTriangulateRedirect;
 begin
  { klasa TTriangulateRedirect bedzie dzialala jako posrednik :
@@ -45,14 +46,43 @@ begin
   tr.Transform := @(State.Transform);
   tr.NewTriangle := NewTriangleProc;
   LocalTriangulate(Shape, State, OverTriangulate,
-    {$ifdef FPC_OBJFPC} @ {$endif} tr.LocalNewTriangle);
+    {$ifdef FPC_OBJFPC} @ {$endif} tr.LocalNewTriangle, ProxyGeometry, ProxyState);
  finally tr.Free end;
 end;
 
-procedure TVRMLGeometryNode.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+{ TVRMLGeometryNode.LocalTriangulate (using Proxy)
+  ---------------------------------------------------------------------------- }
+
+type
+  TProxyRedirect = class
+    NewTriangle: TNewTriangleProc;
+    procedure Triangle(const Triangle: TTriangle3Single;
+      Shape: TObject; State: TVRMLGraphTraverseState;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  end;
+
+procedure TProxyRedirect.Triangle(const Triangle: TTriangle3Single;
+  Shape: TObject; State: TVRMLGraphTraverseState;
+  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
-  raise EInternalError.Create('TVRMLGeometryNode.LocalTriangulate not overridden. You have to override it, or only use LocalTriangulate through TVRMLShape.LocalTriangulate (that may use a Proxy geometry if available)');
+  NewTriangle(Triangle, Shape, State, 0, -1, -1);
+end;
+
+procedure TVRMLGeometryNode.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
+var
+  ProxyRedirect: TProxyRedirect;
+begin
+  if ProxyGeometry <> nil then
+  begin
+    ProxyRedirect := TProxyRedirect.Create;
+    try
+      ProxyRedirect.NewTriangle := NewTriangleProc;
+      ProxyGeometry.LocalTriangulate(Shape, ProxyState, OverTriangulate, @ProxyRedirect.Triangle, nil, nil);
+    finally FreeAndNil(ProxyRedirect) end;
+  end else
+    raise EInternalError.Create('TVRMLGeometryNode.LocalTriangulate not overridden, and node without a Proxy');
 end;
 
 { pomocnicze procedury LocalTriangulate* dla jakichs tworow geometrycznych
@@ -119,27 +149,30 @@ end;
   such marked triangles. }
 
 procedure TNodeAsciiText_1.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 var
   Box: TBox3D;
 begin
-  Box := LocalBoundingBox(State);
+  Box := LocalBoundingBox(State, ProxyGeometry, ProxyState);
   LocalTriangulateRect(2, 0, Box[0][0], Box[0][1], Box[1][0], Box[1][1],
     Shape, State, false, NewTriangleProc, 0);
 end;
 
 procedure TNodeText.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 var
   Box: TBox3D;
 begin
-  Box := LocalBoundingBox(State);
+  Box := LocalBoundingBox(State, ProxyGeometry, ProxyState);
   LocalTriangulateRect(2, 0, Box[0][0], Box[0][1], Box[1][0], Box[1][1],
     Shape, State, false, NewTriangleProc, 0);
 end;
 
 procedure TNodeText3D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   { TODO: don't really know what to do for Text3D here, I certainly
     don't want to triangulate them, and using their bounding box
@@ -220,7 +253,8 @@ end;
 
 procedure TNodeIndexedFaceSet_1.LocalTriangulate(Shape: TObject;
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  NewTriangleProc: TNewTriangleProc);
+  NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 var
   Triangulator: TIndexedFaceSetTriangulator;
 begin
@@ -239,7 +273,8 @@ begin
 end;
 
 procedure TNodeIndexedFaceSet_2.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 var
   Triangulator: TIndexedFaceSetTriangulator;
 begin
@@ -262,31 +297,36 @@ end;
 { Others --------------------------------------------------------------------- }
 
 procedure TNodeIndexedLineSet_1.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   { No triangles }
 end;
 
 procedure TNodeIndexedLineSet_2.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   { No triangles }
 end;
 
 procedure TNodeLineSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   { No triangles }
 end;
 
 procedure TNodePointSet_1.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   { No triangles }
 end;
 
 procedure TNodePointSet_2.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   { No triangles }
 end;
@@ -294,7 +334,8 @@ end;
 { TNodeElevationGrid --------------------------------------------------------- }
 
 procedure TNodeElevationGrid.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 var
   I, J: Integer;
   Last1, Last2, Next1, Next2: TVector3Single;
@@ -368,7 +409,8 @@ begin
 end;
 
 procedure TNodeExtrusion.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 
   procedure DrawCap(const TransformCap: TMatrix4Single;
     const RevertOrder: boolean);
@@ -608,7 +650,8 @@ end;
 
 procedure TNodeIndexedTriangleMesh_1.LocalTriangulate(Shape: TObject;
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  NewTriangleProc: TNewTriangleProc);
+  NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     State.LastNodes.MaterialBinding.FdValue.Value, FdMaterialIndex,
@@ -616,56 +659,64 @@ begin
 end;
 
 procedure TNodeIndexedTriangleSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeTriangleSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeIndexedTriangleFanSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeTriangleFanSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeIndexedTriangleStripSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeTriangleStripSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeIndexedQuadSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeQuadSet.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
@@ -699,21 +750,24 @@ begin
 end;
 
 procedure TNodeRectangle2D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   Rectangle2D_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
     FdSize);
 end;
 
 procedure TNodePlane.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   Rectangle2D_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
     FdSize);
 end;
 
 procedure TNodeCircle2D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
 begin
   { No triangles }
 end;

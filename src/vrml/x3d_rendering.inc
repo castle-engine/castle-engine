@@ -89,7 +89,24 @@
           Using Coord and CoordIndex, no other information is needed.)
 
         @item(
-          For other nodes (not coordinate-based):
+          For other nodes, we first check ProxyGeometry and ProxyState.
+          If ProxyGeometry is non-nil, we assume these came from @link(Proxy)
+          call and we will use them to calculate
+          bounding boxes, local and not local.
+
+          So for nodes with @link(Proxy) overridden, you don't have
+          to implement bounding box calculation, instead a ProxyGeometry
+          will be created and provided here by the caller.
+          This will work Ok if @link(Proxy) node will
+          have bounding box calculation implemented.
+
+          You can always override these methods, if you don't want
+          to use proxy (for example, maybe there exists much faster
+          method to calculate bounding box, or maybe tighter
+          bounding box may be calculated directly).)
+
+        @item(
+          For other nodes (not coordinate-based and without a proxy):
 
           The default implementation of LocalBoundingBox just calls
           BoundingBox with a specially modified State, such that
@@ -115,8 +132,12 @@
       )
 
       @groupBegin }
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3D; virtual;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3D; virtual;
+    function BoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode;
+      ProxyState: TVRMLGraphTraverseState): TBox3D; virtual;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode;
+      ProxyState: TVRMLGraphTraverseState): TBox3D; virtual;
     { @groupEnd }
 
     { Calculate vertex and triangles count of this node.
@@ -144,9 +165,20 @@
       VerticesCount is already implemented in this class.
       Using Coord method, no other information is needed.
 
+      For other nodes, the default implementation of
+      both VerticesCount and TrianglesCount in this TVRMLGeometryNode
+      class will use ProxyGeometry and ProxyState to do the work.
+      You should override these methods if @link(Proxy) is not available
+      (so caller will always pass ProxyGeometry = @nil)
+      or some faster approach is possible.
+
       @groupBegin }
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode;
+      ProxyState: TVRMLGraphTraverseState): Cardinal; virtual;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode;
+      ProxyState: TVRMLGraphTraverseState): Cardinal; virtual;
     { @groupEnd }
 
     { Triangulate node, calling NewTriangleProc for each triangle this node
@@ -179,17 +211,23 @@
       na duzo trojkatow.
 
       @italic(Notes for descendants implementors:)
-      Override LocalTriangulate.
+
+      Default implementation of LocalTriangulate in this class uses
+      ProxyGeometry and ProxyState, if ProxyGeometry is non-nil.
+      You have to override this if @link(Proxy) is not available
+      (so ProxyGeometry will always be @nil), or if you want to plug
+      some more optimal method.
 
       Triangulate is always implemented by simply calling LocalTriangulate
       and transforming each triangle.
 
       @groupBegin }
     procedure Triangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-      OverTriangulate: boolean;
-      NewTriangleProc: TNewTriangleProc);
+      OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
     procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-      OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); virtual;
+      OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); virtual;
     { @groupEnd }
 
     { Return node's list of coordinates. Returns @false if node is
@@ -538,8 +576,10 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
 
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -573,8 +613,10 @@
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 
   TNodeIndexedTriangleSet = class(TNodeX3DComposedGeometryNode)
@@ -601,8 +643,10 @@
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 
   TNodeIndexedTriangleStripSet = class(TNodeX3DComposedGeometryNode)
@@ -629,8 +673,10 @@
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 
   TNodeLineSet = class(TNodeX3DGeometryNode)
@@ -669,8 +715,10 @@
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 
   TNodeNormal = class(TNodeX3DNormalNode)
@@ -717,8 +765,10 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
 
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -746,8 +796,10 @@
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 
   TNodeTriangleSet = class(TNodeX3DComposedGeometryNode)
@@ -762,8 +814,10 @@
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 
   TNodeTriangleStripSet = class(TNodeX3DComposedGeometryNode)
@@ -785,8 +839,10 @@
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 {$endif read_interface}
 
