@@ -270,19 +270,6 @@ end;
 
 { TNodeExtrusion ------------------------------------------------------------- }
 
-function TNodeExtrusion.VerticesCount(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
-var
-  E: TVRMLExtrusion;
-begin
-  E := TVRMLExtrusion.Create;
-  try
-    E.Node := Self;
-    Result := (E.High + 1) * FdCrossSection.Count;
-  finally FreeAndNil(E) end;
-end;
-
 function TNodeExtrusion.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;

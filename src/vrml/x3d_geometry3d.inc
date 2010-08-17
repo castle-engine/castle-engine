@@ -291,12 +291,8 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 
   TNodeIndexedFaceSet_2 = class(TNodeX3DComposedGeometryNode)
