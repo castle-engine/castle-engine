@@ -259,8 +259,10 @@ end;
   is allowed but prohibitively slow within glBegin/glEnd (or just: too often,
   like for each face or vertex). It also eats a *lot* of memory in case of
   display lists (~130 MB for "castle" spider_queen and spider animations,
-  on NVidia GeForce FX 5200). So using GL_COLOR_MATERIAL is required
-  for sensible speed and memory use. }
+  on NVidia GeForce FX 5200, and ~15 fps instead of ~30).
+  So using GL_COLOR_MATERIAL is required for sensible speed and memory use.
+  (For the same "castle" test, with GL_COLOR_MATERIAL implementation,
+  we loose only ~10 MB on display lists and no speed difference) }
 procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer;
   const InsideBeginEnd: boolean);
 var
