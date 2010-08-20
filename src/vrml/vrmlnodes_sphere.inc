@@ -229,6 +229,9 @@ var
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
   try
+    { we have to modify State, so make a copy of it }
+    State := TVRMLGraphTraverseState.CreateCopy(State);
+
     CoordNode := TNodeCoordinate3.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 

@@ -48,16 +48,16 @@ uses
   {$endif};
 
 {var
-  T: TTestOpeningAndRendering3D;}
+  T: TTestVRMLNodesOptimizedProxy;
 begin
 { Sometimes it's comfortable to just run the test directly, to get
-  full backtrace from FPC. }
-{
-  T := TTestOpeningAndRendering3D.Create;
-  T.Test1;
+  full backtrace from FPC.
+
+  T := TTestVRMLNodesOptimizedProxy.Create;
+  T.TestGeometryUsesOptimizedMethods;
   T.Free;
-  Exit;
-}
+  Exit; }
+
   Application.Initialize;
   {$ifndef TEXT_RUNNER}
   Application.CreateForm(TGuiTestRunner, TestRunner);
