@@ -396,6 +396,19 @@
     function Color: TMFVec3f; virtual;
     function ColorRGBA: TMFColorRGBA; virtual;
     { @groupEnd }
+
+    { Should renderer automatically generate 3D texture coordinates,
+      in case we will apply 3D texture on this geometry.
+
+      The generated coordinates will follow the X3D specification
+      at "Texturing3D" component: "Texture coordinate generation
+      for primitive objects". The 3D texture space will be mapped nicely
+      to the shape bounding box.
+
+      Implementation in this class (TVRMLGeometryNode) returns always
+      @false. Override it for primitives that have no texture coordinates
+      to return @true. }
+    function AutoGenerate3DTexCoords: boolean; virtual;
   end;
 
   { }
@@ -983,6 +996,11 @@ end;
 function TVRMLGeometryNode.ColorRGBA: TMFColorRGBA;
 begin
   Result := nil;
+end;
+
+function TVRMLGeometryNode.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := false;
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }

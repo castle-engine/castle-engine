@@ -42,6 +42,7 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   TNodeCone_2 = class(TNodeX3DGeometryNode)
@@ -85,6 +86,7 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   TNodeCylinder_2 = class(TNodeX3DGeometryNode)
@@ -131,6 +133,7 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   TNodeElevationGrid = class(TNodeX3DGeometryNode)
@@ -397,6 +400,7 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
 {$endif read_interface}
@@ -444,6 +448,11 @@ end;
 function TNodeBox.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
+end;
+
+function TNodeBox.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
 constructor TNodeCone_2.Create(const ANodeName: string;
@@ -512,6 +521,11 @@ end;
 function TNodeCone_2.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
+end;
+
+function TNodeCone_2.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
 constructor TNodeCylinder_2.Create(const ANodeName: string;
@@ -584,6 +598,11 @@ end;
 function TNodeCylinder_2.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
+end;
+
+function TNodeCylinder_2.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
 constructor TNodeElevationGrid.Create(const ANodeName: string;
@@ -1276,6 +1295,11 @@ end;
 function TNodeSphere_2.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
+end;
+
+function TNodeSphere_2.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
 procedure RegisterGeometry3DNodes;

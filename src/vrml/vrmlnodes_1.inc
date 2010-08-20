@@ -98,6 +98,8 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   TNodeCube_1 = class(TVRMLGeometryNode_1)
@@ -122,6 +124,8 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   TNodeCylinder_1 = class(TVRMLGeometryNode_1)
@@ -146,6 +150,8 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   { wspolny rodzic dla IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet }
@@ -252,6 +258,8 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   TNodeCoordinate3 = class(TNodeX3DChildNode)
@@ -1008,6 +1016,11 @@ begin
   result := 'Cone';
 end;
 
+function TNodeCone_1.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := true;
+end;
+
 constructor TNodeCube_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1027,6 +1040,11 @@ begin
   result := 'Cube';
 end;
 
+function TNodeCube_1.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := true;
+end;
+
 constructor TNodeCylinder_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1044,6 +1062,11 @@ end;
 class function TNodeCylinder_1.ClassNodeTypeName: string;
 begin
   result := 'Cylinder';
+end;
+
+function TNodeCylinder_1.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := true;
 end;
 
 constructor TVRMLIndexedNode_1.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -1170,6 +1193,11 @@ end;
 class function TNodeSphere_1.ClassNodeTypeName: string;
 begin
   result := 'Sphere';
+end;
+
+function TNodeSphere_1.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := true;
 end;
 
 constructor TNodeCoordinate3.Create(const ANodeName: string; const AWWWBasePath: string);
