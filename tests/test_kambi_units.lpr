@@ -48,7 +48,7 @@ uses
   {$endif};
 
 {var
-  T: TTestVRMLNodesOptimizedProxy;
+  T: TTestVRMLNodesOptimizedProxy;}
 begin
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.
