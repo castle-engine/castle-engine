@@ -195,7 +195,7 @@ type
   private
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-      Shape: TObject; State: TVRMLGraphTraverseState;
+      Shape: TObject;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TVRMLTriangleOctree;
@@ -1040,11 +1040,11 @@ end;
 
 procedure TVRMLShape.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
-  Shape: TObject; State: TVRMLGraphTraverseState;
+  Shape: TObject;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape, State, MatNum,
+  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape, MatNum,
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 

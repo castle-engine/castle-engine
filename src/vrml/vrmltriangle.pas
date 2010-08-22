@@ -41,8 +41,7 @@ type
     { Initialize new triangle of VRML model.
       Given ATriangle must satisfy IsValidTriangle. }
     constructor Init(const ATriangle: TTriangle3Single;
-      AShape: TObject; AState: TVRMLGraphTraverseState;
-      const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
+      AShape: TObject; const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
 
     procedure UpdateWorld;
   public
@@ -50,9 +49,6 @@ type
       This must be an instance of TVRMLShape, but due to unit dependencies
       it cannot be declared such. }
     Shape: TObject;
-    { State of this shape, containing various information about 3D shape.
-      This is a shortcut of TVRMLShape(Shape).State. }
-    State: TVRMLGraphTraverseState;
     MatNum: integer;
 
     { If this triangle is part of a face created by coordIndex field
@@ -88,6 +84,10 @@ type
     MailboxIntersectionDistance: Single;
     { @groupEnd }
     {$endif}
+
+    { State of this shape, containing various information about 3D shape.
+      This is a shortcut of TVRMLShape(Shape).State. }
+    function State: TVRMLGraphTraverseState;
 
     { Check collisions between TVRMLTriangle and ray/segment.
 
@@ -726,7 +726,7 @@ function SimpleKeepAboveMinPlane(
 
 implementation
 
-uses KambiStringUtils;
+uses KambiStringUtils, VRMLShape;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -734,13 +734,12 @@ uses KambiStringUtils;
 { TVRMLTriangle  ------------------------------------------------------------- }
 
 constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
-  AShape: TObject; AState: TVRMLGraphTraverseState;
+  AShape: TObject;
   const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
 begin
   inherited Init(ATriangle);
 
   Shape := AShape;
-  State := AState;
   MatNum := AMatNum;
   FaceCoordIndexBegin := AFaceCoordIndexBegin;
   FaceCoordIndexEnd := AFaceCoordIndexEnd;
@@ -748,6 +747,11 @@ begin
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
   MailboxSavedTag := -1;
   {$endif}
+end;
+
+function TVRMLTriangle.State: TVRMLGraphTraverseState;
+begin
+  Result := TVRMLShape(Shape).State;
 end;
 
 procedure TVRMLTriangle.UpdateWorld;

@@ -680,7 +680,7 @@ type
     procedure (ParentNode: TVRMLNode; var Node: TVRMLNode) of object;
 
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
-    Shape: TObject; State: TVRMLGraphTraverseState;
+    Shape: TObject;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
 
   TSFNode = class;

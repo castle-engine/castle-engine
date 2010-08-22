@@ -21,15 +21,15 @@ type
     Transform: PMatrix4Single;
     NewTriangle: TNewTriangleProc;
     procedure LocalNewTriangle(const Tri: TTriangle3Single;
-      Shape: TObject; State: TVRMLGraphTraverseState;
+      Shape: TObject;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
   procedure TTriangulateRedirect.LocalNewTriangle(const Tri: TTriangle3Single;
-    Shape: TObject; State: TVRMLGraphTraverseState;
+    Shape: TObject;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   begin
-    NewTriangle(TriangleTransform(Tri, Transform^), Shape, State, MatNum,
+    NewTriangle(TriangleTransform(Tri, Transform^), Shape, MatNum,
       FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 
@@ -57,15 +57,15 @@ type
   TProxyRedirect = class
     NewTriangle: TNewTriangleProc;
     procedure Triangle(const Triangle: TTriangle3Single;
-      Shape: TObject; State: TVRMLGraphTraverseState;
+      Shape: TObject;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
 procedure TProxyRedirect.Triangle(const Triangle: TTriangle3Single;
-  Shape: TObject; State: TVRMLGraphTraverseState;
+  Shape: TObject;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
-  NewTriangle(Triangle, Shape, State, 0, -1, -1);
+  NewTriangle(Triangle, Shape, 0, -1, -1);
 end;
 
 procedure TVRMLGeometryNode.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
@@ -128,11 +128,11 @@ begin
  TriAssign(0, x1, y1);
  TriAssign(1, x1, y2);
  TriAssign(2, x2, y2);
- NewTriangleProc(T, Shape, State, MatNum, -1, -1);
+ NewTriangleProc(T, Shape, MatNum, -1, -1);
  TriAssign(0, x1, y1);
  TriAssign(1, x2, y2);
  TriAssign(2, x2, y1);
- NewTriangleProc(T, Shape, State, MatNum, -1, -1);
+ NewTriangleProc(T, Shape, MatNum, -1, -1);
 end;
 
 { Text nodes ----------------------------------------------------------------- }
@@ -221,7 +221,7 @@ begin
   Tri[0] := Coord.ItemsSafe[FaceIndices^[TriIndices[0]]];
   Tri[1] := Coord.ItemsSafe[FaceIndices^[TriIndices[1]]];
   Tri[2] := Coord.ItemsSafe[FaceIndices^[TriIndices[2]]];
-  NewTriangleProc(Tri, Shape, State, VRML1MaterialNumber,
+  NewTriangleProc(Tri, Shape, VRML1MaterialNumber,
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
@@ -364,8 +364,8 @@ begin
           As far as I understand, no : ccw FALSE tells me that
           normals point download (normal y is negative) and I
           should eventually cull (if solid TRUE) the other side. }
-        NewTriangleProc(Triangle3Single(Last2, Last1, Next1), Shape, State, 0, -1, -1);
-        NewTriangleProc(Triangle3Single(Last2, Next1, Next2), Shape, State, 0, -1, -1);
+        NewTriangleProc(Triangle3Single(Last2, Last1, Next1), Shape, 0, -1, -1);
+        NewTriangleProc(Triangle3Single(Last2, Next1, Next2), Shape, 0, -1, -1);
 
         Last1 := Next1;
         Last2 := Next2;
@@ -435,13 +435,13 @@ begin
     Triangle[0] := Coord.Items[Index(Indexes[0])];
     Triangle[1] := Coord.Items[Index(Indexes[1])];
     Triangle[2] := Coord.Items[Index(Indexes[2])];
-    NewTriangleProc(Triangle, Shape, State, VRML1MaterialNumber, -1, -1);
+    NewTriangleProc(Triangle, Shape, VRML1MaterialNumber, -1, -1);
     I := 3;
     while I <= High(Indexes) do
     begin
       Triangle[1] := Triangle[2];
       Triangle[2] := Coord.Items[Index(Indexes[I])];
-      NewTriangleProc(Triangle, Shape, State, VRML1MaterialNumber, -1, -1);
+      NewTriangleProc(Triangle, Shape, VRML1MaterialNumber, -1, -1);
       Inc(I);
     end;
   end;
@@ -571,12 +571,12 @@ begin
   Triangle[1] := V;
   V[0] := -V[0];
   Triangle[2] := V;
-  NewTriangleProc(Triangle, Shape, State, 0, -1, -1);
+  NewTriangleProc(Triangle, Shape, 0, -1, -1);
 
   Triangle[1] := Triangle[2];
   V[1] := -V[1];
   Triangle[2] := V;
-  NewTriangleProc(Triangle, Shape, State, 0, -1, -1);
+  NewTriangleProc(Triangle, Shape, 0, -1, -1);
 end;
 
 procedure TNodeRectangle2D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
