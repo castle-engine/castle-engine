@@ -3391,8 +3391,12 @@ begin
      (Node is TNodeX3DTriggerNode) or
      (Node is TNodeBooleanFilter) or
      (Node is TNodeBooleanToggle) or
+     (Node is TNodeToggler) or
      { interpolators }
-     (Node is TNodeX3DInterpolatorNode) then
+     (Node is TNodeX3DInterpolatorNode) or
+     { a change to only a prototype field has no effect,
+       TVRMLPrototypeNode will only pass it forward to the actual node }
+     (Node is TVRMLPrototypeNode) then
     Exit;
 
   { We used to check here RootNode.IsNodePresent, to eliminate

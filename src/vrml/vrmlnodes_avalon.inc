@@ -231,6 +231,61 @@
     procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
+
+  TNodeToggler = class(TNodeX3DChildNode)
+  private
+    procedure EventEnabledReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+    procedure EventStatusReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+    procedure EventNotStatusReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+    procedure EventToggleReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+    procedure EventSetReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+    procedure EventResetReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  protected
+    procedure ParseAfter(Names: TVRMLNames); override;
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdstatus: TSFBool;
+    public property Fdstatus: TSFBool read FFdstatus;
+
+    private FFdnotStatus: TSFBool;
+    public property FdnotStatus: TSFBool read FFdnotStatus;
+
+    { Event: XFAny, in } { }
+    private FEventtoggle: TVRMLEvent;
+    public property Eventtoggle: TVRMLEvent read FEventtoggle;
+
+    { Event: XFAny, in } { }
+    private FEventset: TVRMLEvent;
+    public property Eventset: TVRMLEvent read FEventset;
+
+    { Event: XFAny, in } { }
+    private FEventreset: TVRMLEvent;
+    public property Eventreset: TVRMLEvent read FEventreset;
+
+    { Event: SFBool, out } { }
+    private FEventchanged: TVRMLEvent;
+    public property Eventchanged: TVRMLEvent read FEventchanged;
+
+    { Event: SFBool, out } { }
+    private FEventon: TVRMLEvent;
+    public property Eventon: TVRMLEvent read FEventon;
+
+    { Event: SFBool, out } { }
+    private FEventoff: TVRMLEvent;
+    public property Eventoff: TVRMLEvent read FEventoff;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -754,6 +809,133 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
+constructor TNodeToggler.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  { It's safer to register on EventOuts below, because then I already
+    know that exposed eventIn handler set appropriate field value
+    before calling our eventOut handler.
+    That's why we listen on EventOuts of status, notStatus, enabled. }
+
+  FFdstatus := TSFBool.Create(Self, 'status', false);
+   Fdstatus.EventOut.OnReceive.Add(@EventStatusReceive);
+  Fields.Add(FFdstatus);
+
+  FFdnotStatus := TSFBool.Create(Self, 'notStatus', true);
+   Fdnotstatus.EventOut.OnReceive.Add(@EventNotStatusReceive);
+  Fields.Add(FFdnotStatus);
+
+  FEventtoggle := TVRMLEvent.Create(Self, 'toggle', TVRMLField, true);
+  FEventtoggle.OnReceive.Add(@EventToggleReceive);
+  Events.Add(FEventtoggle);
+
+  FEventset := TVRMLEvent.Create(Self, 'set', TVRMLField, true);
+   Eventset.OnReceive.Add(@EventSetReceive);
+  Events.Add(FEventset);
+
+  FEventreset := TVRMLEvent.Create(Self, 'reset', TVRMLField, true);
+   Eventreset.OnReceive.Add(@EventResetReceive);
+  Events.Add(FEventreset);
+
+  FEventchanged := TVRMLEvent.Create(Self, 'changed', TSFBool, false);
+  Events.Add(FEventchanged);
+
+  FEventon := TVRMLEvent.Create(Self, 'on', TSFBool, false);
+  Events.Add(FEventon);
+
+  FEventoff := TVRMLEvent.Create(Self, 'off', TSFBool, false);
+  Events.Add(FEventoff);
+
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
+   Fdenabled.EventOut.OnReceive.Add(@EventEnabledReceive);
+  Fields.Add(FFdenabled);
+end;
+
+class function TNodeToggler.ClassNodeTypeName: string;
+begin
+  Result := 'Toggler';
+end;
+
+class function TNodeToggler.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeToggler.EventEnabledReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+begin
+  { This makes status and notStatus input events ignored,
+    and output events not generated when enabled = FALSE. }
+  Fdstatus.ExposedEventsLinked := FdEnabled.Value;
+  FdnotStatus.ExposedEventsLinked := FdEnabled.Value;
+end;
+
+procedure TNodeToggler.ParseAfter(Names: TVRMLNames);
+begin
+  inherited;
+  { Same thing as EventEnabledReceive must be done also here,
+    in case you set "enabled FALSE" already in the VRML/X3D file. }
+  Fdstatus.ExposedEventsLinked := FdEnabled.Value;
+  FdnotStatus.ExposedEventsLinked := FdEnabled.Value;
+end;
+
+procedure TNodeToggler.EventStatusReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+begin
+  { Do not send event to notStatus, if it already has correct value
+    (so our own value didn't actually changed).
+    This avoids calling status and notStatus events in a loop.
+    By the way, also avoid sending excessive changed/on/off. }
+  if FdnotStatus.Value <> not FdStatus.Value then
+  begin
+    FdnotStatus.EventIn.Send(not FdStatus.Value, Time);
+
+    EventChanged.Send(true, Time);
+    if FdStatus.Value then EventOn.Send(true, Time);
+    if not FdStatus.Value then EventOff.Send(true, Time);
+  end;
+end;
+
+procedure TNodeToggler.EventNotStatusReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+begin
+  { Do not send event to status, if it already has correct value
+    (so our own value didn't actually changed).
+    This avoids calling status and notStatus events in a loop.
+    By the way, also avoid sending excessive changed/on/off. }
+  if FdnotStatus.Value <> not FdStatus.Value then
+  begin
+    Fdstatus.EventIn.Send(not FdnotStatus.Value, Time);
+
+    EventChanged.Send(true, Time);
+    if FdStatus.Value then EventOn.Send(true, Time);
+    if not FdStatus.Value then EventOff.Send(true, Time);
+  end;
+end;
+
+procedure TNodeToggler.EventToggleReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+begin
+  if FdEnabled.Value then
+    FdStatus.EventIn.Send(not FdStatus.Value, Time);
+end;
+
+procedure TNodeToggler.EventSetReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+begin
+  if FdEnabled.Value then
+    FdStatus.EventIn.Send(true, Time);
+end;
+
+procedure TNodeToggler.EventResetReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+begin
+  if FdEnabled.Value then
+    FdStatus.EventIn.Send(false, Time);
+end;
+
 procedure RegisterAvalonNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -762,7 +944,8 @@ begin
     TNodeLogger,
     TNodeConverter,
     TNodeRenderedTexture,
-    TNodePlane
+    TNodePlane,
+    TNodeToggler
   ]);
 end;
 {$endif read_implementation}

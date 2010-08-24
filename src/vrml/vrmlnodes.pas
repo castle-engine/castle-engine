@@ -4884,7 +4884,7 @@ begin
   if (SourceEvent <> nil) and
      (DestinationEvent <> nil) and
      (SourceEvent.FieldClass <> DestinationEvent.FieldClass) and
-     { destination field can be XFAny (for Logger.write) as an exception. }
+     { destination field can be XFAny (for some Avalon nodes) as an exception. }
      (not (DestinationEvent.FieldClass = TVRMLField)) then
     raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
       [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
