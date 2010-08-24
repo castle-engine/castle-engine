@@ -395,7 +395,7 @@ begin
     before calling our eventOut handler.
     In EventIn, you would not really know
     whether exposed event handler was already done or not (depends
-    on the of calbacks on OnReceive list).
+    on the order of calbacks on OnReceive list).
 
     Even better, I know that notification to EventsEngine
     (from exposed eventIn handler)
