@@ -252,6 +252,7 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdstatus: TSFBool;
     public property Fdstatus: TSFBool read FFdstatus;
@@ -861,6 +862,11 @@ class function TNodeToggler.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+function TNodeToggler.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  Result := [];
 end;
 
 procedure TNodeToggler.EventEnabledReceive(

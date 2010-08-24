@@ -683,6 +683,49 @@ type
     Shape: TObject;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
 
+  { Possible things that happen when given node/field is changed.
+    Used by TVRMLNode.Changed. }
+  TVRMLChange = (
+    { The full algorithm of TVRMLScene.ChangedFields should
+      be used to determine what changed.
+      TVRMLScene.ChangedFields detects changes for specific hardcoded
+      nodes/fields, and if the given combination isn't recognized
+      --- it assumes that everything changed (calling costly
+      TVRMLScene.ChangedAll).
+
+      This is for now returned by default by TVRMLNode.Changed.
+      In the future, we would like to eventually remove this flag
+      from all the nodes, as this approach makes TVRMLScene.ChangedFields
+      implementation a horribly long messy code. }
+    chSceneAlgorithm,
+
+    { Something visible in the geometry changed.
+      See vcVisibleGeometry.
+      This means that VisibleChangeHere with vcVisibleGeometry included should
+      be called. }
+    chVisibleGeometry,
+
+    { Something visible changed, but not geometry.
+      See vcVisibleNonGeometry.
+      This means that VisibleChangeHere with vcVisibleNonGeometry included should
+      be called. }
+    chVisibleNonGeometry,
+
+    { Viewer changed.
+      See vcViewer.
+      This means that VisibleChangeHere with vcViewer included should
+      be called. }
+    chViewer,
+
+    { Call VisibleChangeHere to redisplay the scene.
+
+      If you include one the chVisibleGeometry, chVisibleNonGeometry,
+      chViewer then this flag (chRedisplay) makes no effect.
+      Otherwise, this flag should be used if your change requires
+      redisplay of the 3D view for some other reasons. }
+    chRedisplay);
+  TVRMLChanges = set of TVRMLChange;
+
   TSFNode = class;
   TMFNode = class;
   TVRMLPrototypeNode = class;
@@ -1390,8 +1433,8 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     constructor CreatePrototypeNode(const ANodeName, AWWWBasePath :string;
       APrototype: TVRMLPrototypeBase);
-
     function NodeTypeName: string; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     property Prototype: TVRMLPrototypeBase read FPrototype;
 
@@ -1990,7 +2033,16 @@ procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes)
   itself. }
 procedure VRMLNodesList_FreeWithNonParentedContentsAndNil(var List: TVRMLNodesList);
 
+function VRMLChangesToStr(const Changes: TVRMLChanges): string;
+
 const
+  VRMLChangeToStr: array [TVRMLChange] of string =
+  ( 'Scene Algorithm',
+    'Visible Geometry',
+    'Visible Non-Geometry',
+    'Viewer',
+    'Redisplay' );
+
   ProjectionTypeToStr: array [TProjectionType] of string =
   ('Orthographic', 'Perspective');
 
@@ -3761,6 +3813,13 @@ begin
   end;
 end;
 
+function TVRMLPrototypeNode.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  { A change to a prototype field has no real effect,
+    TVRMLPrototypeNode will only pass it forward to the actual node }
+  Result := [];
+end;
+
 function TVRMLPrototypeNode.DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
 begin
   Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, WWWBasePath,
@@ -5479,6 +5538,20 @@ begin
       T := (Fraction - Key[A]) / (Key[B] - Key[A]) else
       T := 0;
   end;
+end;
+
+function VRMLChangesToStr(const Changes: TVRMLChanges): string;
+var
+  C: TVRMLChange;
+begin
+  Result := '';
+  for C := Low(C) to High(C) do
+    if C in Changes then
+    begin
+      if Result <> '' then Result += ',';
+      Result += VRMLChangeToStr[C];
+    end;
+  Result := '[' + Result + ']';
 end;
 
 { TDynNodeDestructionNotifications ------------------------------------------- }

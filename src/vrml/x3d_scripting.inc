@@ -38,6 +38,7 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdurl: TMFString;
     public property Fdurl: TMFString read FFdurl;
@@ -353,6 +354,13 @@ procedure TNodeX3DScriptNode.ResetLastEventTimes;
 begin
   if Initialized and (FInitializedScriptType = stKambiScript) then
     KambiScriptVariables.ResetLastEventTimes;
+end;
+
+function TNodeX3DScriptNode.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  { Just like sensors, scripts don't affect actual content directly.
+    Script nodes take care themselves to react to events send to them. }
+  Result := [];
 end;
 
 constructor TNodeScript.Create(const ANodeName: string;

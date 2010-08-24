@@ -3307,6 +3307,9 @@ procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
     end;
   end;
 
+var
+  Changes: TVRMLChanges;
+
   procedure DoLogChanges(const Additional: string = '');
   var
     S: string;
@@ -3315,6 +3318,8 @@ procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
       [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]);
     if Field <> nil then
       S += Format('. Field %s (%s)', [ Field.Name, Field.VRMLTypeName ]);
+    if Changes <> [chSceneAlgorithm] then
+      S += '. Optimized changes list: ' + VRMLChangesToStr(Changes);
     if Additional <> '' then
       S += '. ' + Additional;
     WritelnLog('VRML changes', S);
@@ -3342,9 +3347,24 @@ procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
     end;
   end;
 
+  { Handle changes in Changes variable. }
+  procedure HandleChanges;
+  var
+    VisibleChanges: TVisibleChanges;
+  begin
+    if Changes * [chVisibleGeometry, chVisibleNonGeometry,
+      chViewer, chRedisplay] <> [] then
+    begin
+      VisibleChanges := [];
+      if chVisibleGeometry    in Changes then Include(VisibleChanges, vcVisibleGeometry);
+      if chVisibleNonGeometry in Changes then Include(VisibleChanges, vcVisibleNonGeometry);
+      if chViewer             in Changes then Include(VisibleChanges, vcViewer);
+      VisibleChangeHere(VisibleChanges);
+    end;
+  end;
+
 var
   I: integer;
-  VRML1StateNodeIs: boolean;
   VRML1StateNode: TVRML1StateNode;
   Coord: TMFVec3f;
   TransformChangeHelper: TTransformChangeHelper;
@@ -3353,51 +3373,16 @@ var
   TransformShapesParentInfo: TShapesParentInfo;
   TexCoord: TVRMLNode;
 begin
-  VRML1StateNodeIs := Node.VRML1StateNode(VRML1StateNode);
+  Changes := Node.Changed(Field);
 
   if Log and LogChanges then
     DoLogChanges;
 
-  { Ignore this ChangedFields call if you're changing
-    something that doesn't *directly* affect actual content:
-    - metadata field
-    - metadata or WorldInfo nodes
-    - and others, see comments...
-
-    Do this first (before RootNode.IsNodePresent checks for ignoring),
-    as this is much faster. This way e.g. changing TouchSensor.enabled
-    or some other things works instantly fast.
-  }
-
-  if (Node is TNodeX3DNode) and
-     (TNodeX3DNode(Node).FdMetadata = Field) then
+  if not (chSceneAlgorithm in Changes) then
+  begin
+    HandleChanges;
     Exit;
-
-  if (Node is TNodeMetadataDouble) or
-     (Node is TNodeMetadataFloat) or
-     (Node is TNodeMetadataInteger) or
-     (Node is TNodeMetadataSet) or
-     (Node is TNodeMetadataString) or
-     (Node is TNodeWorldInfo) or
-     { sensors (they don't affect actual content directly --- only when
-       they are routed somewhere, and this will be eventually
-       detected in another ChangedFields call) }
-     (Node is TNodeX3DPointingDeviceSensorNode) or
-     { script (like for sensors; script nodes take care themselves
-        to react to events send to them) }
-     (Node is TNodeScript) or
-     { X3D event utilities nodes }
-     (Node is TNodeX3DSequencerNode) or
-     (Node is TNodeX3DTriggerNode) or
-     (Node is TNodeBooleanFilter) or
-     (Node is TNodeBooleanToggle) or
-     (Node is TNodeToggler) or
-     { interpolators }
-     (Node is TNodeX3DInterpolatorNode) or
-     { a change to only a prototype field has no effect,
-       TVRMLPrototypeNode will only pass it forward to the actual node }
-     (Node is TVRMLPrototypeNode) then
-    Exit;
+  end;
 
   { We used to check here RootNode.IsNodePresent, to eliminate
     changes to nodes not in our graph. This is not done now, because:
@@ -3435,7 +3420,7 @@ begin
         So it affects coordinate-based nodes with this node.
 
         In fact, code below takes into account both VRML 1.0 and 2.0 situation,
-        that's why it's before "if VRML1StateNodeIs then" branch. }
+        that's why it's before "if Node.VRML1StateNode(VRML1StateNode)" branch. }
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
@@ -3457,7 +3442,7 @@ begin
           end;
       finally FreeAndNil(SI) end;
     end else
-    if VRML1StateNodeIs then
+    if Node.VRML1StateNode(VRML1StateNode) then
     begin
       { Node is part of VRML 1.0 state, so it affects Shapes where
         it's present on State.LastNodes list. }

@@ -54,6 +54,7 @@
       const Time: TVRMLTime); virtual; abstract;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     { Event: SFBool, in } { }
     private FEventnext: TVRMLEvent;
@@ -74,6 +75,7 @@
   TNodeX3DTriggerNode = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
   end;
 
   TNodeBooleanFilter = class(TNodeX3DChildNode)
@@ -86,6 +88,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     { Event: SFBool, in } { }
     private FEventset_boolean: TVRMLEvent;
@@ -133,6 +136,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     { Event: SFBool, in } { }
     private FEventset_boolean: TVRMLEvent;
@@ -346,12 +350,22 @@ begin
   end;
 end;
 
+function TNodeX3DSequencerNode.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  Result := [];
+end;
+
 constructor TNodeX3DTriggerNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeX3DTriggerNode.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  Result := [];
 end;
 
 constructor TNodeBooleanFilter.Create(const ANodeName: string;
@@ -404,6 +418,11 @@ class function TNodeBooleanFilter.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeBooleanFilter.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  Result := [];
 end;
 
 constructor TNodeBooleanSequencer.Create(const ANodeName: string;
@@ -461,6 +480,11 @@ begin
   Fields.Add(FFdtoggle);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeBooleanToggle.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  Result := [];
 end;
 
 procedure TNodeBooleanToggle.EventSet_BooleanReceive(

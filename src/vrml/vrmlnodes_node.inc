@@ -1129,6 +1129,19 @@
       This should only be used with nodes having
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
     procedure AddCustomField(Field: TVRMLField; const Exposed: boolean = false);
+
+    { React to change to given field. Field may be @nil, then we should
+      assume that any field value potentially changed.
+
+      In the TVRMLNode class this returns [chSceneAlgorithm].
+      See TVRMLChange for possible values.
+
+      It's OK to return here even an empty set, if changes
+      something that isn't *directly* an actual content (but only an
+      intermediate node to change other stuff). This includes
+      all metadata fields and nodes, event utilities, Script node,
+      interpolators... }
+    function Changed(Field: TVRMLField): TVRMLChanges; virtual;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -3020,6 +3033,11 @@ begin
   Field.ParentInterfaceDeclaration := IDecl;
   InterfaceDeclarations.Add(IDecl);
   PostAddInterfaceDeclaration(IDecl);
+end;
+
+function TVRMLNode.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  Result := [chSceneAlgorithm];
 end;
 
 { TVRMLNodesList ------------------------------------------------------------- }

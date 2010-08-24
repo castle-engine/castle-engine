@@ -20,6 +20,7 @@
     function KeyRange(const Fraction: Single; out T: Single): Integer;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     { Event: SFFloat, in } { }
     private FEventset_fraction: TVRMLEvent;
@@ -433,6 +434,11 @@ function TNodeX3DInterpolatorNode.KeyRange(
   const Fraction: Single; out T: Single): Integer;
 begin
   Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);
+end;
+
+function TNodeX3DInterpolatorNode.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  Result := [];
 end;
 
 constructor TNodeColorInterpolator.Create(const ANodeName: string;
