@@ -509,8 +509,9 @@ type
       read FExposedEventsLinked write SetExposedEventsLinked
       default true;
 
-    { This returns fieldType as for VRML interface declaration statements. }
-    class function VRMLTypeName: string; virtual; abstract;
+    { This returns fieldType as for VRML interface declaration statements.
+      Returns 'XFAny' (name indicating any type, used by instantreality and us). }
+    class function VRMLTypeName: string; virtual;
 
     { Copies the current field value. Contrary to TPersistent.Assign, this
       doesn't copy the rest of properties.
@@ -2727,6 +2728,14 @@ begin
     FExposedEvents[true].AddAlternativeName(
       SetPrefix + AlternativeName, VrmlMajorVersion);
   end;
+end;
+
+{ Note that TVRMLField.VRMLTypeName cannot be abstract:
+  it may be used if source event is of XFAny type in warning message
+  in TVRMLRoute.SetEndingInternal }
+class function TVRMLField.VRMLTypeName: string;
+begin
+  Result := 'XFAny';
 end;
 
 { TVRMLFieldsList ------------------------------------------------------------- }
