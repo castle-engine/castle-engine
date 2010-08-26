@@ -884,6 +884,15 @@ begin
   end;
 end;
 
+type
+  TMyObject = class
+    procedure Foo(Node: TVRMLNode);
+  end;
+
+procedure TMyObject.Foo(Node: TVRMLNode);
+begin
+end;
+
 procedure TTestVRMLNodes.TestDestructionNotification;
 var
   A: TDynNodeDestructionNotificationArray;
@@ -1104,15 +1113,6 @@ begin
 
     finally FreeAndNil(N) end;
   end;
-end;
-
-type
-  TMyObject = class
-    procedure Foo(Node: TVRMLNode);
-  end;
-
-procedure TMyObject.Foo(Node: TVRMLNode);
-begin
 end;
 
 initialization
