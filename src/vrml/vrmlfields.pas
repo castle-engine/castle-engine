@@ -2418,7 +2418,7 @@ const
     'Texture renderer properties',
     'TextureProperties node',
     'Shadow caster',
-    'Generated shadow map update',
+    'Generated texture update',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

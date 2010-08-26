@@ -3774,6 +3774,7 @@ var
       Exit;
 
     Handler.UpdateNeeded := true;
+    VisibleChangeHere([]);
   end;
 
   procedure HandleChangeEverything;
