@@ -65,18 +65,6 @@ type
   { Possible things that happen when given field is changed.
     Used by TVRMLField.Changes. }
   TVRMLChange = (
-    { The full algorithm of TVRMLScene.ChangedField should
-      be used to determine what changed.
-      TVRMLScene.ChangedField detects changes for specific hardcoded
-      nodes/fields, and if the given combination isn't recognized
-      --- it assumes that everything changed (calling costly
-      TVRMLScene.ChangedAll).
-
-      In the future, we would like to eventually remove this flag
-      from all the nodes, as this approach makes TVRMLScene.ChangedField
-      implementation a horribly long messy code. }
-    chSceneAlgorithm,
-
     { Something visible in the geometry changed.
       See vcVisibleGeometry.
       This means that VisibleChangeHere with vcVisibleGeometry included should
@@ -2383,8 +2371,7 @@ procedure DecodeImageColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 
 const
   VRMLChangeToStr: array [TVRMLChange] of string =
-  ( 'Scene Algorithm',
-    'Visible Geometry',
+  ( 'Visible Geometry',
     'Visible Non-Geometry',
     'Viewer',
     'Redisplay',
