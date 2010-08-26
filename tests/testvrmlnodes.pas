@@ -47,7 +47,23 @@ type
     procedure TestContainerFieldList;
     procedure TestContainerFieldGeometry;
     procedure TestGeometryNodesImplemented;
+
+    { Test all geometry nodes should have Changes = [chGeometry]
+      on all fields (except "metadata").
+      All non-geometry nodes should not have chGeometry on any field. }
     procedure TestGeometryNodesChanges;
+
+    { All VRML 1 state nodes (except Coordinate)
+      should have Changes = [chVisibleVRML1State] (and possibly more,
+      like chUseBlending) }
+    procedure TestVisibleVRML1StateChanges;
+
+    { All Color nodes should have Changes = [chColorNode] }
+    procedure TestColorNodeChanges;
+
+    { All tex coord nodes should have Change = [chTextureCoordinate] }
+    procedure TestTextureCoordinate;
+
     procedure TestDestructionNotification;
 
   private
@@ -922,14 +938,10 @@ begin
   finally FreeAndNil(State) end;
 end;
 
-{ All geometry nodes should have ChangesAlways = [chGeometry]
-  on all fields (except "metadata").
-  All non-geometry nodes should not have chGeometry on any field. }
 procedure TTestVRMLNodes.TestGeometryNodesChanges;
 var
   I, J: Integer;
   N: TVRMLNode;
-  G: TVRMLGeometryNode;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
@@ -950,6 +962,112 @@ begin
         for J := 0 to N.Fields.Count - 1 do
         try
           Assert(not (chGeometry in N.Fields[J].Changes));
+        except
+          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+          raise;
+        end;
+      end
+
+    finally FreeAndNil(N) end;
+  end;
+end;
+
+procedure TTestVRMLNodes.TestVisibleVRML1StateChanges;
+var
+  I, J: Integer;
+  N: TVRMLNode;
+  VRML1StateNode: TVRML1StateNode;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+  begin
+    N := NodesManager.Registered[I].Create('', '');
+    try
+      if N.VRML1StateNode(VRML1StateNode) and
+         (VRML1StateNode <> vsCoordinate3) then
+      begin
+        for J := 0 to N.Fields.Count - 1 do
+          if N.Fields[J].Name <> 'metadata' then
+          try
+            Assert(chVisibleVRML1State in N.Fields[J].Changes);
+          except
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            raise;
+          end;
+      end else
+      begin
+        for J := 0 to N.Fields.Count - 1 do
+          { alphaChannel field is allowed exception }
+          if N.Fields[J].Name <> 'alphaChannel' then
+          try
+            Assert(not (chVisibleVRML1State in N.Fields[J].Changes));
+          except
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            raise;
+          end;
+      end
+
+    finally FreeAndNil(N) end;
+  end;
+end;
+
+procedure TTestVRMLNodes.TestColorNodeChanges;
+var
+  I, J: Integer;
+  N: TVRMLNode;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+  begin
+    N := NodesManager.Registered[I].Create('', '');
+    try
+      if N is TNodeX3DColorNode then
+      begin
+        for J := 0 to N.Fields.Count - 1 do
+          if N.Fields[J].Name <> 'metadata' then
+          try
+            Assert(N.Fields[J].Changes = [chColorNode]);
+          except
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            raise;
+          end;
+      end else
+      begin
+        for J := 0 to N.Fields.Count - 1 do
+        try
+          Assert(not (chColorNode in N.Fields[J].Changes));
+        except
+          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+          raise;
+        end;
+      end
+
+    finally FreeAndNil(N) end;
+  end;
+end;
+
+procedure TTestVRMLNodes.TestTextureCoordinate;
+var
+  I, J: Integer;
+  N: TVRMLNode;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+  begin
+    N := NodesManager.Registered[I].Create('', '');
+    try
+      if N is TNodeX3DTextureCoordinateNode then
+      begin
+        for J := 0 to N.Fields.Count - 1 do
+          if N.Fields[J].Name <> 'metadata' then
+          try
+            Assert(N.Fields[J].Changes = [chTextureCoordinate]);
+          except
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            raise;
+          end;
+      end else
+      begin
+        for J := 0 to N.Fields.Count - 1 do
+        try
+          Assert(not (chTextureCoordinate in N.Fields[J].Changes));
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
           raise;

@@ -546,7 +546,8 @@ begin
   inherited;
 
   FFdAlphaChannel := TSFString.Create(Self, 'alphaChannel', 'AUTO');
-  FFdAlphaChannel.Exposed := false;
+   FdAlphaChannel.Exposed := false;
+   FdAlphaChannel.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdAlphaChannel);
 
   UsedCache := nil;

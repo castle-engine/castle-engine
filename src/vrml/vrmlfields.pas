@@ -120,6 +120,11 @@ type
       Excluding Coordinate node change (this one should go through chCoordinate
       only).
 
+      This is allowed, and ignored, on nodes that are not part of VRML 1.0
+      state. (This is useful for alphaChannel field, that is declared
+      in TVRMLGeometryNode, and so is part of some VRML 1.0 state nodes
+      but is also part of VRML >= 2.0 nodes.)
+
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
       Exception: you can (and should) include chUseBlending for appropriate

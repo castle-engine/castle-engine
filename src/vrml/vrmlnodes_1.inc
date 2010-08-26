@@ -1731,11 +1731,11 @@ begin
   Fields.Add(FFdwrapT);
 
   FFdmodel := TSFEnum.Create(Self, 'model', ['DECAL'], 0);
-  // Fdmodel.ChangesAlways := [chVisibleVRML1State]; <- this field is ignored now
+   Fdmodel.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdmodel);
 
   FFdblendColor := TSFVec3f.Create(Self, 'blendColor', Vector3Single(0, 0, 0));
-  // FdblendColor.ChangesAlways := [chVisibleVRML1State]; <- this field is ignored now
+   FdblendColor.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdblendColor);
 end;
 
