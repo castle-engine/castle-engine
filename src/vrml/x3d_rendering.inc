@@ -1165,6 +1165,7 @@ begin
   inherited;
 
   FFdcolor := TMFColor.Create(Self, 'color', []);
+   Fdcolor.ChangesAlways := [chColorNode];
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 end;
@@ -1196,6 +1197,7 @@ begin
   inherited;
 
   FFdcolor := TMFColorRGBA.Create(Self, 'color', []);
+   Fdcolor.ChangesAlways := [chColorNode];
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 end;

@@ -1121,6 +1121,7 @@ begin
   inherited;
 
   FFdtexCoord := TMFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
+   FdtexCoord.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdtexCoord);
 end;
 
@@ -1149,6 +1150,7 @@ begin
   inherited;
 
   FFdtextureTransform := TMFNode.Create(Self, 'textureTransform', [TNodeX3DTextureTransformNode]);
+   FdtextureTransform.ChangesAlways := [chEverything];
   Fields.Add(FFdtextureTransform);
 end;
 
@@ -1231,6 +1233,7 @@ begin
   inherited;
 
   FFdpoint := TMFVec2f.Create(Self, 'point', []);
+   Fdpoint.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -1262,10 +1265,12 @@ begin
   inherited;
 
   FFdmode := TSFString.Create(Self, 'mode', 'SPHERE');
+   Fdmode.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdmode);
   { X3D specification comment: [see Table 18.6] }
 
   FFdparameter := TMFFloat.Create(Self, 'parameter', []);
+   Fdparameter.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdparameter);
   { X3D specification comment: [see Table 18.6] }
 
@@ -1277,6 +1282,7 @@ begin
   FFdprojectedLight := TSFNode.Create(Self, 'projectedLight',
     [TNodeSpotLight_1, TNodeDirectionalLight_1,
      TNodeSpotLight_2, TNodeDirectionalLight_2]);
+   FdprojectedLight.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdprojectedLight);
 end;
 
@@ -1383,18 +1389,22 @@ begin
   inherited;
 
   FFdcenter := TSFVec2f.Create(Self, 'center', Vector2Single(0, 0));
+   Fdcenter.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdcenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdrotation := TSFFloat.Create(Self, 'rotation', 0);
+   FFdrotation.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdrotation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdscale := TSFVec2f.Create(Self, 'scale', Vector2Single(1, 1));
+   Fdscale.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdscale);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdtranslation := TSFVec2f.Create(Self, 'translation', Vector2Single(0, 0));
+   Fdtranslation.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdtranslation);
   { X3D specification comment: (-Inf,Inf) }
 end;

@@ -765,6 +765,7 @@ begin
     [TNodeSpotLight_1, TNodeDirectionalLight_1,
      TNodeSpotLight_2, TNodeDirectionalLight_2,
      TNodeX3DViewpointNode]);
+   FFdprojector.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdprojector);
 end;
 

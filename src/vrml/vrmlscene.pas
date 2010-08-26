@@ -3606,6 +3606,65 @@ var
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
+  procedure HandleChangeColorNode;
+  var
+    SI: TVRMLShapeTreeIterator;
+  begin
+    { Affects all geometry nodes with "color" field referencing this node.
+
+      Note: also TNodeParticleSystem may have color in FdcolorRamp field.
+      This is not detected for now, and doesn't matter (we do not handle
+      particle systems at all now). }
+
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if ((SI.Current.Geometry is TNodeX3DComposedGeometryNode) and (TNodeX3DComposedGeometryNode(SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TNodeIndexedLineSet_2       ) and (TNodeIndexedLineSet_2       (SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
+          ChangedShapeFields(SI.Current, Field,
+            false, false, false, false, Changes);
+    finally FreeAndNil(SI) end;
+  end;
+
+  procedure HandleChangeTextureCoordinate;
+  var
+    SI: TVRMLShapeTreeIterator;
+    TexCoord: TVRMLNode;
+  begin
+    { VRML 2.0 TextureCoordinate affects only shapes where it's
+      placed inside texCoord field. }
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
+           (TexCoord = Node) then
+          ChangedShapeFields(SI.Current, Field,
+            false, false, false, false, Changes);
+    finally FreeAndNil(SI) end;
+  end;
+
+  procedure HandleChangeTextureTransform;
+  var
+    SI: TVRMLShapeTreeIterator;
+  begin
+    { VRML 2.0 / X3D TextureTransform* affects only shapes where it's
+      placed inside textureTransform field. }
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if (SI.Current.State.ShapeNode <> nil) and
+           (SI.Current.State.ShapeNode.FdAppearance.Value <> nil) and
+           (SI.Current.State.ShapeNode.FdAppearance.Value is TNodeAppearance) and
+           AppearanceUsesTextureTransform(
+             TNodeAppearance(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
+          ChangedShapeFields(SI.Current, Field,
+            false, false, false, false, Changes);
+    finally FreeAndNil(SI) end;
+  end;
+
   procedure HandleChangeEverything;
   begin
     { An arbitrary change occured. }
@@ -3630,6 +3689,9 @@ var
       if chLightForShadowVolumes  in Changes then HandleChangeLightForShadowVolumes;
       if chLightLocationDirection in Changes then HandleChangeLightLocationDirection;
       if chSwitch2 in Changes then HandleChangeSwitch2;
+      if chColorNode in Changes then HandleChangeColorNode;
+      if chTextureCoordinate in Changes then HandleChangeTextureCoordinate;
+      if chTextureTransform in Changes then HandleChangeTextureTransform;
       if chEverything in Changes then HandleChangeEverything;
 
       if Changes * [chVisibleGeometry, chVisibleNonGeometry,
@@ -3647,7 +3709,6 @@ var
 var
   I: integer;
   SI: TVRMLShapeTreeIterator;
-  TexCoord: TVRMLNode;
 begin
   Assert(Field.ParentNode <> nil);
   Node := TVRMLNode(Field.ParentNode);
@@ -3684,57 +3745,6 @@ begin
 
   BeginChangesSchedule;
   try
-    if Node is TNodeX3DColorNode then
-    begin
-      { Affects all geometry nodes with "color" field referencing this node.
-
-        Note: also TNodeParticleSystem may have color in FdcolorRamp field.
-        This is not detected for now, and doesn't matter (we do not handle
-        particle systems at all now). }
-
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if ((SI.Current.Geometry is TNodeX3DComposedGeometryNode) and (TNodeX3DComposedGeometryNode(SI.Current.Geometry).FdColor.Value = Node)) or
-	     ((SI.Current.Geometry is TNodeIndexedLineSet_2       ) and (TNodeIndexedLineSet_2       (SI.Current.Geometry).FdColor.Value = Node)) or
-	     ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
-	     ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
-	     ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
-            ChangedShapeFields(SI.Current, Field,
-              false, false, false, false, Changes);
-      finally FreeAndNil(SI) end;
-    end else
-    if Node is TNodeX3DTextureCoordinateNode then
-    begin
-      { VRML 2.0 TextureCoordinate affects only shapes where it's
-        placed inside texCoord field. }
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
-             (TexCoord = Node) then
-            ChangedShapeFields(SI.Current, Field,
-              false, false, false, false, Changes);
-      finally FreeAndNil(SI) end;
-    end else
-    if (Node is TNodeTextureTransform) or
-       (Node is TNodeTextureTransformMatrix3D) or
-       (Node is TNodeTextureTransform3D) then
-    begin
-      { VRML 2.0 / X3D TextureTransform* affects only shapes where it's
-        placed inside textureTransform field. }
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if (SI.Current.State.ShapeNode <> nil) and
-             (SI.Current.State.ShapeNode.FdAppearance.Value <> nil) and
-             (SI.Current.State.ShapeNode.FdAppearance.Value is TNodeAppearance) and
-             AppearanceUsesTextureTransform(
-               TNodeAppearance(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
-            ChangedShapeFields(SI.Current, Field,
-              false, false, false, false, Changes);
-      finally FreeAndNil(SI) end;
-    end else
     if Node is TVRMLGeometryNode then
     begin
       { Geometry nodes, affect only shapes that use them. }

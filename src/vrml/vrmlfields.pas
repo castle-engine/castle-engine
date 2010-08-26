@@ -167,6 +167,25 @@ type
       don't include other flags with this. }
     chSwitch2,
 
+    { X3DColorNode colors changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chColorNode,
+
+    { X3DTextureCoordinateNode coords changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chTextureCoordinate,
+
+    { VRML >= 2.0 TextureTransform changed.
+      Not for multi-texture node changes, only the simple nodes changes.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chTextureTransform,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2323,12 +2342,15 @@ const
     'Transform',
     'Coordinate',
     'VRML 1.0 State (but not Coordinate)',
-    'Material (VRML >= 2.0)',
+    'Material',
     'Blending',
     'Light active property',
     'Light location/direction',
     'Light for shadow volumes',
-    'Switch choice (VRML >= 2.0)',
+    'Switch choice',
+    'Color node',
+    'Texture coordinate',
+    'Texture transform',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

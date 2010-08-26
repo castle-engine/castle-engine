@@ -517,6 +517,7 @@ begin
   inherited;
 
   FFdpoint := TMFVec3f.Create(Self, 'point', []);
+   Fdpoint.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -546,6 +547,7 @@ begin
   inherited;
 
   FFdpoint := TMFVec4f.Create(Self, 'point', []);
+   Fdpoint.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -575,6 +577,7 @@ begin
   inherited;
 
   FFdmatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
+   Fdmatrix.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdmatrix);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -609,18 +612,22 @@ begin
   inherited;
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+   Fdcenter.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdcenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+   Fdrotation.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdrotation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+   Fdscale.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdscale);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+   Fdtranslation.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdtranslation);
   { X3D specification comment: (-Inf,Inf) }
 end;
