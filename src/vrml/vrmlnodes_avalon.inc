@@ -676,6 +676,8 @@ begin
   inherited;
 
   FFdviewpoint := TSFNode.Create(Self, 'viewpoint', [TVRMLViewpointNode]);
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   Fdviewpoint.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdviewpoint);
 
   FFdbackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
@@ -693,9 +695,13 @@ begin
   FFddimensions := TMFInt32.Create(Self, 'dimensions',
     [ DefaultRenderedTextureWidth,
       DefaultRenderedTextureHeight, 4, 1, 1]);
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   Fddimensions.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFddimensions);
 
   FFddepthMap := TMFBool.Create(Self, 'depthMap', []);
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   FddepthMap.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFddepthMap);
 
   FFdforeground := TSFNode.Create(Self, 'foreground', [TVRMLNode] { nothing sensible in core X3D for this });

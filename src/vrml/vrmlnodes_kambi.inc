@@ -704,7 +704,7 @@ begin
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
   FFdsize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
-  FFdsize.Exposed := false;
+   Fdsize.Exposed := false;
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
 
@@ -714,12 +714,18 @@ begin
     to override it's transform with transformation of this
     GeneratedShadowMap. }
   FFdlight := TSFNode.Create(Self, 'light', [TNodeX3DLightNode]);
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   Fdlight.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdlight);
 
   FFdscale := TSFFloat.Create(Self, 'scale', DefaultShadowMapScale, { MustBeNonnegative } true);
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   Fdscale.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdscale);
 
   FFdbias := TSFFloat.Create(Self, 'bias', DefaultShadowMapBias, { MustBeNonnegative } true);
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   Fdbias.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdbias);
 
   FFdcompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');

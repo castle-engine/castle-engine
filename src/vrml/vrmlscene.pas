@@ -3837,26 +3837,6 @@ begin
       ScheduledGeometryActiveShapesChanged := true;
       ScheduleGeometryChanged;
     end else
-    if Node is TNodeRenderedTexture then
-    begin
-      if (Field = TNodeRenderedTexture(Node).FdDimensions) or
-         (Field = TNodeRenderedTexture(Node).FdViewpoint) or
-         (Field = TNodeRenderedTexture(Node).FdDepthMap) then
-        { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
-        VisibleChangeHere([vcVisibleGeometry]);
-
-      Exit;
-    end else
-    if Node is TNodeGeneratedShadowMap then
-    begin
-      if (Field = TNodeGeneratedShadowMap(Node).FdScale) or
-         (Field = TNodeGeneratedShadowMap(Node).FdBias) or
-         (Field = TNodeGeneratedShadowMap(Node).FdLight) then
-        { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
-        VisibleChangeHere([vcVisibleGeometry]);
-        
-      Exit;
-    end else
     begin
       { Node is something else. So we must assume that an arbitrary change
         occured, possibly changing State of following and/or children
