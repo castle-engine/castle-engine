@@ -262,17 +262,17 @@ procedure TNodeComposedTexture3D.LoadTextureData;
   { Load one slice (child texture). Returns @nil and makes VRMLWarning if failed. }
   function LoadOneSlice(const Index: Integer): TImage;
   var
-    Tex: TVRMLTextureNode;
+    Tex: TVRML2DTextureNode;
   begin
     if not ((FdTexture.Items[Index] <> nil) and
-            (FdTexture.Items[Index] is TVRMLTextureNode)) then
+            (FdTexture.Items[Index] is TVRML2DTextureNode)) then
     begin
       VRMLWarning(vwIgnorable, Format('ComposedTexture3D slice %d is not a valid 2D texture node',
         [Index]));
       Exit(nil);
     end;
 
-    Tex := TVRMLTextureNode(FdTexture.Items[Index]);
+    Tex := TVRML2DTextureNode(FdTexture.Items[Index]);
     Tex.Cache := Cache;
     if not Tex.IsTextureImage then
     begin

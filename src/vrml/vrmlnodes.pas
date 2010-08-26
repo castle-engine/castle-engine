@@ -260,7 +260,7 @@ type
   TVRMLLightNode = class;
   TNodeKambiTriangulation = class;
   TNodeX3DShapeNode = class;
-  TVRMLTextureNode = class;
+  TVRML2DTextureNode = class;
   TNodeBlendMode = class;
   TNodeX3DTextureNode = class;
   TVRMLEventsEngine = class;
@@ -527,7 +527,7 @@ type
 
     { Returns texture node that should be used for nodes within this State.
       Regardless of VRML/X3D version. May return multi-texture
-      (TNodeMultiTexture), or normal 2D texture (TVRMLTextureNode),
+      (TNodeMultiTexture), or normal 2D texture (TVRML2DTextureNode),
       or some other TNodeX3DTextureNode descendant (cube map, 3d texture).
 
       Details:

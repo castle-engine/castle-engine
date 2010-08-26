@@ -23,15 +23,27 @@
   TNodeX3DTextureNode = class(TNodeX3DAppearanceChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    { Short description how texture is defined, is it inline or loaded
+      from URL, is it video of simple image texture.
+      "none" if it's not defined at all.
+
+      Calling this @italic(may not) cause automatically loading
+      the texture data (for exampe, from file in case of TVRML2DTextureNode).
+      So it cannot describe the actually loaded data.
+
+      In this class, simply returns NodeTypeName.
+      Override to say something more descriptive. }
+    function TextureDescription: string; virtual;
   end;
 
   TNodeTextureProperties = class;
 
-  { Common texture node for all normal (2D) VRML / X3D texture nodes.
+  { VRML/X3D texture that is 2D and is loaded (from file or some other stream).
 
     For X3D, this descends from X3DTextureNode and is an ancestor
     for X3DTexture2DNode, so X3D hierarchy is nicely preserved. }
-  TVRMLTextureNode = class(TNodeX3DTextureNode)
+  TVRML2DTextureNode = class(TNodeX3DTextureNode)
   private
     { Together we call FTextureImage, FTextureDDS,
       FTextureVideo as "texture data". }
@@ -170,20 +182,6 @@
     property Cache: TTexturesImagesVideosCache
       read FCache write FCache;
 
-    { Short description how texture is defined, is it inline or loaded
-      from URL, is it video of simple image texture.
-      "none" if it's not defined at all.
-
-      This doesn't specify what texture is actually loaded
-      (besides from which URL it was loaded, if any).
-      The idea is that calling this doesn't cause automatic
-      loading of the texture data.
-
-      In this class, simply returns NodeTypeName and informs it's
-      not implemented. You most definitely
-      want to override this and say something more descriptive. }
-    function TextureDescription: string; virtual;
-
     function RepeatS: boolean; virtual; abstract;
     function RepeatT: boolean; virtual; abstract;
 
@@ -215,7 +213,7 @@
     function DetectAlphaChannel: TDetectAlphaChannel;
   end;
 
-  TNodeX3DTexture2DNode = class(TVRMLTextureNode)
+  TNodeX3DTexture2DNode = class(TVRML2DTextureNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -538,9 +536,14 @@ begin
   DefaultContainerField := 'texture';
 end;
 
-{ TVRMLTextureNode ----------------------------------------------------------- }
+function TNodeX3DTextureNode.TextureDescription: string;
+begin
+  Result := NodeTypeName;
+end;
 
-constructor TVRMLTextureNode.Create(const ANodeName: string;
+{ TVRML2DTextureNode ----------------------------------------------------------- }
+
+constructor TVRML2DTextureNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
@@ -554,13 +557,13 @@ begin
   FIsTextureLoaded := false;
 end;
 
-destructor TVRMLTextureNode.Destroy;
+destructor TVRML2DTextureNode.Destroy;
 begin
   FreeAndNilTextureData;
   inherited;
 end;
 
-procedure TVRMLTextureNode.FreeAndNilTextureData;
+procedure TVRML2DTextureNode.FreeAndNilTextureData;
 begin
   if FTextureImage <> nil then
   begin
@@ -586,7 +589,7 @@ begin
   end;
 end;
 
-function TVRMLTextureNode.TextureImage: TEncodedImage;
+function TVRML2DTextureNode.TextureImage: TEncodedImage;
 begin
   { Setting IsTextureLoaded property will initialize FTextureImage. }
   IsTextureLoaded := true;
@@ -594,12 +597,12 @@ begin
   Result := FTextureImage;
 end;
 
-function TVRMLTextureNode.IsTextureImage: boolean;
+function TVRML2DTextureNode.IsTextureImage: boolean;
 begin
   Result := (TextureImage <> nil) and (not TextureImage.IsNull);
 end;
 
-function TVRMLTextureNode.TextureDDS: TDDSImage;
+function TVRML2DTextureNode.TextureDDS: TDDSImage;
 begin
   { Setting IsTextureLoaded property will initialize
     FTextureImage, FTextureDDS. }
@@ -608,7 +611,7 @@ begin
   Result := FTextureDDS;
 end;
 
-function TVRMLTextureNode.TextureVideo: TVideo;
+function TVRML2DTextureNode.TextureVideo: TVideo;
 begin
   { Setting IsTextureLoaded property will initialize FTextureVideo. }
   IsTextureLoaded := true;
@@ -616,14 +619,14 @@ begin
   Result := FTextureVideo;
 end;
 
-function TVRMLTextureNode.IsTextureVideo: boolean;
+function TVRML2DTextureNode.IsTextureVideo: boolean;
 begin
   Result := (TextureVideo <> nil) and
     (TextureVideo.Width <> 0) and
     (TextureVideo.Height <> 0);
 end;
 
-procedure TVRMLTextureNode.SetIsTextureLoaded(Value: boolean);
+procedure TVRML2DTextureNode.SetIsTextureLoaded(Value: boolean);
 
   procedure DoLoadTexture;
   var
@@ -655,7 +658,7 @@ begin
   end;
 end;
 
-procedure TVRMLTextureNode.LoadTextureData(out WasCacheUsed: boolean);
+procedure TVRML2DTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
@@ -663,17 +666,12 @@ begin
   VRMLWarning(vwSerious, Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
 end;
 
-function TVRMLTextureNode.TextureDescription: string;
-begin
-  Result := Format('Texture type "%s" (not implemented)', [NodeTypeName]);
-end;
-
-function TVRMLTextureNode.TextureProperties: TNodeTextureProperties;
+function TVRML2DTextureNode.TextureProperties: TNodeTextureProperties;
 begin
   Result := nil;
 end;
 
-function TVRMLTextureNode.DetectAlphaChannel: TDetectAlphaChannel;
+function TVRML2DTextureNode.DetectAlphaChannel: TDetectAlphaChannel;
 
   function DetectAlphaChannelFromString(S: string): TDetectAlphaChannel;
   begin

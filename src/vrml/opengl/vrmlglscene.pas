@@ -989,7 +989,7 @@ type
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
     procedure ChangedShapeFields(Shape: TVRMLShape;
       Field: TVRMLField;
-      const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean;
+      const TransformOnly, InactiveOnly, PossiblyLocalGeometryChanged: boolean;
       const Changes: TVRMLChanges); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
@@ -3361,7 +3361,7 @@ end;
 
 procedure TVRMLGLScene.ChangedShapeFields(Shape: TVRMLShape;
   Field: TVRMLField;
-  const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean;
+  const TransformOnly, InactiveOnly, PossiblyLocalGeometryChanged: boolean;
   const Changes: TVRMLChanges);
 var
   TG: TTransparentGroup;
@@ -3371,7 +3371,7 @@ begin
   { ChangedShapeFields cannot be called with both
     TransformOnly = TextureImageChanged = true, since texture change means
     that not only transform changed... }
-  Assert(not (TransformOnly and TextureImageChanged));
+  Assert(not (TransformOnly and (chTextureImage in Changes)));
 
   { We don't need to call here Renderer.Unprepare* (or set
     PreparedAndUseBlendingCalculated) in most circumstances,
@@ -3406,7 +3406,7 @@ begin
       end;
   end;
 
-  if TextureImageChanged then
+  if chTextureImage in Changes then
   begin
     Renderer.Unprepare(Shape.State.Texture);
     TVRMLGLShape(Shape).PreparedForRenderer := false;
@@ -4854,7 +4854,7 @@ var
   I: Integer;
   NeedsRestoreViewport: boolean;
   Shape: TVRMLGLShape;
-  TextureNode: TVRMLNode;
+  TextureNode: TNodeX3DTextureNode;
 begin
   NeedsRestoreViewport := false;
 

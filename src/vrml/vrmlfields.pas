@@ -209,7 +209,7 @@ type
       don't include other flags with this. }
     chViewpointProjection,
 
-    { TVRMLTextureNode image needs reloading (url or source SFImage
+    { TVRML2DTextureNode image needs reloading (url or source SFImage
       data changed).
 
       Caller will analyze the scene to know what this implicates,

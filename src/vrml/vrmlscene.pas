@@ -347,7 +347,7 @@ type
   TGeneratedTexture = record
     { May be only TNodeGeneratedCubeMapTexture or TNodeRenderedTexture
       or TNodeGeneratedShadowMap. }
-    TextureNode: TVRMLNode;
+    TextureNode: TNodeX3DTextureNode;
     Handler: TGeneratedTextureHandler;
     Shape: TVRMLShape;
   end;
@@ -844,7 +844,7 @@ type
       VRML graph part (inactive Switch, LOD etc. children). }
     procedure ChangedShapeFields(Shape: TVRMLShape;
       Field: TVRMLField;
-      const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean;
+      const TransformOnly, InactiveOnly, PossiblyLocalGeometryChanged: boolean;
       const Changes: TVRMLChanges); virtual;
 
     { Create TVRMLShape (or descendant) instance suitable for this
@@ -2955,7 +2955,7 @@ end;
 
 procedure TVRMLScene.ChangedShapeFields(Shape: TVRMLShape;
   Field: TVRMLField;
-  const TransformOnly, InactiveOnly, TextureImageChanged, PossiblyLocalGeometryChanged: boolean;
+  const TransformOnly, InactiveOnly, PossiblyLocalGeometryChanged: boolean;
   const Changes: TVRMLChanges);
 begin
   { Eventual clearing of Validities items because shape changed
@@ -3158,7 +3158,7 @@ begin
         they don't have Transform compiled in display list. }
       ParentScene.ChangedShapeFields(Shape,
         ChangingField,
-        true, Inactive <> 0, false, false, Changes);
+        true, Inactive <> 0, false, Changes);
 
       if Inactive = 0 then
       begin
@@ -3404,11 +3404,12 @@ var
            (Coord = Field) then
         begin
           ChangedShapeFields(SI.Current, Field,
-            false, false, false, false
+            false, false,
             { We pass PossiblyLocalGeometryChanged = false,
               as we'll do ScheduledLocalGeometryChangedCoord := true
               later that will take care of it anyway.
-              For now, this may be slightly more optimal. },
+              For now, this may be slightly more optimal. }
+            false,
             Changes);
 
           { Another special thing about Coordinate node: it changes
@@ -3437,7 +3438,7 @@ var
           if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node) or
              (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = Node) then
             ChangedShapeFields(SI.Current, Field,
-              false, false, false, true, Changes);
+              false, false, true, Changes);
       finally FreeAndNil(SI) end;
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end;
@@ -3454,7 +3455,7 @@ var
       while SI.GetNext do
         if SI.Current.State.ShapeNode.Material = Node then
           ChangedShapeFields(SI.Current, Field,
-            false, false, false, false, Changes);
+            false, false, false, Changes);
     finally FreeAndNil(SI) end;
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
@@ -3571,7 +3572,7 @@ var
            ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
            ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
           ChangedShapeFields(SI.Current, Field,
-            false, false, false, false, Changes);
+            false, false, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3588,7 +3589,7 @@ var
         if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
            (TexCoord = Node) then
           ChangedShapeFields(SI.Current, Field,
-            false, false, false, false, Changes);
+            false, false, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3630,7 +3631,7 @@ var
            AppearanceUsesTextureTransform(
              TNodeAppearance(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
           ChangedShapeFields(SI.Current, Field,
-            false, false, false, false, Changes);
+            false, false, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3646,11 +3647,12 @@ var
            (SI.Current.OriginalGeometry = Node) then
         begin
           ChangedShapeFields(SI.Current, Field,
-            false, false, false, false
+            false, false,
             { We pass PossiblyLocalGeometryChanged = false,
               as we'll do ScheduledLocalGeometryChangedCoord := true
               later that will take care of it anyway.
-              For now, this may be slightly more optimal. },
+              For now, this may be slightly more optimal. }
+              false,
               Changes);
 
           SI.Current.ScheduledLocalGeometryChanged := true;
@@ -3726,19 +3728,19 @@ var
   var
     SI: TVRMLShapeTreeIterator;
   begin
-    { On change of TVRMLTextureNode field that changes the result of
-      TVRMLTextureNode.LoadTextureData, we have to explicitly release
+    { On change of TVRML2DTextureNode field that changes the result of
+      TVRML2DTextureNode.LoadTextureData, we have to explicitly release
       old texture (otherwise, LoadTextureData will not be called
       to reload the texture). }
-    TVRMLTextureNode(Node).IsTextureLoaded := false;
+    (Node as TVRML2DTextureNode).IsTextureLoaded := false;
 
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
       begin
-        if SI.Current.UsesTexture(TVRMLTextureNode(Node)) then
+        if SI.Current.UsesTexture(TVRML2DTextureNode(Node)) then
           ChangedShapeFields(SI.Current, Field,
-            false, false, true, false, Changes);
+            false, false, false, Changes);
       end;
     finally FreeAndNil(SI) end;
   end;
@@ -4828,7 +4830,7 @@ end;
 
 procedure TVRMLScene.FreeResources_UnloadTextureData(Node: TVRMLNode);
 begin
-  (Node as TVRMLTextureNode).IsTextureLoaded := false;
+  (Node as TVRML2DTextureNode).IsTextureLoaded := false;
 end;
 
 procedure TVRMLScene.FreeResources_UnloadTexture3DData(Node: TVRMLNode);
@@ -4851,7 +4853,7 @@ begin
 
   if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
   begin
-    RootNode.EnumerateNodes(TVRMLTextureNode,
+    RootNode.EnumerateNodes(TVRML2DTextureNode,
       @FreeResources_UnloadTextureData, false);
     RootNode.EnumerateNodes(TNodeX3DTexture3DNode,
       @FreeResources_UnloadTexture3DData, false);

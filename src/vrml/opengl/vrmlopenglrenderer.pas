@@ -831,14 +831,14 @@ type
     FullUrl: string;
 
     { This is only the first node, that initiated this
-      TTextureImageCache item. Note that many TVRMLTextureNode nodes
+      TTextureImageCache item. Note that many TVRML2DTextureNode nodes
       may correspond to a single TTextureImageCache (since TTextureImageCache
       only tries to share GLName between them). So this may help during
       _IncReference, but nothing more --- it's *not* an exhaustive list
       of texture nodes related to this video texture!
 
-      It may be currently TVRMLTextureNode, or TNodeRenderedTexture. }
-    InitialNode: TVRMLNode;
+      It may be currently TVRML2DTextureNode, or TNodeRenderedTexture. }
+    InitialNode: TNodeX3DTextureNode;
 
     MinFilter: TGLint;
     MagFilter: TGLint;
@@ -1060,7 +1060,7 @@ type
     function TextureImage_IncReference(
       const TextureImage: TEncodedImage;
       const TextureFullUrl: string;
-      const TextureNode: TVRMLNode;
+      const TextureNode: TNodeX3DTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -1621,7 +1621,7 @@ type
         )
         @item(Attributes.PureGeometry = @false,)
         @item(and node must have some texture data
-          (for TVRMLTextureNode, check TextureNode.IsTextureImage or
+          (for TVRML2DTextureNode, check TextureNode.IsTextureImage or
           TextureNode.IsTextureVideo))
       ) }
     function PreparedTextureAlphaChannelType(
@@ -1642,7 +1642,7 @@ type
       (possibly) changed by this procedure (otherwise, NeedsRestoreViewport
       will not be modified). }
     procedure UpdateGeneratedTextures(Shape: TVRMLShape;
-      TextureNode: TVRMLNode;
+      TextureNode: TNodeX3DTextureNode;
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
@@ -1844,7 +1844,7 @@ const
 function TVRMLOpenGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
-  const TextureNode: TVRMLNode;
+  const TextureNode: TNodeX3DTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1920,10 +1920,10 @@ begin
   TextureCached^.GLName := Result;
 
   { calculate and save AlphaChannelType in the cache }
-  if TextureNode is TVRMLTextureNode then
+  if TextureNode is TVRML2DTextureNode then
   begin
     TextureCached^.AlphaChannelType := TextureImage.AlphaChannelTypeOverride(
-      TVRMLTextureNode(TextureNode).DetectAlphaChannel,
+      TVRML2DTextureNode(TextureNode).DetectAlphaChannel,
       AlphaTolerance, AlphaWrongPixelsTolerance);
     if Log and (TextureCached^.AlphaChannelType <> atNone)  then
       WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
@@ -4702,7 +4702,7 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
-  TextureNode: TVRMLNode;
+  TextureNode: TNodeX3DTextureNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;

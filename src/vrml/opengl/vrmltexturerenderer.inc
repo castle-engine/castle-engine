@@ -249,7 +249,7 @@
       var Primitives3DTextureCoords: boolean); override;
   end;
 
-  { Handler for TVRMLTextureNode with image (not a video). }
+  { Handler for TVRML2DTextureNode with image (not a video). }
   TGLImageTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
@@ -260,7 +260,7 @@
     NormalMap, HeightMap: TGLuint;
     HeightMapScale: Single;
 
-    function TextureNode: TVRMLTextureNode;
+    function TextureNode: TVRML2DTextureNode;
 
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
@@ -1330,18 +1330,18 @@ end;
 class function TGLImageTextureNode.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
   ANode: TNodeX3DTextureNode): boolean;
 begin
-  if ANode is TVRMLTextureNode then
+  if ANode is TVRML2DTextureNode then
   begin
     { You have to set Cache before using IsTextureImage. }
-    TVRMLTextureNode(ANode).Cache := Cache;
-    Result := TVRMLTextureNode(ANode).IsTextureImage;
+    TVRML2DTextureNode(ANode).Cache := Cache;
+    Result := TVRML2DTextureNode(ANode).IsTextureImage;
   end else
     Result := false;
 end;
 
-function TGLImageTextureNode.TextureNode: TVRMLTextureNode;
+function TGLImageTextureNode.TextureNode: TVRML2DTextureNode;
 begin
-  Result := TVRMLTextureNode(inherited TextureNode);
+  Result := TVRML2DTextureNode(inherited TextureNode);
 end;
 
 procedure TGLImageTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
@@ -1408,7 +1408,7 @@ class function TGLMovieTextureNode.IsClassForTextureNode(Cache: TTexturesImagesV
   ANode: TNodeX3DTextureNode): boolean;
 begin
   { Although for most code TGLMovieTextureNode, it would be enought
-    to have any TVRMLTextureNode with IsTextureVideo = @true.
+    to have any TVRML2DTextureNode with IsTextureVideo = @true.
     For when rendering, we'll need some TNodeMovieTexture properties
     to choose video frame.
 
@@ -1866,14 +1866,14 @@ procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseSta
     and then if image there can be loaded. }
   function SideLoaded(SideField: TSFNode): boolean;
   var
-    SideTex: TVRMLTextureNode;
+    SideTex: TVRML2DTextureNode;
   begin
     Result :=
       (SideField.Value <> nil) and
-      (SideField.Value is TVRMLTextureNode);
+      (SideField.Value is TVRML2DTextureNode);
     if Result then
     begin
-      SideTex := TVRMLTextureNode(SideField.Value);
+      SideTex := TVRML2DTextureNode(SideField.Value);
       SideTex.Cache := Renderer.Cache;
       Result := SideTex.IsTextureImage;
 
@@ -1915,10 +1915,10 @@ begin
       (source images are oriented as for VRML Background.)
       We safely cast them to TImage below, SideLoaded above checked
       that they are indeed of TImage class. }
-    BackRot  := (TVRMLTextureNode(TextureNode.FdBack .Value).TextureImage as TImage).MakeRotated(2);
-    FrontRot := (TVRMLTextureNode(TextureNode.FdFront.Value).TextureImage as TImage).MakeRotated(2);
-    LeftRot  := (TVRMLTextureNode(TextureNode.FdLeft .Value).TextureImage as TImage).MakeRotated(2);
-    RightRot := (TVRMLTextureNode(TextureNode.FdRight.Value).TextureImage as TImage).MakeRotated(2);
+    BackRot  := (TVRML2DTextureNode(TextureNode.FdBack .Value).TextureImage as TImage).MakeRotated(2);
+    FrontRot := (TVRML2DTextureNode(TextureNode.FdFront.Value).TextureImage as TImage).MakeRotated(2);
+    LeftRot  := (TVRML2DTextureNode(TextureNode.FdLeft .Value).TextureImage as TImage).MakeRotated(2);
+    RightRot := (TVRML2DTextureNode(TextureNode.FdRight.Value).TextureImage as TImage).MakeRotated(2);
 
     SetTextureRGBFromImage(RightRot);
 
@@ -1927,8 +1927,8 @@ begin
       MinFilter, MagFilter, Anisotropy,
       { positive x } RightRot,
       { negative x } LeftRot,
-      { positive y } TVRMLTextureNode(TextureNode.FdTop   .Value).TextureImage as TImage,
-      { negative y } TVRMLTextureNode(TextureNode.FdBottom.Value).TextureImage as TImage,
+      { positive y } TVRML2DTextureNode(TextureNode.FdTop   .Value).TextureImage as TImage,
+      { negative y } TVRML2DTextureNode(TextureNode.FdBottom.Value).TextureImage as TImage,
       { positive z } BackRot,
       { negative z } FrontRot,
       nil,

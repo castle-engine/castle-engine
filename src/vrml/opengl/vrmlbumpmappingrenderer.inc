@@ -114,7 +114,7 @@ class function TBumpMappingRenderer.IsImageTexture(ANode: TVRMLNode): boolean;
 begin
   Result :=
     (ANode <> nil) and
-    (ANode is TVRMLTextureNode) and
+    (ANode is TVRML2DTextureNode) and
     (not (ANode is TNodeMovieTexture));
 end;
 
@@ -249,11 +249,11 @@ begin
   if Renderer.BumpMappingMethod = bmNone then Exit;
 
   if IsImageTexture(Node.FdNormalMap.Value) then
-    NormalMap := Renderer.GLTextureNodes.Prepare(State, TVRMLTextureNode(Node.FdNormalMap.Value), Renderer) else
+    NormalMap := Renderer.GLTextureNodes.Prepare(State, TVRML2DTextureNode(Node.FdNormalMap.Value), Renderer) else
     NormalMap := nil;
 
   if IsImageTexture(Node.FdHeightMap.Value) then
-    HeightMap := Renderer.GLTextureNodes.Prepare(State, TVRMLTextureNode(Node.FdHeightMap.Value), Renderer) else
+    HeightMap := Renderer.GLTextureNodes.Prepare(State, TVRML2DTextureNode(Node.FdHeightMap.Value), Renderer) else
     HeightMap := nil;
 
       (* TODO: force texture to grayscale.
@@ -290,10 +290,10 @@ end;
 procedure TBumpMappingRenderer.Unprepare;
 begin
   if IsImageTexture(Node.FdNormalMap.Value) then
-    Renderer.GLTextureNodes.Unprepare(TVRMLTextureNode(Node.FdNormalMap.Value));
+    Renderer.GLTextureNodes.Unprepare(TVRML2DTextureNode(Node.FdNormalMap.Value));
 
   if IsImageTexture(Node.FdHeightMap.Value) then
-    Renderer.GLTextureNodes.Unprepare(TVRMLTextureNode(Node.FdHeightMap.Value));
+    Renderer.GLTextureNodes.Unprepare(TVRML2DTextureNode(Node.FdHeightMap.Value));
 end;
 
 function TBumpMappingRenderer.Enable(
@@ -312,7 +312,7 @@ function TBumpMappingRenderer.Enable(
     Result := 0;
     if IsImageTexture(Node) then
     begin
-      GLNode := Renderer.GLTextureNodes.TextureNode(TVRMLTextureNode(Node));
+      GLNode := Renderer.GLTextureNodes.TextureNode(TVRML2DTextureNode(Node));
       if IsGLImageTexture(GLNode) then
         Result := TGLImageTextureNode(GLNode).GLName;
     end;
