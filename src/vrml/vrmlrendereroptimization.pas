@@ -43,6 +43,9 @@ type
       cases. For now, this will result in MovieTexture nodes being static
       (i.e. movie will not play).
 
+      Also, this is not good if some parts of the scene should not be
+      rendered sometimes --- e.g. self object when rendering GeneratedCubeMapTexture.
+
       If the scene is static but user usually only looks at some small
       part of it, then building OctreeRendering for the scene
       (by adding ssOctreeRendering to TVRMLScene.Spatial)
