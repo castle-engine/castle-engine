@@ -680,28 +680,23 @@ begin
   inherited;
 
   FFdviewpoint := TSFNode.Create(Self, 'viewpoint', [TVRMLViewpointNode]);
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   Fdviewpoint.ChangesAlways := [chVisibleGeometry];
+   Fdviewpoint.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdviewpoint);
 
   FFdbackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   FFdbackground.ChangesAlways := [chVisibleGeometry];
+   FFdbackground.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdbackground);
 
   FFdfog := TSFNode.Create(Self, 'fog', [TNodeFog]);
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   Fdfog.ChangesAlways := [chVisibleGeometry];
+   Fdfog.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdfog);
 
   FFdenvironment := TSFNode.Create(Self, 'environment', [TVRMLNode] { nothing sensible in core X3D for this });
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   Fdenvironment.ChangesAlways := [chVisibleGeometry];
+   Fdenvironment.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdenvironment);
 
   FFdscene := TSFNode.Create(Self, 'scene', [TVRMLNode]);
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   Fdscene.ChangesAlways := [chVisibleGeometry];
+   Fdscene.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdscene);
 
   FFddimensions := TMFInt32.Create(Self, 'dimensions',
@@ -715,8 +710,7 @@ begin
   Fields.Add(FFddepthMap);
 
   FFdforeground := TSFNode.Create(Self, 'foreground', [TVRMLNode] { nothing sensible in core X3D for this });
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   Fdforeground.ChangesAlways := [chVisibleGeometry];
+   Fdforeground.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdforeground);
 
   FFdzOffset := TMFInt32.Create(Self, 'zOffset', []);
@@ -745,8 +739,7 @@ begin
 
   FFdexcludeNodes := TMFNode.Create(Self, 'excludeNodes', [TVRMLNode]);
    FdexcludeNodes.Exposed := false;
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   FdexcludeNodes.ChangesAlways := [chVisibleGeometry];
+   FdexcludeNodes.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdexcludeNodes);
 
   FFdtriggerName := TSFString.Create(Self, 'triggerName', 'Render');

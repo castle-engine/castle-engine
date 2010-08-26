@@ -1187,6 +1187,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
         (not even chEverything would help) }
       (Field.ParentNode is TNodeNavigationInfo) or
       { TODO: stuff not implemented / things we don't look at all }
+      FieldIs(Field, TNodeX3DLightNode, 'showProxyGeometry') or
       FieldIs(Field, TNodeRenderedTexture, 'triggerName') or
       (Field.ParentNode is TNodeLOD_1) or
       (Field.Name = 'bboxSize') or

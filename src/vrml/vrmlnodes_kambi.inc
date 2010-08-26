@@ -729,18 +729,15 @@ begin
     to override it's transform with transformation of this
     GeneratedShadowMap. }
   FFdlight := TSFNode.Create(Self, 'light', [TNodeX3DLightNode]);
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   Fdlight.ChangesAlways := [chVisibleGeometry];
+   Fdlight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdlight);
 
   FFdscale := TSFFloat.Create(Self, 'scale', DefaultShadowMapScale, { MustBeNonnegative } true);
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   Fdscale.ChangesAlways := [chVisibleGeometry];
+   Fdscale.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdscale);
 
   FFdbias := TSFFloat.Create(Self, 'bias', DefaultShadowMapBias, { MustBeNonnegative } true);
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   Fdbias.ChangesAlways := [chVisibleGeometry];
+   Fdbias.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdbias);
 
   FFdcompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');

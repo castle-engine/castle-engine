@@ -3761,6 +3761,21 @@ var
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
+  procedure HandleChangeGeneratedTextureUpdateNeeded;
+  var
+    Handler: TGeneratedTextureHandler;
+  begin
+    if Node is TNodeGeneratedCubeMapTexture then
+      Handler := TNodeGeneratedCubeMapTexture(Node).GeneratedTextureHandler else
+    if Node is TNodeGeneratedShadowMap then
+      Handler := TNodeGeneratedShadowMap(Node).GeneratedTextureHandler else
+    if Node is TNodeRenderedTexture then
+      Handler := TNodeRenderedTexture(Node).GeneratedTextureHandler else
+      Exit;
+
+    Handler.UpdateNeeded := true;
+  end;
+
   procedure HandleChangeEverything;
   begin
     { An arbitrary change occured. }
@@ -3831,6 +3846,7 @@ begin
       HandleChangeTextureImageOrRenderer;
     { TODO: chTexturePropertiesNode }
     if chShadowCasters in Changes then HandleChangeShadowCasters;
+    if chGeneratedTextureUpdateNeeded in Changes then HandleChangeGeneratedTextureUpdateNeeded;
     if chEverything in Changes then HandleChangeEverything;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,

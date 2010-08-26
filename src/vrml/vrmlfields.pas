@@ -238,6 +238,13 @@ type
       don't include other flags with this. }
     chShadowCasters,
 
+    { Mark the generated texture node (parent of this field) as requiring update
+      (assuming it's "update" field value wants it too).
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chGeneratedTextureUpdateNeeded,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2411,6 +2418,7 @@ const
     'Texture renderer properties',
     'TextureProperties node',
     'Shadow caster',
+    'Generated shadow map update',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;
