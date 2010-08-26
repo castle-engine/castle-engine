@@ -1127,10 +1127,16 @@ procedure TTestVRMLNodes.TestEmptyChanges;
 
   { Confirmed fiels that may have Changes = []. }
   function ConfirmedEmptyChanges(Field: TVRMLField): boolean;
+
+    function FieldIs(Field: TVRMLField;
+      const NodeClass: TVRMLNodeClass; const FieldName: string): boolean;
+    begin
+      Result := (Field.ParentNode is NodeClass) and (Field.Name = FieldName);
+    end;
+
   begin
     Result :=
-      ( (Field.ParentNode is TNodeX3DNode) and
-        (TNodeX3DNode(Field.ParentNode).FdMetadata = Field ) ) or
+      FieldIs(Field, TNodeX3DNode, 'metadata') or
       { Sensors don't affect actual content directly. }
       (Field.ParentNode is TNodeX3DSensorNode) or
       { metadata, info nodes }
@@ -1155,7 +1161,17 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       { A change to a prototype field has no real effect,
         TVRMLPrototypeNode will only pass it forward to the actual node }
       (Field.ParentNode is TVRMLPrototypeNode) or
-      { stuff not implemented / things we don't look at all }
+      { no need to do anything }
+      FieldIs(Field, TNodeX3DTimeDependentNode, 'loop') or
+      FieldIs(Field, TNodeMovieTexture, 'loop') or
+      FieldIs(Field, TNodeX3DViewpointNode, 'description') or
+      FieldIs(Field, TNodeX3DViewpointNode, 'jump') or { also not implemented }
+      FieldIs(Field, TNodeX3DViewpointNode, 'retainUserOffsets') or { also not implemented }
+      FieldIs(Field, TNodeX3DViewpointNode, 'centerOfRotation') or { also not implemented }
+      { TODO: stuff implemented, but changes not implemented
+        (not even chEverything would help) }
+      (Field.ParentNode is TNodeNavigationInfo) or
+      { TODO: stuff not implemented / things we don't look at all }
       (Field.ParentNode is TNodeLOD_1) or
       (Field.Name = 'bboxSize') or
       (Field.Name = 'bboxCenter') or

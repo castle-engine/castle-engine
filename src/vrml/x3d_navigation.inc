@@ -380,16 +380,20 @@ begin
     In our engine, X3DViewpointNode descends from TVRMLViewpointNode
     inheriting "orientation" field this way. }
   FFdorientation := TSFRotation.Create(Self, 'orientation', Vector3Single(0, 0, 1), 0);
+   Fdorientation.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdorientation);
   { X3D specification comment: [-1,1],(-Inf,Inf) }
 
   FFddirection := TMFVec3f.Create(Self, 'direction', []);
+   Fddirection.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFddirection);
 
   FFdup := TMFVec3f.Create(Self, 'up', []);
+   Fdup.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdup);
 
   FFdgravityUp := TSFVec3f.Create(Self, 'gravityUp', DefaultVRMLGravityUp);
+   FdgravityUp.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdgravityUp);
 
   FEventCameraMatrix := TVRMLEvent.Create(Self, 'cameraMatrix', TSFMatrix4f, false);
@@ -801,10 +805,12 @@ begin
   inherited;
 
   FFdfieldOfView := TMFFloat.Create(Self, 'fieldOfView', [-1, -1, 1, 1]);
+   FdfieldOfView.ChangesAlways := [chViewpointProjection];
   Fields.Add(FFdfieldOfView);
   { X3D specification comment:  (-Inf,Inf) }
 
   FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 10));
+   Fdposition.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdposition);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -871,10 +877,12 @@ begin
   inherited;
 
   FFdfieldOfView := TSFFloat.Create(Self, 'fieldOfView', DefaultViewpointFieldOfView);
+   FdfieldOfView.ChangesAlways := [chViewpointProjection];
   Fields.Add(FFdfieldOfView);
   { X3D specification comment: (0,Pi) }
 
   FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 10));
+   Fdposition.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdposition);
   { X3D specification comment: (-Inf,Inf) }
 

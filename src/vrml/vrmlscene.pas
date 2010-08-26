@@ -3277,38 +3277,6 @@ end;
 procedure TVRMLScene.ChangedField(Field: TVRMLField);
 var
   Node: TVRMLNode;
-
-  procedure ChangedTimeDependentNode(Handler: TTimeDependentNodeHandler);
-  var
-    DummySomethingChanged: boolean;
-  begin
-    { Although (de)activation of time-dependent nodes will be also catched
-      by the nearest IncreaseTime run, it's good to explicitly
-      call SetTime to catch it here.
-
-      Reason: if cycleInterval is very small, and not looping, then
-      we could "miss" the fact that node should be activated (if it
-      was inactive, and next IncreaseTime will happen after
-      cycleInterval time already passed).
-
-      Code below will make sure that no matter how small cycleInterval,
-      no matter how seldom IncreaseTime occur, the node will get
-      activated when doing something like startTime := Time. }
-
-    if (Field = nil) or
-       (Field = Handler.FdPauseTime) or
-       (Field = Handler.FdresumeTime) or
-       (Field = Handler.FdstartTime) or
-       (Field = Handler.FdstopTime) then
-    begin
-      Handler.SetTime(Time, Time, 0, DummySomethingChanged);
-
-      { DummySomethingChanged is simply ignored here (we do not have to report
-        changes anywhere). }
-    end;
-  end;
-
-var
   Changes: TVRMLChanges;
 
   procedure DoLogChanges(const Additional: string = '');
@@ -3323,28 +3291,6 @@ var
     if Additional <> '' then
       S += '. ' + Additional;
     WritelnLog('VRML changes', S);
-  end;
-
-  { If Appearance.TextureTransform contains TextureTransform
-    (which should be some TextureTransform* VRML/X3D node,
-    but not nil and not TNodeMultiTextureTransform). }
-  function AppearanceUsesTextureTransform(Appearance: TNodeAppearance;
-    TextureTransform: TVRMLNode): boolean;
-  var
-    MultiTrans: TMFNode;
-    I: Integer;
-  begin
-    Result := Appearance.FdTextureTransform.Value = TextureTransform;
-    if (not Result) and
-       (Appearance.FdTextureTransform.Value <> nil) and
-       (Appearance.FdTextureTransform.Value is TNodeMultiTextureTransform) then
-    begin
-      MultiTrans := TNodeMultiTextureTransform(
-        Appearance.FdTextureTransform.Value).FdTextureTransform;
-      for I := 0 to MultiTrans.Count - 1 do
-        if MultiTrans.Items[I] = TextureTransform then
-          Exit(true);
-    end;
   end;
 
   { Handle VRML >= 2.0 transformation changes. }
@@ -3647,6 +3593,29 @@ var
   end;
 
   procedure HandleChangeTextureTransform;
+
+    { If Appearance.TextureTransform contains TextureTransform
+      (which should be some TextureTransform* VRML/X3D node,
+      but not nil and not TNodeMultiTextureTransform). }
+    function AppearanceUsesTextureTransform(Appearance: TNodeAppearance;
+      TextureTransform: TVRMLNode): boolean;
+    var
+      MultiTrans: TMFNode;
+      I: Integer;
+    begin
+      Result := Appearance.FdTextureTransform.Value = TextureTransform;
+      if (not Result) and
+         (Appearance.FdTextureTransform.Value <> nil) and
+         (Appearance.FdTextureTransform.Value is TNodeMultiTextureTransform) then
+      begin
+        MultiTrans := TNodeMultiTextureTransform(
+          Appearance.FdTextureTransform.Value).FdTextureTransform;
+        for I := 0 to MultiTrans.Count - 1 do
+          if MultiTrans.Items[I] = TextureTransform then
+            Exit(true);
+      end;
+    end;
+
   var
     SI: TVRMLShapeTreeIterator;
   begin
@@ -3690,6 +3659,69 @@ var
     finally FreeAndNil(SI) end;
   end;
 
+  procedure HandleChangeEnvironmentalSensorBounds;
+  var
+   I: Integer;
+  begin
+    { For now, we're only interested here in ProximitySensor changes.
+      In the future, we may need to do something for other
+      X3DEnvironmentalSensorNode too. }
+    if not (Node is TNodeProximitySensor) then Exit;
+
+    { Update state for this ProximitySensor node. }
+    if IsLastViewer then
+      for I := 0 to ProximitySensorInstances.Count - 1 do
+      begin
+        if ProximitySensorInstances.Items[I].Node = Node then
+          ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
+      end;
+  end;
+
+  procedure HandleChangeTimeStopStart;
+  var
+    DummySomethingChanged: boolean;
+    Handler: TTimeDependentNodeHandler;
+  begin
+    if Field.ParentNode is TNodeMovieTexture then
+      Handler := TNodeMovieTexture(Field.ParentNode).TimeDependentNodeHandler else
+    if Field.ParentNode is TNodeTimeSensor then
+      Handler := TNodeTimeSensor(Field.ParentNode).TimeDependentNodeHandler else
+      { Node not really time-dependent.
+        TODO: probably an interface method INodeX3DTimeDependentNode
+        to get handler would be a good idea. }
+      Exit;
+
+    { Although (de)activation of time-dependent nodes will be also catched
+      by the nearest IncreaseTime run, it's good to explicitly
+      call SetTime to catch it here.
+
+      Reason: if cycleInterval is very small, and not looping, then
+      we could "miss" the fact that node should be activated (if it
+      was inactive, and next IncreaseTime will happen after
+      cycleInterval time already passed).
+
+      Code below will make sure that no matter how small cycleInterval,
+      no matter how seldom IncreaseTime occur, the node will get
+      activated when doing something like startTime := Time. }
+
+    Handler.SetTime(Time, Time, 0, DummySomethingChanged);
+
+    { DummySomethingChanged is simply ignored here (we do not have to report
+      changes anywhere). }
+
+    { No need to do VisibleChangeHere.
+      Redisplay will be done by next IncreaseTime run, if active now. }
+  end;
+
+  procedure HandleChangeViewpointVectors;
+  begin
+    if Field.ParentNode = ViewpointStack.Top then
+      DoBoundViewpointVectorsChanged;
+      { Nothing needs to be done if
+        - non-bound viewpoint changed,
+        - or a field of bound viewpoint that doesn't affect it's vectors. }
+  end;
+
   procedure HandleChangeEverything;
   begin
     { An arbitrary change occured. }
@@ -3718,6 +3750,10 @@ var
       if chTextureCoordinate in Changes then HandleChangeTextureCoordinate;
       if chTextureTransform in Changes then HandleChangeTextureTransform;
       if chGeometry in Changes then HandleChangeGeometry;
+      if chEnvironmentalSensorBounds in Changes then HandleChangeEnvironmentalSensorBounds;
+      if chTimeStopStart in Changes then HandleChangeTimeStopStart;
+      if chViewpointVectors in Changes then HandleChangeViewpointVectors;
+      { TODO: if chViewpointProjection then HandleChangeViewpointProjection }
       if chEverything in Changes then HandleChangeEverything;
 
       if Changes * [chVisibleGeometry, chVisibleNonGeometry,
@@ -3733,7 +3769,6 @@ var
   end;
 
 var
-  I: integer;
   SI: TVRMLShapeTreeIterator;
 begin
   Assert(Field.ParentNode <> nil);
@@ -3771,53 +3806,6 @@ begin
 
   BeginChangesSchedule;
   try
-    if Node is TNodeProximitySensor then
-    begin
-      if (Field = TNodeProximitySensor(Node).FdCenter) or
-         (Field = TNodeProximitySensor(Node).FdSize) then
-      begin
-        { Update state for this ProximitySensor node. }
-        if IsLastViewer then
-          for I := 0 to ProximitySensorInstances.Count - 1 do
-          begin
-            if ProximitySensorInstances.Items[I].Node = Node then
-              ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
-          end;
-      end else
-      begin
-        { Other changes to TNodeProximitySensor (enabled, metadata)
-          can safely be ignored, not require any action. }
-        Exit;
-      end;
-    end else
-    if Node is TNodeMovieTexture then
-    begin
-      ChangedTimeDependentNode(TNodeMovieTexture(Node).TimeDependentNodeHandler);
-      { No need to do VisibleChangeHere.
-        Redisplay will be done by next IncreaseTime run, if active now. }
-      Exit;
-    end else
-    if Node is TNodeTimeSensor then
-    begin
-      ChangedTimeDependentNode(TNodeTimeSensor(Node).TimeDependentNodeHandler);
-      { VisibleChangeHere not needed --- this is only a sensor, it's state
-        is not directly visible. }
-      Exit;
-    end else
-    if Node is TVRMLViewpointNode then
-    begin
-      if (Node = ViewpointStack.Top) and
-         ( (TVRMLViewpointNode(Node).FdOrientation = Field) or
-           (TVRMLViewpointNode(Node).FdDirection   = Field) or
-           (TVRMLViewpointNode(Node).FdUp          = Field) or
-           (TVRMLViewpointNode(Node).FdGravityUp   = Field) or
-           (TVRMLViewpointNode(Node).Position      = Field) ) then
-        DoBoundViewpointVectorsChanged else
-        { Nothing needs to be done if
-          - non-bound viewpoint changed,
-          - or a field of bound viewpoint that doesn't affect it's vectors. }
-        Exit;
-    end else
     if ( (Node is TNodePixelTexture) and
          (TNodePixelTexture(Node).FdImage = Field) ) or
        ( (Node is TNodeImageTexture) and

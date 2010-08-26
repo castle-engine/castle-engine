@@ -197,6 +197,30 @@ type
       don't include other flags with this. }
     chGeometry,
 
+    { X3DEnvironmentalSensorNode bounds (size/center) changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chEnvironmentalSensorBounds,
+
+    { TimeDependent node is start/stop/pause/resume time changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chTimeStopStart,
+
+    { Viewpoint vectors (position, direction, up, gravity up) changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chViewpointVectors,
+
+    { Viewpoint projection changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chViewpointProjection,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2363,6 +2387,10 @@ const
     'Texture coordinate',
     'Texture transform',
     'Geometry',
+    'Environmental sensor bounds',
+    'Time stop/start/pause/resume',
+    'Viewpoint vectors',
+    'Viewpoint projection',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

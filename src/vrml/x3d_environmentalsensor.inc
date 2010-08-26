@@ -93,10 +93,12 @@ begin
   inherited;
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+   Fdcenter.ChangesAlways := [chEnvironmentalSensorBounds];
   Fields.Add(FFdcenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdsize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
+   Fdsize.ChangesAlways := [chEnvironmentalSensorBounds];
   Fields.Add(FFdsize);
   { X3D specification comment: (-Inf,Inf) }
 

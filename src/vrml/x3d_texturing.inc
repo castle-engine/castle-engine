@@ -948,10 +948,12 @@ begin
   Fields.Add(FFdloop);
 
   FFdpauseTime := TSFTime.Create(Self, 'pauseTime', 0);
+   FdpauseTime.ChangesAlways := [chTimeStopStart];
   Fields.Add(FFdpauseTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdresumeTime := TSFTime.Create(Self, 'resumeTime', 0);
+   FdresumeTime.ChangesAlways := [chTimeStopStart];
   Fields.Add(FFdresumeTime);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -960,10 +962,12 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 
   FFdstartTime := TSFTime.Create(Self, 'startTime', 0);
+   FdstartTime.ChangesAlways := [chTimeStopStart];
   Fields.Add(FFdstartTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdstopTime := TSFTime.Create(Self, 'stopTime', 0);
+   FdstopTime.ChangesAlways := [chTimeStopStart];
   Fields.Add(FFdstopTime);
   { X3D specification comment: (-Inf,Inf) }
 

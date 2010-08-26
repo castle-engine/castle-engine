@@ -2184,6 +2184,7 @@ begin
   { Note that the default "position" value for VRML 1.0 is different
     than for VRML >= 2.0 (where is (0, 0, 10)). }
   FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 1));
+   Fdposition.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdposition);
 
   FFdfocalDistance := TSFFloat.Create(Self, 'focalDistance', 5, true);
@@ -2193,9 +2194,11 @@ begin
   Fields.Add(FFdheightAngle);
 
   FFdnearDistance := TSFFloat.Create(Self, 'nearDistance', 0);
+   FdnearDistance.ChangesAlways := [chViewpointProjection];
   Fields.Add(FFdnearDistance);
 
   FFdfarDistance := TSFFloat.Create(Self, 'farDistance', 0);
+   FdfarDistance.ChangesAlways := [chViewpointProjection];
   Fields.Add(FFdfarDistance);
 end;
 
