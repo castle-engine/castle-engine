@@ -673,7 +673,7 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdtransparency := TSFFloat.Create(Self, 'transparency', DefaultMaterialTransparency);
-   Fdtransparency.ChangesAlways := [chMaterial2];
+   Fdtransparency.ChangesAlways := [chMaterial2, chUseBlending];
   Fields.Add(FFdtransparency);
   { X3D specification comment: [0,1] }
 

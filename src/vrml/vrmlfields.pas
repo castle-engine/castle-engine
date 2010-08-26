@@ -121,14 +121,24 @@ type
       only).
 
       Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
+      don't include other flags with this.
+      Exception: you can (and should) include chUseBlending for appropriate
+      Material changes. }
     chVisibleVRML1State,
 
     { Something visible in VRML >= 2.0 Material node changed.
 
       Caller will analyze the scene to know what this implicates,
-      don't include other flags with this. }
-    chMaterial2);
+      don't include other flags with this.
+      Exception: you can (and should) include chUseBlending for appropriate
+      Material changes. }
+    chMaterial2,
+
+    { Something that may affect UseBlending calculation possibly changed.
+      This is guaranteed to work only when used together with
+      chVisibleVRML1State and chMaterial2. It's understood that only
+      shapes that use given material need UseBlending recalculated. }
+    chUseBlending);
   TVRMLChanges = set of TVRMLChange;
 
 { ---------------------------------------------------------------------------- }
@@ -2260,6 +2270,21 @@ procedure DecodeImageColor(const Pixel: LongInt; var GA: TVector2Byte);
 procedure DecodeImageColor(const Pixel: LongInt; var RGB: TVector3Byte);
 procedure DecodeImageColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 { @groupEnd }
+
+const
+  VRMLChangeToStr: array [TVRMLChange] of string =
+  ( 'Scene Algorithm',
+    'Visible Geometry',
+    'Visible Non-Geometry',
+    'Viewer',
+    'Redisplay',
+    'Transform',
+    'Coordinate',
+    'VRML 1.0 State (but not Coordinate)',
+    'VRML >= 2.0 Material',
+    'Blending' );
+
+function VRMLChangesToStr(const Changes: TVRMLChanges): string;
 
 {$undef read_interface}
 
@@ -5552,6 +5577,22 @@ begin
   if FVRMLFieldsManager = nil then
     FVRMLFieldsManager := TVRMLFieldsManager.Create;
   Result := FVRMLFieldsManager;
+end;
+
+{ global utilities ----------------------------------------------------------- }
+
+function VRMLChangesToStr(const Changes: TVRMLChanges): string;
+var
+  C: TVRMLChange;
+begin
+  Result := '';
+  for C := Low(C) to High(C) do
+    if C in Changes then
+    begin
+      if Result <> '' then Result += ',';
+      Result += VRMLChangeToStr[C];
+    end;
+  Result := '[' + Result + ']';
 end;
 
 initialization

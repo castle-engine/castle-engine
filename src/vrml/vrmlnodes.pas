@@ -1989,20 +1989,7 @@ procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes)
   itself. }
 procedure VRMLNodesList_FreeWithNonParentedContentsAndNil(var List: TVRMLNodesList);
 
-function VRMLChangesToStr(const Changes: TVRMLChanges): string;
-
 const
-  VRMLChangeToStr: array [TVRMLChange] of string =
-  ( 'Scene Algorithm',
-    'Visible Geometry',
-    'Visible Non-Geometry',
-    'Viewer',
-    'Redisplay',
-    'Transform',
-    'Coordinate',
-    'VRML 1.0 State (but not Coordinate)',
-    'VRML >= 2.0 Material' );
-
   ProjectionTypeToStr: array [TProjectionType] of string =
   ('Orthographic', 'Perspective');
 
@@ -5491,20 +5478,6 @@ begin
       T := (Fraction - Key[A]) / (Key[B] - Key[A]) else
       T := 0;
   end;
-end;
-
-function VRMLChangesToStr(const Changes: TVRMLChanges): string;
-var
-  C: TVRMLChange;
-begin
-  Result := '';
-  for C := Low(C) to High(C) do
-    if C in Changes then
-    begin
-      if Result <> '' then Result += ',';
-      Result += VRMLChangeToStr[C];
-    end;
-  Result := '[' + Result + ']';
 end;
 
 { TDynNodeDestructionNotifications ------------------------------------------- }

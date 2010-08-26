@@ -1370,7 +1370,7 @@ begin
   Fields.Add(FFdshininess);
 
   FFdtransparency := TMFFloat.Create(Self, 'transparency', [DefaultMaterialTransparency]);
-   Fdtransparency.ChangesAlways := [chVisibleVRML1State];
+   Fdtransparency.ChangesAlways := [chVisibleVRML1State, chUseBlending];
   Fields.Add(FFdtransparency);
 
   FFdmirror := TMFFloat.Create(Self, 'mirror', [DefaultMaterialMirror]);
