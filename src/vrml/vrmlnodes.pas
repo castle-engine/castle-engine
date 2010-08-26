@@ -1998,7 +1998,8 @@ const
     'Visible Non-Geometry',
     'Viewer',
     'Redisplay',
-    'Transform' );
+    'Transform',
+    'Coordinate' );
 
   ProjectionTypeToStr: array [TProjectionType] of string =
   ('Orthographic', 'Perspective');

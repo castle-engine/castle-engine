@@ -108,7 +108,11 @@ type
       Don't include chVisibleGeometry or such with this.
       The caller will correctly analyze your children, and determine what
       visile changed. }
-    chTransform);
+    chTransform,
+
+    { Coordinate node "point" field changed.
+      Called will analyze the scene to know what this implicates. }
+    chCoordinate);
   TVRMLChanges = set of TVRMLChange;
 
 { ---------------------------------------------------------------------------- }

@@ -3318,8 +3318,7 @@ var
       [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]);
     if Field <> nil then
       S += Format('. Field %s (%s)', [ Field.Name, Field.VRMLTypeName ]);
-    if Changes <> [chSceneAlgorithm] then
-      S += '. Optimized changes list: ' + VRMLChangesToStr(Changes);
+    S += '. Changes: ' + VRMLChangesToStr(Changes);
     if Additional <> '' then
       S += '. ' + Additional;
     WritelnLog('VRML changes', S);
@@ -3354,91 +3353,121 @@ var
     NodeInfo: PTransformNodeInfo;
     TransformShapesParentInfo: TShapesParentInfo;
   begin
-    BeginChangesSchedule;
+    { This is the optimization for changing VRML >= 2.0 transformation
+      (most fields of Transform node like translation, scale, center etc.,
+      also some HAnim nodes like Joint and Humanoid have this behavior.).
+
+      In the simple cases, Transform node simply changes
+      TVRMLGraphTraverseState.Transform for children nodes.
+
+      So we have to re-traverse from this Transform node, and change
+      states of affected children. Also, first we have to traverse
+      *to* this Transform node, as we don't know it's initial State...
+      Moreover, Node may be instantiated many times in VRML graph,
+      so we have to Traverse to all it's occurences.
+
+      Besides, while traversing to the current transform node, we have to count
+      Shapes, to know which Shapes will be affected by what
+      state change (as we cannot deduce it from the mere Geometry
+      reference, since node may be instantiated many times under
+      different transformation, many times within our changing Transform
+      node, and many times outside of the changing Transform group).
+
+      In more difficult cases, children of this Transform node may
+      be affected in other ways by transformation. For example,
+      Fog and Background nodes are affected by their parents transform.
+      Currently, we cannot account for this, and just raise
+      BreakTransformChangeFailed in this case --- we have to do ChangedAll
+      in such cases.
+    }
     try
-      { This is the optimization for changing VRML >= 2.0 transformation
-        (most fields of Transform node like translation, scale, center etc.,
-        also some HAnim nodes like Joint and Humanoid have this behavior.).
+      TransformShapesParentInfo.Group := Shapes as TVRMLShapeTreeGroup;
+      TransformShapesParentInfo.Index := 0;
 
-        In the simple cases, Transform node simply changes
-        TVRMLGraphTraverseState.Transform for children nodes.
-
-        So we have to re-traverse from this Transform node, and change
-        states of affected children. Also, first we have to traverse
-        *to* this Transform node, as we don't know it's initial State...
-        Moreover, Node may be instantiated many times in VRML graph,
-        so we have to Traverse to all it's occurences.
-
-        Besides, while traversing to the current transform node, we have to count
-        Shapes, to know which Shapes will be affected by what
-        state change (as we cannot deduce it from the mere Geometry
-        reference, since node may be instantiated many times under
-        different transformation, many times within our changing Transform
-        node, and many times outside of the changing Transform group).
-
-        In more difficult cases, children of this Transform node may
-        be affected in other ways by transformation. For example,
-        Fog and Background nodes are affected by their parents transform.
-        Currently, we cannot account for this, and just raise
-        BreakTransformChangeFailed in this case --- we have to do ChangedAll
-        in such cases.
-      }
+      TransformChangeHelper := TTransformChangeHelper.Create;
       try
-        TransformShapesParentInfo.Group := Shapes as TVRMLShapeTreeGroup;
-        TransformShapesParentInfo.Index := 0;
+        TransformChangeHelper.ParentScene := Self;
+        TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+        TransformChangeHelper.ProximitySensorNum := 0;
+        TransformChangeHelper.ChangingNode := Node;
+        TransformChangeHelper.ChangingField := Field;
+        TransformChangeHelper.AnythingChanged := false;
+        TransformChangeHelper.Inside := false;
+        TransformChangeHelper.Inactive := 0;
+        TransformChangeHelper.ChangingNodeFoundCount := 0;
 
-        TransformChangeHelper := TTransformChangeHelper.Create;
-        try
-          TransformChangeHelper.ParentScene := Self;
-          TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-          TransformChangeHelper.ProximitySensorNum := 0;
-          TransformChangeHelper.ChangingNode := Node;
-          TransformChangeHelper.ChangingField := Field;
-          TransformChangeHelper.AnythingChanged := false;
-          TransformChangeHelper.Inside := false;
-          TransformChangeHelper.Inactive := 0;
-          TransformChangeHelper.ChangingNodeFoundCount := 0;
-
-          NodeInfo := TransformNodesInfo.NodeInfo(Node);
-          if NodeInfo <> nil then
-          begin
-            TransformChangeHelper.ChangingNodeOccurences := NodeInfo^.Occurences;
-          end else
-          begin
-            if Log and LogChanges then
-              WritelnLog('VRML changes', Format('Occurences number for node "%s" not recorded, changing transformation of this node will not be optimized',
-                [Node.NodeTypeName]));
-            TransformChangeHelper.ChangingNodeOccurences := -1;
-          end;
-
-          try
-            RootNode.Traverse(TVRMLNode,
-              @TransformChangeHelper.TransformChangeTraverse,
-              @TransformChangeHelper.TransformChangeTraverseAfter);
-          except
-            on BreakTransformChangeSuccess do
-              { BreakTransformChangeSuccess is equivalent with normal finish
-                of Traverse. So do nothing, just silence exception. }
-          end;
-
-          if not TransformChangeHelper.AnythingChanged then
-            { No need to even VisibleChangeHere at the end. }
-            Exit;
-        finally
-          FreeAndNil(TransformChangeHelper);
-        end;
-      except
-        on B: BreakTransformChangeFailed do
+        NodeInfo := TransformNodesInfo.NodeInfo(Node);
+        if NodeInfo <> nil then
+        begin
+          TransformChangeHelper.ChangingNodeOccurences := NodeInfo^.Occurences;
+        end else
         begin
           if Log and LogChanges then
-            DoLogChanges('-> this Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
-          ScheduleChangedAll;
-          Exit;
+            WritelnLog('VRML changes', Format('Occurences number for node "%s" not recorded, changing transformation of this node will not be optimized',
+              [Node.NodeTypeName]));
+          TransformChangeHelper.ChangingNodeOccurences := -1;
         end;
-      end;
 
-      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-    finally EndChangesSchedule end;
+        try
+          RootNode.Traverse(TVRMLNode,
+            @TransformChangeHelper.TransformChangeTraverse,
+            @TransformChangeHelper.TransformChangeTraverseAfter);
+        except
+          on BreakTransformChangeSuccess do
+            { BreakTransformChangeSuccess is equivalent with normal finish
+              of Traverse. So do nothing, just silence exception. }
+        end;
+
+        if not TransformChangeHelper.AnythingChanged then
+          { No need to even VisibleChangeHere at the end. }
+          Exit;
+      finally
+        FreeAndNil(TransformChangeHelper);
+      end;
+    except
+      on B: BreakTransformChangeFailed do
+      begin
+        if Log and LogChanges then
+          DoLogChanges('-> this Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
+        ScheduleChangedAll;
+        Exit;
+      end;
+    end;
+
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  end;
+
+  procedure HandleChangeCoordinate;
+  var
+    Coord: TMFVec3f;
+    SI: TVRMLShapeTreeIterator;
+  begin
+    { TNodeCoordinate is special, although it's part of VRML 1.0 state,
+      it can also occur within coordinate-based nodes of VRML >= 2.0.
+      So it affects coordinate-based nodes with this node.
+
+      In fact, code below takes into account both VRML 1.0 and 2.0 situation,
+      that's why it's before "if Node.VRML1StateNode(VRML1StateNode)" branch. }
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
+           (Coord.ParentNode = Node) then
+        begin
+          ChangedShapeFields(SI.Current, Node, Field,
+            false, false, false, false
+            { We pass PossiblyLocalGeometryChanged = false,
+              as we'll do ScheduledLocalGeometryChangedCoord := true
+              later that will take care of it anyway.
+              For now, this may be slightly more optimal. });
+
+          { Another special thing about Coordinate node: it changes
+            actual geometry. }
+
+          SI.Current.ScheduledLocalGeometryChangedCoord := true;
+          ScheduleGeometryChanged;
+        end;
+    finally FreeAndNil(SI) end;
   end;
 
   { Handle changes in Changes variable. }
@@ -3446,24 +3475,30 @@ var
   var
     VisibleChanges: TVisibleChanges;
   begin
-    if chTransform in Changes then
-      HandleChangeTransform;
+    { Optimize Changes = [] case: no need even for Begin/EndChangesSchedule }
+    if Changes = [] then Exit;
 
-    if Changes * [chVisibleGeometry, chVisibleNonGeometry,
-      chViewer, chRedisplay] <> [] then
-    begin
-      VisibleChanges := [];
-      if chVisibleGeometry    in Changes then Include(VisibleChanges, vcVisibleGeometry);
-      if chVisibleNonGeometry in Changes then Include(VisibleChanges, vcVisibleNonGeometry);
-      if chViewer             in Changes then Include(VisibleChanges, vcViewer);
-      VisibleChangeHere(VisibleChanges);
-    end;
+    BeginChangesSchedule;
+    try
+      if chTransform in Changes then HandleChangeTransform;
+
+      if chCoordinate in Changes then HandleChangeCoordinate;
+
+      if Changes * [chVisibleGeometry, chVisibleNonGeometry,
+        chViewer, chRedisplay] <> [] then
+      begin
+        VisibleChanges := [];
+        if chVisibleGeometry    in Changes then Include(VisibleChanges, vcVisibleGeometry);
+        if chVisibleNonGeometry in Changes then Include(VisibleChanges, vcVisibleNonGeometry);
+        if chViewer             in Changes then Include(VisibleChanges, vcViewer);
+        VisibleChangeHere(VisibleChanges);
+      end;
+    finally EndChangesSchedule end;
   end;
 
 var
   I: integer;
   VRML1StateNode: TVRML1StateNode;
-  Coord: TMFVec3f;
   SI: TVRMLShapeTreeIterator;
   TexCoord: TVRMLNode;
 begin
@@ -3502,35 +3537,6 @@ begin
 
   BeginChangesSchedule;
   try
-    if Node is TNodeCoordinate then
-    begin
-      { TNodeCoordinate is special, although it's part of VRML 1.0 state,
-        it can also occur within coordinate-based nodes of VRML >= 2.0.
-        So it affects coordinate-based nodes with this node.
-
-        In fact, code below takes into account both VRML 1.0 and 2.0 situation,
-        that's why it's before "if Node.VRML1StateNode(VRML1StateNode)" branch. }
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
-             (Coord.ParentNode = Node) then
-          begin
-            ChangedShapeFields(SI.Current, Node, Field,
-              false, false, false, false
-              { We pass PossiblyLocalGeometryChanged = false,
-                as we'll do ScheduledLocalGeometryChangedCoord := true
-                later that will take care of it anyway.
-                For now, this may be slightly more optimal. });
-
-            { Another special thing about Coordinate node: it changes
-              actual geometry. }
-
-            SI.Current.ScheduledLocalGeometryChangedCoord := true;
-            ScheduleGeometryChanged;
-          end;
-      finally FreeAndNil(SI) end;
-    end else
     if Node.VRML1StateNode(VRML1StateNode) then
     begin
       { Node is part of VRML 1.0 state, so it affects Shapes where

@@ -1225,6 +1225,7 @@ begin
   inherited;
 
   FFdpoint := TMFVec3f.Create(Self, 'point', []);
+   Fdpoint.ChangesAlways := [chCoordinate];
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
