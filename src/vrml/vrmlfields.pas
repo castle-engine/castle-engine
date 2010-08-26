@@ -287,7 +287,6 @@ type
       const Time: TVRMLTime);
 
   private
-    FTransform: boolean;
     FProcessedInActiveLight: boolean;
 
     FValueFromIsClause: boolean;
@@ -600,12 +599,6 @@ type
 
     procedure AddAlternativeName(const AlternativeName: string;
       VrmlMajorVersion: Integer); override;
-
-    { Does this field specify a transformation (and nothing else) for
-      children of ParentNode? This is useful for optimizing changes
-      to VRML >= 2.0 Transform, Joint, Humanoid etc. nodes. }
-    property Transform: boolean read FTransform write FTransform
-      default false;
 
     { For fields within light nodes, does this field affect some TActiveLight
       field? This is useful for optimizing changed to VRML light nodes. }

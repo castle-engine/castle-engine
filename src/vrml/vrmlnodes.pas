@@ -723,7 +723,14 @@ type
       chViewer then this flag (chRedisplay) makes no effect.
       Otherwise, this flag should be used if your change requires
       redisplay of the 3D view for some other reasons. }
-    chRedisplay);
+    chRedisplay,
+
+    { Transformation of children of this node changed.
+
+      Don't include chVisibleGeometry or such with this.
+      The caller will correctly analyze your children, and determine what
+      visile changed. }
+    chTransform);
   TVRMLChanges = set of TVRMLChange;
 
   TSFNode = class;
@@ -2041,7 +2048,8 @@ const
     'Visible Geometry',
     'Visible Non-Geometry',
     'Viewer',
-    'Redisplay' );
+    'Redisplay',
+    'Transform' );
 
   ProjectionTypeToStr: array [TProjectionType] of string =
   ('Orthographic', 'Perspective');

@@ -31,9 +31,9 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdmatrix: TSFMatrix4f;
     public property Fdmatrix: TSFMatrix4f read FFdmatrix;
@@ -296,9 +296,15 @@ begin
 
   FFdmatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
   Fields.Add(FFdmatrix);
-  Fdmatrix.Transform := true;
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeMatrixTransform_2.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  if Field = Fdmatrix then
+    Result := [chTransform] else
+    Result := inherited;
 end;
 
 class function TNodeMatrixTransform_2.ClassNodeTypeName: string;

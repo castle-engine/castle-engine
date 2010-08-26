@@ -3346,11 +3346,108 @@ var
     end;
   end;
 
+  { Handle VRML >= 2.0 transformation changes. }
+  procedure HandleChangeTransform;
+  var
+    TransformChangeHelper: TTransformChangeHelper;
+    NodeInfo: PTransformNodeInfo;
+    TransformShapesParentInfo: TShapesParentInfo;
+  begin
+    BeginChangesSchedule;
+    try
+      { This is the optimization for changing VRML >= 2.0 transformation
+        (most fields of Transform node like translation, scale, center etc.,
+        also some HAnim nodes like Joint and Humanoid have this behavior.).
+
+        In the simple cases, Transform node simply changes
+        TVRMLGraphTraverseState.Transform for children nodes.
+
+        So we have to re-traverse from this Transform node, and change
+        states of affected children. Also, first we have to traverse
+        *to* this Transform node, as we don't know it's initial State...
+        Moreover, Node may be instantiated many times in VRML graph,
+        so we have to Traverse to all it's occurences.
+
+        Besides, while traversing to the current transform node, we have to count
+        Shapes, to know which Shapes will be affected by what
+        state change (as we cannot deduce it from the mere Geometry
+        reference, since node may be instantiated many times under
+        different transformation, many times within our changing Transform
+        node, and many times outside of the changing Transform group).
+
+        In more difficult cases, children of this Transform node may
+        be affected in other ways by transformation. For example,
+        Fog and Background nodes are affected by their parents transform.
+        Currently, we cannot account for this, and just raise
+        BreakTransformChangeFailed in this case --- we have to do ChangedAll
+        in such cases.
+      }
+      try
+        TransformShapesParentInfo.Group := Shapes as TVRMLShapeTreeGroup;
+        TransformShapesParentInfo.Index := 0;
+
+        TransformChangeHelper := TTransformChangeHelper.Create;
+        try
+          TransformChangeHelper.ParentScene := Self;
+          TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+          TransformChangeHelper.ProximitySensorNum := 0;
+          TransformChangeHelper.ChangingNode := Node;
+          TransformChangeHelper.ChangingField := Field;
+          TransformChangeHelper.AnythingChanged := false;
+          TransformChangeHelper.Inside := false;
+          TransformChangeHelper.Inactive := 0;
+          TransformChangeHelper.ChangingNodeFoundCount := 0;
+
+          NodeInfo := TransformNodesInfo.NodeInfo(Node);
+          if NodeInfo <> nil then
+          begin
+            TransformChangeHelper.ChangingNodeOccurences := NodeInfo^.Occurences;
+          end else
+          begin
+            if Log and LogChanges then
+              WritelnLog('VRML changes', Format('Occurences number for node "%s" not recorded, changing transformation of this node will not be optimized',
+                [Node.NodeTypeName]));
+            TransformChangeHelper.ChangingNodeOccurences := -1;
+          end;
+
+          try
+            RootNode.Traverse(TVRMLNode,
+              @TransformChangeHelper.TransformChangeTraverse,
+              @TransformChangeHelper.TransformChangeTraverseAfter);
+          except
+            on BreakTransformChangeSuccess do
+              { BreakTransformChangeSuccess is equivalent with normal finish
+                of Traverse. So do nothing, just silence exception. }
+          end;
+
+          if not TransformChangeHelper.AnythingChanged then
+            { No need to even VisibleChangeHere at the end. }
+            Exit;
+        finally
+          FreeAndNil(TransformChangeHelper);
+        end;
+      except
+        on B: BreakTransformChangeFailed do
+        begin
+          if Log and LogChanges then
+            DoLogChanges('-> this Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
+          ScheduleChangedAll;
+          Exit;
+        end;
+      end;
+
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    finally EndChangesSchedule end;
+  end;
+
   { Handle changes in Changes variable. }
   procedure HandleChanges;
   var
     VisibleChanges: TVisibleChanges;
   begin
+    if chTransform in Changes then
+      HandleChangeTransform;
+
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,
       chViewer, chRedisplay] <> [] then
     begin
@@ -3366,10 +3463,7 @@ var
   I: integer;
   VRML1StateNode: TVRML1StateNode;
   Coord: TMFVec3f;
-  TransformChangeHelper: TTransformChangeHelper;
   SI: TVRMLShapeTreeIterator;
-  NodeInfo: PTransformNodeInfo;
-  TransformShapesParentInfo: TShapesParentInfo;
   TexCoord: TVRMLNode;
 begin
   Changes := Node.Changed(Field);
@@ -3533,89 +3627,6 @@ begin
             ScheduleGeometryChanged;
           end;
       finally FreeAndNil(SI) end;
-    end else
-    if (Field <> nil) and Field.Transform then
-    begin
-      { This is the optimization for changing VRML >= 2.0 transformation
-        (most fields of Transform node like translation, scale, center etc.,
-        also some HAnim nodes like Joint and Humanoid have this behavior.).
-
-        In the simple cases, Transform node simply changes
-        TVRMLGraphTraverseState.Transform for children nodes.
-
-        So we have to re-traverse from this Transform node, and change
-        states of affected children. Also, first we have to traverse
-        *to* this Transform node, as we don't know it's initial State...
-        Moreover, Node may be instantiated many times in VRML graph,
-        so we have to Traverse to all it's occurences.
-
-        Besides, while traversing to the current transform node, we have to count
-        Shapes, to know which Shapes will be affected by what
-        state change (as we cannot deduce it from the mere Geometry
-        reference, since node may be instantiated many times under
-        different transformation, many times within our changing Transform
-        node, and many times outside of the changing Transform group).
-
-        In more difficult cases, children of this Transform node may
-        be affected in other ways by transformation. For example,
-        Fog and Background nodes are affected by their parents transform.
-        Currently, we cannot account for this, and just raise
-        BreakTransformChangeFailed in this case --- we have to do ChangedAll
-        in such cases.
-      }
-      try
-        TransformShapesParentInfo.Group := Shapes as TVRMLShapeTreeGroup;
-        TransformShapesParentInfo.Index := 0;
-
-        TransformChangeHelper := TTransformChangeHelper.Create;
-        try
-          TransformChangeHelper.ParentScene := Self;
-          TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-          TransformChangeHelper.ProximitySensorNum := 0;
-          TransformChangeHelper.ChangingNode := Node;
-          TransformChangeHelper.ChangingField := Field;
-          TransformChangeHelper.AnythingChanged := false;
-          TransformChangeHelper.Inside := false;
-          TransformChangeHelper.Inactive := 0;
-          TransformChangeHelper.ChangingNodeFoundCount := 0;
-
-          NodeInfo := TransformNodesInfo.NodeInfo(Node);
-          if NodeInfo <> nil then
-          begin
-            TransformChangeHelper.ChangingNodeOccurences := NodeInfo^.Occurences;
-          end else
-          begin
-            if Log and LogChanges then
-              WritelnLog('VRML changes', Format('Occurences number for node "%s" not recorded, changing transformation of this node will not be optimized',
-                [Node.NodeTypeName]));
-            TransformChangeHelper.ChangingNodeOccurences := -1;
-          end;
-
-          try
-            RootNode.Traverse(TVRMLNode,
-              @TransformChangeHelper.TransformChangeTraverse,
-              @TransformChangeHelper.TransformChangeTraverseAfter);
-          except
-            on BreakTransformChangeSuccess do
-              { BreakTransformChangeSuccess is equivalent with normal finish
-                of Traverse. So do nothing, just silence exception. }
-          end;
-
-          if not TransformChangeHelper.AnythingChanged then
-            { No need to even VisibleChangeHere at the end. }
-            Exit;
-        finally
-          FreeAndNil(TransformChangeHelper);
-        end;
-      except
-        on B: BreakTransformChangeFailed do
-        begin
-          if Log and LogChanges then
-            DoLogChanges('-> this Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
-          ScheduleChangedAll;
-          Exit;
-        end;
-      end;
     end else
     if Node is TNodeProximitySensor then
     begin

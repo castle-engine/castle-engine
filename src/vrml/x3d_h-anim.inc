@@ -47,6 +47,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdcenter: TSFVec3f;
     public property Fdcenter: TSFVec3f read FFdcenter;
@@ -114,6 +115,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdcenter: TSFVec3f;
     public property Fdcenter: TSFVec3f read FFdcenter;
@@ -166,6 +168,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdcenterOfMass: TSFVec3f;
     public property FdcenterOfMass: TSFVec3f read FFdcenterOfMass;
@@ -212,6 +215,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdcenter: TSFVec3f;
     public property Fdcenter: TSFVec3f read FFdcenter;
@@ -283,7 +287,6 @@ begin
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
-  Fdcenter.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdinfo := TMFString.Create(Self, 'info', []);
@@ -297,17 +300,14 @@ begin
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
-  Fdrotation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
-  Fdscale.Transform := true;
   { X3D specification comment: (0,Inf) }
 
   FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
-  FdscaleOrientation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdsegments := TMFNode.Create(Self, 'segments', [TNodeHAnimSegment]);
@@ -335,7 +335,6 @@ begin
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
-  Fdtranslation.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdversion := TSFString.Create(Self, 'version', '');
@@ -365,6 +364,17 @@ begin
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeHAnimHumanoid.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  if (Field = Fdcenter) or
+     (Field = Fdrotation) or
+     (Field = Fdscale) or
+     (Field = FdscaleOrientation) or
+     (Field = Fdtranslation) then
+    Result := [chTransform] else
+    Result := inherited;
 end;
 
 class function TNodeHAnimHumanoid.ClassNodeTypeName: string;
@@ -427,7 +437,6 @@ begin
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
-  Fdcenter.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFddisplacers := TMFNode.Create(Self, 'displacers', [TNodeHAnimDisplacer]);
@@ -446,17 +455,14 @@ begin
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
-  Fdrotation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
-  Fdscale.Transform := true;
   { X3D specification comment: (0,Inf) }
 
   FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
-  FdscaleOrientation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdskinCoordIndex := TMFInt32.Create(Self, 'skinCoordIndex', []);
@@ -471,7 +477,6 @@ begin
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
-  Fdtranslation.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdulimit := TMFFloat.Create(Self, 'ulimit', []);
@@ -479,6 +484,17 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeHAnimJoint.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  if (Field = Fdcenter) or
+     (Field = Fdrotation) or
+     (Field = Fdscale) or
+     (Field = FdscaleOrientation) or
+     (Field = Fdtranslation) then
+    Result := [chTransform] else
+    Result := inherited;
 end;
 
 class function TNodeHAnimJoint.ClassNodeTypeName: string;
@@ -540,20 +556,26 @@ begin
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
-  Fdrotation.Transform := true;
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
-  Fdscale.Transform := true;
   { X3D specification comment: (-Inf, Inf) }
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
-  Fdtranslation.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeHAnimSegment.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  if (Field = Fdrotation) or
+     (Field = Fdscale) or
+     (Field = Fdtranslation) then
+    Result := [chTransform] else
+    Result := inherited;
 end;
 
 class function TNodeHAnimSegment.ClassNodeTypeName: string;
@@ -593,7 +615,6 @@ begin
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
-  Fdcenter.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdname := TSFString.Create(Self, 'name', '');
@@ -601,25 +622,32 @@ begin
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
-  Fdrotation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
-  Fdscale.Transform := true;
   { X3D specification comment: (0,Inf) }
 
   FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
-  FdscaleOrientation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
-  Fdtranslation.Transform := true;
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeHAnimSite.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  if (Field = Fdcenter) or
+     (Field = Fdrotation) or
+     (Field = Fdscale) or
+     (Field = FdscaleOrientation) or
+     (Field = Fdtranslation) then
+    Result := [chTransform] else
+    Result := inherited;
 end;
 
 class function TNodeHAnimSite.ClassNodeTypeName: string;

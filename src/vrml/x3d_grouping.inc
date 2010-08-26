@@ -257,9 +257,9 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdcenter: TSFVec3f;
     public property Fdcenter: TSFVec3f read FFdcenter;
@@ -756,30 +756,36 @@ begin
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
-  Fdcenter.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
-  Fdrotation.Transform := true;
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
-  Fdscale.Transform := true;
   { X3D specification comment: (-Inf, Inf) }
 
   FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
-  FdscaleOrientation.Transform := true;
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
-  Fdtranslation.Transform := true;
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeTransform_2.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  if (Field = Fdcenter) or
+     (Field = Fdrotation) or
+     (Field = Fdscale) or
+     (Field = FdscaleOrientation) or
+     (Field = Fdtranslation) then
+    Result := [chTransform] else
+    Result := inherited;
 end;
 
 class function TNodeTransform_2.ClassNodeTypeName: string;
