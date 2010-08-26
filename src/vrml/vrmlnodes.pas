@@ -1999,7 +1999,9 @@ const
     'Viewer',
     'Redisplay',
     'Transform',
-    'Coordinate' );
+    'Coordinate',
+    'VRML 1.0 State (but not Coordinate)',
+    'VRML >= 2.0 Material' );
 
   ProjectionTypeToStr: array [TProjectionType] of string =
   ('Orthographic', 'Perspective');

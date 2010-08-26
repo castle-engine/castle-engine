@@ -648,51 +648,65 @@ begin
   inherited;
 
   FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', DefaultMaterial_2AmbientIntensity);
+   FdambientIntensity.ChangesAlways := [chMaterial2];
   Fields.Add(FFdambientIntensity);
   { X3D specification comment: [0,1] }
 
   FFddiffuseColor := TSFColor.Create(Self, 'diffuseColor', DefaultMaterialDiffuseColor);
+   FddiffuseColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFddiffuseColor);
   { X3D specification comment: [0,1] }
 
   FFdemissiveColor := TSFColor.Create(Self, 'emissiveColor', DefaultMaterialEmissiveColor);
+   FdemissiveColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFdemissiveColor);
   { X3D specification comment: [0,1] }
 
   FFdshininess := TSFFloat.Create(Self, 'shininess', DefaultMaterialShininess);
+   Fdshininess.ChangesAlways := [chMaterial2];
   Fields.Add(FFdshininess);
   { X3D specification comment: [0,1] }
 
   FFdspecularColor := TSFColor.Create(Self, 'specularColor', DefaultMaterialSpecularColor);
+   FdspecularColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFdspecularColor);
   { X3D specification comment: [0,1] }
 
   FFdtransparency := TSFFloat.Create(Self, 'transparency', DefaultMaterialTransparency);
+   Fdtransparency.ChangesAlways := [chMaterial2];
   Fields.Add(FFdtransparency);
   { X3D specification comment: [0,1] }
 
   FFdfogImmune := TSFBool.Create(Self, 'fogImmune', false);
+   FdfogImmune.ChangesAlways := [chMaterial2];
   Fields.Add(FFdfogImmune);
 
   FFdmirror := TSFFloat.Create(Self, 'mirror', DefaultMaterialMirror);
+   Fdmirror.ChangesAlways := [chMaterial2];
   Fields.Add(FFdmirror);
 
   FFdreflSpecular := TMFColor.Create(Self, 'reflSpecular', []);
+   FdreflSpecular.ChangesAlways := [chMaterial2];
   Fields.Add(FFdreflSpecular);
 
   FFdreflDiffuse := TMFColor.Create(Self, 'reflDiffuse', []);
+   FdreflDiffuse.ChangesAlways := [chMaterial2];
   Fields.Add(FFdreflDiffuse);
 
   FFdtransSpecular := TMFColor.Create(Self, 'transSpecular', []);
+   FdtransSpecular.ChangesAlways := [chMaterial2];
   Fields.Add(FFdtransSpecular);
 
   FFdtransDiffuse := TMFColor.Create(Self, 'transDiffuse', []);
+   FdtransDiffuse.ChangesAlways := [chMaterial2];
   Fields.Add(FFdtransDiffuse);
 
   FFdreflSpecularExp := TSFFloat.Create(Self, 'reflSpecularExp', DefaultMaterialReflSpecularExp);
+   FdreflSpecularExp.ChangesAlways := [chMaterial2];
   Fields.Add(FFdreflSpecularExp);
 
   FFdtransSpecularExp := TSFFloat.Create(Self, 'transSpecularExp', DefaultMaterialTransSpecularExp);
+   FdtransSpecularExp.ChangesAlways := [chMaterial2];
   Fields.Add(FFdtransSpecularExp);
 end;
 

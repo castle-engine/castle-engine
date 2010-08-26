@@ -3449,8 +3449,9 @@ var
       it can also occur within coordinate-based nodes of VRML >= 2.0.
       So it affects coordinate-based nodes with this node.
 
-      In fact, code below takes into account both VRML 1.0 and 2.0 situation,
-      that's why it's before "if Node.VRML1StateNode(VRML1StateNode)" branch. }
+      In fact, code below takes into account both VRML 1.0 and 2.0 situation.
+      That's why chCoordinate should not be used with chVisibleVRML1State
+      --- chVisibleVRML1State handling is not needed after this. }
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
@@ -3475,6 +3476,43 @@ var
     finally FreeAndNil(SI) end;
   end;
 
+  procedure HandleVisibleVRML1State;
+  var
+    VRML1StateNode: TVRML1StateNode;
+    SI: TVRMLShapeTreeIterator;
+  begin
+    if Node.VRML1StateNode(VRML1StateNode) then
+    begin
+      { Node is part of VRML 1.0 state, so it affects Shapes where
+        it's present on State.LastNodes list. }
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      try
+        while SI.GetNext do
+          if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node) or
+             (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = Node) then
+            ChangedShapeFields(SI.Current, Field,
+              false, false, false, true);
+      finally FreeAndNil(SI) end;
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    end;
+  end;
+
+  procedure HandleChangeMaterial;
+  var
+    SI: TVRMLShapeTreeIterator;
+  begin
+    { VRML 2.0 Material affects only shapes where it's
+      placed inside Appearance.material field. }
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if SI.Current.State.ShapeNode.Material = Node then
+          ChangedShapeFields(SI.Current, Field,
+            false, false, false, false);
+    finally FreeAndNil(SI) end;
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  end;
+
   { Handle changes in Changes variable. }
   procedure HandleChanges;
   var
@@ -3486,8 +3524,9 @@ var
     BeginChangesSchedule;
     try
       if chTransform in Changes then HandleChangeTransform;
-
       if chCoordinate in Changes then HandleChangeCoordinate;
+      if chVisibleVRML1State in Changes then HandleVisibleVRML1State;
+      if chMaterial2 in Changes then HandleChangeMaterial;
 
       if Changes * [chVisibleGeometry, chVisibleNonGeometry,
         chViewer, chRedisplay] <> [] then
@@ -3503,7 +3542,6 @@ var
 
 var
   I: integer;
-  VRML1StateNode: TVRML1StateNode;
   SI: TVRMLShapeTreeIterator;
   TexCoord: TVRMLNode;
 begin
@@ -3542,19 +3580,6 @@ begin
 
   BeginChangesSchedule;
   try
-    if Node.VRML1StateNode(VRML1StateNode) then
-    begin
-      { Node is part of VRML 1.0 state, so it affects Shapes where
-        it's present on State.LastNodes list. }
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node) or
-             (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = Node) then
-            ChangedShapeFields(SI.Current, Field,
-              false, false, false, true);
-      finally FreeAndNil(SI) end;
-    end else
     if Node is TNodeX3DColorNode then
     begin
       { Affects all geometry nodes with "color" field referencing this node.
@@ -3571,18 +3596,6 @@ begin
 	     ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
 	     ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
 	     ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
-            ChangedShapeFields(SI.Current, Field,
-              false, false, false, false);
-      finally FreeAndNil(SI) end;
-    end else
-    if Node is TNodeMaterial_2 then
-    begin
-      { VRML 2.0 Material affects only shapes where it's
-        placed inside Appearance.material field. }
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if SI.Current.State.ShapeNode.Material = Node then
             ChangedShapeFields(SI.Current, Field,
               false, false, false, false);
       finally FreeAndNil(SI) end;

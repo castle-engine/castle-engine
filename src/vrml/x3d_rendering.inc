@@ -1606,6 +1606,7 @@ begin
   inherited;
 
   FFdvector := TMFVec3f.Create(Self, 'vector', []);
+   Fdvector.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdvector);
   { X3D specification comment: [-1,1] }
 

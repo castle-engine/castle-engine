@@ -1226,12 +1226,15 @@ begin
   inherited;
 
   FFdsize := TSFFloat.Create(Self, 'size', 10, true);
+   Fdsize.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdsize);
 
   FFdfamily := TSFEnum.Create(Self, 'family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF);
+   Fdfamily.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdfamily);
 
   FFdstyle := TSFBitMask.Create(Self, 'style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]);
+   Fdstyle.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdstyle);
 end;
 
@@ -1347,45 +1350,59 @@ begin
   inherited;
 
   FFdambientColor := TMFColor.Create(Self, 'ambientColor', [DefaultMaterial_1AmbientColor]);
+   FdambientColor.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdambientColor);
 
   FFddiffuseColor := TMFColor.Create(Self, 'diffuseColor', [DefaultMaterialDiffuseColor]);
+   FddiffuseColor.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFddiffuseColor);
 
   FFdspecularColor := TMFColor.Create(Self, 'specularColor', [DefaultMaterialSpecularColor]);
+   FdspecularColor.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdspecularColor);
 
   FFdemissiveColor := TMFColor.Create(Self, 'emissiveColor', [DefaultMaterialEmissiveColor]);
+   FdemissiveColor.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdemissiveColor);
 
   FFdshininess := TMFFloat.Create(Self, 'shininess', [DefaultMaterialShininess]);
+   Fdshininess.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdshininess);
 
   FFdtransparency := TMFFloat.Create(Self, 'transparency', [DefaultMaterialTransparency]);
+   Fdtransparency.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdtransparency);
 
   FFdmirror := TMFFloat.Create(Self, 'mirror', [DefaultMaterialMirror]);
+   Fdmirror.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdmirror);
 
   FFdreflSpecular := TMFColor.Create(Self, 'reflSpecular', []);
+   FdreflSpecular.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdreflSpecular);
 
   FFdreflDiffuse := TMFColor.Create(Self, 'reflDiffuse', []);
+   FdreflDiffuse.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdreflDiffuse);
 
   FFdtransSpecular := TMFColor.Create(Self, 'transSpecular', []);
+   FdtransSpecular.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdtransSpecular);
 
   FFdtransDiffuse := TMFColor.Create(Self, 'transDiffuse', []);
+   FdtransDiffuse.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdtransDiffuse);
 
   FFdreflSpecularExp := TMFFloat.Create(Self, 'reflSpecularExp', [DefaultMaterialReflSpecularExp]);
+   FdreflSpecularExp.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdreflSpecularExp);
 
   FFdtransSpecularExp := TMFFloat.Create(Self, 'transSpecularExp', [DefaultMaterialTransSpecularExp]);
+   FdtransSpecularExp.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdtransSpecularExp);
 
   FFdfogImmune := TSFBool.Create(Self, 'fogImmune', false);
+   FdfogImmune.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdfogImmune);
 end;
 
@@ -1632,6 +1649,7 @@ begin
   inherited;
 
   FFdvalue := TSFEnum.Create(Self, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 1);
+   Fdvalue.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdvalue);
 end;
 
@@ -1653,6 +1671,7 @@ begin
   inherited;
 
   FFdvalue := TSFEnum.Create(Self, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 0);
+   Fdvalue.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdvalue);
 end;
 
@@ -1674,21 +1693,27 @@ begin
   inherited;
 
   FFdfilename := TSFString.Create(Self, 'filename', '');
+   Fdfilename.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdfilename);
 
   FFdimage := TSFImage.Create(Self, 'image', nil);
+   Fdimage.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdimage);
 
   FFdwrapS := TSFEnum.Create(Self, 'wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
+   FdwrapS.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdwrapS);
 
   FFdwrapT := TSFEnum.Create(Self, 'wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
+   FdwrapT.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdwrapT);
 
   FFdmodel := TSFEnum.Create(Self, 'model', ['DECAL'], 0);
+  // Fdmodel.ChangesAlways := [chVisibleVRML1State]; <- this field is ignored now
   Fields.Add(FFdmodel);
 
   FFdblendColor := TSFVec3f.Create(Self, 'blendColor', Vector3Single(0, 0, 0));
+  // FdblendColor.ChangesAlways := [chVisibleVRML1State]; <- this field is ignored now
   Fields.Add(FFdblendColor);
 end;
 
@@ -1818,6 +1843,7 @@ begin
   inherited;
 
   FFdpoint := TMFVec2f.Create(Self, 'point', [Vector2Single(0, 0)]);
+   Fdpoint.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdpoint);
 end;
 
@@ -1840,15 +1866,19 @@ begin
   inherited;
 
   FFdvertexOrdering := TSFEnum.Create(Self, 'vertexOrdering', ['UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE'], VERTORDER_UNKNOWN);
+   FdvertexOrdering.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdvertexOrdering);
 
   FFdshapeType := TSFEnum.Create(Self, 'shapeType', ['UNKNOWN_SHAPE_TYPE', 'SOLID'], SHTYPE_UNKNOWN);
+   FdshapeType.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdshapeType);
 
   FFdfaceType := TSFEnum.Create(Self, 'faceType', ['UNKNOWN_FACE_TYPE', 'CONVEX'], FACETYPE_CONVEX);
+   FdfaceType.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdfaceType);
 
   FFdcreaseAngle := TSFFloat.Create(Self, 'creaseAngle', DefaultVRML1CreaseAngle);
+   FdcreaseAngle.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdcreaseAngle);
 end;
 

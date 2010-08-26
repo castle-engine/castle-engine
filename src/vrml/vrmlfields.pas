@@ -105,14 +105,30 @@ type
 
     { Transformation of children of this node changed.
 
-      Don't include chVisibleGeometry or such with this.
-      The caller will correctly analyze your children, and determine what
-      visile changed. }
+      Caller will analyze the scene (your children) to know what this implicates,
+      don't include other flags with this. }
     chTransform,
 
     { Coordinate node "point" field changed.
-      Called will analyze the scene to know what this implicates. }
-    chCoordinate);
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chCoordinate,
+
+    { Something visible in VRML 1.0 state node (that may be present
+      in TVRMLGraphTraverseState.LastNodes) changed.
+      Excluding Coordinate node change (this one should go through chCoordinate
+      only).
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chVisibleVRML1State,
+
+    { Something visible in VRML >= 2.0 Material node changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chMaterial2);
   TVRMLChanges = set of TVRMLChange;
 
 { ---------------------------------------------------------------------------- }
