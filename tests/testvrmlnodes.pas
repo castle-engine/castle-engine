@@ -1168,6 +1168,9 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       FieldIs(Field, TNodeX3DViewpointNode, 'jump') or { also not implemented }
       FieldIs(Field, TNodeX3DViewpointNode, 'retainUserOffsets') or { also not implemented }
       FieldIs(Field, TNodeX3DViewpointNode, 'centerOfRotation') or { also not implemented }
+      FieldIs(Field, TVRMLViewpointNode, 'cameraMatrixSendAlsoOnOffscreenRendering') or
+      FieldIs(Field, TVRMLCameraNode_1, 'focalDistance') or
+      FieldIs(Field, TVRMLCameraNode_1, 'heightAngle') or
       { TODO: stuff implemented, but changes not implemented
         (not even chEverything would help) }
       (Field.ParentNode is TNodeNavigationInfo) or
@@ -1218,6 +1221,8 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TNodeRigidBodyCollection) or
       (Field.ParentNode is TNodePickableGroup) or
       (Field.ParentNode is TNodeParticleSystem) or
+      (Field.ParentNode is TNodeViewpointGroup) or
+      (Field.ParentNode is TNodeViewport) or
       false { just to have nice newlines };
   end;
 
