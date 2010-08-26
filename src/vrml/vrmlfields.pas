@@ -127,8 +127,8 @@ type
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
-      Exception: you can (and should) include chUseBlending for appropriate
-      Material changes. }
+      Exception: you can (and should) include chUseBlending and
+      chTextureImage for appropriate changes. }
     chVisibleVRML1State,
 
     { Something visible in VRML >= 2.0 Material (or TwoSidedMaterial) changed.
@@ -220,6 +220,20 @@ type
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this. }
     chViewpointProjection,
+
+    { TVRMLTextureNode image needs reloading (url or source SFImage
+      data changed).
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this.
+      Exception: you can mix it with chVisibleVRML1State. }
+    chTextureImage,
+
+    { What is considered a shadow caster changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chShadowCasters,
 
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
@@ -2391,6 +2405,8 @@ const
     'Time stop/start/pause/resume',
     'Viewpoint vectors',
     'Viewpoint projection',
+    'Texture image',
+    'Shadow caster',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

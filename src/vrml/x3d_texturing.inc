@@ -746,6 +746,7 @@ begin
   inherited;
 
   FFdurl := TMFString.Create(Self, 'url', []);
+   Fdurl.ChangesAlways := [chTextureImage];
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 end;
@@ -972,6 +973,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 
   FFdurl := TMFString.Create(Self, 'url', []);
+   Fdurl.ChangesAlways := [chTextureImage];
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
@@ -1190,6 +1192,7 @@ begin
   inherited;
 
   FFdimage := TSFImage.Create(Self, 'image', nil);
+   Fdimage.ChangesAlways := [chTextureImage];
   Fields.Add(FFdimage);
   { X3D specification comment: 0 0 }
   end;

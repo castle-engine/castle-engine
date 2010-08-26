@@ -3722,68 +3722,58 @@ var
         - or a field of bound viewpoint that doesn't affect it's vectors. }
   end;
 
+  procedure HandleChangeTextureImage;
+  var
+    SI: TVRMLShapeTreeIterator;
+  begin
+    { On change of TVRMLTextureNode field that changes the result of
+      TVRMLTextureNode.LoadTextureData, we have to explicitly release
+      old texture (otherwise, LoadTextureData will not be called
+      to reload the texture). }
+    TVRMLTextureNode(Node).IsTextureLoaded := false;
+
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+      begin
+        if SI.Current.UsesTexture(TVRMLTextureNode(Node)) then
+          ChangedShapeFields(SI.Current, Field,
+            false, false, true, false, Changes);
+      end;
+    finally FreeAndNil(SI) end;
+  end;
+
+  procedure HandleChangeShadowCasters;
+  begin
+    { When Appearance.shadowCaster field changed, then
+      TrianglesListShadowCasters and Manifold/BorderEdges change. }
+    InvalidateTrianglesListShadowCasters;
+    InvalidateManifoldAndBorderEdges;
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  end;
+
   procedure HandleChangeEverything;
   begin
     { An arbitrary change occured. }
     ScheduleChangedAll;
   end;
 
-  { Handle changes in Changes variable. }
-  procedure HandleChanges;
+  { Handle all four flags chVisibleGeometry, chVisibleNonGeometry,
+    chViewer, chRedisplay. }
+  procedure HandleVisibleChange;
   var
     VisibleChanges: TVisibleChanges;
   begin
-    { Optimize Changes = [] case: no need even for Begin/EndChangesSchedule }
-    if Changes = [] then Exit;
-
-    BeginChangesSchedule;
-    try
-      if chTransform in Changes then HandleChangeTransform;
-      if chCoordinate in Changes then HandleChangeCoordinate;
-      if chVisibleVRML1State in Changes then HandleVisibleVRML1State;
-      if chMaterial2 in Changes then HandleChangeMaterial;
-      if chLightActiveProperty    in Changes then HandleChangeLightActiveProperty;
-      if chLightForShadowVolumes  in Changes then HandleChangeLightForShadowVolumes;
-      if chLightLocationDirection in Changes then HandleChangeLightLocationDirection;
-      if chSwitch2 in Changes then HandleChangeSwitch2;
-      if chColorNode in Changes then HandleChangeColorNode;
-      if chTextureCoordinate in Changes then HandleChangeTextureCoordinate;
-      if chTextureTransform in Changes then HandleChangeTextureTransform;
-      if chGeometry in Changes then HandleChangeGeometry;
-      if chEnvironmentalSensorBounds in Changes then HandleChangeEnvironmentalSensorBounds;
-      if chTimeStopStart in Changes then HandleChangeTimeStopStart;
-      if chViewpointVectors in Changes then HandleChangeViewpointVectors;
-      { TODO: if chViewpointProjection then HandleChangeViewpointProjection }
-      if chEverything in Changes then HandleChangeEverything;
-
-      if Changes * [chVisibleGeometry, chVisibleNonGeometry,
-        chViewer, chRedisplay] <> [] then
-      begin
-        VisibleChanges := [];
-        if chVisibleGeometry    in Changes then Include(VisibleChanges, vcVisibleGeometry);
-        if chVisibleNonGeometry in Changes then Include(VisibleChanges, vcVisibleNonGeometry);
-        if chViewer             in Changes then Include(VisibleChanges, vcViewer);
-        VisibleChangeHere(VisibleChanges);
-      end;
-    finally EndChangesSchedule end;
+    VisibleChanges := [];
+    if chVisibleGeometry    in Changes then Include(VisibleChanges, vcVisibleGeometry);
+    if chVisibleNonGeometry in Changes then Include(VisibleChanges, vcVisibleNonGeometry);
+    if chViewer             in Changes then Include(VisibleChanges, vcViewer);
+    VisibleChangeHere(VisibleChanges);
   end;
 
-var
-  SI: TVRMLShapeTreeIterator;
 begin
-  Assert(Field.ParentNode <> nil);
   Node := TVRMLNode(Field.ParentNode);
-
-  Changes := Field.Changes;
-
-  if Log and LogChanges then
-    DoLogChanges;
-
-  if not (chSceneAlgorithm in Changes) then
-  begin
-    HandleChanges;
-    Exit;
-  end;
+  Assert(Node <> nil);
 
   { We used to check here RootNode.IsNodePresent, to eliminate
     changes to nodes not in our graph. This is not done now, because:
@@ -3802,59 +3792,39 @@ begin
        by Proxy methods (geometry and new state nodes).
   }
 
-  { Test other changes: }
+  Changes := Field.Changes;
+
+  if Log and LogChanges then
+    DoLogChanges;
+
+  { Optimize Changes = [] case: no need even for Begin/EndChangesSchedule }
+  if Changes = [] then Exit;
 
   BeginChangesSchedule;
   try
-    if ( (Node is TNodePixelTexture) and
-         (TNodePixelTexture(Node).FdImage = Field) ) or
-       ( (Node is TNodeImageTexture) and
-         (TNodeImageTexture(Node).FdUrl = Field) ) or
-       ( (Node is TNodeMovieTexture) and
-         { TODO: we will not get here, as previous
-           "if Node is TNodeMovieTexture" hides this }
-         (TNodeMovieTexture(Node).FdUrl = Field) ) or
-       ( (Node is TNodeTexture2) and
-         ( (TNodeTexture2(Node).FdFilename = Field) or
-           (TNodeTexture2(Node).FdImage = Field) ) ) then
-    begin
-      { On change of TVRMLTextureNode field that changes the result of
-        TVRMLTextureNode.LoadTextureData, we have to explicitly release
-        old texture (otherwise, LoadTextureData will not be called
-        to reload the texture). }
-      TVRMLTextureNode(Node).IsTextureLoaded := false;
+    if chTransform in Changes then HandleChangeTransform;
+    if chCoordinate in Changes then HandleChangeCoordinate;
+    if chVisibleVRML1State in Changes then HandleVisibleVRML1State;
+    if chMaterial2 in Changes then HandleChangeMaterial;
+    if chLightActiveProperty    in Changes then HandleChangeLightActiveProperty;
+    if chLightForShadowVolumes  in Changes then HandleChangeLightForShadowVolumes;
+    if chLightLocationDirection in Changes then HandleChangeLightLocationDirection;
+    if chSwitch2 in Changes then HandleChangeSwitch2;
+    if chColorNode in Changes then HandleChangeColorNode;
+    if chTextureCoordinate in Changes then HandleChangeTextureCoordinate;
+    if chTextureTransform in Changes then HandleChangeTextureTransform;
+    if chGeometry in Changes then HandleChangeGeometry;
+    if chEnvironmentalSensorBounds in Changes then HandleChangeEnvironmentalSensorBounds;
+    if chTimeStopStart in Changes then HandleChangeTimeStopStart;
+    if chViewpointVectors in Changes then HandleChangeViewpointVectors;
+    { TODO: if chViewpointProjection then HandleChangeViewpointProjection }
+    if chTextureImage in Changes then HandleChangeTextureImage;
+    if chShadowCasters in Changes then HandleChangeShadowCasters;
+    if chEverything in Changes then HandleChangeEverything;
 
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-        begin
-          if SI.Current.UsesTexture(TVRMLTextureNode(Node)) then
-            ChangedShapeFields(SI.Current, Field,
-              false, false, true, false, Changes);
-        end;
-      finally FreeAndNil(SI) end;
-    end else
-    if (Node is TNodeAppearance) and
-       (TNodeAppearance(Node).FdShadowCaster = Field) then
-    begin
-      { When Appearance.shadowCaster field changed, then
-        TrianglesListShadowCasters and Manifold/BorderEdges change. }
-      InvalidateTrianglesListShadowCasters;
-      InvalidateManifoldAndBorderEdges;
-    end else
-    begin
-      { Node is something else. So we must assume that an arbitrary change
-        occured, possibly changing State of following and/or children
-        nodes of this Node. }
-
-      if Log and LogChanges then
-        DoLogChanges('-> causes ChangedAll (no optimized action)');
-
-      ScheduleChangedAll;
-      Exit;
-    end;
-
-    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    if Changes * [chVisibleGeometry, chVisibleNonGeometry,
+      chViewer, chRedisplay] <> [] then
+      HandleVisibleChange;
   finally EndChangesSchedule end;
 end;
 

@@ -1715,11 +1715,11 @@ begin
   inherited;
 
   FFdfilename := TSFString.Create(Self, 'filename', '');
-   Fdfilename.ChangesAlways := [chVisibleVRML1State];
+   Fdfilename.ChangesAlways := [chVisibleVRML1State, chTextureImage];
   Fields.Add(FFdfilename);
 
   FFdimage := TSFImage.Create(Self, 'image', nil);
-   Fdimage.ChangesAlways := [chVisibleVRML1State];
+   Fdimage.ChangesAlways := [chVisibleVRML1State, chTextureImage];
   Fields.Add(FFdimage);
 
   FFdwrapS := TSFEnum.Create(Self, 'wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);

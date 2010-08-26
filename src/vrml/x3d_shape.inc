@@ -510,6 +510,7 @@ begin
   Fields.Add(FFdReceiveShadows);
 
   FFdShadowCaster := TSFBool.Create(Self, 'shadowCaster', true);
+   FdShadowCaster.ChangesAlways := [chShadowCasters];
   Fields.Add(FFdShadowCaster);
 
   { In edition 2 of X3D XML encoding, this is empty... but in earlier
