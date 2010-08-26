@@ -536,62 +536,76 @@ begin
   inherited;
 
   FFdcontrolPoint := TSFNode.Create(Self, 'controlPoint', [TNodeX3DCoordinateNode]);
+   FdcontrolPoint.ChangesAlways := [chGeometry];
   Fields.Add(FFdcontrolPoint);
 
   FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode, TNodeNurbsTextureCoordinate]);
+   FdtexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdtexCoord);
 
   FFduTessellation := TSFInt32.Create(Self, 'uTessellation', 0);
+   FduTessellation.ChangesAlways := [chGeometry];
   Fields.Add(FFduTessellation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdvTessellation := TSFInt32.Create(Self, 'vTessellation', 0);
+   FdvTessellation.ChangesAlways := [chGeometry];
   Fields.Add(FFdvTessellation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdweight := TMFDouble.Create(Self, 'weight', []);
+   Fdweight.ChangesAlways := [chGeometry];
   Fields.Add(FFdweight);
   { X3D specification comment: (0,Inf) }
 
   FFdsolid := TSFBool.Create(Self, 'solid', true);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 
   FFduClosed := TSFBool.Create(Self, 'uClosed', false);
-  FFduClosed.Exposed := false;
+   FduClosed.Exposed := false;
+   FduClosed.ChangesAlways := [chGeometry];
   Fields.Add(FFduClosed);
 
   FFduDimension := TSFInt32.Create(Self, 'uDimension', 0);
-  FFduDimension.Exposed := false;
+   FduDimension.Exposed := false;
+   FduDimension.ChangesAlways := [chGeometry];
   Fields.Add(FFduDimension);
   { X3D specification comment: [0,Inf) }
 
   FFduKnot := TMFDouble.Create(Self, 'uKnot', []);
-  FFduKnot.Exposed := false;
+   FduKnot.Exposed := false;
+   FduKnot.ChangesAlways := [chGeometry];
   Fields.Add(FFduKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFduOrder := TSFInt32.Create(Self, 'uOrder', 3);
-  FFduOrder.Exposed := false;
+   FduOrder.Exposed := false;
+   FduOrder.ChangesAlways := [chGeometry];
   Fields.Add(FFduOrder);
   { X3D specification comment: [2,Inf) }
 
   FFdvClosed := TSFBool.Create(Self, 'vClosed', false);
-  FFdvClosed.Exposed := false;
+   FdvClosed.Exposed := false;
+   FdvClosed.ChangesAlways := [chGeometry];
   Fields.Add(FFdvClosed);
 
   FFdvDimension := TSFInt32.Create(Self, 'vDimension', 0);
-  FFdvDimension.Exposed := false;
+   FdvDimension.Exposed := false;
+   FdvDimension.ChangesAlways := [chGeometry];
   Fields.Add(FFdvDimension);
   { X3D specification comment: [0,Inf) }
 
   FFdvKnot := TMFDouble.Create(Self, 'vKnot', []);
-  FFdvKnot.Exposed := false;
+   FdvKnot.Exposed := false;
+   FdvKnot.ChangesAlways := [chGeometry];
   Fields.Add(FFdvKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdvOrder := TSFInt32.Create(Self, 'vOrder', 3);
-  FFdvOrder.Exposed := false;
+   FdvOrder.Exposed := false;
+   FdvOrder.ChangesAlways := [chGeometry];
   Fields.Add(FFdvOrder);
   { X3D specification comment: [2,Inf) }
 end;
@@ -617,6 +631,7 @@ begin
   FFdchildren := TMFNode.Create(Self, 'children', [TNodeNurbsCurve2D, TNodeContourPolyline2D,
     { In VRML 97 these are allowed children too: }
     TNodePolyline2D, TNodeContour2D ]);
+   Fdchildren.ChangesAlways := [chGeometry];
   Fields.Add(FFdchildren);
 
   DefaultContainerField := 'trimmingContour';
@@ -719,27 +734,33 @@ begin
   inherited;
 
   FFdcontrolPoint := TSFNode.Create(Self, 'controlPoint', [TNodeX3DCoordinateNode]);
+   FdcontrolPoint.ChangesAlways := [chGeometry];
   Fields.Add(FFdcontrolPoint);
 
   FFdtessellation := TSFInt32.Create(Self, 'tessellation', 0);
+   Fdtessellation.ChangesAlways := [chGeometry];
   Fields.Add(FFdtessellation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdweight := TMFDouble.Create(Self, 'weight', []);
+   Fdweight.ChangesAlways := [chGeometry];
   Fields.Add(FFdweight);
   { X3D specification comment: (0,Inf) }
 
   FFdclosed := TSFBool.Create(Self, 'closed', false);
-  FFdclosed.Exposed := false;
+   Fdclosed.Exposed := false;
+   Fdclosed.ChangesAlways := [chGeometry];
   Fields.Add(FFdclosed);
 
   FFdknot := TMFDouble.Create(Self, 'knot', []);
-  FFdknot.Exposed := false;
+   Fdknot.Exposed := false;
+   Fdknot.ChangesAlways := [chGeometry];
   Fields.Add(FFdknot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdorder := TSFInt32.Create(Self, 'order', 3);
-  FFdorder.Exposed := false;
+   Fdorder.Exposed := false;
+   Fdorder.ChangesAlways := [chGeometry];
   Fields.Add(FFdorder);
   { X3D specification comment: [2,Inf) }
 end;
@@ -882,16 +903,16 @@ begin
   { X3D specification comment: (0,Inf) }
 
   FFdclosed := TSFBool.Create(Self, 'closed', false);
-  FFdclosed.Exposed := false;
+   Fdclosed.Exposed := false;
   Fields.Add(FFdclosed);
 
   FFdknot := TMFDouble.Create(Self, 'knot', []);
-  FFdknot.Exposed := false;
+   Fdknot.Exposed := false;
   Fields.Add(FFdknot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdorder := TSFInt32.Create(Self, 'order', 3);
-  FFdorder.Exposed := false;
+   Fdorder.Exposed := false;
   Fields.Add(FFdorder);
   { X3D specification comment: [2,Inf) }
 
@@ -1662,17 +1683,21 @@ begin
   inherited;
 
   FFdcrossSectionCurve := TSFNode.Create(Self, 'crossSectionCurve', [TNodeX3DNurbsControlCurveNode]);
+   FdcrossSectionCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdcrossSectionCurve);
 
   FFdtrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TNodeNurbsCurve_3]);
+   FdtrajectoryCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdtrajectoryCurve);
 
   FFdccw := TSFBool.Create(Self, 'ccw', true);
-  FFdccw.Exposed := false;
+   Fdccw.Exposed := false;
+   Fdccw.ChangesAlways := [chGeometry];
   Fields.Add(FFdccw);
 
   FFdsolid := TSFBool.Create(Self, 'solid', true);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 end;
 
@@ -1711,17 +1736,21 @@ begin
   inherited;
 
   FFdprofileCurve := TSFNode.Create(Self, 'profileCurve', [TNodeX3DNurbsControlCurveNode]);
+   FdprofileCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdprofileCurve);
 
   FFdtrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TNodeX3DNurbsControlCurveNode]);
+   FdtrajectoryCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdtrajectoryCurve);
 
   FFdccw := TSFBool.Create(Self, 'ccw', true);
-  FFdccw.Exposed := false;
+   Fdccw.Exposed := false;
+   Fdccw.ChangesAlways := [chGeometry];
   Fields.Add(FFdccw);
 
   FFdsolid := TSFBool.Create(Self, 'solid', true);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 end;
 
@@ -1831,6 +1860,7 @@ begin
   Events.Add(FEventremoveTrimmingContour);
 
   FFdtrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D]);
+   FdtrimmingContour.ChangesAlways := [chGeometry];
   Fields.Add(FFdtrimmingContour);
 end;
 

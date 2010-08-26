@@ -3665,6 +3665,31 @@ var
     finally FreeAndNil(SI) end;
   end;
 
+  procedure HandleChangeGeometry;
+  var
+    SI: TVRMLShapeTreeIterator;
+  begin
+    { Geometry nodes, affect only shapes that use them. }
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        if (SI.Current.Geometry = Node) or
+           (SI.Current.OriginalGeometry = Node) then
+        begin
+          ChangedShapeFields(SI.Current, Field,
+            false, false, false, false
+            { We pass PossiblyLocalGeometryChanged = false,
+              as we'll do ScheduledLocalGeometryChangedCoord := true
+              later that will take care of it anyway.
+              For now, this may be slightly more optimal. },
+              Changes);
+
+          SI.Current.ScheduledLocalGeometryChanged := true;
+          ScheduleGeometryChanged;
+        end;
+    finally FreeAndNil(SI) end;
+  end;
+
   procedure HandleChangeEverything;
   begin
     { An arbitrary change occured. }
@@ -3692,6 +3717,7 @@ var
       if chColorNode in Changes then HandleChangeColorNode;
       if chTextureCoordinate in Changes then HandleChangeTextureCoordinate;
       if chTextureTransform in Changes then HandleChangeTextureTransform;
+      if chGeometry in Changes then HandleChangeGeometry;
       if chEverything in Changes then HandleChangeEverything;
 
       if Changes * [chVisibleGeometry, chVisibleNonGeometry,
@@ -3745,28 +3771,6 @@ begin
 
   BeginChangesSchedule;
   try
-    if Node is TVRMLGeometryNode then
-    begin
-      { Geometry nodes, affect only shapes that use them. }
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-      try
-        while SI.GetNext do
-          if (SI.Current.Geometry = Node) or
-             (SI.Current.OriginalGeometry = Node) then
-          begin
-            ChangedShapeFields(SI.Current, Field,
-              false, false, false, false
-              { We pass PossiblyLocalGeometryChanged = false,
-                as we'll do ScheduledLocalGeometryChangedCoord := true
-                later that will take care of it anyway.
-                For now, this may be slightly more optimal. },
-                Changes);
-
-            SI.Current.ScheduledLocalGeometryChanged := true;
-            ScheduleGeometryChanged;
-          end;
-      finally FreeAndNil(SI) end;
-    end else
     if Node is TNodeProximitySensor then
     begin
       if (Field = TNodeProximitySensor(Node).FdCenter) or

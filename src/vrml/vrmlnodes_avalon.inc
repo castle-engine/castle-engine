@@ -366,18 +366,22 @@ begin
   inherited;
 
   FFdsize := TSFVec3f.Create(Self, 'size', Vector3Single(3, 3, 3));
-  FFdsize.Exposed := false;
+   Fdsize.Exposed := false;
+   Fdsize.ChangesAlways := [chGeometry];
   Fields.Add(FFdsize);
 
   FFdsolid := TSFBool.Create(Self, 'solid', true);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 
   FFdmanifold := TSFBool.Create(Self, 'manifold', false);
-  FFdmanifold.Exposed := false;
+   Fdmanifold.Exposed := false;
+   Fdmanifold.ChangesAlways := [chGeometry];
   Fields.Add(FFdmanifold);
 
   FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+   FdtexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdtexCoord);
 end;
 
@@ -794,12 +798,14 @@ begin
   inherited;
 
   FFdsize := TSFVec2f.Create(Self, 'size', Vector2Single(2, 2));
-  FFdsize.Exposed := false;
+   Fdsize.Exposed := false;
+   Fdsize.ChangesAlways := [chGeometry];
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
 
   FFdsolid := TSFBool.Create(Self, 'solid', true);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 end;
 

@@ -441,21 +441,27 @@ begin
   inherited;
 
   FFdstring := TMFString.Create(Self, 'string', []);
+   Fdstring.ChangesAlways := [chGeometry];
   Fields.Add(FFdstring);
 
   FFdfontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2]);
+   FdfontStyle.ChangesAlways := [chGeometry];
   Fields.Add(FFdfontStyle);
 
   FFdlength := TMFFloat.Create(Self, 'length', []);
+   Fdlength.ChangesAlways := [chGeometry];
   Fields.Add(FFdlength);
 
   FFdmaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
+   FdmaxExtent.ChangesAlways := [chGeometry];
   Fields.Add(FFdmaxExtent);
 
   FFddepth := TSFFloat.Create(Self, 'depth', 0.1, true);
+   Fddepth.ChangesAlways := [chGeometry];
   Fields.Add(FFddepth);
 
   FFdsolid := TSFBool.Create(Self, 'solid', true);
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 end;
 

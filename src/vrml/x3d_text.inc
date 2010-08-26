@@ -391,17 +391,21 @@ begin
   inherited;
 
   FFdfontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeX3DFontStyleNode]);
+   FdfontStyle.ChangesAlways := [chGeometry];
   Fields.Add(FFdfontStyle);
 
   FFdlength := TMFFloat.Create(Self, 'length', []);
+   Fdlength.ChangesAlways := [chGeometry];
   Fields.Add(FFdlength);
   { X3D specification comment: [0,Inf) }
 
   FFdmaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
+   FdmaxExtent.ChangesAlways := [chGeometry];
   Fields.Add(FFdmaxExtent);
   { X3D specification comment: [0,Inf) }
 
   FFdstring := TMFString.Create(Self, 'string', []);
+   Fdstring.ChangesAlways := [chGeometry];
   Fields.Add(FFdstring);
 
   FEventlineBounds := TVRMLEvent.Create(Self, 'lineBounds', TMFVec2f, false);
@@ -414,7 +418,8 @@ begin
   Events.Add(FEventtextBounds);
 
   FFdsolid := TSFBool.Create(Self, 'solid', false);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 end;
 

@@ -109,7 +109,7 @@ type
       don't include other flags with this. }
     chTransform,
 
-    { Coordinate node "point" field changed.
+    { Coordinate (both VRML 1.0 and >= 2.0) node "point" field changed.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this. }
@@ -185,6 +185,12 @@ type
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this. }
     chTextureTransform,
+
+    { Geometry node visible (or collidable) changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chGeometry,
 
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
@@ -2351,6 +2357,7 @@ const
     'Color node',
     'Texture coordinate',
     'Texture transform',
+    'Geometry',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

@@ -234,17 +234,20 @@ begin
   inherited;
 
   FFdendAngle := TSFFloat.Create(Self, 'endAngle', Pi/2);
-  FFdendAngle.Exposed := false;
+   FdendAngle.Exposed := false;
+   FdendAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdendAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
   FFdradius := TSFFloat.Create(Self, 'radius', 1);
-  FFdradius.Exposed := false;
+   Fdradius.Exposed := false;
+   Fdradius.ChangesAlways := [chGeometry];
   Fields.Add(FFdradius);
   { X3D specification comment: (0,Inf) }
 
   FFdstartAngle := TSFFloat.Create(Self, 'startAngle', 0);
-  FFdstartAngle.Exposed := false;
+   FdstartAngle.Exposed := false;
+   FdstartAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdstartAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 end;
@@ -277,26 +280,31 @@ begin
   inherited;
 
   FFdclosureType := TSFString.Create(Self, 'closureType', 'PIE');
-  FFdclosureType.Exposed := false;
+   FdclosureType.Exposed := false;
+   FdclosureType.ChangesAlways := [chGeometry];
   Fields.Add(FFdclosureType);
   { X3D specification comment: ["PIE"|"CHORD"] }
 
   FFdendAngle := TSFFloat.Create(Self, 'endAngle', Pi/2);
-  FFdendAngle.Exposed := false;
+   FdendAngle.Exposed := false;
+   FdendAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdendAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
   FFdradius := TSFFloat.Create(Self, 'radius', 1);
-  FFdradius.Exposed := false;
+   Fdradius.Exposed := false;
+   Fdradius.ChangesAlways := [chGeometry];
   Fields.Add(FFdradius);
   { X3D specification comment: (0,Inf) }
 
   FFdsolid := TSFBool.Create(Self, 'solid', false);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 
   FFdstartAngle := TSFFloat.Create(Self, 'startAngle', 0);
-  FFdstartAngle.Exposed := false;
+   FdstartAngle.Exposed := false;
+   FdstartAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdstartAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 end;
@@ -329,7 +337,8 @@ begin
   inherited;
 
   FFdradius := TSFFloat.Create(Self, 'radius', 1);
-  FFdradius.Exposed := false;
+   Fdradius.Exposed := false;
+   Fdradius.ChangesAlways := [chGeometry];
   Fields.Add(FFdradius);
   { X3D specification comment: (0,Inf) }
 end;
@@ -359,17 +368,20 @@ begin
   inherited;
 
   FFdinnerRadius := TSFFloat.Create(Self, 'innerRadius', 0);
-  FFdinnerRadius.Exposed := false;
+   FdinnerRadius.Exposed := false;
+   FdinnerRadius.ChangesAlways := [chGeometry];
   Fields.Add(FFdinnerRadius);
   { X3D specification comment: [0,Inf) }
 
   FFdouterRadius := TSFFloat.Create(Self, 'outerRadius', 1);
-  FFdouterRadius.Exposed := false;
+   FdouterRadius.Exposed := false;
+   FdouterRadius.ChangesAlways := [chGeometry];
   Fields.Add(FFdouterRadius);
   { X3D specification comment: (0,Inf) }
 
   FFdsolid := TSFBool.Create(Self, 'solid', false);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 end;
 
@@ -401,7 +413,8 @@ begin
   inherited;
 
   FFdlineSegments := TMFVec2f.Create(Self, 'lineSegments', []);
-  FFdlineSegments.Exposed := false;
+   FdlineSegments.Exposed := false;
+   FdlineSegments.ChangesAlways := [chGeometry];
   Fields.Add(FFdlineSegments);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -438,6 +451,7 @@ begin
   inherited;
 
   FFdpoint := TMFVec2f.Create(Self, 'point', []);
+   Fdpoint.ChangesAlways := [chGeometry];
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -470,12 +484,14 @@ begin
   inherited;
 
   FFdsize := TSFVec2f.Create(Self, 'size', Vector2Single(2, 2));
-  FFdsize.Exposed := false;
+   Fdsize.Exposed := false;
+   Fdsize.ChangesAlways := [chGeometry];
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
 
   FFdsolid := TSFBool.Create(Self, 'solid', false);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 end;
 
@@ -504,11 +520,13 @@ begin
   inherited;
 
   FFdvertices := TMFVec2f.Create(Self, 'vertices', []);
+   Fdvertices.ChangesAlways := [chGeometry];
   Fields.Add(FFdvertices);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdsolid := TSFBool.Create(Self, 'solid', false);
-  FFdsolid.Exposed := false;
+   Fdsolid.Exposed := false;
+   Fdsolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdsolid);
 end;
 

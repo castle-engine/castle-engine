@@ -975,15 +975,19 @@ begin
   inherited;
 
   FFdstring := TMFString.Create(Self, 'string', ['']);
+   Fdstring.ChangesAlways := [chGeometry];
   Fields.Add(FFdstring);
 
   FFdspacing := TSFFloat.Create(Self, 'spacing', 1);
+   Fdspacing.ChangesAlways := [chGeometry];
   Fields.Add(FFdspacing);
 
   FFdjustification := TSFEnum.Create(Self, 'justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT);
+   Fdjustification.ChangesAlways := [chGeometry];
   Fields.Add(FFdjustification);
 
   FFdwidth := TMFFloat.Create(Self, 'width', [0]);
+   Fdwidth.ChangesAlways := [chGeometry];
   Fields.Add(FFdwidth);
 end;
 
@@ -1002,12 +1006,15 @@ begin
   inherited;
 
   FFdparts := TSFBitMask.Create(Self, 'parts', ['SIDES', 'BOTTOM'], 'NONE', 'ALL', [true, true]);
+   Fdparts.ChangesAlways := [chGeometry];
   Fields.Add(FFdparts);
 
   FFdbottomRadius := TSFFloat.Create(Self, 'bottomRadius', 1, true);
+   FdbottomRadius.ChangesAlways := [chGeometry];
   Fields.Add(FFdbottomRadius);
 
   FFdheight := TSFFloat.Create(Self, 'height', 2, true);
+   Fdheight.ChangesAlways := [chGeometry];
   Fields.Add(FFdheight);
 end;
 
@@ -1026,12 +1033,15 @@ begin
   inherited;
 
   FFdwidth := TSFFloat.Create(Self, 'width', 2, true);
+   Fdwidth.ChangesAlways := [chGeometry];
   Fields.Add(FFdwidth);
 
   FFdheight := TSFFloat.Create(Self, 'height', 2, true);
+   Fdheight.ChangesAlways := [chGeometry];
   Fields.Add(FFdheight);
 
   FFddepth := TSFFloat.Create(Self, 'depth', 2, true);
+   Fddepth.ChangesAlways := [chGeometry];
   Fields.Add(FFddepth);
 end;
 
@@ -1050,12 +1060,15 @@ begin
   inherited;
 
   FFdparts := TSFBitMask.Create(Self, 'parts', ['SIDES', 'TOP', 'BOTTOM'], 'NONE', 'ALL', [true, true, true]);
+   Fdparts.ChangesAlways := [chGeometry];
   Fields.Add(FFdparts);
 
   FFdradius := TSFFloat.Create(Self, 'radius', 1, true);
+   Fdradius.ChangesAlways := [chGeometry];
   Fields.Add(FFdradius);
 
   FFdheight := TSFFloat.Create(Self, 'height', 2, true);
+   Fdheight.ChangesAlways := [chGeometry];
   Fields.Add(FFdheight);
 end;
 
@@ -1074,17 +1087,21 @@ begin
   inherited;
 
   FFdcoordIndex := TMFLong.Create(Self, 'coordIndex', [0]);
-  FFdcoordIndex.SaveToStreamLineUptoNegative := true;
+   FdcoordIndex.SaveToStreamLineUptoNegative := true;
+   FdcoordIndex.ChangesAlways := [chGeometry];
   Fields.Add(FFdcoordIndex);
 
   FFdmaterialIndex := TMFLong.Create(Self, 'materialIndex', [-1]);
+   FdmaterialIndex.ChangesAlways := [chGeometry];
   Fields.Add(FFdmaterialIndex);
 
   FFdnormalIndex := TMFLong.Create(Self, 'normalIndex', [-1]);
+   FdnormalIndex.ChangesAlways := [chGeometry];
   Fields.Add(FFdnormalIndex);
 
   FFdtextureCoordIndex := TMFLong.Create(Self, 'textureCoordIndex', [-1]);
-  FFdtextureCoordIndex.SaveToStreamLineUptoNegative := true;
+   FdtextureCoordIndex.SaveToStreamLineUptoNegative := true;
+   FdtextureCoordIndex.ChangesAlways := [chGeometry];
   Fields.Add(FFdtextureCoordIndex);
 end;
 
@@ -1105,6 +1122,7 @@ begin
   inherited;
 
   FFdRadianceTransfer := TMFVec3f.Create(Self, 'radianceTransfer', []);
+   FdRadianceTransfer.ChangesAlways := [chGeometry];
   Fields.Add(FFdRadianceTransfer);
 end;
 
@@ -1137,9 +1155,11 @@ begin
   inherited;
 
   FFdstartIndex := TSFLong.Create(Self, 'startIndex', 0);
+   FdstartIndex.ChangesAlways := [chGeometry];
   Fields.Add(FFdstartIndex);
 
   FFdnumPoints := TSFLong.Create(Self, 'numPoints', -1);
+   FdnumPoints.ChangesAlways := [chGeometry];
   Fields.Add(FFdnumPoints);
 end;
 
@@ -1187,6 +1207,7 @@ begin
   inherited;
 
   FFdradius := TSFFloat.Create(Self, 'radius', 1, true);
+   Fdradius.ChangesAlways := [chGeometry];
   Fields.Add(FFdradius);
 end;
 
@@ -1205,6 +1226,7 @@ begin
   inherited;
 
   FFdpoint := TMFVec3f.Create(Self, 'point', [Vector3Single(0, 0, 0)]);
+   Fdpoint.ChangesAlways := [chCoordinate];
   Fields.Add(FFdpoint);
 end;
 
@@ -2506,7 +2528,7 @@ begin
   FFdwhichChild := TSFLong.Create(Self, 'whichChild', -1);
    FdwhichChild.ChangesAlways := [chEverything];
   Fields.Add(FFdwhichChild);
-  
+
   fParsingAllowedChildren := true;
   fAllowedChildren := true;
 end;

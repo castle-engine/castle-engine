@@ -322,7 +322,8 @@ begin
   Events.Add(FEventset_index);
 
   FFdindex := TMFInt32.Create(Self, 'index', []);
-  FFdindex.Exposed := false;
+   Fdindex.Exposed := false;
+   Fdindex.ChangesAlways := [chGeometry];
   Fields.Add(FFdindex);
   { X3D specification comment: [0,Inf) }
 end;
