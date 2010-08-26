@@ -699,7 +699,7 @@ constructor TNodeGeneratedShadowMap.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdupdate := TSFString.Create(Self, 'update', 'NONE');
+  FFdupdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
   Fields.Add(FFdupdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 

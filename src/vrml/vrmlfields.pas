@@ -354,6 +354,8 @@ type
   {$I objectslist_5.inc}
   TVRMLFieldOrEventsList = TObjectsList_5;
 
+  TVRMLFieldClass = class of TVRMLField;
+
   { Base class for all VRML fields.
 
     Common notes for all descendants: most of them expose field or property
@@ -419,6 +421,18 @@ type
     procedure VRMLFieldAssignCommon(Source: TVRMLField);
 
     procedure AssignValueRaiseInvalidClass(Source: TVRMLField);
+
+    { Class of the fields allowed in the exposed events of this field.
+      This should usually be using ClassType of this object,
+      and this is the default implementation of this method in TVRMLField.
+
+      You can override this to return some ancestor (from which, and to which,
+      you can assign) if you define a descendant of some field type
+      that doesn't change the @link(Assign) methods working.
+      E.g. TSFStringUpdate class, that is defined only to override
+      @link(Changes) method and wants to be fully compatible with normal
+      TSFString. }
+    function ExposedEventsFieldClass: TVRMLFieldClass; virtual;
   public
     { Normal constructor.
 
@@ -752,8 +766,6 @@ type
       ) }
     procedure Send(Value: TVRMLField);
   end;
-
-  TVRMLFieldClass = class of TVRMLField;
 
   TObjectsListItem_2 = TVRMLField;
   {$I objectslist_2.inc}
@@ -2553,7 +2565,7 @@ var
 begin
   Assert(Exposed);
   Assert(Event = FExposedEvents[true]);
-  Assert(Value is ClassType);
+  Assert(Value is ExposedEventsFieldClass);
 
   { When not ValuePossiblyChanged, we don't have to call ChangedField.
     (Although we still have to call FExposedEvents[false].Send,
@@ -2632,6 +2644,11 @@ begin
   end;
 end;
 
+function TVRMLField.ExposedEventsFieldClass: TVRMLFieldClass;
+begin
+  Result := TVRMLFieldClass(ClassType);
+end;
+
 procedure TVRMLField.SetExposed(Value: boolean);
 var
   I: Integer;
@@ -2642,11 +2659,9 @@ begin
     if Exposed then
     begin
       FExposedEvents[false] := TVRMLEvent.Create(ParentNode,
-        Name + ChangedSuffix,
-        TVRMLFieldClass(Self.ClassType), false);
+        Name + ChangedSuffix, ExposedEventsFieldClass, false);
       FExposedEvents[true] := TVRMLEvent.Create(ParentNode,
-        SetPrefix + Name,
-        TVRMLFieldClass(Self.ClassType), true);
+        SetPrefix + Name, ExposedEventsFieldClass, true);
 
       FExposedEvents[false].ParentExposedField := Self;
       FExposedEvents[true].ParentExposedField := Self;

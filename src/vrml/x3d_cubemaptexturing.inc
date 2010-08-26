@@ -186,12 +186,49 @@ begin
   FUpdateNeeded := true;
 end;
 
+type
+  { SFString for "update" field on rendered textures
+    (like GeneratedCubeMapTexture).
+
+    This causes appropriate @link(Changes): [chRedisplay] if value <> 'NONE'.
+    Then necessary things will be done automatically
+    at next UpdateGeneratedTextures call, so nothing besides chRedisplay
+    is required.
+
+    Note we do not pass chVisibleGeometry, chVisibleNonGeometry, or such.
+    So VisibleChangeHere will be called with [].
+    That's logical --- only the change of "update" field doesn't visibly
+    change anything on the scene. This means that if you change "update"
+    to "ALWAYS", but no visible change was registered since last update
+    of the texture, the texture will not be actually immediately
+    regenerated --- correct optimization!
+
+    If value is 'NONE', nothing needs to be done. }
+  TSFStringUpdate = class(TSFString)
+  protected
+    function ExposedEventsFieldClass: TVRMLFieldClass; override;
+  public
+    function Changes: TVRMLChanges; override;
+  end;
+
+function TSFStringUpdate.ExposedEventsFieldClass: TVRMLFieldClass;
+begin
+  Result := TSFString;
+end;
+
+function TSFStringUpdate.Changes: TVRMLChanges;
+begin
+  if Value <> 'NONE' then
+    Result := [chRedisplay] else
+    Result := [];
+end;
+
 constructor TNodeGeneratedCubeMapTexture.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
 
-  FFdupdate := TSFString.Create(Self, 'update', 'NONE');
+  FFdupdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
   Fields.Add(FFdupdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 

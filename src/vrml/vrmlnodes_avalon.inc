@@ -716,7 +716,7 @@ begin
   FEventprojection := TVRMLEvent.Create(Self, 'projection', TSFMatrix4f, false);
   Events.Add(FEventprojection);
 
-  FFdupdate := TSFString.Create(Self, 'update', 'NONE');
+  FFdupdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
   Fields.Add(FFdupdate);
 
   FFdframeBufferMode := TSFString.Create(Self, 'frameBufferMode', 'auto');
