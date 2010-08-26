@@ -3724,21 +3724,28 @@ var
         - or a field of bound viewpoint that doesn't affect it's vectors. }
   end;
 
-  procedure HandleChangeTextureImage;
+  { Handle chTextureImage, chTextureRendererProperties }
+  procedure HandleChangeTextureImageOrRenderer;
   var
     SI: TVRMLShapeTreeIterator;
   begin
-    { On change of TVRML2DTextureNode field that changes the result of
-      TVRML2DTextureNode.LoadTextureData, we have to explicitly release
-      old texture (otherwise, LoadTextureData will not be called
-      to reload the texture). }
-    (Node as TVRML2DTextureNode).IsTextureLoaded := false;
+    if chTextureImage in Changes then
+    begin
+      { On change of TVRML2DTextureNode field that changes the result of
+        TVRML2DTextureNode.LoadTextureData, we have to explicitly release
+        old texture (otherwise, LoadTextureData will not be called
+        to reload the texture). }
+      if Node is TVRML2DTextureNode then
+        TVRML2DTextureNode(Node).IsTextureLoaded := false;
+      if Node is TNodeX3DTexture3DNode then
+        TNodeX3DTexture3DNode(Node).TextureLoaded := false;
+    end;
 
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
       begin
-        if SI.Current.UsesTexture(TVRML2DTextureNode(Node)) then
+        if SI.Current.UsesTexture(TNodeX3DTextureNode(Node)) then
           ChangedShapeFields(SI.Current, Field,
             false, false, false, Changes);
       end;
@@ -3820,7 +3827,9 @@ begin
     if chTimeStopStart in Changes then HandleChangeTimeStopStart;
     if chViewpointVectors in Changes then HandleChangeViewpointVectors;
     { TODO: if chViewpointProjection then HandleChangeViewpointProjection }
-    if chTextureImage in Changes then HandleChangeTextureImage;
+    if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
+      HandleChangeTextureImageOrRenderer;
+    { TODO: chTexturePropertiesNode }
     if chShadowCasters in Changes then HandleChangeShadowCasters;
     if chEverything in Changes then HandleChangeEverything;
 

@@ -1171,6 +1171,16 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       FieldIs(Field, TVRMLViewpointNode, 'cameraMatrixSendAlsoOnOffscreenRendering') or
       FieldIs(Field, TVRMLCameraNode_1, 'focalDistance') or
       FieldIs(Field, TVRMLCameraNode_1, 'heightAngle') or
+      FieldIs(Field, TNodeMovieTexture, 'speed') or
+      { "update" field of generated textures --- this actually has
+        Changes <> [] when needed }
+      FieldIs(Field, TNodeGeneratedShadowMap, 'update') or
+      FieldIs(Field, TNodeRenderedTexture, 'update') or
+      FieldIs(Field, TNodeGeneratedCubeMapTexture, 'update') or
+      { My own spec doesn't specify what happens when these change.
+        We can just ignore it? }
+      FieldIs(Field, TNodeKambiInline, 'replaceNames') or
+      FieldIs(Field, TNodeKambiInline, 'replaceNodes') or
       { TODO: stuff implemented, but changes not implemented
         (not even chEverything would help) }
       (Field.ParentNode is TNodeNavigationInfo) or

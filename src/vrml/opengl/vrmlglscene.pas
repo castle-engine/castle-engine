@@ -3406,7 +3406,7 @@ begin
       end;
   end;
 
-  if chTextureImage in Changes then
+  if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
   begin
     Renderer.Unprepare(Shape.State.Texture);
     TVRMLGLShape(Shape).PreparedForRenderer := false;

@@ -187,19 +187,23 @@ begin
   inherited;
 
   FFdrepeatS := TSFBool.Create(Self, 'repeatS', false);
-  FFdrepeatS.Exposed := false;
+   FdrepeatS.Exposed := false;
+   FdrepeatS.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdrepeatS);
 
   FFdrepeatT := TSFBool.Create(Self, 'repeatT', false);
-  FFdrepeatT.Exposed := false;
+   FdrepeatT.Exposed := false;
+   FdrepeatT.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdrepeatT);
 
   FFdrepeatR := TSFBool.Create(Self, 'repeatR', false);
-  FFdrepeatR.Exposed := false;
+   FdrepeatR.Exposed := false;
+   FdrepeatR.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdrepeatR);
 
   FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
-  FFdtextureProperties.Exposed := false;
+   FdtextureProperties.Exposed := false;
+   FdtextureProperties.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdtextureProperties);
 end;
 
@@ -234,7 +238,11 @@ constructor TNodeComposedTexture3D.Create(const ANodeName: string;
 begin
   inherited;
 
+  { TODO: just like ComposedCubeMapTexture, we will not correctly
+    detect changes inside nodes in "texture". }
+
   FFdtexture := TMFNode.Create(Self, 'texture', [TNodeX3DTexture2DNode]);
+   Fdtexture.ChangesAlways := [chTextureImage];
   Fields.Add(FFdtexture);
 end;
 
@@ -347,6 +355,7 @@ begin
   inherited;
 
   FFdurl := TMFString.Create(Self, 'url', []);
+   Fdurl.ChangesAlways := [chTextureImage];
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 end;
@@ -416,6 +425,7 @@ begin
   inherited;
 
   FFdimage := TMFInt32.Create(Self, 'image', [0, 0, 0, 0]);
+   Fdimage.ChangesAlways := [chTextureImage];
   Fields.Add(FFdimage);
 end;
 

@@ -488,25 +488,32 @@ begin
   inherited;
 
   FFdfillProperties := TSFNode.Create(Self, 'fillProperties', [TNodeFillProperties]);
+   FdfillProperties.ChangesAlways := [chEverything];
   Fields.Add(FFdfillProperties);
 
   FFdlineProperties := TSFNode.Create(Self, 'lineProperties', [TNodeLineProperties]);
+   FdlineProperties.ChangesAlways := [chEverything];
   Fields.Add(FFdlineProperties);
 
   FFdmaterial := TSFNode.Create(Self, 'material', [TNodeX3DMaterialNode]);
+   Fdmaterial.ChangesAlways := [chEverything];
   Fields.Add(FFdmaterial);
 
   FFdshaders := TMFNode.Create(Self, 'shaders', [TNodeX3DShaderNode]);
+   Fdshaders.ChangesAlways := [chEverything];
   Fields.Add(FFdshaders);
 
   FFdtexture := TSFNode.Create(Self, 'texture', [TNodeX3DTextureNode]);
+   Fdtexture.ChangesAlways := [chEverything];
   Fields.Add(FFdtexture);
 
   FFdtextureTransform := TSFNode.Create(Self, 'textureTransform', [TNodeX3DTextureTransformNode]);
+   FdtextureTransform.ChangesAlways := [chEverything];
   Fields.Add(FFdtextureTransform);
 
   FFdReceiveShadows := TMFNode.Create(Self, 'receiveShadows', [TNodeX3DLightNode]);
-  FFdReceiveShadows.Exposed := false;
+   FdReceiveShadows.Exposed := false;
+   FdReceiveShadows.ChangesAlways := [chEverything];
   Fields.Add(FFdReceiveShadows);
 
   FFdShadowCaster := TSFBool.Create(Self, 'shadowCaster', true);

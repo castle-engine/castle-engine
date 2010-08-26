@@ -1346,6 +1346,7 @@ procedure TVRMLShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunctio
     if (Tex <> nil) and
        (Tex is TNodeMultiTexture) then
     begin
+      Enumerate(Self, TNodeMultiTexture(Tex));
       for I := 0 to TNodeMultiTexture(Tex).FdTexture.Items.Count - 1 do
         HandleSingleTextureNode(TNodeMultiTexture(Tex).FdTexture.Items.Items[I]);
     end else

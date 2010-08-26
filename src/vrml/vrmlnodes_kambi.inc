@@ -497,15 +497,19 @@ begin
   inherited;
 
   FFdsrcFactor := TSFString.Create(Self, 'srcFactor', 'src_alpha');
+   FdsrcFactor.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdsrcFactor);
 
   FFddestFactor := TSFString.Create(Self, 'destFactor', 'one_minus_src_alpha');
+   FddestFactor.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFddestFactor);
 
   FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
+   Fdcolor.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdcolor);
 
   FFdcolorTransparency := TSFFloat.Create(Self, 'colorTransparency', 0.0);
+   FdcolorTransparency.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdcolorTransparency);
 
   DefaultContainerField := 'blendMode';
@@ -528,15 +532,19 @@ begin
   inherited;
 
   FFdnormalMap := TSFNode.Create(Self, 'normalMap', [TNodeX3DTextureNode]);
+   FdnormalMap.ChangesAlways := [chEverything];
   Fields.Add(FFdnormalMap);
 
   FFdheightMap := TSFNode.Create(Self, 'heightMap', [TNodeX3DTextureNode]);
+   FdheightMap.ChangesAlways := [chEverything];
   Fields.Add(FFdheightMap);
 
   FFdheightMapScale := TSFFloat.Create(Self, 'heightMapScale', DefaultHeightMapScale);
+   FdheightMapScale.ChangesAlways := [chEverything];
   Fields.Add(FFdheightMapScale);
 
   FFdblendMode := TSFNode.Create(Self, 'blendMode', [TNodeBlendMode]);
+   FdblendMode.ChangesAlways := [chEverything];
   Fields.Add(FFdblendMode);
 end;
 
@@ -711,6 +719,7 @@ begin
 
   FFdsize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
    Fdsize.Exposed := false;
+   Fdsize.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
 
@@ -735,6 +744,7 @@ begin
   Fields.Add(FFdbias);
 
   FFdcompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');
+   FdcompareMode.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdcompareMode);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;

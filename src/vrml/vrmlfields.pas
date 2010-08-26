@@ -209,13 +209,28 @@ type
       don't include other flags with this. }
     chViewpointProjection,
 
-    { TVRML2DTextureNode image needs reloading (url or source SFImage
-      data changed).
+    { Texture image (data) needs reloading (url or source SFImage
+      data changed). This is for TVRML2DTextureNode, or TNodeX3DTexture3DNode.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
-      Exception: you can mix it with chVisibleVRML1State. }
+      Exception: you can mix it with chVisibleVRML1State or
+      chTextureRendererProperties. }
     chTextureImage,
+
+    { Texture properties used by the renderer changed (something other than
+      only the texture data). This is for fields contained in X3DTextureNode.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this.
+      Exception: you can mix it with chTextureImage. }
+    chTextureRendererProperties,
+
+    { Texture properties inside TextureProperties node changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chTexturePropertiesNode,
 
     { What is considered a shadow caster changed.
 
@@ -2393,6 +2408,8 @@ const
     'Viewpoint vectors',
     'Viewpoint projection',
     'Texture image',
+    'Texture renderer properties',
+    'TextureProperties node',
     'Shadow caster',
     'Everything' );
 

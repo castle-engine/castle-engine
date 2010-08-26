@@ -700,15 +700,18 @@ begin
   inherited;
 
   FFdrepeatS := TSFBool.Create(Self, 'repeatS', true);
-  FFdrepeatS.Exposed := false;
+   FdrepeatS.Exposed := false;
+   FdrepeatS.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdrepeatS);
 
   FFdrepeatT := TSFBool.Create(Self, 'repeatT', true);
-  FFdrepeatT.Exposed := false;
+   FdrepeatT.Exposed := false;
+   FdrepeatT.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdrepeatT);
 
   FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
-  FFdtextureProperties.Exposed := false;
+   FdtextureProperties.Exposed := false;
+   FdtextureProperties.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdtextureProperties);
 end;
 
@@ -1081,23 +1084,29 @@ begin
   inherited;
 
   FFdalpha := TSFFloat.Create(Self, 'alpha', 1);
+   Fdalpha.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdalpha);
   { X3D specification comment: [0,1] }
 
   FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
+   Fdcolor.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 
   FFdfunction := TMFString.Create(Self, 'function', []);
+   Fdfunction.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdfunction);
 
   FFdmode := TMFString.Create(Self, 'mode', []);
+   Fdmode.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdmode);
 
   FFdsource := TMFString.Create(Self, 'source', []);
+   Fdsource.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdsource);
 
   FFdtexture := TMFNode.Create(Self, 'texture', [TNodeX3DTextureNode]);
+   Fdtexture.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdtexture);
 end;
 
@@ -1322,47 +1331,58 @@ begin
   inherited;
 
   FFdanisotropicDegree := TSFFloat.Create(Self, 'anisotropicDegree', 1.0);
+   FdanisotropicDegree.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdanisotropicDegree);
   { X3D specification comment: [1,Inf) }
 
   FFdborderColor := TSFColorRGBA.Create(Self, 'borderColor', Vector4Single(0, 0, 0, 0));
+   FdborderColor.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdborderColor);
   { X3D specification comment: [0,1] }
 
   FFdborderWidth := TSFInt32.Create(Self, 'borderWidth', 0);
+   FdborderWidth.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdborderWidth);
   { X3D specification comment: [0,1] }
 
   FFdboundaryModeS := TSFString.Create(Self, 'boundaryModeS', 'REPEAT');
+   FdboundaryModeS.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdboundaryModeS);
   { X3D specification comment: [see Table 18.7] }
 
   FFdboundaryModeT := TSFString.Create(Self, 'boundaryModeT', 'REPEAT');
+   FdboundaryModeT.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdboundaryModeT);
   { X3D specification comment: [see Table 18.7] }
 
   FFdboundaryModeR := TSFString.Create(Self, 'boundaryModeR', 'REPEAT');
+   FdboundaryModeR.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdboundaryModeR);
   { X3D specification comment: [see Table 18.7] }
 
   FFdmagnificationFilter := TSFString.Create(Self, 'magnificationFilter', 'FASTEST');
+   FdmagnificationFilter.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdmagnificationFilter);
   { X3D specification comment: [see Table 18.8] }
 
   FFdminificationFilter := TSFString.Create(Self, 'minificationFilter', 'FASTEST');
+   FdminificationFilter.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdminificationFilter);
   { X3D specification comment: [see Table 18.9] }
 
   FFdtextureCompression := TSFString.Create(Self, 'textureCompression', 'FASTEST');
+   FdtextureCompression.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdtextureCompression);
   { X3D specification comment: [see Table 18.10] }
 
   FFdtexturePriority := TSFFloat.Create(Self, 'texturePriority', 0);
+   FdtexturePriority.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdtexturePriority);
   { X3D specification comment: [0,1] }
 
   FFdgenerateMipMaps := TSFBool.Create(Self, 'generateMipMaps', false);
-  FFdgenerateMipMaps.Exposed := false;
+   FdgenerateMipMaps.Exposed := false;
+   FdgenerateMipMaps.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdgenerateMipMaps);
 
   { X3D XML spec (edition 2) mistakenyl claims it should be
