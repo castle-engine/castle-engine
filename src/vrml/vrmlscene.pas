@@ -3573,6 +3573,39 @@ var
     end;
   end;
 
+  procedure HandleChangeSwitch2;
+  begin
+    { Changing Switch.whichChoice changes the shapes that are considered
+      active (in VRML graph, and in Shapes tree).
+      This means that things calculated based
+      on traverse/iterator over Shapes with "OnlyActive = true"
+      are invalid now.
+
+      DoGeometryChanged (scheduled by ScheduleGeometryChanged)
+      actually does most of this work, it invalidates already most
+      of the needed things when ScheduledGeometryActiveShapesChanged:
+
+      fvBoundingBox,
+      fvVerticesCountNotOver, fvVerticesCountOver,
+      fvTrianglesCountNotOver, fvTrianglesCountOver,
+      fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+      fvTrianglesListShadowCasters,
+      fvManifoldAndBorderEdges
+    }
+
+    Validities := Validities - [
+      { Calculation traverses over active shapes. }
+      fvShapesActiveCount,
+      fvShapesActiveVisibleCount,
+      { Calculation traverses over active nodes (uses RootNode.Traverse). }
+      fvMainLightForShadows];
+
+    ScheduledGeometryActiveShapesChanged := true;
+    ScheduleGeometryChanged;
+
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  end;
+
   procedure HandleChangeEverything;
   begin
     { An arbitrary change occured. }
@@ -3596,6 +3629,7 @@ var
       if chLightActiveProperty    in Changes then HandleChangeLightActiveProperty;
       if chLightForShadowVolumes  in Changes then HandleChangeLightForShadowVolumes;
       if chLightLocationDirection in Changes then HandleChangeLightLocationDirection;
+      if chSwitch2 in Changes then HandleChangeSwitch2;
       if chEverything in Changes then HandleChangeEverything;
 
       if Changes * [chVisibleGeometry, chVisibleNonGeometry,
@@ -3805,37 +3839,6 @@ begin
         TrianglesListShadowCasters and Manifold/BorderEdges change. }
       InvalidateTrianglesListShadowCasters;
       InvalidateManifoldAndBorderEdges;
-    end else
-    if (Node is TNodeSwitch_2) and
-       (TNodeSwitch_2(Node).FdWhichChoice = Field) then
-    begin
-      { Changing Switch.whichChoice changes the shapes that are considered
-        active (in VRML graph, and in Shapes tree).
-        This means that things calculated based
-        on traverse/iterator over Shapes with "OnlyActive = true"
-        are invalid now.
-
-        DoGeometryChanged (scheduled by ScheduleGeometryChanged)
-        actually does most of this work, it invalidates already most
-        of the needed things when ScheduledGeometryActiveShapesChanged:
-
-        fvBoundingBox,
-        fvVerticesCountNotOver, fvVerticesCountOver,
-        fvTrianglesCountNotOver, fvTrianglesCountOver,
-        fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
-        fvTrianglesListShadowCasters,
-        fvManifoldAndBorderEdges
-      }
-
-      Validities := Validities - [
-        { Calculation traverses over active shapes. }
-        fvShapesActiveCount,
-        fvShapesActiveVisibleCount,
-        { Calculation traverses over active nodes (uses RootNode.Traverse). }
-        fvMainLightForShadows];
-
-      ScheduledGeometryActiveShapesChanged := true;
-      ScheduleGeometryChanged;
     end else
     begin
       { Node is something else. So we must assume that an arbitrary change

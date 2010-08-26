@@ -2504,7 +2504,9 @@ begin
   inherited;
 
   FFdwhichChild := TSFLong.Create(Self, 'whichChild', -1);
+   FdwhichChild.ChangesAlways := [chEverything];
   Fields.Add(FFdwhichChild);
+  
   fParsingAllowedChildren := true;
   fAllowedChildren := true;
 end;

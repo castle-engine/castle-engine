@@ -161,6 +161,12 @@ type
       don't include other flags with this. }
     chLightForShadowVolumes,
 
+    { Switch.whichChoice changed, for VRML >= 2.0.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chSwitch2,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2317,11 +2323,12 @@ const
     'Transform',
     'Coordinate',
     'VRML 1.0 State (but not Coordinate)',
-    'VRML >= 2.0 Material',
+    'Material (VRML >= 2.0)',
     'Blending',
     'Light active property',
     'Light location/direction',
     'Light for shadow volumes',
+    'Switch choice (VRML >= 2.0)',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

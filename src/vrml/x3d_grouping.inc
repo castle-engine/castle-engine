@@ -706,6 +706,7 @@ begin
   Fdchildren.AddAlternativeName('choice', 2);
 
   FFdwhichChoice := TSFInt32.Create(Self, 'whichChoice', -1);
+   FdwhichChoice.ChangesAlways := [chSwitch2];
   Fields.Add(FFdwhichChoice);
   { X3D specification comment: [-1,Inf) }
 
