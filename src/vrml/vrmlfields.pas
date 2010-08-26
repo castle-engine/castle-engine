@@ -62,6 +62,55 @@ type
     procedure DiscardNextIndent;
   end;
 
+  { Possible things that happen when given field is changed.
+    Used by TVRMLField.Changes. }
+  TVRMLChange = (
+    { The full algorithm of TVRMLScene.ChangedField should
+      be used to determine what changed.
+      TVRMLScene.ChangedField detects changes for specific hardcoded
+      nodes/fields, and if the given combination isn't recognized
+      --- it assumes that everything changed (calling costly
+      TVRMLScene.ChangedAll).
+
+      In the future, we would like to eventually remove this flag
+      from all the nodes, as this approach makes TVRMLScene.ChangedField
+      implementation a horribly long messy code. }
+    chSceneAlgorithm,
+
+    { Something visible in the geometry changed.
+      See vcVisibleGeometry.
+      This means that VisibleChangeHere with vcVisibleGeometry included should
+      be called. }
+    chVisibleGeometry,
+
+    { Something visible changed, but not geometry.
+      See vcVisibleNonGeometry.
+      This means that VisibleChangeHere with vcVisibleNonGeometry included should
+      be called. }
+    chVisibleNonGeometry,
+
+    { Viewer changed.
+      See vcViewer.
+      This means that VisibleChangeHere with vcViewer included should
+      be called. }
+    chViewer,
+
+    { Call VisibleChangeHere to redisplay the scene.
+
+      If you include one the chVisibleGeometry, chVisibleNonGeometry,
+      chViewer then this flag (chRedisplay) makes no effect.
+      Otherwise, this flag should be used if your change requires
+      redisplay of the 3D view for some other reasons. }
+    chRedisplay,
+
+    { Transformation of children of this node changed.
+
+      Don't include chVisibleGeometry or such with this.
+      The caller will correctly analyze your children, and determine what
+      visile changed. }
+    chTransform);
+  TVRMLChanges = set of TVRMLChange;
+
 { ---------------------------------------------------------------------------- }
 { @section(Base fields classes) }
 
@@ -276,16 +325,13 @@ type
   TVRMLField = class(TVRMLFieldOrEvent)
   private
     FExposed: boolean;
-    procedure SetExposed(Value: boolean);
-
-  private
     FExposedEvents: array [boolean] of TVRMLEvent;
-    function GetExposedEvents(InEvent: boolean): TVRMLEvent;
+    FChangesAlways: TVRMLChanges;
 
-  private
+    procedure SetExposed(Value: boolean);
+    function GetExposedEvents(InEvent: boolean): TVRMLEvent;
     procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
-
   private
     FProcessedInActiveLight: boolean;
 
@@ -610,6 +656,26 @@ type
       Also notify ParentNode.EventsEngine, regardless if it's included
       in the ChangeListeners list. }
     procedure Changed;
+
+    { What always happens when the value of this field changes.
+
+      This is included in the @link(Changes) method result. So instead of
+      using this property, you could always override @link(Changes)
+      method. But often it's easier to use the property.
+
+      By default this is an empty set. This is suitable for
+      things that aren't *directly* an actual content (but only an
+      intermediate value to change other stuff). This includes
+      all metadata fields and nodes, all fields in event utilities,
+      Script node, interpolators...
+
+      See TVRMLChange for possible values. }
+    property ChangesAlways: TVRMLChanges read FChangesAlways write FChangesAlways;
+
+    { What happens when the value of this field changes.
+      This will be used by TVRMLScene.ChangedField to determine what
+      must be done when we know that value of this field changed. }
+    function Changes: TVRMLChanges; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
       This sets the value of this field in the nicest possible way for
@@ -2450,6 +2516,11 @@ begin
        (ChangeListeners.IndexOf(Parent.EventsEngine) < 0) then
       Parent.EventsEngine.ChangedField(Self);
   end;
+end;
+
+function TVRMLField.Changes: TVRMLChanges;
+begin
+  Result := ChangesAlways;
 end;
 
 procedure TVRMLField.Send(Value: TVRMLField);

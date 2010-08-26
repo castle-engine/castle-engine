@@ -683,56 +683,6 @@ type
     Shape: TObject;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
 
-  { Possible things that happen when given node/field is changed.
-    Used by TVRMLNode.Changed. }
-  TVRMLChange = (
-    { The full algorithm of TVRMLScene.ChangedField should
-      be used to determine what changed.
-      TVRMLScene.ChangedField detects changes for specific hardcoded
-      nodes/fields, and if the given combination isn't recognized
-      --- it assumes that everything changed (calling costly
-      TVRMLScene.ChangedAll).
-
-      This is for now returned by default by TVRMLNode.Changed.
-      In the future, we would like to eventually remove this flag
-      from all the nodes, as this approach makes TVRMLScene.ChangedField
-      implementation a horribly long messy code. }
-    chSceneAlgorithm,
-
-    { Something visible in the geometry changed.
-      See vcVisibleGeometry.
-      This means that VisibleChangeHere with vcVisibleGeometry included should
-      be called. }
-    chVisibleGeometry,
-
-    { Something visible changed, but not geometry.
-      See vcVisibleNonGeometry.
-      This means that VisibleChangeHere with vcVisibleNonGeometry included should
-      be called. }
-    chVisibleNonGeometry,
-
-    { Viewer changed.
-      See vcViewer.
-      This means that VisibleChangeHere with vcViewer included should
-      be called. }
-    chViewer,
-
-    { Call VisibleChangeHere to redisplay the scene.
-
-      If you include one the chVisibleGeometry, chVisibleNonGeometry,
-      chViewer then this flag (chRedisplay) makes no effect.
-      Otherwise, this flag should be used if your change requires
-      redisplay of the 3D view for some other reasons. }
-    chRedisplay,
-
-    { Transformation of children of this node changed.
-
-      Don't include chVisibleGeometry or such with this.
-      The caller will correctly analyze your children, and determine what
-      visile changed. }
-    chTransform);
-  TVRMLChanges = set of TVRMLChange;
-
   TSFNode = class;
   TMFNode = class;
   TVRMLPrototypeNode = class;
@@ -1441,7 +1391,6 @@ type
     constructor CreatePrototypeNode(const ANodeName, AWWWBasePath :string;
       APrototype: TVRMLPrototypeBase);
     function NodeTypeName: string; override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     property Prototype: TVRMLPrototypeBase read FPrototype;
 
@@ -3819,13 +3768,6 @@ begin
     I := ProtoInitial.InterfaceDeclarations.Items[Index];
     I.CopyAndAddFieldOrEvent(Self);
   end;
-end;
-
-function TVRMLPrototypeNode.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  { A change to a prototype field has no real effect,
-    TVRMLPrototypeNode will only pass it forward to the actual node }
-  Result := [];
 end;
 
 function TVRMLPrototypeNode.DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;

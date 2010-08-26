@@ -29,7 +29,6 @@ type
   TNodeX3DNode = class(TVRMLNode, INodeX3DNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdmetadata: TSFNode;
     public property Fdmetadata: TSFNode read FFdmetadata;
@@ -108,7 +107,6 @@ type
   TNodeX3DSensorNode = class(TNodeX3DChildNode, INodeX3DSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
@@ -125,7 +123,6 @@ type
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdname: TSFString;
     public property Fdname: TSFString read FFdname;
@@ -144,7 +141,6 @@ type
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdname: TSFString;
     public property Fdname: TSFString read FFdname;
@@ -163,7 +159,6 @@ type
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdname: TSFString;
     public property Fdname: TSFString read FFdname;
@@ -182,7 +177,6 @@ type
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdname: TSFString;
     public property Fdname: TSFString read FFdname;
@@ -201,7 +195,6 @@ type
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdname: TSFString;
     public property Fdname: TSFString read FFdname;
@@ -220,7 +213,6 @@ type
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdinfo: TMFString;
     public property Fdinfo: TMFString read FFdinfo;
@@ -240,13 +232,6 @@ begin
 
   FFdmetadata := TSFNode.Create(Self, 'metadata', INodeX3DMetadataObject);
   Fields.Add(FFdmetadata);
-end;
-
-function TNodeX3DNode.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  if Field = FdMetadata then
-    Result := [] else
-    Result := inherited;
 end;
 
 constructor TNodeX3DChildNode.Create(const ANodeName: string;
@@ -300,12 +285,6 @@ begin
   Events.Add(FEventisActive);
 end;
 
-function TNodeX3DSensorNode.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  { Sensors don't affect actual content directly. }
-  Result := [];
-end;
-
 constructor TNodeMetadataDouble.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -340,11 +319,6 @@ class function TNodeMetadataDouble.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
-end;
-
-function TNodeMetadataDouble.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  Result := [];
 end;
 
 constructor TNodeMetadataFloat.Create(const ANodeName: string;
@@ -383,11 +357,6 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeMetadataFloat.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  Result := [];
-end;
-
 constructor TNodeMetadataInteger.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -422,11 +391,6 @@ class function TNodeMetadataInteger.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
-end;
-
-function TNodeMetadataInteger.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  Result := [];
 end;
 
 constructor TNodeMetadataSet.Create(const ANodeName: string;
@@ -465,11 +429,6 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeMetadataSet.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  Result := [];
-end;
-
 constructor TNodeMetadataString.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -506,11 +465,6 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeMetadataString.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  Result := [];
-end;
-
 constructor TNodeWorldInfo.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -544,11 +498,6 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
-end;
-
-function TNodeWorldInfo.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  Result := [];
 end;
 
 procedure RegisterCoreNodes;

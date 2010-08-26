@@ -33,7 +33,6 @@
     class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdmatrix: TSFMatrix4f;
     public property Fdmatrix: TSFMatrix4f read FFdmatrix;
@@ -252,7 +251,6 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
-    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdstatus: TSFBool;
     public property Fdstatus: TSFBool read FFdstatus;
@@ -295,16 +293,10 @@ begin
   inherited;
 
   FFdmatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
+   Fdmatrix.ChangesAlways := [chTransform];
   Fields.Add(FFdmatrix);
 
   DefaultContainerField := 'children';
-end;
-
-function TNodeMatrixTransform_2.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  if Field = Fdmatrix then
-    Result := [chTransform] else
-    Result := inherited;
 end;
 
 class function TNodeMatrixTransform_2.ClassNodeTypeName: string;
@@ -868,11 +860,6 @@ class function TNodeToggler.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
-end;
-
-function TNodeToggler.Changed(Field: TVRMLField): TVRMLChanges;
-begin
-  Result := [];
 end;
 
 procedure TNodeToggler.EventEnabledReceive(

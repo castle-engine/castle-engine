@@ -3470,7 +3470,7 @@ begin
   Assert(Field.ParentNode <> nil);
   Node := TVRMLNode(Field.ParentNode);
 
-  Changes := Node.Changed(Field);
+  Changes := Field.Changes;
 
   if Log and LogChanges then
     DoLogChanges;
