@@ -80,7 +80,7 @@
       to our engine, help our implementation, and often may help
       a programmer to process some VRML files --- but they are not visible
       to final VRML user/author. They are named TVRMLXxxNode,
-      like TVRMLGeometryNode, TVRMLTextureNode, TVRMLLightNode, TVRMLUnknownNode.
+      like TVRMLGeometryNode, TVRML2DTextureNode, TVRMLLightNode, TVRMLUnknownNode.
 
       So you can immediately tell which nodes come from
       VRML / X3D specification and which nodes are only added by our engine
