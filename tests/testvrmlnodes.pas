@@ -47,17 +47,18 @@ type
     procedure TestContainerFieldList;
     procedure TestContainerFieldGeometry;
     procedure TestGeometryNodesImplemented;
+    procedure TestGeometryNodesChanges;
     procedure TestDestructionNotification;
 
   private
     procedure DummyTriangleProc(const Tri: TTriangle3Single;
-      Shape: TObject; State: TVRMLGraphTraverseState;
+      Shape: TObject;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
 implementation
 
-uses KambiUtils, VRMLLexer, KambiClassUtils, KambiFilesUtils;
+uses KambiUtils, VRMLLexer, KambiClassUtils, KambiFilesUtils, VRMLFields;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -868,7 +869,7 @@ begin
 end;
 
 procedure TTestVRMLNodes.DummyTriangleProc(const Tri: TTriangle3Single;
-  Shape: TObject; State: TVRMLGraphTraverseState;
+  Shape: TObject;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
 end;
@@ -919,6 +920,44 @@ begin
       finally FreeAndNil(N) end;
     end;
   finally FreeAndNil(State) end;
+end;
+
+{ All geometry nodes should have ChangesAlways = [chGeometry]
+  on all fields (except "metadata").
+  All non-geometry nodes should not have chGeometry on any field. }
+procedure TTestVRMLNodes.TestGeometryNodesChanges;
+var
+  I, J: Integer;
+  N: TVRMLNode;
+  G: TVRMLGeometryNode;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+  begin
+    N := NodesManager.Registered[I].Create('', '');
+    try
+      if N is TVRMLGeometryNode then
+      begin
+        for J := 0 to N.Fields.Count - 1 do
+          if N.Fields[J].Name <> 'metadata' then
+          try
+            Assert(N.Fields[J].Changes = [chGeometry]);
+          except
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            raise;
+          end;
+      end else
+      begin
+        for J := 0 to N.Fields.Count - 1 do
+        try
+          Assert(not (chGeometry in N.Fields[J].Changes));
+        except
+          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+          raise;
+        end;
+      end
+
+    finally FreeAndNil(N) end;
+  end;
 end;
 
 type
