@@ -46,6 +46,8 @@ type
     procedure TestAllowedChildren;
     procedure TestContainerFieldList;
     procedure TestContainerFieldGeometry;
+    procedure TestDestructionNotification;
+
     procedure TestGeometryNodesImplemented;
 
     { Test all geometry nodes should have Changes = [chGeometry]
@@ -63,8 +65,6 @@ type
 
     { All tex coord nodes should have Change = [chTextureCoordinate] }
     procedure TestTextureCoordinate;
-
-    procedure TestDestructionNotification;
 
   private
     procedure DummyTriangleProc(const Tri: TTriangle3Single;
@@ -884,6 +884,34 @@ begin
   end;
 end;
 
+procedure TTestVRMLNodes.TestDestructionNotification;
+var
+  A: TDynNodeDestructionNotificationArray;
+  M1, M2, M3: TMyObject;
+begin
+  A := TDynNodeDestructionNotificationArray.Create;
+  M1 := TMyObject.Create;
+  M2 := TMyObject.Create;
+  M3 := TMyObject.Create;
+  try
+    A.Add(@M1.Foo);
+    A.Add(@M2.Foo);
+    A.Add(@M3.Foo);
+    Assert(A.IndexOf(@M1.Foo) = 0);
+    Assert(A.IndexOf(@M2.Foo) = 1);
+    Assert(A.IndexOf(@M3.Foo) = 2);
+    A.Remove(@M2.Foo);
+    Assert(A.IndexOf(@M1.Foo) = 0);
+    Assert(A.IndexOf(@M2.Foo) = -1);
+    Assert(A.IndexOf(@M3.Foo) = 1);
+  finally
+    FreeAndNil(A);
+    FreeAndNil(M1);
+    FreeAndNil(M2);
+    FreeAndNil(M3);
+  end;
+end;
+
 procedure TTestVRMLNodes.DummyTriangleProc(const Tri: TTriangle3Single;
   Shape: TObject;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
@@ -1085,34 +1113,6 @@ type
 
 procedure TMyObject.Foo(Node: TVRMLNode);
 begin
-end;
-
-procedure TTestVRMLNodes.TestDestructionNotification;
-var
-  A: TDynNodeDestructionNotificationArray;
-  M1, M2, M3: TMyObject;
-begin
-  A := TDynNodeDestructionNotificationArray.Create;
-  M1 := TMyObject.Create;
-  M2 := TMyObject.Create;
-  M3 := TMyObject.Create;
-  try
-    A.Add(@M1.Foo);
-    A.Add(@M2.Foo);
-    A.Add(@M3.Foo);
-    Assert(A.IndexOf(@M1.Foo) = 0);
-    Assert(A.IndexOf(@M2.Foo) = 1);
-    Assert(A.IndexOf(@M3.Foo) = 2);
-    A.Remove(@M2.Foo);
-    Assert(A.IndexOf(@M1.Foo) = 0);
-    Assert(A.IndexOf(@M2.Foo) = -1);
-    Assert(A.IndexOf(@M3.Foo) = 1);
-  finally
-    FreeAndNil(A);
-    FreeAndNil(M1);
-    FreeAndNil(M2);
-    FreeAndNil(M3);
-  end;
 end;
 
 initialization
