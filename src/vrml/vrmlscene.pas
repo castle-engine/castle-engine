@@ -821,11 +821,6 @@ type
       when Dirty <> 0). }
     Dirty: Cardinal;
 
-    { Called when LightNode fields changed, while LightNode is in
-      active part of VRML graph. }
-    procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
-      Field: TVRMLField); virtual;
-
     { Notify scene that you changed only given Shape.
       This means that you changed only fields within Shape.Geometry,
       Shape.State.Last*, Shape.State.ShapeNode. And you're sure that
@@ -3518,6 +3513,72 @@ var
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
+  procedure HandleChangeLightActiveProperty;
+  var
+    J: integer;
+    SI: TVRMLShapeTreeIterator;
+    ActiveLight: PActiveLight;
+    LightNode: TVRMLLightNode;
+  begin
+    LightNode := Node as TVRMLLightNode;
+
+    { Update all TActiveLight records with LightNode = this Node.
+
+      TODO: what if some CurrentActiveLights need to be updated?
+      Code below fails for this.
+
+      To be fixed (at the same time taking into account that in X3D
+      "global" is exposed field and so may change during execution) by
+      constructing CurrentActiveLights always with global = TRUE assumption.
+      RenderShapeLights will have to take care of eventual "radius"
+      constraints. }
+
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        for J := 0 to SI.Current.State.CurrentActiveLights.Count - 1 do
+        begin
+          ActiveLight := @(SI.Current.State.CurrentActiveLights.Items[J]);
+          if ActiveLight^.LightNode = LightNode then
+          begin
+            LightNode.UpdateActiveLight(ActiveLight^);
+            VisibleChangeHere([vcVisibleNonGeometry]);
+          end;
+        end;
+    finally FreeAndNil(SI) end;
+  end;
+
+  procedure HandleChangeLightForShadowVolumes;
+  begin
+    { When some kambiShadows or kambiShadowsMain field changes,
+      then MainLightForShadows must be recalculated. }
+    Exclude(Validities, fvMainLightForShadows);
+    VisibleChangeHere([vcVisibleNonGeometry]);
+  end;
+
+  procedure HandleChangeLightLocationDirection;
+  begin
+    { If we had calculated MainLightForShadows, and this Node is the
+      main light for shadows, then update FMainLightForShadows.
+      Thanks to varius FMainLightForShadows* properties, we can check
+      and recalculate it very fast --- this is good for scenes where main
+      shadow light location is moving. }
+
+    if (fvMainLightForShadows in Validities) and
+       FMainLightForShadowsExists and
+       (FMainLightForShadowsNode = Node) then
+    begin
+      CalculateMainLightForShadowsPosition;
+      VisibleChangeHere([vcVisibleNonGeometry]);
+    end;
+  end;
+
+  procedure HandleChangeEverything;
+  begin
+    { An arbitrary change occured. }
+    ScheduleChangedAll;
+  end;
+
   { Handle changes in Changes variable. }
   procedure HandleChanges;
   var
@@ -3532,6 +3593,10 @@ var
       if chCoordinate in Changes then HandleChangeCoordinate;
       if chVisibleVRML1State in Changes then HandleVisibleVRML1State;
       if chMaterial2 in Changes then HandleChangeMaterial;
+      if chLightActiveProperty    in Changes then HandleChangeLightActiveProperty;
+      if chLightForShadowVolumes  in Changes then HandleChangeLightForShadowVolumes;
+      if chLightLocationDirection in Changes then HandleChangeLightLocationDirection;
+      if chEverything in Changes then HandleChangeEverything;
 
       if Changes * [chVisibleGeometry, chVisibleNonGeometry,
         chViewer, chRedisplay] <> [] then
@@ -3635,10 +3700,6 @@ begin
             ChangedShapeFields(SI.Current, Field,
               false, false, false, false, Changes);
       finally FreeAndNil(SI) end;
-    end else
-    if Node is TVRMLLightNode then
-    begin
-      ChangedActiveLightNode(TVRMLLightNode(Node), Field);
     end else
     if Node is TVRMLGeometryNode then
     begin
@@ -3776,42 +3837,13 @@ begin
       ScheduledGeometryActiveShapesChanged := true;
       ScheduleGeometryChanged;
     end else
-    if Node is TNodeGeneratedCubeMapTexture then
-    begin
-      { For generated textures nodes "update" fields:
-        changes will be handled automatically
-        at next UpdateGeneratedTextures call.
-        So just make VisibleChangeHere and nothing else is needed.
-
-        Note we pass Changes = [] to VisibleChangeHere.
-        That's logical --- only the change of "update" doesn't visibly
-        change anything on the scene. This means that if you change "update"
-        to "ALWAYS", but no visible change was registered since last update
-        of the texture, the texture will not be actually immediately
-        regenerated --- correct optimization!
-
-        For other fields, even VisibleChangeHere isn't needed. }
-
-      if Field = TNodeGeneratedCubeMapTexture(Node).FdUpdate then
-      begin
-        if TNodeGeneratedCubeMapTexture(Node).FdUpdate.Value <> 'NONE' then
-          VisibleChangeHere([]);
-      end;
-
-      Exit;
-    end else
     if Node is TNodeRenderedTexture then
     begin
       if (Field = TNodeRenderedTexture(Node).FdDimensions) or
          (Field = TNodeRenderedTexture(Node).FdViewpoint) or
          (Field = TNodeRenderedTexture(Node).FdDepthMap) then
         { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
-        VisibleChangeHere([vcVisibleGeometry]) else
-      if Field = TNodeRenderedTexture(Node).FdUpdate then
-      begin
-        if TNodeRenderedTexture(Node).FdUpdate.Value <> 'NONE' then
-          VisibleChangeHere([]);
-      end;
+        VisibleChangeHere([vcVisibleGeometry]);
 
       Exit;
     end else
@@ -3821,13 +3853,8 @@ begin
          (Field = TNodeGeneratedShadowMap(Node).FdBias) or
          (Field = TNodeGeneratedShadowMap(Node).FdLight) then
         { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
-        VisibleChangeHere([vcVisibleGeometry]) else
-      if Field = TNodeGeneratedShadowMap(Node).FdUpdate then
-      begin
-        if TNodeGeneratedShadowMap(Node).FdUpdate.Value <> 'NONE' then
-          VisibleChangeHere([]);
-      end;
-
+        VisibleChangeHere([vcVisibleGeometry]);
+        
       Exit;
     end else
     begin
@@ -3844,60 +3871,6 @@ begin
 
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   finally EndChangesSchedule end;
-end;
-
-procedure TVRMLScene.ChangedActiveLightNode(LightNode: TVRMLLightNode;
-  Field: TVRMLField);
-var
-  J: integer;
-  SI: TVRMLShapeTreeIterator;
-  ActiveLight: PActiveLight;
-begin
-  { For light properties not reflected in TActiveLight,
-    there's just no need to do anything right now. }
-
-  if Field.ProcessedInActiveLight then
-  begin
-    { Update all TActiveLight records with LightNode = this Node.
-
-      TODO: what if some CurrentActiveLights need to be updated?
-      Code below fails for this.
-
-      To be fixed (at the same time taking into account that in X3D
-      "global" is exposed field and so may change during execution) by
-      constructing CurrentActiveLights always with global = TRUE assumption.
-      RenderShapeLights will have to take care of eventual "radius"
-      constraints. }
-
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        for J := 0 to SI.Current.State.CurrentActiveLights.Count - 1 do
-        begin
-          ActiveLight := @(SI.Current.State.CurrentActiveLights.Items[J]);
-          if ActiveLight^.LightNode = LightNode then
-            LightNode.UpdateActiveLight(ActiveLight^);
-        end;
-    finally FreeAndNil(SI) end;
-  end;
-
-  { When some kambiShadows or kambiShadowsMain field changes,
-    then MainLightForShadows must be recalculated. }
-
-  if (Field = LightNode.FdKambiShadows) or
-     (Field = LightNode.FdKambiShadowsMain) then
-    Exclude(Validities, fvMainLightForShadows);
-
-  { If we had calculated MainLightForShadows, and this LightNode is the
-    main light for shadows, then update FMainLightForShadows.
-    Thanks to varius FMainLightForShadows* properties, we can check
-    and recalculate it very fast --- this is good for scenes where main
-    shadow light location is moving. }
-
-  if (fvMainLightForShadows in Validities) and
-     FMainLightForShadowsExists and
-     (FMainLightForShadowsNode = LightNode) then
-    CalculateMainLightForShadowsPosition;
 end;
 
 procedure TVRMLScene.DoGeometryChanged;

@@ -309,24 +309,31 @@ begin
   inherited;
 
   FFdglobal := TSFBool.Create(Self, 'global', false);
+   Fdglobal.ChangesAlways := [chEverything];
   Fields.Add(FFdglobal);
 
   FFdon := TSFBool.Create(Self, 'on', true);
+   Fdon.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdon);
 
   FFdintensity := TSFFloat.Create(Self, 'intensity', 1);
+   Fdintensity.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdintensity);
 
   FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
+   Fdcolor.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdcolor);
 
   FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', 0);
+   FdambientIntensity.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdambientIntensity);
 
   FFdkambiShadows := TSFBool.Create(Self, 'kambiShadows', false);
+   FdkambiShadows.ChangesAlways := [chLightForShadowVolumes];
   Fields.Add(FFdkambiShadows);
 
   FFdkambiShadowsMain := TSFBool.Create(Self, 'kambiShadowsMain', false);
+   FdkambiShadowsMain.ChangesAlways := [chLightForShadowVolumes];
   Fields.Add(FFdkambiShadowsMain);
 
   FFdshowProxyGeometry := TSFBool.Create(Self, 'showProxyGeometry', false);
@@ -445,11 +452,10 @@ begin
   inherited;
 
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
+   Fddirection.ChangesAlways := [chLightActiveProperty, chLightLocationDirection];
   Fields.Add(FFddirection);
-  FFddirection.ProcessedInActiveLight := true;
 
-  FFdProjectionRectangle := TSFVec4f.Create(Self, 'projectionRectangle',
-    ZeroVector4Single);
+  FFdProjectionRectangle := TSFVec4f.Create(Self, 'projectionRectangle', ZeroVector4Single);
   Fields.Add(FFdProjectionRectangle);
 
   FFdprojectionLocation := TSFVec3f.Create(Self, 'projectionLocation', ZeroVector3Single);
@@ -528,11 +534,12 @@ begin
   inherited;
 
   FFdlocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
+   Fdlocation.ChangesAlways := [chLightActiveProperty, chLightLocationDirection];
   Fields.Add(FFdlocation);
   { X3D specification comment: (-Inf,Inf) }
-  FFdlocation.ProcessedInActiveLight := true;
 
   FFdattenuation := TSFVec3f.Create(Self, 'attenuation', Vector3Single(1, 0, 0));
+   Fdattenuation.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdattenuation);
   { X3D specification comment: [0,Inf) }
 end;
@@ -641,9 +648,9 @@ begin
   inherited;
 
   FFdradius := TSFFloat.Create(Self, 'radius', 100);
+   Fdradius.ChangesAlways := [chLightActiveProperty];
   Fields.Add(FFdradius);
   { X3D specification comment: [0,Inf) }
-  FFdradius.ProcessedInActiveLight := true;
 
   FdGlobal.Value := true;
 
@@ -696,22 +703,24 @@ begin
   inherited;
 
   FFdbeamWidth := TSFFloat.Create(Self, 'beamWidth', Pi / 2);
+   FdbeamWidth.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdbeamWidth);
   { X3D specification comment: (0,Pi/2] }
 
   FFdcutOffAngle := TSFFloat.Create(Self, 'cutOffAngle', Pi / 4);
+   FdcutOffAngle.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdcutOffAngle);
   { X3D specification comment: (0,Pi/2] }
 
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
+   Fddirection.ChangesAlways := [chLightActiveProperty, chLightLocationDirection];
   Fields.Add(FFddirection);
   { X3D specification comment: (-Inf,Inf) }
-  FFddirection.ProcessedInActiveLight := true;
 
   FFdradius := TSFFloat.Create(Self, 'radius', 100);
+   Fdradius.ChangesAlways := [chEverything];
   Fields.Add(FFdradius);
   { X3D specification comment: [0,Inf) }
-  FFdradius.ProcessedInActiveLight := true;
 
   FdGlobal.Value := true;
 

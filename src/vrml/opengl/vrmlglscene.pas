@@ -757,8 +757,6 @@ type
     { For Hierarchical Occlusion Culling }
     FrameId: Cardinal;
   protected
-    procedure ChangedActiveLightNode(LightNode: TVRMLLightNode;
-      Field: TVRMLField); override;
     function CreateShape(AGeometry: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; override;
     function CreateHeadLightInstance
@@ -1328,6 +1326,8 @@ type
     procedure ViewChangedSuddenly; override;
 
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
+
+    procedure ChangedField(Field: TVRMLField); override;
   published
     { Fine-tune performance of RenderFrustum when
       OctreeRendering is @italic(not) available.
@@ -3418,19 +3418,28 @@ begin
     TVRMLGLShape(Shape).PreparedUseBlending := false;
 end;
 
-procedure TVRMLGLScene.ChangedActiveLightNode(LightNode: TVRMLLightNode;
-  Field: TVRMLField);
+procedure TVRMLGLScene.ChangedField(Field: TVRMLField);
 var
   TG: TTransparentGroup;
 begin
   inherited;
 
-  { Lights are rendered each time by TVRMLGLScene
-    in non-roSceneAsAWhole optimizations, so no need to do anything for them. }
-  if Optimization = roSceneAsAWhole then
+  { TODO: a check like
+
+      chLightActiveProperty in Field.Changes then
+
+    would be more elegant, but this will not catch changes to
+    lights that only affect [vcVisibleNonGeometry] }
+
+  if (Field.ParentNode is TVRMLLightNode) and (Field.Changes <> []) then
   begin
-    for TG := Low(TG) to High(TG) do
-      glFreeDisplayList(SAAW_DisplayList[TG]);
+    { Lights are rendered each time by TVRMLGLScene
+      in non-roSceneAsAWhole optimizations, so no need to do anything for them. }
+    if Optimization = roSceneAsAWhole then
+    begin
+      for TG := Low(TG) to High(TG) do
+        glFreeDisplayList(SAAW_DisplayList[TG]);
+    end;
   end;
 end;
 

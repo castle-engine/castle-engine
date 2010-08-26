@@ -2264,13 +2264,15 @@ begin
   FdLocation.DefaultValue := Vector3Single(0, 0, 1);
 
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
+   Fddirection.ChangesAlways := [chLightActiveProperty, chLightLocationDirection];
   Fields.Add(FFddirection);
-  FFddirection.ProcessedInActiveLight := true;
 
   FFddropOffRate := TSFFloat.Create(Self, 'dropOffRate', 0);
+   FddropOffRate.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFddropOffRate);
 
   FFdcutOffAngle := TSFFloat.Create(Self, 'cutOffAngle', Pi / 4);
+   FdcutOffAngle.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdcutOffAngle);
 end;
 

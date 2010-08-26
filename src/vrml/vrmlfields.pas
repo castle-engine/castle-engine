@@ -138,7 +138,39 @@ type
       This is guaranteed to work only when used together with
       chVisibleVRML1State and chMaterial2. It's understood that only
       shapes that use given material need UseBlending recalculated. }
-    chUseBlending);
+    chUseBlending,
+
+    { Light property that is taken into account in TActiveLight record changed.
+      Only allowed on node's descending from TVRMLLightNode.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this.
+      Exception: include also chLightLocationDirection when appropriate. }
+    chLightActiveProperty,
+
+    { Light's location and/or direction changed.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this.
+      Exception: include also chLightActiveProperty when appropriate. }
+    chLightLocationDirection,
+
+    { TVRMLScene.MainLightForShadows possibly changed because of this change.
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chLightForShadowVolumes,
+
+    { Everything changed and needs to be recalculated.
+      This is needed for changes on stuff internally cached in
+      TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
+      as one of above flags.
+
+      Use only as a last resort, as this is very costly!
+      (And in an ideal implementation, should not be needed.)
+
+      Don't include other flags with this. }
+    chEverything);
   TVRMLChanges = set of TVRMLChange;
 
 { ---------------------------------------------------------------------------- }
@@ -363,8 +395,6 @@ type
     procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   private
-    FProcessedInActiveLight: boolean;
-
     FValueFromIsClause: boolean;
 
     FExposedEventsLinked: boolean;
@@ -675,12 +705,6 @@ type
 
     procedure AddAlternativeName(const AlternativeName: string;
       VrmlMajorVersion: Integer); override;
-
-    { For fields within light nodes, does this field affect some TActiveLight
-      field? This is useful for optimizing changed to VRML light nodes. }
-    property ProcessedInActiveLight: boolean
-      read FProcessedInActiveLight write FProcessedInActiveLight
-      default false;
 
     { Notify ChangeListeners that the value of this field changed.
       Also notify ParentNode.EventsEngine, regardless if it's included
@@ -2282,7 +2306,11 @@ const
     'Coordinate',
     'VRML 1.0 State (but not Coordinate)',
     'VRML >= 2.0 Material',
-    'Blending' );
+    'Blending',
+    'Light active property',
+    'Light location/direction',
+    'Light for shadow volumes',
+    'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;
 
