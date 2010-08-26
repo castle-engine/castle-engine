@@ -885,53 +885,66 @@ begin
   inherited;
 
   FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', 0.2);
+   FdambientIntensity.ChangesAlways := [chMaterial2];
   Fields.Add(FFdambientIntensity);
   { X3D specification comment: [0,1] }
 
   FFdbackAmbientIntensity := TSFFloat.Create(Self, 'backAmbientIntensity', 0.2);
+   FdbackAmbientIntensity.ChangesAlways := [chMaterial2];
   Fields.Add(FFdbackAmbientIntensity);
   { X3D specification comment: [0,1] }
 
   FFdbackDiffuseColor := TSFColor.Create(Self, 'backDiffuseColor', Vector3Single(0.8, 0.8, 0.8));
+   FdbackDiffuseColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFdbackDiffuseColor);
   { X3D specification comment: [0,1] }
 
   FFdbackEmissiveColor := TSFColor.Create(Self, 'backEmissiveColor', Vector3Single(0, 0, 0));
+   FdbackEmissiveColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFdbackEmissiveColor);
   { X3D specification comment: [0,1] }
 
   FFdbackShininess := TSFFloat.Create(Self, 'backShininess', 0.2);
+   FdbackShininess.ChangesAlways := [chMaterial2];
   Fields.Add(FFdbackShininess);
   { X3D specification comment: [0,1] }
 
   FFdbackSpecularColor := TSFColor.Create(Self, 'backSpecularColor', Vector3Single(0, 0, 0));
+   FdbackSpecularColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFdbackSpecularColor);
   { X3D specification comment: [0,1] }
 
   FFdbackTransparency := TSFFloat.Create(Self, 'backTransparency', 0);
+   FdbackTransparency.ChangesAlways := [chMaterial2, chUseBlending];
   Fields.Add(FFdbackTransparency);
   { X3D specification comment: [0,1] }
 
   FFddiffuseColor := TSFColor.Create(Self, 'diffuseColor', Vector3Single(0.8, 0.8, 0.8));
+   FddiffuseColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFddiffuseColor);
   { X3D specification comment: [0,1] }
 
   FFdemissiveColor := TSFColor.Create(Self, 'emissiveColor', Vector3Single(0, 0, 0));
+   FdemissiveColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFdemissiveColor);
   { X3D specification comment: [0,1] }
 
   FFdshininess := TSFFloat.Create(Self, 'shininess', 0.2);
+   Fdshininess.ChangesAlways := [chMaterial2];
   Fields.Add(FFdshininess);
   { X3D specification comment: [0,1] }
 
   FFdseparateBackColor := TSFBool.Create(Self, 'separateBackColor', false);
+   FdseparateBackColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFdseparateBackColor);
 
   FFdspecularColor := TSFColor.Create(Self, 'specularColor', Vector3Single(0, 0, 0));
+   FdspecularColor.ChangesAlways := [chMaterial2];
   Fields.Add(FFdspecularColor);
   { X3D specification comment: [0,1] }
 
   FFdtransparency := TSFFloat.Create(Self, 'transparency', 0);
+   Fdtransparency.ChangesAlways := [chMaterial2, chUseBlending];
   Fields.Add(FFdtransparency);
   { X3D specification comment: [0,1] }
 end;

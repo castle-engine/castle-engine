@@ -1817,15 +1817,19 @@ begin
   inherited;
 
   FFdtranslation := TSFVec2f.Create(Self, 'translation', Vector2Single(0, 0));
+   Fdtranslation.ChangesAlways := [chEverything];
   Fields.Add(FFdtranslation);
 
   FFdrotation := TSFFloat.Create(Self, 'rotation', 0);
+   Fdrotation.ChangesAlways := [chEverything];
   Fields.Add(FFdrotation);
 
   FFdscaleFactor := TSFVec2f.Create(Self, 'scaleFactor', Vector2Single(1, 1));
+   FdscaleFactor.ChangesAlways := [chEverything];
   Fields.Add(FFdscaleFactor);
 
   FFdcenter := TSFVec2f.Create(Self, 'center', Vector2Single(0, 0));
+   Fdcenter.ChangesAlways := [chEverything];
   Fields.Add(FFdcenter);
 end;
 
@@ -1977,6 +1981,7 @@ begin
   inherited;
 
   FFdmatrix := TSFMatrix.Create(Self, 'matrix', IdentityMatrix4Single);
+   Fdmatrix.ChangesAlways := [chEverything];
   Fields.Add(FFdmatrix);
 end;
 
@@ -2014,6 +2019,7 @@ begin
   inherited;
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+   Fdrotation.ChangesAlways := [chEverything];
   Fields.Add(FFdrotation);
 end;
 
@@ -2041,6 +2047,7 @@ begin
   inherited;
 
   FFdscaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3Single(1, 1, 1));
+   FdscaleFactor.ChangesAlways := [chEverything];
   Fields.Add(FFdscaleFactor);
 end;
 
@@ -2066,18 +2073,23 @@ begin
   inherited;
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+   Fdtranslation.ChangesAlways := [chEverything];
   Fields.Add(FFdtranslation);
 
   FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+   Fdrotation.ChangesAlways := [chEverything];
   Fields.Add(FFdrotation);
 
   FFdscaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3Single(1, 1, 1));
+   FdscaleFactor.ChangesAlways := [chEverything];
   Fields.Add(FFdscaleFactor);
 
   FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+   FdscaleOrientation.ChangesAlways := [chEverything];
   Fields.Add(FFdscaleOrientation);
 
   FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+   Fdcenter.ChangesAlways := [chEverything];
   Fields.Add(FFdcenter);
 end;
 
@@ -2144,6 +2156,7 @@ begin
   inherited;
 
   FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+   Fdtranslation.ChangesAlways := [chEverything];
   Fields.Add(FFdtranslation);
 end;
 

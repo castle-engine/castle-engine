@@ -700,6 +700,8 @@ begin
   inherited;
 
   FFdpoint := TMFVec3d.Create(Self, 'point', []);
+   { Not really handled for now }
+   Fdpoint.ChangesAlways := [chCoordinate];
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;

@@ -131,7 +131,7 @@ type
       Material changes. }
     chVisibleVRML1State,
 
-    { Something visible in VRML >= 2.0 Material node changed.
+    { Something visible in VRML >= 2.0 Material (or TwoSidedMaterial) changed.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.

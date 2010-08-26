@@ -66,6 +66,14 @@ type
     { All tex coord nodes should have Change = [chTextureCoordinate] }
     procedure TestTextureCoordinate;
 
+    { Detect if we consciously set Changes (and ChangesAlways)
+      on all fields correctly.
+
+      By default, ChangesAlways is [] and Changes
+      return it, so there could be a chance that some field are left with
+      [] by accident. This checks all the fields with Changes = [],
+      they *must* be added to ConfirmedEmptyChanges function. }
+    procedure TestEmptyChanges;
   private
     procedure DummyTriangleProc(const Tri: TTriangle3Single;
       Shape: TObject;
@@ -1111,6 +1119,108 @@ begin
         end;
       end
 
+    finally FreeAndNil(N) end;
+  end;
+end;
+
+procedure TTestVRMLNodes.TestEmptyChanges;
+
+  { Confirmed fiels that may have Changes = []. }
+  function ConfirmedEmptyChanges(Field: TVRMLField): boolean;
+  begin
+    Result :=
+      ( (Field.ParentNode is TNodeX3DNode) and
+        (TNodeX3DNode(Field.ParentNode).FdMetadata = Field ) ) or
+      { Sensors don't affect actual content directly. }
+      (Field.ParentNode is TNodeX3DSensorNode) or
+      { metadata, info nodes }
+      (Field.ParentNode is TNodeMetadataDouble) or
+      (Field.ParentNode is TNodeMetadataFloat) or
+      (Field.ParentNode is TNodeMetadataInteger) or
+      (Field.ParentNode is TNodeMetadataSet) or
+      (Field.ParentNode is TNodeMetadataString) or
+      (Field.ParentNode is TNodeWorldInfo) or
+      (Field.ParentNode is TNodeInfo) or
+      { interpolators }
+      (Field.ParentNode is TNodeX3DInterpolatorNode) or
+      { Just like sensors, scripts don't affect actual content directly.
+        Script nodes take care themselves to react to events send to them. }
+      (Field.ParentNode is TNodeX3DScriptNode) or
+      { event utils }
+      (Field.ParentNode is TNodeX3DSequencerNode) or
+      (Field.ParentNode is TNodeX3DTriggerNode) or
+      (Field.ParentNode is TNodeBooleanFilter) or
+      (Field.ParentNode is TNodeBooleanToggle) or
+      (Field.ParentNode is TNodeToggler) or
+      { A change to a prototype field has no real effect,
+        TVRMLPrototypeNode will only pass it forward to the actual node }
+      (Field.ParentNode is TVRMLPrototypeNode) or
+      { stuff not implemented / things we don't look at all }
+      (Field.ParentNode is TNodeLOD_1) or
+      (Field.Name = 'bboxSize') or
+      (Field.Name = 'bboxCenter') or
+      (Field.ParentNode is TNodeTextureBackground) or
+      (Field.ParentNode is TNodeGeoCoordinate) or
+      (Field.ParentNode is TNodeGeoLocation) or
+      (Field.ParentNode is TNodeGeoLOD) or
+      (Field.ParentNode is TNodeGeoMetadata) or
+      (Field.ParentNode is TNodeGeoOrigin) or
+      (Field.ParentNode is TNodeGeoTransform) or
+      (Field.ParentNode is TNodeGeoViewpoint) or
+      (Field.ParentNode is TNodeX3DNBodyCollidableNode) or
+      (Field.ParentNode is TNodeX3DNBodyCollisionSpaceNode) or
+      (Field.ParentNode is TNodeX3DRigidJointNode) or
+      (Field.ParentNode is TNodeX3DPickSensorNode) or
+      (Field.ParentNode is TNodeX3DFollowerNode) or
+      (Field.ParentNode is TNodeX3DParticleEmitterNode) or
+      (Field.ParentNode is TNodeX3DParticlePhysicsModelNode) or
+      (Field.ParentNode is TNodeDisplacer) or
+      (Field.ParentNode is TNodeCoordinateDeformer) or
+      (Field.ParentNode is TNodeNurbsGroup) or
+      (Field.ParentNode is TNodeAudioClip) or
+      (Field.ParentNode is TNodeSound) or
+      (Field.ParentNode is TNodeEaseInEaseOut) or
+      (Field.ParentNode is TNodeFogCoordinate) or
+      (Field.ParentNode is TNodeLocalFog) or
+      (Field.ParentNode is TNodeEspduTransform) or
+      (Field.ParentNode is TNodePackagedShader) or
+      (Field.ParentNode is TNodeProgramShader) or
+      (Field.ParentNode is TNodeLayer) or
+      (Field.ParentNode is TNodeLayerSet) or
+      (Field.ParentNode is TNodeLayout) or
+      (Field.ParentNode is TNodeLayoutLayer) or
+      (Field.ParentNode is TNodeLayoutGroup) or
+      (Field.ParentNode is TNodeDISEntityTypeMapping) or
+      (Field.ParentNode is TNodeDISEntityManager) or
+      (Field.ParentNode is TNodeFillProperties) or
+      (Field.ParentNode is TNodeConverter) or
+      (Field.ParentNode is TNodeScreenFontStyle) or
+      (Field.ParentNode is TNodeScreenGroup) or
+      (Field.ParentNode is TNodeCollisionCollection) or
+      (Field.ParentNode is TNodeContact) or
+      (Field.ParentNode is TNodeRigidBody) or
+      (Field.ParentNode is TNodeRigidBodyCollection) or
+      (Field.ParentNode is TNodePickableGroup) or
+      (Field.ParentNode is TNodeParticleSystem) or
+      false { just to have nice newlines };
+  end;
+
+var
+  I, J: Integer;
+  N: TVRMLNode;
+  Changes: TVRMLChanges;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+  begin
+    N := NodesManager.Registered[I].Create('', '');
+    try
+      for J := 0 to N.Fields.Count - 1 do
+      begin
+        Changes := N.Fields[J].Changes;
+        if (Changes = []) and
+           not ConfirmedEmptyChanges(N.Fields[J]) then
+          Writeln('WARNING: Empty TVRMLField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].Name);
+      end;
     finally FreeAndNil(N) end;
   end;
 end;

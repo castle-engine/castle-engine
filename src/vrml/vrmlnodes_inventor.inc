@@ -66,9 +66,11 @@ begin
   inherited;
 
   FFdaxis := TSFEnum.Create(Self, 'axis' , ['X', 'Y', 'Z'], 0);
+   Fdaxis.ChangesAlways := [chEverything];
   Fields.Add(FFdaxis);
 
   FFdangle := TSFFloat.Create(Self, 'angle', 0);
+   Fdangle.ChangesAlways := [chEverything];
   Fields.Add(FFdangle);
 end;
 
