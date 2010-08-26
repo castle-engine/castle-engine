@@ -195,7 +195,8 @@ begin
   Events.Add(FEventisValid);
 
   FFdlanguage := TSFString.Create(Self, 'language', '');
-  FFdlanguage.Exposed := false;
+   Fdlanguage.Exposed := false;
+   Fdlanguage.ChangesAlways := [chEverything];
   Fields.Add(FFdlanguage);
   { X3D specification comment: ["CG"|"GLSL"|"HLSL"|...] }
 
@@ -220,6 +221,7 @@ begin
   inherited;
 
   FFdparts := TMFNode.Create(Self, 'parts', [TNodeShaderPart]);
+   Fdparts.ChangesAlways := [chEverything];
   Fields.Add(FFdparts);
 
   { Note about additional ComposedShader fields:
@@ -428,11 +430,13 @@ begin
   inherited;
 
   FFdurl := TMFString.Create(Self, 'url', []);
+   Fdurl.ChangesAlways := [chEverything]; { TODO - something more optimized }
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
   FFdtype := TSFString.Create(Self, 'type', 'VERTEX');
-  FFdtype.Exposed := false;
+   Fdtype.Exposed := false;
+   Fdtype.ChangesAlways := [chEverything];
   Fields.Add(FFdtype);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 

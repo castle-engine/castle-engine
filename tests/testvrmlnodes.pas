@@ -1188,6 +1188,19 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       FieldIs(Field, TNodeAnchor, 'parameter') or
       FieldIs(Field, TNodeAnchor, 'url') or
       FieldIs(Field, TNodeAnchor, 'description') or
+      { H-Anim nodes. There are a lot of fields we ignore,
+        because we're only interested in animating H-Anim models,
+        not editing them (or using with physics). }
+      (Field.ParentNode is TNodeHAnimDisplacer) or
+      (Field.ParentNode is TNodeHAnimHumanoid) or
+      (Field.ParentNode is TNodeHAnimJoint) or
+      (Field.ParentNode is TNodeHAnimSegment) or
+      (Field.ParentNode is TNodeHAnimSite) or
+      (Field.ParentNode is TNodeDisplacer) or
+      (Field.ParentNode is TNodeHumanoid) or
+      (Field.ParentNode is TNodeJoint) or
+      (Field.ParentNode is TNodeSegment) or
+      (Field.ParentNode is TNodeSite) or
       { "update" field of generated textures --- this actually has
         Changes <> [] when needed }
       FieldIs(Field, TNodeGeneratedShadowMap, 'update') or
@@ -1240,6 +1253,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TNodeDISEntityTypeMapping) or
       (Field.ParentNode is TNodeDISEntityManager) or
       (Field.ParentNode is TNodeFillProperties) or
+      (Field.ParentNode is TNodeLineProperties) or
       (Field.ParentNode is TNodeConverter) or
       (Field.ParentNode is TNodeScreenFontStyle) or
       (Field.ParentNode is TNodeScreenGroup) or
@@ -1251,8 +1265,19 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TNodeParticleSystem) or
       (Field.ParentNode is TNodeViewpointGroup) or
       (Field.ParentNode is TNodeViewport) or
+      (Field.ParentNode is TNodeShaderProgram) or
+      (Field.ParentNode is TNodeX3DVertexAttributeNode) or
       FieldIs(Field, TNodeX3DGroupingNode, 'render') or { "render" fields, extensions from InstantReality }
       FieldIs(Field, TNodeBillboard, 'axisOfRotation') or
+      (Field.ParentNode is TNodeCADAssembly) or
+      (Field.ParentNode is TNodeCADFace) or
+      (Field.ParentNode is TNodeCADLayer) or
+      (Field.ParentNode is TNodeCADPart) or
+      (Field.ParentNode is TNodeNurbsTextureCoordinate) or
+      (Field.ParentNode is TNodeNurbsSet) or
+      (Field.ParentNode is TNodeNurbsCurve2D) or
+      (Field.ParentNode is TNodeContourPolyline2D) or
+      (Field.ParentNode is TNodeNurbsTextureSurface) or
       false { just to have nice newlines };
   end;
 
