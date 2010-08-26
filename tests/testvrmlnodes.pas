@@ -1136,10 +1136,13 @@ procedure TTestVRMLNodes.TestEmptyChanges;
 
   begin
     Result :=
-      FieldIs(Field, TNodeX3DNode, 'metadata') or
       { Sensors don't affect actual content directly. }
       (Field.ParentNode is TNodeX3DSensorNode) or
+      FieldIs(Field, TNodeTimeSensor, 'cycleInterval') or
+      FieldIs(Field, TNodeTimeSensor, 'enabled') or
+      (Field.ParentNode is TNodeWWWAnchor) or
       { metadata, info nodes }
+      FieldIs(Field, TNodeX3DNode, 'metadata') or
       (Field.ParentNode is TNodeMetadataDouble) or
       (Field.ParentNode is TNodeMetadataFloat) or
       (Field.ParentNode is TNodeMetadataInteger) or
@@ -1149,6 +1152,10 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TNodeInfo) or
       { interpolators }
       (Field.ParentNode is TNodeX3DInterpolatorNode) or
+      (Field.ParentNode is TNodeNurbsOrientationInterpolator) or
+      (Field.ParentNode is TNodeNurbsPositionInterpolator_3) or
+      (Field.ParentNode is TNodeNurbsSurfaceInterpolator) or
+      (Field.ParentNode is TNodeNurbsPositionInterpolator_2) or
       { Just like sensors, scripts don't affect actual content directly.
         Script nodes take care themselves to react to events send to them. }
       (Field.ParentNode is TNodeX3DScriptNode) or
@@ -1158,6 +1165,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TNodeBooleanFilter) or
       (Field.ParentNode is TNodeBooleanToggle) or
       (Field.ParentNode is TNodeToggler) or
+      (Field.ParentNode is TNodeLogger) or
       { A change to a prototype field has no real effect,
         TVRMLPrototypeNode will only pass it forward to the actual node }
       (Field.ParentNode is TVRMLPrototypeNode) or
@@ -1174,6 +1182,12 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       FieldIs(Field, TVRMLCameraNode_1, 'focalDistance') or
       FieldIs(Field, TVRMLCameraNode_1, 'heightAngle') or
       FieldIs(Field, TNodeMovieTexture, 'speed') or
+      FieldIs(Field, TNodeSeparator, 'renderCulling') or { ignored }
+      FieldIs(Field, TNodeInline, 'load') or { handled by eventout callback }
+      FieldIs(Field, TNodeInline, 'url') or { handled by eventout callback }
+      FieldIs(Field, TNodeAnchor, 'parameter') or
+      FieldIs(Field, TNodeAnchor, 'url') or
+      FieldIs(Field, TNodeAnchor, 'description') or
       { "update" field of generated textures --- this actually has
         Changes <> [] when needed }
       FieldIs(Field, TNodeGeneratedShadowMap, 'update') or
@@ -1237,6 +1251,8 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TNodeParticleSystem) or
       (Field.ParentNode is TNodeViewpointGroup) or
       (Field.ParentNode is TNodeViewport) or
+      FieldIs(Field, TNodeX3DGroupingNode, 'render') or { "render" fields, extensions from InstantReality }
+      FieldIs(Field, TNodeBillboard, 'axisOfRotation') or
       false { just to have nice newlines };
   end;
 

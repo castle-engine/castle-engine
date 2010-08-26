@@ -407,21 +407,21 @@ begin
     new state. }
 
   FFdload := TSFBool.Create(Self, 'load', true);
+   Fdload.EventOut.OnReceive.Add(@EventLoadReceive);
   Fields.Add(FFdload);
-  Fdload.EventOut.OnReceive.Add(@EventLoadReceive);
 
   FFdurl := TMFString.Create(Self, 'url', []);
+   Fdurl.EventOut.OnReceive.Add(@EventUrlReceive);
   Fields.Add(FFdurl);
-  Fdurl.EventOut.OnReceive.Add(@EventUrlReceive);
   { X3D specification comment: [url or urn] }
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
-  FFdbboxCenter.Exposed := false;
+   FdbboxCenter.Exposed := false;
   Fields.Add(FFdbboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
+   FdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 

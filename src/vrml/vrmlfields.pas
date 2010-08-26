@@ -245,6 +245,11 @@ type
       don't include other flags with this. }
     chGeneratedTextureUpdateNeeded,
 
+    { VRML >= 2.0 FontStyle changed.
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chFontStyle,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2419,6 +2424,7 @@ const
     'TextureProperties node',
     'Shadow caster',
     'Generated texture update',
+    'FontStyle',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

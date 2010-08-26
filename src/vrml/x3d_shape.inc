@@ -373,23 +373,26 @@ begin
   inherited;
 
   FFdappearance := TSFNode.Create(Self, 'appearance', [TNodeX3DAppearanceNode]);
+   Fdappearance.ChangesAlways := [chEverything];
   Fields.Add(FFdappearance);
 
   FFdgeometry := TSFNode.Create(Self, 'geometry', [TNodeX3DGeometryNode]);
+   Fdgeometry.ChangesAlways := [chEverything];
   Fields.Add(FFdgeometry);
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
-  FFdbboxCenter.Exposed := false;
+   FdbboxCenter.Exposed := false;
   Fields.Add(FFdbboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
+   FdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   FFdoctreeTriangles := TSFNode.Create(Self, 'octreeTriangles', [TNodeKambiOctreeProperties]);
-  FFdoctreeTriangles.Exposed := false;
+   FdoctreeTriangles.Exposed := false;
+   FdoctreeTriangles.ChangesAlways := [chEverything];
   Fields.Add(FFdoctreeTriangles);
 end;
 

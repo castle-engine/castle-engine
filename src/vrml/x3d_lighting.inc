@@ -340,20 +340,34 @@ begin
   Fields.Add(FFdshowProxyGeometry);
 
   FFdProjectionNear := TSFFloat.Create(Self, 'projectionNear', 0);
+   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
+     this light. For now, simply send chVisibleGeometry that will
+     force updating all GeneratedShadowMaps. }
+   FdProjectionNear.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdProjectionNear);
 
   FFdProjectionFar := TSFFloat.Create(Self, 'projectionFar', 0);
+   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
+     this light. For now, simply send chVisibleGeometry that will
+     force updating all GeneratedShadowMaps. }
+   FdProjectionFar.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdProjectionFar);
 
   FFdUp := TSFVec3f.Create(Self, 'up', ZeroVector3Single);
+   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
+     this light. For now, simply send chVisibleGeometry that will
+     force updating all GeneratedShadowMaps. }
+   FdUp.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdUp);
 
   FFdDefaultShadowMap := TSFNode.Create(Self, 'defaultShadowMap', [TNodeGeneratedShadowMap]);
-  FFdDefaultShadowMap.Exposed := false;
+   FdDefaultShadowMap.Exposed := false;
+   FdDefaultShadowMap.ChangesAlways := [chEverything];
   Fields.Add(FFdDefaultShadowMap);
 
   FFdShadows := TSFBool.Create(Self, 'shadows', false);
-  FFdShadows.Exposed := false;
+   FdShadows.Exposed := false;
+   FdShadows.ChangesAlways := [chEverything];
   Fields.Add(FFdShadows);
 
   DefaultContainerField := 'children';
@@ -456,9 +470,17 @@ begin
   Fields.Add(FFddirection);
 
   FFdProjectionRectangle := TSFVec4f.Create(Self, 'projectionRectangle', ZeroVector4Single);
+   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
+     this light. For now, simply send chVisibleGeometry that will
+     force updating all GeneratedShadowMaps. }
+   FdProjectionRectangle.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdProjectionRectangle);
 
   FFdprojectionLocation := TSFVec3f.Create(Self, 'projectionLocation', ZeroVector3Single);
+   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
+     this light. For now, simply send chVisibleGeometry that will
+     force updating all GeneratedShadowMaps. }
+   FdprojectionLocation.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdprojectionLocation);
 end;
 
@@ -725,6 +747,10 @@ begin
   FdGlobal.Value := true;
 
   FFdprojectionAngle := TSFFloat.Create(Self, 'projectionAngle', 0);
+   { We want to set UpdateNeeded := true for all GeneratedShadowMap using
+     this light. For now, simply send chVisibleGeometry that will
+     force updating all GeneratedShadowMaps. }
+   FdprojectionAngle.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdprojectionAngle);
 
   DefaultContainerField := 'children';

@@ -160,43 +160,52 @@ begin
   inherited;
 
   FFdfamily := TMFString.Create(Self, 'family', ['SERIF']);
-  FFdfamily.Exposed := false;
+   Fdfamily.Exposed := false;
+   Fdfamily.ChangesAlways := [chFontStyle];
   Fields.Add(FFdfamily);
 
   FFdhorizontal := TSFBool.Create(Self, 'horizontal', true);
-  FFdhorizontal.Exposed := false;
+   Fdhorizontal.Exposed := false;
+   Fdhorizontal.ChangesAlways := [chFontStyle];
   Fields.Add(FFdhorizontal);
 
   FFdjustify := TMFString.Create(Self, 'justify', ['BEGIN']);
-  FFdjustify.Exposed := false;
+   Fdjustify.Exposed := false;
+   Fdjustify.ChangesAlways := [chFontStyle];
   Fields.Add(FFdjustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
 
   FFdlanguage := TSFString.Create(Self, 'language', '');
-  FFdlanguage.Exposed := false;
+   Fdlanguage.Exposed := false;
+   Fdlanguage.ChangesAlways := [chFontStyle];
   Fields.Add(FFdlanguage);
 
   FFdleftToRight := TSFBool.Create(Self, 'leftToRight', true);
-  FFdleftToRight.Exposed := false;
+   FdleftToRight.Exposed := false;
+   FdleftToRight.ChangesAlways := [chFontStyle];
   Fields.Add(FFdleftToRight);
 
   FFdsize := TSFFloat.Create(Self, 'size', DefaultSize);
-  FFdsize.Exposed := false;
+   Fdsize.Exposed := false;
+   Fdsize.ChangesAlways := [chFontStyle];
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
 
   FFdspacing := TSFFloat.Create(Self, 'spacing', DefaultSpacing);
-  FFdspacing.Exposed := false;
+   Fdspacing.Exposed := false;
+   Fdspacing.ChangesAlways := [chFontStyle];
   Fields.Add(FFdspacing);
   { X3D specification comment: [0,Inf) }
 
   FFdstyle := TSFString.Create(Self, 'style', 'PLAIN');
-  FFdstyle.Exposed := false;
+   Fdstyle.Exposed := false;
+   Fdstyle.ChangesAlways := [chFontStyle];
   Fields.Add(FFdstyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
 
   FFdtopToBottom := TSFBool.Create(Self, 'topToBottom', true);
-  FFdtopToBottom.Exposed := false;
+   FdtopToBottom.Exposed := false;
+   FdtopToBottom.ChangesAlways := [chFontStyle];
   Fields.Add(FFdtopToBottom);
 end;
 

@@ -678,9 +678,11 @@ begin
   inherited;
 
   FFdMaxDepth := TSFInt32.Create(Self, 'maxDepth', -1);
+   FdMaxDepth.ChangesAlways := [chEverything];
   Fields.Add(FFdMaxDepth);
 
   FFdLeafCapacity := TSFInt32.Create(Self, 'leafCapacity', -1);
+   FdLeafCapacity.ChangesAlways := [chEverything];
   Fields.Add(FFdLeafCapacity);
 end;
 
@@ -693,7 +695,6 @@ class function TNodeKambiOctreeProperties.URNMatching(const URN: string): boolea
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
-
 
 procedure TNodeKambiOctreeProperties.OverrideLimits(var Limits: TOctreeLimits);
 begin

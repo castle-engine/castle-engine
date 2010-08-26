@@ -2660,6 +2660,7 @@ begin
   FFdbboxSize.AssignDefaultValueFromValue;
 
   FFdseparate := TSFBool.Create(Self, 'separate', true);
+   Fdseparate.ChangesAlways := [chEverything];
   Fields.Add(FFdseparate);
 end;
 

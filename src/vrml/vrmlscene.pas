@@ -3848,6 +3848,8 @@ begin
     { TODO: chTexturePropertiesNode }
     if chShadowCasters in Changes then HandleChangeShadowCasters;
     if chGeneratedTextureUpdateNeeded in Changes then HandleChangeGeneratedTextureUpdateNeeded;
+    { TODO: chFontStyle. Fortunately, FontStyle fields are not exposed,
+      so this isn't a bug in vrml/x3d browser. }
     if chEverything in Changes then HandleChangeEverything;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,

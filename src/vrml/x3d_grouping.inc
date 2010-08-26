@@ -429,6 +429,7 @@ begin
   EventRemoveChildren.OnReceive.Add(@EventRemoveChildrenReceive);
 
   FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
+   Fdchildren.ChangesAlways := [chEverything];
   Fields.Add(FFdchildren);
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
@@ -651,7 +652,8 @@ begin
   inherited;
 
   FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
-  FFdchildren.Exposed := false;
+   Fdchildren.Exposed := false;
+   Fdchildren.ChangesAlways := [chEverything];
   Fields.Add(FFdchildren);
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
