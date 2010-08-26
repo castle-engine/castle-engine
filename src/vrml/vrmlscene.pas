@@ -1002,7 +1002,6 @@ type
       If you changed exactly one field, you should pass
       the field's instance to ChangedFields. This often allows
       for even more optimizations (as then we know exactly what changed).
-      Or you can pass field's eventIn or eventOut that you used to change.
       For ChangedFields(Node, Field) call,
       Field must belong to the given Node.
       It's usually more comfortable to use ChangedField(Field) if
@@ -3405,14 +3404,6 @@ begin
 
   BeginChangesSchedule;
   try
-    if Node is TNodeComposedShader then
-    begin
-      { Do nothing here, as TVRMLOpenGLRenderer registers and takes care
-        to update shaders' uniform variables. We don't have to do
-        anything here, no need to rebuild/recalculate anything.
-        The only thing that needs to be called is redisplay, by VisibleChangeHere
-        at the end of ChangedFields. }
-    end else
     if Node is TNodeCoordinate then
     begin
       { TNodeCoordinate is special, although it's part of VRML 1.0 state,

@@ -54,6 +54,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Changed(Field: TVRMLField): TVRMLChanges; override;
 
     private FFdparts: TMFNode;
     public property Fdparts: TMFNode read FFdparts;
@@ -253,6 +254,24 @@ class function TNodeComposedShader.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeComposedShader.Changed(Field: TVRMLField): TVRMLChanges;
+begin
+  Result := inherited;
+
+  { Compare with [], to not act when this field is "metadata"
+    (already handled to [] by TNodeX3DNode }
+  if Result <> [] then
+  begin
+    { TVRMLOpenGLRenderer registers and takes care
+      to update shaders' uniform variables. We don't have to do
+      anything here, no need to rebuild/recalculate anything.
+
+      The only thing needed is redisplay, shaders may change both
+      geometry and non-geometry data. }
+    Result := [chVisibleGeometry, chVisibleNonGeometry];
+  end;
 end;
 
 constructor TNodeFloatVertexAttribute.Create(const ANodeName: string;
