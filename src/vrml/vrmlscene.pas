@@ -3455,7 +3455,7 @@ var
     try
       while SI.GetNext do
         if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
-           (Coord.ParentNode = Node) then
+           (Coord = Field) then
         begin
           ChangedShapeFields(SI.Current, Field,
             false, false, false, false
@@ -3470,6 +3470,8 @@ var
           SI.Current.ScheduledLocalGeometryChangedCoord := true;
           ScheduleGeometryChanged;
         end;
+
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3677,8 +3679,7 @@ begin
     if Node is TVRMLViewpointNode then
     begin
       if (Node = ViewpointStack.Top) and
-         ( (Field = nil) or
-           (TVRMLViewpointNode(Node).FdOrientation = Field) or
+         ( (TVRMLViewpointNode(Node).FdOrientation = Field) or
            (TVRMLViewpointNode(Node).FdDirection   = Field) or
            (TVRMLViewpointNode(Node).FdUp          = Field) or
            (TVRMLViewpointNode(Node).FdGravityUp   = Field) or
@@ -3690,19 +3691,15 @@ begin
         Exit;
     end else
     if ( (Node is TNodePixelTexture) and
-         ( (Field = nil) or
-           (TNodePixelTexture(Node).FdImage = Field) ) ) or
+         (TNodePixelTexture(Node).FdImage = Field) ) or
        ( (Node is TNodeImageTexture) and
-         ( (Field = nil) or
-           (TNodeImageTexture(Node).FdUrl = Field) ) ) or
+         (TNodeImageTexture(Node).FdUrl = Field) ) or
        ( (Node is TNodeMovieTexture) and
-         ( (Field = nil) or
-           { TODO: we will not get here, as previous
-             "if Node is TNodeMovieTexture" hides this }
-           (TNodeMovieTexture(Node).FdUrl = Field) ) ) or
+         { TODO: we will not get here, as previous
+           "if Node is TNodeMovieTexture" hides this }
+         (TNodeMovieTexture(Node).FdUrl = Field) ) or
        ( (Node is TNodeTexture2) and
-         ( (Field = nil) or
-           (TNodeTexture2(Node).FdFilename = Field) or
+         ( (TNodeTexture2(Node).FdFilename = Field) or
            (TNodeTexture2(Node).FdImage = Field) ) ) then
     begin
       { On change of TVRMLTextureNode field that changes the result of
@@ -3786,8 +3783,7 @@ begin
     end else
     if Node is TNodeRenderedTexture then
     begin
-      if (Field = nil) or
-         (Field = TNodeRenderedTexture(Node).FdDimensions) or
+      if (Field = TNodeRenderedTexture(Node).FdDimensions) or
          (Field = TNodeRenderedTexture(Node).FdViewpoint) or
          (Field = TNodeRenderedTexture(Node).FdDepthMap) then
         { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
@@ -3802,8 +3798,7 @@ begin
     end else
     if Node is TNodeGeneratedShadowMap then
     begin
-      if (Field = nil) or
-         (Field = TNodeGeneratedShadowMap(Node).FdScale) or
+      if (Field = TNodeGeneratedShadowMap(Node).FdScale) or
          (Field = TNodeGeneratedShadowMap(Node).FdBias) or
          (Field = TNodeGeneratedShadowMap(Node).FdLight) then
         { Call with vcVisibleGeometry, to regenerate even if UpdateNeeded = false }
@@ -3842,7 +3837,7 @@ begin
   { For light properties not reflected in TActiveLight,
     there's just no need to do anything right now. }
 
-  if (Field = nil) or Field.ProcessedInActiveLight then
+  if Field.ProcessedInActiveLight then
   begin
     { Update all TActiveLight records with LightNode = this Node.
 
@@ -3870,8 +3865,7 @@ begin
   { When some kambiShadows or kambiShadowsMain field changes,
     then MainLightForShadows must be recalculated. }
 
-  if (Field = nil) or
-     (Field = LightNode.FdKambiShadows) or
+  if (Field = LightNode.FdKambiShadows) or
      (Field = LightNode.FdKambiShadowsMain) then
     Exclude(Validities, fvMainLightForShadows);
 
