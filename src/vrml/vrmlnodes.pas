@@ -402,7 +402,7 @@ type
       So it's guaranteed that changing some field's value of a node
       within TraverseStateLastNodesClasses affects @italic(only)
       the shapes that have given node inside State.LastNodes.
-      TVRMLScene.ChangedFields depends on that. }
+      TVRMLScene.ChangedField depends on that. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
 
     procedure SetLastNodes(const StateNode: TVRML1StateNode;
@@ -430,7 +430,7 @@ type
 
       It's guaranteed that VRML/X3D lights change only these
       *ActiveLights properties during traversing, not anything else.
-      TVRMLScene.ChangedFields (may) depend on that. }
+      TVRMLScene.ChangedField (may) depend on that. }
     VRML1ActiveLights, VRML2ActiveLights: TDynActiveLightArray;
 
     { This returns VRML1ActiveLights or VRML2ActiveLights, based on VRML
@@ -686,16 +686,16 @@ type
   { Possible things that happen when given node/field is changed.
     Used by TVRMLNode.Changed. }
   TVRMLChange = (
-    { The full algorithm of TVRMLScene.ChangedFields should
+    { The full algorithm of TVRMLScene.ChangedField should
       be used to determine what changed.
-      TVRMLScene.ChangedFields detects changes for specific hardcoded
+      TVRMLScene.ChangedField detects changes for specific hardcoded
       nodes/fields, and if the given combination isn't recognized
       --- it assumes that everything changed (calling costly
       TVRMLScene.ChangedAll).
 
       This is for now returned by default by TVRMLNode.Changed.
       In the future, we would like to eventually remove this flag
-      from all the nodes, as this approach makes TVRMLScene.ChangedFields
+      from all the nodes, as this approach makes TVRMLScene.ChangedField
       implementation a horribly long messy code. }
     chSceneAlgorithm,
 

@@ -28,16 +28,16 @@
   { Abstract 3D object notified about changes to VRML/X3D nodes/fields. }
   TVRMLChangesEngine = class(T3D)
   public
-    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField); virtual; abstract;
+    procedure ChangedField(Field: TVRMLField); virtual; abstract;
   end;
 
   TObjectsListItem_8 = TVRMLChangesEngine;
   {$I objectslist_8.inc}
   TVRMLChangesEnginesList = class(TObjectsList_8)
   public
-    { Notify listeners about a node/field change.
-      See TVRMLScene.ChangedFields for exact specification. }
-    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField);
+    { Notify listeners about a field value change.
+      See TVRMLScene.ChangedField for exact specification. }
+    procedure ChangedField(Field: TVRMLField);
   end;
 
   { Abstract 3D handling VRML/X3D events. }
@@ -56,12 +56,12 @@
 {$ifdef read_implementation}
 {$I objectslist_8.inc}
 
-procedure TVRMLChangesEnginesList.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
+procedure TVRMLChangesEnginesList.ChangedField(Field: TVRMLField);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].ChangedFields(Node, Field);
+    Items[I].ChangedField(Field);
 end;
 
 {$endif read_implementation}

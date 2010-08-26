@@ -1130,12 +1130,12 @@
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
     procedure AddCustomField(Field: TVRMLField; const Exposed: boolean = false);
 
-    { React to change to given field. Field may be @nil, then we should
-      assume that any field value potentially changed.
+    { React to change to given field. Field cannot be @nil.
 
       In the TVRMLNode class this returns [chSceneAlgorithm].
       See TVRMLChange for possible values.
 
+      @italic(Descendants implementors):
       It's OK to return here even an empty set, if changes
       something that isn't *directly* an actual content (but only an
       intermediate node to change other stuff). This includes

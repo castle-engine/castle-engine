@@ -477,10 +477,10 @@ begin
       FreeAndNil(Field);
     end;
 
-    { Theoretically, we should call now Scene.ChangedFields now
+    { Theoretically, we should call Scene.ChangedField now
       if FieldOrEvent was initializeOnly field (and not AbortSending).
       But in this case, we know FieldOrEvent comes from a Script node,
-      and in this situation ChangedFields doesn't do anything anyway. }
+      and in this situation ChangedField doesn't do anything anyway. }
 
     { This is needed for TKamScriptVRMLValuesList.AfterExecute trick.
       We handled this change, so we mark it by ValueAssigned = false. }

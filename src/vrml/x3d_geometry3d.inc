@@ -731,7 +731,7 @@ procedure TNodeElevationGrid.EventSet_HeightReceive(
 begin
   FdHeight.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdHeight);
+    EventsEngine.ChangedField(FdHeight);
 end;
 
 constructor TNodeExtrusion.Create(const ANodeName: string;
@@ -1105,7 +1105,7 @@ procedure TNodeExtrusion.EventSet_crossSectionReceive(
 begin
   FdcrossSection.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdcrossSection);
+    EventsEngine.ChangedField(FdcrossSection);
 end;
 
 procedure TNodeExtrusion.EventSet_orientationReceive(
@@ -1113,7 +1113,7 @@ procedure TNodeExtrusion.EventSet_orientationReceive(
 begin
   Fdorientation.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, Fdorientation);
+    EventsEngine.ChangedField(Fdorientation);
 end;
 
 procedure TNodeExtrusion.EventSet_scaleReceive(
@@ -1121,7 +1121,7 @@ procedure TNodeExtrusion.EventSet_scaleReceive(
 begin
   Fdscale.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, Fdscale);
+    EventsEngine.ChangedField(Fdscale);
 end;
 
 procedure TNodeExtrusion.EventSet_spineReceive(
@@ -1129,7 +1129,7 @@ procedure TNodeExtrusion.EventSet_spineReceive(
 begin
   Fdspine.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, Fdspine);
+    EventsEngine.ChangedField(Fdspine);
 end;
 
 constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string;
@@ -1221,7 +1221,7 @@ procedure TNodeIndexedFaceSet_2.EventSet_colorIndexReceive(
 begin
   FdcolorIndex.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdcolorIndex);
+    EventsEngine.ChangedField(FdcolorIndex);
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_coordIndexReceive(
@@ -1229,7 +1229,7 @@ procedure TNodeIndexedFaceSet_2.EventSet_coordIndexReceive(
 begin
   FdcoordIndex.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdcoordIndex);
+    EventsEngine.ChangedField(FdcoordIndex);
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_normalIndexReceive(
@@ -1237,7 +1237,7 @@ procedure TNodeIndexedFaceSet_2.EventSet_normalIndexReceive(
 begin
   FdnormalIndex.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdnormalIndex);
+    EventsEngine.ChangedField(FdnormalIndex);
 end;
 
 procedure TNodeIndexedFaceSet_2.EventSet_texCoordIndexReceive(
@@ -1245,7 +1245,7 @@ procedure TNodeIndexedFaceSet_2.EventSet_texCoordIndexReceive(
 begin
   FdtexCoordIndex.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdtexCoordIndex);
+    EventsEngine.ChangedField(FdtexCoordIndex);
 end;
 
 constructor TNodeSphere_2.Create(const ANodeName: string;

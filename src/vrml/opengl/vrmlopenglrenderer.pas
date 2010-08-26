@@ -2609,7 +2609,7 @@ begin
       { Although ExposedEvents implementation already sends notification
         about changes to EventsEngine, we can also get here
         by eventIn invocation (which doesn't trigger
-        EventsEngine.ChangedFields, since it doesn't change a field...).
+        EventsEngine.ChangedField, since it doesn't change a field...).
         So we should explicitly do VisibleChangeHere here, to make sure
         it gets called when uniform changed. }
 

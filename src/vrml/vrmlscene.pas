@@ -982,7 +982,7 @@ type
       ChangedAll causes recalculation of all things dependent on RootNode,
       so it's very costly to call this. While you have to call some ChangedXxx
       method after you changed RootNode graph directly, usually you
-      can call something more efficient, like ChangedFields.
+      can call something more efficient, like ChangedField.
 
       @italic(Descendant implementors notes:) ChangedAll and
       ChangedShapeFields are virtual, so of course you can override them
@@ -994,41 +994,33 @@ type
       actually depends on it, see implementation comments). }
     procedure ChangedAll; virtual;
 
-    { Notify scene that you changed field values of given Node.
-      This does relatively intelligent discovery of what could be possibly
-      affected by this node's fields, and updates/invalidates
-      internal cache only where needed.
+    { @italic(Deprecated) way to notify scene that you changed given Field value.
 
-      If you changed exactly one field, you should pass
-      the field's instance to ChangedFields. This often allows
-      for even more optimizations (as then we know exactly what changed).
-      For ChangedFields(Node, Field) call,
-      Field must belong to the given Node.
-      It's usually more comfortable to use ChangedField(Field) if
-      only one field was changed.
+      @italic(Deprecated, use ChangedField instead.)
+      Node @italic(must) be equal to Field.ParentNode.
+      Field must not be @nil.
 
-      Pass Field = @nil if you don't know this, or if many fields changed.
+      @deprecated }
+    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField);
 
-      It's acceptable to pass here a Node that
-      isn't in our VRML graph part (isn't reachable from RootNode).
-      Note that changes to inactive nodes (within RootNode graph,
-      but inactive, i.e. not reachable by RootNode.Traverse --- for example,
-      not chosen children of Switch node) even @italic(must) be reported
-      here, just like changes to active parts. That's because our Shapes
-      tree may contain some precalculated values even for inactive parts,
-      see TVRMLShapeTreeSwitch for examples.
-      Node passed here can also be one of StateDefaultNodes that you took
-      from one of State.LastNodes[]. So we really handle all cases here,
-      and passing any node is fine here, and we'll try to intelligently
+    { Notify scene that you changed the value of given field.
+
+      This does relatively intelligent discovery what could be possibly
+      affected by this field, and updates / invalidates
+      internal information where needed.
+
+      Every change you do directly to the VRML/X3D nodes inside RootNode
+      (using directly the methods of TVRMLNode or TVRMLField) must be
+      reported to scene by calling this method. This includes changes
+      to the inactive graph part (e.g. in inactive Switch child),
+      because our shapes have to track it also.
+      Changes to TVRMLShape.State.LastNodes (these nodes may come
+      from StateDefaultNodes) should also be reported here.
+      In fact, you can even notify this scene about changes to fields
+      that don't belong to our RootNode --- nothing bad will happen.
+      We always try to intelligently
       detect what this change implicates for this VRML scene. }
-    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField); override;
-
-    { Notify scene that you changed only the value of given field.
-
-      This is actually just a shortcut for ChangedFields(Field.ParentNode, Field),
-      so don't expect to get more optimizations than ChangedFields.
-      It's just shorter to type in many circumstances. }
-    procedure ChangedField(Field: TVRMLField);
+    procedure ChangedField(Field: TVRMLField); override;
 
     { Notification when geometry changed.
       "Geometry changed" means that the positions
@@ -1706,7 +1698,7 @@ type
     function GetFogStack: TVRMLBindableStackBasic; override;
 
     { If true, and also KambiLog.Log is true, then we will log
-      ChangedFields and ChangedAll occurences. Useful only for debugging
+      ChangedField and ChangedAll occurences. Useful only for debugging
       and optimizing VRML events engine. }
     property LogChanges: boolean
       read FLogChanges write FLogChanges default false;
@@ -1914,7 +1906,7 @@ type
       TVRMLField.Changed will not notify this scene. This makes a
       small optimization when you know you will not modify scene's VRML graph
       besides loading (or you're prepared to do it by manually calling
-      Scene.ChangedFields etc.).
+      Scene.ChangedField etc.).
 
       Note that when the ProcessEvents is @true, the scene will be
       notified about changes to it's nodes anyway, regardless of
@@ -3275,6 +3267,15 @@ begin
 end;
 
 procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
+begin
+  Assert(Field <> nil);
+  Assert(Field.ParentNode = Node);
+  ChangedField(Field);
+end;
+
+procedure TVRMLScene.ChangedField(Field: TVRMLField);
+var
+  Node: TVRMLNode;
 
   procedure ChangedTimeDependentNode(Handler: TTimeDependentNodeHandler);
   var
@@ -3313,7 +3314,7 @@ var
   var
     S: string;
   begin
-    S := Format('ChangedFields: Node %s (%s %s) at %s',
+    S := Format('ChangedField: Node %s (%s %s) at %s',
       [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]);
     if Field <> nil then
       S += Format('. Field %s (%s)', [ Field.Name, Field.VRMLTypeName ]);
@@ -3466,6 +3467,9 @@ var
   SI: TVRMLShapeTreeIterator;
   TexCoord: TVRMLNode;
 begin
+  Assert(Field.ParentNode <> nil);
+  Node := TVRMLNode(Field.ParentNode);
+
   Changes := Node.Changed(Field);
 
   if Log and LogChanges then
@@ -3483,7 +3487,7 @@ begin
     1. This check is not usually needed, and usually it wastes quite
        some time (for example, profile
        ../vrml/opengl/examples/change_vrml_by_code_2.lpr
-       when doing ChangedFields (not ChangedAll)).
+       when doing ChangedField (not ChangedAll)).
 
        In most cases, when modifying graph by code, and always when
        modifying graph by VRML events, the Node is known to be inside
@@ -3817,22 +3821,6 @@ begin
 
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   finally EndChangesSchedule end;
-end;
-
-procedure TVRMLScene.ChangedField(Field: TVRMLField);
-begin
-  if Field.ParentNode <> nil then
-    ChangedFields(Field.ParentNode as TVRMLNode, Field) else
-  begin
-    if Log and LogChanges then
-    begin
-      { It's useful to warn about this if LogChanges, as this can
-        potentially be much optimized by fixing ParentNode. }
-      WritelnLog('VRML changes', Format('WARNING: Field %s (%s) changed, but has no ParentNode assigned, falling back on (slow) ChangedAll', [ Field.Name, Field.VRMLTypeName ]));
-    end;
-
-    ScheduleChangedAll;
-  end;
 end;
 
 procedure TVRMLScene.ChangedActiveLightNode(LightNode: TVRMLLightNode;
@@ -5772,7 +5760,7 @@ begin
         as it has to be in ProximitySensor coordinate-space.
 
         Also, since we don't store precalculated box of ProximitySensor,
-        we can gracefully react in ChangedFields to changes:
+        we can gracefully react in ChangedField to changes:
         - changes to ProximitySensor center and size must only produce
           new ProximitySensorUpdate to eventually activate/deactivate ProximitySensor
         - changes to transforms affecting ProximitySensor must only update

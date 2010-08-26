@@ -1359,7 +1359,7 @@ procedure TNodeIndexedLineSet_2.EventSet_ColorIndexReceive(
 begin
   FdColorIndex.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdColorIndex);
+    EventsEngine.ChangedField(FdColorIndex);
 end;
 
 procedure TNodeIndexedLineSet_2.EventSet_CoordIndexReceive(
@@ -1367,7 +1367,7 @@ procedure TNodeIndexedLineSet_2.EventSet_CoordIndexReceive(
 begin
   FdCoordIndex.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdCoordIndex);
+    EventsEngine.ChangedField(FdCoordIndex);
 end;
 
 constructor TNodeIndexedTriangleFanSet.Create(const ANodeName: string;
@@ -1414,7 +1414,7 @@ procedure TNodeIndexedTriangleFanSet.EventSet_IndexReceive(
 begin
   FdIndex.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdIndex);
+    EventsEngine.ChangedField(FdIndex);
 end;
 
 constructor TNodeIndexedTriangleSet.Create(const ANodeName: string;
@@ -1461,7 +1461,7 @@ procedure TNodeIndexedTriangleSet.EventSet_IndexReceive(
 begin
   FdIndex.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdIndex);
+    EventsEngine.ChangedField(FdIndex);
 end;
 
 constructor TNodeIndexedTriangleStripSet.Create(const ANodeName: string;
@@ -1508,7 +1508,7 @@ procedure TNodeIndexedTriangleStripSet.EventSet_IndexReceive(
 begin
   FdIndex.Assign(Value);
   if EventsEngine <> nil then
-    EventsEngine.ChangedFields(Self, FdIndex);
+    EventsEngine.ChangedField(FdIndex);
 end;
 
 constructor TNodeLineSet.Create(const ANodeName: string;

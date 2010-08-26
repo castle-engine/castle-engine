@@ -2416,11 +2416,11 @@ begin
   Assert(Event = FExposedEvents[true]);
   Assert(Value is ClassType);
 
-  { When not ValuePossiblyChanged, we don't have to call ChangedFields.
+  { When not ValuePossiblyChanged, we don't have to call ChangedField.
     (Although we still have to call FExposedEvents[false].Send,
     to push the change through the routes.)
     This may be an important optimization when simple field's change
-    causes large time-consuming work in ChangedFields, e.g. consider
+    causes large time-consuming work in ChangedField, e.g. consider
     Switch.whichChoice which means currently rebuilding a lot of things. }
   ValuePossiblyChanged := not FastEqualsValue(Value);
 
@@ -2445,10 +2445,10 @@ begin
   if ParentNode <> nil then
   begin
     Parent := ParentNode as TVRMLNode;
-    ChangeListeners.ChangedFields(Parent, Self);
+    ChangeListeners.ChangedField(Self);
     if (Parent.EventsEngine <> nil) and
        (ChangeListeners.IndexOf(Parent.EventsEngine) < 0) then
-      Parent.EventsEngine.ChangedFields(Parent, Self);
+      Parent.EventsEngine.ChangedField(Self);
   end;
 end;
 
