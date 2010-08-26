@@ -685,36 +685,46 @@ begin
   Fields.Add(FFdviewpoint);
 
   FFdbackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   FFdbackground.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdbackground);
 
   FFdfog := TSFNode.Create(Self, 'fog', [TNodeFog]);
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   Fdfog.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdfog);
 
   FFdenvironment := TSFNode.Create(Self, 'environment', [TVRMLNode] { nothing sensible in core X3D for this });
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   Fdenvironment.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdenvironment);
 
   FFdscene := TSFNode.Create(Self, 'scene', [TVRMLNode]);
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   Fdscene.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdscene);
 
   FFddimensions := TMFInt32.Create(Self, 'dimensions',
     [ DefaultRenderedTextureWidth,
       DefaultRenderedTextureHeight, 4, 1, 1]);
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   Fddimensions.ChangesAlways := [chVisibleGeometry];
+   Fddimensions.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFddimensions);
 
   FFddepthMap := TMFBool.Create(Self, 'depthMap', []);
-   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
-   FddepthMap.ChangesAlways := [chVisibleGeometry];
+   FddepthMap.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFddepthMap);
 
   FFdforeground := TSFNode.Create(Self, 'foreground', [TVRMLNode] { nothing sensible in core X3D for this });
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   Fdforeground.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdforeground);
 
   FFdzOffset := TMFInt32.Create(Self, 'zOffset', []);
+   FdzOffset.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdzOffset);
 
   FFdtargets := TMFNode.Create(Self, 'targets', [TNodeX3DTextureNode]);
+   Fdtargets.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdtargets);
 
   FFddescription := TSFString.Create(Self, 'description', '');
@@ -730,14 +740,17 @@ begin
   Fields.Add(FFdupdate);
 
   FFdframeBufferMode := TSFString.Create(Self, 'frameBufferMode', 'auto');
+   FdframeBufferMode.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdframeBufferMode);
 
   FFdexcludeNodes := TMFNode.Create(Self, 'excludeNodes', [TVRMLNode]);
-  FFdexcludeNodes.Exposed := false;
+   FdexcludeNodes.Exposed := false;
+   { Simulate chVisibleGeometry, to regenerate even if UpdateNeeded = false }
+   FdexcludeNodes.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdexcludeNodes);
 
   FFdtriggerName := TSFString.Create(Self, 'triggerName', 'Render');
-  FFdtriggerName.Exposed := false;
+   FdtriggerName.Exposed := false;
   Fields.Add(FFdtriggerName);
 
   FEventtriggerSlot := TVRMLEvent.Create(Self, 'triggerSlot', TSFTime, true);
@@ -747,19 +760,23 @@ begin
   Events.Add(FEventimage_changed);
 
   FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
-  FFdtextureProperties.Exposed := false;
+   FdtextureProperties.Exposed := false;
+   FdtextureProperties.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdtextureProperties);
 
   FFdrepeatS := TSFBool.Create(Self, 'repeatS', true);
-  FFdrepeatS.Exposed := false;
+   FdrepeatS.Exposed := false;
+   FdrepeatS.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdrepeatS);
 
   FFdrepeatT := TSFBool.Create(Self, 'repeatT', true);
-  FFdrepeatT.Exposed := false;
+   FdrepeatT.Exposed := false;
+   FdrepeatT.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdrepeatT);
 
   FFdrepeatR := TSFBool.Create(Self, 'repeatR', true);
-  FFdrepeatR.Exposed := false;
+   FdrepeatR.Exposed := false;
+   FdrepeatR.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdrepeatR);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;

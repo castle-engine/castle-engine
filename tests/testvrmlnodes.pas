@@ -1165,6 +1165,8 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       FieldIs(Field, TNodeX3DTimeDependentNode, 'loop') or
       FieldIs(Field, TNodeMovieTexture, 'loop') or
       FieldIs(Field, TNodeX3DViewpointNode, 'description') or
+      FieldIs(Field, TNodeRenderedTexture, 'description') or
+      FieldIs(Field, TNodeMovieTexture, 'description') or
       FieldIs(Field, TNodeX3DViewpointNode, 'jump') or { also not implemented }
       FieldIs(Field, TNodeX3DViewpointNode, 'retainUserOffsets') or { also not implemented }
       FieldIs(Field, TNodeX3DViewpointNode, 'centerOfRotation') or { also not implemented }
@@ -1185,6 +1187,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
         (not even chEverything would help) }
       (Field.ParentNode is TNodeNavigationInfo) or
       { TODO: stuff not implemented / things we don't look at all }
+      FieldIs(Field, TNodeRenderedTexture, 'triggerName') or
       (Field.ParentNode is TNodeLOD_1) or
       (Field.Name = 'bboxSize') or
       (Field.Name = 'bboxCenter') or
