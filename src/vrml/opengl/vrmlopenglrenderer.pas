@@ -4175,7 +4175,11 @@ procedure TVRMLOpenGLRenderer.RenderShapeBegin(Shape: TVRMLShape);
             myself, for (far future) pure OpenGL >= 3 implementation. }
 
           glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled, Vector4Double(
-            ClipPlane^.Transform *
+            { TODO: uhm, why MatrixInverse?????????????????
+              It works, but why? }
+            MatrixInverse(ClipPlane^.Transform,
+              MatrixDeterminant(ClipPlane^.Transform)
+            ) *
             ClipPlane^.Node.FdPlane.Value));
           glEnable(GL_CLIP_PLANE0 + ClipPlanesEnabled);
 

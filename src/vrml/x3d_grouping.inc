@@ -35,6 +35,16 @@
 
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+
+    { Change State.Transform for children nodes.
+
+      This should be done here, not in overriden BeforeTraverse.
+      Reason: for storing ClipPlanes transformations, we need to know
+      transformed matrix inside TVRMLGroupingNode.BeforeTraverse implementation.
+      And we also do StateStack.Push inside TVRMLGroupingNode.BeforeTraverse
+      implementation... So ApplyTransform must happen in the middle of
+      TVRMLGroupingNode.BeforeTraverse call. }
+    procedure ApplyTransform(State: TVRMLGraphTraverseState); virtual;
   end;
 
   INodeX3DBoundedObject = interface(IVRMLNode)
@@ -250,7 +260,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -333,9 +343,10 @@ begin
   inherited;
 
   BeforeTraversePushedState := SeparateGroup;
-  if not BeforeTraversePushedState then Exit;
+  if BeforeTraversePushedState then
+    StateStack.Push;
 
-  StateStack.Push;
+  ApplyTransform(StateStack.Top);
 
   (*We append all directional lights to the current State.
     This is how we implement DirectionalLight scope according to VRML 2.0
@@ -413,6 +424,10 @@ begin
     DirectEnumerateActive(
       {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
   finally FreeAndNil(Enumerator) end;
+end;
+
+procedure TVRMLGroupingNode.ApplyTransform(State: TVRMLGraphTraverseState);
+begin
 end;
 
 procedure TVRMLGroupingNode.AfterTraverse(
@@ -830,10 +845,10 @@ procedure TransformSimpleState
 {$I x3d_grouping_transformstate.inc}
 {$undef TRANSFORM_SIMPLE}
 
-procedure TNodeTransform_2.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TNodeTransform_2.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
-  TransformState(StateStack.Top, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
+  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
 end;
 

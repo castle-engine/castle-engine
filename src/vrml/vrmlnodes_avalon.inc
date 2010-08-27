@@ -24,7 +24,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -323,20 +323,20 @@ begin
     Func(Self, FdChildren.Items[I]);
 end;
 
-procedure TNodeMatrixTransform_2.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TNodeMatrixTransform_2.ApplyTransform(State: TVRMLGraphTraverseState);
 var
   InvertedMatrix: TMatrix4Single;
 begin
   inherited;
 
-  { Inherited TVRMLGroupingNode already saved StateStack.Top.Transform and such. }
+  { Inherited TVRMLGroupingNode already saved State.Transform and such. }
 
-  StateStack.Top.Transform := MatrixMult(StateStack.Top.Transform, FdMatrix.Value);
+  State.Transform := MatrixMult(State.Transform, FdMatrix.Value);
 
   if TryMatrixInverse(FdMatrix.Value, InvertedMatrix) then
   begin
-    StateStack.Top.InvertedTransform :=
-      MatrixMult(InvertedMatrix, StateStack.Top.InvertedTransform)
+    State.InvertedTransform :=
+      MatrixMult(InvertedMatrix, State.InvertedTransform);
   end else
   begin
     if Log then
@@ -348,7 +348,7 @@ begin
       So no need to multiply State.InvertedTransform by anything. }
   end;
 
-  StateStack.Top.AverageScaleTransform *= FdMatrix.AverageScaleTransform;
+  State.AverageScaleTransform *= FdMatrix.AverageScaleTransform;
 end;
 
 function TNodeMatrixTransform_2.SuggestedVRMLVersion(
