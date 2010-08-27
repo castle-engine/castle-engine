@@ -264,6 +264,7 @@ type
   TNodeBlendMode = class;
   TNodeX3DTextureNode = class;
   TVRMLEventsEngine = class;
+  TNodeClipPlane = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -351,6 +352,24 @@ type
   end;
   TArray_ActiveLight = TInfiniteArray_1;
   PArray_ActiveLight = PInfiniteArray_1;
+
+  { ClipPlane, along with a tranformation. }
+  TClipPlane = record
+    Node: TNodeClipPlane;
+    Transform: TMatrix4Single;
+  end;
+  PClipPlane = ^TClipPlane;
+
+  TDynArrayItem_3 = TClipPlane;
+  PDynArrayItem_3 = PClipPlane;
+  {$define DYNARRAY_3_IS_STRUCT}
+  {$I dynarray_3.inc}
+  TDynClipPlaneArray = class(TDynArray_3)
+  public
+    { Find record with given TNodeClipPlane, returns -1 if not found. }
+    function IndexOfNode(Node: TNodeClipPlane): Integer;
+    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+  end;
 
   TPointingDeviceSensorsList = class;
 
@@ -606,6 +625,17 @@ type
       (And when multiple pointing device sensors are within the same
       grouping node, they all work.) }
     PointingDeviceSensors: TPointingDeviceSensorsList;
+
+    { ClipPlanes affecting nodes within this state.
+
+      They are collected here regardless of whether they are enabled or not.
+      This allows efficient implementation of @code(ClipPlane.enabled)
+      dynamic changes.
+
+      Ordered from the most global to most local ones.
+      So, following the X3D specification, we should consider the first
+      clip planes on this list more important. }
+    ClipPlanes: TDynClipPlaneArray;
   end;
 
   { Stack of TVRMLGraphTraverseState.
@@ -2223,6 +2253,7 @@ uses
 {$I objectslist_5.inc}
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
+{$I dynarray_3.inc}
 
 {$I vrmlnodes_boundingboxes.inc}
 {$I vrmlnodes_verticesandtrianglescounting.inc}
@@ -2303,9 +2334,10 @@ end;
 
 function TDynActiveLightArray.IndexOfLightNode(LightNode: TVRMLLightNode): integer;
 begin
- for result := 0 to High do
-  if Items[result].LightNode = LightNode then exit;
- result := -1;
+  for Result := 0 to High do
+    if Items[Result].LightNode = LightNode then
+      Exit;
+  Result := -1;
 end;
 
 function TDynActiveLightArray.Equals(SecondValue: TObject): boolean;
@@ -2332,6 +2364,32 @@ begin
         Exit(false);
 end;
 
+{ TDynClipPlaneArray --------------------------------------------------------- }
+
+function TDynClipPlaneArray.IndexOfNode(Node: TNodeClipPlane): Integer;
+begin
+  for Result := 0 to High do
+    if Items[Result].Node = Node then
+      Exit;
+  Result := -1;
+end;
+
+function TDynClipPlaneArray.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result :=
+    (SecondValue <> nil) and
+    (SecondValue is TDynClipPlaneArray) and
+    (TDynClipPlaneArray(SecondValue).Count = Count);
+
+  if Result then
+    for I := 0 to High do
+      if (Items[I].Node <> TDynClipPlaneArray(SecondValue).Items[I].Node) or
+         MatricesPerfectlyEqual(Items[I].Transform, TDynClipPlaneArray(SecondValue).Items[I].Transform) then
+        Exit(false);
+end;
+
 { TVRMLGraphTraverseState ---------------------------------------------------- }
 
 procedure TVRMLGraphTraverseState.CommonCreate;
@@ -2340,6 +2398,7 @@ begin
   VRML1ActiveLights := TDynActiveLightArray.Create;
   VRML2ActiveLights := TDynActiveLightArray.Create;
   PointingDeviceSensors := TPointingDeviceSensorsList.Create;
+  ClipPlanes := TDynClipPlaneArray.Create;
 end;
 
 constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
@@ -2378,6 +2437,7 @@ begin
   FreeAndNil(VRML1ActiveLights);
   FreeAndNil(VRML2ActiveLights);
   FreeAndNil(PointingDeviceSensors);
+  FreeAndNil(ClipPlanes);
 
   inherited;
 end;
@@ -2397,6 +2457,7 @@ begin
   InsideInvisible := 0;
 
   PointingDeviceSensors.Count := 0;
+  ClipPlanes.Count := 0;
   VRML1ActiveLights.Count := 0;
   VRML2ActiveLights.Count := 0;
 end;
@@ -2415,6 +2476,7 @@ begin
   InsideInvisible := Source.InsideInvisible;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
+  ClipPlanes.Assign(Source.ClipPlanes);
   VRML1ActiveLights.Assign(Source.VRML1ActiveLights);
   VRML2ActiveLights.Assign(Source.VRML2ActiveLights);
 end;
@@ -2451,6 +2513,7 @@ begin
   Result :=
     VRML1ActiveLights.Equals(SV.VRML1ActiveLights) and
     VRML2ActiveLights.Equals(SV.VRML2ActiveLights) and
+    ClipPlanes.Equals(SV.ClipPlanes) and
     { no need to compare InvertedTransform, it should be equal when normal
       Transform is equal. }
     MatricesPerfectlyEqual(Transform, SV.Transform) and
@@ -2474,7 +2537,7 @@ begin
   { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
     PointingDeviceSensors,
     ActiveLights, Transform, AverageScaleTransform, InvertedTransform,
-    TextureTransform are ignored by
+    TextureTransform, ClipPlanes are ignored by
     TVRMLOpenGLRenderer.RenderShapeNoTransform }
 
   Result := (ShapeNode = SecondValue.ShapeNode);

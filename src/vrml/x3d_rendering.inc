@@ -1139,9 +1139,11 @@ begin
   inherited;
 
   FFdenabled := TSFBool.Create(Self, 'enabled', true);
+   Fdenabled.ChangesAlways := [chClipPlane];
   Fields.Add(FFdenabled);
 
   FFdplane := TSFVec4f.Create(Self, 'plane', Vector4Single(0, 1, 0, 0));
+   Fdplane.ChangesAlways := [chClipPlane];
   Fields.Add(FFdplane);
   { X3D specification comment: [0,1] }
 

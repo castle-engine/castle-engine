@@ -2969,6 +2969,9 @@ begin
       fvManifoldAndBorderEdges
     are all related to geometry changes. }
 
+  { Optimization: nothing needs to be done here when only chClipPlane }
+  if Changes = [chClipPlane] then Exit;
+
   Shape.Changed(PossiblyLocalGeometryChanged);
 
   if not InactiveOnly then
@@ -3784,6 +3787,24 @@ var
     VisibleChangeHere([]);
   end;
 
+  procedure HandleChangeClipPlane;
+  var
+    SI: TVRMLShapeTreeIterator;
+  begin
+    Assert(Node is TNodeClipPlane);
+
+    { Call ChangedShapeFields for all shapes using this ClipPlane node. }
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+      begin
+        if SI.Current.State.ClipPlanes.IndexOfNode(TNodeClipPlane(Node)) <> -1 then
+          ChangedShapeFields(SI.Current, Field, false, false, false, Changes);
+      end;
+    finally FreeAndNil(SI) end;
+    VisibleChangeHere([vcVisibleGeometry]);
+  end;
+
   procedure HandleChangeEverything;
   begin
     { An arbitrary change occured. }
@@ -3858,6 +3879,7 @@ begin
     { TODO: chFontStyle. Fortunately, FontStyle fields are not exposed,
       so this isn't a bug in vrml/x3d browser. }
     if chHeadLight in Changes then HandleChangeHeadLight;
+    if chClipPlane in Changes then HandleChangeClipPlane;
     if chEverything in Changes then HandleChangeEverything;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,

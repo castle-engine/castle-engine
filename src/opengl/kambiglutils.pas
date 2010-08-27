@@ -312,6 +312,7 @@ var
   GLQueryCounterBits: TGLint;
   GLMaxRenderbufferSize: TGLuint;
   GLMaxRectangleTextureSize: Cardinal;
+  GLMaxClipPlanes: Cardinal;
   { @groupEnd }
 
 { Initialize all extensions and OpenGL versions.
@@ -1375,6 +1376,8 @@ begin
  if GL_ARB_texture_rectangle then
    GLMaxRectangleTextureSize := glGetInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB) else
    GLMaxRectangleTextureSize := 0;
+
+ GLMaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES);
 end;
 {$endif}
 
@@ -2602,7 +2605,7 @@ begin
 
   '-------' +nl+
   'Limits:' +nl+
-  '  Max clip planes: ' +GetInteger(GL_MAX_CLIP_PLANES) +nl+
+  '  Max clip planes: ' + IntToStr(GLMaxClipPlanes) +nl+
   '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
   '  Max lights: ' +GetInteger(GL_MAX_LIGHTS) +nl+
   '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) +nl+

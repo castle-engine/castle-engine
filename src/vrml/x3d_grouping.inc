@@ -289,6 +289,8 @@ type
 
   procedure TGeneralGroupingEnumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
+  var
+    CP: PClipPlane;
   begin
     if Child is TVRMLDirectionalLightNode then
       { We do CreateActiveLight with State from TVRMLGroupingNode node,
@@ -309,6 +311,12 @@ type
       end;
 
       State.PointingDeviceSensors.Add(Child);
+    end else
+    if Child is TNodeClipPlane then
+    begin
+      CP := State.ClipPlanes.Add;
+      CP^.Node := TNodeClipPlane(Child);
+      CP^.Transform := State.Transform;
     end;
   end;
 
@@ -376,6 +384,7 @@ begin
 
   { We also use it to collect State.PointingDeviceSensors,
     as it turns our that the same approach is possible, for the same reasons.
+    And the same goes for State.ClipPlanes.
     Moreover, we do it all in a single DirectEnumerateActive call,
     so this doesn't slow down the code.
   }

@@ -3379,16 +3379,17 @@ begin
     the geometry node, and these have no effect over Renderer.Prepare
     or UseBlending calculation). }
 
-  if (Optimization = roSeparateShapesNoTransform) and TransformOnly then
-  begin
-    { This can be quite crucial optimization for
-      roSeparateShapesNoTransform in some cases, e.g. for VRML files
-      with animations animating Transform.translation/rotation/scale etc.
-      In such cases, roSeparateShapesNoTransform is perfect,
-      as display lists will be used and never need to be rebuild. }
-    { Tests: Writeln('roSeparateShapesNoTransform optimization kicked in!'); }
+
+  { Transformation (and clip planes) changes don't affect
+    roSeparateShapesNoTransform display lists, as they are applied
+    outside of TVRMLOpenGLRenderer.RenderShapeNoTransform.
+
+    This can be quite crucial optimization in some cases,
+    as you can animate Transform.translation/rotation/scale etc. efficiently.
+    (no rebuilding of display lists needed). }
+  if (Optimization = roSeparateShapesNoTransform) and
+     (TransformOnly or (Changes = [chClipPlane])) then
     Exit;
-  end;
 
   case Optimization of
     roSceneAsAWhole:

@@ -255,6 +255,9 @@ type
       don't include other flags with this. }
     chHeadLight,
 
+    { Clip plane visible change (enabled or plane equation). }
+    chClipPlane,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2431,6 +2434,7 @@ const
     'Generated texture update',
     'FontStyle',
     'HeadLight',
+    'ClipPlane',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

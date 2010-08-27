@@ -1382,6 +1382,11 @@ type
       Always <= 1 if not UseMultiTexturing. }
     TextureTransformUnitsUsed: Cardinal;
 
+    { Set by RenderShapeBegin, used by RenderShapeEnd. Tells how many
+      clip planes were enabled (and so, how many must be disabled
+      at the end). }
+    ClipPlanesEnabled: Cardinal;
+
     { Additional texture units used,
       in addition to 0..TextureTransformUnitsUsed - 1.
       Cleared by RenderShapeBegin, added by PushTextureUnit,
@@ -4145,6 +4150,44 @@ procedure TVRMLOpenGLRenderer.RenderShapeBegin(Shape: TVRMLShape);
       glMultMatrix(TextureTransform.TransformMatrix);
   end;
 
+  { Initialize OpenGL clip planes, looking at ClipPlanes list.
+    We know we're inside GL_MODELVIEW mode,
+    and we know all clip planes are currently disabled. }
+  procedure ClipPlanesBegin(ClipPlanes: TDynClipPlaneArray);
+  var
+    I: Integer;
+    ClipPlane: PClipPlane;
+  begin
+    ClipPlanesEnabled := 0;
+    { GLMaxClipPlanes should be >= 6 with every conforming OpenGL,
+      but still better check. }
+    if GLMaxClipPlanes > 0 then
+      for I := 0 to ClipPlanes.Count - 1 do
+      begin
+        ClipPlane := @(ClipPlanes.Items[I]);
+        if ClipPlane^.Node.FdEnabled.Value then
+        begin
+          Assert(ClipPlanesEnabled < GLMaxClipPlanes);
+
+          { I could also do here glMultMatrix(ClipPlane^.Transform),
+            within glPush/PopMatrix, and let OpenGL multiply
+            Transform * plane by itself. Instead I'm doing multiplication
+            myself, for (far future) pure OpenGL >= 3 implementation. }
+
+          glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled, Vector4Double(
+            ClipPlane^.Transform *
+            ClipPlane^.Node.FdPlane.Value));
+          glEnable(GL_CLIP_PLANE0 + ClipPlanesEnabled);
+
+          Inc(ClipPlanesEnabled);
+
+          { No more clip planes possible, regardless if there are any more
+            enabled clip planes on the list. }
+          if ClipPlanesEnabled = GLMaxClipPlanes then Break;
+        end;
+      end;
+  end;
+
 var
   TextureTransform: TNodeX3DTextureTransformNode;
   Child: TVRMLNode;
@@ -4245,6 +4288,8 @@ begin
   end;
 
   glMatrixMode(GL_MODELVIEW);
+
+  ClipPlanesBegin(State.ClipPlanes);
 
   glPushMatrix;
     glMultMatrix(State.Transform);
@@ -4567,6 +4612,17 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeEnd(Shape: TVRMLShape);
+
+  { Disable OpenGL clip planes previously initialized by ClipPlanesBegin. }
+  procedure ClipPlanesEnd;
+  var
+    I: Integer;
+  begin
+    for I := 0 to ClipPlanesEnabled - 1 do
+      glDisable(GL_CLIP_PLANE0 + I);
+    ClipPlanesEnabled := 0; { not really needed, but for safety... }
+  end;
+
 var
   I: Integer;
 begin
@@ -4593,6 +4649,8 @@ begin
 
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix;
+
+  ClipPlanesEnd;
 
   { at the end, we're in modelview mode }
 end;
