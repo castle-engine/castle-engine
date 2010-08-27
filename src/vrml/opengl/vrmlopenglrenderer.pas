@@ -4169,15 +4169,21 @@ procedure TVRMLOpenGLRenderer.RenderShapeBegin(Shape: TVRMLShape);
         begin
           Assert(ClipPlanesEnabled < GLMaxClipPlanes);
 
-          { I could also do here glMultMatrix(ClipPlane^.Transform),
-            within glPush/PopMatrix, and let OpenGL multiply
-            Transform * plane by itself. Instead I'm doing multiplication
-            myself, for (far future) pure OpenGL >= 3 implementation. }
+          { Nope, you should *not* multiply
+            ClipPlane^.Transform * plane yourself.
+            Looks like inversion of ClipPlane^.Transform should be used
+            in this case --- not really sure why, something about
+            glClipPlane multiplying by the *inverse* of modelview.
 
-          glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled, Vector4Double(
-            ClipPlane^.Transform *
-            ClipPlane^.Node.FdPlane.Value));
-          glEnable(GL_CLIP_PLANE0 + ClipPlanesEnabled);
+            Right now I'm just loading ClipPlane^.Transform to GL modelview,
+            this way things work *and* I understand them :) }
+
+          glPushMatrix;
+            glMultMatrix(ClipPlane^.Transform);
+            glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled,
+              Vector4Double(ClipPlane^.Node.FdPlane.Value));
+            glEnable(GL_CLIP_PLANE0 + ClipPlanesEnabled);
+          glPopMatrix;
 
           Inc(ClipPlanesEnabled);
 
