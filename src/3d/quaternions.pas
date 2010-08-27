@@ -150,7 +150,7 @@ function NLerp(const A: Single; const Rot1, Rot2: TVector4Single;
 
 implementation
 
-uses Math;
+uses Math, KambiUtils;
 
 function QuatFromAxisAngle(const Axis: TVector3Single;
   const AngleRad: Single): TQuaternion;
@@ -174,7 +174,9 @@ procedure QuatToAxisAngle(const Q: TQuaternion;
 var
   HalfAngle, SinHalfAngle: Single;
 begin
-  HalfAngle := ArcCos(Q.Real);
+  { Use Clamped to secure against cosinus being slightly outside [-1,1], like in SLerp. }
+  HalfAngle := ArcCos(Clamped(Q.Real, -1, 1));
+
   SinHalfAngle := Sin(HalfAngle);
   AngleRad := HalfAngle * 2;
   if Zero(SinHalfAngle) then
@@ -352,6 +354,11 @@ begin
     CosTheta := -CosTheta;
   end else
     NegateOneQuaternion := 1;
+
+  { Sometimes CosTheta may get slightly > 1, and then ArcCos fails with
+    EInvalidArgument. Testcase: kambi_vrml_test_suite/x3d/orientation_cos_1.x3d
+    with view3dscene. }
+  MinTo1st(CosTheta, 1);
 
   Theta := ArcCos(CosTheta);
   SinTheta := Sin(Theta);
