@@ -647,11 +647,15 @@ begin
   inherited;
 
   FFdcenter := TSFVec3f.Create(Self, 'center', ZeroVector3Single);
-  FFdcenter.Exposed := false;
+   Fdcenter.Exposed := false;
+   { Just redisplay, and new appropriate LOD children will be displayed. }
+   Fdcenter.ChangesAlways := [chRedisplay];
   Fields.Add(FFdcenter);
 
   FFdrange := TMFFloat.Create(Self, 'range', []);
-  FFdrange.Exposed := false;
+   Fdrange.Exposed := false;
+   { Just redisplay, and new appropriate LOD children will be displayed. }
+   Fdrange.ChangesAlways := [chRedisplay];
   Fields.Add(FFdrange);
   { X3D specification comment: [0,Inf) or -1 }
 

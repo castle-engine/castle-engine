@@ -1269,6 +1269,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TNodeX3DVertexAttributeNode) or
       FieldIs(Field, TNodeX3DGroupingNode, 'render') or { "render" fields, extensions from InstantReality }
       FieldIs(Field, TNodeBillboard, 'axisOfRotation') or
+      FieldIs(Field, TVRMLLODNode, 'forceTransitions') or
       (Field.ParentNode is TNodeCADAssembly) or
       (Field.ParentNode is TNodeCADFace) or
       (Field.ParentNode is TNodeCADLayer) or
