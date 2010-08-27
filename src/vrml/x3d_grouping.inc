@@ -326,7 +326,10 @@ type
     begin
       CP := State.ClipPlanes.Add;
       CP^.Node := TNodeClipPlane(Child);
-      CP^.Transform := State.Transform;
+      { TODO: why does glClipPlane work Ok if I transform by the *inverse*
+        of the matrix? Something about glClipPlane multiplying by
+        the *inverse* of whole modelview matrix, looks like I don't get it. }
+      CP^.Transform := State.InvertedTransform;
     end;
   end;
 
