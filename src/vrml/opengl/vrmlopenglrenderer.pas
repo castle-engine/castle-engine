@@ -4171,12 +4171,19 @@ procedure TVRMLOpenGLRenderer.RenderShapeBegin(Shape: TVRMLShape);
 
           { Nope, you should *not* multiply
             ClipPlane^.Transform * plane yourself.
-            Looks like inversion of ClipPlane^.Transform should be used
-            in this case --- not really sure why, something about
-            glClipPlane multiplying by the *inverse* of modelview.
+            The plane equation cannot be transformed in the same way
+            as you transform normal 4D vertex/direction (Matrix * vector).
+            E.g. translating a plane this way, with a standard translation
+            matrix, would make nonsense plane as a result.
+            This much I understand :)
 
-            Right now I'm just loading ClipPlane^.Transform to GL modelview,
-            this way things work *and* I understand them :) }
+            So what OpenGL does? Some voodoo to allow you to specify
+            plane equation in local (in current modelview) space,
+            and not worry about the math :)
+            http://www2.imm.dtu.dk/~jab/texgen.pdf sheds some light on this.
+            glClipPlane docs say that glClipPlane is multiplied by
+            the *inverse* of modelview. The wording is crucial here:
+            plane is multiplied by the matrix, not the other way around. }
 
           glPushMatrix;
             glMultMatrix(ClipPlane^.Transform);
