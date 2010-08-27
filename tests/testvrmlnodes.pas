@@ -1292,11 +1292,12 @@ begin
     N := NodesManager.Registered[I].Create('', '');
     try
       for J := 0 to N.Fields.Count - 1 do
-      begin
+      try
         Changes := N.Fields[J].Changes;
-        if (Changes = []) and
-           not ConfirmedEmptyChanges(N.Fields[J]) then
-          Writeln('WARNING: Empty TVRMLField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].Name);
+        Assert((Changes <> []) or ConfirmedEmptyChanges(N.Fields[J]));
+      except
+        Writeln('Empty TVRMLField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].Name);
+        raise;
       end;
     finally FreeAndNil(N) end;
   end;
