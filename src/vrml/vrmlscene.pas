@@ -3777,6 +3777,13 @@ var
     VisibleChangeHere([]);
   end;
 
+  procedure HandleChangeHeadLight;
+  begin
+    { It will be automatically reinitalized when needed (on next display) }
+    HeadlightInitialized := false;
+    VisibleChangeHere([]);
+  end;
+
   procedure HandleChangeEverything;
   begin
     { An arbitrary change occured. }
@@ -3850,6 +3857,7 @@ begin
     if chGeneratedTextureUpdateNeeded in Changes then HandleChangeGeneratedTextureUpdateNeeded;
     { TODO: chFontStyle. Fortunately, FontStyle fields are not exposed,
       so this isn't a bug in vrml/x3d browser. }
+    if chHeadLight in Changes then HandleChangeHeadLight;
     if chEverything in Changes then HandleChangeEverything;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,

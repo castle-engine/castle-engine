@@ -738,6 +738,7 @@ begin
   { X3D specification comment: [0,Inf) }
 
   FFdheadlight := TSFBool.Create(Self, 'headlight', true);
+   Fdheadlight.ChangesAlways := [chHeadLight];
   Fields.Add(FFdheadlight);
 
   FFdspeed := TSFFloat.Create(Self, 'speed', 1.0);

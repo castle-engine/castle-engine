@@ -250,6 +250,11 @@ type
       don't include other flags with this. }
     chFontStyle,
 
+    { HeadLight properties (on, and parameters) changed.
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chHeadLight,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2425,6 +2430,7 @@ const
     'Shadow caster',
     'Generated texture update',
     'FontStyle',
+    'HeadLight',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;
