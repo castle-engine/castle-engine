@@ -550,7 +550,8 @@ begin
   { In VRML 2.0, Collision didn't descent from X3DSensorName and had
     special field "collide". In X3D, "enabled" is used for the exact
     same purpose. }
-  FFdenabled.AddAlternativeName('collide', 2);
+   Fdenabled.AddAlternativeName('collide', 2);
+   Fdenabled.ChangesAlways := [chEverything];
   Fields.Add(FFdenabled);
 
   FEventcollideTime := TVRMLEvent.Create(Self, 'collideTime', TSFTime, false);
@@ -560,7 +561,8 @@ begin
   Events.Add(FEventisActive);
 
   FFdproxy := TSFNode.Create(Self, 'proxy', INodeX3DChildNode);
-  FFdproxy.Exposed := false;
+   Fdproxy.Exposed := false;
+   Fdproxy.ChangesAlways := [chEverything];
   Fields.Add(FFdproxy);
 
   DefaultContainerField := 'children';
