@@ -118,20 +118,6 @@ type
 
       Where this is worse over roSeparateShapes:
       @unorderedList(
-        @item(
-          roSeparateShapesNoTransform can be used only if you don't use
-          Attributes.OnBeforeVertex feature and your model doesn't
-          use volumetric fog. If you do use these features,
-          you have no choice: you must use roSeparateShapes,
-          otherwise rendering results may be wrong.
-
-          See [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]
-          file @code(kambi_extensions/fog_volumetric/break_no_transform_final.wrl)
-          (versions for VRML 1.0 and 2.0 are available) for a demo.
-
-          Reasons: because TVRMLOpenGLRenderer.DoBeforeGLVertex
-          uses Render_State.CurrMatrix.)
-
         @item(In some cases roSeparateShapesNoTransform
           may be a little slower at rendering than roSeparateShapes,
           as this doesn't wrap in display list things done
