@@ -23,7 +23,8 @@ unit VRMLShape;
 interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, KambiClassUtils,
-  KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree, VRMLTriangle;
+  KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree, VRMLTriangle,
+  VRMLFields;
 
 {$define read_interface}
 
@@ -304,7 +305,24 @@ type
     function FrustumBoundingSphereCollisionPossibleSimple(
       const Frustum: TFrustum): boolean;
 
-    procedure Changed(PossiblyLocalGeometryChanged: boolean); virtual;
+    { Notify this shape that you changed a field inside one of it's nodes.
+      This should be called when fields within Shape.Geometry,
+      Shape.State.Last*, Shape.State.ShapeNode or such change.
+
+      Field (must not be @nil) describes what field changed.
+      Look into Field.ParentNode if you want to know which node changed.
+
+      Pass InactiveOnly = @true is you know that this shape is fully in
+      inactive VRML graph part (inactive Switch, LOD etc. children).
+
+      Including chTransform in Changes means something more than
+      general chTransform (which means that transformation of children changed,
+      which implicates many things --- not only shape changes).
+      Here, chTransform in Changes means that only the transformation
+      of TVRMLShape.State changed (so only on fields ignored by
+      EqualsNoTransform). }
+    procedure Changed(Field: TVRMLField; const InactiveOnly: boolean;
+      const Changes: TVRMLChanges); virtual;
 
     { The dynamic octree containing all triangles.
       It contains only triangles within this shape.
@@ -694,7 +712,7 @@ type
 implementation
 
 uses ProgressUnit, VRMLScene, VRMLErrors, NormalsCalculator, KambiLog,
-  KambiStringUtils, VRMLFields;
+  KambiStringUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -966,11 +984,28 @@ begin
   Assert(FState[true] = nil);
 end;
 
-procedure TVRMLShape.Changed(PossiblyLocalGeometryChanged: boolean);
+procedure TVRMLShape.Changed(Field: TVRMLField; const InactiveOnly: boolean;
+  const Changes: TVRMLChanges);
 begin
+  { Eventual clearing of TVRMLScene.Validities items because shape changed
+    can be done by DoGeometryChanged, where more specific info
+    about what changed is passed. No reason to do it here.
+    Reason: Validities items
+      fvBoundingBox, fvVerticesCountNotOver, fvVerticesCountOver,
+      fvTrianglesCountNotOver, fvTrianglesCountOver,
+      fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+      fvTrianglesListShadowCasters,
+      fvManifoldAndBorderEdges
+    are all related to geometry changes. }
+
+  { Optimization: nothing needs to be done here when only chClipPlane }
+  if Changes = [chClipPlane] then Exit;
+
   FreeProxy;
 
-  if PossiblyLocalGeometryChanged then
+  { If possibly local geometry changed (for now, this is only for VRML 1.0
+    state; VRML 2.0 geometry changes will be signalled without this). }
+  if chVisibleVRML1State in Changes then
   begin
     Validities := [];
     FreeAndNil(FNormals);
@@ -983,6 +1018,22 @@ begin
       svTrianglesCountNotOver, svTrianglesCountOver,
       svNormals];
   end;
+
+  if chCoordinate in Changes then
+  begin
+    { Coordinate changes actual geometry. }
+    ScheduledLocalGeometryChangedCoord := true;
+    TVRMLScene(ParentScene).ScheduleGeometryChanged;
+  end;
+
+  if chGeometry in Changes then
+  begin
+    ScheduledLocalGeometryChanged := true;
+    TVRMLScene(ParentScene).ScheduleGeometryChanged;
+  end;
+
+  if not InactiveOnly then
+    TVRMLScene(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
 procedure TVRMLShape.ValidateBoundingSphere;

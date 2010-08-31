@@ -655,8 +655,10 @@ type
     GeometrySchedule: Cardinal;
     GeometryChangedScheduled: boolean;
     procedure BeginGeometryChangedSchedule;
-    procedure ScheduleGeometryChanged;
     procedure EndGeometryChangedSchedule;
+  public
+    { @exclude Internal, only to be called by TVRMLShape }
+    procedure ScheduleGeometryChanged;
   private
     { Everything changed. All octrees must be rebuild, old State pointers
       may be invalid.
@@ -821,30 +823,6 @@ type
       when Dirty <> 0). }
     Dirty: Cardinal;
 
-    { Notify scene that you changed only given Shape.
-      This means that you changed only fields within Shape.Geometry,
-      Shape.State.Last*, Shape.State.ShapeNode. And you're sure that
-      these nodes are not shared by other shapes using VRML DEF/USE
-      mechanism.
-
-      You can call this only if given Shape is in our @link(Shapes) tree.
-
-      Field (never @nil) describes what field changed.
-      Look into Field.ParentNode if you want to know which node changed.
-
-      Pass InactiveOnly = @true is you know that shape is fully in inactive
-      VRML graph part (inactive Switch, LOD etc. children).
-
-      Including chTransform in Changes means something more than
-      general chTransform (which means that transformation of children changed,
-      which implicates many things --- not only shape changes).
-      Here, chTransform in Changes means that only the transformation
-      of TVRMLShape.State changed (so only on fields ignored by
-      EqualsNoTransform). }
-    procedure ChangedShapeFields(Shape: TVRMLShape;
-      Field: TVRMLField; const InactiveOnly: boolean;
-      const Changes: TVRMLChanges); virtual;
-
     { Create TVRMLShape (or descendant) instance suitable for this
       TVRMLScene descendant. In this class, this simply creates new
       TVRMLShape instance. If you make a descendant of TVRMLScene,
@@ -981,9 +959,8 @@ type
       method after you changed RootNode graph directly, usually you
       can call something more efficient, like ChangedField.
 
-      @italic(Descendant implementors notes:) ChangedAll and
-      ChangedShapeFields are virtual, so of course you can override them
-      (remember to always call @code(inherited)). ChangedAll is also
+      @italic(Descendant implementors notes:) ChangedAll is virtual,
+      when overriding it remember that it's
       called by constructor of this class, so you can put a lot of your
       initialization there (instead of in the constructor).
 
@@ -2951,31 +2928,6 @@ begin
   finally Dec(Dirty) end;
 end;
 
-procedure TVRMLScene.ChangedShapeFields(Shape: TVRMLShape;
-  Field: TVRMLField;
-  const InactiveOnly: boolean;
-  const Changes: TVRMLChanges);
-begin
-  { Eventual clearing of Validities items because shape changed
-    can be done by DoGeometryChanged, where more specific info
-    about what changed is passed. No reason to do it here.
-    Reason: Validities items
-      fvBoundingBox, fvVerticesCountNotOver, fvVerticesCountOver,
-      fvTrianglesCountNotOver, fvTrianglesCountOver,
-      fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
-      fvTrianglesListShadowCasters,
-      fvManifoldAndBorderEdges
-    are all related to geometry changes. }
-
-  { Optimization: nothing needs to be done here when only chClipPlane }
-  if Changes = [chClipPlane] then Exit;
-
-  Shape.Changed(chVisibleVRML1State in Changes);
-
-  if not InactiveOnly then
-    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-end;
-
 type
   BreakTransformChangeFailed = class(TCodeBreaker)
     Reason: string;
@@ -3157,7 +3109,7 @@ begin
       Shape.State.AssignTransform(StateStack.Top);
       { Changes = [chTransform] here, good for roSeparateShapesNoTransform
         optimization. }
-      ParentScene.ChangedShapeFields(Shape, ChangingField, Inactive <> 0, Changes);
+      Shape.Changed(ChangingField, Inactive <> 0, Changes);
 
       if Inactive = 0 then
       begin
@@ -3401,19 +3353,7 @@ var
       while SI.GetNext do
         if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
            (Coord = Field) then
-        begin
-          ChangedShapeFields(SI.Current, Field, false, Changes);
-
-          { Coordinate changes actual geometry.
-
-            PossiblyLocalGeometryChanged will be false inside
-            above ChangedShapeFields call, that's good: we want to take
-            care of it now by specialized
-            ScheduledLocalGeometryChangedCoord }
-
-          SI.Current.ScheduledLocalGeometryChangedCoord := true;
-          ScheduleGeometryChanged;
-        end;
+          SI.Current.Changed(Field, false, Changes);
 
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     finally FreeAndNil(SI) end;
@@ -3433,7 +3373,7 @@ var
         while SI.GetNext do
           if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node) or
              (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = Node) then
-            ChangedShapeFields(SI.Current, Field, false, Changes);
+            SI.Current.Changed(Field, false, Changes);
       finally FreeAndNil(SI) end;
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end;
@@ -3449,7 +3389,7 @@ var
     try
       while SI.GetNext do
         if SI.Current.State.ShapeNode.Material = Node then
-          ChangedShapeFields(SI.Current, Field, false, Changes);
+          SI.Current.Changed(Field, false, Changes);
     finally FreeAndNil(SI) end;
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
@@ -3565,7 +3505,7 @@ var
            ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
            ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
            ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
-          ChangedShapeFields(SI.Current, Field, false, Changes);
+          SI.Current.Changed(Field, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3581,7 +3521,7 @@ var
       while SI.GetNext do
         if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
            (TexCoord = Node) then
-          ChangedShapeFields(SI.Current, Field, false, Changes);
+          SI.Current.Changed(Field, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3622,7 +3562,7 @@ var
            (SI.Current.State.ShapeNode.FdAppearance.Value is TNodeAppearance) and
            AppearanceUsesTextureTransform(
              TNodeAppearance(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
-          ChangedShapeFields(SI.Current, Field, false, Changes);
+          SI.Current.Changed(Field, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3636,16 +3576,7 @@ var
       while SI.GetNext do
         if (SI.Current.Geometry = Node) or
            (SI.Current.OriginalGeometry = Node) then
-        begin
-          ChangedShapeFields(SI.Current, Field, false, Changes);
-
-          { PossiblyLocalGeometryChanged will be false,
-            that's good: we want to handle it explicitly below.
-            TODO: don't really remember why? }
-
-          SI.Current.ScheduledLocalGeometryChanged := true;
-          ScheduleGeometryChanged;
-        end;
+          SI.Current.Changed(Field, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3734,7 +3665,7 @@ var
       while SI.GetNext do
       begin
         if SI.Current.UsesTexture(TNodeX3DTextureNode(Node)) then
-          ChangedShapeFields(SI.Current, Field, false, Changes);
+          SI.Current.Changed(Field, false, Changes);
       end;
     finally FreeAndNil(SI) end;
   end;
@@ -3777,13 +3708,13 @@ var
   begin
     Assert(Node is TNodeClipPlane);
 
-    { Call ChangedShapeFields for all shapes using this ClipPlane node. }
+    { Call TVRMLShape.Changed for all shapes using this ClipPlane node. }
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
       begin
         if SI.Current.State.ClipPlanes.IndexOfNode(TNodeClipPlane(Node)) <> -1 then
-          ChangedShapeFields(SI.Current, Field, false, Changes);
+          SI.Current.Changed(Field, false, Changes);
       end;
     finally FreeAndNil(SI) end;
     VisibleChangeHere([vcVisibleGeometry]);

@@ -417,7 +417,8 @@ type
     { For Hierarchical Occlusion Culling }
     RenderedFrameId: Cardinal;
   public
-    procedure Changed(PossiblyLocalGeometryChanged: boolean); override;
+    procedure Changed(Field: TVRMLField; const InactiveOnly: boolean;
+      const Changes: TVRMLChanges); override;
 
     { Can this shape be stored in a display list.
 
@@ -987,9 +988,6 @@ type
       var LightOn: boolean);
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
-    procedure ChangedShapeFields(Shape: TVRMLShape;
-      Field: TVRMLField; const InactiveOnly: boolean;
-      const Changes: TVRMLChanges); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm.
@@ -1495,9 +1493,66 @@ begin
   Result := FEnableDisplayList;
 end;
 
-procedure TVRMLGLShape.Changed(PossiblyLocalGeometryChanged: boolean);
+procedure TVRMLGLShape.Changed(Field: TVRMLField; const InactiveOnly: boolean;
+  const Changes: TVRMLChanges);
+var
+  TG: TTransparentGroup;
+  GLScene: TVRMLGLScene;
 begin
   inherited;
+
+  GLScene := TVRMLGLScene(ParentScene);
+
+  case GLScene.Optimization of
+    roSceneAsAWhole:
+      begin
+        for TG := Low(TG) to High(TG) do
+          glFreeDisplayList(GLScene.SAAW_DisplayList[TG]);
+
+        if Log and GLScene.LogChanges then
+          WritelnLog('VRML changes', 'Display lists released (Optimization = SceneAsAWhole)');
+      end;
+
+    roSeparateShapes:
+      if SSSX_DisplayList <> 0 then
+      begin
+        GLScene.Renderer.Cache.Shape_DecReference(SSSX_DisplayList);
+        SSSX_DisplayList := 0;
+
+        if Log and GLScene.LogChanges then
+          WritelnLog('VRML changes', 'Display lists released (Optimization = SeparateShapes)');
+      end;
+
+    roSeparateShapesNoTransform:
+      { Transformation (and clip planes) changes don't affect
+        roSeparateShapesNoTransform display lists, as they are applied
+        outside of TVRMLOpenGLRenderer.RenderShapeNoTransform.
+
+        This can be quite crucial optimization in some cases,
+        as you can animate Transform.translation/rotation/scale etc. efficiently.
+        (no rebuilding of display lists needed). }
+      if (Changes - [chClipPlane, chTransform] <> []) and
+         (SSSX_DisplayList <> 0) then
+      begin
+        GLScene.Renderer.Cache.ShapeNoTransform_DecReference(SSSX_DisplayList);
+        SSSX_DisplayList := 0;
+
+        if Log and GLScene.LogChanges then
+          WritelnLog('VRML changes', 'Display lists released (Optimization = SeparateShapesNoTransform)');
+      end;
+  end;
+
+  if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
+  begin
+    GLScene.Renderer.Unprepare(State.Texture);
+    PreparedForRenderer := false;
+    PreparedUseBlending := false;
+  end;
+
+  { When Material.transparency changes, recalculate UseBlending. }
+  if chUseBlending in Changes then
+    PreparedUseBlending := false;
+
   EnableDisplayListValid := false;
 end;
 
@@ -3357,67 +3412,6 @@ end;
   - they have PreparedForRenderer, PreparedUseBlending  = false,
   - OcclusionQueryId = 0.
 }
-
-procedure TVRMLGLScene.ChangedShapeFields(Shape: TVRMLShape;
-  Field: TVRMLField; const InactiveOnly: boolean;
-  const Changes: TVRMLChanges);
-var
-  TG: TTransparentGroup;
-begin
-  inherited;
-
-  { We don't need to call here Renderer.Unprepare* (or set
-    PreparedAndUseBlendingCalculated) in most circumstances,
-    since State of our shape didn't change (only field's of
-    the geometry node, and these have no effect over Renderer.Prepare
-    or UseBlending calculation). }
-
-  { Transformation (and clip planes) changes don't affect
-    roSeparateShapesNoTransform display lists, as they are applied
-    outside of TVRMLOpenGLRenderer.RenderShapeNoTransform.
-
-    This can be quite crucial optimization in some cases,
-    as you can animate Transform.translation/rotation/scale etc. efficiently.
-    (no rebuilding of display lists needed). }
-  if (Changes - [chClipPlane, chTransform] <> []) or
-     (Optimization <> roSeparateShapesNoTransform) then
-  begin
-    case Optimization of
-      roSceneAsAWhole:
-        begin
-          for TG := Low(TG) to High(TG) do
-            glFreeDisplayList(SAAW_DisplayList[TG]);
-          if Log and LogChanges then
-            WritelnLog('VRML changes', 'Display lists released (Optimization = SceneAsAWhole)');
-        end;
-
-      roSeparateShapes, roSeparateShapesNoTransform:
-        if TVRMLGLShape(Shape).SSSX_DisplayList <> 0 then
-        begin
-          if Optimization = roSeparateShapes then
-            Renderer.Cache.Shape_DecReference(
-              TVRMLGLShape(Shape).SSSX_DisplayList) else
-            Renderer.Cache.ShapeNoTransform_DecReference(
-              TVRMLGLShape(Shape).SSSX_DisplayList);
-          TVRMLGLShape(Shape).SSSX_DisplayList := 0;
-
-          if Log and LogChanges then
-            WritelnLog('VRML changes', 'Display lists released (Optimization = SeparateShapes, possibly NoTransform)');
-        end;
-    end;
-  end;
-
-  if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
-  begin
-    Renderer.Unprepare(Shape.State.Texture);
-    TVRMLGLShape(Shape).PreparedForRenderer := false;
-    TVRMLGLShape(Shape).PreparedUseBlending := false;
-  end;
-
-  { When Material.transparency changes, recalculate UseBlending. }
-  if chUseBlending in Changes then
-    TVRMLGLShape(Shape).PreparedUseBlending := false;
-end;
 
 procedure TVRMLGLScene.ChangedField(Field: TVRMLField);
 var
