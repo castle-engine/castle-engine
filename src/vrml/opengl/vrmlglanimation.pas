@@ -327,7 +327,7 @@ type
     function LastScene: TVRMLGLScene;
 
     { Prepare all scenes for rendering. Basically, this calls
-      PrepareRender(...) for all Scenes.
+      PrepareResources(...) for all Scenes.
 
       There's also a special memory (and prepare time) optimization used
       for prManifoldAndBorderEdges: we use the fact that animation scenes are
@@ -336,13 +336,13 @@ type
 
       ProgressStep = @true is especially useful with this: we'll call
       Progress.Step then after preparing each scene.
-      For portability, always check PrepareRenderSteps, but for now this
+      For portability, always check PrepareResourcesSteps, but for now this
       is just always equal ScenesCount. }
-    procedure PrepareRender(
+    procedure PrepareResources(
       TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions;
+      Options: TPrepareResourcesOptions;
       ProgressStep: boolean); override;
-    function PrepareRenderSteps: Cardinal; override;
+    function PrepareResourcesSteps: Cardinal; override;
 
     { This calls FreeResources for all scenes, it's useful if you know
       that you will not need some allocated resources anymore and you
@@ -438,7 +438,7 @@ type
       object at any time, but beware that some changes may force
       time-consuming regeneration of some things (like OpenGL display lists)
       in the nearest Render of the scenes.
-      So explicitly calling PrepareRender may be useful after
+      So explicitly calling PrepareResources may be useful after
       changing these Attributes.
 
       Note that Attributes may be accessed and even changed when the scene
@@ -1469,13 +1469,13 @@ begin
   Result := FScenes.Last;
 end;
 
-procedure TVRMLGLAnimation.PrepareRender(
+procedure TVRMLGLAnimation.PrepareResources(
   TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions;
+  Options: TPrepareResourcesOptions;
   ProgressStep: boolean);
 var
   I: Integer;
-  SceneOptions: TPrepareRenderOptions;
+  SceneOptions: TPrepareResourcesOptions;
 begin
   if not Loaded then Exit;
 
@@ -1486,7 +1486,7 @@ begin
     if I <> 0 then
       Exclude(SceneOptions, prManifoldAndBorderEdges);
 
-    FScenes[I].PrepareRender(TransparentGroups, SceneOptions, false);
+    FScenes[I].PrepareResources(TransparentGroups, SceneOptions, false);
 
     { TODO: this isn't so simple, since not all scenes have to structurally
       equal anymore. }
@@ -1499,7 +1499,7 @@ begin
   end;
 end;
 
-function TVRMLGLAnimation.PrepareRenderSteps: Cardinal;
+function TVRMLGLAnimation.PrepareResourcesSteps: Cardinal;
 begin
   Result := ScenesCount;
 end;

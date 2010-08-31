@@ -12,7 +12,7 @@ type
     what kind of optimization should be done. }
   TGLRendererOptimization = (
     { No optimization. No OpenGL display lists are constructed.
-      So calling PrepareRender and ChangedAll is very fast.
+      So calling PrepareResources and ChangedAll is very fast.
       On the other hand, rendering is significantly slower,
       as display lists often help a lot.
 
@@ -110,7 +110,7 @@ type
       What exactly "a lot" means depends on how much frames your
       animation has, how much Shape is duplicated etc.
       This can be a @italic(huge memory saving). Also preparing
-      scene/animations (in PrepareRender) should be much faster.
+      scene/animations (in PrepareResources) should be much faster.
 
       This saved me 13 MB memory in "The Castle" (much less than
       I hoped, honestly, but still something...). This greatly boosts

@@ -156,7 +156,7 @@ type
         loaded images are reused. If you free frTextureDataInNodes or frRootNode
         too early, you may remove them from the cache too early, and lose
         a chance to reuse them. So you may cause unnecessary slowdown
-        of preparing models, e.g. inside PrepareRender.)
+        of preparing models, e.g. inside PrepareResources.)
     )
   }
   TVRMLSceneFreeResource = (
@@ -168,7 +168,7 @@ type
       frRootNode allows you to save some memory, but may be quite dangerous.
       You have to be careful then about what methods from the scene you use.
       Usually, you will prepare appropriate things first (usually by
-      TVRMLSceneGL.PrepareRender), and after that call FreeResources
+      TVRMLGLScene.PrepareResources), and after that call FreeResources
       with frRootNode.
 
       Note that event processing is impossible without RootNode nodes and
@@ -178,7 +178,7 @@ type
       Note that if you will try to use a resource that was already freed
       by frRootNode, you may even get segfault (access violation).
       So be really careful, be sure to prepare everything first by
-      TVRMLSceneGL.PrepareRender or such. }
+      TVRMLGLScene.PrepareResources or such. }
     frRootNode,
 
     { Unloads the texture images/videos allocated in VRML texture nodes.
@@ -187,7 +187,7 @@ type
       that needed the texture images, and you will not need texture images
       later. For TVRMLGLScene this means that you use Optimization
       method other than roNone,
-      and you already did PrepareRender (so textures are already loaded to OpenGL),
+      and you already did PrepareResources (so textures are already loaded to OpenGL),
       and your code will not access TextureImage / TextureVideo anymore.
       This is commonly @true for various games.
 
@@ -1137,8 +1137,8 @@ type
       Always call ChangedAll when you changed RootNode.
 
       Note that there is also a trick to conserve memory use.
-      After you've done PrepareRender some things are precalculated here,
-      and RootNode is actually not used, unless you use ProcessEvent.
+      After you've done PrepareResources some things are precalculated here,
+      and RootNode is actually not used, unless you use ProcessEvents.
       So you can free RootNode
       (and set it to nil here) @italic(without calling ChangedAll)
       and some things will just continue to work, unaware of the fact
@@ -1146,7 +1146,7 @@ type
       Note that this is still considered a "dirty trick", and you will
       have to be extra-careful then about what methods/properties
       from this class. Generally, use only things that you prepared
-      with PrepareRender. So e.g. calling Render or using BoundingBox.
+      with PrepareResources. So e.g. calling Render or using BoundingBox.
       If all your needs are that simple, then you can use this trick
       to save some memory. This is actually useful when using TVRMLGLAnimation,
       as it creates a lot of intermediate node structures and TVRMLScene
@@ -1842,9 +1842,9 @@ type
       This method will do exactly that. }
     procedure ViewChangedSuddenly; virtual;
 
-    procedure PrepareRender(
+    procedure PrepareResources(
       TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions;
+      Options: TPrepareResourcesOptions;
       ProgressStep: boolean); override;
 
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
@@ -6185,10 +6185,21 @@ begin
   end;
 end;
 
-procedure TVRMLScene.PrepareRender(
+procedure TVRMLScene.PrepareResources(
   TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions;
+  Options: TPrepareResourcesOptions;
   ProgressStep: boolean);
+
+  procedure PrepareShapesOctrees;
+  var
+    SI: TVRMLShapeTreeIterator;
+  begin
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do SI.Current.OctreeTriangles;
+    finally FreeAndNil(SI) end;
+  end;
+
 begin
   inherited;
 
@@ -6206,6 +6217,15 @@ begin
 
   if prManifoldAndBorderEdges in Options then
     ManifoldEdges;
+
+  if prSpatial in Options then
+  begin
+    OctreeRendering;
+    OctreeDynamicCollisions;
+    OctreeVisibleTriangles;
+    OctreeCollidableTriangles;
+    PrepareShapesOctrees;
+  end;
 end;
 
 procedure TVRMLScene.GetHeightAbove(const Position, GravityUp: TVector3Single;

@@ -118,13 +118,15 @@ type
     const Sender: TObject;
     const Triangle: P3DTriangle): boolean of object;
 
-  { Various things that T3D.PrepareRender may prepare. }
-  TPrepareRenderOption = (prBackground, prBoundingBox,
+  { Various things that T3D.PrepareResources may prepare. }
+  TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
     prTrianglesListNotOverTriangulate,
     prTrianglesListOverTriangulate,
     prTrianglesListShadowCasters,
-    prManifoldAndBorderEdges);
-  TPrepareRenderOptions = set of TPrepareRenderOption;
+    prManifoldAndBorderEdges,
+    { Prepare octrees (determined by things like TVRMLScene.Spatial). }
+    prSpatial);
+  TPrepareResourcesOptions = set of TPrepareResourcesOption;
 
   TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
   TTransparentGroups = set of TTransparentGroup;
@@ -264,10 +266,10 @@ type
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); virtual;
 
-    { Prepare rendering (and other stuff) to execute fast.
+    { Prepare resources, making various methods (like rendering and such)
+      to execute fast.
 
-      This prepares some things, making sure that
-      appropriate methods execute as fast as possible.
+      This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method
       --- all things will be prepared "as needed" anyway.
       But this means that some calls may sometimes take a long time,
@@ -286,7 +288,10 @@ type
       (at most, it allocates some texture and display list names).
 
       @param(TransparentGroups For what TransparentGroup value
-        we should prepare rendering resources. The idea is that
+        we should prepare rendering resources.
+        Important only if prRender is included in Options.
+
+        The idea is that
         you're often interested in rendering only with tgAll, or
         only with [tgTransparent, tgOpaque] --- so it would be a waste of
         resources and time to prepare for every possible TransparentGroup value.
@@ -303,23 +308,27 @@ type
         [tgTransparent, tgOpaque, tgAll] --- they'll all prepare the same
         things.)
 
-      @param(Options What additional features (besides rendering)
-        should be prepared to execute fast. See TPrepareRenderOption,
+      @param(Options What features should be prepared to execute fast.
+        See TPrepareResourcesOption,
         the names should be self-explanatory (they refer to appropriate
         methods of T3D, TVRMLScene or TVRMLGLScene).)
 
       @param(ProgressStep Says that we should make Progress.Step calls
-        (exactly PrepareRenderSteps times) during preparation.
-        Useful to show progress bar to the user during long preparation.)  }
-    procedure PrepareRender(
+        (exactly PrepareResourcesSteps times) during preparation.
+        Useful to show progress bar to the user during long preparation.
+
+        TODO: for now, do not include prSpatial if you use ProgressStep.
+        Reason: octree preparations have a separate mechanism
+        that may want to show progress.) }
+    procedure PrepareResources(
       TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions;
+      Options: TPrepareResourcesOptions;
       ProgressStep: boolean); virtual;
 
-    { How many times PrepareRender will call Progress.Step.
-      Useful only if you want to pass ProgressStep = @true to PrepareRender.
+    { How many times PrepareResources will call Progress.Step.
+      Useful only if you want to pass ProgressStep = @true to PrepareResources.
       In the base class T3D this just returns 0.  }
-    function PrepareRenderSteps: Cardinal; virtual;
+    function PrepareResourcesSteps: Cardinal; virtual;
 
     { Key and mouse events. Return @true if you handled them.
       See also TUIControl analogous events.
@@ -523,11 +532,11 @@ type
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
-    procedure PrepareRender(
+    procedure PrepareResources(
       TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions;
+      Options: TPrepareResourcesOptions;
       ProgressStep: boolean); override;
-    function PrepareRenderSteps: Cardinal; override;
+    function PrepareResourcesSteps: Cardinal; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
@@ -635,12 +644,12 @@ procedure T3D.RenderShadowVolume(
 begin
 end;
 
-procedure T3D.PrepareRender(TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions; ProgressStep: boolean);
+procedure T3D.PrepareResources(TransparentGroups: TTransparentGroups;
+  Options: TPrepareResourcesOptions; ProgressStep: boolean);
 begin
 end;
 
-function T3D.PrepareRenderSteps: Cardinal;
+function T3D.PrepareResourcesSteps: Cardinal;
 begin
   Result := 0;
 end;
@@ -913,23 +922,23 @@ begin
         ParentTransformIsIdentity, ParentTransform);
 end;
 
-procedure T3DList.PrepareRender(TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions; ProgressStep: boolean);
+procedure T3DList.PrepareResources(TransparentGroups: TTransparentGroups;
+  Options: TPrepareResourcesOptions; ProgressStep: boolean);
 var
   I: Integer;
 begin
   inherited;
   for I := 0 to List.Count - 1 do
-    List[I].PrepareRender(TransparentGroups, Options, ProgressStep);
+    List[I].PrepareResources(TransparentGroups, Options, ProgressStep);
 end;
 
-function T3DList.PrepareRenderSteps: Cardinal;
+function T3DList.PrepareResourcesSteps: Cardinal;
 var
   I: Integer;
 begin
   Result := inherited;
   for I := 0 to List.Count - 1 do
-    Result += List[I].PrepareRenderSteps;
+    Result += List[I].PrepareResourcesSteps;
 end;
 
 function T3DList.KeyDown(Key: TKey; C: char): boolean;

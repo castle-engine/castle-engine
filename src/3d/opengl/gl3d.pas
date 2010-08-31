@@ -51,11 +51,11 @@ type
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
-    procedure PrepareRender(
+    procedure PrepareResources(
       TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions;
+      Options: TPrepareResourcesOptions;
       ProgressStep: boolean); override;
-    function PrepareRenderSteps: Cardinal; override;
+    function PrepareResourcesSteps: Cardinal; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
@@ -182,19 +182,19 @@ begin
   end;
 end;
 
-procedure T3DCustomTranslated.PrepareRender(TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions; ProgressStep: boolean);
+procedure T3DCustomTranslated.PrepareResources(TransparentGroups: TTransparentGroups;
+  Options: TPrepareResourcesOptions; ProgressStep: boolean);
 begin
   inherited;
   if Child <> nil then
-    Child.PrepareRender(TransparentGroups, Options, ProgressStep);
+    Child.PrepareResources(TransparentGroups, Options, ProgressStep);
 end;
 
-function T3DCustomTranslated.PrepareRenderSteps: Cardinal;
+function T3DCustomTranslated.PrepareResourcesSteps: Cardinal;
 begin
   Result := inherited;
   if Child <> nil then
-    Result += Child.PrepareRenderSteps;
+    Result += Child.PrepareResourcesSteps;
 end;
 
 function T3DCustomTranslated.KeyDown(Key: TKey; C: char): boolean;

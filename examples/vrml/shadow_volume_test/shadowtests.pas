@@ -49,7 +49,7 @@ type
   RenderBackShadowQuads renders the rest of the quads.
 
   Uses TrianglesListShadowCasters (so you may prefer to prepare it
-  before, e.g. by calling PrepareRender with
+  before, e.g. by calling PrepareResources with
   prTrianglesListShadowCasters).
 
   All the commands passed to OpenGL by this methods are:

@@ -59,7 +59,7 @@
   At the beginning there is some preprocessing time
   ("Preparing animation") when we create display lists,
   to make future animation run smoothly.
-  That's done by TVRMLGLAnimation.PrepareRender.
+  That's done by TVRMLGLAnimation.PrepareResources.
 }
 
 program demo_animation;
@@ -199,7 +199,7 @@ begin
 
     Progress.Init(Animation.ScenesCount, 'Preparing animation');
     try
-      Animation.PrepareRender([tgAll], [prBoundingBox], true);
+      Animation.PrepareResources([tgAll], [prRender, prBoundingBox], true);
     finally Progress.Fini end;
 
     Application.Run;

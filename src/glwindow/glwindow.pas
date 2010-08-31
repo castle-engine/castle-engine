@@ -1558,9 +1558,9 @@ type
       it takes some time to regenerate the model 2. second, after regenerating
       the model there is a sudden jump in the amount the object is rotated
       (because DrawSpeed is big). And the second thing is bad.
-      It can avoided by putting Scene.PrepareRender(true) after OnKeyDown,
+      It can avoided by putting Scene.PrepareResources after OnKeyDown,
       OnMouseDown etc. But the simplest (and more elegant) way
-      is to put Scene.PrepareRender(true) only in OnBeforeDraw. }
+      is to put Scene.PrepareResources only in OnBeforeDraw. }
     property OnBeforeDraw: TDrawFunc read FOnBeforeDraw write FOnBeforeDraw; { = nil }
 
     { OnResize - wywolywane zawsze gdy okienko bedzie zresizowane,

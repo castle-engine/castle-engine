@@ -432,14 +432,15 @@ type
 type
   TTransparentGroup = Base3D.TTransparentGroup;
   TTransparentGroups = Base3D.TTransparentGroups;
-  TPrepareRenderOption = Base3D.TPrepareRenderOption;
-  TPrepareRenderOptions = Base3D.TPrepareRenderOptions;
+  TPrepareResourcesOption = Base3D.TPrepareResourcesOption;
+  TPrepareResourcesOptions = Base3D.TPrepareResourcesOptions;
 
 const
   tgTransparent = Base3D.tgTransparent;
   tgOpaque = Base3D.tgOpaque;
   tgAll = Base3D.tgAll;
 
+  prRender = Base3D.prRender;
   prBackground = Base3D.prBackground;
   prBoundingBox = Base3D.prBoundingBox;
   prTrianglesListNotOverTriangulate = Base3D.prTrianglesListNotOverTriangulate;
@@ -796,13 +797,13 @@ type
       For example, release any allocated texture or display list names.
 
       Generally speaking, destroys everything that is allocated by
-      PrepareRender([...], []) call. It's harmless to call this
+      PrepareResources call. It's harmless to call this
       method when there are already no associations with current OpenGL context.
       This is called automatically from the destructor. }
     procedure GLContextClose; override;
 
-    procedure PrepareRender(TransparentGroups: TTransparentGroups;
-      Options: TPrepareRenderOptions; ProgressStep: boolean); override;
+    procedure PrepareResources(TransparentGroups: TTransparentGroups;
+      Options: TPrepareResourcesOptions; ProgressStep: boolean); override;
 
     { Renders this VRML scene for OpenGL.
       This is probably the most important function in this class,
@@ -1047,8 +1048,8 @@ type
       faster in this special case).
 
       This uses TrianglesListShadowCasters and ManifoldEdges and BorderEdges
-      (so you may prefer to prepare it before, e.g. by calling PrepareRender with
-      prShadowVolume included).
+      (so you may prefer to prepare it before, e.g. by calling PrepareResources
+      with prShadowVolume included).
 
       LightPos is the light position. LightPos[3] must be 1
       (to indicate positional light) or 0 (a directional light).
@@ -1185,8 +1186,8 @@ type
       on such situations as change in RootNode scene, changes to
       BackgroundSkySphereRadius, GLContextClose, Attributes.ColorModulatorSingle/Byte.
 
-      PrepareBackground (and PrepareRender(true, ...)) automatically validate this
-      cache.
+      PrepareBackground (and PrepareResources with prBackground)
+      automatically validate this cache.
 
       Remember that this cache is connected with the current OpenGL context.
       So you HAVE to call GLContextClose to disconnent this object from
@@ -1198,7 +1199,8 @@ type
       You are free to change them all at any time.
       Although note that changing some attributes (the ones defined
       in base TVRMLRenderingAttributes class) may be a costly operation
-      (next PrepareRender or Render call may need to recalculate some things,
+      (next PrepareResources with prRender, or Render call, may need
+      to recalculate some things,
       some display lists need to be rebuild etc.).
       So don't change them e.g. every frame. You should use
       Optimization = roNone if you really have to change attributes every frame.
@@ -1367,7 +1369,8 @@ type
       object is created) but be warned that such change is of course costly
       operation. Previous optimization resources must be freed,
       and new resources will have to be created at next Render or
-      PrepareRender call. So don't change it e.g. every rendering frame. }
+      PrepareResources call (with prRender).
+      So don't change it e.g. every rendering frame. }
     property Optimization: TGLRendererOptimization
       read FOptimization write SetOptimization default DefaultOptimization;
   end;
@@ -1391,7 +1394,7 @@ type
   end;
 
 const
-  { Options to pass to TVRMLGLScene.PrepareRender to make
+  { Options to pass to TVRMLGLScene.PrepareResources to make
     sure that next call to TVRMLGLScene.RenderShadowVolume
     (and TVRMLGLScene.RenderShadowVolumeCore etc.)
     is as fast as possible.
@@ -3109,8 +3112,8 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.PrepareRender(TransparentGroups: TTransparentGroups;
-  Options: TPrepareRenderOptions; ProgressStep: boolean);
+procedure TVRMLGLScene.PrepareResources(TransparentGroups: TTransparentGroups;
+  Options: TPrepareResourcesOptions; ProgressStep: boolean);
 
   procedure Common_PrepareShape(Shape: TVRMLGLShape);
 
@@ -3220,40 +3223,41 @@ begin
 
   CheckFogChanged;
 
-  case Optimization of
-    roNone: Common_PrepareAllShapes;
+  if prRender in Options then
+    case Optimization of
+      roNone: Common_PrepareAllShapes;
 
-    roSceneAsAWhole:
-      begin
-        Common_PrepareAllShapes;
+      roSceneAsAWhole:
+        begin
+          Common_PrepareAllShapes;
 
-        for TG := Low(TG) to High(TG) do
-          if (TG in TransparentGroups) and (SAAW_DisplayList[TG] = 0) then
-            SAAW_Prepare(TG);
-      end;
-
-    roSeparateShapes, roSeparateShapesNoTransform:
-      begin
-        { Prepare (if needed) GL stuff for begin/end and all shapes. }
-        if SSSX_RenderBeginDisplayList = 0 then
-          SSSX_PrepareBegin;
-        try
-          SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
-          try
-            while SI.GetNext do
-            begin
-              Common_PrepareShape(TVRMLGLShape(SI.Current));
-              if Optimization = roSeparateShapes then
-                SSS_PrepareShape(TVRMLGLShape(SI.Current)) else
-                SSSNT_PrepareShape(TVRMLGLShape(SI.Current));
-            end;
-          finally FreeAndNil(SI) end;
-        finally
-          if SSSX_RenderEndDisplayList = 0 then
-            SSSX_PrepareEnd;
+          for TG := Low(TG) to High(TG) do
+            if (TG in TransparentGroups) and (SAAW_DisplayList[TG] = 0) then
+              SAAW_Prepare(TG);
         end;
-      end;
-  end;
+
+      roSeparateShapes, roSeparateShapesNoTransform:
+        begin
+          { Prepare (if needed) GL stuff for begin/end and all shapes. }
+          if SSSX_RenderBeginDisplayList = 0 then
+            SSSX_PrepareBegin;
+          try
+            SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
+            try
+              while SI.GetNext do
+              begin
+                Common_PrepareShape(TVRMLGLShape(SI.Current));
+                if Optimization = roSeparateShapes then
+                  SSS_PrepareShape(TVRMLGLShape(SI.Current)) else
+                  SSSNT_PrepareShape(TVRMLGLShape(SI.Current));
+              end;
+            finally FreeAndNil(SI) end;
+          finally
+            if SSSX_RenderEndDisplayList = 0 then
+              SSSX_PrepareEnd;
+          end;
+        end;
+    end;
 
   PreparedFogNode := FogNode;
   PreparedFogDistanceScaling := FogDistanceScaling;
@@ -3324,7 +3328,7 @@ begin
 
   { I used to make here more complex "prepare" mechanism, that was trying
     to prepare for particular shapes only right before they are rendered
-    (so instead of calling PrepareRender below, I was calling PrepareShape
+    (so instead of calling PrepareResources below, I was calling PrepareShape
     at the beginning of each RenderShape and such).
 
     After a while, it turns out this was a useless complication of code
@@ -3334,10 +3338,10 @@ begin
     - Occlusion query id must be generated (as we may start occlusion query
       before actually rendering the shape).
 
-    It's much simpler to just call PrepareRender at the beginning.
+    It's much simpler to just call PrepareResources at the beginning.
     Things like SSSNT_RenderShape, SSS_RenderShape may simply assume
     that shape is for sure already prepared. }
-  PrepareRender([TransparentGroup], [], false);
+  PrepareResources([TransparentGroup], [prRender], false);
 
   case Attributes.WireframeEffect of
     weNormal: RenderNormal;

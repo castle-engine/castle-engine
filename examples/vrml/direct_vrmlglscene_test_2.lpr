@@ -51,7 +51,7 @@
      (without Scene.CreateCamera help).
 
   4. Makes FPS timings right after starting the program correct:
-  - uses Glw.OnBeforeDraw and Scene.PrepareRender
+  - uses Glw.OnBeforeDraw and Scene.PrepareResources
 }
 
 program direct_vrmlglscene_test_2;
@@ -68,7 +68,7 @@ var
 
 procedure BeforeDraw(Glwin: TGLWindow);
 begin
-  Scene.PrepareRender([tgAll], [prBoundingBox], false);
+  Scene.PrepareResources([tgAll], [prRender, prBoundingBox], false);
 end;
 
 procedure Draw(Glwin: TGLWindow);

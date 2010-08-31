@@ -556,7 +556,7 @@ type
 
     FMouseRayHit3D: T3D;
 
-    { calculated by every PrepareRender }
+    { calculated by every PrepareResources }
     ChosenViewport: TKamAbstractViewport;
     NeedsUpdateGeneratedTextures: boolean;
 
@@ -609,13 +609,14 @@ type
     procedure GLContextClose; override;
     function PositionInside(const X, Y: Integer): boolean; override;
 
-    { Prepare rendering resources, to make next @link(Render) call execute fast.
+    { Prepare resources, to make various methods (like @link(Render))
+      execute fast.
 
       If DisplayProgressTitle <> '', we will display progress bar during
       loading. This is especially useful for long precalculated animations
       (TVRMLGLAnimation with a lot of ScenesCount), they show nice
       linearly increasing progress bar. }
-    procedure PrepareRender(const DisplayProgressTitle: string = '');
+    procedure PrepareResources(const DisplayProgressTitle: string = '');
 
     procedure BeforeDraw; override;
     procedure Draw; override;
@@ -1145,7 +1146,7 @@ begin
     { We need to know container size now.
       This assertion can break only if you misuse UseControls property, setting it
       to false (disallowing ContainerResize), and then trying to use
-      PrepareRender or Render (that call ApplyProjection). }
+      PrepareResources or Render (that call ApplyProjection). }
     Assert(ContainerSizeKnown, ClassName + ' did not receive ContainerResize event yet, cannnot apply OpenGL projection');
 
     Box := GetItems.BoundingBox;
@@ -1695,9 +1696,9 @@ begin
   Result := DefaultViewport and (inherited PositionInside(X, Y));
 end;
 
-procedure TKamSceneManager.PrepareRender(const DisplayProgressTitle: string);
+procedure TKamSceneManager.PrepareResources(const DisplayProgressTitle: string);
 var
-  Options: TPrepareRenderOptions;
+  Options: TPrepareResourcesOptions;
   TG: TTransparentGroups;
 begin
   ChosenViewport := nil;
@@ -1708,7 +1709,7 @@ begin
     Also, we'll need to use one of viewport's projection here. }
   if Viewports.Count <> 0 then
   begin
-    Options := [prBackground, prBoundingBox];
+    Options := [prRender, prBackground, prBoundingBox];
     { We never call tgAll from scene manager. Even for non-shadowed rendering
       (one pass), we still may have many Items, so we always call all tgOpaque
       before all tgTransparent. }
@@ -1731,18 +1732,18 @@ begin
     ChosenViewport.ApplyProjection;
 
     { RenderState.Camera* must be already set,
-      since PrepareRender may do some operations on texture gen modes
+      since PrepareResources may do some operations on texture gen modes
       in WORLDSPACE*. }
     RenderState.CameraFromCameraObject(ChosenViewport.Camera);
 
     if DisplayProgressTitle <> '' then
     begin
-      Progress.Init(Items.PrepareRenderSteps, DisplayProgressTitle, true);
+      Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
       try
-        Items.PrepareRender(TG, Options, true);
+        Items.PrepareResources(TG, Options, true);
       finally Progress.Fini end;
     end else
-      Items.PrepareRender(TG, Options, false);
+      Items.PrepareResources(TG, Options, false);
 
     NeedsUpdateGeneratedTextures := true;
   end;
@@ -1751,7 +1752,7 @@ end;
 procedure TKamSceneManager.BeforeDraw;
 begin
   inherited;
-  PrepareRender;
+  PrepareResources;
 end;
 
 function TKamSceneManager.ViewerToChanges: TVisibleChanges;
@@ -1774,14 +1775,14 @@ begin
     NeedsUpdateGeneratedTextures := false;
 
     { We depend here that right before Draw, BeforeDraw was called.
-      We depend on BeforeDraw (actually PrepareRender) to set
+      We depend on BeforeDraw (actually PrepareResources) to set
       ChosenViewport and make ChosenViewport.ApplyProjection.
 
       This way below we can use sensible projection near/far calculated
       by previous ChosenViewport.ApplyProjection,
       and restore viewport used by previous ChosenViewport.ApplyProjection.
 
-      This could be moved to PrepareRender without problems, but we want
+      This could be moved to PrepareResources without problems, but we want
       time needed to render textures be summed into "FPS frame time". }
     Items.UpdateGeneratedTextures(@RenderFromViewEverything,
       ChosenViewport.WalkProjectionNear,
