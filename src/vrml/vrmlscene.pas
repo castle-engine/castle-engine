@@ -468,6 +468,47 @@ type
     property OpaqueCount: Cardinal read FOpaqueCount;
   end;
 
+  TGeometryChange =
+  ( { Everything changed. All octrees must be rebuild, old State pointers
+      may be invalid.
+
+      Every ChangedAll call does this.
+      ChangedAll must take into account that everything could change.
+      Note that ChangedAll traverses the VRML graph again,
+      recalculating State values... so the old States are not
+      correct anymore. You have to rebuild the octree or your pointers
+      will be bad.
+
+      When DoGeometryChanged with gcAll is called, we know that ChangedAll
+      called this, and every TVRMLShape will be (or already is) destroyed
+      and created new. }
+    gcAll,
+
+    { Transformation of some shape changed.
+      @groupBegin }
+    gcCollidableTransformChanged,
+    gcVisibleTransformChanged,
+    { @groupEnd }
+
+    { Local geometry change
+      happened (actual octree free is already done by
+      TVRMLShape.LocalGeometryChanged, octree create will be done at next demand).
+      We should update stuff at higher (TVRMLScene) level accordingly.
+
+      gcLocalGeometryChangedCoord means that coordinates changed.
+      Compared to gcLocalGeometryChanged, this means that model edges
+      structure remains the same (this is helpful e.g. to avoid
+      recalculating Manifold/BorderEdges in parent scene).
+
+      @groupBegin }
+    gcLocalGeometryChanged,
+    gcLocalGeometryChangedCoord,
+    { @groupEnd }
+
+    { What is considered "active" shapes changed. Like after Switch.whichChoice
+      change. }
+    gcActiveShapesChanged);
+
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
     like TVRMLGLScene for OpenGL).
@@ -634,45 +675,7 @@ type
     FFogStack: TVRMLBindableStack;
     FNavigationInfoStack: TVRMLBindableStack;
     FViewpointStack: TVRMLViewpointStack;
-
-    { Mechanism to schedule geometry changed calls.
-
-      Since DoGeometryChanged call may be costly (although it's
-      not that costly anymore, as we recreate octrees on-demand,
-      not in DoGeometryChanged),
-      and it's not immediately needed by TVRMLScene or TVRMLNode hierarchy,
-      it's sometimes not desirable to call DoGeometryChanged immediately
-      when geometry changed.
-
-      This mechanism allows to defer calling DoGeometryChanged.
-      Idea: BeginGeometryChangedSchedule increases internal GeometrySchedule
-      counter, EndGeometryChangedSchedule decreases it and calls
-      actual DoGeometryChanged if counter is zero and some
-      ScheduleGeometryChanged was called in between.
-
-      When ScheduleGeometryChanged is called when counter is zero,
-      DoGeometryChanged is called immediately, so it's safe to always
-      use ScheduleGeometryChanged instead of direct DoGeometryChanged
-      in this class. }
-    GeometrySchedule: Cardinal;
-    GeometryChangedScheduled: boolean;
-    procedure BeginGeometryChangedSchedule;
-    procedure EndGeometryChangedSchedule;
-  public
-    { @exclude Internal, only to be called by TVRMLShape }
-    procedure ScheduleGeometryChanged;
   private
-    { Everything changed. All octrees must be rebuild, old State pointers
-      may be invalid.
-
-      Every ChangedAll call does this.
-      ChangedAll must take into account that everything could change.
-      Note that ChangedAll traverses the VRML graph again,
-      recalculating State values... so the old States are not
-      correct anymore. You have to rebuild the octree or your pointers
-      will be bad. }
-    ScheduledGeometryChangedAll: boolean;
-
     { If @true, then next ChangedAll call will do ProcessShadowMapsReceivers
       at the end.
 
@@ -681,33 +684,6 @@ type
       information (Shapes) ready and their modifications (new GeneratedTextures
       items) are accounted for. }
     ScheduledShadowMapsProcessing: boolean;
-
-    { Transformation of some shape changed. }
-    ScheduledGeometrySomeCollidableTransformChanged: boolean;
-    ScheduledGeometrySomeVisibleTransformChanged: boolean;
-
-  public
-    { @exclude
-      Internally set by TVRMLShape. Says that local geometry change
-      happened (actual octree free is already done by
-      TVRMLShape.LocalGeometryChanged, octree create will be done at next demand).
-      We should update stuff at higher (TVRMLScene) level accordingly.
-
-      ScheduledLocalGeometryChangedCoord means that coordinates changed.
-      If this is all that changed (ScheduledLocalGeometryChanged = @false),
-      then this means that model edges structure remains the same
-      (this is helpful e.g. to avoid recalculating Manifold/BorderEdges
-      in parent scene).
-
-      @groupBegin }
-    ScheduledLocalGeometryChanged: boolean;
-    ScheduledLocalGeometryChangedCoord: boolean;
-    { @groupEnd }
-
-  private
-    { What is considered "active" shapes changed. Like after Switch.whichChoice
-      change. }
-    ScheduledGeometryActiveShapesChanged: boolean;
 
     { Mechanism to schedule ChangedAll and GeometryChanged calls. }
     ChangedAllSchedule: Cardinal;
@@ -1056,20 +1032,14 @@ type
     property OnBoundViewpointVectorsChanged: TVRMLSceneNotification
       read FOnBoundViewpointVectorsChanged write FOnBoundViewpointVectorsChanged;
 
-    { Notification that geometry changed.
-      Calls OnGeometryChanged, and does some other stuff necessary
+    { Called when geometry changed.
+      Does OnGeometryChanged, and does some other stuff necessary
       (mark some octrees for regenerating at next access).
 
-      What exactly changed can be checked by looking at
-      ScheduledGeometryChangedAll,
-      ScheduledGeometrySomeCollidableTransformChanged,
-      ScheduledGeometrySomeVisbibleTransformChanged
-      ScheduledGeometryActiveShapesChanged,
-      ScheduledLocalGeometryChangedCoord,
-      ScheduledLocalGeometryChanged.
-      Something from there must be @true. The sum of these
-      ScheduledGeometryXxx flags describe the change. }
-    procedure DoGeometryChanged; virtual;
+      This is public only for overloading (and for internal TVRMLShape
+      access). Do not call this yourself --- TVRMLShape and TVRMLScene
+      implementations know when and how to call this. }
+    procedure DoGeometryChanged(const Change: TGeometryChange); virtual;
 
     { Call OnViewpointsChanged, if assigned. }
     procedure DoViewpointsChanged;
@@ -1077,10 +1047,10 @@ type
     { Call OnBoundViewpointVectorsChanged, if assigned. }
     procedure DoBoundViewpointVectorsChanged;
 
-    { Mechanism to schedule ChangedAll and GeometryChanged calls.
+    { Mechanism to schedule ChangedAll calls.
 
-      Since these calls may be costly (updating some octrees,
-      traversing the hierarchy), and their results are often
+      Since these calls may be costly (traversing the hierarchy),
+      and their results are often
       not immediately needed by TVRMLScene or TVRMLNode hierarchy,
       it's sometimes not desirable to call them immediately
       when geometry changed / all changed.
@@ -1093,10 +1063,6 @@ type
       will be done only once at EndChangesSchedule. Otherwise
       (when not within Begin/EndChangesSchedule), ScheduleChangedAll will
       immediately call ChangedAll.
-
-      Begin/EndChangesSchedule set up ChangedAll schedule,
-      and also do Begin/EndGeometryChangedSchedule. So the analogous mechanism
-      will be used to avoid calling GeometryChanged too often.
 
       @groupBegin }
     procedure ScheduleChangedAll;
@@ -2733,8 +2699,7 @@ begin
         { Calculation traverses over active nodes (uses RootNode.Traverse). }
         fvMainLightForShadows];
 
-      ScheduledGeometryActiveShapesChanged := true;
-      ScheduleGeometryChanged;
+      DoGeometryChanged(gcActiveShapesChanged);
     end;
   end;
 end;
@@ -2855,71 +2820,57 @@ begin
   if Log and LogChanges then
     WritelnLog('VRML changes', 'ChangedAll');
 
-  { We want to defer all GeometryChanged until later, because at the end
-    of ChangedAll we will want to send GeometryChanged anyway
-    with ScheduledGeometryChangedAll := true. So it would be a waste
-    of time to call GeometryChanged earlier.
+  BeforeNodesFree(true);
 
-    In particular, RootNode.Traverse may call UpdateLODLevel which may
-    call GeometryChanged. It calls GeometryChanged *without*
-    SomeLocalGeometryChanged, which would be an error: as our
-    BeforeNodesFree in fact already means some geometry stuff is destroyed
-    already. So we even *cannot* call GeometryChanged from RootNode.Traverse
-    (or we should add ScheduleGeometryChanged right after BeforeNodesFree,
-    but it's useless if we do it again at the end anyway...).
+  { Call DoGeometryChanged already here, as our old shapes already
+    stopped to exist. }
+  DoGeometryChanged(gcAll);
 
-    Testcase: view3dscene, select and "edit->remove selected geometry node"
-    on a scene with LOD, e.g. t85.wrl from http://tatraportal.com/drracer/.
-    Without the Begin/EndGeometryChangedSchedule, it will crash. }
-  BeginGeometryChangedSchedule;
+  BackgroundStack.CheckForDeletedNodes(RootNode, true);
+  FogStack.CheckForDeletedNodes(RootNode, true);
+  NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
+  ViewpointStack.CheckForDeletedNodes(RootNode, true);
+
+  Validities := [];
+
+  { Clear variables after removing fvTrianglesList* from Validities }
+  InvalidateTrianglesList(false);
+  InvalidateTrianglesList(true);
+  InvalidateTrianglesListShadowCasters;
+
+  { Clear variables after removing fvManifoldAndBorderEdges from Validities }
+  InvalidateManifoldAndBorderEdges;
+
+  ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
+    { Clean Shapes, ShapeLODs }
+    FreeAndNil(FShapes);
+    FShapes := TVRMLShapeTreeGroup.Create(Self);
+    ShapeLODs.Clear;
 
-    BeforeNodesFree(true);
+    if RootNode <> nil then
+    begin
+      Traverser := TChangedAllTraverser.Create;
+      try
+        Traverser.ParentScene := Self;
+        { We just created FShapes as TVRMLShapeTreeGroup, so this cast
+          is safe }
+        Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
+        Traverser.Active := true;
+        RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
+      finally FreeAndNil(Traverser) end;
 
-    BackgroundStack.CheckForDeletedNodes(RootNode, true);
-    FogStack.CheckForDeletedNodes(RootNode, true);
-    NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
-    ViewpointStack.CheckForDeletedNodes(RootNode, true);
+      UpdateVRML2ActiveLights;
 
-    Validities := [];
+      if ProcessEvents then
+        CollectNodesForEvents;
+    end;
+  finally FreeAndNil(ChangedAll_TraversedLights) end;
 
-    { Clear variables after removing fvTrianglesList* from Validities }
-    InvalidateTrianglesList(false);
-    InvalidateTrianglesList(true);
-    InvalidateTrianglesListShadowCasters;
-
-    { Clear variables after removing fvManifoldAndBorderEdges from Validities }
-    InvalidateManifoldAndBorderEdges;
-
-    ChangedAll_TraversedLights := TDynActiveLightArray.Create;
-    try
-      { Clean Shapes, ShapeLODs }
-      FreeAndNil(FShapes);
-      FShapes := TVRMLShapeTreeGroup.Create(Self);
-      ShapeLODs.Clear;
-
-      if RootNode <> nil then
-      begin
-        Traverser := TChangedAllTraverser.Create;
-        try
-          Traverser.ParentScene := Self;
-          { We just created FShapes as TVRMLShapeTreeGroup, so this cast
-            is safe }
-          Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
-          Traverser.Active := true;
-          RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
-        finally FreeAndNil(Traverser) end;
-
-        UpdateVRML2ActiveLights;
-
-        if ProcessEvents then
-          CollectNodesForEvents;
-      end;
-    finally FreeAndNil(ChangedAll_TraversedLights) end;
-
-    ScheduledGeometryChangedAll := true;
-    ScheduleGeometryChanged;
-  finally EndGeometryChangedSchedule end;
+  { Call DoGeometryChanged here, as our new shapes are added.
+    Probably, only one DoGeometryChanged(gcAll) is needed, but for safety
+    --- we can call it twice, it's ultra-fast right now. }
+  DoGeometryChanged(gcAll);
 
   VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   DoViewpointsChanged;
@@ -3132,12 +3083,10 @@ begin
       if Inactive = 0 then
       begin
         if Shape.Visible then
-          ParentScene.ScheduledGeometrySomeVisibleTransformChanged := true;
+          ParentScene.DoGeometryChanged(gcVisibleTransformChanged);
 
         if Shape.Collidable then
-          ParentScene.ScheduledGeometrySomeCollidableTransformChanged := true;
-
-        ParentScene.ScheduleGeometryChanged;
+          ParentScene.DoGeometryChanged(gcCollidableTransformChanged);
 
         AnythingChanged := true;
       end;
@@ -3499,8 +3448,7 @@ var
       { Calculation traverses over active nodes (uses RootNode.Traverse). }
       fvMainLightForShadows];
 
-    ScheduledGeometryActiveShapesChanged := true;
-    ScheduleGeometryChanged;
+    DoGeometryChanged(gcActiveShapesChanged);
 
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
@@ -3821,11 +3769,10 @@ begin
   finally EndChangesSchedule end;
 end;
 
-procedure TVRMLScene.DoGeometryChanged;
+procedure TVRMLScene.DoGeometryChanged(const Change: TGeometryChange);
 var
   SomeLocalGeometryChanged: boolean;
   EdgesStructureChanged: boolean;
-  SI: TVRMLShapeTreeIterator;
 begin
   Validities := Validities - [fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
@@ -3851,19 +3798,15 @@ begin
 
     By the way, also calculate EdgesStructureChanged. }
 
-  if ScheduledGeometryChangedAll then
+  if Change = gcAll then
   begin
     SomeLocalGeometryChanged := true;
     EdgesStructureChanged := true;
 
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        SI.Current.LocalGeometryChanged(true, false);
-    finally FreeAndNil(SI) end;
-
-    if Log and LogChanges then
-      WritelnLog('VRML changes (octree)', 'All TVRMLShape.OctreeTriangles updated');
+    { No need to do here LocalGeometryChanged on all shapes:
+      we know that ChangedAll already did (or will, soon) recreate
+      all the shapes. So their geometry stuff will be correctly reinitialized
+      anyway. }
   end else
   begin
     { Note that if
@@ -3873,10 +3816,10 @@ begin
       for     ScheduledLocalGeometryChangedCoord separation from
       regular ScheduledLocalGeometryChanged. }
 
-    SomeLocalGeometryChanged := ScheduledLocalGeometryChanged
-      or ScheduledLocalGeometryChangedCoord;
-    EdgesStructureChanged := ScheduledGeometryActiveShapesChanged or
-      ScheduledLocalGeometryChanged;
+    SomeLocalGeometryChanged := Change in
+      [gcLocalGeometryChanged, gcLocalGeometryChangedCoord];
+    EdgesStructureChanged := Change in
+      [gcActiveShapesChanged, gcLocalGeometryChanged];
   end;
 
   { Use EdgesStructureChanged to decide should be invalidate
@@ -3884,28 +3827,18 @@ begin
   if EdgesStructureChanged then
     InvalidateManifoldAndBorderEdges;
 
-  if (OctreeRendering <> nil) and
-     (ScheduledGeometrySomeVisibleTransformChanged or
-      ScheduledGeometryActiveShapesChanged or
+  if (FOctreeRendering <> nil) and
+     ((Change in [gcVisibleTransformChanged, gcActiveShapesChanged]) or
       SomeLocalGeometryChanged) then
     FreeAndNil(FOctreeRendering);
 
-  if (OctreeDynamicCollisions <> nil) and
-     (ScheduledGeometrySomeCollidableTransformChanged or
-      ScheduledGeometryActiveShapesChanged or
+  if (FOctreeDynamicCollisions <> nil) and
+     ((Change in [gcCollidableTransformChanged, gcActiveShapesChanged]) or
       SomeLocalGeometryChanged) then
     FreeAndNil(FOctreeDynamicCollisions);
 
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self, SomeLocalGeometryChanged);
-
-  { clear ScheduledGeometryXxx flags now }
-  ScheduledGeometryChangedAll := false;
-  ScheduledGeometrySomeVisibleTransformChanged := false;
-  ScheduledGeometrySomeCollidableTransformChanged := false;
-  ScheduledGeometryActiveShapesChanged := false;
-  ScheduledLocalGeometryChanged := false;
-  ScheduledLocalGeometryChangedCoord := false;
 end;
 
 procedure TVRMLScene.DoViewpointsChanged;
@@ -5561,49 +5494,10 @@ begin
     IncreaseTime(TimePlayingSpeed * CompSpeed);
 end;
 
-{ geometry changes schedule -------------------------------------------------- }
-
-procedure TVRMLScene.BeginGeometryChangedSchedule;
-begin
-  { GeometryChangedScheduled = false always when GeometrySchedule = 0. }
-  Assert((GeometrySchedule <> 0) or (not GeometryChangedScheduled));
-
-  Inc(GeometrySchedule);
-end;
-
-procedure TVRMLScene.ScheduleGeometryChanged;
-begin
-  if GeometrySchedule = 0 then
-    DoGeometryChanged else
-    GeometryChangedScheduled := true;
-end;
-
-procedure TVRMLScene.EndGeometryChangedSchedule;
-begin
-  Dec(GeometrySchedule);
-  if (GeometrySchedule = 0) and GeometryChangedScheduled then
-  begin
-    { Set GeometryChangedScheduled before DoGeometryChanged,
-      to be in consistent state (pass assertion in BeginGeometryChangedSchedule).
-      Note that DoGeometryChanged may call many things,
-      e.g. it may want to show a progress bar while constructing the octree,
-      that will want to render the screen for background of progress bar,
-      that will want to update some generated texture nodes,
-      that will call CameraChanged to eventually make camera events,
-      that will secure itself by BeginGeometryChangedSchedule... }
-
-    GeometryChangedScheduled := false;
-
-    DoGeometryChanged;
-  end;
-end;
-
 { changes schedule ----------------------------------------------------------- }
 
 procedure TVRMLScene.BeginChangesSchedule;
 begin
-  BeginGeometryChangedSchedule;
-
   { ChangedAllScheduled = false always when ChangedAllSchedule = 0. }
   Assert((ChangedAllSchedule <> 0) or (not ChangedAllScheduled));
 
@@ -5631,17 +5525,6 @@ begin
 
     ChangedAll;
   end;
-
-  { Call EndGeometryChangedSchedule after finalizing ChangeAll schedule.
-    Reason: ChangedAll may (in fact, it always does, currently) call
-    geometry changed (so it will always be scheduled and performed only below).
-    But GeometryChanged cannot call ChangedAll. So all is Ok.
-
-    Doing it the other way around (first EndGeometryChangedSchedule,
-    then finalize ChangedAll) would mean that GeometryChanged is possibly
-    done twice (once at EndGeometryChangedSchedule, then from ChangedAll). }
-
-  EndGeometryChangedSchedule;
 end;
 
 { proximity sensor ----------------------------------------------------------- }

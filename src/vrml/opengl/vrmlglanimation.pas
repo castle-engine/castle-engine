@@ -697,7 +697,7 @@ type
       AProvidedRenderer: TVRMLOpenGLRenderer;
       AParentAnimation: TVRMLGLAnimation);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
-    procedure DoGeometryChanged; override;
+    procedure DoGeometryChanged(const Change: TGeometryChange); override;
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
     procedure CursorChange; override;
   end;
@@ -725,7 +725,7 @@ begin
   Static := true;
 end;
 
-procedure TVRMLGLAnimationScene.DoGeometryChanged;
+procedure TVRMLGLAnimationScene.DoGeometryChanged(const Change: TGeometryChange);
 begin
   inherited;
   ParentAnimation.ValidBoundingBox := false;

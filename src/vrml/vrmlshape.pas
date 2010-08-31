@@ -1161,9 +1161,8 @@ begin
   if not CalledFromParentScene then
   begin
     if ChangedOnlyCoord then
-      TVRMLScene(ParentScene).ScheduledLocalGeometryChangedCoord := true else
-      TVRMLScene(ParentScene).ScheduledLocalGeometryChanged := true;
-    TVRMLScene(ParentScene).ScheduleGeometryChanged;
+      TVRMLScene(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord) else
+      TVRMLScene(ParentScene).DoGeometryChanged(gcLocalGeometryChanged);
   end;
 end;
 
