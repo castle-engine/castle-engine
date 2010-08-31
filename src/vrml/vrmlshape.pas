@@ -305,7 +305,8 @@ type
     function FrustumBoundingSphereCollisionPossibleSimple(
       const Frustum: TFrustum): boolean;
 
-    { Notify this shape that you changed a field inside one of it's nodes.
+    { Notify this shape that you changed a field inside one of it's nodes
+      (automatically done by TVRMLScene).
       This should be called when fields within Shape.Geometry,
       Shape.State.Last*, Shape.State.ShapeNode or such change.
 
