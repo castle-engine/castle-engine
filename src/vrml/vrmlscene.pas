@@ -3158,8 +3158,7 @@ begin
       Shape.State.AssignTransform(StateStack.Top);
       { TransformOnly = @true, suitable for roSeparateShapesNoTransform,
         they don't have Transform compiled in display list. }
-      ParentScene.ChangedShapeFields(Shape,
-        ChangingField,
+      ParentScene.ChangedShapeFields(Shape, ChangingField,
         Inactive <> 0, false, Changes);
 
       if Inactive = 0 then
@@ -3405,8 +3404,7 @@ var
         if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
            (Coord = Field) then
         begin
-          ChangedShapeFields(SI.Current, Field,
-            false,
+          ChangedShapeFields(SI.Current, Field, false,
             { We pass PossiblyLocalGeometryChanged = false,
               as we'll do ScheduledLocalGeometryChangedCoord := true
               later that will take care of it anyway.
@@ -3439,8 +3437,7 @@ var
         while SI.GetNext do
           if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node) or
              (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = Node) then
-            ChangedShapeFields(SI.Current, Field,
-              false, true, Changes);
+            ChangedShapeFields(SI.Current, Field, false, true, Changes);
       finally FreeAndNil(SI) end;
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end;
@@ -3456,8 +3453,7 @@ var
     try
       while SI.GetNext do
         if SI.Current.State.ShapeNode.Material = Node then
-          ChangedShapeFields(SI.Current, Field,
-            false, false, Changes);
+          ChangedShapeFields(SI.Current, Field, false, false, Changes);
     finally FreeAndNil(SI) end;
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
@@ -3573,8 +3569,7 @@ var
            ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
            ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
            ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
-          ChangedShapeFields(SI.Current, Field,
-            false, false, Changes);
+          ChangedShapeFields(SI.Current, Field, false, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3590,8 +3585,7 @@ var
       while SI.GetNext do
         if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
            (TexCoord = Node) then
-          ChangedShapeFields(SI.Current, Field,
-            false, false, Changes);
+          ChangedShapeFields(SI.Current, Field, false, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3632,8 +3626,7 @@ var
            (SI.Current.State.ShapeNode.FdAppearance.Value is TNodeAppearance) and
            AppearanceUsesTextureTransform(
              TNodeAppearance(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
-          ChangedShapeFields(SI.Current, Field,
-            false, false, Changes);
+          ChangedShapeFields(SI.Current, Field, false, false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3648,8 +3641,7 @@ var
         if (SI.Current.Geometry = Node) or
            (SI.Current.OriginalGeometry = Node) then
         begin
-          ChangedShapeFields(SI.Current, Field,
-            false,
+          ChangedShapeFields(SI.Current, Field, false,
             { We pass PossiblyLocalGeometryChanged = false,
               as we'll do ScheduledLocalGeometryChangedCoord := true
               later that will take care of it anyway.
@@ -3748,8 +3740,7 @@ var
       while SI.GetNext do
       begin
         if SI.Current.UsesTexture(TNodeX3DTextureNode(Node)) then
-          ChangedShapeFields(SI.Current, Field,
-            false, false, Changes);
+          ChangedShapeFields(SI.Current, Field, false, false, Changes);
       end;
     finally FreeAndNil(SI) end;
   end;
