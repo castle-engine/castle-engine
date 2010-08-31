@@ -3865,22 +3865,20 @@ begin
         if SI.Current.ScheduledLocalGeometryChanged or
            SI.Current.ScheduledLocalGeometryChangedCoord then
         begin
-          SomeLocalGeometryChanged := true;
-          SI.Current.LocalGeometryChanged;
-          if Log and LogChanges and
-             (SI.Current.OctreeTriangles <> nil) then
-            WritelnLog('VRML changes (octree)', Format(
-              'Shape(%s).OctreeTriangles updated', [PointerToStr(SI.Current)]));
-
           { Note that if
             ScheduledLocalGeometryChangedCoord = true, but
             ScheduledLocalGeometryChanged = false, then
             EdgesStructureChanged may remain false. This is the very reason
             for     ScheduledLocalGeometryChangedCoord separation from
-            regular ScheduledLocalGeometryChanged. }
+            regular ScheduledLocalGeometryChanged.
 
+            Check it before calling SI.Current.LocalGeometryChanged,
+            as LocalGeometryChanged (may in the future) reset this to false. }
           if SI.Current.ScheduledLocalGeometryChanged then
             EdgesStructureChanged := true;
+
+          SomeLocalGeometryChanged := true;
+          SI.Current.LocalGeometryChanged;
 
           SI.Current.ScheduledLocalGeometryChanged := false;
           SI.Current.ScheduledLocalGeometryChangedCoord := false;

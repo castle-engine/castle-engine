@@ -351,7 +351,7 @@ type
       Parent TVRMLScene will also take care of actually using
       this octree: TVRMLScene.OctreeCollisions methods actually use the
       octrees of specific shapes at the bottom. }
-    property OctreeTriangles: TVRMLTriangleOctree read FOctreeTriangles;
+    function OctreeTriangles: TVRMLTriangleOctree;
 
     { Which spatial structrues (octrees, for now) should be created and managed.
       This works analogous to TVRMLScene.Spatial, but this manages
@@ -392,7 +392,7 @@ type
       in stuff for VRML >= 2.0) is not relevant here. E.g. changing
       material color does not cause "local" geometry changes.
 
-      For now, this updates octree, if initialized.
+      This frees the octree (will be recreated on Octree* call).
       Also removes cached normals. }
     procedure LocalGeometryChanged;
 
@@ -864,6 +864,21 @@ begin
   FreeAndNil(FOctreeTriangles);
 end;
 
+function TVRMLShape.OctreeTriangles: TVRMLTriangleOctree;
+begin
+  if (ssTriangles in Spatial) and (FOctreeTriangles = nil) then
+  begin
+    FOctreeTriangles := CreateTriangleOctree(
+      OverrideOctreeLimits(FTriangleOctreeLimits),
+      TriangleOctreeProgressTitle);
+    if Log and TVRMLScene(ParentScene).LogChanges then
+      WritelnLog('VRML changes (octree)', Format(
+        'Shape(%s).OctreeTriangles updated', [PointerToStr(Self)]));
+  end;
+
+  Result := FOctreeTriangles;
+end;
+
 function TVRMLShape.TriangleOctreeLimits: POctreeLimits;
 begin
   Result := @FTriangleOctreeLimits;
@@ -1137,15 +1152,7 @@ begin
     New := ssTriangles in Value;
 
     if Old and not New then
-    begin
       FreeOctreeTriangles;
-    end else
-    if New and not Old then
-    begin
-      FOctreeTriangles := CreateTriangleOctree(
-        OverrideOctreeLimits(FTriangleOctreeLimits),
-        TriangleOctreeProgressTitle);
-    end;
 
     FSpatial := Value;
   end;
@@ -1153,19 +1160,8 @@ end;
 
 procedure TVRMLShape.LocalGeometryChanged;
 begin
-  { Remember to do FreeAndNil on octrees below.
-    Although we will recreate octrees right after rebuilding,
-    it's still good to nil them right after freeing.
-    Otherwise, when exception will raise from CreateXxxOctree,
-    Scene.OctreeXxx will be left as invalid pointer. }
-
   if OctreeTriangles <> nil then
-  begin
     FreeOctreeTriangles;
-    FOctreeTriangles := CreateTriangleOctree(
-      OverrideOctreeLimits(FTriangleOctreeLimits),
-      TriangleOctreeProgressTitle);
-  end;
 
   { Remove cached normals }
   FreeAndNil(FNormals);
