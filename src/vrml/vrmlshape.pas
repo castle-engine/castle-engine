@@ -325,6 +325,25 @@ type
     procedure Changed(Field: TVRMLField; const InactiveOnly: boolean;
       const Changes: TVRMLChanges); virtual;
 
+    { @exclude
+      Called when local geometry changed. Internally used to communicate
+      between TVRMLScene and TVRMLShape.
+
+      "Local" means that we're concerned here about changes visible
+      in shape local coordinate system. E.g. things that only change our
+      transformation (State.Transform) do not cause "local" geometry changes.
+
+      "Geometry" means that we're concerned only about changes to topology
+      --- vertexes, edges, faces, how they connect each other.
+      Things that affect only appearance (e.g. whole Shape.appearance content
+      in stuff for VRML >= 2.0) is not relevant here. E.g. changing
+      material color does not cause "local" geometry changes.
+
+      This frees the octree (will be recreated on Octree* call).
+      Also removes cached normals.
+      Also notifies parent scene about this change (unless CalledFromParentScene). }
+    procedure LocalGeometryChanged(const CalledFromParentScene, ChangedOnlyCoord: boolean);
+
     { The dynamic octree containing all triangles.
       It contains only triangles within this shape.
 
@@ -379,38 +398,7 @@ type
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
     { @groupEnd }
-
-    { Called by parent scene when local geometry changed.
-
-      "Local" means that we're concerned here about changes visible
-      in shape local coordinate system. E.g. things that only change our
-      transformation (State.Transform) do not cause "local" geometry changes.
-
-      "Geometry" means that we're concerned only about changes to topology
-      --- vertexes, edges, faces, how they connect each other.
-      Things that affect only appearance (e.g. whole Shape.appearance content
-      in stuff for VRML >= 2.0) is not relevant here. E.g. changing
-      material color does not cause "local" geometry changes.
-
-      This frees the octree (will be recreated on Octree* call).
-      Also removes cached normals. }
-    procedure LocalGeometryChanged;
-
   public
-    { Internally used by TVRMLScene. Says if local geometry change is scheduled
-      (actual change will be done by TVRMLScene.DoGeometryChanged).
-
-      ScheduledLocalGeometryChangedCoord means that coordinates changed.
-      If this is all that changed (ScheduledLocalGeometryChanged = @false),
-      then this means that model edges structure remains the same
-      (this is helpful e.g. to avoid recalculating Manifold/BorderEdges
-      in parent scene).
-
-      @groupBegin }
-    ScheduledLocalGeometryChanged: boolean;
-    ScheduledLocalGeometryChangedCoord: boolean;
-    { @groupEnd }
-
     { Looking at material and color nodes, decide if the shape is opaque
       or (partially) transparent.
 
@@ -1036,17 +1024,11 @@ begin
   end;
 
   if chCoordinate in Changes then
-  begin
     { Coordinate changes actual geometry. }
-    ScheduledLocalGeometryChangedCoord := true;
-    TVRMLScene(ParentScene).ScheduleGeometryChanged;
-  end;
+    LocalGeometryChanged(false, true);
 
   if chGeometry in Changes then
-  begin
-    ScheduledLocalGeometryChanged := true;
-    TVRMLScene(ParentScene).ScheduleGeometryChanged;
-  end;
+    LocalGeometryChanged(false, false);
 
   if not InactiveOnly then
     TVRMLScene(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
@@ -1158,7 +1140,8 @@ begin
   end;
 end;
 
-procedure TVRMLShape.LocalGeometryChanged;
+procedure TVRMLShape.LocalGeometryChanged(
+  const CalledFromParentScene, ChangedOnlyCoord: boolean);
 begin
   if OctreeTriangles <> nil then
     FreeOctreeTriangles;
@@ -1174,6 +1157,14 @@ begin
     svTrianglesCountNotOver, svTrianglesCountOver,
     svBoundingSphere,
     svNormals];
+
+  if not CalledFromParentScene then
+  begin
+    if ChangedOnlyCoord then
+      TVRMLScene(ParentScene).ScheduledLocalGeometryChangedCoord := true else
+      TVRMLScene(ParentScene).ScheduledLocalGeometryChanged := true;
+    TVRMLScene(ParentScene).ScheduleGeometryChanged;
+  end;
 end;
 
 function TVRMLShape.Transparent: boolean;

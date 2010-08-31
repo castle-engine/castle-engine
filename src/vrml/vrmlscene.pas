@@ -686,6 +686,25 @@ type
     ScheduledGeometrySomeCollidableTransformChanged: boolean;
     ScheduledGeometrySomeVisibleTransformChanged: boolean;
 
+  public
+    { @exclude
+      Internally set by TVRMLShape. Says that local geometry change
+      happened (actual octree free is already done by
+      TVRMLShape.LocalGeometryChanged, octree create will be done at next demand).
+      We should update stuff at higher (TVRMLScene) level accordingly.
+
+      ScheduledLocalGeometryChangedCoord means that coordinates changed.
+      If this is all that changed (ScheduledLocalGeometryChanged = @false),
+      then this means that model edges structure remains the same
+      (this is helpful e.g. to avoid recalculating Manifold/BorderEdges
+      in parent scene).
+
+      @groupBegin }
+    ScheduledLocalGeometryChanged: boolean;
+    ScheduledLocalGeometryChangedCoord: boolean;
+    { @groupEnd }
+
+  private
     { What is considered "active" shapes changed. Like after Switch.whichChoice
       change. }
     ScheduledGeometryActiveShapesChanged: boolean;
@@ -1046,8 +1065,8 @@ type
       ScheduledGeometrySomeCollidableTransformChanged,
       ScheduledGeometrySomeVisbibleTransformChanged
       ScheduledGeometryActiveShapesChanged,
-      TVRMLShape.ScheduledLocalGeometryChangedCoord (in all Shapes),
-      TVRMLShape.ScheduledLocalGeometryChanged (in all Shapes).
+      ScheduledLocalGeometryChangedCoord,
+      ScheduledLocalGeometryChanged.
       Something from there must be @true. The sum of these
       ScheduledGeometryXxx flags describe the change. }
     procedure DoGeometryChanged; virtual;
@@ -3819,7 +3838,7 @@ begin
   InvalidateTrianglesList(true);
   InvalidateTrianglesListShadowCasters;
 
-  { First, call LocalGeometryChanged on shapes when needed.
+  { First, call LocalGeometryChanged(true, ...) on shapes when needed.
 
     By the way, also calculate SomeLocalGeometryChanged (= if any
     LocalGeometryChanged was called, which means that octree and
@@ -3830,61 +3849,34 @@ begin
     for SomeLocalGeometryChanged, knowing that this also checks for
     ScheduledGeometryChangedAll.
 
-    By the way, also calculate EdgesStructureChanged.
-
-    By the way, also clear all ScheduledLocalGeometryChanged[Coord]
-    for all shapes. }
+    By the way, also calculate EdgesStructureChanged. }
 
   if ScheduledGeometryChangedAll then
   begin
     SomeLocalGeometryChanged := true;
-
     EdgesStructureChanged := true;
 
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-      begin
-        SI.Current.LocalGeometryChanged;
-        SI.Current.ScheduledLocalGeometryChanged := false;
-        SI.Current.ScheduledLocalGeometryChangedCoord := false;
-      end;
+        SI.Current.LocalGeometryChanged(true, false);
     finally FreeAndNil(SI) end;
 
     if Log and LogChanges then
       WritelnLog('VRML changes (octree)', 'All TVRMLShape.OctreeTriangles updated');
   end else
   begin
-    SomeLocalGeometryChanged := false;
-    EdgesStructureChanged := ScheduledGeometryActiveShapesChanged;
+    { Note that if
+      ScheduledLocalGeometryChangedCoord = true, but
+      ScheduledLocalGeometryChanged = false, then
+      EdgesStructureChanged may remain false. This is the very reason
+      for     ScheduledLocalGeometryChangedCoord separation from
+      regular ScheduledLocalGeometryChanged. }
 
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-      begin
-        if SI.Current.ScheduledLocalGeometryChanged or
-           SI.Current.ScheduledLocalGeometryChangedCoord then
-        begin
-          { Note that if
-            ScheduledLocalGeometryChangedCoord = true, but
-            ScheduledLocalGeometryChanged = false, then
-            EdgesStructureChanged may remain false. This is the very reason
-            for     ScheduledLocalGeometryChangedCoord separation from
-            regular ScheduledLocalGeometryChanged.
-
-            Check it before calling SI.Current.LocalGeometryChanged,
-            as LocalGeometryChanged (may in the future) reset this to false. }
-          if SI.Current.ScheduledLocalGeometryChanged then
-            EdgesStructureChanged := true;
-
-          SomeLocalGeometryChanged := true;
-          SI.Current.LocalGeometryChanged;
-
-          SI.Current.ScheduledLocalGeometryChanged := false;
-          SI.Current.ScheduledLocalGeometryChangedCoord := false;
-        end;
-      end;
-    finally FreeAndNil(SI) end;
+    SomeLocalGeometryChanged := ScheduledLocalGeometryChanged
+      or ScheduledLocalGeometryChangedCoord;
+    EdgesStructureChanged := ScheduledGeometryActiveShapesChanged or
+      ScheduledLocalGeometryChanged;
   end;
 
   { Use EdgesStructureChanged to decide should be invalidate
@@ -3912,11 +3904,8 @@ begin
   ScheduledGeometrySomeVisibleTransformChanged := false;
   ScheduledGeometrySomeCollidableTransformChanged := false;
   ScheduledGeometryActiveShapesChanged := false;
-
-  { All shapes
-    ScheduledLocalGeometryChanged,
-    ScheduledLocalGeometryChangedCoord
-    are already set to false by previous code. }
+  ScheduledLocalGeometryChanged := false;
+  ScheduledLocalGeometryChangedCoord := false;
 end;
 
 procedure TVRMLScene.DoViewpointsChanged;
