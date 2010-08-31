@@ -301,15 +301,15 @@ begin
   inherited;
 
   FFdquadricSlices := TSFLong.Create(Self, 'quadricSlices', TriangulationUseDef);
-   FdquadricSlices.ChangesAlways := [chVisibleVRML1State];
+   FdquadricSlices.ChangesAlways := [chGeometryVRML1State];
   Fields.Add(FFdquadricSlices);
 
   FFdquadricStacks := TSFLong.Create(Self, 'quadricStacks', TriangulationUseDef);
-   FdquadricStacks.ChangesAlways := [chVisibleVRML1State];
+   FdquadricStacks.ChangesAlways := [chGeometryVRML1State];
   Fields.Add(FFdquadricStacks);
 
   FFdrectDivisions := TSFLong.Create(Self, 'rectDivisions', TriangulationUseDef);
-   FdrectDivisions.ChangesAlways := [chVisibleVRML1State];
+   FdrectDivisions.ChangesAlways := [chGeometryVRML1State];
   Fields.Add(FFdrectDivisions);
 end;
 

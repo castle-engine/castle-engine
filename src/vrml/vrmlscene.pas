@@ -3326,7 +3326,9 @@ var
     finally FreeAndNil(SI) end;
   end;
 
-  procedure HandleVisibleVRML1State;
+  { Good for both chVisibleVRML1State and chGeometryVRML1State
+    (TVRMLShape.Changed actually cares about the difference between these two.) }
+  procedure HandleVRML1State;
   var
     VRML1StateNode: TVRML1StateNode;
     SI: TVRMLShapeTreeIterator;
@@ -3738,7 +3740,8 @@ begin
   try
     if chTransform in Changes then HandleChangeTransform;
     if chCoordinate in Changes then HandleChangeCoordinate;
-    if chVisibleVRML1State in Changes then HandleVisibleVRML1State;
+    if Changes * [chVisibleVRML1State, chGeometryVRML1State] <> [] then
+      HandleVRML1State;
     if chMaterial2 in Changes then HandleChangeMaterial;
     if chLightActiveProperty    in Changes then HandleChangeLightActiveProperty;
     if chLightForShadowVolumes  in Changes then HandleChangeLightForShadowVolumes;

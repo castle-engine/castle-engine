@@ -1248,15 +1248,15 @@ begin
   inherited;
 
   FFdsize := TSFFloat.Create(Self, 'size', 10, true);
-   Fdsize.ChangesAlways := [chVisibleVRML1State];
+   Fdsize.ChangesAlways := [chGeometryVRML1State];
   Fields.Add(FFdsize);
 
   FFdfamily := TSFEnum.Create(Self, 'family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF);
-   Fdfamily.ChangesAlways := [chVisibleVRML1State];
+   Fdfamily.ChangesAlways := [chGeometryVRML1State];
   Fields.Add(FFdfamily);
 
   FFdstyle := TSFBitMask.Create(Self, 'style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]);
-   Fdstyle.ChangesAlways := [chVisibleVRML1State];
+   Fdstyle.ChangesAlways := [chGeometryVRML1State];
   Fields.Add(FFdstyle);
 end;
 
@@ -1900,7 +1900,7 @@ begin
   Fields.Add(FFdshapeType);
 
   FFdfaceType := TSFEnum.Create(Self, 'faceType', ['UNKNOWN_FACE_TYPE', 'CONVEX'], FACETYPE_CONVEX);
-   FdfaceType.ChangesAlways := [chVisibleVRML1State];
+   FdfaceType.ChangesAlways := [chGeometryVRML1State];
   Fields.Add(FFdfaceType);
 
   FFdcreaseAngle := TSFFloat.Create(Self, 'creaseAngle', DefaultVRML1CreaseAngle);

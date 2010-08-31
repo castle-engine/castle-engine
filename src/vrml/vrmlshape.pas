@@ -991,47 +991,23 @@ end;
 procedure TVRMLShape.Changed(Field: TVRMLField; const InactiveOnly: boolean;
   const Changes: TVRMLChanges);
 begin
-  { Eventual clearing of TVRMLScene.Validities items because shape changed
-    can be done by DoGeometryChanged, where more specific info
-    about what changed is passed. No reason to do it here.
-    Reason: Validities items
-      fvBoundingBox, fvVerticesCountNotOver, fvVerticesCountOver,
-      fvTrianglesCountNotOver, fvTrianglesCountOver,
-      fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
-      fvTrianglesListShadowCasters,
-      fvManifoldAndBorderEdges
-    are all related to geometry changes. }
-
   { Optimization: nothing needs to be done here when only chClipPlane }
   if Changes = [chClipPlane] then Exit;
 
   FreeProxy;
 
-  { If possibly local geometry changed (for now, this is only for VRML 1.0
-    state; VRML 2.0 geometry changes will be signalled without this). }
-  if chVisibleVRML1State in Changes then
-  begin
-    Validities := [];
-    FreeAndNil(FNormals);
-  end else
-  begin
-    { Leave in Validities things that depend on local geometry.
-      Since PossiblyLocalGeometryChanged = false, they didn't change. }
-    Validities := Validities * [svLocalBBox,
-      svVerticesCountNotOver,  svVerticesCountOver,
-      svTrianglesCountNotOver, svTrianglesCountOver,
-      svNormals];
-  end;
-
   if chCoordinate in Changes then
     { Coordinate changes actual geometry. }
     LocalGeometryChanged(false, true);
 
-  if chGeometry in Changes then
+  if Changes * [chGeometry, chGeometryVRML1State] <> [] then
     LocalGeometryChanged(false, false);
 
   if not InactiveOnly then
     TVRMLScene(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+
+  { chVisibleVRML1State is not used at all in TVRMLScene or TVRMLShape.
+    It's only used by TVRMLGLShape to invalidate display list. }
 end;
 
 procedure TVRMLShape.ValidateBoundingSphere;

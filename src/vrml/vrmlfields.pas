@@ -104,7 +104,7 @@ type
     chCoordinate,
 
     { Something visible in VRML 1.0 state node (that may be present
-      in TVRMLGraphTraverseState.LastNodes) changed.
+      in TVRMLGraphTraverseState.LastNodes) changed, but not geometry.
       Excluding Coordinate node change (this one should go through chCoordinate
       only).
 
@@ -118,6 +118,15 @@ type
       Exception: you can (and should) include chUseBlending and
       chTextureImage for appropriate changes. }
     chVisibleVRML1State,
+
+    { Some visible geometry changed because of VRML 1.0 state node change.
+      This is for VRML 1.0 state node changes, excluding non-geometry changes
+      (these go to chVisibleVRML1State) and Coordinate changes (these go to
+      chCoordinate).
+
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chGeometryVRML1State,
 
     { Something visible in VRML >= 2.0 Material (or TwoSidedMaterial) changed.
 
@@ -2412,7 +2421,8 @@ const
     'Redisplay',
     'Transform',
     'Coordinate',
-    'VRML 1.0 State (but not Coordinate)',
+    'VRML 1.0 State (but not affecting geometry or Coordinate)',
+    'VRML 1.0 State (affecting geometry, but not Coordinate)',
     'Material',
     'Blending',
     'Light active property',
