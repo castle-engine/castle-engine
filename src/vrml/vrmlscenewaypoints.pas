@@ -243,6 +243,7 @@ begin
       while SI.GetNext do TraverseForWaypoints(SI.Current);
     finally SysUtils.FreeAndNil(SI) end;
 
+    Scene.BeforeNodesFree;
     for I := 0 to NodesToRemove.Count - 1 do
       NodesToRemove.Items[I].FreeRemovingFromAllParents;
   finally NodesToRemove.Free end;
@@ -347,6 +348,7 @@ begin
       while SI.GetNext do TraverseForSectors(SI.Current);
     finally SysUtils.FreeAndNil(SI) end;
 
+    Scene.BeforeNodesFree;
     for I := 0 to NodesToRemove.Count - 1 do
       NodesToRemove.Items[I].FreeRemovingFromAllParents;
   finally NodesToRemove.Free end;
