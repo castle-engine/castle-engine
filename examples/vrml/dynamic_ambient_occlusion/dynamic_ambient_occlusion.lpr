@@ -847,7 +847,7 @@ begin
     dtNormalGL:
       begin
         Scene.Attributes.OnVertexColor := nil;
-        Scene.Optimization := roSeparateShapes;
+        Scene.Optimization := DefaultOptimization;
       end;
     dtPass1, dtPass2:
       begin

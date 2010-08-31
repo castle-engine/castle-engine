@@ -886,7 +886,7 @@ begin
   if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
     0, -1, High(TBumpMappingMethod), true, true, false) in
     [bmNone] + bmGLSLAll then
-    Scene.Optimization := roSeparateShapes else
+    Scene.Optimization := DefaultOptimization else
     Scene.Optimization := roNone;
 
   { make octree for fast RenderFrustum }
