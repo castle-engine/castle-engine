@@ -390,7 +390,7 @@ type
       --- vertexes, edges, faces, how they connect each other.
       Things that affect only appearance (e.g. whole Shape.appearance content
       in stuff for VRML >= 2.0) is not relevant here. E.g. changing
-      material color does not cause "local" geometry changes
+      material color does not cause "local" geometry changes.
 
       For now, this updates octree, if initialized.
       Also removes cached normals. }
