@@ -637,7 +637,9 @@ type
 
     { Mechanism to schedule geometry changed calls.
 
-      Since DoGeometryChanged call may be costly (updating some octrees),
+      Since DoGeometryChanged call may be costly (although it's
+      not that costly anymore, as we recreate octrees on-demand,
+      not in DoGeometryChanged),
       and it's not immediately needed by TVRMLScene or TVRMLNode hierarchy,
       it's sometimes not desirable to call DoGeometryChanged immediately
       when geometry changed.
@@ -1001,26 +1003,11 @@ type
       of triangles changed. This is not send when merely things like
       material changed.
 
-      What exactly changed can be checked by looking at
-      ScheduledGeometryChangedAll,
-      ScheduledGeometrySomeCollidableTransformChanged,
-      ScheduledGeometrySomeVisbibleTransformChanged
-      ScheduledGeometryActiveShapesChanged,
-      TVRMLShape.ScheduledLocalGeometryChangedCoord (in all Shapes),
-      TVRMLShape.ScheduledLocalGeometryChanged (in all Shapes).
-      Something from there must be @true. The sum of these
-      ScheduledGeometryXxx flags describe the change.
-
-      When OnGeometryChanged, we're right after DoGeometryChanged did
-      octree updating (so octrees are already updated), and right before
-      we cleared the ScheduledGeometryXxx flags. So you can
-      check ScheduledGeometryXxx flags, and do whatever you need.
-
-      This is particularly useful when using ProcessEvents = @true,
-      since then you don't have control over when ChangedXxx are called.
-      (When ProcessEvents = @false, you always call ChangedXxx explicitly
-      and in most cases you already know when the geometry did and when
-      it did not change.) }
+      It is not guaranteed that octrees are already recalculated
+      when this is called. (They may be recalculated only on-demand,
+      that is when you actually access them.)
+      However, it is guaranteed that shape's transformation
+      (like TVRMLShape.State.Transform) are already updated. }
     property OnGeometryChanged: TVRMLSceneGeometryChanged
       read FOnGeometryChanged write FOnGeometryChanged;
 
@@ -1050,7 +1037,19 @@ type
     property OnBoundViewpointVectorsChanged: TVRMLSceneNotification
       read FOnBoundViewpointVectorsChanged write FOnBoundViewpointVectorsChanged;
 
-    { Call OnGeometryChanged, if assigned. }
+    { Notification that geometry changed.
+      Calls OnGeometryChanged, and does some other stuff necessary
+      (mark some octrees for regenerating at next access).
+
+      What exactly changed can be checked by looking at
+      ScheduledGeometryChangedAll,
+      ScheduledGeometrySomeCollidableTransformChanged,
+      ScheduledGeometrySomeVisbibleTransformChanged
+      ScheduledGeometryActiveShapesChanged,
+      TVRMLShape.ScheduledLocalGeometryChangedCoord (in all Shapes),
+      TVRMLShape.ScheduledLocalGeometryChanged (in all Shapes).
+      Something from there must be @true. The sum of these
+      ScheduledGeometryXxx flags describe the change. }
     procedure DoGeometryChanged; virtual;
 
     { Call OnViewpointsChanged, if assigned. }
@@ -3831,7 +3830,10 @@ begin
     for SomeLocalGeometryChanged, knowing that this also checks for
     ScheduledGeometryChangedAll.
 
-    By the way, also calculate EdgesStructureChanged. }
+    By the way, also calculate EdgesStructureChanged.
+
+    By the way, also clear all ScheduledLocalGeometryChanged[Coord]
+    for all shapes. }
 
   if ScheduledGeometryChangedAll then
   begin
@@ -3842,7 +3844,11 @@ begin
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
+      begin
         SI.Current.LocalGeometryChanged;
+        SI.Current.ScheduledLocalGeometryChanged := false;
+        SI.Current.ScheduledLocalGeometryChangedCoord := false;
+      end;
     finally FreeAndNil(SI) end;
 
     if Log and LogChanges then
@@ -3865,17 +3871,20 @@ begin
              (SI.Current.OctreeTriangles <> nil) then
             WritelnLog('VRML changes (octree)', Format(
               'Shape(%s).OctreeTriangles updated', [PointerToStr(SI.Current)]));
+
+          { Note that if
+            ScheduledLocalGeometryChangedCoord = true, but
+            ScheduledLocalGeometryChanged = false, then
+            EdgesStructureChanged may remain false. This is the very reason
+            for     ScheduledLocalGeometryChangedCoord separation from
+            regular ScheduledLocalGeometryChanged. }
+
+          if SI.Current.ScheduledLocalGeometryChanged then
+            EdgesStructureChanged := true;
+
+          SI.Current.ScheduledLocalGeometryChanged := false;
+          SI.Current.ScheduledLocalGeometryChangedCoord := false;
         end;
-
-        { Note that if
-          ScheduledLocalGeometryChangedCoord = true, but
-          ScheduledLocalGeometryChanged = false, then
-          EdgesStructureChanged may remain false. This is the very reason
-          for     ScheduledLocalGeometryChangedCoord separation from
-          regular ScheduledLocalGeometryChanged. }
-
-        if SI.Current.ScheduledLocalGeometryChanged then
-          EdgesStructureChanged := true;
       end;
     finally FreeAndNil(SI) end;
   end;
@@ -3930,14 +3939,10 @@ begin
   ScheduledGeometrySomeCollidableTransformChanged := false;
   ScheduledGeometryActiveShapesChanged := false;
 
-  SI := TVRMLShapeTreeIterator.Create(Shapes, false);
-  try
-    while SI.GetNext do
-    begin
-      SI.Current.ScheduledLocalGeometryChanged := false;
-      SI.Current.ScheduledLocalGeometryChangedCoord := false;
-    end;
-  finally FreeAndNil(SI) end;
+  { All shapes
+    ScheduledLocalGeometryChanged,
+    ScheduledLocalGeometryChangedCoord
+    are already set to false by previous code. }
 end;
 
 procedure TVRMLScene.DoViewpointsChanged;
