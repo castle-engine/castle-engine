@@ -988,8 +988,7 @@ type
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
     procedure ChangedShapeFields(Shape: TVRMLShape;
-      Field: TVRMLField;
-      const InactiveOnly, PossiblyLocalGeometryChanged: boolean;
+      Field: TVRMLField; const InactiveOnly: boolean;
       const Changes: TVRMLChanges); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
@@ -3360,8 +3359,7 @@ end;
 }
 
 procedure TVRMLGLScene.ChangedShapeFields(Shape: TVRMLShape;
-  Field: TVRMLField;
-  const InactiveOnly, PossiblyLocalGeometryChanged: boolean;
+  Field: TVRMLField; const InactiveOnly: boolean;
   const Changes: TVRMLChanges);
 var
   TG: TTransparentGroup;
