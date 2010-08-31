@@ -131,7 +131,11 @@ begin
   Fields.Add(FFdurl);
   { X3D specification comment: [urn] }
 
-  DefaultContainerField := 'children';
+  { Although X3D XML encoding spec says that "children" is default
+    containerField, common sense says it should be "source".
+    (Sound.source field is where AudioClip should be placed.)
+    Testcase: FISH.x3d }
+  DefaultContainerField := 'source';
 end;
 
 class function TNodeAudioClip.ClassNodeTypeName: string;
