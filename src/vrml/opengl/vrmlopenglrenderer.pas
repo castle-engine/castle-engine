@@ -1208,6 +1208,7 @@ type
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
       const AFogDistanceScaling: Single;
+      const CacheIgnoresTransform: boolean;
       out AGLList: TGLuint): boolean;
 
     procedure ShapeNoTransform_IncReference_New(
@@ -1427,6 +1428,18 @@ type
 
     FCache: TVRMLOpenGLRendererContextCache;
     OwnsCache: boolean;
+
+    { Initialize VRML/X3D fog, based on fog node.
+      Looks at Attributes.UseFog and Attributes.ColorModulator*.
+
+      If ActuallyApply = @false then we only calculate the "out" parameters
+      (Enabled and such), not actually setting up the fog parameters
+      for OpenGL. }
+    procedure InitializeFog(Node: TNodeFog;
+      const DistanceScaling: Single; const ActuallyApply: boolean;
+      out Enabled, Volumetric: boolean;
+      out VolumetricDirection: TVector3Single;
+      out VolumetricVisibilityStart: Single);
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
     procedure DrawTriangle(const Tri: TTriangle3Single;
@@ -1654,6 +1667,11 @@ type
       CurrentViewpoint: TVRMLViewpointNode;
       IsLastViewer: boolean;
       const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
+
+    { Should CacheIgnoresTransform be passed to
+      ShapeNoTransform_IncReference_Existing. }
+    function CacheIgnoresTransform(
+      Node: TNodeFog; const DistanceScaling: Single): boolean;
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -2937,7 +2955,25 @@ function TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_Existing(
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
   const AFogDistanceScaling: Single;
+  const CacheIgnoresTransform: boolean;
   out AGLList: TGLuint): boolean;
+
+  { Compares two VRML/X3D states by
+      State1.EqualsNoTransform(State2)
+    or
+      State1.Equals(State2)
+    Which one is used, depends on whether two shapes with different
+    transformation can be considered equal. This depends on what
+    we do TVRMLMeshRenderer.DoBeforeGLVertex
+    (volumetric fog, OnBeforeGLVertex change vertex based on global
+    coords). }
+  function StatesEqual(State1, State2: TVRMLGraphTraverseState): boolean;
+  begin
+    if CacheIgnoresTransform then
+      Result := State1.EqualsNoTransform(State2) else
+      Result := State1.Equals(State2);
+  end;
+
 var
   I: Integer;
   SSCache: PShapeCache;
@@ -2947,7 +2983,7 @@ begin
     SSCache := ShapeNoTransformCaches.Pointers[I];
     if (SSCache^.Attributes.Equals(AAttributes)) and
        (SSCache^.GeometryNode = AGeometryNode) and
-       (SSCache^.State.EqualsNoTransform(AState)) and
+       StatesEqual(SSCache^.State, AState) and
        FogParametersEqual(
          SSCache^.FogNode, SSCache^.FogDistanceScaling,
                  AFogNode,         AFogDistanceScaling) then
@@ -3883,81 +3919,114 @@ begin
     glTexCoordv(TexCoord);
 end;
 
-procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
-  const FogDistanceScaling: Single);
+procedure TVRMLOpenGLRenderer.InitializeFog(Node: TNodeFog;
+  const DistanceScaling: Single; const ActuallyApply: boolean;
+  out Enabled, Volumetric: boolean;
+  out VolumetricDirection: TVector3Single;
+  out VolumetricVisibilityStart: Single);
 
-  procedure SetupFog(FogNode: TNodeFog);
-  var
-    FogType: Integer;
-    FogVisibilityRangeScaled: Single;
-  const FogDensityFactor = 3.0;
+  { Simple wrappers over GL commands, that look at ActuallyApply. }
+  procedure DoGLFogf(pname: TGLEnum; param: TGLfloat);
   begin
-   FogVolumetric := false;
-   FogEnabled := false;
-   if not Attributes.UseFog then Exit;
+    if ActuallyApply then glFogf(pname, param);
+  end;
 
-   if (FogNode = nil) or (FogNode.FdVisibilityRange.Value = 0.0) then
-    begin glDisable(GL_FOG); Exit end;
+  procedure DoGLFogi(pname: TGLEnum; param: TGLint);
+  begin
+    if ActuallyApply then glFogi(pname, param);
+  end;
 
-   { calculate FogType, check if it's >= 0 }
-   FogType := ArrayPosStr(FogNode.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
-   if FogType = -1 then
-   begin
-     VRMLWarning(vwSerious, 'Unknown fog type "' + FogNode.FdFogType.Value + '"');
-     SetupFog(FogNode.Alternative);
-     Exit;
-   end;
+  procedure DoGLEnable(cap: TGLenum);
+  begin
+    if ActuallyApply then glEnable(cap);
+  end;
 
-   if FogNode.FdVolumetric.Value and (not GL_EXT_fog_coord) then
-   begin
-     { Earlier I tried in such cases to just do a normal fog
-       that looks "similar". But it turns out to be impossible
-       to automatically decide what non-volumetric fog setting (if any) will
-       look similar to requested volumetric fog.
-       So right now I just resort to "alternative" field. }
-     SetupFog(FogNode.Alternative);
-     Exit;
-   end;
+  procedure DoGLDisable(cap: TGLenum);
+  begin
+    if ActuallyApply then glDisable(cap);
+  end;
 
-   FogEnabled := true;
+  procedure DoGLFogv(pname: TGLEnum; const V: TVector4Single);
+  begin
+    if ActuallyApply then glFogv(pname, V);
+  end;
 
-   FogVisibilityRangeScaled :=
-     FogNode.FdVisibilityRange.Value * FogDistanceScaling;
+var
+  FogType: Integer;
+  VisibilityRangeScaled: Single;
+const FogDensityFactor = 3.0;
+begin
+  Volumetric := false;
+  Enabled := false;
+  if not Attributes.UseFog then Exit;
 
-   FogVolumetric := FogNode.FdVolumetric.Value and GL_EXT_fog_coord;
+  if (Node = nil) or (Node.FdVisibilityRange.Value = 0.0) then
+   begin DoGLDisable(GL_FOG); Exit end;
 
-   if FogVolumetric then
-   begin
-     FogVolumetricVisibilityStart :=
-       FogNode.FdVolumetricVisibilityStart.Value * FogDistanceScaling;
-     FogVolumetricDirection :=
-       FogNode.FdVolumetricDirection.Value;
-     glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
-   end else
-   begin
-     { If not FogVolumetric but still GL_EXT_fog_coord, we make sure
-       that we're *not* using FogCoord below. }
-     if GL_EXT_fog_coord then
-       glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
-   end;
+  { calculate FogType, check if it's >= 0 }
+  FogType := ArrayPosStr(Node.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
+  if FogType = -1 then
+  begin
+    VRMLWarning(vwSerious, 'Unknown fog type "' + Node.FdFogType.Value + '"');
+    InitializeFog(Node.Alternative,  DistanceScaling, ActuallyApply,
+      Enabled, Volumetric,
+      VolumetricDirection, VolumetricVisibilityStart);
+    Exit;
+  end;
 
-   glEnable(GL_FOG);
-   glFogv(GL_FOG_COLOR,
-     Vector4Single(Attributes.ColorModulated(FogNode.FdColor.Value), 1.0));
-   case FogType of
-    0: begin
-        glFogi(GL_FOG_MODE, GL_LINEAR);
-        glFogf(GL_FOG_START, 0);
-        glFogf(GL_FOG_END, FogVisibilityRangeScaled);
-       end;
-    1: begin
-        glFogi(GL_FOG_MODE, GL_EXP);
+  if Node.FdVolumetric.Value and (not GL_EXT_fog_coord) then
+  begin
+    { Earlier I tried in such cases to just do a normal fog
+      that looks "similar". But it turns out to be impossible
+      to automatically decide what non-volumetric fog setting (if any) will
+      look similar to requested volumetric fog.
+      So right now I just resort to "alternative" field. }
+    InitializeFog(Node.Alternative,  DistanceScaling, ActuallyApply,
+      Enabled, Volumetric,
+      VolumetricDirection, VolumetricVisibilityStart);
+    Exit;
+  end;
+
+  Enabled := true;
+
+  VisibilityRangeScaled := Node.FdVisibilityRange.Value * DistanceScaling;
+
+  Volumetric := Node.FdVolumetric.Value and GL_EXT_fog_coord;
+
+  if Volumetric then
+  begin
+    VolumetricVisibilityStart :=
+      Node.FdVolumetricVisibilityStart.Value * DistanceScaling;
+    VolumetricDirection := Node.FdVolumetricDirection.Value;
+    DoGLFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
+  end else
+  begin
+    { If not Volumetric but still GL_EXT_fog_coord, we make sure
+      that we're *not* using FogCoord below. }
+    if GL_EXT_fog_coord then
+      DoGLFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+  end;
+
+  DoGLEnable(GL_FOG);
+  DoGLFogv(GL_FOG_COLOR,
+    Vector4Single(Attributes.ColorModulated(Node.FdColor.Value), 1.0));
+  case FogType of
+    0:begin
+        DoGLFogi(GL_FOG_MODE, GL_LINEAR);
+        DoGLFogf(GL_FOG_START, 0);
+        DoGLFogf(GL_FOG_END, VisibilityRangeScaled);
+      end;
+    1:begin
+        DoGLFogi(GL_FOG_MODE, GL_EXP);
         { patrz VRMLNotes.txt po komentarz dlaczego w ten sposob implementuje
           mgle exponential VRMLa w OpenGLu }
-        glFogf(GL_FOG_DENSITY, FogDensityFactor / FogVisibilityRangeScaled);
-       end;
-   end;
+        DoGLFogf(GL_FOG_DENSITY, FogDensityFactor / VisibilityRangeScaled);
+      end;
   end;
+end;
+
+procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
+  const FogDistanceScaling: Single);
 
   procedure DisabeAllTextureUnits;
   var
@@ -4002,77 +4071,79 @@ begin
     { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
     GL_ARB_texture_env_dot3;
 
- { Push attribs and matrices (by pushing attribs FIRST we save also current
-   matrix mode).
+  { Push attribs and matrices (by pushing attribs FIRST we save also current
+    matrix mode).
 
-   Note for BuggyPointSetAttrib: yes, this may cause bugs,
-   as glPointSize call "leaks" out. But there's nothing we can do about it,
-   we cannot use GL_POINT_BIT as it crashes Mesa (and produces "invalid
-   enumerant" error in case of debug compile). }
- if not GLVersion.BuggyPointSetAttrib then
-   glPushAttrib(GL_ALL_ATTRIB_BITS) else
-   glPushAttrib(GL_ALL_ATTRIB_BITS and (not GL_POINT_BIT));
- glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
+    Note for BuggyPointSetAttrib: yes, this may cause bugs,
+    as glPointSize call "leaks" out. But there's nothing we can do about it,
+    we cannot use GL_POINT_BIT as it crashes Mesa (and produces "invalid
+    enumerant" error in case of debug compile). }
+  if not GLVersion.BuggyPointSetAttrib then
+    glPushAttrib(GL_ALL_ATTRIB_BITS) else
+    glPushAttrib(GL_ALL_ATTRIB_BITS and (not GL_POINT_BIT));
+  glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
 
- { TODO: push/pop is not fully correctly done for multitexturing now:
-   - We should push/pop all texture units matrices.
-     Right now, we actually push only 0th texture unit matrix.
-   - Make sure that currently active texture unit is saved ?
-     I'm not sure, does some glPushAttrib param saves this ?
+  { TODO: push/pop is not fully correctly done for multitexturing now:
+    - We should push/pop all texture units matrices.
+      Right now, we actually push only 0th texture unit matrix.
+    - Make sure that currently active texture unit is saved ?
+      I'm not sure, does some glPushAttrib param saves this ?
 
-   Push/pop texture state saves environment state of all texture units, so at least
-   we got glTexEnv covered. (this says OpenGL manpage for glPushAttrib,
-   and it applies to both multitexturing by ARB extension and by standard GL).
- }
- DisabeAllTextureUnits;
- ActiveTexture(0);
+    Push/pop texture state saves environment state of all texture units, so at least
+    we got glTexEnv covered. (this says OpenGL manpage for glPushAttrib,
+    and it applies to both multitexturing by ARB extension and by standard GL).
+  }
+  DisabeAllTextureUnits;
+  ActiveTexture(0);
 
- {init our OpenGL state}
- glMatrixMode(GL_MODELVIEW);
+  {init our OpenGL state}
+  glMatrixMode(GL_MODELVIEW);
 
- if not Attributes.PureGeometry then
- begin
-   glDisable(GL_COLOR_MATERIAL);
-   if Attributes.ControlTextures then
-   begin
-     glDisable(GL_TEXTURE_GEN_S);
-     glDisable(GL_TEXTURE_GEN_T);
-     glDisable(GL_TEXTURE_GEN_Q);
-   end;
-   glEnable(GL_NORMALIZE);
-   glPointSize(Attributes.PointSize);
-   glEnable(GL_DEPTH_TEST);
+  if not Attributes.PureGeometry then
+  begin
+    glDisable(GL_COLOR_MATERIAL);
+    if Attributes.ControlTextures then
+    begin
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+      glDisable(GL_TEXTURE_GEN_Q);
+    end;
+    glEnable(GL_NORMALIZE);
+    glPointSize(Attributes.PointSize);
+    glEnable(GL_DEPTH_TEST);
 
-   if not GLVersion.BuggyLightModelTwoSide then
-     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
-   if Log then
-     WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
+    if not GLVersion.BuggyLightModelTwoSide then
+      glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
+    if Log then
+      WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
 
-   { While rendering Indexed_Faces_Or_Triangles we may temporarily
-     enable/disable GL_CULL_FACE and change glCullFace. We want to make
-     sure from what state we start, so we set if here.
-     Note that we *do not* set glFrontFace --- see comments at the beginning
-     of this unit to know why. }
-   glCullFace(GL_BACK);
-   glDisable(GL_CULL_FACE);
+    { While rendering Indexed_Faces_Or_Triangles we may temporarily
+      enable/disable GL_CULL_FACE and change glCullFace. We want to make
+      sure from what state we start, so we set if here.
+      Note that we *do not* set glFrontFace --- see comments at the beginning
+      of this unit to know why. }
+    glCullFace(GL_BACK);
+    glDisable(GL_CULL_FACE);
 
-   glDisable(GL_ALPHA_TEST);
-   {AlphaFunc uzywane tylko dla textures i tam taka wartosc jest dobra}
-   glAlphaFunc(GL_GEQUAL, 0.5);
+    glDisable(GL_ALPHA_TEST);
+    {AlphaFunc uzywane tylko dla textures i tam taka wartosc jest dobra}
+    glAlphaFunc(GL_GEQUAL, 0.5);
 
-   if Attributes.SmoothShading then
-    glShadeModel(GL_SMOOTH) else
-    glShadeModel(GL_FLAT);
+    if Attributes.SmoothShading then
+     glShadeModel(GL_SMOOTH) else
+     glShadeModel(GL_FLAT);
 
-   if Attributes.Lighting then
-     glEnable(GL_LIGHTING);
+    if Attributes.Lighting then
+      glEnable(GL_LIGHTING);
 
-   if Attributes.UseSceneLights then
-     for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
-       glDisable(GL_LIGHT0+i);
+    if Attributes.UseSceneLights then
+      for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
+        glDisable(GL_LIGHT0+i);
 
-   SetupFog(FogNode);
- end;
+    InitializeFog(FogNode, FogDistanceScaling, true,
+      FogEnabled, FogVolumetric,
+      FogVolumetricDirection, FogVolumetricVisibilityStart);
+  end;
 end;
 
 procedure TVRMLOpenGLRenderer.RenderEnd;
@@ -4898,6 +4969,19 @@ begin
     UpdateGeneratedShadowMap(TNodeGeneratedShadowMap(TextureNode)) else
   if TextureNode is TNodeRenderedTexture then
     UpdateRenderedTexture(TNodeRenderedTexture(TextureNode));
+end;
+
+function TVRMLOpenGLRenderer.CacheIgnoresTransform(
+  Node: TNodeFog; const DistanceScaling: Single): boolean;
+var
+  Enabled, Volumetric: boolean;
+  VolumetricDirection: TVector3Single;
+  VolumetricVisibilityStart: Single;
+begin
+  InitializeFog(Node, DistanceScaling, false, Enabled, Volumetric,
+    VolumetricDirection, VolumetricVisibilityStart);
+
+  Result := not (Assigned(Attributes.OnBeforeGLVertex) or Volumetric);
 end;
 
 end.

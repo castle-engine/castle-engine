@@ -2954,6 +2954,7 @@ begin
        Shape.OriginalGeometry,
        Shape.OriginalState,
        FogNode, FogDistanceScaling,
+       Renderer.CacheIgnoresTransform(FogNode, FogDistanceScaling),
        Shape.SSSX_DisplayList)) then
   begin
     Shape.SSSX_DisplayList := glGenListsCheck(1,
