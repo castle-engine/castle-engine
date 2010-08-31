@@ -789,8 +789,8 @@ type
     FOctreeDynamicCollisions: TVRMLShapeOctree;
     FOctreeVisibleTriangles: TVRMLTriangleOctree;
     FOctreeCollidableTriangles: TVRMLTriangleOctree;
-
     FSpatial: TVRMLSceneSpatialStructures;
+
     procedure SetSpatial(const Value: TVRMLSceneSpatialStructures);
   private
     FMainLightForShadowsExists: boolean;
@@ -1168,7 +1168,7 @@ type
 
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects.  }
-    property OctreeRendering: TVRMLShapeOctree read FOctreeRendering;
+    function OctreeRendering: TVRMLShapeOctree;
 
     { The dynamic octree containing all collidable items.
 
@@ -1195,7 +1195,7 @@ type
 
       TODO: Temporarily, this is updated simply by rebuilding.
       This is a work in progress. }
-    property OctreeDynamicCollisions: TVRMLShapeOctree read FOctreeDynamicCollisions;
+    function OctreeDynamicCollisions: TVRMLShapeOctree;
 
     { The octree containing all visible triangles.
       It's mainly useful for ray-tracers. When rendering using OpenGL,
@@ -1210,7 +1210,7 @@ type
 
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects.  }
-    property OctreeVisibleTriangles: TVRMLTriangleOctree read FOctreeVisibleTriangles;
+    function OctreeVisibleTriangles: TVRMLTriangleOctree;
 
     { The octree containing all collidable triangles.
       This is pretty much unused for now.
@@ -1233,7 +1233,7 @@ type
 
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.  }
-    property OctreeCollidableTriangles: TVRMLTriangleOctree read FOctreeCollidableTriangles;
+    function OctreeCollidableTriangles: TVRMLTriangleOctree;
 
     { Octree for collisions. This returns either OctreeCollidableTriangles
       or OctreeDynamicCollisions, whichever is available (or @nil if none).
@@ -3898,37 +3898,13 @@ begin
      (ScheduledGeometrySomeVisibleTransformChanged or
       ScheduledGeometryActiveShapesChanged or
       SomeLocalGeometryChanged) then
-  begin
-    { Remember to do FreeAndNil on octrees below.
-      Although we will recreate octrees right after rebuilding,
-      it's still good to nil them right after freeing.
-      Otherwise, when exception will raise from CreateXxxOctree,
-      Scene.OctreeXxx will be left as invalid pointer. }
-
     FreeAndNil(FOctreeRendering);
-    FOctreeRendering := CreateShapeOctree(
-      OverrideOctreeLimits(FShapeOctreeLimits, opRendering),
-      ShapeOctreeProgressTitle,
-      false);
-
-    if Log and LogChanges then
-      WritelnLog('VRML changes (octree)', 'OctreeRendering updated');
-  end;
 
   if (OctreeDynamicCollisions <> nil) and
      (ScheduledGeometrySomeCollidableTransformChanged or
       ScheduledGeometryActiveShapesChanged or
       SomeLocalGeometryChanged) then
-  begin
     FreeAndNil(FOctreeDynamicCollisions);
-    FOctreeDynamicCollisions := CreateShapeOctree(
-      OverrideOctreeLimits(FShapeOctreeLimits, opDynamicCollisions),
-      ShapeOctreeProgressTitle,
-      true);
-
-    if Log and LogChanges then
-      WritelnLog('VRML changes (octree)', 'OctreeDynamicCollisions updated');
-  end;
 
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self, SomeLocalGeometryChanged);
@@ -4133,16 +4109,7 @@ begin
     New := ssRendering in Value;
 
     if Old and not New then
-    begin
       FreeAndNil(FOctreeRendering);
-    end else
-    if New and not Old then
-    begin
-      FOctreeRendering := CreateShapeOctree(
-        OverrideOctreeLimits(FShapeOctreeLimits, opRendering),
-        ShapeOctreeProgressTitle,
-        false);
-    end;
 
     { Handle OctreeDynamicCollisions and Shapes[I].Spatial }
 
@@ -4156,11 +4123,6 @@ begin
     end else
     if New and not Old then
     begin
-      FOctreeDynamicCollisions := CreateShapeOctree(
-        OverrideOctreeLimits(FShapeOctreeLimits, opDynamicCollisions),
-        ShapeOctreeProgressTitle,
-        true);
-
       { SetShapeSpatial cannot be done by the way of doing CreateShapeOctree,
         since in CreateShapeOctree we iterate over OnlyActive shapes,
         but SetShapeSpatial must iterate over all shapes. }
@@ -4173,16 +4135,7 @@ begin
     New := ssVisibleTriangles in Value;
 
     if Old and not New then
-    begin
       FreeAndNil(FOctreeVisibleTriangles);
-    end else
-    if New and not Old then
-    begin
-      FOctreeVisibleTriangles := CreateTriangleOctree(
-        OverrideOctreeLimits(FTriangleOctreeLimits, opVisibleTriangles),
-        TriangleOctreeProgressTitle,
-        false);
-    end;
 
     { Handle OctreeCollidableTriangles }
 
@@ -4190,19 +4143,60 @@ begin
     New := ssCollidableTriangles in Value;
 
     if Old and not New then
-    begin
       FreeAndNil(FOctreeCollidableTriangles);
-    end else
-    if New and not Old then
-    begin
-      FOctreeCollidableTriangles := CreateTriangleOctree(
-        OverrideOctreeLimits(FTriangleOctreeLimits, opCollidableTriangles),
-        TriangleOctreeProgressTitle,
-        true);
-    end;
 
     FSpatial := Value;
   end;
+end;
+
+function TVRMLScene.OctreeRendering: TVRMLShapeOctree;
+begin
+  if (ssRendering in Spatial) and (FOctreeRendering = nil) then
+  begin
+    FOctreeRendering := CreateShapeOctree(
+      OverrideOctreeLimits(FShapeOctreeLimits, opRendering),
+      ShapeOctreeProgressTitle,
+      false);
+    if Log and LogChanges then
+      WritelnLog('VRML changes (octree)', 'OctreeRendering updated');
+  end;
+
+  Result := FOctreeRendering;
+end;
+
+function TVRMLScene.OctreeDynamicCollisions: TVRMLShapeOctree;
+begin
+  if (ssDynamicCollisions in Spatial) and (FOctreeDynamicCollisions = nil) then
+  begin
+    FOctreeDynamicCollisions := CreateShapeOctree(
+      OverrideOctreeLimits(FShapeOctreeLimits, opDynamicCollisions),
+      ShapeOctreeProgressTitle,
+      true);
+    if Log and LogChanges then
+      WritelnLog('VRML changes (octree)', 'OctreeDynamicCollisions updated');
+  end;
+
+  Result := FOctreeDynamicCollisions;
+end;
+
+function TVRMLScene.OctreeVisibleTriangles: TVRMLTriangleOctree;
+begin
+  if (ssVisibleTriangles in Spatial) and (FOctreeVisibleTriangles = nil) then
+    FOctreeVisibleTriangles := CreateTriangleOctree(
+      OverrideOctreeLimits(FTriangleOctreeLimits, opVisibleTriangles),
+      TriangleOctreeProgressTitle,
+      false);
+  Result := FOctreeVisibleTriangles;
+end;
+
+function TVRMLScene.OctreeCollidableTriangles: TVRMLTriangleOctree;
+begin
+  if (ssCollidableTriangles in Spatial) and (FOctreeCollidableTriangles = nil) then
+    FOctreeCollidableTriangles := CreateTriangleOctree(
+      OverrideOctreeLimits(FTriangleOctreeLimits, opCollidableTriangles),
+      TriangleOctreeProgressTitle,
+      true);
+  Result := FOctreeCollidableTriangles;
 end;
 
 function TVRMLScene.OctreeCollisions: TVRMLBaseTrianglesOctree;
