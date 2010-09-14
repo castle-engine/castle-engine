@@ -513,43 +513,34 @@ type
     (with the exception of rendering, which is delegated to descendants,
     like TVRMLGLScene for OpenGL).
 
-    VRML scene works with a graph of VRML nodes
-    rooted in RootNode. It also deconstructs this graph to a very simple tree
-    of @link(TVRMLShape) objects.
-    The basic idea is to have at the same time full hierarchical
-    view of the scene (in @link(RootNode)) and a simple view of the same scene
-    (in @link(Shapes) tree).
+    Provides a lot of useful functionality. Simple loading of the scene (@link(Load)
+    method), calculating various things (like @link(BoundingBox) method).
+
+    The @link(Shapes) tree provides a simple processed scene information,
+    alternative to traversing the complicated VRML/X3D nodes graph.
+    The basic idea is to have at the same time full VRML/X3D graph
+    of the scene (in @link(RootNode)) and a simple view of the same scene
+    (in @link(Shapes)).
 
     VRML scene also takes care of initiating and managing VRML events
     and routes mechanism (see ProcessEvents).
 
-    Note that when you use this class and you directly
-    change the scene within RootNode, you'll have to use our
-    @code(Changed*) methods to notify this class about changes.
-    Although whole @link(TVRMLNode) class works very nicely and you
-    can freely change any part of it, add, delete and move nodes around
-    and change their properties, this class has to be manually (for now)
-    notified about such changes. Basically you can just call @link(ChangedAll)
-    after changing anything inside @link(RootNode), but you should
-    also take a look at other @code(Changed*) methods defined here.
-
+    The actual VRML/X3D nodes graph is stored in the RootNode property.
+    Remember that if you directly change the fields/nodes within the RootNode,
+    this scene object must be notified about this.
+    The simplest way to do this is to use only TVRMLField.Send to change
+    the fields' values. Or you can call TVRMLField.Changed after each change.
+    Or you will have to call ChangedField or ChangedAll method
+    of this class.
     If the scene is changed by VRML events, all changes are automagically
-    acted upon, so you don't have to do anything. In other words,
-    this class takes care to automatically internally call appropriate @code(Changed*)
-    methods when events change field values and such.
+    acted upon, so you don't have to do anything.
 
-    This class provides many functionality.
-    For more-or-less static scenes, many things are cached and work very
-    quickly.
-    E.g. methods LocalBoundingBox, BoundingBox, VerticesCount, TrianglesCount
+    For more-or-less static scenes,
+    many things are cached and work very quickly.
+    E.g. methods BoundingBox, VerticesCount, TrianglesCount, @link(Shapes)
     cache their results so after the first call to @link(TrianglesCount)
     next calls to the same method will return instantly (assuming
-    that scene did not change much). And the @link(Shapes) tree
-    is the main trick for various processing of the scene, most importantly
-    it's the main trick to write a flexible OpenGL renderer of the VRML scene.
-
-    Also, VRML2ActiveLights are magically updated for all states in
-    @link(Shapes) tree. This is crucial for lights rendering in VRML >= 2.0. }
+    that scene did not change much). }
   TVRMLScene = class(TVRMLEventsEngine)
   private
     FOwnsRootNode: boolean;
@@ -2749,6 +2740,8 @@ end;
 
 procedure TVRMLScene.ChangedAll;
 
+  { VRML2ActiveLights are magically updated for all states in
+    @link(Shapes) tree. This is crucial for lights rendering in VRML >= 2.0. }
   procedure UpdateVRML2ActiveLights;
 
     procedure AddLightEverywhere(const L: TActiveLight);
