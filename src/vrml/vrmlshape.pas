@@ -994,7 +994,12 @@ begin
   { Optimization: nothing needs to be done here when only chClipPlane }
   if Changes = [chClipPlane] then Exit;
 
-  FreeProxy;
+  { When Proxy needs to be recalculated.
+    Include chVisibleVRML1State, since even MaterialBinding may change VRML 1.0
+    proxies. }
+  if Changes * [chCoordinate, chVisibleVRML1State, chGeometryVRML1State,
+    chTextureCoordinate, chGeometry] <> [] then
+    FreeProxy;
 
   { When bounding volumes in global coordinates changed.
     Probably only chTransform is really needed here
@@ -1013,9 +1018,6 @@ begin
 
   if not InactiveOnly then
     TVRMLScene(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-
-  { chVisibleVRML1State is not used at all in TVRMLScene or TVRMLShape.
-    It's only used by TVRMLGLShape to invalidate display list. }
 end;
 
 procedure TVRMLShape.ValidateBoundingSphere;
