@@ -991,8 +991,9 @@ end;
 procedure TVRMLShape.Changed(Field: TVRMLField; const InactiveOnly: boolean;
   const Changes: TVRMLChanges);
 begin
-  { Optimization: nothing needs to be done here when only chClipPlane }
-  if Changes = [chClipPlane] then Exit;
+  { Remember to code everything here to act only when some stuff
+    is included inside Changed value. For example, when
+    Changes = [chClipPlane], there's no need to do anything here. }
 
   { When Proxy needs to be recalculated.
     Include chVisibleVRML1State, since even MaterialBinding may change VRML 1.0
