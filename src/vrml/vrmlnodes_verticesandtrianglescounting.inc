@@ -31,7 +31,7 @@ begin
   begin
     if ProxyGeometry <> nil then
       Result := ProxyGeometry.VerticesCount(ProxyState, OverTriangulate, nil, nil) else
-      raise EInternalError.Create('TVRMLGeometryNode.VerticesCount not overridden, and node not coordinate-based and without a Proxy');
+      raise EInternalError.CreateFmt('%s: TVRMLGeometryNode.VerticesCount not overridden, and node not coordinate-based and without a Proxy', [ClassName]);
   end;
 end;
 
@@ -41,7 +41,7 @@ function TVRMLGeometryNode.TrianglesCount(
 begin
   if ProxyGeometry <> nil then
     Result := ProxyGeometry.TrianglesCount(ProxyState, OverTriangulate, nil, nil) else
-    raise EInternalError.Create('TVRMLGeometryNode.TrianglesCount not overridden, and node without a Proxy');
+    raise EInternalError.CreateFmt('%s: TVRMLGeometryNode.TrianglesCount not overridden, and node without a Proxy', [ClassName]);
 end;
 
 { just a shortcuts for names often used in this file }

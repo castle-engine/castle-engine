@@ -86,22 +86,19 @@ type
        like @code(Message: string) would be a waste of time and memory. *)
   TCodeBreaker = class(TObject);
 
-  { This exception should signal some internal error in program,
-    i.e. an error that should NEVER happen and means that I have
-    a bug somewhere.
+  { Internal error in the program. Something that definitely should not
+    happen and indicates a bug that should be reported.
 
-    Obviously this bug should never be catched and silently ignored --
-    it must be shown to user, and usually it should make program halt
-    (since state of my program is undefined if something like this
-    happened, and there exists no "recovery" algorithm).
+    This exception must be shown to user (never silently ignored),
+    and usually the safest thing to do is to close the program at this point.
+    (As the state is undefined now.)
 
-    Parameter S for constructor of this class should contain
-    only some error description, like
-    'Unexpected value for variable foo in function bar'.
-    We shall construct some more more descriptive Message here,
-    like 'Internal error occured, submit this to author : ' + S. }
+    We will add to your error message (passed to the constructor) some
+    instructive message, like @code('Internal error occured, please
+    submit this to the author : '). }
   EInternalError = class(Exception)
     constructor Create(const s: string);
+    constructor CreateFmt(const s: string; const Args: array of const);
   end;
 
   { See @link(Check) }
@@ -213,14 +210,18 @@ function SVrmlEngineProgramHelpSuffix(const DisplayProgramName: string;
 
 constructor EInternalError.Create(const s: string);
 begin
- inherited Create('Internal Error occured. '+
-   'This means that happened something that should not ever happen. '+
-   'So there is a bug in program''s code or in something that this code uses '+
-   '(shared library, external program ?). '+
+  inherited Create('Internal error: something that should not ever happen... happened. ' +
+    'This indicates a bug in the program''s code (or something related, ' +
+    'like a shared library, that should be workarounded from the program then). ' +
 {   'Don''t panic - if you see this note then at least my code noticed the '+
-   'bug in some way, so it may be something simple and I can probably fix it '+
-   '(or it''s external bug and I am not responsible for this...). '+}
-   'Please send me a bug report. Error-specific info : '+s);
+    'bug in some way, so it may be something simple and I can probably fix it '+
+    '(or it''s external bug and I am not responsible for this...). '+}
+    'We definitely want you to report this as a bug! Please send this error-specific info: ' + S);
+end;
+
+constructor EInternalError.CreateFmt(const s: string; const Args: array of const);
+begin
+  Create(Format(S, Args));
 end;
 
 procedure Check(TrueValue: boolean; const errMessage: string);
