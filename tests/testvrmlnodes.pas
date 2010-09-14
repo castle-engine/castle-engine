@@ -611,7 +611,8 @@ const
     'Appearance=appearance' + NL +
     'Arc2D=geometry' + NL +
     'ArcClose2D=geometry' + NL +
-    'AudioClip=children' + NL +
+    { There's a bug about this in X3D spec, see Appearance node implementation comments. }
+    'AudioClip=source' + NL +
     'Background=children' + NL +
     'BallJoint=joints' + NL +
     'Billboard=children' + NL +
@@ -1033,7 +1034,8 @@ begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
-            Assert(chVisibleVRML1State in N.Fields[J].Changes);
+            Assert((chVisibleVRML1State in N.Fields[J].Changes) or
+                   (chGeometryVRML1State in N.Fields[J].Changes));
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -1045,6 +1047,7 @@ begin
           if N.Fields[J].Name <> 'alphaChannel' then
           try
             Assert(not (chVisibleVRML1State in N.Fields[J].Changes));
+            Assert(not (chGeometryVRML1State in N.Fields[J].Changes));
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
