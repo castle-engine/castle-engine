@@ -16,6 +16,13 @@
 { implementacja metod VerticesCount i TrianglesCount dla specyficznych
   potomkow TVRMLGeometryNode }
 
+function TVRMLGeometryNode.CallProxyVerticesCount(
+  OverTriangulate: boolean;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+begin
+  Result := ProxyGeometry.VerticesCount(ProxyState, OverTriangulate, nil, nil);
+end;
+
 function TVRMLGeometryNode.VerticesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
@@ -30,9 +37,16 @@ begin
   end else
   begin
     if ProxyGeometry <> nil then
-      Result := ProxyGeometry.VerticesCount(ProxyState, OverTriangulate, nil, nil) else
+      Result := CallProxyVerticesCount(OverTriangulate, ProxyGeometry, ProxyState) else
       raise EInternalError.CreateFmt('%s: TVRMLGeometryNode.VerticesCount not overridden, and node not coordinate-based and without a Proxy', [ClassName]);
   end;
+end;
+
+function TVRMLGeometryNode.CallProxyTrianglesCount(
+  OverTriangulate: boolean;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+begin
+  Result := ProxyGeometry.TrianglesCount(ProxyState, OverTriangulate, nil, nil);
 end;
 
 function TVRMLGeometryNode.TrianglesCount(
@@ -40,7 +54,7 @@ function TVRMLGeometryNode.TrianglesCount(
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   if ProxyGeometry <> nil then
-    Result := ProxyGeometry.TrianglesCount(ProxyState, OverTriangulate, nil, nil) else
+    Result := CallProxyTrianglesCount(OverTriangulate, ProxyGeometry, ProxyState) else
     raise EInternalError.CreateFmt('%s: TVRMLGeometryNode.TrianglesCount not overridden, and node without a Proxy', [ClassName]);
 end;
 

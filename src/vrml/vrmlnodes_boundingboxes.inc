@@ -125,6 +125,12 @@ end;
 
 { TVRMLGeometryNode --------------------------------------------------------- }
 
+function TVRMLGeometryNode.CallProxyBoundingBox(
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  Result := ProxyGeometry.BoundingBox(ProxyState, nil, nil);
+end;
+
 function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
@@ -142,9 +148,15 @@ begin
   end else
   begin
     if ProxyGeometry <> nil then
-      Result := ProxyGeometry.BoundingBox(ProxyState, nil, nil) else
+      Result := CallProxyBoundingBox(ProxyGeometry, ProxyState) else
       Result := Box3DTransform(LocalBoundingBox(State, ProxyGeometry, ProxyState), State.Transform);
   end;
+end;
+
+function TVRMLGeometryNode.CallProxyLocalBoundingBox(
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  Result := ProxyGeometry.LocalBoundingBox(ProxyState, nil, nil);
 end;
 
 function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -165,7 +177,7 @@ begin
   end else
   begin
     if ProxyGeometry <> nil then
-      Result := ProxyGeometry.LocalBoundingBox(ProxyState, nil, nil) else
+      Result := CallProxyLocalBoundingBox(ProxyGeometry, ProxyState) else
     begin
       NewState := TVRMLGraphTraverseState.CreateCopy(State);
       try

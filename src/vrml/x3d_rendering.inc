@@ -59,6 +59,19 @@
     from this, and also X3D hierarchy is preserved (X3DGeometryNode
     must descend from X3DNode). }
   TVRMLGeometryNode = class(TNodeX3DNode)
+  private
+    { Workaround http://bugs.freepascal.org/view.php?id=17402
+      by these methods. }
+    function CallProxyLocalBoundingBox(
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+    function CallProxyBoundingBox(
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+    function CallProxyTrianglesCount(
+      OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+    function CallProxyVerticesCount(
+      OverTriangulate: boolean;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
   public
     { Constructor.
 
