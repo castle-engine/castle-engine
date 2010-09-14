@@ -996,6 +996,14 @@ begin
 
   FreeProxy;
 
+  { When bounding volumes in global coordinates changed.
+    Probably only chTransform is really needed here
+    (testcase: upwind_turbine.x3d), as other flags already cause other changes
+    that invalidate global bboxes anyway. }
+  if Changes * [chTransform, chCoordinate, chGeometry, chGeometryVRML1State,
+    chEverything] <> [] then
+    Validities := Validities - [svBBox, svBoundingSphere];
+
   if chCoordinate in Changes then
     { Coordinate changes actual geometry. }
     LocalGeometryChanged(false, true);
