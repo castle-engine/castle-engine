@@ -1511,11 +1511,15 @@ type
     StateNode: TVRML1StateNode;
     TraverseIntoChildren: boolean;
     ParentInfoForChildren: TTraversingInfo;
+    CallUserFunction: boolean;
   begin
     Child.BeforeTraverse(StateStack);
     try
       TraverseIntoChildren := true;
-      if Child is NodeClass then
+      { Minimize number of "is" calls, since they eat a lot of time
+        for Transform VRML >= 2 events animation. }
+      CallUserFunction := Child is NodeClass;
+      if CallUserFunction then
         TraversingFunc(Child, StateStack, ParentInfo, TraverseIntoChildren);
 
       Child.MiddleTraverse(StateStack);
@@ -1534,8 +1538,7 @@ type
 
     finally Child.AfterTraverse(StateStack) end;
 
-    if Assigned(TraversingAfterFunc) and
-       (Child is NodeClass) then
+    if Assigned(TraversingAfterFunc) and CallUserFunction then
       TraversingAfterFunc(Child, StateStack, ParentInfo);
 
     if Child.VRML1StateNode(StateNode) then
