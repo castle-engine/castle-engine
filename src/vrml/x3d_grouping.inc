@@ -291,7 +291,6 @@
 {$ifdef read_implementation}
 type
   TGeneralGroupingEnumerator = class
-    Lights: TDynActiveLightArray;
     State: TVRMLGraphTraverseState;
     WasPointingDeviceSensor: boolean;
     procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
