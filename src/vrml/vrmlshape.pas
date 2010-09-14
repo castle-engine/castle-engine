@@ -954,6 +954,18 @@ end;
 
 procedure TVRMLShape.FreeProxy;
 begin
+  if Log and TVRMLScene(ParentScene).LogChanges and
+    { OriginalGeometry should always be <> nil, but just in case
+      (e.g. running from destructor, or with bad state) check. }
+    (OriginalGeometry <> nil) and
+    (
+    ( (FGeometry[false] <> OriginalGeometry) and (FGeometry[false] <> nil) ) or
+    ( (FGeometry[true ] <> OriginalGeometry) and (FGeometry[true ] <> nil) ) or
+    ( (FState[false] <> OriginalState) and (FState[false] <> nil) ) or
+    ( (FState[true ] <> OriginalState) and (FState[true ] <> nil) )
+    ) then
+    WritelnLog('VRML changes', 'Releasing the Proxy geometry of ' + OriginalGeometry.ClassName);
+
   if FGeometry[false] <> OriginalGeometry then
   begin
     if FGeometry[true] = FGeometry[false] then
