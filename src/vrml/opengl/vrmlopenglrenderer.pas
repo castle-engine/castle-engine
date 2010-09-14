@@ -1208,7 +1208,7 @@ type
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
       const AFogDistanceScaling: Single;
-      const CacheIgnoresTransform: boolean;
+      CacheIgnoresTransform: boolean;
       out AGLList: TGLuint): boolean;
 
     procedure ShapeNoTransform_IncReference_New(
@@ -2955,7 +2955,7 @@ function TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_Existing(
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
   const AFogDistanceScaling: Single;
-  const CacheIgnoresTransform: boolean;
+  CacheIgnoresTransform: boolean;
   out AGLList: TGLuint): boolean;
 
   { Compares two VRML/X3D states by
@@ -2978,6 +2978,15 @@ var
   I: Integer;
   SSCache: PShapeCache;
 begin
+  { Force CacheIgnoresTransform to be false if our shape uses shaders.
+    Shaders may depend on coordinates in eye space, which obviously
+    may be different for shapes that differ even only on transform. }
+  if CacheIgnoresTransform and
+     (AState.ShapeNode <> nil) and
+     (AState.ShapeNode.Appearance <> nil) and
+     (AState.ShapeNode.Appearance.FdShaders.Count <> 0) then
+    CacheIgnoresTransform := false;
+
   for I := 0 to ShapeNoTransformCaches.High do
   begin
     SSCache := ShapeNoTransformCaches.Pointers[I];
@@ -4981,7 +4990,15 @@ begin
   InitializeFog(Node, DistanceScaling, false, Enabled, Volumetric,
     VolumetricDirection, VolumetricVisibilityStart);
 
-  Result := not (Assigned(Attributes.OnBeforeGLVertex) or Volumetric);
+  Result := not (
+    { If we use any features that (may) render shape differently
+      if shape's transform (or other stuff handled in RenderShapeBegin/End),
+      then Result must be false. }
+    Assigned(Attributes.OnBeforeGLVertex) or
+    Assigned(Attributes.OnVertexColor) or
+    Assigned(Attributes.OnRadianceTransfer) or
+    (BumpMappingMethod <> bmNone) or
+    Volumetric);
 end;
 
 end.
