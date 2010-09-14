@@ -70,7 +70,7 @@ const
 
   DefaultWireframeWidth = 3.0;
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
-  DefaultOptimization = roSeparateShapes;
+  DefaultOptimization = roSeparateShapesNoTransform;
 
 type
   TVRMLGLShape = class;
