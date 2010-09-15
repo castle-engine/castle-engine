@@ -1949,9 +1949,13 @@ function TryMatrixInverse(const M: TMatrix4Double; out MInverse: TMatrix4Double)
 { @groupEnd }
 {$endif HAS_MATRIX_UNIT}
 
-{ pomnoz wektor przez transpozycje tego samego wektora,
-  czyli np. dla wektorow 3-elementowych otrzymamy macierz 3x3. }
-function VectorMultTransposedSameVector(const v: TVector3Single): TMatrix3Single;
+{ Multiply vector by a transposition of the same vector.
+  For 3d vectors, this results in a 3x3 matrix.
+  To put this inside a 4x4 matrix,
+  we fill the last row and column just like for an identity matrix.
+
+  This is useful for calculating rotation matrix. }
+function VectorMultTransposedSameVector(const v: TVector3Single): TMatrix4Single;
 
 const
   { Special value that you can pass to FrustumProjMatrix and
@@ -3367,21 +3371,34 @@ end;
 
 { math with matrices ---------------------------------------------------------- }
 
-function VectorMultTransposedSameVector(const v: TVector3Single): TMatrix3Single;
+function VectorMultTransposedSameVector(const v: TVector3Single): TMatrix4Single;
 begin
- (*
- prosto:
- for i := 0 to 2 do { i = kolumna, j = wiersz }
-  for j := 0 to 2 do
-   result[i, j] := v[i]*v[j];
- Sprobujmy zoptymalizowac : *)
- result[0, 0] := sqr(v[0]);
- result[1, 1] := sqr(v[1]);
- result[2, 2] := sqr(v[2]);
+  (* Naive version:
 
- result[0, 1] := v[0]*v[1]; result[1, 0] := result[0, 1];
- result[0, 2] := v[0]*v[2]; result[2, 0] := result[0, 2];
- result[1, 2] := v[1]*v[2]; result[2, 1] := result[1, 2];
+  for i := 0 to 2 do { i = column, j = row }
+    for j := 0 to 2 do
+      result[i, j] := v[i]*v[j];
+
+  Expanded and optimized version below. *)
+
+  result[0, 0] := sqr(v[0]);
+  result[1, 1] := sqr(v[1]);
+  result[2, 2] := sqr(v[2]);
+
+  result[0, 1] := v[0]*v[1]; result[1, 0] := result[0, 1];
+  result[0, 2] := v[0]*v[2]; result[2, 0] := result[0, 2];
+  result[1, 2] := v[1]*v[2]; result[2, 1] := result[1, 2];
+
+  { Fill the last row and column like an identity matrix }
+  Result[3, 0] := 0;
+  Result[3, 1] := 0;
+  Result[3, 2] := 0;
+
+  Result[0, 3] := 0;
+  Result[1, 3] := 0;
+  Result[2, 3] := 0;
+
+  Result[3, 3] := 1;
 end;
 
 function ScalingMatrix(const ScaleFactor: TVector3Single): TMatrix4Single;
@@ -3418,27 +3435,47 @@ function RotationMatrixRad(const AngleRad: Single;
   const Axis: TVector3Single): TMatrix4Single;
 var
   NormAxis: TVector3Single;
-  m1, m2, m3: TMatrix3Single;
-  i, j: integer;
   AngleSin, AngleCos: Float;
+  S, C: Single;
 begin
- NormAxis := Normalized(Axis);
+  NormAxis := Normalized(Axis);
 
- SinCos(AngleRad, AngleSin, AngleCos);
+  SinCos(AngleRad, AngleSin, AngleCos);
+  { convert Float to Single once }
+  S := AngleSin;
+  C := AngleCos;
 
- m1 := VectorMultTransposedSameVector(NormAxis);
- m2 := MatrixMultScalar(MatrixSubtract(IdentityMatrix3Single, m1), AngleCos);
+  Result := VectorMultTransposedSameVector(NormAxis);
 
- m3[0, 0] := 0;            m3[1, 0] := -NormAxis[2]; m3[2, 0] := NormAxis[1];
- m3[0, 1] := NormAxis[2];  m3[1, 1] := 0;            m3[2, 1] := -NormAxis[0];
- m3[0, 2] := -NormAxis[1]; m3[1, 2] := NormAxis[0];  m3[2, 2] := 0;
- m3 := MatrixMultScalar(m3, AngleSin);
+  { We do not touch the last column and row of Result in the following code,
+    treating Result like a 3x3 matrix. The last column and row are already Ok. }
 
- MatrixAddTo1st(m1, m2);
- MatrixAddTo1st(m1, m3);
+  { Expanded Result := Result + (IdentityMatrix3Single - Result) * AngleCos; }
+  Result[0, 0] += (1 - Result[0, 0]) * C;
+  Result[1, 0] +=    - Result[1, 0]  * C;
+  Result[2, 0] +=    - Result[2, 0]  * C;
 
- result := IdentityMatrix4Single;
- for i := 0 to 2 do for j := 0 to 2 do result[i, j] := m1[i, j];
+  Result[0, 1] +=    - Result[0, 1]  * C;
+  Result[1, 1] += (1 - Result[1, 1]) * C;
+  Result[2, 1] +=    - Result[2, 1]  * C;
+
+  Result[0, 2] +=    - Result[0, 2]  * C;
+  Result[1, 2] +=    - Result[1, 2]  * C;
+  Result[2, 2] += (1 - Result[2, 2]) * C;
+
+  NormAxis[0] *= S;
+  NormAxis[1] *= S;
+  NormAxis[2] *= S;
+
+  { Add M3 (from OpenGL matrix equations) }
+  Result[1, 0] += -NormAxis[2];
+  Result[2, 0] +=  NormAxis[1];
+
+  Result[0, 1] +=  NormAxis[2];
+  Result[2, 1] += -NormAxis[0];
+
+  Result[0, 2] += -NormAxis[1];
+  Result[1, 2] +=  NormAxis[0];
 end;
 
 procedure RotationMatricesRad(const AngleRad: Single;
@@ -3446,35 +3483,53 @@ procedure RotationMatricesRad(const AngleRad: Single;
   out Matrix, InvertedMatrix: TMatrix4Single);
 var
   NormAxis: TVector3Single;
-  m1, m2, m3: TMatrix3Single;
-  i, j: integer;
+  V: Single;
   AngleSin, AngleCos: Float;
+  S, C: Single;
 begin
- NormAxis := Normalized(Axis);
+  NormAxis := Normalized(Axis);
 
- SinCos(AngleRad, AngleSin, AngleCos);
+  SinCos(AngleRad, AngleSin, AngleCos);
+  { convert Float to Single once }
+  S := AngleSin;
+  C := AngleCos;
 
- m1 := VectorMultTransposedSameVector(NormAxis);
- m2 := MatrixMultScalar(MatrixSubtract(IdentityMatrix3Single, m1), AngleCos);
+  Matrix := VectorMultTransposedSameVector(NormAxis);
 
- m3[0, 0] := 0;            m3[1, 0] := -NormAxis[2]; m3[2, 0] := NormAxis[1];
- m3[0, 1] := NormAxis[2];  m3[1, 1] := 0;            m3[2, 1] := -NormAxis[0];
- m3[0, 2] := -NormAxis[1]; m3[1, 2] := NormAxis[0];  m3[2, 2] := 0;
- m3 := MatrixMultScalar(m3, AngleSin);
+  { We do not touch the last column and row of Matrix in the following code,
+    treating Matrix like a 3x3 matrix. The last column and row are already Ok. }
 
- MatrixAddTo1st(m1, m2);
+  { Expanded Matrix := Matrix + (IdentityMatrix3Single - Matrix) * AngleCos; }
+  Matrix[0, 0] += (1 - Matrix[0, 0]) * C;
+  Matrix[1, 0] +=    - Matrix[1, 0]  * C;
+  Matrix[2, 0] +=    - Matrix[2, 0]  * C;
 
- Matrix := IdentityMatrix4Single;
- InvertedMatrix := IdentityMatrix4Single;
+  Matrix[0, 1] +=    - Matrix[0, 1]  * C;
+  Matrix[1, 1] += (1 - Matrix[1, 1]) * C;
+  Matrix[2, 1] +=    - Matrix[2, 1]  * C;
 
- for i := 0 to 2 do
-   for j := 0 to 2 do
-   begin
-     Matrix[i, j] := m1[i, j] + m3[i, j];
-     { The only thing that changes for InvertedMatrix is that AngleSin is
-       negated, so you should subtract m3 calculated above. }
-     InvertedMatrix[i, j] := m1[i, j] - m3[i, j];
-   end;
+  Matrix[0, 2] +=    - Matrix[0, 2]  * C;
+  Matrix[1, 2] +=    - Matrix[1, 2]  * C;
+  Matrix[2, 2] += (1 - Matrix[2, 2]) * C;
+
+  { Up to this point, calculated Matrix is also good for InvertedMatrix }
+  InvertedMatrix := Matrix;
+
+  NormAxis[0] *= S;
+  NormAxis[1] *= S;
+  NormAxis[2] *= S;
+
+  { Now add M3 to Matrix, and subtract M3 from InvertedMatrix.
+    That's because for the inverted rotation, AngleSin is negated,
+    so the M3 should be subtracted. }
+  V := -NormAxis[2]; Matrix[1, 0] += V; InvertedMatrix[1, 0] -= V;
+  V :=  NormAxis[1]; Matrix[2, 0] += V; InvertedMatrix[2, 0] -= V;
+
+  V :=  NormAxis[2]; Matrix[0, 1] += V; InvertedMatrix[0, 1] -= V;
+  V := -NormAxis[0]; Matrix[2, 1] += V; InvertedMatrix[2, 1] -= V;
+
+  V := -NormAxis[1]; Matrix[0, 2] += V; InvertedMatrix[0, 2] -= V;
+  V :=  NormAxis[0]; Matrix[1, 2] += V; InvertedMatrix[1, 2] -= V;
 end;
 
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3Single): TMatrix4Single;
