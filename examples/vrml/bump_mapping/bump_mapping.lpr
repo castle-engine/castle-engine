@@ -60,7 +60,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   { VRML-related units: }
   VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, BackgroundGL,
   VRMLOpenGLRenderer, VRMLRendererOptimization, KambiSceneManager,
-  RenderStateUnit, VRMLErrors;
+  RenderStateUnit, VRMLErrors, GLControls;
 
 const
   SceneBoundingBox: TBox3D =
@@ -986,6 +986,47 @@ begin
   glPopAttrib;
 end;
 
+{ TNextButton ---------------------------------------------------------------- }
+
+type
+  TNextButton = class(TKamGLButton)
+    constructor Create(AOwner: TComponent); override;
+    procedure DoClick; override;
+  end;
+
+var
+  NextButton: TNextButton;
+
+constructor TNextButton.Create(AOwner: TComponent);
+begin
+  inherited;
+  Caption := 'Next bump mapping method';
+end;
+
+procedure TNextButton.DoClick;
+begin
+  inherited;
+
+  if Method = bmVRML then
+  begin
+    SceneManager.Items.Remove(Scene);
+    SceneManager.MainScene := nil;
+  end;
+
+  if Method = High(Method) then
+    Method := Low(Method) else
+    Method := Succ(Method);
+  if Method = bmVRML then
+    PrepareForVRMLScene;
+
+  { if, and only if, Method = bmVRML, then SceneManager contains our Scene. }
+  if Method = bmVRML then
+  begin
+    SceneManager.Items.Add(Scene);
+    SceneManager.MainScene := Scene;
+  end;
+end;
+
 { glw callbacks -------------------------------------------------------------- }
 
 var
@@ -1093,6 +1134,12 @@ begin
   FreeAndNil(Scene);
 end;
 
+procedure Resize(Window: TGLWindow);
+begin
+  NextButton.Left := Window.Width - NextButton.Width - 10;
+  NextButton.Bottom := Window.Height - NextButton.Height - 10;
+end;
+
 procedure Idle(glwin: TGLWindow);
 var
   LightPositionChanged: boolean;
@@ -1140,28 +1187,6 @@ end;
 
 procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
 
-  procedure NextBumpMappingMethod;
-  begin
-    if Method = bmVRML then
-    begin
-      SceneManager.Items.Remove(Scene);
-      SceneManager.MainScene := nil;
-    end;
-
-    if Method = High(Method) then
-      Method := Low(Method) else
-      Method := Succ(Method);
-    if Method = bmVRML then
-      PrepareForVRMLScene;
-
-    { if, and only if, Method = bmVRML, then SceneManager contains our Scene. }
-    if Method = bmVRML then
-    begin
-      SceneManager.Items.Add(Scene);
-      SceneManager.MainScene := Scene;
-    end;
-  end;
-
   procedure NextCamera;
   begin
     if SceneManager.Camera = Examiner then
@@ -1174,7 +1199,7 @@ var
   S: string;
 begin
   case MenuItem.IntData of
-    50: NextBumpMappingMethod;
+    50: NextButton.DoClick;
     60: NextCamera;
     100: Glwin.SaveScreenDialog(FileNameAutoInc(SUnformattable(Parameters[0]) + '_screen_%d.png'));
     200: Glwin.Close;
@@ -1319,11 +1344,15 @@ begin
 
   Glw.Controls.Add(TStatusText.Create(Glw));
 
+  NextButton := TNextButton.Create(Glw);
+  Glw.Controls.Add(NextButton);
+
   Glw.MainMenu := CreateMainMenu;
   Glw.OnMenuCommand := @MenuCommand;
 
   Glw.AutoRedisplay := true; { for easy Idle code }
   Glw.OnInit := @InitGL;
+  Glw.OnResize := @Resize;
   Glw.OnClose := @CloseGL;
   Glw.OnIdle := @Idle;
 
