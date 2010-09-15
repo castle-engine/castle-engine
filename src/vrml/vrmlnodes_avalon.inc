@@ -207,6 +207,10 @@
 
     private FFdrepeatR: TSFBool;
     public property FdrepeatR: TSFBool read FFdrepeatR;
+
+    { Event: SFBool, out } { }
+    private FEventrendering: TVRMLEvent;
+    public property Eventrendering: TVRMLEvent read FEventrendering;
   end;
 
   TNodePlane = class(TNodeX3DGeometryNode)
@@ -771,6 +775,9 @@ begin
    FdrepeatR.Exposed := false;
    FdrepeatR.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdrepeatR);
+
+  FEventrendering := TVRMLEvent.Create(Self, 'rendering', TSFBool, false);
+  Events.Add(FEventrendering);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
   FGeneratedTextureHandler.FdUpdate := FdUpdate;

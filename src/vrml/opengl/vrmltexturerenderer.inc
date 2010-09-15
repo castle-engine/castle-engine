@@ -1767,8 +1767,9 @@ var
   end;
 
 var
-  ProjectionMatrix: TMatrix4Single;
+  CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
+  EventsEngine: TVRMLEventsEngine;
 begin
   if GLName = 0 then Exit;
 
@@ -1779,14 +1780,17 @@ begin
     Viewpoint := CurrentViewpoint;
 
   ProjectionMatrix := GetProjectionMatrix;
+  TextureNode.EventProjection.Send(ProjectionMatrix);
 
   GetRenderedTextureCamera(Pos, Dir, Up);
+  CameraMatrix := LookDirMatrix(Pos, Dir, Up);
+  CameraRotationMatrix := LookDirMatrix(ZeroVector3Single, Dir, Up);
+  TextureNode.EventViewing.Send(CameraMatrix);
+
+  TextureNode.EventRendering.Send(true);
 
   RenderState.Target := rfOffScreen;
-  RenderState.CameraFromMatrix(
-    LookDirMatrix(Pos, Dir, Up),
-    LookDirMatrix(ZeroVector3Single, Dir, Up),
-    ProjectionMatrix);
+  RenderState.CameraFromMatrix(CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
 
   RenderToTexture.RenderBegin;
 
@@ -1809,6 +1813,17 @@ begin
     error (test e.g. view3dscene on rendered_texture.x3dv). }
   if NeedsMipmaps and (not DepthMap) then
     RenderToTexture.GenerateMipmap;
+
+  { We want to call IncreaseTimeTick now, otherwise our rendering.Send(false)
+    event would be always rejected (as the rendering.Send(true) already
+    traveled through through the same route at the same time,
+    so new event would be rejected as it can be a signal that we have
+    a cycle in routes.) }
+  EventsEngine := TextureNode.EventsEngine;
+  if EventsEngine <> nil then
+    EventsEngine.IncreaseTimeTick;
+
+  TextureNode.EventRendering.Send(false);
 
   NeedsRestoreViewport := true;
 end;
