@@ -1294,20 +1294,28 @@ var
 
     LocalBBox := Shape.LocalBoundingBox;
 
-    { Calculate SCoord and TCoord. Following VRML spec:
-      SCoord is the coord where LocalBBoxSize is largest,
-      TCoord is the second-to-largest (and if some sizes are equal,
-      then X is more important than Y than Z). }
-    LocalBBoxSize := Box3DSizes(LocalBBox);
-    SCoord := MaxVectorCoord(LocalBBoxSize);
-    RestOf3dCoords(SCoord, C1, C2);
-    if LocalBboxSize[C1] >= LocalBBoxSize[C2] then
-      TCoord := C1 else
-      TCoord := C2;
+    if not IsEmptyBox3d(LocalBBox) then
+    begin
+      { Calculate SCoord and TCoord. Following VRML spec:
+        SCoord is the coord where LocalBBoxSize is largest,
+        TCoord is the second-to-largest (and if some sizes are equal,
+        then X is more important than Y than Z). }
+      LocalBBoxSize := Box3DSizes(LocalBBox);
+      SCoord := MaxVectorCoord(LocalBBoxSize);
+      RestOf3dCoords(SCoord, C1, C2);
+      if LocalBboxSize[C1] >= LocalBBoxSize[C2] then
+        TCoord := C1 else
+        TCoord := C2;
 
-    { Calculate TextureGen[0..1]. }
-    SetupCoordGen(TextureGen[0], SCoord, 0, 1);
-    SetupCoordGen(TextureGen[1], TCoord, 0, LocalBBoxSize[TCoord] / LocalBBoxSize[SCoord]);
+      { Calculate TextureGen[0..1]. }
+      SetupCoordGen(TextureGen[0], SCoord, 0, 1);
+      SetupCoordGen(TextureGen[1], TCoord, 0, LocalBBoxSize[TCoord] / LocalBBoxSize[SCoord]);
+    end else
+    begin
+      { When local bounding box is empty, set these to any sensible value }
+      TextureGen[0] := Vector4Single(1, 0, 0, 0);
+      TextureGen[1] := Vector4Single(0, 1, 0, 0);
+    end;
 
     { Setup OpenGL to generate tex coords automatically }
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -1338,27 +1346,37 @@ var
 
     Box := Shape.LocalBoundingBox;
 
-    { It's easiest to generate them with glTexGen.
+    if not IsEmptyBox3d(Box) then
+    begin
 
-      Texture S should range from 0..1 when X changes from X1 .. X2.
-      So S = X / (X2 - X1) - X1 / (X2 - X1).
-      Same for T.
-      For R, X3D spec says that coords go backwards, so just SwapValues.
-    }
+      { It's easiest to generate them with glTexGen.
 
-    SwapValues(Box[0][2], Box[1][2]);
+        Texture S should range from 0..1 when X changes from X1 .. X2.
+        So S = X / (X2 - X1) - X1 / (X2 - X1).
+        Same for T.
+        For R, X3D spec says that coords go backwards, so just SwapValues.
+      }
 
-    XStart := Box[0][0];
-    YStart := Box[0][1];
-    ZStart := Box[0][2];
+      SwapValues(Box[0][2], Box[1][2]);
 
-    XSize := Box[1][0] - Box[0][0];
-    YSize := Box[1][1] - Box[0][1];
-    ZSize := Box[1][2] - Box[0][2];
+      XStart := Box[0][0];
+      YStart := Box[0][1];
+      ZStart := Box[0][2];
 
-    TextureGen[0] := Vector4Single(1 / XSize, 0, 0, - XStart / XSize);
-    TextureGen[1] := Vector4Single(0, 1 / YSize, 0, - YStart / YSize);
-    TextureGen[2] := Vector4Single(0, 0, 1 / ZSize, - ZStart / ZSize);
+      XSize := Box[1][0] - Box[0][0];
+      YSize := Box[1][1] - Box[0][1];
+      ZSize := Box[1][2] - Box[0][2];
+
+      TextureGen[0] := Vector4Single(1 / XSize, 0, 0, - XStart / XSize);
+      TextureGen[1] := Vector4Single(0, 1 / YSize, 0, - YStart / YSize);
+      TextureGen[2] := Vector4Single(0, 0, 1 / ZSize, - ZStart / ZSize);
+    end else
+    begin
+      { When local bounding box is empty, set these to any sensible value }
+      TextureGen[0] := Vector4Single(1, 0, 0, 0);
+      TextureGen[1] := Vector4Single(0, 1, 0, 0);
+      TextureGen[2] := Vector4Single(0, 0, 1, 0);
+    end;
 
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
     glTexGenv(GL_S, GL_OBJECT_PLANE, TextureGen[0]);
