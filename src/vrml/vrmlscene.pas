@@ -1593,6 +1593,12 @@ type
     procedure IncreaseTime(const TimeIncrease: TKamTime);
     { @groupEnd }
 
+    { Increase @link(Time) by some infinitely small value.
+      This simply increments @code(Time.PlusTicks), which may be sometimes
+      useful: this allows events to pass through the ROUTEs
+      without the fear of being rejected as "recursive (cycle) events". }
+    procedure IncreaseTimeTick; override;
+
     { This is the scene time, that is passed to time-dependent nodes.
       See X3D specification "Time" component about time-dependent nodes.
       In short, this "drives" the time passed to TimeSensor, MovieTexture
@@ -5476,6 +5482,11 @@ begin
     TimeAtLoad := 0.0 else
     TimeAtLoad := DateTimeToUnix(Now);
   ResetTime(TimeAtLoad);
+end;
+
+procedure TVRMLScene.IncreaseTimeTick;
+begin
+  Inc(FTime.PlusTicks);
 end;
 
 procedure TVRMLScene.Idle(const CompSpeed: Single);

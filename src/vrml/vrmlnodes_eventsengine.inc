@@ -29,6 +29,7 @@
   TVRMLChangesEngine = class(T3D)
   public
     procedure ChangedField(Field: TVRMLField); virtual; abstract;
+    procedure IncreaseTimeTick; virtual; abstract;
   end;
 
   TObjectsListItem_8 = TVRMLChangesEngine;
