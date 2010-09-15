@@ -49,16 +49,20 @@ begin
     for J := 0 to YCount - 1 do
     begin
       Transform[I, J].FdTranslation.Value[2] := 2 *
-        Sin(I / 2  + Scene.Time.Seconds) *
+        Sin(I / 2 + Scene.Time.Seconds) *
         Cos(J / 2 + Scene.Time.Seconds);
-      //Scene.ChangedField(Transform[I, J].FdTranslation);
+      Scene.ChangedField(Transform[I, J].FdTranslation);
     end;
 
-  { For large XCount * YCount, ChangedAll may be faster than ChangedField
-    after each change (as ChangedField for Transform tries to do intelligent
-    analysis of what was changed by this transform, and this analysis
-    is unfortunately slow when changing hundreths of transforms). }
-  Scene.ChangedAll;
+  { Sometimes, for really large XCount * YCount, you may want to
+    1. call ChangedAll once here and
+    2. remove calls to ChangedField in the loop above.
+
+    The single ChangedAll call may be faster than many ChangedField calls
+    for *really* large XCount * YCount. That's because ChangedField for
+    Transform fields tries to do intelligent analysis of what was changed
+    by this transform. }
+  { Scene.ChangedAll; }
 end;
 
 function CreateVrmlGraph: TNodeGroup_2;
