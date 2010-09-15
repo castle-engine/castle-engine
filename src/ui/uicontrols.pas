@@ -373,7 +373,7 @@ type
   { TUIControl with position (in Left, Bottom fields).
 
     This takes care of some internal quirks with saving Left property
-    right. (Because TComponent doesn't declare, but saves/loads a "magic"
+    correctly. (Because TComponent doesn't declare, but saves/loads a "magic"
     property named Left during streaming. This is used to place non-visual
     components on the form. Our Left is completely independent from this.) }
   TUIControlPos = class(TUIControl)
