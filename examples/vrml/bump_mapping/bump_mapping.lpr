@@ -324,74 +324,78 @@ var
 
   { Draw cube using really old-fashioned approach (no vertex arrays,
     just specify by hand 6 quads, 4 vertexes and tex coords each). }
-  procedure DrawCube(
-    const TexCoordVertex: TTexCoordVertexProc);
-  var
-    Normal, STangent, TTangent: TVector3Single;
+  procedure DrawCube(const TexCoordVertex: TTexCoordVertexProc);
+
+    { Pass Normal, STangent, TTangent to the DoTexCoordVertex
+      as parameters, not through local variables inside DrawCube,
+      to workaround FPC optimizer bug
+      http://bugs.freepascal.org/view.php?id=17413 }
 
     procedure DoTexCoordVertex(const TexX, TexY: Single;
-      const Vertex: TVector3Single);
+      const Vertex, Normal, STangent, TTangent: TVector3Single);
     begin
       TexCoordVertex(TexX, TexY, Vertex,
         LightDirectionInTangentSpace(ModelInvertedTrasformation, Vertex,
           Normal, STangent, TTangent));
     end;
 
+  var
+    Normal, STangent, TTangent: TVector3Single;
   begin
     glBegin(GL_QUADS);
-      Normal  := Vector3Single( 0, 0, 1);
+      Normal   := Vector3Single( 0, 0, 1);
       STangent := Vector3Single( 1, 0, 0);
       TTangent := Vector3Single( 0, 1, 0);
       glNormalv(Normal);
-      DoTexCoordVertex(0, 0, Vector3Single(-1, -1,  1));
-      DoTexCoordVertex(1, 0, Vector3Single( 1, -1,  1));
-      DoTexCoordVertex(1, 1, Vector3Single( 1,  1,  1));
-      DoTexCoordVertex(0, 1, Vector3Single(-1,  1,  1));
+      DoTexCoordVertex(0, 0, Vector3Single(-1, -1,  1), Normal, STangent, TTangent);
+      DoTexCoordVertex(1, 0, Vector3Single( 1, -1,  1), Normal, STangent, TTangent);
+      DoTexCoordVertex(1, 1, Vector3Single( 1,  1,  1), Normal, STangent, TTangent);
+      DoTexCoordVertex(0, 1, Vector3Single(-1,  1,  1), Normal, STangent, TTangent);
 
-      Normal  := Vector3Single( 0, 0,-1);
+      Normal   := Vector3Single( 0, 0,-1);
       STangent := Vector3Single(-1, 0, 0);
       TTangent := Vector3Single( 0, 1, 0);
       glNormalv(Normal);
-      DoTexCoordVertex(1, 0, Vector3Single(-1, -1, -1));
-      DoTexCoordVertex(1, 1, Vector3Single(-1,  1, -1));
-      DoTexCoordVertex(0, 1, Vector3Single( 1,  1, -1));
-      DoTexCoordVertex(0, 0, Vector3Single( 1, -1, -1));
+      DoTexCoordVertex(1, 0, Vector3Single(-1, -1, -1), Normal, STangent, TTangent);
+      DoTexCoordVertex(1, 1, Vector3Single(-1,  1, -1), Normal, STangent, TTangent);
+      DoTexCoordVertex(0, 1, Vector3Single( 1,  1, -1), Normal, STangent, TTangent);
+      DoTexCoordVertex(0, 0, Vector3Single( 1, -1, -1), Normal, STangent, TTangent);
 
-      Normal  := Vector3Single( 0, 1, 0);
+      Normal   := Vector3Single( 0, 1, 0);
       STangent := Vector3Single( 1, 0, 0);
       TTangent := Vector3Single( 0, 0, -1);
       glNormalv(Normal);
-      DoTexCoordVertex(0, 1, Vector3Single(-1,  1, -1));
-      DoTexCoordVertex(0, 0, Vector3Single(-1,  1,  1));
-      DoTexCoordVertex(1, 0, Vector3Single( 1,  1,  1));
-      DoTexCoordVertex(1, 1, Vector3Single( 1,  1, -1));
+      DoTexCoordVertex(0, 1, Vector3Single(-1,  1, -1), Normal, STangent, TTangent);
+      DoTexCoordVertex(0, 0, Vector3Single(-1,  1,  1), Normal, STangent, TTangent);
+      DoTexCoordVertex(1, 0, Vector3Single( 1,  1,  1), Normal, STangent, TTangent);
+      DoTexCoordVertex(1, 1, Vector3Single( 1,  1, -1), Normal, STangent, TTangent);
 
-      Normal  := Vector3Single( 0,-1, 0);
+      Normal   := Vector3Single( 0,-1, 0);
       STangent := Vector3Single(-1, 0, 0);
       TTangent := Vector3Single( 0, 0, -1);
       glNormalv(Normal);
-      DoTexCoordVertex(1, 1, Vector3Single(-1, -1, -1));
-      DoTexCoordVertex(0, 1, Vector3Single( 1, -1, -1));
-      DoTexCoordVertex(0, 0, Vector3Single( 1, -1,  1));
-      DoTexCoordVertex(1, 0, Vector3Single(-1, -1,  1));
+      DoTexCoordVertex(1, 1, Vector3Single(-1, -1, -1), Normal, STangent, TTangent);
+      DoTexCoordVertex(0, 1, Vector3Single( 1, -1, -1), Normal, STangent, TTangent);
+      DoTexCoordVertex(0, 0, Vector3Single( 1, -1,  1), Normal, STangent, TTangent);
+      DoTexCoordVertex(1, 0, Vector3Single(-1, -1,  1), Normal, STangent, TTangent);
 
-      Normal  := Vector3Single( 1, 0, 0);
+      Normal   := Vector3Single( 1, 0, 0);
       STangent := Vector3Single( 0, 0,-1);
       TTangent := Vector3Single( 0, 1, 0);
       glNormalv(Normal);
-      DoTexCoordVertex(1, 0, Vector3Single( 1, -1, -1));
-      DoTexCoordVertex(1, 1, Vector3Single( 1,  1, -1));
-      DoTexCoordVertex(0, 1, Vector3Single( 1,  1,  1));
-      DoTexCoordVertex(0, 0, Vector3Single( 1, -1,  1));
+      DoTexCoordVertex(1, 0, Vector3Single( 1, -1, -1), Normal, STangent, TTangent);
+      DoTexCoordVertex(1, 1, Vector3Single( 1,  1, -1), Normal, STangent, TTangent);
+      DoTexCoordVertex(0, 1, Vector3Single( 1,  1,  1), Normal, STangent, TTangent);
+      DoTexCoordVertex(0, 0, Vector3Single( 1, -1,  1), Normal, STangent, TTangent);
 
-      Normal  := Vector3Single(-1, 0, 0);
+      Normal   := Vector3Single(-1, 0, 0);
       STangent := Vector3Single( 0, 0, 1);
       TTangent := Vector3Single( 0, 1, 0);
       glNormalv(Normal);
-      DoTexCoordVertex(0, 0, Vector3Single(-1, -1, -1));
-      DoTexCoordVertex(1, 0, Vector3Single(-1, -1,  1));
-      DoTexCoordVertex(1, 1, Vector3Single(-1,  1,  1));
-      DoTexCoordVertex(0, 1, Vector3Single(-1,  1, -1));
+      DoTexCoordVertex(0, 0, Vector3Single(-1, -1, -1), Normal, STangent, TTangent);
+      DoTexCoordVertex(1, 0, Vector3Single(-1, -1,  1), Normal, STangent, TTangent);
+      DoTexCoordVertex(1, 1, Vector3Single(-1,  1,  1), Normal, STangent, TTangent);
+      DoTexCoordVertex(0, 1, Vector3Single(-1,  1, -1), Normal, STangent, TTangent);
     glEnd();
   end;
 
