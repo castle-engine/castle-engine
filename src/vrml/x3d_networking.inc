@@ -406,12 +406,25 @@ begin
     the *new* graph state, so it will properly update everything to
     new state. }
 
+  { Changing the "load" and "url" fields causes LoadInlined or UnLoadInlined
+    inside EventXxReceive, so the VRML graph changes, so they deserve
+    ChangedAll.
+
+    Note that, in theory, actually LoadInlined and UnLoadInlined
+    should already call EventsEngine.ChangedAll already.
+    But this opens a can of worms, because our BeforeTraverse also
+    calls LoadInlined. And you can't really reliably call ChangedAll
+    in the middle of traversing (since this means you may call ChangedAll
+    in the middle of ChangedAll, for which we're not ready). }
+
   FFdload := TSFBool.Create(Self, 'load', true);
    Fdload.EventOut.OnReceive.Add(@EventLoadReceive);
+   Fdload.ChangesAlways := [chEverything];
   Fields.Add(FFdload);
 
   FFdurl := TMFString.Create(Self, 'url', []);
    Fdurl.EventOut.OnReceive.Add(@EventUrlReceive);
+   Fdurl.ChangesAlways := [chEverything];
   Fields.Add(FFdurl);
   { X3D specification comment: [url or urn] }
 
