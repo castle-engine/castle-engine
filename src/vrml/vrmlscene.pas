@@ -919,7 +919,7 @@ type
       and we only require necessary cleanup at the beginning of ChangedAll.
       This way ChangedAll (when it wasn't preceeded by explicit
       BeforeNodesFree(false)) produces events from stacks CheckForDeletedNodes. }
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual;
+    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
     { Call Node.FreeRemovingFromAllParents, making sure that changes
       to our VRML node graph are allowed. This makes sure we call
@@ -954,7 +954,7 @@ type
 
       ChangedAll calls BeforeNodesFree(true) first, for safety (and TVRMLGLShape
       actually depends on it, see implementation comments). }
-    procedure ChangedAll; virtual;
+    procedure ChangedAll; override;
 
     { @italic(Deprecated) way to notify scene that you changed given Field value.
 

@@ -28,6 +28,8 @@
   { Abstract 3D object notified about changes to VRML/X3D nodes/fields. }
   TVRMLChangesEngine = class(T3D)
   public
+    procedure ChangedAll; virtual; abstract;
+    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
     procedure ChangedField(Field: TVRMLField); virtual; abstract;
     procedure IncreaseTimeTick; virtual; abstract;
   end;

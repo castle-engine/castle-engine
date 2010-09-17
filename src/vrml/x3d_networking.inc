@@ -406,25 +406,12 @@ begin
     the *new* graph state, so it will properly update everything to
     new state. }
 
-  { Changing the "load" and "url" fields causes LoadInlined or UnLoadInlined
-    inside EventXxReceive, so the VRML graph changes, so they deserve
-    ChangedAll.
-
-    Note that, in theory, actually LoadInlined and UnLoadInlined
-    should already call EventsEngine.ChangedAll already.
-    But this opens a can of worms, because our BeforeTraverse also
-    calls LoadInlined. And you can't really reliably call ChangedAll
-    in the middle of traversing (since this means you may call ChangedAll
-    in the middle of ChangedAll, for which we're not ready). }
-
   FFdload := TSFBool.Create(Self, 'load', true);
    Fdload.EventOut.OnReceive.Add(@EventLoadReceive);
-   Fdload.ChangesAlways := [chEverything];
   Fields.Add(FFdload);
 
   FFdurl := TMFString.Create(Self, 'url', []);
    Fdurl.EventOut.OnReceive.Add(@EventUrlReceive);
-   Fdurl.ChangesAlways := [chEverything];
   Fields.Add(FFdurl);
   { X3D specification comment: [url or urn] }
 
@@ -628,9 +615,30 @@ end;
 procedure TNodeInline.EventLoadReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
+  { Changing the "load" and "url" fields causes LoadInlined or UnLoadInlined,
+    so the VRML graph changes, so they deserve ChangedAll.
+
+    Note that, in theory, actually LoadInlined and UnLoadInlined
+    should already call EventsEngine.ChangedAll already.
+    But this opens a can of worms, because our BeforeTraverse also
+    calls LoadInlined. And you can't really reliably call ChangedAll
+    in the middle of traversing (since this means you may call ChangedAll
+    in the middle of ChangedAll, for which we're not ready).
+
+    Moreover, we need to use BeforeNodesFree. Otherwise our UnLoadInlined
+    will free items to which existing TVRMLScene / TVRMLShape may keep
+    references. Testcase: inline_load_control_test_1.x3dv,
+    with --debug-log-vrml-changes,
+    press ctrl then shift, without BeforeNodesFree will fail ->
+    because OriginalGeometry.ClassName is no longer available. }
+
+  if EventsEngine <> nil then EventsEngine.BeforeNodesFree;
+
   if FdLoad.Value then
     LoadInlined(false) else
     UnLoadInlined;
+
+  if EventsEngine <> nil then EventsEngine.ChangedAll;
 end;
 
 procedure TNodeInline.EventUrlReceive(
@@ -638,8 +646,10 @@ procedure TNodeInline.EventUrlReceive(
 begin
   if FdLoad.Value then
   begin
+    if EventsEngine <> nil then EventsEngine.BeforeNodesFree;
     UnLoadInlined;
     LoadInlined(false);
+    if EventsEngine <> nil then EventsEngine.ChangedAll;
   end;
 end;
 
