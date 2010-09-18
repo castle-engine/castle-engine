@@ -111,6 +111,8 @@
     EventelapsedTime: TVRMLEvent;
     EventisActive: TVRMLEvent;
     EventisPaused: TVRMLEvent;
+    { May be @nil if node doesn't have a "cycleTime" event. }
+    EventcycleTime: TVRMLEvent;
 
     { Call this when world time increases.
       This is the most important method of this class, that basically
@@ -258,13 +260,20 @@ var
   NewIsActive: boolean;
   NewIsPaused: boolean;
   NewElapsedTime: TKamTime;
+  CycleTimeSend: boolean;
+  CycleTime: TKamTime;
 
   { $define LOG_TIME_DEPENDENT_NODES}
 
   { Increase NewElapsedTime, taking care of
     CycleInterval and looping.
     StopOnNonLoopedEnd says what to do if NewElapsedTime passed
-    CycleInterval and not looping. }
+    CycleInterval and not looping.
+
+    May indicate that CycleTime should be send (by setting CycleTimeSend to true
+    and CycleTime value) if the *new* cycle started. This means
+    that new ElapsedTime reached the non-zero CycleInterval
+    and loop = TRUE. }
   procedure IncreaseElapsedTime(const Increase: TKamTime;
     StopOnNonLoopedEnd: boolean);
   begin
@@ -277,6 +286,10 @@ var
         if FdLoop.Value then
         begin
           NewElapsedTime := FloatModulo(NewElapsedTime, CycleInterval);
+          { Send the time value when the cycle started, which was
+            a little earlier than CurrentTime: earlier by NewElapsedTime. }
+          CycleTimeSend := true;
+          CycleTime := CurrentTime.Seconds - NewElapsedTime;
         end else
         begin
           if StopOnNonLoopedEnd then
@@ -336,6 +349,8 @@ begin
     NewElapsedTime := ElapsedTime;
   end;
 
+  CycleTimeSend := false;
+
   if not NewIsActive then
   begin
     if (NewValue.Seconds >= FdStartTime.Value) and
@@ -351,9 +366,32 @@ begin
       NewIsActive := true;
       NewIsPaused := false;
       NewElapsedTime := 0;
+
       { Do not advance by TimeIncrease (time from last Time),
         advance only by the time passed since startTime. }
       IncreaseElapsedTime(NewValue.Seconds - FdStartTime.Value, true);
+
+      if not CycleTimeSend then
+      begin
+        { Then we still have the initial cycleTime event to generate
+          (IncreaseElapsedTime didn't do it for us).
+          This should be the "time at the beginning of the current cycle".
+
+          Since IncreaseElapsedTime didn't detect a new cycle,
+          so NewElapsedTime = NewValue.Seconds - FdStartTime.Value fits
+          (is < ) within the CycleInterval. So startTime is the beginning
+          of our cycle.
+
+          Or StartedNewCycle = false may mean that CycleInterval is zero
+          or loop = FALSE. We will check later (before actually sending
+          cycleTime) that sensor is active, and if it's active ->
+          we still should make the initial cycleTime.
+
+          So in both cases, proper cycleTime is startTime. }
+        CycleTimeSend := true;
+        CycleTime := FdStartTime.Value;
+      end;
+
       SomethingChanged := true;
     end;
   end else
@@ -403,7 +441,9 @@ begin
     order, to send events in proper order:
     if you just activated the movie, then isActive should be sent first,
     before elapsedTime.
-    If the movie was deactivated, then last elapsedTime should be sent last. }
+    If the movie was deactivated, then last elapsedTime should be sent last.
+
+    Send cycleTime only if NewIsActive, and after sending isActive = TRUE. }
   if NewIsActive then
   begin
     IsActive := NewIsActive;
@@ -416,6 +456,9 @@ begin
       ElapsedTime := NewElapsedTime;
       IsPaused := NewIsPaused;
     end;
+
+    if CycleTimeSend and (EventCycleTime <> nil) then
+      EventCycleTime.Send(CycleTime, CurrentTime);
   end else
   begin
     if not NewIsPaused then
@@ -489,6 +532,7 @@ begin
   FTimeDependentNodeHandler.EventisActive:= EventisActive;
   FTimeDependentNodeHandler.EventisPaused := EventisPaused;
   FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;
+  FTimeDependentNodeHandler.EventCycleTime := EventCycleTime;
   FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
 
   { TODO: for now, elapsedTime is simply passed to set_fraction event. }
