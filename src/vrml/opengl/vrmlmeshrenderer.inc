@@ -1903,42 +1903,28 @@ begin
     { Initialize to common values }
     Tex := Vector4Single(0, 0, 0, 1);
 
-    case TexImplementation of
-      tcTexIndexed:
-        begin
-          Result := TextureUnit < Cardinal(Length(TexCoordGen));
-          if not Result then Exit;
+    Result := TextureUnit < Cardinal(Length(TexCoordGen));
+    if not Result then Exit;
 
-          if TexCoordGen[TextureUnit] in ExplicitTexCoords then
-            { tcTexIndexed is set only if
-              TexCoordIndex.Count >= CoordIndex.Count, so the IndexNum index
-              is Ok for sure. That's why we don't do "ItemsSafe"
-              for TexCoordIndex. }
-            SetTexFromTexCoordArray(TexCoordGen[TextureUnit], TexCoordIndex.Items.Items[IndexNum]) else
-            Tex := GenerateTexCoord(TexCoordGen[TextureUnit]);
-        end;
-      tcCoordIndexed:
-        begin
-          Result := TextureUnit < Cardinal(Length(TexCoordGen));
-          if not Result then Exit;
-
-          if TexCoordGen[TextureUnit] in ExplicitTexCoords then
-            { We already checked that IndexNum < CoordCount, so the first index
-              is Ok for sure. }
-            SetTexFromTexCoordArray(TexCoordGen[TextureUnit], CoordIndex.Items.Items[IndexNum]) else
-            Tex := GenerateTexCoord(TexCoordGen[TextureUnit]);
-        end;
-      tcNonIndexed:
-        begin
-          Result := TextureUnit < Cardinal(Length(TexCoordGen));
-          if not Result then Exit;
-
-          if TexCoordGen[TextureUnit] in ExplicitTexCoords then
-            SetTexFromTexCoordArray(TexCoordGen[TextureUnit], IndexNum) else
-            Tex := GenerateTexCoord(TexCoordGen[TextureUnit]);
-        end;
-      else raise EInternalError.Create('TAbstractTexCoordinateRenderer.GetTextureCoord?');
-    end;
+    if TexCoordGen[TextureUnit] in ExplicitTexCoords then
+    begin
+      case TexImplementation of
+        tcTexIndexed:
+          { tcTexIndexed is set only if
+            TexCoordIndex.Count >= CoordIndex.Count, so the IndexNum index
+            is Ok for sure. That's why we don't do "ItemsSafe"
+            for TexCoordIndex. }
+          SetTexFromTexCoordArray(TexCoordGen[TextureUnit], TexCoordIndex.Items.Items[IndexNum]);
+        tcCoordIndexed:
+          { We already checked that IndexNum < CoordCount, so the first index
+            is Ok for sure. }
+          SetTexFromTexCoordArray(TexCoordGen[TextureUnit], CoordIndex.Items.Items[IndexNum]);
+        tcNonIndexed:
+          SetTexFromTexCoordArray(TexCoordGen[TextureUnit], IndexNum);
+        else raise EInternalError.Create('TAbstractTexCoordinateRenderer.GetTextureCoord?');
+      end;
+    end else
+      Tex := GenerateTexCoord(TexCoordGen[TextureUnit]);
   end;
 end;
 
