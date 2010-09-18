@@ -105,6 +105,8 @@
     FdresumeTime: TSFTime;
     FdstartTime: TSFTime;
     FdstopTime: TSFTime;
+    { May be @nil if node doesn't have an "enabled" field. }
+    Fdenabled: TSFBool;
 
     EventelapsedTime: TVRMLEvent;
     EventisActive: TVRMLEvent;
@@ -303,6 +305,12 @@ begin
 
   CurrentTime := NewValue;
 
+  if (Fdenabled <> nil) and (not Fdenabled.Value) then
+  begin
+    IsActive := false;
+    Exit;
+  end;
+
   { Note that each set of IsActive, IsPaused, ElapsedTime may generate events.
     So we cannot carelessly set them many times in this method,
     as double events are bad (besides possible unneeded overhead with
@@ -477,6 +485,7 @@ begin
   FTimeDependentNodeHandler.FdresumeTime := FdresumeTime;
   FTimeDependentNodeHandler.FdstartTime := FdstartTime;
   FTimeDependentNodeHandler.FdstopTime := FdstopTime;
+  FTimeDependentNodeHandler.Fdenabled := Fdenabled;
   FTimeDependentNodeHandler.EventisActive:= EventisActive;
   FTimeDependentNodeHandler.EventisPaused := EventisPaused;
   FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;
