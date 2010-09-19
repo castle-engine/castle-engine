@@ -495,6 +495,27 @@ var
     HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount, TexturesCount);
     Shape.Geometry.TexCoordField.Value := TexCoord;
 
+    if (Shape.Geometry <> Shape.OriginalGeometry) and
+       (Shape.OriginalGeometry.TexCoordField <> nil) then
+    begin
+      { If this shape uses proxy, the proxy may be freed and regenerated
+        on some VRML/X3D graph changes. We want this regeneration to
+        preserve our modifications to the TexCoord, so that shadow maps
+        still work. So set here original geometry texCoord too,
+        if possible.
+
+        We actually overuse here the fact that within nodes Sphere, Teapot
+        etc. we allow MultiTexture node with explicit TextureCoordinate
+        inside.
+
+        TODO: this is very far from perfect, makes some assumptions that
+        are not necessarily true. That's because in case of proxy geometry,
+        we add back to the original geometry a texCoord designed for proxy.
+        So e.g. if the vertexes of original shape changed (although they can't,
+        for now), then generating proxy will use the old texCoord. }
+      Shape.OriginalGeometry.TexCoordField.Value := TexCoord;
+    end;
+
     TextureTransform := App.FdTextureTransform.Value;
     HandleTextureTransform(TextureTransform);
     App.FdTextureTransform.Value := TextureTransform;
