@@ -4,12 +4,28 @@ In paricular, ../../www/TODO contains "next-release" stuff,
 usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
-- castle 1.0.0 blockers:
-  - same plane walls on doom e1m1 level:
-    - at the first door
-    - right when opening the secret (lighter) door
-    (exist also in srcs before TLevelObject - T3D transition, so this isn't any bug from this.)
+www:
+- widget "last svn commits" ?
 
+- tabs at the top:
+
+  News (intro + "latest update" + link to changes_log)
+
+  Tools and games:
+  - view3dscene
+  - castle
+  - All Programs
+  - Support
+
+  Developers:
+  - Engine (maybe split, move "Related programs' sources" elsewhere?)
+  - Reference
+  - Documentation? (Or hide -- too old?)
+  - VRML/X3D (ToC of pages about vrml)
+  - More
+  
+* link to https://www.ohloh.net/p/vrmlengine/widgets, but where?
+  put a link with "I use it"? And a link to stats (with commit graph?)?
 ------------------------------------------------------------------------------
 Mirrors:
 - RenderedTexture.scene (let VA know).
