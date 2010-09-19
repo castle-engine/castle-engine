@@ -27,6 +27,23 @@ Mirrors:
 - flat mirrors - my approach. Mention on coverflow thread, also for VA.
 
 ------------------------------------------------------------------------------
+VBO transition:
+
+- Make stuff use VBO instead of locked vertex arrays.
+
+- Note for future VBO transition, from
+  http://developer.amd.com/media/gpu_assets/ATI_OpenGL_Programming_and_Optimization_Guide.pdf
+
+        Vertex array calls can be compiled into a display list. Compiling the regular OpenGL 1.2 vertex
+        array usage may potentially allow the driver to perform various optimizations on the input vertex data.
+        But it should be noted that if vertex arrays are intended to be compiled into a Display List, the vertex
+        array should not be stored in a Vertex Buffer Object. Compiling vertex arrays stored in Vertex Buffer
+        Objects will cause a significant performance hit when the vertex data is read back from video memory
+        during the display list compilation.
+
+  So, either VBO or display lists. Not both.
+
+------------------------------------------------------------------------------
 Primitives by Proxy more improvements:
 - Avoid incremental count +=, set count once in sphere/cone/cylinder/box
   proxy. This will speed them up a little.
@@ -308,7 +325,44 @@ For view3dscene 4.0:
 JavaScript, or Python/Lua?
 
 ------------------------------------------------------------------------------
+Shadow maps todos:
+- Point light sources.
+- Something animated with shadow maps to show off?
+- Implement rest of auto-calc:
+
+  SFVec4f  [in,out]  \codeem{projectionRectangle} 0 0 0 0
+  SFVec3f  [in,out]  \codeem{projectionLocation}  0 0 0
+
+  Done:
+    SFVec3f  [in,out]  \codeem{up} 0 0 0
+    SFFloat  [in,out]  \codeem{projectionNear} 0
+    SFFloat  [in,out]  \codeem{projectionFar} 0
+
+- ProjectedTextureCoordinate: when using viewpoint:
+  - use near, far projection correct values (used by browser)
+  - for currently bound perpective viewpoint, my spec says we should honour
+    fieldOfView and aspect ratio of current window?
+- Make a shader that calculates all other lights correctly,
+  and calculates spot light correctly. Then our current check for texture[0..1]
+  coords should not be needed.
+- Make a shader that implements all our features.
+- For PCF bilinear:
+  - SIZE should be set to actual texture size, not hardcoded
+  - we should turn NEAREST shadow map filtering, no point in bilinear then
+
+------------------------------------------------------------------------------
 Various ideas:
+
+- screenshot: 10 November - http://vcg.isti.cnr.it/cgf/index.php ?
+
+- http://www.web3d.org/x3d/specifications/spec_feedback/ - wait for ack
+  6 times nurbs,
+  2 times import/export.
+  Hastened by email, still no ack.
+
+* Use http://wiki.lazarus.freepascal.org/class_extensions_examples once avail
+  in stable FPC, and it gets to e.g. Debian stable.
+  Send kudos to mailing list --- this will be greatly useful :)
 
 - support loading other images (like GIF) through internal lib? fpImage?
   Notify: jordi (of hiperia)?
@@ -699,3 +753,49 @@ macosx glViewImage -dRELEASE fpc 2.4.0:
 
   On linux 32 bit (nvidia on kocury, and radeon on chantal) all works fine.
   So -> radeon on macosx opengl bug?
+
+------------------------------------------------------------------------------
+Transforming VRML graph:
+
+Since vrmlshadowmap set a precedent, maybe do also others?
+
+- Proxy
+- parallax bump mapping could be impl better by a transformation too?
+Hm, but I don't see a way to do a transformation like current shadow maps
+in a way that is fast AND preserves current VRML graph:
+
+  Consider you want to reuse the same node as exists (like IndexedFaceSet),
+  but change it's children (like texCoord), and additionally you
+  want to insert it's children into new children (e.g. you want to
+  place new MultiTextureCoordinate in existing IndexedFaceSet.texCoord,
+  and move existing IndexedFaceSet.texCoord inside MultiTextureCoordinate).
+  Basically, using existing nodes as children of new nodes is not a problem,
+  but using existing nodes as parent of new nodes is a problem.
+
+  1. If you want to just make transformed VRML graph, then every parent
+     will have to be duplicated --- this is a lot of data, e.g. coordIndex
+     fields are long.
+
+     The only way to make it work would be to make fields not attached
+     to one node, so that they can be shared. But this is going to complicate
+     the implementation a lot... (look at how current assumption that
+     TVRMLNode may be inside many TVRMLScene causes a lot of problems).
+
+  2. Or we have to decide at which point "anchor" these parents,
+     for example: anchor at the "geometry". This works for current "Proxy"
+     idea, but doesn't seem workable for shadow maps:
+     we want to "anchor" at texCoord, and at Appearance.shaders,
+     and at Appearance.texture...
+
+     So we would need a general way to split a node, so that we can
+     "anchor" our new nodes anywhere.
+     Evey field could get alternative version: the processed one.
+
+     Hmmm, this would require a lot of work to be comfortable.
+     Every FdXxx should be a function that returns something else
+     when Transformed=true...
+
+  Given this, maybe it's better to just stick with current approach?
+  "Proxy" field is managed through TVRMLShape.Geometry.
+  bump mapping is managed inside vrml renderer, not as vrml transformation.
+  and shadow maps for now just change the graph?
