@@ -68,7 +68,7 @@ var
     NewCoords := (Detail[C1] + 2) * (Detail[C2] + 2);
     Coord.Count := Coord.Count + NewCoords;
     Normal.Count := Normal.Count + NewCoords;
-    TexCoord.Count := TexCoord.Count + NewCoords;
+    if TexCoord <> nil then TexCoord.Count := TexCoord.Count + NewCoords;
 
     X2 := -X1;
     Y2 := -Y1;
@@ -93,9 +93,10 @@ var
 
         Normal.Items[ThisIndex] := N;
 
-        TexCoord.Items[ThisIndex] := MakeTexCoord(
-          Lerp(I / (Detail[C1] + 1), TexX1, TexX2),
-          Lerp(J / (Detail[C2] + 1), TexY1, TexY2));
+        if TexCoord <> nil then
+          TexCoord.Items[ThisIndex] := MakeTexCoord(
+            Lerp(I / (Detail[C1] + 1), TexX1, TexX2),
+            Lerp(J / (Detail[C2] + 1), TexY1, TexY2));
       end;
 
     for I := 1 to Detail[C1] + 1 do
