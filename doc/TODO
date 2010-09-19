@@ -70,6 +70,9 @@ Primitives by Proxy more improvements:
   (3 times?) before loading is complete... We could probably optimize it,
   to not recreate shapes, to save some time (for Proxy and others).
 
+- Implement "Convert to Simpler Node (IndexedFaceSet, LineSet, etc.)",
+  that "makes Proxy real".
+
 ------------------------------------------------------------------------------
 VSM:
 - ATI problems on chantal:
