@@ -11,6 +11,33 @@ usually has a list of blockers typically worked upon right before release.
     (exist also in srcs before TLevelObject - T3D transition, so this isn't any bug from this.)
 
 ------------------------------------------------------------------------------
+Mirrors:
+- RenderedTexture.scene (let VA know).
+
+- Allow recursive nodes: this is already wanted by
+  GeneratedShadowMap.light (when places in defaultShadowMap),
+  RenderedTexture.scene, Script.
+
+  Fish demo also needs it to resolve routes.
+
+  What with freeing? Cycles will make ref-counting bad.
+  Maybe TVRMLNodeNames should have separate list for stuff that can only
+  be weakly-referenced?
+
+- flat mirrors - my approach. Mention on coverflow thread, also for VA.
+
+------------------------------------------------------------------------------
+Primitives by Proxy more improvements:
+- Avoid incremental count +=, set count once in sphere/cone/cylinder/box
+  proxy. This will speed them up a little.
+
+- ElevationGrid: make it also through Proxy now?
+
+- All Proxy* are called twice still, because all the shapes get destroyed
+  (3 times?) before loading is complete... We could probably optimize it,
+  to not recreate shapes, to save some time (for Proxy and others).
+
+------------------------------------------------------------------------------
 VSM:
 - ATI problems on chantal:
   - Result on sunny_street is a little nonsense, doesn't really work.
@@ -283,6 +310,10 @@ JavaScript, or Python/Lua?
 ------------------------------------------------------------------------------
 Various ideas:
 
+* Remove ScheduleChangesAll.
+  Just like DoGeometryChanged: everything should be automatically generated,
+  and ChangesAll only invalidates stuff, making it inexpensive.
+
 * something animated for shadow_volume_test caster, receiver.
   Should be easy now with scene manager, that allows models to be animated.
 
@@ -511,6 +542,13 @@ octree todos moved for after view3dscene 3.2:
 - Automatically detect when roSeparateShapeStates / ...NoTransform / roNone is suitable.
   Actually, optimization should be per-shape choice now?
   Except roSceneAsAWhole, that would override it?
+
+- After 3.7.0, remove roSeparateShapes, when it's confirmed it's no better
+  than roSeparateShapesNoTransform.
+
+- Move more stuff outside of RenderShapeNoTransform:
+  probably shaders, materials, textures can and should all be moved
+  outside of display list?
 
 - TVRMLScene.Shapes tree, with switches/lods approach,
   may be also used to efficiently implement layers now.
