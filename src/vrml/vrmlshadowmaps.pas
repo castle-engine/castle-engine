@@ -562,10 +562,19 @@ begin
     Exit; { VRML <= 1.0 shapes cannot be shadow maps receivers }
   end;
 
-  { TODO: it's possible that App = nil, but still
-    LightsCastingOnEverything.Count <> 0. We should create Appearance
-    node in this case. }
+  { If Appearance is NULL, but we should create it --- do it.
+    Testcase: x3d/shadow_maps/primitives.x3dv with appearance commented out. }
   App := ShapeNode.Appearance;
+  if (App = nil) and
+     (LightsCastingOnEverything.Count <> 0) then
+  begin
+    ShapeNode.FdAppearance.Value := TNodeAppearance.Create('', ShapeNode.WWWBasePath);
+    App := ShapeNode.Appearance; { recalculate App }
+  end;
+
+  { If the previous check left App = nil, then we know this shape
+    doesn't receiveShadows (LightsCastingOnEverything empty,
+    and no Appearance -> no receiveShadows field). }
   if App = nil then
   begin
     HandleShadowCaster;
