@@ -23,7 +23,7 @@ www:
   - Documentation? (Or hide -- too old?)
   - VRML/X3D (ToC of pages about vrml)
   - More
-  
+
 * link to https://www.ohloh.net/p/vrmlengine/widgets, but where?
   put a link with "I use it"? And a link to stats (with commit graph?)?
 ------------------------------------------------------------------------------
@@ -346,7 +346,6 @@ JavaScript, or Python/Lua?
 ------------------------------------------------------------------------------
 Shadow maps todos:
 - Point light sources.
-- Something animated with shadow maps to show off?
 - Implement rest of auto-calc:
 
   SFVec4f  [in,out]  \codeem{projectionRectangle} 0 0 0 0
@@ -373,6 +372,26 @@ Shadow maps todos:
 Various ideas:
 
 - screenshot: 10 November - http://vcg.isti.cnr.it/cgf/index.php ?
+
+- kambi_vrml_test_suite/x3d/import_export.x3dv fails
+  on view3dscene load+save test (run_tests.sh).
+
+  That's because TVRMLImport.SaveToStream doesn't bind the
+  ImportedNodeAlias, like
+
+    { When writing the contents back to stream, bind the name,
+      otherwise ROUTEs using this name cannot be saved.
+
+      Note we don't have here the actual ImportedNode reference
+      (because when saving inline node, we do not collect names from an inline
+      content, because we do not save inline content --- this could be a huge
+      time eater, only to make this case faster). So we just pass nil. }
+    (NodeNames as TVRMLNodeNames).Bind(nil, ImportedNodeAlias);
+
+  Except, our code isn't really ready for the node = nil case.
+
+  Postpone for later: correctly saving stuff with IMPORT clauses
+  is too minor usage.
 
 - http://www.web3d.org/x3d/specifications/spec_feedback/ - wait for ack
   6 times nurbs,
