@@ -310,6 +310,9 @@ JavaScript, or Python/Lua?
 ------------------------------------------------------------------------------
 Various ideas:
 
+- support loading other images (like GIF) through internal lib? fpImage?
+  Notify: jordi (of hiperia)?
+
 * Remove ScheduleChangesAll.
   Just like DoGeometryChanged: everything should be automatically generated,
   and ChangesAll only invalidates stuff, making it inexpensive.
@@ -424,9 +427,6 @@ Occlusion culling (Ok for post 3.4):
 ------------------------------------------------------------------------------
 moved post 3.4:
 
-- multitex:
-  - fix for normal primitives: set all texture coords equal.
-
 Victor Amat list (overlapping with mine, so let's go with it):
   - passing vertex attributes to shaders
 
@@ -484,8 +484,6 @@ ImageGLInternalFormat should use symbolic names, not numbers!
 Shadow maps implementation rest:
 - PROJECTION texture mapping disables displays lists, which seriously limits this technique... Fix. Use VBOs to make things fast even without disp lists. Move texture coord generation out of the display list.
 
-(I think I'll make some extentions to NavigationInfo to control the amount of head-bobbing; but I'm getting off-topic..).
-
 Dynamically changing camera radius may be implemented (along with decreasing camerapreferredheight, decrease cam radius?)
 
 OpenEXR notes:
@@ -504,9 +502,6 @@ There are still some rough situations when camera "shakes" when going around the
   - add to make easily usable from the engine?
 
 - when capturing screenshots/movies in batch mode, use FBO
-
-- add params to primitives to be able to change their texCoord, even creaseAngle
-  (it's stupid that right now I have to write PROTOs with IndexedFaceSet to make them, in the worst case engine should do this automatically)
 
 S3TC:
 - (minor) image_identify cannot display info about S3TC compressed images
@@ -587,11 +582,14 @@ http://delphi.mozdev.org/ for recent fpc)
 
 - And then particle engine
 ------------------------------------------------------------------------------
-- shadows for VRML browsers finish:
+Shadow volumes finish:
   - allow multiple lights. This requires
     adding light contributions, so using blending --- this was problematic
     when shadow receivers could use blending themselves. Now it'll
     not be a problem.
+
+    Do this by using receiveShadows, X3DLightNode.shadows fields
+    --- common with SMs.
 
   - patch for laz to get StencilBits there. (notice de-panther)
 
@@ -620,15 +618,19 @@ Hm, not so difficult, but this is something for later. For now we will have to l
 ------------------------------------------------------------------------------
 after view3dscene 3.0:
 
-For now, ProcessEvents is always @true when scenes count = 1 in view3dscene. Provide a way to turn it off? hm, implement when more sensors are avail. For now, you can pause the anim to turn off WorldTime... Maybe merge it? To also turn ProcessEvents off where applicable?
+- display lists optimization may be wasted even without calling GeometryChanged
+  often (for example, constantly changing material may force it).
 
-display lists optimization may be wasted even without calling GeometryChanged
-often (for example, constantly changing material may force it),
-this has to be detected then inside TVRMLGLScene.
-When some shape is changed too often, switch to roNone for it.
-(When it's changed often but only with TransformOnly, switch to roSeparateShapesNoTransform for it!)
+  This has to be detected then inside TVRMLGLScene.
+  When some shape is changed too often, switch to roNone for it.
+  (When it's changed often but only with TransformOnly,
+  switch to roSeparateShapesNoTransform for it!)
 
-fix extensions to all be gracefully declared by EXTERNPROTO, post to Joerg from white_dune
+  Later: actually, I think it's better to solve it by removing roSeparateShapes
+  and simply moving more stuff out of display list.
+
+- fix extensions to all be gracefully declared by EXTERNPROTO,
+  post to Joerg from white_dune
 
 implement carefully rest of TimeSensor from spec. Now we have X3DTimeDependentNode subset, enabled, time, and (with probably too simple implementation) set_fraction event.
 
