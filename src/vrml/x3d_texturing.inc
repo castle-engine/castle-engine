@@ -969,7 +969,7 @@ begin
   Fields.Add(FFdstartTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdstopTime := TSFTime.Create(Self, 'stopTime', 0);
+  FFdstopTime := TSFStopTime.Create(Self, 'stopTime', 0);
    FdstopTime.ChangesAlways := [chTimeStopStart];
   Fields.Add(FFdstopTime);
   { X3D specification comment: (-Inf,Inf) }

@@ -200,6 +200,13 @@ type
       const Time: TVRMLTime); override;
   end;
 
+  TSFStopTime = class(TSFTime)
+  protected
+    function ExposedEventsFieldClass: TVRMLFieldClass; override;
+    procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+      const Time: TVRMLTime); override;
+  end;
+
 function TSFStartTime.ExposedEventsFieldClass: TVRMLFieldClass;
 begin
   Result := TSFTime;
@@ -217,6 +224,37 @@ procedure TSFStartTime.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField
     Result := (ParentNode <> nil) and
       Supports(ParentNode, INodeX3DTimeDependentNode) and
       (ParentNode as INodeX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
+  end;
+
+begin
+  if Active then Exit;
+  inherited;
+end;
+
+function TSFStopTime.ExposedEventsFieldClass: TVRMLFieldClass;
+begin
+  Result := TSFTime;
+end;
+
+procedure TSFStopTime.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+  const Time: TVRMLTime);
+
+  { Is parent node an active X3DTimeDependentNode, and AValue <= startTime.
+
+    Doing this inside local procedure to limit lifetime of INodeX3DTimeDependentNode,
+    to secure against http://bugs.freepascal.org/view.php?id=10374 }
+  function Active: boolean;
+  var
+    H: INodeX3DTimeDependentNode;
+  begin
+    Result := (ParentNode <> nil) and
+      Supports(ParentNode, INodeX3DTimeDependentNode);
+    if Result then
+    begin
+      H := (ParentNode as INodeX3DTimeDependentNode).TimeDependentNodeHandler;
+      Result := H.IsActive and
+        ( (AValue as TSFTime).Value <= H.FdStartTime.Value );
+    end;
   end;
 
 begin
@@ -247,7 +285,7 @@ begin
   Fields.Add(FFdstartTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdstopTime := TSFTime.Create(Self, 'stopTime', 0);
+  FFdstopTime := TSFStopTime.Create(Self, 'stopTime', 0);
    FdstopTime.ChangesAlways := [chTimeStopStart];
   Fields.Add(FFdstopTime);
   { X3D specification comment: (-Inf,Inf) }
