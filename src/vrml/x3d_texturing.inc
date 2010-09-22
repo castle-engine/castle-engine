@@ -964,7 +964,7 @@ begin
   Fields.Add(FFdspeed);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdstartTime := TSFTime.Create(Self, 'startTime', 0);
+  FFdstartTime := TSFStartTime.Create(Self, 'startTime', 0);
    FdstartTime.ChangesAlways := [chTimeStopStart];
   Fields.Add(FFdstartTime);
   { X3D specification comment: (-Inf,Inf) }

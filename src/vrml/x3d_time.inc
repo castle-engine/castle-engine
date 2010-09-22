@@ -19,6 +19,7 @@
   { }
   INodeX3DTimeDependentNode = interface(INodeX3DChildNode)
   ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
+  (*
     property Fdloop: TSFBool { read FFdloop } { };
     property FdpauseTime: TSFTime { read FFdpauseTime } { };
     property FdresumeTime: TSFTime { read FFdresumeTime } { };
@@ -27,6 +28,7 @@
     property EventelapsedTime: TVRMLEvent { read FEventelapsedTime } { };
     property EventisActive: TVRMLEvent { read FEventisActive } { };
     property EventisPaused: TVRMLEvent { read FEventisPaused } { };
+  *)
 
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
 
@@ -190,6 +192,38 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+type
+  TSFStartTime = class(TSFTime)
+  protected
+    function ExposedEventsFieldClass: TVRMLFieldClass; override;
+    procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+      const Time: TVRMLTime); override;
+  end;
+
+function TSFStartTime.ExposedEventsFieldClass: TVRMLFieldClass;
+begin
+  Result := TSFTime;
+end;
+
+procedure TSFStartTime.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+  const Time: TVRMLTime);
+
+  { Is parent node an active X3DTimeDependentNode.
+
+    Doing this inside local procedure to limit lifetime of INodeX3DTimeDependentNode,
+    to secure against http://bugs.freepascal.org/view.php?id=10374 }
+  function Active: boolean;
+  begin
+    Result := (ParentNode <> nil) and
+      Supports(ParentNode, INodeX3DTimeDependentNode) and
+      (ParentNode as INodeX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
+  end;
+
+begin
+  if Active then Exit;
+  inherited;
+end;
+
 constructor TNodeX3DTimeDependentNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -208,7 +242,7 @@ begin
   Fields.Add(FFdresumeTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdstartTime := TSFTime.Create(Self, 'startTime', 0);
+  FFdstartTime := TSFStartTime.Create(Self, 'startTime', 0);
    FdstartTime.ChangesAlways := [chTimeStopStart];
   Fields.Add(FFdstartTime);
   { X3D specification comment: (-Inf,Inf) }
