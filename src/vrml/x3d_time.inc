@@ -245,7 +245,7 @@ procedure TSFStopTime.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
   function Active: boolean;
   var
-    H: INodeX3DTimeDependentNode;
+    H: TTimeDependentNodeHandler;
   begin
     Result := (ParentNode <> nil) and
       Supports(ParentNode, INodeX3DTimeDependentNode);
