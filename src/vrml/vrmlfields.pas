@@ -734,11 +734,7 @@ type
       situations, as it takes care of implementing required exposed events
       behavior.
 
-      That said, in special cases you may decide to break this,
-      for example when you want to implement this yourself for any reason
-      (e.g. maybe specificaion adds some non-standard behavior
-      to exposed field, for example TimeSensor.set_startTime should
-      be sometimes ignored). }
+      That said, in special cases you may decide to break this. }
     property ExposedEventsLinked: boolean
       read FExposedEventsLinked write SetExposedEventsLinked
       default true;
