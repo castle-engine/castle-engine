@@ -500,8 +500,6 @@ type
 
     procedure SetExposed(Value: boolean);
     function GetExposedEvents(InEvent: boolean): TVRMLEvent;
-    procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
   private
     FValueFromIsClause: boolean;
 
@@ -539,6 +537,17 @@ type
       @link(Changes) method and wants to be fully compatible with normal
       TSFString. }
     function ExposedEventsFieldClass: TVRMLFieldClass; virtual;
+
+    { Handle exposed input event. In TVRMLField class, this does everything
+      usually needed --- assigns value, sends an output event, notifies
+      @link(Changed).
+
+      You can override this for some special purposes. For special needs,
+      you do not even need to call @code(inherited) in overriden versions.
+      This is suitable e.g. for cases when TimeSensor.set_startTime or such
+      must be ignored. }
+    procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime); virtual;
   public
     { Normal constructor.
 

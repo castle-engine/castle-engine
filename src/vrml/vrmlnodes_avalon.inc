@@ -237,8 +237,6 @@
 
   TNodeToggler = class(TNodeX3DChildNode)
   private
-    procedure EventEnabledReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure EventStatusReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure EventNotStatusReceive(
@@ -249,8 +247,6 @@
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     procedure EventResetReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
-  protected
-    procedure ParseAfter(Names: TVRMLNames); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -837,6 +833,30 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
+type
+  TSFBoolIgnorable = class(TSFBool)
+  protected
+    function ExposedEventsFieldClass: TVRMLFieldClass; override;
+    procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+      const Time: TVRMLTime); override;
+  end;
+
+function TSFBoolIgnorable.ExposedEventsFieldClass: TVRMLFieldClass;
+begin
+  Result := TSFBool;
+end;
+
+procedure TSFBoolIgnorable.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+  const Time: TVRMLTime);
+begin
+  { This makes status and notStatus input events ignored,
+    and output events not generated when enabled = FALSE. }
+  if (ParentNode <> nil) and
+     (not (ParentNode as TNodeToggler).FdEnabled.Value) then Exit;
+
+  inherited;
+end;
+
 constructor TNodeToggler.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -846,11 +866,11 @@ begin
     before calling our eventOut handler.
     That's why we listen on EventOuts of status, notStatus, enabled. }
 
-  FFdstatus := TSFBool.Create(Self, 'status', false);
+  FFdstatus := TSFBoolIgnorable.Create(Self, 'status', false);
    Fdstatus.EventOut.OnReceive.Add(@EventStatusReceive);
   Fields.Add(FFdstatus);
 
-  FFdnotStatus := TSFBool.Create(Self, 'notStatus', true);
+  FFdnotStatus := TSFBoolIgnorable.Create(Self, 'notStatus', true);
    Fdnotstatus.EventOut.OnReceive.Add(@EventNotStatusReceive);
   Fields.Add(FFdnotStatus);
 
@@ -876,7 +896,6 @@ begin
   Events.Add(FEventoff);
 
   FFdenabled := TSFBool.Create(Self, 'enabled', true);
-   Fdenabled.EventOut.OnReceive.Add(@EventEnabledReceive);
   Fields.Add(FFdenabled);
 end;
 
@@ -889,24 +908,6 @@ class function TNodeToggler.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
-end;
-
-procedure TNodeToggler.EventEnabledReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
-begin
-  { This makes status and notStatus input events ignored,
-    and output events not generated when enabled = FALSE. }
-  Fdstatus.ExposedEventsLinked := FdEnabled.Value;
-  FdnotStatus.ExposedEventsLinked := FdEnabled.Value;
-end;
-
-procedure TNodeToggler.ParseAfter(Names: TVRMLNames);
-begin
-  inherited;
-  { Same thing as EventEnabledReceive must be done also here,
-    in case you set "enabled FALSE" already in the VRML/X3D file. }
-  Fdstatus.ExposedEventsLinked := FdEnabled.Value;
-  FdnotStatus.ExposedEventsLinked := FdEnabled.Value;
 end;
 
 procedure TNodeToggler.EventStatusReceive(
