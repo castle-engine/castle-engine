@@ -495,8 +495,11 @@ type
       VRML 1.0 MatrixTransform along the way). }
     AverageScaleTransform: Single;
 
-    { Copy Transform from Source.Transform. Along with related fields,
-      like InvertedTransform and AverageScaleTransform. }
+    { Copy transformation-related fields from Source.
+      Copies @link(Transform) matrix, along with related information
+      like InvertedTransform and AverageScaleTransform.
+      Copies also the @link(ClipPlanes) list, as it contains the transformation
+      information. }
     procedure AssignTransform(Source: TVRMLGraphTraverseState);
 
   public
@@ -2487,6 +2490,7 @@ begin
   Transform := Source.Transform;
   AverageScaleTransform := Source.AverageScaleTransform;
   InvertedTransform := Source.InvertedTransform;
+  ClipPlanes.Assign(Source.ClipPlanes);
 end;
 
 function TVRMLGraphTraverseState.Equals(SecondValue: TObject):
