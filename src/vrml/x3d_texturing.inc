@@ -260,6 +260,7 @@
     FDuration: TKamTime;
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
     function CycleInterval: TKamTime;
+    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
@@ -1003,6 +1004,11 @@ begin
   FTimeDependentNodeHandler.EventisPaused := EventisPaused;
   FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;
   FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
+end;
+
+function TNodeMovieTexture.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+begin
+  Result := FTimeDependentNodeHandler;
 end;
 
 destructor TNodeMovieTexture.Destroy;

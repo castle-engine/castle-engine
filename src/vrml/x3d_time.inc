@@ -14,6 +14,8 @@
 }
 
 {$ifdef read_interface}
+  TTimeDependentNodeHandler = class;
+
   { }
   INodeX3DTimeDependentNode = interface(INodeX3DChildNode)
   ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
@@ -25,9 +27,16 @@
     property EventelapsedTime: TVRMLEvent { read FEventelapsedTime } { };
     property EventisActive: TVRMLEvent { read FEventisActive } { };
     property EventisPaused: TVRMLEvent { read FEventisPaused } { };
+
+    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+
+    property TimeDependentNodeHandler: TTimeDependentNodeHandler
+      read GetTimeDependentNodeHandler;
   end;
 
   TNodeX3DTimeDependentNode = class(TNodeX3DChildNode, INodeX3DTimeDependentNode)
+  private
+    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler; virtual; abstract;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -62,8 +71,9 @@
   TTimeFunction = function: TKamTime of object;
 
   { Common helper for all X3DTimeDependentNode descendants.
-    This includes things descending from class TNodeX3DTimeDependentNode,
-    and from interface INodeX3DTimeDependentNode.
+    This includes things descending from interface INodeX3DTimeDependentNode,
+    in particular (but not only) descending from class
+    TNodeX3DTimeDependentNode.
 
     It would be cleaner to have Node declared as INodeX3DTimeDependentNode,
     and have INodeX3DTimeDependentNode contain common fields.
@@ -144,6 +154,8 @@
     function CycleInterval: TKamTime;
     procedure EventElapsedTimeReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+    { To satify INodeX3DTimeDependentNode }
+    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
@@ -553,6 +565,11 @@ end;
 class function TNodeTimeSensor.ClassNodeTypeName: string;
 begin
   Result := 'TimeSensor';
+end;
+
+function TNodeTimeSensor.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+begin
+  Result := FTimeDependentNodeHandler;
 end;
 
 function TNodeTimeSensor.SuggestedVRMLVersion(
