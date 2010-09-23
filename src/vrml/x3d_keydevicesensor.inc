@@ -21,6 +21,8 @@
   end;
 
   TNodeKeySensor = class(TNodeX3DKeyDeviceSensorNode)
+  private
+    AltKey, ControlKey, ShiftKey: boolean;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -174,39 +176,80 @@ begin
 end;
 
 procedure TNodeKeySensor.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+
+  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TVRMLEvent);
+  begin
+    if not SpecialPressed then
+    begin
+      SpecialEvent.Send(true, Time);
+      EventIsActive.Send(true, Time);
+      SpecialPressed := true;
+    end;
+  end;
+
 var
   ActionKey: Integer;
 begin
   if FdEnabled.Value then
   begin
-    EventIsActive.Send(true, Time);
+    { For now, actionKeyPress and keyPress are simply always accompanied by isActive := true.
+      We ignore the trouble with key repeat, as spec doesn't say what to do
+      (suggesting that we should make event only on the actual press, but this
+      would be poor --- key repeat is useful for users).
+
+      We track ctrl / alt / shift state and avoid key repeat for them.
+      Reason: 1. for them, key repeat seems really not useful.
+      2. on Unix, windowing system (or at least GTK) doesn't even do key repeat
+      for them. So this makes Windows and Unix behave more commonly. }
     if KeyToActionKey(Key, ActionKey) then
+    begin
       EventActionKeyPress.Send(ActionKey, Time);
+      EventIsActive.Send(true, Time);
+    end;
     if C <> #0 then
+    begin
       EventKeyPress.Send(C, Time);
+      EventIsActive.Send(true, Time);
+    end;
     case Key of
-      K_Alt: EventAltKey.Send(true, Time);
-      K_Ctrl: EventControlKey.Send(true, Time);
-      K_Shift: EventShiftKey.Send(true, Time);
+      K_Alt  : HandleSpecial(AltKey, EventAltKey);
+      K_Ctrl : HandleSpecial(ControlKey, EventControlKey);
+      K_Shift: HandleSpecial(ShiftKey, EventShiftKey);
     end;
   end;
 end;
 
 procedure TNodeKeySensor.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
+
+  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TVRMLEvent);
+  begin
+    if SpecialPressed then
+    begin
+      SpecialEvent.Send(false, Time);
+      EventIsActive.Send(false, Time);
+      SpecialPressed := false;
+    end;
+  end;
+
 var
   ActionKey: Integer;
 begin
   if FdEnabled.Value then
   begin
-    EventIsActive.Send(false, Time);
     if KeyToActionKey(Key, ActionKey) then
+    begin
       EventActionKeyRelease.Send(ActionKey, Time);
+      EventIsActive.Send(false, Time);
+    end;
     if C <> #0 then
+    begin
       EventKeyRelease.Send(C, Time);
+      EventIsActive.Send(false, Time);
+    end;
     case Key of
-      K_Alt: EventAltKey.Send(false, Time);
-      K_Ctrl: EventControlKey.Send(false, Time);
-      K_Shift: EventShiftKey.Send(false, Time);
+      K_Alt  : HandleSpecial(AltKey, EventAltKey);
+      K_Ctrl : HandleSpecial(ControlKey, EventControlKey);
+      K_Shift: HandleSpecial(ShiftKey, EventShiftKey);
     end;
   end;
 end;
