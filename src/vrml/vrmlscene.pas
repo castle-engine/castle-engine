@@ -1629,6 +1629,11 @@ type
       [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_time_origin_at_load]. }
     procedure ResetTimeAtLoad;
 
+    { @deprecated Deprecated name for ResetTime. }
+    procedure ResetWorldTime(const NewValue: TKamTime);
+    { @deprecated Deprecated name for Time. }
+    function WorldTime: TVRMLTime;
+
     { Binding stack of X3DBackgroundNode nodes.
       All descend from TNodeX3DBackgroundNode class. }
     property BackgroundStack: TVRMLBindableStack read FBackgroundStack;
@@ -5503,6 +5508,16 @@ begin
     will not do anything anyway. }
   if TimePlaying and (CompSpeed <> 0) then
     IncreaseTime(TimePlayingSpeed * CompSpeed);
+end;
+
+procedure TVRMLScene.ResetWorldTime(const NewValue: TKamTime);
+begin
+  ResetTime(NewValue);
+end;
+
+function TVRMLScene.WorldTime: TVRMLTime;
+begin
+  Result := Time;
 end;
 
 { changes schedule ----------------------------------------------------------- }
