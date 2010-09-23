@@ -4948,30 +4948,9 @@ end;
 
 { key sensors handling ------------------------------------------------------- }
 
-{ Convert TKey to VRML "action" key code.
-  As defined by X3D KeySensor node specification. }
-function KeyToActionKey(Key: TKey; out ActionKey: Integer): boolean;
-begin
-  Result := true;
-  case Key of
-    K_F1 .. K_F12 : ActionKey := Key - K_F1 + 1;
-    K_Home     : ActionKey := 13;
-    K_End      : ActionKey := 14;
-    K_PageUp   : ActionKey := 15;
-    K_PageDown : ActionKey := 16;
-    K_Up       : ActionKey := 17;
-    K_Down     : ActionKey := 18;
-    K_Left     : ActionKey := 19;
-    K_Right    : ActionKey := 20;
-    else Result := false;
-  end;
-end;
-
 function TVRMLScene.KeyDown(Key: TKey; C: char): boolean;
 var
   I: Integer;
-  KeySensor: TNodeKeySensor;
-  ActionKey: Integer;
 begin
   Result := inherited;
   if Result then Exit;
@@ -4982,26 +4961,13 @@ begin
     BeginChangesSchedule;
     try
       for I := 0 to KeySensorNodes.Count - 1 do
-      begin
-        KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
-        if KeySensor.FdEnabled.Value then
-        begin
-          { Do not treat it as handled (returning ExclusiveEvents),
-            this would disable too much (like Camera usually under Scene on Controls).
-          Result := false; }
-          KeySensor.EventIsActive.Send(true, Time);
-          if KeyToActionKey(Key, ActionKey) then
-            KeySensor.EventActionKeyPress.Send(ActionKey, Time);
-          if C <> #0 then
-            KeySensor.EventKeyPress.Send(C, Time);
-          case Key of
-            K_Alt: KeySensor.EventAltKey.Send(true, Time);
-            K_Ctrl: KeySensor.EventControlKey.Send(true, Time);
-            K_Shift: KeySensor.EventShiftKey.Send(true, Time);
-          end;
-        end;
-      end;
+        (KeySensorNodes.Items[I] as TNodeKeySensor).KeyDown(Key, C, Time);
     finally EndChangesSchedule; end;
+
+    { Do not treat it as handled (returning ExclusiveEvents),
+      even if some KeySensor was found and did something.
+      This would disable too much (like Camera usually under Scene on Controls).
+    Result := false; }
   end;
 
   if Input_PointingDeviceActivate.IsKey(Key, C) then
@@ -5011,8 +4977,6 @@ end;
 function TVRMLScene.KeyUp(Key: TKey; C: char): boolean;
 var
   I: Integer;
-  KeySensor: TNodeKeySensor;
-  ActionKey: Integer;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5023,26 +4987,13 @@ begin
     BeginChangesSchedule;
     try
       for I := 0 to KeySensorNodes.Count - 1 do
-      begin
-        KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
-        if KeySensor.FdEnabled.Value then
-        begin
-          { Do not treat it as handled (returning ExclusiveEvents),
-            this would disable too much (like Camera usually under Scene on Controls).
-          Result := false; }
-          KeySensor.EventIsActive.Send(false, Time);
-          if KeyToActionKey(Key, ActionKey) then
-            KeySensor.EventActionKeyRelease.Send(ActionKey, Time);
-          if C <> #0 then
-            KeySensor.EventKeyRelease.Send(C, Time);
-          case Key of
-            K_Alt: KeySensor.EventAltKey.Send(false, Time);
-            K_Ctrl: KeySensor.EventControlKey.Send(false, Time);
-            K_Shift: KeySensor.EventShiftKey.Send(false, Time);
-          end;
-        end;
-      end;
+        (KeySensorNodes.Items[I] as TNodeKeySensor).KeyUp(Key, C, Time);
     finally EndChangesSchedule; end;
+
+    { Do not treat it as handled (returning ExclusiveEvents),
+      even if some KeySensor was found and did something.
+      This would disable too much (like Camera usually under Scene on Controls).
+    Result := false; }
   end;
 
   if Input_PointingDeviceActivate.IsKey(Key, C) then

@@ -222,7 +222,7 @@ uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3D, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
   Videos, VRMLTime, Base3D,
   KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages,
-  KambiXMLRead, DOM;
+  KambiXMLRead, DOM, KeysMouse;
 
 {$define read_interface}
 

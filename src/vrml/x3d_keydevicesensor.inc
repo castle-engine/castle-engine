@@ -55,6 +55,24 @@
     { Event: SFBool, out } { }
     private FEventshiftKey: TVRMLEvent;
     public property EventshiftKey: TVRMLEvent read FEventshiftKey;
+
+    { React to key down/up events.
+
+      This is used by TVRMLScene to communicate with this key sensor.
+
+      Semantics follow TUIControl.KeyDown,
+      TUIControl.KeyUp behavior which in turn follow TGLWindow.OnKeyDown,
+      TGLWindow.OnKeyUp behavior. This means that Key may be K_None (if not
+      representable as TKey) and C may be #0 (if not representable as char),
+      although not both at the same time (that is, at least one of Key or C
+      parameters contains some useful value). Also, key presses are affected
+      by the "key repeat" feature of the OS (windowing system actually), so when
+      user holds down a key --- we get many key down messages.
+
+      @groupBegin }
+    procedure KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+    procedure KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
+    { @groupEnd }
   end;
 
   TNodeStringSensor = class(TNodeX3DKeyDeviceSensorNode)
@@ -86,6 +104,25 @@ begin
   inherited;
 
   DefaultContainerField := 'children';
+end;
+
+{ Convert TKey to VRML "action" key code.
+  As defined by X3D KeySensor node specification. }
+function KeyToActionKey(Key: TKey; out ActionKey: Integer): boolean;
+begin
+  Result := true;
+  case Key of
+    K_F1 .. K_F12 : ActionKey := Key - K_F1 + 1;
+    K_Home     : ActionKey := 13;
+    K_End      : ActionKey := 14;
+    K_PageUp   : ActionKey := 15;
+    K_PageDown : ActionKey := 16;
+    K_Up       : ActionKey := 17;
+    K_Down     : ActionKey := 18;
+    K_Left     : ActionKey := 19;
+    K_Right    : ActionKey := 20;
+    else Result := false;
+  end;
 end;
 
 constructor TNodeKeySensor.Create(const ANodeName: string;
@@ -134,6 +171,44 @@ class function TNodeKeySensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeKeySensor.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+var
+  ActionKey: Integer;
+begin
+  if FdEnabled.Value then
+  begin
+    EventIsActive.Send(true, Time);
+    if KeyToActionKey(Key, ActionKey) then
+      EventActionKeyPress.Send(ActionKey, Time);
+    if C <> #0 then
+      EventKeyPress.Send(C, Time);
+    case Key of
+      K_Alt: EventAltKey.Send(true, Time);
+      K_Ctrl: EventControlKey.Send(true, Time);
+      K_Shift: EventShiftKey.Send(true, Time);
+    end;
+  end;
+end;
+
+procedure TNodeKeySensor.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
+var
+  ActionKey: Integer;
+begin
+  if FdEnabled.Value then
+  begin
+    EventIsActive.Send(false, Time);
+    if KeyToActionKey(Key, ActionKey) then
+      EventActionKeyRelease.Send(ActionKey, Time);
+    if C <> #0 then
+      EventKeyRelease.Send(C, Time);
+    case Key of
+      K_Alt: EventAltKey.Send(false, Time);
+      K_Ctrl: EventControlKey.Send(false, Time);
+      K_Shift: EventShiftKey.Send(false, Time);
+    end;
+  end;
 end;
 
 constructor TNodeStringSensor.Create(const ANodeName: string;
