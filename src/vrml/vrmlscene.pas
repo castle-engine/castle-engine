@@ -657,7 +657,7 @@ type
 
     { Internal procedure that handles Time changes. }
     procedure InternalSetTime(
-      const NewValue: TVRMLTime; const TimeIncrease: TKamTime);
+      const NewValue: TVRMLTime; const TimeIncrease: TKamTime; const ResetTime: boolean);
 
     procedure ResetLastEventTime(Node: TVRMLNode);
   private
@@ -3590,9 +3590,13 @@ var
 
       Code below will make sure that no matter how small cycleInterval,
       no matter how seldom IncreaseTime occur, the node will get
-      activated when doing something like startTime := Time. }
+      activated when doing something like startTime := Time.
 
-    Handler.SetTime(Time, Time, 0, DummySomethingChanged);
+      Note that we don't reset time here (ResetTime = false), otherwise
+      we would mistakenly interpret resuming (from paused state) just like
+      activation (from stopped state), testcase time_sensor_3.x3dv.  }
+
+    Handler.SetTime(Time, Time, 0, false, DummySomethingChanged);
 
     { DummySomethingChanged is simply ignored here (we do not have to report
       changes anywhere). }
@@ -5391,7 +5395,7 @@ begin
 end;
 
 procedure TVRMLScene.InternalSetTime(
-  const NewValue: TVRMLTime; const TimeIncrease: TKamTime);
+  const NewValue: TVRMLTime; const TimeIncrease: TKamTime; const ResetTime: boolean);
 var
   SomethingChanged: boolean;
   I: Integer;
@@ -5405,7 +5409,7 @@ begin
       for I := 0 to MovieTextureNodes.Count - 1 do
         (MovieTextureNodes.Items[I] as TNodeMovieTexture).
           TimeDependentNodeHandler.SetTime(
-            Time, NewValue, TimeIncrease, SomethingChanged);
+            Time, NewValue, TimeIncrease, ResetTime, SomethingChanged);
 
       { If SomethingChanged on MovieTexture nodes, then we have to redisplay.
         Note that this is not needed for other time-dependent nodes
@@ -5418,7 +5422,7 @@ begin
       for I := 0 to TimeSensorNodes.Count - 1 do
         (TimeSensorNodes.Items[I] as TNodeTimeSensor).
           TimeDependentNodeHandler.SetTime(
-            Time, NewValue, TimeIncrease, SomethingChanged);
+            Time, NewValue, TimeIncrease, ResetTime, SomethingChanged);
     finally
       EndChangesSchedule;
     end;
@@ -5436,7 +5440,7 @@ begin
   NewCompleteValue.PlusTicks := 0;
   TimeIncrease := NewValue - FTime.Seconds;
   if TimeIncrease > 0 then
-    InternalSetTime(NewCompleteValue, TimeIncrease);
+    InternalSetTime(NewCompleteValue, TimeIncrease, false);
 end;
 
 procedure TVRMLScene.IncreaseTime(const TimeIncrease: TKamTime);
@@ -5446,7 +5450,7 @@ begin
   NewCompleteValue.Seconds := FTime.Seconds + TimeIncrease;
   NewCompleteValue.PlusTicks := 0;
   if TimeIncrease > 0 then
-    InternalSetTime(NewCompleteValue, TimeIncrease);
+    InternalSetTime(NewCompleteValue, TimeIncrease, false);
 end;
 
 procedure TVRMLScene.ResetLastEventTime(Node: TVRMLNode);
@@ -5468,7 +5472,7 @@ begin
 
   NewCompleteValue.Seconds := NewValue;
   NewCompleteValue.PlusTicks := 0;
-  InternalSetTime(NewCompleteValue, 0);
+  InternalSetTime(NewCompleteValue, 0, true);
 end;
 
 procedure TVRMLScene.ResetTimeAtLoad;

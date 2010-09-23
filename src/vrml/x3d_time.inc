@@ -133,10 +133,14 @@
       OldValue, NewValue and TimeIncrease must match, as produced
       by TVRMLScene.SetTime and friends.
 
-      TimeIncrease = 0.0 here means "TimeIncrease is unknown",
-      this can happen only when were called by ResetTime
-      or when updating state from TVRMLScene.ChangedField.
-      In other circumstances, TimeIncrease must be > 0.
+      When ResetTime = true, this means that "TimeIncrease value is unknown"
+      (you @italic(must) pass TimeIncrease = 0 in this case).
+      This can happen only when were called by ResetTime.
+
+      In other circumstances, TimeIncrease must be >= 0.
+      (It's allowed to pass TimeIncrease = 0 and ResetTime = false, this doesn't
+      advance the clock, but is a useful trick to force some update,
+      see TVRMScene.ChangedField implementation.)
 
       References: see X3D specification "Time" component,
       8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
@@ -146,7 +150,7 @@
         sets this to @false), when some state of time-dependent node
         changed.) }
     procedure SetTime(const OldValue, NewValue: TVRMLTime;
-      const TimeIncrease: TKamTime;
+      const TimeIncrease: TKamTime; const ResetTime: boolean;
       var SomethingChanged: boolean);
   end;
 
@@ -337,7 +341,7 @@ end;
 
 procedure TTimeDependentNodeHandler.SetTime(
   const OldValue, NewValue: TVRMLTime;
-  const TimeIncrease: TKamTime;
+  const TimeIncrease: TKamTime; const ResetTime: boolean;
   var SomethingChanged: boolean);
 
 var
@@ -391,6 +395,9 @@ var
   end;
 
 begin
+  { if ResetTime, then TimeIncrease must be always exactly 0 }
+  Assert((not ResetTime) or (TimeIncrease = 0));
+
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
     WritelnLog('TimeDependentNodes', Format('%s: time changes from %f (by +%f) to %f. Before state: active %s, paused %s, loop %s',
@@ -421,7 +428,7 @@ begin
 
   { For ResetTime, set time-dependent node properties to default
     (like after TNodeTimeHandler creation) at the beginning. }
-  if TimeIncrease = 0 then
+  if ResetTime then
   begin
     NewIsActive := false;
     NewIsPaused := false;
@@ -514,7 +521,7 @@ begin
     end else
     begin
       { active and not paused movie }
-      if TimeIncrease = 0 then
+      if ResetTime then
         NewElapsedTime := 0 else
         IncreaseElapsedTime(TimeIncrease, true);
     end;
