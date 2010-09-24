@@ -18,6 +18,24 @@
   TNodeX3DKeyDeviceSensorNode = class(TNodeX3DSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    { React to key down/up events.
+
+      This is used by TVRMLScene to communicate with this key sensor.
+
+      Semantics follow TUIControl.KeyDown,
+      TUIControl.KeyUp behavior which in turn follow TGLWindow.OnKeyDown,
+      TGLWindow.OnKeyUp behavior. This means that Key may be K_None (if not
+      representable as TKey) and C may be #0 (if not representable as char),
+      although not both at the same time (that is, at least one of Key or C
+      parameters contains some useful value). Also, key presses are affected
+      by the "key repeat" feature of the OS (windowing system actually), so when
+      user holds down a key --- we get many key down messages.
+
+      @groupBegin }
+    procedure KeyDown(Key: TKey; C: char; var Time: TVRMLTime); virtual;
+    procedure KeyUp(Key: TKey; C: char; var Time: TVRMLTime); virtual;
+    { @groupEnd }
   end;
 
   TNodeKeySensor = class(TNodeX3DKeyDeviceSensorNode)
@@ -58,26 +76,14 @@
     private FEventshiftKey: TVRMLEvent;
     public property EventshiftKey: TVRMLEvent read FEventshiftKey;
 
-    { React to key down/up events.
-
-      This is used by TVRMLScene to communicate with this key sensor.
-
-      Semantics follow TUIControl.KeyDown,
-      TUIControl.KeyUp behavior which in turn follow TGLWindow.OnKeyDown,
-      TGLWindow.OnKeyUp behavior. This means that Key may be K_None (if not
-      representable as TKey) and C may be #0 (if not representable as char),
-      although not both at the same time (that is, at least one of Key or C
-      parameters contains some useful value). Also, key presses are affected
-      by the "key repeat" feature of the OS (windowing system actually), so when
-      user holds down a key --- we get many key down messages.
-
-      @groupBegin }
-    procedure KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
-    procedure KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
-    { @groupEnd }
+    procedure KeyDown(Key: TKey; C: char; var Time: TVRMLTime); override;
+    procedure KeyUp(Key: TKey; C: char; var Time: TVRMLTime); override;
   end;
 
   TNodeStringSensor = class(TNodeX3DKeyDeviceSensorNode)
+  private
+    EnteredText: string;
+    Active: boolean;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -95,6 +101,8 @@
     { Event: SFString, out } { }
     private FEventfinalText: TVRMLEvent;
     public property EventfinalText: TVRMLEvent read FEventfinalText;
+
+    procedure KeyDown(Key: TKey; C: char; var Time: TVRMLTime); override;
   end;
 
 {$endif read_interface}
@@ -106,6 +114,16 @@ begin
   inherited;
 
   DefaultContainerField := 'children';
+end;
+
+procedure TNodeX3DKeyDeviceSensorNode.KeyDown(Key: TKey; C: char; var Time: TVRMLTime);
+begin
+  { Nothing to do in this class. }
+end;
+
+procedure TNodeX3DKeyDeviceSensorNode.KeyUp(Key: TKey; C: char; var Time: TVRMLTime);
+begin
+  { Nothing to do in this class. }
 end;
 
 { Convert TKey to VRML "action" key code.
@@ -175,14 +193,14 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeKeySensor.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TNodeKeySensor.KeyDown(Key: TKey; C: char; var Time: TVRMLTime);
 
   procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TVRMLEvent);
   begin
     if not SpecialPressed then
     begin
-      SpecialEvent.Send(true, Time);
-      EventIsActive.Send(true, Time);
+      SpecialEvent.Send(true, Time); Inc(Time.PlusTicks);
+      EventIsActive.Send(true, Time); Inc(Time.PlusTicks);
       SpecialPressed := true;
     end;
   end;
@@ -190,6 +208,7 @@ procedure TNodeKeySensor.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
 var
   ActionKey: Integer;
 begin
+  inherited;
   if FdEnabled.Value then
   begin
     { For now, actionKeyPress and keyPress are simply always accompanied by isActive := true.
@@ -203,13 +222,13 @@ begin
       for them. So this makes Windows and Unix behave more commonly. }
     if KeyToActionKey(Key, ActionKey) then
     begin
-      EventActionKeyPress.Send(ActionKey, Time);
-      EventIsActive.Send(true, Time);
+      EventActionKeyPress.Send(ActionKey, Time); Inc(Time.PlusTicks);
+      EventIsActive.Send(true, Time); Inc(Time.PlusTicks);
     end;
     if C <> #0 then
     begin
-      EventKeyPress.Send(C, Time);
-      EventIsActive.Send(true, Time);
+      EventKeyPress.Send(C, Time); Inc(Time.PlusTicks);
+      EventIsActive.Send(true, Time); Inc(Time.PlusTicks);
     end;
     case Key of
       K_Alt  : HandleSpecial(AltKey, EventAltKey);
@@ -219,14 +238,14 @@ begin
   end;
 end;
 
-procedure TNodeKeySensor.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TNodeKeySensor.KeyUp(Key: TKey; C: char; var Time: TVRMLTime);
 
   procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TVRMLEvent);
   begin
     if SpecialPressed then
     begin
-      SpecialEvent.Send(false, Time);
-      EventIsActive.Send(false, Time);
+      SpecialEvent.Send(false, Time); Inc(Time.PlusTicks);
+      EventIsActive.Send(false, Time); Inc(Time.PlusTicks);
       SpecialPressed := false;
     end;
   end;
@@ -238,13 +257,13 @@ begin
   begin
     if KeyToActionKey(Key, ActionKey) then
     begin
-      EventActionKeyRelease.Send(ActionKey, Time);
-      EventIsActive.Send(false, Time);
+      EventActionKeyRelease.Send(ActionKey, Time); Inc(Time.PlusTicks);
+      EventIsActive.Send(false, Time); Inc(Time.PlusTicks);
     end;
     if C <> #0 then
     begin
-      EventKeyRelease.Send(C, Time);
-      EventIsActive.Send(false, Time);
+      EventKeyRelease.Send(C, Time); Inc(Time.PlusTicks);
+      EventIsActive.Send(false, Time); Inc(Time.PlusTicks);
     end;
     case Key of
       K_Alt  : HandleSpecial(AltKey, EventAltKey);
@@ -252,6 +271,7 @@ begin
       K_Shift: HandleSpecial(ShiftKey, EventShiftKey);
     end;
   end;
+  inherited;
 end;
 
 constructor TNodeStringSensor.Create(const ANodeName: string;
@@ -288,6 +308,43 @@ class function TNodeStringSensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeStringSensor.KeyDown(Key: TKey; C: char; var Time: TVRMLTime);
+begin
+  inherited;
+
+  if FdEnabled.Value and (C <> #0) then
+  begin
+    if not Active then
+    begin
+      Active := true;
+      EventIsActive.Send(Active, Time); Inc(Time.PlusTicks);
+    end;
+
+    case C of
+      CharBackspace:
+        if FdDeletionAllowed.Value and (EnteredText <> '') then
+        begin
+          SetLength(EnteredText, Length(EnteredText) - 1);
+          EventEnteredText.Send(EnteredText, Time); Inc(Time.PlusTicks);
+        end;
+      CharEnter:
+        begin
+          EventFinalText.Send(EnteredText, Time); Inc(Time.PlusTicks);
+          { X3D spec says explicitly that in this case, enteredText event
+            is not generated although internal value is empty. }
+          EnteredText := '';
+          Active := false;
+          EventIsActive.Send(Active, Time); Inc(Time.PlusTicks);
+        end;
+      else
+        begin
+          EnteredText := EnteredText + C;
+          EventEnteredText.Send(EnteredText, Time); Inc(Time.PlusTicks);
+        end;
+    end;
+  end;
 end;
 
 procedure RegisterKeyDeviceSensorNodes;

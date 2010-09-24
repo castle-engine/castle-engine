@@ -635,7 +635,7 @@ type
     procedure SetProcessEvents(const Value: boolean);
   private
     { This is collected by CollectNodesForEvents. @nil if not ProcessEvents. }
-    KeySensorNodes, TimeSensorNodes, MovieTextureNodes: TVRMLNodesList;
+    KeyDeviceSensorNodes, TimeSensorNodes, MovieTextureNodes: TVRMLNodesList;
     ProximitySensorInstances: TDynProximitySensorInstanceArray;
 
     procedure ClearCollectedNodesForEvents;
@@ -2300,7 +2300,7 @@ begin
   if ChangeListeners <> nil then
     ChangeListeners.Remove(Self);
 
-  { This also frees related lists, like KeySensorNodes,
+  { This also frees related lists, like KeyDeviceSensorNodes,
     and does UnregisterProcessEvents(RootNode). }
   ProcessEvents := false;
 
@@ -4795,8 +4795,8 @@ procedure TVRMLScene.CollectNodeForEvents(Node: TVRMLNode);
 begin
   Node.EventsEngine := Self;
 
-  if Node is TNodeKeySensor then
-    KeySensorNodes.AddIfNotExists(Node) else
+  if Node is TNodeX3DKeyDeviceSensorNode then
+    KeyDeviceSensorNodes.AddIfNotExists(Node) else
   if Node is TNodeTimeSensor then
     TimeSensorNodes.AddIfNotExists(Node) else
   if Node is TNodeMovieTexture then
@@ -4822,7 +4822,7 @@ end;
 
 procedure TVRMLScene.ClearCollectedNodesForEvents;
 begin
-  KeySensorNodes.Clear;
+  KeyDeviceSensorNodes.Clear;
   TimeSensorNodes.Clear;
   MovieTextureNodes.Clear;
   ProximitySensorInstances.Count := 0;
@@ -4905,7 +4905,7 @@ begin
   begin
     if Value then
     begin
-      KeySensorNodes := TVRMLNodesList.Create;
+      KeyDeviceSensorNodes := TVRMLNodesList.Create;
       TimeSensorNodes := TVRMLNodesList.Create;
       MovieTextureNodes := TVRMLNodesList.Create;
       ProximitySensorInstances := TDynProximitySensorInstanceArray.Create;
@@ -4919,7 +4919,7 @@ begin
     end else
     begin
       if RootNode <> nil then UnregisterProcessEvents(RootNode);
-      FreeAndNil(KeySensorNodes);
+      FreeAndNil(KeyDeviceSensorNodes);
       FreeAndNil(TimeSensorNodes);
       FreeAndNil(MovieTextureNodes);
       FreeAndNil(ProximitySensorInstances);
@@ -4960,12 +4960,12 @@ begin
     Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
-      for I := 0 to KeySensorNodes.Count - 1 do
-        (KeySensorNodes.Items[I] as TNodeKeySensor).KeyDown(Key, C, Time);
+      for I := 0 to KeyDeviceSensorNodes.Count - 1 do
+        (KeyDeviceSensorNodes.Items[I] as TNodeX3DKeyDeviceSensorNode).KeyDown(Key, C, FTime);
     finally EndChangesSchedule; end;
 
     { Do not treat it as handled (returning ExclusiveEvents),
-      even if some KeySensor was found and did something.
+      even if some X3DKeyDeviceSensorNode was found and did something.
       This would disable too much (like Camera usually under Scene on Controls).
     Result := false; }
   end;
@@ -4986,12 +4986,12 @@ begin
     Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
-      for I := 0 to KeySensorNodes.Count - 1 do
-        (KeySensorNodes.Items[I] as TNodeKeySensor).KeyUp(Key, C, Time);
+      for I := 0 to KeyDeviceSensorNodes.Count - 1 do
+        (KeyDeviceSensorNodes.Items[I] as TNodeX3DKeyDeviceSensorNode).KeyUp(Key, C, FTime);
     finally EndChangesSchedule; end;
 
     { Do not treat it as handled (returning ExclusiveEvents),
-      even if some KeySensor was found and did something.
+      even if some X3DKeyDeviceSensorNode was found and did something.
       This would disable too much (like Camera usually under Scene on Controls).
     Result := false; }
   end;

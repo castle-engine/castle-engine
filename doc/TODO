@@ -726,8 +726,7 @@ after view3dscene 3.0:
 
 implement carefully rest of TimeSensor from spec. Now we have X3DTimeDependentNode subset, enabled, time, and (with probably too simple implementation) set_fraction event.
 
-StringSensor.
-Make it possible then to load new image file in kambi_script_edit_texture.x3dv
+Using StringSensor Make it possible then to load new image file in kambi_script_edit_texture.x3dv
 
 ------------------------------------------------------------------------------
 MatrixTransform fix:
