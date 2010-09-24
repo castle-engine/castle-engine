@@ -259,9 +259,22 @@
       Notes about CharKey values #8 (CharBackSpace = CtrlH),
       #9 (CharTab = CtrlI), #13 (CharEnter = CtrlM): these are problematic,
       since they may mean backspace/tab/enter or combinations with Ctrl key.
-      Decision: for menu shortcuts, these mean combinations with Ctrl key.
-      You can get backspace/tab/enter shortcuts by using
-      Key property instead (with K_BackSpace, K_Tab, K_Enter).
+      Our algorithm to deal with this:
+
+      @orderedList(
+        @item(If your CharKey is one of the CharBackSpace/Tab/Enter constants,
+          @italic(and @link(Key) is K_None), then you mean the combination
+          with Ctrl key. That's how it's displayed, and moreover: keyboard
+          presses with K_BackSpace/K_Tab/K_Enter do @italic(not) trigger
+          this menu item.
+
+          This way menu items with Ctrl+H or Ctrl+M or Ctrl+I do not block
+          you from assigning keyboard K_BackSpace/K_Tab/K_Enter
+          to some other useful action.)
+
+        @item(If you really want to assign keyboard backspace/tab/enter
+          presses to menu item, use TKey constants K_BackSpace, K_Tab, K_Enter.)
+      )
 
       Design notes: I am no longer using TMenuItemKey class.
       Instead I put this functionality into base TMenuItem class.
@@ -288,6 +301,8 @@
       If both CharKey = #0 and Key = K_None then returns false and
       S is undefined. }
     function KeyString(out S: string): boolean;
+
+    function KeyMatches(const AKey: TKey; const ACharKey: char): boolean;
 
     { This is Caption with optional key description (returned by KeyString)
       appended in '[' ... ']'. }
@@ -642,6 +657,23 @@ begin
   Result := true;
  end else
  Result := false;
+end;
+
+function TMenuItem.KeyMatches(const AKey: TKey; const ACharKey: char): boolean;
+begin
+  { For CtrlH (= CharBackspace), *do not* match backspace key. }
+  if (Key = K_None) and (CharKey = CharBackSpace) then
+    Result := (ACharKey = CharBackSpace) and not (AKey = K_BackSpace) else
+
+  if (Key = K_None) and (CharKey = CharEnter) then
+    Result := (ACharKey = CharEnter) and not (AKey = K_Enter) else
+
+  if (Key = K_None) and (CharKey = CharTab) then
+    Result := (ACharKey = CharTab) and not (AKey = K_Tab) else
+
+    Result :=
+      ( (AKey <> K_None) and (Key = AKey) ) or
+      ( (ACharKey <> #0) and (CharKey = ACharKey) );
 end;
 
 function TMenuItem.CaptionWithKey: string;

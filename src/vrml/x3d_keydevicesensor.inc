@@ -314,7 +314,7 @@ procedure TNodeStringSensor.KeyDown(Key: TKey; C: char; var Time: TVRMLTime);
 begin
   inherited;
 
-  if FdEnabled.Value and (C <> #0) then
+  if FdEnabled.Value and ( (C <> #0) or (Key in [K_BackSpace, K_Enter]) ) then
   begin
     if not Active then
     begin
@@ -322,27 +322,31 @@ begin
       EventIsActive.Send(Active, Time); Inc(Time.PlusTicks);
     end;
 
-    case C of
-      CharBackspace:
-        if FdDeletionAllowed.Value and (EnteredText <> '') then
-        begin
-          SetLength(EnteredText, Length(EnteredText) - 1);
-          EventEnteredText.Send(EnteredText, Time); Inc(Time.PlusTicks);
-        end;
-      CharEnter:
-        begin
-          EventFinalText.Send(EnteredText, Time); Inc(Time.PlusTicks);
-          { X3D spec says explicitly that in this case, enteredText event
-            is not generated although internal value is empty. }
-          EnteredText := '';
-          Active := false;
-          EventIsActive.Send(Active, Time); Inc(Time.PlusTicks);
-        end;
-      else
-        begin
-          EnteredText := EnteredText + C;
-          EventEnteredText.Send(EnteredText, Time); Inc(Time.PlusTicks);
-        end;
+    { Catch both CharBackspace and K_BackSpace.
+      Catching CharBackspace is not enough, because it's also equal to Ctrl+H.
+      Same for CharEnter: it's also equal to Ctrl+M.
+      And Ctrl+... may be often used by some menu items, see e.g. view3dscene. }
+
+    if (C = CharBackspace) or (Key = K_BackSpace) then
+    begin
+      if FdDeletionAllowed.Value and (EnteredText <> '') then
+      begin
+        SetLength(EnteredText, Length(EnteredText) - 1);
+        EventEnteredText.Send(EnteredText, Time); Inc(Time.PlusTicks);
+      end;
+    end else
+    if (C = CharEnter) or (Key = K_Enter) then
+    begin
+      EventFinalText.Send(EnteredText, Time); Inc(Time.PlusTicks);
+      { X3D spec says explicitly that in this case, enteredText event
+        is not generated although internal value is empty. }
+      EnteredText := '';
+      Active := false;
+      EventIsActive.Send(Active, Time); Inc(Time.PlusTicks);
+    end else
+    begin
+      EnteredText := EnteredText + C;
+      EventEnteredText.Send(EnteredText, Time); Inc(Time.PlusTicks);
     end;
   end;
 end;

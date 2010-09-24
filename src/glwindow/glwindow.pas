@@ -3290,8 +3290,7 @@ procedure TGLWindow.DoKeyDown(Key: TKey; CharKey: char);
       end;
      end else
      if (Entry is TMenuItem) and
-        ( ((Key <> K_None) and (TMenuItem(Entry).Key = Key)) or
-          ((CharKey <> #0) and (TMenuItem(Entry).CharKey = CharKey)) ) then
+        TMenuItem(Entry).KeyMatches(Key, CharKey) then
       Result := TMenuItem(Entry);
     end;
 
