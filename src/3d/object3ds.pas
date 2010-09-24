@@ -657,7 +657,7 @@ begin
  Writeln('All trimeshes sum : ',SumTrimeshesVertsCount, ' vertices, ',
    SumTrimeshesFacesCount, ' triangles');
  Writeln('Bounding box : ',Box3DToNiceStr(BoundingBox),
-   ', average size : ',Format('%f', [Box3DAvgSize(BoundingBox)]) );
+   ', average size : ',Format('%f', [Box3DAvgSize(BoundingBox, true, 0)]) );
 end;
 
 function TScene3ds.TryCameraMatrix(CamNumber: integer): TMatrix4Single;
