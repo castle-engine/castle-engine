@@ -686,7 +686,12 @@ type
     procedure RotateHorizontal(const AngleDeg: Single);
     procedure RotateVertical(const AngleDeg: Single);
 
-    procedure Jump;
+    { Jump.
+
+      Returns if a jump was actually done. For example, you cannot
+      jump when there's no gravity, or you're already in the middle
+      of the jump. Can be useful to determine if key was handled and such. }
+    function Jump: boolean;
 
     function EventDown(MouseEvent: boolean; Key: TKey;
       ACharacter: Char;
@@ -3416,8 +3421,10 @@ begin
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.Jump;
+function TWalkCamera.Jump: boolean;
 begin
+  Result := false;
+
   if IsJumping or IsFallingDown or (not Gravity) then Exit;
 
   { Merely checking for IsFallingDown is not enough, because IsFallingDown
@@ -3438,6 +3445,7 @@ begin
 
   FIsJumping := true;
   FJumpHeight := 0.0;
+  Result := true;
 end;
 
 function TWalkCamera.AllowSuspendForInput: boolean;
@@ -3479,8 +3487,7 @@ begin
   end else
   if Input_Jump.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
-    Jump;
-    Result := ExclusiveEvents;
+    Result := Jump and ExclusiveEvents;
   end else
     Result := false;
 end;
