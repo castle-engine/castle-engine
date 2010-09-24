@@ -1449,8 +1449,6 @@ procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
   const CameraRadius: Single; const CrouchHeight, HeadBobbing: Single);
 
 const
-  MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
-
   { Default camera direction and up vectors, used to define the meaning
     of "camera orientation" for CamDirUp2Orient routines.
     These match VRML/X3D default camera values.

@@ -237,6 +237,8 @@ const
   K_Comma = 188;
   K_Period = 190;
 
+  MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
+
 function KeyToStr(key: TKey): string;
 
 type
