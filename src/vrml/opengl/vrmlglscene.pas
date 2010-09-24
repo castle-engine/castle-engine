@@ -4708,7 +4708,7 @@ var
     FieldOfView: TDynSingleArray;
     MaxSize: Single;
   begin
-    MaxSize := Box3DMaxSize(Box, { any dummy value } 1.0);
+    MaxSize := Box3DMaxSize(Box, false, { any dummy value } 1.0);
 
     PerspectiveView := false;
 
@@ -4776,12 +4776,11 @@ begin
   if VisibilityLimit <> 0.0 then
     WalkProjectionFar := VisibilityLimit else
   begin
-    if IsEmptyBox3D(Box) then
-      { When IsEmptyBox3D, Result is not simply "any dummy value".
+    WalkProjectionFar := Box3DAvgSize(Box, false,
+      { When box is empty (or has 0 sizes), WalkProjectionFar is not simply "any dummy value".
         It must be appropriately larger than WalkProjectionNear
         to provide sufficient space for rendering Background node. }
-      WalkProjectionFar := WalkProjectionNear * 10 else
-      WalkProjectionFar := Box3DAvgSize(Box) * 20.0;
+      WalkProjectionNear) * 20.0;
   end;
 
   { To minimize depth buffer errors we want to make ZNear/ZFar dependent
@@ -4797,7 +4796,7 @@ begin
     e.g. see kings_head.wrl. }
 
   if (ACamera is TExamineCamera) and
-     (not IsEmptyBox3D(Box)) then
+     (not IsEmptyOrZeroBox3D(Box)) then
     ZNear := Box3DAvgSize(Box) * 0.1 else
     ZNear := WalkProjectionNear;
 

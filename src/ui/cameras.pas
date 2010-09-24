@@ -1953,7 +1953,7 @@ begin
 
   if HandleMouseAndKeys and (not IgnoreAllInputs) then
   begin
-    if IsEmptyBox3D(ModelBox) then
+    if IsEmptyOrZeroBox3D(ModelBox) then
       move_change := CompSpeed else
       move_change := Box3DAvgSize(ModelBox) * CompSpeed;
     rot_speed_change := 5 * CompSpeed;
@@ -2040,7 +2040,7 @@ begin FCenterOfRotation := Value; VisibleChange; end;
 
 procedure TExamineCamera.HomeNotNotify;
 begin
-  if IsEmptyBox3D(FModelBox) then
+  if IsEmptyOrZeroBox3D(FModelBox) then
     FMoveAmount := Vector3Single(0, 0, 0) { any dummy value } else
     FMoveAmount := VectorAdd(
       VectorNegate(FCenterOfRotation),
@@ -2187,7 +2187,7 @@ begin
     meaning of mbLeft but they don't change the meaning of mbRight / Middle ? }
 
   { Moving closer/further }
-  if (not IsEmptyBox3D(FModelBox)) and
+  if (not IsEmptyOrZeroBox3D(FModelBox)) and
      ( ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
        ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) ) ) then
   begin
@@ -3531,7 +3531,7 @@ procedure TWalkCamera.Init(const Box: TBox3D; const ACameraRadius: Single);
 var Pos: TVector3Single;
     AvgSize: Single;
 begin
- if IsEmptyBox3D(Box) then
+ if IsEmptyOrZeroBox3D(Box) then
   Init(Vector3Single(0, 0, 0),
        Vector3Single(0, 0, -1),
        Vector3Single(0, 1, 0),

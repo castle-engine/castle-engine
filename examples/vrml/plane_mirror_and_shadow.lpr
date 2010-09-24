@@ -438,7 +438,7 @@ begin
   glViewport(0, 0, ContainerWidth, ContainerHeight);
 
   Box := Scene.BoundingBox;
-  BoxMaxSize := Box3DMaxSize(Box, { whatever, arbitrary number } 2);
+  BoxMaxSize := Box3DMaxSize(Box, false, { whatever, arbitrary number } 2);
 
   ProjectionGLPerspective(45.0, ContainerWidth / ContainerHeight,
     BoxMaxSize * 0.01, BoxMaxSize * 10.0);

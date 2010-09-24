@@ -27,17 +27,20 @@ type
     X = 0, Y = 0 and Z = 0. This is sometimes called AABB, "axis-aligned bounding
     box".
 
-    This is a handy type, because it's easy to implement many
-    operations on it in a fast manner.
+    Many geometric operations are fast and easy on this.
 
     First point always has all the smaller coords, second point has all
     the larger coords. I.e. always
+
 @preformatted(
   Box[0, 0] <= Box[1, 0] and
   Box[0, 1] <= Box[1, 1] and
   Box[0, 2] <= Box[1, 2]
 )
-    The only exception is the special value EmptyBox3D. }
+    The only exception is the special value EmptyBox3D.
+
+    Note that the box may still have all sizes equal 0. Consider a 3D model with
+    only a single 3D point --- it's not empty, but all the sizes must be 0. }
   TBox3D     = array [0..1   ] of TVector3Single;
   TBox3DBool = array [boolean] of TVector3Single;
   PBox3D = ^TBox3D;
@@ -58,6 +61,9 @@ const
   @code(Box[0, 0] <= Box[1, 0]) rule. }
 function IsEmptyBox3D(const Box: TBox3D): boolean;
 
+{ Check is box empty or has all the sizes equal 0. }
+function IsEmptyOrZeroBox3D(const Box: TBox3D): boolean;
+
 function Box3D(const p0, p1: TVector3Single): TBox3D;
 function Box3DOrderUp(const p0, p1: TVector3Single): TBox3D;
 
@@ -76,13 +82,23 @@ function Box3DSizeY(const box: TBox3D): Single;
 function Box3DSizeZ(const box: TBox3D): Single;
 { @groupEnd }
 
-{ Calculate average size of TBox3D, or return EmptyBoxSize is box empty. }
-function Box3DAvgSize(const Box: TBox3D; const EmptyBoxSize: Single): Single; overload;
+{ Average size of TBox3D, or EmptyBoxSize if box is empty.
+  If AllowZero is @false, then we also return EmptyBoxSize when all the box
+  sizes are zero. }
+function Box3DAvgSize(const Box: TBox3D; const AllowZero: boolean;
+  const EmptyBoxSize: Single): Single; overload;
 
-{ Calculate maximum size of TBox3D, or return EmptyBoxSize is box empty. }
-function Box3DMaxSize(const box: TBox3D; const EmptyBoxSize: Single): Single; overload;
+{ Largest size of TBox3D, or EmptyBoxSize if box is empty.
+  If AllowZero is @false, then we also return EmptyBoxSize when all the box
+  sizes are zero. }
+function Box3DMaxSize(const box: TBox3D; const AllowZero: boolean;
+  const EmptyBoxSize: Single): Single; overload;
 
-function Box3DArea(const box: TBox3D; const EmptyBoxArea: Single): Single;
+{ Area of the six TBox3D sides, EmptyBoxArea if box is empty.
+  If AllowZero is @false, then we also return EmptyBoxArea when all the box
+  sizes are zero. }
+function Box3DArea(const box: TBox3D; const AllowZero: boolean;
+  const EmptyBoxArea: Single): Single;
 
 { This decreases Box[0, 0], Box[0, 1], Box[0, 2] by Expand
    and increases Box[1, 0], Box[1, 1], Box[1, 2] by Expand.
@@ -483,6 +499,15 @@ begin
  result := Box[0, 0] > Box[1, 0];
 end;
 
+function IsEmptyOrZeroBox3D(const Box: TBox3D): boolean;
+begin
+  Result := (Box[0, 0] > Box[1, 0]) or
+    ( (Box[0, 0] = Box[1, 0]) and
+      (Box[0, 1] = Box[1, 1]) and
+      (Box[0, 2] = Box[1, 2])
+    );
+end;
+
 function Box3D(const p0, p1: TVector3Single): TBox3D;
 begin
  result[0] := p0;
@@ -521,13 +546,18 @@ begin
             (Box[1, 2]-Box[0, 2]))/3;
 end;
 
-function Box3DAvgSize(const Box: TBox3D; const EmptyBoxSize: Single): Single;
+function Box3DAvgSize(const Box: TBox3D; const AllowZero: boolean;
+  const EmptyBoxSize: Single): Single;
 begin
   if IsEmptyBox3D(Box) then
     Result := EmptyBoxSize else
+  begin
     Result := ((Box[1, 0]-Box[0, 0]) +
                (Box[1, 1]-Box[0, 1]) +
                (Box[1, 2]-Box[0, 2]))/3;
+    if (not AllowZero) and (Result = 0) then
+      Result := EmptyBoxSize;
+  end;
 end;
 
 function Box3DMaxSize(const box: TBox3D): Single;
@@ -539,17 +569,23 @@ begin
      Box[1, 2] - Box[0, 2]);
 end;
 
-function Box3DMaxSize(const box: TBox3D; const EmptyBoxSize: Single): Single;
+function Box3DMaxSize(const box: TBox3D; const AllowZero: boolean;
+  const EmptyBoxSize: Single): Single;
 begin
   if IsEmptyBox3D(Box) then
     Result := EmptyBoxSize else
+  begin
     Result := Max(
       Box[1, 0] - Box[0, 0],
       Box[1, 1] - Box[0, 1],
       Box[1, 2] - Box[0, 2]);
+    if (not AllowZero) and (Result = 0) then
+      Result := EmptyBoxSize;
+  end;
 end;
 
-function Box3DArea(const box: TBox3D; const EmptyBoxArea: Single): Single;
+function Box3DArea(const box: TBox3D; const AllowZero: boolean;
+  const EmptyBoxArea: Single): Single;
 var
   A, B, C: Single;
 begin
@@ -560,6 +596,8 @@ begin
     B := Box[1, 1] - Box[0, 1];
     C := Box[1, 2] - Box[0, 2];
     Result := 2*A*B + 2*B*C + 2*A*C;
+    if (not AllowZero) and (Result = 0) then
+      Result := EmptyBoxArea;
   end;
 end;
 

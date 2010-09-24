@@ -5725,7 +5725,7 @@ begin
   { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
     calculate something suitable based on Box. }
   if CameraRadius <= 0 then
-    CameraRadius := Box3DAvgSize(Box, 1.0) * 0.005;
+    CameraRadius := Box3DAvgSize(Box, false, 1.0) * 0.005;
 
   Result.CameraRadius := CameraRadius;
 

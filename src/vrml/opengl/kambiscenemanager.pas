@@ -1129,8 +1129,8 @@ var
 
     glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
     ProjectionGLPerspective(PerspectiveViewAngles[1], CorrectWidth / CorrectHeight,
-      Box3DAvgSize(Box, 1.0) * 0.01,
-      Box3DMaxSize(Box, 1.0) * 10.0);
+      Box3DAvgSize(Box, false, 1.0) * 0.01,
+      Box3DMaxSize(Box, false, 1.0) * 10.0);
 
     { update Camera.ProjectionMatrix }
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
@@ -1586,7 +1586,7 @@ begin
   begin
     Result := TExamineCamera.Create(AOwner);
     (Result as TExamineCamera).Init(Box,
-      { CameraRadius = } Box3DAvgSize(Box, 1.0) * 0.005);
+      { CameraRadius = } Box3DAvgSize(Box, false, 1.0) * 0.005);
   end;
 end;
 
