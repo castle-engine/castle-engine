@@ -5773,7 +5773,7 @@ var
   GravityUp: TVector3Single;
   NavigationNode: TNodeNavigationInfo;
   WalkCamera: TWalkCamera;
-  NewMoveSpeed: Single;
+  NewMoveSpeedSecs: Single;
 begin
   { Currently we can set viewpoint only to TWalkCamera.
     This is supposed to be fixed one day (as currently VRML author
@@ -5795,13 +5795,13 @@ begin
 
   if OnlyViewpointVectorsChanged then
   begin
-    { keep MoveSpeed the same }
-    NewMoveSpeed := WalkCamera.MoveSpeed;
+    { keep MoveSpeedSecs the same }
+    NewMoveSpeedSecs := WalkCamera.MoveSpeedSecs;
   end else
   begin
     NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
 
-    { Change MoveSpeed. }
+    { Change MoveSpeedSecs. }
 
     if NavigationNode = nil then
     begin
@@ -5809,7 +5809,7 @@ begin
         speed that should "feel sensible". We base it on CameraRadius.
         CameraRadius in turn was calculated based on
         Box3DAvgSize(SceneAnimation.BoundingBox). }
-      NewMoveSpeed := ACamera.CameraRadius * 0.4;
+      NewMoveSpeedSecs := ACamera.CameraRadius * 20;
     end else
     if NavigationNode.FdSpeed.Value = 0 then
     begin
@@ -5819,10 +5819,10 @@ begin
         This is also the reason why other SetViewpointCore branches must change
         MoveSpeed to something different than zero
         (otherwise, user would be stuck with speed = 0). }
-      NewMoveSpeed := 0;
+      NewMoveSpeedSecs := 0;
     end else
     begin
-      NewMoveSpeed := NavigationNode.FdSpeed.Value / 50.0;
+      NewMoveSpeedSecs := NavigationNode.FdSpeed.Value;
     end;
   end;
 
@@ -5834,7 +5834,7 @@ begin
     and we take into account OnlyViewpointVectorsChanged case. }
 
   WalkCamera.SetInitialCameraLookDir(Position, Direction, Up, OnlyViewpointVectorsChanged);
-  WalkCamera.MoveSpeed := NewMoveSpeed;
+  WalkCamera.MoveSpeedSecs := NewMoveSpeedSecs;
   WalkCamera.GravityUp := GravityUp;
   if not OnlyViewpointVectorsChanged then
     WalkCamera.Home;
