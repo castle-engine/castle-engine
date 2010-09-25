@@ -758,13 +758,11 @@ begin
       Vector3Single( 1,  1,  1)));
 
     WalkCamera := TWalkCamera.Create(Glw);
-    WalkCamera.Init(Vector3Single(
-      0,
-      0,
-      0),
-      Vector3Single(0, 1, 0) { dir },
+    WalkCamera.Init(Vector3Single(0, 0, 0) { position },
+      Vector3Single(0, 1, 0) { direction },
       Vector3Single(0, 0, 1) { up },
-      Vector3Single(0, 0, 1), 0.0, 0.0 { unused, we don't use Gravity here });
+      Vector3Single(0, 0, 1),
+      1 { move speed }, 0, 0 { unused, we don't use Gravity here });
     WalkCamera.MoveHorizontalSpeed := 0.01;
     WalkCamera.MoveVerticalSpeed := 0.01;
 

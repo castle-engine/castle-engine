@@ -919,10 +919,9 @@ begin
   { reinit both cameras }
 
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
-  Walker.Init(CamPos,
-    VectorAdjustToLength(CamDir, Box3DAvgSize(Scene.BoundingBox) * 0.01*0.4),
-    CamUp, GravityUp,
-    0.0, 0.0 { unused, we don't use Gravity here });
+  Walker.Init(CamPos, CamDir, CamUp, GravityUp,
+    Box3DAvgSize(Scene.BoundingBox) * 0.01 * 0.4 { move speed },
+    0, 0 { unused, we don't use Gravity here });
 
   Examiner.Init(Scene.BoundingBox);
 end;
@@ -1340,7 +1339,7 @@ begin
   Walker := TWalkCamera.Create(Glw);
   Walker.Init(Vector3Single(0, 0, 10), Vector3Single(0, 0, -1),
     Vector3Single(0, 1, 0), Vector3Single(0, 1, 0),
-    0.0, 0.0 { unused, we don't use Gravity here });
+    1, 0, 0 { unused, we don't use Gravity here });
 
   SceneManager := TMySceneManager.Create(Glw);
   Glw.Controls.Add(SceneManager);

@@ -26,6 +26,7 @@ var
   Camera: TWalkCamera;
   Surface1, Surface2: TSurface;
   SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
+  SurfaceMoveSpeed: Single;
   F: TGLfloat = 0.0;
   FUp: boolean = true;
 
@@ -37,7 +38,7 @@ end;
 
 procedure CameraScene;
 begin
-  Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0.0, 0.0);
+  Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, SurfaceMoveSpeed, 0, 0);
 end;
 
 procedure SurfacesLoad(const FileName: string);
@@ -75,6 +76,8 @@ begin
     Readln(F, SurfacePos[0], SurfacePos[1], SurfacePos[2],
               SurfaceDir[0], SurfaceDir[1], SurfaceDir[2],
               SurfaceUp [0], SurfaceUp [1], SurfaceUp [2]);
+    SurfaceMoveSpeed := VectorLen(SurfaceDir);
+    NormalizeTo1st(SurfaceDir);
     Readln(F, N);
     Load(Surface1);
     Load(Surface2);

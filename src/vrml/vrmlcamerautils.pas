@@ -46,8 +46,9 @@ const
   DefaultVRMLGravityUp: TVector3Single = (0, 1, 0);
   { @groupEnd }
 
-{ Calculate sensible camera configuration to see whole scene
-  in the Box. WantedUp may be only 1 (+Y) or 2 (+Z) now. }
+{ Calculate sensible camera configuration to see whole scene in the Box.
+  WantedUp may be only 1 (+Y) or 2 (+Z) now.
+  Returned Direction, Up, GravityUp are normalized. }
 procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedUp: Integer;
   out Position, Direction, Up, GravityUp: TVector3Single);
