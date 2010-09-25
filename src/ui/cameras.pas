@@ -2756,8 +2756,7 @@ var
       begin
         { calculate GrowingVectorLength }
         GrowingVectorLength := Min(
-          { TODO --- use CameraPreferredHeight here ? }
-          MoveSpeed * GrowingSpeed * CompSpeed,
+          MoveSpeed * MoveVerticalSpeed * GrowingSpeed * CompSpeed,
           RealCameraPreferredHeight - AboveHeight);
 
         Move(VectorScale(GravityUp, GrowingVectorLength), true);
@@ -2858,7 +2857,8 @@ var
 
         This means that I should limit myself to not fall down
         below RealCameraPreferredHeight. And that's what I'm doing. }
-      FallingDownVectorLength := MoveSpeed * FFallingDownSpeed * CompSpeed;
+      FallingDownVectorLength :=
+        MoveSpeed * MoveVerticalSpeed * FFallingDownSpeed * CompSpeed;
       MinTo1st(FallingDownVectorLength, AboveHeight - RealCameraPreferredHeight);
 
       if Move(VectorScale(GravityUp, - FallingDownVectorLength), true) and
