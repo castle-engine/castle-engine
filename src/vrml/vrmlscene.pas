@@ -5801,7 +5801,7 @@ begin
   begin
     NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
 
-    { Change MoveSpeed / MoveHorizontal / VerticalSpeed. }
+    { Change MoveSpeed. }
 
     if NavigationNode = nil then
     begin
@@ -5833,8 +5833,8 @@ begin
     But we know we already have CameraPreferredHeight set (by CreateCamera),
     and we take into account OnlyViewpointVectorsChanged case. }
 
-  WalkCamera.SetInitialCameraLookDir(Position, Direction, Up, NewMoveSpeed,
-    OnlyViewpointVectorsChanged);
+  WalkCamera.SetInitialCameraLookDir(Position, Direction, Up, OnlyViewpointVectorsChanged);
+  WalkCamera.MoveSpeed := NewMoveSpeed;
   WalkCamera.GravityUp := GravityUp;
   if not OnlyViewpointVectorsChanged then
     WalkCamera.Home;

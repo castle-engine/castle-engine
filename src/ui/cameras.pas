@@ -1074,12 +1074,10 @@ type
     procedure SetInitialCameraLookDir(
       const AInitialPosition: TVector3Single;
       AInitialDirection, AInitialUp: TVector3Single;
-      const AMoveSpeed: Single;
       const TransformCurrentCamera: boolean);
 
     procedure SetInitialCameraLookAt(
       const AInitialPosition, AInitialCameraCenter, AInitialUp: TVector3Single;
-      const AMoveSpeed: Single;
       const TransformCurrentCamera: boolean);
 
     { This returns @link(Direction) vector rotated such that it is
@@ -3539,8 +3537,8 @@ procedure TWalkCamera.Init(
   const ACameraPreferredHeight: Single;
   const ACameraRadius: Single);
 begin
-  SetInitialCameraLookDir(AInitialPosition, AInitialDirection,
-    AInitialUp, AMoveSpeed, false);
+  SetInitialCameraLookDir(AInitialPosition, AInitialDirection, AInitialUp, false);
+  FMoveSpeed := AMoveSpeed;
   FGravityUp := AGravityUp;
   CameraPreferredHeight := ACameraPreferredHeight;
   CameraRadius := ACameraRadius;
@@ -3575,7 +3573,6 @@ end;
 procedure TWalkCamera.SetInitialCameraLookDir(
   const AInitialPosition: TVector3Single;
   AInitialDirection, AInitialUp: TVector3Single;
-  const AMoveSpeed: Single;
   const TransformCurrentCamera: boolean);
 var
   OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
@@ -3583,8 +3580,6 @@ begin
   NormalizeTo1st(AInitialDirection);
   NormalizeTo1st(AInitialUp);
   MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
-
-  FMoveSpeed := AMoveSpeed;
 
   if TransformCurrentCamera then
   begin
@@ -3622,12 +3617,11 @@ end;
 
 procedure TWalkCamera.SetInitialCameraLookAt(const AInitialPosition,
   AInitialCameraCenter, AInitialUp: TVector3Single;
-  const AMoveSpeed: Single;
   const TransformCurrentCamera: boolean);
 begin
   SetInitialCameraLookDir(AInitialPosition,
     VectorSubtract(AInitialCameraCenter, AInitialPosition),
-    AInitialUp, AMoveSpeed, TransformCurrentCamera);
+    AInitialUp, TransformCurrentCamera);
 end;
 
 procedure TWalkCamera.SetPosition(const Value: TVector3Single);
