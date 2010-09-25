@@ -147,7 +147,6 @@ begin
       Box3DMiddle(scene.BoundingBox),
       Vector3Single(1, 0, 0),
       Vector3Single(0, 1, 0), false);
-    Camera.MoveSpeed := Box3DAvgSize(Scene.BoundingBox) * 0.01 * 0.4 { guess appropriate move speed };
     Camera.Home;
     Camera.OnMoveAllowed    := @THelperObj(nil).MoveAllowed;
     Camera.OnGetHeightAbove := @THelperObj(nil).GetHeightAbove;
