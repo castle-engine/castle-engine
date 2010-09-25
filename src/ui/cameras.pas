@@ -2752,7 +2752,7 @@ var
           we need actual values. }
         GrowingVectorLength := Min(
           { TODO --- use CameraPreferredHeight here ? }
-          MoveSpeed * GrowingSpeed * CompSpeed * 50,
+          MoveSpeedSecs * GrowingSpeed * CompSpeed,
           RealCameraPreferredHeight - AboveHeight);
 
         Move(VectorAdjustToLength(GravityUp, GrowingVectorLength), true);
@@ -2853,7 +2853,7 @@ var
 
         This means that I should limit myself to not fall down
         below RealCameraPreferredHeight. And that's what I'm doing. }
-      FallingDownVectorLength := MoveSpeed * FFallingDownSpeed * CompSpeed * 50;
+      FallingDownVectorLength := MoveSpeedSecs * FFallingDownSpeed * CompSpeed;
       MinTo1st(FallingDownVectorLength, AboveHeight - RealCameraPreferredHeight);
 
       if Move(VectorScale(GravityUp,
@@ -3238,7 +3238,7 @@ var
       { It's best to scale CameraPreferredHeight changes by MoveSpeed,
         to make it faster/slower depending on scene size
         (which usually corresponds to move speed). }
-      Increase * MoveSpeed * CompSpeed * 10;
+      Increase * MoveSpeedSecs * CompSpeed * 0.2;
 
     CorrectCameraPreferredHeight;
 
@@ -3365,24 +3365,24 @@ begin
           wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
           Move*Speed ?.
 
-          How to apply CompSpeed * 50 here ?
-          I can't just ignore CompSpeed * 50, but I can't also write
-            FMoveSpeed *= 1.1 * CompSpeed * 50;
+          How to apply CompSpeed here ?
+          I can't just ignore CompSpeed, but I can't also write
+            FMoveSpeed *= 2 * CompSpeed;
           What I want is such continous function that e.g.
             F(FMoveSpeed, 2) = F(F(FMoveSpeed, 1), 1)
-          I.e. CompSpeed * 50 = 2 should work just like doing the same change twice.
-          So F is FMoveSpeed * Power(1.1, CompSpeed * 50)
+          I.e. CompSpeed = 2 should work just like doing the same change twice.
+          So F is FMoveSpeed * Power(2, CompSpeed)
           Easy!
         }
         if Input_MoveSpeedInc.IsPressed(Container) then
         begin
-          FMoveSpeed *= Power(1.1, CompSpeed * 50);
+          MoveSpeedSecs := MoveSpeedSecs * Power(2, CompSpeed);
           ScheduleVisibleChange;
         end;
 
         if Input_MoveSpeedDec.IsPressed(Container) then
         begin
-          FMoveSpeed /= Power(1.1, CompSpeed * 50);
+          MoveSpeedSecs := MoveSpeedSecs / Power(2, CompSpeed);
           ScheduleVisibleChange;
         end;
       end else
