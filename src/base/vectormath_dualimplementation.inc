@@ -1897,24 +1897,24 @@ end;
 function LookDirMatrix(const Eye, Dir, Up: TYPE_VECTOR3): TMatrix4Single;
 var GoodDir, GoodUp, Side: TYPE_VECTOR3;
 begin
- Side := Normalized(VectorProduct(Dir, Up));
- GoodDir := Normalized(Dir);
- (* przelicz GoodUp z Side i GoodDir. W ten sposob robimy dwie rzeczy :
-    - zapewniamy sobie ze GoodUp jest dobry, tzn. prostopadly do Dir
-      (i naturalnie jest prostop. do Side, ale to juz mielismy zagwarantowane
-      z tego ze liczymy Side := Normalized(VectorProduct(Dir, Up)))
-    - zapewniamy sobie ze GoodUp juz jest znormalizowany (bo Side i GoodDir
-      juz sa znormalizowane, wiec ich product tez ma dlugosc 1);
-      w rezultacie udalo nam sie wykonac tylko dwie normalizacje
-      (zamiast trzech) przy podawaniu trzech wektorow kierunku dla
-      TransformFromCoordsMatrix *)
- GoodUp := VectorProduct(Side, GoodDir);
+  Side := Normalized(VectorProduct(Dir, Up));
+  GoodDir := Normalized(Dir);
+  (* przelicz GoodUp z Side i GoodDir. W ten sposob robimy dwie rzeczy :
+     - zapewniamy sobie ze GoodUp jest dobry, tzn. prostopadly do Dir
+       (i naturalnie jest prostop. do Side, ale to juz mielismy zagwarantowane
+       z tego ze liczymy Side := Normalized(VectorProduct(Dir, Up)))
+     - zapewniamy sobie ze GoodUp juz jest znormalizowany (bo Side i GoodDir
+       juz sa znormalizowane, wiec ich product tez ma dlugosc 1);
+       w rezultacie udalo nam sie wykonac tylko dwie normalizacje
+       (zamiast trzech) przy podawaniu trzech wektorow kierunku dla
+       TransformFromCoordsMatrix *)
+  GoodUp := VectorProduct(Side, GoodDir);
 
- (* piszac powyzej te drobne optymalizacje wzorowalem sie na kodzie
-    procedury gluLookAt w implementacji GLU w SGI Sample OpenGL Implementation;
-    matematycznie, obliczamy to samo. *)
+  (* piszac powyzej te drobne optymalizacje wzorowalem sie na kodzie
+     procedury gluLookAt w implementacji GLU w SGI Sample OpenGL Implementation;
+     matematycznie, obliczamy to samo. *)
 
- result := TransformFromCoordsMatrix(Eye, Side, GoodUp, VectorNegate(GoodDir));
+  result := TransformFromCoordsMatrix(Eye, Side, GoodUp, VectorNegate(GoodDir));
 end;
 
 {

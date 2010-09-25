@@ -2135,7 +2135,8 @@ function TransformFromCoordsNoScaleMatrix(const OldOrigin,
   musisz podawac up prostopadlego do Dir (albo do Center-Eye).
   W razie potrzeby funkcja sobie wewnetrznie poprawi Up.
 
-  Dlugosci Dir i Up nie maja znaczenia (podobnie jak odleglosc Center-Eye). }
+  The lengths of Dir and Up do not affect the result
+  (just as the distance between Center and Eye points for LookAtMatrix). }
 function LookAtMatrix(const Eye, Center, Up: TVector3Single): TMatrix4Single; overload;
 function LookAtMatrix(const Eye, Center, Up: TVector3Double): TMatrix4Single; overload;
 function LookDirMatrix(const Eye, Dir, Up: TVector3Single): TMatrix4Single; overload;
