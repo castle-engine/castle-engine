@@ -267,7 +267,7 @@ type
 
       In case of the TCamera class, we assume that changes
       to the @link(TCamera.Matrix), and other properties (for example even
-      changes to TWalkCamera.MoveHorizontalSpeed), are "visible",
+      changes to TWalkCamera.MoveSpeed), are "visible",
       and they also result in this event. }
     procedure VisibleChange; override;
 
@@ -424,12 +424,7 @@ type
       )
 
       TODO: for now, animating TExamineCamera to a TWalkCamera settings
-      doesn't work (the other way around works Ok).
-
-      TODO: for now, since TWalkCamera.Direction length affects the speed
-      of movement, so animating Direction may change also the speed of movement.
-      This will be fixed once we separate the TWalkCamera.Direction
-      from the speed of movement entirely. }
+      doesn't work (the other way around works Ok). }
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime);  virtual;
   end;
 
@@ -634,7 +629,7 @@ type
     FPosition, FDirection, FUp,
     FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
     FGravityUp: TVector3Single;
-    FMoveHorizontalSpeed, FMoveVerticalSpeed: Single;
+    FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FPreferGravityUpForRotations: boolean;
     FPreferGravityUpForMoving: boolean;
@@ -767,13 +762,13 @@ type
 
       ProposedNewPos is the position where the user wants to move
       (current user position is always stored in Position,
-      so you can calculate move direction by ProposedNewPos-Position).
+      so you can calculate move direction by ProposedNewPos - Position).
 
       This is the place to "plug in" your collision detection
-      into this object.
+      into camera.
 
-      DoMoveAllowed should return false if no move is allowed.
-      Else it should return true and set NewPos to the position
+      Returns false if no move is allowed.
+      Otherwise returns true and sets NewPos to the position
       where user should be moved. E.g. if you're doing a simple
       test for collisions (with yes/no results), you will always
       want to set NewPos to ProposedNewPos when returning true.
@@ -837,6 +832,7 @@ type
 
     { Note that Input_MoveSpeedInc and Input_MoveSpeedDec change
       both MoveHorizontalSpeed and MoveVerticalSpeed.
+      TODO: Make them change just MoveSpeed?
       @groupBegin }
     property Input_MoveSpeedInc: TInputShortcut read FInput_MoveSpeedInc;
     property Input_MoveSpeedDec: TInputShortcut read FInput_MoveSpeedDec;
@@ -877,15 +873,26 @@ type
 
     { General stuff ----------------------------------------------------- }
 
-    { Moving speeds. Default values for both are 1.0,
+    { Moving speeds. MoveHorizontalSpeed is only for horizontal movement,
+      MoveVerticalSpeed is only for vertical, and MoveSpeed simply affects
+      both types of movement. Effectively, we always scale the speed
+      of movement by either @code(MoveHorizontalSpeed * MoveSpeed) or
+      @code(MoveVerticalSpeed * MoveSpeed).
+
+      Default values for both are 1.0,
       this is comfortable to display them to user (you can nicely
-      display "1.0" as default moving speed). Note that the length
-      of @link(Direction) also affects moving speed.
+      display "1.0" as default moving speed).
+
+      Note that since engine >= 2.2.0 the @link(Direction) vector
+      should always be normalized (length 1), and so you cannot change
+      speed by changing it.
+
       @groupBegin }
     property MoveHorizontalSpeed: Single
       read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
     property MoveVerticalSpeed: Single
       read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
     { @groupEnd }
 
     property RotationHorizontalSpeed: Single
@@ -903,21 +910,20 @@ type
       Also @link(Init) and @link(Home) methods reset them to respective
       InitialCameraXxx values.
 
-      The length of @link(Direction) vector @bold(is significant) ---
-      together with MoveHorizontalSpeed and MoveVerticalSpeed it determines
-      the moving speed.
+      The @link(Direction) and @link(Up) vectors should always be normalized
+      (have length 1). When setting them by these properties, we will normalize
+      them automatically.
 
-      More precisely: each horizontal move in Idle moves by distance
-      VectorLen(@link(Direction)) * MoveXxxSpeed * CompSpeed * 50.
-      So in 1/50 CompSpeed unit (which is 1/50 of second if it came from
-      normal TGLWindow.IdleSpeed), we move by VectorLen(@link(Direction)) * MoveXxxSpeed.
-      So we move 50 * VectorLen(@link(Direction)) * MoveXxxSpeed units per second.
+      You can use MoveSpeed (or more specialized
+      MoveHorizontalSpeed and MoveVerticalSpeed) to determine the moving speed.
+      More precisely: each move in Idle moves by distance
+      @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed) * CompSpeed * 50).
+      So we move @code(50 * MoveSpeed * MoveXxxSpeed) units per second
+      (as CompSpeed, if it came from normal TGLWindow.IdleSpeed, is in seconds).
 
       When setting @link(Direction), @link(Up) will always be automatically
       adjusted to be orthogonal to @link(Direction). And vice versa ---
       when setting @link(Up), @link(Direction) will be adjusted.
-      But don't worry, the lengths of adjusted @link(Up) or @link(Direction)
-      will always be preserved.
 
       @groupBegin }
     property Position : TVector3Single read FPosition  write SetPosition;
@@ -926,6 +932,7 @@ type
     { @groupEnd }
 
     { This is the upward direction of the world in which player moves.
+      Must be always normalized.
 
       This indicates how @link(Gravity) works.
 
@@ -1028,10 +1035,8 @@ type
 
     { Initial camera values.
 
-      InitialUp will be automatically corrected on change, such that
-      InitialDirection and InitialUp will still define the same plane
-      but will also be orthogonal. This also means that you obviously cannot set
-      InitialUp to be parallel to InitialDirection.
+      InitialDirection and InitialUp must be always normalized,
+      and orthogonal.
 
       Default value of InitialPosition is (0, 0, 0), InitialDirection is
       (0, -1, 0), InitialUp is (0, 1, 0).
@@ -1043,6 +1048,16 @@ type
     { @groupEnd }
 
     { These set three initial camera vectors.
+
+      AInitialDirection and AInitialUp will be automatically normalized.
+      Corresponding properties (InitialDirection and InitialUp) will always
+      contain normalized values.
+
+      AInitialUp will be also automatically corrected to be orthogonal
+      to AInitialDirection. We will correct AInitialUp to make it orthogonal,
+      but still preserving the plane they were indicating together with
+      AInitialDirection. Do not ever give here
+      AInitialUp that is parallel to AInitialDirection.
 
       If TransformCurrentCamera = @true, then they will also
       try to change current camera relative to the InitialCameraXxx
@@ -1056,10 +1071,12 @@ type
     procedure SetInitialCameraLookDir(
       const AInitialPosition: TVector3Single;
       AInitialDirection, AInitialUp: TVector3Single;
+      const AMoveSpeed: Single;
       const TransformCurrentCamera: boolean);
 
     procedure SetInitialCameraLookAt(
       const AInitialPosition, AInitialCameraCenter, AInitialUp: TVector3Single;
+      const AMoveSpeed: Single;
       const TransformCurrentCamera: boolean);
 
     { This returns @link(Direction) vector rotated such that it is
@@ -1083,6 +1100,7 @@ type
     procedure Init(const AInitialPosition, AInitialDirection,
       AInitialUp: TVector3Single;
       const AGravityUp: TVector3Single;
+      const AMoveSpeed: Single;
       const ACameraPreferredHeight: Single;
       const ACameraRadius: Single); overload;
 
@@ -1370,7 +1388,7 @@ type
       I increase HeadBobbingPosition such that
       HeadBobbingPosition increase of 1
       means that player moved horizontally by
-        VectorLen(Direction) * MoveHorizontalSpeed * HeadBobbingDistance. }
+        MoveHorizontalSpeed * MoveSpeed * HeadBobbingDistance. }
     property HeadBobbingDistance: Single
       read FHeadBobbingDistance write FHeadBobbingDistance
       default DefaultHeadBobbingDistance;
@@ -2265,6 +2283,7 @@ begin
 
   FMoveHorizontalSpeed := 1;
   FMoveVerticalSpeed := 1;
+  FMoveSpeed := 1;
   FRotationHorizontalSpeed := DefaultRotationHorizontalSpeed;
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
@@ -2460,8 +2479,11 @@ end;
 
 procedure TWalkCamera.RotateAroundUp(const AngleDeg: Single);
 begin
- { W TYM MIEJSCU POTRZEBUJEMY aby Direction i Up byly prostopadle ! }
- Direction := RotatePointAroundAxisDeg(AngleDeg, Direction, Up);
+  { We know that RotatePointAroundAxisDeg below doesn't change the length
+    of the Direction (so it will remain normalized) and it will keep
+    Direction and Up vectors orthogonal. }
+  FDirection := RotatePointAroundAxisDeg(AngleDeg, FDirection, FUp);
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkCamera.RotateHorizontal(const AngleDeg: Single);
@@ -2619,7 +2641,7 @@ var
       Dir := Direction;
 
     Move(VectorScale(Dir,
-      MoveHorizontalSpeed * CompSpeed * 50 * Multiply * AJumpMultiply), false);
+      MoveSpeed * MoveHorizontalSpeed * CompSpeed * 50 * Multiply * AJumpMultiply), false);
   end;
 
   procedure MoveVertical(const Multiply: Integer);
@@ -2627,9 +2649,8 @@ var
     procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
     begin
       Move(VectorScale(PreferredUpVector,
-        { VectorLen(Direction) / VectorLen(PreferredUpVector) * }
-        Sqrt(VectorLenSqr(Direction) / VectorLenSqr(PreferredUpVector)) *
-        MoveVerticalSpeed * CompSpeed * 50 * Multiply), false);
+        MoveVerticalSpeed * MoveSpeed * CompSpeed * 50 * Multiply /
+        VectorLen(PreferredUpVector)), false);
     end;
 
   begin
@@ -2731,7 +2752,7 @@ var
           we need actual values. }
         GrowingVectorLength := Min(
           { TODO --- use CameraPreferredHeight here ? }
-          VectorLen(Direction) * GrowingSpeed * CompSpeed * 50,
+          MoveSpeed * GrowingSpeed * CompSpeed * 50,
           RealCameraPreferredHeight - AboveHeight);
 
         Move(VectorAdjustToLength(GravityUp, GrowingVectorLength), true);
@@ -2832,8 +2853,7 @@ var
 
         This means that I should limit myself to not fall down
         below RealCameraPreferredHeight. And that's what I'm doing. }
-      FallingDownVectorLength :=
-        VectorLen(Direction) * FFallingDownSpeed * CompSpeed * 50;
+      FallingDownVectorLength := MoveSpeed * FFallingDownSpeed * CompSpeed * 50;
       MinTo1st(FallingDownVectorLength, AboveHeight - RealCameraPreferredHeight);
 
       if Move(VectorScale(GravityUp,
@@ -3215,10 +3235,10 @@ var
   procedure ChangeCameraPreferredHeight(const Increase: Integer);
   begin
     CameraPreferredHeight := CameraPreferredHeight +
-      { It's best to scale CameraPreferredHeight changes by
-        VectorLen(Direction), to make it faster/slower depending on scene size
+      { It's best to scale CameraPreferredHeight changes by MoveSpeed,
+        to make it faster/slower depending on scene size
         (which usually corresponds to move speed). }
-      Increase * VectorLen(Direction) * CompSpeed * 10;
+      Increase * MoveSpeed * CompSpeed * 10;
 
     CorrectCameraPreferredHeight;
 
@@ -3329,9 +3349,9 @@ begin
 
 
         { A simple implementation of Input_UpMove was
-            RotateVertical(90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(-90)
+            RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeed * CompSpeed * 50); RotateVertical(-90)
           Similarly, simple implementation of Input_DownMove was
-            RotateVertical(-90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(90)
+            RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeed * CompSpeed * 50); RotateVertical(90)
           But this is not good, because when PreferGravityUp, we want to move
           along the GravityUp. (Also later note: RotateVertical is now bounded by
           MinAngleRadFromGravityUp). }
@@ -3515,11 +3535,12 @@ end;
 procedure TWalkCamera.Init(
   const AInitialPosition, AInitialDirection, AInitialUp: TVector3Single;
   const AGravityUp: TVector3Single;
+  const AMoveSpeed: Single;
   const ACameraPreferredHeight: Single;
   const ACameraRadius: Single);
 begin
   SetInitialCameraLookDir(AInitialPosition, AInitialDirection,
-    AInitialUp, false);
+    AInitialUp, AMoveSpeed, false);
   FGravityUp := AGravityUp;
   CameraPreferredHeight := ACameraPreferredHeight;
   CameraRadius := ACameraRadius;
@@ -3536,15 +3557,17 @@ begin
        Vector3Single(0, 0, -1),
        Vector3Single(0, 1, 0),
        Vector3Single(0, 1, 0) { GravityUp is the same as InitialUp },
-       0.0 { whatever }, ACameraRadius) else
+       1 { MoveSpeed },
+       0 { whatever }, ACameraRadius) else
  begin
   AvgSize := Box3DAvgSize(Box);
   Pos[0] := Box[0, 0]-AvgSize;
   Pos[1] := (Box[0, 1]+Box[1, 1])/2;
   Pos[2] := (Box[0, 2]+Box[1, 2])/2;
-  Init(Pos, VectorAdjustToLength(UnitVector3Single[0], AvgSize*0.1),
+  Init(Pos, UnitVector3Single[0],
     UnitVector3Single[2],
     UnitVector3Single[2] { GravityUp is the same as InitialUp },
+    AvgSize * 0.1,
     AvgSize * 0.1, ACameraRadius);
  end;
 end;
@@ -3552,11 +3575,16 @@ end;
 procedure TWalkCamera.SetInitialCameraLookDir(
   const AInitialPosition: TVector3Single;
   AInitialDirection, AInitialUp: TVector3Single;
+  const AMoveSpeed: Single;
   const TransformCurrentCamera: boolean);
 var
   OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
 begin
+  NormalizeTo1st(AInitialDirection);
+  NormalizeTo1st(AInitialUp);
   MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
+
+  FMoveSpeed := AMoveSpeed;
 
   if TransformCurrentCamera then
   begin
@@ -3594,11 +3622,12 @@ end;
 
 procedure TWalkCamera.SetInitialCameraLookAt(const AInitialPosition,
   AInitialCameraCenter, AInitialUp: TVector3Single;
+  const AMoveSpeed: Single;
   const TransformCurrentCamera: boolean);
 begin
   SetInitialCameraLookDir(AInitialPosition,
     VectorSubtract(AInitialCameraCenter, AInitialPosition),
-    AInitialUp, TransformCurrentCamera);
+    AInitialUp, AMoveSpeed, TransformCurrentCamera);
 end;
 
 procedure TWalkCamera.SetPosition(const Value: TVector3Single);
@@ -3609,14 +3638,14 @@ end;
 
 procedure TWalkCamera.SetDirection(const Value: TVector3Single);
 begin
-  FDirection := Value;
+  FDirection := Normalized(Value);
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
   ScheduleVisibleChange;
 end;
 
 procedure TWalkCamera.SetUp(const Value: TVector3Single);
 begin
-  FUp := Value;
+  FUp := Normalized(Value);
   MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
   ScheduleVisibleChange;
 end;
