@@ -920,7 +920,7 @@ begin
 
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
   Walker.Init(CamPos, CamDir, CamUp, GravityUp,
-    Box3DAvgSize(Scene.BoundingBox) * 0.01 * 0.4 { move speed },
+    Box3DAvgSize(Scene.BoundingBox) * 0.2 { move speed },
     0, 0 { unused, we don't use Gravity here });
 
   Examiner.Init(Scene.BoundingBox);

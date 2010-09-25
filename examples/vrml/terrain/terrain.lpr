@@ -762,7 +762,7 @@ begin
       Vector3Single(0, 1, 0) { direction },
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1),
-      0.01 { move speed }, 0, 0 { unused, we don't use Gravity here });
+      0.5 { move speed }, 0, 0 { unused, we don't use Gravity here });
 
     Camera := ExamineCamera;
     Glw.Controls.Add(Camera);

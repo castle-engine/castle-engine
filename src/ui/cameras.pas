@@ -1101,7 +1101,7 @@ type
     procedure Init(const AInitialPosition, AInitialDirection,
       AInitialUp: TVector3Single;
       const AGravityUp: TVector3Single;
-      const AMoveSpeed: Single;
+      const AMoveSpeedSecs: Single;
       const ACameraPreferredHeight: Single;
       const ACameraRadius: Single); overload;
 
@@ -3533,12 +3533,12 @@ end;
 procedure TWalkCamera.Init(
   const AInitialPosition, AInitialDirection, AInitialUp: TVector3Single;
   const AGravityUp: TVector3Single;
-  const AMoveSpeed: Single;
+  const AMoveSpeedSecs: Single;
   const ACameraPreferredHeight: Single;
   const ACameraRadius: Single);
 begin
   SetInitialCameraLookDir(AInitialPosition, AInitialDirection, AInitialUp, false);
-  FMoveSpeed := AMoveSpeed;
+  MoveSpeedSecs := AMoveSpeedSecs;
   FGravityUp := AGravityUp;
   CameraPreferredHeight := ACameraPreferredHeight;
   CameraRadius := ACameraRadius;
@@ -3565,8 +3565,8 @@ begin
   Init(Pos, UnitVector3Single[0],
     UnitVector3Single[2],
     UnitVector3Single[2] { GravityUp is the same as InitialUp },
-    AvgSize * 0.1,
-    AvgSize * 0.1, ACameraRadius);
+    AvgSize * 5,
+    AvgSize * 5, ACameraRadius);
  end;
 end;
 
