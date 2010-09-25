@@ -888,14 +888,12 @@ type
       Default values for all these speed properties is 1.0,
       so you simply move by 1 unit per second.
 
-      TODO: for now, default MoveSpeed is 50, will be 1 some day.
-
       @groupBegin }
     property MoveHorizontalSpeed: Single
       read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
     property MoveVerticalSpeed: Single
       read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
-    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 50;
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
     { @groupEnd }
 
     property RotationHorizontalSpeed: Single
@@ -1382,10 +1380,9 @@ type
 
     { This controls head bobbing frequency.
 
-      I increase HeadBobbingPosition such that
-      HeadBobbingPosition increase of 1
-      means that player moved horizontally by
-        MoveHorizontalSpeed * MoveSpeed * HeadBobbingDistance. }
+      One full head bobbing sequence (camera swing up, then down again)
+      is done when player moves horizontally by
+      @code(MoveHorizontalSpeed * MoveSpeed * HeadBobbingDistance). }
     property HeadBobbingDistance: Single
       read FHeadBobbingDistance write FHeadBobbingDistance
       default DefaultHeadBobbingDistance;
@@ -2280,7 +2277,7 @@ begin
 
   FMoveHorizontalSpeed := 1;
   FMoveVerticalSpeed := 1;
-  FMoveSpeed := 50;
+  FMoveSpeed := 1;
   FRotationHorizontalSpeed := DefaultRotationHorizontalSpeed;
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
