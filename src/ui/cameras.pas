@@ -30,8 +30,8 @@ const
   DefaultCrouchHeight = 0.5;
   DefaultMaxJumpHeight = 1.0;
   DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18; { }
-  DefaultRotationHorizontalSpeed = 3.0;
-  DefaultRotationVerticalSpeed = 2.0;
+  DefaultRotationHorizontalSpeed = 150;
+  DefaultRotationVerticalSpeed = 100;
   DefaultFallingDownSpeedIncrease = 13/12;
   DefaultMouseLookHorizontalSensitivity = 0.09;
   DefaultMouseLookVerticalSensitivity = 0.09;
@@ -897,6 +897,8 @@ type
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
     { @groupEnd }
 
+    { Rotation keys speed, in degrees per second.
+      @groupBegin }
     property RotationHorizontalSpeed: Single
       read FRotationHorizontalSpeed write FRotationHorizontalSpeed
       default DefaultRotationHorizontalSpeed;
@@ -904,6 +906,7 @@ type
     property RotationVerticalSpeed: Single
       read FRotationVerticalSpeed write FRotationVerticalSpeed
       default DefaultRotationVerticalSpeed;
+    { @groupEnd }
 
     { Camera position, looking direction and up vector.
 
@@ -2675,22 +2678,22 @@ var
       RotateAroundUp(AngleDeg);
   end;
 
+  { Check are keys for left/right/down/up rotations are pressed, and handle them.
+    SpeedScale = 1 indicates a normal rotation speed, you can use it to scale
+    the rotation speed to specific purposes. }
   procedure CheckRotates(SpeedScale: Single);
-  { sprawdz czy wcisnieto KeyRight/LeftRot i jesli tak to zareaguj odpowiednio.
-    Uzyj SpeedScale aby skalowac szybkosc obracania sie, tzn. defaltowa
-    szybkosc obracania sie = 1.0 }
   begin
     {$ifndef SINGLE_STEP_ROTATION}
     if Input_RightRot.IsPressed(Container) then
-      RotateHorizontal(-RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
+      RotateHorizontal(-RotationHorizontalSpeed * CompSpeed * SpeedScale);
     if Input_LeftRot.IsPressed(Container) then
-      RotateHorizontal(+RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
+      RotateHorizontal(+RotationHorizontalSpeed * CompSpeed * SpeedScale);
     {$endif not SINGLE_STEP_ROTATION}
 
     if Input_UpRotate.IsPressed(Container) then
-      RotateVertical(+RotationVerticalSpeed * CompSpeed * 50 * SpeedScale);
+      RotateVertical(+RotationVerticalSpeed * CompSpeed * SpeedScale);
     if Input_DownRotate.IsPressed(Container) then
-      RotateVertical(-RotationVerticalSpeed * CompSpeed * 50 * SpeedScale);
+      RotateVertical(-RotationVerticalSpeed * CompSpeed * SpeedScale);
   end;
 
   { Things related to gravity --- jumping, taking into account
