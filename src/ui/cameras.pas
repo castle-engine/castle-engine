@@ -3039,7 +3039,7 @@ var
         Exit;
       end;
 
-      AngleRotate := 0.1 * CompSpeed * 50;
+      AngleRotate := CompSpeed * 5;
       MinTo1st(AngleRotate, Abs(Angle - HalfPi));
       if not FFallingOnTheGroundAngleIncrease then
         AngleRotate := -AngleRotate;
@@ -3077,7 +3077,7 @@ var
 
     procedure HeadBobbingGoesDown;
     const
-      HeadBobbingGoingDownSpeed = 0.1;
+      HeadBobbingGoingDownSpeed = 5;
     var
       FracHeadBobbingPosition: Single;
     begin
@@ -3099,15 +3099,13 @@ var
         if FracHeadBobbingPosition > 0.5 then
         begin
           if 1 - FracHeadBobbingPosition > SingleEqualityEpsilon then
-            HeadBobbingPosition +=
-              Min(HeadBobbingGoingDownSpeed * CompSpeed * 50,
-                1 - FracHeadBobbingPosition);
+            HeadBobbingPosition += Min(HeadBobbingGoingDownSpeed * CompSpeed,
+              1 - FracHeadBobbingPosition);
         end else
         begin
           if FracHeadBobbingPosition > SingleEqualityEpsilon then
-            HeadBobbingPosition -=
-              Min(HeadBobbingGoingDownSpeed * CompSpeed * 50,
-                FracHeadBobbingPosition);
+            HeadBobbingPosition -= Min(HeadBobbingGoingDownSpeed * CompSpeed,
+              FracHeadBobbingPosition);
         end;
       end;
     end;
@@ -3218,9 +3216,8 @@ var
         if AngleRadBetweenTargetAndGravity > HalfPi then
           VectorNegateTo1st(TargetUp);
 
-        AngleRadBetweenTarget :=
-          AngleRadBetweenVectors(TargetUp, FUp);
-        AngleRadBetweenTargetChange := 0.01 * CompSpeed * 50;
+        AngleRadBetweenTarget := AngleRadBetweenVectors(TargetUp, FUp);
+        AngleRadBetweenTargetChange := 0.5 * CompSpeed;
         if AngleRadBetweenTarget > AngleRadBetweenTargetChange then
         begin
           NewUp := FUp;
