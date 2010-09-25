@@ -879,25 +879,27 @@ type
       of movement by either @code(MoveHorizontalSpeed * MoveSpeed) or
       @code(MoveVerticalSpeed * MoveSpeed).
 
-      Default values for both are 1.0,
-      this is comfortable to display them to user (you can nicely
-      display "1.0" as default moving speed).
+      We move by distance @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed))
+      during one second. Assuming "normal circumstances",
+      namely that CompSpeed provided to @link(Idle) method
+      is expressed in seconds (which is the case, when you use
+      camera with TGLWindow.Controls or TKamSceneManager.Camera).
+      So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
+      MoveSpeed expressed the speed in nice units / per second.
 
-      In normal circumstances (when CompSpeed provided to @link(Idle) method
-      is in seconds, like from TGLWindow.IdleSpeed) we move by distance
-      @code(50 * MoveSpeed * MoveXxxSpeed).
+      Default values for all these speed properties is 1.0,
+      so you simply move by 1 unit per second.
 
-      Sometimes it's comfortable to use MoveSpeedSecs instead of MoveSpeed.
-      MoveSpeedSecs is just a shortcut for @code(50 * MoveSpeed),
-      so if you leave always MoveHorizontalSpeed = MoveVerticalSpeed = 1,
-      then MoveSpeedSecs is the nice speed in units / per second.
+      TODO: MoveSpeedSecs will be removed soon, alias for MoveSpeed now.
+
+      TODO: for now, default MoveSpeed is 50, will be 1 some day.
 
       @groupBegin }
     property MoveHorizontalSpeed: Single
       read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
     property MoveVerticalSpeed: Single
       read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
-    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 50;
     property MoveSpeedSecs: Single read GetMoveSpeedSecs write SetMoveSpeedSecs;
     { @groupEnd }
 
@@ -2283,7 +2285,7 @@ begin
 
   FMoveHorizontalSpeed := 1;
   FMoveVerticalSpeed := 1;
-  FMoveSpeed := 1;
+  FMoveSpeed := 50;
   FRotationHorizontalSpeed := DefaultRotationHorizontalSpeed;
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
@@ -3803,12 +3805,12 @@ end;
 
 function TWalkCamera.GetMoveSpeedSecs: Single;
 begin
-  Result := MoveSpeed * 50;
+  Result := MoveSpeed;
 end;
 
 procedure TWalkCamera.SetMoveSpeedSecs(const Value: Single);
 begin
-  MoveSpeed := Value / 50;
+  MoveSpeed := Value;
 end;
 
 { global ------------------------------------------------------------ }
