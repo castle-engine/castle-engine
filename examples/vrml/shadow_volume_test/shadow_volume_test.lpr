@@ -710,7 +710,6 @@ begin
 
     { init SceneNav }
     SceneNav := Scene.CreateCamera(Glw, 'FLY') as TWalkCamera;
-    SceneNav.MoveHorizontalSpeed := 10;
     SceneNav.ExclusiveEvents := false; { default for now, but just to be safe... }
     SceneManager.Camera := SceneNav;
 
