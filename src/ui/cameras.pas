@@ -37,7 +37,7 @@ const
   DefaultMouseLookVerticalSensitivity = 0.09;
   DefaultHeadBobbingDistance = 20.0;
   DefaultJumpSpeedMultiply = 2.0;
-  DefaultJumpPower = 0.18;
+  DefaultJumpPower = 9.0;
 
 type
   { }
@@ -1373,6 +1373,10 @@ type
       read FJumpSpeedMultiply write FJumpSpeedMultiply
       default DefaultJumpSpeedMultiply;
 
+    { How fast do you jump. More precisely, during one second, you reach
+      @code(MaxJumpDistance * JumpPower) distance. Note that this is
+      independent from @italic(how high can you jump) --- when you reach
+      MaxJumpDistance height, you stop jumping anyway. }
     property JumpPower: Single read FJumpPower write FJumpPower
       default DefaultJumpPower;
 
@@ -2712,7 +2716,7 @@ var
           1. update FJumpHeight and FJumpPower and move Position
           2. or set FIsJumping to false when jump ends }
 
-        ThisJumpHeight := MaxJumpDistance * FJumpPower * CompSpeed * 50;
+        ThisJumpHeight := MaxJumpDistance * FJumpPower * CompSpeed;
         FJumpHeight += ThisJumpHeight;
 
         if FJumpHeight > MaxJumpDistance then
