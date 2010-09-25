@@ -38,7 +38,8 @@ end;
 
 procedure CameraScene;
 begin
-  Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, SurfaceMoveSpeedSecs, 0, 0);
+  Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0, 0);
+  Camera.MoveSpeedSecs := SurfaceMoveSpeedSecs;
 end;
 
 procedure SurfacesLoad(const FileName: string);
