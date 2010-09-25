@@ -763,7 +763,7 @@ begin
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1),
       0, 0 { unused, we don't use Gravity here });
-    WalkCamera.MoveSpeedSecs := 0.5;
+    WalkCamera.MoveSpeed := 0.5;
 
     Camera := ExamineCamera;
     Glw.Controls.Add(Camera);

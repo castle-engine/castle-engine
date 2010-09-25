@@ -649,8 +649,6 @@ type
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
     procedure SetMouseLook(const Value: boolean);
-    function GetMoveSpeedSecs: Single;
-    procedure SetMoveSpeedSecs(const Value: Single);
   private
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
@@ -890,8 +888,6 @@ type
       Default values for all these speed properties is 1.0,
       so you simply move by 1 unit per second.
 
-      TODO: MoveSpeedSecs will be removed soon, alias for MoveSpeed now.
-
       TODO: for now, default MoveSpeed is 50, will be 1 some day.
 
       @groupBegin }
@@ -900,7 +896,6 @@ type
     property MoveVerticalSpeed: Single
       read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 50;
-    property MoveSpeedSecs: Single read GetMoveSpeedSecs write SetMoveSpeedSecs;
     { @groupEnd }
 
     property RotationHorizontalSpeed: Single
@@ -2643,7 +2638,7 @@ var
       Dir := Direction;
 
     Move(VectorScale(Dir,
-      MoveSpeedSecs * MoveHorizontalSpeed * CompSpeed * Multiply * AJumpMultiply), false);
+      MoveSpeed * MoveHorizontalSpeed * CompSpeed * Multiply * AJumpMultiply), false);
   end;
 
   procedure MoveVertical(const Multiply: Integer);
@@ -2651,7 +2646,7 @@ var
     procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
     begin
       Move(VectorScale(PreferredUpVector,
-        MoveSpeedSecs * MoveVerticalSpeed * CompSpeed * Multiply /
+        MoveSpeed * MoveVerticalSpeed * CompSpeed * Multiply /
         VectorLen(PreferredUpVector)), false);
     end;
 
@@ -2754,7 +2749,7 @@ var
           we need actual values. }
         GrowingVectorLength := Min(
           { TODO --- use CameraPreferredHeight here ? }
-          MoveSpeedSecs * GrowingSpeed * CompSpeed,
+          MoveSpeed * GrowingSpeed * CompSpeed,
           RealCameraPreferredHeight - AboveHeight);
 
         Move(VectorAdjustToLength(GravityUp, GrowingVectorLength), true);
@@ -2855,7 +2850,7 @@ var
 
         This means that I should limit myself to not fall down
         below RealCameraPreferredHeight. And that's what I'm doing. }
-      FallingDownVectorLength := MoveSpeedSecs * FFallingDownSpeed * CompSpeed;
+      FallingDownVectorLength := MoveSpeed * FFallingDownSpeed * CompSpeed;
       MinTo1st(FallingDownVectorLength, AboveHeight - RealCameraPreferredHeight);
 
       if Move(VectorScale(GravityUp,
@@ -3240,7 +3235,7 @@ var
       { It's best to scale CameraPreferredHeight changes by MoveSpeed,
         to make it faster/slower depending on scene size
         (which usually corresponds to move speed). }
-      Increase * MoveSpeedSecs * CompSpeed * 0.2;
+      Increase * MoveSpeed * CompSpeed * 0.2;
 
     CorrectCameraPreferredHeight;
 
@@ -3350,9 +3345,9 @@ begin
         end;
 
         { A simple implementation of Input_UpMove was
-            RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeedSecs * CompSpeed); RotateVertical(-90)
+            RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeed * CompSpeed); RotateVertical(-90)
           Similarly, simple implementation of Input_DownMove was
-            RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeedSecs * CompSpeed); RotateVertical(90)
+            RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeed * CompSpeed); RotateVertical(90)
           But this is not good, because when PreferGravityUp, we want to move
           along the GravityUp. (Also later note: RotateVertical is now bounded by
           MinAngleRadFromGravityUp). }
@@ -3378,13 +3373,13 @@ begin
         }
         if Input_MoveSpeedInc.IsPressed(Container) then
         begin
-          MoveSpeedSecs := MoveSpeedSecs * Power(2, CompSpeed);
+          MoveSpeed := MoveSpeed * Power(2, CompSpeed);
           ScheduleVisibleChange;
         end;
 
         if Input_MoveSpeedDec.IsPressed(Container) then
         begin
-          MoveSpeedSecs := MoveSpeedSecs / Power(2, CompSpeed);
+          MoveSpeed := MoveSpeed / Power(2, CompSpeed);
           ScheduleVisibleChange;
         end;
       end else
@@ -3801,16 +3796,6 @@ begin
     AnimationEndPosition,
     AnimationEndDirection,
     AnimationEndUp);
-end;
-
-function TWalkCamera.GetMoveSpeedSecs: Single;
-begin
-  Result := MoveSpeed;
-end;
-
-procedure TWalkCamera.SetMoveSpeedSecs(const Value: Single);
-begin
-  MoveSpeed := Value;
 end;
 
 { global ------------------------------------------------------------ }

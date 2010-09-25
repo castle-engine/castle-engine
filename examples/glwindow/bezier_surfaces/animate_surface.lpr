@@ -26,7 +26,7 @@ var
   Camera: TWalkCamera;
   Surface1, Surface2: TSurface;
   SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
-  SurfaceMoveSpeedSecs: Single;
+  SurfaceMoveSpeed: Single;
   F: TGLfloat = 0.0;
   FUp: boolean = true;
 
@@ -39,7 +39,7 @@ end;
 procedure CameraScene;
 begin
   Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0, 0);
-  Camera.MoveSpeedSecs := SurfaceMoveSpeedSecs;
+  Camera.MoveSpeed := SurfaceMoveSpeed;
 end;
 
 procedure SurfacesLoad(const FileName: string);
@@ -79,7 +79,7 @@ begin
               SurfaceUp [0], SurfaceUp [1], SurfaceUp [2]);
     { The lengths of our direction vectors express speed in old terms
       (1/50 of the second), rescale them here. }
-    SurfaceMoveSpeedSecs := VectorLen(SurfaceDir) * 50;
+    SurfaceMoveSpeed := VectorLen(SurfaceDir) * 50;
     NormalizeTo1st(SurfaceDir);
     Readln(F, N);
     Load(Surface1);
