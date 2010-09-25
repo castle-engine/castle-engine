@@ -2742,8 +2742,6 @@ var
       if Result then
       begin
         { calculate GrowingVectorLength }
-        { Well, we have to resign here from operating on Sqrs,
-          we need actual values. }
         GrowingVectorLength := Min(
           { TODO --- use CameraPreferredHeight here ? }
           MoveSpeed * GrowingSpeed * CompSpeed,
@@ -2773,8 +2771,8 @@ var
       end;
 
     const
-      Fde_VerticalRotateDeviation = 1.0;
-      Fde_HorizontalRotateDeviation = 0.3;
+      Fde_VerticalRotateDeviation = 50.0;
+      Fde_HorizontalRotateDeviation = 15.0;
     var
       PositionBefore: TVector3Single;
       FallingDownVectorLength: Single;
@@ -2957,15 +2955,15 @@ var
               if Fde_RotateHorizontal = 0 then
                 Fde_RotateHorizontal := RandomPlusMinus;
               RotateAroundGravityUp(Fde_RotateHorizontal *
-                Fde_HorizontalRotateDeviation * CompSpeed * 50);
+                Fde_HorizontalRotateDeviation * CompSpeed);
             end;
 
             if Fde_UpRotate < 0 then
-              Fde_UpRotate -= Fde_VerticalRotateDeviation * CompSpeed * 50 else
+              Fde_UpRotate -= Fde_VerticalRotateDeviation * CompSpeed else
             if Fde_UpRotate > 0 then
-              Fde_UpRotate += Fde_VerticalRotateDeviation * CompSpeed * 50 else
+              Fde_UpRotate += Fde_VerticalRotateDeviation * CompSpeed else
               Fde_UpRotate := RandomPlusMinus *
-                              Fde_VerticalRotateDeviation * CompSpeed * 50;
+                              Fde_VerticalRotateDeviation * CompSpeed;
 
             ScheduleVisibleChange;
           end;
@@ -2985,7 +2983,7 @@ var
 
     function TryFde_Stabilize: boolean;
     const
-      Fde_VerticalRotateNormalization = 7;
+      Fde_VerticalRotateNormalization = 7 * 50;
     var
       Change: Single;
     begin
@@ -3003,7 +3001,7 @@ var
           any interesting visual effect (and the only reason for
           UpRotate is a visual effect)... }
         Change := Trunc(Abs(Fde_UpRotate) / 360.0) * 360.0 +
-          Fde_VerticalRotateNormalization * CompSpeed * 50;
+          Fde_VerticalRotateNormalization * CompSpeed;
 
         if Fde_UpRotate < 0 then
           Fde_UpRotate := Min(Fde_UpRotate + Change, 0.0) else
