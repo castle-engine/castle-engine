@@ -649,6 +649,8 @@ type
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
     procedure SetMouseLook(const Value: boolean);
+    function GetMoveSpeedSecs: Single;
+    procedure SetMoveSpeedSecs(const Value: Single);
   private
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
@@ -830,9 +832,7 @@ type
     property Input_DownMove: TInputShortcut read FInput_DownMove;
     property Input_GravityUp: TInputShortcut read FInput_GravityUp;
 
-    { Note that Input_MoveSpeedInc and Input_MoveSpeedDec change
-      both MoveHorizontalSpeed and MoveVerticalSpeed.
-      TODO: Make them change just MoveSpeed?
+    { Input_MoveSpeedInc and Input_MoveSpeedDec change the MoveSpeed.
       @groupBegin }
     property Input_MoveSpeedInc: TInputShortcut read FInput_MoveSpeedInc;
     property Input_MoveSpeedDec: TInputShortcut read FInput_MoveSpeedDec;
@@ -883,9 +883,14 @@ type
       this is comfortable to display them to user (you can nicely
       display "1.0" as default moving speed).
 
-      Note that since engine >= 2.2.0 the @link(Direction) vector
-      should always be normalized (length 1), and so you cannot change
-      speed by changing it.
+      In normal circumstances (when CompSpeed provided to @link(Idle) method
+      is in seconds, like from TGLWindow.IdleSpeed) we move by distance
+      @code(50 * MoveSpeed * MoveXxxSpeed).
+
+      Sometimes it's comfortable to use MoveSpeedSecs instead of MoveSpeed.
+      MoveSpeedSecs is just a shortcut for @code(50 * MoveSpeed),
+      so if you leave always MoveHorizontalSpeed = MoveVerticalSpeed = 1,
+      then MoveSpeedSecs is the nice speed in units / per second.
 
       @groupBegin }
     property MoveHorizontalSpeed: Single
@@ -893,6 +898,7 @@ type
     property MoveVerticalSpeed: Single
       read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
+    property MoveSpeedSecs: Single read GetMoveSpeedSecs write SetMoveSpeedSecs;
     { @groupEnd }
 
     property RotationHorizontalSpeed: Single
@@ -914,12 +920,9 @@ type
       (have length 1). When setting them by these properties, we will normalize
       them automatically.
 
-      You can use MoveSpeed (or more specialized
-      MoveHorizontalSpeed and MoveVerticalSpeed) to determine the moving speed.
-      More precisely: each move in Idle moves by distance
-      @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed) * CompSpeed * 50).
-      So we move @code(50 * MoveSpeed * MoveXxxSpeed) units per second
-      (as CompSpeed, if it came from normal TGLWindow.IdleSpeed, is in seconds).
+      Note that since engine >= 2.2.0 the @link(Direction) vector
+      should always be normalized (length 1), and so you cannot change
+      speed by changing it. See MoveSpeed, MoveHorizontalSpeed, MoveVerticalSpeed instead.
 
       When setting @link(Direction), @link(Up) will always be automatically
       adjusted to be orthogonal to @link(Direction). And vice versa ---
@@ -2641,7 +2644,7 @@ var
       Dir := Direction;
 
     Move(VectorScale(Dir,
-      MoveSpeed * MoveHorizontalSpeed * CompSpeed * 50 * Multiply * AJumpMultiply), false);
+      MoveSpeedSecs * MoveHorizontalSpeed * CompSpeed * Multiply * AJumpMultiply), false);
   end;
 
   procedure MoveVertical(const Multiply: Integer);
@@ -2649,7 +2652,7 @@ var
     procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
     begin
       Move(VectorScale(PreferredUpVector,
-        MoveVerticalSpeed * MoveSpeed * CompSpeed * 50 * Multiply /
+        MoveSpeedSecs * MoveVerticalSpeed * CompSpeed * Multiply /
         VectorLen(PreferredUpVector)), false);
     end;
 
@@ -3347,11 +3350,10 @@ begin
           RotateHorizontalForStrafeMove(-90);
         end;
 
-
         { A simple implementation of Input_UpMove was
-            RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeed * CompSpeed * 50); RotateVertical(-90)
+            RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeedSecs * CompSpeed); RotateVertical(-90)
           Similarly, simple implementation of Input_DownMove was
-            RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeed * CompSpeed * 50); RotateVertical(90)
+            RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeedSecs * CompSpeed); RotateVertical(90)
           But this is not good, because when PreferGravityUp, we want to move
           along the GravityUp. (Also later note: RotateVertical is now bounded by
           MinAngleRadFromGravityUp). }
@@ -3368,24 +3370,22 @@ begin
 
           How to apply CompSpeed * 50 here ?
           I can't just ignore CompSpeed * 50, but I can't also write
-            FMoveHorizontalSpeed *= 1.1 * CompSpeed * 50;
-          What I want is such (pl: ci±g³a) function that e.g.
-            F(FMoveHorizontalSpeed, 2) = F(F(FMoveHorizontalSpeed, 1), 1)
+            FMoveSpeed *= 1.1 * CompSpeed * 50;
+          What I want is such continous function that e.g.
+            F(FMoveSpeed, 2) = F(F(FMoveSpeed, 1), 1)
           I.e. CompSpeed * 50 = 2 should work just like doing the same change twice.
-          So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed * 50)
+          So F is FMoveSpeed * Power(1.1, CompSpeed * 50)
           Easy!
         }
         if Input_MoveSpeedInc.IsPressed(Container) then
         begin
-          FMoveHorizontalSpeed *= Power(1.1, CompSpeed * 50);
-          FMoveVerticalSpeed *= Power(1.1, CompSpeed * 50);
+          FMoveSpeed *= Power(1.1, CompSpeed * 50);
           ScheduleVisibleChange;
         end;
 
         if Input_MoveSpeedDec.IsPressed(Container) then
         begin
-          FMoveHorizontalSpeed /= Power(1.1, CompSpeed * 50);
-          FMoveVerticalSpeed /= Power(1.1, CompSpeed * 50);
+          FMoveSpeed /= Power(1.1, CompSpeed * 50);
           ScheduleVisibleChange;
         end;
       end else
@@ -3810,6 +3810,16 @@ begin
     AnimationEndPosition,
     AnimationEndDirection,
     AnimationEndUp);
+end;
+
+function TWalkCamera.GetMoveSpeedSecs: Single;
+begin
+  Result := MoveSpeed * 50;
+end;
+
+procedure TWalkCamera.SetMoveSpeedSecs(const Value: Single);
+begin
+  MoveSpeed := Value / 50;
 end;
 
 { global ------------------------------------------------------------ }

@@ -1757,8 +1757,7 @@ type
       updating camera's initial and current vectors
       ([Initial]Position, [Initial]Direction, [Initial]Up, GravityUp).
 
-      If not OnlyViewpointVectorsChanged, then we also adjust length
-      of camera direction vector and MoveHorizontalSpeed, MoveVerticalSpeed,
+      If not OnlyViewpointVectorsChanged, then we also adjust MoveSpeedSecs
       to match currently bound NavigationInfo.speed. }
     procedure CameraBindToViewpoint(ACamera: TCamera;
       const OnlyViewpointVectorsChanged: boolean);
@@ -5811,27 +5810,19 @@ begin
         CameraRadius in turn was calculated based on
         Box3DAvgSize(SceneAnimation.BoundingBox). }
       NewMoveSpeed := ACamera.CameraRadius * 0.4;
-      WalkCamera.MoveHorizontalSpeed := 1;
-      WalkCamera.MoveVerticalSpeed := 1;
     end else
     if NavigationNode.FdSpeed.Value = 0 then
     begin
       { Then user is not allowed to move at all.
 
-        So we do this is by setting MoveSpeed / MoveHorizontal / VerticalSpeed to zero
-        (although actually only MoveSpeed or only MoveHorizontal + VerticalSpeed
-        would be enough).
-        This is also the reason why other SetViewpointCore must change
-        MoveHorizontal/VerticalSpeed to something different than zero
+        So we do this is by setting MoveSpeed.
+        This is also the reason why other SetViewpointCore branches must change
+        MoveSpeed to something different than zero
         (otherwise, user would be stuck with speed = 0). }
       NewMoveSpeed := 0;
-      WalkCamera.MoveHorizontalSpeed := 0;
-      WalkCamera.MoveVerticalSpeed := 0;
     end else
     begin
       NewMoveSpeed := NavigationNode.FdSpeed.Value / 50.0;
-      WalkCamera.MoveHorizontalSpeed := 1;
-      WalkCamera.MoveVerticalSpeed := 1;
     end;
   end;
 
