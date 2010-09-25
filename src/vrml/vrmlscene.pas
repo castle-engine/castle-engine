@@ -1732,7 +1732,7 @@ type
         @item(TWalkCamera.PreferGravityUpForMoving,)
         @item(TWalkCamera.IgnoreAllInputs,)
         @item(TWalkCamera.CameraPreferredHeight,)
-        @item(TWalkCamera.HeadBobbing, TWalkCamera.HeadBobbingDistance.)
+        @item(TWalkCamera.HeadBobbing, TWalkCamera.HeadBobbingTime.)
       )
 
       This also calls CameraBindToViewpoint at the end,
@@ -5752,7 +5752,7 @@ begin
      (NavigationNode is TNodeKambiNavigationInfo) then
   begin
     TWalkCamera(Result).HeadBobbing := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbing.Value;
-    TWalkCamera(Result).HeadBobbingDistance := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbingDistance.Value;
+    TWalkCamera(Result).HeadBobbingTime := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbingTime.Value;
   end;
 
   CameraBindToViewpoint(Result, false);

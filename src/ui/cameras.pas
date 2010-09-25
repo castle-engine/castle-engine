@@ -35,7 +35,7 @@ const
   DefaultFallingDownSpeedIncrease = 13/12;
   DefaultMouseLookHorizontalSensitivity = 0.09;
   DefaultMouseLookVerticalSensitivity = 0.09;
-  DefaultHeadBobbingDistance = 20.0;
+  DefaultHeadBobbingTime = 0.4;
   DefaultJumpSpeedMultiply = 2.0;
   DefaultJumpPower = 9.0;
 
@@ -722,7 +722,7 @@ type
 
     FHeadBobbing: Single;
     HeadBobbingPosition: Single;
-    FHeadBobbingDistance: Single;
+    FHeadBobbingTime: Single;
     function UseHeadBobbing: boolean;
 
   private
@@ -1191,7 +1191,7 @@ type
         @item(When current height is too large --- we're falling down.
           See IsFallingDown, OnFalledDown, FallingDownStartSpeed,
           FallingDownSpeedIncrease, FallingDownEffect.)
-        @item(It does head bobbing. See HeadBobbing, HeadBobbingDistance.)
+        @item(It does head bobbing. See HeadBobbing, HeadBobbingTime.)
       )
 
       While there are many properties allowing you to control
@@ -1394,14 +1394,11 @@ type
     property HeadBobbing: Single
       read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
 
-    { This controls head bobbing frequency.
-
-      One full head bobbing sequence (camera swing up, then down again)
-      is done when player moves horizontally by
-      @code(MoveHorizontalSpeed * MoveSpeed * HeadBobbingDistance). }
-    property HeadBobbingDistance: Single
-      read FHeadBobbingDistance write FHeadBobbingDistance
-      default DefaultHeadBobbingDistance;
+    { Controls head bobbing frequency. In the time of HeadBobbingTime seconds,
+      we do full head bobbing sequence (camera swing up, then down again). }
+    property HeadBobbingTime: Single
+      read FHeadBobbingTime write FHeadBobbingTime
+      default DefaultHeadBobbingTime;
 
     { This defines the preferred height of camera when crouching.
       This is always mutiplied to CameraPreferredHeight.
@@ -2312,7 +2309,7 @@ begin
   FCheckModsDown := true;
   FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
   FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
-  FHeadBobbingDistance := DefaultHeadBobbingDistance;
+  FHeadBobbingTime := DefaultHeadBobbingTime;
   FJumpSpeedMultiply := DefaultJumpSpeedMultiply;
   FJumpPower := DefaultJumpPower;
   FInvertVerticalMouseLook := false;
@@ -2640,7 +2637,7 @@ var
     { Update HeadBobbingPosition }
     if (not IsJumping) and UseHeadBobbing and (not HeadBobbingAlreadyDone) then
     begin
-      HeadBobbingPosition += CompSpeed * 50 / HeadBobbingDistance;
+      HeadBobbingPosition += CompSpeed / HeadBobbingTime;
       HeadBobbingAlreadyDone := true;
     end;
 

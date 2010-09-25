@@ -222,8 +222,8 @@
     private FFdHeadBobbing: TSFFloat;
     public property FdHeadBobbing: TSFFloat read FFdHeadBobbing;
 
-    private FFdHeadBobbingDistance: TSFFloat;
-    public property FdHeadBobbingDistance: TSFFloat read FFdHeadBobbingDistance;
+    private FFdHeadBobbingTime: TSFFloat;
+    public property FdHeadBobbingTime: TSFFloat read FFdHeadBobbingTime;
 
     { Return value of appropriate FdOctreeXxx field.
       Returns @nil if the field doesn't have allowed (TNodeKambiOctreeProperties)
@@ -648,8 +648,8 @@ begin
   FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', DefaultHeadBobbing, true);
   Fields.Add(FFdHeadBobbing);
 
-  FFdHeadBobbingDistance := TSFFloat.Create(Self, 'headBobbingDistance', DefaultHeadBobbingDistance, true);
-  Fields.Add(FdHeadBobbingDistance);
+  FFdHeadBobbingTime := TSFFloat.Create(Self, 'headBobbingTime', DefaultHeadBobbingTime, true);
+  Fields.Add(FdHeadBobbingTime);
 end;
 
 class function TNodeKambiNavigationInfo.ClassNodeTypeName: string;
