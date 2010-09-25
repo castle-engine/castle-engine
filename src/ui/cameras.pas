@@ -649,6 +649,7 @@ type
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
     procedure SetMouseLook(const Value: boolean);
+    procedure SetGravityUp(const Value: TVector3Single);
   private
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
@@ -930,7 +931,8 @@ type
     { @groupEnd }
 
     { This is the upward direction of the world in which player moves.
-      Must be always normalized.
+      Must be always normalized (when setting this property, we take
+      care to normalize it).
 
       This indicates how @link(Gravity) works.
 
@@ -938,7 +940,7 @@ type
       InitialUp --- one that means that player is looking straight
       foward. This is used for features like PreferGravityUpForRotations
       and/or PreferGravityUpForMoving. }
-    property GravityUp: TVector3Single read FGravityUp write FGravityUp;
+    property GravityUp: TVector3Single read FGravityUp write SetGravityUp;
 
     { If PreferGravityUpForRotations or PreferGravityUpForMoving
       then various operations are done with respect
@@ -1085,14 +1087,21 @@ type
       we can't project @link(Direction) on the horizontal plane. }
     function DirectionInGravityPlane: TVector3Single;
 
-    { This sets in one go most important properties of this class.
-      Sets initial camera properties (InitialCameraXxx),
-      sets current camera properties to them (CameraXxx := InitialCameraXxx).
+    { Set the most important properties of this camera, in one call.
+      Sets initial camera properties (InitialPosition, InitialDirection,
+      InitialUp),
+      sets current camera properties to them (Position := InitialPosition
+      and so on).
+
+      Given here AInitialDirection, AInitialUp, AGravityUp will be normalized,
+      and AInitialUp will be adjusted to be orthogonal to AInitialDirection
+      (see SetInitialCameraLookDir).
 
       Sets also CameraPreferredHeight and CameraRadius.
-      It will automatically call CorrectCameraPreferredHeight(ACameraRadius),
-      because this is important thing that's too easy to otherwise forget.
-      Just pass ACameraRadius = 0.0 if you don't really want this. }
+      CameraPreferredHeight may be adjusted to be sensible
+      (by calling CorrectCameraPreferredHeight(ACameraRadius)).
+      You can pass ACameraRadius = 0.0 if you really don't want this
+      CameraPreferredHeight adjustment. }
     procedure Init(const AInitialPosition, AInitialDirection,
       AInitialUp: TVector3Single;
       const AGravityUp: TVector3Single;
@@ -2640,11 +2649,11 @@ var
 
   procedure MoveVertical(const Multiply: Integer);
 
+    { Provided PreferredUpVector must be already normalized. }
     procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
     begin
       Move(VectorScale(PreferredUpVector,
-        MoveSpeed * MoveVerticalSpeed * CompSpeed * Multiply /
-        VectorLen(PreferredUpVector)), false);
+        MoveSpeed * MoveVerticalSpeed * CompSpeed * Multiply), false);
     end;
 
   begin
@@ -2707,7 +2716,7 @@ var
           FIsJumping := false else
         begin
           { do jumping }
-          Move(VectorAdjustToLength(GravityUp, ThisJumpHeight), false);
+          Move(VectorScale(GravityUp, ThisJumpHeight), false);
 
           { Initially it was my intention to decrease FJumpPower
             at each point. But this doesn't make any nice visible effect,
@@ -2747,7 +2756,7 @@ var
           MoveSpeed * GrowingSpeed * CompSpeed,
           RealCameraPreferredHeight - AboveHeight);
 
-        Move(VectorAdjustToLength(GravityUp, GrowingVectorLength), true);
+        Move(VectorScale(GravityUp, GrowingVectorLength), true);
 
         { When growing, TryFde_Stabilize also must be done.
           Otherwise when player walks horizontally on the flat surface
@@ -2848,8 +2857,7 @@ var
       FallingDownVectorLength := MoveSpeed * FFallingDownSpeed * CompSpeed;
       MinTo1st(FallingDownVectorLength, AboveHeight - RealCameraPreferredHeight);
 
-      if Move(VectorScale(GravityUp,
-         - FallingDownVectorLength / VectorLen(GravityUp)), true) and
+      if Move(VectorScale(GravityUp, - FallingDownVectorLength), true) and
         (not VectorsPerfectlyEqual(Position, PositionBefore)) then
       begin
         if not IsFallingDown then
@@ -3528,7 +3536,7 @@ procedure TWalkCamera.Init(
   const ACameraRadius: Single);
 begin
   SetInitialCameraLookDir(AInitialPosition, AInitialDirection, AInitialUp, false);
-  FGravityUp := AGravityUp;
+  FGravityUp := Normalized(AGravityUp);
   CameraPreferredHeight := ACameraPreferredHeight;
   CameraRadius := ACameraRadius;
   CorrectCameraPreferredHeight;
@@ -3791,6 +3799,11 @@ begin
     AnimationEndPosition,
     AnimationEndDirection,
     AnimationEndUp);
+end;
+
+procedure TWalkCamera.SetGravityUp(const Value: TVector3Single);
+begin
+  FGravityUp := Normalized(Value);
 end;
 
 { global ------------------------------------------------------------ }
