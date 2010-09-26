@@ -197,7 +197,9 @@
 
 {$ifdef read_implementation}
 type
-  TSFStartTime = class(TSFTime)
+  { SFTime that ignores it's input event when parent time-dependent node
+    is active. }
+  TSFTimeIgnoreWhenActive = class(TSFTime)
   protected
     function ExposedEventsFieldClass: TVRMLFieldClass; override;
     procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
@@ -211,13 +213,13 @@ type
       const Time: TVRMLTime); override;
   end;
 
-function TSFStartTime.ExposedEventsFieldClass: TVRMLFieldClass;
+function TSFTimeIgnoreWhenActive.ExposedEventsFieldClass: TVRMLFieldClass;
 begin
   Result := TSFTime;
 end;
 
-procedure TSFStartTime.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
-  const Time: TVRMLTime);
+procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
+  Event: TVRMLEvent; AValue: TVRMLField; const Time: TVRMLTime);
 
   { Is parent node an active X3DTimeDependentNode.
 
@@ -284,7 +286,7 @@ begin
   Fields.Add(FFdresumeTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdstartTime := TSFStartTime.Create(Self, 'startTime', 0);
+  FFdstartTime := TSFTimeIgnoreWhenActive.Create(Self, 'startTime', 0);
    FdstartTime.ChangesAlways := [chTimeStopStart];
   Fields.Add(FFdstartTime);
   { X3D specification comment: (-Inf,Inf) }
@@ -591,7 +593,7 @@ constructor TNodeTimeSensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcycleInterval := TSFTime.Create(Self, 'cycleInterval', 1);
+  FFdcycleInterval := TSFTimeIgnoreWhenActive.Create(Self, 'cycleInterval', 1);
   Fields.Add(FFdcycleInterval);
   { X3D specification comment: (0,Inf) }
 
@@ -669,13 +671,15 @@ end;
 
 procedure TNodeTimeSensor.EventElapsedTimeReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+var
+  Fraction: Single;
 begin
   if FdEnabled.Value then
   begin
-    { TODO: for now, elapsedTime/CycleInterval
-      is simply passed to set_fraction event. }
-    Eventfraction_changed.Send(
-      Single((Value as TSFTime).Value / CycleInterval), Time);
+    Fraction := (Value as TSFTime).Value / CycleInterval;
+    { TODO: do Frac? Does ElapsedTime wrap at cycle? }
+    if Fraction = 0 then Fraction := 1;
+    Eventfraction_changed.Send(Fraction, Time);
     EventTime.Send(Time.Seconds, Time);
   end;
 end;
