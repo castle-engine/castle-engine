@@ -365,7 +365,7 @@ begin
 
   PlaneOrigin := OverPoint;
 
-  Plane := Vector4Single(0, 0, 1, 0);
+  Plane := Vector4Single(0, 0, 1, -PlaneOrigin[2]);
   { TODO:
     plane parallel to Z=0 plane
       (transformed by current sensor transform and by axisRotation),
@@ -400,21 +400,30 @@ begin
 
   if TryPlaneRayIntersection(Intersection, Plane, RayOrigin, RayDirection) then
   begin
+    { trackPoint_changed should be in the local sensor coordinates,
+      without worrying about offset (like for translation_changed)
+      or axisRotation.
+
+      This is sensible:
+      - track point should visualize the underlying geometry of the drag sensor
+        (plane, in this case)
+      - this makes track point sensible also for Sphere/CylinderSensor
+        (where offset is for rotations, and cannot be applied to
+        trackPoint_changed).
+
+      FreeWRL and OpenVRML seems to also do this in sources,
+      and Octaga and InstantReality behavior suggests they do it too.
+
+      TODO: for now, we don't store and don't use Transform,
+      we assume it's identity. So just return Intersection. }
+    EventTrackPoint_changed.Send(Intersection, Time);
+
     TranslationGlobal := Intersection - PlaneOrigin;
 
     { map TranslationGlobal to the plane local coord system (with axisRotation) }
     Translation[0] := VectorDotProduct(TranslationGlobal, PlaneX);
     Translation[1] := VectorDotProduct(TranslationGlobal, PlaneY);
     Translation[2] := 0;
-
-    { trackPoint_changed is send before applying offset.
-      Spec is unclear, as far as I see FreeWRL and OpenVRML also apply offset
-      after sending trackPoint_changed.
-      This is consistent with Sphere/CylinderSensor
-      (where offset is for rotations, and cannot be applied to trackPoint_changed).
-      On the other hand, does the user ever want to see
-      Translation without offset? }
-    EventTrackPoint_changed.Send(Translation, Time);
 
     Translation += FdOffset.Value;
 
