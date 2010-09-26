@@ -46,11 +46,17 @@ const
   DefaultVRMLGravityUp: TVector3Single = (0, 1, 0);
   { @groupEnd }
 
-{ Calculate sensible camera configuration to see whole scene in the Box.
-  WantedUp may be only 1 (+Y) or 2 (+Z) now.
+{ Calculate sensible camera configuration to see the whole Box.
+
+  WantedDirection and WantedUp indicate desired look direction/up axis
+  (0, 1 or 2 for X, Y or Z). WantedDirectionPositive and WantedUpPositive
+  indicate if we want the positive axis. Obviously look direction and up
+  cannot be parallel, so WantedDirection must be different than WantedUp.
+
   Returned Direction, Up, GravityUp are normalized. }
 procedure CameraViewpointForWholeScene(const Box: TBox3D;
-  const WantedUp: Integer;
+  const WantedDirection, WantedUp: Integer;
+  const WantedDirectionPositive, WantedUpPositive: boolean;
   out Position, Direction, Up, GravityUp: TVector3Single);
 
 { Constructs string with VRML node defining camera with given
@@ -68,27 +74,29 @@ implementation
 uses SysUtils, Cameras;
 
 procedure CameraViewpointForWholeScene(const Box: TBox3D;
-  const WantedUp: Integer;
+  const WantedDirection, WantedUp: Integer;
+  const WantedDirectionPositive, WantedUpPositive: boolean;
   out Position, Direction, Up, GravityUp: TVector3Single);
-var
-  AvgSize: Single;
 begin
+  Direction := UnitVector3Single[WantedDirection];
+  if not WantedDirectionPositive then VectorNegateTo1st(Direction);
+
+  Up := UnitVector3Single[WantedUp];
+  if not WantedUpPositive then VectorNegateTo1st(Up);
+
   if IsEmptyBox3D(Box) then
   begin
-    Position  := DefaultVRMLCameraPosition[1];
-    Direction := DefaultVRMLCameraDirection;
-    Up        := DefaultVRMLCameraUp;
+    Position  := ZeroVector3Single;
   end else
   begin
-    AvgSize := Box3DAvgSize(Box);
-    Position[0] := Box[0, 0] - AvgSize;
-    Position[1] := (Box[0, 1] + Box[1, 1]) / 2;
-    Position[2] := (Box[0, 2] + Box[1, 2]) / 2;
-    Direction := UnitVector3Single[0];
-    Up := UnitVector3Single[WantedUp];
+    Position := Box3DMiddle(Box);
+
+    if WantedDirectionPositive then
+      Position[WantedDirection] := Box[0, WantedDirection] - Box3DAvgSize(Box) else
+      Position[WantedDirection] := Box[1, WantedDirection] + Box3DAvgSize(Box);
   end;
 
-  { Nothing more intelligent to do with GravityUp is possible... }
+  { GravityUp is just always equal Up here. }
   GravityUp := Up;
 end;
 
