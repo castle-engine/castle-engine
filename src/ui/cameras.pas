@@ -3368,22 +3368,22 @@ begin
 
           How to apply CompSpeed here ?
           I can't just ignore CompSpeed, but I can't also write
-            FMoveSpeed *= 2 * CompSpeed;
+            FMoveSpeed *= 10 * CompSpeed;
           What I want is such continous function that e.g.
-            F(FMoveSpeed, 2) = F(F(FMoveSpeed, 1), 1)
-          I.e. CompSpeed = 2 should work just like doing the same change twice.
-          So F is FMoveSpeed * Power(2, CompSpeed)
+            F(FMoveSpeed, 10) = F(F(FMoveSpeed, 1), 1)
+          I.e. CompSpeed = 10 should work just like doing the same change twice.
+          So F is FMoveSpeed * Power(10, CompSpeed)
           Easy!
         }
         if Input_MoveSpeedInc.IsPressed(Container) then
         begin
-          MoveSpeed := MoveSpeed * Power(2, CompSpeed);
+          MoveSpeed := MoveSpeed * Power(10, CompSpeed);
           ScheduleVisibleChange;
         end;
 
         if Input_MoveSpeedDec.IsPressed(Container) then
         begin
-          MoveSpeed := MoveSpeed / Power(2, CompSpeed);
+          MoveSpeed := MoveSpeed / Power(10, CompSpeed);
           ScheduleVisibleChange;
         end;
       end else
