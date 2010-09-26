@@ -107,6 +107,20 @@
   end;
 
   TNodePlaneSensor = class(TNodeX3DDragSensorNode)
+  private
+    { Plane of the activated sensor. }
+    Plane: TVector4Single;
+    { Vectors indicating X and Y axis on the plane.
+      Always normalized (do not really have to be strictly orthogonal,
+      in case plane was transformed by some shearing; this is Ok). }
+    PlaneX, PlaneY: TVector3Single;
+    { Initial intersection point at activation. Always lies on Plane. }
+    PlaneOrigin: TVector3Single;
+
+    { Was a translation_changed send during this activation of sensor. }
+    WasTranslation: boolean;
+    { Last value of translation_changed send, meaningful only if WasTranslation. }
+    Translation: TVector3Single;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -344,65 +358,48 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-(* TODO: priv vars:
-
-  { Plane of the activated sensor. }
-  Plane: TVector4Single;
-  { Vectors indicating X and Y axis on the plane.
-    Always normalized (do not really have to be strictly orthogonal,
-    in case plane was transformed by some shearing; this is Ok). }
-  PlaneX, PlaneY: TVector3Single;
-  { Initial intersection point at activation. Always lies on Plane. }
-  PlaneOrigin: TVector3Single;
-
-  { Was a translation_changed send during this activation of sensor. }
-  WasTranslation: boolean;
-  { Last value of translation_changed send, meaningful only if WasTranslation. }
-  Translation: TVector3Single;
-*)
-
 procedure TNodePlaneSensor.Activate(const Time: TVRMLTime;
   const OverPoint: TVector3Single);
 begin
   inherited;
 
-  { PlaneOrigin := Point.
+  PlaneOrigin := OverPoint;
 
-    Plane :=
+  Plane := Vector4Single(0, 0, 1, 0);
+  { TODO:
     plane parallel to Z=0 plane
       (transformed by current sensor transform and by axisRotation),
-    and passing though PlaneOrigin.
+    and passing though PlaneOrigin. }
 
-    PlaneX := unit vector +X
-      transformed by current sensor transform and by axisRotation
-      make sure you normalized it
+  PlaneX := UnitVector3Single[0];
+  { TODO: transformed by current sensor transform and by axisRotation
+      make sure you normalized it }
 
-    PlaneY := unit vector +Y
-      transformed by current sensor transform and by axisRotation
-      make sure you normalized it
+  PlaneY := UnitVector3Single[1];
+  { TODO: transformed by current sensor transform and by axisRotation
+      make sure you normalized it }
 
-    WasTranslation := false; }
+  WasTranslation := false;
 end;
 
 procedure TNodePlaneSensor.Deactivate(const Time: TVRMLTime);
 begin
-  { TODO:
   if FdAutoOffset.Value and WasTranslation then
     FdOffset.Send(Translation);
-  }
 
   inherited;
 end;
 
 procedure TNodePlaneSensor.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+var
+  Intersection, TranslationGlobal: TVector3Single;
 begin
   inherited;
 
-  (* TODO:
+  { If no intersection, it's Ok to do nothing? }
 
-    Intersection := intersect the Plane with RayOrigin/Direction.
-    If no intersection, it's Ok to do nothing?
-
+  if TryPlaneRayIntersection(Intersection, Plane, RayOrigin, RayDirection) then
+  begin
     TranslationGlobal := Intersection - PlaneOrigin;
 
     { map TranslationGlobal to the plane local coord system (with axisRotation) }
@@ -417,18 +414,18 @@ begin
       (where offset is for rotations, and cannot be applied to trackPoint_changed).
       On the other hand, does the user ever want to see
       Translation without offset? }
-    trackPoint_changed := Translation
+    EventTrackPoint_changed.Send(Translation, Time);
 
-    Translation += FdOffset
+    Translation += FdOffset.Value;
 
     if FdMinPosition.Value[0] <= FdMaxPosition.Value[0] then
-      ClampTo1st(Translation[0], FdMinPosition.Value[0], FdMaxPosition.Value[0]);
+      Clamp(Translation[0], FdMinPosition.Value[0], FdMaxPosition.Value[0]);
     if FdMinPosition.Value[1] <= FdMaxPosition.Value[1] then
-      ClampTo1st(Translation[1], FdMinPosition.Value[1], FdMaxPosition.Value[1]);
+      Clamp(Translation[1], FdMinPosition.Value[1], FdMaxPosition.Value[1]);
 
-    translation_changed := Translation
+    EventTranslation_changed.Send(Translation, Time);
     WasTranslation := true;
-  *)
+  end;
 end;
 
 { TODO: when TNodeX3DDragSensorNode receives enabled := false
