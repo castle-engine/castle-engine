@@ -1551,8 +1551,8 @@ type
       RayHit: T3DCollision): boolean; override;
     { @groupEnd }
 
-    { Input (mouse / key combination) to make pointing devive active
-      (that is, to activate VRML/X3D TouchSensor and such).
+    { Input (mouse / key combination) to make pointing device active
+      (that is, to activate VRML/X3D pointing-device sensors like TouchSensor).
       By default this requires left mouse button click.
 
       You can change it to any other mouse button or even to key combination.
@@ -5206,7 +5206,7 @@ begin
     (FPointingDeviceActiveSensor <> nil);
 
   FPointingDeviceOverItem := nil;
-  { PointingDeviceOverPoint may be left undefined now, but let's set it 
+  { PointingDeviceOverPoint may be left undefined now, but let's set it
     to something deterministic to ease debugging. }
   FPointingDeviceOverPoint := ZeroVector3Single;
   FPointingDeviceActive := false;
