@@ -1481,7 +1481,7 @@ begin
   Result := GLVideo <> nil;
   if not Result then Exit;
 
-  VideoTime := TextureNode.TimeDependentNodeHandler.ElapsedTime *
+  VideoTime := TextureNode.TimeDependentNodeHandler.ElapsedTimeInCycle *
                TextureNode.FdSpeed.Value;
   if TextureNode.FdSpeed.Value < 0 then
     VideoTime := TextureNode.Duration + VideoTime;

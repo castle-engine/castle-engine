@@ -87,6 +87,7 @@
     FIsActive: boolean;
     FIsPaused: boolean;
     FElapsedTime: TKamTime;
+    FElapsedTimeInCycle: TKamTime;
     procedure SetIsActive(const Value: boolean);
     procedure SetIsPaused(const Value: boolean);
     procedure SetElapsedTime(const Value: TKamTime);
@@ -125,6 +126,11 @@
     EventisPaused: TVRMLEvent;
     { May be @nil if node doesn't have a "cycleTime" event. }
     EventcycleTime: TVRMLEvent;
+
+    { Like ElapsedTime, but spent in the current cycle.
+      When cycleInterval = 0, this is always 0.
+      When cycleInterval <> 0, this is always >= 0 and < cycleInterval . }
+    property ElapsedTimeInCycle: TKamTime read FElapsedTimeInCycle;
 
     { Call this when world time increases.
       This is the most important method of this class, that basically
@@ -355,7 +361,7 @@ var
 
   { $define LOG_TIME_DEPENDENT_NODES}
 
-  { Increase NewElapsedTime, taking care of
+  { Increase NewElapsedTime and ElapsedTimeInCycle, taking care of
     CycleInterval and looping.
     StopOnNonLoopedEnd says what to do if NewElapsedTime passed
     CycleInterval and not looping.
@@ -367,19 +373,20 @@ var
   procedure IncreaseElapsedTime(const Increase: TKamTime;
     StopOnNonLoopedEnd: boolean);
   begin
-    NewElapsedTime := NewElapsedTime + Increase;
+    NewElapsedTime      := NewElapsedTime      + Increase;
+    FElapsedTimeInCycle := FElapsedTimeInCycle + Increase;
 
-    if NewElapsedTime > CycleInterval then
+    if FElapsedTimeInCycle > CycleInterval then
     begin
       if CycleInterval <> 0 then
       begin
         if FdLoop.Value then
         begin
-          NewElapsedTime := FloatModulo(NewElapsedTime, CycleInterval);
+          FElapsedTimeInCycle := FloatModulo(FElapsedTimeInCycle, CycleInterval);
           { Send the time value when the cycle started, which was
-            a little earlier than CurrentTime: earlier by NewElapsedTime. }
+            a little earlier than CurrentTime: earlier by ElapsedTimeInCycle. }
           CycleTimeSend := true;
-          CycleTime := CurrentTime.Seconds - NewElapsedTime;
+          CycleTime := CurrentTime.Seconds - ElapsedTimeInCycle;
         end else
         begin
           if StopOnNonLoopedEnd then
@@ -388,7 +395,7 @@ var
       end else
       begin
         { for cycleInterval = 0 this always remains 0 }
-        NewElapsedTime := 0;
+        FElapsedTimeInCycle := 0;
 
         if (not FdLoop.Value) and StopOnNonLoopedEnd then
           NewIsActive := false;
@@ -435,11 +442,13 @@ begin
     NewIsActive := false;
     NewIsPaused := false;
     NewElapsedTime := 0;
+    FElapsedTimeInCycle := 0;
   end else
   begin
     NewIsActive := IsActive;
     NewIsPaused := IsPaused;
     NewElapsedTime := ElapsedTime;
+    { Leave ElapsedTimeInCycle as it was }
   end;
 
   CycleTimeSend := false;
@@ -459,6 +468,7 @@ begin
       NewIsActive := true;
       NewIsPaused := false;
       NewElapsedTime := 0;
+      FElapsedTimeInCycle := 0;
 
       { Do not advance by TimeIncrease (time from last Time),
         advance only by the time passed since startTime. }
@@ -524,7 +534,10 @@ begin
     begin
       { active and not paused movie }
       if ResetTime then
-        NewElapsedTime := 0 else
+      begin
+        NewElapsedTime := 0;
+        FElapsedTimeInCycle := 0;
+      end else
         IncreaseElapsedTime(TimeIncrease, true);
     end;
   end;
@@ -628,7 +641,7 @@ begin
   FTimeDependentNodeHandler.EventCycleTime := EventCycleTime;
   FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
 
-  { TODO: for now, elapsedTime is simply passed to set_fraction event. }
+  { On receiving new elapsedTime, we send other continous events. }
   EventelapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
 end;
 
@@ -676,10 +689,10 @@ var
 begin
   if FdEnabled.Value then
   begin
-    Fraction := (Value as TSFTime).Value / CycleInterval;
-    { TODO: do Frac? Does ElapsedTime wrap at cycle? }
+    Fraction := TimeDependentNodeHandler.ElapsedTimeInCycle / CycleInterval;
     if Fraction = 0 then Fraction := 1;
     Eventfraction_changed.Send(Fraction, Time);
+
     EventTime.Send(Time.Seconds, Time);
   end;
 end;
