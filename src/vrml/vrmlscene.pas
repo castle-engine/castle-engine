@@ -1530,7 +1530,7 @@ type
     { Call mouse down / up / move to have PointiDeviceXxx stuff automatically
       handled.
 
-      To make mouse move actually working (so that VRML touch sensors work Ok),
+      To make mouse move actually working (so that VRML pointing-device sensors work Ok),
       make sure you have non-nil OctreeCollisions (e.g. include
       ssDynamicCollisions in @link(Spatial)).
 
