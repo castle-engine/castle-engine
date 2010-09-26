@@ -544,7 +544,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
   var
     Position, Direction, Up, GravityUp: TVector3Single;
   begin
-    CameraViewpointForWholeScene(SceneBoundingBox, 2,
+    CameraViewpointForWholeScene(SceneBoundingBox, 0, 2, true, true,
       Position, Direction, Up, GravityUp);
     SceneNav.Init(Position, Direction, Up, GravityUp, 0, 0);
   end;
