@@ -33,6 +33,24 @@
     { Event: SFBool, out } { }
     private FEventisOver: TVRMLEvent;
     public property EventisOver: TVRMLEvent read FEventisOver;
+
+    { Activate pointing device sensor. Used by the events engine
+      (like TVRMLScene) to notify this sensor.
+
+      OverPoint indicates 3D point (in global, that is TVRMLScene, coordinates)
+      pointed by the mouse.
+
+      In TNodeX3DPointingDeviceSensorNode class,
+      this simply sends isActive := TRUE event. }
+    procedure Activate(const Time: TVRMLTime;
+      const OverPoint: TVector3Single); virtual;
+
+    { Deactivate pointing device sensor. Used by the events engine
+      (like TVRMLScene) to notify this sensor.
+
+      In TNodeX3DPointingDeviceSensorNode class,
+      this simply sends isActive := FALSE event. }
+    procedure Deactivate(const Time: TVRMLTime); virtual;
   end;
 
   TNodeX3DDragSensorNode = class(TNodeX3DPointingDeviceSensorNode)
@@ -45,6 +63,10 @@
     { Event: SFVec3f, out } { }
     private FEventtrackPoint_changed: TVRMLEvent;
     public property EventtrackPoint_changed: TVRMLEvent read FEventtrackPoint_changed;
+
+    { Called by events engine (like TVRMLScene) when you move your mouse
+      over the @italic(active) drag sensor. }
+    procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); virtual;
   end;
 
   TNodeX3DTouchSensorNode = class(TNodeX3DPointingDeviceSensorNode)
@@ -107,6 +129,11 @@
     { Event: SFVec3f, out } { }
     private FEventtranslation_changed: TVRMLEvent;
     public property Eventtranslation_changed: TVRMLEvent read FEventtranslation_changed;
+
+    procedure Activate(const Time: TVRMLTime;
+      const OverPoint: TVector3Single); override;
+    procedure Deactivate(const Time: TVRMLTime); override;
+    procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
   TNodeSphereSensor = class(TNodeX3DDragSensorNode)
@@ -182,6 +209,17 @@ begin
   Events.Add(FEventisOver);
 end;
 
+procedure TNodeX3DPointingDeviceSensorNode.Activate(const Time: TVRMLTime;
+  const OverPoint: TVector3Single);
+begin
+  EventIsActive.Send(true, Time);
+end;
+
+procedure TNodeX3DPointingDeviceSensorNode.Deactivate(const Time: TVRMLTime);
+begin
+  EventIsActive.Send(false, Time);
+end;
+
 constructor TNodeX3DDragSensorNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -192,6 +230,11 @@ begin
 
   FEventtrackPoint_changed := TVRMLEvent.Create(Self, 'trackPoint_changed', TSFVec3f, false);
   Events.Add(FEventtrackPoint_changed);
+end;
+
+procedure TNodeX3DDragSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+begin
+  { Nothing to do in this class }
 end;
 
 constructor TNodeX3DTouchSensorNode.Create(const ANodeName: string;
@@ -300,6 +343,97 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+(* TODO: priv vars:
+
+  { Plane of the activated sensor. }
+  Plane: TVector4Single;
+  { Vectors indicating X and Y axis on the plane.
+    Always normalized (do not really have to be strictly orthogonal,
+    in case plane was transformed by some shearing; this is Ok). }
+  PlaneX, PlaneY: TVector3Single;
+  { Initial intersection point at activation. Always lies on Plane. }
+  PlaneOrigin: TVector3Single;
+
+  { Was a translation_changed send during this activation of sensor. }
+  WasTranslation: boolean;
+  { Last value of translation_changed send, meaningful only if WasTranslation. }
+  Translation: TVector3Single;
+*)
+
+procedure TNodePlaneSensor.Activate(const Time: TVRMLTime;
+  const OverPoint: TVector3Single);
+begin
+  inherited;
+
+  { PlaneOrigin := Point.
+
+    Plane :=
+    plane parallel to Z=0 plane
+      (transformed by current sensor transform and by axisRotation),
+    and passing though PlaneOrigin.
+
+    PlaneX := unit vector +X
+      transformed by current sensor transform and by axisRotation
+      make sure you normalized it
+
+    PlaneY := unit vector +Y
+      transformed by current sensor transform and by axisRotation
+      make sure you normalized it
+
+    WasTranslation := false; }
+end;
+
+procedure TNodePlaneSensor.Deactivate(const Time: TVRMLTime);
+begin
+  { TODO:
+  if FdAutoOffset.Value and WasTranslation then
+    FdOffset.Send(Translation);
+  }
+
+  inherited;
+end;
+
+procedure TNodePlaneSensor.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+begin
+  inherited;
+
+  (* TODO:
+
+    Intersection := intersect the Plane with RayOrigin/Direction.
+    If no intersection, it's Ok to do nothing?
+
+    TranslationGlobal := Intersection - PlaneOrigin;
+
+    { map TranslationGlobal to the plane local coord system (with axisRotation) }
+    Translation[0] := VectorDotProduct(TranslationGlobal, PlaneX);
+    Translation[1] := VectorDotProduct(TranslationGlobal, PlaneY);
+    Translation[2] := 0;
+
+    { trackPoint_changed is send before applying offset.
+      Spec is unclear, as far as I see FreeWRL and OpenVRML also apply offset
+      after sending trackPoint_changed.
+      This is consistent with Sphere/CylinderSensor
+      (where offset is for rotations, and cannot be applied to trackPoint_changed).
+      On the other hand, does the user ever want to see
+      Translation without offset? }
+    trackPoint_changed := Translation
+
+    Translation += FdOffset
+
+    if FdMinPosition.Value[0] <= FdMaxPosition.Value[0] then
+      ClampTo1st(Translation[0], FdMinPosition.Value[0], FdMaxPosition.Value[0]);
+    if FdMinPosition.Value[1] <= FdMaxPosition.Value[1] then
+      ClampTo1st(Translation[1], FdMinPosition.Value[1], FdMaxPosition.Value[1]);
+
+    translation_changed := Translation
+    WasTranslation := true;
+  *)
+end;
+
+{ TODO: when TNodeX3DDragSensorNode receives enabled := false
+  and the sensor is currently active,
+  then do Deactivate and make the sensor (in TVRMLScene) not active. }
 
 constructor TNodeSphereSensor.Create(const ANodeName: string;
   const AWWWBasePath: string);

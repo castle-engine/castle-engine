@@ -681,6 +681,7 @@ type
     ChangedAllScheduled: boolean;
 
     FPointingDeviceOverItem: PVRMLTriangle;
+    FPointingDeviceOverPoint: TVector3Single;
     FPointingDeviceActive: boolean;
     FPointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode;
     procedure SetPointingDeviceActive(const Value: boolean);
@@ -1461,13 +1462,15 @@ type
 
     { Call this to when pointing-device moves.
       This may generate the continously-generated events like
-      hitPoint_changed, also it updates PointingDeviceOverItem,
+      hitPoint_changed, also it updates PointingDeviceOverItem
+      and PointingDeviceOverPoint,
       thus producing isOver and such events.
 
       OverItem may be @nil to indicate we're not over any item.
       In this case, OverPoint is ignored. }
-    procedure PointingDeviceMove(const OverPoint: TVector3Single;
-      const OverItem: PVRMLTriangle);
+    procedure PointingDeviceMove(
+      const RayOrigin, RayDirection: TVector3Single;
+      const OverPoint: TVector3Single; const OverItem: PVRMLTriangle);
 
     { Current item over which the pointing device is. @nil if over none.
       For example, you can investigate it's pointing device sensors
@@ -1476,6 +1479,12 @@ type
       You can change this by PointingDeviceMove and PointingDeviceClear. }
     property PointingDeviceOverItem: PVRMLTriangle
       read FPointingDeviceOverItem write FPointingDeviceOverItem;
+
+    { Current 3D point under the pointing device.
+      Only meaningful when PointingDeviceOverItem <> nil,
+      otherwise undefined. }
+    property PointingDeviceOverPoint: TVector3Single
+      read FPointingDeviceOverPoint write FPointingDeviceOverPoint;
 
     { Pointing-device sensors over which the pointing device is.
       This is just a shortcut for
@@ -1502,7 +1511,8 @@ type
       save some sensor of it for a longer time.
 
       You could free it by calling
-      @code(PointingDeviceMove(nil)), but this could cause other VRML events,
+      @link(PointingDeviceMove) with OverItem = @nil,
+      but this could cause other VRML events,
       so it's undesirable to call this when you're going to e.g. release
       the scene or it's octree. Also, you would have to deactivate sensor
       first, causing even more events.
@@ -5001,8 +5011,9 @@ end;
 
 { pointing device handling --------------------------------------------------- }
 
-procedure TVRMLScene.PointingDeviceMove(const OverPoint: TVector3Single;
-  const OverItem: PVRMLTriangle);
+procedure TVRMLScene.PointingDeviceMove(
+  const RayOrigin, RayDirection: TVector3Single;
+  const OverPoint: TVector3Single; const OverItem: PVRMLTriangle);
 var
   TouchSensor: TNodeTouchSensor;
   OldIsOver, NewIsOver: boolean;
@@ -5127,6 +5138,11 @@ begin
         DoPointingDeviceSensorsChange;
       end;
 
+      { When OverItem <> nil => OverPoint is meaningful.
+        Right now OverItem = FPointingDeviceOverItem,
+        so take care to make PointingDeviceOverPoint also meaningful. }
+      FPointingDeviceOverPoint := OverPoint;
+
       { Handle hitXxx_changed events }
 
       if OverItem <> nil then
@@ -5156,6 +5172,11 @@ begin
             end;
           end;
       end;
+
+      if (PointingDeviceActiveSensor <> nil) and
+         (PointingDeviceActiveSensor is TNodeX3DDragSensorNode) then
+        TNodeX3DDragSensorNode(PointingDeviceActiveSensor).Drag(
+          Time, RayOrigin, RayDirection);
     finally
       EndChangesSchedule;
     end;
@@ -5185,6 +5206,9 @@ begin
     (FPointingDeviceActiveSensor <> nil);
 
   FPointingDeviceOverItem := nil;
+  { PointingDeviceOverPoint may be left undefined now, but let's set it 
+    to something deterministic to ease debugging. }
+  FPointingDeviceOverPoint := ZeroVector3Single;
   FPointingDeviceActive := false;
   FPointingDeviceActiveSensor := nil;
 
@@ -5239,7 +5263,9 @@ begin
               begin
                 FPointingDeviceActiveSensor :=
                   TNodeX3DPointingDeviceSensorNode(ToActivate);
-                PointingDeviceActiveSensor.EventIsActive.Send(true, Time);
+                { We do this only when PointingDeviceOverItem <> nil,
+                  so we know that PointingDeviceOverPoint is meaningful. }
+                PointingDeviceActiveSensor.Activate(Time, PointingDeviceOverPoint);
                 DoPointingDeviceSensorsChange;
               end;
               Break;
@@ -5257,7 +5283,7 @@ begin
         { Deactivate PointingDeviceActiveSensor (if any) }
         if PointingDeviceActiveSensor <> nil then
         begin
-          PointingDeviceActiveSensor.EventIsActive.Send(false, Time);
+          PointingDeviceActiveSensor.Deactivate(Time);
           { If we're still over the sensor, generate touchTime for TouchSensor }
           if (PointingDeviceOverItem <> nil) and
              (PointingDeviceOverItem^.State.PointingDeviceSensors.
@@ -5334,8 +5360,8 @@ begin
   if (RayHit = nil) or (not RayHit.Hierarchy.IsLast(Self)) then
     { If ray hit outside this scene (other 3D object, or empty space)
       then mouse is no longer over any part of *this* scene. }
-    PointingDeviceMove(ZeroVector3Single, nil) else
-    PointingDeviceMove(RayHit.Point, PVRMLTriangle(RayHit.Triangle));
+    PointingDeviceMove(RayOrigin, RayDirection, ZeroVector3Single, nil) else
+    PointingDeviceMove(RayOrigin, RayDirection, RayHit.Point, PVRMLTriangle(RayHit.Triangle));
 
   { Do not treat it as handled (returning ExclusiveEvents),
     this would disable too much (like Camera usually under Scene on Controls).
