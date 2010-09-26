@@ -1001,7 +1001,8 @@ begin
   Result := inherited;
   if (not Result) and (not Paused) and (Camera <> nil) then
   begin
-    Result := GetItems.AllowCameraMouseMove and
+    Result :=
+      (not ((Camera is TExamineCamera) and GetItems.Dragging)) and
       Camera.MouseMove(OldX, OldY, NewX, NewY);
     if not Result then
     begin

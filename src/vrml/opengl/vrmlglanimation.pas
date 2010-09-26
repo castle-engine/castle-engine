@@ -573,7 +573,7 @@ type
       const OriginalViewportX, OriginalViewportY: LongInt;
       const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
-    function AllowCameraMouseMove: boolean; override;
+    function Dragging: boolean; override;
   published
     { Is the animation time playing, and how fast.
 
@@ -2046,13 +2046,13 @@ begin
     CurrentScene.VisibleChangeNotification(Changes);
 end;
 
-function TVRMLGLAnimation.AllowCameraMouseMove: boolean;
+function TVRMLGLAnimation.Dragging: boolean;
 begin
   Result := inherited;
-  if not Result then Exit;
+  if Result then Exit;
 
   if Loaded then
-    Result := CurrentScene.AllowCameraMouseMove;
+    Result := CurrentScene.Dragging;
 end;
 
 procedure TVRMLGLAnimation.SetShadowMaps(const Value: boolean);

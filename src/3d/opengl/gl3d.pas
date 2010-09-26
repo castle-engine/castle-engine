@@ -96,7 +96,7 @@ type
       const OriginalViewportX, OriginalViewportY: LongInt;
       const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
-    function AllowCameraMouseMove: boolean; override;
+    function Dragging: boolean; override;
   published
     { Translated 3D object. }
     property Child: T3D read FChild write SetChild;
@@ -493,10 +493,9 @@ begin
     FChild := nil;
 end;
 
-function T3DCustomTranslated.AllowCameraMouseMove: boolean;
+function T3DCustomTranslated.Dragging: boolean;
 begin
-  Result := (inherited AllowCameraMouseMove) and
-    ( (FChild = nil) or (FChild.AllowCameraMouseMove) );
+  Result := (inherited Dragging) or ((FChild <> nil) and FChild.Dragging);
 end;
 
 { T3DTranslated -------------------------------------------------------------- }

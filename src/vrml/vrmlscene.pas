@@ -1869,7 +1869,7 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
-    function AllowCameraMouseMove: boolean; override;
+    function Dragging: boolean; override;
 
     { Static scene will not be automatically notified about the changes
       to the field values. This means that TVRMLField.Send and
@@ -5369,9 +5369,10 @@ begin
   Result := false; }
 end;
 
-function TVRMLScene.AllowCameraMouseMove: boolean;
+function TVRMLScene.Dragging: boolean;
 begin
-  Result := (PointingDeviceActiveSensor = nil) or (not ProcessEvents);
+  Result := (inherited Dragging) or
+    ((PointingDeviceActiveSensor <> nil) and ProcessEvents);
 end;
 
 { Time stuff ------------------------------------------------------------ }
