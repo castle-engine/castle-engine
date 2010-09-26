@@ -1501,7 +1501,7 @@ type
       PointingDeviceActive := false, which means that user released mouse
       button). This means that when user moves the mouse while given
       sensor is active, he can move mouse over other items, even the ones
-      where the sensor isn't listen --- but the sensor remains active. }
+      where the sensor isn't listed --- but the sensor remains active. }
     property PointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode
       read FPointingDeviceActiveSensor;
 
@@ -1869,6 +1869,7 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+    function AllowCameraMouseMove: boolean; override;
 
     { Static scene will not be automatically notified about the changes
       to the field values. This means that TVRMLField.Send and
@@ -5366,6 +5367,11 @@ begin
   { Do not treat it as handled (returning ExclusiveEvents),
     this would disable too much (like Camera usually under Scene on Controls).
   Result := false; }
+end;
+
+function TVRMLScene.AllowCameraMouseMove: boolean;
+begin
+  Result := (PointingDeviceActiveSensor = nil) or (not ProcessEvents);
 end;
 
 { Time stuff ------------------------------------------------------------ }

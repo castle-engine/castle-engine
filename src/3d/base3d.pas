@@ -470,6 +470,18 @@ type
       const ProjectionNear, ProjectionFar: Single;
       const OriginalViewportX, OriginalViewportY: LongInt;
       const OriginalViewportWidth, OriginalViewportHeight: Cardinal); virtual;
+
+    { Allow the scene camera to handle mouse movement.
+      In almost all normal situations this should be left as @true,
+      unless your 3D object has something really urgent to do on mouse move,
+      with which camera handling of mouse movement would collide.
+
+      In particular, when you operate on X3D drag sensors (some drag sensor
+      is active) then camera mouse move handling would be bad: every mouse
+      move would cause view change (view rotation with mouse look with TWalkCamera,
+      or view rotation/movement with TExamineCamera). And you could not
+      operate on sensors that require you to drag something. }
+    function AllowCameraMouseMove: boolean; virtual;
   end;
 
   T3DList = class;
@@ -577,6 +589,7 @@ type
       const OriginalViewportX, OriginalViewportY: LongInt;
       const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
+    function AllowCameraMouseMove: boolean; override;
   published
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
@@ -779,6 +792,11 @@ procedure T3D.UpdateGeneratedTextures(
   const OriginalViewportX, OriginalViewportY: LongInt;
   const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
 begin
+end;
+
+function T3D.AllowCameraMouseMove: boolean;
+begin
+  Result := true;
 end;
 
 { T3DListCore ------------------------------------------------------------ }
@@ -1269,6 +1287,20 @@ begin
   inherited;
   for I := 0 to List.Count - 1 do
     List[I].VisibleChangeNotification(Changes);
+end;
+
+function T3DList.AllowCameraMouseMove: boolean;
+var
+  I: Integer;
+begin
+  Result := inherited;
+  if not Result then Exit;
+
+  for I := 0 to List.Count - 1 do
+  begin
+    Result := List[I].AllowCameraMouseMove;
+    if not Result then Exit;
+  end;
 end;
 
 end.

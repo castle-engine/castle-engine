@@ -1001,7 +1001,8 @@ begin
   Result := inherited;
   if (not Result) and (not Paused) and (Camera <> nil) then
   begin
-    Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
+    Result := GetItems.AllowCameraMouseMove and
+      Camera.MouseMove(OldX, OldY, NewX, NewY);
     if not Result then
     begin
       Camera.CustomRay(
@@ -1012,9 +1013,9 @@ begin
     end;
   end;
 
-  { update the cursor, since 3D object the cursor possibly changed.
+  { update the cursor, since 3D object under the cursor possibly changed.
 
-    Accidentaly, this also workaround the problem of TKamViewport:
+    Accidentaly, this also workarounds the problem of TKamViewport:
     when the 3D object stayed the same but it's Cursor value changed,
     Items.OnCursorChange notify only TKamSceneManager (not custom viewport).
     But thanks to doing ItemsAndCameraCursorChange below, this isn't
