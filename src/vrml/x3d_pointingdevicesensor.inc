@@ -50,7 +50,7 @@
       In TNodeX3DPointingDeviceSensorNode class,
       this simply sends isActive := TRUE event. }
     procedure Activate(const Time: TVRMLTime;
-      const Transform, AInvertedTransform: TMatrix4Single;
+      const ATransform, AInvertedTransform: TMatrix4Single;
       const OverPoint: TVector3Single); virtual;
 
     { Deactivate pointing device sensor. Used by the events engine
@@ -157,7 +157,7 @@
     public property Eventtranslation_changed: TVRMLEvent read FEventtranslation_changed;
 
     procedure Activate(const Time: TVRMLTime;
-      const Transform, AInvertedTransform: TMatrix4Single;
+      const ATransform, AInvertedTransform: TMatrix4Single;
       const OverPoint: TVector3Single); override;
     procedure Deactivate(const Time: TVRMLTime); override;
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
@@ -247,7 +247,7 @@ begin
 end;
 
 procedure TNodeX3DPointingDeviceSensorNode.Activate(const Time: TVRMLTime;
-  const Transform, AInvertedTransform: TMatrix4Single;
+  const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 begin
   EventIsActive.Send(true, Time);
@@ -383,29 +383,39 @@ begin
 end;
 
 procedure TNodePlaneSensor.Activate(const Time: TVRMLTime;
-  const Transform, AInvertedTransform: TMatrix4Single;
+  const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 var
   PlaneDir: PVector3Single;
+  Transform, M, IM: TMatrix4Single;
 begin
   inherited;
 
   PlaneOrigin := OverPoint;
 
+  Transform := ATransform;
+  InvertedTransform := AInvertedTransform;
+
+  { Do not apply rotation when it's 0. A small optimization for a common case. }
+  if FdAxisRotation.RotationRad <> 0 then
+  begin
+    RotationMatricesRad(FdAxisRotation.RotationRad, FdAxisRotation.Axis, M, IM);
+    Transform := MatrixMult(Transform, M);
+    InvertedTransform := MatrixMult(IM, InvertedTransform);
+  end;
+
   try
     { Plane is parallel to Z=0 plane
-      (transformed by current sensor transform and TODO: by axisRotation),
+      (transformed by current sensor transform and by axisRotation),
       and passing though PlaneOrigin. }
     PlaneDir := PVector3Single(@Plane);
     PlaneDir^ := MatrixMultDirection(Transform, UnitVector3Single[2]);
     Plane[3] := -VectorDotProduct(PlaneDir^, PlaneOrigin);
 
     { +X, +Y vectors, transformed by current sensor transform and
-      TODO: by axisRotation, normalized. }
+      by axisRotation, normalized. }
     PlaneX := Normalized(MatrixMultDirection(Transform, UnitVector3Single[0]));
     PlaneY := Normalized(MatrixMultDirection(Transform, UnitVector3Single[1]));
-
-    InvertedTransform := AInvertedTransform;
   except
     on ETransformedResultInvalid do
     begin
@@ -414,6 +424,7 @@ begin
       Plane := Vector4Single(0, 0, 1, -PlaneOrigin[2]);
       PlaneX := UnitVector3Single[0];
       PlaneY := UnitVector3Single[1];
+      Transform := IdentityMatrix4Single;
       InvertedTransform := IdentityMatrix4Single;
       if Log then
         WritelnLog('Drag sensor', 'Sensor transformation matrix cannot transform directions.');
@@ -442,9 +453,9 @@ begin
   if TryPlaneRayIntersection(Intersection, Plane, RayOrigin, RayDirection) then
   begin
     try
-      { trackPoint_changed should be in the local sensor coordinates,
-        without worrying about offset (like for translation_changed)
-        or axisRotation.
+      { trackPoint_changed should be in the local sensor coordinates
+        (with axisRotation), without worrying about offset
+        (like for translation_changed).
 
         This is sensible:
         - track point should visualize the underlying geometry of the drag sensor
@@ -453,8 +464,13 @@ begin
           (where offset is for rotations, and cannot be applied to
           trackPoint_changed).
 
+        About using local coordinates:
         FreeWRL and OpenVRML seems to also do this in sources,
-        and Octaga and InstantReality behavior suggests they do it too. }
+        and Octaga and InstantReality behavior suggests they do it too.
+
+        About using local coordinates with axisRotation:
+        That's more difficult, see
+        http://vrmlengine.sourceforge.net/vrml_implementation_pointingdevicesensor.php }
       EventTrackPoint_changed.Send(
         MatrixMultPoint(InvertedTransform, Intersection), Time);
     except
@@ -466,33 +482,17 @@ begin
       end;
     end;
 
-    { TODO: *maybe* transform Intersection to local coords (with axisRotation,
-      and with origin at PointOrigin).
-      I will have to transform it to local coords (maybe with axisRotation,
-      but probably not? check other browsers.
-      And without origin at PointOrigin.) anyway to fix above TODO
-      with sending trackPoint_changed.
+    { An alternative implementation would transform Intersection to
+      local coords (with axisRotation, and with origin at PointOrigin).
 
-      Once I transform Intersection to local coords, I can handle
-      PointOrigin, PlaneY, PlaneY much simpler. In these local coords
-      (with axisRotation, and with origin at PointOrigin)
-      the origin is at zero, plane x is just (1, 0, 0),
-      so no need for
-
-        TranslationGlobal := Intersection - PlaneOrigin;
-
-      and
-
-        Translation[0] := VectorDotProduct(V, PlaneX);
-
-      becomes just
-
-        Translation[0] := V[0]; }
+      Then applying the PointOrigin, PlaneX, PlaneY would be much simpler:
+      PointOrigin is just zero, and PlaneX = just (1, 0, 0).
+      So instead of VectorDotProduct(V, PlaneX) just take V[0]. }
 
     TranslationGlobal := Intersection - PlaneOrigin;
 
     { map TranslationGlobal to the plane local coord system
-      (TODO: with axisRotation. This should be done once PlaneX/Y do it.) }
+      (with axisRotation) }
     Translation[0] := VectorDotProduct(TranslationGlobal, PlaneX);
     Translation[1] := VectorDotProduct(TranslationGlobal, PlaneY);
     Translation[2] := 0;
