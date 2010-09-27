@@ -420,6 +420,11 @@ begin
 
     TranslationGlobal := Intersection - PlaneOrigin;
 
+    { TODO: transform Intersection to local coords (with axisRotation) ---
+      then VectorDotProduct is much simpler,
+      as plane x is just (1, 0, 0) in local coords,
+      so just take TranslationGlobal[0] instead of dot with VectorDotProduct. }
+
     { map TranslationGlobal to the plane local coord system (with axisRotation) }
     Translation[0] := VectorDotProduct(TranslationGlobal, PlaneX);
     Translation[1] := VectorDotProduct(TranslationGlobal, PlaneY);
