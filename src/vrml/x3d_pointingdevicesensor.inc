@@ -18,8 +18,15 @@
     X3DPointingDeviceSensorNode, and additionally an Anchor node. }
   TPointingDeviceSensorsList = class(TVRMLNodesList)
   public
+    { Transformation (and inverse) of all the sensors on this list.
+      VRML/X3D specification guarantees that all sensors within a single state
+      have the same transform. }
+    Transform, InvertedTransform: TMatrix4Single;
+
     function EnabledCount: Integer;
     function Enabled(Index: Integer): boolean;
+
+    procedure Assign(Source: TPersistent); override;
   end;
 
   { }
@@ -43,6 +50,7 @@
       In TNodeX3DPointingDeviceSensorNode class,
       this simply sends isActive := TRUE event. }
     procedure Activate(const Time: TVRMLTime;
+      const Transform, AInvertedTransform: TMatrix4Single;
       const OverPoint: TVector3Single); virtual;
 
     { Deactivate pointing device sensor. Used by the events engine
@@ -108,6 +116,7 @@
 
   TNodePlaneSensor = class(TNodeX3DDragSensorNode)
   private
+    { Plane* stuff is in global (VRML scene) coordinates. }
     { Plane of the activated sensor. }
     Plane: TVector4Single;
     { Vectors indicating X and Y axis on the plane.
@@ -116,6 +125,9 @@
     PlaneX, PlaneY: TVector3Single;
     { Initial intersection point at activation. Always lies on Plane. }
     PlaneOrigin: TVector3Single;
+
+    { Transformation from global coords to the local sensor coords. }
+    InvertedTransform: TMatrix4Single;
 
     { Was a translation_changed send during this activation of sensor. }
     WasTranslation: boolean;
@@ -145,6 +157,7 @@
     public property Eventtranslation_changed: TVRMLEvent read FEventtranslation_changed;
 
     procedure Activate(const Time: TVRMLTime;
+      const Transform, AInvertedTransform: TMatrix4Single;
       const OverPoint: TVector3Single); override;
     procedure Deactivate(const Time: TVRMLTime); override;
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
@@ -209,6 +222,16 @@ begin
     TNodeX3DPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
 end;
 
+procedure TPointingDeviceSensorsList.Assign(Source: TPersistent);
+begin
+  inherited;
+  if Source is TPointingDeviceSensorsList then
+  begin
+    Transform := TPointingDeviceSensorsList(Source).Transform;
+    InvertedTransform := TPointingDeviceSensorsList(Source).InvertedTransform;
+  end;
+end;
+
 { Rest of nodes -------------------------------------------------------------- }
 
 constructor TNodeX3DPointingDeviceSensorNode.Create(const ANodeName: string;
@@ -224,6 +247,7 @@ begin
 end;
 
 procedure TNodeX3DPointingDeviceSensorNode.Activate(const Time: TVRMLTime;
+  const Transform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 begin
   EventIsActive.Send(true, Time);
@@ -359,25 +383,42 @@ begin
 end;
 
 procedure TNodePlaneSensor.Activate(const Time: TVRMLTime;
+  const Transform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
+var
+  PlaneDir: PVector3Single;
 begin
   inherited;
 
   PlaneOrigin := OverPoint;
 
-  Plane := Vector4Single(0, 0, 1, -PlaneOrigin[2]);
-  { TODO:
-    plane parallel to Z=0 plane
-      (transformed by current sensor transform and by axisRotation),
-    and passing though PlaneOrigin. }
+  try
+    { Plane is parallel to Z=0 plane
+      (transformed by current sensor transform and TODO: by axisRotation),
+      and passing though PlaneOrigin. }
+    PlaneDir := PVector3Single(@Plane);
+    PlaneDir^ := MatrixMultDirection(Transform, UnitVector3Single[2]);
+    Plane[3] := -VectorDotProduct(PlaneDir^, PlaneOrigin);
 
-  PlaneX := UnitVector3Single[0];
-  { TODO: transformed by current sensor transform and by axisRotation
-      make sure you normalized it }
+    { +X, +Y vectors, transformed by current sensor transform and
+      TODO: by axisRotation, normalized. }
+    PlaneX := Normalized(MatrixMultDirection(Transform, UnitVector3Single[0]));
+    PlaneY := Normalized(MatrixMultDirection(Transform, UnitVector3Single[1]));
 
-  PlaneY := UnitVector3Single[1];
-  { TODO: transformed by current sensor transform and by axisRotation
-      make sure you normalized it }
+    InvertedTransform := AInvertedTransform;
+  except
+    on ETransformedResultInvalid do
+    begin
+      { Transform matrix doesn't manage to transform directions.
+        So just assume it's identity, nothing more sensible to do. }
+      Plane := Vector4Single(0, 0, 1, -PlaneOrigin[2]);
+      PlaneX := UnitVector3Single[0];
+      PlaneY := UnitVector3Single[1];
+      InvertedTransform := IdentityMatrix4Single;
+      if Log then
+        WritelnLog('Drag sensor', 'Sensor transformation matrix cannot transform directions.');
+    end;
+  end;
 
   WasTranslation := false;
 end;
@@ -400,23 +441,30 @@ begin
 
   if TryPlaneRayIntersection(Intersection, Plane, RayOrigin, RayDirection) then
   begin
-    { trackPoint_changed should be in the local sensor coordinates,
-      without worrying about offset (like for translation_changed)
-      or axisRotation.
+    try
+      { trackPoint_changed should be in the local sensor coordinates,
+        without worrying about offset (like for translation_changed)
+        or axisRotation.
 
-      This is sensible:
-      - track point should visualize the underlying geometry of the drag sensor
-        (plane, in this case)
-      - this makes track point sensible also for Sphere/CylinderSensor
-        (where offset is for rotations, and cannot be applied to
-        trackPoint_changed).
+        This is sensible:
+        - track point should visualize the underlying geometry of the drag sensor
+          (plane, in this case)
+        - this makes track point sensible also for Sphere/CylinderSensor
+          (where offset is for rotations, and cannot be applied to
+          trackPoint_changed).
 
-      FreeWRL and OpenVRML seems to also do this in sources,
-      and Octaga and InstantReality behavior suggests they do it too.
-
-      TODO: for now, we don't store and don't use Transform,
-      we assume it's identity. So just return Intersection. }
-    EventTrackPoint_changed.Send(Intersection, Time);
+        FreeWRL and OpenVRML seems to also do this in sources,
+        and Octaga and InstantReality behavior suggests they do it too. }
+      EventTrackPoint_changed.Send(
+        MatrixMultPoint(InvertedTransform, Intersection), Time);
+    except
+      on ETransformedResultInvalid do
+      begin
+        EventTrackPoint_changed.Send(Intersection, Time);
+        if Log then
+          WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+      end;
+    end;
 
     { TODO: *maybe* transform Intersection to local coords (with axisRotation,
       and with origin at PointOrigin).
@@ -443,7 +491,8 @@ begin
 
     TranslationGlobal := Intersection - PlaneOrigin;
 
-    { map TranslationGlobal to the plane local coord system (with axisRotation) }
+    { map TranslationGlobal to the plane local coord system
+      (TODO: with axisRotation. This should be done once PlaneX/Y do it.) }
     Translation[0] := VectorDotProduct(TranslationGlobal, PlaneX);
     Translation[1] := VectorDotProduct(TranslationGlobal, PlaneY);
     Translation[2] := 0;

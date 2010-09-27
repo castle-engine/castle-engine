@@ -316,6 +316,8 @@ type
       if not WasPointingDeviceSensor then
       begin
         State.PointingDeviceSensors.Clear;
+        State.PointingDeviceSensors.Transform := State.Transform;
+        State.PointingDeviceSensors.InvertedTransform := State.InvertedTransform;
         WasPointingDeviceSensor := true;
       end;
 
@@ -413,6 +415,8 @@ begin
   if Self is TNodeAnchor then
   begin
     StateStack.Top.PointingDeviceSensors.Clear;
+    StateStack.Top.PointingDeviceSensors.Transform := StateStack.Top.Transform;
+    StateStack.Top.PointingDeviceSensors.InvertedTransform := StateStack.Top.InvertedTransform;
     StateStack.Top.PointingDeviceSensors.Add(Self);
   end;
 
@@ -420,8 +424,7 @@ begin
   try
     Enumerator.State := StateStack.Top;
     Enumerator.WasPointingDeviceSensor := false;
-    DirectEnumerateActive(
-      {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
+    DirectEnumerateActive(@Enumerator.EnumerateChildrenFunction);
   finally FreeAndNil(Enumerator) end;
 end;
 

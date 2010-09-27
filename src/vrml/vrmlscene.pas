@@ -5236,7 +5236,7 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
 var
   I: Integer;
   ToActivate: TVRMLNode;
-  Sensors: TVRMLNodesList;
+  Sensors: TPointingDeviceSensorsList;
 begin
   if ProcessEvents and (FPointingDeviceActive <> Value) then
   begin
@@ -5266,7 +5266,8 @@ begin
                   TNodeX3DPointingDeviceSensorNode(ToActivate);
                 { We do this only when PointingDeviceOverItem <> nil,
                   so we know that PointingDeviceOverPoint is meaningful. }
-                PointingDeviceActiveSensor.Activate(Time, PointingDeviceOverPoint);
+                PointingDeviceActiveSensor.Activate(Time,
+                  Sensors.Transform, Sensors.InvertedTransform, PointingDeviceOverPoint);
                 DoPointingDeviceSensorsChange;
               end;
               Break;
