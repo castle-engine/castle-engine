@@ -268,6 +268,8 @@ begin
 
   FEventtrackPoint_changed := TVRMLEvent.Create(Self, 'trackPoint_changed', TSFVec3f, false);
   Events.Add(FEventtrackPoint_changed);
+
+  Fdenabled.ChangesAlways := Fdenabled.ChangesAlways + [chDragSensorEnabled];
 end;
 
 procedure TNodeX3DDragSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
@@ -508,10 +510,6 @@ begin
     WasTranslation := true;
   end;
 end;
-
-{ TODO: when TNodeX3DDragSensorNode receives enabled := false
-  and the sensor is currently active,
-  then do Deactivate and make the sensor (in TVRMLScene) not active. }
 
 constructor TNodeSphereSensor.Create(const ANodeName: string;
   const AWWWBasePath: string);

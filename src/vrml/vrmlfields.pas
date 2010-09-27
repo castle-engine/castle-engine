@@ -267,6 +267,10 @@ type
     { Clip plane visible change (enabled or plane equation). }
     chClipPlane,
 
+    { Enabled field of the pointing-device drag sensor changed.
+      Use only for TSFBool fields within TNodeX3DDragSensorNode. }
+    chDragSensorEnabled,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2450,6 +2454,7 @@ const
     'FontStyle',
     'HeadLight',
     'ClipPlane',
+    'X3DDragSensorNode.enabled',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

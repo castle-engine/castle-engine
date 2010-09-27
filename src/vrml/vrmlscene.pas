@@ -3725,6 +3725,27 @@ var
     VisibleChangeHere(VisibleChanges);
   end;
 
+  procedure HandleChangeDragSensorEnabled;
+  var
+    Enabled: boolean;
+    DragSensor: TNodeX3DDragSensorNode;
+  begin
+    Enabled := (Field as TSFBool).Value;
+    DragSensor := Node as TNodeX3DDragSensorNode;
+
+    { When we disable an active drag sensor, specification says to
+      deactivate it. This cannot be handled fully by TNodeX3DDragSensorNode
+      implementation, because we have to set to nil our property
+      PointingDeviceActiveSensor. }
+
+    if (not Enabled) and (DragSensor = PointingDeviceActiveSensor) then
+    begin
+      DragSensor.Deactivate(Time);
+      FPointingDeviceActiveSensor := nil;
+      DoPointingDeviceSensorsChange;
+    end;
+  end;
+
 begin
   Node := TVRMLNode(Field.ParentNode);
   Assert(Node <> nil);
@@ -3782,6 +3803,7 @@ begin
       so this isn't a bug in vrml/x3d browser. }
     if chHeadLight in Changes then HandleChangeHeadLight;
     if chClipPlane in Changes then HandleChangeClipPlane;
+    if chDragSensorEnabled in Changes then HandleChangeDragSensorEnabled;
     if chEverything in Changes then HandleChangeEverything;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,
