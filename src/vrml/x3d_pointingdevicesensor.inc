@@ -418,12 +418,30 @@ begin
       we assume it's identity. So just return Intersection. }
     EventTrackPoint_changed.Send(Intersection, Time);
 
-    TranslationGlobal := Intersection - PlaneOrigin;
+    { TODO: *maybe* transform Intersection to local coords (with axisRotation,
+      and with origin at PointOrigin).
+      I will have to transform it to local coords (maybe with axisRotation,
+      but probably not? check other browsers.
+      And without origin at PointOrigin.) anyway to fix above TODO
+      with sending trackPoint_changed.
 
-    { TODO: transform Intersection to local coords (with axisRotation) ---
-      then VectorDotProduct is much simpler,
-      as plane x is just (1, 0, 0) in local coords,
-      so just take TranslationGlobal[0] instead of dot with VectorDotProduct. }
+      Once I transform Intersection to local coords, I can handle
+      PointOrigin, PlaneY, PlaneY much simpler. In these local coords
+      (with axisRotation, and with origin at PointOrigin)
+      the origin is at zero, plane x is just (1, 0, 0),
+      so no need for
+
+        TranslationGlobal := Intersection - PlaneOrigin;
+
+      and
+
+        Translation[0] := VectorDotProduct(V, PlaneX);
+
+      becomes just
+
+        Translation[0] := V[0]; }
+
+    TranslationGlobal := Intersection - PlaneOrigin;
 
     { map TranslationGlobal to the plane local coord system (with axisRotation) }
     Translation[0] := VectorDotProduct(TranslationGlobal, PlaneX);
