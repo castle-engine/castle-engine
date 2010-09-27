@@ -164,7 +164,8 @@ type
 
 type
   { }
-  TObjectsList_Abstract = class
+  TObjectsList_Abstract = class(TPersistent)
+  public
     procedure FreeContents; virtual; abstract;
     { If Self <> nil then call FreeContents and Destroy. }
     procedure FreeWithContents;

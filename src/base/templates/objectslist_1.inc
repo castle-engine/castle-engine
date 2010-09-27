@@ -104,7 +104,7 @@
     { This assigns Source items references and count to our list.
       Note that Source.Capacity is not copied (Capacity is only
       a performance-tuning setting anyway). }
-    procedure Assign(Source: TObjectsList_1);
+    procedure Assign(Source: TPersistent); override;
 
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
 
@@ -303,18 +303,22 @@ begin
     Sort(0, High, IsSmallerFunction);
 end;
 
-procedure TObjectsList_1.Assign(Source: TObjectsList_1);
+procedure TObjectsList_1.Assign(Source: TPersistent);
 begin
-  Count := Source.Count;
+  if Source is TObjectsList_1 then
+  begin
+    Count := TObjectsList_1(Source).Count;
 
-  {$ifdef KAMBI_CHECK_POINTER}
-  { It's actually legal to call System.Move with nil pointers
-    and Count = 0. But pointer validity (-gc) checks will fail
-    (they detect that you try to dereference nil pointers). }
-  if Count = 0 then Exit;
-  {$endif}
+    {$ifdef KAMBI_CHECK_POINTER}
+    { It's actually legal to call System.Move with nil pointers
+      and Count = 0. But pointer validity (-gc) checks will fail
+      (they detect that you try to dereference nil pointers). }
+    if Count = 0 then Exit;
+    {$endif}
 
-  System.Move(Source.List^, List^, Count * SizeOf(Pointer));
+    System.Move(TObjectsList_1(Source).List^, List^, Count * SizeOf(Pointer));
+  end else
+    inherited;
 end;
 
 function TObjectsList_1.Equals(SecondValue: TObject): boolean;

@@ -66,7 +66,7 @@ unit KambiScript;
 
 interface
 
-uses SysUtils, Math, Contnrs, KambiUtils, KambiClassUtils;
+uses SysUtils, Math, Contnrs, KambiUtils, KambiClassUtils, Classes;
 
 {$define read_interface}
 
