@@ -333,6 +333,12 @@ type
     procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); virtual; abstract;
     function GetPosition: TVector3Single; virtual; abstract;
 
+    { Set camera view from vectors: position, direction, up.
+
+      Direction and up do not have to be normalized.
+      They cannot be parallel (will be fixed internally to be exactly orthogonal). }
+    procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); virtual; abstract;
+
     function PositionInside(const X, Y: Integer): boolean; override;
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
@@ -455,6 +461,8 @@ type
     FRotationsAnim: TVector3Single;
     FScaleFactor: Single;
     FModelBox: TBox3D;
+    FDirection: TVector3Single;
+    FUp: TVector3Single;
 
     AnimationBeginMoveAmount: TVector3Single;
     AnimationBeginCenterOfRotation: TVector3Single;
@@ -471,6 +479,9 @@ type
     procedure SetMoveAmount(const Value: TVector3Single);
     procedure SetModelBox(const Value: TBox3D);
     procedure SetCenterOfRotation(const Value: TVector3Single);
+
+    procedure SetDirection(const Value: TVector3Single);
+    procedure SetUp(const Value: TVector3Single);
   private
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -599,8 +610,24 @@ type
 
     procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
+    procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
 
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
+
+    { Direction and Up vector of the camera, applied before rotations
+      and scaling of Examine camera.
+
+      They are not directly controllable by the user.
+
+      Like for TWalkCamera: they must always be normalized and orthogonal.
+      When setting them, we take care to normalize them and
+      fix Up to always be orthogonal to Direction.
+
+      Initially, Direction is (0, 0, -1) and Up is (0, 1, 0).
+      @groupBegin }
+    property Direction: TVector3Single read FDirection write SetDirection;
+    property Up: TVector3Single read FUp write SetUp;
+    { @groupEnd }
   end;
 
   TWalkCamera = class;
@@ -1447,6 +1474,7 @@ type
 
     procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
+    procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
 
     { Last known information about whether camera is over the ground.
       Updated by every UpdateHeightAbove call, using
@@ -1546,6 +1574,10 @@ end;
   removed in SINGLE_STEP_ROTATION code, but it's not --- it's useful and
   desired IMHO :) }
 { $define SINGLE_STEP_ROTATION}
+
+const
+  DefaultDirection: TVector3Single = (0, 0, -1);
+  DefaultUp: TVector3Single = (0, 1, 0);
 
 { TInputShortcut ------------------------------------------------------------- }
 
@@ -1854,6 +1886,9 @@ var
 begin
   inherited;
 
+  FDirection := DefaultDirection;
+  FUp := DefaultUp;
+
   FMouseNavigation := true;
   ExclusiveEvents := false;
 
@@ -1903,7 +1938,8 @@ end;
 
 function TExamineCamera.Matrix: TMatrix4Single;
 begin
-  Result := TranslationMatrix(VectorAdd(MoveAmount, FCenterOfRotation));
+  Result := FastLookDirMatrix(Direction, Up);
+  Result := MatrixMult(Result, TranslationMatrix(VectorAdd(MoveAmount, FCenterOfRotation)));
   Result := MatrixMult(Result, QuatToRotationMatrix(Rotations));
   Result := MatrixMult(Result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
   Result := MatrixMult(Result, TranslationMatrix(VectorNegate(FCenterOfRotation)));
@@ -1912,7 +1948,9 @@ end;
 function TExamineCamera.MatrixInverse: TMatrix4Single;
 begin
   { This inverse always exists, assuming ScaleFactor is <> 0. }
-  Result := TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FCenterOfRotation)));
+
+  Result := InverseFastLookDirMatrix(Direction, Up);
+  Result := MatrixMult(TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FCenterOfRotation))), Result);
   Result := MatrixMult(QuatToRotationMatrix(QuatConjugate(Rotations)), Result);
   Result := MatrixMult(ScalingMatrix(Vector3Single(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)), Result);
   Result := MatrixMult(TranslationMatrix(FCenterOfRotation), Result);
@@ -1920,7 +1958,8 @@ end;
 
 function TExamineCamera.RotationMatrix: TMatrix4Single;
 begin
- Result := QuatToRotationMatrix(Rotations);
+  Result := FastLookDirMatrix(Direction, Up);
+  Result := MatrixMult(Result, QuatToRotationMatrix(Rotations));
 end;
 
 procedure TExamineCamera.Idle(const CompSpeed: Single;
@@ -1939,6 +1978,7 @@ begin
     FCenterOfRotation := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginCenterOfRotation, AnimationEndCenterOfRotation);
     FRotations       := NLerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginRotations       , AnimationEndRotations);
     FScaleFactor      := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginScaleFactor     , AnimationEndScaleFactor);
+    { TODO: animate also dir,up }
     ScheduleVisibleChange;
 
     { Do not handle keys or rotations etc. }
@@ -2070,6 +2110,10 @@ begin
     FMoveAmount := VectorAdd(
       VectorNegate(FCenterOfRotation),
       Vector3Single(0, 0, -Box3DAvgSize(FModelBox)*2));
+
+  { Just reset the rest of stuff }
+  FDirection := DefaultDirection;
+  FUp := DefaultUp;
   FRotations := QuatIdentityRot;
   FRotationsAnim := ZeroVector3Single;
   FScaleFactor := 1.0;
@@ -2248,13 +2292,30 @@ begin
     nicely. }
 
   APos := MatrixMultPoint(M, Vector3Single(0, 0, 0));
-  ADir := MatrixMultDirection(M, Vector3Single(0, 0, -1));
-  AUp  := MatrixMultDirection(M, Vector3Single(0, 1,  0));
+  ADir := MatrixMultDirection(M, DefaultDirection);
+  AUp  := MatrixMultDirection(M, DefaultUp);
 end;
 
 function TExamineCamera.GetPosition: TVector3Single;
 begin
   Result := MatrixMultPoint(MatrixInverse, Vector3Single(0, 0, 0));
+end;
+
+procedure TExamineCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Single);
+begin
+  FMoveAmount := -APos;
+
+  FDirection := Normalized(ADir);
+  FUp := Normalized(AUp);
+  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+
+  { Reset other stuff affecting TExamineCamera.Matrix to identity,
+    this way the camera view corresponds exactly to the SetCameraVectors vectors. }
+  FCenterOfRotation := Vector3Single(0, 0, 0);
+  FRotations        := QuatIdentityRot;
+  FScaleFactor      := 1;
+
+  ScheduleVisibleChange;
 end;
 
 procedure TExamineCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
@@ -2279,14 +2340,28 @@ begin
   end;
 end;
 
+procedure TExamineCamera.SetDirection(const Value: TVector3Single);
+begin
+  FDirection := Normalized(Value);
+  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  ScheduleVisibleChange;
+end;
+
+procedure TExamineCamera.SetUp(const Value: TVector3Single);
+begin
+  FUp := Normalized(Value);
+  MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
+  ScheduleVisibleChange;
+end;
+
 { TWalkCamera ---------------------------------------------------------------- }
 
 constructor TWalkCamera.Create(AOwner: TComponent);
 begin
   inherited;
-  FInitialPosition  := Vector3Single(0, 0, 0);  FPosition  := InitialPosition;
-  FInitialDirection := Vector3Single(0, 0, -1); FDirection := InitialDirection;
-  FInitialUp        := Vector3Single(0, 1, 0);  FUp        := InitialUp;
+  FInitialPosition  := Vector3Single(0, 0, 0); FPosition  := InitialPosition;
+  FInitialDirection := DefaultDirection;       FDirection := InitialDirection;
+  FInitialUp        := DefaultUp;              FUp        := InitialUp;
 
   FMoveHorizontalSpeed := 1;
   FMoveVerticalSpeed := 1;
@@ -3550,8 +3625,8 @@ var Pos: TVector3Single;
 begin
  if IsEmptyOrZeroBox3D(Box) then
   Init(Vector3Single(0, 0, 0),
-       Vector3Single(0, 0, -1),
-       Vector3Single(0, 1, 0),
+       DefaultDirection,
+       DefaultUp,
        Vector3Single(0, 1, 0) { GravityUp is the same as InitialUp },
        0 { whatever }, ACameraRadius) else
  begin
@@ -3786,6 +3861,16 @@ end;
 function TWalkCamera.GetPosition: TVector3Single;
 begin
   Result := FPosition;
+end;
+
+procedure TWalkCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Single);
+begin
+  FPosition := APos;
+  FDirection := Normalized(ADir);
+  FUp := Normalized(AUp);
+  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
