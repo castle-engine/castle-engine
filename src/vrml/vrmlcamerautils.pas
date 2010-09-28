@@ -77,6 +77,8 @@ procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean;
   out Position, Direction, Up, GravityUp: TVector3Single);
+var
+  Offset: Single;
 begin
   Direction := UnitVector3Single[WantedDirection];
   if not WantedDirectionPositive then VectorNegateTo1st(Direction);
@@ -90,10 +92,11 @@ begin
   end else
   begin
     Position := Box3DMiddle(Box);
+    Offset := 1.5 * Box3DAvgSize(Box);
 
     if WantedDirectionPositive then
-      Position[WantedDirection] := Box[0, WantedDirection] - Box3DAvgSize(Box) else
-      Position[WantedDirection] := Box[1, WantedDirection] + Box3DAvgSize(Box);
+      Position[WantedDirection] := Box[0, WantedDirection] - Offset else
+      Position[WantedDirection] := Box[1, WantedDirection] + Offset;
   end;
 
   { GravityUp is just always equal Up here. }
