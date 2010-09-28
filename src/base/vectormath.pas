@@ -2152,6 +2152,22 @@ function LookDirMatrix(const Eye, Dir, Up: TVector3Single): TMatrix4Single; over
 function LookDirMatrix(const Eye, Dir, Up: TVector3Double): TMatrix4Single; overload;
 { @groupEnd }
 
+{ Calculate LookDirMatrix (or it's inverse), fast.
+
+  Has some assumptions that make it run fast:
+  @unorderedList(
+    @item(It assumes camera position is zero.)
+    @item(It assumes that Dir and Up are already normalized and orthogonal.)
+  )
+
+  @groupBegin
+}
+function FastLookDirMatrix(const Direction, Up: TVector3Single): TMatrix4Single;
+function FastLookDirMatrix(const Direction, Up: TVector3Double): TMatrix4Single;
+function InverseFastLookDirMatrix(const Direction, Up: TVector3Single): TMatrix4Single;
+function InverseFastLookDirMatrix(const Direction, Up: TVector3Double): TMatrix4Single;
+{ @groupEnd }
+
 {$endif not DELPHI}
 
 { ---------------------------------------------------------------------------- }

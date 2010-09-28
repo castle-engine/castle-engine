@@ -1917,6 +1917,63 @@ begin
   result := TransformFromCoordsMatrix(Eye, Side, GoodUp, VectorNegate(GoodDir));
 end;
 
+function FastLookDirMatrix(const Direction, Up: TYPE_VECTOR3): TMatrix4Single;
+var
+  Side: TYPE_VECTOR3;
+  i: integer;
+begin
+  Side := VectorProduct(Direction, Up);
+
+  { Make TransformToCoordsMatrix with origin zero now. }
+
+  for i := 0 to 2 do
+  begin
+    result[i, 0] := Side[i];
+    result[i, 1] := Up[i];
+    result[i, 2] := -Direction[i]; { negate Direction, since it goes to -Z }
+  end;
+
+  { bottom row and right column }
+  result[3, 0] := 0;
+  result[3, 1] := 0;
+  result[3, 2] := 0;
+
+  result[0, 3] := 0;
+  result[1, 3] := 0;
+  result[2, 3] := 0;
+
+  result[3, 3] := 1;
+end;
+
+function InverseFastLookDirMatrix(const Direction, Up: TYPE_VECTOR3): TMatrix4Single;
+var
+  Side: TYPE_VECTOR3;
+  i: integer;
+begin
+  Side := VectorProduct(Direction, Up);
+
+  { Inverse of LookDirMatrix is now to make
+    TransformToCoordsMatrix with origin zero. }
+
+  for i := 0 to 2 do
+  begin
+    result[0, i] := Side[i];
+    result[1, i] := Up[i];
+    result[2, i] := -Direction[i]; { negate Direction, since it goes to -Z }
+  end;
+
+  { bottom row and right column }
+  result[3, 0] := 0;
+  result[3, 1] := 0;
+  result[3, 2] := 0;
+
+  result[0, 3] := 0;
+  result[1, 3] := 0;
+  result[2, 3] := 0;
+
+  result[3, 3] := 1;
+end;
+
 {
 nie moze byc w dual implementation, potrzebujemy tego pod Delphi.
 
