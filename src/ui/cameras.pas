@@ -2273,9 +2273,6 @@ begin
 end;
 
 procedure TExamineCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Single);
-var
-  NewMoveAmount: TVector3Single;
-  RMat: TMatrix4Single;
 begin
   FMoveAmount := -APos;
 
@@ -2284,12 +2281,12 @@ begin
   { We have to fix our FMoveAmount, since our TExamineCamera.Matrix
     applies our move *first* before applying rotation
     (and this is good, as it allows rotating around object center,
-    not around camera). }
-  RMat := QuatToRotationMatrix(FRotations);
-  NewMoveAmount[0] := VectorDotProduct(FMoveAmount, Vector3Single(RMat[0, 0], RMat[1, 0], RMat[2, 0]));
-  NewMoveAmount[1] := VectorDotProduct(FMoveAmount, Vector3Single(RMat[0, 1], RMat[1, 1], RMat[2, 1]));
-  NewMoveAmount[2] := VectorDotProduct(FMoveAmount, Vector3Single(RMat[0, 2], RMat[1, 2], RMat[2, 2]));
-  FMoveAmount := NewMoveAmount;
+    not around camera).
+
+    Alternative implementation of this would call QuatToRotationMatrix and
+    then simulate multiplying this rotation matrix * translation matrix
+    of FMoveAmount. But we can do this directly. }
+  FMoveAmount := QuatRotate(FRotations, FMoveAmount);
 
   { Reset other stuff affecting TExamineCamera.Matrix to identity,
     this way the camera view corresponds exactly to the SetCameraVectors vectors. }
