@@ -236,7 +236,7 @@ procedure SetRenderStateCamera(
 begin
   RenderState.CameraFromMatrix(
     LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-    LookDirMatrix(ZeroVector3Single, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
+    FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
     ProjectionMatrix);
 end;
 
