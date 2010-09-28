@@ -1732,15 +1732,14 @@ type
       This way we will ignore what NavigationInfo.type information
       inside the scene says.
 
-      Sets always suitable @link(TCamera.CameraRadius).
-
-      This initializes many TWalkCamera properties, if this is determined
-      to be proper result class:
+      This always initializes some camera properties (some of them apply
+      only for specific TCamera descendants):
       @unorderedList(
+        @item(TCamera.CameraRadius,)
+        @item(TCamera.IgnoreAllInputs,)
         @item(TWalkCamera.Gravity,)
         @item(TWalkCamera.PreferGravityUpForRotations,)
         @item(TWalkCamera.PreferGravityUpForMoving,)
-        @item(TWalkCamera.IgnoreAllInputs,)
         @item(TWalkCamera.CameraPreferredHeight,)
         @item(TWalkCamera.HeadBobbing, TWalkCamera.HeadBobbingTime.)
       )
@@ -5731,12 +5730,14 @@ function TVRMLScene.CreateCamera(AOwner: TComponent;
     if NavigationType = 'EXAMINE' then
     begin
       Result := TExamineCamera.Create(AOwner);
+      { Leave IgnoreAllInputs as false }
     end else
     if NavigationType = 'LOOKAT' then
     begin
       if NavigationType = 'LOOKAT' then
         VRMLWarning(vwIgnorable, 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       Result := TExamineCamera.Create(AOwner);
+      { Leave IgnoreAllInputs as false }
     end else
     if NavigationType = 'ANY' then
     begin
@@ -5831,12 +5832,6 @@ var
   WalkCamera: TWalkCamera;
   NewMoveSpeed: Single;
 begin
-  { Currently we can set viewpoint only to TWalkCamera.
-    This is supposed to be fixed one day (as currently VRML author
-    has no control over ExamineCamera). }
-  if not (ACamera is TWalkCamera) then Exit;
-  WalkCamera := TWalkCamera(ACamera);
-
   if ViewpointStack.Top <> nil then
   begin
     (ViewpointStack.Top as TVRMLViewpointNode).GetCameraVectors(
@@ -5849,51 +5844,59 @@ begin
     GravityUp := DefaultVRMLGravityUp;
   end;
 
-  if OnlyViewpointVectorsChanged then
+  if ACamera is TWalkCamera then
   begin
-    { keep MoveSpeed the same }
-    NewMoveSpeed := WalkCamera.MoveSpeed;
-  end else
-  begin
-    NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
+    WalkCamera := TWalkCamera(ACamera);
 
-    { Change MoveSpeed. }
-
-    if NavigationNode = nil then
+    if OnlyViewpointVectorsChanged then
     begin
-      { Since we don't have NavigationNode.speed, we just calculate some
-        speed that should "feel sensible". We base it on CameraRadius.
-        CameraRadius in turn was calculated based on
-        Box3DAvgSize(SceneAnimation.BoundingBox). }
-      NewMoveSpeed := ACamera.CameraRadius * 20;
-    end else
-    if NavigationNode.FdSpeed.Value = 0 then
-    begin
-      { Then user is not allowed to move at all.
-
-        So we do this is by setting MoveSpeed.
-        This is also the reason why other SetViewpointCore branches must change
-        MoveSpeed to something different than zero
-        (otherwise, user would be stuck with speed = 0). }
-      NewMoveSpeed := 0;
+      { keep MoveSpeed the same }
+      NewMoveSpeed := WalkCamera.MoveSpeed;
     end else
     begin
-      NewMoveSpeed := NavigationNode.FdSpeed.Value;
+      NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
+
+      { Change MoveSpeed. }
+
+      if NavigationNode = nil then
+      begin
+        { Since we don't have NavigationNode.speed, we just calculate some
+          speed that should "feel sensible". We base it on CameraRadius.
+          CameraRadius in turn was calculated based on
+          Box3DAvgSize(SceneAnimation.BoundingBox). }
+        NewMoveSpeed := ACamera.CameraRadius * 20;
+      end else
+      if NavigationNode.FdSpeed.Value = 0 then
+      begin
+        { Then user is not allowed to move at all.
+
+          So we do this is by setting MoveSpeed.
+          This is also the reason why other SetViewpointCore branches must change
+          MoveSpeed to something different than zero
+          (otherwise, user would be stuck with speed = 0). }
+        NewMoveSpeed := 0;
+      end else
+      begin
+        NewMoveSpeed := NavigationNode.FdSpeed.Value;
+      end;
     end;
-  end;
 
-  { If OnlyViewpointVectorsChanged, then we will move relative to
-    initial camera changes. Else, we will jump to new initial camera vectors.
+    { If OnlyViewpointVectorsChanged, then we will move relative to
+      initial camera changes. Else, we will jump to new initial camera vectors.
 
-    Below, we do some work normally done by TWalkCamera.Init.
-    But we know we already have CameraPreferredHeight set (by CreateCamera),
-    and we take into account OnlyViewpointVectorsChanged case. }
+      Below, we do some work normally done by TWalkCamera.Init.
+      But we know we already have CameraPreferredHeight set (by CreateCamera),
+      and we take into account OnlyViewpointVectorsChanged case. }
 
-  WalkCamera.SetInitialCameraLookDir(Position, Direction, Up, OnlyViewpointVectorsChanged);
-  WalkCamera.MoveSpeed := NewMoveSpeed;
-  WalkCamera.GravityUp := GravityUp;
-  if not OnlyViewpointVectorsChanged then
-    WalkCamera.Home;
+    WalkCamera.SetInitialCameraLookDir(Position, Direction, Up, OnlyViewpointVectorsChanged);
+    WalkCamera.MoveSpeed := NewMoveSpeed;
+    WalkCamera.GravityUp := GravityUp;
+    if not OnlyViewpointVectorsChanged then
+      WalkCamera.Home;
+  end else
+    { The least we can do for other cameras is to set their vectors.
+      TODO: OnlyViewpointVectorsChanged should also be applied. }
+    ACamera.SetCameraVectors(Position, Direction, Up);
 end;
 
 { misc ----------------------------------------------------------------------- }
