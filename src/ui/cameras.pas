@@ -329,8 +329,10 @@ type
 
     { Express current view as camera vectors: position, direction, up.
 
-      Returned Dir and Up must be orthogonal, do not have to be normalized. }
+      Returned Dir and Up must be orthogonal.
+      Returned Dir and Up and GravityUp are already normalized. }
     procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); virtual; abstract;
+    procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
     function GetPosition: TVector3Single; virtual; abstract;
 
     { Set camera view from vectors: position, direction, up.
@@ -604,6 +606,7 @@ type
     property ExclusiveEvents default false;
 
     procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
+    procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
     procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
 
@@ -1453,6 +1456,7 @@ type
     property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
 
     procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
+    procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
     procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
 
@@ -2265,6 +2269,12 @@ begin
   APos := MatrixMultPoint(M, Vector3Single(0, 0, 0));
   ADir := MatrixMultDirection(M, DefaultDirection);
   AUp  := MatrixMultDirection(M, DefaultUp);
+end;
+
+procedure TExamineCamera.GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single);
+begin
+  GetCameraVectors(APos, ADir, AUp);
+  AGravityUp := DefaultUp; { nothing more sensible for Examine camera }
 end;
 
 function TExamineCamera.GetPosition: TVector3Single;
@@ -3820,6 +3830,12 @@ begin
   APos := FPosition;
   ADir := FDirection;
   AUp  := FUp;
+end;
+
+procedure TWalkCamera.GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single);
+begin
+  GetCameraVectors(APos, ADir, AUp);
+  AGravityUp := GravityUp;
 end;
 
 function TWalkCamera.GetPosition: TVector3Single;
