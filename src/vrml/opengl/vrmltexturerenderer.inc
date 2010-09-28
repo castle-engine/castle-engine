@@ -1748,7 +1748,7 @@ var
         CurrentViewpoint.GetCameraVectors(Pos, Dir, Up, GravityUp) else
       begin
         { If all else fails (no viewpoint node bound, not known current
-          camera seetings) use defaults. }
+          camera settings) then use defaults. }
         Pos := DefaultVRMLCameraPosition[2];
         Dir := DefaultVRMLCameraDirection;
         Up  := DefaultVRMLCameraUp;
