@@ -23,11 +23,12 @@ uses
 type
   TTestCameras = class(TTestCase)
     procedure TestToOrientationAndBack;
+    procedure TestOrientationFromBasicAxes;
   end;
 
 implementation
 
-uses KambiUtils, VectorMath, VRMLCameraUtils, Math, Cameras;
+uses KambiUtils, VectorMath, VRMLCameraUtils, Math, Cameras, Quaternions;
 
 procedure TTestCameras.TestToOrientationAndBack;
 
@@ -88,6 +89,34 @@ begin
  end;
 
  Assert(not oohFailed);
+end;
+
+procedure TTestCameras.TestOrientationFromBasicAxes;
+const
+  Tests: array [1..8] of record Dir, Up: TVector3Single; end =
+  (
+    { +Y up }
+    (Dir: (-1, 0, 0); Up: (0, 1, 0)),
+    (Dir: (+1, 0, 0); Up: (0, 1, 0)),
+    (Dir: (0, 0, -1); Up: (0, 1, 0)),
+    (Dir: (0, 0, +1); Up: (0, 1, 0)),
+
+    { +Z up }
+    (Dir: (-1, 0, 0); Up: (0, 0, 1)),
+    (Dir: (+1, 0, 0); Up: (0, 0, 1)),
+    (Dir: (0, -1, 0); Up: (0, 0, 1)),
+    (Dir: (0, +1, 0); Up: (0, 0, 1))
+  );
+var
+  I: Integer;
+  Orientation: TQuaternion;
+begin
+  for I := Low(Tests) to High(Tests) do
+  begin
+    Orientation := QuatConjugate(CamDirUp2OrientQuat(Tests[I].Dir, Tests[I].Up));
+    Assert(VectorsEqual(QuatRotate(Orientation, Tests[I].Dir), DefaultVRMLCameraDirection, 0.01));
+    Assert(VectorsEqual(QuatRotate(Orientation, Tests[I].Up ), DefaultVRMLCameraUp       , 0.01));
+  end;
 end;
 
 initialization
