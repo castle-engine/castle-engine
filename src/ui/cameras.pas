@@ -2338,6 +2338,19 @@ begin
 
   FRotations := QuatConjugate(CamDirUp2OrientQuat(ADir, Up));
 
+{ TODO: remove this testing, once "hard case" in CamDirUp2OrientQuat
+  will be handled Ok:
+
+  if not VectorsEqual(QuatRotate(FRotations, ADir), DefaultDirection, 0.01) then
+  begin
+    Writeln('oh yes, dir wrong: ', VectorToNiceStr(QuatRotate(FRotations, ADir)));
+    Writeln('  q: ', VectorToNiceStr(FRotations.Vector4));
+  end;
+
+  if not VectorsEqual(QuatRotate(FRotations, Up), DefaultUp, 0.01) then
+    Writeln('oh yes, up wrong: ', VectorToNiceStr(QuatRotate(FRotations, Up)));
+}
+
   { We have to fix our FMoveAmount, since our TExamineCamera.Matrix
     applies our move *first* before applying rotation
     (and this is good, as it allows rotating around object center,
@@ -3896,33 +3909,26 @@ end;
 
 function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
 
-{ Poczatkowo byl tutaj kod based on Stephen Chenney's ANSI C code orient.c.
-  Byl w nim bledzik (patrz testUnits.Test_VRMLFields - TestOrints[4])
-  i nawet teraz nie wiem jaki bo ostatecznie zrozumialem sama idee tamtego kodu
-  i zapisalem tutaj rzeczy po swojemu, i ku mojej radosci nie mam tego bledu.
+{ This was initially based on Stephen Chenney's ANSI C code orient.c,
+  available still from here: http://vrmlworks.crispen.org/tools.html
+  I rewrote it a couple of times, possibly removing and possibly adding
+  some bugs :)
 
-  Pomysl na ta funkcje: mamy CamDir i CamUp. Zeby je zamienic na
-  orientation VRMLa, czyli axis i angle obrotu standardowego dir
-  (0, 0, -1) i standardowego up (0, 1, 0), wyobrazamy sobie jaka transformacje
-  musielibysmy zrobic standardowym dir/up zeby zamienic je na nasze CamDir/Up.
-  1) najpierw bierzemy wektor prostop. do standardowego dir i CamDir.
-     Obracamy sie wokol niego zeby standardowe dir nalozylo sie na CamDir.
-  2) Teraz obracamy sie wokol CamDir tak zeby standardowe up (ktore juz
-     zostalo obrocone przez transformacje pierwsza) nalozylo sie na CamUp.
-     Mozemy to zrobic bo CamDir i CamUp sa prostopadle i maja dlugosc 1,
-     podobnie jak standardowe dir i up.
-  Zlozenie tych dwoch transformacji to jest nasza szukana transformacja.
+  Idea: we want to convert CamDir and CamUp into VRML orientation,
+  which is a rotation from DefaultDirection/DefaultUp into CamDir/Up.
 
-  Jedyny problem jaki pozostaje to czym jest transformacja ? Jezeli mowimy
-  o macierzy to jest prosto, macierze dwoch obrotow umiemy skonstruowac
-  i wymnozyc ale na koncu dostajemy macierz. A chcemy miec axis+angle.
-  A wiec quaternion.
-  Moznaby to zrobic inaczej (np. wyciagnac z matrix quaternion lub
-  wyciagajac z matrix katy eulera i konwertujac je na quaternion)
-  ale najwygodniej jest skorzystac tutaj z mozliwosci mnozenia kwaternionow:
-  przemnoz quaterniony obrotu q*p a orztymasz quaternion ktory za pomoca
-  jednego obrotu wyraza zlozenie dwoch obrotow, p i q (najpierw p, potem q).
-  To jest wlasnie idea z kodu Stephen Chenney's "orient.c".
+  1) Take vector orthogonal to standard DefaultDirection and CamDir.
+     Rotate around it, to match DefaultDirection with CamDir.
+
+  2) Now rotate around CamDir such that standard up (already rotated
+     by 1st transform) matches with CamUp. We know it's possible,
+     since CamDir and CamUp are orthogonal and normalized,
+     just like standard DefaultDirection/DefaultUp.
+
+  Combine these two rotations and you have the result.
+
+  How to combine two rotations, such that in the end you get nice
+  single rotation? That's where quaternions rule.
 }
 
   function QuatFromAxisAngleCos(const Axis: TVector3Single;
@@ -3937,6 +3943,28 @@ var Rot1Axis, Rot2Axis, StdCamUpAfterRot1: TVector3Single;
 begin
  NormalizeTo1st(CamDir);
  NormalizeTo1st(CamUp);
+
+ { TODO: Hack: hardcode two difficult cases:
+   Fix this nicer --- look when Rot1Axis and Rot2Axis are zero.
+   For 1st case, this seems easy enoough (replace Rot1Axis with any ortho),
+   for 2nd case --- not so easy? }
+ if VectorsEqual(CamDir, Vector3Single(0, 0, 1)) and
+    VectorsEqual(CamUp , Vector3Single(0, 1, 0)) then
+ begin
+// TODO: remove   Writeln('hard case 1 ', VectorToNiceStr(CamDir));
+   Result := QuatFromAxisAngle(CamUp, Pi);
+   Exit;
+ end;
+
+ if VectorsEqual(CamDir, Vector3Single(0, -1, 0), 0.01) and
+    VectorsEqual(CamUp , Vector3Single(0, 0, 1), 0.01) then
+ begin
+// TODO: remove   Writeln('hard case 2 ', VectorToNiceStr(CamDir));
+   Result := QuatMultiply(
+     QuatFromAxisAngle(Vector3Single(0, 1, 0) , Pi),
+     QuatFromAxisAngle(Vector3Single(1, 0, 0) , - Pi / 2));
+   Exit;
+ end;
 
  { calculate Rot1Quat }
  Rot1Axis := Normalized( VectorProduct(DefaultCameraDirection, CamDir) );
@@ -3953,8 +3981,8 @@ begin
  Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
  Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
 
- { calculate Result = zlozenie Rot1 i Rot2 (tak, kolejnosc mnozenia QQMul musi
-   byc odwrotna) }
+ { calculate Result = combine Rot1 and Rot2 (yes, the order
+   for QuatMultiply is reversed) }
  Result := QuatMultiply(Rot2Quat, Rot1Quat);
 end;
 
