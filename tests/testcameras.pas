@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestVRMLFields;
+unit TestCameras;
 
 interface
 
@@ -21,15 +21,15 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
-  TTestVRMLFields = class(TTestCase)
-    procedure TestVRMLFields;
+  TTestCameras = class(TTestCase)
+    procedure TestToOrientationAndBack;
   end;
 
 implementation
 
-uses KambiUtils, VectorMath, VRMLFields, VRMLCameraUtils, Math, Cameras;
+uses KambiUtils, VectorMath, VRMLCameraUtils, Math, Cameras;
 
-procedure TTestVRMLFields.TestVRMLFields;
+procedure TTestCameras.TestToOrientationAndBack;
 
   procedure CamOrientToDirUp(const Orient: TVector4Single; var Dir, Up: TVector3Single);
   var OrientAxis: TVector3Single absolute Orient;
@@ -91,5 +91,5 @@ begin
 end;
 
 initialization
- RegisterTest(TTestVRMLFields);
+ RegisterTest(TTestCameras);
 end.

@@ -25,7 +25,7 @@ uses
   TestFrustum,
   TestParsingParameters,
   TestFNMatch,
-  TestVRMLFields,
+  TestCameras,
   TestVRMLNodes,
   TestVRMLNodesOptimizedProxy,
   TestVRMLGLScene,
