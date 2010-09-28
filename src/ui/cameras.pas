@@ -461,8 +461,6 @@ type
     FRotationsAnim: TVector3Single;
     FScaleFactor: Single;
     FModelBox: TBox3D;
-    FDirection: TVector3Single;
-    FUp: TVector3Single;
 
     AnimationBeginMoveAmount: TVector3Single;
     AnimationBeginCenterOfRotation: TVector3Single;
@@ -479,9 +477,6 @@ type
     procedure SetMoveAmount(const Value: TVector3Single);
     procedure SetModelBox(const Value: TBox3D);
     procedure SetCenterOfRotation(const Value: TVector3Single);
-
-    procedure SetDirection(const Value: TVector3Single);
-    procedure SetUp(const Value: TVector3Single);
   private
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -613,21 +608,6 @@ type
     procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
 
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
-
-    { Direction and Up vector of the camera, applied before rotations
-      and scaling of Examine camera.
-
-      They are not directly controllable by the user.
-
-      Like for TWalkCamera: they must always be normalized and orthogonal.
-      When setting them, we take care to normalize them and
-      fix Up to always be orthogonal to Direction.
-
-      Initially, Direction is (0, 0, -1) and Up is (0, 1, 0).
-      @groupBegin }
-    property Direction: TVector3Single read FDirection write SetDirection;
-    property Up: TVector3Single read FUp write SetUp;
-    { @groupEnd }
   end;
 
   TWalkCamera = class;
@@ -1886,9 +1866,6 @@ var
 begin
   inherited;
 
-  FDirection := DefaultDirection;
-  FUp := DefaultUp;
-
   FMouseNavigation := true;
   ExclusiveEvents := false;
 
@@ -1938,8 +1915,7 @@ end;
 
 function TExamineCamera.Matrix: TMatrix4Single;
 begin
-  Result := FastLookDirMatrix(Direction, Up);
-  Result := MatrixMult(Result, TranslationMatrix(VectorAdd(MoveAmount, FCenterOfRotation)));
+  Result := TranslationMatrix(VectorAdd(MoveAmount, FCenterOfRotation));
   Result := MatrixMult(Result, QuatToRotationMatrix(Rotations));
   Result := MatrixMult(Result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
   Result := MatrixMult(Result, TranslationMatrix(VectorNegate(FCenterOfRotation)));
@@ -1949,8 +1925,7 @@ function TExamineCamera.MatrixInverse: TMatrix4Single;
 begin
   { This inverse always exists, assuming ScaleFactor is <> 0. }
 
-  Result := InverseFastLookDirMatrix(Direction, Up);
-  Result := MatrixMult(TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FCenterOfRotation))), Result);
+  Result := TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FCenterOfRotation)));
   Result := MatrixMult(QuatToRotationMatrix(QuatConjugate(Rotations)), Result);
   Result := MatrixMult(ScalingMatrix(Vector3Single(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)), Result);
   Result := MatrixMult(TranslationMatrix(FCenterOfRotation), Result);
@@ -1958,8 +1933,7 @@ end;
 
 function TExamineCamera.RotationMatrix: TMatrix4Single;
 begin
-  Result := FastLookDirMatrix(Direction, Up);
-  Result := MatrixMult(Result, QuatToRotationMatrix(Rotations));
+  Result := QuatToRotationMatrix(Rotations);
 end;
 
 procedure TExamineCamera.Idle(const CompSpeed: Single;
@@ -1978,7 +1952,6 @@ begin
     FCenterOfRotation := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginCenterOfRotation, AnimationEndCenterOfRotation);
     FRotations       := NLerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginRotations       , AnimationEndRotations);
     FScaleFactor      := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginScaleFactor     , AnimationEndScaleFactor);
-    { TODO: animate also dir,up }
     ScheduleVisibleChange;
 
     { Do not handle keys or rotations etc. }
@@ -2112,8 +2085,6 @@ begin
       Vector3Single(0, 0, -Box3DAvgSize(FModelBox)*2));
 
   { Just reset the rest of stuff }
-  FDirection := DefaultDirection;
-  FUp := DefaultUp;
   FRotations := QuatIdentityRot;
   FRotationsAnim := ZeroVector3Single;
   FScaleFactor := 1.0;
@@ -2302,17 +2273,27 @@ begin
 end;
 
 procedure TExamineCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Single);
+var
+  NewMoveAmount: TVector3Single;
+  RMat: TMatrix4Single;
 begin
   FMoveAmount := -APos;
 
-  FDirection := Normalized(ADir);
-  FUp := Normalized(AUp);
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  FRotations := QuatConjugate(CamDirUp2OrientQuat(ADir, AUp));
+
+  { We have to fix our FMoveAmount, since our TExamineCamera.Matrix
+    applies our move *first* before applying rotation
+    (and this is good, as it allows rotating around object center,
+    not around camera). }
+  RMat := QuatToRotationMatrix(FRotations);
+  NewMoveAmount[0] := VectorDotProduct(FMoveAmount, Vector3Single(RMat[0, 0], RMat[1, 0], RMat[2, 0]));
+  NewMoveAmount[1] := VectorDotProduct(FMoveAmount, Vector3Single(RMat[0, 1], RMat[1, 1], RMat[2, 1]));
+  NewMoveAmount[2] := VectorDotProduct(FMoveAmount, Vector3Single(RMat[0, 2], RMat[1, 2], RMat[2, 2]));
+  FMoveAmount := NewMoveAmount;
 
   { Reset other stuff affecting TExamineCamera.Matrix to identity,
     this way the camera view corresponds exactly to the SetCameraVectors vectors. }
   FCenterOfRotation := Vector3Single(0, 0, 0);
-  FRotations        := QuatIdentityRot;
   FScaleFactor      := 1;
 
   ScheduleVisibleChange;
@@ -2338,20 +2319,6 @@ begin
     { TODO: if Examine camera has to animate to other camera, cancel. }
     Animation := false;
   end;
-end;
-
-procedure TExamineCamera.SetDirection(const Value: TVector3Single);
-begin
-  FDirection := Normalized(Value);
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  ScheduleVisibleChange;
-end;
-
-procedure TExamineCamera.SetUp(const Value: TVector3Single);
-begin
-  FUp := Normalized(Value);
-  MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
-  ScheduleVisibleChange;
 end;
 
 { TWalkCamera ---------------------------------------------------------------- }
