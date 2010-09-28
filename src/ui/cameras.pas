@@ -2283,10 +2283,16 @@ begin
 end;
 
 procedure TExamineCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Single);
+var
+  Up: TVector3Single;
 begin
   FMoveAmount := -APos;
 
-  FRotations := QuatConjugate(CamDirUp2OrientQuat(ADir, AUp));
+  { Make good (orthogonal to ADir) up vector, CamDirUp2OrientQuat requires this }
+  Up := AUp;
+  MakeVectorsOrthoOnTheirPlane(Up, ADir);
+
+  FRotations := QuatConjugate(CamDirUp2OrientQuat(ADir, Up));
 
   { We have to fix our FMoveAmount, since our TExamineCamera.Matrix
     applies our move *first* before applying rotation
