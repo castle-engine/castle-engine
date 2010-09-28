@@ -2084,17 +2084,10 @@ procedure TExamineCamera.HomeNotNotify;
 var
   Direction, Up, GravityUp: TVector3Single;
 begin
-  { Update here also the CenterOfRotation,
-    as SetCameraVectors resets it to zero too easily. }
-  if IsEmptyBox3D(FModelBox) then
-    FCenterOfRotation := ZeroVector3Single else
-    FCenterOfRotation := Box3DMiddle(ModelBox);
-
   { Make the same view as
     CameraViewpointForWholeScene call in TVRMLScene.CameraBindToViewpoint,
     to make "Home" behavior same as going to the default viewpoint.
     Nice for user. }
-
   CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
     FMoveAmount, Direction, Up, GravityUp);
   FMoveAmount := - FMoveAmount;
@@ -2312,13 +2305,17 @@ begin
 
     Alternative implementation of this would call QuatToRotationMatrix and
     then simulate multiplying this rotation matrix * translation matrix
-    of FMoveAmount. But we can do this directly. }
-  FMoveAmount := QuatRotate(FRotations, FMoveAmount);
+    of FMoveAmount. But we can do this directly.
 
-  { Reset other stuff affecting TExamineCamera.Matrix to identity,
-    this way the camera view corresponds exactly to the SetCameraVectors vectors. }
-  FCenterOfRotation := Vector3Single(0, 0, 0);
-  FScaleFactor      := 1;
+    We also note at this point that rotation is done around
+    (FMoveAmount + FCenterOfRotation). But FCenterOfRotation is not
+    included in MoveAmount. }
+  FMoveAmount := QuatRotate(FRotations, FMoveAmount + FCenterOfRotation)
+    - FCenterOfRotation;
+
+  { Reset ScaleFactor to 1, this way the camera view corresponds
+    exactly to the wanted SetCameraVectors view. }
+  FScaleFactor := 1;
 
   ScheduleVisibleChange;
 end;
