@@ -5830,7 +5830,6 @@ var
   GravityUp: TVector3Single;
   NavigationNode: TNodeNavigationInfo;
   WalkCamera: TWalkCamera;
-  NewMoveSpeed: Single;
 begin
   if ViewpointStack.Top <> nil then
   begin
@@ -5847,12 +5846,10 @@ begin
   if ACamera is TWalkCamera then
   begin
     WalkCamera := TWalkCamera(ACamera);
+    WalkCamera.GravityUp := GravityUp;
 
-    if OnlyViewpointVectorsChanged then
-    begin
-      { keep MoveSpeed the same }
-      NewMoveSpeed := WalkCamera.MoveSpeed;
-    end else
+    { update WalkCamera.MoveSpeed }
+    if not OnlyViewpointVectorsChanged then
     begin
       NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
 
@@ -5864,7 +5861,7 @@ begin
           speed that should "feel sensible". We base it on CameraRadius.
           CameraRadius in turn was calculated based on
           Box3DAvgSize(SceneAnimation.BoundingBox). }
-        NewMoveSpeed := ACamera.CameraRadius * 20;
+        WalkCamera.MoveSpeed := ACamera.CameraRadius * 20;
       end else
       if NavigationNode.FdSpeed.Value = 0 then
       begin
@@ -5874,28 +5871,18 @@ begin
           This is also the reason why other SetViewpointCore branches must change
           MoveSpeed to something different than zero
           (otherwise, user would be stuck with speed = 0). }
-        NewMoveSpeed := 0;
+        WalkCamera.MoveSpeed := 0;
       end else
       begin
-        NewMoveSpeed := NavigationNode.FdSpeed.Value;
+        WalkCamera.MoveSpeed := NavigationNode.FdSpeed.Value;
       end;
     end;
+  end;
 
-    { If OnlyViewpointVectorsChanged, then we will move relative to
-      initial camera changes. Else, we will jump to new initial camera vectors.
-
-      Below, we do some work normally done by TWalkCamera.Init.
-      But we know we already have CameraPreferredHeight set (by CreateCamera),
-      and we take into account OnlyViewpointVectorsChanged case. }
-
-    WalkCamera.SetInitialCameraLookDir(Position, Direction, Up, OnlyViewpointVectorsChanged);
-    WalkCamera.MoveSpeed := NewMoveSpeed;
-    WalkCamera.GravityUp := GravityUp;
-    if not OnlyViewpointVectorsChanged then
-      WalkCamera.Home;
-  end else
-    { The least we can do for other cameras is to set their vectors.
-      TODO: OnlyViewpointVectorsChanged should also be applied. }
+  { If OnlyViewpointVectorsChanged, then we will move relative to
+    initial camera changes. Else, we will jump to new initial camera vectors. }
+  ACamera.SetInitialCameraVectors(Position, Direction, Up, OnlyViewpointVectorsChanged);
+  if not OnlyViewpointVectorsChanged then
     ACamera.SetCameraVectors(Position, Direction, Up);
 end;
 

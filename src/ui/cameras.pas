@@ -228,6 +228,7 @@ type
     VisibleChangeSchedule: Cardinal;
     IsVisibleChangeScheduled: boolean;
     FIgnoreAllInputs: boolean;
+    FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
 
     Animation: boolean;
     AnimationEndTime: TKamTime;
@@ -434,6 +435,43 @@ type
       TODO: for now, animating TExamineCamera to a TWalkCamera settings
       doesn't work (the other way around works Ok). }
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime);  virtual;
+
+    { Initial camera values.
+
+      InitialDirection and InitialUp must be always normalized,
+      and orthogonal.
+
+      Default value of InitialPosition is (0, 0, 0), InitialDirection is
+      (0, -1, 0), InitialUp is (0, 1, 0).
+
+      @groupBegin }
+    property InitialPosition : TVector3Single read FInitialPosition;
+    property InitialDirection: TVector3Single read FInitialDirection;
+    property InitialUp       : TVector3Single read FInitialUp;
+    { @groupEnd }
+
+    { Set three initial camera vectors.
+
+      AInitialDirection and AInitialUp will be automatically normalized.
+      Corresponding properties (InitialDirection and InitialUp) will always
+      contain normalized values.
+
+      AInitialUp will be also automatically corrected to be orthogonal
+      to AInitialDirection. We will correct AInitialUp to make it orthogonal,
+      but still preserving the plane they were indicating together with
+      AInitialDirection. Do not ever give here
+      AInitialUp that is parallel to AInitialDirection.
+
+      If TransformCurrentCamera = @true, then they will also
+      try to change current camera relative to the InitialCameraXxx
+      changes. This implements VRML desired behavior that
+      "viewer position/orientation is conceptually a child of
+      viewpoint position/orientation, and when viewpoint position/orientation
+      changes, viewer should also change". }
+    procedure SetInitialCameraVectors(
+      const AInitialPosition: TVector3Single;
+      AInitialDirection, AInitialUp: TVector3Single;
+      const TransformCurrentCamera: boolean);
   end;
 
   TCameraClass = class of TCamera;
@@ -637,7 +675,6 @@ type
   TWalkCamera = class(TCamera)
   private
     FPosition, FDirection, FUp,
-    FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
     FGravityUp: TVector3Single;
     FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
@@ -1046,50 +1083,6 @@ type
       read FPreferGravityUpForMoving write FPreferGravityUpForMoving default true;
     { @groupEnd }
 
-    { Initial camera values.
-
-      InitialDirection and InitialUp must be always normalized,
-      and orthogonal.
-
-      Default value of InitialPosition is (0, 0, 0), InitialDirection is
-      (0, -1, 0), InitialUp is (0, 1, 0).
-
-      @groupBegin }
-    property InitialPosition : TVector3Single read FInitialPosition;
-    property InitialDirection: TVector3Single read FInitialDirection;
-    property InitialUp       : TVector3Single read FInitialUp;
-    { @groupEnd }
-
-    { These set three initial camera vectors.
-
-      AInitialDirection and AInitialUp will be automatically normalized.
-      Corresponding properties (InitialDirection and InitialUp) will always
-      contain normalized values.
-
-      AInitialUp will be also automatically corrected to be orthogonal
-      to AInitialDirection. We will correct AInitialUp to make it orthogonal,
-      but still preserving the plane they were indicating together with
-      AInitialDirection. Do not ever give here
-      AInitialUp that is parallel to AInitialDirection.
-
-      If TransformCurrentCamera = @true, then they will also
-      try to change current camera relative to the InitialCameraXxx
-      changes. This implements VRML desired behavior that
-      "viewer position/orientation is conceptually a child of
-      viewpoint position/orientation, and when viewpoint position/orientation
-      changes, viewer should also change".
-
-      For now, only changes InitialPosition are reflected by the same
-      (relative) change in current Position. TODO - more. }
-    procedure SetInitialCameraLookDir(
-      const AInitialPosition: TVector3Single;
-      AInitialDirection, AInitialUp: TVector3Single;
-      const TransformCurrentCamera: boolean);
-
-    procedure SetInitialCameraLookAt(
-      const AInitialPosition, AInitialCameraCenter, AInitialUp: TVector3Single;
-      const TransformCurrentCamera: boolean);
-
     { This returns @link(Direction) vector rotated such that it is
       orthogonal to GravityUp. This way it returns @link(Direction) projected
       on the gravity horizontal plane, which neutralizes such things
@@ -1108,7 +1101,7 @@ type
 
       Given here AInitialDirection, AInitialUp, AGravityUp will be normalized,
       and AInitialUp will be adjusted to be orthogonal to AInitialDirection
-      (see SetInitialCameraLookDir).
+      (see SetInitialCameraVectors).
 
       Sets also CameraPreferredHeight and CameraRadius.
       CameraPreferredHeight may be adjusted to be sensible
@@ -1747,6 +1740,9 @@ constructor TCamera.Create(AOwner: TComponent);
 begin
   inherited;
   FProjectionMatrix := IdentityMatrix4Single;
+  FInitialPosition  := Vector3Single(0, 0, 0);
+  FInitialDirection := DefaultDirection;
+  FInitialUp        := DefaultUp;
 end;
 
 procedure TCamera.BeginVisibleChangeSchedule;
@@ -2342,14 +2338,58 @@ begin
   end;
 end;
 
+procedure TCamera.SetInitialCameraVectors(
+  const AInitialPosition: TVector3Single;
+  AInitialDirection, AInitialUp: TVector3Single;
+  const TransformCurrentCamera: boolean);
+var
+  OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
+  Pos, Dir, Up: TVector3Single;
+begin
+  NormalizeTo1st(AInitialDirection);
+  NormalizeTo1st(AInitialUp);
+  MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
+
+  if TransformCurrentCamera then
+  begin
+    GetCameraVectors(Pos, Dir, Up);
+
+    VectorAddTo1st(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
+
+    if not (VectorsPerfectlyEqual(FInitialDirection, AInitialDirection) and
+            VectorsPerfectlyEqual(FInitialUp       , AInitialUp ) ) then
+    begin
+      OldInitialOrientation := CamDirUp2OrientQuat(FInitialDirection, FInitialUp);
+      NewInitialOrientation := CamDirUp2OrientQuat(AInitialDirection, AInitialUp);
+      Orientation           := CamDirUp2OrientQuat(Dir, Up);
+
+      { I want new Orientation :=
+          (Orientation - OldInitialOrientation) + NewInitialOrientation. }
+      Orientation := QuatMultiply(QuatConjugate(OldInitialOrientation), Orientation);
+      Orientation := QuatMultiply(NewInitialOrientation, Orientation);
+
+      { Now that we have Orientation, transform it into new Dir/Up. }
+      Dir := QuatRotate(Orientation, DefaultCameraDirection);
+      Up  := QuatRotate(Orientation, DefaultCameraUp);
+    end;
+
+    { This will do ScheduleVisibleChange }
+    SetCameraVectors(Pos, Dir, Up);
+  end;
+
+  FInitialPosition  := AInitialPosition;
+  FInitialDirection := AInitialDirection;
+  FInitialUp        := AInitialUp;
+end;
+
 { TWalkCamera ---------------------------------------------------------------- }
 
 constructor TWalkCamera.Create(AOwner: TComponent);
 begin
   inherited;
-  FInitialPosition  := Vector3Single(0, 0, 0); FPosition  := InitialPosition;
-  FInitialDirection := DefaultDirection;       FDirection := InitialDirection;
-  FInitialUp        := DefaultUp;              FUp        := InitialUp;
+  FPosition  := InitialPosition;
+  FDirection := InitialDirection;
+  FUp        := InitialUp;
 
   FMoveHorizontalSpeed := 1;
   FMoveVerticalSpeed := 1;
@@ -3599,7 +3639,7 @@ procedure TWalkCamera.Init(
   const ACameraPreferredHeight: Single;
   const ACameraRadius: Single);
 begin
-  SetInitialCameraLookDir(AInitialPosition, AInitialDirection, AInitialUp, false);
+  SetInitialCameraVectors(AInitialPosition, AInitialDirection, AInitialUp, false);
   FGravityUp := Normalized(AGravityUp);
   CameraPreferredHeight := ACameraPreferredHeight;
   CameraRadius := ACameraRadius;
@@ -3627,60 +3667,6 @@ begin
     UnitVector3Single[2] { GravityUp is the same as InitialUp },
     AvgSize * 5, ACameraRadius);
  end;
-end;
-
-procedure TWalkCamera.SetInitialCameraLookDir(
-  const AInitialPosition: TVector3Single;
-  AInitialDirection, AInitialUp: TVector3Single;
-  const TransformCurrentCamera: boolean);
-var
-  OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
-begin
-  NormalizeTo1st(AInitialDirection);
-  NormalizeTo1st(AInitialUp);
-  MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
-
-  if TransformCurrentCamera then
-  begin
-    { We change FPosition directly, not by SetPosition.
-      This is Ok, ScheduleVisibleChange will be called anyway at the end. }
-    VectorAddTo1st(FPosition,
-      VectorSubtract(AInitialPosition, FInitialPosition));
-
-    if not (VectorsPerfectlyEqual(FInitialDirection, AInitialDirection) and
-            VectorsPerfectlyEqual(FInitialUp       , AInitialUp ) ) then
-    begin
-      OldInitialOrientation := CamDirUp2OrientQuat(FInitialDirection, FInitialUp);
-      NewInitialOrientation := CamDirUp2OrientQuat(AInitialDirection, AInitialUp);
-      Orientation           := CamDirUp2OrientQuat(FDirection, FUp);
-
-      { I want new Orientation :=
-          (Orientation - OldInitialOrientation) + NewInitialOrientation. }
-      Orientation := QuatMultiply(QuatConjugate(OldInitialOrientation), Orientation);
-      Orientation := QuatMultiply(NewInitialOrientation, Orientation);
-
-      { Now that we have Orientation, transform it into new FDirection/Up.
-        Like with FPosition above, we set them directly, ScheduleVisibleChange
-        will be done below anyway. }
-      FDirection := QuatRotate(Orientation, DefaultCameraDirection);
-      FUp        := QuatRotate(Orientation, DefaultCameraUp);
-    end;
-  end;
-
-  FInitialPosition  := AInitialPosition;
-  FInitialDirection := AInitialDirection;
-  FInitialUp        := AInitialUp;
-
-  ScheduleVisibleChange;
-end;
-
-procedure TWalkCamera.SetInitialCameraLookAt(const AInitialPosition,
-  AInitialCameraCenter, AInitialUp: TVector3Single;
-  const TransformCurrentCamera: boolean);
-begin
-  SetInitialCameraLookDir(AInitialPosition,
-    VectorSubtract(AInitialCameraCenter, AInitialPosition),
-    AInitialUp, TransformCurrentCamera);
 end;
 
 procedure TWalkCamera.SetPosition(const Value: TVector3Single);

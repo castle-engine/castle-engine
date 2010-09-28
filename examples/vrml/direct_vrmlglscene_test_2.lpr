@@ -143,7 +143,7 @@ begin
 
     { init camera }
     Camera := Scene.CreateCamera(Glw, 'WALK') as TWalkCamera;
-    Camera.SetInitialCameraLookDir(
+    Camera.SetInitialCameraVectors(
       Box3DMiddle(scene.BoundingBox),
       Vector3Single(1, 0, 0),
       Vector3Single(0, 1, 0), false);
