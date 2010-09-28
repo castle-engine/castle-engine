@@ -1537,7 +1537,7 @@ procedure Register;
 
 implementation
 
-uses Math, KambiStringUtils;
+uses Math, KambiStringUtils, VRMLCameraUtils;
 
 procedure Register;
 begin
@@ -2081,12 +2081,23 @@ procedure TExamineCamera.SetCenterOfRotation(const Value: TVector3Single);
 begin FCenterOfRotation := Value; VisibleChange; end;
 
 procedure TExamineCamera.HomeNotNotify;
+var
+  Direction, Up, GravityUp: TVector3Single;
 begin
-  if IsEmptyOrZeroBox3D(FModelBox) then
-    FMoveAmount := Vector3Single(0, 0, 0) { any dummy value } else
-    FMoveAmount := VectorAdd(
-      VectorNegate(FCenterOfRotation),
-      Vector3Single(0, 0, -Box3DAvgSize(FModelBox)*2));
+  { Update here also the CenterOfRotation,
+    as SetCameraVectors resets it to zero too easily. }
+  if IsEmptyBox3D(FModelBox) then
+    FCenterOfRotation := ZeroVector3Single else
+    FCenterOfRotation := Box3DMiddle(ModelBox);
+
+  { Make the same view as
+    CameraViewpointForWholeScene call in TVRMLScene.CameraBindToViewpoint,
+    to make "Home" behavior same as going to the default viewpoint.
+    Nice for user. }
+
+  CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
+    FMoveAmount, Direction, Up, GravityUp);
+  FMoveAmount := - FMoveAmount;
 
   { Just reset the rest of stuff }
   FRotations := QuatIdentityRot;

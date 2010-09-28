@@ -1759,8 +1759,8 @@ type
       const ForceNavigationType: string = ''): TCamera;
 
     { Update camera when currently bound viewpoint changes.
-      When no viewpoint is currently bound, we will go to standard (initial)
-      VRML viewpoint position.
+      When no viewpoint is currently bound, we will go to a suitable
+      viewpoint to see the whole scene (based on a scene bounding box).
 
       This moves the camera to starting point of the viewpoint,
       updating camera's initial and current vectors
@@ -5838,10 +5838,10 @@ begin
       Position, Direction, Up, GravityUp);
   end else
   begin
-    Position := DefaultVRMLCameraPosition[1];
-    Direction := DefaultVRMLCameraDirection;
-    Up := DefaultVRMLCameraUp;
-    GravityUp := DefaultVRMLGravityUp;
+    { Suitable viewpoint,
+      with dir -Z and up +Y (like standard VRML/X3D viewpoint) }
+    CameraViewpointForWholeScene(BoundingBox, 2, 1, false, true,
+      Position, Direction, Up, GravityUp);
   end;
 
   if ACamera is TWalkCamera then
