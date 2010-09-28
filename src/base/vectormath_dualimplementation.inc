@@ -1835,17 +1835,18 @@ end;
 
 function TransformToCoordsMatrix(const NewOrigin,
   NewX, NewY, NewZ: TYPE_VECTOR3): TMatrix4Single;
-var i: integer;
+var
+  i: integer;
 begin
- for i := 0 to 2 do
- begin
-  result[0, i] := NewX[i];
-  result[1, i] := NewY[i];
-  result[2, i] := NewZ[i];
-  result[3, i] := NewOrigin[i];
- end;
- (* dolny wiersz: *)
- result[0, 3] := 0; result[1, 3] := 0; result[2, 3] := 0; result[3, 3] := 1;
+  for i := 0 to 2 do
+  begin
+    result[0, i] := NewX[i];
+    result[1, i] := NewY[i];
+    result[2, i] := NewZ[i];
+    result[3, i] := NewOrigin[i];
+  end;
+  { bottom row }
+  result[0, 3] := 0; result[1, 3] := 0; result[2, 3] := 0; result[3, 3] := 1;
 end;
 
 function TransformToCoordsNoScaleMatrix(const NewOrigin,
@@ -1859,27 +1860,26 @@ function TransformFromCoordsMatrix(const OldOrigin,
   OldX, OldY, OldZ: TYPE_VECTOR3): TMatrix4Single;
 var i: integer;
 begin
- for i := 0 to 2 do
- begin
-  (* w linijkach ponizej zawarta jest cala subtelna roznica pomiedzy
-     TrasformToCoords a TransformFromCoords.
-     X/Y/Z aplikujemy inaczej (tak jakby transponujemy gorna lewa macierz
-     3x3 w wyniku w porownianiu z wersja To) *)
-  result[i, 0] := OldX[i];
-  result[i, 1] := OldY[i];
-  result[i, 2] := OldZ[i];
- end;
+  for i := 0 to 2 do
+  begin
+    { Difference between TrasformToCoords and TransformFromCoords:
+      up-left 3x3 matrix is applied in a transposed manner,
+      compared with TrasformToCoords. }
+    result[i, 0] := OldX[i];
+    result[i, 1] := OldY[i];
+    result[i, 2] := OldZ[i];
+  end;
 
- (* druga roznica w porownaniu z wersja "To" : musimy inaczej aplikowac
-    OldOrigin. Nie dosc ze OldOrigin musi byc tutaj zanegowane to jeszcze
-    cala macierz musi byc tak naprawde przesuniecia o OldOrigin juz
-    PO zrobieniu obrotow - patrz Compendium (15) z moimi dopiskami. *)
- result[3, 0] := -VectorDotProduct(OldOrigin, OldX);
- result[3, 1] := -VectorDotProduct(OldOrigin, OldY);
- result[3, 2] := -VectorDotProduct(OldOrigin, OldZ);
+  { Another difference between TrasformToCoords and TransformFromCoords:
+    - OldOrigin must be negated here
+    - OldOrigin must have directions applied
+    See e.g. Global Illumination Compendium by Philip Dutre, section (15). }
+  result[3, 0] := -VectorDotProduct(OldOrigin, OldX);
+  result[3, 1] := -VectorDotProduct(OldOrigin, OldY);
+  result[3, 2] := -VectorDotProduct(OldOrigin, OldZ);
 
- (* dolny wiersz: *)
- result[0, 3] := 0; result[1, 3] := 0; result[2, 3] := 0; result[3, 3] := 1;
+  { bottom row }
+  result[0, 3] := 0; result[1, 3] := 0; result[2, 3] := 0; result[3, 3] := 1;
 end;
 
 function TransformFromCoordsNoScaleMatrix(const OldOrigin,

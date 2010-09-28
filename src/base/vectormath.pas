@@ -2066,47 +2066,47 @@ function MatrixDet4x4(const mat: TMatrix4Single): Single;
 function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: Single): Single;
 function MatrixDet2x2(const a, b, c, d: Single): Single;
 
-{ TransformTo/FromCoords zamieniaja uklad wspolrzednych - punkty przemnozone
-  przez te macierze beda mogly byc podawane w innym ukladzie wspolrzednych
-  i mnozenie przez ta macierz bedzie je tlumaczylo na nasz uklad wspolrzednych.
+{ Transform coordinates to / from a coordinate system.
+  Stuff multiplied by this matrix is supplied in other coordinate system.
 
-  Parametry New/Old X/Y/Z/Origin podaja jak sie ma nowy uklad wspolrzednych
-  (punktow mnozonych przez ta macierz) do oryginalnego ukladu wspolrzednych
-  (tzn. tego w ktorym bedziemy dostawac wyniki mnozenia <ta macierz> * <punkt>.
+  The "new" coordinate system (you specify it explicitly for
+  TransformToCoordsMatrix) is the coordinate system in which your 3D stuff
+  is defined. That is, when you supply the points (that will later be
+  multiplied by TransformToCoordsMatrix) you think in the "new" coordinate
+  system. The "old" coordinate system
+  (you specify it explicitly for TransformFromCoordsMatrix)
+  is is the coordinate system of stuff @italic(after)
+  it's multiplied by this matrix.
 
-  Roznica miedzy To a From polega na tym jak podajemy parametry :
+  This may get confusing, so to be more precise:
+
   @unorderedList(
-    @item(
-      W wersji To parametry New* podaja jak wyglada nowy uklad wsporzednych
-      widziany w punktu widzenia starego. Tzn. to co w starym (oryginalnym)
-      ukladzie wspolrzednych jest widoczne jako NewOrigin bedzie w nowym
-      ukladzie widoczne (0, 0, 0). To co w oryginalnym ukladzie jest NewY
-      bedzie w nowym ukldzie (1, 0, 0) itd. (NewZ bedzie (0, 0, 1) wiec mozesz
-      zauwazyc ze te procedury sa zupelnie nieczule na to z jakim ukladem
-      (prawo- czy lewo- skretnym) masz do czynienia).)
 
     @item(
-      W wersji From parametry Old* mowia na odwrot: jak jest widziany stary
-      (oryginalny) uklad z punktu widzenia starego : to co w oryginalnym
-      ukldzie jest punktem (0, 0, 0) bedzie musialo byc w nowym ukladzie wyrazone
-      jako OldOrigin itd.
+      TransformToCoordsMatrix says how the new coords system looks
+      from the point of view of the old coords system.
+      A stuff lying at (0, 0, 0) in new coord system will be seen
+      at NewOrigin after the transformation (in the old coordinate system).
+      Similarly, direction (0, 1, 0) will be seen as NewY after
+      the transformation.)
 
-      Wersje From pozwalaja w naturalny sposob implementowac funkcje w rodzaju
-      LookAtMatrix (bo w nich tez podajac np. pozycje kamery podajemy tak
-      naprawde ze ma byc zrobiona taka transformacja zeby punkt = pozycja kamery
-      stal sie punktem 0, 0, 0 w oryginalnym ukladzie).)
+    @item(
+      TransformFromCoordsMatrix is the inverse: how the old system
+      is seen from the new one. If before the transformation you are
+      at OldOrigin, then after the transformation you are at (0, 0, 0).
+      This is natural way to implement LookAtMatrix, LookDirMatrix.)
   )
 
-  W kwestii opcjonalnego [NoScale] w nazwie : TAK, dlugosci wektorow
-  Old/NewX/Y/Z sa wazne - one beda odpowiadac wektorom
-  (1, 0, 0), (0, 1, 0) i (0, 0, 1)
-  a wiec wektorom jednostkowym. W ten sposob mozna wiec zrobic skalowanie.
+  The lengths of directions (New or Old X, Y, Z vectors) are meaningful.
+  These vectors correspond to unit vectors (1, 0, 0), (0, 1, 0) and (0, 0, 1)
+  in the other coordinate system. Supplying here non-normalized vectors
+  will result in scaling.
 
-  Uzyj wersji NoScale aby wektory Old/NewX/Y/Z byly automatycznie
-  normalizowane, w ten sposob nie bedzie skalowania. Speed remark:
-  note that NoScale versions call three times Normalized, so they
-  do 3 times Sqrt. Versions without "NoScale" don't do this, so they are
-  faster. }
+  You can use the "NoScale" versions to have the vectors automatically
+  normalized, thus you waste a little time (on normalizing) but you
+  avoid the scaling.
+
+  @groupBegin }
 function TransformToCoordsMatrix(const NewOrigin,
   NewX, NewY, NewZ: TVector3Single): TMatrix4Single; overload;
 function TransformToCoordsMatrix(const NewOrigin,
@@ -2124,23 +2124,33 @@ function TransformFromCoordsNoScaleMatrix(const OldOrigin,
   OldX, OldY, OldZ: TVector3Single): TMatrix4Single; overload;
 function TransformFromCoordsNoScaleMatrix(const OldOrigin,
   OldX, OldY, OldZ: TVector3Double): TMatrix4Single; overload;
+{ @groupEnd }
 
-{ LookAt/Dir dzialaja zgodnie z prawoskretnym ukladem wspolrz.
-  Transformuja scene tak zeby kamera z punktu (0, 0, 0) patrzaca w kierunku
-  (0, 0, -1) i o pionie (0, 1, 0) widziala taka scene jakby stala w miejscu
-  Eye sceny, patrzyla na punkt Center sceny (lub wzdluz kierunku Dir)
-  i miala wektor pionu Up.
+{ Camera matrix to look at the specified point (or along the specified direction).
+  Work according to right-handed coordinate system.
 
-  Podobnie jak w gluLookAt i jak w wielu moich funkcjach tak i tutaj nie
-  musisz podawac up prostopadlego do Dir (albo do Center-Eye).
-  W razie potrzeby funkcja sobie wewnetrznie poprawi Up.
+  When applied to the scene, they transform it, such that a camera standing
+  at (0, 0, 0) (with dir (0, 0, -1) and up vector (0, 1, 0)),
+  was seeing the same view as if it was standing at Eye
+  (with given Dir and Up vectors).
 
-  The lengths of Dir and Up do not affect the result
-  (just as the distance between Center and Eye points for LookAtMatrix). }
+  For LookAtMatrix, looking direction is implicitly given as @code(Center - Eye).
+  Just like gluLookAt.
+
+  Dir and Up do not have to normalized (we'll normalize them if needed).
+  So the lengths of Dir and Up do not affect the result
+  (just as the distance between Center and Eye points for LookAtMatrix).
+
+  Also, Dir and Up do not have to be perfectly orthogonal
+  (we will eventually adjust Up internally to make it orthogonal to Up).
+  But make sure they are not parallel.
+
+  @groupBegin }
 function LookAtMatrix(const Eye, Center, Up: TVector3Single): TMatrix4Single; overload;
 function LookAtMatrix(const Eye, Center, Up: TVector3Double): TMatrix4Single; overload;
 function LookDirMatrix(const Eye, Dir, Up: TVector3Single): TMatrix4Single; overload;
 function LookDirMatrix(const Eye, Dir, Up: TVector3Double): TMatrix4Single; overload;
+{ @groupEnd }
 
 {$endif not DELPHI}
 
