@@ -20,7 +20,7 @@ unit Curve;
 interface
 
 uses VectorMath, Boxes3D, KambiUtils, KambiScript, KambiPolynomials,
-  KambiClassUtils, Base3D, Frustum;
+  KambiClassUtils, Classes, Base3D, Frustum;
 
 {$define read_interface}
 

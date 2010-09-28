@@ -22,8 +22,8 @@ unit VRMLSceneWaypoints;
 
 interface
 
-uses SysUtils, KambiUtils, KambiClassUtils, VectorMath, Boxes3D, VRMLNodes,
-  VRMLScene;
+uses SysUtils, KambiUtils, KambiClassUtils, Classes,
+  VectorMath, Boxes3D, VRMLNodes, VRMLScene;
 
 {$define read_interface}
 

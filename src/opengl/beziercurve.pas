@@ -23,7 +23,7 @@ unit BezierCurve;
 
 interface
 
-uses SysUtils, KambiUtils, KambiClassUtils, Math, VectorMath, Curve;
+uses SysUtils, KambiUtils, KambiClassUtils, Classes, Math, VectorMath, Curve;
 
 {$define read_interface}
 
