@@ -1850,6 +1850,50 @@ begin
   AnimationCurrentTime := 0;
 end;
 
+procedure TCamera.SetInitialCameraVectors(
+  const AInitialPosition: TVector3Single;
+  AInitialDirection, AInitialUp: TVector3Single;
+  const TransformCurrentCamera: boolean);
+var
+  OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
+  Pos, Dir, Up: TVector3Single;
+begin
+  NormalizeTo1st(AInitialDirection);
+  NormalizeTo1st(AInitialUp);
+  MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
+
+  if TransformCurrentCamera then
+  begin
+    GetCameraVectors(Pos, Dir, Up);
+
+    VectorAddTo1st(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
+
+    if not (VectorsPerfectlyEqual(FInitialDirection, AInitialDirection) and
+            VectorsPerfectlyEqual(FInitialUp       , AInitialUp ) ) then
+    begin
+      OldInitialOrientation := CamDirUp2OrientQuat(FInitialDirection, FInitialUp);
+      NewInitialOrientation := CamDirUp2OrientQuat(AInitialDirection, AInitialUp);
+      Orientation           := CamDirUp2OrientQuat(Dir, Up);
+
+      { I want new Orientation :=
+          (Orientation - OldInitialOrientation) + NewInitialOrientation. }
+      Orientation := QuatMultiply(QuatConjugate(OldInitialOrientation), Orientation);
+      Orientation := QuatMultiply(NewInitialOrientation, Orientation);
+
+      { Now that we have Orientation, transform it into new Dir/Up. }
+      Dir := QuatRotate(Orientation, DefaultCameraDirection);
+      Up  := QuatRotate(Orientation, DefaultCameraUp);
+    end;
+
+    { This will do ScheduleVisibleChange }
+    SetCameraVectors(Pos, Dir, Up);
+  end;
+
+  FInitialPosition  := AInitialPosition;
+  FInitialDirection := AInitialDirection;
+  FInitialUp        := AInitialUp;
+end;
+
 { TExamineCamera ------------------------------------------------------------ }
 
 constructor TExamineCamera.Create(AOwner: TComponent);
@@ -2336,50 +2380,6 @@ begin
     { TODO: if Examine camera has to animate to other camera, cancel. }
     Animation := false;
   end;
-end;
-
-procedure TCamera.SetInitialCameraVectors(
-  const AInitialPosition: TVector3Single;
-  AInitialDirection, AInitialUp: TVector3Single;
-  const TransformCurrentCamera: boolean);
-var
-  OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
-  Pos, Dir, Up: TVector3Single;
-begin
-  NormalizeTo1st(AInitialDirection);
-  NormalizeTo1st(AInitialUp);
-  MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
-
-  if TransformCurrentCamera then
-  begin
-    GetCameraVectors(Pos, Dir, Up);
-
-    VectorAddTo1st(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
-
-    if not (VectorsPerfectlyEqual(FInitialDirection, AInitialDirection) and
-            VectorsPerfectlyEqual(FInitialUp       , AInitialUp ) ) then
-    begin
-      OldInitialOrientation := CamDirUp2OrientQuat(FInitialDirection, FInitialUp);
-      NewInitialOrientation := CamDirUp2OrientQuat(AInitialDirection, AInitialUp);
-      Orientation           := CamDirUp2OrientQuat(Dir, Up);
-
-      { I want new Orientation :=
-          (Orientation - OldInitialOrientation) + NewInitialOrientation. }
-      Orientation := QuatMultiply(QuatConjugate(OldInitialOrientation), Orientation);
-      Orientation := QuatMultiply(NewInitialOrientation, Orientation);
-
-      { Now that we have Orientation, transform it into new Dir/Up. }
-      Dir := QuatRotate(Orientation, DefaultCameraDirection);
-      Up  := QuatRotate(Orientation, DefaultCameraUp);
-    end;
-
-    { This will do ScheduleVisibleChange }
-    SetCameraVectors(Pos, Dir, Up);
-  end;
-
-  FInitialPosition  := AInitialPosition;
-  FInitialDirection := AInitialDirection;
-  FInitialUp        := AInitialUp;
 end;
 
 { TWalkCamera ---------------------------------------------------------------- }
