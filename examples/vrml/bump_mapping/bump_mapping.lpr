@@ -853,8 +853,8 @@ begin
     for this, as MainScene is not always assigned, we have our own geometry
     for Method <> bmVRML. }
 
-  FWalkProjectionNear := Box3DAvgSize(SceneBoundingBox) * 0.05;
-  FWalkProjectionFar  := Box3DAvgSize(SceneBoundingBox) * 20.0;
+  FProjectionNear := Box3DAvgSize(SceneBoundingBox) * 0.05;
+  FProjectionFar  := Box3DAvgSize(SceneBoundingBox) * 20.0;
 
   FPerspectiveView := true;
   FPerspectiveViewAngles[1] := 30.0;
@@ -862,11 +862,10 @@ begin
     FPerspectiveViewAngles[1], ContainerWidth / ContainerHeight);
 
   ProjectionGLPerspective(FPerspectiveViewAngles[1],
-    ContainerWidth / ContainerHeight, WalkProjectionNear, WalkProjectionFar);
+    ContainerWidth / ContainerHeight, ProjectionNear, ProjectionFar);
 
   Scene.BackgroundSkySphereRadius :=
-    TBackgroundGL.NearFarToSkySphereRadius(
-      WalkProjectionNear, WalkProjectionFar);
+    TBackgroundGL.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar);
 
   UpdateCameraProjectionMatrix;
 end;

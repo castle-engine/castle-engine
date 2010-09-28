@@ -414,12 +414,12 @@ procedure TMySceneManager.ApplyProjection;
 begin
   glViewport(0, 0, ContainerWidth, ContainerHeight);
 
-  FWalkProjectionNear := Box3DAvgSize(SceneBoundingBox) * 0.05;
+  FProjectionNear := Box3DAvgSize(SceneBoundingBox) * 0.05;
   { TODO: switch to using NV_depth_clamp where possible.
     Enable this for good when shadow culling for infinite frustum will work...
     otherwise, right now, we lose a little time for this, even in z-pass. }
   { For z-fail, we use far projection plane in infinity. }
-  FWalkProjectionFar  := ZFarInfinity;
+  FProjectionFar  := ZFarInfinity;
 
   FPerspectiveView := true;
   FPerspectiveViewAngles[1] := 30.0;
@@ -427,7 +427,7 @@ begin
     FPerspectiveViewAngles[1], ContainerWidth / ContainerHeight);
 
   ProjectionGLPerspective(FPerspectiveViewAngles[1], ContainerWidth / ContainerHeight,
-    WalkProjectionNear, WalkProjectionFar);
+    ProjectionNear, ProjectionFar);
   UpdateCameraProjectionMatrix;
 end;
 

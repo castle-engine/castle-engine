@@ -1305,7 +1305,7 @@ type
       out PerspectiveView: boolean;
       out PerspectiveViewAngles: TVector2Single;
       out OrthoViewDimensions: TVector4Single;
-      out WalkProjectionNear, WalkProjectionFar: Single);
+      out ProjectionNear, ProjectionFar: Single);
 
     { Simplified GLProjection version. Useful when you're not interested
       in resulting projection properties. Should not be used ---
@@ -4656,12 +4656,12 @@ var
   PerspectiveView: boolean;
   PerspectiveViewAngles: TVector2Single;
   OrthoViewDimensions: TVector4Single;
-  WalkProjectionNear, WalkProjectionFar: Single;
+  ProjectionNear, ProjectionFar: Single;
 begin
   GLProjection(ACamera, Box,
     ViewportX, ViewportY, ViewportWidth, ViewportHeight, ForceZFarInfinity,
     PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
-    WalkProjectionNear, WalkProjectionFar);
+    ProjectionNear, ProjectionFar);
 end;
 
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
@@ -4671,7 +4671,7 @@ procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
   out PerspectiveView: boolean;
   out PerspectiveViewAngles: TVector2Single;
   out OrthoViewDimensions: TVector4Single;
-  out WalkProjectionNear, WalkProjectionFar: Single);
+  out ProjectionNear, ProjectionFar: Single);
 
   procedure UpdateCameraProjectionMatrix;
   var
@@ -4685,14 +4685,13 @@ var
   ViewpointNode: TVRMLViewpointNode;
   PerspectiveFieldOfView: Single;
   VisibilityLimit: Single;
-  ZNear: TGLdouble;
 
   procedure DoPerspective;
   begin
     { Only perspective projection supports z far in infinity.
       So apply ForceZFarInfinity only in perspective projection. }
     if ForceZFarInfinity then
-      WalkProjectionFar := ZFarInfinity;
+      ProjectionFar := ZFarInfinity;
 
     PerspectiveView := true;
     { PerspectiveViewAngles is already calculated here.
@@ -4700,7 +4699,7 @@ var
       of whether we actually apply perspective or orthogonal projection. }
 
     ProjectionGLPerspective(PerspectiveViewAngles[1],
-      ViewportWidth / ViewportHeight, ZNear, WalkProjectionFar);
+      ViewportWidth / ViewportHeight, ProjectionNear, ProjectionFar);
   end;
 
   procedure DoOrthographic;
@@ -4742,7 +4741,7 @@ var
       OrthoViewDimensions[2],
       OrthoViewDimensions[1],
       OrthoViewDimensions[3],
-      ZNear, WalkProjectionFar);
+      ProjectionNear, ProjectionFar);
   end;
 
 var
@@ -4771,44 +4770,33 @@ begin
       FdVisibilityLimit.Value else
     VisibilityLimit := 0;
 
-  WalkProjectionNear := ACamera.CameraRadius * 0.6;
+  ProjectionNear := ACamera.CameraRadius * 0.6;
 
   if VisibilityLimit <> 0.0 then
-    WalkProjectionFar := VisibilityLimit else
+    ProjectionFar := VisibilityLimit else
   begin
-    WalkProjectionFar := Box3DAvgSize(Box, false,
-      { When box is empty (or has 0 sizes), WalkProjectionFar is not simply "any dummy value".
-        It must be appropriately larger than WalkProjectionNear
+    ProjectionFar := Box3DAvgSize(Box, false,
+      { When box is empty (or has 0 sizes), ProjectionFar is not simply "any dummy value".
+        It must be appropriately larger than ProjectionNear
         to provide sufficient space for rendering Background node. }
-      WalkProjectionNear) * 20.0;
+      ProjectionNear) * 20.0;
   end;
-
-  { To minimize depth buffer errors we want to make ZNear/ZFar dependent
-    on BoundingBox.
-
-    In Examiner mode we can use larger ZNear, since we do not have to make
-    it < CameraRadius. Larger ZNear allows depth buffer to have better
-    precision. ZNear is then "Box3DAvgSize(Box) * 0.1", while
-    in far mode it's "CameraRadius * 0.6" which means
-    "Box3DAvgSize(BoundingBox) * 0.01 * 0.6 = Box3DAvgSize(BoundingBox) * 0.006"
-    if CameraRadius is auto-calculated, about 20 times smaller.
-    With such small near in Examine mode we would often see z-buffer errors,
-    e.g. see kings_head.wrl. }
-
-  if (ACamera is TExamineCamera) and
-     (not IsEmptyOrZeroBox3D(Box)) then
-    ZNear := Box3DAvgSize(Box) * 0.1 else
-    ZNear := WalkProjectionNear;
+  
+  { At some point, I was using here larger projection near when
+    (ACamera is TExamineCamera). Reasoning: you do not get so close
+    to the model with Examine view, and you do not need collision detection.
+    Both arguments are wrong now, you can switch between Examine/Walk
+    in view3dscene and easily get close to the model, and collision detection
+    in Examine mode will be some day implemented (VRML/X3D spec require this). }
 
   if ViewpointNode <> nil then
     ProjectionType := ViewpointNode.ProjectionType else
     ProjectionType := ptPerspective;
 
   { Calculate BackgroundSkySphereRadius here,
-    using WalkProjectionFar that is *not* ZFarInfinity }
+    using ProjectionFar that is *not* ZFarInfinity }
   BackgroundSkySphereRadius :=
-    TBackgroundGL.NearFarToSkySphereRadius(
-      WalkProjectionNear, WalkProjectionFar);
+    TBackgroundGL.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar);
 
   case ProjectionType of
     ptPerspective: DoPerspective;

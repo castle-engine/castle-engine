@@ -64,8 +64,8 @@ type
     FPerspectiveView: boolean;
     FPerspectiveViewAngles: TVector2Single;
     FOrthoViewDimensions: TVector4Single;
-    FWalkProjectionNear: Single;
-    FWalkProjectionFar : Single;
+    FProjectionNear: Single;
+    FProjectionFar : Single;
 
     ApplyProjectionNeeded: boolean;
 
@@ -78,7 +78,7 @@ type
 
       Takes care of updating Camera.ProjectionMatrix,
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
-      WalkProjectionNear, WalkProjectionFar.
+      ProjectionNear, ProjectionFar.
 
       This is automatically called at the beginning of our Render method,
       if it's needed.
@@ -208,18 +208,13 @@ type
     property OrthoViewDimensions: TVector4Single read FOrthoViewDimensions write FOrthoViewDimensions;
     { @groupEnd }
 
-    { Projection near/far values, for Walk navigation.
-      ApplyProjection calculates it.
+    { Projection near/far values. ApplyProjection calculates it.
 
-      This is the best projection near/far for Walk mode
-      (although GLProjection may use some other values for other modes
-      (like Examine), it will always calculate values for Walk mode anyway.)
-
-      WalkProjectionFar may be ZFarInfinity.
+      Note that ProjectionFar may be ZFarInfinity.
 
       @groupBegin }
-    property WalkProjectionNear: Single read FWalkProjectionNear;
-    property WalkProjectionFar : Single read FWalkProjectionFar ;
+    property ProjectionNear: Single read FProjectionNear;
+    property ProjectionFar : Single read FProjectionFar ;
     { @groupEnd }
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
@@ -1157,7 +1152,7 @@ begin
       GetMainScene.GLProjection(Camera, Box,
         CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ShadowVolumesPossible,
         FPerspectiveView, FPerspectiveViewAngles, FOrthoViewDimensions,
-        FWalkProjectionNear, FWalkProjectionFar) else
+        FProjectionNear, FProjectionFar) else
       DefaultGLProjection;
 
     ApplyProjectionNeeded := false;
@@ -1787,8 +1782,8 @@ begin
       This could be moved to PrepareResources without problems, but we want
       time needed to render textures be summed into "FPS frame time". }
     Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-      ChosenViewport.WalkProjectionNear,
-      ChosenViewport.WalkProjectionFar,
+      ChosenViewport.ProjectionNear,
+      ChosenViewport.ProjectionFar,
       ChosenViewport.CorrectLeft,
       ChosenViewport.CorrectBottom,
       ChosenViewport.CorrectWidth,
