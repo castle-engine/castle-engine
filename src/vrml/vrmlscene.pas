@@ -5306,7 +5306,7 @@ var
 begin
   SensorsChanged :=
     (FPointingDeviceOverItem <> nil) or
-    { This may be called from destructor (through 
+    { This may be called from destructor (through
       TVRMLShape.FreeOctreeTriangles when freeing shapes), so prepare for
       the FPointingDeviceActiveSensors = nil case. }
     ( (FPointingDeviceActiveSensors <> nil) and
