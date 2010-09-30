@@ -1,5 +1,7 @@
 #VRML V1.0 ascii
 
+NavigationInfo { speed 1500 }
+
 Group {
   # Camera settings "encoded" in the VRML declaration below :
   # direction -29.867685317993164 31.893442153930664 2.03300805878825E-006

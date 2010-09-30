@@ -1,5 +1,7 @@
 #VRML V1.0 ascii
 
+NavigationInfo { speed 100 }
+
 #Kambi+
 # Camera settings "encoded" in the VRML declaration below :
 # direction 0.721856713294983 -1.229051947593689 -0.645308494567871
