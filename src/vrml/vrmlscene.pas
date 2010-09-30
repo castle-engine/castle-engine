@@ -1890,6 +1890,12 @@ type
       notified about changes to it's nodes anyway, regardless of
       @name value. }
     property Static: boolean read FStatic write SetStatic default false;
+
+    { Nice scene caption. Uses the "title" of WorldInfo
+      node inside the VRML/X3D scene. If there is no WorldInfo node
+      (or it has empty title) then returns last loaded FileName
+      (without directory). }
+    function Caption: string;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing @link(Time).
@@ -6300,6 +6306,17 @@ begin
       ScheduleChangedAll;
     end;
   end;
+end;
+
+function TVRMLScene.Caption: string;
+var
+  WorldInfoNode: TNodeWorldInfo;
+begin
+  WorldInfoNode := RootNode.TryFindNode(TNodeWorldInfo, true) as TNodeWorldInfo;
+  if (WorldInfoNode <> nil) and
+     (WorldInfoNode.FdTitle.Value <> '') then
+    Result := WorldInfoNode.FdTitle.Value else
+    Result := ExtractFileName(FileName);
 end;
 
 end.
