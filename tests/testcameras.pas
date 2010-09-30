@@ -117,12 +117,6 @@ const
 var
   I: Integer;
   Orientation: TQuaternion;
-
-{  procedure Assert(const Val: boolean);
-  begin
-    if not Val then Writeln('warn: ', I);
-  end;
-}
 begin
   for I := Low(Tests) to High(Tests) do
   begin

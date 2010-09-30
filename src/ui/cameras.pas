@@ -4246,30 +4246,15 @@ begin
  NormalizeTo1st(CamDir);
  NormalizeTo1st(CamUp);
 
- { TODO: Hack: hardcode two difficult cases:
-   Fix this nicer --- look when Rot1Axis and Rot2Axis are zero.
-   For 1st case, this seems easy enoough (replace Rot1Axis with any ortho),
-   for 2nd case --- not so easy? }
- if VectorsEqual(CamDir, Vector3Single(0, 0, 1)) and
-    VectorsEqual(CamUp , Vector3Single(0, 1, 0)) then
- begin
-// TODO: remove   Writeln('hard case 1 ', VectorToNiceStr(CamDir));
-   Result := QuatFromAxisAngle(CamUp, Pi);
-   Exit;
- end;
-
- if VectorsEqual(CamDir, Vector3Single(0, -1, 0), 0.01) and
-    VectorsEqual(CamUp , Vector3Single(0, 0, 1), 0.01) then
- begin
-// TODO: remove   Writeln('hard case 2 ', VectorToNiceStr(CamDir));
-   Result := QuatMultiply(
-     QuatFromAxisAngle(Vector3Single(0, 1, 0) , Pi),
-     QuatFromAxisAngle(Vector3Single(1, 0, 0) , - Pi / 2));
-   Exit;
- end;
-
  { calculate Rot1Quat }
  Rot1Axis := Normalized( VectorProduct(DefaultCameraDirection, CamDir) );
+ { Rot1Axis may be zero if DefaultCameraDirection and CamDir are parallel.
+   When they point in the same direction, then it doesn't matter
+   (rotation will be by 0 angle anyway), but when they are in opposite
+   direction we want to do some rotation, so we need some non-zero
+   sensible Rot1Axis. }
+ if ZeroVector(Rot1Axis) then
+   Rot1Axis := DefaultCameraUp;
  Rot1CosAngle := VectorDotProduct(DefaultCameraDirection, CamDir);
  Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
@@ -4280,6 +4265,8 @@ begin
    czy powinnismy tu wziac CamDir czy -CamDir (chodzi o to zeby pozniej obrot
    o Rot2CosAngle byl w dobra strone) }
  Rot2Axis := Normalized( VectorProduct(StdCamUpAfterRot1, CamUp) );
+ if ZeroVector(Rot2Axis) then
+   Rot2Axis := CamDir;
  Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
  Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
 
