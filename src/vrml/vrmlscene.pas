@@ -1717,13 +1717,14 @@ type
     procedure RegisterCompiledScript(const HandlerName: string;
       Handler: TCompiledScriptHandler);
 
-    { Create and initialize TCamera instance based on currently
+    { Set TUniversalCamera properties based on currently
       bound NavigationInfo and Viewpoint node.
 
       Bound NavigationInfo node is taken from
       NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
       and we will create camera corresponding to default NavigationInfo
-      values (this is following VRML spec), so it will have type = EXAMINE.
+      values (this is following VRML spec), so it will have
+      initial type = EXAMINE.
 
       You can pass ForceNavigationType = 'EXAMINE', 'WALK', 'FLY', 'NONE' etc.
       (see X3D specification about NavigationInfo node, type field,
@@ -1732,8 +1733,7 @@ type
       This way we will ignore what NavigationInfo.type information
       inside the scene says.
 
-      This always initializes some camera properties (some of them apply
-      only for specific TCamera descendants):
+      This initializes a lot of camera properties:
       @unorderedList(
         @item(TCamera.CameraRadius,)
         @item(TCamera.IgnoreAllInputs,)
@@ -1750,13 +1750,22 @@ type
       Box is the expected bounding box of the whole 3D scene.
       Usually, it should be just Scene.BoundingBox, but it may be something
       larger, if this scene is part of a larger world. }
+    procedure CameraBindToNavigationAndViewpoint(Camera: TUniversalCamera;
+      const Box: TBox3D;
+      const ForceNavigationType: string = '';
+      const ForceCameraRadius: Single = 0);
+
+    { Create new camera instance, and bind it to current NavigationInfo
+      and Viewpoint. This is only a deprecated shortcut for creating
+      TUniversalCamera and then using CameraBindToNavigationAndViewpoint.
+      @deprecated }
     function CreateCamera(AOwner: TComponent;
       const Box: TBox3D;
-      const ForceNavigationType: string = ''): TCamera;
+      const ForceNavigationType: string = ''): TUniversalCamera;
 
     { @deprecated }
     function CreateCamera(AOwner: TComponent;
-      const ForceNavigationType: string = ''): TCamera;
+      const ForceNavigationType: string = ''): TUniversalCamera;
 
     { Update camera when currently bound viewpoint changes.
       When no viewpoint is currently bound, we will go to a suitable
@@ -5693,51 +5702,46 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-function TVRMLScene.CreateCamera(AOwner: TComponent;
-  const Box: TBox3D;
-  const ForceNavigationType: string = ''): TCamera;
+procedure TVRMLScene.CameraBindToNavigationAndViewpoint(
+  Camera: TUniversalCamera; const Box: TBox3D;
+  const ForceNavigationType: string;
+  const ForceCameraRadius: Single);
+var
+  NavigationTypeInitialized: boolean;
 
-  { Create TCamera instance, looking at NavigationType
+  { Initialize stuff determined by NavigationType
     (treating it like NavigationInfo.type value).
-    Returns @nil if NavigationType unknown (or 'ANY'). }
-  function DoCreate(const NavigationType: string): TCamera;
+    Sets NavigationTypeInitialized to true if navigation type
+    recognized (and not 'ANY'). }
+  procedure InitializeNavigationType(const NavigationType: string);
   begin
-    Result := nil;
     if NavigationType = 'WALK' then
     begin
-      Result := TWalkCamera.Create(AOwner);
-      TWalkCamera(Result).PreferGravityUpForRotations := true;
-      TWalkCamera(Result).PreferGravityUpForMoving := true;
-      TWalkCamera(Result).Gravity := true;
-      TWalkCamera(Result).IgnoreAllInputs := false;
+      NavigationTypeInitialized := true;
+      Camera.NavigationType := ntWalk;
+      Camera.Walk.PreferGravityUpForRotations := true;
+      Camera.Walk.PreferGravityUpForMoving := true;
+      Camera.Walk.Gravity := true;
     end else
     if NavigationType = 'FLY' then
     begin
-      Result := TWalkCamera.Create(AOwner);
-      TWalkCamera(Result).PreferGravityUpForRotations := true;
-      TWalkCamera(Result).PreferGravityUpForMoving := false;
-      TWalkCamera(Result).Gravity := false;
-      TWalkCamera(Result).IgnoreAllInputs := false;
+      NavigationTypeInitialized := true;
+      Camera.NavigationType := ntWalk;
+      Camera.Walk.PreferGravityUpForRotations := true;
+      Camera.Walk.PreferGravityUpForMoving := false;
+      Camera.Walk.Gravity := false;
     end else
     if NavigationType = 'NONE' then
     begin
-      Result := TWalkCamera.Create(AOwner);
-      TWalkCamera(Result).PreferGravityUpForRotations := true;
-      TWalkCamera(Result).PreferGravityUpForMoving := true; { doesn't matter }
-      TWalkCamera(Result).Gravity := false;
-      TWalkCamera(Result).IgnoreAllInputs := true;
+      NavigationTypeInitialized := true;
+      Camera.IgnoreAllInputs := true;
     end else
-    if NavigationType = 'EXAMINE' then
-    begin
-      Result := TExamineCamera.Create(AOwner);
-      { Leave IgnoreAllInputs as false }
-    end else
-    if NavigationType = 'LOOKAT' then
+    if (NavigationType = 'EXAMINE') or (NavigationType = 'LOOKAT') then
     begin
       if NavigationType = 'LOOKAT' then
         VRMLWarning(vwIgnorable, 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
-      Result := TExamineCamera.Create(AOwner);
-      { Leave IgnoreAllInputs as false }
+      NavigationTypeInitialized := true;
+      Camera.NavigationType := ntExamine;
     end else
     if NavigationType = 'ANY' then
     begin
@@ -5750,73 +5754,91 @@ function TVRMLScene.CreateCamera(AOwner: TComponent;
 var
   NavigationNode: TNodeNavigationInfo;
   I: Integer;
-  CameraPreferredHeight, CameraRadius: Single;
+  CameraRadius: Single;
 begin
-  Result := nil;
+  NavigationTypeInitialized := false;
   NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
 
-  if ForceNavigationType <> '' then
-    Result := DoCreate(ForceNavigationType);
+  { Reset Camera properties, this way InitializeNavigationType may
+    assume these are already set. }
+  Camera.NavigationType := ntWalk;
+  Camera.Walk.PreferGravityUpForRotations := true;
+  Camera.Walk.PreferGravityUpForMoving := true;
+  Camera.Walk.Gravity := false;
+  Camera.IgnoreAllInputs := false;
 
-  if Result = nil then
+  if ForceNavigationType <> '' then
+    InitializeNavigationType(ForceNavigationType);
+
+  if not NavigationTypeInitialized then
   begin
     if NavigationNode <> nil then
       for I := 0 to NavigationNode.FdType.Count - 1 do
       begin
-        Result := DoCreate(NavigationNode.FdType.Items[I]);
-        if Result <> nil then
+        InitializeNavigationType(NavigationNode.FdType.Items[I]);
+        if NavigationTypeInitialized then
           Break;
       end;
   end;
 
-  if Result = nil then
+  if not NavigationTypeInitialized then
     { No recognized "type" found, so use default type EXAMINE. }
-    Result := TExamineCamera.Create(AOwner);
+    InitializeNavigationType('EXAMINE');
 
   { calculate CameraRadius }
-  CameraRadius := 0;
-  if (NavigationNode <> nil) and
-     (NavigationNode.FdAvatarSize.Count >= 1) then
-    CameraRadius := NavigationNode.FdAvatarSize.Items[0];
-  { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
-    calculate something suitable based on Box. }
+  CameraRadius := ForceCameraRadius;
   if CameraRadius <= 0 then
-    CameraRadius := Box3DAvgSize(Box, false, 1.0) * 0.005;
-
-  Result.CameraRadius := CameraRadius;
-
-  if (Result is TWalkCamera) and (NavigationNode <> nil) then
   begin
-    { calculate CameraPreferredHeight }
-    if NavigationNode.FdAvatarSize.Count >= 2 then
-      CameraPreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
-      { Make it something >> CameraRadius * 2, to allow some
-        space to decrease (e.g. by Input_DecreaseCameraPreferredHeight
-        in view3dscene). Remember that CorrectCameraPreferredHeight
-        adds a limit to CameraPreferredHeight, around CameraRadius * 2. }
-      CameraPreferredHeight := CameraRadius * 4;
-
-    TWalkCamera(Result).CameraPreferredHeight := CameraPreferredHeight;
-    TWalkCamera(Result).CorrectCameraPreferredHeight;
-  end else
-  if Result is TExamineCamera then
-  begin
-    TExamineCamera(Result).Init(Box, CameraRadius);
+    if (NavigationNode <> nil) and
+       (NavigationNode.FdAvatarSize.Count >= 1) then
+      CameraRadius := NavigationNode.FdAvatarSize.Items[0];
+    { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
+      calculate something suitable based on Box. }
+    if CameraRadius <= 0 then
+      CameraRadius := Box3DAvgSize(Box, false, 1.0) * 0.005;
   end;
 
-  if (Result is TWalkCamera) and
-     (NavigationNode <> nil) and
+  Camera.CameraRadius := CameraRadius;
+
+  { calculate Camera.Walk.CameraPreferredHeight }
+  if (NavigationNode <> nil) and
+     (NavigationNode.FdAvatarSize.Count >= 2) then
+    Camera.Walk.CameraPreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
+    { Make it something >> CameraRadius * 2, to allow some
+      space to decrease (e.g. by Input_DecreaseCameraPreferredHeight
+      in view3dscene). Remember that CorrectCameraPreferredHeight
+      adds a limit to CameraPreferredHeight, around CameraRadius * 2. }
+    Camera.Walk.CameraPreferredHeight := CameraRadius * 4;
+
+  Camera.Walk.CorrectCameraPreferredHeight;
+
+  Camera.Examine.Init(Box, CameraRadius);
+
+  { calculate HeadBobbing* }
+  if (NavigationNode <> nil) and
      (NavigationNode is TNodeKambiNavigationInfo) then
   begin
-    TWalkCamera(Result).HeadBobbing := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbing.Value;
-    TWalkCamera(Result).HeadBobbingTime := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbingTime.Value;
+    Camera.Walk.HeadBobbing := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbing.Value;
+    Camera.Walk.HeadBobbingTime := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbingTime.Value;
+  end else
+  begin
+    Camera.Walk.HeadBobbing := DefaultHeadBobbing;
+    Camera.Walk.HeadBobbingTime := DefaultHeadBobbingTime;
   end;
 
-  CameraBindToViewpoint(Result, false);
+  CameraBindToViewpoint(Camera, false);
 end;
 
 function TVRMLScene.CreateCamera(AOwner: TComponent;
-  const ForceNavigationType: string = ''): TCamera;
+  const Box: TBox3D;
+  const ForceNavigationType: string = ''): TUniversalCamera;
+begin
+  Result := TUniversalCamera.Create(AOwner);
+  CameraBindToNavigationAndViewpoint(Result, Box, ForceNavigationType);
+end;
+
+function TVRMLScene.CreateCamera(AOwner: TComponent;
+  const ForceNavigationType: string = ''): TUniversalCamera;
 begin
   Result := CreateCamera(AOwner, BoundingBox, ForceNavigationType);
 end;
