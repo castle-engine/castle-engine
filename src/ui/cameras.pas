@@ -266,6 +266,8 @@ type
     procedure SetIgnoreAllInputs(const Value: boolean); virtual;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
     procedure SetCameraRadius(const Value: Single); virtual;
+
+    function IsAnimation: boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -429,7 +431,7 @@ type
       @italic(Descendants implementors notes:) In this class,
       almost everything is handled (through GetView / SetView).
       In descendants you have to only ignore key/mouse/idle events
-      when Animation is @true.
+      when IsAnimation is @true.
       (Although each Idle would override the view anyway, but for
       stability it's best to explicitly ignore them --- you never know
       how often Idle will be called.) }
@@ -1926,6 +1928,11 @@ begin
     AnimationEndUp);
 end;
 
+function TCamera.IsAnimation: boolean;
+begin
+  Result := Animation;
+end;
+
 procedure TCamera.SetInitialView(
   const AInitialPosition: TVector3Single;
   AInitialDirection, AInitialUp: TVector3Single;
@@ -2070,7 +2077,7 @@ begin
   inherited;
 
   { Do not handle keys or rotations etc. }
-  if Animation then Exit;
+  if IsAnimation then Exit;
 
   { If given RotationsAnim component is zero, no need to change current Rotations.
     What's more important, this avoids the need to call VisibleChange,
@@ -2223,7 +2230,7 @@ function TExamineCamera.EventDown(MouseEvent: boolean; Key: TKey;
   ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
-  if IgnoreAllInputs or Animation then Exit(false);
+  if IgnoreAllInputs or IsAnimation then Exit(false);
 
   if Input_StopRotating.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
@@ -2314,7 +2321,7 @@ begin
   { Optimization, since MouseMove occurs very often: when nothing pressed,
     or should be ignored, do nothing. }
   if (Container.MousePressed = []) or (not MouseNavigation) or
-     IgnoreAllInputs or Animation then
+     IgnoreAllInputs or IsAnimation then
     Exit;
 
   ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
@@ -3474,7 +3481,7 @@ begin
   PositionMouseLook;
 
   { Do not handle keys or gravity etc. }
-  if Animation then Exit;
+  if IsAnimation then Exit;
 
   ModsDown := ModifiersDown(Container.Pressed);
 
@@ -3616,7 +3623,7 @@ function TWalkCamera.EventDown(MouseEvent: boolean; Key: TKey;
   ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
-  if IgnoreAllInputs or Animation then Exit(false);
+  if IgnoreAllInputs or IsAnimation then Exit(false);
 
   {$ifdef SINGLE_STEP_ROTATION}
   if Input_RightRot.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
@@ -3790,7 +3797,7 @@ begin
   if Result then Exit;
 
   if MouseLook and (not IgnoreAllInputs) and ContainerSizeKnown and
-    (not Animation) then
+    (not IsAnimation) then
   begin
     MiddleWidth := ContainerWidth div 2;
     MiddleHeight := ContainerHeight div 2;
@@ -3902,12 +3909,45 @@ begin
   FGravityUp := Normalized(Value);
 end;
 
+{ TExamineCameraInUniversal -------------------------------------------------- }
+
+type
+  TExamineCameraInUniversal = class(TExamineCamera)
+  private
+    { Owning TUniversalCamera }
+    Universal: TUniversalCamera;
+  protected
+    function IsAnimation: boolean; override;
+  end;
+
+function TExamineCameraInUniversal.IsAnimation: boolean;
+begin
+  Result := (inherited IsAnimation) or Universal.IsAnimation;
+end;
+
+{ TWalkCameraInUniversal -------------------------------------------------- }
+
+type
+  TWalkCameraInUniversal = class(TWalkCamera)
+  private
+    { Owning TUniversalCamera }
+    Universal: TUniversalCamera;
+  protected
+    function IsAnimation: boolean; override;
+  end;
+
+function TWalkCameraInUniversal.IsAnimation: boolean;
+begin
+  Result := (inherited IsAnimation) or Universal.IsAnimation;
+end;
+
 { TUniversalCamera ----------------------------------------------------------- }
 
 constructor TUniversalCamera.Create(AOwner: TComponent);
 begin
   inherited;
-  FExamine := TExamineCamera.Create(nil);
+  FExamine := TExamineCameraInUniversal.Create(nil);
+  TExamineCameraInUniversal(FExamine).Universal := Self;
   FExamine.OnVisibleChange := @ChildVisibleChange;
   { Useful and works sensibly with our view3dscene events that pass
     mouse / keys to VRML/X3D scene. This way in Examine mode you can
@@ -3915,7 +3955,8 @@ begin
     Note: This is the default now. }
   FExamine.ExclusiveEvents := false;
 
-  FWalk := TWalkCamera.Create(nil);
+  FWalk := TWalkCameraInUniversal.Create(nil);
+  TWalkCameraInUniversal(FWalk).Universal := Self;
   FWalk.OnVisibleChange := @ChildVisibleChange;
 end;
 
