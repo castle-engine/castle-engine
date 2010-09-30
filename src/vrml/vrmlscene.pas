@@ -1790,6 +1790,19 @@ type
     function CreateCamera(AOwner: TComponent;
       const ForceNavigationType: string = ''): TUniversalCamera;
 
+    { Make Camera go to the view given by Position, Direction, Up.
+
+      Honours current NavigationInfo.transitionType and transitionTime.
+      If transitionType indicates instanteneous transition, then jumps
+      by simple @code(Camera.SetView(Position, Direction, Up)).
+      Otherwise makes a smooth animation into new values by
+      @code(Camera.AnimateTo(Position, Direction, TransitionTime)).
+
+      @groupBegin }
+    procedure CameraTransition(Camera: TCamera; const Position, Direction, Up: TVector3Single);
+    procedure CameraTransition(Camera: TCamera; const Position, Direction, Up, GravityUp: TVector3Single);
+    { @groupEnd }
+
     { Detect position/direction of the main light that produces shadows.
       This is useful when you want to make shadows on the scene
       from only a single light, but your scene has many lights.
@@ -5920,7 +5933,7 @@ begin
     initial camera changes. Else, we will jump to new initial camera vectors. }
   ACamera.SetInitialView(Position, Direction, Up, RelativeCameraTransform);
   if not RelativeCameraTransform then
-    ACamera.SetView(Position, Direction, Up);
+    CameraTransition(ACamera, Position, Direction, Up);
 end;
 
 function TVRMLScene.CreateCamera(AOwner: TComponent;
@@ -5936,6 +5949,63 @@ function TVRMLScene.CreateCamera(AOwner: TComponent;
   const ForceNavigationType: string = ''): TUniversalCamera;
 begin
   Result := CreateCamera(AOwner, BoundingBox, ForceNavigationType);
+end;
+
+procedure TVRMLScene.CameraTransition(Camera: TCamera;
+  const Position, Direction, Up: TVector3Single);
+var
+  NavigationNode: TNodeNavigationInfo;
+  TransitionAnimate: boolean;
+  TransitionTime: TKamTime;
+  TransitionType: string;
+  I: Integer;
+begin
+  NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
+
+  TransitionAnimate := true;
+
+  { check NavigationInfo.transitionType, update TransitionAnimate.
+    If we have LINEAR or ANIMATE or only unknown transition types,
+    spec says to use animation. }
+  if NavigationNode <> nil then
+    for I := 0 to NavigationNode.FdTransitionType.Count - 1 do
+    begin
+      TransitionType := NavigationNode.FdTransitionType.Items[I];
+      if TransitionType = 'TELEPORT' then
+      begin
+        TransitionAnimate := false;
+        Break;
+      end else
+      if (TransitionType = 'LINEAR') or (TransitionType = 'ANIMATE') then
+        { Leave TransitionAnimate as true }
+        Break else
+        VRMLWarning(vwIgnorable, Format('Unrecognized transitionType "%s"', [TransitionType]));
+    end;
+
+  { calculate TransitionTime }
+  if NavigationNode <> nil then
+    TransitionTime := NavigationNode.FdTransitionTime.Value else
+    TransitionTime := 1;
+
+  { correct TransitionAnimate in case TransitionTime invalid }
+  if TransitionTime <= 0 then
+    TransitionAnimate := false;
+
+  if TransitionAnimate then
+    Camera.AnimateTo(Position, Direction, Up, TransitionTime) else
+    Camera.SetView(Position, Direction, Up);
+end;
+
+procedure TVRMLScene.CameraTransition(Camera: TCamera;
+  const Position, Direction, Up, GravityUp: TVector3Single);
+begin
+  if Camera is TWalkCamera then
+    TWalkCamera(Camera).GravityUp := GravityUp else
+  if Camera is TUniversalCamera then
+    TUniversalCamera(Camera).Walk.GravityUp := GravityUp;
+    { Else ignore GravityUp }
+
+  CameraTransition(Camera, Position, Direction, Up);
 end;
 
 { misc ----------------------------------------------------------------------- }

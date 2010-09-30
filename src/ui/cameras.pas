@@ -434,8 +434,12 @@ type
       when IsAnimation is @true.
       (Although each Idle would override the view anyway, but for
       stability it's best to explicitly ignore them --- you never know
-      how often Idle will be called.) }
+      how often Idle will be called.)
+
+      @groupBegin }
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
+    procedure AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TKamTime);
+    { @groupEnd }
 
     { Initial camera values.
 
@@ -1923,7 +1927,7 @@ begin
   end;
 end;
 
-procedure TCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
+procedure TCamera.AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TKamTime);
 begin
   Animation := true;
   AnimationEndTime := Time;
@@ -1934,10 +1938,17 @@ begin
     AnimationBeginDirection,
     AnimationBeginUp);
 
-  OtherCamera.GetView(
-    AnimationEndPosition,
-    AnimationEndDirection,
-    AnimationEndUp);
+  AnimationEndPosition := Pos;
+  AnimationEndDirection := Dir;
+  AnimationEndUp := Up;
+end;
+
+procedure TCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
+var
+  Pos, Dir, Up: TVector3Single;
+begin
+  OtherCamera.GetView(Pos, Dir, Up);
+  AnimateTo(Pos, Dir, Up, Time);
 end;
 
 function TCamera.IsAnimation: boolean;
