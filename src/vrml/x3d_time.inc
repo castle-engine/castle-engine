@@ -690,7 +690,7 @@ begin
   if FdEnabled.Value then
   begin
     Fraction := TimeDependentNodeHandler.ElapsedTimeInCycle / CycleInterval;
-    if Fraction = 0 then Fraction := 1;
+    if (Fraction = 0) and (Time.Seconds > FdStartTime.Value) then Fraction := 1;
     Eventfraction_changed.Send(Fraction, Time);
 
     EventTime.Send(Time.Seconds, Time);
