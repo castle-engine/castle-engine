@@ -1577,11 +1577,24 @@ procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
 function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
 { @groupEnd }
 
+{ Calculate sensible camera configuration to see the whole Box.
+
+  WantedDirection and WantedUp indicate desired look direction/up axis
+  (0, 1 or 2 for X, Y or Z). WantedDirectionPositive and WantedUpPositive
+  indicate if we want the positive axis. Obviously look direction and up
+  cannot be parallel, so WantedDirection must be different than WantedUp.
+
+  Returned Direction, Up, GravityUp are normalized. }
+procedure CameraViewpointForWholeScene(const Box: TBox3D;
+  const WantedDirection, WantedUp: Integer;
+  const WantedDirectionPositive, WantedUpPositive: boolean;
+  out Position, Direction, Up, GravityUp: TVector3Single);
+
 procedure Register;
 
 implementation
 
-uses Math, KambiStringUtils, VRMLCameraUtils;
+uses Math, KambiStringUtils;
 
 procedure Register;
 begin
@@ -4268,6 +4281,36 @@ var OrientAxis: TVector3Single;
 begin
  CamDirUp2Orient(CamDir, CamUp, OrientAxis, OrientAngle);
  result := Vector4Single(OrientAxis, OrientAngle);
+end;
+
+procedure CameraViewpointForWholeScene(const Box: TBox3D;
+  const WantedDirection, WantedUp: Integer;
+  const WantedDirectionPositive, WantedUpPositive: boolean;
+  out Position, Direction, Up, GravityUp: TVector3Single);
+var
+  Offset: Single;
+begin
+  Direction := UnitVector3Single[WantedDirection];
+  if not WantedDirectionPositive then VectorNegateTo1st(Direction);
+
+  Up := UnitVector3Single[WantedUp];
+  if not WantedUpPositive then VectorNegateTo1st(Up);
+
+  if IsEmptyBox3D(Box) then
+  begin
+    Position  := ZeroVector3Single;
+  end else
+  begin
+    Position := Box3DMiddle(Box);
+    Offset := 1.5 * Box3DAvgSize(Box);
+
+    if WantedDirectionPositive then
+      Position[WantedDirection] := Box[0, WantedDirection] - Offset else
+      Position[WantedDirection] := Box[1, WantedDirection] + Offset;
+  end;
+
+  { GravityUp is just always equal Up here. }
+  GravityUp := Up;
 end;
 
 end.
