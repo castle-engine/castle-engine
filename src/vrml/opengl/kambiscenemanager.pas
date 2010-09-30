@@ -1895,7 +1895,7 @@ end;
 procedure TKamSceneManager.SceneBoundViewpointChanged(Scene: TVRMLScene);
 begin
   if Camera <> nil then
-    Scene.CameraBindToViewpoint(Camera, false);
+    Scene.CameraFromViewpoint(Camera, false);
 
   { bound Viewpoint.fieldOfView changed, so update projection }
   ApplyProjectionNeeded := true;
@@ -1907,7 +1907,7 @@ end;
 procedure TKamSceneManager.SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
 begin
   if Camera <> nil then
-    Scene.CameraBindToViewpoint(Camera, true);
+    Scene.CameraFromViewpoint(Camera, true);
 end;
 
 function TKamSceneManager.GetItems: T3D;

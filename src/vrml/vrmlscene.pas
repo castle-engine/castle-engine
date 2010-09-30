@@ -1717,8 +1717,7 @@ type
     procedure RegisterCompiledScript(const HandlerName: string;
       Handler: TCompiledScriptHandler);
 
-    { Set TUniversalCamera properties based on currently
-      bound NavigationInfo and Viewpoint node.
+    { Update camera properties based on currently bound NavigationInfo.
 
       Bound NavigationInfo node is taken from
       NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
@@ -1744,21 +1743,45 @@ type
         @item(TWalkCamera.HeadBobbing, TWalkCamera.HeadBobbingTime.)
       )
 
-      This also calls CameraBindToViewpoint at the end,
-      so camera is bound to the current viewpoint.
-
       Box is the expected bounding box of the whole 3D scene.
       Usually, it should be just Scene.BoundingBox, but it may be something
       larger, if this scene is part of a larger world. }
-    procedure CameraBindToNavigationAndViewpoint(Camera: TUniversalCamera;
+    procedure CameraFromNavigationInfo(Camera: TUniversalCamera;
       const Box: TBox3D;
       const ForceNavigationType: string = '';
       const ForceCameraRadius: Single = 0);
 
+    { Update camera to the currently bound VRML/X3D viewpoint.
+      When no viewpoint is currently bound, we will go to a suitable
+      viewpoint to see the whole scene (based on a scene bounding box).
+
+      The initial camera vectors (TCamera.InitialPosition,
+      TCamera.InitialDirection, TCamera.InitialUp, TWalkCamera.GravityUp)
+      are set to the current viewpoint. This is done
+      regardless of the RelativeCameraTransform value.
+
+      How current camera vectors change depends on RelativeCameraTransform:
+
+      @unorderedList(
+        @item(RelativeCameraTransform = @false means that we just
+          set current vectors to the initial vectors.
+          In other words, camera jumps to the viewpoint.)
+
+        @item(RelativeCameraTransform = @true means that we translate/rotate
+          the current camera in the same manner as initial camera
+          changed. This is suitable when you change transformation, position
+          or orientation of the VRML/X3D Viewpoint node: conceptually,
+          there exists a "user" camera transformation that is the parent
+          of the viewpoint. When viewpoint is moved, then the current
+          camera moves with it.)
+      ) }
+    procedure CameraFromViewpoint(ACamera: TCamera;
+      const RelativeCameraTransform: boolean);
+
     { Create new camera instance, and bind it to current NavigationInfo
-      and Viewpoint. This is only a deprecated shortcut for creating
-      TUniversalCamera and then using CameraBindToNavigationAndViewpoint.
-      @deprecated }
+      and Viewpoint. This is only a shortcut for creating
+      TUniversalCamera and then using CameraFromNavigationInfo
+      and CameraFromViewpoint. }
     function CreateCamera(AOwner: TComponent;
       const Box: TBox3D;
       const ForceNavigationType: string = ''): TUniversalCamera;
@@ -1766,19 +1789,6 @@ type
     { @deprecated }
     function CreateCamera(AOwner: TComponent;
       const ForceNavigationType: string = ''): TUniversalCamera;
-
-    { Update camera when currently bound viewpoint changes.
-      When no viewpoint is currently bound, we will go to a suitable
-      viewpoint to see the whole scene (based on a scene bounding box).
-
-      This moves the camera to starting point of the viewpoint,
-      updating camera's initial and current vectors
-      ([Initial]Position, [Initial]Direction, [Initial]Up, GravityUp).
-
-      If not OnlyViewpointVectorsChanged, then we also adjust MoveSpeed
-      to match currently bound NavigationInfo.speed. }
-    procedure CameraBindToViewpoint(ACamera: TCamera;
-      const OnlyViewpointVectorsChanged: boolean);
 
     { Detect position/direction of the main light that produces shadows.
       This is useful when you want to make shadows on the scene
@@ -5708,7 +5718,7 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-procedure TVRMLScene.CameraBindToNavigationAndViewpoint(
+procedure TVRMLScene.CameraFromNavigationInfo(
   Camera: TUniversalCamera; const Box: TBox3D;
   const ForceNavigationType: string;
   const ForceCameraRadius: Single);
@@ -5818,11 +5828,7 @@ begin
 
   Camera.Walk.CorrectCameraPreferredHeight;
 
-  { No point in calling Camera.Walk.Init here: this method
-    (and CameraBindToViewpoint with OnlyViewpointVectorsChanged = false
-    call at the end) already initialized everything that TWalkCamera.Init does. }
-
-  Camera.Examine.Init(Box, CameraRadius);
+  Camera.Examine.ModelBox := Box;
 
   { calculate HeadBobbing* }
   if (NavigationNode <> nil) and
@@ -5836,31 +5842,29 @@ begin
     Camera.Walk.HeadBobbingTime := DefaultHeadBobbingTime;
   end;
 
-  CameraBindToViewpoint(Camera, false);
+  { calculate Camera.Walk.MoveSpeed }
+  if NavigationNode = nil then
+    { Since we don't have NavigationNode.speed, we just calculate some
+      speed that should "feel sensible". We base it on CameraRadius,
+      that was set above. }
+    Camera.Walk.MoveSpeed := Camera.CameraRadius * 20 else
+    { This is OK, also for NavigationNode.FdSpeed.Value = 0 case. }
+    Camera.Walk.MoveSpeed := NavigationNode.FdSpeed.Value;
+
+  { No point in calling Camera.Walk.Init here: this method,
+    together with CameraFromViewpoint (with RelativeCameraTransform = false),
+    together initialize everything that TWalkCamera.Init does.
+
+    Also, no point in calling Camera.Examine.Init, for the same reason. }
 end;
 
-function TVRMLScene.CreateCamera(AOwner: TComponent;
-  const Box: TBox3D;
-  const ForceNavigationType: string = ''): TUniversalCamera;
-begin
-  Result := TUniversalCamera.Create(AOwner);
-  CameraBindToNavigationAndViewpoint(Result, Box, ForceNavigationType);
-end;
-
-function TVRMLScene.CreateCamera(AOwner: TComponent;
-  const ForceNavigationType: string = ''): TUniversalCamera;
-begin
-  Result := CreateCamera(AOwner, BoundingBox, ForceNavigationType);
-end;
-
-procedure TVRMLScene.CameraBindToViewpoint(ACamera: TCamera;
-  const OnlyViewpointVectorsChanged: boolean);
+procedure TVRMLScene.CameraFromViewpoint(ACamera: TCamera;
+  const RelativeCameraTransform: boolean);
 var
   Position: TVector3Single;
   Direction: TVector3Single;
   Up: TVector3Single;
   GravityUp: TVector3Single;
-  NavigationNode: TNodeNavigationInfo;
   WalkCamera: TWalkCamera;
 begin
   if ViewpointStack.Top <> nil then
@@ -5882,48 +5886,28 @@ begin
     WalkCamera := nil;
 
   if WalkCamera <> nil then
-  begin
     WalkCamera.GravityUp := GravityUp;
 
-    { update WalkCamera.MoveSpeed }
-    if not OnlyViewpointVectorsChanged then
-    begin
-      NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
-
-      { Change MoveSpeed. }
-
-      if NavigationNode = nil then
-      begin
-        { Since we don't have NavigationNode.speed, we just calculate some
-          speed that should "feel sensible". We base it on CameraRadius,
-          if CameraRadius is set (it doesn't have to be).
-          CameraRadius in turn was calculated based on
-          Box3DAvgSize(SceneAnimation.BoundingBox). }
-        if ACamera.CameraRadius > 0 then
-          WalkCamera.MoveSpeed := ACamera.CameraRadius * 20 else
-          WalkCamera.MoveSpeed := 1;
-      end else
-      if NavigationNode.FdSpeed.Value = 0 then
-      begin
-        { Then user is not allowed to move at all.
-
-          So we do this is by setting MoveSpeed.
-          This is also the reason why other SetViewpointCore branches must change
-          MoveSpeed to something different than zero
-          (otherwise, user would be stuck with speed = 0). }
-        WalkCamera.MoveSpeed := 0;
-      end else
-      begin
-        WalkCamera.MoveSpeed := NavigationNode.FdSpeed.Value;
-      end;
-    end;
-  end;
-
-  { If OnlyViewpointVectorsChanged, then we will move relative to
+  { If RelativeCameraTransform, then we will move relative to
     initial camera changes. Else, we will jump to new initial camera vectors. }
-  ACamera.SetInitialCameraVectors(Position, Direction, Up, OnlyViewpointVectorsChanged);
-  if not OnlyViewpointVectorsChanged then
+  ACamera.SetInitialCameraVectors(Position, Direction, Up, RelativeCameraTransform);
+  if not RelativeCameraTransform then
     ACamera.SetCameraVectors(Position, Direction, Up);
+end;
+
+function TVRMLScene.CreateCamera(AOwner: TComponent;
+  const Box: TBox3D;
+  const ForceNavigationType: string = ''): TUniversalCamera;
+begin
+  Result := TUniversalCamera.Create(AOwner);
+  CameraFromNavigationInfo(Result, Box, ForceNavigationType);
+  CameraFromViewpoint(Result, false);
+end;
+
+function TVRMLScene.CreateCamera(AOwner: TComponent;
+  const ForceNavigationType: string = ''): TUniversalCamera;
+begin
+  Result := CreateCamera(AOwner, BoundingBox, ForceNavigationType);
 end;
 
 { misc ----------------------------------------------------------------------- }
