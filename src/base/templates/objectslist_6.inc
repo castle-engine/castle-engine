@@ -108,6 +108,9 @@
 
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
 
+    { Does list contain this Item. Shortcut for @code(IndexOf(Item) <> -1). }
+    function Exists(Item: TObjectsListItem_6): boolean;
+
     { Adding ----------------------------------------------------------------- }
 
     { }
@@ -411,9 +414,14 @@ end;
 
 function TObjectsList_6.IndexOf(Item: TObjectsListItem_6; StartIndex: integer): integer;
 begin
- for result := StartIndex to Count-1 do
-  if Item = List^[result] then exit;
- result := -1;
+  for result := StartIndex to Count-1 do
+    if Item = List^[result] then exit;
+  result := -1;
+end;
+
+function TObjectsList_6.Exists(Item: TObjectsListItem_6): boolean;
+begin
+  Result := IndexOf(Item) <> -1;
 end;
 
 procedure TObjectsList_6.Delete(Index: integer);
