@@ -684,7 +684,7 @@ type
     FPointingDeviceOverItem: PVRMLTriangle;
     FPointingDeviceOverPoint: TVector3Single;
     FPointingDeviceActive: boolean;
-    FPointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode;
+    FPointingDeviceActiveSensors: TVRMLNodesList;
     procedure SetPointingDeviceActive(const Value: boolean);
   private
     FLogChanges: boolean;
@@ -834,8 +834,8 @@ type
   protected
     GeneratedTextures: TDynGeneratedTextureArray;
 
-    { Called after PointingDeviceSensors list (possibly) changed,
-      or when PointingDeviceActiveSensor (possibly) changed.
+    { Called after PointingDeviceSensors or
+      PointingDeviceActiveSensors lists (possibly) changed.
 
       In this class, DoPointingDeviceSensorsChange updates Cursor and calls
       OnPointingDeviceSensorsChange. }
@@ -1497,23 +1497,25 @@ type
       returning @nil if PointingDeviceOverItem = @nil. }
     function PointingDeviceSensors: TPointingDeviceSensorsList;
 
-    { Currently active sensor. @nil if none.
-      Always @nil when PointingDeviceActive = @false.
+    { Currently active pointing-device sensors.
+      Only TNodeX3DPointingDeviceSensorNode instances.
+      Always empty when PointingDeviceActive = @false.
+      Read-only from outside of this class.
 
       Note that sensor specified here doesn't have to be one of the sensors of
       PointingDeviceOverItem. When some sensor is activated, it grabs
-      further events until it's deactivated (like you set
+      further events until it's deactivated (e.g. when you set
       PointingDeviceActive := false, which means that user released mouse
       button). This means that when user moves the mouse while given
-      sensor is active, he can move mouse over other items, even the ones
-      where the sensor isn't listed --- but the sensor remains active. }
-    property PointingDeviceActiveSensor: TNodeX3DPointingDeviceSensorNode
-      read FPointingDeviceActiveSensor;
+      sensors are active, he can move mouse over other items, even the ones
+      where the active sensors aren't listed --- but the sensors remain active. }
+    property PointingDeviceActiveSensors: TVRMLNodesList
+      read FPointingDeviceActiveSensors;
 
     { Clear any references to OverItem passed previously to PointingDeviceMove.
       This is sometimes useful, because PointingDeviceMove may save
       the last passed OverItem, and SetPointingDeviceActive may even
-      save some sensor of it for a longer time.
+      save some sensors for a longer time.
 
       You could free it by calling
       @link(PointingDeviceMove) with OverItem = @nil,
@@ -1523,9 +1525,9 @@ type
       first, causing even more events.
 
       So this method clears any references to saved OverItem and
-      PointingDeviceActiveSensor, without calling any VRML/X3D events.
+      PointingDeviceActiveSensors, without calling any VRML/X3D events.
       Note that this still calls DoPointingDeviceSensorsChange
-      (making OnPointingDeviceSensorsChange event), if PointingDeviceActiveSensor /
+      (making OnPointingDeviceSensorsChange event), if PointingDeviceActiveSensors /
       PointingDeviceSensors possibly changed. }
     procedure PointingDeviceClear;
 
@@ -1535,8 +1537,8 @@ type
       read FPointingDeviceActive
       write SetPointingDeviceActive default false;
 
-    { Event called after PointingDeviceSensors list (possibly) changed,
-      or when PointingDeviceActiveSensor (possibly) changed.
+    { Event called PointingDeviceSensors or
+      PointingDeviceActiveSensors lists (possibly) changed.
       @seeAlso DoPointingDeviceSensorsChange }
     property OnPointingDeviceSensorsChange: TNotifyEvent
       read FOnPointingDeviceSensorsChange
@@ -2333,6 +2335,8 @@ begin
   FNavigationInfoStack := TVRMLBindableStack.Create(Self);
   FViewpointStack := TVRMLViewpointStack.Create(Self);
 
+  FPointingDeviceActiveSensors := TVRMLNodesList.Create;
+
   FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
   TransformNodesInfo := TDynTransformNodeInfoArray.Create;
   GeneratedTextures := TDynGeneratedTextureArray.Create;
@@ -2389,6 +2393,8 @@ begin
   FreeAndNil(FFogStack);
   FreeAndNil(FNavigationInfoStack);
   FreeAndNil(FViewpointStack);
+
+  FreeAndNil(FPointingDeviceActiveSensors);
 
   FreeAndNil(FShapes);
   FreeAndNil(ShapeLODs);
@@ -3787,13 +3793,13 @@ var
 
     { When we disable an active drag sensor, specification says to
       deactivate it. This cannot be handled fully by TNodeX3DDragSensorNode
-      implementation, because we have to set to nil our property
-      PointingDeviceActiveSensor. }
+      implementation, because we have to remove it from our property
+      PointingDeviceActiveSensors. }
 
-    if (not Enabled) and (DragSensor = PointingDeviceActiveSensor) then
+    if (not Enabled) and PointingDeviceActiveSensors.Exists(DragSensor) then
     begin
       DragSensor.Deactivate(Time);
-      FPointingDeviceActiveSensor := nil;
+      FPointingDeviceActiveSensors.Remove(DragSensor);
       DoPointingDeviceSensorsChange;
     end;
   end;
@@ -5104,6 +5110,7 @@ procedure TVRMLScene.PointingDeviceMove(
   const OverPoint: TVector3Single; const OverItem: PVRMLTriangle);
 var
   TouchSensor: TNodeTouchSensor;
+  ActiveSensor: TNodeX3DPointingDeviceSensorNode;
   OldIsOver, NewIsOver: boolean;
   OldSensors: TVRMLNodesList;
   NewSensors: TVRMLNodesList;
@@ -5124,29 +5131,32 @@ begin
 
       if PointingDeviceOverItem <> OverItem then
       begin
-        if PointingDeviceActiveSensor <> nil then
+        if PointingDeviceActiveSensors.Count <> 0 then
         begin
           Assert(PointingDeviceActive);
 
           { This is quite special situation, as it means that
-            PointingDeviceActiveSensor has grabbed all events.
+            PointingDeviceActiveSensors grabbed all events.
             isOver (either TRUE or FALSE) may be generated for active
-            sensor, but no other sensors should receive any events. }
+            sensors, but no other sensors should receive any events. }
 
-          if (PointingDeviceActiveSensor is TNodeX3DPointingDeviceSensorNode) and
-            TNodeX3DPointingDeviceSensorNode(PointingDeviceActiveSensor).FdEnabled.Value then
+          for I := 0 to PointingDeviceActiveSensors.Count - 1 do
           begin
-            OldIsOver := (PointingDeviceOverItem <> nil) and
-              (PointingDeviceOverItem^.State.PointingDeviceSensors.
-                IndexOf(PointingDeviceActiveSensor) <> -1);
+            ActiveSensor := PointingDeviceActiveSensors.Items[I] as
+              TNodeX3DPointingDeviceSensorNode;
 
-            NewIsOver := (OverItem <> nil) and
-              (OverItem^.State.PointingDeviceSensors.
-                IndexOf(PointingDeviceActiveSensor) <> -1);
-
-            if OldIsOver <> NewIsOver then
+            if ActiveSensor.FdEnabled.Value then
             begin
-              PointingDeviceActiveSensor.EventIsOver.Send(NewIsOver, Time);
+              OldIsOver := (PointingDeviceOverItem <> nil) and
+                (PointingDeviceOverItem^.State.PointingDeviceSensors.
+                  IndexOf(ActiveSensor) <> -1);
+
+              NewIsOver := (OverItem <> nil) and
+                (OverItem^.State.PointingDeviceSensors.
+                  IndexOf(ActiveSensor) <> -1);
+
+              if OldIsOver <> NewIsOver then
+                ActiveSensor.EventIsOver.Send(NewIsOver, Time);
             end;
           end;
         end else
@@ -5261,10 +5271,15 @@ begin
           end;
       end;
 
-      if (PointingDeviceActiveSensor <> nil) and
-         (PointingDeviceActiveSensor is TNodeX3DDragSensorNode) then
-        TNodeX3DDragSensorNode(PointingDeviceActiveSensor).Drag(
-          Time, RayOrigin, RayDirection);
+      { Call Drag on active drag sensors }
+      for I := 0 to PointingDeviceActiveSensors.Count - 1 do
+      begin
+        ActiveSensor := PointingDeviceActiveSensors.Items[I] as
+          TNodeX3DPointingDeviceSensorNode;
+        if ActiveSensor is TNodeX3DDragSensorNode then
+          TNodeX3DDragSensorNode(ActiveSensor).Drag(
+            Time, RayOrigin, RayDirection);
+      end;
     finally
       EndChangesSchedule;
     end;
@@ -5277,7 +5292,7 @@ begin
     we're over or keeping active some pointing-device sensors. }
   if ((PointingDeviceSensors <> nil) and
       (PointingDeviceSensors.EnabledCount <> 0)) or
-     (PointingDeviceActiveSensor <> nil) then
+     (PointingDeviceActiveSensors.Count <> 0) then
     Cursor := mcHand else
     Cursor := mcDefault;
 
@@ -5291,14 +5306,19 @@ var
 begin
   SensorsChanged :=
     (FPointingDeviceOverItem <> nil) or
-    (FPointingDeviceActiveSensor <> nil);
+    { This may be called from destructor (through 
+      TVRMLShape.FreeOctreeTriangles when freeing shapes), so prepare for
+      the FPointingDeviceActiveSensors = nil case. }
+    ( (FPointingDeviceActiveSensors <> nil) and
+      (FPointingDeviceActiveSensors.Count <> 0) );
 
   FPointingDeviceOverItem := nil;
   { PointingDeviceOverPoint may be left undefined now, but let's set it
     to something deterministic to ease debugging. }
   FPointingDeviceOverPoint := ZeroVector3Single;
   FPointingDeviceActive := false;
-  FPointingDeviceActiveSensor := nil;
+  if FPointingDeviceActiveSensors <> nil then
+    FPointingDeviceActiveSensors.Count := 0;
 
   if SensorsChanged then
     DoPointingDeviceSensorsChange;
@@ -5324,6 +5344,8 @@ var
   I: Integer;
   ToActivate: TVRMLNode;
   Sensors: TPointingDeviceSensorsList;
+  ActiveChanged: boolean;
+  ActiveSensor: TNodeX3DPointingDeviceSensorNode;
 begin
   if ProcessEvents and (FPointingDeviceActive <> Value) then
   begin
@@ -5336,53 +5358,60 @@ begin
         if PointingDeviceOverItem <> nil then
         begin
           Sensors := PointingDeviceOverItem^.State.PointingDeviceSensors;
+          ActiveChanged := false;
           for I := 0 to Sensors.Count - 1 do
           begin
-            { Activate the first enabled sensor.
-              TODO: this is actually bad, spec says to activate
-              simultaneouly all sensors on Sensors list (tied for this node). }
+            { Activate all the enabled sensors. Spec says to activate
+              simultaneouly all Sensors (tied for this mouse down). }
             ToActivate := Sensors[I];
             if (ToActivate is TNodeX3DPointingDeviceSensorNode) and
                (TNodeX3DPointingDeviceSensorNode(ToActivate).FdEnabled.Value) then
             begin
               { Send isActive = true and make DoPointingDeviceSensorsChange
                 only if FPointingDeviceActiveSensor changes. }
-              if FPointingDeviceActiveSensor <> ToActivate then
+              if not PointingDeviceActiveSensors.Exists(ToActivate) then
               begin
-                FPointingDeviceActiveSensor :=
-                  TNodeX3DPointingDeviceSensorNode(ToActivate);
+                PointingDeviceActiveSensors.Add(ToActivate);
                 { We do this only when PointingDeviceOverItem <> nil,
                   so we know that PointingDeviceOverPoint is meaningful. }
-                PointingDeviceActiveSensor.Activate(Time,
+                TNodeX3DPointingDeviceSensorNode(ToActivate).Activate(Time,
                   Sensors.Transform, Sensors.InvertedTransform, PointingDeviceOverPoint);
-                DoPointingDeviceSensorsChange;
+                ActiveChanged := true;
               end;
-              Break;
             end else
             if ToActivate is TNodeAnchor then
             begin
+              { activating Anchor clears other sensors, since Anchor
+                loads completely different scene. }
+              FPointingDeviceActiveSensors.Count := 0;
               AnchorActivate(TNodeAnchor(ToActivate));
-              DoPointingDeviceSensorsChange;
+              ActiveChanged := true;
               Break;
             end;
           end;
+          if ActiveChanged then DoPointingDeviceSensorsChange;
         end;
       end else
       begin
-        { Deactivate PointingDeviceActiveSensor (if any) }
-        if PointingDeviceActiveSensor <> nil then
+        { Deactivate all PointingDeviceActiveSensors (if any) }
+        if PointingDeviceActiveSensors.Count <> 0 then
         begin
-          PointingDeviceActiveSensor.Deactivate(Time);
-          { If we're still over the sensor, generate touchTime for TouchSensor }
-          if (PointingDeviceOverItem <> nil) and
-             (PointingDeviceOverItem^.State.PointingDeviceSensors.
-               IndexOf(PointingDeviceActiveSensor) <> -1) and
-             (PointingDeviceActiveSensor is TNodeTouchSensor) then
+          for I := 0 to PointingDeviceActiveSensors.Count -1 do
           begin
-            TNodeTouchSensor(PointingDeviceActiveSensor).
-              EventTouchTime.Send(Time.Seconds, Time);
+            ActiveSensor := PointingDeviceActiveSensors.Items[I]
+              as TNodeX3DPointingDeviceSensorNode;
+            ActiveSensor.Deactivate(Time);
+            { If we're still over the sensor, generate touchTime for TouchSensor }
+            if (PointingDeviceOverItem <> nil) and
+               (PointingDeviceOverItem^.State.PointingDeviceSensors.
+                 IndexOf(ActiveSensor) <> -1) and
+               (ActiveSensor is TNodeTouchSensor) then
+            begin
+              TNodeTouchSensor(ActiveSensor).
+                EventTouchTime.Send(Time.Seconds, Time);
+            end;
           end;
-          FPointingDeviceActiveSensor := nil;
+          FPointingDeviceActiveSensors.Count := 0;
           DoPointingDeviceSensorsChange;
         end;
       end;
@@ -5460,7 +5489,7 @@ end;
 function TVRMLScene.Dragging: boolean;
 begin
   Result := (inherited Dragging) or
-    ((PointingDeviceActiveSensor <> nil) and ProcessEvents);
+    ((PointingDeviceActiveSensors.Count <> 0) and ProcessEvents);
 end;
 
 { Time stuff ------------------------------------------------------------ }
