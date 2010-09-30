@@ -3172,18 +3172,17 @@ begin
       if Inactive = 0 then
         ParentScene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end else
-    if Node is TNodeNavigationInfo then
-    begin
-      { TODO: make this work to actually change displayed NavigationInfo.
-        For now, this does nothing, since TVRMLScene doesn't deal with
-        NavigationInfo. }
-      { if Node = NavigationInfoStack.Top then
-        raise BreakTransformChangeFailed.Create; }
-    end else
     if Node is TVRMLViewpointNode then
     begin
       if Node = ParentScene.ViewpointStack.Top then
         ParentScene.DoBoundViewpointVectorsChanged;
+
+      { TODO: Transformation of viewpoint should also affect NavigationInfo,
+        according to spec: "The speed, avatarSize and visibilityLimit values
+        are all scaled by the transformation being applied to
+        the currently bound X3DViewpointNode node."
+        When this will be implemented, then also when transformation
+        of viewpoint changes here we'll have to do something. }
     end else
     if Node is TVRMLLightNode then
     begin

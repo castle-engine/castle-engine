@@ -543,7 +543,7 @@ type
     FViewports: TKamAbstractViewportsList;
 
     FOnCameraChanged: TNotifyEvent;
-    FOnBoundViewpointChanged: TNotifyEvent;
+    FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
     FCameraBox: TBox3D;
     FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
@@ -567,6 +567,7 @@ type
     { scene callbacks }
     procedure SceneBoundViewpointChanged(Scene: TVRMLScene);
     procedure SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
+    procedure SceneBoundNavigationInfoChanged(Scene: TVRMLScene);
 
     procedure SetMouseRayHit3D(const Value: T3D);
     property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
@@ -696,16 +697,20 @@ type
 
         @item Determines OpenGL projection for the scene, see ApplyProjection.
 
-        @item(Synchronizes our @link(Camera) with VRML/X3D viewpoints.
+        @item(Synchronizes our @link(Camera) with VRML/X3D viewpoints
+          and navigation info.
           This means that @link(Camera) will be updated when VRML/X3D events
-          change current Viewpoint, for example you can animate the camera
-          by animating viewpoint (or it's transformation) or bind camera
-          to a viewpoint.
+          change current Viewpoint or NavigationInfo, for example
+          you can animate the camera by animating the viewpoint
+          (or it's transformation) or bind camera to a viewpoint.
 
           Note that scene manager "hijacks" some Scene events:
-          TVRMLScene.OnBoundViewpointVectorsChanged and TVRMLScene.ViewpointStack.OnBoundChanged
+          TVRMLScene.OnBoundViewpointVectorsChanged,
+          TVRMLScene.ViewpointStack.OnBoundChanged,
+          TVRMLScene.NavigationInfoStack.OnBoundChanged
           for this purpose. If you want to know when viewpoint changes,
-          you can use scene manager's event OnBoundViewpointChanged.)
+          you can use scene manager's event OnBoundViewpointChanged,
+          OnBoundNavigationInfoChanged.)
       )
 
       The above stuff is only sensible when done once per scene manager,
@@ -719,9 +724,14 @@ type
       OnVisibleChange event. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
-    { Called when bound Viewpoint node changes. This is called exactly when
-      TVRMLScene.ViewpointStack.OnBoundChanged is called. }
+    { Called when bound Viewpoint or NavigationInfo node changes.
+      These are called exactly when
+      TVRMLScene.ViewpointStack.OnBoundChanged or
+      TVRMLScene.NavigationInfoStack.OnBoundChanged are called.
+      @groupBegin }
     property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
+    property OnBoundNavigationInfoChanged: TNotifyEvent read FOnBoundNavigationInfoChanged write FOnBoundNavigationInfoChanged;
+    { @groupEnd }
 
     { Should we render the 3D world in a default viewport that covers
       the whole window. This is usually what you want. For more complicated
@@ -1610,10 +1620,12 @@ begin
       if FMainScene <> FMouseRayHit3D then
         FMainScene.RemoveFreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
-      { this SetMainScene happen from MainScene destruction notification,
-        when ViewpointStack is already freed. }
+      { this SetMainScene may happen from MainScene destruction notification,
+        when *Stack is already freed. }
       if FMainScene.ViewpointStack <> nil then
         FMainScene.ViewpointStack.OnBoundChanged := nil;
+      if FMainScene.NavigationInfoStack <> nil then
+        FMainScene.NavigationInfoStack.OnBoundChanged := nil;
     end;
 
     FMainScene := Value;
@@ -1623,6 +1635,7 @@ begin
       FMainScene.FreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := @SceneBoundViewpointVectorsChanged;
       FMainScene.ViewpointStack.OnBoundChanged := @SceneBoundViewpointChanged;
+      FMainScene.NavigationInfoStack.OnBoundChanged := @SceneBoundNavigationInfoChanged;
 
       { Call initial ViewerChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
@@ -1905,6 +1918,15 @@ begin
 
   if Assigned(OnBoundViewpointChanged) then
     OnBoundViewpointChanged(Self);
+end;
+
+procedure TKamSceneManager.SceneBoundNavigationInfoChanged(Scene: TVRMLScene);
+begin
+  if Camera <> nil then
+    Scene.CameraFromNavigationInfo(Camera, Items.BoundingBox);
+
+  if Assigned(OnBoundNavigationInfoChanged) then
+    OnBoundNavigationInfoChanged(Self);
 end;
 
 procedure TKamSceneManager.SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
