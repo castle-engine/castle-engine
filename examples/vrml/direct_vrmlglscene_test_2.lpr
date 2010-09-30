@@ -39,16 +39,20 @@
     see line "Scene.RenderFrustum"
 
   3. This also shows how you can force created camera to be of 'WALK'
-     type. This causes the result of Scene.CreateCamera to always
-     have the TWalkCamera class.
+     type --- just pass 'WALK' to Scene.CreateCamera.
      This turns gravity on and makes camera behave FPS-like.
+     We still get a fully-capable capable camera, of TUniversalCamera class.
 
      Also, just for demo, we set the initial position / direction explicitly
      by code (instead of relying on Viewpoint node in VRML/X3D).
 
-     Note that even more involved scenarios of creating Camera are
-     possible, you could create some TCamera descendant yourself
-     (without Scene.CreateCamera help).
+     Note that you could also abandon Scene.CreateCamera completely,
+     and just do
+
+       Camera := TWalkCamera.Create(Glw);
+       Camera.Gravity := true;
+       Camera.CameraRadius := 0.1; // something appropriate
+       // and possibly some more Camera initialization
 
   4. Makes FPS timings right after starting the program correct:
   - uses Glw.OnBeforeDraw and Scene.PrepareResources
@@ -64,7 +68,7 @@ uses VectorMath, Boxes3D, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
 var
   Glw: TGLUIWindow;
   Scene: TVRMLGLScene;
-  Camera: TWalkCamera;
+  Camera: TUniversalCamera;
 
 procedure BeforeDraw(Glwin: TGLWindow);
 begin
@@ -142,14 +146,14 @@ begin
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
     { init camera }
-    Camera := Scene.CreateCamera(Glw, 'WALK') as TWalkCamera;
+    Camera := Scene.CreateCamera(Glw, 'WALK');
     Camera.SetInitialCameraVectors(
       Box3DMiddle(scene.BoundingBox),
       Vector3Single(1, 0, 0),
       Vector3Single(0, 1, 0), false);
-    Camera.Home;
-    Camera.OnMoveAllowed    := @THelperObj(nil).MoveAllowed;
-    Camera.OnGetHeightAbove := @THelperObj(nil).GetHeightAbove;
+    Camera.Walk.Home;
+    Camera.Walk.OnMoveAllowed    := @THelperObj(nil).MoveAllowed;
+    Camera.Walk.OnGetHeightAbove := @THelperObj(nil).GetHeightAbove;
     Glw.Controls.Add(Camera);
 
     Glw.OnInit := @Init;
