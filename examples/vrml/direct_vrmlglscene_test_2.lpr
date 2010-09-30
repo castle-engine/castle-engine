@@ -151,7 +151,7 @@ begin
       Box3DMiddle(scene.BoundingBox),
       Vector3Single(1, 0, 0),
       Vector3Single(0, 1, 0), false);
-    Camera.Walk.Home;
+    Camera.Walk.GoToInitial;
     Camera.Walk.OnMoveAllowed    := @THelperObj(nil).MoveAllowed;
     Camera.Walk.OnGetHeightAbove := @THelperObj(nil).GetHeightAbove;
     Glw.Controls.Add(Camera);

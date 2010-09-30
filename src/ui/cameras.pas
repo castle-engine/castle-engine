@@ -1110,6 +1110,9 @@ type
       Sets also CameraPreferredHeight to make it behave "sensibly". }
     procedure Init(const box: TBox3D; const ACameraRadius: Single); overload;
 
+    { Deprecated name in TWalkCamera for GoToInitial. @deprecated }
+    procedure Home;
+
     { This sets the minimal angle (in radians) between GravityUp
       and @link(Direction), and also between -GravityUp and @link(Direction).
       This way vertical rotations (like Input_UpRotate,
@@ -3745,6 +3748,11 @@ begin
     UnitVector3Single[2] { GravityUp is the same as InitialUp },
     AvgSize * 5, ACameraRadius);
  end;
+end;
+
+procedure TWalkCamera.Home;
+begin
+  GoToInitial;
 end;
 
 procedure TWalkCamera.SetPosition(const Value: TVector3Single);
