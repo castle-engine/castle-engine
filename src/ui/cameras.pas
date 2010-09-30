@@ -229,19 +229,23 @@ type
     IsVisibleChangeScheduled: boolean;
     FIgnoreAllInputs: boolean;
     FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
+    FProjectionMatrix: TMatrix4Single;
+    FCameraRadius: Single;
 
     Animation: boolean;
     AnimationEndTime: TKamTime;
     AnimationCurrentTime: TKamTime;
 
-    { Private things related to frustum ---------------------------- }
+    AnimationBeginPosition: TVector3Single;
+    AnimationBeginDirection: TVector3Single;
+    AnimationBeginUp: TVector3Single;
+    AnimationEndPosition: TVector3Single;
+    AnimationEndDirection: TVector3Single;
+    AnimationEndUp: TVector3Single;
 
     FFrustum: TFrustum;
+
     procedure RecalculateFrustum;
-  private
-    FProjectionMatrix: TMatrix4Single;
-  private
-    FCameraRadius: Single;
   protected
     { Mechanism to schedule VisibleChange calls.
 
@@ -423,21 +427,13 @@ type
       and starts the new animation from the current position.
 
       @italic(Descendants implementors notes:) In this class,
-      this method sets Animation, AnimationCurrentTime, AnimationEndTime
-      and @link(Idle) updates them. In descendants you have to:
-
-      @orderedList(
-        @item(In AnimateTo, store begin/end settings.)
-        @item(In Idle, update settings to interpolate between begin/end.)
-        @item(Key/mouse/idle events should ignore user input when Animation
-         is @true. (Although each Idle would override them anyway, but for
-         stability it's best to explicitly ignore them --- you never know
-         how often Idle will be called.))
-      )
-
-      TODO: for now, animating TExamineCamera to a TWalkCamera settings
-      doesn't work (the other way around works Ok). }
-    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); virtual;
+      almost everything is handled (through GetView / SetView).
+      In descendants you have to only ignore key/mouse/idle events
+      when Animation is @true.
+      (Although each Idle would override the view anyway, but for
+      stability it's best to explicitly ignore them --- you never know
+      how often Idle will be called.) }
+    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
 
     { Initial camera values.
 
@@ -507,15 +503,6 @@ type
     FRotationsAnim: TVector3Single;
     FScaleFactor: Single;
     FModelBox: TBox3D;
-
-    AnimationBeginMoveAmount: TVector3Single;
-    AnimationBeginCenterOfRotation: TVector3Single;
-    AnimationBeginRotations: TQuaternion;
-    AnimationBeginScaleFactor: Single;
-    AnimationEndMoveAmount: TVector3Single;
-    AnimationEndCenterOfRotation: TVector3Single;
-    AnimationEndRotations: TQuaternion;
-    AnimationEndScaleFactor: Single;
 
     procedure SetRotationsAnim(const Value: TVector3Single);
     procedure SetRotations(const Value: TQuaternion);
@@ -651,8 +638,6 @@ type
     function GetPosition: TVector3Single; override;
     procedure SetView(const APos, ADir, AUp: TVector3Single); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
-
-    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
   end;
 
   TWalkCamera = class;
@@ -688,13 +673,6 @@ type
     FAboveHeight: Single;
     FAboveGround: P3DTriangle;
     FMouseLook: boolean;
-
-    AnimationBeginPosition: TVector3Single;
-    AnimationBeginDirection: TVector3Single;
-    AnimationBeginUp: TVector3Single;
-    AnimationEndPosition: TVector3Single;
-    AnimationEndDirection: TVector3Single;
-    AnimationEndUp: TVector3Single;
 
     procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
@@ -1477,8 +1455,6 @@ type
     property AboveHeight: Single read FAboveHeight;
     property AboveGround: P3DTriangle read FAboveGround write FAboveGround;
     { @groupEnd }
-
-    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
   end;
 
   TCameraNavigationType = (ntExamine, ntWalk);
@@ -1529,7 +1505,6 @@ type
     function GetPosition: TVector3Single; override;
     procedure SetView(const APos, ADir, AUp: TVector3Single); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
-    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
 
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure Idle(const CompSpeed: Single;
@@ -1925,6 +1900,12 @@ begin
   begin
     AnimationCurrentTime += CompSpeed;
     if AnimationCurrentTime > AnimationEndTime then Animation := false;
+
+    SetView(
+      Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginPosition , AnimationEndPosition),
+      Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginDirection, AnimationEndDirection),
+      Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp));
+    ScheduleVisibleChange;
   end;
 end;
 
@@ -1933,6 +1914,16 @@ begin
   Animation := true;
   AnimationEndTime := Time;
   AnimationCurrentTime := 0;
+
+  GetView(
+    AnimationBeginPosition,
+    AnimationBeginDirection,
+    AnimationBeginUp);
+
+  OtherCamera.GetView(
+    AnimationEndPosition,
+    AnimationEndDirection,
+    AnimationEndUp);
 end;
 
 procedure TCamera.SetInitialView(
@@ -2078,17 +2069,8 @@ var i: integer;
 begin
   inherited;
 
-  if Animation then
-  begin
-    FMoveAmount       := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginMoveAmount      , AnimationEndMoveAmount);
-    FCenterOfRotation := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginCenterOfRotation, AnimationEndCenterOfRotation);
-    FRotations       := NLerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginRotations       , AnimationEndRotations);
-    FScaleFactor      := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginScaleFactor     , AnimationEndScaleFactor);
-    ScheduleVisibleChange;
-
-    { Do not handle keys or rotations etc. }
-    Exit;
-  end;
+  { Do not handle keys or rotations etc. }
+  if Animation then Exit;
 
   { If given RotationsAnim component is zero, no need to change current Rotations.
     What's more important, this avoids the need to call VisibleChange,
@@ -2466,28 +2448,6 @@ procedure TExamineCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Sing
 begin
   SetView(APos, ADir, AUp);
   { Ignore AGravityUp }
-end;
-
-procedure TExamineCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
-begin
-  inherited;
-
-  if OtherCamera is TExamineCamera then
-  begin
-    AnimationBeginMoveAmount := MoveAmount;
-    AnimationBeginCenterOfRotation := FCenterOfRotation;
-    AnimationBeginRotations := Rotations;
-    AnimationBeginScaleFactor := ScaleFactor;
-
-    AnimationEndMoveAmount := (OtherCamera as TExamineCamera).MoveAmount;
-    AnimationEndCenterOfRotation := (OtherCamera as TExamineCamera).FCenterOfRotation;
-    AnimationEndRotations := (OtherCamera as TExamineCamera).Rotations;
-    AnimationEndScaleFactor := (OtherCamera as TExamineCamera).ScaleFactor;
-  end else
-  begin
-    { TODO: if Examine camera has to animate to other camera, cancel. }
-    Animation := false;
-  end;
 end;
 
 { TWalkCamera ---------------------------------------------------------------- }
@@ -3513,16 +3473,8 @@ begin
 
   PositionMouseLook;
 
-  if Animation then
-  begin
-    FPosition  := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginPosition , AnimationEndPosition);
-    FDirection := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginDirection, AnimationEndDirection);
-    FUp        := Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp);
-    ScheduleVisibleChange;
-
-    { Do not handle keys or gravity etc. }
-    Exit;
-  end;
+  { Do not handle keys or gravity etc. }
+  if Animation then Exit;
 
   ModsDown := ModifiersDown(Container.Pressed);
 
@@ -3945,20 +3897,6 @@ begin
   SetView(APos, ADir, AUp);
 end;
 
-procedure TWalkCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
-begin
-  inherited;
-
-  AnimationBeginPosition := Position;
-  AnimationBeginDirection := Direction;
-  AnimationBeginUp := Up;
-
-  OtherCamera.GetView(
-    AnimationEndPosition,
-    AnimationEndDirection,
-    AnimationEndUp);
-end;
-
 procedure TWalkCamera.SetGravityUp(const Value: TVector3Single);
 begin
   FGravityUp := Normalized(Value);
@@ -4037,16 +3975,6 @@ begin
   inherited;
   FExamine.CameraRadius := Value;
   FWalk.CameraRadius := Value;
-end;
-
-procedure TUniversalCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
-begin
-  inherited;
-
-  { TODO: if you change NavigationType during this,
-    the new camera will not animate (and the old camera will continue
-    animating...). }
-  Current.AnimateTo(OtherCamera, Time);
 end;
 
 procedure TUniversalCamera.SetIgnoreAllInputs(const Value: boolean);
