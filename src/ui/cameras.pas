@@ -1605,7 +1605,7 @@ uses Math, KambiStringUtils;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TExamineCamera, TWalkCamera]);
+  RegisterComponents('Kambi', [TExamineCamera, TWalkCamera, TUniversalCamera]);
 end;
 
 { Define this to have Input_RightRot/LeftRot (right / left arrow keys by default)
