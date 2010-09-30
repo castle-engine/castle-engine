@@ -1929,10 +1929,6 @@ end;
 
 procedure TCamera.AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TKamTime);
 begin
-  Animation := true;
-  AnimationEndTime := Time;
-  AnimationCurrentTime := 0;
-
   GetView(
     AnimationBeginPosition,
     AnimationBeginDirection,
@@ -1941,6 +1937,15 @@ begin
   AnimationEndPosition := Pos;
   AnimationEndDirection := Dir;
   AnimationEndUp := Up;
+
+  AnimationEndTime := Time;
+  AnimationCurrentTime := 0;
+  { No point in doing animation (especially since it blocks camera movement
+    for Time seconds) if we're already there. }
+  Animation := not
+     VectorsEqual(AnimationBeginPosition , AnimationEndPosition) and
+     VectorsEqual(AnimationBeginDirection, AnimationEndDirection) and
+     VectorsEqual(AnimationBeginUp       , AnimationEndUp);
 end;
 
 procedure TCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
