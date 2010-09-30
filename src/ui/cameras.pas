@@ -340,9 +340,10 @@ type
 
     { Set camera view from vectors: position, direction, up.
 
-      Direction and up do not have to be normalized.
+      Direction, Up and GravityUp do not have to be normalized.
       They cannot be parallel (will be fixed internally to be exactly orthogonal). }
     procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); virtual; abstract;
+    procedure SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
 
     function PositionInside(const X, Y: Integer): boolean; override;
 
@@ -649,6 +650,7 @@ type
     procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
     procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
+    procedure SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
   end;
@@ -1452,6 +1454,7 @@ type
     procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
     procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
+    procedure SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
     { Last known information about whether camera is over the ground.
       Updated by every UpdateHeightAbove call, using
@@ -1525,6 +1528,7 @@ type
     procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
     procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
+    procedure SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
 
     function PositionInside(const X, Y: Integer): boolean; override;
@@ -2456,6 +2460,12 @@ begin
   FRotationsAnim := ZeroVector3Single;
 
   ScheduleVisibleChange;
+end;
+
+procedure TExamineCamera.SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single);
+begin
+  SetCameraVectors(APos, ADir, AUp);
+  { Ignore AGravityUp }
 end;
 
 procedure TExamineCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
@@ -3929,6 +3939,12 @@ begin
   ScheduleVisibleChange;
 end;
 
+procedure TWalkCamera.SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single);
+begin
+  GravityUp := AGravityUp;
+  SetCameraVectors(APos, ADir, AUp);
+end;
+
 procedure TWalkCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
 begin
   inherited;
@@ -4008,6 +4024,12 @@ procedure TUniversalCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Singl
 begin
   FExamine.SetCameraVectors(APos, ADir, AUp);
   FWalk.SetCameraVectors(APos, ADir, AUp);
+end;
+
+procedure TUniversalCamera.SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single);
+begin
+  FExamine.SetCameraVectors(APos, ADir, AUp, AGravityUp);
+  FWalk.SetCameraVectors(APos, ADir, AUp, AGravityUp);
 end;
 
 procedure TUniversalCamera.SetCameraRadius(const Value: Single);
