@@ -1019,7 +1019,7 @@ begin
   if (not Result) and (not Paused) and (Camera <> nil) then
   begin
     Result :=
-      (not ((Camera is TExamineCamera) and GetItems.Dragging)) and
+      (not (Camera.PreventsComfortableDragging and GetItems.Dragging)) and
       Camera.MouseMove(OldX, OldY, NewX, NewY);
     if not Result then
     begin

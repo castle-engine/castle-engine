@@ -480,6 +480,8 @@ type
 
     { Jump to initial camera view (set by SetInitialView). }
     procedure GoToInitial; virtual;
+
+    function PreventsComfortableDragging: boolean; virtual;
   end;
 
   TCameraClass = class of TCamera;
@@ -644,6 +646,8 @@ type
     function GetPosition: TVector3Single; override;
     procedure SetView(const APos, ADir, AUp: TVector3Single); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
+
+    function PreventsComfortableDragging: boolean; override;
   end;
 
   TWalkCamera = class;
@@ -1531,6 +1535,8 @@ type
       const AInitialPosition: TVector3Single;
       AInitialDirection, AInitialUp: TVector3Single;
       const TransformCurrentCamera: boolean); override;
+
+    function PreventsComfortableDragging: boolean; override;
   published
     property NavigationType: TCameraNavigationType
       read FNavigationType write SetNavigationType default ntExamine;
@@ -2018,6 +2024,11 @@ begin
   SetView(FInitialPosition, FInitialDirection, FInitialUp);
 end;
 
+function TCamera.PreventsComfortableDragging: boolean;
+begin
+  Result := false;
+end;
+
 { TExamineCamera ------------------------------------------------------------ }
 
 constructor TExamineCamera.Create(AOwner: TComponent);
@@ -2491,6 +2502,11 @@ procedure TExamineCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Sing
 begin
   SetView(APos, ADir, AUp);
   { Ignore AGravityUp }
+end;
+
+function TExamineCamera.PreventsComfortableDragging: boolean;
+begin
+  Result := true;
 end;
 
 { TWalkCamera ---------------------------------------------------------------- }
@@ -4193,6 +4209,11 @@ begin
     FNavigationType := Value;
     Current.SetView(Position, Direction, Up);
   end;
+end;
+
+function TUniversalCamera.PreventsComfortableDragging: boolean;
+begin
+  Result := Current.PreventsComfortableDragging;
 end;
 
 { global ------------------------------------------------------------ }
