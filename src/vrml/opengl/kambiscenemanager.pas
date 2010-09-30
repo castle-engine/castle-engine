@@ -859,7 +859,10 @@ procedure TKamAbstractViewport.SetCamera(const Value: TCamera);
 begin
   if FCamera <> Value then
   begin
-    if FCamera <> nil then
+    { Check csDestroying, as this may be called from Notification,
+      which may be called by camera destructor *after* TUniversalCamera
+      after freed it's fields. }
+    if (FCamera <> nil) and not (csDestroying in FCamera.ComponentState) then
     begin
       FCamera.OnVisibleChange := nil;
       FCamera.OnCursorChange := nil;
