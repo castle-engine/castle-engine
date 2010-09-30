@@ -1765,7 +1765,13 @@ type
       @unorderedList(
         @item(RelativeCameraTransform = @false means that we just
           set current vectors to the initial vectors.
-          In other words, camera jumps to the viewpoint.)
+          In other words, camera jumps to the viewpoint.
+
+          In this case, AllowTransitionAnimate determines if we allow
+          moving camera by a smooth transition. If this is @true,
+          and also NavigationInfo allows it (see CameraTransition),
+          then camera will jump smoothy. Otherwise camera will jump
+          to viewpoint immediately.)
 
         @item(RelativeCameraTransform = @true means that we translate/rotate
           the current camera in the same manner as initial camera
@@ -1776,12 +1782,17 @@ type
           camera moves with it.)
       ) }
     procedure CameraFromViewpoint(ACamera: TCamera;
-      const RelativeCameraTransform: boolean = false);
+      const RelativeCameraTransform: boolean = false;
+      const AllowTransitionAnimate: boolean = true);
 
     { Create new camera instance, and bind it to current NavigationInfo
       and Viewpoint. This is only a shortcut for creating
       TUniversalCamera and then using CameraFromNavigationInfo
-      and CameraFromViewpoint. }
+      and CameraFromViewpoint.
+
+      CameraFromViewpoint here is called with AllowTransitionAnimate = @false,
+      because animating camera in this case would be wrong (user does
+      not want to see the animation from default camera position). }
     function CreateCamera(AOwner: TComponent;
       const Box: TBox3D;
       const ForceNavigationType: string = ''): TUniversalCamera;
@@ -5900,7 +5911,7 @@ begin
 end;
 
 procedure TVRMLScene.CameraFromViewpoint(ACamera: TCamera;
-  const RelativeCameraTransform: boolean);
+  const RelativeCameraTransform, AllowTransitionAnimate: boolean);
 var
   Position: TVector3Single;
   Direction: TVector3Single;
@@ -5933,7 +5944,11 @@ begin
     initial camera changes. Else, we will jump to new initial camera vectors. }
   ACamera.SetInitialView(Position, Direction, Up, RelativeCameraTransform);
   if not RelativeCameraTransform then
-    CameraTransition(ACamera, Position, Direction, Up);
+  begin
+    if AllowTransitionAnimate then
+      CameraTransition(ACamera, Position, Direction, Up) else
+      ACamera.SetView(Position, Direction, Up);
+  end;
 end;
 
 function TVRMLScene.CreateCamera(AOwner: TComponent;
@@ -5942,7 +5957,7 @@ function TVRMLScene.CreateCamera(AOwner: TComponent;
 begin
   Result := TUniversalCamera.Create(AOwner);
   CameraFromNavigationInfo(Result, Box, ForceNavigationType);
-  CameraFromViewpoint(Result, false);
+  CameraFromViewpoint(Result, false, false);
 end;
 
 function TVRMLScene.CreateCamera(AOwner: TComponent;
