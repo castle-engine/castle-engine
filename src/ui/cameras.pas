@@ -535,7 +535,6 @@ type
       AMouseButton: TMouseButton): boolean;
   private
     FMouseNavigation: boolean;
-    procedure HomeNotNotify;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -3721,7 +3720,7 @@ begin
   CameraPreferredHeight := ACameraPreferredHeight;
   CameraRadius := ACameraRadius;
   CorrectCameraPreferredHeight;
-  Home;
+  GoToInitial;
 end;
 
 procedure TWalkCamera.Init(const Box: TBox3D; const ACameraRadius: Single);
