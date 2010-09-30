@@ -5812,6 +5812,10 @@ begin
 
   Camera.Walk.CorrectCameraPreferredHeight;
 
+  { No point in calling Camera.Walk.Init here: this method
+    (and CameraBindToViewpoint with OnlyViewpointVectorsChanged = false
+    call at the end) already initialized everything that TWalkCamera.Init does. }
+
   Camera.Examine.Init(Box, CameraRadius);
 
   { calculate HeadBobbing* }
