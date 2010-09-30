@@ -69,6 +69,7 @@ equals
 evaluate
 event
 events
+examine
 exchange
 execute
 exposed
@@ -89,6 +90,7 @@ gain
 geometry
 glw
 gravity
+grayscale
 green
 group
 handler
@@ -224,6 +226,7 @@ vertexes
 verts
 videos
 visible
+walk
 waypoints
 weights
 whitespaces
@@ -231,5 +234,3 @@ width
 world
 write
 zero
-grayscale
-

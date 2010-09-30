@@ -240,7 +240,6 @@ type
     procedure RecalculateFrustum;
   private
     FProjectionMatrix: TMatrix4Single;
-    procedure SetProjectionMatrix(const Value: TMatrix4Single);
   private
     FCameraRadius: Single;
   protected
@@ -259,6 +258,9 @@ type
     procedure BeginVisibleChangeSchedule;
     procedure ScheduleVisibleChange;
     procedure EndVisibleChangeSchedule;
+
+    procedure SetIgnoreAllInputs(const Value: boolean); virtual;
+    procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -291,7 +293,7 @@ type
       So this camera will not handle any key/mouse events.
       This is useful to implement e.g. VRML "NONE" navigation type. }
     property IgnoreAllInputs: boolean
-      read FIgnoreAllInputs write FIgnoreAllInputs default false;
+      read FIgnoreAllInputs write SetIgnoreAllInputs default false;
 
     { Things related to frustum ---------------------------------------- }
 
@@ -1768,6 +1770,11 @@ begin
     VisibleChange;
     IsVisibleChangeScheduled := false;
   end;
+end;
+
+procedure TCamera.SetIgnoreAllInputs(const Value: boolean);
+begin
+  FIgnoreAllInputs := Value;
 end;
 
 procedure TCamera.RecalculateFrustum;
