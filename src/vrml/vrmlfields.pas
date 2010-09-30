@@ -271,6 +271,10 @@ type
       Use only for TSFBool fields within TNodeX3DDragSensorNode. }
     chDragSensorEnabled,
 
+    { NavigationInfo field value used in TVRMLScene.CameraFromNavigationInfo
+      changed. }
+    chNavigationInfo,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2455,6 +2459,7 @@ const
     'HeadLight',
     'ClipPlane',
     'X3DDragSensorNode.enabled',
+    'NavigationInfo',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

@@ -630,6 +630,7 @@ type
     FOnGeometryChanged: TVRMLSceneGeometryChanged;
     FOnViewpointsChanged: TVRMLSceneNotification;
     FOnBoundViewpointVectorsChanged: TVRMLSceneNotification;
+    FOnBoundNavigationInfoFieldsChanged: TVRMLSceneNotification;
 
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
@@ -1038,6 +1039,10 @@ type
 
     { Call OnBoundViewpointVectorsChanged, if assigned. }
     procedure DoBoundViewpointVectorsChanged;
+
+    property OnBoundNavigationInfoFieldsChanged: TVRMLSceneNotification
+      read FOnBoundNavigationInfoFieldsChanged write FOnBoundNavigationInfoFieldsChanged;
+    procedure DoBoundNavigationInfoFieldsChanged; virtual;
 
     { Mechanism to schedule ChangedAll calls.
 
@@ -3632,10 +3637,10 @@ var
     DummySomethingChanged: boolean;
     Handler: TTimeDependentNodeHandler;
   begin
-    if Field.ParentNode is TNodeMovieTexture then
-      Handler := TNodeMovieTexture(Field.ParentNode).TimeDependentNodeHandler else
-    if Field.ParentNode is TNodeTimeSensor then
-      Handler := TNodeTimeSensor(Field.ParentNode).TimeDependentNodeHandler else
+    if Node is TNodeMovieTexture then
+      Handler := TNodeMovieTexture(Node).TimeDependentNodeHandler else
+    if Node is TNodeTimeSensor then
+      Handler := TNodeTimeSensor(Node).TimeDependentNodeHandler else
       { Node not really time-dependent.
         TODO: probably an interface method INodeX3DTimeDependentNode
         to get handler would be a good idea. }
@@ -3669,7 +3674,7 @@ var
 
   procedure HandleChangeViewpointVectors;
   begin
-    if Field.ParentNode = ViewpointStack.Top then
+    if Node = ViewpointStack.Top then
       DoBoundViewpointVectorsChanged;
       { Nothing needs to be done if
         - non-bound viewpoint changed,
@@ -3793,6 +3798,12 @@ var
     end;
   end;
 
+  procedure HandleChangeNavigationInfo;
+  begin
+    if Node = NavigationInfoStack.Top then
+      DoBoundNavigationInfoFieldsChanged;
+  end;
+
 begin
   Node := TVRMLNode(Field.ParentNode);
   Assert(Node <> nil);
@@ -3851,6 +3862,7 @@ begin
     if chHeadLight in Changes then HandleChangeHeadLight;
     if chClipPlane in Changes then HandleChangeClipPlane;
     if chDragSensorEnabled in Changes then HandleChangeDragSensorEnabled;
+    if chNavigationInfo in Changes then HandleChangeNavigationInfo;
     if chEverything in Changes then HandleChangeEverything;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,
@@ -3941,6 +3953,12 @@ procedure TVRMLScene.DoBoundViewpointVectorsChanged;
 begin
   if Assigned(OnBoundViewpointVectorsChanged) then
     OnBoundViewpointVectorsChanged(Self);
+end;
+
+procedure TVRMLScene.DoBoundNavigationInfoFieldsChanged;
+begin
+  if Assigned(OnBoundNavigationInfoFieldsChanged) then
+    OnBoundNavigationInfoFieldsChanged(Self);
 end;
 
 resourcestring

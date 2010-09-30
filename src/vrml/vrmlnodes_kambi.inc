@@ -646,9 +646,11 @@ begin
   Fields.Add(FFdoctreeCollidableTriangles);
 
   FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', DefaultHeadBobbing, true);
+   FdHeadBobbing.ChangesAlways := [chNavigationInfo];
   Fields.Add(FFdHeadBobbing);
 
   FFdHeadBobbingTime := TSFFloat.Create(Self, 'headBobbingTime', DefaultHeadBobbingTime, true);
+   FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
   Fields.Add(FdHeadBobbingTime);
 end;
 

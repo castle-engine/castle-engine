@@ -724,14 +724,13 @@ type
       OnVisibleChange event. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
-    { Called when bound Viewpoint or NavigationInfo node changes.
-      These are called exactly when
-      TVRMLScene.ViewpointStack.OnBoundChanged or
-      TVRMLScene.NavigationInfoStack.OnBoundChanged are called.
-      @groupBegin }
+    { Called when bound Viewpoint node changes.
+      Called exactly when TVRMLScene.ViewpointStack.OnBoundChanged is called. }
     property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
+
+    { Called when bound NavigationInfo changes (to a different node,
+      or just a field changes). }
     property OnBoundNavigationInfoChanged: TNotifyEvent read FOnBoundNavigationInfoChanged write FOnBoundNavigationInfoChanged;
-    { @groupEnd }
 
     { Should we render the 3D world in a default viewport that covers
       the whole window. This is usually what you want. For more complicated
@@ -1620,6 +1619,7 @@ begin
       if FMainScene <> FMouseRayHit3D then
         FMainScene.RemoveFreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
+      FMainScene.OnBoundNavigationInfoFieldsChanged := nil;
       { this SetMainScene may happen from MainScene destruction notification,
         when *Stack is already freed. }
       if FMainScene.ViewpointStack <> nil then
@@ -1634,6 +1634,7 @@ begin
     begin
       FMainScene.FreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := @SceneBoundViewpointVectorsChanged;
+      FMainScene.OnBoundNavigationInfoFieldsChanged := @SceneBoundNavigationInfoChanged;
       FMainScene.ViewpointStack.OnBoundChanged := @SceneBoundViewpointChanged;
       FMainScene.NavigationInfoStack.OnBoundChanged := @SceneBoundNavigationInfoChanged;
 

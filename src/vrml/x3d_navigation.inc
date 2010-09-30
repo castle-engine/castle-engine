@@ -739,6 +739,7 @@ begin
   inherited;
 
   FFdavatarSize := TMFFloat.Create(Self, 'avatarSize', [0.25, 1.6, 0.75]);
+   FdavatarSize.ChangesAlways := [chNavigationInfo];
   Fields.Add(FFdavatarSize);
   { X3D specification comment: [0,Inf) }
 
@@ -747,6 +748,7 @@ begin
   Fields.Add(FFdheadlight);
 
   FFdspeed := TSFFloat.Create(Self, 'speed', 1.0);
+   Fdspeed.ChangesAlways := [chNavigationInfo];
   Fields.Add(FFdspeed);
   { X3D specification comment: [0,Inf) }
 
@@ -761,6 +763,7 @@ begin
   { TODO: default value was ["WALK", "ANY"] in VRML 97.
     X3D changed default value. }
   FFdtype := TMFString.Create(Self, 'type', ['EXAMINE', 'ANY']);
+   Fdtype.ChangesAlways := [chNavigationInfo];
   Fields.Add(FFdtype);
   { X3D specification comment: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...] }
 
