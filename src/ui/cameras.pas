@@ -1483,7 +1483,6 @@ type
     FExamine: TExamineCamera;
     FWalk: TWalkCamera;
     FNavigationType: TCameraNavigationType;
-    procedure ChildVisibleChange(Sender: TObject);
     procedure SetNavigationType(const Value: TCameraNavigationType);
   protected
     procedure SetIgnoreAllInputs(const Value: boolean); override;
@@ -3916,6 +3915,8 @@ type
   private
     { Owning TUniversalCamera }
     Universal: TUniversalCamera;
+  public
+    procedure VisibleChange; override;
   protected
     function IsAnimation: boolean; override;
   end;
@@ -3923,6 +3924,13 @@ type
 function TExamineCameraInUniversal.IsAnimation: boolean;
 begin
   Result := (inherited IsAnimation) or Universal.IsAnimation;
+end;
+
+procedure TExamineCameraInUniversal.VisibleChange;
+begin
+  inherited;
+  { Call parent VisibleChange when children change. }
+  Universal.VisibleChange;
 end;
 
 { TWalkCameraInUniversal -------------------------------------------------- }
@@ -3934,11 +3942,20 @@ type
     Universal: TUniversalCamera;
   protected
     function IsAnimation: boolean; override;
+  public
+    procedure VisibleChange; override;
   end;
 
 function TWalkCameraInUniversal.IsAnimation: boolean;
 begin
   Result := (inherited IsAnimation) or Universal.IsAnimation;
+end;
+
+procedure TWalkCameraInUniversal.VisibleChange;
+begin
+  inherited;
+  { Call parent VisibleChange when children change. }
+  Universal.VisibleChange;
 end;
 
 { TUniversalCamera ----------------------------------------------------------- }
@@ -3948,7 +3965,6 @@ begin
   inherited;
   FExamine := TExamineCameraInUniversal.Create(nil);
   TExamineCameraInUniversal(FExamine).Universal := Self;
-  FExamine.OnVisibleChange := @ChildVisibleChange;
   { Useful and works sensibly with our view3dscene events that pass
     mouse / keys to VRML/X3D scene. This way in Examine mode you can
     activate pointing device sensors.
@@ -3957,7 +3973,6 @@ begin
 
   FWalk := TWalkCameraInUniversal.Create(nil);
   TWalkCameraInUniversal(FWalk).Universal := Self;
-  FWalk.OnVisibleChange := @ChildVisibleChange;
 end;
 
 destructor TUniversalCamera.Destroy;
@@ -4032,12 +4047,6 @@ begin
   inherited;
   FExamine.ProjectionMatrix := Value;
   FWalk.ProjectionMatrix := Value;
-end;
-
-procedure TUniversalCamera.ChildVisibleChange(Sender: TObject);
-begin
-  { Call Self.VisibleChange on children camera VisibleChange. }
-  VisibleChange;
 end;
 
 function TUniversalCamera.PositionInside(const X, Y: Integer): boolean;
