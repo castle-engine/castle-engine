@@ -465,8 +465,8 @@ type
       AInitialUp that is parallel to AInitialDirection.
 
       If TransformCurrentCamera = @true, then they will also
-      try to change current camera relative to the InitialCameraXxx
-      changes. This implements VRML desired behavior that
+      try to change current camera relative to the initial vectors changes.
+      This implements VRML desired behavior that
       "viewer position/orientation is conceptually a child of
       viewpoint position/orientation, and when viewpoint position/orientation
       changes, viewer should also change". }
@@ -474,6 +474,9 @@ type
       const AInitialPosition: TVector3Single;
       AInitialDirection, AInitialUp: TVector3Single;
       const TransformCurrentCamera: boolean); virtual;
+
+    { Jump to initial camera view (set by SetInitialCameraVectors). }
+    procedure GoToInitial; virtual;
   end;
 
   TCameraClass = class of TCamera;
@@ -532,7 +535,6 @@ type
       AMouseButton: TMouseButton): boolean;
   private
     FMouseNavigation: boolean;
-
     procedure HomeNotNotify;
   public
     constructor Create(AOwner: TComponent); override;
@@ -598,15 +600,14 @@ type
       Initially this is EmptyBox3D. }
     property ModelBox: TBox3D read FModelBox write SetModelBox;
 
-    { Initializes most important properties of this class:
-      ModelBox, and MoveAmount. MoveAmount is set such that
-      ModelBox is nicely viewed.
-
-      Rest of the properties will be set to their default values.
+    { Initialize most important properties of this class:
+      sets ModelBox and goes to a nice view over the entire scene.
 
       In other words, this is just a shortcut to setting ModelBox
       and then calling @link(Home). }
     procedure Init(const AModelBox: TBox3D; const ACameraRadius: Single = 0);
+
+    { Go to a nice view over the entire scene. }
     procedure Home;
 
     { Methods performing navigation.
@@ -961,8 +962,8 @@ type
 
       Initially (after creating this object) they are equal to
       InitialPosition, InitialDirection, InitialUp.
-      Also @link(Init) and @link(Home) methods reset them to respective
-      InitialCameraXxx values.
+      Also @link(Init) and @link(GoToInitial) methods reset them to these
+      initial values.
 
       The @link(Direction) and @link(Up) vectors should always be normalized
       (have length 1). When setting them by these properties, we will normalize
@@ -1123,8 +1124,6 @@ type
       Sets GravityUp to the same thing as InitialUp.
       Sets also CameraPreferredHeight to make it behave "sensibly". }
     procedure Init(const box: TBox3D; const ACameraRadius: Single); overload;
-
-    procedure Home;
 
     { This sets the minimal angle (in radians) between GravityUp
       and @link(Direction), and also between -GravityUp and @link(Direction).
@@ -1977,6 +1976,11 @@ begin
   FInitialUp        := AInitialUp;
 end;
 
+procedure TCamera.GoToInitial;
+begin
+  SetCameraVectors(FInitialPosition, FInitialDirection, FInitialUp);
+end;
+
 { TExamineCamera ------------------------------------------------------------ }
 
 constructor TExamineCamera.Create(AOwner: TComponent);
@@ -1997,12 +2001,10 @@ begin
   ExclusiveEvents := false;
 
   FModelBox := EmptyBox3D;
-
-  { Set ScaleFactor, Rotations and other things to default values.
-    Don't notify here OnVisibleChange, since we're just created
-    (so not calling OnVisibleChange is safer solution, caller may
-    call OnVisibleChange itself after creating our object). }
-  HomeNotNotify;
+  FMoveAmount := ZeroVector3Single;
+  FRotations := QuatIdentityRot;
+  FRotationsAnim := ZeroVector3Single;
+  FScaleFactor := 1;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2203,7 +2205,7 @@ begin FMoveAmount := Value; VisibleChange; end;
 procedure TExamineCamera.SetCenterOfRotation(const Value: TVector3Single);
 begin FCenterOfRotation := Value; VisibleChange; end;
 
-procedure TExamineCamera.HomeNotNotify;
+procedure TExamineCamera.Home;
 var
   Direction, Up, GravityUp: TVector3Single;
 begin
@@ -2219,11 +2221,7 @@ begin
   FRotations := QuatIdentityRot;
   FRotationsAnim := ZeroVector3Single;
   FScaleFactor := 1.0;
-end;
 
-procedure TExamineCamera.Home;
-begin
-  HomeNotNotify;
   VisibleChange;
 end;
 
@@ -2452,6 +2450,11 @@ begin
   { Reset ScaleFactor to 1, this way the camera view corresponds
     exactly to the wanted SetCameraVectors view. }
   FScaleFactor := 1;
+
+  { Stopping the rotation animation wasn't really promised in SetCameraVectors
+    interface. But this is nice for user, otherwise after e.g. jumping
+    to viewpoint you may find yourself still rotating --- usually distracting. }
+  FRotationsAnim := ZeroVector3Single;
 
   ScheduleVisibleChange;
 end;
@@ -3614,28 +3617,6 @@ begin
   finally
     EndVisibleChangeSchedule;
   end;
-end;
-
-procedure TWalkCamera.Home;
-begin
-  { I don't set here CameraXxx properties, instead I actually directly set
-    FCameraXxx fields. Reason:
-
-    1. Speed (this way it's enough to call ScheduleVisibleChange only once).
-
-    2. Also remember that setting Direction and Up properties is followed
-       by adjustment of up vector (to be orthogonal to dir vector).
-       So I require that given Dir and Up initial camera vectors
-       may not be parallel. But I can't guarantee that InitialUp
-       is not parallel to current Direction.
-
-       Besides in this case I know that this adjustment is not needed,
-       since InitialDirection and InitialUp are already adjusted
-       if necessary. }
-  FPosition := InitialPosition;
-  FDirection := InitialDirection;
-  FUp := InitialUp;
-  ScheduleVisibleChange;
 end;
 
 function TWalkCamera.Jump: boolean;
