@@ -5895,10 +5895,13 @@ begin
       if NavigationNode = nil then
       begin
         { Since we don't have NavigationNode.speed, we just calculate some
-          speed that should "feel sensible". We base it on CameraRadius.
+          speed that should "feel sensible". We base it on CameraRadius,
+          if CameraRadius is set (it doesn't have to be).
           CameraRadius in turn was calculated based on
           Box3DAvgSize(SceneAnimation.BoundingBox). }
-        WalkCamera.MoveSpeed := ACamera.CameraRadius * 20;
+        if ACamera.CameraRadius > 0 then
+          WalkCamera.MoveSpeed := ACamera.CameraRadius * 20 else
+          WalkCamera.MoveSpeed := 1;
       end else
       if NavigationNode.FdSpeed.Value = 0 then
       begin
