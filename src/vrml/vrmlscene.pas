@@ -1746,7 +1746,7 @@ type
       Box is the expected bounding box of the whole 3D scene.
       Usually, it should be just Scene.BoundingBox, but it may be something
       larger, if this scene is part of a larger world. }
-    procedure CameraFromNavigationInfo(Camera: TUniversalCamera;
+    procedure CameraFromNavigationInfo(Camera: TCamera;
       const Box: TBox3D;
       const ForceNavigationType: string = '';
       const ForceCameraRadius: Single = 0);
@@ -1776,7 +1776,7 @@ type
           camera moves with it.)
       ) }
     procedure CameraFromViewpoint(ACamera: TCamera;
-      const RelativeCameraTransform: boolean);
+      const RelativeCameraTransform: boolean = false);
 
     { Create new camera instance, and bind it to current NavigationInfo
       and Viewpoint. This is only a shortcut for creating
@@ -5719,11 +5719,18 @@ end;
 { camera ------------------------------------------------------------------ }
 
 procedure TVRMLScene.CameraFromNavigationInfo(
-  Camera: TUniversalCamera; const Box: TBox3D;
+  Camera: TCamera; const Box: TBox3D;
   const ForceNavigationType: string;
   const ForceCameraRadius: Single);
 var
   NavigationTypeInitialized: boolean;
+
+  { Use to set TWalkCamera-specific properties.
+    This is Camera (if it's TWalkCamera),
+    or Camera.Walk (if it's TUniversalCamera), or nil. }
+  Walk: TWalkCamera;
+  Examine: TExamineCamera;
+  Universal: TUniversalCamera;
 
   { Initialize stuff determined by NavigationType
     (treating it like NavigationInfo.type value).
@@ -5734,18 +5741,18 @@ var
     if NavigationType = 'WALK' then
     begin
       NavigationTypeInitialized := true;
-      Camera.NavigationType := ntWalk;
-      Camera.Walk.PreferGravityUpForRotations := true;
-      Camera.Walk.PreferGravityUpForMoving := true;
-      Camera.Walk.Gravity := true;
+      if Universal <> nil then Universal.NavigationType := ntWalk;
+      if Walk <> nil then Walk.PreferGravityUpForRotations := true;
+      if Walk <> nil then Walk.PreferGravityUpForMoving := true;
+      if Walk <> nil then Walk.Gravity := true;
     end else
     if NavigationType = 'FLY' then
     begin
       NavigationTypeInitialized := true;
-      Camera.NavigationType := ntWalk;
-      Camera.Walk.PreferGravityUpForRotations := true;
-      Camera.Walk.PreferGravityUpForMoving := false;
-      Camera.Walk.Gravity := false;
+      if Universal <> nil then Universal.NavigationType := ntWalk;
+      if Walk <> nil then Walk.PreferGravityUpForRotations := true;
+      if Walk <> nil then Walk.PreferGravityUpForMoving := false;
+      if Walk <> nil then Walk.Gravity := false;
     end else
     if NavigationType = 'NONE' then
     begin
@@ -5757,7 +5764,7 @@ var
       if NavigationType = 'LOOKAT' then
         VRMLWarning(vwIgnorable, 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       NavigationTypeInitialized := true;
-      Camera.NavigationType := ntExamine;
+      if Universal <> nil then Universal.NavigationType := ntExamine;
     end else
     if NavigationType = 'ANY' then
     begin
@@ -5772,15 +5779,33 @@ var
   I: Integer;
   CameraRadius: Single;
 begin
+  { calculate Walk, Examine and Universal first.
+    Makes handling various cameras later much easier. }
+  if Camera is TUniversalCamera then
+    Walk := TUniversalCamera(Camera).Walk else
+  if Camera is TWalkCamera then
+    Walk := TWalkCamera(Camera) else
+    Walk := nil;
+
+  if Camera is TUniversalCamera then
+    Examine := TUniversalCamera(Camera).Examine else
+  if Camera is TExamineCamera then
+    Examine := TExamineCamera(Camera) else
+    Examine := nil;
+
+  if Camera is TUniversalCamera then
+    Universal := TUniversalCamera(Camera) else
+    Universal := nil;
+
   NavigationTypeInitialized := false;
   NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
 
   { Reset Camera properties, this way InitializeNavigationType may
     assume these are already set. }
-  Camera.NavigationType := ntWalk;
-  Camera.Walk.PreferGravityUpForRotations := true;
-  Camera.Walk.PreferGravityUpForMoving := true;
-  Camera.Walk.Gravity := false;
+  if Universal <> nil then Universal.NavigationType := ntWalk;
+  if Walk <> nil then Walk.PreferGravityUpForRotations := true;
+  if Walk <> nil then Walk.PreferGravityUpForMoving := true;
+  if Walk <> nil then Walk.Gravity := false;
   Camera.IgnoreAllInputs := false;
 
   if ForceNavigationType <> '' then
@@ -5816,46 +5841,49 @@ begin
 
   Camera.CameraRadius := CameraRadius;
 
-  { calculate Camera.Walk.CameraPreferredHeight }
-  if (NavigationNode <> nil) and
-     (NavigationNode.FdAvatarSize.Count >= 2) then
-    Camera.Walk.CameraPreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
-    { Make it something >> CameraRadius * 2, to allow some
-      space to decrease (e.g. by Input_DecreaseCameraPreferredHeight
-      in view3dscene). Remember that CorrectCameraPreferredHeight
-      adds a limit to CameraPreferredHeight, around CameraRadius * 2. }
-    Camera.Walk.CameraPreferredHeight := CameraRadius * 4;
-
-  Camera.Walk.CorrectCameraPreferredHeight;
-
-  Camera.Examine.ModelBox := Box;
-
-  { calculate HeadBobbing* }
-  if (NavigationNode <> nil) and
-     (NavigationNode is TNodeKambiNavigationInfo) then
+  if Walk <> nil then
   begin
-    Camera.Walk.HeadBobbing := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbing.Value;
-    Camera.Walk.HeadBobbingTime := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbingTime.Value;
-  end else
-  begin
-    Camera.Walk.HeadBobbing := DefaultHeadBobbing;
-    Camera.Walk.HeadBobbingTime := DefaultHeadBobbingTime;
+    { calculate Walk.CameraPreferredHeight }
+    if (NavigationNode <> nil) and
+       (NavigationNode.FdAvatarSize.Count >= 2) then
+      Walk.CameraPreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
+      { Make it something >> CameraRadius * 2, to allow some
+        space to decrease (e.g. by Input_DecreaseCameraPreferredHeight
+        in view3dscene). Remember that CorrectCameraPreferredHeight
+        adds a limit to CameraPreferredHeight, around CameraRadius * 2. }
+      Walk.CameraPreferredHeight := CameraRadius * 4;
+
+    Walk.CorrectCameraPreferredHeight;
+
+    { calculate Walk.HeadBobbing* }
+    if (NavigationNode <> nil) and
+       (NavigationNode is TNodeKambiNavigationInfo) then
+    begin
+      Walk.HeadBobbing := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbing.Value;
+      Walk.HeadBobbingTime := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbingTime.Value;
+    end else
+    begin
+      Walk.HeadBobbing := DefaultHeadBobbing;
+      Walk.HeadBobbingTime := DefaultHeadBobbingTime;
+    end;
+
+    { calculate Walk.MoveSpeed }
+    if NavigationNode = nil then
+      { Since we don't have NavigationNode.speed, we just calculate some
+        speed that should "feel sensible". We base it on CameraRadius,
+        that was set above. }
+      Walk.MoveSpeed := Camera.CameraRadius * 20 else
+      { This is OK, also for NavigationNode.FdSpeed.Value = 0 case. }
+      Walk.MoveSpeed := NavigationNode.FdSpeed.Value;
   end;
 
-  { calculate Camera.Walk.MoveSpeed }
-  if NavigationNode = nil then
-    { Since we don't have NavigationNode.speed, we just calculate some
-      speed that should "feel sensible". We base it on CameraRadius,
-      that was set above. }
-    Camera.Walk.MoveSpeed := Camera.CameraRadius * 20 else
-    { This is OK, also for NavigationNode.FdSpeed.Value = 0 case. }
-    Camera.Walk.MoveSpeed := NavigationNode.FdSpeed.Value;
+  if Examine <> nil then Examine.ModelBox := Box;
 
-  { No point in calling Camera.Walk.Init here: this method,
+  { No point in calling Walk.Init here: this method,
     together with CameraFromViewpoint (with RelativeCameraTransform = false),
     together initialize everything that TWalkCamera.Init does.
 
-    Also, no point in calling Camera.Examine.Init, for the same reason. }
+    Also, no point in calling Examine.Init, for the same reason. }
 end;
 
 procedure TVRMLScene.CameraFromViewpoint(ACamera: TCamera;

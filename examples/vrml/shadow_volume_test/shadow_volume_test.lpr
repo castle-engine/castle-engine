@@ -710,7 +710,8 @@ begin
 
     { init SceneNav }
     SceneNav := TWalkCamera.Create(Glw);
-    Scene.CameraBindToViewpoint(SceneNav, false);
+    Scene.CameraFromNavigationInfo(SceneNav, Scene.BoundingBox, 'FLY');
+    Scene.CameraFromViewpoint(SceneNav);
     SceneNav.ExclusiveEvents := false; { default for now, but just to be safe... }
     SceneManager.Camera := SceneNav;
 
