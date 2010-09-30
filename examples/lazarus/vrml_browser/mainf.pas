@@ -158,8 +158,13 @@ begin
     values may get not synchronized. }
 
   if Browser.Camera is TWalkCamera then
+    Walk := TWalkCamera(Browser.Camera) else
+  if Browser.Camera is TUniversalCamera then
+    Walk := TUniversalCamera(Browser.Camera).Walk else
+    Walk := nil;
+
+  if Walk <> nil then
   begin
-    Walk := TWalkCamera(Browser.Camera);
     Walk.MouseLook := (Sender as TMenuItem).Checked;
 
     if Walk.MouseLook then
@@ -245,45 +250,20 @@ begin
 end;
 
 procedure TMain.ButtonChangeCameraClick(Sender: TObject);
-var
-  Pos, Dir, Up: TVector3Single;
-  Walk: TWalkCamera;
 begin
-  Pos := Vector3Single(
-    StrToFloat(EditPositionX.Text),
-    StrToFloat(EditPositionY.Text),
-    StrToFloat(EditPositionZ.Text));
-
-  Dir := Vector3Single(
-    StrToFloat(EditDirectionX.Text),
-    StrToFloat(EditDirectionY.Text),
-    StrToFloat(EditDirectionZ.Text));
-
-  Up := Vector3Single(
-    StrToFloat(EditUpX.Text),
-    StrToFloat(EditUpY.Text),
-    StrToFloat(EditUpZ.Text));
-
-  { First convert all to float. Then set Camera properties.
-    This way in case of exception in StrToFloat, previous
-    Camera properties remain OK. }
-
-  if Browser.Camera is TWalkCamera then
-  begin
-    Walk := TWalkCamera(Browser.Camera);
-
-    { Length of direction vector affects speed.
-      For simplicity, we don't allow user to change this here
-      (although keys +/- do this in Walk mode), we keep previous Direction
-      length. }
-    VectorAdjustToLengthTo1st(Dir, VectorLen(Walk.Direction));
-
-    Walk.Position  := Pos;
-    Walk.Direction := Dir;
-    Walk.Up        := Up;
-  end else
-    MessageDlg('Setting camera properties in EXAMINE navigation not implemented.',
-      mtError, [mbOk], 0);
+  Browser.Camera.SetCameraVectors(
+    Vector3Single(
+      StrToFloat(EditPositionX.Text),
+      StrToFloat(EditPositionY.Text),
+      StrToFloat(EditPositionZ.Text)),
+    Vector3Single(
+      StrToFloat(EditDirectionX.Text),
+      StrToFloat(EditDirectionY.Text),
+      StrToFloat(EditDirectionZ.Text)),
+    Vector3Single(
+      StrToFloat(EditUpX.Text),
+      StrToFloat(EditUpY.Text),
+      StrToFloat(EditUpZ.Text)));
 end;
 
 procedure TMain.BrowserCameraChanged(Camera: TCamera);
