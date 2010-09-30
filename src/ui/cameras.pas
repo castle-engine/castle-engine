@@ -2208,7 +2208,7 @@ var
   Direction, Up, GravityUp: TVector3Single;
 begin
   { Make the same view as
-    CameraViewpointForWholeScene call in TVRMLScene.CameraBindToViewpoint,
+    CameraViewpointForWholeScene call in TVRMLScene.CameraFromViewpoint,
     to make "Home" behavior same as going to the default viewpoint.
     Nice for user. }
   CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
