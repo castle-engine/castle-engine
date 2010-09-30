@@ -147,7 +147,7 @@ begin
 
     { init camera }
     Camera := Scene.CreateCamera(Glw, 'WALK');
-    Camera.SetInitialCameraVectors(
+    Camera.SetInitialView(
       Box3DMiddle(scene.BoundingBox),
       Vector3Single(1, 0, 0),
       Vector3Single(0, 1, 0), false);

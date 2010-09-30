@@ -105,8 +105,7 @@
           wiadomo ze nie trzea normalizowac (a wiec wywolanie NormalizeTo1st
           i wywolywany w jego srodku Sqrt sa zbedne).)
       ) }
-    procedure GetCameraVectors(
-      out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
+    procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
   end;
 
   TVRMLViewpointClassNode = class of TVRMLViewpointNode;
@@ -414,7 +413,7 @@ begin
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
-procedure TVRMLViewpointNode.GetCameraVectors(
+procedure TVRMLViewpointNode.GetView(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
 begin
   CamPos := Position.Value;
@@ -496,7 +495,7 @@ function TNodeX3DViewpointNode.ModelviewMatrix: TMatrix4Single;
 var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
-  GetCameraVectors(CamPos, CamDir, CamUp, GravityUp);
+  GetView(CamPos, CamDir, CamUp, GravityUp);
   Result := LookDirMatrix(CamPos, CamDir, CamUp);
 end;
 

@@ -103,7 +103,7 @@
     function Location: TVector3Single;
     function DirectionLocal: TVector3Single; virtual;
     function Direction: TVector3Single;
-    procedure GetCameraVectors(out Pos, Dir, Up: TVector3Single);
+    procedure GetView(out Pos, Dir, Up: TVector3Single);
     { @groupEnd }
 
     { Calculate distances between the given Box and this light source.
@@ -418,7 +418,7 @@ begin
   Result := ZeroVector3Single;
 end;
 
-procedure TNodeX3DLightNode.GetCameraVectors(out Pos, Dir, Up: TVector3Single);
+procedure TNodeX3DLightNode.GetView(out Pos, Dir, Up: TVector3Single);
 begin
   Pos := MatrixMultPoint    (Transform, LocationLocal);
   Dir := MatrixMultDirection(Transform, DirectionLocal);
@@ -523,7 +523,7 @@ function TVRMLDirectionalLightNode.ModelviewMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  GetCameraVectors(Pos, Dir, Up);
+  GetView(Pos, Dir, Up);
   Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
@@ -531,7 +531,7 @@ function TVRMLDirectionalLightNode.ModelviewRotationMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  GetCameraVectors(Pos, Dir, Up);
+  GetView(Pos, Dir, Up);
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
@@ -819,7 +819,7 @@ function TNodeSpotLight_2.ModelviewMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  GetCameraVectors(Pos, Dir, Up);
+  GetView(Pos, Dir, Up);
   Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
@@ -827,7 +827,7 @@ function TNodeSpotLight_2.ModelviewRotationMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  GetCameraVectors(Pos, Dir, Up);
+  GetView(Pos, Dir, Up);
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 

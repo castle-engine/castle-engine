@@ -2369,7 +2369,7 @@ function TNodeSpotLight_1.ModelviewMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  GetCameraVectors(Pos, Dir, Up);
+  GetView(Pos, Dir, Up);
   Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
@@ -2377,7 +2377,7 @@ function TNodeSpotLight_1.ModelviewRotationMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  GetCameraVectors(Pos, Dir, Up);
+  GetView(Pos, Dir, Up);
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 

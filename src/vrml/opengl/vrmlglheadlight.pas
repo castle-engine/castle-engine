@@ -47,7 +47,7 @@ type
 
       If CallEnabled then it will also call glEnable(GL_LIGHT_GLLightNumber).
 
-      Overloaded version with camera simply uses Camera.GetCameraVectors
+      Overloaded version with camera simply uses Camera.GetView
       to get HeadlightPosition, HeadlightDirection.
       When HeadlightFromCurrentView = @true, Camera doesn't matter
       (may be @nil).
@@ -156,7 +156,7 @@ procedure TVRMLGLHeadLight.Render(GLLightNumber: Cardinal; CallEnabled: boolean;
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  Camera.GetCameraVectors(Pos, Dir, Up);
+  Camera.GetView(Pos, Dir, Up);
   Render(GLLightNumber, CallEnabled, HeadlightFromCurrentView, Pos, Dir);
 end;
 
@@ -178,7 +178,7 @@ class procedure TVRMLGLHeadLight.RenderOrDisable(Light: TVRMLGLHeadlight;
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  Camera.GetCameraVectors(Pos, Dir, Up);
+  Camera.GetView(Pos, Dir, Up);
   RenderOrDisable(Light, GLLightNumber, HeadlightFromCurrentView, Pos, Dir);
 end;
 

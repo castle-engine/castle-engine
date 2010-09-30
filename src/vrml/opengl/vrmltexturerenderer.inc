@@ -1733,7 +1733,7 @@ var
 
   procedure GetRenderedTextureCamera(out Pos, Dir, Up: TVector3Single);
   var
-    { It's returned by Viewpoint.GetCameraVectors, but we'll ignore it. }
+    { It's returned by Viewpoint.GetView, but we'll ignore it. }
     GravityUp: TVector3Single;
 
     procedure GetFromCurrent;
@@ -1745,7 +1745,7 @@ var
         Up  := LastViewerUp;
       end else
       if CurrentViewpoint <> nil then
-        CurrentViewpoint.GetCameraVectors(Pos, Dir, Up, GravityUp) else
+        CurrentViewpoint.GetView(Pos, Dir, Up, GravityUp) else
       begin
         { If all else fails (no viewpoint node bound, not known current
           camera settings) then use defaults. }
@@ -1762,7 +1762,7 @@ var
       { Viewpoint gets assigned something different than CurrentViewpoint
         only when it's non-nil. }
       Assert(Viewpoint <> nil);
-      Viewpoint.GetCameraVectors(Pos, Dir, Up, GravityUp);
+      Viewpoint.GetView(Pos, Dir, Up, GravityUp);
     end;
   end;
 

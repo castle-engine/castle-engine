@@ -974,7 +974,7 @@ var
     some time. }
   Orientation: TALTwoVectors3f;
 begin
-  Camera.GetCameraVectors(Pos, Orientation[0], Orientation[1]);
+  Camera.GetView(Pos, Orientation[0], Orientation[1]);
   alListenerVector3f(AL_POSITION, Pos);
   alListenerfv(AL_ORIENTATION, @Orientation);
 end;

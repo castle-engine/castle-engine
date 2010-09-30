@@ -251,7 +251,7 @@ end;
 
 procedure TMain.ButtonChangeCameraClick(Sender: TObject);
 begin
-  Browser.Camera.SetCameraVectors(
+  Browser.Camera.SetView(
     Vector3Single(
       StrToFloat(EditPositionX.Text),
       StrToFloat(EditPositionY.Text),
@@ -270,7 +270,7 @@ procedure TMain.BrowserCameraChanged(Camera: TCamera);
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  Camera.GetCameraVectors(Pos, Dir, Up);
+  Camera.GetView(Pos, Dir, Up);
 
   EditPositionX.Text := FloatToNiceStr(Pos[0]);
   EditPositionY.Text := FloatToNiceStr(Pos[1]);

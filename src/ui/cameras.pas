@@ -334,16 +334,16 @@ type
 
       Returned Dir and Up must be orthogonal.
       Returned Dir and Up and GravityUp are already normalized. }
-    procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); virtual; abstract;
-    procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
+    procedure GetView(out APos, ADir, AUp: TVector3Single); virtual; abstract;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
     function GetPosition: TVector3Single; virtual; abstract;
 
     { Set camera view from vectors: position, direction, up.
 
       Direction, Up and GravityUp do not have to be normalized.
       They cannot be parallel (will be fixed internally to be exactly orthogonal). }
-    procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); virtual; abstract;
-    procedure SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
+    procedure SetView(const APos, ADir, AUp: TVector3Single); virtual; abstract;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
 
     function PositionInside(const X, Y: Integer): boolean; override;
 
@@ -471,12 +471,12 @@ type
       "viewer position/orientation is conceptually a child of
       viewpoint position/orientation, and when viewpoint position/orientation
       changes, viewer should also change". }
-    procedure SetInitialCameraVectors(
+    procedure SetInitialView(
       const AInitialPosition: TVector3Single;
       AInitialDirection, AInitialUp: TVector3Single;
       const TransformCurrentCamera: boolean); virtual;
 
-    { Jump to initial camera view (set by SetInitialCameraVectors). }
+    { Jump to initial camera view (set by SetInitialView). }
     procedure GoToInitial; virtual;
   end;
 
@@ -646,11 +646,11 @@ type
       for TExamineCamera. }
     property ExclusiveEvents default false;
 
-    procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
-    procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    procedure GetView(out APos, ADir, AUp: TVector3Single); override;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
-    procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
-    procedure SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    procedure SetView(const APos, ADir, AUp: TVector3Single); override;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
   end;
@@ -1105,7 +1105,7 @@ type
 
       Given here AInitialDirection, AInitialUp, AGravityUp will be normalized,
       and AInitialUp will be adjusted to be orthogonal to AInitialDirection
-      (see SetInitialCameraVectors).
+      (see SetInitialView).
 
       Sets also CameraPreferredHeight and CameraRadius.
       CameraPreferredHeight may be adjusted to be sensible
@@ -1450,11 +1450,11 @@ type
       some "footsteps" sound for the player. }
     property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
 
-    procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
-    procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    procedure GetView(out APos, ADir, AUp: TVector3Single); override;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
-    procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
-    procedure SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    procedure SetView(const APos, ADir, AUp: TVector3Single); override;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
     { Last known information about whether camera is over the ground.
       Updated by every UpdateHeightAbove call, using
@@ -1496,9 +1496,9 @@ type
     change them directly @italic(when you can use instead a property of
     this class). For example, it is Ok to directly change input key
     by @noAutoLink(@code(Walk.Input_Forward)) (see TWalkCamera.Input_Forward).
-    However, do not directly call @noAutoLink(@code(Walk.SetInitialCameraVectors))
-    (see TWalkCamera.SetInitialCameraVectors), instead use a method of this class:
-    TUniversalCamera.SetInitialCameraVectors. This way both @link(Examine)
+    However, do not directly call @noAutoLink(@code(Walk.SetInitialView))
+    (see TWalkCamera.SetInitialView), instead use a method of this class:
+    TUniversalCamera.SetInitialView. This way both @link(Examine)
     and @link(Walk) will be kept in synch. }
   TUniversalCamera = class(TCamera)
   private
@@ -1524,11 +1524,11 @@ type
 
     function Matrix: TMatrix4Single; override;
     function RotationMatrix: TMatrix4Single; override;
-    procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
-    procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    procedure GetView(out APos, ADir, AUp: TVector3Single); override;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
-    procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
-    procedure SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    procedure SetView(const APos, ADir, AUp: TVector3Single); override;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
 
     function PositionInside(const X, Y: Integer): boolean; override;
@@ -1544,7 +1544,7 @@ type
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
-    procedure SetInitialCameraVectors(
+    procedure SetInitialView(
       const AInitialPosition: TVector3Single;
       AInitialDirection, AInitialUp: TVector3Single;
       const TransformCurrentCamera: boolean); override;
@@ -1906,7 +1906,7 @@ procedure TCamera.CustomRay(
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  GetCameraVectors(Pos, Dir, Up);
+  GetView(Pos, Dir, Up);
 
   PrimaryRay(
     WindowX - ViewportLeft, (WindowHeight - WindowY) - ViewportBottom,
@@ -1935,7 +1935,7 @@ begin
   AnimationCurrentTime := 0;
 end;
 
-procedure TCamera.SetInitialCameraVectors(
+procedure TCamera.SetInitialView(
   const AInitialPosition: TVector3Single;
   AInitialDirection, AInitialUp: TVector3Single;
   const TransformCurrentCamera: boolean);
@@ -1949,7 +1949,7 @@ begin
 
   if TransformCurrentCamera then
   begin
-    GetCameraVectors(Pos, Dir, Up);
+    GetView(Pos, Dir, Up);
 
     VectorAddTo1st(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
 
@@ -1971,7 +1971,7 @@ begin
     end;
 
     { This will do ScheduleVisibleChange }
-    SetCameraVectors(Pos, Dir, Up);
+    SetView(Pos, Dir, Up);
   end;
 
   FInitialPosition  := AInitialPosition;
@@ -1981,7 +1981,7 @@ end;
 
 procedure TCamera.GoToInitial;
 begin
-  SetCameraVectors(FInitialPosition, FInitialDirection, FInitialUp);
+  SetView(FInitialPosition, FInitialDirection, FInitialUp);
 end;
 
 { TExamineCamera ------------------------------------------------------------ }
@@ -2382,7 +2382,7 @@ begin
   end;
 end;
 
-procedure TExamineCamera.GetCameraVectors(
+procedure TExamineCamera.GetView(
   out APos, ADir, AUp: TVector3Single);
 var
   M: TMatrix4Single;
@@ -2399,9 +2399,9 @@ begin
   AUp  := MatrixMultDirection(M, DefaultUp);
 end;
 
-procedure TExamineCamera.GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TExamineCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
 begin
-  GetCameraVectors(APos, ADir, AUp);
+  GetView(APos, ADir, AUp);
   AGravityUp := DefaultUp; { nothing more sensible for Examine camera }
 end;
 
@@ -2410,7 +2410,7 @@ begin
   Result := MatrixMultPoint(MatrixInverse, Vector3Single(0, 0, 0));
 end;
 
-procedure TExamineCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Single);
+procedure TExamineCamera.SetView(const APos, ADir, AUp: TVector3Single);
 var
   Up: TVector3Single;
 begin
@@ -2451,10 +2451,10 @@ begin
     - FCenterOfRotation;
 
   { Reset ScaleFactor to 1, this way the camera view corresponds
-    exactly to the wanted SetCameraVectors view. }
+    exactly to the wanted SetView view. }
   FScaleFactor := 1;
 
-  { Stopping the rotation animation wasn't really promised in SetCameraVectors
+  { Stopping the rotation animation wasn't really promised in SetView
     interface. But this is nice for user, otherwise after e.g. jumping
     to viewpoint you may find yourself still rotating --- usually distracting. }
   FRotationsAnim := ZeroVector3Single;
@@ -2462,9 +2462,9 @@ begin
   ScheduleVisibleChange;
 end;
 
-procedure TExamineCamera.SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TExamineCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single);
 begin
-  SetCameraVectors(APos, ADir, AUp);
+  SetView(APos, ADir, AUp);
   { Ignore AGravityUp }
 end;
 
@@ -3725,7 +3725,7 @@ procedure TWalkCamera.Init(
   const ACameraPreferredHeight: Single;
   const ACameraRadius: Single);
 begin
-  SetInitialCameraVectors(AInitialPosition, AInitialDirection, AInitialUp, false);
+  SetInitialView(AInitialPosition, AInitialDirection, AInitialUp, false);
   FGravityUp := Normalized(AGravityUp);
   CameraPreferredHeight := ACameraPreferredHeight;
   CameraRadius := ACameraRadius;
@@ -3910,7 +3910,7 @@ begin
   end;
 end;
 
-procedure TWalkCamera.GetCameraVectors(
+procedure TWalkCamera.GetView(
   out APos, ADir, AUp: TVector3Single);
 begin
   APos := FPosition;
@@ -3918,9 +3918,9 @@ begin
   AUp  := FUp;
 end;
 
-procedure TWalkCamera.GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TWalkCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
 begin
-  GetCameraVectors(APos, ADir, AUp);
+  GetView(APos, ADir, AUp);
   AGravityUp := GravityUp;
 end;
 
@@ -3929,7 +3929,7 @@ begin
   Result := FPosition;
 end;
 
-procedure TWalkCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Single);
+procedure TWalkCamera.SetView(const APos, ADir, AUp: TVector3Single);
 begin
   FPosition := APos;
   FDirection := Normalized(ADir);
@@ -3939,10 +3939,10 @@ begin
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TWalkCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single);
 begin
   GravityUp := AGravityUp;
-  SetCameraVectors(APos, ADir, AUp);
+  SetView(APos, ADir, AUp);
 end;
 
 procedure TWalkCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
@@ -3953,7 +3953,7 @@ begin
   AnimationBeginDirection := Direction;
   AnimationBeginUp := Up;
 
-  OtherCamera.GetCameraVectors(
+  OtherCamera.GetView(
     AnimationEndPosition,
     AnimationEndDirection,
     AnimationEndUp);
@@ -4005,14 +4005,14 @@ begin
   Result := Current.RotationMatrix;
 end;
 
-procedure TUniversalCamera.GetCameraVectors(out APos, ADir, AUp: TVector3Single);
+procedure TUniversalCamera.GetView(out APos, ADir, AUp: TVector3Single);
 begin
-  Current.GetCameraVectors(APos, ADir, AUp);
+  Current.GetView(APos, ADir, AUp);
 end;
 
-procedure TUniversalCamera.GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TUniversalCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
 begin
-  Current.GetCameraVectors(APos, ADir, AUp, AGravityUp);
+  Current.GetView(APos, ADir, AUp, AGravityUp);
 end;
 
 function TUniversalCamera.GetPosition: TVector3Single;
@@ -4020,16 +4020,16 @@ begin
   Result := Current.GetPosition;
 end;
 
-procedure TUniversalCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Single);
+procedure TUniversalCamera.SetView(const APos, ADir, AUp: TVector3Single);
 begin
-  FExamine.SetCameraVectors(APos, ADir, AUp);
-  FWalk.SetCameraVectors(APos, ADir, AUp);
+  FExamine.SetView(APos, ADir, AUp);
+  FWalk.SetView(APos, ADir, AUp);
 end;
 
-procedure TUniversalCamera.SetCameraVectors(const APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TUniversalCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single);
 begin
-  FExamine.SetCameraVectors(APos, ADir, AUp, AGravityUp);
-  FWalk.SetCameraVectors(APos, ADir, AUp, AGravityUp);
+  FExamine.SetView(APos, ADir, AUp, AGravityUp);
+  FWalk.SetView(APos, ADir, AUp, AGravityUp);
 end;
 
 procedure TUniversalCamera.SetCameraRadius(const Value: Single);
@@ -4145,21 +4145,21 @@ begin
   FExamine.ContainerResize(AContainerWidth, AContainerHeight);
 end;
 
-procedure TUniversalCamera.SetInitialCameraVectors(
+procedure TUniversalCamera.SetInitialView(
   const AInitialPosition: TVector3Single;
   AInitialDirection, AInitialUp: TVector3Single;
   const TransformCurrentCamera: boolean);
 begin
   { Pass TransformCurrentCamera = false to inherited.
     This way inherited updates our Initial* properties, but does not
-    call Get/SetCameraVectors (these would set our children cameras,
+    call Get/SetView (these would set our children cameras,
     which isn't needed as we do it manually below). }
-  inherited SetInitialCameraVectors(
+  inherited SetInitialView(
     AInitialPosition, AInitialDirection, AInitialUp, false);
 
-  FExamine.SetInitialCameraVectors(
+  FExamine.SetInitialView(
     AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
-  FWalk.SetInitialCameraVectors(
+  FWalk.SetInitialView(
     AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
 end;
 
@@ -4169,9 +4169,9 @@ var
 begin
   if FNavigationType <> Value then
   begin
-    Current.GetCameraVectors(Position, Direction, Up);
+    Current.GetView(Position, Direction, Up);
     FNavigationType := Value;
-    Current.SetCameraVectors(Position, Direction, Up);
+    Current.SetView(Position, Direction, Up);
   end;
 end;
 
