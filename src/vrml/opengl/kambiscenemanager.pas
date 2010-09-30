@@ -867,6 +867,11 @@ begin
       begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
         TWalkCamera(FCamera).OnGetHeightAbove := nil;
+      end else
+      if FCamera is TUniversalCamera then
+      begin
+        TUniversalCamera(FCamera).Walk.OnMoveAllowed := nil;
+        TUniversalCamera(FCamera).Walk.OnGetHeightAbove := nil;
       end;
 
       FCamera.RemoveFreeNotification(Self);
@@ -886,6 +891,11 @@ begin
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
         TWalkCamera(FCamera).OnGetHeightAbove := @CameraGetHeight;
+      end else
+      if FCamera is TUniversalCamera then
+      begin
+        TUniversalCamera(FCamera).Walk.OnMoveAllowed := @CameraMoveAllowed;
+        TUniversalCamera(FCamera).Walk.OnGetHeightAbove := @CameraGetHeight;
       end;
 
       FCamera.FreeNotification(Self);

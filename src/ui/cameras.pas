@@ -261,6 +261,7 @@ type
 
     procedure SetIgnoreAllInputs(const Value: boolean); virtual;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
+    procedure SetCameraRadius(const Value: Single); virtual;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -323,12 +324,11 @@ type
 
       Note that camera instance by itself doesn't need CameraRadius information
       desperately, as it doesn't perform collision detection directly
-      (Walk camera delegates these to callbacks
-      TWalkCamera.OnGetHeightAbove, TWalkCamera.OnMoveAllowed,
-      so you could store CameraRadius elsewhere if you would really want.).
+      (delegating this to callbacks OnGetHeightAbove, OnMoveAllowed),
+      so you could store CameraRadius elsewhere if you would really want.
       Still, camera class is usually a comfortable place to store this. }
     property CameraRadius: Single
-      read FCameraRadius write FCameraRadius default 0.0;
+      read FCameraRadius write SetCameraRadius default 0.0;
 
     { Express current view as camera vectors: position, direction, up.
 
@@ -436,7 +436,7 @@ type
 
       TODO: for now, animating TExamineCamera to a TWalkCamera settings
       doesn't work (the other way around works Ok). }
-    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime);  virtual;
+    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); virtual;
 
     { Initial camera values.
 
@@ -473,7 +473,7 @@ type
     procedure SetInitialCameraVectors(
       const AInitialPosition: TVector3Single;
       AInitialDirection, AInitialUp: TVector3Single;
-      const TransformCurrentCamera: boolean);
+      const TransformCurrentCamera: boolean); virtual;
   end;
 
   TCameraClass = class of TCamera;
@@ -1480,6 +1480,75 @@ type
     procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
   end;
 
+  TCameraNavigationType = (ntExamine, ntWalk);
+
+  { Camera that allows any kind of navigation (Examine, Walk).
+    You can switch between navigation types, while preserving the camera view.
+
+    This simply keeps an TExamineCamera and TWalkCamera instances inside,
+    and passes events (key, mouse presses, idle) to the current one.
+    Properties (like camera position, direction, up vectors) are simply
+    set on both instances simultaneously.
+
+    For some uses you can even directly access the internal camera instances
+    inside @link(Examine) and @link(Walk) properties. However, do not
+    change them directly @italic(when you can use instead a property of
+    this class). For example, it is Ok to directly change input key
+    by @noAutoLink(@code(Walk.Input_Forward)) (see TWalkCamera.Input_Forward).
+    However, do not directly call @noAutoLink(@code(Walk.SetInitialCameraVectors))
+    (see TWalkCamera.SetInitialCameraVectors), instead use a method of this class:
+    TUniversalCamera.SetInitialCameraVectors. This way both @link(Examine)
+    and @link(Walk) will be kept in synch. }
+  TUniversalCamera = class(TCamera)
+  private
+    FExamine: TExamineCamera;
+    FWalk: TWalkCamera;
+    FNavigationType: TCameraNavigationType;
+    procedure ChildVisibleChange(Sender: TObject);
+  protected
+    procedure SetIgnoreAllInputs(const Value: boolean); override;
+    procedure SetProjectionMatrix(const Value: TMatrix4Single); override;
+    procedure SetContainer(const Value: IUIContainer); override;
+    procedure SetCameraRadius(const Value: Single); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    property Examine: TExamineCamera read FExamine;
+    property Walk: TWalkCamera read FWalk;
+    { Current (determined by NavigationType) internal camera,
+      that is either @link(Examine) or @link(Walk). }
+    function Current: TCamera;
+
+    function Matrix: TMatrix4Single; override;
+    function RotationMatrix: TMatrix4Single; override;
+    procedure GetCameraVectors(out APos, ADir, AUp: TVector3Single); override;
+    procedure GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    function GetPosition: TVector3Single; override;
+    procedure SetCameraVectors(const APos, ADir, AUp: TVector3Single); override;
+    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime); override;
+
+    function PositionInside(const X, Y: Integer): boolean; override;
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
+    function AllowSuspendForInput: boolean; override;
+    function KeyDown(Key: TKey; C: char): boolean; override;
+    function KeyUp(Key: TKey; C: char): boolean; override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+
+    procedure SetInitialCameraVectors(
+      const AInitialPosition: TVector3Single;
+      AInitialDirection, AInitialUp: TVector3Single;
+      const TransformCurrentCamera: boolean); override;
+  published
+    property NavigationType: TCameraNavigationType read FNavigationType write FNavigationType;
+  end;
+
 { See TWalkCamera.CorrectCameraPreferredHeight.
   This is a global version, sometimes may be useful. }
 procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
@@ -1786,6 +1855,11 @@ procedure TCamera.SetProjectionMatrix(const Value: TMatrix4Single);
 begin
   FProjectionMatrix := Value;
   RecalculateFrustum;
+end;
+
+procedure TCamera.SetCameraRadius(const Value: Single);
+begin
+  FCameraRadius := Value;
 end;
 
 function TCamera.PositionInside(const X, Y: Integer): boolean;
@@ -3890,6 +3964,199 @@ end;
 procedure TWalkCamera.SetGravityUp(const Value: TVector3Single);
 begin
   FGravityUp := Normalized(Value);
+end;
+
+{ TUniversalCamera ----------------------------------------------------------- }
+
+constructor TUniversalCamera.Create(AOwner: TComponent);
+begin
+  inherited;
+  FExamine := TExamineCamera.Create(nil);
+  FExamine.OnVisibleChange := @ChildVisibleChange;
+  { Useful and works sensibly with our view3dscene events that pass
+    mouse / keys to VRML/X3D scene. This way in Examine mode you can
+    activate pointing device sensors.
+    Note: This is the default now. }
+  FExamine.ExclusiveEvents := false;
+
+  FWalk := TWalkCamera.Create(nil);
+  FWalk.OnVisibleChange := @ChildVisibleChange;
+end;
+
+destructor TUniversalCamera.Destroy;
+begin
+  FreeAndNil(FExamine);
+  FreeAndNil(FWalk);
+  inherited;
+end;
+
+function TUniversalCamera.Current: TCamera;
+begin
+  if FNavigationType = ntExamine then
+    Result := FExamine else
+    Result := FWalk;
+end;
+
+function TUniversalCamera.Matrix: TMatrix4Single;
+begin
+  Result := Current.Matrix;
+end;
+
+function TUniversalCamera.RotationMatrix: TMatrix4Single;
+begin
+  Result := Current.RotationMatrix;
+end;
+
+procedure TUniversalCamera.GetCameraVectors(out APos, ADir, AUp: TVector3Single);
+begin
+  Current.GetCameraVectors(APos, ADir, AUp);
+end;
+
+procedure TUniversalCamera.GetCameraVectors(out APos, ADir, AUp, AGravityUp: TVector3Single);
+begin
+  Current.GetCameraVectors(APos, ADir, AUp, AGravityUp);
+end;
+
+function TUniversalCamera.GetPosition: TVector3Single;
+begin
+  Result := Current.GetPosition;
+end;
+
+procedure TUniversalCamera.SetCameraVectors(const APos, ADir, AUp: TVector3Single);
+begin
+  FExamine.SetCameraVectors(APos, ADir, AUp);
+  FWalk.SetCameraVectors(APos, ADir, AUp);
+end;
+
+procedure TUniversalCamera.SetCameraRadius(const Value: Single);
+begin
+  inherited;
+  FExamine.CameraRadius := Value;
+  FWalk.CameraRadius := Value;
+end;
+
+procedure TUniversalCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
+begin
+  inherited;
+
+  { TODO: if you change NavigationType during this,
+    the new camera will not animate (and the old camera will continue
+    animating...). }
+  Current.AnimateTo(OtherCamera, Time);
+end;
+
+procedure TUniversalCamera.SetIgnoreAllInputs(const Value: boolean);
+begin
+  inherited;
+  FExamine.IgnoreAllInputs := Value;
+  FWalk.IgnoreAllInputs := Value;
+end;
+
+procedure TUniversalCamera.SetProjectionMatrix(const Value: TMatrix4Single);
+begin
+  { This calls RecalculateFrustum on all 3 cameras, while only once
+    is needed... But speed should not be a problem here, this is seldom used. }
+  inherited;
+  FExamine.ProjectionMatrix := Value;
+  FWalk.ProjectionMatrix := Value;
+end;
+
+procedure TUniversalCamera.ChildVisibleChange(Sender: TObject);
+begin
+  { Call Self.VisibleChange on children camera VisibleChange. }
+  VisibleChange;
+end;
+
+function TUniversalCamera.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := Current.PositionInside(X, Y);
+end;
+
+procedure TUniversalCamera.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+
+  LetOthersHandleMouseAndKeys := not Current.ExclusiveEvents;
+  Current.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+end;
+
+function TUniversalCamera.AllowSuspendForInput: boolean;
+begin
+  Result := Current.AllowSuspendForInput;
+end;
+
+function TUniversalCamera.KeyDown(Key: TKey; C: char): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := Current.KeyDown(Key, C);
+end;
+
+function TUniversalCamera.KeyUp(Key: TKey; C: char): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := Current.KeyUp(Key, C);
+end;
+
+function TUniversalCamera.MouseDown(const Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := Current.MouseDown(Button);
+end;
+
+function TUniversalCamera.MouseUp(const Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := Current.MouseUp(Button);
+end;
+
+function TUniversalCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := Current.MouseMove(OldX, OldY, NewX, NewY);
+end;
+
+procedure TUniversalCamera.SetContainer(const Value: IUIContainer);
+begin
+  inherited;
+  FWalk.Container := Value;
+  FExamine.Container := Value;
+end;
+
+procedure TUniversalCamera.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+begin
+  inherited;
+  FWalk.ContainerResize(AContainerWidth, AContainerHeight);
+  FExamine.ContainerResize(AContainerWidth, AContainerHeight);
+end;
+
+procedure TUniversalCamera.SetInitialCameraVectors(
+  const AInitialPosition: TVector3Single;
+  AInitialDirection, AInitialUp: TVector3Single;
+  const TransformCurrentCamera: boolean);
+begin
+  { Pass TransformCurrentCamera = false to inherited.
+    This way inherited updates our Initial* properties, but does not
+    call Get/SetCameraVectors (these would set our children cameras,
+    which isn't needed as we do it manually below). }
+  inherited SetInitialCameraVectors(
+    AInitialPosition, AInitialDirection, AInitialUp, false);
+
+  FExamine.SetInitialCameraVectors(
+    AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
+  FWalk.SetInitialCameraVectors(
+    AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
 end;
 
 { global ------------------------------------------------------------ }

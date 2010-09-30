@@ -5844,8 +5844,13 @@ begin
   end;
 
   if ACamera is TWalkCamera then
+    WalkCamera := TWalkCamera(ACamera) else
+  if ACamera is TUniversalCamera then
+    WalkCamera := TUniversalCamera(ACamera).Walk else
+    WalkCamera := nil;
+
+  if WalkCamera <> nil then
   begin
-    WalkCamera := TWalkCamera(ACamera);
     WalkCamera.GravityUp := GravityUp;
 
     { update WalkCamera.MoveSpeed }
