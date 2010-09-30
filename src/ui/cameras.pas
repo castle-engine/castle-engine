@@ -1505,6 +1505,7 @@ type
     FWalk: TWalkCamera;
     FNavigationType: TCameraNavigationType;
     procedure ChildVisibleChange(Sender: TObject);
+    procedure SetNavigationType(const Value: TCameraNavigationType);
   protected
     procedure SetIgnoreAllInputs(const Value: boolean); override;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); override;
@@ -1546,7 +1547,8 @@ type
       AInitialDirection, AInitialUp: TVector3Single;
       const TransformCurrentCamera: boolean); override;
   published
-    property NavigationType: TCameraNavigationType read FNavigationType write FNavigationType;
+    property NavigationType: TCameraNavigationType
+      read FNavigationType write SetNavigationType default ntExamine;
   end;
 
 { See TWalkCamera.CorrectCameraPreferredHeight.
@@ -4157,6 +4159,18 @@ begin
     AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
   FWalk.SetInitialCameraVectors(
     AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
+end;
+
+procedure TUniversalCamera.SetNavigationType(const Value: TCameraNavigationType);
+var
+  Position, Direction, Up: TVector3Single;
+begin
+  if FNavigationType <> Value then
+  begin
+    Current.GetCameraVectors(Position, Direction, Up);
+    FNavigationType := Value;
+    Current.SetCameraVectors(Position, Direction, Up);
+  end;
 end;
 
 { global ------------------------------------------------------------ }
