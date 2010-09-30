@@ -1917,13 +1917,18 @@ begin
   if Animation then
   begin
     AnimationCurrentTime += CompSpeed;
-    if AnimationCurrentTime > AnimationEndTime then Animation := false;
-
-    SetView(
-      Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginPosition , AnimationEndPosition),
-      Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginDirection, AnimationEndDirection),
-      Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp));
-    ScheduleVisibleChange;
+    if AnimationCurrentTime > AnimationEndTime then
+    begin
+      Animation := false;
+      { When animation ended, make sure you're exactly at the final view. }
+      SetView(AnimationEndPosition, AnimationEndDirection, AnimationEndUp);
+    end else
+    begin
+      SetView(
+        Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginPosition , AnimationEndPosition),
+        Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginDirection, AnimationEndDirection),
+        Lerp(AnimationCurrentTime / AnimationEndTime, AnimationBeginUp       , AnimationEndUp));
+    end;
   end;
 end;
 
@@ -1942,10 +1947,10 @@ begin
   AnimationCurrentTime := 0;
   { No point in doing animation (especially since it blocks camera movement
     for Time seconds) if we're already there. }
-  Animation := not
-     VectorsEqual(AnimationBeginPosition , AnimationEndPosition) and
-     VectorsEqual(AnimationBeginDirection, AnimationEndDirection) and
-     VectorsEqual(AnimationBeginUp       , AnimationEndUp);
+  Animation := not (
+    VectorsEqual(AnimationBeginPosition , AnimationEndPosition) and
+    VectorsEqual(AnimationBeginDirection, AnimationEndDirection) and
+    VectorsEqual(AnimationBeginUp       , AnimationEndUp));
 end;
 
 procedure TCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
