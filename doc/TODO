@@ -11,18 +11,21 @@ www:
 
   News (intro + "latest update" + link to changes_log)
 
-  Tools and games:
   - view3dscene
+    (title: VRML / X3D browser, and a viewer for other 3D model formats.)
   - castle
+    (title: First-person perspective game, in a dark fantasy setting.)
   - All Programs
-  - Support
+    (Other games and tools using our 3D engine.)
+    - Support
 
   Developers:
-  - Engine (maybe split, move "Related programs' sources" elsewhere?)
-  - Reference
-  - Documentation? (Or hide -- too old?)
-  - VRML/X3D (ToC of pages about vrml)
-  - More
+  - Engine
+    (title: Sources and documentation for developers.)
+  - VRML/X3D
+    (title: Our extensions and status of VRML/X3D implementation.)
+  - Other
+    Blender VRML, Wiki, Other pages
 
 * link to https://www.ohloh.net/p/vrmlengine/widgets, but where?
   put a link with "I use it"? And a link to stats (with commit graph?)?
@@ -430,13 +433,6 @@ Various ideas:
 
 * glwinmessages scrollbars:
   http://www.useit.com/alertbox/20050711.html
-
-* Future: TAnyCamera in the future (when I'll figure out how to switch cam pos/dir/up to examine props), with Examine, Walk, None variants.
-
-- Maybe more improvements along the vrml_implementation_status.php division:
-  - #section_x3d_multitex_clarifications - move to "texturing" component page?
-  - NIST VRML tests move to separate?
-  - DDS support move to separate?
 
 - Joerg pointed out possible problem with quads for NurbsSurface*:
 
