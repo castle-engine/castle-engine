@@ -655,6 +655,7 @@ type
     { Will be set to Normals or it's inverted version, to keep
       pointing from CCW. }
     CcwNormals: TDynVector3SingleArray;
+    procedure glNormalFromIndex(Index: Integer);
   public
     destructor Destroy; override;
   protected
@@ -2260,6 +2261,12 @@ begin
   inherited;
 end;
 
+procedure TAbstractNorColMatTexCoordinateRenderer.glNormalFromIndex(Index: Integer);
+begin
+  if Index < CcwNormals.Count then
+    glNormalv(CcwNormals.Items[Index]);
+end;
+
 function TAbstractNorColMatTexCoordinateRenderer.
   NorImplementationFromVRML1Binding(NormalBinding: Integer): TNormalsImplementation;
 begin
@@ -2310,11 +2317,11 @@ begin
     niPerVertexCoordIndexed:
       N := CcwNormals.Items[CoordIndex.Items.Items[IndexNum]];
     niPerVertexNormalIndexed:
-      N := CcwNormals.Items[NormalIndex.Items.Items[IndexNum]];
+      N := CcwNormals.Items[NormalIndex.ItemsSafe[IndexNum]];
     niPerFace:
       N := CcwNormals.Items[RangeNumber];
     niPerFaceNormalIndexed:
-      N := CcwNormals.Items[NormalIndex.Items.Items[RangeNumber]];
+      N := CcwNormals.Items[NormalIndex.ItemsSafe[RangeNumber]];
     else
       raise EInternalError.Create('GetNormal: NorImplementation ?');
   end;
@@ -2334,17 +2341,15 @@ begin
       inPerVertexCoordIndexed are also set up in RenderCoordinateBegin,
       so glDrawElement will magically do this. }
 
-  if NorImplementation = niPerVertexNormalIndexed then
-  begin
-    { We could use GetNormal(IndexNum) here, but since we already checked
-      NorImplementation, we do it more directly. But the result is the same
-      as if we had used GetNormal. }
-    glNormalv(CcwNormals.Items[NormalIndex.Items.Items[IndexNum]]);
-  end;
-
-  if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex <> nil) then
-  begin
-    glNormalv(CcwNormals.Items[IndexNum]);
+  case NorImplementation of
+    niPerVertexNormalIndexed:
+      { We could use GetNormal(IndexNum) here, but since we already checked
+        NorImplementation, we do it more directly. But the result is the same
+        as if we had used GetNormal. }
+      glNormalFromIndex(NormalIndex.ItemsSafe[IndexNum]);
+    niPerVertexNonIndexed:
+      if CoordIndex <> nil then
+        glNormalFromIndex(IndexNum);
   end;
 
   inherited;
@@ -2377,7 +2382,7 @@ begin
   end else
   if NorImplementation = niOverall then
   begin
-    glNormalv(CcwNormals.Items[0]);
+    glNormalFromIndex(0);
   end;
 end;
 
@@ -2397,8 +2402,8 @@ begin
 
   case NorImplementation of
     niPerFace:
-      glNormalv(CcwNormals.Items[RangeNumber]);
+      glNormalFromIndex(RangeNumber);
     niPerFaceNormalIndexed:
-      glNormalv(CcwNormals.Items[NormalIndex.Items.Items[RangeNumber]]);
+      glNormalFromIndex(NormalIndex.ItemsSafe[RangeNumber]);
   end;
 end;
