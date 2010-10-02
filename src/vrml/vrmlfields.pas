@@ -3257,10 +3257,10 @@ const
 begin
   Inc(InvalidIndexWarnings);
   if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, ACount])) else
+    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [Name, VRMLTypeName, Index, ACount])) else
   if InvalidIndexWarnings = MaxInvalidIndexWarnings then
-    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
-      [VRMLTypeName, InvalidIndexWarnings]));
+    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+      [Name, VRMLTypeName, InvalidIndexWarnings]));
 end;
 
 { simple helpful parsing functions ---------------------------------------- }
