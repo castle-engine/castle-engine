@@ -538,11 +538,6 @@ Because of caching AlphaChannelType inside renderer, and using Renderer.Prepared
 
 sk±d kreski na water w water_reflections_normalmap (both nvidia and radeon show this). Any relation to steep parallax mapping aliasing?
 
-Unify texture coord generation for primitives and other shapes.
-The idea is that I would like to
-- apply texture coords per-unit on primitives too (currently their coords don't work with multitexturing)
-- have texCoord that allows TextureCoordinateGeneration nodes for all primitives! (very useful when you want e.g. to make cube map mirror, or shadow maps, on primitives... currenly you're forced to make IndexedFaceSet representing box just for this.)
-
 ImageGLInternalFormat should use symbolic names, not numbers!
 (Check, since which OpenGL version?)
 
@@ -696,8 +691,6 @@ after view3dscene 3.0:
 
 - fix extensions to all be gracefully declared by EXTERNPROTO,
   post to Joerg from white_dune
-
-implement carefully rest of TimeSensor from spec. Now we have X3DTimeDependentNode subset, enabled, time, and (with probably too simple implementation) set_fraction event.
 
 Using StringSensor Make it possible then to load new image file in kambi_script_edit_texture.x3dv
 
