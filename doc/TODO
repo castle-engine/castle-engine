@@ -4,30 +4,7 @@ In paricular, ../../www/TODO contains "next-release" stuff,
 usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
-www:
-- widget "last svn commits" ?
-
-- tabs at the top:
-
-  News (intro + "latest update" + link to changes_log)
-
-  - view3dscene
-    (title: VRML / X3D browser, and a viewer for other 3D model formats.)
-  - castle
-    (title: First-person perspective game, in a dark fantasy setting.)
-  - All Programs
-    (Other games and tools using our 3D engine.)
-    - Support
-
-  Developers:
-  - Engine
-    (title: Sources and documentation for developers.)
-  - VRML/X3D
-    (title: Our extensions and status of VRML/X3D implementation.)
-  - Other
-    Blender VRML, Wiki, Other pages
-
-* link to https://www.ohloh.net/p/vrmlengine/widgets, but where?
+* link to https://www.ohloh.net/p/vrmlengine/widgets somewhere?
   put a link with "I use it"? And a link to stats (with commit graph?)?
 ------------------------------------------------------------------------------
 Mirrors:
