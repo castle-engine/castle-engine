@@ -4,6 +4,7 @@ In paricular, ../../www/TODO contains "next-release" stuff,
 usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
+WWW:
 * link to https://www.ohloh.net/p/vrmlengine/widgets somewhere?
   put a link with "I use it"? And a link to stats (with commit graph?)?
 ------------------------------------------------------------------------------
@@ -350,6 +351,8 @@ Shadow maps todos:
 
 ------------------------------------------------------------------------------
 Various ideas:
+
+- A precise control over how steep hill you can climb.
 
 - screenshot: 10 November - http://vcg.isti.cnr.it/cgf/index.php ?
 
