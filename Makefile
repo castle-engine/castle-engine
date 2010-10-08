@@ -247,6 +247,7 @@ EXAMPLES_BASE_NAMES := \
   examples/audio/efx_demo \
   examples/base/demo_parseparameters \
   examples/base/demo_textreader \
+  examples/base/dircleaner \
   examples/base/test_platform_specific_utils \
   examples/kambiscript/kambi_calc \
   examples/kambiscript/image_make_by_script \
