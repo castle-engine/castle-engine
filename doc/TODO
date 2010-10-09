@@ -7,6 +7,7 @@ usually has a list of blockers typically worked upon right before release.
 WWW:
 * link to https://www.ohloh.net/p/vrmlengine/widgets somewhere?
   put a link with "I use it"? And a link to stats (with commit graph?)?
+- Any way to place icon nicely on header?
 ------------------------------------------------------------------------------
 Mirrors:
 - RenderedTexture.scene (let VA know).
