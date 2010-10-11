@@ -108,6 +108,15 @@ type
     class procedure HandleVectorSqrLength(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleVectorDot(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 
+    class procedure HandleOrientationFromDirectionUp(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleRotateCore(
+      const Rotation: TVector4Single; const Point: TVector3Single;
+      var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleRotate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleOrientationToDirection(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleOrientationToUp(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleSlerp(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+
   private
     FValue: TVector4Single;
     procedure SetValue(const AValue: TVector4Single);
@@ -359,6 +368,31 @@ type
     class function ShortName: string; override;
   end;
 
+  TKamScriptOrientationFromDirectionUp = class(TKamScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptRotate = class(TKamScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptOrientationToDirection = class(TKamScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptOrientationToUp = class(TKamScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TKamScriptSlerp = class(TKamScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
   TKamScriptMatrixFun = class(TKamScriptFunction)
   public
     class function ShortName: string; override;
@@ -382,7 +416,7 @@ type
 
 implementation
 
-uses KambiScriptCoreFunctions, KambiUtils;
+uses KambiScriptCoreFunctions, KambiUtils, DataErrors, Cameras, Quaternions;
 
 { Single-precision vectors --------------------------------------------------- }
 
@@ -419,6 +453,70 @@ begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
   TKamScriptFloat(AResult).Value :=
     GrayscaleValue( TKamScriptVec3f(Arguments[0]).Value );
+end;
+
+class procedure TKamScriptVec4f.HandleOrientationFromDirectionUp(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  Dir, Up: TVector3Single;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec4f);
+
+  Dir := TKamScriptVec3f(Arguments[0]).Value;
+  Up := TKamScriptVec3f(Arguments[1]).Value;
+  MakeVectorsOrthoOnTheirPlane(Up, Dir);
+  { no need to normalize Dir, Up here (CamDirUp2Orient will do it) }
+
+  TKamScriptVec4f(AResult).Value := CamDirUp2Orient(Dir, Up);
+end;
+
+class procedure TKamScriptVec4f.HandleRotateCore(
+  const Rotation: TVector4Single; const Point: TVector3Single;
+  var AResult: TKamScriptValue; var ParentOfResult: boolean);
+var
+  Axis: TVector3Single absolute Rotation;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec3f);
+
+  if not ZeroVector(Axis) then
+    TKamScriptVec3f(AResult).Value := RotatePointAroundAxisRad(
+      Rotation[3], Point, Axis) else
+  begin
+    { Safeguard against rotation around zero vector, which produces unpredictable
+      results (actually, Result would be filled with Nan values).
+      VRML spec says that SFRotation should always specify a normalized vector. }
+    TKamScriptVec3f(AResult).Value := Point;
+    DataWarning('Rotation around zero vector');
+  end;
+end;
+
+class procedure TKamScriptVec4f.HandleRotate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  HandleRotateCore(
+    TKamScriptVec4f(Arguments[0]).Value,
+    TKamScriptVec3f(Arguments[1]).Value, AResult, ParentOfResult);
+end;
+
+class procedure TKamScriptVec4f.HandleOrientationToDirection(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  HandleRotateCore(
+    TKamScriptVec4f(Arguments[0]).Value,
+    DefaultCameraDirection, AResult, ParentOfResult);
+end;
+
+class procedure TKamScriptVec4f.HandleOrientationToUp(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  HandleRotateCore(
+    TKamScriptVec4f(Arguments[0]).Value,
+    DefaultCameraUp, AResult, ParentOfResult);
+end;
+
+class procedure TKamScriptVec4f.HandleSlerp(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVec4f);
+  TKamScriptVec4f(AResult).Value := SLerp(
+    TKamScriptFloat(Arguments[0]).Value,
+    TKamScriptVec4f(Arguments[1]).Value,
+    TKamScriptVec4f(Arguments[2]).Value);
 end;
 
 { Double-precision vectors --------------------------------------------------- }
@@ -539,6 +637,31 @@ begin
   Result := 'grayscale';
 end;
 
+class function TKamScriptOrientationFromDirectionUp.ShortName: string;
+begin
+  Result := 'orientation_from_direction_up';
+end;
+
+class function TKamScriptRotate.ShortName: string;
+begin
+  Result := 'rotate';
+end;
+
+class function TKamScriptOrientationToDirection.ShortName: string;
+begin
+  Result := 'orientation_to_direction';
+end;
+
+class function TKamScriptOrientationToUp.ShortName: string;
+begin
+  Result := 'orientation_to_up';
+end;
+
+class function TKamScriptSlerp.ShortName: string;
+begin
+  Result := 'slerp';
+end;
+
 { matrix functions ----------------------------------------------------------- }
 
 class function TKamScriptMatrixFun.ShortName: string;
@@ -575,6 +698,12 @@ initialization
 
   FunctionHandlers.RegisterHandler(@TKamScriptVec3f(nil).HandleVectorCross, TKamScriptVectorCross, [TKamScriptVec3f, TKamScriptVec3f], false);
   FunctionHandlers.RegisterHandler(@TKamScriptVec3f(nil).HandleGrayscale, TKamScriptGrayscale, [TKamScriptVec3f], false);
+
+  FunctionHandlers.RegisterHandler(@TKamScriptVec4f(nil).HandleOrientationFromDirectionUp, TKamScriptOrientationFromDirectionUp, [TKamScriptVec3f, TKamScriptVec3f], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVec4f(nil).HandleRotate, TKamScriptRotate, [TKamScriptVec4f, TKamScriptVec3f], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVec4f(nil).HandleOrientationToDirection, TKamScriptOrientationToDirection, [TKamScriptVec4f], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVec4f(nil).HandleOrientationToUp, TKamScriptOrientationToUp, [TKamScriptVec4f], false);
+  FunctionHandlers.RegisterHandler(@TKamScriptVec4f(nil).HandleSlerp, TKamScriptSlerp, [TKamScriptFloat, TKamScriptVec4f, TKamScriptVec4f], false);
 
   RegisterVec2dFunctions;
   RegisterVec3dFunctions;
