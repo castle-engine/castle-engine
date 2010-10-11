@@ -711,8 +711,9 @@ function Zero(const f1, EqEpsilon: Double  ): boolean; overload;
 function Zero(const f1, EqEpsilon: Extended): boolean; overload;
 {$endif}
 
-{ konstruktory i konwertery typow ------------------------------------------------ }
+{ Construct and convert vectors and other types ------------------------------ }
 
+{ }
 function Vector2Cardinal(const x, y: Cardinal): TVector2Cardinal;
 function Vector2Integer(const x, y: Integer): TVector2Integer;
 
@@ -741,26 +742,32 @@ function Vector4Single(const v: TVector4Double): TVector4Single; overload;
 function Vector4Double(const x, y, z ,w: Double): TVector4Double; overload;
 function Vector4Double(const v: TVector4Single): TVector4Double; overload;
 
-{ konwersja skladowa Single->Byte w ponizszych funkcjach jest zawsze
-  robiona na zasadzie skalowania
-    0.0 i mniej -> Low(Byte) = 0,
-    1.0 i wiecej -> High(Byte) 255,
-    pomiedzy 0.0, 1.0 -> liniowo pomiedzy Low a High (Byte). }
 function Vector3Byte(x, y, z: Byte): TVector3Byte; overload;
+
+{ Convert float vectors into byte vectors.
+  Each float component is converted such that float 0.0 (or less) results in
+  0 byte, 1.0 (or more) results in byte 255 (note: not 256).
+  Values between 0.0 and 1.0 are appropriately (linearly) converted
+  into the byte range.
+  @groupBegin }
 function Vector3Byte(const v: TVector3Single): TVector3Byte; overload;
 function Vector3Byte(const v: TVector3Double): TVector3Byte; overload;
+function Vector4Byte(const f4: TVector4Single): TVector4Byte; overload;
+{ @groupEnd }
 
 function Vector4Byte(x, y, z, w: Byte): TVector4Byte; overload;
-function Vector4Byte(const f4: TVector4Single): TVector4Byte; overload;
 function Vector4Byte(const f3: TVector3Byte; w: Byte): TVector4Byte; overload;
 
-{ ma inna nazwe bo konwersja z wektora 4Single (x, y, z, w) daje
-  (x/w, y/w, z/w), wiec uwazaj - paremetr musi miec w <> 0 ! }
+{ Convert a point in homogenous coordinates into normal 3D point.
+  In other words, convert 4D @code((x, y, z, w)) into
+  @code((x/w, y/w, z/w)). Make sure the 4th vector component <> 0. }
 function Vector3SinglePoint(const v: TVector4Single): TVector3Single;
-{ ta wersja po prostu obcina 4 element }
+
+{ Convert 4D vector into 3D by simply discarding (ignoring) the 4th vector
+  component. }
 function Vector3SingleCut(const v: TVector4Single): TVector3Single;
 
-{ Normal3Single zwraca jak Vector3Single ale od razu normalizuje wartosci x, y, z }
+{ Construct and normalize 3D vector value. }
 function Normal3Single(const x, y: Single; const z: Single = 0.0): TVector3Single; overload;
 
 function Triangle3Single(const T: TTriangle3Double): TTriangle3Single; overload;
