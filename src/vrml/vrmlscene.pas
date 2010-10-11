@@ -2295,6 +2295,10 @@ begin
         GenTex^.Handler := TNodeRenderedTexture(Tex).GeneratedTextureHandler else
         raise EInternalError.Create('sf34234');
 
+      { Make sure to reset UpdateNeeded to true, in case it was false because
+        it was already generated but now some change caused ChangedAll.
+        Testcase: projected_Spotlight.x3dv from Victor Amat. }
+      GenTex^.Handler.UpdateNeeded := true;
       GenTex^.Shape := Shape;
     end;
   end;
