@@ -10,16 +10,39 @@ WWW:
 - Any way to place icon nicely on header?
 ------------------------------------------------------------------------------
 3.8.0?
-- ? TwoSidedMaterial
-- ? RenderedTexture.scene, along with allowing recursive DEF/USE, see below
-- ? Sound support, incomplete --- only stuff that maps naturally to OpenAL
-- ? flat mirrors - my approach, see below
+- Sound support, incomplete --- only stuff that maps naturally to OpenAL
+- flat mirrors - my approach, see below
+
+VBO:
 - migration to Vertex Buffer Objects
+- Clean needed rendering modes:
+
+  None
+  Scene As One Display List (Everything Static)
+  Shapes By Display List (same as roSeparateShapeStatesNoTransform now, but with VA constructed and loaded)
+  Shapes by VBO (new default)
+  
+  This will also close:
+  - Automatically detect when roSeparateShapeStates / ...NoTransform / roNone is suitable.
+    Actually, optimization should be per-shape choice now?
+    Except roSceneAsAWhole, that would override it?
+  - After 3.7.0, remove roSeparateShapes, when it's confirmed it's no better
+    than roSeparateShapesNoTransform.
+  - Move more stuff outside of RenderShapeNoTransform:
+    probably shaders, materials, textures can and should all be moved
+    outside of display list?
+    (No need for this once VBO rendering opt will be implemented.)
+
 - optimize Transform changes for shapes correctly.
   Need to make separate shapes subtree for each X3DGroupingNode?
   This would also allow implementing TransformSensor for X3DGroupingNode.
   This would also allow implementing Billboard?
 
+More Shaders:
+- GLSL attributes from X3D passing to shaders
+* make http://freewrl.sourceforge.net/images/flutter.x3d
+  read: handle data:text/plain for shader source.
+- ? Take a shot at shader pipeline: make a shader that implements proper lighting eqs.
 ------------------------------------------------------------------------------
 Mirrors:
 - RenderedTexture.scene (let VA know).
@@ -223,16 +246,13 @@ Scene manager / controls / better Lazarus integration:
   e.g. in castle. Can SceneManager help us here? Ideally, a way to allow
   all the vrml scenes to mix their OpenGL lights could be great?
 
-  Hm, not really, not yet.
   We would like to easily allow VRML lights (with global=TRUE,
   this will be following VRML idea) to be shared, but this requires dynamic
   OpenGL light allocation (not governed by Scene.Attributes.First/Last).
-  But this means not storing lights in display lists (as VRML lights may
-  always change) and this means dropping optimizations (only roNone,
-  roSeparateShapesNoTransform may be left), which generally waits for
-  remaking rendering to full VBO.
+  This means lights may change without any need to update DLs.
+  Hm, but we already have this - besides roSceneAsAWhole, lights are outside DL?
 
-  For now we would have to just allow MainScene to take all the lights and leave
+  We could also have just allow MainScene to take all the lights and leave
   them set for other scenes. Hm, actually sensible...
 
 - castle: besides level (MainScene, and level objects as additional stuff),
@@ -327,16 +347,17 @@ Scene manager / controls / better Lazarus integration:
 
 * TVRMLScene (no GL) on a Lazarus palette? Confusing with TVRMLGLScene, but is also useful.
 ------------------------------------------------------------------------------
-For view3dscene 3.6:
 - implement more pointing device sensors
+  (will probably be finished for 3.7.0)
+
 - basic networking support
-(I want to have full coverage of X3D "Interactive" with 3.6 release),
-fix Victor Amat problems with touch sensor picking along the way.
+(I want to have full coverage of X3D "Interactive" with some release).
 
 ------------------------------------------------------------------------------
-For view3dscene 4.0:
-JavaScript, or Python/Lua?
-
+view3dscene 4.0:
+- JavaScript (http://besen.sourceforge.net/ or SpiderMonkey), or Python/Lua?
+- OpenGL ES, Android? (This would also suggest engine 3.0.0 bump.)
+  With complete shaders pipeline of course.
 ------------------------------------------------------------------------------
 Shadow maps todos:
 - Point light sources.
@@ -408,21 +429,12 @@ Various ideas:
 * something animated for shadow_volume_test caster, receiver.
   Should be easy now with scene manager, that allows models to be animated.
 
-* make http://freewrl.sourceforge.net/images/flutter.x3d
-  read: handle data:text/plain for shader source.
-
 - view3dscene: edit->add viewport here command (asks for viewport name to put in description),
   adds viewport to menu,
   this viewport will be saved to file
 
 - display column / line numbers in vrml lexer errors.
   (Not so difficult if we assume it works only for Windows/Unix, because scans only for #10. Make it as an optional (boolean property) for reader. Measure downtime, maybe enable by default for vrml lexer?)
-
-* NavigationInfo binding and changes treat better.
-  - E.g. NavigationInfoStack.OnBoundChanged should cause appropriate change
-  - camera's Move*Speed user-preference (should always start at 1.0)
-    should be separated from speed determines from VRML NavigationInfo.speed.
-    This will clean things up.
 
 * glwinmessages scrollbars:
   http://www.useit.com/alertbox/20050711.html
@@ -460,8 +472,6 @@ Various ideas:
   For now, possibly I would just need basic ASCII support, so not all 256 characters need to be defined?
   Done: we use only a subset: SimpleAsciiCharacters. 4-5 and 37 seconds measures are with this already enabled... so it's working, but it's still slow.
 
-  For view3dscene 3.4, this will have to be enough.
-
 - fix vrmlengine for seamless avatars - or is it javascript lack?
 
 - view3dscene: rest of nurbs:
@@ -479,7 +489,7 @@ Effects, techniques, passes:
 - tak¿e http://http.developer.nvidia.com/GPUGems/gpugems_ch36.html chyba wszyscy o tym wspominaj±...
 
 ------------------------------------------------------------------------------
-Occlusion culling (Ok for post 3.4):
+Occlusion culling:
 
 - make RenderState.StenilTest be used also to pause (not update visibility) in hierarch oq, it would be a waste of temporal conh to not pause there.
 
@@ -506,11 +516,7 @@ Occlusion culling (Ok for post 3.4):
   See TODO in vrmlglscene.pas about this too.
 
 ------------------------------------------------------------------------------
-moved post 3.4:
-
 Victor Amat list (overlapping with mine, so let's go with it):
-  - passing vertex attributes to shaders
-
   - Note that to use it, you would also need to know the current screen
     size, how about adding outputOnly events to X3DViewpointNode that return
     screenWidth, screenHeight as SFInt32?
@@ -524,17 +530,6 @@ Victor Amat list (overlapping with mine, so let's go with it):
 - Instead of ViewerChanged and IsLast..., it would be more natural and easier
   to keep Camera reference in TVRMLScene.
   This could ease some integration between TVRMLScene, TVRMLGLScene and viewer.
-
-- There remains problem with EditableTransform behavior on shadow_map_test.x3dv:
-  Activate (click over) and press "e" over any shadow receiver.
-  This will cause change of transformation, but the bad one (because the light source is inside), so will cause ChangedAll.
-  This means that octree will be freed and we'll reset active sensor info by PointingDeviceClear.
-  This means that TouchSensor will not generate isActive := false, so script will hold isActive = true.
-  Further keypress "e" (without clicking any sensor!) will activate move on this sensor (since it's still considered "active" by the script).
-
-  This is a result of various problems:
-  - we do not have a queue of events, otherwise we could call proper SetPointingDeviceActive(false) and PointingDeviceMove(nil) for later. Although this would stil be risky --- there is a reason why we call PointingDeviceClear, to have a clear way without any possible complications and callbacks.
-  - calling ChangedAll when just the transform over the light changed is bad anyway. Octrees, in particular, do not have to be rebuild at all, so actually there should be no need for PointingDeviceClear at this point...
 
 TGLTextureStorage
     (2D - just a single GLuint for GL_TEXTURE_2D,
@@ -610,17 +605,6 @@ octree todos moved for after view3dscene 3.2:
   (Right now, only avatar->object collisions are done.)
 
 ------------------------------------------------------------------------------
-- Automatically detect when roSeparateShapeStates / ...NoTransform / roNone is suitable.
-  Actually, optimization should be per-shape choice now?
-  Except roSceneAsAWhole, that would override it?
-
-- After 3.7.0, remove roSeparateShapes, when it's confirmed it's no better
-  than roSeparateShapesNoTransform.
-
-- Move more stuff outside of RenderShapeNoTransform:
-  probably shaders, materials, textures can and should all be moved
-  outside of display list?
-
 - TVRMLScene.Shapes tree, with switches/lods approach,
   may be also used to efficiently implement layers now.
 
@@ -679,8 +663,6 @@ Shadow volumes finish:
 ------------------------------------------------------------------------------
 - prt: implement on shaders? this way roNone not needed, also special radianceTransfer field support not needed. Shaders vertex attrib nodes will have to be supported.
        make this easily usable by VRML authors, that is make it's rendering more integrated and available also from e.g. view3dscene
-
-- x3d/light_transform_animated.x3dv fix, along with fix in vrmlscene.pas about lights there
 
 - remake quat unit on Matrix vectors (with overloaded operators would be fun)
 
