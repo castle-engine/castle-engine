@@ -370,6 +370,7 @@ type
 
     property Focused: boolean read FFocused write SetFocused;
 
+  published
     { Not existing control is not visiblem doesn't receive input
       and generally doesn't exist from the point of view of user.
       You can also remove this from controls list (like

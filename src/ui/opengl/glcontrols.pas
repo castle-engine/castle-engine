@@ -38,13 +38,20 @@ type
     FAutoSize: boolean;
     TextWidth, TextHeightBase: Cardinal;
     Pressed: boolean;
+    FOwnsImage: boolean;
+    FImage: TImage;
+    FGLImage: TGLuint;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
-    { Calculate TextWidth, TextHeightBase and (if AutoSize) update Width, Height.
-      This depends on Caption, AutoSize, Font availability. }
+    { Calculate TextWidth, TextHeightBase and call UpdateSize. }
     procedure UpdateTextSize;
+    { If AutoSize, update Width, Height.
+      This depends on Caption, AutoSize, Font availability. }
+    procedure UpdateSize;
+    procedure SetImage(const Value: TImage);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
@@ -56,13 +63,18 @@ type
       OnClick callback. }
     procedure DoClick; virtual;
     procedure SetFocused(const Value: boolean); override;
+    { Set this to non-nil to display an image on the button. }
+    property Image: TImage read FImage write SetImage;
+    { Should we free the @link(Image) when you set another one or at destructor. }
+    property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
   published
     property Width: Cardinal read FWidth write FWidth default 0;
     property Height: Cardinal read FHeight write FHeight default 0;
 
     { When AutoSize is @true (the default) then Width/Height are automatically
-      adjusted when you change the Caption. They take into account Caption
-      width/height with current font, and add some margin to make it look good.
+      adjusted when you change the Caption and @link(Image). They take into account
+      Caption width/height with current font, @link(Image) width/height,
+      and add some margin to make it look good.
 
       Note that this adjustment happens only when OpenGL context is initialized
       (because only then we actually know the font used).
@@ -122,7 +134,7 @@ procedure Register;
 implementation
 
 uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, VectorMath,
-  KambiGLUtils, GLImages;
+  KambiGLUtils, GLImages, KambiUtils;
 
 procedure Register;
 begin
@@ -131,11 +143,21 @@ end;
 
 { TKamGLButton ------------------------------------------------------------------ }
 
+const
+  ButtonCaptionImageMargin = 10;
+
 constructor TKamGLButton.Create(AOwner: TComponent);
 begin
   inherited;
   FAutoSize := true;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
+end;
+
+destructor TKamGLButton.Destroy;
+begin
+  if OwnsImage then FreeAndNil(FImage);
+  glFreeDisplayList(FGLImage);
+  inherited;
 end;
 
 function TKamGLButton.DrawStyle: TUIControlDrawStyle;
@@ -169,6 +191,8 @@ const
     glVertex2i(-Level + Left + Width    , -Level + Bottom + Height - 1);
   end;
 
+var
+  TextLeft: Integer;
 begin
   if not Exists then Exit;
 
@@ -189,11 +213,28 @@ begin
     glEnd;
 
     glColorv(ColText);
-    glRasterPos2i(
-      Left + (Width - TextWidth) div 2,
-      Bottom + (Height - TextHeightBase) div 2);
+    if (FImage <> nil) and (FGLImage <> 0) then
+      TextLeft := Left +
+        (Width + FImage.Width + ButtonCaptionImageMargin - TextWidth) div 2 else
+      TextLeft := Left + (Width - TextWidth) div 2;
+    glRasterPos2i(TextLeft, Bottom + (Height - TextHeightBase) div 2);
     Font.Print(Caption);
   glPopAttrib;
+
+  if (FImage <> nil) and (FGLImage <> 0) then
+  begin
+    if FImage.HasAlpha then
+    begin
+      glPushAttrib(GL_COLOR_BUFFER_BIT);
+        glAlphaFunc(GL_GEQUAL, 0.5); // saved by GL_COLOR_BUFFER_BIT
+        glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
+    end;
+    glRasterPos2i(TextLeft - FImage.Width - ButtonCaptionImageMargin,
+      Bottom + (Height - FImage.Height) div 2);
+    glCallList(FGLImage);
+    if FImage.HasAlpha then
+      glPopAttrib;
+  end;
 end;
 
 function TKamGLButton.PositionInside(const X, Y: Integer): boolean;
@@ -209,12 +250,15 @@ procedure TKamGLButton.GLContextInit;
 begin
   inherited;
   Font := CreateUIFont;
+  if (FGLImage = 0) and (FImage <> nil) then
+    FGLImage := ImageDrawToDisplayList(FImage);
   UpdateTextSize;
 end;
 
 procedure TKamGLButton.GLContextClose;
 begin
   DestroyUIFont(Font);
+  glFreeDisplayList(FGLImage);
   inherited;
 end;
 
@@ -279,20 +323,45 @@ begin
 end;
 
 procedure TKamGLButton.UpdateTextSize;
-const
-  HorizontalMargin = 10;
-  VerticalMargin = 10;
 begin
   if Font <> nil then
   begin
     TextWidth := Font.TextWidth(Caption);
     TextHeightBase := Font.RowHeightBase;
+    UpdateSize;
+  end;
+end;
 
-    if AutoSize then
+procedure TKamGLButton.UpdateSize;
+const
+  HorizontalMargin = 10;
+  VerticalMargin = 10;
+begin
+  if AutoSize then
+  begin
+    Width := TextWidth + HorizontalMargin * 2;
+    Height := TextHeightBase + VerticalMargin * 2;
+    if FImage <> nil then
     begin
-      Width := TextWidth + HorizontalMargin * 2;
-      Height := TextHeightBase + VerticalMargin * 2;
+      Width := Width + FImage.Width + ButtonCaptionImageMargin;
+      Height := Max(Height, FImage.Height + VerticalMargin * 2);
     end;
+  end;
+end;
+
+procedure TKamGLButton.SetImage(const Value: TImage);
+begin
+  if FImage <> Value then
+  begin
+    if OwnsImage then FreeAndNil(FImage);
+    glFreeDisplayList(FGLImage);
+
+    FImage := Value;
+
+    if GLContextInitialized and (FImage <> nil) then
+      FGLImage := ImageDrawToDisplayList(FImage);
+
+    UpdateSize;
   end;
 end;
 
