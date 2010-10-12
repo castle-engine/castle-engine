@@ -1347,7 +1347,7 @@ begin
   Glw.Controls.Add(TStatusText.Create(Glw));
 
   NextButton := TNextButton.Create(Glw);
-  Glw.Controls.Add(NextButton);
+  Glw.Controls.Insert(0, NextButton);
 
   Glw.MainMenu := CreateMainMenu;
   Glw.OnMenuCommand := @MenuCommand;
