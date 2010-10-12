@@ -958,7 +958,7 @@ end;
 function TKamAbstractViewport.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result or Paused then Exit;
+  if Result or Paused or (not Exists) then Exit;
 
   if Camera <> nil then
   begin
@@ -972,7 +972,7 @@ end;
 function TKamAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result or Paused then Exit;
+  if Result or Paused or (not Exists) then Exit;
 
   if Camera <> nil then
   begin
@@ -986,7 +986,7 @@ end;
 function TKamAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or Paused then Exit;
+  if Result or Paused or (not Exists) then Exit;
 
   if Camera <> nil then
   begin
@@ -1000,7 +1000,7 @@ end;
 function TKamAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or Paused then Exit;
+  if Result or Paused or (not Exists) then Exit;
 
   if Camera <> nil then
   begin
@@ -1016,7 +1016,7 @@ var
   RayOrigin, RayDirection: TVector3Single;
 begin
   Result := inherited;
-  if (not Result) and (not Paused) and (Camera <> nil) then
+  if (not Result) and (not Paused) and Exists and (Camera <> nil) then
   begin
     Result :=
       (not (Camera.PreventsComfortableDragging and GetItems.Dragging)) and
@@ -1072,7 +1072,7 @@ procedure TKamAbstractViewport.Idle(const CompSpeed: Single;
 begin
   inherited;
 
-  if Paused then
+  if Paused or (not Exists) then
   begin
     LetOthersHandleMouseAndKeys := true;
     Exit;
@@ -1100,7 +1100,7 @@ end;
 
 function TKamAbstractViewport.AllowSuspendForInput: boolean;
 begin
-  Result := (Camera = nil) or Paused or Camera.AllowSuspendForInput;
+  Result := (Camera = nil) or Paused or (not Exists) or Camera.AllowSuspendForInput;
 end;
 
 function TKamAbstractViewport.CorrectLeft: Integer;
@@ -1856,7 +1856,7 @@ procedure TKamSceneManager.Idle(const CompSpeed: Single;
 begin
   inherited;
 
-  if not Paused then
+  if (not Paused) and Exists then
     Items.Idle(CompSpeed);
 end;
 

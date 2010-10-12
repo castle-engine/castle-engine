@@ -917,7 +917,7 @@ var
   ValueChange: Single;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not Exists) then Exit;
 
   { TODO: TGLMenuFloatSlider should rather get "smooth" changing of Value ? }
   if Key <> K_None then
@@ -1322,7 +1322,9 @@ end;
 
 function TGLMenu.DrawStyle: TUIControlDrawStyle;
 begin
-  Result := ds2D;
+  if Exists then
+    Result := ds2D else
+    Result := dsNone;
 end;
 
 procedure TGLMenu.Draw;
@@ -1343,6 +1345,8 @@ var
   I: Integer;
   CurrentItemBorderColor: TVector3Single;
 begin
+  if not Exists then Exit;
+
   if DrawBackgroundRectangle then
   begin
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1460,7 +1464,7 @@ const
 
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not Exists) then Exit;
 
   if Key = KeyPreviousItem then
   begin
@@ -1536,7 +1540,7 @@ var
   NewItemIndex: Integer;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not Exists) then Exit;
 
   { For TGLMenu, we like MouseY going higher from the bottom to the top. }
   MX := NewX;
@@ -1570,7 +1574,7 @@ var
   MX, MY: Integer;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not Exists) then Exit;
 
   { For TGLMenu, we like MouseY going higher from the bottom to the top. }
   MX := Container.MouseX;
@@ -1602,7 +1606,7 @@ end;
 function TGLMenu.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not Exists) then Exit;
 
   { This is actually not needed, smart check for
     (MousePressed - [Button] = []) inside MouseDown handles everything,

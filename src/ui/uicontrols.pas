@@ -101,6 +101,7 @@ type
     FDisableContextInitClose: Cardinal;
     FFocused: boolean;
     FGLContextInitialized: boolean;
+    FExists: boolean;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { Container (window containing the control) size, as known by this control,
@@ -124,7 +125,7 @@ type
 
       @longCode(#
   Result := inherited;
-  if Result then Exit;
+  if Result or (not Exists) then Exit;
   { ... And do the job here.
     In other words, the handling of keys in inherited
     class should have a priority. }
@@ -368,6 +369,13 @@ type
     procedure SetFocused(const Value: boolean); virtual;
 
     property Focused: boolean read FFocused write SetFocused;
+
+    { Not existing control is not visiblem doesn't receive input
+      and generally doesn't exist from the point of view of user.
+      You can also remove this from controls list (like
+      @link(TGLUIWindow.Controls)), but often it's more comfortable
+      to set this property to false. }
+    property Exists: boolean read FExists write FExists default true;
   end;
 
   { TUIControl with position (in Left, Bottom fields).
@@ -417,6 +425,7 @@ begin
   inherited;
   FExclusiveEvents := true;
   FCursor := mcDefault;
+  FExists := true;
 end;
 
 destructor TUIControl.Destroy;

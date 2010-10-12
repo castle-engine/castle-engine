@@ -140,7 +140,9 @@ end;
 
 function TKamGLButton.DrawStyle: TUIControlDrawStyle;
 begin
-  Result := ds2D;
+  if Exists then
+    Result := ds2D else
+    Result := dsNone;
 end;
 
 procedure TKamGLButton.Draw;
@@ -168,6 +170,8 @@ const
   end;
 
 begin
+  if not Exists then Exit;
+
   glPushAttrib(GL_LIGHTING_BIT);
     glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
     glBegin(GL_QUADS);
@@ -194,7 +198,7 @@ end;
 
 function TKamGLButton.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result :=
+  Result := Exists and
     (X >= Left) and
     (X  < Left + Width) and
     (ContainerHeight - Y >= Bottom) and
@@ -217,7 +221,7 @@ end;
 function TKamGLButton.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not Exists) then Exit;
 
   Result := ExclusiveEvents;
   Pressed := true;
@@ -228,7 +232,7 @@ end;
 function TKamGLButton.MouseUp(const Button: KeysMouse.TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not Exists) then Exit;
 
   if Pressed then
   begin
@@ -334,12 +338,14 @@ end;
 
 function TKamGLImage.DrawStyle: TUIControlDrawStyle;
 begin
-  Result := ds2D;
+  if Exists and (FGLImage <> 0) then
+    Result := ds2D else
+    Result := dsNone;
 end;
 
 procedure TKamGLImage.Draw;
 begin
-  if FGLImage = 0 then Exit;
+  if not (Exists and (FGLImage <> 0)) then Exit;
 
   if Blending then
   begin
@@ -357,7 +363,8 @@ end;
 
 function TKamGLImage.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := (FImage <> nil) and
+  Result := Exists and
+    (FImage <> nil) and
     (X >= Left) and
     (X  < Left + FImage.Width) and
     (ContainerHeight - Y >= Bottom) and
