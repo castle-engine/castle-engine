@@ -1776,6 +1776,7 @@ end;
 procedure TKamSceneManager.BeforeDraw;
 begin
   inherited;
+  if not Exists then Exit;
   PrepareResources;
 end;
 
@@ -1820,6 +1821,8 @@ end;
 
 procedure TKamSceneManager.Draw;
 begin
+  if not Exists then Exit;
+
   UpdateGeneratedTexturesIfNeeded;
 
   inherited;
@@ -2044,6 +2047,8 @@ end;
 
 procedure TKamViewport.Draw;
 begin
+  if not Exists then Exit;
+
   SceneManager.UpdateGeneratedTexturesIfNeeded;
 
   inherited;
