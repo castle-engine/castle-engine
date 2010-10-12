@@ -3130,6 +3130,44 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     TraverseIntoChildren := false;
   end;
 
+  procedure HandleLight(LightNode: TVRMLLightNode);
+  { When the transformation of light node, we should update every
+    TActiveLight record of this light in every shape.
+
+    TODO: code below updates too much, if the light was instantiated
+    many times then only some occurences should be updated, not all.
+
+    TODO: for global lights, limited by radius field,
+    we should also add / remove this light from some CurrentActiveLights. }
+
+    procedure HandleLightsList(List: TDynActiveLightArray);
+    var
+      I: Integer;
+    begin
+      for I := 0 to List.Count - 1 do
+        if List.Items[I].LightNode = LightNode then
+          LightNode.UpdateActiveLightState(List.Items[I], StateStack.Top);
+    end;
+
+  var
+    SI: TVRMLShapeTreeIterator;
+    Current: TVRMLShape;
+  begin
+    SI := TVRMLShapeTreeIterator.Create(ParentScene.Shapes, false);
+    try
+      while SI.GetNext do
+      begin
+        Current := SI.Current;
+        HandleLightsList(Current.OriginalState.CurrentActiveLights);
+        if Current.State(true) <> Current.OriginalState then
+          HandleLightsList(Current.State(true).CurrentActiveLights);
+        if Current.State(false) <> Current.OriginalState then
+          HandleLightsList(Current.State(false).CurrentActiveLights);
+        ParentScene.VisibleChangeHere([vcVisibleNonGeometry]);
+      end;
+    finally FreeAndNil(SI) end;
+  end;
+
 var
   Shape: TVRMLShape;
 begin
@@ -3201,12 +3239,7 @@ begin
     end else
     if Node is TVRMLLightNode then
     begin
-      { TODO: when light's transform changed, this could be more optimized:
-        - update all TActiveLight records when this light node was present
-          (by UpdateActiveLightState)
-        - hmm, eventually ChangedAll may be needed to update
-          CurrentActiveLights? }
-      raise BreakTransformChangeFailed.Create(Node.NodeTypeName);
+      HandleLight(TVRMLLightNode(Node));
     end else
     if (Node is TNodeProximitySensor) and
        { We only care about ProximitySensor in active graph parts. }
