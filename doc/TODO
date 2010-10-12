@@ -9,6 +9,18 @@ WWW:
   put a link with "I use it"? And a link to stats (with commit graph?)?
 - Any way to place icon nicely on header?
 ------------------------------------------------------------------------------
+3.8.0?
+- ? TwoSidedMaterial
+- ? RenderedTexture.scene, along with allowing recursive DEF/USE, see below
+- ? Sound support, incomplete --- only stuff that maps naturally to OpenAL
+- ? flat mirrors - my approach, see below
+- migration to Vertex Buffer Objects
+- optimize Transform changes for shapes correctly.
+  Need to make separate shapes subtree for each X3DGroupingNode?
+  This would also allow implementing TransformSensor for X3DGroupingNode.
+  This would also allow implementing Billboard?
+
+------------------------------------------------------------------------------
 Mirrors:
 - RenderedTexture.scene (let VA know).
 
