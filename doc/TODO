@@ -32,11 +32,15 @@ VBO:
     probably shaders, materials, textures can and should all be moved
     outside of display list?
     (No need for this once VBO rendering opt will be implemented.)
+  - Also, the fact that right now MovieTexture / some texture generation methods etc.
+    disable display lists will not be an issue then. They will still be optimized
+    by VBO.
 
 - optimize Transform changes for shapes correctly.
   Need to make separate shapes subtree for each X3DGroupingNode?
   This would also allow implementing TransformSensor for X3DGroupingNode.
   This would also allow implementing Billboard?
+  This would also make StaticGroup useful.
 
 More Shaders:
 - GLSL attributes from X3D passing to shaders
