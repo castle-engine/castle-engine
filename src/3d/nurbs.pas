@@ -201,7 +201,12 @@ begin
     for r := 0 to j - 1 do
     begin
       if (right[r+1] + left[j-r]) = 0 then
+      begin
+        { Or we could use try..finally, at a (very very small) speed penalty. }
+        FreeAndNil(left);
+        FreeAndNil(right);      
         Exit;
+      end;
       temp := basis[r] / (right[r+1] + left[j-r]);
       basis[r] := saved + right[r+1] * temp;
       deriv[r] := dsaved - j * temp;
