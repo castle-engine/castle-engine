@@ -13,34 +13,47 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Unit definiujacy typy do fontow truetype.)
+{ @abstract(Types for TrueType fonts.)
 
-  Definicje tych fontow moga zostac wygenerowane automatycznie przez moj
-  program font2pascal.
+  Concrete font types may be automatically loaded to such types,
+  or even converted to Pascal units (so your fonts will be embedded
+  directly into the program binary).
 
-  Krotko, na czym polegaja True-type fonty ?
-  Font = ciag znakow.
-  Znak = ciag polygonow.
-  Polygon = Ciag Linii.
-  Linia = Linia lamana / Krzywa beziera
-          (ciag punktow, w kazdym razie, tylko roznie interpretowany)
+  Basic concepts:
 
-  Zeby narysowac taki font trzeba rozwazyc wszystkie polygony.
-  Punkty ktore znajduja sie w nieparzystej liczbie powinny byc wypelnione
-  kolorem, pozostale punkty nie naleza do literki. W ten sposob np. literka
-  "o" sklada sie z dwoch polygonow : zewnetrznego i wewnetrznego.
-  Punkty na zewnatrz maja winding count = 0, punkty wewnarz wewnetrznego
-  okregu maja winding count = 2 wiec tez nie naleza do literki. Tylko
-  punkty pomiedzy dwoma koleczkami maja winding count = 1 i one
-  wlasnie tworza literke.
+  @unorderedList(
+    @item(Font (TTrueTypeFont) is an array of characters.)
 
-  Z powyzszego wynika jak wyrenderowac literke pod OpenGL'em :
-  uzyc tesselatora z GLU_TESS_WINDING_ODD i wrzucic mu wszystkie polygony.
-  Krzywe Beziera mozna rozkladac na linie lamane z taka dokladnoscia
-  jakiej chcesz (mozna nawet brac je za linie lamane - korzystajac
-  z milych wlasnosci krzywych Beziera, wziecie krzywej lamanej z punktow
-  kontrolnych krzywej tez jest jakims przyblizeniem krzywej).
-  (patrz OpenGLTTFonts)
+    @item(Character (TTTFChar) contains a basic character information
+      (size and such) and a sequence of polygons to render this character.)
+
+    @item(A polygon is a closed sequence of lines. It's defined inside
+      TTTFCharItem array, with @code(Kind = pkNewPolygon) indicating
+      start of a new polygon.)
+
+    @item(A line is a sequence of points.
+      These points should be rendered as either a sequence of straight
+      line segments, or a Bezier (cubic) curve. Line is defined inside
+      TTTFCharItem array, with @code(Kind = pkLines or pkBezier)
+      indicating start of a new line.
+
+      Note: unless you're going to see the font from a really close distance,
+      a simple renderer may be OK with treating Bezier curves just
+      like a sequence of straight line segments.)
+  )
+
+  Since characters may have holes inside, some polygons have to define
+  the outline of the hole. Consider for example an "o" letter, that needs
+  two polygons: one for the outer circle, one for the inner circle.
+  For a given point on a 2D plane, it is part of the letter
+  (e.g. should be drawn with font color) when it's inside an @italic(odd)
+  number of polygons. If it's inside an @italic(even) number of polygons
+  (0, or maybe 2, etc.) then it's not part of the letter (should be drawn
+  with background color).
+
+  The above definition makes it also natural to draw a font outline
+  using OpenGL GLU tesselator. Simply use GLU_TESS_WINDING_ODD and
+  pass all the polygons.
 }
 
 unit TTFontsTypes;
@@ -52,31 +65,39 @@ type
 
   TTTFCharItem = packed record
     case Kind: TPolygonKind of
-     pkNewPolygon, pkLines, pkBezier : (Count: Cardinal);
-     pkPoint : (x, y: Single);
+      pkNewPolygon, pkLines, pkBezier : (Count: Cardinal);
+      pkPoint : (x, y: Single);
   end;
   PTTFCharItem = ^TTTFCharItem;
 
   TTTFCharInfo = record
     MoveX, MoveY, Height: Single;
-    { This tells you how many polygons are defined in Items,
-      i.e. how many items with Kind = pkNewPolygon are there.
-      Note: it CAN be equal to 0 (for characters such as space) }
+
+    { How many polygons are defined inside TTTFChar.Items.
+      That is, how many items with Kind = pkNewPolygon are there.
+      Note: it can be equal to 0 (for characters such as space). }
     PolygonsCount: Cardinal;
-    { This determines the real size of Items array of TTTFChar. }
+
+    { Number of Items inside a TTTFChar.Items. }
     ItemsCount: Cardinal;
   end;
 
-  { typ TTTFChar nie jest typem ktorego zmienne bedziemy tworzyc.
-    Sluzy on tylko do zdefiniowania wskaznika PTTFChar.
-    Faktyczna dlugosc tablicy Items moze byc odczytana z Info.ItemsCount
-    (chociaz moglaby byc tez wywnioskowana uzywajac PolygonsCount i iterujac
-    po tablicy Items; ale czesto posiadanie gotowego ItemsCount jest duzo
-    wygodniejsze).
-
+  { Character information.
     It's packed because of the same reason as TBFNTChar. }
   TTTFChar = packed record
     Info: TTTFCharInfo;
+
+    { Actual polygons, lines and points defining font outline.
+
+      Although we define TTTFChar.Items as having
+      a (practically) infinite number of items, we actually never declare
+      variables of TTTFChar type, only of PTTFChar character.
+      You have to always look at TTTFCharInfo.ItemsCount (Info.ItemsCount)
+      to know actual number of items.
+
+      You can also determine the end of items array
+      by iterating over TTTFChar.Items, and knowing the Info.PolygonsCount.
+      Although the ItemsCount gives this directly. }
     Items: packed array[0..MaxInt div SizeOf(TTTFCharItem) - 10] of TTTFCharItem;
   end;
   PTTFChar = ^TTTFChar;
@@ -138,13 +159,13 @@ type
   Pierwszy punkt kazdej linii na pewno jest ostatnim punktem poprzedniej linii.
 *)
 
-{ liczy Descend prosto, czyli jako (height y) - (height a).
-  To bedzie dzialac dobrze dla normalnych fontow. Dla nienormalnych
-  nalezaloby przegladnac informacje o wszystkich literkach i wybrac
-  ta z najwiekszym Descend'em. }
+{ Calculate the height below the font baseline.
+  This calculates the descend really simply ,as the height
+  of letter "y" minus height of the letter "a". This will work Ok
+  (and fast) for normal fonts.}
 function TTFontSimpleDescend(font: PTrueTypeFont): Single;
 
-{ simple row height := height('Mg') }
+{ Calculate row height. Simply, as the height of 'Mg' string. }
 function TTFontSimpleRowHeight(font: PTrueTypeFont): Single;
 
 function TTFontTextWidth(font: PTrueTypeFont; const s: string): Single;
@@ -174,7 +195,7 @@ var i: integer;
 begin
  result := 0.0;
  for i := 1 to length(s) do
-   if font^[s[i]]^.info.Height > result then 
+   if font^[s[i]]^.info.Height > result then
      result := font^[s[i]]^.info.Height;
 end;
 
