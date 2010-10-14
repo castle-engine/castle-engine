@@ -547,6 +547,7 @@ type
     function KeyDown(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function MouseWheel(const Scroll: Single): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -2417,6 +2418,24 @@ begin
     VisibleChange;
     Result := ExclusiveEvents;
   end;
+end;
+
+function TExamineCamera.MouseWheel(const Scroll: Single): boolean;
+var
+  Size: Single;
+  ModsDown: TModifierKeys;
+begin
+  Result := inherited;
+  if Result or (not Exists) or
+    (not MouseNavigation) or IgnoreAllInputs or IsAnimation or
+    (ModifiersDown(Container.Pressed) * [mkShift, mkCtrl] <> []) or
+    IsEmptyOrZeroBox3D(FModelBox) then
+    Exit;
+
+  Size := Box3DAvgSize(FModelBox);
+  FMoveAmount[2] += Size * Scroll / 10;
+  VisibleChange;
+  Result := ExclusiveEvents;
 end;
 
 procedure TExamineCamera.GetView(
