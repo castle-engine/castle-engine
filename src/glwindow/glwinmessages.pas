@@ -118,7 +118,7 @@ unit GLWinMessages;
 interface
 
 uses Classes, GLWindow, KambiGLUtils, GL, GLU, GLExt, KambiUtils, OpenGLFonts,
-  KambiStringUtils, VectorMath;
+  KambiStringUtils, VectorMath, KeysMouse;
 
 type
   { Specifies text alignment for MessageXxx functions in
@@ -227,25 +227,27 @@ function MessageKey(Glwin: TGLWindow; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
 { @groupEnd }
 
-{ Ask user to press any key or mouse button, return that key (as Keys.TKey)
-  or mouse button. The natural use for this is to allow user to configure
+{ Ask user to press any key or mouse button or mouse wheel, and return it.
+  The natural use for this is to allow user to configure
   keybindings of your program, like for Navigation.TInputShortcut.
 
-  If user pressed a key, returns MouseEvent = @false and appropriate Key
-  (it's for sure <> K_None).
-  If user pressed a mouse button, returns MouseEvent = @true and
-  appropriate MouseButton.
+  If user pressed a mouse button, returns MousePress = @true and relevant
+  MouseButton. If user pressed a mouse wheel, returns MouseWheel
+  (different than mwNone).
+  If user pressed a key, returns appropriate Key (for sure <> K_None).
 
   @groupBegin }
 procedure MessageKeyMouse(Glwin: TGLWindow; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign;
-  out MouseEvent: boolean;
-  out Key: TKey; out MouseButton: TMouseButton); overload;
+  out Key: TKey;
+  out MousePress: boolean; out MouseButton: TMouseButton;
+  out MouseWheel: TMouseWheelDirection); overload;
 
 procedure MessageKeyMouse(Glwin: TGLWindow; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign;
-  out MouseEvent: boolean;
-  out Key: TKey; out MouseButton: TMouseButton); overload;
+  out Key: TKey;
+  out MousePress: boolean; out MouseButton: TMouseButton;
+  out MouseWheel: TMouseWheelDirection); overload;
 { @groupEnd }
 
 function MessageYesNo(glwin: TGLWindow; const s: string;
@@ -376,7 +378,7 @@ var
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
-  KambiClassUtils, SysUtils, GLWinModes, IntRects, KeysMouse, KambiLog,
+  KambiClassUtils, SysUtils, GLWinModes, IntRects, KambiLog,
   GLImages;
 
 const
@@ -456,6 +458,7 @@ type
     { ustawiane w GLWinMesssage, potem readonly }
     OnUserKeyDown: TKeyCharFunc;
     OnUserMouseDown: TMouseUpDownFunc;
+    OnUserMouseWheel: TMouseWheelFunc;
     { If @true then OnUserMouseDown will occur only when user clicks
       inside the rectangular area of our message window.
       If @false, OnUserMouseDown will occur on mouse down event
@@ -732,6 +735,9 @@ begin
   begin
     MD := TMessageData(glwin.UserData);
     MD.SetFloatShiftY(Glwin, MD.ShiftY - Scroll * MD.Font.RowHeight);
+
+    if Assigned(MD.OnUserMouseWheel) then
+      MD.OnUserMouseWheel(Glwin, Scroll, Vertical);
   end;
 end;
 
@@ -944,8 +950,9 @@ end;
     click on other places.
 }
 procedure GLWinMessage(glwin: TGLWindow; textlist: TStringList;
-  textalign: TTextAlign; messageOnUserKeyDown: TKeyCharFunc;
+  textalign: TTextAlign; MessageOnUserKeyDown: TKeyCharFunc;
   MessageOnUserMouseDown: TMouseUpDownFunc;
+  MessageOnUserMouseWheel: TMouseWheelFunc;
   AUserMouseDownOnlyWithinRect: boolean;
   messageUserdata: pointer;
   const AClosingInfo: string; { = '' znaczy "nie rysuj ClosingInfo" }
@@ -1054,6 +1061,7 @@ begin
   begin
    OnUserKeyDown := messageOnUserKeyDown;
    OnUserMouseDown := MessageOnUserMouseDown;
+   OnUserMouseWheel := MessageOnUserMouseWheel;
    UserMouseDownOnlyWithinRect := AUserMouseDownOnlyWithinRect;
    if glwin.DoubleBuffer then
     dlDrawBG := SaveScreenWhole_ToDisplayList_noflush(GL_BACK) else
@@ -1114,16 +1122,19 @@ begin
 end;
 
 procedure GLWinMessage_NoAdditional(glwin: TGLWindow; textlist: TStringList;
-  textalign: TTextAlign; messageOnUserKeyDown: TKeyCharFunc;
+  textalign: TTextAlign;
+  MessageOnUserKeyDown: TKeyCharFunc;
   MessageOnUserMouseDown: TMouseUpDownFunc;
+  MessageOnUserMouseWheel: TMouseWheelFunc;
   AUserMouseDownOnlyWithinRect: boolean;
   messageUserdata: pointer;
   const AClosingInfo: string);
 var dummy: string;
 begin
  dummy := '';
- GLWinMessage(glwin, textlist, textalign, messageOnUserKeyDown,
-   MessageOnUserMouseDown, AUserMouseDownOnlyWithinRect,
+ GLWinMessage(glwin, textlist, textalign, MessageOnUserKeyDown,
+   MessageOnUserMouseDown, MessageOnUserMouseWheel,
+   AUserMouseDownOnlyWithinRect,
    messageUserdata, AClosingInfo, false, dummy);
 end;
 
@@ -1167,7 +1178,7 @@ procedure MessageOK(glwin: TGLWindow;  textlist: TStringList;
 begin
  GLWinMessage_NoAdditional(glwin, textlist, textalign,
    {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgOK,
-   {$ifdef FPC_OBJFPC} @ {$endif} MouseDownMessgOK, true,
+   {$ifdef FPC_OBJFPC} @ {$endif} MouseDownMessgOK, nil, true,
    nil, '[Enter]');
 end;
 
@@ -1250,7 +1261,7 @@ begin
  inputdata.answerCancelled := false;
  result := answerDefault;
  GLWinMessage(glwin, textlist, textalign,
-   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil, false,
+   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil, nil, false,
    @inputdata, '', true, result);
 end;
 
@@ -1284,7 +1295,7 @@ begin
   answer. }
  SAdditional := answer;
  GLWinMessage(glwin, textlist, textalign,
-   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil, false,
+   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil, nil, false,
    @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
  result := not inputdata.answerCancelled;
  if result then answer := SAdditional;
@@ -1359,7 +1370,7 @@ begin
  chardata.allowedChars := AllowedChars;
  chardata.IgnoreCase := IgnoreCase;
  GLWinMessage_NoAdditional(glwin, textlist, textalign,
-   @KeyDownMessgChar, nil, false,
+   @KeyDownMessgChar, nil, nil, false,
    @chardata, ClosingInfo);
  result := chardata.answer;
 end;
@@ -1417,7 +1428,7 @@ var
   MessageKeyData: TMessageKeyData;
 begin
   GLWinMessage_NoAdditional(Glwin, TextList, TextAlign,
-    {$ifdef FPC_OBJFPC} @ {$endif} MessageKey_KeyDown, nil, false,
+    {$ifdef FPC_OBJFPC} @ {$endif} MessageKey_KeyDown, nil, nil, false,
     @MessageKeyData, ClosingInfo);
   Result := MessageKeyData.Answer;
 end;
@@ -1426,9 +1437,10 @@ end;
 
 type
   TMessageKeyMouseData = record
-    AnswerMouseEvent: boolean;
     AnswerKey: TKey;
+    AnswerMousePress: boolean;
     AnswerMouseButton: TMouseButton;
+    AnswerMouseWheel: TMouseWheelDirection;
   end;
   PMessageKeyMouseData = ^TMessageKeyMouseData;
 
@@ -1443,8 +1455,10 @@ begin
   if Key <> K_None then
   begin
     MD.Answered := true;
-    KD^.AnswerMouseEvent := false;
     KD^.AnswerKey := Key;
+    KD^.AnswerMousePress := false;
+    KD^.AnswerMouseButton := mbLeft; { not relevant }
+    KD^.AnswerMouseWheel := mwNone;
   end;
 end;
 
@@ -1457,14 +1471,33 @@ begin
   KD := PMessageKeyMouseData(MD.UserData);
 
   MD.Answered := true;
-  KD^.AnswerMouseEvent := true;
+  KD^.AnswerKey := K_None;
+  KD^.AnswerMousePress := true;
   KD^.AnswerMouseButton := MouseButton;
+  KD^.AnswerMouseWheel := mwNone;
+end;
+
+procedure MessageKeyMouse_MouseWheel(Glwin: TGLWindow;
+  const Scroll: Single; const Vertical: boolean);
+var
+  MD: TMessageData;
+  KD: PMessageKeyMouseData;
+begin
+  MD := TMessageData(Glwin.UserData);
+  KD := PMessageKeyMouseData(MD.UserData);
+
+  MD.Answered := true;
+  KD^.AnswerKey := K_None;
+  KD^.AnswerMousePress := false;
+  KD^.AnswerMouseButton := mbLeft; { not relevant }
+  KD^.AnswerMouseWheel := MouseWheelDirection(Scroll, Vertical);
 end;
 
 procedure MessageKeyMouse(Glwin: TGLWindow; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign;
-  out MouseEvent: boolean;
-  out Key: TKey; out MouseButton: TMouseButton);
+  out Key: TKey;
+  out MousePress: boolean; out MouseButton: TMouseButton;
+  out MouseWheel: TMouseWheelDirection);
 var
   TextList: TStringList;
 begin
@@ -1472,24 +1505,27 @@ begin
   try
     Strings_SetText(TextList, S);
     MessageKeyMouse(Glwin, TextList, ClosingInfo, TextAlign,
-      MouseEvent, Key, MouseButton);
+      Key, MousePress, MouseButton, MouseWheel);
   finally TextList.Free end;
 end;
 
 procedure MessageKeyMouse(Glwin: TGLWindow; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign;
-  out MouseEvent: boolean;
-  out Key: TKey; out MouseButton: TMouseButton);
+  out Key: TKey;
+  out MousePress: boolean; out MouseButton: TMouseButton;
+  out MouseWheel: TMouseWheelDirection);
 var
   Data: TMessageKeyMouseData;
 begin
   GLWinMessage_NoAdditional(Glwin, TextList, TextAlign,
     {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_KeyDown,
-    {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_MouseDown, false,
+    {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_MouseDown,
+    {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_MouseWheel, false,
     @Data, ClosingInfo);
-  MouseEvent := Data.AnswerMouseEvent;
   Key := Data.AnswerKey;
+  MousePress := Data.AnswerMousePress;
   MouseButton := Data.AnswerMouseButton;
+  MouseWheel := Data.AnswerMouseWheel;
 end;
 
 { MessageYesNo ktore jest po prostu realizowane przez MessageChar ------------ }

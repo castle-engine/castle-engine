@@ -357,6 +357,18 @@ function ModifiersDown(Pressed: TKeysPressed): TModifierKeys; overload;
 
 function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
 
+type
+  TMouseWheelDirection = (mwNone, mwUp, mwDown, mwLeft, mwRight);
+
+const
+  MouseWheelDirectionStr: array [TMouseWheelDirection] of string =
+  ('none', 'up', 'down', 'left', 'right');
+
+{ Determine simple mouse wheel direction from a Scroll and Vertical
+  parameters received from TGLWindow.OnMouseWheel.
+  Assumes that Scroll <> 0, like TGLWindow.OnMouseWheel guarantees. }
+function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
+
 implementation
 
 uses SysUtils;
@@ -459,6 +471,15 @@ begin
    so it's safe to check Result[Length(result)]. }
  if Result[Length(result)] = ',' then SetLength(result, Length(result)-1);
  Result += ']';
+end;
+
+function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
+begin
+  if Scroll > 0 then
+  begin
+    if Vertical then Result := mwUp else Result := mwLeft;
+  end else
+    if Vertical then Result := mwDown else Result := mwRight;
 end;
 
 { TKeysPressed --------------------------------------------------------------- }

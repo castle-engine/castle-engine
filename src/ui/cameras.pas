@@ -48,7 +48,8 @@ type
 
   { An input shortcut represents a keyboard and/or mouse shortcut
     for some command. Up to two key shortcuts may be assigned to a single
-    item, and one mouse shortcut, and one character shortcut.
+    item, one mouse button shortcut, one character shortcut,
+    and one mouse wheel shortcut.
 
     Normal "key shortcut" is identified by Keys.TKey value.
 
@@ -58,8 +59,7 @@ type
     by Shift + "x" or by pressing "x" while "caps lock" is on;
     but this is not dealt with in this unit (it's usually provided
     by operating system / GUI toolkit to GLWindow unit),
-    we just get characters passed to TCamera.KeyDown
-    and such methods.) }
+    we just get characters passed to TCamera.KeyDown and such methods.) }
   TInputShortcut = class
   private
     FKey1: TKey;
@@ -67,18 +67,21 @@ type
     FCharacter: Char;
     FMouseButtonUse: boolean;
     FMouseButton: TMouseButton;
+    FMouseWheel: TMouseWheelDirection;
 
     procedure SetKey1(const Value: TKey);
     procedure SetKey2(const Value: TKey);
     procedure SetCharacter(const Value: Char);
     procedure SetMouseButtonUse(const Value: boolean);
     procedure SetMouseButton(const Value: TMouseButton);
+    procedure SetMouseWheel(const Value: TMouseWheelDirection);
   private
     FDefaultKey1: TKey;
     FDefaultKey2: TKey;
     FDefaultCharacter: Char;
     FDefaultMouseButtonUse: boolean;
     FDefaultMouseButton: TMouseButton;
+    FDefaultMouseWheel: TMouseWheelDirection;
 
     FOnChanged: TInputShortcutChangedFunc;
   protected
@@ -90,7 +93,8 @@ type
       properties. }
     constructor Create(AKey1: TKey; AKey2: TKey; ACharacter: Char;
       AMouseButtonUse: boolean;
-      AMouseButton: TMouseButton);
+      AMouseButton: TMouseButton;
+      const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Key shortcuts for given command. You can set any of them to K_None
       to indicate that no key is assigned.
@@ -110,6 +114,13 @@ type
     property MouseButton: TMouseButton read FMouseButton write SetMouseButton;
     { @groupEnd }
 
+    { Mouse wheel to activate this command. Note that mouse wheels cannot be
+      continously pressed (our method IsPressed doesn't look at it),
+      so this is only suitable for commands that work in steps
+      (not continously). }
+    property MouseWheel: TMouseWheelDirection read FMouseWheel
+      write SetMouseWheel default mwNone;
+
     { Default values for properties key/mouse.
       You can change them --- this will change what MakeDefault does.
 
@@ -127,6 +138,8 @@ type
       read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
     property DefaultMouseButton: TMouseButton
       read FDefaultMouseButton write FDefaultMouseButton;
+    property DefaultMouseWheel: TMouseWheelDirection
+      read FDefaultMouseWheel write FDefaultMouseWheel;
     { @groupEnd }
 
     procedure MakeDefault;
@@ -136,13 +149,13 @@ type
 
     { This copies Source properties to this object.
       It always copies "current" properties (Key1, Key2, Character,
-      MouseButtonUse, MouseButton), and optionally (if CopyDefaults)
+      MouseButtonUse, MouseButton, MouseWheel), and optionally (if CopyDefaults)
       also copies the DefaultXxx properties. }
     procedure Assign(Source: TInputShortcut; CopyDefaults: boolean);
 
-    { This sets both keys to K_None, Character to #0 and MouseButtonUse
-      to @false, effectively making this input shortcut impossible
-      to enter by the user. }
+    { Make this input impossible to activate by the user.
+      This sets both keys to K_None, Character to #0, MouseButtonUse
+      to @false, and MouseWheel to mwNone. }
     procedure MakeClear;
 
     { Given a set of currently pressed keys and mouse buttons,
@@ -163,21 +176,24 @@ type
       AMouseButton with MouseButton. }
     function IsMouseButton(AMouseButton: TMouseButton): boolean;
 
-    { Check does given key/character (if not MouseEvent)
-      or mouse button (if MouseEvent)
-      correspond to this input shortcut.
+    function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 
-      Basically, this is a "dispatcher" that simply calls IsKey or
-      IsMouseButton method. Depending on the MouseEvent value,
-      some of the other parameters (Key/ACharacter or AMouseButton) are
-      simply ignored.
+    { Check does given key or mouse button or mouse wheel use activates
+      this shortcut.
 
-      This is often comfortable method if you want to squeeze calling
-      IsKey and IsMouseButton into one procedure
-      in the implementation --- see e.g. TWalkCamera.EventDown. }
-    function IsEvent(MouseEvent: boolean; Key: TKey;
-      ACharacter: Char;
-      AMouseButton: TMouseButton): boolean;
+      For key/character press, set AKey <> K_None or ACharacter <> #0.
+      For mouse button press, set AMousePress to @true
+      and pass relevant AMouseButton. For mouse wheel, pass AMouseWheel
+      <> mwNone. Pass only one of these three events here,
+      for example if you AMousePress to @true then pass
+      AKey = K_None and ACharacter = #0 and AMouseWheel = mwNone.
+
+      Basically, this is a "dispatcher" that simply calls one of the IsKey or
+      IsMouseButton or IsMouseWheel methods. It's sometimes more comfortable
+      to use this instead of taking care of them separately. }
+    function IsEvent(AKey: TKey; ACharacter: Char;
+      AMousePress: boolean; AMouseButton: TMouseButton;
+      AMouseWheel: TMouseWheelDirection): boolean;
 
     { Describe this input shortcut. If it's not active at all
       (like after MakeClear), we will use NoneString. }
@@ -185,8 +201,9 @@ type
 
     { If assigned, this will be called always right after the key/character/mouse
       shortcut value changed. Note that this is called only when
-      the "current" values (Key1, Key2, Character, MouseButtonUse, MouseButton)
-      changed, and it's not called when just the DefaultXxx values changed. }
+      the "current" values (Key1, Key2, Character, MouseButtonUse, MouseButton,
+      MouseWheel) changed, and it's not called when just
+      the DefaultXxx values changed. }
     property OnChanged: TInputShortcutChangedFunc
       read FOnChanged write FOnChanged;
   end;
@@ -526,9 +543,9 @@ type
     FInput_Home: TInputShortcut;
     FInput_StopRotating: TInputShortcut;
 
-    function EventDown(MouseEvent: boolean; Key: TKey;
-      ACharacter: Char;
-      AMouseButton: TMouseButton): boolean;
+    function EventDown(AKey: TKey; ACharacter: Char;
+      AMousePress: boolean; AMouseButton: TMouseButton;
+      AMouseWheel: TMouseWheelDirection): boolean;
   private
     FMouseNavigation: boolean;
   public
@@ -729,10 +746,9 @@ type
       of the jump. Can be useful to determine if key was handled and such. }
     function Jump: boolean;
 
-    function EventDown(MouseEvent: boolean; Key: TKey;
-      ACharacter: Char;
-      AMouseButton: TMouseButton): boolean;
-
+    function EventDown(AKey: TKey; ACharacter: Char;
+      AMousePress: boolean; AMouseButton: TMouseButton;
+      AMouseWheel: TMouseWheelDirection): boolean;
   private
     { Private things related to gravity ---------------------------- }
 
@@ -1168,6 +1184,7 @@ type
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
     function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
     { Things related to gravity ---------------------------------------- }
 
@@ -1638,7 +1655,8 @@ const
 { TInputShortcut ------------------------------------------------------------- }
 
 constructor TInputShortcut.Create(AKey1: TKey; AKey2: TKey; ACharacter: Char;
-  AMouseButtonUse: boolean; AMouseButton: TMouseButton);
+  AMouseButtonUse: boolean; AMouseButton: TMouseButton;
+  const AMouseWheel: TMouseWheelDirection);
 begin
   inherited Create;
   FDefaultKey1 := AKey1;
@@ -1646,6 +1664,7 @@ begin
   FDefaultCharacter := ACharacter;
   FDefaultMouseButtonUse := AMouseButtonUse;
   FDefaultMouseButton := AMouseButton;
+  FDefaultMouseWheel := AMouseWheel;
   MakeDefault;
 end;
 
@@ -1661,6 +1680,7 @@ begin
   FCharacter := Source.DefaultCharacter;
   FMouseButtonUse := Source.DefaultMouseButtonUse;
   FMouseButton := Source.DefaultMouseButton;
+  FMouseWheel := Source.DefaultMouseWheel;
 
   { I don't set here properties, but directly set FXxx fields,
     so that I can call Changed only once. }
@@ -1676,6 +1696,7 @@ begin
     DefaultCharacter := Source.DefaultCharacter;
     DefaultMouseButtonUse := Source.DefaultMouseButtonUse;
     DefaultMouseButton := Source.DefaultMouseButton;
+    DefaultMouseWheel := Source.DefaultMouseWheel;
   end;
 
   FKey1 := Source.Key1;
@@ -1683,6 +1704,7 @@ begin
   FCharacter := Source.Character;
   FMouseButtonUse := Source.MouseButtonUse;
   FMouseButton := Source.MouseButton;
+  FMouseWheel := Source.MouseWheel;
 
   { I don't set here properties, but directly set FXxx fields,
     so that I can call Changed only once. }
@@ -1695,6 +1717,7 @@ begin
   FKey2 := K_None;
   FCharacter := #0;
   FMouseButtonUse := false;
+  FMouseWheel := mwNone;
 
   { I don't set here properties, but directly set FXxx fields,
     so that I can call Changed only once. }
@@ -1728,13 +1751,20 @@ begin
   Result := MouseButtonUse and (AMouseButton = MouseButton);
 end;
 
-function TInputShortcut.IsEvent(MouseEvent: boolean; Key: TKey;
-  ACharacter: Char;
-  AMouseButton: TMouseButton): boolean;
+function TInputShortcut.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 begin
-  if MouseEvent then
+  Result := (AMouseWheel <> mwNone) and (AMouseWheel = MouseWheel);
+end;
+
+function TInputShortcut.IsEvent(AKey: TKey; ACharacter: Char;
+  AMousePress: boolean; AMouseButton: TMouseButton;
+  AMouseWheel: TMouseWheelDirection): boolean;
+begin
+  if AMousePress then
     Result := IsMouseButton(AMouseButton) else
-    Result := IsKey(Key, ACharacter);
+  if AMouseWheel <> mwNone then
+    Result := IsMouseWheel(AMouseWheel) else
+    Result := IsKey(AKey, ACharacter);
 end;
 
 function TInputShortcut.Description(const NoneString: string): string;
@@ -1765,6 +1795,12 @@ begin
   begin
     if Result <> '' then Result += ' or ';
     Result += Format('mouse "%s"', [MouseButtonStr[MouseButton]]);
+  end;
+
+  if MouseWheel <> mwNone then
+  begin
+    if Result <> '' then Result += ' or ';
+    Result += Format('wheel "%s"', [MouseWheelDirectionStr[MouseWheel]]);
   end;
 
   if Result = '' then
@@ -1804,6 +1840,12 @@ end;
 procedure TInputShortcut.SetMouseButton(const Value: TMouseButton);
 begin
   FMouseButton := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetMouseWheel(const Value: TMouseWheelDirection);
+begin
+  FMouseWheel := Value;
   Changed;
 end;
 
@@ -2275,18 +2317,18 @@ begin
   VisibleChange;
 end;
 
-function TExamineCamera.EventDown(MouseEvent: boolean; Key: TKey;
-  ACharacter: Char;
-  AMouseButton: TMouseButton): boolean;
+function TExamineCamera.EventDown(AKey: TKey; ACharacter: Char;
+  AMousePress: boolean; AMouseButton: TMouseButton;
+  AMouseWheel: TMouseWheelDirection): boolean;
 begin
   if IgnoreAllInputs or IsAnimation then Exit(false);
 
-  if Input_StopRotating.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
+  if Input_StopRotating.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
   begin
     StopRotating;
     Result := ExclusiveEvents;
   end else
-  if Input_Home.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
+  if Input_Home.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
   begin
     Home;
     Result := ExclusiveEvents;
@@ -2301,7 +2343,7 @@ begin
 
   if ModifiersDown(Container.Pressed) <> [] then Exit;
 
-  Result := EventDown(false, Key, C, mbLeft);
+  Result := EventDown(Key, C, false, mbLeft, mwNone);
 end;
 
 function TExamineCamera.MouseDown(const Button: TMouseButton): boolean;
@@ -2309,7 +2351,7 @@ begin
   Result := inherited;
   if Result or (not Exists) then Exit;
 
-  Result := EventDown(true, K_None, #0, Button);
+  Result := EventDown(K_None, #0, true, Button, mwNone);
 end;
 
 function TExamineCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
@@ -2430,6 +2472,8 @@ begin
     (ModifiersDown(Container.Pressed) * [mkShift, mkCtrl] <> []) or
     IsEmptyOrZeroBox3D(FModelBox) then
     Exit;
+
+  { For now, this is hardcoded, we don't call EventDown here }
 
   Size := Box3DAvgSize(FModelBox);
   FMoveAmount[2] += Size * Scroll / 10;
@@ -3690,20 +3734,20 @@ begin
   Result := false;
 end;
 
-function TWalkCamera.EventDown(MouseEvent: boolean; Key: TKey;
-  ACharacter: Char;
-  AMouseButton: TMouseButton): boolean;
+function TWalkCamera.EventDown(AKey: TKey; ACharacter: Char;
+  AMousePress: boolean; AMouseButton: TMouseButton;
+  AMouseWheel: TMouseWheelDirection): boolean;
 begin
   if IgnoreAllInputs or IsAnimation then Exit(false);
 
   {$ifdef SINGLE_STEP_ROTATION}
-  if Input_RightRot.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
+  if Input_RightRot.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
     RotateHorizontal(-5) else
-  if Input_LeftRot.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
+  if Input_LeftRot.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
     RotateHorizontal(+5) else
   {$endif SINGLE_STEP_ROTATION}
 
-  if Input_GravityUp.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
+  if Input_GravityUp.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
   begin
     if VectorsParallel(Direction, GravityUp) then
     begin
@@ -3722,7 +3766,7 @@ begin
       Up := GravityUp;
     Result := ExclusiveEvents;
   end else
-  if Input_Jump.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
+  if Input_Jump.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
   begin
     Result := Jump and ExclusiveEvents;
   end else
@@ -3737,7 +3781,7 @@ begin
   if (not CheckModsDown) or
      (ModifiersDown(Container.Pressed) - [mkShift] = []) then
   begin
-    Result := EventDown(false, Key, C, mbLeft);
+    Result := EventDown(Key, C, false, mbLeft, mwNone);
   end;
 end;
 
@@ -3746,7 +3790,16 @@ begin
   Result := inherited;
   if Result or (not Exists) then Exit;
 
-  Result := EventDown(true, K_None, #0, Button);
+  Result := EventDown(K_None, #0, true, Button, mwNone);
+end;
+
+function TWalkCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
+begin
+  Result := inherited;
+  if Result or (not Exists) then Exit;
+
+  Result := EventDown(K_None, #0, false, mbLeft,
+    MouseWheelDirection(Scroll, Vertical));
 end;
 
 procedure TWalkCamera.Init(
