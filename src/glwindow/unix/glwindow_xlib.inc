@@ -546,8 +546,14 @@ end;
 procedure TGLWindow.X_ButtonPress(const event: TXButtonPressedEvent);
 var btn: TMouseButton;
 begin
- if xbtnToMouseButton(event.button, btn) then
-  DoMouseDown(event.x, event.y, btn)
+  if xbtnToMouseButton(event.button, btn) then
+    DoMouseDown(event.x, event.y, btn) else
+  case Event.Button of
+    Button4: DoMouseWheel( 1, true);
+    Button5: DoMouseWheel(-1, true);
+    6: DoMouseWheel( 1, false); { not sure if this is possible }
+    7: DoMouseWheel(-1, false); { not sure if this is possible }
+  end;
 end;
 
 procedure TGLWindow.X_ButtonRelease(const event: TXButtonReleasedEvent);

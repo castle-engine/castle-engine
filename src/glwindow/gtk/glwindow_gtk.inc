@@ -655,6 +655,19 @@ SIGNAL_GLAREA_BEGIN
   Result := g_true;
 SIGNAL_GLAREA_END;
 
+function signal_scroll_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventScroll;
+  data: gpointer): gboolean; cdecl;
+SIGNAL_GLAREA_BEGIN
+  case Event^.Direction of
+    GDK_SCROLL_UP:   DoMouseWheel( 1, true);
+    GDK_SCROLL_DOWN: DoMouseWheel(-1, true);
+    GDK_SCROLL_LEFT: DoMouseWheel( 1, false);
+    GDK_SCROLL_RIGHT:DoMouseWheel(-1, false);
+    else if Log then WritelnLog('GTK', 'Invalid GdkEventScroll.direction');
+  end;
+  Result := g_true;
+SIGNAL_GLAREA_END;
+
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl;
 
@@ -1112,6 +1125,10 @@ begin
    GTK_SIGNAL_FUNC(@signal_button_release_event), nil);
  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'motion_notify_event',
    GTK_SIGNAL_FUNC(@signal_motion_notify_event), nil);
+ {$ifdef GLWINDOW_GTK_2}
+ gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'scroll_event',
+   GTK_SIGNAL_FUNC(@signal_scroll_event), nil);
+ {$endif}
 
  { connect signal handlers to WindowGtk }
  gtk_widget_set_events(GTK_WIDGET(WindowGtk),

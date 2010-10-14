@@ -1741,13 +1741,16 @@ type
 
     { Event called when user scrolled with mouse wheel.
 
-      Positive value of Scroll means user scrolled up (away from user),
-      negative means user scrolled down (to the user). It is never zero.
+      Positive value of Scroll means user scrolled up or left,
+      negative means user scrolled down or right. It is never zero.
 
       Scroll units are such that 1.0 should be treated like a "one operation",
       like a one click. On most normal mouses only an integer scroll will be
-      possible to make. On the other hand, on touchpads it's common to be able to scroll
-      by flexible amounts. }
+      possible to make. On the other hand, on touchpads it's common to be able
+      to scroll by flexible amounts.
+
+      Backends: WinAPI cannot handle horizontal scrolling.
+      GTK and Xlib cannot generate Scroll values different than 1 or -1. }
     property OnMouseWheel: TMouseWheelFunc read FMouseWheel write FMouseWheel;
 
     { property OnIdle i OnTimer beda zachodzily dla wszystkich okien
