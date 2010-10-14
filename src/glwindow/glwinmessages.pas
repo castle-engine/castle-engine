@@ -724,6 +724,14 @@ begin
  md.setFloatShiftY(glwin, md.shiftY + moveY);
 end;
 
+procedure MouseWheelMessg(glwin: TGLWindow; const Scroll: Single);
+var
+  MD: TMessageData;
+begin
+  MD := TMessageData(glwin.UserData);
+  MD.SetFloatShiftY(Glwin, MD.ShiftY - Scroll * MD.Font.RowHeight);
+end;
+
 procedure IdleMessg(glwin: TGLWindow);
 
   function Faktor: Single;
@@ -1005,6 +1013,7 @@ begin
  with glwin do begin
   OnMouseMove := @mouseMoveMessg;
   OnMouseDown := @mouseDownMessg;
+  OnMouseWheel := @MouseWheelMessg;
   OnMouseUp := @mouseUpMessg;
   OnKeyDown := @KeyDownMessg;
   OnIdle := @idleMessg;
