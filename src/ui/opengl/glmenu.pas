@@ -917,7 +917,7 @@ var
   ValueChange: Single;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result then Exit;
 
   { TODO: TGLMenuFloatSlider should rather get "smooth" changing of Value ? }
   if Key <> K_None then
