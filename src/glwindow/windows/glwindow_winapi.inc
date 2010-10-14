@@ -572,7 +572,8 @@ begin
 
   WM_MOUSEWHEEL:
     begin
-      DoMouseWheel(SmallInt(HiWord(WParm)) / 120.0);
+      DoMouseWheel(SmallInt(HiWord(WParm)) / 120.0,
+        false { no way to detect horizontal scrolling in WinAPI ? });
       Exit;
     end;
  end;

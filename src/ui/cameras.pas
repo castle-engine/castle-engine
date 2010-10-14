@@ -547,7 +547,7 @@ type
     function KeyDown(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    function MouseWheel(const Scroll: Single): boolean; override;
+    function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -1529,7 +1529,7 @@ type
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    function MouseWheel(const Scroll: Single): boolean; override;
+    function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
@@ -2420,10 +2420,9 @@ begin
   end;
 end;
 
-function TExamineCamera.MouseWheel(const Scroll: Single): boolean;
+function TExamineCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
 var
   Size: Single;
-  ModsDown: TModifierKeys;
 begin
   Result := inherited;
   if Result or (not Exists) or
@@ -4187,12 +4186,12 @@ begin
   Result := Current.MouseMove(OldX, OldY, NewX, NewY);
 end;
 
-function TUniversalCamera.MouseWheel(const Scroll: Single): boolean;
+function TUniversalCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
 begin
   Result := inherited;
   if Result or (not Exists) then Exit;
 
-  Result := Current.MouseWheel(Scroll);
+  Result := Current.MouseWheel(Scroll, Vertical);
 end;
 
 procedure TUniversalCamera.SetContainer(const Value: IUIContainer);

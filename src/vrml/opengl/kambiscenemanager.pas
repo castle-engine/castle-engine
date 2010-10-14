@@ -226,7 +226,7 @@ type
     function KeyUp(Key: TKey; C: char): boolean; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseWheel(const Scroll: Single): boolean; override;
+    function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
@@ -1043,18 +1043,18 @@ begin
   ItemsAndCameraCursorChange(Self);
 end;
 
-function TKamAbstractViewport.MouseWheel(const Scroll: Single): boolean;
+function TKamAbstractViewport.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
 begin
   Result := inherited;
   if Result or Paused or (not Exists) then Exit;
 
   if Camera <> nil then
   begin
-    Result := Camera.MouseWheel(Scroll);
+    Result := Camera.MouseWheel(Scroll, Vertical);
     if Result then Exit;
   end;
 
-  // Implement when needed: Result := GetItems.MouseWheel(Scroll);
+  // Implement when needed: Result := GetItems.MouseWheel(Scroll, Vertical);
 end;
 
 procedure TKamAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);

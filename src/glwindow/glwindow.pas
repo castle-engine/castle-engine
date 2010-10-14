@@ -570,7 +570,6 @@ unit GLWindow;
     do some proc DisplayExists and EnumDisplays
   - do parametru --fullscreen-custom dodac mozliwosc podania
     VideoColorBits, VideoFrequency
-  - zrobic zdarzenia mousewheel
   - dodac mozliwosc zrobienia FullScreen w stylu SDLa : program moze zmienic
     okienko na fullscreen ale wewnetrzne Width i Height nie ulegna zmianie
     i program bedzie dzialac w okienku na srodku ekranu, a po bokach
@@ -727,7 +726,7 @@ type
   TKeyCharFunc = procedure(Glwin: TGLWindow; Key: TKey; C: char);
   TMouseMoveFunc = procedure(Glwin: TGLWindow; NewX, NewY: Integer);
   TMouseUpDownFunc = procedure(Glwin: TGLWindow; Button: TMouseButton);
-  TMouseWheelFunc = procedure(Glwin: TGLWindow; const Scroll: Single);
+  TMouseWheelFunc = procedure(Glwin: TGLWindow; const Scroll: Single; const Vertical: boolean);
   TMenuCommandFunc = procedure(Glwin: TGLWindow; Item: TMenuItem);
   TGLContextLoweredFunc = procedure(Glwin: TGLWindow; const FailureMessage: string);
 
@@ -1044,7 +1043,7 @@ type
         EventMouseDown/Up }
     procedure DoMouseDown(x, y: integer; btn: TMouseButton);
     procedure DoMouseUp(x, y: integer; btn: TMouseButton);
-    procedure DoMouseWheel(const Scroll: Single);
+    procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
     procedure DoIdle;
     procedure DoTimer;
     { Just call it when user presses some MenuItem.
@@ -1154,7 +1153,7 @@ type
     procedure EventMouseMove(newX, newY: integer); virtual;
     procedure EventMouseDown(btn: TMouseButton); virtual;
     procedure EventMouseUp(btn: TMouseButton); virtual;
-    procedure EventMouseWheel(const Scroll: Single); virtual;
+    procedure EventMouseWheel(const Scroll: Single; const Vertical: boolean); virtual;
     { Do something continously, all the time (idle) or in some time intervals
       (timer). Note that when overriding these, you will usually also
       want to override AllowSuspendForInput, to disallow suspending when
@@ -2517,7 +2516,7 @@ type
     procedure EventIdle; override;
     procedure EventMouseDown(Button: TMouseButton); override;
     procedure EventMouseUp(Button: TMouseButton); override;
-    procedure EventMouseWheel(const Scroll: Single); override;
+    procedure EventMouseWheel(const Scroll: Single; const Vertical: boolean); override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowSuspendForInput: boolean; override;
     procedure EventBeforeDraw; override;
@@ -3373,10 +3372,10 @@ begin
  EventMouseUp(btn);
 end;
 
-procedure TGLWindow.DoMouseWheel(const Scroll: Single);
+procedure TGLWindow.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   MakeCurrent;
-  EventMouseWheel(Scroll);
+  EventMouseWheel(Scroll, Vertical);
 end;
 
 procedure TGLWindow.DoIdle;
@@ -3434,7 +3433,7 @@ procedure TGLWindow.EventKeyUp(key: TKey; C: char);         const EventName = 'K
 procedure TGLWindow.EventMouseDown(btn: TMouseButton);      const EventName = 'MouseDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin {$I glwindow_eventoncallbegin.inc} OnMouseDown(Self, btn);    {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 procedure TGLWindow.EventMouseUp(btn: TMouseButton);        const EventName = 'MouseUp';    begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin {$I glwindow_eventoncallbegin.inc} OnMouseUp(Self, btn);      {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
-procedure TGLWindow.EventMouseWheel(const Scroll: Single);  const EventName = 'MouseWheel'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin {$I glwindow_eventoncallbegin.inc} OnMouseWheel(Self, Scroll);{$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventMouseWheel(const Scroll: Single; const Vertical: boolean);  const EventName = 'MouseWheel'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin {$I glwindow_eventoncallbegin.inc} OnMouseWheel(Self, Scroll, Vertical);{$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 procedure TGLWindow.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I glwindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin {$I glwindow_eventoncallbegin.inc} OnMenuCommand(Self, Item); {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 
 { Events below happen so often, that they are logged only when
@@ -4404,7 +4403,7 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.EventMouseWheel(const Scroll: Single);
+procedure TGLUIWindow.EventMouseWheel(const Scroll: Single; const Vertical: boolean);
 var
   C: TUIControl;
   I: Integer;
@@ -4415,7 +4414,7 @@ begin
     begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.MouseWheel(Scroll) then Exit;
+        if C.MouseWheel(Scroll, Vertical) then Exit;
     end;
   end;
 

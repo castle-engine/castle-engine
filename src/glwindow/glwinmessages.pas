@@ -724,12 +724,15 @@ begin
  md.setFloatShiftY(glwin, md.shiftY + moveY);
 end;
 
-procedure MouseWheelMessg(glwin: TGLWindow; const Scroll: Single);
+procedure MouseWheelMessg(glwin: TGLWindow; const Scroll: Single; const Vertical: boolean);
 var
   MD: TMessageData;
 begin
-  MD := TMessageData(glwin.UserData);
-  MD.SetFloatShiftY(Glwin, MD.ShiftY - Scroll * MD.Font.RowHeight);
+  if Vertical then
+  begin
+    MD := TMessageData(glwin.UserData);
+    MD.SetFloatShiftY(Glwin, MD.ShiftY - Scroll * MD.Font.RowHeight);
+  end;
 end;
 
 procedure IdleMessg(glwin: TGLWindow);
