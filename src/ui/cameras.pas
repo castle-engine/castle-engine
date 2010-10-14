@@ -1528,6 +1528,7 @@ type
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function MouseWheel(const Scroll: Single): boolean; override;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
@@ -4165,6 +4166,14 @@ begin
   if Result or (not Exists) then Exit;
 
   Result := Current.MouseMove(OldX, OldY, NewX, NewY);
+end;
+
+function TUniversalCamera.MouseWheel(const Scroll: Single): boolean;
+begin
+  Result := inherited;
+  if Result or (not Exists) then Exit;
+
+  Result := Current.MouseWheel(Scroll);
 end;
 
 procedure TUniversalCamera.SetContainer(const Value: IUIContainer);

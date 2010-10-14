@@ -141,6 +141,7 @@ type
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; virtual;
     function MouseDown(const Button: TMouseButton): boolean; virtual;
     function MouseUp(const Button: TMouseButton): boolean; virtual;
+    function MouseWheel(const Scroll: Single): boolean; virtual;
     { @groupEnd }
 
     { Control may do here anything that must be continously repeated.
@@ -451,6 +452,11 @@ begin
 end;
 
 function TUIControl.MouseDown(const Button: TMouseButton): boolean;
+begin
+  Result := false;
+end;
+
+function TUIControl.MouseWheel(const Scroll: Single): boolean;
 begin
   Result := false;
 end;

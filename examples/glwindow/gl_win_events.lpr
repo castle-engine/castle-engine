@@ -159,6 +159,11 @@ begin
     [glwin.MouseX, glwin.MouseY, newX, newY]));
 end;
 
+procedure MouseWheel(glwin: TGLWindow; const Scroll: Single);
+begin
+  TimeMsg.Show(Format('Mouse Wheel : %f', [Scroll]));
+end;
+
 var
   M: TMenu;
 begin
@@ -178,6 +183,7 @@ begin
   Glw.OnMouseDown := @MouseDown;
   Glw.OnMouseMove := @MouseMove;
   Glw.OnMouseUp := @MouseUp;
+  Glw.OnMouseWheel := @MouseWheel;
 
   Glw.OnIdle := @Idle;
   Application.TimerMilisec := 5000;

@@ -727,6 +727,7 @@ type
   TKeyCharFunc = procedure(Glwin: TGLWindow; Key: TKey; C: char);
   TMouseMoveFunc = procedure(Glwin: TGLWindow; NewX, NewY: Integer);
   TMouseUpDownFunc = procedure(Glwin: TGLWindow; Button: TMouseButton);
+  TMouseWheelFunc = procedure(Glwin: TGLWindow; const Scroll: Single);
   TMenuCommandFunc = procedure(Glwin: TGLWindow; Item: TMenuItem);
   TGLContextLoweredFunc = procedure(Glwin: TGLWindow; const FailureMessage: string);
 
@@ -750,6 +751,7 @@ type
   TGLWindowCallbacks = record
     MouseMove: TMouseMoveFunc;
     MouseDown, MouseUp: TMouseUpDownFunc;
+    MouseWheel: TMouseWheelFunc;
     KeyDown, KeyUp: TKeyCharFunc;
     BeforeDraw, Draw, CloseQuery, Idle, Timer: TGLWindowFunc;
     Resize: TGLWindowFunc;
@@ -802,6 +804,7 @@ type
     FOnKeyDown, FOnKeyUp: TKeyCharFunc;
     FMouseMove: TMouseMoveFunc;
     FMouseDown, FMouseUp: TMouseUpDownFunc;
+    FMouseWheel: TMouseWheelFunc;
     FOnIdle, FOnTimer: TGLWindowFunc;
     FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
@@ -1041,6 +1044,7 @@ type
         EventMouseDown/Up }
     procedure DoMouseDown(x, y: integer; btn: TMouseButton);
     procedure DoMouseUp(x, y: integer; btn: TMouseButton);
+    procedure DoMouseWheel(const Scroll: Single);
     procedure DoIdle;
     procedure DoTimer;
     { Just call it when user presses some MenuItem.
@@ -1150,6 +1154,7 @@ type
     procedure EventMouseMove(newX, newY: integer); virtual;
     procedure EventMouseDown(btn: TMouseButton); virtual;
     procedure EventMouseUp(btn: TMouseButton); virtual;
+    procedure EventMouseWheel(const Scroll: Single); virtual;
     { Do something continously, all the time (idle) or in some time intervals
       (timer). Note that when overriding these, you will usually also
       want to override AllowSuspendForInput, to disallow suspending when
@@ -1731,11 +1736,20 @@ type
        moze wychodzic dowolnie daleko w dowolna strone (takze na wartosci ujemne !)
 
        @groupBegin }
-    property OnMouseDown :TMouseUpDownFunc
-      read FMouseDown write FMouseDown {default nil};
-    property OnMouseUp :TMouseUpDownFunc
-      read FMouseUp write FMouseUp {default nil};
+    property OnMouseDown :TMouseUpDownFunc read FMouseDown write FMouseDown;
+    property OnMouseUp :TMouseUpDownFunc read FMouseUp write FMouseUp;
     { @groupEnd }
+
+    { Event called when user scrolled with mouse wheel.
+
+      Positive value of Scroll means user scrolled up (away from user),
+      negative means user scrolled down (to the user). It is never zero.
+
+      Scroll units are such that 1.0 should be treated like a "one operation",
+      like a one click. On most normal mouses only an integer scroll will be
+      possible to make. On the other hand, on touchpads it's common to be able to scroll
+      by flexible amounts. }
+    property OnMouseWheel: TMouseWheelFunc read FMouseWheel write FMouseWheel;
 
     { property OnIdle i OnTimer beda zachodzily dla wszystkich okien
       w Application.Active[] w momencie gdy zajdzie zdarzenie obiektu Application -
@@ -2503,6 +2517,7 @@ type
     procedure EventIdle; override;
     procedure EventMouseDown(Button: TMouseButton); override;
     procedure EventMouseUp(Button: TMouseButton); override;
+    procedure EventMouseWheel(const Scroll: Single); override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowSuspendForInput: boolean; override;
     procedure EventBeforeDraw; override;
@@ -2861,7 +2876,7 @@ var
 
 const
   DefaultCallbacksState: TGLWindowCallbacks =
-  ( MouseMove: nil; MouseDown: nil; MouseUp: nil;
+  ( MouseMove: nil; MouseDown: nil; MouseUp: nil; MouseWheel: nil;
     KeyDown: nil; KeyUp: nil;
     BeforeDraw: nil; Draw: nil; CloseQuery: nil; Idle: nil; Timer: nil; Resize: nil;
     MenuCommand: nil);
@@ -3358,6 +3373,12 @@ begin
  EventMouseUp(btn);
 end;
 
+procedure TGLWindow.DoMouseWheel(const Scroll: Single);
+begin
+  MakeCurrent;
+  EventMouseWheel(Scroll);
+end;
+
 procedure TGLWindow.DoIdle;
 begin
   Fps._IdleBegin;
@@ -3398,22 +3419,23 @@ begin
  {$I glwindow_eventend.inc}
 end;
 
-procedure TGLWindow.EventInit;                           const EventName = 'Init';       begin {$I glwindow_eventbegin.inc} if Assigned(OnInit)        then begin {$I glwindow_eventoncallbegin.inc} OnInit(Self);              {$I glwindow_eventoncallend.inc} end;   OnInitList .ExecuteAll(Self); {$I glwindow_eventend.inc} end;
-procedure TGLWindow.EventClose;                          const EventName = 'Close';      begin {$I glwindow_eventbegin.inc} if Assigned(OnClose)       then begin {$I glwindow_eventoncallbegin.inc} OnClose(Self);             {$I glwindow_eventoncallend.inc} end;   OnCloseList.ExecuteAll(Self); {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventInit;                              const EventName = 'Init';       begin {$I glwindow_eventbegin.inc} if Assigned(OnInit)        then begin {$I glwindow_eventoncallbegin.inc} OnInit(Self);              {$I glwindow_eventoncallend.inc} end;   OnInitList .ExecuteAll(Self); {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventClose;                             const EventName = 'Close';      begin {$I glwindow_eventbegin.inc} if Assigned(OnClose)       then begin {$I glwindow_eventoncallbegin.inc} OnClose(Self);             {$I glwindow_eventoncallend.inc} end;   OnCloseList.ExecuteAll(Self); {$I glwindow_eventend.inc} end;
 {$define BONUS_LOG_STRING := Format('NewSize : %d,%d', [Width, Height])}
-procedure TGLWindow.EventResize;                         const EventName = 'Resize';     begin {$I glwindow_eventbegin.inc} if Assigned(OnResize)      then begin {$I glwindow_eventoncallbegin.inc} OnResize(Self);            {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventResize;                            const EventName = 'Resize';     begin {$I glwindow_eventbegin.inc} if Assigned(OnResize)      then begin {$I glwindow_eventoncallbegin.inc} OnResize(Self);            {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TGLWindow.EventKeyDown(Key: TKey; C: char);    const EventName = 'KeyDown';    begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyDown)     then begin {$I glwindow_eventoncallbegin.inc} OnKeyDown(Self, Key, C);   {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventKeyDown(Key: TKey; C: char);       const EventName = 'KeyDown';    begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyDown)     then begin {$I glwindow_eventoncallbegin.inc} OnKeyDown(Self, Key, C);   {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TGLWindow.EventKeyUp(key: TKey; C: char);      const EventName = 'KeyUp';      begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyUp)       then begin {$I glwindow_eventoncallbegin.inc} OnKeyUp(Self, key, C);     {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventKeyUp(key: TKey; C: char);         const EventName = 'KeyUp';      begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyUp)       then begin {$I glwindow_eventoncallbegin.inc} OnKeyUp(Self, key, C);     {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Button: %s', [MouseButtonStr[btn]])}
-procedure TGLWindow.EventMouseDown(btn: TMouseButton);   const EventName = 'MouseDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin {$I glwindow_eventoncallbegin.inc} OnMouseDown(Self, btn);    {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
-procedure TGLWindow.EventMouseUp(btn: TMouseButton);     const EventName = 'MouseUp';    begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin {$I glwindow_eventoncallbegin.inc} OnMouseUp(Self, btn);      {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventMouseDown(btn: TMouseButton);      const EventName = 'MouseDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin {$I glwindow_eventoncallbegin.inc} OnMouseDown(Self, btn);    {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventMouseUp(btn: TMouseButton);        const EventName = 'MouseUp';    begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin {$I glwindow_eventoncallbegin.inc} OnMouseUp(Self, btn);      {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
-procedure TGLWindow.EventMenuCommand(Item: TMenuItem);   const EventName = 'MenuCommand';begin {$I glwindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin {$I glwindow_eventoncallbegin.inc} OnMenuCommand(Self, Item); {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventMouseWheel(const Scroll: Single);  const EventName = 'MouseWheel'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin {$I glwindow_eventoncallbegin.inc} OnMouseWheel(Self, Scroll);{$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I glwindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin {$I glwindow_eventoncallbegin.inc} OnMenuCommand(Self, Item); {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
 
 { Events below happen so often, that they are logged only when
   GLWINDOW_EVENTS_LOG_ALL is defined.
@@ -3612,6 +3634,7 @@ begin
   MouseMove := OnMouseMove;
   MouseDown := OnMouseDown;
   MouseUp := OnMouseUp;
+  MouseWheel := OnMouseWheel;
   KeyDown := OnKeyDown;
   KeyUp := OnKeyUp;
   BeforeDraw := OnBeforeDraw;
@@ -3631,6 +3654,7 @@ begin
   OnMouseMove := MouseMove;
   OnMouseDown := MouseDown;
   OnMouseUp := MouseUp;
+  OnMouseWheel := MouseWheel;
   OnKeyDown := KeyDown;
   OnKeyUp := KeyUp;
   OnBeforeDraw := BeforeDraw;
@@ -4374,6 +4398,24 @@ begin
       C := Controls.Items[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.MouseUp(Button) then Exit;
+    end;
+  end;
+
+  inherited;
+end;
+
+procedure TGLUIWindow.EventMouseWheel(const Scroll: Single);
+var
+  C: TUIControl;
+  I: Integer;
+begin
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+    begin
+      C := Controls.Items[I];
+      if C.PositionInside(MouseX, MouseY) then
+        if C.MouseWheel(Scroll) then Exit;
     end;
   end;
 

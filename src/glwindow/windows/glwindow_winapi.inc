@@ -569,6 +569,12 @@ begin
             end;
         end;
     end;
+
+  WM_MOUSEWHEEL:
+    begin
+      DoMouseWheel(SmallInt(HiWord(WParm)) / 120.0);
+      Exit;
+    end;
  end;
  Result := DefWindowProc(h_Wnd, uMsg, wParm, lParm);
 end;
