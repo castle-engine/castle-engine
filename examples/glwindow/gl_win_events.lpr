@@ -159,9 +159,9 @@ begin
     [glwin.MouseX, glwin.MouseY, newX, newY]));
 end;
 
-procedure MouseWheel(glwin: TGLWindow; const Scroll: Single);
+procedure MouseWheel(glwin: TGLWindow; const Scroll: Single; const Vertical: boolean);
 begin
-  TimeMsg.Show(Format('Mouse Wheel : %f', [Scroll]));
+  TimeMsg.Show(Format('Mouse Wheel: %f, vertical: %s', [Scroll, BoolToStr[Vertical]]));
 end;
 
 var
