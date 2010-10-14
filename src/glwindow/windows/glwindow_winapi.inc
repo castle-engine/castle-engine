@@ -333,17 +333,17 @@ begin
  if (uMsg = WM_SYSKEYUP) and InterceptedSystemKey(wParm) then uMsg := WM_KEYUP;
 
  case uMsg of
-  { Let control flow to DefWindowProc.
-    Jezeli not WindowActive to ReleaseAllKeysAndMouse (bo mozemy
-    wychodzac miec jakis klawisz true, a potem user go zwolni nad innym oknem
-    i odpowiednie WM_KEYUP do nas nie dojdzie)/
-
-    We do not want to do any ReleaseAllKeysAndMouse if InCloseImplDepend
-    (ReleaseAllKeysAndMouse causes some DoKeyUp/DoMouseUp and these cause MakeCurrent
-    -- do not do that ! More generally, no DoXxx may be called from CloseImplDepend). }
   WM_ACTIVATE:
     if not InCloseImplDepend then
-     if LoWord(wParm) = WA_INACTIVE then ReleaseAllKeysAndMouse;
+      if LoWord(wParm) = WA_INACTIVE then
+        { When user switches to another program, fake that we release all keys/mouse.
+          Otherwise we could miss some key up / mouse up, when user releases it over
+          another program/window.
+          Do not do this when InCloseImplDepend, as ReleaseAllKeysAndMouse causes
+          some DoKeyUp/DoMouseUp (and these even cause MakeCurrent), and no DoXxx
+          should be done when the window is closing and releasing it's resources. }
+        ReleaseAllKeysAndMouse;
+    { Don't Exit, let control flow to DefWindowProc. }
   WM_ACTIVATEAPP:
     begin
      Application.appActive := longbool(wParm);
@@ -476,32 +476,50 @@ begin
     this WM_ENTERIDLE below ? All of this tested on Windows 2000 Prof. }
   WM_ENTERIDLE: begin DoDraw; Exit end;
 
-  { We must call ReleaseAllKeysAndMouse when menu is activated.
-    Even though the application message
-    loop is blocked while we are in menu (menu under Windows work like modal
-    windows that block activity of main window, the only way we can do some
-    action when the menu is open is to handle some messages here like
-    WM_ENTERIDLE or WM_INITMENU; those messages do NOT come from
-    GLWindow_winsystem.inc DispatchMessage call, our WndProc is instead
-    called directly by WinAPI).
+  WM_INITMENU:
+    begin
+      { We must call ReleaseAllKeysAndMouse when menu is activated.
+        Even though the application message
+        loop is blocked while we are in menu (menu under Windows work like modal
+        windows that block activity of main window, the only way we can do some
+        action when the menu is open is to handle some messages here like
+        WM_ENTERIDLE or WM_INITMENU; those messages do NOT come from
+        GLWindow_winsystem.inc DispatchMessage call, our WndProc is instead
+        called directly by WinAPI).
 
-    Still the problem remains: when someone presses a key (we get DoKeyDown)
-    and then enters menu and then releases a key (we don't get DoKeyUp) and then
-    leaves menu -- we have KeysDown[SomeKey] = true where it should be false.
+        Still the problem remains: when someone presses a key (we get DoKeyDown)
+        and then enters menu and then releases a key (we don't get DoKeyUp) and then
+        leaves menu -- we have KeysDown[SomeKey] = true where it should be false.
 
-    That's why we need this ReleaseAllKeysAndMouse below. }
-  WM_INITMENU: begin ReleaseAllKeysAndMouse; Exit; end;
+        That's why we need this ReleaseAllKeysAndMouse below. }
+      ReleaseAllKeysAndMouse;
+
+      { Windows blocks our program when user enters a menu bar.
+        Essentially, this means that window will not receive normal events,
+        will not process OnIdle and such during the time menu bar is open.
+        So menu bar is like a modal dialog box.
+        So IdleSpeed at next idle is irrelevant, just like at the end of TGLMode.
+        Fixes e.g. CameraTransitions when choosing viewpoint from view3dscene menu.
+
+        We would like to call this always when user leaves the menu, but it seems
+        there's no WinAPI event for this. But we can as well call this when user enters
+        the menu, because of blocking above --- it will have the same effect, since
+        DoIdle is not called inside the menu. }
+      Fps.IgnoreNextIdleSpeed;
+
+      Exit;
+    end;
 
   WM_MOUSEMOVE:
     begin
-     { moglibysmy tu odswiezac fMousePressed :
-     fmousePressed:=[];
-     if (MK_LBUTTON and wParm) <> 0 then Include(fmousePressed, mbLeft);
-     if (MK_MBUTTON and wParm) <> 0 then Include(fmousePressed, mbMiddle);
-     if (MK_RBUTTON and wParm) <> 0 then Include(fmousePressed, mbRight);
-       ... ale nie ma po temu zadnej potrzeby. }
-     DoMouseMove( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint);
-     exit;
+      { We could refresh FMousePressed now:
+          FmousePressed:=[];
+          if (MK_LBUTTON and wParm) <> 0 then Include(fmousePressed, mbLeft);
+          if (MK_MBUTTON and wParm) <> 0 then Include(fmousePressed, mbMiddle);
+          if (MK_RBUTTON and wParm) <> 0 then Include(fmousePressed, mbRight);
+        but it's not needed (we keep it current anyway my mousedown/up events). }
+      DoMouseMove( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint);
+      exit;
     end;
   WM_LBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbLeft);   Exit end;
   WM_MBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbMiddle); Exit end;
@@ -510,13 +528,11 @@ begin
   WM_MBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbMiddle); MaybeRelease; Exit end;
   WM_RBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbRight);  MaybeRelease; Exit end;
   WM_COMMAND    :
+    { If this comes from a menu item, call DoMenuCommand }
+    if HiWord(wParm) = 0 then
     begin
-     { If this comes from a menu item, call DoMenuCommand }
-     if HiWord(wParm) = 0 then
-     begin
       DoMenuCommand(MenuItemFromSmallId(LoWord(wParm)));
       Exit;
-     end;
     end;
 
   { On Windows, we have to change cursor in each WM_SETCURSOR (called on each
