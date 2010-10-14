@@ -179,7 +179,10 @@
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
-    function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
@@ -254,7 +257,10 @@
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
-    function Coord(State: TVRMLGraphTraverseState; out ACoord: TMFVec3f): boolean; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TVRMLGraphTraverseState;
+      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
@@ -872,17 +878,26 @@ begin
   Result := false;
 end;
 
-{ Coord implementation makes automatic, optimal and fast
-  (without the need for Proxy call) LocalBoundingBox, BoundingBox
-  implementation. }
-function TNodeNurbsCurve_3.Coord(State: TVRMLGraphTraverseState;
-  out ACoord: TMFVec3f): boolean;
+{ We cannot simply override Coord() and let bounding box be calculated
+  based on it. It would fail for curves with weigths. }
+function TNodeNurbsCurve_3.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
-  Result := true;
   if (FdControlPoint.Value <> nil) and
      (FdControlPoint.Value is TNodeCoordinate) then
-    ACoord := TNodeCoordinate(FdControlPoint.Value).FdPoint else
-    ACoord := nil;
+    Result := NurbsBoundingBox(TNodeCoordinate(FdControlPoint.Value).FdPoint.Items, FdWeight.Items) else
+    Result := EmptyBox3D;
+end;
+
+{ We cannot simply override Coord() and let bounding box be calculated
+  based on it. It would fail for curves with weigths. }
+function TNodeNurbsCurve_3.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  if (FdControlPoint.Value <> nil) and
+     (FdControlPoint.Value is TNodeCoordinate) then
+    Result := NurbsBoundingBox(TNodeCoordinate(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform) else
+    Result := EmptyBox3D;
 end;
 
 function TNodeNurbsCurve_3.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
@@ -1343,17 +1358,26 @@ begin
   Result := false;
 end;
 
-{ Coord implementation makes automatic, optimal and fast
-  (without the need for Proxy call) LocalBoundingBox, BoundingBox
-  implementation. }
-function TNodeNurbsPatchSurface.Coord(State: TVRMLGraphTraverseState;
-  out ACoord: TMFVec3f): boolean;
+{ We cannot simply override Coord() and let bounding box be calculated
+  based on it. It would fail for curves with weigths. }
+function TNodeNurbsPatchSurface.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
-  Result := true;
   if (FdControlPoint.Value <> nil) and
      (FdControlPoint.Value is TNodeCoordinate) then
-    ACoord := TNodeCoordinate(FdControlPoint.Value).FdPoint else
-    ACoord := nil;
+    Result := NurbsBoundingBox(TNodeCoordinate(FdControlPoint.Value).FdPoint.Items, FdWeight.Items) else
+    Result := EmptyBox3D;
+end;
+
+{ We cannot simply override Coord() and let bounding box be calculated
+  based on it. It would fail for curves with weigths. }
+function TNodeNurbsPatchSurface.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+begin
+  if (FdControlPoint.Value <> nil) and
+     (FdControlPoint.Value is TNodeCoordinate) then
+    Result := NurbsBoundingBox(TNodeCoordinate(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform) else
+    Result := EmptyBox3D;
 end;
 
 function TNodeNurbsPatchSurface.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;

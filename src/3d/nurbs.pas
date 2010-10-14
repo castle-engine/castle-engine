@@ -30,7 +30,7 @@ unit NURBS;
 
 interface
 
-uses SysUtils, KambiUtils, VectorMath;
+uses SysUtils, KambiUtils, VectorMath, Boxes3D;
 
 { Calculate the actual tessellation, that is the number of tessellation
   points. This follows X3D spec for "an implementation subdividing
@@ -121,6 +121,16 @@ type
   (just as required by NurbsCurvePoint, NurbsSurfacePoint). }
 procedure NurbsKnotIfNeeded(Knot: TDynDoubleArray;
   const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);
+
+function NurbsBoundingBox(Point: TDynVector3SingleArray;
+  Weight: TDynDoubleArray): TBox3D;
+function NurbsBoundingBox(Point: TDynVector3SingleArray;
+  Weight: TDynSingleArray): TBox3D;
+
+function NurbsBoundingBox(Point: TDynVector3SingleArray;
+  Weight: TDynDoubleArray; const Transform: TMatrix4Single): TBox3D;
+function NurbsBoundingBox(Point: TDynVector3SingleArray;
+  Weight: TDynSingleArray; const Transform: TMatrix4Single): TBox3D;
 
 implementation
 
@@ -417,6 +427,115 @@ begin
       else raise EInternalError.Create('NurbsKnotIfNeeded 594');
     end;
   end;
+end;
+
+function NurbsBoundingBox(Point: TDynVector3SingleArray;
+  Weight: TDynDoubleArray): TBox3D;
+var
+  V: PVector3Single;
+  W: Single;
+  I: Integer;
+begin
+  if Weight.Count = Point.Count then
+  begin
+    if Point.Count = 0 then
+      Result := EmptyBox3D else
+    begin
+      W := Weight.Items[0];
+      if W = 0 then W := 1;
+
+      Result[0] := Point.Items[0] / W;
+      Result[1] := Result[0];
+
+      for I := 1 to Point.Count - 1 do
+      begin
+        V := @(Point.Items[I]);
+        W := Weight.Items[I];
+        if W = 0 then W := 1;
+
+        MinTo1st(Result[0][0], V^[0] / W);
+        MinTo1st(Result[0][1], V^[1] / W);
+        MinTo1st(Result[0][2], V^[2] / W);
+
+        MaxTo1st(Result[1][0], V^[0] / W);
+        MaxTo1st(Result[1][1], V^[1] / W);
+        MaxTo1st(Result[1][2], V^[2] / W);
+      end;
+    end;
+  end else
+  { Otherwise, all the weights are assumed 1.0 }
+  begin
+    Result := CalculateBoundingBox(PVector3Single(Point.ItemsArray),
+      Point.Count, 0);
+  end;
+end;
+
+function NurbsBoundingBox(Point: TDynVector3SingleArray;
+  Weight: TDynSingleArray): TBox3D;
+var
+  WeightDouble: TDynDoubleArray;
+begin
+  { Direct implementation using single would be much faster...
+    But not important, this is only for VRML 2.0. }
+  WeightDouble := Weight.ToDouble;
+  try
+    Result := NurbsBoundingBox(Point, WeightDouble);
+  finally FreeAndNil(WeightDouble) end;
+end;
+
+function NurbsBoundingBox(Point: TDynVector3SingleArray;
+  Weight: TDynDoubleArray; const Transform: TMatrix4Single): TBox3D;
+var
+  V: TVector3Single;
+  W: Single;
+  I: Integer;
+begin
+  if Weight.Count = Point.Count then
+  begin
+    if Point.Count = 0 then
+      Result := EmptyBox3D else
+    begin
+      W := Weight.Items[0];
+      if W = 0 then W := 1;
+
+      Result[0] := MatrixMultPoint(Transform, Point.Items[0] / W);
+      Result[1] := Result[0];
+
+      for I := 1 to Point.Count - 1 do
+      begin
+        W := Weight.Items[I];
+        if W = 0 then W := 1;
+
+        V := MatrixMultPoint(Transform, Point.Items[I] / W);
+
+        MinTo1st(Result[0][0], V[0]);
+        MinTo1st(Result[0][1], V[1]);
+        MinTo1st(Result[0][2], V[2]);
+
+        MaxTo1st(Result[1][0], V[0]);
+        MaxTo1st(Result[1][1], V[1]);
+        MaxTo1st(Result[1][2], V[2]);
+      end;
+    end;
+  end else
+  { Otherwise, all the weights are assumed 1.0 }
+  begin
+    Result := CalculateBoundingBox(PVector3Single(Point.ItemsArray),
+      Point.Count, 0);
+  end;
+end;
+
+function NurbsBoundingBox(Point: TDynVector3SingleArray;
+  Weight: TDynSingleArray; const Transform: TMatrix4Single): TBox3D;
+var
+  WeightDouble: TDynDoubleArray;
+begin
+  { Direct implementation using single would be much faster...
+    But not important, this is only for VRML 2.0. }
+  WeightDouble := Weight.ToDouble;
+  try
+    Result := NurbsBoundingBox(Point, WeightDouble, Transform);
+  finally FreeAndNil(WeightDouble) end;
 end;
 
 end.
