@@ -204,7 +204,7 @@ begin
       begin
         { Or we could use try..finally, at a (very very small) speed penalty. }
         FreeAndNil(left);
-        FreeAndNil(right);      
+        FreeAndNil(right);
         Exit;
       end;
       temp := basis[r] / (right[r+1] + left[j-r]);
