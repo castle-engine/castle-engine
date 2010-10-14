@@ -717,33 +717,27 @@ end;
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
   VertsCount: integer): TBox3D;
-
-{ TODO: sprawdzic - czy jest realny sens w implementowaniu tu
-  algorytmu MinMax ktory znajduje min i max jednoczesnie w czasie
-  3/2*n zamiast 2*n ? }
-
-  function find_extremum(ChooseFuncTo1st: TChooseOneTo1st_Single;
-    coord: integer): Single;
-  var i: integer;
-  begin
-   result := GetVertex(0)[coord];
-   for i := 1 to VertsCount-1 do
-     ChooseFuncTo1st(Result, GetVertex(i)[coord]);
-  end;
-
+var
+  I: Integer;
+  V: TVector3Single;
 begin
- if VertsCount = 0 then
- begin
-  result := EmptyBox3D;
-  exit
- end;
+  if VertsCount = 0 then
+    Result := EmptyBox3D else
+  begin
+    Result[0] := GetVertex(0);
+    Result[1] := Result[0];
+    for I := 1 to VertsCount - 1 do
+    begin
+      V := GetVertex(I);
+      MinTo1st(Result[0][0], V[0]);
+      MinTo1st(Result[0][1], V[1]);
+      MinTo1st(Result[0][2], V[2]);
 
- result[0, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 0);
- result[0, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 1);
- result[0, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 2);
- result[1, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 0);
- result[1, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 1);
- result[1, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 2);
+      MaxTo1st(Result[0][0], V[0]);
+      MaxTo1st(Result[0][1], V[1]);
+      MaxTo1st(Result[0][2], V[2]);
+    end;
+  end;
 end;
 
 type
