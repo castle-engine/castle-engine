@@ -251,39 +251,39 @@ begin
 end;
 {$endif HAS_MATRIX_UNIT}
 
-function RotatePointAroundAxisDeg(angleDeg: TYPE_SCALAR; const pt: TYPE_VECTOR3;
-  const axisVec: TYPE_VECTOR3): TYPE_VECTOR3;
+function RotatePointAroundAxisDeg(Angle: TYPE_SCALAR; const Point: TYPE_VECTOR3;
+  const Axis: TYPE_VECTOR3): TYPE_VECTOR3;
 begin
- result := RotatePointAroundAxisRad(DegToRad(angleDeg), pt, axisVec);
+ result := RotatePointAroundAxisRad(DegToRad(Angle), Point, Axis);
 end;
 
-function RotatePointAroundAxisRad(angleRad: TYPE_SCALAR; const pt: TYPE_VECTOR3;
-  const axisVec: TYPE_VECTOR3): TYPE_VECTOR3;
+function RotatePointAroundAxisRad(Angle: TYPE_SCALAR; const Point: TYPE_VECTOR3;
+  const Axis: TYPE_VECTOR3): TYPE_VECTOR3;
 (* ponizsza procedurka to tylko rozpisana i choc odrobinke zoptymalizowana
-   wersja pomnozenia pt przez RotationMatrixDeg(angleDeg, axisVec). *)
+   wersja pomnozenia pt przez RotationMatrixDeg(Angle, Axis). *)
 var x, y,z, l: TYPE_SCALAR;
     sinAngle, cosAngle: Float;
 begin
- SinCos(angleRad, sinAngle, cosAngle);
- l := VectorLen(axisVec);
+ SinCos(Angle, sinAngle, cosAngle);
+ l := VectorLen(Axis);
 
  (* normalizuj vektor axisLen i jednoczesnie rozloz mi go na zmienne
     o przejrzystych nazwach x, y,z *)
- x := axisVec[0]/l;
- y := axisVec[1]/l;
- z := axisVec[2]/l;
+ x := Axis[0]/l;
+ y := Axis[1]/l;
+ z := Axis[2]/l;
 
- result[0] := (cosAngle + (1 - cosAngle) * x * x)     * pt[0]
-           + ((1 - cosAngle) * x * y - z * sinAngle)  * pt[1]
-           + ((1 - cosAngle) * x * z + y * sinAngle)  * pt[2];
+ result[0] := (cosAngle + (1 - cosAngle) * x * x)     * Point[0]
+           + ((1 - cosAngle) * x * y - z * sinAngle)  * Point[1]
+           + ((1 - cosAngle) * x * z + y * sinAngle)  * Point[2];
 
- result[1] := ((1 - cosAngle) * x * y + z * sinAngle)  * pt[0]
-           + (cosAngle + (1 - cosAngle) * y * y)       * pt[1]
-           + ((1 - cosAngle) * y * z - x * sinAngle)   * pt[2];
+ result[1] := ((1 - cosAngle) * x * y + z * sinAngle)  * Point[0]
+           + (cosAngle + (1 - cosAngle) * y * y)       * Point[1]
+           + ((1 - cosAngle) * y * z - x * sinAngle)   * Point[2];
 
- result[2] := ((1 - cosAngle) * x * z - y * sinAngle)  * pt[0]
-           + ((1 - cosAngle) * y * z + x * sinAngle)   * pt[1]
-           + (cosAngle + (1 - cosAngle) * z * z)       * pt[2];
+ result[2] := ((1 - cosAngle) * x * z - y * sinAngle)  * Point[0]
+           + ((1 - cosAngle) * y * z + x * sinAngle)   * Point[1]
+           + (cosAngle + (1 - cosAngle) * z * z)       * Point[2];
 
 (*
   Proba ujecia powyzszego jednym wzorem - niepelna bo nie ujalem

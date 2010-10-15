@@ -1094,43 +1094,57 @@ function VectorExpComponents(const v: TVector3Double; const Exp: Double): TVecto
 procedure VectorExpComponentsTo1st(var v: TVector3Single; const Exp: Single); overload;
 procedure VectorExpComponentsTo1st(var v: TVector3Double; const Exp: Double); overload;
 
-{ zwraca cosinus kata pomiedzy wektorami. EVectorMathInvalidOp if v1 or v2
-  = (0, 0, 0).
+{ Cosinus of angle between two vectors.
 
-  Speed note: this costs you one Sqrt.
-  Better use CosAngleBetweenNormals when possible, this avoids Sqrt
-  (but assumes that arguments have length = 1). }
-function CosAngleBetweenVectors(const v1, v2: TVector3Single): Single; overload;
-function CosAngleBetweenVectors(const v1, v2: TVector3Double): Double; overload;
-function CosAngleBetweenNormals(const v1, v2: TVector3Single): Single; overload;
-function CosAngleBetweenNormals(const v1, v2: TVector3Double): Double; overload;
+  CosAngleBetweenNormals is a little faster, but must receive
+  normalized (length 1) vectors. This avoids expensive Sqrt
+  inside CosAngleBetweenVectors.
 
-{ zwraca kat pomiedzy wektorami w radianach. Zawsze zwraca Pi>= kat >=0.
-  EVectorMathInvalidOp if v1 or v2 = (0, 0, 0).
+  @raises EVectorMathInvalidOp If V1 or V2 is zero.
+  @groupBegin }
+function CosAngleBetweenVectors(const V1, V2: TVector3Single): Single; overload;
+function CosAngleBetweenVectors(const V1, V2: TVector3Double): Double; overload;
+function CosAngleBetweenNormals(const V1, V2: TVector3Single): Single; overload;
+function CosAngleBetweenNormals(const V1, V2: TVector3Double): Double; overload;
+{ @groupEnd }
 
-  Speed note: this costs you one ArcCos, and one Sqrt.
-  Better use AngleRadBetweenNormals when possible, this avoids Sqrt
-  (but assumes that arguments have length = 1). }
-function AngleRadBetweenVectors(const v1, v2: TVector3Single): Single; overload;
-function AngleRadBetweenVectors(const v1, v2: TVector3Double): Double; overload;
-function AngleRadBetweenNormals(const v1, v2: TVector3Single): Single; overload;
-function AngleRadBetweenNormals(const v1, v2: TVector3Double): Double; overload;
+{ Angle between two vectors, in radians.
+  Returns always positive angle, between 0 and Pi.
 
-{ obroc punkt pt o angleDeg stopni wokol osi wyznaczonej przez wektor axisVec
-  zaczepiony w punkcie (0, 0, 0). Zwroc wynik.
-  Moglbys ten sam wynik uzyskac robiac
-    result := Vector3SinglePoint( MatrixMultPoint(
-      RotationMatrixDeg(angleDeg, axisVec), Vector4Single(pt) ) )
-  ,MatrixMultPoint i RotationMatrix sa zdefiniowane nizej w tym module.
-  Ta procedura zrobi to po prostu nieco szybciej.
-  Ale na pewno wynik bedzie ten sam - w szczegolnosci, obroty beda
-  w ta sama strone, a wiec tez zgodnie z kierunkiem obrotow OpenGLa. }
-function RotatePointAroundAxisDeg(angleDeg: Single; const pt: TVector3Single; const axisVec: TVector3Single): TVector3Single; overload;
-function RotatePointAroundAxisDeg(angleDeg: Double; const pt: TVector3Double; const axisVec: TVector3Double): TVector3Double; overload;
-function RotatePointAroundAxisRad(angleRad: Single; const pt: TVector3Single; const axisVec: TVector3Single): TVector3Single; overload;
-function RotatePointAroundAxisRad(angleRad: Double; const pt: TVector3Double; const axisVec: TVector3Double): TVector3Double; overload;
+  AngleRadBetweenNormals is a little faster, but must receive
+  normalized (length 1) vectors. This avoids expensive Sqrt.
+  See also CosAngleBetweenVectors and CosAngleBetweenNormals
+  to avoid expensive ArcCos.
 
-{ ktora wspolrzedna (0, 1, 2) (i ew. 3 dla wersji z TVector4*) jest najwieksza ?
+  @raises EVectorMathInvalidOp If V1 or V2 is zero.
+  @groupBegin }
+function AngleRadBetweenVectors(const V1, V2: TVector3Single): Single; overload;
+function AngleRadBetweenVectors(const V1, V2: TVector3Double): Double; overload;
+function AngleRadBetweenNormals(const V1, V2: TVector3Single): Single; overload;
+function AngleRadBetweenNormals(const V1, V2: TVector3Double): Double; overload;
+{ @groupEnd }
+
+{ Rotate point Point around the Axis by given Angle.
+
+  Note that this is equivalent to constructing a rotation matrix
+  and then using it, like
+
+@longCode(#
+  M := RotationMatrixDeg(Angle, Axis);
+  Result := MatrixMultPoint(M, Point);
+#)
+
+  Except this will be a little faster. So rotations are done in the
+  same direction as RotationMatrixDeg, and as OpenGL.
+  @groupBegin }
+function RotatePointAroundAxisDeg(Angle: Single; const Point: TVector3Single; const Axis: TVector3Single): TVector3Single; overload;
+function RotatePointAroundAxisDeg(Angle: Double; const Point: TVector3Double; const Axis: TVector3Double): TVector3Double; overload;
+function RotatePointAroundAxisRad(Angle: Single; const Point: TVector3Single; const Axis: TVector3Single): TVector3Single; overload;
+function RotatePointAroundAxisRad(Angle: Double; const Point: TVector3Double; const Axis: TVector3Double): TVector3Double; overload;
+{ @groupEnd }
+
+{ Which coordinate
+ktora wspolrzedna (0, 1, 2) (i ew. 3 dla wersji z TVector4*) jest najwieksza ?
   Gdy sa dwie lub trzy lub cztery najwieksze wspolrzedne to wybieramy tak
   ze 0-wa ma pierwszenstwo nad 1-sza a ta ma pierwszenstwo nad 2-ga a ta nad 3-cia. }
 function MaxVectorCoord(const v: TVector3Single): integer; overload;
@@ -1143,25 +1157,24 @@ function MaxAbsVectorCoord(const v: TVector3Double): integer; overload;
 procedure SortAbsVectorCoord(const v: TVector3Single; out Max, Middle, Min: Integer); overload;
 procedure SortAbsVectorCoord(const v: TVector3Double; out Max, Middle, Min: Integer); overload;
 
-{ PlaneDirInDirection - taka banalna procedurka - dla zadanego
-  Plane (albo jako PlaneDir albo jako czworka Plane, ale to bez znaczenia
-  bo i tak Plane[3] jest bez znaczenia) zwroci PlaneDir albo -PlaneDir,
-  w zaleznosci od tego w ktora strone Plane wskazuje Direction - to znaczy
-  patrzac na Plane jako na podzial przestrzeni na dwie polprzestrzenie,
-  zwroci taki wektor ze bedzie normalny do plaszczyzny i bedzie wskazywal
-  w ta sama polprzestrzen co Direction.
+{ Vector orthogonal to plane and pointing in the given direction.
 
-  Jezeli Direction jest rownolegle do Plane (czyli prostopadle do PlaneDir)
-  to zwroci PlaneDir (wtedy powinno byc ci obojetne w ktora strone
-  normal zwroci).
+  Given a plane equation (or just the first 3 components of this equation),
+  we have vector orthogonal to the plane (just the first 3 components of plane
+  equation). This returns either this vector, or it's negation.
+  It chooses the one that points in the same 3D half-space as given Direction.
 
-  Zwraca dokladnie PlaneDir lub -PlaneDir, wiec jezeli np. Plane byl
-  znormalizowany to zwrocony PlaneDir lub -PlaneDir tez bedzie.
+  When given Direction is paralell to Plane, returns original
+  plane direction, not it's negation.
 
-  PlaneDirNotInDirection dziala jak PlaneDirInDirection(Plane, -Direction).
+  This really simply returns the first 3 components of plane equation.
+  possibly negated. So e.g. if the plane direction was normalized, result
+  is normalized too.
 
-  To jedna z tych funkcji ktorych implementacja jest w dwoch linijkach a komentarz
-  jest duzo dluzszy...  }
+  PlaneDirNotInDirection chooses the direction opposite to given Direction
+  parameter. So it's like @code(PlaneDirInDirection(Plane, -Direction)).
+
+  @groupBegin }
 function PlaneDirInDirection(const Plane: TVector4Single; const Direction: TVector3Single): TVector3Single; overload;
 function PlaneDirInDirection(const PlaneDir, Direction: TVector3Single): TVector3Single; overload;
 function PlaneDirInDirection(const Plane: TVector4Double; const Direction: TVector3Double): TVector3Double; overload;
@@ -1170,15 +1183,19 @@ function PlaneDirNotInDirection(const Plane: TVector4Single; const Direction: TV
 function PlaneDirNotInDirection(const PlaneDir, Direction: TVector3Single): TVector3Single; overload;
 function PlaneDirNotInDirection(const Plane: TVector4Double; const Direction: TVector3Double): TVector3Double; overload;
 function PlaneDirNotInDirection(const PlaneDir, Direction: TVector3Double): TVector3Double; overload;
+{ @groupEnd }
 
 type
   EPlanesParallel = class(Exception);
 
-{ If planes are parallel, exception EPlanesParalell is raised. }
+{ Intersection of two 3D planes.
+  @raises EPlanesParalell If planes are parallel.
+  @groupBegin }
 procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4Single;
   out Line0, LineVector: TVector3Single); overload;
 procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4Double;
   out Line0, LineVector: TVector3Double); overload;
+{ @groupEnd }
 
 type
   ELinesParallel = class(Exception);
@@ -1190,13 +1207,15 @@ function Lines2DIntersection(const Line0, Line1: TVector3Single): TVector2Single
 function Lines2DIntersection(const Line0, Line1: TVector3Double): TVector2Double; overload;
 { @groupEnd }
 
-{ This takes three plane equations (these planes MUST have exactly
-  one common point, otherwise this function can fail with some
-  undefined error) and returns their intersection point. }
+{ Intersection of three 3D planes, results in a single 3D point.
+  If the intersection is not a single 3D point, result is undefined,
+  so don't try to use this.
+  @groupBegin }
 function ThreePlanesIntersectionPoint(
   const Plane0, Plane1, Plane2: TVector4Single): TVector3Single; overload;
 function ThreePlanesIntersectionPoint(
   const Plane0, Plane1, Plane2: TVector4Double): TVector3Double; overload;
+{ @groupEnd }
 
 { Move a plane by a specifed vector.
   The first three plane numbers (plane normal vector) don't change
@@ -1226,32 +1245,36 @@ function PlaneAntiMove(const Plane: TVector4Double;
   const Move: TVector3Double): TVector4Double; overload;
 { @groupEnd }
 
-{ zwraca true gdy oba wektory wskazuja na ta sama strone Plane.
-  Gdy jeden z wektorow jest rownolegly do Plane zawsze zwraca true.
-  Plane mozesz podac jako 4 lub 3 liczby (kierunek plane) - przeciez 4 liczba
-  i tak nie bedzie uzywana. }
-function VectorsSamePlaneDirections(const v1, v2: TVector3Single; const Plane: TVector4Single): boolean; overload;
-function VectorsSamePlaneDirections(const v1, v2: TVector3Double; const Plane: TVector4Double): boolean; overload;
-function VectorsSamePlaneDirections(const v1, v2: TVector3Single; const PlaneDir: TVector3Single): boolean; overload;
-function VectorsSamePlaneDirections(const v1, v2: TVector3Double; const PlaneDir: TVector3Double): boolean; overload;
+{ Check if both direcions indicate the same side of given 3D plane.
+  If one direction is parallel to the plane, also returns @true.
+  You can specify only the first 3 components of plane equation (PlaneDir),
+  since the 4th component would be ignored anyway.
+  @groupBegin }
+function VectorsSamePlaneDirections(const V1, V2: TVector3Single; const Plane: TVector4Single): boolean; overload;
+function VectorsSamePlaneDirections(const V1, V2: TVector3Double; const Plane: TVector4Double): boolean; overload;
+function VectorsSamePlaneDirections(const V1, V2: TVector3Single; const PlaneDir: TVector3Single): boolean; overload;
+function VectorsSamePlaneDirections(const V1, V2: TVector3Double; const PlaneDir: TVector3Double): boolean; overload;
+{ @groupEnd }
 
-{ zwraca true wtt. gdy oba punkty leza po tej samej stronie Plane lub
-  gdy jeden z punktow lezy na Plane. }
+{ Check if both points are on the same side of given 3D plane.
+  If one of the points is exactly on the plane, also returns @true.
+  @groupBegin }
 function PointsSamePlaneSides(const p1, p2: TVector3Single; const Plane: TVector4Single): boolean; overload;
 function PointsSamePlaneSides(const p1, p2: TVector3Double; const Plane: TVector4Double): boolean; overload;
+{ @groupEnd }
 
-function PointsDistance(const v1, v2: TVector3Single): Single; overload;
-function PointsDistance(const v1, v2: TVector3Double): Double; overload;
-function PointsDistanceSqr(const v1, v2: TVector3Single): Single; overload;
-function PointsDistanceSqr(const v1, v2: TVector3Double): Double; overload;
-function PointsDistanceSqr(const v1, v2: TVector2Single): Single; overload;
-function PointsDistanceSqr(const v1, v2: TVector2Double): Double; overload;
+function PointsDistance(const V1, V2: TVector3Single): Single; overload;
+function PointsDistance(const V1, V2: TVector3Double): Double; overload;
+function PointsDistanceSqr(const V1, V2: TVector3Single): Single; overload;
+function PointsDistanceSqr(const V1, V2: TVector3Double): Double; overload;
+function PointsDistanceSqr(const V1, V2: TVector2Single): Single; overload;
+function PointsDistanceSqr(const V1, V2: TVector2Double): Double; overload;
 
 { Distance between 3D points projected on Z = 0 plane (i.e. Z coord
   of points is just ignored.)
   @groupBegin }
-function PointsDistanceXYSqr(const v1, v2: TVector3Single): Single; overload;
-function PointsDistanceXYSqr(const v1, v2: TVector3Double): Double; overload;
+function PointsDistanceXYSqr(const V1, V2: TVector3Single): Single; overload;
+function PointsDistanceXYSqr(const V1, V2: TVector3Double): Double; overload;
 { @groupEnd }
 
 { Compare two vectors, with epsilon to tolerate slightly different floats.
@@ -1264,30 +1287,30 @@ function PointsDistanceXYSqr(const v1, v2: TVector3Double): Double; overload;
   @seealso VectorsPerfectlyEqual
 
   @groupBegin }
-function VectorsEqual(const v1, v2: TVector2Single): boolean; overload;
-function VectorsEqual(const v1, v2: TVector2Double): boolean; overload;
-function VectorsEqual(const v1, v2: TVector2Single; const EqualityEpsilon: Single): boolean; overload;
-function VectorsEqual(const v1, v2: TVector2Double; const EqualityEpsilon: Double): boolean; overload;
-function VectorsEqual(const v1, v2: TVector3Single): boolean; overload;
-function VectorsEqual(const v1, v2: TVector3Double): boolean; overload;
-function VectorsEqual(const v1, v2: TVector3Single; const EqualityEpsilon: Single): boolean; overload;
-function VectorsEqual(const v1, v2: TVector3Double; const EqualityEpsilon: Double): boolean; overload;
-function VectorsEqual(const v1, v2: TVector4Single): boolean; overload;
-function VectorsEqual(const v1, v2: TVector4Double): boolean; overload;
-function VectorsEqual(const v1, v2: TVector4Single; const EqualityEpsilon: Single): boolean; overload;
-function VectorsEqual(const v1, v2: TVector4Double; const EqualityEpsilon: Double): boolean; overload;
+function VectorsEqual(const V1, V2: TVector2Single): boolean; overload;
+function VectorsEqual(const V1, V2: TVector2Double): boolean; overload;
+function VectorsEqual(const V1, V2: TVector2Single; const EqualityEpsilon: Single): boolean; overload;
+function VectorsEqual(const V1, V2: TVector2Double; const EqualityEpsilon: Double): boolean; overload;
+function VectorsEqual(const V1, V2: TVector3Single): boolean; overload;
+function VectorsEqual(const V1, V2: TVector3Double): boolean; overload;
+function VectorsEqual(const V1, V2: TVector3Single; const EqualityEpsilon: Single): boolean; overload;
+function VectorsEqual(const V1, V2: TVector3Double; const EqualityEpsilon: Double): boolean; overload;
+function VectorsEqual(const V1, V2: TVector4Single): boolean; overload;
+function VectorsEqual(const V1, V2: TVector4Double): boolean; overload;
+function VectorsEqual(const V1, V2: TVector4Single; const EqualityEpsilon: Single): boolean; overload;
+function VectorsEqual(const V1, V2: TVector4Double; const EqualityEpsilon: Double): boolean; overload;
 { @groupEnd }
 
 { Compare two vectors using perfect comparison, that is using the "=" operator
   to compare floats.
   @seealso VectorsEqual
   @groupBegin }
-function VectorsPerfectlyEqual(const v1, v2: TVector2Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function VectorsPerfectlyEqual(const v1, v2: TVector2Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function VectorsPerfectlyEqual(const v1, v2: TVector3Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function VectorsPerfectlyEqual(const v1, v2: TVector4Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function VectorsPerfectlyEqual(const v1, v2: TVector4Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector2Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector2Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector3Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector3Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector4Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector4Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
 function MatricesEqual(const M1, M2: TMatrix3Single; const EqualityEpsilon: Single): boolean; overload;
@@ -1300,14 +1323,14 @@ function MatricesPerfectlyEqual(const M1, M2: TMatrix3Double): boolean; overload
 function MatricesPerfectlyEqual(const M1, M2: TMatrix4Single): boolean; overload;
 function MatricesPerfectlyEqual(const M1, M2: TMatrix4Double): boolean; overload;
 
-function VectorsPerp(const v1, v2: TVector3Single): boolean; overload;
-function VectorsPerp(const v1, v2: TVector3Double): boolean; overload;
+function VectorsPerp(const V1, V2: TVector3Single): boolean; overload;
+function VectorsPerp(const V1, V2: TVector3Double): boolean; overload;
 
 { Are the two vectors parallel (one is a scaled version of another).
   In particular, if one of the vectors is zero, then this is @true.
   @groupBegin }
-function VectorsParallel(const v1, v2: TVector3Single): boolean; overload;
-function VectorsParallel(const v1, v2: TVector3Double): boolean; overload;
+function VectorsParallel(const V1, V2: TVector3Single): boolean; overload;
+function VectorsParallel(const V1, V2: TVector3Double): boolean; overload;
 { @groupEnd }
 
 { spraw zeby miedzy wektorem v1 a v2 byl kat angle poprzez ew. zmiane
@@ -1318,14 +1341,14 @@ function VectorsParallel(const v1, v2: TVector3Double): boolean; overload;
   kata zalezy oczywiscie od kolejnosci wektorow, wszystko przez to
   ze dla kazdego punktu plaszczyny mozna wyznaczyc dwa wektory do niej
   prostopadle wychodzace z tego punktu. Robione jest tak zeby wektor v1
-  po obrocie o kat AngleDeg wokol VectorProduct(v1, v2) byl na miejscu
+  po obrocie o kat AngleDeg wokol VectorProduct(V1, V2) byl na miejscu
   wektora v2.
 
   Wiec jezeli zamieniasz wektory kolejnoscia w parametrach (v1 z v2)
   to zamieniasz jednoczesnie kierunek kata wobec tego juz NIE POWINIENES
   negowac wektora aby zachowac taka sama zaleznosc miedzy wektorami.
   Innymi slowy, polecenia
-    (v1, v2, 90) i
+    (V1, V2, 90) i
     (v2, v1, 90) daja taka sama zaleznosc miedzy dwoma wektorami,
     mimo ze wydaje sie ze razem ze zmiana kolejnosci wektorow powinno
     sie zmienic kat na przeciwny.
@@ -1340,7 +1363,7 @@ procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3Double;
   const v2: TVector3Double; AngleRad: Double); overload;
 
 { This is a shortcut (that may be calculated faster)
-  for MakeVectorsAngleDefOnTheirPlane(v1, v2, 90). }
+  for MakeVectorsAngleDefOnTheirPlane(V1, V2, 90). }
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Single;
   const v2: TVector3Single); overload;
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Double;
