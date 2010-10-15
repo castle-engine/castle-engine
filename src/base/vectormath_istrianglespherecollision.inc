@@ -15,13 +15,13 @@
 
 { w zaleznosci od tego czy zdefiniowales HAS_PRECALC_PLANE
   to makro wygeneruje inna implementacje funkcji IsTriangleSphereCollision }
-var intersection: TYPE_VECTOR3;
-    SphereRadiusSqr: TYPE_SCALAR;
+var intersection: TVector3;
+    SphereRadiusSqr: TScalar;
     i: integer;
-    {$ifndef HAS_PRECALC_PLANE} TriPlane: TYPE_VECTOR4; {$endif}
+    {$ifndef HAS_PRECALC_PLANE} TriPlane: TVector4; {$endif}
     { pamietaj ze TriDir dla ifndef HAS_PRECALC_PLANE jest dobre dopiero
       po obliczeniu TriPlane }
-    TriDir: TYPE_VECTOR3 absolute TriPlane;
+    TriDir: TVector3 absolute TriPlane;
 begin
  SphereRadiusSqr := Sqr(SphereRadius);
  if (PointsDistanceSqr(Tri[0], SphereCenter) <= SphereRadiusSqr) or

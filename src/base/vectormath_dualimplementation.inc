@@ -15,76 +15,76 @@
 
 { Implementation of VectorMath for both floating-point types
   (Single and Double). This is included two times within vectormath.pas
-  implementation, with macros like TYPE_VECTOR3 and TYPE_SCALAR
+  implementation, with macros like TVector3 and TScalar
   defined for appropriate floating-point types. }
 
-procedure SwapValues(var V1, V2: TYPE_VECTOR2);
+procedure SwapValues(var V1, V2: TVector2);
 var
-  Tmp: TYPE_VECTOR2;
+  Tmp: TVector2;
 begin
   Tmp := V1;
   V1 := V2;
   V2 := Tmp;
 end;
 
-procedure SwapValues(var V1, V2: TYPE_VECTOR3);
+procedure SwapValues(var V1, V2: TVector3);
 var
-  Tmp: TYPE_VECTOR3;
+  Tmp: TVector3;
 begin
   Tmp := V1;
   V1 := V2;
   V2 := Tmp;
 end;
 
-procedure SwapValues(var V1, V2: TYPE_VECTOR4);
+procedure SwapValues(var V1, V2: TVector4);
 var
-  Tmp: TYPE_VECTOR4;
+  Tmp: TVector4;
 begin
   Tmp := V1;
   V1 := V2;
   V2 := Tmp;
 end;
 
-function VectorAverage(const V: TYPE_VECTOR3): TYPE_SCALAR;
+function VectorAverage(const V: TVector3): TScalar;
 begin
   Result := (V[0] + V[1] + V[2]) / 3;
 end;
 
 {$ifdef FPC_OBJFPC}
-operator := (const V: TYPE_VECTOR2_OBJECT): TYPE_VECTOR2;
+operator := (const V: TVector2_): TVector2;
 begin
   Result := V.Data;
 end;
 
-operator := (const V: TYPE_VECTOR3_OBJECT): TYPE_VECTOR3;
+operator := (const V: TVector3_): TVector3;
 begin
   Result := V.Data;
 end;
 
-operator := (const V: TYPE_VECTOR4_OBJECT): TYPE_VECTOR4;
+operator := (const V: TVector4_): TVector4;
 begin
   Result := V.Data;
 end;
 
-operator := (const V: TYPE_VECTOR2): TYPE_VECTOR2_OBJECT;
+operator := (const V: TVector2): TVector2_;
 begin
   Result.Data := V;
 end;
 
-operator := (const V: TYPE_VECTOR3): TYPE_VECTOR3_OBJECT;
+operator := (const V: TVector3): TVector3_;
 begin
   Result.Data := V;
 end;
 
-operator := (const V: TYPE_VECTOR4): TYPE_VECTOR4_OBJECT;
+operator := (const V: TVector4): TVector4_;
 begin
   Result.Data := V;
 end;
 {$endif FPC_OBJFPC}
 
-procedure NormalizeTo1st(var V: TYPE_VECTOR3);
+procedure NormalizeTo1st(var V: TVector3);
 var
-  len: TYPE_SCALAR;
+  len: TScalar;
 begin
   len := Sqrt( Sqr(V[0]) + Sqr(V[1]) + Sqr(V[2]) );
   if len = 0.0 then exit;
@@ -93,9 +93,9 @@ begin
   V[2] /= len;
 end;
 
-procedure NormalizePlaneTo1st(var v: TYPE_VECTOR4);
+procedure NormalizePlaneTo1st(var v: TVector4);
 var
-  len: TYPE_SCALAR;
+  len: TScalar;
 begin
   len := Sqrt( Sqr(V[0]) + Sqr(V[1]) + Sqr(V[2]) );
   V[0] /= len;
@@ -104,86 +104,86 @@ begin
   V[3] /= len;
 end;
 
-function ZeroVector(const V: TYPE_VECTOR3): boolean;
+function ZeroVector(const V: TVector3): boolean;
 begin
-  result := (Abs(V[0]) < SCALAR_EQUALITY_EPSILON) and
-            (Abs(V[1]) < SCALAR_EQUALITY_EPSILON) and
-            (Abs(V[2]) < SCALAR_EQUALITY_EPSILON);
+  result := (Abs(V[0]) < ScalarEqualityEpsilon) and
+            (Abs(V[1]) < ScalarEqualityEpsilon) and
+            (Abs(V[2]) < ScalarEqualityEpsilon);
 end;
 
-function ZeroVector(const V: TYPE_VECTOR4): boolean;
+function ZeroVector(const V: TVector4): boolean;
 begin
-  result := (Abs(V[0]) < SCALAR_EQUALITY_EPSILON) and
-            (Abs(V[1]) < SCALAR_EQUALITY_EPSILON) and
-            (Abs(V[2]) < SCALAR_EQUALITY_EPSILON) and
-            (Abs(V[3]) < SCALAR_EQUALITY_EPSILON);
+  result := (Abs(V[0]) < ScalarEqualityEpsilon) and
+            (Abs(V[1]) < ScalarEqualityEpsilon) and
+            (Abs(V[2]) < ScalarEqualityEpsilon) and
+            (Abs(V[3]) < ScalarEqualityEpsilon);
 end;
 
-function PerfectlyZeroVector(const V: TYPE_VECTOR3): boolean;
-begin
-  Result := IsMemCharFilled(v, SizeOf(v), #0);
-end;
-
-function PerfectlyZeroVector(const V: TYPE_VECTOR4): boolean;
+function PerfectlyZeroVector(const V: TVector3): boolean;
 begin
   Result := IsMemCharFilled(v, SizeOf(v), #0);
 end;
 
-function VectorAdjustToLength(const v: TYPE_VECTOR3; VecLen: TYPE_SCALAR): TYPE_VECTOR3;
+function PerfectlyZeroVector(const V: TVector4): boolean;
+begin
+  Result := IsMemCharFilled(v, SizeOf(v), #0);
+end;
+
+function VectorAdjustToLength(const v: TVector3; VecLen: TScalar): TVector3;
 begin
   result := VectorScale(v, VecLen/VectorLen(v));
 end;
 
-procedure VectorAdjustToLengthTo1st(var v: TYPE_VECTOR3; VecLen: TYPE_SCALAR);
+procedure VectorAdjustToLengthTo1st(var v: TVector3; VecLen: TScalar);
 begin
   VectorScaleTo1st(v, VecLen/VectorLen(v));
 end;
 
-function VectorLen(const v: TYPE_VECTOR2): TYPE_SCALAR;
+function VectorLen(const v: TVector2): TScalar;
 begin
   Result := Sqrt(VectorLenSqr(v));
 end;
 
-function VectorLenSqr(const v: TYPE_VECTOR2): TYPE_SCALAR;
+function VectorLenSqr(const v: TVector2): TScalar;
 begin
   Result := Sqr(v[0]) + Sqr(v[1]);
 end;
 
-function VectorLen(const v: TYPE_VECTOR3): TYPE_SCALAR;
+function VectorLen(const v: TVector3): TScalar;
 begin
   Result := Sqrt(VectorLenSqr(v));
 end;
 
-function VectorLenSqr(const v: TYPE_VECTOR3): TYPE_SCALAR;
+function VectorLenSqr(const v: TVector3): TScalar;
 begin
   Result := Sqr(v[0]) + Sqr(v[1]) + Sqr(v[2]);
 end;
 
-function VectorLen(const v: TYPE_VECTOR4): TYPE_SCALAR;
+function VectorLen(const v: TVector4): TScalar;
 begin
   Result := Sqrt(VectorLenSqr(v));
 end;
 
-function VectorLenSqr(const v: TYPE_VECTOR4): TYPE_SCALAR;
+function VectorLenSqr(const v: TVector4): TScalar;
 begin
   Result := Sqr(v[0]) + Sqr(v[1]) + Sqr(v[2]) + Sqr(v[3]);
 end;
 
-function VectorPowerComponents(const v: TYPE_VECTOR3; const Exp: TYPE_SCALAR): TYPE_VECTOR3;
+function VectorPowerComponents(const v: TVector3; const Exp: TScalar): TVector3;
 begin
   result[0] := Power(v[0], Exp);
   result[1] := Power(v[1], Exp);
   result[2] := Power(v[2], Exp);
 end;
 
-procedure VectorPowerComponentsTo1st(var v: TYPE_VECTOR3; const Exp: TYPE_SCALAR);
+procedure VectorPowerComponentsTo1st(var v: TVector3; const Exp: TScalar);
 begin
   v[0] := Power(v[0], Exp);
   v[1] := Power(v[1], Exp);
   v[2] := Power(v[2], Exp);
 end;
 
-function CosAngleBetweenVectors(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+function CosAngleBetweenVectors(const v1, v2: TVector3): TScalar;
 var
   LensSquared: Float;
 begin
@@ -191,7 +191,7 @@ begin
      VectorLenSqr(v1) i VectorLenSqr(v2) jednoczesnie. *)
 
   LensSquared := VectorLenSqr(v1) * VectorLenSqr(v2);
-  if LensSquared < SCALAR_EQUALITY_EPSILON then
+  if LensSquared < ScalarEqualityEpsilon then
     raise EVectorMathInvalidOp.Create(
       'Cannot calculate angle between vectors, at least one of the vectors is zero');
 
@@ -203,50 +203,50 @@ begin
     VectorDotProduct(v1, v2) / Sqrt(LensSquared), -1.0, 1.0);
 end;
 
-function AngleRadBetweenVectors(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+function AngleRadBetweenVectors(const v1, v2: TVector3): TScalar;
 begin
   result := ArcCos(CosAngleBetweenVectors(v1, v2));
 end;
 
-function CosAngleBetweenNormals(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+function CosAngleBetweenNormals(const v1, v2: TVector3): TScalar;
 begin
   result := Clamped(VectorDotProduct(v1, v2), -1.0, 1.0);
 end;
 
-function AngleRadBetweenNormals(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+function AngleRadBetweenNormals(const v1, v2: TVector3): TScalar;
 begin
   result := ArcCos(CosAngleBetweenNormals(v1, v2));
 end;
 
-function Normalized(const v: TYPE_VECTOR3): TYPE_VECTOR3;
+function Normalized(const v: TVector3): TVector3;
 begin
   result := v;
   NormalizeTo1st(result);
 end;
 
 {$ifdef HAS_MATRIX_UNIT}
-function Vector_Get_Normalized(const V: TYPE_VECTOR3_OBJECT): TYPE_VECTOR3_OBJECT;
+function Vector_Get_Normalized(const V: TVector3_): TVector3_;
 begin
   Result.Data := V.Data;
   NormalizeTo1st(Result.Data);
 end;
 
-procedure Vector_Normalize(var V: TYPE_VECTOR3_OBJECT);
+procedure Vector_Normalize(var V: TVector3_);
 begin
   NormalizeTo1st(V.Data);
 end;
 {$endif HAS_MATRIX_UNIT}
 
-function RotatePointAroundAxisDeg(Angle: TYPE_SCALAR; const Point: TYPE_VECTOR3;
-  const Axis: TYPE_VECTOR3): TYPE_VECTOR3;
+function RotatePointAroundAxisDeg(Angle: TScalar; const Point: TVector3;
+  const Axis: TVector3): TVector3;
 begin
   result := RotatePointAroundAxisRad(DegToRad(Angle), Point, Axis);
 end;
 
-function RotatePointAroundAxisRad(Angle: TYPE_SCALAR; const Point: TYPE_VECTOR3;
-  const Axis: TYPE_VECTOR3): TYPE_VECTOR3;
+function RotatePointAroundAxisRad(Angle: TScalar; const Point: TVector3;
+  const Axis: TVector3): TVector3;
 var
-  x, y,z, l: TYPE_SCALAR;
+  x, y,z, l: TScalar;
   sinAngle, cosAngle: Float;
 begin
   SinCos(Angle, sinAngle, cosAngle);
@@ -270,7 +270,7 @@ begin
             + (cosAngle + (1 - cosAngle) * z * z)       * Point[2];
 end;
 
-function MaxVectorCoord(const v: TYPE_VECTOR3): integer;
+function MaxVectorCoord(const v: TVector3): integer;
 begin
   result := 0;
   { order of comparisons is important. We start from 0, then 1 and 2,
@@ -280,7 +280,7 @@ begin
   if v[2] > v[result] then result := 2;
 end;
 
-function MaxVectorCoord(const v: TYPE_VECTOR4): integer;
+function MaxVectorCoord(const v: TVector4): integer;
 begin
   result := 0;
   if v[1] > v[result] then result := 1;
@@ -288,14 +288,14 @@ begin
   if v[3] > v[result] then result := 3;
 end;
 
-function MaxAbsVectorCoord(const v: TYPE_VECTOR3): integer;
+function MaxAbsVectorCoord(const v: TVector3): integer;
 begin
   result := 0;
   if Abs(v[1]) > Abs(v[result]) then result := 1;
   if Abs(v[2]) > Abs(v[result]) then result := 2;
 end;
 
-procedure SortAbsVectorCoord(const v: TYPE_VECTOR3;
+procedure SortAbsVectorCoord(const v: TVector3;
   out Max, Middle, Min: Integer);
 begin
   Max := 0;
@@ -309,14 +309,14 @@ begin
   end;
 end;
 
-function PlaneDirInDirection(const Plane: TYPE_VECTOR4; const Direction: TYPE_VECTOR3): TYPE_VECTOR3;
+function PlaneDirInDirection(const Plane: TVector4; const Direction: TVector3): TVector3;
 var
-  PlaneDir: TYPE_VECTOR3 absolute Plane;
+  PlaneDir: TVector3 absolute Plane;
 begin
   result := PlaneDirInDirection(PlaneDir, Direction);
 end;
 
-function PlaneDirInDirection(const PlaneDir, Direction: TYPE_VECTOR3): TYPE_VECTOR3;
+function PlaneDirInDirection(const PlaneDir, Direction: TVector3): TVector3;
 begin
   (* "Normalny" sposob aby sprawdzic czy dwa wektory wskazuja z tej samej
     plaszczyzny to porownac
@@ -342,21 +342,21 @@ begin
     result := PlaneDir;
 end;
 
-function PlaneDirNotInDirection(const Plane: TYPE_VECTOR4; const Direction: TYPE_VECTOR3): TYPE_VECTOR3;
+function PlaneDirNotInDirection(const Plane: TVector4; const Direction: TVector3): TVector3;
 var
-  PlaneDir: TYPE_VECTOR3 absolute Plane;
+  PlaneDir: TVector3 absolute Plane;
 begin
   result := PlaneDirNotInDirection(PlaneDir, Direction);
 end;
 
-procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TYPE_VECTOR4;
-  out Line0, LineVector: TYPE_VECTOR3);
+procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4;
+  out Line0, LineVector: TVector3);
 var
-  Plane0Dir: TYPE_VECTOR3 absolute Plane0;
-  Plane1Dir: TYPE_VECTOR3 absolute Plane1;
+  Plane0Dir: TVector3 absolute Plane0;
+  Plane1Dir: TVector3 absolute Plane1;
   NonZeroIndex, Index1, Index2: Integer;
-  PlaneWithNonZeroIndex1: PTR_TYPE_VECTOR4;
-  PlaneMultiply, Sum_Index2, Sum_3: TYPE_SCALAR;
+  PlaneWithNonZeroIndex1: PVector4;
+  PlaneMultiply, Sum_Index2, Sum_3: TScalar;
 begin
   LineVector := VectorProduct(Plane0Dir, Plane1Dir);
 
@@ -422,9 +422,9 @@ begin
     PlaneWithNonZeroIndex1^[Index1];
 end;
 
-function Lines2DIntersection(const Line0, Line1: TYPE_VECTOR3): TYPE_VECTOR2;
+function Lines2DIntersection(const Line0, Line1: TVector3): TVector2;
 var
-  Ratio, Divide: TYPE_SCALAR;
+  Ratio, Divide: TScalar;
 begin
   { Only one from Line0[0], Line0[1] may be zero.
     Take larger one for numerical stability. }
@@ -466,9 +466,9 @@ begin
 end;
 
 function ThreePlanesIntersectionPoint(
-  const Plane0, Plane1, Plane2: TYPE_VECTOR4): TYPE_VECTOR3;
+  const Plane0, Plane1, Plane2: TVector4): TVector3;
 var
-  Line0, LineVector: TYPE_VECTOR3;
+  Line0, LineVector: TVector3;
 begin
   TwoPlanesIntersectionLine(Plane0, Plane1, Line0, LineVector);
   if not TryPlaneLineIntersection(Result, Plane2, Line0, LineVector) then
@@ -476,8 +476,8 @@ begin
       'intersection line of first two planes is parallel to the 3rd plane');
 end;
 
-function PlaneMove(const Plane: TYPE_VECTOR4;
-  const Move: TYPE_VECTOR3): TYPE_VECTOR4;
+function PlaneMove(const Plane: TVector4;
+  const Move: TVector3): TVector4;
 begin
   { Given a plane Ax + By + Cz + D = 0.
     We want to find a new plane, moved by Move.
@@ -500,15 +500,15 @@ begin
                Plane[2] * Move[2];
 end;
 
-procedure PlaneMoveTo1st(var Plane: TYPE_VECTOR4; const Move: TYPE_VECTOR3);
+procedure PlaneMoveTo1st(var Plane: TVector4; const Move: TVector3);
 begin
   Plane[3] -= Plane[0] * Move[0] +
               Plane[1] * Move[1] +
               Plane[2] * Move[2];
 end;
 
-function PlaneAntiMove(const Plane: TYPE_VECTOR4;
-  const Move: TYPE_VECTOR3): TYPE_VECTOR4;
+function PlaneAntiMove(const Plane: TVector4;
+  const Move: TVector3): TVector4;
 begin
   { Like PlaneMove, but Move vector is negated.
     So we just do "Result[3] +=" instead of "Result[3] -=". }
@@ -521,76 +521,76 @@ end;
 
 {$define VectorsSamePlaneDirections_Implement:=
 var
-  v1dot, v2dot: TYPE_SCALAR;
+  v1dot, v2dot: TScalar;
 begin
   v1dot := VectorDotProduct(v1, PlaneDir);
   v2dot := VectorDotProduct(v2, PlaneDir);
   result := Zero(v1dot) or Zero(v2dot) or ((v1dot > 0) = (v2dot > 0));
 end;}
 
-  function VectorsSamePlaneDirections(const v1, v2: TYPE_VECTOR3;
-    const Plane: TYPE_VECTOR4): boolean;
-  var PlaneDir: TYPE_VECTOR3 absolute Plane;
+  function VectorsSamePlaneDirections(const v1, v2: TVector3;
+    const Plane: TVector4): boolean;
+  var PlaneDir: TVector3 absolute Plane;
   VectorsSamePlaneDirections_Implement
 
-  function VectorsSamePlaneDirections(const v1, v2: TYPE_VECTOR3;
-    const PlaneDir: TYPE_VECTOR3): boolean;
+  function VectorsSamePlaneDirections(const v1, v2: TVector3;
+    const PlaneDir: TVector3): boolean;
   VectorsSamePlaneDirections_Implement
 
 {$undef VectorsSamePlaneDirections_Implement}
 
-function PointsSamePlaneSides(const p1, p2: TYPE_VECTOR3; const Plane: TYPE_VECTOR4): boolean;
+function PointsSamePlaneSides(const p1, p2: TVector3; const Plane: TVector4): boolean;
 var
-  p1Side, p2Side: TYPE_SCALAR;
+  p1Side, p2Side: TScalar;
 begin
   p1Side := p1[0]*Plane[0] + p1[1]*Plane[1] + p1[2]*Plane[2] + Plane[3];
   p2Side := p2[0]*Plane[0] + p2[1]*Plane[1] + p2[2]*Plane[2] + Plane[3];
   result := Zero(p1Side) or Zero(p2Side) or ((p1Side > 0) = (p2Side > 0));
 end;
 
-function PlaneDirNotInDirection(const PlaneDir, Direction: TYPE_VECTOR3): TYPE_VECTOR3;
+function PlaneDirNotInDirection(const PlaneDir, Direction: TVector3): TVector3;
 begin
   if VectorDotProduct(Direction, PlaneDir) > 0 then
     result := VectorNegate(PlaneDir) else
     result := PlaneDir;
 end;
 
-function PointsDistance(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+function PointsDistance(const v1, v2: TVector3): TScalar;
 begin
   (* result := Sqrt(PointsDistanceSqr(v1, v2));, rozwiniete w nadziei na (drobny)
      zysk szybkosci *)
   result := Sqrt( Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]) + Sqr(v2[2]-v1[2]) );
 end;
 
-function PointsDistanceSqr(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+function PointsDistanceSqr(const v1, v2: TVector3): TScalar;
 begin
   (* result := VectorLenSqr(VectorSubtract(v2, v1));, rozwiniete w nadziei na (drobny)
      zysk szybkosci *)
   result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]) + Sqr(v2[2]-v1[2]);
 end;
 
-function PointsDistanceSqr(const v1, v2: TYPE_VECTOR2): TYPE_SCALAR;
+function PointsDistanceSqr(const v1, v2: TVector2): TScalar;
 begin
   (* result := VectorLenSqr(VectorSubtract(v2, v1));, rozwiniete w nadziei na (drobny)
      zysk szybkosci *)
   result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
 end;
 
-function PointsDistanceXYSqr(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+function PointsDistanceXYSqr(const v1, v2: TVector3): TScalar;
 begin
   Result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
 end;
 
-function VectorsEqual(const v1, v2: TYPE_VECTOR2): boolean;
+function VectorsEqual(const v1, v2: TVector2): boolean;
 begin
-  if SCALAR_EQUALITY_EPSILON = 0 then
+  if ScalarEqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
-    Result := (Abs(v1[0]-v2[0]) < SCALAR_EQUALITY_EPSILON) and
-              (Abs(v1[1]-v2[1]) < SCALAR_EQUALITY_EPSILON);
+    Result := (Abs(v1[0]-v2[0]) < ScalarEqualityEpsilon) and
+              (Abs(v1[1]-v2[1]) < ScalarEqualityEpsilon);
 end;
 
-function VectorsEqual(const v1, v2: TYPE_VECTOR2;
-  const EqualityEpsilon: TYPE_SCALAR): boolean;
+function VectorsEqual(const v1, v2: TVector2;
+  const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
@@ -598,17 +598,17 @@ begin
               (Abs(v1[1]-v2[1]) < EqualityEpsilon);
 end;
 
-function VectorsEqual(const v1, v2: TYPE_VECTOR3): boolean;
+function VectorsEqual(const v1, v2: TVector3): boolean;
 begin
-  if SCALAR_EQUALITY_EPSILON = 0 then
+  if ScalarEqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
     Result := FloatsEqual(v1[0], v2[0]) and
               FloatsEqual(v1[1], v2[1]) and
               FloatsEqual(v1[2], v2[2]);
 end;
 
-function VectorsEqual(const v1, v2: TYPE_VECTOR3;
-  const EqualityEpsilon: TYPE_SCALAR): boolean;
+function VectorsEqual(const v1, v2: TVector3;
+  const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
@@ -617,9 +617,9 @@ begin
               (Abs(v1[2]-v2[2]) < EqualityEpsilon);
 end;
 
-function VectorsEqual(const v1, v2: TYPE_VECTOR4): boolean;
+function VectorsEqual(const v1, v2: TVector4): boolean;
 begin
-  if SCALAR_EQUALITY_EPSILON = 0 then
+  if ScalarEqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
     Result := FloatsEqual(v1[0], v2[0]) and
               FloatsEqual(v1[1], v2[1]) and
@@ -627,8 +627,8 @@ begin
               FloatsEqual(v1[3], v2[3]);
 end;
 
-function VectorsEqual(const v1, v2: TYPE_VECTOR4;
-  const EqualityEpsilon: TYPE_SCALAR): boolean;
+function VectorsEqual(const v1, v2: TVector4;
+  const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
@@ -638,26 +638,26 @@ begin
               (Abs(v1[3]-v2[3]) < EqualityEpsilon);
 end;
 
-function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR2): boolean;
+function VectorsPerfectlyEqual(const v1, v2: TVector2): boolean;
 {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
-function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR3): boolean;
+function VectorsPerfectlyEqual(const v1, v2: TVector3): boolean;
 {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
-function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR4): boolean;
+function VectorsPerfectlyEqual(const v1, v2: TVector4): boolean;
 {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
-function MatricesEqual(const M1, M2: TYPE_MATRIX3;
-  const EqualityEpsilon: TYPE_SCALAR): boolean;
+function MatricesEqual(const M1, M2: TMatrix3;
+  const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
     Result := CompareMem(@M1, @M2, SizeOf(M1)) else
@@ -675,8 +675,8 @@ begin
       (Abs(M1[2, 2] - M2[2, 2]) < EqualityEpsilon);
 end;
 
-function MatricesEqual(const M1, M2: TYPE_MATRIX4;
-  const EqualityEpsilon: TYPE_SCALAR): boolean;
+function MatricesEqual(const M1, M2: TMatrix4;
+  const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
     Result := CompareMem(@M1, @M2, SizeOf(M1)) else
@@ -702,7 +702,7 @@ begin
       (Abs(M1[3, 3] - M2[3, 3]) < EqualityEpsilon);
 end;
 
-function Lerp(const A: TYPE_SCALAR; const M1, M2: TYPE_MATRIX3): TYPE_MATRIX3;
+function Lerp(const A: TScalar; const M1, M2: TMatrix3): TMatrix3;
 begin
   Result[0, 0] := M1[0, 0] + A * (M2[0, 0] - M1[0, 0]);
   Result[0, 1] := M1[0, 1] + A * (M2[0, 1] - M1[0, 1]);
@@ -717,7 +717,7 @@ begin
   Result[2, 2] := M1[2, 2] + A * (M2[2, 2] - M1[2, 2]);
 end;
 
-function Lerp(const A: TYPE_SCALAR; const M1, M2: TYPE_MATRIX4): TYPE_MATRIX4;
+function Lerp(const A: TScalar; const M1, M2: TMatrix4): TMatrix4;
 begin
   Result[0, 0] := M1[0, 0] + A * (M2[0, 0] - M1[0, 0]);
   Result[0, 1] := M1[0, 1] + A * (M2[0, 1] - M1[0, 1]);
@@ -740,28 +740,28 @@ begin
   Result[3, 3] := M1[3, 3] + A * (M2[3, 3] - M1[3, 3]);
 end;
 
-function MatricesPerfectlyEqual(const M1, M2: TYPE_MATRIX3): boolean;
+function MatricesPerfectlyEqual(const M1, M2: TMatrix3): boolean;
 begin
   Result := CompareMem(@M1, @M2, SizeOf(M1));
 end;
 
-function MatricesPerfectlyEqual(const M1, M2: TYPE_MATRIX4): boolean;
+function MatricesPerfectlyEqual(const M1, M2: TMatrix4): boolean;
 begin
   Result := CompareMem(@M1, @M2, SizeOf(M1));
 end;
 
-function VectorsPerp(const v1, v2: TYPE_VECTOR3): boolean;
+function VectorsPerp(const v1, v2: TVector3): boolean;
 begin
   (* prosto : result := CosAngleBetweenVectors(v1, v2) = 0.
      Ale mozna zobaczyc jak liczymy CosAngleBetweenVectors - to jest
      VectorDorProduct / cos-tam. Wynik jest = 0 <=> VectorDotProduct = 0. *)
-  result := Zero(VectorDotProduct(v1, v2), SCALAR_EQUALITY_EPSILON*2);
+  result := Zero(VectorDotProduct(v1, v2), ScalarEqualityEpsilon*2);
 end;
 
-function VectorsParallel(const v1, v2: TYPE_VECTOR3): boolean;
+function VectorsParallel(const v1, v2: TVector3): boolean;
 var
   mc, c1, c2: Integer;
-  Scale: TYPE_SCALAR;
+  Scale: TScalar;
 begin
   mc := MaxAbsVectorCoord(v1);
   if Zero(v1[mc]) then Exit(true);
@@ -772,11 +772,11 @@ begin
             FloatsEqual(v1[c2] * Scale, v2[c2]);
 end;
 
-procedure MakeVectorsAngleDegOnTheirPlane(var v1: TYPE_VECTOR3;
-  const v2: TYPE_VECTOR3; AngleDeg: TYPE_SCALAR);
+procedure MakeVectorsAngleDegOnTheirPlane(var v1: TVector3;
+  const v2: TVector3; AngleDeg: TScalar);
 var
-  rotAxis: TYPE_VECTOR3;
-  v1len: TYPE_SCALAR;
+  rotAxis: TVector3;
+  v1len: TScalar;
 begin
   (* dostosuj v1 tak zeby pomiedzy nim o wektorem v2 =
      byl kat AngleDeg. Robimy to tak : v1 i v2 wyznaczaja plaszczyzne,
@@ -791,11 +791,11 @@ begin
     RotatePointAroundAxisDeg(-AngleDeg, v2, rotAxis), v1len);
 end;
 
-procedure MakeVectorsAngleRadOnTheirPlane(var v1: TYPE_VECTOR3;
-  const v2: TYPE_VECTOR3; AngleRad: TYPE_SCALAR);
+procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3;
+  const v2: TVector3; AngleRad: TScalar);
 var
-  rotAxis: TYPE_VECTOR3;
-  v1len: TYPE_SCALAR;
+  rotAxis: TVector3;
+  v1len: TScalar;
 begin
   v1len := VectorLen(v1);
   rotAxis := VectorProduct(v1, v2);
@@ -803,15 +803,15 @@ begin
     RotatePointAroundAxisRad(-AngleRad, v2, rotAxis), v1len);
 end;
 
-procedure MakeVectorsOrthoOnTheirPlane(var v1: TYPE_VECTOR3;
-  const v2: TYPE_VECTOR3);
+procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3;
+  const v2: TVector3);
 begin
   { TODO: can we speed this up ?
     For Pi/2, we can do just v1 := VectorProduct of sthg and adjust v1 length. }
   MakeVectorsAngleRadOnTheirPlane(v1, v2, Pi/2);
 end;
 
-function AnyOrthogonalVector(const v: TYPE_VECTOR3): TYPE_VECTOR3;
+function AnyOrthogonalVector(const v: TVector3): TVector3;
 begin
   if Zero(v[0]) and Zero(v[1]) then
   begin
@@ -826,21 +826,21 @@ begin
   end;
 end;
 
-function IsLineParallelToPlane(const lineVector: TYPE_VECTOR3; const plane: TYPE_VECTOR4): boolean;
+function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): boolean;
 var
-  PlaneDir: TYPE_VECTOR3 absolute plane;
+  PlaneDir: TVector3 absolute plane;
 begin
   result := VectorsPerp(lineVector, PlaneDir);
 end;
 
-function IsLineParallelToSimplePlane(const lineVector: TYPE_VECTOR3;
+function IsLineParallelToSimplePlane(const lineVector: TVector3;
   const PlaneConstCoord: integer): boolean;
 begin
   result := Zero(lineVector[PlaneConstCoord]);
 end;
 
 function AreParallelVectorsSameDirection(
-  const Vector1, Vector2: TYPE_VECTOR3): boolean;
+  const Vector1, Vector2: TVector3): boolean;
 var
   Coord: Integer;
 begin
@@ -851,10 +851,10 @@ begin
   Result := (Vector1[Coord] > 0) = (Vector2[Coord] > 0);
 end;
 
-function PointOnPlaneClosestToPoint(const plane: TYPE_VECTOR4; const point: TYPE_VECTOR3): TYPE_VECTOR3;
+function PointOnPlaneClosestToPoint(const plane: TVector4; const point: TVector3): TVector3;
 var
-  d: TYPE_SCALAR;
-  PlaneDir: TYPE_VECTOR3 absolute plane;
+  d: TScalar;
+  PlaneDir: TVector3 absolute plane;
 begin
   (*licz punkt Pr - punkt na plaszczyznie plane bedacy rzutem prostopadlym
     punktu pos na ta plaszczyzne. Pr = pos + d * PlaneDir.
@@ -869,8 +869,8 @@ begin
   result := VectorAdd(point, VectorScale(PlaneDir, d));
 end;
 
-function PointToPlaneDistanceSqr(const Point: TYPE_VECTOR3;
-  const Plane: TYPE_VECTOR4): TYPE_SCALAR;
+function PointToPlaneDistanceSqr(const Point: TVector3;
+  const Plane: TVector4): TScalar;
 begin
   Result :=
     Sqr(Plane[0] * Point[0] +
@@ -880,8 +880,8 @@ begin
     (Sqr(Plane[0]) + Sqr(Plane[1]) + Sqr(Plane[2]));
 end;
 
-function PointToNormalizedPlaneDistance(const Point: TYPE_VECTOR3;
-  const Plane: TYPE_VECTOR4): TYPE_SCALAR;
+function PointToNormalizedPlaneDistance(const Point: TVector3;
+  const Plane: TVector4): TScalar;
 begin
   Result :=
     Abs(Plane[0] * Point[0] +
@@ -890,8 +890,8 @@ begin
         Plane[3]);
 end;
 
-function PointToPlaneDistance(const Point: TYPE_VECTOR3;
-  const Plane: TYPE_VECTOR4): TYPE_SCALAR;
+function PointToPlaneDistance(const Point: TVector3;
+  const Plane: TVector4): TScalar;
 begin
   Result :=
     Abs(Plane[0] * Point[0] +
@@ -901,16 +901,16 @@ begin
     Sqrt(Sqr(Plane[0]) + Sqr(Plane[1]) + Sqr(Plane[2]));
 end;
 
-function PointToSimplePlaneDistance(const point: TYPE_VECTOR3;
-  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR): TYPE_SCALAR;
+function PointToSimplePlaneDistance(const point: TVector3;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar): TScalar;
 begin
   result := Abs(point[PlaneConstCoord]-PlaneConstValue);
 end;
 
 function PointOnLineClosestToPoint(
-  const line0, lineVector, point: TYPE_VECTOR3): TYPE_VECTOR3;
+  const line0, lineVector, point: TVector3): TVector3;
 var
-  d: TYPE_SCALAR;
+  d: TScalar;
 begin
   (*
    wiemy ze wektory result-point i lineVector (albo result-line0) sa prostopadle.
@@ -947,16 +947,16 @@ begin
   result := VectorAdd(line0, VectorScale(lineVector, d));
 end;
 
-function PointToLineDistanceSqr(const point, line0, lineVector: TYPE_VECTOR3): TYPE_SCALAR;
+function PointToLineDistanceSqr(const point, line0, lineVector: TVector3): TScalar;
 begin
   result := PointsDistanceSqr(point, PointOnLineClosestToPoint(line0, lineVector, point));
 end;
 
-function TryPlaneLineIntersection(out t: TYPE_SCALAR;
-  const plane: TYPE_VECTOR4; const line0, lineVector: TYPE_VECTOR3): boolean;
+function TryPlaneLineIntersection(out t: TScalar;
+  const plane: TVector4; const line0, lineVector: TVector3): boolean;
 var
-  PlaneDir: TYPE_VECTOR3 absolute plane;
-  Dot: TYPE_SCALAR;
+  PlaneDir: TVector3 absolute plane;
+  Dot: TScalar;
 begin
   Dot := VectorDotProduct(LineVector, PlaneDir);
   if not Zero(Dot) then
@@ -967,29 +967,29 @@ begin
     result := false;
 end;
 
-function TryPlaneLineIntersection(out intersection: TYPE_VECTOR3;
-  const plane: TYPE_VECTOR4; const line0, lineVector: TYPE_VECTOR3): boolean;
+function TryPlaneLineIntersection(out intersection: TVector3;
+  const plane: TVector4; const line0, lineVector: TVector3): boolean;
 var
-  t: TYPE_SCALAR;
+  t: TScalar;
 begin
   result := TryPlaneLineIntersection(t, Plane, Line0, LineVector);
   if result then Intersection := VectorAdd(Line0, VectorScale(LineVector, t));
 end;
 
-function TryPlaneRayIntersection(out Intersection: TYPE_VECTOR3;
-  const Plane: TYPE_VECTOR4; const Ray0, RayVector: TYPE_VECTOR3): boolean;
+function TryPlaneRayIntersection(out Intersection: TVector3;
+  const Plane: TVector4; const Ray0, RayVector: TVector3): boolean;
 var
-  MaybeT: TYPE_SCALAR;
+  MaybeT: TScalar;
 begin
   result := TryPlaneLineIntersection(MaybeT, Plane, Ray0, RayVector) and (MaybeT >= 0);
   if result then Intersection := VectorAdd(Ray0, VectorScale(RayVector, MaybeT));
 end;
 
 function TryPlaneRayIntersection(
-  out Intersection: TYPE_VECTOR3; out T: TYPE_SCALAR;
-  const Plane: TYPE_VECTOR4; const Ray0, RayVector: TYPE_VECTOR3): boolean;
+  out Intersection: TVector3; out T: TScalar;
+  const Plane: TVector4; const Ray0, RayVector: TVector3): boolean;
 var
-  MaybeT: TYPE_SCALAR;
+  MaybeT: TScalar;
 begin
   result := TryPlaneLineIntersection(MaybeT, Plane, Ray0, RayVector) and (MaybeT >= 0);
   if result then
@@ -1004,10 +1004,10 @@ begin
   end;
 end;
 
-function TryPlaneSegmentDirIntersection(out Intersection: TYPE_VECTOR3;
-  const Plane: TYPE_VECTOR4; const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
+function TryPlaneSegmentDirIntersection(out Intersection: TVector3;
+  const Plane: TVector4; const Segment0, SegmentVector: TVector3): boolean;
 var
-  MaybeT: TYPE_SCALAR;
+  MaybeT: TScalar;
 begin
   result := TryPlaneLineIntersection(MaybeT, Plane, Segment0, SegmentVector) and
     (MaybeT >= 0) and (MaybeT <= 1);
@@ -1015,10 +1015,10 @@ begin
 end;
 
 function TryPlaneSegmentDirIntersection(
-  out Intersection: TYPE_VECTOR3; out T: TYPE_SCALAR;
-  const Plane: TYPE_VECTOR4; const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
+  out Intersection: TVector3; out T: TScalar;
+  const Plane: TVector4; const Segment0, SegmentVector: TVector3): boolean;
 var
-  MaybeT: TYPE_SCALAR;
+  MaybeT: TScalar;
 begin
   result := TryPlaneLineIntersection(MaybeT, Plane, Segment0, SegmentVector) and
     (MaybeT >= 0) and (MaybeT <= 1);
@@ -1036,9 +1036,9 @@ end;
 
 (*$I VectorMath_TrySimplePlaneXxxIntersection.inc*)
 
-function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TYPE_VECTOR3): boolean;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): boolean;
 var
-  vecSizes: TYPE_VECTOR3;
+  vecSizes: TVector3;
   c, i: integer;
 begin
   (*rzutujemy 3 zadane punkty na ta wspolrzedna na ktorej mamy najwieksza swobode*)
@@ -1048,9 +1048,9 @@ begin
             ((pos1[c] >= intersection[c]) and (intersection[c] >= pos2[c]));
 end;
 
-function LineOfTwoDifferentPoints2d(const p1, p2: TYPE_VECTOR2): TYPE_VECTOR3;
+function LineOfTwoDifferentPoints2d(const p1, p2: TVector2): TVector3;
 var
-  lineVector: TYPE_VECTOR2;
+  lineVector: TVector2;
   cGood, cOther: integer;
 begin
   (* chcemy zeby Vector2f(result) i p2-p1(=lineVector) byly prostopadle czyli ich
@@ -1071,16 +1071,16 @@ begin
   result[2] := -result[0]*p1[0] -result[1]*p1[1];
 end;
 
-function IsSpheresCollision(const Sphere1Center: TYPE_VECTOR3; const Sphere1Radius: TYPE_SCALAR;
-  const Sphere2Center: TYPE_VECTOR3; const Sphere2Radius: TYPE_SCALAR): boolean;
+function IsSpheresCollision(const Sphere1Center: TVector3; const Sphere1Radius: TScalar;
+  const Sphere2Center: TVector3; const Sphere2Radius: TScalar): boolean;
 begin
   result := PointsDistanceSqr(Sphere1Center, Sphere2Center)<=
     Sqr(Sphere1Radius+Sphere2Radius);
 end;
 
-function PointToSegmentDistanceSqr(const point, pos1, pos2: TYPE_VECTOR3): TYPE_SCALAR;
+function PointToSegmentDistanceSqr(const point, pos1, pos2: TVector3): TScalar;
 var
-  Closest: TYPE_VECTOR3;
+  Closest: TVector3;
 begin
   Closest := PointOnLineClosestToPoint(pos1, VectorSubtract(pos2, pos1), point);
   if IsPointOnSegmentLineWithinSegment(Closest, pos1, pos2) then
@@ -1089,19 +1089,19 @@ begin
                         PointsDistanceSqr(pos2, point));
 end;
 
-function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TYPE_VECTOR3;
-  const TunnelRadius: TYPE_SCALAR; const SphereCenter: TYPE_VECTOR3;
-  const SphereRadius: TYPE_SCALAR): boolean;
+function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TVector3;
+  const TunnelRadius: TScalar; const SphereCenter: TVector3;
+  const SphereRadius: TScalar): boolean;
 begin
   result := PointToSegmentDistanceSqr(SphereCenter, Tunnel1, Tunnel2)<=
     Sqr(SphereRadius+TunnelRadius);
 end;
 
-function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TYPE_VECTOR3;
-  const SphereRadius: TYPE_SCALAR): boolean;
+function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3;
+  const SphereRadius: TScalar): boolean;
 var
-  SphereRadiusSqr: TYPE_SCALAR;
-  Intersect: TYPE_VECTOR3;
+  SphereRadiusSqr: TScalar;
+  Intersect: TVector3;
 begin
   SphereRadiusSqr := Sqr(SphereRadius);
   result:= (PointsDistanceSqr(pos1, SphereCenter) <= SphereRadiusSqr) or
@@ -1116,7 +1116,7 @@ end;
 
 { triangles ------------------------------------------------------------------ }
 
-function IsValidTriangle(const Tri: TYPE_TRIANGLE3): boolean;
+function IsValidTriangle(const Tri: TTriangle3): boolean;
 begin
   (* chcemy sprawdzic czy Tri nie jest zdegenerowanym trojkatem, czyli czy
      wyznacza dobra plaszczyzne; wiec nie tylko wszstkie punkty musza byc
@@ -1136,36 +1136,36 @@ begin
 
      Taki VectorProduct() mozemy obliczyc uzywajac TriangleDir().
   *)
-  result := VectorLenSqr(TriangleDir(Tri)) > Sqr(SCALAR_EQUALITY_EPSILON);
+  result := VectorLenSqr(TriangleDir(Tri)) > Sqr(ScalarEqualityEpsilon);
 end;
 
-function TriangleDir(const Tri: TYPE_TRIANGLE3): TYPE_VECTOR3;
+function TriangleDir(const Tri: TTriangle3): TVector3;
 begin
   result := VectorProduct(
     VectorSubtract(Tri[2], Tri[1]),
     VectorSubtract(Tri[0], Tri[1]));
 end;
 
-function TriangleDir(const p0, p1, p2: TYPE_VECTOR3): TYPE_VECTOR3;
+function TriangleDir(const p0, p1, p2: TVector3): TVector3;
 begin
   result := VectorProduct(
     VectorSubtract(p2, p1),
     VectorSubtract(p0, p1));
 end;
 
-function TriangleNormal(const Tri: TYPE_TRIANGLE3): TYPE_VECTOR3;
+function TriangleNormal(const Tri: TTriangle3): TVector3;
 begin
   result := Normalized( TriangleDir(Tri) );
 end;
 
-function TriangleNormal(const p0, p1, p2: TYPE_VECTOR3): TYPE_VECTOR3;
+function TriangleNormal(const p0, p1, p2: TVector3): TVector3;
 begin
   result := Normalized( TriangleDir(p0, p1, p2) );
 end;
 
-function TrianglePlane(const Tri: TYPE_TRIANGLE3): TYPE_VECTOR4;
+function TrianglePlane(const Tri: TTriangle3): TVector4;
 var
-  ResultDir: TYPE_VECTOR3 absolute result;
+  ResultDir: TVector3 absolute result;
 begin
   ResultDir := TriangleDir(Tri);
   (* Punkt Tri[0] musi lezec na plane result. Wiec musi zachodzic
@@ -1177,9 +1177,9 @@ begin
                -ResultDir[2]*Tri[0, 2];
 end;
 
-function TrianglePlane(const p0, p1, p2: TYPE_VECTOR3): TYPE_VECTOR4;
+function TrianglePlane(const p0, p1, p2: TVector3): TVector4;
 var
-  ResultDir: TYPE_VECTOR3 absolute result;
+  ResultDir: TVector3 absolute result;
 begin
   ResultDir := TriangleDir(p0, p1, p2);
   result[3] := -ResultDir[0]*p0[0]
@@ -1187,9 +1187,9 @@ begin
                -ResultDir[2]*p0[2];
 end;
 
-function TriangleNormPlane(const Tri: TYPE_TRIANGLE3): TYPE_VECTOR4;
+function TriangleNormPlane(const Tri: TTriangle3): TVector4;
 var
-  resultNormal: TYPE_VECTOR3 absolute result;
+  resultNormal: TVector3 absolute result;
 begin
   (* dzialamy tak samo jak TrianglePlane tyle ze teraz uzywamy TriangleNormal
      zamiast TriangleNormalNotNorm *)
@@ -1198,31 +1198,31 @@ begin
     -resultNormal[2]*Tri[0, 2];
 end;
 
-function TriangleTransform(const Tri: TYPE_TRIANGLE3; const M: TYPE_MATRIX4): TYPE_TRIANGLE3;
+function TriangleTransform(const Tri: TTriangle3; const M: TMatrix4): TTriangle3;
 begin
   Result[0] := MatrixMultPoint(M, Tri[0]);
   Result[1] := MatrixMultPoint(M, Tri[1]);
   Result[2] := MatrixMultPoint(M, Tri[2]);
 end;
 
-function TriangleArea(const Tri: TYPE_TRIANGLE3): TYPE_SCALAR;
+function TriangleArea(const Tri: TTriangle3): TScalar;
 begin
   result := VectorLen(
     VectorProduct(VectorSubtract(Tri[1], Tri[0]),
                   VectorSubtract(Tri[2], Tri[0]))) / 2;
 end;
 
-function TriangleAreaSqr(const Tri: TYPE_TRIANGLE3): TYPE_SCALAR;
+function TriangleAreaSqr(const Tri: TTriangle3): TScalar;
 begin
   result := VectorLenSqr(
     VectorProduct(VectorSubtract(Tri[1], Tri[0]),
                   VectorSubtract(Tri[2], Tri[0]))) / 4;
 end;
 
-function IsPointWithinTriangle2d(const P: TYPE_VECTOR2; const Tri: TYPE_TRIANGLE2): boolean;
+function IsPointWithinTriangle2d(const P: TVector2; const Tri: TTriangle2): boolean;
 var
-  TriMiddle: TYPE_VECTOR2;
-  line: TYPE_VECTOR3;
+  TriMiddle: TVector2;
+  line: TVector3;
   i: integer;
 begin
   TriMiddle := VectorAdd( VectorAdd(VectorScale(Tri[0], 1/3), VectorScale(Tri[1], 1/3)), VectorScale(Tri[2], 1/3));
@@ -1233,18 +1233,18 @@ begin
     line := LineOfTwoDifferentPoints2d(Tri[i], Tri[(i+1)mod 3]);
     if TriMiddle[0]*line[0] + TriMiddle[1]*line[1] + line[2] >= 0 then
     begin
-      if P[0]*line[0] + P[1]*line[1] + line[2] < -SCALAR_EQUALITY_EPSILON then exit(false);
+      if P[0]*line[0] + P[1]*line[1] + line[2] < -ScalarEqualityEpsilon then exit(false);
     end else
     begin
-      if P[0]*line[0] + P[1]*line[1] + line[2] > SCALAR_EQUALITY_EPSILON then exit(false);
+      if P[0]*line[0] + P[1]*line[1] + line[2] > ScalarEqualityEpsilon then exit(false);
     end;
   end;
 
   result := true;
 end;
 
-function IsPointOnTrianglePlaneWithinTriangle(const P: TYPE_VECTOR3;
-  const Tri: TYPE_TRIANGLE3; const TriDir: TYPE_VECTOR3): boolean;
+function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
+  const Tri: TTriangle3; const TriDir: TVector3): boolean;
 (*kiedys uzywalem tu prostego testu ktory sprawdzal czy trzy katy :
   pomiedzy wektorami (t[0]-p) a (t[1]-p), (t[1]-p) a (t[2]-p) i
   (t[2]-p) a (t[0]-p) sumuja sie do 360 stopni. Tamten algorytm
@@ -1293,19 +1293,19 @@ function IsPointOnTrianglePlaneWithinTriangle(const P: TYPE_VECTOR3;
   nie dopuszczamy zdegenerowanych trojkatow).
 *)
 var
-  S, T: TYPE_SCALAR;
-  W, U, V, Ortho: TYPE_VECTOR3;
-  One: TYPE_SCALAR;
+  S, T: TScalar;
+  W, U, V, Ortho: TVector3;
+  One: TScalar;
 begin
   U := VectorSubtract(Tri[1], Tri[0]);
   V := VectorSubtract(Tri[2], Tri[0]);
   W := VectorSubtract(P, Tri[0]);
 
-  One := 1 + SCALAR_EQUALITY_EPSILON;
+  One := 1 + ScalarEqualityEpsilon;
 
   Ortho := VectorProduct(V, TriDir);
   S := VectorDotProduct(W, Ortho) / VectorDotProduct(U, Ortho);
-  if (S < -SCALAR_EQUALITY_EPSILON) or
+  if (S < -ScalarEqualityEpsilon) or
     { As far as only correctness is concerned, check for S > One isn't needed
       here since we will check s+t <= One later anyway.
       But for the speed, it's better to make here a quick check
@@ -1319,23 +1319,23 @@ begin
 
   Ortho := VectorProduct(U, TriDir);
   T := VectorDotProduct(W, Ortho) / VectorDotProduct(V, Ortho);
-  if T < -SCALAR_EQUALITY_EPSILON then
+  if T < -ScalarEqualityEpsilon then
     Exit(false);
 
   result := S + T <= One;
 end;
 
-//function IsPointOnTrianglePlaneWithinTriangle(const P: TYPE_VECTOR3;
-//  const Tri: TYPE_TRIANGLE3): boolean;
+//function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
+//  const Tri: TTriangle3): boolean;
 //begin
 //  result := IsPointOnTrianglePlaneWithinTriangle(P, Tri, TriangleDir(Tri));
 //end;
 
 {$define TryTriangleRayCollision_IMPLEMENT:=
 var
-  MaybeIntersection: TYPE_VECTOR3;
-  MaybeT: TYPE_SCALAR;
-  TriDir: TYPE_VECTOR3 absolute TriPlane;
+  MaybeIntersection: TVector3;
+  MaybeT: TScalar;
+  TriDir: TVector3 absolute TriPlane;
 begin
   result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, Ray0, RayVector) and
           IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
@@ -1348,9 +1348,9 @@ end;}
 
 {$define TryTriangleSegmentDirCollision_IMPLEMENT:=
 var
-  MaybeIntersection: TYPE_VECTOR3;
-  MaybeT: TYPE_SCALAR;
-  TriDir: TYPE_VECTOR3 absolute TriPlane;
+  MaybeIntersection: TVector3;
+  MaybeT: TScalar;
+  TriDir: TVector3 absolute TriPlane;
 begin
   result := TryPlaneSegmentDirIntersection(MaybeIntersection, MaybeT, TriPlane, Segment0, SegmentVector) and
           IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
@@ -1361,11 +1361,11 @@ begin
   end;
 end;}
 
-function IsTriangleSegmentCollision(const Tri: TYPE_TRIANGLE3;
-  const TriPlane: TYPE_VECTOR4; const pos1, pos2: TYPE_VECTOR3): boolean;
+function IsTriangleSegmentCollision(const Tri: TTriangle3;
+  const TriPlane: TVector4; const pos1, pos2: TVector3): boolean;
 var
-  lineVector, MaybeIntersection: TYPE_VECTOR3;
-  TriDir: TYPE_VECTOR3 absolute TriPlane;
+  lineVector, MaybeIntersection: TVector3;
+  TriDir: TVector3 absolute TriPlane;
 begin
   lineVector := VectorSubtract(pos2, pos1);
   result := TryPlaneLineIntersection(MaybeIntersection, TriPlane, pos1, lineVector) and
@@ -1373,62 +1373,62 @@ begin
             IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
 end;
 
-function IsTriangleSegmentCollision(const Tri: TYPE_TRIANGLE3; const pos1, pos2: TYPE_VECTOR3): boolean;
+function IsTriangleSegmentCollision(const Tri: TTriangle3; const pos1, pos2: TVector3): boolean;
 begin
   result := IsTriangleSegmentCollision(Tri, TrianglePlane(Tri), pos1, pos2);
 end;
 
-function TryTriangleSegmentCollision(var Intersection: TYPE_VECTOR3;
-  const Tri: TYPE_TRIANGLE3; const TriPlane: TYPE_VECTOR4;
-  const pos1, pos2: TYPE_VECTOR3): boolean;
+function TryTriangleSegmentCollision(var Intersection: TVector3;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const pos1, pos2: TVector3): boolean;
 begin
   result := TryTriangleSegmentDirCollision(Intersection, Tri, TriPlane,
     Pos1, VectorSubtract(Pos2, Pos1));
 end;
 
-function TryTriangleSegmentDirCollision(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
-  const Tri: TYPE_TRIANGLE3; const TriPlane: TYPE_VECTOR4;
-  const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
+function TryTriangleSegmentDirCollision(var Intersection: TVector3; var T: TScalar;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const Segment0, SegmentVector: TVector3): boolean;
 {$define HAS_T}
 TryTriangleSegmentDirCollision_IMPLEMENT
 {$undef HAS_T}
 
-function TryTriangleSegmentDirCollision(var Intersection: TYPE_VECTOR3;
-  const Tri: TYPE_TRIANGLE3; const TriPlane: TYPE_VECTOR4;
-  const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
+function TryTriangleSegmentDirCollision(var Intersection: TVector3;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const Segment0, SegmentVector: TVector3): boolean;
 TryTriangleSegmentDirCollision_IMPLEMENT
 
-function IsTriangleSphereCollision(const Tri: TYPE_TRIANGLE3;
-  const TriPlane: TYPE_VECTOR4;
-  const SphereCenter: TYPE_VECTOR3; SphereRadius: TYPE_SCALAR): boolean;
+function IsTriangleSphereCollision(const Tri: TTriangle3;
+  const TriPlane: TVector4;
+  const SphereCenter: TVector3; SphereRadius: TScalar): boolean;
 (*$define HAS_PRECALC_PLANE*)
 (*$I vectormath_istrianglespherecollision.inc*)
 (*$undef HAS_PRECALC_PLANE*)
 
-function IsTriangleSphereCollision(const Tri: TYPE_TRIANGLE3;
-  const SphereCenter: TYPE_VECTOR3; SphereRadius: TYPE_SCALAR): boolean;
+function IsTriangleSphereCollision(const Tri: TTriangle3;
+  const SphereCenter: TVector3; SphereRadius: TScalar): boolean;
 (*$I vectormath_istrianglespherecollision.inc*)
 
-function TryTriangleRayCollision(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
-  const Tri: TYPE_TRIANGLE3; const TriPlane: TYPE_VECTOR4;
-  const Ray0, RayVector: TYPE_VECTOR3): boolean;
+function TryTriangleRayCollision(var Intersection: TVector3; var T: TScalar;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const Ray0, RayVector: TVector3): boolean;
 {$define HAS_T}
 TryTriangleRayCollision_IMPLEMENT
 {$undef HAS_T}
 
-function TryTriangleRayCollision(var Intersection: TYPE_VECTOR3;
-  const Tri: TYPE_TRIANGLE3; const TriPlane: TYPE_VECTOR4;
-  const Ray0, RayVector: TYPE_VECTOR3): boolean;
+function TryTriangleRayCollision(var Intersection: TVector3;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const Ray0, RayVector: TVector3): boolean;
 TryTriangleRayCollision_IMPLEMENT
 
 (* pare funkcji *ToStr -------------------------------------------------------- *)
 
-function FloatToNiceStr(f: TYPE_SCALAR): string;
+function FloatToNiceStr(f: TScalar): string;
 begin
   result := Format('%'+FloatNiceFormat, [f]);
 end;
 
-function VectorToNiceStr(const v: array of TYPE_SCALAR): string;
+function VectorToNiceStr(const v: array of TScalar): string;
 var
   i: integer;
 begin
@@ -1437,7 +1437,7 @@ begin
   if High(v) >= 0 then result := result +FloatToNiceStr(v[High(v)]) +')';
 end;
 
-function MatrixToNiceStr(const v: TYPE_MATRIX4; const LineIndent: string): string;
+function MatrixToNiceStr(const v: TMatrix4; const LineIndent: string): string;
 begin
   result := Format('%s[ %4s %4s %4s %4s ]'+nl+
                    '%s| %4s %4s %4s %4s |'+nl+
@@ -1449,7 +1449,7 @@ begin
     LineIndent, FloatToNiceStr(v[0, 3]), FloatToNiceStr(v[1, 3]), FloatToNiceStr(v[2, 3]), FloatToNiceStr(v[3, 3]) ]);
 end;
 
-function MatrixToRawStr(const v: TYPE_MATRIX4; const LineIndent: string): string;
+function MatrixToRawStr(const v: TMatrix4; const LineIndent: string): string;
 begin
   result := Format('%s[ %4s %4s %4s %4s ]'+nl+
                    '%s| %4s %4s %4s %4s |'+nl+
@@ -1461,26 +1461,26 @@ begin
     LineIndent, FloatToRawStr(v[0, 3]), FloatToRawStr(v[1, 3]), FloatToRawStr(v[2, 3]), FloatToRawStr(v[3, 3]) ]);
 end;
 
-function TriangleToNiceStr(const t: TYPE_TRIANGLE2): string;
+function TriangleToNiceStr(const t: TTriangle2): string;
 begin
   result := '['+VectorToNiceStr(t[0])+', '
                +VectorToNiceStr(t[1])+', '
                +VectorToNiceStr(t[2])+']';
 end;
 
-function TriangleToNiceStr(const t: TYPE_TRIANGLE3): string;
+function TriangleToNiceStr(const t: TTriangle3): string;
 begin
   result := '['+VectorToNiceStr(t[0])+', '
                +VectorToNiceStr(t[1])+', '
                +VectorToNiceStr(t[2])+']';
 end;
 
-function FloatToRawStr(f: TYPE_SCALAR): string;
+function FloatToRawStr(f: TScalar): string;
 begin
   result := Format('%g', [f]);
 end;
 
-function VectorToRawStr(const v: array of TYPE_SCALAR): string;
+function VectorToRawStr(const v: array of TScalar): string;
 var i: integer;
 begin
   result := '';
@@ -1488,7 +1488,7 @@ begin
   if High(v) >= 0 then result += FloatToRawStr(v[High(v)]);
 end;
 
-function TriangleToRawStr(const T: TYPE_TRIANGLE3): string;
+function TriangleToRawStr(const T: TTriangle3): string;
 begin
   Result := '[' + VectorToRawStr(T[0]) + ', '
                 + VectorToRawStr(T[1]) + ', '
@@ -1497,7 +1497,7 @@ end;
 
 { simple matrix math --------------------------------------------------------- }
 
-function MatrixAdd(const m1, m2: TYPE_MATRIX3): TYPE_MATRIX3;
+function MatrixAdd(const m1, m2: TMatrix3): TMatrix3;
 var
   i, j: integer;
 begin
@@ -1506,7 +1506,7 @@ begin
       result[i, j] := m1[i, j] + m2[i, j];
 end;
 
-procedure MatrixAddTo1st(var m1: TYPE_MATRIX3; const m2: TYPE_MATRIX3);
+procedure MatrixAddTo1st(var m1: TMatrix3; const m2: TMatrix3);
 var
   i, j: integer;
 begin
@@ -1515,7 +1515,7 @@ begin
       m1[i, j] += m2[i, j];
 end;
 
-function MatrixAdd(const m1, m2: TYPE_MATRIX4): TYPE_MATRIX4;
+function MatrixAdd(const m1, m2: TMatrix4): TMatrix4;
 var
   i, j: integer;
 begin
@@ -1524,7 +1524,7 @@ begin
       result[i, j] := m1[i, j] + m2[i, j];
 end;
 
-procedure MatrixAddTo1st(var m1: TYPE_MATRIX4; const m2: TYPE_MATRIX4);
+procedure MatrixAddTo1st(var m1: TMatrix4; const m2: TMatrix4);
 var
   i, j: integer;
 begin
@@ -1533,7 +1533,7 @@ begin
       m1[i, j] += m2[i, j];
 end;
 
-function MatrixSubtract(const m1, m2: TYPE_MATRIX3): TYPE_MATRIX3;
+function MatrixSubtract(const m1, m2: TMatrix3): TMatrix3;
 var
   i, j: integer;
 begin
@@ -1542,7 +1542,7 @@ begin
       result[i, j] := m1[i, j] - m2[i, j];
 end;
 
-procedure MatrixSubtractTo1st(var m1: TYPE_MATRIX3; const m2: TYPE_MATRIX3);
+procedure MatrixSubtractTo1st(var m1: TMatrix3; const m2: TMatrix3);
 var
   i, j: integer;
 begin
@@ -1551,7 +1551,7 @@ begin
       m1[i, j] -= m2[i, j];
 end;
 
-function MatrixSubtract(const m1, m2: TYPE_MATRIX4): TYPE_MATRIX4;
+function MatrixSubtract(const m1, m2: TMatrix4): TMatrix4;
 var
   i, j: integer;
 begin
@@ -1560,7 +1560,7 @@ begin
       result[i, j] := m1[i, j] - m2[i, j];
 end;
 
-procedure MatrixSubtractTo1st(var m1: TYPE_MATRIX4; const m2: TYPE_MATRIX4);
+procedure MatrixSubtractTo1st(var m1: TMatrix4; const m2: TMatrix4);
 var
   i, j: integer;
 begin
@@ -1569,7 +1569,7 @@ begin
       m1[i, j] -= m2[i, j];
 end;
 
-function MatrixNegate(const m1: TYPE_MATRIX3): TYPE_MATRIX3;
+function MatrixNegate(const m1: TMatrix3): TMatrix3;
 var
   i, j: integer;
 begin
@@ -1578,7 +1578,7 @@ begin
       result[i, j] := - m1[i, j];
 end;
 
-function MatrixNegate(const m1: TYPE_MATRIX4): TYPE_MATRIX4;
+function MatrixNegate(const m1: TMatrix4): TMatrix4;
 var
   i, j: integer;
 begin
@@ -1587,7 +1587,7 @@ begin
       result[i, j] := - m1[i, j];
 end;
 
-function MatrixMultScalar(const m: TYPE_MATRIX3; const s: TYPE_SCALAR): TYPE_MATRIX3;
+function MatrixMultScalar(const m: TMatrix3; const s: TScalar): TMatrix3;
 var
   i, j: integer;
 begin
@@ -1596,7 +1596,7 @@ begin
       result[i, j] := m[i, j]*s;
 end;
 
-function MatrixMultScalar(const m: TYPE_MATRIX4; const s: TYPE_SCALAR): TYPE_MATRIX4;
+function MatrixMultScalar(const m: TMatrix4; const s: TScalar): TMatrix4;
 var
   i, j: integer;
 begin
@@ -1605,10 +1605,10 @@ begin
       result[i, j] := m[i, j]*s;
 end;
 
-function MatrixMultPoint(const m: TYPE_MATRIX4;
-  const pt: TYPE_VECTOR3): TYPE_VECTOR3;
+function MatrixMultPoint(const m: TMatrix4;
+  const pt: TVector3): TVector3;
 var
-  Divisor: TYPE_SCALAR;
+  Divisor: TScalar;
 begin
   { Simple implementation:
   Result := Vector3SinglePoint(MatrixMultVector(m, Vector4Single(pt))); }
@@ -1646,10 +1646,10 @@ begin
   end;
 end;
 
-function MatrixMultDirection(const m: TYPE_MATRIX4;
-  const Dir: TYPE_VECTOR3): TYPE_VECTOR3;
+function MatrixMultDirection(const m: TMatrix4;
+  const Dir: TVector3): TVector3;
 var
-  Divisor: TYPE_SCALAR;
+  Divisor: TScalar;
 begin
   Result[0] := M[0, 0] * Dir[0] + M[1, 0] * Dir[1] + M[2, 0] * Dir[2];
   Result[1] := M[0, 1] * Dir[0] + M[1, 1] * Dir[1] + M[2, 1] * Dir[2];
@@ -1666,7 +1666,7 @@ begin
   end;
 end;
 
-function MatrixMultVector(const m: TYPE_MATRIX4; const v: TYPE_VECTOR4): TYPE_VECTOR4;
+function MatrixMultVector(const m: TMatrix4; const v: TVector4): TVector4;
 {var i, j: integer;}
 begin
   {
@@ -1684,14 +1684,14 @@ begin
   Result[3] := M[0, 3] * V[0] + M[1, 3] * V[1] + M[2, 3] * V[2] + M[3, 3] * V[3];
 end;
 
-function MatrixMultVector(const m: TYPE_MATRIX3; const v: TYPE_VECTOR3): TYPE_VECTOR3;
+function MatrixMultVector(const m: TMatrix3; const v: TVector3): TVector3;
 begin
   Result[0] := M[0, 0] * V[0] + M[1, 0] * V[1] + M[2, 0] * V[2];
   Result[1] := M[0, 1] * V[0] + M[1, 1] * V[1] + M[2, 1] * V[2];
   Result[2] := M[0, 2] * V[0] + M[1, 2] * V[1] + M[2, 2] * V[2];
 end;
 
-function MatrixMult(const m1, m2: TYPE_MATRIX4): TYPE_MATRIX4;
+function MatrixMult(const m1, m2: TMatrix4): TMatrix4;
 {var i, j, k: integer;}
 begin
 (*
@@ -1722,7 +1722,7 @@ begin
   result[3, 3] := m1[0, 3] * m2[3, 0] + m1[1, 3] * m2[3, 1] + m1[2, 3] * m2[3, 2] + m1[3, 3] * m2[3, 3];
 end;
 
-function MatrixMult(const m1, m2: TYPE_MATRIX3): TYPE_MATRIX3;
+function MatrixMult(const m1, m2: TMatrix3): TMatrix3;
 begin
   result[0, 0] := m1[0, 0] * m2[0, 0] + m1[1, 0] * m2[0, 1] + m1[2, 0] * m2[0, 2];
   result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1] + m1[2, 0] * m2[1, 2];
@@ -1737,7 +1737,7 @@ end;
 
 { matrix transforms for 3D graphics  ----------------------------------------- }
 
-function TranslationMatrix(const Transl: TYPE_VECTOR3): TMatrix4Single;
+function TranslationMatrix(const Transl: TVector3): TMatrix4Single;
 begin
   result := IdentityMatrix4Single;
   result[3, 0] := Transl[0];
@@ -1745,7 +1745,7 @@ begin
   result[3, 2] := Transl[2];
 end;
 
-function TranslationMatrix(const X, Y, Z: TYPE_SCALAR): TMatrix4Single;
+function TranslationMatrix(const X, Y, Z: TScalar): TMatrix4Single;
 begin
   result := IdentityMatrix4Single;
   result[3, 0] := X;
@@ -1753,7 +1753,7 @@ begin
   result[3, 2] := Z;
 end;
 
-procedure TranslationMatrices(const X, Y, Z: TYPE_SCALAR;
+procedure TranslationMatrices(const X, Y, Z: TScalar;
   out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   Matrix := IdentityMatrix4Single;
@@ -1767,7 +1767,7 @@ begin
   InvertedMatrix[3, 2] := -Z;
 end;
 
-procedure TranslationMatrices(const Transl: TYPE_VECTOR3;
+procedure TranslationMatrices(const Transl: TVector3;
   out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   Matrix := IdentityMatrix4Single;
@@ -1781,10 +1781,10 @@ begin
   InvertedMatrix[3, 2] := -Transl[2];
 end;
 
-procedure MultMatrixTranslation(var M: TYPE_MATRIX4;
-  const Transl: TYPE_VECTOR3);
+procedure MultMatrixTranslation(var M: TMatrix4;
+  const Transl: TVector3);
 var
-  NewColumn: TYPE_VECTOR4;
+  NewColumn: TVector4;
 begin
   NewColumn := M[3];
   NewColumn[0] += M[0, 0] * Transl[0] + M[1, 0] * Transl[1] + M[2, 0] * Transl[2];
@@ -1794,12 +1794,12 @@ begin
   M[3] := NewColumn;
 end;
 
-procedure MultMatricesTranslation(var M, MInvert: TYPE_MATRIX4;
-  const Transl: TYPE_VECTOR3);
+procedure MultMatricesTranslation(var M, MInvert: TMatrix4;
+  const Transl: TVector3);
 var
-  NewColumn: TYPE_VECTOR4;
+  NewColumn: TVector4;
   { OldLastRow may use the same space as NewColumn }
-  OldLastRow: TYPE_VECTOR4 absolute NewColumn;
+  OldLastRow: TVector4 absolute NewColumn;
 begin
   NewColumn := M[3];
   NewColumn[0] += M[0, 0] * Transl[0] + M[1, 0] * Transl[1] + M[2, 0] * Transl[2];
@@ -1828,7 +1828,7 @@ begin
 end;
 
 function TransformToCoordsMatrix(const NewOrigin,
-  NewX, NewY, NewZ: TYPE_VECTOR3): TMatrix4Single;
+  NewX, NewY, NewZ: TVector3): TMatrix4Single;
 var
   i: integer;
 begin
@@ -1844,14 +1844,14 @@ begin
 end;
 
 function TransformToCoordsNoScaleMatrix(const NewOrigin,
-  NewX, NewY, NewZ: TYPE_VECTOR3): TMatrix4Single;
+  NewX, NewY, NewZ: TVector3): TMatrix4Single;
 begin
   result := TransformToCoordsMatrix(NewOrigin,
     Normalized(NewX), Normalized(NewY), Normalized(NewZ));
 end;
 
 function TransformFromCoordsMatrix(const OldOrigin,
-  OldX, OldY, OldZ: TYPE_VECTOR3): TMatrix4Single;
+  OldX, OldY, OldZ: TVector3): TMatrix4Single;
 var
   i: integer;
 begin
@@ -1878,20 +1878,20 @@ begin
 end;
 
 function TransformFromCoordsNoScaleMatrix(const OldOrigin,
-  OldX, OldY, OldZ: TYPE_VECTOR3): TMatrix4Single;
+  OldX, OldY, OldZ: TVector3): TMatrix4Single;
 begin
   result := TransformFromCoordsMatrix(OldOrigin,
     Normalized(OldX), Normalized(OldY), Normalized(OldZ));
 end;
 
-function LookAtMatrix(const Eye, Center, Up: TYPE_VECTOR3): TMatrix4Single;
+function LookAtMatrix(const Eye, Center, Up: TVector3): TMatrix4Single;
 begin
   result := LookDirMatrix(Eye, VectorSubtract(Center, Eye), Up);
 end;
 
-function LookDirMatrix(const Eye, Dir, Up: TYPE_VECTOR3): TMatrix4Single;
+function LookDirMatrix(const Eye, Dir, Up: TVector3): TMatrix4Single;
 var
-  GoodDir, GoodUp, Side: TYPE_VECTOR3;
+  GoodDir, GoodUp, Side: TVector3;
 begin
   Side := Normalized(VectorProduct(Dir, Up));
   GoodDir := Normalized(Dir);
@@ -1913,9 +1913,9 @@ begin
   result := TransformFromCoordsMatrix(Eye, Side, GoodUp, VectorNegate(GoodDir));
 end;
 
-function FastLookDirMatrix(const Direction, Up: TYPE_VECTOR3): TMatrix4Single;
+function FastLookDirMatrix(const Direction, Up: TVector3): TMatrix4Single;
 var
-  Side: TYPE_VECTOR3;
+  Side: TVector3;
   i: integer;
 begin
   Side := VectorProduct(Direction, Up);
@@ -1941,9 +1941,9 @@ begin
   result[3, 3] := 1;
 end;
 
-function InverseFastLookDirMatrix(const Direction, Up: TYPE_VECTOR3): TMatrix4Single;
+function InverseFastLookDirMatrix(const Direction, Up: TVector3): TMatrix4Single;
 var
-  Side: TYPE_VECTOR3;
+  Side: TVector3;
   i: integer;
 begin
   Side := VectorProduct(Direction, Up);
@@ -1973,7 +1973,7 @@ end;
 {
 nie moze byc w dual implementation, potrzebujemy tego pod Delphi.
 
-function GrayscaleValue(const v: TYPE_VECTOR3): TYPE_SCALAR;
+function GrayscaleValue(const v: TVector3): TScalar;
 begin
  result := GrayscaleValuesFloat[0]*v[0]+
            GrayscaleValuesFloat[1]*v[1]+
@@ -1985,40 +1985,40 @@ end;
 { We're happily using FPC's Matrix unit to trivially implement
   matrix determinant and inverse. }
 
-function MatrixDeterminant(const M: TYPE_MATRIX2): TYPE_SCALAR;
+function MatrixDeterminant(const M: TMatrix2): TScalar;
 var
-  MM: TYPE_MATRIX2_OBJECT;
+  MM: TMatrix2_;
 begin
   { Note that generally data should be transposed between
-    TYPE_MATRIX2_OBJECT and TYPE_MATRIX2. But in this case, it's not needed,
+    TMatrix2_ and TMatrix2. But in this case, it's not needed,
     as the determinant of the transposition is exactly the same. }
 
   MM.Data := M;
   Result := MM.Determinant;
 end;
 
-function MatrixDeterminant(const M: TYPE_MATRIX3): TYPE_SCALAR;
+function MatrixDeterminant(const M: TMatrix3): TScalar;
 var
-  MM: TYPE_MATRIX3_OBJECT;
+  MM: TMatrix3_;
 begin
   MM.Data := M;
   Result := MM.Determinant;
 end;
 
-function MatrixDeterminant(const M: TYPE_MATRIX4): TYPE_SCALAR;
+function MatrixDeterminant(const M: TMatrix4): TScalar;
 var
-  MM: TYPE_MATRIX4_OBJECT;
+  MM: TMatrix4_;
 begin
   MM.Data := M;
   Result := MM.Determinant;
 end;
 
-function MatrixInverse(const M: TYPE_MATRIX2; const Determinant: TYPE_SCALAR): TYPE_MATRIX2;
+function MatrixInverse(const M: TMatrix2; const Determinant: TScalar): TMatrix2;
 var
-  MM: TYPE_MATRIX2_OBJECT;
+  MM: TMatrix2_;
 begin
   { Note that generally data should be transposed between
-    TYPE_MATRIX2_OBJECT and TYPE_MATRIX2. But in this case, it's not needed,
+    TMatrix2_ and TMatrix2. But in this case, it's not needed,
     as the transpose of the inverse is the inverse of the transpose.
     Which means that
       Result = transpose(inverse(transpose(m))
@@ -2028,37 +2028,37 @@ begin
   Result := MM.Inverse(Determinant).Data;
 end;
 
-function MatrixInverse(const M: TYPE_MATRIX3; const Determinant: TYPE_SCALAR): TYPE_MATRIX3;
+function MatrixInverse(const M: TMatrix3; const Determinant: TScalar): TMatrix3;
 var
-  MM: TYPE_MATRIX3_OBJECT;
+  MM: TMatrix3_;
 begin
   MM.Data := M;
   Result := MM.Inverse(Determinant).Data;
 end;
 
-function MatrixInverse(const M: TYPE_MATRIX4; const Determinant: TYPE_SCALAR): TYPE_MATRIX4;
+function MatrixInverse(const M: TMatrix4; const Determinant: TScalar): TMatrix4;
 var
-  MM: TYPE_MATRIX4_OBJECT;
+  MM: TMatrix4_;
 begin
   MM.Data := M;
   Result := MM.Inverse(Determinant).Data;
 end;
 {$endif HAS_MATRIX_UNIT}
 
-function MatrixRow(const m: TYPE_MATRIX2; const Row: Integer): TYPE_VECTOR2;
+function MatrixRow(const m: TMatrix2; const Row: Integer): TVector2;
 begin
   Result[0] := M[0][Row];
   Result[1] := M[1][Row];
 end;
 
-function MatrixRow(const m: TYPE_MATRIX3; const Row: Integer): TYPE_VECTOR3;
+function MatrixRow(const m: TMatrix3; const Row: Integer): TVector3;
 begin
   Result[0] := M[0][Row];
   Result[1] := M[1][Row];
   Result[2] := M[2][Row];
 end;
 
-function MatrixRow(const m: TYPE_MATRIX4; const Row: Integer): TYPE_VECTOR4;
+function MatrixRow(const m: TMatrix4; const Row: Integer): TVector4;
 begin
   Result[0] := M[0][Row];
   Result[1] := M[1][Row];
