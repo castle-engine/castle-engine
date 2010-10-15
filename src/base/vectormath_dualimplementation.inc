@@ -218,6 +218,17 @@ begin
   result := ArcCos(CosAngleBetweenNormals(V1, V2));
 end;
 
+function RotationAngleRadBetweenVectors(const V1, V2: TVector3): TScalar;
+var
+  Cross: TVector3;
+begin
+  Result := RotationAngleRadBetweenVectors(V1, V2);
+  Cross := VectorProduct(V1, V2);
+  if PointsDistanceSqr(RotatePointAroundAxisRad( Result, V1, Cross), V2) >
+     PointsDistanceSqr(RotatePointAroundAxisRad(-Result, V1, Cross), V2) then
+    Result := -Result;
+end;
+
 function Normalized(const v: TVector3): TVector3;
 begin
   result := v;
@@ -1112,6 +1123,57 @@ begin
     result := IsPointOnSegmentLineWithinSegment(Intersect, pos1, pos2) and
       (PointsDistanceSqr(Intersect, SphereCenter) <= SphereRadiusSqr);
   end;
+end;
+
+function TrySphereRayIntersection(out Intersection: TVector3;
+  const SphereCenter: TVector3; const SphereRadius: TScalar;
+  const Ray0, RayVector: TVector3): boolean;
+var
+  T, A, B, C, Delta: TScalar;
+  Ray0MinusCenter: TVector3;
+begin
+  { Intersection = Ray0 + RayVector * T,
+    Also Distance(Intersection, SphereCenter) = SphereRadius,
+    so Distance(Ray0 + RayVector * T, SphereCenter) = SphereRadius.
+
+    Expand this, and use to calculate T: we get a quadratic equation for T.
+    A * T^2 + B * T + C = 0. }
+  Ray0MinusCenter := Ray0 - SphereCenter;
+  A := Sqr(RayVector[0]) +
+       Sqr(RayVector[1]) +
+       Sqr(RayVector[2]);
+  B := 2 * RayVector[0] * Ray0MinusCenter[0] +
+       2 * RayVector[1] * Ray0MinusCenter[1] +
+       2 * RayVector[2] * Ray0MinusCenter[2];
+  C := Sqr(Ray0MinusCenter[0]) +
+       Sqr(Ray0MinusCenter[1]) +
+       Sqr(Ray0MinusCenter[2]) - Sqr(SphereRadius);
+  Delta := Sqr(B) - 4 * A * C;
+
+  if Delta < 0 then
+    Result := false else
+  if Delta = 0 then
+  begin
+    T := -B / (2 * A);
+    Result := T >= 0;
+  end else
+  begin
+    Result := true;
+    Delta := Sqrt(Delta);
+
+    { There are two solutions, choose closest to Ray0 (smallest)
+      but >= 0 (the one < 0 does not fall on ray). }
+    T :=  (-B - Delta) / (2 * A);
+    if T < 0 then
+    begin
+      T :=  (-B + Delta) / (2 * A);
+      if T < 0 then
+        Result := false; { two solutions, but both outside the ray }
+    end;
+  end;
+
+  if Result then
+    Intersection := Ray0 + RayVector * T;
 end;
 
 { triangles ------------------------------------------------------------------ }

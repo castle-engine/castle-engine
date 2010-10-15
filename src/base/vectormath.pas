@@ -1101,6 +1101,19 @@ function AngleRadBetweenNormals(const V1, V2: TVector3Single): Single; overload;
 function AngleRadBetweenNormals(const V1, V2: TVector3Double): Double; overload;
 { @groupEnd }
 
+{ Signed angle between two vectors, in radians.
+  As opposed to AngleRadBetweenNormals, this returns a signed angle,
+  between -Pi and Pi. This is guaranteed to be such angle that rotating
+  V1 around vector cross product (V1 x V2) will produce V2.
+  As you see, the order or arguments is important (just like it's important
+  for vector cross).
+
+  @raises EVectorMathInvalidOp If V1 or V2 is zero.
+  @groupBegin }
+function RotationAngleRadBetweenVectors(const V1, V2: TVector3Single): Single; overload;
+function RotationAngleRadBetweenVectors(const V1, V2: TVector3Double): Double; overload;
+{ @groupEnd }
+
 { Rotate point Point around the Axis by given Angle.
 
   Note that this is equivalent to constructing a rotation matrix
@@ -1576,6 +1589,13 @@ function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3Single
   const SphereRadius: Single): boolean; overload;
 function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3Double;
   const SphereRadius: Double): boolean; overload;
+
+function TrySphereRayIntersection(out Intersection: TVector3Single;
+  const SphereCenter: TVector3Single; const SphereRadius: Single;
+  const Ray0, RayVector: TVector3Single): boolean; overload;
+function TrySphereRayIntersection(out Intersection: TVector3Double;
+  const SphereCenter: TVector3Double; const SphereRadius: Double;
+  const Ray0, RayVector: TVector3Double): boolean; overload;
 
 { triangles ------------------------------------------------------------------ }
 

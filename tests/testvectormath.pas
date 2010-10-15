@@ -36,6 +36,7 @@ type
     procedure TestMultMatrixTranslation;
     procedure TestMultMatricesTranslation;
     procedure TestIndexedPolygonNormalArea;
+    procedure TestSphereRayIntersection;
   end;
 
 function RandomVector: TVector3Single;
@@ -436,6 +437,31 @@ begin
   Assert(FloatsEqual(
     IndexedConvexPolygonArea(@CWPolyIndex , High(CWPolyIndex) + 1,
       @Poly, High(Poly) + 1), 8));
+end;
+
+procedure TTestVectorMath.TestSphereRayIntersection;
+var
+  Res: boolean;
+  I: TVector3Single;
+begin
+  Res := TrySphereRayIntersection(I, Vector3Single(3, 0, 0), 10,
+    Vector3Single(0, 0, 0), Vector3Single(1, 0, 0));
+  Assert(Res);
+  Assert(VectorsEqual(I, Vector3Single(13, 0, 0)));
+
+  Res := TrySphereRayIntersection(I, Vector3Single(3, 0, 0), 10,
+    Vector3Single(0, 0, 0), Vector3Single(-1, 0, 0));
+  Assert(Res);
+  Assert(VectorsEqual(I, Vector3Single(-7, 0, 0)));
+
+  Res := TrySphereRayIntersection(I, Vector3Single(3, 0, 0), 10,
+    Vector3Single(20, 0, 0), Vector3Single(1, 0, 0));
+  Assert(not Res);
+
+  Res := TrySphereRayIntersection(I, Vector3Single(3, 0, 0), 10,
+    Vector3Single(20, 0, 0), Vector3Single(-1, 0, 0));
+  Assert(Res);
+  Assert(VectorsEqual(I, Vector3Single(13, 0, 0)));
 end;
 
 { global utils --------------------------------------------------------------- }
