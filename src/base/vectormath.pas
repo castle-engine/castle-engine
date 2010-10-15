@@ -13,11 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(A lot of operations on vectors and matrices.
-  This includes operations on geometric objects (2D and 3D)
-  that can be represented as some vectors, matrices and scalar values.
-  Various collision-checking routines for these geometric objects.
-  Also functions to operate on RGB colors (these are vectors too, after all).)
+{ @abstract(Vector and matrix types and operations.
+  Includes operations on basic geometric objects (2D and 3D),
+  like collision-checking routines.
+  Includes also basic color operarions.)
 
   Representation of geometric objects in this unit :
 
@@ -270,6 +269,7 @@ type    Tvector2_single_data   =array[0..1] of single;
 {$ifdef HAS_MATRIX_UNIT}
 { Define pointer types for all Matrix unit types. }
 type
+  { }
   Pvector2_single   = ^Tvector2_single  ;
   Pvector2_double   = ^Tvector2_double  ;
   Pvector2_extended = ^Tvector2_extended;
@@ -801,8 +801,9 @@ operator := (const V: TVector3Single): TVector3_Single;
 operator := (const V: TVector4Single): TVector4_Single;
 {$endif}
 
-{ prosta matematyka na wektorach  ---------------------------------------------- }
+{ Simple vectors operations  ------------------------------------------------- }
 
+{ }
 procedure SwapValues(var V1, V2: TVector2Single); overload;
 procedure SwapValues(var V1, V2: TVector2Double); overload;
 procedure SwapValues(var V1, V2: TVector3Single); overload;
@@ -845,29 +846,12 @@ function Vector_Init_Lerp(const A: Double; const V1, V2: TVector3_Double): TVect
 function Vector_Init_Lerp(const A: Double; const V1, V2: TVector4_Double): TVector4_Double; overload;
 {$endif}
 
-{ zwraca (1-v2part) * v1 + v2part * v2 czyli cos jak srednia wazona z dwoch wektorow.
-  v2part musi byc z przedzialu <0, 1>.
-  Mozna o tym myslec jako : wez Segment z punktu v1 do v2, punkt 0 to v1 potem
-  rosnie do v2 gdzie staje sie = 1, niniejsza funkcja zwraca punkt na tym odcinku
-  wielkosci v2part. }
-function Mix2Vectors(const v1, v2: TVector3Single;
-  const v2part: Single = 0.5): TVector3Single; overload;
-function Mix2Vectors(const v1, v2: TVector2Single;
-  const v2part: Single = 0.5): TVector2Single; overload;
-procedure Mix2VectorsTo1st(var v1: TVector3Single; const v2: TVector3Single;
-  const v2part: Single); overload;
-procedure Mix2VectorsTo1st(var v1: TVector2Single; const v2: TVector2Single;
-  const v2part: Single); overload;
-
-{ Normalizuj wektor v wg. pierwszych trzech wspolrzednych (argument to
-  np. TVector3Single lub TVector4Single. Jesli TVector4Single, to wartosc
-  v[3] nie zostanie naruszona).
-
-  Jesli argument to wektor zerowy (ktorego nie mozna znormalizowac)
-  to nie zrobi nic (wersja funkcyjna "Normalized" zwroci swoj argument
-  nienaruszony) }
+{ Normalize the first 3 vector components. For zero vectors, does nothing.
+  @groupBegin }
 procedure NormalizeTo1st3Singlev(vv: PVector3Single);
 procedure NormalizeTo1st3Bytev(vv: PVector3Byte);
+{ @groupEnd }
+
 {$ifndef DELPHI}
 procedure NormalizeTo1st(var v: TVector3Single); overload;
 procedure NormalizeTo1st(var v: TVector3Double); overload;
@@ -883,14 +867,14 @@ procedure Vector_Normalize(var V: TVector3_Single); overload;
 procedure Vector_Normalize(var V: TVector3_Double); overload;
 {$endif HAS_MATRIX_UNIT}
 
-{ This normalizes Plane by scaling all *four* coordinates of Plane
-  so that length of plane vector (taken from 1st *three* coordinates)
+{ This normalizes Plane by scaling all @italic(four) coordinates of Plane
+  so that length of plane vector (taken from 1st @italic(three) coordinates)
   is one.
 
   Also, contrary to normal NormalizeTo1st on 3-component vectors,
   this will fail with some awful error (like floating point overflow)
   in case length of plane vector is zero. That's because we know
-  that plane vector *must* be always non-zero. }
+  that plane vector @italic(must) be always non-zero. }
 procedure NormalizePlaneTo1st(var v: TVector4Single); overload;
 procedure NormalizePlaneTo1st(var v: TVector4Double); overload;
 
@@ -986,17 +970,17 @@ procedure VectorNegateTo1st(var v: TVector4Single); overload;
 procedure VectorNegateTo1st(var v: TVector4Double); overload;
 { @groupEnd }
 
-{ przeskaluj wektor tak zeby mial zadana dlugosc.
-  (tak, Normalized moznaby wyrazic jako VectorAdjustToLength(,1)).
-  VecLen may be negative, then we will additionally negate the
-  direction of the vector. }
+{ Scale vector such that it has given length (VecLen).
+  Given VecLen may be negative, then we'll additionally negate the vector.
+  @groupBegin }
 function VectorAdjustToLength(const v: TVector3Single; VecLen: Single): TVector3Single; overload;
 function VectorAdjustToLength(const v: TVector3Double; VecLen: Double): TVector3Double; overload;
 procedure VectorAdjustToLengthTo1st(var v: TVector3Single; VecLen: Single); overload;
 procedure VectorAdjustToLengthTo1st(var v: TVector3Double; VecLen: Double); overload;
+{ @groupEnd }
 
-{ Note that this costs you one Sqrt calculation
-  (contrary to VectorLenSqr). }
+{ Vector length.
+  @groupBegin }
 function VectorLen(const v: TVector2Single): Single; overload;
 function VectorLen(const v: TVector2Double): Double; overload;
 function VectorLen(const v: TVector3Single): Single; overload;
@@ -1004,24 +988,18 @@ function VectorLen(const v: TVector3Double): Double; overload;
 function VectorLen(const v: TVector3Byte): Single; overload;
 function VectorLen(const v: TVector4Single): Single; overload;
 function VectorLen(const v: TVector4Double): Double; overload;
+{ @groupEnd }
 
-{ This returns Sqr(VectorLen(v)). As everyone knows,
-  VectorLen is implemented as Sqrt(VectorLenSqr(v)).
-  Calculating VectorLenSqr is very quick but calculating VectorLen
-  (in a general situation) always requires calculating Sqrt,
-  so it's slow.
+{ Vector length squared.
 
-  So use VectorLenSqr instead of VectorLen whenever possible.
-  E.g. if you want to know is vector longer than given X,
-  compare VectorLenSqr(V) > Sqr(X) instead of VectorLen(V) > X
-  (Note that this is equivalent as long as X >= 0.
-  When X < 0 "VectorLen(V) > X" is always true,
-  but "VectorLenSqr(V) > Sqr(X)" not necessarily. But this is not a problem
-  usually.) This is because Sqr is lighting-fast (it's just miltiplication)
-  while Sqrt is not.
+  This is slightly faster than calculating actual vector length,
+  as it avoids doing expensive Sqrt. In many cases, you can
+  operate on such squared vector length, and thus you gain some speed.
+  For example, to check if vector is longer than 10,
+  check @code(VectorLenSqr(V) > 100) instead of @code(VectorLen(V) > 10).
 
   Also note that when you have a vector with discrete values
-  (like TVector3Byte), VectorLenSqr is able to simply return integer
+  (like TVector3Byte), VectorLenSqr returns a precide integer
   value, while VectorLen must return floating-point value. }
 function VectorLenSqr(const v: TVector2Single): Single; overload;
 function VectorLenSqr(const v: TVector2Double): Double; overload;
@@ -1031,28 +1009,27 @@ function VectorLenSqr(const v: TVector3Byte): Integer; overload;
 function VectorLenSqr(const v: TVector4Single): Single; overload;
 function VectorLenSqr(const v: TVector4Double): Double; overload;
 
-{ iloczyn wektorowy dwoch wektorow, czyli wektor prostopadly do nich obu.
-  Zgodnie z def., vector product dla wektorow rownoleglych (czyli
-  v1 = v2 * jakis skalar) to (0, 0, 0), jezeli v1 lub v2 to wektory
-  zerowe to wynik to takze wektor zerowy (co zreszta wynika juz z
-  poprzedniej uwagi, przeciez wektor zerowy jest rownolegly do kazdego
-  innego wektora).
+{ Vector cross product.
 
-  To zadanie ma dwa rozwiazania (o ile v1 i v2 nie sa rownolegle),
-  niniejsza funkcja zwraca jedno z nich, drugie z nich to wektor przeciwny
-  do pierwszego rozwiazania .
+  This is a vector orthogonal to both given vectors.
+  Generally there are two such vectors, this function returns
+  the one following right-hand rule. More precisely, V1, V2 and
+  VectorProduct(V1, V2) are in the same relation as basic X, Y, Z
+  axes. Reverse the order of arguments to get negated result.
 
-  Ktore zwraca ? Zgodnie z def. zwraca takie rozw. ze v1, v2, result maja
-  sie do siebie tak jak wektory osiowe X, Y, Z w ukladzie przestrzeni.
+  If you use this to calculate a normal vector of a triangle
+  (P0, P1, P2): note that @code(VectorProduct(P1 - P0, P1 - P2))
+  points out from CCW triangle side in right-handed coordinate system.
 
-  Wynika z tego np. ze wektor normalny trojkata (p0, p1, p2) zdefiniowany jako
-  N := VectorProduct(p1-p0, p1-p2) bedzie wektorem normalnym wychodzacym
-  ze strony CCW trojkata o ile masz uklad prawoskretny.
-  Jezeli ustawiles w OpenGL'u glFrontFace(GL_CW)
-  (domyslnie jest GL_CCW) to musisz jako wektory normalne podawac
-  VectorNegate(N), albo po prostu brac N := VectorProduct(p1-p2, p1-p0) }
+  When V1 and V2 are parallel (that is, when V1 = V2 multiplied by some scalar),
+  and this includes the case when one of them is zero,
+  then result is a zero vector.
+
+  See http://en.wikipedia.org/wiki/Cross_product
+  @groupBegin }
 function VectorProduct(const v1, v2: TVector3Double): TVector3Double; overload;
 function VectorProduct(const v1, v2: TVector3Single): TVector3Single; overload;
+{ @groupEnd }
 
 { Dot product (aka scalar product) of two vectors.
 
@@ -1075,8 +1052,7 @@ function VectorDotProduct(const v1: TVector3Single; const v2: TVector4Single): S
 function VectorDotProduct(const v1: TVector3Double; const v2: TVector4Double): Double; overload;
 { @groupEnd }
 
-{ Multiplies two vectors component-wise.
-
+{ Multiply two vectors component-wise.
   That is, Result[I] := V1[I] * V2[I] for each I.
 
   @groupBegin }
@@ -1086,13 +1062,14 @@ procedure VectorMultiplyComponentsTo1st(var v1: TVector3Single; const v2: TVecto
 procedure VectorMultiplyComponentsTo1st(var v1: TVector3Double; const v2: TVector3Double); overload;
 { @groupEnd }
 
-{ kazda skladowa zostanie podniesiona do potegi Exp.
-  Warunki jak dla Math.Power(), tzn. jesli ktoras skladowa <0 i Exp <> 0 to
-  wyjatek EInvalidArgument (wersja To1st zostawi swoj argument w niezdef. stanie) }
-function VectorExpComponents(const v: TVector3Single; const Exp: Single): TVector3Single; overload;
-function VectorExpComponents(const v: TVector3Double; const Exp: Double): TVector3Double; overload;
-procedure VectorExpComponentsTo1st(var v: TVector3Single; const Exp: Single); overload;
-procedure VectorExpComponentsTo1st(var v: TVector3Double; const Exp: Double); overload;
+{ Change each vector component into Power(component, Exp).
+  @raises(EInvalidArgument When some component is < 0 and Exp <> 0.
+    Version VectorPowerComponentsTo1st leaves the V in undefined state
+    in case of such exception.) }
+function VectorPowerComponents(const v: TVector3Single; const Exp: Single): TVector3Single; overload;
+function VectorPowerComponents(const v: TVector3Double; const Exp: Double): TVector3Double; overload;
+procedure VectorPowerComponentsTo1st(var v: TVector3Single; const Exp: Single); overload;
+procedure VectorPowerComponentsTo1st(var v: TVector3Double; const Exp: Double); overload;
 
 { Cosinus of angle between two vectors.
 
@@ -1143,16 +1120,18 @@ function RotatePointAroundAxisRad(Angle: Single; const Point: TVector3Single; co
 function RotatePointAroundAxisRad(Angle: Double; const Point: TVector3Double; const Axis: TVector3Double): TVector3Double; overload;
 { @groupEnd }
 
-{ Which coordinate
-ktora wspolrzedna (0, 1, 2) (i ew. 3 dla wersji z TVector4*) jest najwieksza ?
-  Gdy sa dwie lub trzy lub cztery najwieksze wspolrzedne to wybieramy tak
-  ze 0-wa ma pierwszenstwo nad 1-sza a ta ma pierwszenstwo nad 2-ga a ta nad 3-cia. }
+{ Which coordinate (0, 1, 2, and eventually 3 for 4D versions) is the largest.
+  When the vector components are equal, the first one "wins", for example
+  if V[0] = V[1] (and are larger than other vector component) we return 0.
+  MaxAbsVectorCoord compares the absolute value of components.
+  @groupBegin }
 function MaxVectorCoord(const v: TVector3Single): integer; overload;
 function MaxVectorCoord(const v: TVector3Double): integer; overload;
 function MaxVectorCoord(const v: TVector4Single): integer; overload;
 function MaxVectorCoord(const v: TVector4Double): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Single): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Double): integer; overload;
+{ @groupEnd }
 
 procedure SortAbsVectorCoord(const v: TVector3Single; out Max, Middle, Min: Integer); overload;
 procedure SortAbsVectorCoord(const v: TVector3Double; out Max, Middle, Min: Integer); overload;
@@ -1333,26 +1312,20 @@ function VectorsParallel(const V1, V2: TVector3Single): boolean; overload;
 function VectorsParallel(const V1, V2: TVector3Double): boolean; overload;
 { @groupEnd }
 
-{ spraw zeby miedzy wektorem v1 a v2 byl kat angle poprzez ew. zmiane
-  wektora v1. Wektory v1 i v2 NIE MOGA BYC ROWNOLEGLE, czyli musza
-  definiowac 1-znacznie plaszczyzne w przestrzeni. Wektor v1 zostanie
-  dostosowany aby kat byl odpowiedni w taki sposob ze wektory v1 i v2
-  ciagle beda definiowaly ta sama plaszczyzne. Jeszcze jedno : kierunek
-  kata zalezy oczywiscie od kolejnosci wektorow, wszystko przez to
-  ze dla kazdego punktu plaszczyny mozna wyznaczyc dwa wektory do niej
-  prostopadle wychodzace z tego punktu. Robione jest tak zeby wektor v1
-  po obrocie o kat AngleDeg wokol VectorProduct(V1, V2) byl na miejscu
-  wektora v2.
+{ Adjust the V1 vector to force given angle between V1 and V2.
+  Vector V1 will be adjusted, such that it has the same length
+  and the 3D plane defined by V1, V2 and (0, 0, 0) is the same.
 
-  Wiec jezeli zamieniasz wektory kolejnoscia w parametrach (v1 z v2)
-  to zamieniasz jednoczesnie kierunek kata wobec tego juz NIE POWINIENES
-  negowac wektora aby zachowac taka sama zaleznosc miedzy wektorami.
-  Innymi slowy, polecenia
-    (V1, V2, 90) i
-    (v2, v1, 90) daja taka sama zaleznosc miedzy dwoma wektorami,
-    mimo ze wydaje sie ze razem ze zmiana kolejnosci wektorow powinno
-    sie zmienic kat na przeciwny.
-  Dlugosc wektora v1 jest zachowywana. }
+  Given V1 and V2 cannot be parallel.
+
+  We make it such that V1 rotated around axis VectorProduct(V1, V2) by given
+  angle will result in V2. Note that this means that
+  @code(MakeVectorsAngleDegOnTheirPlane(V1, V2, Angle))
+  results in the same (not reversed) relation between vectors as
+  @code(MakeVectorsAngleDegOnTheirPlane(V2, V1, Angle)).
+  That's because you change the arguments order, but also VectorProduct
+  sign changes.
+  @groupBegin }
 procedure MakeVectorsAngleDegOnTheirPlane(var v1: TVector3Single;
   const v2: TVector3Single; AngleDeg: Single); overload;
 procedure MakeVectorsAngleDegOnTheirPlane(var v1: TVector3Double;
@@ -1361,9 +1334,11 @@ procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3Single;
   const v2: TVector3Single; AngleRad: Single); overload;
 procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3Double;
   const v2: TVector3Double; AngleRad: Double); overload;
+{ @groupEnd }
 
-{ This is a shortcut (that may be calculated faster)
-  for MakeVectorsAngleDefOnTheirPlane(V1, V2, 90). }
+{ Adjust the V1 vector to force V1 and V2 to be orthogonal.
+  This is a shortcut (and may be calculated faster)
+  for @code(MakeVectorsAngleDefOnTheirPlane(V1, V2, 90)). }
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Single;
   const v2: TVector3Single); overload;
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Double;
@@ -1392,7 +1367,7 @@ function IsLineParallelToSimplePlane(const lineVector: TVector3Double;
   const PlaneConstCoord: integer): boolean; overload;
 
 { Assuming that Vector1 and Vector2 are parallel,
-  do they point in the same direction?
+  check do they point in the same direction.
 
   This assumes that both vectors are non-zero.
   If one of the vectors is zero, the result is undefined --- false or true.
@@ -1449,14 +1424,16 @@ function PointOnLineClosestToPoint(const line0, lineVector, point: TVector3Doubl
 function PointToLineDistanceSqr(const point, line0, lineVector: TVector3Single): Single; overload;
 function PointToLineDistanceSqr(const point, line0, lineVector: TVector3Double): Double; overload;
 
-{ zwraca false i nie modyfikuje intersection (ani t) jezeli linia rownolegla
-  z plane (zwroc uwage gdy linia jest zawarta w plane (a wiec de facto
-  JEST collision tylko ze na calej dlugosci linii) to odpowiada false).
-  Wpp. zwraca Intersection (lub t takie ze Intersection moze byc obliczone
-  jako Line0 + LineVector*t). Ta ostatnia metoda pozwala nam w szczegolnosci
-  miec z tego wprost implementacje TryRayPlaneIntersection i
-  TryRaySegmentDirIntersection (ktore polegaja tylko na nalozeniu pewnych
-  ograniczen na t). }
+{ Plane and line intersection.
+
+  Returns @false and doesn't modify Intersection or T when
+  the line is parallel to the plane (this includes the case when
+  the line @italic(lies on a plane), so theoretically the whole
+  line is an intersection).
+
+  Otherwise, returns @true, and calculates 3D intersection point,
+  or calculates T such that @code(3D intersection = Line0 + LineVector * T).
+  @groupBegin }
 function TryPlaneLineIntersection(out intersection: TVector3Single;
   const plane: TVector4Single; const line0, lineVector: TVector3Single): boolean; overload;
 function TryPlaneLineIntersection(out intersection: TVector3Double;
@@ -1465,10 +1442,18 @@ function TryPlaneLineIntersection(out t: Single;
   const plane: TVector4Single; const line0, lineVector: TVector3Single): boolean; overload;
 function TryPlaneLineIntersection(out t: Double;
   const plane: TVector4Double; const line0, lineVector: TVector3Double): boolean; overload;
+{ @groupEnd }
 
-{ zwraca false i nie modyfikuje intersection jezeli ray rownolegly z plane
-  lub ray nie moze trafic w plane (bo musialby byc skierowany w przeciwna
-  strone) }
+{ Plane and ray intersection.
+
+  Returns @false and doesn't modify Intersection or T when
+  the ray is parallel to the plane (this includes the case when
+  the ray @italic(lies on a plane). Also returns @false when the ray would
+  have to point in the opposite direction to hit the plane.
+
+  Otherwise, returns @true, and calculates 3D intersection point,
+  or calculates T such that @code(3D intersection = Ray0 + RayVector * T).
+  @groupBegin }
 function TrySimplePlaneRayIntersection(out Intersection: TVector3Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Ray0, RayVector: TVector3Single): boolean; overload;
@@ -1488,9 +1473,26 @@ function TrySimplePlaneRayIntersection(out T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Ray0, RayVector: TVector3Double): boolean; overload;
 
-{ zwraca false i nie modyfikuje intersection jezeli Segment rownolegly z plane
-  lub Segment nie moze trafic w plane (bo musialby byc dluzszy w jedna lub
-  druga strone) }
+function TryPlaneRayIntersection(out Intersection: TVector3Single;
+  const Plane: TVector4Single; const Ray0, RayVector: TVector3Single): boolean; overload;
+function TryPlaneRayIntersection(out Intersection: TVector3Double;
+  const Plane: TVector4Double; const Ray0, RayVector: TVector3Double): boolean; overload;
+function TryPlaneRayIntersection(out Intersection: TVector3Single; out T: Single;
+  const Plane: TVector4Single; const Ray0, RayVector: TVector3Single): boolean; overload;
+function TryPlaneRayIntersection(out Intersection: TVector3Double; out T: Double;
+  const Plane: TVector4Double; const Ray0, RayVector: TVector3Double): boolean; overload;
+{ @groupEnd }
+
+{ Plane and line segment intersection.
+
+  Returns @false and doesn't modify Intersection or T when
+  the segment is parallel to the plane (this includes the case when
+  the segment @italic(lies on a plane). Also returns @false when the segment
+  would have to be longer to hit the plane.
+
+  Otherwise, returns @true, and calculates 3D intersection point,
+  or calculates T such that @code(3D intersection = Ray0 + RayVector * T).
+  @groupBegin }
 function TrySimplePlaneSegmentDirIntersection(var Intersection: TVector3Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Segment0, SegmentVector: TVector3Single): boolean; overload;
@@ -1535,22 +1537,6 @@ function TrySimplePlaneSegmentIntersection(
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Pos1, Pos2: TVector3Double): boolean; overload;
 
-{ zwraca false i nie modyfikuje Intersection ani T jezeli ray rownolegly do plane
-  lub jezeli ray jest w zla strone (to znaczy, gdyby rayVector
-  byl =VectorNegate(RayVector) to wtedy byloby przeciecie).
-  Oprocz / zamiast Intersection moze tez zwrocic T >= 0 takie ze
-  Intersection = Ray0 + RayVector * T. Tak naprawde wersje zwracajace Intersection
-  uzywaja zaimplementowanej wersji ktora zwraca T i potem obliczaja Intersection
-  z powyzszej zaleznosci. }
-function TryPlaneRayIntersection(out Intersection: TVector3Single;
-  const Plane: TVector4Single; const Ray0, RayVector: TVector3Single): boolean; overload;
-function TryPlaneRayIntersection(out Intersection: TVector3Double;
-  const Plane: TVector4Double; const Ray0, RayVector: TVector3Double): boolean; overload;
-function TryPlaneRayIntersection(out Intersection: TVector3Single; out T: Single;
-  const Plane: TVector4Single; const Ray0, RayVector: TVector3Single): boolean; overload;
-function TryPlaneRayIntersection(out Intersection: TVector3Double; out T: Double;
-  const Plane: TVector4Double; const Ray0, RayVector: TVector3Double): boolean; overload;
-
 function TryPlaneSegmentDirIntersection(out Intersection: TVector3Single;
   const Plane: TVector4Single; const Segment0, SegmentVector: TVector3Single): boolean; overload;
 function TryPlaneSegmentDirIntersection(out Intersection: TVector3Double;
@@ -1559,14 +1545,17 @@ function TryPlaneSegmentDirIntersection(out Intersection: TVector3Single; out T:
   const Plane: TVector4Single; const Segment0, SegmentVector: TVector3Single): boolean; overload;
 function TryPlaneSegmentDirIntersection(out Intersection: TVector3Double; out T: Double;
   const Plane: TVector4Double; const Segment0, SegmentVector: TVector3Double): boolean; overload;
+{ @groupEnd }
 
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3Single): boolean; overload;
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3Double): boolean; overload;
 
-{ w nazwie jest podkleslone _Different_ Points zebys pamietal zeby zapewnic
-  ze p1 i p2 to rozne punkty - inaczej nie bedzie mozna wyznaczyc prostej ! }
+{ Line passing through two @italic(different) points.
+  When the points are equal, undefined.
+  @groupBegin }
 function LineOfTwoDifferentPoints2d(const p1, p2: TVector2Single): TVector3Single; overload;
 function LineOfTwoDifferentPoints2d(const p1, p2: TVector2Double): TVector3Double; overload;
+{ @groupEnd }
 
 function PointToSegmentDistanceSqr(const point, pos1, pos2: TVector3Single): Single; overload;
 function PointToSegmentDistanceSqr(const point, pos1, pos2: TVector3Double): Double; overload;
@@ -1588,22 +1577,24 @@ function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3Single
 function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3Double;
   const SphereRadius: Double): boolean; overload;
 
-{ cos do trojkatow TTriangle** ------------------------------------------------- }
+{ triangles ------------------------------------------------------------------ }
 
-{ ta funkcja radzi sobie ze zdegenerowanymi trojkatami, tzn.trojkatami
-  ktore tak naprawde sa punktem lub odcinkiem. Zwraca false jezeli
-  trojkaty sa wlasnie tak zdegenerowane; wpp. trojkat wyznacza 1-znacznie
-  plaszczyzne wiec jest dobrym trojkatem wiec odpowiada true. }
+{ Check does the triangle define a correct plane in 3D space.
+  That is, check does the triangle not degenerate to a point or line segment
+  (which can happen when some points are at the same position, or are colinear).
+  @groupBegin }
 function IsValidTriangle(const Tri: TTriangle3Single): boolean; overload;
 function IsValidTriangle(const Tri: TTriangle3Double): boolean; overload;
+{ @groupEnd }
 
-{ liczy wektor normalny trojkata jako (Tri[2]-Tri[1]) x (Tri[0]-Tri[1])
-  a wiec zwraca ten sposrod wektorow normalnych ktory wychodzi z CCW trojkata
-  dla ukladu prawostronnego. Wersja "Dir" nie normalizuje ! (i dziala
-  przez to nieco szybciej)
+{ Normal vector of a triangle. Returns vector pointing our from CCW triangle
+  side (for right-handed coordinate system), and orthogonal to triangle plane.
+  The version "Dir" (TriangleDir) doesn't normalize the result
+  (it may not have length equal 1).
 
-  Jako wyjatek, definiujemy tez co ta procedura robi dla zdegenerowanych
-  trojkatow : mianowicie zwraca wektor zerowy. }
+  For degenerated triangles (when IsValidTriangle would return false),
+  we return zero vector.
+  @groupBegin }
 function TriangleDir(const Tri: TTriangle3Single): TVector3Single; overload;
 function TriangleDir(const Tri: TTriangle3Double): TVector3Double; overload;
 function TriangleDir(const p0, p1, p2: TVector3Single): TVector3Single; overload;
@@ -1612,6 +1603,7 @@ function TriangleNormal(const Tri: TTriangle3Single): TVector3Single; overload;
 function TriangleNormal(const Tri: TTriangle3Double): TVector3Double; overload;
 function TriangleNormal(const p0, p1, p2: TVector3Single): TVector3Single; overload;
 function TriangleNormal(const p0, p1, p2: TVector3Double): TVector3Double; overload;
+{ @groupEnd }
 
 { Transform triangle by 4x4 matrix. This simply transforms each triangle point.
 
@@ -1624,10 +1616,9 @@ function TriangleTransform(const Tri: TTriangle3Single; const M: TMatrix4Single)
 function TriangleTransform(const Tri: TTriangle3Double; const M: TMatrix4Double): TTriangle3Double; overload;
 { @groupEnd }
 
-{ VerticesStride = 0 oznacza VerticesStride = SizeOf(TVector3Single).
-  Liczy normal trojkata VerticesArray[Indexes[0]], VerticesArray[Indexes[1]],
-  VerticesArray[Indexes[2]] gdzie kolejne elementy z VerticesArray sa
-  wyciagane przy pomocy Stride. }
+{ Normal vector of a triangle defined as three indexes intro vertex array.
+  VerticesStride is the shift between vertex values in the array,
+  VerticesStride = 0 behaves like VerticesStride = SizeOf(TVector3Single). }
 function IndexedTriangleNormal(const Indexes: TVector3Cardinal;
   VerticesArray: PVector3Single; VerticesStride: integer): TVector3Single;
 
@@ -1642,43 +1633,48 @@ function TriangleAreaSqr(const Tri: TTriangle3Single): Single; overload;
 function TriangleAreaSqr(const Tri: TTriangle3Double): Double; overload;
 { @groupEnd }
 
-{ oblicz plane of triangle. Wiadomo ze to zadanie ma niesk wiele rozw
-  bo kazdy plane ma niesk wiele reprezentacji jako Ax+By+Cz+D = 0.
-  TrianglePlane znajduje po prostu jakies rozwiazanie,
+{ Plane of the triangle. Note that this has many possible solutions
+  (plane representation as equation @code(Ax + By + Cz + D = 0)
+  is not unambiguous), this just returns some solution deterministically.
 
   It's guaranteed that the direction of this plane (i.e. first 3 items
   of returned vector) will be in the same direction as calcualted by
   TriangleDir, which means that it points outward from CCW side of
   the triangle (assuming right-handed coord system).
 
-  TriangleNormPlane zwraca taki plane ze jego pierwsze trzy pozycje tworza
-  wektor znormalizowany, tj. dlugosci 1. W ten sposob TrianglePlane
-  liczy przy okazji TriangleNormal.
+  For TriangleNormPlane, this direction is also normalized
+  (makes a vector with length 1). This way TrianglePlane calculates
+  also TriangleNormal.
 
   For three points that do not define a plane, a plane with first three
   components = 0 is returned. In fact, the 4th component will be zero too
-  in this case (for now), but depend on it. }
+  in this case (for now), but don't depend on it.
+  @groupBegin }
 function TrianglePlane(const Tri: TTriangle3Single): TVector4Single; overload;
 function TrianglePlane(const Tri: TTriangle3Double): TVector4Double; overload;
 function TrianglePlane(const p0, p1, p2: TVector3Single): TVector4Single; overload;
 function TrianglePlane(const p0, p1, p2: TVector3Double): TVector4Double; overload;
 function TriangleNormPlane(const Tri: TTriangle3Single): TVector4Single; overload;
 function TriangleNormPlane(const Tri: TTriangle3Double): TVector4Double; overload;
+{ @groupEnd }
 
 function IsPointWithinTriangle2d(const P: TVector2Single; const Tri: TTriangle2Single): boolean; overload;
 function IsPointWithinTriangle2d(const P: TVector2Double; const Tri: TTriangle2Double): boolean; overload;
 
-{ Zalozmy ze wiadomo ze punkt P lezy na plaszczyznie trojkata T.
-  Pytamy czy P jest w srodku samego trojkata ?
-  Mozesz podac TriDir jesli je znasz, to przyspieszy dzialanie
-  (nie potrzebujemy TriPlane, tzn. czwartego wspolczynnika). }
+{ Assuming a point lies on a triangle plane,
+  check does it lie inside a triangle.
+  Give first 3 components of triangle plane as TriDir.
+  @groupBegin }
 function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3Single;
   const Tri: TTriangle3Single; const TriDir: TVector3Single): boolean; overload;
 function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3Double;
   const Tri: TTriangle3Double; const TriDir: TVector3Double): boolean; overload;
+{ @groupEnd }
 
-{ sprawdzanie kolizji z trojkatem. Mozesz podac razem z trojkatem jego TriPlane,
-  jeslu juz go masz wyliczonego. }
+{ Check triangle with line segment collision.
+  You can pass the triangle plane along with a triangle,
+  this will speed calculation.
+  @groupBegin }
 function IsTriangleSegmentCollision(const Tri: TTriangle3Single;
   const TriPlane: TVector4Single;
   const pos1, pos2: TVector3Single): boolean; overload;
@@ -1689,6 +1685,7 @@ function IsTriangleSegmentCollision(const Tri: TTriangle3Single;
   const pos1, pos2: TVector3Single): boolean; overload;
 function IsTriangleSegmentCollision(const Tri: TTriangle3Double;
   const pos1, pos2: TVector3Double): boolean; overload;
+{ @groupEnd }
 
 function IsTriangleSphereCollision(const Tri: TTriangle3Single;
   const TriPlane: TVector4Single;
@@ -1701,9 +1698,13 @@ function IsTriangleSphereCollision(const Tri: TTriangle3Single;
 function IsTriangleSphereCollision(const Tri: TTriangle3Double;
   const SphereCenter: TVector3Double; SphereRadius: Double): boolean; overload;
 
-{ przeciecie promienia z odcinkiem. Mozesz podac TriPlane jesli masz juz
-  wyliczone; zwraca false i nie modyfikuje Intersection jezeli nie ma
-  przeciecia, wpp. zwraca true i ustawia Intersection. }
+{ Calculate triangle with line segment collision.
+  You can pass the triangle plane along with a triangle,
+  this will speed calculation.
+
+  When there's no intersection, returns @false and doesn't modify Intersection
+  or T.
+  @groupBegin }
 function TryTriangleSegmentCollision(var Intersection: TVector3Single;
   const Tri: TTriangle3Single; const TriPlane: TVector4Single;
   const Pos1, Pos2: TVector3Single): boolean; overload;
@@ -1711,9 +1712,6 @@ function TryTriangleSegmentCollision(var Intersection: TVector3Double;
   const Tri: TTriangle3Double; const TriPlane: TVector4Double;
   const Pos1, Pos2: TVector3Double): boolean; overload;
 
-{ przeciecie promienia z odcinkiemDir. Mozesz podac TriPlane jesli masz juz
-  wyliczone; zwraca false i nie modyfikuje Intersection (ani T) jezeli nie ma
-  przeciecia, wpp. zwraca true i ustawia Intersection (i T). }
 function TryTriangleSegmentDirCollision(var Intersection: TVector3Single;
   const Tri: TTriangle3Single; const TriPlane: TVector4Single;
   const Segment0, SegmentVector: TVector3Single): boolean; overload;
@@ -1726,10 +1724,15 @@ function TryTriangleSegmentDirCollision(var Intersection: TVector3Single; var T:
 function TryTriangleSegmentDirCollision(var Intersection: TVector3Double; var T: Double;
   const Tri: TTriangle3Double; const TriPlane: TVector4Double;
   const Segment0, SegmentVector: TVector3Double): boolean; overload;
+{ @groupEnd }
 
-{ przeciecie promienia z trojkatem. Mozesz podac TriPlane jesli masz juz
-  wyliczone zwraca false i nie modyfikuje Intersection jezeli nie ma
-  przeciecia, wpp. zwraca true i ustawia Intersection. }
+{ Calculate triangle with ray collision.
+  You can pass the triangle plane along with a triangle,
+  this will speed calculation.
+
+  When there's no intersection, returns @false and doesn't modify Intersection
+  or T.
+  @groupBegin }
 function TryTriangleRayCollision(var Intersection: TVector3Single;
   const Tri: TTriangle3Single; const TriPlane: TVector4Single;
   const Ray0, RayVector: TVector3Single): boolean; overload;
@@ -1742,6 +1745,7 @@ function TryTriangleRayCollision(var Intersection: TVector3Single; var T: Single
 function TryTriangleRayCollision(var Intersection: TVector3Double; var T: Double;
   const Tri: TTriangle3Double; const TriPlane: TVector4Double;
   const Ray0, RayVector: TVector3Double): boolean; overload;
+{ @groupEnd }
 
 { Calculates normalized normal vector for polygon composed from
   indexed vertices. Polygon is defines as vertices
@@ -1783,45 +1787,62 @@ function IndexedConvexPolygonArea(
   Verts: PVector3Single; const VertsCount: Integer; const VertsStride: PtrUInt): Single; overload;
 { @groupEnd }
 
-{ dla zadanego polygonu 2d, ktory nie musi byc convex i moze byc kawalkami
-  zdegenerowany (= niektore trojki jego wierzcholkow daja zdegenerowane
-  trojkaty, moze sie tak zdarzyc np. gdy sa wielokrotne wierzcholki albo
-  gdy trzy kolejne wierzcholki sa wspolliniowe (czyli srodkowy jest zbedny)):
-    IsPolygon2dCCW obliczy czy polygon jest CCW (widziany na plaszczyznie
-      kartezjanskiej, z +X w prawo i +Y w gore). Zwroci > 0 jesli polygon
-      jest CCW, <0 jesli jest CW i 0 jesli polygon ma pole = 0 i tym
-      samym nie ma zdefiniowanej orientacji.
-    Polygon2dArea obliczy pole wielokata.
-  Sa wersje z parametrami array of TVector2Single, zwracam wiec uwage ze mozna
-  tutaj bez problemu podac jako parametr TTriangle2Single. }
+{ Are the polygon points ordered CCW (counter-clockwise). When viewed
+  with typical camera settings, that is +Y goes up and +X goes right.
+
+  Polygon doesn't have to be convex. Polygon doesn't have to have all triangles
+  valid, that is it's OK if some polygon triangles degenerate into points
+  or line segments.
+
+  Returns something > 0 if polygon is CCW, or < 0 when it's not.
+  Returns zero when polygon has area 0.
+  @groupBegin }
 function IsPolygon2dCCW(Verts: PArray_Vector2Single; const VertsCount: Integer): Single; overload;
 function IsPolygon2dCCW(const Verts: array of TVector2Single): Single; overload;
+{ @groupEnd }
+
+{ Calculate polygon area.
+
+  Polygon doesn't have to be convex. Polygon doesn't have to have all triangles
+  valid, that is it's OK if some polygon triangles degenerate into points
+  or line segments.
+
+  @groupBegin }
 function Polygon2dArea(Verts: PArray_Vector2Single; const VertsCount: Integer): Single; overload;
 function Polygon2dArea(const Verts: array of TVector2Single): Single; overload;
+{ @groupEnd }
 
-{ losowy punkt na trojkacie generowany ze stala gestoscia na pole,
-  tzn. gestosc = 1/PoleTrojkata }
+{ Random triangle point, chosen with a constant density for triangle area. }
 function SampleTrianglePoint(const Tri: TTriangle3Single): TVector3Single;
 
-{ pare funkcji *To*Str --------------------------------------------------------
+{ Converting stuff to string ---------------------------------------------------
 
-  Funckje ToNiceStr uzywaja FloatToNiceStr ktore robi
-  Format('%'+FloatNiceFormat, [f]) a wiec zmieniajac FloatNiceFormat
-  mozesz kontrolowac z jaka dokladnoscia floaty beda wypisywane.
-  Chcac zachowac pewien luz nie zamierzam okreslac dokladnie w interfejsie
-  tego modulu w jaki sposob te funkcje wypisuja dany typ. Funkcje ktore
-  moga zwracac string z newline'ami mozesz rozpoznac po parametrze
-  "LineIndent" - takie funkcje nie umieszczaja nigdy nl na samym koncu i
-  poczatku stringa !
+  Functions named ToNiceStr use FloatToNiceStr that in turn uses
+  Format('%' + FloatNiceFormat, [f]). In effect, the floating-point value
+  is by default displayed nicely for human, and moreover you can control
+  the output by global FloatNiceFormat value.
 
-  Funkcja FloatToRawStr wypisuje dokladna wartosc floata, uzywajac notacji
-  wykladniczej jesli trzeba. Funkcje ToRawStr uzywaja FloatToRawStr
-  i wypisuja po prostu ciag liczb rozdzielonych spacjami.
-  W ten sposob sa one dobre jesli chcesz
-  zapisac dokladna wartosc wektora czy czegos w pliku.
+  Also, functions named ToNiceStr sometimes add some decoration (like
+  "[ ]" characters around matrix rows) to make the result look nice
+  and readable.
+
+  Functions that take a LineIndent parameter (may) output a multiline-string.
+  In such case, the last line is @italic(never) terminated with newline
+  character(s).
+
+  Functions named ToRawStr output the precise floating-point value,
+  using the ugly exponential (scientific) notation if needed.
+  They are suitable for storing the floating-point value in a file,
+  with a best precision possible.
+
+  Also, functions named ToRawStr do not add any decoration when outputting
+  vectors / matrices. They simply spit a sequence of floating-point values
+  separated by spaces.
 }
 
-var FloatNiceFormat: string = 'f';
+{ }
+var
+  FloatNiceFormat: string = 'f';
 
 function FloatToNiceStr(f: Single): string; overload;
 function FloatToNiceStr(f: Double): string; overload;
@@ -1844,8 +1865,9 @@ function MatrixToRawStr(const v: TMatrix4Double; const LineIndent: string): stri
 function TriangleToRawStr(const t: TTriangle3Single): string; overload;
 function TriangleToRawStr(const t: TTriangle3Double): string; overload;
 
-{ troche matematyki na macierzach ----------------------------------------------- }
+{ Matrix operations ---------------------------------------------------------- }
 
+{ }
 function MatrixAdd(const m1, m2: TMatrix3Single): TMatrix3Single; overload;
 function MatrixAdd(const m1, m2: TMatrix4Single): TMatrix4Single; overload;
 function MatrixAdd(const m1, m2: TMatrix3Double): TMatrix3Double; overload;
@@ -2233,10 +2255,12 @@ const
   GrayscaleValuesByte: array [0..2] of Word = (54, 183, 19);
   { @groupEnd }
 
-{ Calculate color intensity, as for converting color to grayscale. }
+{ Calculate color intensity, as for converting color to grayscale.
+  @groupBegin }
 function GrayscaleValue(const v: TVector3Single): Single; overload;
 function GrayscaleValue(const v: TVector3Double): Double; overload;
 function GrayscaleValue(const v: TVector3Byte): Byte; overload;
+{ @groupEnd }
 
 procedure Grayscale3SinglevTo1st(v: PVector3Single);
 procedure Grayscale3BytevTo1st(v: PVector3Byte);
@@ -2250,7 +2274,8 @@ function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
 { color changing ------------------------------------------------------------ }
 
 type
-  { These types are used in many places, look at
+  { Function that process RGB colors.
+    These types are used in many places, look at
     TVRMLOpenGLRenderer.Attrib_ColorModulatorSingle/Byte,
     TVRMLLightSetGL.ColorModulatorSingle,
     TVRMLGLScene.Attrib_ColorModulatorSingle/Byte,
@@ -2261,24 +2286,29 @@ type
 
 { below are some functions that can be used as above
   TColorModulatorSingleFunc or TColorModulatorByteFunc values. }
+{ }
 
 function ColorNegativeSingle(const Color: TVector3Single): TVector3Single;
 function ColorNegativeByte(const Color: TVector3Byte): TVector3Byte;
 
-{ This is the same as Grayscale }
+{ Convert color to grayscale.
+  @groupBegin }
 function ColorGrayscaleSingle(const Color: TVector3Single): TVector3Single;
 function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
+{ @groupEnd }
 
-{ This the same as Grayscale and then invert colors
-  (i.e., Red := 1.0-Red, Green := 1.0-Green etc.) }
+{ Convert color to grayscale and then invert.
+  That is, Red becomes @code(1 - Red), Green := @code(1 - Green) and such.
+  @groupBegin }
 function ColorGrayscaleNegativeSingle(const Color: TVector3Single): TVector3Single;
 function ColorGrayscaleNegativeByte(const Color: TVector3Byte): TVector3Byte;
+{ @groupEnd }
 
 {$ifdef FPC}
 
-{ Color*Convert is like converting color to grayscale,
-  and then setting value of given channel (Red/Green/Blue)
-  to that grayscale value. Two other channels are set to 0. }
+{ Place color intensity (calculated like for grayscale)
+  into the given color component. Set the other components zero.
+  @groupBegin }
 function ColorRedConvertSingle(const Color: TVector3Single): TVector3Single;
 function ColorRedConvertByte(const Color: TVector3Byte): TVector3Byte;
 
@@ -2287,11 +2317,14 @@ function ColorGreenConvertByte(const Color: TVector3Byte): TVector3Byte;
 
 function ColorBlueConvertSingle(const Color: TVector3Single): TVector3Single;
 function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte;
+{ @groupEnd }
 
-{ Color*Strip simply sets color values for two other channels to 0.
-  (so, note that it's something entirely different than
+{ Set color values for two other channels to 0.
+  Note that it's something entirely different than
   ImageConvertToChannelTo1st: here we preserve original channel values,
-  and remove values on two other channels). }
+  and remove values on two other channels.
+
+  @groupBegin }
 function ColorRedStripSingle(const Color: TVector3Single): TVector3Single;
 function ColorRedStripByte(const Color: TVector3Byte): TVector3Byte;
 
@@ -2300,6 +2333,7 @@ function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte;
 
 function ColorBlueStripSingle(const Color: TVector3Single): TVector3Single;
 function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
+{ @groupEnd }
 
 {$endif FPC}
 
@@ -3040,72 +3074,32 @@ begin
 end;
 {$endif HAS_MATRIX_UNIT}
 
-function Mix2Vectors(const v1, v2: TVector3Single; const v2part: Single): TVector3Single;
-var
-  v1part: Single;
-begin
-  v1part := 1.0 - v2part;
-  result[0] := v1part*v1[0] + v2part*v2[0];
-  result[1] := v1part*v1[1] + v2part*v2[1];
-  result[2] := v1part*v1[2] + v2part*v2[2];
-end;
-
-function Mix2Vectors(const v1, v2: TVector2Single; const v2part: Single): TVector2Single;
-var
-  v1part: Single;
-begin
-  v1part := 1.0 - v2part;
-  result[0] := v1part*v1[0] + v2part*v2[0];
-  result[1] := v1part*v1[1] + v2part*v2[1];
-end;
-
-procedure Mix2VectorsTo1st(var v1: TVector3Single; const v2: TVector3Single;
-  const v2part: Single);
-var
-  v1part: Single;
-begin
-  v1part := 1.0 - v2part;
-  v1[0] := v1[0]*v1part + v2[0]*v2part;
-  v1[1] := v1[1]*v1part + v2[1]*v2part;
-  v1[2] := v1[2]*v1part + v2[2]*v2part;
-end;
-
-procedure Mix2VectorsTo1st(var v1: TVector2Single; const v2: TVector2Single;
-  const v2part: Single);
-var
-  v1part: Single;
-begin
-  v1part := 1.0 - v2part;
-  v1[0] := v1[0]*v1part + v2[0]*v2part;
-  v1[1] := v1[1]*v1part + v2[1]*v2part;
-end;
-
 procedure NormalizeTo1st3Singlev(vv: PVector3Single);
 var
-  dlug: Single;
+  Len: Single;
 begin
-  dlug := Sqrt(
+  Len := Sqrt(
     Sqr(vv^[0]) +
     Sqr(vv^[1]) +
     Sqr(vv^[2]));
-  if dlug = 0 then exit;
-  vv^[0] := vv^[0] / dlug;
-  vv^[1] := vv^[1] / dlug;
-  vv^[2] := vv^[2] / dlug;
+  if Len = 0 then exit;
+  vv^[0] := vv^[0] / Len;
+  vv^[1] := vv^[1] / Len;
+  vv^[2] := vv^[2] / Len;
 end;
 
 procedure NormalizeTo1st3Bytev(vv: PVector3Byte);
 var
-  dlug: integer;
+  Len: integer;
 begin
-  dlug := Round( Sqrt(
+  Len := Round( Sqrt(
     Sqr(Integer(vv^[0])) +
     Sqr(Integer(vv^[1])) +
     Sqr(Integer(vv^[2]))) );
-  if dlug = 0 then exit;
-  vv^[0] := vv^[0] div dlug;
-  vv^[1] := vv^[1] div dlug;
-  vv^[2] := vv^[2] div dlug;
+  if Len = 0 then exit;
+  vv^[0] := vv^[0] div Len;
+  vv^[1] := vv^[1] div Len;
+  vv^[2] := vv^[2] div Len;
 end;
 
 function ZeroVector(const v: TVector4Cardinal): boolean;

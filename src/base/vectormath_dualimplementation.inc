@@ -169,14 +169,14 @@ begin
   Result := Sqr(v[0]) + Sqr(v[1]) + Sqr(v[2]) + Sqr(v[3]);
 end;
 
-function VectorExpComponents(const v: TYPE_VECTOR3; const Exp: TYPE_SCALAR): TYPE_VECTOR3;
+function VectorPowerComponents(const v: TYPE_VECTOR3; const Exp: TYPE_SCALAR): TYPE_VECTOR3;
 begin
   result[0] := Power(v[0], Exp);
   result[1] := Power(v[1], Exp);
   result[2] := Power(v[2], Exp);
 end;
 
-procedure VectorExpComponentsTo1st(var v: TYPE_VECTOR3; const Exp: TYPE_SCALAR);
+procedure VectorPowerComponentsTo1st(var v: TYPE_VECTOR3; const Exp: TYPE_SCALAR);
 begin
   v[0] := Power(v[0], Exp);
   v[1] := Power(v[1], Exp);

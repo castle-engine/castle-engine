@@ -113,7 +113,7 @@ D   progressconsole.pas
 |   progressunit.pas
 D   recentfiles.pas
 D   rects.pas
-|   vectormath.pas
+D   vectormath.pas
 
   fonts/
 |   windows/windowsfonts.pas

@@ -2876,7 +2876,7 @@ begin
   PFloat := RGBFloatPixels;
   for i := 1 to Width * Height do
   begin
-    PFloat^ := VectorExpComponents(PFloat^, Exp);
+    PFloat^ := VectorPowerComponents(PFloat^, Exp);
     Inc(PFloat);
   end;
 end;

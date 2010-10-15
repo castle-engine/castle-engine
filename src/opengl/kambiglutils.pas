@@ -2214,8 +2214,8 @@ procedure DrawGLTriangle(const p1, p2, p3: TVector3f;
   procedure PairMix(const v1, v2: TVector3f; const tex1, tex2: TVector2f;
     v2part: TGLfloat; var vresult: TVector3f; var texResult: TVector2f);
   begin
-   vresult := Mix2Vectors(v1, v2, v2part);
-   texResult := Mix2Vectors(tex1, tex2, v2part);
+   vresult := Lerp(v2part, v1, v2);
+   texResult := Lerp(v2part, tex1, tex2);
   end;
 
   procedure PairAssign(
@@ -2234,8 +2234,8 @@ procedure DrawGLTriangle(const p1, p2, p3: TVector3f;
   var vresult: TVector3f;
       texResult: TVector2f;
   begin
-   vresult := Mix2Vectors(v1, v2, v2part);
-   texResult := Mix2Vectors(tex1, tex2, v2part);
+   vresult := Lerp(v2part, v1, v2);
+   texResult := Lerp(v2part, tex1, tex2);
    glTexCoordv(texResult); glVertexv(vresult);
   end;
 
