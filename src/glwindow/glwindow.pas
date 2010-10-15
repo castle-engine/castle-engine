@@ -1749,8 +1749,7 @@ type
       possible to make. On the other hand, on touchpads it's common to be able
       to scroll by flexible amounts.
 
-      Backends: WinAPI cannot handle horizontal scrolling.
-      GTK and Xlib cannot generate Scroll values different than 1 or -1. }
+      Backends: GTK and Xlib cannot generate Scroll values different than 1 or -1. }
     property OnMouseWheel: TMouseWheelFunc read FMouseWheel write FMouseWheel;
 
     { property OnIdle i OnTimer beda zachodzily dla wszystkich okien
