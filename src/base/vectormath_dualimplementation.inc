@@ -183,7 +183,7 @@ begin
   v[2] := Power(v[2], Exp);
 end;
 
-function CosAngleBetweenVectors(const v1, v2: TVector3): TScalar;
+function CosAngleBetweenVectors(const V1, V2: TVector3): TScalar;
 var
   LensSquared: Float;
 begin
@@ -200,22 +200,22 @@ begin
      zakresem. A Cosinum musi byc w zakresie -1..1, w szczegolnosci
      ArcCos() dla czegos choc troche poza zakresem wywala paskudny EInvalidArgument *)
   result := Clamped(
-    VectorDotProduct(v1, v2) / Sqrt(LensSquared), -1.0, 1.0);
+    VectorDotProduct(V1, V2) / Sqrt(LensSquared), -1.0, 1.0);
 end;
 
-function AngleRadBetweenVectors(const v1, v2: TVector3): TScalar;
+function AngleRadBetweenVectors(const V1, V2: TVector3): TScalar;
 begin
-  result := ArcCos(CosAngleBetweenVectors(v1, v2));
+  result := ArcCos(CosAngleBetweenVectors(V1, V2));
 end;
 
-function CosAngleBetweenNormals(const v1, v2: TVector3): TScalar;
+function CosAngleBetweenNormals(const V1, V2: TVector3): TScalar;
 begin
-  result := Clamped(VectorDotProduct(v1, v2), -1.0, 1.0);
+  result := Clamped(VectorDotProduct(V1, V2), -1.0, 1.0);
 end;
 
-function AngleRadBetweenNormals(const v1, v2: TVector3): TScalar;
+function AngleRadBetweenNormals(const V1, V2: TVector3): TScalar;
 begin
-  result := ArcCos(CosAngleBetweenNormals(v1, v2));
+  result := ArcCos(CosAngleBetweenNormals(V1, V2));
 end;
 
 function Normalized(const v: TVector3): TVector3;
@@ -528,12 +528,12 @@ begin
   result := Zero(v1dot) or Zero(v2dot) or ((v1dot > 0) = (v2dot > 0));
 end;}
 
-  function VectorsSamePlaneDirections(const v1, v2: TVector3;
+  function VectorsSamePlaneDirections(const V1, V2: TVector3;
     const Plane: TVector4): boolean;
   var PlaneDir: TVector3 absolute Plane;
   VectorsSamePlaneDirections_Implement
 
-  function VectorsSamePlaneDirections(const v1, v2: TVector3;
+  function VectorsSamePlaneDirections(const V1, V2: TVector3;
     const PlaneDir: TVector3): boolean;
   VectorsSamePlaneDirections_Implement
 
@@ -555,33 +555,33 @@ begin
     result := PlaneDir;
 end;
 
-function PointsDistance(const v1, v2: TVector3): TScalar;
+function PointsDistance(const V1, V2: TVector3): TScalar;
 begin
-  (* result := Sqrt(PointsDistanceSqr(v1, v2));, rozwiniete w nadziei na (drobny)
+  (* result := Sqrt(PointsDistanceSqr(V1, V2));, rozwiniete w nadziei na (drobny)
      zysk szybkosci *)
   result := Sqrt( Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]) + Sqr(v2[2]-v1[2]) );
 end;
 
-function PointsDistanceSqr(const v1, v2: TVector3): TScalar;
+function PointsDistanceSqr(const V1, V2: TVector3): TScalar;
 begin
   (* result := VectorLenSqr(VectorSubtract(v2, v1));, rozwiniete w nadziei na (drobny)
      zysk szybkosci *)
   result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]) + Sqr(v2[2]-v1[2]);
 end;
 
-function PointsDistanceSqr(const v1, v2: TVector2): TScalar;
+function PointsDistanceSqr(const V1, V2: TVector2): TScalar;
 begin
   (* result := VectorLenSqr(VectorSubtract(v2, v1));, rozwiniete w nadziei na (drobny)
      zysk szybkosci *)
   result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
 end;
 
-function PointsDistanceXYSqr(const v1, v2: TVector3): TScalar;
+function PointsDistanceXYSqr(const V1, V2: TVector3): TScalar;
 begin
   Result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
 end;
 
-function VectorsEqual(const v1, v2: TVector2): boolean;
+function VectorsEqual(const V1, V2: TVector2): boolean;
 begin
   if ScalarEqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
@@ -589,7 +589,7 @@ begin
               (Abs(v1[1]-v2[1]) < ScalarEqualityEpsilon);
 end;
 
-function VectorsEqual(const v1, v2: TVector2;
+function VectorsEqual(const V1, V2: TVector2;
   const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
@@ -598,7 +598,7 @@ begin
               (Abs(v1[1]-v2[1]) < EqualityEpsilon);
 end;
 
-function VectorsEqual(const v1, v2: TVector3): boolean;
+function VectorsEqual(const V1, V2: TVector3): boolean;
 begin
   if ScalarEqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
@@ -607,7 +607,7 @@ begin
               FloatsEqual(v1[2], v2[2]);
 end;
 
-function VectorsEqual(const v1, v2: TVector3;
+function VectorsEqual(const V1, V2: TVector3;
   const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
@@ -617,7 +617,7 @@ begin
               (Abs(v1[2]-v2[2]) < EqualityEpsilon);
 end;
 
-function VectorsEqual(const v1, v2: TVector4): boolean;
+function VectorsEqual(const V1, V2: TVector4): boolean;
 begin
   if ScalarEqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
@@ -627,7 +627,7 @@ begin
               FloatsEqual(v1[3], v2[3]);
 end;
 
-function VectorsEqual(const v1, v2: TVector4;
+function VectorsEqual(const V1, V2: TVector4;
   const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
@@ -638,19 +638,19 @@ begin
               (Abs(v1[3]-v2[3]) < EqualityEpsilon);
 end;
 
-function VectorsPerfectlyEqual(const v1, v2: TVector2): boolean;
+function VectorsPerfectlyEqual(const V1, V2: TVector2): boolean;
 {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
-function VectorsPerfectlyEqual(const v1, v2: TVector3): boolean;
+function VectorsPerfectlyEqual(const V1, V2: TVector3): boolean;
 {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
-function VectorsPerfectlyEqual(const v1, v2: TVector4): boolean;
+function VectorsPerfectlyEqual(const V1, V2: TVector4): boolean;
 {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
@@ -750,15 +750,15 @@ begin
   Result := CompareMem(@M1, @M2, SizeOf(M1));
 end;
 
-function VectorsPerp(const v1, v2: TVector3): boolean;
+function VectorsPerp(const V1, V2: TVector3): boolean;
 begin
-  (* prosto : result := CosAngleBetweenVectors(v1, v2) = 0.
+  (* prosto : result := CosAngleBetweenVectors(V1, V2) = 0.
      Ale mozna zobaczyc jak liczymy CosAngleBetweenVectors - to jest
      VectorDorProduct / cos-tam. Wynik jest = 0 <=> VectorDotProduct = 0. *)
-  result := Zero(VectorDotProduct(v1, v2), ScalarEqualityEpsilon*2);
+  result := Zero(VectorDotProduct(V1, V2), ScalarEqualityEpsilon*2);
 end;
 
-function VectorsParallel(const v1, v2: TVector3): boolean;
+function VectorsParallel(const V1, V2: TVector3): boolean;
 var
   mc, c1, c2: Integer;
   Scale: TScalar;
@@ -783,10 +783,10 @@ begin
      czyli jej wektor normalny rotAxis. Potem obroc wektor v2 o -Angle wokol
      rotAxis - otrzymasz szukany wektor lezacy na tej samej plaszczyznie
      co v2. Muisz obrocic o -Angle bo w interfejsie piszemy ze chcemy
-     miec sytuacje gdzie z obrot v1 wokol VectorProduct(v1, v2) da v2
+     miec sytuacje gdzie z obrot v1 wokol VectorProduct(V1, V2) da v2
      a my tutaj obracamy przeciez v2. *)
   v1len := VectorLen(v1);
-  rotAxis := VectorProduct(v1, v2);
+  rotAxis := VectorProduct(V1, V2);
   v1 := VectorAdjustToLength(
     RotatePointAroundAxisDeg(-AngleDeg, v2, rotAxis), v1len);
 end;
@@ -798,7 +798,7 @@ var
   v1len: TScalar;
 begin
   v1len := VectorLen(v1);
-  rotAxis := VectorProduct(v1, v2);
+  rotAxis := VectorProduct(V1, V2);
   v1 := VectorAdjustToLength(
     RotatePointAroundAxisRad(-AngleRad, v2, rotAxis), v1len);
 end;
@@ -808,7 +808,7 @@ procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3;
 begin
   { TODO: can we speed this up ?
     For Pi/2, we can do just v1 := VectorProduct of sthg and adjust v1 length. }
-  MakeVectorsAngleRadOnTheirPlane(v1, v2, Pi/2);
+  MakeVectorsAngleRadOnTheirPlane(V1, V2, Pi/2);
 end;
 
 function AnyOrthogonalVector(const v: TVector3): TVector3;

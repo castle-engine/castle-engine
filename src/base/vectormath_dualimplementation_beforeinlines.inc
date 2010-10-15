@@ -20,20 +20,20 @@
 }
 
 {$define VECTOR_OP_FUNCS:=
-function VectorOpFuncName(const v1, v2: TVector2): TVector2;
+function VectorOpFuncName(const V1, V2: TVector2): TVector2;
 begin
  result[0] := v1[0] VectorOp v2[0];
  result[1] := v1[1] VectorOp v2[1];
 end;
 
-function VectorOpFuncName(const v1, v2: TVector3): TVector3;
+function VectorOpFuncName(const V1, V2: TVector3): TVector3;
 begin
  result[0] := v1[0] VectorOp v2[0];
  result[1] := v1[1] VectorOp v2[1];
  result[2] := v1[2] VectorOp v2[2];
 end;
 
-function VectorOpFuncName(const v1, v2: TVector4): TVector4;
+function VectorOpFuncName(const V1, V2: TVector4): TVector4;
 begin
  result[0] := v1[0] VectorOp v2[0];
  result[1] := v1[1] VectorOp v2[1];
@@ -47,7 +47,7 @@ begin
  v1[1] VectorOpTo1st v2[1];
 end;
 
-procedure VectorOpTo1stFuncName(var v1: TVector3; const v2: TVector3);
+procedure VectorOpTo1stFuncName(var V1: TVector3; const V2: TVector3);
 begin
  v1[0] VectorOpTo1st v2[0];
  v1[1] VectorOpTo1st v2[1];
@@ -165,41 +165,41 @@ begin
  v[3] := -v[3];
 end;
 
-function VectorProduct(const v1, v2: TVector3): TVector3;
+function VectorProduct(const V1, V2: TVector3): TVector3;
 begin
  result[0] := v1[1]*v2[2] - v1[2]*v2[1];
  result[1] := v1[2]*v2[0] - v1[0]*v2[2];
  result[2] := v1[0]*v2[1] - v1[1]*v2[0];
 end;
 
-function VectorDotProduct(const v1, v2: TVector2): TScalar;
+function VectorDotProduct(const V1, V2: TVector2): TScalar;
 begin
  result := v1[0]*v2[0]+ v1[1]*v2[1];
 end;
 
-function VectorDotProduct(const v1, v2: TVector3): TScalar;
+function VectorDotProduct(const V1, V2: TVector3): TScalar;
 begin
  result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2];
 end;
 
-function VectorDotProduct(const v1, v2: TVector4): TScalar;
+function VectorDotProduct(const V1, V2: TVector4): TScalar;
 begin
  result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2]+ v1[3]*v2[3];
 end;
 
-function VectorDotProduct(const v1: TVector3; const v2: TVector4): TScalar;
+function VectorDotProduct(const V1: TVector3; const V2: TVector4): TScalar;
 begin
  result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2]+       v2[3];
 end;
 
-function VectorMultiplyComponents(const v1, v2: TVector3): TVector3;
+function VectorMultiplyComponents(const V1, V2: TVector3): TVector3;
 begin
  result[0] := v1[0] * v2[0];
  result[1] := v1[1] * v2[1];
  result[2] := v1[2] * v2[2];
 end;
 
-procedure VectorMultiplyComponentsTo1st(var v1: TVector3; const v2: TVector3);
+procedure VectorMultiplyComponentsTo1st(var V1: TVector3; const V2: TVector3);
 begin
  v1[0] *= v2[0];
  v1[1] *= v2[1];

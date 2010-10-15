@@ -896,12 +896,12 @@ function PerfectlyZeroVector(const v: TVector4Double): boolean; overload;
   like "-=" operator. Are @italic(very very slightly) faster.
 
   @groupBegin }
-function VectorSubtract(const v1, v2: TVector2Single): TVector2Single; overload;
-function VectorSubtract(const v1, v2: TVector2Double): TVector2Double; overload;
-function VectorSubtract(const v1, v2: TVector3Single): TVector3Single; overload;
-function VectorSubtract(const v1, v2: TVector3Double): TVector3Double; overload;
-function VectorSubtract(const v1, v2: TVector4Single): TVector4Single; overload;
-function VectorSubtract(const v1, v2: TVector4Double): TVector4Double; overload;
+function VectorSubtract(const V1, V2: TVector2Single): TVector2Single; overload;
+function VectorSubtract(const V1, V2: TVector2Double): TVector2Double; overload;
+function VectorSubtract(const V1, V2: TVector3Single): TVector3Single; overload;
+function VectorSubtract(const V1, V2: TVector3Double): TVector3Double; overload;
+function VectorSubtract(const V1, V2: TVector4Single): TVector4Single; overload;
+function VectorSubtract(const V1, V2: TVector4Double): TVector4Double; overload;
 procedure VectorSubtractTo1st(var v1: TVector2Single; const v2: TVector2Single); overload;
 procedure VectorSubtractTo1st(var v1: TVector2Double; const v2: TVector2Double); overload;
 procedure VectorSubtractTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
@@ -916,12 +916,12 @@ procedure VectorSubtractTo1st(var v1: TVector4Double; const v2: TVector4Double);
   like "+=" operator. Are @italic(very very slightly) faster.
 
   @groupBegin }
-function VectorAdd(const v1, v2: TVector2Single): TVector2Single; overload;
-function VectorAdd(const v1, v2: TVector2Double): TVector2Double; overload;
-function VectorAdd(const v1, v2: TVector3Single): TVector3Single; overload;
-function VectorAdd(const v1, v2: TVector3Double): TVector3Double; overload;
-function VectorAdd(const v1, v2: TVector4Single): TVector4Single; overload;
-function VectorAdd(const v1, v2: TVector4Double): TVector4Double; overload;
+function VectorAdd(const V1, V2: TVector2Single): TVector2Single; overload;
+function VectorAdd(const V1, V2: TVector2Double): TVector2Double; overload;
+function VectorAdd(const V1, V2: TVector3Single): TVector3Single; overload;
+function VectorAdd(const V1, V2: TVector3Double): TVector3Double; overload;
+function VectorAdd(const V1, V2: TVector4Single): TVector4Single; overload;
+function VectorAdd(const V1, V2: TVector4Double): TVector4Double; overload;
 procedure VectorAddTo1st(var v1: TVector2Single; const v2: TVector2Single); overload;
 procedure VectorAddTo1st(var v1: TVector2Double; const v2: TVector2Double); overload;
 procedure VectorAddTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
@@ -1027,8 +1027,8 @@ function VectorLenSqr(const v: TVector4Double): Double; overload;
 
   See http://en.wikipedia.org/wiki/Cross_product
   @groupBegin }
-function VectorProduct(const v1, v2: TVector3Double): TVector3Double; overload;
-function VectorProduct(const v1, v2: TVector3Single): TVector3Single; overload;
+function VectorProduct(const V1, V2: TVector3Double): TVector3Double; overload;
+function VectorProduct(const V1, V2: TVector3Single): TVector3Single; overload;
 { @groupEnd }
 
 { Dot product (aka scalar product) of two vectors.
@@ -1039,14 +1039,14 @@ function VectorProduct(const v1, v2: TVector3Single): TVector3Single; overload;
   V1 is a 3D point and V2 is something like plane equation.
 
   @groupBegin }
-function VectorDotProduct(const v1, v2: TVector2Single): Single; overload;
-function VectorDotProduct(const v1, v2: TVector2Double): Double; overload;
+function VectorDotProduct(const V1, V2: TVector2Single): Single; overload;
+function VectorDotProduct(const V1, V2: TVector2Double): Double; overload;
 
-function VectorDotProduct(const v1, v2: TVector3Single): Single; overload;
-function VectorDotProduct(const v1, v2: TVector3Double): Double; overload;
+function VectorDotProduct(const V1, V2: TVector3Single): Single; overload;
+function VectorDotProduct(const V1, V2: TVector3Double): Double; overload;
 
-function VectorDotProduct(const v1, v2: TVector4Single): Single; overload;
-function VectorDotProduct(const v1, v2: TVector4Double): Double; overload;
+function VectorDotProduct(const V1, V2: TVector4Single): Single; overload;
+function VectorDotProduct(const V1, V2: TVector4Double): Double; overload;
 
 function VectorDotProduct(const v1: TVector3Single; const v2: TVector4Single): Single; overload;
 function VectorDotProduct(const v1: TVector3Double; const v2: TVector4Double): Double; overload;
@@ -1056,8 +1056,8 @@ function VectorDotProduct(const v1: TVector3Double; const v2: TVector4Double): D
   That is, Result[I] := V1[I] * V2[I] for each I.
 
   @groupBegin }
-function VectorMultiplyComponents(const v1, v2: TVector3Single): TVector3Single; overload;
-function VectorMultiplyComponents(const v1, v2: TVector3Double): TVector3Double; overload;
+function VectorMultiplyComponents(const V1, V2: TVector3Single): TVector3Single; overload;
+function VectorMultiplyComponents(const V1, V2: TVector3Double): TVector3Double; overload;
 procedure VectorMultiplyComponentsTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
 procedure VectorMultiplyComponentsTo1st(var v1: TVector3Double; const v2: TVector3Double); overload;
 { @groupEnd }
