@@ -634,10 +634,12 @@ type
 
       When this property specifies an EmptyBox3D (the default value),
       camera position is limited to not fall because of gravity
-      below minimal 3D world plane. That is, viewer can freely move
-      around in 3D world, he/she only cannot fall below "minimal plane"
-      when falling is caused by the gravity. "Minimal plane" is derived from
-      GravityUp and Items.BoundingBox. }
+      outside of Items.BoundingBox. That is, viewer can freely move
+      around in 3D world, only the gravity cannot pull the user outside
+      of the box.
+      Which means user cannot fall into an infinite abyss of our 3D space,
+      and also gravity doesn't work outside of Items.BoundingBox.
+      This is usually most natural. }
     property CameraBox: TBox3D read FCameraBox write FCameraBox;
 
     { Renderer of shadow volumes. You can use this to optimize rendering
@@ -1911,8 +1913,7 @@ begin
     begin
       { Don't let user to fall outside of the box because of gravity. }
       if BecauseOfGravity then
-        Result := SimpleKeepAboveMinPlane(NewPos, Items.BoundingBox,
-          ACamera.GravityUp);
+        Result := Box3DPointInside(NewPos, Items.BoundingBox);
     end else
       Result := Box3DPointInside(NewPos, FCameraBox);
   end;
