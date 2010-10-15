@@ -2628,16 +2628,22 @@ begin
 end;
 {$endif}
 
-{ konstruktory typow --------------------------------------------------------- }
+{ type constructors ---------------------------------------------------------- }
 
 function Vector2Integer(const x, y: Integer): TVector2Integer;
-begin result[0] := x; result[1] := y end;
+begin
+  result[0] := x; result[1] := y;
+end;
 
 function Vector2Cardinal(const x, y: Cardinal): TVector2Cardinal;
-begin result[0] := x; result[1] := y end;
+begin
+  result[0] := x; result[1] := y;
+end;
 
 function Vector2Single(const x, y: Single): TVector2Single;
-begin result[0] := x; result[1] := y end;
+begin
+  result[0] := x; result[1] := y;
+end;
 
 function Vector2Single(const V: TVector2Double): TVector2Single;
 begin
@@ -2646,174 +2652,176 @@ begin
 end;
 
 function Vector2Double(const x, y: Double): TVector2Double;
-begin result[0] := x; result[1] := y end;
+begin
+  result[0] := x; result[1] := y;
+end;
 
 function Vector4Single(const x, y: Single; const z: Single{=0}; const w: Single{=1}): TVector4Single;
 begin
- result[0] := x; result[1] := y; result[2] := z; result[3] := w;
+  result[0] := x; result[1] := y; result[2] := z; result[3] := w;
 end;
 
 function Vector4Single(const v3: TVector3Single; const w: Single{=1}): TVector4Single;
 begin
- move(v3, result, SizeOf(TVector3Single)); result[3] := w;
+  move(v3, result, SizeOf(TVector3Single)); result[3] := w;
 end;
 
 function Vector4Single(const ub: TVector4Byte): TVector4Single;
 begin
- result[0] := ub[0]/255;
- result[1] := ub[1]/255;
- result[2] := ub[2]/255;
- result[3] := ub[3]/255;
+  result[0] := ub[0]/255;
+  result[1] := ub[1]/255;
+  result[2] := ub[2]/255;
+  result[3] := ub[3]/255;
 end;
 
 function Vector4Single(const v: TVector4Double): TVector4Single;
 begin
- result[0] := v[0];
- result[1] := v[1];
- result[2] := v[2];
- result[3] := v[3];
+  result[0] := v[0];
+  result[1] := v[1];
+  result[2] := v[2];
+  result[3] := v[3];
 end;
 
 function Vector4Double(const x, y, z, w: Double): TVector4Double;
 begin
- result[0] := x;
- result[1] := y;
- result[2] := z;
- result[3] := w;
+  result[0] := x;
+  result[1] := y;
+  result[2] := z;
+  result[3] := w;
 end;
 
 function Vector4Double(const v: TVector4Single): TVector4Double;
 begin
- result[0] := v[0];
- result[1] := v[1];
- result[2] := v[2];
- result[3] := v[3];
+  result[0] := v[0];
+  result[1] := v[1];
+  result[2] := v[2];
+  result[3] := v[3];
 end;
 
 function Vector3Single(const x, y: Single; const z: Single{=0.0}): TVector3Single;
 begin
- result[0] := x; result[1] := y; result[2] := z;
+  result[0] := x; result[1] := y; result[2] := z;
 end;
 
 function Vector3Double(const x, y: Double; const z: Double{=0.0}): TVector3Double;
 begin
- result[0] := x; result[1] := y; result[2] := z;
+  result[0] := x; result[1] := y; result[2] := z;
 end;
 
 function Vector3Single(const v3: TVector3Double): TVector3Single;
 begin
- result[0] := v3[0]; result[1] := v3[1]; result[2] := v3[2];
+  result[0] := v3[0]; result[1] := v3[1]; result[2] := v3[2];
 end;
 
 function Vector3Single(const v3: TVector3Byte): TVector3Single;
 begin
- result[0] := v3[0]/255;
- result[1] := v3[1]/255;
- result[2] := v3[2]/255;
+  result[0] := v3[0]/255;
+  result[1] := v3[1]/255;
+  result[2] := v3[2]/255;
 end;
 
 function Vector3Single(const v2: TVector2Single; const z: Single): TVector3Single;
 begin
- move(v2, result, SizeOf(v2));
- result[2] := z;
+  move(v2, result, SizeOf(v2));
+  result[2] := z;
 end;
 
 function Vector3Double(const v: TVector3Single): TVector3Double;
 begin
- result[0] := v[0]; result[1] := v[1]; result[2] := v[2];
+  result[0] := v[0]; result[1] := v[1]; result[2] := v[2];
 end;
 
 function Vector3Byte(x, y, z: Byte): TVector3Byte;
 begin
- result[0] := x; result[1] := y; result[2] := z;
+  result[0] := x; result[1] := y; result[2] := z;
 end;
 
 function Vector3Byte(const v: TVector3Single): TVector3Byte;
 begin
- result[0] := Clamped(Round(v[0]*255), Low(Byte), High(Byte));
- result[1] := Clamped(Round(v[1]*255), Low(Byte), High(Byte));
- result[2] := Clamped(Round(v[2]*255), Low(Byte), High(Byte));
+  result[0] := Clamped(Round(v[0] * 255), Low(Byte), High(Byte));
+  result[1] := Clamped(Round(v[1] * 255), Low(Byte), High(Byte));
+  result[2] := Clamped(Round(v[2] * 255), Low(Byte), High(Byte));
 end;
 
 function Vector3Byte(const v: TVector3Double): TVector3Byte;
 begin
- result[0] := Clamped(Round(v[0]*255), Low(Byte), High(Byte));
- result[1] := Clamped(Round(v[1]*255), Low(Byte), High(Byte));
- result[2] := Clamped(Round(v[2]*255), Low(Byte), High(Byte));
+  result[0] := Clamped(Round(v[0] * 255), Low(Byte), High(Byte));
+  result[1] := Clamped(Round(v[1] * 255), Low(Byte), High(Byte));
+  result[2] := Clamped(Round(v[2] * 255), Low(Byte), High(Byte));
 end;
 
 function Vector3Longint(const p0, p1, p2: Longint): TVector3Longint;
 begin
- result[0] := p0;
- result[1] := p1;
- result[2] := p2;
+  result[0] := p0;
+  result[1] := p1;
+  result[2] := p2;
 end;
 
 function Vector4Byte(x, y, z, w: Byte): TVector4Byte;
 begin
- result[0] := x; result[1] := y; result[2] := z; result[3] := w;
+  result[0] := x; result[1] := y; result[2] := z; result[3] := w;
 end;
 
 function Vector4Byte(const f4: TVector4Single): TVector4Byte;
 begin
- result[0] := Round(f4[0]*255);
- result[1] := Round(f4[1]*255);
- result[2] := Round(f4[2]*255);
- result[3] := Round(f4[3]*255);
+  result[0] := Round(f4[0] * 255);
+  result[1] := Round(f4[1] * 255);
+  result[2] := Round(f4[2] * 255);
+  result[3] := Round(f4[3] * 255);
 end;
 
 function Vector4Byte(const f3: TVector3Byte; w: Byte): TVector4Byte;
 begin
- result[0] := f3[0];
- result[1] := f3[1];
- result[2] := f3[2];
- result[3] := w;
+  result[0] := f3[0];
+  result[1] := f3[1];
+  result[2] := f3[2];
+  result[3] := w;
 end;
 
 function Vector3SinglePoint(const v: TVector4Single): TVector3Single;
 begin
- result[0] := v[0]/v[3];
- result[1] := v[1]/v[3];
- result[2] := v[2]/v[3];
+  result[0] := v[0]/v[3];
+  result[1] := v[1]/v[3];
+  result[2] := v[2]/v[3];
 end;
 
 function Vector3SingleCut(const v: TVector4Single): TVector3Single;
 begin
- move(v, result, SizeOf(result));
+  move(v, result, SizeOf(result));
 end;
 
 function Normal3Single(const x, y: Single; const z: Single{=0}): TVector3Single;
 begin
- result[0] := x; result[1] := y; result[2] := z;
- NormalizeTo1st3Singlev(@result);
+  result[0] := x; result[1] := y; result[2] := z;
+  NormalizeTo1st3Singlev(@result);
 end;
 
 function Triangle3Single(const T: TTriangle3Double): TTriangle3Single;
 begin
- result[0] := Vector3Single(T[0]);
- result[1] := Vector3Single(T[1]);
- result[2] := Vector3Single(T[2]);
+  result[0] := Vector3Single(T[0]);
+  result[1] := Vector3Single(T[1]);
+  result[2] := Vector3Single(T[2]);
 end;
 
 function Triangle3Single(const p0, p1, p2: TVector3Single): TTriangle3Single;
 begin
- result[0] := p0;
- result[1] := p1;
- result[2] := p2;
+  result[0] := p0;
+  result[1] := p1;
+  result[2] := p2;
 end;
 
 function Triangle3Double(const T: TTriangle3Single): TTriangle3Double;
 begin
- result[0] := Vector3Double(T[0]);
- result[1] := Vector3Double(T[1]);
- result[2] := Vector3Double(T[2]);
+  result[0] := Vector3Double(T[0]);
+  result[1] := Vector3Double(T[1]);
+  result[2] := Vector3Double(T[2]);
 end;
 
 function Triangle3Double(const p0, p1, p2: TVector3Double): TTriangle3Double;
 begin
- result[0] := p0;
- result[1] := p1;
- result[2] := p2;
+  result[0] := p0;
+  result[1] := p1;
+  result[2] := p2;
 end;
 
 function Vector3SingleFromStr(const s: string): TVector3Single; {$I VectorMath_Vector3FromStr.inc}
@@ -2824,13 +2832,13 @@ function Vector4SingleFromStr(const S: string): TVector4Single;
 var
   SPosition: Integer;
 begin
- SPosition := 1;
- Result[0] := StrToFloat(NextToken(S, SPosition));
- Result[1] := StrToFloat(NextToken(S, SPosition));
- Result[2] := StrToFloat(NextToken(S, SPosition));
- Result[3] := StrToFloat(NextToken(S, SPosition));
- Check(NextToken(s, SPosition) = '',
-   'Expected end of string in Vector4SingleFromStr');
+  SPosition := 1;
+  Result[0] := StrToFloat(NextToken(S, SPosition));
+  Result[1] := StrToFloat(NextToken(S, SPosition));
+  Result[2] := StrToFloat(NextToken(S, SPosition));
+  Result[3] := StrToFloat(NextToken(S, SPosition));
+  Check(NextToken(s, SPosition) = '',
+    'Expected end of string in Vector4SingleFromStr');
 end;
 
 {$ifndef DELPHI}
@@ -3033,80 +3041,88 @@ end;
 {$endif HAS_MATRIX_UNIT}
 
 function Mix2Vectors(const v1, v2: TVector3Single; const v2part: Single): TVector3Single;
-var v1part: Single;
+var
+  v1part: Single;
 begin
- v1part := 1.0-v2part;
- result[0] := v1part*v1[0] + v2part*v2[0];
- result[1] := v1part*v1[1] + v2part*v2[1];
- result[2] := v1part*v1[2] + v2part*v2[2];
+  v1part := 1.0 - v2part;
+  result[0] := v1part*v1[0] + v2part*v2[0];
+  result[1] := v1part*v1[1] + v2part*v2[1];
+  result[2] := v1part*v1[2] + v2part*v2[2];
 end;
 
 function Mix2Vectors(const v1, v2: TVector2Single; const v2part: Single): TVector2Single;
-var v1part: Single;
+var
+  v1part: Single;
 begin
- v1part := 1.0-v2part;
- result[0] := v1part*v1[0] + v2part*v2[0];
- result[1] := v1part*v1[1] + v2part*v2[1];
+  v1part := 1.0 - v2part;
+  result[0] := v1part*v1[0] + v2part*v2[0];
+  result[1] := v1part*v1[1] + v2part*v2[1];
 end;
 
 procedure Mix2VectorsTo1st(var v1: TVector3Single; const v2: TVector3Single;
   const v2part: Single);
-var v1part: Single;
+var
+  v1part: Single;
 begin
- v1part := 1.0-v2part;
- v1[0] := v1[0]*v1part + v2[0]*v2part;
- v1[1] := v1[1]*v1part + v2[1]*v2part;
- v1[2] := v1[2]*v1part + v2[2]*v2part;
+  v1part := 1.0 - v2part;
+  v1[0] := v1[0]*v1part + v2[0]*v2part;
+  v1[1] := v1[1]*v1part + v2[1]*v2part;
+  v1[2] := v1[2]*v1part + v2[2]*v2part;
 end;
 
 procedure Mix2VectorsTo1st(var v1: TVector2Single; const v2: TVector2Single;
   const v2part: Single);
-var v1part: Single;
+var
+  v1part: Single;
 begin
- v1part := 1.0-v2part;
- v1[0] := v1[0]*v1part + v2[0]*v2part;
- v1[1] := v1[1]*v1part + v2[1]*v2part;
+  v1part := 1.0 - v2part;
+  v1[0] := v1[0]*v1part + v2[0]*v2part;
+  v1[1] := v1[1]*v1part + v2[1]*v2part;
 end;
 
 procedure NormalizeTo1st3Singlev(vv: PVector3Single);
-var dlug: Single;
+var
+  dlug: Single;
 begin
- dlug := Sqrt(
-   Sqr(vv^[0]) +
-   Sqr(vv^[1]) +
-   Sqr(vv^[2]));
- if dlug = 0 then exit;
- vv^[0] := vv^[0] / dlug;
- vv^[1] := vv^[1] / dlug;
- vv^[2] := vv^[2] / dlug;
+  dlug := Sqrt(
+    Sqr(vv^[0]) +
+    Sqr(vv^[1]) +
+    Sqr(vv^[2]));
+  if dlug = 0 then exit;
+  vv^[0] := vv^[0] / dlug;
+  vv^[1] := vv^[1] / dlug;
+  vv^[2] := vv^[2] / dlug;
 end;
 
 procedure NormalizeTo1st3Bytev(vv: PVector3Byte);
-var dlug: integer;
+var
+  dlug: integer;
 begin
- dlug := Round( Sqrt(
-   Sqr(Integer(vv^[0])) +
-   Sqr(Integer(vv^[1])) +
-   Sqr(Integer(vv^[2]))) );
- if dlug = 0 then exit;
- vv^[0] := vv^[0] div dlug;
- vv^[1] := vv^[1] div dlug;
- vv^[2] := vv^[2] div dlug;
+  dlug := Round( Sqrt(
+    Sqr(Integer(vv^[0])) +
+    Sqr(Integer(vv^[1])) +
+    Sqr(Integer(vv^[2]))) );
+  if dlug = 0 then exit;
+  vv^[0] := vv^[0] div dlug;
+  vv^[1] := vv^[1] div dlug;
+  vv^[2] := vv^[2] div dlug;
 end;
 
 function ZeroVector(const v: TVector4Cardinal): boolean;
 begin
- result := IsMemCharFilled(v, SizeOf(v), #0);
+  result := IsMemCharFilled(v, SizeOf(v), #0);
 end;
 
 {$ifndef DELPHI}
 
 function VectorLen(const v: TVector3Byte): Single;
-begin result := Sqrt(VectorLenSqr(v)) end;
+begin
+  result := Sqrt(VectorLenSqr(v))
+end;
 
 function VectorLenSqr(const v: TVector3Byte): Integer;
 begin
- result := Sqr(Integer(v[0])) + Sqr(Integer(v[1])) + Sqr(Integer(v[2]));
+  result := Sqr(Integer(v[0])) + Sqr(Integer(v[1])) + Sqr(Integer(v[2]));
 end;
 
 {$define TYPE_SCALAR := Single}
@@ -3371,27 +3387,28 @@ function IsPolygon2dCCW(Verts: PArray_Vector2Single; const VertsCount: Integer):
   W ten sposob ponizsza procedura jednoczesnie liczy pole polygonu
   (Polygon2dArea jest zaimplementowane jako proste Abs() z wyniku tej
   funkcji. }
-var i: Integer;
+var
+  i: Integer;
 begin
- result := 0.0;
- if VertsCount = 0 then Exit;
+  result := 0.0;
+  if VertsCount = 0 then Exit;
 
- { licze i = 0..VertsCount-2, potem osobno przypadek gdy i = VertsCount-1.
-   Moglbym ujac je razem, dajac zamiast "Verts[i+1, 1]"
-   "Verts[(i+1)mod VertsCount, 1]" ale szkoda byloby dawac tu "mod" na potrzebe
-   tylko jednego przypadku. Tak jest optymalniej czasowo. }
- for i := 0 to VertsCount-2 do
-  result += Verts^[i, 0] * Verts^[i+1, 1] -
-            Verts^[i, 1] * Verts^[i+1, 0];
- result += Verts^[VertsCount-1, 0] * Verts^[0, 1] -
-           Verts^[VertsCount-1, 1] * Verts^[0, 0];
+  { licze i = 0..VertsCount-2, potem osobno przypadek gdy i = VertsCount-1.
+    Moglbym ujac je razem, dajac zamiast "Verts[i+1, 1]"
+    "Verts[(i+1)mod VertsCount, 1]" ale szkoda byloby dawac tu "mod" na potrzebe
+    tylko jednego przypadku. Tak jest optymalniej czasowo. }
+  for i := 0 to VertsCount-2 do
+    result += Verts^[i, 0] * Verts^[i+1, 1] -
+              Verts^[i, 1] * Verts^[i+1, 0];
+  result += Verts^[VertsCount-1, 0] * Verts^[0, 1] -
+            Verts^[VertsCount-1, 1] * Verts^[0, 0];
 
- result /= 2;
+  result /= 2;
 end;
 
 function IsPolygon2dCCW(const Verts: array of TVector2Single): Single;
 begin
- result := IsPolygon2dCCW(@Verts, High(Verts)+1);
+  result := IsPolygon2dCCW(@Verts, High(Verts)+1);
 end;
 
 function Polygon2dArea(Verts: PArray_Vector2Single; const VertsCount: Integer): Single;
@@ -3399,31 +3416,33 @@ function Polygon2dArea(Verts: PArray_Vector2Single; const VertsCount: Integer): 
   mianowicie wiemy ze, przynajmniej teraz, funkcja ta zwraca pole
   polygonu CCW lub -pole polygonu CW. }
 begin
- result := Abs(IsPolygon2dCCW(Verts, VertsCount));
+  result := Abs(IsPolygon2dCCW(Verts, VertsCount));
 end;
 
 function Polygon2dArea(const Verts: array of TVector2Single): Single;
 begin
- result := Polygon2dArea(@Verts, High(Verts)+1);
+  result := Polygon2dArea(@Verts, High(Verts)+1);
 end;
 
 function SampleTrianglePoint(const Tri: TTriangle3Single): TVector3Single;
-var r1Sqrt, r2: Single;
+var
+  r1Sqrt, r2: Single;
 begin
- { na podstawie GlobalIllumComp, punkt (17) }
- r1Sqrt := Sqrt(Random);
- r2 := Random;
- result := VectorScale(Tri[0], 1-r1Sqrt);
- VectorAddTo1st(result, VectorScale(Tri[1], (1-r2)*r1Sqrt));
- VectorAddTo1st(result, VectorScale(Tri[2], r2*r1Sqrt));
+  { na podstawie GlobalIllumComp, punkt (17) }
+  r1Sqrt := Sqrt(Random);
+  r2 := Random;
+  result := VectorScale(Tri[0], 1-r1Sqrt);
+  VectorAddTo1st(result, VectorScale(Tri[1], (1-r2)*r1Sqrt));
+  VectorAddTo1st(result, VectorScale(Tri[2], r2*r1Sqrt));
 end;
 
 function VectorToNiceStr(const v: array of Byte): string; overload;
-var i: Integer;
+var
+  i: Integer;
 begin
- result := '(';
- for i := 0 to High(v)-1 do result := result +IntToStr(v[i]) +', ';
- if High(v) >= 0 then result := result +IntToStr(v[High(v)]) +')';
+  result := '(';
+  for i := 0 to High(v)-1 do result := result +IntToStr(v[i]) +', ';
+  if High(v) >= 0 then result := result +IntToStr(v[High(v)]) +')';
 end;
 
 { math with matrices ---------------------------------------------------------- }
@@ -3460,10 +3479,10 @@ end;
 
 function ScalingMatrix(const ScaleFactor: TVector3Single): TMatrix4Single;
 begin
- result := IdentityMatrix4Single;
- result[0, 0] := ScaleFactor[0];
- result[1, 1] := ScaleFactor[1];
- result[2, 2] := ScaleFactor[2];
+  result := IdentityMatrix4Single;
+  result[0, 0] := ScaleFactor[0];
+  result[1, 1] := ScaleFactor[1];
+  result[2, 2] := ScaleFactor[2];
 end;
 
 procedure ScalingMatrices(const ScaleFactor: TVector3Single;
@@ -3607,39 +3626,41 @@ begin
 end;
 
 function OrthoProjMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
-var Width, Height, Depth: Single;
+var
+  Width, Height, Depth: Single;
 begin
- Width := Right - Left;
- Height := Top - Bottom;
- Depth := ZFar - ZNear;
+  Width := Right - Left;
+  Height := Top - Bottom;
+  Depth := ZFar - ZNear;
 
- result := ZeroMatrix4Single;
- result[0, 0] := 2 / Width;
- result[1, 1] := 2 / Height;
- result[2, 2] := - 2 / Depth; { tutaj - bo nasze Z-y sa ujemne w glab ekranu }
- result[3, 0] := - (Right + Left) / Width;
- result[3, 1] := - (Top + Bottom) / Height;
- result[3, 2] := - (ZFar + ZNear) / Depth;
- result[3, 3] := 1;
+  result := ZeroMatrix4Single;
+  result[0, 0] := 2 / Width;
+  result[1, 1] := 2 / Height;
+  result[2, 2] := - 2 / Depth; { tutaj - bo nasze Z-y sa ujemne w glab ekranu }
+  result[3, 0] := - (Right + Left) / Width;
+  result[3, 1] := - (Top + Bottom) / Height;
+  result[3, 2] := - (ZFar + ZNear) / Depth;
+  result[3, 3] := 1;
 end;
 
 function Ortho2dProjMatrix(const Left, Right, Bottom, Top: Single): TMatrix4Single;
-var Width, Height: Single;
+var
+  Width, Height: Single;
 begin
- {wersja prosta : result := OrthoProjMatrix(Left, Right, Bottom, Top, -1, 1);}
- {wersja zoptymalizowana :}
- Width := Right - Left;
- Height := Top - Bottom;
- {Depth := ZFar - ZNear = (1 - (-1)) = 2}
+  {wersja prosta : result := OrthoProjMatrix(Left, Right, Bottom, Top, -1, 1);}
+  {wersja zoptymalizowana :}
+  Width := Right - Left;
+  Height := Top - Bottom;
+  {Depth := ZFar - ZNear = (1 - (-1)) = 2}
 
- Result := ZeroMatrix4Single;
- Result[0, 0] := 2 / Width;
- Result[1, 1] := 2 / Height;
- Result[2, 2] := {-2 / Depth = -2 / 2} -1;
- Result[3, 0] := - (Right + Left) / Width;
- Result[3, 1] := - (Top + Bottom) / Height;
- Result[3, 2] := {- (ZFar + ZNear) / Depth = 0 / 2} 0;
- Result[3, 3] := 1;
+  Result := ZeroMatrix4Single;
+  Result[0, 0] := 2 / Width;
+  Result[1, 1] := 2 / Height;
+  Result[2, 2] := {-2 / Depth = -2 / 2} -1;
+  Result[3, 0] := - (Right + Left) / Width;
+  Result[3, 1] := - (Top + Bottom) / Height;
+  Result[3, 2] := {- (ZFar + ZNear) / Depth = 0 / 2} 0;
+  Result[3, 3] := 1;
 end;
 
 function FrustumProjMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
@@ -3708,37 +3729,38 @@ end;
 { kod dla MatrixDet* przerobiony z vect.c z mgflib }
 
 function MatrixDet4x4(const mat: TMatrix4Single): Single;
-var a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4: Single;
+var
+  a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4: Single;
 begin
- a1 := mat[0][0]; b1 := mat[0][1];
- c1 := mat[0][2]; d1 := mat[0][3];
+  a1 := mat[0][0]; b1 := mat[0][1];
+  c1 := mat[0][2]; d1 := mat[0][3];
 
- a2 := mat[1][0]; b2 := mat[1][1];
- c2 := mat[1][2]; d2 := mat[1][3];
+  a2 := mat[1][0]; b2 := mat[1][1];
+  c2 := mat[1][2]; d2 := mat[1][3];
 
- a3 := mat[2][0]; b3 := mat[2][1];
- c3 := mat[2][2]; d3 := mat[2][3];
+  a3 := mat[2][0]; b3 := mat[2][1];
+  c3 := mat[2][2]; d3 := mat[2][3];
 
- a4 := mat[3][0]; b4 := mat[3][1];
- c4 := mat[3][2]; d4 := mat[3][3];
+  a4 := mat[3][0]; b4 := mat[3][1];
+  c4 := mat[3][2]; d4 := mat[3][3];
 
- result := a1 * MatrixDet3x3 (b2, b3, b4, c2, c3, c4, d2, d3, d4) -
-           b1 * MatrixDet3x3 (a2, a3, a4, c2, c3, c4, d2, d3, d4) +
-           c1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, d2, d3, d4) -
-           d1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, c2, c3, c4);
+  result := a1 * MatrixDet3x3 (b2, b3, b4, c2, c3, c4, d2, d3, d4) -
+            b1 * MatrixDet3x3 (a2, a3, a4, c2, c3, c4, d2, d3, d4) +
+            c1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, d2, d3, d4) -
+            d1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, c2, c3, c4);
 end;
 
 
 function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: Single): Single;
 begin
- result := a1 * MatrixDet2x2 (b2, b3, c2, c3)
-         - b1 * MatrixDet2x2 (a2, a3, c2, c3)
-         + c1 * MatrixDet2x2 (a2, a3, b2, b3);
+  result := a1 * MatrixDet2x2 (b2, b3, c2, c3)
+          - b1 * MatrixDet2x2 (a2, a3, c2, c3)
+          + c1 * MatrixDet2x2 (a2, a3, b2, b3);
 end;
 
 function MatrixDet2x2(const a, b, c, d: Single): Single;
 begin
- result := a * d - b * c;
+  result := a * d - b * c;
 end;
 
 {$ifdef HAS_MATRIX_UNIT}
@@ -3819,66 +3841,66 @@ end;
 {$endif HAS_MATRIX_UNIT}
 {$endif not DELPHI}
 
-{ Grayscale ------------------------------------------------------------------ }
+{ grayscale ------------------------------------------------------------------ }
 
 function GrayscaleValue(const v: TVector3Single): Single;
 begin
- result := GrayscaleValuesFloat[0]*v[0]+
-           GrayscaleValuesFloat[1]*v[1]+
-           GrayscaleValuesFloat[2]*v[2];
+  result := GrayscaleValuesFloat[0]*v[0]+
+            GrayscaleValuesFloat[1]*v[1]+
+            GrayscaleValuesFloat[2]*v[2];
 end;
 
 function GrayscaleValue(const v: TVector3Double): Double;
 begin
- result := GrayscaleValuesFloat[0]*v[0]+
-           GrayscaleValuesFloat[1]*v[1]+
-           GrayscaleValuesFloat[2]*v[2];
+  result := GrayscaleValuesFloat[0]*v[0]+
+            GrayscaleValuesFloat[1]*v[1]+
+            GrayscaleValuesFloat[2]*v[2];
 end;
 
 function GrayscaleValue(const v: TVector3Byte): Byte;
 begin
- result := (GrayscaleValuesByte[0]*v[0]+
-            GrayscaleValuesByte[1]*v[1]+
-            GrayscaleValuesByte[2]*v[2]) div 256;
+  result := (GrayscaleValuesByte[0]*v[0]+
+             GrayscaleValuesByte[1]*v[1]+
+             GrayscaleValuesByte[2]*v[2]) div 256;
 end;
 
 procedure Grayscale3SinglevTo1st(v: PVector3Single);
 begin
- v^[0] := GrayscaleValue(v^);
- v^[1] := v^[0];
- v^[2] := v^[0];
+  v^[0] := GrayscaleValue(v^);
+  v^[1] := v^[0];
+  v^[2] := v^[0];
 end;
 
 procedure Grayscale3BytevTo1st(v: PVector3Byte);
 begin
- v^[0] := GrayscaleValue(v^);
- v^[1] := v^[0];
- v^[2] := v^[0];
+  v^[0] := GrayscaleValue(v^);
+  v^[1] := v^[0];
+  v^[2] := v^[0];
 end;
 
 procedure GrayscaleTo1st(var v: TVector3Byte);
 begin
- v[0] := GrayscaleValue(v);
- v[1] := v[0];
- v[2] := v[0];
+  v[0] := GrayscaleValue(v);
+  v[1] := v[0];
+  v[2] := v[0];
 end;
 
 function Grayscale(const v: TVector3Single): TVector3Single;
 begin
- result := v;
- Grayscale3SinglevTo1st(@result);
+  result := v;
+  Grayscale3SinglevTo1st(@result);
 end;
 
 function Grayscale(const v: TVector4Single): TVector4Single;
 begin
- result := v;
- Grayscale3SinglevTo1st(@result);
+  result := v;
+  Grayscale3SinglevTo1st(@result);
 end;
 
 function Grayscale(const v: TVector3Byte): TVector3Byte;
 begin
- result := v;
- Grayscale3BytevTo1st(@result);
+  result := v;
+  Grayscale3BytevTo1st(@result);
 end;
 
 { color changing ------------------------------------------------------------ }
@@ -3898,34 +3920,39 @@ begin
 end;
 
 function ColorGrayscaleSingle(const Color: TVector3Single): TVector3Single;
-begin Result := Grayscale(Color) end;
+begin
+  Result := Grayscale(Color)
+end;
 
 function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
-begin Result := Grayscale(Color) end;
+begin
+  Result := Grayscale(Color)
+end;
 
 function ColorGrayscaleNegativeSingle(const Color: TVector3Single): TVector3Single;
 begin
- Result[0] := 1-GrayscaleValue(Color);
- Result[1] := Result[0];
- Result[2] := Result[0];
+  Result[0] := 1 - GrayscaleValue(Color);
+  Result[1] := Result[0];
+  Result[2] := Result[0];
 end;
 
 function ColorGrayscaleNegativeByte(const Color: TVector3Byte): TVector3Byte;
 begin
- Result[0] := 255-GrayscaleValue(Color);
- Result[1] := Result[0];
- Result[2] := Result[0];
+  Result[0] := 255 - GrayscaleValue(Color);
+  Result[1] := Result[0];
+  Result[2] := Result[0];
 end;
 
 {$ifdef FPC}
 
 {$define COL_MOD_CONVERT:=
-var i: integer;
+var
+  i: integer;
 begin
- for i := 0 to 2 do
-  if i = COL_MOD_CONVERT_NUM then
-   Result[i] := GrayscaleValue(Color) else
-   Result[i] := 0;
+  for i := 0 to 2 do
+    if i = COL_MOD_CONVERT_NUM then
+      Result[i] := GrayscaleValue(Color) else
+      Result[i] := 0;
 end;}
 
 {$define COL_MOD_CONVERT_NUM := 0}
