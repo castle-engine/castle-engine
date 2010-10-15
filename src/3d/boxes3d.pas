@@ -733,9 +733,9 @@ begin
       MinTo1st(Result[0][1], V[1]);
       MinTo1st(Result[0][2], V[2]);
 
-      MaxTo1st(Result[0][0], V[0]);
-      MaxTo1st(Result[0][1], V[1]);
-      MaxTo1st(Result[0][2], V[2]);
+      MaxTo1st(Result[1][0], V[0]);
+      MaxTo1st(Result[1][1], V[1]);
+      MaxTo1st(Result[1][2], V[2]);
     end;
   end;
 end;
