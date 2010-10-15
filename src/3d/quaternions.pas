@@ -49,6 +49,12 @@ function QuatFromAxisAngle(const Axis: TVector3Single;
 procedure QuatToAxisAngle(const Q: TQuaternion;
   out Axis: TVector3Single; out AngleRad: Single);
 
+{ Convert quaternion to a rotation axis and angle encoded in 4D vector.
+  Axis is normalized if quaternion was also normalized
+  (which is true if working with rotation quaternions).
+  Angle is in radians. }
+function QuatToAxisAngle(const Q: TQuaternion): TVector4Single;
+
 { Calculate matrix doing rotation described by unit quaternion. }
 function QuatToRotationMatrix(const Q: TQuaternion): TMatrix4Single;
 
@@ -313,10 +319,7 @@ begin
   Result := QuatFromAxisAngle(Axis, Rot[3]);
 end;
 
-{ Like QuatToAxisAngle, except Axis+Angle are packed within a vector.
-  Axis will be normalized only if quaternion was also normalized
-  (which is usually the case, if working with rotation quaternions). }
-function QuatToAxisAngle_Packed(const Q: TQuaternion): TVector4Single;
+function QuatToAxisAngle(const Q: TQuaternion): TVector4Single;
 var
   Axis: TVector3Single absolute Result;
 begin
@@ -378,7 +381,7 @@ end;
 
 function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
 begin
-  Result := QuatToAxisAngle_Packed(SLerp(A,
+  Result := QuatToAxisAngle(SLerp(A,
     QuatFromAxisAngle_UnnormalizedPacked(Rot1),
     QuatFromAxisAngle_UnnormalizedPacked(Rot2)));
 end;
@@ -399,7 +402,7 @@ end;
 function NLerp(const A: Single; const Rot1, Rot2: TVector4Single;
   const ForceShortestPath: boolean): TVector4Single;
 begin
-  Result := QuatToAxisAngle_Packed(NLerp(A,
+  Result := QuatToAxisAngle(NLerp(A,
     QuatFromAxisAngle_UnnormalizedPacked(Rot1),
     QuatFromAxisAngle_UnnormalizedPacked(Rot2),
     ForceShortestPath));
