@@ -115,8 +115,11 @@ class function THelperObj.MoveAllowed(Camera: TWalkCamera;
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := Scene.OctreeCollisions.MoveAllowed(
-    Camera.Position, ProposedNewPos, NewPos, Camera.CameraRadius,
-    BecauseOfGravity, Scene.BoundingBox, Camera.GravityUp);
+    Camera.Position, ProposedNewPos, NewPos, Camera.CameraRadius);
+  { Usually, you don't want to allow user to fall outside of your model,
+    otherwise user would fall into infinity }
+  if Result and BecauseOfGravity then
+    Result := Box3DPointInside(NewPos, Scene.BoundingBox);
 end;
 
 class procedure THelperObj.GetHeightAbove(Camera: TWalkCamera;
