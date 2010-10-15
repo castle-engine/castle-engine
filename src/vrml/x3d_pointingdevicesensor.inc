@@ -164,6 +164,20 @@
   end;
 
   TNodeSphereSensor = class(TNodeX3DDragSensorNode)
+  private
+    { Sphere center and radius, in world coordinates. }
+    SphereCenter: TVector3Single;
+    SphereRadius: Single;
+    { First intersection (at activation), in local coordinates. }
+    OriginalIntersection: TVector3Single;
+
+    { Transformation from global coords to the local sensor coords. }
+    InvertedTransform: TMatrix4Single;
+
+    { Was a rotation_changed send during this activation of sensor. }
+    WasRotation: boolean;
+    { Last value of rotation_changed send, meaningful only if WasRotation. }
+    Rotation: TVector4Single;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -177,6 +191,12 @@
     { Event: SFRotation, out } { }
     private FEventrotation_changed: TVRMLEvent;
     public property Eventrotation_changed: TVRMLEvent read FEventrotation_changed;
+
+    procedure Activate(const Time: TVRMLTime;
+      const ATransform, AInvertedTransform: TMatrix4Single;
+      const OverPoint: TVector3Single); override;
+    procedure Deactivate(const Time: TVRMLTime); override;
+    procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
   TNodeTouchSensor = class(TNodeX3DTouchSensorNode)
@@ -545,6 +565,75 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeSphereSensor.Activate(const Time: TVRMLTime;
+  const ATransform, AInvertedTransform: TMatrix4Single;
+  const OverPoint: TVector3Single);
+begin
+  inherited;
+
+  InvertedTransform := AInvertedTransform;
+
+  OriginalIntersection := MatrixMultPoint(AInvertedTransform, OverPoint);
+
+  SphereCenter := MatrixMultPoint(ATransform, ZeroVector3Single);
+  SphereRadius := PointsDistance(OverPoint, SphereCenter);
+
+  WasRotation := false;
+end;
+
+procedure TNodeSphereSensor.Deactivate(const Time: TVRMLTime);
+begin
+  if FdAutoOffset.Value and WasRotation then
+    FdOffset.Send(Rotation);
+
+  inherited;
+end;
+
+procedure TNodeSphereSensor.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+var
+  Intersection, LocalIntersection, RotationAxis: TVector3Single;
+  RotationAngle: Single;
+  RotationQ: TQuaternion;
+begin
+  inherited;
+
+  { If no intersection, it's Ok to do nothing? }
+
+  if TrySphereRayIntersection(Intersection, SphereCenter, SphereRadius,
+    RayOrigin, RayDirection) then
+  begin
+    LocalIntersection := MatrixMultPoint(InvertedTransform, Intersection);
+    try
+      EventTrackPoint_changed.Send(LocalIntersection, Time);
+    except
+      on ETransformedResultInvalid do
+      begin
+        EventTrackPoint_changed.Send(Intersection, Time);
+        if Log then
+          WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+      end;
+    end;
+
+    { Rotation always contains offset }
+    RotationQ := QuatFromAxisAngle(FdOffset.Axis, FdOffset.RotationRad);
+
+    { Add to RotationQ rotation from OriginalIntersection to current. }
+    RotationAxis := OriginalIntersection >< LocalIntersection;
+    if not ZeroVector(RotationAxis) then
+    begin
+      RotationAngle := RotationAngleRadBetweenVectors(
+        OriginalIntersection, LocalIntersection);
+      RotationQ := QuatMultiply(QuatFromAxisAngle(RotationAxis, RotationAngle),
+        RotationQ);
+    end;
+
+    Rotation := QuatToAxisAngle(RotationQ);
+
+    EventRotation_changed.Send(Rotation, Time);
+    WasRotation := true;
+  end;
 end;
 
 constructor TNodeTouchSensor.Create(const ANodeName: string;
