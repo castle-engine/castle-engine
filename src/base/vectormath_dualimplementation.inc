@@ -222,7 +222,7 @@ function RotationAngleRadBetweenVectors(const V1, V2: TVector3): TScalar;
 var
   Cross: TVector3;
 begin
-  Result := RotationAngleRadBetweenVectors(V1, V2);
+  Result := AngleRadBetweenVectors(V1, V2);
   Cross := VectorProduct(V1, V2);
   if PointsDistanceSqr(RotatePointAroundAxisRad( Result, V1, Cross), V2) >
      PointsDistanceSqr(RotatePointAroundAxisRad(-Result, V1, Cross), V2) then
