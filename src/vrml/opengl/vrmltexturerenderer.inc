@@ -1692,28 +1692,34 @@ var
     procedure DoOrthographic;
     var
       FieldOfView: TDynSingleArray;
-      Left, Right, Bottom, Top: Single;
+      FinalFieldOfView: TVector4Single;
     begin
-      { default left / right / bottom / top }
-      Left   := -1;
-      Right  :=  1;
-      Bottom := -1;
-      Top    :=  1;
+      { default VRML/X3D fov }
+      FinalFieldOfView[0] := -1;
+      FinalFieldOfView[1] := -1;
+      FinalFieldOfView[2] :=  1;
+      FinalFieldOfView[3] :=  1;
 
       { update left / right / bottom / top using OrthoViewpoint.fieldOfView }
       if (Viewpoint <> nil) and
          (Viewpoint is TNodeOrthoViewpoint) then
       begin
         FieldOfView := TNodeOrthoViewpoint(Viewpoint).FdFieldOfView.Items;
-        { Beware: order of OrthoViewpoint.fieldOfView is different
-          than typical OpenGL and our ProjectionGLOrtho. }
-        if FieldOfView.High >= 0 then Left   := FieldOfView.Items[0];
-        if FieldOfView.High >= 1 then Bottom := FieldOfView.Items[1];
-        if FieldOfView.High >= 2 then Right  := FieldOfView.Items[2];
-        if FieldOfView.High >= 3 then Top    := FieldOfView.Items[3];
+        if FieldOfView.High >= 0 then FinalFieldOfView[0] := FieldOfView.Items[0];
+        if FieldOfView.High >= 1 then FinalFieldOfView[1] := FieldOfView.Items[1];
+        if FieldOfView.High >= 2 then FinalFieldOfView[2] := FieldOfView.Items[2];
+        if FieldOfView.High >= 3 then FinalFieldOfView[3] := FieldOfView.Items[3];
       end;
 
-      Result := OrthoProjMatrix(Left, Right, Bottom, Top,
+      TNodeOrthoViewpoint.AspectFieldOfView(FinalFieldOfView, Width / Height);
+
+      Result := OrthoProjMatrix(
+        { Beware: order of OrthoViewpoint.fieldOfView (and FinalFieldOfView)
+          is different than typical OpenGL and our OrthoProjMatrix. }
+        FinalFieldOfView[0],
+        FinalFieldOfView[2],
+        FinalFieldOfView[1],
+        FinalFieldOfView[3],
         ProjectionNear, ProjectionFar);
     end;
 

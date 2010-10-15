@@ -4734,6 +4734,9 @@ var
       if FieldOfView.High >= 3 then OrthoViewDimensions[3] := FieldOfView.Items[3];
     end;
 
+    TNodeOrthoViewpoint.AspectFieldOfView(OrthoViewDimensions,
+      ViewportWidth / ViewportHeight);
+
     ProjectionGLOrtho(
       { Beware: order of OrthoViewpoint.fieldOfView and OrthoViewDimensions
         is different than typical OpenGL and our ProjectionGLOrtho params. }
@@ -4781,7 +4784,7 @@ begin
         to provide sufficient space for rendering Background node. }
       ProjectionNear) * 20.0;
   end;
-  
+
   { At some point, I was using here larger projection near when
     (ACamera is TExamineCamera). Reasoning: you do not get so close
     to the model with Examine view, and you do not need collision detection.

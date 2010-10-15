@@ -301,6 +301,14 @@
     function Position: TSFVec3f; override;
     class function ProjectionType: TProjectionType; override;
     function ProjectionMatrix: TMatrix4Single; override;
+
+    { Fix given field of view value for window aspect ratio.
+      The idea is that OrthoViewpoint.fieldOfView specifies the minimal
+      extents. Depending on your window aspect ratio, you may need to make
+      one extent (vertical or horizontal) larger to adjust. }
+    class procedure AspectFieldOfView(
+      var FieldOfView: TVector4Single;
+      const WindowWidthToHeight: Single);
   end;
 
   TNodeViewpoint = class(TNodeX3DViewpointNode)
@@ -870,6 +878,10 @@ begin
   if FdFieldOfView.Items.High >= 2 then OrthoViewDimensions[2] := FdFieldOfView.Items[2];
   if FdFieldOfView.Items.High >= 3 then OrthoViewDimensions[3] := FdFieldOfView.Items[3];
 
+  { TODO: for currently bound viewpoint, we should honour
+    fieldOfView and aspect ratio of current window,
+    by calling AspectFieldOfView. }
+
   Result := OrthoProjMatrix(
     { Beware: order of OrthoViewpoint.fieldOfView and OrthoViewDimensions
       is different than typical OpenGL and our OrthoProjMatrix params. }
@@ -878,6 +890,62 @@ begin
     OrthoViewDimensions[1],
     OrthoViewDimensions[3],
     1, 100); { TODO: near, far projection testing values }
+end;
+
+class procedure TNodeOrthoViewpoint.AspectFieldOfView(
+  var FieldOfView: TVector4Single; const WindowWidthToHeight: Single);
+
+  { Scale the extent. Since AspectFieldOfView should only make FieldOfView
+    larger (because OrthoViewpoint.fieldOfView gives the minimal extents),
+    so given here Scale should always be >= 1. }
+  procedure ScaleExtent(const Scale: Single; var Min, Max: Single);
+  var
+    L, Middle: Single;
+  begin
+    Middle := (Min + Max) / 2;
+    L := Max - Min;
+
+    if L < 0 then
+    begin
+      if Log then
+        WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView max extent smaller than min extent');
+      Exit;
+    end;
+
+    Min := Middle - Scale * L / 2;
+    Max := Middle + Scale * L / 2;
+  end;
+
+var
+  FOVAspect: Single;
+begin
+  if FloatsEqual(FieldOfView[2], FieldOfView[0]) or
+     FloatsEqual(FieldOfView[3], FieldOfView[1]) then
+  begin
+    if Log then
+      WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView extent (max-min) is zero');
+    Exit;
+  end;
+
+  FOVAspect :=
+    (FieldOfView[2] - FieldOfView[0]) /
+    (FieldOfView[3] - FieldOfView[1]);
+
+  { The idea is to change FieldOfView, such that at the end the above
+    equation would calculate FOVAspect as equal to WindowWidthToHeight.
+
+    To do this, multiply above equation by WindowWidthToHeight / FOVAspect.
+    We have to transform put this scale into either horizontal or vertical
+    extent, since we only want to make FieldOfView larger (never smaller). }
+
+  if FOVAspect > WindowWidthToHeight then
+  begin
+    ScaleExtent(FOVAspect / WindowWidthToHeight, FieldOfView[1], FieldOfView[3]);
+  end else
+  if FOVAspect < WindowWidthToHeight then
+  begin
+    ScaleExtent(WindowWidthToHeight / FOVAspect, FieldOfView[0], FieldOfView[2]);
+  end;
 end;
 
 constructor TNodeViewpoint.Create(const ANodeName: string;
