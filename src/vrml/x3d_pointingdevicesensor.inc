@@ -625,8 +625,8 @@ begin
     begin
       RotationAngle := RotationAngleRadBetweenVectors(
         OriginalIntersection, LocalIntersection);
-      RotationQ := QuatMultiply(QuatFromAxisAngle(RotationAxis, RotationAngle),
-        RotationQ);
+      RotationQ := QuatMultiply(QuatFromAxisAngle(
+        Normalized(RotationAxis), RotationAngle), RotationQ);
     end;
 
     Rotation := QuatToAxisAngle(RotationQ);
