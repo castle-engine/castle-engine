@@ -316,8 +316,6 @@ implementation
 
 uses SysUtils, IllumModels, SphereSampling;
 
-{$I vectormathinlines.inc}
-
 { RayVector calculations ----------------------------------------------------- }
 
 { Calculate the transmitted ray created by hitting a ray

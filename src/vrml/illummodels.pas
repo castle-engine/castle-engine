@@ -140,8 +140,6 @@ implementation
 
 uses VRMLErrors;
 
-{$I VectorMathInlines.inc}
-
 function VRML97Emission(const IntersectNode: TVRMLTriangle;
   LightingCalculationOn: boolean): TVector3Single;
 var
