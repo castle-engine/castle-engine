@@ -5,14 +5,20 @@ usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
 WWW:
+- Make one-sentence intro to each component and node on
+  http://vrmlengine.sourceforge.net/vrml_implementation_status.php
+  pages, so that they make sense when reading.
+  Link every node to X3D spec.
+
 * link to https://www.ohloh.net/p/vrmlengine/widgets somewhere?
   put a link with "I use it"? And a link to stats (with commit graph?)?
 - Any way to place icon nicely on header?
 ------------------------------------------------------------------------------
-3.8.0?
-- Sound support, incomplete --- only stuff that maps naturally to OpenAL
-- flat mirrors - my approach, see below
+3.8.0: Sound
+- Sound support, only stuff that maps naturally to OpenAL and is easy
+  with our current units (wav, ogg vorbis, AL sounds allocator)
 
+3.9.0: Modernize rendering (everything through VBO, various shaders improvements)
 VBO:
 - migration to Vertex Buffer Objects
 - Clean needed rendering modes:
@@ -21,7 +27,7 @@ VBO:
   Scene As One Display List (Everything Static)
   Shapes By Display List (same as roSeparateShapeStatesNoTransform now, but with VA constructed and loaded)
   Shapes by VBO (new default)
-  
+
   This will also close:
   - Automatically detect when roSeparateShapeStates / ...NoTransform / roNone is suitable.
     Actually, optimization should be per-shape choice now?
@@ -35,12 +41,6 @@ VBO:
   - Also, the fact that right now MovieTexture / some texture generation methods etc.
     disable display lists will not be an issue then. They will still be optimized
     by VBO.
-
-- optimize Transform changes for shapes correctly.
-  Need to make separate shapes subtree for each X3DGroupingNode?
-  This would also allow implementing TransformSensor for X3DGroupingNode.
-  This would also allow implementing Billboard?
-  This would also make StaticGroup useful.
 
 More Shaders:
 - GLSL attributes from X3D passing to shaders
