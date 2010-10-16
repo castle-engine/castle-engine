@@ -369,6 +369,7 @@ type
     function IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
     function FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
     procedure AddShapeTexture(Shape: TVRMLShape; Tex: TNodeX3DTextureNode);
+    procedure UpdateShadowMaps(LightNode: TVRMLLightNode);
   end;
 
   { Internal helper for TVRMLScene, gathers information for transform nodes.
@@ -2304,6 +2305,16 @@ begin
   end;
 end;
 
+procedure TDynGeneratedTextureArray.UpdateShadowMaps(LightNode: TVRMLLightNode);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if (Items[I].TextureNode is TNodeGeneratedShadowMap) and
+       (TNodeGeneratedShadowMap(Items[I].TextureNode).FdLight.Value = LightNode) then
+      Items[I].Handler.UpdateNeeded := true;
+end;
+
 { TDynTransformNodeInfoArray ------------------------------------------------- }
 
 function TDynTransformNodeInfoArray.NodeInfo(Node: TVRMLNode): PTransformNodeInfo;
@@ -3152,8 +3163,6 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   var
     SI: TVRMLShapeTreeIterator;
     Current: TVRMLShape;
-    I: Integer;
-    GT: TDynGeneratedTextureArray;
   begin
     SI := TVRMLShapeTreeIterator.Create(ParentScene.Shapes, false);
     try
@@ -3170,11 +3179,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     finally FreeAndNil(SI) end;
 
     { force update of GeneratedShadowMap textures that used this light }
-    GT := ParentScene.GeneratedTextures;
-    for I := 0 to GT.Count - 1 do
-      if (GT.Items[I].TextureNode is TNodeGeneratedShadowMap) and
-         (TNodeGeneratedShadowMap(GT.Items[I].TextureNode).FdLight.Value = LightNode) then
-        GT.Items[I].Handler.UpdateNeeded := true;
+    ParentScene.GeneratedTextures.UpdateShadowMaps(LightNode);
   end;
 
 var
@@ -3514,6 +3519,8 @@ var
           end;
         end;
     finally FreeAndNil(SI) end;
+
+    GeneratedTextures.UpdateShadowMaps(LightNode);
   end;
 
   procedure HandleChangeLightForShadowVolumes;
