@@ -113,6 +113,9 @@ type
     property ContainerSizeKnown: boolean read FContainerSizeKnown;
     { @groupEnd }
     procedure SetContainer(const Value: IUIContainer); virtual;
+    { Called when @link(Cursor) changed.
+      In TUIControl class, just calls OnCursorChange. }
+    procedure DoCursorChange; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -524,8 +527,13 @@ begin
   begin
     FCursor := Value;
     if Container <> nil then Container.UpdateFocusAndMouseCursor;
-    if Assigned(OnCursorChange) then OnCursorChange(Self);
+    DoCursorChange;
   end;
+end;
+
+procedure TUIControl.DoCursorChange;
+begin
+  if Assigned(OnCursorChange) then OnCursorChange(Self);
 end;
 
 procedure TUIControl.SetContainer(const Value: IUIContainer);

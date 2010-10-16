@@ -4049,6 +4049,7 @@ type
     procedure VisibleChange; override;
   protected
     function IsAnimation: boolean; override;
+    procedure DoCursorChange; override;
   end;
 
 function TExamineCameraInUniversal.IsAnimation: boolean;
@@ -4063,6 +4064,12 @@ begin
   Universal.VisibleChange;
 end;
 
+procedure TExamineCameraInUniversal.DoCursorChange;
+begin
+  { update Universal.Cursor, in case we're the current camera }
+  Universal.Cursor := Universal.Current.Cursor;
+end;
+
 { TWalkCameraInUniversal -------------------------------------------------- }
 
 type
@@ -4072,6 +4079,7 @@ type
     Universal: TUniversalCamera;
   protected
     function IsAnimation: boolean; override;
+    procedure DoCursorChange; override;
   public
     procedure VisibleChange; override;
   end;
@@ -4086,6 +4094,12 @@ begin
   inherited;
   { Call parent VisibleChange when children change. }
   Universal.VisibleChange;
+end;
+
+procedure TWalkCameraInUniversal.DoCursorChange;
+begin
+  { update Universal.Cursor, in case we're the current camera }
+  Universal.Cursor := Universal.Current.Cursor;
 end;
 
 { TUniversalCamera ----------------------------------------------------------- }
@@ -4288,6 +4302,8 @@ begin
     Current.GetView(Position, Direction, Up);
     FNavigationType := Value;
     Current.SetView(Position, Direction, Up);
+    { our Cursor should always reflect Current.Cursor }
+    Cursor := Current.Cursor;
   end;
 end;
 
