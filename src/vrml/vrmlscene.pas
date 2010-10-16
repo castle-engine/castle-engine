@@ -3131,7 +3131,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   end;
 
   procedure HandleLight(LightNode: TVRMLLightNode);
-  { When the transformation of light node, we should update every
+  { When the transformation of light node changes, we should update every
     TActiveLight record of this light in every shape.
 
     TODO: code below updates too much, if the light was instantiated
@@ -3152,6 +3152,8 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   var
     SI: TVRMLShapeTreeIterator;
     Current: TVRMLShape;
+    I: Integer;
+    GT: TDynGeneratedTextureArray;
   begin
     SI := TVRMLShapeTreeIterator.Create(ParentScene.Shapes, false);
     try
@@ -3166,6 +3168,13 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         ParentScene.VisibleChangeHere([vcVisibleNonGeometry]);
       end;
     finally FreeAndNil(SI) end;
+
+    { force update of GeneratedShadowMap textures that used this light }
+    GT := ParentScene.GeneratedTextures;
+    for I := 0 to GT.Count - 1 do
+      if (GT.Items[I].TextureNode is TNodeGeneratedShadowMap) and
+         (TNodeGeneratedShadowMap(GT.Items[I].TextureNode).FdLight.Value = LightNode) then
+        GT.Items[I].Handler.UpdateNeeded := true;
   end;
 
 var
