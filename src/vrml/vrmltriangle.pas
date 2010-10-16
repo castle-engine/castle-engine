@@ -312,11 +312,6 @@ type
     with TVRMLTriangle, even though it doesn't directly store TVRMLTriangle items. }
   TVRMLBaseTrianglesOctree = class(TOctree)
   private
-    { nastepny wolny tag ktory przydzielimy nastepnemu promieniowi lub
-      odcinkowi z ktorym bedziemy chcieli robic test na kolizje z octree.
-      Ta zmienna moze byc czytana/pisana tylko przez AssignNewTag. }
-    NextFreeTag: TMailboxTag;
-
     { zwroci NextFreeTag i zrobi Inc(NextFreeTag).
       Uzywaj tego aby przydzielic nowy tag. Uzywanie tej funkcji przy okazji
       zapobiega potencjalnie blednej sytuacji :
@@ -1419,6 +1414,33 @@ begin
 end;
 
 { Other TVRMLBaseTrianglesOctree utils ----------------------------------------------- }
+
+var
+  { Next tag that will be allocated for ray/segment and such by AssignNewTag.
+    Can be read/written only by AssignNewTag.
+
+    That's right, this is a global variable. Reason: octree instances
+    are sometimes freed / recreated (consider e.g. TVRMLShapeOctree
+    recreated when Trasform changes). New octree may want to immediately
+    do some collision checks. However, records about tags from old octree
+    may still be remembered somewhere -- for example, TVRMLShape
+    remembers MailboxSavedTag (given for Shape.RayCollision from
+    TVRMLShapeOctreeNode.CommonRayLeaf). So, if this would be a field
+    of TVRMLBaseTrianglesOctree, then the newly created octree could
+    create the same tag, and hit the mailbox mechanism of already existing
+    shape.
+
+    This actually happened with SphereSensor tests,
+    e.g. on unison.x3dv from
+    http://www.web3d.org/x3d/content/examples/Conformance/Sensors/SphereSensor/index.html .
+    When you rotate the box, it's Transform.rotation changed, causing
+    a rebuild of shapes octree. (But actual TVRMLShape and it's local triangles
+    octree stay unmodified.) Without moving NextFreeTag to global variable,
+    the new created octree would have NextFreeTag that was already recorded.
+    In effect, GetHeightAbove (for camera gravity) were returning a result
+    for previous mouse ray pick, temporary showing our "height above the ground"
+    even though we were not standing on the ground. }
+  NextFreeTag: TMailboxTag;
 
 function TVRMLBaseTrianglesOctree.AssignNewTag: TMailboxTag;
 begin
