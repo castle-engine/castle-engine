@@ -1602,6 +1602,18 @@ function TrySphereRayIntersection(out Intersection: TVector3Double;
   const SphereCenter: TVector3Double; const SphereRadius: Double;
   const Ray0, RayVector: TVector3Double): boolean; overload;
 
+{ Intersection between an (infinitely tall) cylinder and a ray.
+  @groupBegin }
+function TryCylinderRayIntersection(out Intersection: TVector3Single;
+  const CylinderAxisOrigin, CylinderAxis: TVector3Single;
+  const CylinderRadius: Single;
+  const RayOrigin, RayDirection: TVector3Single): boolean; overload;
+function TryCylinderRayIntersection(out Intersection: TVector3Double;
+  const CylinderAxisOrigin, CylinderAxis: TVector3Double;
+  const CylinderRadius: Double;
+  const RayOrigin, RayDirection: TVector3Double): boolean; overload;
+{ @groupEnd }
+
 { triangles ------------------------------------------------------------------ }
 
 { Check does the triangle define a correct plane in 3D space.

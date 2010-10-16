@@ -1384,6 +1384,35 @@ begin
     Intersection := Ray0 + RayVector * T;
 end;
 
+function TryCylinderRayIntersection(out Intersection: TVector3;
+  const CylinderAxisOrigin, CylinderAxis: TVector3;
+  const CylinderRadius: TScalar;
+  const RayOrigin, RayDirection: TVector3): boolean;
+begin
+  { We know Intersection = RayOrigin + RayDirection * T.
+    For cylinder, normalize CylinderAxis and then
+
+      VectorLen( VectorProduct(Intersection - CylinderAxisOrigin, CylinderAxis))
+      = CylinderRadius
+
+    (For why, see http://en.wikipedia.org/wiki/Cross_product:
+    length of VectorProduct is the area of parallelogram between it's vectors.
+    This is equal to area of CylinderRadius * length CylinderAxis in this case.)
+    Got the idea from oliii post on
+    http://www.gamedev.net/community/forums/topic.asp?topic_id=467789
+
+    Insert ray equation into cylinder equation, and solve for T. }
+
+{
+  X := RayOrigin - CylinderAxisOrigin;
+  Y := RayDirection;
+  Z := Normalized(CylinderAxis);
+}
+
+  { TODO }
+  Result := false;
+end;
+
 { triangles ------------------------------------------------------------------ }
 
 function IsValidTriangle(const Tri: TTriangle3): boolean;

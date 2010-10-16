@@ -94,6 +94,11 @@
       original intersection, in global coordinates }
     CapsPlane: TVector4Single;
 
+    { If not Caps, then these describe (infinitely tall) cylinder
+      used for dragging, in global coordinates }
+    CylinderAxisOrigin, CylinderAxis: TVector3Single;
+    CylinderRadius: Single;
+
     { First intersection (at activation), in local coordinates,
       additionally with Y component set to 0. }
     OriginalIntersection: TVector3Single;
@@ -415,6 +420,12 @@ begin
     CapsPlaneDir := PVector3Single(@CapsPlane);
     CapsPlaneDir^ := MatrixMultDirection(Transform, UnitVector3Single[1]);
     CapsPlane[3] := -VectorDotProduct(CapsPlaneDir^, OverPoint);
+  end else
+  begin
+    CylinderAxisOrigin := MatrixMultPoint(Transform, ZeroVector3Single);
+    CylinderAxis := MatrixMultDirection(Transform, UnitVector3Single[1]);
+    CylinderRadius := Sqrt(PointToLineDistanceSqr(
+      CylinderAxisOrigin, CylinderAxis, OverPoint));
   end;
 
   WasRotation := false;
@@ -436,11 +447,10 @@ begin
   inherited;
 
   if Caps then
-  begin
     WasIntersection := TryPlaneRayIntersection(Intersection,
-      CapsPlane, RayOrigin, RayDirection);
-  end else
-    WasIntersection := false; { TODO }
+      CapsPlane, RayOrigin, RayDirection) else
+    WasIntersection := TryCylinderRayIntersection(Intersection,
+      CylinderAxisOrigin, CylinderAxis, CylinderRadius, RayOrigin, RayDirection);
 
   if WasIntersection then
   begin
