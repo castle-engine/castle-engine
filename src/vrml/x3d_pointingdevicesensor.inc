@@ -87,6 +87,23 @@
   end;
 
   TNodeCylinderSensor = class(TNodeX3DDragSensorNode)
+  private
+    { Are we in caps mode or cylinder mode (determined at activation) }
+    Caps: boolean;
+    { If Caps, then this is a plane parallel to Y=0 and coincident with
+      original intersection, in global coordinates }
+    CapsPlane: TVector4Single;
+
+    { First intersection (at activation), in local coordinates. }
+    OriginalIntersection: TVector3Single;
+
+    { Transformation from global coords to the local sensor coords. }
+    InvertedTransform: TMatrix4Single;
+
+    { Was a rotation_changed send during this activation of sensor. }
+    WasRotation: boolean;
+    { Last value of rotation_changed send, meaningful only if WasRotation. }
+    RotationAngle: Single;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -112,6 +129,12 @@
     { Event: SFRotation, out } { }
     private FEventrotation_changed: TVRMLEvent;
     public property Eventrotation_changed: TVRMLEvent read FEventrotation_changed;
+
+    procedure Activate(const Time: TVRMLTime;
+      const ATransform, AInvertedTransform: TMatrix4Single;
+      const OverPoint: TVector3Single); override;
+    procedure Deactivate(const Time: TVRMLTime); override;
+    procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
   TNodePlaneSensor = class(TNodeX3DDragSensorNode)
@@ -355,6 +378,99 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeCylinderSensor.Activate(const Time: TVRMLTime;
+  const ATransform, AInvertedTransform: TMatrix4Single;
+  const OverPoint: TVector3Single);
+var
+  Transform, M, IM: TMatrix4Single;
+  CapsPlaneDir: PVector3Single;
+begin
+  inherited;
+
+  Transform := ATransform;
+  InvertedTransform := AInvertedTransform;
+
+  { Do not apply rotation when it's 0. A small optimization for a common case. }
+  if FdAxisRotation.RotationRad <> 0 then
+  begin
+    RotationMatricesRad(FdAxisRotation.RotationRad, FdAxisRotation.Axis, M, IM);
+    Transform := MatrixMult(Transform, M);
+    InvertedTransform := MatrixMult(IM, InvertedTransform);
+  end;
+
+  OriginalIntersection := MatrixMultPoint(InvertedTransform, OverPoint);
+  Caps := AngleRadBetweenVectors(OriginalIntersection,
+    Vector3Single(0, 1, 0)) < FdDiskAngle.Value;
+
+  if Caps then
+  begin
+    { CapsPlane is parallel to Y=0 plane
+      (transformed by current sensor transform and by axisRotation),
+      and passing though PlaneOrigin. }
+    CapsPlaneDir := PVector3Single(@CapsPlane);
+    CapsPlaneDir^ := MatrixMultDirection(Transform, UnitVector3Single[1]);
+    CapsPlane[3] := -VectorDotProduct(CapsPlaneDir^, OverPoint);
+  end;
+
+  WasRotation := false;
+end;
+
+procedure TNodeCylinderSensor.Deactivate(const Time: TVRMLTime);
+begin
+  if FdAutoOffset.Value and WasRotation then
+    FdOffset.Send(RotationAngle);
+
+  inherited;
+end;
+
+procedure TNodeCylinderSensor.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+var
+  Intersection, LocalIntersection: TVector3Single;
+  WasIntersection: boolean;
+begin
+  inherited;
+
+  if Caps then
+  begin
+    WasIntersection := TryPlaneRayIntersection(Intersection,
+      CapsPlane, RayOrigin, RayDirection);
+  end else
+    WasIntersection := false; { TODO }
+
+  if WasIntersection then
+  begin
+    LocalIntersection := MatrixMultPoint(InvertedTransform, Intersection);
+    try
+      EventTrackPoint_changed.Send(LocalIntersection, Time);
+    except
+      on ETransformedResultInvalid do
+      begin
+        EventTrackPoint_changed.Send(Intersection, Time);
+        if Log then
+          WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+      end;
+    end;
+
+    RotationAngle := AngleRadBetweenVectors(OriginalIntersection, LocalIntersection);
+
+    { We know the rotation is around +Y axis. So adjust sign of
+      RotationAngle correctly. }
+    if PointsDistanceSqr(RotatePointAroundAxisRad( RotationAngle,
+      OriginalIntersection, UnitVector3Single[1]), LocalIntersection) >
+       PointsDistanceSqr(RotatePointAroundAxisRad(-RotationAngle,
+      OriginalIntersection, UnitVector3Single[1]), LocalIntersection) then
+      RotationAngle := -RotationAngle;
+
+    { add offset, and clamp by min/maxAngle }
+    RotationAngle += FdOffset.Value;
+    if FdMinAngle.Value <= FdMaxAngle.Value then
+      Clamp(RotationAngle, FdMinAngle.Value, FdMaxAngle.Value);
+
+    EventRotation_changed.Send(Vector4Single(0, 1, 0, RotationAngle), Time);
+    WasRotation := true;
+  end;
 end;
 
 constructor TNodePlaneSensor.Create(const ANodeName: string;
