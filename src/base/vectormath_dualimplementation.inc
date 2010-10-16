@@ -21,44 +21,44 @@
 {$define VECTOR_OP_FUNCS:=
 function VectorOpFuncName(const V1, V2: TVector2): TVector2;
 begin
- result[0] := v1[0] VectorOp v2[0];
- result[1] := v1[1] VectorOp v2[1];
+  Result[0] := V1[0] VectorOp V2[0];
+  Result[1] := V1[1] VectorOp V2[1];
 end;
 
 function VectorOpFuncName(const V1, V2: TVector3): TVector3;
 begin
- result[0] := v1[0] VectorOp v2[0];
- result[1] := v1[1] VectorOp v2[1];
- result[2] := v1[2] VectorOp v2[2];
+  Result[0] := V1[0] VectorOp V2[0];
+  Result[1] := V1[1] VectorOp V2[1];
+  Result[2] := V1[2] VectorOp V2[2];
 end;
 
 function VectorOpFuncName(const V1, V2: TVector4): TVector4;
 begin
- result[0] := v1[0] VectorOp v2[0];
- result[1] := v1[1] VectorOp v2[1];
- result[2] := v1[2] VectorOp v2[2];
- result[3] := v1[3] VectorOp v2[3];
+  Result[0] := V1[0] VectorOp V2[0];
+  Result[1] := V1[1] VectorOp V2[1];
+  Result[2] := V1[2] VectorOp V2[2];
+  Result[3] := V1[3] VectorOp V2[3];
 end;
 
 procedure VectorOpTo1stFuncName(var v1: TVector2; const v2: TVector2);
 begin
- v1[0] VectorOpTo1st v2[0];
- v1[1] VectorOpTo1st v2[1];
+  V1[0] VectorOpTo1st V2[0];
+  V1[1] VectorOpTo1st V2[1];
 end;
 
 procedure VectorOpTo1stFuncName(var V1: TVector3; const V2: TVector3);
 begin
- v1[0] VectorOpTo1st v2[0];
- v1[1] VectorOpTo1st v2[1];
- v1[2] VectorOpTo1st v2[2];
+  V1[0] VectorOpTo1st V2[0];
+  V1[1] VectorOpTo1st V2[1];
+  V1[2] VectorOpTo1st V2[2];
 end;
 
 procedure VectorOpTo1stFuncName(var v1: TVector4; const v2: TVector4);
 begin
- v1[0] VectorOpTo1st v2[0];
- v1[1] VectorOpTo1st v2[1];
- v1[2] VectorOpTo1st v2[2];
- v1[3] VectorOpTo1st v2[3];
+  V1[0] VectorOpTo1st V2[0];
+  V1[1] VectorOpTo1st V2[1];
+  V1[2] VectorOpTo1st V2[2];
+  V1[3] VectorOpTo1st V2[3];
 end;
 }
 
@@ -82,65 +82,65 @@ end;
 
 function VectorScale(const v1: TVector2; const Scalar: TScalar): TVector2;
 begin
-  result[0] := v1[0] * Scalar;
-  result[1] := v1[1] * Scalar;
+  Result[0] := V1[0] * Scalar;
+  Result[1] := V1[1] * Scalar;
 end;
 
 function VectorScale(const v1: TVector3; const Scalar: TScalar): TVector3;
 begin
-  result[0] := v1[0] * Scalar;
-  result[1] := v1[1] * Scalar;
-  result[2] := v1[2] * Scalar;
+  Result[0] := V1[0] * Scalar;
+  Result[1] := V1[1] * Scalar;
+  Result[2] := V1[2] * Scalar;
 end;
 
 function VectorScale(const v1: TVector4; const Scalar: TScalar): TVector4;
 begin
-  result[0] := v1[0] * Scalar;
-  result[1] := v1[1] * Scalar;
-  result[2] := v1[2] * Scalar;
-  result[3] := v1[3] * Scalar;
+  Result[0] := V1[0] * Scalar;
+  Result[1] := V1[1] * Scalar;
+  Result[2] := V1[2] * Scalar;
+  Result[3] := V1[3] * Scalar;
 end;
 
 procedure VectorScaleTo1st(var v1: TVector2; const Scalar: TScalar);
 begin
-  v1[0] *= Scalar;
-  v1[1] *= Scalar;
+  V1[0] *= Scalar;
+  V1[1] *= Scalar;
 end;
 
 procedure VectorScaleTo1st(var v1: TVector3; const Scalar: TScalar);
 begin
-  v1[0] *= Scalar;
-  v1[1] *= Scalar;
-  v1[2] *= Scalar;
+  V1[0] *= Scalar;
+  V1[1] *= Scalar;
+  V1[2] *= Scalar;
 end;
 
 procedure VectorScaleTo1st(var v1: TVector4; const Scalar: TScalar);
 begin
-  v1[0] *= Scalar;
-  v1[1] *= Scalar;
-  v1[2] *= Scalar;
-  v1[3] *= Scalar;
+  V1[0] *= Scalar;
+  V1[1] *= Scalar;
+  V1[2] *= Scalar;
+  V1[3] *= Scalar;
 end;
 
 function VectorNegate(const v: TVector2): TVector2;
 begin
-  result[0] := -v[0];
-  result[1] := -v[1];
+  Result[0] := -v[0];
+  Result[1] := -v[1];
 end;
 
 function VectorNegate(const v: TVector3): TVector3;
 begin
-  result[0] := -v[0];
-  result[1] := -v[1];
-  result[2] := -v[2];
+  Result[0] := -v[0];
+  Result[1] := -v[1];
+  Result[2] := -v[2];
 end;
 
 function VectorNegate(const v: TVector4): TVector4;
 begin
-  result[0] := -v[0];
-  result[1] := -v[1];
-  result[2] := -v[2];
-  result[3] := -v[3];
+  Result[0] := -v[0];
+  Result[1] := -v[1];
+  Result[2] := -v[2];
+  Result[3] := -v[3];
 end;
 
 procedure VectorNegateTo1st(var v: TVector2);
@@ -166,43 +166,43 @@ end;
 
 function VectorProduct(const V1, V2: TVector3): TVector3;
 begin
-  result[0] := v1[1]*v2[2] - v1[2]*v2[1];
-  result[1] := v1[2]*v2[0] - v1[0]*v2[2];
-  result[2] := v1[0]*v2[1] - v1[1]*v2[0];
+  Result[0] := V1[1]*V2[2] - V1[2]*V2[1];
+  Result[1] := V1[2]*V2[0] - V1[0]*V2[2];
+  Result[2] := V1[0]*V2[1] - V1[1]*V2[0];
 end;
 
 function VectorDotProduct(const V1, V2: TVector2): TScalar;
 begin
-  result := v1[0]*v2[0]+ v1[1]*v2[1];
+  result := V1[0]*V2[0]+ V1[1]*V2[1];
 end;
 
 function VectorDotProduct(const V1, V2: TVector3): TScalar;
 begin
-  result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2];
+  result := V1[0]*V2[0]+ V1[1]*V2[1]+ V1[2]*V2[2];
 end;
 
 function VectorDotProduct(const V1, V2: TVector4): TScalar;
 begin
-  result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2]+ v1[3]*v2[3];
+  result := V1[0]*V2[0]+ V1[1]*V2[1]+ V1[2]*V2[2]+ V1[3]*V2[3];
 end;
 
 function VectorDotProduct(const V1: TVector3; const V2: TVector4): TScalar;
 begin
-  result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2]+       v2[3];
+  result := V1[0]*V2[0]+ V1[1]*V2[1]+ V1[2]*V2[2]+       V2[3];
 end;
 
 function VectorMultiplyComponents(const V1, V2: TVector3): TVector3;
 begin
-  result[0] := v1[0] * v2[0];
-  result[1] := v1[1] * v2[1];
-  result[2] := v1[2] * v2[2];
+  Result[0] := V1[0] * V2[0];
+  Result[1] := V1[1] * V2[1];
+  Result[2] := V1[2] * V2[2];
 end;
 
 procedure VectorMultiplyComponentsTo1st(var V1: TVector3; const V2: TVector3);
 begin
-  v1[0] *= v2[0];
-  v1[1] *= v2[1];
-  v1[2] *= v2[2];
+  V1[0] *= V2[0];
+  V1[1] *= V2[1];
+  V1[2] *= V2[2];
 end;
 
 procedure SwapValues(var V1, V2: TVector2);
@@ -358,9 +358,9 @@ end;
 
 function VectorPowerComponents(const v: TVector3; const Exp: TScalar): TVector3;
 begin
-  result[0] := Power(v[0], Exp);
-  result[1] := Power(v[1], Exp);
-  result[2] := Power(v[2], Exp);
+  Result[0] := Power(v[0], Exp);
+  Result[1] := Power(v[1], Exp);
+  Result[2] := Power(v[2], Exp);
 end;
 
 procedure VectorPowerComponentsTo1st(var v: TVector3; const Exp: TScalar);
@@ -476,15 +476,15 @@ begin
   y := Axis[1]/l;
   z := Axis[2]/l;
 
-  result[0] := (cosAngle + (1 - cosAngle) * x * x)     * Point[0]
+  Result[0] := (cosAngle + (1 - cosAngle) * x * x)     * Point[0]
             + ((1 - cosAngle) * x * y - z * sinAngle)  * Point[1]
             + ((1 - cosAngle) * x * z + y * sinAngle)  * Point[2];
 
-  result[1] := ((1 - cosAngle) * x * y + z * sinAngle)  * Point[0]
+  Result[1] := ((1 - cosAngle) * x * y + z * sinAngle)  * Point[0]
             + (cosAngle + (1 - cosAngle) * y * y)       * Point[1]
             + ((1 - cosAngle) * y * z - x * sinAngle)   * Point[2];
 
-  result[2] := ((1 - cosAngle) * x * z - y * sinAngle)  * Point[0]
+  Result[2] := ((1 - cosAngle) * x * z - y * sinAngle)  * Point[0]
             + ((1 - cosAngle) * y * z + x * sinAngle)   * Point[1]
             + (cosAngle + (1 - cosAngle) * z * z)       * Point[2];
 end;
@@ -778,34 +778,34 @@ function PointsDistance(const V1, V2: TVector3): TScalar;
 begin
   (* result := Sqrt(PointsDistanceSqr(V1, V2));, rozwiniete w nadziei na (drobny)
      zysk szybkosci *)
-  result := Sqrt( Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]) + Sqr(v2[2]-v1[2]) );
+  result := Sqrt( Sqr(V2[0]-V1[0]) + Sqr(V2[1]-V1[1]) + Sqr(V2[2]-V1[2]) );
 end;
 
 function PointsDistanceSqr(const V1, V2: TVector3): TScalar;
 begin
   (* result := VectorLenSqr(VectorSubtract(v2, v1));, rozwiniete w nadziei na (drobny)
      zysk szybkosci *)
-  result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]) + Sqr(v2[2]-v1[2]);
+  result := Sqr(V2[0]-V1[0]) + Sqr(V2[1]-V1[1]) + Sqr(V2[2]-V1[2]);
 end;
 
 function PointsDistanceSqr(const V1, V2: TVector2): TScalar;
 begin
   (* result := VectorLenSqr(VectorSubtract(v2, v1));, rozwiniete w nadziei na (drobny)
      zysk szybkosci *)
-  result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
+  result := Sqr(V2[0]-V1[0]) + Sqr(V2[1]-V1[1]);
 end;
 
 function PointsDistanceXYSqr(const V1, V2: TVector3): TScalar;
 begin
-  Result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
+  Result := Sqr(V2[0]-V1[0]) + Sqr(V2[1]-V1[1]);
 end;
 
 function VectorsEqual(const V1, V2: TVector2): boolean;
 begin
   if ScalarEqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
-    Result := (Abs(v1[0]-v2[0]) < ScalarEqualityEpsilon) and
-              (Abs(v1[1]-v2[1]) < ScalarEqualityEpsilon);
+    Result := (Abs(V1[0]-V2[0]) < ScalarEqualityEpsilon) and
+              (Abs(V1[1]-V2[1]) < ScalarEqualityEpsilon);
 end;
 
 function VectorsEqual(const V1, V2: TVector2;
@@ -813,17 +813,17 @@ function VectorsEqual(const V1, V2: TVector2;
 begin
   if EqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
-    Result := (Abs(v1[0]-v2[0]) < EqualityEpsilon) and
-              (Abs(v1[1]-v2[1]) < EqualityEpsilon);
+    Result := (Abs(V1[0]-V2[0]) < EqualityEpsilon) and
+              (Abs(V1[1]-V2[1]) < EqualityEpsilon);
 end;
 
 function VectorsEqual(const V1, V2: TVector3): boolean;
 begin
   if ScalarEqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
-    Result := FloatsEqual(v1[0], v2[0]) and
-              FloatsEqual(v1[1], v2[1]) and
-              FloatsEqual(v1[2], v2[2]);
+    Result := FloatsEqual(V1[0], V2[0]) and
+              FloatsEqual(V1[1], V2[1]) and
+              FloatsEqual(V1[2], V2[2]);
 end;
 
 function VectorsEqual(const V1, V2: TVector3;
@@ -831,19 +831,19 @@ function VectorsEqual(const V1, V2: TVector3;
 begin
   if EqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
-    Result := (Abs(v1[0]-v2[0]) < EqualityEpsilon) and
-              (Abs(v1[1]-v2[1]) < EqualityEpsilon) and
-              (Abs(v1[2]-v2[2]) < EqualityEpsilon);
+    Result := (Abs(V1[0]-V2[0]) < EqualityEpsilon) and
+              (Abs(V1[1]-V2[1]) < EqualityEpsilon) and
+              (Abs(V1[2]-V2[2]) < EqualityEpsilon);
 end;
 
 function VectorsEqual(const V1, V2: TVector4): boolean;
 begin
   if ScalarEqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
-    Result := FloatsEqual(v1[0], v2[0]) and
-              FloatsEqual(v1[1], v2[1]) and
-              FloatsEqual(v1[2], v2[2]) and
-              FloatsEqual(v1[3], v2[3]);
+    Result := FloatsEqual(V1[0], V2[0]) and
+              FloatsEqual(V1[1], V2[1]) and
+              FloatsEqual(V1[2], V2[2]) and
+              FloatsEqual(V1[3], V2[3]);
 end;
 
 function VectorsEqual(const V1, V2: TVector4;
@@ -851,10 +851,10 @@ function VectorsEqual(const V1, V2: TVector4;
 begin
   if EqualityEpsilon = 0 then
     Result := CompareMem(@V1, @V2, SizeOf(V1)) else
-    Result := (Abs(v1[0]-v2[0]) < EqualityEpsilon) and
-              (Abs(v1[1]-v2[1]) < EqualityEpsilon) and
-              (Abs(v1[2]-v2[2]) < EqualityEpsilon) and
-              (Abs(v1[3]-v2[3]) < EqualityEpsilon);
+    Result := (Abs(V1[0]-V2[0]) < EqualityEpsilon) and
+              (Abs(V1[1]-V2[1]) < EqualityEpsilon) and
+              (Abs(V1[2]-V2[2]) < EqualityEpsilon) and
+              (Abs(V1[3]-V2[3]) < EqualityEpsilon);
 end;
 
 function VectorsPerfectlyEqual(const V1, V2: TVector2): boolean;
@@ -983,12 +983,12 @@ var
   Scale: TScalar;
 begin
   mc := MaxAbsVectorCoord(v1);
-  if Zero(v1[mc]) then Exit(true);
+  if Zero(V1[mc]) then Exit(true);
 
-  Scale := v2[mc] / v1[mc];
+  Scale := V2[mc] / V1[mc];
   RestOf3dCoords(mc, c1, c2);
-  result := FloatsEqual(v1[c1] * Scale, v2[c1]) and
-            FloatsEqual(v1[c2] * Scale, v2[c2]);
+  result := FloatsEqual(V1[c1] * Scale, V2[c1]) and
+            FloatsEqual(V1[c2] * Scale, V2[c2]);
 end;
 
 procedure MakeVectorsAngleDegOnTheirPlane(var v1: TVector3;
