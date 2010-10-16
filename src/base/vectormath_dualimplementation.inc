@@ -218,15 +218,36 @@ begin
   result := ArcCos(CosAngleBetweenNormals(V1, V2));
 end;
 
-function RotationAngleRadBetweenVectors(const V1, V2: TVector3): TScalar;
-var
-  Cross: TVector3;
+function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3): TScalar;
 begin
   Result := AngleRadBetweenVectors(V1, V2);
-  Cross := VectorProduct(V1, V2);
   if PointsDistanceSqr(RotatePointAroundAxisRad( Result, V1, Cross), V2) >
      PointsDistanceSqr(RotatePointAroundAxisRad(-Result, V1, Cross), V2) then
     Result := -Result;
+
+  { Note that an assertion here that
+
+      PointsDistance(RotatePointAroundAxisRad(Result, V1, Cross), V2)
+
+    is zero would *not* be correct: V1 and V2 may have different
+    lengths, and then really neither Result nor -Result will get
+    V1 to rotate exactly to V2. However, the algorithm is still correct:
+    The valid Result (AngleRadBetweenVectors or -AngleRadBetweenVectors)
+    will result in shorter distance (difference between V1 and V2 lengths),
+    the invalid result would for sure make longer distance. }
+
+{ Commented out by default because this assertion is costly.
+  But it should be valid, you can uncomment it for test!
+
+  Assert(FloatsEqual(
+    PointsDistance(RotatePointAroundAxisRad(Result, V1, Cross), V2),
+    Abs(VectorLen(V1) - VectorLen(V2)), 0.01));
+}
+end;
+
+function RotationAngleRadBetweenVectors(const V1, V2: TVector3): TScalar;
+begin
+  Result := RotationAngleRadBetweenVectors(V1, V2, VectorProduct(V1, V2));
 end;
 
 function Normalized(const v: TVector3): TVector3;

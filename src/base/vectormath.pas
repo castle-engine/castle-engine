@@ -1108,10 +1108,15 @@ function AngleRadBetweenNormals(const V1, V2: TVector3Double): Double; overload;
   As you see, the order or arguments is important (just like it's important
   for vector cross).
 
+  Overloaded versions with Cross argument assume you already calculated
+  VectorProduct(V1, V2).
+
   @raises EVectorMathInvalidOp If V1 or V2 is zero.
   @groupBegin }
 function RotationAngleRadBetweenVectors(const V1, V2: TVector3Single): Single; overload;
 function RotationAngleRadBetweenVectors(const V1, V2: TVector3Double): Double; overload;
+function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3Single): Single; overload;
+function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3Double): Double; overload;
 { @groupEnd }
 
 { Rotate point Point around the Axis by given Angle.

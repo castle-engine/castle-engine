@@ -461,21 +461,8 @@ begin
       nicely on a CapsPlane. }
     LocalIntersection[1] := 0;
 
-    RotationAngle := AngleRadBetweenVectors(OriginalIntersection, LocalIntersection);
-
-    { We know the rotation is around +Y axis. So adjust sign of
-      RotationAngle correctly. }
-    if PointsDistanceSqr(RotatePointAroundAxisRad( RotationAngle,
-      OriginalIntersection, UnitVector3Single[1]), LocalIntersection) >
-       PointsDistanceSqr(RotatePointAroundAxisRad(-RotationAngle,
-      OriginalIntersection, UnitVector3Single[1]), LocalIntersection) then
-      RotationAngle := -RotationAngle;
-
-{    Writeln('rot ', RotationAngle:1:4, ' gives accuracy ',
-      PointsDistanceSqr(RotatePointAroundAxisRad( RotationAngle,
-      OriginalIntersection, UnitVector3Single[1]), LocalIntersection):1:4);}
-
-    { TODO PointsDistanceSqr are huge! }
+    RotationAngle := RotationAngleRadBetweenVectors(
+      OriginalIntersection, LocalIntersection, UnitVector3Single[1]);
 
     { add offset, and clamp by min/maxAngle }
     RotationAngle += FdOffset.Value;
