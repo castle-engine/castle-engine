@@ -2385,6 +2385,54 @@ uses Math, KambiStringUtils;
 
 {$I vectormath_operators.inc}
 
+{ include vectormath_dualimplementation.inc ---------------------------------- }
+
+{$define TScalar := Single}
+{$define TVector2 := TVector2Single}
+{$define TVector3 := TVector3Single}
+{$define TVector4 := TVector4Single}
+{$define PVector2 := PVector2Single}
+{$define PVector3 := PVector3Single}
+{$define PVector4 := PVector4Single}
+{$define TTriangle2 := TTriangle2Single}
+{$define TTriangle3 := TTriangle3Single}
+{$define TMatrix2 := TMatrix2Single}
+{$define TMatrix3 := TMatrix3Single}
+{$define TMatrix4 := TMatrix4Single}
+{$define ScalarEqualityEpsilon := SingleEqualityEpsilon}
+{$define UnitVector3 := UnitVector3Single}
+{$define IdentityMatrix4 := IdentityMatrix4Single}
+{$define TMatrix2_ := TMatrix2_Single}
+{$define TMatrix3_ := TMatrix3_Single}
+{$define TMatrix4_ := TMatrix4_Single}
+{$define TVector2_ := TVector2_Single}
+{$define TVector3_ := TVector3_Single}
+{$define TVector4_ := TVector4_Single}
+{$I vectormath_dualimplementation.inc}
+
+{$define TScalar := Double}
+{$define TVector2 := TVector2Double}
+{$define TVector3 := TVector3Double}
+{$define TVector4 := TVector4Double}
+{$define PVector2 := PVector2Double}
+{$define PVector3 := PVector3Double}
+{$define PVector4 := PVector4Double}
+{$define TTriangle2 := TTriangle2Double}
+{$define TTriangle3 := TTriangle3Double}
+{$define TMatrix2 := TMatrix2Double}
+{$define TMatrix3 := TMatrix3Double}
+{$define TMatrix4 := TMatrix4Double}
+{$define ScalarEqualityEpsilon := DoubleEqualityEpsilon}
+{$define UnitVector3 := UnitVector3Double}
+{$define IdentityMatrix4 := IdentityMatrix4Double}
+{$define TMatrix2_ := TMatrix2_Double}
+{$define TMatrix3_ := TMatrix3_Double}
+{$define TMatrix4_ := TMatrix4_Double}
+{$define TVector2_ := TVector2_Double}
+{$define TVector3_ := TVector3_Double}
+{$define TVector4_ := TVector4_Double}
+{$I vectormath_dualimplementation.inc}
+
 { TDynVector3SingleArray ----------------------------------------------------- }
 
 procedure TDynVector3SingleArray.AssignNegated(Source: TDynVector3SingleArray);
@@ -3131,7 +3179,6 @@ function ZeroVector(const v: TVector4Cardinal): boolean;
 begin
   result := IsMemCharFilled(v, SizeOf(v), #0);
 end;
-
 {$ifndef DELPHI}
 
 function VectorLen(const v: TVector3Byte): Single;
@@ -3143,94 +3190,6 @@ function VectorLenSqr(const v: TVector3Byte): Integer;
 begin
   result := Sqr(Integer(v[0])) + Sqr(Integer(v[1])) + Sqr(Integer(v[2]));
 end;
-
-{$define TScalar := Single}
-{$define TVector2 := TVector2Single}
-{$define TVector3 := TVector3Single}
-{$define TVector4 := TVector4Single}
-{$define TTriangle2 := TTriangle2Single}
-{$define TTriangle3 := TTriangle3Single}
-{$define TMatrix2 := TMatrix2Single}
-{$define TMatrix3 := TMatrix3Single}
-{$define TMatrix4 := TMatrix4Single}
-{$define ScalarEqualityEpsilon := SingleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Single}
-{$define IdentityMatrix4 := IdentityMatrix4Single}
-{$define TMatrix2_ := TMatrix2_Single}
-{$define TMatrix3_ := TMatrix3_Single}
-{$define TMatrix4_ := TMatrix4_Single}
-{$define TVector2_ := TVector2_Single}
-{$define TVector3_ := TVector3_Single}
-{$define TVector4_ := TVector4_Single}
-{$I vectormath_dualimplementation_beforeinlines.inc}
-
-{$define TScalar := Double}
-{$define TVector2 := TVector2Double}
-{$define TVector3 := TVector3Double}
-{$define TVector4 := TVector4Double}
-{$define TTriangle2 := TTriangle2Double}
-{$define TTriangle3 := TTriangle3Double}
-{$define TMatrix2 := TMatrix2Double}
-{$define TMatrix3 := TMatrix3Double}
-{$define TMatrix4 := TMatrix4Double}
-{$define ScalarEqualityEpsilon := DoubleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Double}
-{$define IdentityMatrix4 := IdentityMatrix4Double}
-{$define TMatrix2_ := TMatrix2_Double}
-{$define TMatrix3_ := TMatrix3_Double}
-{$define TMatrix4_ := TMatrix4_Double}
-{$define TVector2_ := TVector2_Double}
-{$define TVector3_ := TVector3_Double}
-{$define TVector4_ := TVector4_Double}
-{$I vectormath_dualimplementation_beforeinlines.inc}
-
-{$I vectormathinlines.inc}
-
-{$define TScalar := Single}
-{$define TVector2 := TVector2Single}
-{$define TVector3 := TVector3Single}
-{$define TVector4 := TVector4Single}
-{$define PVector2 := PVector2Single}
-{$define PVector3 := PVector3Single}
-{$define PVector4 := PVector4Single}
-{$define TTriangle2 := TTriangle2Single}
-{$define TTriangle3 := TTriangle3Single}
-{$define TMatrix2 := TMatrix2Single}
-{$define TMatrix3 := TMatrix3Single}
-{$define TMatrix4 := TMatrix4Single}
-{$define ScalarEqualityEpsilon := SingleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Single}
-{$define IdentityMatrix4 := IdentityMatrix4Single}
-{$define TMatrix2_ := TMatrix2_Single}
-{$define TMatrix3_ := TMatrix3_Single}
-{$define TMatrix4_ := TMatrix4_Single}
-{$define TVector2_ := TVector2_Single}
-{$define TVector3_ := TVector3_Single}
-{$define TVector4_ := TVector4_Single}
-{$I vectormath_dualimplementation.inc}
-
-{$define TScalar := Double}
-{$define TVector2 := TVector2Double}
-{$define TVector3 := TVector3Double}
-{$define TVector4 := TVector4Double}
-{$define PVector2 := PVector2Double}
-{$define PVector3 := PVector3Double}
-{$define PVector4 := PVector4Double}
-{$define TTriangle2 := TTriangle2Double}
-{$define TTriangle3 := TTriangle3Double}
-{$define TMatrix2 := TMatrix2Double}
-{$define TMatrix3 := TMatrix3Double}
-{$define TMatrix4 := TMatrix4Double}
-{$define ScalarEqualityEpsilon := DoubleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Double}
-{$define IdentityMatrix4 := IdentityMatrix4Double}
-{$define TMatrix2_ := TMatrix2_Double}
-{$define TMatrix3_ := TMatrix3_Double}
-{$define TMatrix4_ := TMatrix4_Double}
-{$define TVector2_ := TVector2_Double}
-{$define TVector3_ := TVector3_Double}
-{$define TVector4_ := TVector4_Double}
-{$I vectormath_dualimplementation.inc}
 
 function IndexedTriangleNormal(const Indexes: TVector3Cardinal;
   VerticesArray: PVector3Single; VerticesStride: integer): TVector3Single;
