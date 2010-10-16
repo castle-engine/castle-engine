@@ -441,17 +441,17 @@ begin
 
   if WasIntersection then
   begin
-    LocalIntersection := MatrixMultPoint(InvertedTransform, Intersection);
     try
-      EventTrackPoint_changed.Send(LocalIntersection, Time);
+      LocalIntersection := MatrixMultPoint(InvertedTransform, Intersection);
     except
       on ETransformedResultInvalid do
       begin
-        EventTrackPoint_changed.Send(Intersection, Time);
         if Log then
           WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+        Exit;
       end;
     end;
+    EventTrackPoint_changed.Send(LocalIntersection, Time);
 
     RotationAngle := AngleRadBetweenVectors(OriginalIntersection, LocalIntersection);
 
@@ -462,6 +462,14 @@ begin
        PointsDistanceSqr(RotatePointAroundAxisRad(-RotationAngle,
       OriginalIntersection, UnitVector3Single[1]), LocalIntersection) then
       RotationAngle := -RotationAngle;
+
+{    Writeln('rot ', RotationAngle:1:4, ' gives accuracy ',
+      PointsDistanceSqr(RotatePointAroundAxisRad( RotationAngle,
+      OriginalIntersection, UnitVector3Single[1]), LocalIntersection):1:4);
+}
+
+    { TODO PointsDistanceSqr are huge!
+      and rot jumps when RotationAngle changes sign on cylinder_sensor_transformed.x3dv }
 
     { add offset, and clamp by min/maxAngle }
     RotationAngle += FdOffset.Value;
@@ -720,17 +728,17 @@ begin
   if TrySphereRayIntersection(Intersection, SphereCenter, SphereRadius,
     RayOrigin, RayDirection) then
   begin
-    LocalIntersection := MatrixMultPoint(InvertedTransform, Intersection);
     try
-      EventTrackPoint_changed.Send(LocalIntersection, Time);
+      LocalIntersection := MatrixMultPoint(InvertedTransform, Intersection);
     except
       on ETransformedResultInvalid do
       begin
-        EventTrackPoint_changed.Send(Intersection, Time);
         if Log then
           WritelnLog('Drag sensor', 'Sensor transformation matrix^-1 cannot transform points.');
+        Exit;
       end;
     end;
+    EventTrackPoint_changed.Send(LocalIntersection, Time);
 
     { Rotation always contains offset }
     RotationQ := QuatFromAxisAngle(FdOffset.Axis, FdOffset.RotationRad);
