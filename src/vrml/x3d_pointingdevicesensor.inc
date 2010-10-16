@@ -94,7 +94,8 @@
       original intersection, in global coordinates }
     CapsPlane: TVector4Single;
 
-    { First intersection (at activation), in local coordinates. }
+    { First intersection (at activation), in local coordinates,
+      additionally with Y component set to 0. }
     OriginalIntersection: TVector3Single;
 
     { Transformation from global coords to the local sensor coords. }
@@ -404,6 +405,8 @@ begin
   Caps := AngleRadBetweenVectors(OriginalIntersection,
     Vector3Single(0, 1, 0)) < FdDiskAngle.Value;
 
+  OriginalIntersection[1] := 0;
+
   if Caps then
   begin
     { CapsPlane is parallel to Y=0 plane
@@ -453,6 +456,11 @@ begin
     end;
     EventTrackPoint_changed.Send(LocalIntersection, Time);
 
+    { both OriginalIntersection and LocalIntersection have Y component set to 0
+      for the sake of calculating RotationAngle. They are both assumed to lie
+      nicely on a CapsPlane. }
+    LocalIntersection[1] := 0;
+
     RotationAngle := AngleRadBetweenVectors(OriginalIntersection, LocalIntersection);
 
     { We know the rotation is around +Y axis. So adjust sign of
@@ -465,11 +473,9 @@ begin
 
 {    Writeln('rot ', RotationAngle:1:4, ' gives accuracy ',
       PointsDistanceSqr(RotatePointAroundAxisRad( RotationAngle,
-      OriginalIntersection, UnitVector3Single[1]), LocalIntersection):1:4);
-}
+      OriginalIntersection, UnitVector3Single[1]), LocalIntersection):1:4);}
 
-    { TODO PointsDistanceSqr are huge!
-      and rot jumps when RotationAngle changes sign on cylinder_sensor_transformed.x3dv }
+    { TODO PointsDistanceSqr are huge! }
 
     { add offset, and clamp by min/maxAngle }
     RotationAngle += FdOffset.Value;
