@@ -316,9 +316,18 @@ type
       read FOnBoundChanged write FOnBoundChanged;
   end;
 
-  TVRMLViewpointStack = class(TVRMLBindableStack)
+  TViewpointStack = class(TVRMLBindableStack)
   protected
     procedure DoBoundChanged; override;
+  public
+    function Top: TVRMLViewpointNode;
+  end;
+
+  TNavigationInfoStack = class(TVRMLBindableStack)
+  protected
+    procedure DoBoundChanged; override;
+  public
+    function Top: TNodeNavigationInfo;
   end;
 
   { @exclude }
@@ -666,8 +675,8 @@ type
     { Bindable nodes helpers }
     FBackgroundStack: TVRMLBindableStack;
     FFogStack: TVRMLBindableStack;
-    FNavigationInfoStack: TVRMLBindableStack;
-    FViewpointStack: TVRMLViewpointStack;
+    FNavigationInfoStack: TNavigationInfoStack;
+    FViewpointStack: TViewpointStack;
   private
     { If @true, then next ChangedAll call will do ProcessShadowMapsReceivers
       at the end.
@@ -795,13 +804,19 @@ type
     procedure ValidateMainLightForShadows;
   private
     FHeadlight: TVRMLHeadlight;
+    FHeadlightOn: boolean;
+    FOnHeadlightOnChanged: TNotifyEvent;
     FHeadlightInitialized: boolean;
     procedure SetHeadlightInitialized(const Value: boolean);
+
+    { If FHeadlight is initialized to correspond to current VRML/X3D state
+      and FHeadlightOn. }
     property HeadlightInitialized: boolean
       read FHeadlightInitialized
       write SetHeadlightInitialized default false;
 
     procedure CameraChanged(RenderState: TRenderState);
+    procedure SetHeadlightOn(const Value: boolean);
   protected
     { Value <> 0 means that our state isn't complete (for example,
       we're in the middle of ChangedAll call).
@@ -832,6 +847,8 @@ type
       You can override it in descendants to create something more specialized. }
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
+
+    procedure UpdateHeadlightOnFromNavigationInfo;
   protected
     GeneratedTextures: TDynGeneratedTextureArray;
 
@@ -1662,13 +1679,13 @@ type
 
     { Binding stack of NavigatinInfo nodes.
       All descend from TNodeNavigationInfo class. }
-    property NavigationInfoStack: TVRMLBindableStack read FNavigationInfoStack;
+    property NavigationInfoStack: TNavigationInfoStack read FNavigationInfoStack;
 
     { Binding stack of Viewpoint nodes.
       All descend from TVRMLViewpointNode (not necessarily from
       TNodeX3DViewpointNode, so VRML 1.0 camera nodes are also included in
       this stack.) }
-    property ViewpointStack: TVRMLViewpointStack read FViewpointStack;
+    property ViewpointStack: TViewpointStack read FViewpointStack;
 
     function GetViewpointStack: TVRMLBindableStackBasic; override;
     function GetNavigationInfoStack: TVRMLBindableStackBasic; override;
@@ -1842,31 +1859,41 @@ type
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean;
 
-    { Creates a headlight, using (if present) KambiHeadLight node defined
-      in this VRML file. You're responsible for freeing this node.
+    { Headlight that should be used for this scene (if HeadlightOn), or @nil.
+      This looks at HeadlightOn property to know if the headlight should
+      be used (should be <> @nil), and HeadlightOn in turn looks
+      at information in VRML/X3D file (NavigationInfo.headlight
+      and KambiHeadLight), and you can always set HeadlightOn explicitly
+      by code.
 
-      Note that this is @italic(not) concerned whether you
-      actually should use this headlight (this information usually comes from
-      NavigationInfo.headlight value).
-
-      If you're looking for more comfortable alternative to this,
-      that uses all VRML information, see @link(Headlight) property.
-
-      @seealso Headlight }
-    function CreateHeadLight: TVRMLHeadLight;
-
-    { Headlight that should be used for this scene,
-      or @nil if no headlight should be used.
-
-      This uses (if present) NavigationInfo.headlight and KambiHeadLight
-      node defined in this VRML file.
-
-      This object is automatically managed inside this class.
-      Calling this method automatically initializes it.
+      This TVRMLHeadlight instance is automatically managed (owned, freed)
+      by this scene. Calling this method automatically initializes it.
 
       If you want, it's a little dirty but allowed to directly change
-      this light's properties after it's initialized. }
+      this light's properties after it's initialized. (It's a little
+      dirty because some updates may reset your changes.)  }
     function Headlight: TVRMLHeadlight;
+
+    { Should we use headlight for this scene. Controls if @link(Headlight)
+      property returns something <> @nil.
+
+      When you load a new model, this is always updated based on this model's
+      NavigationInfo.headlight. (If no NavigationInfo node, then default
+      is to use the headlight.) When you bind a new NavigationInfo node,
+      this is also updated to follow NavigationInfo.headlight.
+
+      You can change the value of this property. If we have a
+      NavigationInfo node, then NavigationInfo.headlight field will
+      be always updated to correspond to this value.
+      (It will be even updated using events mechanism if ProcessEvents,
+      so scripts inside the VRML/X3D "know" when
+      you turn on/off the headlight and may react to it,
+      e.g. spawn a zombie monster when you turn on the flashlight.) }
+    property HeadlightOn: boolean
+      read FHeadlightOn write SetHeadlightOn;
+
+    property OnHeadlightOnChanged: TNotifyEvent
+      read FOnHeadlightOnChanged write FOnHeadlightOnChanged;
 
     { Notify the scene that viewer position/direction changed a lot.
       It may be called when you make a sudden change to the camera,
@@ -2212,9 +2239,9 @@ begin
     OnBoundChanged(ParentScene);
 end;
 
-{ TVRMLViewpointStack -------------------------------------------------------- }
+{ TViewpointStack -------------------------------------------------------- }
 
-procedure TVRMLViewpointStack.DoBoundChanged;
+procedure TViewpointStack.DoBoundChanged;
 begin
   { The new viewpoint may be in some totally different place of the scene,
     so call ViewChangedSuddenly.
@@ -2226,6 +2253,24 @@ begin
   ParentScene.ViewChangedSuddenly;
 
   inherited;
+end;
+
+function TViewpointStack.Top: TVRMLViewpointNode;
+begin
+  Result := (inherited Top) as TVRMLViewpointNode;
+end;
+
+{ TViewpointStack -------------------------------------------------------- }
+
+procedure TNavigationInfoStack.DoBoundChanged;
+begin
+  ParentScene.UpdateHeadlightOnFromNavigationInfo;
+  inherited;
+end;
+
+function TNavigationInfoStack.Top: TNodeNavigationInfo;
+begin
+  Result := (inherited Top) as TNodeNavigationInfo;
 end;
 
 { TDynGeneratedTextureArray -------------------------------------------------- }
@@ -2347,8 +2392,8 @@ begin
 
   FBackgroundStack := TVRMLBindableStack.Create(Self);
   FFogStack := TVRMLBindableStack.Create(Self);
-  FNavigationInfoStack := TVRMLBindableStack.Create(Self);
-  FViewpointStack := TVRMLViewpointStack.Create(Self);
+  FNavigationInfoStack := TNavigationInfoStack.Create(Self);
+  FViewpointStack := TViewpointStack.Create(Self);
 
   FPointingDeviceActiveSensors := TVRMLNodesList.Create;
 
@@ -2435,6 +2480,8 @@ begin
   ScheduledShadowMapsProcessing := true;
 
   ScheduleChangedAll;
+
+  UpdateHeadlightOnFromNavigationInfo;
 
   if AResetTime then
     ResetTimeAtLoad;
@@ -3792,10 +3839,26 @@ var
     VisibleChangeHere([]);
   end;
 
-  procedure HandleChangeHeadLight;
+  procedure HandleChangeHeadLightProps;
   begin
-    { It will be automatically reinitalized when needed (on next display) }
+    { Separate from HandleChangeHeadLightOn, this way merely changing
+      headlight color/spot size and such doesn't recalculate headlight
+      on based on NavigationInfo.headlight. This is desired when
+      NavigationInfo node doesn't exist and user explicitly controls
+      Scene.HeadlightOn --- each UpdateHeadlightOnFromNavigationInfo
+      then overrides what user did, so don't call it when not needed.
+
+      Testcase: kambi_vrml_test_suite/x3d/headlight_anim.x3dv when
+      NavigationInfo node is removed, try pressing Ctrl+H in view3dscene. }
+
     HeadlightInitialized := false;
+    VisibleChangeHere([]);
+  end;
+
+  procedure HandleChangeHeadLightOn;
+  begin
+    { Recalculate HeadlightOn based on NavigationInfo.headlight. }
+    UpdateHeadlightOnFromNavigationInfo;
     VisibleChangeHere([]);
   end;
 
@@ -3918,7 +3981,8 @@ begin
     if chGeneratedTextureUpdateNeeded in Changes then HandleChangeGeneratedTextureUpdateNeeded;
     { TODO: chFontStyle. Fortunately, FontStyle fields are not exposed,
       so this isn't a bug in vrml/x3d browser. }
-    if chHeadLight in Changes then HandleChangeHeadLight;
+    if chHeadLightProps in Changes then HandleChangeHeadLightProps;
+    if chHeadLightOn in Changes then HandleChangeHeadLightOn;
     if chClipPlane in Changes then HandleChangeClipPlane;
     if chDragSensorEnabled in Changes then HandleChangeDragSensorEnabled;
     if chNavigationInfo in Changes then HandleChangeNavigationInfo;
@@ -5925,7 +5989,7 @@ begin
     Universal := nil;
 
   NavigationTypeInitialized := false;
-  NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
+  NavigationNode := NavigationInfoStack.Top;
 
   { Reset Camera properties, this way InitializeNavigationType may
     assume these are already set. }
@@ -6078,7 +6142,7 @@ var
   TransitionType: string;
   I: Integer;
 begin
-  NavigationNode := NavigationInfoStack.Top as TNodeNavigationInfo;
+  NavigationNode := NavigationInfoStack.Top;
 
   TransitionAnimate := true;
 
@@ -6219,31 +6283,46 @@ begin
   Result := TVRMLHeadLight.Create(HeadLightNode);
 end;
 
-function TVRMLScene.CreateHeadLight: TVRMLHeadLight;
-var
-  HeadLightNode: TNodeKambiHeadLight;
+procedure TVRMLScene.SetHeadlightOn(const Value: boolean);
 begin
-  HeadLightNode := nil;
-  if RootNode <> nil then
-    HeadLightNode := RootNode.TryFindNode(TNodeKambiHeadLight, true) as
-      TNodeKambiHeadLight;
-  Result := CreateHeadLightInstance(HeadLightNode);
+  if FHeadlightOn <> Value then
+  begin
+    FHeadlightOn := Value;
+    HeadlightInitialized := false;
+
+    if Assigned(OnHeadlightOnChanged) then OnHeadlightOnChanged(Self);
+
+    if NavigationInfoStack.Top <> nil then
+      NavigationInfoStack.Top.FdHeadlight.Send(HeadlightOn);
+  end;
 end;
 
 procedure TVRMLScene.SetHeadlightInitialized(const Value: boolean);
-var
-  UseHeadlight: boolean;
+
+  { Creates a headlight, using (if present) KambiHeadLight node defined
+    in this VRML/X3D file. You're responsible for freeing this node.
+
+    Note that this is @italic(not) concerned whether you
+    actually should use this headlight (this information usually comes from
+    NavigationInfo.headlight value). }
+  function CreateHeadLight: TVRMLHeadLight;
+  var
+    HeadLightNode: TNodeKambiHeadLight;
+  begin
+    HeadLightNode := nil;
+    if RootNode <> nil then
+      HeadLightNode := RootNode.TryFindNode(TNodeKambiHeadLight, true) as
+        TNodeKambiHeadLight;
+    Result := CreateHeadLightInstance(HeadLightNode);
+  end;
+
 begin
   if FHeadlightInitialized <> Value then
   begin
     FHeadlightInitialized := Value;
     if Value then
     begin
-      if NavigationInfoStack.Top <> nil then
-        UseHeadlight := (NavigationInfoStack.Top as TNodeNavigationInfo).FdHeadlight.Value else
-        UseHeadlight := DefaultNavigationInfoHeadlight;
-
-      if UseHeadlight then
+      if HeadlightOn then
         FHeadlight := CreateHeadlight else
         FHeadlight := nil;
     end else
@@ -6257,6 +6336,13 @@ function TVRMLScene.Headlight: TVRMLHeadlight;
 begin
   HeadlightInitialized := true;
   Result := FHeadlight;
+end;
+
+procedure TVRMLScene.UpdateHeadlightOnFromNavigationInfo;
+begin
+  if NavigationInfoStack.Top <> nil then
+    HeadlightOn := NavigationInfoStack.Top.FdHeadlight.Value else
+    HeadlightOn := DefaultNavigationInfoHeadlight;
 end;
 
 procedure TVRMLScene.ViewChangedSuddenly;

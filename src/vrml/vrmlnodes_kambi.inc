@@ -390,31 +390,31 @@ begin
   inherited;
 
   FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', HeadLightDefaultAmbientIntensity);
-   FdambientIntensity.ChangesAlways := [chHeadLight];
+   FdambientIntensity.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdambientIntensity);
 
   FFdattenuation := TSFVec3f.Create(Self, 'attenuation', HeadLightDefaultAttenuation);
-   Fdattenuation.ChangesAlways := [chHeadLight];
+   Fdattenuation.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdattenuation);
 
   FFdcolor := TSFColor.Create(Self, 'color', HeadLightDefaultColor);
-   Fdcolor.ChangesAlways := [chHeadLight];
+   Fdcolor.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdcolor);
 
   FFdintensity := TSFFloat.Create(Self, 'intensity', HeadLightDefaultIntensity);
-   Fdintensity.ChangesAlways := [chHeadLight];
+   Fdintensity.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdintensity);
 
   FFdspot := TSFBool.Create(Self, 'spot', HeadLightDefaultSpot);
-   Fdspot.ChangesAlways := [chHeadLight];
+   Fdspot.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdspot);
 
   FFdspotCutOffAngle := TSFFloat.Create(Self, 'spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
-   FdspotCutOffAngle.ChangesAlways := [chHeadLight];
+   FdspotCutOffAngle.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdspotCutOffAngle);
 
   FFdspotDropOffRate := TSFFloat.Create(Self, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
-   FdspotDropOffRate.ChangesAlways := [chHeadLight];
+   FdspotDropOffRate.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdspotDropOffRate);
 end;
 

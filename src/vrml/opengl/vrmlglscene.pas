@@ -1210,25 +1210,10 @@ type
       they also affect what the TVRMLGLScene.Background function returns. }
     function Attributes: TVRMLSceneRenderingAttributes;
 
-    { Creates a headlight, using (if present) KambiHeadLight node defined
-      in this VRML file. You're responsible for freeing this node.
-
-      See @link(TVRMLScene.CreateHeadLight) documentation,
-      this just returns headlight already casted to TVRMLGLHeadLight for OpenGL.
-
-      @seealso Headlight }
-    function CreateHeadLight: TVRMLGLHeadLight;
-
-    { Headlight that should be used for this scene,
-      or @nil if no headlight should be used.
-
+    { Headlight that should be used for this scene (if HeadlightOn), or @nil.
       See @link(TVRMLScene.HeadLight) documentation,
       this just returns headlight already casted to TVRMLGLHeadLight for OpenGL
-      Just use this when rendering, typically by
-
-@longCode(#
-  TVRMLGLHeadlight.RenderOrDisable(Headlight, 0);
-#) }
+      rendering. }
     function Headlight: TVRMLGLHeadlight;
 
     { @abstract(Which bump mapping method will be used ?)
@@ -4814,13 +4799,6 @@ function TVRMLGLScene.CreateHeadLightInstance
   (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight;
 begin
   Result := TVRMLGLHeadLight.Create(HeadLightNode);
-end;
-
-function TVRMLGLScene.CreateHeadLight: TVRMLGLHeadLight;
-begin
-  { Our CreateHeadLightInstance makes sure that this is castable to
-    TVRMLGLHeadlight. }
-  Result := TVRMLGLHeadlight(inherited CreateHeadLight);
 end;
 
 function TVRMLGLScene.Headlight: TVRMLGLHeadlight;

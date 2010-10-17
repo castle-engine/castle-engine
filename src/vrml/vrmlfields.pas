@@ -259,10 +259,16 @@ type
       don't include other flags with this. }
     chFontStyle,
 
-    { HeadLight properties (on, and parameters) changed.
+    { HeadLight properties (color parameters and such, but not
+      anything affecting headligh "on" status) changed.
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this. }
-    chHeadLight,
+    chHeadLightProps,
+
+    { HeadLight on status changed.
+      Caller will analyze the scene to know what this implicates,
+      don't include other flags with this. }
+    chHeadLightOn,
 
     { Clip plane visible change (enabled or plane equation). }
     chClipPlane,
@@ -2459,7 +2465,8 @@ const
     'Shadow caster',
     'Generated texture update',
     'FontStyle',
-    'HeadLight',
+    'HeadLight properties',
+    'HeadLight on',
     'ClipPlane',
     'X3DDragSensorNode.enabled',
     'NavigationInfo',
