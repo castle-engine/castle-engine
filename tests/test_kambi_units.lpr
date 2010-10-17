@@ -40,12 +40,15 @@ uses
   TestShadowFields,
   TestGLVersion,
   TestURLUtils,
-  TestDDS {$ifdef TEXT_RUNNER},
-  { These require GLWindow initializing it's own window,
-    so they conflict with LCL windows. }
+  TestDDS
+  {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
+  { These require GLWindow initializing it's own window. So they
+    1. conflict with LCL windows (so only when TEXT_RUNNER)
+    2. are allowed only when window system (so not when NO_WINDOW_SYSTEM,
+       e.g. do not do them when running inside non-X ssh session or cron) }
   TestGLWindow,
   TestOpeningAndRendering3D
-  {$endif};
+  {$endif} {$endif};
 
 {var
   T: TTestVRMLNodesOptimizedProxy;}
