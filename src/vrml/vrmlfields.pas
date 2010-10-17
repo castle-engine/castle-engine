@@ -370,6 +370,9 @@ type
     FParentInterfaceDeclaration: TVRMLFileItem;
   protected
     procedure FieldOrEventAssignCommon(Source: TVRMLFieldOrEvent);
+    { Nice description for warnings and such.
+      Shows parent node type, name and field/event's name. }
+    function FullName: string;
   public
     constructor Create(AParentNode: TVRMLFileItem; const AName: string);
     destructor Destroy; override;
@@ -2642,8 +2645,7 @@ begin
   Result := NameForVersion(SaveProperties.VerMajor, SaveProperties.VerMinor);
 end;
 
-procedure TVRMLFieldOrEvent.FieldOrEventAssignCommon(
-  Source: TVRMLFieldOrEvent);
+procedure TVRMLFieldOrEvent.FieldOrEventAssignCommon(Source: TVRMLFieldOrEvent);
 begin
   FName := Source.Name;
 
@@ -2652,6 +2654,23 @@ begin
   FPositionInParent := Source.PositionInParent;
 
   FAlternativeNames := Source.FAlternativeNames;
+end;
+
+function TVRMLFieldOrEvent.FullName: string;
+begin
+  Result := '';
+
+  if ParentNode <> nil then
+  begin
+    Result := TVRMLNode(ParentNode).NodeTypeName;
+    if TVRMLNode(ParentNode).NodeName <> '' then
+      Result += '(' + TVRMLNode(ParentNode).NodeName + ')';
+    Result += '.';
+  end;
+
+  if Name <> '' then
+    Result += Name else
+    Result += '<not named field>';
 end;
 
 { TVRMLField ------------------------------------------------------------- }
@@ -3257,10 +3276,10 @@ const
 begin
   Inc(InvalidIndexWarnings);
   if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [Name, VRMLTypeName, Index, ACount])) else
+    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [FullName, VRMLTypeName, Index, ACount])) else
   if InvalidIndexWarnings = MaxInvalidIndexWarnings then
     VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
-      [Name, VRMLTypeName, InvalidIndexWarnings]));
+      [FullName, VRMLTypeName, InvalidIndexWarnings]));
 end;
 
 { simple helpful parsing functions ---------------------------------------- }
@@ -4287,7 +4306,7 @@ begin
       results (actually, Result would be filled with Nan values).
       VRML spec says that SFRotation should always specify a normalized vector. }
     Result := Pt;
-    VRMLWarning(vwSerious, 'SFRotation field specifies rotation around zero vector');
+    VRMLWarning(vwSerious, Format('SFRotation field (%s) specifies rotation around zero vector', [FullName]));
   end;
 end;
 
