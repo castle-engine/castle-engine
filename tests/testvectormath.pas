@@ -47,8 +47,6 @@ implementation
 
 uses KambiUtils, KambiStringUtils, KambiTimeUtils;
 
-{$I vectormathinlines.inc}
-
 const
   {$ifdef VECTOR_MATH_SPEED_TESTS}
   SPEED_TEST_1_CYCLES = 1000000;
