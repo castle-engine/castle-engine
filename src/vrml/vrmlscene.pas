@@ -4180,6 +4180,10 @@ procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
 
           SI.Current.TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
           SI.Current.Spatial := Value;
+          { prepare OctreeTriangles. Not really needed, but otherwise
+            shape's octrees would be updated (even on static scenes!)
+            when the model runs. }
+          SI.Current.OctreeTriangles;
         end;
 
     finally FreeAndNil(SI) end;
