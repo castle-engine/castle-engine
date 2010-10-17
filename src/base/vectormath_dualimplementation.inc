@@ -1333,29 +1333,14 @@ begin
   end;
 end;
 
-function TrySphereRayIntersection(out Intersection: TVector3;
-  const SphereCenter: TVector3; const SphereRadius: TScalar;
-  const Ray0, RayVector: TVector3): boolean;
+{ Solve intersection routine with a ray that resolved into a quadratic
+  equation. The solution is such T >= 0 that
+    A * T^2 + B * T + C = 0 }
+function TryRayIntersectionQuadraticEquation(out T: TScalar;
+  const A, B, C: TScalar): boolean;
 var
-  T, A, B, C, Delta: TScalar;
-  Ray0MinusCenter: TVector3;
+  Delta: TScalar;
 begin
-  { Intersection = Ray0 + RayVector * T,
-    Also Distance(Intersection, SphereCenter) = SphereRadius,
-    so Distance(Ray0 + RayVector * T, SphereCenter) = SphereRadius.
-
-    Expand this, and use to calculate T: we get a quadratic equation for T.
-    A * T^2 + B * T + C = 0. }
-  Ray0MinusCenter := Ray0 - SphereCenter;
-  A := Sqr(RayVector[0]) +
-       Sqr(RayVector[1]) +
-       Sqr(RayVector[2]);
-  B := 2 * RayVector[0] * Ray0MinusCenter[0] +
-       2 * RayVector[1] * Ray0MinusCenter[1] +
-       2 * RayVector[2] * Ray0MinusCenter[2];
-  C := Sqr(Ray0MinusCenter[0]) +
-       Sqr(Ray0MinusCenter[1]) +
-       Sqr(Ray0MinusCenter[2]) - Sqr(SphereRadius);
   Delta := Sqr(B) - 4 * A * C;
 
   if Delta < 0 then
@@ -1379,7 +1364,33 @@ begin
         Result := false; { two solutions, but both outside the ray }
     end;
   end;
+end;
 
+function TrySphereRayIntersection(out Intersection: TVector3;
+  const SphereCenter: TVector3; const SphereRadius: TScalar;
+  const Ray0, RayVector: TVector3): boolean;
+var
+  T, A, B, C: TScalar;
+  Ray0MinusCenter: TVector3;
+begin
+  { Intersection = Ray0 + RayVector * T,
+    Also Distance(Intersection, SphereCenter) = SphereRadius,
+    so Distance(Ray0 + RayVector * T, SphereCenter) = SphereRadius.
+
+    Expand this, and use to calculate T: we get a quadratic equation for T.
+    A * T^2 + B * T + C = 0. }
+  Ray0MinusCenter := Ray0 - SphereCenter;
+  A := Sqr(RayVector[0]) +
+       Sqr(RayVector[1]) +
+       Sqr(RayVector[2]);
+  B := 2 * RayVector[0] * Ray0MinusCenter[0] +
+       2 * RayVector[1] * Ray0MinusCenter[1] +
+       2 * RayVector[2] * Ray0MinusCenter[2];
+  C := Sqr(Ray0MinusCenter[0]) +
+       Sqr(Ray0MinusCenter[1]) +
+       Sqr(Ray0MinusCenter[2]) - Sqr(SphereRadius);
+
+  Result := TryRayIntersectionQuadraticEquation(T, A, B, C);
   if Result then
     Intersection := Ray0 + RayVector * T;
 end;
@@ -1388,6 +1399,9 @@ function TryCylinderRayIntersection(out Intersection: TVector3;
   const CylinderAxisOrigin, CylinderAxis: TVector3;
   const CylinderRadius: TScalar;
   const RayOrigin, RayDirection: TVector3): boolean;
+var
+  T, AA, BB, CC: TScalar;
+  X, Y, B: TVector3;
 begin
   { We know Intersection = RayOrigin + RayDirection * T.
     For cylinder, normalize CylinderAxis and then
@@ -1403,17 +1417,49 @@ begin
 
     Insert ray equation into cylinder equation, and solve for T. }
 
-{
   X := RayOrigin - CylinderAxisOrigin;
   Y := RayDirection;
-  Z := Normalized(CylinderAxis);
-}
+  B := Normalized(CylinderAxis);
 
-  { TODO }
-  Result := false;
+  { Now let A = X + Y * T, then VectorLen(A x B)^2 = CylinderRadius^2.
+    Solve for T. Expanding this by hand would be *real* pain,
+    so I used open-source maxima (http://maxima.sourceforge.net/):
+
+    display2d:false$
+    a0: x0 + y0 * t;
+    a1: x1 + y1 * t;
+    a2: x2 + y2 * t;
+    rsqr: (a0 * b1 - b0 * a1)^2 + (a1 * b2 - a2 * b1)^2 + (a2 * b0 + a0 * b2)^2;
+    expand (rsqr);
+
+    At this point I just took the maxima output, and grouped by
+    hand 30 sum items to get AA, BB, CC such that
+    AA * T^2 + BB * T + CC = 0. (I could probably let maxima do this also,
+    but was too lazy to read the docs :)
+
+    And CC gets additional "- CylinderRadius^2".
+  }
+
+  AA := Sqr(B[1])*Sqr(Y[2]) + Sqr(B[0])*Sqr(Y[2]) - 2*B[1]*B[2]*Y[1]*Y[2]
+    + 2*B[0]*B[2]*Y[0]*Y[2] + Sqr(B[2])*Sqr(Y[1]) + Sqr(B[0])*Sqr(Y[1])
+    - 2*B[0]*B[1]*Y[0]*Y[1] + Sqr(B[2])*Sqr(Y[0]) + Sqr(B[1])*Sqr(Y[0]);
+
+  BB := 2*Sqr(B[1])*X[2]*Y[2] + 2*Sqr(B[0])*X[2]*Y[2] - 2*B[1]*B[2]*X[1]*Y[2]
+      + 2*B[0]*B[2]*X[0]*Y[2] - 2*B[1]*B[2]*X[2]*Y[1] + 2*Sqr(B[2])*X[1]*Y[1]
+      + 2*Sqr(B[0])*X[1]*Y[1] - 2*B[0]*B[1]*X[0]*Y[1] + 2*B[0]*B[2]*X[2]*Y[0]
+      - 2*B[0]*B[1]*X[1]*Y[0] + 2*Sqr(B[2])*X[0]*Y[0] + 2*Sqr(B[1])*X[0]*Y[0];
+
+  CC := Sqr(B[1])*Sqr(X[2]) + Sqr(B[0])*Sqr(X[2]) - 2*B[1]*B[2]*X[1]*X[2]
+    + 2*B[0]*B[2]*X[0]*X[2] + Sqr(B[2])*Sqr(X[1]) + Sqr(B[0])*Sqr(X[1])
+    - 2*B[0]*B[1]*X[0]*X[1] + Sqr(B[2])*Sqr(X[0]) + Sqr(B[1])*Sqr(X[0])
+    - Sqr(CylinderRadius);
+
+  Result := TryRayIntersectionQuadraticEquation(T, AA, BB, CC);
+  if Result then
+    Intersection := RayOrigin + RayDirection * T;
 end;
 
-{ triangles ------------------------------------------------------------------ }
+{ triangles  ----------------------------------------------------------------- }
 
 function IsValidTriangle(const Tri: TTriangle3): boolean;
 begin
