@@ -567,6 +567,7 @@ type
     FShadowMapsPCF: TPercentageCloserFiltering;
     FShadowMapsVisualizeDepth: boolean;
     FShadowMapsDefaultSize: Cardinal;
+    ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -2479,9 +2480,13 @@ begin
   OwnsRootNode := AOwnsRootNode;
   ScheduledShadowMapsProcessing := true;
 
-  ScheduleChangedAll;
+  { We can't call UpdateHeadlightOnFromNavigationInfo here,
+    as NavigationInfoStack may contain now already freed nodes
+    (testcase: view3dscene anchor_test and click on key_sensor anchor).
+    So only schedule it. }
+  ScheduleHeadlightOnFromNavigationInfoInChangedAll := true;
 
-  UpdateHeadlightOnFromNavigationInfo;
+  ScheduleChangedAll;
 
   if AResetTime then
     ResetTimeAtLoad;
@@ -3028,6 +3033,12 @@ begin
     Note that clearing GeneratedTextures was already done at the beginning
     of ChangedAll (as part of BeforeNodesFree(true) call). }
   Shapes.EnumerateTextures(@GeneratedTextures.AddShapeTexture);
+
+  if ScheduleHeadlightOnFromNavigationInfoInChangedAll then
+  begin
+    ScheduleHeadlightOnFromNavigationInfoInChangedAll := false;
+    UpdateHeadlightOnFromNavigationInfo;
+  end;
 
   finally Dec(Dirty) end;
 end;
