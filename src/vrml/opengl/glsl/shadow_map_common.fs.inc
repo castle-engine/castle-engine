@@ -7,8 +7,10 @@
 '//#define PCF4_BILINEAR' + LineEnding + 
 '//#define PCF16' + LineEnding + 
 '' + LineEnding + 
-'/* This should match texture size in pixels, to make perfect PCF. */' + LineEnding + 
-'#define SIZE 1024.0' + LineEnding + 
+'/* Define texture size in pixels, to make perfect PCF.' + LineEnding + 
+'   Note: this is handled by the VRMLShadowMap unit, when including this shader,' + LineEnding + 
+'   automatically. */' + LineEnding + 
+'//#define SHADOW_MAP_SIZE 1024.0' + LineEnding + 
 '' + LineEnding + 
 'float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord)' + LineEnding + 
 '{' + LineEnding + 
@@ -25,10 +27,10 @@
 '' + LineEnding + 
 '#ifdef PCF4_BILINEAR' + LineEnding + 
 '' + LineEnding + 
-'  /* We have to scale up/down by texture SIZE to make the floor/fract' + LineEnding + 
+'  /* We have to scale up/down by texture SHADOW_MAP_SIZE to make the floor/fract' + LineEnding + 
 '     perform real bilinear filtering.' + LineEnding + 
 '     This also means that we have to handle xy and z separately. */' + LineEnding + 
-'  vec2 tc_full = SIZE * coord2;' + LineEnding + 
+'  vec2 tc_full = SHADOW_MAP_SIZE * coord2;' + LineEnding + 
 '  float z = shadowMapCoord.z / shadowMapCoord.w;' + LineEnding + 
 '' + LineEnding + 
 '  vec2 tc = floor(tc_full.xy);' + LineEnding + 
@@ -36,16 +38,16 @@
 '  vec2 f1 = vec2(1.0, 1.0) - f;' + LineEnding + 
 '' + LineEnding + 
 '  return (' + LineEnding + 
-'    shadow2D(shadowMap, vec3( tc.x        / SIZE,  tc.y        / SIZE, z)).r * f1.x * f1.y +' + LineEnding + 
-'    shadow2D(shadowMap, vec3( tc.x        / SIZE, (tc.y + 1.0) / SIZE, z)).r * f1.x *  f.y +' + LineEnding + 
-'    shadow2D(shadowMap, vec3((tc.x + 1.0) / SIZE,  tc.y        / SIZE, z)).r *  f.x * f1.y +' + LineEnding + 
-'    shadow2D(shadowMap, vec3((tc.x + 1.0) / SIZE, (tc.y + 1.0) / SIZE, z)).r *  f.x *  f.y' + LineEnding + 
+'    shadow2D(shadowMap, vec3( tc.x        / SHADOW_MAP_SIZE,  tc.y        / SHADOW_MAP_SIZE, z)).r * f1.x * f1.y +' + LineEnding + 
+'    shadow2D(shadowMap, vec3( tc.x        / SHADOW_MAP_SIZE, (tc.y + 1.0) / SHADOW_MAP_SIZE, z)).r * f1.x *  f.y +' + LineEnding + 
+'    shadow2D(shadowMap, vec3((tc.x + 1.0) / SHADOW_MAP_SIZE,  tc.y        / SHADOW_MAP_SIZE, z)).r *  f.x * f1.y +' + LineEnding + 
+'    shadow2D(shadowMap, vec3((tc.x + 1.0) / SHADOW_MAP_SIZE, (tc.y + 1.0) / SHADOW_MAP_SIZE, z)).r *  f.x *  f.y' + LineEnding + 
 '    ) / 2.0; /* TODO: why /2.0 instead of /4.0 needed? */' + LineEnding + 
 '' + LineEnding + 
 '#elif defined(PCF4)' + LineEnding + 
 '' + LineEnding + 
 '  /* PCF with 2x2 kernel */' + LineEnding + 
-'  float offset = shadowMapCoord.w / SIZE;' + LineEnding + 
+'  float offset = shadowMapCoord.w / SHADOW_MAP_SIZE;' + LineEnding + 
 '  return (' + LineEnding + 
 '    shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset, -offset, 0.0, 0.0)).r +' + LineEnding + 
 '    shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset,  offset, 0.0, 0.0)).r +' + LineEnding + 
@@ -55,7 +57,7 @@
 '' + LineEnding + 
 '#elif defined(PCF16)' + LineEnding + 
 '' + LineEnding + 
-'  float offset = shadowMapCoord.w / SIZE;' + LineEnding + 
+'  float offset = shadowMapCoord.w / SHADOW_MAP_SIZE;' + LineEnding + 
 '  return' + LineEnding + 
 '    (' + LineEnding + 
 '      shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +' + LineEnding + 

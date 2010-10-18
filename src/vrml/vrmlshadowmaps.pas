@@ -123,13 +123,16 @@ type
     function FindLight(Light: TNodeX3DLightNode): PLight;
 
     function CreateShadowMapShader(const VisualizeShadowMap: boolean;
-      const BaseTexCount: Cardinal): TNodeComposedShader;
+      const BaseTexCount: Cardinal; const ShadowMapSize: Cardinal): TNodeComposedShader;
 
     { Handle Appearance.shaders field for shadow maps.
-      Adds, replaces or removes shaders, based on Enabled state and whether
-      our shader is already there. }
+      Adds, replaces or removes shaders, based on Enable state and whether
+      our shader is already there.
+
+      ShadowMapSize is used only if Enable is @true. }
     procedure HandleShaders(Shaders: TMFNode;
-      const VisualizeShadowMap: boolean; const BaseTexCount: Cardinal);
+      const VisualizeShadowMap: boolean; const BaseTexCount: Cardinal;
+      const ShadowMapSize: Cardinal);
 
     procedure HandleShape(Shape: TVRMLShape);
 
@@ -217,7 +220,7 @@ begin
 end;
 
 function TDynLightArray.CreateShadowMapShader(const VisualizeShadowMap: boolean;
-  const BaseTexCount: Cardinal): TNodeComposedShader;
+  const BaseTexCount: Cardinal; const ShadowMapSize: Cardinal): TNodeComposedShader;
 const
   FragmentShader: array [boolean, 0..MaxBaseTextures] of string =
     ( ( {$I shadow_map_0.fs.inc},
@@ -239,6 +242,8 @@ var
   I: Integer;
   Part: TNodeShaderPartShadowMap;
 begin
+  Assert(ShadowMapSize > 0);
+
   Result := TNodeComposedShader.Create('', '');
   Result.NodeName := 'Shader_ShadowMap_' + IntToStr(BaseTexCount) + 'Textures' + NodeNameSuffix;
   Result.FdLanguage.Value := 'GLSL';
@@ -256,19 +261,22 @@ begin
   Part := TNodeShaderPartShadowMap.Create('', '');
   Part.FdType.Value := 'FRAGMENT';
   Part.FdUrl.Items.Count := 1;
-  Part.FdUrl.Items[0] := NL + PCFDefine[PCF] + NL + FragmentShaderCommon;
+  Part.FdUrl.Items[0] := PCFDefine[PCF] + NL +
+    '#define SHADOW_MAP_SIZE ' + IntToStr(ShadowMapSize) + NL +
+    FragmentShaderCommon;
   Part.VSMContents := VSMFragmentShaderCommon;
   Result.FdParts.Add(Part);
 end;
 
 procedure TDynLightArray.HandleShaders(Shaders: TMFNode;
-  const VisualizeShadowMap: boolean; const BaseTexCount: Cardinal);
+  const VisualizeShadowMap: boolean; const BaseTexCount: Cardinal;
+  const ShadowMapSize: Cardinal);
 begin
   if Enable then
   begin
     if ShadowMapShaders[VisualizeShadowMap, BaseTexCount] = nil then
       ShadowMapShaders[VisualizeShadowMap, BaseTexCount] :=
-        CreateShadowMapShader(VisualizeShadowMap, BaseTexCount);
+        CreateShadowMapShader(VisualizeShadowMap, BaseTexCount, ShadowMapSize);
 
     { If this exact shader node is already present (maybe we process
       the same shape more than once?), then do nothing.
@@ -484,6 +492,7 @@ var
     VisualizeShadowMap: boolean;
     Box: TBox3D;
     MinReceiverDistance, MaxReceiverDistance: Single;
+    ShadowMapSize: Cardinal;
   begin
     Light := FindLight(LightNode);
 
@@ -536,7 +545,20 @@ var
     VisualizeShadowMap := (Light^.ShadowMap <> nil) and
       (Light^.ShadowMap.FdCompareMode.Value = 'NONE');
 
-    HandleShaders(App.FdShaders, VisualizeShadowMap, TexCoordsCount);
+    { TODO: treatment of ShadowMapSize is very hacky here.
+      - We do not correct it to be power-of-2
+      - We do not correct it to be within OpenGL limits
+      (these two things are also not done currently by
+      TGLGeneratedShadowMap.PrepareCore, so this isn't critical problem anyway)
+      - We pass the ShadowMapSize, but if shader node for different
+        size was already prepared, it will be used.
+        So currently, this is correct only if all GeneratedShadowMap use
+        the same sizes. }
+    if Light^.ShadowMap <> nil then
+      ShadowMapSize := Max(Light^.ShadowMap.FdSize.Value, 1) else
+      ShadowMapSize := 0 { ShadowMapSize will not be used in this case };
+
+    HandleShaders(App.FdShaders, VisualizeShadowMap, TexCoordsCount, ShadowMapSize);
 
     Box := Shape.BoundingBox;
     if not IsEmptyBox3D(Box) then
