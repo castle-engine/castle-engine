@@ -129,7 +129,7 @@ type
       Adds, replaces or removes shaders, based on Enable state and whether
       our shader is already there.
 
-      ShadowMapSize is used only if Enable is @true. }
+      ShadowMapSize is used (and must be > 0) only if Enable is @true. }
     procedure HandleShaders(Shaders: TMFNode;
       const VisualizeShadowMap: boolean; const BaseTexCount: Cardinal;
       const ShadowMapSize: Cardinal);
