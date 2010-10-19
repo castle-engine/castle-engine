@@ -167,7 +167,7 @@ procedure Register;
 implementation
 
 uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, VectorMath,
-  KambiGLUtils, GLImages, KambiUtils;
+  KambiGLUtils, GLImages, KambiUtils, Math;
 
 procedure Register;
 begin
@@ -177,12 +177,11 @@ end;
 const
   { Our controls theme.
     These colors match somewhat our TGLMenu slider images. }
-  { Original TGLMenu inside color: (143, 213, 182); }
-  ColInsideUp: array[boolean] of TVector3Byte = ( (165, 245, 210), (169, 251, 216) );
-  ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (139, 207, 177) );
-  ColDarkFrame: TVector3Byte = (99, 99, 99);
-  ColLightFrame: TVector3Byte = (221, 221, 221);
-  ColText: TVector3Byte = (0, 0, 0);
+  ColInsideUp  : array[boolean] of TVector4Byte = ( (165, 245, 210, 255), (169, 251, 216, 255) );
+  ColInsideDown: array[boolean] of TVector4Byte = ( (126, 188, 161, 255), (139, 207, 177, 255) );
+  ColDarkFrame : TVector4Byte = ( 99,  99,  99, 255);
+  ColLightFrame: TVector4Byte = (221, 221, 221, 255);
+  ColText      : TVector4Byte = (  0,   0,   0, 255);
 
 { TKamGLButton ------------------------------------------------------------------ }
 
@@ -440,18 +439,27 @@ begin
 end;
 
 procedure TKamPanel.Draw;
+
+  function PanelCol(const V: TVector4Byte): TVector4Single;
+  const
+    Exp = 1.3;
+  begin
+    Result[0] := Power(V[0] / 255, Exp);
+    Result[1] := Power(V[1] / 255, Exp);
+    Result[2] := Power(V[2] / 255, Exp);
+    Result[3] := V[3] / 255;
+  end;
+
 begin
   if not Exists then Exit;
 
   glPushAttrib(GL_LIGHTING_BIT);
     glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
     glBegin(GL_QUADS);
-      glColorv(VectorPowerComponents(Vector3Single(ColInsideDown[false]), 1.3));
-//      glColorv(ColInsideDown[false]);
+      glColorv(PanelCol(ColInsideDown[false]));
       glVertex2i(Left        , Bottom);
       glVertex2i(Left + Width, Bottom);
-      glColorv(VectorPowerComponents(Vector3Single(ColInsideUp[false]), 1.3));
-//      glColorv(ColInsideUp[false]);
+      glColorv(PanelCol(ColInsideUp[false]));
       glVertex2i(Left + Width, Bottom + Height);
       glVertex2i(Left        , Bottom + Height);
     glEnd;
