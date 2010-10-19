@@ -4358,12 +4358,11 @@ begin
     doing "NavigationType := NavigationType" would not be NOOP. }
   if Value = GetNavigationType then Exit;
 
-  { set default values (for Walk camera and IgnoreAllInputs,
-    correspond to ntWalk),
+  { set default values (for Walk camera and IgnoreAllInputs),
     may be changed later by this method. This way every setting
     of SetNavigationType sets them, regardless of value, which seems
     consistent. }
-  Walk.Gravity := true;
+  Walk.Gravity := false;
   Walk.PreferGravityUpForRotations := true;
   Walk.PreferGravityUpForMoving := true;
   IgnoreAllInputs := false;
@@ -4373,12 +4372,15 @@ begin
   { set NavigationClass, and eventually adjust Walk properties }
   case Value of
     ntExamine: NavigationClass := ncExamine;
-    ntWalk   : NavigationClass := ncWalk;
+    ntWalk:
+      begin
+        NavigationClass := ncWalk;
+        Walk.Gravity := true;
+      end;
     ntFly:
       begin
         NavigationClass := ncWalk;
         Walk.PreferGravityUpForMoving := false;
-        Walk.Gravity := false;
       end;
     ntNone:
       begin
