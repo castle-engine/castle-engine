@@ -351,12 +351,15 @@ Scene manager / controls / better Lazarus integration:
 
 * TVRMLScene (no GL) on a Lazarus palette? Confusing with TVRMLGLScene, but is also useful.
 ------------------------------------------------------------------------------
-- implement more pointing device sensors
-  (will probably be finished for 3.7.0)
-
 - basic networking support
 (I want to have full coverage of X3D "Interactive" with some release).
 
+- Improve EditableTransform proto:
+
+  A 2nd plane sensor would be useful? At some angles, plane sensor behaves bad.
+
+  Rot sensor - on teapot, even initial very small drag rotates it too much,
+  see kambi_vrml_test_suite/x3d/cubemap_generated_recursive.x3dv
 ------------------------------------------------------------------------------
 view3dscene 4.0:
 - JavaScript (http://besen.sourceforge.net/ or SpiderMonkey), or Python/Lua?
