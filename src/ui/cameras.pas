@@ -1488,7 +1488,8 @@ type
     { @groupEnd }
   end;
 
-  TCameraNavigationType = (ntExamine, ntWalk);
+  TCameraNavigationClass = (ncExamine, ncWalk);
+  TCameraNavigationType = (ntExamine, ntWalk, ntFly, ntNone);
 
   { Camera that allows any kind of navigation (Examine, Walk).
     You can switch between navigation types, while preserving the camera view.
@@ -1511,7 +1512,9 @@ type
   private
     FExamine: TExamineCamera;
     FWalk: TWalkCamera;
-    FNavigationType: TCameraNavigationType;
+    FNavigationClass: TCameraNavigationClass;
+    procedure SetNavigationClass(const Value: TCameraNavigationClass);
+    function GetNavigationType: TCameraNavigationType;
     procedure SetNavigationType(const Value: TCameraNavigationType);
   protected
     procedure SetIgnoreAllInputs(const Value: boolean); override;
@@ -1524,7 +1527,7 @@ type
 
     property Examine: TExamineCamera read FExamine;
     property Walk: TWalkCamera read FWalk;
-    { Current (determined by NavigationType) internal camera,
+    { Current (determined by NavigationClass) internal camera,
       that is either @link(Examine) or @link(Walk). }
     function Current: TCamera;
 
@@ -1557,8 +1560,38 @@ type
 
     function PreventsComfortableDragging: boolean; override;
   published
+    { Choose navigation method by choosing particular camera class.
+      The names of this correspond to camera classes (TExamineCamera,
+      TWalkCamera). }
+    property NavigationClass: TCameraNavigationClass
+      read FNavigationClass write SetNavigationClass default ncExamine;
+
+    { Choose navigation method by choosing particular camera class,
+      and gravity and some other properties.
+
+      This is a shortcut property for reading / writing
+      a couple of other properties. When you set this, a couple of other
+      properties are set. When you read this, we determine a sensible
+      answer from a couple of other properties values.
+
+      Setting this sets:
+      @unorderedList(
+        @itemSpacing compact
+        @item NavigationClass,
+        @item IgnoreAllInputs,
+        @item Walk.Gravity (see TWalkCamera.Gravity),
+        @item Walk.PreferGravityUpForRotations (see TWalkCamera.PreferGravityUpForRotations),
+        @item Walk.PreferGravityUpForMoving (see TWalkCamera.PreferGravityUpForMoving)
+      )
+
+      If you write to NavigationType, then you @italic(should not) touch the
+      above properties directly. That's because not every combination of
+      above properties correspond to some sensible value of NavigationType.
+      If you directly set some weird configuration, reading NavigationType will
+      try it's best to determine the closest TCameraNavigationType value
+      that is similar to your configuration. }
     property NavigationType: TCameraNavigationType
-      read FNavigationType write SetNavigationType default ntExamine;
+      read GetNavigationType write SetNavigationType default ntExamine;
   end;
 
 { See TWalkCamera.CorrectCameraPreferredHeight.
@@ -4128,7 +4161,7 @@ end;
 
 function TUniversalCamera.Current: TCamera;
 begin
-  if FNavigationType = ntExamine then
+  if FNavigationClass = ncExamine then
     Result := FExamine else
     Result := FWalk;
 end;
@@ -4293,17 +4326,66 @@ begin
     AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
 end;
 
-procedure TUniversalCamera.SetNavigationType(const Value: TCameraNavigationType);
+procedure TUniversalCamera.SetNavigationClass(const Value: TCameraNavigationClass);
 var
   Position, Direction, Up: TVector3Single;
 begin
-  if FNavigationType <> Value then
+  if FNavigationClass <> Value then
   begin
     Current.GetView(Position, Direction, Up);
-    FNavigationType := Value;
+    FNavigationClass := Value;
     Current.SetView(Position, Direction, Up);
     { our Cursor should always reflect Current.Cursor }
     Cursor := Current.Cursor;
+  end;
+end;
+
+function TUniversalCamera.GetNavigationType: TCameraNavigationType;
+begin
+  if IgnoreAllInputs then
+    Result := ntNone else
+  if NavigationClass = ncExamine then
+    Result := ntExamine else
+  if Walk.Gravity then
+    Result := ntWalk else
+    Result := ntFly;
+end;
+
+procedure TUniversalCamera.SetNavigationType(const Value: TCameraNavigationType);
+begin
+  { This is not a pure optimization in this case.
+    If you set some weird values, then (without this check)
+    doing "NavigationType := NavigationType" would not be NOOP. }
+  if Value = GetNavigationType then Exit;
+
+  { set default values (for Walk camera and IgnoreAllInputs,
+    correspond to ntWalk),
+    may be changed later by this method. This way every setting
+    of SetNavigationType sets them, regardless of value, which seems
+    consistent. }
+  Walk.Gravity := true;
+  Walk.PreferGravityUpForRotations := true;
+  Walk.PreferGravityUpForMoving := true;
+  IgnoreAllInputs := false;
+
+  { This follows the same logic as TVRMLScene.CameraFromNavigationInfo }
+
+  { set NavigationClass, and eventually adjust Walk properties }
+  case Value of
+    ntExamine: NavigationClass := ncExamine;
+    ntWalk   : NavigationClass := ncWalk;
+    ntFly:
+      begin
+        NavigationClass := ncWalk;
+        Walk.PreferGravityUpForMoving := false;
+        Walk.Gravity := false;
+      end;
+    ntNone:
+      begin
+        NavigationClass := ncWalk;
+        IgnoreAllInputs := true;
+      end;
+    else raise EInternalError.Create('TUniversalCamera.SetNavigationType: Value?');
   end;
 end;
 

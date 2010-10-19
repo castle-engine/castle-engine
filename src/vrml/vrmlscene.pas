@@ -5943,7 +5943,7 @@ var
     if NavigationType = 'WALK' then
     begin
       NavigationTypeInitialized := true;
-      if Universal <> nil then Universal.NavigationType := ntWalk;
+      if Universal <> nil then Universal.NavigationClass := ncWalk;
       if Walk <> nil then Walk.PreferGravityUpForRotations := true;
       if Walk <> nil then Walk.PreferGravityUpForMoving := true;
       if Walk <> nil then Walk.Gravity := true;
@@ -5951,7 +5951,7 @@ var
     if NavigationType = 'FLY' then
     begin
       NavigationTypeInitialized := true;
-      if Universal <> nil then Universal.NavigationType := ntWalk;
+      if Universal <> nil then Universal.NavigationClass := ncWalk;
       if Walk <> nil then Walk.PreferGravityUpForRotations := true;
       if Walk <> nil then Walk.PreferGravityUpForMoving := false;
       if Walk <> nil then Walk.Gravity := false;
@@ -5966,7 +5966,7 @@ var
       if NavigationType = 'LOOKAT' then
         VRMLWarning(vwIgnorable, 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       NavigationTypeInitialized := true;
-      if Universal <> nil then Universal.NavigationType := ntExamine;
+      if Universal <> nil then Universal.NavigationClass := ncExamine;
     end else
     if NavigationType = 'ANY' then
     begin
@@ -6004,7 +6004,7 @@ begin
 
   { Reset Camera properties, this way InitializeNavigationType may
     assume these are already set. }
-  if Universal <> nil then Universal.NavigationType := ntWalk;
+  if Universal <> nil then Universal.NavigationClass := ncWalk;
   if Walk <> nil then Walk.PreferGravityUpForRotations := true;
   if Walk <> nil then Walk.PreferGravityUpForMoving := true;
   if Walk <> nil then Walk.Gravity := false;
