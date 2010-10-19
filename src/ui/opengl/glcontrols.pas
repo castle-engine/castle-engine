@@ -43,6 +43,7 @@ type
     FGLImage: TGLuint;
     FToggle: boolean;
     ClickStarted: boolean;
+    FOpacity: Single;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     { Calculate TextWidth, TextHeightBase and call UpdateSize. }
@@ -101,6 +102,11 @@ type
       The pressed state is automatically managed then to visualize
       user clicks. You can read this property, but you cannot set it. }
     property Pressed: boolean read FPressed write SetPressed;
+
+    { Opacity (1 - transparency) with which control is drawn.
+      When this is < 1, we draw control with nice blending.
+      Make sure you have some background control underneath in this case. }
+    property Opacity: Single read FOpacity write FOpacity default 1.0;
   end;
 
   { Panel inside OpenGL context.
@@ -110,13 +116,20 @@ type
   private
     FWidth: Cardinal;
     FHeight: Cardinal;
+    FOpacity: Single;
   public
+    constructor Create(AOwner: TComponent); override;
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
   published
     property Width: Cardinal read FWidth write FWidth default 0;
     property Height: Cardinal read FHeight write FHeight default 0;
+
+    { Opacity (1 - transparency) with which control is drawn.
+      When this is < 1, we draw control with nice blending.
+      Make sure you have some background control underneath in this case. }
+    property Opacity: Single read FOpacity write FOpacity default 1.0;
   end;
 
   { Image control inside OpenGL context.
@@ -177,11 +190,22 @@ end;
 const
   { Our controls theme.
     These colors match somewhat our TGLMenu slider images. }
-  ColInsideUp  : array[boolean] of TVector4Byte = ( (165, 245, 210, 255), (169, 251, 216, 255) );
-  ColInsideDown: array[boolean] of TVector4Byte = ( (126, 188, 161, 255), (139, 207, 177, 255) );
-  ColDarkFrame : TVector4Byte = ( 99,  99,  99, 255);
-  ColLightFrame: TVector4Byte = (221, 221, 221, 255);
-  ColText      : TVector4Byte = (  0,   0,   0, 255);
+  ColInsideUp  : array[boolean] of TVector3Byte = ( (165, 245, 210), (169, 251, 216) );
+  ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (139, 207, 177) );
+  ColDarkFrame : TVector3Byte = ( 99,  99,  99);
+  ColLightFrame: TVector3Byte = (221, 221, 221);
+  ColText      : TVector3Byte = (  0,   0,   0);
+
+{ Call glColor, taking Opacity as separate Single argument }
+procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
+begin
+  glColor4f(Color[0], Color[1], Color[2], Opacity);
+end;
+
+procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
+begin
+  glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
+end;
 
 { TKamGLButton ------------------------------------------------------------------ }
 
@@ -192,6 +216,7 @@ constructor TKamGLButton.Create(AOwner: TComponent);
 begin
   inherited;
   FAutoSize := true;
+  FOpacity := 1;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
@@ -213,12 +238,16 @@ procedure TKamGLButton.Draw;
 
   procedure DrawFrame(const Level: Cardinal; const Inset: boolean);
   begin
-    if Inset then glColorv(ColLightFrame) else glColorv(ColDarkFrame);
+    if Inset then
+      glColorOpacity(ColLightFrame, Opacity) else
+      glColorOpacity(ColDarkFrame, Opacity);
     glVertex2i( Level + Left            ,  Level + Bottom);
     glVertex2i(-Level + Left + Width - 1,  Level + Bottom);
     glVertex2i(-Level + Left + Width - 1,  Level + Bottom);
     glVertex2i(-Level + Left + Width - 1, -Level + Bottom + Height - 1);
-    if Inset then glColorv(ColDarkFrame) else glColorv(ColLightFrame);
+    if Inset then
+      glColorOpacity(ColDarkFrame, Opacity) else
+      glColorOpacity(ColLightFrame, Opacity);
     glVertex2i( Level + Left            ,  Level + Bottom + 1);
     glVertex2i( Level + Left            , -Level + Bottom + Height - 1);
     glVertex2i( Level + Left            , -Level + Bottom + Height - 1);
@@ -230,13 +259,20 @@ var
 begin
   if not Exists then Exit;
 
+  if Opacity < 1 then
+  begin
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+  end;
+
   glPushAttrib(GL_LIGHTING_BIT);
     glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
     glBegin(GL_QUADS);
-      glColorv(ColInsideDown[Focused and not Pressed]);
+      glColorOpacity(ColInsideDown[Focused and not Pressed], Opacity);
       glVertex2i(Left        , Bottom);
       glVertex2i(Left + Width, Bottom);
-      glColorv(ColInsideUp[Focused and not Pressed]);
+      glColorOpacity(ColInsideUp[Focused and not Pressed], Opacity);
       glVertex2i(Left + Width, Bottom + Height);
       glVertex2i(Left        , Bottom + Height);
     glEnd;
@@ -246,7 +282,7 @@ begin
       DrawFrame(1, Pressed);
     glEnd;
 
-    glColorv(ColText);
+    glColorOpacity(ColText, Opacity);
     if (FImage <> nil) and (FGLImage <> 0) then
       TextLeft := Left +
         (Width + FImage.Width + ButtonCaptionImageMargin - TextWidth) div 2 else
@@ -269,6 +305,9 @@ begin
     if FImage.HasAlpha then
       glPopAttrib;
   end;
+
+  if Opacity < 1 then
+    glPopAttrib;
 end;
 
 function TKamGLButton.PositionInside(const X, Y: Integer): boolean;
@@ -431,6 +470,12 @@ end;
 
 { TKamPanel ------------------------------------------------------------------ }
 
+constructor TKamPanel.Create(AOwner: TComponent);
+begin
+  inherited;
+  FOpacity := 1;
+end;
+
 function TKamPanel.DrawStyle: TUIControlDrawStyle;
 begin
   if Exists then
@@ -440,30 +485,39 @@ end;
 
 procedure TKamPanel.Draw;
 
-  function PanelCol(const V: TVector4Byte): TVector4Single;
+  function PanelCol(const V: TVector3Byte): TVector3Single;
   const
     Exp = 1.3;
   begin
     Result[0] := Power(V[0] / 255, Exp);
     Result[1] := Power(V[1] / 255, Exp);
     Result[2] := Power(V[2] / 255, Exp);
-    Result[3] := V[3] / 255;
   end;
 
 begin
   if not Exists then Exit;
 
+  if Opacity < 1 then
+  begin
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+  end;
+
   glPushAttrib(GL_LIGHTING_BIT);
     glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
     glBegin(GL_QUADS);
-      glColorv(PanelCol(ColInsideDown[false]));
+      glColorOpacity(PanelCol(ColInsideDown[false]), Opacity);
       glVertex2i(Left        , Bottom);
       glVertex2i(Left + Width, Bottom);
-      glColorv(PanelCol(ColInsideUp[false]));
+      glColorOpacity(PanelCol(ColInsideUp[false]), Opacity);
       glVertex2i(Left + Width, Bottom + Height);
       glVertex2i(Left        , Bottom + Height);
     glEnd;
   glPopAttrib;
+
+  if Opacity < 1 then
+    glPopAttrib;
 end;
 
 function TKamPanel.PositionInside(const X, Y: Integer): boolean;
