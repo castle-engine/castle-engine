@@ -37,10 +37,12 @@ type
     FCaption: string;
     FAutoSize: boolean;
     TextWidth, TextHeightBase: Cardinal;
-    Pressed: boolean;
+    FPressed: boolean;
     FOwnsImage: boolean;
     FImage: TImage;
     FGLImage: TGLuint;
+    FToggle: boolean;
+    ClickStarted: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     { Calculate TextWidth, TextHeightBase and call UpdateSize. }
@@ -49,6 +51,7 @@ type
       This depends on Caption, AutoSize, Font availability. }
     procedure UpdateSize;
     procedure SetImage(const Value: TImage);
+    procedure SetPressed(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -84,6 +87,20 @@ type
 
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
     property Caption: string read FCaption write SetCaption;
+
+    { Can the button be permanently pressed. Good for making a button
+      behave like a checkbox, that is indicate a boolean state.
+      When @link(Toggle) is @true, you can set the @link(Pressed) property,
+      and the clicks are visualized a little different. }
+    property Toggle: boolean read FToggle write FToggle;
+
+    { Is the button pressed down. If @link(Toggle) is @true,
+      you can read and write this property to set the pressed state.
+
+      When not @link(Toggle), this property isn't really useful to you.
+      The pressed state is automatically managed then to visualize
+      user clicks. You can read this property, but you cannot set it. }
+    property Pressed: boolean read FPressed write SetPressed;
   end;
 
   { Simple control that displays an image.
@@ -268,7 +285,8 @@ begin
   if Result or (not Exists) then Exit;
 
   Result := ExclusiveEvents;
-  Pressed := true;
+  if not Toggle then FPressed := true;
+  ClickStarted := true;
   { We base our Draw on Pressed value. }
   VisibleChange;
 end;
@@ -278,10 +296,12 @@ begin
   Result := inherited;
   if Result or (not Exists) then Exit;
 
-  if Pressed then
+  if ClickStarted then
   begin
     Result := ExclusiveEvents;
-    Pressed := false;
+
+    if not Toggle then FPressed := false;
+    ClickStarted := false;
     { We base our Draw on Pressed value. }
     VisibleChange;
 
@@ -370,12 +390,26 @@ begin
   if Value <> Focused then
   begin
     if not Value then
-      Pressed := false;
+    begin
+      if not Toggle then FPressed := false;
+      ClickStarted := false;
+    end;
+
     { We base our Draw on Pressed and Focused value. }
     VisibleChange;
   end;
 
   inherited;
+end;
+
+procedure TKamGLButton.SetPressed(const Value: boolean);
+begin
+  if FPressed <> Value then
+  begin
+    if not Toggle then
+      raise Exception.Create('You cannot modify TKamGLButton.Pressed value when Toggle is false');
+    FPressed := Value;
+  end;
 end;
 
 { TKamGLImage ---------------------------------------------------------------- }
