@@ -1339,7 +1339,7 @@ end;
 function TryRayIntersectionQuadraticEquation(out T: TScalar;
   const A, B, C: TScalar): boolean;
 var
-  Delta: TScalar;
+  Delta, T1, T2: TScalar;
 begin
   Delta := Sqr(B) - 4 * A * C;
 
@@ -1351,18 +1351,24 @@ begin
     Result := T >= 0;
   end else
   begin
-    Result := true;
     Delta := Sqrt(Delta);
 
     { There are two solutions, choose closest to Ray0 (smallest)
       but >= 0 (the one < 0 does not fall on ray). }
-    T :=  (-B - Delta) / (2 * A);
-    if T < 0 then
+    T1 := (-B - Delta) / (2 * A);
+    T2 := (-B + Delta) / (2 * A);
+    OrderUp(T1, T2);
+    if T1 >= 0 then
     begin
-      T :=  (-B + Delta) / (2 * A);
-      if T < 0 then
-        Result := false; { two solutions, but both outside the ray }
-    end;
+      T := T1;
+      Result := true;
+    end else
+    if T2 >= 0 then
+    begin
+      T := T2;
+      Result := true;
+    end else
+      Result := false;
   end;
 end;
 
