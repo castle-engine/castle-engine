@@ -21,7 +21,7 @@ interface
 uses UIControls, OpenGLFonts, KeysMouse, Classes, Images, GL;
 
 type
-  { Button drawn inside OpenGL context.
+  { Button inside OpenGL context.
 
     This is TUIControl descendant, so to use it just add it to
     the TGLUIWindow.Controls or TKamOpenGLControl.Controls list.
@@ -103,7 +103,23 @@ type
     property Pressed: boolean read FPressed write SetPressed;
   end;
 
-  { Simple control that displays an image.
+  { Panel inside OpenGL context.
+    Use as a comfortable (and with matching colors) background
+    for other controls like buttons and such. }
+  TKamPanel = class(TUIControlPos)
+  private
+    FWidth: Cardinal;
+    FHeight: Cardinal;
+  public
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw; override;
+    function PositionInside(const X, Y: Integer): boolean; override;
+  published
+    property Width: Cardinal read FWidth write FWidth default 0;
+    property Height: Cardinal read FHeight write FHeight default 0;
+  end;
+
+  { Image control inside OpenGL context.
     Size is automatically adjusted to the image size.
     You should set TKamGLImage.Left, TKamGLImage.Bottom properties,
     and load your image by setting TKamGLImage.FileName property. }
@@ -158,6 +174,16 @@ begin
   RegisterComponents('Kambi', [TKamGLButton, TKamGLImage]);
 end;
 
+const
+  { Our controls theme.
+    These colors match somewhat our TGLMenu slider images. }
+  { Original TGLMenu inside color: (143, 213, 182); }
+  ColInsideUp: array[boolean] of TVector3Byte = ( (165, 245, 210), (169, 251, 216) );
+  ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (139, 207, 177) );
+  ColDarkFrame: TVector3Byte = (99, 99, 99);
+  ColLightFrame: TVector3Byte = (221, 221, 221);
+  ColText: TVector3Byte = (0, 0, 0);
+
 { TKamGLButton ------------------------------------------------------------------ }
 
 const
@@ -185,14 +211,6 @@ begin
 end;
 
 procedure TKamGLButton.Draw;
-const
-  { These colors match somewhat our TGLMenu slider images }
-  { Original TGLMenu inside color: (143, 213, 182); }
-  ColInsideUp: array[boolean] of TVector3Byte = ( (165, 245, 210), (169, 251, 216) );
-  ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (139, 207, 177) );
-  ColDarkFrame: TVector3Byte = (99, 99, 99);
-  ColLightFrame: TVector3Byte = (221, 221, 221);
-  ColText: TVector3Byte = (0, 0, 0);
 
   procedure DrawFrame(const Level: Cardinal; const Inset: boolean);
   begin
@@ -410,6 +428,43 @@ begin
       raise Exception.Create('You cannot modify TKamGLButton.Pressed value when Toggle is false');
     FPressed := Value;
   end;
+end;
+
+{ TKamPanel ------------------------------------------------------------------ }
+
+function TKamPanel.DrawStyle: TUIControlDrawStyle;
+begin
+  if Exists then
+    Result := ds2D else
+    Result := dsNone;
+end;
+
+procedure TKamPanel.Draw;
+begin
+  if not Exists then Exit;
+
+  glPushAttrib(GL_LIGHTING_BIT);
+    glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
+    glBegin(GL_QUADS);
+      glColorv(VectorPowerComponents(Vector3Single(ColInsideDown[false]), 1.3));
+//      glColorv(ColInsideDown[false]);
+      glVertex2i(Left        , Bottom);
+      glVertex2i(Left + Width, Bottom);
+      glColorv(VectorPowerComponents(Vector3Single(ColInsideUp[false]), 1.3));
+//      glColorv(ColInsideUp[false]);
+      glVertex2i(Left + Width, Bottom + Height);
+      glVertex2i(Left        , Bottom + Height);
+    glEnd;
+  glPopAttrib;
+end;
+
+function TKamPanel.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := Exists and
+    (X >= Left) and
+    (X  < Left + Width) and
+    (ContainerHeight - Y >= Bottom) and
+    (ContainerHeight - Y  < Bottom + Height);
 end;
 
 { TKamGLImage ---------------------------------------------------------------- }
