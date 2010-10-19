@@ -296,7 +296,11 @@ begin
     if FImage.HasAlpha then
     begin
       glPushAttrib(GL_COLOR_BUFFER_BIT);
-        glAlphaFunc(GL_GEQUAL, 0.5); // saved by GL_COLOR_BUFFER_BIT
+        { Maybe make 0.1 below configurable?
+          Note: TVRMLOpenGLRenderer has limit 0.5 instead.
+          We use 0.1, useful for images exported with smooth alpha,
+          like view3dscene examine / walk / fly images. }
+        glAlphaFunc(GL_GEQUAL, 0.1); // saved by GL_COLOR_BUFFER_BIT
         glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
     end;
     glRasterPos2i(TextLeft - FImage.Width - ButtonCaptionImageMargin,
