@@ -44,6 +44,8 @@ type
     FToggle: boolean;
     ClickStarted: boolean;
     FOpacity: Single;
+    FMinImageWidth: Cardinal;
+    FMinImageHeight: Cardinal;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -73,6 +75,15 @@ type
     property Image: TImage read FImage write SetImage;
     { Should we free the @link(Image) when you set another one or at destructor. }
     property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
+
+    { Auto-size routines (see @link(AutoSize)) may treat the image
+      like always having at least these minimal sizes.
+      Even if the @linki(Image) is empty (@nil).
+      This is useful when you have a row of buttons (typical for toolbar),
+      and you want them to have the same height, and their captions
+      to be displayed at the same level, regardless of their images sizes. }
+    property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
+    property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
   published
     property Width: Cardinal read FWidth write FWidth default 0;
     property Height: Cardinal read FHeight write FHeight default 0;
@@ -448,15 +459,31 @@ procedure TKamGLButton.UpdateSize;
 const
   HorizontalMargin = 10;
   VerticalMargin = 10;
+var
+  ImgSize: Cardinal;
 begin
   if AutoSize then
   begin
     if AutoSizeWidth then Width := TextWidth + HorizontalMargin * 2;
     if AutoSizeHeight then Height := TextHeightBase + VerticalMargin * 2;
-    if FImage <> nil then
+    if (FImage <> nil) or
+       (MinImageWidth <> 0) or
+       (MinImageHeight <> 0) then
     begin
-      if AutoSizeWidth then Width := Width + FImage.Width + ButtonCaptionImageMargin;
-      if AutoSizeHeight then Height := Max(Height, FImage.Height + VerticalMargin * 2);
+      if AutoSizeWidth then
+      begin
+        if FImage <> nil then
+          ImgSize := Max(FImage.Width, MinImageWidth) else
+          ImgSize := MinImageWidth;
+        Width := Width + ImgSize + ButtonCaptionImageMargin;
+      end;
+      if AutoSizeHeight then
+      begin
+        if FImage <> nil then
+          ImgSize := Max(FImage.Height, MinImageHeight) else
+          ImgSize := MinImageHeight;
+        Height := Max(Height, ImgSize + VerticalMargin * 2);
+      end;
     end;
   end;
 end;
