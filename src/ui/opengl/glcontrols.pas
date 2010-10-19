@@ -35,7 +35,7 @@ type
     FHeight: Cardinal;
     FOnClick: TNotifyEvent;
     FCaption: string;
-    FAutoSize: boolean;
+    FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
     TextWidth, TextHeightBase: Cardinal;
     FPressed: boolean;
     FOwnsImage: boolean;
@@ -46,10 +46,12 @@ type
     FOpacity: Single;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
+    procedure SetAutoSizeWidth(const Value: boolean);
+    procedure SetAutoSizeHeight(const Value: boolean);
     { Calculate TextWidth, TextHeightBase and call UpdateSize. }
     procedure UpdateTextSize;
     { If AutoSize, update Width, Height.
-      This depends on Caption, AutoSize, Font availability. }
+      This depends on Caption, AutoSize*, Font availability. }
     procedure UpdateSize;
     procedure SetImage(const Value: TImage);
     procedure SetPressed(const Value: boolean);
@@ -76,15 +78,25 @@ type
     property Height: Cardinal read FHeight write FHeight default 0;
 
     { When AutoSize is @true (the default) then Width/Height are automatically
-      adjusted when you change the Caption and @link(Image). They take into account
+      adjusted when you change the Caption and @link(Image).
+      They take into account
       Caption width/height with current font, @link(Image) width/height,
       and add some margin to make it look good.
+
+      To be more precise, Width is adjusted only when AutoSize and AutoSizeWidth.
+      And Height is adjusted only when AutoSize and AutoSizeHeight.
+      This way you can turn off auto-sizing in only one dimension if you
+      want (and when you don't need such flexibility, leave
+      AutoSizeWidth = AutoSizeHeight = @true and control both by simple
+      AutoSize).
 
       Note that this adjustment happens only when OpenGL context is initialized
       (because only then we actually know the font used).
       So don't depend on Width/Height values calculated correctly before
       OpenGL context is ready. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
+    property AutoSizeWidth: boolean read FAutoSizeWidth write SetAutoSizeWidth default true;
+    property AutoSizeHeight: boolean read FAutoSizeHeight write SetAutoSizeHeight default true;
 
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
     property Caption: string read FCaption write SetCaption;
@@ -216,6 +228,8 @@ constructor TKamGLButton.Create(AOwner: TComponent);
 begin
   inherited;
   FAutoSize := true;
+  FAutoSizeWidth := true;
+  FAutoSizeHeight := true;
   FOpacity := 1;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
@@ -402,6 +416,24 @@ begin
   end;
 end;
 
+procedure TKamGLButton.SetAutoSizeWidth(const Value: boolean);
+begin
+  if Value <> FAutoSizeWidth then
+  begin
+    FAutoSizeWidth := Value;
+    UpdateTextSize;
+  end;
+end;
+
+procedure TKamGLButton.SetAutoSizeHeight(const Value: boolean);
+begin
+  if Value <> FAutoSizeHeight then
+  begin
+    FAutoSizeHeight := Value;
+    UpdateTextSize;
+  end;
+end;
+
 procedure TKamGLButton.UpdateTextSize;
 begin
   if Font <> nil then
@@ -419,12 +451,12 @@ const
 begin
   if AutoSize then
   begin
-    Width := TextWidth + HorizontalMargin * 2;
-    Height := TextHeightBase + VerticalMargin * 2;
+    if AutoSizeWidth then Width := TextWidth + HorizontalMargin * 2;
+    if AutoSizeHeight then Height := TextHeightBase + VerticalMargin * 2;
     if FImage <> nil then
     begin
-      Width := Width + FImage.Width + ButtonCaptionImageMargin;
-      Height := Max(Height, FImage.Height + VerticalMargin * 2);
+      if AutoSizeWidth then Width := Width + FImage.Width + ButtonCaptionImageMargin;
+      if AutoSizeHeight then Height := Max(Height, FImage.Height + VerticalMargin * 2);
     end;
   end;
 end;
