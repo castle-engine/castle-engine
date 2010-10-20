@@ -18,7 +18,7 @@
 
 { If defined, then the 3D world will contain a translated TVRMLGLAnimation
   with a dinosaur. It's most suitable when as the main scene you load
-  models/castle_y_up.x3dv, then you get a setup similar to scene_manager_demos.
+  models/bridge_final.x3dv, then you get a setup similar to scene_manager_demos.
   This shows that animated TVRMLGLAnimation works fully with mirrors
   by GeneratedCubeMapTexture, also in custom viewports. }
 { $define ADD_GL_ANIMATION}
@@ -343,7 +343,7 @@ begin
 
   { initialize Animation }
   Animation := TVRMLGLAnimation.Create(SceneManager);
-  Animation.LoadFromFile('../../../kambi_vrml_test_suite/kanim/raptor.kanim', false, true);
+  Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   Translation.Child := Animation;
   {$endif ADD_GL_ANIMATION}

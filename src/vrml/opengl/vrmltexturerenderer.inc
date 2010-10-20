@@ -817,7 +817,7 @@ begin
     *after* old nodes have been already freed.)
 
     Accessing here TextureNode.FdTexture.Count e.g. crashes on
-    multiple_viewports: open models/castle_y_up.x3dv, then open
+    multiple_viewports: open models/bridge_final.x3dv, then open
     models/boxes.x3dv. (Note that multiple_viewports loads new scene
     by simple Scene.Load.)
 

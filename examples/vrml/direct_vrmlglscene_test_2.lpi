@@ -11,6 +11,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -26,7 +27,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="models/castle_y_up.x3dv"/>
+        <CommandLineParams Value="models/bridge_final.x3dv"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -42,10 +43,19 @@
       <Unit0>
         <Filename Value="direct_vrmlglscene_test_2.lpr"/>
         <IsPartOfProject Value="True"/>
+        <CursorPos X="22" Y="154"/>
+        <TopLine Value="146"/>
+        <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
       </Unit0>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="1" HistoryIndex="0">
+      <Position1>
+        <Filename Value="direct_vrmlglscene_test_2.lpr"/>
+        <Caret Line="156" Column="55" TopLine="146"/>
+      </Position1>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
