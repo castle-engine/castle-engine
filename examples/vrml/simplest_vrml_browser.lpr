@@ -19,10 +19,8 @@
   [http://vrmlengine.sourceforge.net/view3dscene.php]) and makes
   events working.
 
-  Run with $1 command-line option as 3D model filename. For example,
-    ./simplest_vrml_browser ../../../kambi_vrml_test_suite/x3d/fog_animate_transform.x3dv
-  (get kambi_vrml_test_suite from
-  [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]).
+  Run with a command-line option to give 3D model filename. For example,
+    ./simplest_vrml_browser models/bridge_final.x3dv
 
   This program is a minimal VRML browser, passing all user interactions
   to the Scene (so that they can be processed by VRML events).

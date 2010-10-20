@@ -17,14 +17,10 @@
   SceneManager.Items tree. For simpler usage,
   see simplest_vrml_browser.lpr first.
 
-  This reads a couple of 3D files from ../../../kambi_vrml_test_suite/
-  directory, thus assuming you have
-  [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]
-  downladed and unpacked such that directories "kambi_vrml_test_suite"
-  and "kambi_vrml_game_engine".
-
-  That said, do not hesitate to just replace filenames of 3D models
-  here with own models, and generally experiment freely with this program :)
+  This reads a couple of 3D files from models/ subdirectory.
+  Their filenames are in the source code below.
+  Do not hesitate to experiment, just replace filenames of the 3D models
+  with your own, and generally experiment freely with this program :)
 }
 program scene_manager_demos;
 
@@ -95,7 +91,7 @@ begin
 
   { initialize a 2nd scene, just because we can }
   Scene2 := TVRMLGLScene.Create(SceneManager);
-  Scene2.Load('../../../kambi_vrml_test_suite/x3d/kambi_extensions/kambi_script_particles.x3dv');
+  Scene2.Load('models/kambi_script_particles.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
 {  Scene2.Attributes.WireframeEffect := weWireframeOnly;} { render this as wireframe }
@@ -112,7 +108,7 @@ begin
 
   { initialize Animation }
   Animation := TVRMLGLAnimation.Create(SceneManager);
-  Animation.LoadFromFile('../../../kambi_vrml_test_suite/kanim/raptor.kanim', false, true);
+  Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   TranslatedItems.Add(Animation);
 
