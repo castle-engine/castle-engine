@@ -37,11 +37,11 @@ type
     EditUpZ: TEdit;
     EditUpY: TEdit;
     EditUpX: TEdit;
-    GroupBox1: TGroupBox;
+    GroupBoxCamera: TGroupBox;
     Browser: TKamVRMLBrowser;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label3: TLabel;
+    LabelPosition: TLabel;
+    LabelDirection: TLabel;
+    LabelUp: TLabel;
     MainMenu1: TMainMenu;
     MenuFile: TMenuItem;
     MenuFocusGLControl: TMenuItem;

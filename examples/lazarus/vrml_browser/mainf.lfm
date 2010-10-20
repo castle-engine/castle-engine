@@ -1,136 +1,169 @@
 object Main: TMain
-  Left = 340
-  Height = 430
-  Top = 181
-  Width = 676
+  Left = 379
+  Height = 508
+  Top = 202
+  Width = 744
   ActiveControl = Browser
   AutoSize = True
   Caption = 'Main'
-  ClientHeight = 405
-  ClientWidth = 676
+  ClientHeight = 476
+  ClientWidth = 744
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnDestroy = FormDestroy
-  LCLVersion = '0.9.29'
+  Position = poDefault
+  LCLVersion = '0.9.28.2'
   object PanelBottom: TPanel
     Left = 0
     Height = 141
-    Top = 264
-    Width = 676
+    Top = 335
+    Width = 744
     Align = alBottom
     ClientHeight = 141
-    ClientWidth = 676
+    ClientWidth = 744
     TabOrder = 1
-    object GroupBox1: TGroupBox
-      Left = 1
-      Height = 139
-      Top = 1
-      Width = 512
+    object GroupBoxCamera: TGroupBox
+      Left = 6
+      Height = 129
+      Top = 6
+      Width = 480
       Align = alLeft
+      AutoSize = True
+      BorderSpacing.Around = 5
       Caption = 'Camera'
-      ClientHeight = 120
-      ClientWidth = 508
+      ClientHeight = 103
+      ClientWidth = 476
       TabOrder = 0
-      object Label1: TLabel
-        Left = 13
-        Height = 18
-        Top = 7
-        Width = 61
+      object LabelPosition: TLabel
+        Left = 0
+        Height = 25
+        Top = 5
+        Width = 86
         Caption = 'Position:'
         ParentColor = False
       end
-      object Label2: TLabel
-        Left = 13
-        Height = 18
-        Top = 40
-        Width = 68
+      object LabelDirection: TLabel
+        Left = 0
+        Height = 25
+        Top = 38
+        Width = 99
         Caption = 'Direction:'
         ParentColor = False
       end
-      object Label3: TLabel
-        Left = 13
-        Height = 18
-        Top = 72
-        Width = 25
+      object LabelUp: TLabel
+        Left = 0
+        Height = 25
+        Top = 70
+        Width = 36
         Caption = 'Up:'
         ParentColor = False
       end
       object EditPositionX: TEdit
-        Left = 93
-        Height = 27
-        Top = 2
+        AnchorSideLeft.Control = LabelDirection
+        AnchorSideLeft.Side = asrBottom
+        Left = 109
+        Height = 34
+        Top = 0
         Width = 80
+        BorderSpacing.Left = 10
         TabOrder = 0
       end
       object EditPositionY: TEdit
         Tag = 1
-        Left = 181
-        Height = 27
-        Top = 2
+        AnchorSideLeft.Control = EditPositionX
+        AnchorSideLeft.Side = asrBottom
+        Left = 199
+        Height = 34
+        Top = 0
         Width = 80
+        BorderSpacing.Left = 10
         TabOrder = 1
       end
       object EditPositionZ: TEdit
         Tag = 2
-        Left = 269
-        Height = 27
-        Top = 2
+        AnchorSideLeft.Control = EditPositionY
+        AnchorSideLeft.Side = asrBottom
+        Left = 289
+        Height = 34
+        Top = 0
         Width = 80
+        BorderSpacing.Left = 10
         TabOrder = 2
       end
       object EditDirectionX: TEdit
-        Left = 93
-        Height = 27
-        Top = 34
+        AnchorSideLeft.Control = LabelDirection
+        AnchorSideLeft.Side = asrBottom
+        Left = 109
+        Height = 34
+        Top = 32
         Width = 80
+        BorderSpacing.Left = 10
         TabOrder = 3
       end
       object EditDirectionY: TEdit
         Tag = 1
-        Left = 181
-        Height = 27
-        Top = 34
+        AnchorSideLeft.Control = EditDirectionX
+        AnchorSideLeft.Side = asrBottom
+        Left = 199
+        Height = 34
+        Top = 32
         Width = 80
+        BorderSpacing.Left = 10
         TabOrder = 4
       end
       object EditDirectionZ: TEdit
         Tag = 2
-        Left = 269
-        Height = 27
-        Top = 34
+        AnchorSideLeft.Control = EditDirectionY
+        AnchorSideLeft.Side = asrBottom
+        Left = 289
+        Height = 34
+        Top = 32
         Width = 80
+        BorderSpacing.Left = 10
         TabOrder = 5
       end
       object EditUpX: TEdit
-        Left = 93
-        Height = 27
-        Top = 66
+        AnchorSideLeft.Control = LabelDirection
+        AnchorSideLeft.Side = asrBottom
+        Left = 109
+        Height = 34
+        Top = 64
         Width = 80
+        BorderSpacing.Left = 10
         TabOrder = 6
       end
       object EditUpY: TEdit
         Tag = 1
-        Left = 181
-        Height = 27
-        Top = 66
+        AnchorSideLeft.Control = EditUpX
+        AnchorSideLeft.Side = asrBottom
+        Left = 199
+        Height = 34
+        Top = 64
         Width = 80
+        BorderSpacing.Left = 10
         TabOrder = 7
       end
       object EditUpZ: TEdit
         Tag = 2
-        Left = 269
-        Height = 27
-        Top = 64
+        AnchorSideLeft.Control = EditUpY
+        AnchorSideLeft.Side = asrBottom
+        Left = 289
+        Height = 34
+        Top = 62
         Width = 80
+        BorderSpacing.Left = 10
         TabOrder = 8
       end
       object ButtonChangeCamera: TButton
-        Left = 365
-        Height = 37
-        Top = 51
-        Width = 74
+        AnchorSideLeft.Control = EditUpZ
+        AnchorSideLeft.Side = asrBottom
+        Left = 379
+        Height = 44
+        Top = 49
+        Width = 97
         AutoSize = True
+        BorderSpacing.Left = 10
         BorderSpacing.InnerBorder = 4
         Caption = 'Change'
         OnClick = ButtonChangeCameraClick
@@ -139,15 +172,16 @@ object Main: TMain
     end
   end
   object Browser: TKamVRMLBrowser
+    AnchorSideBottom.Control = PanelBottom
     Left = 0
-    Height = 264
+    Height = 335
     Top = 0
-    Width = 676
+    Width = 744
     Align = alClient
     OnCameraChanged = BrowserCameraChanged
   end
   object MainMenu1: TMainMenu
-    left = 40
+    left = 80
     top = 136
     object MenuFile: TMenuItem
       Caption = '&File'
@@ -207,23 +241,23 @@ object Main: TMain
   object OpenDialog1: TOpenDialog
     Title = 'Open 3d model file'
     FilterIndex = 0
-    left = 40
+    left = 80
     top = 184
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 43
+    left = 83
     top = 73
   end
   object Config: TKamXMLConfig
     StartEmpty = False
     RootName = 'CONFIG'
-    left = 142
-    top = 132
+    left = 272
+    top = 104
   end
   object RecentFiles: TKamRecentFiles
     OnOpenRecent = RecentFilesOpenRecent
-    left = 144
-    top = 203
+    left = 274
+    top = 175
   end
 end

@@ -56,8 +56,8 @@
         <ComponentName Value="Form1"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
-        <CursorPos X="5" Y="55"/>
-        <TopLine Value="43"/>
+        <CursorPos X="18" Y="36"/>
+        <TopLine Value="16"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="34"/>
         <Loaded Value="True"/>
@@ -123,41 +123,10 @@
         <UnitName Value="GLControls"/>
         <CursorPos X="9" Y="71"/>
         <TopLine Value="55"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit10>
     </Units>
-    <JumpHistory Count="7" HistoryIndex="6">
-      <Position1>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="22" Column="35" TopLine="1"/>
-      </Position1>
-      <Position2>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="19" Column="16" TopLine="8"/>
-      </Position2>
-      <Position3>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="20" Column="16" TopLine="9"/>
-      </Position3>
-      <Position4>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="24" Column="18" TopLine="10"/>
-      </Position4>
-      <Position5>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="86" Column="3" TopLine="52"/>
-      </Position5>
-      <Position6>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="17" Column="1" TopLine="1"/>
-      </Position6>
-      <Position7>
-        <Filename Value="..\..\..\src\ui\opengl\glcontrols.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position7>
-    </JumpHistory>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>

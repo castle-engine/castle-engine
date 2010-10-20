@@ -1,18 +1,19 @@
 object OpenGLInformation: TOpenGLInformation
-  Left = 322
-  Height = 300
-  Top = 208
-  Width = 400
+  Left = 376
+  Height = 519
+  Top = 151
+  Width = 677
+  ActiveControl = MemoInfo
   Caption = 'OpenGL Information'
-  ClientHeight = 300
-  ClientWidth = 400
-  ParentFont = False
-  LCLVersion = '0.9.25'
+  ClientHeight = 519
+  ClientWidth = 677
+  Position = poDefault
+  LCLVersion = '0.9.28.2'
   object ButtonClose: TButton
-    Left = 323
-    Height = 37
-    Top = 252
-    Width = 72
+    Left = 598
+    Height = 44
+    Top = 464
+    Width = 74
     Anchors = [akRight, akBottom]
     AutoSize = True
     BorderSpacing.InnerBorder = 4
@@ -21,9 +22,13 @@ object OpenGLInformation: TOpenGLInformation
     TabOrder = 0
   end
   object MemoInfo: TMemo
-    Height = 248
-    Width = 400
+    AnchorSideBottom.Control = ButtonClose
+    Left = 0
+    Height = 454
+    Top = 0
+    Width = 677
     Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Bottom = 10
     Lines.Strings = (
       'Memo1'
     )

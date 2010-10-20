@@ -1,18 +1,20 @@
 object VrmlConsole: TVrmlConsole
   Left = 290
-  Height = 321
+  Height = 467
   Top = 208
-  Width = 454
+  Width = 688
+  ActiveControl = Memo1
   Caption = 'VrmlConsole'
-  ClientHeight = 321
-  ClientWidth = 454
+  ClientHeight = 467
+  ClientWidth = 688
   OnClose = FormClose
-  LCLVersion = '0.9.25'
+  Position = poDefault
+  LCLVersion = '0.9.28.2'
   object Button1: TButton
-    Left = 400
-    Height = 30
-    Top = 279
-    Width = 47
+    Left = 615
+    Height = 36
+    Top = 419
+    Width = 66
     Anchors = [akRight, akBottom]
     AutoSize = True
     Caption = 'Close'
@@ -21,9 +23,9 @@ object VrmlConsole: TVrmlConsole
   end
   object Memo1: TMemo
     Left = 8
-    Height = 264
+    Height = 410
     Top = 8
-    Width = 439
+    Width = 673
     Anchors = [akTop, akLeft, akRight, akBottom]
     Lines.Strings = (
       ''

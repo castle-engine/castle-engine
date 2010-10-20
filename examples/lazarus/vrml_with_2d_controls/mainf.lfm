@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 364
+  Left = 566
   Height = 470
-  Top = 152
+  Top = 149
   Width = 630
   ActiveControl = Browser
   Caption = 'Form1'
@@ -9,7 +9,7 @@ object Form1: TForm1
   ClientWidth = 630
   OnCreate = FormCreate
   Position = poDesktopCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.28.2'
   object Browser: TKamVRMLBrowser
     Left = 0
     Height = 470
@@ -25,21 +25,23 @@ object Form1: TForm1
     AutoSize = False
     OnClick = SampleButtonClick
     Caption = 'Sample clickable button on GL area.'
-    left = 80
-    top = 64
+    Toggle = False
+    Pressed = False
     TUIControlPos_RealLeft = 10
+    TUIControlPos_Design_Left = 152
+    TUIControlPos_Design_Top = 16
   end
   object SampleImage: TKamGLImage
     Bottom = 150
-    left = 80
-    top = 144
-    TUIControlPos_RealLeft = 10
+    TUIControlPos_RealLeft = 20
+    TUIControlPos_Design_Left = 152
+    TUIControlPos_Design_Top = 96
   end
   object SampleImageAlpha: TKamGLImage
     Bottom = 150
     Blending = True
-    left = 80
-    top = 232
-    TUIControlPos_RealLeft = 310
+    TUIControlPos_RealLeft = 300
+    TUIControlPos_Design_Left = 152
+    TUIControlPos_Design_Top = 184
   end
 end
