@@ -67,6 +67,10 @@ type
     procedure GLContextClose; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
+
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
     procedure DoClick; virtual;
@@ -145,6 +149,9 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
   published
     property Width: Cardinal read FWidth write FWidth default 0;
     property Height: Cardinal read FHeight write FHeight default 0;
@@ -531,6 +538,16 @@ begin
   end;
 end;
 
+procedure TKamGLButton.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+  { let controls under the TKamGLButton handle keys/mouse,
+    because TKamGLButton doesn't do anything with them by default. }
+  LetOthersHandleMouseAndKeys := true;
+end;
+
 { TKamPanel ------------------------------------------------------------------ }
 
 constructor TKamPanel.Create(AOwner: TComponent);
@@ -590,6 +607,16 @@ begin
     (X  < Left + Width) and
     (ContainerHeight - Y >= Bottom) and
     (ContainerHeight - Y  < Bottom + Height);
+end;
+
+procedure TKamPanel.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+  { let controls under the TKamPanel handle keys/mouse,
+    because TKamPanel doesn't do anything with them by default. }
+  LetOthersHandleMouseAndKeys := true;
 end;
 
 { TKamGLImage ---------------------------------------------------------------- }
