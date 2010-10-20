@@ -393,8 +393,13 @@ type
   private
     FLeft: Integer;
     FBottom: Integer;
-    procedure ReadLeft(Reader: TReader);
-    procedure WriteLeft(Writer: TWriter);
+    procedure ReadRealLeft(Reader: TReader);
+    procedure WriteRealLeft(Writer: TWriter);
+
+    Procedure ReadLeft(Reader: TReader);
+    Procedure ReadTop(Reader: TReader);
+    Procedure WriteLeft(Writer: TWriter);
+    Procedure WriteTop(Writer: TWriter);
   protected
     procedure DefineProperties(Filer: TFiler); override;
   published
@@ -553,21 +558,66 @@ end;
   The idea how to do this is taken from TComponent's own implementation
   of it's "left" magic property (rtl/objpas/classes/compon.inc). }
 
-procedure TUIControlPos.ReadLeft(Reader: TReader);
+procedure TUIControlPos.ReadRealLeft(Reader: TReader);
 begin
   FLeft := Reader.ReadInteger;
 end;
 
-procedure TUIControlPos.WriteLeft(Writer: TWriter);
+procedure TUIControlPos.WriteRealLeft(Writer: TWriter);
 begin
   Writer.WriteInteger(FLeft);
 end;
 
-procedure TUIControlPos.DefineProperties(Filer: TFiler);
+Procedure TUIControlPos.ReadLeft(Reader: TReader);
+var
+  D: LongInt;
 begin
-  inherited;
+  D := DesignInfo;
+  LongRec(D).Lo:=Reader.ReadInteger;
+  DesignInfo := D;
+end;
+
+Procedure TUIControlPos.ReadTop(Reader: TReader);
+var
+  D: LongInt;
+begin
+  D := DesignInfo;
+  LongRec(D).Hi:=Reader.ReadInteger;
+  DesignInfo := D;
+end;
+
+Procedure TUIControlPos.WriteLeft(Writer: TWriter);
+begin
+  Writer.WriteInteger(LongRec(DesignInfo).Lo);
+end;
+
+Procedure TUIControlPos.WriteTop(Writer: TWriter);
+begin
+  Writer.WriteInteger(LongRec(DesignInfo).Hi);
+end;
+
+procedure TUIControlPos.DefineProperties(Filer: TFiler);
+Var Ancestor : TComponent;
+    Temp : longint;
+begin
+  { Don't call inherited that defines magic left/top.
+    This would make reading design-time "left" broken, it seems that our
+    declaration of Left with "stored false" would then prevent the design-time
+    Left from ever loading.
+
+    Instead, we'll save design-time "Left" below, under a special name. }
+
   Filer.DefineProperty('TUIControlPos_RealLeft', @ReadLeft, @WriteLeft,
     FLeft <> 0);
+
+  { Code from fpc/trunk/rtl/objpas/classes/compon.inc }
+  Temp:=0;
+  Ancestor:=TComponent(Filer.Ancestor);
+  If Assigned(Ancestor) then Temp:=Ancestor.DesignInfo;
+  Filer.Defineproperty('TUIControlPos_Design_Left',@readleft,@writeleft,
+                       (longrec(DesignInfo).Lo<>Longrec(temp).Lo));
+  Filer.Defineproperty('TUIControlPos_Design_Top',@readtop,@writetop,
+                       (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
 
 { TUIControlList ------------------------------------------------------------- }
