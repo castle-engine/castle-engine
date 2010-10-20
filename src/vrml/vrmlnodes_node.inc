@@ -2516,13 +2516,15 @@ begin
       So we bind again Self, instead of PrototypeInstanceSourceNode,
       to this name. }
 
-    (NodeNames as TVRMLNodeNames).Bind(Self);
+    (NodeNames as TVRMLNodeNames).Bind(Self, true);
   end else
   if (NodeNames as TVRMLNodeNames).Bound(Self) then
   begin
     SaveProperties.WritelnIndent('USE ' + NodeName);
   end else
   begin
+    (NodeNames as TVRMLNodeNames).Bind(Self, false);
+
     { write us to stream }
     SaveProperties.WriteIndent('');
     if NodeName <> '' then SaveProperties.Write('DEF ' +NodeName +' ');
@@ -2534,13 +2536,7 @@ begin
 
     SaveProperties.WritelnIndent('}');
 
-    { update NodeNames.
-
-      TODO: same problem here as when reading VRML file.
-      We call Bind after writing node contents, because
-      we assume there are no cycles... but in case of Script nodes,
-      cycles are unfortunately possible. }
-    (NodeNames as TVRMLNodeNames).Bind(Self);
+    (NodeNames as TVRMLNodeNames).Bind(Self, true);
   end;
 end;
 

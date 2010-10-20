@@ -208,6 +208,8 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
       end;
     end;
 
+    Names.Nodes.Bind(Result, false);
+
     Result.Parse(Lexer, Names);
 
     if Result is TVRMLPrototypeNode then
@@ -220,12 +222,12 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
         VRMLWarning(vwSerious, E.Message);
     end;
 
-    { Cycles in VRML graph are bad, I think we all agree about this.
-      They can cause traversing routines to loop infinitely
-      (sure, this is avoidable easily by keeping a list of already visited nodes,
-      but the time cost is bad...).
-      Most importantly, they can cause memory leaks, since reference
-      counting doesn't work when we have loops.
+    { Cycles in VRML graph are bad:
+      - they can cause our current traversing routines
+        to loop infinitely (we don't check there to avoid visiting already
+        visited nodes).
+      - they can cause memory leaks, since reference
+        counting doesn't work when we have loops.
 
       My initial brilliant idea is that I can 100% avoid having cycles
       by simply doing Result.Bind *after* the node is parsed.
@@ -244,13 +246,13 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
       clause to create cycle. E.g. see
       ~/sources/openvrml/openvrml/models/jsTouch.wrl.
 
-      TODO: Which means that this is too easy solution, and ultimately
-      Result.Bind should be moved up, or I should invent some other more clever
-      solution for this. I think that this is needed only for Script interface
-      declarations, so it can be some pretty specific hack just to
-      fix this...
+      Similar usage occurs for RenderedTexture.scene.
+      And many X3D models use ROUTEs inside the nodes to/from which they lead.
+      Although ROUTEs do not cause cycles when traversing, they still mean
+      that node name must be bound earlier.
 
-      At least for grouping nodes X3D specification (but not VRML 97,
+      Cycles in graph aren't common,
+      at least for grouping nodes X3D specification (but not VRML 97,
       as far as I see) says explicitly
       "A children field is not allowed to contain nodes that
       are ancestors of the grouping node"
@@ -267,11 +269,12 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
       any scripting, this is not a problem in practice. But some day it'll
       have to be fixed... }
 
-    Names.Nodes.Bind(Result);
+    Names.Nodes.Bind(Result, true);
   end;
 
 var
   NodeName, S: string;
+  UsedNodeFinished: boolean;
 begin
   Result := nil;
   try
@@ -297,11 +300,15 @@ begin
            nodename := Lexer.TokenName;
 
            {get appropriate node}
-           Result := Names.Nodes.Bound(nodename);
-           if Result = nil then
+           Result := Names.Nodes.Bound(nodename, UsedNodeFinished);
+           if (Result = nil) or (not UsedNodeFinished) then
            begin
-             S := Format('Incorrect USE clause: node name "%s" undefined',
-               [NodeName]);
+             if Result = nil then
+               S := Format('Incorrect USE clause: node name "%s" undefined', [NodeName]) else
+             begin
+               S := Format('Cycles in VRML/X3D graph: USE clause inside node "%s" refers to the same node', [NodeName]);
+               Result := nil; { return nil in case of cycles }
+             end;
              if NilIfUnresolvedUSE then
                VRMLWarning(vwSerious, S) else
                raise EVRMLParserError.Create(Lexer, S);

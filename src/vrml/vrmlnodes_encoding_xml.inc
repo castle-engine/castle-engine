@@ -161,6 +161,8 @@ function ParseXMLNode(Element: TDOMElement;
         Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
         Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
 
+      Names.Nodes.Bind(Result, false);
+
       { parse field values from <fieldValue> elements }
       ProtoIter := TXMLElementIterator.Create(Element);
       try
@@ -219,6 +221,7 @@ function ParseXMLNode(Element: TDOMElement;
       if NodeClass <> nil then
       begin
         Result := NodeClass.Create(NodeName, Names.WWWBasePath);
+        Names.Nodes.Bind(Result, false);
         Result.ParseXML(Element, Names);
       end else
       begin
@@ -235,10 +238,7 @@ function ParseXMLNode(Element: TDOMElement;
       end;
     end;
 
-    { TODO: this has a problem, see classic VRML ParseNode
-      comment starting with "Cycles in VRML graph are bad..." }
-
-    Names.Nodes.Bind(Result);
+    Names.Nodes.Bind(Result, true);
 
     if DOMGetAttribute(Element, SAttrContainerField, ExplicitContainerField) then
       Result.ExplicitContainerField := ExplicitContainerField;
@@ -246,17 +246,22 @@ function ParseXMLNode(Element: TDOMElement;
 
 var
   NodeName, S: string;
+  UsedNodeFinished: boolean;
 begin
   Result := nil;
   try
     if DOMGetAttribute(Element, 'USE', NodeName) then
     begin
       { get appropriate node }
-      Result := Names.Nodes.Bound(NodeName);
-      if Result = nil then
+      Result := Names.Nodes.Bound(NodeName, UsedNodeFinished);
+      if (Result = nil) or (not UsedNodeFinished) then
       begin
-        S := Format('Incorrect USE element: node name "%s" undefined',
-          [NodeName]);
+        if Result = nil then
+          S := Format('Incorrect USE clause: node name "%s" undefined', [NodeName]) else
+        begin
+          S := Format('Cycles in VRML/X3D graph: USE clause inside node "%s" refers to the same node', [NodeName]);
+          Result := nil; { return nil in case of cycles }
+        end;
         if NilIfUnresolvedUSE then
           VRMLWarning(vwSerious, S) else
           raise EX3DXmlNotAllowedError.Create(S);

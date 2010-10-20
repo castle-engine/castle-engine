@@ -1791,13 +1791,25 @@ type
 
 { Node names ----------------------------------------------------------------- }
 
-  { List to keep node names while parsing VRML file.
-    This assumes that all strings are node names and their Objects[]
-    are TVRMLNode instances with given names. }
-  TVRMLNodeNames = class(TStringListCaseSens)
+  TVRMLNodeNameRec = object
+    Node: TVRMLNode;
+    Name: string;
+    Finished: boolean;
+  end;
+  PVRMLNodeNameRec = ^TVRMLNodeNameRec;
+  TDynArrayItem_4 = TVRMLNodeNameRec;
+  PDynArrayItem_4 = PVRMLNodeNameRec;
+  {$define DYNARRAY_4_IS_STRUCT}
+  {$define DYNARRAY_4_IS_INIT_FINI_TYPE}
+  {$I dynarray_4.inc}
+
+  { List to keep VRML/X3D node names while parsing VRML file. }
+  TVRMLNodeNames = class(TDynArray_4)
   private
     FAutoRemove: boolean;
     procedure DestructionNotification(Node: TVRMLNode);
+    function IndexOfNode(Node: TVRMLNode): Integer;
+    function IndexOfName(const Name: string): Integer;
   public
     constructor Create(const AAutoRemove: boolean);
     destructor Destroy; override;
@@ -1812,11 +1824,20 @@ type
       itself for AnyNodeDestructionNotifications. }
     property AutoRemove: boolean read FAutoRemove;
 
-    procedure Bind(Node: TVRMLNode); overload;
-    procedure Bind(Node: TVRMLNode; const BindToName: string); overload;
+    { Associate given node with it's own name.
+
+      If not NodeFinished, then we understand that we're parsing / saving
+      the node's contents now. If NodeFinished, then we know the node
+      contents are fully parsed / saved now. This information helps
+      us to detect cycles in VRML/X3D DEF/USE graph.
+      For now, we just disallow such cycles. Still, we allow
+      ROUTEs from inside the node, so calling with NodeFinished = false
+      is still useful for parsing. }
+    procedure Bind(Node: TVRMLNode; const NodeFinished: boolean); overload;
+    procedure Bind(Node: TVRMLNode; const NodeFinished: boolean; const BindToName: string); overload;
 
     { Find node bound to given name. @nil if none. }
-    function Bound(const Name: string): TVRMLNode;
+    function Bound(const Name: string; out NodeFinished: boolean): TVRMLNode;
 
     { Check is Node bound in the current namespace.
       @false means that node is not within this namespace,
@@ -2257,6 +2278,7 @@ uses
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
+{$I dynarray_4.inc}
 
 {$I vrmlnodes_boundingboxes.inc}
 {$I vrmlnodes_verticesandtrianglescounting.inc}
@@ -2854,13 +2876,24 @@ end;
 procedure TSFNode.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
 const
   SNull = 'NULL';
+var
+  UsedNodeFinished: boolean;
+  V: TVRMLNode;
 begin
   { For SFNode and MFNode, X3D XML encoding has special handling:
     field value just indicates the node name, or NULL.
     (other values for SFNode / MFNode cannot be expressed inside
     the attribute). }
 
-  Value := (Names as TVRMLNames).Nodes.Bound(AttributeValue);
+  V := (Names as TVRMLNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
+  if (V <> nil) and (not UsedNodeFinished) then
+  begin
+    VRMLWarning(vwSerious, Format('Cycles in VRML/X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
+    Value := nil;
+    Exit;
+  end;
+
+  Value := V;
   if Value = nil then
   begin
     if AttributeValue <> SNull then
@@ -3257,12 +3290,17 @@ end;
 procedure TMFNode.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
 var
   Node: TVRMLNode;
+  UsedNodeFinished: boolean;
 begin
-  Node := (Names as TVRMLNames).Nodes.Bound(AttributeValue);
+  Node := (Names as TVRMLNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if Node = nil then
   begin
     { NULL not allowed for MFNode, unlike the SFNode }
     VRMLWarning(vwSerious, Format('Invalid node name for MFNode field: "%s"', [AttributeValue]));
+  end else
+  if not UsedNodeFinished then
+  begin
+    VRMLWarning(vwSerious, Format('Cycles in VRML/X3D graph: MFNode value inside node "%s" refers to the same name', [AttributeValue]));
   end else
   begin
     Add(Node);
@@ -4967,13 +5005,14 @@ procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
 var
   N: TVRMLNode;
   FieldOrEvent: TVRMLFieldOrEvent;
+  IgnoreNodeFinished: boolean;
 begin
   UnsetEnding(Node, Event, DestEnding);
 
   try
-    N := Names.Nodes.Bound(NodeName);
+    N := Names.Nodes.Bound(NodeName, IgnoreNodeFinished);
     if N = nil then
-      N := Names.Imported.Bound(NodeName);
+      N := Names.Imported.Bound(NodeName, IgnoreNodeFinished);
     if N = nil then
       raise ERouteSetEndingError.CreateFmt('Route %s node name "%s" not found',
         [ DestEndingNames[DestEnding], NodeName ]);
@@ -5080,8 +5119,8 @@ var
   procedure WriteEnding(Node: TVRMLNode;
     Event: TVRMLEvent; const S: string);
   var
-    Index: Integer;
     BoundNode: TVRMLNode;
+    IgnoreNodeFinished: boolean;
   begin
     { Check Node }
     if Node = nil then
@@ -5089,12 +5128,11 @@ var
     if Node.NodeName = '' then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
 
-    Index := (NodeNames as TVRMLNodeNames).IndexOf(Node.NodeName);
-    if Index = -1 then
+    BoundNode := (NodeNames as TVRMLNodeNames).Bound(Node.NodeName, IgnoreNodeFinished);
+    if BoundNode = nil then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
         [S, Node.NodeName]);
 
-    BoundNode := (NodeNames as TVRMLNodeNames).Objects[Index] as TVRMLNode;
     { Just like when setting node by TVRMLRoute.SetEnding:
       we actually keep the Node that contains the route, which is
       sometimes TVRMLPrototypeNode hidden inside PrototypeInstanceSourceNode. }
@@ -5321,46 +5359,69 @@ begin
   inherited;
 end;
 
+function TVRMLNodeNames.IndexOfNode(Node: TVRMLNode): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[Result].Node = Node then
+      Exit;
+  Result := -1;
+end;
+
+function TVRMLNodeNames.IndexOfName(const Name: string): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[Result].Name = Name then
+      Exit;
+  Result := -1;
+end;
+
 procedure TVRMLNodeNames.DestructionNotification(Node: TVRMLNode);
 var
   I: Integer;
 begin
-  I := IndexOfObject(Node);
+  I := IndexOfNode(Node);
   if I >= 0 then
     Delete(I);
 end;
 
-procedure TVRMLNodeNames.Bind(Node: TVRMLNode; const BindToName: string);
+procedure TVRMLNodeNames.Bind(Node: TVRMLNode; const NodeFinished: boolean; const BindToName: string);
 var
   I: Integer;
+  P: PVRMLNodeNameRec;
 begin
   if BindToName <> '' then
   begin
-    I := IndexOf(BindToName);
+    I := IndexOfName(BindToName);
     if I <> -1 then
-      Objects[I] := Node else
-      AddObject(BindToName, Node);
+      P := Pointers[I] else
+      P := Add;
+    P^.Node := Node;
+    P^.Name := BindToName;
+    P^.Finished := NodeFinished;
   end;
 end;
 
-procedure TVRMLNodeNames.Bind(Node: TVRMLNode);
+procedure TVRMLNodeNames.Bind(Node: TVRMLNode; const NodeFinished: boolean);
 begin
-  Bind(Node, Node.NodeName);
+  Bind(Node, NodeFinished, Node.NodeName);
 end;
 
-function TVRMLNodeNames.Bound(const Name: string): TVRMLNode;
+function TVRMLNodeNames.Bound(const Name: string; out NodeFinished: boolean): TVRMLNode;
 var
   I: Integer;
 begin
-  I := IndexOf(Name);
+  I := IndexOfName(Name);
   if I <> -1 then
-    Result := Objects[I] as TVRMLNode else
+  begin
+    Result := Items[I].Node;
+    NodeFinished := Items[I].Finished;
+  end else
     Result := nil;
 end;
 
 function TVRMLNodeNames.Bound(Node: TVRMLNode): boolean;
 begin
-  Result := IndexOfObject(Node) <> -1;
+  Result := IndexOfNode(Node) <> -1;
 end;
 
 { TVRMLPrototypeNames -------------------------------------------------------- }
@@ -5439,15 +5500,16 @@ end;
 procedure TVRMLNames.DoExport(E: TVRMLExport);
 var
   ExportedNode: TVRMLNode;
+  IgnoreNodeFinished: boolean;
 begin
-  ExportedNode := Nodes.Bound(E.ExportedNodeName);
+  ExportedNode := Nodes.Bound(E.ExportedNodeName, IgnoreNodeFinished);
   if ExportedNode = nil then
   begin
     VRMLWarning(vwSerious, Format('Exported node name "%s" not found', [E.ExportedNodeName]));
     Exit;
   end;
 
-  Exported.Bind(ExportedNode, E.ExportedNodeAlias);
+  Exported.Bind(ExportedNode, true, E.ExportedNodeAlias);
 end;
 
 procedure TVRMLNames.DoImport(I: TVRMLImport);
@@ -5455,6 +5517,7 @@ var
   ImportedNames: TVRMLNodeNames;
   ImportedNamesIndex: Integer;
   ImportedNode: TVRMLNode;
+  IgnoreNodeFinished: boolean;
 begin
   ImportedNamesIndex := Importable.IndexOf(I.InlineNodeName);
   if ImportedNamesIndex = -1 then
@@ -5465,14 +5528,14 @@ begin
 
   ImportedNames := Importable.Objects[ImportedNamesIndex] as TVRMLNodeNames;
 
-  ImportedNode := ImportedNames.Bound(I.ImportedNodeName) as TVRMLNode;
+  ImportedNode := ImportedNames.Bound(I.ImportedNodeName, IgnoreNodeFinished);
   if ImportedNode = nil then
   begin
     VRMLWarning(vwSerious, Format('Imported node name "%s" not found in inline "%s"', [I.ImportedNodeName, I.InlineNodeName]));
     Exit;
   end;
 
-  Imported.Bind(ImportedNode, I.ImportedNodeAlias);
+  Imported.Bind(ImportedNode, true, I.ImportedNodeAlias);
 end;
 
 { global procedures ---------------------------------------------------------- }
