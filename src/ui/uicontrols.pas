@@ -607,7 +607,7 @@ begin
 
     Instead, we'll save design-time "Left" below, under a special name. }
 
-  Filer.DefineProperty('TUIControlPos_RealLeft', @ReadLeft, @WriteLeft,
+  Filer.DefineProperty('TUIControlPos_RealLeft', @ReadRealLeft, @WriteRealLeft,
     FLeft <> 0);
 
   { Code from fpc/trunk/rtl/objpas/classes/compon.inc }
