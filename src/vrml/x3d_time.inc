@@ -36,40 +36,6 @@
       read GetTimeDependentNodeHandler;
   end;
 
-  TNodeX3DTimeDependentNode = class(TNodeX3DChildNode, INodeX3DTimeDependentNode)
-  private
-    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler; virtual; abstract;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
-    private FFdloop: TSFBool;
-    public property Fdloop: TSFBool read FFdloop;
-
-    private FFdpauseTime: TSFTime;
-    public property FdpauseTime: TSFTime read FFdpauseTime;
-
-    private FFdresumeTime: TSFTime;
-    public property FdresumeTime: TSFTime read FFdresumeTime;
-
-    private FFdstartTime: TSFTime;
-    public property FdstartTime: TSFTime read FFdstartTime;
-
-    private FFdstopTime: TSFTime;
-    public property FdstopTime: TSFTime read FFdstopTime;
-
-    { Event: SFTime, out } { }
-    private FEventelapsedTime: TVRMLEvent;
-    public property EventelapsedTime: TVRMLEvent read FEventelapsedTime;
-
-    { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
-
-    { Event: SFBool, out } { }
-    private FEventisPaused: TVRMLEvent;
-    public property EventisPaused: TVRMLEvent read FEventisPaused;
-  end;
-
   TTimeFunction = function: TKamTime of object;
 
   { Common helper for all X3DTimeDependentNode descendants.
@@ -160,17 +126,56 @@
       var SomethingChanged: boolean);
   end;
 
-  TNodeTimeSensor = class(TNodeX3DTimeDependentNode, INodeX3DSensorNode)
+  TNodeX3DTimeDependentNode = class(TNodeX3DChildNode, INodeX3DTimeDependentNode)
   private
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
-    function CycleInterval: TKamTime;
-    procedure EventElapsedTimeReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
     { To satify INodeX3DTimeDependentNode }
-    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler; override;
+    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+  protected
+    function CycleInterval: TKamTime; virtual; abstract;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
+
+    private FFdloop: TSFBool;
+    public property Fdloop: TSFBool read FFdloop;
+
+    private FFdpauseTime: TSFTime;
+    public property FdpauseTime: TSFTime read FFdpauseTime;
+
+    private FFdresumeTime: TSFTime;
+    public property FdresumeTime: TSFTime read FFdresumeTime;
+
+    private FFdstartTime: TSFTime;
+    public property FdstartTime: TSFTime read FFdstartTime;
+
+    private FFdstopTime: TSFTime;
+    public property FdstopTime: TSFTime read FFdstopTime;
+
+    { Event: SFTime, out } { }
+    private FEventelapsedTime: TVRMLEvent;
+    public property EventelapsedTime: TVRMLEvent read FEventelapsedTime;
+
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
+
+    { Event: SFBool, out } { }
+    private FEventisPaused: TVRMLEvent;
+    public property EventisPaused: TVRMLEvent read FEventisPaused;
+
+    property TimeDependentNodeHandler: TTimeDependentNodeHandler
+      read FTimeDependentNodeHandler;
+  end;
+
+  TNodeTimeSensor = class(TNodeX3DTimeDependentNode, INodeX3DSensorNode)
+  private
+    procedure EventElapsedTimeReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  protected
+    function CycleInterval: TKamTime; override;
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
@@ -194,14 +199,14 @@
 
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
-
-    property TimeDependentNodeHandler: TTimeDependentNodeHandler
-      read FTimeDependentNodeHandler;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ Field types for startTime/stopTime ----------------------------------------- }
+
 type
   { SFTime that ignores it's input event when parent time-dependent node
     is active. }
@@ -274,45 +279,7 @@ begin
   inherited;
 end;
 
-constructor TNodeX3DTimeDependentNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdloop := TSFBool.Create(Self, 'loop', false);
-  Fields.Add(FFdloop);
-
-  FFdpauseTime := TSFTime.Create(Self, 'pauseTime', 0);
-   FdpauseTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdpauseTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdresumeTime := TSFTime.Create(Self, 'resumeTime', 0);
-   FdresumeTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdresumeTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdstartTime := TSFTimeIgnoreWhenActive.Create(Self, 'startTime', 0);
-   FdstartTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdstartTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FFdstopTime := TSFStopTime.Create(Self, 'stopTime', 0);
-   FdstopTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdstopTime);
-  { X3D specification comment: (-Inf,Inf) }
-
-  FEventelapsedTime := TVRMLEvent.Create(Self, 'elapsedTime', TSFTime, false);
-  Events.Add(FEventelapsedTime);
-
-  FEventisActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
-  Events.Add(FEventisActive);
-
-  FEventisPaused := TVRMLEvent.Create(Self, 'isPaused', TSFBool, false);
-  Events.Add(FEventisPaused);
-
-  DefaultContainerField := 'children';
-end;
+{ TTimeDependentNodeHandler -------------------------------------------------- }
 
 procedure TTimeDependentNodeHandler.SetIsActive(const Value: boolean);
 begin
@@ -601,6 +568,74 @@ begin
   {$endif}
 end;
 
+{ VRML/X3D nodes ------------------------------------------------------------- }
+
+constructor TNodeX3DTimeDependentNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdloop := TSFBool.Create(Self, 'loop', false);
+  Fields.Add(FFdloop);
+
+  FFdpauseTime := TSFTime.Create(Self, 'pauseTime', 0);
+   FdpauseTime.ChangesAlways := [chTimeStopStart];
+  Fields.Add(FFdpauseTime);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdresumeTime := TSFTime.Create(Self, 'resumeTime', 0);
+   FdresumeTime.ChangesAlways := [chTimeStopStart];
+  Fields.Add(FFdresumeTime);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdstartTime := TSFTimeIgnoreWhenActive.Create(Self, 'startTime', 0);
+   FdstartTime.ChangesAlways := [chTimeStopStart];
+  Fields.Add(FFdstartTime);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdstopTime := TSFStopTime.Create(Self, 'stopTime', 0);
+   FdstopTime.ChangesAlways := [chTimeStopStart];
+  Fields.Add(FFdstopTime);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FEventelapsedTime := TVRMLEvent.Create(Self, 'elapsedTime', TSFTime, false);
+  Events.Add(FEventelapsedTime);
+
+  FEventisActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
+  Events.Add(FEventisActive);
+
+  FEventisPaused := TVRMLEvent.Create(Self, 'isPaused', TSFBool, false);
+  Events.Add(FEventisPaused);
+
+  DefaultContainerField := 'children';
+
+  FTimeDependentNodeHandler := TTimeDependentNodeHandler.Create;
+  FTimeDependentNodeHandler.Node := Self;
+  FTimeDependentNodeHandler.Fdloop := Fdloop;
+  FTimeDependentNodeHandler.FdpauseTime := FdpauseTime;
+  FTimeDependentNodeHandler.FdresumeTime := FdresumeTime;
+  FTimeDependentNodeHandler.FdstartTime := FdstartTime;
+  FTimeDependentNodeHandler.FdstopTime := FdstopTime;
+  { descendants shoud set FTimeDependentNodeHandler.Fdenabled }
+  FTimeDependentNodeHandler.EventisActive:= EventisActive;
+  FTimeDependentNodeHandler.EventisPaused := EventisPaused;
+  FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;
+  { descendants shoud set FTimeDependentNodeHandler.EventCycleTime }
+  { descendants shoud override CycleInterval }
+  FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
+end;
+
+destructor TNodeX3DTimeDependentNode.Destroy;
+begin
+  FreeAndNil(FTimeDependentNodeHandler);
+  inherited;
+end;
+
+function TNodeX3DTimeDependentNode.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+begin
+  Result := FTimeDependentNodeHandler;
+end;
+
 constructor TNodeTimeSensor.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -627,28 +662,12 @@ begin
 
   DefaultContainerField := 'children';
 
-  FTimeDependentNodeHandler := TTimeDependentNodeHandler.Create;
-  FTimeDependentNodeHandler.Node := Self;
-  FTimeDependentNodeHandler.Fdloop := Fdloop;
-  FTimeDependentNodeHandler.FdpauseTime := FdpauseTime;
-  FTimeDependentNodeHandler.FdresumeTime := FdresumeTime;
-  FTimeDependentNodeHandler.FdstartTime := FdstartTime;
-  FTimeDependentNodeHandler.FdstopTime := FdstopTime;
-  FTimeDependentNodeHandler.Fdenabled := Fdenabled;
-  FTimeDependentNodeHandler.EventisActive:= EventisActive;
-  FTimeDependentNodeHandler.EventisPaused := EventisPaused;
-  FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;
-  FTimeDependentNodeHandler.EventCycleTime := EventCycleTime;
-  FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
+  { set TimeDependentNodeHandler }
+  TimeDependentNodeHandler.Fdenabled := Fdenabled;
+  TimeDependentNodeHandler.EventCycleTime := EventCycleTime;
 
   { On receiving new elapsedTime, we send other continous events. }
   EventelapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
-end;
-
-destructor TNodeTimeSensor.Destroy;
-begin
-  FreeAndNil(FTimeDependentNodeHandler);
-  inherited;
 end;
 
 function TNodeTimeSensor.CycleInterval: TKamTime;
@@ -659,11 +678,6 @@ end;
 class function TNodeTimeSensor.ClassNodeTypeName: string;
 begin
   Result := 'TimeSensor';
-end;
-
-function TNodeTimeSensor.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
-begin
-  Result := FTimeDependentNodeHandler;
 end;
 
 function TNodeTimeSensor.SuggestedVRMLVersion(

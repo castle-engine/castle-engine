@@ -43,6 +43,8 @@
   end;
 
   TNodeAudioClip = class(TNodeX3DSoundSourceNode, INodeX3DUrlObject)
+  protected
+    function CycleInterval: TKamTime; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -157,6 +159,12 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeAudioClip.CycleInterval: TKamTime;
+begin
+  { AudioClip not implemented now, so just return 0 }
+  Result := 0;
 end;
 
 constructor TNodeSound.Create(const ANodeName: string;

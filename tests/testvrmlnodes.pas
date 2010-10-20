@@ -74,6 +74,11 @@ type
       [] by accident. This checks all the fields with Changes = [],
       they *must* be added to ConfirmedEmptyChanges function. }
     procedure TestEmptyChanges;
+
+    { Try calling GetTimeDependentNodeHandler
+      on every INodeX3DTimeDependentNode, and use the handler.
+      Catches e.g. not overriden CycleInterval. }
+    procedure TestTimeDependentNodeHandlerAvailable;
   private
     procedure DummyTriangleProc(const Tri: TTriangle3Single;
       Shape: TObject;
@@ -82,7 +87,8 @@ type
 
 implementation
 
-uses KambiUtils, VRMLLexer, KambiClassUtils, KambiFilesUtils, VRMLFields;
+uses KambiUtils, VRMLLexer, KambiClassUtils, KambiFilesUtils, VRMLFields,
+  KambiTimeUtils;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -1303,6 +1309,41 @@ begin
         raise;
       end;
     finally FreeAndNil(N) end;
+  end;
+end;
+
+procedure TTestVRMLNodes.TestTimeDependentNodeHandlerAvailable;
+
+  procedure CheckTimeDependentNodeHandler(N: TVRMLNode);
+  var
+    B: boolean;
+    C: TKamTime;
+  begin
+    { CheckTimeDependentNodeHandler is a separate procedure,
+      to limit lifetime of temporary INodeX3DTimeDependentNode,
+      see "Reference counting" notes on
+      http://freepascal.org/docs-html/ref/refse40.html }
+    if Supports(N, INodeX3DTimeDependentNode) then
+    begin
+      B := (N as INodeX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
+      C := (N as INodeX3DTimeDependentNode).TimeDependentNodeHandler.CycleInterval;
+    end;
+  end;
+
+var
+  I: Integer;
+  N: TVRMLNode;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+  begin
+    N := NodesManager.Registered[I].Create('', '');
+    try
+      CheckTimeDependentNodeHandler(N);
+    except
+      Writeln('TestTimeDependentNodeHandlerAvailable failed for ', N.ClassName);
+      raise;
+    end;
+    FreeAndNil(N);
   end;
 end;
 
