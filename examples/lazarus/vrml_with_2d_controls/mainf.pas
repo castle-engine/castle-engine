@@ -30,13 +30,9 @@ uses VRMLErrors, VRMLScene, KambiUtils;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  { For simplicity, we just ignore warnings and load VRML from hardcoded path. }
+  { For simplicity, we just ignore warnings and load VRML/X3D from hardcoded path. }
   VRMLWarning := @VRMLWarning_Ignore;
-  Browser.Load(
-     '../../vrml/models/castle_y_up.x3dv'
-     //'../../../../kambi_vrml_test_suite/x3d/touch_sensor_tests.x3dv'
-     //'../../../../kambi_vrml_test_suite/x3d/anchor_test.x3dv'
-     );
+  Browser.Load('../../vrml/models/bridge_final.x3dv');
   Browser.Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Browser.Scene.ProcessEvents := true;
 

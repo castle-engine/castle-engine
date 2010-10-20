@@ -1,0 +1,74 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+NavigationInfo {
+	#headlight FALSE
+	type ["WALK", "ANY"]
+        # leave default avatarSize, as our model tries to be adjusted to that,
+        # approx 1 unit = 1 meter, with player height = 1.75 meters
+        speed 5
+}
+
+# Camera settings "encoded" in the VRML declaration below :
+# direction 0.999630868434906 -4.3711388286737929E-008 -0.027172265574336
+# up -1.2401931703820424E-009 1 -4.5624975797409206E-008
+# gravityUp 0 1 0
+Viewpoint {
+  position -63.804584503173828 -4.6251835823059082 -0.7729703783988952
+  orientation -4.3727531817694398E-008 -1 0 1.5436207056045532
+}
+
+Transform {
+  # Rotate bridge.wrl to have up vector in +Y (Blender models typically
+  # have in +Z). This makes it matching some other models with +Y up,
+  # comfortable for scene_manager_demos.
+  rotation 1 0 0 -1.57
+  children KambiInline {
+    url "bridge.wrl"
+
+    # This texture is often visible at steep angles, anisotropic filtering helps
+    replaceNames "_023bois_jpg"
+    replaceNodes ImageTexture {
+      url "textures/023bois.jpg"
+      textureProperties TextureProperties {
+        anisotropicDegree 16
+        minificationFilter "NICEST"
+        magnificationFilter "NICEST"
+      }
+    }
+  }
+}
+
+
+# Add a teapot, with cubemap mirror.
+# This shows that generated cubemap textures work from scene_manager_demos
+# as well, and mirror shows all world obects (in scene manager,
+# not only in current vrml scene).
+Transform {
+  translation -50 -2 0
+  children Shape {
+    appearance Appearance {
+      material Material {
+        diffuseColor 0.5 1 0.5
+        specularColor 1 1 1 shininess 1 }
+      texture MultiTexture {
+        texture [
+          ImageTexture { url "../terrain/textures/sand.png" }
+          GeneratedCubeMapTexture {
+            update "NEXT_FRAME_ONLY" # for speed; change to "ALWAYS" if you want
+            size 256
+          }
+        ]
+        mode [ "MODULATE" "ADD" ]
+      }
+    }
+    geometry Teapot {
+      texCoord MultiTextureCoordinate {
+        texCoord [
+          TextureCoordinateGenerator { mode "COORD" }
+          TextureCoordinateGenerator { mode "WORLDSPACEREFLECTIONVECTOR" }
+        ]
+      }
+    }
+  }
+}
