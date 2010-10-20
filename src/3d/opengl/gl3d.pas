@@ -23,24 +23,18 @@ interface
 uses Classes, VectorMath, Boxes3D, KeysMouse, Frustum, Base3D;
 
 type
-  { Translates other T3D object.
+  { Translates other T3D objects.
 
-    Since "other T3D object" may be any T3D descendant (including
-    T3DList, TVRMLGLScene, TVRMLGLAnimation), you can use this
-    to translate a group of any 3D objects.
+    Descends from T3DList, translating all it's children.
+    So it can be used to translate any T3D descendants (including
+    another T3DList, TVRMLGLScene, TVRMLGLAnimation).
 
-    It has a GetTranslation function (that must be actually defined
-    in a descendant) that always says how this object is translated from
-    it's original position. All methods (that render, query collisions etc.)
-    take into account this GetTranslation. }
-  T3DCustomTranslated = class(T3D)
-  private
-    FChild: T3D;
-    procedure ChildVisibleChange(Sender: T3D; Changes: TVisibleChanges);
-    procedure ChildCursorChange(Sender: TObject);
-    procedure SetChild(const Value: T3D);
-  protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    Actual translation is defined by an abstract method GetTranslation.
+    You have to create descendant of this class, and override GetTranslation.
+    Alternatively, you can use T3DTranslated that overrides GetTranslation
+    for you, and gives you a simple
+    T3DTranslated.Translation property that you can use. }
+  T3DCustomTranslated = class(T3DList)
   public
     function GetTranslation: TVector3Single; virtual; abstract;
 
@@ -51,19 +45,8 @@ type
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
-    procedure PrepareResources(
-      TransparentGroups: TTransparentGroups;
-      Options: TPrepareResourcesOptions;
-      ProgressStep: boolean); override;
-    function PrepareResourcesSteps: Cardinal; override;
-    function KeyDown(Key: TKey; C: char): boolean; override;
-    function KeyUp(Key: TKey; C: char): boolean; override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseMove(const RayOrigin, RayDirection: TVector3Single;
       RayHit: T3DCollision): boolean; override;
-    procedure Idle(const CompSpeed: Single); override;
-    procedure GLContextClose; override;
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out IsAbove: boolean; out AboveHeight: Single;
@@ -90,16 +73,6 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
-    procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewportX, OriginalViewportY: LongInt;
-      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
-    procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
-    function Dragging: boolean; override;
-  published
-    { Translated 3D object. }
-    property Child: T3D read FChild write SetChild;
   end;
 
   { Translates other T3D object.
@@ -121,9 +94,7 @@ uses GL, KambiGLUtils;
 
 function T3DCustomTranslated.BoundingBox: TBox3D;
 begin
-  if Exists and Collides and (Child <> nil) then
-    Result := Box3DTranslate(Child.BoundingBox, GetTranslation) else
-    Result := EmptyBox3D;
+  Result := Box3DTranslate(inherited BoundingBox, GetTranslation);
 end;
 
 procedure T3DCustomTranslated.Render(const Frustum: TFrustum;
@@ -131,30 +102,26 @@ procedure T3DCustomTranslated.Render(const Frustum: TFrustum;
 var
   T: TVector3Single;
 begin
-  inherited;
-  if Exists and (Child <> nil) then
-  begin
-    T := GetTranslation;
+  T := GetTranslation;
 
-    { We assume that Translation = 0,0,0 is the most common case
-      (this is true e.g. for TDoomLevelDoor,
-      since all doors close automatically, and initially all are closed...).
+  { We assume that Translation = 0,0,0 is the most common case
+    (this is true e.g. for TDoomLevelDoor,
+    since all doors close automatically, and initially all are closed...).
 
-      In this case we can avoid Frustum.Move (although I didn't do any tests,
-      maybe this check is not worth the effort and we don't need to worry
-      about Frustum.Move time so much ?). }
+    In this case we can avoid Frustum.Move (although I didn't do any tests,
+    maybe this check is not worth the effort and we don't need to worry
+    about Frustum.Move time so much ?). }
 
-    if ZeroVector(T) then
-      Child.Render(Frustum, TransparentGroup, InShadow) else
-      begin
-        glPushMatrix;
-          glTranslatev(T);
-          { Child.Render expects Frustum in it's local coordinates,
-            that's why we subtract Translation here. }
-          Child.Render(Frustum.Move(VectorNegate(T)), TransparentGroup, InShadow);
-        glPopMatrix;
-      end;
-  end;
+  if ZeroVector(T) then
+    inherited Render(Frustum, TransparentGroup, InShadow) else
+    begin
+      glPushMatrix;
+        glTranslatev(T);
+        { Child.Render expects Frustum in it's local coordinates,
+          that's why we subtract Translation here. }
+        inherited Render(Frustum.Move(-T), TransparentGroup, InShadow);
+      glPopMatrix;
+    end;
 end;
 
 procedure T3DCustomTranslated.RenderShadowVolume(
@@ -164,117 +131,36 @@ procedure T3DCustomTranslated.RenderShadowVolume(
 var
   T: TVector3Single;
 begin
-  inherited;
-  if Exists and CastsShadow and (Child <> nil) then
-  begin
-    T := GetTranslation;
+  T := GetTranslation;
 
-    { We assume that Translation = 0,0,0 is the most common case
-      (this is true e.g. for TDoomLevelDoor,
-      since all doors close automatically, and initially all are closed...).
+  { We assume that Translation = 0,0,0 is the most common case
+    (this is true e.g. for TDoomLevelDoor,
+    since all doors close automatically, and initially all are closed...).
 
-      In this case we can avoid matrix multiplication. }
+    In this case we can avoid matrix multiplication. }
 
-    if ZeroVector(T) then
-      Child.RenderShadowVolume(ShadowVolumeRenderer,
-        ParentTransformIsIdentity, ParentTransform) else
-      Child.RenderShadowVolume(ShadowVolumeRenderer,
-        false, MatrixMult(TranslationMatrix(T), ParentTransform));
-  end;
-end;
-
-procedure T3DCustomTranslated.PrepareResources(TransparentGroups: TTransparentGroups;
-  Options: TPrepareResourcesOptions; ProgressStep: boolean);
-begin
-  inherited;
-  if Child <> nil then
-    Child.PrepareResources(TransparentGroups, Options, ProgressStep);
-end;
-
-function T3DCustomTranslated.PrepareResourcesSteps: Cardinal;
-begin
-  Result := inherited;
-  if Child <> nil then
-    Result += Child.PrepareResourcesSteps;
-end;
-
-function T3DCustomTranslated.KeyDown(Key: TKey; C: char): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if Child <> nil then
-    Result := Child.KeyDown(Key, C);
-end;
-
-function T3DCustomTranslated.KeyUp(Key: TKey; C: char): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if Child <> nil then
-    Result := Child.KeyUp(Key, C);
-end;
-
-function T3DCustomTranslated.MouseDown(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if Child <> nil then
-    Result := Child.MouseDown(Button);
-end;
-
-function T3DCustomTranslated.MouseUp(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if Child <> nil then
-    Result := Child.MouseUp(Button);
+  if ZeroVector(T) then
+    inherited RenderShadowVolume(ShadowVolumeRenderer,
+      ParentTransformIsIdentity, ParentTransform) else
+    inherited RenderShadowVolume(ShadowVolumeRenderer,
+      false, MatrixMult(TranslationMatrix(T), ParentTransform));
 end;
 
 function T3DCustomTranslated.MouseMove(const RayOrigin, RayDirection: TVector3Single;
   RayHit: T3DCollision): boolean;
 begin
-  Result := inherited;
-  if Result then Exit;
-
-  if Child <> nil then
-    Result := Child.MouseMove(VectorSubtract(RayOrigin, GetTranslation),
-      RayDirection, RayHit);
-end;
-
-procedure T3DCustomTranslated.Idle(const CompSpeed: Single);
-begin
-  inherited;
-  if Child <> nil then
-    Child.Idle(CompSpeed);
-end;
-
-procedure T3DCustomTranslated.GLContextClose;
-begin
-  if Child <> nil then
-    Child.GLContextClose;
-  inherited;
+  Result := inherited MouseMove(RayOrigin - GetTranslation,
+    RayDirection, RayHit);
 end;
 
 procedure T3DCustomTranslated.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
-var
-  T: TVector3Single;
 begin
-  inherited;
-  if Exists and Collides and (Child <> nil) then
-  begin
-    T := GetTranslation;
-
-    Child.GetHeightAbove(
-      VectorSubtract(Position, T), GravityUp, TrianglesToIgnoreFunc,
-      IsAbove, AboveHeight, AboveGround);
-  end;
+  inherited GetHeightAbove(
+    Position - GetTranslation, GravityUp, TrianglesToIgnoreFunc,
+    IsAbove, AboveHeight, AboveGround);
 end;
 
 function T3DCustomTranslated.MoveAllowed(
@@ -284,19 +170,12 @@ function T3DCustomTranslated.MoveAllowed(
 var
   T: TVector3Single;
 begin
-  Result := (not Exists) or (not Collides) or (Child = nil);
+  T := GetTranslation;
+  Result := inherited MoveAllowed(OldPos - T, ProposedNewPos - T, NewPos,
+    CameraRadius, TrianglesToIgnoreFunc);
+  { translate calculated NewPos back }
   if Result then
-    NewPos := ProposedNewPos else
-  begin
-    T := GetTranslation;
-    Result := Child.MoveAllowed(
-      VectorSubtract(OldPos, T),
-      VectorSubtract(ProposedNewPos, T), NewPos,
-      CameraRadius, TrianglesToIgnoreFunc);
-    { translate calculated NewPos back }
-    if Result then
-      VectorAddTo1st(NewPos, T);
-  end;
+    NewPos += T;
 end;
 
 function T3DCustomTranslated.MoveAllowedSimple(
@@ -306,21 +185,15 @@ function T3DCustomTranslated.MoveAllowedSimple(
 var
   T: TVector3Single;
 begin
-  Result := (not Exists) or (not Collides) or (Child = nil);
-  if not Result then
-  begin
-    { I have to check collision between
-        Child + Translation and (OldPos, ProposedNewPos).
-      So it's equivalent to checking for collision between
-        Child and (OldPos, ProposedNewPos) - Translation
-      And this way I can use Child.MoveAllowedSimple. }
+  { I have to check collision between
+      Items + Translation and (OldPos, ProposedNewPos).
+    So it's equivalent to checking for collision between
+      Items and (OldPos, ProposedNewPos) - Translation
+    And this way I can use Child.MoveAllowedSimple. }
 
-    T := GetTranslation;
-    Result := Child.MoveAllowedSimple(
-      VectorSubtract(OldPos, T),
-      VectorSubtract(ProposedNewPos, T),
-      CameraRadius, TrianglesToIgnoreFunc);
-  end;
+  T := GetTranslation;
+  Result := inherited MoveAllowedSimple(
+    OldPos - T, ProposedNewPos - T, CameraRadius, TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTranslated.MoveBoxAllowedSimple(
@@ -331,23 +204,17 @@ var
   T: TVector3Single;
   B: TBox3D;
 begin
-  Result := (not Exists) or (not Collides) or (Child = nil);
-  if not Result then
-  begin
-    { I have to check collision between
-        Child + Translation and (OldPos, ProposedNewPos).
-      So it's equivalent to checking for collision between
-        Child and (OldPos, ProposedNewPos) - Translation
-      And this way I can use Child.MoveBoxAllowedSimple. }
+  { I have to check collision between
+      Items + Translation and (OldPos, ProposedNewPos).
+    So it's equivalent to checking for collision between
+      Items and (OldPos, ProposedNewPos) - Translation
+    And this way I can use "inherited MoveBoxAllowedSimple". }
 
-    T := GetTranslation;
-    B[0] := VectorSubtract(ProposedNewBox[0], T);
-    B[1] := VectorSubtract(ProposedNewBox[1], T);
-    Result := Child.MoveBoxAllowedSimple(
-      VectorSubtract(OldPos, T),
-      VectorSubtract(ProposedNewPos, T),
-      B, TrianglesToIgnoreFunc);
-  end;
+  T := GetTranslation;
+  B[0] := ProposedNewBox[0] - T;
+  B[1] := ProposedNewBox[1] - T;
+  Result := inherited MoveBoxAllowedSimple(
+    OldPos - T, ProposedNewPos - T, B, TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTranslated.SegmentCollision(const Pos1, Pos2: TVector3Single;
@@ -355,52 +222,35 @@ function T3DCustomTranslated.SegmentCollision(const Pos1, Pos2: TVector3Single;
 var
   T: TVector3Single;
 begin
-  Result := Exists and Collides and (Child <> nil);
-  if Result then
-  begin
-    { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
-      use Child.SegmentCollsion with Translation. }
-
-    T := GetTranslation;
-    Result := Child.SegmentCollision(
-      VectorSubtract(Pos1, T),
-      VectorSubtract(Pos2, T), TrianglesToIgnoreFunc);
-  end;
+  T := GetTranslation;
+  Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTranslated.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  T: TVector3Single;
 begin
-  Result := Exists and Collides and (Child <> nil);
-  if Result then
-  begin
-    { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
-      use Child.SphereCollsion with Translation. }
-
-    T := GetTranslation;
-    Result := Child.SphereCollision(
-      VectorSubtract(Pos, T),  Radius, TrianglesToIgnoreFunc);
-  end;
+  Result := inherited SphereCollision(
+    Pos - GetTranslation, Radius, TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTranslated.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  T: TVector3Single;
 begin
-  Result := Exists and Collides and (Child <> nil);
+  Result := Exists and Collides;
+
+  { We could just call inherited. But, for optimization, check
+    Exists and Collides first, to avoid calling Box3DAntiTranslate
+    when not necessary. }
+
   if Result then
   begin
     { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
-      use Child.BoxCollsion with Translation. }
+      use "inherited BoxCollsion" with Translation. }
 
-    T := GetTranslation;
-    Result := Child.BoxCollision(
-      Box3DAntiTranslate(Box, T),  TrianglesToIgnoreFunc);
+    Result := inherited BoxCollision(
+      Box3DAntiTranslate(Box, GetTranslation), TrianglesToIgnoreFunc);
   end;
 end;
 
@@ -408,94 +258,10 @@ function T3DCustomTranslated.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
-var
-  T: TVector3Single;
 begin
-  Result := nil;
-  if Exists and Collides and (Child <> nil) then
-  begin
-    { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
-      use Child.RayCollsion with Translation. }
-
-    T := GetTranslation;
-    Result := Child.RayCollision(IntersectionDistance,
-      VectorSubtract(Ray0, T),
-      RayVector, TrianglesToIgnoreFunc);
-
-    if Result <> nil then
-      Result.Hierarchy.Insert(0, Self);
-  end;
-end;
-
-procedure T3DCustomTranslated.UpdateGeneratedTextures(
-  const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewportX, OriginalViewportY: LongInt;
-  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
-begin
-  inherited;
-  if Child <> nil then
-    Child.UpdateGeneratedTextures(
-      RenderFunc, ProjectionNear, ProjectionFar,
-      OriginalViewportX, OriginalViewportY,
-      OriginalViewportWidth, OriginalViewportHeight);
-end;
-
-procedure T3DCustomTranslated.VisibleChangeNotification(const Changes: TVisibleChanges);
-begin
-  inherited;
-  if Child <> nil then
-    Child.VisibleChangeNotification(Changes);
-end;
-
-procedure T3DCustomTranslated.SetChild(const Value: T3D);
-begin
-  if FChild <> Value then
-  begin
-    if FChild <> nil then
-    begin
-      if FChild.OnVisibleChangeHere = @ChildVisibleChange then
-	FChild.OnVisibleChangeHere := nil;
-      if FChild.OnCursorChange = @ChildCursorChange then
-	FChild.OnCursorChange := nil;
-      FChild.RemoveFreeNotification(Self);
-    end;
-
-    FChild := Value;
-
-    if FChild <> nil then
-    begin
-      if FChild.OnVisibleChangeHere = nil then
-	FChild.OnVisibleChangeHere := @ChildVisibleChange;
-      if FChild.OnCursorChange = nil then
-	FChild.OnCursorChange := @ChildCursorChange;
-      FChild.FreeNotification(Self);
-    end;
-
-    ChildCursorChange(nil);
-  end;
-end;
-
-procedure T3DCustomTranslated.ChildVisibleChange(Sender: T3D; Changes: TVisibleChanges);
-begin
-  VisibleChangeHere(Changes);
-end;
-
-procedure T3DCustomTranslated.ChildCursorChange(Sender: TObject);
-begin
-  CursorChange;
-end;
-
-procedure T3DCustomTranslated.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-  if (Operation = opRemove) and (AComponent = FChild) then
-    FChild := nil;
-end;
-
-function T3DCustomTranslated.Dragging: boolean;
-begin
-  Result := (inherited Dragging) or ((FChild <> nil) and FChild.Dragging);
+  Result := inherited RayCollision(IntersectionDistance,
+    Ray0 - GetTranslation,
+    RayVector, TrianglesToIgnoreFunc);
 end;
 
 { T3DTranslated -------------------------------------------------------------- }

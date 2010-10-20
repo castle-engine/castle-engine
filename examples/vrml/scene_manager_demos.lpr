@@ -36,7 +36,6 @@ var
   Scene, Scene2: TVRMLGLScene;
   Animation: TVRMLGLAnimation;
   Translation: T3DTranslated;
-  TranslatedItems: T3DList;
   Scene2Transform: TNodeTransform_2;
 begin
   Window := TGLUIWindow.Create(Application);
@@ -75,9 +74,8 @@ begin
     SceneManager.Items
     |- Scene
     |- Translation
-       |- TranslatedItems
-          |- Scene2
-          |- Animation
+       |- Scene2
+       |- Animation
   }
 
   { initialize Translation }
@@ -85,17 +83,13 @@ begin
   Translation.Translation := Vector3Single(-15, -4, 0);
   SceneManager.Items.Add(Translation);
 
-  { initialize TranslatedItems list }
-  TranslatedItems := T3DList.Create(SceneManager);
-  Translation.Child := TranslatedItems;
-
   { initialize a 2nd scene, just because we can }
   Scene2 := TVRMLGLScene.Create(SceneManager);
   Scene2.Load('models/kambi_script_particles.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
 {  Scene2.Attributes.WireframeEffect := weWireframeOnly;} { render this as wireframe }
-  TranslatedItems.Add(Scene2);
+  Translation.Add(Scene2);
 
   { let's now show that you can process 3D model graph after loading:
     let's add a rotation inside VRML model in Scene2 }
@@ -110,7 +104,7 @@ begin
   Animation := TVRMLGLAnimation.Create(SceneManager);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
-  TranslatedItems.Add(Animation);
+  Translation.Add(Animation);
 
   Window.InitAndRun;
 end.

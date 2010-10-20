@@ -166,8 +166,6 @@ Scene manager / controls / better Lazarus integration:
   Hmm, not really --- Load3D will be only for OpenGL, as it will create
     already TVRMLGLScene / TVRMLGLAnimation etc.
 
-- maybe T3DCustomTranslated derive from T3DList, and call "inherited" instead of relying on Child.
-
 - animating Background in kanim doesn't work out of the box,
   since TKamSceneManager looks at MainScene.Background by default.
   Concerns kambi_vrml_test_suite/kanim/background_color_animation.kanim,
