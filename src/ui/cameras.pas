@@ -26,7 +26,7 @@ uses SysUtils, VectorMath, KambiUtils, KeysMouse, Boxes3D, Quaternions, Frustum,
 const
   DefaultFallingDownStartSpeed = 0.5;
   DefaultGrowingSpeed = 1.0;
-  DefaultHeadBobbing = 0.1;
+  DefaultHeadBobbing = 0.02;
   DefaultCrouchHeight = 0.5;
   DefaultMaxJumpHeight = 1.0;
   DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18; { }
