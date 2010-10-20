@@ -16,10 +16,8 @@
 { A simple extension of simplest_vrml_browser.lpr,
   registers handles for compiled: Script protocol.
 
-  Run with $1 = 3D model to load.
-
-  For sample of "compiled:" Script working, run as
-    vrml_browser_script_compiled ../../../kambi_vrml_test_suite/x3d/simple_script_tests.x3dv
+  Run with one command-line parameter: 3D model to load. Try for example
+    ./vrml_browser_script_compiled models/compiled_script_tests.x3dv
 }
 
 program vrml_browser_script_compiled;

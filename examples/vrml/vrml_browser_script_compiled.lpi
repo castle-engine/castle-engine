@@ -27,7 +27,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="../../../kambi_vrml_test_suite/x3d/simple_script_tests.x3dv"/>
+        <CommandLineParams Value="models/compiled_script_tests.x3dv"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -39,18 +39,42 @@
         <PackageName Value="kambi_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="vrml_browser_script_compiled.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="93" Y="22"/>
+        <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="../../../../../../installed/fpc/current/src/packages/univint/src/Dialogs.pas"/>
+        <UnitName Value="Dialogs"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="17"/>
+        <UsageCount Value="10"/>
+      </Unit1>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="4" HistoryIndex="3">
+      <Position1>
+        <Filename Value="vrml_browser_script_compiled.lpr"/>
+        <Caret Line="16" Column="14" TopLine="1"/>
+      </Position1>
+      <Position2>
+        <Filename Value="vrml_browser_script_compiled.lpr"/>
+        <Caret Line="28" Column="65" TopLine="12"/>
+      </Position2>
+      <Position3>
+        <Filename Value="vrml_browser_script_compiled.lpr"/>
+        <Caret Line="44" Column="14" TopLine="33"/>
+      </Position3>
+      <Position4>
+        <Filename Value="vrml_browser_script_compiled.lpr"/>
+        <Caret Line="28" Column="61" TopLine="24"/>
+      </Position4>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>

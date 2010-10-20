@@ -1,0 +1,43 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+Inline { url "bridge_final.x3dv" }
+
+NavigationInfo {
+  type ["FLY", "ANY"]
+  speed 5
+}
+
+# With this Transform, we set up both initial camera location
+# and at the same time our clickable text in front of it.
+Transform {
+  translation -46.300395965576172 -4.4862656593322754 4.8882923126220703
+  rotation 0.0217522922903299 -0.9996275305747985 0.0164888687431812 1.2975844144821167
+  children [
+    Viewpoint {
+      position 0 0 0
+      description "default in compiled_script_tests" }
+
+    Transform {
+      translation -5 0 -10
+      children Shape {
+        appearance Appearance { material Material { diffuseColor 1 1 0 } }
+        geometry Text { string [
+          "Click this to send \"touch\" to Script" ] }
+      }
+    }
+
+    DEF TouchStartAnim TouchSensor { }
+  ]
+}
+
+DEF Scr Script {
+  inputOnly SFTime touch
+  url [ "ecmascript: blah blah", "some_script.js",
+  "compiled:
+initialize=touch_initialize
+touch
+" ]
+}
+
+ROUTE TouchStartAnim.touchTime TO Scr.touch
