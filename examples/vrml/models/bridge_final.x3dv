@@ -10,12 +10,12 @@ NavigationInfo {
 }
 
 # Camera settings "encoded" in the VRML declaration below :
-# direction 0.999630868434906 -4.3711388286737929E-008 -0.027172265574336
-# up -1.2401931703820424E-009 1 -4.5624975797409206E-008
+# direction 0.9622886776924133 0.0329807139933109 -0.2700241208076477
+# up -0.0317542664706707 0.9994559288024902 0.008910440839827
 # gravityUp 0 1 0
 Viewpoint {
-  position -63.804584503173828 -4.6251835823059082 -0.7729703783988952
-  orientation -4.3727531817694398E-008 -1 0 1.5436207056045532
+  position -46.300395965576172 -4.4862656593322754 4.8882923126220703
+  orientation 0.0217522922903299 -0.9996275305747985 0.0164888687431812 1.2975844144821167
 }
 
 Transform {
@@ -45,7 +45,7 @@ Transform {
 # as well, and mirror shows all world obects (in scene manager,
 # not only in current vrml scene).
 Transform {
-  translation -50 -2 0
+  translation -10 -4 4
   children Shape {
     appearance Appearance {
       material Material {
@@ -55,7 +55,7 @@ Transform {
         texture [
           ImageTexture { url "../terrain/textures/sand.png" }
           GeneratedCubeMapTexture {
-            update "NEXT_FRAME_ONLY" # for speed; change to "ALWAYS" if you want
+            update "ALWAYS" # change to "NEXT_FRAME_ONLY" for speed
             size 256
           }
         ]

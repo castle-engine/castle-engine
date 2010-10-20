@@ -53,9 +53,7 @@ begin
 
   { initialize first Scene }
   Scene := TVRMLGLScene.Create(SceneManager);
-//  Scene.Load('../../../kambi_vrml_test_suite/vrml_2/castle_with_lights_and_camera.wrl');
-//  Scene.Load('../../../kambi_vrml_test_suite/x3d/touch_sensor_tests.x3dv');
-  Scene.Load('models/castle_y_up.x3dv');
+  Scene.Load('models/bridge_final.x3dv');
   { This makes scene octrees, allowing collision detection in (possibly)
     dynamic scene (ssDynamicCollisions) and frustum culling
     optimization when rendering (ssRendering). }
@@ -88,7 +86,7 @@ begin
 
   { initialize Translation }
   Translation := T3DTranslated.Create(SceneManager);
-  Translation.Translation := Vector3Single(5, 3, 60);
+  Translation.Translation := Vector3Single(-15, -4, 0);
   SceneManager.Items.Add(Translation);
 
   { initialize TranslatedItems list }
@@ -97,10 +95,6 @@ begin
 
   { initialize a 2nd scene, just because we can }
   Scene2 := TVRMLGLScene.Create(SceneManager);
-//  Scene2.Load('../../../kambi_vrml_test_suite/x3d/inline_url_change.x3dv');
-//  Scene2.Load('../../../kambi_vrml_test_suite/x3d/touch_sensor_tests.x3dv');
-//  Scene2.Load('../../../kambi_vrml_test_suite/x3d/anchor_test.x3dv');
-//  Scene2.Load('../../../kambi_vrml_test_suite/x3d/kambi_extensions/kambi_script_ball_game.x3dv');
   Scene2.Load('../../../kambi_vrml_test_suite/x3d/kambi_extensions/kambi_script_particles.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
