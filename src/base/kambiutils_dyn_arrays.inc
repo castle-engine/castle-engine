@@ -156,6 +156,9 @@ type
 
     { Reverse the order of items on the array. }
     procedure Reverse;
+    
+    { Remove all items, equivalent to doing @code(Count := 0). }
+    procedure Clear;
 
     constructor Create(ElementSize, InitialLength: Integer);
 
@@ -364,6 +367,11 @@ begin
    elementu numer 0 gdy Count = 0. }
  if Count = 0 then Exit;
  for i := 0 to (Count-1) div 2 do SwapItems(i, Count-1-i);
+end;
+
+procedure TDynArrayBase.Clear;
+begin
+  Count := 0;
 end;
 
 { include all implementations ---------------------------------------- }
