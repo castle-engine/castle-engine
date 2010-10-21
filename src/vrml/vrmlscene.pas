@@ -5621,9 +5621,24 @@ begin
 end;
 
 function TVRMLScene.Dragging: boolean;
+
+  function ActiveDraggingSensor: boolean;
+  var
+    I: Integer;
+  begin
+    Result := false;
+    for I := 0 to PointingDeviceActiveSensors.Count - 1 do
+      if PointingDeviceActiveSensors.Items[I] is TNodeX3DDragSensorNode then
+        Exit(true);
+   end;
+
 begin
   Result := (inherited Dragging) or
-    ((PointingDeviceActiveSensors.Count <> 0) and ProcessEvents);
+    ((PointingDeviceActiveSensors.Count <> 0) and
+      { minor optimization, do not even call ActiveDraggingSensor if
+        PointingDeviceActiveSensors.Count = 0 (most usual case) }
+      ActiveDraggingSensor and
+      ProcessEvents);
 end;
 
 { Time stuff ------------------------------------------------------------ }
