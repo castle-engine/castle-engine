@@ -5467,6 +5467,8 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
     begin
       if NewRootNode <> nil then
         Load(NewRootNode, true, { do not reset Time } false);
+      { TODO: make this bind a viewpoint without making camera transition,
+        test that it fixes anchor_test }
       if NewViewpoint <> nil then
         NewViewpoint.EventSet_Bind.Send(true, Time);
     end;
