@@ -15,6 +15,18 @@
 
 {$interfaces com}
 
+{ In FPC > 2.4.2, IInterface methods signature changed.
+  See
+  http://wiki.freepascal.org/User_Changes_Trunk#IInterface.QueryInterface.2C_._AddRef_and_._Release_definitions_have_been_changed }
+{$ifdef VER2_0} {$define OLD_IINTERFACE_METHODS} {$endif}
+{$ifdef VER2_2} {$define OLD_IINTERFACE_METHODS} {$endif}
+{$ifdef VER2_4} {$define OLD_IINTERFACE_METHODS} {$endif}
+
+{ IInterface methods are stdcall always with older FPC, or only on Windows
+  with newer FPC.
+  When IINTERFACE_STDCALL is not defined, it means to use cdecl. }
+{$ifdef OLD_IINTERFACE_METHODS} {$define IINTERFACE_STDCALL} {$endif}
+{$ifdef WINDOWS}                {$define IINTERFACE_STDCALL} {$endif}
 
 { Utilities for interfaces. }
 unit KambiInterfaces;
@@ -34,36 +46,40 @@ type
     [http://lists.freepascal.org/lists/fpc-devel/2007-November/012060.html]. }
   TNonRefCountedInterfacedObject = class(IInterface)
   protected
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-    function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
+    function _AddRef: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
+    function _Release: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
+    function QueryInterface({$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} IID: TGUID; out Obj): Hresult; virtual; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
   end;
 
   { A TPersistent descendant that can use interfaces and
     is not reference counted. Analogous to TNonRefCountedInterfacedObject. }
   TNonRefCountedInterfacedPersistent = class(TPersistent, IInterface)
   protected
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-    function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
+    function _AddRef: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
+    function _Release: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
+    function QueryInterface({$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} IID: TGUID; out Obj): Hresult; virtual; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
   end;
 
 implementation
 
 { TNonRefCountedInterfacedObject --------------------------------------------- }
 
-function TNonRefCountedInterfacedObject._AddRef: Integer; stdcall;
+function TNonRefCountedInterfacedObject._AddRef: Integer;
+  {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
 begin
   Result := -1;
 end;
 
-function TNonRefCountedInterfacedObject._Release: Integer; stdcall;
+function TNonRefCountedInterfacedObject._Release: Integer;
+  {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
 begin
   Result := -1;
 end;
 
 function TNonRefCountedInterfacedObject.QueryInterface(
-  const IID: TGUID; out Obj): Hresult; stdcall;
+  {$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} IID: TGUID;
+  out Obj): Hresult;
+  {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
 begin
   if GetInterface(IID, Obj) then
     Result := S_OK else
@@ -72,18 +88,22 @@ end;
 
 { TNonRefCountedInterfacedPersistent ----------------------------------------- }
 
-function TNonRefCountedInterfacedPersistent._AddRef: Integer; stdcall;
+function TNonRefCountedInterfacedPersistent._AddRef: Integer;
+  {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
 begin
   Result := -1;
 end;
 
-function TNonRefCountedInterfacedPersistent._Release: Integer; stdcall;
+function TNonRefCountedInterfacedPersistent._Release: Integer;
+  {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
 begin
   Result := -1;
 end;
 
 function TNonRefCountedInterfacedPersistent.QueryInterface(
-  const IID: TGUID; out Obj): Hresult; stdcall;
+  {$ifdef OLD_IINTERFACE_METHODS} const {$else} constref {$endif} IID: TGUID;
+  out Obj): Hresult;
+  {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
 begin
   if GetInterface(IID, Obj) then
     Result := S_OK else
