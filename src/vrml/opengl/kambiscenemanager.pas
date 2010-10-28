@@ -100,7 +100,7 @@ type
       argument, from RenderFromView. }
     procedure RenderNeverShadowed(TransparentGroup: TTransparentGroup); virtual;
 
-    { Render shadow quads for all the things rendered by @link(Render).
+    { Render shadow quads for all the things rendered by @link(Render3D).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
       to be initialized with TGLShadowVolumeRenderer.InitFrustumAndLight,
       so you can do shadow volumes culling. }
@@ -606,7 +606,7 @@ type
     procedure GLContextClose; override;
     function PositionInside(const X, Y: Integer): boolean; override;
 
-    { Prepare resources, to make various methods (like @link(Render))
+    { Prepare resources, to make various methods (like @link(Draw))
       execute fast.
 
       If DisplayProgressTitle <> '', we will display progress bar during

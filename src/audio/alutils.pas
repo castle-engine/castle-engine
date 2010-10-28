@@ -413,8 +413,8 @@ const
 { Pass resource to alDeleteSources or alDeleteBuffers,
   checking and setting it to zero.
 
-  These are trivial wrappers over alDeleteSources(1, @Source),
-  alDeleteBuffers(1, @Buffer). They first check is resource is non-zero,
+  These are trivial wrappers over @code(alDeleteSources(1, @@Source)),
+  @code(alDeleteBuffers(1, @@Buffer)). They first check if resource is non-zero,
   and after freeing set it to zero. This makes calling them many times
   (e.g. on already freed resources) harmless.
 

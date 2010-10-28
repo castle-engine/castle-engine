@@ -1186,7 +1186,7 @@ type
   EPlanesParallel = class(Exception);
 
 { Intersection of two 3D planes.
-  @raises EPlanesParalell If planes are parallel.
+  @raises EPlanesParallel If planes are parallel.
   @groupBegin }
 procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4Single;
   out Line0, LineVector: TVector3Single); overload;

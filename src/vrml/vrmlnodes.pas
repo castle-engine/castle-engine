@@ -1514,7 +1514,8 @@ type
     property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
       read FInterfaceDeclarations;
 
-    { Parse prototype, and add it to Names.Prototypes by @link(Bind).
+    { Parse prototype, and add it to Names.Prototypes.
+      Adds to @code(Names) by @code(Names.Prototypes.Bind(Self)).
       @groupBegin }
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); virtual; abstract;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); virtual; abstract;

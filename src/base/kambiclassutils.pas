@@ -679,6 +679,7 @@ var
 { @section(Stack, Queue) }
 
 type
+  { }
   TKamObjectStack = class(TObjectStack)
   private
     function GetCapacity: Integer;

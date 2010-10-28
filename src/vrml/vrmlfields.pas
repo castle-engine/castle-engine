@@ -548,8 +548,8 @@ type
       and this is the default implementation of this method in TVRMLField.
 
       You can override this to return some ancestor (from which, and to which,
-      you can assign) if you define a descendant of some field type
-      that doesn't change the @link(Assign) methods working.
+      you can assign) if your TVRMLField descendant
+      doesn't change how the @code(Assign) method works.
       E.g. TSFStringUpdate class, that is defined only to override
       @link(Changes) method and wants to be fully compatible with normal
       TSFString. }

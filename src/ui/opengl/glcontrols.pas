@@ -82,7 +82,7 @@ type
 
     { Auto-size routines (see @link(AutoSize)) may treat the image
       like always having at least these minimal sizes.
-      Even if the @linki(Image) is empty (@nil).
+      Even if the @link(Image) is empty (@nil).
       This is useful when you have a row of buttons (typical for toolbar),
       and you want them to have the same height, and their captions
       to be displayed at the same level, regardless of their images sizes. }

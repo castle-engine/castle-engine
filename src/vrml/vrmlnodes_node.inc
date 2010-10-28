@@ -44,7 +44,7 @@
 
   { VRML node. Every VRML node class descends from this.
 
-    @italic(Descendant implementors notes:: Each descendant should
+    @italic(Descendant implementors notes): Each descendant should
     override constructor to create and add his fields and events.
     Like @code(Fields.Add(TSFFloat.Create('width', 2, true))).
     Also, you should define FdXxx properties that allow fast,
