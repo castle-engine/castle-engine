@@ -139,7 +139,8 @@ pasdoc \
   --auto-abstract \
   --introduction=../doc/pasdoc/introduction.pasdoc \
   --auto-link \
-  --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt
+  --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt \
+  --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt
 
 #  \
 # --graphviz-classes --link-gv-classes jpg \
