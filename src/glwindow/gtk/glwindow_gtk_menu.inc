@@ -138,8 +138,7 @@ begin
    Pointer(PtrUInt(MenuItem.SmallId)));
 end;
 
-{ MenuInitialize will initialize MainMenu.Handle (to GtkMenuBar)
-  and insert it to window_vbox.
+{ Initialize MainMenu.Handle (to GtkMenuBar) and insert it to window_vbox.
 
   It will not clear the previous value of MainMenu.Handle,
   it does not try to remove previous MainMenu.Handle from window_vbox
@@ -147,7 +146,7 @@ end;
   that window_vbox is empty and current value of MainMenu.Handle
   is clear. }
 
-procedure TGLWindow.MenuInitialize;
+procedure TGLWindow.BackendMenuInitialize;
 
   { This tells GTK that key shortcut to Item is as specified in
     Key and CharKey. Key and Charkey are taken from TMenuItem.Key/CharKey
@@ -391,7 +390,7 @@ begin
     g_false, g_false, 0);
 end;
 
-procedure TGLWindow.MenuFinalize;
+procedure TGLWindow.BackendMenuFinalize;
 
   { Set Handle := nil for all menu entries }
   procedure ClearMenuHandles(MenuEntry: TMenuEntry);

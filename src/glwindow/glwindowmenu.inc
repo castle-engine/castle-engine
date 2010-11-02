@@ -25,8 +25,7 @@
     expands to submenu. }
   TMenuEntry = class
   private
-    { if CorrectParentWindow <> nil and window not closed,
-      call CorrectParentWindow.Menu*. }
+    { if CorrectParentWindow <> nil call CorrectParentWindow.Menu*. }
     procedure MenuInitialize;
     procedure MenuFinalize;
   private
@@ -54,6 +53,14 @@
 
     function CorrectParentWindow: TGLWindow;
   public
+    { For optimization purposes, you may surround many menu changes
+      inside MenuUpdateBegin + MenuUpdateEnd calls.
+      Make sure window is not closed / opened between them.
+      @groupBegin }
+    procedure MenuUpdateBegin;
+    procedure MenuUpdateEnd;
+    { @groupEnd }
+
     { This is the parent TMenu that has this item in it's Entries list.
       @nil is there is not parent menu yet (e.g. because it's not assigned
       yet, or because this is the main menu). }
@@ -492,7 +499,7 @@ var
   P: TGLWindow;
 begin
   P := CorrectParentWindow;
-  if (P <> nil) and (not P.Closed) then P.MenuInitialize;
+  if P <> nil then P.MenuInitialize;
 end;
 
 procedure TMenuEntry.MenuFinalize;
@@ -500,7 +507,23 @@ var
   P: TGLWindow;
 begin
   P := CorrectParentWindow;
-  if (P <> nil) and (not P.Closed) then P.MenuFinalize;
+  if P <> nil then P.MenuFinalize;
+end;
+
+procedure TMenuEntry.MenuUpdateBegin;
+var
+  P: TGLWindow;
+begin
+  P := CorrectParentWindow;
+  if P <> nil then P.MenuUpdateBegin;
+end;
+
+procedure TMenuEntry.MenuUpdateEnd;
+var
+  P: TGLWindow;
+begin
+  P := CorrectParentWindow;
+  if P <> nil then P.MenuUpdateEnd;
 end;
 
 { TMenuEntryWithCaption ---------------------------------------- }

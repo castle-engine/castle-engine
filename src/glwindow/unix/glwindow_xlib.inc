@@ -434,12 +434,12 @@ begin
  Result := true;
 end;
 
-procedure TGLWindow.MenuInitialize;
+procedure TGLWindow.BackendMenuInitialize;
 begin
   { does nothing }
 end;
 
-procedure TGLWindow.MenuFinalize;
+procedure TGLWindow.BackendMenuFinalize;
 begin
   { does nothing }
 end;

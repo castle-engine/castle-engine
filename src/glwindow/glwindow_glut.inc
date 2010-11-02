@@ -190,7 +190,7 @@ begin
  Result := true;
 end;
 
-procedure TGLWindow.MenuInitialize;
+procedure TGLWindow.BackendMenuInitialize;
 
   procedure AddToCurrentMenuAllEntries(Menu: TMenu); forward;
 
@@ -246,7 +246,7 @@ begin
  glutAttachMenu(GLUT_RIGHT_BUTTON);
 end;
 
-procedure TGLWindow.MenuFinalize;
+procedure TGLWindow.BackendMenuFinalize;
 
   procedure DoDestroyMenu(MenuEntry: TMenuEntry);
   var
@@ -264,7 +264,7 @@ procedure TGLWindow.MenuFinalize;
   end;
 
 begin
-  { Recursively call glutDestroyMenu on all menus created by MenuInitialize. }
+  { Recursively call glutDestroyMenu on all menus created by BackendMenuInitialize. }
   DoDestroyMenu(MainMenu);
 end;
 

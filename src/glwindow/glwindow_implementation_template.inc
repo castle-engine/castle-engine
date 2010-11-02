@@ -25,12 +25,12 @@
 
 { TGLWindow ------------------------------------------------------------------ }
 
-procedure TGLWindow.MenuInitialize;
+procedure TGLWindow.BackendMenuInitialize;
 begin
   { TODO (may do nothing if you do not care about displaying menu) }
 end;
 
-procedure TGLWindow.MenuFinalize;
+procedure TGLWindow.BackendMenuFinalize;
 begin
   { TODO (may do nothing if you do not care about displaying menu) }
 end;

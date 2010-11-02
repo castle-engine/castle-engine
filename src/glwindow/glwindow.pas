@@ -830,6 +830,10 @@ type
     EventInitCalled: boolean;
     closeerrors: string; { Used by Close. }
 
+    MenuUpdateInside: Cardinal;
+    MenuUpdateNeedsInitialize: boolean;
+    MenuInitialized: boolean;
+
     { Konkretne implementacje nie robia wlasnej wersji TGLWindow.Init,
       robia InitImplDepend -- tam sie inicjuja + musza wywolac
       Application.ActiveAdd(Self) w dogodnej chwili.
@@ -865,28 +869,51 @@ type
       guaranteed) }
     procedure SwapBuffers;
 
-    { MenuInitialize should cause backend to build whole menu resources
-      for MainMenu, MenuFinalize to free them.
+    { BackendMenuInitialize should cause backend to build whole menu resources
+      for MainMenu, BackendMenuFinalize to free them.
 
-      MenuFinalize is called before changing MainMenu structure
-      in arbitrary way, MenuInitialize is called after.
+      BackendMenuFinalize is called before changing MainMenu structure
+      in arbitrary way, BackendMenuInitialize is called after.
       Backend should just free / initialize resources related to menu.
-      MenuInitialize may assume that MenuFinalize was already called
-      (so no need to try to free in MenuInitialize again).
+      BackendMenuInitialize may assume that BackendMenuFinalize was already called
+      (so no need to try to free in BackendMenuInitialize again).
 
-      Implementatio of this can assume that MainMenu <> nil now.
+      They are never called directly: always call MenuInitialize / Finalize.
+      These make sure to care about eventual MenuUpdateBegin / MenuUpdateEnd
+      around, and make sure BackendMenuFinalize is called only when menu is
+      already initialized (by BackendMenuInitialize), and
+      BackendMenuInitialize is called only when menu is not initialized yet.
+
+      Implementation of these can assume that MainMenu <> nil now.
       Also it may assume that Closed = false.
 
       Note: if backend wants, it may itself call these from
       InitImplDepend / CloseImplDepend. Of course, when you call them
       yourself, you have to make sure on your own that all assumptions
-      are satisfied. In practice, MenuFinalize should clear all the variables
+      are satisfied. In practice, BackendMenuFinalize should clear all the variables
       to the state right after constructor (zero, nil etc.),
-      and MenuInitialize expect them as such, and then everything will work Ok.
+      and BackendMenuInitialize expect them as such, and then everything will work Ok.
 
+      @groupBegin }
+    procedure BackendMenuInitialize;
+    procedure BackendMenuFinalize;
+    { @groupEnd }
+
+    { These call corresponding BackendMenuInitialize or BackendMenuFinalize,
+      unless we're inside MenuUpdateBegin / MenuUpdateEnd,
+      and take care to only initialize when finalized,
+      and finalize only when initialized.
       @groupBegin }
     procedure MenuInitialize;
     procedure MenuFinalize;
+    { @groupEnd }
+
+    { For optimization purposes, you may surround many menu changes
+      inside MenuUpdateBegin + MenuUpdateEnd calls.
+      Make sure window is not closed / opened between them.
+      @groupBegin }
+    procedure MenuUpdateBegin;
+    procedure MenuUpdateEnd;
     { @groupEnd }
 
     { Notification that menu Entry properties changed.
@@ -4035,6 +4062,50 @@ end;
 function TGLWindow.GetPressed: TKeysPressed;
 begin
   Result := FPressed;
+end;
+
+procedure TGLWindow.MenuUpdateBegin;
+begin
+  { MenuUpdateNeedsInitialize = false always when MenuUpdateInside = 0. }
+  Assert((MenuUpdateInside <> 0) or (not MenuUpdateNeedsInitialize));
+
+  Inc(MenuUpdateInside);
+end;
+
+procedure TGLWindow.MenuUpdateEnd;
+begin
+  Dec(MenuUpdateInside);
+  if (MenuUpdateInside = 0) and MenuUpdateNeedsInitialize then
+  begin
+    MenuUpdateNeedsInitialize := false;
+    { We could also manually call BackendMenuInitialize now,
+      as we know MenuUpdateInside = 0. But MenuInitialize takes
+      care also about some checks and updating MenuInitialized variable. }
+    MenuInitialize;
+  end;
+end;
+
+procedure TGLWindow.MenuInitialize;
+begin
+  if MenuUpdateInside = 0 then
+  begin
+    if (not MenuInitialized) and (not Closed) then
+    begin
+      BackendMenuInitialize;
+      MenuInitialized := true;
+    end;
+  end else
+    MenuUpdateNeedsInitialize := true;
+end;
+
+procedure TGLWindow.MenuFinalize;
+begin
+  { MenuFinalize ignores MenuUpdateInside state, not needed. }
+  if MenuInitialized and (not Closed) then
+  begin
+    MenuInitialized := false;
+    BackendMenuFinalize;
+  end;
 end;
 
 { TGLWindowDemo ---------------------------------------------------------------- }
