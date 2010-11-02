@@ -253,24 +253,34 @@ type
   TVRMLBindableStack = class(TVRMLBindableStackBasic)
   private
     FParentScene: TVRMLScene;
+    FOnBoundChanged: TVRMLSceneNotification;
+    BoundChangedSchedule: Cardinal;
+    BoundChangedScheduled: boolean;
+
     { A useful utility: if the Node is not @nil, send isBound = Value and
       bindTime events to it. }
     procedure SendIsBound(Node: TNodeX3DBindableNode; const Value: boolean);
-  private
-    FOnBoundChanged: TVRMLSceneNotification;
 
     { Add new node to the top.
 
       This is internal, note that it doesn't send any events
-      and doesn't produce DoBoundChanged. }
+      and doesn't produce DoBoundChanged / DoScheduleBoundChanged. }
     procedure Push(Node: TNodeX3DBindableNode);
 
     { Remove current top node. Returns removed node, or @nil if no current
       node was present (that is, stack was empty).
 
       This is internal, note that it doesn't send any events
-      and doesn't produce DoBoundChanged. }
+      and doesn't produce DoBoundChanged / DoScheduleBoundChanged. }
     function Pop: TNodeX3DBindableNode;
+
+    { When we're inside BeginChangesSchedule / EndChangesSchedule,
+      then DoScheduleBoundChanged will not immediately call DoBoundChanged.
+      Effectively, you can wrap a part of code inside
+      BeginChangesSchedule / EndChangesSchedule, to delay calling
+      DoBoundChanged (and so OnBoundChanged callback). }
+    procedure BeginChangesSchedule;
+    procedure EndChangesSchedule;
   protected
     { Notification when the currently bound node, that is
       @link(Top), changed. This also includes notification
@@ -279,6 +289,11 @@ type
 
       In this class, just calls OnBoundChanged if assigned. }
     procedure DoBoundChanged; virtual;
+
+    { Call DoBoundChanged at the nearest comfortable time.
+      Either now (when not inside BeginChangesSchedule / EndChangesSchedule)
+      or at a closing EndChangesSchedule. }
+    procedure DoScheduleBoundChanged;
   public
     constructor Create(AParentScene: TVRMLScene);
 
@@ -2145,7 +2160,7 @@ begin
     Push(Node);
     if SendEvents then
       SendIsBound(Node, true);
-    DoBoundChanged;
+    DoScheduleBoundChanged;
   end;
 end;
 
@@ -2194,7 +2209,7 @@ begin
       SendIsBound(Top, true);
 
     if TopChanged then
-      DoBoundChanged;
+      DoScheduleBoundChanged;
   end;
 end;
 
@@ -2212,7 +2227,7 @@ begin
       SendIsBound(Top, false);
       Push(Node);
       SendIsBound(Top, true);
-      DoBoundChanged;
+      DoScheduleBoundChanged;
     end else
     if NodeIndex <> High then
     begin
@@ -2220,7 +2235,7 @@ begin
       SendIsBound(Top, false);
       Exchange(NodeIndex, High);
       SendIsBound(Top, true);
-      DoBoundChanged;
+      DoScheduleBoundChanged;
     end;
     { set_bind = true for node already on the top is ignored. }
   end else
@@ -2232,7 +2247,7 @@ begin
         SendIsBound(Top, false);
         Delete(NodeIndex);
         SendIsBound(Top, true);
-        DoBoundChanged;
+        DoScheduleBoundChanged;
       end else
       begin
         Delete(NodeIndex);
@@ -2246,6 +2261,31 @@ procedure TVRMLBindableStack.DoBoundChanged;
 begin
   if Assigned(OnBoundChanged) then
     OnBoundChanged(ParentScene);
+end;
+
+procedure TVRMLBindableStack.BeginChangesSchedule;
+begin
+  { BoundChangedScheduled = false always when BoundChangedSchedule = 0. }
+  Assert((BoundChangedSchedule <> 0) or (not BoundChangedScheduled));
+
+  Inc(BoundChangedSchedule);
+end;
+
+procedure TVRMLBindableStack.DoScheduleBoundChanged;
+begin
+  if BoundChangedSchedule = 0 then
+    DoBoundChanged else
+    BoundChangedScheduled := true;
+end;
+
+procedure TVRMLBindableStack.EndChangesSchedule;
+begin
+  Dec(BoundChangedSchedule);
+  if (BoundChangedSchedule = 0) and BoundChangedScheduled then
+  begin
+    BoundChangedScheduled := false;
+    DoBoundChanged;
+  end;
 end;
 
 { TViewpointStack -------------------------------------------------------- }
@@ -2980,54 +3020,79 @@ begin
     stopped to exist. }
   DoGeometryChanged(gcAll);
 
-  BackgroundStack.CheckForDeletedNodes(RootNode, true);
-  FogStack.CheckForDeletedNodes(RootNode, true);
-  NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
-  ViewpointStack.CheckForDeletedNodes(RootNode, true);
+  { Delay calling OnBoundChanged from bindable stack changes.
 
-  Validities := [];
+    Reason: CheckForDeletedNodes below, or PushIfEmpty during traversing,
+    should not cause immediate OnBoundChanged, as a receiver may expect
+    us to be in initialized state (and e.g. use BoundingBox function).
+    And before traversing finished, our Shapes tree is not calculated,
+    so we're not ready to answer e.g. BoundingBox correctly.
 
-  { Clear variables after removing fvTrianglesList* from Validities }
-  InvalidateTrianglesList(false);
-  InvalidateTrianglesList(true);
-  InvalidateTrianglesListShadowCasters;
+    Besides, this was often causing two OnBoundChanged calls,
+    while only one was needed. E.g. if your previous scene has
+    a Viewpoint node, and newly loaded scene also has Viewpoint,
+    then we would call OnBoundChanged twice (1st time by CheckForDeletedNodes). }
+  BackgroundStack.BeginChangesSchedule;
+  FogStack.BeginChangesSchedule;
+  NavigationInfoStack.BeginChangesSchedule;
+  ViewpointStack.BeginChangesSchedule;
 
-  { Clear variables after removing fvManifoldAndBorderEdges from Validities }
-  InvalidateManifoldAndBorderEdges;
-
-  ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
-    { Clean Shapes, ShapeLODs }
-    FreeAndNil(FShapes);
-    FShapes := TVRMLShapeTreeGroup.Create(Self);
-    ShapeLODs.Clear;
+    BackgroundStack.CheckForDeletedNodes(RootNode, true);
+    FogStack.CheckForDeletedNodes(RootNode, true);
+    NavigationInfoStack.CheckForDeletedNodes(RootNode, true);
+    ViewpointStack.CheckForDeletedNodes(RootNode, true);
 
-    if RootNode <> nil then
-    begin
-      Traverser := TChangedAllTraverser.Create;
-      try
-        Traverser.ParentScene := Self;
-        { We just created FShapes as TVRMLShapeTreeGroup, so this cast
-          is safe }
-        Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
-        Traverser.Active := true;
-        RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
-      finally FreeAndNil(Traverser) end;
+    Validities := [];
 
-      UpdateVRML2ActiveLights;
+    { Clear variables after removing fvTrianglesList* from Validities }
+    InvalidateTrianglesList(false);
+    InvalidateTrianglesList(true);
+    InvalidateTrianglesListShadowCasters;
 
-      if ProcessEvents then
-        CollectNodesForEvents;
-    end;
-  finally FreeAndNil(ChangedAll_TraversedLights) end;
+    { Clear variables after removing fvManifoldAndBorderEdges from Validities }
+    InvalidateManifoldAndBorderEdges;
 
-  { Call DoGeometryChanged here, as our new shapes are added.
-    Probably, only one DoGeometryChanged(gcAll) is needed, but for safety
-    --- we can call it twice, it's ultra-fast right now. }
-  DoGeometryChanged(gcAll);
+    ChangedAll_TraversedLights := TDynActiveLightArray.Create;
+    try
+      { Clean Shapes, ShapeLODs }
+      FreeAndNil(FShapes);
+      FShapes := TVRMLShapeTreeGroup.Create(Self);
+      ShapeLODs.Clear;
 
-  VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-  DoViewpointsChanged;
+      if RootNode <> nil then
+      begin
+        Traverser := TChangedAllTraverser.Create;
+        try
+          Traverser.ParentScene := Self;
+          { We just created FShapes as TVRMLShapeTreeGroup, so this cast
+            is safe }
+          Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
+          Traverser.Active := true;
+          RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
+        finally FreeAndNil(Traverser) end;
+
+        UpdateVRML2ActiveLights;
+
+        if ProcessEvents then
+          CollectNodesForEvents;
+      end;
+    finally FreeAndNil(ChangedAll_TraversedLights) end;
+
+    { Call DoGeometryChanged here, as our new shapes are added.
+      Probably, only one DoGeometryChanged(gcAll) is needed, but for safety
+      --- we can call it twice, it's ultra-fast right now. }
+    DoGeometryChanged(gcAll);
+
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    DoViewpointsChanged;
+
+  finally
+    BackgroundStack.EndChangesSchedule;
+    FogStack.EndChangesSchedule;
+    NavigationInfoStack.EndChangesSchedule;
+    ViewpointStack.EndChangesSchedule;
+  end;
 
   if ScheduledShadowMapsProcessing then
   begin
