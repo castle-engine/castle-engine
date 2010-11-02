@@ -1803,7 +1803,7 @@ type
           the current camera in the same manner as initial camera
           changed. This is suitable when you change transformation, position
           or orientation of the VRML/X3D Viewpoint node: conceptually,
-          there exists a "user" camera transformation that is the parent
+          there exists a "user" camera transformation that is the child
           of the viewpoint. When viewpoint is moved, then the current
           camera moves with it.)
       ) }
