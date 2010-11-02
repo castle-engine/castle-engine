@@ -568,6 +568,14 @@ type
     FShadowMapsVisualizeDepth: boolean;
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
+    { All CameraFromViewpoint calls will disable smooth (animated)
+      transitions when this is true.
+      This is set to true by @link(Load),
+      when ChangedAll is scheduled, so that first camera bindings
+      (in particular after LoadAnchor, when the already existing camera
+      is changed) will have immediate transitions in newly loaded file.
+      ChangedAll sets this back to false at the end. }
+    ForceTeleportTransitions: boolean;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -2486,6 +2494,12 @@ begin
     So only schedule it. }
   ScheduleHeadlightOnFromNavigationInfoInChangedAll := true;
 
+  { Disable smooth camera transitions up to the of next ChangedAll.
+    This way initial Viewpoint at loading (this will also catch
+    a viewpoint given as #viewpoint_name at LoadAnchor, see there for
+    comments) will be set immediately. }
+  ForceTeleportTransitions := true;
+
   ScheduleChangedAll;
 
   if AResetTime then
@@ -3039,6 +3053,8 @@ begin
     ScheduleHeadlightOnFromNavigationInfoInChangedAll := false;
     UpdateHeadlightOnFromNavigationInfo;
   end;
+
+  ForceTeleportTransitions := false;
 
   finally Dec(Dirty) end;
 end;
@@ -5467,8 +5483,15 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
     begin
       if NewRootNode <> nil then
         Load(NewRootNode, true, { do not reset Time } false);
-      { TODO: make this bind a viewpoint without making camera transition,
-        test that it fixes anchor_test }
+
+      { When NewRootNode <> nil, it's important here that we know
+        we're inside BeginChangesSchedule.
+
+        This means that ForceTeleportTransitions (set to true by Load)
+        is still true during the following Set_Bind := true call.
+        That's because ChangedAll (that resets ForceTeleportTransitions
+        to false) was not called yet. }
+
       if NewViewpoint <> nil then
         NewViewpoint.EventSet_Bind.Send(true, Time);
     end;
@@ -6140,7 +6163,7 @@ begin
   ACamera.SetInitialView(Position, Direction, Up, RelativeCameraTransform);
   if not RelativeCameraTransform then
   begin
-    if AllowTransitionAnimate then
+    if AllowTransitionAnimate and (not ForceTeleportTransitions) then
       CameraTransition(ACamera, Position, Direction, Up) else
       ACamera.SetView(Position, Direction, Up);
   end;
