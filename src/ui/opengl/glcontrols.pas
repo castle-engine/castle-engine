@@ -21,6 +21,8 @@ interface
 uses UIControls, OpenGLFonts, KeysMouse, Classes, Images, GL, KambiUtils;
 
 type
+  TKamButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
+
   { Button inside OpenGL context.
 
     This is TUIControl descendant, so to use it just add it to
@@ -36,7 +38,7 @@ type
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
-    TextWidth, TextHeightBase: Cardinal;
+    TextWidth, TextHeight: Cardinal;
     FPressed: boolean;
     FOwnsImage: boolean;
     FImage: TImage;
@@ -46,17 +48,19 @@ type
     FOpacity: Single;
     FMinImageWidth: Cardinal;
     FMinImageHeight: Cardinal;
+    FImageLayout: TKamButtonImageLayout;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
     procedure SetAutoSizeHeight(const Value: boolean);
-    { Calculate TextWidth, TextHeightBase and call UpdateSize. }
+    { Calculate TextWidth, TextHeight and call UpdateSize. }
     procedure UpdateTextSize;
     { If AutoSize, update Width, Height.
       This depends on Caption, AutoSize*, Font availability. }
     procedure UpdateSize;
     procedure SetImage(const Value: TImage);
     procedure SetPressed(const Value: boolean);
+    procedure SetImageLayout(const Value: TKamButtonImageLayout);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -134,6 +138,10 @@ type
       When this is < 1, we draw control with nice blending.
       Make sure you have some background control underneath in this case. }
     property Opacity: Single read FOpacity write FOpacity default 1.0;
+
+    { Where the @link(Image) is drawn on a button. }
+    property ImageLayout: TKamButtonImageLayout
+      read FImageLayout write SetImageLayout;
   end;
 
   { Panel inside OpenGL context.
@@ -300,7 +308,7 @@ procedure TKamGLButton.Draw;
   end;
 
 var
-  TextLeft: Integer;
+  TextLeft, TextBottom, ImgLeft, ImgBottom: Integer;
 begin
   if not Exists then Exit;
 
@@ -328,11 +336,20 @@ begin
     glEnd;
 
     glColorOpacity(ColText, Opacity);
-    if (FImage <> nil) and (FGLImage <> 0) then
-      TextLeft := Left +
-        (Width + FImage.Width + ButtonCaptionImageMargin - TextWidth) div 2 else
-      TextLeft := Left + (Width - TextWidth) div 2;
-    glRasterPos2i(TextLeft, Bottom + (Height - TextHeightBase) div 2);
+
+    TextLeft := Left + (Width - TextWidth) div 2;
+    if (FImage <> nil) and (FGLImage <> 0) and (ImageLayout = ilLeft) then
+      TextLeft += (FImage.Width + ButtonCaptionImageMargin) div 2 else
+    if (FImage <> nil) and (FGLImage <> 0) and (ImageLayout = ilRight) then
+      TextLeft -= (FImage.Width + ButtonCaptionImageMargin) div 2;
+
+    TextBottom := Bottom + (Height - TextHeight) div 2;
+    if (FImage <> nil) and (FGLImage <> 0) and (ImageLayout = ilBottom) then
+      TextBottom += (FImage.Height + ButtonCaptionImageMargin) div 2 else
+    if (FImage <> nil) and (FGLImage <> 0) and (ImageLayout = ilTop) then
+      TextBottom -= (FImage.Height + ButtonCaptionImageMargin) div 2;
+
+    glRasterPos2i(TextLeft, TextBottom);
     Font.Print(Caption);
   glPopAttrib;
 
@@ -348,8 +365,17 @@ begin
         glAlphaFunc(GL_GEQUAL, 0.1); // saved by GL_COLOR_BUFFER_BIT
         glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
     end;
-    glRasterPos2i(TextLeft - FImage.Width - ButtonCaptionImageMargin,
-      Bottom + (Height - FImage.Height) div 2);
+    case ImageLayout of
+      ilLeft         : ImgLeft := TextLeft - FImage.Width - ButtonCaptionImageMargin;
+      ilRight        : ImgLeft := TextLeft + TextWidth + ButtonCaptionImageMargin;
+      ilBottom, ilTop: ImgLeft := Left + (Width - FImage.Width) div 2;
+    end;
+    case ImageLayout of
+      ilBottom       : ImgBottom := TextBottom - FImage.Height - ButtonCaptionImageMargin;
+      ilTop          : ImgBottom := TextBottom + TextHeight + ButtonCaptionImageMargin;
+      ilLeft, ilRight: ImgBottom := Bottom + (Height - FImage.Height) div 2;
+    end;
+    glRasterPos2i(ImgLeft, ImgBottom);
     glCallList(FGLImage);
     if FImage.HasAlpha then
       glPopAttrib;
@@ -470,7 +496,7 @@ begin
   if Font <> nil then
   begin
     TextWidth := Font.TextWidth(Caption);
-    TextHeightBase := Font.RowHeightBase;
+    TextHeight := Font.RowHeightBase;
     UpdateSize;
   end;
 end;
@@ -485,7 +511,7 @@ begin
   if AutoSize then
   begin
     if AutoSizeWidth then Width := TextWidth + HorizontalMargin * 2;
-    if AutoSizeHeight then Height := TextHeightBase + VerticalMargin * 2;
+    if AutoSizeHeight then Height := TextHeight + VerticalMargin * 2;
     if (FImage <> nil) or
        (MinImageWidth <> 0) or
        (MinImageHeight <> 0) then
@@ -495,14 +521,20 @@ begin
         if FImage <> nil then
           ImgSize := Max(FImage.Width, MinImageWidth) else
           ImgSize := MinImageWidth;
-        Width := Width + ImgSize + ButtonCaptionImageMargin;
+        case ImageLayout of
+          ilLeft, ilRight: Width := Width + ImgSize + ButtonCaptionImageMargin;
+          ilTop, ilBottom: Width := Max(Width, ImgSize + HorizontalMargin * 2);
+        end;
       end;
       if AutoSizeHeight then
       begin
         if FImage <> nil then
           ImgSize := Max(FImage.Height, MinImageHeight) else
           ImgSize := MinImageHeight;
-        Height := Max(Height, ImgSize + VerticalMargin * 2);
+        case ImageLayout of
+          ilLeft, ilRight: Height := Max(Height, ImgSize + VerticalMargin * 2);
+          ilTop, ilBottom: Height := Height + ImgSize + ButtonCaptionImageMargin;
+        end;
       end;
     end;
   end;
@@ -559,6 +591,16 @@ begin
   { let controls under the TKamGLButton handle keys/mouse,
     because TKamGLButton doesn't do anything with them by default. }
   LetOthersHandleMouseAndKeys := true;
+end;
+
+procedure TKamGLButton.SetImageLayout(const Value: TKamButtonImageLayout);
+begin
+  if FImageLayout <> Value then
+  begin
+    FImageLayout := Value;
+    UpdateSize;
+    VisibleChange;
+  end;
 end;
 
 { TKamPanel ------------------------------------------------------------------ }

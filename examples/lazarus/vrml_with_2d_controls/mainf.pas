@@ -14,6 +14,14 @@ type
     SampleButton: TKamGLButton;
     SampleImage: TKamGLImage;
     SampleImageAlpha: TKamGLImage;
+    ButtonImageFixSize1: TKamGLButton;
+    ButtonImageFixSize2: TKamGLButton;
+    ButtonImageFixSize3: TKamGLButton;
+    ButtonImageFixSize4: TKamGLButton;
+    ButtonImage1: TKamGLButton;
+    ButtonImage2: TKamGLButton;
+    ButtonImage3: TKamGLButton;
+    ButtonImage4: TKamGLButton;
     procedure FormCreate(Sender: TObject);
     procedure BrowserResize(Sender: TObject);
     procedure SampleButtonClick(Sender: TObject);
@@ -24,7 +32,7 @@ var
 
 implementation
 
-uses VRMLErrors, VRMLScene, KambiUtils;
+uses VRMLErrors, VRMLScene, KambiUtils, Images;
 
 { TForm1 --------------------------------------------------------------------- }
 
@@ -47,9 +55,31 @@ begin
     (Images (TKamGLImage) actually also obscure scene underneath, but since
     they do not handle any keys or mouse by default, they let themn through
     to 3d scene. This could be changed by overriding their MouseDown etc.) }
+
   Browser.Controls.Insert(0, SampleButton);
   Browser.Controls.Insert(0, SampleImage);
   Browser.Controls.Insert(0, SampleImageAlpha);
+  Browser.Controls.Insert(0, ButtonImageFixSize1);
+  Browser.Controls.Insert(0, ButtonImageFixSize2);
+  Browser.Controls.Insert(0, ButtonImageFixSize3);
+  Browser.Controls.Insert(0, ButtonImageFixSize4);
+  Browser.Controls.Insert(0, ButtonImage1);
+  Browser.Controls.Insert(0, ButtonImage2);
+  Browser.Controls.Insert(0, ButtonImage3);
+  Browser.Controls.Insert(0, ButtonImage4);
+
+  { load button's images. Actually, load it only once, and use the same
+    reference (leaving OwnsImage = false) on other buttons. }
+  ButtonImageFixSize1.Image := LoadImage('sample_button_icon.png', [], []);
+  ButtonImageFixSize1.OwnsImage := true;
+  ButtonImageFixSize2.Image := ButtonImageFixSize1.Image;
+  ButtonImageFixSize3.Image := ButtonImageFixSize1.Image;
+  ButtonImageFixSize4.Image := ButtonImageFixSize1.Image;
+
+  ButtonImage1.Image := ButtonImageFixSize1.Image;
+  ButtonImage2.Image := ButtonImageFixSize1.Image;
+  ButtonImage3.Image := ButtonImageFixSize1.Image;
+  ButtonImage4.Image := ButtonImageFixSize1.Image;
 
   { Load images (do not do this at design-time, as relative path to the images
     may be not right then) }

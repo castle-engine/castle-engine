@@ -1,20 +1,20 @@
 object Form1: TForm1
-  Left = 566
-  Height = 470
-  Top = 149
-  Width = 630
+  Left = 274
+  Height = 624
+  Top = 124
+  Width = 1043
   ActiveControl = Browser
   Caption = 'Form1'
-  ClientHeight = 470
-  ClientWidth = 630
+  ClientHeight = 624
+  ClientWidth = 1043
   OnCreate = FormCreate
   Position = poDesktopCenter
   LCLVersion = '0.9.28.2'
   object Browser: TKamVRMLBrowser
     Left = 0
-    Height = 470
+    Height = 624
     Top = 0
-    Width = 630
+    Width = 1043
     Align = alClient
     OnResize = BrowserResize
   end
@@ -27,6 +27,7 @@ object Form1: TForm1
     Caption = 'Sample clickable button on GL area.'
     Toggle = False
     Pressed = False
+    ImageLayout = ilTop
     TUIControlPos_RealLeft = 10
     TUIControlPos_Design_Left = 152
     TUIControlPos_Design_Top = 16
@@ -43,5 +44,103 @@ object Form1: TForm1
     TUIControlPos_RealLeft = 300
     TUIControlPos_Design_Left = 152
     TUIControlPos_Design_Top = 184
+  end
+  object ButtonImageFixSize1: TKamGLButton
+    Bottom = 420
+    Width = 240
+    Height = 100
+    AutoSize = False
+    Caption = 'Image top'
+    Toggle = False
+    Pressed = False
+    ImageLayout = ilTop
+    TUIControlPos_Design_Left = 411
+    TUIControlPos_Design_Top = 58
+  end
+  object ButtonImageFixSize2: TKamGLButton
+    Bottom = 420
+    Width = 240
+    Height = 100
+    AutoSize = False
+    Caption = 'Image bottom'
+    Toggle = False
+    Pressed = False
+    ImageLayout = ilBottom
+    TUIControlPos_RealLeft = 250
+    TUIControlPos_Design_Left = 411
+    TUIControlPos_Design_Top = 128
+  end
+  object ButtonImageFixSize3: TKamGLButton
+    Bottom = 420
+    Width = 240
+    Height = 100
+    AutoSize = False
+    Caption = 'Image left'
+    Toggle = False
+    Pressed = False
+    ImageLayout = ilLeft
+    TUIControlPos_RealLeft = 500
+    TUIControlPos_Design_Left = 411
+    TUIControlPos_Design_Top = 200
+  end
+  object ButtonImageFixSize4: TKamGLButton
+    Bottom = 420
+    Width = 240
+    Height = 100
+    AutoSize = False
+    Caption = 'Image right'
+    Toggle = False
+    Pressed = False
+    ImageLayout = ilRight
+    TUIControlPos_RealLeft = 750
+    TUIControlPos_Design_Left = 411
+    TUIControlPos_Design_Top = 272
+  end
+  object ButtonImage1: TKamGLButton
+    Bottom = 550
+    Width = 250
+    Height = 100
+    Caption = 'Image top'
+    Toggle = False
+    Pressed = False
+    ImageLayout = ilTop
+    TUIControlPos_Design_Left = 696
+    TUIControlPos_Design_Top = 58
+  end
+  object ButtonImage2: TKamGLButton
+    Bottom = 550
+    Width = 250
+    Height = 100
+    Caption = 'Image bottom'
+    Toggle = False
+    Pressed = False
+    ImageLayout = ilBottom
+    TUIControlPos_RealLeft = 250
+    TUIControlPos_Design_Left = 696
+    TUIControlPos_Design_Top = 128
+  end
+  object ButtonImage3: TKamGLButton
+    Bottom = 550
+    Width = 250
+    Height = 100
+    Caption = 'Image left'
+    Toggle = False
+    Pressed = False
+    ImageLayout = ilLeft
+    TUIControlPos_RealLeft = 500
+    TUIControlPos_Design_Left = 696
+    TUIControlPos_Design_Top = 200
+  end
+  object ButtonImage4: TKamGLButton
+    Bottom = 550
+    Width = 250
+    Height = 100
+    Caption = 'Image right'
+    Toggle = False
+    Pressed = False
+    ImageLayout = ilRight
+    TUIControlPos_RealLeft = 750
+    TUIControlPos_Design_Left = 696
+    TUIControlPos_Design_Top = 272
   end
 end

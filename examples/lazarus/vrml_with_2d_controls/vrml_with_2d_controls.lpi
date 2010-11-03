@@ -41,14 +41,14 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="11">
+    <Units Count="13">
       <Unit0>
         <Filename Value="vrml_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vrml_with_2d_controls"/>
         <CursorPos X="39" Y="10"/>
         <TopLine Value="1"/>
-        <UsageCount Value="34"/>
+        <UsageCount Value="35"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -56,10 +56,10 @@
         <ComponentName Value="Form1"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
-        <CursorPos X="18" Y="36"/>
-        <TopLine Value="16"/>
+        <CursorPos X="3" Y="75"/>
+        <TopLine Value="75"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="34"/>
+        <UsageCount Value="35"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -125,8 +125,79 @@
         <TopLine Value="55"/>
         <UsageCount Value="10"/>
       </Unit10>
+      <Unit11>
+        <Filename Value="..\..\..\src\opengl\glimages.pas"/>
+        <UnitName Value="GLImages"/>
+        <CursorPos X="34" Y="190"/>
+        <TopLine Value="168"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="..\..\..\src\images\images.pas"/>
+        <UnitName Value="Images"/>
+        <CursorPos X="20" Y="1537"/>
+        <TopLine Value="1515"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit12>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="13" HistoryIndex="12">
+      <Position1>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="36" Column="18" TopLine="16"/>
+      </Position1>
+      <Position2>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="37" Column="18" TopLine="16"/>
+      </Position2>
+      <Position3>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="38" Column="18" TopLine="16"/>
+      </Position3>
+      <Position4>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="39" Column="18" TopLine="17"/>
+      </Position4>
+      <Position5>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="67" Column="22" TopLine="53"/>
+      </Position5>
+      <Position6>
+        <Filename Value="..\..\..\src\images\images.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position6>
+      <Position7>
+        <Filename Value="..\..\..\src\images\images.pas"/>
+        <Caret Line="35" Column="54" TopLine="24"/>
+      </Position7>
+      <Position8>
+        <Filename Value="..\..\..\src\images\images.pas"/>
+        <Caret Line="43" Column="21" TopLine="24"/>
+      </Position8>
+      <Position9>
+        <Filename Value="..\..\..\src\images\images.pas"/>
+        <Caret Line="1471" Column="22" TopLine="1450"/>
+      </Position9>
+      <Position10>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="63" Column="74" TopLine="51"/>
+      </Position10>
+      <Position11>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="64" Column="74" TopLine="51"/>
+      </Position11>
+      <Position12>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="65" Column="74" TopLine="51"/>
+      </Position12>
+      <Position13>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="66" Column="74" TopLine="51"/>
+      </Position13>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
@@ -153,7 +224,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
+    <Exceptions Count="4">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -163,6 +234,9 @@
       <Item3>
         <Name Value="BreakFirstViewpointFound"/>
       </Item3>
+      <Item4>
+        <Name Value="EDynLibError"/>
+      </Item4>
     </Exceptions>
   </Debugging>
 </CONFIG>
