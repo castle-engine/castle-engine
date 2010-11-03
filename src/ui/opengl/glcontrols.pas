@@ -141,7 +141,7 @@ type
 
     { Where the @link(Image) is drawn on a button. }
     property ImageLayout: TKamButtonImageLayout
-      read FImageLayout write SetImageLayout;
+      read FImageLayout write SetImageLayout default ilLeft;
   end;
 
   { Panel inside OpenGL context.
@@ -269,6 +269,7 @@ begin
   FAutoSize := true;
   FAutoSizeWidth := true;
   FAutoSizeHeight := true;
+  FImageLayout := ilLeft;
   FOpacity := 1;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
