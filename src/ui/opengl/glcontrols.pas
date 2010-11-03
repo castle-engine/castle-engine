@@ -18,7 +18,7 @@ unit GLControls;
 
 interface
 
-uses UIControls, OpenGLFonts, KeysMouse, Classes, Images, GL;
+uses UIControls, OpenGLFonts, KeysMouse, Classes, Images, GL, KambiUtils;
 
 type
   { Button inside OpenGL context.
@@ -138,20 +138,33 @@ type
 
   { Panel inside OpenGL context.
     Use as a comfortable (and with matching colors) background
-    for other controls like buttons and such. }
+    for other controls like buttons and such.
+    May be used as a toolbar, together with appropriately placed
+    TKamGLButton over it. }
   TKamPanel = class(TUIControlPos)
   private
     FWidth: Cardinal;
     FHeight: Cardinal;
     FOpacity: Single;
+    FVerticalSeparators: TDynCardinalArray;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
+
+    { Separator lines drawn on panel. Useful if you want to visually separate
+      groups of contols (like a groups of buttons when you use
+      this panel as a toolbar).
+
+      Values are the horizontal positions of the separators (with respect
+      to this panel @link(Left)). Width of the separator is in SeparatorSize. }
+    property VerticalSeparators: TDynCardinalArray read FVerticalSeparators;
+    class function SeparatorSize: Cardinal;
   published
     property Width: Cardinal read FWidth write FWidth default 0;
     property Height: Cardinal read FHeight write FHeight default 0;
@@ -210,7 +223,7 @@ procedure Register;
 implementation
 
 uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, VectorMath,
-  KambiGLUtils, GLImages, KambiUtils, Math;
+  KambiGLUtils, GLImages, Math;
 
 procedure Register;
 begin
@@ -554,6 +567,13 @@ constructor TKamPanel.Create(AOwner: TComponent);
 begin
   inherited;
   FOpacity := 1;
+  FVerticalSeparators := TDynCardinalArray.Create;
+end;
+
+destructor TKamPanel.Destroy;
+begin
+  FreeAndNil(FVerticalSeparators);
+  inherited;
 end;
 
 function TKamPanel.DrawStyle: TUIControlDrawStyle;
@@ -574,6 +594,10 @@ procedure TKamPanel.Draw;
     Result[2] := Power(V[2] / 255, Exp);
   end;
 
+const
+  SeparatorMargin = 8;
+var
+  I: Integer;
 begin
   if not Exists then Exit;
 
@@ -596,6 +620,24 @@ begin
     glEnd;
   glPopAttrib;
 
+  if VerticalSeparators.Count <> 0 then
+  begin
+    glBegin(GL_LINES);
+      glColorOpacity(ColDarkFrame, Opacity);
+      for I := 0 to VerticalSeparators.Count - 1 do
+      begin
+        glVertex2i(Left + VerticalSeparators[I], Bottom + SeparatorMargin);
+        glVertex2i(Left + VerticalSeparators[I], Bottom + Height - SeparatorMargin);
+      end;
+      glColorOpacity(ColLightFrame, Opacity);
+      for I := 0 to VerticalSeparators.Count - 1 do
+      begin
+        glVertex2i(Left + VerticalSeparators[I] + 1, Bottom + SeparatorMargin);
+        glVertex2i(Left + VerticalSeparators[I] + 1, Bottom + Height - SeparatorMargin);
+      end;
+    glEnd;
+  end;
+
   if Opacity < 1 then
     glPopAttrib;
 end;
@@ -617,6 +659,11 @@ begin
   { let controls under the TKamPanel handle keys/mouse,
     because TKamPanel doesn't do anything with them by default. }
   LetOthersHandleMouseAndKeys := true;
+end;
+
+class function TKamPanel.SeparatorSize: Cardinal;
+begin
+  Result := 2;
 end;
 
 { TKamGLImage ---------------------------------------------------------------- }
