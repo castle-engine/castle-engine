@@ -1,3 +1,5 @@
+{ To jest automatycznie wygenerowany plik zasobów lazarusa }
+
 LazarusResources.Add('TForm1','FORMDATA',[
   'TPF0'#6'TForm1'#5'Form1'#4'Left'#3#18#1#6'Height'#3'p'#2#3'Top'#2'|'#5'Width'
   +#3#19#4#13'ActiveControl'#7#7'Browser'#7'Caption'#6#5'Form1'#12'ClientHeight'
@@ -12,36 +14,35 @@ LazarusResources.Add('TForm1','FORMDATA',[
   +#0#11'TKamGLImage'#11'SampleImage'#6'Bottom'#3#150#0#22'TUIControlPos_RealLe'
   +'ft'#2#20#25'TUIControlPos_Design_Left'#3#152#0#24'TUIControlPos_Design_Top'
   +#2'`'#0#0#11'TKamGLImage'#16'SampleImageAlpha'#6'Bottom'#3#150#0#8'Blending'
-  +#9#22'TUIControlPos_RealLeft'#3','#1#25'TUIControlPos_Design_Left'#3#152#0#24
-  +'TUIControlPos_Design_Top'#3#184#0#0#0#12'TKamGLButton'#19'ButtonImageFixSiz'
-  +'e1'#6'Bottom'#3#164#1#5'Width'#3#240#0#6'Height'#2'd'#8'AutoSize'#8#7'Capti'
-  +'on'#6#9'Image top'#6'Toggle'#8#7'Pressed'#8#11'ImageLayout'#7#5'ilTop'#25'T'
-  +'UIControlPos_Design_Left'#3#155#1#24'TUIControlPos_Design_Top'#2':'#0#0#12
-  +'TKamGLButton'#19'ButtonImageFixSize2'#6'Bottom'#3#164#1#5'Width'#3#240#0#6
-  +'Height'#2'd'#8'AutoSize'#8#7'Caption'#6#12'Image bottom'#6'Toggle'#8#7'Pres'
-  +'sed'#8#11'ImageLayout'#7#8'ilBottom'#22'TUIControlPos_RealLeft'#3#250#0#25
-  +'TUIControlPos_Design_Left'#3#155#1#24'TUIControlPos_Design_Top'#3#128#0#0#0
-  +#12'TKamGLButton'#19'ButtonImageFixSize3'#6'Bottom'#3#164#1#5'Width'#3#240#0
-  +#6'Height'#2'd'#8'AutoSize'#8#7'Caption'#6#10'Image left'#6'Toggle'#8#7'Pres'
-  +'sed'#8#11'ImageLayout'#7#6'ilLeft'#22'TUIControlPos_RealLeft'#3#244#1#25'TU'
-  +'IControlPos_Design_Left'#3#155#1#24'TUIControlPos_Design_Top'#3#200#0#0#0#12
-  +'TKamGLButton'#19'ButtonImageFixSize4'#6'Bottom'#3#164#1#5'Width'#3#240#0#6
-  +'Height'#2'd'#8'AutoSize'#8#7'Caption'#6#11'Image right'#6'Toggle'#8#7'Press'
-  +'ed'#8#11'ImageLayout'#7#7'ilRight'#22'TUIControlPos_RealLeft'#3#238#2#25'TU'
-  +'IControlPos_Design_Left'#3#155#1#24'TUIControlPos_Design_Top'#3#16#1#0#0#12
-  +'TKamGLButton'#12'ButtonImage1'#6'Bottom'#3'&'#2#5'Width'#3#250#0#6'Height'#2
-  +'d'#7'Caption'#6#9'Image top'#6'Toggle'#8#7'Pressed'#8#11'ImageLayout'#7#5'i'
-  +'lTop'#25'TUIControlPos_Design_Left'#3#184#2#24'TUIControlPos_Design_Top'#2
-  +':'#0#0#12'TKamGLButton'#12'ButtonImage2'#6'Bottom'#3'&'#2#5'Width'#3#250#0#6
-  +'Height'#2'd'#7'Caption'#6#12'Image bottom'#6'Toggle'#8#7'Pressed'#8#11'Imag'
-  +'eLayout'#7#8'ilBottom'#22'TUIControlPos_RealLeft'#3#250#0#25'TUIControlPos_'
-  +'Design_Left'#3#184#2#24'TUIControlPos_Design_Top'#3#128#0#0#0#12'TKamGLButt'
-  +'on'#12'ButtonImage3'#6'Bottom'#3'&'#2#5'Width'#3#250#0#6'Height'#2'd'#7'Cap'
-  +'tion'#6#10'Image left'#6'Toggle'#8#7'Pressed'#8#11'ImageLayout'#7#6'ilLeft'
-  +#22'TUIControlPos_RealLeft'#3#244#1#25'TUIControlPos_Design_Left'#3#184#2#24
-  +'TUIControlPos_Design_Top'#3#200#0#0#0#12'TKamGLButton'#12'ButtonImage4'#6'B'
-  +'ottom'#3'&'#2#5'Width'#3#250#0#6'Height'#2'd'#7'Caption'#6#11'Image right'#6
-  +'Toggle'#8#7'Pressed'#8#11'ImageLayout'#7#7'ilRight'#22'TUIControlPos_RealLe'
-  +'ft'#3#238#2#25'TUIControlPos_Design_Left'#3#184#2#24'TUIControlPos_Design_T'
-  +'op'#3#16#1#0#0#0
+  +#9#22'TUIControlPos_RealLeft'#3#200#0#25'TUIControlPos_Design_Left'#3#152#0
+  +#24'TUIControlPos_Design_Top'#3#184#0#0#0#12'TKamGLButton'#19'ButtonImageFix'
+  +'Size1'#6'Bottom'#3'@'#1#5'Width'#3#240#0#6'Height'#2'd'#8'AutoSize'#8#7'Cap'
+  +'tion'#6#9'Image top'#6'Toggle'#8#7'Pressed'#8#11'ImageLayout'#7#5'ilTop'#25
+  +'TUIControlPos_Design_Left'#3#155#1#24'TUIControlPos_Design_Top'#2':'#0#0#12
+  +'TKamGLButton'#19'ButtonImageFixSize2'#6'Bottom'#3'@'#1#5'Width'#3#240#0#6'H'
+  +'eight'#2'd'#8'AutoSize'#8#7'Caption'#6#12'Image bottom'#6'Toggle'#8#7'Press'
+  +'ed'#8#11'ImageLayout'#7#8'ilBottom'#22'TUIControlPos_RealLeft'#3#250#0#25'T'
+  +'UIControlPos_Design_Left'#3#155#1#24'TUIControlPos_Design_Top'#3#128#0#0#0
+  +#12'TKamGLButton'#19'ButtonImageFixSize3'#6'Bottom'#3'@'#1#5'Width'#3#240#0#6
+  +'Height'#2'd'#8'AutoSize'#8#7'Caption'#6#10'Image left'#6'Toggle'#8#7'Presse'
+  +'d'#8#22'TUIControlPos_RealLeft'#3#244#1#25'TUIControlPos_Design_Left'#3#155
+  +#1#24'TUIControlPos_Design_Top'#3#200#0#0#0#12'TKamGLButton'#19'ButtonImageF'
+  +'ixSize4'#6'Bottom'#3'@'#1#5'Width'#3#240#0#6'Height'#2'd'#8'AutoSize'#8#7'C'
+  +'aption'#6#11'Image right'#6'Toggle'#8#7'Pressed'#8#11'ImageLayout'#7#7'ilRi'
+  +'ght'#22'TUIControlPos_RealLeft'#3#238#2#25'TUIControlPos_Design_Left'#3#155
+  +#1#24'TUIControlPos_Design_Top'#3#16#1#0#0#12'TKamGLButton'#12'ButtonImage1'
+  +#6'Bottom'#3#164#1#5'Width'#2#20#6'Height'#2#20#7'Caption'#6#9'Image top'#6
+  +'Toggle'#8#7'Pressed'#8#11'ImageLayout'#7#5'ilTop'#25'TUIControlPos_Design_L'
+  +'eft'#3#184#2#24'TUIControlPos_Design_Top'#2':'#0#0#12'TKamGLButton'#12'Butt'
+  +'onImage2'#6'Bottom'#3#164#1#5'Width'#2#20#6'Height'#2#20#7'Caption'#6#12'Im'
+  +'age bottom'#6'Toggle'#8#7'Pressed'#8#11'ImageLayout'#7#8'ilBottom'#22'TUICo'
+  +'ntrolPos_RealLeft'#3#250#0#25'TUIControlPos_Design_Left'#3#184#2#24'TUICont'
+  +'rolPos_Design_Top'#3#128#0#0#0#12'TKamGLButton'#12'ButtonImage3'#6'Bottom'#3
+  +#164#1#5'Width'#3#250#0#6'Height'#2'd'#7'Caption'#6#10'Image left'#6'Toggle'
+  +#8#7'Pressed'#8#22'TUIControlPos_RealLeft'#3#244#1#25'TUIControlPos_Design_L'
+  +'eft'#3#184#2#24'TUIControlPos_Design_Top'#3#200#0#0#0#12'TKamGLButton'#12'B'
+  +'uttonImage4'#6'Bottom'#3#164#1#5'Width'#2#20#6'Height'#2#20#7'Caption'#6#11
+  +'Image right'#6'Toggle'#8#7'Pressed'#8#11'ImageLayout'#7#7'ilRight'#22'TUICo'
+  +'ntrolPos_RealLeft'#3#238#2#25'TUIControlPos_Design_Left'#3#184#2#24'TUICont'
+  +'rolPos_Design_Top'#3#16#1#0#0#0
 ]);

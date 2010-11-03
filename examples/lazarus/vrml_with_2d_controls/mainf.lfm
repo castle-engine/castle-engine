@@ -41,12 +41,12 @@ object Form1: TForm1
   object SampleImageAlpha: TKamGLImage
     Bottom = 150
     Blending = True
-    TUIControlPos_RealLeft = 300
+    TUIControlPos_RealLeft = 200
     TUIControlPos_Design_Left = 152
     TUIControlPos_Design_Top = 184
   end
   object ButtonImageFixSize1: TKamGLButton
-    Bottom = 420
+    Bottom = 320
     Width = 240
     Height = 100
     AutoSize = False
@@ -58,7 +58,7 @@ object Form1: TForm1
     TUIControlPos_Design_Top = 58
   end
   object ButtonImageFixSize2: TKamGLButton
-    Bottom = 420
+    Bottom = 320
     Width = 240
     Height = 100
     AutoSize = False
@@ -71,20 +71,19 @@ object Form1: TForm1
     TUIControlPos_Design_Top = 128
   end
   object ButtonImageFixSize3: TKamGLButton
-    Bottom = 420
+    Bottom = 320
     Width = 240
     Height = 100
     AutoSize = False
     Caption = 'Image left'
     Toggle = False
     Pressed = False
-    ImageLayout = ilLeft
     TUIControlPos_RealLeft = 500
     TUIControlPos_Design_Left = 411
     TUIControlPos_Design_Top = 200
   end
   object ButtonImageFixSize4: TKamGLButton
-    Bottom = 420
+    Bottom = 320
     Width = 240
     Height = 100
     AutoSize = False
@@ -97,9 +96,9 @@ object Form1: TForm1
     TUIControlPos_Design_Top = 272
   end
   object ButtonImage1: TKamGLButton
-    Bottom = 550
-    Width = 250
-    Height = 100
+    Bottom = 420
+    Width = 20
+    Height = 20
     Caption = 'Image top'
     Toggle = False
     Pressed = False
@@ -108,9 +107,9 @@ object Form1: TForm1
     TUIControlPos_Design_Top = 58
   end
   object ButtonImage2: TKamGLButton
-    Bottom = 550
-    Width = 250
-    Height = 100
+    Bottom = 420
+    Width = 20
+    Height = 20
     Caption = 'Image bottom'
     Toggle = False
     Pressed = False
@@ -120,21 +119,20 @@ object Form1: TForm1
     TUIControlPos_Design_Top = 128
   end
   object ButtonImage3: TKamGLButton
-    Bottom = 550
+    Bottom = 420
     Width = 250
     Height = 100
     Caption = 'Image left'
     Toggle = False
     Pressed = False
-    ImageLayout = ilLeft
     TUIControlPos_RealLeft = 500
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 200
   end
   object ButtonImage4: TKamGLButton
-    Bottom = 550
-    Width = 250
-    Height = 100
+    Bottom = 420
+    Width = 20
+    Height = 20
     Caption = 'Image right'
     Toggle = False
     Pressed = False
