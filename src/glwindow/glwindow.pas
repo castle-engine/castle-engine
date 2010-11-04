@@ -4396,12 +4396,7 @@ procedure TGLUIWindow.EventIdle;
     NewTooltipVisible: boolean;
   begin
     { Update TooltipVisible and LastPositionForTooltip*.
-      Idea is that user must move the mouse very slowly to activate tooltip.
-
-      TODO: when tooltip tracking needed, we cannot suspendforinput?
-      Also, no need to PostRedisplay here.
-      Look at Focus.Tooltip for this? This also suggests to use Focus
-      for tooltip drawing. }
+      Idea is that user must move the mouse very slowly to activate tooltip. }
 
     T := Fps.IdleStartTime;
     if (not LastPositionForTooltip) or
@@ -4414,8 +4409,14 @@ procedure TGLUIWindow.EventIdle;
       LastPositionForTooltipTime := T;
       NewTooltipVisible := false;
     end else
-      NewTooltipVisible := (1000 * (T - LastPositionForTooltipTime))
-        div KamTimerFrequency > TooltipDelay;
+      NewTooltipVisible :=
+        { make TooltipVisible only when we're over a control that has
+          focus. This avoids unnecessary changing of TooltipVisible
+          (and related PostRedisplay) when there's no tooltip possible. }
+        (Focus <> nil) and
+        (Focus.TooltipStyle <> dsNone) and
+        ( (1000 * (T - LastPositionForTooltipTime)) div
+          KamTimerFrequency > TooltipDelay );
 
     if FTooltipVisible <> NewTooltipVisible then
     begin
@@ -4443,10 +4444,10 @@ var
   HandleMouseAndKeys: boolean;
   Dummy: boolean;
 begin
-  UpdateTooltip;
-
   if UseControls then
   begin
+    UpdateTooltip;
+
     { Although we call Idle for all the controls, we look
       at PositionInside and track HandleMouseAndKeys values.
       See TUIControl.Idle for explanation. }
@@ -4584,6 +4585,11 @@ begin
 
   if UseControls then
   begin
+    { Do not suspend when you're over a control that may have a tooltip,
+      as EventIdle must track and eventually show tooltip. }
+    if (Focus <> nil) and (Focus.TooltipStyle <> dsNone) then
+      Exit(false);
+
     for I := 0 to Controls.Count - 1 do
     begin
       Result := Controls.Items[I].AllowSuspendForInput;
@@ -4641,6 +4647,9 @@ begin
 end;
 
 procedure TGLUIWindow.EventDraw;
+
+{ TODO: call Focus.DrawTooltip if TooltipVisible and 
+  Focus <> nil and Focus.TooltipStyle <> dsNone }
 
   { Call Draw for all controls having DrawStyle = ds3D.
 

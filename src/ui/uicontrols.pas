@@ -276,6 +276,27 @@ type
     procedure Draw; virtual;
     { @groupEnd }
 
+    { Draw a tooltip of this control. If you want to have tooltip for
+      this control detected, you have to override TooltipStyle
+      to return something <> dsNone.
+      Then the TGLWindow.TooltipVisible will be detected,
+      and your DrawTooltip will be called.
+
+      So you can draw your tooltip either in overridden DrawTooltip,
+      and/or somewhere else when you see that TGLWindow.TooltipVisible is @true.
+      (Tooltip is always drawn for TGLWindow.Focus control.)
+      But in both cases, make sure to override TooltipStyle to return
+      something <> dsNone.
+
+      The values of ds2D and ds3D are interpreted in the same way
+      as DrawStyle. And DrawTooltip is called in the same way as @link(Draw).
+      DrawTooltip is always called as a last (front-most) 2D or 3D control.
+
+      @groupBegin }
+    function TooltipStyle: TUIControlDrawStyle; virtual;
+    procedure DrawTooltip; virtual;
+    { @groupEnd }
+
     { Called always when containing window size changes.
       Also, when the control is first inserted into the window controls list
       (like @link(TGLUIWindow.Controls)), it will also receive
@@ -506,6 +527,15 @@ begin
 end;
 
 procedure TUIControl.Draw;
+begin
+end;
+
+function TUIControl.TooltipStyle: TUIControlDrawStyle;
+begin
+  Result := dsNone;
+end;
+
+procedure TUIControl.DrawTooltip;
 begin
 end;
 
