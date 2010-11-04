@@ -269,7 +269,7 @@ type
 
     FIdleSpeed: Single;
     DoIgnoreNextIdleSpeed: boolean;
-    LastIdleStartTime: TKamTimerResult;
+    FIdleStartTime: TKamTimerResult;
   public
     constructor Create;
 
@@ -404,6 +404,9 @@ type
       next EventIdle (OnIdle). Following EventIdle (OnIdle) will have
       IdleSpeed as usual (unless you call IgnoreNextIdleSpeed again, of course). }
     procedure IgnoreNextIdleSpeed;
+
+    { Time of last idle call. }
+    property IdleStartTime: TKamTimerResult read FIdleStartTime;
   end;
 
 implementation
@@ -734,19 +737,19 @@ end;
 
 procedure TFramesPerSecond._IdleBegin;
 var
-  NewLastIdleStartTime: TKamTimerResult;
+  NewIdleStartTime: TKamTimerResult;
 begin
-  { update FIdleSpeed, DoIgnoreNextIdleSpeed, LastIdleStartTime }
-  NewLastIdleStartTime := KamTimer;
+  { update FIdleSpeed, DoIgnoreNextIdleSpeed, FIdleStartTime }
+  NewIdleStartTime := KamTimer;
 
   if DoIgnoreNextIdleSpeed then
   begin
     FIdleSpeed := 0.0;
     DoIgnoreNextIdleSpeed := false;
   end else
-    FIdleSpeed := ((NewLastIdleStartTime - LastIdleStartTime) / KamTimerFrequency);
+    FIdleSpeed := ((NewIdleStartTime - FIdleStartTime) / KamTimerFrequency);
 
-  LastIdleStartTime := NewLastIdleStartTime;
+  FIdleStartTime := NewIdleStartTime;
 end;
 
 procedure TFramesPerSecond.IgnoreNextIdleSpeed;

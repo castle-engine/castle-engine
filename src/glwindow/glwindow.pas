@@ -712,6 +712,9 @@ const
 
   DefaultFpsCaptionUpdateInterval = 5000;
 
+  DefaultTooltipDelay = 1000;
+  DefaultTooltipDistance = 10;
+
 type
   TGLWindow = class;
 
@@ -2453,6 +2456,12 @@ type
     FUseControls: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
     FFocus: TUIControl;
+    FTooltipDelay: TMilisecTime;
+    FTooltipDistance: Cardinal;
+    FTooltipVisible: boolean;
+    LastPositionForTooltip: boolean;
+    LastPositionForTooltipX, LastPositionForTooltipY: Integer;
+    LastPositionForTooltipTime: TKamTimerResult;
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
     procedure UpdateFocusAndMouseCursor;
@@ -2538,6 +2547,12 @@ type
     }
     property OnDrawStyle: TUIControlDrawStyle
       read FOnDrawStyle write FOnDrawStyle default dsNone;
+
+    property TooltipDelay: TMilisecTime read FTooltipDelay write FTooltipDelay
+      default DefaultTooltipDelay;
+    property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
+      default DefaultTooltipDistance;
+    property TooltipVisible: boolean read FTooltipVisible;
 
     procedure EventInit; override;
     procedure EventKeyDown(Key: TKey; Ch: char); override;
@@ -4307,6 +4322,8 @@ begin
   FControls := TControlledUIControlList.Create(false, Self);
   FUseControls := true;
   FOnDrawStyle := dsNone;
+  FTooltipDelay := DefaultTooltipDelay;
+  FTooltipDistance := DefaultTooltipDistance;
 end;
 
 destructor TGLUIWindow.Destroy;
@@ -4372,12 +4389,62 @@ begin
 end;
 
 procedure TGLUIWindow.EventIdle;
+
+  procedure UpdateTooltip;
+  var
+    T: TKamTimerResult;
+    NewTooltipVisible: boolean;
+  begin
+    { Update TooltipVisible and LastPositionForTooltip*.
+      Idea is that user must move the mouse very slowly to activate tooltip.
+
+      TODO: when tooltip tracking needed, we cannot suspendforinput?
+      Also, no need to PostRedisplay here.
+      Look at Focus.Tooltip for this? This also suggests to use Focus
+      for tooltip drawing. }
+
+    T := Fps.IdleStartTime;
+    if (not LastPositionForTooltip) or
+       (Sqr(LastPositionForTooltipX - MouseX) +
+        Sqr(LastPositionForTooltipY - MouseY) > Sqr(TooltipDistance)) then
+    begin
+      LastPositionForTooltip := true;
+      LastPositionForTooltipX := MouseX;
+      LastPositionForTooltipY := MouseY;
+      LastPositionForTooltipTime := T;
+      NewTooltipVisible := false;
+    end else
+      NewTooltipVisible := (1000 * (T - LastPositionForTooltipTime))
+        div KamTimerFrequency > TooltipDelay;
+
+    if FTooltipVisible <> NewTooltipVisible then
+    begin
+      FTooltipVisible := NewTooltipVisible;
+
+      { when setting TooltipVisible from false to true,
+        update LastPositionForTooltipX/Y. We don't want to hide the tooltip
+        at the slightest jiggle of the mouse :) On the other hand,
+        we don't want to update LastPositionForTooltipX/Y more often,
+        as it would disable the purpose of TooltipDistance: faster
+        mouse movement should hide the tooltip. }
+      if TooltipVisible then
+      begin
+        LastPositionForTooltipX := MouseX;
+        LastPositionForTooltipY := MouseY;
+      end;
+
+      PostRedisplay;
+    end;
+  end;
+
 var
   I: Integer;
   C: TUIControl;
   HandleMouseAndKeys: boolean;
   Dummy: boolean;
 begin
+  UpdateTooltip;
+
   if UseControls then
   begin
     { Although we call Idle for all the controls, we look
