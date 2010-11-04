@@ -32,7 +32,7 @@ type
     and assign TKamGLButton.OnClick (or ovevrride TKamGLButton.DoClick). }
   TKamGLButton = class(TUIControlPos)
   private
-    Font: TGLBitmapFont_Abstract;
+    FFont: TGLBitmapFont_Abstract;
     FWidth: Cardinal;
     FHeight: Cardinal;
     FOnClick: TNotifyEvent;
@@ -61,6 +61,8 @@ type
     procedure SetImage(const Value: TImage);
     procedure SetPressed(const Value: boolean);
     procedure SetImageLayout(const Value: TKamButtonImageLayout);
+  protected
+    property Font: TGLBitmapFont_Abstract read FFont;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -398,7 +400,7 @@ end;
 procedure TKamGLButton.GLContextInit;
 begin
   inherited;
-  Font := CreateUIFont;
+  FFont := CreateUIFont;
   if (FGLImage = 0) and (FImage <> nil) then
     FGLImage := ImageDrawToDisplayList(FImage);
   UpdateTextSize;
@@ -406,7 +408,7 @@ end;
 
 procedure TKamGLButton.GLContextClose;
 begin
-  DestroyUIFont(Font);
+  DestroyUIFont(FFont);
   glFreeDisplayList(FGLImage);
   inherited;
 end;
