@@ -4648,9 +4648,6 @@ end;
 
 procedure TGLUIWindow.EventDraw;
 
-{ TODO: call Focus.DrawTooltip if TooltipVisible and 
-  Focus <> nil and Focus.TooltipStyle <> dsNone }
-
   { Call Draw for all controls having DrawStyle = ds3D.
 
     Also (since we call DrawStyle for everything anyway)
@@ -4671,24 +4668,23 @@ procedure TGLUIWindow.EventDraw;
         C := Controls[I];
         case C.DrawStyle of
           ds2D: AnythingWants2D := true;
-          ds3D:
-            begin
-              { Set OpenGL state that may be changed carelessly, and has some
-                guanteed value, for TUIControl.Draw calls. }
-              glLoadIdentity;
-              C.Draw;
-            end;
+          { Set OpenGL state that may be changed carelessly, and has some
+            guanteed value, for TUIControl.Draw calls.
+            For now, just glLoadIdentity. }
+          ds3D: begin glLoadIdentity; C.Draw; end;
         end;
       end;
+
+      if TooltipVisible and (Focus <> nil) then
+        case Focus.TooltipStyle of
+          ds2D: AnythingWants2D := true;
+          ds3D: begin glLoadIdentity; Focus.DrawTooltip; end;
+        end;
     end;
 
     case OnDrawStyle of
       ds2D: AnythingWants2D := true;
-      ds3D:
-        begin
-          glLoadIdentity;
-          inherited EventDraw;
-        end;
+      ds3D: begin glLoadIdentity; inherited EventDraw; end;
     end;
   end;
 
@@ -4729,6 +4725,13 @@ procedure TGLUIWindow.EventDraw;
               glRasterPos2i(0, 0);
               C.Draw;
             end;
+          end;
+
+          if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
+          begin
+            glLoadIdentity;
+            glRasterPos2i(0, 0);
+            Focus.DrawTooltip;
           end;
         end;
 
