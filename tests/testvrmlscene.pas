@@ -48,8 +48,9 @@ procedure TTestVRMLScene.TestIteratorSpeed;
   const
     TestCount = 1000;
   begin
-    Scene := TVRMLScene.Create(LoadVRML(FileName), true);
+    Scene := TVRMLScene.Create(nil);
     try
+      Scene.Load(FileName);
       for OnlyActive := false to true do
       begin
         ProcessTimerBegin;
@@ -124,7 +125,6 @@ procedure TTestVRMLScene.TestIterator;
       end;
     finally FreeAndNil(Scene) end;
   end;
-
 
 begin
   {$ifdef VRMLENGINE_TRUNK_AVAILABLE}

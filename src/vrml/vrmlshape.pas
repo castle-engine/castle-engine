@@ -16,6 +16,8 @@
 { VRML shape (TVRMLShape class) and a simple tree of shapes
   (TVRMLShapeTree class). }
 
+{ $define SHAPE_ITERATOR_SOPHISTICATED}
+
 unit VRMLShape;
 
 {$I vrmloctreeconf.inc}
@@ -577,6 +579,21 @@ type
     property Children: TVRMLShapeTreesList read FChildren;
 
     procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
+
+    {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
+
+    { Start index for TVRMLShapeTreeIterator.
+      Must be >= -1 (-1 means to start from 0).
+
+      May be >= Children.Count, even IterateBeginIndex + 1 may
+      be >= Children.Count, i.e. it's Ok if this is already out of range. }
+    function IterateBeginIndex(OnlyActive: boolean): Integer; virtual;
+
+    { End index for TVRMLShapeTreeIterator. Valid indexes are < this.
+      This must be <= Children.Count. }
+    function IterateEndIndex(OnlyActive: boolean): Cardinal; virtual;
+
+    {$endif}
   end;
 
   { Node of the TVRMLShapeTree representing an alternative,
@@ -596,6 +613,11 @@ type
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
+
+    {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
+    function IterateBeginIndex(OnlyActive: boolean): Integer; override;
+    function IterateEndIndex(OnlyActive: boolean): Cardinal; override;
+    {$endif}
   end;
 
   { Node of the TVRMLShapeTree transforming it's children.
@@ -665,6 +687,11 @@ type
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
+
+    {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
+    function IterateBeginIndex(OnlyActive: boolean): Integer; override;
+    function IterateEndIndex(OnlyActive: boolean): Cardinal; override;
+    {$endif}
   end;
 
   TVRMLShapesList = class;
@@ -674,9 +701,16 @@ type
     than to create callbacks and use TVRMLShapeTree.Traverse. }
   TVRMLShapeTreeIterator = class
   private
+    FCurrent: TVRMLShape;
+    {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
+    Info: Pointer;
+    SingleShapeRemaining: boolean;
+    FOnlyActive, FOnlyVisible, FOnlyCollidable: boolean;
+    function CurrentMatches: boolean;
+    {$else}
     List: TVRMLShapesList;
     CurrentIndex: Integer;
-    FCurrent: TVRMLShape;
+    {$endif}
   public
     constructor Create(Tree: TVRMLShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
@@ -1632,6 +1666,18 @@ begin
     FChildren.Items[I].EnumerateTextures(Enumerate);
 end;
 
+{$ifdef SHAPE_ITERATOR_SOPHISTICATED}
+function TVRMLShapeTreeGroup.IterateBeginIndex(OnlyActive: boolean): Integer;
+begin
+  Result := -1;
+end;
+
+function TVRMLShapeTreeGroup.IterateEndIndex(OnlyActive: boolean): Cardinal;
+begin
+  Result := FChildren.Count;
+end;
+{$endif}
+
 { TVRMLShapeTreeSwitch ------------------------------------------------------- }
 
 procedure TVRMLShapeTreeSwitch.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
@@ -1663,6 +1709,39 @@ begin
   end else
     Result := inherited;
 end;
+
+{$ifdef SHAPE_ITERATOR_SOPHISTICATED}
+function TVRMLShapeTreeSwitch.IterateBeginIndex(OnlyActive: boolean): Integer;
+var
+  WhichChoice: Integer;
+begin
+  if OnlyActive then
+  begin
+    WhichChoice := SwitchNode.FdWhichChoice.Value;
+    if WhichChoice >= 0 then
+      { It's ok if whichChoice is >= children count,
+        iterator will check this. }
+      Result := WhichChoice - 1 else
+      Result := -1 { whatever; IterateCount will be 0 anyway };
+  end else
+    Result := inherited;
+end;
+
+function TVRMLShapeTreeSwitch.IterateEndIndex(OnlyActive: boolean): Cardinal;
+var
+  WhichChoice: Integer;
+begin
+  if OnlyActive then
+  begin
+    WhichChoice := SwitchNode.FdWhichChoice.Value;
+    if (WhichChoice >= 0) and
+       (WhichChoice < Children.Count) then
+      Result := WhichChoice + 1 else
+      Result := 0;
+  end else
+    Result := inherited;
+end;
+{$endif}
 
 { TVRMLShapeTreeLOD ------------------------------------------------------- }
 
@@ -1728,28 +1807,43 @@ begin
     Result := 0;
 end;
 
+{$ifdef SHAPE_ITERATOR_SOPHISTICATED}
+function TVRMLShapeTreeLOD.IterateBeginIndex(OnlyActive: boolean): Integer;
+begin
+  if (Children.Count > 0) and OnlyActive then
+    Result := Level - 1 else
+    Result := inherited;
+end;
+
+function TVRMLShapeTreeLOD.IterateEndIndex(OnlyActive: boolean): Cardinal;
+begin
+  if (Children.Count > 0) and OnlyActive then
+    Result := Level + 1 else
+    Result := inherited;
+end;
+{$endif}
+
 { TVRMLShapeTreeIterator ----------------------------------------------------- }
 
-{ Current implementation is very simple: just call Tree.Traverse,
-  collecting shapes to a list in constructor. Then simply iterate
-  over this list.
-
-  I *did* implement once more sophisticated TVRMLShapeTreeIterator version,
-  that was traversing one step further in each GetNext.
-  It was building a simple stack of items to make efficient push/pop while
+{ When SHAPE_ITERATOR_SOPHISTICATED is defined, we use a complicated
+  implementation that has a nice O(1) speed for constructor and all
+  GetNext calls (well, actually some calls may have O(depth), but most
+  will not). It traverses one step further in each GetNext.
+  It's building a simple stack of items to make efficient push/pop while
   walking down/up the tree of TVRMLShapesTree.
 
-  See SVN (on sourceforge) revision 3839 (local kambi disk:
-  ~/sources/vrmlengine/private/old/vrmlshape_test.pas).
+  When SHAPE_ITERATOR_SOPHISTICATED is not defined, we use a very simple
+  implementation: just call Tree.Traverse,
+  collecting shapes to a list in constructor. Then simply iterate
+  over this list. This makes constructor time large (equal to traversing time,
+  so O(leaves count)), although GetNext is lighting fast.
 
   Theoretically, the sophisticated version was supposed to be much better,
-  as memory use was much smaller (only the depth of the shapes tree,
-  while currently it's the number of all leaves).
-  And speed was supposed to be better: O(1) constructor
-  and GetNext all the time (while currently constructor is O(leaves count)).
+  as speed is always O(1) and memory use is much smaller
+  (only the depth of the shapes tree, as opposed to the number of all leaves).
 
-  In practice however, it turned out that this sophisticated version
-  was useless. Time measures shown that current "naive" and simple
+  In practice however, it turned out that the sophisticated version
+  was useless. Time measures shown that "naive" and simple
   version is even very very slightly faster in some cases.
   Time measure is in kambi_vrml_game_engine/tests/testvrmlscene.pas,
   define ITERATOR_SPEED_TEST and test for yourself.
@@ -1759,7 +1853,145 @@ end;
   resized on adding each new shape) outperforms the sophisticated algorithm.
 
   So right now we're back to simple version. Maybe the "sophisticated"
-  implementation will be restored some day... }
+  implementation will be restored some day... Just define
+  SHAPE_ITERATOR_SOPHISTICATED. }
+
+{$ifdef SHAPE_ITERATOR_SOPHISTICATED}
+
+type
+  { To efficiently implement TVRMLShapeTreeIterator, we have to
+    use an efficient stack push/pop when entering TVRMLShapeTreeGroup
+    (this includes TVRMLShapeTreeSwitch), and remember current Index
+    within current group.
+
+    Note that this follows the logic of implemented Traverse methods.
+    There's no way to efficiently (without e.g. first collecting to a list)
+    realize iterator with actually calling Traverse methods. }
+  PIteratorInfo = ^TIteratorInfo;
+  TIteratorInfo = record
+    Group: TVRMLShapeTreeGroup;
+    Index: Integer;
+    GroupCount: Cardinal;
+    Parent: PIteratorInfo;
+  end;
+
+{$define IteratorInfo := PIteratorInfo(Info)}
+
+{ Check Current for FOnlyVisible and FOnlyCollidable flags. }
+function TVRMLShapeTreeIterator.CurrentMatches: boolean;
+begin
+  if FOnlyVisible and FOnlyCollidable then
+    Result := (Current <> nil) and Current.Visible and Current.Collidable else
+  if FOnlyVisible then
+    Result := (Current <> nil) and Current.Visible else
+  if FOnlyCollidable then
+    Result := (Current <> nil) and Current.Collidable else
+    Result := (Current <> nil);
+end;
+
+constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+begin
+  inherited Create;
+
+  FOnlyActive := OnlyActive;
+  FOnlyVisible := OnlyVisible;
+  FOnlyCollidable := OnlyCollidable;
+
+  if Tree is TVRMLShapeTreeGroup then
+  begin
+    New(IteratorInfo);
+    IteratorInfo^.Group := TVRMLShapeTreeGroup(Tree);
+    IteratorInfo^.Index := IteratorInfo^.Group.IterateBeginIndex(OnlyActive);
+    IteratorInfo^.GroupCount := IteratorInfo^.Group.IterateEndIndex(OnlyActive);
+    IteratorInfo^.Parent := nil;
+  end else
+  begin
+    { When the whole tree is one single TVRMLShape, this is a special case
+      marked by IteratorInfo = nil and using SingleShapeRemaining.
+      FCurrent is just constant in this case. }
+    Assert(Tree is TVRMLShape);
+    FCurrent := TVRMLShape(Tree);
+    IteratorInfo := nil;
+    SingleShapeRemaining := true;
+  end;
+end;
+
+destructor TVRMLShapeTreeIterator.Destroy;
+
+  procedure Done(I: PIteratorInfo);
+  begin
+    if I <> nil then
+    begin
+      Done(I^.Parent);
+      Dispose(I);
+    end;
+  end;
+
+begin
+  Done(IteratorInfo);
+  inherited;
+end;
+
+function TVRMLShapeTreeIterator.GetNext: boolean;
+var
+  ParentInfo: PIteratorInfo;
+  Child: TVRMLShapeTree;
+begin
+  if IteratorInfo <> nil then
+  begin
+    repeat
+      Inc(IteratorInfo^.Index);
+      Assert(IteratorInfo^.Index >= 0);
+      Assert(IteratorInfo^.Index > IteratorInfo^.Group.IterateBeginIndex(FOnlyActive));
+
+      if Cardinal(IteratorInfo^.Index) < IteratorInfo^.GroupCount then
+      begin
+        Child := IteratorInfo^.Group.Children.Items[IteratorInfo^.Index];
+        if Child is TVRMLShape then
+        begin
+          FCurrent := TVRMLShape(Child);
+
+          if CurrentMatches then
+            Result := true else
+            Result := GetNext;
+
+          Exit;
+        end else
+        begin
+          Assert(Child is TVRMLShapeTreeGroup);
+          ParentInfo := IteratorInfo;
+          New(IteratorInfo);
+          IteratorInfo^.Group := TVRMLShapeTreeGroup(Child);
+          IteratorInfo^.Index := IteratorInfo^.Group.IterateBeginIndex(FOnlyActive);
+          IteratorInfo^.GroupCount := IteratorInfo^.Group.IterateEndIndex(FOnlyActive);
+          IteratorInfo^.Parent := ParentInfo;
+        end;
+      end else
+      begin
+        ParentInfo := IteratorInfo^.Parent;
+        if ParentInfo <> nil then
+        begin
+          Dispose(IteratorInfo);
+          IteratorInfo := ParentInfo;
+        end else
+          Exit(false);
+      end;
+    until false;
+  end else
+  begin
+    Result := SingleShapeRemaining;
+    SingleShapeRemaining := false;
+    { FCurrent already set in constructor }
+
+    if Result and (not CurrentMatches) then
+      Result := false;
+  end;
+end;
+
+{$undef IteratorInfo}
+
+{$else SHAPE_ITERATOR_SOPHISTICATED}
 
 constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
@@ -1782,6 +2014,8 @@ begin
   if Result then
     FCurrent := List.Items[CurrentIndex];
 end;
+
+{$endif SHAPE_ITERATOR_SOPHISTICATED}
 
 { TVRMLShapesList ------------------------------------------------------- }
 
