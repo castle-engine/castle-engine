@@ -342,7 +342,7 @@ type
     end else
     if Child is TNodeClipPlane then
     begin
-      CP := State.ClipPlanes.Add;
+      CP := State.AddClipPlane;
       CP^.Node := TNodeClipPlane(Child);
       CP^.Transform := State.Transform;
     end;

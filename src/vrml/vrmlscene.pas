@@ -4026,7 +4026,8 @@ var
     try
       while SI.GetNext do
       begin
-        if SI.Current.State.ClipPlanes.IndexOfNode(TNodeClipPlane(Node)) <> -1 then
+        if (SI.Current.State.ClipPlanes <> nil) and
+           (SI.Current.State.ClipPlanes.IndexOfNode(TNodeClipPlane(Node)) <> -1) then
           SI.Current.Changed(Field, false, Changes);
       end;
     finally FreeAndNil(SI) end;

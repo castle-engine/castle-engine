@@ -646,8 +646,13 @@ type
 
       Ordered from the most global to most local ones.
       So, following the X3D specification, we should consider the first
-      clip planes on this list more important. }
+      clip planes on this list more important.
+
+      Always @nil if empty. This allows us to optimize TVRMLGraphTraverseState
+      processing. }
     ClipPlanes: TDynClipPlaneArray;
+
+    function AddClipPlane: PClipPlane;
   end;
 
   { Stack of TVRMLGraphTraverseState.
@@ -2431,7 +2436,6 @@ procedure TVRMLGraphTraverseState.CommonCreate;
 begin
   inherited Create;
   PointingDeviceSensors := TPointingDeviceSensorsList.Create;
-  ClipPlanes := TDynClipPlaneArray.Create;
 end;
 
 constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
@@ -2490,7 +2494,7 @@ begin
   InsideInvisible := 0;
 
   PointingDeviceSensors.Count := 0;
-  ClipPlanes.Count := 0;
+  FreeAndNil(ClipPlanes);
   FreeAndNil(VRML1ActiveLights);
   FreeAndNil(VRML2ActiveLights);
 end;
@@ -2509,8 +2513,14 @@ begin
   VRML2ActiveLights.Add(Light);
 end;
 
-procedure TVRMLGraphTraverseState.Assign(
-  Source: TVRMLGraphTraverseState);
+function TVRMLGraphTraverseState.AddClipPlane: PClipPlane;
+begin
+  if ClipPlanes = nil then
+    ClipPlanes := TDynClipPlaneArray.Create;
+  Result := ClipPlanes.Add();
+end;
+
+procedure TVRMLGraphTraverseState.Assign(Source: TVRMLGraphTraverseState);
 begin
   AssignTransform(Source);
 
@@ -2523,7 +2533,6 @@ begin
   InsideInvisible := Source.InsideInvisible;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
-  ClipPlanes.Assign(Source.ClipPlanes);
 
   if Source.VRML1ActiveLights <> nil then
   begin
@@ -2548,7 +2557,14 @@ begin
   Transform := Source.Transform;
   AverageScaleTransform := Source.AverageScaleTransform;
   InvertedTransform := Source.InvertedTransform;
-  ClipPlanes.Assign(Source.ClipPlanes);
+
+  if Source.ClipPlanes <> nil then
+  begin
+    if ClipPlanes = nil then
+      ClipPlanes := TDynClipPlaneArray.Create;
+    ClipPlanes.Assign(Source.ClipPlanes);
+  end else
+    FreeAndNil(ClipPlanes);
 end;
 
 function TVRMLGraphTraverseState.Equals(SecondValue: TObject): boolean;
@@ -2556,6 +2572,11 @@ function TVRMLGraphTraverseState.Equals(SecondValue: TObject): boolean;
   function LightArraysEqual(L1, L2: TDynActiveLightArray): boolean;
   begin
     Result := ((L1 = nil) and (L2 = nil)) or L1.Equals(L2);
+  end;
+
+  function ClipPlanesEqual(C1, C2: TDynClipPlaneArray): boolean;
+  begin
+    Result := ((C1 = nil) and (C2 = nil)) or C1.Equals(C2);
   end;
 
 var
@@ -2580,7 +2601,7 @@ begin
   Result :=
     LightArraysEqual(VRML1ActiveLights, SV.VRML1ActiveLights) and
     LightArraysEqual(VRML2ActiveLights, SV.VRML2ActiveLights) and
-    ClipPlanes.Equals(SV.ClipPlanes) and
+    ClipPlanesEqual(ClipPlanes, SV.ClipPlanes) and
     { no need to compare InvertedTransform, it should be equal when normal
       Transform is equal. }
     MatricesPerfectlyEqual(Transform, SV.Transform) and

@@ -4241,7 +4241,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeBegin(Shape: TVRMLShape);
     ClipPlanesEnabled := 0;
     { GLMaxClipPlanes should be >= 6 with every conforming OpenGL,
       but still better check. }
-    if GLMaxClipPlanes > 0 then
+    if (GLMaxClipPlanes > 0) and (ClipPlanes <> nil) then
       for I := 0 to ClipPlanes.Count - 1 do
       begin
         ClipPlane := @(ClipPlanes.Items[I]);
