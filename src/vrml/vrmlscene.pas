@@ -2723,7 +2723,7 @@ procedure TChangedAllTraverser.Traverse(
         Traverser.ShapesGroup := TransformTree;
         Traverser.Active := true;
         ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
-          nil, ParentInfo);
+          ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
 
@@ -2754,7 +2754,7 @@ procedure TChangedAllTraverser.Traverse(
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := I = SwitchNode.FdWhichChoice.Value;
         ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
-          nil, ParentInfo);
+          ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
 
@@ -2795,7 +2795,7 @@ procedure TChangedAllTraverser.Traverse(
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := Cardinal(I) = LODTree.Level;
         ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
-          nil, ParentInfo);
+          ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
 
@@ -3245,7 +3245,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
       for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
       begin
         TransformNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TVRMLNode, @TransformChangeTraverse, nil, ParentInfo);
+          StateStack, TVRMLNode, @TransformChangeTraverse, ParentInfo);
       end;
 
     finally Shapes := OldShapes end;
@@ -3297,7 +3297,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         if ChildInactive then Inc(Inactive);
 
         SwitchNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TVRMLNode, @TransformChangeTraverse, nil, ParentInfo);
+          StateStack, TVRMLNode, @TransformChangeTraverse, ParentInfo);
 
         if ChildInactive then Dec(Inactive);
       end;
@@ -3340,7 +3340,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         if Cardinal(I) <> ShapeLOD.Level then Inc(Inactive);
 
         LODNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TVRMLNode, @TransformChangeTraverse, nil, ParentInfo);
+          StateStack, TVRMLNode, @TransformChangeTraverse, ParentInfo);
 
         if Cardinal(I) <> ShapeLOD.Level then Dec(Inactive);
       end;
@@ -3598,8 +3598,7 @@ var
         end;
 
         try
-          RootNode.Traverse(TVRMLNode,
-            @TransformChangeHelper.TransformChangeTraverse, nil);
+          RootNode.Traverse(TVRMLNode, @TransformChangeHelper.TransformChangeTraverse);
         except
           on BreakTransformChangeSuccess do
             { BreakTransformChangeSuccess is equivalent with normal finish

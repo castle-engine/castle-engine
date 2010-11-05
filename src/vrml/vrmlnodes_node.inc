@@ -599,15 +599,9 @@
 
   AfterTraverse;
 
-  if Self is NodeClass then TraversingAfterFunc (Self, State);
-
   dodaj Self do stanu State do LastNode (o ile Self wsrod
     TraverseStateLastNodesClasses);
 )
-
-      Note: I didn't decide yet whether TraversingAfterFunc
-      should be before or after AfterTraverse call. Report if you have
-      any good reason for any setting.
 
       Note: setting TraverseIntoChildren to false means that some
       part of the tree is explicitly omitted from traversing.
@@ -627,8 +621,7 @@
       (bezposrednie i niebezposrednie) node'a na ktorym wlasnie stoisz. }
     procedure Traverse(
       NodeClass: TVRMLNodeClass;
-      TraversingFunc: TTraversingFunc;
-      TraversingAfterFunc: TTraversingAfterFunc = nil);
+      TraversingFunc: TTraversingFunc);
 
     { This is like @link(Traverse), but it takes explicit starting state stack
       and starting ParentInfo. Not generally useful, use only for special
@@ -636,7 +629,6 @@
     procedure TraverseInternal(StateStack: TVRMLGraphTraverseStateStack;
       NodeClass: TVRMLNodeClass;
       TraversingFunc: TTraversingFunc;
-      TraversingAfterFunc: TTraversingAfterFunc;
       ParentInfo: PTraversingInfo);
 
     { Enumerate all our children of some class. Recursively.
@@ -1501,7 +1493,6 @@ type
     StateStack: TVRMLGraphTraverseStateStack;
     NodeClass: TVRMLNodeClass;
     TraversingFunc: TTraversingFunc;
-    TraversingAfterFunc: TTraversingAfterFunc;
     ParentInfo: PTraversingInfo;
     procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
   end;
@@ -1512,15 +1503,11 @@ type
     StateNode: TVRML1StateNode;
     TraverseIntoChildren: boolean;
     ParentInfoForChildren: TTraversingInfo;
-    CallUserFunction: boolean;
   begin
     Child.BeforeTraverse(StateStack);
     try
       TraverseIntoChildren := true;
-      { Minimize number of "is" calls, since they eat a lot of time
-        for Transform VRML >= 2 events animation. }
-      CallUserFunction := Child is NodeClass;
-      if CallUserFunction then
+      if Child is NodeClass then
         TraversingFunc(Child, StateStack, ParentInfo, TraverseIntoChildren);
 
       Child.MiddleTraverse(StateStack);
@@ -1539,9 +1526,6 @@ type
 
     finally Child.AfterTraverse(StateStack) end;
 
-    if Assigned(TraversingAfterFunc) and CallUserFunction then
-      TraversingAfterFunc(Child, StateStack, ParentInfo);
-
     if Child.VRML1StateNode(StateNode) then
       StateStack.Top.SetLastNodes(StateNode, Child, false);
   end;
@@ -1549,7 +1533,6 @@ type
 procedure TVRMLNode.TraverseInternal(StateStack: TVRMLGraphTraverseStateStack;
   NodeClass: TVRMLNodeClass;
   TraversingFunc: TTraversingFunc;
-  TraversingAfterFunc: TTraversingAfterFunc;
   ParentInfo: PTraversingInfo);
 var
   Enumerator: TTraverseEnumerator;
@@ -1559,7 +1542,6 @@ begin
     Enumerator.StateStack := StateStack;
     Enumerator.NodeClass := NodeClass;
     Enumerator.TraversingFunc := TraversingFunc;
-    Enumerator.TraversingAfterFunc := TraversingAfterFunc;
     Enumerator.ParentInfo := ParentInfo;
     Enumerator.EnumerateChildrenFunction(nil, Self);
 
@@ -1572,15 +1554,12 @@ end;
 var
   TraverseSingleStack: TVRMLGraphTraverseStateStack;
 
-procedure TVRMLNode.Traverse(
-  NodeClass: TVRMLNodeClass;
-  TraversingFunc: TTraversingFunc;
-  TraversingAfterFunc: TTraversingAfterFunc);
+procedure TVRMLNode.Traverse(NodeClass: TVRMLNodeClass;
+  TraversingFunc: TTraversingFunc);
 begin
   TraverseSingleStack.PushClear;
   try
-    TraverseInternal(TraverseSingleStack, NodeClass,
-      TraversingFunc, TraversingAfterFunc, nil);
+    TraverseInternal(TraverseSingleStack, NodeClass, TraversingFunc, nil);
   finally TraverseSingleStack.Pop end;
 end;
 
