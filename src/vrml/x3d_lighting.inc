@@ -458,7 +458,7 @@ end;
 procedure TVRMLLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  StateStack.Top.VRML1ActiveLights.Add(CreateActiveLight(StateStack.Top));
+  StateStack.Top.AddVRML1ActiveLight(CreateActiveLight(StateStack.Top));
 end;
 
 constructor TVRMLDirectionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);

@@ -504,10 +504,11 @@ var
       if Depth > 0 then
       begin
         ActiveLights := State.CurrentActiveLights;
-        for i := 0 to ActiveLights.Count - 1 do
-          if LightNotBlocked(ActiveLights.Items[i]) then
-            Result += VRML97LightContribution(
-              ActiveLights.Items[i], Intersection, IntersectNode^, CamPosition);
+        if ActiveLights <> nil then
+          for i := 0 to ActiveLights.Count - 1 do
+            if LightNotBlocked(ActiveLights.Items[i]) then
+              Result += VRML97LightContribution(
+                ActiveLights.Items[i], Intersection, IntersectNode^, CamPosition);
 
         { Add headlight light contribution, just like normal light.
 

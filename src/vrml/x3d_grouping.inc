@@ -324,7 +324,7 @@ type
         traverse. But, fortunately, State of TNodeDirectionalLight doesn't
         change inside (TNodeDirectionalLight doesn't do anything inside
         BeforeTraverse), so this is the same thing. }
-      State.VRML2ActiveLights.Add(
+      State.AddVRML2ActiveLight(
         TVRMLDirectionalLightNode(Child).CreateActiveLight(State)) else
     if Child is TNodeX3DPointingDeviceSensorNode then
     begin

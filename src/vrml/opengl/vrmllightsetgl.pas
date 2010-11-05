@@ -153,6 +153,8 @@ type
       const AColorModulatorSingle: TColorModulatorSingleFunc;
       const ALightRenderEvent: TVRMLLightRenderEvent);
 
+    { Render lights. Lights (TDynActiveLightArray) may be @nil,
+      it's equal to passing an empty array of lights. }
     procedure Render(Lights: TDynActiveLightArray);
     procedure Render(Lights: PArray_ActiveLight; LightsCount: Integer);
 
@@ -517,7 +519,9 @@ end;
 
 procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynActiveLightArray);
 begin
-  Render(Lights.ItemsArray, Lights.Count);
+  if Lights <> nil then
+    Render(Lights.ItemsArray, Lights.Count) else
+    Render(nil, 0);
 end;
 
 procedure TVRMLGLLightsCachingRenderer.Render(Lights: PArray_ActiveLight;

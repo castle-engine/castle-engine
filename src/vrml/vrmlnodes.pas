@@ -433,6 +433,10 @@ type
       VRML2ActiveLights should be for any VRML >= 2 (including X3D),
       VRML1ActiveLights should be for any VRML <= 1 (including Inventor).
 
+      Always @nil if empty. This way we optimize creation / assignment time,
+      which happen very often with TVRMLGraphTraverseState during VRML
+      traversing.
+
       VRML 2.0 may have more lights active
       (since DirectionalLight affects all siblings, and other lights affect
       potentially all). But VRML 2.0 may also have some lights less,
@@ -452,11 +456,16 @@ type
       TVRMLScene.ChangedField (may) depend on that. }
     VRML1ActiveLights, VRML2ActiveLights: TDynActiveLightArray;
 
+    procedure AddVRML1ActiveLight(const Light: TActiveLight);
+    procedure AddVRML2ActiveLight(const Light: TActiveLight);
+
     { This returns VRML1ActiveLights or VRML2ActiveLights, based on VRML
       flavor used to render with this state.
 
       More precisely, it checks "VRML flavor" by looking at ShapeNode:
-      when ShapeNode is @nil, we're in VRML 1 mode, otherwise in VRML 2 mode. }
+      when ShapeNode is @nil, we're in VRML 1 mode, otherwise in VRML 2 mode.
+
+      Remember that result may be @nil if there are no light sources. }
     function CurrentActiveLights: TDynActiveLightArray;
 
   public
@@ -2421,8 +2430,6 @@ end;
 procedure TVRMLGraphTraverseState.CommonCreate;
 begin
   inherited Create;
-  VRML1ActiveLights := TDynActiveLightArray.Create;
-  VRML2ActiveLights := TDynActiveLightArray.Create;
   PointingDeviceSensors := TPointingDeviceSensorsList.Create;
   ClipPlanes := TDynClipPlaneArray.Create;
 end;
@@ -2484,8 +2491,22 @@ begin
 
   PointingDeviceSensors.Count := 0;
   ClipPlanes.Count := 0;
-  VRML1ActiveLights.Count := 0;
-  VRML2ActiveLights.Count := 0;
+  FreeAndNil(VRML1ActiveLights);
+  FreeAndNil(VRML2ActiveLights);
+end;
+
+procedure TVRMLGraphTraverseState.AddVRML1ActiveLight(const Light: TActiveLight);
+begin
+  if VRML1ActiveLights = nil then
+    VRML1ActiveLights := TDynActiveLightArray.Create;
+  VRML1ActiveLights.Add(Light);
+end;
+
+procedure TVRMLGraphTraverseState.AddVRML2ActiveLight(const Light: TActiveLight);
+begin
+  if VRML2ActiveLights = nil then
+    VRML2ActiveLights := TDynActiveLightArray.Create;
+  VRML2ActiveLights.Add(Light);
 end;
 
 procedure TVRMLGraphTraverseState.Assign(
@@ -2503,8 +2524,22 @@ begin
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
   ClipPlanes.Assign(Source.ClipPlanes);
-  VRML1ActiveLights.Assign(Source.VRML1ActiveLights);
-  VRML2ActiveLights.Assign(Source.VRML2ActiveLights);
+
+  if Source.VRML1ActiveLights <> nil then
+  begin
+    if VRML1ActiveLights = nil then
+      VRML1ActiveLights := TDynActiveLightArray.Create;
+    VRML1ActiveLights.Assign(Source.VRML1ActiveLights);
+  end else
+    FreeAndNil(VRML1ActiveLights);
+
+  if Source.VRML2ActiveLights <> nil then
+  begin
+    if VRML2ActiveLights = nil then
+      VRML2ActiveLights := TDynActiveLightArray.Create;
+    VRML2ActiveLights.Assign(Source.VRML2ActiveLights);
+  end else
+    FreeAndNil(VRML2ActiveLights);
 end;
 
 procedure TVRMLGraphTraverseState.AssignTransform(
@@ -2516,8 +2551,13 @@ begin
   ClipPlanes.Assign(Source.ClipPlanes);
 end;
 
-function TVRMLGraphTraverseState.Equals(SecondValue: TObject):
-  boolean;
+function TVRMLGraphTraverseState.Equals(SecondValue: TObject): boolean;
+
+  function LightArraysEqual(L1, L2: TDynActiveLightArray): boolean;
+  begin
+    Result := ((L1 = nil) and (L2 = nil)) or L1.Equals(L2);
+  end;
+
 var
   SV: TVRMLGraphTraverseState;
   SN: TVRML1StateNode;
@@ -2538,8 +2578,8 @@ begin
   SV := TVRMLGraphTraverseState(SecondValue);
 
   Result :=
-    VRML1ActiveLights.Equals(SV.VRML1ActiveLights) and
-    VRML2ActiveLights.Equals(SV.VRML2ActiveLights) and
+    LightArraysEqual(VRML1ActiveLights, SV.VRML1ActiveLights) and
+    LightArraysEqual(VRML2ActiveLights, SV.VRML2ActiveLights) and
     ClipPlanes.Equals(SV.ClipPlanes) and
     { no need to compare InvertedTransform, it should be equal when normal
       Transform is equal. }

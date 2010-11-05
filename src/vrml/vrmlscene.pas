@@ -2983,7 +2983,7 @@ procedure TVRMLScene.ChangedAll;
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          SI.Current.State.VRML2ActiveLights.Add(L);
+          SI.Current.State.AddVRML2ActiveLight(L);
       finally FreeAndNil(SI) end;
     end;
 
@@ -3000,7 +3000,7 @@ procedure TVRMLScene.ChangedAll;
       try
         while SI.GetNext do
           if Box3DSphereCollision(SI.Current.BoundingBox, Location, Radius) then
-            SI.Current.State.VRML2ActiveLights.Add(L);
+            SI.Current.State.AddVRML2ActiveLight(L);
       finally FreeAndNil(SI) end;
     end;
 
@@ -3364,9 +3364,10 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     var
       I: Integer;
     begin
-      for I := 0 to List.Count - 1 do
-        if List.Items[I].LightNode = LightNode then
-          LightNode.UpdateActiveLightState(List.Items[I], StateStack.Top);
+      if List <> nil then
+        for I := 0 to List.Count - 1 do
+          if List.Items[I].LightNode = LightNode then
+            LightNode.UpdateActiveLightState(List.Items[I], StateStack.Top);
     end;
 
   var
@@ -3707,15 +3708,16 @@ var
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        for J := 0 to SI.Current.State.CurrentActiveLights.Count - 1 do
-        begin
-          ActiveLight := @(SI.Current.State.CurrentActiveLights.Items[J]);
-          if ActiveLight^.LightNode = LightNode then
+        if SI.Current.State.CurrentActiveLights <> nil then
+          for J := 0 to SI.Current.State.CurrentActiveLights.Count - 1 do
           begin
-            LightNode.UpdateActiveLight(ActiveLight^);
-            VisibleChangeHere([vcVisibleNonGeometry]);
+            ActiveLight := @(SI.Current.State.CurrentActiveLights.Items[J]);
+            if ActiveLight^.LightNode = LightNode then
+            begin
+              LightNode.UpdateActiveLight(ActiveLight^);
+              VisibleChangeHere([vcVisibleNonGeometry]);
+            end;
           end;
-        end;
     finally FreeAndNil(SI) end;
 
     GeneratedTextures.UpdateShadowMaps(LightNode);
