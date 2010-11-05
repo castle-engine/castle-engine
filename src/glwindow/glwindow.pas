@@ -2459,12 +2459,15 @@ type
     FTooltipDelay: TMilisecTime;
     FTooltipDistance: Cardinal;
     FTooltipVisible: boolean;
+    FTooltipX, FTooltipY: Integer;
     LastPositionForTooltip: boolean;
     LastPositionForTooltipX, LastPositionForTooltipY: Integer;
     LastPositionForTooltipTime: TKamTimerResult;
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
     procedure UpdateFocusAndMouseCursor;
+    function GetTooltipX: Integer;
+    function GetTooltipY: Integer;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -2552,7 +2555,21 @@ type
       default DefaultTooltipDelay;
     property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
       default DefaultTooltipDistance;
+
+    { When the tooltip should be shown (mouse hovers over a control
+      with a tooltip) then the TooltipVisible is set to @true,
+      and TooltipX, TooltipY indicate left-bottom suggested position
+      of the tooltip.
+
+      The tooltip is only detected when TUIControl.TooltipStyle <> dsNone.
+      See TUIControl.TooltipStyle and TUIControl.DrawTooltip.
+      For simple purposes just set TKamGLFontControl.Tooltip to something
+      non-empty.
+      @groupBegin }
     property TooltipVisible: boolean read FTooltipVisible;
+    property TooltipX: Integer read FTooltipX;
+    property TooltipY: Integer read FTooltipY;
+    { @groupEnd }
 
     procedure EventInit; override;
     procedure EventKeyDown(Key: TKey; Ch: char); override;
@@ -4422,16 +4439,19 @@ procedure TGLUIWindow.EventIdle;
     begin
       FTooltipVisible := NewTooltipVisible;
 
-      { when setting TooltipVisible from false to true,
-        update LastPositionForTooltipX/Y. We don't want to hide the tooltip
-        at the slightest jiggle of the mouse :) On the other hand,
-        we don't want to update LastPositionForTooltipX/Y more often,
-        as it would disable the purpose of TooltipDistance: faster
-        mouse movement should hide the tooltip. }
       if TooltipVisible then
       begin
+        { when setting TooltipVisible from false to true,
+          update LastPositionForTooltipX/Y. We don't want to hide the tooltip
+          at the slightest jiggle of the mouse :) On the other hand,
+          we don't want to update LastPositionForTooltipX/Y more often,
+          as it would disable the purpose of TooltipDistance: faster
+          mouse movement should hide the tooltip. }
         LastPositionForTooltipX := MouseX;
         LastPositionForTooltipY := MouseY;
+        { also update TooltipX/Y }
+        FTooltipX := MouseX;
+        FTooltipY := MouseY;
       end;
 
       PostRedisplay;
@@ -4789,6 +4809,16 @@ begin
   end;
 
   inherited;
+end;
+
+function TGLUIWindow.GetTooltipX: Integer;
+begin
+  Result := FTooltipX;
+end;
+
+function TGLUIWindow.GetTooltipY: Integer;
+begin
+  Result := FTooltipY;
 end;
 
 { TGLWindowsList ------------------------------------------------------------ }

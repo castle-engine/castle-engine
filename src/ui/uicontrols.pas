@@ -49,6 +49,12 @@ type
     { Keys currently pressed. }
     property Pressed: TKeysPressed read GetPressed;
 
+    function GetTooltipX: Integer;
+    function GetTooltipY: Integer;
+
+    property TooltipX: Integer read GetTooltipX;
+    property TooltipY: Integer read GetTooltipY;
+
     { Called by controls within this container when some TUIControl.Cursor
       changes. This is called by a IUIContainer interface, that's why
       it can remain as private method of actual container class.

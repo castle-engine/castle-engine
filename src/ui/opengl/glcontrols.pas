@@ -18,9 +18,30 @@ unit GLControls;
 
 interface
 
-uses UIControls, OpenGLFonts, KeysMouse, Classes, Images, GL, KambiUtils;
+uses Classes, GL, VectorMath, UIControls, OpenGLFonts,
+  KeysMouse, Images, KambiUtils;
 
 type
+  { Base class for all controls inside an OpenGL context using a font. }
+  TKamGLFontControl = class(TUIControlPos)
+  private
+    FFont: TGLBitmapFont_Abstract;
+    FTooltip: string;
+  protected
+    property Font: TGLBitmapFont_Abstract read FFont;
+  public
+    function TooltipStyle: TUIControlDrawStyle; override;
+    procedure DrawTooltip; override;
+    procedure GLContextInit; override;
+    procedure GLContextClose; override;
+  published
+    { Tooltip string, displayed when user hovers the mouse over a control.
+
+      Note that you can override TUIControl.TooltipStyle and
+      TUIControl.DrawTooltip to customize the tooltip drawing. }
+    property Tooltip: string read FTooltip write FTooltip;
+  end;
+
   TKamButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
 
   { Button inside OpenGL context.
@@ -30,9 +51,8 @@ type
     You will also usually want to adjust position (TKamGLButton.Left,
     TKamGLButton.Bottom), TKamGLButton.Caption,
     and assign TKamGLButton.OnClick (or ovevrride TKamGLButton.DoClick). }
-  TKamGLButton = class(TUIControlPos)
+  TKamGLButton = class(TKamGLFontControl)
   private
-    FFont: TGLBitmapFont_Abstract;
     FWidth: Cardinal;
     FHeight: Cardinal;
     FOnClick: TNotifyEvent;
@@ -61,8 +81,6 @@ type
     procedure SetImage(const Value: TImage);
     procedure SetPressed(const Value: boolean);
     procedure SetImageLayout(const Value: TKamButtonImageLayout);
-  protected
-    property Font: TGLBitmapFont_Abstract read FFont;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -228,11 +246,16 @@ function CreateUIFont: TGLBitmapFont_Abstract;
 procedure DestroyUIFont(var Font: TGLBitmapFont_Abstract);
 { @groupEnd }
 
+const
+  TooltipInsideColor: TVector3Byte = (255, 234, 169);
+  TooltipBorderColor: TVector3Byte = (157, 133, 105);
+  TooltipTextColor  : TVector3Byte = (  0,   0,   0);
+
 procedure Register;
 
 implementation
 
-uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, VectorMath,
+uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
   KambiGLUtils, GLImages, Math;
 
 procedure Register;
@@ -260,7 +283,51 @@ begin
   glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
 end;
 
-{ TKamGLButton ------------------------------------------------------------------ }
+{ TKamGLFontControl ---------------------------------------------------------- }
+
+function TKamGLFontControl.TooltipStyle: TUIControlDrawStyle;
+begin
+  if Tooltip <> '' then
+    Result := ds2D else
+    Result := dsNone;
+end;
+
+procedure TKamGLFontControl.DrawTooltip;
+var
+  X, Y, W, H: Integer;
+begin
+  X := Container.TooltipX;
+  Y := ContainerHeight - Container.TooltipY;
+  W := Font.TextWidth(Tooltip) + 8;
+  H := Font.RowHeight + 8;
+
+  { now try to fix X, Y to make tooltip fit inside a window }
+  MinTo1st(X, ContainerWidth - W);
+  MinTo1st(Y, ContainerHeight - H);
+  MaxTo1st(X, 0);
+  MaxTo1st(Y, 0);
+
+  glTranslatef(X, Y, 0);
+  Font.PrintStringsBorderedRect([Tooltip], 0,
+    Vector4Single(TooltipInsideColor, 255),
+    Vector4Single(TooltipBorderColor, 255),
+    Vector4Single(TooltipTextColor, 255),
+    nil, 5, 1, 1);
+end;
+
+procedure TKamGLFontControl.GLContextInit;
+begin
+  inherited;
+  FFont := CreateUIFont;
+end;
+
+procedure TKamGLFontControl.GLContextClose;
+begin
+  DestroyUIFont(FFont);
+  inherited;
+end;
+
+{ TKamGLButton --------------------------------------------------------------- }
 
 const
   ButtonCaptionImageMargin = 10;
@@ -400,7 +467,6 @@ end;
 procedure TKamGLButton.GLContextInit;
 begin
   inherited;
-  FFont := CreateUIFont;
   if (FGLImage = 0) and (FImage <> nil) then
     FGLImage := ImageDrawToDisplayList(FImage);
   UpdateTextSize;
@@ -408,7 +474,6 @@ end;
 
 procedure TKamGLButton.GLContextClose;
 begin
-  DestroyUIFont(FFont);
   glFreeDisplayList(FGLImage);
   inherited;
 end;

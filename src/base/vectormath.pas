@@ -737,6 +737,7 @@ function Vector4Single(const x, y: Single;
 function Vector4Single(const v3: TVector3Single;
   const w: Single = 1): TVector4Single; overload;
 function Vector4Single(const ub: TVector4Byte): TVector4Single; overload;
+function Vector4Single(const V3: TVector3Byte; const W: Byte): TVector4Single; overload;
 function Vector4Single(const v: TVector4Double): TVector4Single; overload;
 
 function Vector4Double(const x, y, z ,w: Double): TVector4Double; overload;
@@ -2791,6 +2792,14 @@ begin
   result[1] := ub[1]/255;
   result[2] := ub[2]/255;
   result[3] := ub[3]/255;
+end;
+
+function Vector4Single(const V3: TVector3Byte; const W: Byte): TVector4Single;
+begin
+  result[0] := V3[0] / 255;
+  result[1] := V3[1] / 255;
+  result[2] := V3[2] / 255;
+  result[3] := W;
 end;
 
 function Vector4Single(const v: TVector4Double): TVector4Single;
