@@ -37,7 +37,8 @@ end;
 {$ifdef ITERATOR_SPEED_TEST}
 procedure TTestVRMLScene.TestIteratorSpeed;
 
-  procedure CheckIteratorSpeed(const FileName: string);
+  procedure CheckIteratorSpeed(const FileName: string;
+    const TestCount: Integer = 1000);
   var
     Scene: TVRMLScene;
     List: TVRMLShapesList;
@@ -45,9 +46,9 @@ procedure TTestVRMLScene.TestIteratorSpeed;
     OnlyActive: boolean;
     I: Integer;
     Test: Integer;
-  const
-    TestCount = 1000;
   begin
+    Writeln('CheckIteratorSpeed on ', FileName);
+
     Scene := TVRMLScene.Create(nil);
     try
       Scene.Load(FileName);
@@ -87,7 +88,8 @@ begin
   CheckIteratorSpeed('data' + PathDelim + 'switches_and_transforms_2.x3dv');
   CheckIteratorSpeed('data' + PathDelim + 'key_sensor_2.x3dv');
 
-  CheckIteratorSpeed('/home/michalis/sources/rrtankticks2/rrtankticks3/rrtt.wrl');
+  CheckIteratorSpeed('/home/michalis/sources/rrtankticks2/rrtankticks3/rrtt.wrl',
+    10); { smaller TestCount, as it's quite slow }
 end;
 {$endif ITERATOR_SPEED_TEST}
 
