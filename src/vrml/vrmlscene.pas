@@ -2697,17 +2697,12 @@ procedure TChangedAllTraverser.Traverse(
   Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
-{ TODO: we create too many TVRMLShapeTreeGroup along the way.
-  Now, with a new group for every Transform node, this may start to be
-  a performance / memory problem ? }
-
   { Handle INodeTransform node }
   procedure HandleTransform(TransformNode: TNodeX3DGroupingNode);
   var
     TransformTree: TVRMLShapeTreeTransform;
     Traverser: TChangedAllTraverser;
     ChildNode: TVRMLNode;
-    ChildGroup: TVRMLShapeTreeGroup;
     I: Integer;
   begin
     TransformTree := TVRMLShapeTreeTransform.Create(ParentScene);
@@ -2717,13 +2712,15 @@ procedure TChangedAllTraverser.Traverse(
     for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
     begin
       ChildNode := TransformNode.FdChildren.Items[I];
-      ChildGroup := TVRMLShapeTreeGroup.Create(ParentScene);
-      TransformTree.Children.Add(ChildGroup);
 
       Traverser := TChangedAllTraverser.Create;
       try
         Traverser.ParentScene := ParentScene;
-        Traverser.ShapesGroup := ChildGroup;
+        { No need to create another TVRMLShapeTreeGroup, like ChildGroup
+          for Switch/LOD nodes. We can just add new shapes to our TransformTree.
+          Reason: unlike Switch/LOD nodes, we don't care about keeping
+          the indexes of children stable. }
+        Traverser.ShapesGroup := TransformTree;
         Traverser.Active := true;
         ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
           nil, ParentInfo);
@@ -3239,12 +3236,14 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
 
     OldShapes := Shapes;
     try
+      { NewShapes group is just our ShapeTransform. Transform children do not
+        have addition TVRMLShapeTreeGroup, unlike Switch/LOD nodes. }
+      NewShapes.Group := ShapeTransform;
+      NewShapes.Index := 0;
+      Shapes := @NewShapes;
+
       for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
       begin
-        NewShapes.Group := ShapeTransform.Children[I] as TVRMLShapeTreeGroup;
-        NewShapes.Index := 0;
-        Shapes := @NewShapes;
-
         TransformNode.FdChildren.Items[I].TraverseInternal(
           StateStack, TVRMLNode, @TransformChangeTraverse, nil, ParentInfo);
       end;
