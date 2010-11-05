@@ -55,23 +55,7 @@
     FWWWBasePath: string;
     FChildren, FParentNodes: TVRMLNodesList;
     FKeepExisting: Cardinal;
-    function GetChildrenItem(i: integer): TVRMLNode;
-    function GetParentNodesItem(i: integer): TVRMLNode;
-    procedure SetChildrenItem(I: Integer; Value: TVRMLNode);
-  private
     FParentFields: TVRMLFieldsList;
-    function GetParentFieldsItem(Index: Integer): TVRMLField;
-    function GetParentFieldsNodeItem(Index: Integer): TVRMLNode;
-    procedure RemoveParentField(Field: TVRMLField);
-    procedure AddParentField(Field: TVRMLField);
-    function GetSmartChildren(Index: Integer): TVRMLNode;
-    procedure AndSuggestedVRMLVersion(
-      var Result: boolean;
-      var VerMajor, VerMinor, SuggestionPriority: Integer;
-      const NewResult: boolean;
-      const NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer);
-    procedure TryFindNode_Found(Node: TVRMLNode);
-  private
     FPrototypes: TVRMLPrototypeBasesList;
     FRoutes: TVRMLRoutesList;
     FImportsList, FExportsList: TVRMLFileItemsList;
@@ -83,8 +67,6 @@
     FDefaultContainerField: string;
     FExplicitContainerField: string;
     FHasInterfaceDeclarations: TVRMLAccessTypes;
-    procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
-  private
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
     FCDataAllowed: boolean;
     FCDataExists: boolean;
@@ -100,7 +82,24 @@
       implementation (as TVRMLPrototypeNode.Instantiate sets it to @true
       and changes back to @false for appropriate nodes). }
     NeedsInstantiateIsClause: boolean;
+
+    function GetChildrenItem(i: integer): TVRMLNode;
+    function GetParentNodesItem(i: integer): TVRMLNode;
+    procedure SetChildrenItem(I: Integer; Value: TVRMLNode);
+    function GetParentFieldsItem(Index: Integer): TVRMLField;
+    function GetParentFieldsNodeItem(Index: Integer): TVRMLNode;
+    procedure RemoveParentField(Field: TVRMLField);
+    procedure AddParentField(Field: TVRMLField);
+    procedure AndSuggestedVRMLVersion(
+      var Result: boolean;
+      var VerMajor, VerMinor, SuggestionPriority: Integer;
+      const NewResult: boolean;
+      const NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer);
+    procedure TryFindNode_Found(Node: TVRMLNode);
+    function GetSmartChildren(Index: Integer): TVRMLNode; virtual;
+    procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
   protected
+
     { Does actual DeepCopy work. You can override this to copy some
       more properties for descendants. }
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; virtual;
@@ -843,17 +842,19 @@
       sometimes the other, sometimes nil, etc.). }
     function ChildrenField: TMFNode; virtual;
 
-    { These operate on children nodes, in either VRML 2.0 style
-      (if ChildrenField is non-nil, then these get/set ChildrenField.Items)
-      or in VRML 1.0 style (if ChildrenField is nil, then these get/set
-      our Children).
+    { Operate on children nodes, suitable for both VRML 1.0 and
+      VRML 2.0 / X3D children. In VRML 1.0 (when ChildrenField is @nil),
+      these get/set our @link(Children) property. In VRML 2.0 / X3D
+      (when ChildrenField is non-nil) these get/set our ChildrenField.Items.
 
-      This is useful to operate on grouping nodes both in VRML 1.0 and VRML 2.0
-      style using the same code. }
+      Useful to operate on grouping nodes both in VRML 1.0 and VRML 2.0 / X3D
+      style using the same code.
+      @groupBegin }
     procedure SmartAddChild(Node: TVRMLNode);
     property SmartChildren[Index: Integer]: TVRMLNode read GetSmartChildren;
     function SmartChildrenCount: integer;
     function SmartExtractChild(Index: Integer): TVRMLNode;
+    { @groupEnd }
 
     { SuggestedVRMLVersion determines what VRML header to use
       when saving the node to file. Returns @true and sets out arguments
