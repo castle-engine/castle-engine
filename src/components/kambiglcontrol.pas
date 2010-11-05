@@ -34,6 +34,9 @@ const
   { Default value for TKamOpenGLControlCore.AggressiveUpdate }
   DefaultAggressiveUpdate = false;
 
+  DefaultTooltipDelay = 1000;
+  DefaultTooltipDistance = 10;
+
 type
   { OpenGL control, with a couple of extensions for Kambi VRML game engine.
     You will usually prefer to use TKamOpenGLControl instead of directly this
@@ -247,9 +250,18 @@ type
     FUseControls: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
     FFocus: TUIControl;
+    FTooltipDelay: TMilisecTime;
+    FTooltipDistance: Cardinal;
+    FTooltipVisible: boolean;
+    FTooltipX, FTooltipY: Integer;
+    LastPositionForTooltip: boolean;
+    LastPositionForTooltipX, LastPositionForTooltipY: Integer;
+    LastPositionForTooltipTime: TKamTimerResult;
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
     procedure UpdateFocusAndMouseCursor;
+    function GetTooltipX: Integer;
+    function GetTooltipY: Integer;
   protected
     procedure KeyDownEvent(var Key: Word; Shift: TShiftState); override;
     procedure KeyUpEvent(var Key: Word; Shift: TShiftState); override;
@@ -292,6 +304,21 @@ type
       or when UseControls = @false. }
     property Focus: TUIControl read FFocus;
 
+    { When the tooltip should be shown (mouse hovers over a control
+      with a tooltip) then the TooltipVisible is set to @true,
+      and TooltipX, TooltipY indicate left-bottom suggested position
+      of the tooltip.
+
+      The tooltip is only detected when TUIControl.TooltipStyle <> dsNone.
+      See TUIControl.TooltipStyle and TUIControl.DrawTooltip.
+      For simple purposes just set TKamGLFontControl.Tooltip to something
+      non-empty.
+      @groupBegin }
+    property TooltipVisible: boolean read FTooltipVisible;
+    property TooltipX: Integer read FTooltipX;
+    property TooltipY: Integer read FTooltipY;
+    { @groupEnd }
+
   published
     { How OnDraw callback fits within various Draw methods of our
       @link(Controls).
@@ -306,6 +333,11 @@ type
       automatically removes it from this list (using the TComponent.Notification
       mechanism). }
     property Controls: TUIControlList read FControls;
+
+    property TooltipDelay: TMilisecTime read FTooltipDelay write FTooltipDelay
+      default DefaultTooltipDelay;
+    property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
+      default DefaultTooltipDistance;
   end;
 
 { Convert Key (Lazarus key code) to my TKey.
@@ -746,6 +778,8 @@ begin
   FControls := TControlledUIControlList.Create(false, Self);
   FUseControls := true;
   FOnDrawStyle := dsNone;
+  FTooltipDelay := DefaultTooltipDelay;
+  FTooltipDistance := DefaultTooltipDistance;
 end;
 
 destructor TKamOpenGLControl.Destroy;
@@ -823,6 +857,58 @@ begin
 end;
 
 procedure TKamOpenGLControl.Idle;
+
+  procedure UpdateTooltip;
+  var
+    T: TKamTimerResult;
+    NewTooltipVisible: boolean;
+  begin
+    { Update TooltipVisible and LastPositionForTooltip*.
+      Idea is that user must move the mouse very slowly to activate tooltip. }
+
+    T := Fps.IdleStartTime;
+    if (not LastPositionForTooltip) or
+       (Sqr(LastPositionForTooltipX - MouseX) +
+        Sqr(LastPositionForTooltipY - MouseY) > Sqr(TooltipDistance)) then
+    begin
+      LastPositionForTooltip := true;
+      LastPositionForTooltipX := MouseX;
+      LastPositionForTooltipY := MouseY;
+      LastPositionForTooltipTime := T;
+      NewTooltipVisible := false;
+    end else
+      NewTooltipVisible :=
+        { make TooltipVisible only when we're over a control that has
+          focus. This avoids unnecessary changing of TooltipVisible
+          (and related PostRedisplay) when there's no tooltip possible. }
+        (Focus <> nil) and
+        (Focus.TooltipStyle <> dsNone) and
+        ( (1000 * (T - LastPositionForTooltipTime)) div
+          KamTimerFrequency > TooltipDelay );
+
+    if FTooltipVisible <> NewTooltipVisible then
+    begin
+      FTooltipVisible := NewTooltipVisible;
+
+      if TooltipVisible then
+      begin
+        { when setting TooltipVisible from false to true,
+          update LastPositionForTooltipX/Y. We don't want to hide the tooltip
+          at the slightest jiggle of the mouse :) On the other hand,
+          we don't want to update LastPositionForTooltipX/Y more often,
+          as it would disable the purpose of TooltipDistance: faster
+          mouse movement should hide the tooltip. }
+        LastPositionForTooltipX := MouseX;
+        LastPositionForTooltipY := MouseY;
+        { also update TooltipX/Y }
+        FTooltipX := MouseX;
+        FTooltipY := MouseY;
+      end;
+
+      Invalidate;
+    end;
+  end;
+
 var
   I: Integer;
   C: TUIControl;
@@ -831,6 +917,8 @@ var
 begin
   if UseControls then
   begin
+    UpdateTooltip;
+
     { Although we call Idle for all the controls, we look
       at PositionInside and track HandleMouseAndKeys values.
       See TUIControl.Idle for explanation. }
@@ -1009,24 +1097,22 @@ procedure TKamOpenGLControl.DoDraw;
         C := Controls[I];
         case C.DrawStyle of
           ds2D: AnythingWants2D := true;
-          ds3D:
-            begin
-              { Set OpenGL state that may be changed carelessly, and has some
-                guanteed value, for TUIControl.Draw calls. }
-              glLoadIdentity;
-              C.Draw;
-            end;
+          { Set OpenGL state that may be changed carelessly, and has some
+            guanteed value, for TUIControl.Draw calls. }
+          ds3D: begin glLoadIdentity; C.Draw; end;
         end;
       end;
+
+      if TooltipVisible and (Focus <> nil) then
+        case Focus.TooltipStyle of
+          ds2D: AnythingWants2D := true;
+          ds3D: begin glLoadIdentity; Focus.DrawTooltip; end;
+        end;
     end;
 
     case OnDrawStyle of
       ds2D: AnythingWants2D := true;
-      ds3D:
-        begin
-          glLoadIdentity;
-          inherited DoDraw;
-        end;
+      ds3D: begin glLoadIdentity; inherited DoDraw; end;
     end;
   end;
 
@@ -1066,6 +1152,13 @@ procedure TKamOpenGLControl.DoDraw;
               glRasterPos2i(0, 0);
               C.Draw;
             end;
+          end;
+
+          if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
+          begin
+            glLoadIdentity;
+            glRasterPos2i(0, 0);
+            Focus.DrawTooltip;
           end;
         end;
 
@@ -1150,6 +1243,16 @@ begin
     { Focus must always be @nil when UseControls = false }
     UpdateFocusAndMouseCursor;
   end;
+end;
+
+function TKamOpenGLControl.GetTooltipX: Integer;
+begin
+  Result := FTooltipX;
+end;
+
+function TKamOpenGLControl.GetTooltipY: Integer;
+begin
+  Result := FTooltipY;
 end;
 
 { global routines ------------------------------------------------------------ }

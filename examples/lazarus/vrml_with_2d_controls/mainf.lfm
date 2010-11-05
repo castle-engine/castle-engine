@@ -47,6 +47,7 @@ object Form1: TForm1
   end
   object ButtonImageFixSize1: TKamGLButton
     Bottom = 320
+    Tooltip = 'Sample tooltip over a button'
     Width = 240
     Height = 100
     AutoSize = False
@@ -59,6 +60,7 @@ object Form1: TForm1
   end
   object ButtonImageFixSize2: TKamGLButton
     Bottom = 320
+    Tooltip = 'Sample tooltip over a button'
     Width = 240
     Height = 100
     AutoSize = False
@@ -72,6 +74,7 @@ object Form1: TForm1
   end
   object ButtonImageFixSize3: TKamGLButton
     Bottom = 320
+    Tooltip = 'Sample tooltip over a button'
     Width = 240
     Height = 100
     AutoSize = False
@@ -84,6 +87,7 @@ object Form1: TForm1
   end
   object ButtonImageFixSize4: TKamGLButton
     Bottom = 320
+    Tooltip = 'Sample tooltip over a button'
     Width = 240
     Height = 100
     AutoSize = False
@@ -97,6 +101,7 @@ object Form1: TForm1
   end
   object ButtonImage1: TKamGLButton
     Bottom = 420
+    Tooltip = 'Sample tooltip over a button'
     Width = 20
     Height = 20
     Caption = 'Image top'
@@ -108,6 +113,7 @@ object Form1: TForm1
   end
   object ButtonImage2: TKamGLButton
     Bottom = 420
+    Tooltip = 'Sample tooltip over a button'
     Width = 20
     Height = 20
     Caption = 'Image bottom'
@@ -120,6 +126,7 @@ object Form1: TForm1
   end
   object ButtonImage3: TKamGLButton
     Bottom = 420
+    Tooltip = 'Sample tooltip over a button'
     Width = 250
     Height = 100
     Caption = 'Image left'
@@ -131,6 +138,7 @@ object Form1: TForm1
   end
   object ButtonImage4: TKamGLButton
     Bottom = 420
+    Tooltip = 'Sample tooltip over a button'
     Width = 20
     Height = 20
     Caption = 'Image right'
