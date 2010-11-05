@@ -588,7 +588,7 @@ begin
     VRMLWarning(vwSerious, 'replaceNames and replaceNodes for KambiInline node should have the same number of items');
 
   { After successfull loading, there's always exactly one child. }
-  Assert(ChildrenCount = 1);
+  Assert(VRML1ChildrenCount = 1);
 
   { First, a special case when Children[0] node has the required name.
     Needs to be checked explicitly, EnumerateReplaceNodes cannot check this. }
@@ -596,14 +596,14 @@ begin
     { Ignore empty names, since VRML node cannot have empty name
       (it's only our implementation detail that we mark "noname" as empty name) }
     if (FdReplaceNames.Items.Items[I] <> '') and
-       (FdReplaceNames.Items.Items[I] = Children[0].NodeName) then
+       (FdReplaceNames.Items.Items[I] = VRML1Children[0].NodeName) then
     begin
-      RemoveChild(0);
-      AddChild(0, FdReplaceNodes.Items[I]);
+      VRML1ChildRemove(0);
+      VRML1ChildAdd(0, FdReplaceNodes.Items[I]);
       Exit;
     end;
 
-  Children[0].EnumerateReplaceChildren(@DoReplaceNodes);
+  VRML1Children[0].EnumerateReplaceChildren(@DoReplaceNodes);
 end;
 
 procedure TNodeKambiInline.DoReplaceNodes(ParentNode: TVRMLNode;

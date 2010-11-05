@@ -53,7 +53,7 @@
   private
     fNodeName: string;
     FWWWBasePath: string;
-    FChildren, FParentNodes: TVRMLNodesList;
+    FVRML1Children, FVRML1Parents: TVRMLNodesList;
     FKeepExisting: Cardinal;
     FParentFields: TVRMLFieldsList;
     FPrototypes: TVRMLPrototypeBasesList;
@@ -83,9 +83,9 @@
       and changes back to @false for appropriate nodes). }
     NeedsInstantiateIsClause: boolean;
 
-    function GetChildrenItem(i: integer): TVRMLNode;
-    function GetParentNodesItem(i: integer): TVRMLNode;
-    procedure SetChildrenItem(I: Integer; Value: TVRMLNode);
+    function GetVRML1Child(i: integer): TVRMLNode;
+    function GetVRML1Parent(i: integer): TVRMLNode;
+    procedure SetVRML1Child(I: Integer; Value: TVRMLNode);
     function GetParentFieldsItem(Index: Integer): TVRMLField;
     function GetParentFieldsNodeItem(Index: Integer): TVRMLNode;
     procedure RemoveParentField(Field: TVRMLField);
@@ -257,19 +257,20 @@
       @nil if not found. }
     function AnyEvent(const Name: string): TVRMLEvent;
 
-    { Children property lists children VRML nodes, in the sense of VRML 1.0.
-      In VRML 2.0, nodes never have any Children nodes expressed on this
-      list (however, their children nodes may be expressed as items
-      of TMFNode / TSFNode fields).
+    { VRML 1.0 children nodes. These are nodes directly specified inside
+      a VRML 1.0 node, they don't belong to any node field. (In VRML 1.0,
+      there was no SFNode / MFNode fields.)
+
+      In VRML 2.0, this is always empty.
 
       Kazdy VRML nodes moze miec dowolnie wiele Children.
       Kiedy jakis node jest na liscie Children
-      jednego node'a to ma swojego rodzica na swojej liscie ParentNodes.
+      jednego node'a to ma swojego rodzica na swojej liscie VRML1Parents.
       Wiec w ten sposob mozemy podrozowac po grafie w obie strony.
       (pamietaj ze graf VRML'a nie ma cykli gdy na niego patrzec jak na graf
       skierowany (a takim wlasnie jest) ale kazdy node moze miec wiele rodzicow
       wiec jezeli potraktujemy go jako graf nieskierowany to mozemy otrzymac
-      cykle; wszystko przez to ze node moze miec wiele ParentNodes bo moze
+      cykle; wszystko przez to ze node moze miec wiele VRML1Parents bo moze
       uzywac mechanizmu USE).
 
       Kiedy jakis node jest na liscie Children innego node'a to gdy ten inny
@@ -278,7 +279,7 @@
       jego destruktora. Innymi slowy, gdy jakis node jest czyims dzieckiem
       to jest reference-counted i automatycznie zwalniany.
       Actually, nodes can be children of both nodes (VRML 1.0 style,
-      then Children and ParentNodes is used) or fields (TMFNode or TSFNode,
+      then VRML1Children and VRML1Parents is used) or fields (TMFNode or TSFNode,
       in VRML 2.0 style; then ParentFields is used). So the node is freed
       only when it's not referenced by any node and not referenced by any
       field.
@@ -287,63 +288,64 @@
       dzieci. Natomiast dziecko w swoim Free nie martwi sie o uaktualnienie
       swoich rodzicow.
 
-      Zwracam tez uwage ze RemoveChild wymaga indeksu. Okreslanie dziecka
+      Zwracam tez uwage ze VRML1ChildRemove wymaga indeksu. Okreslanie dziecka
       jako children: TVRMLNode jest nie-1-znaczne bo przeciez jeden node
       moze miec kilka razy to samo dziecko (i w rezultacie, nawiasem mowiac,
       kazde dziecko moze miec wiele razy tego samego Parenta). A nie chcemy
-      przeciez pomieszac sobie kolejnosci w Children (ona determinuje
+      przeciez pomieszac sobie kolejnosci w VRML1Children (ona determinuje
       przeciez kolejnosc przegladania grafu, a wiec Renderowania itp.)
       (Natomiast mozemy sobie pozwolic i nieraz pozwalamy na ew. pomieszanie
-      kolejnosci w ParentNodes; inaczej musielibysmy z kazdym ParentNodes pamietac
-      swoj index na jego liscie). Tak wiec na listach Children i ParentNodes
+      kolejnosci w VRML1Parents; inaczej musielibysmy z kazdym VRML1Parents pamietac
+      swoj index na jego liscie). Tak wiec na listach VRML1Children i VRML1Parents
       moga byc duplikaty i zdecydowanie nie powinnismy nigdzie niefrasobliwie
       "czyscic" tych list przez DeleteDuplicates;
 
       You can also replace one children with another by writing
-      to this property, like @code(Children[I] := NewChildren;).
+      to this property, like @code(VRML1Children[I] := NewChildren;).
       This works like a shortcut for
-      @code(RemoveChild(I); AddChild(I, NewChildren);).
+      @code(VRML1ChildRemove(I); VRML1ChildAdd(I, NewChildren);).
       But 1. it's more efficient; 2. it's safer --- if
       Children[I] is already equal to NewChildren, then
-      first @code(RemoveChild(I);) would free this children and following
-      AddChild would be totally wrong. }
-    property Children[i: integer]: TVRMLNode
-      read GetChildrenItem write SetChildrenItem;
-
-    function ChildrenCount: integer;
-
-    { AddChild z Index (musi byc w zakresie 0..ChildrenCount)
-      przesuwa elementy o numerach Index i wiekszych w prawo i
-      wstawia child na wskazane Index.    }
-    procedure AddChild(Index: Integer; child: TVRMLNode); overload;
-
-    { AddChild bez Indexu - dodaje na koniec listy Children. }
-    procedure AddChild(child: TVRMLNode); overload;
-
-    procedure RemoveChild(i: integer);
-    procedure RemoveAllChildren;
-
-    { Remove and return children indexed I, and @italic(never free it).
-
-      Compare this with RemoveChild, that removes children I and
-      frees it if it's reference count gets 0.
-
-      ExtractChild removes children I, appropriately adjusting
-      all parent/children links, but even if reference count of the node
-      will get zero, ExtractChild will not free it.
-      ExtractChild always returns extracted child. }
-    function ExtractChild(I: Integer): TVRMLNode;
-
-    { All nodes where this node is referenced as a child.
-      This counts "parents" in the VRML 1.0 / Inventor sense.
+      first @code(VRML1ChildRemove(I);) would free this children and following
+      VRML1ChildAdd would be totally wrong.
 
       @groupBegin }
-    property ParentNodes[i: integer]:TVRMLNode read GetParentNodesItem;
-    function ParentNodesCount: integer;
+    property VRML1Children [i: integer]: TVRMLNode read GetVRML1Child write SetVRML1Child;
+    function VRML1ChildrenCount: integer;
+    { @groupEnd }
+
+    { Add a VRML 1.0 child node at given position.
+      Index (position) must be in [0..VRML1ChildrenCount].
+      Items at and above Index position are moved to the right,
+      to insert new child at Index position. }
+    procedure VRML1ChildAdd(Index: Integer; child: TVRMLNode); overload;
+
+    { Add a VRML 1.0 child node at the end of VRML1Children list. }
+    procedure VRML1ChildAdd(child: TVRMLNode); overload;
+
+    procedure VRML1ChildRemove(i: integer);
+    procedure VRML1ChildrenClear;
+
+    { Remove a VRML 1.0 children at index I and return it (do not free it).
+      Compare this with VRML1Remove, that removes children I and
+      frees it if it's no longer used by anything.
+
+      This removes children I, appropriately adjusting
+      all parent / children links, but even if a node is unused after removing,
+      it is not freed. It's always returned. }
+    function VRML1ChildExtract(I: Integer): TVRMLNode;
+
+    { VRML 1.0 parent nodes. VRML1Parents is a reverse of
+      VRML1Children --- it lists all the nodes where we are on VRML1Children
+      list.
+
+      @groupBegin }
+    property VRML1Parents [i: integer] :TVRMLNode read GetVRML1Parent;
+    function VRML1ParentsCount: integer;
     { @groupEnd }
 
     { This lists all SFNode and MFNode fields where this node is referenced.
-      This is somewhat analogous for ParentNodes, but for VRML 2.0.
+      This is somewhat analogous for VRML1Parents, but for VRML 2.0.
 
       ParentFieldsNode is just for your comfort, it returns always
       appropriate field's ParentNode property value
@@ -406,7 +408,7 @@
     { @groupEnd }
 
     { AllowedChildren okresla jakie dzieci moga byc dziecmi tego node'a.
-      Warunek ten bedzie sprawdzany w AddChild wiec nigdy nie uda ci sie dodac
+      Warunek ten bedzie sprawdzany w VRML1ChildAdd wiec nigdy nie uda ci sie dodac
       node'a ktory nie jest tutaj dozwolony.
 
       ParsingAllowedChildren okresla jakie dzieci moga byc odczytane
@@ -426,7 +428,7 @@
 
       Naturalnie ParsingAllowedChildren musi sie zawierac w AllowedChildren
       bo inaczej parsowanie moze wygenerowac wyjatek (wywolujac
-      AddChild z niedozwolonym argumentem). W tej chwili oznacza to tylko
+      VRML1ChildAdd z niedozwolonym argumentem). W tej chwili oznacza to tylko
       ze nie moze byc ParsingAllowedChildren = true i AllowedChildren = false.
 
       Note that in some special cases AllowedChildren and
@@ -576,7 +578,7 @@
 
       Also, TraversingInfo is passed to each TraversingFunc call.
       This allows you to investigate, during TraversingFunc call, the parents
-      hierarchy (you can't use ParentNodes / ParentFields of the current node,
+      hierarchy (you can't use VRML1Parents / ParentFields of the current node,
       since a node may have many parents). Traverse calls are
       naturally recursive, and so the stack of TraversingInfo
       structures is naturally build and destroyed by recursive calls.
@@ -719,7 +721,7 @@
       out AverageScaleTransform: Single): boolean;
     { @groupEnd }
 
-    { This seeks Self and parent nodes (from ParentNodes and ParentFields,
+    { This seeks Self and parent nodes (from VRML1Parents and ParentFields,
       recursively), for given node name.
 
       In other words, this is similar to TryNodeByName or NodeByName,
@@ -767,12 +769,7 @@
       We use SaveProperties.NodeNames, pretty much like when parsing.
       If a node name is already bound with this node, then we know
       we have to write only USE ... statement. Otherwise we write
-      full node contents, with eventual DEF ... statement.
-
-      Note that if ChildrenSaveToStream returns @false
-      we don't write our Children. Currently this is used by various inline
-      nodes (WWWInline, Inline, etc.).
-    *)
+      full node contents, with eventual DEF ... statement. *)
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     { Do the nodes of (exactly) this class should be included
@@ -898,12 +895,12 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; virtual;
 
-    { Returns should SaveToStream save our Children.
+    { Should SaveToStream save our VRML1Children.
       In this class default implementation returns @true,
       this is what you will want in 99% of cases.
       It's useful to set this to false if you use
-      Children internally, e.g. *Inline nodes. }
-    class function ChildrenSaveToStream: boolean; virtual;
+      VRML1Children internally, e.g. *Inline nodes. }
+    class function VRML1ChildrenSaveToStream: boolean; virtual;
 
     { Enumerates all children nodes (recursively),
       allowing you to decide for each node to replace or remove it.
@@ -915,7 +912,7 @@
 
       Note that (unlike regular EnumerateNodes) @bold(this doesn't
       report Self to Func !). Which is natural, since this may remove
-      nodes by normal RemoveChild calls, so it needs to know ParentNode
+      nodes by normal VRML1ChildRemove calls, so it needs to know ParentNode
       of the removed node.
 
       For each node Func will be called, with ParentNode and Node set.
@@ -953,8 +950,8 @@
 
       Doesn't copy things which are dependent on container hierarchy.
       (So copying them would be more dangerous than useful.)
-      This means: DestructionNotifications, EventsEngine, ParentNodes,
-      ParentFields. ParentNodes and ParentFields will be set for children
+      This means: DestructionNotifications, EventsEngine, VRML1Parents,
+      ParentFields. VRML1Parents and ParentFields will be set for children
       anyway (to appropriate copies).
 
       Caller owns this newly created copy --- as returned by this method,
@@ -1177,8 +1174,8 @@ begin
   FNodeName := ANodeName;
   FWWWBasePath := AWWWBasePath;
 
-  FChildren := TVRMLNodesList.Create;
-  FParentNodes := TVRMLNodesList.Create;
+  FVRML1Children := TVRMLNodesList.Create;
+  FVRML1Parents := TVRMLNodesList.Create;
   FParentFields := TVRMLFieldsList.Create;
   FFields := TVRMLFieldsList.Create;
 
@@ -1210,7 +1207,7 @@ begin
     FreeAndNil(FDestructionNotifications);
   end;
 
-  if FChildren <> nil then RemoveAllChildren;
+  if FVRML1Children <> nil then VRML1ChildrenClear;
 
   if PrototypeInstance then
   begin
@@ -1249,8 +1246,8 @@ begin
 
   FreeWithContentsAndNil(FInterfaceDeclarations);
 
-  FreeAndNil(FChildren);
-  FreeAndNil(FParentNodes);
+  FreeAndNil(FVRML1Children);
+  FreeAndNil(FVRML1Parents);
   FreeAndNil(FParentFields);
 
   inherited;
@@ -1258,7 +1255,7 @@ end;
 
 procedure TVRMLNode.FreeIfUnused;
 begin
-  if (FParentNodes.Count = 0) and
+  if (FVRML1Parents.Count = 0) and
      (FParentFields.Count = 0) and
      (KeepExisting = 0) then
   begin
@@ -1279,73 +1276,87 @@ begin
   Dec(FKeepExisting);
 end;
 
-procedure TVRMLNode.AddChild(Index: Integer; child: TVRMLNode);
+procedure TVRMLNode.VRML1ChildAdd(Index: Integer; child: TVRMLNode);
 begin
  Check( {is child allowed in AllowedChildren ?} AllowedChildren,
    'Node '+NodeTypeName+' is not allowed to have child node of type '+
    Child.NodeTypeName);
- child.FParentNodes.Add(Self);
- FChildren.Insert(Index, child);
+ child.FVRML1Parents.Add(Self);
+ FVRML1Children.Insert(Index, child);
 end;
 
-procedure TVRMLNode.AddChild(child: TVRMLNode);
+procedure TVRMLNode.VRML1ChildAdd(child: TVRMLNode);
 begin
- AddChild(FChildren.Count, child);
+  VRML1ChildAdd(FVRML1Children.Count, child);
 end;
 
-procedure TVRMLNode.RemoveChild(i: integer);
+procedure TVRMLNode.VRML1ChildRemove(i: integer);
 var
   OldChild: TVRMLNode;
 begin
-  OldChild := FChildren[i];
-  FChildren.Delete(i);
-  OldChild.FParentNodes.Remove(Self);
+  OldChild := FVRML1Children[i];
+  FVRML1Children.Delete(i);
+  OldChild.FVRML1Parents.Remove(Self);
   OldChild.FreeIfUnused;
 end;
 
-function TVRMLNode.ExtractChild(I: Integer): TVRMLNode;
+function TVRMLNode.VRML1ChildExtract(I: Integer): TVRMLNode;
 begin
-  Result := FChildren[i];
-  FChildren.Delete(i);
-  Result.FParentNodes.Remove(Self);
+  Result := FVRML1Children[i];
+  FVRML1Children.Delete(i);
+  Result.FVRML1Parents.Remove(Self);
 
-  { RemoveChild now does
+  { VRML1ChildRemove now does
       OldChild.FreeIfUnused;
     but ExtractChild doesn't do it. }
 end;
 
-procedure TVRMLNode.SetChildrenItem(I: Integer; Value: TVRMLNode);
+procedure TVRMLNode.SetVRML1Child(I: Integer; Value: TVRMLNode);
 var
   OldChild: TVRMLNode;
 begin
-  { Inefficient implementation: RemoveChild(I); AddChild(I, Value); }
+  { Inefficient implementation: VRML1ChildRemove(I); VRML1ChildAdd(I, Value); }
 
-  if Value <> FChildren[I] then
+  if Value <> FVRML1Children[I] then
   begin
     Check( {is child allowed in AllowedChildren ?} AllowedChildren,
       'Node '+NodeTypeName+' is not allowed to have child node of type '+
       Value.NodeTypeName);
 
-    OldChild := FChildren[i];
-    FChildren[I] := Value;
+    OldChild := FVRML1Children[i];
+    FVRML1Children[I] := Value;
 
-    OldChild.FParentNodes.Remove(Self);
+    OldChild.FVRML1Parents.Remove(Self);
     OldChild.FreeIfUnused;
 
-    Value.FParentNodes.Add(Self);
+    Value.FVRML1Parents.Add(Self);
   end;
 end;
 
-procedure TVRMLNode.RemoveAllChildren;
+procedure TVRMLNode.VRML1ChildrenClear;
 begin
- while FChildren.Count > 0 do RemoveChild(0);
+ while FVRML1Children.Count > 0 do VRML1ChildRemove(0);
 end;
 
-function TVRMLNode.GetChildrenItem(i: integer): TVRMLNode; begin result := FChildren[i] end;
-function TVRMLNode.GetParentNodesItem(i: integer): TVRMLNode; begin result := FParentNodes[i] end;
+function TVRMLNode.GetVRML1Child(i: integer): TVRMLNode;
+begin
+  result := FVRML1Children[i];
+end;
 
-function TVRMLNode.ChildrenCount: integer; begin result := FChildren.Count end;
-function TVRMLNode.ParentNodesCount: integer; begin result := FParentNodes.Count end;
+function TVRMLNode.GetVRML1Parent(i: integer): TVRMLNode;
+begin
+  result := FVRML1Parents[i];
+end;
+
+function TVRMLNode.VRML1ChildrenCount: integer;
+begin
+  result := FVRML1Children.Count
+end;
+
+function TVRMLNode.VRML1ParentsCount: integer;
+begin
+  result := FVRML1Parents.Count
+end;
 
 procedure TVRMLNode.FreeRemovingFromAllParents;
 var
@@ -1355,12 +1366,12 @@ var
 begin
   if Self = nil then exit;
 
-  for i := 0 to FParentNodes.Count - 1 do
+  for i := 0 to FVRML1Parents.Count - 1 do
   begin
-    j := FParentNodes[i].FChildren.IndexOf(Self);
-    FParentNodes[i].FChildren.Delete(j);
+    j := FVRML1Parents[i].FVRML1Children.IndexOf(Self);
+    FVRML1Parents[i].FVRML1Children.Delete(j);
     { nie musimy sie tu martwic usuwaniem naszego Parenta z listy
-      FParentNodes ktora
+      FVRML1Parents ktora
      wlasnie przegladamy bo przeciez i tak zaraz zrobimy sobie Destroy; }
   end;
 
@@ -1416,8 +1427,8 @@ procedure TVRMLNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
-  for I := 0 to ChildrenCount - 1 do
-    Func(Self, Children[I]);
+  for I := 0 to VRML1ChildrenCount - 1 do
+    Func(Self, VRML1Children[I]);
 end;
 
 procedure TVRMLNode.DirectEnumerateActiveForTraverse(
@@ -1434,8 +1445,8 @@ var
   SF: TSFNode;
   MF: TMFNode;
 begin
-  for I := 0 to ChildrenCount - 1 do
-    Func(Self, Children[I]);
+  for I := 0 to VRML1ChildrenCount - 1 do
+    Func(Self, VRML1Children[I]);
 
   for I := 0 to Fields.Count - 1 do
   begin
@@ -1596,7 +1607,7 @@ var
   Position: Integer;
   ChildNode: TVRMLNode;
 begin
-  RemoveAllChildren;
+  VRML1ChildrenClear;
 
   { In classic VRML encoding, CDATA never exists. }
   CDataExists := false;
@@ -1621,7 +1632,7 @@ begin
       begin
         ChildNode := ParseNode(Lexer, Names, false);
         ChildNode.PositionInParent := Position;
-        AddChild(ChildNode);
+        VRML1ChildAdd(ChildNode);
       end else
       begin
         raise EVRMLParserError.Create(Lexer,
@@ -2305,9 +2316,9 @@ begin
   begin
     result := nil;
 
-    for I := 0 to ParentNodesCount - 1 do
+    for I := 0 to VRML1ParentsCount - 1 do
     begin
-      result := ParentNodes[I].TryFindParentByName(FindName);
+      result := VRML1Parents[I].TryFindParentByName(FindName);
       if result <> nil then exit;
     end;
 
@@ -2329,9 +2340,9 @@ function TVRMLNode.TryFindDirectParentByName(const FindName: string): TVRMLNode;
 var
   I: Integer;
 begin
-  for I := 0 to ParentNodesCount - 1 do
+  for I := 0 to VRML1ParentsCount - 1 do
   begin
-    Result := ParentNodes[I];
+    Result := VRML1Parents[I];
     if Result.NodeName = FindName then Exit;
   end;
 
@@ -2351,8 +2362,8 @@ begin
   if Self = Node then
     result := true else
   begin
-    for i := 0 to ParentNodesCount - 1 do
-      if ParentNodes[i].HasParent(Node) then Exit(true);
+    for i := 0 to VRML1ParentsCount - 1 do
+      if VRML1Parents[i].HasParent(Node) then Exit(true);
 
     for i := 0 to ParentFieldsCount - 1 do
       if ParentFieldsNode[i].HasParent(Node) then Exit(true);
@@ -2446,9 +2457,9 @@ begin
       end;
     end;
 
-    if ChildrenSaveToStream then
-      for I := 0 to ChildrenCount - 1 do
-        FileItems.Add(Children[I]);
+    if VRML1ChildrenSaveToStream then
+      for I := 0 to VRML1ChildrenCount - 1 do
+        FileItems.Add(VRML1Children[I]);
 
     for I := 0 to Events.Count - 1 do
       if { Saving InterfaceDeclarations already handled saving events
@@ -2560,28 +2571,28 @@ end;
 procedure TVRMLNode.SmartAddChild(Node: TVRMLNode);
 begin
   if ChildrenField = nil then
-    AddChild(Node) else
+    VRML1ChildAdd(Node) else
     ChildrenField.Add(Node);
 end;
 
 function TVRMLNode.GetSmartChildren(Index: Integer): TVRMLNode;
 begin
   if ChildrenField = nil then
-    Result := Children[Index] else
+    Result := VRML1Children[Index] else
     Result := ChildrenField.Items[Index];
 end;
 
 function TVRMLNode.SmartChildrenCount: integer;
 begin
   if ChildrenField = nil then
-    Result := ChildrenCount else
+    Result := VRML1ChildrenCount else
     Result := ChildrenField.Items.Count;
 end;
 
 function TVRMLNode.SmartExtractChild(Index: Integer): TVRMLNode;
 begin
   if ChildrenField = nil then
-    Result := ExtractChild(Index) else
+    Result := VRML1ChildExtract(Index) else
     Result := ChildrenField.Extract(Index);
 end;
 
@@ -2625,9 +2636,9 @@ begin
     end;
   end;
 
-  for ChildIndex := 0 to ChildrenCount - 1 do
+  for ChildIndex := 0 to VRML1ChildrenCount - 1 do
   begin
-    NewResult :=  Children[ChildIndex].SuggestedVRMLVersion(
+    NewResult :=  VRML1Children[ChildIndex].SuggestedVRMLVersion(
       NewVerMajor, NewVerMinor, NewSuggestionPriority);
     AndSuggestedVRMLVersion(
       Result, VerMajor, VerMinor, SuggestionPriority,
@@ -2653,7 +2664,7 @@ begin
   end;
 end;
 
-class function TVRMLNode.ChildrenSaveToStream: boolean;
+class function TVRMLNode.VRML1ChildrenSaveToStream: boolean;
 begin
   Result := true;
 end;
@@ -2674,22 +2685,22 @@ begin
   Result := 0;
 
   I := 0;
-  while I < ChildrenCount do
+  while I < VRML1ChildrenCount do
   begin
-    NewNode := Children[I];
+    NewNode := VRML1Children[I];
     Func(Self, NewNode);
-    if NewNode <> Children[I] then
+    if NewNode <> VRML1Children[I] then
     begin
-      RemoveChild(I);
+      VRML1ChildRemove(I);
       Inc(Result);
       if NewNode <> nil then
       begin
-        AddChild(I, NewNode);
+        VRML1ChildAdd(I, NewNode);
         Inc(I);
       end;
     end else
     begin
-      Result += Children[I].EnumerateReplaceChildren(Func);
+      Result += VRML1Children[I].EnumerateReplaceChildren(Func);
       Inc(I);
     end;
   end;
@@ -2895,8 +2906,8 @@ begin
     CopyState.Original.Add(Self);
     CopyState.New.Add(Result);
 
-    for I := 0 to ChildrenCount - 1 do
-      Result.AddChild(CopyState.DeepCopy(Children[I]));
+    for I := 0 to VRML1ChildrenCount - 1 do
+      Result.VRML1ChildAdd(CopyState.DeepCopy(VRML1Children[I]));
 
     { Copy InterfaceDeclarations first, before copying Fields and Events
       (as some Fields and Events come from InterfaceDeclarations). }
@@ -3018,7 +3029,7 @@ begin
   if List <> nil then
   begin
     for I := 0 to List.Count - 1 do
-      if List.Items[I].ParentNodesCount + List.Items[I].ParentFieldsCount = 0 then
+      if List.Items[I].VRML1ParentsCount + List.Items[I].ParentFieldsCount = 0 then
         List.Items[I].Free;
     FreeAndNil(List);
   end;

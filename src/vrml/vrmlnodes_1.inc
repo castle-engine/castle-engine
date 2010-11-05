@@ -1348,10 +1348,10 @@ begin
       W ostatnim przypadku, ladujemy z tym samym klopotem co RenderNKSpecific :
       zapamietywanie takiego BoundingBoxa nie jest poprawne.
   }
-  if ChildrenCount = 0 then
+  if VRML1ChildrenCount = 0 then
     raise EVRMLError.Create('LOD node must have at least one child');
 
-  Func(Self, Children[0]);
+  Func(Self, VRML1Children[0]);
 end;
 
 class function TNodeLOD_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -2457,8 +2457,8 @@ begin
       for I := 0 to Prototypes.Count - 1 do
         FileItems.Add(Prototypes[I]);
 
-      for i := 0 to ChildrenCount - 1 do
-        FileItems.Add(Children[i]);
+      for i := 0 to VRML1ChildrenCount - 1 do
+        FileItems.Add(VRML1Children[i]);
 
       for I := 0 to Routes.Count - 1 do
         FileItems.Add(Routes[I]);
@@ -2569,8 +2569,8 @@ begin
       (note : value -1 is no special value; any value that doesn't specify
       valid child number and is not -3 instructs Switch to not enter
       into any child. This is conformant with VRML 97 specification) }
-    if Between(FdWhichChild.Value, 0, ChildrenCount - 1) then
-      Func(Self, Children[FdWhichChild.Value]);
+    if Between(FdWhichChild.Value, 0, VRML1ChildrenCount - 1) then
+      Func(Self, VRML1Children[FdWhichChild.Value]);
   end;
 end;
 

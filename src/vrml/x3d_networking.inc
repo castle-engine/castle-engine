@@ -152,7 +152,7 @@
     private FFdbboxSize: TSFVec3f;
     public property FdbboxSize: TSFVec3f read FFdbboxSize;
 
-    class function ChildrenSaveToStream: boolean; override;
+    class function VRML1ChildrenSaveToStream: boolean; override;
 
     { Load inlined VRML content @bold(now).
       If @link(Inlined) is already loaded:
@@ -482,7 +482,7 @@ end;
 
 procedure TNodeInline.UnLoadInlined;
 begin
-  RemoveAllChildren;
+  VRML1ChildrenClear;
   FInlined := nil;
   Loaded := false;
 end;
@@ -516,7 +516,7 @@ begin
 
   Assert(not Loaded);
   Assert(FInlined = nil);
-  Assert(ChildrenCount = 0);
+  Assert(VRML1ChildrenCount = 0);
 
   if not FdLoad.Value then Exit;
 
@@ -545,7 +545,7 @@ begin
   if FInlined <> nil then
   begin
     InlinedIsNotRootNode;
-    AddChild(FInlined);
+    VRML1ChildAdd(FInlined);
     AfterLoadInlined;
   end;
 
@@ -559,8 +559,8 @@ end;
 procedure TNodeInline.LoadedInlineDirectly;
 begin
   Loaded := true;
-  if ChildrenCount <> 0 then
-    FInlined := Children[0] else
+  if VRML1ChildrenCount <> 0 then
+    FInlined := VRML1Children[0] else
     FInlined := nil;
 end;
 
@@ -574,8 +574,8 @@ begin
   { Since inherited copied our Children, we should also set "Loaded"
     and "Inlined" field to the same value. }
   ResultI.Loaded := Loaded;
-  if ResultI.ChildrenCount <> 0 then
-    ResultI.FInlined := ResultI.Children[0] else
+  if ResultI.VRML1ChildrenCount <> 0 then
+    ResultI.FInlined := ResultI.VRML1Children[0] else
     ResultI.FInlined := nil;
 end;
 
@@ -607,7 +607,7 @@ begin
   inherited;
 end;
 
-class function TNodeInline.ChildrenSaveToStream: boolean;
+class function TNodeInline.VRML1ChildrenSaveToStream: boolean;
 begin
   Result := false;
 end;
@@ -683,7 +683,7 @@ var
 begin
   { TODO: InlineLoadControl should load it's contents to
     children MFNode, and we should make a way (analogous
-    to TNodeInlineLoadControl.ChildrenSaveToStream)
+    to TNodeInlineLoadControl.VRML1ChildrenSaveToStream)
     to say that "we don't want to save to stream "children" field".
     For now it's not really important (user doesn't see
     where it's loaded), but it will be later for scripts. }

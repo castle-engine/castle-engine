@@ -841,7 +841,7 @@ procedure TVRMLGLAnimation.LoadCore(
       if Field1.Items.Count <> Field2.Items.Count then
         raise EModelsStructureDifferent.CreateFmt(
           'Different number of children in MFNode fields: "%d" and "%d"',
-          [Model1.ChildrenCount, Model2.ChildrenCount]);
+          [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
 
       for I := 0 to Field1.Items.Count - 1 do
         CheckVRMLModelsStructurallyEqual(Field1.Items.Items[I],
@@ -874,13 +874,13 @@ procedure TVRMLGLAnimation.LoadCore(
         'Different WWWBasePath of nodes: "%s" and "%s"',
         [Model1.WWWBasePath, Model2.WWWBasePath]);
 
-    if Model1.ChildrenCount <> Model2.ChildrenCount then
+    if Model1.VRML1ChildrenCount <> Model2.VRML1ChildrenCount then
       raise EModelsStructureDifferent.CreateFmt(
         'Different number of children in nodes: "%d" and "%d"',
-        [Model1.ChildrenCount, Model2.ChildrenCount]);
+        [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
 
-    for I := 0 to Model1.ChildrenCount - 1 do
-      CheckVRMLModelsStructurallyEqual(Model1.Children[I], Model2.Children[I]);
+    for I := 0 to Model1.VRML1ChildrenCount - 1 do
+      CheckVRMLModelsStructurallyEqual(Model1.VRML1Children[I], Model2.VRML1Children[I]);
 
     { Yes, the situation below can happen. *Usually* when we know
       that Model1 and Model2 are equal classes then we know that
@@ -1035,13 +1035,13 @@ procedure TVRMLGLAnimation.LoadCore(
       even if somewhere along the way we will already set Result to false.
       Even if we already know that Result is false, we stil want to
       merge Model1 and Model2 children as much as we can. }
-    for I := 0 to Model1.ChildrenCount - 1 do
+    for I := 0 to Model1.VRML1ChildrenCount - 1 do
     begin
-      if VRMLModelsMerge(Model1.Children[I], Model2.Children[I]) then
+      if VRMLModelsMerge(Model1.VRML1Children[I], Model2.VRML1Children[I]) then
       begin
         { Tests: Writeln('merged child ', I, ' of class ',
-          Model1.Children[I].NodeTypeName); }
-        Model1.Children[I] := Model2.Children[I];
+          Model1.VRML1Children[I].NodeTypeName); }
+        Model1.VRML1Children[I] := Model2.VRML1Children[I];
       end else
         Result := false;
     end;
@@ -1120,8 +1120,8 @@ procedure TVRMLGLAnimation.LoadCore(
         (through VRML "USE" keyword). Code below will then unnecessarily
         create copies of such things (wasting construction time and memory),
         instead of reusing the same object reference. }
-      for I := 0 to Model1.ChildrenCount - 1 do
-        Result.AddChild(VRMLModelLerp(A, Model1.Children[I], Model2.Children[I]));
+      for I := 0 to Model1.VRML1ChildrenCount - 1 do
+        Result.VRML1ChildAdd(VRMLModelLerp(A, Model1.VRML1Children[I], Model2.VRML1Children[I]));
 
       { TODO: for TVRMLUnknownNode, we should fill here Result.Fields.
         Also for TVRMLPrototypeNode. }

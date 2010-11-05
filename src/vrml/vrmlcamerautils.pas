@@ -200,8 +200,8 @@ begin
            ViewpointNode.FdOrientation.Value := Orientation;
 
            Separator := TNodeSeparator.Create('', '');
-           Separator.AddChild(Transform_1);
-           Separator.AddChild(ViewpointNode);
+           Separator.VRML1ChildAdd(Transform_1);
+           Separator.VRML1ChildAdd(ViewpointNode);
 
            Result := Separator;
          end;
