@@ -2697,6 +2697,42 @@ procedure TChangedAllTraverser.Traverse(
   Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
+{ TODO: we create too many TVRMLShapeTreeGroup along the way.
+  Now, with a new group for every Transform node, this may start to be
+  a performance / memory problem ? }
+
+  { Handle INodeTransform node }
+  procedure HandleTransform(TransformNode: TNodeX3DGroupingNode);
+  var
+    TransformTree: TVRMLShapeTreeTransform;
+    Traverser: TChangedAllTraverser;
+    ChildNode: TVRMLNode;
+    ChildGroup: TVRMLShapeTreeGroup;
+    I: Integer;
+  begin
+    TransformTree := TVRMLShapeTreeTransform.Create(ParentScene);
+    TransformTree.TransformNode := TransformNode;
+    ShapesGroup.Children.Add(TransformTree);
+
+    for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
+    begin
+      ChildNode := TransformNode.FdChildren.Items[I];
+      ChildGroup := TVRMLShapeTreeGroup.Create(ParentScene);
+      TransformTree.Children.Add(ChildGroup);
+
+      Traverser := TChangedAllTraverser.Create;
+      try
+        Traverser.ParentScene := ParentScene;
+        Traverser.ShapesGroup := ChildGroup;
+        Traverser.Active := true;
+        ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
+          nil, ParentInfo);
+      finally FreeAndNil(Traverser) end;
+    end;
+
+    TraverseIntoChildren := false;
+  end;
+
   procedure HandleSwitch(SwitchNode: TNodeSwitch_2);
   var
     SwitchTree: TVRMLShapeTreeSwitch;
@@ -2818,6 +2854,20 @@ begin
   begin
     HandleLOD(TVRMLLODNode(Node));
   end else
+  if Supports(Node, INodeTransform) then
+  begin
+    Info := ParentScene.TransformNodesInfo.NodeInfo(Node);
+    if Info = nil then
+    begin
+      Info := ParentScene.TransformNodesInfo.Add;
+      Info^.Node := Node;
+      Info^.Occurences := 1;
+    end else
+      Inc(Info^.Occurences);
+
+    { INodeTransform must also be TNodeX3DGroupingNode }
+    HandleTransform(Node as TNodeX3DGroupingNode);
+  end else
 
   if (Node is TNodeX3DBindableNode) and
      { Do not look for first bindable node within inlined content,
@@ -2839,22 +2889,6 @@ begin
       ParentScene.NavigationInfoStack.PushIfEmpty( TNodeNavigationInfo(Node), true) else
     if Node is TVRMLViewpointNode then
       ParentScene.ViewpointStack.PushIfEmpty( TVRMLViewpointNode(Node), true);
-  end else
-
-  if (Node is TNodeTransform_2) or
-     (Node is TNodeMatrixTransform_2) or
-     (Node is TNodeHAnimHumanoid) or
-     (Node is TNodeHAnimJoint) or
-     (Node is TNodeHAnimSite) then
-  begin
-    Info := ParentScene.TransformNodesInfo.NodeInfo(Node);
-    if Info = nil then
-    begin
-      Info := ParentScene.TransformNodesInfo.Add;
-      Info^.Node := Node;
-      Info^.Occurences := 1;
-    end else
-      Inc(Info^.Occurences);
   end;
 end;
 
@@ -3167,7 +3201,7 @@ type
   TTransformChangeHelper = class
     Shapes: PShapesParentInfo;
     ProximitySensorNum: Cardinal;
-    ChangingNode: TVRMLNode;
+    ChangingNode: TNodeX3DGroupingNode; {< must be also INodeTransform }
     ChangingField: TVRMLField;
     ChangingNodeOccurences: Integer; //< -1 if not known
     ChangingNodeFoundCount: Cardinal;
@@ -3184,14 +3218,57 @@ type
     procedure TransformChangeTraverse(
       Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
-    procedure TransformChangeTraverseAfter(
-      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo);
   end;
 
 procedure TTransformChangeHelper.TransformChangeTraverse(
   Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+
+  procedure HandleTransform(TransformNode: TNodeX3DGroupingNode);
+  var
+    I: Integer;
+    ShapeTransform: TVRMLShapeTreeTransform;
+    OldShapes: PShapesParentInfo;
+    NewShapes: TShapesParentInfo;
+  begin
+    { get Shape and increase Shapes^.Index }
+    ShapeTransform := Shapes^.Group.Children[Shapes^.Index] as TVRMLShapeTreeTransform;
+    Inc(Shapes^.Index);
+
+    if TransformNode = ChangingNode then Inside := true;
+
+    OldShapes := Shapes;
+    try
+      for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
+      begin
+        NewShapes.Group := ShapeTransform.Children[I] as TVRMLShapeTreeGroup;
+        NewShapes.Index := 0;
+        Shapes := @NewShapes;
+
+        TransformNode.FdChildren.Items[I].TraverseInternal(
+          StateStack, TVRMLNode, @TransformChangeTraverse, nil, ParentInfo);
+      end;
+
+    finally Shapes := OldShapes end;
+
+    if TransformNode = ChangingNode then
+    begin
+      Inside := false;
+
+      { ChangingNodeFoundCount and BreakTransformChangeSuccess are
+        useful to optimize TTransformChangeHelper: if we already
+        encountered all possible instances of ChangingNode in VRML graph,
+        we can terminate. This means that we don't have to waste time
+        to traverse remaining nodes and shapes. }
+
+      Inc(ChangingNodeFoundCount);
+      if (ChangingNodeOccurences <> -1) and
+         (ChangingNodeFoundCount >= Cardinal(ChangingNodeOccurences)) then
+        raise BreakTransformChangeSuccess.Create;
+    end;
+
+    TraverseIntoChildren := false;
+  end;
 
   procedure HandleSwitch(SwitchNode: TNodeSwitch_2);
   var
@@ -3221,10 +3298,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         if ChildInactive then Inc(Inactive);
 
         SwitchNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TVRMLNode,
-          @TransformChangeTraverse,
-          @TransformChangeTraverseAfter,
-          ParentInfo);
+          StateStack, TVRMLNode, @TransformChangeTraverse, nil, ParentInfo);
 
         if ChildInactive then Dec(Inactive);
       end;
@@ -3267,10 +3341,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         if Cardinal(I) <> ShapeLOD.Level then Inc(Inactive);
 
         LODNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TVRMLNode,
-          @TransformChangeTraverse,
-          @TransformChangeTraverseAfter,
-          ParentInfo);
+          StateStack, TVRMLNode, @TransformChangeTraverse, nil, ParentInfo);
 
         if Cardinal(I) <> ShapeLOD.Level then Dec(Inactive);
       end;
@@ -3331,6 +3402,11 @@ begin
   if Node is TVRMLLODNode then
   begin
     HandleLOD(TVRMLLODNode(Node));
+  end else
+  if Supports(Node, INodeTransform) then
+  begin
+    { INodeTransform must also be TNodeX3DGroupingNode }
+    HandleTransform(Node as TNodeX3DGroupingNode);
   end else
 
   if Inside then
@@ -3420,30 +3496,7 @@ begin
     if (Node is TNodeProximitySensor) and
        { We only care about ProximitySensor in active graph parts. }
        (Inactive = 0) then
-      Inc(ProximitySensorNum) else
-    if Node = ChangingNode then
-      Inside := true;
-  end;
-end;
-
-procedure TTransformChangeHelper.TransformChangeTraverseAfter(
-  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo);
-begin
-  if Node = ChangingNode then
-  begin
-    Inside := false;
-
-    { ChangingNodeFoundCount and BreakTransformChangeSuccess are
-      useful to optimize TTransformChangeHelper: if we already
-      encountered all possible instances of ChangingNode in VRML graph,
-      we can terminate. This means that we don't have to waste time
-      to traverse remaining nodes and shapes. }
-
-    Inc(ChangingNodeFoundCount);
-    if (ChangingNodeOccurences <> -1) and
-       (ChangingNodeFoundCount >= Cardinal(ChangingNodeOccurences)) then
-      raise BreakTransformChangeSuccess.Create;
+      Inc(ProximitySensorNum);
   end;
 end;
 
@@ -3480,6 +3533,15 @@ var
     NodeInfo: PTransformNodeInfo;
     TransformShapesParentInfo: TShapesParentInfo;
   begin
+    if not Supports(Node, INodeTransform) then
+    begin
+      { No intelligent way to handle transform nodes not descending
+        from INodeTransform (and INodeTransform indicates also
+        descending from TNodeX3DGroupingNode). }
+      ScheduleChangedAll;
+      Exit;
+    end;
+
     { This is the optimization for changing VRML >= 2.0 transformation
       (most fields of Transform node like translation, scale, center etc.,
       also some HAnim nodes like Joint and Humanoid have this behavior.).
@@ -3516,7 +3578,7 @@ var
         TransformChangeHelper.ParentScene := Self;
         TransformChangeHelper.Shapes := @TransformShapesParentInfo;
         TransformChangeHelper.ProximitySensorNum := 0;
-        TransformChangeHelper.ChangingNode := Node;
+        TransformChangeHelper.ChangingNode := Node as TNodeX3DGroupingNode;
         TransformChangeHelper.ChangingField := Field;
         TransformChangeHelper.AnythingChanged := false;
         TransformChangeHelper.Inside := false;
@@ -3538,8 +3600,7 @@ var
 
         try
           RootNode.Traverse(TVRMLNode,
-            @TransformChangeHelper.TransformChangeTraverse,
-            @TransformChangeHelper.TransformChangeTraverseAfter);
+            @TransformChangeHelper.TransformChangeTraverse, nil);
         except
           on BreakTransformChangeSuccess do
             { BreakTransformChangeSuccess is equivalent with normal finish

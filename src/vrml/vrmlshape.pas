@@ -598,6 +598,24 @@ type
       const OnlyCollidable: boolean = false): Cardinal; override;
   end;
 
+  { Node of the TVRMLShapeTree transforming it's children.
+
+    It's ideal for handling VRML 2.0 / X3D Transform node,
+    and similar nodes (MatrixTransform and some H-Anim nodes also act
+    as a transformation node and also may be handled by this). }
+  TVRMLShapeTreeTransform = class(TVRMLShapeTreeGroup)
+  private
+    FTransformNode: TNodeX3DGroupingNode;
+  public
+    { Internal note: We don't declare TransformNode as INodeTransform interface,
+      because we don't want to keep reference to it too long,
+      as it's manually freed. That's safer. }
+    { Transforming VRML/X3D node. Always assigned, always may be casted
+      to INodeTransform interface. }
+    property TransformNode: TNodeX3DGroupingNode
+      read FTransformNode write FTransformNode;
+  end;
+
   { Node of the TVRMLShapeTree representing the LOD (level of detail) VRML
     concept. It chooses one child from it's children list as active.
     Represents the VRML >= 2.0 LOD node

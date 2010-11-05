@@ -20,7 +20,7 @@
 {$ifdef read_interface}
   { MatrixTransform node for VRML >= 2.0 from Avalon extension,
     see [http://instant-reality.com/documentation/nodetype/MatrixTransform/]. }
-  TNodeMatrixTransform_2 = class(TNodeX3DGroupingNode)
+  TNodeMatrixTransform_2 = class(TNodeX3DGroupingNode, INodeTransform)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;

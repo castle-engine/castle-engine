@@ -103,7 +103,7 @@
     public property FdbboxSize: TSFVec3f read FFdbboxSize;
   end;
 
-  TNodeHAnimJoint = class(TNodeX3DGroupingNode)
+  TNodeHAnimJoint = class(TNodeX3DGroupingNode, INodeTransform)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -155,7 +155,7 @@
     public property Fdulimit: TMFFloat read FFdulimit;
   end;
 
-  TNodeHAnimSegment = class(TNodeX3DGroupingNode)
+  TNodeHAnimSegment = class(TNodeX3DGroupingNode, INodeTransform)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -201,7 +201,7 @@
     public property Fdtranslation: TSFVec3f read FFdtranslation;
   end;
 
-  TNodeHAnimSite = class(TNodeX3DGroupingNode)
+  TNodeHAnimSite = class(TNodeX3DGroupingNode, INodeTransform)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;

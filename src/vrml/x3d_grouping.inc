@@ -256,7 +256,24 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeTransform_2 = class(TNodeX3DGroupingNode)
+  { Interface for all VRML 2.0 / X3D transformation nodes.
+
+    More precisely: this means that some node's fields
+    may cause transformation change, signalled by TVRMLField.Changes
+    including chTransform flag.
+
+    The node must also descend from
+    TNodeX3DGroupingNode, and it's transformation is applied
+    in TNodeX3DGroupingNode.ApplyTransform method.
+    This requirement was added for easy implementation of HandleTransform
+    in vrmlscene.pas, in the future it may be removed, and then
+    TNodeHAnimHumanoid (the only node that has chTransform but is not
+    TNodeX3DGroupingNode) will have chTransform optimized too. }
+  INodeTransform = interface(IVRMLNode)
+  ['{6991EC7D-0821-4393-B5B3-08DD967CFE05}']
+  end;
+
+  TNodeTransform_2 = class(TNodeX3DGroupingNode, INodeTransform)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;

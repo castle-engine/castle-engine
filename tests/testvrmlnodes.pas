@@ -79,6 +79,8 @@ type
       on every INodeX3DTimeDependentNode, and use the handler.
       Catches e.g. not overriden CycleInterval. }
     procedure TestTimeDependentNodeHandlerAvailable;
+
+    procedure TestINodeTransformIsGrouping;
   private
     procedure DummyTriangleProc(const Tri: TTriangle3Single;
       Shape: TObject;
@@ -1339,6 +1341,35 @@ begin
     N := NodesManager.Registered[I].Create('', '');
     try
       CheckTimeDependentNodeHandler(N);
+    except
+      Writeln('TestTimeDependentNodeHandlerAvailable failed for ', N.ClassName);
+      raise;
+    end;
+    FreeAndNil(N);
+  end;
+end;
+
+procedure TTestVRMLNodes.TestINodeTransformIsGrouping;
+
+  { DoCheck is a separate procedure,
+    to limit lifetime of temporary INodeTransform,
+    see "Reference counting" notes on
+    http://freepascal.org/docs-html/ref/refse40.html }
+  procedure DoCheck(N: TVRMLNode);
+  begin
+    if Supports(N, INodeTransform) then
+      Assert(N is TNodeX3DGroupingNode);
+  end;
+
+var
+  I: Integer;
+  N: TVRMLNode;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+  begin
+    N := NodesManager.Registered[I].Create('', '');
+    try
+      DoCheck(N);
     except
       Writeln('TestTimeDependentNodeHandlerAvailable failed for ', N.ClassName);
       raise;
