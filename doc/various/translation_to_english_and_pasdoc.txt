@@ -67,7 +67,7 @@ D   vrmlscenewaypoints.pas
 D   vrmlshape.pas
 D   vrmlshapeoctree.pas
 D   vrmltime.pas
-|   vrmltriangle.pas
+D   vrmltriangle.pas
 -   vrmltriangleoctree.pas
 D   x3dxmltovrml.pas
 

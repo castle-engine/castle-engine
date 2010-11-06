@@ -21,6 +21,13 @@ of every documentation comment. Do's and dont's:
    "The sensor value.", or simply nothing, as the function name already
    says everything.
 
+ - Do not start the 1st (or, preferably, any other) sentence with
+   the name of the item you're just documenting. If you document
+   method FooBar, do not write "FooBar does something cool."
+   or "FooBar is the collision tag.".
+   User reading the description already knows the name of item,
+   so just write "Do something cool." or "The collision tag.".
+
  - Using "I.e.", especially at the beginning of the sentence, looks
    clumsy and often should be removed, this forces the sentence to be simpler.
    If you *really* have to, start the sentence with "That is".

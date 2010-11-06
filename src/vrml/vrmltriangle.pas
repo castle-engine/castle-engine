@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML triangles (TVRMLTriangle) and abstract class for octrees
-  that resolve collision to VRML triangles (TVRMLBaseTrianglesOctree). }
+{ Triangles in VRML/X3D models (TVRMLTriangle) and octrees
+  that resolve collisions with such triangles (TVRMLBaseTrianglesOctree). }
 unit VRMLTriangle;
 
 {$I vrmloctreeconf.inc}
@@ -33,12 +33,12 @@ type
   TCollisionCount = Int64;
   TMailboxTag = Int64;
 
-  { Triangle of VRML model. This is the most basic item for our
+  { Triangle in VRML/X3D model. This is the most basic item for our
     VRML collision detection routines, returned by octrees descending from
     TVRMLBaseTrianglesOctree. }
   TVRMLTriangle = object(T3DTriangle)
   public
-    { Initialize new triangle of VRML model.
+    { Initialize new triangle.
       Given ATriangle must satisfy IsValidTriangle. }
     constructor Init(const ATriangle: TTriangle3Single;
       AShape: TObject; const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
@@ -66,7 +66,7 @@ type
     FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
 
     {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
-    { MailboxSavedTag is a tag of object (like ray or line segment)
+    { Tag of an object (like a ray or a line segment)
       for which we have saved an
       intersection result. Intersection result is in
       MailboxIsIntersection, MailboxIntersection, MailboxIntersectionDistance.
@@ -228,26 +228,18 @@ type
   public
     { See TVRMLBaseTrianglesOctree for documentation of these routines.
 
-      Dodatkowo nalezy tu dodac ze na skutek tego ze duze trojkaty moge znalezc
-      sie w wielu subnode'ach naraz powinienes wiedziec ze ponizsze procedury
-      badaja kolizje ze wszystkimi elementami ktore maja w sobie zapamietane,
-      nie obcinajac tych elementow do swoich Box'ow.
+      Note that methods here do not try to limit detected intersections
+      to their boxes. If you will insert a large triangle into a node,
+      that is partially inside and partially outside of this node,
+      the collision methods may find an intersection outside of this node.
 
-      W rezultacie np. RayCollision moze wykryc kolizje promienia z trojkatem
-      taka ze Intersection nie lezy w Box - z tego prostego powodu ze
-      trojkat akurat "wystawal" z Box'a i wlasnie ta wystajaca czesc
-      trojkata trafil promien.
-
-      Zazwyczaj nie jest to problem, zwlaszcza nie jest to problem gdy wywolujesz
-      po prostu *Collision z glownego TreeRoot node'a, bo jego Box jest tak
-      ustawiany zeby zawsze objac w pelni wszystkie elementy drzewa (nic nie
-      bedzie wystawac poza TreeRoot). Ale nalezy to wziac pod uwage robiac
-      rekurencyjne wywolania w implementacji *Collision dla nie-lisci:
-      tam trzeba uwzglednic fakt ze np. jezeli przegladasz subnode'y
-      w jakiejs kolejnosci (jak np. w RayCollision gdzie przegladamy node'y
-      w kolejnosci ktora ma nam zapewnic poprawna implementacje
-      ReturnClosestIntersection) to musisz uwazac zeby jakis subnode nie wykryl
-      przypadkiem kolizji ktora de facto zdarzyla sie w innym subnodzie.
+      This is not be a problem for a root node, since the root node has
+      a box such that every triangle is completely inside.
+      But it is important to remember when you implement recursive
+      *Collision calls in nodes: if you want to query your subnodes
+      in some particular order (for example to honour ReturnClosestIntersection
+      = @true), then remember that one subnode may detect a collision
+      that in fact happened in other subnode.
 
       @groupBegin }
     function SphereCollision(const pos: TVector3Single;
@@ -319,20 +311,12 @@ type
     with TVRMLTriangle, even though it doesn't directly store TVRMLTriangle items. }
   TVRMLBaseTrianglesOctree = class(TOctree)
   private
-    { zwroci NextFreeTag i zrobi Inc(NextFreeTag).
-      Uzywaj tego aby przydzielic nowy tag. Uzywanie tej funkcji przy okazji
-      zapobiega potencjalnie blednej sytuacji :
-        TreeRoot.SegmentColision(..., NextFreeTag, ...)
-        Inc(NextFreeTag);
-      Powyzszy kod bedzie ZAZWYCZAJ dzialal - ale spowoduje on ze nie bedzie
-      mozna uzywac Segment/RayCollision na tym samym TVRMLTriangleOctree gdy juz
-      jestesmy w trakcie badania kolizji. Np. callbacki w rodzaju
-      T3DTriangleIgnoreFunc nie beda mogly wywolywac kolizji. Innymi slowy,
-      taki zapis uczynilby Segment/RayCollision non-reentrant. A to na dluzsza
-      mete zawsze jest klopotliwe. Natomiast robienie Inc(NextFreeTag);
-      przed faktycznym wejsciem do funkcji TreeRoot.SegmentColision
-      usuwa ten blad. Uzywajac funkcji AssignNewTag automatycznie
-      to robimy. }
+    { Return NextFreeTag and increment it (for the future AssignNewTag).
+
+      This guarantees that NextFreeTag is incremented immediately,
+      so it will not be reused by some other routine. For example
+      if your collision query will cause another collision query
+      inside, that calls inside another AssignNewTag, everything will work OK. }
     function AssignNewTag: TMailboxTag;
   public
     { Collision checking using the octree.
@@ -630,27 +614,17 @@ type
     { Checks whether VRML Light (point or directional) lights at scene point
       LightedPoint.
 
-      "Dociera do punktu" to znaczy
-      1) Light.LightNode jest ON (FdOn.Value = true) (ten check jest zrobiony
-         na samym poczatku bo moze przeciez zaoszczedzic sporo czasu)
-      2) ze droga pomiedzy Light a LightedPoint jest wolna w Octree
-         (with IgnoreForShadowRays, that is we ignore transparent
-         and non-shadow-casting triangles;
-         TODO: to jest uproszczenie, for transparent triangles they should
-         not block but still should scale the light)
-      3) oraz ze swiatlo jest po tej samej stronie LightedPointPlane co RenderDir.
+      "Lights at scene" means that the light is turned on
+      (field "on" is @true) and between light source and a LightedPoint
+      nothing blocks the light (we check it by querying collisions using
+      the octree, ignoring transparent and non-shadow-casting triangles),
+      and the light source is on the same side of LightedPointPlane as
+      RenderDir.
 
-      Szukanie kolizji w octree uzywa przekazanych TriangleToIgnore i
-      IgnoreMarginAtStart - zazwyczaj powinienes je przekazac na element
-      w drzewie z ktorego wziales LightedPoint i na true, odpowiednio.
-
-      Jezeli ta funkcja zwroci true to zazwyczaj pozostaje ci obliczenie
-      wplywu swiatla na dany punkt z lokalnych rownan oswietlenia (przy czym
-      mozesz juz pominac sprawdzanie LightNode.FdOn - chociaz zazwyczaj
-      lepiej bedzie nie pomijac, powtorzenie takiego prostego checku nie
-      powoduje przeciez zbytniego marnotrawstwa czasu a kod moze wydawac
-      sie bardziej spojny w ten sposob).
-    }
+      TriangleToIgnore and IgnoreMarginAtStart work just like for
+      SegmentCollision. You should usually set TriangleToIgnore to the
+      triangle containing your LightedPoint and IgnoreMarginAtStart to @true,
+      to avoid detecting point as shadowing itself. }
     function ActiveLightNotBlocked(const Light: TActiveLight;
       const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
       const TriangleToIgnore: PVRMLTriangle;
