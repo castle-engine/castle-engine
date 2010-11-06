@@ -70,7 +70,7 @@ end;
   message will cause e.g. TGLWindowState.SetStandardState. For example,
   this happens in view3dscene when KeyUp may produce message to KeySensor about
   key release, and this may produce ChangedAll on VRML scene, which produces
-  ProgressGL run...
+  GLProgress run...
 
   MenuRecreateForbidden is not an ideal solution, menu should be eventually
   recreated at some later point, TODO... For now this works Ok,

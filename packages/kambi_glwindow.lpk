@@ -80,8 +80,8 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="GLWinModes"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/glwindow/progressgl.pas"/>
-        <UnitName Value="ProgressGL"/>
+        <Filename Value="../src/glwindow/glprogress.pas"/>
+        <UnitName Value="GLProgress"/>
       </Item8>
       <Item9>
         <Filename Value="../src/glwindow/timemessages.pas"/>

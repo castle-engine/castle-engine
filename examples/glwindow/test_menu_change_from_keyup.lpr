@@ -29,7 +29,7 @@
 program test_menu_change_from_keyup;
 
 uses VectorMath, GL, GLU, GLWindow, KambiGLUtils,
-  ProgressUnit, ProgressGL, KambiTimeUtils;
+  ProgressUnit, GLProgress, KambiTimeUtils;
 
 procedure Draw(glwin: TGLWindow);
 begin
@@ -71,8 +71,8 @@ begin
   Glw.OnKeyUp := @KeyUp;
   Glw.Init;
 
-  ProgressGLInterface.Window := Glw;
-  Progress.UserInterface := ProgressGLInterface;
+  GLProgressInterface.Window := Glw;
+  Progress.UserInterface := GLProgressInterface;
 
   Application.Run;
 end.

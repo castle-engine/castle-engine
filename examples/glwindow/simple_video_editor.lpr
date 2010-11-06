@@ -26,7 +26,7 @@ program simple_video_editor;
 uses KambiUtils, SysUtils, GLWindow, GL, GLU, GLImages,
   ImagesCache, Videos, KambiStringUtils, GLWinMessages,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
-  KambiGLUtils, VectorMath, Classes, ProgressUnit, ProgressGL,
+  KambiGLUtils, VectorMath, Classes, ProgressUnit, GLProgress,
   KambiTimeUtils;
 
 var
@@ -139,8 +139,8 @@ procedure Init(Glwin: TGLWindow);
 begin
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
 
-  ProgressGLInterface.Window := Glw;
-  Progress.UserInterface := ProgressGLInterface;
+  GLProgressInterface.Window := Glw;
+  Progress.UserInterface := GLProgressInterface;
 
   if Parameters.High = 1 then
     LoadVideo(Parameters[1]);

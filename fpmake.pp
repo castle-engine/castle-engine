@@ -189,7 +189,7 @@ begin
     P.Targets.AddUnit('glwininputs.pas');
     P.Targets.AddUnit('glwinmessages.pas');
     P.Targets.AddUnit('glwinmodes.pas');
-    P.Targets.AddUnit('progressgl.pas');
+    P.Targets.AddUnit('glprogress.pas');
     P.Targets.AddUnit('timemessages.pas');
     P.Targets.AddUnit('glwindowvrmlbrowser.pas');
     if Defaults.OS in AllUnixOSes then

@@ -45,7 +45,7 @@ finally Progress.Fini; end;
   bar. Instead, you must assign Progress.UserInterface property
   to some object implementing such user interface. E.g. I have units
   @unorderedList(
-    @item(ProgressGL --- show progress bar in OpenGL window)
+    @item(GLProgress --- show progress bar in OpenGL window)
     @item(ProgressConsole --- show progress bar on StdErr)
     @item(ProgressVideo --- show progress bar on console using Video unit)
     @item(ProgressF --- show progress using Delphi form)
@@ -185,9 +185,9 @@ type
       The advantage of DelayUserInterface is that if
       an operation will take a very short time, we will not waste
       time on possibly lengthy initialization of the progress bar
-      interface. For example, ProgressGL has to capture OpenGL screen
+      interface. For example, GLProgress has to capture OpenGL screen
       at the initialization, which takes a noticeable fraction of second
-      by itself. So it's not sensible to init ProgressGL if an entire
+      by itself. So it's not sensible to init GLProgress if an entire
       operation between Progress.Init and Fini will take only 0.001 of second..
 
       The only downside of DelayUserInterface is that it's not applicable

@@ -17,7 +17,7 @@ uses
   glwininputs,
   glwinmessages,
   glwinmodes,
-  progressgl,
+  glprogress,
   timemessages,
   {$ifdef UNIX}
   kambiglx,

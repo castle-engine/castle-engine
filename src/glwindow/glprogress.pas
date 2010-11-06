@@ -15,13 +15,13 @@
 
 { @abstract(Progress bar displayed in OpenGL inside GLWindow window.)
 
-  Simply set @code(ProgressGLInterface.Window) to your TGLWindow
+  Simply set @code(GLProgressInterface.Window) to your TGLWindow
   instance, and assign
 
-@longCode(#  Progress.UserInterface := ProgressGLInterface;#)
+@longCode(#  Progress.UserInterface := GLProgressInterface;#)
 
   Between Progress.Init and Fini you shouldn't do anything with
-  window set as @code(ProgressGLInterface.Window).
+  window set as @code(GLProgressInterface.Window).
   It's callbacks will be temporarily swapped and it will be used
   to render progress bar.
 
@@ -33,7 +33,7 @@
 @longCode(#  Progress.Init; try.....finally Progress.Fini; end; #) }
 
 
-unit ProgressGL;
+unit GLProgress;
 
 {$I kambiconf.inc}
 
@@ -46,7 +46,7 @@ const
   DefaultBarYPosition = 0.5;
 
 type
-  TProgressGLInterface = class(TProgressUserInterface)
+  TGLProgressInterface = class(TProgressUserInterface)
   private
     { Background image (screen captured at the moment of Init call) }
     list_drawProgressBG: TGLuint;
@@ -77,101 +77,102 @@ type
 var
   { Assign this to Progress.UserInterface to use OpenGL progress bar.
     This instance is created in initialization, freed in finalization. }
-  ProgressGLInterface: TProgressGLInterface;
+  GLProgressInterface: TGLProgressInterface;
 
 implementation
 
 uses SysUtils, KambiUtils,  BFNT_BitstreamVeraSans_Unit, Images, KeysMouse;
 
-{ display proc. --------------------------------------------------------------}
+{ display -------------------------------------------------------------------- }
 
 procedure DisplayProgress(glwin: TGLWindow);
-var margines: integer;
-    BarHeight, y1, y2, YMiddle: TGLfloat;
-    Progress: TProgress;
-    ProgressInterface: TProgressGLInterface;
+var
+  Margin: integer;
+  BarHeight, y1, y2, YMiddle: TGLfloat;
+  Progress: TProgress;
+  ProgressInterface: TGLProgressInterface;
 begin
- Progress := TProgress(glwin.UserData);
- ProgressInterface := Progress.UserInterface as TProgressGLInterface;
+  Progress := TProgress(glwin.UserData);
+  ProgressInterface := Progress.UserInterface as TGLProgressInterface;
 
- glLoadIdentity;
- glRasterPos2i(0, 0);
- glCallList(ProgressInterface.list_drawProgressBG);
+  glLoadIdentity;
+  glRasterPos2i(0, 0);
+  glCallList(ProgressInterface.list_drawProgressBG);
 
- margines := 100 * glwin.width div 800;
- BarHeight := 50 * glwin.height div 600;
- YMiddle := Glwin.Height * ProgressInterface.BarYPosition;
- y1 := YMiddle + BarHeight/2;
- y2 := YMiddle - BarHeight/2;
+  Margin := 100 * glwin.width div 800;
+  BarHeight := 50 * glwin.height div 600;
+  YMiddle := Glwin.Height * ProgressInterface.BarYPosition;
+  y1 := YMiddle + BarHeight/2;
+  y2 := YMiddle - BarHeight/2;
 
- glColor3ub(192, 192, 192);
- glRectf(margines, y1, glwin.width-margines, y2);
- glColor3f(0.2, 0.5, 0);
- glRectf(margines, y1,
-   margines + (Cardinal(glwin.width)-2*margines) * Progress.Position/Progress.Max, y2);
+  glColor3ub(192, 192, 192);
+  glRectf(Margin, y1, glwin.width-Margin, y2);
+  glColor3f(0.2, 0.5, 0);
+  glRectf(Margin, y1,
+    Margin + (Cardinal(glwin.width)-2*Margin) * Progress.Position/Progress.Max, y2);
 
- glColor3f(0, 0,0);
- glRasterPos2f(margines + 20,
-   YMiddle - ProgressInterface.ProgressFont.TextHeight('M') div 2);
- ProgressInterface.ProgressFont.Print(Progress.TitleWithPosition(true));
+  glColor3f(0, 0,0);
+  glRasterPos2f(Margin + 20,
+    YMiddle - ProgressInterface.ProgressFont.TextHeight('M') div 2);
+  ProgressInterface.ProgressFont.Print(Progress.TitleWithPosition(true));
 end;
 
-{ TProgressGLInterface  ------------------------------------------------ }
+{ TGLProgressInterface  ------------------------------------------------ }
 
-constructor TProgressGLInterface.Create;
+constructor TGLProgressInterface.Create;
 begin
   inherited;
   FBarYPosition := DefaultBarYPosition;
 end;
 
-procedure TProgressGLInterface.Init(Progress: TProgress);
+procedure TGLProgressInterface.Init(Progress: TProgress);
 begin
- Check(Window <> nil,
-   'TProgressGLInterface: You must assign Window before doing Init');
+  Check(Window <> nil,
+    'TGLProgressInterface: You must assign Window before doing Init');
 
- {catch screen}
- list_drawProgressBG := Window.SaveScreen_ToDisplayList;
+  {catch screen}
+  list_drawProgressBG := Window.SaveScreen_ToDisplayList;
 
- SavedMode := TGLMode.CreateReset(Window,
-   GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false,
-   {$ifdef FPC_OBJFPC} @ {$endif} DisplayProgress, nil,
-   {$ifdef FPC_OBJFPC} @ {$endif} NoClose, Window.Fps.Active);
+  SavedMode := TGLMode.CreateReset(Window,
+    GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false,
+    {$ifdef FPC_OBJFPC} @ {$endif} DisplayProgress, nil,
+    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, Window.Fps.Active);
 
- {init our state}
- Window.UserData := Progress;
- Window.AutoRedisplay := true;
- ProgressFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+  {init our state}
+  Window.UserData := Progress;
+  Window.AutoRedisplay := true;
+  ProgressFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
- Window.Cursor := mcWait;
+  Window.Cursor := mcWait;
 
- glDisable(GL_TEXTURE_2D);
- glDisable(GL_LIGHTING);
- glDisable(GL_DEPTH_TEST);
+  glDisable(GL_TEXTURE_2D);
+  glDisable(GL_LIGHTING);
+  glDisable(GL_DEPTH_TEST);
 
- ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
+  ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
 
- { To actually draw progress start. }
- Window.PostRedisplay;
- Window.FlushRedisplay;
+  { To actually draw progress start. }
+  Window.PostRedisplay;
+  Window.FlushRedisplay;
 
- Application.ProcessMessage(false);
+  Application.ProcessMessage(false);
 end;
 
-procedure TProgressGLInterface.Update(Progress: TProgress);
+procedure TGLProgressInterface.Update(Progress: TProgress);
 begin
- Application.ProcessAllMessages;
+  Application.ProcessAllMessages;
 end;
 
-procedure TProgressGLInterface.Fini(Progress: TProgress);
+procedure TGLProgressInterface.Fini(Progress: TProgress);
 begin
- FreeAndNil(ProgressFont);
- glDeleteLists(list_drawProgressBG, 1);
+  FreeAndNil(ProgressFont);
+  glDeleteLists(list_drawProgressBG, 1);
 
- SavedMode.Free;
+  SavedMode.Free;
 end;
 
 initialization
- ProgressGLInterface := TProgressGLInterface.Create;
+  GLProgressInterface := TGLProgressInterface.Create;
 finalization
- FreeAndNil(ProgressGLInterface);
+  FreeAndNil(GLProgressInterface);
 end.

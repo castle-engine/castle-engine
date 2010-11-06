@@ -130,7 +130,7 @@
   Using these functions I implemented unit
   @link(GLWinModes) and then, on top of this, I implemented some very
   handy things like modal message boxes (unit @link(GLWinMessages))
-  and progress bar (unit @link(ProgressGL)). These units give you some typical
+  and progress bar (unit @link(GLProgress)). These units give you some typical
   GUI capabilities, and they are in pure OpenGL.
 
   Using OOP approach (overriding EventXxx methods instead of registering OnXxx
@@ -475,7 +475,7 @@ unit GLWindow;
      another surprise, this time caused by FPC bindings: GTK 1 bindings
      don't include macro GDK_WINDOW_XID. They include macro
      GDK_WINDOW_XDISPLAY but it seems incorrectly defined
-     (should take GdkWindow not PGdkWindowPrivate ?).
+     (should take GdkWindow not PGdkWindowPrivate?).
      GTK 2 bindings don't include these macros too, but GTK 2 library contains
      functions gdk_x11_drawable_get_xid/xdisplay and I can get to them.
 
@@ -497,7 +497,7 @@ unit GLWindow;
   {$endif}
 {$endif}
 
-{ Does implementation implement TryVideoChange and VideoReset methods ?
+{ Does implementation implement TryVideoChange and VideoReset methods?
   (if this will not be defined, we will use TryVideoChange that always
   returns false and VideoReset that is NOOP). }
 {$undef GLWINDOW_HAS_VIDEO_CHANGE}
@@ -527,16 +527,16 @@ unit GLWindow;
   (? means "I'm not sure whether to implement it")
 
   only winapi :
-  - windowActive / appActive - byc moze zrobic nieco inaczej i wszedzie ?
-    czy decyzja w ProcessMessage o znaczeniu window/appActive jest dobra ?
-    byc moze przeniesc z private do public na odczyt ?
+  - windowActive / appActive - byc moze zrobic nieco inaczej i wszedzie?
+    czy decyzja w ProcessMessage o znaczeniu window/appActive jest dobra?
+    byc moze przeniesc z private do public na odczyt?
   - k_alt zrobic - trzeba przechwytywac sys_keydown ale wtedy
     albo przechwytujemy wszystkie (w rezultacie
     blokujac standardowe klawisze Alt+F4 lub Alt+spacja Windowsowi)
     albo mamy problem gdy user wejdzie w system menu : wtedy dostaniemy
     zdarzenie alt+down ale nikt nie raczy nam przeslac alt+up.
     !@#& Windows. W glutcie po prostu przechwytuja zawsze, blokujac
-    Alt+F4 i Alt+spacja. Czy to w ogole mozna zrobic lepiej ?
+    Alt+F4 i Alt+spacja. Czy to w ogole mozna zrobic lepiej?
 
   only glut :
   - zrobic przechwytywanie klikania na przyciki "Zamknij" pod glutem
@@ -546,8 +546,8 @@ unit GLWindow;
 
   only GLWINDOW_GTK_1/2:
   - in InitImplDepend implement
-    MaxWidth/Height (Maybe these properties should be removed ?
-      They are made for symmetry with MinWidth/Height. Are they really useful ?)
+    MaxWidth/Height (Maybe these properties should be removed?
+      They are made for symmetry with MinWidth/Height. Are they really useful?)
   - with GTK 2:
     - Implement better fullscreen toggle now (that doesn't need
       recreating window).
@@ -563,8 +563,8 @@ unit GLWindow;
     DepthBufferBits, AlphaBits
     dzialaja, i sprawdzic je pod wszystkimi implementacjami
   - Width, Height, Left, Top zaimplementowac tak zeby przeniesc je
-    do sekcji "mozesz nimi pozniej manipulowac" ?
-  - zrobic implementacje przez SDL ?
+    do sekcji "mozesz nimi pozniej manipulowac"?
+  - zrobic implementacje przez SDL?
   - use EnumDisplaySettings instead of such variables as
     VideoColorBits / VideoScreenWidth / VideoFrequency,
     do some proc DisplayExists and EnumDisplays
@@ -830,7 +830,7 @@ type
     { FClosed = are we outside of Init..Close }
     FClosed: boolean;
 
-    { EventInitCalled = has OnInit been called from Init ? }
+    { EventInitCalled = has OnInit been called from Init? }
     EventInitCalled: boolean;
     closeerrors: string; { Used by Close. }
 
@@ -1164,7 +1164,7 @@ type
       OnXxxList precedury.
 
       Pytanie : po co nam ten dodatkowy stopien do zejscia, tzn. procedury
-      EventXxx ? Mianowicie, procedury EventXxx sa wirtualne. W zwiazku z tym
+      EventXxx? Mianowicie, procedury EventXxx sa wirtualne. W zwiazku z tym
       pozwalaja one na konstruowanie uzytecznych podklas klasy TGLWindow.
 
       Przy okazji procedury te sa nie w protected ale w public aby umozliwic
@@ -1442,7 +1442,7 @@ type
       ale ciagle StencilBufferBits = 8. To jest przydatne jesli teraz zrobimy
       okienku Close, potem np. zmienimy AccumBufferBits i sprobujemy zrobic
       Init : nie chcielismy w takiej sytuacji zeby StencilBufferBits
-      zmienialo sie automatycznie, prawda ?
+      zmienialo sie automatycznie, prawda?
       Zawsze kiedy chcesz zbadac ile bitow rzeczywiscie masz mozesz uzyc
       glGetInteger. }
 
@@ -1455,7 +1455,7 @@ type
       which is a reasonable default for 3D programs
       that want to work with depth test enabled.
 
-      @italic(Design notes:) One may ask why default value is not 0 ?
+      @italic(Design notes:) One may ask why default value is not 0?
 
       @orderedList(
         @item(
@@ -1607,7 +1607,7 @@ type
       (more specifically, EventBeforDraw will be always called right before
       EventDraw). So those two functions, EventBeforeDraw and EventDraw,
       will be always called sequentially as a pair. So what is the use of
-      BeforeDraw ?
+      BeforeDraw?
 
       Only one thing differs OnDraw and OnBeforeDraw: time spent in OnBeforeDraw
       (more specifically, in EventBeforeDraw) is NOT counted as "frame time"
@@ -1774,7 +1774,7 @@ type
       GLWinMessages unit offers some nice routines that you can safely
       use here, e.g. you can use it inside OnCloseQuery like
 
-        if MessageYesNo(glwin, 'Are you sure you want to quit ?') then
+        if MessageYesNo(glwin, 'Are you sure you want to quit?') then
          Close;
 
       Inside MessageYesNo, when we're processing events,
@@ -1897,7 +1897,7 @@ type
       no MenuItem.DoCommand and no EventMenuCommand will be called,
       but instead normal EventKeyDown (OnKeyDown) will be called.
 
-      When it is useful to set this to false ?
+      When it is useful to set this to false?
       For example hen using GLWinModes. When you're changing modes (e.g. at the
       beginning of GLWinMessages.MessageOk) you're temporary setting
       OnMenuCommand to nil, but this doesn't block TMenuItem.DoCommand
@@ -2066,7 +2066,7 @@ type
       because in destructor of this object we call Close, to be sure
       that window is closed.
 
-      TODO: zrobic param boolean CloseFromDestroyQuitWhenLastWindowClosed ?
+      TODO: zrobic param boolean CloseFromDestroyQuitWhenLastWindowClosed?
       As for now Close from destructor is called always with
       QuitWhenLastWindowClosed = true.
 
@@ -2267,7 +2267,7 @@ type
           TGLWindowState.SetStandardState
           ....
           TGLMode.Free
-      - How does these dialogs look like ?
+      - How does these dialogs look like?
         Under GTK and WinAPI implementations we use native dialogs of these.
         Under Xlib and freeglut implementation we simply fallback on
         GLWinMessages.Message*.
@@ -2278,7 +2278,7 @@ type
       is the default dir and there is no default filename). Note that if you
       have to specify only path in FileName you have to end this paths with
       PathDelim (otherwise '/tmp/blah' would not be clear: whether it's
-      filename 'blah' in '/tmp/' dir or whether it's only dir '/tmp/blah/' ?).
+      filename 'blah' in '/tmp/' dir or whether it's only dir '/tmp/blah/'?).
 
       Returns true and sets FileName accordingly if user chooses some filename and
       accepts it. Returns false if user cancels.
@@ -2295,7 +2295,7 @@ type
       i.e. user may be forced to choose only filenames with existing paths.
       (But, again, no guarantees.)
       Some warning to user may be shown if FileName already exists, like
-      "are you sure you want to overwrite this file ?".
+      "are you sure you want to overwrite this file?".
       The intention is that you should be able to open FileName for writing.
       This is the "Save File" dialog.
 
@@ -2856,7 +2856,7 @@ type
     if not Application.ProcessMessage then break;
 #)
 
-      Co mozna zakladac lub nie o dzialaniu petli ProcessGLWinMessages ?
+      Co mozna zakladac lub nie o dzialaniu petli ProcessGLWinMessages?
        - jezeli windManager zasypuje nam message'ami moze sie okazac
          ze od czasu wywolania PostRedisplay do czasu wywolania
          OnDraw minelo duzo wywolan ProcessMessage. To dlatego ze
@@ -2884,22 +2884,20 @@ type
          petli jest wykonywanie ProcessMessage to nie przeszkadza nam fakt
          ze ProcessMessage moze zawisnac.
 
-         Robiac petle w rodzaju tej w ProgressGL czy RaytraceToWindow (w czasie
-         wykonywania renderowania) bedziesz chcial miec AllowSuspend = false
-         bo bedziesz chcial zeby ProcessMessage uaktualnilo okienko i zakonczylo sie
-         najszybciej jak to mozliwe abys mogl kontyuowac obliczenia.
+         If you make some processing in your event loop, for example
+         you load some resources or you raytrace some image
+         (examples used by GLProgress or RaytraceToWindow units),
+         then you surely want to pass AllowSuspend = false.
+         You want in such case to make ProcessMessage quickly return
+         control to your code, so you can continue whatever you're doing.
 
-         Robiac petle w rodzaju tej w GLWinMessages albo RaytraceToWindow
-         (juz PO zakonczeniu renderowania) postaci
-         "repeat ProcessMessage(true) until B;" gdzie B to zmienna/funkcja
-         boolowska musisz sie zastonowic : czy zmiana wartosci B MUSI byc
-         zwiazana z zajsciem jakiegos callbacka (czyli z zajsciem jakiegos
-         zdarzenia dla window managera) ? Jesli tak to mozesz spokojnie
-         dac AllowSuspend. Jesli nie, np. stan B zmienia sie w czasie bez
-         posrednictwa twojego programu (np. B = function IsUserHungry)
-         to musisz dac AllowSuspend = false.
-
-         User is always hungry.
+         If your event loop simply waits for some condition,
+         for example @code(repeat ProcessMessage(AllowSuspend) until B)
+         then you can give AllowSuspend = true if the condition B may
+         only be changed by some event (for example, you wait until
+         user presses a key). If the condition B may be changed
+         without a window system event (for example, you wait until
+         5 minutes pass) then AllowSuspend must be false.
 
          ProcessAllMessages processes all pending messages.
 
@@ -2924,18 +2922,20 @@ type
       some event (like OnXxx) then this window may be closed
       while recovering from this exception. I.e. GLWindow implementation
       is free to implement part of ProcessMessage like
-      @longCode(#
-        if HasKeyDown then
-        try
-          OnKeyDown(...);
-        except
-          Close;
-          raise;
-        end;
-      #)
+
+@longCode(#
+  if HasKeyDown then
+  try
+    OnKeyDown(...);
+  except
+    Close;
+    raise;
+  end;
+#)
+
       TODO: this behavior is currently done only by Xlib and WinAPI
       implementation, in glwindow_winsystem.inc.
-      Is there really any good reason why we can't remove this behavior ?
+      Is there really any good reason why we can't remove this behavior?
     }
     function ProcessMessage(AllowSuspend: boolean): boolean;
     function ProcessAllMessages: boolean;
@@ -3497,7 +3497,7 @@ begin
  MakeCurrent;
  if Item.DoCommand then Exit;
 
- { Maybe Item.DoCommand changed current OpenGL context and returned false ?
+ { Maybe Item.DoCommand changed current OpenGL context and returned false?
    We want to be safe, so we do here MakeCurrent again. }
  MakeCurrent;
  EventMenuCommand(Item);

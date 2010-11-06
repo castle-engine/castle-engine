@@ -67,7 +67,7 @@ program demo_animation;
 uses VectorMath, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3DAsVRML,
   KambiGLUtils, VRMLGLScene, Cameras, VRMLGLAnimation,
-  KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors,
+  KambiFilesUtils, ParseParametersUnit, GLProgress, ProgressUnit, VRMLErrors,
   KambiSceneManager;
 
 var
@@ -188,8 +188,8 @@ begin
     SceneManager.MainScene := Animation.FirstScene;
     SceneManager.Items.Add(Animation);
 
-    ProgressGLInterface.Window := Glw;
-    Progress.UserInterface := ProgressGLInterface;
+    GLProgressInterface.Window := Glw;
+    Progress.UserInterface := GLProgressInterface;
 
     Glw.AutoRedisplay := true;
     Glw.OnKeyDown := @KeyDown;
