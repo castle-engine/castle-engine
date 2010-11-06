@@ -14,6 +14,7 @@
 }
 
 {$ifdef read_interface}
+  { }
   TCoordRangeHandler = procedure (const RangeNumber: Cardinal;
     BeginIndex, EndIndex: Integer) of object;
 

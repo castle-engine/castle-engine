@@ -1516,6 +1516,7 @@ type
 
 { TVRMLRoute ----------------------------------------------------------------- }
 
+  { }
   TVRMLRoute = class(TVRMLFileItem)
   private
     FSourceNode: TVRMLNode;
@@ -1714,6 +1715,7 @@ type
 
 { Node names ----------------------------------------------------------------- }
 
+  { }
   TVRMLNodeNameRec = object
     Node: TVRMLNode;
     Name: string;
@@ -1978,7 +1980,8 @@ const
   JUSTIFICATION_RIGHT = 2;
   { @groupEnd }
 
-  { Constants for TNode(Material|Normal)Binding.FdValue.Value.
+  { Constants for TNodeMaterialBinding.FdValue.Value and
+    TNodeNormalBinding.FdValue.Value.
     @groupBegin }
   BIND_DEFAULT = 0;
   BIND_OVERALL = 1;
@@ -2035,7 +2038,7 @@ const
   CYLINDER_PARTS_BOTTOM = 2;
   { @groupEnd }
 
-  { Constants for TNodeTexture2.FdWrapS/WrapT.Value.
+  { Constants for TNodeTexture2.FdWrapS.Value and TNodeTexture2.FdWrapT.Value.
     @groupBegin }
   TEXWRAP_REPEAT = 0;
   TEXWRAP_CLAMP = 1;

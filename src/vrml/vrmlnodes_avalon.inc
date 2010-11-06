@@ -18,7 +18,7 @@
   [http://instant-reality.com/documentation/nodetype/]. }
 
 {$ifdef read_interface}
-  { MatrixTransform node for VRML >= 2.0 from Avalon extension,
+  { MatrixTransform node for VRML >= 2.0. From Avalon extension,
     see [http://instant-reality.com/documentation/nodetype/MatrixTransform/]. }
   TNodeMatrixTransform_2 = class(TNodeX3DGroupingNode, INodeTransform)
   protected

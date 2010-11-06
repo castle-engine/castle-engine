@@ -18,6 +18,7 @@
 
 {$ifdef read_interface}
 
+  { }
   TVRMLBindableStackBasic = class(TVRMLNodesList)
   public
     { Handle set_bind event send to given Node.

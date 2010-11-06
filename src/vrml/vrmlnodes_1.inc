@@ -31,8 +31,7 @@
 } { }
 
 {$ifdef read_interface}
-  { This is descendant of TVRMLGeometryNode that is allowed only in
-    VRML <= 1.0.
+  { Geometry node allowed only in VRML <= 1.0.
 
     In VRML 1.0 shape nodes are allowed pretty everywhere,
     while VRML 2.0 has different idea of how shapes are handled
@@ -57,7 +56,8 @@
     private FFdSpacing: TSFFloat;
     public property FdSpacing: TSFFloat read FFdSpacing;
 
-    { Use consts JUSTIFICATION_XXX (declared below in this unit) }
+    { Text justification.
+      Use consts JUSTIFICATION_XXX (declared below in this unit). }
     private FFdJustification: TSFEnum;
     public property FdJustification: TSFEnum read FFdJustification;
 
@@ -766,7 +766,7 @@
     private FFdCutOffAngle: TSFFloat;
     public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
 
-    { nieznormalizowany wykladnik dla spot'a (na podstawie dropOffRate) }
+    { Not normalized spot exponent (based on dropOffRate). }
     function SpotExp: Single;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -850,9 +850,8 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  { A general class that can ce used as a separator, something that
-    pushes and pops all attribs and matrices.
-    It is used in implementation of Separator and WWWAnchor.
+  { Base class for VRML 1.0 nodes that push / pop all attributes and matrices.
+    It is used in implementation of VRML 1.0 Separator and WWWAnchor.
     Also WWWInline does the same work, when it's "separate" field is true. }
   TVRMLSeparatorNode = class(TNodeX3DChildNode)
   protected
@@ -923,7 +922,7 @@
 
   { VRML 1.0 WWWInline node.
 
-    This is implemented as a descendant of VRML 2.0/X3D Inline node
+    Implemented as a descendant of VRML 2.0/X3D Inline node
     class. This way VRML 1.0 actually gets a couple of VRML 2.0/X3D extensions.
     The VRML 2.0/X3D field "url" is renamed here to VRML 1.0 field "name".
     (Note that this means that WWWInline.name is actually MFString,
@@ -2556,7 +2555,7 @@ begin
       zadne Child. Wpp. wejdziemy w jedno wyznaczone child. I o to chodzi.
       (note : value -1 is no special value; any value that doesn't specify
       valid child number and is not -3 instructs Switch to not enter
-      into any child. This is conformant with VRML 97 specification) }
+      into any child. This is conforming with the VRML 97 specification) }
     if Between(FdWhichChild.Value, 0, VRML1ChildrenCount - 1) then
       Func(Self, VRML1Children[FdWhichChild.Value]);
   end;

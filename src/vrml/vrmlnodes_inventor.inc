@@ -16,7 +16,7 @@
 { Inventor nodes that didn't make it into any VRML version. } { }
 
 {$ifdef read_interface}
-  { IndexedTriangleMesh --- from Inventor 1.0. }
+  { IndexedTriangleMesh (from Inventor 1.0). }
   TNodeIndexedTriangleMesh_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
     class function ClassNodeTypeName: string; override;
     procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
@@ -30,7 +30,7 @@
       out ATexCoord: TVRMLNode): boolean; override;
   end;
 
-  { RotationXYZ node from Inventor. It's not in VRML 1.0 spec.
+  { RotationXYZ node (from Inventor). It's not in VRML 1.0 spec.
     But some invalid VRML 1.0 models use it,
     e.g. [http://www-vrl.umich.edu/sel_prj/EECS498/]. }
   TNodeRotationXYZ = class(TVRMLTransformationNode)

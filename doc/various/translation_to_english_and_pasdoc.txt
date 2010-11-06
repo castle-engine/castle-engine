@@ -58,7 +58,7 @@ D   vrmlheadlight.pas
 D   vrmllexer.pas
 |   vrmllightmap.pas
 D   vrmllightset.pas
--   vrmlnodes.pas
+D   vrmlnodes.pas
 D   vrmlnodesdetailoptions.pas
 |   vrmlraytracer.pas
 D   vrmlrendereroptimization.pas
