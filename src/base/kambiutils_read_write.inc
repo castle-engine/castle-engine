@@ -24,10 +24,18 @@
 
 { Reading ------------------------------------------------------------ }
 
+{ Prompt a user to input integer value. }
 function ReadlnInt(const Prompt: string): integer;
+{ Prompt a user to input a string. }
 function ReadlnStr(const Prompt: string): string;
 
-{ Prompt nie powinien zawierac koncowego ' [y/n] ' czy cos w tym rodzaju.
+type
+  TYesNoDefault=(defFalse, defNone, defTrue);
+
+{ Prompt a user to answer a yes/no question.
+  We write prompt on standard output, and read from standard input.
+
+  Prompt nie powinien zawierac koncowego ' [y/n] ' czy cos w tym rodzaju.
   Dla przykladowego
     ReadlnChoice('Really do this ?', defTrue)
   bedzie wyswietlal 'Really do this ? [Y/n]' i czekal na odpowiedz przez
@@ -37,10 +45,12 @@ function ReadlnStr(const Prompt: string): string;
   Default = defTrue i defFalse).
 
   Przyrostek ' [y/n] ' lub ' [Y/n] ' lub ' [y/N] ' odzwierciedla stan Default. }
-type TYesNoDefault=(defFalse, defNone, defTrue);
 function ReadlnYesNo(Prompt: string; Default: TYesNoDefault): boolean;
 
-{ Prompt powinien zawierac koncowy znak, np. '?' lub ':' ale nie powinien zawierac
+{ Prompt a user to input a string, and wait until one of the specified answers
+  is given. We write prompt on standard output, and read from standard input.
+
+  Prompt powinien zawierac koncowy znak, np. '?' lub ':' ale nie powinien zawierac
   Choices lub zapisu ze Choice 0 jest default. Przykladowe wywolanie to
     ReadlnChoice('Do you want to rm -Rf / ?', ['no', 'yes, really'], true, true)
   w rezultacie bedzie wypisywal
@@ -56,11 +66,13 @@ function ReadlnChoice(Prompt: string; const Choices: array of string;
 
 { Writing ---------------------------------------------------------------- }
 
-{ XxxWrite: if we are under Windows and not IsConsole then
-  uses XxxBox (from windows/kambiutils_os_specific.inc).
-  Else (IsConsole or we are not under Windows):
-  - ErrorWrite and WarningWrite do Writeln(ErrOutput, S)
-  - InfoWrite does Writeln(S)
+{ Write routines that use a dialog box or console to best present the message.
+
+  If we are under Windows and not IsConsole then we use
+  dialog boxes through ErrorBox, WarningBox, InfoBox.
+  Otherwise (not under Windows, or a console) we output the message
+  (to standard output for InfoWrite, or ErrOutput
+  for ErrorWrite and WarningWrite).
 
   Notes for Windows: even when IsConsole = false, we can have
   GetStdHandle(STD_ERROR_HANDLE) and/or GetStdHandle(STD_OUTPUT_HANDLE)
@@ -71,7 +83,9 @@ function ReadlnChoice(Prompt: string; const Choices: array of string;
   But XxxWrite functions will always for GUI app (that have
   IsConsole = false) use XxxBox functions, never Writeln,
   even when stdin/out/err will be available.
-  This ensures that program always behaves in the same way. }
+  This ensures that program always behaves in the same way.
+
+  @groupBegin }
 procedure ErrorWrite(const s: string); overload;
 procedure WarningWrite(const s: string); overload;
 procedure InfoWrite(const s: string); overload;
@@ -79,19 +93,19 @@ procedure InfoWrite(const s: string); overload;
 procedure ErrorWrite(const s: string; const args: array of const); overload;
 procedure WarningWrite(const s: string; const args: array of const); overload;
 procedure InfoWrite(const s: string; const args: array of const); overload;
+{ @groupEnd }
 
-{ Jezeli nie jest Windows lub IsConsole to po prostu wszystkie elememnty Messages
-  zostana po kolei wypisane na stdout przez Writeln (a wiec kazdy Messages[]
-  bedzie dodatkowo zakonczony newline'm).
+{ Output messages, using console or dialog box.
 
-  Wpp. sprawa jest ciekawsza: dla kazdego i-tego elementu tablicy Messages
-  (i jest zero-based) zostanie wyswietlone InfoBox z i trescia = Messages[i]
-  i caption = Format(TitleFormat, [i+1, Messages.Count]) gdzie
-  Messages.Count = tradycyjnie High(Messages)+1.
+  If we're not on Windows or IsConsole, then we simply output Messages
+  using Writeln.
 
-  W ten sposob mamy przynajmniej polowiczne rozwiazanie dla sytuacji w ktorej
-  musimy wypisac duzo tekstu przy pomocy InfoWrite i pod Windowsem ten tekst
-  jest za duzy zeby go upchnac w jednym InfoBox. }
+  If we're on Windows and not IsConsole, then every Messages is displayed
+  in a separate dialog box. Dialog box uses our InfoBox routine,
+  with Messages[I] being message content and title being
+  @code(Format(TitleFormat, [I + 1, Messages.Count])).
+
+  This is good for outputting a lot of information. }
 procedure InfoWriteParts(const TitleFormat: string; const Messages: array of string);
 
 {$endif read_interface}

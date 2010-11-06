@@ -13,16 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Unit tworzacy fonty oparte na TGLBitmap_Abstract ktore uzywaja struktur
-  zdefinowanych w BmpFontsTypes. Tym samym tworzymy sobie bitmap fonty na
-  podstawie informacji zawartej w strukturach programu. Mamy wiec mozliwosc
-  definiowania fontow w sposob niezalezny od systemu operacyjnego - majac
-  zdefiniowane wlasne struktury nie potrzebujemy juz zadnych fontow
-  systemu operacyjnego zeby stworzyc sobie fonty pod OpenGL'em.)
-
-  Unit blizniaczy do OpenGLTTFonts ktory robi to samo dla outline fontow
-  opartych na strukturach w TTFontsTypes .
-}
+{ OpenGL bitmap fonts (TGLBitmapFont). }
 
 unit OpenGLBmpFonts;
 
@@ -31,21 +22,29 @@ interface
 uses BmpFontsTypes, OpenGLFonts, GL, GLU, KambiGLUtils;
 
 type
+  { OpenGL bitmap font. Uses a font description from BmpFontsTypes unit
+    (PBmpFont type), and creates OpenGL resources to render text
+    using this font.
+
+    This way we can use fonts embedded in our source code
+    (as PBmpFont type), independent from the fonts available in external
+    files, operating system and such. Or we can load PBmpFont from file.
+
+    See also TGLOutlineFont for a similar class for outline fonts. }
   TGLBitmapFont = class(TGLBitmapFont_Abstract)
   private
     base: TGLuint;
     bmpfont: PBmpFont;
   public
+    { Create OpenGL resources to render given bitmap font.
+
+      We remember the pointer BitmapFont, without copying the contents.
+      So do not free the BitmapFont contents, do not change it at all
+      actually, during the lifetime of this object. }
     constructor Create(BitmapFont: PBmpFont);
-     { uwaga : podobnie jak w TGLOutlineTTFont, konstruktor TGLBitmapFont
-       pobiera jako parametr wskaznik na PBmpFont i zawartosc tego wskaznika
-       NIE JEST kopiowana - zapamietywany jest tylko sam wskaznik. Dlatego,
-       aby wszystko bylo ok, od momentu przekazania wskaznika na strukture
-       TBmpFont powyzszemu konstruktorowi powinienes zawartosc TBmpFont i
-       wszystkie strukturki (pochodne TBFNTZnak) traktowac jako read-only ! }
     destructor Destroy; override;
 
-    procedure printAndMove(const s: string); override;
+    procedure PrintAndMove(const s: string); override;
     function TextWidth(const s: string): integer; override;
     function TextHeight(const s: string): integer; override;
     function TextHeightBase(const s: string): integer; override;
@@ -93,7 +92,7 @@ begin
  inherited;
 end;
 
-procedure TGLBitmapFont.printAndMove(const s: string);
+procedure TGLBitmapFont.PrintAndMove(const s: string);
 begin
  glPushAttrib(GL_LIST_BIT);
    glListIBase(TGLint(base));

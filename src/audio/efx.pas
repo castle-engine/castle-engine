@@ -15,7 +15,7 @@
 
 { OpenAL EFX (Effects Extension) API.
 
-  Documentation is in OpenAL SDL for Windows (installable under Linux
+  Documentation is in OpenAL SDK for Windows (installable under Linux
   through wine). }
 unit EFX;
 
@@ -27,8 +27,10 @@ uses VectorMath, KambiOpenAL, Math;
   known bug http://bugs.freepascal.org/view.php?id=7431 }
 {$define extdecl := cdecl}
 
+{$ifndef PASDOC}
 {$I efx.inc}
 {$I efx-creative.inc}
+{$endif PASDOC}
 
 { Checks is EFX extension, along with all it's entry points, present
   for given OpenAL device. If true, it will also initialize the entry

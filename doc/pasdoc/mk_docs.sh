@@ -132,7 +132,7 @@ pasdoc \
    --format "$PASDOC_FORMAT" \
   $PASDOC_INCLUDE_DIRS --output "$OUTPUT_PATH" \
   --define "$TARGET_OS" \
-  --define FPC --define VER2 --define VER2_0 --define VER2_0_4 \
+  --define FPC --define VER2 --define VER2_4 --define PASDOC \
   --write-uses-list --title "Kambi VRML game engine" \
   --source "$TMP_PAS_LIST" \
   --cache-dir "$PASDOC_CACHE" \

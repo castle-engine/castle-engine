@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Ten modul zapewnia podstawowe klasy dla klas fontow pod OpenGL'em.)
+{ @abstract(OpenGL fonts basic classes.)
 
   Implementacja fontow musi
    - pokrywac procedury abstract,

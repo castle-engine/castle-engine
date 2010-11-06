@@ -116,11 +116,11 @@ D   rects.pas
 D   vectormath.pas
 
   fonts/
-|   windows/windowsfonts.pas
+D   windows/windowsfonts.pas
 D   windows/winfontconvert.pas
 D   bmpfontstypes.pas
 D   font2pascalunit.pas
--   ttfontstypes.pas
+D   ttfontstypes.pas
 
   glwindow/
 D   unix/xf86vmode.pas
@@ -163,7 +163,7 @@ D   glversionunit.pas
 -   kambiglut.pas
 |   kambiglutils.pas
 D   normalizationcubemap.pas
--   openglbmpfonts.pas
+D   openglbmpfonts.pas
 -   openglfonts.pas
 D   openglttfonts.pas
 D   shadowvolumes.pas

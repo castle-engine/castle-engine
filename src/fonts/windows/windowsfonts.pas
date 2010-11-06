@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Things specific to operating on fonts under Windows.) }
+{ Windows-specific font utilities. }
 
 unit WindowsFonts;
 
@@ -22,8 +22,8 @@ interface
 uses Windows, SysUtils, KambiUtils;
 
 type
-  { This class is just a wrapper for CreateFont WinAPI function.
-    Create this class, setup some attributes, and call GetHandle.
+  { A wrapper for CreateFont WinAPI function.
+    Create an instance of this class, setup some attributes, and call GetHandle.
     In the future this class may be extended to something less trivial.
 
     For the meaning of properties see WinAPI documentation for CreateFont
@@ -46,9 +46,9 @@ type
   public
     property Height: Integer read FHeight write FHeight;
 
-    { This is value for both nEscapement and nOrientation parameters for
-      CreateFont (because the only portable way is to set them both to the same
-      values) }
+    { Value for both nEscapement and nOrientation parameters for
+      CreateFont. The only portable way is to set them both to the same
+      values. }
     property Angle: Integer read FAngle write FAngle default 0;
 
     property Weight: Integer read FWeight write FWeight default FW_REGULAR;
@@ -65,72 +65,73 @@ type
 
     property Quality: DWord read FQuality write FQuality default DEFAULT_QUALITY;
 
-    { Pith and Family will be combined to create fdwPitchAndFamily param,
-      i.e. fdwPitchAndFamily := Pitch or Family.
-      Pitch is for XXX_PITCH consts, Family is for FF_XXX consts. }
+    { Font pitch and family. They will be combined to create
+      fdwPitchAndFamily param, i.e. fdwPitchAndFamily := Pitch or Family.
+      Pitch is for XXX_PITCH consts, Family is for FF_XXX consts.
+      @groupBegin }
     property Pitch: DWord read FPitch write FPitch default DEFAULT_PITCH;
-    
     property Family: DWord read FFamily write FFamily default FF_DONTCARE;
-    
-    { Default is '' }
-    property FaceName: string read FFaceName write FFaceName; 
+    { @groupEnd }
 
-    { Simply calls CreateFont. Raises EKambiOSError if font cannot be created
-      (i.e. CreateFont returned error, 0).
+    { Font face name. Default is ''. }
+    property FaceName: string read FFaceName write FFaceName;
+
+    { Create a font with given properties. Calls WinAPI CreateFont.
       Rememeber to free result somewhere by DeleteObject.
 
-      Remeber that you may NOT get the font you asked for.
+      Remeber that you may not get the font you asked for.
       Windows.CreateFont will try to return something as close as possible,
       but if exact match will not be possible -- it can return something else.
-      E.g. specifying FaceName = 'some non-existing font name' will NOT
-      cause some error (like EKambiOSError with message 'no such font').
-      Instead it will result in default Windows font (MS Sans Serif usually)
-      being returned. }
+      E.g. specifying FaceName = 'some non-existing font name' will not
+      cause some error (like EKambiOSError).
+      Instead it will result in default Windows font ("MS Sans Serif" usually)
+      being returned.
+
+      @raises(EKambiOSError If font cannot be created
+        (when WinAPI CreateFont returned error)) }
     function GetHandle: HFont;
 
-    { You have to give AHeight, initial Height value when creating object,
-      simply because I don't know of any "generally sensible" default value
+    { Constructor, takes initial Height value.
+      We require the height value to be passed to constructor,
+      simply because there's no "generally sensible" default value
       for Height. }
     constructor Create(AHeight: Integer);
   end;
 
 const
-  { All available xxx_CHARSET values, copied from Windows unit sources.
-    Useful for enumerating available charsets, displaying charset name etc.
-    Note: some consts (e.g. JOHAB_CHARSET) unused by Kambi were missing from FPC's
-    Windows unit. }
+  { All available Windows font charset values. Copied from Windows unit sources.
+    Useful for enumerating available charsets, displaying charset name etc. }
   CharSetsValues: array[0..15]of integer=(
     ANSI_CHARSET,  DEFAULT_CHARSET,  SYMBOL_CHARSET,  SHIFTJIS_CHARSET,
     HANGEUL_CHARSET,  GB2312_CHARSET,  CHINESEBIG5_CHARSET,  OEM_CHARSET,
-    {JOHAB_CHARSET,}  HEBREW_CHARSET,  ARABIC_CHARSET,  GREEK_CHARSET,
-    TURKISH_CHARSET,  {VIETNAMESE_CHARSET,}  THAI_CHARSET,  EASTEUROPE_CHARSET,
-    RUSSIAN_CHARSET,  {MAC_CHARSET,}  BALTIC_CHARSET);
+    HEBREW_CHARSET,  ARABIC_CHARSET,  GREEK_CHARSET,
+    TURKISH_CHARSET,  THAI_CHARSET,  EASTEUROPE_CHARSET,
+    RUSSIAN_CHARSET,  BALTIC_CHARSET);
 
   CharSetsNames: array[0..15]of string=(
     'ANSI_CHARSET',  'DEFAULT_CHARSET',  'SYMBOL_CHARSET',  'SHIFTJIS_CHARSET',
     'HANGEUL_CHARSET',  'GB2312_CHARSET',  'CHINESEBIG5_CHARSET',  'OEM_CHARSET',
-    {'JOHAB_CHARSET',}  'HEBREW_CHARSET',  'ARABIC_CHARSET',  'GREEK_CHARSET',
-    'TURKISH_CHARSET',  {'VIETNAMESE_CHARSET',}  'THAI_CHARSET',  'EASTEUROPE_CHARSET',
-    'RUSSIAN_CHARSET',  {'MAC_CHARSET',}  'BALTIC_CHARSET');
+    'HEBREW_CHARSET',  'ARABIC_CHARSET',  'GREEK_CHARSET',
+    'TURKISH_CHARSET', 'THAI_CHARSET',  'EASTEUROPE_CHARSET',
+    'RUSSIAN_CHARSET',  'BALTIC_CHARSET');
 
 { TODO:
   Funcs below are a little old.
   They probably could use some improvements. }
 
-{ IsFontTrueType : wlasciwie bada czy font MOZE byc true-type.
-  Patrz komentarze w implementacji EnumFontFamProc_IsTrueType. }
+{ Is given Windows font possibly true-type. }
 function IsFontTrueType( Font: HFONT ): boolean;
 
-{ EnumFontCharsets - metoda aby uzyskac informacje na temat Charsetow
-  dozwolonych w danym foncie.
-  Uwaga : moga enumerowac z powtorzeniami ! }
-
-type 
+type
   TEnumFontCharsetsProc_ByObject = procedure( FontCharset: byte ) of object;
   TEnumFontCharsetsProc = procedure( FontCharset: byte );
 
+{ Enumerate charsets handled by given font. Warning: enumerated values
+  may be repeated.
+  @groupBegin }
 procedure EnumFontCharsetsObj(const FontName: string; EnumProc : TEnumFontCharsetsProc_ByObject);
 procedure EnumFontCharsets(const FontName: string; EnumProc : TEnumFontCharsetsProc);
+{ @groupEnd }
 
 implementation
 
@@ -184,16 +185,17 @@ begin
     naszgeo szukanego jest czy nie jest true-type. Niestety, kompletny algorytm na
     to czym jest "najblizszy" zna tylko Microsoft (zaimplementowali go chociazby w
     CreateFont).
-   
+
     wiec co robimy ? Przeszukujemy wszystkie fonty o naszej nazwie. Jesli chociaz jeden
     jest true type to uznajemy nasz font za true-type. }
-   
+
   if (FontType and TRUETYPE_FONTTYPE) <> 0 then
     PBoolean(FuncResultPtr)^ := true;
   result := 1;
 end;
 
 function IsFontTrueType( Font: HFONT ): boolean;
+{ See EnumFontFamProc_IsTrueType implementation comments for more information. }
 var LogFont: TLogFont;
     wynik: integer;
     dc: HDC;

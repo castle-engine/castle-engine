@@ -110,9 +110,11 @@ uses SysUtils, VectorMath;
   known bug http://bugs.freepascal.org/view.php?id=7431 }
 {$define extdecl := cdecl}
 
+{$ifndef PASDOC}
 {$I openal_al.inc}
 {$I openal_alc.inc}
 {$I openal_alut.inc}
+{$endif}
 
 { ---------------------------------------------------------------------------- }
 

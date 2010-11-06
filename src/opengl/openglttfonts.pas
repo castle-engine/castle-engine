@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TGLOutlineFont class. }
+{ OpenGL outline 3D fonts (TGLOutlineFont). }
 
 unit OpenGLTTFonts;
 
