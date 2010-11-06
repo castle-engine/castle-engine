@@ -57,7 +57,6 @@ type
       (except for some extremely small additional performance cost in the
       latter case). }
     procedure PrintAndMove(const s: string); virtual; abstract;
-    procedure PrintAndMoveFmt(const s: string; const args: array of const);
 
     { Print saves current raster position, calls PrintAndMove and then
       restores raster position. So Print effectively prints the string
@@ -66,7 +65,6 @@ type
       position of raster after Printing a string than you should
       use PrintAndMove instead of Print. }
     procedure Print(const s: string);
-    procedure PrintFmt(const s: string; const args: array of const);
 
     function TextWidth(const s: string): integer; virtual; abstract;
     function TextHeight(const s: string): integer; virtual; abstract;
@@ -178,17 +176,6 @@ type
       const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
       BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat;
       WindowTop, WindowTopMargin: TGLint);
-
-    { Temporarily switch to 2d projection and print given string.
-      This is a comfortable routine in demo programs that generally have 3d
-      projection, and need to switch to 2d projection only to set raster
-      position to print some text.
-
-      This uses glProjectionPushPop2D, in 2d is sets modelview matrix
-      to identity and raster pos to X, Y, and then prints text like
-      PrintStrings(S). }
-    procedure Projection2DPrintStrings(X, Y: Integer; S: TStrings); overload;
-    procedure Projection2DPrintStrings(X, Y: Integer; S: string); overload;
   end;
 
   TGLBitmapFontClass = class of TGLBitmapFont_Abstract;
@@ -198,26 +185,13 @@ type
     fRowHeight: single;
   public
     procedure Print(const s: string); virtual; abstract;
-    procedure PrintFmt(const s: string; const args: array of const);
-    procedure PrintSrodek(const s: string);
     procedure PrintAndMove(const s: string); virtual; abstract;
-    procedure PrintAndMoveFmt(const s: string; const args: array of const);
 
     function textWidth(const s: string): single; virtual; abstract;
     function textHeight(const s: string): single; virtual; abstract;
     property RowHeight: single read fRowHeight;
     function Descend: single; virtual;
   end;
-
-const
-  GLFontChFirst = Ord(' ');
-  GLFontChCount = Ord(High(Char))-GLFontChFirst+1;
-  { powyzsze stale powinny byc uzywane jezeli konstruktor jakiegos gl fontu
-    wymaga podania przedzialu znakow dla ktorych beda generowane faktyczne litery
-    fontu (np. display listy).
-    Wtedy powyzsze stale okreslaja odpowiednio Ord() pierwszego znaku ktory
-    powinien zostac wygenerowany a GLFontChCount - ilosc wszystkich znakow.
-  }
 
 implementation
 
@@ -231,16 +205,6 @@ begin
  glGetFloatv(GL_CURRENT_RASTER_POSITION, @rasterPos4f);
  PrintAndMove(s);
  glRasterPos4fv(@rasterPos4f);
-end;
-
-procedure TGLBitmapFont_Abstract.PrintFmt(const s: string; const args: array of const);
-begin
- Print(Format(s, args));
-end;
-
-procedure TGLBitmapFont_Abstract.PrintAndMoveFmt(const s: string; const args: array of const);
-begin
- PrintAndMove(Format(s, args));
 end;
 
 function TGLBitmapFont_Abstract.Descend: integer;
@@ -454,64 +418,7 @@ begin
  finally slist.Free end;
 end;
 
-type
-  TProjection2DPrintData = record
-    S: TStrings;
-    X, Y: Integer;
-    Font: TGLBitmapFont_Abstract;
-  end;
-  PProjection2DPrintData = ^TProjection2DPrintData;
-
-procedure Draw2d(Data: Pointer);
-var
-  PData: PProjection2DPrintData;
-begin
-  PData := PProjection2DPrintData(Data);
-  glLoadIdentity();
-  PData^.Font.PrintStrings(PData^.S, 0, PData^.X, PData^.Y);
-end;
-
-procedure TGLBitmapFont_Abstract.Projection2DPrintStrings(
-  X, Y: Integer; S: TStrings);
-var
-  Data: TProjection2DPrintData;
-begin
-  Data.S := S;
-  Data.X := X;
-  Data.Y := Y;
-  Data.Font := Self;
-  glProjectionPushPop2D(@Draw2d, @Data);
-end;
-
-procedure TGLBitmapFont_Abstract.Projection2DPrintStrings(
-  X, Y: Integer; S: string);
-var
-  SList: TStrings;
-begin
-  SList := TStringList.Create;
-  try
-    SList.Text := S;
-    Projection2DPrintStrings(X, Y, SList);
-  finally SList.Free end;
-end;
-
 { TGLOutlineFont_Abstract ------------------------------------------------------}
-
-procedure TGLOutlineFont_Abstract.PrintFmt(const s: string; const args: array of const);
-begin
- Print(Format(s, args));
-end;
-
-procedure TGLOutlineFont_Abstract.PrintAndMoveFmt(const s: string; const args: array of const);
-begin
- PrintAndMove(Format(s, args));
-end;
-
-procedure TGLOutlineFont_Abstract.PrintSrodek(const s: string);
-begin
- glTranslatef(-TextWidth(s)/2, 0.0, 0.0);
- Print(s);
-end;
 
 function TGLOutlineFont_Abstract.descend: single;
 begin
@@ -519,28 +426,3 @@ begin
 end;
 
 end.
-
-(*
--------------------------------------------------------------------
-
-taka nieudana proba zrobienia czegos :
-
-procedure PrintAndMovePos(const s: string; x, y,z: TGLfloat);
-
-procedure TGLBitmapFont_Abstract.PrintAndMovePos(const s: string; x, y,z: TGLfloat);
-var i: integer;
-begin
- for i := 1 to Length(s) do
- begin
-  glRasterPos3f(x, y,z);
-  PrintAndMove(s[i]);
-  { sami wykorzystujemy xmove i ymove aby zmienic x i y. W ten sposob
-    mozemy wywolywac przed narysowaniem kazdej literki glRasterPos(x, y)
-    w ten sposob sprawiajac ze jesli czesc napisu nie bedzie wypisana
-    z powodu ze ich raster position bedzie invalid to pozostala czesc
-    bedzie i tak w porzadku. }
-  x := x+TextWidth(s[i]);
- end;
-end;
-
-*)
