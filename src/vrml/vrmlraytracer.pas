@@ -314,7 +314,7 @@ type
 
 implementation
 
-uses SysUtils, IllumModels, SphereSampling;
+uses SysUtils, VRMLLighting, SphereSampling;
 
 { RayVector calculations ----------------------------------------------------- }
 

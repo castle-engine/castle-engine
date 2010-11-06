@@ -570,8 +570,8 @@
         <UnitName Value="ColladaToVRML"/>
       </Item128>
       <Item129>
-        <Filename Value="../src/vrml/illummodels.pas"/>
-        <UnitName Value="IllumModels"/>
+        <Filename Value="../src/vrml/vrmllighting.pas"/>
+        <UnitName Value="VRMLLighting"/>
       </Item129>
       <Item130>
         <Filename Value="../src/vrml/normalscalculator.pas"/>

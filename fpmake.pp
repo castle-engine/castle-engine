@@ -89,7 +89,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'vrml');
     P.Targets.AddUnit('colladatovrml.pas');
-    P.Targets.AddUnit('illummodels.pas');
+    P.Targets.AddUnit('vrmllighting.pas');
     P.Targets.AddUnit('normalscalculator.pas');
     P.Targets.AddUnit('object3dasvrml.pas');
     P.Targets.AddUnit('vrmlanimation.pas');

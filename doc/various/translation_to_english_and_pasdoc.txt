@@ -46,7 +46,7 @@ D   gl3d.pas
 
   vrml/
 D   colladatovrml.pas
-|   illummodels.pas
+D   vrmllighting.pas
 D   normalscalculator.pas
 D   object3dasvrml.pas
 D   vrmlanimation.pas

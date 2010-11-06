@@ -13,16 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Illumination models, BRDF equations.)
-  For now, this just contains VRML 97 lighting equations. }
-unit IllumModels;
+{ VRML lighting calculation. }
+unit VRMLLighting;
 
 interface
 
 uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils;
 
-{ Returns VRML 2.0 material emissiveColor for lighting equation.
-  I.e. the @code(O_Ergb) part of lighting equation in
+{ VRML 2.0 material emissiveColor for lighting equation.
+  That is, the @code(O_Ergb) part of lighting equation in
   VRML 2.0 spec section "4.14.4 Lighting equations".
 
   This takes also into account VRML 1.0, when emissiveColor
@@ -33,17 +32,17 @@ uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils;
   This is supposed to be used when you use ray-tracer with
   recursion 0 (i.e., actually it's a ray-caster in this case).
   Using emissiveColor in such case would almost always
-  give a completely black, useles image. }
+  give a completely black, useless image. }
 function VRML97Emission(const IntersectNode: TVRMLTriangle;
   LightingCalculationOn: boolean): TVector3Single;
 
-{ Returns VRML 2.0 light contribution to the specified
-  vertex color. In other words, this calculates the following
-  equation part from VRML 2.0 spec section
+{ VRML 2.0 light contribution to the specified vertex color.
+  This calculates the following equation part from VRML 2.0 spec section
   "4.14.4 Lighting equations" :
+
 @preformatted(
-  on_i × attenuation_i × spot_i × I_Lrgb
-    × (ambient_i + diffuse_i + specular_i)
+  on_i * attenuation_i * spot_i * I_Lrgb
+    * (ambient_i + diffuse_i + specular_i)
 )
 
   In some cases we do something different than VRML 2.0 spec:
@@ -52,7 +51,7 @@ function VRML97Emission(const IntersectNode: TVRMLTriangle;
     @item(
       For VRML 1.0 SpotLight, we have to calculate spot light differently
       (because VRML 1.0 SpotLight gives me dropOffRate instead of
-      beamWidth), so we use spot factor equation following OpenGL equation.)
+      beamWidth), so we use spot factor equation following OpenGL equations.)
 
     @item(
       For VRML 1.0, we have to calculate ambientFactor in a little different way:
@@ -61,42 +60,32 @@ function VRML97Emission(const IntersectNode: TVRMLTriangle;
       otherwise we use material's ambientColor.)
 
     @item(
-      O ile dobrze zrozumialem, rownania oswietlenia VMRLa 97 proponuja oswietlac
-      powierzchnie tylko z jednej strony, tam gdzie wskazuje podany wektor
-      normalny (tak jak w OpenGLu przy TWO_SIDED_LIGHTING OFF).
-      (patrz definicja "modified dot product" w specyfikacji oswietlenia VRMLa 97)
-      Dla mnie jest to bez sensu i oswietlam powierzchnie z obu stron, tak jakby
-      kazda powierzchnia byla DWOMA powierzchniami, kazda z nich o przeciwnym
-      wektorze normalnym (tak jak w OpenGLu przy TWO_SIDED_LIGHTING ON).)
+      VRML 97 lighting equations suggest one-sided lighting, only where
+      the normal points out. In my opinion, one-sided lighting is not useful,
+      and also our OpenGL rendering uses two-sides lighting.
+      (One reason for OpenGL rendering is to integrate nicely with flat mirrors,
+      where you have to flip normals. So OpenGL renderer always gives
+      vectors from CCW, and so uses two-side to not favor any side of the face.))
   )
 
-  Jeszcze slowo : wszystkie funkcje zwracaja kolor w postaci RGB ale NIE
-  clamped do (0, 1) (robienie clamp przez te funkcje byloby czysta strata
-  czasu, i tak te funkcje sa zazwyczaj opakowane w wiekszy kod liczacy
-  kolory i ten nadrzedny kod musi robic clamp - o ile chce, np. raytracer
-  zapisujacy kolory do float nie musi nigdzie robic clamp). }
+  We do not clamp color components to (0, 1). This would be a waste of time,
+  you should clamp only at the end (or never). This also allows
+  to multiply / accumulate values outside of the (0, 1) range
+  during calculations. OpenGL also clamps only at the end. }
 function VRML97LightContribution(const Light: TActiveLight;
   const Intersection: TVector3Single; const IntersectNode: TVRMLTriangle;
   const CamPosition: TVector3Single): TVector3Single;
 
-{ Bardzo specjalna wersja VRML97LightContribution, stworzona na potrzeby
-  VRMLLightMap. Idea jest taka ze mamy punkt (Point) w scenie,
-  wiemy ze lezy on na jakiejs plaszczyznie ktorej kierunek (znormalizowany)
-  to PointPlaneNormal, mamy zadane Light w tej scenie i chcemy
-  policzyc lokalny wplyw swiatla na punkt. Zeby uscislic :
-  w przeciwienstwie do VRML97LightContribution NIE MAMY
-  - Position w scenie (ani zadnego Direction/Up)
-  - materialu z ktorego wykonany jest material.
+{ VRML 2.0 light contribution, without knowing the camera or full material.
+  We have a 3D vertex, we know it lies on a plane with given normal,
+  and we have light information. We don't have a TVRMLTriangle reference,
+  and we do not have any camera information. Try to calculate VRML lighting
+  as close as possible to the fully correct version (see regular
+  VRML97LightContribution) with this information.
 
-  Mamy wiec wyjatkowa sytuacje. Mimo to, korzystajac z rownan oswietlenia,
-  mozemy policzyc calkiem sensowne light contribution:
-  - odczucamy komponent Specular (zostawiamy sobie tylko ambient i diffuse)
-  - kolor diffuse materialu przyjmujemy po prostu jako podany MaterialDiffuseColor
+  The specular lighting part must be simply ignored in this case.
 
-  Przy takich uproszczeniach mozemy zrobic odpowiednik VRML97LightContribution
-  ktory wymaga mniej danych a generuje wynik niezalezny od polozenia
-  kamery (i mozemy go wykonac dla kazdego punktu sceny, nie tylko tych
-  ktore leza na jakichs plaszczyznach sceny). To jest wlasnie ta funkcja. }
+  This is used by VRMLLightMap. }
 function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
   const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single): TVector3Single;
 
@@ -105,13 +94,13 @@ type
 
 function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;
 
-{ Apply fog to color of the vertex.
+{ Apply fog to the color of the vertex.
 
   Given Color is assumed to contain already the sum of
 @preformatted(
   material emission (VRML97Emission)
   + for each light:
-    materuial * lighting properties (VRML97LightContribution)
+    material * lighting properties (VRML97LightContribution)
 )
 
   This procedure will apply the fog, making the linear interpolation
@@ -174,13 +163,13 @@ end;
 function VRML97LightContribution(const Light: TActiveLight;
   const Intersection: TVector3Single; const IntersectNode: TVRMLTriangle;
   const CamPosition: TVector3Single): TVector3Single;
-{$I illummodels_vrml97lightcontribution.inc}
+{$I vrmllighting_97_lightcontribution.inc}
 
 function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
   const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single)
   :TVector3Single;
 {$define CAMERA_INDEP}
-{$I illummodels_vrml97lightcontribution.inc}
+{$I vrmllighting_97_lightcontribution.inc}
 {$undef CAMERA_INDEP}
 
 function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;

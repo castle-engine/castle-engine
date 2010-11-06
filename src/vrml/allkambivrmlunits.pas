@@ -11,7 +11,7 @@ interface
 
 uses
   colladatovrml,
-  illummodels,
+  vrmllighting,
   normalscalculator,
   object3dasvrml,
   vrmlanimation,
