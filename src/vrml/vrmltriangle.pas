@@ -73,9 +73,16 @@ type
 
       To make things correct, we obviously assume that every segment
       and ray have different tags. Also, tag -1 is reserved.
-      In practice, we simply initialize MailboxSavedTag to -1
-      in constructor, and each new segment/ray get consecutive tags
-      starting from 0.
+      In practice, we simply initialize MailboxSavedTag to -1,
+      and each new segment/ray get consecutive tags starting from 0.
+
+      @italic(History): a naive implementation at the beginning
+      was not using tags, instead I had MailboxState (empty, ray or segment)
+      and I was storing ray/line vectors (2 TVector3Single values).
+      This had much larger size (6 * SizeOf(Single) + SizeOf(enum) = 28 bytes)
+      than tag, which is important (3D models have easily thousands of
+      TVRMLTriangle). And it took longer to compare and assign,
+      so it was working much slower.
 
       @groupBegin }
     MailboxSavedTag: TMailboxTag;

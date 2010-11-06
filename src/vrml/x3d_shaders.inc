@@ -491,8 +491,7 @@ begin
         Exit;
       except
         on E: Exception do
-          { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
-            (chociaz nie musi) }
+          { Remember that VRMLWarning *may* raise an exception. }
           VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
             ' occured when trying to load '+
             'shader file from URL "' + FullUrl + ' : ' + E.Message);

@@ -521,7 +521,7 @@ type
       NIE WYSTACZY generowac zawsze normali smooth i tylko przestawiac
       glShadeModel na GL_FLAT aby miec poprawne cieniowanie flat.
       Chociaz zazwyczaj daje to tez dobre efekty; w szczeglnosci,
-      pamietaj ze nie bedziemy zmieniac normali ktore juz bedziemy mieli
+      remember ze nie bedziemy zmieniac normali ktore juz bedziemy mieli
       podane w pliku VRMLa; wiec i tak nie bedzie pelnej poprawnosci
       bo jezeli te normale byly zapisane smooth a my chcemy flat
       to uzyjemy tych normali smooth z shadeModel ustawionym na FLAT).
@@ -542,7 +542,7 @@ type
       ale nie wszystko mozna zrobic metodami OpenGL'a - np. sceny grayscale
       nie stworzymy robiac jakies proste sztuczki 2d w OpenGL'u.
       Tutaj mozna podac funkcje ktora w dowolny sposob modyfikuje kolor
-      (ale pamietajmy ze ona modyfikuje kolor obiektu/swiatla/itp., a nie
+      (ale remember ze ona modyfikuje kolor obiektu/swiatla/itp., a nie
       wynikowy kolor pixela na 2d; wiec np. powierzchnie nieoswietlone
       zawsze beda w ten sposob ciemne chocby modulator odwracal kolory itp.).
 

@@ -148,7 +148,7 @@
     function IsTextureVideo: boolean;
     { @groupEnd }
 
-    { This says whether the texture data is already loaded.
+    { Is the texture data already loaded.
       Since the texture will be loaded automatically, you're usually
       not interested in this property. You can read it to e.g. predict
       if next TextureImage / TextureVideo call may take a long time.
@@ -884,8 +884,7 @@ procedure TNodeImageTexture.LoadTextureData(out WasCacheUsed: boolean);
         except
           on E: Exception do
           begin
-            { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
-              (chociaz nie musi) }
+            { Remember that VRMLWarning *may* raise an exception. }
             VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
               ' occured when trying to load ' +
               'texture from data URI starting with "' + URLPrefix + '" : ' + E.Message);
@@ -923,8 +922,7 @@ begin
         Break;
       except
         on E: Exception do
-          { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
-            (chociaz nie musi) }
+          { Remember that VRMLWarning *may* raise an exception. }
           VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
             ' occured when trying to load ' +
             'texture from url "' + FullUrl + '" : ' + E.Message);
@@ -1052,7 +1050,7 @@ begin
     try
       FTextureVideo := Cache.Video_IncReference(FullUrl);
 
-      { it loading succeded, set WasCacheUsed and others and break. }
+      { if loading succeded, set WasCacheUsed and others and break. }
       WasCacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
@@ -1061,8 +1059,7 @@ begin
       Break;
     except
       on E: Exception do
-        { pamietajmy ze VRMLWarning moze spowodowac rzucenie wyjatku
-          (chociaz nie musi) }
+        { Remember that VRMLWarning *may* raise an exception. }
         VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
           ' occured when trying to load ' +
           'video from filename "' + FullUrl + '" : ' + E.Message);
@@ -1391,7 +1388,7 @@ begin
    FdgenerateMipMaps.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdgenerateMipMaps);
 
-  { X3D XML spec (edition 2) mistakenyl claims it should be
+  { X3D XML spec (edition 2) mistakenly claims it should be
     "lineProperties", which is nonsense... I set this to "textureProperties". }
   DefaultContainerField := 'textureProperties';
 end;

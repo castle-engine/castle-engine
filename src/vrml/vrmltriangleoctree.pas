@@ -21,7 +21,7 @@
   scen VRML'a. Elementami ktore bedziemy trzymac w lisciach drzewa sa
   rekordy TVRMLTriangle - jeden taki rekord reprezentuje jeden trojkat
   w przestrzeni. Razem z kazdym trojkatem zapamietywana jest informacja
-  z jakiego State'a i Shape'a on pochodzi. Wiec pamietaj ze po zbudowaniu
+  z jakiego State'a i Shape'a on pochodzi. Wiec remember ze po zbudowaniu
   ze sceny octree scena jest praktycznie "zamrozona" - nic nie wolno
   w niej zmieniac.
 
