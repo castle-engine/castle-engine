@@ -615,6 +615,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
 }
 
 type
+  { }
   TKey = KeysMouse.TKey;
 const
   K_None = KeysMouse.K_None;
@@ -737,7 +738,7 @@ type
   PDynArrayItem_2 = ^TGLWindowFunc;
   {$define DYNARRAY_2_IS_FUNCTION}
   {$I dynarray_2.inc}
-  { This is a list of @link(TGLWindowFunc) procedures. }
+  { List of @link(TGLWindowFunc) procedures. }
   TDynGLWindowFuncArray = class(TDynArray_2)
   public
     { This calls all Items that are not nil.
@@ -745,7 +746,7 @@ type
     procedure ExecuteAll(Glwin: TGLWindow);
   end;
 
-  { This record is useful to save the state of all callbacks
+  { Saved state of all callbacks
     of @link(TGLWindow), with the exception of OnInit and OnClose callbacks.
     This is used in @link(TGLWindow.GetCallbacksState)
     and @link(TGLWindow.SetCallbacksState).
@@ -867,9 +868,9 @@ type
 
     procedure CloseError(const error: string);
 
-    { Call this method only when DoubleBuffered and if you already did
-      MakeCurrent. This will swap OpenGL buffers. (implicit glFlush is
-      guaranteed) }
+    { Swap OpenGL buffers.
+      Call this method only when DoubleBuffered and if you already did
+      MakeCurrent. (Implicit glFlush is guaranteed.) }
     procedure SwapBuffers;
 
     { BackendMenuInitialize should cause backend to build whole menu resources
@@ -955,7 +956,10 @@ type
       przy pomocy myszy i klawiatury. }
     procedure ReleaseAllKeysAndMouse;
 
-    { This should be implemented in backend-specific GLWindow parts.
+    { Should DoKeyDown be able to call DoMenuCommand, that is should
+      we handle menu key shortcurs ourselves.
+
+      This is implemented in backend-specific GLWindow parts.
       When in DoKeyDown we get some key event that specifies that
       some menu item should be called -- if RedirectKeyDownToMenuCommand,
       DoKeyDown will do DoMenuCommand. Else DoKeyDown will do nothing.
@@ -1124,6 +1128,10 @@ type
     FGtkIconName: string;
     FWindowVisible: boolean;
     FPressed: TKeysPressed;
+    FMinWidth: Integer;
+    FMinHeight: Integer;
+    FMaxWidth: Integer;
+    FMaxHeight: Integer;
 
     { For IUIContainer interface. Private, since when you have a class
       instance, you just use class properties (that read directly from a field,
@@ -1250,27 +1258,40 @@ type
     property Width: integer read FWidth write FWidth default GLWindowDefaultSize;
     property Height: integer read FHeight write FHeight default GLWindowDefaultSize;
 
-    { jezeli Left / Top rowne sa GLWindowPositionCenter w momencie wywolania Init
-      to zostana zainicjowane tak zeby okienko bylo na srodku ekranu. }
-    property Left: integer read {$ifdef GLWINDOW_GLUT}GetLeft{$else}FLeft{$endif} write FLeft; { = GLWindowPositionCenter }
-    property Top :integer read {$ifdef GLWINDOW_GLUT}GetTop{$else}FTop{$endif} write FTop; { = GLWindowPositionCenter }
-    property FullScreen: boolean read FFullScreen write FFullScreen; { = false }
-    { DoubleBuffer to swapBuffers bedzie robione automatycznie po kazdym repaincie.
-      jesli false - bedzie robione glFlush. }
+    { Window position on the screen. If one (or both) of them is equal
+      to GLWindowPositionCenter at the initialization (Init) time,
+      then it will be set to position the window at the screen center.
+      @groupBegin }
+    property Left: integer
+      read {$ifdef GLWINDOW_GLUT}GetLeft{$else}FLeft{$endif}
+      write FLeft default GLWindowPositionCenter;
+    property Top :integer
+      read {$ifdef GLWINDOW_GLUT}GetTop{$else}FTop{$endif}
+      write FTop default GLWindowPositionCenter;
+    { @groupEnd }
+
+    property FullScreen: boolean read FFullScreen write FFullScreen default false;
+
+    { Should we request and use double buffer.
+      After every draw, we automatically do buffers swap (if DoubleBuffer)
+      or glFlush (if not DoubleBuffer). }
     property DoubleBuffer: boolean read FDoubleBuffer write FDoubleBuffer default true;
 
-    { ColorBits : sprobuje ustawic takie bits per pixel tylko dla danego okna.
-      Jesli ColorBits = 0 w czasie Init to uzyje Application.VideoColorBits
-      (chociaz one tez moga byc = 0; wtedy wezmie defaultowe ColorBits jakie
-      da nam Windows). Tak czy siak, po zakonczeniu Init ColorBits powiedza
-      nam jakie ColorBits otrzymalismy.
-      Aby naprawde zmienic ColorBits z duza szansa uzywaj raczej
-      Application.VideoColorBits i Application.VideoChange.
+    { Colors precision for this window.
+      When 0, then we'll use Application.VideoColorBits.
+      When Application.VideoColorBits is also 0, then the default window
+      system color precision will be used.
 
-      TODO: uzywanie tej wlasciwosci jest deprecated. Jest ona non-cross-platform,
-      interfejs nie czyni zadnych gwarancji ze rzeczywiscie dostaniemy
-      wymagane ColorBits, ponadto nie powinnismy zmieniac ColorBits
-      po Init - po wyjasnienie dlaczego patrz komentarze do StencilbufferBits.
+      After Init, this is updated to the actual color bits used.
+
+      In most situations, you will have to change the screen color precision
+      to have the best chance for a given window color precision.
+      So use Application.VideoColorBits and Application.VideoChange.
+
+      This is deprecated, don't use. This isn't cross-platform (only Windows),
+      there's no guarantee you actually get the required color bits,
+      and the fact that we change ColorBits after Init is ugly (we should
+      have another property for this).
 
       @deprecated }
     property ColorBits: integer
@@ -1313,67 +1334,85 @@ type
       Ignored when window is closed. }
     procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
 
-    { Naklada ograniczenia na to kiedy i jak Width i Height moga sie zmienic.
-      = raNotAllowed oznacza ze Width i Height nie moga sie zmienic
-        CHYBA ze po to zeby dostosowac sie do min/maxWidth/Height.
-        Tak ostre ograniczenia moga nawet spowodowac ze przy probie Init
-        okienka z atrybutem Fullscreen = true flaga Fullscreen moze zostac
-        wylaczone na true. Ale masz PEWNOSC ze Width i Height zawsze beda
-        rowne zadanym, o ile tylko beda w granicach min/maxWidth/Height.
-      = raOnlyAtInit oznacza ze rozmiary okienka moga zostac zainicjowane
-        na inne niz podane jezeli np. WindowManager ma obiekcje co do
-        zadanych przez nas rozmiarow okienka albo jezeli chcesz miac
-        Fullscreen i ScreenWidth/H sa rozne od Width/Height. W tych przypadkach,
-        i byc moze takze w innych podobnych rozmiary Width/Height jakie
-        dostanie okienko beda rozne od zadanych Width/Height. Ale masz PEWNOSC
-        ze po wywolaniu pierwszego callbacka (czyli EventInit (OnInit),
-        tuz przed pierwszym EventResize (OnResize))
-        Width/Height juz beda stale, dopoki okienko bedzie not Closed.
-      = raAllowed jest domyslne i pozwala na najwieksza swobode WindowManagerowi
-        i userowi : okienko moze byc zresizowane w dowolnym momencie.
-        Oznacza to ze nie tylko Width/Height jakie dostaniesz w pierwszych
-        OnInit i OnResize moga byc inne niz te ktorych zazadales ale takze
-        w trakcie dzialania programu rozmiary okienka moga sie zmieniac.
-        Powinienes
-        byc na to przygotowany obslugujac zdarzenie OnResize (ktore w zasadzie
-        jest zupelnie zbedne w pozostalych przypadkach, gdy ResizeAllowed<>
-        raAllowed), zapewne ustawiajac w nim odpowiednie glViewport i
-        uaktualniajac macierz projection.
+    { When (if at all) window size may be changed.
+
+      @unorderedList(
+        @item(raNotAllowed
+
+          Oznacza ze Width i Height nie moga sie zmienic
+          CHYBA ze po to zeby dostosowac sie do min/maxWidth/Height.
+          Tak ostre ograniczenia moga nawet spowodowac ze przy probie Init
+          okienka z atrybutem Fullscreen = true flaga Fullscreen moze zostac
+          wylaczone na true. Ale masz PEWNOSC ze Width i Height zawsze beda
+          rowne zadanym, o ile tylko beda w granicach min/maxWidth/Height.)
+
+        @item(raOnlyAtInit
+
+          Oznacza ze rozmiary okienka moga zostac zainicjowane
+          na inne niz podane jezeli np. WindowManager ma obiekcje co do
+          zadanych przez nas rozmiarow okienka albo jezeli chcesz miac
+          Fullscreen i ScreenWidth/H sa rozne od Width/Height. W tych przypadkach,
+          i byc moze takze w innych podobnych rozmiary Width/Height jakie
+          dostanie okienko beda rozne od zadanych Width/Height. Ale masz PEWNOSC
+          ze po wywolaniu pierwszego callbacka (czyli EventInit (OnInit),
+          tuz przed pierwszym EventResize (OnResize))
+          Width/Height juz beda stale, dopoki okienko bedzie not Closed.)
+
+        @item(raAllowed
+
+          Jest domyslne i pozwala na najwieksza swobode WindowManagerowi
+          i userowi : okienko moze byc zresizowane w dowolnym momencie.
+          Oznacza to ze nie tylko Width/Height jakie dostaniesz w pierwszych
+          OnInit i OnResize moga byc inne niz te ktorych zazadales ale takze
+          w trakcie dzialania programu rozmiary okienka moga sie zmieniac.
+          Powinienes
+          byc na to przygotowany obslugujac zdarzenie OnResize (ktore w zasadzie
+          jest zupelnie zbedne w pozostalych przypadkach, gdy ResizeAllowed<>
+          raAllowed), zapewne ustawiajac w nim odpowiednie glViewport i
+          uaktualniajac macierz projection.)
+      )
+
       ResizeAllowed <> raAllowed oznacza ze do okna bedzie wyslane tylko
-        raz OnResize - na poczatku, pod koniec wykonywania Init (chociaz
-        w zasadzie i tak bedziesz mogl je zignorowac i obsluzyc wszystko
-        w OnInit; chociaz moze czasem bedziesz jednak chcial zapisac
-        ustawianie glViewport i projection w OnResize, dla porzadku).
-        Poniewaz pierwsze glViewport (przed wywolaniem pierwszych callbackow
-        EventInit (OnInit) i EventResize (OnResize) w Init)
-        jest wykonane automatycznie to w rezultacie programy
-        majace ResizeAllowed <> raAllowed nie musza sie nigdy martwic
-        o robienie kiedykolwiek glViewport. }
-    property ResizeAllowed: TResizeAllowed read FResizeAllowed write FResizeAllowed;  { = raAllowed }
+      raz OnResize - na poczatku, pod koniec wykonywania Init (chociaz
+      w zasadzie i tak bedziesz mogl je zignorowac i obsluzyc wszystko
+      w OnInit; chociaz moze czasem bedziesz jednak chcial zapisac
+      ustawianie glViewport i projection w OnResize, dla porzadku).
+      Poniewaz pierwsze glViewport (przed wywolaniem pierwszych callbackow
+      EventInit (OnInit) i EventResize (OnResize) w Init)
+      jest wykonane automatycznie to w rezultacie programy
+      majace ResizeAllowed <> raAllowed nie musza sie nigdy martwic
+      o robienie kiedykolwiek glViewport. }
+    property ResizeAllowed: TResizeAllowed
+      read FResizeAllowed write FResizeAllowed default raAllowed;
 
-    { Jest GWARANTOWANE ze dla kazdego nowootwartego okna NAJPIERW zostanie
-      wyslany EventInit (OnInit) and THEN EventResize (OnResize).
+    { Event called when OpenGL context is initialized.
 
-      This is a sensible and consequential approach -- EventInit (OnInit)
+      It's guaranteed that every newly opened window will get
+      EventInit (OnInit) first, and then EventResize (OnResize),
+      and only then --- the other callbacks, as the user uses the window.
+      This is consistent EventInit (OnInit)
       is always the first executed callback and EventClose (OnClose)
-      is always last. Some examples (like gl_win_events.lpr)
-      confirm that this is really useful.
+      is always the last. This allows you to cleanly initialize / finalize
+      OpenGL resources.
 
-      One more thing: in EventInit (OnInit) you already have valid
-      Width/Height values, i.e. those values were already adjusted
-      if ResizeAllowed <> raNotAllowed. If ResizeAllowed = raNotAllowed
-      then Width and Height are constant, so this is obvious. }
-    property OnInit: TGLWindowFunc read FOnInit write FOnInit; { = nil }
+      During EventInit (OnInit) you already have valid
+      Width / Height values, that is those values were already adjusted
+      if ResizeAllowed <> raNotAllowed. }
+    property OnInit: TGLWindowFunc read FOnInit write FOnInit;
   public
-    (* zawsze po wywolaniu OnInit beda wywolywane wszystkie funkcje
-       z listy OnInitList. Ten obiekt jest tylko tworzony i niszczony w
-       tej klasie, poza tym mozesz na nim robic co ci sie zywnie podoba -
-       dodawac, usuwac, przegladac procedury, co chcesz. Oczywiscie najbardziej
-       przewidywalne jest zachowanie programu ktory tylko dodaje do tej listy. *)
+    { Callbacks called when OpenGL context is initialized.
+      Called always after OnInit. Useful when one callback is not enough.
+
+      The list instance (TDynGLWindowFuncArray) is created / destroyed
+      in this class. You can add / remove freely your callbacks from this class. }
     OnInitList: TDynGLWindowFuncArray;
   public
-    { minimalne i maksymalne rozmiary okna. Musi byc
-        0 < minWidth <= maxWidth, 0 < minHeight <= maxHeight.
+    { Minimum and maximum window sizes. Always
+
+@preformatted(
+  0 < minWidth <= maxWidth and
+  0 < minHeight <= maxHeight
+)
 
       Jesli sprobujesz samemu zainicjowac Width lub Height okienka na cos spoza
       tego zakresu - jesli to bedzie mniejsze od minWidth to zostanie przyjete
@@ -1390,7 +1429,10 @@ type
 
       Tym sposobem ZAWSZE bedzie zachodzic minWidth <= width <= maxWidth, o ile
       tylko not Closed. I wszystko co napisalem dziala tak samo dla Height. }
-    MinWidth, MinHeight, MaxWidth, MaxHeight: integer; { = 100, 100, 4000, 4000 }
+    property MinWidth: Integer read FMinWidth write FMinWidth default 100;
+    property MinHeight: Integer read FMinHeight write FMinHeight default 100;
+    property MaxWidth: Integer read FMaxWidth write FMaxWidth default 4000;
+    property MaxHeight: Integer read FMaxHeight write FMaxHeight default 4000;
 
     { Zadane parametry buforow OpenGLa. }
 
