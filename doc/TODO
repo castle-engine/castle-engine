@@ -391,6 +391,10 @@ Shadow maps todos:
 ------------------------------------------------------------------------------
 Various ideas:
 
+- rename SmartChildren to just Children
+  AllowedChildren to AllowedVRML1Children
+  ParsingAllowedChildren to ParsingAllowedVRML1Children
+
 - A precise control over how steep hill you can climb.
 
 - screenshot: 10 November - http://vcg.isti.cnr.it/cgf/index.php ?
