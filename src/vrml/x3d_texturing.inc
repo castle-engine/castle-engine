@@ -1467,7 +1467,7 @@ begin
     VRML 2 / X3D spec say  it's (in order) translation, rotation, scale.
 
     Moreover, VRML 2 / X3D spec give explicit formula which we follow:
-      Tc' = -C × S × R × C × T × Tc
+      Tc' = -C * S * R * C * T * Tc
 
     To test that this order matters, check e.g. VRML NIST test suite,
     "Appearance -> TextureTransform" tests 15, 16 (ImageTexture),
