@@ -32,7 +32,6 @@ type
     procedure TestCheckIsMemCharFilled;
     procedure TestSmallest2Exp;
     procedure TestPathDelim;
-    procedure TestReadln;
     procedure TestKambiOSError;
     procedure TestStrings;
     procedure TestOthers;
@@ -213,17 +212,6 @@ begin
  Assert(InclPathDelim('c:\blah/') = 'c:\blah/');
  Assert(ExclPathDelim('c:\blah/') = 'c:\blah' );
 {$endif}
-end;
-
-procedure TTestKambiUtils.TestReadln;
-//var i: Integer;
-begin
-{ for i := 1 to 3 do
-  Writeln('You answered '+ BoolToStr[ReadlnYesNo('Answer defTrue ?', defTrue)]);
- for i := 1 to 3 do
-  Writeln('You answered '+ BoolToStr[ReadlnYesNo('Answer defNone ?', defNone)]);
- for i := 1 to 3 do
-  Writeln('You answered '+ BoolToStr[ReadlnYesNo('Answer defFalse ?', defFalse)]);  }
 end;
 
 procedure TTestKambiUtils.TestKambiOSError;
