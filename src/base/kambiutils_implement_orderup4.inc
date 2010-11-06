@@ -1,5 +1,5 @@
 begin
- if x<=y then begin mniejsza:=x; wieksza:=y end else
-              begin mniejsza:=y; wieksza:=x end;
+ if x<=y then begin Smaller:=x; Larger:=y end else
+              begin Smaller:=y; Larger:=x end;
 end;
 

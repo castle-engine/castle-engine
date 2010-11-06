@@ -262,8 +262,11 @@ begin
  Assert(StringOfChar('x', 0) = '');
  Assert(StringOfChar('x', 1) = 'x');
  Assert(StringOfChar('s', 3) = 'sss');
- Assert(GeneralPower( 2.0, 2.0) = 4.0);
- Assert(GeneralPower(-2.0, 2.0) = 4.0);
+ { We require Math.Power to work even with base <= 0 (but integer).
+   We even used to have our own GeneralPower implemented for this purpose,
+   but it's not needed since FPC 1.9.5 (bug 3005 is fixed). }
+ Assert(Power( 2.0, 2.0) = 4.0);
+ Assert(Power(-2.0, 2.0) = 4.0);
 end;
 
 procedure TTestKambiUtils.TestIntSqrt;

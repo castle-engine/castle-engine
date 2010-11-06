@@ -1458,7 +1458,7 @@ end;
 class procedure TKamScriptFloat.HandlePower(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptFloat);
-  TKamScriptFloat(AResult).Value := GeneralPower(
+  TKamScriptFloat(AResult).Value := Power(
     TKamScriptFloat(Arguments[0]).Value,
     TKamScriptFloat(Arguments[1]).Value );
 end;

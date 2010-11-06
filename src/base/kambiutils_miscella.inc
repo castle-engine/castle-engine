@@ -118,28 +118,39 @@ function Sqrt(const x: Extended): Extended;
 
 { arrays searching ---------------------------------------- }
 
-{podstawowe zastosowanie ArrayPos jest do zapisywania instrukcji
- case variable of
-  val1 : inst1;
-  val2 : inst2;
-  else instElse;
- end;
+{ ArrayPos* methods search the given array for a given value.
+
+  Podstawowe zastosowanie ArrayPos jest do zapisywania instrukcji
+
+@longCode(#
+  case variable of
+    val1 : inst1;
+    val2 : inst2;
+    else instElse;
+  end;
+#)
+
   (gdzie variable: Typ) w taki sposob aby Typ nie musial byc typem ordered
   (np. moze byc stringiem) a val1, val2 nie musialby byc stalymi.
   Zapisz case jako
- case ArrayPos(variable,[val1, val2]) of
-  0 : inst1;
-  1 : inst2;
-  else instElse;
- end;
- ArrayPos(A: T; Arr: Array of T) zwraca pozycje A w Arr (liczac od zera),
-  zwraca -1 jesli A nie wystepuje w Arr. }
 
+@longCode(#
+  case ArrayPos(variable,[val1, val2]) of
+    0 : inst1;
+    1 : inst2;
+    else instElse;
+  end;
+#)
+
+  ArrayPos(A: T; Arr: Array of T) zwraca pozycje A w Arr (liczac od zera),
+  zwraca -1 jesli A nie wystepuje w Arr.
+  @groupBegin }
 function ArrayPosPointer(A: pointer; const Arr: array of pointer): Integer; overload;
 function ArrayPosStr(const A: string; const Arr: array of string): Integer; overload;
 function ArrayPosInt(A: Integer; const Arr: array of Integer): Integer; overload;
 function ArrayPosCard(A: Cardinal; const Arr: array of Cardinal): Integer; overload;
 function ArrayPosExt(A: Extended; const Arr: array of Extended): Integer; overload;
+{ @groupEnd }
 
 function ArrayPosText(const A: string; const Arr: array of string;
   IgnoreCase: boolean {$ifdef DEFPARS}=true{$endif}): Integer; overload;
@@ -150,17 +161,17 @@ function PArrayPosText(const A: string; Arr: PString; ArrCount: Integer;
 
 { Iff functions ------------------------------------------------------------- }
 
+{ }
 function Iff(boolval: boolean; trueval, falseval: string)  : string;   overload;
 function Iff(boolval: boolean; trueval, falseval: Integer) : Integer;  overload;
 function Iff(boolval: boolean; trueval, falseval: Float)   : Float;    overload;
 function Iff(boolval: boolean; trueval, falseval: Cardinal): Cardinal; overload;
 function Iff(boolval: boolean; trueval, falseval: char)    : char;     overload;
 
-{ Some helpful consts ---------------------------------------- }
+{ Some helpful consts -------------------------------------------------------- }
 
 {$ifdef FPC}
-{ This is a string describing FPC version, in the form
-  version.release.patch .
+{ Describe FPC version, in the form 'version.release.patch'.
 
   This is actually a constant (for every run of a program it has
   always the same value) but I can't declare it as a Pascal constant
@@ -169,7 +180,7 @@ function Iff(boolval: boolean; trueval, falseval: char)    : char;     overload;
 function SFPCVersion: string;
 {$endif}
 
-{ SCompilerDescription is a short name and version of Pascal compiler used
+{ Short name and version of Pascal compiler used
   to compile this unit. It is a constant, actually, but I cannot
   declare it as a constant because it must call SFPCVersion that
   is not declared as a constant.
@@ -370,13 +381,13 @@ end;
 function SVrmlEngineProgramHelpSuffix(const DisplayProgramName: string;
   const Version: string; WrapLines: boolean): string;
 begin
- Result :=
-   DisplayProgramName + ' version ' + Version + '.' +nl+
-   'Author: Michalis Kamburelis, aka Kambi <michalis.kambi@gmail.com>' +nl+
-   'See http://vrmlengine.sourceforge.net/ for latest versions' +
-   Iff(WrapLines, nl + ' ', '') +
-   ' of this program, sources, documentation etc.' +nl+
-   'Compiled with ' + SCompilerDescription +'.';
+  Result :=
+    DisplayProgramName + ' version ' + Version + '.' +nl+
+    'Author: Michalis Kamburelis, aka Kambi <michalis.kambi@gmail.com>' +nl+
+    'See http://vrmlengine.sourceforge.net/ for latest versions' +
+    Iff(WrapLines, nl + ' ', '') +
+    ' of this program, sources, documentation etc.' +nl+
+    'Compiled with ' + SCompilerDescription +'.';
 end;
 
 {$endif read_implementation}

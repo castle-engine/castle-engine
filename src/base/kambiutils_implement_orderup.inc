@@ -1,3 +1,3 @@
 begin
- if mniejsza>wieksza then SwapValues(mniejsza,wieksza)
+ if Smaller>Larger then SwapValues(Smaller,Larger)
 end;

@@ -18,7 +18,8 @@
 
 {$ifdef read_interface}
 
-{ zamien wartosci a z b }
+{ Swap variables values.
+  @groupBegin }
 procedure SwapValues(var a, b: Byte); overload;
 procedure SwapValues(var a, b: Int64); overload;
 procedure SwapValues(var a, b: Integer); overload;
@@ -30,26 +31,32 @@ procedure SwapValues(var a, b: Extended); overload;
 {$endif}
 procedure SwapValues(var a, b: char); overload;
 procedure SwapValues(var a, b: Pointer); overload;
+{ @groupEnd }
 
-{ Jesli nie jest mniejsza<=wieksza to zamien wartosciami dwie zmienne.
-  Po wywolaniu tych proc. zawsze mniejsza<=wieksza }
-procedure OrderUp(var mniejsza, wieksza: Int64   ); overload;
-procedure OrderUp(var mniejsza, wieksza: Integer ); overload;
-procedure OrderUp(var mniejsza, wieksza: Cardinal); overload;
-procedure OrderUp(var mniejsza, wieksza: Single  ); overload;
-procedure OrderUp(var mniejsza, wieksza: Double  ); overload;
+{ Make sure the Smaller value is <= than the Larger value,
+  by eventually swapping them.
+  @groupBegin }
+procedure OrderUp(var Smaller, Larger: Int64   ); overload;
+procedure OrderUp(var Smaller, Larger: Integer ); overload;
+procedure OrderUp(var Smaller, Larger: Cardinal); overload;
+procedure OrderUp(var Smaller, Larger: Single  ); overload;
+procedure OrderUp(var Smaller, Larger: Double  ); overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure OrderUp(var mniejsza, wieksza: Extended); overload;
+procedure OrderUp(var Smaller, Larger: Extended); overload;
 {$endif}
+{ @groupEnd }
 
-{ laduje do mniejsza, wieksza wartosci x, y tak zeby mniejsza<=wieksza }
-procedure OrderUp(x, y: Integer;  var mniejsza, wieksza: Integer ); overload;
-procedure OrderUp(x, y: Cardinal; var mniejsza, wieksza: Cardinal); overload;
-procedure OrderUp(x, y: Single;   var mniejsza, wieksza: Single  ); overload;
-procedure OrderUp(x, y: Double;   var mniejsza, wieksza: Double  ); overload;
+{ Assign the smaller value from X, Y to Smaller variable, the other one
+  to Larger variable.
+  @groupBegin }
+procedure OrderUp(x, y: Integer;  var Smaller, Larger: Integer ); overload;
+procedure OrderUp(x, y: Cardinal; var Smaller, Larger: Cardinal); overload;
+procedure OrderUp(x, y: Single;   var Smaller, Larger: Single  ); overload;
+procedure OrderUp(x, y: Double;   var Smaller, Larger: Double  ); overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure OrderUp(x, y: Extended; var mniejsza, wieksza: Extended); overload;
+procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload;
 {$endif}
+{ @groupEnd }
 
 { Return minimum / maximum from 2 / 3 items.
   @groupBegin }
@@ -90,10 +97,9 @@ function max(const a, b, c: Extended): Extended; overload;
 {$endif}
 { @groupEnd }
 
-{ These work like @code(A := Min(A, B)).
-  But they are a (very little) faster, since they avoid all the mem copying
-  work when A is equal to Min(A, B).
-  @noAutoLinkHere
+{ Update value of A to be a minimum of A, B.
+  Works like @code(A := Min(A, B)), but is marginally faster,
+  since you don't have to do anything when A is already smaller.
   @groupBegin }
 procedure MinTo1st(var a: Int64   ; const b: Int64   ); overload;
 procedure MinTo1st(var a: Integer ; const b: Integer ); overload;
@@ -105,10 +111,9 @@ procedure MinTo1st(var a: Extended; const b: Extended); overload;
 {$endif}
 { @groupEnd }
 
-{ These work like @code(A := Max(A, B)).
-  But they are a (very little) faster, since they avoid all the mem copying
-  work when A is equal to Max(A, B).
-  @noAutoLinkHere
+{ Update value of A to be a maximum of A, B.
+  Works like @code(A := Max(A, B)), but is marginally faster,
+  since you don't have to do anything when A is already larger.
   @groupBegin }
 procedure MaxTo1st(var a: Int64   ; const b: Int64   ); overload;
 procedure MaxTo1st(var a: Integer ; const b: Integer ); overload;
@@ -120,9 +125,11 @@ procedure MaxTo1st(var a: Extended; const b: Extended); overload;
 {$endif}
 { @groupEnd }
 
-{ zwraca indeks (0, 1 lub 2) maximum / minimum}
+{ Returns index (0, 1 or 2) of maximum / minimum of 3 numbers.
+  @groupBegin }
 function IndexMax(const a0, a1, a2: Double): Integer; overload;
 function IndexMin(const a0, a1, a2: Double): Integer; overload;
+{ @groupEnd }
 
 function Between(const a, vBegin, vEnd: Int64): boolean; overload;
 function Between(const a, vBegin, vEnd: integer): boolean; overload;
@@ -179,33 +186,34 @@ const
   multiplicatora wiekszej lub rownej value. }
 function RoundUpToMultiply(value, multiplicator: Integer): Integer;
 
-{ BiggestPowerOf2 zwraca najwieksza potege 2 mniejsza lub rowna Value.
-  Jezeli Value = 0 zwroci 0. }
+{ Largest power of 2 still <= Value.
+  When Value = 0 returns 0. }
 function BiggestPowerOf2(Value: Cardinal): Cardinal;
 
-{ j.w. tyle ze tutaj zwracamy ktora to jest potega 2 zamiast
-  od razu ta potege dwojki. Bigget2Exponent(0) = -1. }
+{ Exponent of the largest power of 2 that it's still <= Value.
+  Like BiggestPowerOf2, except that this returns which power of 2 it is,
+  while BiggestPowerOf2 just returns exactly this power.
+  Bigget2Exponent(0) = -1. }
 function Biggest2Exponent(Value: Cardinal): integer;
 
-{ Smallest2Exponent zwraca najmniejsza liczbe taka ze
-  2^Smallest2Exponent(Value) >= Value.
-
-  Smallest2Exponent(0) = -1 (zeby zaznaczyc ze jest to sytuacja inna
-  niz gdy Value=1, gdzie zwracamy 0). }
+{ Smallest exponent such that 2^this exponent is >= Value.
+  Smallest2Exponent(0) = -1 (this is different situation than
+  Smallest2Exponent(1), when we return 0. }
 function Smallest2Exponent(Value: Cardinal): Integer;
 
-{ Smallest2Power zwraca od razu 2^Smallest2Exponent(Value)
-  (zwraca 0 jezeli Value=0).  }
+{ Smallest power of 2 that is >= Value.
+  Like Smallest2Exponent, except here we return 2^Smallest2Exponent(Value).
+  Returns 0 when Value = 0. }
 function Smallest2Power(Value: Cardinal): Cardinal;
 
-{ zwraca true <=> Value=1 or Value=2 or Value=4 itd. (az do max potegi
-  dwojki <=High(cardinal) }
+{ Check is Value an exact power of 2. }
 function IsPowerOf2(Value: Cardinal): boolean;
 
 function DivRoundUp(Value, Divider: Cardinal): Cardinal; overload;
 function DivRoundUp(Value, Divider: Integer): Integer; overload;
 
-{ sourceVal jest wartoscia z zakresu sourceBegin..sourceEnd.
+{ Linearly map value from source range to destination range.
+  SourceVal jest wartoscia z zakresu sourceBegin..sourceEnd.
 
   Niech
 @preformatted(
@@ -235,42 +243,20 @@ function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 { @groupEnd }
 
-{ zwraca liczbe rzeczywista z przedzialu [RangeBegin, RangeEnd).
-  Musi byc RangeBegin<RangeEnd. }
+{ Random float value in given range.
+  Make sure RangeBegin < RangeEnd. }
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 
-{ Kat miedzy odcinkiem x1, y1 - x2, y2 a osia OX. Kat 0 oznacza ze y1=y2 i x2>x1,
-  potem kat rosnie w kierunku CCW. W radianach. }
+{ Angle between a 2D line segments and OX axis. Angle 0 means that Y1=Y2
+  and X2>X1, then the angle increases as you rotate CCW. In radians. }
 function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
 
-{ gdy Base, Exponent i result sa wszystkie Cardinalami }
+{ Calculate power Base to Exponent, knowing both arguments (and so,
+  also the result) are >= 0. }
 function NatNatPower(Base, Exponent: Cardinal): Cardinal;
 
-{ zwraca losowo -1 lub +1 (oba z rowna szansa 50%) }
+{ Random -1 or +1. }
 function RandomPlusMinus: integer;
-
-{ For FPC 1.9.4 and older (e.g. 1.0.10):
-
-  This function is needed because Math.Power works only for Base>=0.
-  But when Exponent is Integer then it is possible to calculate Base^Exponent
-  for any Base, even Base<0. This function implements this.
-
-  I submitted this as FPC bug 3005, so this function should be equal
-  to Math.Power when it will be fixed in newer FPC.
-
-  For FPC 1.9.5 and newer:
-
-  Bug 3005 is fixed, now this function is roughly equivalent
-  to Math.Power. It is not *exactly* equivalent because I do
-    if IsZero(Frac(Exponent)) then
-     Result := IntPower(Base, Round(Exponent)) ...
-  while FPC's Power does sthg like
-    if Frac(Exponent) = 0.0 then
-     Result := IntPower(Base, Trunc(Exponent)) ...
-  so FPC's Power is slightly faster but also slightly more
-  "radical" in deciding whether it's worth doing fallback on IntPower.
-}
-function GeneralPower(const Base, Exponent: Float): Float;
 
 { @groupBegin
 
@@ -328,6 +314,7 @@ function GeneralPower(const Base, Exponent: Float): Float;
   ustawionymi flagami exception (chociaz modyfikuja chwilowo flagi precision
   lub rounding i pewnie infinity tez). }
 const
+  { }
   F8087_Except :Word = $3F;
   F8087_InvalidOp_Except :Word = 1;
   F8087_DenormalizedOperand_Except :Word = 1 shl 1;
@@ -358,9 +345,8 @@ const
 function ArcCot(x: Float): Float;
 {$endif FPC}
 
-{ Yeah, this is this simplest factorial calculation to Int64.
-  Everyone understands that it will quicly break at too large
-  n values, right ? }
+{ Trivial factorial with Int64 result. Beware, the results very quickly
+  stop to fit inside Int64 range. }
 function SmallFactorial(n: Integer): Int64;
 
 { Better DivMod version, in case Dividend may be < 0.
@@ -374,7 +360,8 @@ function SmallFactorial(n: Integer): Int64;
 procedure KamDivMod(Dividend: Integer; Divisor: Word;
   out Result, Remainder: SmallInt);
 
-{ This is a special version of DivMod that always returns Remainder >= 0.
+{ Like DivMod (return result of integer division and a remainder),
+  but always return Remainder >= 0.
 
   This is useful in case when Dividend < 0.
   Standard DivMod (and Pascal div and mod operators) return then
@@ -405,8 +392,8 @@ function FloatModulo(const A, B: Double): Double;
 procedure MinMax(const x0, x1, x2: Double; out min, max: Double); overload;
 procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
 
-{ To workaround http://www.freepascal.org/mantis/view.php?id=9944,
-  our version of CoTan. }
+{ Our version of CoTan, to workaround
+  http://www.freepascal.org/mantis/view.php?id=9944. }
 function KamCoTan(const Value: Float): Float;
 
 { Floor from Sqrt(Value). }
@@ -428,21 +415,21 @@ procedure SwapValues(var a, b: Extended); type TT = Extended;{$I kambiutils_impl
 procedure SwapValues(var a, b: char);     type TT = char;    {$I kambiutils_implement_swapvalues.inc}
 procedure SwapValues(var a, b: Pointer);  type TT = Pointer; {$I kambiutils_implement_swapvalues.inc}
 
-procedure OrderUp(var mniejsza, wieksza: Int64);    {$I KambiUtils_implement_OrderUp.inc}
-procedure OrderUp(var mniejsza, wieksza: Integer);  {$I KambiUtils_implement_OrderUp.inc}
-procedure OrderUp(var mniejsza, wieksza: Cardinal); {$I KambiUtils_implement_OrderUp.inc}
-procedure OrderUp(var mniejsza, wieksza: Single);   {$I KambiUtils_implement_OrderUp.inc}
-procedure OrderUp(var mniejsza, wieksza: Double);   {$I KambiUtils_implement_OrderUp.inc}
+procedure OrderUp(var Smaller, Larger: Int64);    {$I KambiUtils_implement_OrderUp.inc}
+procedure OrderUp(var Smaller, Larger: Integer);  {$I KambiUtils_implement_OrderUp.inc}
+procedure OrderUp(var Smaller, Larger: Cardinal); {$I KambiUtils_implement_OrderUp.inc}
+procedure OrderUp(var Smaller, Larger: Single);   {$I KambiUtils_implement_OrderUp.inc}
+procedure OrderUp(var Smaller, Larger: Double);   {$I KambiUtils_implement_OrderUp.inc}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure OrderUp(var mniejsza, wieksza: Extended); {$I KambiUtils_implement_OrderUp.inc}
+procedure OrderUp(var Smaller, Larger: Extended); {$I KambiUtils_implement_OrderUp.inc}
 {$endif}
 
-procedure OrderUp(x, y: Integer; var mniejsza, wieksza: Integer);   {$I KambiUtils_implement_OrderUp4.inc}
-procedure OrderUp(x, y: Cardinal; var mniejsza, wieksza: Cardinal); {$I KambiUtils_implement_OrderUp4.inc}
-procedure OrderUp(x, y: Single; var mniejsza, wieksza: Single);     {$I KambiUtils_implement_OrderUp4.inc}
-procedure OrderUp(x, y: Double; var mniejsza, wieksza: Double);     {$I KambiUtils_implement_OrderUp4.inc}
+procedure OrderUp(x, y: Integer;  var Smaller, Larger: Integer);   {$I KambiUtils_implement_OrderUp4.inc}
+procedure OrderUp(x, y: Cardinal; var Smaller, Larger: Cardinal); {$I KambiUtils_implement_OrderUp4.inc}
+procedure OrderUp(x, y: Single;   var Smaller, Larger: Single);     {$I KambiUtils_implement_OrderUp4.inc}
+procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);     {$I KambiUtils_implement_OrderUp4.inc}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure OrderUp(x, y: Extended; var mniejsza, wieksza: Extended); {$I KambiUtils_implement_OrderUp4.inc}
+procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); {$I KambiUtils_implement_OrderUp4.inc}
 {$endif}
 
 { Int64 versions }
@@ -683,18 +670,6 @@ function RandomPlusMinus: integer;
 const PlusMinus: array[0..1]of integer = (-1,+1);
 begin
  result := PlusMinus[Random(2)];
-end;
-
-function GeneralPower(const Base, Exponent: Float): Float;
-begin
- if Base<0 then
- begin
-  if (Abs(Exponent) <= MaxInt) and IsZero(Frac(Exponent)) then
-   Result := IntPower(Base, Round(Exponent)) else
-   raise EInvalidArgument.Create('GeneralPower: Exponent must be'+
-     ' (very close to) integer if Base<0 to calculate Power(Base, Exponent)');
- end else
-  Result := Power(Base, Exponent);
 end;
 
 {$ifdef FPC}
