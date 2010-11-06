@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface}
-  { List of pointing device sensors: only nodes descending from
+  { List of pointing device sensors. Only nodes descending from
     X3DPointingDeviceSensorNode, and additionally an Anchor node. }
   TPointingDeviceSensorsList = class(TVRMLNodesList)
   public

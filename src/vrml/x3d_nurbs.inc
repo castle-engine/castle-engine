@@ -82,7 +82,7 @@
     public property FdvOrder: TSFInt32 read FFdvOrder;
   end;
 
-  { Contour2D.
+  { Contour2D node.
 
     For VRML 2.0, this is TNodeX3DGeometryNode, since VRML 2.0 specification
     explicitly says it's valid geometry node. For X3D specification, this was only

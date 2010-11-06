@@ -154,7 +154,8 @@
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
-  { wspolny rodzic dla IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet }
+  { Common base class for VRML 1.0 indexed nodes
+    (IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet). }
   TVRMLIndexedNode_1 = class(TVRMLGeometryNode_1)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -176,7 +177,8 @@
     function CoordIndex: TMFLong; override;
   end;
 
-  { Common ancestor for IndexedFaceSet and IndexedTriangleMesh. }
+  { Common base class for VRML 1.0 indexed polygon nodes
+    (IndexedFaceSet and IndexedTriangleMesh). }
   TNodeIndexed_Faces_Or_Triangles_1 = class(TVRMLIndexedNode_1)
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
@@ -223,11 +225,10 @@
     private FFdNumPoints: TSFLong;
     public property FdNumPoints: TSFLong read FFdNumPoints;
 
-    {oblicz startIndex i numPoints na podstawie odpowiednich pol.
-     Zwrocone numPoints jest na pewno > 0, przedzial startIndex..numPoints-1
-     na pewno zawiera sie w przedziale 0..LastCoordinate3.FdPoint.Count-1.
-     Ta proc. NIE poprawia wartosci na polach Fd* - bo byc moze w skryptach
-     bedzie wygodniej zakladac ze nawet nieprawidlowe wartosci sa trwale. }
+    { Calculate startIndex and numPoints using appropriate fields.
+      Makes sure the returned numPoints is > 0,
+      and range [startIndex .. numPoints - 1] is within
+      the range [0 .. LastCoordinate3.FdPoint.Count - 1]. }
     procedure CalculateRange(LastCoordinate3: TNodeCoordinate3;
       out startIndex, numPoints: integer);
 
@@ -355,7 +356,7 @@
     private FFdTransparency: TMFFloat;
     public property FdTransparency: TMFFloat read FFdTransparency;
 
-    { pola dodane przeze mnie na potrzeby raytracerow na RGK } { }
+    { Fields used by ray-tracers. } { }
     private FFdMirror: TMFFloat;
     public property FdMirror: TMFFloat read FFdMirror;
 
@@ -380,33 +381,20 @@
     private FFdFogImmune: TSFBool;
     public property FdFogImmune: TSFBool read FFdFogImmune;
 
-    { ponizej sa funkcje do latwego wyciagania materialu z node'a material.
-      De facto powinienes ich uzywac zawsze gdy zalezy ci na wyciagnieciu
-      wartosci materialu. Te funkcje uwzgledniaja fakt ze pola moga byc
-      zapisane zle (niezgodnie ze specyfik. VRMLa albo zgodnie ale w jakis
-      szczegolny przypadek wymagajacy opakowania) - np. ze moze nie byc
-      podanej zadnej wartosci dla ambient a my chcemy kolor numer zero
-      (w tym przypadku zwracany jest defaultowy kolor ambient materialu VRMLa)
-      albo ze moze nie byc wystarczajacej ilosci kolorow (wtedy bierzemy
-      ostatni kolor).
+    { Easily extract VRML 1.0 material properties.
+      These methods secure you from accessing non-existing material index
+      (will return the last existing value, or default value if field is empty).
 
-      Funkcje zwracajace TVector4Single zwracaja [TVector3Single, Opacity].
+      Functions returning TVector4Single add Opacity at the last component.
 
-      Transparency i Opacity sa zwracane w zakresie 0..1, przy czym
+      Transparency and Opacity are in [0 .. 1] range.
       Opacity = 1 - Transparency.
 
-      ShininessExp to @italic(nieznormalizowany) wykladnik odbicia zwierciadlanego
-      (dla modelu osw. Phonga) (mimo ze w VRMLu powinnismy dostac
-      znormalizowany, tzn. w zakresie 0..1 reprezentujacym 0..128;
-      ale nie widze szczerze mowiac sensu takiej normalizacji, wartosc
-      128 nie jest (chyba?) zadna szczegolna wartoscia, to tylko taka
-      ustalona granica powyzej ktorej i tak wartosci juz w zasadzie nie maja
-      sensu (cos^128 to juz jest BARDZO waska gorka).
-      W sumie dla usera zakres 0..1 moze byc po prostu wygodniejszy do myslenia
-      (chociaz moze byc tez mylacy, bo roznice miedzy 1 a 0.5 w takiej konwencji
-      trudno jakos okreslic jako "dwa razy wieksza') ale dla wszystkiego co
-      chcielibysmy robic programowo zdecydowanie bedziemy potrzebowali
-      nieznormalizowanej wartosci. }
+      ShininessExp is the @italic(not normalized) shininess exponent
+      for Phong lighting equations. Normal VRML/X3D shininess field
+      is "normalized", that is it has to be multiplied by 128 to get
+      actual exponent for lighting equations.
+      @groupBegin }
     function AmbientColor3Single(MatNum: integer): TVector3Single;
     function AmbientColor4Single(MatNum: integer): TVector4Single;
     function DiffuseColor3Single(MatNum: integer): TVector3Single;
@@ -423,22 +411,24 @@
     function Mirror(MatNum: integer): Single;
     function ReflSpecularExp (MatNum: integer): Single;
     function TransSpecularExp(MatNum: integer): Single;
+    { @groupEnd }
 
-    { true oznacza ze ten material to specjalny przypadek o ktorym mowa w
-      specyfikacji VRMLa : pola ambient, diffuse i specular maja dlugosc = 0
-      a wiec nalezy uznac kolor Emissive za JUZ WYLICZONY ostateczny kolor.
-      Powinienes wowczas odczytac tylko wartosc EmissiveColor i
-      Transparency/Opacity (ujete w jednej prostej wartosci EmissiveColor4Single)
-      i nie patrzec na inne wlasciwosci materialu. }
+    { Only the emissive field is not empty.
+      This detects a special case described in VRML 1.0 specification:
+      when ambient, diffuse and specular are all empty (no values),
+      then emissiveColor should be used at the final color and shape
+      should be unlit.
+
+      You should use the EmissiveColor4Single in this case. }
     function OnlyEmissiveMaterial: boolean;
 
-    { true jesli wszystkie elementy pola FdTransparency sa ostro wieksze
-      od zera  (od SingleEqualityEpsilon, tak naprawde).
-      Pamietaj ze pole FdTransparency o Length = 0 jest zawsze traktowane
-      jakby podano wartosc domyslna, tzn. [0], a wiec wtedy ta funkcja zwraca
-      false (jest to sprzeczne z matematyczna (i intuicyjna) definicja
-      kwalifikatora "all" ktora mowi ze "kazde zdanie kwalifikowane
-      'dla kazdego' jest prawdziwe dla zbioru pustego") }
+    { All the "transparency" field values are greater than zero.
+      So the blending should be used when rendering.
+
+      Note that when "transparency" field is empty, then we assume
+      a default transparency (0) should be used. So AllMaterialsTransparent
+      is @false then (contrary to the strict definition of "all",
+      which should be true for empty sets). }
     function AllMaterialsTransparent: boolean;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -494,14 +484,14 @@
 
   TNodeTexture2 = class(TVRML2DTextureNode)
   protected
-    { Texture in this class is loaded z pliku (pole filename)
-      lub inlined (pole image). Pierwszenstwo ma tekstura z pliku,
-      jesli filename = '' (lub wystapi jakis blad przy ladowaniu z filename
-      ale VRMLWarning to zignoruje) to zostanie uzyta tekstura inline.
+    { Texture is loaded from file or inlined.
+      The priority has the filename, only if it's empty (or an exception
+      occurs during file loading) then the inlined texture will be used.
 
-      BTW, in VRML 1.0 node z IsTextureLoaded = true i
-      IsTextureImage = false tez ma swoje znaczenie:
-      oznacza "wylacz aktywna teksture". }
+      Note that in VRML 1.0 a node without any texture
+      (that is, when IsTextureLoaded = true and still
+      IsTextureImage = false) is also useful: it turns off using the previous
+      texture. }
     procedure LoadTextureData(out CacheUsed: boolean); override;
   public
     constructor Create(const ANodeName: string;
@@ -520,15 +510,15 @@
     private FFdWrapT: TSFEnum;
     public property FdWrapT: TSFEnum read FFdWrapT;
 
-    { Ignored fields -- they are not part of VRML 1.0 spec
-      and I was not able to find any spec for them on the net.
-      But some models ([http://www-vrl.umich.edu/sel_prj/EECS498/])
-      use them. }
+    { Ignored fields, some unknown extensions to VRML 1.0 spec.
+      Some models ([http://www-vrl.umich.edu/sel_prj/EECS498/]) use them.
+      @groupBegin }
     private FFdModel: TSFEnum;
     public property FdModel: TSFEnum read FFdModel;
 
     private FFdBlendColor: TSFVec3f;
     public property FdBlendColor: TSFVec3f read FFdBlendColor;
+    { @groupEnd }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -598,10 +588,8 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  { TVRMLTransformationNode - wspolna klasa dla wszystkich node'ow ktorych
-    jedynym celem jest zmodyfikowac aktualna macierz modelview.
-    Wystarczy ze w kazdej z podklas napiszesz funkcje MatrixTransform: TMatrix4f
-    no i oczywiscie zainicjujesz pola danego node'a. }
+  { Common base class for all nodes that modify the modelview matrix.
+    In descendants you only have to override the MatrixTransform method. }
   TVRMLTransformationNode = class(TNodeX3DChildNode)
   protected
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -613,7 +601,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  { This is VRML 1.0 MatrixTransform node. }
+  { VRML 1.0 MatrixTransform node. }
   TNodeMatrixTransform_1 = class(TVRMLTransformationNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -702,7 +690,7 @@
     function AverageScaleTransform: Single; override;
   end;
 
-  { GeneralCamera - wspolna klasa dla wszystkich kamer VRML'a. }
+  { Common base class for all cameras in VRML 1.0. }
   TVRMLCameraNode_1 = class(TVRMLViewpointNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -716,15 +704,15 @@
     private FFdHeightAngle: TSFFloat;
     public property FdHeightAngle: TSFFloat read FFdHeightAngle;
 
-    { Ignored fields -- they are not part of VRML 1.0 spec
-      and I was not able to find any spec for them on the net.
-      But some models ([http://www-vrl.umich.edu/sel_prj/EECS498/])
-      use them. }
+    { Ignored fields, some unknown extensions to VRML 1.0 spec.
+      Some models ([http://www-vrl.umich.edu/sel_prj/EECS498/]) use them.
+      @groupBegin }
     private FFdNearDistance: TSFFloat;
     public property FdNearDistance: TSFFloat read FFdNearDistance;
 
     private FFdFarDistance: TSFFloat;
     public property FdFarDistance: TSFFloat read FFdFarDistance;
+    { @groupEnd }
 
     function Position: TSFVec3f; override;
 

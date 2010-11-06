@@ -14,83 +14,96 @@
 }
 
 (*
-  @abstract(Define all VRML / X3D nodes, along with other bulding blocks
-  of VRML / X3D (prototypes, routes etc.).)
+  @abstract(All VRML/X3D nodes and other bulding blocks
+  of VRML/X3D (prototypes, routes and such).)
 
-  This is the most important unit for VRML processing,
-  as VRML file is basically just a nodes' graph.
-  In fact, we represent VRML file as just one root node
-  (if necessary, we will wrap actual file nodes within
-  one "artificial" node, see TVRMLRootNode_1 or TVRMLRootNode_2).
+  This is the centrail unit for VRML/X3D processing, as VRML/X3D file
+  is basically just a graph of nodes. We can represent VRML/X3D file
+  by it's root node. This is what we load, save and process in this unit.
 
   The chapter "Reading, writing, processing VRML scene graph"
   in the documentation on
   [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_graph.html]
   is almost completely devoted to documenting the design of this single unit.
 
-  Nodes can be loaded/saved from stream in "classic" encoding
-  (the only encoding available before X3D), using internally
-  the lexer (in VRMLLexer unit) and parser of VRML fields
-  (in VRMLFields unit).
-
-  For VRML nodes' graph processing, this unit offers a lot TVRMLNode
-  methods. See e.g. TVRMLNode.Traverse, TVRMLNode.EnumerateNodes and
-  TVRMLNode.FindNode. Traverse is especially important, since it
-  walks through VRML graph just as VRML specification says
-  (e.g. visiting only one child from a Switch node's children),
-  gathering some state (useful especially for VRML 1.0, but also
-  used for various things in later VRML versions).
-  When you want to e.g. render VRML graph, you can just traverse
-  the graph and render each pair of State with a geometry node
-  (some TVRMLGeometryNode instance).
-  (Alternatively, simple renderer can also use TVRMLGeometryNode.Triangulate).
-
-  Many node classes have also specific routines useful for manipulating
-  them (for example loading the contents of various Inline and Texture nodes,
-  extracting transformation from nodes that can change it etc.).
-  TVRMLGeometryNode in particular has some useful routines
-  for calculating bounding box, vertex/triangles counts and
-  to triangulate the node.
-
-  This unit doesn't depend on OpenGL, or any other particular rendering
-  method. So it's suitable also for VRMLRayTracer, and every other possible
-  renderer that will ever get implemented.
-
-  VRML node classes names, and inheritance:
+  @bold(Various uses of this unit:)
 
   @unorderedList(
-    @item(Pascal classes named like TNodeXxx are @bold(official) node classes,
-      that is they implement VRML / X3D specification node Xxx.
-      This also applies to some extension nodes (for example,
-      http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php).
-      The important fact is that these node names are somehow available to
-      the user, required by some specification etc.
+    @item(Nodes can be loaded/saved from the stream in a "classic" encoding.
+      This uses internally the lexer (in VRMLLexer unit)
+      and parser of VRML fields (in VRMLFields unit).
 
-      X3D abstract node classes also fall into this category (they are
-      specified in X3D specification; although nothing actually forces us
-      to implement these abstract X3D classes, and VRML author cannot directly use
-      them, I decided it's a proper way to define these classes.).
+      We can also load from an XML encoding. (Saving to XML encoding
+      is not implemented for now.)
 
-      They all descend from TVRMLNode. For example, TNodeIndexedFaceSet.
+      When reading VRML/X3D files, we generally do not change the VRML/X3D graph.
+      So we're able to save exactly the same VRML/X3D graph
+      back to another file. See also
+      [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/ch02s04.html#id2671890].
+      This allows writing various VRML
+      processing tools, that can simply read the file, change whatever
+      they want, and write the file back --- knowing that the "untouched"
+      parts of VRML graph are preserved perfectly.)
 
-      There are also Pascal interfaces, like INodeXxx that represent
-      VRML node Xxx interface, more on this below. They all descend from IVRMLNode.
+    @item(TVRMLNode class offers a lot of methods to process VRML/X3D graph.
+      See TVRMLNode.Traverse, TVRMLNode.EnumerateNodes and
+      TVRMLNode.FindNode. Traverse is especially important, since it
+      walks through VRML/X3D graph just as the specification says
+      (e.g. visiting only one child from a Switch node's children),
+      gathering some state (useful especially for VRML 1.0, but also
+      used for various things in later VRML/X3D versions).
 
-      The second group are @bold(unofficial) node classes. These are internal
-      to our engine, help our implementation, and often may help
-      a programmer to process some VRML files --- but they are not visible
-      to final VRML user/author. They are named TVRMLXxxNode,
-      like TVRMLGeometryNode, TVRML2DTextureNode, TVRMLLightNode, TVRMLUnknownNode.
+      When you want to e.g. render VRML/X3D graph, you can just traverse
+      the graph and render each pair of State with a geometry node
+      (some TVRMLGeometryNode instance).
+      Alternatively, simple renderer can also use TVRMLGeometryNode.Triangulate.)
 
-      So you can immediately tell which nodes come from
-      VRML / X3D specification and which nodes are only added by our engine
-      to simplify implementation.
+    @item(TVRMLGeometryNode is an important descendant of TVRMLNode,
+      as it defines stuff actually visible in the 3D world.
+      It has useful routinesfor calculating bounding volumes,
+      triangulating and such.)
 
-      Before X3D, adding my own TVRMLXxxNode classes was the only way to
-      add some interesting inheritance among VRML nodes.
-      This allows to reuse implementation, and also simplifies some processing:
-      for example, you can search the scene for any TVRMLLightNode, this
-      way looking for all PointLight, SpotLight etc. nodes.)
+    @item(This unit doesn't depend on OpenGL, or any other particular rendering
+      method. So it's suitable also for VRMLRayTracer, and every other possible
+      renderer that will ever get implemented.)
+
+    @item(Your own units can define new VRML/X3D nodes, by declaring
+      new classes descending from TVRMLNode (or other, more specialized,
+      descendant). You should register your new classes by calling
+      @link(NodesManager.RegisterNodeClasses TNodesManager.RegisterNodeClasses),
+      usually in the initialization section of your unit.
+
+      Examples of defining your own VRML/X3D node types (without modifying
+      sources of this unit, or any other unit) are for example in the
+      VRMLBezierCurve unit in @code(bezier_curves) demo,
+      and LevelUnit in malfunction.)
+  )
+
+  @bold(VRML node classes names, and inheritance:)
+
+  @unorderedList(
+    @item(Pascal classes named @code(TNodeXxx) correspond to actual
+      (available to user) VRML/X3D nodes named @code(Xxx).
+      See VRML/X3D specifications, and also our extensions specification,
+      on [http://vrmlengine.sourceforge.net/vrml_x3d.php].
+
+      X3D specification abstract node classes also have their corresponding
+      Pascal classes, named like @code(TNodeX3D...Node). Although we didn't
+      really have to follow X3D specification here (these are only abstract
+      classes, not available directly in VRML/X3D files), in practice
+      it's comfortable.
+
+      They all descend from the base TVRMLNode class.
+
+      There are also some Pascal interfaces, like INodeXxx, for particular
+      node classes. Some ideas of X3D specification (although not many)
+      need multiple inheritance, so interfaces have to be used.
+      They all descend from IVRMLNode.
+
+      There are also abstract classes that do not correspond directly to any
+      nodes in the specification, and were merely invented here to better
+      organize the implementation. They are named @code(TVRMLXxxNode),
+      like TVRMLGeometryNode, TVRML2DTextureNode, TVRMLLightNode, TVRMLUnknownNode.)
 
     @item(
       Optional suffix _1 or _2 or _3 after the node class name indicates that
@@ -98,7 +111,7 @@
       _1 means VRML 1.0, _2 means VRML 2.0 (aka 97), _3 means VRML 3.0 (aka X3D).
       Also _2 sometimes mean both VRML 2.0 and 3.0.
 
-      This suffix is used when there are nodes with the same name in VRML
+      This suffix is used when there are nodes with the same name in VRML/X3D
       specifications, but they have to be handled by different Pascal classes
       since they are incompatible.
 
@@ -119,7 +132,7 @@
       useful in the future.)
   )
 
-  As for VRML versions handling:
+  @bold(VRML/X3D versions handling:)
 
   @unorderedList(
     @item(
@@ -151,61 +164,7 @@
       syntax.)
   )
 
-  Note that when reading VRML files, we generally do not change the
-  VRML graph. So we're able to save exactly the same VRML graph
-  back to another file. See also
-  [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/ch02s04.html#id2671890].
-  This makes an excellent opportunity for writing various VRML
-  processing tools, that can simply read the file, change whatever
-  they want, and write the file back --- knowing that the "untouched"
-  parts of VRML graph are preserved perfectly.
-
-  Your own units can define new VRML/X3D nodes, by simply descending
-  from TVRMLNode (or other, more specialized, descendant).
-  This is possible thanks to NodesManager --- you should "register"
-  your new classes there, to be able to parse them.
-
-  Examples of defining your own VRML node types (without modifying
-  sources of this unit, or any other unit) are in these programs:
-  - bezier_curves (VRMLBezierCurve)
-  - malfunction (unit LevelUnit) defined various nodes like
-    MalfunctionLevelInfo. This way "malfunction" specific data
-    is kept inside VRML/X3D nodes graph, it's parsed by our VRML/X3D parser
-    and such.
-
-  TODO:
-  - Eventually, moving all non-abstract nodes out of this unit
-    could be nice. But
-    1. for now, stuff that is inside TVRMLGraphTraverseState.LastNodes
-       must be defined in this unit
-    2. I don't know if this is really good for users --- it adds
-       another unit to your uses clause.
-
-  Co do zapisywania VRMLa :
-  - kazde pole zapisuje 1 lub wiecej calych linii
-  - kazdy node zapisuje najpierw linie [DEF NodeName] NodeKindName {
-    potem swoje pola
-    potem swoje subnode'y
-    potem linie }
-    zmieniajac Indent o IndentIncrement zdefiniowane w VRMLFields
-  - linie sa konczone przez nl
-  - mechanizm DEF/USE pol jest zapisywany dobrze, tzn. jezeli
-    jakies pole jest obecne wiecej niz raz w drzewie VRML'a to jest
-    zapisywane do pliku tylko raz, kazdy nastepny zapis to tylko
-    zapisanie 'USE <NodeName>'
-  - w wiekszosci przypadkow pola o wartosciach domyslnych nie sa zapisywane.
-    W zasadzie zapisywanie pol o wartosciach domyslnych nie byloby bledem,
-    choc mogloby denerwowac userow. Ale my naprawde tego potrzebujemy ze
-    wzgledu na male rozszerzenia VRMLa 1.0 jakie tu zaimplementowalem
-    (patrz wyzej). Jesli chcemy zapisywac poprawne pliki VRMLa to nie mozemy
-    dopuszczac zeby np. eksport pliku 3DS na VRMLa dodawal jakies pole
-    "mirror" do kazdego Materialu. Wiec nie bedziemy zapisywac "mirror" kiedy
-    "mirror" = [0.0] i w ten sposob rozwiazujemy problem. Jednoczesnie,
-    jesli ktos rzeczywiscie stworzyl plik podajac wlasciwosc "mirror"
-    rozna od domyslnej to uwzglednimy wszedzie to pole i zapiszemy je w
-    razie potrzeby z powrotem do pliku VRMLa.
-
-  Files organization: X3D nodes are inside x3d_COMPONET_NAME.inc files.
+  @bold(Files organization:) X3D nodes are inside x3d_COMPONET_NAME.inc files.
   That's a nice thing, since X3D components provide a natural way to group
   the vast number of nodes into files. Some remaining nodes that are not part
   of X3D are in other vrmlnodes_xxx.inc files, for example
@@ -239,8 +198,8 @@ const
   DefaultMaterialTransSpecularExp = 1000000;
 
 { -----------------------------------------------------------------------------
-  dluuuga deklaracja "type" w ktorej wiele rzeczy jest zdefiniowanych
-  wzajemnie (rekurencyjnie). }
+  Looong "type" declaration below, with many class definitions depending
+  on each other. }
 
 type
   { forward declarations } { }
@@ -305,37 +264,31 @@ type
          );
   end;
 
-  { Keep track of a used light.
-    When the light is used, not only it's node is important (in LightNode),
-    but also current transformation (this transformation affects things
-    like actual position and direction). This record keeps it all.
+  { Light source that is used in the scene. References VRML/X3D
+    light source node in LightNode, and keeps track of light source
+    transformation in the 3D world. Also, for the sake of speed,
+    we keep here a couple of light's properties already multiplied
+    by the transformation.
 
-    Moreover, it provides precalculated properties like TransfLocation
-    and TransfNormDirection. Their computation too often would be somewhat
-    expensive, and thanks to this class we can calculate them just once
-    when they are found by traversing VRML file.
-
-    @bold(This record may be initialized only by
-    TVRMLLightNode.CreateActiveLight.
-    Update (when transform changes) by TVRMLLightNode.UpdateActiveLight.) }
+    This record may be initialized only by TVRMLLightNode.CreateActiveLight.
+    Update it (when transform changes) by TVRMLLightNode.UpdateActiveLight. }
   TActiveLight = record
     LightNode: TVRMLLightNode;
 
     Transform: TMatrix4Single;
     AverageScaleTransform: Single;
 
-    { TransfLocation to juz przeliczone Transformation*Location dla swiatel
-      TVRMLPositionalLightNode. }
+    { Light's location already multiplied by the @link(Transform) matrix.
+      For TVRMLPositionalLightNode lights. }
     TransfLocation: TVector3Single;
 
-    { TransfNormDirection to juz
-      znormalizowane i transformowane Direction dla swiatel Directional i Spot
-      (jest transformowane tak zeby przesuniecia nie mialy znaczenia,
-      licza sie tylko obroty i skalowania). }
+    { Light's direction, already normalized and multiplied by
+      the @link(Transform) matrix.
+      For spot and directional lights. }
     TransfNormDirection: TVector3Single;
 
-    { For VRML 2.0 positional lights, this is precalculated node's radius
-      scaled by Transform. }
+    { Light's radius, already transfomed (scaled) by the
+      the light's transformation. For VRML 2.0 positional lights with radius. }
     TransfRadius: Single;
   end;
   PActiveLight = ^TActiveLight;
@@ -346,14 +299,14 @@ type
   {$I dynarray_1.inc}
   TDynActiveLightArray = class(TDynArray_1)
   public
-    { -1 jesli nie ma }
+    { Find given light node on the list. Return -1 if not found. }
     function IndexOfLightNode(LightNode: TVRMLLightNode): integer;
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
   end;
   TArray_ActiveLight = TInfiniteArray_1;
   PArray_ActiveLight = PInfiniteArray_1;
 
-  { ClipPlane, along with a tranformation. }
+  { Clipping plane, along with a tranformation. }
   TClipPlane = record
     Node: TNodeClipPlane;
     Transform: TMatrix4Single;
@@ -373,7 +326,7 @@ type
 
   TPointingDeviceSensorsList = class;
 
-  { This describes current "state" (current transformation and such)
+  { Current "state" (current transformation and such)
     when traversing VRML graph.
 
     For VRML >= 2.0 this could be simpler, as VRML >= 2.0 doesn't need
@@ -459,7 +412,7 @@ type
     procedure AddVRML1ActiveLight(const Light: TActiveLight);
     procedure AddVRML2ActiveLight(const Light: TActiveLight);
 
-    { This returns VRML1ActiveLights or VRML2ActiveLights, based on VRML
+    { Returns VRML1ActiveLights or VRML2ActiveLights, based on VRML
       flavor used to render with this state.
 
       More precisely, it checks "VRML flavor" by looking at ShapeNode:
@@ -491,17 +444,13 @@ type
       reversed). }
     InvertedTransform: TMatrix4Single;
 
-    { This is a uniform scale caused by matrix Transform.
+    { A uniform scale of the matrix @link(Transform). If the matrix
+      causes non-uniform scaling, this value represents an average scale.
 
-      I.e., if we could extract the scaling from Transform, then it would
-      be AverageScaleTransform. Assuming that the scale is uniform.
-      If we used any non-uniform scale along the way, this is the average scale.
-
-      This is calculated by updating it along the way, just like Transform
-      is updated. This way it's calculated easily --- contrary to the
-      non-trivial operation of extracting a scale from a 4x4 matrix.
-      It's also 100% correct, @italic(assuming that user didn't use
-      VRML 1.0 MatrixTransform along the way). }
+      This is updated while traversing the VRML graph, just like
+      the @link(Transform) matrix is updated. This way it's calculated
+      fast and easy --- we do not actually extract it from a matrix
+      (as long as you don't use explicit MatrixTransform in the VRML/X3D file). }
     AverageScaleTransform: Single;
 
     { Copy transformation-related fields from Source.
@@ -521,7 +470,7 @@ type
     constructor CreateCopy(Source: TVRMLGraphTraverseState);
     constructor Create(const ADefaultLastNodes: TTraverseStateLastNodes); overload;
 
-    { Standard create, uses global StateDefaultNodes as initial
+    { Standard constructor, uses global StateDefaultNodes as initial
       LastNodes state.
 
       Using a global StateDefaultNodes is useful, since this way
@@ -540,7 +489,7 @@ type
 
     procedure Assign(Source: TVRMLGraphTraverseState);
 
-    { Clear all state, just like this TVRMLGraphTraverseState instance
+    { Clear the whole state, just like this TVRMLGraphTraverseState instance
       would be just constructed. }
     procedure Clear;
 
@@ -775,11 +724,10 @@ type
       taking care of necessary typecasts. }
     function IndexOf(Node: TVRMLNode): Integer; overload;
 
-    { This looks for a node class that is ancestor of given Node,
-      in other words that satisfies @code(Node is Items[Result]).
-      So, comparing to IndexOf, this may also find something when
-      IndexOf doesn't, since this doesn't require an exact
-      match --- only "is" match.
+    { Looks for a node class that is ancestor of given Node,
+      in other words that satisfies the @code(Node is Items[Result]) condition.
+      Contrast this with IndexOf method, which looks only for an exact
+      class match.
 
       Returns -1 if not found. }
     function IndexOfAnyAncestor(Node: TVRMLNode): Integer;
@@ -791,7 +739,7 @@ type
     procedure AddRegisteredImplementing(Interf: TGUID);
   end;
 
-  { SFNode VRML field.
+  { VRML/X3D field holding a reference to a single node.
     It's defined in this unit, not in VRMLFields, since it uses
     TVRMLNode definition. NULL value of the field is indicated by
     Value field = nil.
@@ -925,7 +873,7 @@ type
     procedure EnumerateValid(Func: TEnumerateChildrenFunction);
   end;
 
-  { MFNode VRML field.
+  { VRML/X3D field holding a list of nodes.
 
     Just like SFNode, it's defined in this unit, as it uses TVRMLNode.
     Note that items of MFNode @italic(cannot) be nil (i.e. VRML doesn't
@@ -978,7 +926,7 @@ type
       AllowedChildrenInterface: TGUID); overload;
     destructor Destroy; override;
 
-    { This says that all children are allowed, regardless of
+    { If @true then all the children are allowed, regardless of
       AllowedChildren value.
 
       CreateUndefined creates always object with
@@ -1127,58 +1075,17 @@ type
 
 { TVRMLUnknownNode --------------------------------------------------- }
 
-  (* @abstract(TVRMLUnknownNode represents a node with an unrecognized type.)
+  { Not recognized VRML/X3D node type. Used for nodes found when parsing
+    VRML/X3D file that are not implemented.
 
-    If we approach some node with not recognized name we create TVRMLUnknownNode.
-    TVRMLUnknownNode has very special Parse method.
-    We want to use "fields" and "isA" VRML 1.0 extensibility features here.
-    (TODO - these extensibility features are not implemented yet;
-     for now all unrecognized nodes are of kind 1))
-    We have three cases :
+    TVRMLUnknownNode is parsed (in classic VRML encoding) in a special way,
+    to be able to omit it gracefully.
+    While such "unknown" node doesn't really do match in our graph,
+    it works correctly with VRML/X3D DEF/USE mechanism.
 
-    @orderedList(
-      @item(
-        Unknown node that doesn't have the "fields" field. It CAN be parsed
-        by simply looking for matching "}". Such node will use default
-        BoundingBox method implementation ---
-        wiec w praktyce taki node nie bedzie robil zadnego renderingu i mial
-        BoundingBox = EmptyBox3D.
-        Uwaga - *AllowedChildren bedzie = false.)
-
-      @item(
-        node ktory ma pole "fields" ale nie ma pola "isA" albo nie jest
-        tam podany zaden znany typ node'a. Taki node bedzie mial
-        wypelnione podczas parsowania pola Fields i bedzie parsowany
-        normalnie ale ciagle nie bedzie mial zadnego wplywu na renderowanie
-        sceny VRML'a, podobnie jak w przypadku 1. (chociaz jego dzieci BEDA
-        mialy - taki node bedzie zasadniczo dzialal jak node Group)
-        Uwaga - *AllowedChildren bedzie = true.)
-
-      @item(
-        wreszcie node ktory ma pola "fields" i "isA" i znalezlismy
-        wsrod isA jakis znany nam typ node'a. Czyli wiemy ze mamy
-        jakies rozszerzenie znanego nam node'a. Taki node bedzie mial
-        dynamicznie utworzone pola Fields i bedzie normalnie parsowany
-        (tak jak typ 2) a ponadto taki node bedzie mial taki wplyw
-        na model VRML'a jakby byl typem node'a ktory jest pierwszym
-        znanym nam typem na liscie "isA".
-        Uwaga - *AllowedChildren bedzie = *AllowedChildren znanego typu node'a.)
-    )
-
-    Ten node nigdy nie powinien byc tworzony tak jak normalny node
-    --- wrecz normalne wirtualne Create(const AName: string) spowoduje
-    wyjatek ! Tworz obiekty tego typu tylko uzywajac CreateUnknownParse,
-    lub CreateUnknown. This way we can safely assume that NodeTypeName
-    is always correctly set.
-
-    Spostrzezenie : ten mechanizm jest calkiem dobry - node'y kazdego
-    typu, nawet 1, moga byc nazywane i mozna sie pozniej do nich
-    odwolywac przez USE. Jezeli node jest typu 2 i 3 to nawet
-    ich SubNode'y beda wlaczone w ten standardowy mechanizm !
-    Po Parse node'u unknown typu 1) robimy VRMLWarning
-    (bo dokladnie to zaszlo --- to jest nieprawidlowy node, ale umiemy sobie
-    poradzic).
-  *)
+    Never instantiate this class by a standard constructor.
+    Always use CreateUnknown constructor, this way we can safely assume
+    that NodeTypeName is always correctly set. }
   TVRMLUnknownNode = class(TVRMLNode)
   private
     fNodeTypeName: string;
@@ -1341,6 +1248,7 @@ type
 
 { TVRMLPrototype ------------------------------------------------------------- }
 
+  { }
   TVRMLPrototypeBase = class;
 
   EVRMLPrototypeInstantiateError = class(Exception);
@@ -1963,7 +1871,7 @@ type
 { TraverseStateLastNodesClasses ---------------------------------------------- }
 
 const
-  { opis patrz TTraverseStateLastNodes }
+  { Classes corresponding to nodes on TTraverseStateLastNodes. }
   TraverseStateLastNodesClasses :
     array [TVRML1StateNode] of TVRMLNodeClass =
     ( TNodeCoordinate3, TNodeShapeHints, TNodeFontStyle_1,
@@ -1977,6 +1885,7 @@ const
 { TNodesManager ------------------------------------------------------------ }
 
 type
+  { }
   ENodesManagerError = class(EVRMLError);
   ENodeClassRegisterError = class(ENodesManagerError);
   TNodesManager = class
@@ -1989,20 +1898,21 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Mozesz rejestrowac tylko klasy o ClassNodeTypeName <> '' (w tej procedurze
-      to sprawdzimy i ew. rzucimy wyjatek ENodeClassRegisterError).
+    { Make the given node class known to the parser and other routines.
+      We associate the node class with it's TVRMLNode.ClassNodeTypeName
+      (make sure it's not empty).
 
-      Nie mozesz zarejestrowac dwa razy tej samej klasy,
-      spowoduje to ENodeClassRegisterError.
+      It is OK to register two different node classes with the same node.
+      For example, VRML 1.0 TNodeCone_1 class and VRML 2.0/X3D TNodeCone_2
+      class both have a name 'Cone' (and will be correctly chosen during parsing).
+      But you cannot register two times the same NodeClass.
 
-      Natomiast mozesz zarejestrowac wiele razy rozne klasy o tym samym
-      ClassNodeTypeName. For example TNodeCone_1 and TNodeCone_2.
-      They will be chosen in NodeTypeNameToClass using their ForVRMLVersion. }
+      @groupBegin }
     procedure RegisterNodeClass(NodeClass: TVRMLNodeClass);
     procedure RegisterNodeClasses(const NodeClasses: array of TVRMLNodeClass);
+    { @groupEnd }
 
-    { This unregisters class NodeClass, i.e. it removes it from
-      our map table.
+    { Unregisters given node class, removing it from our table.
 
       @raises(ENodesManagerError if NodeClass.ClassNodeTypeName = ''
         (so it cannot be even registered), or if
@@ -2010,19 +1920,15 @@ type
     procedure UnRegisterNodeClass(NodeClass: TVRMLNodeClass;
       ErrorIfNotRegistered: boolean = true);
 
-    { NodesManager zostal stworzony wlasnie po to aby zaimplementowac
-      funkcje TypeNameToClass: odwzorowuje ona nazwe typu VRMLa
-      na klase VRMLa ktora ma takie samo ClassNodeTypeName.
+    { Return node class for a given name. This method is the main purpose
+      of TNodesManager: to map node names into node classes.
 
-      Aby takie cos
-      przeprowadzic potrzebny byl gdzies ekwiwalent globalnej tablicy
-      przechowujacej wszystkie stworzone klasy wezlow VRMLa --- takim
-      odpowiednikiem jest wlasnie ta klasa do ktorej trzeba rejestrowac wezly.
-      Bedzie szukac wsrod zarejestrowanych klas klasy o zadanym
-      ClassNodeTypeName, wybierajac tylko klase ktorej
-      @code(ForVRMLVersion(VerMajor, VerMinor)) will return @true.
+      Searches in nodes registered by RegisterNodeClass and such.
+      During searching, looks not only for matching node name,
+      but also at matching VRML/X3D version, checking
+      @code(ForVRMLVersion(VerMajor, VerMinor)).
 
-      Jesli nie znajdzie zwroci nil. }
+      Returns @nil when not found. }
     function NodeTypeNameToClass(const ANodeTypeName: string;
       const VerMajor, VerMinor: Integer): TVRMLNodeClass;
 
@@ -2040,7 +1946,9 @@ type
   end;
 
 var
-  { tworzony i niszczony w init/fini tego modulu }
+  { Nodes manager instance. In normal circumstances, this is the only
+    instance of TNodesManager class ever created. It is created / destroyed
+    in this unit's initialization / finalization. }
   NodesManager: TNodesManager;
 
 { global procedures ---------------------------------------------------------- }
@@ -2063,12 +1971,15 @@ const
   ('Orthographic', 'Perspective');
 
 const
-  { consts for TNodeAsciiText.FdJustification.Value }
+  { Constants for TNodeAsciiText.FdJustification.Value.
+    @groupBegin }
   JUSTIFICATION_LEFT = 0;
   JUSTIFICATION_CENTER = 1;
   JUSTIFICATION_RIGHT = 2;
+  { @groupEnd }
 
-  { consts for TNode(Material|Normal)Binding.FdValue.Value }
+  { Constants for TNode(Material|Normal)Binding.FdValue.Value.
+    @groupBegin }
   BIND_DEFAULT = 0;
   BIND_OVERALL = 1;
   BIND_PER_PART = 2;
@@ -2077,41 +1988,58 @@ const
   BIND_PER_FACE_INDEXED = 5;
   BIND_PER_VERTEX = 6;
   BIND_PER_VERTEX_INDEXED = 7;
+  { @groupEnd }
 
-  { consts for TNodeShapeHints.FdVertexOrdering.Value }
+  { Constants for TNodeShapeHints.FdVertexOrdering.Value.
+    @groupBegin }
   VERTORDER_UNKNOWN = 0;
   VERTORDER_CLOCKWISE = 1;
   VERTORDER_COUNTERCLOCKWISE = 2;
+  { @groupEnd }
 
-  { consts for TNodeShapeHints.FdShapeType.Value }
+  { Constants for TNodeShapeHints.FdShapeType.Value.
+    @groupBegin }
   SHTYPE_UNKNOWN = 0;
   SHTYPE_SOLID = 1;
+  { @groupEnd }
 
-  { consts for TNodeShapeHints.FdFaceType.Value }
+  { Constants for TNodeShapeHints.FdFaceType.Value.
+    @groupBegin }
   FACETYPE_UNKNOWN = 0;
   FACETYPE_CONVEX = 1;
+  { @groupEnd }
 
-  { consts for TNodeFontStyle.FdFamily.Value }
+  { Constants for TNodeFontStyle.FdFamily.Value.
+    @groupBegin }
   FSFAMILY_SERIF = 0;
   FSFAMILY_SANS = 1;
   FSFAMILY_TYPEWRITER = 2;
+  { @groupEnd }
 
-  { consts for TNodeFontStyle.FdStyleFlags[] }
+  { Constants for TNodeFontStyle.FdStyleFlags.
+    @groupBegin }
   FSSTYLE_BOLD = 0;
   FSSTYLE_ITALIC = 1;
+  { @groupEnd }
 
-  { consts for TNodeCone.FdParts.Flags[] }
+  { Constants for TNodeCone.FdParts.Flags.
+    @groupBegin }
   CONE_PARTS_SIDES = 0;
   CONE_PARTS_BOTTOM = 1;
+  { @groupEnd }
 
-  { consts for TNodeCylinder.FdParts.Flags[] }
+  { Constants for TNodeCylinder.FdParts.Flags.
+    @groupBegin }
   CYLINDER_PARTS_SIDES = 0;
   CYLINDER_PARTS_TOP = 1;
   CYLINDER_PARTS_BOTTOM = 2;
+  { @groupEnd }
 
-  { consts for TNodeTexture2.FdWrapS/WrapT.Value }
+  { Constants for TNodeTexture2.FdWrapS/WrapT.Value.
+    @groupBegin }
   TEXWRAP_REPEAT = 0;
   TEXWRAP_CLAMP = 1;
+  { @groupEnd }
 
   DefaultHeightMapScale = 0.01;
   DefaultVRML1CreaseAngle = 0.5;
@@ -2125,38 +2053,50 @@ const
   DefaultShadowMapScale = 1.1;
   DefaultShadowMapBias = 4.0;
 
-{ TODO: these Detail parameters below should depend on object's distance
-  from viewer. But there is a problem : we need those parameters defined
-  when implementing Vertices/TrianglesCount and Triangulate. }
 var
-  { cylinder, cone, sphere and disk slices/stacks (slices for all objects
-    must be equal to perfectly "match" when objects are connected
-    (e.g. sphere connected with cylinder). Stacks and RectDivisions
-    nie sa do tego zmuszone ale i tak nie ma zadnego sensownego powodu
-    zeby z gory mowic ze dana bryla potrzebuje mniej stacks a inna wiecej).
+  { Quadric triangulation settings.
 
-    For the meaning of Detail_Quadric* consts look at definition of glu
-    quadric functions (it is not guaranteed that our code will use this
-    functions but we will always honour this Detail parameters in the same way).
+    Slices divide the circumference of the circle, like a slices of pizza.
+    Stacks divide the height of the object, like stacks of a cake or tower.
+    The precise meaning of slices and stacks parameters follows exactly
+    the OpenGL Utility (GLU) functions (although our implementation
+    doesn't use GLU).
 
-    For the meaning of Detail_RectDivisions (used only in Cube for now) look
-    at KambiGLUtils.DrawGLPlane.
+    Note that the cylinder, cone, sphere and disk slices must match,
+    otherwise artifacts will appear when you try to connect a sphere
+    with a cylinder cap. Stacks and RectDivisions do not really have to match,
+    but still it's sensible.
+
+    Rectangles (used for Cube sides) are also subdivided, for better
+    Gouraud shading. For the exact meaning of Detail_RectDivisions
+    see KambiGLUtils.DrawGLPlane.
 
     For now, you can change these variables only @italic(before using anything)
-    from this module.
+    from this module. If you want to change them inside VRML/X3D
+    file (for example, to affect only part of the scene), use the
+    KambiTriangulation node, see
+    [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_kambi_triangulation].
 
-    These variables @italic(must) always honour Min values listed below. }
+    These variables @italic(must) always honour MinQuadricSlices,
+    MinQuadricStacks, MinRectDivisions limit.
+
+    @groupBegin }
   Detail_QuadricSlices: Cardinal = 30;
   Detail_QuadricStacks: Cardinal = 20;
   Detail_RectDivisions: Cardinal = 2;
+  { @groupEnd }
 
 const
-  { uzywaj w programie zawsze tych stalych zamiast zakladac ze maja one
-    konkretne wartosci, ale mozesz oczywiscie przyjac zalozenie ze na pewno
-    sa one Cardinalami (sa >=0) }
-  MinQuadricSlices: Cardinal = 3; { mimo ze OpenGL akceptuje minimum 2, ale dla 2 wynik jest bez sensu }
+  { Minimal values for Detail_QuadricSlices, Detail_QuadricStacks,
+    Detail_RectDivisions.
+
+    Note that MinQuadricSlices can be lower (2), it works,
+    but the result isn't really sensible.
+    @groupBegin }
+  MinQuadricSlices: Cardinal = 3;
   MinQuadricStacks: Cardinal = 1;
   MinRectDivisions: Cardinal = 0;
+  { @groupEnd }
 
 const
   { URNs used to indicate standard VRML / X3D nodes.
@@ -3455,8 +3395,30 @@ begin
 end;
 
 procedure TVRMLUnknownNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
-{ TODO: tutaj zrobic parsowanie node'ow unknown typu 2) i 3),
-  VRMLWarning tez nie trzeba zawsze rzucac. }
+
+(*TODO: use "fields" and "isA" VRML 1.0 extensibility features here.
+
+  For now, we just always parse up to the matching closing "}".
+  The *AllowedChildren is set to false.
+
+  We should handle:
+
+  - node that has "fields", but not "isA" field (or "isA" points to
+    another unknown node name). In this case we can create Fields
+    array and parse fields of this node. We will not know how to handle
+    this node anyway, but at least we'll know it's fields names and values,
+    and we'll be able to save it back to stream.
+
+    The *AllowedChildren is set to true? To allow it to work like
+    VRML 1.0 Group?
+
+  - node that has "fields" and valid "isA". In this case we can create Fields
+    array, parse fields of this node. Then create a helper node
+    of type given by "isA", and replace (or add as a child)
+    our TVRMLUnknownNode by this helper node.
+
+    The *AllowedChildren should be copied from referred "isA" node.
+*)
 begin
   { w przypadku TVRMLUnknownNode musimy fAllowedChildren i fParseAllowedChildren
     inicjowac na podstawie parsowania. }

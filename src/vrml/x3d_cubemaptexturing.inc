@@ -50,7 +50,7 @@
     public property FdtextureProperties: TSFNode read FFdtextureProperties;
   end;
 
-  { Helper class common to all VRML/X3D generated texture nodes. }
+  { Helper for all VRML/X3D generated texture nodes. }
   TGeneratedTextureHandler = class
   private
     FUpdateNeeded: boolean;

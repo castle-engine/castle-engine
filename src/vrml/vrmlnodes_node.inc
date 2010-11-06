@@ -115,7 +115,7 @@
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
 
-    { This enumerates all active child nodes of given node.
+    { Enumerate all active child nodes of given node.
 
       "Active nodes" are the ones affecting current VRML graph look
       or collisions, e.g. from Switch
@@ -127,8 +127,8 @@
       See methods like Traverse or EnumerateNodes if you
       want recursive behavior.
 
-      This can enumerate both @link(Children) nodes in VRML 1.0
-      style and nodes within TSFNode and TMFNode fields.
+      This can enumerate both @link(VRML1Children) nodes
+      nodes within TSFNode and TMFNode fields.
 
       Default implementation in this class returns all Children
       nodes of VRML 1.0. If you need to remove some children
@@ -139,7 +139,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); virtual;
 
-    { This enumerates all active child nodes of given node,
+    { Enumerate all active child nodes of given node,
       and may additionally modify StateStack. It's used by Traverse.
 
       Default implementation in this class simply calls
@@ -151,8 +151,8 @@
       Func: TEnumerateChildrenFunction;
       StateStack: TVRMLGraphTraverseStateStack); virtual;
 
-    { This simply enumerates all direct descendant nodes of
-      this node. I.e. all children in VRML 1.0 style and
+    { Simply enumerate all direct descendant nodes.
+      That is, all children in VRML 1.0 style and
       all nodes in SFNode and MFNode fields.
       This includes prototype stuff, if this node is expanded
       from prototype: PrototypeInstanceSourceNode and PrototypeInstanceHelpers. }
@@ -166,7 +166,7 @@
       Func: TEnumerateChildrenFunction;
       OnlyActive: boolean);
 
-    { You can override these methods to determine what happens when
+    { Override these methods to determine what happens when
       given node is traversed during Traverse call.
       The main use of this is to operate on TVRMLGraphTraverseStateStack.
 
@@ -207,7 +207,6 @@
           TNodeShapeHints can "magically" handle "hints" field for Inventor.)
       )
 
-
       When overriding, always check inherited result first, and exit if
       inherited handled successfully.
       Otherwise either read your stuff and return @true
@@ -216,7 +215,8 @@
     function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; virtual;
 
-    (* This will be called by SaveToStream within { }.
+    (* Called by SaveToStream to output node contents
+       (stuff inside "{ }" for classic encoding).
        Usually you want to save here what you read in your overridden
        ParseNodeBodyElement. *)
     procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties;
@@ -263,51 +263,36 @@
 
       In VRML 2.0, this is always empty.
 
-      Kazdy VRML nodes moze miec dowolnie wiele Children.
-      Kiedy jakis node jest na liscie Children
-      jednego node'a to ma swojego rodzica na swojej liscie VRML1Parents.
-      Wiec w ten sposob mozemy podrozowac po grafie w obie strony.
-      (pamietaj ze graf VRML'a nie ma cykli gdy na niego patrzec jak na graf
-      skierowany (a takim wlasnie jest) ale kazdy node moze miec wiele rodzicow
-      wiec jezeli potraktujemy go jako graf nieskierowany to mozemy otrzymac
-      cykle; wszystko przez to ze node moze miec wiele VRML1Parents bo moze
-      uzywac mechanizmu USE).
+      VRML 1.0 nodes may have any number of children.
+      The children nodes refer back to it's parent nodes in VRML1Parents list.
+      When travelling over VRML/X3D graph, remember that cycles
+      are possible, because of DEF/USE.
+      Obviously, they possible when travelling along the VRML1Parents list.
+      We currently assume that there are no cycles when we treat the graph
+      as directed, but it may change one day (some VRML/X3D models
+      create real cycles).
 
-      Kiedy jakis node jest na liscie Children innego node'a to gdy ten inny
-      node bedzie go kasowal ze swojej listy Children (a w destruktorze
-      kazdy node kasuje wszystkich ze swojej listy Children) to wywola
-      jego destruktora. Innymi slowy, gdy jakis node jest czyims dzieckiem
-      to jest reference-counted i automatycznie zwalniany.
+      Adding/removing stuff from the VRML1Children list keeps track
+      of how many times a node is used. If the child node has no parents,
+      it will be freed.
       Actually, nodes can be children of both nodes (VRML 1.0 style,
       then VRML1Children and VRML1Parents is used) or fields (TMFNode or TSFNode,
       in VRML 2.0 style; then ParentFields is used). So the node is freed
       only when it's not referenced by any node and not referenced by any
-      field.
+      field. Generally, it's the parent that takes care of reference-counting
+      and freeing the children, not the other way around.
 
-      Wazna konwencja : jak widac, rodzic automatycznie martwi sie o swoje
-      dzieci. Natomiast dziecko w swoim Free nie martwi sie o uaktualnienie
-      swoich rodzicow.
+      Note that given node instance may be a children of a single node
+      multiple times, through DEF/USE mechanism. The order of children
+      is important and preserved. (On the other hand, the order of
+      VRML1Parents is not important, as that list is mostly for reference-counting.)
 
-      Zwracam tez uwage ze VRML1ChildRemove wymaga indeksu. Okreslanie dziecka
-      jako children: TVRMLNode jest nie-1-znaczne bo przeciez jeden node
-      moze miec kilka razy to samo dziecko (i w rezultacie, nawiasem mowiac,
-      kazde dziecko moze miec wiele razy tego samego Parenta). A nie chcemy
-      przeciez pomieszac sobie kolejnosci w VRML1Children (ona determinuje
-      przeciez kolejnosc przegladania grafu, a wiec Renderowania itp.)
-      (Natomiast mozemy sobie pozwolic i nieraz pozwalamy na ew. pomieszanie
-      kolejnosci w VRML1Parents; inaczej musielibysmy z kazdym VRML1Parents pamietac
-      swoj index na jego liscie). Tak wiec na listach VRML1Children i VRML1Parents
-      moga byc duplikaty i zdecydowanie nie powinnismy nigdzie niefrasobliwie
-      "czyscic" tych list przez DeleteDuplicates;
-
-      You can also replace one children with another by writing
-      to this property, like @code(VRML1Children[I] := NewChildren;).
+      You can replace one children with another like
+      @code(VRML1Children[I] := NewChildren;).
       This works like a shortcut for
       @code(VRML1ChildRemove(I); VRML1ChildAdd(I, NewChildren);).
-      But 1. it's more efficient; 2. it's safer --- if
-      Children[I] is already equal to NewChildren, then
-      first @code(VRML1ChildRemove(I);) would free this children and following
-      VRML1ChildAdd would be totally wrong.
+      But 1. it's more efficient; 2. it's safer --- if Children[I]
+      is already equal to NewChildren, it does nothing.
 
       @groupBegin }
     property VRML1Children [i: integer]: TVRMLNode read GetVRML1Child write SetVRML1Child;
@@ -407,34 +392,23 @@
     procedure KeepExistingEnd;
     { @groupEnd }
 
-    { AllowedChildren okresla jakie dzieci moga byc dziecmi tego node'a.
-      Warunek ten bedzie sprawdzany w VRML1ChildAdd wiec nigdy nie uda ci sie dodac
-      node'a ktory nie jest tutaj dozwolony.
-
-      ParsingAllowedChildren okresla jakie dzieci moga byc odczytane
-      ze strumienia jako dzieci tego node'a. Chwilowo ma to zastosowanie
-      tylko dla wezlow *Inline ktore w strumieniu nie moze miec zapisanych
-      zadnych dzieci ale laduja swoje inline jako swoje Child.
-      Wiec musza miec ParsingAllowedChildren=[] i AllowedChildren = All.
-
-      TODO: jak bedzie mi to potrzebne to zaimplementuje te pola jako
-      tablice TDynVRMLNodeClassArray z dodatkowym polem Any. Taka tablica
-      bedzie pasowala do wszystkiego gdy Any = true, wpp. tylko do wymienionych
-      na niej elementow. Wartosc *AllowedChildren = true tutaj odpowiadac
-      bedzie Any = true tam, *AllowedChildren = false oznacza Any = false i Items=[].
-      Wartosc Any jest potrzebna zeby na zapas powiedziec : wszystkie node'y
-      sa tu dozwolone, nawet takie o jakich jeszcze nie wie NodesManager -
-      - a jest to przeciez czesta sytuacja.
-
-      Naturalnie ParsingAllowedChildren musi sie zawierac w AllowedChildren
-      bo inaczej parsowanie moze wygenerowac wyjatek (wywolujac
-      VRML1ChildAdd z niedozwolonym argumentem). W tej chwili oznacza to tylko
-      ze nie moze byc ParsingAllowedChildren = true i AllowedChildren = false.
+    { What VRML 1.0 children are allowed.
+      This condition is checked in VRML1ChildAdd, so it's strictly
+      impossible to add a node that is not allowed.
 
       Note that in some special cases AllowedChildren and
       ParsingAllowedChildren values may be changed during object lifetime.
       Currently, this may concern TVRMLUnknownNode. }
     property AllowedChildren: boolean read fAllowedChildren default false;
+
+    { VRML 1.0 children allowed to be added during parsing.
+      This is used only by *Inline nodes for now, that do not allow
+      reading children during parsing but may get new children
+      in memory. So their ParsingAllowedChildren must be empty,
+      but AllowedChildren must allow all.
+
+      When AllowedChildren is @false then ParsingAllowedChildren should
+      alse be @false. }
     property ParsingAllowedChildren: boolean
       read fParsingAllowedChildren default false;
 
@@ -494,22 +468,15 @@
     { Parse node body, i.e. mainly node's fields. }
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
 
-    { Konstruktor. Inicjuje wszystko (jak to konstruktor), w szczegolnosci :
-      @unorderedList(
-        @item(inicjuje NodeName, WWWBasePath na podstawie podanych tu parametrow)
-        @item(
-          inicjuje tablice Fields ustawiajac polom ich defaultowe wartosci
-          (dla implementatorow podklas TVRMLNode:
-          w klasie TVRMLNode inicjujemy Fields na tablice o 0 elementach;
-          w konstruktorze podklasy musisz wywolac Fields.Add(...)
-          aby dodac sobie odpowiednie pola))
-        @item(
-          [Parsing]AllowedChildren
-          (dla implementatorow podklas TVRMLNode:
-          w klasie TVRMLNode inicjujemy je na zbiory puste (tzn. chwilowo po prostu
-          na false) po prostu dlatego ze wydaje sie to byc najczestsza wartoscia.
-          W konstruktorze podklas mozesz swobodnie zmienic wartosci tych pol.))
-      ) }
+    { Constructor. Initializes NodeName, WWWBasePath from given parameters.
+
+      Every node class also initializes the @link(Fields) table
+      in the constructor, defining it's fields and setting them to their
+      default values.
+
+      VRML 1.0 nodes may also want to adjust AllowedChildren
+      and ParsingAllowedChildren now. In the TVRMLNode class, they are simply
+      initialized to @false. }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); virtual;
 
     { CreateParse simply does Create and then calls Parse. }
@@ -517,48 +484,31 @@
 
     destructor Destroy; override;
 
-    { NodeTypeName zwraca nazwe klasy w VRML'u. Zawsze jest <>''.
-      To ma byc normalna nazwa node'a, taka ktora odczytujemy
-      i zapisujemy bezposrednio z/do pliku VRMLa (wobec tego jest ona tez
-      case-sensitive, jak caly VRML).
+    { Name of the VRML/X3D node. Never empty.
+      Constant for the class lifetime (even for special
+      TVRMLUnknownNode and TVRMLPrototypeNode, where this is calculated
+      at runtime).
 
-      Nie zmienia sie przez caly czas zycia obiektu, tzn. raz zainicjowana w
-      konstruktorze juz taka pozostaje. Even for special nodes, like
-      TVRMLUnknownNode and TVRMLPrototypeNode (where this is determined
-      at runtime, since these special nodes are used to instantiate special
-      nodes that are not built-in) --- but still even for these special
-      nodes, NodeTypeName is constant for the life of this object.
+      Note that VRML/X3D is generally case-sensitive, so this property is too.
 
-      W tej klasie NodeTypeName zwraca ClassNodeTypeName. Uwagi do
-      implementacji podklas TVRMLNode dotyczace tej funkcji - patrz
-      ClassNodeTypeName. }
+      In TVRMLNode, this returns ClassNodeTypeName, which is suitable
+      for most nodes. See ClassNodeTypeName. }
     function NodeTypeName: string; virtual;
 
-    { ClassNodeTypeName zwraca nazwe klasy VRMLa zwiazanej z tym node'm lub
-      '' w przypadku klas ktore nie maja zwiazanej ze soba 1-znacznej nazwy
-      typu wezla VRMLa ktory reprezentuja (a poniewaz kazda klasa wezla VRMLa
-      musi miec NodeTypeName <> '' wiec oznacza to ze te wyjatkowe klasy ustalaja
-      sobie NodeTypeName w jakis inny, specjalny sposob - jedyny dostepny
-      w tej chwili przyklad tego to TVRMLUnknownNode (chociaz nie wykluczam sobie
-      w tym momencie czy nie pojawi sie kiedys jeszcze jakis inny tego typu node))
+    { Name of the VRML/X3D node associated with this class.
+      Normal VRML/X3D node classes should override this to return something
+      non-empty, and then NodeTypeName automatically will return the same value.
 
-      Jezeli masz do dyspozycji instancje obiektu to nie powinienes uzywac
-      tej funkcji. Jedyna jej zaleta ponad NodeTypeName jest ze jest funkcja
-      klasy. Jezeli masz do dyspozycji tylko klase obiektu to uzywajac
-      tej funkcji musisz sie zdecydowac co zrobic jesli dostaniesz w odpowiedzi
-      '' (albo jakos sie zabezpieczyc zeby nigdy w danym kontekscie takich
-      klas nie miec...)
+      Empty for classes that don't have a hardcoded VRML/X3D node name,
+      like a special TVRMLUnknownNode. Such special classes should override
+      then NodeTypeName to return actual non-empty name there.
 
-      Uwagi do implementacji podklas TVRMLNode:
-      W tej klasie ClassNodeTypeName zwraca ''. Wszystkie niesbtrakcyjne
-      klasy wezlow VRMLa musza pokrywac albo ClassNodeTypeName (i w ten
-      sposob staja sie normalnymi klasami ktore maja zawszetaka sama wartosc
-      NodeTypeName dla swojej klasy) albo NodeClassTypeName (i w ten sposob
-      staja sie klasami specjalnymi, jak TVRMLUnknownNode, ktore nie maja
-      stalej wartosci NodeTypeName). }
+      You usually should call NodeTypeName. The only use of this method
+      is that it works on classes (it's "class function"), without needing
+      at actual instance. }
     class function ClassNodeTypeName: string; virtual;
 
-    { Traverse enumerates all nodes of VRML graph that are active.
+    { Traverse all the nodes of VRML graph that are active.
 
       An "active" part of the VRML graph are the nodes that actually
       change what the VRML file represents, in terms of geometry,
@@ -601,7 +551,7 @@
 
   AfterTraverse;
 
-  dodaj Self do stanu State do LastNode (o ile Self wsrod
+  Add Self to State.LastNodes (for VRML 1.0 state nodes, see
     TraverseStateLastNodesClasses);
 )
 
@@ -615,17 +565,17 @@
       (for VRML >= 2.0, all Group, Transform, Switch etc. act like separators),
       and only when you will somehow traverse into these nodes anyway.
 
-      Jezeli zostalo wykonane BeforeTraverse, na pewno zostanie wykonane tez
-      AfterTraverse (wywolanie AfterTraverse jest w finally..end).
+      We guarantee that AfterTraverse will be called if BeforeTraverse
+      was called and finished (that is, AfterTraverse is called in the
+      @code(finally..end)).
 
-      Kolejnosc w jakiej przechodzi graf jest naturalnie istotna.
-      W czasie wykonywania Traverse mozesz modyfikowac tylko node'y dzieci
-      (bezposrednie i niebezposrednie) node'a na ktorym wlasnie stoisz. }
+      During traversing, you can only modify the children (direct or not)
+      nodes of the current node. }
     procedure Traverse(
       NodeClass: TVRMLNodeClass;
       TraversingFunc: TTraversingFunc);
 
-    { This is like @link(Traverse), but it takes explicit starting state stack
+    { Like @link(Traverse), but it takes explicit starting state stack
       and starting ParentInfo. Not generally useful, use only for special
       purposes. }
     procedure TraverseInternal(StateStack: TVRMLGraphTraverseStateStack;
@@ -637,7 +587,7 @@
       Zwroci do proc() takze sam obiekt na ktorym EnumerateNodes zostalo
       wywolane, jezeli tylko ten obiekt jest klasy nodeClass.
 
-      This enumerates both VRML 1.0 @link(Children) as well as
+      This enumerates both @link(VRML1Children) as well as
       nodes in TSFNode and TMFNode fields.
 
       If OnlyActive then it will enumerate only active parts
@@ -650,20 +600,13 @@
       was expanded from prototype: see PrototypeInstanceSourceNode
       and PrototypeInstanceHelpers.
 
-      Wersja z argumentem SeekNodeName wymaga ponadto aby node mial NodeName=
-      SeekNodeName (gdy SeekNodeName = '' to znajduje nienazwane node'y,
-      wiec wartosc '' nie jest tu traktowana specjalnie).
+      If you give SeekNodeName parameter, we'll only look for nodes
+      with NodeName = SeekNodeName. When SeekNodeName = '' it,
+      consistently, looks for unnamed nodes (where NodeName = '').
 
-      Zaczyna przegladac dzieci dopiero jak przegladnie Self. Jezeli np.
-      w proc. zmodyfikowales (np. dodales) wlasne Children to EnumerateNodes
-      will enumerate these new children. To ma znaczenie np. w
-      TVRMLScene.LoadAllInlined gdzie w proc robimy LoadInlined. Poniewaz
-      EnumerateNodes przeglada dzieci po wywolaniu proc., wiadomo ze
-      przegladnie tez nowo zaladowane dziecko.
-
-      BTW modyfikowanie dzieci node'a ktory wlasnie dostales do proc()
-      to jedyna dozwolona modyfikacja na hierarchii VRMLa ktora mozesz
-      wykonywac w czasie EnumerateNodes.
+      Enumerates children only after enumerating Self.
+      So you can modify children before enumerating them in the Proc callback.
+      You can only modify your children in the Proc callback.
 
       @groupBegin }
     procedure EnumerateNodes(
@@ -700,15 +643,12 @@
       OnlyActive: boolean): TVRMLNode;
     { @groupEnd }
 
-    { Znajdz pierwszy Node (zadanej klasy NodeClass) razem ze State
-      (lub tylko z Transform).
-      Dziala jak TraverseFromDefaultState ktore zatrzymuje sie po pierwszej udanej probie.
-      W przypadku TryFindNodeTransform nie musisz o tym pamietac,
-      no i TryFindNodeTransform dziala nieco szybciej.
+    { Find the first node with given class (NodeClass),
+      return it's state or just transformation.
+      Similar to @link(Traverse), but stops as soon as the given node is found.
 
-      Zwraca false and sets Node, State and Transform to undefined
-      (because they are "out" params) if not found.
-
+      Returns @false when not found ("out" parametrs
+      Node, State and Transform are undefined then).
       @groupBegin }
     function TryFindNodeState(
       NodeClass: TVRMLNodeClass;
@@ -721,8 +661,8 @@
       out AverageScaleTransform: Single): boolean;
     { @groupEnd }
 
-    { This seeks Self and parent nodes (from VRML1Parents and ParentFields,
-      recursively), for given node name.
+    { Seeks Self and parent nodes (from VRML1Parents and ParentFields,
+      recursively) for given node name.
 
       In other words, this is similar to TryNodeByName or NodeByName,
       but it goes "upward" in graph hierarchy. Note that this
@@ -736,24 +676,22 @@
     function FindParentByName(const FindName: string): TVRMLNode;
     { @groupEnd }
 
-    { Przeszukuje podobnie jak powyzsze FindParentByName. Zwraca true
-      jesli znalazl tam gdzies node Node. }
+    { Looks for a given Node in parents (and self), recursively.
+      Similar to TryFindParentByName. Returns @true only if found. }
     function HasParent(Node: TVRMLNode): boolean;
 
-    { Searches immediate parents of this node for a node with given FindName.
+    { Search immediate parents of this node for a node with given FindName.
       Returns @nil if not found. }
     function TryFindDirectParentByName(const FindName: string): TVRMLNode;
 
-    { sprawdza czy istnieje w grafie VRML'a zaczepionym w danym punkcie
-      node Node.
-
+    { Looks for a given node in our children (direct and not, including self).
       If OnlyActive, then only active parts are searched
       ("active" as defined by @link(Traverse)). }
     function IsNodePresent(Node: TVRMLNode; OnlyActive: boolean): boolean;
 
-    { policz ile jest node'ow danej klasy.
-      Uzywajac np. TVRMLLightNode mozesz
-      sprawdzic czy na scenie zostalo zdefiniowane jakiekolwiek swiato.
+    { Count the occurences of given node class in our children.
+      For example, you can pass NodeClass = TVRMLLightNode to count
+      the light sources in the scene.
 
       If CountOnlyActiveNodes, then only active parts are searched
       ("active" as defined by @link(Traverse)).
@@ -833,7 +771,7 @@
 
     { Operate on children nodes, suitable for both VRML 1.0 and
       VRML 2.0 / X3D children. In VRML 1.0 (when ChildrenField is @nil),
-      these get/set our @link(Children) property. In VRML 2.0 / X3D
+      these get/set our @link(VRML1Children) property. In VRML 2.0 / X3D
       (when ChildrenField is non-nil) these get/set our ChildrenField.Items.
 
       Useful to operate on grouping nodes both in VRML 1.0 and VRML 2.0 / X3D

@@ -391,10 +391,6 @@ Shadow maps todos:
 ------------------------------------------------------------------------------
 Various ideas:
 
-- rename SmartChildren to just Children
-  AllowedChildren to AllowedVRML1Children
-  ParsingAllowedChildren to ParsingAllowedVRML1Children
-
 - A precise control over how steep hill you can climb.
 
 - screenshot: 10 November - http://vcg.isti.cnr.it/cgf/index.php ?
@@ -809,3 +805,21 @@ in a way that is fast AND preserves current VRML graph:
   "Proxy" field is managed through TVRMLShape.Geometry.
   bump mapping is managed inside vrml renderer, not as vrml transformation.
   and shadow maps for now just change the graph?
+
+------------------------------------------------------------------------------
+VRMLNodes:
+- Eventually, moving all non-abstract nodes out of this unit
+  could be nice. But
+  1. for now, stuff that is inside TVRMLGraphTraverseState.LastNodes
+     must be defined in this unit
+  2. I don't know if this is really good for users --- it adds
+     another unit to your uses clause.
+
+- Make Detail_ parameters (slices, stacks, cube divisions)
+  depend on object's distance from viewer. But there is a problem:
+  we need those parameters defined
+  when implementing Vertices/TrianglesCount and Triangulate.
+
+- rename SmartChildren to just Children
+  AllowedChildren to AllowedVRML1Children
+  ParsingAllowedChildren to ParsingAllowedVRML1Children
