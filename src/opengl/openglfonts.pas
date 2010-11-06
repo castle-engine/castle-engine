@@ -13,14 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(OpenGL fonts basic classes.)
-
-  Implementacja fontow musi
-   - pokrywac procedury abstract,
-   - dostarczyc wlasny konstruktor w ktorym zainicjuje pole fRowHeight,
-  Implementacja moze
-   - dodac nowe procedury, bardziej wyspecjalizowane dla implementacji.
-   - pokrywac procedury virtual
+{ OpenGL fonts, basic abstract classes (TGLBitmapFont_Abstract,
+  TGLOutlineFont_Abstract).
 
   Kazda implementacja musi przestrzegac zasad (a zewnetrzny kod moze na nich polegac) :
    - wszystkie Print'y wymagaja do dzialania maksymalnie 1 wolnego miejsca na stosie
