@@ -70,7 +70,7 @@
     @item(Your own units can define new VRML/X3D nodes, by declaring
       new classes descending from TVRMLNode (or other, more specialized,
       descendant). You should register your new classes by calling
-      @link(NodesManager.RegisterNodeClasses TNodesManager.RegisterNodeClasses),
+      @link(TNodesManager.RegisterNodeClasses NodesManager.RegisterNodeClasses),
       usually in the initialization section of your unit.
 
       Examples of defining your own VRML/X3D node types (without modifying
