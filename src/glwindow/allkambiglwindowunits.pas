@@ -18,7 +18,7 @@ uses
   glwinmessages,
   glwinmodes,
   glprogress,
-  timemessages,
+  glnotifications,
   {$ifdef UNIX}
   kambiglx,
   kambixf86vmode,

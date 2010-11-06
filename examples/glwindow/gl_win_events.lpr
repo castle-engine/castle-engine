@@ -17,42 +17,42 @@
   Displays many OnXxx events as they happen, shows Pressed and Pressed.Characters.
   So it allows you to "see" how TGLWindow events happen.
 
-  Also a demo of TimeMessages unit. }
+  Also a demo of Notifications unit. }
 
 program gl_win_events;
 
 {$apptype GUI}
 
-uses SysUtils, KambiUtils, KambiGLUtils, GL, GLU, TimeMessages, GLWindow,
+uses SysUtils, KambiUtils, KambiGLUtils, GL, GLU, GLNotifications, GLWindow,
   KeysMouse, KambiStringUtils,
   OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
   Classes, GLWinMessages;
 
 var
   Glw: TGLWindowDemo;
-  TimeMsg: TTimeMessagesManager;
+  Notifications: TGLNotifications;
   Font: TGLBitmapFont;
 
 procedure Init(glwin: TGLWindow);
 begin
-  TimeMsg := TTimeMessagesManager.Create(glw, hpMiddle, vpUp, 0);
-  TimeMsg.MaxMessagesCount := 15;
-  TimeMsg.MessageDuration := 20000;
-  TimeMsg.Show('Init message');
+  Notifications := TGLNotifications.Create(glw, hpMiddle, vpUp, 0);
+  Notifications.MaxMessages := 15;
+  Notifications.MessageTimeout := 20000;
+  Notifications.Show('Init message');
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
 end;
 
 procedure Close(glwin: TGLWindow);
 begin
-  FreeAndNil(TimeMsg);
+  FreeAndNil(Notifications);
   FreeAndNil(Font);
 end;
 
 procedure Resize(glwin: TGLWindow);
 begin
   Resize2D(glwin);
-  TimeMsg.Show(Format('Resize message : new size %d %d (pos %d, %d)',
+  Notifications.Show(Format('Resize message : new size %d %d (pos %d, %d)',
     [glwin.Width, glwin.Height, Glwin.Left, Glwin.Top]));
 end;
 
@@ -72,7 +72,7 @@ var
 const
   Margin = 20;
 begin
-  TimeMsg.Draw2d(glwin.Width, glwin.Height, glwin.Width, glwin.Height);
+  Notifications.Draw2D(glwin.Width, glwin.Height, glwin.Width, glwin.Height);
 
   glColor3f(0.5, 0.5, 0.5);
 
@@ -99,13 +99,13 @@ end;
 
 procedure Idle(glwin: TGLWindow);
 begin
-  TimeMsg.Idle;
+  Notifications.Idle;
   if Glwin.Pressed[K_F12] then MessageOk(Glwin, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnIdle.', taLeft);
 end;
 
 procedure Timer(glwin: TGLWindow);
 begin
-  TimeMsg.Show(Format('Timer message. Time now %s', [FormatDateTime('tt', Time)]));
+  Notifications.Show(Format('Timer message. Time now %s', [FormatDateTime('tt', Time)]));
 end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
@@ -122,13 +122,13 @@ begin
     '5': Glwin.SetMousePosition(Glwin.Width div 2, Glwin.Height div 2);
   end; }
 
-  TimeMsg.Show(Format('KeyDown message : key %s, char %s (ord %d)',
+  Notifications.Show(Format('KeyDown message : key %s, char %s (ord %d)',
     [KeyToStr(key), CharToNiceStr(c), Ord(c)]));
 end;
 
 procedure KeyUp(glwin: TGLWindow; key: TKey; c: char);
 begin
-  TimeMsg.Show(Format('KeyUp message : key %s, char %s (ord %d)',
+  Notifications.Show(Format('KeyUp message : key %s, char %s (ord %d)',
     [KeyToStr(key), CharToNiceStr(c), Ord(c)]));
 end;
 
@@ -143,25 +143,25 @@ end;
 
 procedure MouseDown(glwin: TGLWindow; btn: TMouseButton);
 begin
-  TimeMsg.Show(Format('Mouse Down message : %s (at %d,%d)',
+  Notifications.Show(Format('Mouse Down message : %s (at %d,%d)',
     [MouseButtonToStr(btn), glwin.MouseX, glwin.MouseY]));
 end;
 
 procedure MouseUp(glwin: TGLWindow; btn: TMouseButton);
 begin
-  TimeMsg.Show(Format('Mouse Up message : %s (at %d,%d)',
+  Notifications.Show(Format('Mouse Up message : %s (at %d,%d)',
     [MouseButtonToStr(btn), glwin.MouseX, glwin.MouseY]));
 end;
 
 procedure MouseMove(glwin: TGLWindow; newX, newY: integer);
 begin
-  TimeMsg.Show(Format('Mouse Move : old pos %d %d, new pos %d %d',
+  Notifications.Show(Format('Mouse Move : old pos %d %d, new pos %d %d',
     [glwin.MouseX, glwin.MouseY, newX, newY]));
 end;
 
 procedure MouseWheel(glwin: TGLWindow; const Scroll: Single; const Vertical: boolean);
 begin
-  TimeMsg.Show(Format('Mouse Wheel: %f, vertical: %s', [Scroll, BoolToStr[Vertical]]));
+  Notifications.Show(Format('Mouse Wheel: %f, vertical: %s', [Scroll, BoolToStr[Vertical]]));
 end;
 
 var

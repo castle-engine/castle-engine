@@ -319,7 +319,7 @@ units are allowed to be used by units in specific group.
 
     This directory also contais various user-interface stuff usable only
     together with GLWindow, like progress bar display in OpenGL window
-    (GLProgress), messages (GLWinMessages, TimeMessages, GLWinInputs).
+    (GLProgress), messages (GLWinMessages, GLNotifications, GLWinInputs).
 
     @italic(Uses:) These units can use almost any other units:
     @code(base), @code(images), @code(3d), @code(fonts),

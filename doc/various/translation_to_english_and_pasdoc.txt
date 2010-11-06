@@ -133,7 +133,7 @@ D   glwindowvrmlbrowser.pas
 D   glwinmessages.pas
 -   glwinmodes.pas
 D   glprogress.pas
--   timemessages.pas
+D   glnotifications.pas
 
   images/
 D   dds.pas

@@ -84,8 +84,8 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="GLProgress"/>
       </Item8>
       <Item9>
-        <Filename Value="../src/glwindow/timemessages.pas"/>
-        <UnitName Value="TimeMessages"/>
+        <Filename Value="../src/glwindow/glnotifications.pas"/>
+        <UnitName Value="GLNotifications"/>
       </Item9>
       <Item10>
         <Filename Value="../src/glwindow/windows/glwindow_winapi.inc"/>
