@@ -14,28 +14,7 @@
 }
 
 { OpenGL fonts, basic abstract classes (TGLBitmapFont_Abstract,
-  TGLOutlineFont_Abstract).
-
-  Kazda implementacja musi przestrzegac zasad (a zewnetrzny kod moze na nich polegac) :
-   - wszystkie Print'y wymagaja do dzialania maksymalnie 1 wolnego miejsca na stosie
-      attribow.
-     Dodatkowo Printy w TGLOutlineFont moga wymagac jednego wolnego miejsca na stosie
-      modelview matrix.
-     (tzn. moga wymagac mniej - ale nie wiecej !).
-   - KAZDE PrintXxx zanim zakonczy w pelni przywraca stan OpenGL'a przed swoim wywolaniem
-     (jedyna zmiana stanu to ze pojawil sie napis; ale wszystko pozostale, w szczegolnosci
-     modelview matrix i raster position, musi pozostac takie jak bylo).
-     Wyjatek stanowi PrintAndMove ktore w przypadku bitmapped fonta powinno
-      po zakonczeniu ustawic glRasterPos na koniec stringa a w przypadku
-      outlined fonta powinno ustawic modelview-matrix tak zeby kilkakrotne
-      wywolanie PrintAndMove pod rzad wypisalo jeden string za drugim.
-      To musza byc jednak JEDYNE zmiany dokonane przez PrintAdMove.
-
-  Implementacja moze zakladac ze (a zewnetrzny kod musi to zapewniac) :
-   - kazde PrintXxx jest wywolywane tylko gdy aktualne matrix mode to MODELVIEW_MATRIX.
-   - konstruktory i destruktory sa wywolywane tylko gdy gl context jest aktywny
-     (np. w InitGL/ExitGL).
-}
+  TGLOutlineFont_Abstract). }
 
 unit OpenGLFonts;
 
@@ -44,41 +23,47 @@ interface
 uses Classes, GL, GLU, SysUtils, KambiGLUtils;
 
 type
+  { Abstract class for all OpenGL bitmap fonts. }
   TGLBitmapFont_Abstract = class
   protected
-    fRowHeight: Integer;
+    FRowHeight: Integer;
     FRowHeightBase: Integer;
   public
-    { PrintAndMove wypisuje string s przesuwajac raster pos po wypisaniu
-      kazdej literki. W rezultacie, po zakonczeniu mozesz np. wywolac
-      PrintAndMove jeszcze raz i bedziesz pisal od miejsca na ekranie
-      w ktorym skonczyles, inaczej mowiac PrintAndMove('whatever') is
-      exactly equivalent to PrintAndMove('what'); PrintAndMove('ever');
-      (except for some extremely small additional performance cost in the
-      latter case). }
+    { Draw text at the current OpenGL raster position, and move
+      the raster position at the end. This way you can immediately
+      call another PrintAndMove again, to add something at the end.
+
+      May require 1 free slot on the attributes stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix, except it moves raster position. }
     procedure PrintAndMove(const s: string); virtual; abstract;
 
-    { Print saves current raster position, calls PrintAndMove and then
-      restores raster position. So Print effectively prints the string
-      without affecting current raster pos. And if you care about
-      performance, you should note that if you simply don't care about
-      position of raster after Printing a string than you should
-      use PrintAndMove instead of Print. }
+    { Draw text at the current OpenGL raster position.
+      In contrast to PrintAndMove, raster position is not changed.
+
+      May require 1 free slot on the attributes stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix. }
     procedure Print(const s: string);
 
     function TextWidth(const s: string): integer; virtual; abstract;
     function TextHeight(const s: string): integer; virtual; abstract;
 
-    { This is the height of the text above the baseline.
-      Bear in mind that this is not the full height of the text
-      --- this doesn't take into account height of the text below the baseline
-      (like lower "y" has the tail below baseline in most fonts). }
+    { The height (above the baseline) of the text.
+      This doesn't take into account height of the text below the baseline
+      (for example letter "y" has the tail below the baseline in most fonts). }
     function TextHeightBase(const s: string): integer; virtual; abstract;
 
-    { co do RowHeight : to nie musi byc DOKLADNIE TextHeight('Wy') -
-      bedzie bardzo dobrze jesli wlasnie w RowHeight bedzie dodany jakis maly
-      odstep miedzy liniami, np. +2 dla bitmap fontow. }
-    property RowHeight: integer read fRowHeight;
+    { Height of a row of text in this font.
+      This may be calculated as simply @code(TextHeight('Wy')) for most
+      normal fonts. }
+    property RowHeight: integer read FRowHeight;
+
+    { Height (above the baseline) of a row of text in this font.
+      Similar to TextHeightBase and TextHeight,
+      note that RowHeightBase is generally smaller than RowHeight,
+      because RowHeightBase doesn't care how low the letter may go below
+      the baseline. }
     property RowHeightBase: Integer read FRowHeightBase;
 
     { Descend : jak gleboko moze spasc charakter ponizej wysokosci 0 ?
@@ -117,7 +102,11 @@ type
 
       Wersje 2-arg uznaja RasterX0 = RasterY0 = 0.
 
-      glRasterPos value will be ignored and then modified by this method. }
+      glRasterPos value will be ignored and then modified by this method.
+
+      May require 1 free slot on the attributes stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix. }
     procedure PrintStrings(strs: TStrings; BonusVerticalSpace: TGLint); overload;
     procedure PrintStrings(const strs: array of string; BonusVerticalSpace: TGLint); overload;
     procedure PrintStrings(strs: TStrings;
@@ -140,7 +129,11 @@ type
       W ten sposob mozesz np. obliczyc pozycje jaka miala na ekranie
       pierwsza / ostatnia ze zlamanych linii (to ktora z tych wartosci bylaby
       dla ciebie nieznana zalezy od tego ktora z tych wartosci podales,
-      czyli od RasterPositionsFirst). }
+      czyli od RasterPositionsFirst).
+
+      May require 1 free slot on the attributes stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix. }
     function PrintBrokenString(const s: string;
       MaxLineWidth, RasterX0, RasterY0: Integer;
       RasterPositionsFirst: boolean; BonusVerticalSpace: Integer): Integer;
@@ -158,38 +151,47 @@ type
       RasterPos and curent color will be ignored and then modified by this proc,
         no other state is affected.
         Current matrix value is used and not modified.
-      Requires one attrib stack and one matrix stack place. }
+      Requires one attrib stack and one matrix stack place.
+
+      May require 1 free slot on the attributes stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix. }
     procedure PrintStringsBorderedRect(const strs: array of string; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
       BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat); overload;
     procedure PrintStringsBorderedRect(strs: TStringList; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
       BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat); overload;
-
-    { Draw strings in a box frame at the top of the window.
-
-      WindowTop specifies the top pixel of the window.
-
-      WindowTopMargin is the height between box and WindowTop, also in pixels. }
-    procedure PrintStringsBorderedRectTop(
-      strs: TStringList; BonusVerticalSpace: TGLint;
-      const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
-      BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat;
-      WindowTop, WindowTopMargin: TGLint);
   end;
 
   TGLBitmapFontClass = class of TGLBitmapFont_Abstract;
 
+  { Abstract class for all OpenGL outline fonts. }
   TGLOutlineFont_Abstract = class
   protected
-    fRowHeight: single;
+    FRowHeight: single;
   public
+    { Draw text at position determined by the current OpenGL modelview matrix,
+      and change modelview matrix to contain a transformation of the text end.
+      This way you can immediately
+      call another PrintAndMove again, to add something at the end.
+
+      May require 1 free slot on the attributes stack and on the modelview stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix, except it changes modelview matrix. }
     procedure Print(const s: string); virtual; abstract;
+
+    { Draw text at position determined by the current OpenGL modelview matrix.
+      In contrast to PrintAndMove, modelview matrix value is not changed.
+
+      May require 1 free slot on the attributes stack and on the modelview stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix. }
     procedure PrintAndMove(const s: string); virtual; abstract;
 
-    function textWidth(const s: string): single; virtual; abstract;
-    function textHeight(const s: string): single; virtual; abstract;
-    property RowHeight: single read fRowHeight;
+    function TextWidth(const s: string): single; virtual; abstract;
+    function TextHeight(const s: string): single; virtual; abstract;
+    property RowHeight: single read FRowHeight;
     function Descend: single; virtual;
   end;
 
@@ -377,30 +379,6 @@ begin
     InsideCol, BorderCol, Stipple);
   glColorv(TextCol);
   PrintStrings(strs, BonusVerticalSpace, BoxPixelMargin, BoxPixelMargin + Descend);
-end;
-
-procedure TGLBitmapFont_Abstract.PrintStringsBorderedRectTop(
-  strs: TStringList; BonusVerticalSpace: TGLint;
-  const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
-  BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat;
-  WindowTop, WindowTopMargin: TGLint);
-var
-  X2, Y2: Integer;
-begin
-  X2 := MaxTextWidth(Strs) + 2 * BoxPixelMargin;
-  Y2 := (RowHeight + BonusVerticalSpace) * Strs.Count +
-    2 * BoxPixelMargin + Descend;
-  DrawGLBorderedRectangle(0,
-    (WindowTop - WindowTopMargin * 2 - Y2) / YPixelsRes,
-    X2 / XPixelsRes,
-    (WindowTop - WindowTopMargin) / YPixelsRes,
-    InsideCol, BorderCol, Stipple);
-  glColorv(TextCol);
-  glPushMatrix;
-    glTranslatef(0, (WindowTop - WindowTopMargin - Y2)  / YPixelsRes, 0);
-    PrintStrings(strs, BonusVerticalSpace, BoxPixelMargin,
-      BoxPixelMargin + Descend);
-  glPopMatrix;
 end;
 
 procedure TGLBitmapFont_Abstract.PrintStringsBorderedRect(
