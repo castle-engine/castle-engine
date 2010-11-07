@@ -17,20 +17,18 @@
   you to easily embed image files in program executables.
 
   1st command-line option specifies the unit name, usually in CamelCase.
-  The output will be written to filename lowercase(unit name) + '.pas'.
-  (We make the name lowercase, as this is nice under Unix.)
-
   Rest of the command-line options specify image filenames.
+
+  The output unit filename will be lowercase(unit name) + '.pas'.
+  (We make the name lowercase, as this is nice under Unix.)
+  We place it inside directory given by --output option, by default
+  just in the current directory.
 
   The generated Pascal unit defines TImage instances
   (created / freed in unit's initialization / finalization)
   that contain the size and contents of your images.
   Remember that you can provide many image filenames on the command-line,
   then all of them will be included in the unit.
-
-  Unless you specified --no-show-progress, it will display
-  progress of operation on stderr (this is useful in case of very large
-  image files).
 
   For an example output of this program see e.g. view3dscene sources,
   unit v3dsceneimages, generated from images inside view3dscene/images.
@@ -41,7 +39,43 @@
 program image_to_pas;
 
 uses SysUtils, Images, KambiUtils, KambiFilesUtils, ProgressUnit,
-  ProgressConsole, KambiTimeUtils;
+  ProgressConsole, KambiTimeUtils, ParseParametersUnit;
+
+var
+  ShowProgress: boolean = true;
+  OutputDirectory: string = '';
+
+const
+  Options: array[0..2]of TOption = (
+    (Short: 'h'; Long: 'help'; Argument: oaNone),
+    (Short: #0 ; Long: 'no-show-progress'; Argument: oaNone),
+    (Short: 'o'; Long: 'output-directory'; Argument: oaRequired)
+  );
+
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  case OptionNum of
+    0: begin
+        Writeln(
+          'image_to_pas: Convert image files into Pascal source code.' +nl+
+          nl+
+          'Call like' +nl+
+          '  image_to_pas [OPTIONS...] UnitName image_name1.png...' +nl+
+          nl+
+          'Available options are:' +nl+
+          HelpOptionHelp +nl+
+          '  --no-show-progress    Do not show progress on stderr.' +nl+
+          '  -o / --output DIRECTORY' +nl+
+          '                        Place output unit files inside this dir.'
+         );
+        ProgramBreak;
+       end;
+    1: ShowProgress := false;
+    2: OutputDirectory := Argument;
+    else raise EInternalError.Create('OptionProc -- unknown arg');
+  end;
+end;
 
 var
   Image: TImage;
@@ -49,24 +83,17 @@ var
   UnitName, NameWidth, NameHeight, NamePixels, NameImage: string;
   ImagesInterface, ImagesImplementation, ImagesInitialization,
     ImagesFinalization: string;
-  I: Cardinal;
-  ImageIndex: Integer;
+  ImageIndex, I: Integer;
   pb: PByte;
-  ShowProgress: boolean = true;
   OutputUnit: Text;
 begin
   { parse params }
-  i := 0;
-  while i <= Cardinal(Parameters.High) do
-    if Parameters[i] = '--no-show-progress' then
-      begin ShowProgress := false; Parameters.Delete(i, 1) end else
-      Inc(i);
-
+  ParseParameters(Options, {$ifdef FPC_OBJFPC} @ {$endif} OptionProc, nil);
   Parameters.CheckHighAtLeast(2);
   UnitName := Parameters[1];
   Parameters.Delete(1, 1);
 
-  { Init progres }
+  { init progres }
   Progress.UserInterface := ProgressConsoleInterface;
 
   { calculate unit's content from images into Images* strings }
@@ -78,12 +105,12 @@ begin
   begin
     ImageFilename := Parameters[ImageIndex];
 
-    { Init other Image* variables }
+    { init other Image* variables }
     NameImage := ExtractOnlyFileName(ImageFileName);
     NameImage[1] := UpCase(NameImage[1]);
     Image := LoadImage(ImageFileName, [], []);
     try
-      { Calculate Name* variables }
+      { calculate Name* variables }
       NameWidth := NameImage +'Width';
       NameHeight := NameImage +'Height';
       NamePixels := NameImage +'Pixels';
@@ -105,7 +132,7 @@ begin
           'Generating image ' +NameImage);
 
       pb := PByte(Image.RawPixels);
-      for i := 1 to Image.Width * Image.Height * Image.PixelSize - 1 do
+      for I := 1 to Image.Width * Image.Height * Image.PixelSize - 1 do
       begin
         ImagesImplementation += Format('%4d,', [pb^]);
         if (i mod 12) = 0 then
@@ -132,7 +159,7 @@ begin
   { output full unit contents.
     Beware to not concatenate huge Images* strings in the memory,
     could be a performance / memory problem? Although code above does it anyway? }
-  SafeRewrite(OutputUnit, LowerCase(UnitName) + '.pas');
+  SafeRewrite(OutputUnit, InclPathDelim(OutputDirectory) + LowerCase(UnitName) + '.pas');
   Write(OutputUnit,
     '{ -*- buffer-read-only: t -*- }' +nl+
     nl+
