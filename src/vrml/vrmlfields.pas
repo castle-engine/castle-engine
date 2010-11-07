@@ -1462,7 +1462,7 @@ type
       which will work for identity, translation and scaling matrices
       (but e.g. will fail miserably (generate nonsense results) when
       looking at some rotation matrices). }
-    function AverageScaleTransform: Single;
+    function TransformScale: Single;
 
     class function VRMLTypeName: string; override;
 
@@ -4201,7 +4201,7 @@ begin
   Result := 'SFMatrix4f';
 end;
 
-function TSFMatrix4f.AverageScaleTransform: Single;
+function TSFMatrix4f.TransformScale: Single;
 begin
   { This is a simple method of extracting average scaling factor from
     a matrix. Works OK for combination of identity, scaling,

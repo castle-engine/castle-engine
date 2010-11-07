@@ -57,7 +57,7 @@ begin
     State.Transform := MatrixMult(State.Transform, M);
     State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
 
-    State.AverageScaleTransform *=
+    State.TransformScale *=
       (Scale.Value[0] + Scale.Value[1] + Scale.Value[2]) / 3;
 
     {$ifndef TRANSFORM_SIMPLE}

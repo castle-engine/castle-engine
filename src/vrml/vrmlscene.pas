@@ -1358,7 +1358,7 @@ type
       Value of FogDistanceScaling is undefined if FogNode = nil.
 
       Currently, FogDistanceScaling is just a trivial shortcut
-      for FogNode.AverageScaleTransform. So it's fast.
+      for FogNode.TransformScale. So it's fast.
 
       @groupBegin }
     function FogNode: TNodeFog;
@@ -3444,14 +3444,11 @@ begin
   end else
   if Node is TNodeFog then
   begin
-    { There's no need to do anything more here, as FogDistanceScaling
-      automatically changed (as this is just a shortcut to
-      AverageScaleTransform, that is automatically stored within TNodeFog
-      during traversing it).
-
-      Renderer in TVRMLGLScene should detect this, and eventually
-      destroy display lists and such when rendering next time.
-    }
+    { There's no need to do anything more here.
+      Fog node TransformScale was already updated by
+      TNodeX3DBindableNode.BeforeTraverse.
+      Renderer in TVRMLGLScene will detect that TransformScale changed,
+      and eventually destroy display lists and such when rendering next time. }
     if Inactive = 0 then
       ParentScene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end else
@@ -4722,29 +4719,9 @@ function TVRMLScene.FogDistanceScaling: Single;
 var
   Fog: TNodeFog;
 begin
-  { TODO: Using FogAverageScaleTransform is a simplification here.
-    If we have non-uniform scaling, then FogAverageScaleTransform (and
-    FogDistanceScaling) shouldn't  be used at all.
-
-    Zamiast FFogDistanceScaling powinnismy
-    sobie tutaj jakos wyliczac transformacje odwrotna do FogTransform.
-    Potem kazdy element ktory bedziemy rysowac najpierw zrzutujemy
-    do coordinate space node'u mgly, podobnie jak pozycje kamery,
-    obliczymy odleglosci tych zrzutowanych punktow i to te odleglosci
-    bedziemy porownywac z FogNode.VisibilityRange. To jest poprawna metoda.
-    I w ten sposob np. mozemy zrobic mgle bardziej gesta w jednym kierunku
-    a mniej w drugim. Fajne.
-
-    Zupelnie nie wiem jak to zrobic w OpenGLu - jego GL_FOG_END (chyba)
-    nie przechodzi takiej transformacji. Wiec w OpenGLu nie zrobie
-    przy pomocy glFog takiej mgly (a przeciez samemu robic mgle nie bedzie
-    mi sie chcialo, nie mowiac juz o tym ze zalezy mi na szybkosci a strace
-    ja jesli bede implementowal rzeczy ktore juz sa w OpenGLu).
-  }
-
   Fog := FogNode;
   if Fog <> nil then
-    Result := Fog.AverageScaleTransform else
+    Result := Fog.TransformScale else
     { Result doesn't matter in this case, but should be deterministic,
       to help caching and comparing fog properties }
     Result := 0;

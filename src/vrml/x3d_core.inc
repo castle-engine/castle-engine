@@ -46,7 +46,7 @@ type
   TNodeX3DBindableNode = class(TNodeX3DChildNode)
   private
     FTransform: TMatrix4Single;
-    FAverageScaleTransform: Single;
+    FTransformScale: Single;
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
@@ -76,9 +76,20 @@ type
       node sets Transform properties. By default, these represent identity
       transformation.
 
+      Note that using TransformScale for bindable nodes like fog
+      is a little simplification. Theoretically, the scale can be non-uniform,
+      and around an arbitrary axis. So to apply e.g. fog, we should
+      transform the 3D world back into local fog coordinate system,
+      and calculate the distances there. Instead right now we do
+      the opposite: transform stuff like fog VisibilityRange by
+      TransformScale, and calculate distances in world coordinate
+      system. This is a simplification, but in practice it's perfect
+      (who uses non-uniform fog scale?) and it can be expressed for renderers
+      (OpenGL) without any problems.
+
       @groupBegin }
     property Transform: TMatrix4Single read FTransform;
-    property AverageScaleTransform: Single read FAverageScaleTransform;
+    property TransformScale: Single read FTransformScale;
     { @groupEnd }
   end;
 
@@ -261,7 +272,7 @@ begin
   Events.Add(FEventisBound);
 
   FTransform := IdentityMatrix4Single;
-  FAverageScaleTransform := 1;
+  FTransformScale := 1;
 end;
 
 procedure TNodeX3DBindableNode.BeforeTraverse(
@@ -270,7 +281,7 @@ begin
   inherited;
 
   FTransform := StateStack.Top.Transform;
-  FAverageScaleTransform := StateStack.Top.AverageScaleTransform;
+  FTransformScale := StateStack.Top.TransformScale;
 end;
 
 constructor TNodeX3DSensorNode.Create(const ANodeName: string;

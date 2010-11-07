@@ -348,7 +348,7 @@ begin
       So no need to multiply State.InvertedTransform by anything. }
   end;
 
-  State.AverageScaleTransform *= FdMatrix.AverageScaleTransform;
+  State.TransformScale *= FdMatrix.TransformScale;
 end;
 
 function TNodeMatrixTransform_2.SuggestedVRMLVersion(

@@ -595,7 +595,7 @@
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); virtual; abstract;
-    function AverageScaleTransform: Single; virtual; abstract;
+    function TransformScale: Single; virtual; abstract;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -624,7 +624,7 @@
       Ultimately, this is the reason why VRML 2.0 removed this node
       from specification: extracting some features from arbitrary given
       4x4 matrix is very difficult. }
-    function AverageScaleTransform: Single; override;
+    function TransformScale: Single; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -638,7 +638,7 @@
     public property FdRotation: TSFRotation read FFdRotation;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
-    function AverageScaleTransform: Single; override;
+    function TransformScale: Single; override;
   end;
 
   TNodeScale = class(TVRMLTransformationNode)
@@ -649,7 +649,7 @@
     public property FdScaleFactor: TSFVec3f read FFdScaleFactor;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
-    function AverageScaleTransform: Single; override;
+    function TransformScale: Single; override;
   end;
 
   TNodeTransform_1 = class(TVRMLTransformationNode)
@@ -673,7 +673,7 @@
     public property FdCenter: TSFVec3f read FFdCenter;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
-    function AverageScaleTransform: Single; override;
+    function TransformScale: Single; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -687,7 +687,7 @@
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
-    function AverageScaleTransform: Single; override;
+    function TransformScale: Single; override;
   end;
 
   { Common base class for all cameras in VRML 1.0. }
@@ -894,7 +894,7 @@
   TNodeTransformSeparator = class(TNodeX3DChildNode)
   private
     OriginalTransform, OriginalInvertedTransform: TMatrix4Single;
-    OriginalAverageScaleTransform: Single;
+    OriginalTransformScale: Single;
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -1951,7 +1951,7 @@ begin
   StateStack.Top.Transform := MatrixMult(StateStack.Top.Transform, M);
   StateStack.Top.InvertedTransform := MatrixMult(IM, StateStack.Top.InvertedTransform);
 
-  StateStack.Top.AverageScaleTransform *= AverageScaleTransform;
+  StateStack.Top.TransformScale *= TransformScale;
 end;
 
 function TVRMLTransformationNode.SuggestedVRMLVersion(
@@ -1990,9 +1990,9 @@ begin
   end;
 end;
 
-function TNodeMatrixTransform_1.AverageScaleTransform: Single;
+function TNodeMatrixTransform_1.TransformScale: Single;
 begin
-  Result := FdMatrix.AverageScaleTransform;
+  Result := FdMatrix.TransformScale;
 end;
 
 class function TNodeMatrixTransform_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -2023,7 +2023,7 @@ begin
     Matrix, InvertedMatrix);
 end;
 
-function TNodeRotation.AverageScaleTransform: Single;
+function TNodeRotation.TransformScale: Single;
 begin
   Result := 1;
 end;
@@ -2047,7 +2047,7 @@ begin
   ScalingMatrices(FdScaleFactor.Value, true, Matrix, InvertedMatrix);
 end;
 
-function TNodeScale.AverageScaleTransform: Single;
+function TNodeScale.TransformScale: Single;
 begin
   Result := ( FdScaleFactor.Value[0] +
               FdScaleFactor.Value[1] +
@@ -2125,7 +2125,7 @@ begin
   InvertedMatrix := MatrixMult(IM, InvertedMatrix);
 end;
 
-function TNodeTransform_1.AverageScaleTransform: Single;
+function TNodeTransform_1.TransformScale: Single;
 begin
   Result := ( FdScaleFactor.Value[0] +
               FdScaleFactor.Value[1] +
@@ -2157,7 +2157,7 @@ begin
   TranslationMatrices(FdTranslation.Value, Matrix, InvertedMatrix);
 end;
 
-function TNodeTranslation.AverageScaleTransform: Single;
+function TNodeTranslation.TransformScale: Single;
 begin
   Result := 1;
 end;
@@ -2593,14 +2593,14 @@ begin
     TVRMLRenderState should "leak out" from TransformSeparator node. }
   OriginalTransform := StateStack.Top.Transform;
   OriginalInvertedTransform := StateStack.Top.InvertedTransform;
-  OriginalAverageScaleTransform := StateStack.Top.AverageScaleTransform;
+  OriginalTransformScale := StateStack.Top.TransformScale;
 end;
 
 procedure TNodeTransformSeparator.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   StateStack.Top.Transform := OriginalTransform;
   StateStack.Top.InvertedTransform := OriginalInvertedTransform;
-  StateStack.Top.AverageScaleTransform := OriginalAverageScaleTransform;
+  StateStack.Top.TransformScale := OriginalTransformScale;
   inherited;
 end;
 

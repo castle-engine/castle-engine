@@ -658,7 +658,7 @@
       NodeClass: TVRMLNodeClass;
       out Node: TVRMLNode;
       out Transform: TMatrix4Single;
-      out AverageScaleTransform: Single): boolean;
+      out TransformScale: Single): boolean;
     { @groupEnd }
 
     { Seeks Self and parent nodes (from VRML1Parents and ParentFields,
@@ -2204,7 +2204,7 @@ end;
     TTryFindNodeTransformObj = class
       PNode: PVRMLNode;
       PTransform: PMatrix4Single;
-      PAverageScaleTransform: PSingle;
+      PTransformScale: PSingle;
       procedure TraverseFunc(
         ANode: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
         ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
@@ -2219,7 +2219,7 @@ end;
       w TryFindNodeState trzeba tutaj kopiowac cale state,
       w TryFindNodeTransform wystarczy skopiowac transformacje. }
     PTransform^ := StateStack.Top.Transform;
-    PAverageScaleTransform^ := StateStack.Top.AverageScaleTransform;
+    PTransformScale^ := StateStack.Top.TransformScale;
     raise BreakTryFindNodeState.Create;
   end;
 
@@ -2227,7 +2227,7 @@ function TVRMLNode.TryFindNodeTransform(
   NodeClass: TVRMLNodeClass;
   out Node: TVRMLNode;
   out Transform: TMatrix4Single;
-  out AverageScaleTransform: Single): boolean;
+  out TransformScale: Single): boolean;
 var
   Obj: TTryFindNodeTransformObj;
 begin
@@ -2236,7 +2236,7 @@ begin
     try
       Obj.PNode := @Node;
       Obj.PTransform := @Transform;
-      Obj.PAverageScaleTransform := @AverageScaleTransform;
+      Obj.PTransformScale := @TransformScale;
       Traverse(NodeClass, @Obj.TraverseFunc);
       Result := false;
     except

@@ -44,7 +44,7 @@
     public property FdAngle: TSFFloat read FFdAngle;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
-    function AverageScaleTransform: Single; override;
+    function TransformScale: Single; override;
   end;
 {$endif read_interface}
 
@@ -89,7 +89,7 @@ begin
     Matrix, InvertedMatrix);
 end;
 
-function TNodeRotationXYZ.AverageScaleTransform: Single;
+function TNodeRotationXYZ.TransformScale: Single;
 begin
   Result := 1;
 end;

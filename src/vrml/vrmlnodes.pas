@@ -276,7 +276,7 @@ type
     LightNode: TVRMLLightNode;
 
     Transform: TMatrix4Single;
-    AverageScaleTransform: Single;
+    TransformScale: Single;
 
     { Light's location already multiplied by the @link(Transform) matrix.
       For TVRMLPositionalLightNode lights. }
@@ -451,11 +451,11 @@ type
       the @link(Transform) matrix is updated. This way it's calculated
       fast and easy --- we do not actually extract it from a matrix
       (as long as you don't use explicit MatrixTransform in the VRML/X3D file). }
-    AverageScaleTransform: Single;
+    TransformScale: Single;
 
     { Copy transformation-related fields from Source.
       Copies @link(Transform) matrix, along with related information
-      like InvertedTransform and AverageScaleTransform.
+      like InvertedTransform and TransformScale.
       Copies also the @link(ClipPlanes) list, as it contains the transformation
       information. }
     procedure AssignTransform(Source: TVRMLGraphTraverseState);
@@ -502,7 +502,7 @@ type
     { This is like @link(Equals) but it ignores some fields that are
       ignored when rendering using
       TVRMLOpenGLRenderer.RenderShapeNoTransform.
-      For example, it ignores Transform, AverageScaleTransform, InvertedTransform. }
+      For example, it ignores Transform, TransformScale, InvertedTransform. }
     function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
 
     { Returns texture node that should be used for nodes within this State.
@@ -2402,7 +2402,7 @@ begin
   CommonCreate;
 
   Transform := IdentityMatrix4Single;
-  AverageScaleTransform := 1.0;
+  TransformScale := 1.0;
   InvertedTransform := IdentityMatrix4Single;
 
   TextureTransform := IdentityMatrix4Single;
@@ -2435,7 +2435,7 @@ end;
 procedure TVRMLGraphTraverseState.Clear;
 begin
   Transform := IdentityMatrix4Single;
-  AverageScaleTransform := 1.0;
+  TransformScale := 1.0;
   InvertedTransform := IdentityMatrix4Single;
 
   TextureTransform := IdentityMatrix4Single;
@@ -2508,7 +2508,7 @@ procedure TVRMLGraphTraverseState.AssignTransform(
   Source: TVRMLGraphTraverseState);
 begin
   Transform := Source.Transform;
-  AverageScaleTransform := Source.AverageScaleTransform;
+  TransformScale := Source.TransformScale;
   InvertedTransform := Source.InvertedTransform;
 
   if Source.ClipPlanes <> nil then
@@ -2558,7 +2558,7 @@ begin
     { no need to compare InvertedTransform, it should be equal when normal
       Transform is equal. }
     MatricesPerfectlyEqual(Transform, SV.Transform) and
-    (AverageScaleTransform = SV.AverageScaleTransform) and
+    (TransformScale = SV.TransformScale) and
     MatricesPerfectlyEqual(TextureTransform, SV.TextureTransform) and
     (ShapeNode = SV.ShapeNode);
 
@@ -2577,7 +2577,7 @@ var
 begin
   { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
     PointingDeviceSensors,
-    ActiveLights, Transform, AverageScaleTransform, InvertedTransform,
+    ActiveLights, Transform, TransformScale, InvertedTransform,
     TextureTransform, ClipPlanes are ignored by
     TVRMLOpenGLRenderer.RenderShapeNoTransform }
 

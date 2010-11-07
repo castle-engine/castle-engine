@@ -151,7 +151,7 @@ begin
   Result.LightNode := ActiveLightNode;
 
   Result.Transform := IdentityMatrix4Single;
-  Result.AverageScaleTransform := 1;
+  Result.TransformScale := 1;
 
   Result.TransfLocation := Position;
   Result.TransfNormDirection := Normalized(Direction);

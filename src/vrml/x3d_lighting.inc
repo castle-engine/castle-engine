@@ -444,7 +444,7 @@ procedure TVRMLLightNode.UpdateActiveLightState(
   State: TVRMLGraphTraverseState);
 begin
   ActiveLight.Transform := State.Transform;
-  ActiveLight.AverageScaleTransform := State.AverageScaleTransform;
+  ActiveLight.TransformScale := State.TransformScale;
   UpdateActiveLight(ActiveLight);
 end;
 
@@ -716,7 +716,7 @@ begin
     and
       bounding box
     which I don't know how to do *easily*... }
-  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.AverageScaleTransform;
+  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.TransformScale;
 end;
 
 constructor TNodeSpotLight_2.Create(const ANodeName: string;
@@ -792,7 +792,7 @@ begin
 
   { TODO: For non-uniform scale, this is too easy,
     see TNodePointLight_2.CreateActiveLight for more comments. }
-  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.AverageScaleTransform;
+  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.TransformScale;
 end;
 
 function TNodeSpotLight_2.ProjectionMatrix: TMatrix4Single;
