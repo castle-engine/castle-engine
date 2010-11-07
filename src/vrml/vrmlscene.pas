@@ -396,35 +396,21 @@ type
     procedure UpdateShadowMaps(LightNode: TVRMLLightNode);
   end;
 
-  { Internal helper for TVRMLScene, gathers information for transform nodes.
-
-    Transform nodes are all nodes that have any field with Transform = true,
-    currently:
-      TNodeTransform_2
-      TNodeMatrixTransform_2
-      TNodeHAnimHumanoid
-      TNodeHAnimJoint
-      TNodeHAnimSite
-
+  { Internal helper for TVRMLScene, for each transform node (INodeTransform)
+    a list with all TVRMLShapeTreeTransform instances where it's used.
     @exclude }
-  TTransformNodeInfo = record
-    Node: TVRMLNode;
-    Occurences: Cardinal;
+  TTransformNodeInfo = class(TVRMLShapeTreesList)
+    Node: TNodeX3DGroupingNode;
   end;
 
   { @exclude }
-  PTransformNodeInfo = ^TTransformNodeInfo;
+  TObjectsListItem_1 = TTransformNodeInfo;
   { @exclude }
-  TDynArrayItem_6 = TTransformNodeInfo;
+  {$I objectslist_1.inc}
   { @exclude }
-  PDynArrayItem_6 = PTransformNodeInfo;
-  {$define DYNARRAY_6_IS_STRUCT}
-  { @exclude }
-  {$I dynarray_6.inc}
-  { @exclude }
-  TDynTransformNodeInfoArray = class(TDynArray_6)
+  TTransformNodeInfosList = class(TObjectsList_1)
   public
-    function NodeInfo(Node: TVRMLNode): PTransformNodeInfo;
+    function NodeInfo(Node: TNodeX3DGroupingNode): TTransformNodeInfo;
   end;
 
   TCompiledScriptHandler = procedure (
@@ -607,7 +593,7 @@ type
     procedure SetShadowMapsVisualizeDepth(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
   private
-    TransformNodesInfo: TDynTransformNodeInfoArray;
+    TransformNodesInfo: TTransformNodeInfosList;
 
     ChangedAll_TraversedLights: TDynActiveLightArray;
 
@@ -2119,8 +2105,8 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
 {$I dynarray_3.inc}
 {$I dynarray_4.inc}
 {$I dynarray_5.inc}
-{$I dynarray_6.inc}
 {$I dynarray_7.inc}
+{$I objectslist_1.inc}
 
 { TVRMLBindableStack ----------------------------------------------------- }
 
@@ -2409,16 +2395,16 @@ begin
       Items[I].Handler.UpdateNeeded := true;
 end;
 
-{ TDynTransformNodeInfoArray ------------------------------------------------- }
+{ TTransformNodeInfosList ------------------------------------------------- }
 
-function TDynTransformNodeInfoArray.NodeInfo(Node: TVRMLNode): PTransformNodeInfo;
+function TTransformNodeInfosList.NodeInfo(Node: TNodeX3DGroupingNode): TTransformNodeInfo;
 var
   I: Integer;
 begin
   for I := 0 to High do
     if Node = Items[I].Node then
     begin
-      Result := Pointers[I];
+      Result := Items[I];
       Exit;
     end;
   Result := nil;
@@ -2447,7 +2433,7 @@ begin
   FPointingDeviceActiveSensors := TVRMLNodesList.Create;
 
   FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
-  TransformNodesInfo := TDynTransformNodeInfoArray.Create;
+  TransformNodesInfo := TTransformNodeInfosList.Create;
   GeneratedTextures := TDynGeneratedTextureArray.Create;
 
   FTimePlaying := true;
@@ -2495,7 +2481,7 @@ begin
     FInput_PointingDeviceActivate := nil;
 
   FreeAndNil(GeneratedTextures);
-  FreeAndNil(TransformNodesInfo);
+  FreeWithContentsAndNil(TransformNodesInfo);
   FreeAndNil(FCompiledScriptHandlers);
 
   FreeAndNil(FBackgroundStack);
@@ -2704,10 +2690,21 @@ procedure TChangedAllTraverser.Traverse(
     Traverser: TChangedAllTraverser;
     ChildNode: TVRMLNode;
     I: Integer;
+    Info: TTransformNodeInfo;
   begin
     TransformTree := TVRMLShapeTreeTransform.Create(ParentScene);
     TransformTree.TransformNode := TransformNode;
     ShapesGroup.Children.Add(TransformTree);
+
+    { update ParentScene.TransformNodesInfo }
+    Info := ParentScene.TransformNodesInfo.NodeInfo(TransformNode);
+    if Info = nil then
+    begin
+      Info := TTransformNodeInfo.Create;
+      Info.Node := Node as TNodeX3DGroupingNode;
+      ParentScene.TransformNodesInfo.Add(Info);
+    end;
+    Info.Add(TransformTree);
 
     for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
     begin
@@ -2804,7 +2801,6 @@ procedure TChangedAllTraverser.Traverse(
 
 var
   Shape: TVRMLShape;
-  Info: PTransformNodeInfo;
 begin
   if Node is TVRMLGeometryNode then
   begin
@@ -2853,15 +2849,6 @@ begin
   end else
   if Supports(Node, INodeTransform) then
   begin
-    Info := ParentScene.TransformNodesInfo.NodeInfo(Node);
-    if Info = nil then
-    begin
-      Info := ParentScene.TransformNodesInfo.Add;
-      Info^.Node := Node;
-      Info^.Occurences := 1;
-    end else
-      Inc(Info^.Occurences);
-
     { INodeTransform must also be TNodeX3DGroupingNode }
     HandleTransform(Node as TNodeX3DGroupingNode);
   end else
@@ -2930,7 +2917,7 @@ end;
 procedure TVRMLScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { TransformNodesInfo will be recalculated by ChangedAll }
-  TransformNodesInfo.Count := 0;
+  TransformNodesInfo.FreeContents;
 
   { GeneratedTextures will be recalculated by ChangedAll }
   GeneratedTextures.Count := 0;
@@ -3200,7 +3187,7 @@ type
     ProximitySensorNum: Cardinal;
     ChangingNode: TNodeX3DGroupingNode; {< must be also INodeTransform }
     ChangingField: TVRMLField;
-    ChangingNodeOccurences: Integer; //< -1 if not known
+    ChangingNodeOccurences: Integer;
     ChangingNodeFoundCount: Cardinal;
     AnythingChanged: boolean;
     Inside: boolean;
@@ -3261,8 +3248,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         to traverse remaining nodes and shapes. }
 
       Inc(ChangingNodeFoundCount);
-      if (ChangingNodeOccurences <> -1) and
-         (ChangingNodeFoundCount >= Cardinal(ChangingNodeOccurences)) then
+      if (ChangingNodeFoundCount >= Cardinal(ChangingNodeOccurences)) then
         raise BreakTransformChangeSuccess.Create;
     end;
 
@@ -3530,7 +3516,7 @@ var
   procedure HandleChangeTransform;
   var
     TransformChangeHelper: TTransformChangeHelper;
-    NodeInfo: PTransformNodeInfo;
+    NodeInfo: TTransformNodeInfo;
     TransformShapesParentInfo: TShapesParentInfo;
   begin
     if not Supports(Node, INodeTransform) then
@@ -3586,16 +3572,16 @@ var
         TransformChangeHelper.Changes := Changes;
         TransformChangeHelper.ChangingNodeFoundCount := 0;
 
-        NodeInfo := TransformNodesInfo.NodeInfo(Node);
+        NodeInfo := TransformNodesInfo.NodeInfo(Node as TNodeX3DGroupingNode);
         if NodeInfo <> nil then
         begin
-          TransformChangeHelper.ChangingNodeOccurences := NodeInfo^.Occurences;
+          TransformChangeHelper.ChangingNodeOccurences := NodeInfo.Count;
         end else
         begin
           if Log and LogChanges then
-            WritelnLog('VRML changes', Format('Occurences number for node "%s" not recorded, changing transformation of this node will not be optimized',
+            WritelnLog('VRML changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
               [Node.NodeTypeName]));
-          TransformChangeHelper.ChangingNodeOccurences := -1;
+          Exit;
         end;
 
         try
