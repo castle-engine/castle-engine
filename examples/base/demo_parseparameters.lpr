@@ -1,9 +1,11 @@
-{ Simple example how to use ParseParametersUnit.
+{ Simple example how to parse command-line parameters using ParseParametersUnit.
   Call with --help to get help. }
+program demo_parseparameters;
 
 uses SysUtils, KambiUtils, ParseParametersUnit;
 
-var Number: Integer = 0;
+var
+  Number: Integer = 0;
 
 const
   Options: array[0..1]of TOption = (
@@ -14,57 +16,58 @@ const
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
- case OptionNum of
-  0: begin
-      Writeln(
-        'demo_parsingparameters: Demo how to use the ParseParametersUnit.' +nl+
-        nl+
-        'Available options are:' +nl+
-        HelpOptionHelp +nl+
-        '  -n / --number NUMBER' +nl+
-        '                        Set''s some Number to given value.' +nl+
-        nl+
-        'Example calls : ' +nl+
-        nl+
-        'Following 4 calls are equivalent:' +nl+
-        '  demo_parseparameters -n 12' +nl+
-        '  demo_parseparameters -n=12' +nl+
-        '  demo_parseparameters --number=12' +nl+
-        '  demo_parseparameters --number 12' +nl+
-        nl+
-        'Following 2 calls are equivalent:' +nl+
-        '  demo_parseparameters -n 12 foo' +nl+
-        '  demo_parseparameters foo --number=12 ' +nl+
-        nl+
-        'Example incorrect calls that will result in exceptions' +nl+
-        'with proper error messages:' +nl+
-        '  demo_parseparameters --something' +nl+
-        '  demo_parseparameters -s' +nl+
-        nl+
-        'Following call demonstrates how to pass something starting with "-"' +nl+
-        'as parameter (usefull to e.g. pass filenames starting with "-"))' +nl+
-        '  demo_parseparameters -- -some-file-name'
-       );
-      ProgramBreak;
-     end;
-  1: Number := StrToInt(Argument);
-  else raise EInternalError.Create('OptionProc -- unknown arg');
- end;
+  case OptionNum of
+    0: begin
+        Writeln(
+          'demo_parsingparameters: Demo how to use the ParseParametersUnit.' +nl+
+          nl+
+          'Available options are:' +nl+
+          HelpOptionHelp +nl+
+          '  -n / --number NUMBER' +nl+
+          '                        Set''s some Number to given value.' +nl+
+          nl+
+          'Example calls : ' +nl+
+          nl+
+          'Following 4 calls are equivalent:' +nl+
+          '  demo_parseparameters -n 12' +nl+
+          '  demo_parseparameters -n=12' +nl+
+          '  demo_parseparameters --number=12' +nl+
+          '  demo_parseparameters --number 12' +nl+
+          nl+
+          'Following 2 calls are equivalent:' +nl+
+          '  demo_parseparameters -n 12 foo' +nl+
+          '  demo_parseparameters foo --number=12 ' +nl+
+          nl+
+          'Example incorrect calls that will result in exceptions' +nl+
+          'with proper error messages:' +nl+
+          '  demo_parseparameters --something' +nl+
+          '  demo_parseparameters -s' +nl+
+          nl+
+          'Following call demonstrates how to pass something starting with "-"' +nl+
+          'as parameter (usefull to e.g. pass filenames starting with "-"))' +nl+
+          '  demo_parseparameters -- -some-file-name'
+         );
+        ProgramBreak;
+       end;
+    1: Number := StrToInt(Argument);
+    else raise EInternalError.Create('OptionProc -- unknown arg');
+  end;
 end;
 
-var i: Integer;
+var
+  i: Integer;
 begin
- { Do parsing parameters }
+  { Do parsing parameters }
 
- ParseParameters(Options, {$ifdef FPC_OBJFPC} @ {$endif} OptionProc, nil);
+  ParseParameters(Options, {$ifdef FPC_OBJFPC} @ {$endif} OptionProc, nil);
 
- { Report state of Parameters[1] .. Parameters[Parameters.High] and Number after
-   parsing parameters. }
+  { Report state of Parameters[1] .. Parameters[Parameters.High] and Number after
+    parsing parameters. }
 
- Writeln(Format('After ParseParameters, %d non-options are left.',
-   [Parameters.High]));
- for i := 1 to Parameters.High do
-  Writeln('Parameters[', i, '] = ', Parameters[i]);
+  Writeln(Format('After ParseParameters, %d non-options are left.',
+    [Parameters.High]));
+  for i := 1 to Parameters.High do
+    Writeln('Parameters[', i, '] = ', Parameters[i]);
 
- Writeln('Number is now ', Number);
+  Writeln('Number is now ', Number);
 end.
