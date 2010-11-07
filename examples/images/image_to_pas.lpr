@@ -53,7 +53,7 @@ const
   Options: array[0..2]of TOption = (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: #0 ; Long: 'no-show-progress'; Argument: oaNone),
-    (Short: 'o'; Long: 'output-directory'; Argument: oaRequired)
+    (Short: 'o'; Long: 'output'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
