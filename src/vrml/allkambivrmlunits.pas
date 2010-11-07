@@ -11,7 +11,6 @@ interface
 
 uses
   colladatovrml,
-  vrmllighting,
   normalscalculator,
   object3dasvrml,
   vrmlanimation,
@@ -21,6 +20,7 @@ uses
   vrmlgeometry,
   vrmlheadlight,
   vrmllexer,
+  vrmllighting,
   vrmllightmap,
   vrmllightset,
   vrmlnodes,

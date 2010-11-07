@@ -259,8 +259,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
     P.Targets.AddUnit('glmenu.pas');
-    P.Targets.AddUnit('imageslider_base.pas');
-    P.Targets.AddUnit('imageslider_position.pas');
+    P.Targets.AddUnit('glmenuimages.pas');
 
     Run;
   end;

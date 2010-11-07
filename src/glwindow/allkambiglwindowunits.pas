@@ -10,6 +10,8 @@ unit AllKambiGLWindowUnits;
 interface
 
 uses
+  glnotifications,
+  glprogress,
   glsoundmenu,
   glwindow,
   glwindowrecentfiles,
@@ -17,8 +19,6 @@ uses
   glwininputs,
   glwinmessages,
   glwinmodes,
-  glprogress,
-  glnotifications,
   {$ifdef UNIX}
   kambiglx,
   kambixf86vmode,
