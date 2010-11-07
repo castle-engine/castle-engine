@@ -36,6 +36,8 @@
 
   For an example output of this program see e.g. view3dscene sources,
   unit v3dsceneimages, generated from images inside view3dscene/images.
+
+  Run with --help for a description of other command-line parameters.
 }
 
 {$apptype CONSOLE}
@@ -71,7 +73,12 @@ begin
           HelpOptionHelp +nl+
           '  --no-show-progress    Do not show progress on stderr.' +nl+
           '  -o / --output DIRECTORY' +nl+
-          '                        Place output unit files inside this dir.'
+          '                        Place output unit files inside this dir.' +nl+
+          '  @alpha=strip          Strip the alpha channel from the following' +nl+
+          '                        images.' +nl+
+          '  @alpha=keep           Keep the alpha channel on the following' +nl+
+          '                        images (the default). As a result,' +nl+
+          '                        alpha channel will be stored in source files.'
          );
         ProgramBreak;
        end;
@@ -82,7 +89,7 @@ begin
 end;
 
 var
-  Image: TImage;
+  Image, TempImage: TImage;
   ImageFileName: string;
   UnitName, NameWidth, NameHeight, NamePixels, NameImage: string;
   ImagesInterface, ImagesImplementation, ImagesInitialization,
@@ -90,6 +97,7 @@ var
   ImageIndex, I: Integer;
   pb: PByte;
   OutputUnit: Text;
+  AlphaStrip: boolean = false;
 begin
   { parse params }
   ParseParameters(Options, {$ifdef FPC_OBJFPC} @ {$endif} OptionProc, nil);
@@ -109,11 +117,35 @@ begin
   begin
     ImageFilename := Parameters[ImageIndex];
 
+    if ImageFilename = '@alpha=strip' then
+    begin
+      AlphaStrip := true;
+      Continue;
+    end else
+    if ImageFilename = '@alpha=keep' then
+    begin
+      AlphaStrip := false;
+      Continue;
+    end;
+
     { init other Image* variables }
     NameImage := ExtractOnlyFileName(ImageFileName);
     NameImage[1] := UpCase(NameImage[1]);
     Image := LoadImage(ImageFileName, [], []);
     try
+      if AlphaStrip and Image.HasAlpha then
+      begin
+        if Image is TRGBAlphaImage then
+        begin
+          TempImage := TRGBAlphaImage(Image).ToRGBImage;
+          FreeAndNil(Image);
+          Image := TempImage;
+          TempImage := nil; {< for safety }
+        end else
+          raise Exception.CreateFmt('Cannot strip alpha channel information from image %s (class %s)',
+            [ImageFileName, Image.ClassName]);
+      end;
+
       { calculate Name* variables }
       NameWidth := NameImage +'Width';
       NameHeight := NameImage +'Height';
