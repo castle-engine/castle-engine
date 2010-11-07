@@ -136,6 +136,8 @@ type
       looks into it's children). Also it looks into shaders textures.
       Also, for VRML 1.0, looks into LastNodes.Texture2. }
     procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); virtual; abstract;
+
+    function DebugInfo(const Indent: string = ''): string; virtual; abstract;
   end;
 
   { Shape is a geometry node @link(Geometry) instance and it's
@@ -547,6 +549,8 @@ type
     property BlenderMeshNode: TVRMLNode read FBlenderMeshNode;
     property BlenderMeshName: string read FBlenderMeshName;
     { @groupEnd }
+
+    function DebugInfo(const Indent: string = ''): string; override;
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -594,6 +598,8 @@ type
     function IterateEndIndex(OnlyActive: boolean): Cardinal; virtual;
 
     {$endif}
+
+    function DebugInfo(const Indent: string = ''): string; override;
   end;
 
   { Node of the TVRMLShapeTree representing an alternative,
@@ -1629,6 +1635,11 @@ begin
     ProxyState(OverTriangulate));
 end;
 
+function TVRMLShape.DebugInfo(const Indent: string): string;
+begin
+  Result := Indent + Geometry.NodeTypeName + NL;
+end;
+
 { TVRMLShapeTreeGroup -------------------------------------------------------- }
 
 constructor TVRMLShapeTreeGroup.Create(AParentScene: TObject);
@@ -1686,6 +1697,15 @@ begin
   Result := FChildren.Count;
 end;
 {$endif}
+
+function TVRMLShapeTreeGroup.DebugInfo(const Indent: string): string;
+var
+  I: Integer;
+begin
+  Result := Indent + ClassName + NL;
+  for I := 0 to FChildren.Count - 1 do
+    Result += FChildren[I].DebugInfo(Indent + Format('  %3d:', [I]));
+end;
 
 { TVRMLShapeTreeSwitch ------------------------------------------------------- }
 
