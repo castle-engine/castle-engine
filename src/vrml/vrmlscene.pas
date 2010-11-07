@@ -3472,9 +3472,18 @@ begin
     HandleLight(TVRMLLightNode(Node));
   end else
   if (Node is TNodeProximitySensor) and
-     { We only care about ProximitySensor in active graph parts. }
-     { TODO: (Inactive = 0) does not guarantee that proximity sensor is used.
-       Is ProximitySensorNum OK here? } 
+     { We only care about ProximitySensor in active graph parts.
+
+       TODO: (Inactive = 0) does not guarantee that we're in active part,
+       it only says we're *possibly* in an active part, and we cannot fix it
+       (without sacrifing transform optimization).
+       This is bad, it means we make ProximitySensor events also for
+       sensors in inactive graph parts. Although, should we really
+       look at this? Maybe ProximitySensor ignore active/inactive,
+       and we should just remove the test for "(Inactive = 0)" and that's it?
+
+       OTOH, our traversing currently only uses ProximitySensor from active
+       parts. }
      (Inactive = 0) then
   begin
     ParentScene.ProximitySensorInstances.Items[ProximitySensorNum].
