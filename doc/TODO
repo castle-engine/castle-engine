@@ -745,6 +745,9 @@ Things for much later:
 - make doc without protected stuff?
   Decide when really nice docs are made.
 
+- When some day we will modernize font_to_pascal, it would be nice
+  to also generate font data into .font_data, similar to .image_data,
+  to not confuse ohloh statistics.
 ------------------------------------------------------------------------------
 
 macosx glViewImage -dRELEASE fpc 2.4.0:
