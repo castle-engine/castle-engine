@@ -21,7 +21,11 @@
 
   The output unit filename will be lowercase(unit name) + '.pas'.
   (We make the name lowercase, as this is nice under Unix.)
-  We place it inside directory given by --output option, by default
+  We also output an include file, with .images_data extension, containing
+  actual image data (the extension is deliberately weird:
+  the contents may be large, and would confuse http://www.ohloh.net/
+  into thinking you have a lot of (uncommented) Pascal source code).
+  We place it all inside directory given by --output option, by default
   just in the current directory.
 
   The generated Pascal unit defines TImage instances
@@ -156,10 +160,13 @@ begin
     finally FreeAndNil(Image) end;
   end;
 
+  if OutputDirectory <> '' then
+    OutputDirectory := InclPathDelim(OutputDirectory);
+
   { output full unit contents.
     Beware to not concatenate huge Images* strings in the memory,
     could be a performance / memory problem? Although code above does it anyway? }
-  SafeRewrite(OutputUnit, InclPathDelim(OutputDirectory) + LowerCase(UnitName) + '.pas');
+  SafeRewrite(OutputUnit, OutputDirectory + LowerCase(UnitName) + '.pas');
   Write(OutputUnit,
     '{ -*- buffer-read-only: t -*- }' +nl+
     nl+
@@ -176,13 +183,20 @@ begin
     'implementation' + nl +
     nl+
     'uses SysUtils;' + nl +
-    nl);
-  Write(OutputUnit, ImagesImplementation);
-  Write(OutputUnit,
+    nl +
+    '{ Actual image data is included from another file, with a deliberately' +nl+
+    '  non-Pascal file extension ".image_data". This way ohloh.net will' +nl+
+    '  not recognize this source code as (uncommented) Pascal source code. }' +nl+
+    '{$I ' + LowerCase(UnitName) + '.image_data}' +nl+
+    nl +
     'initialization' +nl+
     ImagesInitialization +
     'finalization' +nl+
     ImagesFinalization +
     'end.');
+  CloseFile(OutputUnit);
+
+  SafeRewrite(OutputUnit, OutputDirectory + LowerCase(UnitName) + '.image_data');
+  Write(OutputUnit, ImagesImplementation);
   CloseFile(OutputUnit);
 end.
