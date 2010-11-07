@@ -3204,13 +3204,13 @@ type
     So many TransformChange traversals may run at once, so they must
     have different state variables. }
   TTransformChangeHelper = class
+    ParentScene: TVRMLScene;
     Shapes: PShapesParentInfo;
     ProximitySensorNum: Cardinal;
     ChangingNode: TNodeX3DGroupingNode; {< must be also INodeTransform }
     ChangingField: TVRMLField;
     AnythingChanged: boolean;
     Inside: boolean;
-    ParentScene: TVRMLScene;
     { If = 0, we're in active or inactive graph part (we don't know).
       If > 0, we're in inactive graph part (TransformChangeTraverse
       may enter there, since our changing Transform node (or some of it's
@@ -3588,8 +3588,19 @@ var
     try
       DoVisibleChanged := false;
 
-      TraverseStack := TVRMLGraphTraverseStateStack.Create;
+      TraverseStack := nil;
+      TransformChangeHelper := nil;
       try
+        TraverseStack := TVRMLGraphTraverseStateStack.Create;
+
+        { initialize TransformChangeHelper, set before the loop properties
+          that cannot change }
+        TransformChangeHelper := TTransformChangeHelper.Create;
+        TransformChangeHelper.ParentScene := Self;
+        TransformChangeHelper.ChangingNode := Node as TNodeX3DGroupingNode;
+        TransformChangeHelper.ChangingField := Field;
+        TransformChangeHelper.Changes := Changes;
+
         for I := 0 to NodeInfo.Count - 1 do
         begin
           TransformShapeTree := NodeInfo[I] as TVRMLShapeTreeTransform;
@@ -3599,36 +3610,33 @@ var
           TransformShapesParentInfo.Group := TransformShapeTree;
           TransformShapesParentInfo.Index := 0;
 
-          TransformChangeHelper := TTransformChangeHelper.Create;
+          { initialize TransformChangeHelper properties that may be changed
+            during Node.Traverse later }
+          TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+          TransformChangeHelper.ProximitySensorNum := 0;
+          TransformChangeHelper.AnythingChanged := false;
+          TransformChangeHelper.Inside := false;
+          TransformChangeHelper.Inactive := 0;
+
           try
-            TransformChangeHelper.ParentScene := Self;
-            TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-            TransformChangeHelper.ProximitySensorNum := 0;
-            TransformChangeHelper.ChangingNode := Node as TNodeX3DGroupingNode;
-            TransformChangeHelper.ChangingField := Field;
-            TransformChangeHelper.AnythingChanged := false;
-            TransformChangeHelper.Inside := false;
-            TransformChangeHelper.Inactive := 0;
-            TransformChangeHelper.Changes := Changes;
+            Node.TraverseInternal(TraverseStack, TVRMLNode,
+              @TransformChangeHelper.TransformChangeTraverse, nil);
+          except
+            on BreakTransformChangeSuccess do
+              { BreakTransformChangeSuccess is equivalent with normal finish
+                of Traverse. So do nothing, just silence exception. }
+          end;
 
-            try
-              Node.TraverseInternal(TraverseStack, TVRMLNode,
-                @TransformChangeHelper.TransformChangeTraverse, nil);
-            except
-              on BreakTransformChangeSuccess do
-                { BreakTransformChangeSuccess is equivalent with normal finish
-                  of Traverse. So do nothing, just silence exception. }
-            end;
-
-            if TransformChangeHelper.AnythingChanged then
-              DoVisibleChanged := true;
-          finally FreeAndNil(TransformChangeHelper) end;
+          if TransformChangeHelper.AnythingChanged then
+            DoVisibleChanged := true;
         end;
-      finally FreeAndNil(TraverseStack) end;
+      finally
+        FreeAndNil(TraverseStack);
+        FreeAndNil(TransformChangeHelper);
+      end;
 
       if DoVisibleChanged then
         VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-
     except
       on B: BreakTransformChangeFailed do
       begin
