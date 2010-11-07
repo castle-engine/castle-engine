@@ -645,12 +645,22 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    { Remove everything. }
+    procedure Clear;
+
+    { Push a clear state on the stack. Clear state has everything set
+      like a TVRMLGraphTraverseState right after creating. }
     procedure PushClear;
+    { Push a copy of current top on the stack. }
     procedure Push;
+    { Push a copy of given Item on the stack.
+      We copy by TVRMLGraphTraverseState.Assign, we don't copy the reference. }
+    procedure Push(const Item: TVRMLGraphTraverseState);
     procedure Pop;
 
     { Peek at the top of the stack. }
     function Top: TVRMLGraphTraverseState;
+    function PreviousTop: TVRMLGraphTraverseState;
   end;
 
   PTraversingInfo = ^TTraversingInfo;
@@ -2693,6 +2703,14 @@ begin
   Inc(ItemsAllocated);
 end;
 
+procedure TVRMLGraphTraverseStateStack.Push(const Item: TVRMLGraphTraverseState);
+begin
+  if ItemsAllocated = Cardinal(Length(Items)) then GrowItems;
+
+  Items[ItemsAllocated].Assign(Item);
+  Inc(ItemsAllocated);
+end;
+
 procedure TVRMLGraphTraverseStateStack.Pop;
 begin
   Dec(ItemsAllocated);
@@ -2701,6 +2719,16 @@ end;
 function TVRMLGraphTraverseStateStack.Top: TVRMLGraphTraverseState;
 begin
   Result := Items[ItemsAllocated - 1];
+end;
+
+function TVRMLGraphTraverseStateStack.PreviousTop: TVRMLGraphTraverseState;
+begin
+  Result := Items[ItemsAllocated - 2];
+end;
+
+procedure TVRMLGraphTraverseStateStack.Clear;
+begin
+  ItemsAllocated := 0;
 end;
 
 {$I vrmlnodes_node.inc}

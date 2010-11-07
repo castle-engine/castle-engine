@@ -628,7 +628,11 @@ type
   TVRMLShapeTreeTransform = class(TVRMLShapeTreeGroup)
   private
     FTransformNode: TNodeX3DGroupingNode;
+    FTransformState: TVRMLGraphTraverseState;
   public
+    constructor Create(AParentScene: TObject);
+    destructor Destroy; override;
+
     { Internal note: We don't declare TransformNode as INodeTransform interface,
       because we don't want to keep reference to it too long,
       as it's manually freed. That's safer. }
@@ -636,6 +640,11 @@ type
       to INodeTransform interface. }
     property TransformNode: TNodeX3DGroupingNode
       read FTransformNode write FTransformNode;
+
+    { State right before traversing the TransformNode.
+      Owned by this TVRMLShapeTreeTransform instance. You should assign
+      to it when you set TransformNode. }
+    property TransformState: TVRMLGraphTraverseState read FTransformState;
   end;
 
   { Node of the TVRMLShapeTree representing the LOD (level of detail) VRML
@@ -1742,6 +1751,20 @@ begin
     Result := inherited;
 end;
 {$endif}
+
+{ TVRMLShapeTreeTransform ---------------------------------------------------- }
+
+constructor TVRMLShapeTreeTransform.Create(AParentScene: TObject);
+begin
+  inherited;
+  FTransformState := TVRMLGraphTraverseState.Create;
+end;
+
+destructor TVRMLShapeTreeTransform.Destroy;
+begin
+  FreeAndNil(FTransformState);
+  inherited;
+end;
 
 { TVRMLShapeTreeLOD ------------------------------------------------------- }
 
