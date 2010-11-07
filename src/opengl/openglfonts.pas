@@ -190,10 +190,10 @@ type
       Doesn't modify any OpenGL state or matrix, except it modifies the raster position.
 
       @groupBegin }
-    procedure PrintStringsBorderedRect(const strs: array of string; BonusVerticalSpace: TGLint;
+    procedure PrintStringsBox(const strs: array of string; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
       BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat); overload;
-    procedure PrintStringsBorderedRect(strs: TStringList; BonusVerticalSpace: TGLint;
+    procedure PrintStringsBox(strs: TStringList; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
       BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat); overload;
     { @groupEnd }
@@ -402,7 +402,7 @@ begin
   finally broken.Free end;
 end;
 
-procedure TGLBitmapFont_Abstract.PrintStringsBorderedRect(
+procedure TGLBitmapFont_Abstract.PrintStringsBox(
   strs: TStringList; BonusVerticalSpace: TGLint;
   const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
   BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat);
@@ -423,7 +423,7 @@ begin
   PrintStrings(strs, BonusVerticalSpace, BoxPixelMargin, BoxPixelMargin + Descend);
 end;
 
-procedure TGLBitmapFont_Abstract.PrintStringsBorderedRect(
+procedure TGLBitmapFont_Abstract.PrintStringsBox(
   const strs: array of string; BonusVerticalSpace: TGLint;
   const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
   BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat);
@@ -433,7 +433,7 @@ begin
   slist := TStringList.Create;
   try
     AddStrArrayToStrings(strs, slist);
-    PrintStringsBorderedRect(slist, BonusVerticalSpace,
+    PrintStringsBox(slist, BonusVerticalSpace,
       InsideCol, BorderCol, TextCol, Stipple,
       BoxPixelMargin, XPixelsRes, YPixelsRes);
   finally slist.Free end;
