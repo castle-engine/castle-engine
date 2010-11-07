@@ -46,6 +46,11 @@ procedure WriteLog(const Title: string; const LogMessage: string);
 
 { Just like WritelnLog, but wraps inside Title markers, so that
   it's nicely formatted even when LogMessage is multiline.
+  LogMessage may be multiline and terminated by final newline. }
+procedure WriteLogMultiline(const Title: string; const LogMessage: string);
+
+{ Just like WritelnLog, but wraps inside Title markers, so that
+  it's nicely formatted even when LogMessage is multiline.
   LogMessage may be multiline but not terminated by final newline. }
 procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
 
@@ -109,15 +114,20 @@ end;
 
 procedure WritelnLog(const Title: string; const LogMessage: string);
 begin
-  WriteLog(Title, LogMessage + nl);
+  WriteLog(Title, LogMessage + NL);
+end;
+
+procedure WriteLogMultiline(const Title: string; const LogMessage: string);
+begin
+  WritelnStr(
+    '-------------------- ' + Title + ' begin' + NL +
+    LogMessage +
+    '-------------------- ' + Title + ' end');
 end;
 
 procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
 begin
-  WritelnStr(
-    '-------------------- ' + Title + ' begin' +nl+
-    LogMessage +nl+
-    '-------------------- ' + Title + ' end');
+  WriteLogMultiline(Title, LogMessage + NL);
 end;
 
 end.
