@@ -1142,12 +1142,6 @@ type
     procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
 
-    { The TransformScale of FogNode2 is not passed explicitly,
-      as it's available in FogNode2.TransformScale. }
-    function FogParametersEqual(
-      FogNode1: TNodeFog; const FogDistanceScaling1: Single;
-      FogNode2: TNodeFog): boolean;
-
     { Set GLSLProgram uniform variable from VRML field value.
       Uniform name is contained in UniformName. UniformValue indicates
       uniform type and new value (UniformValue.Name is not used).
@@ -1678,6 +1672,16 @@ const
 
   bmMultiTexAll = [bmMultiTexDotNotNormalized, bmMultiTexDotNormalized];
   bmGLSLAll = [bmGLSLNormal, bmGLSLParallax];
+
+{ Compare two saved fog parameters.
+  For the 1st fog node, we supply a scaling separately,
+  to account for the fact that scaling may change while fog reference
+  remains the same.
+  For the 2nd fog node, transform scale is taken from
+  current FogNode2.TransformScale. }
+function FogParametersEqual(
+  FogNode1: TNodeFog; const FogDistanceScaling1: Single;
+  FogNode2: TNodeFog): boolean;
 
 {$undef read_interface}
 
@@ -2840,16 +2844,6 @@ begin
   raise EInternalError.Create(
     'TVRMLOpenGLRendererContextCache.GLSLProgram_DecReference: no reference ' +
     'found to GLSL program');
-end;
-
-function TVRMLOpenGLRendererContextCache.FogParametersEqual(
-  FogNode1: TNodeFog; const FogDistanceScaling1: Single;
-  FogNode2: TNodeFog): boolean;
-begin
-  Result := (FogNode1 = FogNode2);
-  { If both fog nodes are nil, don't compare scaling }
-  if Result and (FogNode1 <> nil) then
-    Result := FogDistanceScaling1 = FogNode2.TransformScale;
 end;
 
 function TVRMLOpenGLRendererContextCache.Shape_IncReference_Existing(
@@ -4984,6 +4978,16 @@ begin
     Assigned(Attributes.OnRadianceTransfer) or
     (BumpMappingMethod <> bmNone) or
     Volumetric);
+end;
+
+function FogParametersEqual(
+  FogNode1: TNodeFog; const FogDistanceScaling1: Single;
+  FogNode2: TNodeFog): boolean;
+begin
+  Result := (FogNode1 = FogNode2);
+  { If both fog nodes are nil, don't compare scaling }
+  if Result and (FogNode1 <> nil) then
+    Result := FogDistanceScaling1 = FogNode2.TransformScale;
 end;
 
 end.

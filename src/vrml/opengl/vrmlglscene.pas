@@ -629,7 +629,7 @@ type
       it just frees resources for all possible Optimization values. }
     procedure OptimizationDestroy;
   private
-    PreparedFogNode: TVRMLNode;
+    PreparedFogNode: TNodeFog;
     PreparedFogScale: Single;
     procedure CheckFogChanged;
   private
@@ -3053,8 +3053,7 @@ procedure TVRMLGLScene.CheckFogChanged;
 var
   TG: TTransparentGroup;
 begin
-  if (PreparedFogNode <> FogNode) or
-     (PreparedFogScale <> FogNode.TransformScale) then
+  if FogParametersEqual(PreparedFogNode, PreparedFogScale, FogNode) then
   begin
     case Optimization of
       roSceneAsAWhole:
@@ -3234,7 +3233,9 @@ begin
     end;
 
   PreparedFogNode := FogNode;
-  PreparedFogScale := FogNode.TransformScale;
+  if PreparedFogNode <> nil then
+    PreparedFogScale := FogNode.TransformScale else
+    PreparedFogScale := 0;
 
   if prBackground in Options then
     PrepareBackground;
@@ -3279,7 +3280,9 @@ procedure TVRMLGLScene.Render(
     end;
 
     PreparedFogNode := FogNode;
-    PreparedFogScale := FogNode.TransformScale;
+    if PreparedFogNode <> nil then
+      PreparedFogScale := FogNode.TransformScale else
+      PreparedFogScale := 0;
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);
