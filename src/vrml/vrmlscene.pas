@@ -2694,6 +2694,24 @@ procedure TChangedAllTraverser.Traverse(
   begin
     TransformTree := TVRMLShapeTreeTransform.Create(ParentScene);
     TransformTree.TransformNode := TransformNode;
+
+    { We want to save at TransformState the state right before traversing
+      inside this TransformNode.
+
+      StateStack.Top is bad --- it is already modified by TransformNode
+      transformation, we don't want this, the very purpose of TransformState
+      is to later restart traversing from a TransformNode that changed
+      it's transformation. Clearly, TransformState must not depend on
+      current TransformNode transformation.
+
+      So we cheat a little, knowing that internally every TNodeX3DGroupingNode
+      (actually, every TVRMLGroupingNode) does StateStack.Push inside
+      BeforeTraverse exactly once. (Actuallly, only if SeparateGroup,
+      but this applies to all VRML 2.0/X3D nodes, in particular
+      all INodeTransform nodes.) So we know that previous state lies
+      safely at PreviousTop. }
+    TransformTree.TransformState.Assign(StateStack.PreviousTop);
+
     ShapesGroup.Children.Add(TransformTree);
 
     { update ParentScene.TransformNodesInfo }
@@ -2701,7 +2719,7 @@ procedure TChangedAllTraverser.Traverse(
     if Info = nil then
     begin
       Info := TTransformNodeInfo.Create;
-      Info.Node := Node as TNodeX3DGroupingNode;
+      Info.Node := TransformNode;
       ParentScene.TransformNodesInfo.Add(Info);
     end;
     Info.Add(TransformTree);
@@ -3190,12 +3208,10 @@ type
     ProximitySensorNum: Cardinal;
     ChangingNode: TNodeX3DGroupingNode; {< must be also INodeTransform }
     ChangingField: TVRMLField;
-    ChangingNodeOccurences: Integer;
-    ChangingNodeFoundCount: Cardinal;
     AnythingChanged: boolean;
     Inside: boolean;
     ParentScene: TVRMLScene;
-    { If = 0, we're in active graph part.
+    { If = 0, we're in active or inactive graph part (we don't know).
       If > 0, we're in inactive graph part (TransformChangeTraverse
       may enter there, since our changing Transform node (or some of it's
       children) may be inactive; but we have to update all shapes,
@@ -3218,11 +3234,24 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
   begin
+    if TransformNode = ChangingNode then
+    begin
+      if Inside and Log then
+        WritelnLog('VRML transform', 'Cycle in VRML/X3D graph detected: transform node is a child of itself');
+      Inside := true;
+      { Nothing to do, in particular: do not enter inside.
+        Our Shapes^.Group and Shapes^.Index is already correctly set
+        at the inside of this transform by our HandleChangeTransform. }
+      Exit;
+    end;
+
     { get Shape and increase Shapes^.Index }
     ShapeTransform := Shapes^.Group.Children[Shapes^.Index] as TVRMLShapeTreeTransform;
     Inc(Shapes^.Index);
 
-    if TransformNode = ChangingNode then Inside := true;
+    { update transformation inside Transform nodes that are *within*
+      the modified Transform node }
+    ShapeTransform.TransformState.AssignTransform(StateStack.PreviousTop);
 
     OldShapes := Shapes;
     try
@@ -3239,21 +3268,6 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
       end;
 
     finally Shapes := OldShapes end;
-
-    if TransformNode = ChangingNode then
-    begin
-      Inside := false;
-
-      { ChangingNodeFoundCount and BreakTransformChangeSuccess are
-        useful to optimize TTransformChangeHelper: if we already
-        encountered all possible instances of ChangingNode in VRML graph,
-        we can terminate. This means that we don't have to waste time
-        to traverse remaining nodes and shapes. }
-
-      Inc(ChangingNodeFoundCount);
-      if (ChangingNodeFoundCount >= Cardinal(ChangingNodeOccurences)) then
-        raise BreakTransformChangeSuccess.Create;
-    end;
 
     TraverseIntoChildren := false;
   end;
@@ -3398,95 +3412,89 @@ begin
     HandleTransform(Node as TNodeX3DGroupingNode);
   end else
 
-  if Inside then
+  if Node is TVRMLGeometryNode then
   begin
-    if Node is TVRMLGeometryNode then
-    begin
-      { get Shape and increase Shapes^.Index }
-      Check(Shapes^.Index < Shapes^.Group.Children.Count,
-        'Missing shape in Shapes tree');
-      Shape := Shapes^.Group.Children[Shapes^.Index] as TVRMLShape;
-      Inc(Shapes^.Index);
+    { get Shape and increase Shapes^.Index }
+    Check(Shapes^.Index < Shapes^.Group.Children.Count,
+      'Missing shape in Shapes tree');
+    Shape := Shapes^.Group.Children[Shapes^.Index] as TVRMLShape;
+    Inc(Shapes^.Index);
 
-      Shape.State.AssignTransform(StateStack.Top);
-      { Changes = [chTransform] here, good for roSeparateShapesNoTransform
-        optimization. }
-      Shape.Changed(ChangingField, Inactive <> 0, Changes);
+    Shape.State.AssignTransform(StateStack.Top);
+    { Changes = [chTransform] here, good for roSeparateShapesNoTransform
+      optimization. }
+    Shape.Changed(ChangingField, Inactive <> 0, Changes);
 
-      if Inactive = 0 then
-      begin
-        if Shape.Visible then
-          ParentScene.DoGeometryChanged(gcVisibleTransformChanged);
+    if Inactive = 0 then
+    begin
+      if Shape.Visible then
+        ParentScene.DoGeometryChanged(gcVisibleTransformChanged);
 
-        if Shape.Collidable then
-          ParentScene.DoGeometryChanged(gcCollidableTransformChanged);
+      if Shape.Collidable then
+        ParentScene.DoGeometryChanged(gcCollidableTransformChanged);
 
-        AnythingChanged := true;
-      end;
-    end else
-    if Node is TNodeX3DBackgroundNode then
-    begin
-      { TODO: make this work to actually change displayed background }
-      if Node = ParentScene.BackgroundStack.Top then
-        raise BreakTransformChangeFailed.Create('bound ' + Node.NodeTypeName);
-    end else
-    if Node is TNodeFog then
-    begin
-      { There's no need to do anything more here, as FogDistanceScaling
-        automatically changed (as this is just a shortcut to
-        AverageScaleTransform, that is automatically stored within TNodeFog
-        during traversing it).
-
-        Renderer in TVRMLGLScene should detect this, and eventually
-        destroy display lists and such when rendering next time.
-      }
-      if Inactive = 0 then
-        ParentScene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-    end else
-    if Node is TVRMLViewpointNode then
-    begin
-      if Node = ParentScene.ViewpointStack.Top then
-        ParentScene.DoBoundViewpointVectorsChanged;
-
-      { TODO: Transformation of viewpoint should also affect NavigationInfo,
-        according to spec: "The speed, avatarSize and visibilityLimit values
-        are all scaled by the transformation being applied to
-        the currently bound X3DViewpointNode node."
-        When this will be implemented, then also when transformation
-        of viewpoint changes here we'll have to do something. }
-    end else
-    if Node is TVRMLLightNode then
-    begin
-      HandleLight(TVRMLLightNode(Node));
-    end else
-    if (Node is TNodeProximitySensor) and
-       { We only care about ProximitySensor in active graph parts. }
-       (Inactive = 0) then
-    begin
-      ParentScene.ProximitySensorInstances.Items[ProximitySensorNum].
-        InvertedTransform := StateStack.Top.InvertedTransform;
-      { Call ProximitySensorUpdate, since the sensor's box is transformed,
-        so possibly it should be activated/deactivated,
-        position/orientation_changed called etc. }
-      if ParentScene.IsLastViewer then
-        ParentScene.ProximitySensorUpdate(
-          ParentScene.ProximitySensorInstances.Items[ProximitySensorNum]);
-      Inc(ProximitySensorNum);
+      AnythingChanged := true;
     end;
   end else
+  if Node is TNodeX3DBackgroundNode then
   begin
-    if Node is TVRMLGeometryNode then
-    begin
-      { increase Shapes^.Index }
-      Check(Shapes^.Index < Shapes^.Group.Children.Count,
-        'Missing shape in Shapes tree');
-      Inc(Shapes^.Index);
-    end else
+    { TODO: make this work to actually change displayed background }
+    if Node = ParentScene.BackgroundStack.Top then
+      raise BreakTransformChangeFailed.Create('bound ' + Node.NodeTypeName);
+  end else
+  if Node is TNodeFog then
+  begin
+    { There's no need to do anything more here, as FogDistanceScaling
+      automatically changed (as this is just a shortcut to
+      AverageScaleTransform, that is automatically stored within TNodeFog
+      during traversing it).
+
+      Renderer in TVRMLGLScene should detect this, and eventually
+      destroy display lists and such when rendering next time.
+    }
+    if Inactive = 0 then
+      ParentScene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  end else
+  if Node is TVRMLViewpointNode then
+  begin
+    if Node = ParentScene.ViewpointStack.Top then
+      ParentScene.DoBoundViewpointVectorsChanged;
+
+    { TODO: Transformation of viewpoint should also affect NavigationInfo,
+      according to spec: "The speed, avatarSize and visibilityLimit values
+      are all scaled by the transformation being applied to
+      the currently bound X3DViewpointNode node."
+      When this will be implemented, then also when transformation
+      of viewpoint changes here we'll have to do something. }
+  end else
+  if Node is TVRMLLightNode then
+  begin
+    HandleLight(TVRMLLightNode(Node));
+  end else
+  if (Node is TNodeProximitySensor) and
+     { We only care about ProximitySensor in active graph parts. }
+     { TODO: (Inactive = 0) does not guarantee that proximity sensor is used.
+       Is ProximitySensorNum OK here? } 
+     (Inactive = 0) then
+  begin
+    ParentScene.ProximitySensorInstances.Items[ProximitySensorNum].
+      InvertedTransform := StateStack.Top.InvertedTransform;
+    { Call ProximitySensorUpdate, since the sensor's box is transformed,
+      so possibly it should be activated/deactivated,
+      position/orientation_changed called etc. }
+    if ParentScene.IsLastViewer then
+      ParentScene.ProximitySensorUpdate(
+        ParentScene.ProximitySensorInstances.Items[ProximitySensorNum]);
+    Inc(ProximitySensorNum);
+  end;
+
+  (* TODO: ProximitySensorNum will have to be saved at TVRMLShapeTreeTransform?
+
     if (Node is TNodeProximitySensor) and
        { We only care about ProximitySensor in active graph parts. }
        (Inactive = 0) then
       Inc(ProximitySensorNum);
-  end;
+  *)
 end;
 
 procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
@@ -3521,6 +3529,10 @@ var
     TransformChangeHelper: TTransformChangeHelper;
     NodeInfo: TTransformNodeInfo;
     TransformShapesParentInfo: TShapesParentInfo;
+    TraverseStack: TVRMLGraphTraverseStateStack;
+    I: Integer;
+    TransformShapeTree: TVRMLShapeTreeTransform;
+    DoVisibleChanged: boolean;
   begin
     if not Supports(Node, INodeTransform) then
     begin
@@ -3539,17 +3551,9 @@ var
       TVRMLGraphTraverseState.Transform for children nodes.
 
       So we have to re-traverse from this Transform node, and change
-      states of affected children. Also, first we have to traverse
-      *to* this Transform node, as we don't know it's initial State...
-      Moreover, Node may be instantiated many times in VRML graph,
-      so we have to Traverse to all it's occurences.
-
-      Besides, while traversing to the current transform node, we have to count
-      Shapes, to know which Shapes will be affected by what
-      state change (as we cannot deduce it from the mere Geometry
-      reference, since node may be instantiated many times under
-      different transformation, many times within our changing Transform
-      node, and many times outside of the changing Transform group).
+      states of affected children. Our TransformNodesInfo gives us
+      a list of TVRMLShapeTreeTransform corresponding to this transform node,
+      so we know we can traverse from this point.
 
       In more difficult cases, children of this Transform node may
       be affected in other ways by transformation. For example,
@@ -3558,49 +3562,64 @@ var
       BreakTransformChangeFailed in this case --- we have to do ChangedAll
       in such cases.
     }
+
+    NodeInfo := TransformNodesInfo.NodeInfo(Node as TNodeX3DGroupingNode);
+    if NodeInfo = nil then
+    begin
+      if Log and LogChanges then
+        WritelnLog('VRML changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
+          [Node.NodeTypeName]));
+      Exit;
+    end;
+
+    if Log and LogChanges then
+      WritelnLog('VRML changes', Format('Transform node %s change: %d instances',
+        [Node.NodeTypeName, NodeInfo.Count]));
+
     try
-      TransformShapesParentInfo.Group := Shapes as TVRMLShapeTreeGroup;
-      TransformShapesParentInfo.Index := 0;
+      DoVisibleChanged := false;
 
-      TransformChangeHelper := TTransformChangeHelper.Create;
+      TraverseStack := TVRMLGraphTraverseStateStack.Create;
       try
-        TransformChangeHelper.ParentScene := Self;
-        TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-        TransformChangeHelper.ProximitySensorNum := 0;
-        TransformChangeHelper.ChangingNode := Node as TNodeX3DGroupingNode;
-        TransformChangeHelper.ChangingField := Field;
-        TransformChangeHelper.AnythingChanged := false;
-        TransformChangeHelper.Inside := false;
-        TransformChangeHelper.Inactive := 0;
-        TransformChangeHelper.Changes := Changes;
-        TransformChangeHelper.ChangingNodeFoundCount := 0;
-
-        NodeInfo := TransformNodesInfo.NodeInfo(Node as TNodeX3DGroupingNode);
-        if NodeInfo <> nil then
+        for I := 0 to NodeInfo.Count - 1 do
         begin
-          TransformChangeHelper.ChangingNodeOccurences := NodeInfo.Count;
-        end else
-        begin
-          if Log and LogChanges then
-            WritelnLog('VRML changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
-              [Node.NodeTypeName]));
-          Exit;
-        end;
+          TransformShapeTree := NodeInfo[I] as TVRMLShapeTreeTransform;
+          TraverseStack.Clear;
+          TraverseStack.Push(TransformShapeTree.TransformState);
 
-        try
-          RootNode.Traverse(TVRMLNode, @TransformChangeHelper.TransformChangeTraverse);
-        except
-          on BreakTransformChangeSuccess do
-            { BreakTransformChangeSuccess is equivalent with normal finish
-              of Traverse. So do nothing, just silence exception. }
-        end;
+          TransformShapesParentInfo.Group := TransformShapeTree;
+          TransformShapesParentInfo.Index := 0;
 
-        if not TransformChangeHelper.AnythingChanged then
-          { No need to even VisibleChangeHere at the end. }
-          Exit;
-      finally
-        FreeAndNil(TransformChangeHelper);
-      end;
+          TransformChangeHelper := TTransformChangeHelper.Create;
+          try
+            TransformChangeHelper.ParentScene := Self;
+            TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+            TransformChangeHelper.ProximitySensorNum := 0;
+            TransformChangeHelper.ChangingNode := Node as TNodeX3DGroupingNode;
+            TransformChangeHelper.ChangingField := Field;
+            TransformChangeHelper.AnythingChanged := false;
+            TransformChangeHelper.Inside := false;
+            TransformChangeHelper.Inactive := 0;
+            TransformChangeHelper.Changes := Changes;
+
+            try
+              Node.TraverseInternal(TraverseStack, TVRMLNode,
+                @TransformChangeHelper.TransformChangeTraverse, nil);
+            except
+              on BreakTransformChangeSuccess do
+                { BreakTransformChangeSuccess is equivalent with normal finish
+                  of Traverse. So do nothing, just silence exception. }
+            end;
+
+            if TransformChangeHelper.AnythingChanged then
+              DoVisibleChanged := true;
+          finally FreeAndNil(TransformChangeHelper) end;
+        end;
+      finally FreeAndNil(TraverseStack) end;
+
+      if DoVisibleChanged then
+        VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+
     except
       on B: BreakTransformChangeFailed do
       begin
@@ -3610,8 +3629,6 @@ var
         Exit;
       end;
     end;
-
-    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
   procedure HandleChangeCoordinate;
