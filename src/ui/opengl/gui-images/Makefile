@@ -1,11 +1,11 @@
 .PHONY: all clean
 
-ALL_FILES=../imageslider_base.pas ../imageslider_position.pas
+ALL_UNITS=../glmenuimages.pas
 
-all: $(ALL_FILES)
+all: $(ALL_UNITS)
 
 clean:
-	rm -f $(ALL_FILES)
+	rm -f $(ALL_UNITS)
 
-../image%.pas: %.png
-	image_to_pas $< > $@
+../glmenuimages.pas: slider_base.png slider_position.png
+	image_to_pas --output .. GLMenuImages $^

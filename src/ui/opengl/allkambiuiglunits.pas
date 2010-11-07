@@ -12,8 +12,7 @@ interface
 uses
   glcontrols,
   glmenu,
-  imageslider_base,
-  imageslider_position
+  glmenuimages
   ;
 
 implementation

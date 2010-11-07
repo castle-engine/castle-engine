@@ -644,7 +644,7 @@ implementation
 
 uses SysUtils, KambiUtils, Images, KambiFilesUtils, KambiClassUtils,
   BFNT_BitstreamVeraSans_m10_Unit, KambiStringUtils, GLImages,
-  ImageSlider_Base, ImageSlider_Position;
+  GLMenuImages;
 
 procedure Register;
 begin
