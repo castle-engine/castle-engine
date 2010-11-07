@@ -630,7 +630,7 @@ type
     procedure OptimizationDestroy;
   private
     PreparedFogNode: TVRMLNode;
-    PreparedFogDistanceScaling: Single;
+    PreparedFogScale: Single;
     procedure CheckFogChanged;
   private
     { Used by UpdateGeneratedTextures, to prevent rendering the shape
@@ -1983,7 +1983,7 @@ end;
 
 procedure TVRMLGLScene.RenderBeginSimple;
 begin
- Renderer.RenderBegin(FogNode, FogDistanceScaling);
+ Renderer.RenderBegin(FogNode);
 end;
 
 procedure TVRMLGLScene.RenderEndSimple;
@@ -2758,9 +2758,7 @@ begin
   end;
 
   if not Renderer.Cache.RenderBegin_IncReference_Existing(
-    Attributes,
-    FogNode, FogDistanceScaling,
-    SSSX_RenderBeginDisplayList) then
+    Attributes, FogNode, SSSX_RenderBeginDisplayList) then
   begin
     SSSX_RenderBeginDisplayList := glGenListsCheck(1,
       'TVRMLGLScene.SSSX_PrepareBegin');
@@ -2781,9 +2779,7 @@ begin
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
     Renderer.Cache.RenderBegin_IncReference_New(
-      AttributesCopy,
-      FogNode, FogDistanceScaling,
-      SSSX_RenderBeginDisplayList);
+      AttributesCopy, FogNode, SSSX_RenderBeginDisplayList);
   end;
 end;
 
@@ -2798,9 +2794,7 @@ begin
   end;
 
   if not Renderer.Cache.RenderEnd_IncReference_Existing(
-    Attributes,
-    FogNode, FogDistanceScaling,
-    SSSX_RenderEndDisplayList) then
+    Attributes, FogNode, SSSX_RenderEndDisplayList) then
   begin
     SSSX_RenderEndDisplayList := glGenListsCheck(1,
       'TVRMLGLScene.SSSX_PrepareEnd');
@@ -2817,9 +2811,7 @@ begin
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
     Renderer.Cache.RenderEnd_IncReference_New(
-      AttributesCopy,
-      FogNode, FogDistanceScaling,
-      SSSX_RenderEndDisplayList);
+      AttributesCopy, FogNode, SSSX_RenderEndDisplayList);
   end;
 end;
 
@@ -2878,8 +2870,7 @@ begin
          Still, seems consistent to pass OriginalState along with OriginalGeometry. }
        Shape.OriginalGeometry,
        Shape.OriginalState,
-       FogNode, FogDistanceScaling,
-       Shape.SSSX_DisplayList)) then
+       FogNode, Shape.SSSX_DisplayList)) then
   begin
     Shape.SSSX_DisplayList := glGenListsCheck(1,
       'TVRMLGLScene.SSS_PrepareShape');
@@ -2907,8 +2898,7 @@ begin
       AttributesCopy,
       Shape.OriginalGeometry,
       StateCopy,
-      FogNode, FogDistanceScaling,
-      Shape.SSSX_DisplayList);
+      FogNode, Shape.SSSX_DisplayList);
   end;
 end;
 
@@ -2941,8 +2931,8 @@ begin
        Attributes,
        Shape.OriginalGeometry,
        Shape.OriginalState,
-       FogNode, FogDistanceScaling,
-       Renderer.CacheIgnoresTransform(FogNode, FogDistanceScaling),
+       FogNode,
+       Renderer.CacheIgnoresTransform(FogNode),
        Shape.SSSX_DisplayList)) then
   begin
     Shape.SSSX_DisplayList := glGenListsCheck(1,
@@ -2971,8 +2961,7 @@ begin
       AttributesCopy,
       Shape.OriginalGeometry,
       StateCopy,
-      FogNode, FogDistanceScaling,
-      Shape.SSSX_DisplayList);
+      FogNode, Shape.SSSX_DisplayList);
   end;
 end;
 
@@ -3065,7 +3054,7 @@ var
   TG: TTransparentGroup;
 begin
   if (PreparedFogNode <> FogNode) or
-     (PreparedFogDistanceScaling <> FogDistanceScaling) then
+     (PreparedFogScale <> FogNode.TransformScale) then
   begin
     case Optimization of
       roSceneAsAWhole:
@@ -3245,7 +3234,7 @@ begin
     end;
 
   PreparedFogNode := FogNode;
-  PreparedFogDistanceScaling := FogDistanceScaling;
+  PreparedFogScale := FogNode.TransformScale;
 
   if prBackground in Options then
     PrepareBackground;
@@ -3290,7 +3279,7 @@ procedure TVRMLGLScene.Render(
     end;
 
     PreparedFogNode := FogNode;
-    PreparedFogDistanceScaling := FogDistanceScaling;
+    PreparedFogScale := FogNode.TransformScale;
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);

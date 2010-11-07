@@ -116,14 +116,11 @@ function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;
     VRML97FogType(nil) resulting in -1.
 
     Note that FogType may be -1 for other reasons too,
-    for example FogNode.FogType was unknown or FogNode.FdVisibilityRange = 0.)
-
-  @param(FogDistanceScaling, taken from Fog node transformation.
-    See @link(TVRMLScene.FogDistanceScaling).) }
+    for example FogNode.FogType was unknown or FogNode.FdVisibilityRange = 0.) }
 procedure VRML97FogTo1st(
   var Color: TVector3Single;
   const Position, VertexPos: TVector3Single;
-  FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer);
+  FogNode: TNodeFog; FogType: Integer);
 
 implementation
 
@@ -185,7 +182,7 @@ end;
 
 procedure VRML97FogTo1st(var Color: TVector3Single;
   const Position, VertexPos: TVector3Single;
-  FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer);
+  FogNode: TNodeFog; FogType: Integer);
 var
   FogVisibilityRangeScaled: Single;
 
@@ -208,12 +205,12 @@ begin
   if FogType <> -1 then
   begin
     FogVisibilityRangeScaled :=
-      FogNode.FdVisibilityRange.Value * FogDistanceScaling;
+      FogNode.FdVisibilityRange.Value * FogNode.TransformScale;
 
     if FogNode.FdVolumetric.Value then
     begin
       FogVolumetricVisibilityStart :=
-        FogNode.FdVolumetricVisibilityStart.Value * FogDistanceScaling;
+        FogNode.FdVolumetricVisibilityStart.Value * FogNode.TransformScale;
 
       { Calculation of Distance for volumetric fog
         below is analogous to TVRMLMeshRenderer.DoBeforeGLVertex

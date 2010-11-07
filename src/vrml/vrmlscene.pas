@@ -1344,23 +1344,9 @@ type
     { @groupEnd }
 
     { Currently bound fog for this scene.
-
-      FogNode is just a trivial shortcut for FogStack.Top.
-      It returns currently bound Fog node, or @nil if none.
-
-      FogDistanceScaling returns scaling of this FogNode, taken
-      from the transformation of FogNode in VRML graph.
-      You should always multiply FogNode.FdVisibilityRange.Value
-      by FogDistanceScaling when applying (rendering etc.) this fog node.
-      Value of FogDistanceScaling is undefined if FogNode = nil.
-
-      Currently, FogDistanceScaling is just a trivial shortcut
-      for FogNode.TransformScale. So it's fast.
-
-      @groupBegin }
+      A trivial shortcut for FogStack.Top.
+      It returns currently bound Fog node, or @nil if none. }
     function FogNode: TNodeFog;
-    function FogDistanceScaling: Single;
-    { @groupEnd }
 
     { This returns an array of all triangles of this scene.
       I.e. it triangulates the scene, adding all non-degenerated
@@ -4710,18 +4696,6 @@ end;
 function TVRMLScene.FogNode: TNodeFog;
 begin
   Result := FogStack.Top as TNodeFog;
-end;
-
-function TVRMLScene.FogDistanceScaling: Single;
-var
-  Fog: TNodeFog;
-begin
-  Fog := FogNode;
-  if Fog <> nil then
-    Result := Fog.TransformScale else
-    { Result doesn't matter in this case, but should be deterministic,
-      to help caching and comparing fog properties }
-    Result := 0;
 end;
 
 { triangles list ------------------------------------------------------------- }

@@ -1142,9 +1142,11 @@ type
     procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
 
+    { The TransformScale of FogNode2 is not passed explicitly,
+      as it's available in FogNode2.TransformScale. }
     function FogParametersEqual(
       FogNode1: TNodeFog; const FogDistanceScaling1: Single;
-      FogNode2: TNodeFog; const FogDistanceScaling2: Single): boolean;
+      FogNode2: TNodeFog): boolean;
 
     { Set GLSLProgram uniform variable from VRML field value.
       Uniform name is contained in UniformName. UniformValue indicates
@@ -1188,7 +1190,6 @@ type
       AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
-      const AFogDistanceScaling: Single;
       out AGLList: TGLuint): boolean;
 
     procedure Shape_IncReference_New(
@@ -1196,7 +1197,6 @@ type
       AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
-      const AFogDistanceScaling: Single;
       AGLList: TGLuint);
 
     procedure Shape_DecReference(
@@ -1207,7 +1207,6 @@ type
       AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
-      const AFogDistanceScaling: Single;
       CacheIgnoresTransform: boolean;
       out AGLList: TGLuint): boolean;
 
@@ -1216,7 +1215,6 @@ type
       AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
-      const AFogDistanceScaling: Single;
       AGLList: TGLuint);
 
     procedure ShapeNoTransform_DecReference(
@@ -1225,13 +1223,11 @@ type
     function RenderBegin_IncReference_Existing(
       AAttributes: TVRMLRenderingAttributes;
       AFogNode: TNodeFog;
-      const AFogDistanceScaling: Single;
       out AGLList: TGLuint): boolean;
 
     procedure RenderBegin_IncReference_New(
       AAttributes: TVRMLRenderingAttributes;
       AFogNode: TNodeFog;
-      const AFogDistanceScaling: Single;
       AGLList: TGLuint);
 
     procedure RenderBegin_DecReference(
@@ -1240,13 +1236,11 @@ type
     function RenderEnd_IncReference_Existing(
       AAttributes: TVRMLRenderingAttributes;
       AFogNode: TNodeFog;
-      const AFogDistanceScaling: Single;
       out AGLList: TGLuint): boolean;
 
     procedure RenderEnd_IncReference_New(
       AAttributes: TVRMLRenderingAttributes;
       AFogNode: TNodeFog;
-      const AFogDistanceScaling: Single;
       AGLList: TGLuint);
 
     procedure RenderEnd_DecReference(
@@ -1436,7 +1430,7 @@ type
       (Enabled and such), not actually setting up the fog parameters
       for OpenGL. }
     procedure InitializeFog(Node: TNodeFog;
-      const DistanceScaling: Single; const ActuallyApply: boolean;
+      const ActuallyApply: boolean;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3Single;
       out VolumetricVisibilityStart: Single);
@@ -1523,8 +1517,7 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin(FogNode: TNodeFog;
-      const FogDistanceScaling: Single);
+    procedure RenderBegin(FogNode: TNodeFog);
     procedure RenderEnd;
 
     procedure RenderShapeLights(
@@ -1670,8 +1663,7 @@ type
 
     { Should CacheIgnoresTransform be passed to
       ShapeNoTransform_IncReference_Existing. }
-    function CacheIgnoresTransform(
-      Node: TNodeFog; const DistanceScaling: Single): boolean;
+    function CacheIgnoresTransform(Node: TNodeFog): boolean;
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -2852,13 +2844,12 @@ end;
 
 function TVRMLOpenGLRendererContextCache.FogParametersEqual(
   FogNode1: TNodeFog; const FogDistanceScaling1: Single;
-  FogNode2: TNodeFog; const FogDistanceScaling2: Single): boolean;
+  FogNode2: TNodeFog): boolean;
 begin
   Result := (FogNode1 = FogNode2);
-  { If both fog nodes are nil, don't compare FogDistanceScaling,
-    as they are meaningless. }
+  { If both fog nodes are nil, don't compare scaling }
   if Result and (FogNode1 <> nil) then
-    Result := FogDistanceScaling1 = FogDistanceScaling2;
+    Result := FogDistanceScaling1 = FogNode2.TransformScale;
 end;
 
 function TVRMLOpenGLRendererContextCache.Shape_IncReference_Existing(
@@ -2866,7 +2857,6 @@ function TVRMLOpenGLRendererContextCache.Shape_IncReference_Existing(
   AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
-  const AFogDistanceScaling: Single;
   out AGLList: TGLuint): boolean;
 var
   I: Integer;
@@ -2879,8 +2869,7 @@ begin
        (SSCache^.GeometryNode = AGeometryNode) and
        (SSCache^.State.Equals(AState)) and
        FogParametersEqual(
-         SSCache^.FogNode, SSCache^.FogDistanceScaling,
-                 AFogNode,         AFogDistanceScaling) then
+         SSCache^.FogNode, SSCache^.FogDistanceScaling, AFogNode) then
     begin
       Inc(SSCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -2899,7 +2888,6 @@ procedure TVRMLOpenGLRendererContextCache.Shape_IncReference_New(
   AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
-  const AFogDistanceScaling: Single;
   AGLList: TGLuint);
 var
   SSCache: PShapeCache;
@@ -2909,7 +2897,9 @@ begin
   SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
   SSCache^.FogNode := AFogNode;
-  SSCache^.FogDistanceScaling := AFogDistanceScaling;
+  if AFogNode <> nil then
+    SSCache^.FogDistanceScaling := AFogNode.TransformScale else
+    SSCache^.FogDistanceScaling := 0;
   SSCache^.GLList := AGLList;
   SSCache^.References := 1;
 
@@ -2954,7 +2944,6 @@ function TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_Existing(
   AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
-  const AFogDistanceScaling: Single;
   CacheIgnoresTransform: boolean;
   out AGLList: TGLuint): boolean;
 
@@ -2994,8 +2983,7 @@ begin
        (SSCache^.GeometryNode = AGeometryNode) and
        StatesEqual(SSCache^.State, AState) and
        FogParametersEqual(
-         SSCache^.FogNode, SSCache^.FogDistanceScaling,
-                 AFogNode,         AFogDistanceScaling) then
+         SSCache^.FogNode, SSCache^.FogDistanceScaling, AFogNode) then
     begin
       Inc(SSCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -3015,7 +3003,6 @@ procedure TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_New(
   AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
-  const AFogDistanceScaling: Single;
   AGLList: TGLuint);
 var
   SSCache: PShapeCache;
@@ -3025,7 +3012,9 @@ begin
   SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
   SSCache^.FogNode := AFogNode;
-  SSCache^.FogDistanceScaling := AFogDistanceScaling;
+  if AFogNode <> nil then
+    SSCache^.FogDistanceScaling := AFogNode.TransformScale else
+    SSCache^.FogDistanceScaling := 0;
   SSCache^.GLList := AGLList;
   SSCache^.References := 1;
 
@@ -3070,7 +3059,6 @@ end;
 function TVRMLOpenGLRendererContextCache.RenderBegin_IncReference_Existing(
   AAttributes: TVRMLRenderingAttributes;
   AFogNode: TNodeFog;
-  const AFogDistanceScaling: Single;
   out AGLList: TGLuint): boolean;
 var
   I: Integer;
@@ -3081,8 +3069,7 @@ begin
     RenderCache := RenderBeginCaches.Pointers[I];
     if (RenderCache^.Attributes.Equals(AAttributes)) and
       FogParametersEqual(
-        RenderCache^.FogNode, RenderCache^.FogDistanceScaling,
-                    AFogNode,             AFogDistanceScaling) then
+        RenderCache^.FogNode, RenderCache^.FogDistanceScaling, AFogNode) then
     begin
       Inc(RenderCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -3099,7 +3086,6 @@ end;
 procedure TVRMLOpenGLRendererContextCache.RenderBegin_IncReference_New(
   AAttributes: TVRMLRenderingAttributes;
   AFogNode: TNodeFog;
-  const AFogDistanceScaling: Single;
   AGLList: TGLuint);
 var
   RenderCache: PRenderBeginEndCache;
@@ -3107,7 +3093,9 @@ begin
   RenderCache := RenderBeginCaches.Add;
   RenderCache^.Attributes := AAttributes;
   RenderCache^.FogNode := AFogNode;
-  RenderCache^.FogDistanceScaling := AFogDistanceScaling;
+  if AFogNode <> nil then
+    RenderCache^.FogDistanceScaling := AFogNode.TransformScale else
+    RenderCache^.FogDistanceScaling := 0;
   RenderCache^.GLList := AGLList;
   RenderCache^.References := 1;
 
@@ -3149,7 +3137,6 @@ end;
 function TVRMLOpenGLRendererContextCache.RenderEnd_IncReference_Existing(
   AAttributes: TVRMLRenderingAttributes;
   AFogNode: TNodeFog;
-  const AFogDistanceScaling: Single;
   out AGLList: TGLuint): boolean;
 var
   I: Integer;
@@ -3160,8 +3147,7 @@ begin
     RenderCache := RenderEndCaches.Pointers[I];
     if (RenderCache^.Attributes.Equals(AAttributes)) and
       FogParametersEqual(
-        RenderCache^.FogNode, RenderCache^.FogDistanceScaling,
-                    AFogNode,             AFogDistanceScaling) then
+        RenderCache^.FogNode, RenderCache^.FogDistanceScaling, AFogNode) then
     begin
       Inc(RenderCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -3178,7 +3164,6 @@ end;
 procedure TVRMLOpenGLRendererContextCache.RenderEnd_IncReference_New(
   AAttributes: TVRMLRenderingAttributes;
   AFogNode: TNodeFog;
-  const AFogDistanceScaling: Single;
   AGLList: TGLuint);
 var
   RenderCache: PRenderBeginEndCache;
@@ -3186,7 +3171,9 @@ begin
   RenderCache := RenderEndCaches.Add;
   RenderCache^.Attributes := AAttributes;
   RenderCache^.FogNode := AFogNode;
-  RenderCache^.FogDistanceScaling := AFogDistanceScaling;
+  if AFogNode <> nil then
+    RenderCache^.FogDistanceScaling := AFogNode.TransformScale else
+    RenderCache^.FogDistanceScaling := 0;
   RenderCache^.GLList := AGLList;
   RenderCache^.References := 1;
 
@@ -3929,7 +3916,7 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.InitializeFog(Node: TNodeFog;
-  const DistanceScaling: Single; const ActuallyApply: boolean;
+  const ActuallyApply: boolean;
   out Enabled, Volumetric: boolean;
   out VolumetricDirection: TVector3Single;
   out VolumetricVisibilityStart: Single);
@@ -3977,7 +3964,7 @@ begin
   if FogType = -1 then
   begin
     VRMLWarning(vwSerious, 'Unknown fog type "' + Node.FdFogType.Value + '"');
-    InitializeFog(Node.Alternative,  DistanceScaling, ActuallyApply,
+    InitializeFog(Node.Alternative, ActuallyApply,
       Enabled, Volumetric,
       VolumetricDirection, VolumetricVisibilityStart);
     Exit;
@@ -3990,7 +3977,7 @@ begin
       to automatically decide what non-volumetric fog setting (if any) will
       look similar to requested volumetric fog.
       So right now I just resort to "alternative" field. }
-    InitializeFog(Node.Alternative,  DistanceScaling, ActuallyApply,
+    InitializeFog(Node.Alternative, ActuallyApply,
       Enabled, Volumetric,
       VolumetricDirection, VolumetricVisibilityStart);
     Exit;
@@ -3998,14 +3985,14 @@ begin
 
   Enabled := true;
 
-  VisibilityRangeScaled := Node.FdVisibilityRange.Value * DistanceScaling;
+  VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
 
   Volumetric := Node.FdVolumetric.Value and GL_EXT_fog_coord;
 
   if Volumetric then
   begin
     VolumetricVisibilityStart :=
-      Node.FdVolumetricVisibilityStart.Value * DistanceScaling;
+      Node.FdVolumetricVisibilityStart.Value * Node.TransformScale;
     VolumetricDirection := Node.FdVolumetricDirection.Value;
     DoGLFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
   end else
@@ -4034,8 +4021,7 @@ begin
   end;
 end;
 
-procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
-  const FogDistanceScaling: Single);
+procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog);
 
   procedure DisabeAllTextureUnits;
   var
@@ -4149,7 +4135,7 @@ begin
       for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
         glDisable(GL_LIGHT0+i);
 
-    InitializeFog(FogNode, FogDistanceScaling, true,
+    InitializeFog(FogNode, true,
       FogEnabled, FogVolumetric,
       FogVolumetricDirection, FogVolumetricVisibilityStart);
   end;
@@ -4980,14 +4966,13 @@ begin
     UpdateRenderedTexture(TNodeRenderedTexture(TextureNode));
 end;
 
-function TVRMLOpenGLRenderer.CacheIgnoresTransform(
-  Node: TNodeFog; const DistanceScaling: Single): boolean;
+function TVRMLOpenGLRenderer.CacheIgnoresTransform(Node: TNodeFog): boolean;
 var
   Enabled, Volumetric: boolean;
   VolumetricDirection: TVector3Single;
   VolumetricVisibilityStart: Single;
 begin
-  InitializeFog(Node, DistanceScaling, false, Enabled, Volumetric,
+  InitializeFog(Node, false, Enabled, Volumetric,
     VolumetricDirection, VolumetricVisibilityStart);
 
   Result := not (

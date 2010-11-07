@@ -203,12 +203,10 @@ type
       1 = promienie 1-krotnie odbite + bezposrednie cienie itd. }
     InitialDepth: Cardinal;
 
-    { Podaj FogNode <> nil aby miec odpowiednia mgle, zgodnie ze specyfik. VRMLa 97.
-      FogDistanceScaling to skalowanie FogNode z transformacji sceny
-      VRMLa w miejscu gdzie byl FogNode --- tak samo jak pole
-      TVRMLScene o tej samej naziwe. }
+    { Fog to render. Set FogNode <> @nil to render a fog,
+      following VRML 2.0/X3D lighting equations.
+      FogNode.TransformScale is used. }
     FogNode: TNodeFog;
-    FogDistanceScaling: Single;
 
     { If there's a headlight on the scene, set HeadLightExists and initialize
       HeadLight. }
@@ -562,7 +560,7 @@ var
       covered by the fog. So each recursive call of Trace should bring
       a color affected by the fog. }
     VRML97FogTo1st(Result, CamPosition, Intersection,
-      FogNode, FogDistanceScaling, FogType);
+      FogNode, FogType);
   end;
 
 var
