@@ -3053,7 +3053,7 @@ procedure TVRMLGLScene.CheckFogChanged;
 var
   TG: TTransparentGroup;
 begin
-  if FogParametersEqual(PreparedFogNode, PreparedFogScale, FogNode) then
+  if not FogParametersEqual(PreparedFogNode, PreparedFogScale, FogNode) then
   begin
     case Optimization of
       roSceneAsAWhole:
