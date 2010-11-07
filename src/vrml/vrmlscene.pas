@@ -46,9 +46,6 @@ type
   TVRMLSceneValidity = (fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
-    { fvFog is not used for now, since FogNode is not cached now
-      (doesn't have to be, as it's simple shortcut for FogStack.Top). }
-    fvFog,
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
     fvTrianglesListShadowCasters,
     fvManifoldAndBorderEdges,
