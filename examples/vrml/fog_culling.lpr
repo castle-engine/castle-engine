@@ -56,11 +56,10 @@ begin
   { Test for collision between two spheres.
     1st is the bounding sphere of Shape.
     2nd is the sphere around current camera position,
-      with the radius taken from fog visibilityRadius (we should
-      always multiply this by FogDistanceScaling).
+      with the radius taken from fog scaled visibilityRadius.
     If there is no collision than we don't have to render given Shape. }
   Result := PointsDistanceSqr(Shape.BoundingSphereCenter, Camera.GetPosition) <=
-      Sqr(Scene.FogNode.FdVisibilityRange.Value * Scene.FogDistanceScaling +
+      Sqr(Scene.FogNode.FdVisibilityRange.Value * Scene.FogNode.TransformScale +
         Sqrt(Shape.BoundingSphereRadiusSqr));
 end;
 
