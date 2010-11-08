@@ -338,18 +338,28 @@ type
     property ProjectionMatrix: TMatrix4Single
       read FProjectionMatrix write SetProjectionMatrix;
 
-    { Camera radius.
+    { The radius of a sphere around the camera
+      that makes collisions with the world.
 
-      Walk camera uses this for automatically correcting CameraPreferredHeight,
-      see @link(CorrectCameraPreferredHeight). Especially useful if you let
-      user change CameraPreferredHeight at runtime by
-      Input_IncreaseCameraPreferredHeight, Input_DcreaseCameraPreferredHeight.
+      @unorderedList(
+        @item(Collision detection routines use this.)
+        @item(It determines the projection near plane (that must be slightly
+          smaller than this radius) for 3D rendering.)
+        @item(
+          Walk camera uses this for automatically correcting
+          CameraPreferredHeight, otherwise weird things could happen
+          if your avatar height is too small compared to camera radius.
+          See @link(CorrectCameraPreferredHeight).
 
-      Note that camera instance by itself doesn't need CameraRadius information
-      desperately, as it doesn't perform collision detection directly
-      (delegating this to callbacks OnGetHeightAbove, OnMoveAllowed),
-      so you could store CameraRadius elsewhere if you would really want.
-      Still, camera class is usually a comfortable place to store this. }
+          Especially useful if you let
+          user change CameraPreferredHeight at runtime by
+          Input_IncreaseCameraPreferredHeight, Input_DcreaseCameraPreferredHeight.
+
+          This is actually the whole use of CameraRadius inside Cameras unit
+          and classes. But the code all around the engine also looks for
+          this CameraRadius, and the camera is a natural place to keep this
+          information.)
+      ) }
     property CameraRadius: Single
       read FCameraRadius write SetCameraRadius default 0.0;
 
@@ -618,7 +628,7 @@ type
 
       In other words, this is just a shortcut to setting ModelBox
       and then calling @link(Home). }
-    procedure Init(const AModelBox: TBox3D; const ACameraRadius: Single = 0);
+    procedure Init(const AModelBox: TBox3D; const ACameraRadius: Single);
 
     { Go to a nice view over the entire scene. }
     procedure Home;

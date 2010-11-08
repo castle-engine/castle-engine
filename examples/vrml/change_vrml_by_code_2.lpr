@@ -119,7 +119,7 @@ begin
 
     { init SceneManager.Camera }
     SceneManager.Camera := TExamineCamera.Create(Glw);
-    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox);
+    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
     { set more interesting view by default }
     (SceneManager.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
       Normalized(Vector3Single(1, 1, 0)), Pi/4);
