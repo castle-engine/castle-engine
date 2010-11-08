@@ -2703,7 +2703,7 @@ procedure TChangedAllTraverser.Traverse(
           Reason: unlike Switch/LOD nodes, we don't care about keeping
           the indexes of children stable. }
         Traverser.ShapesGroup := TransformTree;
-        Traverser.Active := true;
+        Traverser.Active := Active;
         ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
           ParentInfo);
       finally FreeAndNil(Traverser) end;
@@ -2734,7 +2734,7 @@ procedure TChangedAllTraverser.Traverse(
       try
         Traverser.ParentScene := ParentScene;
         Traverser.ShapesGroup := ChildGroup;
-        Traverser.Active := I = SwitchNode.FdWhichChoice.Value;
+        Traverser.Active := Active and (I = SwitchNode.FdWhichChoice.Value);
         ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
           ParentInfo);
       finally FreeAndNil(Traverser) end;
@@ -2775,7 +2775,7 @@ procedure TChangedAllTraverser.Traverse(
       try
         Traverser.ParentScene := ParentScene;
         Traverser.ShapesGroup := ChildGroup;
-        Traverser.Active := Cardinal(I) = LODTree.Level;
+        Traverser.Active := Active and (Cardinal(I) = LODTree.Level);
         ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
           ParentInfo);
       finally FreeAndNil(Traverser) end;
