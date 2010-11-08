@@ -808,7 +808,7 @@ type
     procedure SetHeadlightOn(const Value: boolean);
   protected
     { Value <> 0 means that our state isn't complete (for example,
-      we're in the middle of ChangedAll call).
+      we're in the middle of ChangedAll call or octree creation).
 
       Some callbacks *may* be called during such time: namely,
       the progress call (e.g. done during constructing octrees).
@@ -4531,6 +4531,9 @@ function TVRMLScene.CreateTriangleOctree(
   end;
 
 begin
+  Inc(Dirty);
+  try
+
   Result := TVRMLTriangleOctree.Create(Limits, BoundingBox);
   try
     Result.Triangles.AllowedCapacityOverflow := TrianglesCount(false);
@@ -4550,6 +4553,8 @@ begin
       Result.Triangles.AllowedCapacityOverflow := 4;
     end;
   except Result.Free; raise end;
+
+  finally Dec(Dirty) end;
 end;
 
 function TVRMLScene.CreateShapeOctree(
@@ -4560,6 +4565,9 @@ var
   I: Integer;
   ShapesList: TVRMLShapesList;
 begin
+  Inc(Dirty);
+  try
+
   if Collidable then
     { Add only active and collidable shapes }
     ShapesList := TVRMLShapesList.Create(Shapes, true, false, true) else
@@ -4586,6 +4594,8 @@ begin
         Result.TreeRoot.AddItem(I);
     end;
   except Result.Free; raise end;
+
+  finally Dec(Dirty) end;
 end;
 
 { viewpoints ----------------------------------------------------------------- }

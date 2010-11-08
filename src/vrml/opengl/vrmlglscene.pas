@@ -4440,7 +4440,7 @@ procedure TVRMLGLScene.Render(const Frustum: TFrustum;
 var
   RestoreGLSLShaders: boolean;
 begin
-  if Exists then
+  if Exists and (Dirty = 0) then
   begin
     { When rendering to Variance Shadow Map, caller uses it's own shader.
       Our own shaders must be turned off. }
