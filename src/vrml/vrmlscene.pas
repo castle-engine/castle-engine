@@ -343,28 +343,6 @@ type
   end;
 
   { @exclude }
-  TProximitySensorInstance = record
-    Node: TNodeProximitySensor;
-    InvertedTransform: TMatrix4Single;
-    IsActive: boolean;
-  end;
-  { @exclude }
-  PProximitySensorInstance = ^TProximitySensorInstance;
-  { @exclude }
-  TDynArrayItem_4 = TProximitySensorInstance;
-  { @exclude }
-  PDynArrayItem_4 = PProximitySensorInstance;
-  {$define DYNARRAY_4_IS_STRUCT}
-  { @exclude }
-  {$I dynarray_4.inc}
-  { @exclude
-
-    Internal for TVRMLScene: list of proximity sensors (one for each
-    instance in the file, so when one ProximitySensor is instantiated
-    more than once --- it will produce more than one entry in this array). }
-  TDynProximitySensorInstanceArray = TDynArray_4;
-
-  { @exclude }
   TGeneratedTexture = record
     { May be only TNodeGeneratedCubeMapTexture or TNodeRenderedTexture
       or TNodeGeneratedShadowMap. }
@@ -409,6 +387,13 @@ type
   public
     function NodeInfo(Node: TNodeX3DGroupingNode): TTransformNodeInfo;
   end;
+
+  { @exclude }
+  TObjectsListItem_2 = TProximitySensorInstance;
+  { @exclude }
+  {$I objectslist_2.inc}
+  { @exclude }
+  TProximitySensorInstancesList = TObjectsList_2;
 
   TCompiledScriptHandler = procedure (
     Value: TVRMLField; const Time: TVRMLTime) of object;
@@ -654,7 +639,7 @@ type
   private
     { This is collected by CollectNodesForEvents. @nil if not ProcessEvents. }
     KeyDeviceSensorNodes, TimeSensorNodes, MovieTextureNodes: TVRMLNodesList;
-    ProximitySensorInstances: TDynProximitySensorInstanceArray;
+    ProximitySensors: TProximitySensorInstancesList;
 
     procedure ClearCollectedNodesForEvents;
     { CollectNodesForEvents also calls ClearCollectedNodesForEvents
@@ -662,9 +647,6 @@ type
       be valid) you may want to call ClearCollectedNodesForEvents explicitly
       earlier. }
     procedure CollectNodesForEvents;
-    procedure TraverseForEvents(
-      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     procedure CollectNodeForEvents(Node: TVRMLNode);
     procedure UnCollectForEvents(Node: TVRMLNode);
 
@@ -706,7 +688,7 @@ type
   private
     FLogChanges: boolean;
 
-    { Call this when ProximitySensorInstance changed (either the box or
+    { Call this when the ProximitySensor instance changed (either the box or
       it's transformation) or when viewer position changed
       (in the future, this will include also implicit changes to viewer position
       by changing transformation of viewer's Viewpoint --- not interesting
@@ -714,7 +696,7 @@ type
 
       Viewer position/dir/up must at this point be stored within
       LastViewerXxx. }
-    procedure ProximitySensorUpdate(var PSI: TProximitySensorInstance);
+    procedure ProximitySensorUpdate(const PSI: TProximitySensorInstance);
   private
     FLastViewerPosition, FLastViewerDirection, FLastViewerUp: TVector3Single;
     FIsLastViewer: boolean;
@@ -2086,10 +2068,10 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
-{$I dynarray_4.inc}
 {$I dynarray_5.inc}
 {$I dynarray_7.inc}
 {$I objectslist_1.inc}
+{$I objectslist_2.inc}
 
 { TVRMLBindableStack ----------------------------------------------------- }
 
@@ -2418,6 +2400,7 @@ begin
   FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
   TransformNodesInfo := TTransformNodeInfosList.Create;
   GeneratedTextures := TDynGeneratedTextureArray.Create;
+  ProximitySensors := TProximitySensorInstancesList.Create;
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -2463,6 +2446,7 @@ begin
     FreeAndNil(FInput_PointingDeviceActivate) else
     FInput_PointingDeviceActivate := nil;
 
+  FreeAndNil(ProximitySensors);
   FreeAndNil(GeneratedTextures);
   FreeWithContentsAndNil(TransformNodesInfo);
   FreeAndNil(FCompiledScriptHandlers);
@@ -2800,6 +2784,19 @@ procedure TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
+  procedure HandleProximitySensor(const Node: TNodeProximitySensor);
+  var
+    PSI: TProximitySensorInstance;
+  begin
+    PSI := TProximitySensorInstance.Create(ParentScene);
+    PSI.Node := Node;
+    PSI.InvertedTransform := StateStack.Top.InvertedTransform;
+    PSI.IsActive := false; { IsActive = false initially }
+
+    ShapesGroup.Children.Add(PSI);
+    ParentScene.ProximitySensors.Add(PSI);
+  end;
+
 var
   Shape: TVRMLShape;
 begin
@@ -2874,6 +2871,10 @@ begin
       ParentScene.NavigationInfoStack.PushIfEmpty( TNodeNavigationInfo(Node), true) else
     if Node is TVRMLViewpointNode then
       ParentScene.ViewpointStack.PushIfEmpty( TVRMLViewpointNode(Node), true);
+  end else
+  if Node is TNodeProximitySensor then
+  begin
+    HandleProximitySensor(Node as TNodeProximitySensor);
   end;
 end;
 
@@ -2917,15 +2918,13 @@ end;
 
 procedure TVRMLScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
-  { TransformNodesInfo will be recalculated by ChangedAll }
+  { Stuff that will be recalculated by ChangedAll }
   TransformNodesInfo.FreeContents;
-
-  { GeneratedTextures will be recalculated by ChangedAll }
   GeneratedTextures.Count := 0;
+  ProximitySensors.Count := 0;
 
   { clear nodes before doing CheckForDeletedNodes below, as CheckForDeletedNodes
-    may send some events so no invalid pointers (e.g. on ProximitySensorInstance
-    list) must exist. }
+    may send some events so no invalid pointers must exist. }
   if ProcessEvents then
     ClearCollectedNodesForEvents;
 
@@ -3189,7 +3188,6 @@ type
   TTransformChangeHelper = class
     ParentScene: TVRMLScene;
     Shapes: PShapesParentInfo;
-    ProximitySensorNum: Cardinal;
     ChangingNode: TNodeX3DGroupingNode; {< must be also INodeTransform }
     ChangingField: TVRMLField;
     AnythingChanged: boolean;
@@ -3380,6 +3378,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
 
 var
   Shape: TVRMLShape;
+  ProximitySensorInstance: TProximitySensorInstance;
 begin
   if Node is TNodeSwitch_2 then
   begin
@@ -3451,7 +3450,15 @@ begin
   begin
     HandleLight(TVRMLLightNode(Node));
   end else
-  if (Node is TNodeProximitySensor) and
+  if (Node is TNodeProximitySensor) then
+  begin
+    Check(Shapes^.Index < Shapes^.Group.Children.Count,
+      'Missing shape in Shapes tree');
+    ProximitySensorInstance := Shapes^.Group.Children[Shapes^.Index] as TProximitySensorInstance;
+    Inc(Shapes^.Index);
+
+    ProximitySensorInstance.InvertedTransform := StateStack.Top.InvertedTransform;
+
      { We only care about ProximitySensor in active graph parts.
 
        TODO: (Inactive = 0) does not guarantee that we're in active part,
@@ -3460,30 +3467,16 @@ begin
        This is bad, it means we make ProximitySensor events also for
        sensors in inactive graph parts. Although, should we really
        look at this? Maybe ProximitySensor ignore active/inactive,
-       and we should just remove the test for "(Inactive = 0)" and that's it?
-
-       OTOH, our traversing currently only uses ProximitySensor from active
-       parts. }
-     (Inactive = 0) then
-  begin
-    ParentScene.ProximitySensorInstances.Items[ProximitySensorNum].
-      InvertedTransform := StateStack.Top.InvertedTransform;
-    { Call ProximitySensorUpdate, since the sensor's box is transformed,
-      so possibly it should be activated/deactivated,
-      position/orientation_changed called etc. }
-    if ParentScene.IsLastViewer then
-      ParentScene.ProximitySensorUpdate(
-        ParentScene.ProximitySensorInstances.Items[ProximitySensorNum]);
-    Inc(ProximitySensorNum);
+       and we should just remove the test for "(Inactive = 0)" and that's it? }
+    if Inactive = 0 then
+    begin
+      { Call ProximitySensorUpdate, since the sensor's box is transformed,
+        so possibly it should be activated/deactivated,
+        position/orientation_changed called etc. }
+      if ParentScene.IsLastViewer then
+        ParentScene.ProximitySensorUpdate(ProximitySensorInstance);
+    end;
   end;
-
-  (* TODO: ProximitySensorNum will have to be saved at TVRMLShapeTreeTransform?
-
-    if (Node is TNodeProximitySensor) and
-       { We only care about ProximitySensor in active graph parts. }
-       (Inactive = 0) then
-      Inc(ProximitySensorNum);
-  *)
 end;
 
 procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
@@ -3593,7 +3586,6 @@ var
           { initialize TransformChangeHelper properties that may be changed
             during Node.Traverse later }
           TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-          TransformChangeHelper.ProximitySensorNum := 0;
           TransformChangeHelper.AnythingChanged := false;
           TransformChangeHelper.Inside := false;
           TransformChangeHelper.Inactive := 0;
@@ -3887,10 +3879,10 @@ var
 
     { Update state for this ProximitySensor node. }
     if IsLastViewer then
-      for I := 0 to ProximitySensorInstances.Count - 1 do
+      for I := 0 to ProximitySensors.Count - 1 do
       begin
-        if ProximitySensorInstances.Items[I].Node = Node then
-          ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
+        if ProximitySensors[I].Node = Node then
+          ProximitySensorUpdate(ProximitySensors[I]);
       end;
   end;
 
@@ -5157,24 +5149,11 @@ begin
   TNodeScript(Node).Initialized := true;
 end;
 
-procedure TVRMLScene.TraverseForEvents(
-  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
-var
-  PSI: PProximitySensorInstance;
-begin
-  PSI := ProximitySensorInstances.Add;
-  PSI^.Node := Node as TNodeProximitySensor;
-  PSI^.InvertedTransform := StateStack.Top.InvertedTransform;
-  PSI^.IsActive := false; { IsActive = false initially }
-end;
-
 procedure TVRMLScene.ClearCollectedNodesForEvents;
 begin
   KeyDeviceSensorNodes.Clear;
   TimeSensorNodes.Clear;
   MovieTextureNodes.Clear;
-  ProximitySensorInstances.Count := 0;
 end;
 
 procedure TVRMLScene.CollectNodesForEvents;
@@ -5184,12 +5163,6 @@ begin
   if RootNode <> nil then
   begin
     RootNode.EnumerateNodes(TVRMLNode, @CollectNodeForEvents, false);
-
-    { Proximity sensors collecting requires a State.Transform, so
-      we must do full Traverse, EnumerateNodes is not enough.
-      Also, this means that ProximitySensor are detected only in active
-      VRML graph part. }
-    RootNode.Traverse(TNodeProximitySensor, @TraverseForEvents);
 
     BeginChangesSchedule;
     try
@@ -5243,8 +5216,8 @@ procedure TVRMLScene.SetProcessEvents(const Value: boolean);
     try
       if IsLastViewer then
       begin
-        for I := 0 to ProximitySensorInstances.Count - 1 do
-          ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
+        for I := 0 to ProximitySensors.Count - 1 do
+          ProximitySensorUpdate(ProximitySensors[I]);
       end;
     finally EndChangesSchedule end;
   end;
@@ -5257,7 +5230,6 @@ begin
       KeyDeviceSensorNodes := TVRMLNodesList.Create;
       TimeSensorNodes := TVRMLNodesList.Create;
       MovieTextureNodes := TVRMLNodesList.Create;
-      ProximitySensorInstances := TDynProximitySensorInstanceArray.Create;
 
       FProcessEvents := Value;
 
@@ -5271,7 +5243,6 @@ begin
       FreeAndNil(KeyDeviceSensorNodes);
       FreeAndNil(TimeSensorNodes);
       FreeAndNil(MovieTextureNodes);
-      FreeAndNil(ProximitySensorInstances);
       PointingDeviceClear;
 
       FProcessEvents := Value;
@@ -5925,7 +5896,7 @@ end;
 
 { proximity sensor ----------------------------------------------------------- }
 
-procedure TVRMLScene.ProximitySensorUpdate(var PSI: TProximitySensorInstance);
+procedure TVRMLScene.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
 var
   Position, Direction, Up: TVector3Single;
   Node: TNodeProximitySensor;
@@ -6011,8 +5982,7 @@ procedure TVRMLScene.ViewerChanged(ACamera: TCamera;
 var
   I: Integer;
 begin
-  ACamera.GetView(
-    FLastViewerPosition, FLastViewerDirection, FLastViewerUp);
+  ACamera.GetView(FLastViewerPosition, FLastViewerDirection, FLastViewerUp);
   FIsLastViewer := true;
 
   BeginChangesSchedule;
@@ -6023,8 +5993,8 @@ begin
     if ProcessEvents then
     begin
       Inc(FTime.PlusTicks);
-      for I := 0 to ProximitySensorInstances.Count - 1 do
-        ProximitySensorUpdate(ProximitySensorInstances.Items[I]);
+      for I := 0 to ProximitySensors.Count - 1 do
+        ProximitySensorUpdate(ProximitySensors[I]);
     end;
   finally EndChangesSchedule end;
 

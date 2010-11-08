@@ -709,6 +709,23 @@ type
     {$endif}
   end;
 
+  TProximitySensorInstance = class(TVRMLShapeTree)
+  private
+    FNode: TNodeProximitySensor;
+  public
+    InvertedTransform: TMatrix4Single;
+    IsActive: boolean;
+
+    property Node: TNodeProximitySensor read FNode write FNode;
+
+    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    function ShapesCount(const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false): Cardinal; override;
+    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
+    function DebugInfo(const Indent: string = ''): string; override;
+  end;
+
   TVRMLShapesList = class;
 
   { Iterates over all TVRMLShape items that would be enumerated by
@@ -1865,6 +1882,30 @@ begin
     Result := inherited;
 end;
 {$endif}
+
+{ TProximitySensorInstance ---------------------------------------------- }
+
+procedure TProximitySensorInstance.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+begin
+  { Nothing to do: no geometry shapes, no children here }
+end;
+
+function TProximitySensorInstance.ShapesCount(const OnlyActive: boolean;
+  const OnlyVisible: boolean = false;
+  const OnlyCollidable: boolean = false): Cardinal;
+begin
+  Result := 0;
+end;
+
+procedure TProximitySensorInstance.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
+begin
+  { Nothing to do: no geometry shapes, no children here }
+end;
+
+function TProximitySensorInstance.DebugInfo(const Indent: string = ''): string;
+begin
+  Result := Indent + 'ProximitySensor (' + Node.NodeName + ')' + NL;
+end;
 
 { TVRMLShapeTreeIterator ----------------------------------------------------- }
 
