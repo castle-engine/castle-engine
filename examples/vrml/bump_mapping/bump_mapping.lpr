@@ -922,7 +922,7 @@ begin
     0, 0 { unused, we don't use Gravity here });
   Walker.MoveSpeed := Box3DAvgSize(Scene.BoundingBox) * 0.2;
 
-  Examiner.Init(Scene.BoundingBox);
+  Examiner.Init(Scene.BoundingBox, 0.1);
 end;
 
 procedure LoadScene(const FileName: string);
@@ -1333,7 +1333,7 @@ begin
 
   { init cameras }
   Examiner := TExamineCamera.Create(Glw);
-  Examiner.Init(SceneBoundingBox);
+  Examiner.Init(SceneBoundingBox, 0.1);
 
   Walker := TWalkCamera.Create(Glw);
   Walker.Init(Vector3Single(0, 0, 10), Vector3Single(0, 0, -1),

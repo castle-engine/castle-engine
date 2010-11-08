@@ -755,7 +755,7 @@ begin
     ExamineCamera := TExamineCamera.Create(Glw);
     ExamineCamera.Init(Box3D(
       Vector3Single(-1, -1, -1),
-      Vector3Single( 1,  1,  1)));
+      Vector3Single( 1,  1,  1)), 0.1);
 
     WalkCamera := TWalkCamera.Create(Glw);
     WalkCamera.Init(Vector3Single(0, 0, 0) { position },

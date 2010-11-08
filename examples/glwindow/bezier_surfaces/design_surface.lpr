@@ -626,7 +626,7 @@ begin
   Camera := TExamineCamera.Create(Glw);
   Camera.OnVisibleChange := @Dummy.VisibleChange;
   Camera.Init(Box3D(Vector3Single(0, 0, -1),
-                    Vector3Single(1, 1,  1)));
+                    Vector3Single(1, 1,  1)), 0.1);
   { conflicts with our MouseDown / MouseMove }
   Camera.MouseNavigation := false;
   Camera.Input_StopRotating.MouseButtonUse := false;

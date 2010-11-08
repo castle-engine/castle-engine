@@ -84,7 +84,7 @@ begin
   SceneManager.Camera := TExamineCamera.Create(Application);
   (SceneManager.Camera as TExamineCamera).Init(Box3D(
     Vector3Single(-1, -1, -1),
-    Vector3Single( 1,  1,  1)));
+    Vector3Single( 1,  1,  1)), 0.1);
 
   Glw.InitAndRun;
 end.
