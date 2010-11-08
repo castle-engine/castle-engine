@@ -2672,15 +2672,16 @@ var
   I, OldLen: Integer;
 begin
   OldLen := Length(Items);
-  { don't increase by too much, as it's done during Transform changes }
   SetLength(Items, OldLen + 8);
   for I := OldLen to Length(Items) - 1 do
-    Items[I] := TVRMLGraphTraverseState.Create;
+    Items[I] := nil;
 end;
 
 procedure TVRMLGraphTraverseStateStack.PushClear;
 begin
   if ItemsAllocated = Cardinal(Length(Items)) then GrowItems;
+  if Items[ItemsAllocated] = nil then
+    Items[ItemsAllocated] := TVRMLGraphTraverseState.Create;
 
   { We could instead do Clear in Pop, and then we would know that all
     non allocated instances are always clear.
@@ -2699,6 +2700,8 @@ end;
 procedure TVRMLGraphTraverseStateStack.Push;
 begin
   if ItemsAllocated = Cardinal(Length(Items)) then GrowItems;
+  if Items[ItemsAllocated] = nil then
+    Items[ItemsAllocated] := TVRMLGraphTraverseState.Create;
 
   Items[ItemsAllocated].Assign(Items[ItemsAllocated - 1]);
   Inc(ItemsAllocated);
@@ -2707,6 +2710,8 @@ end;
 procedure TVRMLGraphTraverseStateStack.Push(const Item: TVRMLGraphTraverseState);
 begin
   if ItemsAllocated = Cardinal(Length(Items)) then GrowItems;
+  if Items[ItemsAllocated] = nil then
+    Items[ItemsAllocated] := TVRMLGraphTraverseState.Create;
 
   Items[ItemsAllocated].Assign(Item);
   Inc(ItemsAllocated);
