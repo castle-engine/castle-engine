@@ -2672,7 +2672,8 @@ var
   I, OldLen: Integer;
 begin
   OldLen := Length(Items);
-  SetLength(Items, OldLen + 100);
+  { don't increase by too much, as it's done during Transform changes }
+  SetLength(Items, OldLen + 8);
   for I := OldLen to Length(Items) - 1 do
     Items[I] := TVRMLGraphTraverseState.Create;
 end;
