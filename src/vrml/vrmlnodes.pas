@@ -2524,6 +2524,12 @@ begin
   TransformScale := Source.TransformScale;
   InvertedTransform := Source.InvertedTransform;
 
+  if PointingDeviceSensors.Count <> 0 then
+  begin
+    PointingDeviceSensors.Transform := Source.PointingDeviceSensors.Transform;
+    PointingDeviceSensors.InvertedTransform := Source.PointingDeviceSensors.InvertedTransform;
+  end;
+
   if Source.ClipPlanes <> nil then
   begin
     if ClipPlanes = nil then
