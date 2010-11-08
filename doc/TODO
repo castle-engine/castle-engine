@@ -826,3 +826,27 @@ VRMLNodes:
 - rename SmartChildren to just Children
   AllowedChildren to AllowedVRML1Children
   ParsingAllowedChildren to ParsingAllowedVRML1Children
+
+- I would eventually like to simplify HandleTransform, to avoid the need
+  for traversing Shapes tree simultaneously with nodes. This is a little
+  shaky, as we have to carefully synchronize it with the way ChangedAll
+  constructs a Shapes tree.
+  But not possible now:
+  - But it needs fixing Traverse to be able to traverse also non-active graph
+    parts. (This isn't difficult, problems below are more difficult.)
+  - But ShapeLOD.LODInvertedTransform needs to be updated.
+  - But ShapeTransform.TransformState(StateStack.Top.Transform) still needs to be updated.
+  - But ProximitySensorInstance.InvertedTransform needs to be updated.
+  Resign?
+
+- TransformSensor: need to make separate shapes subtree for every X3DGroupingNode?
+  What else?
+
+- Billboard: separate shapes subtree for every Billboard, this is obvious,
+  but also --- how to apply transform along the way?
+  We heavily depend that we have full transform at each shape,
+  we don't want to recalculate it each time we traverse.
+  For Billboard, we will have to.
+
+- StaticGroup: would avoid the need for separate subtree for Transform etc.
+  nodes? Worth the complications?
