@@ -718,6 +718,19 @@ type
     procedure ExecuteAll(Node: TVRMLNode);
   end;
 
+  TNodeTransformationChange = (
+    ntcNone,
+    ntcSwitch, //< TNodeSwitch_2
+    ntcLOD, //< TVRMLLODNode
+    ntcTransform, //< INodeTransform
+    ntcGeometry, //< TVRMLGeometryNode
+    ntcBackground, //< TNodeX3DBackgroundNode
+    ntcFog, //< TNodeFog
+    ntcViewpoint, //< TVRMLViewpointNode
+    ntcLight, //< TVRMLLightNode
+    ntcProximitySensor //< TNodeProximitySensor
+  );
+
 {$I vrmlnodes_node.inc}
 
   TVRMLNodeClassesList = class(TList)

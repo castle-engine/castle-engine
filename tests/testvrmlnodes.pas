@@ -80,7 +80,7 @@ type
       Catches e.g. not overriden CycleInterval. }
     procedure TestTimeDependentNodeHandlerAvailable;
 
-    procedure TestINodeTransformIsGrouping;
+    procedure TestINodeTransform;
   private
     procedure DummyTriangleProc(const Tri: TTriangle3Single;
       Shape: TObject;
@@ -1349,7 +1349,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestINodeTransformIsGrouping;
+procedure TTestVRMLNodes.TestINodeTransform;
 
   { DoCheck is a separate procedure,
     to limit lifetime of temporary INodeTransform,
@@ -1358,7 +1358,10 @@ procedure TTestVRMLNodes.TestINodeTransformIsGrouping;
   procedure DoCheck(N: TVRMLNode);
   begin
     if Supports(N, INodeTransform) then
+    begin
       Assert(N is TNodeX3DGroupingNode);
+      Assert(N.TransformationChange = ntcTransform);
+    end;
   end;
 
 var

@@ -254,6 +254,8 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    function TransformationChange: TNodeTransformationChange; override;
   end;
 
   { Interface for all VRML 2.0 / X3D transformation nodes.
@@ -286,6 +288,7 @@
     class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdcenter: TSFVec3f;
     public property Fdcenter: TSFVec3f read FFdcenter;
@@ -795,6 +798,11 @@ begin
     true, 2, 0, 1000);
 end;
 
+function TNodeSwitch_2.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcSwitch;
+end;
+
 constructor TNodeTransform_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -850,6 +858,11 @@ var
 begin
   for I := 0 to FdChildren.Count - 1 do
     Func(Self, FdChildren.Items[I]);
+end;
+
+function TNodeTransform_2.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
 end;
 
 { Apply transformation to a TVRMLGraphTraverseState.

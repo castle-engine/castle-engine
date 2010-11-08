@@ -21,6 +21,7 @@
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdgroundAngle: TMFFloat;
     public property FdgroundAngle: TMFFloat read FFdgroundAngle;
@@ -139,6 +140,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdcolor: TSFColor;
     public property Fdcolor: TSFColor read FFdcolor;
@@ -281,6 +283,11 @@ begin
       automatically, as this is specific to Background node. }
     EventsEngine.VisibleChangeHere([vcVisibleNonGeometry]);
   end;
+end;
+
+function TNodeX3DBackgroundNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcBackground;
 end;
 
 constructor TNodeBackground.Create(const ANodeName: string;
@@ -504,6 +511,11 @@ begin
       automatically, as this is specific to Fog node. }
     EventsEngine.VisibleChangeHere([vcVisibleNonGeometry]);
   end;
+end;
+
+function TNodeFog.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcFog;
 end;
 
 constructor TNodeFogCoordinate.Create(const ANodeName: string;

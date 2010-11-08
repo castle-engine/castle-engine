@@ -153,6 +153,8 @@
       Assumes that ActiveLight.LightNode = Self. }
     procedure UpdateActiveLight(
       var ActiveLight: TActiveLight); virtual;
+
+    function TransformationChange: TNodeTransformationChange; override;
   end;
 
   TObjectsListItem_1 = TVRMLLightNode;
@@ -459,6 +461,11 @@ procedure TVRMLLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack
 begin
   inherited;
   StateStack.Top.AddVRML1ActiveLight(CreateActiveLight(StateStack.Top));
+end;
+
+function TVRMLLightNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcLight;
 end;
 
 constructor TVRMLDirectionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);

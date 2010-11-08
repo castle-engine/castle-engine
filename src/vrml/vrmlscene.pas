@@ -3380,102 +3380,94 @@ var
   Shape: TVRMLShape;
   ProximitySensorInstance: TProximitySensorInstance;
 begin
-  if Node is TNodeSwitch_2 then
-  begin
-    HandleSwitch(TNodeSwitch_2(Node));
-  end else
-  if Node is TVRMLLODNode then
-  begin
-    HandleLOD(TVRMLLODNode(Node));
-  end else
-  if Supports(Node, INodeTransform) then
-  begin
-    { INodeTransform must also be TNodeX3DGroupingNode }
-    HandleTransform(Node as TNodeX3DGroupingNode);
-  end else
+  case Node.TransformationChange of
+    ntcNone: ;
+    ntcSwitch: HandleSwitch(TNodeSwitch_2(Node));
+    ntcLOD: HandleLOD(TVRMLLODNode(Node));
+    ntcTransform:
+      { INodeTransform must also be TNodeX3DGroupingNode }
+      HandleTransform(Node as TNodeX3DGroupingNode);
+    ntcGeometry:
+      begin
+        { get Shape and increase Shapes^.Index }
+        Check(Shapes^.Index < Shapes^.Group.Children.Count,
+          'Missing shape in Shapes tree');
+        Shape := Shapes^.Group.Children[Shapes^.Index] as TVRMLShape;
+        Inc(Shapes^.Index);
 
-  if Node is TVRMLGeometryNode then
-  begin
-    { get Shape and increase Shapes^.Index }
-    Check(Shapes^.Index < Shapes^.Group.Children.Count,
-      'Missing shape in Shapes tree');
-    Shape := Shapes^.Group.Children[Shapes^.Index] as TVRMLShape;
-    Inc(Shapes^.Index);
+        Shape.State.AssignTransform(StateStack.Top);
+        { Changes = [chTransform] here, good for roSeparateShapesNoTransform
+          optimization. }
+        Shape.Changed(ChangingField, Inactive <> 0, Changes);
 
-    Shape.State.AssignTransform(StateStack.Top);
-    { Changes = [chTransform] here, good for roSeparateShapesNoTransform
-      optimization. }
-    Shape.Changed(ChangingField, Inactive <> 0, Changes);
+        if Inactive = 0 then
+        begin
+          if Shape.Visible then
+            ParentScene.DoGeometryChanged(gcVisibleTransformChanged);
 
-    if Inactive = 0 then
-    begin
-      if Shape.Visible then
-        ParentScene.DoGeometryChanged(gcVisibleTransformChanged);
+          if Shape.Collidable then
+            ParentScene.DoGeometryChanged(gcCollidableTransformChanged);
 
-      if Shape.Collidable then
-        ParentScene.DoGeometryChanged(gcCollidableTransformChanged);
+          AnythingChanged := true;
+        end;
+      end;
+    ntcBackground:
+      begin
+        { TODO: make this work to actually change displayed background }
+        if Node = ParentScene.BackgroundStack.Top then
+          raise BreakTransformChangeFailed.Create('bound ' + Node.NodeTypeName);
+      end;
+    ntcFog:
+      begin
+        { There's no need to do anything more here.
+          Fog node TransformScale was already updated by
+          TNodeX3DBindableNode.BeforeTraverse.
+          Renderer in TVRMLGLScene will detect that TransformScale changed,
+          and eventually destroy display lists and such when rendering next time. }
+        if Inactive = 0 then
+          ParentScene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+      end;
+    ntcViewpoint:
+      begin
+        if Node = ParentScene.ViewpointStack.Top then
+          ParentScene.DoBoundViewpointVectorsChanged;
 
-      AnythingChanged := true;
-    end;
-  end else
-  if Node is TNodeX3DBackgroundNode then
-  begin
-    { TODO: make this work to actually change displayed background }
-    if Node = ParentScene.BackgroundStack.Top then
-      raise BreakTransformChangeFailed.Create('bound ' + Node.NodeTypeName);
-  end else
-  if Node is TNodeFog then
-  begin
-    { There's no need to do anything more here.
-      Fog node TransformScale was already updated by
-      TNodeX3DBindableNode.BeforeTraverse.
-      Renderer in TVRMLGLScene will detect that TransformScale changed,
-      and eventually destroy display lists and such when rendering next time. }
-    if Inactive = 0 then
-      ParentScene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-  end else
-  if Node is TVRMLViewpointNode then
-  begin
-    if Node = ParentScene.ViewpointStack.Top then
-      ParentScene.DoBoundViewpointVectorsChanged;
+        { TODO: Transformation of viewpoint should also affect NavigationInfo,
+          according to spec: "The speed, avatarSize and visibilityLimit values
+          are all scaled by the transformation being applied to
+          the currently bound X3DViewpointNode node."
+          When this will be implemented, then also when transformation
+          of viewpoint changes here we'll have to do something. }
+      end;
+    ntcLight: HandleLight(TVRMLLightNode(Node));
+    ntcProximitySensor:
+      begin
+        Check(Shapes^.Index < Shapes^.Group.Children.Count,
+          'Missing shape in Shapes tree');
+        ProximitySensorInstance := Shapes^.Group.Children[Shapes^.Index] as TProximitySensorInstance;
+        Inc(Shapes^.Index);
 
-    { TODO: Transformation of viewpoint should also affect NavigationInfo,
-      according to spec: "The speed, avatarSize and visibilityLimit values
-      are all scaled by the transformation being applied to
-      the currently bound X3DViewpointNode node."
-      When this will be implemented, then also when transformation
-      of viewpoint changes here we'll have to do something. }
-  end else
-  if Node is TVRMLLightNode then
-  begin
-    HandleLight(TVRMLLightNode(Node));
-  end else
-  if (Node is TNodeProximitySensor) then
-  begin
-    Check(Shapes^.Index < Shapes^.Group.Children.Count,
-      'Missing shape in Shapes tree');
-    ProximitySensorInstance := Shapes^.Group.Children[Shapes^.Index] as TProximitySensorInstance;
-    Inc(Shapes^.Index);
+        ProximitySensorInstance.InvertedTransform := StateStack.Top.InvertedTransform;
 
-    ProximitySensorInstance.InvertedTransform := StateStack.Top.InvertedTransform;
+        { We only care about ProximitySensor in active graph parts.
 
-     { We only care about ProximitySensor in active graph parts.
-
-       TODO: (Inactive = 0) does not guarantee that we're in active part,
-       it only says we're *possibly* in an active part, and we cannot fix it
-       (without sacrifing transform optimization).
-       This is bad, it means we make ProximitySensor events also for
-       sensors in inactive graph parts. Although, should we really
-       look at this? Maybe ProximitySensor ignore active/inactive,
-       and we should just remove the test for "(Inactive = 0)" and that's it? }
-    if Inactive = 0 then
-    begin
-      { Call ProximitySensorUpdate, since the sensor's box is transformed,
-        so possibly it should be activated/deactivated,
-        position/orientation_changed called etc. }
-      if ParentScene.IsLastViewer then
-        ParentScene.ProximitySensorUpdate(ProximitySensorInstance);
-    end;
+          TODO: (Inactive = 0) does not guarantee that we're in active part,
+          it only says we're *possibly* in an active part, and we cannot fix it
+          (without sacrifing transform optimization).
+          This is bad, it means we make ProximitySensor events also for
+          sensors in inactive graph parts. Although, should we really
+          look at this? Maybe ProximitySensor ignore active/inactive,
+          and we should just remove the test for "(Inactive = 0)" and that's it? }
+        if Inactive = 0 then
+        begin
+          { Call ProximitySensorUpdate, since the sensor's box is transformed,
+            so possibly it should be activated/deactivated,
+            position/orientation_changed called etc. }
+          if ParentScene.IsLastViewer then
+            ParentScene.ProximitySensorUpdate(ProximitySensorInstance);
+        end;
+      end;
+    else raise EInternalError.Create('HandleTransform: NodeTransformationChange?');
   end;
 end;
 

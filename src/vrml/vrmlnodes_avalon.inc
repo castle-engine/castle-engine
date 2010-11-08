@@ -33,6 +33,7 @@
     class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdmatrix: TSFMatrix4f;
     public property Fdmatrix: TSFMatrix4f read FFdmatrix;
@@ -358,6 +359,11 @@ begin
   { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
+end;
+
+function TNodeMatrixTransform_2.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
 end;
 
 constructor TNodeTeapot.Create(const ANodeName: string;

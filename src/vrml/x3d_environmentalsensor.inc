@@ -41,6 +41,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     { Event: SFVec3f, out } { }
     private FEventcenterOfRotation_changed: TVRMLEvent;
@@ -147,6 +148,11 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeProximitySensor.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcProximitySensor;
 end;
 
 constructor TNodeTransformSensor.Create(const ANodeName: string;

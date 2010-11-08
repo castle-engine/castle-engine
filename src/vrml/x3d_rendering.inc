@@ -423,6 +423,8 @@
       @false. Override it for primitives that have no texture coordinates
       to return @true. }
     function AutoGenerate3DTexCoords: boolean; virtual;
+
+    function TransformationChange: TNodeTransformationChange; override;
   end;
 
   { }
@@ -1015,6 +1017,11 @@ end;
 function TVRMLGeometryNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := false;
+end;
+
+function TVRMLGeometryNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcGeometry;
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }

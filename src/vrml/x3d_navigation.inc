@@ -25,6 +25,7 @@
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdOrientation: TSFRotation;
     public property FdOrientation: TSFRotation read FFdOrientation;
@@ -225,6 +226,7 @@
     public property Eventlevel_changed: TVRMLEvent read FEventlevel_changed;
 
     function ChildrenField: TMFNode; override;
+    function TransformationChange: TNodeTransformationChange; override;
   end;
 
   TNodeLOD_2 = class(TVRMLLODNode)
@@ -473,6 +475,11 @@ begin
       GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
+function TVRMLViewpointNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcViewpoint;
+end;
+
 constructor TNodeX3DViewpointNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -694,6 +701,11 @@ begin
     avoiding whole issue of choosing proper LOD child. }
   if FdChildren.Items.Count >= 1 then
     Func(Self, FdChildren.Items[0]);
+end;
+
+function TVRMLLODNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcLOD;
 end;
 
 constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);

@@ -1057,6 +1057,14 @@
       This should only be used with nodes having
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
     procedure AddCustomField(Field: TVRMLField; const Exposed: boolean = false);
+
+    { What happens when transformation of the node changes.
+      This is internally used by TVRMLScene when Transform (or similar)
+      node affecting this node changes. It's an important optimization,
+      to avoid large if clause with many "is" and "Supports" checks
+      that would be quite slow.
+      @exclude }
+    function TransformationChange: TNodeTransformationChange; virtual;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -2948,6 +2956,11 @@ begin
   Field.ParentInterfaceDeclaration := IDecl;
   InterfaceDeclarations.Add(IDecl);
   PostAddInterfaceDeclaration(IDecl);
+end;
+
+function TVRMLNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcNone;
 end;
 
 { TVRMLNodesList ------------------------------------------------------------- }

@@ -114,6 +114,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdcenter: TSFVec3f;
     public property Fdcenter: TSFVec3f read FFdcenter;
@@ -166,6 +167,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdcenterOfMass: TSFVec3f;
     public property FdcenterOfMass: TSFVec3f read FFdcenterOfMass;
@@ -212,6 +214,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdcenter: TSFVec3f;
     public property Fdcenter: TSFVec3f read FFdcenter;
@@ -512,6 +515,11 @@ begin
     Fdtranslation);
 end;
 
+function TNodeHAnimJoint.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
+end;
+
 constructor TNodeHAnimSegment.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -586,6 +594,11 @@ begin
   TransformSimpleState(State, Fdrotation, Fdscale, Fdtranslation);
 end;
 
+function TNodeHAnimSegment.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
+end;
+
 constructor TNodeHAnimSite.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -651,6 +664,11 @@ begin
   inherited;
   TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
+end;
+
+function TNodeHAnimSite.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
 end;
 
 procedure RegisterHAnimNodes;
