@@ -243,9 +243,9 @@
         <UnitName Value="KambiUtils"/>
       </Item48>
       <Item49>
-        <Filename Value="../src/base/kambixmlcfg.pas"/>
+        <Filename Value="../src/base/kambixmlconfig.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="KambiXMLCfg"/>
+        <UnitName Value="KambiXMLConfig"/>
       </Item49>
       <Item50>
         <Filename Value="../src/base/kambixmlutils.pas"/>

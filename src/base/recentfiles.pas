@@ -18,7 +18,7 @@ unit RecentFiles;
 
 interface
 
-uses Classes, KambiXMLCfg;
+uses Classes, KambiXMLConfig;
 
 const
   DefaultMaxCount = 5;

@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   OpenGLContext, Menus, VRMLGLScene, Cameras, KambiVRMLBrowser,
-  LCLRecentFiles, KambiXMLCfg, Buttons, ExtCtrls, StdCtrls, RecentFiles;
+  LCLRecentFiles, KambiXMLConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles;
 
 type
   TMain = class(TForm)

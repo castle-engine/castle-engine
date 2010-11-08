@@ -144,7 +144,7 @@ begin
     P.Targets.AddUnit('kambistringutils.pas');
     P.Targets.AddUnit('kambitimeutils.pas');
     P.Targets.AddUnit('kambiutils.pas');
-    P.Targets.AddUnit('kambixmlcfg.pas');
+    P.Targets.AddUnit('kambixmlconfig.pas');
     P.Targets.AddUnit('kambixmlutils.pas');
     P.Targets.AddUnit('kambizlib.pas');
     P.Targets.AddUnit('kambizstream.pas');

@@ -13,32 +13,51 @@
   ----------------------------------------------------------------------------
 }
 
-{ }
-unit KambiXMLCfg;
+{ Storing configuration files in XML (TKamXMLConfig). }
+unit KambiXMLConfig;
+
+{ In new FPC versions, XMLConf unit is adviced and XMLCfg is deprecated.
+  See e.g. [http://www.mail-archive.com/lazarus@lists.lazarus.freepascal.org/msg09489.html].
+  But XMLConf requires adding units to your uses clause that are otherwise
+  not needed:
+
+    This binary has no unicodestrings support compiled in.
+    Recompile the application with a unicodestrings-manager in the program uses clause.
+
+  So we keep using XMLCfg for now. Undefine USE_OLD_XMLCFG if you wish
+  to use XMLConf. }
+{$define USE_OLD_XMLCFG}
 
 interface
 
-uses KambiUtils, XMLCfg, DOM;
+uses KambiUtils, {$ifdef USE_OLD_XMLCFG} XMLCfg {$else} XMLConf {$endif}, DOM;
 
 type
-  { This is descendant of TXMLConfig that adds
-    GetFloat, SetFloat, SetDeleteFloat for the Float type.
+  { Store configuration in XML format.
 
-    Note: at the beginning I named them GetValue, SetValue etc.
-    and made them overloaded. But this is *very* bad idea.
-    Why ? Because integers are casted to floats without any problems,
-    and this may cause choosing wrong overloaded version.
-    Consider that default value for some float parameter is integer
-    (e.g. because it was declared as an integer, I forgot to
-    write "0.0" instead of "0" etc.). Then
-      MyValue := GetValue(Name, IntegerValue);
-    will choose GetValue that interprets given value as an integer.
-    Although MyValue is variable of type float, you can assign integer
-    to a float without any problem, so again no compile-time error.
-    But this is obviously wrong --- if float value was recorded
-    in the file, it will be read incorrectly. }
+    This is a descendant of TXMLConfig that adds various small extensions:
+    float types storing (GetFloat, SetFloat, SetDeleteFloat),
+    PathElement utility. }
   TKamXMLConfig = class(TXMLConfig)
   public
+    { Internal notes: At the beginning I made the float methods
+      to overload existing names (GetValue, SetValue etc.).
+
+      But this turned out to be a *very* bad idea: integers are
+      casted to floats automatically, and this means that it's too
+      easy to use integer getter to read a value that may be float.
+      Consider that default value for some float parameter is of integer type
+      (e.g. because it was declared as an integer, because you forget to
+      write "0.0" instead of "0" etc.). Then
+
+        MyValue := GetValue('float_param', 0);
+
+      will choose GetValue that interprets given value as an integer.
+      If you perviously stored a float value there
+      (like by SetValue('float_param', 3.14)) then the GetValue above
+      will compile but fail miserably at runtime }
+
+    { }
     function GetFloat(const APath: string;
       const ADefaultValue: Float): Float;
 

@@ -22,7 +22,7 @@ uses
   kambistringutils,
   kambitimeutils,
   kambiutils,
-  kambixmlcfg,
+  kambixmlconfig,
   { kambixmlread, --- kambixmlread will be compiled only if required by other units (as it's only for some FPC versions) }
   kambixmlutils,
   kambizlib,
