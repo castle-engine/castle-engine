@@ -568,7 +568,7 @@ end;
 
 procedure TNodeBillboard.ApplyTransform(State: TVRMLGraphTraverseState);
 var
-  NewX, NewZ, BillboardToViewer, P1, P2: TVector3Single;
+  NewX, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3Single;
   Angle: Single;
   M, IM: TMatrix4Single;
   PlaneAxis: TVector4Single;
@@ -578,9 +578,13 @@ begin
   begin
     if PerfectlyZeroVector(FdAxisOfRotation.Value) then
     begin
-      NewX := VectorProduct(FCameraDirection, FCameraUp);
-      {$define NewY := FCameraUp}
-      NewZ := -FCameraDirection;
+      LocalDirection := MatrixMultDirection(State.InvertedTransform, FCameraDirection);
+      LocalUp        := MatrixMultDirection(State.InvertedTransform, FCameraUp);
+
+      NewX := VectorProduct(LocalDirection, LocalUp);
+      {$define NewY := LocalUp}
+      NewZ := -LocalDirection;
+
       State.Transform := MatrixMult(State.Transform,
         TransformToCoordsMatrix(ZeroVector3Single, NewX, NewY, NewZ));
       State.InvertedTransform := MatrixMult(
