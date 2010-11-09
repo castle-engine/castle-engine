@@ -371,21 +371,25 @@ type
     procedure UpdateShadowMaps(LightNode: TVRMLLightNode);
   end;
 
-  { Internal helper for TVRMLScene, for each transform node (INodeTransform)
-    a list with all TVRMLShapeTreeTransform instances where it's used.
+  { For each transform node (INodeTransform),
+    list all TVRMLShapeTreeTransform instances where it's used.
     @exclude }
-  TTransformNodeInfo = class(TVRMLShapeTreesList)
+  TTransformInstances = class(TVRMLShapeTreesList)
     Node: TNodeX3DGroupingNode;
   end;
 
   { @exclude }
-  TObjectsListItem_1 = TTransformNodeInfo;
+  TObjectsListItem_1 = TTransformInstances;
   { @exclude }
   {$I objectslist_1.inc}
   { @exclude }
-  TTransformNodeInfosList = class(TObjectsList_1)
+  TTransformInstancesList = class(TObjectsList_1)
   public
-    function NodeInfo(Node: TNodeX3DGroupingNode): TTransformNodeInfo;
+    { Returns existing item corresponding to given Node.
+      If not found, and AutoCreate, then adds new item to the list.
+      If not found, and not AutoCreate, then return @nil. }
+    function Instances(Node: TNodeX3DGroupingNode;
+      const AutoCreate: boolean): TTransformInstances;
   end;
 
   { @exclude }
@@ -582,7 +586,7 @@ type
     procedure TransformationChanged(TransformNode: TNodeX3DGroupingNode;
       Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
   private
-    TransformNodesInfo: TTransformNodeInfosList;
+    TransformInstancesList: TTransformInstancesList;
 
     ChangedAll_TraversedLights: TDynActiveLightArray;
 
@@ -2364,9 +2368,10 @@ begin
       Items[I].Handler.UpdateNeeded := true;
 end;
 
-{ TTransformNodeInfosList ------------------------------------------------- }
+{ TTransformInstancesList ------------------------------------------------- }
 
-function TTransformNodeInfosList.NodeInfo(Node: TNodeX3DGroupingNode): TTransformNodeInfo;
+function TTransformInstancesList.Instances(Node: TNodeX3DGroupingNode;
+  const AutoCreate: boolean): TTransformInstances;
 var
   I: Integer;
 begin
@@ -2376,7 +2381,14 @@ begin
       Result := Items[I];
       Exit;
     end;
-  Result := nil;
+
+  if AutoCreate then
+  begin
+    Result := TTransformInstances.Create;
+    Result.Node := Node;
+    Add(Result);
+  end else
+    Result := nil;
 end;
 
 { TVRMLScene ----------------------------------------------------------- }
@@ -2402,7 +2414,7 @@ begin
   FPointingDeviceActiveSensors := TVRMLNodesList.Create;
 
   FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
-  TransformNodesInfo := TTransformNodeInfosList.Create;
+  TransformInstancesList := TTransformInstancesList.Create;
   GeneratedTextures := TDynGeneratedTextureArray.Create;
   ProximitySensors := TProximitySensorInstancesList.Create;
 
@@ -2452,7 +2464,7 @@ begin
 
   FreeAndNil(ProximitySensors);
   FreeAndNil(GeneratedTextures);
-  FreeWithContentsAndNil(TransformNodesInfo);
+  FreeWithContentsAndNil(TransformInstancesList);
   FreeAndNil(FCompiledScriptHandlers);
 
   FreeAndNil(FBackgroundStack);
@@ -2661,7 +2673,6 @@ procedure TChangedAllTraverser.Traverse(
     Traverser: TChangedAllTraverser;
     ChildNode: TVRMLNode;
     I: Integer;
-    Info: TTransformNodeInfo;
   begin
     TransformTree := TVRMLShapeTreeTransform.Create(ParentScene);
     TransformTree.TransformNode := TransformNode;
@@ -2685,15 +2696,8 @@ procedure TChangedAllTraverser.Traverse(
 
     ShapesGroup.Children.Add(TransformTree);
 
-    { update ParentScene.TransformNodesInfo }
-    Info := ParentScene.TransformNodesInfo.NodeInfo(TransformNode);
-    if Info = nil then
-    begin
-      Info := TTransformNodeInfo.Create;
-      Info.Node := TransformNode;
-      ParentScene.TransformNodesInfo.Add(Info);
-    end;
-    Info.Add(TransformTree);
+    { update ParentScene.TransformInstancesList }
+    ParentScene.TransformInstancesList.Instances(TransformNode, true).Add(TransformTree);
 
     for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
     begin
@@ -2923,7 +2927,7 @@ end;
 procedure TVRMLScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Stuff that will be recalculated by ChangedAll }
-  TransformNodesInfo.FreeContents;
+  TransformInstancesList.FreeContents;
   GeneratedTextures.Count := 0;
   ProximitySensors.Count := 0;
 
@@ -3598,7 +3602,7 @@ var
   procedure HandleChangeTransform;
   var
     TransformNode: TNodeX3DGroupingNode;
-    Instances: TTransformNodeInfo;
+    Instances: TTransformInstances;
   begin
     if not Supports(Node, INodeTransform) then
     begin
@@ -3611,7 +3615,7 @@ var
 
     TransformNode := Node as TNodeX3DGroupingNode;
 
-    Instances := TransformNodesInfo.NodeInfo(TransformNode);
+    Instances := TransformInstancesList.Instances(TransformNode, false);
     if Instances = nil then
     begin
       if Log and LogChanges then
