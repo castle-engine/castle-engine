@@ -1652,8 +1652,8 @@ type
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
       CurrentViewpoint: TVRMLViewpointNode;
-      IsLastViewer: boolean;
-      const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
+      CameraViewKnown: boolean;
+      const CameraPosition, CameraDirection, CameraUp: TVector3Single);
 
     { Should CacheIgnoresTransform be passed to
       ShapeNoTransform_IncReference_Existing. }
@@ -4838,8 +4838,8 @@ procedure TVRMLOpenGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;
   CurrentViewpoint: TVRMLViewpointNode;
-  IsLastViewer: boolean;
-  const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
+  CameraViewKnown: boolean;
+  const CameraPosition, CameraDirection, CameraUp: TVector3Single);
 
 var
   { Only for CheckUpdateField and PostUpdateField }
@@ -4940,8 +4940,8 @@ var
       begin
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
           NeedsRestoreViewport,
-          CurrentViewpoint, IsLastViewer,
-          LastViewerPosition, LastViewerDirection, LastViewerUp);
+          CurrentViewpoint, CameraViewKnown,
+          CameraPosition, CameraDirection, CameraUp);
 
         PostUpdate;
 

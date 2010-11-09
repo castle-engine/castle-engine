@@ -2419,8 +2419,8 @@ var
         { Push Node children onto TraversalStack.
           We want to Pop them front-first, to (since this is a stack)
           we want to push back first. }
-        if IsLastViewer then
-          Node.PushChildrenBackToFront(TraversalStack, LastViewerPosition) else
+        if CameraViewKnown then
+          Node.PushChildrenBackToFront(TraversalStack, CameraPosition) else
           Node.PushChildren(TraversalStack);
       end;
     end;
@@ -2688,8 +2688,8 @@ begin
               { draw fully opaque objects }
               if TransparentGroup in AllOrOpaque then
               begin
-                if IsLastViewer and Attributes.ReallyUseOcclusionQuery then
-                  OpaqueShapes.SortFrontToBack(LastViewerPosition);
+                if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
+                  OpaqueShapes.SortFrontToBack(CameraPosition);
 
                 for I := 0 to OpaqueShapes.Count - 1 do
                   RenderShapeProc_SomeTests(TVRMLGLShape(OpaqueShapes.Items[I]));
@@ -2707,8 +2707,8 @@ begin
                 BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
                 glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
 
-                if IsLastViewer and Attributes.BlendingSort then
-                  TransparentShapes.SortBackToFront(LastViewerPosition);
+                if CameraViewKnown and Attributes.BlendingSort then
+                  TransparentShapes.SortBackToFront(CameraPosition);
 
                 for I := 0 to TransparentShapes.Count - 1 do
                 begin
@@ -4832,8 +4832,7 @@ begin
       TextureNode,
       RenderFunc, ProjectionNear, ProjectionFar, NeedsRestoreViewport,
       ViewpointStack.Top as TVRMLViewpointNode,
-      IsLastViewer,
-      LastViewerPosition, LastViewerDirection, LastViewerUp);
+      CameraViewKnown, CameraPosition, CameraDirection, CameraUp);
 
     AvoidShapeRendering := nil;
     AvoidNonShadowCasterRendering := false;
@@ -4884,7 +4883,7 @@ begin
         if vcVisibleGeometry in Changes then
           GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
       end else
-        { Even mere prViewer causes regenerate of RenderedTexture,
+        { Even mere vcCamera causes regenerate of RenderedTexture,
           as RenderedTexture with viewpoint = NULL uses current camera.
           So any Changes <> [] causes regeneration of RenderedTexture.
           Also, for other than RenderedTexture nodes, default is to regenerate

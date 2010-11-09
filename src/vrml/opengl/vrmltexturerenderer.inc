@@ -311,8 +311,8 @@
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
       CurrentViewpoint: TVRMLViewpointNode;
-      IsLastViewer: boolean;
-      const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
+      CameraViewKnown: boolean;
+      const CameraPosition, CameraDirection, CameraUp: TVector3Single);
   end;
 
   { Common handling for texture nodes of TNodeX3DEnvironmentTextureNode. }
@@ -1651,8 +1651,8 @@ procedure TGLRenderedTextureNode.Update(
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;
   CurrentViewpoint: TVRMLViewpointNode;
-  IsLastViewer: boolean;
-  const LastViewerPosition, LastViewerDirection, LastViewerUp: TVector3Single);
+  CameraViewKnown: boolean;
+  const CameraPosition, CameraDirection, CameraUp: TVector3Single);
 
 var
   Viewpoint: TVRMLViewpointNode;
@@ -1744,11 +1744,11 @@ var
 
     procedure GetFromCurrent;
     begin
-      if IsLastViewer then
+      if CameraViewKnown then
       begin
-        Pos := LastViewerPosition;
-        Dir := LastViewerDirection;
-        Up  := LastViewerUp;
+        Pos := CameraPosition;
+        Dir := CameraDirection;
+        Up  := CameraUp;
       end else
       if CurrentViewpoint <> nil then
         CurrentViewpoint.GetView(Pos, Dir, Up, GravityUp) else

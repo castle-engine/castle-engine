@@ -563,7 +563,7 @@ type
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
     ShapeLODs: TObjectList;
-    { Recalculate and update LODTree.Level (if viewer position known).
+    { Recalculate and update LODTree.Level (if camera position known).
       Also sends level_changed when needed. }
     procedure UpdateLODLevel(LODTree: TVRMLShapeTreeLOD);
 
@@ -689,17 +689,15 @@ type
     FLogChanges: boolean;
 
     { Call this when the ProximitySensor instance changed (either the box or
-      it's transformation) or when viewer position changed
-      (in the future, this will include also implicit changes to viewer position
-      by changing transformation of viewer's Viewpoint --- not interesting
-      for now, since transforming Viewpoint does nothing for now).
+      it's transformation) or when camera position changed (by user actions
+      or animating the Viewpoint).
 
-      Viewer position/dir/up must at this point be stored within
-      LastViewerXxx. }
+      Camera position/dir/up must at this point be stored within Camera*
+      properties. }
     procedure ProximitySensorUpdate(const PSI: TProximitySensorInstance);
   private
-    FLastViewerPosition, FLastViewerDirection, FLastViewerUp: TVector3Single;
-    FIsLastViewer: boolean;
+    FCameraPosition, FCameraDirection, FCameraUp: TVector3Single;
+    FCameraViewKnown: boolean;
 
     FCompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray;
 
@@ -1673,38 +1671,37 @@ type
     property LogChanges: boolean
       read FLogChanges write FLogChanges default false;
 
-    { Last known viewer (camera) position/direction/up.
+    { Camera position/direction/up known for this scene.
 
-      Set by ViewerChanged. IsLastViewer = @false means that
-      ViewerChanged was never called, and so viewer settings are not known,
-      and so other LastViewer* properties have undefined values.
+      Set by CameraChanged. CameraViewKnown = @false means that
+      CameraChanged was never called, and so camera settings are not known,
+      and so other Camera* properties have undefined values.
 
       These are remembered for various reasons, like
       reacting to changes to ProximitySensor box (center, size)
       (or it's transform), or changing LOD node children.
 
       @groupBegin }
-    property LastViewerPosition: TVector3Single read FLastViewerPosition;
-    property LastViewerDirection: TVector3Single read FLastViewerDirection;
-    property LastViewerUp: TVector3Single read FLastViewerUp;
-    property IsLastViewer: boolean read FIsLastViewer;
+    property CameraPosition: TVector3Single read FCameraPosition;
+    property CameraDirection: TVector3Single read FCameraDirection;
+    property CameraUp: TVector3Single read FCameraUp;
+    property CameraViewKnown: boolean read FCameraViewKnown;
     { @groupEnd }
 
-    { Call when viewer position/dir/up changed, to update things depending
-      on viewer settings. This includes sensors like ProximitySensor,
+    { Call when camera position/dir/up changed, to update things depending
+      on camera settings. This includes sensors like ProximitySensor,
       LOD nodes, camera settings for next RenderedTexture update and more.
       It automatically does proper VisibleChangeHere (OnVisibleChangeHere).
 
-      @param(Changes describes changes to the scene caused by viewer change.
+      @param(Changes describes changes to the scene caused by camera change.
         This is needed if some geometry / light follows the player.
 
-        We'll automatically add here "prViewer", so not need to specify it.
+        We'll automatically add here vcCamera, so not need to specify it.
 
         You should add here vcVisibleNonGeometry if player has a headlight.
         You should add here vcVisibleGeometry if player has a rendered
         avatar.) }
-    procedure ViewerChanged(ACamera: TCamera;
-      const Changes: TVisibleChanges);
+    procedure CameraChanged(ACamera: TCamera; const Changes: TVisibleChanges);
 
     { List of handlers for VRML Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
@@ -1870,7 +1867,7 @@ type
     property OnHeadlightOnChanged: TNotifyEvent
       read FOnHeadlightOnChanged write FOnHeadlightOnChanged;
 
-    { Notify the scene that viewer position/direction changed a lot.
+    { Notify the scene that camera position/direction changed a lot.
       It may be called when you make a sudden change to the camera,
       like teleporting the player to a completely different scene part.
 
@@ -2882,10 +2879,10 @@ procedure TVRMLScene.UpdateLODLevel(LODTree: TVRMLShapeTreeLOD);
 var
   OldLevel, NewLevel: Cardinal;
 begin
-  if IsLastViewer then
+  if CameraViewKnown then
   begin
     OldLevel := LODTree.Level;
-    NewLevel := LODTree.CalculateLevel(LastViewerPosition);
+    NewLevel := LODTree.CalculateLevel(CameraPosition);
     LODTree.Level := NewLevel;
 
     if ProcessEvents and
@@ -3463,7 +3460,7 @@ begin
           { Call ProximitySensorUpdate, since the sensor's box is transformed,
             so possibly it should be activated/deactivated,
             position/orientation_changed called etc. }
-          if ParentScene.IsLastViewer then
+          if ParentScene.CameraViewKnown then
             ParentScene.ProximitySensorUpdate(ProximitySensorInstance);
         end;
       end;
@@ -3870,7 +3867,7 @@ var
     if not (Node is TNodeProximitySensor) then Exit;
 
     { Update state for this ProximitySensor node. }
-    if IsLastViewer then
+    if CameraViewKnown then
       for I := 0 to ProximitySensors.Count - 1 do
       begin
         if ProximitySensors[I].Node = Node then
@@ -4028,7 +4025,7 @@ var
   end;
 
   { Handle all four flags chVisibleGeometry, chVisibleNonGeometry,
-    chViewer, chRedisplay. }
+    chCamera, chRedisplay. }
   procedure HandleVisibleChange;
   var
     VisibleChanges: TVisibleChanges;
@@ -4036,7 +4033,7 @@ var
     VisibleChanges := [];
     if chVisibleGeometry    in Changes then Include(VisibleChanges, vcVisibleGeometry);
     if chVisibleNonGeometry in Changes then Include(VisibleChanges, vcVisibleNonGeometry);
-    if chViewer             in Changes then Include(VisibleChanges, vcViewer);
+    if chCamera             in Changes then Include(VisibleChanges, vcCamera);
     VisibleChangeHere(VisibleChanges);
   end;
 
@@ -4130,7 +4127,7 @@ begin
     if chEverything in Changes then HandleChangeEverything;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,
-      chViewer, chRedisplay] <> [] then
+      chCamera, chRedisplay] <> [] then
       HandleVisibleChange;
   finally EndChangesSchedule end;
 end;
@@ -5207,8 +5204,8 @@ procedure TVRMLScene.SetProcessEvents(const Value: boolean);
   { When ProcessEvents is set to @true, you want to call initial
     position/orientation_changed events.
 
-    Implementation below essentially is like ViewerChanged,
-    except it checks IsLastViewer (instead of setting it always to @true). }
+    Implementation below essentially is like CameraChanged,
+    except it checks CameraViewKnown (instead of setting it always to @true). }
   procedure InitialProximitySensorsEvents;
   var
     I: Integer;
@@ -5216,7 +5213,7 @@ procedure TVRMLScene.SetProcessEvents(const Value: boolean);
     Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
-      if IsLastViewer then
+      if CameraViewKnown then
       begin
         for I := 0 to ProximitySensors.Count - 1 do
           ProximitySensorUpdate(ProximitySensors[I]);
@@ -5904,7 +5901,7 @@ var
   Node: TNodeProximitySensor;
   NewIsActive: boolean;
 begin
-  Assert(IsLastViewer);
+  Assert(CameraViewKnown);
   if ProcessEvents then
   begin
     BeginChangesSchedule;
@@ -5912,9 +5909,9 @@ begin
       Node := PSI.Node;
       if not Node.FdEnabled.Value then Exit;
 
-      { In each ProximitySensorUpdate we transform ViewerPosition to
+      { In each ProximitySensorUpdate we transform CameraPosition to
         ProximitySensor coordinate-space. This allows us to check
-        whether the viewer is inside ProximitySensor precisely
+        whether the camera is inside ProximitySensor precisely
         (otherwise transforming ProximitySensor box could make a larger
         box, as we do not support oriented bounding boxes, only
         axis-aligned).
@@ -5930,7 +5927,7 @@ begin
           it's InvertedTransform and call ProximitySensorUpdate.
       }
 
-      Position := MatrixMultPoint(PSI.InvertedTransform, LastViewerPosition);
+      Position := MatrixMultPoint(PSI.InvertedTransform, CameraPosition);
 
       NewIsActive :=
         (Position[0] >= Node.FdCenter.Value[0] - Node.FdSize.Value[0] / 2) and
@@ -5966,8 +5963,8 @@ begin
         Node.EventPosition_Changed.Send(Position, Time);
         if Node.EventOrientation_Changed.SendNeeded then
         begin
-          Direction := MatrixMultDirection(PSI.InvertedTransform, LastViewerDirection);
-          Up        := MatrixMultDirection(PSI.InvertedTransform, LastViewerUp);
+          Direction := MatrixMultDirection(PSI.InvertedTransform, CameraDirection);
+          Up        := MatrixMultDirection(PSI.InvertedTransform, CameraUp);
           Node.EventOrientation_Changed.Send(
             CamDirUp2Orient(Direction, Up), Time);
         end;
@@ -5979,13 +5976,13 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ViewerChanged(ACamera: TCamera;
+procedure TVRMLScene.CameraChanged(ACamera: TCamera;
   const Changes: TVisibleChanges);
 var
   I: Integer;
 begin
-  ACamera.GetView(FLastViewerPosition, FLastViewerDirection, FLastViewerUp);
-  FIsLastViewer := true;
+  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
+  FCameraViewKnown := true;
 
   BeginChangesSchedule;
   try
@@ -6000,7 +5997,7 @@ begin
     end;
   finally EndChangesSchedule end;
 
-  VisibleChangeHere(Changes + [vcViewer]);
+  VisibleChangeHere(Changes + [vcCamera]);
 end;
 
 { compiled scripts ----------------------------------------------------------- }

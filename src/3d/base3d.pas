@@ -41,8 +41,8 @@ type
       For example, material or texture on visible surface changed. }
     vcVisibleNonGeometry,
 
-    { Viewer (the settings passed to TVRMLScene.ViewerChanged) changed. }
-    vcViewer);
+    { Camera view (the settings passed to TVRMLScene.CameraChanged) changed. }
+    vcCamera);
   TVisibleChanges = set of TVisibleChange;
 
   TVisibleChangeEvent = procedure (Sender: T3D; Changes: TVisibleChanges) of object;

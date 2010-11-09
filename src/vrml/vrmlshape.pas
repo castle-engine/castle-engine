@@ -668,7 +668,7 @@ type
     Note that this class doesn't call CalculateLevel by itself, never.
     You have to call CalculateLevel, and use it to set Level property,
     from parent scene to make this LOD work. (Reasoning behind this decision:
-    parent scene has LastViewerPosition and such, and parent scene
+    parent scene has CameraPosition and such, and parent scene
     knows whether to initiate level_changes event sending.) }
   TVRMLShapeTreeLOD = class(TVRMLShapeTreeGroup)
   private
@@ -690,7 +690,7 @@ type
 
       Should be calculated by CalculateLevel. By default
       we simply use the first (highest-detail) LOD as active.
-      So if you never assign this (e.g. because TVRMLScene.IsLastViewer
+      So if you never assign this (e.g. because TVRMLScene.CameraViewKnown
       = @false, that is user position is never known) we'll always
       use the highest-detail children. }
     property Level: Cardinal read FLevel write FLevel default 0;

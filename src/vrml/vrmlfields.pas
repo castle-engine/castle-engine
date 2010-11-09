@@ -77,16 +77,16 @@ type
       be called. }
     chVisibleNonGeometry,
 
-    { Viewer changed.
-      See vcViewer.
-      This means that VisibleChangeHere with vcViewer included should
+    { Camera changed.
+      See vcCamera.
+      This means that VisibleChangeHere with vcCamera included should
       be called. }
-    chViewer,
+    chCamera,
 
     { Call VisibleChangeHere to redisplay the scene.
 
       If you include one the chVisibleGeometry, chVisibleNonGeometry,
-      chViewer then this flag (chRedisplay) makes no effect.
+      chCamera then this flag (chRedisplay) makes no effect.
       Otherwise, this flag should be used if your change requires
       redisplay of the 3D view for some other reasons. }
     chRedisplay,
@@ -2439,7 +2439,7 @@ const
   VRMLChangeToStr: array [TVRMLChange] of string =
   ( 'Visible Geometry',
     'Visible Non-Geometry',
-    'Viewer',
+    'Camera',
     'Redisplay',
     'Transform',
     'Coordinate',

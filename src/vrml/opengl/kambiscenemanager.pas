@@ -618,11 +618,11 @@ type
     procedure BeforeDraw; override;
     procedure Draw; override;
 
-    { What changes happen when viewer camera changes.
-      You may want to use it when calling Scene.ViewerChanges.
+    { What changes happen when camera changes.
+      You may want to use it when calling Scene.CameraChanged.
 
       Implementation in this class is correlated with RenderHeadlight. }
-    function ViewerToChanges: TVisibleChanges; virtual;
+    function CameraToChanges: TVisibleChanges; virtual;
 
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
@@ -634,7 +634,7 @@ type
 
       When this property specifies an EmptyBox3D (the default value),
       camera position is limited to not fall because of gravity
-      outside of Items.BoundingBox. That is, viewer can freely move
+      outside of Items.BoundingBox. That is, camera can freely move
       around in 3D world, only the gravity cannot pull the user outside
       of the box.
       Which means user cannot fall into an infinite abyss of our 3D space,
@@ -1254,7 +1254,7 @@ begin
       This would mean that mirror textures (like GeneratedCubeMapTexture)
       will need to have different contents in different viewpoints,
       which isn't possible. We also want to use scene manager's camera,
-      to have it tied with scene manager's ViewerToChanges implementation.
+      to have it tied with scene manager's CameraToChanges implementation.
 
       So if you use custom viewports and want headlight Ok,
       be sure to explicitly set TKamSceneManager.Camera
@@ -1655,10 +1655,10 @@ begin
       FMainScene.ViewpointStack.OnBoundChanged := @SceneBoundViewpointChanged;
       FMainScene.NavigationInfoStack.OnBoundChanged := @SceneBoundNavigationInfoChanged;
 
-      { Call initial ViewerChanged (this allows ProximitySensors to work
+      { Call initial CameraChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
       if Camera <> nil then
-        MainScene.ViewerChanged(Camera, ViewerToChanges);
+        MainScene.CameraChanged(Camera, CameraToChanges);
     end;
 
     ApplyProjectionNeeded := true;
@@ -1695,10 +1695,10 @@ begin
 
     if FCamera <> nil then
     begin
-      { Call initial ViewerChanged (this allows ProximitySensors to work
+      { Call initial CameraChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
       if MainScene <> nil then
-        MainScene.ViewerChanged(Camera, ViewerToChanges);
+        MainScene.CameraChanged(Camera, CameraToChanges);
     end;
 
     { Changing camera changes also the view rapidly. }
@@ -1797,7 +1797,7 @@ begin
   PrepareResources;
 end;
 
-function TKamSceneManager.ViewerToChanges: TVisibleChanges;
+function TKamSceneManager.CameraToChanges: TVisibleChanges;
 var
   H: TVRMLGLHeadlight;
 begin
@@ -1883,11 +1883,11 @@ end;
 procedure TKamSceneManager.CameraVisibleChange(ACamera: TObject);
 begin
   if (MainScene <> nil) and (ACamera = Camera) then
-    { MainScene.ViewerChanged will cause MainScene.[On]VisibleChangeHere,
+    { MainScene.CameraChanged will cause MainScene.[On]VisibleChangeHere,
       that (assuming here that MainScene is also on Items) will cause
       ItemsVisibleChange that will cause our own VisibleChange.
-      So this way MainScene.ViewerChanged will also cause our VisibleChange. }
-    MainScene.ViewerChanged(Camera, ViewerToChanges) else
+      So this way MainScene.CameraChanged will also cause our VisibleChange. }
+    MainScene.CameraChanged(Camera, CameraToChanges) else
     VisibleChange;
 
   if Assigned(OnCameraChanged) then
