@@ -663,8 +663,8 @@ type
     with it's transformation in VRML graph.
     This information is in LODNode and LODInvertedTransform properties.
 
-    Also, we need to know the current viewer position.
-    This is passed as ViewerPosition to CalculateLevel.
+    Also, we need to know the current camera position.
+    This is passed as CameraPosition to CalculateLevel.
     Note that this class doesn't call CalculateLevel by itself, never.
     You have to call CalculateLevel, and use it to set Level property,
     from parent scene to make this LOD work. (Reasoning behind this decision:
@@ -682,7 +682,7 @@ type
 
     { Calculate @link(Level). This only calculates level, doesn't
       assign @link(Level) property or send level_changed event. }
-    function CalculateLevel(const ViewerPosition: TVector3Single): Cardinal;
+    function CalculateLevel(const CameraPosition: TVector3Single): Cardinal;
 
     { Current level, that is index of the active child of this LOD node.
       This is always < Children.Count, unless there are no children.
@@ -1810,9 +1810,9 @@ begin
   Result := @FLODInvertedTransform;
 end;
 
-function TVRMLShapeTreeLOD.CalculateLevel(const ViewerPosition: TVector3Single): Cardinal;
+function TVRMLShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3Single): Cardinal;
 var
-  Viewer: TVector3Single;
+  Camera: TVector3Single;
   Dummy: Single;
 begin
   if (Children.Count = 0) or
@@ -1820,9 +1820,9 @@ begin
     Result := 0 else
   begin
     try
-      Viewer := MatrixMultPoint(LODInvertedTransform^, ViewerPosition);
+      Camera := MatrixMultPoint(LODInvertedTransform^, CameraPosition);
       Result := KeyRange(LODNode.FdRange.Items,
-        PointsDistance(Viewer, LODNode.FdCenter.Value), Dummy);
+        PointsDistance(Camera, LODNode.FdCenter.Value), Dummy);
       { Now we know Result is between 0..LODNode.FdRange.Count.
         Following X3D spec "Specifying too few levels will result in
         the last level being used repeatedly for the lowest levels of detail",
@@ -1831,8 +1831,8 @@ begin
     except
       on E: ETransformedResultInvalid do
       begin
-        VRMLWarning(vwSerious, Format('Cannot transform viewer position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
-          [ VectorToRawStr(ViewerPosition), E.Message ]));
+        VRMLWarning(vwSerious, Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
+          [ VectorToRawStr(CameraPosition), E.Message ]));
         Result := 0;
       end;
     end;

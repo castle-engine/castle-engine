@@ -862,7 +862,7 @@ type
       lower that some minimal plane when BecauseOfGravity
       (because this would mean that camera falls down infinitely),
       on the other hand when BecauseOfGravity is @false moving
-      outside bounding box is allowed (to allow viewer to look at the
+      outside bounding box is allowed (to allow camera to look at the
       scene from "the outside").
 
       Basic implementation of DoMoveAllowed in this class:

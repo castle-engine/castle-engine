@@ -1327,7 +1327,7 @@ end;
 
 procedure TNodeLOD_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
-  { TODO: powinnismy tu uzywac odleglosci od viewera ? Problem.
+  { TODO: powinnismy tu uzywac odleglosci od camery ? Problem.
     dla renderowania jest problem z wrzucaniem tego na display liste.
     dla boundingBoxa
       Wybrac ostatnie SubNode bo bedzie je nalatwiej obliczac ?

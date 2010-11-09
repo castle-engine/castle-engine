@@ -19,9 +19,9 @@ var Spot: Single;
     M1: TNodeMaterial_1;
     M2: TNodeMaterial_2;
 
-    { srednia z wektora do viewera i LightDirNorm, potrzebna do liczenia
+    { srednia z wektora do cameraa i LightDirNorm, potrzebna do liczenia
       odbicia Specular }
-    ViewerAndLightHalfway: TVector3Single;
+    CameraAndLightHalfway: TVector3Single;
 
     MaterialAmbientIntensity: Single;
     MaterialAmbientColor: TVector3Single;
@@ -137,7 +137,7 @@ begin
    cosinusa jako prostego dot product; jak zwykle, nalezy pamietac
    ze suma dwoch wektorow dlugosci 1 niekoniecznie (rzadko) jest wektorem
    dlugosci 2 (wiec skalowanie przez 1/2 nie rozwiazaloby tu problemu)) }
- ViewerAndLightHalfway := Normalized(
+ CameraAndLightHalfway := Normalized(
    Normalized(CamPosition - Point) + LightDirNorm);
  {$endif}
 
@@ -183,7 +183,7 @@ begin
  { Factors += specular factor }
  Factors += MaterialSpecularColor *
    (LightNode.FdIntensity.Value *
-     Power( Max(Normal ** ViewerAndLightHalfway, Single(0.0)),
+     Power( Max(Normal ** CameraAndLightHalfway, Single(0.0)),
        MaterialShininessExp));
  {$endif}
 

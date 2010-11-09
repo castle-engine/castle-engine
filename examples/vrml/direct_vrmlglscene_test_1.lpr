@@ -34,7 +34,7 @@
   For the sake of simplicity, this example takes some shortcuts
   (that are fixed in the direct_vrmlglscene_test_2.lpr):
   - Collision detection is *not* done.
-    We even turn off gravity (because it would make viewer fall down infinitely,
+    We even turn off gravity (because it would make camera fall down infinitely,
     since without collision detection you sink through the floor.)
   - Scene is rendered without frustum culling, since we do not pass
     current frustum to Scene.Render.
