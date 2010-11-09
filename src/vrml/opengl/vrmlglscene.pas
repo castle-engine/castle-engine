@@ -417,7 +417,7 @@ type
     { For Hierarchical Occlusion Culling }
     RenderedFrameId: Cardinal;
   public
-    procedure Changed(Field: TVRMLField; const InactiveOnly: boolean;
+    procedure Changed(const InactiveOnly: boolean;
       const Changes: TVRMLChanges); override;
 
     { Can this shape be stored in a display list.
@@ -1481,7 +1481,7 @@ begin
   Result := FEnableDisplayList;
 end;
 
-procedure TVRMLGLShape.Changed(Field: TVRMLField; const InactiveOnly: boolean;
+procedure TVRMLGLShape.Changed(const InactiveOnly: boolean;
   const Changes: TVRMLChanges);
 var
   TG: TTransparentGroup;

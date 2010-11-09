@@ -314,9 +314,6 @@ type
       This should be called when fields within Shape.Geometry,
       Shape.State.Last*, Shape.State.ShapeNode or such change.
 
-      Field (must not be @nil) describes what field changed.
-      Look into Field.ParentNode if you want to know which node changed.
-
       Pass InactiveOnly = @true is you know that this shape is fully in
       inactive VRML graph part (inactive Switch, LOD etc. children).
 
@@ -326,7 +323,7 @@ type
       Here, chTransform in Changes means that only the transformation
       of TVRMLShape.State changed (so only on fields ignored by
       EqualsNoTransform). }
-    procedure Changed(Field: TVRMLField; const InactiveOnly: boolean;
+    procedure Changed(const InactiveOnly: boolean;
       const Changes: TVRMLChanges); virtual;
 
     { @exclude
@@ -1084,7 +1081,7 @@ begin
   Assert(FState[true] = nil);
 end;
 
-procedure TVRMLShape.Changed(Field: TVRMLField; const InactiveOnly: boolean;
+procedure TVRMLShape.Changed(const InactiveOnly: boolean;
   const Changes: TVRMLChanges);
 begin
   { Remember to code everything here to act only when some stuff

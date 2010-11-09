@@ -574,6 +574,13 @@ type
     procedure SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
     procedure SetShadowMapsVisualizeDepth(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
+
+    { Handle change of transformation of INodeTransform node.
+      TransformNode and TransformNode must not be @nil here.
+      Changes must include chTransform, may also include other changes
+      (this will be passed to shapes affected). }
+    procedure TransformationChanged(TransformNode: TNodeX3DGroupingNode;
+      Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
   private
     TransformNodesInfo: TTransformNodeInfosList;
 
@@ -3169,7 +3176,6 @@ type
     Index: Integer;
   end;
 
-type
   { We need a separate class to keep various helpful state
     during traversal when Transform changed.
     Changing VRML >= 2.0 Transform fields must be highly optimized.
@@ -3186,7 +3192,6 @@ type
     ParentScene: TVRMLScene;
     Shapes: PShapesParentInfo;
     ChangingNode: TNodeX3DGroupingNode; {< must be also INodeTransform }
-    ChangingField: TVRMLField;
     AnythingChanged: boolean;
     Inside: boolean;
     { If = 0, we're in active or inactive graph part (we don't know).
@@ -3395,7 +3400,7 @@ begin
         Shape.State.AssignTransform(StateStack.Top);
         { Changes = [chTransform] here, good for roSeparateShapesNoTransform
           optimization. }
-        Shape.Changed(ChangingField, Inactive <> 0, Changes);
+        Shape.Changed(Inactive <> 0, Changes);
 
         if Inactive = 0 then
         begin
@@ -3468,6 +3473,101 @@ begin
   end;
 end;
 
+procedure TVRMLScene.TransformationChanged(TransformNode: TNodeX3DGroupingNode;
+  Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
+var
+  TransformChangeHelper: TTransformChangeHelper;
+  TransformShapesParentInfo: TShapesParentInfo;
+  TraverseStack: TVRMLGraphTraverseStateStack;
+  I: Integer;
+  TransformShapeTree: TVRMLShapeTreeTransform;
+  DoVisibleChanged: boolean;
+begin
+  { This is the optimization for changing VRML >= 2.0 transformation
+    (most fields of Transform node like translation, scale, center etc.,
+    also some HAnim nodes like Joint and Humanoid have this behavior.).
+
+    In the simple cases, Transform node simply changes
+    TVRMLGraphTraverseState.Transform for children nodes.
+
+    So we have to re-traverse from this Transform node, and change
+    states of affected children. Our TransformNodesInfo gives us
+    a list of TVRMLShapeTreeTransform corresponding to this transform node,
+    so we know we can traverse from this point.
+
+    In more difficult cases, children of this Transform node may
+    be affected in other ways by transformation. For example,
+    Fog and Background nodes are affected by their parents transform.
+    Currently, we cannot account for this, and just raise
+    BreakTransformChangeFailed in this case --- we have to do ChangedAll
+    in such cases.
+  }
+
+  if Log and LogChanges then
+    WritelnLog('VRML changes', Format('Transform node %s change: %d instances',
+      [TransformNode.NodeTypeName, Instances.Count]));
+
+  try
+    DoVisibleChanged := false;
+
+    TraverseStack := nil;
+    TransformChangeHelper := nil;
+    try
+      TraverseStack := TVRMLGraphTraverseStateStack.Create;
+
+      { initialize TransformChangeHelper, set before the loop properties
+        that cannot change }
+      TransformChangeHelper := TTransformChangeHelper.Create;
+      TransformChangeHelper.ParentScene := Self;
+      TransformChangeHelper.ChangingNode := TransformNode;
+      TransformChangeHelper.Changes := Changes;
+
+      for I := 0 to Instances.Count - 1 do
+      begin
+        TransformShapeTree := Instances[I] as TVRMLShapeTreeTransform;
+        TraverseStack.Clear;
+        TraverseStack.Push(TransformShapeTree.TransformState);
+
+        TransformShapesParentInfo.Group := TransformShapeTree;
+        TransformShapesParentInfo.Index := 0;
+
+        { initialize TransformChangeHelper properties that may be changed
+          during Node.Traverse later }
+        TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+        TransformChangeHelper.AnythingChanged := false;
+        TransformChangeHelper.Inside := false;
+        TransformChangeHelper.Inactive := 0;
+
+        try
+          TransformNode.TraverseInternal(TraverseStack, TVRMLNode,
+            @TransformChangeHelper.TransformChangeTraverse, nil);
+        except
+          on BreakTransformChangeSuccess do
+            { BreakTransformChangeSuccess is equivalent with normal finish
+              of Traverse. So do nothing, just silence exception. }
+        end;
+
+        if TransformChangeHelper.AnythingChanged then
+          DoVisibleChanged := true;
+      end;
+    finally
+      FreeAndNil(TraverseStack);
+      FreeAndNil(TransformChangeHelper);
+    end;
+
+    if DoVisibleChanged then
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  except
+    on B: BreakTransformChangeFailed do
+    begin
+      if Log then
+        WritelnLog('VRML changes', 'Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
+      ScheduleChangedAll;
+      Exit;
+    end;
+  end;
+end;
+
 procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
 begin
   Assert(Field <> nil);
@@ -3497,13 +3597,8 @@ var
   { Handle VRML >= 2.0 transformation changes. }
   procedure HandleChangeTransform;
   var
-    TransformChangeHelper: TTransformChangeHelper;
-    NodeInfo: TTransformNodeInfo;
-    TransformShapesParentInfo: TShapesParentInfo;
-    TraverseStack: TVRMLGraphTraverseStateStack;
-    I: Integer;
-    TransformShapeTree: TVRMLShapeTreeTransform;
-    DoVisibleChanged: boolean;
+    TransformNode: TNodeX3DGroupingNode;
+    Instances: TTransformNodeInfo;
   begin
     if not Supports(Node, INodeTransform) then
     begin
@@ -3514,28 +3609,10 @@ var
       Exit;
     end;
 
-    { This is the optimization for changing VRML >= 2.0 transformation
-      (most fields of Transform node like translation, scale, center etc.,
-      also some HAnim nodes like Joint and Humanoid have this behavior.).
+    TransformNode := Node as TNodeX3DGroupingNode;
 
-      In the simple cases, Transform node simply changes
-      TVRMLGraphTraverseState.Transform for children nodes.
-
-      So we have to re-traverse from this Transform node, and change
-      states of affected children. Our TransformNodesInfo gives us
-      a list of TVRMLShapeTreeTransform corresponding to this transform node,
-      so we know we can traverse from this point.
-
-      In more difficult cases, children of this Transform node may
-      be affected in other ways by transformation. For example,
-      Fog and Background nodes are affected by their parents transform.
-      Currently, we cannot account for this, and just raise
-      BreakTransformChangeFailed in this case --- we have to do ChangedAll
-      in such cases.
-    }
-
-    NodeInfo := TransformNodesInfo.NodeInfo(Node as TNodeX3DGroupingNode);
-    if NodeInfo = nil then
+    Instances := TransformNodesInfo.NodeInfo(TransformNode);
+    if Instances = nil then
     begin
       if Log and LogChanges then
         WritelnLog('VRML changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
@@ -3543,70 +3620,7 @@ var
       Exit;
     end;
 
-    if Log and LogChanges then
-      WritelnLog('VRML changes', Format('Transform node %s change: %d instances',
-        [Node.NodeTypeName, NodeInfo.Count]));
-
-    try
-      DoVisibleChanged := false;
-
-      TraverseStack := nil;
-      TransformChangeHelper := nil;
-      try
-        TraverseStack := TVRMLGraphTraverseStateStack.Create;
-
-        { initialize TransformChangeHelper, set before the loop properties
-          that cannot change }
-        TransformChangeHelper := TTransformChangeHelper.Create;
-        TransformChangeHelper.ParentScene := Self;
-        TransformChangeHelper.ChangingNode := Node as TNodeX3DGroupingNode;
-        TransformChangeHelper.ChangingField := Field;
-        TransformChangeHelper.Changes := Changes;
-
-        for I := 0 to NodeInfo.Count - 1 do
-        begin
-          TransformShapeTree := NodeInfo[I] as TVRMLShapeTreeTransform;
-          TraverseStack.Clear;
-          TraverseStack.Push(TransformShapeTree.TransformState);
-
-          TransformShapesParentInfo.Group := TransformShapeTree;
-          TransformShapesParentInfo.Index := 0;
-
-          { initialize TransformChangeHelper properties that may be changed
-            during Node.Traverse later }
-          TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-          TransformChangeHelper.AnythingChanged := false;
-          TransformChangeHelper.Inside := false;
-          TransformChangeHelper.Inactive := 0;
-
-          try
-            Node.TraverseInternal(TraverseStack, TVRMLNode,
-              @TransformChangeHelper.TransformChangeTraverse, nil);
-          except
-            on BreakTransformChangeSuccess do
-              { BreakTransformChangeSuccess is equivalent with normal finish
-                of Traverse. So do nothing, just silence exception. }
-          end;
-
-          if TransformChangeHelper.AnythingChanged then
-            DoVisibleChanged := true;
-        end;
-      finally
-        FreeAndNil(TraverseStack);
-        FreeAndNil(TransformChangeHelper);
-      end;
-
-      if DoVisibleChanged then
-        VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-    except
-      on B: BreakTransformChangeFailed do
-      begin
-        if Log and LogChanges then
-          DoLogChanges('-> this Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
-        ScheduleChangedAll;
-        Exit;
-      end;
-    end;
+    TransformationChanged(TransformNode, Instances, Changes);
   end;
 
   procedure HandleChangeCoordinate;
@@ -3626,7 +3640,7 @@ var
       while SI.GetNext do
         if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
            (Coord = Field) then
-          SI.Current.Changed(Field, false, Changes);
+          SI.Current.Changed(false, Changes);
 
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     finally FreeAndNil(SI) end;
@@ -3648,7 +3662,7 @@ var
         while SI.GetNext do
           if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node) or
              (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = Node) then
-            SI.Current.Changed(Field, false, Changes);
+            SI.Current.Changed(false, Changes);
       finally FreeAndNil(SI) end;
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     end;
@@ -3664,7 +3678,7 @@ var
     try
       while SI.GetNext do
         if SI.Current.State.ShapeNode.Material = Node then
-          SI.Current.Changed(Field, false, Changes);
+          SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
@@ -3782,7 +3796,7 @@ var
            ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
            ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
            ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
-          SI.Current.Changed(Field, false, Changes);
+          SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3798,7 +3812,7 @@ var
       while SI.GetNext do
         if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
            (TexCoord = Node) then
-          SI.Current.Changed(Field, false, Changes);
+          SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3839,7 +3853,7 @@ var
            (SI.Current.State.ShapeNode.FdAppearance.Value is TNodeAppearance) and
            AppearanceUsesTextureTransform(
              TNodeAppearance(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
-          SI.Current.Changed(Field, false, Changes);
+          SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3853,7 +3867,7 @@ var
       while SI.GetNext do
         if (SI.Current.Geometry = Node) or
            (SI.Current.OriginalGeometry = Node) then
-          SI.Current.Changed(Field, false, Changes);
+          SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
 
@@ -3946,7 +3960,7 @@ var
       while SI.GetNext do
       begin
         if SI.Current.UsesTexture(TNodeX3DTextureNode(Node)) then
-          SI.Current.Changed(Field, false, Changes);
+          SI.Current.Changed(false, Changes);
       end;
     finally FreeAndNil(SI) end;
   end;
@@ -4012,7 +4026,7 @@ var
       begin
         if (SI.Current.State.ClipPlanes <> nil) and
            (SI.Current.State.ClipPlanes.IndexOfNode(TNodeClipPlane(Node)) <> -1) then
-          SI.Current.Changed(Field, false, Changes);
+          SI.Current.Changed(false, Changes);
       end;
     finally FreeAndNil(SI) end;
     VisibleChangeHere([vcVisibleGeometry]);
