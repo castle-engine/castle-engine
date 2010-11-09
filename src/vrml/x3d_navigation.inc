@@ -568,7 +568,11 @@ end;
 
 procedure TNodeBillboard.ApplyTransform(State: TVRMLGraphTraverseState);
 var
-  NewX, NewZ: TVector3Single;
+  NewX, NewZ, BillboardToViewer, P1, P2: TVector3Single;
+  Angle: Single;
+  M, IM: TMatrix4Single;
+  PlaneAxis: TVector4Single;
+  PlaneAxisDir: TVector3Single absolute PlaneAxis;
 begin
   if CameraViewKnown then
   begin
@@ -585,6 +589,32 @@ begin
       {$undef NewY}
     end else
     begin
+      { vector from node origin to CameraPosition, in local coords }
+      BillboardToViewer := MatrixMultPoint(State.InvertedTransform, CameraPosition);
+
+      { plane of axisOfRotation }
+      PlaneAxisDir := FdAxisOfRotation.Value;
+      PlaneAxis[3] := 0;
+
+      { we want to have a rotation that changes UnitVector3Single[2]
+        into BillboardToViewer. But the rotation axis is fixed
+        to axisOfRotation (we cannot just take their VectorProduct).
+        So project both points on a plane orthogonal to axisOfRotation,
+        and calculate angle there. }
+      P1 := PointOnPlaneClosestToPoint(PlaneAxis, UnitVector3Single[2]);
+      P2 := PointOnPlaneClosestToPoint(PlaneAxis, BillboardToViewer);
+
+      { billboard-to-viewer vector parallel to axisOfRotation (includes
+        the case when billboard-to-viewer vector is zero in local coords,
+        which means that camera standing at Billboard origin)?
+        Then nothing sensible to do. }
+      if ZeroVector(P2) then Exit;
+
+      Angle := RotationAngleRadBetweenVectors(P1, P2, FdAxisOfRotation.Value);
+
+      RotationMatricesRad(Angle, FdAxisOfRotation.Value, M, IM);
+      State.Transform := MatrixMult(State.Transform, M);
+      State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
     end;
   end;
 end;

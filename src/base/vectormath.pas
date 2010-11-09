@@ -1109,8 +1109,9 @@ function AngleRadBetweenNormals(const V1, V2: TVector3Double): Double; overload;
   As you see, the order or arguments is important (just like it's important
   for vector cross).
 
-  Overloaded versions with Cross argument assume you already calculated
-  VectorProduct(V1, V2).
+  Overloaded versions with Cross argument assume the rotation is done around
+  given Cross vector, which @italic(must) be a cross product or it's negation
+  (in other words, it must be orthogonal to both vectors).
 
   @raises EVectorMathInvalidOp If V1 or V2 is zero.
   @groupBegin }
