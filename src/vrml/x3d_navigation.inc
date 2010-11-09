@@ -137,16 +137,27 @@
     { @groupEnd }
   end;
 
-  TNodeBillboard = class(TNodeX3DGroupingNode)
+  TNodeBillboard = class(TNodeX3DGroupingNode, INodeTransform)
+  private
+    FCameraPosition, FCameraDirection, FCameraUp: TVector3Single;
+    FCameraViewKnown: boolean;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
+    procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    property CameraViewKnown: boolean read FCameraViewKnown;
+    property CameraPosition: TVector3Single read FCameraPosition;
+    property CameraDirection: TVector3Single read FCameraDirection;
+    property CameraUp: TVector3Single read FCameraUp;
+
+    procedure CameraChanged(const APosition, ADirection, AUp: TVector3Single);
 
     private FFdaxisOfRotation: TSFVec3f;
     public property FdaxisOfRotation: TSFVec3f read FFdaxisOfRotation;
@@ -553,6 +564,38 @@ var
 begin
   for I := 0 to FdChildren.Count - 1 do
     Func(Self, FdChildren.Items[I]);
+end;
+
+procedure TNodeBillboard.ApplyTransform(State: TVRMLGraphTraverseState);
+var
+  NewX, NewZ: TVector3Single;
+begin
+  if CameraViewKnown then
+  begin
+    if PerfectlyZeroVector(FdAxisOfRotation.Value) then
+    begin
+      NewX := VectorProduct(FCameraDirection, FCameraUp);
+      {$define NewY := FCameraUp}
+      NewZ := -FCameraDirection;
+      State.Transform := MatrixMult(State.Transform,
+        TransformToCoordsMatrix(ZeroVector3Single, NewX, NewY, NewZ));
+      State.InvertedTransform := MatrixMult(
+        TransformFromCoordsMatrix(ZeroVector3Single, NewX, NewY, NewZ),
+        State.InvertedTransform);
+      {$undef NewY}
+    end else
+    begin
+    end;
+  end;
+end;
+
+procedure TNodeBillboard.CameraChanged(
+  const APosition, ADirection, AUp: TVector3Single);
+begin
+  FCameraViewKnown := true;
+  FCameraPosition := APosition;
+  FCameraDirection := ADirection;
+  FCameraUp := AUp;
 end;
 
 constructor TNodeCollision.Create(const ANodeName: string;

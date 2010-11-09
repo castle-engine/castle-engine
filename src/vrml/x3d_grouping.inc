@@ -259,16 +259,17 @@
   end;
 
   { Interface for all VRML 2.0 / X3D transformation nodes.
+    These nodes transform all their children.
 
-    More precisely: this means that some node's fields
-    may cause transformation change, signalled by TVRMLField.Changes
-    including chTransform flag.
+    The transformation change may be signalled by TVRMLField.Changes
+    including chTransform flag. For some special nodes, like Billboard,
+    the transformation changes are automatically managed.
 
-    The node must also descend from
-    TNodeX3DGroupingNode, and it's transformation is applied
+    Right now, we also require that such nodes descend from
+    TNodeX3DGroupingNode, and their transformation is applied
     in TNodeX3DGroupingNode.ApplyTransform method.
     This requirement was added for easy implementation of HandleTransform
-    in vrmlscene.pas, in the future it may be removed, and then
+    in TVRMLScene, in the future it may be removed, and then
     TNodeHAnimHumanoid (the only node that has chTransform but is not
     TNodeX3DGroupingNode) will have chTransform optimized too. }
   INodeTransform = interface(IVRMLNode)

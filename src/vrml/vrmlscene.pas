@@ -586,7 +586,10 @@ type
     procedure TransformationChanged(TransformNode: TNodeX3DGroupingNode;
       Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
   private
+    { For all INodeTransform, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
+    { For all Billboard nodes }
+    BillboardInstancesList: TTransformInstancesList;
 
     ChangedAll_TraversedLights: TDynActiveLightArray;
 
@@ -2415,6 +2418,7 @@ begin
 
   FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
   TransformInstancesList := TTransformInstancesList.Create;
+  BillboardInstancesList := TTransformInstancesList.Create;
   GeneratedTextures := TDynGeneratedTextureArray.Create;
   ProximitySensors := TProximitySensorInstancesList.Create;
 
@@ -2465,6 +2469,7 @@ begin
   FreeAndNil(ProximitySensors);
   FreeAndNil(GeneratedTextures);
   FreeWithContentsAndNil(TransformInstancesList);
+  FreeWithContentsAndNil(BillboardInstancesList);
   FreeAndNil(FCompiledScriptHandlers);
 
   FreeAndNil(FBackgroundStack);
@@ -2697,7 +2702,9 @@ procedure TChangedAllTraverser.Traverse(
     ShapesGroup.Children.Add(TransformTree);
 
     { update ParentScene.TransformInstancesList }
-    ParentScene.TransformInstancesList.Instances(TransformNode, true).Add(TransformTree);
+    if TransformNode is TNodeBillboard then
+      ParentScene.BillboardInstancesList.Instances(TransformNode, true).Add(TransformTree) else
+      ParentScene.TransformInstancesList.Instances(TransformNode, true).Add(TransformTree);
 
     for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
     begin
@@ -2928,6 +2935,7 @@ procedure TVRMLScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Stuff that will be recalculated by ChangedAll }
   TransformInstancesList.FreeContents;
+  BillboardInstancesList.FreeContents;
   GeneratedTextures.Count := 0;
   ProximitySensors.Count := 0;
 
@@ -6012,6 +6020,24 @@ begin
       Inc(FTime.PlusTicks);
       for I := 0 to ProximitySensors.Count - 1 do
         ProximitySensorUpdate(ProximitySensors[I]);
+
+      Inc(FTime.PlusTicks);
+      { Update camera information on all Billboard nodes,
+        and retraverse scene from Billboard nodes. So we treat Billboard nodes
+        much like Transform nodes, except that their transformation animation
+        is caused by camera changes, not by changes to field values.
+
+        TODO: If one Billboard is under transformation of another Billboard,
+        this will be a little wasteful. We should update first all camera
+        information, and then update only Billboard nodes that do not have
+        any parent Billboard nodes. }
+      for I := 0 to BillboardInstancesList.Count - 1 do
+      begin
+        (BillboardInstancesList[I].Node as TNodeBillboard).CameraChanged(
+          FCameraPosition, FCameraDirection, FCameraUp);
+        TransformationChanged(BillboardInstancesList[I].Node,
+          BillboardInstancesList[I], [chTransform]);
+      end;
     end;
   finally EndChangesSchedule end;
 
