@@ -583,6 +583,16 @@
       TraversingFunc: TTraversingFunc;
       ParentInfo: PTraversingInfo);
 
+    { Like @link(Traverse), but only enters children.
+      This does the job of Traverse normally omitted if your @link(Traverse)
+      callback returns TraverseIntoChildren = @false.
+      Using this method, you can traverse into children explicitly
+      from your callback. }
+    procedure TraverseIntoChildren(StateStack: TVRMLGraphTraverseStateStack;
+      NodeClass: TVRMLNodeClass;
+      TraversingFunc: TTraversingFunc;
+      ParentInfo: PTraversingInfo);
+
     { Enumerate all our children of some class. Recursively.
       Zwroci do proc() takze sam obiekt na ktorym EnumerateNodes zostalo
       wywolane, jezeli tylko ten obiekt jest klasy nodeClass.
@@ -1451,36 +1461,40 @@ type
     NodeClass: TVRMLNodeClass;
     TraversingFunc: TTraversingFunc;
     ParentInfo: PTraversingInfo;
+    procedure DoTraverseIntoChildren(Child: TVRMLNode);
     procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
+  end;
+
+  procedure TTraverseEnumerator.DoTraverseIntoChildren(Child: TVRMLNode);
+  var
+    ParentInfoForChildren: TTraversingInfo;
+  begin
+    ParentInfoForChildren.Node := Child;
+    ParentInfoForChildren.ParentInfo := ParentInfo;
+    ParentInfo := @ParentInfoForChildren;
+    try
+      Child.DirectEnumerateActiveForTraverse(@EnumerateChildrenFunction, StateStack);
+    finally
+      ParentInfo := ParentInfoForChildren.ParentInfo;
+    end;
   end;
 
   procedure TTraverseEnumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
   var
     StateNode: TVRML1StateNode;
-    TraverseIntoChildren: boolean;
-    ParentInfoForChildren: TTraversingInfo;
+    IsTraverseIntoChildren: boolean;
   begin
     Child.BeforeTraverse(StateStack);
     try
-      TraverseIntoChildren := true;
+      IsTraverseIntoChildren := true;
       if Child is NodeClass then
-        TraversingFunc(Child, StateStack, ParentInfo, TraverseIntoChildren);
+        TraversingFunc(Child, StateStack, ParentInfo, IsTraverseIntoChildren);
 
       Child.MiddleTraverse(StateStack);
 
-      if TraverseIntoChildren then
-      begin
-        ParentInfoForChildren.Node := Child;
-        ParentInfoForChildren.ParentInfo := ParentInfo;
-        ParentInfo := @ParentInfoForChildren;
-        try
-          Child.DirectEnumerateActiveForTraverse(@EnumerateChildrenFunction, StateStack);
-        finally
-          ParentInfo := ParentInfoForChildren.ParentInfo;
-        end;
-      end;
-
+      if IsTraverseIntoChildren then
+        DoTraverseIntoChildren(Child);
     finally Child.AfterTraverse(StateStack) end;
 
     if Child.VRML1StateNode(StateNode) then
@@ -1501,6 +1515,27 @@ begin
     Enumerator.TraversingFunc := TraversingFunc;
     Enumerator.ParentInfo := ParentInfo;
     Enumerator.EnumerateChildrenFunction(nil, Self);
+
+    { Check that, if all went without exception, Enumerator.ParentInfo
+      returned to original state. }
+    Assert(Enumerator.ParentInfo = ParentInfo);
+  finally FreeAndNil(Enumerator) end;
+end;
+
+procedure TVRMLNode.TraverseIntoChildren(StateStack: TVRMLGraphTraverseStateStack;
+  NodeClass: TVRMLNodeClass;
+  TraversingFunc: TTraversingFunc;
+  ParentInfo: PTraversingInfo);
+var
+  Enumerator: TTraverseEnumerator;
+begin
+  Enumerator := TTraverseEnumerator.Create;
+  try
+    Enumerator.StateStack := StateStack;
+    Enumerator.NodeClass := NodeClass;
+    Enumerator.TraversingFunc := TraversingFunc;
+    Enumerator.ParentInfo := ParentInfo;
+    Enumerator.DoTraverseIntoChildren(Self);
 
     { Check that, if all went without exception, Enumerator.ParentInfo
       returned to original state. }

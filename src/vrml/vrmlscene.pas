@@ -3224,7 +3224,6 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
 
   procedure HandleTransform(TransformNode: TNodeX3DGroupingNode);
   var
-    I: Integer;
     ShapeTransform: TVRMLShapeTreeTransform;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
@@ -3256,12 +3255,8 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
       NewShapes.Index := 0;
       Shapes := @NewShapes;
 
-      for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
-      begin
-        TransformNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TVRMLNode, @TransformChangeTraverse, ParentInfo);
-      end;
-
+      TransformNode.TraverseIntoChildren(
+        StateStack, TVRMLNode, @TransformChangeTraverse, ParentInfo);
     finally Shapes := OldShapes end;
 
     TraverseIntoChildren := false;
