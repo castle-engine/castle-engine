@@ -1351,17 +1351,14 @@ end;
 
 procedure TTestVRMLNodes.TestINodeTransform;
 
-  { DoCheck is a separate procedure,
-    to limit lifetime of temporary INodeTransform,
-    see "Reference counting" notes on
-    http://freepascal.org/docs-html/ref/refse40.html }
-  procedure DoCheck(N: TVRMLNode);
+  function ContainsCHTransformField(const N: TVRMLNode): boolean;
+  var
+    I: Integer;
   begin
-    if Supports(N, INodeTransform) then
-    begin
-      Assert(N is TNodeX3DGroupingNode);
-      Assert(N.TransformationChange = ntcTransform);
-    end;
+    for I := 0 to N.Fields.Count do
+      if chTransform in N.Fields[I].Changes then
+        Exit(true);
+    Result := false;
   end;
 
 var
@@ -1372,9 +1369,18 @@ begin
   begin
     N := NodesManager.Registered[I].Create('', '');
     try
-      DoCheck(N);
+      { if a node has field with chTransform, it must support INodeTransform.
+        TVRMLScene.HandleChangeTransform assumes this. }
+      if ContainsCHTransformField(N) then
+        Assert(Supports(N, INodeTransform));
+
+      { if, and only if, a node supports INodeTransform, it must have
+        TransformationChange = ntcTransform }
+      Assert(
+        Supports(N, INodeTransform) =
+        (N.TransformationChange = ntcTransform));
     except
-      Writeln('TestTimeDependentNodeHandlerAvailable failed for ', N.ClassName);
+      Writeln('TestINodeTransform failed for ', N.ClassName);
       raise;
     end;
     FreeAndNil(N);

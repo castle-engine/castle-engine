@@ -36,11 +36,12 @@
     public property Fdweight: TSFFloat read FFdweight;
   end;
 
-  TNodeHAnimHumanoid = class(TNodeX3DChildNode, INodeX3DBoundedObject)
+  TNodeHAnimHumanoid = class(TNodeX3DChildNode, INodeX3DBoundedObject, INodeTransform)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -419,8 +420,15 @@ end;
 procedure TNodeHAnimHumanoid.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
+  StateStack.Push;
   TransformState(StateStack.Top, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
+end;
+
+procedure TNodeHAnimHumanoid.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+begin
+  StateStack.Pop;
+  inherited;
 end;
 
 constructor TNodeHAnimJoint.Create(const ANodeName: string;

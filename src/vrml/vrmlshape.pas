@@ -630,7 +630,7 @@ type
     as a transformation node and also may be handled by this). }
   TVRMLShapeTreeTransform = class(TVRMLShapeTreeGroup)
   private
-    FTransformNode: TNodeX3DGroupingNode;
+    FTransformNode: TVRMLNode;
     FTransformState: TVRMLGraphTraverseState;
   public
     constructor Create(AParentScene: TObject);
@@ -641,8 +641,7 @@ type
       as it's manually freed. That's safer. }
     { Transforming VRML/X3D node. Always assigned, always may be casted
       to INodeTransform interface. }
-    property TransformNode: TNodeX3DGroupingNode
-      read FTransformNode write FTransformNode;
+    property TransformNode: TVRMLNode read FTransformNode write FTransformNode;
 
     { State right before traversing the TransformNode.
       Owned by this TVRMLShapeTreeTransform instance. You should assign

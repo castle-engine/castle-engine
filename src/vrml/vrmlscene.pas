@@ -375,7 +375,7 @@ type
     list all TVRMLShapeTreeTransform instances where it's used.
     @exclude }
   TTransformInstances = class(TVRMLShapeTreesList)
-    Node: TNodeX3DGroupingNode;
+    Node: TVRMLNode;
   end;
 
   { @exclude }
@@ -388,7 +388,7 @@ type
     { Returns existing item corresponding to given Node.
       If not found, and AutoCreate, then adds new item to the list.
       If not found, and not AutoCreate, then return @nil. }
-    function Instances(Node: TNodeX3DGroupingNode;
+    function Instances(Node: TVRMLNode;
       const AutoCreate: boolean): TTransformInstances;
   end;
 
@@ -583,7 +583,7 @@ type
       TransformNode and TransformNode must not be @nil here.
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected). }
-    procedure TransformationChanged(TransformNode: TNodeX3DGroupingNode;
+    procedure TransformationChanged(TransformNode: TVRMLNode;
       Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
   private
     { For all INodeTransform, except Billboard nodes }
@@ -2373,7 +2373,7 @@ end;
 
 { TTransformInstancesList ------------------------------------------------- }
 
-function TTransformInstancesList.Instances(Node: TNodeX3DGroupingNode;
+function TTransformInstancesList.Instances(Node: TVRMLNode;
   const AutoCreate: boolean): TTransformInstances;
 var
   I: Integer;
@@ -2672,12 +2672,10 @@ procedure TChangedAllTraverser.Traverse(
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
   { Handle INodeTransform node }
-  procedure HandleTransform(TransformNode: TNodeX3DGroupingNode);
+  procedure HandleTransform(TransformNode: TVRMLNode);
   var
     TransformTree: TVRMLShapeTreeTransform;
     Traverser: TChangedAllTraverser;
-    ChildNode: TVRMLNode;
-    I: Integer;
   begin
     TransformTree := TVRMLShapeTreeTransform.Create(ParentScene);
     TransformTree.TransformNode := TransformNode;
@@ -2691,12 +2689,11 @@ procedure TChangedAllTraverser.Traverse(
       it's transformation. Clearly, TransformState must not depend on
       current TransformNode transformation.
 
-      So we cheat a little, knowing that internally every TNodeX3DGroupingNode
-      (actually, every TVRMLGroupingNode) does StateStack.Push inside
-      BeforeTraverse exactly once. (Actuallly, only if SeparateGroup,
-      but this applies to all VRML 2.0/X3D nodes, in particular
-      all INodeTransform nodes.) So we know that previous state lies
-      safely at PreviousTop. }
+      So we cheat a little, knowing that internally every INodeTransform
+      does StateStack.Push inside BeforeTraverse exactly once and then
+      modifies transformation.(This happens for both TVRMLGroupingNode
+      and TNodeHAnimHumanoid. Right now, INodeTransform is always one of those.)
+      So we know that previous state lies safely at PreviousTop. }
     TransformTree.TransformState.Assign(StateStack.PreviousTop);
 
     ShapesGroup.Children.Add(TransformTree);
@@ -2706,23 +2703,19 @@ procedure TChangedAllTraverser.Traverse(
       ParentScene.BillboardInstancesList.Instances(TransformNode, true).Add(TransformTree) else
       ParentScene.TransformInstancesList.Instances(TransformNode, true).Add(TransformTree);
 
-    for I := 0 to TransformNode.FdChildren.Items.Count - 1 do
-    begin
-      ChildNode := TransformNode.FdChildren.Items[I];
+    Traverser := TChangedAllTraverser.Create;
+    try
+      Traverser.ParentScene := ParentScene;
+      { No need to create another TVRMLShapeTreeGroup, like ChildGroup
+        for Switch/LOD nodes. We can just add new shapes to our TransformTree.
+        Reason: unlike Switch/LOD nodes, we don't care about keeping
+        the indexes of children stable. }
+      Traverser.ShapesGroup := TransformTree;
+      Traverser.Active := Active;
 
-      Traverser := TChangedAllTraverser.Create;
-      try
-        Traverser.ParentScene := ParentScene;
-        { No need to create another TVRMLShapeTreeGroup, like ChildGroup
-          for Switch/LOD nodes. We can just add new shapes to our TransformTree.
-          Reason: unlike Switch/LOD nodes, we don't care about keeping
-          the indexes of children stable. }
-        Traverser.ShapesGroup := TransformTree;
-        Traverser.Active := Active;
-        ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
-          ParentInfo);
-      finally FreeAndNil(Traverser) end;
-    end;
+      TransformNode.TraverseIntoChildren(StateStack, TVRMLNode,
+        @Traverser.Traverse, ParentInfo);
+    finally FreeAndNil(Traverser) end;
 
     TraverseIntoChildren := false;
   end;
@@ -2862,8 +2855,7 @@ begin
   end else
   if Supports(Node, INodeTransform) then
   begin
-    { INodeTransform must also be TNodeX3DGroupingNode }
-    HandleTransform(Node as TNodeX3DGroupingNode);
+    HandleTransform(Node);
   end else
 
   if (Node is TNodeX3DBindableNode) and
@@ -3203,7 +3195,7 @@ type
   TTransformChangeHelper = class
     ParentScene: TVRMLScene;
     Shapes: PShapesParentInfo;
-    ChangingNode: TNodeX3DGroupingNode; {< must be also INodeTransform }
+    ChangingNode: TVRMLNode; {< must be also INodeTransform }
     AnythingChanged: boolean;
     Inside: boolean;
     { If = 0, we're in active or inactive graph part (we don't know).
@@ -3222,7 +3214,8 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
-  procedure HandleTransform(TransformNode: TNodeX3DGroupingNode);
+  { Handle INodeTransform }
+  procedure HandleTransform(TransformNode: TVRMLNode);
   var
     ShapeTransform: TVRMLShapeTreeTransform;
     OldShapes: PShapesParentInfo;
@@ -3393,9 +3386,7 @@ begin
     ntcNone: ;
     ntcSwitch: HandleSwitch(TNodeSwitch_2(Node));
     ntcLOD: HandleLOD(TVRMLLODNode(Node));
-    ntcTransform:
-      { INodeTransform must also be TNodeX3DGroupingNode }
-      HandleTransform(Node as TNodeX3DGroupingNode);
+    ntcTransform: HandleTransform(Node);
     ntcGeometry:
       begin
         { get Shape and increase Shapes^.Index }
@@ -3480,7 +3471,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.TransformationChanged(TransformNode: TNodeX3DGroupingNode;
+procedure TVRMLScene.TransformationChanged(TransformNode: TVRMLNode;
   Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
 var
   TransformChangeHelper: TTransformChangeHelper;
@@ -3604,21 +3595,12 @@ var
   { Handle VRML >= 2.0 transformation changes. }
   procedure HandleChangeTransform;
   var
-    TransformNode: TNodeX3DGroupingNode;
     Instances: TTransformInstances;
   begin
-    if not Supports(Node, INodeTransform) then
-    begin
-      { No intelligent way to handle transform nodes not descending
-        from INodeTransform (and INodeTransform indicates also
-        descending from TNodeX3DGroupingNode). }
-      ScheduleChangedAll;
-      Exit;
-    end;
+    Check(Supports(Node, INodeTransform),
+      'chTransform flag may be set only for INodeTransform');
 
-    TransformNode := Node as TNodeX3DGroupingNode;
-
-    Instances := TransformInstancesList.Instances(TransformNode, false);
+    Instances := TransformInstancesList.Instances(Node, false);
     if Instances = nil then
     begin
       if Log and LogChanges then
@@ -3627,7 +3609,7 @@ var
       Exit;
     end;
 
-    TransformationChanged(TransformNode, Instances, Changes);
+    TransformationChanged(Node, Instances, Changes);
   end;
 
   procedure HandleChangeCoordinate;
