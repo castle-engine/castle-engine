@@ -400,7 +400,7 @@ begin
   FdSkeleton.EnumerateValid(Func);
 
   { To support skinned body, pass skin as an active node too
-    (of not nil, will be rendered.)
+    (if not nil, then it will be rendered.)
     Note that SkinCoord and SkinNormal are not passed as active
     (they should be referenced inside Skin object). }
   FdSkin.EnumerateValid(Func);
