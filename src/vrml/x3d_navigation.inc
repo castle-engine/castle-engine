@@ -609,11 +609,14 @@ begin
       P1 := PointOnPlaneClosestToPoint(PlaneAxis, UnitVector3Single[2]);
       P2 := PointOnPlaneClosestToPoint(PlaneAxis, BillboardToViewer);
 
-      { billboard-to-viewer vector parallel to axisOfRotation (includes
-        the case when billboard-to-viewer vector is zero in local coords,
-        which means that camera standing at Billboard origin)?
-        Then nothing sensible to do. }
-      if ZeroVector(P2) then Exit;
+      if { axisOfRotation paralell to Z axis? Then nothing sensible to do. }
+        ZeroVector(P1) or
+        { billboard-to-viewer vector parallel to axisOfRotation (includes
+          the case when billboard-to-viewer vector is zero in local coords,
+          which means that camera standing at Billboard origin)?
+          Then nothing sensible to do. }
+        ZeroVector(P2) then
+        Exit;
 
       Angle := RotationAngleRadBetweenVectors(P1, P2, FdAxisOfRotation.Value);
 
