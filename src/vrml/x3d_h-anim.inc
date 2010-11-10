@@ -48,6 +48,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdcenter: TSFVec3f;
     public property Fdcenter: TSFVec3f read FFdcenter;
@@ -429,6 +430,11 @@ procedure TNodeHAnimHumanoid.AfterTraverse(StateStack: TVRMLGraphTraverseStateSt
 begin
   StateStack.Pop;
   inherited;
+end;
+
+function TNodeHAnimHumanoid.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
 end;
 
 constructor TNodeHAnimJoint.Create(const ANodeName: string;

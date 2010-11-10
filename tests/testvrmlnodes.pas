@@ -1355,7 +1355,7 @@ procedure TTestVRMLNodes.TestINodeTransform;
   var
     I: Integer;
   begin
-    for I := 0 to N.Fields.Count do
+    for I := 0 to N.Fields.Count - 1 do
       if chTransform in N.Fields[I].Changes then
         Exit(true);
     Result := false;

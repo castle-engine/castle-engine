@@ -151,6 +151,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     property CameraViewKnown: boolean read FCameraViewKnown;
     property CameraPosition: TVector3Single read FCameraPosition;
@@ -630,6 +631,11 @@ begin
   FCameraPosition := APosition;
   FCameraDirection := ADirection;
   FCameraUp := AUp;
+end;
+
+function TNodeBillboard.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
 end;
 
 constructor TNodeCollision.Create(const ANodeName: string;
