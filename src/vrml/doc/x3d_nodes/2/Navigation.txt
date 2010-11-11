@@ -48,7 +48,9 @@ Viewpoint : X3DViewpointNode {
 ViewpointGroup : X3DChildNode { 
   SFVec3f  [in,out] center            0 0 0 (-Inf,Inf)
   MFNode   [in,out] children          []  [X3DViewpointNode | ViewpointGroup]
+  SFString [in,out] description       ""
   SFBool   [in,out] displayed         TRUE
+  SFBool   [in,out] retainUserOffsets FALSE
   SFVec3f  [in,out] size              0 0 0 (-Inf,Inf)
 }
 

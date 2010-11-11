@@ -370,6 +370,9 @@
   end;
 
   TNodeViewpointGroup = class(TNodeX3DChildNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -383,8 +386,14 @@
     private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
 
+    private FFddescription: TSFString;
+    public property Fddescription: TSFString read FFddescription;
+
     private FFddisplayed: TSFBool;
     public property Fddisplayed: TSFBool read FFddisplayed;
+
+    private FFdretainUserOffsets: TSFBool;
+    public property FdretainUserOffsets: TSFBool read FFdretainUserOffsets;
 
     private FFdsize: TSFVec3f;
     public property Fdsize: TSFVec3f read FFdsize;
@@ -1149,8 +1158,14 @@ begin
   FFdchildren := TMFNode.Create(Self, 'children', [TNodeX3DViewpointNode, TNodeViewpointGroup]);
   Fields.Add(FFdchildren);
 
+  FFddescription := TSFString.Create(Self, 'description', '');
+  Fields.Add(FFddescription);
+
   FFddisplayed := TSFBool.Create(Self, 'displayed', true);
   Fields.Add(FFddisplayed);
+
+  FFdretainUserOffsets := TSFBool.Create(Self, 'retainUserOffsets', false);
+  Fields.Add(FFdretainUserOffsets);
 
   FFdsize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
   Fields.Add(FFdsize);
@@ -1176,6 +1191,12 @@ class function TNodeViewpointGroup.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeViewpointGroup.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  inherited;
+  FdChildren.EnumerateValid(Func);
 end;
 
 procedure RegisterNavigationNodes;
