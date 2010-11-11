@@ -922,6 +922,21 @@ var
   I: Integer;
   Item: TMenuItemRadio;
 begin
+  { When count is 0, we have no items belonging to our group.
+    So selected may only be nil.
+
+    This case is never used now: existing TMenuItemRadioGroup are always
+    created when needed, and are automatically managed by TMenuItemRadio
+    items, and are freed when there are no more items.
+    So actually count is never 0, *for now*. We may allow creating
+    and keeping empty TMenuItemRadioGroup at some point. }
+  if Count = 0 then
+  begin
+    Assert(Value = nil, 'TMenuItemRadioGroup has no items, SetSelected may only be called with nil parameter');
+    FSelected := nil;
+    Exit;
+  end;
+
   Items[0].MenuFinalize;
 
   FSelected := Value;
