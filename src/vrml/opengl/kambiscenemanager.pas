@@ -1401,7 +1401,6 @@ begin
       ScreenEffectRTT.RenderBegin;
       ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, GL_TEXTURE_RECTANGLE_ARB);
       RenderOneEffect(ScreenEffects[I]);
-      RenderFromViewEverything;
       ScreenEffectRTT.RenderEnd;
 
       SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
