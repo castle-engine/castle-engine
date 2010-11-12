@@ -17,7 +17,6 @@ uses
   vrmlcamerautils,
   vrmlerrors,
   vrmlfields,
-  vrmlgeometry,
   vrmlheadlight,
   vrmllexer,
   vrmllighting,
