@@ -113,6 +113,7 @@ type
     FGLContextInitialized: boolean;
     FExists: boolean;
     procedure SetCursor(const Value: TMouseCursor);
+    procedure SetExists(const Value: boolean);
   protected
     { Container (window containing the control) size, as known by this control,
       undefined when ContainerSizeKnown = @false. This is simply collected at
@@ -411,7 +412,7 @@ type
       You can also remove this from controls list (like
       @link(TGLUIWindow.Controls)), but often it's more comfortable
       to set this property to false. }
-    property Exists: boolean read FExists write FExists default true;
+    property Exists: boolean read FExists write SetExists default true;
   end;
 
   { TUIControl with position (in Left, Bottom fields).
@@ -592,6 +593,17 @@ end;
 procedure TUIControl.SetFocused(const Value: boolean);
 begin
   FFocused := Value;
+end;
+
+procedure TUIControl.SetExists(const Value: boolean);
+begin
+  { Exists is typically used in PositionInside implementations,
+    so changing it must case UpdateFocusAndMouseCursor. }
+  if FExists <> Value then
+  begin
+    FExists := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
 end;
 
 { TUIControlPos -------------------------------------------------------------- }
