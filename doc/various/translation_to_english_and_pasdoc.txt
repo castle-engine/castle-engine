@@ -56,7 +56,6 @@ D   vrmlfields.pas
 D   vrmlgeometry.pas
 D   vrmlheadlight.pas
 D   vrmllexer.pas
-|   vrmllightmap.pas
 D   vrmllightset.pas
 D   vrmlnodes.pas
 D   vrmlnodesdetailoptions.pas
@@ -188,6 +187,9 @@ D   cameras.pas
 D   glmenu.pas
 E   imageslider_base.pas
 E   imageslider_position.pas
+
+ examples/vrml/tools/
+|   vrmllightmap.pas
 
 ------------------------------------------------------------
 Units that are not intended to be processed by pasdoc:
