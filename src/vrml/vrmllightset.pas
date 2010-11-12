@@ -134,7 +134,7 @@ begin
         AMainLightPosition := Vector4Single(L^.TransfLocation, 1) else
       if L^.LightNode is TVRMLDirectionalLightNode then
         AMainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
-        raise Exception.CreateFmt('TVRMLLightSetGL.MainLightForShadows: ' +
+        raise Exception.CreateFmt('TVRMLGLLightSet.MainLightForShadows: ' +
           'light node "%s" cannot be used to cast shadows, it has no position ' +
           'and no direction', [L^.LightNode.NodeTypeName]);
       Break;

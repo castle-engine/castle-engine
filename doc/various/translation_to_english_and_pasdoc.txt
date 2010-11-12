@@ -76,7 +76,7 @@ D   kambiscenemanager.pas
 D   vrmlglanimation.pas
 D   vrmlglheadlight.pas
 D   vrmlglscene.pas
-|   vrmllightsetgl.pas
+|   vrmlgllightset.pas
 |   vrmlglrenderer.pas
 
   audio/

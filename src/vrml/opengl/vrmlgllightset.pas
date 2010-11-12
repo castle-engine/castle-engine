@@ -27,7 +27,7 @@
   graph only to extract lights and render them as OpenGL lights.
 }
 
-unit VRMLLightSetGL;
+unit VRMLGLLightSet;
 
 interface
 
@@ -193,7 +193,7 @@ type
    Switch-Fullscreen-On/Off in TGLWindowDemo will work correctly).
 *)
 type
-  TVRMLLightSetGL = class(TVRMLLightSet)
+  TVRMLGLLightSet = class(TVRMLLightSet)
   private
     dlRenderLights: TGLuint; { =0 means "not initialized" }
     FGLLightNum1, FGLLightNum2: Integer;
@@ -576,9 +576,9 @@ begin
   LightsKnown := true;
 end;
 
-{ TVRMLLightSetGL ------------------------------------------------------------ }
+{ TVRMLGLLightSet ------------------------------------------------------------ }
 
-procedure TVRMLLightSetGL.SetGLLightNum1(Value: Integer);
+procedure TVRMLGLLightSet.SetGLLightNum1(Value: Integer);
 begin
   if FGLLightNum1 <> Value then
   begin
@@ -587,7 +587,7 @@ begin
   end;
 end;
 
-procedure TVRMLLightSetGL.SetGLLightNum2(Value: Integer);
+procedure TVRMLGLLightSet.SetGLLightNum2(Value: Integer);
 begin
   if FGLLightNum2 <> Value then
   begin
@@ -596,7 +596,7 @@ begin
   end;
 end;
 
-procedure TVRMLLightSetGL.SetColorModulatorSingle(Value: TColorModulatorSingleFunc);
+procedure TVRMLGLLightSet.SetColorModulatorSingle(Value: TColorModulatorSingleFunc);
 begin
   if {$ifndef FPC_OBJFPC} @ {$endif} Value <>
      {$ifndef FPC_OBJFPC} @ {$endif} FColorModulatorSingle then
@@ -607,13 +607,13 @@ begin
   end;
 end;
 
-procedure TVRMLLightSetGL.CalculateLights;
+procedure TVRMLGLLightSet.CalculateLights;
 begin
   GLContextClose;
   inherited;
 end;
 
-procedure TVRMLLightSetGL.CalculateRealGLLightNum2;
+procedure TVRMLGLLightSet.CalculateRealGLLightNum2;
 begin
   if RealGLLightNum2 = -1 then
   begin
@@ -623,13 +623,13 @@ begin
   end;
 end;
 
-procedure TVRMLLightSetGL.RenderLights;
+procedure TVRMLGLLightSet.RenderLights;
 begin
   if dlRenderLights = 0 then
   begin
     CalculateRealGLLightNum2;
 
-    dlRenderLights := glGenListsCheck(1, 'TVRMLLightSetGL.RenderLights');
+    dlRenderLights := glGenListsCheck(1, 'TVRMLGLLightSet.RenderLights');
 
     { As usual, I don't use here GL_COMPILE_AND_EXECUTE (because this
       can result in non-optimal display list). I use GL_COMPILE,
@@ -640,8 +640,8 @@ begin
       glLightsFromVRML(Lights, glLightNum1, RealGLLightNum2,
         ColorModulatorSingle,
         { For now, LightRenderEvent is always nil here, as I didn't need
-          it with TVRMLLightSetGL. There are no problems to add
-          LightRenderEvent to TVRMLLightSetGL in the future. }
+          it with TVRMLGLLightSet. There are no problems to add
+          LightRenderEvent to TVRMLGLLightSet in the future. }
         nil);
     finally glEndList end;
   end;
@@ -649,7 +649,7 @@ begin
   glCallList(dlRenderLights);
 end;
 
-procedure TVRMLLightSetGL.TurnLightsOff;
+procedure TVRMLGLLightSet.TurnLightsOff;
 var
   I: Integer;
 begin
@@ -658,7 +658,7 @@ begin
     glDisable(GL_LIGHT0 + I);
 end;
 
-procedure TVRMLLightSetGL.TurnLightsOffForShadows;
+procedure TVRMLGLLightSet.TurnLightsOffForShadows;
 var
   MyLightNum, GLLightNum: Integer;
   L: PActiveLight;
@@ -680,13 +680,13 @@ begin
   end;
 end;
 
-procedure TVRMLLightSetGL.GLContextClose;
+procedure TVRMLGLLightSet.GLContextClose;
 begin
   glFreeDisplayList(dlRenderLights);
   RealGLLightNum2 := -1;
 end;
 
-constructor TVRMLLightSetGL.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+constructor TVRMLGLLightSet.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
   AGLLightNum1, AGLLightNum2: Integer);
 begin
   inherited Create(ARootNode, AOwnsRootNode);
@@ -695,7 +695,7 @@ begin
   RealGLLightNum2 := -1;
 end;
 
-destructor TVRMLLightSetGL.Destroy;
+destructor TVRMLGLLightSet.Destroy;
 begin
   GLContextClose;
   inherited;

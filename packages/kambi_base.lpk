@@ -629,8 +629,8 @@
         <UnitName Value="VRMLGLScene"/>
       </Item142>
       <Item143>
-        <Filename Value="../src/vrml/opengl/vrmllightsetgl.pas"/>
-        <UnitName Value="VRMLLightSetGL"/>
+        <Filename Value="../src/vrml/opengl/vrmlgllightset.pas"/>
+        <UnitName Value="VRMLGLLightSet"/>
       </Item143>
       <Item144>
         <Filename Value="../src/vrml/opengl/vrmlmeshrenderer.inc"/>

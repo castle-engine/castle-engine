@@ -2316,7 +2316,7 @@ type
   { Function that process RGB colors.
     These types are used in many places, look at
     TVRMLGLRenderer.Attrib_ColorModulatorSingle/Byte,
-    TVRMLLightSetGL.ColorModulatorSingle,
+    TVRMLGLLightSet.ColorModulatorSingle,
     TVRMLGLScene.Attrib_ColorModulatorSingle/Byte,
     TBackgroundGL (AColorModulatorSingle/Byte params for constructor),
     Images.ImageModulate }

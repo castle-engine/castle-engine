@@ -264,7 +264,7 @@ interface
 uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
-  KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
+  KambiGLUtils, VRMLGLLightSet, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
   GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D;
 

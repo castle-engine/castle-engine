@@ -68,7 +68,7 @@ program shadow_volume_test;
 
 uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
   VRMLNodes, Cameras, Boxes3D, SysUtils,
-  KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
+  KambiUtils, VectorMath, VRMLGLLightSet, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, GLShadowVolumeRenderer,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, KambiSceneManager,
@@ -127,7 +127,7 @@ var
   Scene, ShadowCaster: TVRMLGLScene;
   ShadowCasterNav: TExamineCamera;
   SceneNav: TWalkCamera;
-  LightSet: TVRMLLightSetGL;
+  LightSet: TVRMLGLLightSet;
 
   { MainLightPosition[3] = 0 means it's directional. }
   MainLightPosition: TVector4Single;
@@ -681,7 +681,7 @@ begin
 
     { init vrml-related objects }
     VRMLWarning := @VRMLWarning_Write;
-    LightSet := TVRMLLightSetGL.Create(
+    LightSet := TVRMLGLLightSet.Create(
       LoadVRMLClassic(LightSetVrmlName, false), true, 0, -1);
     Scene := TVRMLGLScene.Create(nil);
     Scene.Load(SceneVrmlName);
@@ -698,7 +698,7 @@ begin
       MainLightPosition := Vector4Single(L^.TransfLocation, 1) else
     if L^.LightNode is TVRMLDirectionalLightNode then
       MainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
-      raise Exception.CreateFmt('TVRMLLightSetGL.TurnLightsOffForShadows: ' +
+      raise Exception.CreateFmt('TVRMLGLLightSet.TurnLightsOffForShadows: ' +
         'light node "%s" cannot be used to cast shadows, it has no position ' +
         'and no direction', [L^.LightNode.NodeTypeName]);
 
