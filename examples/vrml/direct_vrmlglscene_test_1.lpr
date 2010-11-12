@@ -44,7 +44,7 @@
 
 program direct_vrmlglscene_test_1;
 
-uses VectorMath, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLWindow,
+uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
   KambiGLUtils, VRMLGLScene, Cameras, KambiFilesUtils, VRMLErrors;
 

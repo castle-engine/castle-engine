@@ -50,7 +50,7 @@
 }
 program plane_mirror_and_shadow;
 
-uses VectorMath, Boxes3D, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
+uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3DAsVRML,
   KambiGLUtils, VRMLGLScene, Cameras, RenderStateUnit,
   KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse, KambiSceneManager;

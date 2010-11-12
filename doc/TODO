@@ -536,7 +536,7 @@ TGLTextureStorage
     depth)
   TGLTextureNode can choose any TGLTextureStorage (maybe at runtime) as storage
   Possibly helpful for DDS mipmaps/compression impl?
-  This would mean TGLTextureStorage is in GLImages, not only for VRMLOpenGLRenderer.
+  This would mean TGLTextureStorage is in GLImages, not only for VRMLGLRenderer.
 
 - multitex:
   - remaining MultiTexture.mode ("MODULATE*_ADD*"),

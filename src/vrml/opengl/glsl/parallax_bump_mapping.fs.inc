@@ -22,7 +22,7 @@
 'varying vec3 point_to_eye_in_tangent_space;' + LineEnding + 
 '' + LineEnding + 
 '/* This will be defined (or not) right before compilation of this file,' + LineEnding + 
-'   see VRMLOpenGLRenderer.pas.' + LineEnding + 
+'   see VRMLGLRenderer.pas.' + LineEnding + 
 '#define STEEP' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 

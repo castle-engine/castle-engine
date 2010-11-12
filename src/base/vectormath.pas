@@ -2315,7 +2315,7 @@ function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
 type
   { Function that process RGB colors.
     These types are used in many places, look at
-    TVRMLOpenGLRenderer.Attrib_ColorModulatorSingle/Byte,
+    TVRMLGLRenderer.Attrib_ColorModulatorSingle/Byte,
     TVRMLLightSetGL.ColorModulatorSingle,
     TVRMLGLScene.Attrib_ColorModulatorSingle/Byte,
     TBackgroundGL (AColorModulatorSingle/Byte params for constructor),

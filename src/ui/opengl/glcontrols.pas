@@ -429,7 +429,7 @@ begin
     begin
       glPushAttrib(GL_COLOR_BUFFER_BIT);
         { Maybe make 0.1 below configurable?
-          Note: TVRMLOpenGLRenderer has limit 0.5 instead.
+          Note: TVRMLGLRenderer has limit 0.5 instead.
           We use 0.1, useful for images exported with smooth alpha,
           like view3dscene examine / walk / fly images. }
         glAlphaFunc(GL_GEQUAL, 0.1); // saved by GL_COLOR_BUFFER_BIT

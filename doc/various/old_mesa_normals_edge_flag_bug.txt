@@ -38,7 +38,7 @@ Hyphotesis 1: glNormal3f between glBegin/End caused the Mesa bug.
 
 castle.wrl:
   fails with smooth and flat shading (current implementation
-  in VRMLOpenGLRenderer calls glNormal3f before each vertex,
+  in VRMLGLRenderer calls glNormal3f before each vertex,
   even for flat shading). So this confirms hyp1.
 
   When

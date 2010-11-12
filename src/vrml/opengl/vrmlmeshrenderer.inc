@@ -14,11 +14,11 @@
 }
 
 { Utilities for VRML / X3D mesh rendering.
-  This is internal for VRMLOpenGLRenderer unit.
+  This is internal for VRMLGLRenderer unit.
 
   Some ideas for implementation:
 
-  - VRMLOpenGLRenderer unit, and TVRMLOpenGLRenderer class are already
+  - VRMLGLRenderer unit, and TVRMLGLRenderer class are already
     large and complicated. The idea of this file is to take some tasks
     from their hands. TVRMLMeshRenderer and descendants are created
     only for the time of one RenderShape call, and are used
@@ -30,13 +30,13 @@
     Time showed that cleaner implementation of such hierarchy is needed,
     to be usable for rendering *all* VRML nodes.
 
-  - Since all classes within this file and VRMLOpenGLRenderer live
+  - Since all classes within this file and VRMLGLRenderer live
     in one Pascal unit, we could break it and access each other's
     private fields etc. We try to not do it. We try to have a clean
     documented interface. Experience with TGeneralIndexedRenderer
     taught me that this has to be really flexible and designed for
     long-term work, to encompass many nodes and features. So, while
-    this is internal for VRMLOpenGLRenderer, it still must be implemented
+    this is internal for VRMLGLRenderer, it still must be implemented
     and documented cleanly.
 
   - In the future, this may be abstracted from OpenGL and used as a basis
@@ -56,7 +56,7 @@ type
       just like for glVertex. }
     procedure DoBeforeGLVertex(const Vert: TVector3Single);
   private
-    FRenderer: TVRMLOpenGLRenderer;
+    FRenderer: TVRMLGLRenderer;
     FShape: TVRMLShape;
     FState: TVRMLGraphTraverseState;
     FGeometry: TVRMLGeometryNode;
@@ -77,7 +77,7 @@ type
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor.
       Setting Renderer automatically sets Shape, State, Geometry, Attributes. }
-    property Renderer: TVRMLOpenGLRenderer read FRenderer;
+    property Renderer: TVRMLGLRenderer read FRenderer;
     property Shape: TVRMLShape read FShape;
     property State: TVRMLGraphTraverseState read FState;
     property Geometry: TVRMLGeometryNode read FGeometry;
@@ -102,7 +102,7 @@ type
       In this class, FrontFaceCcw is ignored if CullBackFaces = @false.
 
       Note that we *do not* implement these by glFrontFace, we do a little
-      more complicated trick, see comments at the beginning of VRMLOpenGLRenderer
+      more complicated trick, see comments at the beginning of VRMLGLRenderer
       for explanation (hint: plane mirrors).
 
       If CullBackFaces = @true, then you can call glCullFace
@@ -138,7 +138,7 @@ type
       or texture enabled state.
 
       For now, see comments at the beginning of
-      vrmlopenglrenderer_render_specificnodes.inc
+      vrmlglrenderer_render_specificnodes.inc
       for general direction what can and what can not be used here. }
     procedure DoRender; virtual; abstract;
 
@@ -150,7 +150,7 @@ type
       For descendants implementors:
       Don't do any OpenGL state changes here (initialization of OpenGL state
       should go to Render, for example RenderCoordinateBegin). }
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
 
     { Do the actual render of the whole geometry.
       Don't override this, this only sets some common things
@@ -286,7 +286,7 @@ type
       RenderCoordsRange. }
     property CurrentRangeNumber: Cardinal read FCurrentRangeNumber;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   { Various supported texture coordinate generation methods.
@@ -466,7 +466,7 @@ type
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   TMaterials1Implementation = (miOverall,
@@ -522,7 +522,7 @@ type
       BeginIndex, EndIndex: integer); override;
     procedure RenderCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsBindMaterial1InsideBeginEnd: boolean; override;
   end;
 
@@ -591,7 +591,7 @@ type
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
 
     function NeedsSetColor: boolean; override;
   end;
@@ -709,7 +709,7 @@ type
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
-constructor TVRMLMeshRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TVRMLMeshRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited Create;
 
@@ -839,7 +839,7 @@ begin
 
         If FrontFaceCcw then we have to cull CW faces.
         But note that we do not want to call OpenGL glFrontFace
-        (see VRMLOpenGLRenderer comments for reasons), so instead of it we switch
+        (see VRMLGLRenderer comments for reasons), so instead of it we switch
         glCullFace. Since we assume that front = always CCW, so we know how to call
         glCullFace.
       }
@@ -885,7 +885,7 @@ end;
 
 { TAbstractCoordinateRenderer ------------------------------------------------ }
 
-constructor TAbstractCoordinateRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TAbstractCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
   Check(Geometry.Coord(State, FCoord),
@@ -1045,7 +1045,7 @@ end;
     before calling it's render!
 }
 
-constructor TAbstractTexCoordinateRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TAbstractTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
   if not Geometry.TexCoord(State, TexCoord) then
@@ -2002,7 +2002,7 @@ end;
 
 { TAbstractMatTexCoordinateRenderer ------------------------------------------ }
 
-constructor TAbstractMatTexCoordinateRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TAbstractMatTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
   MaterialBinding := BIND_DEFAULT;
@@ -2054,12 +2054,9 @@ begin
       (gdb) bt
       #0  0xa7a1639c in _mesa_PopAttrib ()
          from /home/michal/installed/mesa/5.1/lib/libGL.so.1
-      #1  0x081e1418 in TVRMLOPENGLRENDERER__RENDEREND (this=0xa71af3c0)
-          at VRMLOpenGLRenderer.pas:1905
-      #2  0x081445f3 in TVRMLFLATSCENEGL__RENDERENDSIMPLE (this=0xa70b6060)
-          at VRMLFlatSceneGL.pas:1073
-      #3  0x08144b32 in TVRMLFLATSCENEGL__SSSX_PREPAREEND (this=0xa70b6060)
-          at VRMLFlatSceneGL.pas:1229
+      from TVRMLGLRenderer.RenderEnd
+      from TVRMLGLScene.RenderEndSimple
+      from TVRMLGLScene.DLShape_PrepareEnd
 
       Easy test for it: run `view3dscene materials.wrl' with
       materials.wrl from VRML 1.0 demos from
@@ -2125,7 +2122,7 @@ end;
 
 { TAbstractColMatTexCoordinateRenderer --------------------------------------- }
 
-constructor TAbstractColMatTexCoordinateRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TAbstractColMatTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
 

@@ -11,7 +11,7 @@
     GLSLProgram: TGLSLProgram;
   public
     { ANode must be TNodeComposedShader }
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); override;
+    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); override;
 
     function Node: TNodeComposedShader;
 
@@ -47,8 +47,7 @@
 
     property Items[Index: Integer]: TGLSLRenderer read GetItems; default;
 
-    procedure Prepare(State: TVRMLGraphTraverseState;
-      ARenderer: TVRMLOpenGLRenderer);
+    procedure Prepare(State: TVRMLGraphTraverseState; ARenderer: TVRMLGLRenderer);
 
     { If some shader is available and prepared for this state,
       Enable it (and return it). Returns @nil if no such shader
@@ -63,7 +62,7 @@
 
 {$ifdef read_implementation}
 
-constructor TGLSLRenderer.Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode);
+constructor TGLSLRenderer.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode);
 begin
   Assert(ANode is TNodeComposedShader, 'TGLSLRenderer.Create acceps as Node only TNodeComposedShader');
   inherited;
@@ -286,7 +285,7 @@ begin
 end;
 
 procedure TGLSLRenderersList.Prepare(State: TVRMLGraphTraverseState;
-  ARenderer: TVRMLOpenGLRenderer);
+  ARenderer: TVRMLGLRenderer);
 var
   I: Integer;
   ProgramNode: TNodeComposedShader;

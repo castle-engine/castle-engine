@@ -18,7 +18,7 @@
 
   For some geometry nodes, calculating their vertices (and other properties)
   is non-trivial enough to be separated into a unit. We want to reuse
-  this by VRMLOpenGLRenderer, and by TVRMLGeometryNode.BoundingBox calculation,
+  this by VRMLGLRenderer, and by TVRMLGeometryNode.BoundingBox calculation,
   and by TVRMLGeometryNode.Triangulate etc.
 
   Normal users of our engine should not use this unit directly

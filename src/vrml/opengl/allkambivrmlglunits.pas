@@ -15,7 +15,7 @@ uses
   vrmlglheadlight,
   vrmlglscene,
   vrmllightsetgl,
-  vrmlopenglrenderer
+  vrmlglrenderer
   ;
 
 implementation

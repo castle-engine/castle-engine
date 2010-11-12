@@ -653,11 +653,11 @@
         <Type Value="Include"/>
       </Item148>
       <Item149>
-        <Filename Value="../src/vrml/opengl/vrmlopenglrenderer.pas"/>
-        <UnitName Value="VRMLOpenGLRenderer"/>
+        <Filename Value="../src/vrml/opengl/vrmlglrenderer.pas"/>
+        <UnitName Value="VRMLGLRenderer"/>
       </Item149>
       <Item150>
-        <Filename Value="../src/vrml/opengl/vrmlopenglrenderer_render_materials.inc"/>
+        <Filename Value="../src/vrml/opengl/vrmlglrenderer_render_materials.inc"/>
         <Type Value="Include"/>
       </Item150>
       <Item151>

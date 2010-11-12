@@ -52,7 +52,7 @@ procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
 
 type
   { Shadow map shader, either a normal one or a special designed for
-    Variance Shadow Maps. This is used to choose from VRMLOpenGLRenderer
+    Variance Shadow Maps. This is used to choose from VRMLGLRenderer
     whether we want VSM or not.
 
     This is dirty internal stuff.

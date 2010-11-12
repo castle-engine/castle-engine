@@ -38,7 +38,7 @@
     class procedure TextureEnableDisable(const Enable: TTextureEnableDisable);
 
     { Do the time-consuming preparations before rendering this texture.
-      Called from TVRMLOpenGLRenderer.Prepare, always through our
+      Called from TVRMLGLRenderer.Prepare, always through our
       Prepare method. Our Prepare method takes care to catch
       common exceptions from this (EFramebufferError, ETextureLoadError),
       convert them to VRMLWarning and make Unprepare to undo the preparations.
@@ -47,7 +47,7 @@
     procedure PrepareCore(State: TVRMLGraphTraverseState); virtual; abstract;
   public
     { ANode must be TNodeX3DTextureNode }
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); override;
+    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); override;
 
     { Reference to handled texture node.
       Never @nil.
@@ -67,7 +67,7 @@
     procedure Prepare(State: TVRMLGraphTraverseState);
   public
     { This is the alpha channel of this texture.
-      Used by TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType.
+      Used by TVRMLGLRenderer.PreparedTextureAlphaChannelType.
       Should be calculated and set in Prepare.
 
       For textures with normal images, this is the saved result of
@@ -79,7 +79,7 @@
       TODO: it would be better to move this inside, possibly
       only to applicable class types? And expose only function
       like UseBlending, and this is the main use of
-      TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType ? }
+      TVRMLGLRenderer.PreparedTextureAlphaChannelType ? }
     AlphaChannelType: TAlphaChannelType;
 
     { Bind texture for OpenGL (without enabling it).
@@ -182,7 +182,7 @@
       or not really a texture node at all). }
     function Prepare(State: TVRMLGraphTraverseState;
       ANode: TNodeX3DTextureNode;
-      ARenderer: TVRMLOpenGLRenderer): TGLTextureNode;
+      ARenderer: TVRMLGLRenderer): TGLTextureNode;
 
     { Only bind texture node. Calls TGLTextureNode.Enable method.
       If no texture renderer is prepared for this node,
@@ -233,7 +233,7 @@
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     { ANode must be TNodeMultiTexture }
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); override;
+    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); override;
     destructor Destroy; override;
 
     function TextureNode: TNodeMultiTexture;
@@ -448,7 +448,7 @@ end;
 
 { TGLTextureNode ------------------------------------------------------------- }
 
-constructor TGLTextureNode.Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode);
+constructor TGLTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode);
 begin
   Assert(ANode is TNodeX3DTextureNode, 'TGLTextureNode.Create acceps as Node only TNodeX3DTextureNode');
   inherited;
@@ -650,7 +650,7 @@ end;
 
 function TGLTextureNodes.Prepare(State: TVRMLGraphTraverseState;
   ANode: TNodeX3DTextureNode;
-  ARenderer: TVRMLOpenGLRenderer): TGLTextureNode;
+  ARenderer: TVRMLGLRenderer): TGLTextureNode;
 var
   GLTextureNodeClass: TGLTextureNodeClass;
 begin
@@ -729,7 +729,7 @@ end;
 
 { TGLMultiTextureNode -------------------------------------------------------- }
 
-constructor TGLMultiTextureNode.Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode);
+constructor TGLMultiTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode);
 begin
   Assert(ANode is TNodeMultiTexture, 'TGLMultiTextureNode.Create acceps as Node only TNodeMultiTexture');
   inherited;
@@ -811,7 +811,7 @@ begin
     We cannot look at TextureNode.FdTexture here.
 
     Reason: TextureNode may be already freed at the Unprepare time.
-    VRMLOpenGLRenderer explicitly allows to free vrml nodes before
+    VRMLGLRenderer explicitly allows to free vrml nodes before
     unpreparing them. This is used e.g. by doing TVRMLScene.Load
     (that calls ChangedAll, that calls Unprepare, only at the end,
     *after* old nodes have been already freed.)

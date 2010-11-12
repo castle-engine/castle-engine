@@ -22,7 +22,7 @@
     (set by TBumpMappingRenderer.Enable called from RenderTexturesBegin),
   - (MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation
     (set in TIndexedLineSet_1Renderer.Create). }
-function TVRMLOpenGLRenderer.NodeLit(Node: TVRMLGeometryNode): boolean;
+function TVRMLGLRenderer.NodeLit(Node: TVRMLGeometryNode): boolean;
 begin
   if ( (MeshRenderer <> nil) and
        (MeshRenderer.BumpMappingMethod <> bmNone) ) then
@@ -66,7 +66,7 @@ begin
   end;
 end;
 
-procedure TVRMLOpenGLRenderer.Render_MaterialsBegin;
+procedure TVRMLGLRenderer.Render_MaterialsBegin;
 var
   M1: TNodeMaterial_1;
   M2: TNodeMaterial_2;
@@ -145,7 +145,7 @@ begin
   if not MaterialLit then
   begin
     { PushAttrib is used to save GL_LIGHTING enabled state,
-      as we cannot predict it (it's up to the VRMLOpenGLRenderer caller
+      as we cannot predict it (it's up to the VRMLGLRenderer caller
       whether the light is turned on). Obviously we don't want to explicitly
       query GL_LIGHTING enabled state, push/pop is better.
 
@@ -162,7 +162,7 @@ begin
     Render_MaterialsBegin_2(M2);
 end;
 
-procedure TVRMLOpenGLRenderer.Render_MaterialsEnd;
+procedure TVRMLGLRenderer.Render_MaterialsEnd;
 begin
   if not MaterialLit then
   begin
@@ -195,7 +195,7 @@ end;
   When InsideBeginEnd, we use limited but faster (when used often,
   especially between glBegin/glEnd) version. It uses GL_COLOR_MATERIAL
   (and depends on MaterialFromColorEnabled). }
-procedure TVRMLOpenGLRenderer.Render_Material(
+procedure TVRMLGLRenderer.Render_Material(
   const AmbientColor, DiffuseColor, SpecularColor, EmissiveColor: TVector3Single;
   const UnLitColor: TVector3Single;
   const ShininessExp, Opacity: Single;
@@ -263,7 +263,7 @@ end;
   So using GL_COLOR_MATERIAL is required for sensible speed and memory use.
   (For the same "castle" test, with GL_COLOR_MATERIAL implementation,
   we loose only ~10 MB on display lists and no speed difference) }
-procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer;
+procedure TVRMLGLRenderer.Render_BindMaterial_1(MatNum: Integer;
   const InsideBeginEnd: boolean);
 var
   UnlitColor: TVector3Single;
@@ -310,7 +310,7 @@ begin
 end;
 
 { Binds current VRML 2.0 Material. }
-procedure TVRMLOpenGLRenderer.Render_MaterialsBegin_2(Material: TNodeMaterial_2);
+procedure TVRMLGLRenderer.Render_MaterialsBegin_2(Material: TNodeMaterial_2);
 var
   UnLitColor: TVector3Single;
 begin
@@ -377,7 +377,7 @@ end;
   This optimization is implementd in Render_MaterialsBegin (although it affects
   this procedure). There we check for NodeLit before turning on
   GL_COLOR_MATERIAL, since when not NodeLit, material has never any use. }
-procedure TVRMLOpenGLRenderer.SetColor(const Color: TVector3Single);
+procedure TVRMLGLRenderer.SetColor(const Color: TVector3Single);
 begin
   { We use Material_BoundOpacity since we do not want to change
     material opacity here, only it's RGB part. }
@@ -389,7 +389,7 @@ begin
   glColorv(Vector4f(Attributes.ColorModulated(Color), Material_BoundOpacity));
 end;
 
-procedure TVRMLOpenGLRenderer.SetColor(const Color: TVector4Single);
+procedure TVRMLGLRenderer.SetColor(const Color: TVector4Single);
 begin
   if Attributes.PureGeometry or
      (not Attributes.ControlMaterials) then

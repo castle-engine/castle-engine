@@ -118,7 +118,7 @@ begin
     P.Targets.AddUnit('vrmlglheadlight.pas');
     P.Targets.AddUnit('vrmlglscene.pas');
     P.Targets.AddUnit('vrmllightsetgl.pas');
-    P.Targets.AddUnit('vrmlopenglrenderer.pas');
+    P.Targets.AddUnit('vrmlglrenderer.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
     P.Targets.AddUnit('alsourceallocator.pas');

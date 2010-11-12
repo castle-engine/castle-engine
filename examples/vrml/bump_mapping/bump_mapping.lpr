@@ -59,7 +59,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, DataErrors,
   { VRML-related units: }
   VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, BackgroundGL,
-  VRMLOpenGLRenderer, VRMLRendererOptimization, KambiSceneManager,
+  VRMLGLRenderer, VRMLRendererOptimization, KambiSceneManager,
   RenderStateUnit, VRMLErrors, GLControls;
 
 const
@@ -886,7 +886,7 @@ begin
     *current* BumpMappingMaximum, not with High(TBumpMappingMethod).
     Scene.Optimization is settable during lifetime of Scene, so this
     is possible. }
-  if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
+  if TVRMLGLRenderer.GLContextBumpMappingMethod(
     0, -1, High(TBumpMappingMethod), true, true, false) in
     [bmNone] + bmGLSLAll then
     Scene.Optimization := DefaultOptimization else

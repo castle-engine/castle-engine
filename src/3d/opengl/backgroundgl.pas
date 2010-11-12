@@ -160,7 +160,7 @@ type
       Zarowno konstruktor jak i destruktor wymagaja aktywnego gl context.
 
       Znaczenie color modulatorow (i narzucane ograniczenia) are the same
-      as defined for TVRMLOpenGLRenderer.Attrib_ColorModulatorSingle/Byte.
+      as defined for TVRMLGLRenderer.Attrib_ColorModulatorSingle/Byte.
       (it also means that they can be both nil). }
     constructor Create(const Transform: TMatrix4Single;
       GroundAngle: PArray_Single; GroundAngleCount: Integer;

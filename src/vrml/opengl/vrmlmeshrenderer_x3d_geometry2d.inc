@@ -23,7 +23,7 @@ type
   protected
     procedure DoRender; override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   TPlaneRenderer = class(TVRMLMeshRenderer)
@@ -32,7 +32,7 @@ type
   protected
     procedure DoRender; override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   TCircle2DRenderer = class(TVRMLMeshRenderer)
@@ -42,7 +42,7 @@ type
 
 { TRectangle2DRenderer -------------------------------------------------------- }
 
-constructor TRectangle2DRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TRectangle2DRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
   Rectangle2D := Geometry as TNodeRectangle2D;
@@ -81,7 +81,7 @@ end;
 
 { TPlaneRenderer -------------------------------------------------------- }
 
-constructor TPlaneRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TPlaneRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
   Plane := Geometry as TNodePlane;

@@ -35,7 +35,7 @@
     class function IsGLImageTexture(GLNode: TGLTextureNode): boolean;
   public
     { ANode must be TNodeKambiAppearance }
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); override;
+    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); override;
 
     function Node: TNodeKambiAppearance;
 
@@ -81,7 +81,7 @@
       this will create and prepare TBumpMappingRenderer instance for it
       (if one doesn't exist already). }
     procedure Prepare(State: TVRMLGraphTraverseState;
-      ARenderer: TVRMLOpenGLRenderer);
+      ARenderer: TVRMLGLRenderer);
 
     { If this State contains appropriate TNodeKambiAppearance,
       and TBumpMappingRenderer instance is prepared for this Node,
@@ -99,7 +99,7 @@
 
 {$ifdef read_implementation}
 
-constructor TBumpMappingRenderer.Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode);
+constructor TBumpMappingRenderer.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode);
 begin
   Assert(ANode is TNodeKambiAppearance, 'TBumpMappingRenderer.Create acceps as Node only TNodeKambiAppearance');
   inherited;
@@ -240,7 +240,7 @@ var
   { We cannot store NormalMap, HeightMap references in TBumpMappingRenderer
     instance (although it's tempting, as it would be comfortable).
     Reason: they may be freed by UnprepareTexture calls, called from
-    Unprepare method in TVRMLOpenGLRenderer (that may in turn be called
+    Unprepare method in TVRMLGLRenderer (that may in turn be called
     by anything in the scene). Our NormalMap, HeightMap references would
     point then to invalid instances. }
   NormalMap, HeightMap: TGLTextureNode;
@@ -580,7 +580,7 @@ begin
 end;
 
 procedure TBumpMappingRenderersList.Prepare(State: TVRMLGraphTraverseState;
-  ARenderer: TVRMLOpenGLRenderer);
+  ARenderer: TVRMLGLRenderer);
 var
   ANode: TNodeKambiAppearance;
   BumpMappingRenderer: TBumpMappingRenderer;

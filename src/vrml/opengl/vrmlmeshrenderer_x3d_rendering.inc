@@ -34,7 +34,7 @@ type
   protected
     procedure RenderCoordinate; override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
@@ -45,7 +45,7 @@ type
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   { Renderer for X3D IndexedTriangleStripSet and TriangleStripSet nodes.
@@ -60,7 +60,7 @@ type
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   { Renderer for X3D IndexedQuadSet and QuadSet nodes. }
@@ -68,7 +68,7 @@ type
   protected
     procedure RenderCoordinate; override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
@@ -83,13 +83,13 @@ type
   { Renderer for VRML <= 1.0 TNodeIndexedLineSet_1 }
   TIndexedLineSet_1Renderer = class(TLineSetRenderer)
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   { Renderer for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
   TLineSet_2Renderer = class(TLineSetRenderer)
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsSetColor: boolean; override;
   protected
     procedure RenderCoordinateBegin; override;
@@ -214,7 +214,7 @@ end;
 
 { TTriangleSetRenderer ------------------------------------------------------- }
 
-constructor TTriangleSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TTriangleSetRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
 
@@ -302,7 +302,7 @@ end;
 
 { TTriangleFanSetRenderer ---------------------------------------------------- }
 
-constructor TTriangleFanSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TTriangleFanSetRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
 
@@ -405,7 +405,7 @@ end;
 
 { TTriangleStripSetRenderer -------------------------------------------------- }
 
-constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLGLRenderer);
 
   procedure CreateForIndexedTriangleMesh_1;
   var
@@ -555,7 +555,7 @@ end;
 
 { TQuadSetRenderer ------------------------------------------------------- }
 
-constructor TQuadSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TQuadSetRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
 
@@ -664,7 +664,7 @@ end;
 { TIndexedLineSet_1Renderer -------------------------------------------------- }
 
 constructor TIndexedLineSet_1Renderer.Create(
-  ARenderer: TVRMLOpenGLRenderer);
+  ARenderer: TVRMLGLRenderer);
 var
   Node: TNodeIndexedLineSet_1;
 begin
@@ -689,7 +689,7 @@ end;
 { TLineSet_2Renderer --------------------------------------------------------- }
 
 constructor TLineSet_2Renderer.Create(
-  ARenderer: TVRMLOpenGLRenderer);
+  ARenderer: TVRMLGLRenderer);
 var
   NodeLS: TNodeLineSet;
   NodeILS: TNodeIndexedLineSet_2;

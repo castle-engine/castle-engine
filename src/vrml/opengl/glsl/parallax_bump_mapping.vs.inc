@@ -23,7 +23,7 @@
 '' + LineEnding + 
 '  /* Calculate light_dir_tangent, which is crucial for bump mapping.' + LineEnding + 
 '     This in some way does the same as LightDirectionInTangentSpace' + LineEnding + 
-'     function in VRMLOpenGLRenderer, but this works in shader. */' + LineEnding + 
+'     function in VRMLGLRenderer, but this works in shader. */' + LineEnding + 
 '  vec3 light_position_object_space =' + LineEnding + 
 '    vec3(world_space_to_object * vec4(light_position_world_space, 1));' + LineEnding + 
 '  vec3 light_dir_object_space = light_position_object_space - vec3(gl_Vertex);' + LineEnding + 

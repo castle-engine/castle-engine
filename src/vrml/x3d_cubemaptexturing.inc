@@ -62,7 +62,7 @@
       If not, then you do not have to update the texture --- no point, since
       it would look exactly like the current one.
 
-      Scene classes (TVRMLScene, TVRMLGLScene, TVRMLOpenGLRenderers)
+      Scene classes (TVRMLScene, TVRMLGLScene, TVRMLGLRenderers)
       take care to set this field. After each actual update of the texture,
       it's set to @false. Each time something visible affecting the look
       of this texture possibly changed, it's set to @true. }

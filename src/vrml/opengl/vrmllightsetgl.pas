@@ -16,7 +16,7 @@
 { @abstract(Renders VRML light set (TDynActiveLightArray)
   into OpenGL.)
 
-  It is mainly used by VRMLOpenGLRenderer
+  It is mainly used by VRMLGLRenderer
   (to render lights while rendering whole VRML graph) but it can
   also be used separately : e.g. @code(lets_take_a_walk) has a file
   "lightset.wrl" that is used only to extract light nodes from it

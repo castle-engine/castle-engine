@@ -84,8 +84,8 @@
         <UsageCount Value="10"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../../../src/vrml/opengl/vrmlopenglrenderer.pas"/>
-        <UnitName Value="VRMLOpenGLRenderer"/>
+        <Filename Value="../../../src/vrml/opengl/vrmlglrenderer.pas"/>
+        <UnitName Value="VRMLGLRenderer"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="393"/>
         <UsageCount Value="9"/>

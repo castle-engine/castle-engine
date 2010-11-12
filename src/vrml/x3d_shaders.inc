@@ -230,11 +230,11 @@ begin
       ChangesAlways := [chVisibleGeometry, chVisibleNonGeometry]
 
     because you want to redisplay when they change.
-    (TVRMLOpenGLRenderer registers and takes care
+    (TVRMLGLRenderer registers and takes care
     to update shaders' uniform variables. We don't have to do
     anything here, no need to rebuild/recalculate anything.)
-    But actually TVRMLOpenGLRenderer calls this in
-    TVRMLOpenGLRendererContextCache.EventReceiveGLSLUniform.
+    But actually TVRMLGLRenderer calls this in
+    TVRMLGLRendererContextCache.EventReceiveGLSLUniform.
 
     TODO: but when you don't use events, but directly change them
     and call ChangedField, we should do something here? }

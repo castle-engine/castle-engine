@@ -73,7 +73,7 @@ type
   protected
     procedure DoRender; override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
 { TPrimitiveRenderer --------------------------------------------------------- }
@@ -411,7 +411,7 @@ begin
     Node.EventLineBounds, Node.EventOrigin, Node.EventTextBounds);
 end;
 
-constructor TText3DRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TText3DRenderer.Create(ARenderer: TVRMLGLRenderer);
 var
   Node: TNodeText3D;
 begin

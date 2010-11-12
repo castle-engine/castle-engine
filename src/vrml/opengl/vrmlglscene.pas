@@ -21,7 +21,7 @@ interface
 
 uses
   SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
-  VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
+  VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight, VRMLRendererOptimization,
   GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLLightSetGL, VRMLShape, Frustum,
   GLCubeMap, Base3D;
@@ -424,7 +424,7 @@ type
     { Can this shape be stored in a display list.
 
       If @false then rendering of this shape cannot be stored
-      inside a display list, it must be passed to TVRMLOpenGLRenderer
+      inside a display list, it must be passed to TVRMLGLRenderer
       in each frame. This is basically a hack to render some nodes that
       change too dynamically to store them in display list. }
     function EnableDisplayList: boolean;
@@ -499,12 +499,12 @@ type
     comfortable utility to deal with VRML files when you want to be able
     to render them using OpenGL.
 
-    This class uses internal @link(TVRMLOpenGLRenderer) instance,
+    This class uses internal @link(TVRMLGLRenderer) instance,
     thus hiding some "cumbersomness" (is it English?) of the interface of
-    @link(TVRMLOpenGLRenderer) class. Also this class provides some
+    @link(TVRMLGLRenderer) class. Also this class provides some
     functionality (like transparency using OpenGL blending)
     and some optimizations (like using OpenGL's display lists)
-    that couldn't be achieved inside @link(TVRMLOpenGLRenderer) class
+    that couldn't be achieved inside @link(TVRMLGLRenderer) class
     (because they require looking at rendered VRML model as a whole,
     not only as a separate Geometry+State parts).
     See @link(Render) method for more details.
@@ -525,7 +525,7 @@ type
   TVRMLGLScene = class(TVRMLScene)
   private
     FOptimization: TGLRendererOptimization;
-    Renderer: TVRMLOpenGLRenderer;
+    Renderer: TVRMLGLRenderer;
 
     { This simply renders Shape, by calling
       Renderer.RenderShape. Remember to always use
@@ -734,7 +734,7 @@ type
     constructor Create(AOwner: TComponent); override;
 
     constructor CreateCustomCache(AOwner: TComponent;
-      ACache: TVRMLOpenGLRendererContextCache);
+      ACache: TVRMLGLRendererContextCache);
 
     { A very special constructor, that forces this class to use
       provided AProvidedRenderer. AProvidedRenderer must be <> @nil.
@@ -756,7 +756,7 @@ type
       And this is crucial for TVRMLGLAnimation, otherwise animation with
       100 scenes would load the same texture to OpenGL 100 times. }
     constructor CreateProvidedRenderer(AOwner: TComponent;
-      AProvidedRenderer: TVRMLOpenGLRenderer);
+      AProvidedRenderer: TVRMLGLRenderer);
 
     destructor Destroy; override;
 
@@ -776,14 +776,14 @@ type
       This is probably the most important function in this class,
       usually it is the very reason why this class is used.
 
-      It uses internal @link(TVRMLOpenGLRenderer) instance.
+      It uses internal @link(TVRMLGLRenderer) instance.
       Although this internal object is not accessible to your code,
       you can get some detailed info about how rendering into OpenGL
-      works by looking at comments in @link(VRMLOpenGLRenderer) unit.
+      works by looking at comments in @link(VRMLGLRenderer) unit.
 
       Each call to Render renders the scene,
       roughly executing the same OpenGL commands as would be done by calling
-      following methods of @link(TVRMLOpenGLRenderer) instance:
+      following methods of @link(TVRMLGLRenderer) instance:
 
       @unorderedList(
         @item RenderBegin
@@ -809,7 +809,7 @@ type
       the point is that Render can internally create such display-list
       and manage it itself. So you don't have to worry about such things.
       This also means that code using this class doesn't care about
-      complexity of using VRMLOpenGLRenderer (and care only about
+      complexity of using VRMLGLRenderer (and care only about
       complexity of using this class, TVRMLGLScene :) ).
 
       LightRenderEvent, if assigned, may be used to modify light's properties
@@ -818,7 +818,7 @@ type
       recorded in display list).
 
       Some additional notes (specific to TVRMLGLScene.Render,
-      not to the VRMLOpenGLRenderer):
+      not to the VRMLGLRenderer):
       @unorderedList(
         @item(
           glDepthMask, glEnable/Disable(GL_BLEND), glBlendFunc states are
@@ -1173,7 +1173,7 @@ type
       Optimization = roNone if you really have to change attributes every frame.
 
       Note for ColorModulatorSingle/Byte properties:
-      In addition to effects described at TVRMLOpenGLRenderer,
+      In addition to effects described at TVRMLGLRenderer,
       they also affect what the TVRMLGLScene.Background function returns. }
     function Attributes: TVRMLSceneRenderingAttributes;
 
@@ -1193,7 +1193,7 @@ type
 
       Note that calling this ties us to current OpenGL context.
 
-      @seealso TVRMLOpenGLRenderer.BumpMappingMethod }
+      @seealso TVRMLGLRenderer.BumpMappingMethod }
     function BumpMappingMethod: TBumpMappingMethod;
 
     { Light position used for bump mapping.
@@ -1227,13 +1227,13 @@ type
 
     { Ambient color of light used for bump mapping.
       This property simply controls corresponding property of underlying
-      Renderer instance, see TVRMLOpenGLRenderer.BumpMappingLightAmbientColor. }
+      Renderer instance, see TVRMLGLRenderer.BumpMappingLightAmbientColor. }
     property BumpMappingLightAmbientColor: TVector4Single
       read GetBumpMappingLightAmbientColor write SetBumpMappingLightAmbientColor;
 
     { Diffuse color of light used for bump mapping.
       This property simply controls corresponding property of underlying
-      Renderer instance, see TVRMLOpenGLRenderer.BumpMappingLightDiffuseColor. }
+      Renderer instance, see TVRMLGLRenderer.BumpMappingLightDiffuseColor. }
     property BumpMappingLightDiffuseColor: TVector4Single
       read GetBumpMappingLightDiffuseColor write SetBumpMappingLightDiffuseColor;
 
@@ -1472,7 +1472,7 @@ begin
     roShapeDisplayList:
       { Transformation (and clip planes) changes don't affect
         roShapeDisplayList display lists, as they are applied
-        outside of TVRMLOpenGLRenderer.RenderShapeInside.
+        outside of TVRMLGLRenderer.RenderShapeInside.
 
         This can be quite crucial optimization in some cases,
         as you can animate Transform.translation/rotation/scale etc. efficiently.
@@ -1712,7 +1712,7 @@ begin
   if Renderer = nil then
   begin
     FUsingProvidedRenderer := false;
-    Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
+    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
   end;
 
   Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
@@ -1736,16 +1736,16 @@ begin
 end;
 
 constructor TVRMLGLScene.CreateCustomCache(
-  AOwner: TComponent; ACache: TVRMLOpenGLRendererContextCache);
+  AOwner: TComponent; ACache: TVRMLGLRendererContextCache);
 begin
   FUsingProvidedRenderer := false;
-  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
+  Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
 
   Create(AOwner);
 end;
 
 constructor TVRMLGLScene.CreateProvidedRenderer(
-  AOwner: TComponent; AProvidedRenderer: TVRMLOpenGLRenderer);
+  AOwner: TComponent; AProvidedRenderer: TVRMLGLRenderer);
 begin
   FUsingProvidedRenderer := true;
   Renderer := AProvidedRenderer;
@@ -2143,8 +2143,8 @@ var
       glDepthMask(GL_FALSE); { saved by GL_DEPTH_BUFFER_BIT }
 
       { A lot of state should be disabled. Remember that this is done
-        in the middle of TVRMLOpenGLRenderer rendering, between
-        RenderBegin/End, and TVRMLOpenGLRenderer doesn't need to
+        in the middle of TVRMLGLRenderer rendering, between
+        RenderBegin/End, and TVRMLGLRenderer doesn't need to
         restore state after each shape render. So e.g. texturing
         and alpha test may be enabled, which could lead to very
         strange effects (box would be rendered with random texel,
@@ -2905,7 +2905,7 @@ begin
       RenderBegin/EndSimple outside of display list:
       - (not RenderBeginEndToDisplayList) doesn't allow us to call
         this inside display list,
-      - and TVRMLOpenGLRenderer requires
+      - and TVRMLGLRenderer requires
         that RenderBegin/End must be called around particular shape+state
         rendering (e.g. because RenderBegin sets up private variables for
         volumetric fog).
@@ -3255,7 +3255,7 @@ end;
 procedure TVRMLGLScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Release all associations with OpenGL context before freeing the nodes.
-    This means vrml nodes are still valid during VRMLOpenGLRenderer unprepare
+    This means vrml nodes are still valid during VRMLGLRenderer unprepare
     calls.
 
     Although we don't really want to lose our connection with OpenGL
@@ -4842,7 +4842,7 @@ procedure TVRMLSceneRenderingAttributes.BeforeChange;
 begin
   inherited;
 
-  { TVRMLOpenGLRenderer requires that attributes may be changed only when
+  { TVRMLGLRenderer requires that attributes may be changed only when
     nothing is prepared. So we have to do at least Renderer.UnprepareAll.
     In practice, we have to do more: TVRMLGLScene must also be disconnected
     from OpenGL, no display lists or such, since their state also depends

@@ -482,7 +482,7 @@ type
       Also this improves caching in some cases, because sometimes
       we assume that nodes are equal only when their references are equal
       (e.g. TVRMLGraphTraverseState.Equals does this, and this is used
-      by Shape caching in TVRMLOpenGLRendererContextCache). }
+      by Shape caching in TVRMLGLRendererContextCache). }
     constructor Create; overload;
 
     destructor Destroy; override;
@@ -500,8 +500,7 @@ type
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
 
     { This is like @link(Equals) but it ignores some fields that are
-      ignored when rendering using
-      TVRMLOpenGLRenderer.RenderShapeNoTransform.
+      ignored when rendering using TVRMLGLRenderer.RenderShapeInside.
       For example, it ignores Transform, TransformScale, InvertedTransform. }
     function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
 
@@ -2558,7 +2557,7 @@ begin
   { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
     PointingDeviceSensors
     are currently ignored by Equals,
-    since Equals is used for TVRMLOpenGLRenderer where difference
+    since Equals is used for TVRMLGLRenderer where difference
     in these is not important. This may be clarified in the interface
     and improved later. }
 
@@ -2598,7 +2597,7 @@ begin
     PointingDeviceSensors,
     ActiveLights, Transform, TransformScale, InvertedTransform,
     TextureTransform, ClipPlanes are ignored by
-    TVRMLOpenGLRenderer.RenderShapeNoTransform }
+    TVRMLGLRenderer.RenderShapeInside }
 
   Result := (ShapeNode = SecondValue.ShapeNode);
 

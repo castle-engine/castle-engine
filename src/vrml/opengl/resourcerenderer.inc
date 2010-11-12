@@ -1,16 +1,16 @@
 {$ifdef read_interface}
 
-  { Base class for TVRMLOpenGLRenderer helper. Such helper is associated
+  { Base class for TVRMLGLRenderer helper. Such helper is associated
     with a given VRML node, and has methods like Prepare, Enable
     (their exact semantics depends on descendant) and Unprepare. }
   TResourceRenderer = class
   private
-    FRenderer: TVRMLOpenGLRenderer;
+    FRenderer: TVRMLGLRenderer;
     FNode: TVRMLNode;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer; ANode: TVRMLNode); virtual;
+    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); virtual;
 
-    property Renderer: TVRMLOpenGLRenderer read FRenderer;
+    property Renderer: TVRMLGLRenderer read FRenderer;
 
     { Reference to handled VRML node.
       Never @nil. }
@@ -57,7 +57,7 @@
 
 { TResourceRenderer ---------------------------------------------------------- }
 
-constructor TResourceRenderer.Create(ARenderer: TVRMLOpenGLRenderer;
+constructor TResourceRenderer.Create(ARenderer: TVRMLGLRenderer;
   ANode: TVRMLNode);
 begin
   inherited Create;

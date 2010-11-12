@@ -18,7 +18,7 @@ unit VRMLGLAnimation;
 
 interface
 
-uses SysUtils, Classes, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
+uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, VRMLGLScene,
   KambiUtils, Boxes3D, KambiClassUtils, VRMLAnimation, KeysMouse,
   KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle, VRMLShadowMaps;
 
@@ -80,7 +80,7 @@ type
     FScenes: TVRMLGLScenesList;
     function GetScenes(I: Integer): TVRMLGLScene;
   private
-    Renderer: TVRMLOpenGLRenderer;
+    Renderer: TVRMLGLRenderer;
     FTimeBegin, FTimeEnd: Single;
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
@@ -153,7 +153,7 @@ type
 
     { Constructor that allows you to pass your own Cache instance. }
     constructor CreateCustomCache(AOwner: TComponent;
-      ACache: TVRMLOpenGLRendererContextCache);
+      ACache: TVRMLGLRendererContextCache);
 
     destructor Destroy; override;
 
@@ -695,7 +695,7 @@ type
   public
     constructor CreateForAnimation(
       ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AProvidedRenderer: TVRMLOpenGLRenderer;
+      AProvidedRenderer: TVRMLGLRenderer;
       AParentAnimation: TVRMLGLAnimation);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
     procedure DoGeometryChanged(const Change: TGeometryChange); override;
@@ -705,7 +705,7 @@ type
 
 constructor TVRMLGLAnimationScene.CreateForAnimation(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AProvidedRenderer: TVRMLOpenGLRenderer;
+  AProvidedRenderer: TVRMLGLRenderer;
   AParentAnimation: TVRMLGLAnimation);
 begin
   { ParentAnimation is used by DoGeometryChanged, which is virtual and
@@ -782,7 +782,7 @@ constructor TVRMLGLAnimation.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   if Renderer = nil then
-    Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
+    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
   FOptimization := roShapeDisplayList;
   FTimeLoop := true;
   FTimeBackwards := false;
@@ -795,9 +795,9 @@ begin
 end;
 
 constructor TVRMLGLAnimation.CreateCustomCache(AOwner: TComponent;
-  ACache: TVRMLOpenGLRendererContextCache);
+  ACache: TVRMLGLRendererContextCache);
 begin
-  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
+  Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
   Create(AOwner);
 end;
 
@@ -975,14 +975,14 @@ procedure TVRMLGLAnimation.LoadCore(
        warning/error message for each duplicated TNodeTexture2 instance).
 
     3. Also for nodes like Texture2, this means that if we use the same
-       VRMLOpenGLRenderer to render every model of the animation,
-       then VRMLOpenGLRenderer will recognize this and given texture
+       VRMLGLRenderer to render every model of the animation,
+       then VRMLGLRenderer will recognize this and given texture
        will be loaded only once for OpenGL. So loading time and
        memory are saved *once again*  (otherwise OpenGL would allocate
        internal copy of texture for each duplicated node, once again
        wasting a lot of memory).
 
-    4. And later the Shape cache of TVRMLOpenGLRenderer can speed
+    4. And later the Shape cache of TVRMLGLRenderer can speed
        up loading time and conserve memory use, if it sees the same
        reference to given GeometryNode twice. }
   function VRMLModelsMerge(Model1, Model2: TVRMLNode): boolean;

@@ -22,7 +22,7 @@ type
   protected
     procedure DoRender; override;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsSetColor: boolean; override;
   end;
 
@@ -54,22 +54,22 @@ type
     { Set these in descendant's constructor. }
     FaceConvex: boolean;
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   TIndexedFaceSet_1Renderer = class(TIndexedFaceSetRenderer)
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   TIndexedFaceSet_2Renderer = class(TIndexedFaceSetRenderer)
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
 { TElevationGridRenderer --------------------------------------------------------- }
 
-constructor TElevationGridRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TElevationGridRenderer.Create(ARenderer: TVRMLGLRenderer);
 var
   Node: TNodeElevationGrid;
 begin
@@ -394,7 +394,7 @@ end;
 
 { TIndexedFaceSetRenderer -------------------------------------------------- }
 
-constructor TIndexedFaceSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TIndexedFaceSetRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
   BumpMappingAllowed := true;
@@ -850,7 +850,7 @@ end;
 { TIndexedFaceSet_1Renderer -------------------------------------------------- }
 
 constructor TIndexedFaceSet_1Renderer.Create(
-  ARenderer: TVRMLOpenGLRenderer);
+  ARenderer: TVRMLGLRenderer);
 var
   SH: TNodeShapeHints;
   ANode: TNodeIndexedFaceSet_1;
@@ -891,8 +891,7 @@ end;
 
 { TIndexedFaceSet_2Renderer -------------------------------------------------- }
 
-constructor TIndexedFaceSet_2Renderer.Create(
-  ARenderer: TVRMLOpenGLRenderer);
+constructor TIndexedFaceSet_2Renderer.Create(ARenderer: TVRMLGLRenderer);
 var
   ANode: TNodeIndexedFaceSet_2;
 begin
