@@ -1361,29 +1361,57 @@ end;
 procedure RenderScreenEffect(ViewportPtr: Pointer);
 var
   Viewport: TKamAbstractViewport absolute ViewportPtr;
+
+  procedure RenderOneEffect(Shader: TGLSLProgram);
+  begin
+    with Viewport do
+    begin
+      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTexture);
+      glLoadIdentity();
+      { Although shaders will typically ignore glColor, for consistency
+        we want to have a fully determined state. That is, this must work
+        reliably even if you comment out ScreenEffects[*].Enable/Disable
+        commands below. }
+      glColor3f(1, 1, 1);
+      Shader.Enable;
+        Shader.SetUniform('screen', 0);
+        glBegin(GL_QUADS);
+          glTexCoord2i(0, 0);
+          glVertex2i(0, 0);
+          glTexCoord2i(ScreenEffectTextureWidth, 0);
+          glVertex2i(CorrectWidth, 0);
+          glTexCoord2i(ScreenEffectTextureWidth, ScreenEffectTextureHeight);
+          glVertex2i(CorrectWidth, CorrectHeight);
+          glTexCoord2i(0, ScreenEffectTextureHeight);
+          glVertex2i(0, CorrectHeight);
+        glEnd();
+      Shader.Disable;
+    end;
+  end;
+
+var
+  I: Integer;
 begin
   with Viewport do
   begin
-    glLoadIdentity();
-    { Although shaders will typically ignore glColor, for consistency
-      we want to have a fully determined state. That is, this must work
-      reliably even if you comment out ScreenEffects[*].Enable/Disable
-      commands below. }
-    { TODO: for now only 1 effect }
-    glColor3f(1, 1, 1);
-    ScreenEffects[0].Enable;
-      ScreenEffects[0].SetUniform('screen', 0);
-      glBegin(GL_QUADS);
-        glTexCoord2i(0, 0);
-        glVertex2i(0, 0);
-        glTexCoord2i(ScreenEffectTextureWidth, 0);
-        glVertex2i(CorrectWidth, 0);
-        glTexCoord2i(ScreenEffectTextureWidth, ScreenEffectTextureHeight);
-        glVertex2i(CorrectWidth, CorrectHeight);
-        glTexCoord2i(0, ScreenEffectTextureHeight);
-        glVertex2i(0, CorrectHeight);
-      glEnd();
-    ScreenEffects[0].Disable;
+    { Render all except the last screen effects: from texture
+      (ScreenEffectTexture) and to texture (using ScreenEffectRTT) }
+    for I := 0 to ScreenEffectsCount - 2 do
+    begin
+      ScreenEffectRTT.RenderBegin;
+      { We have to adjust glViewport }
+      if not FullSize then
+        glViewport(0, 0, CorrectWidth, CorrectHeight);
+      RenderOneEffect(ScreenEffects[I]);
+      RenderFromViewEverything;
+      { Restore glViewport set by ApplyProjection }
+      if not FullSize then
+        glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
+      ScreenEffectRTT.RenderEnd;
+    end;
+
+    { the last effect gets a texture, and renders straight into screen }
+    RenderOneEffect(ScreenEffects[ScreenEffectsCount - 1]);
   end;
 end;
 
@@ -1447,7 +1475,6 @@ begin
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
       glDisable(GL_TEXTURE_2D);
-      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTexture);
       glEnable(GL_TEXTURE_RECTANGLE_ARB);
       { Note that there's no need to worry about CorrectLeft / CorrectBottom,
         here or inside RenderScreenEffect, because we're already within
