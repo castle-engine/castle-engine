@@ -2220,7 +2220,7 @@ uses
 
   Math, Triangulator, Object3DAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
-  VRMLGeometry, KambiLog, KambiScriptParser, Base64,
+  KambiLog, KambiScriptParser, Base64,
   {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Quaternions, Cameras, KambiXMLUtils;
 
 {$define read_implementation}
@@ -2260,6 +2260,7 @@ uses
 {$I dynarray_3.inc}
 {$I dynarray_4.inc}
 
+{$I vrmlnodes_extrusion.inc}
 {$I vrmlnodes_boundingboxes.inc}
 {$I vrmlnodes_verticesandtrianglescounting.inc}
 {$I vrmlnodes_triangulating.inc}

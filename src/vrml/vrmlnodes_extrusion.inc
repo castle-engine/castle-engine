@@ -13,26 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Utilities for dealing with more difficult VRML geometry
-  nodes.)
-
-  For some geometry nodes, calculating their vertices (and other properties)
-  is non-trivial enough to be separated into a unit. We want to reuse
-  this by VRMLGLRenderer, and by TVRMLGeometryNode.BoundingBox calculation,
-  and by TVRMLGeometryNode.Triangulate etc.
-
-  Normal users of our engine should not use this unit directly
-  (it's functionality is indirectly available to you when rendering,
-  or calculating collisions with this geometry).
-  Interface of this unit and it's classes is unstable, suited only to the
-  current needs of other parts of the engine. }
-unit VRMLGeometry;
-
-interface
-
-uses VectorMath, VRMLNodes;
 
 type
+  { Utility for dealing with Extrusion.
+
+   Calculating vertices (and other properties) of Extrusion
+   is non-trivial enough to be separated into this file. We want to reuse
+   this by TNodeExtrusion.BoundingBox calculation,
+   TNodeExtrusion.Triangulate etc. }
   TVRMLExtrusion = class
   private
     FHigh: Integer;
@@ -87,10 +75,6 @@ type
     procedure SpineOrientationTo1st(Spine: Cardinal;
       out Orientation: TVector4Single);
   end;
-
-implementation
-
-uses VRMLErrors, KambiUtils;
 
 constructor TVRMLExtrusion.Create;
 begin
@@ -378,5 +362,3 @@ begin
       Orientation[0], Orientation[1], Orientation[2]),
       ScalingMatrix(Vector3Single(Scale[0], 1, Scale[1]))));
 end;
-
-end.
