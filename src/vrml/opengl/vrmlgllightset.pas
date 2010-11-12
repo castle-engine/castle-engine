@@ -13,20 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Renders VRML light set (TDynActiveLightArray)
-  into OpenGL.)
-
-  It is mainly used by VRMLGLRenderer
-  (to render lights while rendering whole VRML graph) but it can
-  also be used separately : e.g. @code(lets_take_a_walk) has a file
-  "lightset.wrl" that is used only to extract light nodes from it
-  and then these nodes have to be "rendered", i.e. they must be activated
-  into OpenGL context (as OpenGL lights) so that they can affect any
-  data rendered to OpenGL afterwards (e.g. other VRML files).
-  This unit can be used for exactly this kind of thing : loading VRML
-  graph only to extract lights and render them as OpenGL lights.
-}
-
+{ VRML lights OpenGL rendering. }
 unit VRMLGLLightSet;
 
 interface
@@ -34,86 +21,62 @@ interface
 uses VectorMath, GL, GLU, KambiGLUtils, VRMLNodes, VRMLLightSet;
 
 type
-  { Allows you to modify light's properties (currently, only the "on" state)
-    of the light right before it's rendered.
-    Used by glLightFromVRMLLight and many other routines in this unit.
+  { Modify light's properties of the light right before it's rendered.
+    Currently, you can modify only the "on" state.
 
     By default, LightOn is the value of Light.LightNode.FdOn field.
     You can change it if you want. }
   TVRMLLightRenderEvent = procedure (const Light: TActiveLight;
     var LightOn: boolean) of object;
 
-{ Sets up OpenGL light (number glLightNum) properties based on VRMLLight
-  properties. It means that it calls
-    glLight*(GL_LIGHT0 + glLightNum, ..., ...)
-  some number of times to initialize OpenGL light.
-  It requires that current matrix = GL_MODELVIEW.
-  It may call glPush/PopMatrix and do some matrix loading/multiplying operations
-  (but it is guaranteed that at the end OpenGL current matrix will be
-  the same as before calling this functions (i.e. current matrix
-  will be restored if necessary); it is also guaranteed that it will not
-  need more that one slot on MODELVIEW matrices stack).
-  BTW, you can see that you can nicely wrap this procedure inside OpenGL
+{ Set up OpenGL light properties based on VRML Light properties.
+  Basically this just calls something like
+
+@longCode(#
+  glLight*(GL_LIGHT0 + glLightNum, ..., ...)
+#)
+
+  to set OpenGL light.
+
+  Requires that current OpenGL matrix is modelview.
+  Always preserves the matrix value (by using up to one modelview
+  matrix stack slot). You can safely wrap this procedure inside an OpenGL
   display list.
 
-  If UseLightOnProperty than we will examine VRMLLight.LightNode.FdOn.Value
-  and we will do glEnable/Disable(GL_LIGHT0 + glLightNum). If not,
-  we will always proceed just like VRMLLight.LightNode.FdOn.Value = true
-  (but we will not call glEnable(GL_LIGHT0 + glLightNum)).
-  We DO NOT have a separate procedure to do the behaviour with
-  UseLightOnProperty = false and separate with UseLightOnProperty = true
-  (something like a separate procedure glLightFromVRMLLightAssumeOn, and
-  procedure named glLightFromVRMLLight always behaves like
-  UseLightOnProperty = true) because this is so important property that we
-  want to force user of this procedure (i.e. myself) to ALWAYS give an
-  explicit value for UseLightOnProperty.
+  If UseLightOnProperty than we will examine Light.LightNode.FdOn.Value
+  and we will call glEnable or glDisable on this light.
+  If not UseLightOnProperty, then we will always proceed like the light
+  was already on, and we will not call any glEnable or glDisable.
 
-  It makes no assumptions
-  about the current state of this OpenGL light - i.e. you don't have to care
-  what is the state of glLightNum before calling glLightFromVRMLLight -
-  this procedure will take care of everything and will call glLight* with
-  enough parameters to fully set up the behoviour of this OpenGL light.
-  (it doesn't mean that it calls glLight*(GL_LIGHT0 + glLightNum, Param, ...)
-  with every possible Param value - e.g. for non-spot lights
-  it sets GL_SPOT_CUTOFF to 180 and then it is undefined whether it
-  will call glLight with Param in [GL_SPOT_DIRECTION, GL_SPOT_EXPONENT]
-  because GL_SPOT_DIRECTION and GL_SPOT_EXPONENT meaningless if
-  GL_SPOT_CUTOFF = 180; moreover, if UseLightOnProperty = true and
-  light is off (VRMLLight.LightNode.FdOn.Value = false) then it is possible
-  that this procedure will call glDisable(GL_LIGHT0 + glLightNum) and
-  will not call ANY glLight*).
-
-  The idea is that after calling glLightFromVRMLLight
-  you can always make assumption that "this OpenGL light corresponds
-  exactly to given VRML light" and nothing more.
-
-  ColorModulatorSingle may be nil. If not nil, it will be called to filter
-  Light Color.
-}
+  We make no assumptions about the current state of this OpenGL light.
+  We simply always set all the parameters to fully define the required
+  light behavior. Some light parameters may not be set, but only because
+  they are not used --- for example, if a light is not a spot light,
+  then we set GL_SPOT_CUTOFF to 180 (indicates that light has no spot),
+  but don't necessarily set GL_SPOT_DIRECTION or GL_SPOT_EXPONENT
+  (as OpenGL will not use them anyway). Similarly, if UseLightOnProperty = true
+  and the light's node has "on" = FALSE, then we can simply call glDisable
+  for this light, and leave it's parameters untouched (because there's
+  no point in setting them). }
 procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
   UseLightOnProperty: boolean;
   ColorModulatorSingle: TColorModulatorSingleFunc;
   LightRenderEvent: TVRMLLightRenderEvent);
 
-{ glLightsFromVRML dla kazdego swiatla Lights[i] zrobi
-    glLightFromVRMLLight(glLightNum1 + i, Lights[i], true, ColorModulatorSingle)
-  przy czym glLightNum1 + i musi byc <= glLightNum2.
+{ Set up OpenGL lights properties to correspond to given VRML lights.
+  We touch only OpenGL lights between glLightNum1 .. glLightNum2.
+  If this range is too small for LightsCount, then the remaining VRML lights
+  will be ignored. If this range is too large for LightsCount, then the remaining
+  OpenGL lights will be simply disabled.
 
-  Jezeli mamy wiecej swiatel VRMLa (LightsCount) niz dostepnych swiatel
-  OpenGLa (glLightNum2 - glLightNum1 +1) to (niestety) nie zaladujemy
-  wszystkich swiatel VRMLa (Lights) do OpenGLa - zaladujemy tylko tyle
-  ile sie zmiesci czyli glLightNum2 - glLightNum1 +1.
+  Each single light is configured by glLightFromVRMLLight
+  (with UseLightOnProperty = true). So, just like glLightFromVRMLLight:
+  we will enable / disable every light and set it's properties to guarantee
+  necessary behavior. We require that current OpenGL matrix is modelview,
+  we may require one modelview stack slot, we will always preserve
+  the modelview matrix value.
 
-  W odwrotnej sytuacji (jesli mamy wiecej wolnych swiatel OpenGLa
-  niz potrzebujemy) ustawimy nadmiarowe swiatla OpenGLa na Disabled.
-
-  W rezultacie wywolanie tej procedury gwarantuje zaladowanie zadanej
-  listy swiatel VRMLa (Lights, LightsCount) do swiatel OpenGLa
-  glLightNum1..glLightNum2. Poczatkowy stan swiatel OpenGLa
-  glLightNum1..glLightNum2 (przed wywolaniem tej procedury)
-  nie jest istotny - ta procedura zdeterminuje go w pelni na podstawie
-  dostepnych Lights.
-}
+  @groupBegin }
 procedure glLightsFromVRML(Lights: PArray_ActiveLight; LightsCount: Integer;
   glLightNum1, glLightNum2: Integer;
   ColorModulatorSingle: TColorModulatorSingleFunc;
@@ -123,12 +86,13 @@ procedure glLightsFromVRML(Lights: TDynActiveLightArray;
   glLightNum1, glLightNum2: Integer;
   ColorModulatorSingle: TColorModulatorSingleFunc;
   LightRenderEvent: TVRMLLightRenderEvent); overload;
+{ @groupEnd }
 
 type
-  { Use this to render many light sets (TDynActiveLightArray) and avoid
+  { Render many light sets (TDynActiveLightArray) and avoid
     to configure the same light many times.
 
-    The idea is that calling Render() is just like doing glLightsFromVRML,
+    The idea is that calling @link(Render) is just like doing glLightsFromVRML,
     that is it sets up given OpenGL lights. But this class remembers what
     VRML light was set on what OpenGL light, and assumes that VRML lights
     don't change during TVRMLGLLightsCachingRenderer execution. So OpenGL
@@ -149,6 +113,13 @@ type
     LightsKnown: boolean;
     LightsDone: array of PActiveLight;
   public
+    { Statistics of how many OpenGL light setups were done
+      (Statistics[true]) vs how many were avoided (Statistics[false]).
+      This allows you to decide is using TVRMLGLLightsCachingRenderer
+      class sensible (as opposed to directly rendering with glLightsFromVRML
+      calls). }
+    Statistics: array [boolean] of Cardinal;
+
     constructor Create(const AGLLightNum1, AGLLightNum2: Integer;
       const AColorModulatorSingle: TColorModulatorSingleFunc;
       const ALightRenderEvent: TVRMLLightRenderEvent);
@@ -163,92 +134,79 @@ type
     property ColorModulatorSingle: TColorModulatorSingleFunc
       read FColorModulatorSingle;
     property LightRenderEvent: TVRMLLightRenderEvent read FLightRenderEvent;
-  public
-    { Statistics of how many OpenGL lights setups were done
-      (Statistics[true]) vs how many were avoided (Statistics[false]).
-      This allows you to decide is using TVRMLGLLightsCachingRenderer
-      class sensible (as opposed to directly rendering with glLightsFromVRML
-      calls). }
-    Statistics: array [boolean] of Cardinal;
   end;
 
-(* To jest obiekt ktory umozliwia latwe zrobienie czegos takiego jak
-   lightset.wrl w lets_take_a_walk, o ktorym napisalem na poczatku tego
-   modulu. This object creates Lights: TDynActiveLightArray object and loads
-   to it all lights available in traversed part of the given RootNode.
-   E.g. given the VRML
-     #VRML V1.0 ascii
-     DEF Light1 PointLight { }
-     Separator { DEF Light2 PointLight { } }
-     Switch { DEF Light3 PointLight { } }
-   this object will init Lights to conatin Light1 and Light2 (NOT Light3).
+  { Load VRML/X3D lights from a file, and render them to OpenGL.
+    This allows you to load lights from a VRML/X3D file,
+    and use these lights with any 3D objects (for example,
+    maybe you want to share the same lights across many TVRMLGLScene
+    or other 3D objects you render with OpenGL).
 
-   OpenGL contexts : between first RenderLights (when GL display list
-   is calculated for the first time) to the next GLContextClose (called automatically
-   by destructor and CalculateLights and sometimes by setting some properties)
-   this object must be used in the same GL context.
-   So usually you will find most comfortable to use this object like
-   TVRMLGLScene: create and destroy it in the main program and
-   call GLContextClose in the OnClose TGLWindow event (this behaviour ensures that
-   Switch-Fullscreen-On/Off in TGLWindowDemo will work correctly).
-*)
-type
+    This object is connected to the OpenGL context since the first
+    RenderLights call (when a display list may be created)
+    up to the GLContextClose close (when we make sure that any OpenGL
+    resources like display lists are released). GLContextClose is
+    also automatically done in the destructor (so you don't have
+    to call it explicitly, if OpenGL context will still be available
+    at destruction time). }
   TVRMLGLLightSet = class(TVRMLLightSet)
   private
-    dlRenderLights: TGLuint; { =0 means "not initialized" }
+    dlRenderLights: TGLuint; {< 0 means "not initialized" }
     FGLLightNum1, FGLLightNum2: Integer;
+    FColorModulatorSingle: TColorModulatorSingleFunc;
 
     { This is like GLLightNum2, but it's not -1.
       Initialized by CalculateRealGLLightNum2.
       Deinitialized in GLContextClose (by setting this to invalid value = -1). }
     RealGLLightNum2: Integer;
     procedure CalculateRealGLLightNum2;
-  private
-    FColorModulatorSingle: TColorModulatorSingleFunc;
     procedure SetGLLightNum1(Value: Integer);
     procedure SetGLLightNum2(Value: Integer);
     procedure SetColorModulatorSingle(Value: TColorModulatorSingleFunc);
   public
-    { recalculate Lights property (based on RootNode) and GLContextClose
-      (GLContextClose must be called by this routine: if Lights changed then
-      we have to regenerate display list for Render).  }
+    { Constructor. Forces you to provide values for properties that
+      have no sensible (and safe) default, like GLLightNum1, GLLightNum2. }
+    constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+      AGLLightNum1, AGLLightNum2: Integer);
+
+    destructor Destroy; override;
+
+    { Recalculate the @link(Lights) property, looking at VRML/X3D
+      properties in the @link(RootNode). Releases any connections with
+      the OpenGL context (like GLContextClose), since our display lists
+      will have to be recreated if lights changed. }
     procedure CalculateLights; override;
 
-    { Wlasciwosci uzywane przez RenderLights, patrz tam po opis.
-      Ustawianie tych wlasciwosci nie wiaze nas z kontekstem OpenGLa -
-      - w szczegolnosci, ustawianie glLightNum2 na -1 nie powoduje
-      natychmiastowego glGet(GL_MAX_LIGHT), wszystko to bedzie
-      wykonywane dopiero w RenderLights.
-
-      Standardowa uwaga do ColorModulatorSingle:
-      jego dzialanie jest zapamietywane
-      w RenderLights na display liscie, co oznacza ze ColorModulatorSingle
-      powinien byc funkcja ktora dla tego samego argumentu zawsze odpowiada
-      to samo (nie kieruje sie np. aktualnym stanem jakiejs tam innej zmiennej
-      w programie). }
+    { Number of the first OpenGL light that we can set.
+      Just like for glLightsFromVRML. }
     property glLightNum1: Integer read FGLLightNum1 write SetGLLightNum1;
+
+    { Number of the last OpenGL light that we can set.
+      Just like for glLightsFromVRML.
+
+      May be set to -1, to indicate that all the lights (from glLightNum1)
+      are available to use. In other words, -1 is equivalent to
+      glGet(GL_MAX_LIGHT)-1. }
     property glLightNum2: Integer read FGLLightNum2 write SetGLLightNum2;
+
     property ColorModulatorSingle: TColorModulatorSingleFunc
       read FColorModulatorSingle write SetColorModulatorSingle; { = nil }
 
-    { skrot do glLightsFromVRML(Lights, glLightNum1, glLightNum2,
-      ColorModulatorSingle). Ponadto pozwala ci uzyc glLightNum2 = -1
-      aby powiedziec ze wszystkie swiatla do konca sa wolne
-      (czyli glLightNum2= -1 znaczy to samo co glGet(GL_MAX_LIGHT)-1).
-      Ponadto uzywa w srodku display listy.
+    { Set up OpenGL lights properties to correspond to given VRML lights.
+      This is a wrapper around glLightsFromVRML that automatically
+      manages a display list that does glLightsFromVRML call.
 
-      This function creates connection between this object and current gl context. }
+      This function creates connection between this object and
+      current OpenGL context. }
     procedure RenderLights;
 
-    { This turns off all lights between glLightNum1 and glLightNum2
-      (when glLightNum2 = -1 then it's interpreted as glGet(GL_MAX_LIGHT)-1).
-      I.e. it calls glDisable(GL_LIGHTx) for them. }
+    { Disable all the OpenGL lights (in glLightNum1 .. glLightNum2 range). }
     procedure TurnLightsOff;
 
-    { Turn off lights not supposed to light in the shadow.
+    { Disable all the lights not supposed to shine in the shadow,
+      for shadow volumes.
 
-      This simply disables lights with @code(kambiShadows) field
-      set to @true.
+      Simply disables lights with @code(kambiShadows) field set to @true.
       See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_shadows]
       for more info.
 
@@ -258,23 +216,16 @@ type
       as needed by RenderLights). }
     procedure TurnLightsOffForShadows;
 
-    { close any connection between this object and current gl context.
+    { Close any connection between this object and current OpenGL context.
       After calling this, you can e.g. switch to another context and use
       this object there. You can also destroy current context and
       then free this object.
 
       Calling GLContextClose when there is no connection between this object and
-      gl context (e.g. calling it twice in a row) is a valid NOP. }
+      gl context (e.g. calling it twice in a row) is a valid NOP.
+
+      This is also called by the destructor. }
     procedure GLContextClose;
-
-    { wartosci GLLightNum1, GLLightNum2 sa tak wazne ze wolalem nie ustawiac
-      ich w konstruktorze na jakies defaultowe wartosci tylko wymagac od ciebie
-      podania ich explicite przy konstruowaniu obiektu. }
-    constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AGLLightNum1, AGLLightNum2: Integer);
-
-    { calls GLContextClose }
-    destructor Destroy; override;
   end;
 
 implementation
