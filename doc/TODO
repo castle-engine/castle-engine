@@ -21,19 +21,11 @@ WWW:
 3.9.0: Modernize rendering (everything through VBO, various shaders improvements)
 VBO:
 - migration to Vertex Buffer Objects
-- Clean needed rendering modes:
+- Add rendering mode:
 
-  None
-  Scene As One Display List (Everything Static)
-  Shapes By Display List (same as roSeparateShapeStatesNoTransform now, but with VA constructed and loaded)
-  Shapes by VBO (new default)
+  - Shapes By Display List (same as roShapeDisplayList now, but with VA constructed and loaded)
+  - new Shapes by VBO (new default)
 
-  This will also close:
-  - Automatically detect when roSeparateShapeStates / ...NoTransform / roNone is suitable.
-    Actually, optimization should be per-shape choice now?
-    Except roSceneAsAWhole, that would override it?
-  - After 3.7.0, remove roSeparateShapes, when it's confirmed it's no better
-    than roSeparateShapesNoTransform.
   - Move more stuff outside of RenderShapeNoTransform:
     probably shaders, materials, textures can and should all be moved
     outside of display list?
@@ -252,7 +244,7 @@ Scene manager / controls / better Lazarus integration:
   this will be following VRML idea) to be shared, but this requires dynamic
   OpenGL light allocation (not governed by Scene.Attributes.First/Last).
   This means lights may change without any need to update DLs.
-  Hm, but we already have this - besides roSceneAsAWhole, lights are outside DL?
+  Hm, but we already have this - besides roSceneDisplayList, lights are outside DL?
 
   We could also have just allow MainScene to take all the lights and leave
   them set for other scenes. Hm, actually sensible...
@@ -686,11 +678,11 @@ after view3dscene 3.0:
 
   This has to be detected then inside TVRMLGLScene.
   When some shape is changed too often, switch to roNone for it.
-  (When it's changed often but only with TransformOnly,
-  switch to roSeparateShapesNoTransform for it!)
+  (When it's changed often but only with chTransform only,
+  roShapeDisplayList is OK)
 
-  Later: actually, I think it's better to solve it by removing roSeparateShapes
-  and simply moving more stuff out of display list.
+  Later: actually, I think it's better to solve it by
+  simply moving more stuff out of display list.
 
 - fix extensions to all be gracefully declared by EXTERNPROTO,
   post to Joerg from white_dune

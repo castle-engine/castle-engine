@@ -96,13 +96,13 @@
 @longCode(#
   RenderShapeBegin(Shape);
   try
-    RenderShapeNoTransform(Shape);
+    RenderShapeInside(Shape);
   finally RenderShapeEnd(Shape) end;
 #)
 
       This is equivalent to RenderShape
       (but sometimes it's better as it allows you to place
-      RenderShapeNoTransform on a separate display list, that can be more
+      RenderShapeInside on a separate display list, that can be more
       shared (because it doesn't take some transformations into account)).
 
       Make sure that VRML2ActiveLights are properly initialized if you
@@ -311,7 +311,7 @@ type
       If you use TVRMLGLScene this means that either:
 
       @unorderedList(
-        @item(You use optimizations with display lists, like roSceneAsAWhole.
+        @item(You use optimizations with display lists, like roSceneDisplayList.
           Then changing BumpMappingLightPosition is very costly operation
           (display lists must be rebuild), so you should not do this
           e.g. every frame.)
@@ -351,7 +351,7 @@ type
       @orderedList(
         @item(Light position in tangent space is calculated by shader program.
           In short, this means that you can use good renderer optimization
-          (like roSceneAsAWhole) even if you change BumpMappingLightPosition
+          (not only poor roNone) even if you change BumpMappingLightPosition
           every frame. )
 
         @item(Previous methods generally break features such as ambient (as they
@@ -1048,7 +1048,6 @@ type
     Texture3DCaches: TDynTexture3DCacheArray;
     TextureDepthOrFloatCaches: TDynTextureDepthOrFloatCacheArray;
     ShapeCaches: TDynShapeCacheArray;
-    ShapeNoTransformCaches: TDynShapeCacheArray;
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
     RenderEndCaches: TDynRenderBeginEndCacheArray;
     GLSLProgramCaches: TDynGLSLProgramCacheArray;
@@ -1184,6 +1183,7 @@ type
       AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
+      CacheIgnoresTransform: boolean;
       out AGLList: TGLuint): boolean;
 
     procedure Shape_IncReference_New(
@@ -1194,24 +1194,6 @@ type
       AGLList: TGLuint);
 
     procedure Shape_DecReference(
-      const GLList: TGLuint);
-
-    function ShapeNoTransform_IncReference_Existing(
-      AAttributes: TVRMLRenderingAttributes;
-      AGeometryNode: TVRMLGeometryNode;
-      AState: TVRMLGraphTraverseState;
-      AFogNode: TNodeFog;
-      CacheIgnoresTransform: boolean;
-      out AGLList: TGLuint): boolean;
-
-    procedure ShapeNoTransform_IncReference_New(
-      AAttributes: TVRMLRenderingAttributes;
-      AGeometryNode: TVRMLGeometryNode;
-      AState: TVRMLGraphTraverseState;
-      AFogNode: TNodeFog;
-      AGLList: TGLuint);
-
-    procedure ShapeNoTransform_DecReference(
       const GLList: TGLuint);
 
     function RenderBegin_IncReference_Existing(
@@ -1518,7 +1500,7 @@ type
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       State: TVRMLGraphTraverseState);
     procedure RenderShapeBegin(Shape: TVRMLShape);
-    procedure RenderShapeNoTransform(Shape: TVRMLShape);
+    procedure RenderShapeInside(Shape: TVRMLShape);
     procedure RenderShapeEnd(Shape: TVRMLShape);
 
     procedure RenderShape(Shape: TVRMLShape);
@@ -1656,7 +1638,7 @@ type
       const CameraPosition, CameraDirection, CameraUp: TVector3Single);
 
     { Should CacheIgnoresTransform be passed to
-      ShapeNoTransform_IncReference_Existing. }
+      Shape_IncReference_Existing. }
     function CacheIgnoresTransform(Node: TNodeFog): boolean;
   end;
 
@@ -1725,7 +1707,6 @@ begin
   Texture3DCaches := TDynTexture3DCacheArray.Create;
   TextureDepthOrFloatCaches := TDynTextureDepthOrFloatCacheArray.Create;
   ShapeCaches := TDynShapeCacheArray.Create;
-  ShapeNoTransformCaches := TDynShapeCacheArray.Create;
   RenderBeginCaches := TDynRenderBeginEndCacheArray.Create;
   RenderEndCaches := TDynRenderBeginEndCacheArray.Create;
   GLSLProgramCaches := TDynGLSLProgramCacheArray.Create;
@@ -1797,14 +1778,6 @@ begin
     Assert(ShapeCaches.Count = 0, 'Some references to Shapes still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
     FreeAndNil(ShapeCaches);
-  end;
-
-  if ShapeNoTransformCaches <> nil then
-  begin
-    Assert(ShapeNoTransformCaches.Count = 0,
-      'Some references to ShapesNoTransform still exist' +
-      ' when freeing TVRMLOpenGLRendererContextCache');
-    FreeAndNil(ShapeNoTransformCaches);
   end;
 
   if RenderBeginCaches <> nil then
@@ -2851,23 +2824,51 @@ function TVRMLOpenGLRendererContextCache.Shape_IncReference_Existing(
   AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
+  CacheIgnoresTransform: boolean;
   out AGLList: TGLuint): boolean;
+
+  { Compares two VRML/X3D states by
+      State1.EqualsNoTransform(State2)
+    or
+      State1.Equals(State2)
+    Which one is used, depends on whether two shapes with different
+    transformation can be considered equal. This depends on what
+    we do TVRMLMeshRenderer.DoBeforeGLVertex
+    (volumetric fog, OnBeforeGLVertex change vertex based on global
+    coords). }
+  function StatesEqual(State1, State2: TVRMLGraphTraverseState): boolean;
+  begin
+    if CacheIgnoresTransform then
+      Result := State1.EqualsNoTransform(State2) else
+      Result := State1.Equals(State2);
+  end;
+
 var
   I: Integer;
   SSCache: PShapeCache;
 begin
+  { Force CacheIgnoresTransform to be false if our shape uses shaders.
+    Shaders may depend on coordinates in eye space, which obviously
+    may be different for shapes that differ even only on transform. }
+  if CacheIgnoresTransform and
+     (AState.ShapeNode <> nil) and
+     (AState.ShapeNode.Appearance <> nil) and
+     (AState.ShapeNode.Appearance.FdShaders.Count <> 0) then
+    CacheIgnoresTransform := false;
+
   for I := 0 to ShapeCaches.High do
   begin
     SSCache := ShapeCaches.Pointers[I];
     if (SSCache^.Attributes.Equals(AAttributes)) and
        (SSCache^.GeometryNode = AGeometryNode) and
-       (SSCache^.State.Equals(AState)) and
+       StatesEqual(SSCache^.State, AState) and
        FogParametersEqual(
          SSCache^.FogNode, SSCache^.FogDistanceScaling, AFogNode) then
     begin
       Inc(SSCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : Shape ', SSCache^.GLList, ' : ', SSCache^.References);
+      Writeln('++ : Shape ', SSCache^.GLList, ' : ',
+        SSCache^.References);
       {$endif}
       AGLList := SSCache^.GLList;
       Exit(true);
@@ -2915,7 +2916,8 @@ begin
     begin
       Dec(SSCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : Shape ', SSCache^.GLList, ' : ', SSCache^.References);
+      Writeln('-- : Shape ', SSCache^.GLList, ' : ',
+        SSCache^.References);
       {$endif}
       if SSCache^.References = 0 then
       begin
@@ -2929,123 +2931,7 @@ begin
   end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLOpenGLRendererContextCache.Shape_DecReference: no reference ' +
-    'found for display list %d', [GLList]);
-end;
-
-function TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_Existing(
-  AAttributes: TVRMLRenderingAttributes;
-  AGeometryNode: TVRMLGeometryNode;
-  AState: TVRMLGraphTraverseState;
-  AFogNode: TNodeFog;
-  CacheIgnoresTransform: boolean;
-  out AGLList: TGLuint): boolean;
-
-  { Compares two VRML/X3D states by
-      State1.EqualsNoTransform(State2)
-    or
-      State1.Equals(State2)
-    Which one is used, depends on whether two shapes with different
-    transformation can be considered equal. This depends on what
-    we do TVRMLMeshRenderer.DoBeforeGLVertex
-    (volumetric fog, OnBeforeGLVertex change vertex based on global
-    coords). }
-  function StatesEqual(State1, State2: TVRMLGraphTraverseState): boolean;
-  begin
-    if CacheIgnoresTransform then
-      Result := State1.EqualsNoTransform(State2) else
-      Result := State1.Equals(State2);
-  end;
-
-var
-  I: Integer;
-  SSCache: PShapeCache;
-begin
-  { Force CacheIgnoresTransform to be false if our shape uses shaders.
-    Shaders may depend on coordinates in eye space, which obviously
-    may be different for shapes that differ even only on transform. }
-  if CacheIgnoresTransform and
-     (AState.ShapeNode <> nil) and
-     (AState.ShapeNode.Appearance <> nil) and
-     (AState.ShapeNode.Appearance.FdShaders.Count <> 0) then
-    CacheIgnoresTransform := false;
-
-  for I := 0 to ShapeNoTransformCaches.High do
-  begin
-    SSCache := ShapeNoTransformCaches.Pointers[I];
-    if (SSCache^.Attributes.Equals(AAttributes)) and
-       (SSCache^.GeometryNode = AGeometryNode) and
-       StatesEqual(SSCache^.State, AState) and
-       FogParametersEqual(
-         SSCache^.FogNode, SSCache^.FogDistanceScaling, AFogNode) then
-    begin
-      Inc(SSCache^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : Shape NoTransform ', SSCache^.GLList, ' : ',
-        SSCache^.References);
-      {$endif}
-      AGLList := SSCache^.GLList;
-      Exit(true);
-    end;
-  end;
-
-  Exit(false);
-end;
-
-procedure TVRMLOpenGLRendererContextCache.ShapeNoTransform_IncReference_New(
-  AAttributes: TVRMLRenderingAttributes;
-  AGeometryNode: TVRMLGeometryNode;
-  AState: TVRMLGraphTraverseState;
-  AFogNode: TNodeFog;
-  AGLList: TGLuint);
-var
-  SSCache: PShapeCache;
-begin
-  SSCache := ShapeNoTransformCaches.Add;
-  SSCache^.Attributes := AAttributes;
-  SSCache^.GeometryNode := AGeometryNode;
-  SSCache^.State := AState;
-  SSCache^.FogNode := AFogNode;
-  if AFogNode <> nil then
-    SSCache^.FogDistanceScaling := AFogNode.TransformScale else
-    SSCache^.FogDistanceScaling := 0;
-  SSCache^.GLList := AGLList;
-  SSCache^.References := 1;
-
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : Shape NoTransform ', SSCache^.GLList, ' : ', 1);
-  {$endif}
-end;
-
-procedure TVRMLOpenGLRendererContextCache.ShapeNoTransform_DecReference(
-  const GLList: TGLuint);
-var
-  I: Integer;
-  SSCache: PShapeCache;
-begin
-  for I := 0 to ShapeNoTransformCaches.High do
-  begin
-    SSCache := ShapeNoTransformCaches.Pointers[I];
-    if SSCache^.GLList = GLList then
-    begin
-      Dec(SSCache^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : Shape NoTransform ', SSCache^.GLList, ' : ',
-        SSCache^.References);
-      {$endif}
-      if SSCache^.References = 0 then
-      begin
-        FreeAndNil(SSCache^.Attributes);
-        FreeAndNil(SSCache^.State);
-        glFreeDisplayList(SSCache^.GLList);
-        ShapeNoTransformCaches.Delete(I, 1);
-      end;
-      Exit;
-    end;
-  end;
-
-  raise EInternalError.CreateFmt(
-    'TVRMLOpenGLRendererContextCache.ShapeNoTransform_DecReference: ' +
+    'TVRMLOpenGLRendererContextCache.Shape_DecReference: ' +
     'no reference ' +
     'found for display list %d', [GLList]);
 end;
@@ -4368,7 +4254,7 @@ begin
     glMultMatrix(State.Transform);
 end;
 
-procedure TVRMLOpenGLRenderer.RenderShapeNoTransform(Shape: TVRMLShape);
+procedure TVRMLOpenGLRenderer.RenderShapeInside(Shape: TVRMLShape);
 
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
   begin
@@ -4732,7 +4618,7 @@ procedure TVRMLOpenGLRenderer.RenderShape(Shape: TVRMLShape);
 begin
   RenderShapeBegin(Shape);
   try
-    RenderShapeNoTransform(Shape);
+    RenderShapeInside(Shape);
   finally
     RenderShapeEnd(Shape);
   end;

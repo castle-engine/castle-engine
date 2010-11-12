@@ -39,7 +39,7 @@ type
       Also, this is not good if some parts of the scene cannot be put
       on display list. This concerns things with TVRMLShape.EnableDisplayList
       = @false, which currently means only MovieTexture nodes.
-      TODO: we should fallback to roSeparateShapes automatically in such
+      TODO: we should fallback to roShapeDisplayList automatically in such
       cases. For now, this will result in MovieTexture nodes being static
       (i.e. movie will not play).
 
@@ -49,10 +49,10 @@ type
       If the scene is static but user usually only looks at some small
       part of it, then building OctreeRendering for the scene
       (by adding ssOctreeRendering to TVRMLScene.Spatial)
-      and using roSeparateShapes and @link(TVRMLGLScene.RenderFrustum)
+      and using roShapeDisplayList and @link(TVRMLGLScene.RenderFrustum)
       (will automatically use TVRMLScene.OctreeRendering then)
       may be better. }
-    roSceneAsAWhole,
+    roSceneDisplayList,
 
     { Build separate OpenGL display list for each @link(TVRMLShape)
       on list @link(TVRMLScene.Shapes). Use this if
@@ -60,7 +60,7 @@ type
       @orderedList(
         @item(you will change from time to time only some small parts of
           the scene (since this will allow to rebuild, on changing, only
-          some small display lists, as opposed to roSceneAsAWhole,
+          some small display lists, as opposed to roSceneDisplayList,
           that has to rebuild large display list even if the change
           is very local).)
 
@@ -70,7 +70,7 @@ type
           and @link(TVRMLGLScene.RenderFrustum).)
 
         @item(
-          Another advantage of roSeparateShapes is when you use
+          Another advantage of roShapeDisplayList is when you use
           TVRMLGLAnimation. If part of your animation is actually still
           (i.e. the same Shape is used, the same nodes inside),
           and only the part changes --- then the still Shapes will
@@ -80,64 +80,17 @@ type
           generating many display lists for TVRMLGLAnimation is generally
           very memory-hungry operation.
 
-          You can achieve even much better memory saving by using
-          roSeparateShapesNoTransformation.
+          Also when only transformation changes, only one display list will
+          be used (actually, anything inside of
+          TVRMLOpenGLRenderer.RenderShapeBegin, which includes
+          modelview transformation, texture transformation and all lights
+          settings).
 
           This is achieved by TVRMLOpenGLRendererContextCache
           methods Shape_Xxx.)
       )
     }
-    roSeparateShapes,
-
-    { This is like roSeparateShapes but it allows for much more
-      display lists sharing because it stores untransformed
-      Shape in a display list.
-
-      Where this is better over roSeparateShapes:
-      If you use TVRMLGLAnimation when the same Shape occurs
-      in each frame but is transformed differently.
-      Or when you have a scene that uses the same Shape many times
-      but with different transformation.
-      Or when you do animation by VRML / X3D events that change
-      properties of "Transform" node.
-      Actually, "transformation" means here everything rendered by
-      TVRMLOpenGLRenderer.RenderShapeBegin, which includes
-      modelview transformation, texture transformation and all lights
-      settings.
-      In such cases, roSeparateShapesNoTranform will use
-      one display list, where roSeparateShapes would use a lot
-      (or require needless recalculation for VRML events).
-      What exactly "a lot" means depends on how much frames your
-      animation has, how much Shape is duplicated etc.
-      This can be a @italic(huge memory saving). Also preparing
-      scene/animations (in PrepareResources) should be much faster.
-
-      This saved me 13 MB memory in "The Castle" (much less than
-      I hoped, honestly, but still something...). This greatly boosts
-      performance of VRML animations of Transform nodes.
-
-      Where this is worse over roSeparateShapes:
-      @unorderedList(
-        @item(In some cases roSeparateShapesNoTransform
-          may be a little slower at rendering than roSeparateShapes,
-          as this doesn't wrap in display list things done
-          by TVRMLOpenGLRenderer.RenderShapeBegin.
-          So modelview matrix and texture matrix and whole
-          lights state will be done each time by OpenGL commands,
-          without display lists.
-
-          Will this affect rendering speed much ?
-          If your scene doesn't use lights
-          then the speed difference between roSeparateShapes
-          and roSeparateShapesNoTransform should not be noticeable.
-          Otherwise... well, you have to check what matters more
-          in this case: memory saving by roSeparateShapesNoTransform
-          or additional speed saving by roSeparateShapes.)
-      )
-
-      This is achieved by TVRMLOpenGLRendererContextCache
-      methods ShapeNoTransform_Xxx. }
-    roSeparateShapesNoTransform
+    roShapeDisplayList
   );
   PGLRendererOptimization = ^TGLRendererOptimization;
 
@@ -170,15 +123,13 @@ function RendererOptimizationFromName(const S: string; IgnoreCase: boolean):
 const
   RendererOptimizationNames: array[TGLRendererOptimization] of string =
   ( 'none',
-    'scene-as-a-whole',
-    'separate-shapes',
-    'separate-shapes-no-transform' );
+    'scene-display-list',
+    'shape-display-list' );
 
   RendererOptimizationNiceNames: array[TGLRendererOptimization] of string =
   ( 'None',
-    'Scene As a Whole',
-    'Separate Shapes',
-    'Separate Shapes, No Transform' );
+    'Whole Scene by Display List',
+    'Shape by Display List' );
 
 implementation
 
@@ -191,11 +142,27 @@ begin
     for Result := Low(RendererOptimizationNames) to High(RendererOptimizationNames) do
       if AnsiSameText(RendererOptimizationNames[Result], s) then
         Exit;
+
+    { obsolete names, supported for compatibility }
+    if AnsiSameText('scene-as-a-whole', S) then
+      Exit(roSceneDisplayList);
+
+    if AnsiSameText('separate-shapes', S) or
+       AnsiSameText('separate-shapes-no-transform', S) then
+      Exit(roShapeDisplayList);
   end else
   begin
     for Result := Low(RendererOptimizationNames) to High(RendererOptimizationNames) do
       if RendererOptimizationNames[Result] = s then
         Exit;
+
+    { obsolete names, supported for compatibility }
+    if 'scene-as-a-whole' = S then
+      Exit(roSceneDisplayList);
+
+    if ('separate-shapes' = S) or
+       ('separate-shapes-no-transform' = S) then
+      Exit(roShapeDisplayList);
   end;
   raise Exception.Create('"'+s+'" does not match any of the allowed values');
 end;

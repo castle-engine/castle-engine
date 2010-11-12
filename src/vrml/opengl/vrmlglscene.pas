@@ -64,13 +64,15 @@ type
 
 const
   roNone = VRMLRendererOptimization.roNone;
-  roSceneAsAWhole = VRMLRendererOptimization.roSceneAsAWhole;
-  roSeparateShapes = VRMLRendererOptimization.roSeparateShapes;
-  roSeparateShapesNoTransform = VRMLRendererOptimization.roSeparateShapesNoTransform;
+  roSceneDisplayList = VRMLRendererOptimization.roSceneDisplayList;
+  roShapeDisplayList = VRMLRendererOptimization.roShapeDisplayList;
+  roSeparateShapes = roShapeDisplayList; // @deprecated name. @exclude
+  roSeparateShapesNoTransform = roShapeDisplayList; // @deprecated name. @exclude
+  roSceneAsAWhole = roSceneDisplayList; // @deprecated name. @exclude
 
   DefaultWireframeWidth = 3.0;
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
-  DefaultOptimization = roSeparateShapesNoTransform;
+  DefaultOptimization = roShapeDisplayList;
 
 type
   TVRMLGLShape = class;
@@ -232,7 +234,7 @@ type
           time camera position changes, so possibly slows down rendering.)
 
         @item(Sorting dependent on camera position
-          prevents using roSceneAsAWhole optimization method, so another
+          prevents using roSceneDisplayList optimization method, so another
           possible slowdown.)
 
        @item(In practical scenes (game levels etc.) sorting is seldom needed.
@@ -391,12 +393,11 @@ type
       Texture: TNodeX3DTextureNode);
   private
     { ------------------------------------------------------------
-      Private things used only when Optimization is
-      roSeparateShapes or roSeparateShapesNoTransform.
-      Prefixed with SSSX, for clarity. }
+      Private things used only when Optimization is roShapeDisplayList.
+      Prefixed with DLShape, for clarity. }
 
     { Item is 0 if it is not initialized. }
-    SSSX_DisplayList: TGLuint;
+    DLShape_DisplayList: TGLuint;
 
     { Private things only for RenderFrustumOctree ---------------------- }
     RenderFrustumOctree_Visible: boolean;
@@ -563,7 +564,7 @@ type
       You may pass RenderBeginProc, RenderEndProc = @nil, then
       you have to make sure yourself that you call them around
       RenderShapesNoDisplayList
-      (this is needed because roSceneAsAWhole needs to honour
+      (this is needed because roSceneDisplayList needs to honour
       RenderBeginEndToDisplayList).
 
       This procedure never creates or uses any display list.
@@ -586,7 +587,7 @@ type
 
       This also destroys associations with OpenGL context in this class
       @italic(that were made using Renderer). Currently this means
-      SAAW_DisplayList and SSSX_DisplayLists. This doesn't destroy other
+      DLScene_DisplayList and DLShape_DisplayLists. This doesn't destroy other
       associations, like Background.
 
       This is useful to call when we change something in Attributes,
@@ -666,80 +667,46 @@ type
 
   private
     { ------------------------------------------------------------------------
-      Private things used only when Optimization = roSceneAsAWhole.
-      Prefixed with SAAW, for clarity. }
+      Private things used only when Optimization = roSceneDisplayList.
+      Prefixed with DLScene, for clarity. }
 
-    { This is always 0 when Optimization <> roSceneAsAWhole.
-      When Optimization = roSceneAsAWhole, 0 means "not initialized" . }
-    SAAW_DisplayList: array [TTransparentGroup] of TGLuint;
+    { This is always 0 when Optimization <> roSceneDisplayList.
+      When Optimization = roSceneDisplayList, 0 means "not initialized" . }
+    DLScene_DisplayList: array [TTransparentGroup] of TGLuint;
 
     { Prepare everything. Call only whem
-      Optimization = roSceneAsAWhole and
-      SAAW_DisplayList[TransparentGroup] = 0.
+      Optimization = roSceneDisplayList and
+      DLScene_DisplayList[TransparentGroup] = 0.
 
       This calls RenderShapesNoDisplayList so this sets
       FLastRender_RenderedShapesCount,
       FLastRender_BoxesOcclusionQueriedCount,
       FLastRender_VisibleShapesCount. }
-    procedure SAAW_Prepare(TransparentGroup: TTransparentGroup);
+    procedure DLScene_Prepare(TransparentGroup: TTransparentGroup);
 
-    procedure SAAW_Render(TransparentGroup: TTransparentGroup);
+    procedure DLScene_Render(TransparentGroup: TTransparentGroup);
 
   private
     { ------------------------------------------------------------
-      Private things used only when Optimization is
-      roSeparateShapes or roSeparateShapesNoTransform.
-      Prefixed with SSSX, for clarity. }
+      Private things used only when Optimization is roShapeDisplayList.
+      Prefixed with DLShape_, for clarity. }
 
-    SSSX_RenderBeginDisplayList: TGLuint;
-    SSSX_RenderEndDisplayList: TGLuint;
+    DLShape_RenderBeginDisplayList: TGLuint;
+    DLShape_RenderEndDisplayList: TGLuint;
 
-    { These create appropriate SSSX_Render*DisplayList display list. }
-    procedure SSSX_PrepareBegin;
-    procedure SSSX_PrepareEnd;
+    { These create appropriate DLShape_Render*DisplayList display list. }
+    procedure DLShape_PrepareBegin;
+    procedure DLShape_PrepareEnd;
 
-    { These call appropriate SSSX_Render*DisplayList display list.
+    { These call appropriate DLShape_Render*DisplayList display list.
       If display list is not ready, they create it. }
-    procedure SSSX_RenderBegin;
-    procedure SSSX_RenderEnd;
+    procedure DLShape_RenderBegin;
+    procedure DLShape_RenderEnd;
 
-    { ------------------------------------------------------------
-      Private things used only when Optimization is
-      roSeparateShapes. Prefixed with SSS, for clarity. }
-
-    { Use this only when Optimization = roSeparateShapes.
-      It can be passed as RenderShapeProc.
-
-      This renders the shape (by display list SSSX_DisplayList or not).
-
-      Shape must already be prepared (by SSS[NT]_PrepareShape
-      before calling this (it's not checked, and will
-      not be automatically done by this method.) }
-    procedure SSS_RenderShape(
+    procedure DLShape_RenderShape(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       Shape: TVRMLGLShape);
-
-    { Call this only when Optimization = roSeparateShapes.
-
-      Shape must be passed to Renderer.Prepare earlier
-      (this is done right now by Common_PrepareShape).
-
-      If necessary this creates display list Shape.SSSX_DisplayList
-      and initializes it with contents of RenderShape_NoLight(Shape).
-      Mode GL_COMPILE is passed to glNewList, so it only creates
-      given display list.
-
-      If necessary it initializes OcclusionQueryId/Asked. }
-    procedure SSS_PrepareShape(Shape: TVRMLGLShape);
-
-    { ------------------------------------------------------------
-      Private things used only when Optimization is
-      roSeparateShapesNoTransform. Prefixed with SSSNT, for clarity. }
-
-    procedure SSSNT_RenderShape(
-      LightsRenderer: TVRMLGLLightsCachingRenderer;
-      Shape: TVRMLGLShape);
-    procedure SSSNT_PrepareShape(Shape: TVRMLGLShape);
+    procedure DLShape_PrepareShape(Shape: TVRMLGLShape);
 
     { shadow things ---------------------------------------------------------- }
 
@@ -830,7 +797,7 @@ type
         @item RenderEnd
       )
 
-      If Optimization = roSceneAsAWhole, TestShapeVisibility
+      If Optimization = roSceneDisplayList, TestShapeVisibility
       is ignored (because then rendering call almost always does not
       have such detailed control over which shape are actually
       rendered). So generally you should think of TestShapeVisibility
@@ -847,7 +814,7 @@ type
 
       LightRenderEvent, if assigned, may be used to modify light's properties
       just for this render. Note that LightRenderEvent doesn't work
-      with roSceneAsAWhole (since for roSceneAsAWhole, rendering lights is
+      with roSceneDisplayList (since for roSceneDisplayList, rendering lights is
       recorded in display list).
 
       Some additional notes (specific to TVRMLGLScene.Render,
@@ -913,9 +880,9 @@ type
       find visible Shape. Otherwise, we will just enumerate all
       Shapes (which may be slower if you really have a lot of Shapes).
 
-      Note that if Optimization = roSceneAsAWhole this
+      Note that if Optimization = roSceneDisplayList this
       doesn't use Octree, but simply calls Render(nil).
-      That's because when Optimization = roSceneAsAWhole
+      That's because when Optimization = roSceneDisplayList
       Render always renders the whole scene,
       ignores TestShapeVisibility function,
       so it's useless (and would waste some time)
@@ -1492,41 +1459,33 @@ begin
   GLScene := TVRMLGLScene(ParentScene);
 
   case GLScene.Optimization of
-    roSceneAsAWhole:
+    roSceneDisplayList:
       begin
         for TG := Low(TG) to High(TG) do
-          glFreeDisplayList(GLScene.SAAW_DisplayList[TG]);
+          glFreeDisplayList(GLScene.DLScene_DisplayList[TG]);
 
         if Log and GLScene.LogChanges then
-          WritelnLog('VRML changes', 'Display lists released (Optimization = SceneAsAWhole)');
+          WritelnLog('VRML changes', Format('Display lists released (Optimization = %s)',
+            [RendererOptimizationNames[GLScene.Optimization]]));
       end;
 
-    roSeparateShapes:
-      if SSSX_DisplayList <> 0 then
-      begin
-        GLScene.Renderer.Cache.Shape_DecReference(SSSX_DisplayList);
-        SSSX_DisplayList := 0;
-
-        if Log and GLScene.LogChanges then
-          WritelnLog('VRML changes', 'Display lists released (Optimization = SeparateShapes)');
-      end;
-
-    roSeparateShapesNoTransform:
+    roShapeDisplayList:
       { Transformation (and clip planes) changes don't affect
-        roSeparateShapesNoTransform display lists, as they are applied
-        outside of TVRMLOpenGLRenderer.RenderShapeNoTransform.
+        roShapeDisplayList display lists, as they are applied
+        outside of TVRMLOpenGLRenderer.RenderShapeInside.
 
         This can be quite crucial optimization in some cases,
         as you can animate Transform.translation/rotation/scale etc. efficiently.
         (no rebuilding of display lists needed). }
       if (Changes - [chClipPlane, chTransform] <> []) and
-         (SSSX_DisplayList <> 0) then
+         (DLShape_DisplayList <> 0) then
       begin
-        GLScene.Renderer.Cache.ShapeNoTransform_DecReference(SSSX_DisplayList);
-        SSSX_DisplayList := 0;
+        GLScene.Renderer.Cache.Shape_DecReference(DLShape_DisplayList);
+        DLShape_DisplayList := 0;
 
         if Log and GLScene.LogChanges then
-          WritelnLog('VRML changes', 'Display lists released (Optimization = SeparateShapesNoTransform)');
+          WritelnLog('VRML changes', Format('Display lists released (Optimization = %s)',
+            [RendererOptimizationNames[GLScene.Optimization]]));
       end;
   end;
 
@@ -1740,7 +1699,7 @@ begin
   { inherited Create *may* call some virtual things overriden here
     (although right now it doesn't):
     - may call ChangedAll that is overriden in this class and uses
-      SSSX_DisplayLists, RenderFrustumOctree_Visible, UseBlending, Optimization.
+      DLShape_DisplayLists, RenderFrustumOctree_Visible, UseBlending, Optimization.
     - it may bind new viewpoint which may call ViewChangedSuddenly
       which is overridden here and uses Attributes.
     That's why I have to initialize them *before* "inherited Create" }
@@ -1864,7 +1823,7 @@ begin
   { This was supposed to be used for tricks like
 
   case Optimization of
-    roSeparateShapes, roSeparateShapesNoTransform:
+    roShapeDisplayList:
       ...
   end;
 
@@ -1889,10 +1848,10 @@ var
   S: TVRMLGLShape;
 begin
   case Optimization of
-    roSceneAsAWhole:
+    roSceneDisplayList:
       for TG := Low(TG) to High(TG) do
-        glFreeDisplayList(SAAW_DisplayList[TG]);
-    roSeparateShapes, roSeparateShapesNoTransform:
+        glFreeDisplayList(DLScene_DisplayList[TG]);
+    roShapeDisplayList:
       begin
         if Renderer <> nil then
         begin
@@ -1909,27 +1868,25 @@ begin
               begin
                 S := TVRMLGLShape(SI.Current);
 
-                if S.SSSX_DisplayList <> 0 then
+                if S.DLShape_DisplayList <> 0 then
                 begin
-                  if Optimization = roSeparateShapes then
-                    Renderer.Cache.Shape_DecReference(S.SSSX_DisplayList) else
-                    Renderer.Cache.ShapeNoTransform_DecReference(S.SSSX_DisplayList);
-                  S.SSSX_DisplayList := 0;
+                  Renderer.Cache.Shape_DecReference(S.DLShape_DisplayList);
+                  S.DLShape_DisplayList := 0;
                 end;
               end;
             finally FreeAndNil(SI) end;
           end;
 
-          if SSSX_RenderBeginDisplayList <> 0 then
+          if DLShape_RenderBeginDisplayList <> 0 then
           begin
-            Renderer.Cache.RenderBegin_DecReference(SSSX_RenderBeginDisplayList);
-            SSSX_RenderBeginDisplayList := 0;
+            Renderer.Cache.RenderBegin_DecReference(DLShape_RenderBeginDisplayList);
+            DLShape_RenderBeginDisplayList := 0;
           end;
 
-          if SSSX_RenderEndDisplayList <> 0 then
+          if DLShape_RenderEndDisplayList <> 0 then
           begin
-            Renderer.Cache.RenderEnd_DecReference(SSSX_RenderEndDisplayList);
-            SSSX_RenderEndDisplayList := 0;
+            Renderer.Cache.RenderEnd_DecReference(DLShape_RenderEndDisplayList);
+            DLShape_RenderEndDisplayList := 0;
           end;
         end;
       end;
@@ -2743,47 +2700,47 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.SSSX_PrepareBegin;
+procedure TVRMLGLScene.DLShape_PrepareBegin;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
   if not RenderBeginEndToDisplayList then
   begin
-    { Although SSSX_PrepareBegin shouldn't call any actual OpenGL commands
+    { Although DLShape_PrepareBegin shouldn't call any actual OpenGL commands
       outside of display list, (not RenderBeginEndToDisplayList) forces
       us to call RenderBeginSimple here. See comments inside analogous
-      SAAW_Prepare situation. }
+      DLScene_Prepare situation. }
     RenderBeginSimple;
     Exit;
   end;
 
   if not Renderer.Cache.RenderBegin_IncReference_Existing(
-    Attributes, FogNode, SSSX_RenderBeginDisplayList) then
+    Attributes, FogNode, DLShape_RenderBeginDisplayList) then
   begin
-    SSSX_RenderBeginDisplayList := glGenListsCheck(1,
-      'TVRMLGLScene.SSSX_PrepareBegin');
+    DLShape_RenderBeginDisplayList := glGenListsCheck(1,
+      'TVRMLGLScene.DLShape_PrepareBegin');
     try
-      glNewList(SSSX_RenderBeginDisplayList, GL_COMPILE);
+      glNewList(DLShape_RenderBeginDisplayList, GL_COMPILE);
       try
         RenderBeginSimple;
       finally glEndList end;
     except
-      { In case of problems above, free SSSX_RenderBeginDisplayList
+      { In case of problems above, free DLShape_RenderBeginDisplayList
         by simple glFreeDisplayList. Otherwise CloseGLRenderer would
         like to free this by RenderBegin_DecReference, but this is not
         in Renderer.Cache yet. }
-      glFreeDisplayList(SSSX_RenderBeginDisplayList);
+      glFreeDisplayList(DLShape_RenderBeginDisplayList);
       raise;
     end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
     Renderer.Cache.RenderBegin_IncReference_New(
-      AttributesCopy, FogNode, SSSX_RenderBeginDisplayList);
+      AttributesCopy, FogNode, DLShape_RenderBeginDisplayList);
   end;
 end;
 
-procedure TVRMLGLScene.SSSX_PrepareEnd;
+procedure TVRMLGLScene.DLShape_PrepareEnd;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
@@ -2794,52 +2751,53 @@ begin
   end;
 
   if not Renderer.Cache.RenderEnd_IncReference_Existing(
-    Attributes, FogNode, SSSX_RenderEndDisplayList) then
+    Attributes, FogNode, DLShape_RenderEndDisplayList) then
   begin
-    SSSX_RenderEndDisplayList := glGenListsCheck(1,
-      'TVRMLGLScene.SSSX_PrepareEnd');
+    DLShape_RenderEndDisplayList := glGenListsCheck(1,
+      'TVRMLGLScene.DLShape_PrepareEnd');
     try
-      glNewList(SSSX_RenderEndDisplayList, GL_COMPILE);
+      glNewList(DLShape_RenderEndDisplayList, GL_COMPILE);
       try
         RenderEndSimple;
       finally glEndList end;
     except
-      glFreeDisplayList(SSSX_RenderEndDisplayList);
+      glFreeDisplayList(DLShape_RenderEndDisplayList);
       raise;
     end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
     Renderer.Cache.RenderEnd_IncReference_New(
-      AttributesCopy, FogNode, SSSX_RenderEndDisplayList);
+      AttributesCopy, FogNode, DLShape_RenderEndDisplayList);
   end;
 end;
 
-procedure TVRMLGLScene.SSSX_RenderBegin;
+procedure TVRMLGLScene.DLShape_RenderBegin;
 begin
-  if SSSX_RenderBeginDisplayList = 0 then
-    SSSX_PrepareBegin;
+  if DLShape_RenderBeginDisplayList = 0 then
+    DLShape_PrepareBegin;
 
   if RenderBeginEndToDisplayList then
-    glCallList(SSSX_RenderBeginDisplayList);
+    glCallList(DLShape_RenderBeginDisplayList);
 
-  { if not RenderBeginEndToDisplayList, then SSSX_PrepareBegin just did
+  { if not RenderBeginEndToDisplayList, then DLShape_PrepareBegin just did
     RenderBeginSimple }
 end;
 
-procedure TVRMLGLScene.SSSX_RenderEnd;
+procedure TVRMLGLScene.DLShape_RenderEnd;
 begin
-  if SSSX_RenderEndDisplayList = 0 then
-    SSSX_PrepareEnd;
+  if DLShape_RenderEndDisplayList = 0 then
+    DLShape_PrepareEnd;
 
   if RenderBeginEndToDisplayList then
-    glCallList(SSSX_RenderEndDisplayList);
+    glCallList(DLShape_RenderEndDisplayList);
 
-  { if not RenderBeginEndToDisplayList, then SSSX_PrepareEnd just did
+  { if not RenderBeginEndToDisplayList, then DLShape_PrepareEnd just did
     RenderEndSimple }
 end;
 
-procedure TVRMLGLScene.SSS_PrepareShape(Shape: TVRMLGLShape);
+procedure TVRMLGLScene.DLShape_PrepareShape(
+  Shape: TVRMLGLShape);
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
   StateCopy: TVRMLGraphTraverseState;
@@ -2849,7 +2807,7 @@ begin
     inside TVRMLShape --- otherwise after FreeResources([frRootNode])
     calling EnableDisplayList would be dangerous. }
 
-  if (Shape.SSSX_DisplayList = 0) and
+  if (Shape.DLShape_DisplayList = 0) and
      Shape.EnableDisplayList and
      (not Renderer.Cache.Shape_IncReference_Existing(
        Attributes,
@@ -2870,23 +2828,25 @@ begin
          Still, seems consistent to pass OriginalState along with OriginalGeometry. }
        Shape.OriginalGeometry,
        Shape.OriginalState,
-       FogNode, Shape.SSSX_DisplayList)) then
+       FogNode,
+       Renderer.CacheIgnoresTransform(FogNode),
+       Shape.DLShape_DisplayList)) then
   begin
-    Shape.SSSX_DisplayList := glGenListsCheck(1,
-      'TVRMLGLScene.SSS_PrepareShape');
-    glNewList(Shape.SSSX_DisplayList, GL_COMPILE);
+    Shape.DLShape_DisplayList := glGenListsCheck(1,
+      'TVRMLGLScene.DLShape_PrepareShape');
+    glNewList(Shape.DLShape_DisplayList, GL_COMPILE);
     try
-      RenderShape_NoLight(Shape);
+      Renderer.RenderShapeInside(Shape);
       glEndList;
     except
       glEndList;
       { In case of trouble, make sure that
-        Shape.SSSX_DisplayList
+        Shape.DLShape_DisplayList
         resources are released and it's set to 0.
         Otherwise we would try to do Shape_DecReference later,
         but Shape_IncReference_New was not called yet
         and Shape_DecReference would fail. }
-      glFreeDisplayList(Shape.SSSX_DisplayList);
+      glFreeDisplayList(Shape.DLShape_DisplayList);
       raise;
     end;
 
@@ -2898,74 +2858,11 @@ begin
       AttributesCopy,
       Shape.OriginalGeometry,
       StateCopy,
-      FogNode, Shape.SSSX_DisplayList);
+      FogNode, Shape.DLShape_DisplayList);
   end;
 end;
 
-procedure TVRMLGLScene.SSS_RenderShape(
-  LightsRenderer: TVRMLGLLightsCachingRenderer;
-  Shape: TVRMLGLShape);
-begin
-  if Shape.EnableDisplayList then
-  begin
-    Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-    glCallList(Shape.SSSX_DisplayList);
-  end else
-  begin
-    Assert(Shape.SSSX_DisplayList = 0);
-
-    Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-    RenderShape_NoLight(Shape);
-  end;
-end;
-
-procedure TVRMLGLScene.SSSNT_PrepareShape(
-  Shape: TVRMLGLShape);
-var
-  AttributesCopy: TVRMLSceneRenderingAttributes;
-  StateCopy: TVRMLGraphTraverseState;
-begin
-  if (Shape.SSSX_DisplayList = 0) and
-     Shape.EnableDisplayList and
-     (not Renderer.Cache.ShapeNoTransform_IncReference_Existing(
-       Attributes,
-       Shape.OriginalGeometry,
-       Shape.OriginalState,
-       FogNode,
-       Renderer.CacheIgnoresTransform(FogNode),
-       Shape.SSSX_DisplayList)) then
-  begin
-    Shape.SSSX_DisplayList := glGenListsCheck(1,
-      'TVRMLGLScene.SSSNT_PrepareShape');
-    glNewList(Shape.SSSX_DisplayList, GL_COMPILE);
-    try
-      Renderer.RenderShapeNoTransform(Shape);
-      glEndList;
-    except
-      glEndList;
-      { In case of trouble, make sure that
-        Shape.SSSX_DisplayList
-        resources are released and it's set to 0.
-        Otherwise we would try to do Shape_DecReference later,
-        but Shape_IncReference_New was not called yet
-        and Shape_DecReference would fail. }
-      glFreeDisplayList(Shape.SSSX_DisplayList);
-      raise;
-    end;
-
-    AttributesCopy := TVRMLSceneRenderingAttributes.Create;
-    AttributesCopy.Assign(Attributes);
-    StateCopy := TVRMLGraphTraverseState.CreateCopy(
-      Shape.State);
-    Renderer.Cache.ShapeNoTransform_IncReference_New(
-      AttributesCopy,
-      Shape.OriginalGeometry,
-      StateCopy,
-      FogNode, Shape.SSSX_DisplayList);
-  end;
-end;
-
-procedure TVRMLGLScene.SSSNT_RenderShape(
+procedure TVRMLGLScene.DLShape_RenderShape(
   LightsRenderer: TVRMLGLLightsCachingRenderer;
   Shape: TVRMLGLShape);
 begin
@@ -2974,26 +2871,26 @@ begin
     Renderer.RenderShapeLights(LightsRenderer, Shape.State);
     Renderer.RenderShapeBegin(Shape);
     try
-      glCallList(Shape.SSSX_DisplayList);
+      glCallList(Shape.DLShape_DisplayList);
     finally
       Renderer.RenderShapeEnd(Shape);
     end;
   end else
   begin
-    Assert(Shape.SSSX_DisplayList = 0);
+    Assert(Shape.DLShape_DisplayList = 0);
 
     Renderer.RenderShapeLights(LightsRenderer, Shape.State);
     RenderShape_NoLight(Shape);
   end;
 end;
 
-procedure TVRMLGLScene.SAAW_Prepare(TransparentGroup: TTransparentGroup);
+procedure TVRMLGLScene.DLScene_Prepare(TransparentGroup: TTransparentGroup);
 begin
-  SAAW_DisplayList[TransparentGroup] := glGenListsCheck(1,
-    'TVRMLGLScene.SAAW_Prepare');
+  DLScene_DisplayList[TransparentGroup] := glGenListsCheck(1,
+    'TVRMLGLScene.DLScene_Prepare');
   if RenderBeginEndToDisplayList then
   begin
-    glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
+    glNewList(DLScene_DisplayList[TransparentGroup], GL_COMPILE);
     try
       RenderShapesNoDisplayList(nil,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderShape_WithLight,
@@ -3003,7 +2900,7 @@ begin
     finally glEndList end;
   end else
   begin
-    { Although this is SAAW_Prepare, and we shouldn't call here
+    { Although this is DLScene_Prepare, and we shouldn't call here
       any OpenGL command outside of display list, we have to call
       RenderBegin/EndSimple outside of display list:
       - (not RenderBeginEndToDisplayList) doesn't allow us to call
@@ -3018,7 +2915,7 @@ begin
 
     RenderBeginSimple;
     try
-      glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
+      glNewList(DLScene_DisplayList[TransparentGroup], GL_COMPILE);
       try
         RenderShapesNoDisplayList(nil,
           {$ifdef FPC_OBJFPC} @ {$endif} RenderShape_WithLight, nil, nil,
@@ -3028,7 +2925,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.SAAW_Render(TransparentGroup: TTransparentGroup);
+procedure TVRMLGLScene.DLScene_Render(TransparentGroup: TTransparentGroup);
 begin
   { In this case I must directly set here LastRender_Xxx variables.
     TODO: this is wrong when TransparentGroup <> tgAll, then something
@@ -3040,11 +2937,11 @@ begin
   FLastRender_RenderedShapesCount := FLastRender_VisibleShapesCount;
 
   if RenderBeginEndToDisplayList then
-    glCallList(SAAW_DisplayList[TransparentGroup]) else
+    glCallList(DLScene_DisplayList[TransparentGroup]) else
   begin
     RenderBeginSimple;
     try
-      glCallList(SAAW_DisplayList[TransparentGroup]);
+      glCallList(DLScene_DisplayList[TransparentGroup]);
     finally RenderEndSimple end;
   end;
 end;
@@ -3056,10 +2953,10 @@ begin
   if not FogParametersEqual(PreparedFogNode, PreparedFogScale, FogNode) then
   begin
     case Optimization of
-      roSceneAsAWhole:
+      roSceneDisplayList:
         for TG := Low(TG) to High(TG) do
-          glFreeDisplayList(SAAW_DisplayList[TG]);
-      roSeparateShapes, roSeparateShapesNoTransform:
+          glFreeDisplayList(DLScene_DisplayList[TG]);
+      roShapeDisplayList:
         begin
           { Although it seems that only RenderBegin needs to be invalidated,
             turns out that also RenderEnd. Otherwise, enter fog_set_bind_text.x3dv
@@ -3069,16 +2966,16 @@ begin
             so they are actually done (not saved in disp list).
             So RenderBegin and RenderEnd must always be recreated together. }
 
-          if SSSX_RenderBeginDisplayList <> 0 then
+          if DLShape_RenderBeginDisplayList <> 0 then
           begin
-            Renderer.Cache.RenderBegin_DecReference(SSSX_RenderBeginDisplayList);
-            SSSX_RenderBeginDisplayList := 0;
+            Renderer.Cache.RenderBegin_DecReference(DLShape_RenderBeginDisplayList);
+            DLShape_RenderBeginDisplayList := 0;
           end;
 
-          if SSSX_RenderEndDisplayList <> 0 then
+          if DLShape_RenderEndDisplayList <> 0 then
           begin
-            Renderer.Cache.RenderEnd_DecReference(SSSX_RenderEndDisplayList);
-            SSSX_RenderEndDisplayList := 0;
+            Renderer.Cache.RenderEnd_DecReference(DLShape_RenderEndDisplayList);
+            DLShape_RenderEndDisplayList := 0;
           end;
         end;
     end;
@@ -3200,34 +3097,32 @@ begin
     case Optimization of
       roNone: Common_PrepareAllShapes;
 
-      roSceneAsAWhole:
+      roSceneDisplayList:
         begin
           Common_PrepareAllShapes;
 
           for TG := Low(TG) to High(TG) do
-            if (TG in TransparentGroups) and (SAAW_DisplayList[TG] = 0) then
-              SAAW_Prepare(TG);
+            if (TG in TransparentGroups) and (DLScene_DisplayList[TG] = 0) then
+              DLScene_Prepare(TG);
         end;
 
-      roSeparateShapes, roSeparateShapesNoTransform:
+      roShapeDisplayList:
         begin
           { Prepare (if needed) GL stuff for begin/end and all shapes. }
-          if SSSX_RenderBeginDisplayList = 0 then
-            SSSX_PrepareBegin;
+          if DLShape_RenderBeginDisplayList = 0 then
+            DLShape_PrepareBegin;
           try
             SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
             try
               while SI.GetNext do
               begin
                 Common_PrepareShape(TVRMLGLShape(SI.Current));
-                if Optimization = roSeparateShapes then
-                  SSS_PrepareShape(TVRMLGLShape(SI.Current)) else
-                  SSSNT_PrepareShape(TVRMLGLShape(SI.Current));
+                DLShape_PrepareShape(TVRMLGLShape(SI.Current));
               end;
             finally FreeAndNil(SI) end;
           finally
-            if SSSX_RenderEndDisplayList = 0 then
-              SSSX_PrepareEnd;
+            if DLShape_RenderEndDisplayList = 0 then
+              DLShape_PrepareEnd;
           end;
         end;
     end;
@@ -3257,24 +3152,15 @@ procedure TVRMLGLScene.Render(
             {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
             TransparentGroup, LightRenderEvent);
         end;
-      roSceneAsAWhole:
-        SAAW_Render(TransparentGroup);
-      roSeparateShapes:
+      roSceneDisplayList:
+        DLScene_Render(TransparentGroup);
+      roShapeDisplayList:
         begin
           { build display lists (if needed) and render all shapes }
           RenderShapesNoDisplayList(TestShapeVisibility,
-            {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShape,
-            {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
-            {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
-            TransparentGroup, LightRenderEvent);
-        end;
-      roSeparateShapesNoTransform:
-        begin
-          { build display lists (if needed) and render all shapes }
-          RenderShapesNoDisplayList(TestShapeVisibility,
-            {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShape,
-            {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
-            {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
+            {$ifdef FPC_OBJFPC} @ {$endif} DLShape_RenderShape,
+            {$ifdef FPC_OBJFPC} @ {$endif} DLShape_RenderBegin,
+            {$ifdef FPC_OBJFPC} @ {$endif} DLShape_RenderEnd,
             TransparentGroup, LightRenderEvent);
         end;
     end;
@@ -3316,7 +3202,7 @@ begin
       before actually rendering the shape).
 
     It's much simpler to just call PrepareResources at the beginning.
-    Things like SSSNT_RenderShape, SSS_RenderShape may simply assume
+    Things like DLShape_RenderShape may simply assume
     that shape is for sure already prepared. }
   PrepareResources([TransparentGroup], [prRender], false);
 
@@ -3389,8 +3275,8 @@ end;
   inherited created new shapes anyway, so they are already
   initialized as required:
 
-  for roSeparateShapes, roSeparateShapesNoTransform:
-  - they have SSSX_DisplayList = 0.
+  for roShapeDisplayList:
+  - they have DLShape_DisplayList = 0.
   - they have PreparedForRenderer, PreparedUseBlending  = false,
   - OcclusionQueryId = 0.
 }
@@ -3411,11 +3297,11 @@ begin
   if (Field.ParentNode is TVRMLLightNode) and (Field.Changes <> []) then
   begin
     { Lights are rendered each time by TVRMLGLScene
-      in non-roSceneAsAWhole optimizations, so no need to do anything for them. }
-    if Optimization = roSceneAsAWhole then
+      in non-roSceneDisplayList optimizations, so no need to do anything for them. }
+    if Optimization = roSceneDisplayList then
     begin
       for TG := Low(TG) to High(TG) do
-        glFreeDisplayList(SAAW_DisplayList[TG]);
+        glFreeDisplayList(DLScene_DisplayList[TG]);
     end;
   end;
 end;
@@ -4387,7 +4273,7 @@ procedure TVRMLGLScene.RenderFrustum(const Frustum: TFrustum;
   var
     SI: TVRMLShapeTreeIterator;
   begin
-    if Optimization <> roSceneAsAWhole then
+    if Optimization <> roSceneDisplayList then
     begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
       try
@@ -4410,7 +4296,7 @@ begin
   begin
     { Just test each shape with frustum.
       Note that FrustumCullingFunc will be ignored
-      by Render for roSceneAsAWhole. }
+      by Render for roSceneDisplayList. }
 
     Render(FrustumCullingFunc, TransparentGroup, LightRenderEvent);
   end;

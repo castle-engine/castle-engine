@@ -685,10 +685,10 @@ begin
       LoadVRMLClassic(LightSetVrmlName, false), true, 0, -1);
     Scene := TVRMLGLScene.Create(nil);
     Scene.Load(SceneVrmlName);
-    Scene.Optimization := roSceneAsAWhole;
+    Scene.Optimization := roSceneDisplayList;
     ShadowCaster := TVRMLGLScene.Create(nil);
     ShadowCaster.Load(ShadowCasterVrmlName);
-    ShadowCaster.Optimization := roSceneAsAWhole;
+    ShadowCaster.Optimization := roSceneDisplayList;
     SceneBoundingBox := Box3DSum(Scene.BoundingBox,
       ShadowCaster.BoundingBox);
 

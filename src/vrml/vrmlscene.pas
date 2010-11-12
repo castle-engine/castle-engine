@@ -3396,7 +3396,7 @@ begin
         Inc(Shapes^.Index);
 
         Shape.State.AssignTransform(StateStack.Top);
-        { Changes = [chTransform] here, good for roSeparateShapesNoTransform
+        { Changes = [chTransform] here, good for roShapeDisplayList
           optimization. }
         Shape.Changed(Inactive <> 0, Changes);
 

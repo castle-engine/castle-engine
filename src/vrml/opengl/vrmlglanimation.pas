@@ -613,12 +613,12 @@ type
       e.g. every frame. And when loading, it's best to set Optimization
       as desired @italic(before) calling @link(Load) for fasters loading.
 
-      Note that this class should generally use roSeparateShapesNoTransform
-      or roSeparateShapes for Optimization, to conserve memory
+      Note that this class should generally use roShapeDisplayList
+      for Optimization, to conserve memory
       in some common cases. See docs at TGLRendererOptimization type. }
     property Optimization: TGLRendererOptimization
       read FOptimization write SetOptimization
-      default roSeparateShapesNoTransform;
+      default roShapeDisplayList;
 
     { Should collision checking check also last animation frame.
 
@@ -783,7 +783,7 @@ begin
   inherited Create(AOwner);
   if Renderer = nil then
     Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
-  FOptimization := roSeparateShapesNoTransform;
+  FOptimization := roShapeDisplayList;
   FTimeLoop := true;
   FTimeBackwards := false;
   FTimePlaying := true;

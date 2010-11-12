@@ -298,7 +298,7 @@ type
 
         Note for TVRMLGLScene only:
 
-        Note that for Optimizations <> roSceneAsAWhole
+        Note that for Optimizations <> roSceneDisplayList
         preparing for every possible TransparentGroup value
         is actually not harmful. There's no additional use of resources,
         as the sum of [tgTransparent, tgOpaque] uses

@@ -88,7 +88,7 @@ end;
 
 const
   DefaultKAnimScenesPerTime = 30;
-  DefaultKAnimOptimization = roSeparateShapesNoTransform;
+  DefaultKAnimOptimization = roShapeDisplayList;
   DefaultKAnimEqualityEpsilon = 0.001;
   DefaultKAnimLoop = false;
   DefaultKAnimBackwards = false;
