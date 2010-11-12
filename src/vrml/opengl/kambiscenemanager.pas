@@ -50,10 +50,10 @@ type
     FAlwaysApplyProjection: boolean;
 
     { If a texture rectangle for screen effects is ready, then
-      ScreenEffectTexture is non-zero and ScreenEffectRTT.
+      ScreenEffectTextureDest/Src are non-zero and ScreenEffectRTT is non-nil.
       Also, ScreenEffectTextureWidth/Height indicate size of the texture,
       as well as ScreenEffectRTT.Width/Height. }
-    ScreenEffectTexture: TGLuint;
+    ScreenEffectTextureDest, ScreenEffectTextureSrc: TGLuint;
     ScreenEffectTextureWidth: Cardinal;
     ScreenEffectTextureHeight: Cardinal;
     ScreenEffectRTT: TGLRenderToTexture;
@@ -1366,7 +1366,7 @@ var
   begin
     with Viewport do
     begin
-      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTexture);
+      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTextureSrc);
       glLoadIdentity();
       { Although shaders will typically ignore glColor, for consistency
         we want to have a fully determined state. That is, this must work
@@ -1395,20 +1395,21 @@ begin
   with Viewport do
   begin
     { Render all except the last screen effects: from texture
-      (ScreenEffectTexture) and to texture (using ScreenEffectRTT) }
+      (ScreenEffectTextureDest/Src) and to texture (using ScreenEffectRTT) }
     for I := 0 to ScreenEffectsCount - 2 do
     begin
       ScreenEffectRTT.RenderBegin;
-      { We have to adjust glViewport }
-      if not FullSize then
-        glViewport(0, 0, CorrectWidth, CorrectHeight);
+      ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, GL_TEXTURE_RECTANGLE_ARB);
       RenderOneEffect(ScreenEffects[I]);
       RenderFromViewEverything;
-      { Restore glViewport set by ApplyProjection }
-      if not FullSize then
-        glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
       ScreenEffectRTT.RenderEnd;
+
+      SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
     end;
+
+    { Restore glViewport set by ApplyProjection }
+    if not FullSize then
+      glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
 
     { the last effect gets a texture, and renders straight into screen }
     RenderOneEffect(ScreenEffects[ScreenEffectsCount - 1]);
@@ -1416,6 +1417,27 @@ begin
 end;
 
 procedure TKamAbstractViewport.RenderOnScreen(ACamera: TCamera);
+
+  { Create and setup new OpenGL texture rectangle for screen effects.
+    Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
+  function CreateScreenEffectTexture: TGLuint;
+  begin
+    { create new texture rectangle. }
+    glGenTextures(1, @Result);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, Result);
+    { TODO: or GL_LINEAR? Allow to config this and eventually change
+      before each screen effect? }
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, KamGL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, KamGL_CLAMP_TO_EDGE);
+    { We never load image contents, so we also do not have to care about
+      pixel packing. }
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGB8,
+      ScreenEffectTextureWidth,
+      ScreenEffectTextureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nil);
+  end;
+
 begin
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(ACamera);
@@ -1423,35 +1445,27 @@ begin
   if GL_ARB_texture_rectangle and (ScreenEffectsCount <> 0) then
   begin
     { We need a temporary texture rectangle, for screen effect. }
-    if (ScreenEffectTexture = 0) or
+    if (ScreenEffectTextureDest = 0) or
+       (ScreenEffectTextureSrc = 0) or
        (ScreenEffectRTT = nil) or
        (ScreenEffectTextureWidth  <> CorrectWidth ) or
        (ScreenEffectTextureHeight <> CorrectHeight) then
     begin
-      glFreeTexture(ScreenEffectTexture);
+      glFreeTexture(ScreenEffectTextureDest);
+      glFreeTexture(ScreenEffectTextureSrc);
       FreeAndNil(ScreenEffectRTT);
 
-      { create new texture rectangle. }
-      glGenTextures(1, @ScreenEffectTexture);
-      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTexture);
       ScreenEffectTextureWidth := CorrectWidth;
       ScreenEffectTextureHeight := CorrectHeight;
-      { TODO: or GL_LINEAR? Allow to config this and eventually change
-        before each screen effect? }
-      glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, KamGL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, KamGL_CLAMP_TO_EDGE);
-      { We never load image contents, so we also do not have to care about
-        pixel packing. }
-      glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGB8,
-        ScreenEffectTextureWidth,
-        ScreenEffectTextureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nil);
+      { We use two textures: ScreenEffectTextureDest is the destination
+        of framebuffer, ScreenEffectTextureSrc is the source to render. }
+      ScreenEffectTextureDest := CreateScreenEffectTexture;
+      ScreenEffectTextureSrc := CreateScreenEffectTexture;
 
       { create new TGLRenderToTexture (usually, framebuffer object) }
       ScreenEffectRTT := TGLRenderToTexture.Create(
         ScreenEffectTextureWidth, ScreenEffectTextureHeight);
-      ScreenEffectRTT.SetTexture(ScreenEffectTexture, GL_TEXTURE_RECTANGLE_ARB);
+      ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, GL_TEXTURE_RECTANGLE_ARB);
       ScreenEffectRTT.CompleteTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
       ScreenEffectRTT.GLContextInit;
 
@@ -1461,15 +1475,18 @@ begin
             ScreenEffectTextureHeight ]));
     end;
 
-    ScreenEffectRTT.RenderBegin;
-    { We have to adjust glViewport }
+    { We have to adjust glViewport.
+      It will be restored from RenderScreenEffect right before actually
+      rendering to screen.  }
     if not FullSize then
       glViewport(0, 0, CorrectWidth, CorrectHeight);
+
+    ScreenEffectRTT.RenderBegin;
+    ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, GL_TEXTURE_RECTANGLE_ARB);
     RenderFromViewEverything;
-    { Restore glViewport set by ApplyProjection }
-    if not FullSize then
-      glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
     ScreenEffectRTT.RenderEnd;
+
+    SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
 
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
@@ -1519,7 +1536,8 @@ end;
 
 procedure TKamAbstractViewport.GLContextClose;
 begin
-  glFreeTexture(ScreenEffectTexture);
+  glFreeTexture(ScreenEffectTextureDest);
+  glFreeTexture(ScreenEffectTextureSrc);
   FreeAndNil(ScreenEffectRTT);
   inherited;
 end;
