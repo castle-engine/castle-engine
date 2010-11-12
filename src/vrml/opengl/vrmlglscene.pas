@@ -201,8 +201,6 @@ type
     function ReallyUseHierarchicalOcclusionQuery: boolean;
   protected
     procedure BeforeChange; override;
-    procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); override;
-    procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); override;
 
     procedure SetBlending(const Value: boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
@@ -1136,7 +1134,6 @@ type
       found in the scene (when events work, this may change through set_bind
       events).
       They are also based on current value of BackgroundSkySphereRadius.
-      And on the values of Attributes.ColorModulatorSingle/Byte.
 
       If there is no currently bound background node in VRML scene this
       function returns nil.
@@ -1151,7 +1148,7 @@ type
 
       The results of this function are internally cached. Cache is invalidated
       on such situations as change in RootNode scene, changes to
-      BackgroundSkySphereRadius, GLContextClose, Attributes.ColorModulatorSingle/Byte.
+      BackgroundSkySphereRadius, GLContextClose.
 
       PrepareBackground (and PrepareResources with prBackground)
       automatically validate this cache.
@@ -1170,11 +1167,7 @@ type
       to recalculate some things,
       some display lists need to be rebuild etc.).
       So don't change them e.g. every frame. You should use
-      Optimization = roNone if you really have to change attributes every frame.
-
-      Note for ColorModulatorSingle/Byte properties:
-      In addition to effects described at TVRMLGLRenderer,
-      they also affect what the TVRMLGLScene.Background function returns. }
+      Optimization = roNone if you really have to change attributes every frame. }
     function Attributes: TVRMLSceneRenderingAttributes;
 
     { Headlight that should be used for this scene (if HeadlightOn), or @nil.
@@ -2595,8 +2588,7 @@ begin
   OcclusionBoxState := false;
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
-    Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight,
-    Attributes.ColorModulatorSingle, LightRenderEvent);
+    Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight, LightRenderEvent);
   try
 
     if Assigned(RenderBeginProc) then
@@ -4447,9 +4439,7 @@ begin
         BgNode.BgImages,
         @(BgNode.FdSkyAngle.Items.Items[0]), SkyAngleCount,
         @(BgNode.FdSkyColor.Items.Items[0]), SkyColorCount,
-        BackgroundSkySphereRadius,
-        Attributes.ColorModulatorSingle,
-        Attributes.ColorModulatorByte);
+        BackgroundSkySphereRadius);
     end;
   end else
     FBackground := nil;
@@ -4921,26 +4911,6 @@ begin
         a lot, then switch UseOcclusionQuery back on --- you don't want to use
         results from previous query that was done many frames ago. }
       FScenes.ViewChangedSuddenly;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetColorModulatorSingle(
-  const Value: TColorModulatorSingleFunc);
-begin
-  if ColorModulatorSingle <> Value then
-  begin
-    FScenes.FBackgroundInvalidate;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetColorModulatorByte(
-  const Value: TColorModulatorByteFunc);
-begin
-  if ColorModulatorByte <> Value then
-  begin
-    FScenes.FBackgroundInvalidate;
-    inherited;
   end;
 end;
 

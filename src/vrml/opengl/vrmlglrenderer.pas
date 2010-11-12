@@ -404,8 +404,6 @@ type
     FOnRadianceTransfer: TRadianceTransferFunction;
     FOnVertexColor: TVertexColorFunction;
     FSmoothShading: boolean;
-    FColorModulatorSingle: TColorModulatorSingleFunc;
-    FColorModulatorByte: TColorModulatorByteFunc;
     FLighting: boolean;
     FUseSceneLights: boolean;
     FFirstGLFreeLight: Cardinal;
@@ -439,8 +437,6 @@ type
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
     procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
     procedure SetSmoothShading(const Value: boolean); virtual;
-    procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); virtual;
-    procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); virtual;
     procedure SetLighting(const Value: boolean); virtual;
     procedure SetUseSceneLights(const Value: boolean); virtual;
     procedure SetFirstGLFreeLight(const Value: Cardinal); virtual;
@@ -535,38 +531,6 @@ type
 
     { zwraca GLU_SMOOTH lub GLU_FLAT, zgodnie z SmoothShading. }
     function SmoothNormalsGLU: TGLenum;
-
-    { Za pomoca ponizszych ColorModulatorow mozna osiagnac mile efekty renderowania
-      sceny w spacjalnych kolorach - np. grayscale, tylko red channel itp.
-      Zawsze lepiej jest je robic metodami OpenGL'a, jak np. BlackOuty,
-      ale nie wszystko mozna zrobic metodami OpenGL'a - np. sceny grayscale
-      nie stworzymy robiac jakies proste sztuczki 2d w OpenGL'u.
-      Tutaj mozna podac funkcje ktora w dowolny sposob modyfikuje kolor
-      (ale remember ze ona modyfikuje kolor obiektu/swiatla/itp., a nie
-      wynikowy kolor pixela na 2d; wiec np. powierzchnie nieoswietlone
-      zawsze beda w ten sposob ciemne chocby modulator odwracal kolory itp.).
-
-      Obie funkcje ColorModulator* musza byc nil lub musza wykonywac analogiczna
-      konwersje ! (bo nie jest zdefiniowane kiedy nasz engine uzyje wersji
-      Byte a kiedy Single)
-
-      Ponadto musza wyniki tych funkcji musza byc zdeterminowane na podstawie
-      argumentow - tzn. te funkcje nie moga zwracac czegos losowego, nie moga
-      zwracac czegos na podstawie aktualnego czasu itp. To dlatego ze
-      nie jest zdefiniowane jak dlugo wyniki tych funkcji moga byc w roznych
-      miejscach kodu cache'owane.
-
-      Both are nil by default.
-      @groupBegin }
-    property ColorModulatorSingle: TColorModulatorSingleFunc
-      read FColorModulatorSingle write SetColorModulatorSingle;
-    property ColorModulatorByte: TColorModulatorByteFunc
-      read FColorModulatorByte write SetColorModulatorByte;
-    { @groupEnd }
-
-    { zwraca Color zmodulowany uzywajac ColorModulatorXxx }
-    function ColorModulated(const Color: TVector3Single): TVector3Single; overload;
-    function ColorModulated(const Color: TVector3Byte): TVector3Byte; overload;
 
     { When Lighting is @true, we will enable OpenGL lighting when rendering.
       Note that this is @true by default, since it's wanted almost always.
@@ -844,7 +808,6 @@ type
     MagFilter: TGLint;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
-    ColorModulator: TColorModulatorByteFunc;
     References: Cardinal;
     GLName: TGLuint;
 
@@ -881,7 +844,6 @@ type
     MagFilter: TGLint;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
-    ColorModulator: TColorModulatorByteFunc;
     References: Cardinal;
     GLVideo: TGLVideo;
 
@@ -1063,7 +1025,6 @@ type
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
-      const TextureColorModulator: TColorModulatorByteFunc;
       const DDSForMipmaps: TDDSImage;
       out AlphaChannelType: TAlphaChannelType): TGLuint;
 
@@ -1077,7 +1038,6 @@ type
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
-      const TextureColorModulator: TColorModulatorByteFunc;
       out AlphaChannelType: TAlphaChannelType): TGLVideo;
 
     procedure TextureVideo_DecReference(
@@ -1400,7 +1360,7 @@ type
     OwnsCache: boolean;
 
     { Initialize VRML/X3D fog, based on fog node.
-      Looks at Attributes.UseFog and Attributes.ColorModulator*.
+      Looks at Attributes.UseFog.
 
       If ActuallyApply = @false then we only calculate the "out" parameters
       (Enabled and such), not actually setting up the fog parameters
@@ -1840,7 +1800,6 @@ function TVRMLGLRendererContextCache.TextureImage_IncReference(
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
-  const TextureColorModulator: TColorModulatorByteFunc;
   const DDSForMipmaps: TDDSImage;
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
@@ -1878,8 +1837,7 @@ begin
        (TextureCached^.MinFilter = TextureMinFilter) and
        (TextureCached^.MagFilter = TextureMagFilter) and
        (TextureCached^.Anisotropy = TextureAnisotropy) and
-       (TextureCached^.Wrap = TextureWrap) and
-       (TextureCached^.ColorModulator = TextureColorModulator) then
+       (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -1891,12 +1849,12 @@ begin
   end;
 
   { Initialize Result first, before calling TextureImageCaches.Add.
-    That's because in case LoadGLTextureModulated raises exception,
+    That's because in case LoadGLTexture raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureImage_DecReference later). }
-  Result := LoadGLTextureModulated(
+  Result := LoadGLTexture(
     TextureImage, TextureMinFilter, TextureMagFilter,
-    TextureWrap, TextureColorModulator, DDSForMipmaps);
+    TextureWrap, false, DDSForMipmaps);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
 
@@ -1907,7 +1865,6 @@ begin
   TextureCached^.MagFilter := TextureMagFilter;
   TextureCached^.Anisotropy := TextureAnisotropy;
   TextureCached^.Wrap := TextureWrap;
-  TextureCached^.ColorModulator := TextureColorModulator;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
 
@@ -1966,7 +1923,6 @@ function TVRMLGLRendererContextCache.TextureVideo_IncReference(
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
-  const TextureColorModulator: TColorModulatorByteFunc;
   out AlphaChannelType: TAlphaChannelType): TGLVideo;
 var
   I: Integer;
@@ -1982,8 +1938,7 @@ begin
        (TextureCached^.MinFilter = TextureMinFilter) and
        (TextureCached^.MagFilter = TextureMagFilter) and
        (TextureCached^.Anisotropy = TextureAnisotropy) and
-       (TextureCached^.Wrap = TextureWrap) and
-       (TextureCached^.ColorModulator = TextureColorModulator) then
+       (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -2000,7 +1955,7 @@ begin
     no way to call TextureVideo_DecReference later). }
   Result := TGLVideo.Create(
     TextureVideo, TextureMinFilter, TextureMagFilter, TextureAnisotropy,
-    TextureWrap, TextureColorModulator);
+    TextureWrap);
 
   TextureCached := TextureVideoCaches.Add;
   TextureCached^.FullUrl := TextureFullUrl;
@@ -2009,7 +1964,6 @@ begin
   TextureCached^.MagFilter := TextureMagFilter;
   TextureCached^.Anisotropy := TextureAnisotropy;
   TextureCached^.Wrap := TextureWrap;
-  TextureCached^.ColorModulator := TextureColorModulator;
   TextureCached^.References := 1;
   TextureCached^.GLVideo := Result;
 
@@ -3102,8 +3056,6 @@ begin
     OnRadianceTransfer := TVRMLRenderingAttributes(Source).OnRadianceTransfer;
     OnVertexColor := TVRMLRenderingAttributes(Source).OnVertexColor;
     SmoothShading := TVRMLRenderingAttributes(Source).SmoothShading;
-    ColorModulatorSingle := TVRMLRenderingAttributes(Source).ColorModulatorSingle;
-    ColorModulatorByte := TVRMLRenderingAttributes(Source).ColorModulatorByte;
     Lighting := TVRMLRenderingAttributes(Source).Lighting;
     UseSceneLights := TVRMLRenderingAttributes(Source).UseSceneLights;
     FirstGLFreeLight := TVRMLRenderingAttributes(Source).FirstGLFreeLight;
@@ -3130,8 +3082,6 @@ begin
     (TVRMLRenderingAttributes(SecondValue).OnRadianceTransfer = OnRadianceTransfer) and
     (TVRMLRenderingAttributes(SecondValue).OnVertexColor = OnVertexColor) and
     (TVRMLRenderingAttributes(SecondValue).SmoothShading = SmoothShading) and
-    (TVRMLRenderingAttributes(SecondValue).ColorModulatorSingle = ColorModulatorSingle) and
-    (TVRMLRenderingAttributes(SecondValue).ColorModulatorByte = ColorModulatorByte) and
     (TVRMLRenderingAttributes(SecondValue).Lighting = Lighting) and
     (TVRMLRenderingAttributes(SecondValue).UseSceneLights = UseSceneLights) and
     (TVRMLRenderingAttributes(SecondValue).FirstGLFreeLight = FirstGLFreeLight) and
@@ -3213,26 +3163,6 @@ begin
   begin
     BeforeChange;
     FSmoothShading := Value;
-  end;
-end;
-
-procedure TVRMLRenderingAttributes.SetColorModulatorSingle(
-  const Value: TColorModulatorSingleFunc);
-begin
-  if ColorModulatorSingle <> Value then
-  begin
-    BeforeChange;
-    FColorModulatorSingle := Value;
-  end;
-end;
-
-procedure TVRMLRenderingAttributes.SetColorModulatorByte(
-  const Value: TColorModulatorByteFunc);
-begin
-  if ColorModulatorByte <> Value then
-  begin
-    BeforeChange;
-    FColorModulatorByte := Value;
   end;
 end;
 
@@ -3425,22 +3355,6 @@ begin
   if SmoothShading then
     Result := GLU_SMOOTH else
     Result := GLU_FLAT;
-end;
-
-function TVRMLRenderingAttributes.ColorModulated(
-  const Color: TVector3Single): TVector3Single;
-begin
-  if Assigned(ColorModulatorSingle) then
-    Result := ColorModulatorSingle(Color) else
-    Result := Color;
-end;
-
-function TVRMLRenderingAttributes.ColorModulated(
-  const Color: TVector3Byte): TVector3Byte;
-begin
-  if Assigned(ColorModulatorByte) then
-    Result := ColorModulatorByte(Color) else
-    Result := Color;
 end;
 
 { TVRMLGLRenderer ---------------------------------------------------------- }
@@ -3884,8 +3798,7 @@ begin
   end;
 
   DoGLEnable(GL_FOG);
-  DoGLFogv(GL_FOG_COLOR,
-    Vector4Single(Attributes.ColorModulated(Node.FdColor.Value), 1.0));
+  DoGLFogv(GL_FOG_COLOR, Vector4Single(Node.FdColor.Value, 1.0));
   case FogType of
     0:begin
         DoGLFogi(GL_FOG_MODE, GL_LINEAR);
@@ -4064,8 +3977,7 @@ begin
 
     { Without LightsRenderer, we would do it like this:
     glLightsFromVRML(State.CurrentActiveLights,
-      Attributes.FirstGLFreeLight, LastGLFreeLight,
-      Attributes.ColorModulatorSingle);}
+      Attributes.FirstGLFreeLight, LastGLFreeLight);}
 end;
 
 procedure TVRMLGLRenderer.RenderShapeBegin(Shape: TVRMLShape);

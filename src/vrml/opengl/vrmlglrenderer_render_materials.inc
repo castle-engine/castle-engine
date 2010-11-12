@@ -217,31 +217,27 @@ begin
   if InsideBeginEnd and MaterialFromColorEnabled then
   begin
     case MaterialFromColor of
-      GL_DIFFUSE : glColorv(Vector4f(Attributes.ColorModulated(DiffuseColor), Opacity));
-      GL_EMISSION: glColorv(Vector4f(Attributes.ColorModulated(EmissiveColor), Opacity));
+      GL_DIFFUSE : glColorv(Vector4f(DiffuseColor, Opacity));
+      GL_EMISSION: glColorv(Vector4f(EmissiveColor, Opacity));
       else raise EInternalError.Create('MaterialFromColor?');
     end;
   end else
   if MaterialLit then
   begin
-    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT,
-      Vector4f(Attributes.ColorModulated(AmbientColor), Opacity));
-    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE,
-      Vector4f(Attributes.ColorModulated(DiffuseColor), Opacity));
-    glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR,
-      Vector4f(Attributes.ColorModulated(SpecularColor), Opacity));
-    glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION,
-      Vector4f(Attributes.ColorModulated(EmissiveColor), Opacity));
+    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4f(AmbientColor, Opacity));
+    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4f(DiffuseColor, Opacity));
+    glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4f(SpecularColor, Opacity));
+    glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4f(EmissiveColor, Opacity));
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, ShininessExp);
 
     { Use also glColor for unlit things. This way this code will be able
       to work regardless of glEnable(GL_LIGHTING) state (even if we
       will put this on GL display list and then will call such list
       with various states of glEnable(GL_LIGHTING)). }
-    glColorv(Vector4f(Attributes.ColorModulated(DiffuseColor), Opacity));
+    glColorv(Vector4f(DiffuseColor, Opacity));
   end else
   begin
-    glColorv(Vector4f(Attributes.ColorModulated(UnLitColor), Opacity));
+    glColorv(Vector4f(UnLitColor, Opacity));
   end;
 end;
 
@@ -386,7 +382,7 @@ begin
      (not Attributes.ControlMaterials) then
     Exit;
 
-  glColorv(Vector4f(Attributes.ColorModulated(Color), Material_BoundOpacity));
+  glColorv(Vector4f(Color, Material_BoundOpacity));
 end;
 
 procedure TVRMLGLRenderer.SetColor(const Color: TVector4Single);
@@ -395,7 +391,5 @@ begin
      (not Attributes.ControlMaterials) then
     Exit;
 
-  { TODO: Attributes.ColorModulated not applied.
-    That's Ok, the whole idea of ColorModulated will be probably soon removed. }
   glColorv(Color);
 end;

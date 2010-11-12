@@ -115,8 +115,7 @@ begin
   if (not Attributes.PureGeometry) and
      Attributes.ControlMaterials then
     with State.LastNodes.Material do
-      glColorv(Vector4f(Attributes.ColorModulated(
-        DiffuseColor3Single(0)), Opacity(0)));
+      glColorv(DiffuseColor4Single(0));
 
   Node.CalculateRange(State.LastNodes.Coordinate3, BeginIndex, numPoints);
   glBegin(GL_POINTS);

@@ -60,7 +60,6 @@ type
   no point in setting them). }
 procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
   UseLightOnProperty: boolean;
-  ColorModulatorSingle: TColorModulatorSingleFunc;
   LightRenderEvent: TVRMLLightRenderEvent);
 
 { Set up OpenGL lights properties to correspond to given VRML lights.
@@ -79,12 +78,10 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
   @groupBegin }
 procedure glLightsFromVRML(Lights: PArray_ActiveLight; LightsCount: Integer;
   glLightNum1, glLightNum2: Integer;
-  ColorModulatorSingle: TColorModulatorSingleFunc;
   LightRenderEvent: TVRMLLightRenderEvent); overload;
 
 procedure glLightsFromVRML(Lights: TDynActiveLightArray;
   glLightNum1, glLightNum2: Integer;
-  ColorModulatorSingle: TColorModulatorSingleFunc;
   LightRenderEvent: TVRMLLightRenderEvent); overload;
 { @groupEnd }
 
@@ -108,7 +105,6 @@ type
   TVRMLGLLightsCachingRenderer = class
   private
     FGLLightNum1, FGLLightNum2: Integer;
-    FColorModulatorSingle: TColorModulatorSingleFunc;
     FLightRenderEvent: TVRMLLightRenderEvent;
     LightsKnown: boolean;
     LightsDone: array of PActiveLight;
@@ -121,7 +117,6 @@ type
     Statistics: array [boolean] of Cardinal;
 
     constructor Create(const AGLLightNum1, AGLLightNum2: Integer;
-      const AColorModulatorSingle: TColorModulatorSingleFunc;
       const ALightRenderEvent: TVRMLLightRenderEvent);
 
     { Render lights. Lights (TDynActiveLightArray) may be @nil,
@@ -131,8 +126,6 @@ type
 
     property GLLightNum1: Integer read FGLLightNum1;
     property GLLightNum2: Integer read FGLLightNum2;
-    property ColorModulatorSingle: TColorModulatorSingleFunc
-      read FColorModulatorSingle;
     property LightRenderEvent: TVRMLLightRenderEvent read FLightRenderEvent;
   end;
 
@@ -153,7 +146,6 @@ type
   private
     dlRenderLights: TGLuint; {< 0 means "not initialized" }
     FGLLightNum1, FGLLightNum2: Integer;
-    FColorModulatorSingle: TColorModulatorSingleFunc;
 
     { This is like GLLightNum2, but it's not -1.
       Initialized by CalculateRealGLLightNum2.
@@ -162,7 +154,6 @@ type
     procedure CalculateRealGLLightNum2;
     procedure SetGLLightNum1(Value: Integer);
     procedure SetGLLightNum2(Value: Integer);
-    procedure SetColorModulatorSingle(Value: TColorModulatorSingleFunc);
   public
     { Constructor. Forces you to provide values for properties that
       have no sensible (and safe) default, like GLLightNum1, GLLightNum2. }
@@ -188,9 +179,6 @@ type
       are available to use. In other words, -1 is equivalent to
       glGet(GL_MAX_LIGHT)-1. }
     property glLightNum2: Integer read FGLLightNum2 write SetGLLightNum2;
-
-    property ColorModulatorSingle: TColorModulatorSingleFunc
-      read FColorModulatorSingle write SetColorModulatorSingle; { = nil }
 
     { Set up OpenGL lights properties to correspond to given VRML lights.
       This is a wrapper around glLightsFromVRML that automatically
@@ -234,7 +222,6 @@ uses SysUtils, KambiUtils, Math;
 
 procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
   UseLightOnProperty: boolean;
-  ColorModulatorSingle: TColorModulatorSingleFunc;
   LightRenderEvent: TVRMLLightRenderEvent);
 
   procedure glLightFromVRMLLightAssumeOn;
@@ -369,23 +356,17 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
 
    finally glPopMatrix end;
 
-   { calculate Color4 = light color * light intensity,
-     eventually modulated. }
+   { calculate Color4 = light color * light intensity }
    Color3 := VectorScale(Light.LightNode.FdColor.Value,
      Light.LightNode.FdIntensity.Value);
-   if Assigned(ColorModulatorSingle) then
-     Color3 := ColorModulatorSingle(Color3);
    Color4 := Vector4f(Color3, 1);
 
-   { calculate AmbientColor4 = light color * light ambient intensity,
-     eventually modulated. }
+   { calculate AmbientColor4 = light color * light ambient intensity }
    if Light.LightNode.FdAmbientIntensity.Value < 0 then
      AmbientColor4 := Color4 else
    begin
      AmbientColor3 := VectorScale(Light.LightNode.FdColor.Value,
        Light.LightNode.FdAmbientIntensity.Value);
-     if Assigned(ColorModulatorSingle) then
-       AmbientColor3 := ColorModulatorSingle(AmbientColor3);
      AmbientColor4 := Vector4f(AmbientColor3, 1);
    end;
 
@@ -418,7 +399,6 @@ end;
 procedure glLightsFromVRML(
   Lights: PArray_ActiveLight; LightsCount: Integer;
   glLightNum1, glLightNum2: Integer;
-  ColorModulatorSingle: TColorModulatorSingleFunc;
   LightRenderEvent: TVRMLLightRenderEvent);
 var
   I: Integer;
@@ -427,14 +407,12 @@ begin
   begin
     { use all available OpenGL lights }
     for i := 0 to GLLightNum2 - GLLightNum1 do
-      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true,
-        ColorModulatorSingle, LightRenderEvent);
+      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, LightRenderEvent);
   end else
   begin
     { use some OpenGL lights for VRML lights, disable rest of the lights }
     for i := 0 to LightsCount - 1 do
-      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true,
-        ColorModulatorSingle, LightRenderEvent);
+      glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, LightRenderEvent);
     for i := LightsCount to GLLightNum2-GLLightNum1 do
       glDisable(GL_LIGHT0 + GLLightNum1 + i);
   end;
@@ -442,24 +420,21 @@ end;
 
 procedure glLightsFromVRML(Lights: TDynActiveLightArray;
   GLLightNum1, GLLightNum2: Integer;
-  ColorModulatorSingle: TColorModulatorSingleFunc;
   LightRenderEvent: TVRMLLightRenderEvent);
 begin
   glLightsFromVRML(Lights.ItemsArray, Lights.Count, GLLightNum1, GLLightNum2,
-    ColorModulatorSingle, LightRenderEvent);
+    LightRenderEvent);
 end;
 
 { TVRMLGLLightsCachingRenderer ----------------------------------------------- }
 
 constructor TVRMLGLLightsCachingRenderer.Create(
   const AGLLightNum1, AGLLightNum2: Integer;
-  const AColorModulatorSingle: TColorModulatorSingleFunc;
   const ALightRenderEvent: TVRMLLightRenderEvent);
 begin
   inherited Create;
   FGLLightNum1 := AGLLightNum1;
   FGLLightNum2 := AGLLightNum2;
-  FColorModulatorSingle := AColorModulatorSingle;
   FLightRenderEvent := ALightRenderEvent;
 
   LightsKnown := false;
@@ -510,15 +485,13 @@ begin
     { use all available OpenGL lights }
     for i := 0 to GLLightNum2 - GLLightNum1 do
       if NeedRenderLight(I, @(Lights^[i])) then
-        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true,
-          ColorModulatorSingle, LightRenderEvent);
+        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, LightRenderEvent);
   end else
   begin
     { use some OpenGL lights for VRML lights, disable rest of the lights }
     for i := 0 to LightsCount - 1 do
       if NeedRenderLight(I, @(Lights^[i])) then
-        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true,
-          ColorModulatorSingle, LightRenderEvent);
+        glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, LightRenderEvent);
     for i := LightsCount to GLLightNum2-GLLightNum1 do
       if NeedRenderLight(I, nil) then
         glDisable(GL_LIGHT0 + GLLightNum1 + i);
@@ -543,17 +516,6 @@ begin
   if FGLLightNum2 <> Value then
   begin
     FGLLightNum2 := Value;
-    GLContextClose;
-  end;
-end;
-
-procedure TVRMLGLLightSet.SetColorModulatorSingle(Value: TColorModulatorSingleFunc);
-begin
-  if {$ifndef FPC_OBJFPC} @ {$endif} Value <>
-     {$ifndef FPC_OBJFPC} @ {$endif} FColorModulatorSingle then
-  begin
-    {$ifndef FPC_OBJFPC} @ {$endif} FColorModulatorSingle :=
-    {$ifndef FPC_OBJFPC} @ {$endif} Value;
     GLContextClose;
   end;
 end;
@@ -589,7 +551,6 @@ begin
     glNewList(dlRenderLights, GL_COMPILE);
     try
       glLightsFromVRML(Lights, glLightNum1, RealGLLightNum2,
-        ColorModulatorSingle,
         { For now, LightRenderEvent is always nil here, as I didn't need
           it with TVRMLGLLightSet. There are no problems to add
           LightRenderEvent to TVRMLGLLightSet in the future. }

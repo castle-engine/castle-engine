@@ -89,12 +89,6 @@ type
   private
     szescianNieba_list: TGLuint;
     nieboTex: packed array[TBackgroundSide]of TGLuint;
-
-    FColorModulatorSingle: TColorModulatorSingleFunc;
-    FColorModulatorByte: TColorModulatorByteFunc;
-    { Return Color modulated using appropriate Attrib_ColorModulator* }
-    function ColorModulated(const Color: TVector3Single): TVector3Single; overload;
-    function ColorModulated(const Color: TVector3Byte): TVector3Byte; overload;
   public
     { rysuje wokolo punktu na ktorym stoimy niebo. Niebo jest zorientowane
       zgodnie ze standardem VRMLa - patrz specyfikacja VRMLa 97 po znaczenie
@@ -157,20 +151,14 @@ type
       spelniac odpowiednie, wyszczegolnione tam zalozenia (np. SkyColorCount > 0,
       GroundColorCount > GroundAngleCount itp.). Obrazki musza byc rodzaju
       ImageGLFormats. Mozesz tez podac ImageNone jako dowolne sposrod Images.
-      Zarowno konstruktor jak i destruktor wymagaja aktywnego gl context.
-
-      Znaczenie color modulatorow (i narzucane ograniczenia) are the same
-      as defined for TVRMLGLRenderer.Attrib_ColorModulatorSingle/Byte.
-      (it also means that they can be both nil). }
+      Zarowno konstruktor jak i destruktor wymagaja aktywnego gl context. }
     constructor Create(const Transform: TMatrix4Single;
       GroundAngle: PArray_Single; GroundAngleCount: Integer;
       GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
       const Imgs: TBackgroundImages;
       SkyAngle: PArray_Single; SkyAngleCount: Integer;
       SkyColor: PArray_Vector3Single; SkyColorCount: Integer;
-      SkySphereRadius: Single;
-      AColorModulatorSingle: TColorModulatorSingleFunc;
-      AColorModulatorByte: TColorModulatorByteFunc);
+      SkySphereRadius: Single);
     destructor Destroy; override;
   end;
 
@@ -192,20 +180,6 @@ uses DataErrors, GLImages;
 
 { TBackgroundGL ------------------------------------------------------------ }
 
-function TBackgroundGL.ColorModulated(const Color: TVector3Single): TVector3Single;
-begin
- if Assigned(FColorModulatorSingle) then
-  result := FColorModulatorSingle(Color) else
-  result := Color;
-end;
-
-function TBackgroundGL.ColorModulated(const Color: TVector3Byte): TVector3Byte;
-begin
- if Assigned(FColorModulatorByte) then
-  result := FColorModulatorByte(Color) else
-  result := Color;
-end;
-
 procedure TBackgroundGL.Render;
 begin
  glCallList(szescianNieba_list);
@@ -222,9 +196,7 @@ constructor TBackgroundGL.Create(const Transform: TMatrix4Single;
   const Imgs: TBackgroundImages;
   SkyAngle: PArray_Single; SkyAngleCount: Integer;
   SkyColor: PArray_Vector3Single; SkyColorCount: Integer;
-  SkySphereRadius: Single;
-  AColorModulatorSingle: TColorModulatorSingleFunc;
-  AColorModulatorByte: TColorModulatorByteFunc);
+  SkySphereRadius: Single);
 
 var CubeSize, CubeSize2: Single;
 
@@ -364,12 +336,6 @@ var CubeSize, CubeSize2: Single;
    glEnd;
   end;
 
-  function SkyColorModulated(Index: Integer): TVector3Single;
-  begin result := ColorModulated(SkyColor^[Index]); end;
-
-  function GroundColorModulated(Index: Integer): TVector3Single;
-  begin result := ColorModulated(GroundColor^[Index]); end;
-
 var bs: TBackgroundSide;
     TexturedSides: TBackgroundSides;
     i: Integer;
@@ -377,9 +343,6 @@ var bs: TBackgroundSide;
     SomeTexturesWithAlpha: boolean;
 begin
  inherited Create;
-
- FColorModulatorSingle := AColorModulatorSingle;
- FColorModulatorByte := AColorModulatorByte;
 
  { caly konstruktor sprowadza sie do skonstruowania display listy
    szescianNieba_list, no i do zaladowania tekstur nieboTex zeby pozniej
@@ -394,11 +357,11 @@ begin
   if (Imgs[bs] <> nil) and (not Imgs[bs].IsNull) then
   begin
    try
-     nieboTex[bs] := LoadGLTextureModulated(Imgs[bs], GL_LINEAR, GL_LINEAR,
+     nieboTex[bs] := LoadGLTexture(Imgs[bs], GL_LINEAR, GL_LINEAR,
        { poniewaz rozciagamy teksture przy pomocy GL_LINEAR a nie chce nam
          sie robic teksturze borderow - musimy uzyc GL_CLAMP_TO_EDGE
          aby uzyskac dobry efekt na krancach }
-       Texture2DClampToEdge, FColorModulatorByte);
+       Texture2DClampToEdge);
    except
      { Although texture image is already loaded in Imgs[bs],
        still texture loading may fail, e.g. with ECannotLoadS3TCTexture
@@ -458,7 +421,7 @@ begin
     begin
      { alpha ponizszego koloru nie ma znaczenia dla nas. Uzywamy 0 bo jest
        standardem (standardowo glClearColor ma alpha = wlasnie 0). }
-     glClearColorv(SkyColorModulated(0), 0);
+     glClearColorv(SkyColor^[0], 0);
      glClear(GL_COLOR_BUFFER_BIT);
     end else
     begin
@@ -470,19 +433,19 @@ begin
        lub RenderLowerStack zeby nie tracic czasu na malowanie obszaru
        ktory i tak zamalujemy przez ground. Uzywamy do tego GroundHighestAngle.
      }
-     RenderUpperStack(SkyColorModulated(0), SkyColorModulated(1), SkyAngle^[0]);
+     RenderUpperStack(SkyColor^[0], SkyColor^[1], SkyAngle^[0]);
      for i := 1 to SkyAngleCount-1 do
      begin
       if SkyAngle^[i-1] > GroundHighestAngle then Break;
-      RenderStack(SkyColorModulated(i)  , SkyAngle^[i-1],
-                  SkyColorModulated(i+1), SkyAngle^[i]);
+      RenderStack(SkyColor^[i]  , SkyAngle^[i-1],
+                  SkyColor^[i+1], SkyAngle^[i]);
      end;
      { TODO: jesli ostatni stack ma SkyAngle bliskie Pi to powinnismy renderowac
        juz ostatni stack przy uzyciu RenderLowerStack. }
      if SkyAngle^[SkyAngleCount-1] <= GroundHighestAngle then
       RenderLowerStack(
-        SkyColorModulated(SkyColorCount-1), SkyAngle^[SkyAngleCount-1],
-        SkyColorModulated(SkyColorCount-1));
+        SkyColor^[SkyColorCount-1], SkyAngle^[SkyAngleCount-1],
+        SkyColor^[SkyColorCount-1]);
     end;
 
     { render ground }
@@ -493,11 +456,11 @@ begin
        GroundAngleCount + 1 = GroundColorCount) }
      Assert(GroundAngleCount+1 = GroundColorCount, 'Ground must have exactly one more Color than Angles');
 
-     RenderLowerStack(GroundColorModulated(1), Pi-GroundAngle^[0],
-                      GroundColorModulated(0));
+     RenderLowerStack(GroundColor^[1], Pi-GroundAngle^[0],
+                      GroundColor^[0]);
      for i := 1 to GroundAngleCount-1 do
-      RenderStack(GroundColorModulated(i+1), Pi-GroundAngle^[i],
-                  GroundColorModulated(i),   Pi-GroundAngle^[i-1]);
+      RenderStack(GroundColor^[i+1], Pi-GroundAngle^[i],
+                  GroundColor^[i]  , Pi-GroundAngle^[i-1]);
     end;
    end;
 
@@ -542,8 +505,7 @@ constructor TSkyCube.Create(const Imgs: TBackgroundImages; zNear, zFar: Single);
 begin
  inherited Create(RotationMatrixRad(Pi/2, Vector3Single(1, 0, 0)),
    nil, 0, nil, 0, Imgs, nil, 0, @Black3Single, 1,
-   NearFarToSkySphereRadius(zNear, zFar),
-   nil, nil);
+   NearFarToSkySphereRadius(zNear, zFar));
 end;
 
 end.

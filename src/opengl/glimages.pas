@@ -474,21 +474,6 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   DDSForMipmaps: TDDSImage = nil); overload;
 { @groupEnd }
 
-{ Load OpenGL texture, modulating it by function ColorModulatorByte.
-  When ColorModulatorByte is assigned (not @nil), we will process image
-  by Assigned(ColorModulatorByte). Everything else
-  works exactly the same as LoadGLTexture.
-
-  If the image memory format doesn't allow editing (for example it's
-  TS3TCImage) then will make DataWarning and simply ignore ColorModulatorByte.
-
-  @raises(ETextureLoadError Raised in the same situations as LoadGLTexture.) }
-function LoadGLTextureModulated(const Image: TEncodedImage;
-  MinFilter, MagFilter: TGLenum;
-  const Wrap: TTextureWrap2D;
-  ColorModulatorByte: TColorModulatorByteFunc;
-  DDSForMipmaps: TDDSImage = nil): TGLuint;
-
 type
   { Sequence of OpenGL textures to be played as a video. }
   TGLVideo = class
@@ -514,8 +499,7 @@ type
     constructor Create(Video: TVideo;
       MinFilter, MagFilter: TGLenum;
       const Anisotropy: TGLfloat;
-      const Wrap: TTextureWrap2D;
-      ColorModulatorByte: TColorModulatorByteFunc = nil);
+      const Wrap: TTextureWrap2D);
 
     destructor Destroy; override;
 
@@ -1522,38 +1506,12 @@ begin
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
 end;
 
-function LoadGLTextureModulated(const Image: TEncodedImage;
-  MinFilter, MagFilter: TGLenum;
-  const Wrap: TTextureWrap2D;
-  ColorModulatorByte: TColorModulatorByteFunc;
-  DDSForMipmaps: TDDSImage): TGLuint;
-var
-  ImageModulated: TImage;
-begin
-  if Assigned(ColorModulatorByte) then
-  begin
-    if Image is TImage then
-    begin
-      ImageModulated := TImage(Image).MakeModulatedRGB(ColorModulatorByte);
-      try
-        Result := LoadGLTexture(ImageModulated, MinFilter, MagFilter, Wrap, false, DDSForMipmaps);
-      finally FreeAndNil(ImageModulated); end;
-    end else
-    begin
-      DataWarning('Cannot modulate S3TC compressed texture by ColorModulator, loading unmodulated');
-      Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap, false, DDSForMipmaps);
-    end;
-  end else
-    Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap, false, DDSForMipmaps);
-end;
-
 { TGLVideo ------------------------------------------------------------------- }
 
 constructor TGLVideo.Create(Video: TVideo;
   MinFilter, MagFilter: TGLenum;
   const Anisotropy: TGLfloat;
-  const Wrap: TTextureWrap2D;
-  ColorModulatorByte: TColorModulatorByteFunc = nil);
+  const Wrap: TTextureWrap2D);
 var
   I: Integer;
 begin
@@ -1566,8 +1524,7 @@ begin
   SetLength(FItems, Count);
   for I := 0 to High(FItems) do
   begin
-    FItems[I] := LoadGLTextureModulated(Video.Items[I],
-      MinFilter, MagFilter, Wrap, ColorModulatorByte);
+    FItems[I] := LoadGLTexture(Video.Items[I], MinFilter, MagFilter, Wrap);
     TexParameterMaxAnisotropy(GL_TEXTURE_2D, Anisotropy);
   end;
 

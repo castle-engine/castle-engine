@@ -1368,7 +1368,6 @@ begin
     MagFilter,
     Anisotropy,
     TextureWrap,
-    Renderer.Attributes.ColorModulatorByte,
     TextureNode.TextureDDS,
     { This way, our AlphaChannelType is calculated (or taken from cache)
       by TextureImage_IncReference }
@@ -1453,7 +1452,6 @@ begin
     MagFilter,
     Anisotropy,
     TextureWrap,
-    Renderer.Attributes.ColorModulatorByte,
     { This way, our AlphaChannelType is calculated (or taken from cache)
       by TextureVideo_IncReference }
     AlphaChannelType);
@@ -1593,7 +1591,6 @@ begin
         MagFilter,
         Anisotropy,
         TextureWrap,
-        Renderer.Attributes.ColorModulatorByte,
         nil,
         { This way, our AlphaChannelType is calculated (or taken from cache)
           by TextureImage_IncReference }
