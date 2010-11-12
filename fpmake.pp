@@ -98,7 +98,6 @@ begin
     P.Targets.AddUnit('vrmlfields.pas');
     P.Targets.AddUnit('vrmlgeometry.pas');
     P.Targets.AddUnit('vrmllexer.pas');
-    P.Targets.AddUnit('vrmllightmap.pas');
     P.Targets.AddUnit('vrmllightset.pas');
     P.Targets.AddUnit('vrmlnodes.pas');
     P.Targets.AddUnit('vrmlnodesdetailoptions.pas');
