@@ -55,17 +55,21 @@ type
     property TooltipX: Integer read GetTooltipX;
     property TooltipY: Integer read GetTooltipY;
 
-    { Called by controls within this container when some TUIControl.Cursor
-      changes. This is called by a IUIContainer interface, that's why
+    { Called by controls within this container when something could
+      change the container focused control (or it's cursor).
+      In practice, called when TUIControl.Cursor or TUIControl.PositionInside
+      results change. This is called by a IUIContainer interface, that's why
       it can remain as private method of actual container class.
 
-      This recalculates the final cursor of container, looking at
-      Container's UseControls and Cursor property of focused control.
+      This recalculates the focused control and the final cursor of
+      the container, looking at Container's UseControls,
+      testing PositionInside with current mouse position,
+      and looking at Cursor property of the focused control.
 
       When UseControls change, or when you add / remove some control
       from the Controls list, or when you move mouse (focused changes)
       this will also be automatically called
-      (since final container cursor may also change then). }
+      (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
   end;
 
@@ -427,11 +431,14 @@ type
     Procedure ReadTop(Reader: TReader);
     Procedure WriteLeft(Writer: TWriter);
     Procedure WriteTop(Writer: TWriter);
+
+    procedure SetLeft(const Value: Integer);
+    procedure SetBottom(const Value: Integer);
   protected
     procedure DefineProperties(Filer: TFiler); override;
   published
-    property Left: Integer read FLeft write FLeft stored false default 0;
-    property Bottom: Integer read FBottom write FBottom default 0;
+    property Left: Integer read FLeft write SetLeft stored false default 0;
+    property Bottom: Integer read FBottom write SetBottom default 0;
   end;
 
   TUIControlList = class(TKamObjectList)
@@ -654,6 +661,24 @@ begin
                        (longrec(DesignInfo).Lo<>Longrec(temp).Lo));
   Filer.Defineproperty('TUIControlPos_Design_Top',@readtop,@writetop,
                        (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
+end;
+
+procedure TUIControlPos.SetLeft(const Value: Integer);
+begin
+  if FLeft <> Value then
+  begin
+    FLeft := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
+end;
+
+procedure TUIControlPos.SetBottom(const Value: Integer);
+begin
+  if FBottom <> Value then
+  begin
+    FBottom := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
 end;
 
 { TUIControlList ------------------------------------------------------------- }

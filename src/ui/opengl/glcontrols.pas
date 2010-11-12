@@ -81,6 +81,8 @@ type
     procedure SetImage(const Value: TImage);
     procedure SetPressed(const Value: boolean);
     procedure SetImageLayout(const Value: TKamButtonImageLayout);
+    procedure SetWidth(const Value: Cardinal);
+    procedure SetHeight(const Value: Cardinal);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -113,8 +115,8 @@ type
     property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
     property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
   published
-    property Width: Cardinal read FWidth write FWidth default 0;
-    property Height: Cardinal read FHeight write FHeight default 0;
+    property Width: Cardinal read FWidth write SetWidth default 0;
+    property Height: Cardinal read FHeight write SetHeight default 0;
 
     { When AutoSize is @true (the default) then Width/Height are automatically
       adjusted when you change the Caption and @link(Image).
@@ -175,6 +177,8 @@ type
     FHeight: Cardinal;
     FOpacity: Single;
     FVerticalSeparators: TDynCardinalArray;
+    procedure SetWidth(const Value: Cardinal);
+    procedure SetHeight(const Value: Cardinal);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -194,8 +198,8 @@ type
     property VerticalSeparators: TDynCardinalArray read FVerticalSeparators;
     class function SeparatorSize: Cardinal;
   published
-    property Width: Cardinal read FWidth write FWidth default 0;
-    property Height: Cardinal read FHeight write FHeight default 0;
+    property Width: Cardinal read FWidth write SetWidth default 0;
+    property Height: Cardinal read FHeight write SetHeight default 0;
 
     { Opacity (1 - transparency) with which control is drawn.
       When this is < 1, we draw control with nice blending.
@@ -578,8 +582,11 @@ var
 begin
   if AutoSize then
   begin
-    if AutoSizeWidth then Width := TextWidth + HorizontalMargin * 2;
-    if AutoSizeHeight then Height := TextHeight + VerticalMargin * 2;
+    { We modify FWidth, FHeight directly,
+      to avoid causing UpdateFocusAndMouseCursor too many times.
+      We'll call it at the end explicitly. }
+    if AutoSizeWidth then FWidth := TextWidth + HorizontalMargin * 2;
+    if AutoSizeHeight then FHeight := TextHeight + VerticalMargin * 2;
     if (FImage <> nil) or
        (MinImageWidth <> 0) or
        (MinImageHeight <> 0) then
@@ -590,8 +597,8 @@ begin
           ImgSize := Max(FImage.Width, MinImageWidth) else
           ImgSize := MinImageWidth;
         case ImageLayout of
-          ilLeft, ilRight: Width := Width + ImgSize + ButtonCaptionImageMargin;
-          ilTop, ilBottom: Width := Max(Width, ImgSize + HorizontalMargin * 2);
+          ilLeft, ilRight: FWidth := Width + ImgSize + ButtonCaptionImageMargin;
+          ilTop, ilBottom: FWidth := Max(Width, ImgSize + HorizontalMargin * 2);
         end;
       end;
       if AutoSizeHeight then
@@ -600,11 +607,14 @@ begin
           ImgSize := Max(FImage.Height, MinImageHeight) else
           ImgSize := MinImageHeight;
         case ImageLayout of
-          ilLeft, ilRight: Height := Max(Height, ImgSize + VerticalMargin * 2);
-          ilTop, ilBottom: Height := Height + ImgSize + ButtonCaptionImageMargin;
+          ilLeft, ilRight: FHeight := Max(Height, ImgSize + VerticalMargin * 2);
+          ilTop, ilBottom: FHeight := Height + ImgSize + ButtonCaptionImageMargin;
         end;
       end;
     end;
+
+    if (AutoSizeWidth or AutoSizeHeight) and (Container <> nil) then
+      Container.UpdateFocusAndMouseCursor;
   end;
 end;
 
@@ -668,6 +678,24 @@ begin
     FImageLayout := Value;
     UpdateSize;
     VisibleChange;
+  end;
+end;
+
+procedure TKamGLButton.SetWidth(const Value: Cardinal);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
+end;
+
+procedure TKamGLButton.SetHeight(const Value: Cardinal);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
   end;
 end;
 
@@ -774,6 +802,24 @@ end;
 class function TKamPanel.SeparatorSize: Cardinal;
 begin
   Result := 2;
+end;
+
+procedure TKamPanel.SetWidth(const Value: Cardinal);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
+end;
+
+procedure TKamPanel.SetHeight(const Value: Cardinal);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
 end;
 
 { TKamGLImage ---------------------------------------------------------------- }
