@@ -1375,6 +1375,8 @@ var
       glColor3f(1, 1, 1);
       Shader.Enable;
         Shader.SetUniform('screen', 0);
+        Shader.SetUniform('screen_width', ScreenEffectTextureWidth);
+        Shader.SetUniform('screen_height', ScreenEffectTextureHeight);
         glBegin(GL_QUADS);
           glTexCoord2i(0, 0);
           glVertex2i(0, 0);

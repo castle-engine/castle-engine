@@ -145,7 +145,10 @@ type
     uaWarningAlsoOnTypeMismatch,
 
     { Report that uniform variable not found by raising EGLSLUniformNotFound. }
-    uaException);
+    uaException,
+
+    { Ignore that uniform doesn't exist. Do not warn. }
+    uaIgnore);
 
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
@@ -1153,6 +1156,7 @@ begin
   case UniformNotFoundAction of
     uaWarning, uaWarningAlsoOnTypeMismatch: DataWarning(S);
     uaException: raise EGLSLUniformNotFound.Create(S);
+    uaIgnore: ;
     else raise EInternalError.Create('UniformNotFoundAction? in TGLSLProgram.UniformNotFound');
   end;
 end;
