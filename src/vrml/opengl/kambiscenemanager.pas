@@ -1466,7 +1466,15 @@ begin
       ScreenEffectTextureWidth := CorrectWidth;
       ScreenEffectTextureHeight := CorrectHeight;
       { We use two textures: ScreenEffectTextureDest is the destination
-        of framebuffer, ScreenEffectTextureSrc is the source to render. }
+        of framebuffer, ScreenEffectTextureSrc is the source to render.
+
+        Although for some effects one texture (both src and dest) is enough.
+        But when you have > 1 effect and one of the effects has non-local
+        operations (they read color values that can be modified by operations
+        of the same shader, so it's undefined (depends on how shaders are
+        executed in parallel) which one is first) then the artifacts are
+        visible. For example, use view3dscene "Edge Detect" effect +
+        any other effect. }
       ScreenEffectTextureDest := CreateScreenEffectTexture;
       ScreenEffectTextureSrc := CreateScreenEffectTexture;
 
