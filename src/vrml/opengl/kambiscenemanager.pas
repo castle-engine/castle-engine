@@ -57,6 +57,8 @@ type
     ScreenEffectTextureWidth: Cardinal;
     ScreenEffectTextureHeight: Cardinal;
     ScreenEffectRTT: TGLRenderToTexture;
+    { Saved ScreenEffectsCount result, during rendering of ScreenEffect. }
+    CurrentScreenEffectsCount: Integer;
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
   protected
@@ -1398,7 +1400,7 @@ begin
   begin
     { Render all except the last screen effects: from texture
       (ScreenEffectTextureDest/Src) and to texture (using ScreenEffectRTT) }
-    for I := 0 to ScreenEffectsCount - 2 do
+    for I := 0 to CurrentScreenEffectsCount - 2 do
     begin
       ScreenEffectRTT.RenderBegin;
       ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, GL_TEXTURE_RECTANGLE_ARB);
@@ -1413,7 +1415,7 @@ begin
       glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
 
     { the last effect gets a texture, and renders straight into screen }
-    RenderOneEffect(ScreenEffects[ScreenEffectsCount - 1]);
+    RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
   end;
 end;
 
@@ -1443,7 +1445,12 @@ begin
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(ACamera);
 
-  if GL_ARB_texture_rectangle and (ScreenEffectsCount <> 0) then
+  { save ScreenEffectsCount result, to not recalculate it, and also to make
+    the following code stable --- this way we can assume CurrentScreenEffectsCount
+    will remain  constant during one render. }
+  CurrentScreenEffectsCount := ScreenEffectsCount;
+
+  if GL_ARB_texture_rectangle and (CurrentScreenEffectsCount <> 0) then
   begin
     { We need a temporary texture rectangle, for screen effect. }
     if (ScreenEffectTextureDest = 0) or
