@@ -1607,7 +1607,9 @@ begin
 
   RenderToTexture := TGLRenderToTexture.Create(Width, Height);
   RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
-  RenderToTexture.DepthTexture := DepthMap;
+  if DepthMap then
+    RenderToTexture.Buffer := tbDepth else
+    RenderToTexture.Buffer := tbColor;
   RenderToTexture.Stencil := not DepthMap;
   RenderToTexture.GLContextInit;
 end;
@@ -2309,7 +2311,9 @@ begin
 
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
   RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
-  RenderToTexture.DepthTexture := not VarianceShadowMaps;
+  if VarianceShadowMaps then
+    RenderToTexture.Buffer := tbColor else
+    RenderToTexture.Buffer := tbDepth;
   RenderToTexture.Stencil := false;
   RenderToTexture.GLContextInit;
 end;

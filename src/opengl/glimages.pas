@@ -633,6 +633,8 @@ type
   EFramebufferSizeTooLow = class(EFramebufferError);
   EFramebufferInvalid  = class(EFramebufferError);
 
+  TGLRenderToTextureBuffer = (tbColor, tbDepth, tbColorAndDepth);
+
   { Rendering to texture with OpenGL.
     Uses framebuffer (if available), and has fallback to glCopyTexSubImage2D
     for (really) old OpenGL implementations. }
@@ -644,8 +646,9 @@ type
     FTexture: TGLuint;
     FTextureTarget: TGLenum;
     FCompleteTextureTarget: TGLenum;
-    FDepthTexture: boolean;
+    FBuffer: TGLRenderToTextureBuffer;
     FStencil: boolean;
+    FDepthTexture: TGLuint;
 
     FInitializedGL: boolean;
     Framebuffer, RenderbufferDepth, RenderbufferStencil: TGLuint;
@@ -667,7 +670,10 @@ type
     property Height: Cardinal read FHeight write FHeight;
     { @groupEnd }
 
-    { Texture associated with rendered color buffer of rendered image.
+    { Texture associated with rendered the buffer of rendered image.
+      If @link(Buffer) is tbColor or tbColorAndDepth then we will capture
+      here color contents. If @link(Buffer) is tbDepth then we will capture
+      here depth contents (useful e.g. for shadow maps).
 
       We currently require this texture to be set to valid texture (not 0)
       before GLContextInit. Also, if you later change it,
@@ -679,7 +685,7 @@ type
       Changed by SetTexture. }
     property Texture: TGLuint read FTexture default 0;
 
-    { Target of texture associated with rendered color buffer.
+    { Target of texture associated with rendered buffer.
       This is GL_TEXTURE2D for normal 2D textures, but may also be
       GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP_POSITIVE_X etc. for
       other texture types.
@@ -708,28 +714,41 @@ type
     property CompleteTextureTarget: TGLenum
       read FCompleteTextureTarget write FCompleteTextureTarget default GL_TEXTURE_2D;
 
-    { Is this a depth texture intended for depth buffer.
-      This is suitable for rendering shadow maps. The texture is assumed
-      to have GL_DEPTH_COMPONENT* format, and we'll render depth buffer
-      contents to it.
+    { Depth texture used when @link(Buffer) = tbColorAndDepth.
+      Note that this is not used when @link(Buffer) = tbDepth
+      (the @link(Texture) is used then).
+      This must be set before GLContextInit, and not modified later
+      until GLContextClose. }
+    property DepthTexture: TGLuint read FDepthTexture write FDepthTexture;
 
-      If framebuffer is used, we will not use color buffer anywhere
-      in this case.
+    { Which buffer (color and/or depth) should we catch to the texture.
 
-      This must be set before GLContextInit, cannot be changed later.
+      @unorderedList(
+        @item(tbColor: the @link(Texture) will contain color contents.)
+        @item(tbDepth: the @link(Texture) will contain depth contents.)
+        @item(tbColorAndDepth: the @link(Texture) will contain color
+          contents, the @link(DepthTexture) will contain depth contents.)
+      )
 
-      Possibly, in the future this will be more flexible, to allow
-      attaching both color and/or depth textures. For now, this simple
-      property is... well, simple and it's all that is needed for shadow maps :) }
-    property DepthTexture: boolean
-      read FDepthTexture write FDepthTexture default false;
+      For tbDepth and tbColorAndDepth, the texture that will receive
+      depth contents must have GL_DEPTH_COMPONENT* format,
+      and we'll render depth buffer contents to it.
+
+      For tbDepth, if the framebuffer is used (normal on recent GPUs),
+      we will not write to the color buffer at all,
+      so this is quite optimal for rendering shadow maps.
+
+      This must be set before GLContextInit, cannot be changed later. }
+    property Buffer: TGLRenderToTextureBuffer
+      read FBuffer write FBuffer default tbColor;
 
     { Should we require stencil buffer.
 
-      This is usually safe, as FBO spec says even requires that some format
+      This is usually safe, as FBO spec even requires that some format
       with stencil buffer must be available.
 
-      However, @italic(this has a high chance to fail if you need DepthTexture).
+      However, @italic(this has a high chance to fail if you need
+      @link(Buffer) = tbDepth or tbColorAndDepth).
       Reason: on GPU with packed depth and stencil buffer
       (see http://www.opengl.org/registry/specs/EXT/packed_depth_stencil.txt)
       FBO with separate depth and stencil may not be possible.
@@ -737,7 +756,7 @@ type
       In the future, we could allow some flag to allow you to use texture
       with GL_DEPTH_STENCIL format, this would work with packed depth/stencil
       (actually, even require it). For now, @italic(it's adviced to turn
-      off @name when you use DepthTexture). }
+      off @name when you use @link(Buffer) = tbDepth or tbColorAndDepth). }
     property Stencil: boolean
       read FStencil write FStencil default true;
 
@@ -2043,45 +2062,55 @@ begin
     glGenFramebuffersEXT(1, @Framebuffer);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
 
-    if DepthTexture then
-    begin
-      { Needed to consider FBO "complete" }
-      glDrawBuffer(GL_NONE);
-      glReadBuffer(GL_NONE);
+    case Buffer of
+      tbColor:
+        begin
+          glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
 
-      glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, TextureTarget, Texture, 0);
+          { When EXT_packed_depth_stencil is present, and stencil is wanted
+            (a very common case!, as most GPUs have EXT_packed_depth_stencil
+            and for shadow volumes we want stencil) we desperately want to
+            use one renderbuffer with combined depth/stencil info.
+            Other possibilities may be not available at all (e.g. Radeon on chantal,
+            but probably most GPUs with EXT_packed_depth_stencil). }
 
-      if Stencil then
-      begin
-        { only separate stencil buffer possible in this case }
-        AttachSeparateStencilRenderbuffer;
-      end;
-    end else
-    begin
-      glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
+          if Stencil and GL_EXT_packed_depth_stencil then
+            DepthBufferFormat := GL_DEPTH_STENCIL_EXT else
+            DepthBufferFormat := GL_DEPTH_COMPONENT;
 
-      { When EXT_packed_depth_stencil is present, and stencil is wanted
-        (a very common case!, as most GPUs have EXT_packed_depth_stencil
-        and for shadow volumes we want stencil) we desperately want to
-        use one renderbuffer with combined depth/stencil info.
-        Other possibilities may be not available at all (e.g. Radeon on chantal,
-        but probably most GPUs with EXT_packed_depth_stencil). }
+          glGenRenderbuffersEXT(1, @RenderbufferDepth);
+          glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferDepth);
+          glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, DepthBufferFormat, Width, Height);
+          glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
 
-      if Stencil and GL_EXT_packed_depth_stencil then
-        DepthBufferFormat := GL_DEPTH_STENCIL_EXT else
-        DepthBufferFormat := GL_DEPTH_COMPONENT;
+          if Stencil then
+          begin
+            if GL_EXT_packed_depth_stencil then
+              glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth) else
+              AttachSeparateStencilRenderbuffer;
+          end;
+        end;
+      tbDepth:
+        begin
+          { Needed to consider FBO "complete" }
+          glDrawBuffer(GL_NONE);
+          glReadBuffer(GL_NONE);
 
-      glGenRenderbuffersEXT(1, @RenderbufferDepth);
-      glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferDepth);
-      glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, DepthBufferFormat, Width, Height);
-      glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
+          glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, TextureTarget, Texture, 0);
 
-      if Stencil then
-      begin
-        if GL_EXT_packed_depth_stencil then
-          glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth) else
-          AttachSeparateStencilRenderbuffer;
-      end;
+          if Stencil then
+            { only separate stencil buffer possible in this case }
+            AttachSeparateStencilRenderbuffer;
+        end;
+      tbColorAndDepth:
+        begin
+          glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
+          glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, DepthTexture, 0);
+          if Stencil then
+            { only separate stencil buffer possible in this case }
+            AttachSeparateStencilRenderbuffer;
+        end;
+      else raise EInternalError.Create('Buffer 1?');
     end;
 
     Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
@@ -2101,7 +2130,7 @@ begin
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-    if DepthTexture then
+    if Buffer = tbDepth then
     begin
       glDrawBuffer(GL_BACK);
       glReadBuffer(GL_BACK);
@@ -2146,7 +2175,7 @@ begin
       glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
       FramebufferBound := true;
 
-      if DepthTexture then
+      if Buffer = tbDepth then
       begin
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
@@ -2204,7 +2233,7 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 
 begin
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
-  if not DepthTexture then
+  if Buffer <> tbDepth then
     SaveColor('/tmp/framebuffer_color.png');
 {$endif DEBUG_SAVE_FRAMEBUFFER_COLOR}
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
@@ -2219,7 +2248,7 @@ begin
       glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
       FramebufferBound := false;
 
-      if DepthTexture then
+      if Buffer = tbDepth then
       begin
         glDrawBuffer(GL_BACK);
         glReadBuffer(GL_BACK);
