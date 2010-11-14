@@ -1114,7 +1114,16 @@ type
     procedure EventReceiveGLSLUniform(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
 
+    { Creates and links appropriate TGLSLProgram.
+      Takes care of sending ComposedShader.isSelected, isValid event.
+      Returns nil (and does VRMLWarning) if program cannot be linked. }
     function GLSLProgram_IncReference(
+      ProgramNode: TNodeComposedShader;
+      AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
+    { Creates and links appropriate TGLSLProgram.
+      Takes care of sending ComposedShader.isValid event (but not isSelected).
+      @raises EGLSLError In case program cannot be linked. }
+    function GLSLProgram_IncReference_Core(
       ProgramNode: TNodeComposedShader;
       AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
     procedure GLSLProgram_DecReference(var GLSLProgram: TGLSLProgram);
@@ -2572,7 +2581,7 @@ begin
     [Event.Name]));
 end;
 
-function TVRMLGLRendererContextCache.GLSLProgram_IncReference(
+function TVRMLGLRendererContextCache.GLSLProgram_IncReference_Core(
   ProgramNode: TNodeComposedShader;
   AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
 
@@ -2707,10 +2716,8 @@ begin
     ProgramNode.EventIsValid.Send(true);
   except
     { In case of problems with initializing GLSL program, free the program
-      and reraise exception. Caller of GLSLProgram_IncReference will
-      decide what to do with it (TVRMLGLRenderer will make VRMLWarning
-      and record that this shader program failed to initialize by recording
-      GLSLProgram = nil). }
+      and reraise exception. Outer GLSLProgram_IncReference
+      will take care of converting it to VRMLWarning. }
     FreeAndNil(Result);
     ProgramNode.EventIsValid.Send(false);
     raise;
@@ -2724,6 +2731,26 @@ begin
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
   Writeln('++ : GLSL program ' + ProgramNode.DescribeUsedUrls + ' : ', 1);
   {$endif}
+end;
+
+function TVRMLGLRendererContextCache.GLSLProgram_IncReference(
+  ProgramNode: TNodeComposedShader;
+  AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
+begin
+  try
+    Result := GLSLProgram_IncReference_Core(ProgramNode, AAttributes);
+    ProgramNode.EventIsSelected.Send(true);
+  except
+    { EGLSLError catches errors from Cache.GLSLProgram_IncReference_Core,
+      including GLShaders errors like
+      EGLSLShaderCompileError or EGLSLProgramLinkError }
+    on E: EGLSLError do
+    begin
+      VRMLWarning(vwSerious, 'Error when initializing GLSL shader : ' + E.Message);
+      Result := nil;
+      ProgramNode.EventIsSelected.Send(false);
+    end;
+  end;
 end;
 
 procedure TVRMLGLRendererContextCache.GLSLProgram_DecReference(

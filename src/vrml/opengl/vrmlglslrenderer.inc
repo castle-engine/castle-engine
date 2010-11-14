@@ -111,25 +111,13 @@ procedure TGLSLRenderer.Prepare(State: TVRMLGraphTraverseState);
   end;
 
 begin
-  try
-    GLSLProgram := Renderer.Cache.GLSLProgram_IncReference(Node, Renderer.Attributes);
-    Node.EventIsSelected.Send(true);
+  GLSLProgram := Renderer.Cache.GLSLProgram_IncReference(Node, Renderer.Attributes);
 
+  if GLSLProgram <> nil then
     { Only if GLSL program successfully created, prepare all texture nodes
       in Node.InterfaceDeclarations. These will be passed to uniform
       variable values in Enable. }
     PrepareShaderFields(Node.InterfaceDeclarations);
-  except
-    { EGLSLError catches errors from Cache.GLSLProgram_IncReference,
-      including GLShaders errors like
-      EGLSLShaderCompileError or EGLSLProgramLinkError }
-    on E: EGLSLError do
-    begin
-      VRMLWarning(vwSerious, 'Error when initializing GLSL shader : ' + E.Message);
-      GLSLProgram := nil;
-      Node.EventIsSelected.Send(false);
-    end;
-  end;
 end;
 
 procedure TGLSLRenderer.Unprepare;
