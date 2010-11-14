@@ -279,6 +279,7 @@ var
   ProgramNode: TNodeComposedShader;
   GLSLProgram: TGLSLProgram;
   GLSLRenderer: TGLSLRenderer;
+  Shaders: TMFNodeShaders;
 begin
   { prepare GLSLProgram }
   if (not ARenderer.Attributes.PureGeometry) and
@@ -286,9 +287,10 @@ begin
      (State.ShapeNode <> nil) and
      (State.ShapeNode.Appearance <> nil) then
   begin
-    for I := 0 to State.ShapeNode.Appearance.FdShaders.Items.Count - 1 do
+    Shaders := State.ShapeNode.Appearance.FdShaders;
+    for I := 0 to Shaders.Count - 1 do
     begin
-      ProgramNode := State.ShapeNode.Appearance.FdShaders.GLSLShader(I);
+      ProgramNode := Shaders.GLSLShader(I);
       if ProgramNode <> nil then
       begin
         GLSLRenderer := Node(ProgramNode);
@@ -316,8 +318,8 @@ begin
         { GLSLShader(I) is nil, so this is not appropriate node class
           or "language" field was bad.
           So at least send him "isSelected" = false, if it's X3DShaderNode. }
-        if State.ShapeNode.Appearance.FdShaders.Items[I] is TNodeX3DShaderNode then
-          (State.ShapeNode.Appearance.FdShaders.Items[I] as TNodeX3DShaderNode).EventIsSelected.Send(false);
+        if Shaders.Items[I] is TNodeX3DShaderNode then
+          (Shaders.Items[I] as TNodeX3DShaderNode).EventIsSelected.Send(false);
       end;
     end;
   end;
@@ -328,14 +330,16 @@ function TGLSLRenderersList.Enable(State: TVRMLGraphTraverseState;
 var
   I: Integer;
   ProgramNode: TNodeComposedShader;
+  Shaders: TMFNodeShaders;
 begin
   Result := nil;
   if (State.ShapeNode <> nil) and
      (State.ShapeNode.Appearance <> nil) then
   begin
-    for I := 0 to State.ShapeNode.Appearance.FdShaders.Items.Count - 1 do
+    Shaders := State.ShapeNode.Appearance.FdShaders;
+    for I := 0 to Shaders.Count - 1 do
     begin
-      ProgramNode := State.ShapeNode.Appearance.FdShaders.GLSLShader(I);
+      ProgramNode := Shaders.GLSLShader(I);
       if ProgramNode <> nil then
       begin
         Result := Node(ProgramNode);
