@@ -187,13 +187,11 @@ begin
       'uniform sampler2DRect screen;' +NL+
       'void main (void)' +NL+
       '{' +NL+
-//      '  gl_FragColor = texture2DRect(screen, gl_TexCoord[0].st);' +NL+
-//      '  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0) - texture2DRect(screen, gl_TexCoord[0].st);' +NL+
       '  gl_FragColor = ( texture2DRect(screen, vec2(gl_TexCoord[0].s - 1.0, gl_TexCoord[0].t)) - texture2DRect(screen, vec2(gl_TexCoord[0].s + 1.0, gl_TexCoord[0].t)) ) + vec4(1.0) / 2.0;' +NL+
       '}');
     { For this test program, we eventually allow shader to run in software }
     GLSLProgram.Link(false);
-    GLSLProgram.UniformNotFoundAction := uaWarning; //uaWarningAlsoOnTypeMismatch;
+    GLSLProgram.UniformNotFoundAction := uaIgnore;
     Writeln(GLSLProgram.DebugInfo);
   end;
 end;
