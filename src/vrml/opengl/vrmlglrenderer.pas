@@ -1115,18 +1115,11 @@ type
       const Time: TVRMLTime);
 
     { Creates and links appropriate TGLSLProgram.
-      Takes care of sending ComposedShader.isSelected, isValid event.
-      Returns nil (and does VRMLWarning) if program cannot be linked. }
-    function GLSLProgram_IncReference(
-      ProgramNode: TNodeComposedShader;
-      AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
-    { Creates and links appropriate TGLSLProgram.
       Takes care of sending ComposedShader.isValid event (but not isSelected).
       @raises EGLSLError In case program cannot be linked. }
     function GLSLProgram_IncReference_Core(
       ProgramNode: TNodeComposedShader;
       AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
-    procedure GLSLProgram_DecReference(var GLSLProgram: TGLSLProgram);
   public
     constructor Create;
     destructor Destroy; override;
@@ -1190,6 +1183,14 @@ type
 
     procedure RenderEnd_DecReference(
       const GLList: TGLuint);
+
+    { Creates and links appropriate TGLSLProgram.
+      Takes care of sending ComposedShader.isSelected, isValid event.
+      Returns nil (and does VRMLWarning) if program cannot be linked. }
+    function GLSLProgram_IncReference(
+      ProgramNode: TNodeComposedShader;
+      AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
+    procedure GLSLProgram_DecReference(const GLSLProgram: TGLSLProgram);
   end;
 
   TVRMLGLRenderer = class;
@@ -2754,7 +2755,7 @@ begin
 end;
 
 procedure TVRMLGLRendererContextCache.GLSLProgram_DecReference(
-  var GLSLProgram: TGLSLProgram);
+  const GLSLProgram: TGLSLProgram);
 var
   I, J: Integer;
   GLSLProgramCache: PGLSLProgramCache;
