@@ -300,7 +300,7 @@ begin
   begin
     for I := 0 to State.ShapeNode.Appearance.FdShaders.Items.Count - 1 do
     begin
-      ProgramNode := State.ShapeNode.Appearance.GLSLShader(I);
+      ProgramNode := State.ShapeNode.Appearance.FdShaders.GLSLShader(I);
       if ProgramNode <> nil then
       begin
         GLSLRenderer := Node(ProgramNode);
@@ -347,7 +347,7 @@ begin
   begin
     for I := 0 to State.ShapeNode.Appearance.FdShaders.Items.Count - 1 do
     begin
-      ProgramNode := State.ShapeNode.Appearance.GLSLShader(I);
+      ProgramNode := State.ShapeNode.Appearance.FdShaders.GLSLShader(I);
       if ProgramNode <> nil then
       begin
         Result := Node(ProgramNode);

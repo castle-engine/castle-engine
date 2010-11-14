@@ -1508,7 +1508,7 @@ begin
 
     for I := 0 to State.ShapeNode.Appearance.FdShaders.Items.Count - 1 do
     begin
-      ComposedShader := State.ShapeNode.Appearance.GLSLShader(I);
+      ComposedShader := State.ShapeNode.Appearance.FdShaders.GLSLShader(I);
       if ComposedShader <> nil then
         HandleShaderFields(ComposedShader.InterfaceDeclarations);
     end;

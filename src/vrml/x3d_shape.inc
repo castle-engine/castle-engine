@@ -79,6 +79,16 @@
     public property FdoctreeTriangles: TSFNode read FFdoctreeTriangles;
   end;
 
+  TMFNodeShaders = class(TMFNode)
+  protected
+    function ExposedEventsFieldClass: TVRMLFieldClass; override;
+  public
+    { Returns Items[Index], if it's a shader node suitable
+      for GLSL  shader. Otherwise returns @nil. Checks the class of
+      Items[Index] and it's @code(language) field. }
+    function GLSLShader(Index: Integer): TNodeComposedShader;
+  end;
+
   TNodeAppearance = class(TNodeX3DAppearanceNode)
   protected
     procedure DirectEnumerateActive(
@@ -99,8 +109,8 @@
     private FFdmaterial: TSFNode;
     public property Fdmaterial: TSFNode read FFdmaterial;
 
-    private FFdshaders: TMFNode;
-    public property Fdshaders: TMFNode read FFdshaders;
+    private FFdshaders: TMFNodeShaders;
+    public property Fdshaders: TMFNodeShaders read FFdshaders;
 
     private FFdtexture: TSFNode;
     public property Fdtexture: TSFNode read FFdtexture;
@@ -113,11 +123,6 @@
 
     private FFdShadowCaster: TSFBool;
     public property FdShadowCaster: TSFBool read FFdShadowCaster;
-
-    { This returns FdShaders.Items[Index], if it's a shader node suitable for GLSL
-      shader. Otherwise returns @nil. This checks the class of
-      FdShaders.Items[Index] and it's @code(language) field. }
-    function GLSLShader(Index: Integer): TNodeComposedShader;
   end;
 
   TNodeFillProperties = class(TNodeX3DAppearanceChildNode)
@@ -502,7 +507,7 @@ begin
    Fdmaterial.ChangesAlways := [chEverything];
   Fields.Add(FFdmaterial);
 
-  FFdshaders := TMFNode.Create(Self, 'shaders', [TNodeX3DShaderNode]);
+  FFdshaders := TMFNodeShaders.Create(Self, 'shaders', [TNodeX3DShaderNode]);
    Fdshaders.ChangesAlways := [chEverything];
   Fields.Add(FFdshaders);
 
@@ -551,11 +556,16 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeAppearance.GLSLShader(Index: Integer): TNodeComposedShader;
+function TMFNodeShaders.ExposedEventsFieldClass: TVRMLFieldClass;
 begin
-  if FdShaders.Items[Index] is TNodeComposedShader then
+  Result := TMFNode;
+end;
+
+function TMFNodeShaders.GLSLShader(Index: Integer): TNodeComposedShader;
+begin
+  if Items[Index] is TNodeComposedShader then
   begin
-    Result := TNodeComposedShader(FdShaders.Items[Index]);
+    Result := TNodeComposedShader(Items[Index]);
     if not ((Result.FdLanguage.Value = '') or
             (Result.FdLanguage.Value = 'GLSL')) then
       Result := nil;
