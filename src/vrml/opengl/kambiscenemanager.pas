@@ -50,15 +50,17 @@ type
     FAlwaysApplyProjection: boolean;
 
     { If a texture rectangle for screen effects is ready, then
-      ScreenEffectTextureDest/Src are non-zero and ScreenEffectRTT is non-nil.
+      ScreenEffectTextureDest/Src/Depth are non-zero and ScreenEffectRTT is non-nil.
       Also, ScreenEffectTextureWidth/Height indicate size of the texture,
       as well as ScreenEffectRTT.Width/Height. }
     ScreenEffectTextureDest, ScreenEffectTextureSrc: TGLuint;
+    ScreenEffectTextureDepth: TGLuint;
     ScreenEffectTextureWidth: Cardinal;
     ScreenEffectTextureHeight: Cardinal;
     ScreenEffectRTT: TGLRenderToTexture;
-    { Saved ScreenEffectsCount result, during rendering of ScreenEffect. }
+    { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
     CurrentScreenEffectsCount: Integer;
+    CurrentScreenEffectsNeedDepth: boolean;
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
   protected
@@ -283,13 +285,14 @@ type
       By default, screen effects come from GetMainScene.ScreenEffects,
       so the effects may be defined by VRML/X3D author using ScreenEffect
       nodes (see TODO docs).
-      Descendants may override GetScreenEffects and ScreenEffectsCount,
-      to add screen effects by code. Possibly each viewport may have it's
-      own, different screen effects.
+      Descendants may override GetScreenEffects, ScreenEffectsCount,
+      and ScreenEffectsNeedDepth to add screen effects by code.
+      Each viewport may have it's own, different screen effects.
 
       @groupBegin }
     property ScreenEffects [Index: Integer]: TGLSLProgram read GetScreenEffects;
     function ScreenEffectsCount: Integer; virtual;
+    function ScreenEffectsNeedDepth: boolean; virtual;
     { @groupEnd }
 
     procedure GLContextClose; override;
@@ -824,7 +827,7 @@ procedure Register;
 implementation
 
 uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit, RaysWindow, GLExt,
-  KambiLog;
+  KambiLog, KambiStringUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1368,7 +1371,15 @@ var
   begin
     with Viewport do
     begin
+      glActiveTextureARB(GL_TEXTURE0_ARB); // GL_ARB_multitexture is already checked
       glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTextureSrc);
+
+      if CurrentScreenEffectsNeedDepth then
+      begin
+        glActiveTextureARB(GL_TEXTURE1_ARB);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTextureDepth);
+      end;
+
       glLoadIdentity();
       { Although shaders will typically ignore glColor, for consistency
         we want to have a fully determined state. That is, this must work
@@ -1377,8 +1388,15 @@ var
       glColor3f(1, 1, 1);
       Shader.Enable;
         Shader.SetUniform('screen', 0);
+        if CurrentScreenEffectsNeedDepth then
+          Shader.SetUniform('screen_depth', 1);
         Shader.SetUniform('screen_width', ScreenEffectTextureWidth);
         Shader.SetUniform('screen_height', ScreenEffectTextureHeight);
+
+        { Note that there's no need to worry about CorrectLeft / CorrectBottom,
+          here or inside RenderScreenEffect, because we're already within
+          glViewport that takes care of this. }
+
         glBegin(GL_QUADS);
           glTexCoord2i(0, 0);
           glVertex2i(0, 0);
@@ -1423,7 +1441,7 @@ procedure TKamAbstractViewport.RenderOnScreen(ACamera: TCamera);
 
   { Create and setup new OpenGL texture rectangle for screen effects.
     Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
-  function CreateScreenEffectTexture: TGLuint;
+  function CreateScreenEffectTexture(const Depth: boolean): TGLuint;
   begin
     { create new texture rectangle. }
     glGenTextures(1, @Result);
@@ -1436,31 +1454,45 @@ procedure TKamAbstractViewport.RenderOnScreen(ACamera: TCamera);
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, KamGL_CLAMP_TO_EDGE);
     { We never load image contents, so we also do not have to care about
       pixel packing. }
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGB8,
-      ScreenEffectTextureWidth,
-      ScreenEffectTextureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nil);
+    if Depth then
+    begin
+      glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_DEPTH_COMPONENT,
+        ScreenEffectTextureWidth,
+        ScreenEffectTextureHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nil);
+      //glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+      //glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
+    end else
+      glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGB8,
+        ScreenEffectTextureWidth,
+        ScreenEffectTextureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nil);
   end;
 
 begin
   RenderState.Target := rtScreen;
   RenderState.CameraFromCameraObject(ACamera);
 
-  { save ScreenEffectsCount result, to not recalculate it, and also to make
-    the following code stable --- this way we can assume CurrentScreenEffectsCount
-    will remain  constant during one render. }
+  { save ScreenEffectsCount/NeedDepth result, to not recalculate it,
+    and also to make the following code stable --- this way we know
+    CurrentScreenEffects* values are constant, even if overridden
+    ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
 
-  if GL_ARB_texture_rectangle and (CurrentScreenEffectsCount <> 0) then
+  if GL_ARB_texture_rectangle and GL_ARB_multitexture and
+    (CurrentScreenEffectsCount <> 0) then
   begin
+    CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
+
     { We need a temporary texture rectangle, for screen effect. }
     if (ScreenEffectTextureDest = 0) or
        (ScreenEffectTextureSrc = 0) or
+       (CurrentScreenEffectsNeedDepth and (ScreenEffectTextureDepth = 0)) or
        (ScreenEffectRTT = nil) or
        (ScreenEffectTextureWidth  <> CorrectWidth ) or
        (ScreenEffectTextureHeight <> CorrectHeight) then
     begin
       glFreeTexture(ScreenEffectTextureDest);
       glFreeTexture(ScreenEffectTextureSrc);
+      glFreeTexture(ScreenEffectTextureDepth);
       FreeAndNil(ScreenEffectRTT);
 
       ScreenEffectTextureWidth := CorrectWidth;
@@ -1475,20 +1507,33 @@ begin
         executed in parallel) which one is first) then the artifacts are
         visible. For example, use view3dscene "Edge Detect" effect +
         any other effect. }
-      ScreenEffectTextureDest := CreateScreenEffectTexture;
-      ScreenEffectTextureSrc := CreateScreenEffectTexture;
+      ScreenEffectTextureDest := CreateScreenEffectTexture(false);
+      ScreenEffectTextureSrc := CreateScreenEffectTexture(false);
+      if CurrentScreenEffectsNeedDepth then
+        ScreenEffectTextureDepth := CreateScreenEffectTexture(true);
 
       { create new TGLRenderToTexture (usually, framebuffer object) }
       ScreenEffectRTT := TGLRenderToTexture.Create(
         ScreenEffectTextureWidth, ScreenEffectTextureHeight);
       ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, GL_TEXTURE_RECTANGLE_ARB);
       ScreenEffectRTT.CompleteTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
+      if CurrentScreenEffectsNeedDepth then
+      begin
+        ScreenEffectRTT.Buffer := tbColorAndDepth;
+        ScreenEffectRTT.DepthTexture := ScreenEffectTextureDepth;
+      end else
+        ScreenEffectRTT.Buffer := tbColor;
+      { TODO: using stencil buffer with depth texture doesn't work
+        on GPUs with packed depth_stencil (most GPUs...).
+        Any way to make it working? }
+      ScreenEffectRTT.Stencil := not CurrentScreenEffectsNeedDepth;
       ScreenEffectRTT.GLContextInit;
 
       if Log then
-        WritelnLog('Screen effects', Format('Created texture rectangle for screen effects, with size %d x %d',
+        WritelnLog('Screen effects', Format('Created texture rectangle for screen effects, with size %d x %d, with depth texture: %s',
           [ ScreenEffectTextureWidth,
-            ScreenEffectTextureHeight ]));
+            ScreenEffectTextureHeight,
+            BoolToStr[CurrentScreenEffectsNeedDepth] ]));
     end;
 
     { We have to adjust glViewport.
@@ -1507,13 +1552,30 @@ begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
+
+      glActiveTextureARB(GL_TEXTURE0_ARB);
       glDisable(GL_TEXTURE_2D);
       glEnable(GL_TEXTURE_RECTANGLE_ARB);
-      { Note that there's no need to worry about CorrectLeft / CorrectBottom,
-        here or inside RenderScreenEffect, because we're already within
-        glViewport that takes care of this. }
+
+      if CurrentScreenEffectsNeedDepth then
+      begin
+        glActiveTextureARB(GL_TEXTURE1_ARB);
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_TEXTURE_RECTANGLE_ARB);
+      end;
+
       glProjectionPushPopOrtho2D(@RenderScreenEffect, Self, 0, CorrectWidth, 0, CorrectHeight);
+
+      if CurrentScreenEffectsNeedDepth then
+      begin
+        glActiveTextureARB(GL_TEXTURE1_ARB);
+        glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
+      end;
+
+      glActiveTextureARB(GL_TEXTURE0_ARB);
       glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
+
+      { at the end, we left active texture as default GL_TEXTURE0_ARB }
     glPopAttrib;
   end else
   begin
@@ -1550,10 +1612,17 @@ begin
   { TODO: use GetMainScene.ScreenEffectsCount }
 end;
 
+function TKamAbstractViewport.ScreenEffectsNeedDepth: boolean;
+begin
+  Result := false;
+  { TODO: use GetMainScene.ScreenEffectsNeedDepth }
+end;
+
 procedure TKamAbstractViewport.GLContextClose;
 begin
   glFreeTexture(ScreenEffectTextureDest);
   glFreeTexture(ScreenEffectTextureSrc);
+  glFreeTexture(ScreenEffectTextureDepth);
   FreeAndNil(ScreenEffectRTT);
   inherited;
 end;
