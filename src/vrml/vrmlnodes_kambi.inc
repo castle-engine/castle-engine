@@ -290,6 +290,25 @@
     public property Fdprojector: TSFNode read FFdprojector;
   end;
 
+  TNodeScreenEffect = class(TNodeX3DChildNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdshaders: TMFNodeShaders;
+    public property Fdshaders: TMFNodeShaders read FFdshaders;
+
+    private FFdneedsDepth: TSFBool;
+    public property FdneedsDepth: TSFBool read FFdneedsDepth;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -802,6 +821,41 @@ begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
+constructor TNodeScreenEffect.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
+   Fdenabled.ChangesAlways := [chEverything];
+  Fields.Add(FFdenabled);
+
+  FFdshaders := TMFNodeShaders.Create(Self, 'shaders', [TNodeX3DShaderNode]);
+   Fdshaders.ChangesAlways := [chEverything];
+  Fields.Add(FFdshaders);
+
+  FFdneedsDepth := TSFBool.Create(Self, 'needsDepth', false);
+   FdneedsDepth.ChangesAlways := [chEverything];
+  Fields.Add(FFdneedsDepth);
+end;
+
+class function TNodeScreenEffect.ClassNodeTypeName: string;
+begin
+  Result := 'ScreenEffect';
+end;
+
+class function TNodeScreenEffect.URNMatching(const URN: string): boolean;
+begin
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeScreenEffect.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  inherited;
+  FFdshaders.EnumerateValid(Func);
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -814,7 +868,8 @@ begin
     TNodeKambiNavigationInfo,
     TNodeKambiOctreeProperties,
     TNodeGeneratedShadowMap,
-    TNodeProjectedTextureCoordinate
+    TNodeProjectedTextureCoordinate,
+    TNodeScreenEffect
   ]);
 end;
 

@@ -125,7 +125,8 @@ type
     prTrianglesListShadowCasters,
     prManifoldAndBorderEdges,
     { Prepare octrees (determined by things like TVRMLScene.Spatial). }
-    prSpatial);
+    prSpatial,
+    prScreenEffects);
   TPrepareResourcesOptions = set of TPrepareResourcesOption;
 
   TTransparentGroup = (tgTransparent, tgOpaque, tgAll);

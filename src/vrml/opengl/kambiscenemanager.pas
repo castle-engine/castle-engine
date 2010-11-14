@@ -1602,20 +1602,24 @@ end;
 
 function TKamAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
-  Result := nil; { no Index is valid, since ScreenEffectsCount = 0 in this class }
-  { TODO: use GetMainScene.ScreenEffects[Index] }
+  if GetMainScene <> nil then
+    Result := GetMainScene.ScreenEffects(Index) else
+    { no Index is valid, since ScreenEffectsCount = 0 in this class }
+    Result := nil;
 end;
 
 function TKamAbstractViewport.ScreenEffectsCount: Integer;
 begin
-  Result := 0;
-  { TODO: use GetMainScene.ScreenEffectsCount }
+  if GetMainScene <> nil then
+    Result := GetMainScene.ScreenEffectsCount else
+    Result := 0;
 end;
 
 function TKamAbstractViewport.ScreenEffectsNeedDepth: boolean;
 begin
-  Result := false;
-  { TODO: use GetMainScene.ScreenEffectsNeedDepth }
+  if GetMainScene <> nil then
+    Result := GetMainScene.ScreenEffectsNeedDepth else
+    Result := false;
 end;
 
 procedure TKamAbstractViewport.GLContextClose;
@@ -1880,7 +1884,7 @@ begin
     Also, we'll need to use one of viewport's projection here. }
   if Viewports.Count <> 0 then
   begin
-    Options := [prRender, prBackground, prBoundingBox];
+    Options := [prRender, prBackground, prBoundingBox, prScreenEffects];
     { We never call tgAll from scene manager. Even for non-shadowed rendering
       (one pass), we still may have many Items, so we always call all tgOpaque
       before all tgTransparent. }

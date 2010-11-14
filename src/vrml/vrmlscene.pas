@@ -830,6 +830,10 @@ type
       when Dirty <> 0). }
     Dirty: Cardinal;
 
+    { List of TNodeScreenEffect nodes, collected by ChangedAll. }
+    ScreenEffectNodes: TVRMLNodesList;
+    ScreenEffectShaders: TObjectList;
+
     { Create TVRMLShape (or descendant) instance suitable for this
       TVRMLScene descendant. In this class, this simply creates new
       TVRMLShape instance. If you make a descendant of TVRMLScene,
@@ -2421,6 +2425,8 @@ begin
   BillboardInstancesList := TTransformInstancesList.Create;
   GeneratedTextures := TDynGeneratedTextureArray.Create;
   ProximitySensors := TProximitySensorInstancesList.Create;
+  ScreenEffectNodes := TVRMLNodesList.Create;
+  ScreenEffectShaders := TObjectList.Create(false);
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -2466,6 +2472,8 @@ begin
     FreeAndNil(FInput_PointingDeviceActivate) else
     FInput_PointingDeviceActivate := nil;
 
+  FreeAndNil(ScreenEffectNodes);
+  FreeAndNil(ScreenEffectShaders);
   FreeAndNil(ProximitySensors);
   FreeAndNil(GeneratedTextures);
   FreeWithContentsAndNil(TransformInstancesList);
@@ -2880,8 +2888,11 @@ begin
       ParentScene.ViewpointStack.PushIfEmpty( TVRMLViewpointNode(Node), true);
   end else
   if Node is TNodeProximitySensor then
+    HandleProximitySensor(Node as TNodeProximitySensor) else
+  if Node is TNodeScreenEffect then
   begin
-    HandleProximitySensor(Node as TNodeProximitySensor);
+    ParentScene.ScreenEffectNodes.Add(Node);
+    ParentScene.ScreenEffectShaders.Add(nil);
   end;
 end;
 
@@ -2930,6 +2941,8 @@ begin
   BillboardInstancesList.FreeContents;
   GeneratedTextures.Count := 0;
   ProximitySensors.Count := 0;
+  ScreenEffectNodes.Count := 0;
+  ScreenEffectShaders.Count := 0;
 
   { clear nodes before doing CheckForDeletedNodes below, as CheckForDeletedNodes
     may send some events so no invalid pointers must exist. }
