@@ -291,6 +291,9 @@
   end;
 
   TNodeScreenEffect = class(TNodeX3DChildNode)
+  private
+    FShader: TObject;
+    FShaderLoaded: boolean;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -307,6 +310,16 @@
 
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
+
+    { Shader and ShaderLoaded properties are internally manager by the renderer.
+      Right now, this means TVRMLGLScene.
+      Always when ShaderLoaded = @false then Shader is @nil.
+      When ShaderLoaded = @true, the Shader may be non-nil (if was enabled
+      and loaded successfully) or not.
+      @groupBegin }
+    property Shader: TObject read FShader write FShader;
+    property ShaderLoaded: boolean read FShaderLoaded write FShaderLoaded;
+    { @groupEnd }
   end;
 
 {$endif read_interface}

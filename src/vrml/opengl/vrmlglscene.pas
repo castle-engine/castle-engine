@@ -594,7 +594,7 @@ type
       Other things, like Background, don't have to be destroyed in this case. }
     procedure CloseGLRenderer;
 
-    procedure PrepareScreenEffect(const Index: Integer);
+    procedure PrepareScreenEffect(const Node: TNodeScreenEffect);
   private
     FLastRender_RenderedShapesCount: Cardinal;
     FLastRender_BoxesOcclusionQueriedCount: Cardinal;
@@ -1844,6 +1844,17 @@ procedure TVRMLGLScene.CloseGLRenderer;
   - moreover it's called from destructor, so may be called if our
     constructor terminated with exception.
   This explains that we have to check Renderer <> nil, Shapes <> nil. }
+
+  procedure CloseGLScreenEffect(Node: TNodeScreenEffect);
+  begin
+    if Node.Shader <> nil then
+    begin
+      Renderer.Cache.GLSLProgram_DecReference(TGLSLProgram(Node.Shader));
+      Node.Shader := nil;
+    end;
+    Node.ShaderLoaded := false;
+  end;
+
 var
   SI: TVRMLShapeTreeIterator;
   TG: TTransparentGroup;
@@ -1895,13 +1906,9 @@ begin
       end;
   end;
 
-  if ScreenEffectShaders <> nil then
-    for I := 0 to ScreenEffectShaders.Count - 1 do
-      if ScreenEffectShaders[I] <> nil then
-      begin
-        Renderer.Cache.GLSLProgram_DecReference(TGLSLProgram(ScreenEffectShaders[I]));
-        ScreenEffectShaders[I] := nil;
-      end;
+  if ScreenEffectNodes <> nil then
+    for I := 0 to ScreenEffectNodes.Count - 1 do
+      CloseGLScreenEffect(TNodeScreenEffect(ScreenEffectNodes[I]));
 
   { TODO: if FUsingProvidedRenderer then we should do something more detailed
     then just Renderer.UnprepareAll. It's not needed for TVRMLGLAnimation
@@ -2956,31 +2963,32 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.PrepareScreenEffect(const Index: Integer);
+procedure TVRMLGLScene.PrepareScreenEffect(const Node: TNodeScreenEffect);
 var
-  ScreenEffectNode: TNodeScreenEffect;
   ProgramNode: TNodeComposedShader;
   ProgramShader: TGLSLProgram;
   I: Integer;
 begin
-  if ScreenEffectShaders[Index] = nil then
+  if not Node.ShaderLoaded then
   begin
-    ScreenEffectNode := ScreenEffectNodes[Index] as TNodeScreenEffect;
-    if ScreenEffectNode.FdEnabled.Value then
+    Assert(Node.Shader = nil);
+    Node.ShaderLoaded := true;
+    if Node.FdEnabled.Value then
     begin
-      for I := 0 to ScreenEffectNode.FdShaders.Count - 1 do
+      for I := 0 to Node.FdShaders.Count - 1 do
       begin
-        ProgramNode := ScreenEffectNode.FdShaders.GLSLShader(I);
+        ProgramNode := Node.FdShaders.GLSLShader(I);
         ProgramShader := Renderer.Cache.GLSLProgram_IncReference(
           ProgramNode, Renderer.Attributes);
         if ProgramShader <> nil then
+        begin
           { We have to ignore invalid uniforms, as it's normal that when
             rendering screen effect we will pass some screen_* variables
             that you will not use. }
           ProgramShader.UniformNotFoundAction := uaIgnore;
-        ScreenEffectShaders[Index] := ProgramShader;
-        if ScreenEffectShaders[Index] <> nil then
+          Node.Shader := ProgramShader;
           Exit;
+        end;
       end;
     end;
   end;
@@ -3178,14 +3186,12 @@ begin
 
   if prScreenEffects in Options then
   begin
-    for I := 0 to ScreenEffectShaders.Count - 1 do
-      { TODO: if GLSL program is invalid, we will try to recreate
-        it in every PrepareResources, causing many warnings. }
+    for I := 0 to ScreenEffectNodes.Count - 1 do
       { TODO: our GLSL program will not get uniform values,
         from textures or other types.
         TODO: we require PrepareResources to be called right now
         (while they should be optional).  }
-      PrepareScreenEffect(I);
+      PrepareScreenEffect(ScreenEffectNodes[I] as TNodeScreenEffect);
   end;
 end;
 
@@ -4833,12 +4839,16 @@ end;
 function TVRMLGLScene.ScreenEffects(Index: Integer): TGLSLProgram;
 var
   I: Integer;
+  SE: TNodeScreenEffect;
 begin
-  for I := 0 to ScreenEffectShaders.Count - 1 do
-    if ScreenEffectShaders[I] <> nil then
+  for I := 0 to ScreenEffectNodes.Count - 1 do
+  begin
+    SE := TNodeScreenEffect(ScreenEffectNodes[I]);
+    if SE.Shader <> nil then
       if Index = 0 then
-        Exit(TGLSLProgram(ScreenEffectShaders[I])) else
+        Exit(TGLSLProgram(SE.Shader)) else
         Dec(Index);
+  end;
   raise EInternalError.Create('TVRMLGLScene.ScreenEffects: Invalid index');
 end;
 
@@ -4847,8 +4857,8 @@ var
   I: Integer;
 begin
   Result := 0;
-  for I := 0 to ScreenEffectShaders.Count - 1 do
-    if ScreenEffectShaders[I] <> nil then
+  for I := 0 to ScreenEffectNodes.Count - 1 do
+    if TNodeScreenEffect(ScreenEffectNodes[I]).Shader <> nil then
       Inc(Result);
 end;
 
@@ -4856,8 +4866,8 @@ function TVRMLGLScene.ScreenEffectsNeedDepth: boolean;
 var
   I: Integer;
 begin
-  for I := 0 to ScreenEffectShaders.Count - 1 do
-    if (ScreenEffectShaders[I] <> nil) and
+  for I := 0 to ScreenEffectNodes.Count - 1 do
+    if (TNodeScreenEffect(ScreenEffectNodes[I]).Shader <> nil) and
         TNodeScreenEffect(ScreenEffectNodes[I]).FdNeedsDepth.Value then
       Exit(true);
   Exit(false);

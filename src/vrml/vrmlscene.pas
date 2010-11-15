@@ -832,7 +832,6 @@ type
 
     { List of TNodeScreenEffect nodes, collected by ChangedAll. }
     ScreenEffectNodes: TVRMLNodesList;
-    ScreenEffectShaders: TObjectList;
 
     { Create TVRMLShape (or descendant) instance suitable for this
       TVRMLScene descendant. In this class, this simply creates new
@@ -2426,7 +2425,6 @@ begin
   GeneratedTextures := TDynGeneratedTextureArray.Create;
   ProximitySensors := TProximitySensorInstancesList.Create;
   ScreenEffectNodes := TVRMLNodesList.Create;
-  ScreenEffectShaders := TObjectList.Create(false);
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -2473,7 +2471,6 @@ begin
     FInput_PointingDeviceActivate := nil;
 
   FreeAndNil(ScreenEffectNodes);
-  FreeAndNil(ScreenEffectShaders);
   FreeAndNil(ProximitySensors);
   FreeAndNil(GeneratedTextures);
   FreeWithContentsAndNil(TransformInstancesList);
@@ -2890,10 +2887,7 @@ begin
   if Node is TNodeProximitySensor then
     HandleProximitySensor(Node as TNodeProximitySensor) else
   if Node is TNodeScreenEffect then
-  begin
     ParentScene.ScreenEffectNodes.Add(Node);
-    ParentScene.ScreenEffectShaders.Add(nil);
-  end;
 end;
 
 procedure TVRMLScene.UpdateLODLevel(LODTree: TVRMLShapeTreeLOD);
@@ -2942,7 +2936,6 @@ begin
   GeneratedTextures.Count := 0;
   ProximitySensors.Count := 0;
   ScreenEffectNodes.Count := 0;
-  ScreenEffectShaders.Count := 0;
 
   { clear nodes before doing CheckForDeletedNodes below, as CheckForDeletedNodes
     may send some events so no invalid pointers must exist. }
