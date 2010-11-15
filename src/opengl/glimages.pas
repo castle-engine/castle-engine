@@ -646,6 +646,7 @@ type
     FTexture: TGLuint;
     FTextureTarget: TGLenum;
     FCompleteTextureTarget: TGLenum;
+    FDepthTextureTarget: TGLenum;
     FBuffer: TGLRenderToTextureBuffer;
     FStencil: boolean;
     FDepthTexture: TGLuint;
@@ -716,10 +717,12 @@ type
 
     { Depth texture used when @link(Buffer) = tbColorAndDepth.
       Note that this is not used when @link(Buffer) = tbDepth
-      (the @link(Texture) is used then).
+      (the @link(Texture) and TextureTarget are used then).
       This must be set before GLContextInit, and not modified later
       until GLContextClose. }
     property DepthTexture: TGLuint read FDepthTexture write FDepthTexture;
+    property DepthTextureTarget: TGLenum read FDepthTextureTarget write FDepthTextureTarget
+      default GL_TEXTURE_2D;
 
     { Which buffer (color and/or depth) should we catch to the texture.
 
@@ -1986,6 +1989,7 @@ begin
 
   FTextureTarget := GL_TEXTURE_2D;
   FCompleteTextureTarget := GL_TEXTURE_2D;
+  FDepthTextureTarget := GL_TEXTURE_2D;
   FStencil := true;
 
   FWidth := AWidth;
@@ -2105,7 +2109,7 @@ begin
       tbColorAndDepth:
         begin
           glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
-          glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, DepthTexture, 0);
+          glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, DepthTextureTarget, DepthTexture, 0);
           if Stencil then
             { only separate stencil buffer possible in this case }
             AttachSeparateStencilRenderbuffer;

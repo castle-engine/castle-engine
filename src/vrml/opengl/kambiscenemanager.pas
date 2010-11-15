@@ -1521,6 +1521,7 @@ begin
       begin
         ScreenEffectRTT.Buffer := tbColorAndDepth;
         ScreenEffectRTT.DepthTexture := ScreenEffectTextureDepth;
+        ScreenEffectRTT.DepthTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
       end else
         ScreenEffectRTT.Buffer := tbColor;
       { TODO: using stencil buffer with depth texture doesn't work
