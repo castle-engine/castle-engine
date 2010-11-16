@@ -39,7 +39,7 @@
       When reading VRML/X3D files, we generally do not change the VRML/X3D graph.
       So we're able to save exactly the same VRML/X3D graph
       back to another file. See also
-      [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/ch02s04.html#id2671890].
+      [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.writing_vrml.html#section.vrml_preserving].
       This allows writing various VRML
       processing tools, that can simply read the file, change whatever
       they want, and write the file back --- knowing that the "untouched"
