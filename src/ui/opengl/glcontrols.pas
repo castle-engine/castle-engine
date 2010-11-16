@@ -69,6 +69,7 @@ type
     FMinImageWidth: Cardinal;
     FMinImageHeight: Cardinal;
     FImageLayout: TKamButtonImageLayout;
+    FImageAlphaTest: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -164,6 +165,12 @@ type
     { Where the @link(Image) is drawn on a button. }
     property ImageLayout: TKamButtonImageLayout
       read FImageLayout write SetImageLayout default ilLeft;
+
+    { If the image has alpha channel, should we render with alpha test
+      (simple yes/no transparency) or alpha blending (smootly mix
+      with background using full transparency). }
+    property ImageAlphaTest: boolean
+      read FImageAlphaTest write FImageAlphaTest default false;
   end;
 
   { Panel inside OpenGL context.
@@ -427,17 +434,24 @@ begin
     Font.Print(Caption);
   glPopAttrib;
 
+  if Opacity < 1 then
+    glPopAttrib;
+
   if (FImage <> nil) and (FGLImage <> 0) then
   begin
     if FImage.HasAlpha then
     begin
       glPushAttrib(GL_COLOR_BUFFER_BIT);
-        { Maybe make 0.1 below configurable?
-          Note: TVRMLGLRenderer has limit 0.5 instead.
-          We use 0.1, useful for images exported with smooth alpha,
-          like view3dscene examine / walk / fly images. }
-        glAlphaFunc(GL_GEQUAL, 0.1); // saved by GL_COLOR_BUFFER_BIT
+
+      if ImageAlphaTest then
+      begin
+        glAlphaFunc(GL_GEQUAL, 0.5); // saved by GL_COLOR_BUFFER_BIT
         glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
+      end else
+      begin
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+        glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+      end;
     end;
     case ImageLayout of
       ilLeft         : ImgLeft := TextLeft - FImage.Width - ButtonCaptionImageMargin;
@@ -454,9 +468,6 @@ begin
     if FImage.HasAlpha then
       glPopAttrib;
   end;
-
-  if Opacity < 1 then
-    glPopAttrib;
 end;
 
 function TKamGLButton.PositionInside(const X, Y: Integer): boolean;
