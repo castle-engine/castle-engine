@@ -284,7 +284,7 @@ type
 
       By default, screen effects come from GetMainScene.ScreenEffects,
       so the effects may be defined by VRML/X3D author using ScreenEffect
-      nodes (see TODO docs).
+      nodes (see docs: [http://vrmlengine.sourceforge.net/kambi_vrml_extensions_screen_effects.php]).
       Descendants may override GetScreenEffects, ScreenEffectsCount,
       and ScreenEffectsNeedDepth to add screen effects by code.
       Each viewport may have it's own, different screen effects.
