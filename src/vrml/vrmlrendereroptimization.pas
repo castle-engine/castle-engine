@@ -9,7 +9,7 @@ interface
 
 type
   { Optimization method, used by @link(TVRMLGLScene.Optimization).
-    See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/sect.scene_gl.html#section.renderer_optimization]. }
+    See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.scene_gl.html#section.renderer_optimization]. }
   TGLRendererOptimization = (
     roNone,
     roSceneDisplayList,
