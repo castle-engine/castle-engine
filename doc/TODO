@@ -842,3 +842,9 @@ VRMLNodes:
 
 - StaticGroup: would avoid the need for separate subtree for Transform etc.
   nodes? Worth the complications?
+
+ScreenEffect ideas/TODOs:
+- How to make Stencil available for needsDepth=TRUE case?
+- Allow using other mapping then GL_NEAREST for screen effect,
+  maybe change filtering before each screen effect.
+- glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
