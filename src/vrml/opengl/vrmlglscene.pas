@@ -3187,10 +3187,6 @@ begin
   if prScreenEffects in Options then
   begin
     for I := 0 to ScreenEffectNodes.Count - 1 do
-      { TODO: our GLSL program will not get uniform values,
-        from textures or other types.
-        TODO: we require PrepareResources to be called right now
-        (while they should be optional).  }
       PrepareScreenEffect(ScreenEffectNodes[I] as TNodeScreenEffect);
   end;
 end;
@@ -4836,11 +4832,30 @@ begin
   end;
 end;
 
+function TVRMLGLScene.ScreenEffectsCount: Integer;
+var
+  I: Integer;
+  SE: TNodeScreenEffect;
+begin
+  Result := 0;
+  for I := 0 to ScreenEffectNodes.Count - 1 do
+  begin
+    SE := TNodeScreenEffect(ScreenEffectNodes[I]);
+    PrepareScreenEffect(SE);
+    if SE.Shader <> nil then
+      Inc(Result);
+  end;
+end;
+
 function TVRMLGLScene.ScreenEffects(Index: Integer): TGLSLProgram;
 var
   I: Integer;
   SE: TNodeScreenEffect;
 begin
+  { No need for PrepareScreenEffect here, ScreenEffectsCount (that does
+    PrepareScreenEffect) is always called first, otherwise the caller
+    would not know that this Index is valid. }
+
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
     SE := TNodeScreenEffect(ScreenEffectNodes[I]);
@@ -4852,20 +4867,14 @@ begin
   raise EInternalError.Create('TVRMLGLScene.ScreenEffects: Invalid index');
 end;
 
-function TVRMLGLScene.ScreenEffectsCount: Integer;
-var
-  I: Integer;
-begin
-  Result := 0;
-  for I := 0 to ScreenEffectNodes.Count - 1 do
-    if TNodeScreenEffect(ScreenEffectNodes[I]).Shader <> nil then
-      Inc(Result);
-end;
-
 function TVRMLGLScene.ScreenEffectsNeedDepth: boolean;
 var
   I: Integer;
 begin
+  { For now: No need for PrepareScreenEffect here, ScreenEffectsCount
+    is always called first. But actually for some scenarios we should do
+    here PrepareScreenEffect? }
+
   for I := 0 to ScreenEffectNodes.Count - 1 do
     if (TNodeScreenEffect(ScreenEffectNodes[I]).Shader <> nil) and
         TNodeScreenEffect(ScreenEffectNodes[I]).FdNeedsDepth.Value then
