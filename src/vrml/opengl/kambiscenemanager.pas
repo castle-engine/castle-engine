@@ -827,7 +827,7 @@ procedure Register;
 implementation
 
 uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit, RaysWindow, GLExt,
-  KambiLog, KambiStringUtils;
+  KambiLog, KambiStringUtils, VRMLGLRenderer;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1368,16 +1368,20 @@ var
   Viewport: TKamAbstractViewport absolute ViewportPtr;
 
   procedure RenderOneEffect(Shader: TGLSLProgram);
+  var
+    BoundTextureUnits: Cardinal;
   begin
     with Viewport do
     begin
       glActiveTextureARB(GL_TEXTURE0_ARB); // GL_ARB_multitexture is already checked
       glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTextureSrc);
+      BoundTextureUnits := 1;
 
       if CurrentScreenEffectsNeedDepth then
       begin
         glActiveTextureARB(GL_TEXTURE1_ARB);
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTextureDepth);
+        Inc(BoundTextureUnits);
       end;
 
       glLoadIdentity();
@@ -1392,6 +1396,17 @@ var
           Shader.SetUniform('screen_depth', 1);
         Shader.SetUniform('screen_width', ScreenEffectTextureWidth);
         Shader.SetUniform('screen_height', ScreenEffectTextureHeight);
+
+        { This is a little hacky to treat TVRMLGLSLProgram specially here,
+          to call it's BindTextures method. In the future, we'll probably
+          just move BindTextures feature to TGLSLProgram, and so
+          the hacky nature of this will disappear.
+
+          Note that we ignore BindTextures result --- if some texture
+          could not be bound, it will be undefined for shader.
+          I don't see anything much better to do now. }
+        if Shader is TVRMLGLSLProgram then
+          TVRMLGLSLProgram(Shader).BindTextures(BoundTextureUnits);
 
         { Note that there's no need to worry about CorrectLeft / CorrectBottom,
           here or inside RenderScreenEffect, because we're already within

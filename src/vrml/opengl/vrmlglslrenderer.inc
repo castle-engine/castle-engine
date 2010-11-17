@@ -8,7 +8,7 @@
       @nil means that this GLSL program failed to initialize.
       So do not try to initialize it again, and no need to unprepare
       it from Cache (as Cache doesn't have this program). }
-    GLSLProgram: TGLSLProgram;
+    GLSLProgram: TVRMLGLSLProgram;
   public
     { ANode must be TNodeComposedShader }
     constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); override;
@@ -81,6 +81,83 @@
 
 {$ifdef read_implementation}
 
+{ TVRMLGLSLProgram ----------------------------------------------------------- }
+
+function TVRMLGLSLProgram.BindTextures(var BoundTextureUnits: Cardinal): boolean;
+
+  { Scan IDecls for SFNode and MFNode fields, bind texture nodes inside. }
+  procedure BindShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
+
+    { If TextureNode <> @nil and is a texture node, prepare it.
+      Returns bound texture number (or -1 if failed).
+      You should set shader uniform value to this number. }
+    function BindTexture(TextureNode: TVRMLNode): LongInt;
+    begin
+      Result := -1;
+      if (TextureNode <> nil) and
+         (TextureNode is TNodeX3DTextureNode) then
+      begin
+        if BoundTextureUnits < Renderer.FreeGLTexturesCount then
+        begin
+          if Renderer.GLTextureNodes.Bind(
+            TNodeX3DTextureNode(TextureNode), BoundTextureUnits) then
+          begin
+            Result := BoundTextureUnits;
+            Inc(BoundTextureUnits);
+          end else
+            BindTextures := false;
+        end else
+          VRMLWarning(vwIgnorable, 'Not enough free texture units to bind all textures for this GLSL shader');
+      end;
+    end;
+
+  var
+    I, J: Integer;
+    UniformField: TVRMLField;
+    BoundValue: LongInt;
+    UniformValue: TDynLongIntArray;
+  begin
+    for I := 0 to IDecls.Count - 1 do
+    begin
+      UniformField := IDecls.Items[I].Field;
+
+      if UniformField <> nil then
+      begin
+        if UniformField is TSFNode then
+        begin
+          BoundValue := BindTexture(TSFNode(UniformField).Value);
+          if BoundValue <> -1 then
+            SetUniform(UniformField.Name, BoundValue);
+        end else
+        if UniformField is TMFNode then
+        begin
+          UniformValue := TDynLongIntArray.Create(TMFNode(UniformField).Count);
+          try
+            for J := 0 to TMFNode(UniformField).Count - 1 do
+            begin
+              BoundValue := BindTexture(TMFNode(UniformField).Items[J]);
+              { We cannot just resign from setting the field entirely,
+                and setting to -1 would likely produce wild OpenGL warnings
+                (setting texture sampler to -1...).
+                So on failure, assume safe 0. BindTexture already did
+                necessary warnings for user. }
+              if BoundValue = -1 then BoundValue := 0;
+              UniformValue[J] := BoundValue;
+            end;
+            SetUniform(UniformField.Name, UniformValue);
+          finally FreeAndNil(UniformValue) end;
+        end;
+      end;
+    end;
+  end;
+
+begin
+  Result := true;
+  BindShaderFields(Node.InterfaceDeclarations);
+end;
+
+{ TGLSLRenderer -------------------------------------------------------------- }
+
 constructor TGLSLRenderer.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode);
 begin
   Assert(ANode is TNodeComposedShader, 'TGLSLRenderer.Create acceps as Node only TNodeComposedShader');
@@ -133,10 +210,15 @@ begin
   GLSLProgram := Renderer.Cache.GLSLProgram_IncReference(Node, Renderer.Attributes);
 
   if GLSLProgram <> nil then
+  begin
+    GLSLProgram.Renderer := Renderer;
+    GLSLProgram.Node := Node;
+
     { Only if GLSL program successfully created, prepare all texture nodes
       in Node.InterfaceDeclarations. These will be passed to uniform
       variable values in Enable. }
     PrepareShaderFields(Node.InterfaceDeclarations);
+  end;
 end;
 
 procedure TGLSLRenderer.Unprepare;
@@ -185,73 +267,6 @@ begin
 end;
 
 function TGLSLRenderer.Enable(out BoundTextureUnits: Cardinal): boolean;
-
-  { Scan IDecls for SFNode and MFNode fields, bind texture nodes inside. }
-  procedure BindShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
-
-    { If TextureNode <> @nil and is a texture node, prepare it.
-      Returns bound texture number (or -1 if failed).
-      You should set shader uniform value to this number. }
-    function BindTexture(TextureNode: TVRMLNode): LongInt;
-    begin
-      Result := -1;
-      if (TextureNode <> nil) and
-         (TextureNode is TNodeX3DTextureNode) then
-      begin
-        if BoundTextureUnits < Renderer.FreeGLTexturesCount then
-        begin
-          if Renderer.GLTextureNodes.Bind(
-            TNodeX3DTextureNode(TextureNode), BoundTextureUnits) then
-          begin
-            Result := BoundTextureUnits;
-            Inc(BoundTextureUnits);
-          end else
-            Enable := false;
-        end else
-          VRMLWarning(vwIgnorable, 'Not enough free texture units to bind all textures for this GLSL shader');
-      end;
-    end;
-
-  var
-    I, J: Integer;
-    UniformField: TVRMLField;
-    BoundValue: LongInt;
-    UniformValue: TDynLongIntArray;
-  begin
-    for I := 0 to IDecls.Count - 1 do
-    begin
-      UniformField := IDecls.Items[I].Field;
-
-      if UniformField <> nil then
-      begin
-        if UniformField is TSFNode then
-        begin
-          BoundValue := BindTexture(TSFNode(UniformField).Value);
-          if BoundValue <> -1 then
-            GLSLProgram.SetUniform(UniformField.Name, BoundValue);
-        end else
-        if UniformField is TMFNode then
-        begin
-          UniformValue := TDynLongIntArray.Create(TMFNode(UniformField).Count);
-          try
-            for J := 0 to TMFNode(UniformField).Count - 1 do
-            begin
-              BoundValue := BindTexture(TMFNode(UniformField).Items[J]);
-              { We cannot just resign from setting the field entirely,
-                and setting to -1 would likely produce wild OpenGL warnings
-                (setting texture sampler to -1...).
-                So on failure, assume safe 0. BindTexture already did
-                necessary warnings for user. }
-              if BoundValue = -1 then BoundValue := 0;
-              UniformValue[J] := BoundValue;
-            end;
-            GLSLProgram.SetUniform(UniformField.Name, UniformValue);
-          finally FreeAndNil(UniformValue) end;
-        end;
-      end;
-    end;
-  end;
-
 begin
   BoundTextureUnits := 0;
   if (GLSLProgram <> nil) and
@@ -262,9 +277,8 @@ begin
       from SetGLSLShaders, this is needed. }
     Renderer.Attributes.GLSLShaders then
   begin
-    Result := true;
     GLSLProgram.Enable;
-    BindShaderFields(Node.InterfaceDeclarations);
+    Result := GLSLProgram.BindTextures(BoundTextureUnits);
   end else
     Result := false;
 end;

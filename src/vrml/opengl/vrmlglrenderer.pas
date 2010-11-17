@@ -973,10 +973,25 @@ type
   TDynRenderBeginEndCacheArray = class(TDynArray_4)
   end;
 
+  TVRMLGLRenderer = class;
+
+  { GLSL program integrated with VRML renderer. Adds ability to bind
+    VRML textures to uniform variables of GLSL shader. }
+  TVRMLGLSLProgram = class(TGLSLProgram)
+  private
+    Renderer: TVRMLGLRenderer;
+    Node: TNodeComposedShader;
+  public
+    { Bind textures and set corresponding uniform variables of this GLSL
+      shader. Increases BoundTextureUnits appropriately.
+      Returns @false is some texture couldn't be bound. }
+    function BindTextures(var BoundTextureUnits: Cardinal): boolean;
+  end;
+
   TGLSLProgramCache = record
     ProgramNode: TNodeComposedShader;
     { GLSLProgram is always non-nil here. }
-    GLSLProgram: TGLSLProgram;
+    GLSLProgram: TVRMLGLSLProgram;
     References: Cardinal;
   end;
   PGLSLProgramCache = ^TGLSLProgramCache;
@@ -1119,14 +1134,14 @@ type
       @raises EGLSLError In case program cannot be linked. }
     function GLSLProgram_IncReference_Core(
       ProgramNode: TNodeComposedShader;
-      AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
+      AAttributes: TVRMLRenderingAttributes): TVRMLGLSLProgram;
     { Creates and links appropriate TGLSLProgram.
       Takes care of sending ComposedShader.isSelected, isValid event.
       Returns nil (and does VRMLWarning) if program cannot be linked. }
     function GLSLProgram_IncReference(
       ProgramNode: TNodeComposedShader;
-      AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
-    procedure GLSLProgram_DecReference(const GLSLProgram: TGLSLProgram);
+      AAttributes: TVRMLRenderingAttributes): TVRMLGLSLProgram;
+    procedure GLSLProgram_DecReference(const GLSLProgram: TVRMLGLSLProgram);
   public
     constructor Create;
     destructor Destroy; override;
@@ -1191,8 +1206,6 @@ type
     procedure RenderEnd_DecReference(
       const GLList: TGLuint);
   end;
-
-  TVRMLGLRenderer = class;
 
   {$I resourcerenderer.inc}
   {$I vrmltexturerenderer.inc}
@@ -2594,7 +2607,7 @@ end;
 
 function TVRMLGLRendererContextCache.GLSLProgram_IncReference_Core(
   ProgramNode: TNodeComposedShader;
-  AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
+  AAttributes: TVRMLRenderingAttributes): TVRMLGLSLProgram;
 
   procedure LoadGLSLProgram(GLSLProgram: TGLSLProgram;
     ProgramNode: TNodeComposedShader);
@@ -2722,7 +2735,7 @@ begin
     we don't want to add program to cache (because caller would have
     no way to call GLSLProgram_DecReference later). }
 
-  Result := TGLSLProgram.Create;
+  Result := TVRMLGLSLProgram.Create;
   try
     LoadGLSLProgram(Result, ProgramNode);
     ProgramNode.EventIsValid.Send(true);
@@ -2747,7 +2760,7 @@ end;
 
 function TVRMLGLRendererContextCache.GLSLProgram_IncReference(
   ProgramNode: TNodeComposedShader;
-  AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
+  AAttributes: TVRMLRenderingAttributes): TVRMLGLSLProgram;
 begin
   try
     Result := GLSLProgram_IncReference_Core(ProgramNode, AAttributes);
@@ -2766,7 +2779,7 @@ begin
 end;
 
 procedure TVRMLGLRendererContextCache.GLSLProgram_DecReference(
-  const GLSLProgram: TGLSLProgram);
+  const GLSLProgram: TVRMLGLSLProgram);
 var
   I, J: Integer;
   GLSLProgramCache: PGLSLProgramCache;
