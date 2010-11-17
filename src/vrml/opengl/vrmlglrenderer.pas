@@ -1120,6 +1120,13 @@ type
     function GLSLProgram_IncReference_Core(
       ProgramNode: TNodeComposedShader;
       AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
+    { Creates and links appropriate TGLSLProgram.
+      Takes care of sending ComposedShader.isSelected, isValid event.
+      Returns nil (and does VRMLWarning) if program cannot be linked. }
+    function GLSLProgram_IncReference(
+      ProgramNode: TNodeComposedShader;
+      AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
+    procedure GLSLProgram_DecReference(const GLSLProgram: TGLSLProgram);
   public
     constructor Create;
     destructor Destroy; override;
@@ -1183,14 +1190,6 @@ type
 
     procedure RenderEnd_DecReference(
       const GLList: TGLuint);
-
-    { Creates and links appropriate TGLSLProgram.
-      Takes care of sending ComposedShader.isSelected, isValid event.
-      Returns nil (and does VRMLWarning) if program cannot be linked. }
-    function GLSLProgram_IncReference(
-      ProgramNode: TNodeComposedShader;
-      AAttributes: TVRMLRenderingAttributes): TGLSLProgram;
-    procedure GLSLProgram_DecReference(const GLSLProgram: TGLSLProgram);
   end;
 
   TVRMLGLRenderer = class;
