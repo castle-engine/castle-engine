@@ -125,6 +125,6 @@ begin
       Normalized(Vector3Single(1, 1, 0)), Pi/4);
 
     Glw.OnIdle := @Idle;
-    Glw.InitAndRun;
+    Glw.OpenAndRun;
   finally Scene.Free end;
 end.

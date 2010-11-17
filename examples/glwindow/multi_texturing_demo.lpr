@@ -173,7 +173,7 @@ end;
 
 { glw callbacks -------------------------------------------------------------- }
 
-procedure InitGL(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 
   function LoadTexture(const FileName: string): TGLuint;
   begin
@@ -207,6 +207,6 @@ begin
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHigh(0);
 
-  Glw.OnInit := @InitGL;
-  Glw.InitAndRun;
+  Glw.OnOpen := @Open;
+  Glw.OpenAndRun;
 end.

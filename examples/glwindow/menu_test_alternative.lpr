@@ -77,7 +77,7 @@ begin
   glw.Caption := 'Test changing MainMenu';
 
   { start }
-  glw.InitAndRun;
+  glw.OpenAndRun;
  finally
   glw.MainMenu := nil;
   FirstMainMenu.Free;

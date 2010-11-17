@@ -202,5 +202,5 @@ begin
  glw.Width := 300;
  glw.Height := 300;
  glw.DepthBufferBits := 0;
- glw.InitAndRun('Test Menu', @Draw);
+ glw.OpenAndRun('Test Menu', @Draw);
 end.

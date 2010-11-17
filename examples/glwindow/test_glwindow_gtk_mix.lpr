@@ -80,7 +80,7 @@ begin
  Font.Print(gtk_entry_get_text(GTK_ENTRY(Entry)));
 end;
 
-procedure Init(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 begin
  Font := TGLOutlineFont.Create(@TTF_BitstreamVeraSans, 10);
  glEnable(GL_DEPTH_TEST);
@@ -107,9 +107,9 @@ begin
  try
   glw.Width := 600;
   glw.Height := 400;
-  glw.OnInit := @Init;
+  glw.OnOpen := @Open;
   glw.OnClose := @Close;
   glw.OnResize := @Resize;
-  glw.InitAndRun('GLWindow with some GTK widgets', @Draw);
+  glw.OpenAndRun('GLWindow with some GTK widgets', @Draw);
  finally glw.Free end;
 end.

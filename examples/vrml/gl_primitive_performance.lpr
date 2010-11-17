@@ -124,7 +124,7 @@ begin
   end;
 end;
 
-procedure Init(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 begin
   Writeln('OpenGL has locking VAR support: ', GL_EXT_compiled_vertex_array);
   Writeln('Vertex arrays optimal fill: ',
@@ -417,8 +417,8 @@ begin
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 
-    Glw.OnInit := @Init;
-    Glw.InitAndRun;
+    Glw.OnOpen := @Open;
+    Glw.OpenAndRun;
   finally
     FreeAndNil(Scene);
     FreeAndNil(TrianglesCoordIndex);

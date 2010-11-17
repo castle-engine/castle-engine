@@ -69,7 +69,7 @@ begin
 
   Glw.OnDraw := @Draw;
   Glw.OnKeyUp := @KeyUp;
-  Glw.Init;
+  Glw.Open;
 
   GLProgressInterface.Window := Glw;
   Progress.UserInterface := GLProgressInterface;

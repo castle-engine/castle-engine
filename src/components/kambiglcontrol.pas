@@ -43,7 +43,7 @@ type
     class, TKamOpenGLControl adds some very useful features like
     @link(TKamOpenGLControl.Controls).
 
-    Provides OnGLContextInit and OnGLContextClose events.
+    Provides OnGLContextOpen and OnGLContextClose events.
 
     Provides comfortable Idle method. And a special AggressiveUpdate hack
     to be able to continously update (call Idle and Draw) even when the window
@@ -69,7 +69,7 @@ type
     LastAggressiveUpdateTime: TMilisecTime; { tracked only when AggressiveUpdate }
     Invalidated: boolean; { tracked only when AggressiveUpdate }
 
-    FOnGLContextInit: TNotifyEvent;
+    FOnGLContextOpen: TNotifyEvent;
     FOnGLContextClose: TNotifyEvent;
 
     FFps: TFramesPerSecond;
@@ -133,13 +133,13 @@ type
     procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); virtual;
     { @groupEnd }
 
-    { In this class this just calls OnGLContextInit.
+    { In this class this just calls OnGLContextOpen.
 
       Note that always after initializing OpenGL context, we also call
       Resize (OnResize event). And we call Invalidate
       (so at the first opportunity, Paint (with OnPaint,
       DoDraw (OnDraw), DoBeforeDraw (OnBeforeDraw), will also get called). }
-    procedure DoGLContextInit; virtual;
+    procedure DoGLContextOpen; virtual;
 
     { In this class this just calls OnGLContextClose. }
     procedure DoGLContextClose; virtual;
@@ -184,8 +184,8 @@ type
   published
     { This will be called right after GL context
       will be initialized. }
-    property OnGLContextInit: TNotifyEvent
-      read FOnGLContextInit write FOnGLContextInit;
+    property OnGLContextOpen: TNotifyEvent
+      read FOnGLContextOpen write FOnGLContextOpen;
 
     { This will be called right before GL context
       will be destroyed. }
@@ -273,7 +273,7 @@ type
     procedure DoBeforeDraw; override;
     procedure DoDraw; override;
     procedure Resize; override;
-    procedure DoGLContextInit; override;
+    procedure DoGLContextOpen; override;
     procedure DoGLContextClose; override;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -283,7 +283,7 @@ type
       @italic(Messing with this is very dangerous), that's why it's
       visibility is only protected (although could be even pubilshed, technically).
       This makes all controls miss all their events, including some critical
-      notification events like TUIControl.GLContextInit, TUIControl.GLContextClose,
+      notification events like TUIControl.GLContextOpen, TUIControl.GLContextClose,
       TUIControl.ContainerResize.
 
       You can reliably only turn this off temporarily, when you know that
@@ -405,12 +405,12 @@ end;
 procedure TKamOpenGLControlCore.CreateHandle;
 begin
   Writeln('TKamOpenGLControlCore.CreateHandle ', ContextInitialized,
-    ' ', OnGLContextInit <> nil);
+    ' ', OnGLContextOpen <> nil);
   inherited CreateHandle;
   if not ContextInitialized then
   begin
     ContextInitialized := true;
-    DoGLContextInit;
+    DoGLContextOpen;
   end;
   Writeln('TKamOpenGLControlCore.CreateHandle end');
 end;
@@ -434,7 +434,7 @@ begin
   if not ContextInitialized then
   begin
     FContextInitialized := true;
-    DoGLContextInit;
+    DoGLContextOpen;
 
     Resize;
     { TODO: why it's not enough to call Resize; here?
@@ -462,12 +462,12 @@ begin
   inherited DestroyHandle;
 end;
 
-procedure TKamOpenGLControlCore.DoGLContextInit;
+procedure TKamOpenGLControlCore.DoGLContextOpen;
 begin
   LoadAllExtensions;
 
-  if Assigned(OnGLContextInit) then
-    OnGLContextInit(Self);
+  if Assigned(OnGLContextOpen) then
+    OnGLContextOpen(Self);
 end;
 
 procedure TKamOpenGLControlCore.DoGLContextClose;
@@ -747,7 +747,7 @@ begin
           that will do ContainerResize on every control. }
         if Container.ContextInitialized then
         begin
-          C.GLContextInit;
+          C.GLContextOpen;
           C.ContainerResize(Container.Width, Container.Height);
         end;
       end;
@@ -1204,17 +1204,17 @@ begin
   end;
 end;
 
-procedure TKamOpenGLControl.DoGLContextInit;
+procedure TKamOpenGLControl.DoGLContextOpen;
 var
   I: Integer;
 begin
   inherited;
 
-  { call GLContextInit on controls after inherited (OnGLContextInit). }
+  { call GLContextOpen on controls after inherited (OnGLContextOpen). }
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
-      Controls[I].GLContextInit;
+      Controls[I].GLContextOpen;
   end;
 end;
 

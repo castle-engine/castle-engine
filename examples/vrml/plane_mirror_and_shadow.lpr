@@ -447,7 +447,7 @@ end;
 var
   SceneManager: TKamSceneManager;
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
@@ -622,10 +622,10 @@ begin
 
     Glw.StencilBufferBits := 1;
 
-    Glw.OnInit := @Init;
+    Glw.OnOpen := @Open;
     Glw.OnClose := @Close;
     Glw.OnIdle := @Idle;
-    Glw.InitAndRun;
+    Glw.OpenAndRun;
   finally
     FreeAndNil(SceneForShadow);
     FreeAndNil(Scene);

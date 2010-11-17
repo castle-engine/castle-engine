@@ -48,7 +48,7 @@ const
   precise grid points. }
 procedure DrawGrid(Grid: TElevationGrid);
 
-procedure RenderElevationsInitGL;
+procedure RenderElevationsOpenGL;
 procedure RenderElevationsCloseGL;
 
 { Returns same colors as used by DrawElevation. }
@@ -62,7 +62,7 @@ var
   ElevationVbo: TGLuint;
   ElevationIndexVbo: TGLuint;
 
-procedure RenderElevationsInitGL;
+procedure RenderElevationsOpenGL;
 begin
   if not GL_ARB_vertex_buffer_object then
     raise Exception.Create('ARB_vertex_buffer_object is required');

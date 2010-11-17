@@ -36,7 +36,7 @@ var
 begin
   Window := TGLUIWindow.Create(nil);
   try
-    Window.Init;
+    Window.Open;
     Window.Close;
   finally FreeAndNil(Window) end;
 end;

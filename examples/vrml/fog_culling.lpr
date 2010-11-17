@@ -74,7 +74,7 @@ begin
       Scene.LastRender_VisibleShapesCount ]));
 end;
 
-procedure Init(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 begin
   { We use quite large triangles for fog_culling level demo wall.
     This means that fog must be correctly rendered,
@@ -117,7 +117,7 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
-  Glw.OnInit := @Init;
+  Glw.OnOpen := @Open;
   Glw.OnKeyDown := @KeyDown;
-  Glw.InitAndRun;
+  Glw.OpenAndRun;
 end.

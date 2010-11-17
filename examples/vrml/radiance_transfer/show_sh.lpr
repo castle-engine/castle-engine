@@ -200,7 +200,7 @@ begin
   ProjectionGLPerspective(45.0, ContainerWidth/ContainerHeight, 0.01, 10);
 end;
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 begin
   glEnable(GL_DEPTH_TEST);
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
@@ -240,9 +240,9 @@ begin
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)), 0.1);
 
-  Glw.OnInit := @Init;
+  Glw.OnOpen := @Open;
   Glw.OnClose := @Close;
   Glw.OnMenuCommand := @MenuCommand;
   Glw.OnDrawStyle := ds2D;
-  Glw.InitAndRun(ProgramName, @Draw2D);
+  Glw.OpenAndRun(ProgramName, @Draw2D);
 end.

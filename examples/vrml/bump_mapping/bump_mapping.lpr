@@ -1034,7 +1034,7 @@ end;
 var
   VrmlFileName: string = 'vrmldata/levels/fountain/fountain_final.wrl';
 
-procedure InitGL(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 const
   MinFilter = GL_LINEAR_MIPMAP_LINEAR;
   MagFilter = GL_LINEAR;
@@ -1130,7 +1130,7 @@ begin
   LoadSceneCore(VrmlFileName);
 end;
 
-procedure CloseGL(glwin: TGLWindow);
+procedure Close(glwin: TGLWindow);
 begin
   FreeAndNil(Font);
   FreeAndNil(Scene);
@@ -1353,10 +1353,10 @@ begin
   Glw.OnMenuCommand := @MenuCommand;
 
   Glw.AutoRedisplay := true; { for easy Idle code }
-  Glw.OnInit := @InitGL;
+  Glw.OnOpen := @Open;
   Glw.OnResize := @Resize;
-  Glw.OnClose := @CloseGL;
+  Glw.OnClose := @Close;
   Glw.OnIdle := @Idle;
 
-  Glw.InitAndRun;
+  Glw.OpenAndRun;
 end.

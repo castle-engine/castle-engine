@@ -658,14 +658,14 @@ type
   public
     { Constructor. Doesn't require OpenGL context,
       and doesn't initialize the framebuffer.
-      You'll have to use GLContextInit before actually making Render. }
+      You'll have to use GLContextOpen before actually making Render. }
     constructor Create(const AWidth, AHeight: Cardinal);
 
     destructor Destroy; override;
 
     { Width and height must correspond to texture initialized width / height.
       You cannot change them when OpenGL stuff is already initialized
-      (after GLContextInit and before GLContextClose or destructor).
+      (after GLContextOpen and before GLContextClose or destructor).
       @groupBegin }
     property Width: Cardinal read FWidth write FWidth;
     property Height: Cardinal read FHeight write FHeight;
@@ -677,10 +677,10 @@ type
       here depth contents (useful e.g. for shadow maps).
 
       We currently require this texture to be set to valid texture (not 0)
-      before GLContextInit. Also, if you later change it,
+      before GLContextOpen. Also, if you later change it,
       be careful to assign here other textures of only the same size and format.
       This allows us to call glCheckFramebufferStatusEXT (and eventually
-      fallback to non-stencil version) right at GLContextInit call, and no need
+      fallback to non-stencil version) right at GLContextOpen call, and no need
       to repeat it (e.g. at each RenderBegin).
 
       Changed by SetTexture. }
@@ -718,7 +718,7 @@ type
     { Depth texture used when @link(Buffer) = tbColorAndDepth.
       Note that this is not used when @link(Buffer) = tbDepth
       (the @link(Texture) and TextureTarget are used then).
-      This must be set before GLContextInit, and not modified later
+      This must be set before GLContextOpen, and not modified later
       until GLContextClose. }
     property DepthTexture: TGLuint read FDepthTexture write FDepthTexture;
     property DepthTextureTarget: TGLenum read FDepthTextureTarget write FDepthTextureTarget
@@ -741,7 +741,7 @@ type
       we will not write to the color buffer at all,
       so this is quite optimal for rendering shadow maps.
 
-      This must be set before GLContextInit, cannot be changed later. }
+      This must be set before GLContextOpen, cannot be changed later. }
     property Buffer: TGLRenderToTextureBuffer
       read FBuffer write FBuffer default tbColor;
 
@@ -765,7 +765,7 @@ type
 
     { Initialize OpenGL stuff (framebuffer).
 
-      When OpenGL stuff is initialized (from GLContextInit until
+      When OpenGL stuff is initialized (from GLContextOpen until
       GLContextClose or destruction) this class is tied to the current OpenGL context.
 
       @raises(EFramebufferSizeTooLow When required @link(Width) x @link(Height)
@@ -777,7 +777,7 @@ type
         it means a programmer error. Or "unsupported" result
         of glCheckFramebufferStatusEXT (that is possible regardless of programmer)
         we have a nice fallback to non-FBO implementation.) }
-    procedure GLContextInit;
+    procedure GLContextOpen;
 
     { Release all OpenGL stuff (if anything initialized).
       This is also automatically called in destructor. }
@@ -2021,7 +2021,7 @@ begin
   end;
 end;
 
-procedure TGLRenderToTexture.GLContextInit;
+procedure TGLRenderToTexture.GLContextOpen;
 
   function FramebufferStatusToString(const Status: TGLenum): string;
   begin

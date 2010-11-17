@@ -38,5 +38,5 @@ begin
 
   Window := TGLUIWindow.Create(Application);
   Window.Controls.Add(SceneManager);
-  Window.InitAndRun;
+  Window.OpenAndRun;
 end.

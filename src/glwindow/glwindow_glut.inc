@@ -363,7 +363,7 @@ begin
  UpdateModif(K_Alt, (m and GLUT_ACTIVE_ALT) <> 0);
 end;
 
-procedure TGLWindow.InitImplDepend;
+procedure TGLWindow.OpenImplDepend;
 var GlutDispMode: LongWord;
 begin
  { calculate GlutDispMode, call glutInitDisplayMode(GlutDispMode) }

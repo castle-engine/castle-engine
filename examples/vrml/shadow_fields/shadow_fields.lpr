@@ -214,7 +214,7 @@ begin
   DrawSFExplorerMaps;
 end;
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 begin
   glEnable(GL_LIGHT0);
   glPointSize(10);
@@ -620,7 +620,7 @@ begin
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 
-    Glw.OnInit := @Init;
+    Glw.OnOpen := @Open;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
 
@@ -629,7 +629,7 @@ begin
 
     InitializeSHBasisMap;
 
-    Glw.InitAndRun('shadow_fields', @Draw);
+    Glw.OpenAndRun('shadow_fields', @Draw);
   finally
     FreeAndNil(SceneCaster);
     FreeAndNil(SceneReceiver);

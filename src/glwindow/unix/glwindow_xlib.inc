@@ -69,10 +69,10 @@ private
     called --- good choice is before initializing your window. }
   procedure InitializeXDisplay;
 public
-  { XDisplayName uzywane przez wszystkie nastepne wywolania glwin.Init.
+  { XDisplayName uzywane przez wszystkie nastepne wywolania glwin.Open.
     Application nie jest przygotowany na zarzadzanie oknami na wielu displayach i
-    implementacja TGLWindow zaklada ze po zrobieniu Init Application.XDisplay bedzie
-    caly czas takie samo - wiec NIE ZMIENIAJ XDisplayName po zrobieniu jakiegos Init !
+    implementacja TGLWindow zaklada ze po zrobieniu Open Application.XDisplay bedzie
+    caly czas takie samo - wiec NIE ZMIENIAJ XDisplayName po zrobieniu jakiegos Open !
     XDisplayName bezposrednio po przypisaniu moze ulec zmianie - bo
     SetXDisplayName powoduje cos jak FXDisplayName := XDisplayName(FDiaplayName),
     a wiec X serwer moze cos od razu powiedziec o tym jak on rozumie ta
@@ -116,7 +116,7 @@ const
 
 { TGLWindow --------------------------------------------------------  }
 
-procedure TGLWindow.InitWinSystemDepend;
+procedure TGLWindow.OpenWinSystemDepend;
 var
   sizeHints: TXSizeHints;
   AttrValueMask: Cardinal;

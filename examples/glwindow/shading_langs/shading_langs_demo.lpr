@@ -192,7 +192,7 @@ end;
 
 { glw callbacks -------------------------------------------------------------- }
 
-procedure InitGL(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 
   function LoadTexture(const FileName: string): TGLuint;
   begin
@@ -238,7 +238,7 @@ begin
   Tex[1] := LoadTexture('../../../../castle/data/textures/bridgerock512side.jpg');
 end;
 
-procedure CloseGL(glwin: TGLWindow);
+procedure Close(glwin: TGLWindow);
 begin
   FreeAndNil(VertexProgram);
   FreeAndNil(FragmentProgram);
@@ -336,7 +336,7 @@ begin
   Glw.MainMenu := CreateMainMenu;
   Glw.OnMenuCommand := @MenuCommand;
 
-  Glw.OnInit := @InitGL;
-  Glw.OnClose := @CloseGL;
-  Glw.InitAndRun;
+  Glw.OnOpen := @Open;
+  Glw.OnClose := @Close;
+  Glw.OpenAndRun;
 end.

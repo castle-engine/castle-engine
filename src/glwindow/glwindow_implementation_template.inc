@@ -61,7 +61,7 @@ begin
   { TODO }
 end;
 
-procedure TGLWindow.InitImplDepend;
+procedure TGLWindow.OpenImplDepend;
 begin
   { TODO }
 end;

@@ -25,10 +25,10 @@ private
     redrawing anything. Similar for WinAPI. }
   RedisplayPosted: boolean;
 
-  { w GLWindow_winsystem implementuje sie InitImplDepend ktore
-    wywoluje swoja inicjalizacje a potem wywoluje InitWinSystemDepend
+  { w GLWindow_winsystem implementuje sie OpenImplDepend ktore
+    wywoluje swoja inicjalizacje a potem wywoluje OpenWinSystemDepend
     ktore powinno byc zdefiniowane w GLWindow_xlib i _winapi. }
-  procedure InitWinSystemDepend;
+  procedure OpenWinSystemDepend;
 
   { FlushRedisplay2 works exactly like FlushRedisplay, but additionally
     it returns czy rzeczywiscie zaszlo odswiezenie (true)
@@ -86,12 +86,12 @@ begin
   RedisplayPosted := true;
 end;
 
-procedure TGLWindow.InitImplDepend;
+procedure TGLWindow.OpenImplDepend;
 begin
   { reset some variables common to all _winsystem implementations }
   RedisplayPosted := false;
-  { call specific winsystem impl Init }
-  InitWinSystemDepend;
+  { call specific winsystem impl Open }
+  OpenWinSystemDepend;
 end;
 
 function TGLWindow.FlushRedisplay2: boolean;

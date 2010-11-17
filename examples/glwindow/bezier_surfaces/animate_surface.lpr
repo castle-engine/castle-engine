@@ -127,7 +127,7 @@ begin
   finally FreeAndNil(Surface) end;
 end;
 
-procedure Init(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 begin
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHTING);
@@ -194,7 +194,7 @@ begin
   Parameters.CheckHigh(1);
   SurfacesLoad(Parameters[1]);
   try
-    Glw.OnInit := @Init;
+    Glw.OnOpen := @Open;
     Glw.OnResize := @Resize;
     Glw.OnIdle := @Idle;
     Glw.OnDraw := @Draw;
@@ -202,7 +202,7 @@ begin
 
     Glw.AutoRedisplay := true;
 
-    Glw.InitAndRun;
+    Glw.OpenAndRun;
   finally
     FreeAndNil(Surface1);
     FreeAndNil(Surface2);

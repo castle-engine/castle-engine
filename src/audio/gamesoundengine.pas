@@ -62,7 +62,7 @@ type
     TSoundInfo below) are also constant.
     However, for the sake of debugging/testing the game,
     and for content designers, the actual values of SoundInfos are loaded
-    at initialization by ReadSoundInfos (called automatically by ALContextInit)
+    at initialization by ReadSoundInfos (called automatically by ALContextOpen)
     from sounds/index.xml file,
     and later can be changed by calling ReadSoundInfos once again during the
     game (debug menu may have command like "Reload sounds/index.xml"). }
@@ -89,7 +89,7 @@ type
     DefaultImportance: Cardinal;
 
     { OpenAL buffer of this sound.
-      This is usable only when ALContextInited
+      This is usable only when ALContextOpened
       and only for sounds with FileName <> ''. }
     Buffer: TALuint;
   end;
@@ -107,7 +107,7 @@ type
   { Easy to use sound manager, using OpenAL, ALUtils and
     ALSourceAllocator underneath.
 
-    At ALContextInit, right before initializing OpenAL stuff,
+    At ALContextOpen, right before initializing OpenAL stuff,
     this reads sounds information from SoundsXmlFileName file.
     When OpenAL is initialized, it loads all sound files.
     Sound filenames are specified inside SoundsXmlFileName file
@@ -179,7 +179,7 @@ type
       commented example.
 
       It's crucial that you create such file, and eventually adjust
-      this property before calling ReadSoundInfos (or ALContextInit,
+      this property before calling ReadSoundInfos (or ALContextOpen,
       that always callsReadSoundInfos).
 
       By default (in our constryctor) this is initialized to
@@ -200,9 +200,9 @@ type
       stNone is a special sound as it actually means "no sound" in many cases.
 
       You can (and should !) fill this array with all sound names
-      your game is using @bold(before calling ALContextInit)
+      your game is using @bold(before calling ALContextOpen)
       (or ReadSoundInfos, but ReadSoundInfos is usually called
-      for the first time by ALContextInit).
+      for the first time by ALContextOpen).
 
       TODO: in the future this may be automatically filled when
       ReadSoundInfos is called. For now, ReadSoundInfos just
@@ -218,11 +218,11 @@ type
     function SoundFromName(const SoundName: string): TSoundType;
 
     { Call this always to initialize OpenAL and OpenAL context,
-      and load sound files. This sets SoundInitializationReport
+      and load sound files. This sets SoundOpenializationReport
       and ALActive.
 
       You can set ALCDevice before calling this. }
-    procedure ALContextInit(WasParam_NoSound: boolean); virtual;
+    procedure ALContextOpen(WasParam_NoSound: boolean); virtual;
 
     { This will call RefreshUsed on internal ALSourceAllocator,
       see TALSourceAllocator.RefreshUsed for info.
@@ -267,7 +267,7 @@ type
       AddSoundImportanceName for comfort).
 
       These can be used within sounds.xml file.
-      Before using ALContextInit, you can fill this list with values.
+      Before using ALContextOpen, you can fill this list with values.
       Initially, it contains only the 'max' value associated with
       MaxSoundImportance. }
     property SoundImportanceNames: TStringList read FSoundImportanceNames;
@@ -324,7 +324,7 @@ type
     { Change ALCDevice while OpenAL is already initialized.
       This cleanly closes the old device (ALContextClose),
       changes ALCDevice value, initializes context again
-      (ALContextInit). }
+      (ALContextOpen). }
     procedure ALChangeDevice(const NewALCDevice: string);
   end;
 
@@ -345,7 +345,7 @@ type
 
     procedure AllocatedSourceUsingEnd(Sender: TALAllocatedSource);
 
-    { Called by ALInitContext. You should check here if
+    { Called by ALContextOpen. You should check here if
       PlayedSound <> stNone and eventually initialize FAllocatedSource. }
     procedure AllocateSource;
   private
@@ -422,7 +422,7 @@ begin
   inherited;
 end;
 
-procedure TGameSoundEngine.ALContextInit(WasParam_NoSound: boolean);
+procedure TGameSoundEngine.ALContextOpen(WasParam_NoSound: boolean);
 var
   ST: TSoundType;
 begin
@@ -466,7 +466,7 @@ begin
 
       MusicPlayer.AllocateSource;
 
-      CheckAL('initializing sounds (ALContextInit)');
+      CheckAL('initializing sounds (ALContextOpen)');
     except
       { If loading sounds above will fail, we have to finish already initialized
         things here before reraising exception. }
@@ -807,7 +807,7 @@ begin
   ALContextClose;
   OpenALRestart;
   ALCDevice := NewALCDevice;
-  ALContextInit(false);
+  ALContextOpen(false);
 end;
 
 { TMusicPlayer --------------------------------------------------------------- }

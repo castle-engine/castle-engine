@@ -49,7 +49,7 @@ type
     procedure EventDraw; override;
     procedure EventIdle; override;
     procedure EventResize; override;
-    procedure EventInit; override;
+    procedure EventOpen; override;
     procedure EventClose; override;
     procedure EventKeyDown(key: TKey; c: char); override;
   end;
@@ -125,7 +125,7 @@ begin
  ProjectionGLPerspective(45.0, Width/Height, 0.1, 100.0);
 end;
 
-procedure TMyWindow.EventInit;
+procedure TMyWindow.EventOpen;
 begin
  inherited;
 
@@ -184,7 +184,7 @@ begin
   Windws[i].Top := 30 + 250 * (i div 3);
  end;
  try
-  for i := 0 to High(Windws) do Windws[i].Init;
+  for i := 0 to High(Windws) do Windws[i].Open;
   Application.Run; { Loop will end when the last window is closed by the user }
  finally
   for i := 0 to High(Windws) do FreeAndNil(Windws[i]);

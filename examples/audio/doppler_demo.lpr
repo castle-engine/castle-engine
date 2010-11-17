@@ -97,7 +97,7 @@ begin
     Glw.OnDraw := @Draw;
     Glw.OnResize := @Resize2D;
     Glw.OnMouseMove := @MouseMove;
-    Glw.InitAndRun;
+    Glw.OpenAndRun;
 
     alSourceStop(Source);
     alDeleteSources(1, @Source);

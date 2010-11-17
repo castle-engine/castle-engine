@@ -32,7 +32,7 @@ type
   public
     function TooltipStyle: TUIControlDrawStyle; override;
     procedure DrawTooltip; override;
-    procedure GLContextInit; override;
+    procedure GLContextOpen; override;
     procedure GLContextClose; override;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
@@ -90,7 +90,7 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
-    procedure GLContextInit; override;
+    procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseUp(const Button: TMouseButton): boolean; override;
@@ -230,7 +230,7 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
-    procedure GLContextInit; override;
+    procedure GLContextOpen; override;
     procedure GLContextClose; override;
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
@@ -326,7 +326,7 @@ begin
     nil, 5, 1, 1);
 end;
 
-procedure TKamGLFontControl.GLContextInit;
+procedure TKamGLFontControl.GLContextOpen;
 begin
   inherited;
   FFont := CreateUIFont;
@@ -479,7 +479,7 @@ begin
     (ContainerHeight - Y  < Bottom + Height);
 end;
 
-procedure TKamGLButton.GLContextInit;
+procedure TKamGLButton.GLContextOpen;
 begin
   inherited;
   if (FGLImage = 0) and (FImage <> nil) then
@@ -895,7 +895,7 @@ begin
     (ContainerHeight - Y  < Bottom + FImage.Height);
 end;
 
-procedure TKamGLImage.GLContextInit;
+procedure TKamGLImage.GLContextOpen;
 begin
   inherited;
   if (FGLImage = 0) and (FImage <> nil) then

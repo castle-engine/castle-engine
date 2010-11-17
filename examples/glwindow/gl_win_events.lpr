@@ -33,7 +33,7 @@ var
   Notifications: TGLNotifications;
   Font: TGLBitmapFont;
 
-procedure Init(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 begin
   Notifications := TGLNotifications.Create(glw, hpMiddle, vpUp, 0);
   Notifications.MaxMessages := 15;
@@ -171,7 +171,7 @@ begin
 
   Glw.ParseParameters;
 
-  Glw.OnInit := @Init;
+  Glw.OnOpen := @Open;
   Glw.OnClose := @Close;
   Glw.OnResize := @Resize;
   Glw.OnBeforeDraw := @BeforeDraw;
@@ -205,5 +205,5 @@ begin
 
   //Glw.ResizeAllowed := raNotAllowed; // just for testing
 
-  Glw.InitAndRun;
+  Glw.OpenAndRun;
 end.

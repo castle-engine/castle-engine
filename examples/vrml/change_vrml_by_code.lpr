@@ -107,6 +107,6 @@ begin
     (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
 
     Glw.OnIdle := @Idle;
-    Glw.InitAndRun;
+    Glw.OpenAndRun;
   finally Scene.Free end;
 end.

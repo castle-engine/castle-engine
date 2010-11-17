@@ -58,7 +58,7 @@ begin
   ImageDraw(CurveImage);
 end;
 
-procedure Init(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 begin
   glClearColor(0.5, 0.5, 0.5, 1.0);
 end;
@@ -140,14 +140,14 @@ begin
     InitialOrient := StrToInt(Parameters[4]) else}
   if DoPeano then InitialOrient := false else InitialOrient := true;
 
-  { setup glw, glw.Init }
+  { setup glw, glw.Open }
   glw.OnDraw := @Draw;
   glw.OnResize := @Resize2D;
-  glw.OnInit := @Init;
+  glw.OnOpen := @Open;
   glw.DoubleBuffer := true;
   glw.OnCloseQuery := @CloseQueryNotAllowed;
   glw.ParseParameters(StandardParseOptions);
-  glw.Init;
+  glw.Open;
 
   { init CurveImage }
   CurveImage := TRGBImage.Create(glw.Width, glw.Height);
@@ -174,6 +174,6 @@ begin
     glw.PostRedisplay;
     glw.OnCloseQuery := nil;
     glw.Close_CharKey := CharEscape;
-    glw.InitAndRun;
+    glw.OpenAndRun;
   finally FreeAndNil(CurveImage) end;
 end.

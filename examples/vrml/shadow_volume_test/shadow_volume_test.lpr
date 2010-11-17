@@ -465,7 +465,7 @@ end;
 
 { glw callbacks ------------------------------------------------------------ }
 
-procedure InitGL(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_DEPTH_TEST);
@@ -477,13 +477,13 @@ begin
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
   SV := TGLShadowVolumeRenderer.Create;
-  SV.InitGLContext;
+  SV.GLContextOpen;
 
   Scene.PrepareResources([tgAll], [prRender, prBoundingBox], false);
   ShadowCaster.PrepareResources([tgAll], [prRender, prBoundingBox] + prShadowVolume, false);
 end;
 
-procedure CloseGL(glwin: TGLWindow);
+procedure Close(glwin: TGLWindow);
 begin
   Scene.GLContextClose;
   ShadowCaster.GLContextClose;
@@ -523,13 +523,13 @@ begin
   MessageOK(Glw, S, taMiddle);
 end;
 
-procedure IdleGL(glwin: TGLWindow);
+procedure Idle(glwin: TGLWindow);
 begin
   if FirstIdle then
   begin
-    { We do MessageOK in first OnIdle, instead of e.g. in OnInit,
+    { We do MessageOK in first OnIdle, instead of e.g. in OnOpen,
       because in OnIdle we're already corrected initialized
-      (first OnResize and OnInit for sure are done now, and OnDraw may
+      (first OnResize and OnOpen for sure are done now, and OnDraw may
       work as usual) and so the background under MessageOK is good now. }
     ShowManifoldStatistics;
     FirstIdle := false;
@@ -749,10 +749,10 @@ begin
     Glw.OnMenuCommand := @MenuCommand;
     Glw.AutoRedisplay := true;
     Glw.StencilBufferBits := 8;
-    Glw.OnInit := @InitGL;
-    Glw.OnClose := @CloseGL;
-    Glw.OnIdle := @IdleGL;
-    Glw.InitAndRun;
+    Glw.OnOpen := @Open;
+    Glw.OnClose := @Close;
+    Glw.OnIdle := @Idle;
+    Glw.OpenAndRun;
   finally
     Scene.Free;
     ShadowCaster.Free;

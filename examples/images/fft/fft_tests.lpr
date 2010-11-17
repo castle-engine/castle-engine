@@ -34,7 +34,7 @@ type
     destructor Destroy; override;
     procedure UpdateDL;
     procedure EventDraw; override;
-    procedure EventInit; override;
+    procedure EventOpen; override;
   end;
 
 destructor TGLWindowImage.Destroy;
@@ -50,7 +50,7 @@ begin
   glCallList(ImageDL);
 end;
 
-procedure TGLWindowImage.EventInit;
+procedure TGLWindowImage.EventOpen;
 begin
   inherited;
   UpdateDL;
@@ -273,9 +273,9 @@ begin
     Writeln('Creating FFTW plans for image with ', Fft.Size, ' pixels: ', ProcessTimerEnd:1:2, ' secs');
     MakeFft;
 
-    Source.Init;
-    Freq.Init;
-    Output.Init;
+    Source.Open;
+    Freq.Open;
+    Output.Open;
     Application.Run;
   finally
     FreeAndNil(Fft);

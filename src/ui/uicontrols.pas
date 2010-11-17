@@ -108,7 +108,7 @@ type
     FContainer: IUIContainer;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
-    FDisableContextInitClose: Cardinal;
+    FDisableContextOpenClose: Cardinal;
     FFocused: boolean;
     FGLContextInitialized: boolean;
     FExists: boolean;
@@ -335,7 +335,7 @@ type
       Also called when the control is added to the already existing context.
       In other words, this is the moment when you can initialize
       OpenGL resources, like display lists, VBOs, OpenGL texture names, etc. }
-    procedure GLContextInit; virtual;
+    procedure GLContextOpen; virtual;
 
     { Destroy your OpenGL resources.
 
@@ -344,34 +344,34 @@ type
       @code(Controls) list. Also called from the destructor.
 
       You should release here any resources that are tied to the
-      OpenGL context. In particular, the ones created in GLContextInit. }
+      OpenGL context. In particular, the ones created in GLContextOpen. }
     procedure GLContextClose; virtual;
 
     property GLContextInitialized: boolean read FGLContextInitialized default false;
 
-    { When non-zero, container will not call GLContextInit and
+    { When non-zero, container will not call GLContextOpen and
       GLContextClose (when control is added/removed to/from the
       @code(Controls) list).
 
       This is useful, although should be used with much caution:
-      you're expected to call controls GLContextInit /
+      you're expected to call controls GLContextOpen /
       GLContextClose on your own when this is non-zero. Example usage is
       when the same control is often added/removed to/from the @code(Controls)
       list, and the window (with it's OpenGL context) stays open for a longer
-      time. In such case, default (when DisableContextInitClose = 0) behavior
+      time. In such case, default (when DisableContextOpenClose = 0) behavior
       will often release (only to be forced to reinitialize again) OpenGL
       resources of the control. Some controls have large OpenGL
       resources (for example TVRMLGLScene keeps display lists, textures etc.,
       and TVRMLGLAnimation keeps all the scenes) --- so constantly
       reinitializing them may eat a noticeable time.
 
-      By using non-zero DisableContextInitClose you can disable this behavior.
+      By using non-zero DisableContextOpenClose you can disable this behavior.
 
       In particular, TGLMode uses this trick, to avoid releasing and
       reinitializing OpenGL resources for controls only temporarily
       removed from the @link(TGLUIWindow.Controls) list. }
-    property DisableContextInitClose: Cardinal
-      read FDisableContextInitClose write FDisableContextInitClose;
+    property DisableContextOpenClose: Cardinal
+      read FDisableContextOpenClose write FDisableContextOpenClose;
 
     { Design note: ExclusiveEvents is not published now, as it's too "obscure"
       (for normal usage you don't want to deal with it). Also, it's confusing
@@ -451,15 +451,15 @@ type
     procedure Add(Item: TUIControl);
     procedure Insert(Index: Integer; Item: TUIControl);
 
-    { BeginDisableContextInitClose disables sending
-      TUIControl.GLContextInit and TUIControl.GLContextClose to all the controls
-      on the list. EndDisableContextInitClose ends this.
-      They work by increasing / decreasing the TUIControl.DisableContextInitClose
+    { BeginDisableContextOpenClose disables sending
+      TUIControl.GLContextOpen and TUIControl.GLContextClose to all the controls
+      on the list. EndDisableContextOpenClose ends this.
+      They work by increasing / decreasing the TUIControl.DisableContextOpenClose
       for all the items on the list.
 
       @groupBegin }
-    procedure BeginDisableContextInitClose;
-    procedure EndDisableContextInitClose;
+    procedure BeginDisableContextOpenClose;
+    procedure EndDisableContextOpenClose;
     { @groupEnd }
   end;
 
@@ -560,7 +560,7 @@ begin
   FContainerSizeKnown := true;
 end;
 
-procedure TUIControl.GLContextInit;
+procedure TUIControl.GLContextOpen;
 begin
   FGLContextInitialized := true;
 end;
@@ -715,22 +715,22 @@ begin
   inherited Insert(Index, Item);
 end;
 
-procedure TUIControlList.BeginDisableContextInitClose;
+procedure TUIControlList.BeginDisableContextOpenClose;
 var
   I: Integer;
 begin
  for I := 0 to Count - 1 do
    with Items[I] do
-     DisableContextInitClose := DisableContextInitClose + 1;
+     DisableContextOpenClose := DisableContextOpenClose + 1;
 end;
 
-procedure TUIControlList.EndDisableContextInitClose;
+procedure TUIControlList.EndDisableContextOpenClose;
 var
   I: Integer;
 begin
  for I := 0 to Count - 1 do
    with Items[I] do
-     DisableContextInitClose := DisableContextInitClose - 1;
+     DisableContextOpenClose := DisableContextOpenClose - 1;
 end;
 
 end.

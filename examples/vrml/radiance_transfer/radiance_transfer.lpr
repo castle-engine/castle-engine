@@ -120,7 +120,7 @@ var
 
 procedure UpdateViewMode; forward;
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 begin
   glEnable(GL_LIGHT0);
   UpdateViewMode;
@@ -288,10 +288,10 @@ begin
 
   Glw.Controls.Add(SceneManager);
 
-  Glw.OnInit := @Init;
+  Glw.OnOpen := @Open;
   Glw.OnIdle := @Idle;
 
   InitializeSHBasisMap;
 
-  Glw.InitAndRun;
+  Glw.OpenAndRun;
 end.

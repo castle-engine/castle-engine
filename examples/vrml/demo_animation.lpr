@@ -195,7 +195,7 @@ begin
     Glw.OnKeyDown := @KeyDown;
     Glw.Caption := ProgramName;
 
-    Glw.Init;
+    Glw.Open;
 
     Progress.Init(Animation.ScenesCount, 'Preparing animation');
     try

@@ -274,7 +274,7 @@ begin
   Glw.PostRedisplay;
 end;
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 const
   Wrap: TTextureWrap2D = (GL_REPEAT, GL_REPEAT);
 begin
@@ -314,11 +314,11 @@ end;
 begin
   Glw := TGLWindowDemo.Create(Application);
 
-  Glw.OnInit := @Init;
+  Glw.OnOpen := @Open;
   Glw.OnResize := @Resize;
   Glw.OnKeyDown := @KeyDown;
   Glw.OnDraw := @Draw;
 
-  Glw.Init;
+  Glw.Open;
   Application.Run;
 end.

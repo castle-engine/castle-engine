@@ -715,7 +715,7 @@ end;
 
 { GLWindow callbacks --------------------------------------------------------- }
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 const
   GLSLProgramBaseName = 'dynamic_ambient_occlusion';
 var
@@ -908,10 +908,10 @@ begin
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 
-    Glw.OnInit := @Init;
+    Glw.OnOpen := @Open;
     Glw.OnClose := @Close;
     Glw.OnIdle := @Idle;
-    Glw.InitAndRun;
+    Glw.OpenAndRun;
   finally
     FreeAndNil(SceneManager);
     FreeAndNil(Elements);

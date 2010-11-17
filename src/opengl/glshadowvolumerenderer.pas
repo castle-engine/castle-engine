@@ -57,7 +57,7 @@ type
       If OpenGL will not have these available, then they will be equal to
       old GL_INCR/DECT constants (without wrapping).
 
-      These are set by InitGL. WrapAvailable says whether
+      These are set by GLContextOpen. WrapAvailable says whether
       they were set to _WRAP_ versions.
 
       @groupBegin }
@@ -93,7 +93,7 @@ type
 
     { Call this when OpenGL context is initialized, this will set some things.
       For now, this sets StencilOpIncrWrap, StencilOpDecrWrap. }
-    procedure InitGLContext;
+    procedure GLContextOpen;
 
     { Call this when camera frustum is known and light position (of the shadow
       casting light) is known, typically at the beginning of your drawing routine.
@@ -176,7 +176,7 @@ type
     { Is two-sided stencil test (that allows you to make SV in a single pass)
       available ?
 
-      This is initialized by InitGLContext, and is true if OpenGL provides
+      This is initialized by GLContextOpen, and is true if OpenGL provides
       one of:
       @unorderedList(
         @item(glStencilOpSeparate (in OpenGL >= 2.0))
@@ -249,7 +249,7 @@ implementation
 uses SysUtils, KambiUtils, KambiStringUtils, KambiLog, GLVersionUnit,
   RenderStateUnit;
 
-procedure TGLShadowVolumeRenderer.InitGLContext;
+procedure TGLShadowVolumeRenderer.GLContextOpen;
 begin
   { calcualte WrapAvailable, StencilOpIncrWrap, StencilOpDecrWrap }
   FWrapAvailable := (GLVersion.Major >= 2) or GL_EXT_stencil_wrap;

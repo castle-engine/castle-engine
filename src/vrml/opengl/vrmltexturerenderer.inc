@@ -1611,7 +1611,7 @@ begin
     RenderToTexture.Buffer := tbDepth else
     RenderToTexture.Buffer := tbColor;
   RenderToTexture.Stencil := not DepthMap;
-  RenderToTexture.GLContextInit;
+  RenderToTexture.GLContextOpen;
 end;
 
 procedure TGLRenderedTextureNode.Unprepare;
@@ -2097,7 +2097,7 @@ begin
 
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
   RenderToTexture.SetTexture(GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
-  RenderToTexture.GLContextInit;
+  RenderToTexture.GLContextOpen;
 
   { Workaround for NVidia GeForce FX 5200 bug:
     (Confirmed it's needed on Linux, both 32 and 64bit, Kambi's "kocury".
@@ -2118,7 +2118,7 @@ begin
     but mipmaps are seemingly filled with random garbage).
     Line below fixes it at negligible cost (we'll generate mipmaps at loading
     one more time than necessary). Other fix that works is to move
-    RenderToTexture.GLContextInit to first Update call, but this obfuscates code. }
+    RenderToTexture.GLContextOpen to first Update call, but this obfuscates code. }
   if GLVersion.VendorNvidia and NeedsMipmaps then
   begin
     RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP_ARB;
@@ -2315,7 +2315,7 @@ begin
     RenderToTexture.Buffer := tbColor else
     RenderToTexture.Buffer := tbDepth;
   RenderToTexture.Stencil := false;
-  RenderToTexture.GLContextInit;
+  RenderToTexture.GLContextOpen;
 end;
 
 procedure TGLGeneratedShadowMap.Unprepare;

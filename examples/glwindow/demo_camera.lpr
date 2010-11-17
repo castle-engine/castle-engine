@@ -86,5 +86,5 @@ begin
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)), 0.1);
 
-  Glw.InitAndRun;
+  Glw.OpenAndRun;
 end.

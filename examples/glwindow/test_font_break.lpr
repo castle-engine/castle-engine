@@ -61,7 +61,7 @@ begin
  BoxWidth := glwin.Width * 2 div 3;
 end;
 
-procedure Init(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 begin
  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
@@ -74,9 +74,9 @@ end;
 begin
  Glw := TGLWindowDemo.Create(Application);
 
- glw.OnInit := @Init;
+ glw.OnOpen := @Open;
  glw.OnClose := @Close;
  glw.OnResize := @Resize;
  glw.DepthBufferBits := 0;
- glw.InitAndRun('Font.BreakLines demo', @Draw);
+ glw.OpenAndRun('Font.BreakLines demo', @Draw);
 end.

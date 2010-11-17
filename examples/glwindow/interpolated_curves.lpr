@@ -190,13 +190,13 @@ begin
   end;
 end;
 
-procedure InitGL(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 begin
   glPointSize(10);
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m14);
 end;
 
-procedure CloseGL(Glwin: TGLWindow);
+procedure Close(Glwin: TGLWindow);
 begin
   FreeAndNil(StatusFont);
 end;
@@ -432,12 +432,12 @@ begin
       TVariable,
       0, 4*Pi);
 
-    { init Glw, go ! }
-    Glw.OnInit := @InitGL;
-    Glw.OnClose := @CloseGL;
+    { open Glw, go ! }
+    Glw.OnOpen := @Open;
+    Glw.OnClose := @Close;
     Glw.OnDraw := @DrawStatus;
     Glw.OnDrawStyle := ds2D;
-    Glw.InitAndRun;
+    Glw.OpenAndRun;
   finally
     FreeAndNil(PreciseCurve);
     FreeAndNil(ApproxCurve);

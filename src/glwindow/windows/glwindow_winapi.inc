@@ -413,7 +413,7 @@ begin
         So I workaround this by adding CYMENU. This is not perfect, as this assumes
         that menu bar will always be a single line.
         Note that this is non-perfect also because WM_MOVE message may not get to
-        FullScreen window at all, so in InitImplDepend I also do this trick. }
+        FullScreen window at all, so in OpenImplDepend I also do this trick. }
       if FullScreen and (MainMenu <> nil) then
         FTop += GetSystemMetrics(SM_CYMENU);
 
@@ -616,7 +616,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TGLWindow.InitWinSystemDepend;
+procedure TGLWindow.OpenWinSystemDepend;
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
     of Windows H_Dc device context. They try to set it, and eventually rise some

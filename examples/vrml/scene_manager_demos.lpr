@@ -106,5 +106,5 @@ begin
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   Translation.Add(Animation);
 
-  Window.InitAndRun;
+  Window.OpenAndRun;
 end.

@@ -263,7 +263,7 @@ begin
   glPopAttrib;
 end;
 
-procedure Init(glwin: TGLWindow);
+procedure Open(glwin: TGLWindow);
 begin
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHTING);
@@ -632,7 +632,7 @@ begin
   Camera.Input_StopRotating.MouseButtonUse := false;
   Glw.Controls.Add(Camera);
 
-  Glw.OnInit := @Init;
+  Glw.OnOpen := @Open;
   Glw.OnClose := @Close;
   Glw.OnResize := @Resize;
   Glw.OnIdle := @Idle;
@@ -643,6 +643,6 @@ begin
 
   SurfaceNew(4, 4);
   try
-    Glw.InitAndRun;
+    Glw.OpenAndRun;
   finally FreeAndNil(Surface) end;
 end.

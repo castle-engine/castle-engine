@@ -177,7 +177,7 @@ type
     FRestoreProjectionMatrix: boolean;
     FRestoreModelviewMatrix: boolean;
     FRestoreTextureMatrix: boolean;
-    DisabledContextInitClose: boolean;
+    DisabledContextOpenClose: boolean;
   public
     { Enter / Exit mode:
 
@@ -274,7 +274,7 @@ type
 
       This also performs important optimization to avoid closing / reinitializing
       window TGLUIWindow.Controls OpenGL resources,
-      see TUIControl.DisableContextInitClose. }
+      see TUIControl.DisableContextOpenClose. }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean);
 
@@ -535,12 +535,12 @@ begin
  begin
    { We know that at destruction these controls will be restored to
      the window's Controls list. So there's no point calling any
-     GLContextInit / Close on these controls (that could happen
+     GLContextOpen / Close on these controls (that could happen
      e.g. when doing SetStandardState / CreateReset, that clear Controls,
      and at destruction when restoring.) }
 
-   DisabledContextInitClose := true;
-   TGLUIWindow(AGLWindow).Controls.BeginDisableContextInitClose;
+   DisabledContextOpenClose := true;
+   TGLUIWindow(AGLWindow).Controls.BeginDisableContextOpenClose;
  end;
 end;
 
@@ -561,8 +561,8 @@ begin
  oldWinState.SetState(glwin);
  FreeAndNil(oldWinState);
 
- if DisabledContextInitClose then
-   TGLUIWindow(Glwin).Controls.EndDisableContextInitClose;
+ if DisabledContextOpenClose then
+   TGLUIWindow(Glwin).Controls.EndDisableContextOpenClose;
 
  if FPushPopGLWinMessagesTheme then
    GLWinMessagesTheme := oldGLWinMessagesTheme;

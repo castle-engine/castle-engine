@@ -60,7 +60,7 @@ begin
   Scene.Render(nil, tgAll);
 end;
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 begin
   glEnable(GL_LIGHT0); { headlight }
 end;
@@ -94,9 +94,9 @@ begin
       (Camera as TWalkCamera).Gravity := false;
     Glw.Controls.Add(Camera);
 
-    Glw.OnInit := @Init;
+    Glw.OnOpen := @Open;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
-    Glw.InitAndRun(ProgramName, @Draw);
+    Glw.OpenAndRun(ProgramName, @Draw);
   finally Scene.Free end;
 end.

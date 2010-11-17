@@ -33,11 +33,11 @@
       @link(TGLWindow.Height Height),
       @link(TGLWindow.Caption Caption).)
 
-    @item(Call @link(TGLWindow.Init Glw.Init),
+    @item(Call @link(TGLWindow.Open Glw.Open),
       this will actually show the window and it's
       associated OpenGL context. It also calls
-      @link(TGLWindow.EventInit EventInit)
-      (@link(TGLWindow.OnInit OnInit) callback)
+      @link(TGLWindow.EventOpen EventOpen)
+      (@link(TGLWindow.OnOpen OnOpen) callback)
       and @link(TGLWindow.EventResize EventResize)
       (@link(TGLWindow.OnResize OnResize) callback).)
 
@@ -52,8 +52,8 @@
         @longCode(#  while Application.ProcessMessage do <something>;#)
       instead of Application.Run.
 
-      You can also call @link(TGLWindow.InitAndRun Glw.InitAndRun),
-      this is just a shortcut for Glw.Init + Application.Run.)
+      You can also call @link(TGLWindow.OpenAndRun Glw.OpenAndRun),
+      this is just a shortcut for Glw.Open + Application.Run.)
 
     @item(Application.Run ends when you call @link(TGLApplication.Quit Application.Quit)
       or when you close last visible window using @link(TGLWindow.Close Close(true)).
@@ -83,7 +83,7 @@
   begin
    Glw := TGLWindowDemo.Create(Application);
    Glw.OnResize := @Resize;
-   Glw.InitAndRun('Simplest GLWindow example', @Draw);
+   Glw.OpenAndRun('Simplest GLWindow example', @Draw);
   end.
 #)
 
@@ -119,7 +119,7 @@
     Glw := TMyWindow.Create;
     try
       Glw.Caption := 'Simplest GLWindow example using more OOP';
-      Glw.InitAndRun;
+      Glw.OpenAndRun;
     finally Glw.Free end;
   end.
 #)
@@ -545,7 +545,7 @@ unit GLWindow;
     or activates a menu
 
   only GLWINDOW_GTK_1/2:
-  - in InitImplDepend implement
+  - in OpenImplDepend implement
     MaxWidth/Height (Maybe these properties should be removed?
       They are made for symmetry with MinWidth/Height. Are they really useful?)
   - with GTK 2:
@@ -553,7 +553,7 @@ unit GLWindow;
       recreating window).
       Update docs about capabilities of GTK_2 implementation.
     - Value of propery FullScreen should change at runtime,
-      and parts of things that I'm doing now in InitImplDepend
+      and parts of things that I'm doing now in OpenImplDepend
       should be done on such changes.
       This way I should be able to react to fullscreen changes
       forced by user (using window manager, not F11) really cleanly.
@@ -747,7 +747,7 @@ type
   end;
 
   { Saved state of all callbacks
-    of @link(TGLWindow), with the exception of OnInit and OnClose callbacks.
+    of @link(TGLWindow), with the exception of OnOpen and OnClose callbacks.
     This is used in @link(TGLWindow.GetCallbacksState)
     and @link(TGLWindow.SetCallbacksState).
     See unit GLWinModes for example when such thing is useful. }
@@ -767,7 +767,7 @@ type
   end;
 
   { }
-  TResizeAllowed = (raNotAllowed, raOnlyAtInit, raAllowed);
+  TResizeAllowed = (raNotAllowed, raOnlyAtOpen, raAllowed);
 
   EGLContextNotPossible = class(Exception);
 
@@ -799,7 +799,7 @@ type
 
   private
     FWidth, FHeight, FLeft, FTop: Integer;
-    FOnInit: TGLWindowFunc;
+    FOnOpen: TGLWindowFunc;
     FOnBeforeDraw, FOnDraw: TDrawFunc;
     FOnResize: TGLWindowFunc;
     FOnClose: TGLWindowFunc;
@@ -827,25 +827,25 @@ type
     FCaption: string;
     procedure SetCaption(const Value: string);
   private
-    { FClosed = are we outside of Init..Close }
+    { FClosed = are we outside of Open..Close }
     FClosed: boolean;
 
-    { EventInitCalled = has OnInit been called from Init? }
-    EventInitCalled: boolean;
+    { EventOpenCalled = has OnOpen been called from Open? }
+    EventOpenCalled: boolean;
     closeerrors: string; { Used by Close. }
 
     MenuUpdateInside: Cardinal;
     MenuUpdateNeedsInitialize: boolean;
     MenuInitialized: boolean;
 
-    { Konkretne implementacje nie robia wlasnej wersji TGLWindow.Init,
-      robia InitImplDepend -- tam sie inicjuja + musza wywolac
+    { Konkretne implementacje nie robia wlasnej wersji TGLWindow.Open,
+      robia OpenImplDepend -- tam sie inicjuja + musza wywolac
       Application.ActiveAdd(Self) w dogodnej chwili.
 
       Here's a list of properties that should be made "visible" to the user
-      in InitImplDepend:
+      in OpenImplDepend:
         Width, Height, Left, Top, FullScreen
-        Cursor, CustomCursor (remember that changes to this after InitImplDepend
+        Cursor, CustomCursor (remember that changes to this after OpenImplDepend
           should also be allowed)
         ResizeAllowed (DoResize already implements appropriate
           checks, but implementation should provide user with visual clues that
@@ -855,9 +855,9 @@ type
       OpenGL context must be initialized honouring these properties:
         DoubleBuffer, StencilBufferBits, DepthBufferBits, AlphaBits,
         AccumBufferBits, MultiSampling }
-    procedure InitImplDepend;
+    procedure OpenImplDepend;
 
-    { Podobnie jak z Init i InitImplDepend jest tez z Close, wystarczy napisac
+    { Podobnie jak z Open i OpenImplDepend jest tez z Close, wystarczy napisac
       CloseImplDepend (w CloseImplDepend juz nie trzeba wywolywac
       ActiveRemove, to jest wywolane w Close niezaleznym od implementacji).
       W czasie CloseImplDepend wyjatkowo wszelkie bledy nie powinny powodowac wyjatku
@@ -892,7 +892,7 @@ type
       Also it may assume that Closed = false.
 
       Note: if backend wants, it may itself call these from
-      InitImplDepend / CloseImplDepend. Of course, when you call them
+      OpenImplDepend / CloseImplDepend. Of course, when you call them
       yourself, you have to make sure on your own that all assumptions
       are satisfied. In practice, BackendMenuFinalize should clear all the variables
       to the state right after constructor (zero, nil etc.),
@@ -996,17 +996,17 @@ type
       - checking MainMenu.Enabled
     }
 
-    { DoResize with FromIndependentInit = true is called only once
-      (and exactly once) from TGLWindow.Init implementation.
+    { DoResize with FromIndependentOpen = true is called only once
+      (and exactly once) from TGLWindow.Open implementation.
       So all GLWindow-implementation code should always
-      pass FromIndependentInit = false (EVEN if it may be called from
-      InitImplDepend (that is called before DoResize in Init) !).
+      pass FromIndependentOpen = false (EVEN if it may be called from
+      OpenImplDepend (that is called before DoResize in Open) !).
 
-      Some more notes about calling DoResize from InitImplDepend:
+      Some more notes about calling DoResize from OpenImplDepend:
       in this case DoResize will NOT call EventResize (since the first callback
-      that should be called for a window is EventInit). We will always after
-      EventInit call DoResize(..., true), so this should not be a problem
-      anywhere. You can simply call DoResize from InitImplDepend to tell us what
+      that should be called for a window is EventOpen). We will always after
+      EventOpen call DoResize(..., true), so this should not be a problem
+      anywhere. You can simply call DoResize from OpenImplDepend to tell us what
       real Width/Height we have, and the real EventResize will be called
       just at a later time.
 
@@ -1024,7 +1024,7 @@ type
       calling DoResize; but usually (under WinAPI, Xlib, glut, gtk)
       it's not needed, i.e. WinAPI, Xlib, glut and gtk all take care of this
       automatically). }
-    procedure DoResize(AWidth, AHeight: integer; FromIndependentInit: boolean);
+    procedure DoResize(AWidth, AHeight: integer; FromIndependentOpen: boolean);
     { Wywoluj kiedy user kliknie na przycisku "Zamknij" itp.
       Wywola EventCloseQuery i ew. Close (and Close will execute EventClose,
       CloseImplDepend etc.). Note that there is no DoClose method and there
@@ -1152,7 +1152,7 @@ type
       odpowiedniej procedury EventXxx. Procedura EventXxx ma za zadanie
       z kolei wywolac odpowiednie OnXxx (o ile to jest zdefinoiwane, czyli
       Assigned(OnXxx)) i ew. OnXxxList jezeli zdarzenie ma swoja wersje listowa,
-      jak OnInit czy OnClose. Wszystkie procedury OnXxx sa wywolywane
+      jak OnOpen czy OnClose. Wszystkie procedury OnXxx sa wywolywane
       przez
         try OnXxx except on BreakGLWinEvent do ; end
       albo cos rownowaznego. Czyli rzucenie w czasie OnXxx wyjatkiem
@@ -1180,7 +1180,7 @@ type
       Pamietaj przy tym ze przed kazdym EventXxx musi byc wywolane MakeCurrent !
       (DoXxx robia to automatycznie, podobnie jak pare wewnetrznych rzeczy).  }
     procedure EventResize; virtual;
-    procedure EventInit; virtual;
+    procedure EventOpen; virtual;
     procedure EventClose; virtual;
     { EventCloseQuery ma zwrocic true aby DoCloseQuery zrobilo Close }
     function EventCloseQuery: boolean; virtual;
@@ -1217,7 +1217,7 @@ type
     function AllowSuspendForInput: boolean; virtual;
   public
     { ----------------------------------------------------------------------------
-      rzeczy ktore mozesz inicjowac tylko przed wywolaniem Init. Potem sa juz
+      rzeczy ktore mozesz inicjowac tylko przed wywolaniem Open. Potem sa juz
       read-only (chociaz moga byc uaktualniane na skutek wewnetrznych wywolan;
       np. Width i Height moga sie zmieniac, co zostanie zaznaczone
       wywolaniem OnResize). Left i Top tez beda uaktualniane. }
@@ -1230,7 +1230,7 @@ type
 
       min/maxWidth/Height i ResizeAllowed ustawiaja scisle ograniczenia na
       Width i Height ktore sa poprawiane zgodnie z tymi wlasciwosciami podczas
-      wywolywania Init. PO wywolaniu Init (tzn. pomiedzy Init a Close) jest
+      wywolywania Open. PO wywolaniu Open (tzn. pomiedzy Open a Close) jest
       gwarantowane ze
         - minWidth<= Width<= maxWidth
         - minHeight<= Height<= maxHeight
@@ -1252,14 +1252,14 @@ type
       glViewport bedzie na pewno zgodne z NASZYMI Width/Height.
 
       GLWindowDefaultSize will be treated specifically:
-      at Init, will be replaced with some comfortable size slightly
+      at Open, will be replaced with some comfortable size slightly
       smaller than screen size.
     }
     property Width: integer read FWidth write FWidth default GLWindowDefaultSize;
     property Height: integer read FHeight write FHeight default GLWindowDefaultSize;
 
     { Window position on the screen. If one (or both) of them is equal
-      to GLWindowPositionCenter at the initialization (Init) time,
+      to GLWindowPositionCenter at the initialization (Open) time,
       then it will be set to position the window at the screen center.
       @groupBegin }
     property Left: integer
@@ -1282,7 +1282,7 @@ type
       When Application.VideoColorBits is also 0, then the default window
       system color precision will be used.
 
-      After Init, this is updated to the actual color bits used.
+      After Open, this is updated to the actual color bits used.
 
       In most situations, you will have to change the screen color precision
       to have the best chance for a given window color precision.
@@ -1290,7 +1290,7 @@ type
 
       This is deprecated, don't use. This isn't cross-platform (only Windows),
       there's no guarantee you actually get the required color bits,
-      and the fact that we change ColorBits after Init is ugly (we should
+      and the fact that we change ColorBits after Open is ugly (we should
       have another property for this).
 
       @deprecated }
@@ -1341,12 +1341,12 @@ type
 
           Oznacza ze Width i Height nie moga sie zmienic
           CHYBA ze po to zeby dostosowac sie do min/maxWidth/Height.
-          Tak ostre ograniczenia moga nawet spowodowac ze przy probie Init
+          Tak ostre ograniczenia moga nawet spowodowac ze przy probie Open
           okienka z atrybutem Fullscreen = true flaga Fullscreen moze zostac
           wylaczone na true. Ale masz PEWNOSC ze Width i Height zawsze beda
           rowne zadanym, o ile tylko beda w granicach min/maxWidth/Height.)
 
-        @item(raOnlyAtInit
+        @item(raOnlyAtOpen
 
           Oznacza ze rozmiary okienka moga zostac zainicjowane
           na inne niz podane jezeli np. WindowManager ma obiekcje co do
@@ -1354,7 +1354,7 @@ type
           Fullscreen i ScreenWidth/H sa rozne od Width/Height. W tych przypadkach,
           i byc moze takze w innych podobnych rozmiary Width/Height jakie
           dostanie okienko beda rozne od zadanych Width/Height. Ale masz PEWNOSC
-          ze po wywolaniu pierwszego callbacka (czyli EventInit (OnInit),
+          ze po wywolaniu pierwszego callbacka (czyli EventOpen (OnOpen),
           tuz przed pierwszym EventResize (OnResize))
           Width/Height juz beda stale, dopoki okienko bedzie not Closed.)
 
@@ -1363,7 +1363,7 @@ type
           Jest domyslne i pozwala na najwieksza swobode WindowManagerowi
           i userowi : okienko moze byc zresizowane w dowolnym momencie.
           Oznacza to ze nie tylko Width/Height jakie dostaniesz w pierwszych
-          OnInit i OnResize moga byc inne niz te ktorych zazadales ale takze
+          OnOpen i OnResize moga byc inne niz te ktorych zazadales ale takze
           w trakcie dzialania programu rozmiary okienka moga sie zmieniac.
           Powinienes
           byc na to przygotowany obslugujac zdarzenie OnResize (ktore w zasadzie
@@ -1373,12 +1373,12 @@ type
       )
 
       ResizeAllowed <> raAllowed oznacza ze do okna bedzie wyslane tylko
-      raz OnResize - na poczatku, pod koniec wykonywania Init (chociaz
+      raz OnResize - na poczatku, pod koniec wykonywania Open (chociaz
       w zasadzie i tak bedziesz mogl je zignorowac i obsluzyc wszystko
-      w OnInit; chociaz moze czasem bedziesz jednak chcial zapisac
+      w OnOpen; chociaz moze czasem bedziesz jednak chcial zapisac
       ustawianie glViewport i projection w OnResize, dla porzadku).
       Poniewaz pierwsze glViewport (przed wywolaniem pierwszych callbackow
-      EventInit (OnInit) i EventResize (OnResize) w Init)
+      EventOpen (OnOpen) i EventResize (OnResize) w Open)
       jest wykonane automatycznie to w rezultacie programy
       majace ResizeAllowed <> raAllowed nie musza sie nigdy martwic
       o robienie kiedykolwiek glViewport. }
@@ -1388,24 +1388,24 @@ type
     { Event called when OpenGL context is initialized.
 
       It's guaranteed that every newly opened window will get
-      EventInit (OnInit) first, and then EventResize (OnResize),
+      EventOpen (OnOpen) first, and then EventResize (OnResize),
       and only then --- the other callbacks, as the user uses the window.
-      This is consistent EventInit (OnInit)
+      This is consistent EventOpen (OnOpen)
       is always the first executed callback and EventClose (OnClose)
       is always the last. This allows you to cleanly initialize / finalize
       OpenGL resources.
 
-      During EventInit (OnInit) you already have valid
+      During EventOpen (OnOpen) you already have valid
       Width / Height values, that is those values were already adjusted
       if ResizeAllowed <> raNotAllowed. }
-    property OnInit: TGLWindowFunc read FOnInit write FOnInit;
+    property OnOpen: TGLWindowFunc read FOnOpen write FOnOpen;
   public
     { Callbacks called when OpenGL context is initialized.
-      Called always after OnInit. Useful when one callback is not enough.
+      Called always after OnOpen. Useful when one callback is not enough.
 
       The list instance (TDynGLWindowFuncArray) is created / destroyed
       in this class. You can add / remove freely your callbacks from this class. }
-    OnInitList: TDynGLWindowFuncArray;
+    OnOpenList: TDynGLWindowFuncArray;
   public
     { Minimum and maximum window sizes. Always
 
@@ -1417,7 +1417,7 @@ type
       Jesli sprobujesz samemu zainicjowac Width lub Height okienka na cos spoza
       tego zakresu - jesli to bedzie mniejsze od minWidth to zostanie przyjete
       minWidth, jesli wieksze od maxWidth - zostanie przyjete maxWidth (tzn.
-      zostanie poprawione dopiero w Init !). Bedzie to wykonane nawet jesli
+      zostanie poprawione dopiero w Open !). Bedzie to wykonane nawet jesli
       ResizeAllowed = raNotAllowed ! Wiec pamietaj ze jesli chcesz zeby ResizeAllowed
       = raNotAllowed bylo honorowane - width i height musza sie zawierac w
       min/max Width/Height.
@@ -1441,7 +1441,7 @@ type
       dostalismy 16, wiec glGetInteger(GL_STENCIL_BITS) = 16,
       ale ciagle StencilBufferBits = 8. To jest przydatne jesli teraz zrobimy
       okienku Close, potem np. zmienimy AccumBufferBits i sprobujemy zrobic
-      Init : nie chcielismy w takiej sytuacji zeby StencilBufferBits
+      Open : nie chcielismy w takiej sytuacji zeby StencilBufferBits
       zmienialo sie automatycznie, prawda?
       Zawsze kiedy chcesz zbadac ile bitow rzeczywiscie masz mozesz uzyc
       glGetInteger. }
@@ -1493,7 +1493,7 @@ type
       Just like with other XxxBufferBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
-      @link(Init) will raise an error. }
+      @link(Open) will raise an error. }
     property StencilBufferBits: Cardinal
       read FStencilBufferBits write FStencilBufferBits default 0;
 
@@ -1519,7 +1519,7 @@ type
       samples than we requested (e.g. if you request 3, you will most probably
       get 4...). But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
-      @link(Init) will raise an error. }
+      @link(Open) will raise an error. }
     property MultiSampling: Cardinal
       read FMultiSampling write FMultiSampling default 1;
 
@@ -1529,7 +1529,7 @@ type
       Just like with other XxxBufferBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
-      @link(Init) will raise an error.
+      @link(Open) will raise an error.
 
       It's undefined how I'll treat this variable when indexed color mode
       will be possible in TGLWindow. }
@@ -1545,7 +1545,7 @@ type
       Just like with other XxxBufferBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
-      @link(Init) will raise an error. }
+      @link(Open) will raise an error. }
     AccumBufferBits: TVector4Cardinal;
 
     (* TODO: zrobic od razu
@@ -1586,7 +1586,7 @@ type
   public
 
     { -----------------------------------------------------------------------
-      rzeczy ktore mozesz inicjowac przed wywolaniem Init ale mozesz tez nimi
+      rzeczy ktore mozesz inicjowac przed wywolaniem Open ale mozesz tez nimi
       swobodnie manipulowac pozniej. }
 
     property Caption: string read FCaption write SetCaption; { = ProgramName }
@@ -1641,8 +1641,8 @@ type
 
     { OnResize - wywolywane zawsze gdy okienko bedzie zresizowane,
       tzn. gdy zmienia sie width i/lub height tego obiektu.
-      Ponadto, jest gwarantowane ze OnResize bedzie wywolane zawsze w czasie Init
-      tuz po EventInit (OnInit).
+      Ponadto, jest gwarantowane ze OnResize bedzie wywolane zawsze w czasie Open
+      tuz po EventOpen (OnOpen).
       Przed wywolaniem OnResize width i height okienka sa juz uaktualnione,
       jest zrobione MakeCurrent. Nie ma problemu jesli OnResize = nil,
       chociaz zazwyczaj jest to dobre  miejsce na ustawienie projection matrix.
@@ -1663,13 +1663,13 @@ type
     { jesli assigned, to bedzie wywolywane OnClose w momencie zamykania okna -
       czyli robienia Close. Ta procedura jest ostatnia szansa na zrobienie czegos
       zanim kontekst OpenGL'a zostanie zniszczony i jest lustrzanym odbiciem
-      OnInit; dobrym miejscem na niszczenie tego co stworzylo OnInit jest wlasnie
+      OnOpen; dobrym miejscem na niszczenie tego co stworzylo OnOpen jest wlasnie
       OnClose (np. tutaj niszcz fonty OpenGL'a ktore potrzebuja kontekstu OpenGL'a
       zeby ladnie wyczyscic po sobie zasosby OSa) }
     property OnClose: TGLWindowFunc read FOnClose write FOnClose;
 
-    { podobnie jak OnInit, OnClose tez ma swoja wersje listowa : OnCloseList.
-      Patrz komentarze przy OnInitList. }
+    { podobnie jak OnOpen, OnClose tez ma swoja wersje listowa : OnCloseList.
+      Patrz komentarze przy OnOpenList. }
     public OnCloseList: TDynGLWindowFuncArray;
 
     { OnKeyDown(Self, Key, c) occurs when user presses some key that
@@ -1879,10 +1879,10 @@ type
       from TMenu, changing Caption, Key, CharKey, Checked properties --
       anything) and you can change value of MainMenu BUT you must not
       change MainMenu <> nil state when the window is not Closed.
-      I.e. if you called Init with MainMenu = nil, then MainMenu must stay
-      nil unit Close. If you called Init with MainMenu <> nil, then you
+      I.e. if you called Open with MainMenu = nil, then MainMenu must stay
+      nil unit Close. If you called Open with MainMenu <> nil, then you
       can assign other MainMenu values while not Closed, but only values
-      <>nil. I.e. you can't set MainMenu to nil if you called Init
+      <>nil. I.e. you can't set MainMenu to nil if you called Open
       with MainMenu <> nil.
       See @code(kambi_vrml_game_engine/examples/glwindow/menu_test_alternative.lpr)
       for demo of changing value of MainMenu while window is not Closed.
@@ -1963,7 +1963,7 @@ type
 
     property Closed: boolean read FClosed default true;
 
-    (*Initialize window (create window with GL context, show window).
+    (*Open the window (create window with GL context, show window).
 
       @unorderedList(
         @item(Create window, it's OpenGL area, optionally it's menu.)
@@ -1975,15 +1975,15 @@ type
           and initialized.)
 
         @item(Initial events called:@br
-          Call MakeCurrent, EventInit (OnInit)@br
-          Call MakeCurrent + EventResize (OnResize)@br
-          Call MakeCurrent once again, to be sure that after Init
+          Call MakeCurrent, EventOpen (OnOpen)@br
+          Call MakeCurrent, EventResize (OnResize)@br
+          Call MakeCurrent once again, to be sure that after Open
           active OpenGL context is the one associated with newly created
           window (in case you would change active OpenGL context inside
           EventResize (OnResize), which is allowed).)
       )
 
-      Call to Init is ignored if not Closed., i.e. if window is already inited.
+      Call to Open is ignored if not Closed., i.e. if window is already inited.
 
       Raises EGLContextNotPossible if it's not possible to obtain
       OpenGL context with specified attributes.
@@ -1997,14 +1997,14 @@ type
   Shadows := true;
   Glw.StencilBufferBits := 8;
   try
-    Glw.Init;
+    Glw.Open;
   except
     on EGLContextNotPossible do
     begin
       Shadows := false;
       Glw.StencilBufferBits := 0;
-      { try to init once again, this time without requesting stencil buffer }
-      Glw.Init;
+      { try to open once again, this time without requesting stencil buffer }
+      Glw.Open;
     end;
   end;
 #)
@@ -2012,14 +2012,14 @@ type
       @raises(EGLContextNotPossible If it's not possible to obtain
         OpenGL context with specified attributes.)
     *)
-    procedure Init;
+    procedure Open;
 
-    { Version of Init that will eventually turn off multisampling and
+    { Version of Open that will eventually turn off multisampling and
       stencil buffer, if display doesn't support them.
 
       @orderedList(
         @item(First it tries to initialize requested OpenGL context,
-          simply by calling regular @link(Init).)
+          simply by calling regular @link(Open).)
 
         @item(When this fails, and multisampling was requested (MultiSampling > 1),
           it will set MultiSampling to 1, call MultiSamplingOff, and retry.)
@@ -2029,7 +2029,7 @@ type
           call StencilOff, and retry.)
 
         @item(When this also fails, you will get EGLContextNotPossible
-          exception, just like from regular @link(Init) call when
+          exception, just like from regular @link(Open) call when
           initialization failed.)
       )
 
@@ -2037,8 +2037,8 @@ type
       StencilOff callbacks are called (if assigned).
       It's important to note that they are called before actually
       retrying. This means that MultiSamplingOff/StencilOff
-      will be always called before TGLWindow.Init that eventually
-      succeeds, so they will be always called before eventual TGLWindow.OnInit
+      will be always called before TGLWindow.Open that eventually
+      succeeds, so they will be always called before eventual TGLWindow.OnOpen
       and such. This is usually what you want.
 
       FailureMessage passed to *Off callbacks will be the multiline
@@ -2048,7 +2048,7 @@ type
       @raises(EGLContextNotPossible If it's not possible to obtain
         requested OpenGL context, even without multisampling and
         stencil buffer.) }
-    procedure InitOptionalMultiSamplingAndStencil(
+    procedure OpenOptionalMultiSamplingAndStencil(
       const MultiSamplingOff, StencilOff: TGLContextLoweredFunc);
 
     { Close window.
@@ -2114,7 +2114,7 @@ type
     { Each GLWindow has it's own OpenGL context. Before each window callback
       the calling window is guaranteed to be the current one - but sometimes
       you may need to manually set openGL context to a particular window.
-      Note : Init of a window sets this window implicitly to be the current one ! }
+      Note : @link(Open) sets this window implicitly to be the current one ! }
     procedure MakeCurrent;
 
     { The intention is to do:
@@ -2153,7 +2153,7 @@ type
     { @groupbegin
 
       Methods for simply saving and restoring value of all OnXxx
-      callbacks (with the exception of OnInit, OnInitList and
+      callbacks (with the exception of OnOpen, OnOpenList and
       OnClose, OnCloseList).
 
       @seealso DefaultCallbacksState }
@@ -2177,16 +2177,16 @@ type
       Fps.FrameTime and Fps.RealTime. }
     procedure FpsToCaption(const WindowTitle: string);
 
-    { InitAndRun stuff --------------------------------------------------------- }
+    { OpenAndRun stuff --------------------------------------------------------- }
 
-    { Shortcut for Init (create and show the window with GL contex)
+    { Shortcut for Open (create and show the window with GL contex)
       and Application.Run (run the event loop). }
-    procedure InitAndRun; overload;
+    procedure OpenAndRun; overload;
 
     { Shortcut for setting Caption, OnDraw,
-      then calling Init (create and show the window with GL contex)
+      then calling Open (create and show the window with GL contex)
       and Application.Run (run the event loop). }
-    procedure InitAndRun(const ACaption: string; AOnDraw: TDrawFunc); overload;
+    procedure OpenAndRun(const ACaption: string; AOnDraw: TDrawFunc); overload;
 
     { Parsing parameters ------------------------------------------------------- }
 
@@ -2353,8 +2353,8 @@ type
       @item(
         Przechwytuje wcisniecia SwapFullScreen_Key
         i wtedy przestawia okno z trybu windowed na fullscreen i z powrotem.
-        (robi to wykonujac Close, zmieniajac FFullscreen a potem Init ! wiec pamietaj
-        aby napisac dobrze OnInit / OnClose).
+        (robi to wykonujac Close, zmieniajac FFullscreen a potem Open ! wiec pamietaj
+        aby napisac dobrze OnOpen / OnClose).
         (Zainicjuj wlasciwosc FullScreen i left/top/width/height jesli chcesz,
         FullScreen bedzie okreslal poczatkowy stan a jesli fullScreen = false
         to left/top/width/height beda okreslac rozmiar na jaki okno bedzie
@@ -2400,25 +2400,25 @@ type
     FFpsCaptionUpdateInterval: TMilisecTime;
   public
     { Whether to show current Fps (frames per second) on window's Caption.
-      You can modify this property only @italic(before calling @link(Init).) }
+      You can modify this property only @italic(before calling @link(Open).) }
     property FpsShowOnCaption: boolean
       read FFpsShowOnCaption write FFpsShowOnCaption default true;
 
     { Key to use to switch between FullScreen and not FullScreen.
       Set to K_None to disable this functionality.
-      You can freely modify it at any time, even after calling @link(Init). }
+      You can freely modify it at any time, even after calling @link(Open). }
     property SwapFullScreen_Key: TKey
       read FSwapFullScreen_Key write FSwapFullScreen_Key default K_F11;
 
     { Key to use to close the window.
       Set to #0 to disable this functionality.
-      You can freely modify it at any time, even after calling @link(Init). }
+      You can freely modify it at any time, even after calling @link(Open). }
     property Close_CharKey: char
       read FClose_CharKey write FClose_CharKey default CharEscape;
 
     { When FpsShowOnCaption, you should not use Caption.
       Instead use FpsBaseCaption.
-      It will be inited from Caption at EventInit.
+      It will be inited from Caption at EventOpen.
       I know, it's a problem. Well, if in doubt, just turn off FpsShowOnCaption. }
     property FpsBaseCaption: string read FFpsBaseCaption write SetFpsBaseCaption;
 
@@ -2443,15 +2443,15 @@ type
       read FFpsCaptionUpdateInterval write FFpsCaptionUpdateInterval
       default DefaultFpsCaptionUpdateInterval;
 
-    { w czasie OnInit / OnClose mozesz sprawdzic wartosc tej wlasciwosci.
-      Jesli true to znaczy ze ten OnInit / OnClose sa wykonywane w czasie
+    { w czasie OnOpen / OnClose mozesz sprawdzic wartosc tej wlasciwosci.
+      Jesli true to znaczy ze ten OnOpen / OnClose sa wykonywane w czasie
       zmiany okna z fullscreen na windowed albo w druga strone. }
     property SwappingFullscr: boolean read fSwappingFullscr;
 
     procedure SwapFullScreen;
 
 
-    procedure EventInit; override;
+    procedure EventOpen; override;
     procedure EventKeyDown(Key: TKey; c: char); override;
     procedure EventIdle; override;
     function AllowSuspendForInput: boolean; override;
@@ -2518,7 +2518,7 @@ type
       @italic(Messing with this is very dangerous), that's why it's
       visibility is only protected (although could be even pubilshed, technically).
       This makes all controls miss all their events, including some critical
-      notification events like TUIControl.GLContextInit, TUIControl.GLContextClose,
+      notification events like TUIControl.GLContextOpen, TUIControl.GLContextClose,
       TUIControl.ContainerResize.
 
       You can reliably only turn this off temporarily, when you know that
@@ -2613,7 +2613,7 @@ type
     property TooltipY: Integer read FTooltipY;
     { @groupEnd }
 
-    procedure EventInit; override;
+    procedure EventOpen; override;
     procedure EventKeyDown(Key: TKey; Ch: char); override;
     procedure EventKeyUp(Key: TKey; Ch: char); override;
     procedure EventIdle; override;
@@ -2721,7 +2721,7 @@ type
     procedure DoActiveWindowsTimer;
 
     { Something useful for some GLWindow implementations. This will implement
-      (in a simple way) calling of DoSelfInit and DoActiveWindowsTimer.
+      (in a simple way) calling of DoSelfOpen and DoActiveWindowsTimer.
 
       Declare in TGLApplication some variable like
         LastDoTimerTime: TMilisecTime
@@ -2746,7 +2746,7 @@ type
     VideoResizeheight : integer;
 
     { Color bits per pixel ktore ma uzyc przy robieniu VideoChange i przy
-      robieniu TGLWindow.Init. = 0 oznaczaja ze ma uzyc system default }
+      robieniu TGLWindow.Open. = 0 oznaczaja ze ma uzyc system default }
     property VideoColorBits: integer read FVideoColorBits write FVideoColorBits default 0;
 
     { VideoFrequency to set in TryVideoChange and VideoChange.
@@ -2782,7 +2782,7 @@ type
     function ScreenWidth: integer;
 
     { Active[0..ActiveCount-1] : lista aktywnych okien programu, tzn.
-      tych dla ktorych wywolano Init a nie wywolano jeszcze Close. }
+      tych dla ktorych wywolano Open a nie wywolano jeszcze Close. }
     function ActiveCount: integer;
     property Active[Index: integer]: TGLWindow read GetActive;
 
@@ -2812,7 +2812,7 @@ type
       robic animacje zmieniajac jakies zmienne i wywolywac PostRedisplay.
 
       Mozesz tez zmieniac wartosc tej  zmiennej w czasie dzialania programu
-      (tzn.pomiedzy Init a Close jakiegos okienka). }
+      (tzn.pomiedzy Open a Close jakiegos okienka). }
     property OnIdle: TIdleFunc read FOnIdle write FOnIdle; { = nil }
     { OnTimer : podobnie jak glutTimerFunc. To zdarzenie jest uruchamiane
       co TimerMilisec milesekund lub wiecej (tzn. nie ma gwarancji ze zdarzenie
@@ -2823,7 +2823,7 @@ type
       i aby pozostale callbacki nie zajmowaly zbyt duzo czasu.
       Jesli ustawisz za male TimerMilisec to OnTimer zacznie dzialac jak OnIdle !
       Mozesz tez zmieniac wartosc OnTimer i TimerMilisec w czasie dzialania engine'u
-      (tzn.pomiedzy Init a Close jakiegos okienka). }
+      (tzn.pomiedzy Open a Close jakiegos okienka). }
     property OnTimer: TProcedure read FOnTimer write FOnTimer; { = nil }
     property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec; { = 1000 }
 
@@ -2954,8 +2954,8 @@ type
 
       Note that this does nothing if ActiveCount is zero, that is there
       are no open windows. Besides the obvious reason (you didn't call
-      TGLWindow.Init on any window...) this may also happen if you called
-      Close (or Application.Quit) from your window OnInit / OnResize callback.
+      TGLWindow.Open on any window...) this may also happen if you called
+      Close (or Application.Quit) from your window OnOpen / OnResize callback.
       In such case no event would probably reach
       our program, and user would have no chance to quit, so Run just refuses
       to work and exits immediately without any error. }
@@ -3035,7 +3035,7 @@ end;
 constructor TGLWindow.Create(AOwner: TComponent);
 begin
  inherited;
- OnInitList := TDynGLWindowFuncArray.Create;
+ OnOpenList := TDynGLWindowFuncArray.Create;
  OnCloseList := TDynGLWindowFuncArray.Create;
  FClosed := true;
  FWidth  := GLWindowDefaultSize;
@@ -3072,12 +3072,12 @@ begin
 
  FreeAndNil(FFps);
  FreeAndNil(FPressed);
- FreeAndNil(OnInitList);
+ FreeAndNil(OnOpenList);
  FreeAndNil(OnCloseList);
  inherited;
 end;
 
-procedure TGLWindow.Init;
+procedure TGLWindow.Open;
 begin
  if not FClosed then Exit;
 
@@ -3120,20 +3120,20 @@ begin
   { reset some window state variables }
   Pressed.Clear;
   fmousePressed := [];
-  EventInitCalled := false;
+  EventOpenCalled := false;
 
   { Set Closed to false.
-    W tym miejscu, przed InitImplDepend i wywolaniem  OnInit + OnResize, bo
+    W tym miejscu, przed OpenImplDepend i wywolaniem  OnOpen + OnResize, bo
    - te rzeczy moga rzucic wyjatki a w reakcji na wyjatek
      chcemy wywolac Close ktore do dzialania wymaga aby bylo not FClosed. }
   FClosed := false;
 
   { Najwazniejsze : zrob to co implementacja zrobic musi.
     Mozesz stad smialo wywolywac DoResize, beda ignorowane dzieki temu
-    ze EventInitCalled = false.  }
-  InitImplDepend;
+    ze EventOpenCalled = false.  }
+  OpenImplDepend;
 
-  { Do MakeCurrent before glViewport and EventInit. }
+  { Do MakeCurrent before glViewport and EventOpen. }
   MakeCurrent;
 
   LoadAllExtensions;
@@ -3145,15 +3145,15 @@ begin
     rzeczywistych rozmiarow okienka) }
   glViewport(0, 0, Width, Height);
 
-  { call first EventInit and EventResize. Zwroc uwage ze te DoResize i DoInit
-    MUSZA byc wykonane na samym koncu procedury Init - jak juz wszystko inne
-    zostalo wykonane. Wszystko po to ze juz w pierwszym OnInit lub OnResize
-    moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnInit
+  { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
+    MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
+    zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
+    moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnOpen
     GLWinMessages.MessageOk. }
-  EventInitCalled := true;
-  EventInit;
+  EventOpenCalled := true;
+  EventOpen;
 
-  { Check Closed here, in case OnInit closed the window
+  { Check Closed here, in case OnOpen closed the window
     (by calling Application.Quit (that calls Close on all windows) or direct Close
     on this window). Note that Close calls
     CloseImplDepend and generally has *immediate* effect --- that's why
@@ -3166,14 +3166,14 @@ begin
   if Closed then Exit;
 
   { to be SURE that current window's gl context is active,
-    even if someone in EventInit changed current gl context }
+    even if someone in EventOpen changed current gl context }
   MakeCurrent;
  except
   Close; raise;
  end;
 end;
 
-procedure TGLWindow.InitOptionalMultiSamplingAndStencil(
+procedure TGLWindow.OpenOptionalMultiSamplingAndStencil(
   const MultiSamplingOff, StencilOff: TGLContextLoweredFunc);
 const
   SFailureMessage =
@@ -3182,15 +3182,15 @@ const
   STurnedOffMultiSampling = 'Multi-sampling (anti-aliasing)';
   STurnedOffStencil = 'Stencil buffer (shadow volumes)';
 
-  procedure TryInitContext;
+  procedure TryOpenContext;
   begin
-    Init;
+    Open;
   end;
 
-  procedure TryInitContext_Shadows;
+  procedure TryOpenContext_Shadows;
   begin
     try
-      Init;
+      Open;
     except
       on E: EGLContextNotPossible do
       begin
@@ -3199,7 +3199,7 @@ const
           StencilBufferBits := 0;
           if Assigned(StencilOff) then
             StencilOff(Self, Format(SFailureMessage, [E.Message, STurnedOffStencil]));
-          TryInitContext;
+          TryOpenContext;
         end else
           raise;
       end;
@@ -3208,7 +3208,7 @@ const
 
 begin
   try
-    Init;
+    Open;
   except
     on E: EGLContextNotPossible do
     begin
@@ -3217,14 +3217,14 @@ begin
         MultiSampling := 1;
         if Assigned(MultiSamplingOff) then
           MultiSamplingOff(Self, Format(SFailureMessage, [E.Message, STurnedOffMultiSampling]));
-        TryInitContext_Shadows;
+        TryOpenContext_Shadows;
       end else
       if StencilBufferBits > 0 then
       begin
         StencilBufferBits := 0;
         if Assigned(StencilOff) then
           StencilOff(Self, Format(SFailureMessage, [E.Message, STurnedOffStencil]));
-        TryInitContext;
+        TryOpenContext;
       end else
         raise;
     end;
@@ -3243,7 +3243,7 @@ begin
  if FClosed then Exit;
 
  try
-  if EventInitCalled then
+  if EventOpenCalled then
   begin
    MakeCurrent;
    EventClose;
@@ -3258,7 +3258,7 @@ begin
     if Self is not on Active[] list. This is useful if the window was partially
     constructed.
 
-    E.g. when StencilBufferBits was too high and InitImplDepend
+    E.g. when StencilBufferBits was too high and OpenImplDepend
     method raised an exception EGLContextNotPossible. Then this method, Close,
     is called, but Self is not on Active[] list. And this fact should not be
     reported as an error -- error is EGLContextNotPossible ! }
@@ -3314,7 +3314,7 @@ end;
   bezposrednio EventXxx ani tym bardziej OnXxx !
   ------------------------------------------------------------------------------------ }
 
-procedure TGLWindow.DoResize(AWidth, AHeight: integer; FromIndependentInit: boolean);
+procedure TGLWindow.DoResize(AWidth, AHeight: integer; FromIndependentOpen: boolean);
 begin
  { zabezpiecz sie przed
    1) glutem, ktoremu nie mamy jak powiedziec ze ResizeAllowed <> raNotAllowed
@@ -3329,9 +3329,9 @@ begin
      minWidth > 0 i minHeight > 0 wiec jednoczesnie ponizej gwarantujemy sobie ze nie
      zachodzi sytuacja w = 0 lub h = 0.
 
-   Apropos wywolywania DoResize(.., false) z InitImplDepend:
+   Apropos wywolywania DoResize(.., false) z OpenImplDepend:
    zabezpieczamy sie przed tym zawsze. Ale mozna tu odnotowac ze z pewnoscia
-   InitImplDepend moze wywolywac DoResize(.., false) w przypadku
+   OpenImplDepend moze wywolywac DoResize(.., false) w przypadku
    implementacji WINAPI i GTK.
  }
 
@@ -3339,25 +3339,25 @@ begin
    Below we are explicitly forcing assertions about ResizeAllowed:
    when ResizeAllowed
      = raNotAllowed: FWidth and FHeight cannot change
-     = raOnlyAtInit: FWidth and FHeight can change only once, at first EventResize
+     = raOnlyAtOpen: FWidth and FHeight can change only once, at first EventResize
      = raAllowed: FWidth and FHeight can change freely
  }
  if (ResizeAllowed = raAllowed) or
-    ((ResizeAllowed = raOnlyAtInit) and FromIndependentInit) then
+    ((ResizeAllowed = raOnlyAtOpen) and FromIndependentOpen) then
  begin
   FWidth := Clamped(AWidth,  MinWidth,  MaxWidth);
   FHeight := Clamped(AHeight, MinHeight, MaxHeight);
  end;
 
- { do not call EventResize before EventInit (this check is needed
-   because InitImplDepend is allowed to call DoResize) }
- if not EventInitCalled then Exit;
+ { do not call EventResize before EventOpen (this check is needed
+   because OpenImplDepend is allowed to call DoResize) }
+ if not EventOpenCalled then Exit;
 
  { jezeli ResizeAllowed <> raAllowed to nie powinnismy wywolywac EventResize
-   poza pierwszym razem (gdy FromIndependentInit).
+   poza pierwszym razem (gdy FromIndependentOpen).
    Kazdy nastepny raz i tak bylby pozbawiony
    znaczenia, bo przeciez Width i Height i tak nie ulegly zmianie. }
- if (not FromIndependentInit) and (ResizeAllowed <> raAllowed) then Exit;
+ if (not FromIndependentOpen) and (ResizeAllowed <> raAllowed) then Exit;
 
  MakeCurrent;
  EventResize;
@@ -3521,7 +3521,7 @@ begin
  {$I glwindow_eventend.inc}
 end;
 
-procedure TGLWindow.EventInit;                              const EventName = 'Init';       begin {$I glwindow_eventbegin.inc} if Assigned(OnInit)        then begin {$I glwindow_eventoncallbegin.inc} OnInit(Self);              {$I glwindow_eventoncallend.inc} end;   OnInitList .ExecuteAll(Self); {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventOpen;                              const EventName = 'Open';       begin {$I glwindow_eventbegin.inc} if Assigned(OnOpen)        then begin {$I glwindow_eventoncallbegin.inc} OnOpen(Self);              {$I glwindow_eventoncallend.inc} end;   OnOpenList .ExecuteAll(Self); {$I glwindow_eventend.inc} end;
 procedure TGLWindow.EventClose;                             const EventName = 'Close';      begin {$I glwindow_eventbegin.inc} if Assigned(OnClose)       then begin {$I glwindow_eventoncallbegin.inc} OnClose(Self);             {$I glwindow_eventoncallend.inc} end;   OnCloseList.ExecuteAll(Self); {$I glwindow_eventend.inc} end;
 {$define BONUS_LOG_STRING := Format('NewSize : %d,%d', [Width, Height])}
 procedure TGLWindow.EventResize;                            const EventName = 'Resize';     begin {$I glwindow_eventbegin.inc} if Assigned(OnResize)      then begin {$I glwindow_eventoncallbegin.inc} OnResize(Self);            {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
@@ -3769,18 +3769,18 @@ begin
  end;
 end;
 
-{ InitAndRun ----------------------------------------------------------------- }
+{ OpenAndRun ----------------------------------------------------------------- }
 
-procedure TGLWindow.InitAndRun(const ACaption: string; AOnDraw: TDrawFunc);
+procedure TGLWindow.OpenAndRun(const ACaption: string; AOnDraw: TDrawFunc);
 begin
  FCaption := ACaption;
  OnDraw := AOnDraw;
- InitAndRun;
+ OpenAndRun;
 end;
 
-procedure TGLWindow.InitAndRun;
+procedure TGLWindow.OpenAndRun;
 begin
- Init;
+ Open;
  Application.Run;
 end;
 
@@ -4207,7 +4207,7 @@ begin
    Width := wWidth;
    Height := wHeight;
   end;
-  Init;
+  Open;
  finally fSwappingFullscr := false end;
 end;
 
@@ -4233,7 +4233,7 @@ begin
  result := (inherited AllowSuspendForInput) and (not FpsShowOnCaption);
 end;
 
-procedure TGLWindowDemo.EventInit;
+procedure TGLWindowDemo.EventOpen;
 begin
  if not SwappingFullscr then
  begin
@@ -4340,11 +4340,11 @@ begin
 
         if not Container.Closed then
         begin
-          if C.DisableContextInitClose = 0 then
-            C.GLContextInit;
+          if C.DisableContextOpenClose = 0 then
+            C.GLContextOpen;
           { Call initial ContainerResize for control.
             If window OpenGL context is not yet initialized, defer it to
-            the Init time, then our initial EventResize will be called
+            the Open time, then our initial EventResize will be called
             that will do ContainerResize on every control. }
           C.ContainerResize(Container.Width, Container.Height);
         end;
@@ -4352,7 +4352,7 @@ begin
     lnExtracted, lnDeleted:
       begin
         if (not Container.Closed) and
-           (C.DisableContextInitClose = 0) then
+           (C.DisableContextOpenClose = 0) then
           C.GLContextClose;
 
         if C.OnVisibleChange = @Container.ControlsVisibleChange then
@@ -4624,17 +4624,17 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.EventInit;
+procedure TGLUIWindow.EventOpen;
 var
   I: Integer;
 begin
   inherited;
 
-  { call GLContextInit on controls after inherited (OnInit). }
+  { call GLContextOpen on controls after inherited (OnOpen). }
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
-      Controls[I].GLContextInit;
+      Controls[I].GLContextOpen;
   end;
 end;
 

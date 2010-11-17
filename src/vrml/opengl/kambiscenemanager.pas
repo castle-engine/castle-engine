@@ -607,7 +607,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure GLContextInit; override;
+    procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function PositionInside(const X, Y: Integer): boolean; override;
 
@@ -1528,7 +1528,7 @@ begin
         on GPUs with packed depth_stencil (most GPUs...).
         Any way to make it working? }
       ScreenEffectRTT.Stencil := not CurrentScreenEffectsNeedDepth;
-      ScreenEffectRTT.GLContextInit;
+      ScreenEffectRTT.GLContextOpen;
 
       if Log then
         WritelnLog('Screen effects', Format('Created texture rectangle for screen effects, with size %d x %d, with depth texture: %s',
@@ -1724,7 +1724,7 @@ begin
   Items.VisibleChangeNotification(Changes);
 end;
 
-procedure TKamSceneManager.GLContextInit;
+procedure TKamSceneManager.GLContextOpen;
 begin
   inherited;
 
@@ -1734,7 +1734,7 @@ begin
   if ShadowVolumeRenderer = nil then
   begin
     FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;
-    ShadowVolumeRenderer.InitGLContext;
+    ShadowVolumeRenderer.GLContextOpen;
   end;
 end;
 

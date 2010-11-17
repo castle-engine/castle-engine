@@ -75,5 +75,5 @@ begin
   BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
   BrowserWindow.Scene.ProcessEvents := true;
 
-  BrowserWindow.InitAndRun;
+  BrowserWindow.OpenAndRun;
 end.

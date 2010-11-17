@@ -406,7 +406,7 @@ begin
   Writeln(GLSLProgram.DebugInfo);
 end;
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 
   function LoadTexture(const FileName: string): TGLuint;
   begin
@@ -415,7 +415,7 @@ procedure Init(Glwin: TGLWindow);
   end;
 
 begin
-  RenderElevationsInitGL;
+  RenderElevationsOpenGL;
 
   { sliders used by both Controls* }
   SubdivisionSlider := TGLMenuIntegerSlider.Create(1, 10, Subdivision);
@@ -771,11 +771,11 @@ begin
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 
-    Glw.OnInit := @Init;
+    Glw.OnOpen := @Open;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
     Glw.OnDrawStyle := ds3D;
-    { SwapFullScreen funtionality (Close+Init) is for now broken here
+    { SwapFullScreen funtionality (Close+Open) is for now broken here
       (we should readd appropriate Controls* and camera to Glw.Controls,
       sliders should be recreated but with default values coming from
       last values, elevation should be updated with sliders values;
@@ -783,6 +783,6 @@ begin
     Glw.SwapFullScreen_Key := K_None;
     { Closing with Escape is too easy now, you can loose careful sliders values. }
     Glw.Close_CharKey := #0;
-    Glw.InitAndRun(ProgramName, @Draw);
+    Glw.OpenAndRun(ProgramName, @Draw);
   finally FreeAndNil(Elevation) end;
 end.

@@ -42,7 +42,7 @@ var
 
 function AntiAliasingGlwMultiSampling: Cardinal;
 
-procedure AntiAliasingGLInit;
+procedure AntiAliasingGLOpen;
 
 procedure AntiAliasingEnable;
 procedure AntiAliasingDisable;
@@ -62,7 +62,7 @@ begin
   end;
 end;
 
-procedure AntiAliasingGLInit;
+procedure AntiAliasingGLOpen;
 begin
   if ( (AntiAliasing = 2) or
        (AntiAliasing >= 4) ) and

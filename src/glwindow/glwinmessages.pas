@@ -91,7 +91,7 @@
 
     @item(
       The whole MessageXxx is supposed to start and end on an open TGLWindow
-      instance, so no Init or Close methods of TGLWindow will be called during
+      instance, so no Open or Close methods of TGLWindow will be called during
       MessageXxx.
 
       OnCloseQuery during MessageXxx calls prevents user from exiting the program,

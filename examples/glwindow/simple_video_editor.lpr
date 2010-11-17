@@ -135,7 +135,7 @@ begin
   end;
 end;
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 begin
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
 
@@ -315,13 +315,13 @@ begin
     Glw.AutoRedisplay := true;
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
-    Glw.OnInit := @Init;
+    Glw.OnOpen := @Open;
     Glw.OnClose := @Close;
     Glw.OnDraw := @Draw;
     Glw.OnIdle := @Idle;
     Glw.OnResize := @Resize2D;
 
-    Glw.InitAndRun;
+    Glw.OpenAndRun;
   finally
     FreeAndNil(Video);
     FreeAndNil(Cache);

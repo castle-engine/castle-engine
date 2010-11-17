@@ -55,7 +55,7 @@ type
     @unorderedList(
       @itemSpacing Compact
       @item(Create TGLNotifications instance, usually right when OpenGL
-        is initialized (in TGLWindow.OnInit).)
+        is initialized (in TGLWindow.OnOpen).)
       @item(Destroy this instance usually right when OpenGL context
         is closed (in TGLWindow.OnClose).)
       @item(In your TGLWindow.OnDraw callback, when the 2D projection

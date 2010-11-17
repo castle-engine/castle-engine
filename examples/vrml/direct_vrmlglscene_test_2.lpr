@@ -82,7 +82,7 @@ begin
   Scene.RenderFrustum(Camera.Frustum, tgAll);
 end;
 
-procedure Init(Glwin: TGLWindow);
+procedure Open(Glwin: TGLWindow);
 begin
   glEnable(GL_LIGHT0); { headlight }
 end;
@@ -159,10 +159,10 @@ begin
     Camera.Walk.OnGetHeightAbove := @THelperObj(nil).GetHeightAbove;
     Glw.Controls.Add(Camera);
 
-    Glw.OnInit := @Init;
+    Glw.OnOpen := @Open;
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
     Glw.OnBeforeDraw := @BeforeDraw;
-    Glw.InitAndRun(ProgramName, @Draw);
+    Glw.OpenAndRun(ProgramName, @Draw);
   finally Scene.Free end;
 end.

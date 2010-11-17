@@ -16,7 +16,7 @@
 { simplest_vrml_browser extended to render shadows.
 
   Besides setting ShadowVolumesPossible and ShadowVolumes to @true,
-  we also initialize window by Glw.InitOptionalMultiSamplingAndStencil.
+  we also initialize window by Glw.OpenOptionalMultiSamplingAndStencil.
   The latter allows us to smoothly fallback to rendering without shadows
   on GPUs that don't support stencil buffer (really really old graphic cards). }
 
@@ -52,6 +52,6 @@ begin
   BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
   BrowserWindow.Scene.ProcessEvents := true;
 
-  BrowserWindow.InitOptionalMultiSamplingAndStencil(nil, @StencilOff);
+  BrowserWindow.OpenOptionalMultiSamplingAndStencil(nil, @StencilOff);
   Application.Run;
 end.

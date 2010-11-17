@@ -61,7 +61,7 @@ type
     Font: TGLBitmapFont_Abstract;
     procedure Draw; override;
     procedure SetFocused(const Value: boolean); override;
-    procedure GLContextInit; override;
+    procedure GLContextOpen; override;
     procedure GLContextClose; override;
   end;
 
@@ -121,7 +121,7 @@ begin
   inherited;
 end;
 
-procedure TMyViewport.GLContextInit;
+procedure TMyViewport.GLContextOpen;
 begin
   inherited;
   Font := CreateUIFont;
@@ -159,7 +159,7 @@ type
     function GetScreenEffects(const Index: Integer): TGLSLProgram; override;
   public
     function ScreenEffectsCount: Integer; override;
-    procedure GLContextInit; override;
+    procedure GLContextOpen; override;
     procedure GLContextClose; override;
   end;
 
@@ -175,7 +175,7 @@ begin
   if GLSLProgram <> nil then Result := 1 else Result := 0;
 end;
 
-procedure TScreenEffectDemoViewport.GLContextInit;
+procedure TScreenEffectDemoViewport.GLContextOpen;
 begin
   inherited;
   if (TGLSLProgram.ClassSupport <> gsNone) and
@@ -386,5 +386,5 @@ begin
   Window.Controls.Add(TBackground.Create(Application));
 
   Window.OnResize := @Resize;
-  Window.InitAndRun;
+  Window.OpenAndRun;
 end.
