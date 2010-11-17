@@ -651,7 +651,7 @@ type
     FStencil: boolean;
     FDepthTexture: TGLuint;
 
-    FInitializedGL: boolean;
+    FGLInitialized: boolean;
     Framebuffer, RenderbufferDepth, RenderbufferStencil: TGLuint;
 
     FramebufferBound: boolean;
@@ -2054,7 +2054,7 @@ var
   Status: TGLenum;
   DepthBufferFormat: TGLenum;
 begin
-  Assert(not FInitializedGL, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
+  Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
   if GL_EXT_framebuffer_object then
   begin
@@ -2141,7 +2141,7 @@ begin
     end;
   end;
 
-  FInitializedGL := true;
+  FGLInitialized := true;
 end;
 
 procedure TGLRenderToTexture.GLContextClose;

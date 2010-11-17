@@ -165,7 +165,7 @@ end;
 
 procedure TKamVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);
 begin
-  if ContextInitialized then
+  if GLInitialized then
     raise Exception.Create('You can''t change ShadowVolumesPossible ' +
       'while the context is already initialized');
   SceneManager.ShadowVolumesPossible := Value;

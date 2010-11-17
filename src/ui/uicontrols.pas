@@ -110,7 +110,7 @@ type
     FOnCursorChange: TNotifyEvent;
     FDisableContextOpenClose: Cardinal;
     FFocused: boolean;
-    FGLContextInitialized: boolean;
+    FGLInitialized: boolean;
     FExists: boolean;
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetExists(const Value: boolean);
@@ -347,7 +347,7 @@ type
       OpenGL context. In particular, the ones created in GLContextOpen. }
     procedure GLContextClose; virtual;
 
-    property GLContextInitialized: boolean read FGLContextInitialized default false;
+    property GLInitialized: boolean read FGLInitialized default false;
 
     { When non-zero, container will not call GLContextOpen and
       GLContextClose (when control is added/removed to/from the
@@ -562,12 +562,12 @@ end;
 
 procedure TUIControl.GLContextOpen;
 begin
-  FGLContextInitialized := true;
+  FGLInitialized := true;
 end;
 
 procedure TUIControl.GLContextClose;
 begin
-  FGLContextInitialized := false;
+  FGLInitialized := false;
 end;
 
 procedure TUIControl.SetCursor(const Value: TMouseCursor);

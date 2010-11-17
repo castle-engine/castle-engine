@@ -638,7 +638,7 @@ begin
 
     FImage := Value;
 
-    if GLContextInitialized and (FImage <> nil) then
+    if GLInitialized and (FImage <> nil) then
       FGLImage := ImageDrawToDisplayList(FImage);
 
     UpdateSize;
@@ -856,7 +856,7 @@ begin
 
   FImage := NewImage;
   FFileName := Value;
-  if GLContextInitialized and (FImage <> nil) then
+  if GLInitialized and (FImage <> nil) then
     FGLImage := ImageDrawToDisplayList(FImage);
 end;
 

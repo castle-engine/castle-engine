@@ -60,7 +60,7 @@ type
     FMouseY: Integer;
     FOnBeforeDraw: TNotifyEvent;
     FOnDraw: TNotifyEvent;
-    FContextInitialized: boolean;
+    FGLInitialized: boolean;
     FPressed: TKeysPressed;
     FMousePressed: KeysMouse.TMouseButtons;
 
@@ -144,7 +144,7 @@ type
     { In this class this just calls OnGLContextClose. }
     procedure DoGLContextClose; virtual;
 
-    property ContextInitialized: boolean read FContextInitialized;
+    property GLInitialized: boolean read FGLInitialized;
 
     procedure DoBeforeDraw; virtual;
     procedure DoDraw; virtual;
@@ -404,12 +404,12 @@ end;
 
 procedure TKamOpenGLControlCore.CreateHandle;
 begin
-  Writeln('TKamOpenGLControlCore.CreateHandle ', ContextInitialized,
+  Writeln('TKamOpenGLControlCore.CreateHandle ', GLInitialized,
     ' ', OnGLContextOpen <> nil);
   inherited CreateHandle;
-  if not ContextInitialized then
+  if not GLInitialized then
   begin
-    ContextInitialized := true;
+    GLInitialized := true;
     DoGLContextOpen;
   end;
   Writeln('TKamOpenGLControlCore.CreateHandle end');
@@ -431,9 +431,9 @@ function TKamOpenGLControlCore.MakeCurrent(SaveOldToStack: boolean): boolean;
 begin
   Result := inherited MakeCurrent(SaveOldToStack);
 
-  if not ContextInitialized then
+  if not GLInitialized then
   begin
-    FContextInitialized := true;
+    FGLInitialized := true;
     DoGLContextOpen;
 
     Resize;
@@ -454,10 +454,10 @@ end;
 
 procedure TKamOpenGLControlCore.DestroyHandle;
 begin
-  if ContextInitialized then
+  if GLInitialized then
   begin
     DoGLContextClose;
-    FContextInitialized := false;
+    FGLInitialized := false;
   end;
   inherited DestroyHandle;
 end;
@@ -745,7 +745,7 @@ begin
           If Container OpenGL context is not yet initialized, defer it to
           the Init time, then our initial EventResize will be called
           that will do ContainerResize on every control. }
-        if Container.ContextInitialized then
+        if Container.GLInitialized then
         begin
           C.GLContextOpen;
           C.ContainerResize(Container.Width, Container.Height);
@@ -753,7 +753,7 @@ begin
       end;
     lnExtracted, lnDeleted:
       begin
-        if Container.ContextInitialized then
+        if Container.GLInitialized then
           C.GLContextClose;
 
         if C.OnVisibleChange = @Container.ControlsVisibleChange then
@@ -1197,7 +1197,7 @@ begin
 
   { Call MakeCurrent here, to make sure UIControls always get
     ContainerResize with good GL context. }
-  if ContextInitialized and UseControls and MakeCurrent then
+  if GLInitialized and UseControls and MakeCurrent then
   begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].ContainerResize(Width, Height);
