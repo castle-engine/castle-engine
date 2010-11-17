@@ -4076,6 +4076,19 @@ var
       DoBoundNavigationInfoFieldsChanged;
   end;
 
+  procedure HandleChangeScreenEffectEnabled;
+  var
+    SE: TNodeScreenEffect;
+  begin
+    SE := Node as TNodeScreenEffect;
+    { Just like TVRMLGLScene.CloseGLScreenEffect: no need to even
+      communicate with renderer, just reset ShaderLoaded and Shader.
+      At the nearest time, it will be recalculated. }
+    SE.ShaderLoaded := false;
+    SE.Shader := nil;
+    VisibleChangeHere([vcVisibleNonGeometry]);
+  end;
+
 begin
   Node := TVRMLNode(Field.ParentNode);
   Assert(Node <> nil);
@@ -4136,6 +4149,7 @@ begin
     if chClipPlane in Changes then HandleChangeClipPlane;
     if chDragSensorEnabled in Changes then HandleChangeDragSensorEnabled;
     if chNavigationInfo in Changes then HandleChangeNavigationInfo;
+    if chScreenEffectEnabled in Changes then HandleChangeScreenEffectEnabled;
     if chEverything in Changes then HandleChangeEverything;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,

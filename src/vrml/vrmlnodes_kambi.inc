@@ -844,7 +844,7 @@ begin
   inherited;
 
   FFdenabled := TSFBool.Create(Self, 'enabled', true);
-   Fdenabled.ChangesAlways := [chEverything];
+   Fdenabled.ChangesAlways := [chScreenEffectEnabled];
   Fields.Add(FFdenabled);
 
   FFdshaders := TMFNodeShaders.Create(Self, 'shaders', [TNodeX3DShaderNode]);
@@ -852,7 +852,9 @@ begin
   Fields.Add(FFdshaders);
 
   FFdneedsDepth := TSFBool.Create(Self, 'needsDepth', false);
-   FdneedsDepth.ChangesAlways := [chEverything];
+   { no change needed, TVRMLGLScene recalculates NeedsDepth every time
+     when ScreenEffectsNeedDepth is called by scene manager. }
+   FdneedsDepth.ChangesAlways := [];
   Fields.Add(FFdneedsDepth);
 
   FStateForShaderPrepare := TVRMLGraphTraverseState.Create;

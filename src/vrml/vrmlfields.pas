@@ -281,6 +281,9 @@ type
       changed. }
     chNavigationInfo,
 
+    { ScreenEffect.enabled changed }
+    chScreenEffectEnabled,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2470,6 +2473,7 @@ const
     'ClipPlane',
     'X3DDragSensorNode.enabled',
     'NavigationInfo',
+    'ScreenEffect.enabled',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;
