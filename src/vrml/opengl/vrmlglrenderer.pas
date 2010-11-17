@@ -1610,6 +1610,17 @@ type
     { Should CacheIgnoresTransform be passed to
       Shape_IncReference_Existing. }
     function CacheIgnoresTransform(Node: TNodeFog): boolean;
+
+    { Load the ScreenEffect node GLSL shader.
+      Will use Node.StateForShaderPrepare.
+      Will make sure that Node.ShaderLoaded is true.
+      If necessary (when Node.ShaderLoaded changes from false to true),
+      it may set Node.Shader if some GLSL program was successfully loaded.
+
+      The GLSL program (TGLSLProgram), along with it's ComposedShader node reference,
+      will be stored here (on GLSLRenderers list). So they will be automatically
+      unprepared during UnprepareAll call. }
+    procedure PrepareScreenEffect(Node: TNodeScreenEffect);
   end;
 
   EVRMLGLRendererror = class(EVRMLError);
@@ -3510,6 +3521,30 @@ begin
   BumpMappingRenderers.Prepare(State, Self);
 
   GLSLRenderers.Prepare(State, Self);
+end;
+
+procedure TVRMLGLRenderer.PrepareScreenEffect(Node: TNodeScreenEffect);
+var
+  ShaderProgram: TGLSLProgram;
+begin
+  if not Node.ShaderLoaded then
+  begin
+    Assert(Node.Shader = nil);
+    Node.ShaderLoaded := true;
+    if Node.FdEnabled.Value then
+    begin
+      GLSLRenderers.Prepare(Node.StateForShaderPrepare, Self,
+        Node.FdShaders, ShaderProgram);
+      if ShaderProgram <> nil then
+      begin
+        { We have to ignore invalid uniforms, as it's normal that when
+          rendering screen effect we will pass some screen_* variables
+          that you will not use. }
+        ShaderProgram.UniformNotFoundAction := uaIgnore;
+        Node.Shader := ShaderProgram;
+      end;
+    end;
+  end;
 end;
 
 procedure TVRMLGLRenderer.Unprepare(Node: TVRMLNode);

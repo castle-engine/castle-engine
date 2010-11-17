@@ -2887,7 +2887,10 @@ begin
   if Node is TNodeProximitySensor then
     HandleProximitySensor(Node as TNodeProximitySensor) else
   if Node is TNodeScreenEffect then
+  begin
+    TNodeScreenEffect(Node).StateForShaderPrepare.Assign(StateStack.Top);
     ParentScene.ScreenEffectNodes.Add(Node);
+  end;
 end;
 
 procedure TVRMLScene.UpdateLODLevel(LODTree: TVRMLShapeTreeLOD);

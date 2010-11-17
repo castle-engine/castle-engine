@@ -593,8 +593,6 @@ type
       requires that we disconnect Renderer from OpenGL context.
       Other things, like Background, don't have to be destroyed in this case. }
     procedure CloseGLRenderer;
-
-    procedure PrepareScreenEffect(const Node: TNodeScreenEffect);
   private
     FLastRender_RenderedShapesCount: Cardinal;
     FLastRender_BoxesOcclusionQueriedCount: Cardinal;
@@ -1847,11 +1845,12 @@ procedure TVRMLGLScene.CloseGLRenderer;
 
   procedure CloseGLScreenEffect(Node: TNodeScreenEffect);
   begin
-    if Node.Shader <> nil then
-    begin
-      Renderer.Cache.GLSLProgram_DecReference(TGLSLProgram(Node.Shader));
-      Node.Shader := nil;
-    end;
+    { The TGLSLProgram instance here will be released by Rendered.UnprepareAll,
+      that eventually calls GLSLRenderers.UnprepareAll,
+      that eventually calls Cache.GLSLProgram_DecReference on this shader,
+      that eventuallly destroys TGLSLProgram instance.
+      So below only set it to nil. }
+    Node.Shader := nil;
     Node.ShaderLoaded := false;
   end;
 
@@ -2963,37 +2962,6 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.PrepareScreenEffect(const Node: TNodeScreenEffect);
-var
-  ProgramNode: TNodeComposedShader;
-  ProgramShader: TGLSLProgram;
-  I: Integer;
-begin
-  if not Node.ShaderLoaded then
-  begin
-    Assert(Node.Shader = nil);
-    Node.ShaderLoaded := true;
-    if Node.FdEnabled.Value then
-    begin
-      for I := 0 to Node.FdShaders.Count - 1 do
-      begin
-        ProgramNode := Node.FdShaders.GLSLShader(I);
-        ProgramShader := Renderer.Cache.GLSLProgram_IncReference(
-          ProgramNode, Renderer.Attributes);
-        if ProgramShader <> nil then
-        begin
-          { We have to ignore invalid uniforms, as it's normal that when
-            rendering screen effect we will pass some screen_* variables
-            that you will not use. }
-          ProgramShader.UniformNotFoundAction := uaIgnore;
-          Node.Shader := ProgramShader;
-          Exit;
-        end;
-      end;
-    end;
-  end;
-end;
-
 procedure TVRMLGLScene.CheckFogChanged;
 var
   TG: TTransparentGroup;
@@ -3187,7 +3155,7 @@ begin
   if prScreenEffects in Options then
   begin
     for I := 0 to ScreenEffectNodes.Count - 1 do
-      PrepareScreenEffect(ScreenEffectNodes[I] as TNodeScreenEffect);
+      Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TNodeScreenEffect);
   end;
 end;
 
@@ -4841,7 +4809,7 @@ begin
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
     SE := TNodeScreenEffect(ScreenEffectNodes[I]);
-    PrepareScreenEffect(SE);
+    Renderer.PrepareScreenEffect(SE);
     if SE.Shader <> nil then
       Inc(Result);
   end;

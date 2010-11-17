@@ -47,7 +47,26 @@
 
     property Items[Index: Integer]: TGLSLRenderer read GetItems; default;
 
-    procedure Prepare(State: TVRMLGraphTraverseState; ARenderer: TVRMLGLRenderer);
+    { Prepare GLSL shader for a "shaders" list. In case of the overloaded
+      version without the Shaders parameter, we just prepare shaders
+      for current Shape (inside State.ShapeNode.Appearance.FdShaders field).
+
+      If any suitable ComposedShader node will be found, we will create
+      and prepare TGLSLRenderer associated with it and add it to the list.
+
+      We return under ShaderProgram the GLSL program created
+      (or aquired from cache, if the ComposedShader node was already prepared).
+      May be @nil if no ComposedShader node found (so no associated TGLSLRenderer),
+      or associated TGLSLRenderer exists but it's GLSLProgram is @nil
+      (which means that program failed to compile / link).
+
+      @groupBegin }
+    procedure Prepare(
+      State: TVRMLGraphTraverseState;  ARenderer: TVRMLGLRenderer;
+      Shaders: TMFNodeShaders; out GLSLProgram: TGLSLProgram);
+    procedure Prepare(
+      State: TVRMLGraphTraverseState; ARenderer: TVRMLGLRenderer);
+    { @groupEnd }
 
     { If some shader is available and prepared for this state,
       Enable it (and return it). Returns @nil if no such shader
@@ -275,19 +294,26 @@ end;
 procedure TGLSLRenderersList.Prepare(State: TVRMLGraphTraverseState;
   ARenderer: TVRMLGLRenderer);
 var
+  IgnoreGLSLProgram: TGLSLProgram;
+begin
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.Appearance <> nil) then
+    Prepare(State, ARenderer, State.ShapeNode.Appearance.FdShaders,
+      IgnoreGLSLProgram);
+end;
+
+procedure TGLSLRenderersList.Prepare(State: TVRMLGraphTraverseState;
+  ARenderer: TVRMLGLRenderer; Shaders: TMFNodeShaders;
+  out GLSLProgram: TGLSLProgram);
+var
   I: Integer;
   ProgramNode: TNodeComposedShader;
-  GLSLProgram: TGLSLProgram;
   GLSLRenderer: TGLSLRenderer;
-  Shaders: TMFNodeShaders;
 begin
-  { prepare GLSLProgram }
+  GLSLProgram := nil;
   if (not ARenderer.Attributes.PureGeometry) and
-     ARenderer.Attributes.GLSLShaders and
-     (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) then
+     ARenderer.Attributes.GLSLShaders then
   begin
-    Shaders := State.ShapeNode.Appearance.FdShaders;
     for I := 0 to Shaders.Count - 1 do
     begin
       ProgramNode := Shaders.GLSLShader(I);

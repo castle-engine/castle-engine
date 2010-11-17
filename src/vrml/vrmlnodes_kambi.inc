@@ -294,11 +294,13 @@
   private
     FShader: TObject;
     FShaderLoaded: boolean;
+    FStateForShaderPrepare: TVRMLGraphTraverseState;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -319,6 +321,8 @@
       @groupBegin }
     property Shader: TObject read FShader write FShader;
     property ShaderLoaded: boolean read FShaderLoaded write FShaderLoaded;
+    property StateForShaderPrepare: TVRMLGraphTraverseState
+      read FStateForShaderPrepare;
     { @groupEnd }
   end;
 
@@ -850,6 +854,14 @@ begin
   FFdneedsDepth := TSFBool.Create(Self, 'needsDepth', false);
    FdneedsDepth.ChangesAlways := [chEverything];
   Fields.Add(FFdneedsDepth);
+
+  FStateForShaderPrepare := TVRMLGraphTraverseState.Create;
+end;
+
+destructor TNodeScreenEffect.Destroy;
+begin
+  FreeAndNil(FStateForShaderPrepare);
+  inherited;
 end;
 
 class function TNodeScreenEffect.ClassNodeTypeName: string;
