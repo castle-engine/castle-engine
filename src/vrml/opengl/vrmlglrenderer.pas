@@ -2658,7 +2658,8 @@ function TVRMLGLRendererContextCache.GLSLProgram_IncReference_Core(
 
       Also type errors, when variable exists in shader but has different type,
       will be send to DataWarning. }
-    GLSLProgram.UniformNotFoundAction := uaWarningAlsoOnTypeMismatch;
+    GLSLProgram.UniformNotFoundAction := uaWarning;
+    GLSLProgram.UniformTypeMismatchAction := utWarning;
 
     IDecls := ProgramNode.InterfaceDeclarations;
 

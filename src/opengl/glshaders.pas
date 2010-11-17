@@ -130,25 +130,28 @@ type
   end;
 
   { What to do when GLSL uniform variable is set (TGLSLProgram.SetUniform)
-    but doesn't exist in shader. }
+    but doesn't exist in the shader. }
   TUniformNotFoundAction = (
     { Report that uniform variable not found to DataWarning. }
     uaWarning,
-
-    { Report that uniform variable not found to DataWarning.
-
-      Additionally, catch (and also report to DataWarning) if the uniform
-      variable in shader type doesn't match. (Without this, type mismatch
-      causes  OpenGL error "invalid operation".) This causes a little
-      slowdown (we have to check OpenGL error state to detect it),
-      but it's the safest. }
-    uaWarningAlsoOnTypeMismatch,
-
     { Report that uniform variable not found by raising EGLSLUniformNotFound. }
     uaException,
-
-    { Ignore that uniform doesn't exist. Do not warn. }
+    { Ignore the fact that uniform variable doesn't exist in the GLSL shader.
+      Do not warn anywhere. }
     uaIgnore);
+
+  { What to do when GLSL uniform variable is set (by TGLSLProgram.SetUniform)
+    to the type that doesn't match type declared in GLSL shader. }
+  TUniformTypeMismatchAction = (
+    { Do not catch uniform type mismatch, leaving it to OpenGL.
+      This will cause OpenGL error "invalid operation" (possibly resulting
+      in an exception in some later code that checks OpenGL errors). }
+    utGLError,
+    { Report type mismatch to DataWarning, and allow shader to execute as usual.
+      This causes a little slowdown when setting uniform value
+      (we have to actually check OpenGL error state to detect it
+      and remove the error), but it's the safest. }
+    utWarning);
 
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
@@ -161,6 +164,7 @@ type
     ShaderIds: TDynGLuintArray;
 
     FUniformNotFoundAction: TUniformNotFoundAction;
+    FUniformTypeMismatchAction: TUniformTypeMismatchAction;
     procedure UniformNotFound(const Name: string);
     procedure SetUniformEnd(const UniformName: string);
 
@@ -257,6 +261,13 @@ type
     property UniformNotFoundAction: TUniformNotFoundAction
       read FUniformNotFoundAction write FUniformNotFoundAction
       default uaException;
+
+    { What to do when GLSL uniform variable is set (SetUniform)
+      but is declared with an incompatible type in the shader source.
+      @seealso TUniformTypeMismatchAction }
+    property UniformTypeMismatchAction: TUniformTypeMismatchAction
+      read FUniformTypeMismatchAction write FUniformTypeMismatchAction
+      default utGLError;
 
     { Set appropriate uniform variable value.
       The used type must match the type of this variable in GLSL program.
@@ -727,6 +738,7 @@ begin
   ShaderIds := TDynGLuintArray.Create;
 
   FUniformNotFoundAction := uaException;
+  FUniformTypeMismatchAction := utGLError;
 end;
 
 destructor TGLSLProgram.Destroy;
@@ -1154,7 +1166,7 @@ var
 begin
   S := Format('Uniform variable "%s" not found (or not used) in the shader source code', [Name]);
   case UniformNotFoundAction of
-    uaWarning, uaWarningAlsoOnTypeMismatch: DataWarning(S);
+    uaWarning: DataWarning(S);
     uaException: raise EGLSLUniformNotFound.Create(S);
     uaIgnore: ;
     else raise EInternalError.Create('UniformNotFoundAction? in TGLSLProgram.UniformNotFound');
@@ -1171,7 +1183,7 @@ end;
     Exit;
   end;
 
-  if UniformNotFoundAction = uaWarningAlsoOnTypeMismatch then
+  if UniformTypeMismatchAction = utWarning then
     CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
 }
 
@@ -1184,7 +1196,7 @@ end;
     Exit;
   end;
 
-  if UniformNotFoundAction = uaWarningAlsoOnTypeMismatch then
+  if UniformTypeMismatchAction = utWarning then
     CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
 }
 
@@ -1192,7 +1204,7 @@ procedure TGLSLProgram.SetUniformEnd(const UniformName: string);
 var
   ErrorCode: TGLenum;
 begin
-  if UniformNotFoundAction = uaWarningAlsoOnTypeMismatch then
+  if UniformTypeMismatchAction = utWarning then
   begin
     { Invalid glUniform call, that specifies wrong uniform variable type,
       may cause OpenGL error "invalid operation". We want to catch it,
