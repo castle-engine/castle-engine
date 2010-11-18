@@ -1290,6 +1290,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TNodeNurbsCurve2D) or
       (Field.ParentNode is TNodeContourPolyline2D) or
       (Field.ParentNode is TNodeNurbsTextureSurface) or
+      FieldIs(Field, TNodeScreenEffect, 'needsDepth') or
       false { just to have nice newlines };
   end;
 
