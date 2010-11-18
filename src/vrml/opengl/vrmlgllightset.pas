@@ -144,7 +144,7 @@ type
     at destruction time). }
   TVRMLGLLightSet = class(TVRMLLightSet)
   private
-    dlRenderLights: TGLuint; {< 0 means "not initialized" }
+    dlRenderLights: TGLuint; { < 0 means "not initialized" }
     FGLLightNum1, FGLLightNum2: Integer;
 
     { This is like GLLightNum2, but it's not -1.
