@@ -154,7 +154,7 @@ begin
     SceneManager.MainScene := Scene;
 
     Window.Controls.Add(SceneManager);
-    Window.Init;
+    Window.Open;
 
     TestScene('');
     TestScenesInDir('data');
