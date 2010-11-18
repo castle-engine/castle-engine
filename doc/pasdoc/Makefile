@@ -61,4 +61,21 @@ clean-cache:
 clean: clean-cache
 	rm -Rf html/ latex/ latex2rtf/ htmlhelp/
 
-# eof ----------------------------------------
+# upload ---------------------------------------------------------------------
+
+SF_USERNAME=kambi
+SF_HOST=web.sourceforge.net
+SF_PATH=/home/groups/v/vr/vrmlengine/htdocs/apidoc/
+
+SF_CONNECT=$(SF_USERNAME),vrmlengine@$(SF_HOST):$(SF_PATH)
+SCP_OPTIONS=
+
+# Prepare and upload all the stuff referenced under
+# [http://vrmlengine.sourceforge.net/reference.php].
+# Uploads as tar.gz and unpacks on server, this is *much* faster than
+# uploading separate HTML files.
+.PHONY: upload
+upload: clean html
+	tar czvf html.tar.gz html/
+	scp $(SCP_OPTIONS) -r html.tar.gz $(SF_CONNECT)
+	./sf_upload_finalize.sh $(SF_USERNAME) $(SF_PATH)
