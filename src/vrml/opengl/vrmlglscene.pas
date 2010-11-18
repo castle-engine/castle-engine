@@ -4683,7 +4683,8 @@ begin
   { Calculate BackgroundSkySphereRadius here,
     using ProjectionFar that is *not* ZFarInfinity }
   BackgroundSkySphereRadius :=
-    TBackgroundGL.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar);
+    TBackgroundGL.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar,
+      BackgroundSkySphereRadius);
 
   case ProjectionType of
     ptPerspective: DoPerspective;

@@ -118,34 +118,56 @@ type
       a szescian bedzie wyznaczony tak zeby rogami dotykac tej sfery
       (tzn. CubeSize = SkySphereRadius * SphereRadiusToCubeSize).
 
-      Zarowno szescian jak i sfera musza byc pomiedzy near i far perpsektywy,
-        tzn. musi byc near < CubeSize/2, far > SkySphereRadius.
-        Albo, patrzac na to z drugiej strony, warunek jaki musi spelniac
-        SkyCubeSize to
-          near * 2 < SkyCubeSize < far * SphereRadiusToCubeSize
-        Tu uwaga - ta nierownosc formalnie potwierdza fakt ze mozna
-        dobrac near i far tak bliskie siebie ze zadne SkyCubeSize nie
-        bedzie mozliwe (tzn. near < far nie gwarantuje ze istnieje
-        SkyCubeSize spelniajace ta nierownosc bo
-          2 > SphereRadiusToCubeSize).
-      NearFarToSkySphereRadius wyliczy near i far na podstawie wartosci
-        jakie ustawiles projection (jako
-        srednia ( near * 2,  far * SphereRadiusToCubeSize )).
-        (background nie jest brane pod uwage w depth-tescie, zalezy nam tylko
-        zeby bylo pomiedzy near a far i zeby nie bylo clipped).
-      Jeszcze jedno : mialem pomysl aby Render samo ustawialo jakies proste
-        Projection Matrix ktore byloby dobre dla niego.
-        Wtedy nie musielibysmy podawac SkyCubeSize. Ale : po pierwsze,
-        trzeba byloby z kolei podawac aspect i fovy wiec wyszloby na
-        to samo. Po drugie, wymagaloby to uzycia jednego miejsca na
-        stosie matryc projection, a ten jest bardzo plytki. Po trzecie,
-        tak jak jest jest szybciej - nie musimy ustawiac zadnej macierzy.
-
       Nie umieszczaj Render na display liscie - juz tutaj w srodku
       realizujemy sobie renderowanie przez display liste. }
     procedure Render;
 
-    class function NearFarToSkySphereRadius(zNear, zFar: Single): Single;
+    { Calculate (or just confirm that Proposed value is still OK)
+      the sky sphere radius that fits nicely in your projection near/far.
+
+      Zarowno szescian jak i sfera musza byc pomiedzy near i far perpsektywy,
+      tzn. musi byc near < CubeSize/2, far > SkySphereRadius.
+      Albo, patrzac na to z drugiej strony, warunek jaki musi spelniac
+      SkyCubeSize to
+
+        near * 2 < SkyCubeSize < far * SphereRadiusToCubeSize
+
+      Tu uwaga - ta nierownosc formalnie potwierdza fakt ze mozna
+      dobrac near i far tak bliskie siebie ze zadne SkyCubeSize nie
+      bedzie mozliwe (tzn. near < far nie gwarantuje ze istnieje
+      SkyCubeSize spelniajace ta nierownosc bo
+
+        2 > SphereRadiusToCubeSize).
+
+      NearFarToSkySphereRadius wyliczy near i far na podstawie wartosci
+      jakie ustawiles projection (jako
+      srednia ( near * 2,  far * SphereRadiusToCubeSize )).
+      (background nie jest brane pod uwage w depth-tescie, zalezy nam tylko
+      zeby bylo pomiedzy near a far i zeby nie bylo clipped).
+
+      Jeszcze jedno : mialem pomysl aby Render samo ustawialo jakies proste
+      Projection Matrix ktore byloby dobre dla niego.
+      Wtedy nie musielibysmy podawac SkyCubeSize. Ale : po pierwsze,
+      trzeba byloby z kolei podawac aspect i fovy wiec wyszloby na
+      to samo. Po drugie, wymagaloby to uzycia jednego miejsca na
+      stosie matryc projection, a ten jest bardzo plytki. Po trzecie,
+      tak jak jest jest szybciej - nie musimy ustawiac zadnej macierzy.
+
+      This method first check is Proposed a good result value (it satisfies
+      the conditions, with some safety margin). If yes, then we return
+      exactly the Proposed value. Otherwise, we calculate new value
+      as an average in our range.
+      This way, if you already had sky sphere radius calculated
+      (and prepared some OpenGL resources for it),
+      and projection near/far changes very slightly
+      (e.g. because bounding box slightly changed), then you don't have
+      to recreate background --- if the old sky sphere radius is still OK,
+      then the old background resources are still OK.
+
+      Just pass Proposed = 0 (or anything else that is always outside
+      the range) if you don't need this feature. }
+    class function NearFarToSkySphereRadius(const zNear, zFar: Single;
+      const Proposed: Single = 0): Single;
 
     { Laduje nebo. Parametry maja znaczenie jak w specyfikacji VRMLa i musza
       spelniac odpowiednie, wyszczegolnione tam zalozenia (np. SkyColorCount > 0,
@@ -185,9 +207,25 @@ begin
  glCallList(szescianNieba_list);
 end;
 
-class function TBackgroundGL.NearFarToSkySphereRadius(zNear, zFar: Single): Single;
+class function TBackgroundGL.NearFarToSkySphereRadius(const zNear, zFar: Single;
+  const Proposed: Single): Single;
+var
+  Min, Max, SafeMin, SafeMax: Single;
 begin
- result:=(zNear*2 + zFar*SphereRadiusToCubeSize) /2;
+  Min := zNear * 2;
+  Max := zFar * SphereRadiusToCubeSize;
+
+  { The new sphere radius should be in [Min...Max].
+    For maximum safety (from floating point troubles), be require
+    that it's within slightly smaller "safe" range. }
+
+  SafeMin := Lerp(0.1, Min, Max);
+  SafeMax := Lerp(0.9, Min, Max);
+
+  if (Proposed >= SafeMin) and
+     (Proposed <= SafeMax) then
+    Result := Proposed else
+    Result := (Min + Max) / 2;
 end;
 
 constructor TBackgroundGL.Create(const Transform: TMatrix4Single;
