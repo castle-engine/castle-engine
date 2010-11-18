@@ -83,7 +83,7 @@
 
 { TVRMLGLSLProgram ----------------------------------------------------------- }
 
-function TVRMLGLSLProgram.BindTextures(var BoundTextureUnits: Cardinal): boolean;
+function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
 
   { Scan IDecls for SFNode and MFNode fields, bind texture nodes inside. }
   procedure BindShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
@@ -105,7 +105,7 @@ function TVRMLGLSLProgram.BindTextures(var BoundTextureUnits: Cardinal): boolean
             Result := BoundTextureUnits;
             Inc(BoundTextureUnits);
           end else
-            BindTextures := false;
+            SetupUniforms := false;
         end else
           VRMLWarning(vwIgnorable, 'Not enough free texture units to bind all textures for this GLSL shader');
       end;
@@ -152,7 +152,7 @@ function TVRMLGLSLProgram.BindTextures(var BoundTextureUnits: Cardinal): boolean
   end;
 
 begin
-  Result := true;
+  Result := inherited SetupUniforms(BoundTextureUnits);
   BindShaderFields(Node.InterfaceDeclarations);
 end;
 
@@ -278,7 +278,7 @@ begin
     Renderer.Attributes.GLSLShaders then
   begin
     GLSLProgram.Enable;
-    Result := GLSLProgram.BindTextures(BoundTextureUnits);
+    Result := GLSLProgram.SetupUniforms(BoundTextureUnits);
   end else
     Result := false;
 end;

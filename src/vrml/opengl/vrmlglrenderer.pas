@@ -982,10 +982,7 @@ type
     Renderer: TVRMLGLRenderer;
     Node: TNodeComposedShader;
   public
-    { Bind textures and set corresponding uniform variables of this GLSL
-      shader. Increases BoundTextureUnits appropriately.
-      Returns @false is some texture couldn't be bound. }
-    function BindTextures(var BoundTextureUnits: Cardinal): boolean;
+    function SetupUniforms(var BoundTextureUnits: Cardinal): boolean; override;
   end;
 
   TGLSLProgramCache = record

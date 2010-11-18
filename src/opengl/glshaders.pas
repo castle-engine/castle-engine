@@ -218,6 +218,24 @@ type
     { Disable this program (use the fixed function pipeline). }
     procedure Disable;
 
+    { Override this to set uniform values, in particular to
+      bind the textures used by this shader, right after each @link(Enable)
+      call.
+
+      This is automatically called after every @link(Enable) by VRML renderer
+      (when it renders shapes) or scene manager (when it renders screen effects).
+      If you use this TGLSLProgram directly (if you call @link(Enable)
+      yourself), then it's your responsibility to call this method
+      explicitly, if you want shaders using it to work.
+
+      You can set any uniform values, and generally do
+      anything you want to be done each time this shader is enabled.
+      In particular, you can bind textures and set corresponding uniform
+      variables of them. Increase BoundTextureUnits appropriately.
+
+      Returns @false is some texture couldn't be bound. }
+    function SetupUniforms(var BoundTextureUnits: Cardinal): boolean; virtual;
+
     { Returns multiline debug info about current program.
       Things like how it's supported (not at all ? ARB extension ?
       standard ?), names of active uniform and attribute variables etc.
@@ -1158,6 +1176,11 @@ begin
     gsARBExtension: glUseProgramObjectARB(0);
     gsStandard    : glUseProgram         (0);
   end;
+end;
+
+function TGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
+begin
+  Result := true;
 end;
 
 procedure TGLSLProgram.UniformNotFound(const Name: string);

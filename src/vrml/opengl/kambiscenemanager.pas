@@ -1397,16 +1397,10 @@ var
         Shader.SetUniform('screen_width', ScreenEffectTextureWidth);
         Shader.SetUniform('screen_height', ScreenEffectTextureHeight);
 
-        { This is a little hacky to treat TVRMLGLSLProgram specially here,
-          to call it's BindTextures method. In the future, we'll probably
-          just move BindTextures feature to TGLSLProgram, and so
-          the hacky nature of this will disappear.
-
-          Note that we ignore BindTextures result --- if some texture
+        { Note that we ignore SetupUniforms result --- if some texture
           could not be bound, it will be undefined for shader.
           I don't see anything much better to do now. }
-        if Shader is TVRMLGLSLProgram then
-          TVRMLGLSLProgram(Shader).BindTextures(BoundTextureUnits);
+        Shader.SetupUniforms(BoundTextureUnits);
 
         { Note that there's no need to worry about CorrectLeft / CorrectBottom,
           here or inside RenderScreenEffect, because we're already within
