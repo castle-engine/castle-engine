@@ -13,9 +13,9 @@ uses
   kambiscenemanager,
   vrmlglanimation,
   vrmlglheadlight,
-  vrmlglscene,
   vrmlgllightset,
-  vrmlglrenderer
+  vrmlglrenderer,
+  vrmlglscene
   ;
 
 implementation
