@@ -916,8 +916,9 @@ type
 
     procedure CreateImplDepend;
 
-    { For all keys that are down (Pressed[k]) call DoKeyUp(k).
-      For all mouse buttons that are down (mb in MousePressed) call DoMouseUp(mb).
+    { Simulate that all the keys and mouse buttons were released.
+      For all keys that are down (Pressed[k]) calls DoKeyUp(k).
+      For all mouse buttons that are down (mb in MousePressed) calls DoMouseUp(mb).
       If GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN is defined,
       this calls at the beginning SetPrivateModifiersDown(..., ..., false)
       to say that all keys are up.
@@ -1067,25 +1068,28 @@ type
   private
     FFps: TFramesPerSecond;
   private
-    { zwraca opis aktualnych zadanych wlasciwosci od buforow OpenGLa
-      (czy single/double (na podstawie DoubleBuffer), czy indexed,
-      ile bitow na red/green/blue/alpha channel (m.in. AlphaBits),
-      ile bitow zadasz od innych buforow (Depth/Stencil/AccumBufferBits) itp.
-      Uzywa zmiennych tego okienka, tzn. opisuje "czego zadasz",
-      NIE "co masz", w ogole okienko nie musi byc (not Closed)
-      i moze nie byc zadnego aktualnego gl contextu zeby ta funkcja dzialala.
-      Jej wynik jest przydatny np. do konstruowania komunikatow dla wyjatku
-      EGLContextNotPossible. }
+    { Current OpenGL buffers configuration required.
+      Stuff like DoubleBuffer, AlphaBits, DepthBufferBits,
+      StencilBufferBits, AccumBufferBits etc.
+      This simply returns a text description of these properties.
+
+      It does not describe the current OpenGL context parameters.
+      (It doesn't even need an OpenGL context open.)
+
+      Useful for constructing messages e.g. for EGLContextNotPossible exceptions. }
     function RequestedBufferAttributes: string;
-    { sprawdza czy wartosci Provided* spelniaja odpowiednie warunki zapisane w zmiennych
-      tego obiektu, tzn. czy
-        ProvidedStencilBits >= StencilBufferBits and
-        ProvidedDepthBits >= DepthBufferBits ...
-      itd. Jesli nie to rzuca wyjatek EGLContextNotPossible z komunikatem w rodzaju
-      'ProviderName provided depth buffer with ProvidedStencilBits but StencilBufferBits
-      required' - i.e. this message states _what_ requirements can not be fullfilled
-      and what API (e.g. ProviderName = 'Glut' / 'ChoosePixelFormat') is responsible for
-      this.
+    { Check do given OpenGL buffers configuration satisfies the
+      requested configuration.
+
+      So it checks do
+
+@preformatted(
+  ProvidedStencilBits >= StencilBufferBits and
+  ProvidedDepthBits >= DepthBufferBits ...
+)
+      and so on. If not, EGLContextNotPossible is raised with detailed
+      description (which buffer constraint is not satisfied -- e.g. maybe
+      the stencil buffer is not available).
 
       Note that ProvidedMultiSampling is not checked if MultiSampling is <= 1.
       In other words, if multisampling was not required, ProvidedMultiSampling
@@ -1127,19 +1131,7 @@ type
       W sekcji private zdefiniowane sa procedury DoXxx ktore wykonuja niezalezna
       od implementacji GLWindow robote z opakowaniem zdarzen OnXxx.
       Oto jak to jest robione : najwazniejsza czescia tych procedur jest wywolanie
-      odpowiedniej procedury EventXxx. Procedura EventXxx ma za zadanie
-      z kolei wywolac odpowiednie OnXxx (o ile to jest zdefinoiwane, czyli
-      Assigned(OnXxx)) i ew. OnXxxList jezeli zdarzenie ma swoja wersje listowa,
-      jak OnOpen czy OnClose. Wszystkie procedury OnXxx sa wywolywane
-      przez
-        try OnXxx except on BreakGLWinEvent do ; end
-      albo cos rownowaznego. Czyli rzucenie w czasie OnXxx wyjatkiem
-      BreakGLWinEvent spowoduje powrot do aktualnego EventXxx a
-      sam wyjatek zostanie wyciszony (wylapany i zignorowany).
-      W przypadku zdarzen listowych OnXxxList wyjatek zostanie wylapany
-      w obrebie wywolania pojedynczego elementu listy, tzn.
-      BreakGLWinEvent spowoduje przejscie do wykonywania nastepnej na liscie
-      OnXxxList precedury.
+      odpowiedniej procedury EventXxx.
 
       Pytanie : po co nam ten dodatkowy stopien do zejscia, tzn. procedury
       EventXxx? Mianowicie, procedury EventXxx sa wirtualne. W zwiazku z tym
@@ -1157,6 +1149,18 @@ type
 
       Pamietaj przy tym ze przed kazdym EventXxx musi byc wywolane MakeCurrent !
       (DoXxx robia to automatycznie, podobnie jak pare wewnetrznych rzeczy).  }
+
+    { Handle appropriate event.
+
+      In the TGLWindow class, these methods simply call appropriate OnXxx
+      callbacks (if assigned). In case of list callbacks (OnOpenList,
+      OnCloseList) --- these are called here too.
+
+      Every callback is called in a @code(try..except) code that will
+      catch and silence BreakGLWinEvent exceptions raised inside the callback.
+      This way you can easily cancel given callback by raising BreakGLWinEvent.
+
+      You can override them to do anything you want. }
     procedure EventResize; virtual;
     procedure EventOpen; virtual;
     procedure EventClose; virtual;
@@ -1200,11 +1204,9 @@ type
       np. Width i Height moga sie zmieniac, co zostanie zaznaczone
       wywolaniem OnResize). Left i Top tez beda uaktualniane. }
 
-    { Left, Top, Width i Height caly czas okreslaja ClientRect - a wiec
-      obszar na ktorym bedzie tworzony i uzywany kontekst OpenGLa.
-      Nie uwzgledniaja ramek jakie WindowManager dodal do naszego okienka.
-      And they don't take space taken by menu (if MainMenu <> nil) into account.
-      So these are always dimensions of our 3d window --- nothing more, nothing less.
+    { Size of the window OpenGL area. Together with frame and border
+      sizes, and eventually menu bar size, this determines the final
+      window size.
 
       min/maxWidth/Height i ResizeAllowed ustawiaja scisle ograniczenia na
       Width i Height ktore sa poprawiane zgodnie z tymi wlasciwosciami podczas
