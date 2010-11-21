@@ -719,8 +719,7 @@ type
   { List of @link(TGLWindowFunc) procedures. }
   TDynGLWindowFuncArray = class(TDynArray_2)
   public
-    { This calls all Items that are not nil.
-      It passes them glwin parameter. }
+    { Call all (non-nil) Items. With given Glwin parameter. }
     procedure ExecuteAll(Glwin: TGLWindow);
   end;
 
@@ -1252,9 +1251,9 @@ type
 
     property FullScreen: boolean read FFullScreen write FFullScreen default false;
 
-    { Should we request and use double buffer.
-      After every draw, we automatically do buffers swap (if DoubleBuffer)
-      or glFlush (if not DoubleBuffer). }
+    { Should we request and use the double buffer.
+      After every draw, we automatically swap buffers (if DoubleBuffer)
+      or call glFlush (if not DoubleBuffer). }
     property DoubleBuffer: boolean read FDoubleBuffer write FDoubleBuffer default true;
 
     { Colors precision for this window.
@@ -1262,7 +1261,7 @@ type
       When Application.VideoColorBits is also 0, then the default window
       system color precision will be used.
 
-      After Open, this is updated to the actual color bits used.
+      After @link(Open), this is updated to the actual color bits used.
 
       In most situations, you will have to change the screen color precision
       to have the best chance for a given window color precision.
@@ -1319,49 +1318,51 @@ type
       @unorderedList(
         @item(raNotAllowed
 
-          Oznacza ze Width i Height nie moga sie zmienic
-          CHYBA ze po to zeby dostosowac sie do min/maxWidth/Height.
-          Tak ostre ograniczenia moga nawet spowodowac ze przy probie Open
-          okienka z atrybutem Fullscreen = true flaga Fullscreen moze zostac
-          wylaczone na true. Ale masz PEWNOSC ze Width i Height zawsze beda
-          rowne zadanym, o ile tylko beda w granicach min/maxWidth/Height.)
+          @link(Width) and @link(Height) can only change
+          to honor MinWidth / MaxWidth / MinHeight / MaxHeight constraints.
+          Absolutely nothing else may cause them to change,
+          user cannot resize the window.
+
+          This may even force FullScreen change from @true to @talse
+          at @link(Open) call, when you will request a fullscreen window
+          but @link(Width) / @link(Height) will not match screen size.
+
+          You can be sure that EventResize (OnResize) will be called only
+          once, when window is opened (right after initial EventOpen (OnOpen).)
 
         @item(raOnlyAtOpen
 
-          Oznacza ze rozmiary okienka moga zostac zainicjowane
-          na inne niz podane jezeli np. WindowManager ma obiekcje co do
-          zadanych przez nas rozmiarow okienka albo jezeli chcesz miac
-          Fullscreen i ScreenWidth/H sa rozne od Width/Height. W tych przypadkach,
-          i byc moze takze w innych podobnych rozmiary Width/Height jakie
-          dostanie okienko beda rozne od zadanych Width/Height. Ale masz PEWNOSC
-          ze po wywolaniu pierwszego callbacka (czyli EventOpen (OnOpen),
-          tuz przed pierwszym EventResize (OnResize))
-          Width/Height juz beda stale, dopoki okienko bedzie not Closed.)
+          @link(Width) and @link(Height) may be adjusted when the window
+          is opened, by @link(Open) call. For example window manager
+          may decide that the size is too large for the current screen.
+          Or when you request FullScreen window and window size has to be
+          adjusted to match current screen size. Also they will always be
+          adjusted to fit in MinWidth / MaxWidth / MinHeight / MaxHeight constraints.
+
+          After opening, window size cannot change anymore.
+          In particular user cannot resize the window (by dragging border
+          or such). After the first EventOpen (OnOpen) call,
+          the window size becomes constant. From the first EventResize
+          (OnResize) the window size is constant, as long as the window
+          remains open.
+
+          You can be sure that EventResize (OnResize) will be called only
+          once, when window is opened (right after initial EventOpen (OnOpen).)
 
         @item(raAllowed
 
-          Jest domyslne i pozwala na najwieksza swobode WindowManagerowi
-          i userowi : okienko moze byc zresizowane w dowolnym momencie.
-          Oznacza to ze nie tylko Width/Height jakie dostaniesz w pierwszych
-          OnOpen i OnResize moga byc inne niz te ktorych zazadales ale takze
-          w trakcie dzialania programu rozmiary okienka moga sie zmieniac.
-          Powinienes
-          byc na to przygotowany obslugujac zdarzenie OnResize (ktore w zasadzie
-          jest zupelnie zbedne w pozostalych przypadkach, gdy ResizeAllowed<>
-          raAllowed), zapewne ustawiajac w nim odpowiednie glViewport i
-          uaktualniajac macierz projection.)
+          @link(Width) and @link(Height) may be adjusted at open time,
+          and later user can resize the window too.
+          This is the default value, giving user and window manager
+          the most flexibility.
+
+          You have to be prepared for this, handling OnResize and adjusting
+          stuff like OpenGL viewport and projection matrix.)
       )
 
-      ResizeAllowed <> raAllowed oznacza ze do okna bedzie wyslane tylko
-      raz OnResize - na poczatku, pod koniec wykonywania Open (chociaz
-      w zasadzie i tak bedziesz mogl je zignorowac i obsluzyc wszystko
-      w OnOpen; chociaz moze czasem bedziesz jednak chcial zapisac
-      ustawianie glViewport i projection w OnResize, dla porzadku).
-      Poniewaz pierwsze glViewport (przed wywolaniem pierwszych callbackow
-      EventOpen (OnOpen) i EventResize (OnResize) w Open)
-      jest wykonane automatycznie to w rezultacie programy
-      majace ResizeAllowed <> raAllowed nie musza sie nigdy martwic
-      o robienie kiedykolwiek glViewport. }
+      Note that the we call the first glViewport automatically in @link(Open).
+      So in typical cases, you don't have to call glViewport ever yourself,
+      when ResizeAllowed <> raAllowed. }
     property ResizeAllowed: TResizeAllowed
       read FResizeAllowed write FResizeAllowed default raAllowed;
 
