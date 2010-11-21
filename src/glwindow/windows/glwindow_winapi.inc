@@ -46,7 +46,7 @@ private
 
 {$ifdef read_tglwindowmanager_interface}
 private
-  { czy robic ChangeDisplaySettings(nil, 0) przy Destroy ? }
+  { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
   DisplaySettingsChanged: boolean;
   wndClassName: string;
 

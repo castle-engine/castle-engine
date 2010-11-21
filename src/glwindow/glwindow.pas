@@ -72,7 +72,7 @@
   uses GLWindow;
 
   var
-    Glw: TGLWindowDemo;
+    Glw: TGLUIWindow;
 
   procedure Draw(Glwin: TGLWindow);
   begin  ...  end;
@@ -81,9 +81,11 @@
   begin  ...  end;
 
   begin
-   Glw := TGLWindowDemo.Create(Application);
-   Glw.OnResize := @Resize;
-   Glw.OpenAndRun('Simplest GLWindow example', @Draw);
+    Glw := TGLUIWindow.Create(Application);
+    Glw.OnResize := @Resize;
+    Glw.OnDraw := @Draw;
+    Glw.Caption := 'Simplest GLWindow example';
+    Glw.OpenAndRun;
   end.
 #)
 
@@ -102,7 +104,7 @@
   uses GLWindow;
 
   type
-    TMyWindow = class(TGLWindow)
+    TMyWindow = class(TGLUIWindow)
       procedure EventDraw; override;
       procedure EventResize; override;
     end;
@@ -116,11 +118,9 @@
   var
     Glw: TMyWindow;
   begin
-    Glw := TMyWindow.Create;
-    try
-      Glw.Caption := 'Simplest GLWindow example using more OOP';
-      Glw.OpenAndRun;
-    finally Glw.Free end;
+    Glw := TMyWindow.Create(Application);
+    Glw.Caption := 'Simplest GLWindow example using more OOP';
+    Glw.OpenAndRun;
   end.
 #)
 
@@ -230,12 +230,11 @@ unit GLWindow;
 
     GLWINDOW_GTK_1:
     Known problems of only GLWINDOW_GTK_1 (fixed in GTK_2):
-    - Some key shortcuts for menu items will not work,
-      so don't use them. It seems that this is an issue with GTK 1,
+    - Some keys simply cannot work as menu item shortcuts:
+      Delete, BackSpace, '?' key, Tab. For GLWINDOW_GTK_2 version,
+      only Tab key cannot work as menu item shortcut (it's always only
+      for switching focus). This is an issue with GTK 1/2,
       that simply can't be fixed in GLWindow.
-      These keys are: Delete, BackSpace, '?' key, Tab.
-      All of them work in GLWINDOW_GTK_2 version, with the exception
-      of Tab key.
     - When FullScreen = true and MainMenu <> nil, result is not perfect
       because things like gnome-panel may cover your fullscreen window.
       Solved in GLWINDOW_GTK_2, can't be cleanly solved with GTK_1.
@@ -419,14 +418,7 @@ unit GLWindow;
     when user switches to another window or activates MainMenu.
 }
 
-{ Configure some debugging options of GLWindow ---------------------------- }
-
-{ Ponizsze opcje nie moga byc ustawiane gdzies globalnie -
-  idea jest taka ze zeby zmienic te ustawienia bedziesz
-  modyfikowal kod ponizej. Innymi slowy, wszystkie ponizsze ustawienia
-  maja charakter jakichs pomocy do debuggowania programow ktore uzywaja
-  GLWindow i nie ma sensu jakos automatyzowac tego (tzn. zebys mogl
-  modyfikowac te opcje nie modyfikujac zrodel GLWindow.pas). }
+{ Configure some debugging options of GLWindow ------------------------------- }
 
 { When GLWINDOW_LOG_EVENTS is defined, TGLWindow events will be logged.
   This means logging (using KambiLog) at begin, end, and at exception exit
@@ -445,16 +437,16 @@ unit GLWindow;
   {$undef GLWINDOW_EVENTS_LOG_ALL}
 {$endif}
 
-{ zdefiniuj symbol GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW aby w DoDraw,
-  a wiec po zwyczajnym wywolaniu EventDraw a wiec i OnDraw,
-  wywolywal CheckGLErrors z KambiGLUtils ktore sprawdzi czy zaszly jakies
-  bledy OpenGLa (przez glGetError) i jesli tak - rzuci wyjatek.
-}
+{ Define GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW to check OpenGL errors
+  after TGLWindow.EventDraw (TGLWindow.OnDraw callback) calls.
+  This is done by DoDraw, that is: when a backend initiates the drawing.
+  The check is done by KambiGLUtils.CheckGLErrors, checks glGetError
+  and eventually raises an exception. }
 {$ifdef DEBUG}
   {$define GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW}
 {$endif}
 
-{ Configure internal things ---------------------------------------- }
+{ Configure internal things -------------------------------------------------- }
 
 {$ifdef GLWINDOW_GTK_1} {$define GLWINDOW_GTK_ANY} {$endif}
 {$ifdef GLWINDOW_GTK_2} {$define GLWINDOW_GTK_ANY} {$endif}
@@ -526,28 +518,22 @@ unit GLWindow;
 
   (? means "I'm not sure whether to implement it")
 
-  only winapi :
-  - windowActive / appActive - byc moze zrobic nieco inaczej i wszedzie?
-    czy decyzja w ProcessMessage o znaczeniu window/appActive jest dobra?
-    byc moze przeniesc z private do public na odczyt?
-  - k_alt zrobic - trzeba przechwytywac sys_keydown ale wtedy
-    albo przechwytujemy wszystkie (w rezultacie
-    blokujac standardowe klawisze Alt+F4 lub Alt+spacja Windowsowi)
-    albo mamy problem gdy user wejdzie w system menu : wtedy dostaniemy
-    zdarzenie alt+down ale nikt nie raczy nam przeslac alt+up.
-    !@#& Windows. W glutcie po prostu przechwytuja zawsze, blokujac
-    Alt+F4 i Alt+spacja. Czy to w ogole mozna zrobic lepiej?
+  Only winapi:
+  - Is it even possible to cleanly catch K_Alt key press in WinAPI?
+    We would have to catch sys_keydown message but then we also
+    block using standard Alt+F4 or Alt+Space? Another trouble:
+    if you enter system menu by Alt+Down, we will not get Alt+Up?
 
-  only glut :
-  - zrobic przechwytywanie klikania na przyciki "Zamknij" pod glutem
-    (glut wysyla wtedy PostQuitMessage i konczy program ! nie chce tego !)
-  - ReleaseAllKeysAndMouse - call this when user switches to another window
-    or activates a menu
+  Only glut:
+  - Is is possible to cleanly capture close event (possibly under freeglut).
+  - ReleaseAllKeysAndMouse: call this when user switches to another window
+    or activates a menu.
 
-  only GLWINDOW_GTK_1/2:
-  - in OpenImplDepend implement
-    MaxWidth/Height (Maybe these properties should be removed?
-      They are made for symmetry with MinWidth/Height. Are they really useful?)
+  Only GLWINDOW_GTK_1/2:
+  - in OpenImplDepend implement MaxWidth/Height
+    (Or maybe these properties should be removed?
+    They are made for symmetry with MinWidth/Height. Are they really useful?)
+
   - with GTK 2:
     - Implement better fullscreen toggle now (that doesn't need
       recreating window).
@@ -558,28 +544,20 @@ unit GLWindow;
       This way I should be able to react to fullscreen changes
       forced by user (using window manager, not F11) really cleanly.
 
-  general:
-  - napisac jakies programy ktore sprawdzilyby ze
-    DepthBufferBits, AlphaBits
-    dzialaja, i sprawdzic je pod wszystkimi implementacjami
-  - Width, Height, Left, Top zaimplementowac tak zeby przeniesc je
-    do sekcji "mozesz nimi pozniej manipulowac"?
-  - zrobic implementacje przez SDL?
+  General:
+  - Allow changing Width, Height, Left, Top from code after the window
+    is created.
+  - SDL backend is possible, although doesn't seem really needed now?
   - use EnumDisplaySettings instead of such variables as
     VideoColorBits / VideoScreenWidth / VideoFrequency,
     do some proc DisplayExists and EnumDisplays
-  - do parametru --fullscreen-custom dodac mozliwosc podania
-    VideoColorBits, VideoFrequency
-  - dodac mozliwosc zrobienia FullScreen w stylu SDLa : program moze zmienic
-    okienko na fullscreen ale wewnetrzne Width i Height nie ulegna zmianie
-    i program bedzie dzialac w okienku na srodku ekranu, a po bokach
-    bedzie czern
+  - Allow passing VideoColorBits, VideoFrequency for --fullscreen-custom
+    param.
   - OnTimer interface sucks -- it doesn't allow you to register many timeout
     functions for different timeouts.
-  - add to multi_glwindow testing call to FileDialog and ColorDialog
-    to test
+  - Add to multi_glwindow testing call to FileDialog and ColorDialog.
 
-  menu things:
+  Menu things:
   - For WinAPI, glut: impl Enabled
 }
 
