@@ -63,7 +63,7 @@ private
 { common things for winsystem GLWindow implementations.
   Uwagi :
    - zawsze musimy w jakis sposob sprawdzic czy okienko dla ktorego
-     dostalismy message jest aktualnie na liscie Application.Active.
+     dostalismy message jest aktualnie na liscie Application.OpenWindows.
      Pamietajmy bowiem ze do naszej kolejki komunikatow mogly
      trafic message'y dla okienek ktore juz zamknelismy - typowym
      przykladem jest gdy zamykamy okienko w reakcji na jakies OnKeyDown.
@@ -179,9 +179,9 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
       else
       begin
         { zdarzenia ktore sa skierowane do konkretnego TGLWindow }
-        { sprawdzamy czy okienko jest na liscie Application.Active, przy okazji
+        { sprawdzamy czy okienko jest na liscie Application.OpenWindows, przy okazji
           zamieniajac windowXID na obiekt klasy TGLWindow. }
-        glwin := Application.ActiveWindowXID(event.xany. {$ifdef DELPHI} xwindow {$else} window {$endif});
+        glwin := Application.FindWindowXID(event.xany. {$ifdef DELPHI} xwindow {$else} window {$endif});
         if glwin <> nil then
           case evtype of
             Expose: { XExposeEvent }
@@ -253,7 +253,7 @@ var
 begin
   WasAnyMessage := false;
   try
-    if ActiveCount <> 0 then
+    if OpenWindowsCount <> 0 then
     begin
       if not CheckMessage then
       begin
@@ -287,13 +287,13 @@ begin
             ciaglego zmieniania aktywnego kontekstu OpenGL'a.
           Ponizszy kod wydaje sie miec paranoje na punkcie zamykania okna - pamietajmy
             ze Closed moze zostac wywolane na oknie w kazdym callbacku, takze w OnIdle
-            i OnDraw. A Close usuwa to okno z listy Active[], dlatego kopiujemy sobie
-            na poczatku Active[i] do glwin. }
+            i OnDraw. A Close usuwa to okno z listy OpenWindows, dlatego kopiujemy sobie
+            na poczatku OpenWindows[i] do glwin. }
         WasAnyDrawing := false;
         I := 0;
-        while I < ActiveCount do
+        while I < OpenWindowsCount do
         begin
-          Glwin := Active[I];
+          Glwin := OpenWindows[I];
           Glwin.DoIdle;
           if Glwin.Closed then Continue {don't Inc(I)};
           { Kolejnosc w OR ponizej MA ZNACZENIE : zawsze chemy wywolac
@@ -343,7 +343,7 @@ end;
 
 procedure TGLApplication.Run;
 begin
-  if ActiveCount = 0 then Exit;
+  if OpenWindowsCount = 0 then Exit;
 
   QuitPosted := false;
   while ProcessMessage(true) do ;

@@ -31,7 +31,7 @@ private
 {$ifdef read_tglwindowmanager_interface}
 private
   LastDoTimerTime: TMilisecTime;
-  function ActiveGlutWindow(seekGlutHwnd: integer): TGLWindow;
+  function FindGlutWindow(seekGlutHwnd: integer): TGLWindow;
 {$endif read_tglwindowmanager_interface}
 
 {$ifdef read_implementation}
@@ -101,7 +101,7 @@ end;
      GLUTBEGIN_glutHwnd: longint;
  begin
   GLUTBEGIN_glutHwnd := glutGetWindow();
-  GLUTBEGIN_glwin := Application.ActiveGlutWindow(GLUTBEGIN_glutHwnd);
+  GLUTBEGIN_glwin := Application.FindGlutWindow(GLUTBEGIN_glutHwnd);
   if GLUTBEGIN_glwin <> nil then
    with GLUTBEGIN_glwin do
    begin }
@@ -406,7 +406,7 @@ begin
    glutGet(GLUT_WINDOW_ACCUM_BLUE_SIZE), glutGet(GLUT_WINDOW_ACCUM_ALPHA_SIZE),
    glutGet(GLUT_WINDOW_NUM_SAMPLES));
 
- Application.ActiveAdd(Self);
+ Application.OpenWindowsAdd(Self);
  glutReshapeFunc(@reshapeByGlut);
  glutDisplayFunc(@displayByGlut);
  glutKeyboardFunc(@keyboardByGlut);
@@ -485,8 +485,8 @@ var k: TKey;
 begin
  with Application do
  begin
-  for i := 0 to ActiveCount-1 do
-   with Active[i] do
+  for i := 0 to OpenWindowsCount-1 do
+   with OpenWindows[i] do
    begin
     for k := Low(TKey) to High(TKey) do
      if Pressed[k] then
@@ -507,7 +507,7 @@ end;
 
 procedure TGLApplication.Run;
 begin
-  if ActiveCount = 0 then Exit;
+  if OpenWindowsCount = 0 then Exit;
 
   glutMainLoop;
 end;
@@ -533,13 +533,14 @@ begin
   Halt;
 end;
 
-function TGLApplication.ActiveGlutWindow(seekGlutHwnd: integer): TGLWindow;
-var i: integer;
+function TGLApplication.FindGlutWindow(seekGlutHwnd: integer): TGLWindow;
+var
+  i: integer;
 begin
- for i := 0 to ActiveCount-1 do
-  if Active[i].glutHwnd = seekGlutHwnd then
-   Exit(Active[i]);
- result := nil;
+  for i := 0 to OpenWindowsCount-1 do
+    if OpenWindows[i].glutHwnd = seekGlutHwnd then
+      Exit(OpenWindows[i]);
+  result := nil;
 end;
 
 procedure TGLApplication.CreateImplDependent;

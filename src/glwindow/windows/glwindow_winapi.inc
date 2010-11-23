@@ -198,7 +198,7 @@ begin
    ktore juz jest zamkniete (a moze nawet na obiekt ktory juz zostal
    zwolniony z pamieci !). Dlaczego tak jest, patrz komentarz na poczatku
    GLWindow_winsystem.inc. Wiec sprawdzamy tutaj czy glwin jest na liscie
-   Application.Active .
+   Application.OpenWindows .
 
    Moreover, temporary windows created by CreateTemporaryWindow in
    SetPixelFormat_WGLChoose also get here (as they use our
@@ -1015,13 +1015,13 @@ begin
  KambiOSCheck(h_GLRc <> 0, 'wglCreateContext');
  MakeCurrent;
 
- { robimy ActiveAdd PRZED ShowWindow bo ShowWindow wywoluje WinProc
+ { robimy OpenWindowsAdd PRZED ShowWindow bo ShowWindow wywoluje WinProc
    z message'm kazacym nam sie odmalowac. Wiec zeby przetworzyc tego messaga
    (ktory powoduje po prostu PostRedisplay) nasze okienko musi byc
-   zarejestrowane w Application.Active. Dlaczego nie zrobic po prostu PostRedisplay ?
+   zarejestrowane w Application.OpenWindows. Dlaczego nie zrobic po prostu PostRedisplay ?
    Tak jest porzadniej, no i w ten sposob wiem DLACZEGO to dziala, a nie tylko
    ze "dziala kiedy wywolamy PostRedisplay". }
- Application.ActiveAdd(Self);
+ Application.OpenWindowsAdd(Self);
 
  { On Windows, it seems I can't implement WindowVisible option.
    OpenGL context is just useless without ShowWindow(h_Wnd, SW_SHOW),

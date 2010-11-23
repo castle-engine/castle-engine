@@ -51,9 +51,9 @@ private
     nie dalo sie skonwertowac (bo moze ten keysym nie ma odpowiednika
     w naszym malym TKey ? a moze ksym byl = NoSymbol ?) }
   function KeySymToKey(ksym: TKeySym): TKey;
-  { Seek on Active[] window with WindowXID = seekWindowXID.
+  { Seek on OpenWindows window with WindowXID = seekWindowXID.
     Returns nil if not found. }
-  function ActiveWindowXID(seekWindowXID: TWindow): TGLWindow;
+  function FindWindowXID(seekWindowXID: TWindow): TGLWindow;
   procedure SetXDisplayName(const Value: string);
 
   { Check XDisplay. Call this once you're sure that XDisplay is set to
@@ -288,7 +288,7 @@ begin
 
  UpdateCursor;
 
- Application.ActiveAdd(Self);
+ Application.OpenWindowsAdd(Self);
 
  MakeCurrent;
 end;
@@ -587,13 +587,14 @@ end;
 
 { TGLApplication ------------------------------------------------------- }
 
-function TGLApplication.ActiveWindowXID(seekWindowXID: TWindow): TGLWindow;
-var i: integer;
+function TGLApplication.FindWindowXID(seekWindowXID: TWindow): TGLWindow;
+var 
+  i: integer;
 begin
- for i := 0 to ActiveCount-1 do
-  if Active[i].WindowXID = seekWindowXID then
-   Exit(Active[i]);
- result := nil;
+  for i := 0 to OpenWindowsCount-1 do
+    if OpenWindows[i].WindowXID = seekWindowXID then
+      Exit(OpenWindows[i]);
+  result := nil;
 end;
 
 procedure TGLApplication.SetXDisplayName(const Value: string);
