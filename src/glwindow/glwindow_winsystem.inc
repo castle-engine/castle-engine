@@ -349,7 +349,7 @@ begin
   while ProcessMessage(true) do ;
 end;
 
-procedure TGLApplication.QuitWhenNoWindowsActive;
+procedure TGLApplication.QuitWhenNoOpenWindows;
 begin
   QuitPosted := true;
 end;

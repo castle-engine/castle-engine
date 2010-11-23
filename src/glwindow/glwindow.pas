@@ -16,8 +16,7 @@
 { @abstract(TGLWindow is a window with associated OpenGL context.)
 
   @link(Application) object (instance of class @link(TGLApplication))
-  is a central manager of all active (that is, visible) @link(TGLWindow)
-  windows.
+  is a central manager of all open @link(TGLWindow) windows.
 
   Using this unit:
 
@@ -407,9 +406,9 @@ unit GLWindow;
     module.
   - Call all TGLWindow.DoXxx functions at appropriate places from your
     implementation.
-    You can call all DoIdle and DoTimer for all Application.Active[] windows
-    using Application.DoActiveWindowsIdle/Timer (this will give usually inefficient
-    but working implementation)
+    You can call all DoIdle and DoTimer for all Application.OpenWindows
+    using Application.FOpenWindows.DoIdle/Timer (this will give usually
+    inefficient but working implementation)
   - Call TGLApplication.DoSelfIdle and DoSelfTimer when appropriate.
     Remember that you can always assume that the ONLY existing instance of
     TGLApplication is Application.
@@ -776,9 +775,11 @@ type
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     FOnOpen: TGLWindowFunc;
+    FOnOpenList: TDynGLWindowFuncArray;
     FOnBeforeDraw, FOnDraw: TDrawFunc;
     FOnResize: TGLWindowFunc;
     FOnClose: TGLWindowFunc;
+    FOnCloseList: TDynGLWindowFuncArray;
     FOnCloseQuery: TGLWindowFunc;
     FOnKeyDown, FOnKeyUp: TKeyCharFunc;
     FMouseMove: TMouseMoveFunc;
@@ -814,12 +815,12 @@ type
     MenuUpdateNeedsInitialize: boolean;
     MenuInitialized: boolean;
 
-    { Konkretne implementacje nie robia wlasnej wersji TGLWindow.Open,
-      robia OpenImplDepend -- tam sie inicjuja + musza wywolac
-      Application.ActiveAdd(Self) w dogodnej chwili.
+    { Used in particular backend, open OpenGL context and do
+      Application.OpenWindowsAdd(Self) there.
 
       Here's a list of properties that should be made "visible" to the user
       in OpenImplDepend:
+
         Width, Height, Left, Top, FullScreen
         Cursor, CustomCursor (remember that changes to this after OpenImplDepend
           should also be allowed)
@@ -833,13 +834,13 @@ type
         AccumBufferBits, MultiSampling }
     procedure OpenImplDepend;
 
-    { Podobnie jak z Open i OpenImplDepend jest tez z Close, wystarczy napisac
-      CloseImplDepend (w CloseImplDepend juz nie trzeba wywolywac
-      ActiveRemove, to jest wywolane w Close niezaleznym od implementacji).
-      W czasie CloseImplDepend wyjatkowo wszelkie bledy nie powinny powodowac wyjatku
-      (chociaz ew. przezyjemy jesli wyleci jakis wyjatek z CloseImplDepend) -
-      zamiast tego powinny wywolywac CloseError. Powod : Close powinno, bez wzgledu
-      na bledy, probowac mozliwie duzo sfinalizowac. }
+    { Close OpenGL context, for particular backend.
+
+      No need to call OpenWindowsRemove here, it's done by universal Close already.
+      It's advised (although not totally required) that all errors during
+      CloseImplDepend should be catched and cause only CloseError.
+      Reasoning: Close should, regardless of trouble, try to finalize as much
+      as possible. }
     procedure CloseImplDepend;
 
     procedure CloseError(const error: string);
@@ -934,7 +935,7 @@ type
     procedure ReleaseAllKeysAndMouse;
 
     { Should DoKeyDown be able to call DoMenuCommand, that is should
-      we handle menu key shortcurs ourselves.
+      we handle menu key shortcuts ourselves.
 
       This is implemented in backend-specific GLWindow parts.
       When in DoKeyDown we get some key event that specifies that
@@ -950,12 +951,11 @@ type
 
     { DoXxx methods ------------------------------------------------------------
 
-      The general idea of DoXxx methods: "Call me on Xxx event.
-      I'll do everything that needs to be done and that is not specific to
-      GLWindow-implementation.".
-      GLWindow-implementation specific methods should not ever call EventXxx
-      directly (and nothing should ever call OnXxx directly besides EventXxx),
-      they should use DoXxx methods.
+      DoXxx method should be called by GLWindow backend when an event
+      Xxx happens. DoXxx methods take care of various backend-independent
+      stuff, and take care of calling EventXxx (that calls OnXxx in turn).
+      GLWindow backend should never call EventXxx directly.
+      (And nothing should call OnXxx directly except EventXxx.)
 
       Remember that no DoXxx may be called from CloseImplDepend.
 
@@ -1124,30 +1124,6 @@ type
     function GetPressed: TKeysPressed;
   public
 
-    { EventXxx virtual methods -------------------------------------------------
-
-      W sekcji private zdefiniowane sa procedury DoXxx ktore wykonuja niezalezna
-      od implementacji GLWindow robote z opakowaniem zdarzen OnXxx.
-      Oto jak to jest robione : najwazniejsza czescia tych procedur jest wywolanie
-      odpowiedniej procedury EventXxx.
-
-      Pytanie : po co nam ten dodatkowy stopien do zejscia, tzn. procedury
-      EventXxx? Mianowicie, procedury EventXxx sa wirtualne. W zwiazku z tym
-      pozwalaja one na konstruowanie uzytecznych podklas klasy TGLWindow.
-
-      Przy okazji procedury te sa nie w protected ale w public aby umozliwic
-      wygodne wywolywanie ich spoza klasy TGLWindow, np. gdy chcesz recznie
-      spowodowac OnResize na jakims window wygodniej jest wywolac
-        glwin.EventResize
-      niz
-        if Assigned(glwin.OnResize) then glwin.OnResize(glwin);
-      albo nawet
-        if Assigned(glwin.OnResize) then
-         try glwin.OnResize(glwin) except on BreakGLWinevent do ; end
-
-      Pamietaj przy tym ze przed kazdym EventXxx musi byc wywolane MakeCurrent !
-      (DoXxx robia to automatycznie, podobnie jak pare wewnetrznych rzeczy).  }
-
     { Handle appropriate event.
 
       In the TGLWindow class, these methods simply call appropriate OnXxx
@@ -1158,11 +1134,24 @@ type
       catch and silence BreakGLWinEvent exceptions raised inside the callback.
       This way you can easily cancel given callback by raising BreakGLWinEvent.
 
-      You can override them to do anything you want. }
+      You can override them to do anything you want.
+
+      You can also call these methods directly for some tricks.
+      You may want to do MakeCurrent before calling them directly,
+      if your application may have many OpenGL windows.
+      When EventXxx are called internally from this unit, they are always
+      preceded by MakeCurrent call.
+
+      Notes for overriding OnIdle and OnTimer: you will usually also
+      want to override then AllowSuspendForInput, to disallow suspending
+      when you want to keep receiving idle/timer calls.
+
+      Notes for overriding OnCloseQuery: you have to return @true
+      to allow closing of the window.
+      @groupBegin }
     procedure EventResize; virtual;
     procedure EventOpen; virtual;
     procedure EventClose; virtual;
-    { EventCloseQuery ma zwrocic true aby DoCloseQuery zrobilo Close }
     function EventCloseQuery: boolean; virtual;
     procedure EventDraw; virtual;
     procedure EventBeforeDraw; virtual;
@@ -1172,15 +1161,10 @@ type
     procedure EventMouseDown(btn: TMouseButton); virtual;
     procedure EventMouseUp(btn: TMouseButton); virtual;
     procedure EventMouseWheel(const Scroll: Single; const Vertical: boolean); virtual;
-    { Do something continously, all the time (idle) or in some time intervals
-      (timer). Note that when overriding these, you will usually also
-      want to override AllowSuspendForInput, to disallow suspending when
-      you want to keep receiving idle/timer calls.
-      @groupBegin }
     procedure EventIdle; virtual;
     procedure EventTimer; virtual;
-    { @groupEnd }
     procedure EventMenuCommand(Item: TMenuItem); virtual;
+    { @groupEnd }
 
     { Is it allowed to suspend (for an indefinite amount of time) waiting
       for user input.
@@ -1195,46 +1179,43 @@ type
       In descendants, you typically want to override this if there's
       a chance you may do something in overridden EventIdle or EventTimer. }
     function AllowSuspendForInput: boolean; virtual;
-  public
-    { ----------------------------------------------------------------------------
-      rzeczy ktore mozesz inicjowac tylko przed wywolaniem Open. Potem sa juz
-      read-only (chociaz moga byc uaktualniane na skutek wewnetrznych wywolan;
-      np. Width i Height moga sie zmieniac, co zostanie zaznaczone
-      wywolaniem OnResize). Left i Top tez beda uaktualniane. }
+
+    { ------------------------------------------------------------------------
+      Stuff that may be initialized only when the window is not open yet.
+      When the window is open, these are read-only (may only change
+      through internal methods, e.g. we'll update @link(Width), @link(Height),
+      @link(Left), @link(Top) to reflect current size and position).  }
 
     { Size of the window OpenGL area. Together with frame and border
       sizes, and eventually menu bar size, this determines the final
       window size.
 
-      min/maxWidth/Height i ResizeAllowed ustawiaja scisle ograniczenia na
-      Width i Height ktore sa poprawiane zgodnie z tymi wlasciwosciami podczas
-      wywolywania Open. PO wywolaniu Open (tzn. pomiedzy Open a Close) jest
-      gwarantowane ze
-        - minWidth<= Width<= maxWidth
-        - minHeight<= Height<= maxHeight
-        - Width i Height nie ulegna zmianie jezeli not ResizeAllowed <> raAllowed
+      MinWidth / MaxWidth / MinHeight / MaxHeight place constraints
+      on these values (rigorously honored when window is open):
+      always @code(MinWidth <= Width <= MaxWidth) and
+      @code(MinHeight <= Height <= MaxHeight).
 
-      Poniewaz WindowManager (WindowManager X-ow lub Windows) moze dosc swobodnie
-      traktowac nasze wymagania min/maxWidth/Height i ResizeAllowed wiec jest
-      niestety mozliwe ze rzeczywiste wymiary okienka beda sie roznic od
-      zadanych w width, height - zauwazysz to zwlaszcza jezeli ustawiles
-      istotne ograniczenia na min/maxWidth/Height lub jezeli ustawiles
-      ResizeAllowed <> raAllowed. Wiec TGLWindow robi tak ze moze nieco przeklamywac
-      wlasciwosci Width / Height - tak zeby nasze wlasciwoci Width/Height ZAWSZE
-      spelnialy zadane ograniczenia, nawet jezeli w rezultacie moga sie one czasem
-      roznic od rzeczywistych rozmiarow okienka.
+      ResizeAllowed places constrains when window manager and user may change
+      window size. In particular, when ResizeAllowed <> raAllowed then
+      window sizes cannot change when window is open.
 
-      Aplikacje polegajace na tym na poczatku (po zainicjowaniu gl contextu)
-      glViewport jest ustawiony na wymiary okienka moga byc spokojne : wprawdzie
-      rzeczywiste okienko moze nie miec rozmiarow Width/Height, poczatkowe
-      glViewport bedzie na pewno zgodne z NASZYMI Width/Height.
+      Note that for some window managers, we cannot always reliably
+      force the size constraints and block resizing on the desktop.
+      If you set rigorous size constraints, or ResizeAllowed <> raAllowed,
+      you may find that window manager still resizes the window.
+      In such cases, we may fake our size a little ---
+      @link(Width) and @link(Height) values may not correspond to actual
+      size as seen on the desktop. This is comfortable, as in such cases
+      you usually want to just ignore window managers limits and just
+      proceed as if your size requirements are satisfied.
 
-      GLWindowDefaultSize will be treated specifically:
-      at Open, will be replaced with some comfortable size slightly
-      smaller than screen size.
-    }
+      Special GLWindowDefaultSize value of these properties
+      means: at @link(Open), use some comfortable size slightly
+      smaller than desktop size.
+      @groupBegin }
     property Width: integer read FWidth write FWidth default GLWindowDefaultSize;
     property Height: integer read FHeight write FHeight default GLWindowDefaultSize;
+    { @groupEnd }
 
     { Window position on the screen. If one (or both) of them is equal
       to GLWindowPositionCenter at the initialization (Open) time,
@@ -1379,52 +1360,37 @@ type
       Width / Height values, that is those values were already adjusted
       if ResizeAllowed <> raNotAllowed. }
     property OnOpen: TGLWindowFunc read FOnOpen write FOnOpen;
-  public
+
     { Callbacks called when OpenGL context is initialized.
       Called always after OnOpen. Useful when one callback is not enough.
 
       The list instance (TDynGLWindowFuncArray) is created / destroyed
       in this class. You can add / remove freely your callbacks from this class. }
-    OnOpenList: TDynGLWindowFuncArray;
-  public
+    property OnOpenList: TDynGLWindowFuncArray read FOnOpenList;
+
     { Minimum and maximum window sizes. Always
 
 @preformatted(
-  0 < minWidth <= maxWidth and
-  0 < minHeight <= maxHeight
+  0 < MinWidth <= MaxWidth and
+  0 < MinHeight <= MaxHeight
 )
 
-      Jesli sprobujesz samemu zainicjowac Width lub Height okienka na cos spoza
-      tego zakresu - jesli to bedzie mniejsze od minWidth to zostanie przyjete
-      minWidth, jesli wieksze od maxWidth - zostanie przyjete maxWidth (tzn.
-      zostanie poprawione dopiero w Open !). Bedzie to wykonane nawet jesli
-      ResizeAllowed = raNotAllowed ! Wiec pamietaj ze jesli chcesz zeby ResizeAllowed
-      = raNotAllowed bylo honorowane - width i height musza sie zawierac w
-      min/max Width/Height.
-      Podobnie, jezeli ustawisz Fullscreen := true i okaze sie ze rozmiary ekranu
-      sa zle - flaga FullScreen zostanie wylaczona. Innymi slowy, niniejsze
-      ograniczenia maja priorytet ponad ResizeAllowed, a wszystkie razem
-      (min/maxWidth/Height i ResizeAllowed) maja priorytet nad
-      Width, Height, FullScreen.
+      We do not allow user to resize the window outside of these constraints.
 
-      Tym sposobem ZAWSZE bedzie zachodzic minWidth <= width <= maxWidth, o ile
-      tylko not Closed. I wszystko co napisalem dziala tak samo dla Height. }
+      We also fix window @link(Width) and @link(Height) to fit within
+      these constraints when you @link(Open) the window. We do it regardless
+      of ResizeAllowed (even when it's raNotAllowed).
+
+      In other words, these constraints have a higher priority than
+      ResizeAllowed and your desired @link(Width) and @link(Height)
+      and even @link(FullScreen). So you can be sure that (as long as window
+      is open) @link(Width) / @link(Height) will always fit in these constraints.
+      @groupBegin }
     property MinWidth: Integer read FMinWidth write FMinWidth default 100;
     property MinHeight: Integer read FMinHeight write FMinHeight default 100;
     property MaxWidth: Integer read FMaxWidth write FMaxWidth default 4000;
     property MaxHeight: Integer read FMaxHeight write FMaxHeight default 4000;
-
-    { Zadane parametry buforow OpenGLa. }
-
-    { Po zainicjowaniu okienka StencilBufferBits NIE jest ustawiane na uzyskana
-      ilosc bitow (np. chcielismy miec 8, ustawilismy StencilBufferBits := 8,
-      dostalismy 16, wiec glGetInteger(GL_STENCIL_BITS) = 16,
-      ale ciagle StencilBufferBits = 8. To jest przydatne jesli teraz zrobimy
-      okienku Close, potem np. zmienimy AccumBufferBits i sprobujemy zrobic
-      Open : nie chcielismy w takiej sytuacji zeby StencilBufferBits
-      zmienialo sie automatycznie, prawda?
-      Zawsze kiedy chcesz zbadac ile bitow rzeczywiscie masz mozesz uzyc
-      glGetInteger. }
+    { @groupEnd }
 
     { Required depth buffer precision. Zero means that we don't need
       depth buffer at all. We may get depth buffer with more precision
@@ -1473,7 +1439,15 @@ type
       Just like with other XxxBufferBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
-      @link(Open) will raise an error. }
+      @link(Open) will raise an error.
+
+      Note that after initializing OpenGL context (when opening the window),
+      StencilBufferBits is @italic(not) updated to the current (provided)
+      stencil buffer bit size. For example, if you requested StencilBufferBits := 8,
+      and you got 16-bits buffer: StencilBufferBits value will still remain 8.
+      This is sensible in case you close the window, tweak some settings
+      and try to open it again. Use @code(glGetInteger(GL_STENCIL_BITS))
+      when window is open to query current (actual) buffer size. }
     property StencilBufferBits: Cardinal
       read FStencilBufferBits write FStencilBufferBits default 0;
 
@@ -1566,7 +1540,6 @@ type
       in combination with FBO (TGLRenderToTexture class) for offscreen
       rendering. }
     property WindowVisible: boolean read FWindowVisible write FWindowVisible default true;
-  public
 
     { Caption of the window. By default it's initialized to ProgramName.
       May be changed even when the window is already open. }
@@ -1622,7 +1595,7 @@ type
     { List of callbacks called when the window is closed,
       right before the OpenGL context is destroyed.
       Just like OnClose. Use when one callback is not enough. }
-    public OnCloseList: TDynGLWindowFuncArray;
+    property OnCloseList: TDynGLWindowFuncArray read FOnCloseList;
 
     { Called when user presses a key.
       Only for keys that can be represented as TKey or Char types.
@@ -2567,6 +2540,15 @@ type
   TObjectsListItem_1 = TGLWindow;
   {$I objectslist_1.inc}
   TGLWindowsList = class(TObjectsList_1)
+  private
+    { Call wszystkie OnIdle / OnTimer for all windows on this list.
+      Using Application.OpenWindows.DoIdle / DoTimer  is a simplest
+      way for GLWindow backend to handle these events.
+      @groupBegin }
+    procedure DoIdle;
+    procedure DoTimer;
+    { @groupEnd }
+  public
     { Simply calls PostRedisplay on all items. }
     procedure PostRedisplay;
   end;
@@ -2598,34 +2580,33 @@ type
     FVideoColorBits: integer;
     FVideoFrequency: Cardinal;
 
-    FActive: TGLWindowsList;
-    function GetActive(Index: integer): TGLWindow;
+    FOpenWindows: TGLWindowsList;
+    function GetOpenWindows(Index: integer): TGLWindow;
 
-    { ActiveAdd: add new item to Active[].
-      glwin MUST NOT be already on Active[] list. }
-    procedure ActiveAdd(glwin: TGLWindow);
+    { Add new item to OpenWindows.
+      Windows must not be already on OpenWindows list. }
+    procedure OpenWindowsAdd(glwin: TGLWindow);
 
-    { ActiveRemove: delete glwin from Active[].
+    { Delete window from OpenWindows.
 
-      glwin don't have to be on the Active[] list. If it is not, this
+      glwin don't have to be on the OpenWindows list. If it is not, this
       method is NOOP. This is useful when this is called from TGLWindow.Close
       because TGLWindow.Close should work even for partially constructed
       Windows.
 
-      If glwin was present on Active[] and after removing glwin
-      ActiveCount = 0 and QuitWhenLastWindowClosed then it calls Quit. }
-    procedure ActiveRemove(glwin: TGLWindow; QuitWhenLastWindowClosed: boolean);
+      If glwin was present on OpenWindows and after removing glwin
+      OpenWindowsCount = 0 and QuitWhenLastWindowClosed then it calls Quit. }
+    procedure OpenWindowsRemove(glwin: TGLWindow; QuitWhenLastWindowClosed: boolean);
 
-    { FindWindow : szuka na liscie Active[] glwin. Zwraca indeks
-      jesli znajdzie, -1 jesli nie. }
+    { Find window on the OpenWindows list. Returns index, or -1 if not found. }
     function FindWindow(glwin: TGLWindow): integer;
 
     procedure CreateImplDependent;
     procedure DestroyImplDependent;
 
-    { This is GLWindow-implementation specific part of Quit method implementation.
+    { The GLWindow-implementation specific part of Quit method implementation.
       In non-implementation-specific part of Quit we already closed all windows,
-      so this will be called only when ActiveCount = 0.
+      so this will be called only when OpenWindowsCount = 0.
       So the only things you have to do here is:
       - make ProcessMessage to return false
       - terminate Run method, if it works (if Run is implemented using
@@ -2636,10 +2617,10 @@ type
         when calling this function, i.e. it may be the case that noone ever
         called Application.Run (e.g. in @code(kambi_lines) game, where everything is done
         using while ProcessMessages do ...), but still it must be valid to call
-        Quit and QuitWhenNoWindowsActive in such situation.
-        Also it must be valid to call Quit and QuitWhenNoWindowsActive more
+        Quit and QuitWhenNoOpenWindows in such situation.
+        Also it must be valid to call Quit and QuitWhenNoOpenWindows more
         then once. }
-    procedure QuitWhenNoWindowsActive;
+    procedure QuitWhenNoOpenWindows;
 
     { This simply checks Assigned(FOnIdle) and only then calls FOnIdle.
       ALWAYS use this method instead of directly calling FOnIdle. }
@@ -2648,28 +2629,21 @@ type
     { Same as DoSelfIdle, but here with FOnTimer. }
     procedure DoSelfTimer;
 
-    { DoActiveWindowsIdle / Timer wywoluja wszystkie OnIdle / OnTimer dla okien w
-      Active[]. Implementacje moga zrealizowac OnIdle / OnTimer okien
-      inaczej, niekoniecznie w tak prosty sposob, wiec nie musza korzystac
-      z tych procedur. Ale moga. }
-    procedure DoActiveWindowsIdle;
-    procedure DoActiveWindowsTimer;
-
     { Something useful for some GLWindow implementations. This will implement
-      (in a simple way) calling of DoSelfOpen and DoActiveWindowsTimer.
+      (in a simple way) calling of DoSelfOpen and OpenWindows.DoTimer.
 
       Declare in TGLApplication some variable like
         LastDoTimerTime: TMilisecTime
       initialized to 0. Then just call very often (probably at the same time
       you're calling DoSelfIdle)
         MaybeDoTimer(LastDoTimerTime);
-      This will take care of calling DoSelfTimer and DoActiveWindowsTimer
+      This will take care of calling DoSelfTimer and OpenWindows.DoTimer
       at the appropriate times. It will use and update LastDoTimerTime,
       you shouldn't read or write LastDoTimerTime yourself. }
     procedure MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
 
     { Just like TGLWindow.AllowSuspendForInput, except this is for
-      the whole Application. Returns @true only if all active (open)
+      the whole Application. Returns @true only if all open
       windows allow it, and we do not have OnIdle and OnTimer. }
     function AllowSuspendForInput: boolean;
   public
@@ -2716,10 +2690,9 @@ type
     function ScreenHeight: integer;
     function ScreenWidth: integer;
 
-    { Active[0..ActiveCount-1] : lista aktywnych okien programu, tzn.
-      tych dla ktorych wywolano Open a nie wywolano jeszcze Close. }
-    function ActiveCount: integer;
-    property Active[Index: integer]: TGLWindow read GetActive;
+    { List of all open windows. }
+    function OpenWindowsCount: integer;
+    property OpenWindows[Index: integer]: TGLWindow read GetOpenWindows;
 
     { OnIdle bedzie wywolywane gdy window system nie przesle nam zadnych
       message'ow i w zwiazku z tym bedziemy wolni. Naczelnym celem
@@ -2887,7 +2860,7 @@ type
     { Run the program using TGLWindow, by doing the event loop.
       Think of it as just a shortcut for "while ProcessMessage do ;".
 
-      Note that this does nothing if ActiveCount is zero, that is there
+      Note that this does nothing if OpenWindowsCount = 0, that is there
       are no open windows. Besides the obvious reason (you didn't call
       TGLWindow.Open on any window...) this may also happen if you called
       Close (or Application.Quit) from your window OnOpen / OnResize callback.
@@ -2970,8 +2943,8 @@ end;
 constructor TGLWindow.Create(AOwner: TComponent);
 begin
  inherited;
- OnOpenList := TDynGLWindowFuncArray.Create;
- OnCloseList := TDynGLWindowFuncArray.Create;
+ FOnOpenList := TDynGLWindowFuncArray.Create;
+ FOnCloseList := TDynGLWindowFuncArray.Create;
  FClosed := true;
  FWidth  := GLWindowDefaultSize;
  FHeight := GLWindowDefaultSize;
@@ -3007,8 +2980,8 @@ begin
 
  FreeAndNil(FFps);
  FreeAndNil(FPressed);
- FreeAndNil(OnOpenList);
- FreeAndNil(OnCloseList);
+ FreeAndNil(FOnOpenList);
+ FreeAndNil(FOnCloseList);
  inherited;
 end;
 
@@ -3189,15 +3162,15 @@ begin
 
   FClosed := true;
 
-  { Note: it is important here that ActiveRemove will not raise any error
-    if Self is not on Active[] list. This is useful if the window was partially
+  { Note: it is important here that OpenWindowsRemove will not raise any error
+    if Self is not on OpenWindows list. This is useful if the window was partially
     constructed.
 
     E.g. when StencilBufferBits was too high and OpenImplDepend
     method raised an exception EGLContextNotPossible. Then this method, Close,
-    is called, but Self is not on Active[] list. And this fact should not be
+    is called, but Self is not on OpenWindows list. And this fact should not be
     reported as an error -- error is EGLContextNotPossible ! }
-  Application.ActiveRemove(Self, QuitWhenLastWindowClosed);
+  Application.OpenWindowsRemove(Self, QuitWhenLastWindowClosed);
 
   { dopiero tutaj rzucamy wyjatek. Zawsze bedziemy probowac wykonac cala
     powyzsza procedure, w szczegolnosci cale CloseImplDepened,
@@ -3878,7 +3851,7 @@ begin
   Include(ProcData^.SpecifiedOptions, poDisplay);
   case OptionNum of
     0: {$ifdef GLWINDOW_XLIB}
-       if Application.FActive.Count <> 0 then
+       if Application.FOpenWindows.Count <> 0 then
          WarningWrite(ProgramName + ': some windows are already open ' +
            'so --display option is ignored.') else
          Application.XDisplayName := Argument;
@@ -4797,9 +4770,24 @@ end;
 { TGLWindowsList ------------------------------------------------------------ }
 
 procedure TGLWindowsList.PostRedisplay;
-var i: Integer;
+var
+  i: Integer;
 begin
- for i := 0 to Count - 1 do Items[i].PostRedisplay;
+  for i := 0 to Count - 1 do Items[i].PostRedisplay;
+end;
+
+procedure TGLWindowsList.DoIdle;
+var
+  i: integer;
+begin
+  for i := 0 to Count - 1 do Items[i].DoIdle;
+end;
+
+procedure TGLWindowsList.DoTimer;
+var
+  i: integer;
+begin
+  for i := 0 to Count - 1 do Items[i].DoTimer;
 end;
 
 { --------------------------------------------------------------------------
@@ -4808,114 +4796,107 @@ end;
 
 constructor TGLApplication.Create(AOwner: TComponent);
 begin
- inherited;
- FActive := TGLWindowsList.Create;
- FTimerMilisec := 1000;
- CreateImplDependent;
+  inherited;
+  FOpenWindows := TGLWindowsList.Create;
+  FTimerMilisec := 1000;
+  CreateImplDependent;
 end;
 
 destructor TGLApplication.Destroy;
 begin
- { Close any windows possibly open now.
-   This is necessary --- after destroying Application there would be really
-   no way for them to close properly (that is, TGLWindow.CloseImplDepend
-   may, and usually will, fail with very strange errors when called
-   after freeing central Application). }
- Quit;
+  { Close any windows possibly open now.
+    This is necessary --- after destroying Application there would be really
+    no way for them to close properly (that is, TGLWindow.CloseImplDepend
+    may, and usually will, fail with very strange errors when called
+    after freeing central Application). }
+  Quit;
 
- { nil now the Application variable. For reasoning, see this units
-   finalization. }
- Application := nil;
+  { nil now the Application variable. For reasoning, see this units
+    finalization. }
+  Application := nil;
 
- VideoReset;
- DestroyImplDependent;
- FreeAndNil(FActive);
- inherited;
+  VideoReset;
+  DestroyImplDependent;
+  FreeAndNil(FOpenWindows);
+  inherited;
 end;
 
-function TGLApplication.GetActive(Index: integer): TGLWindow;
-begin result := FActive[Index] end;
-
-function TGLApplication.ActiveCount: integer;
-begin result := FActive.Count end;
-
-procedure TGLApplication.ActiveAdd(glwin: TGLWindow);
+function TGLApplication.GetOpenWindows(Index: integer): TGLWindow;
 begin
- FActive.Add(glwin);
+  result := FOpenWindows[Index];
 end;
 
-procedure TGLApplication.ActiveRemove(glwin: TGLWindow;
+function TGLApplication.OpenWindowsCount: integer;
+begin
+  result := FOpenWindows.Count;
+end;
+
+procedure TGLApplication.OpenWindowsAdd(glwin: TGLWindow);
+begin
+  FOpenWindows.Add(glwin);
+end;
+
+procedure TGLApplication.OpenWindowsRemove(glwin: TGLWindow;
   QuitWhenLastWindowClosed: boolean);
 begin
- if (FActive.Remove(glwin) <> -1) and
-    (ActiveCount = 0) and QuitWhenLastWindowClosed then Quit;
+  if (FOpenWindows.Remove(glwin) <> -1) and
+     (OpenWindowsCount = 0) and QuitWhenLastWindowClosed then Quit;
 end;
 
 function TGLApplication.FindWindow(glwin: TGLWindow): integer;
 begin
- for result := 0 to ActiveCount-1 do
-  if Active[result] = glwin then exit;
- result := -1;
+  for result := 0 to OpenWindowsCount-1 do
+    if OpenWindows[result] = glwin then exit;
+  result := -1;
 end;
 
 procedure TGLApplication.Quit;
 var
-  OldActiveCount: Integer;
+  OldOpenWindowsCount: Integer;
 begin
   { We're calling here Close(false) so we will not cause infinite recursive
     Quit calls.
 
-    Remember that calling Close actually calls Application.ActiveRemove.
-    In fact, it's guaranteed that calling Close on active (not closed)
-    window will remove it from Active list (we even check it by assert,
+    Remember that calling Close actually calls Application.OpenWindowsRemove.
+    In fact, it's guaranteed that calling Close on open
+    window will remove it from OpenWindows list (we even check it by assert,
     otherwise our "while" could never finish).
-    So the number of active windows will drop during while
-    (that's why "for I := 0 to ActiveCount - 1 do ..." would be stupid
-    code here, but "while ActiveCount > 0 ..." is Ok). }
+    So the number of open windows will drop during while
+    (that's why "for I := 0 to OpenWindowsCount - 1 do ..." would be stupid
+    code here, but "while OpenWindowsCount > 0 ..." is Ok). }
 
-  while ActiveCount > 0 do
+  while OpenWindowsCount > 0 do
   begin
-    OldActiveCount := ActiveCount;
-    Active[0].Close(false);
-    Assert(ActiveCount = OldActiveCount - 1);
+    OldOpenWindowsCount := OpenWindowsCount;
+    OpenWindows[0].Close(false);
+    Assert(OpenWindowsCount = OldOpenWindowsCount - 1);
   end;
 
-  QuitWhenNoWindowsActive;
+  QuitWhenNoOpenWindows;
 end;
 
 procedure TGLApplication.DoSelfIdle;
 begin
- if Assigned(FOnIdle) then FOnIdle;
+  if Assigned(FOnIdle) then FOnIdle;
 end;
 
 procedure TGLApplication.DoSelfTimer;
 begin
- if Assigned(FOnTimer) then FOnTimer;
-end;
-
-procedure TGLApplication.DoActiveWindowsIdle;
-var i: integer;
-begin
- for i := 0 to ActiveCount-1 do Active[i].DoIdle;
-end;
-
-procedure TGLApplication.DoActiveWindowsTimer;
-var i: integer;
-begin
- for i := 0 to ActiveCount-1 do Active[i].DoTimer;
+  if Assigned(FOnTimer) then FOnTimer;
 end;
 
 procedure TGLApplication.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
-var Now: TMilisecTime;
+var
+  Now: TMilisecTime;
 begin
- Now := GetTickCount;
- if ((ALastDoTimerTime = 0) or
-     (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
- begin
-  ALastDoTimerTime := Now;
-  DoSelfTimer;
-  DoActiveWindowsTimer;
- end;
+  Now := GetTickCount;
+  if ((ALastDoTimerTime = 0) or
+      (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
+  begin
+    ALastDoTimerTime := Now;
+    DoSelfTimer;
+    FOpenWindows.DoTimer;
+  end;
 end;
 
 function TGLApplication.AllowSuspendForInput: boolean;
@@ -4925,9 +4906,9 @@ begin
   Result := not (Assigned(OnIdle) or Assigned(OnTimer));
   if not Result then Exit;
 
-  for I := 0 to ActiveCount - 1 do
+  for I := 0 to OpenWindowsCount - 1 do
   begin
-    Result := Active[I].AllowSuspendForInput;
+    Result := OpenWindows[I].AllowSuspendForInput;
     if not Result then Exit;
   end;
 end;

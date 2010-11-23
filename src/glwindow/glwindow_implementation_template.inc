@@ -168,7 +168,7 @@ begin
   { TODO }
 end;
 
-procedure TGLApplication.QuitWhenNoWindowsActive;
+procedure TGLApplication.QuitWhenNoOpenWindows;
 begin
   { TODO }
 end;

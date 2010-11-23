@@ -151,19 +151,19 @@ private
 
   QuitPosted: boolean;
 
-  { Find in Active[] window with WindowGtk = given seekWindowGtk.
+  { Find in OpenWindows window with WindowGtk = given seekWindowGtk.
     Return nil if no such window is found. }
-  function TryActiveWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
-  { Find in Active[] window with GLAreaGtk = given seekGLAreaGtk.
+  function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
+  { Find in OpenWindows window with GLAreaGtk = given seekGLAreaGtk.
     Return nil if no such window is found. }
-  function TryActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+  function TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
 
-  { Same as TryActiveWindowGtk, but exception EInternalError when
+  { Same as TryFindWindowGtk, but exception EInternalError when
     no such window is found. }
-  function ActiveWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
-  { Same as TryActiveGLAreaGtk, but exception EInternalError when
+  function FindWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
+  { Same as TryFindGLAreaGtk, but exception EInternalError when
     no such window is found. }
-  function ActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+  function FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
 
   { This must be constantly called.
     We use it for two tasks currently:
@@ -442,21 +442,21 @@ end;
   All gtk callback names are named signal_xxx where xxx is the gtk signal name.
   So all events have names like signal_yyy_event.
 
-  Callbacks that expect as 1st parameter GLAreaGtk of some Active[] window
+  Callbacks that expect as 1st parameter GLAreaGtk of some OpenWindows window
   have 1st parameter AGLAreaGtk: PGtkAreaGtk.
   Similarly, callbackas that expect as 1st parameter WindowGtk of some
-  Active[] window have 1st parameter AWindowGtk: PGtkWindow.
+  OpenWindows window have 1st parameter AWindowGtk: PGtkWindow.
 }
 
 {$define SIGNAL_GLAREA_BEGIN:=
 begin
- with Application.ActiveGLAreaGtk(AGLAreaGtk) do begin}
+ with Application.FindGLAreaGtk(AGLAreaGtk) do begin}
 {$define SIGNAL_GLAREA_END:=
  end; end}
 
 {$define SIGNAL_WINDOW_BEGIN:=
 begin
- with Application.ActiveWindowGtk(AWindowGtk) do begin}
+ with Application.FindWindowGtk(AWindowGtk) do begin}
 {$define SIGNAL_WINDOW_END:=
  end; end}
 
@@ -1148,10 +1148,10 @@ begin
  gtk_signal_connect(GTK_OBJECT(WindowGtk), 'focus_out_event',
    GTK_SIGNAL_FUNC(@signal_window_focus_out_event), nil);
 
- { Add us to Active[] windows to ensure that all callbacks that are
+ { Add us to OpenWindows windows to ensure that all callbacks that are
    eventually called by procedures below will be able to use
-   Application.ActiveGLAreaGtk and Application.ActiveWindowGtk. }
- Application.ActiveAdd(Self);
+   Application.FindGLAreaGtk and Application.FindWindowGtk. }
+ Application.OpenWindowsAdd(Self);
 
  { setup window position from Left, Top }
  gtk_widget_set_uposition(GTK_WIDGET(WindowGtk), Left, Top);
@@ -1769,9 +1769,9 @@ procedure TGLApplication.ProcessUpdates;
     Glwin: TGLWindow;
   begin
     I := 0;
-    while I < ActiveCount do
+    while I < OpenWindowsCount do
     begin
-      Glwin := Active[I];
+      Glwin := OpenWindows[I];
       Glwin.FlushRedisplay;
       if Glwin.Closed then Continue {don't Inc(I)};
       Inc(I);
@@ -1780,14 +1780,14 @@ procedure TGLApplication.ProcessUpdates;
 
   { Call idle and timer events of Application and all windows.
 
-    Idle events are handled by DoSelfIdle and DoActiveWindowsIdle.
+    Idle events are handled by DoSelfIdle and OpenWindows.DoIdle.
 
     Timer events are handled by MaybeDoTimer, that in turn will call
-    (when needed) DoSelfTimer and DoActiveWindowsTimer. }
+    (when needed) DoSelfTimer and OpenWindows.DoTimer. }
   procedure GlwindowsIdleAndTimer;
   begin
     DoSelfIdle;
-    DoActiveWindowsIdle;
+    FOpenWindows.DoIdle;
 
     { For simplicity, we're implementing here our own timer mechanism,
       without using gtk timers. }
@@ -1799,42 +1799,43 @@ begin
   GlwindowsIdleAndTimer;
 end;
 
-function TGLApplication.TryActiveWindowGtk(seekWindowGtk: PGtkWindow):
-  TGLWindow;
-var i: Integer;
+function TGLApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
+var 
+  i: Integer;
 begin
- for i := 0 to ActiveCount-1 do
-  if Active[i].WindowGtk = seekWindowGtk then
-   Exit(Active[i]);
- Result := nil;
+  for i := 0 to OpenWindowsCount - 1 do
+    if OpenWindows[i].WindowGtk = seekWindowGtk then
+      Exit(OpenWindows[i]);
+  Result := nil;
 end;
 
-function TGLApplication.TryActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
-var i: Integer;
+function TGLApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+var 
+  i: Integer;
 begin
- for i := 0 to ActiveCount-1 do
-  if Active[i].GLAreaGtk = seekGLAreaGtk then
-   Exit(Active[i]);
- Result := nil;
+  for i := 0 to OpenWindowsCount-1 do
+    if OpenWindows[i].GLAreaGtk = seekGLAreaGtk then
+      Exit(OpenWindows[i]);
+  Result := nil;
 end;
 
-function TGLApplication.ActiveWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
+function TGLApplication.FindWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
 begin
- Result := TryActiveWindowGtk(seekWindowGtk);
+ Result := TryFindWindowGtk(seekWindowGtk);
  if Result = nil then raise EInternalError.Create(
-   'No Active[] window with such WindowGtk found');
+   'No open window with such WindowGtk found');
 end;
 
-function TGLApplication.ActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+function TGLApplication.FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
 begin
- Result := TryActiveGLAreaGtk(seekGLAreaGtk);
+ Result := TryFindGLAreaGtk(seekGLAreaGtk);
  if Result = nil then raise EInternalError.Create(
-   'No Active[] window with such GLAreaGtk found');
+   'No open window with such GLAreaGtk found');
 end;
 
 procedure TGLApplication.Run;
 begin
-  if ActiveCount = 0 then Exit;
+  if OpenWindowsCount = 0 then Exit;
 
   while ProcessMessage(true) do ;
 
@@ -1876,8 +1877,8 @@ function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
   var
     I: Integer;
   begin
-    for I := 0 to ActiveCount - 1 do
-      if Active[I].RedisplayPosted then Exit(true);
+    for I := 0 to OpenWindowsCount - 1 do
+      if OpenWindows[I].RedisplayPosted then Exit(true);
 
     Result := false;
   end;
@@ -1934,7 +1935,7 @@ begin
   Result := not QuitPosted;
 end;
 
-procedure TGLApplication.QuitWhenNoWindowsActive;
+procedure TGLApplication.QuitWhenNoOpenWindows;
 begin
  if gtk_main_level() > 0 then gtk_main_quit();
 

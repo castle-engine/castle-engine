@@ -528,9 +528,9 @@ begin
     raise Exception.Create('glutMainLoopEvent not found (probably this is not freeglut, see freeglut.sourceforge.net). This implies that ProcessMessage (and friends, like modal boxes) cannot be implemented');
 end;
 
-procedure TGLApplication.QuitWhenNoWindowsActive;
+procedure TGLApplication.QuitWhenNoOpenWindows;
 begin
- Halt;
+  Halt;
 end;
 
 function TGLApplication.ActiveGlutWindow(seekGlutHwnd: integer): TGLWindow;
