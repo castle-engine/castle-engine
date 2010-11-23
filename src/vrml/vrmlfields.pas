@@ -379,9 +379,6 @@ type
     FParentInterfaceDeclaration: TVRMLFileItem;
   protected
     procedure FieldOrEventAssignCommon(Source: TVRMLFieldOrEvent);
-    { Nice description for warnings and such.
-      Shows parent node type, name and field/event's name. }
-    function FullName: string;
   public
     constructor Create(AParentNode: TVRMLFileItem; const AName: string);
     destructor Destroy; override;
@@ -474,6 +471,10 @@ type
       since TVRMLInterfaceDeclaration is not known in this unit). }
     property ParentInterfaceDeclaration: TVRMLFileItem
       read FParentInterfaceDeclaration write FParentInterfaceDeclaration;
+
+    { Nice field description for warnings and such.
+      Shows parent node type, name and field/event's name. }
+    function FullName: string;
   end;
 
   TObjectsListItem_5 = TVRMLFieldOrEvent;

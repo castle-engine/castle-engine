@@ -1941,7 +1941,7 @@ var
         begin
           Child := ParseXMLNode(I.Current, ContainerField, Names, true);
           if Child <> nil then
-          begin
+          try
             Child.PositionInParent := Position;
             FieldIndex := Fields.IndexOf(ContainerField);
 
@@ -1961,6 +1961,10 @@ var
               if Fields[FieldIndex] is TSFNode then
               begin
                 SF := Fields[FieldIndex] as TSFNode;
+
+                if SF.Value <> nil then
+                  VRMLWarning(vwSerious, 'X3D XML: More than one value specified for SFNode field ' + SF.FullName);
+
                 { Although field doesn't have a set position in XML X3D
                   encoding, when saving later in classic encoding we
                   need some order of fields. This is yet another problem
@@ -1989,20 +1993,14 @@ var
                 MF.Add(Child);
                 MF.WarningIfChildNotAllowed(Child);
               end else
-              begin
-                Child.FreeIfUnused;
-                Child := nil;
                 VRMLWarning(vwSerious, 'X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
-              end;
             end else
-            begin
-              try
-                VRMLWarning(vwSerious, 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + NodeTypeName + '"');
-              finally
-                Child.FreeIfUnused;
-                Child := nil;
-              end;
-            end;
+              VRMLWarning(vwSerious, 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + NodeTypeName + '"');
+          finally
+            { Any VRMLWarning above makes the Child unused.
+              Note that VRMLWarning may, but doesn't have, raise an exception. }
+            Child.FreeIfUnused;
+            Child := nil;
           end;
         end;
         Inc(Position);
