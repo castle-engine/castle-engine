@@ -1546,115 +1546,87 @@ type
       It's ignored on non-GTK 2 backends. }
     property GtkIconName: string read FGtkIconName write FGtkIconName;
 
-    { @abstract(Should this window be actually displayed on the desktop?
-      Set to @false for special tricks.)
+    { Should this window be actually displayed on the desktop.
+      Set to @false for special tricks.
 
-      As you can guess, in 99% you want to leave this as @true, as the
+      In all normal programs you want to leave this as @true, as the
       main purpose of the window is to actually be visible and interactive
-      on the desktop, right? But in some very special cases you really
+      on the desktop. But in some very special cases you really
       need some OpenGL context but you don't want to display a visible
       window for the user to see. One example is the @--screenshot
       option of view3dscene, see
       [http://vrmlengine.sourceforge.net/view3dscene.php#section_screenshot].
 
       A cleaner way to achieve this would be to actually initialize
-      content to render to off-screen bitmap. This is possibly faster,
-      and gives you more possibilities (e.g. window size doesn't limit
-      the screenshot size, liki it @italic(can) with current approach).
-      But this is the more reliable, easily implemented way, so for now it's
-      very useful. }
+      content to render to off-screen bitmap. This would also allow
+      window size to not be limited by screen size etc.
+      But there are many non-portable
+      ways to do this, and often it means using software-only OpenGL
+      implementation (with poor speed, without shaders etc.).
+      So in practice, it's easiest to use this property,
+      in combination with FBO (TGLRenderToTexture class) for offscreen
+      rendering. }
     property WindowVisible: boolean read FWindowVisible write FWindowVisible default true;
   public
 
-    { -----------------------------------------------------------------------
-      rzeczy ktore mozesz inicjowac przed wywolaniem Open ale mozesz tez nimi
-      swobodnie manipulowac pozniej. }
+    { Caption of the window. By default it's initialized to ProgramName.
+      May be changed even when the window is already open. }
+    property Caption: string read FCaption write SetCaption;
 
-    property Caption: string read FCaption write SetCaption; { = ProgramName }
+    { Draw your window contents here.
 
-    { This is probably the most important callback.
-      You should redraw your window here.
-
-      It will be called when your window contents must be redrawn,
+      Called when your window contents must be redrawn,
       e.g. after creating a window, after resizing a window, after uncovering
-      the window etc. You can also request that this callback should be
-      called in a short time by PostRedisplay.
+      the window etc. You can also request yourself a redraw of the window
+      by the PostRedisplay method, which will cause this event to be called
+      at nearest good time.
 
-      Note: calling PostRedisplay while in EventDraw (OnDraw) is NOT ignored.
+      Note that calling PostRedisplay while in EventDraw (OnDraw) is not ignored.
       It means that in a short time next EventDraw (OnDraw) will be called. }
-    property OnDraw: TDrawFunc read FOnDraw write FOnDraw; { = nil }
+    property OnDraw: TDrawFunc read FOnDraw write FOnDraw;
 
-    { OnBeforeDraw will be always called right before OnDraw
-      (more specifically, EventBeforDraw will be always called right before
-      EventDraw). So those two functions, EventBeforeDraw and EventDraw,
-      will be always called sequentially as a pair. So what is the use of
-      BeforeDraw?
+    { Always called right before EventDraw (OnDraw).
+      These two events, EventBeforeDraw (OnBeforeDraw) and EventDraw (OnDraw),
+      will be always called sequentially as a pair.
 
-      Only one thing differs OnDraw and OnBeforeDraw: time spent in OnBeforeDraw
-      (more specifically, in EventBeforeDraw) is NOT counted as "frame time"
+      The only difference between these two events is that
+      time spent in EventBeforeDraw (OnBeforeDraw)
+      is NOT counted as "frame time"
       by Fps.FrameTime. This is useful when you have something that needs
       to be done from time to time right before OnDraw and that is very
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnDraw because this would cause a sudden big change in
       Fps.FrameTime value (and DrawSpeed). So you can avoid this by putting
-      this in OnBeforeDraw. Of course, using OnBeforeDraw also means that the
-      program will not always be time-based. By using OnBeforeDraw instead
-      of OnDraw you're breaking the rules that are designed to make time-based
-      program (a program that adjusts itself to the speed of computer it is on).
-      But this is sometimes desirable when you have something that you want
-      to do really seldom (e.g. only when user presses some special key)
-      (but that is also time-consuming).
+      this in OnBeforeDraw. }
+    property OnBeforeDraw: TDrawFunc read FOnBeforeDraw write FOnBeforeDraw;
 
-      E.g. view3dscene uses Scene.Render. From time to time user presses
-      a key like "g" or "m" that force the whole Scene to be regenerated.
-      This means that a call to Scene.Render inside OnDraw takes sometimes
-      much more time than it usually does. This gives some unpleasant effect
-      because when the user views the scene using "Examine" mode
-      then after pressing "g" DrawSpeed is (for only one short moment !)
-      very big. And this means that after pressing "g" user sees 1. first,
-      it takes some time to regenerate the model 2. second, after regenerating
-      the model there is a sudden jump in the amount the object is rotated
-      (because DrawSpeed is big). And the second thing is bad.
-      It can avoided by putting Scene.PrepareResources after OnKeyDown,
-      OnMouseDown etc. But the simplest (and more elegant) way
-      is to put Scene.PrepareResources only in OnBeforeDraw. }
-    property OnBeforeDraw: TDrawFunc read FOnBeforeDraw write FOnBeforeDraw; { = nil }
+    { Called when the window size (@link(Width), @link(Height)) changes.
+      It's also guaranteed to be called during @link(Open),
+      right after the EventOpen (OnOpen) event.
 
-    { OnResize - wywolywane zawsze gdy okienko bedzie zresizowane,
-      tzn. gdy zmienia sie width i/lub height tego obiektu.
-      Ponadto, jest gwarantowane ze OnResize bedzie wywolane zawsze w czasie Open
-      tuz po EventOpen (OnOpen).
-      Przed wywolaniem OnResize width i height okienka sa juz uaktualnione,
-      jest zrobione MakeCurrent. Nie ma problemu jesli OnResize = nil,
-      chociaz zazwyczaj jest to dobre  miejsce na ustawienie projection matrix.
+      Our OpenGL context is already "current" when this event is called
+      (MakeCurrent is done right before), like for other events.
+      This is a good place to set OpenGL viewport and projection matrix.
 
-      Kiedys bylo automatyczne glViewport przed OnResize - teraz NIE JEST,
-      patrz old\GLWindow_why_not_Viewport_in_OnResize.txt po wyjasnienie
-      dlaczego, w skrocie - zazwyczaj glViewport powinnno isc w parze ze zmiana
-      projection i rozbijanie tego latwo doprowadzi nas do bledow w specjalnych
-      przypadkach.
+      See also ResizeAllowed.
 
-      I jeszcze jest gwarantowane ze zdarzenie OnResize zajdzie pierwszy
-      raz nawet gdy ResizeAllowed <> raAllowed.
-
-      2D OpenGL programs may want to register here simple
+      Simple 2D OpenGL programs may want to register here simple
       @link(Resize2D). }
-    property OnResize: TGLWindowFunc read FOnResize write FOnResize; { = nil }
+    property OnResize: TGLWindowFunc read FOnResize write FOnResize;
 
-    { jesli assigned, to bedzie wywolywane OnClose w momencie zamykania okna -
-      czyli robienia Close. Ta procedura jest ostatnia szansa na zrobienie czegos
-      zanim kontekst OpenGL'a zostanie zniszczony i jest lustrzanym odbiciem
-      OnOpen; dobrym miejscem na niszczenie tego co stworzylo OnOpen jest wlasnie
-      OnClose (np. tutaj niszcz fonty OpenGL'a ktore potrzebuja kontekstu OpenGL'a
-      zeby ladnie wyczyscic po sobie zasosby OSa) }
+    { Called when the window is closed, right before the OpenGL context
+      is destroyed. This is your last chance to release OpenGL resources,
+      like textures, shaders, display lists etc. This is a counterpart
+      to OnOpen event. }
     property OnClose: TGLWindowFunc read FOnClose write FOnClose;
 
-    { podobnie jak OnOpen, OnClose tez ma swoja wersje listowa : OnCloseList.
-      Patrz komentarze przy OnOpenList. }
+    { List of callbacks called when the window is closed,
+      right before the OpenGL context is destroyed.
+      Just like OnClose. Use when one callback is not enough. }
     public OnCloseList: TDynGLWindowFuncArray;
 
-    { OnKeyDown(Self, Key, c) occurs when user presses some key that
-      we can represent as key: TKey and/or c: char.
+    { Called when user presses a key.
+      Only for keys that can be represented as TKey or Char types.
 
       Not all keyboard keys can be represented as TKey value. There are
       some keys that generate sensible char values, but still cannot be
@@ -1685,31 +1657,28 @@ type
       very nasty bugs. E.g. imagine that you handle in OnKeyDown key K_Enter
       by doing GLWinMessages.MessageOK. But then each time user presses
       Enter key you
-      1. handle it in OnKeyDown calling GLWinMessages.MessageOK
-      2. GLWinMessages.MessageOK changes your GLWindow callbacks
-         so that OnKeyPress(#13) makes GLWinMessages.MessageOK exit.
-      3. but then you're getting OnKeyPress(#13) event (because K_Enter
-         is converted to #13 char). So GLWinMessages.MessageOK ends.
+
+      @orderedList(
+        @item(handle it in OnKeyDown calling GLWinMessages.MessageOK)
+        @item(GLWinMessages.MessageOK changes your GLWindow callbacks
+         so that OnKeyPress(#13) makes GLWinMessages.MessageOK exit.)
+        @item(but then you're getting OnKeyPress(#13) event (because K_Enter
+         is converted to #13 char). So GLWinMessages.MessageOK ends.)
+      )
+
       This looked like a bug in GLWinMessages.MessageOK. But actually
       it was a bug in callbacks design: you were getting two callbacks
       (OnKeyDown amd OnKeyPress) for one event (user presses a key).
 
-      polish:
-      KeyDown moze byc pod wplywem key repeata.
-      Tzn. ze jesli uzytkownik bedzie trzymal klawisz przycisniety to my
-      mozemy dostawac co chwila nowe KeyDown. Pod niektorymi
-      systemami moze byc wtedy tak ze przed kazdym KeyDown bedziemy
-      dostawali "udawane" KeyUp (udawane, bo user tak naprawde ani na chwile
-      nie puscil klawisza) a pod niektorymi nie bedziemy dostawali KeyUp
-      (bedziemy po prostu dostawali KeyDown(k) podczas gdy juz wczesniej
-      Pressed[k] = true). Piszac program musisz byc gotow na obie mozliwosci.
-      Podsumowujac : nie patrz na KeyDown(k) jako na "zdarzenie ktore zachodzi
-      gdy Pressed[k] zmienia sie z false na true". To tak nie dziala.
-      Patrz raczej na to jako na zdarzenie po ktorym Pressed[k] na pewno
-      jest true. }
+      When the user holds the key pressed, we will get consecutive
+      key down events. Under some OSes, you will also get consecutive
+      key up events, but it's not guaranteed (on some OSes, you may
+      simply get only consecutive key down). So the more precise
+      definition when OnKeyDown occurs is: it's a notification that
+      the key is (still) pressed down. }
     property OnKeyDown: TKeyCharFunc read FOnKeyDown write FOnKeyDown;
 
-    { Called when user releases a pressed key. I.e. it's called right after
+    { Called when user releases a pressed key. It's called right after
       Pressed[Key] changed from true to false.
 
       Key is never K_None.
@@ -1734,15 +1703,17 @@ type
       pressed.) }
     property OnKeyUp: TKeyCharFunc read FOnKeyUp write FOnKeyUp;
 
-    { Jesli uzytkownik klilknie na znaczku "X" (zamknij
-      aplikacje) lub wybierze polecenie "Zamknij" z SysMenu okna lub przycisnie
-      Alt-F4 wtedy : jesli OnCloseQuery = nil to okno zostanie zamkniete (Close).
-      Natomiast jesli to zdarzenie bedzie assigned okno sie NIE zamknie
-      i zostanie wywolane to zdarzenie. W tym zdarzeniu mozna np. spytac sie
-      uzytkownika o potwierdzenie i wtedy ew. wywolac metode Close !
+    { Called when user tries to close the window.
+      This is called when you use window manager features to close the window,
+      like clicking on the "close" icon on the window frame or using Alt+F4
+      on most desktops. This is @italic(not) called when you explicitly
+      close the window by calling the @link(Close) method.
 
-      Jesli okno zostanie zamkniete przez wywolanie Close to zdarzenie nie bedzie
-      mialo znaczenia.
+      When this callback is not assigned, we will
+      just let the window be closed. When it's assigned,
+      the window will not closed --- you should call here @link(Close)
+      explicitly if you want to (for example, after asking user for
+      confirmation "do you really want to quit?").
 
       When handling this event, you must remember that user
       may try to close our window at any time.
@@ -1768,24 +1739,22 @@ type
       when user tries to close the window. }
     property OnCloseQuery: TGLWindowFunc read FOnCloseQuery write FOnCloseQuery; { = nil }
 
-    { OnMouseMove : jasne; gdy mysz sie ruszy, wysyla to zdarzenie.
-       Parametry : standardowe glwin. Klawisze myszy wcisniete w tym
-       momencie masz w mousePressed. Pozycje myszy PRZED przesunieciem
-       masz w mouseX, mouseY, a PO przesunieciu - w parametrach newX, newY.
-       Oczywiscie, PO wywolaniu EventMouseMove mouseX, mouseY zostana
-       odswiezone na newX, newY. Tymczasem ty w trakcie obslugi EventMouseMove
-       bedziesz mogl skorzystac z tego ze newX-mouseX, newY-mouseY to przesuniecie
-       wzgledne myszy. }
-    property OnMouseMove :TMouseMoveFunc read FMouseMove write FMouseMove; { = nil }
+    { Called when mouse is moved. Remember you always have the currently
+      pressed mouse buttons in MousePressed. When this is called,
+      the MouseX, MouseY properties describe the @italic(previous)
+      mouse position, while callback parameters NewX, NewY describe
+      the @italic(new) mouse position. }
+    property OnMouseMove :TMouseMoveFunc read FMouseMove write FMouseMove;
 
-    { OnMouseDown : zachodzi gdy przycisnie jakis klawisz myszy.
-       Parametry : standardowe glwin, btn = ktory przycisk zrobil down.
-       Pozycje myszy w momecie up / down masz w mouseX, mouseY.
-       Podobnie jak w glut'cie jest gwarantowane ze po wywolaniu OnMouseDown
-       mysz zostanie zlapana i wszystkie komunikaty myszy (OnMouseMove, OnMouseUp)
-       beda przekazywane az do wywolania OnMouseUp ktore zwolni wszystkie przyciski
-       myszy. W rezultacie mysz moze przyjmowac pozycje spoza (0, 0, width, height) -
-       moze wychodzic dowolnie daleko w dowolna strone (takze na wartosci ujemne !)
+    { Called when you press mouse button. Remember you always have the current
+      mouse position in MouseX, MouseY.
+
+      When user presses the mouse over
+      our window, mouse is automatically captured, so all further OnMouseMove
+      OnMouseUp will be passed to this window (even if user moves mouse
+      outside of this window), until user releases all mouse buttons.
+      Note that this means that mouse positions may be outside
+      of [0..Width - 1, 0..Height - 1] range.
 
        @groupBegin }
     property OnMouseDown :TMouseUpDownFunc read FMouseDown write FMouseDown;
@@ -1805,7 +1774,12 @@ type
       Backends: GTK and Xlib cannot generate Scroll values different than 1 or -1. }
     property OnMouseWheel: TMouseWheelFunc read FMouseWheel write FMouseWheel;
 
-    { property OnIdle i OnTimer beda zachodzily dla wszystkich okien
+    { Idle event is called for all open windows, all the time.
+      Although the typical definition of "idle" event is to be called
+      only when there are no more events, we also make sure to call
+      it often when there are some events.
+
+    property OnIdle i OnTimer beda zachodzily dla wszystkich okien
       w Application.Active[] w momencie gdy zajdzie zdarzenie obiektu Application -
       OnIdle lub OnTimer. Tzn. nie zrozumcie mnie zle - zadna kolejnosc
       zdarzen OnIdli Application i roznych okien nie jest gwarantowana i beda
@@ -1831,14 +1805,19 @@ type
       danego okienka tylko do callbackow danego okienka - GLWinMessages
       dziala poprawnie przy tym wlasnie zalozeniu.
     }
-    property OnIdle: TGLWindowFunc read FOnIdle write FOnIdle; { = nil }
-    property OnTimer: TGLWindowFunc read FOnTimer write FOnTimer; { = nil }
+    property OnIdle: TGLWindowFunc read FOnIdle write FOnIdle;
 
-    { If AutoRedisplay then you will not have to ever call
-      @link(PostRedisplay) -- window will behave like there was always
-      pending redraw. Set this to true only if you're sure that you're
-      doing some constant animation in your window and you will want
-      to constantly redraw yur window. }
+    { Timer event is called approximately after each
+      TGLApplication.TimerMilisec miliseconds passed. }
+    property OnTimer: TGLWindowFunc read FOnTimer write FOnTimer;
+
+    { Should we automatically redraw the window all the time,
+      without a need for PostRedisplay call.
+      If @true, window will behave like a redraw is always needed,
+      and EventDraw (OnDraw) will be always called as often as posible.
+      This may be a waste of OS resources, so don't use it, unless
+      you know that you really have some animation displayed
+      all the time. }
     property AutoRedisplay: boolean read fAutoRedisplay write SetAutoRedisplay; { = false }
 
     { -------------------------------------------------------------------------

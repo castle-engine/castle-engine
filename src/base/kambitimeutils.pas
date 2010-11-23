@@ -357,7 +357,7 @@ type
       taking some time (e.g. you perform some calculations during OnIdle)
       you're probably much safer to use IdleSpeed.
 
-      Note that this if you have "unstable" rendering times (for example,
+      Note that if you have "unstable" rendering times (for example,
       some OnDraw calls will do something costly like implicitly
       preparing VRML models on first Render) then DrawSpeed value will
       also raise suddenly on such frames. That's why you should do
