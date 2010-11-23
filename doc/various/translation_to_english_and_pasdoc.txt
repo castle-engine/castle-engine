@@ -124,7 +124,7 @@ D   ttfontstypes.pas
 D   unix/xf86vmode.pas
 D   unix/xlibutils.pas
 D   glsoundmenu.pas
-|   glwindow.pas
+D   glwindow.pas
 D   glwindowrecentfiles.pas
 D   glwindowvrmlbrowser.pas
 -   glwininputs.pas

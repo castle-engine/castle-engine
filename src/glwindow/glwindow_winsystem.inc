@@ -13,7 +13,29 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is the common code for GLWINDOW_XLIB and GLWINDOW_WINAPI implementations. }
+{ This is the common code for GLWINDOW_XLIB and GLWINDOW_WINAPI implementations.
+
+  Note that if you let some exception to be raised out of
+  some event (like OnXxx) then this window may be closed
+  while recovering from this exception. I.e. GLWindow implementation
+  is free to implement part of ProcessMessage like
+
+@longCode(#
+  if HasKeyDown then
+  try
+    OnKeyDown(...);
+  except
+    Close;
+    raise;
+  end;
+#)
+
+  TODO: this behavior is currently done only by Xlib and WinAPI
+  implementation, in glwindow_winsystem.inc.
+  Is there really any good reason why we can't remove this behavior?
+}
+
+
 
 {$ifdef read_tglwindow_interface}
 private

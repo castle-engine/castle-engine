@@ -668,7 +668,7 @@ type
   PGLWindowParseOptions = ^TGLWindowParseOptions;
 
 const
-  { Constant below contains all "normal" command-line options,
+  { All "normal" command-line options,
     that most programs using GLWindow should be able to handle
     without any problems.
 
@@ -677,12 +677,7 @@ const
     StandardParseOptions.
     Or they can simply call overloaded version of TGLWindow.ParseParameters
     that doesn't take any parameters, it is always equivalent to
-    calling TGLWindow.ParseParameters(StandardParseOptions).
-
-    In case you are not sure what precisely >> "normal" command-line options <<
-    mean: well, I'm unsure too. If that bothers you, just don't
-    use this constant and always specify list of parameters
-    for TGLWindow.ParseParameters explicitly. }
+    calling TGLWindow.ParseParameters(StandardParseOptions). }
   StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay];
 
   DefaultDepthBufferBits = 16;
@@ -1303,12 +1298,12 @@ type
           Absolutely nothing else may cause them to change,
           user cannot resize the window.
 
-          This may even force FullScreen change from @true to @talse
+          This may even force FullScreen change from @true to @false
           at @link(Open) call, when you will request a fullscreen window
           but @link(Width) / @link(Height) will not match screen size.
 
           You can be sure that EventResize (OnResize) will be called only
-          once, when window is opened (right after initial EventOpen (OnOpen).)
+          once, when window is opened (right after initial EventOpen (OnOpen)).)
 
         @item(raOnlyAtOpen
 
@@ -1327,7 +1322,7 @@ type
           remains open.
 
           You can be sure that EventResize (OnResize) will be called only
-          once, when window is opened (right after initial EventOpen (OnOpen).)
+          once, when window is opened (right after initial EventOpen (OnOpen)).)
 
         @item(raAllowed
 
@@ -1747,11 +1742,13 @@ type
     property OnMouseWheel: TMouseWheelFunc read FMouseWheel write FMouseWheel;
 
     { Idle event is called for all open windows, all the time.
-      Although the typical definition of "idle" event is to be called
-      only when there are no more events, we also make sure to call
-      this event regularly even when you're overwhelmed in events.
-      (Being "overwhelmed in events" may easily happen e.g. if user moves
-      the mouse, which may generate a lot of events on some backends.)
+      It's called when we have no more events to process,
+      and have nothing to do @italic(with the exception of redraw).
+      Our idle events are called at least as regularly as redraw.
+      This last condition is important --- otherwise your game
+      could get overwhelmed my messages (like mouse moves) and time-consuming
+      redraw, and you would not have time to actually update animations
+      in idle events.
 
       Called at the same time when
       @link(TGLApplication.OnIdle Application.OnIdle) is called.
@@ -2647,101 +2644,88 @@ type
       windows allow it, and we do not have OnIdle and OnTimer. }
     function AllowSuspendForInput: boolean;
   public
-    { jesli VideoResize to zmieni rozmiar ekranu na VideoResizeWidth /
-      VideoResizeHeight wywolaniem VideoChange; wpp. ustawi defaultowy
-      rozmiar ekranu (desktopu itp.). }
+    { If VideoResize, then next VideoChange call will
+      try to resize the screen to given VideoResizeWidth /
+      VideoResizeHeight. Otherwise, next TryVideoChange and VideoChange will
+      use default screen size.
+      @groupBegin }
     VideoResize : boolean;
     VideoResizeWidth,
     VideoResizeheight : integer;
+    { @groupEnd }
 
-    { Color bits per pixel ktore ma uzyc przy robieniu VideoChange i przy
-      robieniu TGLWindow.Open. = 0 oznaczaja ze ma uzyc system default }
+    { Color bits per pixel that will be set by next VideoChange call,
+      and that are tried to be used at TGLWindow.Open.
+      Zero means that system default is used. }
     property VideoColorBits: integer read FVideoColorBits write FVideoColorBits default 0;
 
-    { VideoFrequency to set in TryVideoChange and VideoChange.
+    { Video frequency to set in next VideoChange call.
       Leave as 0 to use system default. }
     property VideoFrequency: Cardinal read FVideoFrequency write FVideoFrequency default 0;
 
-    { Describe the changes recorded in variables VideoXxx, used by VideoChange and
-      TryVideoChange. This is a multiline string, each line is indented by 2 spaces,
+    { Describe the changes recorded in variables VideoXxx,
+      used by VideoChange and TryVideoChange.
+      This is a multiline string, each line is indented by 2 spaces,
       always ends with KambiUtils.NL. }
     function VideoSettingsDescribe: string;
 
-    { zmien ekran, zgodnie z VideoColorBits i VideoResizeWidth/Height
-      i VideoFrequency.
-      Zwraca czy sie udalo.
-      Zwracam uwage ze pod niektorymi implementacjami GLWINDOW ta funkcja
-      bedzie po prostu zawsze zwracala false. }
+    { Change the screen size, color bits and such, following the directions
+      you set in VideoColorBits, VideoResize,
+      VideoResizeWidth / VideoResizeHeight, and VideoFrequency variables.
+      Returns @true if success. }
     function TryVideoChange: boolean;
 
-    { zrob TryVideoChange, jesli sie nie udalo :
-      if OnErrorWarnUserAndContinue to wyswietli warning dla usera i bedzie
-        kontynuowal,
-      else rzuci Exception. }
+    { Change the screen size, color bits and such, following the directions
+      you set in VideoColorBits, VideoResize,
+      VideoResizeWidth / VideoResizeHeight, and VideoFrequency variables.
+      This actually just calls TryVideoChange and checks the result.
+
+      If not success: if OnErrorWarnUserAndContinue then we'll display
+      a warning and continue. If not OnErrorWarnUserAndContinue then
+      we'll raise an Exception.
+
+      @raises(Exception If video mode change failed,
+        and OnErrorWarnUserAndContinue = false.) }
     procedure VideoChange(OnErrorWarnUserAndContinue: boolean);
 
-    { VideoReset przywraca domyslne ustawienia ekranu (tzn. nie robi
-      nic jesli nigdy nie wywolales TryVideoChange z rezultatem true,
-      wpp przywraca domyslne ustawienia). Jest wywolywane automatycznie w
-      Application.Destroy a wiec w finalization tego unitu (a wiec nie troszcz
-      sie o finalizacje wywolania TryVideoChange). }
+    { Return default screen video mode.
+      If you never called TryVideoChange (with success), then this does nothing.
+      This is automatically called in Application.Destroy,
+      so at finalization of this unit. This way your game nicely restores
+      screen resolution for user. }
     procedure VideoReset;
 
     function ScreenHeight: integer;
     function ScreenWidth: integer;
 
-    { List of all open windows. }
+    { List of all open windows.
+      @groupBegin }
     function OpenWindowsCount: integer;
     property OpenWindows[Index: integer]: TGLWindow read GetOpenWindows;
+    { @groupEnd }
 
-    { OnIdle bedzie wywolywane gdy window system nie przesle nam zadnych
-      message'ow i w zwiazku z tym bedziemy wolni. Naczelnym celem
-      OnIdle jest aby w aplikacji zmuszonej do czestego odmalowywania sie
-      na ekranie OnIdle bylo wykonywane mniej wiecej tak czesto co OnDraw
-      (tzn. nie 1 do 1, ale proporcjonalnie tak czesto). W zwiazku z tym
-      jezeli nie mamy do siebie zadnych message'ow ale musimy sie
-      odmalowac to wtedy OnIdle ZOSTANIE wywolane (nie wiem czy tak
-      jest pod glutem; chyba pod glutem OnIdle jest wywolane tylko
-      gdy nie musielismy sie odmalowac czyli potencjalnie OnIdle
-      moze wtedy zachodzic za rzadko).
+    { Called all the time.
+      At least as regularly as OnDraw, see TGLWindow.OnIdle. }
+    property OnIdle: TIdleFunc read FOnIdle write FOnIdle;
 
-      Wiec jesli w kolko mamy posylane do siebie zdarzenia OnDrawGL -
-      to pomiedzy nimi zawsze zmieszcza sie z pewna czestotliwoscia
-      zdarzenia OnIdleGL. Jednoczesnie, nie odmalowujemy sie w kazdym
-      obrocie petli - odmalowujemy sie tylko gdy nie mamy do siebie
-      zadnych zdarzen (to tak jak glut; jest faktem ze jezeli
-      aplikacja nie nadaza z przetwarzaniem nadchodzacych message'y
-      to nalezy cala sile skupic na ich przetwarzaniu a nie
-      utrudniac sobie prace zmuszajac sie do przemalowywania okienka
-      mimo ze mamy jakies message'y do obsluzenia).
+    { Event called approximately after each TimerMilisec miliseconds.
+      The actual delay may be larger than TimerMilisec miliseconds,
+      depending on how the program (and OS) is busy.
 
-      W szczegolnosci, to jest odpowiednie miejsce aby robic
-      badanie Pressed[] klawiszy (chyba ze nasluch na OnKeyDown wystarcza),
-      robic animacje zmieniajac jakies zmienne i wywolywac PostRedisplay.
-
-      Mozesz tez zmieniac wartosc tej  zmiennej w czasie dzialania programu
-      (tzn.pomiedzy Open a Close jakiegos okienka). }
-    property OnIdle: TIdleFunc read FOnIdle write FOnIdle; { = nil }
-    { OnTimer : podobnie jak glutTimerFunc. To zdarzenie jest uruchamiane
-      co TimerMilisec milesekund lub wiecej (tzn. nie ma gwarancji ze zdarzenie
-      OnTimer rzeczywiscie zajdzie zaraz po tym czasie; moze sie okazac
-      ze czas jaki uplynal pomiedzy kolejnymi OnTimer jest duzo wiekszy -
-      - w szczegolnosci, OnTimer realizowany jest w ProcessMessage wiec
-      musisz zadbac aby ProcessMessage bylo wykonywane dosc czesto w czasie
-      i aby pozostale callbacki nie zajmowaly zbyt duzo czasu.
-      Jesli ustawisz za male TimerMilisec to OnTimer zacznie dzialac jak OnIdle !
-      Mozesz tez zmieniac wartosc OnTimer i TimerMilisec w czasie dzialania engine'u
-      (tzn.pomiedzy Open a Close jakiegos okienka). }
-    property OnTimer: TProcedure read FOnTimer write FOnTimer; { = nil }
-    property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec; { = 1000 }
+      You can of course change TimerMilisec (and OnTimer) even
+      when some windows are already open.
+      @groupBegin }
+    property OnTimer: TProcedure read FOnTimer write FOnTimer;
+    property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
+    { @groupEnd }
 
     { Process some messages from the window system.
       During this, messages are processed and passed
-      to the appropriate TGLWindow windows, calling appropriate mathotds
+      to the appropriate TGLWindow windows, calling appropriate methods
       and callbacks like TGLWindow.OnDraw, TGLWindow.OnIdle and many others.
 
-      This is very useful for implementing stuff like modal dialog boxes,
-      and generally any kind of "display something until something happens".
+      This method is crucial for implementing modal dialog boxes and such,
+      generally any kind of "display something until something happens".
       You want to control then yourself the event loop, like
 
 @longCode(#
@@ -2752,8 +2736,7 @@ type
       routines in GLWinModes. They allow you to temporary replace
       all TGLWindow callbacks with new ones, and later restore the old ones.
 
-
-      ProcessMessages returns @true if we should continue, thas is
+      ProcessMessages returns @true if we should continue, that is
       if @link(Quit) method was not called (directly or by closing
       the last window). If you want to check it (if your state
       allows the user at all to close the application during modal box or such)
@@ -2764,97 +2747,60 @@ type
     if not Application.ProcessMessage then break;
 #)
 
-      Co mozna zakladac lub nie o dzialaniu petli ProcessGLWinMessages?
-       - jezeli windManager zasypuje nam message'ami moze sie okazac
-         ze od czasu wywolania PostRedisplay do czasu wywolania
-         OnDraw minelo duzo wywolan ProcessMessage. To dlatego ze
-         ProcessMessage nie wywoluje zadnego OnDraw jesli ma message
-         do przetworzenia. Nie wywoluje tez OnIdle jesli ma message
-         do przetworzenia. Natomiast jezeli nie ma message jest
-         gwarantowane ze OnDraw i OnIdle beda wywolywane mniej
-         wiecej proporcjonalnie tyle samo razy (no chyba ze,
-         oczywiscie, PostRedisplay nie bedzie wywolywany co petle).
-         Patrz komentarz przy OnIdle.
-       - ProcessMessage moze zdecydowac, o ile AllowSuspend i OnIdleGL = nil
-         i jeszcze kilka innych warunkow, ze jezeli events queue z WindowSystemu
-         jest pusta to zaczekamy az WindowSystem przysle nam jakis event -
-         ale nie przez krecenie sie w kolko robiac "puste" wykonania ProcessMessage
-         (czyli powodujac zle busy-waiting) tylko przekazujac informacje do
-         systemu ze "nasz proces czeka na event". Np. pod Xlib robimy
-         XNextEvent, pod Windows GetMessage. W rezultacie piszac petle
-         while ProcessMessage(true) do foo(); NIE MOZESZ zakladac
-         ze foo() jest wywolywane co chwila. Jezeli OnIdleGL = nil to
-         pomiedzy kolejnymi wywolaniami foo() moze uplynac wiele czasu
-         bezczynosci naszego programu.
-       - robiac normalna petle programu w rodzaju
-         "while ProcessMessage(true) do ;" jak w TGLWindowManager.Run
-         bedziesz podawal AllowSuspend = true, bo skoro jedynym sensem
-         petli jest wykonywanie ProcessMessage to nie przeszkadza nam fakt
-         ze ProcessMessage moze zawisnac.
+      Notes:
+      @unorderedList(
+        @item(Not all ProcessMessage calls cause redraw, even if redraw
+          is requested by PostRedisplay. When we have messages to process,
+          we generally don't call redraw or OnIdle.)
 
-         If you make some processing in your event loop, for example
-         you load some resources or you raytrace some image
-         (examples used by GLProgress or RaytraceToWindow units),
-         then you surely want to pass AllowSuspend = false.
-         You want in such case to make ProcessMessage quickly return
-         control to your code, so you can continue whatever you're doing.
+        @item(ProcessMessage may hang, waiting for an event,
+          if AllowSuspend and if OnIdle is not assigned and some other
+          conditions. This way we wait for the next window system message
+          in a nice way, without eating CPU just for a loop that continously
+          tests for new event (such bad loop is called "busy waiting").
 
-         If your event loop simply waits for some condition,
-         for example @code(repeat ProcessMessage(AllowSuspend) until B)
-         then you can give AllowSuspend = true if the condition B may
-         only be changed by some event (for example, you wait until
-         user presses a key). If the condition B may be changed
-         without a window system event (for example, you wait until
-         5 minutes pass) then AllowSuspend must be false.
+          If you make some processing in your event loop, for example
+          you load some resources or you raytrace some image
+          (examples used by GLProgress or RaytraceToWindow units),
+          then you surely want to pass AllowSuspend = false.
+          You want in such case to make ProcessMessage quickly return
+          control to your code, so you can continue whatever you're doing.
 
-         ProcessAllMessages processes all pending messages.
-
-         Contrast this with ProcessMessage method, that processes only a single
-         event. Or no event at all (when no events were pending and
-         AllowSuspend = @false). This means that after calling ProcessMessage
-         once, you may have many messages left in the queue (especially
-         mouse move together with key presses typically makes a lot of
-         events). So it's not good to use if you want to react timely to
-         some user requests, e.g. when you do something time-consuming
-         and allow user to break the task with Escape key.
-
-         ProcessAllMessages is like
-         calling in a loop something like ProcessMessage(false), ends when
-         ProcessMessage didn't process any message (it's internally returned
-         by ProcessMessage2) or when quit was called (or last window closed).
-
-         So ProcessAllMessages makes sure we have processed all pending events,
-         thus we are up-to-date with window system requests.
-
-      Note that if you let some exception to be raised out of
-      some event (like OnXxx) then this window may be closed
-      while recovering from this exception. I.e. GLWindow implementation
-      is free to implement part of ProcessMessage like
-
-@longCode(#
-  if HasKeyDown then
-  try
-    OnKeyDown(...);
-  except
-    Close;
-    raise;
-  end;
-#)
-
-      TODO: this behavior is currently done only by Xlib and WinAPI
-      implementation, in glwindow_winsystem.inc.
-      Is there really any good reason why we can't remove this behavior?
+          If your event loop simply waits for some condition,
+          for example @code(repeat ProcessMessage(AllowSuspend) until B)
+          then you can give AllowSuspend = true if the condition B may
+          only be changed by some event (for example, you wait until
+          user presses a key). If the condition B may be changed
+          without a window system event (for example, you wait until
+          5 minutes pass) then AllowSuspend must be false.
+        )
+      )
     }
     function ProcessMessage(AllowSuspend: boolean): boolean;
+
+    { Processes @italic(all) pending messages.
+
+      Contrast this with ProcessMessage method, that processes only a single
+      event. Or no event at all (when no events were pending and
+      AllowSuspend = @false). This means that after calling ProcessMessage
+      once, you may have many messages left in the queue (especially
+      mouse move together with key presses typically makes a lot of
+      events). So it's not good to use if you want to react timely to
+      some user requests, e.g. when you do something time-consuming
+      and allow user to break the task with Escape key.
+
+      ProcessAllMessages is like
+      calling in a loop something like ProcessMessage(false), ends when
+      ProcessMessage didn't process any message (it's internally returned
+      by ProcessMessage2) or when quit was called (or last window closed).
+
+      So ProcessAllMessages makes sure we have processed all pending events,
+      thus we are up-to-date with window system requests. }
     function ProcessAllMessages: boolean;
 
-    { zamknij wszystkie okna TGLWindow, spraw by ProcessMessage zwracalo false i
-      w rezultacie spowoduj zakonczenie procedury Run jesli dziala.
-
-      Note specific to glut-based implementation (GLWINDOW_GLUT):
-      with glut this method (after closing all Windows) calls Halt,
-      since this is the only way to exit from Application.Run (that has to be
-      implemented as glutMainLoop). }
+    { Close all open windows, make ProcessMessage return @false,
+      finish the @link(Run) method (if working), and thus finish the
+      application work. }
     procedure Quit;
 
     { Run the program using TGLWindow, by doing the event loop.
@@ -2878,7 +2824,7 @@ type
 var
   { One global instance of TGLApplication.
 
-    DON'T change value of this variable, don't Free this object !
+    Don't change value of this variable, don't Free this object.
     This will be handled in initialization / finalization of this module.
     Many things in this unit, also in TGLWindow class implementation,
     depend on having this variable present all the time. }
@@ -2891,13 +2837,15 @@ const
     BeforeDraw: nil; Draw: nil; CloseQuery: nil; Idle: nil; Timer: nil; Resize: nil;
     MenuCommand: nil);
 
-{ A simple procedure that you can register as OnResize callback,
-  like glw.OnResize := Resize2D; You can also call this from your OnResize
-  callback.
-  It calls
-    glViewport(0, 0, glwin.Width, glwin.Height);
-    ProjectionGLOrtho(0, glwin.Width, 0, glwin.Height);
-  That's the simplest thing to do in OnResize in OpenGL 2D programs. }
+{ A simple TGLWindow.OnResize callback implementation, that sets 2D projection.
+  You can use it like @code(Window.OnResize := Resize2D;) or just by calling
+  it directly from your OnResize callback.
+
+  It does
+@longCode(#
+  glViewport(0, 0, Window.Width, Window.Height);
+  ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
+#) }
 procedure Resize2D(glwin: TGLWindow);
 
 {$undef read_interface}

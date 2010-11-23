@@ -20,7 +20,7 @@
 {$ifdef read_interface}
   TMenu = class;
 
-  { This is a basic class representing basic menu building block.
+  { A basic class representing basic menu building block.
     This can be a separator, clickable menu item or something that
     expands to submenu. }
   TMenuEntry = class
@@ -367,7 +367,7 @@
       AChecked, AAutoCheckedToggle: boolean); overload;
   end;
 
-  { This is similar to TMenuItemChecked, but it belongs to a group and
+  { Menu radio item. Similar to TMenuItemChecked, but it belongs to a group and
     within this group only one (or none) radio button can be checked.
 
     Note that AutoCheckedToggle property has a little different
@@ -406,7 +406,7 @@
   TObjectsListItem_3 = TMenuItemRadio;
   {$I objectslist_3.inc}
 
-  { This is a group of radio buttons.
+  { A group of radio buttons.
 
     An instance of this object is always
     created and destroyed automatically by TMenuItemRadio objects.
@@ -447,9 +447,9 @@
 
 {$ifdef read_interface_2}
 
-{ SearchSmallId MUST be a SmallId of some existing (i.e. Created and not
-  Destroyed yet) TMenuItem. This function returns this TMenuItem.
-  (i.e. such Item: TMenuItem that Item.SmallId = SearchSmallId) }
+{ Search for menu item with given SmallId.
+  SearchSmallId must be a SmallId of some existing (i.e. created and not
+  destroyed yet) TMenuItem. This function returns this TMenuItem. }
 function MenuItemFromSmallId(SearchSmallId: Integer): TMenuItem;
 
 { Returns S with each '__' replaced with single '_',

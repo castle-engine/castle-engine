@@ -25,6 +25,7 @@
   the other one based on GTK 2.x and GtkGLExt. }
 
 {$ifdef read_interface_types}
+  { @exclude }
   PGtkGLArea =
     {$ifdef GLWINDOW_GTK_2}
     { For now I use GtkDrawingArea when GLWINDOW_GTK_2.
