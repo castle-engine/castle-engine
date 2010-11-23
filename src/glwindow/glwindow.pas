@@ -684,8 +684,7 @@ const
     mean: well, I'm unsure too. If that bothers you, just don't
     use this constant and always specify list of parameters
     for TGLWindow.ParseParameters explicitly. }
-  StandardParseOptions: TGLWindowParseOptions = [poGeometry, poScreenGeometry,
-    poDisplay];
+  StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay];
 
   DefaultDepthBufferBits = 16;
 
@@ -1777,38 +1776,28 @@ type
     { Idle event is called for all open windows, all the time.
       Although the typical definition of "idle" event is to be called
       only when there are no more events, we also make sure to call
-      it often when there are some events.
+      this event regularly even when you're overwhelmed in events.
+      (Being "overwhelmed in events" may easily happen e.g. if user moves
+      the mouse, which may generate a lot of events on some backends.)
 
-    property OnIdle i OnTimer beda zachodzily dla wszystkich okien
-      w Application.Active[] w momencie gdy zajdzie zdarzenie obiektu Application -
-      OnIdle lub OnTimer. Tzn. nie zrozumcie mnie zle - zadna kolejnosc
-      zdarzen OnIdli Application i roznych okien nie jest gwarantowana i beda
-      nawet mogly sie przeplatac - ale poza tym OnIdle i OnTimer beda
-      wywolywane wtedy gdy logika powiedzialaby ze moze byc wywolane
-      Application.OnIdle lub OnTimer, odpowiednio.
+      Called at the same time when
+      @link(TGLApplication.OnIdle Application.OnIdle) is called.
 
-      Te zdarzenia sa tu przedstawione bo mimo ze OnIdle / OnTimer
-      sa zdarzeniami niezwiazanymi z konkretnym okienkiem to jednak
-      sa wykorzystywane najczesciej wlasnie aby iterowac po wszystkich /
-      niektorych okiekach wsrod Application.Active[] i cos w nich robic,
-      chociazby sprawdzac ich Pressed[]. W tej sytuacji jest dobrym
-      pomyslem aby robic te zdarzenia w callbacku specyficznym
-      dla danego obiektu a nie dla calego Application - w ten sposob ulozenie
-      danych w obiektach odpowiada rzeczywistym celom do jakiego sa
-      uzywane - OnIdle Application powinno sie zajmowac tylko sprawami ogolnymi,
-      OnIdle w jakims konkretnym okienku - tylko sprawami tego okienka.
-
-      Zachowanie takiej spojnosci nie jest oczywiscie wymagane ale
-      moze znacznie pomoc sensownie zorganizowac swoje programy.
-      Takze uzywanie takich modulow jak GLWinMessages jest duzo
-      latwiejsze i bezpieczniejsze dopoki ograniczamy kod dotykajacy
-      danego okienka tylko do callbackow danego okienka - GLWinMessages
-      dziala poprawnie przy tym wlasnie zalozeniu.
-    }
+      You should add code to this window's OnIdle event
+      (not to TGLApplication.OnIdle) when you do something related
+      to this window. For example when you check this window's
+      @link(Pressed) keys state, or animate something displayed on this window.
+      This allows various "modal boxes" and such (see GLWinMessages)
+      to nicely "pause" such processing by temporarily replacing
+      OnIdle and other events of a window that displays a modal box. }
     property OnIdle: TGLWindowFunc read FOnIdle write FOnIdle;
 
     { Timer event is called approximately after each
-      TGLApplication.TimerMilisec miliseconds passed. }
+      @link(TGLApplication.TimerMilisec Application.TimerMilisec)
+      miliseconds passed.
+
+      Called at the same time when
+      @link(TGLApplication.OnTimer Application.OnTimer) is called. }
     property OnTimer: TGLWindowFunc read FOnTimer write FOnTimer;
 
     { Should we automatically redraw the window all the time,
@@ -1826,11 +1815,15 @@ type
 
   private
     FMainMenu: TMenu;
+    FOwnsMainMenu: boolean;
+    FOnMenuCommand: TMenuCommandFunc;
+    FUserData: Pointer;
     procedure SetMainMenu(Value: TMenu);
   public
-    { Menu specified using GLWindowMenu objects.
-      Caption of MainMenu will be ignored.
-      May be nil -> means "no menu".
+    { Menu bar of this window.
+      When not assigned, we have no menu bar.
+
+      Note that MainMenu.Caption will be ignored.
 
       You can change this freely while Closed.
 
@@ -1864,24 +1857,24 @@ type
       functions. The only way to block menu from triggering ANY event is to
       set this to MainMenu.Enabled to @false. }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
-  public
+
     { If true then in TGLWindow destructor MainMenu will be destroyed too
       (if not nil, od course). Usually this is something useful. }
-    OwnsMainMenu: boolean; { = true }
+    property OwnsMainMenu: boolean read FOwnsMainMenu write FOwnsMainMenu default true;
 
-    { Each time user will choose some menu item (let's name it MenuItem),
-      we will call MenuItem.DoCommand. If this will return false then
-      we will call EventMenuCommand (that will call OnMenuCommand). }
-    OnMenuCommand: TMenuCommandFunc; { = nil }
+    { Called each time user chooses some menu item and it's not handled
+      in TMenuItem.DoCommand. By default, menu item handling is passed
+      to TMenuItem.DoCommand. Only when it return @false (not handled) then
+      we call this window's event. }
+    property OnMenuCommand: TMenuCommandFunc read FOnMenuCommand write FOnMenuCommand;
 
-    { Mouse state ------------------------------------------------------------ }
+    { @section(Mouse state) -------------------------------------------------- }
 
-    { MousePressed to zbior aktualnie wcisnietych przyciskow myszy.
-      Jak nietrudno zgadnac, jest automatycznie zarzadzany przed zajmowaniem sie
-      OnMouseDown / Up, wiec powinien byc zawsze aktualny i w kazdym miejscu
-      programu mozna z niego korzystac (o ile not Closed, oczywiscie).
-      No i masz gwarancje ze kazda zmiana mousePressed MUSI byc potwierdzona
-      wywolaniem odpowiedniego EventDown / Up. }
+    { Currently pressed mouse buttons. When this changes, you're always
+      notified by OnMouseDown or OnMouseUp calls.
+
+      This value is always current, in particular it's already updated
+      when we call events OnMouseDown and OnMouseUp. }
     property MousePressed: TMouseButtons read FMousePressed;
 
     { Mouse position. This is the mouse position relative to this window,
@@ -1913,13 +1906,10 @@ type
     property MouseY: integer read FMouseY;
     { @groupEnd }
 
-    { -------------------------------------------------------------------------
-      General things to manage this window }
-
-  public
-    { UserData is a container for Your data associated with a given TGLWindow
-      object. No code in this unit touches the value of this field. }
-    UserData: Pointer; { = nil }
+    { Place for your pointer, for any purposes.
+      No code in this unit touches the value of this field.
+      This is similar to TComponent.Tag property. }
+    property UserData: Pointer read FUserData write FUserData;
 
     property Closed: boolean read FClosed default true;
 
@@ -2033,70 +2023,80 @@ type
       Call to Close is ignored if window is already Closed. }
     procedure Close(QuitWhenLastWindowClosed: boolean = true);
 
-    { PostRedisplay says that contents of OpenGL area of this window
-      must be redrawn. At the nearest free time (e.g. when events queue
-      is empty in case of GLWINDOW_XLIB and GLWINDOW_WINAPI)
-      we will call EventBeforeDraw, EventDraw (that call OnBeforeDraw, OnDraw)
-      (and we will flush gl commands and swap buffers and do other
-      things like that; see private method @code(DoDraw)
-      for more precise description).
+    { Make contents of OpenGL area of this window
+      redrawn, at the nearest good time. The redraw will not happen
+      immediately, we will only "make a note" that we should do it soon.
+      Redraw means that we call EventBeforeDraw (OnBeforeDraw), EventDraw
+      (OnDraw), then we flush OpenGL commands, swap buffers etc.
 
-      Note: if window is Closed then PostRedisplay is acceptable NOOP. }
+      Calling this on a closed window is allowed and ignored. }
     procedure PostRedisplay;
 
-    { FlushRedisplay mowi : jezeli zawartosc tego okna powinna zostac
-      przemalowana (tzn. jest zgloszone i niezrealizowane PostRedisplay
-      na tym oknie, przy czym pamietaj ze PostRedisplay moze byc takze
-      zglaszane do okienka GLWindow przez WindowManagera) to wywolaj
-      OnDraw TERAZ. To znaczy TERAZ - zanim FlushRedisplay powroci
-      bedzie juz wykonane przemalowanie (o ile tylko bylo potrzebne).
+    { Force redraw of OpenGL area @italic(right now),
+      only if any redraw is needed.
 
-      Nie powinienes zbyt czesto potrzebowac tej funkcji. Psuje ona
-      cala optymalizacje wyswietlania ktora stara sie wykonac wyswietlanie
-      jak najpozniej wykonujac najpierw wszystko inne. Generalnie, napisanie
-      kodu w rodzaju begin PostRedisplay; FlushRedisplay end powoduje
-      natychmiastowe i bezwarunkowe odswiezenie ekranu. Kompletny nonsens,
-      nie do takich celow pisalem ten unit.
+      If we know we should redraw a window (for example, because window
+      manager just said that window is brought to front of the desktop,
+      or because you called PostRedisplay) then we will redraw
+      the window @italic(right now). This method will directly
+      call EventBeforeDraw (OnBeforeDraw), EventDraw
+      (OnDraw), flush OpenGL commands, swap buffers and such.
 
-      Ale jest jeden wazny moment kiedy naprawde powinienes wywolac ta funkcje :
-      kiedy zamierzasz zrobic zrzut wlasnego ekranu (np. przez glReadPixels).
-      Zalezy ci wtedy zeby ekran przedstawial rzeczywiscie to co powinien -
-      - i nie chcesz byc zalezny od tego czy ostatnie PostRedisplay zdazylo
-      czy tez nie zdazylo sie wywolac. Przed kazdym glReadPixels i generalnie
-      przed innymi operacjami odczytujacymi zawartosc buforow OpenGLa powinienes
-      sie upewnic ze sa one odswiezone wywolujac FlushRedisplay;
+      You really should not use this method too often. It's best to leave
+      to this unit's internals decision when the redraw should happen,
+      and allow us to redraw only once even if you called PostRedisplay
+      many times in a short time.
 
-      Pamietaj ze FlushRedisplay moze wywolac EventDraw (OnDraw).
-      Wiec lepiej zebys zadbal zeby wywolywane OnDraw dzialalo dobrze
-      w momencie wywolania FlushRedisplay. }
+      The one valid reason for using this function is when you need
+      to read back the drawn window contents (e.g. by glReadPixels).
+      Then you want to make sure first that any pending redraws are
+      actually done --- this method allows you to do this. }
     procedure FlushRedisplay;
 
-    { Each GLWindow has it's own OpenGL context. Before each window callback
-      the calling window is guaranteed to be the current one - but sometimes
-      you may need to manually set openGL context to a particular window.
-      Note : @link(Open) sets this window implicitly to be the current one ! }
+    { Make the OpenGL context of this window "current" (following OpenGL
+      commands will apply to this). When the window is opened, and right
+      before calling any window callback, we always automatically call
+      this, so you should not need to call this method yourself
+      in normal circumstances. }
     procedure MakeCurrent;
 
-    { The intention is to do:
-        FlushRedisplay + KambiGLUtils.SaveScreenXxx_noflush(..,GL_FRONT)
-      However: see comments at KambiGLUtils.SaveScreenXxx_noflush for some
-      warnings about saving from front buffer. In short : you really
-      do not want to save contents of front buffer.
-      So when DoubleBuffer = true, these functions actually do something
-      more reliable:
-        EventDraw + KambiGLUtils.SaveScreenXxx_noflush(..,GL_BACK).
-      (when DoubleBuffer = false no such workaround is possible so just
-      be prepared for some nasty visual effects, as described in comments at
-      KambiGLUtils.SaveScreenXxx_noflush).
+    { Capture the current window contents to an image (file).
 
-      If you *intent* to use something other than GL_FRONT,
-      or simply have some more advanced needs than just "save current screen",
-      use KambiGLUtils.SaveScreenXxx_noflush instead of these. }
+      These functions take care of flushing any pending redraw operations
+      (like FlushRedisplay) and capturing the screen contents correctly.
 
+      @unorderedList(
+        @item(@italic(When we use OpenGL double buffer), we do something like
+
+@longCode(#
+  EventBeforeDraw;
+  EventDraw;
+  KambiGLUtils.SaveScreenXxx_noflush(..,GL_BACK);
+#)
+
+          This draws to the back buffer and captures it's contents,
+          which is reliable.)
+
+        @item(@italic(When we do not use OpenGL double buffer),
+          we do something like
+
+@longCode(#
+  FlushRedisplay;
+  KambiGLUtils.SaveScreenXxx_noflush(..,GL_FRONT);
+#)
+
+          This isn't absolutely reliable. Read
+          KambiGLUtils.SaveScreenXxx_noflush docs, and OpenGL FAQ:
+          capturing the front buffer contents is generally not reliable
+          with OpenGL.)
+      )
+
+      @groupBegin }
     procedure SaveScreen(const fname: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveAlignedScreen(out RealScreenWidth: Cardinal): TRGBImage;
     function SaveScreen_ToDisplayList: TGLuint; overload;
+    { @groupEnd }
 
     function SaveScreen(
       const xpos, ypos, SavedAreaWidth,
@@ -2105,7 +2105,7 @@ type
       const xpos, ypos, SavedAreaWidth,
         SavedAreaHeight: integer): TGLuint; overload;
 
-    { This asks user where to save the file (using @link(FileDialog),
+    { Asks user where to save the file (using @link(FileDialog),
       as default filename taking ProposedFname), if user accepts
       calls glwin.SaveScreen(user-chosen-file-name); }
     procedure SaveScreenDialog(ProposedFileName: string);
@@ -2150,50 +2150,50 @@ type
 
     { Parsing parameters ------------------------------------------------------- }
 
-    { Parse some parameters from Parameters[1]..Parameters[Parameters.High].
-      Delete processed parameters from @link(Parameters).
-      Arguments to this proc tell which options are allowed:
+    { Parse some command-line options and remove them from @link(Parameters)
+      list. AllowedOptions specify which command-line options are handled.
+      See [http://vrmlengine.sourceforge.net/opengl_options.php] for
+      documentaion what these options actually do from user's point of view.
 
-        poGeometry :
-          allowed options are
-          --fullscreen (ustawia Fullscreen := true)
-          --geometry followed by param WIDTHxHEIGHTsXOFFsYOFF
-            gdzie WIDTH, HEIGHT sa liczbami calkowitymi, XOFF, YOFF sa liczbami
-            calkowitymi z opcjonalnym znakiem.
-            (ustawia Fullscreen := false i Width, Height, Left, Top odpowednio
-             - patrz 'man X' po opis co mozna wyrazic parametrem -geometry)
+      @definitionList(
+        @itemLabel poGeometry
+        @item(Handle these command-line options:
+          @unorderedList(
+            @itemSpacing Compact
+            @item(@--fullscreen: sets FullScreen to @true.)
+            @item(@--geometry: sets FullScreen to @false
+              and changes @link(Width), @link(Height), @link(Left), @link(Top)
+              as user wants.)
+          )
+        )
 
-        poScreenGeometry
-          --fullscreen-custom WIDTHxHEIGHT (ustawia Fullscreen = true,
-             VideoResize := true, VideResizeWidth/Height inicjuje i robi VideoChange)
+        @itemLabel poScreenGeometry
+        @item(Handle @--fullscreen-custom: sets FullScreen and VideoResize
+          to @true, initializes VideResizeWidth and VideResizeHeight
+          and actually tries to change your desktop resolution by VideoChange.)
 
-        poDisplay
-          --display (set Application.XDisplayName)
+        @itemLabel poDisplay
+        @item(Handle @--display: sets Application.XDisplayName under Unix.)
+      )
 
       Multiple options of the same kind are allowed, for example two options
-      --fullscreen --geometry 100x100+0+0 are allowed. Each of them will
-      have appropriate effect - in the above example, --fullscreen param
-      will be useless (it will be "overriden" by --geometry param that
-      comes later). This is to allow flexible calling my programs from
-      shell scripts etc.
+      @code(--fullscreen --geometry 100x100+0+0) are allowed. Each of them will
+      have appropriate effect, in the above example, @--fullscreen param
+      will be overridden by following @--geometry param. Such overridding
+      is sometimes useful from shell scripts.
 
-      Jezeli parametry sa zle (np. poGeometry in AllowedOptions i zly format
-      parametru za --geometry lub brak parametru za --geometry) ->
-      -> wyjatek EInvalidParams.
+      Overloaded version with SpecifiedOptions says which command-line
+      options were found and handled. For example, if poGeometry, then
+      you know that user requested some window size.
 
-      Wersja 2-argumentowa zwraca jakie grupy parametrow zostaly odczytane
-      i zinterpretowane. Np. jezeli poGeometry in SpecifiedOptions to
-      wiesz ze user podal window size i position i nie powinnismy juz
-      sami tego ustawiac. Chociaz zazwyczaj wystarczy po prostu ustawic
-      w programie Width/Height/Left/Top i potem wywolac ParseParameters i wtedy
-      juz nie trzeba przejmowac sie czy poGeometry bylo czy nie bylo
-      w SpecifiedOptions. }
-    procedure ParseParameters({ AllowedOptions = StandardParseOptions }); overload;
-    procedure ParseParameters(const AllowedOptions: TGLWindowParseOptions); overload;
-    procedure ParseParameters(const AllowedOptions: TGLWindowParseOptions;
+      @raises(EInvalidParams When some of our options have invalid arguments.) }
+    procedure ParseParameters(
+      const AllowedOptions: TGLWindowParseOptions = StandardParseOptions); overload;
+    procedure ParseParameters(
+      const AllowedOptions: TGLWindowParseOptions;
       out SpecifiedOptions: TGLWindowParseOptions); overload;
 
-    { Returns help text for options in AllowedOptions.
+    { Help text for options in AllowedOptions.
       The idea is that if you call @code(ParseParameters(AllowedOptions))
       in your program then you should also show your users somwhere
       (e.g. in response to "--help" option) the list of allowed
@@ -2203,11 +2203,10 @@ type
       Returned string may be multiline, but it does not contain
       the trailing newline (newline char after the last line).
 
-      Returned help text conforms my rules in file
-      base/README.kambi_command_line_params
+      Returned help text conforms to rules in
+      @code(kambi_vrml_game_engine/doc/various/kambi_command_line_params.txt).
 
-      If AddHeader then it adds text
-        'Window options:' +nl
+      If AddHeader then it adds text @code('Window options:' +nl).
       at the beginning. This is just a small thing that allows you
       to comfortably use the output of this function as a whole
       paragraph (separated from the rest of your "--help" text
@@ -2233,42 +2232,46 @@ type
         GLWinMessages.Message*.
     }
 
-    { Title is some dialog title.
-      FileName specifies default filename (path and/or name, or '' if current dir
-      is the default dir and there is no default filename). Note that if you
-      have to specify only path in FileName you have to end this paths with
-      PathDelim (otherwise '/tmp/blah' would not be clear: whether it's
-      filename 'blah' in '/tmp/' dir or whether it's only dir '/tmp/blah/'?).
+    { Select a file to open or save.
 
-      Returns true and sets FileName accordingly if user chooses some filename and
-      accepts it. Returns false if user cancels.
+      This dialog may also allow user for some typical file-management
+      operations by the way (create some directories, rename some files etc.).
 
-      If OpenDialog: force the user to only choose existing
-      (and readable) file. The intention is that you should be able to open
-      FileName for at least reading. We may be unable to force this
-      (especially the "readable" requirement),
-      so you still should watch for some exceptions when opening a file
-      (as is always the case when opening files, anyway).
+      Returns @true and sets FileName accordingly if user chooses some
+      filename and accepts it. Returns @false if user cancels.
 
-      If not OpenDialog: allows user to select a non-existent filename.
-      Still, it may try to force ExtractFilePath(FileName) to be valid,
-      i.e. user may be forced to choose only filenames with existing paths.
-      (But, again, no guarantees.)
-      Some warning to user may be shown if FileName already exists, like
-      "are you sure you want to overwrite this file?".
-      The intention is that you should be able to open FileName for writing.
-      This is the "Save File" dialog.
+      @param(Title A dialog title.)
 
-      Those dialog boxes may allow user for some additional actions,
-      e.g. to create some directories, rename some files etc.
+      @param(FileName Specifies default filename (path and/or name, or '' if current dir
+        is the default dir and there is no default filename). Note that if you
+        have to specify only path in FileName you have to end this paths with
+        PathDelim (otherwise '/tmp/blah' would not be clear: whether it's
+        filename 'blah' in '/tmp/' dir or whether it's only dir '/tmp/blah/'?).)
 
-      FileFilters is a set of file filters to present to user.
-      Pass @nil (default) if you do not want to use file file filters,
-      so user will just always see everything. An overloaded version
-      allows you to pass file filters encoded in a single string,
-      this may be slightly more comfortable for call, see
-      TFileFiltersList.AddFiltersFromString
-      for explanation how to encode filters in a string. }
+      @param(OpenDialog Is this an open (@true) or save (@false) file dialog.
+
+        If OpenDialog: force the user to only choose existing
+        (and readable) file. The intention is that you should be able to open
+        FileName for at least reading. We may be unable to force this
+        (especially the "readable" requirement),
+        so you still should watch for some exceptions when opening a file
+        (as is always the case when opening files, anyway).
+
+        If not OpenDialog: allows user to select a non-existent filename.
+        Still, it may try to force ExtractFilePath(FileName) to be valid,
+        i.e. user may be forced to choose only filenames with existing paths.
+        (But, again, no guarantees.)
+        Some warning to user may be shown if FileName already exists, like
+        "are you sure you want to overwrite this file?".
+        The intention is that you should be able to open FileName for writing.)
+
+      @param(FileFilters A set of file filters to present to user.
+        Pass @nil (default) if you do not want to use file file filters,
+        so user will just always see everything. An overloaded version
+        allows you to pass file filters encoded in a single string,
+        this may be slightly more comfortable for call, see
+        TFileFiltersList.AddFiltersFromString
+        for explanation how to encode filters in a string.) }
     function FileDialog(const Title: string; var FileName: string;
       OpenDialog: boolean; FileFilters: TFileFiltersList = nil): boolean; overload;
     function FileDialog(const Title: string; var FileName: string;
@@ -2292,60 +2295,28 @@ type
       const MessageType: TGLWindowMessageType = mtQuestion): boolean;
   end;
 
-  { This is a special exception that is always catched and silenced
+  { Exception that is always catched and silenced
     inside every TGLWindow.EventXxx. See comments before
     TGLWindow.EventXxx methods. }
   BreakGLWinEvent = class(TCodeBreaker);
 
-  { This class extends @inherited with some functionality that
-    is often useful in some simple demo programs in OpenGL.
-    I.e. features implemented here are nice and easy to use,
-    but I think that if you're going to do some large program you may
-    be better off implementing these things in some other place,
-    or not using them at all.
-    E.g. using this class, Escape key automatically causes closing
-    the window. This is nice if your program is a simple OpenGL toy,
-    but this may not be so useful if you're doing a really big game
-    and you don't want to allow user to close the window by simply
-    pressing one key.
+  { Window with OpenGL context and some functionality typically useful
+    for simple demo programs.
 
-    @orderedList(
-      @item(
-        Przechwytuje wcisniecia SwapFullScreen_Key
-        i wtedy przestawia okno z trybu windowed na fullscreen i z powrotem.
-        (robi to wykonujac Close, zmieniajac FFullscreen a potem Open ! wiec pamietaj
-        aby napisac dobrze OnOpen / OnClose).
-        (Zainicjuj wlasciwosc FullScreen i left/top/width/height jesli chcesz,
-        FullScreen bedzie okreslal poczatkowy stan a jesli fullScreen = false
-        to left/top/width/height beda okreslac rozmiar na jaki okno bedzie
-        kazdorazowo ustawiane przy wychodzeniu z FullScreen.)
-        (robi to tylko jesli SwapFullScreen_Key <> K_None))
+    The additional "demo" functionality
+    is purely optional and may be turned off by appropriate properties.
+    And, for larger non-demo programs, I would advice to @italic(not)
+    use features of this class. For example, by default this allows
+    user to close a window by the Escape key. This is comfortable
+    for small demo programs, but it's too accident-prone for large programs
+    (when you may prefer to ask user for confirmation, maybe save some game
+    and such).
 
-      @item(
-        Automatycznie wychodzi (robi Close) gdy user wcisnie Escape
-        (o ile close_key <> #0))
+    Call SetDemoOptions method to be forces to configure all "demo" options.
 
-      @item(
-        Automatycznie wlacza tez Fps.Active i co jakies kilkaset milisekund
-        uaktualnia tytul okienka poprzez FpsToCaption. (Juz poprawione -
-        to jest robione w EventIdle, dziala niezaleznie od OnTimer okienka, od
-        Application.OnTimer i Application.TimerMilisec.)
-        (wykonuje to tylko jesli ustawisz FpsShowOnCaption = true).)
-    )
-
-    Innymi slowy, robi to co dla wiekszosci demek OpenGLa jest przyjemna
-    funkcjonalnoscia. I wystarczy ze bedziesz wykonywal normalne loop
-    czy processMessage a wszystko to bedzie aktywne.
-
-    Acha, jeszcze jedno : poniewaz niewykluczone ze ta klasa bedzie
-    rozwijana o jeszcze jakies inne sensowne (zazwyczaj) funkcjonalnosci,
-    dostepna jest procedura SetDemoOptions ktora zawsze bedzie
-    pobierala parametry kontrolujace wszystkie opcje (i w ten sposob
-    jesli kiedys dorobie jakas funkcjonalnosc i opcje to stara postac
-    nie bedzie sie kompilowala i bedziesz musial zdecydowac czy nowa
-    funkcjonalnosc pasuje do danego programu czy nie). Domyslne
-    ustawienia zawsze beda akceptowac nowa funkcjonalnosc
-    automatycznie, wiec uzywanie SetDemoOptions to jest dobry pomysl !. }
+    It also always turns on FPS calculation (Fps.Active), regardless
+    of "demo" options. FPS calculation is used for various, also non-debugging,
+    features (like time-based animation) so it's generally always wanted. }
   TGLWindowDemo = class(TGLWindow)
   private
     wLeft, wTop, wWidth, wHeight: integer;
@@ -2355,18 +2326,25 @@ type
     FFpsShowOnCaption: boolean;
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;
-    procedure SetFpsBaseCaption(const Value: string);
-  private
     FFpsCaptionUpdateInterval: TMilisecTime;
+    procedure SetFpsBaseCaption(const Value: string);
+    { Are we in the middle of fullscreen swap, caused by SwapFullScreen_Key.
+      You can use this during OnOpen / OnClose. }
+    property SwappingFullscr: boolean read fSwappingFullscr;
   public
-    { Whether to show current Fps (frames per second) on window's Caption.
+    { Show current frames per second on window caption.
       You can modify this property only @italic(before calling @link(Open).) }
     property FpsShowOnCaption: boolean
       read FFpsShowOnCaption write FFpsShowOnCaption default true;
 
     { Key to use to switch between FullScreen and not FullScreen.
       Set to K_None to disable this functionality.
-      You can freely modify it at any time, even after calling @link(Open). }
+      You can freely modify it at any time, even after calling @link(Open).
+
+      The fullscreen is switched by closing it, changing @link(FullScreen)
+      property and opening it again. So be sure to have good OnOpen / OnClose
+      implementations: you have to be able to recreate in OnOpen everything
+      that was released in OnClose. }
     property SwapFullScreen_Key: TKey
       read FSwapFullScreen_Key write FSwapFullScreen_Key default K_F11;
 
@@ -2376,16 +2354,17 @@ type
     property Close_CharKey: char
       read FClose_CharKey write FClose_CharKey default CharEscape;
 
-    { When FpsShowOnCaption, you should not use Caption.
-      Instead use FpsBaseCaption.
-      It will be inited from Caption at EventOpen.
-      I know, it's a problem. Well, if in doubt, just turn off FpsShowOnCaption. }
+    { Caption prefix to use when you have FpsShowOnCaption = @true.
+      When FpsShowOnCaption = @true, you should not set Caption directly,
+      set only this property and leave to us setting final Caption.
+
+      FpsBaseCaption will be initialized from Caption at EventOpen. }
     property FpsBaseCaption: string read FFpsBaseCaption write SetFpsBaseCaption;
 
     { The amount of time (in miliseconds) between updating Caption
       with current FPS value. Used when FpsShowOnCaption.
 
-      Note that updating Caption of the window too often *may* cause
+      Note that updating Caption of the window too often @italic(may) cause
       a significant FPS dropdown, in other words: don't set this to too small value.
       I once used here value 200. It's 5 times per second,
       this didn't seem too often, until once I checked my program
@@ -2403,13 +2382,7 @@ type
       read FFpsCaptionUpdateInterval write FFpsCaptionUpdateInterval
       default DefaultFpsCaptionUpdateInterval;
 
-    { w czasie OnOpen / OnClose mozesz sprawdzic wartosc tej wlasciwosci.
-      Jesli true to znaczy ze ten OnOpen / OnClose sa wykonywane w czasie
-      zmiany okna z fullscreen na windowed albo w druga strone. }
-    property SwappingFullscr: boolean read fSwappingFullscr;
-
     procedure SwapFullScreen;
-
 
     procedure EventOpen; override;
     procedure EventKeyDown(Key: TKey; c: char); override;
@@ -2588,7 +2561,7 @@ type
     procedure EventClose; override;
   end;
 
-  { Depracted name for TGLUIWindow. @deprecated }
+  { Deprecated name for TGLUIWindow. @deprecated }
   TGLWindowNavigated = TGLUIWindow;
 
   TObjectsListItem_1 = TGLWindow;
@@ -2598,13 +2571,15 @@ type
     procedure PostRedisplay;
   end;
 
-  { The only instance of this class should be Application.
-    Don't create any other objects of class TGLApplication, there's no
-    point in doing that.
-    This object traces information about all visible instances of TGLWindow
+  { Application, managing all open TGLWindow (OpenGL windows).
+    This tracks all open instances of TGLWindow
     and implements message loop. It also handles some global tasks
     like managing the screen (changing current screen resolution and/or
-    bit depth etc.) }
+    bit depth etc.)
+
+    The only instance of this class should be in @link(Application) variable.
+    Don't create any other instances of class TGLApplication, there's no
+    point in doing that. }
   TGLApplication = class(TComponent)
 
   { Include GLWindow-implementation-specific parts of
@@ -3965,14 +3940,10 @@ begin
 end;
 
 procedure TGLWindow.ParseParameters(const AllowedOptions: TGLWindowParseOptions);
-var dummy: TGLWindowParseOptions;
+var
+  dummy: TGLWindowParseOptions;
 begin
- ParseParameters(AllowedOptions, dummy);
-end;
-
-procedure TGLWindow.ParseParameters();
-begin
- ParseParameters(StandardParseOptions);
+  ParseParameters(AllowedOptions, dummy);
 end;
 
 class function TGLWindow.ParseParametersHelp(
