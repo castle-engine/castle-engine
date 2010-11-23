@@ -1250,7 +1250,7 @@ begin
  gtk_window_set_screen(WindowGtk, Application.XScreenGdk);
  {$endif}
 
- if WindowVisible then
+ if Visible then
  begin
    { Show WindowGtk, it will also make visible all other widgets.
      (Their "gtk_widget_show" calls only scheduled them to be shown
@@ -1358,7 +1358,7 @@ begin
    as soon as it can be freed). }
  if WindowGtk <> nil then
  begin
-  if WindowVisible then
+  if Visible then
     gtk_widget_hide(GTK_WIDGET(WindowGtk));
 
   { Doing here

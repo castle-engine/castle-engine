@@ -208,11 +208,11 @@ begin
    0, viinfo^.depth, InputOutput, viinfo^.visual,
    AttrValueMask, @attr);
 
- if FFullscreen and WindowVisible then
+ if FFullscreen and Visible then
  begin
    { XMapWindow must be called before doing all the "grab" operations.
      This also means that this whole piece of code cannot be done
-     when WindowVisible = @false. }
+     when Visible = @false. }
   XMapWindow(Application.XDisplay, windowXID);
   check( XGrabKeyboard(Application.XDisplay, windowXID, XBool_True, GrabModeAsync, GrabModeAsync,
      CurrentTime) = GrabSuccess, 'cannot grab the keyboard');
@@ -280,7 +280,7 @@ begin
   StrDispose(ClassHint.res_name);
   StrDispose(ClassHint.res_class);
 
-  if WindowVisible then
+  if Visible then
     XMapWindow(Application.XDisplay, windowXID);
  end;
  glcontext := glXCreateContext(Application.XDisplay, viinfo, nil, true);
@@ -302,7 +302,7 @@ begin
   glcontext := nil;
  end;
 
- if FFullscreen and WindowVisible then
+ if FFullscreen and Visible then
  begin
   XUnGrabPointer(Application.XDisplay, CurrentTime);
   XUnGrabKeyboard(Application.XDisplay, CurrentTime);

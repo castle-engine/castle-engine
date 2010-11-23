@@ -1106,7 +1106,7 @@ type
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
     FGtkIconName: string;
-    FWindowVisible: boolean;
+    FVisible: boolean;
     FPressed: TKeysPressed;
     FMinWidth: Integer;
     FMinHeight: Integer;
@@ -1539,7 +1539,7 @@ type
       So in practice, it's easiest to use this property,
       in combination with FBO (TGLRenderToTexture class) for offscreen
       rendering. }
-    property WindowVisible: boolean read FWindowVisible write FWindowVisible default true;
+    property Visible: boolean read FVisible write FVisible default true;
 
     { Caption of the window. By default it's initialized to ProgramName.
       May be changed even when the window is already open. }
@@ -2958,7 +2958,7 @@ begin
  DepthBufferBits := DefaultDepthBufferBits;
  FCursor := mcDefault;
  FMultiSampling := 1;
- FWindowVisible := true;
+ FVisible := true;
  OwnsMainMenu := true;
  FPressed := TKeysPressed.Create;
  FFps := TFramesPerSecond.Create;
