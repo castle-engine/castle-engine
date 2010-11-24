@@ -358,8 +358,11 @@ var
 begin
   Parameters.CheckHigh(2);
 
-  ReadXMLFile(Doc, Parameters[1]);
   try
+    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
+      even in case of exception. So place it inside try..finally. }
+    ReadXMLFile(Doc, Parameters[1]);
+
     Check(Doc.DocumentElement.TagName = 'boost_serialization',
       'Root node must be <boost_serialization>');
 

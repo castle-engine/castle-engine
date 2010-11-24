@@ -652,8 +652,11 @@ begin
     absolute (to not depend on the current dir when loading sound files. }
   SoundsXmlPath := ExtractFilePath(ExpandFileName(SoundsXmlFileName));
 
-  ReadXMLFile(SoundConfig, SoundsXmlFileName);
   try
+    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
+      even in case of exception. So place it inside try..finally. }
+    ReadXMLFile(SoundConfig, SoundsXmlFileName);
+
     Check(SoundConfig.DocumentElement.TagName = 'sounds',
       'Root node of sounds/index.xml must be <sounds>');
 

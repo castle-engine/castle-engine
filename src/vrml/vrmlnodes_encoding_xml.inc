@@ -496,50 +496,55 @@ begin
   WWWBasePath := ExtractFilePath(ExpandFileName(FileName));
 
   Stream := nil;
+  Doc := nil;
   try
 
+    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
+      even in case of exception. So place it inside try..finally. }
     if Gzipped then
     begin
       Stream := TGZFileStream.Create(FileName, gzOpenRead);
       ReadXMLFile(Doc, Stream, 'file:/' + WWWBasePath);
     end else
       ReadXMLFile(Doc, FileName);
-    try
-      Check(Doc.DocumentElement.TagName = 'X3D',
-        'Root element of X3D file must be <X3D>');
 
-      { parse "version" attribute }
-      if DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
+    Check(Doc.DocumentElement.TagName = 'X3D',
+      'Root element of X3D file must be <X3D>');
+
+    { parse "version" attribute }
+    if DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
+    begin
+      DeFormat(Version, '%d.%d', [@VRMLVerMajor, @VRMLVerMinor]);
+      if VRMLVerMajor < 3 then
       begin
-        DeFormat(Version, '%d.%d', [@VRMLVerMajor, @VRMLVerMinor]);
-        if VRMLVerMajor < 3 then
-        begin
-          VRMLWarning(vwSerious, Format('X3D version number too low (%d.%d)', [VRMLVerMajor, VRMLVerMinor]));
-          VRMLVerMajor := 3;
-          VRMLVerMinor := 2;
-        end;
-      end else
-      begin
-        { Max X3D version number supported }
+        VRMLWarning(vwSerious, Format('X3D version number too low (%d.%d)', [VRMLVerMajor, VRMLVerMinor]));
         VRMLVerMajor := 3;
         VRMLVerMinor := 2;
-        VRMLWarning(vwSerious, Format('Missing X3D version number, assuming %d.%d', [VRMLVerMajor, VRMLVerMinor]));
       end;
+    end else
+    begin
+      { Max X3D version number supported }
+      VRMLVerMajor := 3;
+      VRMLVerMinor := 2;
+      VRMLWarning(vwSerious, Format('Missing X3D version number, assuming %d.%d', [VRMLVerMajor, VRMLVerMinor]));
+    end;
 
-      SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
+    SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
 
-      { X3D XML requires AutoRemove = true below }
-      Names := TVRMLNames.Create(true, WWWBasePath, VRMLVerMajor, VRMLVerMinor);
-      try
-        Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement, Names);
+    { X3D XML requires AutoRemove = true below }
+    Names := TVRMLNames.Create(true, WWWBasePath, VRMLVerMajor, VRMLVerMinor);
+    try
+      Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement, Names);
 
-        if PrototypeNames <> nil then
-          PrototypeNames.Assign(Names.Prototypes);
-        if Exported <> nil then
-          Exported.Assign(Names.Exported);
-      finally FreeAndNil(Names) end;
-    finally FreeAndNil(Doc) end;
-  finally FreeAndNil(Stream) end;
+      if PrototypeNames <> nil then
+        PrototypeNames.Assign(Names.Prototypes);
+      if Exported <> nil then
+        Exported.Assign(Names.Exported);
+    finally FreeAndNil(Names) end;
+  finally
+    FreeAndNil(Doc);
+    FreeAndNil(Stream);
+  end;
 end;
 
 {$endif read_implementation}

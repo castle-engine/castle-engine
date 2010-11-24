@@ -168,8 +168,11 @@ var
   end;
 
 begin
-  ReadXMLFile(Doc, Input);
   try
+    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
+      even in case of exception. So place it inside try..finally. }
+    ReadXMLFile(Doc, Input);
+
     ProcessElement(Doc.DocumentElement);
     WriteXMLFile(Doc, Output);
   finally

@@ -1565,8 +1565,11 @@ begin
   VisualScenes := nil;
   Controllers := nil;
 
-  ReadXMLFile(Doc, FileName);
   try
+    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
+      even in case of exception. So place it inside try..finally. }
+    ReadXMLFile(Doc, FileName);
+
     Check(Doc.DocumentElement.TagName = 'COLLADA',
       'Root node of Collada file must be <COLLADA>');
 
