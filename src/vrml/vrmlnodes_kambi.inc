@@ -326,6 +326,28 @@
     { @groupEnd }
   end;
 
+  { Internal notes to MultiGeneratedTextureCoordinate:
+
+    It's implemented as simple MultiTextureCoordinate descendant,
+    this is conforming with the specification. (MultiTextureCoordinate
+    allows a little more children, but this will be detected and ignored
+    by renderer.)
+
+    Also, this way fields like Sphere.texCoord may require just
+    MultiTextureCoordinate, and so I have backward compatibility
+    and also accept MultiGeneratedTextureCoordinate.
+
+    Also, shadow maps processing can just use MultiTextureCoordinate
+    (regardless if we're on primitives or not). }
+
+  { X3D MultiGeneratedTextureCoordinate node.
+    See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_tex_coord]. }
+  TNodeMultiGeneratedTextureCoordinate = class(TNodeMultiTextureCoordinate)
+  public
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -883,6 +905,16 @@ begin
   FFdshaders.EnumerateValid(Func);
 end;
 
+class function TNodeMultiGeneratedTextureCoordinate.ClassNodeTypeName: string;
+begin
+  Result := 'MultiGeneratedTextureCoordinate';
+end;
+
+class function TNodeMultiGeneratedTextureCoordinate.URNMatching(const URN: string): boolean;
+begin
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -896,7 +928,8 @@ begin
     TNodeKambiOctreeProperties,
     TNodeGeneratedShadowMap,
     TNodeProjectedTextureCoordinate,
-    TNodeScreenEffect
+    TNodeScreenEffect,
+    TNodeMultiGeneratedTextureCoordinate
   ]);
 end;
 
