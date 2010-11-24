@@ -363,7 +363,7 @@ begin
  UpdateModif(K_Alt, (m and GLUT_ACTIVE_ALT) <> 0);
 end;
 
-procedure TGLWindow.OpenImplDepend;
+procedure TGLWindow.OpenBackend;
 var GlutDispMode: LongWord;
 begin
  { calculate GlutDispMode, call glutInitDisplayMode(GlutDispMode) }
@@ -455,7 +455,7 @@ begin
   result := fTop
 end;
 
-procedure TGLWindow.CloseImplDepend;
+procedure TGLWindow.CloseBackend;
 begin
  if MainMenu <> nil then MenuFinalize;
  glutDestroyWindow(glutHwnd);
@@ -467,7 +467,7 @@ begin
  glutSetWindow(glutHwnd);
 end;
 
-procedure TGLWindow.CreateImplDepend;
+procedure TGLWindow.CreateBackend;
 begin
 end;
 
@@ -543,13 +543,13 @@ begin
   result := nil;
 end;
 
-procedure TGLApplication.CreateImplDependent;
+procedure TGLApplication.CreateBackend;
 begin
  glutPascalInit;
  glutIdleFunc(@idleByGlut);
 end;
 
-procedure TGLApplication.DestroyImplDependent;
+procedure TGLApplication.DestroyBackend;
 begin
 end;
 

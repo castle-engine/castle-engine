@@ -31,7 +31,7 @@
 {$endif}
 
 {$ifdef GLWINDOW_TEMPLATE}
-  {$I glwindow_implementation_template.inc}
+  {$I glwindow_backend_template.inc}
 {$endif}
 
 {$ifdef KAMBI_CHECK_POINTER}

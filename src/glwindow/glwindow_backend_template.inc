@@ -61,7 +61,7 @@ begin
   { TODO }
 end;
 
-procedure TGLWindow.OpenImplDepend;
+procedure TGLWindow.OpenBackend;
 begin
   { TODO }
 end;
@@ -77,7 +77,7 @@ begin
   if not Closed then { TODO };
 end;
 
-procedure TGLWindow.CloseImplDepend;
+procedure TGLWindow.CloseBackend;
 begin
   { TODO }
 end;
@@ -87,7 +87,7 @@ begin
   { TODO }
 end;
 
-procedure TGLWindow.CreateImplDepend;
+procedure TGLWindow.CreateBackend;
 begin
   { TODO }
 end;
@@ -163,7 +163,7 @@ end;
 
 procedure TGLApplication.Run;
 begin
-  if ActiveCount = 0 then Exit;
+  if OpenWindowsCount = 0 then Exit;
 
   { TODO }
 end;
@@ -173,12 +173,12 @@ begin
   { TODO }
 end;
 
-procedure TGLApplication.CreateImplDependent;
+procedure TGLApplication.CreateBackend;
 begin
   { TODO }
 end;
 
-procedure TGLApplication.DestroyImplDependent;
+procedure TGLApplication.DestroyBackend;
 begin
   { TODO }
 end;

@@ -55,7 +55,7 @@ private
   {$endif}
 
   {$ifdef GLWINDOW_GTK_1}
-  { look at implementation of OpenImplDepend.
+  { look at implementation of OpenBackend.
     Value of this is meaningfull only if FullScreen = true. }
   FullScreenUsingOverrideRedirect: boolean;
   {$endif}
@@ -907,11 +907,11 @@ begin
  Result := GTK_WIDGET(GLArea);
 end;
 
-procedure TGLWindow.OpenImplDepend;
+procedure TGLWindow.OpenBackend;
 
 { Notes about FullScreen implementation with GTK_1:
   1) Note that Left/Top and Width/Height will already be initialized before
-     OpenImplDepend to appropriate values (i.e., the window will cover
+     OpenBackend to appropriate values (i.e., the window will cover
      whole screen).
 
   2) When FullScreenUsingOverrideRedirect = true
@@ -940,7 +940,7 @@ procedure TGLWindow.OpenImplDepend;
      and so we can show MainMenu.
 
   So I have two possible implementations for FullScreen. And both of them
-  wrong. In OpenImplDepend I'm deciding which one to use:
+  wrong. In OpenBackend I'm deciding which one to use:
     FullScreenUsingOverrideRedirect := MainMenu = nil
 
   How about GTK_2 ?
@@ -1279,9 +1279,9 @@ begin
  { From this point I require that WindowGtk is realized (has associated
    GdkWindow, i.e. I can use GTK_WIDGET(WindowGtk).Window).
    It also means that I can do MakeCurrent (and call OpenGL commands)
-   from now. In particular, we have valid gl context when we leave OpenImplDepend. }
+   from now. In particular, we have valid gl context when we leave OpenBackend. }
  if (GTK_REALIZED and GTK_WIDGET_FLAGS( GTK_WIDGET(WindowGtk) )) = 0 then
-  raise EInternalError.Create('GLWindow.OpenImplDepend: GdkWindow not realized yet');
+  raise EInternalError.Create('GLWindow.OpenBackend: GdkWindow not realized yet');
 
  {$ifdef GLWINDOW_GTK_2}
  { These must be inited only when I'm sure that window is realized.
@@ -1318,7 +1318,7 @@ begin
  UpdateCursor;
 end;
 
-procedure TGLWindow.CloseImplDepend;
+procedure TGLWindow.CloseBackend;
 begin
  {$ifdef GLWINDOW_GTK_1}
  if FullScreen and FullScreenUsingOverrideRedirect then
@@ -1354,7 +1354,7 @@ begin
 
  { Note: we could use
    gtk_quit_add_destroy(1, GTK_OBJECT(WindowGtk));
-   in OpenImplDepend instead of doing gtk_widget_unref below.
+   in OpenBackend instead of doing gtk_widget_unref below.
    But doing gtk_widget_unref below is a cleaner way (we're freeing WindowGtk
    as soon as it can be freed). }
  if WindowGtk <> nil then
@@ -1382,7 +1382,7 @@ begin
  end;
 end;
 
-procedure TGLWindow.CreateImplDepend;
+procedure TGLWindow.CreateBackend;
 begin
 end;
 
@@ -1952,7 +1952,7 @@ begin
  QuitPosted := true;
 end;
 
-procedure TGLApplication.CreateImplDependent;
+procedure TGLApplication.CreateBackend;
 begin
   gtk_init(@argc, @argv);
 
@@ -1985,7 +1985,7 @@ begin
 {$endif GLWINDOW_GTK_2}
 end;
 
-procedure TGLApplication.DestroyImplDependent;
+procedure TGLApplication.DestroyBackend;
 var
   C: TMouseCursor;
 begin

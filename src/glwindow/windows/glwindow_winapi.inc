@@ -18,9 +18,9 @@ private
   h_GLRc: HGLRC;
   h_Dc: HDC;
   h_Wnd: HWND;
-  { InCloseImplDepend = true means we are currently inside CloseImplDepend call.
+  { InCloseBackend = true means we are currently inside CloseBackend call.
     Useful -- see at WM_ACTIVATE. }
-  InCloseImplDepend: boolean;
+  InCloseBackend: boolean;
 
   VK_LeftBracket_Exists,
   VK_RightBracket_Exists,
@@ -50,9 +50,9 @@ private
   DisplaySettingsChanged: boolean;
   wndClassName: string;
 
-  { A private array, initialized in CreateImplDependent.
+  { A private array, initialized in CreateBackend.
     NameForLoadCursor are actually constant, taken from Windows unit,
-    but CursorHandle are loaded each time in CreateImplDependent.
+    but CursorHandle are loaded each time in CreateBackend.
     Having them all loaded once makes sure that WM_SETCURSOR is able to
     use predefined HCURSOR values and so is fast. SetCursor is guaranteed
     by WinAPI to return fast if called with already used cursor.
@@ -211,8 +211,8 @@ end;
 
 function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
-{ Note: the following Windows events may be called from CloseImplDepend
-  (so they probably should check InCloseImplDepend):
+{ Note: the following Windows events may be called from CloseBackend
+  (so they probably should check InCloseBackend):
      WM_WINDOWPOSCHANGING
      WM_WINDOWPOSCHANGED
      WM_NCACTIVATE
@@ -334,12 +334,12 @@ begin
 
  case uMsg of
   WM_ACTIVATE:
-    if not InCloseImplDepend then
+    if not InCloseBackend then
       if LoWord(wParm) = WA_INACTIVE then
         { When user switches to another program, fake that we release all keys/mouse.
           Otherwise we could miss some key up / mouse up, when user releases it over
           another program/window.
-          Do not do this when InCloseImplDepend, as ReleaseAllKeysAndMouse causes
+          Do not do this when InCloseBackend, as ReleaseAllKeysAndMouse causes
           some DoKeyUp/DoMouseUp (and these even cause MakeCurrent), and no DoXxx
           should be done when the window is closing and releasing it's resources. }
         ReleaseAllKeysAndMouse;
@@ -371,7 +371,7 @@ begin
        'All WM_CHAR messages should be handled while handling WM_KEYDOWN');
 
   WM_SIZE:
-    if not InCloseImplDepend then
+    if not InCloseBackend then
     begin
      { Note: Window class has (VREDRAW or HREDRAW), so Windows will automatically
        take care of requesting window redraw after window resize. }
@@ -413,7 +413,7 @@ begin
         So I workaround this by adding CYMENU. This is not perfect, as this assumes
         that menu bar will always be a single line.
         Note that this is non-perfect also because WM_MOVE message may not get to
-        FullScreen window at all, so in OpenImplDepend I also do this trick. }
+        FullScreen window at all, so in OpenBackend I also do this trick. }
       if FullScreen and (MainMenu <> nil) then
         FTop += GetSystemMetrics(SM_CYMENU);
 
@@ -1087,9 +1087,9 @@ begin
     SetCursorPos(Left + NewMouseX, Top + NewMouseY);
 end;
 
-procedure TGLWindow.CloseImplDepend;
+procedure TGLWindow.CloseBackend;
 begin
- InCloseImplDepend := true;
+ InCloseBackend := true;
  try
   if h_GLRc <> 0 then
   begin
@@ -1105,7 +1105,7 @@ begin
   if (h_Wnd <> 0) and (not DestroyWindow(h_Wnd))then
    CloseError('Destroying window (DestroyWindow) failed.');
   h_Wnd := 0;
- finally InCloseImplDepend := false; end;
+ finally InCloseBackend := false; end;
 end;
 
 procedure TGLWindow.MakeCurrent;
@@ -1120,7 +1120,7 @@ begin
  if h_Wnd <> 0 then SetWindowText(h_Wnd, PChar(Value));
 end;
 
-procedure TGLWindow.CreateImplDepend;
+procedure TGLWindow.CreateBackend;
 begin
 end;
 
@@ -1416,7 +1416,7 @@ end;
 
 { TGLApplication ----------------------------------------------- }
 
-procedure TGLApplication.CreateImplDependent;
+procedure TGLApplication.CreateBackend;
 var
   WindowClass: TWndClass;
   C: TMouseCursor;
@@ -1465,7 +1465,7 @@ begin
  KambiOSCheck( RegisterClass(WindowClass) <> 0, 'RegisterClass');
 end;
 
-procedure TGLApplication.DestroyImplDependent;
+procedure TGLApplication.DestroyBackend;
 begin
  KambiOSCheck( UnregisterClass(PChar(wndClassName), hInstance), 'UnregisterClass');
 end;

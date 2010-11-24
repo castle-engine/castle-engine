@@ -43,7 +43,7 @@ private
   wmDeleteWindow: TAtom;
   { tablice przejscia z KeySym okrojonego do mniej znaczacego bajtu a TKey
    (moje stale K_x). Ktorej tablicy (0 czy FF) uzyc do konwersji - zalezy
-   od bardziej znaczacego bajtu. Tablice sa konstruowane w CreateImplDepend,
+   od bardziej znaczacego bajtu. Tablice sa konstruowane w CreateBackend,
    powinienes z nich korzystac tylko przez KeySymToKlawisz. }
   keySym_to_TKey0,
   keySym_to_TKeyFF: TKeysBytes;
@@ -293,7 +293,7 @@ begin
  MakeCurrent;
 end;
 
-procedure TGLWindow.CloseImplDepend;
+procedure TGLWindow.CloseBackend;
 var dummy_event: TXEvent;
 begin
  if glcontext <> nil then
@@ -403,7 +403,7 @@ begin
   Check( glXMakeCurrent(Application.XDisplay, windowXID, glcontext), 'glXMakeCurrent');
 end;
 
-procedure TGLWindow.CreateImplDepend;
+procedure TGLWindow.CreateBackend;
 begin
  windowXID := None;
 end;
@@ -656,7 +656,7 @@ begin
   end;
 end;
 
-procedure TGLApplication.CreateImplDependent;
+procedure TGLApplication.CreateBackend;
 const
   { Under Kylix, capital letters are XK_?  and lower are XK_l?.
     Under FPC,           ...     are XKc_?    ...    are XK_?. }
@@ -742,7 +742,7 @@ begin
   KeySym_To_TKey0[XK_backslash] := K_BackSlash;
 end;
 
-procedure TGLApplication.DestroyImplDependent;
+procedure TGLApplication.DestroyBackend;
 var
   C: TMouseCursor;
 begin

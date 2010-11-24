@@ -354,10 +354,11 @@ unit GLWindow;
     - CustomCursor is not implemented. Cursor = gcCursor is treated like mcDefault.
 
   GLWINDOW_TEMPLATE
-    This is a special dummy implementation, useful only as an example for programmers
-    that want to implement another GLWindow backend (e.g. based on Mac OS X Carbon).
-    It compiles, but actually nothing works --- file glwindow_implementation_template.inc
-    is just a dummy implementation with TO-DO marks that you should fill.
+    This is a special dummy implementation, useful only as an example
+    for programmers that want to implement another GLWindow backend
+    (e.g. based on Mac OS X Carbon).
+    It compiles, but actually nothing works.
+    See file glwindow_backend_template.inc.
 }
 
 { If GLWindow implementation is not choosen at this point, choose
@@ -396,8 +397,8 @@ unit GLWindow;
   - Define a symbol like GLWINDOW_FOO for a new implementation,
     document it in the "available implementations list" above.
   - Create a file glwindow_foo.inc with contents from
-    glwindow_implementation_template.inc
-    and conditionally include it from glwindow_implementation_specific.inc.
+    glwindow_backend_template.inc
+    and conditionally include it from glwindow_backend.inc.
   - Adjust defining
     GLWINDOW_HAS_VIDEO_CHANGE and GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN
     for your implementation.
@@ -529,7 +530,7 @@ unit GLWindow;
     or activates a menu.
 
   Only GLWINDOW_GTK_1/2:
-  - in OpenImplDepend implement MaxWidth/Height
+  - in OpenBackend implement MaxWidth/Height
     (Or maybe these properties should be removed?
     They are made for symmetry with MinWidth/Height. Are they really useful?)
 
@@ -538,7 +539,7 @@ unit GLWindow;
       recreating window).
       Update docs about capabilities of GTK_2 implementation.
     - Value of propery FullScreen should change at runtime,
-      and parts of things that I'm doing now in OpenImplDepend
+      and parts of things that I'm doing now in OpenBackend
       should be done on such changes.
       This way I should be able to react to fullscreen changes
       forced by user (using window manager, not F11) really cleanly.
@@ -742,29 +743,21 @@ type
   EGLContextNotPossible = class(Exception);
 
   {$define read_interface_types}
-  {$I glwindow_implementation_specific.inc}
+  {$I glwindow_backend.inc}
   {$undef read_interface_types}
 
   { Window with an OpenGL context.
     See GLWindow unit description for more info and examples of use. }
   TGLWindow = class(TComponent)
 
-  { Include GLWindow-implementation-specific parts of TGLWindow class.
-    Note that in every included file I should specify the scope
-    (usually "private") of things that are added to TGLWindow class.
-
-    (I used to specify in this file "private" scope as the starting
-    scope, but this was useless since "glwindow_implementation_specific.inc"
-    may include more than 1 file for some implementations.
-    E.g. GLWINDOW_XLIB causes "glwindow_implementation_specific.inc"
-    to include 3 different files. So it's consequent to just request
-    that in each of these files I specify scope explicitly).
-
-    This way some implementations may expose some protected or even public
+  { Include GLWindow-backend-specific parts of TGLWindow class.
+    Remember to explicitly specify the scope
+    (usually "private") of things that you add to TGLWindow class in backends,
+    this is safest. Some backends may expose some protected or even public
     things that are specific for them. }
 
   {$define read_tglwindow_interface}
-  {$I glwindow_implementation_specific.inc}
+  {$I glwindow_backend.inc}
   {$undef read_tglwindow_interface}
 
   private
@@ -814,10 +807,10 @@ type
       Application.OpenWindowsAdd(Self) there.
 
       Here's a list of properties that should be made "visible" to the user
-      in OpenImplDepend:
+      in OpenBackend:
 
         Width, Height, Left, Top, FullScreen
-        Cursor, CustomCursor (remember that changes to this after OpenImplDepend
+        Cursor, CustomCursor (remember that changes to this after OpenBackend
           should also be allowed)
         ResizeAllowed (DoResize already implements appropriate
           checks, but implementation should provide user with visual clues that
@@ -827,16 +820,16 @@ type
       OpenGL context must be initialized honouring these properties:
         DoubleBuffer, StencilBufferBits, DepthBufferBits, AlphaBits,
         AccumBufferBits, MultiSampling }
-    procedure OpenImplDepend;
+    procedure OpenBackend;
 
     { Close OpenGL context, for particular backend.
 
       No need to call OpenWindowsRemove here, it's done by universal Close already.
       It's advised (although not totally required) that all errors during
-      CloseImplDepend should be catched and cause only CloseError.
+      CloseBackend should be catched and cause only CloseError.
       Reasoning: Close should, regardless of trouble, try to finalize as much
       as possible. }
-    procedure CloseImplDepend;
+    procedure CloseBackend;
 
     procedure CloseError(const error: string);
 
@@ -864,7 +857,7 @@ type
       Also it may assume that Closed = false.
 
       Note: if backend wants, it may itself call these from
-      OpenImplDepend / CloseImplDepend. Of course, when you call them
+      OpenBackend / CloseBackend. Of course, when you call them
       yourself, you have to make sure on your own that all assumptions
       are satisfied. In practice, BackendMenuFinalize should clear all the variables
       to the state right after constructor (zero, nil etc.),
@@ -908,7 +901,7 @@ type
     procedure MenuUpdateChecked(Entry: TMenuItemChecked);
     { @groupEnd }
 
-    procedure CreateImplDepend;
+    procedure CreateBackend;
 
     { Simulate that all the keys and mouse buttons were released.
       For all keys that are down (Pressed[k]) calls DoKeyUp(k).
@@ -952,7 +945,7 @@ type
       GLWindow backend should never call EventXxx directly.
       (And nothing should call OnXxx directly except EventXxx.)
 
-      Remember that no DoXxx may be called from CloseImplDepend.
+      Remember that no DoXxx may be called from CloseBackend.
 
       Below is the detailed specification, but summing some things up
       you don't have to worry about these things when you use DoXxx methods
@@ -972,13 +965,13 @@ type
       (and exactly once) from TGLWindow.Open implementation.
       So all GLWindow-implementation code should always
       pass FromIndependentOpen = false (EVEN if it may be called from
-      OpenImplDepend (that is called before DoResize in Open) !).
+      OpenBackend (that is called before DoResize in Open) !).
 
-      Some more notes about calling DoResize from OpenImplDepend:
+      Some more notes about calling DoResize from OpenBackend:
       in this case DoResize will NOT call EventResize (since the first callback
       that should be called for a window is EventOpen). We will always after
       EventOpen call DoResize(..., true), so this should not be a problem
-      anywhere. You can simply call DoResize from OpenImplDepend to tell us what
+      anywhere. You can simply call DoResize from OpenBackend to tell us what
       real Width/Height we have, and the real EventResize will be called
       just at a later time.
 
@@ -999,7 +992,7 @@ type
     procedure DoResize(AWidth, AHeight: integer; FromIndependentOpen: boolean);
     { Wywoluj kiedy user kliknie na przycisku "Zamknij" itp.
       Wywola EventCloseQuery i ew. Close (and Close will execute EventClose,
-      CloseImplDepend etc.). Note that there is no DoClose method and there
+      CloseBackend etc.). Note that there is no DoClose method and there
       should not be such method : always use DoCloseQuery. }
     procedure DoCloseQuery;
 
@@ -2561,13 +2554,13 @@ type
     point in doing that. }
   TGLApplication = class(TComponent)
 
-  { Include GLWindow-implementation-specific parts of
+  { Include GLWindow-backend-specific parts of
     TGLApplication class. Rules and comments that apply here are
     the same as in analogous place at TGLWindow class,
     when read_tglwindow_interface is defined. }
 
   {$define read_tglwindowmanager_interface}
-  {$I glwindow_implementation_specific.inc}
+  {$I glwindow_backend.inc}
   {$undef read_tglwindowmanager_interface}
 
   private
@@ -2598,8 +2591,8 @@ type
     { Find window on the OpenWindows list. Returns index, or -1 if not found. }
     function FindWindow(glwin: TGLWindow): integer;
 
-    procedure CreateImplDependent;
-    procedure DestroyImplDependent;
+    procedure CreateBackend;
+    procedure DestroyBackend;
 
     { The GLWindow-implementation specific part of Quit method implementation.
       In non-implementation-specific part of Quit we already closed all windows,
@@ -2869,7 +2862,7 @@ uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit
 {$I objectslist_1.inc}
 {$I dynarray_2.inc}
 {$I glwindowmenu.inc}
-{$I glwindow_implementation_specific.inc}
+{$I glwindow_backend.inc}
 
 { TDynGLWindowFuncArray ------------------------------------------------ }
 
@@ -2911,7 +2904,7 @@ begin
  FPressed := TKeysPressed.Create;
  FFps := TFramesPerSecond.Create;
 
- CreateImplDepend;
+ CreateBackend;
 end;
 
 destructor TGLWindow.Destroy;
@@ -2979,7 +2972,7 @@ begin
   EventOpenCalled := false;
 
   { Set Closed to false.
-    W tym miejscu, przed OpenImplDepend i wywolaniem  OnOpen + OnResize, bo
+    W tym miejscu, przed OpenBackend i wywolaniem  OnOpen + OnResize, bo
    - te rzeczy moga rzucic wyjatki a w reakcji na wyjatek
      chcemy wywolac Close ktore do dzialania wymaga aby bylo not FClosed. }
   FClosed := false;
@@ -2987,7 +2980,7 @@ begin
   { Najwazniejsze : zrob to co implementacja zrobic musi.
     Mozesz stad smialo wywolywac DoResize, beda ignorowane dzieki temu
     ze EventOpenCalled = false.  }
-  OpenImplDepend;
+  OpenBackend;
 
   { Do MakeCurrent before glViewport and EventOpen. }
   MakeCurrent;
@@ -3012,7 +3005,7 @@ begin
   { Check Closed here, in case OnOpen closed the window
     (by calling Application.Quit (that calls Close on all windows) or direct Close
     on this window). Note that Close calls
-    CloseImplDepend and generally has *immediate* effect --- that's why
+    CloseBackend and generally has *immediate* effect --- that's why
     doing anything more with window now (like MakeCurrent) would be wrong. }
   if Closed then Exit;
 
@@ -3106,7 +3099,7 @@ begin
   end;
  finally
   closeerrors := '';
-  CloseImplDepend;
+  CloseBackend;
 
   FClosed := true;
 
@@ -3114,7 +3107,7 @@ begin
     if Self is not on OpenWindows list. This is useful if the window was partially
     constructed.
 
-    E.g. when StencilBufferBits was too high and OpenImplDepend
+    E.g. when StencilBufferBits was too high and OpenBackend
     method raised an exception EGLContextNotPossible. Then this method, Close,
     is called, but Self is not on OpenWindows list. And this fact should not be
     reported as an error -- error is EGLContextNotPossible ! }
@@ -3185,9 +3178,9 @@ begin
      minWidth > 0 i minHeight > 0 wiec jednoczesnie ponizej gwarantujemy sobie ze nie
      zachodzi sytuacja w = 0 lub h = 0.
 
-   Apropos wywolywania DoResize(.., false) z OpenImplDepend:
+   Apropos wywolywania DoResize(.., false) z OpenBackend:
    zabezpieczamy sie przed tym zawsze. Ale mozna tu odnotowac ze z pewnoscia
-   OpenImplDepend moze wywolywac DoResize(.., false) w przypadku
+   OpenBackend moze wywolywac DoResize(.., false) w przypadku
    implementacji WINAPI i GTK.
  }
 
@@ -3206,7 +3199,7 @@ begin
  end;
 
  { do not call EventResize before EventOpen (this check is needed
-   because OpenImplDepend is allowed to call DoResize) }
+   because OpenBackend is allowed to call DoResize) }
  if not EventOpenCalled then Exit;
 
  { jezeli ResizeAllowed <> raAllowed to nie powinnismy wywolywac EventResize
@@ -4747,14 +4740,14 @@ begin
   inherited;
   FOpenWindows := TGLWindowsList.Create;
   FTimerMilisec := 1000;
-  CreateImplDependent;
+  CreateBackend;
 end;
 
 destructor TGLApplication.Destroy;
 begin
   { Close any windows possibly open now.
     This is necessary --- after destroying Application there would be really
-    no way for them to close properly (that is, TGLWindow.CloseImplDepend
+    no way for them to close properly (that is, TGLWindow.CloseBackend
     may, and usually will, fail with very strange errors when called
     after freeing central Application). }
   Quit;
@@ -4764,7 +4757,7 @@ begin
   Application := nil;
 
   VideoReset;
-  DestroyImplDependent;
+  DestroyBackend;
   FreeAndNil(FOpenWindows);
   inherited;
 end;
@@ -4927,7 +4920,7 @@ finalization
    Otherwise FreeAndNil first nils, then frees Application, and we really
    want to keep Application during first stage of TGLApplication destruction:
    when calling Quit, which may close windows, which may use Application
-   variable in their Close or CloseImplDepend implementations. }
+   variable in their Close or CloseBackend implementations. }
  Application.Free;
  Assert(Application = nil);
 

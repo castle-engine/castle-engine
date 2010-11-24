@@ -47,7 +47,7 @@ private
     redrawing anything. Similar for WinAPI. }
   RedisplayPosted: boolean;
 
-  { w GLWindow_winsystem implementuje sie OpenImplDepend ktore
+  { w GLWindow_winsystem implementuje sie OpenBackend ktore
     wywoluje swoja inicjalizacje a potem wywoluje OpenWinSystemDepend
     ktore powinno byc zdefiniowane w GLWindow_xlib i _winapi. }
   procedure OpenWinSystemDepend;
@@ -108,7 +108,7 @@ begin
   RedisplayPosted := true;
 end;
 
-procedure TGLWindow.OpenImplDepend;
+procedure TGLWindow.OpenBackend;
 begin
   { reset some variables common to all _winsystem implementations }
   RedisplayPosted := false;
