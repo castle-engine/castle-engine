@@ -148,72 +148,76 @@ implementation
 
 procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
 begin
- if not TrueValue then raise EInvalid3dsFile.Create(ErrMessg);
+  if not TrueValue then raise EInvalid3dsFile.Create(ErrMessg);
 end;
 
 function TryReadColorInSubchunks(var Col: TVector3Single;
   Stream: TStream; EndPos: Int64): boolean;
-var h: TChunkHeader;
-    hEnd: Int64;
-    Col3Byte: TVector3Byte;
+var
+  h: TChunkHeader;
+  hEnd: Int64;
+  Col3Byte: TVector3Byte;
 begin
- result := false;
- while Stream.Position < EndPos do
- begin
-  Stream.ReadBuffer(h, SizeOf(h));
-  hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
-  { TODO: we ignore gamma correction entirely so we don't distinct
-    gamma corrected and not corrected colors }
-  case h.id of
-   CHUNK_RGBF, CHUNK_RGBF_GAMMA:
-     begin
-      Stream.ReadBuffer(Col, SizeOf(Col));
-      result := true;
-      break;
-     end;
-   CHUNK_RGBB, CHUNK_RGBB_GAMMA:
-     begin
-      Stream.ReadBuffer(Col3Byte, SizeOf(Col3Byte));
-      Col := Vector3Single(Col3Byte);
-      result := true;
-      break;
-     end;
-   else Stream.Position := hEnd;
+  result := false;
+  while Stream.Position < EndPos do
+  begin
+    Stream.ReadBuffer(h, SizeOf(h));
+    hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
+    { TODO: we ignore gamma correction entirely so we don't distinct
+      gamma corrected and not corrected colors }
+    case h.id of
+      CHUNK_RGBF, CHUNK_RGBF_GAMMA:
+        begin
+          Stream.ReadBuffer(Col, SizeOf(Col));
+          result := true;
+          break;
+        end;
+      CHUNK_RGBB, CHUNK_RGBB_GAMMA:
+        begin
+          Stream.ReadBuffer(Col3Byte, SizeOf(Col3Byte));
+          Col := Vector3Single(Col3Byte);
+          result := true;
+          break;
+        end;
+      else Stream.Position := hEnd;
+    end;
   end;
- end;
- Stream.Position := EndPos;
+  Stream.Position := EndPos;
 end;
 
 function TryReadColorInSubchunks(var Col: TVector4Single;
   Stream: TStream; EndPos: Int64): boolean;
-var Col3Single: TVector3Single;
+var
+  Col3Single: TVector3Single;
 begin
- result := TryReadColorInSubchunks(Col3Single, Stream, EndPos);
- if result then Col := Vector4Single(Col3Single);
+  result := TryReadColorInSubchunks(Col3Single, Stream, EndPos);
+  if result then Col := Vector4Single(Col3Single);
 end;
 
 function TryReadPercentageInSubchunks(var Value: Single;
   Stream: TStream; EndPos: Int64): boolean;
-type T3dsDoubleByte = SmallInt;
-var h: TChunkHeader;
-    hEnd: Int64;
-    DoubleByte: T3dsDoubleByte;
+type
+  T3dsDoubleByte = SmallInt;
+var
+  h: TChunkHeader;
+  hEnd: Int64;
+  DoubleByte: T3dsDoubleByte;
 begin
- result := false;
- while Stream.Position < EndPos do
- begin
-  Stream.ReadBuffer(h, SizeOf(h));
-  hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
-  if h.id = CHUNK_DOUBLE_BYTE then
+  result := false;
+  while Stream.Position < EndPos do
   begin
-   Stream.ReadBuffer(DoubleByte, SizeOf(DoubleByte));
-   result := true;
-   break;
-  end else
-   Stream.Position := hEnd;
- end;
- Stream.Position := EndPos;
- if result then Value := DoubleByte/100;
+    Stream.ReadBuffer(h, SizeOf(h));
+    hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
+    if h.id = CHUNK_DOUBLE_BYTE then
+    begin
+      Stream.ReadBuffer(DoubleByte, SizeOf(DoubleByte));
+      result := true;
+      break;
+    end else
+      Stream.Position := hEnd;
+  end;
+  Stream.Position := EndPos;
+  if result then Value := DoubleByte/100;
 end;
 
 end.
