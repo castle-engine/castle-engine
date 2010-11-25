@@ -1555,11 +1555,11 @@ var
 
   procedure AddInfo(Element: TNodeGroup_2; const S: string);
   var
-    Info: TNodeInfo;
+    Info: TNodeWorldInfo;
   begin
-    Info := TNodeInfo.Create('', WWWBasePath);
+    Info := TNodeWorldInfo.Create('', WWWBasePath);
     Element.FdChildren.Add(Info);
-    Info.FdString.Value := S;
+    Info.FdInfo.Items.Add(S);
   end;
 
 var
