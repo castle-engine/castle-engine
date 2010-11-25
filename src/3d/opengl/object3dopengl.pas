@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Simple OpenGL renderers and helpers for OBJ, GEO and 3DS models.)
+{ Simple OpenGL rendering for OBJ, GEO and 3DS models.
 
-  All of them can be put inside OpenGL display list.
+  All of the rendering procedures here can be put inside an OpenGL display list.
 
   Note that you will usually do not want to use this unit in your programs,
   since it's much better to convert all OBJ, GEO and 3DS models to VRML
@@ -24,10 +24,9 @@
 
   This unit just demonstrates that you can, if you really want,
   directly render OBJ or GEO or 3DS models to OpenGL.
-  But, at least for now, this has no advantage (well, maybe some simplicity)
+  But, at least for now, this has no advantage
   over rendering OBJ, GEO and 3DS models using VRML renderer.
 }
-
 unit Object3DOpenGL;
 
 interface
@@ -36,25 +35,22 @@ uses VectorMath, Object3DGEO, Object3DOBJ, Object3Ds;
 
 procedure RenderGEO(geo: TObject3DGEO);
 
-{ Render OBJ model.
+{ Render Wavefront OBJ model.
 
-  Jesli useTexture2d to bedzie wlaczalo GL_TEXTURE_2D przed renderowaniem
-  scian ktore maja HasTexCoords i bedzie genereowalo te tex coords
-  i wylaczalo GL_TEXTURE_2D przed generowaniem sciany ktora nie ma HasTexCoords.
-  Wpp. nie bedzie dotykalo ustawien tekstury, co umozliwi ci np. automatyczne
-  generowanie wspolrzednych tekstury.
+  If UseTexture2d then we will use texture coordinates where present.
+  We will also enable / disable OpenGL GL_TEXTURE_2D according to
+  whether texture coordinates are present for given face.
+  You still have to load appropriate OpenGL texture yourself
+  (as OBJ doesn't have texture information).
 
-  Nawet jesli useTexture2d to sam musisz zaladowac odpowiednia teksture
-  --- nie odczytujemy z .obj zadnych danych na temat tekstury.
+  If not UseTexture2d, we'll not touch the OpenGL GL_TEXTURE_2D
+  setting.
 
-  Zawsze generowane sa normale flat. }
+  Always generates flat (per-face) normals. }
 procedure RenderOBJ(obj: TObject3DOBJ; useTexture2d: boolean);
 
-{ Render 3DS model.
-
-  Renderuje wszystkie Trimeshes uzywajac odpowiednich materialow.
-  Zawartosc textury nr 0 (unnamed) OpenGLa moze zostac zmieniona
-  jesli useTexture2d  }
+{ Render 3DS model. If UseTexture2d, then we'll load and enable
+  OpenGL texture. }
 procedure Render3DS(scene: TScene3ds; useTexture2d: boolean);
 
 implementation
