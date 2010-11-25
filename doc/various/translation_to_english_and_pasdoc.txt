@@ -28,7 +28,7 @@ D   object3dgeo.pas
 D   object3dmd3.pas
 D   object3dobj.pas
 D   object3ds.pas
-|   object3dschunks.pas
+D   object3dschunks.pas
 |   object3dsmaterial.pas
 D   kambipolynomials.pas
 D   quaternions.pas

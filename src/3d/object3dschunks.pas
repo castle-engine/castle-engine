@@ -13,62 +13,59 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Low-level helpers and constants for reading 3DS files.) }
-
+{ Low-level helpers and constants for reading 3DS files. @exclude }
 unit Object3DsChunks;
 
 interface
 
 uses VectorMath, Classes, SysUtils;
 
-{ skopiowane z 3dsRdr.c - wciecia odpowiadaja zagniezdzeniu chunkow w pliku,
-  zmodyfikowane nieco (dodalem pare nowych chunkow ktorych uzywam, na podstawie
-  roznych info o 3ds'ach i formacie MLI).
-  Komentarze moje. Pare moich poprawek we wcieciach.
+{ The indentation below corresponds to chunk relations in 3DS file.
+  Based on example 3dsRdr.c, with new needed chunks added, based
+  on various Internal sources about 3DS and MLI, with some new comments.
 
-  Some subchunks below other chunk are required, marked with req below.
-}
+  Some subchunks that are required within parent chunks are marked as such. }
 const
-  { color chunks may be basically in many places in 3ds file }
+  { Color chunks may be in various places in 3DS file.
+    _GAMMA suffix means that these colors are already gamma corrected.
+    @groupBegin }
   CHUNK_RGBF       = $0010;
   CHUNK_RGBB       = $0011;
-  CHUNK_RGBB_GAMMA = $0012; {_GAMMA means that these colors are already gamma corrected}
+  CHUNK_RGBB_GAMMA = $0012;
   CHUNK_RGBF_GAMMA = $0013;
+  { @groupEnd }
 
-  { from MLI specification; nigdzie tego nie przeczytalem ale wyglada na to
-    ze one podaja wartosci w zakresie 0..100 - przynajmniej subchunki Shininess
-    przybieraja rozne wartosci z tego zakresu, subchunki innych chunkow
-    (jak Transparency itp.) przybieraja byc moze nawet mniejszy zakres.
-    Ale uwaga - byc moze po prostu nie testowalem na dostatecznie duzej
-    ilosci 3ds'ow.
+  { CHUNK_DOUBLE_BYTE from MLI specification. Experiments show
+    that this has 0..100 range, at least when used for shininess subchunks
+    (in other uses, like transparency, the range @italic(may) be smaller).
 
-    Later note: na podstawie lib3ds, naprawde tak jest ! Nawet w lib3ds
-    ten chunk nazywa sie nie DOUBLE_BYTE ale po prostu INT_PERCENTAGE
-    a wiec "w procentach".
-
-    Lib3ds, a ja za nia, odczytujemy CHUNK_SHININESS, CHUNK_SHININESS_STRENTH,
+    lib3ds confirms this, by even calling this as INT_PERCENTAGE instead
+    of DOUBLE_BYTE. Used for CHUNK_SHININESS, CHUNK_SHININESS_STRENTH,
     CHUNK_TRANSPARENCY, CHUNK_TRANSPARENCY_FALLOFF, CHUNK_REFLECT_BLUR. }
   CHUNK_DOUBLE_BYTE = $0030;
 
-  { MAIN chunk is the whole 3ds file;
-    MLI chunk is the whole MLI (Material-Library) file;
-    probably PRJ chunk is also something like that. }
+  { Root file chunks.
+    MAIN chunk is the whole 3DS file.
+    MLI chunk is the whole MLI (Material-Library) file.
+    Probably PRJ chunk is also something like that (some "project" ?).
+    @groupBegin }
   CHUNK_PRJ       = $C23D;
   CHUNK_MLI       = $3DAA;
   CHUNK_MAIN      = $4D4D;
+  { @groupEnd }
 
     CHUNK_VERSION   = $0002;
     CHUNK_OBJMESH   = $3D3D;
       CHUNK_BKGCOLOR  = $1200;
       CHUNK_AMBCOLOR  = $2100;
-      { as I understand, exactly one of the subchunks TRIMESH, LIGHT
-        and CAMERA appears in one OBJBLOCK chunk }
+      { As I understand, exactly one of the subchunks TRIMESH, LIGHT
+        and CAMERA appears in one OBJBLOCK chunk. } { }
       CHUNK_OBJBLOCK  = $4000;
         CHUNK_TRIMESH   = $4100;
           CHUNK_VERTLIST  = $4110;
           CHUNK_FACELIST  = $4120;
             CHUNK_FACEMAT   = $4130;
-          CHUNK_MAPLIST   = $4140; { texture coordinates }
+          CHUNK_MAPLIST   = $4140; {< texture coordinates }
             CHUNK_SMOOLIST  = $4150;
           CHUNK_TRMATRIX  = $4160;
         CHUNK_LIGHT     = $4600;
@@ -78,25 +75,25 @@ const
     CHUNK_VIEWPORT  = $7001;
 
     CHUNK_MATERIAL  = $AFFF;
-      CHUNK_MATNAME   = $A000; { req; asciiz, no subchunks }
-      CHUNK_AMBIENT   = $A010; { req; subchunks are RGB chunk[s] }
-      CHUNK_DIFFUSE   = $A020; { req; subchunks are RGB chunk[s] }
-      CHUNK_SPECULAR  = $A030; { req; subchunks are RGB chunk[s] }
-      CHUNK_SHININESS = $A040;            { req; subchunks are DOUBLE_BYTE chunk[s] }
-      CHUNK_SHININESS_STRENTH = $A041;    { req; subchunks are DOUBLE_BYTE chunk[s] }
-      CHUNK_TRANSPARENCY = $A050;         { req; subchunks are DOUBLE_BYTE chunk[s] }
-      CHUNK_TRANSPARENCY_FALLOFF = $A052; { req; subchunks are DOUBLE_BYTE chunk[s] }
-      CHUNK_REFLECT_BLUR = $A053;         { req; subchunks are DOUBLE_BYTE chunk[s] }
+      CHUNK_MATNAME   = $A000; {< required; asciiz, no subchunks }
+      CHUNK_AMBIENT   = $A010; {< required; subchunks are RGB chunk[s] }
+      CHUNK_DIFFUSE   = $A020; {< required; subchunks are RGB chunk[s] }
+      CHUNK_SPECULAR  = $A030; {< required; subchunks are RGB chunk[s] }
+      CHUNK_SHININESS = $A040;            {< required; subchunks are DOUBLE_BYTE chunk[s] }
+      CHUNK_SHININESS_STRENTH = $A041;    {< required; subchunks are DOUBLE_BYTE chunk[s] }
+      CHUNK_TRANSPARENCY = $A050;         {< required; subchunks are DOUBLE_BYTE chunk[s] }
+      CHUNK_TRANSPARENCY_FALLOFF = $A052; {< required; subchunks are DOUBLE_BYTE chunk[s] }
+      CHUNK_REFLECT_BLUR = $A053;         {< required; subchunks are DOUBLE_BYTE chunk[s] }
 
-      CHUNK_TEXMAP_1  = $A200; { two texture maps }
+      CHUNK_TEXMAP_1  = $A200; {< two texture maps }
       CHUNK_TEXMAP_2  = $A33A;
       CHUNK_BUMPMAP   = $A230;
-        {all MAP chunks below can ce subchunks of all MAP chunks above}
-        CHUNK_MAP_FILE   = $A300; { asciiz, no subchunks }
-        CHUNK_MAP_USCALE = $A356; { single, no subchunks }
-        CHUNK_MAP_VSCALE = $A354; { single, no subchunks }
-        CHUNK_MAP_UOFFSET = $A358; { single, no subchunks }
-        CHUNK_MAP_VOFFSET = $A35A; { single, no subchunks }
+        { All MAP chunks below can be subchunks of all MAP chunks above. } { }
+        CHUNK_MAP_FILE   = $A300; {< asciiz, no subchunks }
+        CHUNK_MAP_USCALE = $A356; {< single, no subchunks }
+        CHUNK_MAP_VSCALE = $A354; {< single, no subchunks }
+        CHUNK_MAP_UOFFSET = $A358; {< single, no subchunks }
+        CHUNK_MAP_VOFFSET = $A35A; {< single, no subchunks }
 
     CHUNK_KEYFRAMER = $B000;
       CHUNK_AMBIENTKEY    = $B001;
@@ -126,22 +123,24 @@ type
 
 procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
 
-{ odczytuj subchunki az do EndPos, ignorujac wszystko poza
-  pierwszym chunkiem dotyczacym koloru (w jakimkolwiek formacie).
-  Wtedy odczytaj ten kolor do Col. Na koncu Stream.Position jest na
-  pewno EndPos, zwraca czy znalazl jakis kolor wsrod subchunkow czy nie.
-  Version 4f always return Col[3] = 1 (alpha = 1).
+{ Read 3DS subchunks until EndPos, ignoring everything except color information.
+  It's guaranteed that Stream.Position is EndPos at the end.
 
-  If no color was found, it returns @false and Col is left not modified
-  (it's intentionally a "var" parameter, not an "out" parameter). }
+  Returns did we find any color information. If @false,
+  Col is left not modified (it's intentionally a "var" parameter,
+  not an "out" parameter).
+
+  Overloaded version with 4 components always returns alpha = 1.
+  @groupBegin }
 function TryReadColorInSubchunks(var Col: TVector3Single;
   Stream: TStream; EndPos: Int64): boolean; overload;
 function TryReadColorInSubchunks(var Col: TVector4Single;
   Stream: TStream; EndPos: Int64): boolean; overload;
+{ @groupEnd }
 
-{ Podobnie j.w. ale tutaj szuka chunka CHUNK_DOUBLE_BYTE i zwroc jego wartosc
-  podzielona na /100. O ile wiem ten chunk ma zawsze takie znaczenie (wyraza
-  cos procentowo). }
+{ Read 3DS subchunks until EndPos, ignoring everything except CHUNK_DOUBLE_BYTE
+  value. Returns the value / 100.
+  Similar comments as for TryReadColorInSubchunks. }
 function TryReadPercentageInSubchunks(var Value: Single;
   Stream: TStream; EndPos: Int64): boolean;
 
