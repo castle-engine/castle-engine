@@ -23,8 +23,6 @@ uses
   object3dmd3,
   object3dobj,
   object3ds,
-  object3dschunks,
-  object3dsmaterial,
   quaternions,
   rayswindow,
   renderstateunit,

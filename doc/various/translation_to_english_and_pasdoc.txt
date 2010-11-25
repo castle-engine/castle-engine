@@ -28,8 +28,6 @@ D   object3dgeo.pas
 D   object3dmd3.pas
 D   object3dobj.pas
 D   object3ds.pas
-D   object3dschunks.pas
-D   object3dsmaterial.pas
 D   kambipolynomials.pas
 D   quaternions.pas
 D   rayswindow.pas
@@ -42,7 +40,6 @@ D   triangulator.pas
   3d/opengl/
 -   backgroundgl.pas
 D   gl3d.pas
-D   object3dopengl.pas
 
   vrml/
 D   colladatovrml.pas

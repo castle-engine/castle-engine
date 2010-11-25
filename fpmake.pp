@@ -71,8 +71,6 @@ begin
     P.Targets.AddUnit('object3dmd3.pas');
     P.Targets.AddUnit('object3dobj.pas');
     P.Targets.AddUnit('object3ds.pas');
-    P.Targets.AddUnit('object3dschunks.pas');
-    P.Targets.AddUnit('object3dsmaterial.pas');
     P.Targets.AddUnit('kambipolynomials.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
@@ -84,7 +82,6 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + '3d' + PathDelim + 'opengl');
     P.Targets.AddUnit('backgroundgl.pas');
-    P.Targets.AddUnit('object3dopengl.pas');
     P.Targets.AddUnit('gl3d.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'vrml');

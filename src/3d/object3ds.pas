@@ -40,12 +40,75 @@ unit Object3Ds;
 
 interface
 
-uses KambiUtils, Classes, KambiClassUtils, SysUtils, Object3DsMaterial,
-  Object3DsChunks, Boxes3D, VectorMath, Base3D;
+uses KambiUtils, Classes, KambiClassUtils, SysUtils,
+  Boxes3D, VectorMath, Base3D;
 
 {$define read_interface}
 
+const
+  { TODO: I don't know default 3DS material parameters.
+    Below I just use some default OpenGL and VRML 1.0 values. } { }
+  Default3dsMatAmbient: TVector4Single = (0.2, 0.2, 0.2, 1.0);
+  Default3dsMatDiffuse: TVector4Single = (0.8, 0.8, 0.8, 1.0);
+  Default3dsMatSpecular: TVector4Single = (0, 0, 0, 1.0);
+  Default3dsMatShininess: Single = 0.2; {< in range 0..1 }
+
 type
+  EInvalid3dsFile = class(Exception);
+  EMaterialNotInitialized = class(EInvalid3dsFile);
+
+  TMaterialMap3ds = record
+    Exists: boolean;
+    MapFilename: string;
+    UScale, VScale, UOffset, VOffset: Single;
+  end;
+
+  TMaterial3ds = class
+    FName: string;
+    FInitialized: boolean;
+  public
+    property Name: string read FName;
+
+    { When @false, this material was found in TTrimesh but was not yet
+      defined in 3DS file. }
+    property Initialized: boolean read FInitialized default false;
+  public
+    { Material properties. Have default values:
+      Default3dsMatAmbient, Default3dsMatDiffuse, Default3dsMatSpecular,
+      in case they would be undefined in 3DS file. }
+    AmbientCol: TVector4Single;
+    DiffuseCol: TVector4Single;
+    SpecularCol: TVector4Single;
+
+    TextureMap1, TextureMap2: TMaterialMap3ds; { .Exists = false }
+
+    { All Singles below are always read from 3ds file (they are required
+      subchunks of material chunk). They are in range 0..1. } { }
+    Shininess: Single; {< By default Default3dsShininess. }
+    ShininessStrenth, Transparency,
+      TransparencyFalloff, ReflectBlur :Single; {< By default 0 }
+
+    constructor Create(const AName: string);
+
+    { Read CHUNK_MATERIAL, initializing our fields and changing
+      @link(Initialized) to @true. }
+    procedure ReadFromStream(Stream: TStream; EndPos: Int64);
+  end;
+
+  TObjectsListItem_4 = TMaterial3ds;
+  {$I objectslist_4.inc}
+  TMaterial3dsList = class(TObjectsList_4)
+  public
+    { Index of material with given name. If material doesn't exist,
+      it will be added. }
+    function MaterialIndex(const MatName: string): Integer;
+    { Raises EMaterialNotInitialized if any not TMaterial3ds.Initialized
+      material present on the list. You should call it at the end of reading
+      3DS file, to make sure all used materials were found in 3DS file.  }
+    procedure CheckAllInitialized;
+    procedure ReadMaterial(Stream: TStream; EndPos: Int64);
+  end;
+
   { }
   TScene3ds = class;
 
@@ -222,10 +285,341 @@ implementation
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
 {$I objectslist_3.inc}
+{$I objectslist_4.inc}
+
+{ Chunks utilities ----------------------------------------------------------- }
+
+{ The indentation below corresponds to chunk relations in 3DS file.
+  Based on example 3dsRdr.c, with new needed chunks added, based
+  on various Internal sources about 3DS and MLI, with some new comments.
+
+  Some subchunks that are required within parent chunks are marked as such. }
+const
+  { Color chunks may be in various places in 3DS file.
+    _GAMMA suffix means that these colors are already gamma corrected.
+    @groupBegin }
+  CHUNK_RGBF       = $0010;
+  CHUNK_RGBB       = $0011;
+  CHUNK_RGBB_GAMMA = $0012;
+  CHUNK_RGBF_GAMMA = $0013;
+  { @groupEnd }
+
+  { CHUNK_DOUBLE_BYTE from MLI specification. Experiments show
+    that this has 0..100 range, at least when used for shininess subchunks
+    (in other uses, like transparency, the range @italic(may) be smaller).
+
+    lib3ds confirms this, by even calling this as INT_PERCENTAGE instead
+    of DOUBLE_BYTE. Used for CHUNK_SHININESS, CHUNK_SHININESS_STRENTH,
+    CHUNK_TRANSPARENCY, CHUNK_TRANSPARENCY_FALLOFF, CHUNK_REFLECT_BLUR. }
+  CHUNK_DOUBLE_BYTE = $0030;
+
+  { Root file chunks.
+    MAIN chunk is the whole 3DS file.
+    MLI chunk is the whole MLI (Material-Library) file.
+    Probably PRJ chunk is also something like that (some "project" ?).
+    @groupBegin }
+  CHUNK_PRJ       = $C23D;
+  CHUNK_MLI       = $3DAA;
+  CHUNK_MAIN      = $4D4D;
+  { @groupEnd }
+
+    CHUNK_VERSION   = $0002;
+    CHUNK_OBJMESH   = $3D3D;
+      CHUNK_BKGCOLOR  = $1200;
+      CHUNK_AMBCOLOR  = $2100;
+      { As I understand, exactly one of the subchunks TRIMESH, LIGHT
+        and CAMERA appears in one OBJBLOCK chunk. } { }
+      CHUNK_OBJBLOCK  = $4000;
+        CHUNK_TRIMESH   = $4100;
+          CHUNK_VERTLIST  = $4110;
+          CHUNK_FACELIST  = $4120;
+            CHUNK_FACEMAT   = $4130;
+          CHUNK_MAPLIST   = $4140; {< texture coordinates }
+            CHUNK_SMOOLIST  = $4150;
+          CHUNK_TRMATRIX  = $4160;
+        CHUNK_LIGHT     = $4600;
+          CHUNK_SPOTLIGHT = $4610;
+        CHUNK_CAMERA    = $4700;
+          CHUNK_HIERARCHY = $4F00;
+    CHUNK_VIEWPORT  = $7001;
+
+    CHUNK_MATERIAL  = $AFFF;
+      CHUNK_MATNAME   = $A000; {< required; asciiz, no subchunks }
+      CHUNK_AMBIENT   = $A010; {< required; subchunks are RGB chunk[s] }
+      CHUNK_DIFFUSE   = $A020; {< required; subchunks are RGB chunk[s] }
+      CHUNK_SPECULAR  = $A030; {< required; subchunks are RGB chunk[s] }
+      CHUNK_SHININESS = $A040;            {< required; subchunks are DOUBLE_BYTE chunk[s] }
+      CHUNK_SHININESS_STRENTH = $A041;    {< required; subchunks are DOUBLE_BYTE chunk[s] }
+      CHUNK_TRANSPARENCY = $A050;         {< required; subchunks are DOUBLE_BYTE chunk[s] }
+      CHUNK_TRANSPARENCY_FALLOFF = $A052; {< required; subchunks are DOUBLE_BYTE chunk[s] }
+      CHUNK_REFLECT_BLUR = $A053;         {< required; subchunks are DOUBLE_BYTE chunk[s] }
+
+      CHUNK_TEXMAP_1  = $A200; {< two texture maps }
+      CHUNK_TEXMAP_2  = $A33A;
+      CHUNK_BUMPMAP   = $A230;
+        { All MAP chunks below can be subchunks of all MAP chunks above. } { }
+        CHUNK_MAP_FILE   = $A300; {< asciiz, no subchunks }
+        CHUNK_MAP_USCALE = $A356; {< single, no subchunks }
+        CHUNK_MAP_VSCALE = $A354; {< single, no subchunks }
+        CHUNK_MAP_UOFFSET = $A358; {< single, no subchunks }
+        CHUNK_MAP_VOFFSET = $A35A; {< single, no subchunks }
+
+    CHUNK_KEYFRAMER = $B000;
+      CHUNK_AMBIENTKEY    = $B001;
+      CHUNK_TRACKINFO = $B002;
+        CHUNK_TRACKOBJNAME  = $B010;
+        CHUNK_TRACKPIVOT    = $B013;
+        CHUNK_TRACKPOS      = $B020;
+        CHUNK_TRACKROTATE   = $B021;
+        CHUNK_TRACKSCALE    = $B022;
+        CHUNK_OBJNUMBER     = $B030;
+      CHUNK_TRACKCAMERA = $B003;
+        CHUNK_TRACKFOV  = $B023;
+        CHUNK_TRACKROLL = $B024;
+      CHUNK_TRACKCAMTGT = $B004;
+      CHUNK_TRACKLIGHT  = $B005;
+      CHUNK_TRACKLIGTGT = $B006;
+      CHUNK_TRACKSPOTL  = $B007;
+      CHUNK_FRAMES    = $B008;
+
+type
+  TChunkHeader = packed record
+    id: Word;
+    len: LongWord;
+  end;
+
+procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
+begin
+  if not TrueValue then raise EInvalid3dsFile.Create(ErrMessg);
+end;
+
+{ Read 3DS subchunks until EndPos, ignoring everything except color information.
+  It's guaranteed that Stream.Position is EndPos at the end.
+
+  Returns did we find any color information. If @false,
+  Col is left not modified (it's intentionally a "var" parameter,
+  not an "out" parameter).
+
+  Overloaded version with 4 components always returns alpha = 1. }
+function TryReadColorInSubchunks(var Col: TVector3Single;
+  Stream: TStream; EndPos: Int64): boolean;
+var
+  h: TChunkHeader;
+  hEnd: Int64;
+  Col3Byte: TVector3Byte;
+begin
+  result := false;
+  while Stream.Position < EndPos do
+  begin
+    Stream.ReadBuffer(h, SizeOf(h));
+    hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
+    { TODO: we ignore gamma correction entirely so we don't distinct
+      gamma corrected and not corrected colors }
+    case h.id of
+      CHUNK_RGBF, CHUNK_RGBF_GAMMA:
+        begin
+          Stream.ReadBuffer(Col, SizeOf(Col));
+          result := true;
+          break;
+        end;
+      CHUNK_RGBB, CHUNK_RGBB_GAMMA:
+        begin
+          Stream.ReadBuffer(Col3Byte, SizeOf(Col3Byte));
+          Col := Vector3Single(Col3Byte);
+          result := true;
+          break;
+        end;
+      else Stream.Position := hEnd;
+    end;
+  end;
+  Stream.Position := EndPos;
+end;
+
+function TryReadColorInSubchunks(var Col: TVector4Single;
+  Stream: TStream; EndPos: Int64): boolean;
+var
+  Col3Single: TVector3Single;
+begin
+  result := TryReadColorInSubchunks(Col3Single, Stream, EndPos);
+  if result then Col := Vector4Single(Col3Single);
+end;
+
+{ Read 3DS subchunks until EndPos, ignoring everything except CHUNK_DOUBLE_BYTE
+  value. Returns the value / 100.
+  Similar comments as for TryReadColorInSubchunks. }
+function TryReadPercentageInSubchunks(var Value: Single;
+  Stream: TStream; EndPos: Int64): boolean;
+type
+  T3dsDoubleByte = SmallInt;
+var
+  h: TChunkHeader;
+  hEnd: Int64;
+  DoubleByte: T3dsDoubleByte;
+begin
+  result := false;
+  while Stream.Position < EndPos do
+  begin
+    Stream.ReadBuffer(h, SizeOf(h));
+    hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
+    if h.id = CHUNK_DOUBLE_BYTE then
+    begin
+      Stream.ReadBuffer(DoubleByte, SizeOf(DoubleByte));
+      result := true;
+      break;
+    end else
+      Stream.Position := hEnd;
+  end;
+  Stream.Position := EndPos;
+  if result then Value := DoubleByte/100;
+end;
+
+{ 3DS materials -------------------------------------------------------------- }
+
+constructor TMaterial3ds.Create(const AName: string);
+begin
+  inherited Create;
+  FName := AName;
+  FInitialized := false;
+  AmbientCol := Default3dsMatAmbient;
+  DiffuseCol := Default3dsMatDiffuse;
+  SpecularCol := Default3dsMatSpecular;
+  Shininess := Default3dsMatShininess;
+  TextureMap1.Exists := false;
+  TextureMap2.Exists := false;
+end;
+
+procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
+
+  function ReadMaterialMap(EndPos: Int64): TMaterialMap3ds;
+  const
+    InitialExistingMatMap: TMaterialMap3ds =
+    (Exists: true; MapFileName:''; UScale:1; VScale:1; UOffset:0; VOffset:0);
+  var
+    h: TChunkHeader;
+    hEnd: Int64;
+  begin
+    result := InitialExistingMatMap;
+
+    { read MAP subchunks }
+    while Stream.Position < EndPos do
+    begin
+      Stream.ReadBuffer(h, SizeOf(h));
+      hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
+      case h.id of
+        CHUNK_MAP_FILE: result.MapFilename := StreamReadZeroEndString(Stream);
+        CHUNK_MAP_USCALE: Stream.ReadBuffer(result.UScale, SizeOf(Single));
+        CHUNK_MAP_VSCALE: Stream.ReadBuffer(result.VScale, SizeOf(Single));
+        CHUNK_MAP_UOFFSET: Stream.ReadBuffer(result.UOffset, SizeOf(Single));
+        CHUNK_MAP_VOFFSET: Stream.ReadBuffer(result.VOffset, SizeOf(Single));
+        else Stream.Position := hEnd;
+      end;
+    end;
+  end;
+
+var
+  h: TChunkHeader;
+  hEnd: Int64;
+begin
+  { read material subchunks }
+  while Stream.Position < EndPos do
+  begin
+    Stream.ReadBuffer(h, SizeOf(h));
+    hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
+    case h.id of
+      { Colors }
+      CHUNK_AMBIENT: TryReadColorInSubchunks(AmbientCol, Stream, hEnd);
+      CHUNK_DIFFUSE: TryReadColorInSubchunks(DiffuseCol, Stream, hEnd);
+      CHUNK_SPECULAR: TryReadColorInSubchunks(SpecularCol, Stream, hEnd);
+
+      { Percentage values }
+      CHUNK_SHININESS:
+        TryReadPercentageInSubchunks(Shininess, Stream, hEnd);
+      CHUNK_SHININESS_STRENTH:
+        TryReadPercentageInSubchunks(ShininessStrenth, Stream, hEnd);
+      CHUNK_TRANSPARENCY:
+        TryReadPercentageInSubchunks(Transparency, Stream, hEnd);
+      CHUNK_TRANSPARENCY_FALLOFF:
+        TryReadPercentageInSubchunks(TransparencyFalloff, Stream, hEnd);
+      CHUNK_REFLECT_BLUR:
+        TryReadPercentageInSubchunks(ReflectBlur, Stream, hEnd);
+
+      CHUNK_TEXMAP_1: TextureMap1 := ReadMaterialMap(hEnd);
+      CHUNK_TEXMAP_2: TextureMap2 := ReadMaterialMap(hEnd);
+      else Stream.Position := hEnd;
+    end;
+  end;
+
+  FInitialized := true;
+end;
+
+{ TMaterial3dsList ----------------------------------------------------- }
+
+function TMaterial3dsList.MaterialIndex(const MatName: string): Integer;
+begin
+  for result := 0 to Count-1 do
+    if Items[result].Name = MatName then exit;
+  {material not found ?}
+  Add(TMaterial3ds.Create(MatName));
+  result := Count-1;
+end;
+
+procedure TMaterial3dsList.CheckAllInitialized;
+var
+  i: integer;
+begin
+  for i := 0 to Count-1 do
+    if not Items[i].Initialized then
+      raise EMaterialNotInitialized.Create(
+        'Material "'+Items[i].Name+'" used but does not exist');
+end;
+
+procedure TMaterial3dsList.ReadMaterial(Stream: TStream; EndPos: Int64);
+var
+  ind: Integer;
+  MatName: string;
+  StreamStartPos: Int64;
+  h: TChunkHeader;
+begin
+  {kazdy material musi miec chunk MATNAME inaczej material jest calkowicie
+   bezuzyteczny (odwolywac sie do materiala mozna tylko poprzez nazwe).
+   Ponadto o ile wiem moze byc tylko jeden chunk MATNAME (material moze miec
+   tylko jedna nazwe).
+   Ponizej szukamy chunka MATNAME aby zidentyfikowac material. }
+  StreamStartPos := Stream.Position;
+  MatName := '';
+
+  while Stream.Position < EndPos do
+  begin
+    Stream.ReadBuffer(h, SizeOf(h));
+    if h.id = CHUNK_MATNAME then
+    begin
+      MatName := StreamReadZeroEndString(Stream);
+      break;
+    end else
+      Stream.Position := Stream.Position -SizeOf(TChunkHeader) +h.len;
+  end;
+
+  Stream.Position := StreamStartPos; { restore original position in Stream }
+  if MatName = '' then raise EInvalid3dsFile.Create('Unnamed material');
+
+  { znalezlismy MatName; teraz mozemy dodac go do Items, chyba ze juz tam
+    jest not Initialized (wtedy wystarczy go zainicjowac) lub Initialized
+    (wtedy blad - exception) }
+  ind := MaterialIndex(MatName);
+  with Items[ind] do
+  begin
+    Check3dsFile( not Initialized, 'Duplicate material '+MatName+' specification');
+    {jesli not Initialized to znaczy ze material albo zostal dodany do listy
+     przez MaterialIndex albo zostal juz gdzies uzyty w trimeshu -
+     tak czy siak nie zostal jeszcze zdefiniowany w pliku 3ds.
+     Wiec mozemy go teraz spokojnie zainicjowac.}
+    ReadFromStream(Stream, EndPos);
+  end;
+end;
+
+{ Useful consts -------------------------------------------------------------- }
 
 const
-  { 3ds format consts : }
-
   { czy jest edge flag pomiedzy i a (i+1) mod 3 vertexem ?
     Odpowiedz := (FACEFLAG_EDGES[i] and Face.flags) <> 0 }
   FACEFLAG_EDGES: array[0..2]of Word = ($4, $2, $1);
