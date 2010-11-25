@@ -13,9 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Generating so-called "space filling curves",
-  i.e. curves that "walk" through all points of some defined space.) }
-
+{ Generate space-filling curves (TSwapScanCurve, THilbertCurve, TPeanoCurve).
+  These are sequences of points that completely fill some 2D space. }
 unit SpaceFillingCurves;
 
 interface
@@ -23,36 +22,42 @@ interface
 uses SysUtils, VectorMath;
 
 type
-  { 0 = 0 stopni, 1 = 90 stopni, 2 = 180, 3 = 270 ale tak naprawde to tylko
-    kwestia umowy, moznaby przesunac te rzeczy. Chodzi tylko o to ze to musza
-    byc 4 kolejne katy (kolejne w sensie CW lub CCW, to bez znaczenia przeciez).}
+  { Angle for space-filling curves.
+
+    Let's say 0 = 0 degrees, 1 = 90 degrees, 2 = 180, 3 = 270,
+    but actually it doesn't matter much --- it all a matter of convention here. }
   TSFCAngle = 0..3;
 
   TSFCStepFunction = procedure (Angle: TSFCAngle; StepFuncData: Pointer);
 
-{ PeanoCurve i HilbertCurve generuja kolejne punkty ciagu (czy tez krzywej,
-  a moze raczej lamanej) Peano lub Hilberta, jak w "Graphic Gems II", gem I.8.
-  Step jest funkcja ktora przechodzi na sasiedni punkt 2d w zadanym kierunku
-  i "zaznacza go". Zakladajac ze na poczatku punkt poczatkowy jest juz
-  "zaznaczony" lamane Peano i Hilberta daja nam pewnosc ze cala plansza 2d
-  zostanie "zaznaczona". Dla Peano zapelniana jest plansza o wymiarach 3^Level,
-  dla Hilberta 2^Level.
+{ Low-level procedures to generate consecutive Peano and Hilbert curve points.
+  Following "Graphic Gems II", gem I.8.
 
-  Orient to skrot od Orientation, Angle to jakis "poczatkowy" Angle (w cudzyslowach
-  bo tak naprawde to zalezy od krzywej w jaki sposob te Orient i Angle zostana
-  wykorzystane; ale na pewno zdeterminuja ona to po ktorej stronie punktu
-  poczatkowego pojawi sie krzywa).
+  Step is a function that goes to a neighbor 2D point, and "marks" it
+  (whatever it means for your usage). If the starting point is "marked"
+  at the beginning, using Peano or Hilbert curve guarantees that you
+  will eventually "mark" the whole 2D space.
 
-  Przyjmujac ze katy TSFCAngle sa interpretowane jako 0 = 0 stopni = w prawo,
-  1 = 90 stopni = w gore, 2 = 180 stopni = w lewo i 3 = 270 stopni = w dol
-  to musisz podac nastepujace InitialOrient i Angle aby plansza byla
-  zapelniana na lewo i w gore od punktu poczatkowego :
-    Peano: InitialOrient = false, Angle = 0.
-    Hilbert: InitialOrient = true, Angle = 0. }
+  Peano curve fills a plane size 3^Level, Hilbert curve fills size 2^Level.
+
+  Angle is an initial orientation, determining in which direction
+  the curve will be drawn. If you want to fill the space up and to the left
+  from the initial point (according to conventions that
+  Angle = 0 is right, Angle = 1 is up, and so on (CCW)), then use:
+
+  @unorderedList(
+    @item(InitialOrient = false and Angle = 0 for PeanoCurve.)
+
+    @item(InitialOrient = true and Angle = 0 for HilbertCurve.)
+  )
+
+  @groupBegin
+}
 procedure PeanoCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
 procedure HilbertCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: Cardinal;
   Step: TSFCStepFunction; StepData: Pointer);
+{ @groupEnd }
 
 type
   { To jest abstrakcyjna klasa reprezentujaca interfejs obiektu ktory
