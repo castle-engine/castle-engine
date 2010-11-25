@@ -478,6 +478,12 @@ procedure Box3DDirectionDistances(const Box: TBox3D;
   const Point, Dir: TVector3Single;
   out MinDistance, MaxDistance: Single);
 
+{ Shortest distance between the box and a point.
+  Always zero when the point is inside the box.
+
+  @raises EBox3DEmpty When used with an empty box. }
+function Box3DPointDistance(const Box: TBox3D; const Point: TVector3Single): Single;
+
 type
   TDynArrayItem_1 = TBox3D;
   PDynArrayItem_1 = PBox3D;
@@ -1810,6 +1816,34 @@ begin
     by epsilon than MaxDistance? Fix it to be sure. }
   { For now: just assert it: }
   Assert(MinDistance <= MaxDistance);
+end;
+
+function Box3DPointDistance(const Box: TBox3D; const Point: TVector3Single): Single;
+var
+  I: Integer;
+begin
+  CheckNonEmpty(Box);
+
+  { There are 4 cases:
+    0. point is in no box range - calculate distance to closest corner
+    1. point is 1 box range - calculate distance to closest edge
+    2. point is 2 box ranges - calculate distance to closest side
+    3. point is 3 box ranges - so point is inside, distance = 0
+
+    First naive implementation was detecting these cases by calculating
+    InsideRangeCount, InsideRange and such.
+    But actually you can calculate all cases at once. }
+
+  Result := 0;
+  for I := 0 to 2 do
+  begin
+    if Point[I] < Box[0][I] then
+      Result += Sqr(Point[I] - Box[0][I]) else
+    if Point[I] > Box[1][I] then
+      Result += Sqr(Point[I] - Box[1][I]);
+  end;
+
+  Result := Sqrt(Result);
 end;
 
 end.

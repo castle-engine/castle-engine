@@ -30,6 +30,7 @@ type
     procedure TestBox3DTransform;
     procedure TestBox3DMaximumPlane;
     procedure TestBox3DMinimumPlane;
+    procedure TestBox3DPointDistance;
   end;
 
 implementation
@@ -487,8 +488,10 @@ var
 
 const
   A = 1.980401039123535;
+{$ifdef CPU64}
 var
   OldBox3DPlaneCollisionEqualityEpsilon: Double;
+{$endif}
 begin
   EqualityEpsilon := 1e-5;
 
@@ -766,6 +769,29 @@ begin
       { 2 + 3 + 4 + Result[3] = 0 }
       - 2 - 3 - 4
     )));
+end;
+
+procedure TTestBoxes3D.TestBox3DPointDistance;
+const
+  Box: TBox3D = ( (1, 2, 3), (4, 5, 6) );
+  Epsilon = 0.0001;
+begin
+  { check point inside box case }
+  Assert(Box3DPointDistance(Box, Vector3Single(1, 2, 3)) = 0);
+  Assert(Box3DPointDistance(Box, Vector3Single(3, 4, 5)) = 0);
+  { check point <-> box side case }
+  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(3, 4, 10)), 4));
+  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(3, 4, 0)), 3));
+  { check point <-> box edge case }
+  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(3, 10, 10)),
+    Sqrt( Sqr(10-6) + Sqr(10-5) ), Epsilon));
+  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(3, 0, 0)),
+    Sqrt( Sqr(0-2)  + Sqr(0-3)  ), Epsilon));
+  { check point <-> box corner case }
+  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(10, 10, 10)),
+    Sqrt( Sqr(10-6) + Sqr(10-5) + Sqr(10-4) ), Epsilon));
+  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(0, 0, 0)),
+    Sqrt( Sqr(0-2)  + Sqr(0-3)  + Sqr(0-1)  ), Epsilon));
 end;
 
 initialization
