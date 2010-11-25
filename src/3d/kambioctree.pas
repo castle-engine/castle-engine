@@ -13,32 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-(*@abstract(This unit provides common utilities and classes for making
-  octrees, used in @link(VRMLTriangleOctree) and @link(VRMLShapeOctree).)
+(*Base octree classes (TOctreeNode and TOctree) and utilities.
+  Used by actual octrees in units like VRMLTriangleOctree and VRMLShapeOctree.
 
-  It provides class @link(TOctree) that holds some settings "global"
-  for whole octree (like MaxDepth etc.) and it holds reference to
-  root node of the tree, @link(TOctreeNode), in the protected property
-  InternalTreeRoot.
-
-  Each @link(TOctreeNode) is either
-  @unorderedList(
-    @item(a leaf: then it stores a list
-      of Integers in ItemsIndices array --- these integers are usuallly
-      indexes to some array, but for the sake of this unit they are
-      just some integers that uniquely describe items that you want
-      to have in octree leafs.
-      The key of this unit is that it doesn't specify what
-      items you want to put in your octree leaf.)
-
-    @item(or not a leaf: then it has 8 children stored in TreeSubNodes.)
-  )
-
-  Each @link(TOctreeNode) also has some essential properties like
-  Box, MiddlePoint and ParentTree.
-
-  Using this unit it's very easy to create real, non-abstract octree
-  classes. Typical schema looks like this;
+  Typical way to derive actual (non-abstract) octrees goes like this;
   @longcode(#
 type
   TMyOctree = class;
@@ -61,29 +39,27 @@ type
 
 procedure TMyOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
 begin
- { See comments at @link(TOctreeNode.PutItemIntoSubNodes)
-   to know how you should implement this. }
+  { See comments at @link(TOctreeNode.PutItemIntoSubNodes)
+    to know how you should implement this. }
 end;
 
 function TMyOctreeNode.ParentTree: TMyOctree;
 begin
- Result := TMyOctree(InternalParentTree);
+  Result := TMyOctree(InternalParentTree);
 end;
 
 constructor TMyOctree.Create(AMaxDepth, ALeafCapacity: Integer;
   const ARootBox: TBox3D);
 begin
- inherited Create(AMaxDepth, ALeafCapacity, ARootBox,
-   TMyOctreeNode);
+  inherited Create(AMaxDepth, ALeafCapacity, ARootBox, TMyOctreeNode);
 end;
 
 function TMyOctree.TreeRoot: TMyOctreeNode;
 begin
- Result := TMyOctreeNode(InternalTreeRoot);
+  Result := TMyOctreeNode(InternalTreeRoot);
 end;
-  #)
+#)
 *)
-
 unit KambiOctree;
 
 interface
@@ -102,6 +78,22 @@ type
   TEnumerateOctreeItemsFunc = procedure(ItemIndex: Integer;
     CollidesForSure: boolean) of object;
 
+  { Octree node.
+
+    @unorderedList(
+      @item(@italic(Leaf nodes) store a list of indexes in ItemsIndices array.
+        These are usuallly indexes to some array of items on TOctree.
+        For the sake of this unit they are just some integers that
+        uniquely describe items that you want to keep in octree leafs.
+        The base abstract TOctreeNode class doesn't clarify what
+        kind of items are actually kept.)
+
+      @item(@italic(Not leaf (internal) nodes) have 8 children
+       nodes in TreeSubNodes.)
+    )
+
+    Each @link(TOctreeNode) also has some essential properties like
+    Box, MiddlePoint and ParentTree. }
   TOctreeNode = class
   private
     { read-only after the object is created }
@@ -117,13 +109,12 @@ type
 
     FIsLeaf: boolean;
 
-    { CreateTreeSubNodes inicjuje TreeSubNodes (tworzy je, wywolujac odpowiednie
-      konstruktry); CreateLeafItems inicjuje Items.
-      Uwaga - zadna z tych proc NIE robi najpierw Items.Free czy Subnodes[].Free,
-      musisz najpierw zadbac sam o zrobienie odpowiednich Free (a w zasadzie,
-      jezeli sa <> nil, to po co je tworzyc ? Nie powinienes wtedy w ogole
-      wywolywac ponizszych Create* }
+    { Neither CreateTreeSubNodes nor CreateLeafItems call
+      Items.Free or Subnodes[].Free, that is they don't cleanup after their
+      previous calls. If you want, you have to cleanup yourself. }
+    { Create TreeSubNodes. }
     procedure CreateTreeSubNodes(AsLeaves: boolean);
+    { Create ItemsIndices. }
     procedure CreateLeafItems;
     procedure FreeAndNilTreeSubNodes;
 
@@ -133,13 +124,13 @@ type
       const Frustum: TFrustum;
       EnumerateOctreeItemsFunc: TEnumerateOctreeItemsFunc);
   protected
-    { This must be overriden in subclasses. This should call
-      SubNode.AddItem(ItemIndex) for chosen TreeSubNodes
-      (maybe all, maybe none). It depends on what is your definition of
-      "an octree item" how you implement it -- you generally
-      want to check how given item collides with BoundingBoxes
-      of your TreeSubNodes and call SubNode.AddItem(ItemIndex)
-      for each SubNode that has (al least part) of your ItemIndex.
+    { Insert given index into appropriate subnodes.
+      This should call SubNode.AddItem(ItemIndex) for chosen TreeSubNodes
+      (maybe all, maybe none). It all depends on what is your definition of
+      "an octree item" -- you generally want to check how given item
+      collides with BoundingBoxes of your TreeSubNodes and call
+      SubNode.AddItem(ItemIndex) for each SubNode that contains
+      (al least part) of your ItemIndex.
 
       Don't ever call this directly from subclasses of TOctreeNode.
       TOctreeNode internally calls it when it needs to.
@@ -148,7 +139,7 @@ type
       But you shouldn't assume here anything about value of IsLeaf
       or ItemIndices <> nil (yes, this means that this function
       may be internally called when the state of this object
-      is somewhat invalid). }
+      is partially invalid). }
     procedure PutItemIntoSubNodes(ItemIndex: integer); virtual; abstract;
 
     property InternalParentTree: TOctree read FParentTree;
@@ -156,84 +147,86 @@ type
     { Parent node of the octree. @nil for the root node. }
     property InternalParentNode: TOctreeNode read FParentNode;
   public
-    { TreeSubNodes sa wszystkie = nil gdy IsLeaf i wszystkie <> nil gdy not IsLeaf.
-      znaczenie indeksow : pierwszy indeks mowi czy X sa >= MiddlePoint[0],
-      drugi czy Y sa >= MiddlePoint[1] itd.
+    { Child octree nodes, only if this is an internal node (IsLeaf = @false).
+      When this is a leaf (IsLeaf = @true), these are all @nil.
 
-      Their class is always the same as the class of Self.
+      Indexed by booleans, "true" means that given coordinate
+      is >= than corresponding MiddlePoint coordinate.
+      For example TreeSubNodes[true, true, true] are coordinates
+      between MiddlePoint and Box[1].
 
-      Note that this field is read-only from outside of this unit ! }
-    TreeSubNodes: array[boolean, boolean, boolean]of TOctreeNode;
+      Subnodes class is always the same as our (Self) class.
 
-    { When @link(IsLeaf), ItemsIndices is always <> nil
-      and contains all items stored in this leaf.
+      This field is read-only from outside of this unit. }
+    TreeSubNodes: array [boolean, boolean, boolean] of TOctreeNode;
 
-      When not @link(IsLeaf) and not ParentTree.ItemsInNonLeafNodes
-      then ItemIndices = nil.
-      When not @link(IsLeaf) and ParentTree.ItemsInNonLeafNodes
-      then ItemIndices is <> nil and stores indices of all items
-      that are somewhere beneath this node. See comments
-      at @link(TOctree.ItemsInNonLeafNodes) for more info
-      when this may be useful.
+    { Items stored at the octree node.
+      Items are stored here (and ItemsIndices <> nil) only
+      when this is a leaf item (IsLeaf = @true) or when
+      ParentTree.ItemsInNonLeafNodes is @true. In the latter case,
+      we store items even in internal nodes, see TOctree.ItemsInNonLeafNodes.
 
-      Never put any items in the octree node using simple ItemsIndices.Add !
-      Instead you must use @link(AddItem) method.
-    }
+      Never put any items in the octree node by direct ItemsIndices.Add.
+      Instead you must use @link(AddItem) method. }
     property ItemsIndices: TDynIntegerArray read FItemsIndices;
 
-    { Same things as ItemsIndices.Count.
-      It is nice name to use with Items[] property defined in subclasses.
+    { Number of items stored here.
+      Same thing as ItemsIndices.Count, but has somewhat nicer name
+      if you have Items[] property defined in a subclass.
       Use this only when you know that @link(ItemsIndices) <> nil. }
     function ItemsCount: integer;
 
-    { This inserts item this octree node.
+    { Insert an item into this octree node.
 
-      It takes takes care of many things that are essential for octree
-      construction, like
-      -- splitting a leaf node into non-leaf node
-         if maximum number of items in leaf is exceeded
-         (and Depth < MaxDepth) and
-      -- (in case of inserting item into non-leaf node)
-         dispatching item to correct children node (from @link(TreeSubNodes)). }
+      It takes care of the octree structure properties:
+
+      @unorderedList(
+        @item(Splits a leaf node into non-leaf node
+         if maximum number of items in leaf is exceeded (and Depth < MaxDepth).)
+
+        @item(And when you insert an item into non-leaf node,
+          it correctly puts it into children subnodes too.)
+      ) }
     procedure AddItem(ItemIndex: integer);
 
-    { IsLeaf : zmiana z false na true powoduje zebranie wszystkich elementow
-      z SubNode'ow i wrzucenie ich do ItemsIndices. Zmiana z true na false powoduje
-      stworzenie SubNode'ow i wrzucenie do nich ItemsIndices zgodnie z MiddlePoint.}
+    { Is this a leaf node.
+
+      Changing this property rearranges items correctly.
+      If you change this from @false to @true then all items from subnodes
+      are correctly gathered and stored in our ItemsIndices.
+      If you change this from @true to @false then subnodes are created
+      and we insert to them our items, following the MiddlePoint rule. }
     property IsLeaf: boolean read fIsLeaf write SetLeaf;
 
-    { MiddlePoint to punkt wzgledem ktorego sa rozbite SubNode'y.
-      Liscie tez musza miec zdefiniowany MiddlePoint na wypadek gdyby kiedys
-      trzeba je bylo rozbic na 8 SubNode'ow.
+    { Middle point of the octree node, determines how our subnodes divide
+      the space. This is defined for leaf nodes too, since leaf nodes
+      may have to be converted into internal nodes at some point.
 
       Note that MiddlePoint does not need to be exactly in the
-      middle of octree node. This is it's default value
-      (if you called Create that doesn't let you explicitly
-      set MiddlePoint), but it's not a requirement.
+      middle of the octree node. This is it's default value
+      (if you called constructor without explicitly
+      providing MiddlePoint value), but it's not a requirement.
       MiddlePoint may be anywhere inside @link(Box).
 
-      This way you can specify MiddlePoint if you know that node
-      with such MiddlePoint will yield better hierarchical division
-      of your scene.
+      This way you can explicitly specify some MiddlePoint if you know that
+      if will yield better hierarchical division of your scene.
 
-      Special case: when IsEmptyBox3D(Box), then value of MiddlePoint
-      is undefined.  }
+      When @link(Box) is empty, then value of MiddlePoint is undefined.  }
     property MiddlePoint: TVector3Single read fMiddlePoint;
 
-    { Box to pudelko w ktorym powinny sie miescic wszystkie elementy pod tym
-      OctreeNode. Tzn. jest dopuszczalne zeby jakies elementy "wystawaly" poza
-      Box'a (bo nie chcemy dzielic trojkatow gdy bedziemy je wrzucac do drzewa,
-      wiec jesli np. jakis trojkat bedzie zajmowal miejsce w dwoch subnode'ach
-      to bedziemy go wrzucac do obydwu) ale jest generalnie niezdefiniowane jak
-      takie wystajace czesci beda traktowane - czy na pewno zawsze wszystko bedzie
-      te wystajace czesci uwzglednialo. Tylko te kawalki trojkatow ktore beda
-      sie miescily w Box maja gwarantowana poprawna obsluge.
+    { Axis-aligned box in the 3D space that contains all items within
+      this node. It's allowed that some items are actually larger
+      and go (partially) outside of this box too (so you don't have
+      to split one triangle into many when it doesn't fit perfectly
+      into octree node), but it's undefined if the parts that go outside
+      will be detected by collision routines of this node.
 
-      Special case: when IsEmptyBox3D(Box), then MiddlePoint has undefined
-      value and IsLeaf *must be true*. }
+      Special case: when this is empty, then MiddlePoint has undefined
+      value and IsLeaf must be true. }
     property Box: TBox3D read fBox;
 
-    { BoundingSphereCenter and BoundingSphereRadius are simply calculated
+    { Bounding sphere of this box.
+      Right now simply calculated
       as the smallest possible sphere enclosing Box.
       So they are only a bad approximation of bounding Box,
       but they can be sometimes useful in stuations when detecting
@@ -247,19 +240,24 @@ type
 
     property Depth: integer read fDepth;
 
-    { This calculates MiddlePoint as middle of ABox,
+    { Simple constructor. Calculates MiddlePoint as a middle of the ABox,
       or as (0, 0, 0) if ABox is empty.
-      Then it simply calls @link(CreateBase) }
+      Then it simply calls @link(CreateBase). }
     constructor Create(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
       ADepth: integer; AsLeaf: boolean);
 
-    { This is the virtual constructor that you want to override
-      in descendants. This constructor must be virtual,
+    { Virtual constructor, not to be called directly, only to be overridden.
+      (But a constructor should be public, not protected.)
+
+      You want to override this in descendants.
+      This constructor must be virtual,
       since in this unit CreateTreeSubNodes and TOctree.Create
       must be able to construct new instances of class
       using class reference (given by Self.ClassType in CreateTreeSubNodes
-      or OctreeNodeFinalClass in TOctree.Create). }
+      or OctreeNodeFinalClass in TOctree.Create).
+
+      @exclude }
     constructor CreateBase(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
       ADepth: integer; AsLeaf: boolean;
@@ -267,11 +265,11 @@ type
 
     destructor Destroy; override;
 
-    { W jakim SubNode moglby byc punkt P ? Zdecyduj sie na podstawie wlasnego
-      MiddlePoint. Ignoruje w ogole fakt czy jestesmy wezlem czy lisciem
-      i ignoruje fakt czy punkt P jest w ogole w naszym Box (to znaczy
-      jest w stanie zaklasyfikowac kazdy punkt przestrzeni na podstawie
-      MiddlePoint, nie obchodzi go czy rzeczywiscie P inside Box) }
+    { In which subnode does the given point lie.
+      Decides using MiddlePoint.
+
+      This is a simple utility, ignores what is our @link(Box) (doesn't check
+      is P is inside @link(Box) at all), ignores if we're leaf or not. }
     function SubnodeWithPoint(const P: TVector3Double):
       TOctreeSubnodeIndex; overload;
     function SubnodeWithPoint(const P: TVector3Single):
@@ -300,6 +298,10 @@ type
   end;
   POctreeLimits = ^TOctreeLimits;
 
+  { Base abstract octree class.
+    Holds some settings common for the whole octree (like MaxDepth)
+    and a reference to the root octree node (of @link(TOctreeNode) class)
+    in the protected property InternalTreeRoot. }
   TOctree = class
   private
     FTreeRoot: TOctreeNode;
@@ -321,49 +323,27 @@ type
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
       virtual;
   public
+    { Maximum tree depth.
 
-    { MaxDepth = maksymalna glebokosc drzewa. MaxDepth = 0 oznacza ze RootNode
-      musi byc lisciem. LeafCapacity to maksymalna pojemnosc lisci,
-      tzn. w kazdym lisciu nie moze byc wiecej LeafCapacity elementow
-      CHYBA ze ten lisc jest na maksymalnej glebokosci ! Jezeli lisc nie jest
-      na maksymalnej glebokosci to przekroczenie w nim LeafCapacity
-      powoduje rozbicie liscia na wezel wewnetrzny. Naturalnie LeafCapacity
-      zawsze musi byc >= 1, inaczej wszystko nie ma sensu.
+      Set this to zero to force RootNode to be a leaf
+      (useful to test whether octree vs a flat list is actually useful).
 
-      TODO -- comments below are rather specific for TVRMLTriangleOctree,
-      adjust them to general octree (so that they also talk about
-      TVRMLShapeOctree)
-
-      Gdy MaxDepth = 0
-      wszystkie elementy sa na jednym poziomie wiec de facto badajac kolizje
-      nie bedziemy miec drzewa osemkowego tylko zwykle liniowe przeszukiwanie
-      wsrod wszystkich obiektow. MaxDepth = 0 moze byc przydatne do sprawdzenie
-      czy w ogole jest sens robic drzewo osemkowe na danej scenie.
-      Ogolnie, LeafCapacity i MaxDepth najlepiej jest dostroic do
-      sceny - uzyteczna informacja bedzie tu
-      TVRMLScene.CountNodes(TVRMLGeometryNode).
-
-      Note: changing MaxDepth and LeafCapacity after creating
-      octree is allowed, you shouldn't change them if you already put
-      some items in your octree. Otherwise your octree will be correct
-      but may not satisfy current MaxDepth and LeafCapacity
-      constraints. In other words, changing MaxDepth and LeafCapacity
-      does *not* rebuild your octree to satisfy new values
-      of MaxDepth and LeafCapacity.
-      Although I may implement it some day -- it's easy to implement,
-      but it would be just useless for me now. }
+      Currently, you should not change MaxDepth and LeafCapacity after creating
+      the octree, as they will not rebuild the octree to obey the given limits. }
     property MaxDepth: integer read FMaxDepth write FMaxDepth;
+
+    { Maximum number of items inside a leaf, unless this leaf is already
+      at maximum depth (MaxDepth). When you add an item to a leaf,
+      to keep LeafCapacity correct. Must be >= 1. }
     property LeafCapacity: Integer
       read FLeafCapacity write FLeafCapacity;
 
-    { TOctreeNode with IsLeaf = true *always* have ItemIndices,
-      since leaves always store items inside.
+    { Does this octree keep items also in internal nodes.
+      Leaf nodes always store items (have ItemIndices).
 
-      If you set this property to true when constructing this object
-      then also every TOctreeNode with IsLeaf = false
-      (i.e. non-leaf nodes, then have some children nodes)
-      will have ItemIndices property that always keeps the sum
-      of all ItemIndices stored in it's children.
+      If you set this property to @true when constructing this object
+      then all created TOctreeNode will have ItemIndices property
+      that keeps the items inside.
 
       Advantages: e.g. consider frustum culling using octree.
       In some situations you know that some OctreeNode is
@@ -379,12 +359,12 @@ type
 
       Disadvantages: if you have many items in your octree
       (as is typical with e.g. @link(TVRMLTriangleOctree))
-      then this property can cost you a *lot* of memory. }
+      then this property can cost you a @italic(lot) of memory. }
     property ItemsInNonLeafNodes: boolean
       read FItemsInNonLeafNodes;
 
-    { You must give value for this property when constructing
-      this object.
+    { The actual (non-abstact) TOctreeNode descendant class for this octree.
+      Set when constructing this octree.
 
       This tells what class should have FTreeRoot.
       Since inside TOctreeNode, each children node
@@ -403,7 +383,7 @@ type
     destructor Destroy; override;
 
     { This traverses octree seeking for nodes that collide
-      (or, in some situations, *possibly* collide)
+      (or, in some situations, @italic(possibly) collide)
       with given Frustum. Then it returns every item in such nodes
       with EnumerateOctreeItemsFunc.
 
@@ -451,9 +431,9 @@ type
       const Frustum: TFrustum;
       EnumerateOctreeItemsFunc: TEnumerateOctreeItemsFunc);
 
-    { This calculates and returns some multi-line string that describes
-      how octree levels look like -- how many leaves, non-leaves,
-      items in leaves and on each level and in summary.
+    { Multi-line description of how the octree levels look like.
+      Describes how many leaves / non-leaves  we have,
+      how many items in leaves we have and on each level and in summary.
 
       Every line, including the last one, is terminated by nl.
 
@@ -462,7 +442,6 @@ type
     function Statistics: string;
   end;
 
-{ small helpers }
 function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string;
 function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): boolean;
 

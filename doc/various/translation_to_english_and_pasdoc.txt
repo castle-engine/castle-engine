@@ -22,7 +22,7 @@ D   boxes3d.pas
 D   convexhullunit.pas
 D   cubemap.pas
 D   frustum.pas
-|   kambioctree.pas
+D   kambioctree.pas
 D   nurbs.pas
 D   object3dgeo.pas
 D   object3dmd3.pas
