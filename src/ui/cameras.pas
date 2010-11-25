@@ -545,6 +545,7 @@ type
     procedure SetMoveAmount(const Value: TVector3Single);
     procedure SetModelBox(const Value: TBox3D);
     procedure SetCenterOfRotation(const Value: TVector3Single);
+    function Zoom(const Factor: Single): boolean;
   private
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -2397,6 +2398,19 @@ begin
   Result := EventDown(K_None, #0, true, Button, mwNone);
 end;
 
+function TExamineCamera.Zoom(const Factor: Single): boolean;
+var
+  Size: Single;
+begin
+  Result := not IsEmptyOrZeroBox3D(FModelBox);
+  if Result then
+  begin
+    Size := Box3DAvgSize(FModelBox);
+    FMoveAmount[2] += Size * Factor;
+    VisibleChange;
+  end;
+end;
+
 function TExamineCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
 var
   Size: Single;
@@ -2482,14 +2496,11 @@ begin
     meaning of mbLeft but they don't change the meaning of mbRight / Middle ? }
 
   { Moving closer/further }
-  if (not IsEmptyOrZeroBox3D(FModelBox)) and
-     ( ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
-       ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) ) ) then
+  if ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
+     ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) ) then
   begin
-    Size := Box3DAvgSize(FModelBox);
-    FMoveAmount[2] += Size * (NewY - OldY) / 200;
-    VisibleChange;
-    Result := ExclusiveEvents;
+    if Zoom((NewY - OldY) / 200) then
+      Result := ExclusiveEvents;
   end;
 
   { Moving left/right/down/up }
@@ -2506,22 +2517,17 @@ begin
 end;
 
 function TExamineCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
-var
-  Size: Single;
 begin
   Result := inherited;
   if Result or (not Exists) or
     (not MouseNavigation) or IgnoreAllInputs or IsAnimation or
-    (ModifiersDown(Container.Pressed) * [mkShift, mkCtrl] <> []) or
-    IsEmptyOrZeroBox3D(FModelBox) then
+    (ModifiersDown(Container.Pressed) * [mkShift, mkCtrl] <> []) then
     Exit;
 
   { For now, this is hardcoded, we don't call EventDown here }
 
-  Size := Box3DAvgSize(FModelBox);
-  FMoveAmount[2] += Size * Scroll / 10;
-  VisibleChange;
-  Result := ExclusiveEvents;
+  if Zoom(Scroll / 10) then
+    Result := ExclusiveEvents;
 end;
 
 procedure TExamineCamera.GetView(
