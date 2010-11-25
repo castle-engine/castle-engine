@@ -38,8 +38,13 @@ uses VRMLNodes;
   are missing currently, what should work currently is geometry and
   standard (without shaders) materials.
 
-  Resulting VRML is VRML 2.0. }
-function LoadCollada(const FileName: string): TVRMLNode;
+  Resulting VRML is VRML 2.0.
+
+  Only if AllowKambiExtensions, it may use some of our engine specific
+  extensions (for example, Material.mirror may be <> 0,
+  see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_material_mirror]. }
+function LoadCollada(const FileName: string;
+  const AllowKambiExtensions: boolean = false): TVRMLNode;
 
 implementation
 
@@ -77,7 +82,8 @@ end;
 
 { LoadCollada ---------------------------------------------------------- }
 
-function LoadCollada(const FileName: string): TVRMLNode;
+function LoadCollada(const FileName: string;
+  const AllowKambiExtensions: boolean): TVRMLNode;
 var
   WWWBasePath: string;
 
@@ -225,8 +231,11 @@ var
                      ReadColorOrTexture(ChildElement) else
 
                  if ChildElement.TagName = 'reflectivity' then
-                   Effect.FdMirror.Value :=
-                     ReadFloatOrParam(ChildElement) else
+                 begin
+                   if AllowKambiExtensions then
+                     Effect.FdMirror.Value := ReadFloatOrParam(ChildElement) else
+                     ReadFloatOrParam(ChildElement);
+                 end else
 
                  if ChildElement.TagName = 'transparent' then
                    TransparencyColor :=
@@ -393,8 +402,11 @@ var
                              ReadParamAsVector3(ChildElement) else
 
                          if ParamName = 'REFLECTIVITY' then
-                           Mat.FdMirror.Value :=
-                             ReadParamAsFloat(ChildElement) else
+                         begin
+                           if AllowKambiExtensions then
+                             Mat.FdMirror.Value := ReadParamAsFloat(ChildElement) else
+                             ReadParamAsFloat(ChildElement);
+                         end else
 
                          (*
                          Blender Collada 1.3.1 exporter bug: it sets

@@ -55,6 +55,10 @@ Mirrors:
 
 - flat mirrors - my approach. Mention on coverflow thread, also for VA.
 
+- Once Material.mirror will be honored for interactive rendering,
+  probably the Collada->VRML convertion should be fixed,
+  to include "mirror" (as it will be useful then) but allow
+  "Save To VRML (without Kambi extensions)" option.
 ------------------------------------------------------------------------------
 VBO transition:
 
