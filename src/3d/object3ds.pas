@@ -45,14 +45,6 @@ uses KambiUtils, Classes, KambiClassUtils, SysUtils,
 
 {$define read_interface}
 
-const
-  { TODO: I don't know default 3DS material parameters.
-    Below I just use some default OpenGL and VRML 1.0 values. } { }
-  Default3dsMatAmbient: TVector4Single = (0.2, 0.2, 0.2, 1.0);
-  Default3dsMatDiffuse: TVector4Single = (0.8, 0.8, 0.8, 1.0);
-  Default3dsMatSpecular: TVector4Single = (0, 0, 0, 1.0);
-  Default3dsMatShininess: Single = 0.2; {< in range 0..1 }
-
 type
   EInvalid3dsFile = class(Exception);
   EMaterialNotInitialized = class(EInvalid3dsFile);
@@ -73,18 +65,19 @@ type
       defined in 3DS file. }
     property Initialized: boolean read FInitialized default false;
   public
-    { Material properties. Have default values:
-      Default3dsMatAmbient, Default3dsMatDiffuse, Default3dsMatSpecular,
-      in case they would be undefined in 3DS file. }
+    { Material properties. Have default values (following VRML and OpenGL
+      defaults, as I don't know 3DS defaults) in case they would be
+      undefined in 3DS file. }
     AmbientCol: TVector4Single;
     DiffuseCol: TVector4Single;
     SpecularCol: TVector4Single;
 
-    TextureMap1, TextureMap2: TMaterialMap3ds; { .Exists = false }
+    { Texture maps, initialized with Exists = false }
+    TextureMap1, TextureMap2: TMaterialMap3ds;
 
     { All Singles below are always read from 3ds file (they are required
       subchunks of material chunk). They are in range 0..1. } { }
-    Shininess: Single; {< By default Default3dsShininess. }
+    Shininess: Single;
     ShininessStrenth, Transparency,
       TransparencyFalloff, ReflectBlur :Single; {< By default 0 }
 
@@ -474,6 +467,14 @@ begin
 end;
 
 { 3DS materials -------------------------------------------------------------- }
+
+const
+  { TODO: I don't know default 3DS material parameters.
+    Below I just use some default OpenGL and VRML 1.0 values. } { }
+  Default3dsMatAmbient: TVector4Single = (0.2, 0.2, 0.2, 1.0);
+  Default3dsMatDiffuse: TVector4Single = (0.8, 0.8, 0.8, 1.0);
+  Default3dsMatSpecular: TVector4Single = (0, 0, 0, 1.0);
+  Default3dsMatShininess: Single = 0.2; {< in range 0..1 }
 
 constructor TMaterial3ds.Create(const AName: string);
 begin
