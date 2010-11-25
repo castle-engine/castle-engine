@@ -155,7 +155,7 @@ D   glcubemap.pas
 D   glimages.pas
 D   glshaders.pas
 D   glversionunit.pas
--   kambiglut.pas
+E   kambiglut.pas
 |   kambiglutils.pas
 D   normalizationcubemap.pas
 D   openglbmpfonts.pas

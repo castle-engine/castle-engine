@@ -13,32 +13,22 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Translation of glut.h header (version 3.7 beta) to Pascal.)
+{ Translation of GLUT header (version 3.7 beta) to Pascal.
+  Tested with FPC on Linux, FreeBSD, Mac OS X, Windows.
+  But should work everywhere, even on non-FPC compilers.
 
-  Working with FPC (and possibly Delphi, Kylix, but these are untested
-  since a long time) on all platforms (that I tested --- right now this
-  means Linux, FreeBSD, Mac OS X, Windows).
+  Functions are loaded at unit initialization (not by delaring them
+  as external). This can be used for checking is glut library available
+  at runtime some day.
 
-  Stosowalem dyrektywy $IF ale przestalem - teraz uzywam tylko
-  $IFDEF, wiec jest kompatybilnosc z FPC 1.0.x (i przy okazji ze
-  starszymi Delphi).
+  Includes additional glutPascalInit procedure, useful to easily and correctly
+  call glutInit.
 
-  Procedury / funkcje gluta sa ladowane w initialization
-  zamiast robic je przez external, this is a leftover from old confusion,
-  see OpenGLh.glXMakeCurrent comments. The issue is (most probably)
-  non-existent since a long time, and I even don't use OpenGLh unit anymore...
-  So there's no valid reason currently to not use "external" construct.
+  Original header is Copyright (c) Mark J. Kilgard, 1994, 1995, 1996, 1998.
 
-  Wieksze wlasne dodatki / konieczne zmiany oznaczylem przez 'Kambi'
-  (wlasciwie to jest tylko jeden moj dodatek uzyteczny z zewnatrz :
-  procedura glutPascalInit).
-
-  oryginal : Copyright (c) Mark J. Kilgard, 1994, 1995, 1996, 1998.
-
-  Dolaczenie tego modulu do programu powoduje ze user musi miec
-  zainstalowanego gluta, odpowiedni SO lub DLL (see below).
-}
-
+  @exclude (A lot of docs are not fixed for PasDoc. It's also internal,
+  and actually not used unit (unless you specifically compile GLWindow with
+  GLUT backend.)) }
 unit KambiGlut;
 
 (*
@@ -67,7 +57,7 @@ unit KambiGlut;
    they don't exist in FPC).
 *)
 
-{$Include KambiConf.inc}
+{$I kambiconf.inc}
 
 { Choose calling convention for glut functions. }
 {$ifdef UNIX}      {$define GLUT_CDECL}   {$endif}
@@ -559,12 +549,16 @@ const
   glutGameModeGet: function(mode: TGLenum) :integer; {$ifdef GLUT_CDECL} cdecl; {$endif} {$ifdef GLUT_STDCALL} stdcall; {$endif}
   *)
 
-  {Kambi : my glutPascalInit calls glutInit(argc, argv) constructing
-    argc and argv from ParamCount and ParamStr. Advantage : now you can
-    call Pascal Glut programs with arguments like --geometry and other,
-    and Glut will handle these. Disadvantage : there is no standard Pascal
-    way to delete some parameters from ParamStr and so you will not
-    know which command-line options were handled by Glut. }
+  { Call glutInit constructing coorect Argc, Argv paremeters.
+    Argc, Argv are constructed from standard ParamCount and ParamStr.
+    This allows you to use command-line arguments like --geometry,
+    GLUT will handle these.
+
+    Note that there is no standard Pascal
+    way to delete some parameters from ParamStr. So if you do your own
+    command-line processing too, you will not know which
+    command-line options were already handled by GLUT. (This may be fixed
+    one day by using my own @link(KambiUtils.Parameters).) }
   procedure glutPascalInit;
 
 implementation
