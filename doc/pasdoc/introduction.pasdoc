@@ -199,7 +199,7 @@ units are allowed to be used by units in specific group.
   @itemLabel @code(audio)
   @item(
     These are my audio units.
-    OpenAL header translation (@link(KambiOpenAL)),
+    OpenAL header translation (KambiOpenAL),
     OpenAL helper routines (@link(ALUtils)),
     sound file formats (currently, WAV and OggVorbis) reader (@link(SoundFile)),
     smart sound sources allocator (@link(ALSourceAllocator))
@@ -214,7 +214,7 @@ units are allowed to be used by units in specific group.
     Also an image cache (@link(ImagesCache)) unit, to help avoiding the same
     images more than once (which is important e.g. when loading game textures).
     Also some things to handle PasJPEG.
-    Also my binding to libpng library (@link(KambiPng))
+    Also my binding to libpng library (KambiPng)
     and some helpers (@link(KambiPngUtils)).
 
     @italic(Uses:) @code(base).)

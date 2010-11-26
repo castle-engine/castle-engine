@@ -241,8 +241,7 @@ type
     property Depth: integer read fDepth;
 
     { Simple constructor. Calculates MiddlePoint as a middle of the ABox,
-      or as (0, 0, 0) if ABox is empty.
-      Then it simply calls @link(CreateBase). }
+      or as (0, 0, 0) if ABox is empty. }
     constructor Create(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
       ADepth: integer; AsLeaf: boolean);

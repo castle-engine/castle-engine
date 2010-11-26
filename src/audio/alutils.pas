@@ -167,11 +167,11 @@ var
   { @true means that you successfully called [Try]BeginAL and you didn't
     call EndAL after it. In other words, this means that you have
     active OpenAL context (and KambiOpenAL functions are available,
-    i.e. @link(ALInited) is true and maybe even @link(ALUTInited) = true,
+    i.e. ALInited is true and maybe even ALUTInited = true,
     if you passed CheckForAlut = true to BeginAL). }
   ALActive: boolean = false;
 
-  { When @link(BeginAL) fails with @link(EOpenALError) or when
+  { When @link(BeginAL) fails with EOpenALError or when
     @link(TryBeginAL) returns with false, they put error message in this variable.
     When you're using @link(BeginAL) this variable is actually useless for you,
     as this is equal to Message property of raised exception.
