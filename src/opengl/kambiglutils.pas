@@ -108,8 +108,6 @@ type
   TGLdouble   = GLdouble;
   TGLclampd   = GLclampd;
 
-{$I opengltypes.inc}
-
 const
   { OpenGL so/dll filenames.
     These constants @italic(must) match constants used in implementation
@@ -350,6 +348,37 @@ var
   Inits also GLVersion and GLUVersion from GLVersionUnit. }
 procedure LoadAllExtensions;
 {$endif}
+
+{ OpenGL vector/matrix types ------------------------------------------------- }
+
+type
+  { }
+  TVector2f = TVector2Single;   PVector2f = PVector2Single;
+  TVector2d = TVector2Double;   PVector2d = PVector2Double;
+  TVector2ub = TVector2Byte;    PVector2ub = PVector2Byte;
+  TVector2i = TVector2LongInt;  PVector2i = PVector2LongInt;
+
+  TVector3f = TVector3Single;   PVector3f = PVector3Single;
+  TVector3d = TVector3Double;   PVector3d = PVector3Double;
+  TVector3ub = TVector3Byte;    PVector3ub = PVector3Byte;
+  TVector3i = TVector3LongInt;  PVector3i = PVector3LongInt;
+
+  TVector4f = TVector4Single;   PVector4f = PVector4Single;
+  TVector4d = TVector4Double;   PVector4d = PVector4Double;
+  TVector4ub = TVector4Byte;    PVector4ub = PVector4Byte;
+  TVector4i = TVector4LongInt;  PVector4i = PVector4LongInt;
+
+  TMatrix2f = TMatrix2Single;  PMatrix2f = PMatrix2Single;
+  TMatrix2d = TMatrix2Double;  PMatrix2d = PMatrix2Double;
+
+  TMatrix3f = TMatrix3Single;  PMatrix3f = PMatrix3Single;
+  TMatrix3d = TMatrix3Double;  PMatrix3d = PMatrix3Double;
+
+  TMatrix4f = TMatrix4Single;  PMatrix4f = PMatrix4Single;
+  TMatrix4d = TMatrix4Double;  PMatrix4d = PMatrix4Double;
+
+  TPolygonStipple = packed array[0..(32*32 div 8)-1]of TGLubyte;
+  PPolygonStipple = ^TPolygonStipple;
 
 { OpenGL error checking ------------------------------------------------------ }
 
@@ -947,7 +976,6 @@ uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages,
 {$I glext_packed_depth_stencil.inc}
 
 {$ifndef USE_OLD_OPENGLH}
-{$I opengltypes.inc}
 
 procedure LoadAllExtensions;
 
