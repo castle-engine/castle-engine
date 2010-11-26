@@ -31,7 +31,6 @@ uses
   progressconsole,
   progressunit,
   recentfiles,
-  rects,
   vectormath
   ;
 

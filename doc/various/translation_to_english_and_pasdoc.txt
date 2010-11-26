@@ -107,7 +107,6 @@ D   kambizstream.pas
 D   progressconsole.pas
 D   progressunit.pas
 D   recentfiles.pas
-D   rects.pas
 D   vectormath.pas
 
   fonts/

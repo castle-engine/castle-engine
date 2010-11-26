@@ -147,7 +147,6 @@ begin
     P.Targets.AddUnit('progressconsole.pas');
     P.Targets.AddUnit('progressunit.pas');
     P.Targets.AddUnit('recentfiles.pas');
-    P.Targets.AddUnit('rects.pas');
     P.Targets.AddUnit('vectormath.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'fonts');
