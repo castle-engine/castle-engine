@@ -15,10 +15,9 @@
 
 { VRML shape (TVRMLShape class) and a simple tree of shapes
   (TVRMLShapeTree class). }
+unit VRMLShape;
 
 { $define SHAPE_ITERATOR_SOPHISTICATED}
-
-unit VRMLShape;
 
 {$I vrmloctreeconf.inc}
 
@@ -31,6 +30,7 @@ uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, KambiClassUtils,
 {$define read_interface}
 
 const
+  { }
   DefLocalTriangleOctreeMaxDepth = 10;
   { Default octree leaf capacity for TVRMLShape.OctreeTriangles.
 
