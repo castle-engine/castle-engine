@@ -126,7 +126,7 @@ D   glwindowrecentfiles.pas
 D   glwindowvrmlbrowser.pas
 -   glwininputs.pas
 D   glwinmessages.pas
--   glwinmodes.pas
+D   glwinmodes.pas
 D   glprogress.pas
 D   glnotifications.pas
 

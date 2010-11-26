@@ -13,46 +13,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Unit with utilities to easily save/restore TGLWindow
-  attributes along with OpenGL state. This is useful
-  to create routines that work like "modal windows" in programs
-  that use GLWindow unit.)
+{ Helpers for making modal boxes (TGLWindowState, TGLMode, TGLModeFrozenScreen)
+  cooperating with the GLWindow windows.
+  They allow to easily save/restore TGLWindow attributes along
+  with OpenGL state.
 
   This unit is a tool for creating functions like
-  @link(GLWinMessages.MessageOK). Such functions want to temporarily
-  replace TGLWindow callbacks with their own,
-  then call Application.ProcessMessage method in a loop and then
-  return, restoring GLWindow callbacks and OpenGL state back into
-  the original state. This way you can implement functions that
-  e.g. wait for some keypress, or wait until user inputs some
+  @link(GLWinMessages.MessageOK). To make nice "modal" box,
+  you want to temporarily replace TGLWindow callbacks with your own,
+  call Application.ProcessMessage method in a loop until user gives an answer,
+  and restore everything. This way you can implement functions that
+  wait for some keypress, or wait until user inputs some
   string, or wait until user picks something with mouse,
-  or wait for 10 seconds displaying some animation, etc.
-  Such functions can implement things like "modal boxes" known
-  from many GUI toolkits.
-
-  In such situations it's crucial to reliably do operations
-  "save the state of some things" and "restore state of some things".
-  OpenGL has routines gl(Push|Pop)(Matrix|Attrib) for exactly
-  such work, and this unit provides such routines for saving and restoring
-  attributes of @link(TGLWindow) object. Also it provides routines to set
-  in one call all attributes of @link(TGLWindow) object that can be
-  saved/restored. Finally it provides @link(TGLMode) class that somehow
-  merges saving/restoring of @link(TGLWindow) attributes and OpenGL state.
-  Also some sample generally useful descendant of @link(TGLMode)
-  is provided: @link(TGLModeFrozenScreen).
-
-  Pl:
-  Nasz pomysl ma duzo szersze zastosowanie, nie chodzi nam o okienka
-  ale o cokolwiek zwiazanego z konstrukcja procedur ktore w "punkcie
-  kulminacyjnym" wykonuja petle w rodzaju
-    while not <warunek-konca> do Application.ProcessMessage;
-  lub
-    while (not <warunek-konca>) and Application.ProcessMessage do ;
-  (druga wersja dopuszcza fakt ze user moze zamknac okienko w czasie trwania
-  procedury; zazwyczaj procedury w rodzaju MessageOK beda blokowac mozliwosc
-  zamkniecia programu na czas swojego dzialania
-  (moga to zrobic prosto ustawiajac odpowiednie OnCloseQuery)) }
-
+  or wait for 10 seconds displaying some animation, etc. }
 unit GLWinModes;
 
 {$I kambiconf.inc}
@@ -61,8 +34,6 @@ interface
 
 uses SysUtils, GL, GLU, GLExt, GLWindow, KambiGLUtils, Images, GLWinMessages,
   UIControls, KeysMouse;
-
-{ GLWindowState --------------------------------------------------------- }
 
 type
   { }
@@ -99,26 +70,30 @@ type
     constructor Create(Glwin: TGLWindow);
     destructor Destroy; override;
 
-    { GetState saves the TGLWindow state, SetState applies this state to the window
-      (the same or other).
-      Sejwuja / ustawiaja wszystkie wlasciwosci okienka TGLWindow
-      ktore moga sie zmieniac w czasie gdy okienko pozostaje not Closed.
-      Te wlasciwosci sa zapamietywane in our fields.
-      W ten sposob mozesz za pomoca Get/Set robic cos jak Push/Pop stanu
-      wlasciwosci TGLWindow, mozesz tez robic w ten sposob kopiowanie
-      wlasciwosci z jednego okienka do drugiego.
+    { GetState saves the TGLWindow state, SetState applies this state
+      back to the window (the same window, or other).
+      Every property that can change when TGLWindow is open are saved.
+      This way you can save/restore TGLWindow state, you can also copy
+      a state from one window into another.
 
-      Notka: pamietaj ze tylko referencja wartosci MainMenu jest kopiowana.
-      Wiec 1. nie mozesz robic tak po prostu kopiowania wartosci MainMenu
-      z jednego okienka do drugiego (zeby jej pozniej dwa razy nie robic
-      Free), o ile jest ona <> nil.
-      2. Nie mozesz zmieniac zawartosci MainMenu w czasie TGLMode.Create/Free.
-      (chociaz mozesz podmieniac wartosc MainMenu na inna, pod warunkiem
-      ze obie sa <> nil). Wyjatkiem jest tutaj MainMenu.Enabled, ktore
-      jest tutaj zapamietywane specjalnie.
+      Notes about TGLWindow.MainMenu saving: only the reference
+      to MainMenu is stored. So:
 
-      Note that Set first sets Glwin.MainMenu, and then,
-      if Glwin.MainMenu <> nil, sets Glwin.MainMenu.Enabled from saved state.
+      @unorderedList(
+        @item(If you use TGLWindow.MainMenu,
+          be careful when copying it to another window (no two windows
+          may own the same MainMenu instance at the same time;
+          also, you would have to make sure MainMenu instance will not be
+          freed two times).)
+
+        @item(Do not change the MainMenu contents
+          during TGLMode.Create/Free. Although you can change MainMenu
+          to something completely different. Just keep the assumption
+          that MainMenu stays <> nil.)
+
+        @item(As an exception to the previous point, you can freely
+          change MainMenu.Enabled, that is saved specially for this.)
+      )
 
       @groupBegin }
     procedure GetState(Glwin: TGLWindow);
@@ -127,13 +102,13 @@ type
 
     { Resets all window properties (that are get / set by TGLWindowState).
       For most properties, we simply reset them to some sensible default
-      values. For some most common properties, we take their value
+      values. For some important properties, we take their value
       explicitly by parameter.
 
       Window properties resetted:
 
       @unorderedList(
-        @item(All missing callbacks (OnXxx) are set to @nil.)
+        @item(Callbacks (OnXxx) are set to @nil.)
         @item(TGLWindow.Caption and TGLWindow.MainMenu are left as they were.)
         @item(TGLWindow.Cursor is reset to mcDefault.)
         @item(TGLWindow.UserData is reset to @nil.)
@@ -158,10 +133,8 @@ type
       NewFPSActive: boolean);
   end;
 
-{ GL Mode ---------------------------------------------------------------- }
-
-{ }
-type
+  { Enter / exit modal box on a TGLWindow. Saves/restores the state
+    of TGLWindow properties (see TGLWindowState) and various OpenGL state. }
   TGLMode = class
   protected
     glwin: TGLWindow;
@@ -179,106 +152,73 @@ type
     FRestoreTextureMatrix: boolean;
     DisabledContextOpenClose: boolean;
   public
-    { Enter / Exit mode:
+    { Constructor saves open TGLWindow and OpenGL state.
+      Destructor will restore them.
 
-      Create wykonuje save stanu OpenGL'a i stanu glwin do klasy TGLMode.
-      Destroy przywraca caly zesejwowany stan.
-      If APushPopGLWinMessagesTheme then GLWinMessagesTheme is also
-      saved and restored.
-
-      Szczegoly ktore niestety musza sie tutaj znalezc w interfejsie mimo ze
-      zazwyczaj uzywajac tych procedur bedziesz chcial o tych szczegolach
-      wlasnie zapomniec :
+      Some gory details (that you will usually not care about...
+      the point is: everything works sensibly of the box) :
 
       @unorderedList(
-        @item(
-          stan jaki jest sejwowany i pozniej odpowiednio przywracany :
-            @unorderedList(
-              @itemSpacing Compact
-              @item stan TGLWindowState
-              @item atrybuty AttribsToPush (przez glPush/Pop Attrib)
-              @item stan MatrixMode
-              @item(Macierze projection, texture i modelview (czyli wszystkie)
-                (nie, nie uzywamy matrix stack).
-
-                You can turn off restoring of them by setting corresponding
-                properties to @false. See RestoreProjectionMatrix,
-                RestoreModelviewMatrix, RestoreTextureMatrix.)
-              @item stan PIXEL_STORE_*
-            )
+        @item(We save/restore:
+          @unorderedList(
+            @itemSpacing Compact
+            @item TGLWindowState
+            @item OpenGL attributes specified in AttribsToPush
+            @item OpenGL matrix mode
+            @item OpenGL matrices (saved without using OpenGL stack)
+            @item OpenGL PIXEL_STORE_* state
+            @item GLWinMessagesTheme (only if APushPopGLWinMessagesTheme)
           )
+        )
+
+        @item(OpenGL context connected to this window is also made current
+          during constructor and destructor. Also, TGLWindow.PostRedisplay
+          is called (since new callbacks, as well as original callbacks,
+          probably want to redraw window contents.))
 
         @item(
-          zarowno wywolanie Enter jak i Exit ustawia aktywny kontekst OpenGL'a
-          na kontekst okienka glwin)
+          All pressed keys and mouse butons are saved and faked to be released,
+          by calling TGLWindow.EventMouseUp, Glwin.EventKeyUp with original
+          callbacks.
+          This way, if user releases some keys/mouse inside modal box,
+          your original TGLWindow callbacks will not miss this fact.
+          This way e.g. user scripts in VRML/X3D worlds that observe keys
+          work fine.
 
-        @item(
-          W Enter wszystkie aktualnie wcisniete klawisze myszki sa sztucznie
-          wylaczane przez wywolanie Glwin.EventMouseUp.
-          Also, all currently pressed keys are released by fake
-          Glwin.EventKeyUp. This is important: otherwise, if user releases
-          mouse / key when inside mode, your original callbacks would not
-          be informed about releasing a pressed key. And various things
-          may depend on that (including user scripts in VRML worlds.)
-
-          If FakeMouseDown then
-          w Exit wszystkie aktualnie wcisniete klawisze myszki sa sztucznie
-          wlaczane przez wywolanie Glwin.EventMouseDown (juz PO przywroceniu
-          oryginalnych callbackow okienka).
-
-          W ten sposob callbacki okienka (ktore zapewne bedziesz podmienial
-          na czas trwania ModeGLEnter..Exit) beda myslaly ze w momencie
-          wejscia do Mode user puszcza wszystkie klawisze myszy a w momencie
-          wyjscia z Mode zostana powiadomione o tym jakie klawisze myszy
-          sa rzeczywiscie wcisniete. To jest pozadane bo inaczej jezeli
-          podmienisz callbacki dla myszki na wlasne to oryginalne callbacki
-          okienka np. nigdy sie nie dowiedza ze user puscil klawisze myszki
-          w czasie gdy bylismy pomiedzy ModeGLEnter..Exit.
-
-          FakeMouseDown turned out to be usually more troublesome than
-          usefull --- too often some unwanted MouseDown
+          If FakeMouseDown then at destruction (after restoring original
+          callbacks) we will also notify your original callbacks that
+          user pressed these buttons (by sending TGLWindow.EventMouseDown).
+          Note that FakeMouseDown feature turned out to be usually more
+          troublesome than  usefull --- too often some unwanted MouseDown
           event was caused by this mechanism.
           That's because if original callbacks do something in MouseDown (like
           e.g. activate some click) then you don't want to generate
           fake MouseDown by TGLMode.Destroy.
           So the default value of FakeMouseDown is @false.
           But this means that original callbacks have to be careful
-          and *never assume* that when some button is pressed
+          and @italic(never assume) that when some button is pressed
           (because it's included in MousePressed, or has MouseUp generated for it)
           then for sure there occured some MouseDown for it.
         )
 
-        @item(
-          Jezeli rozmiary okienka (Width, Height) ulegly zmianie pomiedzy Enter
-          a Exit to w Exit wywolujemy sztucznie Glwin.EventResize
-          (juz PO przywroceniu oryginalnych callbackow okienka).
-          Powod : jak wyzej - gdyby user zmienil rozmiary okienka w czasie
-          trwania ModeGLEnter...Exit z podmienionymi callbackami to oryginalne
-          callbacki moglyby sie nigdy nie dowiedziec o zmianie rozmiaru okna
-          i nie zareagowac na to prawidlowo.)
-
-        @item(
-          W ModeEnter i Exit sa wywolywane Glwin.PostRedisplay (bo spodziewam
-          sie ze podmienisz callback OnDraw a wiec zdecydowanie bedziesz
-          chcial odmalowac okienko).)
-
-        @item(
-          ModeGLEnter nie moze byc uzyte na Closed okienku,
-          oczywiscie. Wiec dla bezpiecznstwa jest w nim robiony
-          Check(not Glwin.Closed, ...).)
+        @item(At destructor, we notify original callbacks about size changes
+          by sending TGLWindow.EventResize. This way your original callbacks
+          know about size changes, and can set OpenGL projection etc.)
 
         @item(
           We call IgnoreNextIdleSpeed at the end, when closing our mode,
           see TGLWindow.IgnoreNextIdleSpeed for comments why this is needed.)
-      )
 
-      This also performs important optimization to avoid closing / reinitializing
-      window TGLUIWindow.Controls OpenGL resources,
-      see TUIControl.DisableContextOpenClose. }
+        @item(This also performs important optimization to avoid closing /
+          reinitializing window TGLUIWindow.Controls OpenGL resources,
+          see TUIControl.DisableContextOpenClose.)
+      ) }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean);
 
-    { Create mode (saving current window state) and then reset window state.
+    { Save OpenGL and TGLWindow state, and then change this to a standard
+      state. Destructor will restore saved state.
+
       This is a shortcut for @link(Create) followed by
       @link(TGLWindowState.SetStandardState), see there for explanation
       of parameters. }
@@ -300,54 +240,29 @@ type
       read FRestoreTextureMatrix write FRestoreTextureMatrix default true;
   end;
 
-type
+  { Enter / exit modal box on a TGLWindow, additionally saving the screen
+    contents before entering modal box. This is nice if you want to wait
+    for some event (like pressing a key), keeping the same screen
+    displayed.
+
+    During this lifetime, we set special TGLWindow.OnDraw and TGLWindow.OnResize
+    to draw the saved image in a simplest 2D OpenGL projection.
+
+    If you pass PolygonStipple <> nil to constructor,
+    window will be additionally covered by this stipple (remember we only
+    copy PolygonStipple pointer, so don't free it).
+
+    Between creation/destroy, TGLWindow.UserData is used by this function
+    for internal purposes. So don't use it yourself.
+    We'll restore initial TGLWindow.UserData at destruction.
+
+     }
   TGLModeFrozenScreen = class(TGLMode)
   private
     dlScreenImage: TGLuint;
     SavedScreenWidth, SavedScreenHeight: Cardinal;
     FPolygonStipple: PPolygonStipple;
   public
-    { This mode on enter catches current screen (with Glwin.SaveScreen) then
-      calls TGLWindowState.SetStandardState with such OnDraw and OnResize
-      private callbacks that set:
-
-      @unorderedList(
-        @item(
-          the projection is always simple 2D projection
-          (this is the simplest Resize2D function from GLWindow unit).)
-
-        @item(
-          OnDraw always simply draws catched screen image on screen.
-          If window ever gets larger than initially catched image
-          it draws the area not covered by image by color you set with glClearColor
-          (i.e. it uses glClear(GL_COLOR_BUFFER_BIT)).
-
-          If PolygonStipple <> nil, then it will additionally draw this stipple
-          all over the window. (note : remember that we copy here only the pointer
-          PolygonStipple, not pointer's contents).)
-      )
-
-      Between creation/destroy, Glwin.UserData is used by this function
-      for "private" purposes so you should not use it yourself.
-      Glwin.UserData will be restored after destroying this object
-      to whatever value it had at creation time.
-
-      This mode is often quite usable because it gives you some minimal
-      sensible OnDraw and OnResize callbacks, you usually can use it if you
-      just don't want to do anything with your own callbacks for some time,
-      i.e. usually you can use it like
-
-@longcode(#
-  Mode := TGLModeFrozenScreen.Create(glwin, 0);
-  try
-   while <something> do Application.ProcessMessage(...);
-  finally Mode.Free end;
-#)
-
-      and you can safely assume that NO your own glwin callbacks (that were
-      registered before Mode := TGLModeFrozenScreen.Create) will be called between
-      try .. finally, yet everything will work correctly (window contents will
-      be properly refreshed if window manager will request window redraw etc.) }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean;
       APolygonStipple: PPolygonStipple);
@@ -355,10 +270,8 @@ type
     destructor Destroy; override;
   end;
 
-{ Empty TGLWindow callback. Handy for TGLWindow.OnCloseQuery:
-  it's an empty callback, thus using it disables the possibility
-  to close the window by window manager
-  (usually using "close" button in some window corner or Alt+F4). }
+{ Empty TGLWindow callback, useful as TGLWindow.OnCloseQuery
+  to disallow closing the window by user. }
 procedure NoClose(glwin: TGLWindow);
 
 implementation
