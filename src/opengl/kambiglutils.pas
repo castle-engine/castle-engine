@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Various OpenGL utilities.)
+{ Various low-level utilities for working with OpenGL.
 
-  Implements various low-level helpers for OpenGL programming.
+  This unit contains a mixture of useful utilities.
   Simple wrappers for OpenGL procedures (like glVertexv, that is overloaded
   for various vector types, and calls appropriate version like glVertex3fv
   based on parameter type). Also simple drawing routines for basic primitives
@@ -44,7 +44,10 @@ unit KambiGLUtils;
          external OpenGLDLL name 'glVertex3fv';
      This results in quick code, but it has some disadvantages:
      - it assumes that v will be passed by reference
-       (which seems to be not true under FPC 1.0.6 under Linux)
+       (Which seems to be not true under FPC 1.0.6 under Linux,
+       and generally depends on compiler taste.
+       FPC constref could be useful here (but not available in all commonly
+       used FPC versions). GPC has "protected var" for this.)
      - This links my program directly to OpenGL library,
        thus disabling any way to select OpenGL library at runtime
 
@@ -61,21 +64,10 @@ unit KambiGLUtils;
      This is fast, but it
      - can't be used for overloaded functions (since you can't have many
        vars with the same name).
-     - has part of the disadvantages of 1) : it relies that parameters are passed
-       correctly.
+     - has part of the disadvantages of 1) : it relies that parameters
+       are passed correctly.
 
   Define IMPLEMENT_OPENGL_STUBS to use 2), otherwise we'll try to use 1).
-  For now, this is adviced.
-
-  Old pl comments: Wyglada na to ze FPC ma wiekszy wstret do przekazywania parametrow
-  "const" przez referencje niz np. kylix. To boli, bo gdy deklaruje
-  glVertexv(const v: TVector3f) to oczywiscie WYMAGAM aby parametr
-  zostal przekazany przez referencje, nigdy przez wartosc. Jest to problem
-  Pascala fpc i delphi - nie ma metody aby powiedziec "const przez referencje".
-  gpc jest tu madry i ma konstrukcje "protected var" ktora znaczy wlasnie
-  "const koniecznie przez referencje".
-  Chwilowo po prostu te deklaracje sa realizowane nie przez export ale przez
-  wywolanie posrednie.
 }
 {$define IMPLEMENT_OPENGL_STUBS}
 
@@ -100,7 +92,7 @@ uses Math, GL, GLU, GLExt,
 
 {$ifndef USE_OLD_OPENGLH}
 type
-  { Types with leading "T" }
+  { Types with leading "T" } { }
   TGLenum     = GLenum;
   TGLboolean  = GLboolean;
   TGLbitfield = GLbitfield;
@@ -119,8 +111,9 @@ type
 {$I opengltypes.inc}
 
 const
-  { These constants *must* match constants used in implementation of gl and glu
-    units, so that we link to the same libraries. }
+  { OpenGL so/dll filenames.
+    These constants @italic(must) match constants used in implementation
+    of GL and GLU units, so that we link to the same libraries. } { }
   OpenGLDLL =
     {$ifdef MSWINDOWS} {TODO: needs fix for WIN64?} 'opengl32.dll' {$endif}
     {$ifdef UNIX}
@@ -358,70 +351,50 @@ var
 procedure LoadAllExtensions;
 {$endif}
 
-{ sprawdzanie bledow gl ----------------------------------------------------------}
+{ OpenGL error checking ------------------------------------------------------ }
 
 type
+  { }
   EOpenGLError = class(Exception)
   public
     ErrorGLCode: TGLenum;
-    constructor Create(ErrorGL: TGLenum { AdditionalComment = '' } ); overload;
-    constructor Create(ErrorGL: TGLenum; const AdditionalComment: string); overload;
+    constructor Create(ErrorGL: TGLenum; const AdditionalComment: string = '');
   end;
 
-{ CheckGLErrors sprawdza czy sa jakies bledy OpenGL'a (glGetError),
-  jesli tak - rzuca wyjatek EOpenGLError. }
+{ Check are there OpenGL errors stored (in glGetError),
+  and if yes it raises EOpenGLError.
+  @raises EOpenGLError }
 procedure CheckGLErrors(const AdditionalComment: string {$ifdef DEFPARS} = '' {$endif}); overload;
 
-{ ReportGLError = raise EOpenGLError.Create(ErroCode);
-  ReportGLError jest dobra aby ja zerejestrowac jako GLU_TESS_ERROR
-  przez gluTessCallback albo GLU_ERROR przez gluQuadricCallback. }
+{ Raise EOpenGLError for given OpenGL error code.
+  Suitable for registering as GLU_TESS_ERROR for gluTessCallback,
+  or GLU_ERROR for gluQuadricCallback. }
 procedure ReportGLError(ErrorCode: TGLenum);
   {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
   {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
 
-{ ------------------------------------------------------------------------------
-  wersje funkcyjne procedur glGet*. Moga byc uzywane tylko do zastepowania glGet*
-  ktore zwracaja pojedyncze wartosci !
+{ ---------------------------------------------------------------------------- }
 
-  Przy okazji gwarantuja nastepujace zachowanie : jezeli odpowiednie
-  glGet*v bedzie blednym wywolaniem (wiec wedlug specyfikacji OpenGL'a
-  zostanie zignorowane i zostanie ustawione odpowiednie glGetError)
-  to result bedzie jakby po FillChar(result, SizeOf(result), 0).
-  Np. w GLInformationString robimy glGetInteger(GL_MAX_CLIENT_ATTRIB_STACK),
-  jezeli aktualna wersja OpenGL'a w ogole nie ma czegos takiego
-  jak client attrib stack to zapytanie
-  glGetIntegerv(GL_MAX_CLIENT_ATTRIB_STACK, wynik) spowoduje blad i nie zwroci
-  nic pod wskazanym wynik. Ale wlasnie niniejsze get'y najpierw inicjuja
-  result na 0 wiec wynikem bedzie 0 (a nie cos nieokreslonego). }
+{ Comfortable wrappers for OpenGL glGet* that return a single value.
 
+  Guarantee that result is zero in case of OpenGL error.
+  (Otherwise, OpenGL could leave them undefined and only set glGetError.)
+  @groupBegin }
 function glGetFloat(pname: TGLEnum): TGLfloat;
 function glGetInteger(pname: TGLEnum): TGLint;
 function glGetBoolean(pname: TGLEnum): TGLboolean;
 function glGetDouble(pname: TGLEnum): TGLdouble;
+{ @groupEnd }
 
-{ ----------------------------------------------------------------------------------
-  Dodatkowe deklaracje eksportujace funkcje OpenGL'a w nieco inny sposob.
+{ ------------------------------------------------------------------------------
+  Comfortable wrappers for OpenGL functions.
+  Overloaded for our vectors types. }
 
-  Podstawowe wersje tych procedur w module OpenGLa (jako v: PXxx) sa nieco bardziej
-  elastyczne. Np. dla glLightfv adres moze wskazywac na 1 liczbe (np. dla GL_SPOT_CUTOFF),
-  na 3 liczby (np. dla GL_SPOT_DIR) lub na 4 liczby (np. GL_AMBIENT). Ponizsze deklaracje
-  z koniecznosci beda wiec powtarzaly nie raz eksportowanie tych samych proc. na inne
-  sposoby.
-  Wada 2 :  dll z ktorego sa eksportowane te proc. jest ustalony "na sztywno",
-  nie mozna np. w czasie runtime zdecydowac sie czy ladujemy openGL'a z Microsoftu czy z SGI.
-  To dlatego ze nie mozna robic przeciazanych zmiennych funkcyjnych (bo nie mozna przeciazac
-  zmiennych...).
-
-  Zalety jednak : ponizsze funkcje sa czesto wygodniejsze, mozna np. napisac glMaterialfv
-   (GL_FRONT, GL_DIFFUSE, Vector4f(0.2, 0.2, 0.3, 1)) (i nie musimy deklarowac sobie na gorze
-   tablicy TVector4f !).
-  Kolekcja ponizszych funkcji nie jest skonczona, bede ja rozszerzal gdy bede czegos
-   potrzebowal.
-}
-
-{ Some types should always behave like IMPLEMENT_OPENGL_STUBS was defined --
-  because they are, both in FPC and Delphi, passed by value
+{ Types that are called always through stubs, regardless of
+  IMPLEMENT_OPENGL_STUBS. They are, both in FPC and Delphi, passed by value
   (not by reference) when they are used as constant parameters. }
+
+{ }
 procedure glColorv(const v: TVector3b); overload;
 procedure glColorv(const v: TVector3ub); overload;
 procedure glColorv(const v: TVector4b); overload;
@@ -632,9 +605,10 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4i); OPENGL_CAL
 
 {$endif IMPLEMENT_OPENGL_STUBS}
 
-{ uproszczenia dla sejwowania / ladowania gl state : ---------------------------------- }
+{ Simple save/restore of OpenGL pixel store ---------------------------------- }
 
 type
+  { }
   TPixelStoreUnpack = record
     UnpackSwapBytes,
     UnpackLSBFirst: TGLboolean;
@@ -653,31 +627,36 @@ type
   end;
   TPackNotAlignedData = TUnpackNotAlignedData;
 
-{ otocz klauzulami Before/After Unpack Not Aligned Image fragmenty kodu w ktorych
-  rozpakowujesz z pamieci do OpenGL'a (przy glDrawPixels, glTexImage1D, glTexImage2D,
-  glBitmap, i glPolygonStipple) dane ktore zostaly ulozone prawidlowo przy
-  zalozeniu ze GL_UNPACK_ALIGNMENT = 1, a
-  nie wiesz jakie jest teraz GL_UNPACK_ALIGNMENT i nie chcesz tego zmieniac na stale,
-  ale chcesz zeby ten obrazek zostal rozpakowany dobrze.
-
-  Te procedury najpierw (w BEFORE) zasejwuja sobie aktualne GL_UNPACK_ALIGNMENT,
-  potem je zmienia (jesli bedzie trzeba) tak zeby obrazek rozpakowal sie dobrze,
-  i potem (w AFTER) ustawia je z powrotem tak jak byly. }
+{ Save/restore OpenGL pixel store for unpacking TRGBImage.
+  Before you pass an TRGBImage to glDrawPixels, glTexImage1D, glTexImage2D,
+  glBitmap, glPolygonStipple and such, call
+  BeforeUnpackNotAlignedRGBImage, and later call
+  AfterUnpackNotAlignedRGBImage to restore original state.
+  @groupBegin }
 procedure BeforeUnpackNotAlignedRGBImage(out unpackdata: TUnpackNotAlignedData; imageWidth: cardinal);
 procedure AfterUnpackNotAlignedRGBImage(const unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
+{ @groupEnd }
 
-{ Before/After Pack : jak wyzej, ale martwia sie o GL_PACK_ALIGNMENT.
-  Uzywaj naokolo glReadPixels. }
+{ Save/restore OpenGL pixel store for packing TRGBImage.
+  Use around glReadPixels and such with TRGBImage.
+  @groupBegin }
 procedure BeforePackNotAlignedRGBImage(out packdata: TPackNotAlignedData; imageWidth: cardinal);
 procedure AfterPackNotAlignedRGBImage(const packData: TPackNotAlignedData; imageWidth: cardinal);
+{ @groupEnd }
 
-{ wersje tych procedur z prostszymi nazwami i na typie TImage }
+{ Save/restore OpenGL pixel store for unpacking / packing given TImage.
+  Before you pass this image to some OpenGL procedures
+  (like glDrawPixels for unpacking, glReadPixels for packing),
+  call BeforeXxx, and later call AfterXxx to restore original state.
+  These will take care of setting/restoring pixel alignment.
+  @groupBegin }
 procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TImage);
 procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TImage);
 procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TImage);
 procedure AfterPackImage(const packData: TPackNotAlignedData; image: TImage);
+{ @groupEnd }
 
-{ manipulacje projection matrix -------------------------------------------------------- }
+{ Projection matrix -------------------------------------------------------- }
 
 { ProjectionGL* procedures load correspoding OpenGL matrices
   (gluPerspective, glOrtho), making sure we're in GL_PROJECTION matrix mode.
@@ -695,8 +674,9 @@ procedure AfterPackImage(const packData: TPackNotAlignedData; image: TImage);
 
   @groupBegin }
 procedure ProjectionGLPerspective(const fovy, aspect, zNear, zFar: TGLdouble);
-procedure ProjectionGLOrtho(const left, right, bottom, top, zNear, zFar: TGLdouble); overload;
-procedure ProjectionGLOrtho(const left, right, bottom, top: TGLdouble); overload; { near = -1, far = 1 }
+procedure ProjectionGLOrtho(const left, right, bottom, top: TGLdouble;
+  const zNear: TGLdouble = -1; const zFar: TGLdouble = 1);
+{ @groupEnd }
 
 { ------------------------------------------------------------ }
 { @section(Helpers for polygon stipple) }
@@ -725,28 +705,26 @@ const
     $DD, $DD, $DD, $DD,  $77, $77, $77, $77,  $EE, $EE, $EE, $EE,  $BB, $BB, $BB, $BB
   );
 
-{ generuje Stipple ktore w kazdym bicie ma szanse BlackChange na bycie 1,
-  else jest rowne 0. }
+{ Generate random stipple, with a given probability of bit being 1. }
 function RandomPolyStipple(const BlackChance: Extended): TPolygonStipple;
 
-{ generuje Stipple ktorego cztery cwiartki sa rowne (tzn. losowana
-  jest jedna cwiartka a cztery pozostale to jej kopie).
-  To tworzy znacznie bardziej regularne stipple, co czasem moze byc
-  uzyteczne. }
+{ Generate random stipple with each quarter (16x16 pixels) equal.
+  This makes more regular stipple than RandomPolyStipple. }
 function RandomPolyStippleBy16(const BlackChance: Extended): TPolygonStipple;
 
-{ jw. ale tu kawalki 8x8 sa rowne wiec jeszcze bardziej regularne }
+{ Generate random stipple with each  8x8 part equal.
+  This makes even more regular stipple than RandomPolyStippleBy16. }
 function RandomPolyStippleBy8(const BlackChance: Extended): TPolygonStipple;
 
 var
-  { This is equivalent to glPolygonStipple, but takes
-    PPolygonStipple as a parameter. }
+  { Equivalent to glPolygonStipple, but takes PPolygonStipple as a parameter. }
   KamGLPolygonStipple: procedure(mask: PPolygonStipple);
     {$ifdef OPENGL_CDECL} cdecl; {$endif}
     {$ifdef OPENGL_STDCALL} stdcall; {$endif}
 
-{ others  --------------------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
 
+{ }
 procedure SetGLEnabled(value: TGLenum; isEnabled: boolean);
 
 { Draw vertical line using OpenGL.
@@ -760,77 +738,54 @@ procedure VerticalGLLine(x, y1, y2: TGLfloat);
   @seealso VerticalGLLine }
 procedure HorizontalGLLine(x1, x2, y: TGLfloat);
 
-{ DrawGLBorderedRectangle :
-  Rysuje prostokat, wypelniony (GL_POLYGON) jednym kolorem i obrysowany
-  (GL_LINE_LOOP) drugim. Uwagi co do kolejnosci vertexow : taka sama
-  jak w glRectf. Req one attrib stack place, because it makes sure
+{ Draw rectangle, filled with one color and framed with other color.
+  The vertex order is the same as for glRectf.
+  Requires one attrib stack place, because it makes sure
   that polygon mode FRONT_AND_BACK is GL_FILL.
 
-  Ze stanu OpenGL'a zmienia tylko current color.
+  Changes OpenGL current color.
 
-  DrawGLRectBorder : wszystko j.w. ale rysuje tylko obrysowanie
-  i nie wymaga attrib stack place, uzywa aktualnego koloru OpenGLa.
+  Overloaded version with a Stipple parameter sets this stipple.
+  If Stipple <> nil, then GL_POLYGON_STIPPLE will be enabled
+  and set by glPolygonStipple. If Stipple = nil, then GL_POLYGON_STIPPLE
+  will be disabled. Requires one more attrib stack place.
 
-  Wersja ze stipple ustawia wlasne stipple (robi glPolygonStipple +
-  glEnable(GL_POLYGON_STIPPLE) o ile Stipple <> nil i robi
-  glDisable(GL_POLYGON_STIPPLE) jesli Stipple = nil, oczywiscie
-  wszystko w odpowiednim push/pop attribow.
-  Req one attrib stack place) }
+  Overloaded TIntRect versions take x1 := R[0, 0], y1 := R[0, 1],
+  x2 := R[1, 0], y2 := R[1, 1] (not x2 := R[1, 0]-1, y2 := R[1, 1]-1,
+  because usually you don't want that when working with OpenGL.
+  @groupBegin }
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f); overload;
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple); overload;
+procedure DrawGLBorderedRectangle(const R: TIntRect;
+  const InsideCol, BorderCol: TVector4f); overload;
+procedure DrawGLBorderedRectangle(const R: TIntRect;
+  const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple); overload;
+{ @groupEnd }
+
+{ Draw rectangle border.
+  The vertex order is the same as for glRectf.
+
+  Uses current OpenGL color.
+  @groupBegin }
 procedure DrawGLRectBorder(const x1, y1, x2, y2: TGLfloat); overload;
 procedure DrawGLRectBorder(const Area: TArea); overload;
-
-{ TIntRect versions take x1 := R[0, 0], y1 := R[0, 1],
-  x2 := R[1, 0], y2 := R[1, 1] (NOT x2 := R[1, 0]-1, y2 := R[1, 1]-1, because usually
-  you don't want that when working with OpenGL. }
-procedure DrawGLBorderedRectangle(const R: TIntRect;
-  const InsideCol, BorderCol: TVector4f); overload;
-procedure DrawGLBorderedRectangle(const R: TIntRect;
-  const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple); overload;
 procedure DrawGLRectBorder(const R: TIntRect); overload;
+{ @groupEnd }
 
 function UnProjectGL(winx, winy, winz: TGLdouble): TVector3d;
 
-{ niniejsza procedura renderuje dysk na wspolrzednych tak jak gluDisk.
-  Nie sa generowane zadne normale (moze kiedys to tu dorobie, jak bedzie
-  potrzebne), nie ma innerRadius i nie ma loops jak w gluDisk - bo ten dysk
-  wlasnie FULL czyli nie ma wewnetrznego pierscienia.
-  Co wobec tego zyskujemy w porownaniu z gluDisk ? Mianowicie, generowane sa
-  wspolrzedne tekstury w dosc perfidny sposob : tekstura jest sciesniana tak
-  aby cala kwadratowa tekstura zmiescila sie na kole. Innymi slowy rogi
-  tekstury sa wpychane na powierzchnie dysku.
-  Na krancach dysku wspolrzedne sa takie jak gluDisk :
-   (r, 0, 0) is (1, 0.5),
-   at (0, r, 0) it is (0.5, 1),
-   at (-r, 0, 0) it is (0, 0.5), and
-   at (0, -r, 0) it is (0.5, 0).
-  natomiast na punktach posrednich na kole niniejsza procedura generuje
-  wspolrzedne tekstury na krancach tekstury. (podczas gdy gluDisk scianala
-  rogi tekstury aplikujac ja na dysk).
+{ Draw arrow shape. Arrow is placed on Z = 0 plane, points to the up,
+  has height = 2 (from y = 0 to y = 2) and width 1 (from x = -0.5 to 0.5).
+  Everything is drawn CCW when seen from standard view
+  (x grows right, y up). }
+procedure DrawArrow(grotThickness: TGLfloat = 0.4;
+  grotLength: TGLfloat = 0.5);
 
-  Uwaga - ta procedure, podobnie jak quadrici glu, dobrze jest wrzucic do
-  display listy - wykonujemy tutaj troche obliczen (w szczegolnosci,
-  cosinusy i sinusy robimy normalnymi wywolaniami funkcji).
-}
-procedure fullGLDiskSqueezedTex(radius: TGLdouble; slices: Cardinal);
-
-{ rysuje strzalke. z = const = 0, strzalka jest skierowana w gore, ma wysokosc = 2
-  (tzn. od y = 0 do y = 2) i szerokosc 1 (x = -0.5 do 0.5).
-  Wersja druga umozliwia podanie grubosci i szerokosci grota (obie wartosci
-  od 0 do 1), wersja pierwsza przyjmuje sensowne wartosci dla "typowej"
-  strzalki.
-  Wszystkie elementy sa rysowane CCW gdy na nie patrzec ze standardowego
-  widoku (x rosnie w prawo, y w gore). }
-procedure DrawArrow; overload;
-procedure DrawArrow(grotThickness, grotLength: TGLfloat); overload;
-
-{ NewGLUQuadric to tylko opakowanie na gluNewQuadric.
-  Pozwala jednym wywolaniem procedury ustalic wszystkie wlasciwosci
-  quadrica, ustawia callback GLU_ERROR na ReportGLerror i
-  sprawdza automatycznie (i rzuca Exception jesli nie) czy result <> nil. }
+{ Comfortable wrapper for gluNewQuadric. Sets all quadric parameters.
+  Sets also the GLU_ERROR callback to ReportGLerror.
+  @raises Exception If gluNewQuadric fails (returns nil). }
 function NewGLUQuadric(
   Texture: boolean = true;
   Normals: TGLenum = GLU_NONE;
@@ -1384,11 +1339,6 @@ end;
 { klasa EOpenGLError i procedura CheckGLErrors
  ---------------------------------------------------------------------------------------}
 
-constructor EOpenGLError.Create(ErrorGL: TGLenum);
-begin
- Create(ErrorGL, '');
-end;
-
 constructor EOpenGLError.Create(ErrorGL: TGLenum; const AdditionalComment: string);
 var MessagePrefix: string;
 begin
@@ -1726,11 +1676,6 @@ begin
  glMatrixMode(oldMatrixMode);
 end;
 
-procedure ProjectionGLOrtho(const left, right, bottom, top: TGLdouble);
-begin
- ProjectionGLOrtho(left, right, bottom, top, -1, 1);
-end;
-
 { poly stipple ------------------------------------------------------------ }
 
 function RandomPolyStipple(const BlackChance: Extended): TPolygonStipple;
@@ -1869,56 +1814,6 @@ begin
    @result[0], @result[1], @result[2]) = GL_TRUE, 'gluUnProject');
 end;
 
-procedure fullGLDiskSqueezedTex(radius: TGLdouble; slices: Cardinal);
-var s, sna2: TGLfloat;
-
-  function Mapuj(a: TGLdouble): TGLfloat;
-  {mapuj a z zakresu -sna2..sna2 na zakres 0..1}
-  begin
-   result := a/s + 0.5;
-  end;
-
-var x, y, sliceAngle, angle: TGLdouble;
-    i: cardinal;
-begin
- sliceAngle := 360 / slices;
- sna2 := radius/sqrt2;
- s := 2*sna2;
-
- glBegin(GL_TRIANGLE_FAN);
- try
-  {punkt w srodku}
-  glTexCoord2f(0.5, 0.5);
-  glVertex2f(0, 0);
-
-  for i := 0 to slices do { nie ma tu bledu - narysujemy slices trojkatow. bo uzywamy TRIANGLE_FAN }
-  begin
-   angle := sliceAngle*i; { liczac angle w ten sposob (a nie sumujac kolejne sliceAngle)
-                          unikamy kumulacji bledow dodawania }
-   x := cos(DegToRad(angle))*radius;
-   y := sin(DegToRad(angle))*radius;
-
-   {w taki sposob moglibysmy tu otrzymac texture coords takie same jak gluDisk :
-      glTexCoord2f(x/(2*radius) + 0.5, y/(2*radius) + 0.5);
-    ale my chcemy generowac texture coords SQUEEZED}
-   if (angle <= 45) or (angle > 360-45) then
-    glTexCoord2f(1, Mapuj(y)) else
-   if (angle > 45) and (angle <= 90+45) then
-    glTexCoord2f(Mapuj(x), 1) else
-   if (angle > 90+45) and (angle <= 180+45) then
-    glTexCoord2f(0, Mapuj(y)) else
-    glTexCoord2f(Mapuj(x), 0);
-
-   glVertex2d(x, y);
-  end;
- finally glEnd end;
-end;
-
-procedure DrawArrow;
-begin
- DrawArrow(0.4, 0.5);
-end;
-
 procedure DrawArrow(grotThickness, grotLength: TGLfloat);
 begin
  grotLength := 2*grotLength; { mapuj grotLength na zakres 0..2 }
@@ -1951,7 +1846,8 @@ function NewGLUQuadric(texture: boolean; normals: TGLenum;
   orientation: TGLenum; drawStyle: TGLenum): PGLUQuadric;
 begin
  result := gluNewQuadric();
- Check(result <> nil, 'gluNewQuadric');
+ if result = nil then
+   raise Exception.Create('gluNewQuadric cannot be created');
  gluQuadricCallback(result, GLU_ERROR,
    {$ifndef USE_OLD_OPENGLH} TCallBack {$endif} (@ReportGLError));
  gluQuadricTexture(result, Ord(texture));
