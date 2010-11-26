@@ -229,19 +229,19 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
     { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
     procedure SetupDirectionalLight(LightNode: TVRMLDirectionalLightNode);
     begin
-     glLightv(glLightNum, GL_POSITION, Vector4f(VectorNegate(LightNode.FdDirection.Value), 0));
+     glLightv(glLightNum, GL_POSITION, Vector4Single(VectorNegate(LightNode.FdDirection.Value), 0));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
     end;
 
     procedure SetupPointLight(LightNode: TVRMLPointLightNode);
     begin
-     glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
+     glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
     end;
 
     procedure SetupSpotLight_1(LightNode: TNodeSpotLight_1);
     begin
-     glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
+     glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
 
      glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
      glLightf(glLightNum, GL_SPOT_EXPONENT, LightNode.SpotExp);
@@ -252,7 +252,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
 
     procedure SetupSpotLight_2(LightNode: TNodeSpotLight_2);
     begin
-     glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
+     glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
 
      glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
 
@@ -359,7 +359,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
    { calculate Color4 = light color * light intensity }
    Color3 := VectorScale(Light.LightNode.FdColor.Value,
      Light.LightNode.FdIntensity.Value);
-   Color4 := Vector4f(Color3, 1);
+   Color4 := Vector4Single(Color3, 1);
 
    { calculate AmbientColor4 = light color * light ambient intensity }
    if Light.LightNode.FdAmbientIntensity.Value < 0 then
@@ -367,7 +367,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
    begin
      AmbientColor3 := VectorScale(Light.LightNode.FdColor.Value,
        Light.LightNode.FdAmbientIntensity.Value);
-     AmbientColor4 := Vector4f(AmbientColor3, 1);
+     AmbientColor4 := Vector4Single(AmbientColor3, 1);
    end;
 
    glLightv(glLightNum, GL_AMBIENT, AmbientColor4);

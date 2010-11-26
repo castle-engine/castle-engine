@@ -858,7 +858,7 @@ begin
    glEnable(GL_BLEND);
  end;
  DrawGLBorderedRectangle(MessageRect,
-   GLWinMessagesTheme.RectColor, Vector4f(GLWinMessagesTheme.RectBorderCol));
+   GLWinMessagesTheme.RectColor, Vector4Single(GLWinMessagesTheme.RectBorderCol));
  glDisable(GL_BLEND);
  glDisable(GL_POLYGON_STIPPLE);
 

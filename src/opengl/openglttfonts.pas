@@ -278,7 +278,7 @@ var i, poz,
              cala tablica dynamiczna moze zostac przesunieta w inne miejsce
              pamieci. Wiec wskazniki na elementy tablicy dynamicznej nie maja
              zadnej trwalosci ! }
-           AddVertex(vertices^, Vector3d(x, y, polZ) );
+           AddVertex(vertices^, Vector3Double(x, y, polZ) );
            gluTessVertex(tobj,
              {$ifndef USE_OLD_OPENGLH} T3dArray ( {$endif}
              LastAdded(vertices^)
@@ -402,8 +402,8 @@ begin
   glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
   glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
 
-  glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4f(1/RowHeight, 0, 0, - texOriginX / RowHeight));
-  glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4f(0, 1/RowHeight, 0, - texOriginY));
+  glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1/RowHeight, 0, 0, - texOriginX / RowHeight));
+  glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1/RowHeight, 0, - texOriginY));
   { texT = (objectY - texOriginY)/RowHeight =
            objectY/RowHeight - texOriginY/RowHeight
 
@@ -427,7 +427,7 @@ begin
     TexturedXShift sie zmienia, to jest powod dla ktorego musimy przed
     narysowaniem kazdego charactera ustawic glTexGenv(GL_S,...) od nowa }
   glTexGenv(GL_S, GL_OBJECT_PLANE,
-    Vector4f(1/RowHeight, 0, 0,
+    Vector4Single(1/RowHeight, 0, 0,
     (TexturedXShift - texOriginX) / RowHeight));
 end;
 

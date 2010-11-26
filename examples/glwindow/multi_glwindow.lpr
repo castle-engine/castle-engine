@@ -34,7 +34,7 @@ program multi_glwindow;
 
 uses
   GL, GLU, GLWindow, SysUtils, KambiUtils, OpenGLFonts, OpenGLTTFonts,
-  TTF_BitstreamVeraSans_Unit, KambiGLUtils, KeysMouse;
+  TTF_BitstreamVeraSans_Unit, KambiGLUtils, KeysMouse, VectorMath;
 
 type
   TMyWindow = class(TGLWindowDemo)
@@ -172,8 +172,8 @@ begin
 
   Windws[i].MoveZ := -10;
   Windws[i].Text := 'Window number '+IntToStr(i);
-  Windws[i].LightCol3f := Vector3f(Random*1.5, Random*1.5, Random*1.5);
-  Windws[i].DarkCol3f := Vector3f(Random*0.7, Random*0.7, Random*0.7);
+  Windws[i].LightCol3f := Vector3Single(Random*1.5, Random*1.5, Random*1.5);
+  Windws[i].DarkCol3f := Vector3Single(Random*0.7, Random*0.7, Random*0.7);
   Windws[i].Rotating := Odd(i);
 
   Windws[i].Caption := IntToStr(i)+
