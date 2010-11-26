@@ -19,7 +19,10 @@ unit VRMLNodesDetailOptions;
 
 interface
 
-{ Parses options
+{ Parses @--detail-xxx command-line options, and sets Detail_Xxx variables
+  appropriately.
+
+  Parses these options:
 
 @preformatted(
   --detail-quadric-slices VALUE
@@ -28,7 +31,7 @@ interface
 )
 
   and sets Detail_QuadricSlices, Detail_QuadricStacks and Detail_RectDivisions
-  variables appropriately.
+  variables.
 
   @raises(EInvalidParams on violation of allowed Detail values
     (e.g. when Detail_QuadricSlices < 3 etc.))
