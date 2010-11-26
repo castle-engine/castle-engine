@@ -19,7 +19,7 @@
   where to read/write files:
   @unorderedList(
     @item(UserConfigFile and UserConfigPath -- user config files)
-    @item(GetTempFname and GetTempDir -- temporary files)
+    @item(GetTempFileName and GetTempDir -- temporary files)
     @item(ProgramDataPath -- installed program's data files)
   )
 }
@@ -123,9 +123,12 @@ function GetTempPath: string;
   General comments for all functions below:
 
   Functions below return filenames like
-  - path that program should use to store user configuration files
-  - filenames             to use to store user configuration files
-  - path that program should use to obtain installed data files
+  @unorderedList(
+    @itemSpacing Compact
+    @item path that program should use to store user configuration files
+    @item filenames             to use to store user configuration files
+    @item path that program should use to obtain installed data files
+  )
 
   Results of this functions are based on ProgramBaseName
   (and possibly ExeName under Windows).
@@ -147,31 +150,36 @@ function GetTempPath: string;
   just don't look at Xxx_Other functions, you probably don't need them.
 }
 
-{ Returns path that program should use to store user configuration files.
+{ Path that program should use to store user configuration files.
   This is some directory that is supposed to be writeable
   and that is a standard directory under this OS to put user config files.
 
-  E.g.
+  @unorderedList(
 
-  - under Windows with PlatformId = VER_PLATFORM_WIN32_NT
-    (see GetVersionEx docs, VER_PLATFORM_WIN32_NT means
-    Windows Server 2003, Windows XP, Windows 2000, or Windows NT")
-    it tries to use
-    @code(SHGetSpecialFolderPath(0, @@Path, CSIDL_APPDATA, true))
-    This should return something like
-      C:\Documents and Settings\<user-name>\Application Data
-    ("Application Data" is localized, e.g. it's "Dane aplikacji" on Polish
-    Windowses)
+    @item(under Windows with PlatformId = VER_PLATFORM_WIN32_NT
+      (see GetVersionEx docs, VER_PLATFORM_WIN32_NT means
+      Windows Server 2003, Windows XP, Windows 2000, or Windows NT")
+      it tries to use
+      @code(SHGetSpecialFolderPath(0, @@Path, CSIDL_APPDATA, true))
+      This should return something like
 
-    If that fails (because SHGetSpecialFolderPath is not available in
-    shell32.dll (this can happen on Windows NT without Internet Explorer 4.0)
-    or for some other reason) it falls back on
-      ExtractFilePath(ExeName)
+        @code(C:\Documents and Settings\<user-name>\Application Data)
 
-  - under other Windowses (this includes Windows 95, 98, Millenium)
-    it returns ExtractFilePath(ExeName)
+      ("Application Data" is localized, e.g. it's "Dane aplikacji" on Polish
+      Windowses)
 
-  - under UNIXes it's user's home directory
+      If that fails (because SHGetSpecialFolderPath is not available in
+      shell32.dll (this can happen on Windows NT without Internet Explorer 4.0)
+      or for some other reason) it falls back on
+
+        @code(ExtractFilePath(ExeName))
+    )
+
+    @item(under other Windowses (this includes Windows 95, 98, Millenium)
+      it returns ExtractFilePath(ExeName))
+
+    @item(under UNIXes it's user's home directory)
+  )
 
   Always returns absolute (not relative) path. Result contains trailing
   PathDelim. }
@@ -179,13 +187,17 @@ function UserConfigPath: string;
 
 function UserConfigPath_Other(const WindowsExeNamePath: string): string;
 
-{ Returns a filename that program should use to store it's configuration.
-  This returns absolute filename that:
-  - is inside UserConfigPath
-  - has extention FExtension (FExtension should, as always, contain
-    beginning dot. E.g. FExtension = '.ini'. This way you can pass
-    FExtension = '' to have a filename without extension)
-  - filename depends on ProgramBaseName
+{ A filename that program should use to store it's configuration.
+
+  Returns absolute filename that:
+  @unorderedList(
+    @itemSpacing Compact
+    @item is inside UserConfigPath
+    @item(has extention FExtension (FExtension should, as always, contain
+      beginning dot. E.g. FExtension = '.ini'. This way you can pass
+      FExtension = '' to have a filename without extension))
+    @item filename depends on ProgramBaseName
+  )
 
   This is equivalent to
   UserConfigFile_FromProposed(ProgramBaseName + FExtension) }
@@ -194,13 +206,22 @@ function UserConfigFile(const FExtension: string): string;
 function UserConfigFile_Other(
   const FExtension, UnixProgramBaseName, WindowsExeName: string): string;
 
-{ Returns abslute file name:
-  - inside UserConfigPath
-  - with FileName somehow derived from ProposedFileName
+{ A filename that program should use to store it's configuration,
+  with configurable program name.
 
-  E.g.
-  - under UNIXes,  this is UserConfigPath + '.' + ProposedFileName
-  - under Windows, this is UserConfigPath + ProposedFileName }
+  Returns absolute file name:
+  @unorderedList(
+    @itemSpacing Compact
+    @item inside UserConfigPath
+    @item with FileName somehow derived from ProposedFileName
+  )
+
+  For example:
+  @unorderedList(
+    @itemSpacing Compact
+    @item under UNIXes,  this is UserConfigPath + '.' + ProposedFileName
+    @item under Windows, this is UserConfigPath + ProposedFileName
+  ) }
 function UserConfigFile_FromProposed(const ProposedFileName: string): string;
 
 function UserConfigFile_FromProposed_Other(
@@ -276,44 +297,32 @@ function ProgramDataPath_Other(
 
 { other file utilities ---------------------------------------------------- }
 
-{ funkcje IsSymLink x 2, CanonicalizeFileName uznaja ze pod Windowsem nie ma
-  sym-linkow. Jesli kiedys zmienie zdanie bede musial przebudowac te funkcje.
+{ Functions IsSymLink, CanonicalizeFileName assume Windows has no symlinks.
 
-  Dlaczego nie uznac Windowsowych Shell-linkow za sym-linki ?
+  Why not treat Windows shell-links as symlinks?
 
-  - normalne aplikacje konsolowe tak nie robia i uzytkownik bylby zaskoczony
+  - normal programs don't do this, so user would be surprised
 
-  - robienie OpenFile(shell-link) nie otwiera automatycznie pliku docelowego
-    shell-linka jak to sie dzieje pod UNIXem.
+  - making OpenFile(shell-link) doesn't automatically open target file,
+    like under UNIX.
 
-    Pod UNIXem sym-linka nie mozna otworzyc jako takiego, otwieranie go musi
-    spowodowac otworzenie pliku docelowego. Operowac na samym sym-linku mozna
-    tylko poprzez specjalne procedury z kernela/libc, nie mozna wprost zapisywac
-    "zawartosci" samego sym-linka tak jakby byl on zwyklym plikiem.
+    Under UNIX you cannot normally open symlink as a file,
+    you have to operate on symlink using special functions.
 
-    Pod windowsem shell-link to tylko taki format pliku i taki plik mozna otworzyc
-    recznie i cos w tym formacie zepsuc; Zachowanie polegajace na automatycznym
-    schodzeniu po shell-linku nie jest wykonywane przy otwieraniu (Reset/FileReset) pliku,
-    natomiast zachodzi przy otwieaniu pliku w sensie ShellExecute('open',plik,...).
+    Under Windows shell-link is a just a file format,
+    you can open and read/write it as usual. Normal open operations
+    (Reset and such) doesn't derefence the link.
+    Instead, ShellExecute('open',file,...) derefences the link.
 
-    Razem te roznice sprawiaja ze obslugiwanie windowsowych Shell-linkow jest
-    arcy-niewygodne. Gdybym przyjal ze shell-linki chce traktowac jak sym-linki
-    to chociazby zachowanie na parametr onsProcess byloby rozne pod roznymi
-    sys.op'ami - pod Windowsem trzeba by zawsze robic
-    Assign(CanonicalizeFileName(plik))
-    zamiast Assign(plik), co jest niepotrzebne pod UNIXem. I tak dalej.
+    So trying to treat shell-links like normal symlinks, I would have
+    to manually derefence links in a lot of cases.
 
-  - shell-linki pod windowsem niosa ze soba szersza informacje : ikonke skrotu,
-    katalog roboczy, klawisz skrotu, ew. parametry wywolania. W rezultacie nazwa
-    shell-link dobrze oddaje istote tego shell-linka : jest to dobry rodzaj skrotu
-    ktory mozna uzytkownikowi pokazac, za pomoca ktorego mozna konstruowac jakies
-    struktury menu startowego itd.
-
-    Uzywanie shell-linka jako sym-linka w stylu UNIXowym (czyli zwracanie uwagi tylko
-    na target-filename) byloby jakies nienaturalne.
+  - shell-links under Windows have more information (icon, working dir etc.).
+    Using it as mere symlink (using only filename inside) would not feel OK.
 }
-{ czy fname to symbolic link ? }
-function IsSymLink(const fname: string): boolean; overload;
+
+{ Is FileName a symbolic link. }
+function IsSymLink(const FileName: string): boolean; overload;
 
 {$ifdef DELPHI}
 { Unfortunately this is not possible to implement in FPC. Kylix has
@@ -361,64 +370,60 @@ function IsSymLink(const f: TSearchRec): boolean; overload;
   do ExclPathDelim(HomePath).
 
   Pod windowsem ta funkcja nic nie robi, zwraca filename.  }
-function ExpandHomePath(const fname: string): string;
+function ExpandHomePath(const FileName: string): string;
 
 {$ifdef MSWINDOWS}
-{ fname : nazwa istniejacego pliku, ze sciezka absolutna lub wzgledna.
-  Zwraca nazwe tego pliku gwarantujac ze ostatni czlon (tzn. sama nazwa
-  pliku beda uzywaly dlugiej (tj. nie DOSowej) nazwy. }
-function GetLongFilename(const fname: string): string;
+{ Convert FileName to make sure the last part uses long (not DOS) name.
+  FileName must be a name of existing file, may be absolute or relative. }
+function GetLongFilename(const FileName: string): string;
 
-{ jak GetLongFilename, ale zwraca tylko ten ostatni czlon.
-  Wiesz ze jest to nazwa pliku w katalogu ExtractFilePath(fname), i sam
-  musisz podjac decyzje co z tym zrobic. }
-function GetLongFileOnlyname(const fname: string): string;
+{ Like GetLongFileName, but returns only this last part.
+  You know it's inside ExtractFilePath(FileName). }
+function GetLongFileOnlyname(const FileName: string): string;
 
-{ fname to nazwa istniejacego pliku\, absolutna lub wzgledna.
-  Zwraca nazwe tego samego pliku (jesli fname bylo sciezka
-  wzgledna to zwrocone fname tez bedzie wzgledne) ale z kazdym czlonem
-  zapisanym w wersji long-filename, a wiec zamienia DOSowe czlony
-  nazw na windowsowe dlugie. }
-function GetLongPathName(fname: string): string;
+{ Convert FileName to make sure all parts use long (not DOS) names.
+  FileName must be a name of existing file, may be absolute or relative. }
+function GetLongPathName(FileName: string): string;
 {$endif}
 
-{ fname to nazwa pliku, moze byc wzgledna. Niniejsza funkcja zwraca
-  to samo co ExpandFilename a wiec sciezke absolutna.
-  Pod Windowsem dodatkowo gwarantowane jest ze KAZDY KOMPONENT
-  tej sciezki bedzie mial nazwe dluga (nie DOSowa).
-  Wiec ta funkcja nie tylko rozwija sciezke, ale sprawia ze jest
-  zawsze napisana z uzyciem long-filenames. }
-function ExpandLongFilename(const fname: string): string;
+{ Expand FileName, making sure it's absolute, under Windows also
+  making sure that each part is a long (not DOS) name.
+  So it's like ExpandFilename and at the same time GetLongPathName. }
+function ExpandLongFilename(const FileName: string): string;
 
-{ Wykonuje SysUtils.DeleteFile i sprawdza czy sie udalo, jesli nie - exception }
+{ Call SysUtils.DeleteFile and check result.
+  @raises Exception If delete failed. }
 procedure CheckDeleteFile(const FileName: string);
-{ Podobnie jak CheckDeleteFile -- wywoluje RemoveDir(DirFileName) i
-  jesli sie nie udalo -- exception z sensownym komunikatem }
+
+{ Call RemoveDir and check result.
+  @raises Exception If delete failed. }
 procedure CheckRemoveDir(const DirFileName: string);
 
 type EFileExists=class(Exception);
 
-{ kopiuj Source na Dest plik, w razie bledu - exception.
-  Jesli not CanOverwrite to i plik istnieje wyrzuca exception EFileExists,
-  jesli CanOverwrite to robi overwrite pliku dest jesli juz istnial.
+{ Copy file. If CanOverwrite than the destination wil be overwritten if exists.
 
-  TODO: niech FileCopy kopiuje tez directory }
-procedure FileCopy(const SourceFname, DestFname: string; CanOverwrite: boolean);
-{ j.w. ale zwraca false zamiast rzucac exception jesli sie nie udalo }
-function TryFileCopy(const SourceFname, DestFname: string; CanOverwrite: boolean): boolean;
+  Cannot copy a directory for now.
 
-{ move/rename file. Wersja bezpieczna - pozwala przenosic zarowno pliki jak i katalogi
+  @raises EFileExists If file exists and CanOverwrite = @false.
+  @raises Exception In case of various errors. }
+procedure FileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean);
+
+{ Copy file. Like FileCopy, but returns @false when failed (no exception). }
+function TryFileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean): boolean;
+
+{ Move or rename the file. Wersja bezpieczna - pozwala przenosic zarowno pliki jak i katalogi
   pomiedzy roznymi dyskami. W miare mozliwosci sprobuje wykonac normalne MoveFile/Rename
   ale jesli Dest jest na innym file-system niz Source (pod UNIXem
   spowoduje to blad procedury rename(), pod win spowoduje to blad w MoveFile() jezeli
-  SourceFname to katalog) to wykona Copy(source,dest)+Delete(source).
+  SourceFileName to katalog) to wykona Copy(source,dest)+Delete(source).
 
-  Jesli DestFname istnieje to :
+  Jesli DestFileName istnieje to :
     jesli CanOverwrite to nadpisuje go
     jesli not CanOverwrite to wyrzuca EFileExists.
   W razie bledu - exception.
 
-  Uwagi : pod Linuxem z GNU libc sytuacja gdy SourceFname i DestFname to
+  Uwagi : pod Linuxem z GNU libc sytuacja gdy SourceFileName i DestFileName to
   dwie nazwy dla tego samego pliku (do tego samego i-node) jest niezdefiniowana
   -- nie wiadomo
   co w zwiazku z tym zrobi libc.__rename, w zwiazku z czym nie wiadomo tez
@@ -429,7 +434,7 @@ function TryFileCopy(const SourceFname, DestFname: string; CanOverwrite: boolean
   TODO: przenoszenia katalogow nie zrobilem jeszcze (no, w pewnych przypadkach
   mogloby zadzialac ale to sliskie i niedodefiniowane teraz rzeczy). Na razie
   uzywaj FileMove tylko do plikow. }
-procedure FileMove(const SourceFname, DestFname: string; CanOverwrite: boolean {$ifdef DEFPARS}=False{$endif}); overload;
+procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boolean {$ifdef DEFPARS}=False{$endif}); overload;
 
 { ChangeDir is something like "an improved replacement for ChDir".
   Changes current directory to NewDir, raises EInOutError if this is
@@ -780,12 +785,12 @@ end;
 
 { other file utilities ---------------------------------------------------- }
 
-function IsSymLink(const fname: string): boolean;
+function IsSymLink(const FileName: string): boolean;
 {$ifdef UNIX}
 var statbuf: {$ifdef USE_LIBC} TStatBuf {$else} TStat {$endif};
 begin
- {$ifdef USE_LIBC} lstat(PChar(fname), statbuf)
- {$else}           FpLstat(PChar(fname), @statbuf)
+ {$ifdef USE_LIBC} lstat(PChar(FileName), statbuf)
+ {$else}           FpLstat(PChar(FileName), @statbuf)
  {$endif};
 
  Result := {$ifdef USE_LIBC} S_ISLNK {$else} FpS_ISLNK {$endif}
@@ -853,53 +858,53 @@ begin
 end;
 {$endif}
 
-function ExpandHomePath(const fname: string): string;
+function ExpandHomePath(const FileName: string): string;
 {$ifdef UNIX}
 begin
  { Rozwin '~' w nazwe home dir. Rozwin '~/xxx' w homedir+'/xxx'. }
- if Length(FName) = 1 then
+ if Length(FileName) = 1 then
  begin
-  if FName[1] = '~' then
+  if FileName[1] = '~' then
    Result := ExclPathDelim(HomePath) else
-   Result := FName;
+   Result := FileName;
  end else
- if (Length(fname) > 0) and (FName[1] = '~') then
-  Result := HomePath + SEnding(FName, 3) else
-  Result := FName;
+ if (Length(FileName) > 0) and (FileName[1] = '~') then
+  Result := HomePath + SEnding(FileName, 3) else
+  Result := FileName;
 {$else}
 begin
- result := fname;
+ result := FileName;
 {$endif}
 end;
 
 {$ifdef MSWINDOWS}
-function GetLongFilename(const fname: string): string;
+function GetLongFilename(const FileName: string): string;
 begin
- result := ExtractFilePath(fname)+GetLongFileOnlyname(fname);
+ result := ExtractFilePath(FileName)+GetLongFileOnlyname(FileName);
 end;
 
-function GetLongFileOnlyname(const fname: string): string;
+function GetLongFileOnlyname(const FileName: string): string;
 var srec: TSearchRec;
 begin
- if FindFirst(fname, faAnyFile, srec)<>0 then
-  raise Exception.Create('File '+fname+' does not exist');
+ if FindFirst(FileName, faAnyFile, srec)<>0 then
+  raise Exception.Create('File '+FileName+' does not exist');
  result := srec.Name;
 end;
 
-function GetLongPathName(fname: string): string;
+function GetLongPathName(FileName: string): string;
 var p: integer;
     pathpart: string;
 begin
- {idea dzialania jest taka : obcinamy z lewej strony fname i doklejamy go do
+ {idea dzialania jest taka : obcinamy z lewej strony FileName i doklejamy go do
   result. Robimy to sukcesywnie, starajac sie caly czas utrzymac zaleznosc
-  ze result+fname okresla nazwe tego samego pliku co fname, gdzie czesc w result
+  ze result+FileName okresla nazwe tego samego pliku co FileName, gdzie czesc w result
   zostala juz zamieniona na long-filenames. }
  result := '';
  repeat
-  p := Pos(PathDelim, fname);
+  p := Pos(PathDelim, FileName);
   if p = 0 then break;
 
-  pathpart := Copy(fname, 1, p-1);
+  pathpart := Copy(FileName, 1, p-1);
   if (pathpart = '') or SCharIs(pathpart, 2, ':') or SpecialDirName(pathpart) then
   begin
    {mamy tu poczatek sciezki relatywnej bez okreslenia dysku, a wiec zaczynajacej
@@ -913,20 +918,20 @@ begin
     doklejamy do result}
    result := result+GetLongFileOnlyName(result+pathpart)+PathDelim;
   end;
-  Delete(fname, 1, p);
+  Delete(FileName, 1, p);
  until false;
  {zostala nazwa pliku :}
- result := result+GetLongFileOnlyname(result+fname);
+ result := result+GetLongFileOnlyname(result+FileName);
 end;
 {$endif}
 
-function ExpandLongFilename(const fname: string): string;
+function ExpandLongFilename(const FileName: string): string;
 {$ifdef MSWINDOWS}
 begin
- result := ExpandFilename(GetLongPathName(fname));
+ result := ExpandFilename(GetLongPathName(FileName));
 {$else}
 begin
- result := ExpandFilename(fname);
+ result := ExpandFilename(FileName);
 {$endif}
 end;
 
@@ -944,7 +949,7 @@ begin
   raise Exception.Create('Cannot remove directory "' +DirFileName+ '"');
 end;
 
-procedure FileCopy(const SourceFname, DestFname: string; CanOverwrite: boolean);
+procedure FileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean);
 {kopiuj plik, w razie bledu - exception}
 { pod windowsem kopiowanie moznaby tu zrobic
   KambiOSCheck( CopyFile(PChar(filename),PChar(backFileName),not CanOverwrite);
@@ -964,11 +969,11 @@ var SourceF, DestF: file;
     ReadCount: integer;
     buf: PByte;
 begin
- if (not CanOverwrite) and FileExists(DestFname) then
-  raise EFileExists.Create('File '+DestFname+' already exists.');
- SafeReset(SourceF, SourceFname, true);
+ if (not CanOverwrite) and FileExists(DestFileName) then
+  raise EFileExists.Create('File '+DestFileName+' already exists.');
+ SafeReset(SourceF, SourceFileName, true);
  try
-  SafeRewrite(DestF,DestFname);
+  SafeRewrite(DestF,DestFileName);
   try
    buf := GetMem(BUF_SIZE);
    try
@@ -982,54 +987,54 @@ begin
  finally CloseFile(SourceF) end;
 end;
 
-function TryFileCopy(const SourceFname, DestFname: string; CanOverwrite: boolean): boolean;
+function TryFileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean): boolean;
 begin
  try
-  FileCopy(SourceFname, DestFname, CanOverwrite);
+  FileCopy(SourceFileName, DestFileName, CanOverwrite);
   result := true;
  except
   result := false
  end;
 end;
 
-procedure FileMove(const SourceFname, DestFname: string; CanOverwrite: boolean{=False});
+procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boolean{=False});
 begin
- if (not CanOverwrite) and FileExists(DestFname) then
-  raise EFileExists.Create('File '+DestFname+' already exists.');
+ if (not CanOverwrite) and FileExists(DestFileName) then
+  raise EFileExists.Create('File '+DestFileName+' already exists.');
 {$ifdef MSWINDOWS}
  { kiedys zapisalem to jako
    var dwFlags: Dword;
      dwFlags := MOVEFILE_COPY_ALLOWED;
      if CanOverwrite then dwFlags := dwFlags or MOVEFILE_REPLACE_EXISTING;
-     KambiOSCheck( MoveFileEx(PChar(SourceFname),PChar(DestFname),dwFlags) , 'MoveFileEx');
+     KambiOSCheck( MoveFileEx(PChar(SourceFileName),PChar(DestFileName),dwFlags) , 'MoveFileEx');
    i dzialalo. A potem przestalo dzialac - MoveFileEx zawsze wywala blad ze jest
    zaimplementowane tylko pod WinNT. ????
    W kazdym razie ponizsza wersja z MoveFile (bez "Ex") dziala zawsze.
    MoveFile zawsze dziala jakby MoveFileEx z flaga MOVEFILE_COPY_ALLOWED,
-   BEZ flagi MOVEFILE_REPLACE_EXISTING (wiec DestFname nie moze istniec).
+   BEZ flagi MOVEFILE_REPLACE_EXISTING (wiec DestFileName nie moze istniec).
  }
 
  if CanOverwrite then
  begin
-  DeleteFile(DestFname); {don't check DeleteFile result, it may fail}
+  DeleteFile(DestFileName); {don't check DeleteFile result, it may fail}
 
   { Tests:
-  if not DeleteFile(DestFname) then
+  if not DeleteFile(DestFileName) then
    RaiseLastKambiOSError;}
  end;
 
- KambiOSCheck( MoveFile(PChar(SourceFname), PChar(DestFname)), 'MoveFile');
+ KambiOSCheck( MoveFile(PChar(SourceFileName), PChar(DestFileName)), 'MoveFile');
 
  { TODO: zrob jeszcze obsluge kopiowania katalogow jesli sa na innych dyskach }
 {$else}
  { TODO: zrobic zeby mozna bylo move directory z override'm }
  if {$ifdef USE_LIBC} __rename {$else} FpRename {$endif}
-   (PChar(SourceFname), PChar(DestFname)) = -1 then
+   (PChar(SourceFileName), PChar(DestFileName)) = -1 then
   if Errno = {$ifdef USE_LIBC} EXDEV {$else} ESysEXDEV {$endif} then
   begin
    { gdy sa na innym systemie plikow rob Copy + Delete }
-   FileCopy(SourceFname, DestFname, CanOverwrite);
-   CheckDeleteFile(SourceFname);
+   FileCopy(SourceFileName, DestFileName, CanOverwrite);
+   CheckDeleteFile(SourceFileName);
   end else RaiseLastKambiOSError;
 {$endif}
 end;
@@ -1117,10 +1122,10 @@ end;
 
 { bezpieczne otw. plikow ------------------------------------------------------ }
 
-procedure ShowFileException(E: Exception; const fname: string);
+procedure ShowFileException(E: Exception; const FileName: string);
 begin
  raise EFileOpenError.Create('Error ' +E.ClassName +' while trying to open file "'
-   +fname+'" : '+E.Message);
+   +FileName+'" : '+E.Message);
 end;
 
 procedure SafeReset(var f: file; const filename: string; readonly: boolean; opensize: word); overload;
