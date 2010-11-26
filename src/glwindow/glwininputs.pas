@@ -13,22 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Idea jest zapisanie tutaj funkcji ktore w jakis sposob beda czekaly az
-  user cos przycisnie / poda z klawiatury ale w przeciwienstwie do
-  modulu GLWinMessages tutejszy modul nie przygotowuje zadnego interfejsu
-  do tego - uzycie procedur z tego modulu bedzie wymagalo
-  od ciebie przygotowania najpierw odpowiedniego obrazka (w buforze
-  kolorow OpenGLa albo w strukturze TImage).)
-
-  Komentarze do parametrow "ReadBuffer, FlushGLWindow" :
-    Na poczatku funkcja robi save screen z ReadBuffer.
-    Jesli FlushGLWindow to robi najpierw glwin.FlushRedisplay (generalnie,
-    powinienes robic FlushGLWindow wtedy i tylko wtedy gdy ReadBuffer = GL_FRONT).
-  Komentarze do parametrow "ImageFileName: string / Image: TImage" :
-    Podany ImageRec musi miec Kind in ImageGLFormats.
-    Alpha obrazka bedzie ignorowane.
-}
-
+{ Waiting for user input, keeping static image displayed on TGLWindow. }
 unit GLWinInputs;
 
 {
@@ -49,48 +34,52 @@ interface
 uses GL, GLU, KambiGLUtils, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
   KambiStringUtils;
 
-{ Dziala w petli (Application.ProcessMessage) i wyswietla
-  zlapany obrazek (musisz podac ScreenX0, Y0 = taka pozycja rastera ze jest
-  ona lewym dolnym rogiem ekranu) a na nim - wczytywany string
-  (na pozycji glRasterPos2i(AnswerX0, AnswerY0)).
+{ Wait until user inputs a string (accept by Enter), displaying the static
+  image with user string.
 
-  Znaczenie AnswerDefault, MinLength, MaxLength i AnswerAllowedChars
-  jest jasne, takie samo jak w GLWinMessages. Podobnie jak tam,
-  dzialaja one dobrze pod warunkiem ze poczatkowe Answer nie zawiera znakow
-  spoza AnswerAllowedChars. }
+  At the beginning, we capture the screen from OpenGL ReadBuffer.
+  If FlushGLWindow then we'll make Window.FlushRedisplay before capturing
+  (you should set FlushGLWindow = @true when ReadBuffer = GL_FRONT).
+
+  ScreenX0, ScreenY0 is raster position for lower-left screen corner
+
+  AnswerX0, AnswerY0 is raster position for displaying user answer.
+
+  AnswerDefault, MinLength, MaxLength and AnswerAllowedChars
+  have the same meaning as in GLWinMessages unit. Initial Answer
+  cannot contain characters outside AnswerAllowedChars. }
 function Input(glwin: TGLWindow;
   ReadBuffer: TGLenum; FlushGLWindow: boolean;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
-  AnswerDefault: string {$ifdef DEFPARS} = ''{$endif};
-  MinLength: Integer {$ifdef DEFPARS} = 0{$endif};
-  MaxLength: Integer {$ifdef DEFPARS} = 0{$endif};
-  const AnswerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif}
+  AnswerDefault: string = '';
+  MinLength: Integer = 0;
+  MaxLength: Integer = 0;
+  const AnswerAllowedChars: TSetOfChars = AllChars
   ): string;
 
-{ Czeka na nacisniecie dowolnego klawisza aby wyjsc,
-  obrazek wyswietlany na glRasterPos2i RasterX, Y
+{ Wait until user presses a key.
 
-  Szzegoly:
-  - jezeli obrazek jest mniejszy niz glwin.Width/Height to robi glClear
-    (GL_COLOR_BUFFER_BIT) aby wyczyscic kazdorazowo reszte okienka.
-    Wiec aktualny kolor clear OpenGLa ma wtedy znaczenie.
-  - realizuje wewnatrz petle GLWindow Application.ProcessMessage. W czasie
-    wyswietlania obrazka user nie moze wyjsc z programu, closequery jest
-    wylaczone itp. Jedyna co user moze zrobic to nacisnac dowolny klawisz.
+  Displays a given image on the screen while waiting.
+  You can give image filename, or ready TImage instance
+  (must be renderable to OpenGL, i.e. by one of GLImages.PixelsImageClasses
+  classes).
 
-  InputAnyKey(..ReadBuffer, FlushGLWindow...) pokazuje obrazek ktory aktualnie
-  jest narysowany w danym buforze. W ten sposob ta funkcja dziala jako
-  "press any key" - po prostu nic nie rysuje nowego na ekranie,
-  czeka tylko az przycisniesz klawisz. Podane tu RasterX, RasterY
-  musi w tym przypadku oznaczac ScreenX0, Y0 czyli lewy dolny rog okienka,
-  no chyba ze chcesz wyswietlac aktualny obraz jakos przesuniety. }
+  RasterX, RasterY is the image position on the screen. In the background
+  OpenGL clear color will be used.
+
+  You can also allow to capture the screen contents.
+  See @link(Input) for ReadBuffer, FlushGLWindow spec.
+  In this case, RasterX, RasterY should be position of lower-left
+  screen corner (unless you actully want to shift the displayed screen).
+  @groupBegin }
 procedure InputAnyKey(glwin: TGLWindow; const ImgFileName: string;
   ResizeX, ResizeY, RasterX, RasterY: Integer); overload;
 procedure InputAnyKey(glwin: TGLWindow; const Img: TImage;
   RasterX, RasterY: Integer); overload;
 procedure InputAnyKey(glwin: TGLWindow; ReadBuffer: TGLenum; FlushGLWindow: boolean;
   RasterX, RasterY: Integer); overload;
+{ @groupEnd }
 
 implementation
 
