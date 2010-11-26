@@ -1,6 +1,8 @@
 {$ifdef read_interface}
 
-//***** GL_EXT_packed_depth_stencil *****//
+{ Missing from FPC, submitted as http://bugs.freepascal.org/view.php?id=18054 }
+
+//***** GL_EXT_packed_depth_stencil *****// { }
 const
   GL_DEPTH_STENCIL_EXT = $84F9;
   GL_UNSIGNED_INT_24_8_EXT = $84FA;
