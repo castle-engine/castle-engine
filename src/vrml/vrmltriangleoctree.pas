@@ -13,37 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(@link(TVRMLTriangleOctree) class --- octree that provides
-  hierarchical tree of all triangles in a VRML scene.)
-
-  Dokladniej, mozemy
-  nawet zbudowac drzewo osemkowe laczac mniejsze kawalki wielu roznych
-  scen VRML'a. Elementami ktore bedziemy trzymac w lisciach drzewa sa
-  rekordy TVRMLTriangle - jeden taki rekord reprezentuje jeden trojkat
-  w przestrzeni. Razem z kazdym trojkatem zapamietywana jest informacja
-  z jakiego State'a i Shape'a on pochodzi. Wiec remember ze po zbudowaniu
-  ze sceny octree scena jest praktycznie "zamrozona" - nic nie wolno
-  w niej zmieniac.
-
-  Zasadnicza klasa rekurencyjna ktora reprezentuje wezel drzewa
-  (lisc = liste indeksow do TVRMLTriangle lub
-   wezel wewnetrzny = 8 podwezlow TOctreeNode) jest TOctreeNode.
-  Klasa TVRMLTriangleOctree to proste opakowanie na TreeRoot: TOctreeNode,
-  przechowuje miedzy innymi liste Triangles (w TOctreeNode mamy tylko
-  indeksy do nich) co pozwala nam zaoszczedzic MASE pamieci i umozliwia
-  nam zaimplementowanie skrzynek pocztowych podczas sprawdzania przeciec.
-}
-
+{ Triangle octrees (TVRMLTriangleOctree). }
 unit VRMLTriangleOctree;
 
 {
   TODO
-  - "po zbudowaniu ze sceny octree scena jest praktycznie "zamrozona" -
-    nic nie wolno w niej zmieniac" :
-    oczywiscie chcialbym zeby to sie z czasem
-    zmienilo, zebym mial w octree przygotowane funkcje ktore potrafiliby
-    radzic sobie z (przynajmniej pewnymi) zmianami sceny (tak jak jest teraz
-    zmiana sceny oznacza w zasadzie koniecznosc przebudowania octree).
+  - Right now, since we keep pointers to TVRMLTriangle created by TVRMLScene,
+    the VRML scene is practically frozen while this octree lives.
+
+    Eventually, I would like to fix this, and make octree more dynamic.
+    See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.octrees_dynamic.html].
 }
 
 {$I vrmloctreeconf.inc}
@@ -56,14 +35,13 @@ uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3D,
 {$define read_interface}
 
 const
+  { }
   DefTriangleOctreeMaxDepth = 10;
   DefTriangleOctreeLeafCapacity = 20;
   DefTriangleOctreeLimits: TOctreeLimits = (
     MaxDepth: DefTriangleOctreeMaxDepth;
     LeafCapacity: DefTriangleOctreeLeafCapacity
   );
-
-{ TTriangleOctreeNode ------------------------------------------------------------------}
 
 type
   TVRMLTriangleOctree = class;
@@ -105,9 +83,10 @@ type
   public
     function ParentTree: TVRMLTriangleOctree;
 
-    { Items zapewniaja wygodniejszy (czasami) dostep do tablicy ItemsIndices.
-      Podane ItemIndex jest indeksem do tablicy ItemsIndices - wyciagamy z tego
-      ParentTree.Triangles[ItemsIndices[ItemIndex]] }
+    { Triangles stored in this octree leaf.
+      This is a more comfortable way to access ItemsIndices array.
+      Given ItemIndex indexes our ItemsIndices, and we return
+      @code(ParentTree.Triangles[ItemsIndices[ItemIndex]]). }
     property Items[ItemIndex: integer]: PVRMLTriangle read GetItems;
 
     function SphereCollision(const pos: TVector3Single;
@@ -163,8 +142,10 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
   end;
 
-{ TVRMLTriangleOctree ------------------------------------------------------------ }
-
+  { Octree based on triangles. Allows for fast collision-detection
+    with a set of triangles. Each triangle is a TVRMLTriangle structure,
+    that keeps triangle geometry in 3D space, and links to parent
+    VRML Shapes and such. }
   TVRMLTriangleOctree = class(TVRMLBaseTrianglesOctree)
   protected
     function StatisticsBonus(
@@ -174,30 +155,16 @@ type
     constructor Create(const ALimits: TOctreeLimits; const ARootBox: TBox3D); overload;
     destructor Destroy; override;
   public
-    { tu beda zgromadzone wszystkie Triangles jakie mamy w drzewie.
-      W lisciach beda tylko ItemsIndices ktore beda indeksami do tej tablicy.
-      Zrobilem to 27.04.2003 gdy zobaczylem w drzewie
-      z ciasno dobranymi MaxDepth i LeafCapacity jeden trojkat sceny moze
-      byc powielony az 50 000 razy ! To powodowalo zzeranie niesamowitych ilosci
-      pamieci, bo rekord TVRMLTriangle jest dosc duzy i z czasem pewnie bede go
-      jeszcze rozszerzal. Trzymanie wszystkich elementow w tablicy pozwala
-      mi miec w lapie kazdy element tylko raz.
-      - ponadto unikajac robienia TVRMLTriangle jako obiektow unikam fragmentacji
-        pamieci
-      - umozliwilem sobie uzycie mailboxow (for TRIANGLE_OCTREE_USE_MAILBOX)
-      - umozliwiam realizowanie TriangleToIgnore w RayCollision przez szybkie
-        porownywanie of a simple pointer (zamiast np. zawartosci TVRMLTriangle) }
+    { All our triangles.
+
+      By keeping a list of triangles here, and only keeping indexes
+      to this table in leafs (in ItemsIndices) we conserve a lot of memory.
+      This also allows to use mailboxes and fast TriangleToIgnore
+      (because every triangle has a unique index,
+      and a pointer too, shared even if this triangle is placed in multiple
+      leaves). }
     Triangles: TDynVRMLTriangleArray;
 
-    function TreeRoot: TTriangleOctreeNode;
-
-    { Add single Triangle. Automatically checks whether IsValidTriangle.
-      Przed dodaniem duzej ilosci trojkatow sugerowane jest aby ustalic
-      Triangles.AllowedCapacityCount na odpowiednio duza wartosc.  }
-    procedure AddItemTriangle(const Triangle: TTriangle3Single;
-      Shape: TObject;
-      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-  public
     { Direct collisions counter, to test octree efficiency.
 
       It is incremented each time XxxCollision make a direct
@@ -207,6 +174,15 @@ type
 
       0 by default. }
     DirectCollisionTestsCounter: TCollisionCount;
+
+    function TreeRoot: TTriangleOctreeNode;
+
+    { Add a single Triangle. Automatically checks whether IsValidTriangle.
+      Before adding a lot of triangles, it's suggested to increase
+      Triangles.AllowedCapacityCount.  }
+    procedure AddItemTriangle(const Triangle: TTriangle3Single;
+      Shape: TObject;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
     { Internal for cooperation with TVRMLShapeOctree.
       @exclude }

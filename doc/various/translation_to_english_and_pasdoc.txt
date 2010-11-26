@@ -63,7 +63,7 @@ D   vrmlshape.pas
 D   vrmlshapeoctree.pas
 D   vrmltime.pas
 D   vrmltriangle.pas
--   vrmltriangleoctree.pas
+D   vrmltriangleoctree.pas
 D   x3dxmltovrml.pas
 
   vrml/opengl/
