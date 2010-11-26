@@ -130,7 +130,6 @@ begin
     P.Targets.AddUnit('dataerrors.pas');
     P.Targets.AddUnit('enumeratefiles.pas');
     P.Targets.AddUnit('filefilters.pas');
-    P.Targets.AddUnit('intrects.pas');
     P.Targets.AddUnit('kambiclassutils.pas');
     P.Targets.AddUnit('kambidynlib.pas');
     P.Targets.AddUnit('kambifilesutils.pas');

@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="166">
+    <Files Count="165">
       <Item1>
         <Filename Value="../src/3d/backgroundbase.pas"/>
         <UnitName Value="BackgroundBase"/>
@@ -190,10 +190,6 @@
         <Filename Value="../src/base/filefilters.pas"/>
         <UnitName Value="FileFilters"/>
       </Item35>
-      <Item36>
-        <Filename Value="../src/base/intrects.pas"/>
-        <UnitName Value="IntRects"/>
-      </Item36>
       <Item37>
         <Filename Value="../src/base/kambiclassutils.pas"/>
         <UnitName Value="KambiClassUtils"/>
@@ -716,10 +712,10 @@
         <Filename Value="../src/vrml/vrmltime.pas"/>
         <UnitName Value="VRMLTime"/>
       </Item165>
-      <Item166>
+      <Item36>
         <Filename Value="../src/vrml/vrmltriangle.pas"/>
         <UnitName Value="VRMLTriangle"/>
-      </Item166>
+      </Item36>
       <Item54>
         <Filename Value="../src/vrml/vrmltriangleoctree.pas"/>
         <UnitName Value="VRMLTriangleOctree"/>

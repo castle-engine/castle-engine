@@ -80,7 +80,7 @@ unit KambiGLUtils;
 interface
 
 uses Math, GL, GLU, GLExt,
-  SysUtils, KambiUtils, VectorMath, Boxes3D, IntRects,
+  SysUtils, KambiUtils, VectorMath, Boxes3D,
   Images, Matrix, Areas;
 
 {$define read_interface}
@@ -700,17 +700,10 @@ procedure HorizontalGLLine(x1, x2, y: TGLfloat);
   and set by glPolygonStipple. If Stipple = nil, then GL_POLYGON_STIPPLE
   will be disabled. Requires one more attrib stack place.
 
-  Overloaded TIntRect versions take x1 := R[0, 0], y1 := R[0, 1],
-  x2 := R[1, 0], y2 := R[1, 1] (not x2 := R[1, 0]-1, y2 := R[1, 1]-1,
-  because usually you don't want that when working with OpenGL.
   @groupBegin }
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f); overload;
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
-  const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple); overload;
-procedure DrawGLBorderedRectangle(const R: TIntRect;
-  const InsideCol, BorderCol: TVector4f); overload;
-procedure DrawGLBorderedRectangle(const R: TIntRect;
   const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple); overload;
 { @groupEnd }
 
@@ -721,7 +714,6 @@ procedure DrawGLBorderedRectangle(const R: TIntRect;
   @groupBegin }
 procedure DrawGLRectBorder(const x1, y1, x2, y2: TGLfloat); overload;
 procedure DrawGLRectBorder(const Area: TArea); overload;
-procedure DrawGLRectBorder(const R: TIntRect); overload;
 { @groupEnd }
 
 function UnProjectGL(winx, winy, winz: TGLdouble): TVector3d;
@@ -1610,25 +1602,6 @@ end;
 procedure DrawGLRectBorder(const Area: TArea);
 begin
   DrawGLRectBorder(Area.X0, Area.Y0, Area.X0 + Area.Width, Area.Y0 + Area.Height);
-end;
-
-procedure DrawGLBorderedRectangle(const R: TIntRect;
-  const InsideCol, BorderCol: TVector4f);
-begin
- DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
-   InsideCol, BorderCol);
-end;
-
-procedure DrawGLBorderedRectangle(const R: TIntRect;
-  const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple);
-begin
- DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
-   InsideCol, BorderCol, Stipple);
-end;
-
-procedure DrawGLRectBorder(const R: TIntRect);
-begin
- DrawGLRectBorder(R[0, 0], R[0, 1], R[1, 0], R[1, 1]);
 end;
 
 function UnProjectGL(winx, winy, winz :TGLdouble): TVector3d;

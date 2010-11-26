@@ -90,7 +90,6 @@ E   vorbisfile.pas
 D   dataerrors.pas
 |   enumeratefiles.pas
 D   filefilters.pas
-D   intrects.pas
 |   kambiclassutils.pas
 D   kambidynlib.pas
 |   kambifilesutils.pas

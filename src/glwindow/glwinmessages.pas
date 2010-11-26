@@ -378,8 +378,101 @@ var
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
-  KambiClassUtils, SysUtils, GLWinModes, IntRects, KambiLog,
+  KambiClassUtils, SysUtils, GLWinModes, KambiLog,
   GLImages;
+
+{ TIntRect ------------------------------------------------------------------- }
+
+type
+  TIntRect = array[0..1]of TVector2Integer;
+
+const
+  IntRectEmpty: TIntRect = ((0, 0), (0, 0));
+
+function IntRect(X1, Y1, X2, Y2:Integer):TIntRect;
+begin
+ Result[0,0]:=X1;
+ Result[0,1]:=Y1;
+ Result[1,0]:=X2;
+ Result[1,1]:=Y2;
+end;
+
+function RectsEqual(const R1, R2:TIntRect):boolean;
+begin
+ { instead of checking (R1[0,0] = R2[0,0]) and (R1[0,1] = R2[0,1]) ...
+   we optimize a little }
+ Result:=CompareMem(@R1, @R2, SizeOf(TIntRect));
+end;
+
+function RectWidth(const r:TIntRect):Cardinal;
+begin
+ Result:=r[1,0] - r[0,0];
+end;
+
+function RectHeight(const r:TIntRect):Cardinal;
+begin
+ Result:=r[1,1] - r[0,1];
+end;
+
+{ It's grow, or shrink (when GrowValue < 0).
+  Just remember to preserve basic TIntRect type assumptions
+  (Rect[0,0] <= Rect [1,0], Rect[0,1] <= Rect [1,1]),
+  so don't shrink it too much. }
+function GrowRect(const r:TIntRect; GrowValue:Integer):TIntRect;
+begin
+ Result[0,0] := R[0,0] - GrowValue;
+ Result[0,1] := R[0,1] - GrowValue;
+ Result[1,0] := R[1,0] + GrowValue;
+ Result[1,1] := R[1,1] + GrowValue;
+end;
+
+function CenteredRect(const R:TIntRect; w,h:Cardinal):TIntRect;
+begin
+ { We're casting W,H to integer. They are declared as Cardinal only
+   to produce some compiler RunTime checks in debug mode. }
+ Result[0,0]:=R[0,0] + (R[1,0] - R[0,0] - Integer(W)) div 2;
+ Result[0,1]:=R[0,1] + (R[1,1] - R[0,1] - Integer(H)) div 2;
+ Result[1,0]:=Result[0,0] + Integer(W);
+ Result[1,1]:=Result[0,1] + Integer(H);
+end;
+
+function PointInRect(const v:TVector2Integer; const r:TIntRect):boolean;
+begin
+ Result:=(r[0,0] <= v[0]) and (v[0] < r[1,0]) and
+         (r[0,1] <= v[1]) and (v[1] < r[1,1]);
+end;
+
+function PointInRect(const x,y:Integer; const r:TIntRect):boolean;
+begin
+ Result:=(r[0,0] <= x) and (x < r[1,0]) and
+         (r[0,1] <= y) and (y < r[1,1]);
+end;
+
+function IntRectToNiceStr(const R:TIntRect):string;
+begin
+ Result:=Format('(%d,%d)-(%d,%d)', [R[0,0], R[0,1], R[1,0], R[1,1]]);
+end;
+
+procedure DrawGLBorderedRectangle(const R: TIntRect;
+  const InsideCol, BorderCol: TVector4f);
+begin
+ KambiGLUtils.DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
+   InsideCol, BorderCol);
+end;
+
+procedure DrawGLBorderedRectangle(const R: TIntRect;
+  const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple);
+begin
+ KambiGLUtils.DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
+   InsideCol, BorderCol, Stipple);
+end;
+
+procedure DrawGLRectBorder(const R: TIntRect);
+begin
+ KambiGLUtils.DrawGLRectBorder(R[0, 0], R[0, 1], R[1, 0], R[1, 1]);
+end;
+
+{ end of TIntRect utils ------------------------------------------------------ }
 
 const
   DrawMessg_BoxMargin = 10;

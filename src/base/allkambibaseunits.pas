@@ -13,7 +13,6 @@ uses
   dataerrors,
   enumeratefiles,
   filefilters,
-  intrects,
   kambiclassutils,
   kambidynlib,
   kambifilesutils,
