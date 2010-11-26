@@ -13,88 +13,55 @@
   ----------------------------------------------------------------------------
 }
 
-
-{ OpenAL library functions.
+{ OpenAL library bindings.
   This is a translation of OpenAL C headers: @code(AL/al.h, AL/alc.h, AL/alut.h)
   (and included headers: @code(AL/altypes.h, AL/alctypes.h)).
 
+  The library is loaded in unit initialization, and if not found
+  we will merely set ALInited variable to @false.
+  (There's similar ALUTInited variable for alutXxx functions.)
+  This allows you to check at runtime and gracefully work
+  if OpenAL is not installed (e.g. you can turn off game sounds.)
+
   Renamed to KambiOpenAL (from OpenAL) to avoid clash with FPC's OpenAL
-  unit. In the future, we may drop to using FPC's OpenAL unit, for now
-  this unit has at least one advantage over FPC's OpenAL unit: if OpenAL
-  library is not present (so, dylib or dll), it will simply set
-  ALInited to @false. While FPC's OpenAL unit links to OpenAL using "external"
-  and will fail when library is not present at runtime.
+  unit. FPC unit doesn't provide above ALInited feature.
 
-  Ogolne strategie tlumaczenia :
-  @unorderedList(
-    @item(
-      wszystkie typy tlumaczylem na typy o ustalonych rozmiarach,
-      tzn. int na LongInt zamiast na Integer,
-      unsigned int na LongWord zamiast na Cardinal.)
-
-    @item(typy OpenAL'a maja literke T na poczatku, zrobilem tez dla
-      kazdego typu wersje PAL<typ> wskazujaca na odpowiedni typ TAL<typ>)
-
-    @item(zazwyczaj parametry funkcji typu PALubyte zamienialem na PChar
-      (i typy zwracane przez funkcje jako PALubyte tak samo, np. alGetString
-      zwraca PChar);
-      to jest to samo dla komputera (wskaznik na cos rozmiaru bajta, zreszta
-      tak naprawde - po prostu wskaznik), a podawanie PChar jest duzo latwiejsze
-      (oczywiscie, o ile tylko rzeczywiscie chodzi o string; zamienialem
-      PALubyte na PChar wlasnie wtedy kiedy wiedzialem ze zawsze _chodzi_
-      o string).)
-
-    @item(nie uzywalem h2pas; headery OpenAL'a sa ladnie i konsekwentnie napisane
-      i uznalem ze lepiej sobie poradze uzywajac moich makr w EmacsLispie +
-      mnostwo zamian na regexpach pisanych z palca + troche recznej "klepaniny".)
-
-    @item(wszystkie komentarze z oryginalnych headerow zostawilem, gdzieniegdzie
-      sa naprawde dobre i stanowia zalazek dokumentacji odpowiednich funkcji.
-      Wszystkie komentarze dodane ode mnie zawieraja string "Kambi".)
-  )
-
-  Funkcje i procedury sa przetlumaczone na wskazniki na funkcje.
-  W inicjalizacji tego modulu probujemy je zaladowac z odpowiednich DLLi
-  ale _nie ma zadnych gwarancji ze to sie uda_. Kazdy program uzywajacy
-  tego modulu musi sie jakos upewnic ze ALInited (przed uzyciem
-  dowolnej funkcji alXxx i alcXxx), jesli chce uzywac takze alutXxx
-  to musi tez sprawdzic ze ALUTInited. Np. gry ktore powinny
-  probowac zainicjowac OpenAL'a ale jednoczesnie powinny moc dzialac jesli
-  nie ma OpenAL'a dostepnego (no bo w koncu, jesli nie ma muzyki to trudno -
-  - grac mozna i bez muzyki) musza sprawdzac przed kazdym wejsciem w kazdy
-  kawalek kodu uzywajacy OpenAL'a czy ALInited (ew. czy ALUTInited).
-  Z drugiej strony, programy ktore nie chca komplikowac sobie tak zycia
-  i chca dzialac na zasadzie "jesli nie ma dostepnego OpenAL'a to nie bede
-  dzialal" moga wywolac proste
-    Check(ALInited, "OpenAL is not available. This program requires OpenAL.");
-  (albo cos podobnego dla ALUTInited) i potem w dalszej czesci programu
-  mozemy swobodnie uzywac OpenAL'owych funkcji. Takie dwie funkcje
-  CheckALInited i CheckALUTInited juz sa zreszta gotowe w tym module.
-
-  Wszystkie zmienne w interfejsie tego modulu sa zmiennymi tylko dlatego
-  ze to upraszcza mi robote. Nigdy nie moga byc modyfikowane z zewnatrz
-  tego modulu - dotyczy to zarowno wskaznikow na wszystkie funkcje/procedury
-  jak i zmiennych AL/ALUTInited.
-}
-
+  @exclude (Unit not really ready for PasDoc, with many comments from
+  original C headers.) }
 unit KambiOpenAL;
 
-{ Zdefiniuj dla danej platformy czego oczekujemy od jej wersji OpenALa
-  (o ile w ogole bedzie obecna w danym systemie) :
+{ Internal comments: translation strategy:
 
-  Zdefiniuj OLD_OPENAL aby powiedziec ze OpenAL nie zawiera funkcji
+  @unorderedList(
+    @item(Types are translated into types of defined size
+      (C int to LongInt, not Integer etc.).
+      TODO: I should probably port to using CTypes now.)
+
+    @item(All types start with T, except pointers starting with P.
+      This is normal for Pascal.)
+
+    @item(In most cases function parameters and return values
+      PALubyte were changed into PChar, as their intention is to handle
+      C strings. ABI is the same,
+      but using PChar allows easier usage under Pascal compilers.)
+
+    @item(I didn't use h2pas. OpenGL headers are clean enough to handle
+      most stuff with some regexps and Emacs macros..)
+
+    @item(All original comments are preserved, sometimes they are useful.
+      Most of my comments in included files are marked with "Kambi".)
+  )
+}
+
+{ If OLD_OPENAL, then we don't look for functions
   alHint, alGetListeneriv, alGetSourceiv, alGetBufferiv, alGetBufferfv i alQueuei.
-  W tym momencie dotyczy to wersji ktora mam na Windowsie rozprowadzanej
-  z Creative SDK. 2005-11-12: now it's also for Debian testing OpenAL.
-  So I'll just define it always. }
+  For now defined always (needed for Windows version from Creative SDK,
+  and for Debian testing OpenAL since 2005-11-12). }
 {$define OLD_OPENAL}
 
-{ Zdefiniuj ALUT_IN_AL_LIB aby powiedziec ze funkcje "alutXxx" moga byc dostepne
-  i na dodatek sa w tej samej dynlib co zasadnicze funkcje OpenALa.
-  W tym momencie jest to jedyny sposob aby uzyskac funkcje alutXxx ale byc
-  moze kiedys pojawia sie tez inne sposoby (np. jezeli znajde sie kiedys
-  w sytuacji ze na jakims systemie funkcje alutXxx sa w osobnym dllu;
-  ale na razie nie znam takiego systemu). }
+{ Define if "alutXxx" functions may be found in the same library as
+  base OpenAL. Currently, when this is not defined, we will not look
+  for alutXxx functions at all (our engine doesn't use them). }
 {$ifdef LINUX} {$define ALUT_IN_AL_LIB} {$endif}
 {$ifdef FREEBSD} {$define ALUT_IN_AL_LIB} {$endif}
 
@@ -209,12 +176,12 @@ const
   and initialize ALInited and ALUTInited. In this unit's finalization,
   we release library handles and set ALInited and ALUTInited back to @false.
 
-  What this procedure does ?
+  What this procedure does?
   It behaves like finalizing this unit (releasing OpenAL library handles),
   then sleeping for some short amount, and initializing this unit again
   (loading OpenAL library symbols).
 
-  When is it needed ?
+  When is it needed?
 
   Unix OpenAL implementation seems to have a problem.
   It's reproduceable in "The Castle" code:
@@ -233,7 +200,7 @@ const
   Workaround that I found is to do such OpenALRestart.
   Release OpenAL library, wait some short time
   (I guess that otherwise some resources will still occupy the sound
-  device ? In any case, this short sleep is needed...), then do
+  device? In any case, this short sleep is needed...), then do
   OpenAL library initialization again. And things work correctly. }
 procedure OpenALRestart;
 

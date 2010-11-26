@@ -80,7 +80,7 @@ D   alutils.pas
 D   efx.pas
 D   gamesoundengine.pas
 E   kambiogg.pas
--   kambiopenal.pas
+E   kambiopenal.pas
 D   soundfile.pas
 E   vorbiscodec.pas
 D   vorbisdecoder.pas
@@ -175,14 +175,14 @@ D   vrmlkambiscript.pas
 
  ui/
 D   areas.pas
+D   cameras.pas
 D   keysmouse.pas
 D   uicontrols.pas
-D   cameras.pas
 
  ui/opengl/
+D   glcontrols.pas
 D   glmenu.pas
-E   imageslider_base.pas
-E   imageslider_position.pas
+E   glmenuimages.pas
 
  examples/vrml/tools/
 |   vrmllightmap.pas
