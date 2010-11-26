@@ -389,57 +389,57 @@ type
 const
   IntRectEmpty: TIntRect = ((0, 0), (0, 0));
 
-function IntRect(X1, Y1, X2, Y2:Integer):TIntRect;
+function IntRect(X1, Y1, X2, Y2: Integer): TIntRect;
 begin
- Result[0,0]:=X1;
- Result[0,1]:=Y1;
- Result[1,0]:=X2;
- Result[1,1]:=Y2;
+  Result[0, 0] := X1;
+  Result[0, 1] := Y1;
+  Result[1, 0] := X2;
+  Result[1, 1] := Y2;
 end;
 
-function RectWidth(const r:TIntRect):Cardinal;
+function RectWidth(const r: TIntRect): Cardinal;
 begin
- Result:=r[1,0] - r[0,0];
+  Result := r[1, 0] - r[0, 0];
 end;
 
-function RectHeight(const r:TIntRect):Cardinal;
+function RectHeight(const r: TIntRect): Cardinal;
 begin
- Result:=r[1,1] - r[0,1];
+  Result := r[1, 1] - r[0, 1];
 end;
 
 { It's grow, or shrink (when GrowValue < 0).
   Just remember to preserve basic TIntRect type assumptions
-  (Rect[0,0] <= Rect [1,0], Rect[0,1] <= Rect [1,1]),
+  (Rect[0, 0] <= Rect [1, 0], Rect[0, 1] <= Rect [1, 1]),
   so don't shrink it too much. }
-function GrowRect(const r:TIntRect; GrowValue:Integer):TIntRect;
+function GrowRect(const r: TIntRect; GrowValue: Integer): TIntRect;
 begin
- Result[0,0] := R[0,0] - GrowValue;
- Result[0,1] := R[0,1] - GrowValue;
- Result[1,0] := R[1,0] + GrowValue;
- Result[1,1] := R[1,1] + GrowValue;
+  Result[0, 0] := R[0, 0] - GrowValue;
+  Result[0, 1] := R[0, 1] - GrowValue;
+  Result[1, 0] := R[1, 0] + GrowValue;
+  Result[1, 1] := R[1, 1] + GrowValue;
 end;
 
-function CenteredRect(const R:TIntRect; w,h:Cardinal):TIntRect;
+function CenteredRect(const R: TIntRect; w, h: Cardinal): TIntRect;
 begin
- { We're casting W,H to integer. They are declared as Cardinal only
-   to produce some compiler RunTime checks in debug mode. }
- Result[0,0]:=R[0,0] + (R[1,0] - R[0,0] - Integer(W)) div 2;
- Result[0,1]:=R[0,1] + (R[1,1] - R[0,1] - Integer(H)) div 2;
- Result[1,0]:=Result[0,0] + Integer(W);
- Result[1,1]:=Result[0,1] + Integer(H);
+  { We're casting W, H to integer. They are declared as Cardinal only
+    to produce some compiler RunTime checks in debug mode. }
+  Result[0, 0] := R[0, 0] + (R[1, 0] - R[0, 0] - Integer(W)) div 2;
+  Result[0, 1] := R[0, 1] + (R[1, 1] - R[0, 1] - Integer(H)) div 2;
+  Result[1, 0] := Result[0, 0] + Integer(W);
+  Result[1, 1] := Result[0, 1] + Integer(H);
 end;
 
-function PointInRect(const x,y:Integer; const r:TIntRect):boolean;
+function PointInRect(const x, y: Integer; const r: TIntRect): boolean;
 begin
- Result:=(r[0,0] <= x) and (x < r[1,0]) and
-         (r[0,1] <= y) and (y < r[1,1]);
+  Result := (r[0, 0] <= x) and (x < r[1, 0]) and
+            (r[0, 1] <= y) and (y < r[1, 1]);
 end;
 
 procedure DrawGLBorderedRectangle(const R: TIntRect;
   const InsideCol, BorderCol: TVector4f);
 begin
- KambiGLUtils.DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
-   InsideCol, BorderCol);
+  KambiGLUtils.DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
+    InsideCol, BorderCol);
 end;
 
 { end of TIntRect utils ------------------------------------------------------ }
@@ -1031,7 +1031,7 @@ procedure GLWinMessage(glwin: TGLWindow; textlist: TStringList;
   ustawionych dla niego w TMessageData mowiacych mu co i jak wypisac.
 
   Perspektywa w ktorej dziala OnDraw jest zawsze
-  Ortho2D(0, glwin.width, 0,glwin.height).
+  Ortho2D(0, glwin.width, 0, glwin.height).
 
   Zawartosc obiektu textlist nie bedzie modyfikowana - jest to gwarantowane.
 
@@ -1277,7 +1277,7 @@ begin
    if md.SAdditional <> '' then
      if mkCtrl in Glwin.Pressed.Modifiers then
        md.SetSAdditional(glwin, '') else
-       md.SetSAdditional(glwin, Copy(md.SAdditional, 1,Length(md.SAdditional)-1));
+       md.SetSAdditional(glwin, Copy(md.SAdditional, 1, Length(md.SAdditional)-1));
  end else
  case c of
   CharEnter:
