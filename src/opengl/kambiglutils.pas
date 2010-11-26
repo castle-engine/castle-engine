@@ -757,19 +757,30 @@ procedure KamGluSphere(
   Assuming that X1<=X2 and Y1<=Y2: If ConstCoordGivesNormal1 then
   the normal points to positive ConstCoord, otherwise to negative.
 
-  Texture coordinates are generated if MakeTextureCoords.
-  Texture S goes from 0 to 1 when X goes from X1 to X2,
-  texture T goes from 0 to 1 when Y goes from Y1 to Y2,
-
   If DetailLevel1 <> 0 or DetailLevel2 <> 0 then rectangle is actually
   rendered by many smaller polygons. This improved the look under
   Gouraud shading. We use DetailLevelX + 1 columns and
   DetailLevelY + 1 rows, so actually we render
-  @code((DetailLevelX + 1) * (DetailLevelY + 1)) OpenGL quads. }
+  @code((DetailLevelX + 1) * (DetailLevelY + 1)) OpenGL quads.
+
+  Texture coordinates are generated if MakeTextureCoords.
+
+  Tex* parameters configure what texture coordinates are assigned to
+  rectangle corners.
+
+  Order_ST_XYZ means that the order of XYZ coordinates and texture ST
+  coordinates is the same. For example, if ConstCoord = 2,
+  then S texture coord with increase along X,
+  and T texture coord with increase along Y.
+  If Order_ST_XYZ, then T texture coord with increase along X,
+  and S texture coord with increase along Y. }
 procedure DrawGLPlane(X1, Y1, X2, Y2: TGLfloat; ConstValue: TGLfloat;
   ConstCoord, DetailLevelX, DetailLevelY: integer;
   ConstCoordGivesNormal1: boolean;
-  MakeTextureCoords: boolean);
+  MakeTextureCoords: boolean;
+  texX1: TGLfloat = 0; texY1: TGLfloat = 0;
+  texX2: TGLfloat = 1; texY2: TGLfloat = 1;
+  order_ST_XYZ: boolean = true);
 
 { Draw axis-aligned box. Pass coordinates for box corners
   (X1 must be <= X2 etc.), or explicit TBox3D value.
@@ -1677,28 +1688,7 @@ begin
   finally gluDeleteQuadric(Q); end;
 end;
 
-{ DrawGLPlaneSpecialTex umozliwia podanie wspolrzednych tekstury na
-  czterech rogach prostokata. texX1, texY1 to wspolrzedne tekstury na x1, y1
-  i podobnie dla texX2, texY2. Na calym prostokacie wspolrzedne tekstury
-  beda rownomiernie rozlozone w zadanych granicach.
-
-  W ten sposob mozesz narysowac rectangla ktory ma scieta teksture albo
-  powtorzona.
-
-  Ponadto, mamy tu parametr order_ST_XYZ. Jezeli true to oznacza ze
-  kolejnosc wspolrzednych xyz i st jest taka sama, innymni slowy -
-  jezeli np. ConstCoord = 1 oznacza to ze wzdluz wspolrzednej x
-  biegnie wspolrzedna tekstury S, a wzdluz z - wspolrzedna tekstury T.
-  Jezeli false - to na odwrot.
-
-  Wszystkie pozostale parametry jak w DrawGLPlane. DrawGLPlane
-  po prostu wywoluje ta procedure z texX1, texY1, texX2, texY2 = 0, 0, 1, 1
-  order_ST_XYZ = true.
-
-  Jezeli MakeTextureCoords = @false to wspolrzedne tekstury nie sa generowane
-  (i rownie dobrze moglbys uzyc zwyklego DrawGLPlane). }
-
-procedure DrawGLPlaneSpecialTex(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
+procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   constCoord, DetailLevelX, DetailLevelY: integer;
   constCoordGivesNormal1: boolean;
   MakeTextureCoords: boolean;
@@ -1805,17 +1795,6 @@ begin
 
   glEnd;
  end;
-end;
-
-procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
-  constCoord, DetailLevelX, DetailLevelY: integer;
-  constCoordGivesNormal1: boolean;
-  MakeTextureCoords: boolean);
-begin
-  DrawGLPlaneSpecialTex(x1, y1, x2, y2, constValue,
-    constCoord, DetailLevelX, DetailLevelY,
-    constCoordGivesNormal1,
-    MakeTextureCoords, 0, 0, 1, 1, true);
 end;
 
 procedure DrawGLBox(const Box: TBox3D; DetailX, DetailY, DetailZ: integer;
