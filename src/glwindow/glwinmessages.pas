@@ -397,13 +397,6 @@ begin
  Result[1,1]:=Y2;
 end;
 
-function RectsEqual(const R1, R2:TIntRect):boolean;
-begin
- { instead of checking (R1[0,0] = R2[0,0]) and (R1[0,1] = R2[0,1]) ...
-   we optimize a little }
- Result:=CompareMem(@R1, @R2, SizeOf(TIntRect));
-end;
-
 function RectWidth(const r:TIntRect):Cardinal;
 begin
  Result:=r[1,0] - r[0,0];
@@ -436,21 +429,10 @@ begin
  Result[1,1]:=Result[0,1] + Integer(H);
 end;
 
-function PointInRect(const v:TVector2Integer; const r:TIntRect):boolean;
-begin
- Result:=(r[0,0] <= v[0]) and (v[0] < r[1,0]) and
-         (r[0,1] <= v[1]) and (v[1] < r[1,1]);
-end;
-
 function PointInRect(const x,y:Integer; const r:TIntRect):boolean;
 begin
  Result:=(r[0,0] <= x) and (x < r[1,0]) and
          (r[0,1] <= y) and (y < r[1,1]);
-end;
-
-function IntRectToNiceStr(const R:TIntRect):string;
-begin
- Result:=Format('(%d,%d)-(%d,%d)', [R[0,0], R[0,1], R[1,0], R[1,1]]);
 end;
 
 procedure DrawGLBorderedRectangle(const R: TIntRect;
@@ -458,18 +440,6 @@ procedure DrawGLBorderedRectangle(const R: TIntRect;
 begin
  KambiGLUtils.DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
    InsideCol, BorderCol);
-end;
-
-procedure DrawGLBorderedRectangle(const R: TIntRect;
-  const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple);
-begin
- KambiGLUtils.DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
-   InsideCol, BorderCol, Stipple);
-end;
-
-procedure DrawGLRectBorder(const R: TIntRect);
-begin
- KambiGLUtils.DrawGLRectBorder(R[0, 0], R[0, 1], R[1, 0], R[1, 1]);
 end;
 
 { end of TIntRect utils ------------------------------------------------------ }
