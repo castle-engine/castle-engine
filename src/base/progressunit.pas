@@ -231,7 +231,7 @@ var
     is initialized.
 
     Created in initialization, freed in finalization. }
-  ProgressNullInterface :TProgressNullInterface;
+  ProgressNullInterface: TProgressNullInterface;
 
 implementation
 
