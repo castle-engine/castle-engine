@@ -216,7 +216,7 @@ type
   function LastAdded(const table: TVerticesTable): PVector3d;
   begin result := @table.p[table.count] end;
 
-procedure TessCombineCallback(Coords: PVector3d; vertex_data: PVector4p;
+procedure TessCombineCallback(Coords: PVector3d; vertex_data: Pointer;
   Weight: PVector4f; dataOut: PPointer; tablep: PVerticesTable ); OPENGL_CALLBACK_CALL
 begin
  AddVertex(tablep^, Coords^);

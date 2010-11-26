@@ -395,11 +395,8 @@ function glGetDouble(pname: TGLEnum): TGLdouble;
   (not by reference) when they are used as constant parameters. }
 
 { }
-procedure glColorv(const v: TVector3b); overload;
 procedure glColorv(const v: TVector3ub); overload;
-procedure glColorv(const v: TVector4b); overload;
 procedure glColorv(const v: TVector4ub); overload;
-procedure glNormalv(const v: TVector3b); overload;
 
 procedure glTranslatev(const V: TVector3f); overload;
 procedure glTranslatev(const V: TVector3d); overload;
@@ -419,22 +416,12 @@ procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 procedure gluLookAtv(const Eye, Center, Up: TVector3Single);
 procedure gluLookDirv(const Eye, Dir, Up: TVector3Single);
 
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1d); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1f); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1i); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1s); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2d); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2f); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2i); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2s); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3d); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3f); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3i); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3s); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4d); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4i); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4s); overload;
 
 procedure glClearColorv(const v: TVector3f; alpha: Single);
 
@@ -442,81 +429,48 @@ procedure glClearColorv(const v: TVector3f; alpha: Single);
 
 procedure glNormalv(const v: TVector3d); overload;
 procedure glNormalv(const v: TVector3f); overload;
-procedure glNormalv(const v: TVector3i); overload;
-procedure glNormalv(const v: TVector3s); overload;
 
 procedure glColorv(const v: TVector3d); overload;
 procedure glColorv(const v: TVector3f); overload;
-procedure glColorv(const v: TVector3i); overload;
-procedure glColorv(const v: TVector3s); overload;
-procedure glColorv(const v: TVector3ui); overload;
-procedure glColorv(const v: TVector3us); overload;
 
 procedure glColorv(const v: TVector4d); overload;
 procedure glColorv(const v: TVector4f); overload;
-procedure glColorv(const v: TVector4i); overload;
-procedure glColorv(const v: TVector4s); overload;
-procedure glColorv(const v: TVector4ui); overload;
-procedure glColorv(const v: TVector4us); overload;
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f); overload;
-procedure glMaterialv(face, pname: TGLEnum; const params: TVector4i); overload;
 
 procedure glVertexv(const v: TVector2d); overload;
 procedure glVertexv(const v: TVector2f); overload;
 procedure glVertexv(const v: TVector2i); overload;
-procedure glVertexv(const v: TVector2s); overload;
-
 procedure glVertexv(const v: TVector3d); overload;
 procedure glVertexv(const v: TVector3f); overload;
 procedure glVertexv(const v: TVector3i); overload;
-procedure glVertexv(const v: TVector3s); overload;
-
 procedure glVertexv(const v: TVector4d); overload;
 procedure glVertexv(const v: TVector4f); overload;
 procedure glVertexv(const v: TVector4i); overload;
-procedure glVertexv(const v: TVector4s); overload;
 
 procedure glVertexv(const v: TVector2_Double); overload;
 procedure glVertexv(const v: TVector2_Single); overload;
-
 procedure glVertexv(const v: TVector3_Double); overload;
 procedure glVertexv(const v: TVector3_Single); overload;
-
 procedure glVertexv(const v: TVector4_Double); overload;
 procedure glVertexv(const v: TVector4_Single); overload;
 
-procedure glTexCoordv(const v: TVector1d); overload;
-procedure glTexCoordv(const v: TVector1f); overload;
-procedure glTexCoordv(const v: TVector1i); overload;
-procedure glTexCoordv(const v: TVector1s); overload;
 procedure glTexCoordv(const v: TVector2d); overload;
 procedure glTexCoordv(const v: TVector2f); overload;
-procedure glTexCoordv(const v: TVector2i); overload;
-procedure glTexCoordv(const v: TVector2s); overload;
 procedure glTexCoordv(const v: TVector3d); overload;
 procedure glTexCoordv(const v: TVector3f); overload;
-procedure glTexCoordv(const v: TVector3i); overload;
-procedure glTexCoordv(const v: TVector3s); overload;
 procedure glTexCoordv(const v: TVector4d); overload;
 procedure glTexCoordv(const v: TVector4f); overload;
-procedure glTexCoordv(const v: TVector4i); overload;
-procedure glTexCoordv(const v: TVector4s); overload;
 
 procedure glTexGenv(coord, pname: TGLenum; const params: TVector4d); overload;
 procedure glTexGenv(coord, pname: TGLenum; const params: TVector4f); overload;
-procedure glTexGenv(coord, pname: TGLenum; const params: TVector4i); overload;
 
 procedure glLightv(light, pname: TGLEnum; const params: TVector4f); overload;
-procedure glLightv(light, pname: TGLEnum; const params: TVector4i); overload;
 procedure glLightv(light, pname: TGLEnum; const params: TVector3f); overload;
-procedure glLightv(light, pname: TGLEnum; const params: TVector3i); overload;
 
 procedure glLightModelv(pname: TGLenum; const params: TVector4f); overload;
-procedure glLightModelv(pname: TGLenum; const params: TVector4i); overload;
 
 procedure glFogv(pname: TGLEnum; const params: TVector4f); overload;
-procedure glFogv(pname: TGLEnum; const params: TVector4i); overload;
 
 procedure glMultMatrix(const m: TMatrix4f); overload;
 procedure glMultMatrix(const m: TMatrix4d); overload;
@@ -524,78 +478,44 @@ procedure glLoadMatrix(const m: TMatrix4f); overload;
 procedure glLoadMatrix(const m: TMatrix4d); overload;
 
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
-procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4i); overload;
 
 {$else IMPLEMENT_OPENGL_STUBS}
 
 procedure glNormalv(const v: TVector3d); OPENGL_CALL overload; external openglDLL name 'glNormal3dv';
 procedure glNormalv(const v: TVector3f); OPENGL_CALL overload; external openglDLL name 'glNormal3fv';
-procedure glNormalv(const v: TVector3i); OPENGL_CALL overload; external openglDLL name 'glNormal3iv';
-procedure glNormalv(const v: TVector3s); OPENGL_CALL overload; external openglDLL name 'glNormal3sv';
 
 procedure glColorv(const v: TVector3d); OPENGL_CALL overload; external openglDLL name 'glColor3dv';
 procedure glColorv(const v: TVector3f); OPENGL_CALL overload; external openglDLL name 'glColor3fv';
-procedure glColorv(const v: TVector3i); OPENGL_CALL overload; external openglDLL name 'glColor3iv';
-procedure glColorv(const v: TVector3s); OPENGL_CALL overload; external openglDLL name 'glColor3sv';
-procedure glColorv(const v: TVector3ui); OPENGL_CALL overload; external openglDLL name 'glColor3uiv';
-procedure glColorv(const v: TVector3us); OPENGL_CALL overload; external openglDLL name 'glColor3usv';
 
 procedure glColorv(const v: TVector4d); OPENGL_CALL overload; external openglDLL name 'glColor4dv';
 procedure glColorv(const v: TVector4f); OPENGL_CALL overload; external openglDLL name 'glColor4fv';
-procedure glColorv(const v: TVector4i); OPENGL_CALL overload; external openglDLL name 'glColor4iv';
-procedure glColorv(const v: TVector4s); OPENGL_CALL overload; external openglDLL name 'glColor4sv';
-procedure glColorv(const v: TVector4ui); OPENGL_CALL overload; external openglDLL name 'glColor4uiv';
-procedure glColorv(const v: TVector4us); OPENGL_CALL overload; external openglDLL name 'glColor4usv';
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f);  OPENGL_CALL overload; external openglDLL name 'glMaterialfv';
-procedure glMaterialv(face, pname: TGLEnum; const params: TVector4i);  OPENGL_CALL overload; external openglDLL name 'glMaterialiv';
 
 procedure glVertexv(const v: TVector2d); OPENGL_CALL overload; external openglDLL name 'glVertex2dv';
 procedure glVertexv(const v: TVector2f); OPENGL_CALL overload; external openglDLL name 'glVertex2fv';
-procedure glVertexv(const v: TVector2i); OPENGL_CALL overload; external openglDLL name 'glVertex2iv';
-procedure glVertexv(const v: TVector2s); OPENGL_CALL overload; external openglDLL name 'glVertex2sv';
-
 procedure glVertexv(const v: TVector3d); OPENGL_CALL overload; external openglDLL name 'glVertex3dv';
 procedure glVertexv(const v: TVector3f); OPENGL_CALL overload; external openglDLL name 'glVertex3fv';
-procedure glVertexv(const v: TVector3i); OPENGL_CALL overload; external openglDLL name 'glVertex3iv';
-procedure glVertexv(const v: TVector3s); OPENGL_CALL overload; external openglDLL name 'glVertex3sv';
-
 procedure glVertexv(const v: TVector4d); OPENGL_CALL overload; external openglDLL name 'glVertex4dv';
 procedure glVertexv(const v: TVector4f); OPENGL_CALL overload; external openglDLL name 'glVertex4fv';
-procedure glVertexv(const v: TVector4i); OPENGL_CALL overload; external openglDLL name 'glVertex4iv';
-procedure glVertexv(const v: TVector4s); OPENGL_CALL overload; external openglDLL name 'glVertex4sv';
 
-procedure glTexCoordv(const v: TVector1d); OPENGL_CALL overload; external openglDLL name 'glTexCoord1dv';
-procedure glTexCoordv(const v: TVector1f); OPENGL_CALL overload; external openglDLL name 'glTexCoord1fv';
-procedure glTexCoordv(const v: TVector1i); OPENGL_CALL overload; external openglDLL name 'glTexCoord1iv';
-procedure glTexCoordv(const v: TVector1s); OPENGL_CALL overload; external openglDLL name 'glTexCoord1sv';
 procedure glTexCoordv(const v: TVector2d); OPENGL_CALL overload; external openglDLL name 'glTexCoord2dv';
 procedure glTexCoordv(const v: TVector2f); OPENGL_CALL overload; external openglDLL name 'glTexCoord2fv';
-procedure glTexCoordv(const v: TVector2i); OPENGL_CALL overload; external openglDLL name 'glTexCoord2iv';
-procedure glTexCoordv(const v: TVector2s); OPENGL_CALL overload; external openglDLL name 'glTexCoord2sv';
 procedure glTexCoordv(const v: TVector3d); OPENGL_CALL overload; external openglDLL name 'glTexCoord3dv';
 procedure glTexCoordv(const v: TVector3f); OPENGL_CALL overload; external openglDLL name 'glTexCoord3fv';
-procedure glTexCoordv(const v: TVector3i); OPENGL_CALL overload; external openglDLL name 'glTexCoord3iv';
-procedure glTexCoordv(const v: TVector3s); OPENGL_CALL overload; external openglDLL name 'glTexCoord3sv';
 procedure glTexCoordv(const v: TVector4d); OPENGL_CALL overload; external openglDLL name 'glTexCoord4dv';
 procedure glTexCoordv(const v: TVector4f); OPENGL_CALL overload; external openglDLL name 'glTexCoord4fv';
-procedure glTexCoordv(const v: TVector4i); OPENGL_CALL overload; external openglDLL name 'glTexCoord4iv';
-procedure glTexCoordv(const v: TVector4s); OPENGL_CALL overload; external openglDLL name 'glTexCoord4sv';
 
 procedure glTexGenv(coord, pname: TGLenum; const params: TVector4d); OPENGL_CALL overload; external openglDLL name 'glTexGendv';
 procedure glTexGenv(coord, pname: TGLenum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glTexGenfv';
-procedure glTexGenv(coord, pname: TGLenum; const params: TVector4i); OPENGL_CALL overload; external openglDLL name 'glTexGeniv';
 
 procedure glLightv(light, pname: TGLEnum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glLightfv';
-procedure glLightv(light, pname: TGLEnum; const params: TVector4i); OPENGL_CALL overload; external openglDLL name 'glLightiv';
 procedure glLightv(light, pname: TGLEnum; const params: TVector3f); OPENGL_CALL overload; external openglDLL name 'glLightfv';
-procedure glLightv(light, pname: TGLEnum; const params: TVector3i); OPENGL_CALL overload; external openglDLL name 'glLightiv';
 
 procedure glLightModelv(pname: TGLenum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glLightModelfv';
 procedure glLightModelv(pname: TGLenum; const params: TVector4i); OPENGL_CALL overload; external openglDLL name 'glLightModeliv';
 
 procedure glFogv(pname: TGLEnum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glFogfv';
-procedure glFogv(pname: TGLEnum; const params: TVector4i); OPENGL_CALL overload; external openglDLL name 'glFogiv';
 
 procedure glMultMatrix(const m: TMatrix4f); OPENGL_CALL overload; external openglDLL name 'glMultMatrixf';
 procedure glMultMatrix(const m: TMatrix4d); OPENGL_CALL overload; external openglDLL name 'glMultMatrixd';
@@ -603,7 +523,6 @@ procedure glLoadMatrix(const m: TMatrix4f); OPENGL_CALL overload; external openg
 procedure glLoadMatrix(const m: TMatrix4d); OPENGL_CALL overload; external openglDLL name 'glLoadMatrixd';
 
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glTexEnvfv';
-procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4i); OPENGL_CALL overload; external openglDLL name 'glTexEnviv';
 
 {$endif IMPLEMENT_OPENGL_STUBS}
 
@@ -1328,11 +1247,8 @@ end;
 
 { ---------------------------------------------------- }
 
-procedure glColorv(const v: TVector3b);  begin glColor3bv(@v); end;
 procedure glColorv(const v: TVector3ub); begin glColor3ubv(@v); end;
-procedure glColorv(const v: TVector4b);  begin glColor4bv(@v); end;
 procedure glColorv(const v: TVector4ub); begin glColor4ubv(@v); end;
-procedure glNormalv(const v: TVector3b); begin glNormal3bv(@v); end;
 
 procedure glTranslatev(const V: TVector3f); begin glTranslatef(V[0], V[1], V[2]); end;
 procedure glTranslatev(const V: TVector3d); begin glTranslated(V[0], V[1], V[2]); end;
@@ -1377,22 +1293,12 @@ begin
             Up [0]         , Up [1]         , Up [2]);
 end;
 
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1d);  begin glMultiTexCoord1dv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1f);  begin glMultiTexCoord1fv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1i);  begin glMultiTexCoord1iv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector1s);  begin glMultiTexCoord1sv(Target, @v); end;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2d);  begin glMultiTexCoord2dv(Target, @v); end;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2f);  begin glMultiTexCoord2fv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2i);  begin glMultiTexCoord2iv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2s);  begin glMultiTexCoord2sv(Target, @v); end;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3d);  begin glMultiTexCoord3dv(Target, @v); end;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3f);  begin glMultiTexCoord3fv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3i);  begin glMultiTexCoord3iv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3s);  begin glMultiTexCoord3sv(Target, @v); end;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4d);  begin glMultiTexCoord4dv(Target, @v); end;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f);  begin glMultiTexCoord4fv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4i);  begin glMultiTexCoord4iv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4s);  begin glMultiTexCoord4sv(Target, @v); end;
 
 procedure glClearColorv(const v: TVector3Single; alpha: Single);
 begin
@@ -1403,72 +1309,42 @@ end;
 
 procedure glNormalv(const v: TVector3d); begin glNormal3dv(@v); end;
 procedure glNormalv(const v: TVector3f); begin glNormal3fv(@v); end;
-procedure glNormalv(const v: TVector3i); begin glNormal3iv(@v); end;
-procedure glNormalv(const v: TVector3s); begin glNormal3sv(@v); end;
 
 procedure glColorv(const v: TVector3d);  begin glColor3dv(@v); end;
 procedure glColorv(const v: TVector3f);  begin glColor3fv(@v); end;
-procedure glColorv(const v: TVector3i);  begin glColor3iv(@v); end;
-procedure glColorv(const v: TVector3s);  begin glColor3sv(@v); end;
-procedure glColorv(const v: TVector3ui);  begin glColor3uiv(@v); end;
-procedure glColorv(const v: TVector3us);  begin glColor3usv(@v); end;
 
 procedure glColorv(const v: TVector4d);  begin glColor4dv(@v); end;
 procedure glColorv(const v: TVector4f);  begin glColor4fv(@v); end;
-procedure glColorv(const v: TVector4i);  begin glColor4iv(@v); end;
-procedure glColorv(const v: TVector4s);  begin glColor4sv(@v); end;
-procedure glColorv(const v: TVector4ui);  begin glColor4uiv(@v); end;
-procedure glColorv(const v: TVector4us);  begin glColor4usv(@v); end;
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f);  begin glMaterialfv(face, pname, @params); end;
-procedure glMaterialv(face, pname: TGLEnum; const params: TVector4i);  begin glMaterialiv(face, pname, @params); end;
 
 procedure glVertexv(const v: TVector2d);  begin glVertex2dv(@v); end;
 procedure glVertexv(const v: TVector2f);  begin glVertex2fv(@v); end;
 procedure glVertexv(const v: TVector2i);  begin glVertex2iv(@v); end;
-procedure glVertexv(const v: TVector2s);  begin glVertex2sv(@v); end;
-
 procedure glVertexv(const v: TVector3d);  begin glVertex3dv(@v); end;
 procedure glVertexv(const v: TVector3f);  begin glVertex3fv(@v); end;
 procedure glVertexv(const v: TVector3i);  begin glVertex3iv(@v); end;
-procedure glVertexv(const v: TVector3s);  begin glVertex3sv(@v); end;
-
 procedure glVertexv(const v: TVector4d);  begin glVertex4dv(@v); end;
 procedure glVertexv(const v: TVector4f);  begin glVertex4fv(@v); end;
 procedure glVertexv(const v: TVector4i);  begin glVertex4iv(@v); end;
-procedure glVertexv(const v: TVector4s);  begin glVertex4sv(@v); end;
 
-procedure glTexCoordv(const v: TVector1d);  begin glTexCoord1dv(@v); end;
-procedure glTexCoordv(const v: TVector1f);  begin glTexCoord1fv(@v); end;
-procedure glTexCoordv(const v: TVector1i);  begin glTexCoord1iv(@v); end;
-procedure glTexCoordv(const v: TVector1s);  begin glTexCoord1sv(@v); end;
 procedure glTexCoordv(const v: TVector2d);  begin glTexCoord2dv(@v); end;
 procedure glTexCoordv(const v: TVector2f);  begin glTexCoord2fv(@v); end;
-procedure glTexCoordv(const v: TVector2i);  begin glTexCoord2iv(@v); end;
-procedure glTexCoordv(const v: TVector2s);  begin glTexCoord2sv(@v); end;
 procedure glTexCoordv(const v: TVector3d);  begin glTexCoord3dv(@v); end;
 procedure glTexCoordv(const v: TVector3f);  begin glTexCoord3fv(@v); end;
-procedure glTexCoordv(const v: TVector3i);  begin glTexCoord3iv(@v); end;
-procedure glTexCoordv(const v: TVector3s);  begin glTexCoord3sv(@v); end;
 procedure glTexCoordv(const v: TVector4d);  begin glTexCoord4dv(@v); end;
 procedure glTexCoordv(const v: TVector4f);  begin glTexCoord4fv(@v); end;
-procedure glTexCoordv(const v: TVector4i);  begin glTexCoord4iv(@v); end;
-procedure glTexCoordv(const v: TVector4s);  begin glTexCoord4sv(@v); end;
 
 procedure glTexGenv(coord, pname: TGLenum; const params: TVector4d);  begin glTexGendv(coord, pname, @params); end;
 procedure glTexGenv(coord, pname: TGLenum; const params: TVector4f);  begin glTexGenfv(coord, pname, @params); end;
-procedure glTexGenv(coord, pname: TGLenum; const params: TVector4i);  begin glTexGeniv(coord, pname, @params); end;
 
 procedure glLightv(light, pname: TGLEnum; const params: TVector4f);  begin glLightfv(light, pname, @params); end;
-procedure glLightv(light, pname: TGLEnum; const params: TVector4i);  begin glLightiv(light, pname, @params); end;
 procedure glLightv(light, pname: TGLEnum; const params: TVector3f);  begin glLightfv(light, pname, @params); end;
-procedure glLightv(light, pname: TGLEnum; const params: TVector3i);  begin glLightiv(light, pname, @params); end;
 
 procedure glLightModelv(pname: TGLenum; const params: TVector4f); begin glLightModelfv(pname, @params); end;
 procedure glLightModelv(pname: TGLenum; const params: TVector4i); begin glLightModeliv(pname, @params); end;
 
 procedure glFogv(pname: TGLEnum; const params: TVector4f);  begin glFogfv(pname, @params); end;
-procedure glFogv(pname: TGLEnum; const params: TVector4i);  begin glFogiv(pname, @params); end;
 
 procedure glMultMatrix(const m: TMatrix4f); begin glMultMatrixf(@m) end;
 procedure glMultMatrix(const m: TMatrix4d); begin glMultMatrixd(@m) end;
@@ -1476,7 +1352,6 @@ procedure glLoadMatrix(const m: TMatrix4f); begin glLoadMatrixf(@m) end;
 procedure glLoadMatrix(const m: TMatrix4d); begin glLoadMatrixd(@m) end;
 
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTexEnvfv(target, pname, @params); end;
-procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4i); begin glTexEnviv(target, pname, @params); end;
 
 {$endif IMPLEMENT_OPENGL_STUBS}
 

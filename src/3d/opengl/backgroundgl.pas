@@ -250,7 +250,7 @@ var CubeSize, CubeSize2: Single;
       ((1, 0, 0), (1, 0, 1), (1, 1, 1), (1, 1, 0)), {right}
       ((0, 1, 0), (1, 1, 0), (1, 1, 1), (0, 1, 1))  {top}
     );
-    TexCoords: array[0..3]of TVector2i = ((0, 0), (1, 0), (1, 1), (0, 1));
+    TexCoords: array [0..3] of TVector2f = ((0, 0), (1, 0), (1, 1), (0, 1));
   var i: Integer;
   begin
    if nieboTex[bs] = 0 then Exit;
