@@ -99,7 +99,7 @@ D   kambilog.pas
 D   kambistringutils.pas
 D   kambitimeutils.pas
 |   kambiutils.pas
-D   kambixmlcfg.pas
+D   kambixmlconfig.pas
 D   kambixmlutils.pas
 D   kambizlib.pas
 D   kambizstream.pas
