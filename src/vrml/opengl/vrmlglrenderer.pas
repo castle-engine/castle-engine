@@ -13,8 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(The @link(TVRMLGLRenderer) class, responsible for
-  rendering VRML shapes.)
+{ VRML low-level rendering (TVRMLGLRenderer).
+  You usually don't want to use this renderer directly, you rather want
+  to use TVRMLGLScene that hides the dirty details of this renderer.
 
   The overview of this class can also be found in my master's thesis
   [http://vrmlengine.sourceforge.net/vrml_engine_doc.php]
@@ -271,6 +272,7 @@ uses
 {$define read_interface}
 
 const
+  { }
   DefaultBumpMappingLightAmbientColor: TVector4Single = (0, 0, 0, 1);
   DefaultBumpMappingLightDiffuseColor: TVector4Single = (1, 1, 1, 1);
 
@@ -390,7 +392,7 @@ const
   DefaultVarianceShadowMaps = false;
 
 type
-  { These are various properties that control rendering done
+  { Various properties that control rendering done
     with @link(TVRMLGLRenderer).
 
     They are collected here,
@@ -468,21 +470,12 @@ type
 
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$else} virtual; {$endif}
 
-    { tuz przed narysowaniem KAZDEGO vertexa bedzie wywolywana ta procedura.
-      (to znaczy TUZ przed glVertex, juz po ustaleniu koloru (glColor),
-      gl[Multi]TexCoord, glNormal, glEdgeFlag, no w ogole - wszystkiego).
-      Najpierw bedzie wywolana ta procedura z parametrami a)node podklasy
-      TVRMLGeometryNode ktory renderuje ten vertex i b)wspolrzedne vertexa
-      przemnozone przez RenderState.Transform. Innymi slowy bedzie to
-      wspolrzedna vertexa wzgledem lokalnego ukladu wspolrzednych VRML'a
-      (podczas gdy rzeczywista komenda glVertex prawdopodobnie przekaze
-      OpenGL'owi wspolrzedne prosto z pliku VRML (a wiec byc moze wzgledem
-      ukladu wspolrzednych aktualnego node'a, a nie calego VRML'a)).
+    { Callback before rendering @italic(any) vertex.
+      Will be called with global (in VRML scene space) vertex coordinates,
+      right before glVertex call (but after glColor, glNormal, and all
+      other calls).
 
-      Zrobilem ta proc zeby zrobic glForCoord, ale byc moze znajdzie sie
-      kiedys dla niej jeszcze jakies zastosowanie.
-
-      nil by default. }
+      You can use this e.g. to provide custom glForCoord, or anything else. }
     property OnBeforeGLVertex: TBeforeGLVertexProc
       read FOnBeforeGLVertex write SetOnBeforeGLVertex;
 
@@ -510,30 +503,16 @@ type
     property OnVertexColor: TVertexColorFunction
       read FOnVertexColor write SetOnVertexColor;
 
-    { Ponizsze ustawienie kontroluje czy na poczatku renderowania sceny wywolac
-      glShadeModel(GL_SMOOTH) czy GL_FLAT. Ponadto w czasie renderowania
-      sceny beda generowane odpowiednie normale (troszeczke inne normale
-      trzeba generowac gdy chcemy miec powierzchnie flat, a inne gdy smooth;
-      NIE WYSTACZY generowac zawsze normali smooth i tylko przestawiac
-      glShadeModel na GL_FLAT aby miec poprawne cieniowanie flat.
-      Chociaz zazwyczaj daje to tez dobre efekty; w szczeglnosci,
-      remember ze nie bedziemy zmieniac normali ktore juz bedziemy mieli
-      podane w pliku VRMLa; wiec i tak nie bedzie pelnej poprawnosci
-      bo jezeli te normale byly zapisane smooth a my chcemy flat
-      to uzyjemy tych normali smooth z shadeModel ustawionym na FLAT).
-
-      Oczywiscie powinienes uzywac GL_SMOOTH bo rezultaty moga nie byc
-      tak dobre jak moglyby byc jesli uzyjesz GL_FLAT; no, ale beda
-      przewidywalne; wiec jesli np. wiesz ze dla danego modelu
-      GL_FLAT wyprodukuje zadowalajacy wynik to mozesz tego uzyc)}
+    { Use smooth (Gouraud) shading.
+      This controls whether we set OpenGL glShadeModel GL_SMOOTH or GL_FLAT.
+      Also, this affects the normal vectors generated during rendering
+      (always per-face for flat shading; passing smooth normals and alllowing
+      OpenGL to just choose one normal per face would not be 100% correct). }
     property SmoothShading: boolean
       read FSmoothShading write SetSmoothShading default true;
 
-    { zwraca GLU_SMOOTH lub GLU_FLAT, zgodnie z SmoothShading. }
-    function SmoothNormalsGLU: TGLenum;
-
-    { When Lighting is @true, we will enable OpenGL lighting when rendering.
-      Note that this is @true by default, since it's wanted almost always.
+    { Should we will enable OpenGL lighting when rendering.
+      This is @true by default, since it's wanted almost always.
 
       When Lighting is @false, we do not enable OpenGL lighting,
       but you can still manually enable OpenGL lighting yourself.
@@ -543,8 +522,7 @@ type
     property Lighting: boolean
       read FLighting write SetLighting default true;
 
-    { When UseSceneLights, we will setup VRML/X3D lights as OpenGL
-      lights during rendering.
+    { Should we setup VRML/X3D lights as OpenGL lights during rendering.
 
       VRML/X3D lights are loaded into OpenGL lights using the range of
       FirstGLFreeLight ... LastGLFreeLight. LastGLFreeLight = -1 means
@@ -571,7 +549,7 @@ type
       read FLastGLFreeLight write SetLastGLFreeLight default -1;
     { @groupEnd }
 
-    { If this is @true, then our engine takes care of applying appropriate
+    { Should we take care of applying appropriate
       materials and colors on your model.
 
       For special purposes, you can set this to @false.
@@ -579,7 +557,7 @@ type
     property ControlMaterials: boolean
       read FControlMaterials write SetControlMaterials default true;
 
-    { If this is @true, then our engine takes care of everything related
+    { Should we take care of everything related
       to texturing your model. Textures will be automatically activated
       (for multitexturing), enabled/disabled, bound, and texture coordinates
       will be used/generated, according to your VRML model data
@@ -617,7 +595,7 @@ type
     property EnableTextures: boolean
       read FEnableTextures write SetEnableTextures default true;
 
-    { These specify which OpenGL texture units are free to use.
+    { Which OpenGL texture units are free to use.
 
       Note that for now we assume that at least one texture unit is free.
       If OpenGL multitexturing is not available, we will just use the default
@@ -645,27 +623,17 @@ type
       read FTextureMagFilter write SetTextureMagFilter default GL_LINEAR;
     { @groupEnd }
 
-    { scena bedzie wyswietlana z glPointSize(PointSize),
-      co ma wplyw tylko na renderowanie PointSet. Zrobilem to atrybutem
-      renderera (zamiast po prostu pozwolic temu stanowi OpenGL'a "przeciec"
-      z zewnatrz) bo domyslny rozmiar mial byc = 3 a nie 1 (jak w OpenGL'u) }
+    { How large OpenGL points should be.
+      This has currently effect only on VRML/X3D PointSet rendering. }
     property PointSize: TGLFloat
       read FPointSize write SetPointSize default 3.0;
 
-    { true oznacza ze stan zmiennych OpenGLa GL_FOG_BIT (w szczegolnosci
-      stan enabled/disabled GL_FOG) jest kontrolowany przez tego renderera
-      (pomiedzy TVRMLGLRenderer.RenderBegin a TVRMLGLRenderer.RenderEnd stan tych zmiennych zalezy tylko od
-      przekazanych do TVRMLGLRenderer.RenderBegin informacji o mgle, nie zalezy od dotychczasowego
-      (przed wywolaniem TVRMLGLRenderer.RenderBegin) stanu OpenGLa).
+    { Should we control fog, rendering fog following VRML/X3D defined fog.
+      If @true then we will enable/disable and set all the properties
+      of OpenGL fog as necessary.
 
-      false oznacza ze informacje o mgle przekazywane do TVRMLGLRenderer.RenderBegin sa
-      ignorowane i w tej klasie zadne wywolania, wlacznie z TVRMLGLRenderer.RenderBegin i
-      TVRMLGLRenderer.RenderEnd, nie dotykaja zmiennych z grupy atrybutow GL_FOG_BIT.
-
-      Innymi slowy, przy true ustawienia mgly z jakimi renderowany jest model
-      sa calkowicie zdeterminowane przez podane do TVRMLGLRenderer.RenderBegin informacje
-      o mgle. Przy false sa calkowicie zdeterminowane przez ustawienia
-      mgly w OpenGLu w momencie wywolywania TVRMLGLRenderer.RenderBegin. }
+      If @false, we don't touch fog settings. You can control it yourself,
+      or just leave it disabled (OpenGL defaults). }
     property UseFog: boolean
       read FUseFog write SetUseFog default true;
 
@@ -707,7 +675,7 @@ type
       read FBumpMappingMaximum write SetBumpMappingMaximum
       default bmNone;
 
-    { @abstract(Use shaders defined in VRML file in GLSL language ?)
+    { Use GLSL shaders defined in the VRML/X3D model.
 
       When this is @false, the renderer does not control GLSL shaders
       (it does not set any GLSL program active etc.). Which means that
@@ -794,7 +762,8 @@ type
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
     FullUrl: string;
 
-    { This is only the first node, that initiated this
+    { The initial VRML/X3D node that created this cache record.
+      This is only the first node, that initiated this
       TTextureImageCache item. Note that many TVRML2DTextureNode nodes
       may correspond to a single TTextureImageCache (since TTextureImageCache
       only tries to share GLName between them). So this may help during
@@ -811,7 +780,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
 
-    { This is the saved result of TImage.AlphaChannelType.
+    { The saved result of TImage.AlphaChannelType.
 
       Detecting AlphaChannelType is a little time-consuming
       (iteration over all pixels is needed),
@@ -831,7 +800,8 @@ type
   TTextureVideoCache = record
     FullUrl: string;
 
-    { This is only the first TNodeMovieTexture node, that initiated this
+    { The initial VRML/X3D node that created this cache record.
+      This is only the first TNodeMovieTexture node, that initiated this
       TTextureVideoCache item. Note that many TNodeMovieTexture nodes
       may correspond to a single TTextureVideoCache (since TTextureVideoCache
       only tries to share TGLVideo between them, they don't have to share
@@ -847,7 +817,7 @@ type
     References: Cardinal;
     GLVideo: TGLVideo;
 
-    { This is the saved result of TVideo.AlphaChannelType.
+    { The saved result of TVideo.AlphaChannelType.
 
       Detecting AlphaChannelType is a little time-consuming
       (iteration over all pixels is needed),
@@ -872,7 +842,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
 
-    { This is the saved result of TImage.AlphaChannelType.
+    { The saved result of TImage.AlphaChannelType.
 
       Detecting AlphaChannelType is a little time-consuming
       (iteration over all pixels is needed),
@@ -898,7 +868,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
 
-    { This is the saved result of TImage.AlphaChannelType.
+    { The saved result of TImage.AlphaChannelType.
 
       Detecting AlphaChannelType is a little time-consuming
       (iteration over all pixels is needed),
@@ -914,10 +884,12 @@ type
   {$I dynarray_11.inc}
   TDynTexture3DCacheArray = TDynArray_11;
 
-  { For now, depth and float textures require the same fields.
+  { Cached depth or float texture.
+    For now, depth and float textures require the same fields.
     TODO: change this into an old-style "object" hierarchy. }
   TTextureDepthOrFloatCache = record
-    { For now, this may be TNodeGeneratedShadowMap or TNodeRenderedTexture. }
+    { The initial VRML/X3D node that created this cache record.
+      For now, this may be TNodeGeneratedShadowMap or TNodeRenderedTexture. }
     InitialNode: TNodeX3DTextureNode;
     Wrap: TTextureWrap2D;
     References: Cardinal;
@@ -932,7 +904,8 @@ type
   {$I dynarray_13.inc}
   TDynTextureDepthOrFloatCacheArray = TDynArray_13;
 
-  { Note that Attributes and State are owned by this record
+  { Cached VRML/X3D shape display list.
+    Note that Attributes and State are owned by this record
     (TVRMLGLRendererContextCache will make sure about creating/destroying
     them), but GeometryNode and FogNode are a references somewhere to the scene
     (they will be supplied to TVRMLGLRendererContextCache instance)
@@ -987,7 +960,7 @@ type
 
   TGLSLProgramCache = record
     ProgramNode: TNodeComposedShader;
-    { GLSLProgram is always non-nil here. }
+    { GLSL program for this shader. Always non-nil. }
     GLSLProgram: TVRMLGLSLProgram;
     References: Cardinal;
   end;
@@ -1000,9 +973,8 @@ type
   TDynGLSLProgramCacheArray = class(TDynArray_5)
   end;
 
-  { This is a cache that may be used by many TVRMLGLRenderer
-    instances to share some common resources related to this OpenGL
-    context.
+  { A cache that may be used by many TVRMLGLRenderer
+    instances to share some common OpenGL resources.
 
     For examples, texture names and OpenGL display lists
     for fonts. Such things can usually be shared by all
@@ -1150,7 +1122,8 @@ type
     procedure Fonts_DecReference(
       fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
 
-    { These will be used by TVRMLGLScene.
+    { Display lists caches.
+      These will be used by TVRMLGLScene.
 
       Note that we have two versions of Shape_IncReference,
       because if the list will already exist in the cache then we don't want to
@@ -1159,6 +1132,7 @@ type
       then you should build display list and call
       Shape_IncReference_New. }
 
+    { }
     function Shape_IncReference_Existing(
       AAttributes: TVRMLRenderingAttributes;
       AGeometryNode: TVRMLGeometryNode;
@@ -1439,33 +1413,27 @@ type
 
     destructor Destroy; override;
 
-    { slowo o atrybutach renderowania
-      ktore steruja tym jak bedzie wygladac renderowanie : mozesz je zmieniac
-      tylko w momencie gdy renderer
-      nie jest przywiazany do zadnego kontekstu OpenGL'a (co jest zwiazane z tym
-      ze przywiazanie do danego kontekstu OpenGL'a oznacza takze ze czesc pracy
-      z dostosowaniem sie do takich a nie innych atrybutow renderowania
-      zostala juz zrobiona) czyli zaraz po wywolaniu konstruktora lub
-      UnprepareAll (przed wywolaniem jakiegokolwiek Prepare czy Render*). }
+    { Rendering attributes. You can change them only when renderer
+      is not tied to the current OpenGL context, so only after construction
+      or after UnprepareAll call (before any Prepare or Render* calls). }
     property Attributes: TVRMLRenderingAttributes read FAttributes;
 
     property Cache: TVRMLGLRendererContextCache read FCache;
 
-    { przygotuj stan State aby moc pozniej renderowac shape'y ze stanem State.
-      Od tego momentu do wywolania Unprepare[All] node'y przekazane tu jako
-      Last*/Active* sa "zamrozone" : nie mozna zrobic im Free, nie mozna
-      zmienic ich zawartosci. }
+    { Prepare given State, to be able to render shapes with it.
+      Between preparing and unpreparing, nodes passed here are "frozen":
+      do not change, do not free them. }
     procedure Prepare(State: TVRMLGraphTraverseState);
-    { zniszcz powiazania renderera z danym node'em i z zasobami OpenGL'a jakie
-      byly utworzone w ramach "przygotowan do wyswietlenia tego node'a" jako
-      Last*/Active* node w jakims State. }
+
+    { Release resources for this node. }
     procedure Unprepare(Node: TVRMLNode);
 
     { Release every OpenGL and VRML resource. That is release any knowledge
       connecting us to the current OpenGL context and any knowledge
       about your prepared VRML nodes, states etc.
 
-      Calling UnprepareAll is NOOP if everything is already released.
+      Calling UnprepareAll is valid (and ignored) call if everything
+      is already released.
 
       Destructor callls UnprepareAll automatically. So be sure to either
       call UnprepareAll or destroy this renderer
@@ -1484,8 +1452,8 @@ type
 
     procedure RenderShape(Shape: TVRMLShape);
 
-    { This checks Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
-      context capabilities to check which bump mapping method (if any)
+    { Check Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
+      context capabilities to see which bump mapping method (if any)
       should be used.
 
       More precisely: this checks Attributes.BumpMappingMaximum,
@@ -3397,13 +3365,6 @@ begin
     BeforeChange;
     FVarianceShadowMaps := Value;
   end;
-end;
-
-function TVRMLRenderingAttributes.SmoothNormalsGLU: TGLenum;
-begin
-  if SmoothShading then
-    Result := GLU_SMOOTH else
-    Result := GLU_FLAT;
 end;
 
 { TVRMLGLRenderer ---------------------------------------------------------- }

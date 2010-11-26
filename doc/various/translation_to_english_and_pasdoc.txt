@@ -72,7 +72,7 @@ D   vrmlglanimation.pas
 D   vrmlglheadlight.pas
 D   vrmlglscene.pas
 D   vrmlgllightset.pas
-|   vrmlglrenderer.pas
+D   vrmlglrenderer.pas
 
   audio/
 D   alsourceallocator.pas
