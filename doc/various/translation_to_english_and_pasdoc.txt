@@ -92,7 +92,7 @@ D   dataerrors.pas
 D   filefilters.pas
 |   kambiclassutils.pas
 D   kambidynlib.pas
-|   kambifilesutils.pas
+D   kambifilesutils.pas
 D   kambiinterfaces.pas
 D   kambilog.pas
 D   kambistringutils.pas

@@ -15,11 +15,12 @@
 
 { Operations on files.
 
-  Include functions to help cross-platform programs to know
+  Includes functions to help cross-platform programs to know
   where to read/write files:
   @unorderedList(
+    @itemSpacing Compact
     @item(UserConfigFile and UserConfigPath -- user config files)
-    @item(GetTempFileName and GetTempDir -- temporary files)
+    @item(GetTempPath -- temporary files)
     @item(ProgramDataPath -- installed program's data files)
   )
 }
@@ -39,7 +40,7 @@ uses
 type
   EExeNameNotAvailable = class(Exception);
 
-{ Returns full (absolute) filename to executable file of this program.
+{ Full (absolute) filename to executable file of this program.
   If it's impossible to obtain, raises exception @link(EExeNameNotAvailable).
 
   Under Windows this is simply ParamStr(0) (and it never raises
@@ -70,7 +71,7 @@ Var
   OnGetApplicationName : TGetAppNameEvent;
 {$endif}
 
-{ Returns *something like* basename of our executable file.
+{ @italic(Something like) the basename of our executable file.
   This does not contain path and extension of our executable.
 
   Under UNIXes this may be only the name of user-defined bash
@@ -91,24 +92,24 @@ function ProgramBaseName: string;
   Right now this is simply equivalent to FPC's ApplicationName. }
 function ProgramName: string;
 
-{ Basically, returns true if file exists. So what's the difference between
-  this and FileExists ? FileExists under Windows returns true for
-  such names like 'con', 'c:\con', 'c:\somedir\con' itd.
-  ('con' is a special device name). And this function returns false for them.
+{ Returns true if file exists and is a normal file.
+  Detects and returns @false for special Windows files
+  like 'con', 'c:\con', 'c:\somedir\con' etc.
+  ('con' is a special device name).
   For all other files (and other OSes) this function returns the same
   as FileExists. }
 function NormalFileExists(const fileName: string): boolean;
 
-{ Returns directory suitable for creating temporary files/directories.
+{ Directory suitable for creating temporary files/directories.
   Note that this directory is shared by other programs, so be careful
-  when creating here anything -- to minimize name conflicts
+  when creating here anything --- to minimize name conflicts
   usually all filenames created here should start with ProgramBaseName
   and then should follow things like process id (or sometimes
   user name, when you can guarantee that one user runs always only one
   instance of this program) or some random number.
 
   Also remember that good program should avoid creating temporary
-  files -- you should keep your content in memory, and store in it
+  files --- you should keep your content in memory, and store in it
   filesystem only when user really wants to. One exception to this
   rule is when program must cooperate with other program, sometimes
   the only possible (or stable, or fast) way to do this
@@ -227,7 +228,7 @@ function UserConfigFile_FromProposed(const ProposedFileName: string): string;
 function UserConfigFile_FromProposed_Other(
   const ProposedFileName, WindowsExeNamePath: string): string;
 
-{ Returns path that program should use to obtain installed data files.
+{ Path that program should use to access installed data files.
   Returns absolute path, containing trailing PathDelim.
 
   Here are details:
@@ -278,7 +279,10 @@ function UserConfigFile_FromProposed_Other(
   ) }
 function ProgramDataPath: string;
 
-{ Under Windows WindowsExeNamePath must be
+{ Path that program should use to access installed data files,
+  possibly for some other program.
+
+  Under Windows WindowsExeNamePath must be
   ExtractFilePath(ExeName) where ExeName is what ExeName would return
   for this "other" program.
 
@@ -291,7 +295,7 @@ function ProgramDataPath: string;
   to write interface of this procedure.
 
   Use version without "_Other" suffix to get ProgramDataPath
-  of *this* program, that uses this function. }
+  of @italic(this) program, that uses this function. }
 function ProgramDataPath_Other(
   const UnixProgramBaseName, WindowsExeNamePath: string): string;
 
@@ -324,32 +328,6 @@ function ProgramDataPath_Other(
 { Is FileName a symbolic link. }
 function IsSymLink(const FileName: string): boolean; overload;
 
-{$ifdef DELPHI}
-{ Unfortunately this is not possible to implement in FPC. Kylix has
-  Linux-specific field Mode that allows it. This is one of the few points
-  where Kylix has something in RTL that is better than in FPC...
-
-  For some time I had in KambiUtils implementation of FindFirst/Next
-  and TSearch that had this Mode field. But now, for ease, I'm using
-  FPC's TSearchRec. So function IsSymLink(TSearchRec) is not possible.
-
-  Since I do not care about Kylix compatibility anymore this function is
-  quite useless for now. It is here because I hope that some day it will be
-  possible with FPC.
-
-  2004-12-20 update: bug 2995 was fixed, and FPC 1.9.5 since 2004-12-20
-  has TSearchRec.Mode field. Unfortunately, it's implemented in such way
-  that when file is symlink, Mode field describes the *target* file
-  (using FpStat instead of FpLStat; and it's not a bug -- it was done
-  on purpose).
-  So doing IS_LNK(Mode) is pointless, as Mode never describes a symlink.
-  See here
-    http://www.freepascal.org/bugs/showrec.php3?ID=2995
-  So this function will probably never be available with FPC.
-}
-function IsSymLink(const f: TSearchRec): boolean; overload;
-{$endif}
-
 { User's home directory, with trailing PathDelim.
 
   Taken from $HOME, unless $HOME = '' or is not defined,
@@ -359,37 +337,9 @@ function IsSymLink(const f: TSearchRec): boolean; overload;
   do according to `info libc' and my (Kambi's) preferences. }
 {$ifdef UNIX} function HomePath: string; {$endif}
 
-{ Pod UNIXem rozwijanie ~ to rzecz powloki. Procedury z libc,
-  kernela, a za nimi procedury w System czy SysUtils nie rozumieja
-  sciezek z nazwa ~.
-
-  Co gorsza ~ to pod Linuxem poprawna nazwa pliku, nawet jesli wiele
-  programow wariuje widzac takie nazwy plikow.
-
-  Ponizsza funkcja przeprowadza rozwijanie ~ na poczatku sciezki
-  do ExclPathDelim(HomePath).
-
-  Pod windowsem ta funkcja nic nie robi, zwraca filename.  }
+{ Expand tidle (~) in path, just like shell. Expands ~ to
+  ExclPathDelim(HomePath) under UNIX. Under Windows, does nothing. }
 function ExpandHomePath(const FileName: string): string;
-
-{$ifdef MSWINDOWS}
-{ Convert FileName to make sure the last part uses long (not DOS) name.
-  FileName must be a name of existing file, may be absolute or relative. }
-function GetLongFilename(const FileName: string): string;
-
-{ Like GetLongFileName, but returns only this last part.
-  You know it's inside ExtractFilePath(FileName). }
-function GetLongFileOnlyname(const FileName: string): string;
-
-{ Convert FileName to make sure all parts use long (not DOS) names.
-  FileName must be a name of existing file, may be absolute or relative. }
-function GetLongPathName(FileName: string): string;
-{$endif}
-
-{ Expand FileName, making sure it's absolute, under Windows also
-  making sure that each part is a long (not DOS) name.
-  So it's like ExpandFilename and at the same time GetLongPathName. }
-function ExpandLongFilename(const FileName: string): string;
 
 { Call SysUtils.DeleteFile and check result.
   @raises Exception If delete failed. }
@@ -412,50 +362,36 @@ procedure FileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boo
 { Copy file. Like FileCopy, but returns @false when failed (no exception). }
 function TryFileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean): boolean;
 
-{ Move or rename the file. Wersja bezpieczna - pozwala przenosic zarowno pliki jak i katalogi
-  pomiedzy roznymi dyskami. W miare mozliwosci sprobuje wykonac normalne MoveFile/Rename
-  ale jesli Dest jest na innym file-system niz Source (pod UNIXem
-  spowoduje to blad procedury rename(), pod win spowoduje to blad w MoveFile() jezeli
-  SourceFileName to katalog) to wykona Copy(source,dest)+Delete(source).
+{ Move or rename the file. Allows to move files and directories,
+  also across disks (partitions). If possible, will do a fast move
+  ("rename" under Unix, MoveFile under Windows), but if not possible
+  it will make copy and then delete.
 
-  Jesli DestFileName istnieje to :
-    jesli CanOverwrite to nadpisuje go
-    jesli not CanOverwrite to wyrzuca EFileExists.
-  W razie bledu - exception.
+  DestFileName will be overwritten if exists and CanOverwrite.
+  If exists and CanOverwrite = @false then EFileExists is raised.
 
-  Uwagi : pod Linuxem z GNU libc sytuacja gdy SourceFileName i DestFileName to
-  dwie nazwy dla tego samego pliku (do tego samego i-node) jest niezdefiniowana
-  -- nie wiadomo
-  co w zwiazku z tym zrobi libc.__rename, w zwiazku z czym nie wiadomo tez
-  co zrobi moje FileMove. Patrz strona info libc o "Renaming Files".
-  Nie wiem jak wyglada tu sytuacja gdy nie uzywam libc (USE_LIBC symbol
-  not defined), but I will assume that this situation is also undefined.
+  @raises EFileExists If file exists and CanOverwrite = @false.
+  @raises Exception In case of various errors.
 
-  TODO: przenoszenia katalogow nie zrobilem jeszcze (no, w pewnych przypadkach
-  mogloby zadzialac ale to sliskie i niedodefiniowane teraz rzeczy). Na razie
-  uzywaj FileMove tylko do plikow. }
+  Notes: if SourceFileName and DestFileName are two names of the same
+  file, the situation may be undefined. So says docs for Libc,
+  I don't know what really happens with FPC's Unix/BaseUnix stuff.
+
+  TODO: moving dirs is actually not implemented
+  (well, sometimes may work but not generally). Use only for files now. }
 procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boolean {$ifdef DEFPARS}=False{$endif}); overload;
 
-{ ChangeDir is something like "an improved replacement for ChDir".
-  Changes current directory to NewDir, raises EInOutError if this is
-  not possible. In other words, it mimics ChDir when compiled with
-  $I (IO checking) on.
+{ Change directory, raising exception if not possible.
+  NewDir may (but doesn't have to) include trailing PathDelim.
 
-  NewDir may (but don't have to) triling PathDelim.
+  @raises EInOutError If changing dir is not possible.
 
-  Improvements:
-
-  1. It fixes a bug in Delphi 6, in Delphi 6 ChDir when fails (and program
-     is compiled in $I+) does not raise EInOutError (but it sets IOResult).
-
-     Z $I+ kompilator powinien generowac kod sprawdzajacy zmienna IOResult po
-     wywolaniu ChDir i wywolujacy ew. EInOutError (tak jak robi np. po
-     wywolaniu Rewrite i w ogole po wywolaniu czegokolwiek o czym wie
-     ze moze zwrocic InOutError).
-
-     Ale Delphi 6 nie robi tego - zwykle przeoczenie ? Uzywaj ChangeDir.
-
-  2. Better error message (that will always contain NewDir). }
+  Improvements over ChDir:
+  @orderedList(
+    @item(It fixes a bug in Delphi 6, in Delphi 6 ChDir when fails (and program
+     is compiled in $I+) does not raise EInOutError (but it sets IOResult).)
+    @item(Better error message (that will always contain NewDir).)
+  ) }
 procedure ChangeDir(const NewDir: string);
 
 { Substitute %d in given filename pattern with successive numbers,
@@ -479,46 +415,38 @@ function FileNameAutoInc(const FileNamePattern: string): string;
 { Deprecated name for FileNameAutoInc. @deprecated }
 function FnameAutoInc(const FileNamePattern: string): string;
 
-{ Zwroc katalog nadrzedny do katalogu DirName.
-  DirName moze byc absolutna sciezka, ale nie musi.
-  Dirname moze ale nie musi zawierac koncowego PathDelim.
+{ Parent directory name.
 
-  Jesli nie ma katalogu nadrzednego - zwroc DirName.
-  Wynik zawsze jest expanded (absolutna sciezka) i
-  zawsze zawiera koncowe PathDelim.
+  Given DirName may be absolute or relative.
+  Given DirName may but doesn't have to include trailing PathDelim.
+  Result is always absolute filename, and contains trailing PathDelim.
 
-  When DoExpandDirName then it is assumed that DirName already IS absolute
-  path. What's the advantage of using DoExpandDirName = false ?
-  Then this function is pure string-operation
-  (no actual reading of any filesystem info), i.e. it belongs
-  to KambiUtils_filenames.inc instead of KambiUtils_files.inc.
-  This means that
-  1. Things work faster
-  2. DirName does not need to exist
-}
+  Returns the same DirName if there's no parent directory.
+
+  When DoExpandDirName = false then it is assumed that DirName already
+  is absolute path. Then this function is pure string-operation
+  (no actual reading of any filesystem info), so it works faster and
+  DirName does not need to exist. }
 function ParentPath(DirName: string;
   DoExpandDirName: boolean {$ifdef DEFPARS} = true {$endif}): string;
 
-{ operacje na plikach Pascala - file/text ------------------------------------ }
+{ Pascal files operations ---------------------------------------------------- }
 
-{ bezpieczne otwieranie plikow.
-  Najpierw robi assign(f,filename) i potem otwiera plik.
+type
+  { }
+  EFileOpenError=class(Exception);
 
-  Jesli byl blad - wyrzuca EFileOpenError z ladnym komunikatem bledu,
-  ktory (w przeciwienstwie do standardowego EInOutError rzucanego
-  przez standardowe Rewrite) zawiera nazwe pliku, co jest zazwyczaj bardzo
-  porêczne !.
+{ Safely open files. Does Assign and then resets/rewrites a file.
 
-  SafeReset controls FileMode variable:
-    if ReadOnly then FileMode := fmOpenRead else
-                     FileMode := fmOpenReadWrite;
-  (because it's oftent too easy to forget to initialize FileMode before
-  using Reset).
+  @raises(EFileOpenError In case of error. Error message is nice
+    and contains filename, contrary to standard EInOutError.)
 
-  Dla plikow niezdefiniowanych - domyslny opensize to 1, a nie 128,
-  jak dla Reset/Rewrite (co bylo czesta przyczyna pomylek) }
-type EFileOpenError=class(Exception);
+  SafeReset sets always FileMode variable (to fmOpenRead if ReadOnly,
+  or fmOpenReadWrite if not ReadOnly). This is important,
+  and too easy to forget otherwise.
 
+  For undefined files, default size is 1, not the strange default 128.
+  @groupBegin }
 procedure SafeReset(var f: file; const filename: string; readonly: boolean;
   opensize: word {$ifdef DEFPARS}=1{$endif}); overload;
 procedure SafeReset(var f: text; const filename: string; readonly: boolean); overload;
@@ -526,8 +454,10 @@ procedure SafeReset(var f: text; const filename: string; readonly: boolean); ove
 procedure SafeRewrite(var f: file; const filename: string;
   opensize: word {$ifdef DEFPARS}=1{$endif}); overload;
 procedure SafeRewrite(var f: text; const filename: string); overload;
+{ @groupEnd }
 
-{ Combines BasePath with RelPath. BasePath MUST be an absolute path,
+{ Combines BasePath with RelPath into complete path.
+  BasePath MUST be an absolute path,
   on Windows it must contain at least drive specifier (like 'c:'),
   on Unix it must begin with "/". RelPath can be relative and can
   be absolute. If RelPath is absolute, result is RelPath.
@@ -802,19 +732,6 @@ begin
 {$endif}
 end;
 
-{$ifdef DELPHI}
-function IsSymLink(const f: TSearchRec): boolean;
-{$ifdef UNIX}
-begin
- result := S_ISLNK(f.Mode);
-{$endif}
-{$ifdef MSWINDOWS}
-begin
- result := false;
-{$endif}
-end;
-{$endif}
-
 {$ifdef UNIX}
 function HomePath:  string;
 {$ifdef USE_LIBC}
@@ -874,64 +791,6 @@ begin
 {$else}
 begin
  result := FileName;
-{$endif}
-end;
-
-{$ifdef MSWINDOWS}
-function GetLongFilename(const FileName: string): string;
-begin
- result := ExtractFilePath(FileName)+GetLongFileOnlyname(FileName);
-end;
-
-function GetLongFileOnlyname(const FileName: string): string;
-var srec: TSearchRec;
-begin
- if FindFirst(FileName, faAnyFile, srec)<>0 then
-  raise Exception.Create('File '+FileName+' does not exist');
- result := srec.Name;
-end;
-
-function GetLongPathName(FileName: string): string;
-var p: integer;
-    pathpart: string;
-begin
- {idea dzialania jest taka : obcinamy z lewej strony FileName i doklejamy go do
-  result. Robimy to sukcesywnie, starajac sie caly czas utrzymac zaleznosc
-  ze result+FileName okresla nazwe tego samego pliku co FileName, gdzie czesc w result
-  zostala juz zamieniona na long-filenames. }
- result := '';
- repeat
-  p := Pos(PathDelim, FileName);
-  if p = 0 then break;
-
-  pathpart := Copy(FileName, 1, p-1);
-  if (pathpart = '') or SCharIs(pathpart, 2, ':') or SpecialDirName(pathpart) then
-  begin
-   {mamy tu poczatek sciezki relatywnej bez okreslenia dysku, a wiec zaczynajacej
-    sie od "\", albo mamy tu okreslenie dysku, albo mamy okreslenie specjalnego
-    katalogu w rodzaju '.' lub '..'. A wiec przepisujemy do result
-    bez zmian. }
-   result := result+pathpart+PathDelim;
-  end else
-  begin
-   {maym tu nazwe katalogu w katalogu result. Wiec zamieniamy ja na nazwe long i
-    doklejamy do result}
-   result := result+GetLongFileOnlyName(result+pathpart)+PathDelim;
-  end;
-  Delete(FileName, 1, p);
- until false;
- {zostala nazwa pliku :}
- result := result+GetLongFileOnlyname(result+FileName);
-end;
-{$endif}
-
-function ExpandLongFilename(const FileName: string): string;
-{$ifdef MSWINDOWS}
-begin
- result := ExpandFilename(GetLongPathName(FileName));
-{$else}
-begin
- result := ExpandFilename(FileName);
 {$endif}
 end;
 
