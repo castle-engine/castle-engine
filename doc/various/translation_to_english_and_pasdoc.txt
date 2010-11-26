@@ -139,7 +139,7 @@ D   imagesfftw.pas
 D   kambipasjpeg.pas
 D   kambipasjpeg_error_mgrs.pas
 D   kambipasjpeg_stream_mgrs.pas
--   kambipng.pas
+E   kambipng.pas
 D   kambipngutils.pas
 D   textureimages.pas
 D   videos.pas

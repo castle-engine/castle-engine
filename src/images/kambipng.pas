@@ -1,83 +1,65 @@
 (*
-  @abstract(Bindings to libpng.)
+  Libpng bindings. See [http://www.libpng.org/].
+  Bases on FPC sources, modified by Kambi.
 
-  Png.pas from FPC packages/extra/libpng/png.pp modified by Kambi.
-
-  Detailed list of my modifications:
+  Kambi modifications:
 
   @unorderedList(
     @item(
-      Made compileable with Delphi (under Delphi use "{$ALIGN 4}" instead of
-      "{$PACKRECORDS C}", "pointer" instead of "jmp_buf"))
-    @item(Use KambiZlib instead of Zlib module.)
-    @item(Added PNG_LIBPNG_VER_* constants)
+      If libpng is not installed on your system, there is no exception
+      at initialization. Instead it merely sets KambiPngInited to false.
+      This way programs that use this unit do not require libpng to be
+      installed on target system. Libpng must be present only if program
+      at runtime will really need it, e.g. Images.LoadPNG will raise an
+      exception if KambiPngInited is @false.)
+
+    @item(Use my KambiZlib instead of Zlib module. Primarily for having
+      KambiZlibInited, similar to KambiPngInited for zlib.)
+
     @item(We try to open libpng library from various names, to try hard
-      to work with various libpng SO/DLL names user may have installed
-      on his system.)
+      to work with various libpng so/dll names user may have installed
+      on his system.
+
+      In particular, we eventually fallback to using libpng.so name
+      (usually coming from libpng-dev packages on Linux distros).
+      So it can work with any libpng version.
+      This is possible by using explicit loading at unit
+      initialization, instead of using "exported" declarations
+      (that would tie us to particular so name, the one "ld" saw referenced
+      by libpng.so symlink at compilation).
+
+      Of course, this works as long as use only functions that are really
+      compatible across all existing libpng versions.)
+
+    @item(All functions are loaded using my TDynLib class in unit's initialization,
+      instead of "external" declarations. This allows various above features,
+      it also allows to easily find if some functions are missing in
+      libpng.(so|dll).)
+
+    @item(Added all missing constants (probably lost in FPC during h2pas).
+      Added also PNG_LIBPNG_VER_* constants, although don't use them,
+      see comments.)
+
     @item(
-      Added ALL other constants (missing in FPC Png -- lost during h2pas
-      processing ?))
-    @item(
-      Removed external variables (compileable only under FPC+Linux and when
-      LibPng file exists; useless anyway --- probably, they we're useful in
-      older libpng versions))
-    @item(
-      Work with Windows libpng version with stdcalls
+      Works with Windows libpng version with stdcalls
       (changed "cdecl" to "{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif}"))
-    @item(
-      Changed all functions from declared as "external" to functions' pointers
-      (variables) to use TDynLib from KambiUtils (to easily find if some functions
-      are missing in libpng.(so|dll)))
+
     @item(
       Many deprecated functions removed by default.
       See LIBPNG_DEPRECATED define.
       Also, there's a define LIBPNG_1_4, to change some types to match 1.4
       headers, see
       [http://www.libpng.org/pub/png/src/libpng-1.2.x-to-1.4.x-summary.txt].)
-    @item(dword is LongWord, so it doesn't require Types unit under Delphi)
+
     @item(
-      If libgpng is not installed on system, there is no exception
-      at initialization. Instead it merely sets KambiPngInited to false.
-      This way programs that use this unit do NOT require libpng to be
-      installed on target system. Libpng must be present only if program
-      at runtime will really need it, e.g. Images.LoadPNG will raise an
-      exception if libpng is not installed.)
+      Compileable with Delphi (under Delphi use "{$ALIGN 4}" instead of
+      "{$PACKRECORDS C}", "pointer" instead of "jmp_buf").
+      Also DWord is LongWord, so it doesn't require Types unit under Delphi.
+      Note: Delphi not really tested since a long time.)
   )
 
-  Some comments:
-  @unorderedList(
-    @item(
-      works with either libpng.so (Unix) or libpng12.dll/libpng13.dll (Windows).
-      Some things are prepared to support cygpng2.dll from cygwin,
-      but they doesn't work with my version of Cygwin.)
-
-    @item(
-      can work with (hopefully) all compatible versions of libpng,
-      @orderedList(
-        @item(
-          not only with ones that have version equal to defined here
-          constants PNG_LIBPNG_VER_xxx - look at functions
-          SO_PNG_LIBPNG_VER_xxx in KambiPngUtils and use them !)
-
-        @item(
-          it links with file 'libpng.so', NOT with 'libpng.so.2' or 'libpng.so.3'
-          so it can work with ANY of these libraries. Zrobione po mailu
-          od Szymona - myslalem ze to bylo zrobione juz wczesniej
-          bo przeciez wszedzie robilem "exported 'libpng.so';" ale okazalo
-          sie ze Linuxowe 'ld' najwyrazniej w czasie linkowania programu
-          schodzilo z symbolic linka 'libpng.so' do 'libpng.so.2' lub '.3'
-          w zaleznosci od tego jak mialem akurat skonfigurowany system.
-          Po prostu 'ld' zakladalo ze tak naprawde nie chce sie linkowac
-          z 'libpng.so' tylko z wersja libpng.so.2 lub 3. To zapewne
-          ma zabezpieczac programiste - bo niby wraz ze zmiana major number
-          biblioteki jej API powinno byc niekompatybilne - ale w przypadku
-          png jest wystarczajaco kompatybilne dla nas !
-
-          Nie bylem w stanie powiedziec tego 'ld' wiec musialem ladowac funkcje
-          z libpng bezposrednio kodem w initialization.)
-      )
-    )
-  )
+  @exclude (Unit not really ready for PasDoc, with many comments from
+    original C headers.)
 *)
 
 unit KambiPng;
@@ -100,25 +82,19 @@ uses KambiZlib;
   {$PACKRECORDS C}
 {$endif}
 
-{ Version consts (added by Kambi).
+{ Version consts. Added by Kambi.
 
-  Unfortunately, they are specific to dll version !! Very bad - I'd like
-  to have rather application that can run with every version that is compatible
-  instead of ONLY this version ! So - I use my functions (defined in
+  Unfortunately, they are specific to so/dll version. Very bad --- I'd like
+  to have application that can run with every version that is compatible
+  instead of only some given version. So I use my functions (defined in
   KambiPngUtils unit) SO_PNG_LIBPNG_VER_STRING, SO_PNG_VER_MAJOR etc.
-  that return the REAL .so (or .dll) version number
+  that return the real .so (or .dll) version number
   (using png_access_version_number). This version can be then passed to
   png_create_write_struct to ensure that libpng will not return with error :
   "png.h and png.c versions not compatible".
 
-  However - we should
-  be aware that using an uncompatible libpng version will probably lead
-  w najlepszym wypadku do acess violation - bo tak naprawde, moze doprowadzic
-  do wszystkiego ! Nie widze tutaj jednak rozwiazania; rezerwuje sobie
-  w kazdym razie prawo do zatrzymania programu (no, rzucenia wyjatku)
-  podczas wywolania
-  jednej z powyzszych funkcji SO_PNG_xxx jezeli wykryje ze wersja libpng
-  jest BARDZO rozna od mojej wersji. }
+  Be aware that using an uncompatible libpng version will probably lead
+  to nasty segfaults or such. }
 const
   PNG_LIBPNG_VER_STRING = '1.2.13';
   { These should match the first 3 components of PNG_LIBPNG_VER_STRING: }
@@ -126,7 +102,7 @@ const
   PNG_LIBPNG_VER_MINOR  = 2;
   PNG_LIBPNG_VER_RELEASE= 13;
 
-{ ALL consts below added by Kambi. }
+{ All consts below added by Kambi. }
 
 const
 { Supported compression types for text in PNG files (tEXt, and zTXt).
@@ -940,7 +916,7 @@ var
   png_set_gray_1_2_4_to_8: procedure(png_ptr: png_structp);{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 {$endif LIBPNG_DEPRECATED}
 
-{ This returns true if libpng was available and all png_xxx functions
+{ Returns true if libpng was available and all png_xxx functions
   in this unit are inited to non-nil values, so you can just use libpng.
 
   It returns false if libpng library was not available (or maybe the required
