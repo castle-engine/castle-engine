@@ -13,71 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(This unit implements functionality (but not the user interface)
-  of a "progress bar".)
-
-  "Progress bar" is something that can be shown to user to indicate progress
-  of some lenghty operation. The simplest example of use is
-
-  @longcode(#
-Progress.UserInterface := ... some TProgressUserInterface object ...;
-...
-Progress.Init(100, 'Doing something time-consuming, please wait');
-try
- for i := 1 to 100 do
- begin
-  ... do something ...
-  Progress.Step;
- end;
-finally Progress.Fini; end;
-  #)
-
-  (Embedding code in "try ... finally ... end" is not required,
-  but is strongly suggested. Rule of thumb says to always call
-  Progress.Fini when you called Progress.Init.)
-
-  And remember to call (usually somewhere at the beginning of your
-  program) some procedure to set Progress.UserInterface ---
-  e.g. set this to ProgressConsoleInterface from ProgressConsole unit
-  to have progress bar displayed on console (StdErr, to be more precise).
-
-  This unit by itself does not provide any interface to show such progress
-  bar. Instead, you must assign Progress.UserInterface property
-  to some object implementing such user interface. E.g. I have units
-  @unorderedList(
-    @item(GLProgress --- show progress bar in OpenGL window)
-    @item(ProgressConsole --- show progress bar on StdErr)
-    @item(ProgressVideo --- show progress bar on console using Video unit)
-    @item(ProgressF --- show progress using Delphi form)
-  )
-
-  This way any unit that implements some lengthy operation can call
-  appropriate functions of @link(Progress) object, and final program
-  can choose how it wants to show that progress to user (in console ?
-  in OpenGL window ? etc.). E.g. in unit @link(Images) my function ResizeImage
-  calls Progress.Init, Progress.Step and Progress.Fini when resizing
-  an image (because it may take a while when resized image is really big).
-  So ResizeImage makes "progress of operation" available.
-  But ResizeImage does not require that this progress will be shown
-  in any particular way --- you can show progress of ResizeImage in console,
-  or in OpenGL window, or in Delphi VCL form etc.
-
-  So this unit implements only the base functionality of "progress bar",
-  not specific to any interface. One important non-obvious functionality
-  of class TProgress is that even if you're calling @link(TProgress.Step)
-  very often, @link(TProgressUserInterface.Update) is @italic(not) called too often.
-  This means that you can set @link(TProgress.Max) to very large value
-  and you don't have to worry that @link(TProgressUserInterface.Update) will
-  be called too often. See documenatation of @link(TProgress.UpdatePart)
-  and @link(TProgress.UpdateTicks) for more info.
-
-  This unit creates one object of class @link(TProgress) : @link(Progress).
-  But it is possible to create other objects of this class.
-  So you can use more than one @link(TProgress) object at once, if you need
-  (e.g. from different threads, each @link(TProgress) object displaying
-  it's state in a separate window).
-}
-
+{ Progress bar functionality (TProgress, global variable Progress). }
 unit ProgressUnit;
 
 { Define this only for testing }
@@ -98,14 +34,64 @@ type
 
   TProgressUserInterface = class
   public
-    { show progress bar }
+    { Show progress bar. }
     procedure Init(Progress: TProgress); virtual; abstract;
-    { update progress bar (because Progress.Position changed) }
+    { Update progress bar (because Progress.Position changed). }
     procedure Update(Progress: TProgress); virtual; abstract;
-    { hide progress bar }
+    { Hide progress bar. }
     procedure Fini(Progress: TProgress); virtual; abstract;
   end;
 
+  { Progress bar functionality.
+
+    This provides the functionality of a progress bar (everything that
+    wants to signal progress should call @link(Progress) methods),
+    but not the actual user interface. The user interface is "pluggable",
+    that is you assign something to the Progress.UserInterface property.
+    See the units:
+
+    @unorderedList(
+      @itemSpacing Compact
+      @item(GLProgress --- show progress bar in OpenGL window)
+      @item(ProgressConsole --- show progress bar on StdErr)
+      @item(ProgressVideo --- show progress bar on console using Video unit)
+      @item(ProgressF --- show progress using Lazarus/Delphi form)
+    )
+
+    This way any unit that implements some lengthy operation can call
+    appropriate functions of the @link(Progress) object. And the final program
+    can choose how it wants to show that progress to user (in console?
+    in OpenGL window? etc.).
+
+    Usage example:
+
+    @longcode(#
+Progress.UserInterface := ... some TProgressUserInterface instance ...;
+...
+Progress.Init(100, 'Doing something time-consuming, please wait');
+try
+  for i := 1 to 100 do
+  begin
+    ... do something ...
+    Progress.Step;
+  end;
+finally Progress.Fini; end;
+#)
+
+    Using @code("try ... finally ... end") above is not strictly required,
+    but is strongly suggested. Rule of thumb says to always call
+    Progress.Fini when you called Progress.Init.
+
+    The @link(TProgress.Step) is implemented such that you don't have to
+    worry about calling it too often. We will not update the interface
+    (@link(TProgressUserInterface.Update)) too often,
+    see TProgress.UpdatePart and TProgress.UpdateTicks for details.
+
+    This unit creates one instance of the class @link(TProgress): @link(Progress).
+    Usually this is what you want to use. For complicated cases,
+    you can create and pass around more instances
+    (e.g. from different threads, each @link(TProgress) object displaying
+    it's state in a separate window.) }
   TProgress = class
   private
     FUserInterface: TProgressUserInterface;
@@ -113,7 +99,7 @@ type
     FUpdateTicks: TMilisecTime;
 
     FMax, FPosition: Cardinal;
-    { Variables below meaningfull only if Active.
+    { Variables below are meaningfull only if Active.
 
       When UserInterfaceDelayed, this is the time and position (always 0)
       of the TProgress.Init call.
@@ -130,47 +116,48 @@ type
     property UserInterface: TProgressUserInterface
       read FUserInterface write FUserInterface;
 
-    { Position musi sie zmienic o (1/UpdatePart) * Max i jednoczesnie
-      musi uplynac UpdateTicks od ostatniego wywolania OnUpdateProgress abysmy
-      wywolali je ponownie. W ten sposob mozna bardzo gesto generowac wywolania
-      Progress.Step i nie ma strachu, nie bedziemy tracic masy czasu na robienie
-      co chwile update'a progressu. }
+    { Define how often to redraw interface (TProgressUserInterface.Update).
+      Position must change by (1/UpdatePart) * Max and at the same time
+      at least UpdateTicks miliseconds must pass to redraw.
+
+      This allows you to call @link(Step) very often, without worrying
+      that you cause redraw too often (which would cause slowdown).
+      @groupBegin }
     property UpdatePart: Cardinal read FUpdatePart write FUpdatePart
       default DefaultUpdatePart;
     property UpdateTicks: TMilisecTime read FUpdateTicks write FUpdateTicks
       default DefaultUpdateTicks;
+    { @groupEnd }
 
     property Position: Cardinal read FPosition;
     property Max: Cardinal read FMax;
     property Title: string read FTitle;
 
-    { Active = true means that we are between Init and Fini call.
+    { Are we between Init and Fini calls.
       Init changes Active to true, Fini changes Active to false. }
     property Active: boolean read FActive;
 
-    { This function returns something like Format('(%d / %d)', [Position, Max]).
-      In other words, this is some text that describes current value of
-      Position and Max. It may be shown to the user, see also TitleWithPosition
+    { Return description of current Position and Max values.
+      Returns something like Format('(%d / %d)', [Position, Max]).
+      It may be shown to the user, see also TitleWithPosition
       and UseDescribePosition properties. }
     function DescribePosition: string;
 
-    { This should be used by UserInterface to determine whether to show
+    { Should be used by UserInterface to determine whether to show
       somewhere DescribePosition value. }
     property UseDescribePosition: boolean
       read FUseDescribePosition write FUseDescribePosition default true;
 
-    { The intension is to return Title glued with DescribePosition,
-      or possibly ended with '...' (3 dots).
-      More precisely: if UseDescribePosition then
-      it returns Title glued with DescribePosition.
-      Else, if AddDots, it returns Title glued with '...'.
-      Else it returns just Title. }
+    { Return Title and DescribePosition, if UseDescribePosition.
+      This always returns the Title. Adds DescribePosition
+      if UseDescribePosition. If not UseDescribePosition,
+      then it adds '...' if AddDots. Otherwise, just returns Title. }
     function TitleWithPosition(const AddDots: boolean): string;
 
     { Start the progress bar.
-      You can call Init only when Active = false.
-      Init initializes Max, Title, sets Position to 0 and changes
-      Active to true.
+      You can call Init only when Active = false (that is, you
+      cannot Init while another progress is working).
+      Initializes Max, Title, sets Position to 0 and changes Active to true.
 
       UserInterface must be initialized (non-nil) when calling
       Init, and you cannot change UserInterface when progress is Active
@@ -197,22 +184,20 @@ type
     procedure Init(AMax: Cardinal; const ATitle: string;
       const DelayUserInterface: boolean = false);
 
-    { Step increments Position by StepSize.
-      Use only when Active (i.e. between Init .. Fini calls).
+    { Increments progress bar Position by StepSize.
+      Use only when Active, that is between Init .. Fini calls.
 
       Position always stays <= Max (so you can depend on this
       when implementaing TProgressUserInterface).
       But it is completely legal to try to raise Position above
-      Max by calling Step, i.e. Step works like
-        Position := Position +  StepSize;
-        if Position > Max then Position := Max;
-
-      (this is usefull when given Max was only an approximation of needed
-      steps). }
+      Max by calling Step, we will internally clamp Position to Max.
+      This is usefull when given Max was only an approximation of needed
+      steps. }
     procedure Step(StepSize: Cardinal = 1);
 
-    { You can call Fini only when Active = true.
-      Fini changes Active to false.
+    { Finish progress bar.
+      You can call it only when Active = true (that is, if you called Init
+      before). Fini changes Active to false.
 
       Note that it's perfectly legal to call Fini before Position
       reaches Max (it's sensible e.g. when you're allowing user to break
@@ -224,7 +209,8 @@ type
   end;
 
 var
-  { Created in initialization, freed in finalization. }
+  { Global progress bar instance.
+    Created in initialization of this unit, freed in finalization. }
   Progress: TProgress;
 
 type
@@ -236,11 +222,13 @@ type
   end;
 
 var
-  { A special TProgressUserInterface instance, that simply does nothing.
+  { A special progress user interface, that simply doesn't show progress anywhere.
 
-    Set Progress.UserInterface to this, and then
-    progress Init/Update/Fini will work --- but will not be displayed
-    anywhere.
+    If you set Progress.UserInterface to this,
+    then progress Init/Update/Fini will work --- but will not be displayed
+    anywhere. This is done at the initialization of this unit,
+    so you can safely use progress bars even before real interface
+    is initialized.
 
     Created in initialization, freed in finalization. }
   ProgressNullInterface :TProgressNullInterface;

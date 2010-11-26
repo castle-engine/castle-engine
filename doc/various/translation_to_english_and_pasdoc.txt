@@ -105,7 +105,7 @@ D   kambizlib.pas
 D   kambizstream.pas
 -   parseparametersunit.pas
 D   progressconsole.pas
-|   progressunit.pas
+D   progressunit.pas
 D   recentfiles.pas
 D   rects.pas
 D   vectormath.pas
