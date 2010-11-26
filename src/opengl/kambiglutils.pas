@@ -436,6 +436,8 @@ procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4i); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4s); overload;
 
+procedure glClearColorv(const v: TVector3f; alpha: Single);
+
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 
 procedure glNormalv(const v: TVector3d); overload;
@@ -658,11 +660,11 @@ procedure AfterPackImage(const packData: TPackNotAlignedData; image: TImage);
 
 { Projection matrix -------------------------------------------------------- }
 
-{ ProjectionGL* procedures load correspoding OpenGL matrices
+{ Load correspoding OpenGL matrices
   (gluPerspective, glOrtho), making sure we're in GL_PROJECTION matrix mode.
 
-  More precise description: first these procedures change current matrix
-  mode (if needed) to GL_PROJECTION. Then call load identity,
+  First these change current matrix
+  mode (if needed) to GL_PROJECTION. Then they load identity,
   and then call appropriate OpenGL functions (gluPerspective, glOrtho).
   And then (if needed) go back to previous matrix mode.
   So current matrix mode is never changed by these procedures.
@@ -780,8 +782,8 @@ function UnProjectGL(winx, winy, winz: TGLdouble): TVector3d;
   has height = 2 (from y = 0 to y = 2) and width 1 (from x = -0.5 to 0.5).
   Everything is drawn CCW when seen from standard view
   (x grows right, y up). }
-procedure DrawArrow(grotThickness: TGLfloat = 0.4;
-  grotLength: TGLfloat = 0.5);
+procedure DrawArrow(HeadThickness: TGLfloat = 0.4;
+  HeadLength: TGLfloat = 0.5);
 
 { Comfortable wrapper for gluNewQuadric. Sets all quadric parameters.
   Sets also the GLU_ERROR callback to ReportGLerror.
@@ -803,109 +805,54 @@ procedure KamGluSphere(
   Orientation: TGLenum = GLU_OUTSIDE;
   DrawStyle: TGLenum = GLU_FILL);
 
-{ rysuje rectangle od x1, y1 do x2, y2. Wspolrzedna constCoordx jest stala
-  i ma zawsze wartosc constValue. Normale (jeden
-  normal dla calej sciany) sa generowane. Paranetry x1, y1, x2, y2 niekoniecznie
-  oznaczaja rzeczywiscie x-y i y-ki : jezeli constCoord = 0 to oznaczaja
-  one odpowiednio y i z, jezeli constCoord = 1 to oznaczaja x i z.
+{ Draw rectangle, on a given plane, possibly by using many smaller quads.
+
+  ConstCoord (0, 1 or 2) determines
+  the plane of the rectangle, all points have this coordinate = ConstValue.
+  So parameters X1, Y1, X2, Y2 are not necessarily for XY plane:
+  when ConstCoord = 0, then X1,X2 parameters are for Y plane,
+  and Y1,Y2 are for Z plane. See RestOf3dCoords.
+
+  Normal vector is generated, always from CCW side of the quads.
+  Assuming that X1<=X2 and Y1<=Y2: If ConstCoordGivesNormal1 then
+  the normal points to positive ConstCoord, otherwise to negative.
 
   Texture coordinates are generated if MakeTextureCoords.
   Texture S goes from 0 to 1 when X goes from X1 to X2,
   texture T goes from 0 to 1 when Y goes from Y1 to Y2,
 
-  Jezeli DetailLevel1 <> 0 or DetailLevel2 <> 0 to rectangle jest rozbijany
-  na wiele polygonow zeby mial w sobie duzo vertexow, co powoduje ze swiatlo
-  jest duzo ladniej renderowane na prostokacie. Rozbijanie jest robione
-  na paski i kolumny, tak ze powstaje nam taka kratka : plane ma
-  DetailLevelX+1 kolumn i DetailLevelY+1 paskow. Wiec tak naprawde jeden
-  plane sklada sie z (DetailLevelX+1)*(DetailLevelY+1) kwadracikow.
-
-  O ile tylko x1 <= y1 i x2 <= y2 to :
-  - Jezeli constCoordGivesNormal1 to
-    normal bedzie rowny 1 na wspolrzednej constCoord (na pozostalych bedzie = 0)
-    i wszystkie polygony tworzace prostokat beda zwrocone CCW w strone
-    constCoorda rosnacego.
-  - Wpp. normal bedzie rowny -1 na tej wspolrzednej w wszystkie polygony beda
-    zwrocone w strone constCoorda malejacego. }
-procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
-  constCoord, DetailLevelX, DetailLevelY: integer;
-  constCoordGivesNormal1: boolean;
+  If DetailLevel1 <> 0 or DetailLevel2 <> 0 then rectangle is actually
+  rendered by many smaller polygons. This improved the look under
+  Gouraud shading. We use DetailLevelX + 1 columns and
+  DetailLevelY + 1 rows, so actually we render
+  @code((DetailLevelX + 1) * (DetailLevelY + 1)) OpenGL quads. }
+procedure DrawGLPlane(X1, Y1, X2, Y2: TGLfloat; ConstValue: TGLfloat;
+  ConstCoord, DetailLevelX, DetailLevelY: integer;
+  ConstCoordGivesNormal1: boolean;
   MakeTextureCoords: boolean);
 
-{ DrawGLPlaneSpecialTex umozliwia podanie wspolrzednych tekstury na
-  czterech rogach prostokata. texX1, texY1 to wspolrzedne tekstury na x1, y1
-  i podobnie dla texX2, texY2. Na calym prostokacie wspolrzedne tekstury
-  beda rownomiernie rozlozone w zadanych granicach.
+{ Draw axis-aligned box. Pass coordinates for box corners
+  (X1 must be <= X2 etc.), or explicit TBox3D value.
 
-  W ten sposob mozesz narysowac rectangla ktory ma scieta teksture albo
-  powtorzona.
+  Sides are drawn by DrawGLPlane, so may be splitted into more quads for
+  nice Gouraud shading if Detail* are <> 0.
 
-  Ponadto, mamy tu parametr order_ST_XYZ. Jezeli true to oznacza ze
-  kolejnosc wspolrzednych xyz i st jest taka sama, innymni slowy -
-  jezeli np. constCoord = 1 oznacza to ze wzdluz wspolrzednej x
-  biegnie wspolrzedna tekstury S, a wzdluz z - wspolrzedna tekstury T.
-  Jezeli false - to na odwrot.
-
-  Wszystkie pozostale parametry jak w DrawGLPlane. DrawGLPlane
-  po prostu wywoluje ta procedure z texX1, texY1, texX2, texY2 = 0, 0, 1, 1
-  order_ST_XYZ = true.
-
-  Jezeli MakeTextureCoords = @false to wspolrzedne tekstury nie sa generowane
-  (i rownie dobrze moglbys uzyc zwyklego DrawGLPlane). }
-procedure DrawGLPlaneSpecialTex(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
-  constCoord, DetailLevelX, DetailLevelY: integer;
-  constCoordGivesNormal1: boolean;
-  MakeTextureCoords: boolean;
-  texX1, texY1, texX2, texY2: TGLfloat; order_ST_XYZ: boolean);
-
-{ Rysuje Box3D. Starsze wersje pobieraja szesc parametrow zamiast jednego TBox3D,
-  w ich przypadku nie musi byc x1 <= x2, y1 <= y2 itd. (x1, y1, z1) i (x2, y2, z2)
-  musza tylko okreslac dwa przeciwlegle punkty prostopadloscianu (beda
-  konwertowane Box3DOrderUp).
-
-  Sciany sa rysowane przy pomocy DrawGLPlane i moga byc tam rozkladane na
-  wieksza ilosc malych trojkatow (zeby cieniowanie Gourauda lepiej sie
-  renderowalo na boxie) jezeli ktores z DetailX, Y lub Z jest <>0.
-
-  Na boxie sa generowane wspolrzedne normale. Wszystkie sciany
-  sa CCW z punktu widzenia zewnatrz i wszystkie normale wskazuja na zewnatrz
-  jezeli ccwOutside, wpp. CCW jest do wewnatrz i wszystkie normale wskazuja
-  tam.
+  Correct normal vectors are generated, from CCW.
+  If CcwOutside then CCW sides (and so the normals) point outside of the box,
+  otherwise they point inside.
 
   Texture coordinates are generated if MakeTextureCoords. }
 procedure DrawGLBox(const Box: TBox3D; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean; MakeTextureCoords: boolean); overload;
 procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean; MakeTextureCoords: boolean); overload;
 
-(*
-{ DrawGLBoxWire is like DrawGLBox, but draws only wireframe.
-  It uses DetailX, DetailY, DetailZ parameters, and generates
-  even normal vectors and texture coordinates like DrawGLBox.
-
-  Requires one attrib stack place.
-
-  Unfortunately, current implementation is not correct because of
-  Radeon bug. To see the bug, just use DrawGLBoxWire(Box, 0, 0, 0, true)
-  as an implementation for glDrawBox3DWire. Then rotate the DrawGLBoxWire
-  (e.g. view3dscene draws scene bounding box using this routine).
-  You'll see that at some angles of view, Radeon draws a strange
-  diagonal lines inside GL_QUAD_STRIPs... obviously they draw
-  each quad inside GL_QUAD_STRIP as two triangles and they don't
-  do glEdgeFlag(GL_FALSE) where they should.
-
-  NVidia drivers on NVidia cards work correctly. }
-procedure DrawGLBoxWire(const Box: TBox3D; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
-procedure DrawGLBoxWire(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
-*)
-
-{ glDrawBox3DWire draws a simple lines around this TBox3D.
+{ Draws a simple lines around this TBox3D.
   It doesn't generate any texture coords or normal vectors
   --- it only draws 8 lines. }
 procedure glDrawBox3DWire(const Box: TBox3D);
 
-{ Simplest drawing of Box into OpenGL, just as a six planes.
-  Nothing is generated besides vertexes position --- no normal vectors,
-  no texture coords, nothing. Order is CCW outside (so if you want, you
-  can turn on backface culling yourself).
+{ Draw simple box. Nothing is generated besides vertexes position ---
+  no normal vectors, no texture coords, nothing. Order is CCW outside
+  (so if you want, you can turn on backface culling yourself).
 
   You @bold(must enable GL_VERTEX_ARRAY before using this).
   (It's not done automatically, as it's much faster to do it once
@@ -917,37 +864,27 @@ procedure glDrawBox3DWire(const Box: TBox3D);
   It can be safely placed in a display list. }
 procedure glDrawBox3DSimple(const Box: TBox3D);
 
-{ rysuje trojkat o zadanych wierzcholkach i wspolrzednych tekstury,
-    generuje tez normal jako Normalized(p2-p1, p2-p3) a wiec normal
-    kieruje sie w strone z ktorej trojkat wyglada na CCW.
-  Przy DetailLev > 0 trojkat jest rozbijany na mniejsze trojkaty (jak - patrz
-    kartka). W ten sposob trojkat jest rysowany przy uzyciu wiekszej liczby
-    vertexow niz trzeba co pozwala na ladniejsze renderowanie swiatla na
-    trojkacie.
-  Aby kontrolowac to w ktora strone jest CCW wiedz ze mimo ze tak
-    naprawde narysowanych zostanie wiele trojkatow to wszystkie one beda
-    tak samo zorientowane jak trojkat p1-p2-p3. }
+{ Draw triagle with given corners and texture coordinates.
+  Normal vector is generated from CCW side.
+
+  The triangle may b split into smaller triangles for rendering,
+  for nicer Gouraud shading. }
 procedure DrawGLTriangle(const p1, p2, p3: TVector3f;
   const Tex1, Tex2, Tex3: TVector2f;
   DetailLev: Cardinal);
 
-{ glProjectionPushPop2D na chwile zmienia matryce na
-  Ortho2d (0, Viewport.width, 0, Viewport.height), wywoluje proc,
-  a potem przywraca poprzednia matryce projection.
-
-  W momencie wywolania aktualna matryca nie musi byc GL_PROJECTION -
-  w momencie wywolania proc aktualna matryca OpenGL'a bedzia ta sama co
-  w momencie wywolania glProjectionPushPop2D, np. jesli wywolales
-  glProjectionPushPop2D gdy aktualna matryca byla GL_MODELVIEW to
-  w momencie wywolania proc i po wyjsciu z glProjectionPushPop2D aktualna
-  matryca tez bedzie GL_MODELVIEW.
-
-  Bardziej ogolne glProjectionPushPop umozliwia podanie dowolnej matrycy
-  na ktora bedzie ustawiona matrix projection. }
-
 type
   TProcData = procedure (Data: Pointer);
 
+{ Temporarily switch to 2D OpenGL projection, call given callback,
+  then restore original projection.
+
+  2D projection is like gluOrtho2d(0, Viewport.width, 0, Viewport.height).
+  Use more general glProjectionPushPop to provide any projection matrix.
+
+  The current matrix mode doesn't have to be GL_PROJECTION at call time.
+  We will take care to have the original matrix mode when calling Proc
+  callback. }
 procedure glProjectionPushPop2D(proc: TProcData; Data: Pointer);
 
 procedure glProjectionPushPopOrtho(proc: TProcData; Data: Pointer;
@@ -959,39 +896,25 @@ procedure glProjectionPushPopPerspective(proc: TProcData; Data: Pointer;
 procedure glProjectionPushPop(proc: TProcData; Data: Pointer;
   const projMatrix: TMatrix4f);
 
-{ BlackOutRect rysuje prostokat zabarwiony BlackOutem kolorem BlackOutColor.
-  BlackOutIntensity okresla intensywnosc BlackOut'u - od 1 w dol.
-  Gdy BlackOutIntensity <= 0 ta procedura nie zrobi kompletnie nic.
-  Wpp. zostanie narysowany prostokat glRectf(x1, y1, x2, y2) ktory zanieczysci
-  obszar jaki bedzie za nim na kolor BlackOutColor (pamietaj wiec ustawic
-  najpierw matrix odpowiednio, bo bedzie wplywala na wynik glRect()).
+{ Draw rectangle that colors (using blending) everything underneath with
+  given BlackOutColor. BlackOutIntensity is the effect intensity:
+  1 is the total coverage by BlackOutColor, 0 (and below) means nothing.
 
-  Wymaga 1 miejsca na stosie attribow, zachowuje stan OpenGL'a.
-
-  Dokladnie rownania : czym jest to "zanieczyszczenie" kolorem BlackOutColor
-  sa kwestia implementacji - zrobione sa tak zeby byly ladne.
-  Typowa implementacja blackouta :
-    w Draw wywolaj ta proc,
-    w Idle zmniejszaj BlackOutIntensity (o ile jest >0),
-    w dowolnym momencie aby wywolac blackouta zrob BlackOutIntensity := 1
-      i ustaw BlackOutColor
+  The rectangle is affected by current modelview matrix.
+  Requires one attrib stack place.
 
   You can place this inside display list. }
 procedure DrawGLBlackOutRect(const BlackOutColor: TVector3f;
   const BlackOutIntensity, x1, y1, x2, y2: TGLfloat);
 
-{ Returns multiline string describing attributes of current OpenGL
+{ Multiline string describing attributes of current OpenGL
   library. This simply queries OpenGL using glGet* functions
   about many things. Does not change OpenGL state in any way.
 
   Note that the last line of returned string does not terminate
-  with newline character (so e.g. you may want to do
+  with a newline character (so e.g. you may want to do
   Writeln(GLInformationString) instead of just Write(GLInformationString)). }
 function GLInformationString: string;
-
-{ Vector version of glClearColor, equivalent to
-  glClearColor(v[0], v[1], v[2], alpha) }
-procedure glClearColorv(const v: TVector3Single; alpha: Single);
 
 const
   GLDefaultLightModelAmbient: TVector4Single = (0.2, 0.2, 0.2, 1.0);
@@ -999,10 +922,11 @@ const
 { Utilities for display lists ---------------------------------------- }
 
 type
+  { }
   EOpenGLNoMoreDisplayLists = class(Exception)
   end;
 
-{ This calls glGenLists(range) and checks the result.
+{ Call glGenLists(range) and checks the result.
 
   @raises(EOpenGLNoMoreDisplayLists
     When glGenLists(Range) returned zero for non-zero Range.
@@ -1026,16 +950,18 @@ procedure glFreeDisplayList(var list: TGLuint);
   ) }
 procedure glFreeTexture(var Tex: TGLuint);
 
-{ This is equivalent to glListBase but it's parameter is a signed integer.
+{ Equivalent to glListBase but it's parameter is a signed integer.
 
   Original declararations of glListBase take unsigned integer,
   while actually a signed integer is also allowed. Actually,
   you should always call gListBase with range/overflow checking turned off.
   That's because argument to glListBase is used by OpenGL
   only in an expression like
+
     @longcode# Base + CurrentListNumber #
+
   so it's the "CurrentListNumber" that determines what Base actually means
-  - e.g. if Base = LongWord(-100) and CurrentListNumber = 1000 then
+  --- e.g. if Base = LongWord(-100) and CurrentListNumber = 1000 then
   the actual list number is 900, and this is all that matters.
   So you can say that Base was nagative.
   But if Base = LongWord(-100) and CurrentListNumber = 0 then
@@ -1046,7 +972,7 @@ var
     {$ifdef OPENGL_CDECL} cdecl; {$endif}
     {$ifdef OPENGL_STDCALL} stdcall; {$endif}
 
-{ Set color buffer and depth buffer writeable or not writeable.
+{ Set color and depth buffers writeable or not.
   This is just a shortcut for
   @longcode(#
     glDepthMask(Writeable);
@@ -1468,6 +1394,11 @@ procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f);  begin gl
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4i);  begin glMultiTexCoord4iv(Target, @v); end;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4s);  begin glMultiTexCoord4sv(Target, @v); end;
 
+procedure glClearColorv(const v: TVector3Single; alpha: Single);
+begin
+  glClearColor(v[0], v[1], v[2], alpha);
+end;
+
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 
 procedure glNormalv(const v: TVector3d); begin glNormal3dv(@v); end;
@@ -1814,31 +1745,31 @@ begin
    @result[0], @result[1], @result[2]) = GL_TRUE, 'gluUnProject');
 end;
 
-procedure DrawArrow(grotThickness, grotLength: TGLfloat);
+procedure DrawArrow(HeadThickness, HeadLength: TGLfloat);
 begin
- grotLength := 2*grotLength; { mapuj grotLength na zakres 0..2 }
+ HeadLength := 2*HeadLength; { mapuj HeadLength na zakres 0..2 }
 
  { TODO: tutaj powinienes przelaczac glEdgeFlag }
 
  glBegin(GL_TRIANGLES);
   glVertex2f(0, 2);
-  glVertex2f(-1, grotLength);
-  glVertex2f(-grotThickness, grotLength);
+  glVertex2f(-1, HeadLength);
+  glVertex2f(-HeadThickness, HeadLength);
 
   glVertex2f(0, 2);
-  glVertex2f(-grotThickness, grotLength);
-  glVertex2f(grotThickness, grotLength);
+  glVertex2f(-HeadThickness, HeadLength);
+  glVertex2f(HeadThickness, HeadLength);
 
   glVertex2f(0, 2);
-  glVertex2f(grotThickness, grotLength);
-  glVertex2f(1, grotLength);
+  glVertex2f(HeadThickness, HeadLength);
+  glVertex2f(1, HeadLength);
  glEnd;
 
  glBegin(GL_QUADS);
-  glVertex2f(-grotThickness, grotLength);
-  glVertex2f(-grotThickness, 0);
-  glVertex2f(grotThickness, 0);
-  glVertex2f(grotThickness, grotLength);
+  glVertex2f(-HeadThickness, HeadLength);
+  glVertex2f(-HeadThickness, 0);
+  glVertex2f(HeadThickness, 0);
+  glVertex2f(HeadThickness, HeadLength);
  glEnd;
 end;
 
@@ -1870,16 +1801,26 @@ begin
   finally gluDeleteQuadric(Q); end;
 end;
 
-procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
-  constCoord, DetailLevelX, DetailLevelY: integer;
-  constCoordGivesNormal1: boolean;
-  MakeTextureCoords: boolean);
-begin
- DrawGLPlaneSpecialTex(x1, y1, x2, y2, constValue,
-   constCoord, DetailLevelX, DetailLevelY,
-   constCoordGivesNormal1,
-   MakeTextureCoords, 0, 0, 1, 1, true);
-end;
+{ DrawGLPlaneSpecialTex umozliwia podanie wspolrzednych tekstury na
+  czterech rogach prostokata. texX1, texY1 to wspolrzedne tekstury na x1, y1
+  i podobnie dla texX2, texY2. Na calym prostokacie wspolrzedne tekstury
+  beda rownomiernie rozlozone w zadanych granicach.
+
+  W ten sposob mozesz narysowac rectangla ktory ma scieta teksture albo
+  powtorzona.
+
+  Ponadto, mamy tu parametr order_ST_XYZ. Jezeli true to oznacza ze
+  kolejnosc wspolrzednych xyz i st jest taka sama, innymni slowy -
+  jezeli np. ConstCoord = 1 oznacza to ze wzdluz wspolrzednej x
+  biegnie wspolrzedna tekstury S, a wzdluz z - wspolrzedna tekstury T.
+  Jezeli false - to na odwrot.
+
+  Wszystkie pozostale parametry jak w DrawGLPlane. DrawGLPlane
+  po prostu wywoluje ta procedure z texX1, texY1, texX2, texY2 = 0, 0, 1, 1
+  order_ST_XYZ = true.
+
+  Jezeli MakeTextureCoords = @false to wspolrzedne tekstury nie sa generowane
+  (i rownie dobrze moglbys uzyc zwyklego DrawGLPlane). }
 
 procedure DrawGLPlaneSpecialTex(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   constCoord, DetailLevelX, DetailLevelY: integer;
@@ -1990,6 +1931,17 @@ begin
  end;
 end;
 
+procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
+  constCoord, DetailLevelX, DetailLevelY: integer;
+  constCoordGivesNormal1: boolean;
+  MakeTextureCoords: boolean);
+begin
+  DrawGLPlaneSpecialTex(x1, y1, x2, y2, constValue,
+    constCoord, DetailLevelX, DetailLevelY,
+    constCoordGivesNormal1,
+    MakeTextureCoords, 0, 0, 1, 1, true);
+end;
+
 procedure DrawGLBox(const Box: TBox3D; DetailX, DetailY, DetailZ: integer;
   ccwOutside: boolean; MakeTextureCoords: boolean);
 begin
@@ -2007,27 +1959,9 @@ procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat;
   DetailX, DetailY, DetailZ: integer; ccwOutside: boolean;
   MakeTextureCoords: boolean);
 begin
- DrawGLBox(Box3DOrderUp(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
+ DrawGLBox(Box3D(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
    DetailX, DetailY, DetailZ, ccwOutside, MakeTextureCoords);
 end;
-
-(*
-procedure DrawGLBoxWire(const Box: TBox3D; DetailX, DetailY, DetailZ: integer;
-  ccwOutside: boolean);
-begin
-  glPushAttrib(GL_POLYGON_BIT);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    DrawGLBox(Box, DetailX, DetailY, DetailZ, ccwOutside);
-  glPopAttrib;
-end;
-
-procedure DrawGLBoxWire(const x1, y1, z1, x2, y2, z2: TGLfloat;
-  DetailX, DetailY, DetailZ: integer; ccwOutside: boolean);
-begin
- DrawGLBoxWire(Box3DOrderUp(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
-   DetailX, DetailY, DetailZ, ccwOutside);
-end;
-*)
 
 procedure glDrawBox3DWire(const Box: TBox3D);
 
@@ -2518,11 +2452,6 @@ begin
   '  Max renderbuffer size: ' + GetMaxRenderbufferSize;
 
  CheckGLErrors;
-end;
-
-procedure glClearColorv(const v: TVector3Single; alpha: Single);
-begin
- glClearColor(v[0], v[1], v[2], alpha);
 end;
 
 function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
