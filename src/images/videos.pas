@@ -295,7 +295,7 @@ function FfmpegVideoFileExtension(const Ext: string;
 implementation
 
 uses KambiUtils, Math, KambiStringUtils, DataErrors,
-  KambiFilesUtils, EnumerateFiles, ProgressUnit;
+  KambiFilesUtils, ProgressUnit;
 
 { TVideo --------------------------------------------------------------------- }
 

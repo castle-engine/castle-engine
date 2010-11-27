@@ -465,6 +465,17 @@ procedure SafeRewrite(var f: text; const filename: string); overload;
   with BasePath. }
 function CombinePaths(BasePath, RelPath: string): string;
 
+const
+  { }
+  RegularFileAttr = faReadOnly or faHidden or faArchive;
+
+  { Regular file that is possibly writeable.
+    @italic(Possibly) writeable, not @italic(writeable for sure). }
+  RegularWriteableFileAttr = RegularFileAttr and (not faReadOnly);
+
+  { Any file, including symlinks. }
+  faReallyAnyFile = faAnyFile or faSymLink;
+
 implementation
 
 uses KambiStringUtils, {$ifdef MSWINDOWS} KambiDynLib, {$endif} KambiLog;
