@@ -44,15 +44,6 @@ type
   any Range/Overflow checks. }
 function PointerAdd(p: pointer; add: integer): pointer;
 
-{$ifdef DELPHI}
-{ Postac funkcyjna GetMem. Pod Delphi oryginalne GetMem jest w System.
-  Pod FPC GetMem funkcyjne JUZ jest zdefiniowane (wiec nie redefiniujemy
-  go; nalezy tu na wszelki wypadek zauwazyc ze gdybysmy robili to tez pod FPC
-  to GetMem powinnismy wziac z ObjPas) }
-function GetMem(Size: integer): pointer; overload;
-procedure GetMem(var P: Pointer; Size: Integer); overload;
-{$endif}
-
 function GetClearMem(Size: integer; ClearValue: byte {$ifdef DEFPARS}=0{$endif}): pointer; overload;
 { if p <> nil FreeMem(p) and p := nil. Safer version of FreeMem. }
 procedure FreeMemNiling(var p: pointer);
@@ -95,14 +86,6 @@ begin
   ResultInt := PInt + Add;
 end;
 {$include norqcheckend.inc}
-
-{$ifdef DELPHI}
-function GetMem(Size: integer): pointer;
-begin System.GetMem(result, Size) end;
-
-procedure GetMem(var P: Pointer; Size: Integer);
-begin System.GetMem(P, Size) end;
-{$endif}
 
 function GetClearMem(Size: integer; clearValue: byte{=0}): pointer;
 begin result := GetMem(Size); FillChar(result^,Size, clearvalue) end;
