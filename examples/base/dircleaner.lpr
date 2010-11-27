@@ -177,7 +177,7 @@ begin
   DefaultFilesToClean.Add('ppas.bat');  { -'- }
   DefaultFilesToClean.Add('ppas.sh');   { -'- }
   DefaultFilesToClean.Add('*.compiled');   { Lazarus }
-  DefaultFilesToClean.Add('fpc-res.or'); { fpc on windows }
+  DefaultFilesToClean.Add('*.or'); { fpc on windows }
   DefaultFilesToClean.Add('fpc-res.res'); { fpc on windows }
   DefaultFilesToClean.Add('.Bpib');    { blender }
   DefaultFilesToClean.Add('*.blend1');  { -'- }
