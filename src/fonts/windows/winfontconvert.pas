@@ -92,6 +92,11 @@ implementation
 
 uses SysUtils, KambiUtils;
 
+const
+  IdentityMat2:Mat2= { identity matrix }
+    (eM11:(fract:0; value:1); eM12:(fract:0; value:0);    { 1.0  0.0 }
+     eM21:(fract:0; value:0); eM22:(fract:0; value:1));   { 0.0  1.0 }
+
 function Font2BFNTChar_HDc(dc: HDC; c: char): PBFNTChar;
 var GlyphData: PByteArray;
     GlyphMetrics: TGlyphMetrics;

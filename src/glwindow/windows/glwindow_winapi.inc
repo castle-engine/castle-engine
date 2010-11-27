@@ -316,8 +316,6 @@ function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT
 begin
  Result := 0;
 
- {tests: LogWrite(MessageDescr(h_Wnd, uMsg, wParm, lParm));}
-
  { generalnie chcemy przepuszczac SYSKEY* do DefaultWndProc ktore moze
    wtedy np. na Alt+F4 zrobic nam close albo na Alt+spacja otworzyc
    nam system menu itp. To wszystko sa fajne rzeczy i nie chce ich blokowac

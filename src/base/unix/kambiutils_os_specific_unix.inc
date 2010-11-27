@@ -17,55 +17,14 @@
 
 {$ifdef read_interface}
 
-{$ifdef USE_LIBC}
-{ opakowanie na libc.strerror. Zazwyczaj argumentem bedzie ErrNo. }
-function KamStrError(ErrNum:integer):string;
-
-procedure checkIsProcInDLL(const dllname,procname:string);
-{$endif USE_LIBC}
-
-{ FileName is symlink, returns where FileName points.
-  This is equivalent to readlink from libc,
-  but it's much more comfortable since it returns result as string.
-  Also, it's better than Unix.FpReadLink(pathstr) because Unix.FpReadLink
-  1) is not available when USE_LIBC
-  2) introduces 255 chars limit (ShortString) on result.
-
-  Raises EKambiOSError in case of failure (non-existing FileName etc.) }
+{ Return the symlink target path. Like Libc.ReadLink or FpReadLink,
+  but more comfortable, it returns a normal Pascal string.
+  @raises EKambiOSError In case of any failure (non-existing FileName etc.) }
 function KamReadLink(const FileName: string): string;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-{$ifdef USE_LIBC}
-function KamStrError(ErrNum:integer):string;
-var buf:array[0..79]of char;
-    p:PChar;
-begin
- {uzywam strerror_p zamiast strerror - ta proc. jest bezpieczna do uzycia
-  w watkach. O ile dobrze rozumiem dzialanie strerror_r ona MOZE uzyc
-  dostarczonego jej bufora buf (i wtedy zwroci @buf) ale nie musi
-  (jesli stwierdzi ze nie ma watkow w programie ?). Wazne jest zeby uznac p
-  a nie buf za wynik tej funkcji. }
- p:=strerror_r(ErrNum,buf,High(buf)+1);
- SetString(result,p,strlen(p));
-end;
-
-procedure checkIsProcInDLL(const dllname,procname:string);
-var dll:pointer;
-    err:PChar;
-begin
- dll:=dlopen(PChar(dllname),RTLD_GLOBAL or RTLD_LAZY);
- check(dll<>nil, 'Can''t open dll named '+dllname+ ' : '+dlerror);
-
- dlerror;
- dlsym(dll,PChar(procname));
- err:=dlerror;
- check(err=nil, 'Can''t find function '+procname+' in dll named '+dllname+' : '+err);
- dlclose(dll);
-end;
-{$endif USE_LIBC}
 
 function KamReadLink(const FileName: string): string;
 var ReadLinkResult, NewLength: Integer;

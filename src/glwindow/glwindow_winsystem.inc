@@ -185,7 +185,6 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
     WasAnyMessage := true;
 
     {$ifdef GLWINDOW_WINAPI}
-    {tests: LogWrite(MessageDescr(msg));}
     if msg.message = WM_QUIT then
       quitPosted := true else
     begin
