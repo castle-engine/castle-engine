@@ -20,7 +20,7 @@ unit TestOpeningAndRendering3D;
 
 interface
 
-uses fpcunit, testutils, testregistry, EnumerateFiles,
+uses fpcunit, testutils, testregistry, KambiFilesUtils, EnumerateFiles,
   GLWindow, VRMLScene, VRMLGLScene, KambiSceneManager;
 
 type

@@ -30,7 +30,9 @@ uses
   TestVRMLNodesOptimizedProxy,
   TestVRMLGLScene,
   TestVRMLScene,
-  TestIntRects,
+  { Not used anymore --- IntRects stuff is internal inside GLWinMessages,
+    and honestly not important enough. 
+  TestIntRects, }
   TestSpaceFillingCurves,
   TestObjectsList,
   TestKambiStringUtils,

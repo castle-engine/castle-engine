@@ -29,6 +29,64 @@ implementation
 
 uses ParseParametersUnit, KambiUtils, KambiStringUtils;
 
+type
+  TParsedOption = record
+    OptionNum: Integer;
+    HasArgument: boolean;
+    Argument: string;
+    SeparateArgs: TSeparateArgs;
+  end;
+  PParsedOption = ^TParsedOption;
+
+  TDynArrayItem_1 = TParsedOption;
+  PDynArrayItem_1 = PParsedOption;
+  {$define DYNARRAY_1_IS_STRUCT}
+  {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
+  {$define read_interface}
+  {$define read_implementation}
+  {$I DynArray_1.inc}
+
+type
+  TDynParsedOptionArray = TDynArray_1;
+
+procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var ParsedArray: TDynParsedOptionArray absolute Data;
+    LastItem: PParsedOption;
+begin
+ LastItem := ParsedArray.Add;
+ LastItem^.OptionNum := OptionNum;
+ LastItem^.HasArgument := HasArgument;
+ LastItem^.Argument := Argument;
+ LastItem^.SeparateArgs := SeparateArgs;
+end;
+
+{ Parse command-line parameters returning a list of parsed options.
+  Works exactly like previous ParseParameters procedure,
+  but instead of using a callback like OptionProc, this time
+  it returns a list.
+  @groupBegin }
+function ParseParameters(
+  Options: POption_Array; OptionsCount: Integer;
+  ParseOnlyKnownLongOptions: boolean = false)
+  : TDynParsedOptionArray;
+begin
+ result := TDynParsedOptionArray.Create;
+ try
+  ParseParametersUnit.ParseParameters(Options, OptionsCount,
+    {$ifdef FPC_OBJFPC} @ {$endif} ParseNextParam, result,
+    ParseOnlyKnownLongOptions);
+ except result.Free; raise end;
+end;
+
+function ParseParameters(
+  const Options: array of TOption; ParseOnlyKnownLongOptions: boolean = false)
+  : TDynParsedOptionArray;
+begin
+ result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
+end;
+{ @groupEnd }
+
 procedure AssertParsEqual(const ParsValues: array of string);
 var i: Integer;
 begin
