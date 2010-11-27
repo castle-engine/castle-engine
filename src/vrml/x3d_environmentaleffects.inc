@@ -46,6 +46,22 @@
     property FdvisibilityRange: TSFFloat { read GetFdvisibilityRange }; { }
   end;
 
+  TBackgroundSide = (bsBack, bsBottom, bsFront, bsLeft, bsRight, bsTop);
+  TBackgroundSides = set of TBackgroundSide;
+
+  { Six background images. }
+  TBackgroundImages = object
+  public
+    Images: array [TBackgroundSide] of TEncodedImage;
+
+    constructor InitClear;
+
+    { Release and set to @nil all images.
+      If Cache is @nil, release images by simple FreeAndNil,
+      otherwise they are released from the cache by TextureImage_DecReference. }
+    procedure FreeAll(Cache: TTexturesImagesVideosCache);
+  end;
+
   TNodeBackground = class(TNodeX3DBackgroundNode)
   private
     FBgImagesLoaded: boolean; { = false }
@@ -290,6 +306,33 @@ begin
   Result := ntcBackground;
 end;
 
+constructor TBackgroundImages.InitClear;
+begin
+  Images[bsBack  ] := nil;
+  Images[bsBottom] := nil;
+  Images[bsFront ] := nil;
+  Images[bsLeft  ] := nil;
+  Images[bsRight ] := nil;
+  Images[bsTop   ] := nil;
+end;
+
+procedure TBackgroundImages.FreeAll(Cache: TTexturesImagesVideosCache);
+var
+  bs: TBackgroundSide;
+begin
+  if Cache <> nil then
+  begin
+    for bs := Low(bs) to High(bs) do
+      { Cache.TextureImage_DecReference is not prepared for nil parameters,
+        and some of our Images[bs] may be nil. }
+      if Images[bs] <> nil then
+        Cache.TextureImage_DecReference(Images[bs]);
+  end else
+  begin
+    for bs := Low(bs) to High(bs) do FreeAndNil(Images[bs]);
+  end;
+end;
+
 constructor TNodeBackground.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -328,7 +371,7 @@ begin
   DefaultContainerField := 'children';
 
   FBgImagesLoaded := false;
-  FBgImages := BackgroundImagesNone;
+  FBgImages.InitClear;
 end;
 
 destructor TNodeBackground.Destroy;
@@ -365,16 +408,16 @@ procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
     I: Integer;
     URL: string;
   begin
-    FBgImages[bs] := nil;
+    FBgImages.Images[bs] := nil;
     for i := 0 to Urls.Count-1 do
     begin
       try
         URL := PathFromWWWBasePath(Urls.Items.Items[i]);
         if Cache <> nil then
         begin
-          FBgImages[bs] := Cache.TextureImage_IncReference(URL);
+          FBgImages.Images[bs] := Cache.TextureImage_IncReference(URL);
         end else
-          FBgImages[bs] := LoadTextureImage(URL);
+          FBgImages.Images[bs] := LoadTextureImage(URL);
         Break;
       except
         on E: Exception do
@@ -404,13 +447,13 @@ begin
         { In case of trouble, free the images that were loaded.
           This may happen if VRMLWarning raises exception and some
           image cannot be loaded. }
-        BackgroundImagesFreeAll(FbgImages, Cache);
+        FbgImages.FreeAll(Cache);
         raise;
       end;
       UsedCache := Cache;
     end else
     begin
-      BackgroundImagesFreeAll(FbgImages, UsedCache);
+      FbgImages.FreeAll(UsedCache);
       UsedCache := nil;
     end;
 

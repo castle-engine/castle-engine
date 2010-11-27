@@ -60,7 +60,6 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('base3d.pas');
-    P.Targets.AddUnit('backgroundbase.pas');
     P.Targets.AddUnit('boxes3d.pas');
     P.Targets.AddUnit('convexhullunit.pas');
     P.Targets.AddUnit('cubemap.pas');

@@ -21,7 +21,7 @@ unit BackgroundGL;
 interface
 
 uses VectorMath, SysUtils, GL, GLU, GLExt, KambiGLUtils, KambiUtils, Images,
-  BackgroundBase;
+  VRMLNodes;
 
 type
   { Background rendering sky, ground and such around the camera.
@@ -45,7 +45,7 @@ type
   TBackgroundGL = class
   private
     szescianNieba_list: TGLuint;
-    nieboTex: packed array[TBackgroundSide]of TGLuint;
+    nieboTex: packed array [TBackgroundSide] of TGLuint;
   public
     { Render background around.
 
@@ -118,6 +118,8 @@ const
     This gives constants below. }
   SphereRadiusToCubeSize = 2/Sqrt(3);
   CubeSizeToSphereRadius = Sqrt(3)/2;
+
+  BGAllSides: TBackgroundSides = [Low(TBackgroundSide) .. High(TBackgroundSide)];
 
 { TBackgroundGL ------------------------------------------------------------ }
 
@@ -192,7 +194,7 @@ var CubeSize, CubeSize2: Single;
    { If nieboTex[bs] <> 0 to for sure Imgs[bs] <> nil,
      so I can safely do here checks "Imgs[bs] is ..." }
 
-   if Imgs[bs].HasAlpha then
+   if Imgs.Images[bs].HasAlpha then
    begin
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
@@ -209,7 +211,7 @@ var CubeSize, CubeSize2: Single;
      end;
    glEnd;
 
-   if Imgs[bs].HasAlpha then
+   if Imgs.Images[bs].HasAlpha then
     glDisable(GL_BLEND);
   end;
 
@@ -326,10 +328,10 @@ begin
  for bs := Low(bs) to High(bs) do
  begin
   nieboTex[bs] := 0;
-  if (Imgs[bs] <> nil) and (not Imgs[bs].IsNull) then
+  if (Imgs.Images[bs] <> nil) and (not Imgs.Images[bs].IsNull) then
   begin
    try
-     nieboTex[bs] := LoadGLTexture(Imgs[bs], GL_LINEAR, GL_LINEAR,
+     nieboTex[bs] := LoadGLTexture(Imgs.Images[bs], GL_LINEAR, GL_LINEAR,
        { poniewaz rozciagamy teksture przy pomocy GL_LINEAR a nie chce nam
          sie robic teksturze borderow - musimy uzyc GL_CLAMP_TO_EDGE
          aby uzyskac dobry efekt na krancach }
@@ -347,7 +349,7 @@ begin
    end;
 
    Include(TexturedSides, bs);
-   if Imgs[bs].HasAlpha then SomeTexturesWithAlpha := true;
+   if Imgs.Images[bs].HasAlpha then SomeTexturesWithAlpha := true;
   end;
  end;
 

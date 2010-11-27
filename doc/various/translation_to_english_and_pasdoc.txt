@@ -16,7 +16,6 @@ will be implemented).
     them perfect for pasdoc processing.
 
   3d/
-D   backgroundbase.pas
 D   base3d.pas
 D   boxes3d.pas
 D   convexhullunit.pas
