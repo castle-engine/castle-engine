@@ -20,7 +20,7 @@ interface
 
 uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
   VRMLGLHeadLight, GLShadowVolumeRenderer, GL, UIControls, Base3D,
-  KeysMouse, VRMLTriangle, Boxes3D, BackgroundGL, KambiUtils, KambiClassUtils,
+  KeysMouse, VRMLTriangle, Boxes3D, VRMLGLBackground, KambiUtils, KambiClassUtils,
   GLShaders, GLImages, KambiTimeUtils;
 
 {$define read_interface}
@@ -146,7 +146,7 @@ type
 
       The default implementation in this class does what is usually
       most natural: return MainScene.Background, if MainScene assigned. }
-    function Background: TBackgroundGL; virtual;
+    function Background: TVRMLGLBackground; virtual;
 
     { Detect position/direction of the main light that produces shadows.
       The default implementation in this class looks at
@@ -1212,7 +1212,7 @@ begin
   end;
 end;
 
-function TKamAbstractViewport.Background: TBackgroundGL;
+function TKamAbstractViewport.Background: TVRMLGLBackground;
 begin
   if GetMainScene <> nil then
     Result := GetMainScene.Background else
@@ -1314,7 +1314,7 @@ end;
 procedure TKamAbstractViewport.RenderFromViewEverything;
 var
   ClearBuffers: TGLbitfield;
-  UsedBackground: TBackgroundGL;
+  UsedBackground: TVRMLGLBackground;
   MainLightPosition: TVector4Single; { ignored }
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;

@@ -99,8 +99,8 @@
         <UnitName Value="Object3Ds"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/3d/opengl/backgroundgl.pas"/>
-        <UnitName Value="BackgroundGL"/>
+        <Filename Value="../src/vrml/opengl/vrmlglbackground.pas"/>
+        <UnitName Value="VRMLGLBackground"/>
       </Item14>
       <Item15>
         <Filename Value="../src/3d/opengl/gl3d.pas"/>

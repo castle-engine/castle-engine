@@ -80,7 +80,6 @@ begin
     P.Targets.AddUnit('triangulator.pas');
 
     P.SourcePath.Add('src' + PathDelim + '3d' + PathDelim + 'opengl');
-    P.Targets.AddUnit('backgroundgl.pas');
     P.Targets.AddUnit('gl3d.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'vrml');
@@ -109,6 +108,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'vrml' + PathDelim + 'opengl');
     P.Targets.AddUnit('kambiscenemanager.pas');
     P.Targets.AddUnit('vrmlglanimation.pas');
+    P.Targets.AddUnit('vrmlglbackground.pas');
     P.Targets.AddUnit('vrmlglheadlight.pas');
     P.Targets.AddUnit('vrmlglscene.pas');
     P.Targets.AddUnit('vrmlgllightset.pas');

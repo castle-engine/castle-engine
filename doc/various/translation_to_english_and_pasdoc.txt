@@ -37,7 +37,6 @@ D   sphericalharmonics.pas
 D   triangulator.pas
 
   3d/opengl/
-D   backgroundgl.pas
 D   gl3d.pas
 
   vrml/
@@ -68,6 +67,7 @@ D   x3dxmltovrml.pas
   vrml/opengl/
 D   kambiscenemanager.pas
 D   vrmlglanimation.pas
+D   vrmlglbackground.pas
 D   vrmlglheadlight.pas
 D   vrmlglscene.pas
 D   vrmlgllightset.pas

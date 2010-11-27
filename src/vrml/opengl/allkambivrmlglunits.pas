@@ -12,6 +12,7 @@ interface
 uses
   kambiscenemanager,
   vrmlglanimation,
+  vrmlglbackground,
   vrmlglheadlight,
   vrmlgllightset,
   vrmlglrenderer,

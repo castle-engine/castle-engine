@@ -21,7 +21,7 @@ interface
 
 uses
   SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
-  VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
+  VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
   VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight, VRMLRendererOptimization,
   GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLGLLightSet, VRMLShape, Frustum,
   GLCubeMap, Base3D, GLShaders;
@@ -508,7 +508,7 @@ type
     See @link(Render) method for more details.
 
     Also this class can provide comfortable management for
-    @link(TBackgroundGL) instance associated with this VRML model,
+    @link(TVRMLGLBackground) instance associated with this VRML model,
     that may be used to render currenly bound VRML background.
     See @link(Background) function.
 
@@ -1101,7 +1101,7 @@ type
     { Node for which FBackground is currently prepared. }
     FBackgroundNode: TNodeX3DBindableNode;
     { Cached Background value }
-    FBackground: TBackgroundGL;
+    FBackground: TVRMLGLBackground;
     { Is FBackground valid ? We can't use "nil" FBackground value to flag this
       (bacause nil is valid value for Background function).
       If not FBackgroundValid then FBackground must always be nil.
@@ -1127,7 +1127,7 @@ type
 
     procedure PrepareBackground;
 
-    { Returns TBackgroundGL instance for this scene. Background's properties
+    { Returns TVRMLGLBackground instance for this scene. Background's properties
       are based on the attributes of currently bound X3DBackgroundNode
       VRML node in the RootNode scene (and on his place in scene transformations).
       When events are not concerned, this is simply the first X3DBackgroundNode
@@ -1156,7 +1156,7 @@ type
       Remember that this cache is connected with the current OpenGL context.
       So you HAVE to call GLContextClose to disconnent this object from
       current OpenGL context after you used this function. }
-    function Background: TBackgroundGL;
+    function Background: TVRMLGLBackground;
 
     { Rendering attributes.
 
@@ -4464,7 +4464,7 @@ begin
         BgNode.Cache as appropriate. }
       BgNode.Cache := Renderer.Cache;
 
-      FBackground := TBackgroundGL.Create(BgTransform,
+      FBackground := TVRMLGLBackground.Create(BgTransform,
         @(BgNode.FdGroundAngle.Items.Items[0]), GroundAngleCount,
         @(BgNode.FdGroundColor.Items.Items[0]), GroundColorCount,
         BgNode.BgImages,
@@ -4479,7 +4479,7 @@ begin
   FBackgroundValid := true;
 end;
 
-function TVRMLGLScene.Background: TBackgroundGL;
+function TVRMLGLScene.Background: TVRMLGLBackground;
 begin
  PrepareBackground;
  result := FBackground;
@@ -4683,7 +4683,7 @@ begin
   { Calculate BackgroundSkySphereRadius here,
     using ProjectionFar that is *not* ZFarInfinity }
   BackgroundSkySphereRadius :=
-    TBackgroundGL.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar,
+    TVRMLGLBackground.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar,
       BackgroundSkySphereRadius);
 
   case ProjectionType of
