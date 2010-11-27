@@ -130,12 +130,13 @@ class function TBackgroundGL.NearFarToSkySphereRadius(const zNear, zFar: Single;
   const Proposed: Single): Single;
 
 { Conditions are ZNear < CubeSize/2, ZFar > SphereRadius.
-  So conditions for CubeSize is
+  So conditions for radius are
 
-    ZNear * 2 < CubeSize < ZFar * SphereRadiusToCubeSize
+    ZNear * 2 * CubeSizeToSphereRadius < SphereRadius < ZFar
 
-  Note that 2 > SphereRadiusToCubeSize, so it's possible to choose
-  ZNear <= ZFar that still yield no possible CubeSize.
+  Note that 2 * CubeSizeToSphereRadius is Sqrt(3) =~ 1.7,
+  so it's possible to choose
+  ZNear <= ZFar that still yield no possible radius.
 
   It would be possible to avoid whole need for this method
   by setting projection matrix in our own render. But then,
@@ -145,8 +146,8 @@ class function TBackgroundGL.NearFarToSkySphereRadius(const zNear, zFar: Single;
 var
   Min, Max, SafeMin, SafeMax: Single;
 begin
-  Min := zNear * 2;
-  Max := zFar * SphereRadiusToCubeSize;
+  Min := zNear * 2 * CubeSizeToSphereRadius;
+  Max := zFar;
 
   { The new sphere radius should be in [Min...Max].
     For maximum safety (from floating point troubles), be require
