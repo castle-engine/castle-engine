@@ -32,7 +32,7 @@ D   kambipolynomials.pas
 D   quaternions.pas
 D   rayswindow.pas
 D   renderstateunit.pas
-|   spacefillingcurves.pas
+D   spacefillingcurves.pas
 D   spheresampling.pas
 D   sphericalharmonics.pas
 D   triangulator.pas

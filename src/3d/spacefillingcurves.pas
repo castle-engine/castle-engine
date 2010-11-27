@@ -31,7 +31,8 @@ type
   TSFCStepFunction = procedure (Angle: TSFCAngle; StepFuncData: Pointer);
 
 { Low-level procedures to generate consecutive Peano and Hilbert curve points.
-  Following "Graphic Gems II", gem I.8.
+  See e.g. "Graphic Gems II" (gem I.8) or
+  http://en.wikipedia.org/wiki/Space-filling_curve for nice description.
 
   Step is a function that goes to a neighbor 2D point, and "marks" it
   (whatever it means for your usage). If the starting point is "marked"
@@ -46,8 +47,8 @@ type
   Angle = 0 is right, Angle = 1 is up, and so on (CCW)), then use:
 
   @unorderedList(
+    @itemSpacing Compact
     @item(InitialOrient = false and Angle = 0 for PeanoCurve.)
-
     @item(InitialOrient = true and Angle = 0 for HilbertCurve.)
   )
 
@@ -60,77 +61,73 @@ procedure HilbertCurve(InitialOrient: boolean; Angle: TSFCAngle; InitialLevel: C
 { @groupEnd }
 
 type
-  { To jest abstrakcyjna klasa reprezentujaca interfejs obiektu ktory
-    zwraca kolejne punkty w przestrzeni 2d (0..SizeX-1, 0..SizeY-1)
-    w taki sposob ze w momencie gdy EndOfPixels = true to kazdy pixel
-    z tej przestrzeni zostal zwrocony dokladnie raz przez NextPixel.
-    Innymi slowy, uzywajac konstrukcji w rodzaju
-      while not SFCurve.EndOfPixels do DoSomethingOnPixel(SFCurve.NextPixel)
-    kazdy punkt o wspolrzednych 0..SizeX-1, 0..SizeY-1 zostanie przekazany
-    dokladnie raz do procedury DoSomethingOnPixel().
+  { Base abstract space-filling curve class.
 
-    Te klasy beda zapisane w taki sposob zeby wywolania NextPixel i
-    EndOfPixels dzialaly mozliwie blyskawicznie, za to byc moze skonstruowanie
-    obiektu takiej klasy bedzie zajmowalo chwile czasu (innymi slowy,
-    bedziemy raczej starali sie robic jakis preprocessing w czasie konstrukcji
-    obiektu niz komplikowac obliczenia NextPixel i EndOfPixels).
+    Generates consecutive points by NextPixel, until EndOfPixels = @true,
+    filling the 2D space in [0..SizeX-1, 0..SizeY-1].
+    To process (exactly once) each point of your 2D space, you can use
+    something like
 
-    Notka : dla SizeX lub SizeY = 0 te klasy tez beda dzialac poprawnie
-    (zawsze bedzie EndOfPixels = true). }
+    @longCode# while not SFCurve.EndOfPixels do DoSomethingOnPixel(SFCurve.NextPixel); #
+
+    We try to make NextPixel and EndOfPixels work instantly fast,
+    preferably making some preprocessing at construction time. }
   TSpaceFillingCurve = class
   private
     FSizeX, FSizeY, FPixelsCount: Cardinal;
   public
+    { Size of the 2D space filled by space-filling curve.
+      It's OK even if they are 0 (then EndOfPixels = @true instantly).
+      @groupBegin }
     property SizeX: Cardinal read FSizeX;
     property SizeY: Cardinal read FSizeY;
-    property PixelsCount: Cardinal read FPixelsCount; { = SizeX * SizeY }
-    constructor Create(ASizeX, ASizeY: Cardinal); virtual;
-    function EndOfPixels: boolean; virtual; abstract;
-    { Jest bledem (ktory niekoniecznie zostanie wychwycony do wyjatku, zwlaszcza
-      w wersji RELEASE) uzycie NextPixel gdy EndOfPixels = true. }
-    function NextPixel: TVector2Cardinal; virtual; abstract;
-    { Zasymuluj wywolanie NextPixels SkipCount razy, ignorujac wynik.
-      Zazwyczaj bedzie jednak mozna to zaimplementowac duzo szybciej niz
-        for i := 1 to SkipCount do NextPixels,
-      co ma znaczenie bo przeciez SkipCount jakie tu podamy moze byc
-      dosc duze (np. dla SizeX = SizeY = 10^3 to mamy PixelsCount = 10^6.
-      Chcesz zrobic SkipPixels z polowy obrazka ? To Skipcount = 5*10^5.
-      Sporo, zwlaszcza ze np. w podklasie TPrecalcCurve mozna takie
-      SkipPixels zaimplementowac jako proste dodawanie.
+    { @groupEnd }
 
-      Jest bledem (ktory niekoniecznie zostanie wychwycony do wyjatku, zwlaszcza
-      w wersji RELEASE) uzycie SkipPixels gdy EndOfPixels = true lub uzycie
-      SkipCount > PixelsCount-PixelsDone. }
+    { Shortcut for SizeX * SizeY. }
+    property PixelsCount: Cardinal read FPixelsCount;
+
+    constructor Create(ASizeX, ASizeY: Cardinal); virtual;
+
+    function EndOfPixels: boolean; virtual; abstract;
+
+    { Get next point. Do not ever call this when EndOfPixels = @true. }
+    function NextPixel: TVector2Cardinal; virtual; abstract;
+
+    { Skip next SkipCount curve points. Just like you would call
+      NextPixel SkipCount times, ignoring the result. Although may
+      be implemented much faster, so don't worry about calling with
+      large SkipCount values.
+
+      Do not ever try to skip beyond the end of points.
+      That is, do not use @code(SkipCount > PixelsCount - PixelsDone).
+      For example, do not use SkipCount > 0 if currently EndOfPixels - @true. }
     procedure SkipPixels(SkipCount: Cardinal); virtual; abstract;
-    { sprawia ze generowanie pixeli zaczyna sie od poczatku, tak jakby obiekt
-      byl od nowa skonstruowany (ale SizeX, SizeY pozostaje bez zmian). }
+
+    { Start generating points back from the beginning. }
     procedure Reset; virtual; abstract;
-    { zwraca ile razy NextPixel zostalo juz wywolane, od czasu ostatniego
-      Reset'a lub konstrukcji obiektu }
+
+    { How many curve points were generated. Number of generated
+      points (by NextPixel or skipped by SkipPixels),
+      since the last @link(Reset) or constructor. }
     function PixelsDone: Cardinal; virtual; abstract;
-    { zwraca nazwe klasy curve'a. W naszych 3 podklasach zwraca w tym
-      momencie 'swapscan', 'hilbert' i 'peano', odpowiednio. }
+
+    { Nice curve name, like 'swapscan', 'hilbert' or 'peano'. }
     class function SFCName: string; virtual; abstract;
   end;
 
   TSpaceFillingCurveClass = class of TSpaceFillingCurve;
 
-  { To nie jest gotowa klasa, tylko przejsciowa klasa abstrakcyjna
-    z ktorej korzystaja THilbertCurve i TPeanoCurve. W podklasach wystarczy
-    zdefiniowac metode GeneratePoints ktora wygeneruje do tablicy
-    Pixels: PArray_Vector2Single kolejne PixelsCount punktow.
-    (jest gwarantowane ze GeneratePixels bedzie wywolywane tylko gdy
-    PixelsCount > 0)
-    W tej klasie ciag punktow jest zawczasu generowany w konstruktorze i potem,
-    przy NextPixel, jest tylko odczytywany (zeby NextPixel zajmowalo mozliwie
-    malo czasu, no i naturalnie zazwyczaj napisanie GeneratePixels jest duzo
-    prostsze niz zapisanie skomplikowanych NextPixel i EndOfPixel ktore musza
-    sobie gdzie zachowywac swoj stan zeby wiedziec jaki pixel nastepnie podac). }
+  { Abstract space-filling curve class, helping implementing
+    curves that precalculate points at construction.
+    In descendants, you only need to override GeneratePoints. }
   TPrecalcCurve = class(TSpaceFillingCurve)
   private
     Pixels: PArray_Vector2Cardinal;
     NextPixelNum: Cardinal;
   protected
+    { Generate next PixelsCount points. You should generate next
+      PixelsCount points to the Pixels table
+      (it's guaranteed that PixelsCount > 0). }
     procedure GeneratePixels(APixels: PArray_Vector2Cardinal); virtual; abstract;
   public
     constructor Create(ASizeX, ASizeY: Cardinal); override;
@@ -142,23 +139,10 @@ type
     function PixelsDone: Cardinal; override;
   end;
 
-  { Najprostszy na swiecie ciag pixeli zapelniajacych ekran. Idziemy kolejnymi
-    wierszami, od dolu do gory, w kazdym parzystym wierszu idziemy w prawo,
-    w nieparzystym idziemy w lewo. Ten prosty ciag daje dosc kiepski sposob
-    przechodzenia przestrzeni gdy zalezy nam na kreceniu sie po kazdym obszarze
-    obrazka mozliwie dlugo i bez przerwy. Ale przynajmniej kazdy kolejny NextPixel
-    sasiaduje z poprzednim.
-
-    Byc moze jesli kiedys bedzie taka potrzeba zaimplementuje tej klasie
-    specjalny konstruktor, CreateScanCurve, w ktorym bedzie mozna podac
-    specjalne wlasciwosci w rodzaju czy isc od dolu czy od gory, czy moze
-    isc liniami pionowymi. Albo moze zrobie podklasy tej klasy robiace rozne
-    funkcjonalnosci ? Na razie nie jest mi to potrzebne, ale jesli kiedys
-    bedzie to latwo bede mogl to tutaj dopisac.
-
-    Kiedys TSwapScanCurve nie bylo podklasa TPrecalcCurve, ale w koncu uznalem
-    ze tak jest prosciej i nieco efektywniej czasowo (mimo ze uzywanie
-    TPrecalcCurve implikuje zuzycie sporej ilosci pamieci). }
+  { Simple space-filling curve that goes row by row, swapping direction.
+    This is a trivial space-filling curve, at least it goes by neighboring
+    points. We go from the bottom to the top, in even rows we go the right,
+    in odd rows we go to the left. }
   TSwapScanCurve = class(TPrecalcCurve)
   protected
     procedure GeneratePixels(APixels: PArray_Vector2Cardinal); override;
@@ -166,7 +150,10 @@ type
     class function SFCName: string; override;
   end;
 
-  { Wypelniaj przestrzen ciagiem Hilberta obcietym do wymiarow SizeX, SizeY }
+  { Space-filling Hilbert curve.
+    See e.g. [http://en.wikipedia.org/wiki/Space-filling_curve].
+    It's cut off to fill nicely the rectangular
+    [0..SizeX-1, 0..SizeY-1] space. }
   THilbertCurve = class(TPrecalcCurve)
   protected
     procedure GeneratePixels(APixels: PArray_Vector2Cardinal); override;
@@ -174,7 +161,10 @@ type
     class function SFCName: string; override;
   end;
 
-  { Wypelniaj przestrzen ciagiem Peano obcietym do wymiarow SizeX, SizeY }
+  { Space-filling Peano curve.
+    See e.g. [http://en.wikipedia.org/wiki/Space-filling_curve].
+    It's cut off to fill nicely the rectangular
+    [0..SizeX-1, 0..SizeY-1] space. }
   TPeanoCurve = class(TPrecalcCurve)
   protected
     procedure GeneratePixels(APixels: PArray_Vector2Cardinal); override;
@@ -182,27 +172,21 @@ type
     class function SFCName: string; override;
   end;
 
-{ ------------------------------------------------------------
-  operacje uzywajace funkcji SFCName (stworzone aby dac userowi jakies
-  metody specyfikowania TSpaceFillingCurveClass) }
-
 const
-  { wszystkie dostepne koncowe klasy wywodzace sie z TSpaceFillingCurve.
-    Mozesz polegac na fakcie ze ta tablica zawsze bedzie indeksowana od zera.
-    Uzywane TYLKO przez StrToSFCurveClass, AllSFCurveClassesNames. }
+  { Available space-filling curves (non-abstract TSpaceFillingCurve descendants). }
   AvailableSFCurveClasses: array[0..2]of TSpaceFillingCurveClass=
   (TSwapScanCurve, THilbertCurve, TPeanoCurve);
 
 type
   EInvalidSFCurveClassName = class(Exception);
 
-{ dla nazw klas sposrod AvailableSFCurveClasses zwraca odpowiednie
-  klasy. Nazwy klas sa przyrownywane not case-sensitive.
-  Dla czegokolwiek innego wyjatek EInvalidSFCurveClassName. }
+{ For curve name (matching some TSpaceFillingCurve.SFCName),
+  return appropriate class. Not case-sensitive.
+  @raises EInvalidSFCurveClassName For unknown curve names. }
 function StrToSFCurveClass(const s: string): TSpaceFillingCurveClass;
 
-{ zwraca wszystkie SFCName dla wszystkich klas AvailableSFCurveClasses,
-  rozdzielone przecinkami i ujete w apostrofy. }
+{ All non-abstract space-filling curve names.
+  Separated by commas, in apostrophes. }
 function AllSFCurveClassesNames: string;
 
 implementation
