@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage a list of recently opened files. See TBaseRecentFiles. }
+{ Manage a list of recently open files (TBaseRecentFiles). }
 unit RecentFiles;
 
 interface
@@ -26,7 +26,7 @@ const
 type
   TOnOpenRecent = procedure (const FileName: string) of object;
 
-  { Manage a list of recently opened files.
+  { Manage a list of recently open files.
 
     This is designed as a base class, usable on it's own, but also
     as a parent for classes that show this list inside a menu.
