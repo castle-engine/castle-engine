@@ -13,41 +13,108 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Rendering Background --- sky/ground around the camera.)
+{ Rendering backgrounds, sky and such (TBackgroundGL). }
+unit BackgroundGL;
 
-  Niebo to
-  @unorderedList(
-    @itemSpacing Compact
-    @item szescian pokryty teksturami
-    @item kawalek sfery (ground) z interpolowanymi kolorami
-    @item wszystko to zawarte w calej sferze (sky) z interpolowanymi kolorami.
-  )
+{$I kambiconf.inc}
 
-  Idea jest taka zeby gracz zawsze byl polozony dokladnie w srodku takiego
-  Background (tzn. koncepcyjnie mozna powiedziec ze ten szescian i sfery
-  sa nieskonczone) (chociaz gracz moze sie oczywiscie obracac aby ogladac
-  cale to Background).
+interface
 
-  Historia: Ten modul zaczal istniec jeszcze zanim zabralem sie za VRMLa jako
-  czesc "szklanych lasow", potem zostal przystosowany do uzytku ogolnego
-  i przeniesiony do units.openGL/ gdy robilem "malfunction" a nastepnie
-  (sierpien 2003) przystosowalem go aby nadawal sie do renderowania takiego
-  Background zgodnie z semantyka odpowiedniego wezla VRMLa 97.
+uses VectorMath, SysUtils, GL, GLU, GLExt, KambiGLUtils, KambiUtils, Images,
+  BackgroundBase;
 
-  Ten modul znajduje bezposrednie zastosowanie przy realizowaniu odpowiedniego
-  wezla VRMLa 97 (ktory ja obsluguje takze w VRMLu 1.0). Tym niemniej ten
-  modul jest w units.openGL/ a wiec NIE zalezy od zadnych modulow zwiazanych
-  z VRMLem. W ten sposob mozna tego modulu uzywac takze w programach uzywajacych
-  OpenGLa ktore nie laduja swojego nieba z VRMLa (i byc moze w ogole nie maja
-  nic wspolnego z VRMLem).
+type
+  { Background rendering sky, ground and such around the camera.
+    Background defined here has the same features as VRML/X3D Background:
 
-  Uzywane w tym module struktury TBackgroundImages musza miec wszystkie obrazki
-  (ktore nie sa ImageNone) o Kind wsrod ImageGLFormats.
+    @unorderedList(
+      @itemSpacing Compact
+      @item a cube with each face textured (textures may have alpha channel)
+      @item a ground sphere around this, with color rings for ground colors
+      @item a sky sphere around this, with color rings for sky colors
+    )
 
-  Malenki kawalek matematyki: Dana sfera o promieniu SphereRadius, dany
-  szescian o boku dlugosci CubeSize. Srodek sfery = srodek szescianu,
-  jak wyrazic CubeSize w zaleznosci od SphereRadius i w druga strone
-  aby szescian byl dokladnie wpisany w sfere ?
+    See [http://web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/components/enveffects.html#Background]
+    for the detailed meaning of constructor parameters.
+
+    Conceptually, the background is infinitely far from the camera,
+    regardless of the camera position. So actually, we just ignore camera
+    position, and render like the camera was always in the middle
+    of the background box/sphere. But still we take into acccount camera
+    rotations. This makes convincing sky look. }
+  TBackgroundGL = class
+  private
+    szescianNieba_list: TGLuint;
+    nieboTex: packed array[TBackgroundSide]of TGLuint;
+  public
+    { Render background around.
+
+      Current modelview matrix should contain only the camera rotation.
+      Uses one OpenGL attrib stack place.
+      Automatically creates and uses a display list.
+      Assumes that the user is standing in the middle of background,
+      so we can use backface culling.
+
+      We render without GL_DEPTH_TEST to cover everyhing on the screen
+      (so rendering a background should be a first thing you render,
+      no point in even doing glClear yourself).
+      When possible (we have only one sky color), we even use
+      glClear(GL_COLOR_BUFFER) to set initial color. }
+    procedure Render;
+
+    { Calculate (or just confirm that Proposed value is still OK)
+      the sky sphere radius that fits nicely in your projection near/far.
+
+      Background spheres (for sky and ground) are rendered at given radius.
+      And inside these spheres, we have a cube (to apply background textures).
+      Both spheres and cube must fit nicely within your projection near/far
+      to avoid any artifacts.
+
+      We first check is Proposed a good result value (it satisfies
+      the conditions, with some safety margin). If yes, then we return
+      exactly the Proposed value. Otherwise, we calculate new value
+      as an average in our range.
+      This way, if you already had sky sphere radius calculated
+      (and prepared some OpenGL resources for it),
+      and projection near/far changes very slightly
+      (e.g. because bounding box slightly changed), then you don't have
+      to recreate background --- if the old sky sphere radius is still OK,
+      then the old background resources are still OK.
+
+      Just pass Proposed = 0 (or anything else that is always outside
+      the range) if you don't need this feature. }
+    class function NearFarToSkySphereRadius(const zNear, zFar: Single;
+      const Proposed: Single = 0): Single;
+
+    { Construct background. Prepares OpenGL resources for rendering.
+
+      Parameters correspond to VRML/X3D Background node,
+      see [http://web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/components/enveffects.html#Background].
+      For example SkyColorCount > 0 and GroundColorCount > GroundAngleCount.
+
+      Any of the TBackgroundImages passed here may be @nil,
+      or of a class that can be rendered as OpenGL textures (TextureImageClasses). }
+    constructor Create(const Transform: TMatrix4Single;
+      GroundAngle: PArray_Single; GroundAngleCount: Integer;
+      GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
+      const Imgs: TBackgroundImages;
+      SkyAngle: PArray_Single; SkyAngleCount: Integer;
+      SkyColor: PArray_Vector3Single; SkyColorCount: Integer;
+      SkySphereRadius: Single);
+    destructor Destroy; override;
+  end;
+
+implementation
+
+uses DataErrors, GLImages;
+
+const
+  { Relation of a cube size and a radius of it's bounding sphere.
+
+    Malenki kawalek matematyki: Dana sfera o promieniu SphereRadius, dany
+    szescian o boku dlugosci CubeSize. Srodek sfery = srodek szescianu,
+    jak wyrazic CubeSize w zaleznosci od SphereRadius i w druga strone
+    aby szescian byl dokladnie wpisany w sfere ?
 
 @preformatted(
   Przekatna szescianu (ale nie boku szescianu) = 2*promien sfery,
@@ -65,140 +132,9 @@
   Dlatego wlasnie w module ponizej sa stale
     SphereRadiusToCubeSize = 2/Sqrt(3)
     CubeSizeToSpeherRadius = Sqrt(3)/2
-)
-}
-
-unit BackgroundGL;
-
-{$I kambiconf.inc}
-
-interface
-
-uses VectorMath, SysUtils, GL, GLU, GLExt, KambiGLUtils, KambiUtils, Images,
-  BackgroundBase;
-
-const
-  { }
+) }
   SphereRadiusToCubeSize = 2/Sqrt(3);
   CubeSizeToSphereRadius = Sqrt(3)/2;
-
-{ TBackgroundGL ------------------------------------------------------------ }
-
-type
-  TBackgroundGL = class
-  private
-    szescianNieba_list: TGLuint;
-    nieboTex: packed array[TBackgroundSide]of TGLuint;
-  public
-    { rysuje wokolo punktu na ktorym stoimy niebo. Niebo jest zorientowane
-      zgodnie ze standardem VRMLa - patrz specyfikacja VRMLa 97 po znaczenie
-      wszystkich zmiennych podawanych jako parametr do konstruktora
-      (poza SkySphereRadius).
-
-      Potrzebuje jednego wolnego miejsca na stosie attribow. Samo ustawia
-      sobie enabled odpowiednich rzeczy. Aktualny kolor nie ma znaczenia
-      (nie bedzie uzywany); aktualna macierz pomnozona przez Transform
-      moze zawierac tylko obroty - zadnego przesuniecia ani skalowania.
-      W ten sposob renderowanie wokol punktu 0, 0, 0 powoduje renderowanie
-      wokolo widoku usera (a wiec np. zapewne chcesz robic Render przed
-      swoim gluLookAt).
-
-      Zakladamy ze user stoi w srodku tej sfery, wiec mozna wykonac ew. backface
-      culling scian na zewnatrz sceny (to czy rzeczywiscie bedzie to robine
-      zalezy od implementacji). Bedziemy rysowac z wylaczonym DEPTH_TEST wiec
-      zakryjemy wszystko co jest narysowane dotychczas na ekranie - Sky.Render
-      to powinna byc pierwsza instrukcja piszaca do color-buffera w OnDraw
-      (nawet glClear(GL_COLOR_BUFFER) nie ma sensu, de facto jest marnowaniem
-      czasu).
-
-      Niebo to sfera o promieniu SkySphereRadius. Sfera ground i szescian
-      6 tekstur nieba beda zrobione tak zeby byc jak najblizej sfery sky -
-      sfera ground bedzie miala ten sam promien co sfera sky (rysujemy bez
-      DEPTH_TEST wiec nie bedzie walki w z-buforze pomiedzy tymi elementami)
-      a szescian bedzie wyznaczony tak zeby rogami dotykac tej sfery
-      (tzn. CubeSize = SkySphereRadius * SphereRadiusToCubeSize).
-
-      Nie umieszczaj Render na display liscie - juz tutaj w srodku
-      realizujemy sobie renderowanie przez display liste. }
-    procedure Render;
-
-    { Calculate (or just confirm that Proposed value is still OK)
-      the sky sphere radius that fits nicely in your projection near/far.
-
-      Zarowno szescian jak i sfera musza byc pomiedzy near i far perpsektywy,
-      tzn. musi byc near < CubeSize/2, far > SkySphereRadius.
-      Albo, patrzac na to z drugiej strony, warunek jaki musi spelniac
-      SkyCubeSize to
-
-        near * 2 < SkyCubeSize < far * SphereRadiusToCubeSize
-
-      Tu uwaga - ta nierownosc formalnie potwierdza fakt ze mozna
-      dobrac near i far tak bliskie siebie ze zadne SkyCubeSize nie
-      bedzie mozliwe (tzn. near < far nie gwarantuje ze istnieje
-      SkyCubeSize spelniajace ta nierownosc bo
-
-        2 > SphereRadiusToCubeSize).
-
-      NearFarToSkySphereRadius wyliczy near i far na podstawie wartosci
-      jakie ustawiles projection (jako
-      srednia ( near * 2,  far * SphereRadiusToCubeSize )).
-      (background nie jest brane pod uwage w depth-tescie, zalezy nam tylko
-      zeby bylo pomiedzy near a far i zeby nie bylo clipped).
-
-      Jeszcze jedno : mialem pomysl aby Render samo ustawialo jakies proste
-      Projection Matrix ktore byloby dobre dla niego.
-      Wtedy nie musielibysmy podawac SkyCubeSize. Ale : po pierwsze,
-      trzeba byloby z kolei podawac aspect i fovy wiec wyszloby na
-      to samo. Po drugie, wymagaloby to uzycia jednego miejsca na
-      stosie matryc projection, a ten jest bardzo plytki. Po trzecie,
-      tak jak jest jest szybciej - nie musimy ustawiac zadnej macierzy.
-
-      This method first check is Proposed a good result value (it satisfies
-      the conditions, with some safety margin). If yes, then we return
-      exactly the Proposed value. Otherwise, we calculate new value
-      as an average in our range.
-      This way, if you already had sky sphere radius calculated
-      (and prepared some OpenGL resources for it),
-      and projection near/far changes very slightly
-      (e.g. because bounding box slightly changed), then you don't have
-      to recreate background --- if the old sky sphere radius is still OK,
-      then the old background resources are still OK.
-
-      Just pass Proposed = 0 (or anything else that is always outside
-      the range) if you don't need this feature. }
-    class function NearFarToSkySphereRadius(const zNear, zFar: Single;
-      const Proposed: Single = 0): Single;
-
-    { Laduje nebo. Parametry maja znaczenie jak w specyfikacji VRMLa i musza
-      spelniac odpowiednie, wyszczegolnione tam zalozenia (np. SkyColorCount > 0,
-      GroundColorCount > GroundAngleCount itp.). Obrazki musza byc rodzaju
-      ImageGLFormats. Mozesz tez podac ImageNone jako dowolne sposrod Images.
-      Zarowno konstruktor jak i destruktor wymagaja aktywnego gl context. }
-    constructor Create(const Transform: TMatrix4Single;
-      GroundAngle: PArray_Single; GroundAngleCount: Integer;
-      GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
-      const Imgs: TBackgroundImages;
-      SkyAngle: PArray_Single; SkyAngleCount: Integer;
-      SkyColor: PArray_Vector3Single; SkyColorCount: Integer;
-      SkySphereRadius: Single);
-    destructor Destroy; override;
-  end;
-
-{ TSkyCube (obsolete) ------------------------------------------------------- }
-
-type
-  { bedzie rysowal niebo wedlug naszych standardow -
-    bottom jest w -Z, top w +Z. Ma takze konstruktor ktory bedzie automatycznie
-    sobie ladowal nieba przy pomocy BackgroundImagesLoadFromOldNamePattern. }
-  TSkyCube = class(TBackgroundGL)
-  public
-    constructor Create(const SkyNamePattern: string; zNear, zFar: Single); overload;
-    constructor Create(const Imgs: TBackgroundImages; zNear, zFar: Single); overload;
-  end;
-
-implementation
-
-uses DataErrors, GLImages;
 
 { TBackgroundGL ------------------------------------------------------------ }
 
@@ -206,6 +142,42 @@ procedure TBackgroundGL.Render;
 begin
  glCallList(szescianNieba_list);
 end;
+
+{ Niebo to sfera o promieniu SkySphereRadius. Sfera ground i szescian
+  6 tekstur nieba beda zrobione tak zeby byc jak najblizej sfery sky -
+  sfera ground bedzie miala ten sam promien co sfera sky (rysujemy bez
+  DEPTH_TEST wiec nie bedzie walki w z-buforze pomiedzy tymi elementami)
+  a szescian bedzie wyznaczony tak zeby rogami dotykac tej sfery
+  (tzn. CubeSize = SkySphereRadius * SphereRadiusToCubeSize).
+
+  Zarowno szescian jak i sfera musza byc pomiedzy near i far perpsektywy,
+  tzn. musi byc near < CubeSize/2, far > SkySphereRadius.
+  Albo, patrzac na to z drugiej strony, warunek jaki musi spelniac
+  SkyCubeSize to
+
+    near * 2 < SkyCubeSize < far * SphereRadiusToCubeSize
+
+  Tu uwaga - ta nierownosc formalnie potwierdza fakt ze mozna
+  dobrac near i far tak bliskie siebie ze zadne SkyCubeSize nie
+  bedzie mozliwe (tzn. near < far nie gwarantuje ze istnieje
+  SkyCubeSize spelniajace ta nierownosc bo
+
+    2 > SphereRadiusToCubeSize).
+
+  NearFarToSkySphereRadius wyliczy near i far na podstawie wartosci
+  jakie ustawiles projection (jako
+  srednia ( near * 2,  far * SphereRadiusToCubeSize )).
+  (background nie jest brane pod uwage w depth-tescie, zalezy nam tylko
+  zeby bylo pomiedzy near a far i zeby nie bylo clipped).
+
+  Jeszcze jedno : mialem pomysl aby Render samo ustawialo jakies proste
+  Projection Matrix ktore byloby dobre dla niego.
+  Wtedy nie musielibysmy podawac SkyCubeSize. Ale : po pierwsze,
+  trzeba byloby z kolei podawac aspect i fovy wiec wyszloby na
+  to samo. Po drugie, wymagaloby to uzycia jednego miejsca na
+  stosie matryc projection, a ten jest bardzo plytki. Po trzecie,
+  tak jak jest jest szybciej - nie musimy ustawiac zadnej macierzy.
+}
 
 class function TBackgroundGL.NearFarToSkySphereRadius(const zNear, zFar: Single;
   const Proposed: Single): Single;
@@ -526,24 +498,6 @@ begin
  glDeleteLists(szescianNieba_list, 1);
  glDeleteTextures(6, @nieboTex);
  inherited;
-end;
-
-{ TSkyCube -------------------------------------------------------------- }
-
-constructor TSkyCube.Create(const SkyNamePattern: string; zNear, zFar: Single);
-var SkyImgs: TBackgroundImages;
-begin
- SkyImgs := BackgroundImagesLoadFromOldNamePattern(SkyNamePattern);
- try
-  Create(SkyImgs, zNear, zFar);
- finally BackgroundImagesFreeAll(SkyImgs, nil) end;
-end;
-
-constructor TSkyCube.Create(const Imgs: TBackgroundImages; zNear, zFar: Single);
-begin
- inherited Create(RotationMatrixRad(Pi/2, Vector3Single(1, 0, 0)),
-   nil, 0, nil, 0, Imgs, nil, 0, @Black3Single, 1,
-   NearFarToSkySphereRadius(zNear, zFar));
 end;
 
 end.
