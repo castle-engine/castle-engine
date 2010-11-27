@@ -13,14 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Kambi class utilities.)
-
-  This unit contains stuff for dealing with non-visual classes.
-  Basically, it can be considered as the extension of Classes unit from RTL.
-  It contains many wrappers for classes that are defined in the Classes unit
-  and also defines some basic useful classes made entirely on my own.
-  It also contains many global functions that deal with some classes
-  defined in Classes unit.
+{ Basic classes and utilities (streams, strings, lists).
+  Many utilities for classes that are defined in the Classes unit,
+  and some classes of our my own.
 
   Some notes about TStream descendants :
   @unorderedList(
@@ -32,65 +27,18 @@
 
     @item(
       I call a stream "growing" if it's read-only and it's purely sequential
-      and it's Size property is useless. In other words, when you read
+      and it's Size property may be useless. In other words, when you read
       a "growing" stream, you don't know when it ends, until you reach the end.
       You just have to read data until Read returns 0.)
 
-    @item(Some question related to "growing" streams:
-
-      Reading the Borland's help it's not clear whether after
-        @longCode# ReadCount := Stream.Read(Buf, Count) #
-      one should test
-        @longCode# ReadCount = 0 #
-      or rather the test
-        @longCode# ReadCount < Count #
-      is sufficient.
-
-      In other words, if Read can't read exactly Count bytes but it
-      can read @italic(some) bytes (more than zero) :
-      can we then be sure we're standing at the end of a stream ?
-      Or maybe we should call Read once again and only if this time
-      ReadCount = 0 we are sure it's the end of stream ?
-      Answer : test "ReadCount = 0" is good. Test "ReadCount < Count" is not
-      sufficient in many cases (e.g. with THandleStream when handle is
-      stdin (so StdinStream defined in this unit is "growing")
-      or with net socket streams).
-
-      This question occurs only when you have to deal with "growing" streams
-      --- with non-growing streams you can always test whether
-      Stream.Position <= Stream.Size. And, thinking about
-      implementation of various non-growing streams,
-      one can be relatively sure that the test "ReadCount < Count"
-      will be @italic(usually) sufficient.)
+    @item(Remember that to reliably detect end of the stream when you
+      use TStream.Read, you have to test is ReadCount = 0.
+      Merely testing that ReadCount < less than you requested is not enough,
+      e.g. seen for THandleStream when handle is StdIn.)
   )
 }
 
 unit KambiClassUtils;
-
-{ TODO:
-  TStreamReaderMediator class :
-  ta klasa (podklasa TStream ? Niekoniecznie !) bedzie zapewniala metode
-  do odczytywania strumienia. Bedzie ona pobierala jako arg. strumien
-  TStream z ktorego odczyt ma posredniczyc i umozliwiala odczyt
-  z tego strumienia dodajac wlasne funkcje :
-
-  - przede wszystkim, nieograniczony bufor Unget. A wiec cofanie swojej
-    pozycji w strumieniu o ten 1 czy ilestam bajtow bedzie zawsze mozliwe,
-    co nie jest prawda dla samego TStream.
-
-  - Ta klasa powinna miec metody ReadUpto_xxx ktorych dzialanie bedzie
-    analogiczne to tych w tym module ale te metody beda robic backEndingChar
-    na posredniku i beda mogly zawsze dzialac.
-
-  - CurrentLine i CurrentColumn, jako inny sposob wyrazania Position :
-    to bedzie pomocne.
-
-  To bedzie przydatna do TPascalLexer i TVRMLLexer ktore w tym momencie cierpia :
-  uzywaja bezposrednio typu TStream, robiac na Seek(-1, soFromPosition)
-  i nie majac informacji o CurrentLine i CurrentColumn.
-
-  Nalezy taka rzecz zrobic ogolnie.
-}
 
 {$I kambiconf.inc}
 {$ifdef DELPHI} {$warn SYMBOL_PLATFORM OFF} {$endif}
@@ -103,13 +51,13 @@ uses Classes, SysUtils, KambiUtils, IniFiles, KambiStringUtils, Contnrs;
 { @section(Text reading) }
 
 type
-  { TTextReader reads given Stream line by line.
-    Lines may be terminated in Stream with #13, #10, #13+#10 or #10+#13.
+  { Read given Stream line by line.
+    Lines may be terminated in the Stream with #13, #10, #13+#10 or #10+#13.
     This way I can treat any TStream quite like standard Pascal text files:
     I have simple Readln method.
 
-    After calling Readln or Eof you should STOP directly using underlying
-    Stream (but you CAN use Stream right after creating
+    After calling Readln or Eof you should stop directly using underlying
+    Stream (but you can use Stream right after creating
     TTextReader.Create(Stream) and before any Readln or Eof
     operations on this TTextReader). }
   TTextReader = class
@@ -121,42 +69,19 @@ type
       (tells to ignore next #10 char) }
     LastNewLineChar: char;
   public
-    { This is a comfortable constructor, equivalent to
-        TTextReader.Create(TFileStream.Create(FileName, fmOpenRead), true) }
+    { Open a file in read-only mode. }
     constructor CreateFromFileStream(const FileName: string);
 
-    { If AOwnsStream then in Destroy we will free Stream object. }
+    { Open a stream. If AOwnsStream then in destructor we will free
+      given Stream object. }
     constructor Create(AStream: TStream; AOwnsStream: boolean);
     destructor Destroy; override;
 
-    { Reads next line from Stream. Returned string does not contain
+    { Read next line from Stream. Returned string does not contain
       any end-of-line characters. }
     function Readln: string;
 
     function Eof: boolean;
-  end;
-
-{ ---------------------------------------------------------------------------- }
-{ @section(TIniFile related) }
-
-type
-  { TIniFile with minor enhancements. }
-  TKamIniFile = class(TIniFile)
-  private
-    FUpdateOnDestroy: boolean;
-  public
-    { Clears all sections in ini file, therefore deleting all info in ini file. }
-    procedure Clear;
-
-    { If true UpdateFile will be automatically called on Destroy.
-      Useless under Delphi, useful under Kylix,
-      TODO: I don't know how about multiplatform FPC's TIniFile. }
-    property UpdateOnDestroy: boolean
-      read FUpdateOnDestroy write FUpdateOnDestroy;
-
-    constructor Create(const AFileName: string; AUpdateOnDestroy: boolean);
-      reintroduce;
-    destructor Destroy; override;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -846,31 +771,6 @@ begin
   SetLength(ReadBuf, ReadCnt);
  end;
  Result := ReadBuf = '';
-end;
-
-{ TIniFile replacement -------------------------------------------------------- }
-
-procedure TKamIniFile.Clear;
-var sects: TStringList;
-    i: integer;
-begin
- sects := TStringList.Create;
- try
-  ReadSections(sects);
-  for i := 0 to sects.count-1 do EraseSection(sects[i]);
- finally sects.free end;
-end;
-
-constructor TKamIniFile.Create(const AFileName: string; AUpdateOnDestroy: boolean);
-begin
- inherited Create(AFileName);
- FUpdateOnDestroy := AUpdateOnDestroy;
-end;
-
-destructor TKamIniFile.Destroy;
-begin
- if UpdateOnDestroy then UpdateFile;
- inherited;
 end;
 
 { TObjectsList_Abstract ---------------------------------------------------- }
