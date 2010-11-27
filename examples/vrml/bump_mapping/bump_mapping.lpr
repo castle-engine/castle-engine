@@ -58,7 +58,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   NormalizationCubeMap, GLImages, GLVersionUnit,
   ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, DataErrors,
   { VRML-related units: }
-  VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, BackgroundGL,
+  VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, VRMLGLBackground,
   VRMLGLRenderer, VRMLRendererOptimization, KambiSceneManager,
   RenderStateUnit, VRMLErrors, GLControls;
 
@@ -865,7 +865,7 @@ begin
     ContainerWidth / ContainerHeight, ProjectionNear, ProjectionFar);
 
   Scene.BackgroundSkySphereRadius :=
-    TBackgroundGL.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar);
+    TVRMLGLBackground.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar);
 
   UpdateCameraProjectionMatrix;
 end;
