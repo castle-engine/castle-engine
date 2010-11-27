@@ -565,7 +565,7 @@ interface
 
 uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GLUT} KambiGlut, {$endif}
-  {$ifdef GLWINDOW_WINAPI} Windows, Rects,
+  {$ifdef GLWINDOW_WINAPI} Windows,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
     {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}
   {$endif}
