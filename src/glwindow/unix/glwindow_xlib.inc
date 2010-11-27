@@ -759,7 +759,7 @@ begin
   end;
 end;
 
-function TGLApplication.ImplementationName: string;
+function TGLApplication.BackendName: string;
 begin
  Result := 'Xlib';
 end;

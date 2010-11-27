@@ -559,7 +559,7 @@ begin result := glutGet(GLUT_SCREEN_WIDTH) end;
 function TGLApplication.ScreenHeight: integer;
 begin result := glutGet(GLUT_SCREEN_HEIGHT) end;
 
-function TGLApplication.ImplementationName: string;
+function TGLApplication.BackendName: string;
 begin
  Result := 'GLUT';
 end;

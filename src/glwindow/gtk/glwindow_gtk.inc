@@ -2032,7 +2032,7 @@ begin
 end;
 {$endif GLWINDOW_USE_XF86VMODE}
 
-function TGLApplication.ImplementationName: string;
+function TGLApplication.BackendName: string;
 begin
   Result := {$ifdef GLWINDOW_GTK_2} 'GTK+' {$else} 'GTK+ 1.x' {$endif};
 end;

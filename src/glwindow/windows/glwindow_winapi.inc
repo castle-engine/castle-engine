@@ -1606,7 +1606,7 @@ begin
   result := GetSystemMetrics(SM_CYSCREEN);
 end;
 
-function TGLApplication.ImplementationName: string;
+function TGLApplication.BackendName: string;
 begin
  Result := 'WinAPI';
 end;

@@ -163,7 +163,7 @@
       to TGLWindow.MainMenu property. When GLWindow is implemented on top
       of GTK_1 or GTK_2 or WINAPI or GLUT we will show this menu and call
       TGLWindow.EventMenuCommand (TGLWindow.OnMenuCommand) when user clicks some menu item.
-      Other implementations (XLIB for now) ignore MainMenu.
+      Other backends (XLIB for now) ignore MainMenu.
 
       See @code(kambi_vrml_game_engine/examples/glwindow/menu_test.lpr)
       for an example how to use the menu.)
@@ -180,8 +180,8 @@
       )
 
     @item(You can use native modal dialogs for things such as file selection.
-      GTK implementation will use GTK dialogs, WinAPI implementation
-      will use Windows dialog boxes, XLib implementation will fall back
+      GTK backend will use GTK dialogs, WinAPI backend
+      will use Windows dialog boxes, XLib backend will fall back
       on GLWinMessages text input.
 
       See TGLWindow.FileDialog (for opening and saving files) and
@@ -197,18 +197,18 @@ unit GLWindow;
 
 {$I kambiconf.inc}
 
-{ Choose GLWindow implementation ------------------------------------------ }
+{ Choose GLWindow backend ------------------------------------------ }
 
 { You must define one of the symbols GLWINDOW_GTK_1, GLWINDOW_GTK_2,
   GLWINDOW_WINAPI (only under Windows),  GLWINDOW_XLIB (only where X11
   and Xlib are available, which usually means "only under UNIX"),
   GLWINDOW_GLUT.
 
-  Of course the list of available implementations may be extended
+  Of course the list of available backends may be extended
   with time (although I do not plan it for now, since I'm happy with
-  available implementations).
+  available backends).
 
-  Here are short descriptions for each implementation:
+  Here are short descriptions for each backend:
 
   GLWINDOW_GTK_1 and GLWINDOW_GTK_2
     GLWINDOW_GTK_1 is based on GTK 1.x (>= 1.2) using GtkGLArea widget.
@@ -223,7 +223,7 @@ unit GLWindow;
     Dialog windows implemented using GTK dialog windows.
     Generally, has a nice native look of GTK application.
 
-    Implementations on top of GTK should work under any OS where GTK works.
+    Backends on top of GTK should work under any OS where GTK works.
     Currently both GTK_1 and GTK_2 are tested under Linux, FreeBSD and Windows.
     GTK_2 is also tested on Mac OS X.
 
@@ -316,7 +316,7 @@ unit GLWindow;
     Based on glut library. There's little use of implementing
     GLWindow on top of glut library since the initial idea of GLWindow
     was to overcome many glut shortcomings. The only advantage of this is that
-    such implementation of GLWindow may be used for various testing purposes.
+    such version of GLWindow may be used for various testing purposes.
 
     MainMenu is implemented as glut pop-up menu. Activated by right mouse button.
     Looks ugly and has a lot of usability problems, but works.
@@ -354,16 +354,15 @@ unit GLWindow;
     - CustomCursor is not implemented. Cursor = gcCursor is treated like mcDefault.
 
   GLWINDOW_TEMPLATE
-    This is a special dummy implementation, useful only as an example
+    This is a special dummy backend, useful only as an example
     for programmers that want to implement another GLWindow backend
     (e.g. based on Mac OS X Carbon).
     It compiles, but actually nothing works.
     See file glwindow_backend_template.inc.
 }
 
-{ If GLWindow implementation is not choosen at this point, choose
-  default (best, most functional and stable) implementation
-  for a given OS.
+{ If GLWindow backend is not choosen at this point, choose
+  default (best, most functional and stable) for a given OS.
 
   This way you can override configuration below by compiling GLWindow
   with some GLWINDOW_xxx symbol already defined. }
@@ -392,24 +391,24 @@ unit GLWindow;
  {$endif}
 {$endif}
 
-{ To make new GL Window implementation -------------------------------------
+{ To make new GL Window backend -------------------------------------
 
-  - Define a symbol like GLWINDOW_FOO for a new implementation,
-    document it in the "available implementations list" above.
+  - Define a symbol like GLWINDOW_FOO for a new backend,
+    document it in the "available backends list" above.
   - Create a file glwindow_foo.inc with contents from
     glwindow_backend_template.inc
     and conditionally include it from glwindow_backend.inc.
   - Adjust defining
     GLWINDOW_HAS_VIDEO_CHANGE and GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN
-    for your implementation.
+    for your backend.
   - Implement all methods in glwindow_foo.inc. You wil find the specification
     what each method should do in the specification of the interface of this
     module.
   - Call all TGLWindow.DoXxx functions at appropriate places from your
-    implementation.
+    backend.
     You can call all DoIdle and DoTimer for all Application.OpenWindows
     using Application.FOpenWindows.DoIdle/Timer (this will give usually
-    inefficient but working implementation)
+    inefficient but working backend)
   - Call TGLApplication.DoSelfIdle and DoSelfTimer when appropriate.
     Remember that you can always assume that the ONLY existing instance of
     TGLApplication is Application.
@@ -489,7 +488,7 @@ unit GLWindow;
   {$endif}
 {$endif}
 
-{ Does implementation implement TryVideoChange and VideoReset methods?
+{ Does backend implement TryVideoChange and VideoReset methods?
   (if this will not be defined, we will use TryVideoChange that always
   returns false and VideoReset that is NOOP). }
 {$undef GLWINDOW_HAS_VIDEO_CHANGE}
@@ -537,7 +536,7 @@ unit GLWindow;
   - with GTK 2:
     - Implement better fullscreen toggle now (that doesn't need
       recreating window).
-      Update docs about capabilities of GTK_2 implementation.
+      Update docs about capabilities of GTK_2 backend.
     - Value of propery FullScreen should change at runtime,
       and parts of things that I'm doing now in OpenBackend
       should be done on such changes.
@@ -963,7 +962,7 @@ type
 
     { DoResize with FromIndependentOpen = true is called only once
       (and exactly once) from TGLWindow.Open implementation.
-      So all GLWindow-implementation code should always
+      So all GLWindow-backend code should always
       pass FromIndependentOpen = false (EVEN if it may be called from
       OpenBackend (that is called before DoResize in Open) !).
 
@@ -1005,7 +1004,7 @@ type
 
           @code(if AutoRedisplay then PostRedisplay;)
 
-        So specific GLWindow implementations need not to worry about
+        So specific GLWindow backends need not to worry about
         AutoRedisplay. They only have to implement PostRedisplay. }
     procedure DoDraw;
   private
@@ -1262,7 +1261,7 @@ type
       unnecessarily tricky for the programmer.)
 
       TODO: for now, this is not implemented. @link(Cursor) ignores mcCustom value,
-      under every GLWindow implementation... sorry, CustomCursor is only a plan. }
+      under every GLWindow backend... sorry, CustomCursor is only a plan. }
     property CustomCursor: TRGBAlphaImage read FCustomCursor
       write SetCustomCursor;
 
@@ -2190,8 +2189,8 @@ type
           ....
           TGLMode.Free
       - How does these dialogs look like?
-        Under GTK and WinAPI implementations we use native dialogs of these.
-        Under Xlib and freeglut implementation we simply fallback on
+        Under GTK and WinAPI backends we use native dialogs of these.
+        Under Xlib and freeglut backend we simply fallback on
         GLWinMessages.Message*.
     }
 
@@ -2594,8 +2593,8 @@ type
     procedure CreateBackend;
     procedure DestroyBackend;
 
-    { The GLWindow-implementation specific part of Quit method implementation.
-      In non-implementation-specific part of Quit we already closed all windows,
+    { The GLWindow-backend specific part of Quit method implementation.
+      In non-backend-specific part of Quit we already closed all windows,
       so this will be called only when OpenWindowsCount = 0.
       So the only things you have to do here is:
       - make ProcessMessage to return false
@@ -2619,7 +2618,7 @@ type
     { Same as DoSelfIdle, but here with FOnTimer. }
     procedure DoSelfTimer;
 
-    { Something useful for some GLWindow implementations. This will implement
+    { Something useful for some GLWindow backends. This will implement
       (in a simple way) calling of DoSelfOpen and OpenWindows.DoTimer.
 
       Declare in TGLApplication some variable like
@@ -2808,7 +2807,7 @@ type
       to work and exits immediately without any error. }
     procedure Run;
 
-    function ImplementationName: string;
+    function BackendName: string;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -4890,7 +4889,7 @@ begin
 
   {$ifndef GLWINDOW_HAS_VIDEO_CHANGE}
     s += ' (changing Video properties not implemented when GLWindow is '+
-      'made on top of ' +ImplementationName +')';
+      'made on top of ' +BackendName +')';
   {$endif}
 
   if OnErrorWarnUserAndContinue then

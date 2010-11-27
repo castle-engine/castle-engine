@@ -193,10 +193,10 @@ begin
   { TODO }
 end;
 
-function TGLApplication.ImplementationName: string;
+function TGLApplication.BackendName: string;
 begin
   { TODO }
-  Result := 'My Implementation';
+  Result := 'My GLWindow Backend';
 end;
 
 {$endif read_implementation}
