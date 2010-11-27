@@ -23,32 +23,36 @@ const
   GdiDLL = 'gdi32.dll';
   ShellDLL = 'shell32.dll';
 
-{ Okienka robione prostymi messageBoxami. Jesli nie podasz 3-go parametru parent
-  bedzie 0 (co spowoduje ze okno bedzie modalne dla calego procesu ze wzgledu na flage
-  MB_TASKMODAL w wywolaniu MessageBox). }
-function YesNoBox       (const tekst:string; const caption:string {$ifdef DEFPARS}='Question'          {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif}):boolean; overload;
-procedure ErrorBox      (const tekst:string; const caption:string {$ifdef DEFPARS}='Error'             {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif});         overload;
-procedure InfoBox       (const tekst:string; const caption:string {$ifdef DEFPARS}='Information'       {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif});         overload;
-procedure WarningBox    (const tekst:string; const caption:string {$ifdef DEFPARS}='Warning'           {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif});         overload;
-function WarningYesNoBox(const tekst:string; const caption:string {$ifdef DEFPARS}='Important question'{$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif}):boolean; overload;
+{ Simple standard Windows message boxes.
+  If Parent is 0 (default), the box will be a modal box for the whole process
+  (all our windows), since we use MB_TASKMODAL.
+  @groupBegin }
+function YesNoBox       (const tekst:string; const caption:string ='Question'          ; parent:HWND =0):boolean; overload;
+procedure ErrorBox      (const tekst:string; const caption:string ='Error'             ; parent:HWND =0);         overload;
+procedure InfoBox       (const tekst:string; const caption:string ='Information'       ; parent:HWND =0);         overload;
+procedure WarningBox    (const tekst:string; const caption:string ='Warning'           ; parent:HWND =0);         overload;
+function WarningYesNoBox(const tekst:string; const caption:string ='Important question'; parent:HWND =0):boolean; overload;
+{ @groupEnd }
 
-{ WMSizing : sposob aby przypisac minimalne wymiary formularzowi w Delphi < 5 }
 type
+  { Handling WMSizing message is a way to force minimum/maximum form
+    sizes under WinAPI. }
   TWMSizing=record
-    Msg: Cardinal;    {=wm_sizing}
-    fwSide: Longint;  {WMSZ_xxx stale}
-    lprc: PRect;      {wskaznik na prostokat = obramowanie okna}
-    Result: LongBool; {powinienem zwrocic longbool(true)}
+    Msg: Cardinal;    {< wm_SIZING }
+    fwSide: Longint;  {< const WMSZ_xxx }
+    lprc: PRect;      {< rectangle with window sizes }
+    Result: LongBool; {< should return longbool(true) }
   end;
 function WMSizingHandler(lParm:LPARAM; wParm:WPARAM; minWidth,minHeight, maxWidth,maxHeight:integer):LRESULT; overload;
 procedure WMSizingHandler(var Msg:TWMSizing; minWidth,minHeight, maxWidth,maxHeight:integer); overload;
 procedure WMSizingHandler(var Msg:TWMSizing; minWidth,minHeight:integer); overload;
 
-{ poprawione deklaracje z WinAPI }
+{ WinAPI ChangeDisplaySettings declaration. (Was wrong/missing in old
+  FPC versions? TODO: check and probably remove this.) }
 function ChangeDisplaySettings(lpDevMode:PDEVMODE; dwFlags:DWORD):longint;
   stdcall; external userDLL name 'ChangeDisplaySettingsA';
 
-{ This is useful for debugging ChangeDisplaySettings result. }
+{ Describe ChangeDisplaySettings result. }
 function DispChangeToStr(L: LongInt): string;
 
 {$endif read_interface}
