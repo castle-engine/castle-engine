@@ -13,17 +13,21 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Parsing command-line arguments.)
+{ Parsing command-line arguments.
 
-  Terminology:
+  Some terminology:
 
   @definitionList(
     @itemLabel Parameter
-    @item(Command-line parameters are given directly by the OS to our
-      program. Implementation of this unit obtains them from @link(Parameters).)
+    @item(Command-line parameters list is given directly by the OS to our
+      program.
+
+      This unit obtains them from the @link(Parameters) list.
+      This is initialized from standard Pascal ParamStr/ParamCount.
+      It can be modified to remove the already-handled parameters.)
 
     @itemLabel Option
-    @item(Options are encoded by the user as parameters.
+    @item(Options are things encoded by the user in the parameters.
       Examples:
 
       @unorderedList(
@@ -43,81 +47,48 @@
           and inside this parameter two options are encoded:
           @code(-h) and @code(-v).)
       )
+
+      The very idea of this unit is to decode "options" from the "parameters".
     )
+
+    @itemLabel Argument
+    @item(Is a part of the option, that clarifies what this option does.
+      For example in @code(@--navigation=Walk), @code(Walk) is the argument
+      and @--navigation is the option long name.
+
+      Some options don't take any arguments, some take optional argument,
+      some take required argument, some have a couple of arguments.
+      TOptionArgument type allows you to specify all this.)
   )
 
-  Pewne zalety uzywania w ogole funkcji do parsowania parametrow (w rodzaju
-  getopts czy mojego ParseParameters) ponad robieniem parsowania argumentow za kazdym
-  razem recznie w programie:
+  For simple programs, you can directly parse command-line by looking at
+  ParamStr/ParamCount or the @link(Parameters) list. For more involved cases,
+  using ParseParameters has a lot of advantages:
 
   @unorderedList(
-    @item(Trudniej sie pomylic, nie trzeba juz pisac tych
-      wszystkich Parameters.Delete(i, 1), ParDeleteAndGetNext(i), Inc(i).)
+    @item(Less error-prone, and your program's code stays simple.)
 
-    @item(Uwzglednianie takich rzeczy jak specjalny parametr '@--' jest juz
-      automatyczne i nie powoduje komplikacji w kodzie programu.)
+    @item(We automatically handle special parameter @-- that is a standard
+      way to mark the end of the options. (Useful for users that have filenames
+      that start with "-" character.))
 
-    @item(Automatycznie zglaszamy bledy "zla opcja", np. teraz
-        @preformatted(  view3dscene --whatever scena.wrl)
-      spowoduje blad "invalid long option @--whatever" podczas gdy wczesniej
-      powodowal blad "expected one file name as parameter", bo wczesniej
-      view3dscene widzial "@--whatever" po prostu jako kolejna nazwe pliku i
-      wydawalo mu sie ze dostaje w parametrach dwie nazwy pliku.
+    @item(We automatically detect and make exceptions with nice messages
+      on various errors. For example unrecognized options are clearly
+      reported (so they will not mistaken for e.g. missing filenames
+      by your program).)
 
-      Oczywiscie teraz moze sie wydawac to niedogodnoscia, bo np. kiedys
-      jesli miales plik o nazwie "@--scene-wrl" (a wiec plik ktorego nazwa zaczyna
-      sie od "-" i wyglada jak opcja) to mogles go podac view3dscene i
-      view3dscene nie uzna tego za opcje, tzn.
-        @preformatted(  view3dscene --scene-wrl)
-      zadziala ok. Natomiast teraz
-      @preformatted(  view3dscene --scene-wrl)
-      spowoduje blad "wrong long option --scene-wrl" i musisz zrobic tak jak
-      w standardowych UNIXowych programach:
-        @preformatted(  view3dscene -- --scene-wrl)
-      Na dluzsza mete obecne rozwiazanie jest jednak duzo bardziej eleganckie:
-      parametr "@--" powoduje ze w 1-znaczny sposob wszystko co jest za nim
-      nie jest traktowane jako opcja, wiec np. jesli masz plik o nazwie
-      "@--camera-radius", tzn. jego nazwa nie tylko wyglada na opcje ale tez _jest_
-      rzeczywista opcja view3dscene to wczesniej nie bylo zupelnie zadnego
-      sposobu zeby przekazac ten plik jako parametr bo view3dscene zawsze widzial
-      @--camera-radius jako opcje. Teraz natomiast
-        @preformatted(  view3dscene -- --camera-radius)
-      dziala jak nalezy. To sa moze drobne subtelnosci (w koncu rzadko spotyka
-      sie pliki o nazwach zaczynajacych sie na "-", ktore na dodatek sa
-      rzeczywistymi opcjami programu) ale sprawiaja one ze na pierwszy rzut oka
-      widac ze uzyta semantyka parametrow jest pelna i pozwala wyrazic doslownie
-      wszystko co kiedykolwiek ktos moglby chciec wyrazic.)
+    @item(We automatically allow combining of short options,
+      so user can use @code(-abc) instead of @code(-a -b -c).)
 
-    @item(Kombinowanie krotkich opcji (-abc) tez jest robione tutaj
-      automatycznie, nie odbywa sie kosztem komplikacji kodu programu.)
+    @item(We have a simple interface, where you simply specify what
+      options you want, long and short option names, option arguments
+      and such.)
   )
 
-  Nazewnictwo: wszedzie w tym module, w komentarzach i w identyfikatorach
-  (typow, nazw funkcji, stalych... wszystkiego) staram sie konsekwentnie
-  uzywac okreslenia "parametr" na parametr podany w linii polecen
-  przez usera (a dokladniej rzecz biorac, to sa stringi ktore zostaly nam
-  przekazane przez program ktory nas wywolal) oraz "opcja" na jakas
-  regule wedlug ktorej zamierzamy parsowac (czyli po prostu interpretowac,
-  wszelkie dokladniejsze definicje parsera nie maja tu racji bytu)
-  parametry. Np. wywolanie
-    @preformatted(  view3dscene --camera-radius 0.5 plik.3ds)
-  ma 4 parametry : parametr numer 0 to "view3dscene" (chociaz niekoniecznie,
-  to zalezy od OSa, np. Windows wymusza postac parametru numer 0),
-  potem "@--camera-radius", potem "0.5", potem "plik.3ds".
-  Jezeli teraz zasam regule "jest jedna opcja, @--camera-radius, i ma ona
-  jeden argument" to mozemy teraz zinterpretowac parametry i otrzymujemy
-  wynik: napotkana jedna opcja @--camera-radius, jej argument to 0.5,
-  a poza tym zostaja dwa parametry ktore nie zostaly wlaczone do zadnej
-  opcji :
-    @preformatted(  view3dscene plik.3ds)
-  Zadaniem interfejsu tego modulu jest przede wszystkim zdefiniowac scisle
-  "czym jest opcja" oraz "jaki jest zwiazek miedzy parametrami a opcjami".
-  Zadaniem implementacji jest przeprowadzic odpowiednia konwersje :
-  wez parametry, wez opcje, wyrzuc wynik (sparsowane paczki "opcja+zwiazane
-  z nia argumenty") usuwajac zinterpretowane parametry z listy parametrow.
-  Takie nazewnictwo jest konsekwentne z getopts i z Pascalowymi ParamStr/Count.
+  See [http://vrmlengine.sourceforge.net/common_options.php]
+  for a user description how short and long options are expected to be given
+  on the command-line.
 }
-
 unit ParseParametersUnit;
 
 {$I kambiconf.inc}
@@ -128,184 +99,6 @@ uses SysUtils, VectorMath, KambiUtils;
 
 {$define read_interface}
 
-{ Niniejsza funkcja stanowi odpowiednik znanych funkcji z rodziny getopts z libc,
-    modulu GetOpts z FPC i innych. Zasadniczymi powodami dla ktorych chcialem
-    napisac ta funkcje (zamiast uzywac czy przynajmniej opakowac jakas wersje
-    getopts) bylo:
-    - chcialem zeby ParseParameters sygnalizowalo bledy przez wyjatki
-    - chcialem podawac short options i long options w jednej tablicy
-      (zamiast, jak w getopts, podawac short i long options osobno w osobnych
-      parametrach funkcji; getLongOpts tak dzialaly bo chcialy byc mozliwie podobne
-      do oryginalnych getopts ktore dzialaly tylko na short oprtions, mi na tym
-      podobienstwie nie zalezalo)
-    - chcialem uzywac @link(Parameters) z mojego KambiUtils zamiast ParamStr/ParamCount
-      lub argv/argc. Wole moje @link(Parameters) bo one pozwalaja mi wygodnie usuwac
-      opcje przez Parameters.Delete etc. (co nie jest mozliwe pod Param* i
-      co jest mozliwe ale niewygodne (i nie pod kazdym Pascalem/platforma)
-      z argv/c)
-    - chcialem tez miec mozliwosc podawania argumentow dla opcji jako
-      "required separate arguments" czyli 2 lub wiecej argumentow ktore musisz
-      podac po kolei jako osobne parametry (przyklad zastosowania - podawanie
-      wektorow 3d dla view3dscene i rayhuntera; w ten sposob shell robi za nas
-      parsowanie tych wektorow, tzn. gdybysmy wczytywali te wektory jako
-      "required" to user musialby je podawac jako --wektor '1 2 3' lub
-      --wektor='1 2 3' i 1) user musialby je cytowac 2) my musielibysmy je
-      parsowac; zgoda, to parsowanie to zadna robota i wymaganie od usera
-      cytowania to tez nic strasznego, zreszta generalnie przychylam sie do
-      zdania programow GNU ze podawanie opcji uzywajac '=' lepiej wiaze
-      opcje z jej argumentami; ale w tej sytuacji pozwalam sobie na wyjatek
-      po prostu dlatego ze zrobilem to juz wiele razy, takze programy Radiance'a
-      biora w ten sposob wektory (jako 3 osobne parametry))
-
-  Funkcja ParseParameters parsuje opcje zawarte w parametrach @link(Parameters).
-    Krotkie opcje moga byc podawane po kilka w jednym parametrze,
-    poprzedzone "-" (ale tylko ostatnia opcja w takim wypadku moze miec argument).
-    Kazda long option musi byc podana osobno i poprzedzona "--".
-    Jezeli opcja ma argument <> oaNone to (na potrzeby przykladu, niech
-      Short = 's', Long = 'long-option', argument jaki chce podac user to
-      'Argument') :
-      oaOptional oznacza ze argument moze byc podany jako
-        --long-option=Argument
-        -<short-options-without-args>s gdzie <short-options-without-args>
-        to ciag literek oznaczajacych dowolne krotkie opcje ktore zostana
-        potraktowane jakby nie mialy argumentow (a wiec musza byc oaNone
-        lub oaOptional).
-      oaRequired oznacza ze dwie dodatkowe postacie sa mozliwe :
-        --long-option Argument
-        -<short-options-without-args>s Argument
-        No i mozliwe sa takze te same postacie co dla oaOptional.
-        Obydwie postacie dla oaRequired oznaczaja obecnosc _dwoch_ parametrow
-        w @link(Parameters).
-      oaRequired?Separate oznacza ze mozliwe sa nastepujace postacie :
-        --long-option Argument1 Argument2 ... Argument?
-        -<short-options-without-args>s Argument1 Argument2 ... Argument?
-        Obydwie te postacie oznaczaja obecnosc ?+1 parametrow w
-        @link(Parameters).
-
-  Wszystkie parametry zaczynajace sie od "-" (razem z ew. argumentami ich opcji)
-    zostana przez ta funkcje odczytane i poslane do OptionProc. Jezeli wystapi
-    nieznana (np. '-x' gdzie 'x' nie ma nigdzie w Short) krotka opcja
-    rzucimy wyjatek EInvalidShortOption, nieznana dluga opcja oznacza
-    EInvalidLongOption,  argument podany z uzyciem "=" dla parametru oaNone
-    lub oaRequired?Separate spowoduje EExcessiveOptionArgument,
-    brak argumentu dla opcji oaRequired lub za malo argumentow dla
-    oaRequired?Separate spowoduja EMissingOptionArgument.
-    Bledny parametr bez zadnej opcji (ale zaczynajacy sie od "-")
-    (w rodzaju '-=argument', '--=argument') => EInvalidParams.
-  Tutaj od razu uwaga : opcja '-' bedzie pozostawiona w spokoju,
-    tzn. nie spowoduje wyjatku EInvalidParams, nie moze zostac w zaden sposob
-    przekazana do OptionProc i nie bedzie tez usunieta przez Parameters.Delete.
-    Moznaby myslec ze skoro zapisy '-=argument' i '--=argument' traktujemy
-    jako bledy ("empty option") to podobnie nalezaloby potraktowac '-',
-    ale robimy tu wyjatek i traktujemy '-' jako zwykly parametr, nie-opcje,
-    bo istnieje konwencja ze '-' uzyte w parametrach w miejsce nazwy pliku
-    oznacza stdin lub stdout. Tak wiec obie wersje pustych parametrow, '-'
-    i '--' (patrz nizej) traktujemy wyjatkowo.
-
-  Specjalny parametr "--" bedzie przez ParseParameters zawsze czytany i usuwany z
-    Pars i bedzie oznaczal ze wszystkie nastepne parametry NIE sa
-    parametrami Params, nawet jesli zaczynaja sie od znaku "-".
-    W ten sposob, parametr "--" bedzie oznaczal dla ParseParameters ze skonczyly
-    sie juz parametry ktore ma parsowac i moze zakonczyc dzialanie (pamietaj
-    ze wobec tego podanie DWOCH parametrow "--" "--" spowoduje ze drugi
-    z nich pozostanie w Pars po wywolaniu ParseParameters(); to jest _dobrze_,
-    bo to umozliwia userowi podanie jako parametr do mojego programu nawet
-    takiego stringa jak "--".)
-
-  Opcje (razem ze swoimi ew. argumentami) (oraz pierwszy parametr "--")
-  zostana usuniete z parametrow przez Parameters.Delete
-  (nie jest zdefiniwane w ktorym momencie - przed wywolaniem OptionProc
-  dla tego argumentu, po, czy moze nawet dopiero po wywolaniu wszystkich
-  OptionProc ? To dlatego ze w przypadku gdy short options beda kombinowane
-  i podawane w postaci jednego parametru to byloby raczej ze szkoda
-  dla programisty polegac na jakimkolwiek schemacie usuwania parametrow;
-  kod w srodku OptionProc nie moze w zaden sposob operowac (nawet czytac,
-  skoro to w ktorym momencie ParseParameters usunie sparsowane parametry nie jest
-  zdefiniowane) parametrow w @link(Parameters), tym bardzi nie moze tez
-  ich usuwac przez Parameters.Delete; nie moze tez wywolywac ParseParameters jako ze
-  ParseParameters samo operuje na @link(Parameters); jest chyba jasne ze ParseParameters
-  jest NON-REENTRANT i nigdy nie bedzie reentrant bo samo kasowanie argumentow
-  z @link(Parameters) nigdy nie bedzie reentrant).
-
-  Pozostale parametry (nie zaczynajace sie od "-" i nie bedace zadnymi
-  argumentami i nie bedace "--") nie beda ruszane. Parametry za pierwszym
-  "--" nigdy nie beda ruszane. Po wywolaniu ParseParameters powinienes wiec
-  przegladnac @link(Parameters) i odczytac te pozostale "zwykle" argumenty
-  programu.
-
-  Notka: Parameters[0] nigdy nie jest ruszany ani czytany. ParseParameters parsuje
-  tylko parametry 1..Parameters.High.
-
-  Specjalny przypadek : gdy ParseOnlyKnownLongOptions = true funkcja
-  ParseParameters dziala nieco inaczej.
-  1) Wszystkie krotkie opcje sa ignorowane (tzn. parametry zaczynajace sie
-     od '-' ale nie od '--' sa traktowane jako nieopcje, w zwiazku z czym
-     wartosci Options[].Short sa kompletnie bez znaczenia)
-  2) Wszystkie dlugie opcje ktore nie sa rozpoznane sa ignorowane.
-     OptionProc jest wywolywane tylko dla znanych dlugich opcji.
-     Np. jezeli w Options mamy specyfikacje dlugiej opcji --kot i nie mamy
-     --pies to wywolanie ParseParameters dla parametrow rownych
-      zero --kot --pies
-     (zero to paremetr zerowy, zawsze ignorowany, wiec bez znaczenia)
-     to --kot zostanie rozpoznany, poslany do OptionProc i usuniety z
-     parametrow przez Parameters.Delete natomiast --pies spokojnie zostanie potraktowany
-     jakby w ogole nie byl zadna dluga opcja. Po zakonczeniu ParseProc
-     parametry beda wiec wygladaly tak:
-       zero --pies
-     Uwaga: inne bledy przy podawaniu dlugich parametrow, np. --=argument
-     (empty option) ciagle beda wychwytywane.
-  3) Specjalny parametr '--' takze ciagle bedzie wychwytywany i oznaczac
-     bedzie koniec opcji. Tyle ze tym razem nie bedziemy go kasowac.
-  Do czego to sie moze przydac ? Mianowicie przydaje sie to gdy chcemy
-    napisac cos w rodzaju TGLWindow.ParseParameters ktore parsuje _niektore_
-    znane sobie parametry (np. --geometry, --fullscreen) a inne parametry
-    (jak np. --cam-pos dla view3dscene) zostawia w spokoju. W ten sposob
-    parsowanie parametrow mozna rozbic wykonujac je w kilku zupelnie roznych
-    miejscach, np. view3dscene parsuje parametry w czterech miejscach :
-    najpierw w TGLWindow.ParseParameters, potem wywoluje CamerasParseParameters
-    i LightsKindParseParameters (wszystkie te trzy funkcje uzywaja ParseParameters
-    z ParseOnlyKnownLongOptions = true), potem samo wywoluje ParseParameters
-    z ParseOnlyKnownLongOptions = false (a wiec dopiero na samym koncu
-    nieznane long options sa wychwycone).
-  Takie podejscie ma jedno istotne niebezpieczenstwo: poniewaz wykonujac
-    nie-ostateczne ParseParameters (np. jak to w TGLWindow) nie znamy specyfikacji
-    wszystkich opcji wiec omylkowo mozemy rozpoznac nasza opcje
-    w srodku argumentow opcji view3dscene. Np. przyjmijmy ze
-    view3dscene ma opcje --three-strings ktory ma oaRequired3Separate.
-    Wywolanie
-      view3dscene --three-strings --geometry 800x600 foo bar ala kot
-    spowoduje sparsowanie i zinterpretowanie najpierw --geometry 800x600
-    a potem --three-strings dostaje argumenty : foo, bar, ala.
-    Podczas gdy powinno byc tak ze --three-strings dostaje 3 argumenty
-    --geometry, 800x600 i foo a potem view3dscene dostaje zwykle parametry
-    bar, ala, kot. Widzimy wiec ze bledna interpretacja parametrow nawet nie
-    spowodowala bledow w zadnym ParseParameters (nawet jesli na pewno --three-strings
-    lub view3dscene zorientuja sie ze dostali glupoty zamiast argumentow).
-    Ten problem dziala na podobnej zasadzie jak SReplacePatterns :
-    nie mozesz wykonac SReplacePatters zamieniajac po kolei najpierw jeden
-    substring w calym ciagu, potem drugi itd. Musisz zamieniac je wszystkie
-    _naraz_. Polowicznym rozwiazaniem tego problemu jest uzywac
-    tylko opcji z oaNone, oaOptional, a dla oaRequired radzic userom
-    zeby uzywali postaci z "=" (to jest wlasnie zaleta tego zapisu ponad
-    zapisywaniem argumentow w oddzielnych parametrach). Mozna tez zapewnic
-    sobie zeby wszystkie argumenty jakich chca wszystkie opcje nie moga zaczynac
-    sie od - i --, nie gwarantujemy sobie tym ze wychwycimy wszystkie bledy
-    jakie user moze popelnic (byc moze zinterpretujemy cos nieprawidlowo
-    i zaczniemy dzialac z glupimi ustawieniami) ale gwarantujemy sobie
-    w ten sposob ze przynajmniej _jesli_ user poda _poprawne_ opcje
-    to zinterpretujemy je dobrze.
-  Nie mozna bylo tego samego zrobic dla krotkich opcji (i miec cos w rodzaju
-    ParseOnlyKnownOptions) bo usuwanie ze srodka kombinowanych opcji
-    powodowaloby dodatkowe problemy. Np. niech -a ma oaRequired a -b ma oaNone.
-    Wywolanie pierwszego ParseParameters ktore wie tylko o -a a potem drugiego
-    ktore wie tylko o -b dla
-      -ab argument
-    zwroci -a z argumentem 'argument' a potem -b, podczas gdy powinno dac blad.
-    Jest to problem podobny jak ten przedstawiony wyzej z dlugimi opcjami
-    ale, w przeciwienstwie do tamtego, ten nie ma nawet polowicznego
-    rozwiazania.
-}
-
 type
   EInvalidShortOption = class(EInvalidParams);
   EInvalidLongOption = class(EInvalidParams);
@@ -314,37 +107,37 @@ type
   EMissingOptionArgument = class(EWrongOptionArgument);
 
   TOptionArgument = (
-    { opcja nie moze miec zadnych argumentow }
+    { No arguments allowed. }
     oaNone,
-    { opcja moze ale nie musi pobierac argumentu; jezeli user chce podac jej argument,
-      musi uzyc postaci --opcja=argument (lub -o=argument) }
+
+    { An optional argument. It must be given as @--option=argument
+      or (short form) -o=argument.
+
+      If you use a short form and you combine many short option names
+      into one parameter, then only the last option may have an argument.
+      For example @code(-abc=blah) is equivalent to @code(-a -b -c=blah). }
     oaOptional,
-    { opcja musi byc podana z argumentem; user moze ja podac jako --opcja=argument
-      (lub -o=argument) (a wiec tak jak oaOptional) lub jako --opcja argument
-      (lub -o argument) (a wiec tak jak podawalby hipotetyczne oaRequired1Separate) }
+
+    { A required argument. It must be given as for oaOptional,
+      but this time the equal sign is not needed (we know anyway that
+      following parameter must be an argument). So the following versions
+      are possible:
+
+@preformatted(
+  --option=argument # long form, as one parameter
+  --option argument # long form, as two parameters
+  -o=argument # short form, as one parameter
+  -o argument # short form, as two parameters
+) }
     oaRequired,
-    { oaRequired?Separate oznacza ze opcja musi byc podana z ? argumentami podanymi
-      jako osobne parametry; np. oaRequired3Separate oznacza ze opcje trzeba podac
-      jako --opcja argument1 argument2 argument3 (lub -o argument1 argument2 argument3).
 
-      Jak widac nie ma oaRequired1Separate - bo to nie byloby uzyteczne, mamy oaRequired
-      ktore jest bardziej elastyczne niz byloby hipotetyczne oaRequired1Separate
-      (bo oaRequired pozwala na zapis --opcja=argument).
+    { We require a specified (more than one) argument.
+      All of the arguments must be specified as separate parameters, like
 
-      Jak widac tez nie mozemy uzyc dowolnej liczby w miejsce ? - to NIE jest ograniczenie
-      wynikajace z zaprojektowania typu TOptionArgument (bo gdybym chcial moglbym zrobic
-      tutaj po prostu oaRequiredSeparate i dodac pole RequiredSeparateArgs: Integer
-      do rekordu TOption), to jest ograniczenie zwiazane z tym ze TParsedOption zawiera
-      tablice SeparateArgs o stalym rozmiarze. Gdyby mozliwe bylo dowolne ? to tablica
-      SeparateArgs musialaby byc dynamiczna a wiec zarzadzanie typem TParsedOption byloby
-      bardziej skomplikowane (w praktyce, uczynilbym go klasa aby zapewnic mu inicjalizacje/
-      finalizacje). A wydaje mi sie ze ta dodatkowa komplikacja nie jest warta zachodu -
-      - przeciez raczej nie bedzie ci nigdy zalezalo na podaniu jakiejs duzej wartosci
-      dla ? bo wtedy podawanie takiego parametru byloby dla usera arcy-niewygodne.
-
-      W razie potrzeby mozna rozszerzyc ten typ o dodatkowe oaRequired?Separate, dopisujac
-      kolejne oaRequired?Separate za ostatnim oaRequiredSeparateLast i zmieniajac wartosc
-      stalej oaRequiredSeparateLast. }
+@preformatted(
+  --option Argument1 Argument2
+  -o Argument1 Argument2
+) }
     oaRequired2Separate,
     oaRequired3Separate,
     oaRequired4Separate,
@@ -433,6 +226,72 @@ type
   TOption_Array = TInfiniteArray_2;
   POption_Array = PInfiniteArray_2;
 
+{ Parse command-line parameters. Given a specification of your command-line
+  options (in Options), we will find and pass these options to your
+  OptionProc callback. The handled options will be removed from
+  the @link(Parameters) list.
+
+  After running this, you should treat the remaining @link(Parameters)
+  as "normal" parameters, usually a filenames to open by your program or such.
+
+  Most of the documentation is given at this unit's docs, see ParseParametersUnit.
+  See also TOption for a specification of an option,
+  and see TOptionArgument for a specification of an option argument,
+  and see TOptionProc for a specification what your OptionProc callback gets.
+
+  @raises EInvalidShortOption On invalid (unknown) short option name.
+  @raises EInvalidLongOption On invalid long option name.
+  @raises(EExcessiveOptionArgument When an option gets too many arguments,
+    this may happen for options with oaNone or oaRequiredXSeparate
+    that are specified with @code(--option=argument) form.)
+  @raises(EMissingOptionArgument When an option gets too few arguments,
+    this may happen when argument for oaRequired option is missing,
+    or when too few arguments are given for oaRequiredXSeparate option.)
+  @raises(EInvalidParams On invalid parameter without an option,
+    like @code(-=argument) or @code(--=argument).)
+
+  Note that a single dash parameter is left alone, without making any
+  exceptions, as this is a standard way of telling "standard input"
+  or "standard output" for some programs.
+
+  Note that a double dash parameter @-- is handled and removed from
+  the @link(Parameters) list, and signals an end of options.
+
+  You should not modify @link(Parameters) list when this function
+  is running, in particular do not modify it from your OptionProc callback.
+  Also, do not depend on when the handled options are exactly removed
+  from the @link(Parameters) list (before or after OptionProc callback).
+
+  We never touch here the Parameters[0] value, we look
+  only at the Parameters[1] to Parameters[Parameters.High].
+
+  ParseOnlyKnownLongOptions = @true makes this procedure work a little
+  differently, it's designed to allow you to process @italic(some) long options
+  and leave the rest options not handled (without making any error):
+
+  @orderedList(
+    @item(All short options are ignored then.)
+    @item(All unknown long options are also ignored, without making any error.)
+    @item(The special @-- is handled (signals the end of options),
+      but it's not removed from the @link(Parameters).)
+  )
+
+  The ParseOnlyKnownLongOptions = @true is useful if you want to handle
+  some command-line options, but you still want to leave final options
+  parsing to a later code. For example TGLWindow.ParseParameters parses
+  some window parameters (like --geometry), leaving your program-specific
+  stuff in peace.
+
+  Note that ParseOnlyKnownLongOptions = @true isn't an absolutely
+  fool-proof solution, for example the command-line
+  @code(view3dscene --navigation --geometry 800x600 Walk) is actually invalid.
+  But we will handle it, by first detecting and removing @code(--geometry 800x600)
+  from TGLWindow.ParseParameters, and then detecting and removing
+  @code(--navigation Walk) from view3dscene code.
+  Basically, processing by ParseParameters many times is not fool-proof
+  in some weird situations.
+
+  @groupBegin }
 procedure ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
   OptionProc: TOptionProc; OptionProcData: Pointer;
@@ -445,8 +304,7 @@ procedure ParseParameters(
   Options: TDynOptionArray;
   OptionProc: TOptionProc; OptionProcData: Pointer;
   ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif}); overload;
-
-{ Jeszcze inna wersja ParseParameters, o nieco innym interfejsie }
+{ @groupEnd }
 
 type
   TParsedOption = record
@@ -464,6 +322,11 @@ type
   {$I DynArray_1.inc}
   TDynParsedOptionArray = TDynArray_1;
 
+{ Parse command-line parameters returning a list of parsed options.
+  Works exactly like previous ParseParameters procedure,
+  but instead of using a callback like OptionProc, this time
+  it returns a list.
+  @groupBegin }
 function ParseParameters(
   const Options: array of TOption;
   ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif})
@@ -472,8 +335,7 @@ function ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
   ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif})
   : TDynParsedOptionArray; overload;
-
-{ some simple helper utilities ---------------------------------------------- }
+{ @groupEnd }
 
 function OptionSeparateArgumentToCount(const v: TOptionSeparateArgument): Integer;
 function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3Single;
@@ -792,7 +654,7 @@ function ParseParameters(
 begin
  result := TDynParsedOptionArray.Create;
  try
-  ParseParameters(Options, OptionsCount, 
+  ParseParameters(Options, OptionsCount,
     {$ifdef FPC_OBJFPC} @ {$endif} ParseNextParam, result,
     ParseOnlyKnownLongOptions);
  except result.Free; raise end;
