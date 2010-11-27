@@ -301,37 +301,6 @@ procedure ParseParameters(
   ParseOnlyKnownLongOptions: boolean = false); overload;
 { @groupEnd }
 
-type
-  TParsedOption = record
-    OptionNum: Integer;
-    HasArgument: boolean;
-    Argument: string;
-    SeparateArgs: TSeparateArgs;
-  end;
-  PParsedOption = ^TParsedOption;
-
-  TDynArrayItem_1 = TParsedOption;
-  PDynArrayItem_1 = PParsedOption;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
-  {$I DynArray_1.inc}
-  TDynParsedOptionArray = TDynArray_1;
-
-{ Parse command-line parameters returning a list of parsed options.
-  Works exactly like previous ParseParameters procedure,
-  but instead of using a callback like OptionProc, this time
-  it returns a list.
-  @groupBegin }
-function ParseParameters(
-  const Options: array of TOption;
-  ParseOnlyKnownLongOptions: boolean = false)
-  : TDynParsedOptionArray; overload;
-function ParseParameters(
-  Options: POption_Array; OptionsCount: Integer;
-  ParseOnlyKnownLongOptions: boolean = false)
-  : TDynParsedOptionArray; overload;
-{ @groupEnd }
-
 function OptionSeparateArgumentToCount(const v: TOptionSeparateArgument): Integer;
 function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3Single;
 
@@ -349,35 +318,9 @@ const
 
 implementation
 
-{$define read_implementation}
-
 uses KambiStringUtils;
 
-{$ifdef FPC}
-procedure Initialize(var v: TOption); overload;
-begin
- FillChar(v, SizeOf(v), 0);
-end;
-
-procedure Finalize(var v: TOption); overload;
-begin
- v.Long := '';
-end;
-
-procedure Initialize(var v: TParsedOption); overload;
-begin
- FillChar(v, SizeOf(v), 0);
-end;
-
-procedure Finalize(var v: TParsedOption); overload;
-var i: Integer;
-begin
- v.Argument := '';
- for i := Low(TSeparateArgs) to High(TSeparateArgs) do v.SeparateArgs[i] := '';
-end;
-{$endif}
-
-{$I dynarray_1.inc}
+{$define read_implementation}
 {$I dynarray_2.inc}
 
 procedure ParseParameters(const Options: array of TOption; OptionProc: TOptionProc;
@@ -624,38 +567,6 @@ begin
   end;
 
  finally SimpleShortOptions.Free end;
-end;
-
-procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var ParsedArray: TDynParsedOptionArray absolute Data;
-    LastItem: PParsedOption;
-begin
- LastItem := ParsedArray.Add;
- LastItem^.OptionNum := OptionNum;
- LastItem^.HasArgument := HasArgument;
- LastItem^.Argument := Argument;
- LastItem^.SeparateArgs := SeparateArgs;
-end;
-
-function ParseParameters(
-  Options: POption_Array; OptionsCount: Integer;
-  ParseOnlyKnownLongOptions: boolean)
-  : TDynParsedOptionArray;
-begin
- result := TDynParsedOptionArray.Create;
- try
-  ParseParameters(Options, OptionsCount,
-    {$ifdef FPC_OBJFPC} @ {$endif} ParseNextParam, result,
-    ParseOnlyKnownLongOptions);
- except result.Free; raise end;
-end;
-
-function ParseParameters(
-  const Options: array of TOption; ParseOnlyKnownLongOptions: boolean)
-  : TDynParsedOptionArray;
-begin
- result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
 end;
 
 { some simple helper utilities ---------------------------------------------- }
