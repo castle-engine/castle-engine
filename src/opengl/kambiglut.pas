@@ -21,9 +21,6 @@
   as external). This can be used for checking is glut library available
   at runtime some day.
 
-  Includes additional glutPascalInit procedure, useful to easily and correctly
-  call glutInit.
-
   Original header is Copyright (c) Mark J. Kilgard, 1994, 1995, 1996, 1998.
 
   @exclude (A lot of docs are not fixed for PasDoc. It's also internal,
