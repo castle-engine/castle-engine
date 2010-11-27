@@ -38,6 +38,46 @@ private
 
 {$I glwindow_dialogs_by_glwinmessages.inc}
 
+{ Call glutInit constructing coorect Argc, Argv paremeters.
+  Argc, Argv are constructed from standard ParamCount and ParamStr.
+  This allows you to use command-line arguments like --geometry,
+  GLUT will handle these.
+
+  Note that there is no standard Pascal
+  way to delete some parameters from ParamStr. So if you do your own
+  command-line processing too, you will not know which
+  command-line options were already handled by GLUT. (This may be fixed
+  one day by using my own @link(KambiUtils.Parameters).) }
+procedure glutPascalInit;
+type
+  ArrayPChar = array[0..High(Word)]of PChar;
+  PArrayPChar=^ArrayPChar;
+var
+  argc, i: integer;
+  argv, argvcopy: PArrayPChar;
+begin
+  argc := ParamCount+1;
+  argv := GetMem((argc+1)*SizeOf(PChar));
+  argvcopy := GetMem(argc*SizeOf(PChar));
+  for i := 0 to ParamCount do
+  begin
+    argv^[i] := StrNew(PChar(ParamStr(i))); { KOPIUJEMY ParamStr do nowego PChara- tak najbezpieczniej }
+    argvcopy^[i] := argv^[i];
+  end;
+  argv^[argc] := nil; { ostatni element tablicy argv[] powinien byc ustawiony na nil }
+
+  glutInit(@argc, {$ifdef FPC_GLUT_UNIT} PPChar {$endif} (argv));
+
+  { cleanup :
+    Dalismy glutowi na pozarcie skonstruowane argc i argv.
+    Teraz chcemy zwolnic pamiec zaalokowana przez StrNew - ale glut byc moze
+    zmodyfikowal nasza zawartosc tablicy argv usuwajac niektore wskazniki !
+    I dlatego mysmy byli sprytni i przechowalismy je w argvcopy. }
+  for i := 0 to ParamCount do StrDispose(argvcopy^[i]);
+  FreeMem(argv);
+  FreeMem(argvcopy);
+end;
+
 { some conversions ------------------------------------------------- }
 
 function CharToKey(c: char): TKey;
@@ -118,10 +158,14 @@ GLUTBEGIN
  DoResize(w, h, false);
 GLUTEND;
 
-procedure keyboardByGlut(CharKey: char; x, y: integer); cdecl;
+procedure keyboardByGlut(
+  {$ifdef FPC_GLUT_UNIT} CharKeyByte: Byte; {$else} CharKey: Char; {$endif}
+  x, y: integer); cdecl;
 { glut keyboard = robimy GlutDoKeyDown,
   przy okazji robimy tez UpdateGlutModifiers. }
-var Key: TKey;
+var
+  Key: TKey;
+  {$ifdef FPC_GLUT_UNIT} CharKey: Char absolute CharKeyByte; {$endif}
 GLUTBEGIN
  UpdateGlutModifiers;
  Key := CharToKey(CharKey);

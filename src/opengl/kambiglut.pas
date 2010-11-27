@@ -549,70 +549,9 @@ const
   glutGameModeGet: function(mode: TGLenum) :integer; {$ifdef GLUT_CDECL} cdecl; {$endif} {$ifdef GLUT_STDCALL} stdcall; {$endif}
   *)
 
-  { Call glutInit constructing coorect Argc, Argv paremeters.
-    Argc, Argv are constructed from standard ParamCount and ParamStr.
-    This allows you to use command-line arguments like --geometry,
-    GLUT will handle these.
-
-    Note that there is no standard Pascal
-    way to delete some parameters from ParamStr. So if you do your own
-    command-line processing too, you will not know which
-    command-line options were already handled by GLUT. (This may be fixed
-    one day by using my own @link(KambiUtils.Parameters).) }
-  procedure glutPascalInit;
-
 implementation
 
 uses KambiUtils, KambiDynLib;
-
-{procedury pomocnicze dla Gluta, zrobione przeze mnie ----------------------------}
-
-procedure glutPascalInit;
-{glutInit obok inicjacji calego gluta robi bardzo fajna rzecz :
-   przetwarza argumenty naszego programu,
-   te ktore rozpoznaje - realizuje i wyrzuca je z naszych argumentow.
- Sztuczka z wyrzucaniem argumetow polega na modyfikacji argc i argv ktore
-   typowo sa przekazanymi parametrami jakie otrzymala main().
- Pomysl uczynienia argumentow programu zmiennymi lokalnymi w procedurze
-   main() wcale nie jest dobry w ANSI C gdy trzeba gdzies indziej przetwarzac
-   parametry.
- Ale ParamCount i ParamStr Pascala tez maja wade : to sa funkcje,
-   wiec nie mozna samemu modyfikowac wlasnych parametrow. Patrz ParCount i
-   ParStr w KambiUtils ktore umozliwiaja takie zachowanie, ale tu ich nie uzywam
-   (nie chce czynic glut.pas zaleznym od KambiUtils.pas).
-
- Jak by nie bylo, tworzymy tutaj specjalnie dla glutInit argc i argv na podstawie
-   ParamCount/Str. Niestety, nie mozemy pozniej usunac przetworzonych przez
-   gluta argumentow z listy ParamStr - trudno. Proste programy w glut+openGL'u
-   i tak nie beda pewnie zwracac uwagi na swoje parametry.
- Przykladowy parametr rozumiany przez gluta pod X-ami to -geometry WxH+X+Y
-}
-type ArrayPChar = array[0..High(Word)]of PChar;
-     PArrayPChar=^ArrayPChar;
-var argc, i: integer;
-    argv, argvcopy: PArrayPChar;
-begin
- argc := ParamCount+1;
- argv := GetMem((argc+1)*SizeOf(PChar));
- argvcopy := GetMem(argc*SizeOf(PChar));
- for i := 0 to ParamCount do
- begin
-  argv^[i] := StrNew(PChar(ParamStr(i))); { KOPIUJEMY ParamStr do nowego PChara- tak najbezpieczniej }
-  argvcopy^[i] := argv^[i];
- end;
- argv^[argc] := nil; { ostatni element tablicy argv[] powinien byc ustawiony na nil }
-
- glutInit(@argc, argv);
-
- { cleanup :
-   Dalismy glutowi na pozarcie skonstruowane argc i argv.
-   Teraz chcemy zwolnic pamiec zaalokowana przez StrNew - ale glut byc moze
-   zmodyfikowal nasza zawartosc tablicy argv usuwajac niektore wskazniki !
-   I dlatego mysmy byli sprytni i przechowalismy je w argvcopy. }
- for i := 0 to ParamCount do StrDispose(argvcopy^[i]);
- FreeMem(argv);
- FreeMem(argvcopy);
-end;
 
 {makra ------------------------------------------------------------------------}
 
