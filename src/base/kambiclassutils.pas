@@ -139,6 +139,7 @@ type
   { TStringList that is case sensitive. }
   TStringListCaseSens = class(TStringList)
     constructor Create;
+    property CaseSensitive default true;
   end;
 
 { Assuming that List is sorted, searches in log time for a Value in List.
