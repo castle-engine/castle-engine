@@ -111,28 +111,11 @@ uses DataErrors, GLImages;
 const
   { Relation of a cube size and a radius of it's bounding sphere.
 
-    Malenki kawalek matematyki: Dana sfera o promieniu SphereRadius, dany
-    szescian o boku dlugosci CubeSize. Srodek sfery = srodek szescianu,
-    jak wyrazic CubeSize w zaleznosci od SphereRadius i w druga strone
-    aby szescian byl dokladnie wpisany w sfere ?
-
-@preformatted(
-  Przekatna szescianu (ale nie boku szescianu) = 2*promien sfery,
-    czyli bok szescianu * Sqrt2 = przekatna boku i
-    Sqrt(Sqr(przekatna boku) + Sqr(bok)) = przekatna szescianu
-    czyli
-      Sqrt(Sqr(CubeSize * Sqrt2) + Sqr(CubeSize)) = 2 * SkySphereRadius
-      Sqr(CubeSize * Sqrt2) + Sqr(CubeSize) = Sqr(2 * SkySphereRadius)
-      Sqr(CubeSize) * Sqr(Sqrt2) + Sqr(CubeSize) = Sqr(2 * SkySphereRadius)
-      3*Sqr(CubeSize) = Sqr(2 * SkySphereRadius)
-      CubeSize = Sqrt( Sqr(2 * SkySphereRadius)/3 )
-               = 2 * SkySphereRadius / Sqrt(3)
-    funkcja w druga strone : SkySphereRadius = Sqrt(3) * CubeSize / 2
-
-  Dlatego wlasnie w module ponizej sa stale
-    SphereRadiusToCubeSize = 2/Sqrt(3)
-    CubeSizeToSpeherRadius = Sqrt(3)/2
-) }
+    Sphere surrounds the cube, such that 6 cube corners touch the sphere.
+    So cube diameter = 2 * sphere radius.
+    Cube diameter = sqrt(sqr(cube size) + sqr(cube face diameter)),
+    and cube face diameter = sqrt(2) * cube size.
+    This gives constants below. }
   SphereRadiusToCubeSize = 2/Sqrt(3);
   CubeSizeToSphereRadius = Sqrt(3)/2;
 
@@ -143,44 +126,22 @@ begin
  glCallList(szescianNieba_list);
 end;
 
-{ Niebo to sfera o promieniu SkySphereRadius. Sfera ground i szescian
-  6 tekstur nieba beda zrobione tak zeby byc jak najblizej sfery sky -
-  sfera ground bedzie miala ten sam promien co sfera sky (rysujemy bez
-  DEPTH_TEST wiec nie bedzie walki w z-buforze pomiedzy tymi elementami)
-  a szescian bedzie wyznaczony tak zeby rogami dotykac tej sfery
-  (tzn. CubeSize = SkySphereRadius * SphereRadiusToCubeSize).
-
-  Zarowno szescian jak i sfera musza byc pomiedzy near i far perpsektywy,
-  tzn. musi byc near < CubeSize/2, far > SkySphereRadius.
-  Albo, patrzac na to z drugiej strony, warunek jaki musi spelniac
-  SkyCubeSize to
-
-    near * 2 < SkyCubeSize < far * SphereRadiusToCubeSize
-
-  Tu uwaga - ta nierownosc formalnie potwierdza fakt ze mozna
-  dobrac near i far tak bliskie siebie ze zadne SkyCubeSize nie
-  bedzie mozliwe (tzn. near < far nie gwarantuje ze istnieje
-  SkyCubeSize spelniajace ta nierownosc bo
-
-    2 > SphereRadiusToCubeSize).
-
-  NearFarToSkySphereRadius wyliczy near i far na podstawie wartosci
-  jakie ustawiles projection (jako
-  srednia ( near * 2,  far * SphereRadiusToCubeSize )).
-  (background nie jest brane pod uwage w depth-tescie, zalezy nam tylko
-  zeby bylo pomiedzy near a far i zeby nie bylo clipped).
-
-  Jeszcze jedno : mialem pomysl aby Render samo ustawialo jakies proste
-  Projection Matrix ktore byloby dobre dla niego.
-  Wtedy nie musielibysmy podawac SkyCubeSize. Ale : po pierwsze,
-  trzeba byloby z kolei podawac aspect i fovy wiec wyszloby na
-  to samo. Po drugie, wymagaloby to uzycia jednego miejsca na
-  stosie matryc projection, a ten jest bardzo plytki. Po trzecie,
-  tak jak jest jest szybciej - nie musimy ustawiac zadnej macierzy.
-}
-
 class function TBackgroundGL.NearFarToSkySphereRadius(const zNear, zFar: Single;
   const Proposed: Single): Single;
+
+{ Conditions are ZNear < CubeSize/2, ZFar > SphereRadius.
+  So conditions for CubeSize is
+
+    ZNear * 2 < CubeSize < ZFar * SphereRadiusToCubeSize
+
+  Note that 2 > SphereRadiusToCubeSize, so it's possible to choose
+  ZNear <= ZFar that still yield no possible CubeSize.
+
+  It would be possible to avoid whole need for this method
+  by setting projection matrix in our own render. But then,
+  you'd have to pass fovy and such parameters to the background renderer.
+}
+
 var
   Min, Max, SafeMin, SafeMax: Single;
 begin
