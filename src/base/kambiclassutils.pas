@@ -88,33 +88,29 @@ type
 { @section(TObjectsList_Abstract) }
 
 type
-  { }
+  { Abstract base class for all lists using our "faked generics" in objectslist.inc. }
   TObjectsList_Abstract = class(TPersistent)
   public
     procedure FreeContents; virtual; abstract;
-    { If Self <> nil then call FreeContents and Destroy. }
+    { Free contents and destroy yourself, if Self <> nil. }
     procedure FreeWithContents;
   end;
 
-{ Equivalent to FreeAndNil, but calls FreeWithContents instead of Free.
-  Be careful --- pass here only TObjectsList_Abstract descendants ! }
+{ Free with contents, and set variable to nil,
+  for TObjectsList_Abstract descendants. Similar to FreeAndNil,
+  but calls FreeWithContents instead of Free. }
 procedure FreeWithContentsAndNil(var Obj);
 
 { ---------------------------------------------------------------------------- }
 { @section(TStrings related) }
 
-{ Add some strings to TStrings }
+{ Add some strings. }
 procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
 
-{ Add all strings from string array to TStrings object. }
+{ Add all strings from string array to TStrings instance. }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
 
-{ wersje z IniFile : zapisuja klucze o nazwach Count i ItemXxx gdzie Xxx to numer stringa
-  w podanej sekcji. Defaultowo zostanie przyjete count = 0. }
-procedure Load_Strings(IniFile: TIniFile; const section: string; Strs: TStrings); overload;
-procedure Save_Strings(IniFile: TIniFile; const section: string; Strs: TStrings); overload;
-
-{ Append to SList some directiories.
+{ Append to TStrings some directiories.
 
   @unorderedList(
     @item(AddPathsFromFileLines reads directiories list from given file.
@@ -126,8 +122,8 @@ procedure Save_Strings(IniFile: TIniFile; const section: string; Strs: TStrings)
       separated by PathSeparator.)
 
     @item(AddPathsFromEnvironmentVar reads directiories from a list
-      in environment variable, also separated by PathSeparator.
-      This is suitable for parsing environment variable like
+      in the environment variable, also separated by PathSeparator.
+      This is suitable for parsing environment variables like
       $PATH or $LD_LIBRARY_PATH.)
   )
 
@@ -139,27 +135,11 @@ procedure AddPathsFromEnvironmentVar(slist: TStrings; const varname: string);
 procedure AddPathsFromPathList(slist: TStrings; const pathlist: string);
 { @groupEnd }
 
-{ zwraca wszystkie stringi z slist sklejone separatorem. }
-function StringsSeparated(slist: TStrings; const separator: string): string;
-
-{ This is supposed to be TStringList that is case sensitive.
-
-  TODO: In FPC >= 2.0.0 TStringList.CaseSensitive property
-  was added. However, TStringList.CaseSensitive should always be left
-  false (because of a bug, see
-  [http://www.freepascal.org/bugs/showrec.php3?ID=4698]).
-  So with FPC 2.0.0 and 2.0.2 we can't have CaseSensitive TStringList.
-
-  I use this type to mark the places in my code that are vulnerable
-  to this FPC bug. }
 type
-  {$ifdef FPC}
-  TStringListCaseSens = TStringList;
-  {$else}
+  { TStringList that is case sensitive. }
   TStringListCaseSens = class(TStringList)
     constructor Create;
   end;
-  {$endif}
 
 { Assuming that List is sorted, searches in log time for a Value in List.
   Returns -1 if not found.
@@ -843,40 +823,11 @@ begin
  end;
 end;
 
-procedure Load_Strings(IniFile: TIniFile; const section: string; Strs: TStrings);
-var i: integer;
-begin
- for i := 0 to IniFile.ReadInteger(section, 'Count', 0)-1 do
-  Strs.Append(IniFile.ReadString(section, 'Item'+IntToStr(i), ''));
-end;
-
-procedure Save_Strings(IniFile: TIniFile; const section: string; Strs: TStrings);
-var i: integer;
-begin
- IniFile.WriteInteger(section, 'Count', Strs.Count);
- for i := 0 to Strs.Count-1 do
-  IniFile.WriteString(section, 'Item'+IntToStr(i), Strs[i]);
-end;
-
-function StringsSeparated(slist: TStrings; const separator: string): string;
-var i: integer;
-begin
- result := '';
- if slist.count > 0 then
- begin
-  for i := 0 to slist.count-2 do
-   result := result +slist[i] +separator;
-  result := result +slist[slist.count-1];
- end;
-end;
-
-{$ifndef FPC}
 constructor TStringListCaseSens.Create;
 begin
- inherited;
- CaseSensitive := true;
+  inherited;
+  CaseSensitive := true;
 end;
-{$endif}
 
 function SearchSortedList(List: TStrings; const Value: string): Integer;
 var A, B, AB: Integer;
