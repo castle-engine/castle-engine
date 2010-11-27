@@ -13,20 +13,20 @@
   ----------------------------------------------------------------------------
 }
 
-{ Parsing command-line arguments.
+{ Parsing command-line options.
 
   Some terminology:
 
   @definitionList(
-    @itemLabel Parameter
+    @itemLabel @italic(Parameter)
     @item(Command-line parameters list is given directly by the OS to our
       program.
 
       This unit obtains them from the @link(Parameters) list.
-      This is initialized from standard Pascal ParamStr/ParamCount.
+      This list is in turn initialized from the standard Pascal ParamStr/ParamCount.
       It can be modified to remove the already-handled parameters.)
 
-    @itemLabel Option
+    @itemLabel @italic(Option)
     @item(Options are things encoded by the user in the parameters.
       Examples:
 
@@ -51,10 +51,10 @@
       The very idea of this unit is to decode "options" from the "parameters".
     )
 
-    @itemLabel Argument
-    @item(Is a part of the option, that clarifies what this option does.
-      For example in @code(@--navigation=Walk), @code(Walk) is the argument
-      and @--navigation is the option long name.
+    @itemLabel @italic(Argument)
+    @item(Argument is a part of the option, that clarifies what this option does.
+      For example in @code(@--navigation=Walk), "@code(Walk)" is the argument
+      and "@code(@--navigation)" is the option long name.
 
       Some options don't take any arguments, some take optional argument,
       some take required argument, some have a couple of arguments.
@@ -169,49 +169,44 @@ const
   EmptySeparateArgs: TSeparateArgs = ('','','', '','','', '','','');
 
 type
-  { Gdy ta funkcja bedzie wywolywana z funkcji ParseParameters to znaczenie parametrow bedzie
-    nastepujace :
+  { Callback used by ParseParameters to notify about new option.
 
-      OptionNum = bedzie numer opcji z tablicy Options (zero-based).
+    @param(OptionNum The option number in the Options table (zero-based).)
 
-      HasArgument = false, jesli Options[ParamNum].Argument
-      in [oaNone, oaRequired?Separate] lub (oaOptional i nie podano argumentu).
-      true wpp. (a wiec gdy Options[ParamNum].Argument = oaRequired lub
-      (oaOptional i podano argument).
+    @param(HasArgument Says if you have a single argument in the Argument
+      parameter. Always @false when your option has oaNone or
+      oaRequiredXSeparate. Always @true when your option has oaRequired.
+      For oaOptional, this is how you know if the optional argument was used.)
 
-      Argument = jesli HasArgument to jest to argument podany przy opcji,
-      wpp. '' (notka: zwroc uwage ze nic nie przeszkadza userowi podac argument = ''.
-      Dlatego wlasnie potrzebny jest parametr HasArgument zeby opcje
-      oaOptional mogly rozpoznac czy user nie podal argumentu (HasArgument=false)
-      czy tez podal argument rowny '' (HasArgument = true, Argument = '').
+    @param(Argument A single argument for oaRequired or oaOptional,
+      only if HasArgument. Otherwise empty string.)
 
-      SeparateArgs = jezeli Options[ParamNum].Argument in oaRequired?Separate to
-      odpowiednia ilosc poczatkowych SeparateArgs bedzie usatwiona na poczatkowe
-      argumenty, np. dla oaRequired2Separate powinienes odczytac argumenty
-      z SeparateArgs[1] i SeparateArgs[2]. Wszystkie pozostale SeparateArgs
-      (w powyzszym przykladzie, SeparateArgs[3] .. SeparateArgs[High(SeparateArgs)])
-      beda rowne ''. Jesli Options[ParamNum].Argument nie byl rowny oaRequired?Separate
-      to wszystkie SeparateArgs[] beda rowne '' (czyli SeparateArgs = EmptySeparateArgs).
+    @param(SeparateArgs For options using oaRequiredXSeparate,
+      your arguments are here. You get exactly as many argument
+      as your oaRequiredXSeparate requested, the rest of SeparateArgs
+      is empty strings.)
 
-      Data = OptionProcData podane do ParseParameters
+    @param(Data This is the OptionProcData value you passed to ParseParameters,
+      use this to pass some pointer to your callback.)
   }
   TOptionProc = procedure (OptionNum: Integer; HasArgument: boolean;
     const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 
-  TOption = record
-    { Short moze byc rowne ' ' (spacji), Long moze zawierac w sobie spacje
-      na dowolnych pozycjach, to nie powoduje zadnych problemow,
-      ale nie jest zalecane (raczej nie ulatwialoby to zycia userowi ktory
-      musialby wprowadzic opcje ze spacjami w srodku).
-      Zarowno Short jak i Long beda dopasowywane case-sensitive, '-a' i '-A' to
-      rozne opcje. }
+  { Command-line option specification, for ParseParameters.
 
-    { jezeli Short = #0 to nie istnieje krotka postac opcji.
-      Short nie moze byc takze '-' lub '=' (to powodowaloby wiele potencjalnych
-      niejednoznacznosci) }
+    Both Short and Long option names are case-sensitive.
+    The convention is to make Long option names using only lower-case letters,
+    separates by dashes, like @code(my-option-name).
+
+    Note that spaces are allowed (as Short option name, or within Long
+    option nam), but in practice should not be used as they are a pain
+    to pass for the users (you'd have to quote option names under most shells). }
+  TOption = record
+    { Short option name. Use #0 if none. Cannot be '-' or '=' (these would
+      cause ambiguity when parsing options). }
     Short: Char;
-    { jezeli Long = '' to nie istnieje dluga postac opcji.
-      Long nie moze zawierac znaku '=' (to powodowaloby pewne niejednoznacznosci) }
+    { Long option name. Use '' if none. Cannot contain '=' (this would
+      cause ambiguity when parsing options). }
     Long: string;
     Argument: TOptionArgument;
   end;
@@ -295,15 +290,15 @@ type
 procedure ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
   OptionProc: TOptionProc; OptionProcData: Pointer;
-  ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif}); overload;
+  ParseOnlyKnownLongOptions: boolean = false); overload;
 procedure ParseParameters(
   const Options: array of TOption;
   OptionProc: TOptionProc; OptionProcData: Pointer;
-  ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif}); overload;
+  ParseOnlyKnownLongOptions: boolean = false); overload;
 procedure ParseParameters(
   Options: TDynOptionArray;
   OptionProc: TOptionProc; OptionProcData: Pointer;
-  ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif}); overload;
+  ParseOnlyKnownLongOptions: boolean = false); overload;
 { @groupEnd }
 
 type
@@ -329,11 +324,11 @@ type
   @groupBegin }
 function ParseParameters(
   const Options: array of TOption;
-  ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif})
+  ParseOnlyKnownLongOptions: boolean = false)
   : TDynParsedOptionArray; overload;
 function ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
-  ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif})
+  ParseOnlyKnownLongOptions: boolean = false)
   : TDynParsedOptionArray; overload;
 { @groupEnd }
 
@@ -341,12 +336,8 @@ function OptionSeparateArgumentToCount(const v: TOptionSeparateArgument): Intege
 function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3Single;
 
 const
-  OnlyHelpOptions: array[0..1]of TOption = (
-    (Short: 'h'; Long: 'help'; Argument: oaNone),
-    { dodajemy tutaj dodatkowo pusta opcje tylko po to zeby obejsc bug FPC 1.0.10
-      pod Windowsem, patrz InfoWriteBug (w fpc.testy/ lub
-      kambi_fpc_bugs/already_fixed/). To bedzie zdjete gdy przejde na FPC 2.0. }
-    (Short:  #0; Long: ''; Argument: oaNone)
+  OnlyHelpOptions: array[0..0]of TOption = (
+    (Short: 'h'; Long: 'help'; Argument: oaNone)
   );
 
   HelpOptionHelp =

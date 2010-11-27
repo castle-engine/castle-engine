@@ -102,7 +102,7 @@ D   kambixmlconfig.pas
 D   kambixmlutils.pas
 D   kambizlib.pas
 D   kambizstream.pas
--   parseparametersunit.pas
+D   parseparametersunit.pas
 D   progressconsole.pas
 D   progressunit.pas
 D   recentfiles.pas
