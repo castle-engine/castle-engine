@@ -38,7 +38,7 @@ D   sphericalharmonics.pas
 D   triangulator.pas
 
   3d/opengl/
--   backgroundgl.pas
+D   backgroundgl.pas
 D   gl3d.pas
 
   vrml/
