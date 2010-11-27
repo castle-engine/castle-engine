@@ -102,7 +102,7 @@ type
 procedure FreeWithContentsAndNil(var Obj);
 
 { ---------------------------------------------------------------------------- }
-{ @section(TStrings related) }
+{ @section(TStrings utilities) }
 
 { Add some strings. }
 procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
@@ -142,11 +142,6 @@ type
     property CaseSensitive default true;
   end;
 
-{ Assuming that List is sorted, searches in log time for a Value in List.
-  Returns -1 if not found.
-  Very useful for simple dictionaries of words, where lookup must be fast. }
-function SearchSortedList(List: TStrings; const Value: string): Integer;
-
 { Splits S by Splitter, and adds each splitted part to Strings.
   Splitting is done by Splitter, i.e. if N is the number of occurences
   of Splitter inside S, then it always adds N + 1 strings to Strings.
@@ -166,22 +161,16 @@ procedure Strings_AddVrmlEngineProgramHelpSuffix(
   See [http://www.freepascal.org/mantis/view.php?id=6699] }
 procedure Strings_SetText(SList: TStrings; const S: string);
 
-{ If Strings.Count is larger than MaxCount then
-  it will delete the last strings (to make Strings.Count = MaxCount). }
+{ Make sure we don't have more than MaxCount strings on a list.
+  Removes the last strings if necessary. }
 procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
 
 { Free all objects within the StringList,
-  then free and set to @nil StringList itself. }
+  then free and set to @nil the StringList itself. }
 procedure StringList_FreeWithContentsAndNil(var StringList: TStringList);
 
 { ---------------------------------------------------------------------------- }
-{ @section(TStream related) }
-
-{ AppendStream : skopiuj cala zawartosc strumienia OwnedSourceStream do
-  DestStream. Potem zrob OwnedSourceStream.Free (czyli OwnedSourceStream
-  najlepiej przekazac w postaci freshly created stream, like this
-  @code(AppendStream(DestStream, TMyStream.Create(...)))). }
-procedure AppendStream(DestStream, OwnedSourceStream: TStream);
+{ @section(TStream utilities) }
 
 procedure StreamWriteLongWord(Stream: TStream; const Value: LongWord);
 function StreamReadLongWord(Stream: TStream): LongWord;
@@ -189,96 +178,87 @@ function StreamReadLongWord(Stream: TStream): LongWord;
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 function StreamReadByte(Stream: TStream): Byte;
 
-{ This simply writes Length(s) bytes starting from s[1].
-  Versions with "ln" append nl, end of the line marker, to this.
-  Versions without Stream param write to StdOutStream. }
+{ Write string contents to stream.
+  This isn't a procedure to encode a string within a binary stream,
+  this only writes string contents (Length(S) bytes) into the stream.
+  Versions with "ln" append newline.
+  Versions without Stream parameter write to StdOutStream.
+  @groupBegin }
 procedure WriteStr(Stream: TStream; const S: string); overload;
 procedure WritelnStr(Stream: TStream; const S: string); overload;
 procedure WriteStr(const S: string); overload;
 procedure WritelnStr(const S: string); overload;
+{ @groupEnd }
 
-{reads one char from stream using ReadBuffer (so EReadError will be raised
- if end of stream)}
+{ Read one character from stream.
+  @raises EReadError If end of stream. }
 function StreamReadChar(Stream: TStream): char;
 
 function StreamReadZeroEndString(Stream: TStream): string;
 
-{ StringReadUpto_NotEOS czyta strumien az do jakiegos znaku sposrod endingChars.
-  Jezeli wczesniej napotka koniec strumienia - exception Stream Read Error.
-  Zwrocony result nie zawiera endingChar. Wersja 2-argumentowa po prostu
-  o nim "zapomina" - jezeli jej uzyjesz i backEndingChar = false, nie dowiesz sie
-  jaki znak sposrod endingChars zatrzymal czytanie.
-  Jezeli nie podasz backEndingChar to bedzie znaczylo ze nie ma go zwracac
-  (tak samo jakbys podal false).
+{ Read stream, until you find some character in EndingChars.
+  Returns read contents, without final character (the one in EndingChars set).
 
-  NOTE: not every stream can back characters - it is implemented as
-  Seek(-1, soFromCurrent) and some streams in FCL/VCL simply raise exception
-  when we're doing this ! This is a problem with TStream class, not with our
-  code.
+  If you use a version with BackEndingChar parameter and pass
+  BackEndingChar = @true, then the ending character will be returned back to
+  stream (we will start reading from it next time).
+  Note that "returning the character" is done by Seek(-1, soFromCurrent),
+  which may not be possible on some streams. Wrap a stream
+  in TPeekCharStream instead, and use TPeekCharStream.ReadUpto,
+  to be able to "return back" a character reliably.
 
-  Use @link(TPeekCharStream) if you want to avoid this uncertainty,
-  i.e. if you need functionality of StreamReadUpto_Xxx without
-  using tricks with changing Position of the stream. }
+  Independently from BackEndingChar, if you use a version with EndingChar
+  parameter, it will be set to the ending character.
+
+  @raises EReadError If the stream will end before encountering one of EndingChars.
+  @groupBegin }
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean; out endingChar: char): string; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean): string; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  { backEndingChar: boolean = false }
   out endingChar: char): string; overload;
-function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars
-  { backEndingChar: boolean = false }): string; overload;
+function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars): string; overload;
+{ @groupEnd }
 
-{ StringReadUpto_EOS czyta az napotka znak sposrod endingChars lub
-  koniec strumienia. Zwraca endingChar = -1 w tym przypadku,
-  jezeli endingChar <> -1 to mozesz swobodnie wziac Chr(endingChar) i masz
-  znak ktory zakonczyl czytanie. Podobnie jako _NotEOS, zwrocony
-  result nie zawiera endingChar. }
+{ Read stream, until you find some character in EndingChars, or end of stream.
+
+  Compared to StreamReadUpto_NotEOS, this treats "end of stream"
+  as a normal situation, and doesn't raise any exception on it.
+  It sets EndingChar to -1 on end of stream. When EndingChar is not -1,
+  you know you can safely cast it to normal 8-bit character.
+
+  Everything else works like with StreamReadUpto_NotEOS.
+  @groupBegin }
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean; out endingChar: integer): string; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean): string; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  { backEndingChar: boolean = false }
   out endingChar: integer): string; overload;
-function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars
-  { backEndingChar: boolean = false }): string; overload;
+function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): string; overload;
+{ @groupEnd }
 
-{ _NotEOS wyrzuca blad EStreamReadError jezeli bedziemy stac na koncu
-  stringa. Natomiast _EOS zwroci -1. Robia Peek czytajac znak a potem
-  wracajac Seek(-1, soFromCurrent) a wiec aby dzialac wymagaja strumienia
-  TStream na ktorym takie Seek jest dozwolone. }
-function StreamPeekChar_NotEOS(Stream: TStream): char;
-function StreamPeekChar_EOS(Stream: TStream): integer;
+{ Open a proper stream to read a file, fast (with buffering) and with seeking.
+  This gives you a stream most comfortable for reading (buffering means
+  that you can read small, comfortable pieces of it; seeking means
+  you can jump freely to various file positions, back and forward).
 
-{ odczytaj plik ze strumienia CreateReadFileStream.
-  CreateReadFileStream gwarantuje ze po otrzymanyn strumieniu mozna swobodnie
-  skakac Seek'iem (czy ustawiajac Position:=) i gwarantuje ze odczyt ze
-  strumienia bedzie buforowany (wiec mozna bez strachu o szybkosc
-  odczytywac strumien malymi porcyjkami).
-
-  Tradycyjny strumien Delphi/FPC z modulu Classes TFileStream.Create(filename,
-  fmOpenRead); NIE robi buforowania - jego operacje przenosza sie 1:1 na
-  wywolania systemu operacyjnego. Pod Linuxem nawet prymitywne I/O
-  (open/read/write) dziala szybciutko (wiem ze linux przechowuje ostatnio
-  odczytywane dane w pamieci; przypuszcam ze plik jest po prostu zawsze
-  odczytywany duzymi porcjami do pamieci i w zwiazku z tym nawet
-  prymitywne IO ma jakby buforowanie), pod Windowsem proste operacje
-  CreateFile/ReadFile/WriteFile (na ktore jest tlumaczony TFileStream)
-  nie sa juz tak dobrze zrobione i uzywanie ponizszej proc. pod Windowsem
-  z miejsca przyspiesza WIELE miejsc w programie i pozwala mi piszac
-  kod czytajacy ze strumienia nie martwic sie tak bardzo o to zeby
-  odczytywac ze strumienia duzymi porcjami. Ale oczywiscie najlepiej
-  pod Linuxem tez uzywac ponizszej funkcji, ona bedzie zawsze "dostrojona"
-  do aktualnego systemu operacyjnego i implementacji TFileStream. }
+  On different OSes or even compilers this may require a little different
+  stream, so it's safest to just use this function. For example,
+  traditional Classes.TFileStream doesn't do buffering. Although under Linux,
+  the buffering of file handles is done at kernel level (so everything
+  works fast), on Windows the slowdown is noticeable.
+  This function will always create
+  proper stream descendant, eventually wrapping some standard stream
+  in a buffered stream with full seeking capability. }
 function CreateReadFileStream(const filename: string): TStream;
 
-{ this procedure reads GrowingStream (i.e. a stream that we can only read
-  sequentially, no seeks allowed, and Size of the Stream cannot be queried.)
-  and writes (appends) everything to DestStream.
+{ Read a growing stream (a stream that we can only read
+  sequentially, no seeks allowed, and size is unknown until we hit the end),
+  and append it to another destination stream.
 
-  It means that the only
-  operation we do on GrowingStream is GrowingStream.Read and the only
+  The only operation we do on GrowingStream is GrowingStream.Read and the only
   operation on DestStream is DestStream.WriteBuffer. So DestStream usually
   must be able to grow dynamically to accomodate any GrowingStream input size.
 
@@ -288,40 +268,40 @@ function CreateReadFileStream(const filename: string): TStream;
 procedure ReadGrowingStream(GrowingStream, DestStream: TStream;
   ResetDestStreamPosition: boolean);
 
-{ This is like ReadGrowingStream, but it returns read contents as a string. }
+{ Read a growing stream (a stream that we can only read
+  sequentially, no seeks allowed, and size is unknown until we hit the end),
+  and returns it's contents as a string. }
 function ReadGrowingStreamToString(GrowingStream: TStream): string;
 
-{ read and write string as Length(s) (4 bytes) + s contents (Length(s) bytes). }
+{ Encode / decode a string in a binary stream. Records string length (4 bytes),
+  then the string contents (Length(S) bytes).
+  @groupBegin }
 procedure StreamWriteString(Stream: TStream; const s: string);
 function StreamReadString(Stream: TStream): string;
+{ @groupEnd }
 
-{ Convert whole Stream to string.
-  This changes Stream.Position to 0 and then reads Stream.Size bytes,
-  so be sure that Stream supports these operations. }
+{ Convert whole Stream to a string.
+  Changes Stream.Position to 0 and then reads Stream.Size bytes,
+  so be sure that Stream.Size is usable. }
 function StreamToString(Stream: TStream): string;
 
 procedure StreamSaveToFile(Stream: TStream; const FileName: string);
 
 type
-  { This is TMemoryStream that at the end of construction
-    loads it's contents from file AFileName,
-    and (if not ReadOnly) at the beginning of destruction
-    saves it's contents to file.
+  { Simple file mapped into the memory. This is a TMemoryStream descendant
+    that at construction loads it's contents from file,
+    and (if not ReadOnly) at the destruction saves it's contents into
+    the same file.
 
-    This is useful if you want to read a file in a very random way
-    and you don't want to depend on how efficient is the implementation
-    of TFileStream or how efficient is the implementation of OS routines
-    used by TFileStream implementation. Using this class you know that
-    everything is in memory, so you can freely
-    - seek to some random places in file, forward, backward etc.
-    - read some place in a file many times (by reading, seeking backward,
-      reading again etc.)
-    ... and you don't have to worry about how efficient this will be.
+    This allows for full stream capabilities, very fast seeking in all
+    direction, you can seek and read freely, as the whole thing is buffered
+    in memory. However, it wastes a lot of memory --- don't use this for large
+    files.
 
-    You shouldn't use LoadFromFile/SaveToFile methods (although this class
-    is actually so simple that it won't break anything; but you should be
+    You shouldn't use LoadFromFile/SaveToFile methods. Although this class
+    is actually so simple that it won't break anything. But you should be
     aware of what you are doing, i.e. you can possibly break connection
-    between FileName property and actual contents of stream). }
+    between FileName property and actual contents of the stream. }
   TMemoryFileStream = class(TMemoryStream)
   private
     FFileName: string;
@@ -338,10 +318,11 @@ type
   EStreamNotImplementedSeek = class(EStreamNotImplemented);
   EStreamNotImplementedSetSize = class(EStreamNotImplemented);
 
-  { This is a purely sequential read-only stream.
+  { Read another stream, sequentially, always being able to back one character.
+    This is a purely sequential read-only stream.
     This means that calling Write, Seek (changing Position)
     or setting Size will always cause an exception with
-    appropriate descendant class of @link(EStreamNotImplemented).
+    appropriate descendant of @link(EStreamNotImplemented).
 
     Getting Size and Position is allowed. Getting Size is simply
     implemented by getting SourceStream.Size. Position works
@@ -505,14 +486,14 @@ type
   end;
 
 { ---------------------------------------------------------------------------- }
-{ @section(TCollection related) }
+{ @section(TCollection utilities) }
 
 {$ifdef DELPHI}
 procedure CollectionSetCount(Collection: TCollection; NewCount: integer);
 {$endif}
 
 { ---------------------------------------------------------------------------- }
-{ @section(TComponent related) }
+{ @section(TComponent utilities) }
 
 { If Component = nil then it will do
     Component := ComponentClass.Create(Owner); }
@@ -830,29 +811,6 @@ begin
   CaseSensitive := true;
 end;
 
-function SearchSortedList(List: TStrings; const Value: string): Integer;
-var A, B, AB: Integer;
-begin
- A := 0;
- B := List.Count - 1;
- while A < B do
- begin
-  AB := (A + B) div 2;
-
-  { AB may be equal to A (consider B = A + 1 then AB = (2 * A + 1) div 2 = A).
-    AB must be < B (because A + B < 2 * B (because A < B) so (A + B) div 2 < B).
-    So we must take care below to never do A := AB in some case,
-    always A := AB + 1, otherwise we get a loop. }
-
-  if Value <= List[AB] then
-   B := AB else
-   A := AB + 1;
- end;
- if (A = B) and (Value = List[A]) then
-  Result := A else
-  Result := -1;
-end;
-
 procedure Strings_AddSplittedString(Strings: TStrings;
   const S, Splitter: string);
 var
@@ -900,13 +858,6 @@ begin
 end;
 
 { TStream helpers -------------------------------------------------------- }
-
-procedure AppendStream(DestStream, OwnedSourceStream: TStream);
-begin
- try
-  DestStream.CopyFrom(OwnedSourceStream, 0);
- finally OwnedSourceStream.Free end;
-end;
 
 procedure StreamWriteLongWord(Stream: TStream; const Value: LongWord);
 begin
@@ -1052,20 +1003,6 @@ end;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): string;
 begin
  result := StreamReadUpto_EOS(Stream, endingChars, false);
-end;
-
-function StreamPeekChar_NotEOS(Stream: TStream): char;
-begin
- Stream.ReadBuffer(result, 1);
- Stream.Seek(-1, soFromCurrent);
-end;
-
-function StreamPeekChar_EOS(Stream: TStream): integer;
-var ch: char;
-begin
- if Stream.Read(ch, 1) = 1 then
-  begin Stream.Seek(-1, soFromCurrent); result := Ord(ch) end else
-  result := -1;
 end;
 
 function CreateReadFileStream(const filename: string): TStream;
