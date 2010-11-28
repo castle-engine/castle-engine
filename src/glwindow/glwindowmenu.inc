@@ -199,7 +199,7 @@
       occur now).
 
       The intention is that this SmallId should be smallest possible value >= 0.
-      So it's NOT something like TPointerSInt(Self).
+      So it's NOT something like PtrInt(Self).
       This means that as long as you won't create, say, more than 60 000
       menu items in your program (and that's a reasonable assumption) you
       can count on the fact that "every SmallId is >= 0 and < 60 000".
@@ -208,7 +208,7 @@
       using some API (like glut, Motif, WinAPI) -- you usually want to identify
       your menu item by some unique id and you want this id to be small
       (e.g. under WinAPI menu item's id must fit in 16 bit integer).
-      That's where TPointerSInt(Self) is not useful and that's where
+      That's where PtrInt(Self) is not useful and that's where
       this SmallId is useful.
 
       @seealso MenuItemFromSmallId }

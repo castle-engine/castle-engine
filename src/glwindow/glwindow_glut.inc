@@ -198,7 +198,7 @@ procedure TGLWindow.BackendMenuInitialize;
   procedure AddToCurrentMenuAllEntries(Menu: TMenu); forward;
 
   procedure AddToCurrentMenu(Entry: TMenuEntry);
-  { Note: under glut I COULD use TPointerSInt(Item) instead of Item.SmallId.
+  { Note: under glut I COULD use PtrInt(Item) instead of Item.SmallId.
     But, still, using Item.SmallId is just a little safer. }
   var
     CurrentMenu: Integer;

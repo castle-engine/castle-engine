@@ -7,10 +7,10 @@
   var
     NowIndex: Integer;
     MinPtr, NowPtr, Temp: Pointer;
-    { TPointerSInt aliases for pointer types, to allow for
+    { PtrInt aliases for pointer types, to allow for
       addition on them with ArrStride (signed) without any warnings. }
-    NowPtrInt: TPointerSInt absolute NowPtr;
-    LInt: TPointerSInt absolute L;
+    NowPtrInt: PtrInt absolute NowPtr;
+    LInt: PtrInt absolute L;
   begin
    Temp := GetMem(ArrRecordSize);
    try
@@ -42,10 +42,10 @@
     R: Pointer; RIndex: Integer);
   var
     I, J: Pointer;
-    { TPointerSInt aliases for pointer types, to allow for
+    { PtrInt aliases for pointer types, to allow for
       addition on them with ArrStride (signed) without any warnings. }
-    IInt: TPointerSInt absolute I;
-    JInt: TPointerSInt absolute J;
+    IInt: PtrInt absolute I;
+    JInt: PtrInt absolute J;
     IIndex, JIndex: Integer;
     Temp, Middle: Pointer;
   begin

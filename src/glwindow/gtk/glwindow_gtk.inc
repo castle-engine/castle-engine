@@ -684,7 +684,7 @@ procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
 var MenuItem: TMenuItem;
     glwin: TGLWindow;
 begin
- MenuItem := MenuItemFromSmallId( TPointerSInt(Data) );
+ MenuItem := MenuItemFromSmallId( PtrInt(Data) );
  glwin := TGLWindow( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
 
  if MenuItem is TMenuItemChecked then

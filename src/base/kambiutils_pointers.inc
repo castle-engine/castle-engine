@@ -18,12 +18,12 @@
 
 {$ifdef read_interface}
 
-type
   {$define PTRINT_DEFINED}
   {$ifdef DELPHI} {$undef PTRINT_DEFINED} {$endif}
   {$ifdef VER1_0} {$undef PTRINT_DEFINED} {$endif}
 
   {$ifndef PTRINT_DEFINED}
+type
   { Under Delphi and FPC 1.0.x my code can run only on i386. }
   PtrInt = LongInt;
   PtrUInt = LongWord;
@@ -31,7 +31,7 @@ type
 
 { Pointer arithmetic. Will wrap over if you add too much. Add may be negative.
   This function is just a shortcut for
-    TPointerSInt(result) := TPointerSInt(p)+Add;
+    PtrInt(result) := PtrInt(p)+Add;
   (or with PtrUInt) that removes any compiler warnings,
   any attempts to convert something to 64bit values and
   any Range/Overflow checks. }
@@ -71,10 +71,10 @@ function PointerAdd(p: pointer; Add: integer): pointer;
 { Ten kod moze powodowac falszywe alarmy co do rangeChecking / arith. overflow,
   dlatego powinien dzialac z R-,Q- }
 var
-  { TPointerSInt aliases for pointer types, to allow for
+  { PtrInt aliases for pointer types, to allow for
     addition on them with Add (signed) without any warnings. }
-  ResultInt: TPointerSInt absolute Result;
-  PInt: TPointerSInt absolute P;
+  ResultInt: PtrInt absolute Result;
+  PInt: PtrInt absolute P;
 begin
   ResultInt := PInt + Add;
 end;
