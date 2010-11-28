@@ -21,20 +21,19 @@
 
 const
   {$ifdef DELPHI}
+    { }
     LineEnding = {$ifdef UNIX}  #10 {$endif}
                  {$ifdef MSWINDOWS} #13#10 {$endif} ;
   {$endif}
 
-  { Kambi short name for new line }
-  nl = LineEnding;
-  { root dir name ('' if not applicable to this OS) }
-  RootDir = {$ifdef UNIX} '/' {$endif}
-            {$ifdef MSWINDOWS} '' {$endif} ;
+  { New line. Short name for LineEnding. }
+  NL = LineEnding;
 
 { basic types ---------------------------------------- }
 
 type
   {$ifdef FPC}
+  { }
   PByteArray = ^TByteArray;
   TByteArray = array[0..MaxInt div SizeOf(Byte)-1] of Byte;
   {$endif}
@@ -47,43 +46,24 @@ type
 
   PString = ^AnsiString;
 
-  { Don't call this PObject or PTObject to avoid possible name clashes
-    with other not-mine units
-    (pointers are often used in situations that prevent
+  { Pointer to TObject.
+    Don't call this PObject or PTObject to avoid possible name clashes
+    with other units (pointers are often used in situations that prevent
     good type-checking, so better to avoid name clashes to avoid some
     nasty errors). }
   PtrObject = ^TObject;
 
-  (*
-    TCodeBreaker is a special class intended to be
-    1. raised and catched (like a normal Exception descendant)
-    2. but, unlike normal Exception descendant,
-       it's not to be raised to signal some error.
-    Instead it should be used to exit from some code blocks.
+  (*Class to be raised (like an exception) and catched, to exit from some
+    code blocks.
 
-    When you define some descendant of TCodeBreaker class you must
-    always say when it's catched, and catching it should always look like
-    @longcode(#
-      try
-       { ... some code that can raise BreakXxx ... }
-      except on BreakXxx do ; end;
-    #)
-    This way doing @code(BreakXxx.Create;) inside code
-    @code({ ... some code ... }) will work like doing @code(Exit)
-    but with obvious differences -- e.g. procedures called
-    from @code({ ... some code ... }) can also raise @code(BreakXxx)
-    to exit from the code.
+    When deriving new TCodeBreaker descendant, specify always where it catched.
+    It should be catched and silenced (without causing any errors) in appropriate
+    place. This way doing @code(raise BreakXxx.Create) is a way to exit from
+    given code part.
 
-    Example -- see @link(BreakGLWinEvent) in @link(GLWindow) unit.
-
-    Naming conventions: @code(Break<CodeName>)
-    (not @code(BreakFrom<CodeName>) or @code(EBreak<CodeName>) etc.)
-
-    This class does not inherit from @code(Exception) because
-    1. it does not signal some "exceptional" situation
-    2. it must be always catched and "silenced" in some
-       try ... except block, so having here property
-       like @code(Message: string) would be a waste of time and memory. *)
+    This class does not inherit from @code(Exception) because it does not
+    signal some errornous situation (it must always be catched and silenced),
+    also it doesn't need a Message property. *)
   TCodeBreaker = class(TObject);
 
   { Internal error in the program. Something that definitely should not
@@ -91,7 +71,6 @@ type
 
     This exception must be shown to user (never silently ignored),
     and usually the safest thing to do is to close the program at this point.
-    (As the state is undefined now.)
 
     We will add to your error message (passed to the constructor) some
     instructive message, like @code('Internal error occured, please
@@ -101,49 +80,27 @@ type
     constructor CreateFmt(const s: string; const Args: array of const);
   end;
 
-  { See @link(Check) }
   ECheckFailed = class(Exception);
 
-{ if not TrueValue then raise ECheckFailed.Create(ErrMessage). }
+{ Check condition.
+  @raises ECheckFailed Raised with ErrMessage if condition TrueValue if false. }
 procedure Check(TrueValue: boolean; const ErrMessage: string);
 
-{$ifdef DELPHI}
-{$ifdef LINUX}
-{ Fix needed for Kylix 1:
-  when x < 0 this will raise EInvalidOp instead of exiting with SIGFPE.
-  To be checked is it still needed with Kylix 3. }
-function Sqrt(const x: Extended): Extended;
-{$endif}
-{$endif}
+{ Arrays searching ----------------------------------------------------------- }
 
-{ arrays searching ---------------------------------------- }
+{ Search the array for a given value.
+  Returns index (zero-based) or -1 if not found.
 
-{ ArrayPos* methods search the given array for a given value.
-
-  Podstawowe zastosowanie ArrayPos jest do zapisywania instrukcji
+  Useful for writing case as:
 
 @longCode(#
-  case variable of
-    val1 : inst1;
-    val2 : inst2;
-    else instElse;
+  case ArrayPos(variable, [val1, val2]) of
+    0 : Something1;
+    1 : Something2;
+    else SomethingElse;
   end;
 #)
 
-  (gdzie variable: Typ) w taki sposob aby Typ nie musial byc typem ordered
-  (np. moze byc stringiem) a val1, val2 nie musialby byc stalymi.
-  Zapisz case jako
-
-@longCode(#
-  case ArrayPos(variable,[val1, val2]) of
-    0 : inst1;
-    1 : inst2;
-    else instElse;
-  end;
-#)
-
-  ArrayPos(A: T; Arr: Array of T) zwraca pozycje A w Arr (liczac od zera),
-  zwraca -1 jesli A nie wystepuje w Arr.
   @groupBegin }
 function ArrayPosPointer(A: pointer; const Arr: array of pointer): Integer; overload;
 function ArrayPosStr(const A: string; const Arr: array of string): Integer; overload;
@@ -153,11 +110,11 @@ function ArrayPosExt(A: Extended; const Arr: array of Extended): Integer; overlo
 { @groupEnd }
 
 function ArrayPosText(const A: string; const Arr: array of string;
-  IgnoreCase: boolean {$ifdef DEFPARS}=true{$endif}): Integer; overload;
+  IgnoreCase: boolean = true): Integer; overload;
 
 function PArrayPosStr(const A: string; Arr: PString; ArrCount: Integer): Integer; overload;
 function PArrayPosText(const A: string; Arr: PString; ArrCount: Integer;
-  IgnoreCase: boolean {$ifdef DEFPARS}=true{$endif}): Integer; overload;
+  IgnoreCase: boolean = true): Integer; overload;
 
 { Iff functions ------------------------------------------------------------- }
 
@@ -171,7 +128,7 @@ function Iff(boolval: boolean; trueval, falseval: char)    : char;     overload;
 { Some helpful consts -------------------------------------------------------- }
 
 {$ifdef FPC}
-{ Describe FPC version, in the form 'version.release.patch'.
+{ Describe FPC version. In the form 'version.release.patch'.
 
   This is actually a constant (for every run of a program it has
   always the same value) but I can't declare it as a Pascal constant
@@ -183,25 +140,13 @@ function SFPCVersion: string;
 { Short name and version of Pascal compiler used
   to compile this unit. It is a constant, actually, but I cannot
   declare it as a constant because it must call SFPCVersion that
-  is not declared as a constant.
-
-  Calculating nice SCompilerDescription uses compiler directives
-  defined at time of compilation, and not all compilers allow to define
-  such things in a uniform manner (i.e. in a way that is guaranteed to
-  work on all, present and future, compiler versions).
-  So I can't promise here that this function will always return
-  something precise, I do not even promise that it will compile
-  with all FPC, GPC, Delphi versions. Only compiler versions
-  that I, Kambi, use, will be properly defined here.
-
-  That said, all FPC versions supporting macros FPC_VERSION/RELEASE/PATCH
-  are guaranteed to be nicely reported by this function. }
+  is not declared as a constant. }
 function SCompilerDescription: string;
 
 { Print some common info for programs released on
   [http://vrmlengine.sourceforge.net/].
   This is useful only for programs released on this WWW page by Michalis.
-  Resulting string is multiline, delimited by @link(nl).
+  Resulting string is multiline.
 
   @param(DisplayProgramName Usually ProgramName, but you can give
     here something else if you want.)
@@ -239,17 +184,6 @@ procedure Check(TrueValue: boolean; const errMessage: string);
 begin
  if not TrueValue then raise ECheckFailed.Create(errMessage);
 end;
-
-{$ifdef DELPHI}
-{$ifdef LINUX}
-function Sqrt(const x: Extended): Extended;
-begin
- if x >= 0 then
-  Result := System.Sqrt(x) else
-  raise EInvalidOp.Create('Sqrt argument <0');
-end;
-{$endif}
-{$endif}
 
 { arrays searching ---------------------------------------- }
 

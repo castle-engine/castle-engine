@@ -17,6 +17,11 @@
 
 {$ifdef read_interface}
 
+const
+  { Root dir name. Empty if not applicable to this OS. }
+  RootDir = {$ifdef UNIX} '/' {$endif}
+            {$ifdef MSWINDOWS} '' {$endif} ;
+
 { Remove from the FileName the last extension (including the dot).
   Note that if the FileName had a couple of extensions (e.g. @code(blah.x3d.gz))
   this will remove only the last one.
@@ -125,17 +130,20 @@ function IsPathAbsoluteOnDrive(const Path: string): boolean;
   or even have any filenames / directories named like this. }
 function SpecialDirName(const DirectoryName: string): boolean;
 
-{ Returns DeleteFileExt(FileName) +Suffix +ExtractFileExt(FileName); }
+{ Add Suffix to the filename, right before extension.
+  Returns @code(DeleteFileExt(FileName) + Suffix + ExtractFileExt(FileName)). }
 function AppendToFilename(const FileName, Suffix: string): string;
 
-{ Same as ExpandFileName, but knows that FilePath contains only a path
-  and will ALWAYS work as it should (not Delphi's nor FPC's guarantee
-  that ExpandFileName will work corrrectly for paths ended with PathDelim).
+{ Make path absolute. Same as ExpandFileName, but knows that
+  FilePath contains only a path and will always work as it should.
+  (Delphi's and FPC's do not guarantee correct ExpandFileName result
+  for paths ended with PathDelim.)
+
   FilePath may, but doesn't have to, end with PathDelim.
   Result will always end with PathDelim.
 
   Note: '' is treated as current dir (as it always should be, because
-  ExtractFilePath('file') = '' and 'file' is in current dir. }
+  ExtractFilePath('file') = '' and 'file' is in current dir). }
 function ExpandFilePath(const FilePath: string): string;
 
 {$endif read_interface}

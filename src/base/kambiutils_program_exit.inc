@@ -14,80 +14,59 @@
 }
 
 { Things related to exiting the program.
-  Some important things are set up here, like our own exception handler.
+  Some important things are set up here,
 
-  Polish:
-  Kilka slow o tym co sie dzieje z naszym programem gdy wystapi exception :
-  generalnie, wiele procedur w moich programach rzuca wyjatkami i niejednokrotnie
-  pisze programy w ten sposob ze pozwalam pewnym wyjatkom pozostac niewylapanymi
-  i przerwac program. Np. ParamCount(Equal/Greater/Lesser...) albo
-  TDynLib.Load zazwyczaj nie sa otoczone klauzulami try..except ktore
-  maja wylapac wyjatki jakie wystapia : zamiast tego, zazwyczaj pozwalam
-  tym procedurom na przerwanie programu przez rzucenie wyjatkiem.
-  I to jest dobre, i tak chce.
+  If your program ends with an exception (that is, the main @code(begin..end.)
+  of program code exits because exception) we want to output some nice
+  error message for user. This is done here by registering our own
+  exception handler for SysUtils.ExceptProc.
 
-  Ale pojawia sie problemik : poniewaz program moze sie konczyc na skutek
-  niewylapanego wyjatku, i jest to dla mnie sytuacja normalna (tzn. nie jest
-  to dla mnie zaden blad programu) chcialbym aby program konczacy sie
-  niewylapanym wyjatkiem wypisywal ladny komunikat dla usera, czytelny
-  i bez zadnych debuggowych wtretow (w rodzaju adresu i linii w
-  kodzie zrodlowym gdzie bylo wywolane raise). Pascal umozliwia mi to :
-  wystarczy ze ustawie zmienne ExceptProc z SysUtils na wlasna procedure.
-  Jest to obslugiwane zarowno przez FPC jak i przez Delphi i dziala swietnie
-  i jestem szczesliwy. Wiec niniejszy modul instaluje wlasnie nasze wlasne
-  ExceptProc ktore w razie niewylapanego wyjatku wypisuje OutputException()
-  i robi Halt(HaltCodeOnException). CHYBA ze zdefiniowany jest symbol DEBUG,
-  wtedy nasze ExceptProc wypisuje OutputException() i nie robi Halt -
-  zamiast tego przekazuje sterowanie do ExceptProc domyslnej, zdefiniowanej
-  w SysUtils. W ten sposob moje prywatne wersje programow beda wypisywac
-  mi troche debugging info - np. FPC probuje zrobic backtrace od miejsca
-  wywolania i nieraz jest to bardzo uzyteczne.
+  @unorderedList(
+    @item(In non-debug mode, in case of exception,
+      we will output nice message by OutputException and will Halt with
+      HaltCodeOnException code.)
 
-  Acha, jeszcze jedno : gdy wyjatek ktory spowodowal wyjscie z programu
-  (a wiec doszedl do naszego ExceptProc) to BreakProgram to nasz handler
-  wyjatku zachowa sie specyficznie:
-    - nie wypisze OutputException(E), w ogole nic nie wypisze
-    - wyjdzie z programu z Halt(E.HaltCode), a wiec nie uzyje HaltCodeOnException
-    - zrobi powyzsze Halt nawet jesli symbol DEBUG byl zdefiniowany podczas
-      kompilacji tego modulu - czyli sterowanie nigdy nie przejdzie wtedy do
-      domyslnej ExceptProc w SysUtils.
-  Dzieki tym "hackom" mozesz uzywac raise BreakProgram.Create(<exit-code>)
-  zamiast Halt(<exit-code>) i zyskasz na tym tyle ze program zakonczy
-  sie "czysto", po drodze wychodzac wykonujac wszystkie sekcje finally...end.
-  Jest gwarantowane (i musisz tego przestrzegac w swoich programach)
-  ze NIC nie przechwyci i nie zatrzyma tego TCodeBreakera.
-  Patrz @noAutoLink(@code(console.testy/breakProgram/)) po demo tego.
+    @item(Unless the DEBUG symbold is defined, then we (after showing the nice
+      error by OutputException) pass the control to default SysUtils.ExceptProc.
+      This way we allow FPC to print nice backtrace of the exception,
+      which is useful.)
 
-  Wiec jestem niezwykle szczesliwy.
-  Pojawia sie jednak pewna skaza na niebsklonie mojego szczescia :
-  Delphi+Win32. W razie niewylapanego wyjatku wyswietla ono @bold(paskudne)
-  okienko Windowsa - "program popelnil blad, skontaktuj sie z dostawca itp.
-  bzdury". Wyjatkowo dezorientujace dla usera ktory nie wie ze to po prostu
-  niewylapany wyjatek i program jest OK. Niestety, Delphi wyswietla to
-  paskudne okienko jeszcze przed wywolaniem ExceptProc, a wiec nie moge
-  sie przed tym uchronic. Dlatego programy pod Delphi+Win32 nigdy nie powinny
-  powodowac niewylapanych wyjatkow - i do tego sluzy mi procedura
-  HaltOnException(proc). }
+    @item(When you cause program exit by special BreakProgram exception
+      class, then have special behavior. In this case we don't output
+      any exception description (like OutputException),
+      and we will exit with code you gave to BreakProgram.HaltCode
+      (ignoring HaltCodeOnException).
+
+      This BreakProgram behavior is done regardless of DEBUG or not.
+
+      This way you can use @code(raise BreakProgram.Create(123))
+      instead or @code(Halt(123)) to exit the program with given status.
+      BreakProgram will exit more gracefully than Halt, as all
+      the "finally" clauses will execute.)
+  ) }
 
 {$ifdef read_interface}
 
-var BonusErrorMessg: string ='';
+var
+  { Additional message output when you end program with an exception. }
+  BonusErrorMessg: string ='';
 
-{ wyjatki dziedziczace od EWithHiddenClassName sa normalnymi wyjatkami
-  tyle ze beda w inny sposob formatowane funkcja ExceptMessage :
-  ExceptMessage NIE bedzie zawieralo nazwy klasy tych wyjatkow.
-  To jest czasami estetyczne gdy wiemy ze Message wyjatku bedzie
-  wystarczajaco dobra informacja na temat wyjatku i nie ma sensu pokazywac
-  userowi ClassName. }
-type EWithHiddenClassName = class(Exception);
+type
+  { Class of exceptions that will not have ClassName displayed by
+    various routines. ExceptMessage, OutputException will not show exception
+    class. Sometimes useful, when you know that exception message
+    is good enough, and showing exception class is not needed. }
+  EWithHiddenClassName = class(Exception);
 
-{ Except message zwraca komunikat jaki program powinien wyswietlic w reakcji
-  na jakies ogolne exception. Komunikat zawiera ProgramName, E.ClassName,
-  E.Message (o ile E is Exception), ExceptAddr (o ile jest <> nil i jest
-  zdefiniowany symbol DEBUG) i BonusErrorMesssg. }
-function ExceptMessage(E: TObject; ExceptAddr: Pointer {$ifdef DEFPARS} = nil {$endif}): string; overload;
-{ OutputException = ErrorWrite(ExceptMessage(E)); Taki wygodny skrot }
-procedure OutputException(E: TObject; ExceptAddr: Pointer {$ifdef DEFPARS} = nil {$endif}); overload;
+{ Nice exception description. Contains ProgramName, exception ClassName
+  (if not descends from EWithHiddenClassName), exception Message (if
+  descends from Exception), and ExceptAddr (and not-nil, and this is compiled
+  with -dDEBUG), and BonusErrorMesssg. }
+function ExceptMessage(E: TObject; ExceptAddr: Pointer = nil): string; overload;
+
+{ Show nice exception description on console or (for GUI Windows programs)
+  by a message box. Equivalent to ErrorWrite(ExceptMessage(E)). }
+procedure OutputException(E: TObject; ExceptAddr: Pointer = nil); overload;
 
 { If Value then Halt(0), else Halt(1).
 
@@ -108,6 +87,8 @@ var
   raise any exception, never. It always deals with exceptions inside
   Proc itself.
 
+  Version without HaltCode parameter uses global HaltCodeOnException value.
+
   For the special exception class @link(BreakProgram), it does simply
   Halt(BreakProgram(E).ExitCode)) (no OutputException in this case).
 
@@ -119,23 +100,20 @@ var
   (because of Delphi stupidity ?) shows ugly Windows
   dialog box saying something like "Program exited unexpectedly,
   contain with author etc. bullshit". There is no way for me to avoid
-  this dialog box, even by my own ExceptProc.
-  See comments at the beginning of this file @code(kambiutils_program_exit.inc). }
-procedure HaltOnException(proc: TProcedure); overload;
-
-{ This is just like HaltOnException(HaltCodeOnException). }
+  this dialog box, even by my own ExceptProc. }
 procedure HaltOnException(proc: TProcedure; HaltCode: integer); overload;
+procedure HaltOnException(proc: TProcedure); overload;
 
 type
   { Exception specially handled by my exception handler.
-    Look at comments at the beginning of this file, kambiutils_program_exit.inc }
+    It will not cause any message to be output, and will cause Halt
+    with given code. }
   BreakProgram = class(TCodeBreaker)
   private
     FHaltCode: Integer;
   public
     property HaltCode: Integer read FHaltCode;
-    constructor Create(AHaltCode: Integer); overload;
-    constructor Create; overload; { HaltCode = 0 }
+    constructor Create(AHaltCode: Integer = 0);
   end;
 
 { Raise BreakProgram with AHaltCode, causing the program to stop with
@@ -253,11 +231,6 @@ constructor BreakProgram.Create(AHaltCode: Integer);
 begin
  inherited Create;
  FHaltCode := AHaltCode;
-end;
-
-constructor BreakProgram.Create;
-begin
- Create(0);
 end;
 
 procedure ProgramBreak(AHaltCode: Integer);

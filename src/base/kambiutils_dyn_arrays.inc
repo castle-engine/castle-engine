@@ -130,7 +130,8 @@ type
 type
   {$define DYNARRAY_1_USE_EQUALITY_OP}
   {$define DYNARRAY_1_USE_PLUSMINUS_OP}
-  TDynArrayItem_1  = Cardinal; PDynArrayItem_1  = PCardinal; {$I dynarray_1.inc}  {TDynCardinalArray is below}      TArray_Cardinal = TInfiniteArray_1 ; PArray_Cardinal = PInfiniteArray_1 ;
+  { }
+  TDynArrayItem_1  = Cardinal; PDynArrayItem_1  = PCardinal; {$I dynarray_1.inc}  {TDynCardinalArray is below} { }      TArray_Cardinal = TInfiniteArray_1 ; PArray_Cardinal = PInfiniteArray_1 ;
 
   {$define DYNARRAY_2_USE_EQUALITY_OP}
   {$define DYNARRAY_2_USE_PLUSMINUS_OP}
@@ -138,7 +139,7 @@ type
 
   {$define DYNARRAY_3_USE_EQUALITY_OP}
   {$define DYNARRAY_3_USE_PLUSMINUS_OP}
-  TDynArrayItem_3  = Float   ; PDynArrayItem_3  = PFloat   ; {$I dynarray_3.inc}  {TDynFloatArray is below}         TArray_Float    = TInfiniteArray_3 ; PArray_Float    = PInfiniteArray_3 ;
+  TDynArrayItem_3  = Float   ; PDynArrayItem_3  = PFloat   ; {$I dynarray_3.inc}  {TDynFloatArray is below} { }         TArray_Float    = TInfiniteArray_3 ; PArray_Float    = PInfiniteArray_3 ;
 
   {$define DYNARRAY_4_USE_EQUALITY_OP}
   { Don't set USE_PLUSMINUS_OP here, as the sum may often not fit in the Byte } { }
@@ -167,11 +168,11 @@ type
 
   {$define DYNARRAY_11_USE_EQUALITY_OP}
   {$define DYNARRAY_11_USE_PLUSMINUS_OP}
-  TDynArrayItem_11 = Double  ; PDynArrayItem_11 = PDouble  ; {$I dynarray_11.inc} {TDynDoubleArray is below}        TArray_Double   = TInfiniteArray_11; PArray_Double   = PInfiniteArray_11;
+  TDynArrayItem_11 = Double  ; PDynArrayItem_11 = PDouble  ; {$I dynarray_11.inc} {TDynDoubleArray is below} { }        TArray_Double   = TInfiniteArray_11; PArray_Double   = PInfiniteArray_11;
 
   {$define DYNARRAY_12_USE_EQUALITY_OP}
   {$define DYNARRAY_12_USE_PLUSMINUS_OP}
-  TDynArrayItem_12 = Single  ; PDynArrayItem_12 = PSingle  ; {$I dynarray_12.inc} {TDynSingleArray is below}        TArray_Single   = TInfiniteArray_12; PArray_Single   = PInfiniteArray_12;
+  TDynArrayItem_12 = Single  ; PDynArrayItem_12 = PSingle  ; {$I dynarray_12.inc} {TDynSingleArray is below} { }        TArray_Single   = TInfiniteArray_12; PArray_Single   = PInfiniteArray_12;
 
   {$define DYNARRAY_13_USE_EQUALITY_OP}
   TDynArrayItem_13 = Pointer ; PDynArrayItem_13 = PPointer ; {$I dynarray_13.inc} TDynPointerArray  = TDynArray_13; TArray_Pointer  = TInfiniteArray_13; PArray_Pointer  = PInfiniteArray_13;
@@ -185,7 +186,7 @@ type
   TDynArrayItem_15 = String  ; PDynArrayItem_15 = PString  ; {$I dynarray_15.inc} TDynStringArray   = TDynArray_15; TArray_String   = TInfiniteArray_15; PArray_String   = PInfiniteArray_15;
 
   {$define DYNARRAY_16_USE_EQUALITY_OP}
-  TDynArrayItem_16 = Boolean ; PDynArrayItem_16 = PBoolean ; {$I dynarray_16.inc} {TDynBooleanArray is below}       TArray_Boolean  = TInfiniteArray_16; PArray_Boolean  = PInfiniteArray_16;
+  TDynArrayItem_16 = Boolean ; PDynArrayItem_16 = PBoolean ; {$I dynarray_16.inc} {TDynBooleanArray is below} { }       TArray_Boolean  = TInfiniteArray_16; PArray_Boolean  = PInfiniteArray_16;
 
   TDynSingleArray = class;
   TDynDoubleArray = class;

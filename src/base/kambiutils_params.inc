@@ -31,64 +31,34 @@ procedure ParamCountEqLesser(ParamValue: integer);
 
 type
   TParametersArray = class(TDynStringArray)
-    { sprawdza  czy High [= >= <=] ParamValue. Jesli nie, wyjatek EInvalidParams
-      z odpowiednim komunikatem bledu. (niestety, kara za mozliwosc
-      modyfikacji parametrow przechowywanych w obiektach tej klasy
-      jest fakt ze te funkcje nie moga wypisac dokladnie ILE parametrow oczekiwano,
-      bo przeciez ilosc parametrow mogla ulec zmianie od czasu rozpoczecia
-      programu. Moga jedynie wypisac ILE parametrow brakuje/jest za duzo. }
+  public
+    { Does the number of parameters (High) satisfy given condition.
+      @raises EInvalidParams When High is wrong.
+      @groupBegin }
     procedure CheckHigh(ParamValue: integer);
     procedure CheckHighAtLeast(ParamValue: integer);
     procedure CheckHighAtMost(ParamValue: integer);
-
-    { Deletes item I, checks whether I is still <= High,
-      returns Parameters[I].
-      @raises(EInvalidParams If there is no Items[I] after previous item
-        I was deleted.) }
-    function DeleteAndGetNext(I: Integer): string;
-
-    { Assign Parameters value from Argc and Argv.
-      This is extremely useful if you use libraries that
-      require Argc and Argv and modify passed Argc and Argv.
-      (Like glutInit, MPI_Init, and so on).
-      Then you can load Parameters again from resulting Argc and Argv. }
-    procedure AssignArgCV(Argc: Integer; Argv: PPChar);
+    { @groupEnd }
   end;
 
 var
-  { At the initialization of this unit, Parameters are initialized to
-    simply ParamStr(0) ... ParamStr(ParamCount). This means that
-    Parameters[I] is simply equivalent to ParamStr(I) and
-    Parameters.High is simply equivalent to ParamCount.
-
-    However Parameters give you more possibilities:
-    @unorderedList(
-      @item(You have all the comfortable methods of TDynStringArray.
-        E.g. copying to other instance of TDynStringArray is now trivially
-        easy --- just use TDynStringArray.Assign.)
-
-      @item(You can modify contents of Parameters. This is very useful for
-        routines that parse command-line paramaters (like my unit
-        ParseParametersUnit) --- they can simply remove from Paramaters
-        the items that are already handled.
-
-        This is similar to the idea how glut and many other C libraries
-        modify passed argv --- they remove parts of command-line that
-        were already parsed.)
-    )
-  }
+  { Command-line parameters. Initialized from standard
+    ParamStr(0) ... ParamStr(ParamCount). Can be later modified,
+    which is good --- you can remove handled parameters.
+    You also have all the methods of TDynStringArray class
+    (e.g. you can assign to another TDynStringArray instance). }
   Parameters: TParametersArray;
 
-{ czy ktorys z parametrow ParStr(FirstPar) .. ParStr(LastPar)
-  jest rowny ktoremus z sarr ? Jezeli nie podasz FirstPar i LastPar
-  to zostana przyjete jako 1, ParCount. }
+{ Is one of parameters equal to one of SArr.
+  Searches in ParamStr(FirstPar) .. ParamStr(LastPar).
+  If you don't give FirstPar / LastPar, searches in
+  ParamStr(1) .. ParamStr(ParamCount).
+  @groupBegin }
 function IsPresentInPars(const sarr: array of string;
   IgnoreCase: boolean; FirstPar, LastPar: Cardinal): boolean; overload;
 function IsPresentInPars(const sarr: array of string;
   IgnoreCase: boolean): boolean; overload;
-
-{ IsHelpPresentInPars = IsPresentInPars(['-?', '-h', '--help'], false) }
-function IsHelpPresentInPars: boolean;
+{ @groupEnd }
 
 {$endif read_interface}
 
@@ -143,9 +113,9 @@ function IsPresentInPars(const sarr: array of string;
   IgnoreCase: boolean): boolean;
 begin result := IsPresentInPars(sarr, IgnoreCase, 1, Parameters.High) end;
 
-function IsHelpPresentInPars: boolean;
-const HelpPars: array[0..2]of string = ('-?', '-h', '--help');
-begin result := IsPresentInPars(HelpPars, false) end;
+{ Since we can modify Parameters, we can't really output
+  in CheckHigh* for user how many parameters were excepted (because you maybe
+  ate some). Output only how many params are missing/too much. }
 
 procedure TParametersArray.CheckHigh(ParamValue: integer);
 begin
@@ -171,23 +141,6 @@ begin
   if ParamValue < High then
     raise EInvalidParams.Create('Expected ' +
       ParametersCountString(High-ParamValue, ' less'));
-end;
-
-procedure TParametersArray.AssignArgCV(Argc: Integer; Argv: PPChar);
-var
-  Argv_Array: PArray_PChar absolute Argv;
-  I: Integer;
-begin
-  Count := Argc;
-  for I := 0 to Count - 1 do
-    Items[I] := Argv_Array^[I];
-end;
-
-function TParametersArray.DeleteAndGetNext(I: Integer): string;
-begin
-  Delete(I, 1);
-  if I > High then raise EInvalidParams.Create('Unexpected end of params');
-  Result := Parameters[I];
 end;
 
 procedure InitializationParams;

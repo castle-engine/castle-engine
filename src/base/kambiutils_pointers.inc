@@ -30,35 +30,38 @@ type
   {$endif}
 
 { Pointer arithmetic. Will wrap over if you add too much. Add may be negative.
-  This function is just a shortcut for
-    PtrInt(result) := PtrInt(p)+Add;
-  (or with PtrUInt) that removes any compiler warnings,
-  any attempts to convert something to 64bit values and
-  any Range/Overflow checks. }
+  This is just a shortcut for @code(PtrInt(Result) := PtrInt(P)+Add),
+  without any range / overflow checks. }
 function PointerAdd(p: pointer; add: integer): pointer;
 
-function GetClearMem(Size: integer; ClearValue: byte {$ifdef DEFPARS}=0{$endif}): pointer; overload;
-{ if p <> nil FreeMem(p) and p := nil. Safer version of FreeMem. }
+function GetClearMem(Size: integer; ClearValue: byte = 0): pointer; overload;
+
+{ Safer version of FreeMem, checks is parameter @nil, and sets it to @nil
+  afterwards. }
 procedure FreeMemNiling(var p: pointer);
 
-{ zwraca -1 jesli cala pamiec Data (o rozmiarze Size) jest wypelniona charem
-  AChar, wpp. zwraca 0..Size-1 oznaczajace numer pierwszego znaku roznego
-  od AChar.
-
-  IsMemCharFilled sprawdza to samo ale zwraca po prostu true (gdy cala
-  pamiec jest = AChar) lub false wpp. }
+{ Check is memory filled with the given character.
+  Returns -1 is @true, or the number (between 0 .. Size - 1)
+  or the first character different than AChar. }
 function CheckIsMemCharFilled(const Data; Size: Integer; AChar: Char): Integer;
+
+{ Check is memory filled with the given character.
+  Returns simple boolean, use CheckIsMemCharFilled to get more informative
+  result. }
 function IsMemCharFilled(const Data; Size: Integer; AChar: Char): boolean;
 
-{ These work like @link(IsMemCharFilled).
-  But they compare whole Words or DWords.
-  Size in each case is the number of Words or DWords (*not* size in bytes),
-  this is consequent with parameters to FillWord / FillDWord from FPC's RTL. }
+{ Check is memory filled with the Word (2 byte sequence).
+  Size if the number of words (not bytes), this is consequent
+  with Size parameter from FillWord from FPC's RTL. }
 function IsMemWordFilled(const Data; Size: Integer; Value: Word): boolean;
+
+{ Check is memory filled with the DWord (4 byte sequence).
+  Size if the number of dwords (not bytes), this is consequent
+  with Size parameter from FillDWord from FPC's RTL. }
 function IsMemDWordFilled(const Data; Size: Integer; Value: DWord): boolean;
 
 {$ifdef DELPHI}
-{ Compatibility with FPC }
+{ FillDWord for compatibility with FPC. }
 procedure FillDWord(var X; Count: PtrInt; Value: DWord);
 {$endif}
 

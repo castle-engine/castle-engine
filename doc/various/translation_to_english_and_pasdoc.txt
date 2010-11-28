@@ -96,7 +96,7 @@ D   kambiinterfaces.pas
 D   kambilog.pas
 D   kambistringutils.pas
 D   kambitimeutils.pas
-|   kambiutils.pas
+D   kambiutils.pas
 D   kambixmlconfig.pas
 D   kambixmlutils.pas
 E   kambizlib.pas

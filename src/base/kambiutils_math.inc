@@ -233,7 +233,7 @@ function DivRoundUp(Value, Divider: Integer): Integer; overload;
       must be similarly beyong DestEnd.
 
       As you can see, this works regardless if one, or both,
-      of the ranges increase (range end is larger than range begin).
+      of the ranges increase (range end is larger than range begin).)
   )
 
   @groupBegin }
