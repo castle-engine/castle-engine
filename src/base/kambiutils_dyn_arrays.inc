@@ -15,6 +15,7 @@
 
 (*
   TDyn*Array template:
+
   This file defines TDynArrayBase (base class for all TDynXxxArray)
   and uses templates to create basic TDynXxxArrays for standard Pascal types
   that I use (TDynIntegerArray, TDynStringArray etc.)
@@ -36,8 +37,9 @@
   To use this template:
   @orderedList(
     @item(
-      In the unit's interface, when symbol read_interface is defined:
-      @longCode(#
+      In the unit's interface, when symbol @code(read_interface) is defined, use:
+
+@longCode(#
 type
   TDynArrayItem_x = <TTT>;
   PDynArrayItem_x = ^TDynArrayItem_x;
@@ -46,9 +48,12 @@ type
   {$I dynarray_x.inc}
   TDyn<TTT>Array = TDynArray_x;
 #))
+
     @item(
-      In the unit's implementation, when symbol read_implementation is defined:
-      @longCode(#
+      In the unit's implementation, when symbol @code(read_implementation)
+      is defined, use:
+
+@longCode(#
   {$I dynarray_x.inc}
 #)))
 
@@ -156,7 +161,7 @@ type
 
     { Reverse the order of items on the array. }
     procedure Reverse;
-    
+
     { Remove all items, equivalent to doing @code(Count := 0). }
     procedure Clear;
 

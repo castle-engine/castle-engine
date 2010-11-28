@@ -125,7 +125,7 @@ procedure MaxTo1st(var a: Extended; const b: Extended); overload;
 {$endif}
 { @groupEnd }
 
-{ Returns index (0, 1 or 2) of maximum / minimum of 3 numbers.
+{ Index (0, 1 or 2) of maximum / minimum of 3 numbers.
   @groupBegin }
 function IndexMax(const a0, a1, a2: Double): Integer; overload;
 function IndexMin(const a0, a1, a2: Double): Integer; overload;
@@ -155,35 +155,34 @@ procedure Clamp(var a: Double; const vBegin, vEnd: Double); overload;
 procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload;
 {$endif}
 
-{ RestOf3dCoords : idea jest taka : coord to numer wymiaru 3d, a wiec
-  0, 1 lub 2. Chcemy do first i second wygenerowac pozostale dwa wymiary.
-  A wiec coord=0 => (first, second) := (1, 2),
-         coord=1 => (first, second) := (0, 2),
-         coord=2 => (first, second) := (0, 1) }
+{ 3D coordinates (0, 1 or 2) except the given coordinate.
+  If Coord = 0, then it sets First = 1 and Second = 2.
+  And so on --- for each Coord value, we set First and Second to the remaining
+  indexes. }
 procedure RestOf3dCoords(coord: integer; out first, second: integer);
 
-{ zwraca value zwiekszone o change. change moze byc takze ujemne.
-  Zmiany value beda sie zmieniac cyklicznie i w rezultacie zwrocony
-  wynik bedzie zawsze w zakresie 0..maxValue. (nawet jesli poczatkowe
-  value nie bedzie w tym zakresie) }
+{ Increase Value by Change, nicely wrapping in [0..MaxValue], accepting
+  also negative Change. The final value is always in the [0..MaxValue] range,
+  even when initial Value was outside. }
 function ChangeIntCycle(value, change, maxValue: integer): integer;
 
-{ (1-a) * l + a*h }
+{ Linear interpolation between two values. Returns @code((1-A)*L + A*H).
+  @groupBegin }
 function Lerp(const a: Single; const l, h: Integer): Single; overload;
 function Lerp(const a: Single; const l, h: Cardinal): Single; overload;
 function Lerp(const a, l, h: Single): Single; overload;
 function Lerp(const a: Double; const l, h: Integer): Double; overload;
 function Lerp(const a: Double; const l, h: Cardinal): Double; overload;
 function Lerp(const a, l, h: Double): Double; overload;
+{ @groupEnd }
 
 const
   enatural = 2.71828182845905;
   sqrt2 = 1.4142135623730950488016887242097;
-  { Pi/2. Taken from FPC sources, file rtl/inc/genmath.inc }
+  { Half of Pi. Taken from FPC sources, file rtl/inc/genmath.inc }
   HalfPi = 1.57079632679489661923;
 
-{ RoundUpToMultiply zaokragla value do najmniejszej wielokrotnosci
-  multiplicatora wiekszej lub rownej value. }
+{ Smallest multiple of Multiplicator that is still >= Value. }
 function RoundUpToMultiply(value, multiplicator: Integer): Integer;
 
 { Largest power of 2 still <= Value.
@@ -212,38 +211,37 @@ function IsPowerOf2(Value: Cardinal): boolean;
 function DivRoundUp(Value, Divider: Cardinal): Cardinal; overload;
 function DivRoundUp(Value, Divider: Integer): Integer; overload;
 
-{ Linearly map value from source range to destination range.
-  SourceVal jest wartoscia z zakresu sourceBegin..sourceEnd.
+{ Linearly map value from a one range to another.
 
-  Niech
-@preformatted(
-  a = odleglosc sourceVal od sourceBegin (czyli abs(sourceVal-sourceBegin))
-  b = old. sourceVal od sourceEnd
-)
+  Consider how SourceVal is placed in the [SourceBegin .. SourceEnd]
+  (it may be outside of this range, it all still works OK).
+  It has some distance to range start (SourceBegin), and some distance
+  to range end (SourceEnd).
 
-  Chcemy znalezc liczbe taka zeby jej odleglosc do destBegin miala sie
-  do jej odleglosci do destEnd tak samo jak a do b i zeby byla po tej samej
-  stronie zakresu, tj.
+  We want to find another number, that is identically placed in another range
+  [DestBegin .. DestEnd].
 
-@preformatted(
-  jezeli sourceBegin<sourceEnd<sourceVal lub sourceBegin>sourceEnd>sourceVal
-      to destBegin  <destEnd  <result    lub destBegin>  destEnd>  result
-  jezeli sourceBegin<sourceVal<sourceEnd lub sourceBegin>sourceVal>sourceEnd
-      to destBegin<  result<   destEnd   lub destBegin  >result   >destEnd
-  jezeli sourceVal<sourceBegin<sourceEnd lub sourceVal>sourceBegin>sourceEnd
-      to result<   destBegin<  destEnd   lub result   >destBegin>  destEnd
-)
+  @orderedList(
+    @item(Such that @italic(Distance(SourceVal,
+      SourceBegin) / Distance(SourceVal, SourceEnd) =
+      Distance(Result, DestBegin) / Distance(Result, DestEnd)).)
 
-  Jak widac oba zakresy moga byc rosnace, moga byc oba malejace a moze byc
-  jeden malejacy a jeden rosnacy - zawsze zadanie ma 1 wynik dzieki powyzszej
-  definicji.
+    @item(And such that it's on the same side of the range.
+      So if SourceVal is beyond SourceEnd (that is,
+      @code(SourceBegin < SourceEnd < SourceVal) or
+      @code(SourceBegin > SourceEnd > SourceVal)) then the result
+      must be similarly beyong DestEnd.
+
+      As you can see, this works regardless if one, or both,
+      of the ranges increase (range end is larger than range begin).
+  )
 
   @groupBegin }
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 { @groupEnd }
 
-{ Random float value in given range.
+{ Random float value in the given range.
   Make sure RangeBegin < RangeEnd. }
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 
@@ -257,88 +255,6 @@ function NatNatPower(Base, Exponent: Cardinal): Cardinal;
 
 { Random -1 or +1. }
 function RandomPlusMinus: integer;
-
-{ @groupBegin
-
-  FPU Control Word :
-
-  na podstawie Jcl8087 unit i JEDI code help - patrz Get8087ControlWord function.
-
-  Control Word :
-
-@preformatted(
-  15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
-   ?  ?  ?| i| r  r| p  p| ?  ?| e  e  e  e  e  e
-
-  i = infinity mode bits,
-  r = round mode bits,
-  p = precision mode bits,
-  e = masked exception bits
-      (bit = 1 means "ignore (don't raise) exceptions of that kind")
-)
-
-  Default control word in Delphi is $1332. Let's see what that value means :
-
-@preformatted(
-  $1332 =
-  15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
-   0  0  0  1  0  0  1  1  0  0  1  1  0  0  1  0
-   ?  ?  ?| i| r  r| p  p| ?  ?| e  e  e  e  e  e
-  = F8087_Projective_Infinity or
-    F8087_NearestOrEven_Round or
-    F8087_Extended_Precision or
-    F8087_PrecError_Except or
-    F8087_Underflow_Except or
-    F8087_DenormalizedOperand_Except;
-)
-
-  In Borland's help about Set8087CW routine they write "Set8087CW($133F)
-  will mask all FPU exceptions" and now we see this is true - $133F it's
-  Default8087CW or F8087_Except, so all exceptions get masked.
-
-  FPC 1.0.x: looking at FPC SysWin32.pp unit I found out that FPC default FPU
-  control word is $1332 too - look at procedure Exe_entry, they set there FPU
-  control word to constant fpucw defined above as $1332.
-
-  FPC 1.9.x: it's implemented in Math unit with fully Delphi-compatible
-  Default8087CW constant and Get/Set8087CW functions. I copy&pasted that
-  implementation to this file below, so that my units under FPC 1.0.10 can
-  use those functions (it's especially required by OpenGL under Windows).
-
-  Niepewne notki : o ile umiem zrozumiec kod Asemblera (a umiem
-  bardzo slabo) procedury w RTL'u FPC sa ladnie napisane i
-  powinny byc nieczule na zmiany mask exception FPU control word
-  przez Set8087CW, za kazdym razem ustawiaja wlasne a potem odtwarzaja
-  poprzednie.
-  Procedury w RTL'u Borlanda chyba nie - zachowuja sie zgodnie z aktualnie
-  ustawionymi flagami exception (chociaz modyfikuja chwilowo flagi precision
-  lub rounding i pewnie infinity tez). }
-const
-  { }
-  F8087_Except :Word = $3F;
-  F8087_InvalidOp_Except :Word = 1;
-  F8087_DenormalizedOperand_Except :Word = 1 shl 1;
-  F8087_DivZero_Except :Word = 1 shl 2;
-  F8087_Overflow_Except :Word = 1 shl 3;
-  F8087_Underflow_Except :Word = 1 shl 4;
-  F8087_PrecError_Except :Word = 1 shl 5;
-
-  F8087_Precision :Word = 3 shl 8;
-  F8087_Single_Precision :Word = 0;
-  F8087_Reserved_Precision :Word = 1 shl 8;
-  F8087_Double_Precision :Word = 2 shl 8;
-  F8087_Extended_Precision :Word = 3 shl 8;
-
-  F8087_Round :Word = 3 shl 10;
-  F8087_NearestOrEven_Round :Word = 0;
-  F8087_Down_Round :Word = 1 shl 10;
-  F8087_Up_Round :Word = 2 shl 10;
-  F8087_TowardZero_Round :Word = 3 shl 10;
-
-  F8087_Infinity :Word = 1 shl 12;
-  F8087_Projective_Infinity :Word = 0;
-  F8087_Affine_Infinity :Word = 1 shl 12;
-{ @groupEnd }
 
 {$ifdef FPC}
 { }

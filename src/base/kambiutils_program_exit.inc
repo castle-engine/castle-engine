@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Things related to exiting with program.
+{ Things related to exiting the program.
   Some important things are set up here, like our own exception handler.
 
   Polish:
@@ -102,9 +102,9 @@ procedure HaltBool(Value: boolean);
 var
   HaltCodeOnException: Integer = 1;
 
-{ This calls Proc and catches all exceptions inside Proc,
-  and in case of exception in Proc it does OutputException and
-  Halt(HaltCode). The result is that HaltOnException doesn't
+{ Call Proc, catch all exceptions inside the Proc,
+  and in case of exception make OutputException and Halt(HaltCode).
+  The result is that HaltOnException doesn't
   raise any exception, never. It always deals with exceptions inside
   Proc itself.
 
@@ -127,8 +127,8 @@ procedure HaltOnException(proc: TProcedure); overload;
 procedure HaltOnException(proc: TProcedure; HaltCode: integer); overload;
 
 type
-  { This class is specially handled in my exception handler.
-    Look at comments at the beginning of this file, KambiUtils_program_exit.inc }
+  { Exception specially handled by my exception handler.
+    Look at comments at the beginning of this file, kambiutils_program_exit.inc }
   BreakProgram = class(TCodeBreaker)
   private
     FHaltCode: Integer;
@@ -138,8 +138,9 @@ type
     constructor Create; overload; { HaltCode = 0 }
   end;
 
-{ ProgramBreak = raise BreakProgram.Create(AHaltCode); }
-procedure ProgramBreak(AHaltCode: Integer {$ifdef DEFPARS} =0 {$endif}); overload;
+{ Raise BreakProgram with AHaltCode, causing the program to stop with
+  given exit code nicely (finalizes all exceptions try..finally and such). }
+procedure ProgramBreak(AHaltCode: Integer = 0); overload;
 
 {$endif read_interface}
 

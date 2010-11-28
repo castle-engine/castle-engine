@@ -13,26 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ @section(Basic algorithms)
-
-  Not much for now. }
+{ @section(Basic algorithms.) Not much for now. }
 
 {$ifdef read_interface}
 
 const
-  { If number of items is <= CountToUseSimpleSort,
-    then @link(Sort) will fallback to SimpleSort (= sort by choosing for now)
-    instead of recursive QuickSort.
-    So CountToUseSimpleSort = 0 means that it will never fall back
-    to SimpleSort.
-
-    DefaultCountToUseSimpleSort is default value of parameter
-    CountToUseSimpleSort. Note that it's impossible to just
-    experimentally set DefaultCountToUseSimpleSort to a "best" value,
-    because what value is best depends on processor, compiler (FPC/Delphi,
-    and what version) and what data is sorted
+  { CountToUseSimpleSort internal comments:
+    The real best value depends on the processor, compiler (FPC/Delphi,
+    and their version) and what data is sorted
     (comparison time (how fast IsSmaller function is ?),
-    copy time (how big is ArrRecordSize ?)).
+    copy time (how large is ArrRecordSize ?)).
 
     Tests: all for testSort compiled with -dRELEASE:
 
@@ -57,9 +47,17 @@ const
 
     For now I chose 10. In the future maybe I'll do more testing
     with my program testSort and choose a better value here. }
+
+  { When should the complicated sorting algorithm fallback to a simpler one.
+    If number of items is <= CountToUseSimpleSort,
+    then @link(Sort) will fallback to SimpleSort (= sort by choosing for now)
+    instead of recursive QuickSort.
+    Set CountToUseSimpleSort = 0 to make it never fall back to SimpleSort.
+
+    By default this is DefaultCountToUseSimpleSort. }
   DefaultCountToUseSimpleSort = 10;
 
-{ This Sorts table of any items.
+{ Sort given table of items.
 
   You must give Arr --- pointer to items array in memory,
   and ArrRecordSize --- size (in bytes) of every item,
@@ -111,19 +109,19 @@ const
 procedure Sort(Arr: pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
-  CountToUseSimpleSort: Integer {$ifdef DEFPARS} = DefaultCountToUseSimpleSort {$endif}); overload;
+  CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
 
 procedure Sort(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
-  CountToUseSimpleSort: Integer {$ifdef DEFPARS} = DefaultCountToUseSimpleSort {$endif}); overload;
+  CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
 
 procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFuncByObject; FirstIndex, LastIndex: integer;
-  CountToUseSimpleSort: Integer {$ifdef DEFPARS} = DefaultCountToUseSimpleSort {$endif}); overload;
+  CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
 procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFuncByObject; FirstIndex, LastIndex: integer;
-  CountToUseSimpleSort: Integer {$ifdef DEFPARS} = DefaultCountToUseSimpleSort {$endif}); overload;
+  CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
 
 { TODO: special versions of Sort for standard predefined types
   (integers, floats, strings) would be nice. }

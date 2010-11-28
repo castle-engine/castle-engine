@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Various basic utilities.) Developed for Kambi VRML game engine,
-  although stuff here is generally usable.
+{ Various basic utilities. Developed for "Kambi VRML game engine",
+  but generally usable.
 
   @unorderedList(
     @item(
@@ -25,92 +25,60 @@
 
       New TDyn*Xxx classes may be created much like instantiating templates in C++,
       thanks to some tricks with include files and compiler defines,
-      see comments at the beginning of dynarray.inc file.
+      see comments at the beginning of dynarray.inc file.)
 
-      Initially TDyn*Xxx classes were implemented because old FPC versions didn't
-      implement dynamic arrays. But now TDyn*Xxx classes are just much more
-      powerful and comfortable than using normal ObjectPascal dynamic arrays.
-      E.g. they have methods for seeking and sorting and they can be
-      cleanly extended by inheritance.
+    @item(Basic operations on numbers.)
 
-      Implemented in kambiutils_dyn_arrays.inc.)
+    @item(Some OS-dependent things.)
 
-    @item(Basic operations on numbers
-      (see things in kambiutils_math.inc).)
+    @item(Filenames operations (they somehow complement the standard set
+      of routines in SysUtils).)
 
-    @item(Some simple things that must be implemented differently on
-      various OSes (i.e. they are implemented here to hide differences
-      between some OSes).)
+    @item(Processing command-line options.
+      See @link(Parameters) list. See the unit ParseParametersUnit that
+      builds upon them and provides complete and comfortable command-line
+      parsing.)
 
-    @item(Filenames operations (they somehow complement standard set
-      of routines in SysUtils), see things in kambiutils_filenames.inc.)
-
-    @item(Things to process command-line options.
-      See @link(Parameters) in kambiutils_params.inc.
-
-      They are also used in my unit to parse command-line
-      options @link(ParseParametersUnit).)
-
-    @item(Some basic algorithms, e.g. @link(Sort) in
-      kambiutils_basic_algorithms.inc)
-
-    @item(Simple wrappers for OS specific things, like
-      for Libc or BaseUnix/Unix units under UNIX
-      (see also README.use_libc) or WinAPI under Windows.)
-
-    @item(Some others...)
+    @item(Basic algorithms: @link(Sort).)
   )
 
   This unit is a bag for simple and generally useful things.
   As a rule (to not let myself put too much things here)
-  this unit must not use any objects defined in Classes unit
-  (i.e. this unit can't use Classes unit, directly or indirectly).
-  So not only GUI libs like VCL, LCL or CLX can't be utilized in this
-  unit, but also many other non-visual classes (e.g. streams, lists).
-  The only classes that may be defined and used here
-  are exceptions (the base Exception class comes from SysUtils unit)
+  this unit must not depend on the Classes unit
+  (see KambiClassUtils for those). Or any higher-level GUI libs
+  like LCL, VCL, or CLX.
+  The only classes defined and used here are exceptions
+  (the base Exception class comes from SysUtils unit)
   and TDyn*Array classes.
 
-  Initialization of this unit does some things that you should be aware of
-  (for me, these things are just a must-have for my every program,
-  reasoning is given below):
+  Initialization of this unit does some generally-useful things:
 
   @unorderedList(
-    @item(Call Randomize (so that you never forget about it))
+    @item(Calls Randomize (so that you never forget about it).)
 
-    @item(Set DecimalSeparator to '.'.
+    @item(Sets DecimalSeparator to '.'.
 
-      Delphi (and, for compatibility, FPC) defines DecimalSeparator
+      Delphi and FPC define DecimalSeparator
       based on local settings (like configured user's country).
-      But this makes things like StrToFloat and FloatToStr work
-      unpredictably -- they may give different results on different
-      systems. E.g. FloatToStr(0.9) may output '0,9' on some system.
-      But if you write '0,9' to a text file, it may not be understood
+      But this makes things like StrToFloat and FloatToStr less
+      predictable --- they may give different results on different
+      systems, which limits their use.
+      E.g. FloatToStr(0.9) may output '0,9' on some system.
+      And if you write '0,9' to a text file, it may not be understood
       by StrToFloat on some other system.
 
-      Moreover (this is rather my personal opinion), '.' as DecimalSeparator
-      is really a standard convention on computers. There is no sense
-      in localizing this. Instead, I would rather see all users using
-      computers to understand that '.' is standard decimal separator.
-      This is something that just eases communication -- when everyone
-      in the world would use the same DecimalSeparator, we would have
-      less communication problems. Just like there is a standard ISO
-      date format, also setting a universal standard for DecimalSeparator
-      is a good idea.
-
-      Old value of DecimalSeparator is saved as LocaleDecimalSeparator,
-      this was probably initialized by RTL to something specific for
-      user's configured locale.)
+      Initial (probably localized) value of DecimalSeparator
+      is saved in LocaleDecimalSeparator variable.)
 
     @item(Installs my handler for ExceptProc, see comments at
-      @link(HaltCodeOnException))
+      @link(HaltCodeOnException).)
   )
 
-  Things from Pascal RTL / FCL / etc. that you shouldn't use
-  because I have better replacemenets here:
+  Some of the things from Pascal RTL / FCL get better replacemenets here:
+
   @unorderedList(
     @item(ChDir with $I+ => better use ChangeDir from this unit
-      (because of Delphi bug --- ChDir with $I+ works like with $I-))
+      (because of Delphi bug --- ChDir with $I+ works like with $I-).)
 
     @item(ParamStr(0), Application.ExeName => better use
       ProgramName or ExeName from this unit. They are portable,
@@ -160,7 +128,7 @@ type
 
   {$ifdef FPC}
   { I'm overriding PBoolean that is defined as ^Byte in Windows unit.
-    For FPC 1.0.x PBoolean is not avail at all. }
+    For FPC 1.0.x PBoolean is not available at all. }
   PBoolean = ^Boolean;
   {$endif}
 
