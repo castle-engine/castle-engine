@@ -53,7 +53,7 @@ D   vrmllexer.pas
 D   vrmllightset.pas
 D   vrmlnodes.pas
 D   vrmlnodesdetailoptions.pas
-|   vrmlraytracer.pas
+D   vrmlraytracer.pas
 D   vrmlrendereroptimization.pas
 D   vrmlscene.pas
 D   vrmlscenewaypoints.pas
