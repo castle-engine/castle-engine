@@ -1515,6 +1515,18 @@ end;
 
 { poly stipple ------------------------------------------------------------ }
 
+function RandomBitsByte(OneChance:Extended):byte;
+var i:integer;
+begin
+ { notka - Wynik Random jest zawsze w przedziale [0,1). To wazne zeby tu bylo
+   porownanie ostre "<". Wtedy dla szansy = dokladnie 0 nigdy nie bedzie Random<0.
+   (dla szansy = 1 warunek zarowno z "<=" jak i z "<" gwarantowalby ze
+   zawsze taka szansa zachodzi - bo zawsze zachodzilaby ostra nierownosc wiec
+   i nieostra takze.) }
+ result:=0;
+ for i:=0 to 7 do if Random<OneChance then result := result + (1 shl i);  
+end;
+
 function RandomPolyStipple(const BlackChance: Extended): TPolygonStipple;
 var i: integer;
 begin

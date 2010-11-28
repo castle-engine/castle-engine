@@ -140,7 +140,6 @@ type
 {$I kambiutils_miscella.inc}
 {$I kambiutils_program_exit.inc}
 {$I kambiutils_params.inc}
-{$I kambiutils_bits.inc}
 {$ifdef UNIX}      {$I kambiutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I kambiutils_os_specific_windows.inc} {$endif}
 {$I kambiutils_math.inc}
@@ -166,7 +165,6 @@ uses KambiStringUtils, KambiFilesUtils;
 {$I kambiutils_miscella.inc}
 {$I kambiutils_program_exit.inc}
 {$I kambiutils_params.inc}
-{$I kambiutils_bits.inc}
 {$I kambiutils_math.inc}
 {$I kambiutils_filenames.inc}
 
