@@ -29,13 +29,7 @@ ALL_TARGETS=objectslist_1.inc objectslist_2.inc objectslist_3.inc objectslist_4.
   dynarray_9.inc dynarray_10.inc \
   dynarray_11.inc dynarray_12.inc dynarray_13.inc dynarray_14.inc \
   dynarray_15.inc dynarray_16.inc dynarray_17.inc dynarray_18.inc \
-  dynarray_19.inc dynarray_20.inc \
-  dim2array_1.inc dim2array_2.inc dim2array_3.inc dim2array_4.inc \
-  dim2array_5.inc dim2array_6.inc dim2array_7.inc dim2array_8.inc \
-  dim2array_9.inc dim2array_10.inc \
-  dim3array_1.inc dim3array_2.inc dim3array_3.inc dim3array_4.inc \
-  dim3array_5.inc dim3array_6.inc dim3array_7.inc dim3array_8.inc \
-  dim3array_9.inc dim3array_10.inc
+  dynarray_19.inc dynarray_20.inc
 
 .PHONY: all clean
 all: $(ALL_TARGETS)
@@ -45,14 +39,10 @@ clean:
 # Some notes about using sed: I'm assuming here that we have GNU sed.
 SED_DO=sed --in-place --separate
 
-# Ten skrypt bierze plik dynarray.inc i robi z niego plik dynarray_$1.inc
-# ktorego tresc jest taka sama jak dynarray.inc ale typy (lub makra,
-# zalezy jak na to patrzec) maja nazwy z _$1 np. zamiast TDynArray bedzie typ
-# TDynArray_$1. W ten sposob mozemy uzyc jednoczesnie pliku dynarray.inc i
-# dynarray_$1.inc w naszym programie aby zadeklarowac dwie tablice dynamiczne
-# (co bylo naszym problemem pod Delphi, gdzie, nie mogac korzystac z makr,
-# nie moglismy wiec uzyc dwa razy tego samego pliku dynarray.inc w jednym
-# unicie).
+# Use dynarray.inc to generate a copy dynarray_xxx.inc, with the same contents
+# but all types and defines get the _xxx suffix.
+# This way you can instantiate the dynarray template many times within the same unit
+# (otherwise you would get conflicts on duplicate types like TDynArray).
 dynarray_%.inc: ../dynarray.inc
 	cp -f $< $@
 	$(SED_DO) \
@@ -79,26 +69,4 @@ objectslist_%.inc : ../objectslist.inc
 	  -e 's/\bTObjectsList\b/TObjectsList_'$*'/ig' \
 	  -e 's/\bTObjectsListItem\b/TObjectsListItem_'$*'/ig' \
 	  -e 's/\bTObjectsListIsSmallerFunction\b/TObjectsListIsSmallerFunction_'$*'/ig' \
-	  $@
-
-dim2array_%.inc: ../dim2array.inc
-	cp -f $< $@
-	$(SED_DO) \
-	  -e 's/\bTDim2Array\b/TDim2Array_'$*'/ig' \
-	  -e 's/\bTDim2ArrayItem\b/TDim2ArrayItem_'$*'/ig' \
-	  -e 's/\bPDim2ArrayItem\b/PDim2ArrayItem_'$*'/ig' \
-	  -e 's/\bDIM2ARRAY_IS_STRUCT\b/DIM2ARRAY_'$*'_IS_STRUCT/ig' \
-	  -e 's/\bDIM2ARRAY_IS_INIT_FINI_TYPE\b/DIM2ARRAY_'$*'_IS_INIT_FINI_TYPE/ig' \
-	  -e 's/\bDIM2ARRAY_RANGECHECKS\b/DIM2ARRAY_'$*'_RANGECHECKS/ig' \
-	  $@
-
-dim3array_%.inc: ../dim3array.inc
-	cp -f $< $@
-	$(SED_DO) \
-	  -e 's/\bTDim3Array\b/TDim3Array_'$*'/ig' \
-	  -e 's/\bTDim3ArrayItem\b/TDim3ArrayItem_'$*'/ig' \
-	  -e 's/\bPDim3ArrayItem\b/PDim3ArrayItem_'$*'/ig' \
-	  -e 's/\bDIM3ARRAY_IS_STRUCT\b/DIM3ARRAY_'$*'_IS_STRUCT/ig' \
-	  -e 's/\bDIM3ARRAY_IS_INIT_FINI_TYPE\b/DIM3ARRAY_'$*'_IS_INIT_FINI_TYPE/ig' \
-	  -e 's/\bDIM3ARRAY_RANGECHECKS\b/DIM3ARRAY_'$*'_RANGECHECKS/ig' \
 	  $@
