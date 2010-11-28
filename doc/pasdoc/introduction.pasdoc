@@ -24,10 +24,6 @@ exactly what it does (with the exception of really trivial stuff that
 is hopefully self-explanatory).
 I believe everything is really good documented.
 
-Some of the old comments are still in Polish, but this is gradually being
-fixed. The great majority is now already in English. If you find something
-unclear, you're welcome to ask.
-
 There's also a separate documentation that describes engine usage
 from somewhat more higher-level view. It also describes some reasoning
 behind internal organization of the engine. See
