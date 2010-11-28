@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ 2D float rectangles (TArea).
+{ 2D rectangles.
   Main use is to detect in which 2D area on the screen the mouse cursor is. }
 
 unit Areas;
@@ -47,9 +47,6 @@ type
       Returns -1 if not found. }
     function FindArea(const X, Y: Integer): integer;
   end;
-
-const
-  EmptyArea: TArea = (X0: 0; Y0: 0; Width: -1; Height: -1);
 
 function Area(const X0, Y0, Width, Height: Integer): TArea;
 
