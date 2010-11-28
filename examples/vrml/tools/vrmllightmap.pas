@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Rendering lightmaps from VRML models.) }
+{ Rendering lightmaps. }
 
 unit VRMLLightMap;
 
@@ -24,41 +24,42 @@ uses VectorMath, VRMLNodes, Images, VRMLTriangle;
 type
   TQuad3Single = packed array[0..3]of TVector3Single;
 
-{ RenderTriangleMapTo1st zapisuje lewa dolna (o ile LeftDownImagePart = true)
-  czesc obrazka (to ktore dokladnie pixle przekatnej narysuje jest
-  niewyspecyfikowane, wewnetrznie sa tam jakies liczby zmiennoprzec.
-  wiec chyba nigdy tego nie ustale).
+{ Render one triangle of the image, storing there colors
+  that would appear on a given surface in the 3D space.
+  Effectively, this generates a texture with lighting, shadows and such
+  already calculated inside.
 
-  Zapisany trojkat pixli odpowiada texturze jaka powinnismy nalozyc
-  na trojkat TrianglePos na scenie Octree ze swiatlami Lights
-  (zazwyczaj bedziesz otrzymywal Lights jako [pod]zbior jakichs swiatel
-  obecnych w tym samym TVRMLNode z ktorego wygenerowales Octree
-  ale nie jest to nigdzie wymagane) : textura ta oryginalnie jest
-  cala czarna ale tam gdzie pada na nia swiatlo dodajemy (kolor tego swiatla
-  * on swiatla * attenuation swiatla * spot swiatla * intensity swiatla *
-  cosinus pomiedzy Normal a Light, patrz specyfikacja lighting w VRMLu 97)
-  czyli robimy wszystko co mozemy nie posiadajac ani dokladnego opisu materialu
-  ani pozycji i kierunku patrzenia kamery. Powstaje cos jak mapa cieni,
-  albo mapa swiatel, jak na to patrzec, zreszta uzywanie takiej techniki
-  (nakladanie tekstur symulujacych swiatlo) nazywa sie wlasnie mapa swiatel
-  (o ile wiem).
+  @param(Image The resulting image. We store colors by TImage.SetColorRGB,
+    see also TClassicRayTracer.Image comments.)
 
-  Mapowanie TrianglePos na obrazek : w przypadku LeftDownImagePart = true
-  kolejne (nr 0, 1 i 2) elementy TrianglePos odpowiadaja, odpowiednio,
-  lewemu-gornemu, lewemu-dolnemu i prawemu-dolnemu rogu obrazka.
-  If not LeftDownImagePart to kolejne elementy TrianglePos
-  odpowiadaja prawemu-dolnemu, prawemu-gornemu i lewemu-gornemu rozkowi
-  obrazka.
+  @param(LeftDownImagePart If @true, then the lower-left image triangle
+    is rendered, otherwise the other one.)
 
-  RenderDir moze byc dowolnym wektorem nierownoleglym do plaszczyzny
-  TrianglePos. RenderDir wyznacza z ktorej strony TrianglePos swiatla
-  uwzgledniamy (czyli z ktorej strony trojkata "jest zewnetrze" na ktore
-  bedzie nalozona tekstura).
+  @param(Lights Lights that potentially shine here.
+    We use these lights properties to calculate the generated colors.
 
-  Wyliczone pixele zapisuje przy pomocy TImage.SetColorRGB, a wiec
-  uwagi wypowiedziane przy RaytraceTo1st odnosnie straty nie tylko precyzji
-  ale i zakresu kolorow przy uzywaniu formatow Image innych niz TRGBFloatImage
-  dotycza takze tej procedury.
+    We follow the VRML/X3D lighting equation parameters, just like
+    our regular ray-tracer, from VRMLLighting unit. Except we don't have
+    here the material description, and we don't know the camera configuration
+    (light map must not be dependent on camera).)
+
+  @param(Octree Describes the scene geometry.)
+
+  @param(TrianglePos The triangle position in 3D space.
+
+    When LeftDownImagePart = @true, then
+    TrianglePos[0] corresponds to upper-left image pixel,
+    TrianglePos[1] corresponds to lower-left image pixel,
+    TrianglePos[2] corresponds to lower-right image pixel.
+
+    When LeftDownImagePart = @false, then
+    TrianglePos[0] corresponds to lower-right image pixel,
+    TrianglePos[1] corresponds to upper-right image pixel,
+    TrianglePos[2] corresponds to upper-left image pixel.)
+
+  @param(RenderDir From which the side of the TrianglePos we capture lighting.
+    It's any vector not parallel to TrianglePos plane.)
+
 }
 procedure TriangleLightMapTo1st(const Image: TImage;
   LeftDownImagePart: boolean;
@@ -66,13 +67,16 @@ procedure TriangleLightMapTo1st(const Image: TImage;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
-{ renderuje quad na calym obrazku, patrz opis TriangleLightMapTo1st.
+{ Render the light map on a quad. Everything works exactly like with
+  TriangleLightMapTo1st, except that now we render for the quad,
+  filling the whole resulting Image.
 
-  Mapowanie QuadPos na obrazek : punkt lewy-dolny obrazka (czyli 0, 0) to
-  QuadPos[0], prawy dolny to QuadPos[1], prawy gorny to QuadPos[2] i wiadomo.
+  Quad[0] point corresponds to the lower-left image corner,
+  Quad[1] corresponds to the lower-right, and so on CCW.
 
-  Jesli ProgresTitle <> '' to uzywa Progress (with given Title)
-  aby zaznaczac postep operacji. }
+  We show progress of operation using ProgressUnit, if ProgresTitle <> ''.
+
+  @seealso TriangleLightMapTo1st }
 procedure QuadLightMapTo1st(const Image: TImage;
   Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
   const Quad: TQuad3Single;

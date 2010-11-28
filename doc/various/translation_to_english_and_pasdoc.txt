@@ -87,7 +87,7 @@ E   vorbisfile.pas
 
   base/
 D   dataerrors.pas
-|   enumeratefiles.pas
+D   enumeratefiles.pas
 D   filefilters.pas
 D   kambiclassutils.pas
 D   kambidynlib.pas
@@ -182,7 +182,7 @@ D   glmenu.pas
 E   glmenuimages.pas
 
  examples/vrml/tools/
-|   vrmllightmap.pas
+D   vrmllightmap.pas
 
 ------------------------------------------------------------
 Units that are not intended to be processed by pasdoc:
