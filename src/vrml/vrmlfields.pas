@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(VRML fields --- @link(TVRMLField) class and descendants.) }
-
+{ VRML fields (TVRMLField and many descendants). }
 unit VRMLFields;
 
 interface

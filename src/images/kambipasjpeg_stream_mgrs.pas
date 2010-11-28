@@ -1,3 +1,4 @@
+{ @exclude (Not to be used from outside, this is internal for KambiPasJpeg.) }
 unit KambiPasJpeg_stream_mgrs;
 
 {$I kambiconf.inc}

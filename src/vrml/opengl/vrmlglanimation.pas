@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TVRMLGLAnimation class. }
+{ A precalculated 3D animation rendered in OpenGL (TVRMLGLAnimation). }
 unit VRMLGLAnimation;
 
 interface
@@ -28,7 +28,7 @@ type
   TGetRootNodeWithTime = procedure (const Index: Cardinal;
     out RootNode: TVRMLNode; out Time: Single) of object;
 
-  { This is a "precalculated" animation of VRML model done by
+  { A "precalculated" animation of VRML model done by
     interpolating between any number of model states.
 
     After constructing an object of this class, you must actually

@@ -14,16 +14,14 @@
 
  **********************************************************************}
 
-{ This is copied from FPC sources unit fpc/fcl/inc/zstream.pp
-  that implements streams using zlib library.
+{ Streams using zlib compression.
 
-  This is copied because I had to adjust it a little:
-  it uses my KambiZlib unit.
-
-  Here is also some work with TDecompressionStream.WindowBits property
-  done, but it apparently does not work yet. Some tests need to be made. }
-
+  This is adjusted from FPC sources unit fcl/inc/zstream.pp,
+  to use my KambiZlib unit. }
 unit KambiZStream;
+
+{ We also have here some work with TDecompressionStream.WindowBits property
+  started, but it apparently does not work yet. Some tests need to be made. }
 
 interface
 
@@ -86,8 +84,7 @@ type
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     property OnProgress;
 
-    { Meaning of this property is the same as for zlib inflateInit2
-      function. }
+    { WindowBits meaning is the same as for zlib inflateInit2 function. }
     property WindowBits: LongInt read FWindowBits;
   end;
 

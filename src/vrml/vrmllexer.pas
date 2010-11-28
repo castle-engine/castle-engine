@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML lexer: TVRMLLexer class and helpers. }
+{ VRML lexer (TVRMLLexer). }
 unit VRMLLexer;
 
 { Every newly read token will be reported with LogWrite.

@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ This unit provides utilities for making TGLMenu items to control
-  TGameSoundEngine. }
+{ Menu items (suitable for menu on OpenGL in GLMenu) control TGameSoundEngine. }
 unit GLSoundMenu;
 
 interface
@@ -22,9 +21,8 @@ interface
 uses GLWindow, GLMenu, GameSoundEngine;
 
 type
-  { For now, this class is used only as an abstract class for
-    GLSoundMenu items. In the future maybe such idea will be incorporated
-    into GLMenu unit. }
+  { An abstract class for GLSoundMenu items.
+    In the future maybe such idea will be incorporated into GLMenu unit. }
   TGLMenuItem = class
   private
     FGlwin: TGLWindow;
@@ -55,9 +53,9 @@ type
     procedure Selected; override;
   end;
 
-  { Small modification of TGLMenuFloatSlider especially suited for
-    configuring sound volume: range is from 0 to 1 always, and
-    when the slider is exactly on 0.0 position it shows "Off". }
+  { Float slider suitable for volume setting.
+    Range is always [0 .. 1] and when the slider is exactly
+    on 0.0 position it shows "Off". }
   TGLMenuVolumeSlider = class(TGLMenuFloatSlider)
     constructor Create(const AValue: Single);
     function ValueToStr(const AValue: Single): string; override;

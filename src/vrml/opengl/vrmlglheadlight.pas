@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML headlight rendered by OpenGL --- TVRMLGLHeadLight class. }
+{ VRML headlight rendered by OpenGL (TVRMLGLHeadLight). }
 unit VRMLGLHeadLight;
 
 interface

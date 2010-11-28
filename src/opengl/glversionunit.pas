@@ -13,15 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ Implements GLVersion, GLUVersion and related stuff handy for checking
-  OpenGL version information, detect Mesa/other vendors etc.
+{ Checking OpenGL version, vendors and such (GLVersion, GLUVersion).
 
-  As you see, this unit doesn't use GL bindings itself.
-  That's so that it may be used with various OpenGL bindings,
-  like my old OpenGLh or FPC's GL, GLU, GLExt.
-  So you must manually initialize GLVersion from some othe unit.
-  As far as my engine is concerned, this will happen automatically
-  by LoadAllExtensions call. Which is done by GLWindow on Init,
+  You must manually initialize GLVersion and such (this unit doesn't even
+  use GL bindings). For my engine, this will happen automatically
+  at LoadAllExtensions call. Which is done during TGLWindow.Open,
   or TKamOpenGLControl on GL context initialization.
 }
 unit GLVersionUnit;

@@ -1,3 +1,4 @@
+{ @exclude (Not to be used from outside, this is internal for KambiPasJpeg.) }
 unit KambiPasJpeg_error_mgrs;
 
 {$I kambiconf.inc}

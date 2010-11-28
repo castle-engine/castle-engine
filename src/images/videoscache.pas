@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TImagesVideosCache class --- a cache for loading both videos and images. }
+{ A cache for loading both videos and images (TImagesVideosCache). }
 unit VideosCache;
 
 interface

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML headlight --- TVRMLHeadLight class. }
+{ VRML headlight (TVRMLHeadLight). }
 unit VRMLHeadLight;
 
 interface

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TImagesCache class --- a cache for loading images. }
+{ A cache for loading images (TImagesCache). }
 unit ImagesCache;
 
 interface
