@@ -13,12 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Enumerating filenames matching some mask.)
-
-  In short, intention is to wrap FindFirst/Next procedures in much
-  safer and cleaner interface.
-}
-
+{ Enumerating filenames matching some mask.
+  Intention is to wrap standard FindFirst/FindNext procedures
+  in a much safer and cleaner interface. }
 unit EnumerateFiles;
 
 {
@@ -40,9 +37,9 @@ uses SysUtils, KambiUtils, Classes;
 
 type
   TEnumeratedFileInfo = record
-    { SearchRec, as returned by FindFirst / FindNext }
+    { TSearchRec, as returned by FindFirst / FindNext. }
     SearchRec: TSearchRec;
-    { expanded file name (i.e. with absolute path) }
+    { Expanded (with absolute path) file name. }
     FullFileName: string;
   end;
   PEnumeratedFileInfo = ^TEnumeratedFileInfo;
@@ -55,12 +52,6 @@ type
   TDynEnumeratedFileInfoArray = TDynArray_1;
 
 type
-  { You can raise this from FileProc
-    (given as FileProc: TEnumFileProc / TEnumFileMethod
-    parameter to EnumFiles) to exit from enclosing EnumFiles.
-    This is useful to terminate search. }
-  BreakEnumFiles = class(TCodeBreaker);
-
   TEnumFileProc =
     procedure (const FileInfo: TEnumeratedFileInfo; Data: Pointer);
   TEnumFileMethod =
@@ -323,8 +314,7 @@ uses KambiFilesUtils;
 }
 
 { This is equivalent to EnumFiles with Recursive = false
-  and ReadAllFirst = false,
-  but it doesn't catch BreakEnumFiles.
+  and ReadAllFirst = false.
 
   Moreover, Mask_fname musi byc PELNA nazwa pliku,
   razem z katalogiem (i ew. dyskiem pod Windows).
@@ -379,8 +369,7 @@ begin
 end;
 
 { This is equivalent to EnumFiles with Recursive = false
-  and ReadAllFirst = false,
-  but it doesn't catch BreakEnumFiles. }
+  and ReadAllFirst = false. }
 function EnumFiles_NonRecursive(const Mask: string; attr: integer;
   FileProc: TEnumFileProc; FileProcData: Pointer;
   Symlinks: boolean): Cardinal; overload;
@@ -392,8 +381,7 @@ begin
 end;
 
 { This is equivalent to EnumFiles with Recursive = true,
-  and ReadAllFirst = false,
-  but it doesn't catch BreakEnumFiles. }
+  and ReadAllFirst = false. }
 function EnumFiles_Recursive(const Mask: string; attr: integer;
   FileProc: TEnumFileProc; FileProcData: Pointer;
   Symlinks: boolean; DirContentsLast: boolean): Cardinal;
@@ -457,8 +445,7 @@ begin
  result := EnumFilesRecursWewn(ExpandFileName(Mask));
 end;
 
-{ This is equivalent to EnumFiles with ReadAllFirst = false,
-  but it doesn't catch BreakEnumFiles }
+{ This is equivalent to EnumFiles with ReadAllFirst = false. }
 function EnumFiles_NonReadAllFirst(const Mask: string; attr: integer;
   FileProc: TEnumFileProc; FileProcData: Pointer;
   Symlinks, Recursive, DirContentsLast: boolean): Cardinal;
@@ -502,26 +489,16 @@ begin
      eoSymlinks in Options,
      eoRecursive in Options,
      eoDirContentsLast in Options);
-   try
     for i := 0 to FileInfos.Count - 1 do
      FileProc(FileInfos.Items[i], FileProcData);
-   except on BreakEnumFiles do ; end;
   finally FileInfos.Free end;
  end else
  begin
-  try
    Result := EnumFiles_NonReadAllFirst(Mask, Attr,
      FileProc, FileProcData,
      eoSymlinks in Options,
      eoRecursive in Options,
      eoDirContentsLast in Options);
-  except
-   on BreakEnumFiles do
-    { TODO: on BreakEnumFiles, Result should remain with valid value.
-      Below (Result := 0) is just a temporary replacement: Result will
-      not be correct (always 0), but at least it's not undefined. }
-    Result := 0;
-  end;
  end;
 end;
 
