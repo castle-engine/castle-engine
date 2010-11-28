@@ -172,6 +172,7 @@ procedure StringList_FreeWithContentsAndNil(var StringList: TStringList);
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
 
+{ }
 procedure StreamWriteLongWord(Stream: TStream; const Value: LongWord);
 function StreamReadLongWord(Stream: TStream): LongWord;
 
@@ -254,9 +255,9 @@ function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): st
   in a buffered stream with full seeking capability. }
 function CreateReadFileStream(const filename: string): TStream;
 
-{ Read a growing stream (a stream that we can only read
-  sequentially, no seeks allowed, and size is unknown until we hit the end),
-  and append it to another destination stream.
+{ Read a growing stream, and append it to another destination stream.
+  A "growing stream" is a stream that we can only read
+  sequentially, no seeks allowed, and size is unknown until we hit the end.
 
   The only operation we do on GrowingStream is GrowingStream.Read and the only
   operation on DestStream is DestStream.WriteBuffer. So DestStream usually
@@ -268,9 +269,9 @@ function CreateReadFileStream(const filename: string): TStream;
 procedure ReadGrowingStream(GrowingStream, DestStream: TStream;
   ResetDestStreamPosition: boolean);
 
-{ Read a growing stream (a stream that we can only read
-  sequentially, no seeks allowed, and size is unknown until we hit the end),
-  and returns it's contents as a string. }
+{ Read a growing stream, and returns it's contents as a string.
+  A "growing stream" is a stream that we can only read
+  sequentially, no seeks allowed, and size is unknown until we hit the end. }
 function ReadGrowingStreamToString(GrowingStream: TStream): string;
 
 { Encode / decode a string in a binary stream. Records string length (4 bytes),
@@ -318,77 +319,70 @@ type
   EStreamNotImplementedSeek = class(EStreamNotImplemented);
   EStreamNotImplementedSetSize = class(EStreamNotImplemented);
 
-  { Read another stream, sequentially, always being able to back one character.
+  { Abstract class to read another stream, always being able to back one character.
     This is a purely sequential read-only stream.
-    This means that calling Write, Seek (changing Position)
-    or setting Size will always cause an exception with
+    This means that calling @link(Write), @link(Seek) (changing Position)
+    or setting @link(Size) will always cause an exception with
     appropriate descendant of @link(EStreamNotImplemented).
 
-    Getting Size and Position is allowed. Getting Size is simply
-    implemented by getting SourceStream.Size. Position works
-    correctly, i.e. it always returns the number of characters
-    *read* from underlying stream. This means that peeking (using PeekChar)
-    never changes position, also using read buffer
-    (see @link(TBufferedReadStream)) do not affect Position.
-    Position returns you position in *this stream*, not your "real"
-    position in underlying SourceStream.
+    Getting @link(Size) and @link(Position) is allowed.
+    Getting @link(Size) is simply
+    implemented by getting SourceStream.Size (so it works if the underlying
+    source stream supports getting Size). Getting @link(Position) always works
+    correctly, as it's just the number of characters
+    @italic(read) from this stream. The fact that we may
+    read ahead in the underlying source stream (for buffering, for peeking)
+    is completely hidden.
 
-    In exchange, you get the ability to use PeekChar routine:
-    you can always peek ahead one char in the stream,
+    We do not assume anything about the underlying source stream, in particular
+    the underlying source stream may also be purely sequential
+    (so we can only read from it, and we cannot predict when it ends).
+
+    The main advantage of using this class is that you get PeekChar routine:
+    you can always peek ahead one character in the stream,
     without reading it (i.e. next time you will call Read or ReadBuffer
-    you will still get that char). This way even SourceStream may
-    be purely sequential read-only stream (if you're sure that
-    your SourceStream allows always to set Position than you could
-    simply use Position := Position - 1; instead of using this class...).
-
-    Notes about Read method overriden by this class descendants:
-
-      This tries to read next Count bytes from SourceStream, making sure
-      that even character that you obtained by PeekChar will be returned
-      here. In other words, this just implements Read method of TStream :)
-
-      This may call SourceStream.Read, and any exceptions that may be
-      raised in SourceStream.Read are propagated higher from this method.
-  }
+    you will still get that char). And it works for all source streams,
+    including the ones where seeking is not allowed (so Seek(-1, soCurrent)
+    would not work). }
   TPeekCharStream = class(TStream)
   private
     FSourceStream: TStream;
     FOwnsSourceStream: boolean;
   protected
-    { @returns(SourceStream.Size) }
+    { @returns(SourceStream.Size). }
     function GetSize: Int64; override;
 
-    { All other versions of SetSize also call this.
-      @raises(EStreamNotImplementedSetSize always) }
+    { This stream doesn't support setting size.
+      (All other versions of SetSize also call this.)
+      @raises(EStreamNotImplementedSetSize Always.) }
     procedure SetSize(NewSize: Longint); override;
 
     {$ifndef FPC}
     function GetPosition: Int64; virtual; abstract;
     {$endif}
   public
-    { SetPosition and all other versions of Seek also call this.
-      @raises(EStreamNotImplementedSeek always (well, actually with
-         FPC 1.9.8 raises some other thing ("Seek not implemented"),
-         but it's temporary)) }
-    {$ifndef VER1_9_8}
+    { This stream doesn't support seeking.
+      (SetPosition and all other versions of Seek also call this.)
+      @raises(EStreamNotImplementedSeek Always.) }
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
-    {$endif}
 
-    { WriteBuffer also calls this.
-      @raises(EStreamNotImplementedWrite always) }
+    { This stream doesn't support writing.
+      (WriteBuffer also calls this.)
+      @raises(EStreamNotImplementedWrite Always.) }
     function Write(const Buffer; Count: Longint): Longint; override;
 
     { Underlying stream. }
     property SourceStream: TStream read FSourceStream;
 
-    { If true then at the destruction it will free FSourceStream. }
+    { Should we free underlying SourceStream at destruction. }
     property OwnsSourceStream: boolean
       read FOwnsSourceStream write FOwnsSourceStream;
 
-    { Peeks next char from the stream but doesn't treat it as "already read",
-      i.e. the next call to Read or ReadBuffer will return this char.
+    { Peek next character. Returns the next character
+      without making it "already read", so the next call to
+      Read or ReadBuffer will return this char.
       Subsequent calls to PeekChar (without any Read/ReadBuffer between)
-      will always return the same value.
+      will also return the same character.
 
       Returns -1 if stream ended, otherwise returns Ord or given char.
 
@@ -396,15 +390,14 @@ type
       raised in SourceStream.Read are propagated higher from this method. }
     function PeekChar: Integer; virtual; abstract;
 
-    { This is somehow a shortcut for Read(c, 1), but it returns -1 if eof
-      is reached. So it's consistent with PeekChar.
+    { Read next character. A shortcut for Read(c, 1), but it returns -1
+      if end of stream is reached. So it's consistent with PeekChar.
       Sometimes it's also more comfortable, and it's a little faster. }
     function ReadChar: Integer; virtual; abstract;
 
-    { While PeekChar is not one of EndingChars (and it's not eof)
-      it reads chars from stream and appends them to Result.
-      This means that Result is guaranteed to not contain any char
-      from EndingChars. }
+    { Read characters, until one of EndingChars (or end of stream) is found.
+      The ending character is not "consumed" from the stream.
+      The Result is guaranteed to not contain any char from EndingChars. }
     function ReadUpto(const EndingChars: TSetOfChars): string; virtual; abstract;
 
     {$ifndef FPC}
@@ -415,15 +408,15 @@ type
     destructor Destroy; override;
   end;
 
-  { This is a simplest non-abstract implementation of abstract
-    @link(TPeekCharStream) class. }
+  { Read another stream, sequentially, always being able to back one character.
+    This is a simplest non-abstract implementation of
+    the @link(TPeekCharStream) class. }
   TSimplePeekCharStream = class(TPeekCharStream)
   private
     PeekedChar: Integer;
     IsPeekedChar: boolean;
     FPosition: Int64;
   protected
-    { See @link(TPeekCharStream) for description how this Position behaves. }
     function GetPosition: Int64; override;
   public
     function Read(var Buffer; Count: Longint): Longint; override;
@@ -436,25 +429,23 @@ const
   DefaultReadBufferSize = 1024 * 1024;
 
 type
-  { This implements abstract TPeekCharStream class,
-    so this is purely sequential read-only stream that reads from
+  { Read another stream, sequentially, always being able to back one character,
+    and buffering it. This implements abstract TPeekCharStream class,
+    so this is a purely sequential read-only stream that reads from
     underlying SourceStream and you can use PeekChar and ReadChar and
     ReadUpto routines.
 
-    Additionally this stream promises that it will buffer incoming data
-    from SourceStream. This means that reading from a SourceStream
-    by a very small chunks (like e.g. byte-by-byte) does not hurt
-    performance. And at the same time, reading a huge file does
-    not hurt memory consumption (because buffer size may usually
-    be much smaller than file size). }
+    This stream will buffer incoming data from SourceStream.
+    This means that reading by a very small chunks (like e.g. byte-by-byte)
+    does not hurt performance. }
   TBufferedReadStream = class(TPeekCharStream)
   private
     FPosition: Int64;
 
-    { This is always non-nil allocated for BufferSize bytes. }
+    { Always non-nil, allocated for BufferSize bytes. }
     Buffer: PByteArray;
 
-    { This is a position of next unread char in Buffer,
+    { A position of the next unread char in Buffer,
       i.e. PeekChar simply returns Buffer[BufferPos]
       (unless BufferPos = BufferEnd, in which case buffer must be refilled). }
     BufferPos: LongWord;
@@ -470,7 +461,6 @@ type
       BufferPos is always resetted to 0 by this. }
     procedure FillBuffer;
   protected
-    { See TPeekCharStream for description how this Position behaves. }
     function GetPosition: Int64; override;
   public
     function Read(var LocalBuffer; Count: Longint): Longint; override;
@@ -486,17 +476,11 @@ type
   end;
 
 { ---------------------------------------------------------------------------- }
-{ @section(TCollection utilities) }
-
-{$ifdef DELPHI}
-procedure CollectionSetCount(Collection: TCollection; NewCount: integer);
-{$endif}
-
-{ ---------------------------------------------------------------------------- }
 { @section(TComponent utilities) }
 
-{ If Component = nil then it will do
-    Component := ComponentClass.Create(Owner); }
+{ Create Component instance, if it's @nil.
+  If Component = nil then it will do
+  @code(Component := ComponentClass.Create(Owner)). }
 procedure CreateIfNeeded(var Component: TComponent;
   ComponentClass: TComponentClass; Owner: TComponent);
 
@@ -508,7 +492,8 @@ var
   { Streams that wrap standard input/output/error of the program.
 
     Note that you can't simultaneously read from StdInStream
-    and StdInReader (see comments at TTextReader class).
+    and StdInReader (reasons: see comments at TTextReader class,
+    TTextReader has to internally manage the stream underneath).
 
     Notes for Windows:
 
@@ -526,7 +511,7 @@ var
         "under the mask". And then you have
         some of std* streams available.
 
-        Actually FPC (and Delphi ?)
+        Actually FPC (and Delphi?)
         RTL don't provide in such cases valid Input/Output/ErrOutput
         variables (because IsConsole = false). But my streams below
         try to obtain standard stream handles under Windows
@@ -537,7 +522,7 @@ var
         Unfortunately, in a GUI program under Windows you @italic(cannot)
         depend on the fact that "StdOutStream <> nil means that stdout
         is actually available (because user redirected stdout etc.)".
-        Reason ? Windows failure, as usual:
+        Reason? Windows failure, as usual:
 
         This is tested on Windows 2000 Prof, with FPC 2.0.0 and 2.1.1 (revision 4317).
         When no stdout is available, StdOutStream should be nil, because
@@ -558,9 +543,12 @@ var
         work correctly, so it should be OK to check StdInStream <> nil or
         StdErrStream <> nil. The only problematic one is GetStdHandle(STD_OUTPUT_HANDLE).)
     )
+
+    @groupBegin
   }
   StdInStream, StdOutStream, StdErrStream :TStream;
   StdInReader: TTextReader;
+  { @groupEnd }
 
 { ---------------------------------------------------------------------------- }
 { @section(Stack, Queue) }
@@ -704,7 +692,7 @@ begin
   if ((ReadBuf[i] = #10) and (LastNewLineChar = #13)) or
      ((ReadBuf[i] = #13) and (LastNewLineChar = #10)) then
   begin
-   { We got 2nd newline character ? Ignore it. }
+   { We got 2nd newline character? Ignore it. }
    Assert(i = 1);
    Delete(ReadBuf, 1, 1);
    LastNewLineChar := #0;
@@ -1128,13 +1116,11 @@ begin
    'TPeekCharStream.SetSize not supported');
 end;
 
-{$ifndef VER1_9_8}
 function TPeekCharStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
  raise EStreamNotImplementedSeek.Create('TPeekCharStream.Seek not supported');
  Result := 0; { just to get rid of dummy fpc warning }
 end;
-{$endif}
 
 function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
 begin
@@ -1155,6 +1141,16 @@ begin
  if OwnsSourceStream then FreeAndNil(FSourceStream);
  inherited;
 end;
+
+{ Notes about TPeekCharStream.Read overriding:
+
+  This tries to read next Count bytes from SourceStream, making sure
+  that even character that you obtained by PeekChar will be returned
+  here. In other words, this just implements Read method of TStream :)
+
+  This may call SourceStream.Read, and any exceptions that may be
+  raised in SourceStream.Read are propagated higher from this method.
+}
 
 { TSimplePeekCharStream --------------------------------------------------- }
 
@@ -1386,16 +1382,6 @@ begin
  inherited;
 end;
 
-{ TCollection helpers -------------------------------------------------- }
-
-{$ifdef DELPHI}
-procedure CollectionSetCount(Collection: TCollection; NewCount: integer);
-begin
- while NewCount < Collection.Count do Collection.Delete(Collection.Count-1);
- while NewCount > Collection.Count do Collection.Add;
-end;
-{$endif}
-
 { TComponent helpers --------------------------------------------------- }
 
 procedure CreateIfNeeded(var Component: TComponent;
@@ -1417,7 +1403,7 @@ procedure InitStdStreams;
      because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
   2. This is not documented, so I prefer to not depend on this.
      For example, maybe in the future StdInputHandle will be always left as 0
-     when not IsConsole ? I want to exactly avoid this for my Std*Stream.
+     when not IsConsole? I want to exactly avoid this for my Std*Stream.
 }
 
   {$ifdef MSWINDOWS}
