@@ -1124,10 +1124,6 @@ type
       callbacks (if assigned). In case of list callbacks (OnOpenList,
       OnCloseList) --- these are called here too.
 
-      Every callback is called in a @code(try..except) code that will
-      catch and silence BreakGLWinEvent exceptions raised inside the callback.
-      This way you can easily cancel given callback by raising BreakGLWinEvent.
-
       You can override them to do anything you want.
 
       You can also call these methods directly for some tricks.
@@ -2264,11 +2260,6 @@ type
       const MessageType: TGLWindowMessageType = mtQuestion): boolean;
   end;
 
-  { Exception that is always catched and silenced
-    inside every TGLWindow.EventXxx. See comments before
-    TGLWindow.EventXxx methods. }
-  BreakGLWinEvent = class(TCodeBreaker);
-
   { Window with OpenGL context and some functionality typically useful
     for simple demo programs.
 
@@ -2878,9 +2869,7 @@ begin
  for i := 0 to Length-1 do
   if {$ifndef FPC_OBJFPC} @ {$endif} Items[i] <> nil then
   begin
-   {$I glwindow_eventoncallbegin.inc}
    Items[i](glwin);
-   {$I glwindow_eventoncallend.inc}
   end;
 end;
 
@@ -3368,31 +3357,27 @@ begin
  result := not Assigned(OnCloseQuery);
  {$I glwindow_eventbegin.inc}
  if Assigned(OnCloseQuery) then
- begin
-  {$I glwindow_eventoncallbegin.inc}
-  OnCloseQuery(Self);
-  {$I glwindow_eventoncallend.inc}
- end;
+   OnCloseQuery(Self);
  {$I glwindow_eventend.inc}
 end;
 
-procedure TGLWindow.EventOpen;                              const EventName = 'Open';       begin {$I glwindow_eventbegin.inc} if Assigned(OnOpen)        then begin {$I glwindow_eventoncallbegin.inc} OnOpen(Self);              {$I glwindow_eventoncallend.inc} end;   OnOpenList .ExecuteAll(Self); {$I glwindow_eventend.inc} end;
-procedure TGLWindow.EventClose;                             const EventName = 'Close';      begin {$I glwindow_eventbegin.inc} if Assigned(OnClose)       then begin {$I glwindow_eventoncallbegin.inc} OnClose(Self);             {$I glwindow_eventoncallend.inc} end;   OnCloseList.ExecuteAll(Self); {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventOpen;                              const EventName = 'Open';       begin {$I glwindow_eventbegin.inc} if Assigned(OnOpen)        then begin OnOpen(Self);              end;   OnOpenList .ExecuteAll(Self); {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventClose;                             const EventName = 'Close';      begin {$I glwindow_eventbegin.inc} if Assigned(OnClose)       then begin OnClose(Self);             end;   OnCloseList.ExecuteAll(Self); {$I glwindow_eventend.inc} end;
 {$define BONUS_LOG_STRING := Format('NewSize : %d,%d', [Width, Height])}
-procedure TGLWindow.EventResize;                            const EventName = 'Resize';     begin {$I glwindow_eventbegin.inc} if Assigned(OnResize)      then begin {$I glwindow_eventoncallbegin.inc} OnResize(Self);            {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventResize;                            const EventName = 'Resize';     begin {$I glwindow_eventbegin.inc} if Assigned(OnResize)      then begin OnResize(Self);            end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TGLWindow.EventKeyDown(Key: TKey; C: char);       const EventName = 'KeyDown';    begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyDown)     then begin {$I glwindow_eventoncallbegin.inc} OnKeyDown(Self, Key, C);   {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventKeyDown(Key: TKey; C: char);       const EventName = 'KeyDown';    begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyDown)     then begin OnKeyDown(Self, Key, C);   end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TGLWindow.EventKeyUp(key: TKey; C: char);         const EventName = 'KeyUp';      begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyUp)       then begin {$I glwindow_eventoncallbegin.inc} OnKeyUp(Self, key, C);     {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventKeyUp(key: TKey; C: char);         const EventName = 'KeyUp';      begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyUp)       then begin OnKeyUp(Self, key, C);     end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Button: %s', [MouseButtonStr[btn]])}
-procedure TGLWindow.EventMouseDown(btn: TMouseButton);      const EventName = 'MouseDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin {$I glwindow_eventoncallbegin.inc} OnMouseDown(Self, btn);    {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
-procedure TGLWindow.EventMouseUp(btn: TMouseButton);        const EventName = 'MouseUp';    begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin {$I glwindow_eventoncallbegin.inc} OnMouseUp(Self, btn);      {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventMouseDown(btn: TMouseButton);      const EventName = 'MouseDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin OnMouseDown(Self, btn);    end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventMouseUp(btn: TMouseButton);        const EventName = 'MouseUp';    begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin OnMouseUp(Self, btn);      end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
-procedure TGLWindow.EventMouseWheel(const Scroll: Single; const Vertical: boolean);  const EventName = 'MouseWheel'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin {$I glwindow_eventoncallbegin.inc} OnMouseWheel(Self, Scroll, Vertical);{$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
-procedure TGLWindow.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I glwindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin {$I glwindow_eventoncallbegin.inc} OnMenuCommand(Self, Item); {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventMouseWheel(const Scroll: Single; const Vertical: boolean);  const EventName = 'MouseWheel'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin OnMouseWheel(Self, Scroll, Vertical); end;{$I glwindow_eventend.inc} end;
+procedure TGLWindow.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I glwindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin OnMenuCommand(Self, Item); end;   {$I glwindow_eventend.inc} end;
 
 { Events below happen so often, that they are logged only when
   GLWINDOW_EVENTS_LOG_ALL is defined.
@@ -3408,13 +3393,13 @@ procedure TGLWindow.EventMenuCommand(Item: TMenuItem);      const EventName = 'M
 {$endif}
 
   {$define BONUS_LOG_STRING := Format('New position: %d %d', [newX, newY])}
-  procedure TGLWindow.EventMouseMove(newX, newY: integer);const EventName = 'MouseMove'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseMove) then begin {$I glwindow_eventoncallbegin.inc} OnMouseMove(Self, newX, newY); {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+  procedure TGLWindow.EventMouseMove(newX, newY: integer);const EventName = 'MouseMove'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseMove) then begin OnMouseMove(Self, newX, newY); end;   {$I glwindow_eventend.inc} end;
   {$undef BONUS_LOG_STRING}
 
-  procedure TGLWindow.EventBeforeDraw;                    const EventName = 'BeforeDraw';begin {$I glwindow_eventbegin.inc} if Assigned(OnBeforeDraw)then begin {$I glwindow_eventoncallbegin.inc} OnBeforeDraw(Self);            {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
-  procedure TGLWindow.EventDraw;                          const EventName = 'Draw';      begin {$I glwindow_eventbegin.inc} if Assigned(OnDraw)      then begin {$I glwindow_eventoncallbegin.inc} OnDraw(Self);                  {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
-  procedure TGLWindow.EventIdle;                          const EventName = 'Idle';      begin {$I glwindow_eventbegin.inc} if Assigned(OnIdle)      then begin {$I glwindow_eventoncallbegin.inc} OnIdle(Self);                  {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
-  procedure TGLWindow.EventTimer;                         const EventName = 'Timer';     begin {$I glwindow_eventbegin.inc} if Assigned(OnTimer)     then begin {$I glwindow_eventoncallbegin.inc} OnTimer(Self);                 {$I glwindow_eventoncallend.inc} end;   {$I glwindow_eventend.inc} end;
+  procedure TGLWindow.EventBeforeDraw;                    const EventName = 'BeforeDraw';begin {$I glwindow_eventbegin.inc} if Assigned(OnBeforeDraw)then begin OnBeforeDraw(Self);            end;   {$I glwindow_eventend.inc} end;
+  procedure TGLWindow.EventDraw;                          const EventName = 'Draw';      begin {$I glwindow_eventbegin.inc} if Assigned(OnDraw)      then begin OnDraw(Self);                  end;   {$I glwindow_eventend.inc} end;
+  procedure TGLWindow.EventIdle;                          const EventName = 'Idle';      begin {$I glwindow_eventbegin.inc} if Assigned(OnIdle)      then begin OnIdle(Self);                  end;   {$I glwindow_eventend.inc} end;
+  procedure TGLWindow.EventTimer;                         const EventName = 'Timer';     begin {$I glwindow_eventbegin.inc} if Assigned(OnTimer)     then begin OnTimer(Self);                 end;   {$I glwindow_eventend.inc} end;
 
 {$ifndef GLWINDOW_EVENTS_LOG_ALL}
   {$ifdef WAS_GLWINDOW_EVENTS_LOG}

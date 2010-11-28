@@ -1,1 +1,0 @@
-except on BreakGLWinEvent do ; end;
