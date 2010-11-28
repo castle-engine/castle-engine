@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @section(Basic algorithms.) Not much for now. }
+{ @section(Basic algorithms.) }
 
 {$ifdef read_interface}
 
@@ -59,58 +59,49 @@ const
 
 { Sort given table of items.
 
-  You must give Arr --- pointer to items array in memory,
-  and ArrRecordSize --- size (in bytes) of every item,
-  IsSmaller -- function that for two arguments should return
-  is "a < b" true (i.e. I'm assuming here that IsSmaller works
-  like mathematical "<" --- it's not reflexive (not IsSmaller(a, a)),
-  for a <> b either IsSmaller(a, b) or IsSmaller(b, a) (but not both),
-  it's transitive.
+  Sorts items ascending, that is Arr[FirstIndex] <= ... <= Arr[LastIndex].
 
-  Using parameters FirstIndex and LastIndex you can sort
-  only part of the array, items outside given range will be be even read.
-  (actually you could achieve effect of FirstIndex by simply shifting
-  the pointer Arr, but using FirstIndex is more comfortable).
-  If FirstIndex>LastIndex, this is NOP.
+  @param(Arr Pointer to items array in memory.)
 
-  It sorts items ascending, i.e. Arr[FirstIndex] <= ... <= Arr[LastIndex].
-  (where meaning of "<=" is implicated by meaning of "<" which is given
-  by IsSmaller).
+  @param(ArrRecordSize Size (in bytes) of every item. This is the size
+    of item that will be moved around in the memory.)
 
-  TODO: Polish below.
+  @param(IsSmallerFunc Comparison function, should return is "A < B" true.
 
-  Jeszcze slowo o wskaznikach jakie bedzie dostawac IsSmallerFunc : mianowicie
-  te wskazniki niekoniecznie zawsze beda rowne PointerAdd(Arr, ArrStride*n) dla
-  jakiegos n. Byc moze wybierajac np. element dzielacy dla quicksorta skopiujemy
-  sobie jego wartosc na chwile i wtedy wskaznik bedzie wskazywal na lokalna
-  kopie danej wartosci ? Kopiowanie bedziemy musieli robic metodami nisko-poziomowymi
-  wiec i tak nie ma problemu z rzeczami ktore wymagaja Initialize/Finalize.
-  Chociaz moze byc w zwiazku z tym problem jesli IsSmallerFunc bedzie moglo
-  przy okazji zmodyfikowac jakos zawartosc danego rekordu - no coz, nie moze
-  tego robic ! IsSmaller powinno byc ladna funkcja.
+    I'm assuming here that IsSmallerFunc works like mathematical "<":
+    it's not reflexive (IsSmallerFunc(A, A) = @false),
+    for A <> B exactly one of IsSmallerFunc(A, B) or IsSmallerFunc(B, A) is true,
+    and it's transitive.
 
-  Ze wzgledu na to ze w srodku @name samo wykonuje przestawianie elementow
-  na liscie wiec argument ArrRecordSize nie moze byc oszukany - musi byc wiekszy
-  od zera i musi rzeczywiscie obejmowac dokladnie zawartosc rekordu.
-  Z drugiej strony mozesz zawsze uzyc wersji z ArrStride jezeli rekordy
-  ktore chcesz przestawiac sa przeplecione z innymi danymi ktorych nie chcesz
-  przestawiac razem z rekordami. ArrStride mowi co ile bajtow jest nastepny rekord.
-  Domyslnie ArrStride to ArrRecordSize. Oczywiscie mozna sobie zrobic krzywde jezeli podasz
-  np. ArrRecordSize>0 i ArrStride w zakresie [0..ArrRecordSize).
+    Note that IsSmallerFunc gets only the pointers to the items.
+    These may be pointers to the Arr, or a pointer to internal temporary copy
+    of some array item. So IsSmallerFunc cannot modify the item underneath
+    (it would not work for internal copy, and also would create problems
+    with types that need initialization/finalization since our internal
+    copy is done using low-level memory copying.))
 
-  W klasach TDyn*Array zaimplementowalem wersje tej procedury bezpieczna
-  ze wzgledu na typy - tam podajesz tylko funkcje typu
-  function (const a,b:<typ>): boolean [of object]; gdzie <typ> to typ elementow
-  tablicy.
+  @param(FirstIndex FirstIndex and LastIndex allow you to sort only
+    given part of the array. We don't touch items outside of this range.
+    Note that you could achieve the effect of FirstIndex > 0 also
+    by increasing the Arr pointer, but FirstIndex is usually more comfortable.
 
-  TODO: chwilowo ArrStride nie moze byc ujemne (to moze czasem pozwolic na pewne sztuczki).
-  TODO: zrobic tez wersje ktora zamiast ArrRecordSize pobiera SwapItemsFunc.
-}
+    If FirstIndex > LastIndex, we do nothing.)
+
+  @param(ArrStride Distance (in bytes) between array items in memory.
+    If you don't provide it, we'll assume ArrRecordSize.
+    ArrStride is useful if your array is interleaved with another array,
+    and you want to keep the other data untouched by sorting.
+
+    ArrStride must be > 0, actually it must be > ArrRecordSize for sensible
+    behavior. (Unless ArrRecordSize is 0, then ArrStride may be 0 too.).)
+
+  See TDyn*Array classes (like TDynIntegerArray) contain also sort methods
+  that are type-safe and easier to use.
+  @groupBegin }
 procedure Sort(Arr: pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
-
 procedure Sort(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
@@ -122,9 +113,7 @@ procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal;
 procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFuncByObject; FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
-
-{ TODO: special versions of Sort for standard predefined types
-  (integers, floats, strings) would be nice. }
+{ @groupEnd }
 
 {$endif read_interface}
 

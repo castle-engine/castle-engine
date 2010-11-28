@@ -13,7 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Before including this file, define types :
+{ Template of a class defining a dynamic (resizeable) array of items.
+
+  Before including this file, define types:
     TDynArrayItem_7,
     PDynArrayItem_7 -- this must be ^TDynArrayItem_7.
   (in FPC you can also use macros to define these identifiers)
@@ -26,65 +28,56 @@
     TDynArrayItemIsSmallerFuncByObject_7,
       ( function (const a, b: TDynArrayItem_7): boolean [of object] );
 
-  Jezeli symbol DYNARRAY_7_IS_STRUCT jest zdefiniowany nie ma wlasciwosci Values - powinienes
-  zawsze uzywac wlasciwosci .Items[] (ktora nie jest wlasciwoscia tablicowa,
-  ona jest wskaznikiem na tablice, wiec nie moze byc defautowa...)
-  Items to wskaznik na tablice elementow typu TDynArrayItem_7. Mozesz na niej dowolnie
-  operowac (pamietaj ze RangeChecking nie dziala - nie ma jak); takie zachowanie jest
-  dobre gdy TArrayItem to rekord lub inna tablica. Wlasciwosc Values nie bedzie istniala
-  (moglaby istniec; ale jej uzycie czesciej prowadziloby do bledow niz do
-  wygodnych zastosowan : gdyby TDynArrayItem_7 byl np. rekordem record x, y: integer end
-  to A[10].x zostaloby odczytane jako A.GetValues(10).x := 10 a wiec zmieniloby wartosc
-  tymczasowej kopii wartosci tablicy 10, a wiec de facto nie zmieniloby niczego...
-  podobnie wyrazenie @@A[10].x byloby juz arcy-niebezpieczne bo zwracaloby
-  wskaznik poprawny tylko tymczasowo; dzialaloby tylko A[10] := R gdzie R jest innym
-  rekordem typu TDynArrayItem_7; podobnie zachowywalby sie kod gdyby TDynArray_7 bylo
-  np. zwykla tablica; pamietaj ze obiekt (klasa) to tak naprawde tylko wskaznik
-  wiec jesli chcesz miec tablice TDynMyClassArray to nie potrzebujesz (i nie chcesz)
-  definiowac symbolu DYNARRAY_7_IS_STRUCT, ten problem nie istnieje dla klas !)
-  (still better, you can use ObjectsList instead of DynArray if you want
-  to have objects on your list).
+  You can also define some symbols:
 
-  Jezeli DYNARRAY_7_IS_STRUCT jest zdefiniowane to domyslna jest wlasciwosc Pointers[i]
-  ktora zwraca po prostu @@Items[i]. Uzywajac tej wlasciwosci mozesz operowac
-  na TDynArray_7 jakby rzeczywiscie byla tablica - tylko pamietaj ze Pointers
-  zwracaja wlasnie wskazniki (czyli PDynArrayItem_7, zamiast TDynArrayItem_7).
+  @unorderedList(
+    @item(DYNARRAY_7_IS_STRUCT: Then our array is a structure, like a record
+      or old-(TP-style)-object.
 
-  W przeciwnym przypadku wlasciwosc Values bedzie zwracala elementy TDynArrayItem_7
-  i pozwalala na ustawianie takich elementow (co jest ok jesli te elementy sa
-  male i elementarne (elementarne = sa uzywane po lewej stronie instrukcji przypisania
-  same albo tylko jako jakis indeks tablicy itp.). Wlasciwosc Items ciagle bedzie
-  istniala - i moze byc uzyteczna, np. nie rob @@A[10], rob @@A.Items[10] z tych samych
-  powodow co wyzej. Zreszta A.Items[] jest zawsze bezpieczne, po prostu jesli
-  TDynArrayItem_7 nie jest struktura to ZAZWYCZAJ Values tez daje rezultaty jakich
-  moznaby na pierwszy rzut oka oczekiwac.
+      In this case we don't define the @code(Values) property, as it would be too
+      error-prone. When you define a property that returns a record,
+      you can use @code(Values[I].SomeProperty := 123) but it will
+      actually not work, as @code(Values[I]) is only a temporary returned
+      record.
 
-  Jezeli symbol DYNARRAY_7_IS_INIT_FINI_TYPE jest zdefiniowany to na wszystkich nowo
-  tworzonych elementach  tablicy (przez SetLength lub przez parametr InitialLength
-  w Create) zostanie wywolane Finalize a na wszystkich zwalnianych (w SetLength
-  lub w Destroy) elementach zostanie wywolane Finalize. To bedzie dzialac ok
-  bez wzgledu na to czy DYNARRAY_7_IS_STRUCT czy nie.
+      The default class property is then the @code(Pointers) property,
+      that returns pointer to the appropriate item. This allows you to modify
+      the record contents safely.
 
-  Jesli symbol DYNARRAY_7_USE_EQUALITY_OP (albo DYNARRAY_?_... jezeli uzywasz
-  spawnerow) to zdefiniuje pare metod ktore uzywaja standardowego porownania
-  operatorem "=" do wykonania czegos na elementac tablicy. W tym momencie
-  jest to tylko metoda IndexOf. Jesli zdefiniujesz
-  DYNARRAY_7_USE_EQUALITY_COMPAREMEM (DYNARRAY_?_... dla spawnerow)
-  to bedzie uzywane CompareMem() zamiast operatora "="
-  (nie wolno ci zdefiniowac jednoczesnie DYNARRAY_7_USE_EQUALITY_COMPAREMEM i
-  DYNARRAY_7_USE_EQUALITY_OP, bedzie blad kompilacji).
+      Note that, regardless of whether you define DYNARRAY_7_IS_STRUCT or not,
+      we always provide the @code(Items) property. @code(Items) is a direct
+      pointer to your items array, and so will work perfectly with records too,
+      can be modified as usual etc.
 
-  Define symbol DYNARRAY_7_IS_FUNCTION if TDynArrayItem_7 is a
-  function/procedure pointer (of object or not of object).
-  This is required, because (in Delphi syntax mode at least) we have
-  to write some things differently.
-  Also, this automatically defines DYNARRAY_7_USE_EQUALITY_OP.
+      When DYNARRAY_7_IS_STRUCT is not defined, then @code(Values) property
+      is defined, and it's even the default class property. So you can then treat
+      the instances of this TDynArray_7 as real arrays.)
 
-  Additionally, define DYNARRAY_7_IS_FUNCTION_METHOD for method ("of object")
-  pointers. Turns out that this is needed, since comparing method
-  pointers with normal "=" operator compares only code pointer
-  (done by FPC for Delphi compatibility, according to
-  [http://bugs.freepascal.org/view.php?id=11868]).
+    @item(DYNARRAY_IS_INIT_FINI: You have to define this if your type requires
+      Initialize/Finalize call. Define this for AnsiStrings, interfaces,
+      records containing AnsiStrings or interfaces and such.)
+
+    @item(DYNARRAY_7_USE_EQUALITY_OP: Use the "=" operator on your items
+      to define some additional methods like IndexOf.)
+
+    @item(DYNARRAY_7_USE_EQUALITY_COMPAREMEM: Use the CompareMem function
+      to compare your items, this will also provide methods like IndexOf,
+      although implemented differently.)
+
+    @item(DYNARRAY_7_USE_PLUSMINUS_OP: Use the "+" operator to define functions
+      like @code(Sum).)
+
+    @item(DYNARRAY_7_IS_FUNCTION: Define this if your item is a function / procedure
+      pointer (not of object). This is needed in Delphi mode.
+      Also, this automatically defines DYNARRAY_7_USE_EQUALITY_OP.)
+
+    @item(DYNARRAY_7_IS_FUNCTION_METHOD: Define this if your item is a method
+      (function / procedure of object). Similar to DYNARRAY_7_IS_FUNCTION,
+      this is needed to correctly handle methods. We have to differentiate
+      between normal functions and methods, because methods cannot be
+      (reasonably) compared by the "=" operator, see
+      [http://bugs.freepascal.org/view.php?id=11868].)
+  )
 }
 
 {$ifdef read_interface}
@@ -153,8 +146,7 @@
     constructor Create(InitialLength: Integer); {$ifndef FPC_OBJFPC} overload; {$endif}
     constructor CreateCopy(Source: TDynArray_7);
 
-    { This is a comfortable Items property, that allows you to both read and
-      write items in this array.
+    { Direct access to your items, you can both read and write using this.
 
       Note that it has different types:
       for Delphi (and FPC Delphi mode) it has PInfiniteArray_7 type,
@@ -164,9 +156,10 @@
     property Items: {$ifdef FPC_OBJFPC} PDynArrayItem_7 {$else}
       PInfiniteArray_7 {$endif} read GetItems;
 
-    { This is like @link(Items), but it has always (both for FPC ObjFpc
-      mode and Delphi) type PInfiniteArray_7. This means that you
-      can always read/write items like @code(ItemsArray^[Index]).
+    { Pointer to your items. Exactly like @link(Items), but always of
+      PInfiniteArray_7 type.
+
+      This means that you can always read/write items like @code(ItemsArray^[Index]).
       Under ObjFpc you will not be able to write
       @code(ItemsArray[Index]) (i.e. omit this ^ character). }
     property ItemsArray: PInfiniteArray_7 read GetItemsArray;
@@ -197,7 +190,7 @@
     procedure AppendDynArray(Arr: TDynArray_7); overload;
     procedure AppendDynArray(Arr: TDynArray_7; Index, ACount: Integer); overload;
 
-    { Copies contents of Source to this object.
+    { Copy the contents of Source to this object.
 
       This is equivalent to doing @code(Length := 0) and
       @code(AppendDynarray(Source)).
@@ -213,8 +206,7 @@
       DYNARRAY_7_IS_INIT_FINI_TYPE). }
     procedure Assign(Source: TDynArray_7);
 
-    { This is equivalent to @code(Count := 0) and then
-      @code(AppendArray(NewItems)). }
+    { Clear (like @code(Count := 0)) and then @code(AppendArray(NewItems)). }
     procedure AssignArray(const NewItems: array of TDynArrayItem_7);
 
     {$ifdef DYNARRAY_7_USE_EQUALITY}
@@ -224,7 +216,7 @@
     function Equal(const Arr: array of TDynArrayItem_7; ArrCount: Integer): boolean; overload;
 
     { Search for given item, starting from StartIndex (default is to
-      search whole list). Returns -1 if not found. }
+      search the whole list). Returns -1 if not found. }
     function IndexOf(const Item: TDynArrayItem_7; StartIndex: Integer = 0): Integer;
 
     { Search for given item, returns -1 if not found.
@@ -264,7 +256,7 @@
       to be smaller. }
     procedure Delete(const Index: Integer; DelCount: Integer = 1);
 
-    { Inserts Item at position Index into array.
+    { Insert Item at position Index into array.
       Index must be in range 0 .. Count (yes, we can @noAutoLink(insert)
       element at the end of the array).
       After insertion array has Count increased by 1, Items[Index] = Item and all
@@ -273,7 +265,7 @@
 
     procedure SetAll(const Item: TDynArrayItem_7);
 
-    { Sorts items. All you have to do is to pass some IsSmallerFunc
+    { Sort items. All you have to do is to pass some IsSmallerFunc
       -- see @link(KambiUtils.Sort) for specification what it should do,
       but note that @link(TDynArrayItemIsSmallerFunc_7) here gets parameter
       types already casted to TDynArrayItem_7, instead of dirty pointers

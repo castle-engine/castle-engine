@@ -127,8 +127,9 @@ type
   PShortint = ^Shortint;
 
   {$ifdef FPC}
-  { I'm overriding PBoolean that is defined as ^Byte in Windows unit.
-    For FPC 1.0.x PBoolean is not available at all. }
+  { Pointer to a boolean.
+    Defined as ^Byte in some Delphi Windows unit,
+    for FPC 1.0.x PBoolean is not available at all. }
   PBoolean = ^Boolean;
   {$endif}
 
