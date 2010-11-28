@@ -7,6 +7,7 @@
   that defines the same operators for object types (like Tvector2_single),
   but we want this for our types TVector2Single (equivalent to
   FPC's Matrix Tvector2_single_data).
+  We also overload sensible operators for integer-vectors.
 
   FreePascal's Matrix unit copyright:
     This file is part of the Free Pascal run time library.
@@ -23,56 +24,72 @@
 operator + (const x,y:Tvector2_single_data) : Tvector2_single_data;
 operator + (const x,y:Tvector2_double_data) : Tvector2_double_data;
 operator + (const x,y:Tvector2_extended_data) : Tvector2_extended_data;
+operator + (const x,y:Tvector2Integer) : Tvector2Integer;
 operator + (const x,y:Tvector3_single_data) : Tvector3_single_data;
 operator + (const x,y:Tvector3_double_data) : Tvector3_double_data;
 operator + (const x,y:Tvector3_extended_data) : Tvector3_extended_data;
+operator + (const x,y:Tvector3Integer) : Tvector3Integer;
 operator + (const x,y:Tvector4_single_data) : Tvector4_single_data;
 operator + (const x,y:Tvector4_double_data) : Tvector4_double_data;
 operator + (const x,y:Tvector4_extended_data) : Tvector4_extended_data;
+operator + (const x,y:Tvector4Integer) : Tvector4Integer;
 
 operator - (const x,y:Tvector2_single_data) : Tvector2_single_data;
 operator - (const x,y:Tvector2_double_data) : Tvector2_double_data;
 operator - (const x,y:Tvector2_extended_data) : Tvector2_extended_data;
+operator - (const x,y:Tvector2Integer) : Tvector2Integer;
 operator - (const x,y:Tvector3_single_data) : Tvector3_single_data;
 operator - (const x,y:Tvector3_double_data) : Tvector3_double_data;
 operator - (const x,y:Tvector3_extended_data) : Tvector3_extended_data;
+operator - (const x,y:Tvector3Integer) : Tvector3Integer;
 operator - (const x,y:Tvector4_single_data) : Tvector4_single_data;
 operator - (const x,y:Tvector4_double_data) : Tvector4_double_data;
 operator - (const x,y:Tvector4_extended_data) : Tvector4_extended_data;
+operator - (const x,y:Tvector4Integer) : Tvector4Integer;
 
 operator - (const x:Tvector2_single_data) : Tvector2_single_data;
 operator - (const x:Tvector2_double_data) : Tvector2_double_data;
 operator - (const x:Tvector2_extended_data) : Tvector2_extended_data;
+operator - (const x:Tvector2Integer) : Tvector2Integer;
 operator - (const x:Tvector3_single_data) : Tvector3_single_data;
 operator - (const x:Tvector3_double_data) : Tvector3_double_data;
 operator - (const x:Tvector3_extended_data) : Tvector3_extended_data;
+operator - (const x:Tvector3Integer) : Tvector3Integer;
 operator - (const x:Tvector4_single_data) : Tvector4_single_data;
 operator - (const x:Tvector4_double_data) : Tvector4_double_data;
 operator - (const x:Tvector4_extended_data) : Tvector4_extended_data;
+operator - (const x:Tvector4Integer) : Tvector4Integer;
 
 operator * (const x,y:Tvector2_single_data) : Tvector2_single_data;
 operator * (const x,y:Tvector2_double_data) : Tvector2_double_data;
 operator * (const x,y:Tvector2_extended_data) : Tvector2_extended_data;
+operator * (const x,y:Tvector2Integer) : Tvector2Integer;
 operator * (const x,y:Tvector3_single_data) : Tvector3_single_data;
 operator * (const x,y:Tvector3_double_data) : Tvector3_double_data;
 operator * (const x,y:Tvector3_extended_data) : Tvector3_extended_data;
+operator * (const x,y:Tvector3Integer) : Tvector3Integer;
 operator * (const x,y:Tvector4_single_data) : Tvector4_single_data;
 operator * (const x,y:Tvector4_double_data) : Tvector4_double_data;
 operator * (const x,y:Tvector4_extended_data) : Tvector4_extended_data;
+operator * (const x,y:Tvector4Integer) : Tvector4Integer;
 
 operator ** (const x,y:Tvector2_single_data) : single;
 operator ** (const x,y:Tvector2_double_data) : double;
 operator ** (const x,y:Tvector2_extended_data) : extended;
+operator ** (const x,y:Tvector2Integer) : Integer;
 operator ** (const x,y:Tvector3_single_data) : single;
 operator ** (const x,y:Tvector3_double_data) : double;
 operator ** (const x,y:Tvector3_extended_data) : extended;
+operator ** (const x,y:Tvector3Integer) : Integer;
 operator ** (const x,y:Tvector4_single_data) : single;
 operator ** (const x,y:Tvector4_double_data) : double;
 operator ** (const x,y:Tvector4_extended_data) : extended;
+operator ** (const x,y:Tvector4Integer) : Integer;
 
 operator >< (const x,y:Tvector3_single_data) : Tvector3_single_data;
 operator >< (const x,y:Tvector3_double_data) : Tvector3_double_data;
 operator >< (const x,y:Tvector3_extended_data) : Tvector3_extended_data;
+operator >< (const x,y:Tvector3Integer) : Tvector3Integer;
 
 {Vector/scalar operations.}
 operator + (const x:Tvector2_single_data;y:single) : Tvector2_single_data;
@@ -214,7 +231,9 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 { To implement, use macros and
   vectormath_operators_vector_implementation.inc,
   vectormath_operators_matrix_implementation.inc
-  includes. Copied and adjusted from FPC's Matrix implementation. }
+  includes. Copied and adjusted from FPC's Matrix implementation.
+  I added VECTORMATH_OPERATOR_ON_INTEGERS option, to overload also
+  for integer vectors. }
 
 {******************************************************************************
                                 Tvector2_single_data
@@ -249,6 +268,19 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$i vectormath_operators_vector_implementation.inc}
 
 {******************************************************************************
+                                Tvector2Integer
+******************************************************************************}
+
+{$DEFINE datatype:=Integer}
+{$DEFINE objectname:=Tvector2Integer}
+{$DEFINE vecsize:=2}
+{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector2Integer}
+{$define VECTORMATH_OPERATOR_ON_INTEGERS}
+{$i vectormath_operators_vector_implementation.inc}
+{$undef VECTORMATH_OPERATOR_ON_INTEGERS}
+
+
+{******************************************************************************
                                 Tvector3_single_data
 ******************************************************************************}
 
@@ -279,6 +311,18 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE vecsize:=3}
 {.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector3_extended_data}
 {$i vectormath_operators_vector_implementation.inc}
+
+{******************************************************************************
+                                Tvector3Integer
+******************************************************************************}
+
+{$DEFINE datatype:=Integer}
+{$DEFINE objectname:=Tvector3Integer}
+{$DEFINE vecsize:=3}
+{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector3Integer}
+{$define VECTORMATH_OPERATOR_ON_INTEGERS}
+{$i vectormath_operators_vector_implementation.inc}
+{$undef VECTORMATH_OPERATOR_ON_INTEGERS}
 
 
 {******************************************************************************
@@ -312,6 +356,19 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE vecsize:=4}
 {.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector4_extended_data}
 {$i vectormath_operators_vector_implementation.inc}
+
+{******************************************************************************
+                                Tvector4Integer
+******************************************************************************}
+
+{$DEFINE datatype:=Integer}
+{$DEFINE objectname:=Tvector4Integer}
+{$DEFINE vecsize:=4}
+{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector4Integer}
+{$define VECTORMATH_OPERATOR_ON_INTEGERS}
+{$i vectormath_operators_vector_implementation.inc}
+{$undef VECTORMATH_OPERATOR_ON_INTEGERS}
+
 
 {******************************************************************************
                                 Tmatrix2_single_data

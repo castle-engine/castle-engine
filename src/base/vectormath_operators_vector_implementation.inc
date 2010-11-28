@@ -65,6 +65,7 @@ begin
 {$endif}
 end;
 
+{$ifndef VECTORMATH_OPERATOR_ON_INTEGERS}
 operator / (const x,y:objectname) : objectname;
 
 {Divides the elements of two vectors.
@@ -82,6 +83,7 @@ begin
     result[3]:=x[3]/y[3];
 {$endif}
 end;
+{$endif VECTORMATH_OPERATOR_ON_INTEGERS}
 
 operator ** (const x,y:objectname) : datatype;
 
@@ -156,6 +158,7 @@ begin
 {$endif}
 end;
 
+{$ifndef VECTORMATH_OPERATOR_ON_INTEGERS}
 operator / (const x:objectname;y:datatype) : objectname;
 
 {Divides all vector elements by a scalar.}
@@ -170,3 +173,4 @@ begin
     result[3]:=x[3]/y;
 {$endif}
 end;
+{$endif VECTORMATH_OPERATOR_ON_INTEGERS}
