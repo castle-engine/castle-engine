@@ -322,13 +322,13 @@ type
   { Abstract class to read another stream, always being able to back one character.
     This is a purely sequential read-only stream.
     This means that calling @link(Write), @link(Seek) (changing Position)
-    or setting @link(Size) will always cause an exception with
+    or setting @code(Size) will always cause an exception with
     appropriate descendant of @link(EStreamNotImplemented).
 
-    Getting @link(Size) and @link(Position) is allowed.
-    Getting @link(Size) is simply
+    Getting @code(Size) and @code(Position) is allowed.
+    Getting @code(Size) is simply
     implemented by getting SourceStream.Size (so it works if the underlying
-    source stream supports getting Size). Getting @link(Position) always works
+    source stream supports getting Size). Getting @code(Position) always works
     correctly, as it's just the number of characters
     @italic(read) from this stream. The fact that we may
     read ahead in the underlying source stream (for buffering, for peeking)

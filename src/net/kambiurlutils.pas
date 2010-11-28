@@ -19,13 +19,12 @@ unit KambiURLUtils;
 
 interface
 
-{ This extracts #anchor from URL. On input, URL contains full URL.
+{ Extracts #anchor from URL. On input, URL contains full URL.
   On output, Anchor is removed from URL and saved in Anchor.
   If no #anchor existed, Anchor is set to ''. }
 procedure URLExtractAnchor(var URL: string; out Anchor: string);
 
-{ Returns S with all sequences like %xx replaced with their actual
-  8-bit characters.
+{ Replace all sequences like %xx with their actual 8-bit characters.
 
   The intention is that this is similar to PHP function with the same name.
 

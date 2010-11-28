@@ -1,6 +1,8 @@
 { A couple of GLX unit extensions.
 
-  TODO: Will be submitted to be incorporated in FPC GLX's unit. }
+  TODO: Will be submitted to be incorporated in FPC GLX's unit.
+
+  @exclude }
 unit KambiGLX;
 
 interface

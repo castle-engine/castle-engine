@@ -15,7 +15,10 @@
 
 { Property editors for Lazarus components.
   The main source of information about this is in comments of Lazarus
-  ideintf/propedits.pp. }
+  ideintf/propedits.pp.
+
+  @exclude (This unit is not supposed to be normally used, so not documented
+  by PasDoc. It's only for Lazarus registration.) }
 unit KambiPropEdits;
 
 interface

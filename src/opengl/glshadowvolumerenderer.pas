@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TGLShadowVolumeRenderer: rendering shadow volumes in OpenGL. }
+{ Rendering shadow volumes in OpenGL (TGLShadowVolumeRenderer). }
 unit GLShadowVolumeRenderer;
 
 interface
@@ -151,7 +151,8 @@ type
     procedure InitSceneOnlySetupStencil;
     { @groupEnd }
 
-    { This is an alternative version of InitScene that initializes the same
+    { Initialize scene, assuming shadow caster is always visible.
+      This is an alternative version of InitScene that initializes the same
       variables as InitScene, but assumes that the scene, along with it's
       shadow, will always be visible. This means that for example
       SceneShadowPossiblyVisible, ZFail, ZFailAndLightCap will always be @true.
@@ -174,7 +175,7 @@ type
     property ZFailAndLightCap: boolean read FZFailAndLightCap;
 
     { Is two-sided stencil test (that allows you to make SV in a single pass)
-      available ?
+      available.
 
       This is initialized by GLContextOpen, and is true if OpenGL provides
       one of:
@@ -185,7 +186,7 @@ type
       ) }
     property StencilTwoSided: boolean read FStencilTwoSided;
 
-    { What kind of stencil settings should be set by InitScene ?
+    { What kind of stencil settings should be set by InitScene.
 
       Set ssFrontAndBack only if StencilTwoSided is @true.
       Otherwise, you have to use 2-pass method (render everything
@@ -202,7 +203,7 @@ type
     property CountZFailNoLightCap: Cardinal read FCountZFailNoLightCap;
     property CountZFailAndLightCap: Cardinal read FCountZFailAndLightCap;
 
-    { This performs actual rendering with shadow volumes.
+    { Do actual rendering with shadow volumes.
 
       You have to provide the appropriate callbacks that render given
       scene parts.

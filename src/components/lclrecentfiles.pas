@@ -37,7 +37,7 @@ type
       depends on FirstSeparator value. }
     procedure MenuDestroy; override;
   public
-    { This determines the placement of "recent files" list inside your menu.
+    { Determines the placement of "recent files" list inside your menu.
 
       If this is not @nil then each update to the recent files
       list (for example by @link(Add) method) will result in the menu

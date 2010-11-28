@@ -13,15 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple utilities for LCL + Kambi VRML engine. }
+{ Simple utilities for cooperation between LCL and "Kambi VRML game engine". }
 unit KambiLCLUtils;
 
 interface
 
 uses FileFilters, Dialogs;
 
-{ Convert file filters (encoded as for TFileFiltersList.AddFiltersFromString)
-  into LCL OpenDialog.Filter, OpenDialog.FilterIndex.
+{ Convert file filters into LCL OpenDialog.Filter, OpenDialog.FilterIndex.
+  FileFilters must be encoded as for TFileFiltersList.AddFiltersFromString.
 
   @groupBegin }
 procedure FileFiltersToOpenDialog(const FileFilters: string;

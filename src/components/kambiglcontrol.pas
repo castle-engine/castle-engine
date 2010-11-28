@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TKamOpenGLControl component, OpenGL control with various useful extensions. }
+{ OpenGL context component with Kambi improvements (TKamOpenGLControl). }
 unit KambiGLControl;
 
 {$mode objfpc}{$H+}
@@ -38,7 +38,7 @@ const
   DefaultTooltipDistance = 10;
 
 type
-  { OpenGL control, with a couple of extensions for Kambi VRML game engine.
+  { OpenGL control, with a couple of extensions for "Kambi VRML game engine".
     You will usually prefer to use TKamOpenGLControl instead of directly this
     class, TKamOpenGLControl adds some very useful features like
     @link(TKamOpenGLControl.Controls).
@@ -238,7 +238,7 @@ type
     { @groupEnd }
   end;
 
-  { OpenGL control, with extensions for Kambi VRML game engine, including
+  { OpenGL control, with extensions for "Kambi VRML game engine", including
     @link(Controls) list for TUIControl instances.
 
     Keeps a @link(Controls) list, so you can easily add TUIControl instances

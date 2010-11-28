@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TKamVRMLBrowser component, simple VRML browser in a Lazarus component. }
+{ Simple VRML browser as a Lazarus component (TKamVRMLBrowser). }
 unit KambiVRMLBrowser;
 
 interface
