@@ -36,6 +36,7 @@ uses SysUtils, KambiUtils, Classes;
 {$define read_interface}
 
 type
+  { }
   TEnumeratedFileInfo = record
     { TSearchRec, as returned by FindFirst / FindNext. }
     SearchRec: TSearchRec;
@@ -57,231 +58,106 @@ type
   TEnumFileMethod =
     procedure (const FileInfo: TEnumeratedFileInfo) of object;
 
-  TEnumFilesOption = (eoSymlinks, eoRecursive, eoDirContentsLast,
-    eoAllowStdIn, eoReadAllFirst);
-  TEnumFilesOptions = set of TEnumFilesOption;
-
-{ Argumenty :
-  - Mask moze byc z wieloznacznikami * i ?, moze byc ze sciezka,
-    wzgledna lub bezwzgledna.
-    Sama sciezka nie moze zawierac * i ? (tak dzialaja FindFirst/Next).
-
-  - Attr : skladanka faXxx; zwykle pliki (bez zadnych atrybutow) sa
-    ZAWSZE znajdowane i przekazywane do FileProc (tak dzialaja FindFirst/Next).
-
-  - FileProc : procedura do ktorej przekaze wszystkie znalezione pliki.
-
-  - Options (common default value is [eoSymlinks]) :
-
-    eoSymlinks:
-      Means that symlinks should also be enumerated. Excluding
+  TEnumFilesOption = (
+    { Means that symlinks should also be enumerated. Excluding
       this from Options means that symlinks will not be reported
-      to FileProc. Note that this means that you do *not* control
-      whether symlinks are enumerated using Attr parameter,
-      you control it only by including or excluding eoSymlinks
-      from Options.
+      to FileProc.
 
-    eoRecursive:
-      If eoRecursive in Options then EnumFiles (and friends) descend into
+      Note that you do @italic(not) control whether symlinks
+      are enumerated using Attr parameter,
+      you control it only by including or excluding eoSymlinks
+      from Options. }
+    eoSymlinks,
+
+    { If eoRecursive is in Options then EnumFiles (and friends) descend into
       subdirectories.
 
-      Note that it always descends into *every* subdirectory (not only
-      into those matching Mask, as I would consider such behaviour pretty
-      useless; but maybe someday I'll implement "UNIX tools recursive
-      behaviour" -- decend only into subdirs matching Mask and
-      enumerate all files inside (like Mask = '*'),
-      this is sensible in some situations (even if it's done only because
-      it is the shell that expands wilcards),
-      this will be activated by some eoTraditionalRecursion in Options).
+      Note that we always descend into @italic(every) subdirectory (not only
+      into those matching Mask, that would be pretty useless (and is a problem
+      with Unix shell expansion)).
 
-      Also, note that including eoRecursive in Options
+      Note that including eoRecursive in Options
       is something completely different than the flag faDirectory in Attr:
       faDirectory in Attr says whether to report directories to FileProc;
       eoRecursive says whether to descend into directories and enumerate
       their files too.
 
-      Recursive does *not* descend into symlinks to directories.
-      Why ? Well, this would produce risk of falling into infinite loop
+      Recursive does @italic(not) descend into symlinks to directories.
+      Why? Well, this would produce risk of falling into infinite loop
       (unless some time-consuming precautions would be taken).
       In other words, it's just not implemented.
-      But it *may* be implemented someday, as this would be definitely
-      something useful.
+      But it @italic(may) be implemented someday, as this would be definitely
+      something useful. }
+    eoRecursive,
 
-    eoDirContentsLast:
-      This is meaningfull only if eoRecursive is also included in Options.
+    { Determines the order of reporting directory contents.
+      Meaningfull only if eoRecursive is also included in Options.
 
-      pl: jesli not included to w kazdym katalogu najpierw wyrzuca do
-      FileProc jego zawartosc a potem dopiero wchodzi
-      rekurencyjnie w jego podkatalogi. A wiec kazdy podkatalog zostanie zgloszony
-      do FileProc zanim zostanie zgloszona jego zawartosc (chyba ze nazwa
-      podkatalogu nie pasuje do maski, wtedy on sam nigdy nie zostanie
-      zgloszony do FileProc).
+      If not included, then directory contents (files and directories
+      matching mask) are reported to the callback first.
+      And only then we enter the subdirectories.
 
-      Jesli included to na odwrot - najpierw wchodzi w glab, a potem dopiero
-      wypisuje zawartosc. Wiec kazdy podkatalog zostanie zgloszony do FileProc
-      albo wcale albo dopiero po wypisaniu calej jego zawartosci.
+      If eoDirContentsLast is included, then we first enter subdirectories.
+      Only then we list directory contents to the callback. }
+    eoDirContentsLast,
 
-    eoAllowStdIn:
-      Then Mask equal exactly '-' will be intrepreted specially:
+    { If Mask will equal exactly '-', it will be intrepreted specially:
       we will then return exactly one file record, with SearchRec.Name
-      and FullFileName equal to '-'.
+      and FullFileName equal to '-'. }
+    eoAllowStdIn,
 
-    eoReadAllFirst:
-      See below.
+    { If eoReadAllFirst is included in the Options then before calling FileProc,
+      we will first read @italic(all) file information to an internal array.
+      And only then we will call FileProc for each item of this array.
 
-  Wszystkie wersje EnumFiles zwracaja ile razy zostalo wywolane FileProc.
-  Zazwyczaj (dopoki nie wykonujesz w FileProc jakiegos dodatkowego filtrowania
-  plikow z ktorymi bedziesz cos robil - wtedy musisz to zrobic samemu)
-  jest to dobra podstawa do wypisania np. podsumowania
-  "xxx files processed" lub wypisania w razie wyniku 0 ze
-  "No matching files found" (szczegolnie to drugie jest wazne i czesto uzyteczne -
-  np. jezeli program bierze jako argument nazwe pliku i podamy zla
-  nazwe pliku to user spodziewa sie ze program wypisze "wrong filename".
-  Ale gdy user moze podac _maske_ nazwy pliku (co jest zazwyczaj uznawane
-  za bardziej ogolne niz podawania prostej nazwy pliku) program musi
-  wlasnie sprawdzic wynik EnumFiles <> 0 aby cos takiego wypisac).
+      Why this may be useful? This way changes to the directory
+      (like renaming / deleting / creating files) will not have any effect
+      on the list of files we will get. This is important if our FileProc
+      may modify the directory contents. Without eoReadAllFirst,
+      it's undefined (OS-dependent and sometimes just random)
+      if the new file names will appear in the directory list. }
+    eoReadAllFirst);
+  TEnumFilesOptions = set of TEnumFilesOption;
 
-  Some notes:
-  - Pamietaj ze Windowsowe funkcje FindFirst/NextFile sa oczywiscie glupie i
-    w zwiazku z tym zawieraja bledy (nazywane 'nietypowa funkcjonalnoscia') :
-    szukanie '*.txt' pod windowsem spowoduje tak naprawde szukanie maski
-    '*.txt*' tyle ze koncowy ciag * nie moze zawierac kropki (innymi slowy
-    *.txt nie oznacza "pliki z ostatnim rozszerzeniem txt" ale "pliki z ostatnim
-    rozszerzeniem zaczynajacym sie od txt".
+{ Find all files matching the given mask, and call FileProc for them.
 
-    TODO: workaround this stupidity - czyli zrobic wlasne FindFirst/Next(File)
-          i samemu dopasowywac maski.
-    TODO: zrobic tez obsluge miltiple-masks w formacie : Mask1+PathSep+Mask2 itp..
-          w rezultacie np. *.exe;*.tpu;*.~*
+  @param(Mask Path and filename mask. May have a path, absolute or relative.
+    The final part (filename) may contain wildcards * and ?.)
 
-  - jak napisalem przy EnumFiles_Core, implementacja polega na fakcie ze
-    sym-linki sa uznawane przez FindFirst/Next za pliki systemowe (faSysFile).
-    Tym niemniej, wszystko jest zorganizowane tak ze nawet jesli nie podasz
-    w Attr faSysFile ale podasz eoSymlinks to procedura
-    FileProc bedzie dostawala takze te sym-linki (wyspecyfikowanie lub nie atrybutu
-    faSysFile w Attr bedzie mialo za to znaczenie jesli plik bedzie plikiem
-    systemowym, ale nie sym-linkiem (np. block/char device)).
+  @param(Attr Bit-wise or of faXxx flags specifying which files to find.
+    Normal, regular files are always found.)
 
-    W kazdym razie, chcialem tu zwrocic uwage ze potencjalnie niebezpieczny
-    jest fakt ze FileProc moze dostawac pliki z atrybutem faSysFile nawet
-    jesli tego nie zazada.
+  @param(FileProc Called on each file found.)
 
-  ------------------------------------------------------------
-  eoReadAllFirst in Options:
+  @param(Options A set of options. See TEnumFilesOption for meaning
+    of each option. Often [eoSymlinks] is the right choice.)
 
-  if eoReadAllFirst included in Options then before calling FileProc
-  (or FileMethod),
-  we will first read *all* file infos (TEnumeratedFileInfo)
-  to some internal TEnumeratedFileInfo's array.
-  And then we will call FileProc (or FileMethod) for each item
-  of this array.
-  What does this mean ?
-  It means that when we will be calling FileProc (or FileMethod),
-  changes made to some directory (that we search)
-  (e.g. renaming / deleting / creating files) will not have any effect on the
-  list of files we will get.
-  This is important when we are changing some directory (that we search)
-  inside FileProc (or FileMethod).
+  @returns(How many times FileProc was called, that is: how many
+    files/directories were matching. Useful to report to user how many
+    files were processed, in particular to warn if nothing was processed.)
 
-  E.g. assume that you write FileProc to
-  "for each file, create a file named FullFileName + '.copy' with some
-  contents", e.g. if you will have directory with two files
-    foo  bar
-  then you want to convert it to directory with files
-    foo  foo.copy  bar  bar.copy
-  Assume that you give ReadAllFirst = false.
-  FileProc is called with file 'foo', it creates 'foo.copy'.
-  Question: do you will receive information about file 'foo.copy'
-  in some subsequent FileProc ? Answer: you don't know.
-  It depends on implementation of SysUtils.FindFirst/Next
-  and it depends on implementation of some OS-specific
-  things (e.g. Windows.FindFirst/NextFile under Windows).
-  In fact under Windows my experience shows that it's random:
-  sometimes you will get foo.copy, sometimes you will not.
+  Some limitations of FindFirst/FindNext underneath are reflected in our
+  functionality. @italic(Under Windows, mask is treated somewhat hacky):
 
-  Such uncertain behaviour is very dangerous in this situation:
-  your program may loop forever (creating foo.copy, foo.copy.copy,
-  foo.copy.copy.copy .... files), your program may create
-  e.g. foo.copy and foo.copy.copy and then terminate in a normal way,
-  etc.
+  @orderedList(
+    @item(Every filename conceptually has an extention under Windows,
+      so *.* matches any file. On more sane OSes, *.* matches only
+      files with a dot inside a filename.)
 
-  So including eoReadAllFirst is a way to handle this: we will read directory
-  contents (two entries: 'foo' and 'bar') into internal array and
-  then it is guaranteed that FileProc will be called with
-  these two entries. It doesn't matter if you will create some
-  files inside FileProc. It doesn't matter if you will delete
-  or rename some files.
+    @item(Extensions may be shortened to the first 3 letters.
+      For example searching for @code(*.txt) actually searches
+      for @code(*.txt*), that is it finds all the files with extensions
+      starting from txt.)
+  )
 
-  Also it doesn't matter if some other program creates/renames/deletes
-  some files inside directory while you will be processing FileProc.
-  So it's possible that FileProc will get infos about files that
-  no longer exist. But you're always running such risk in a multi-task OSes,
-  in fact, this risk exists even when eoReadAllFirst is not included,
-  it's even bigger (because the time when you actively read
-  directory from OS (and you are more vulnerable to changes to it)
-  is longer with eoReadAllFirst is not in Options).
-}
+  @groupBegin }
 function EnumFiles(const Mask: string; Attr: integer;
   FileProc: TEnumFileProc; FileProcData: Pointer;
   Options: TEnumFilesOptions): Cardinal; overload;
-
 function EnumFilesObj(const Mask: string; Attr: integer;
   FileMethod: TEnumFileMethod;
   Options: TEnumFilesOptions): Cardinal; overload;
-
-{ EnumFilesWritelnCount calls result := EnumFiles(with given args) and then
-  calls InfoWrite with a line like
-    No files matching "', Mask, '" found (if result = 0)
-    1 file processed (if result = 1)
-    result, ' files processed (else)
-  based on result.
-
-  Wersja EnumFilesWritelnZero wypisuje tylko
-    No files matching "', Mask, '" found (if result = 0)
-  ,w innej sytuacji milczy.
-
-  It's useful for simple printing the results of EnumFiles.
-}
-function EnumFilesWritelnCount(const Mask: string; Attr: integer;
-  FileProc: TEnumFileProc; FileProcData: Pointer;
-  Options: TEnumFilesOptions): Cardinal; overload;
-
-function EnumFilesWritelnZero(const Mask: string; Attr: integer;
-  FileProc: TEnumFileProc; FileProcData: Pointer;
-  Options: TEnumFilesOptions): Cardinal; overload;
-
-{ Robi tak: najpierw wymaga zeby Parameters.High >= 1.
-  (jesli nie, exception "expected
-  at least one file mask").
-  Potem dla kazdego Parameters[1] ... Parameters[Parameters.High]
-  wykonuje EnumFiles(Parameters[I], ...) gdzie ... sa brane z podanych parametrow.
-  Jezeli jakies Parameters[I] zwroci 0 to pisze ze "No files matching ...".
-  Wyniki wszystkich EnumFiles sumuje i (zanim zwroci go jako swoj result)
-  jesli na koncu otrzyma cos > 0 to wypisuje "xxx files processed".
-
-  Wnioski: jezeli wiesz ze teraz w parametrach
-  Parameters[1] ... Parameters[Parameters.High]
-  masz maski plikow (i powinienes miec przynajmniej jeden taki parametr
-  w reku) to mozesz uzyc tej funkcji aby jednoczesnie wykonac iterowanie
-  po Parameters i wykonywanie odpowiednich EnumFiles na kazdym parametrze
-  (i wypisywanie odpowiednich informacji o wyniku wszystkich EnumFiles).
-
-  O ile samo w sobie to zadanie nie jest zbyt ambitne to najwazniejsza
-  rzecza jaka daje ta funkcja jest ze beda wypisywane przez InfoWrite
-  komunikaty dla usera ktore powiedza mu
-    1) jezeli jakis Parameters[I] nie byl Mask pasujaca do czegokolwiek
-       (a wiec, w szczegolnosci, sam Parameters[I] nie byl tez gotowa
-       nazwa zadnego istniejacego pliku)
-    2) ile w sumie plikow zostalo przetworzonych przez wszystkie wywolania
-       EnumFiles.
-  Zwracam uwage ze na pewno ta funkcja wypisze min 1 komunikat :
-  albo ze "xxx files processed" albo (gdyby Parameters.High = 1 i Parameters[1]
-  nie pasowalo) ze "No files matching". (no, o ile nie wyjdzie z wyjatkiem
-  oczywiscie).
-}
-function EnumFilesWritelnParameters(Attr: integer;
-  FileProc: TEnumFileProc; FileProcData: Pointer;
-  Options: TEnumFilesOptions): Cardinal; overload;
+{ @groupEnd }
 
 {$undef read_interface}
 
@@ -311,6 +187,12 @@ uses KambiFilesUtils;
   always reported or never reported, no difference between
   symlinks to directory and symlinks to non-directory).
   So this code is incorrect under Kylix 3 in this special case !
+
+  ----------------------------------------------------------------------------
+
+  Note that if you request symlinks (by eoSymlinks in Options),
+  you will get to FileProc records with faSysFile flag included
+  (even if faSysFile wasn't in Attr).
 }
 
 { This is equivalent to EnumFiles with Recursive = false
@@ -532,53 +414,6 @@ begin
  Result := EnumFiles(Mask, Attr,
    {$ifdef FPC_OBJFPC} @ {$endif} EnumFileProcToMethod,
    @FileMethodWrapper, Options);
-end;
-
-{ EnumFilesWriteln* ---------------------------------------------------------- }
-
-const
-  SEFW_NoMatching = 'No files matching "%s" found';
-  SEFW_FilesDone = '%d file(s) processed';
-  SEFW_FilesDone_1 = '1 file processed';
-  SEFW_FilesDone_2OrMore = '%d files processed';
-
-function EnumFilesWritelnCount(const Mask: string; Attr: integer;
-  FileProc: TEnumFileProc; FileProcData: Pointer;
-  Options: TEnumFilesOptions): Cardinal;
-begin
- result := EnumFiles(Mask, Attr, FileProc, FileProcData, Options);
- case result of
-  0: InfoWrite(Format(SEFW_NoMatching, [Mask]));
-  1: InfoWrite(SEFW_FilesDone_1);
-  else InfoWrite(Format(SEFW_FilesDone_2OrMore, [result]));
- end;
-end;
-
-function EnumFilesWritelnZero(const Mask: string; Attr: integer;
-  FileProc: TEnumFileProc; FileProcData: Pointer;
-  Options: TEnumFilesOptions): Cardinal;
-begin
- result := EnumFiles(Mask, Attr, FileProc, FileProcData, Options);
- if result = 0 then InfoWrite(Format(SEFW_NoMatching, [Mask]));
-end;
-
-function EnumFilesWritelnParameters(Attr: integer;
-  FileProc: TEnumFileProc; FileProcData: Pointer;
-  Options: TEnumFilesOptions): Cardinal;
-var i: Integer;
-begin
- if Parameters.High = 0 then
-  raise EInvalidParams.Create('Expected at least one filename-mask as parameter');
-
- result := 0;
-
- for i := 1 to Parameters.High do
- begin
-  result := result + EnumFilesWritelnZero(Parameters[i], Attr,
-    FileProc, FileProcData, Options);
- end;
-
- if result > 0 then InfoWrite(Format(SEFW_FilesDone, [result]));
 end;
 
 end.
