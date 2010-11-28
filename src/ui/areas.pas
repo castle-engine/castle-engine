@@ -42,7 +42,6 @@ uses KambiUtils, SysUtils;
 type
   TArea = record
     X0, Y0, Width, Height: Single;
-    UserData: Pointer;
   end;
   PArea = ^TArea;
 
@@ -66,13 +65,11 @@ type
   end;
 
 const
-  EmptyArea: TArea = (X0: 0; Y0: 0; Width: -1; Height: -1; UserData: nil);
+  EmptyArea: TArea = (X0: 0; Y0: 0; Width: -1; Height: -1);
 
-function Area(const X0, Y0, Width, Height: Single;
-  const UserData: Pointer = nil): TArea;
+function Area(const X0, Y0, Width, Height: Single): TArea;
 
-function AreaCorners(X0, Y0, X1, Y1: Single;
-  const UserData: Pointer = nil): TArea;
+function AreaCorners(X0, Y0, X1, Y1: Single): TArea;
 
 { TODO: unused anywhere, so untested. }
 { }
@@ -102,18 +99,15 @@ end;
 
 { global funcs --------------------------------------------------------------- }
 
-function Area(const X0, Y0, Width, Height: Single;
-  const UserData: Pointer): TArea;
+function Area(const X0, Y0, Width, Height: Single): TArea;
 begin
   Result.X0 := X0;
   Result.Y0 := Y0;
   Result.Width := Width;
   Result.Height := Height;
-  Result.UserData := UserData;
 end;
 
-function AreaCorners(X0, Y0, X1, Y1: Single;
-  const UserData: Pointer): TArea;
+function AreaCorners(X0, Y0, X1, Y1: Single): TArea;
 begin
   OrderUp(X0, X1);
   OrderUp(Y0, Y1);
@@ -121,7 +115,6 @@ begin
   Result.Y0 := Y0;
   Result.Width := X1 - X0 + 1;
   Result.Height := Y1 - Y0 + 1;
-  Result.UserData := UserData;
 end;
 
 function AreasSum(const Area1, Area2: TArea): TArea;
