@@ -426,6 +426,20 @@ procedure alFreeSource(var Source: TALuint);
 procedure alFreeBuffer(var Buffer: TALuint);
 { @groupEnd }
 
+type
+  EOpenALError = class(Exception);
+  EOpenALInitError = class(EOpenALError);
+
+{ Check is appropriate variable (ALInited, ALUTInited) @true,
+  if not --- raise EOpenALInitError with appropriate message.
+  Actually these trivial procedures are implemented only because
+  I wanted to place inside standard error messages for missing OpenAL
+  functionality.
+
+  @raises EOpenALInitError If appropriate variable is @false. }
+procedure CheckALInited;
+procedure CheckALUTInited;
+
 {$undef read_interface}
 
 implementation
@@ -1032,6 +1046,25 @@ begin
     alDeleteBuffers(1, @Buffer);
     Buffer := 0;
   end;
+end;
+
+procedure CheckALInited;
+begin
+ if not ALInited then
+  raise EOpenALInitError.Create('OpenAL library is not available');
+end;
+
+procedure CheckALUTInited;
+begin
+ if not ALUTInited then
+ begin
+  if ALInited then
+   raise EOpenALInitError.Create(
+     'OpenAL library is available but without alutXxx functions') else
+   raise EOpenALInitError.Create(
+     'OpenAL library with alutXxx functions is required, '+
+     'but not even base OpenAL library is available.');
+ end;
 end;
 
 end.
