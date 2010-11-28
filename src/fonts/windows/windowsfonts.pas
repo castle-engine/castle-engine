@@ -209,7 +209,7 @@ begin
  dc := GetDC(0);
  SavedObj := SelectObject(dc, Font);
  try
-  EnumFontFamilies(dc, @LogFont.lfFaceName, @EnumFontFamProc_IsTrueType, TPointerUInt(@Result));
+  EnumFontFamilies(dc, @LogFont.lfFaceName, @EnumFontFamProc_IsTrueType, PtrUInt(@Result));
  finally
   ReleaseDC(0, dc);
   SelectObject(dc, SavedObj);

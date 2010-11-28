@@ -1898,8 +1898,8 @@ end;
 function AnsiUpperCaseChar(C: char): char;
 begin
  Result :=
-   {$ifdef MSWINDOWS} Chr( TPointerUInt( Windows.CharUpper(
-     Windows.LPSTR(TPointerUInt(Ord(C))) ) ) )
+   {$ifdef MSWINDOWS} Chr( PtrUInt( Windows.CharUpper(
+     Windows.LPSTR(PtrUInt(Ord(C))) ) ) )
    {$else} AnsiUpperCase(C)[1]
    {$endif};
 end;
@@ -1907,8 +1907,8 @@ end;
 function AnsiLowerCaseChar(C: char): char;
 begin
  Result :=
-   {$ifdef MSWINDOWS} Chr( TPointerUInt( Windows.CharLower(
-     Windows.LPSTR(TPointerUInt(Ord(C))) ) ) )
+   {$ifdef MSWINDOWS} Chr( PtrUInt( Windows.CharLower(
+     Windows.LPSTR(PtrUInt(Ord(C))) ) ) )
    {$else} AnsiLowerCase(C)[1]
    {$endif};
 end;
@@ -2159,7 +2159,7 @@ begin
    vtAnsiString: Result := AnsiString(vAnsiString);
    vtCurrency:   Result := CurrToStr(VCurrency^);
    vtVariant:    Result := VarToStr(VVariant^);
-   vtPointer:    Result := 'Pointer('+IntToStr(TPointerUInt(vPointer))+')';
+   vtPointer:    Result := 'Pointer('+IntToStr(PtrUInt(vPointer))+')';
    vtObject:     Result := 'Object('+VObject.ClassName+')';
    vtClass:      Result := 'ClassRef('+VClass.ClassName+')';
    else raise Exception.CreateFmt('Wrong argument for VarRecToStr (v.vType = %d)', [vType]);

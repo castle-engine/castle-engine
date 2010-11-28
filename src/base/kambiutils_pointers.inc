@@ -29,17 +29,10 @@ type
   PtrUInt = LongWord;
   {$endif}
 
-  { Unsigned integer with the same size as Pointer.
-    This was my own name for the type that later was defined by FPC
-    as PtrInt. }
-  TPointerUInt = PtrUInt;
-  { Signed integer with the same size as Pointer. }
-  TPointerSInt = PtrInt;
-
 { Pointer arithmetic. Will wrap over if you add too much. Add may be negative.
   This function is just a shortcut for
     TPointerSInt(result) := TPointerSInt(p)+Add;
-  (or with TPointerUInt) that removes any compiler warnings,
+  (or with PtrUInt) that removes any compiler warnings,
   any attempts to convert something to 64bit values and
   any Range/Overflow checks. }
 function PointerAdd(p: pointer; add: integer): pointer;
