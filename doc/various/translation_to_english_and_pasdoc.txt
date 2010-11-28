@@ -171,7 +171,7 @@ D   kambiscriptvectors.pas
 D   vrmlkambiscript.pas
 
  ui/
-D   areas.pas
+D   rectangles.pas
 D   cameras.pas
 D   keysmouse.pas
 D   uicontrols.pas

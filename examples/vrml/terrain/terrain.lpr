@@ -322,7 +322,7 @@ begin
   PositionRelativeScreenY := prLowerBorder;
   PositionRelativeMenuX := prLowerBorder;
   PositionRelativeMenuY := prLowerBorder;
-  Position.Init(10.00, 10.00);
+  Position := Vector2Integer(10, 10);
 end;
 
 procedure TControlsNoise.CurrentItemAccessoryValueChanged;
@@ -352,7 +352,7 @@ begin
   PositionRelativeScreenY := prLowerBorder;
   PositionRelativeMenuX := prLowerBorder;
   PositionRelativeMenuY := prLowerBorder;
-  Position.Init(10.00, 10.00);
+  Position := Vector2Integer(10, 10);
 end;
 
 procedure TControlsImage.CurrentItemAccessoryValueChanged;
@@ -374,7 +374,7 @@ begin
   PositionRelativeScreenY := prLowerBorder;
   PositionRelativeMenuX := prLowerBorder;
   PositionRelativeMenuY := prLowerBorder;
-  Position.Init(10.00, 10.00);
+  Position := Vector2Integer(10, 10);
 end;
 
 procedure TControlsGeneral.CurrentItemAccessoryValueChanged;

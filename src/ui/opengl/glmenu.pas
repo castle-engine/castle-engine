@@ -28,7 +28,7 @@ unit GLMenu;
 
 interface
 
-uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Areas,
+uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Rectangles,
   GL, GLU, KambiGLUtils, Matrix, UIControls, KeysMouse;
 
 const
@@ -58,7 +58,7 @@ type
 
     { Return the width you will need to display yourself.
 
-      Note that this will be asked only from FixItemsAreas
+      Note that this will be asked only from FixItemsRectangles
       from TGLMenu. So for example TGLMenuItemArgument
       is *not* supposed to return here something based on
       current TGLMenuItemArgument.Value,
@@ -67,9 +67,9 @@ type
       should return here the width of widest possible Value. }
     function GetWidth(MenuFont: TGLBitmapFont): Integer; virtual; abstract;
 
-    { Draw yourself. Note that Area.Width is for sure the same
+    { Draw yourself. Note that Rectangle.Width is for sure the same
       as you returned in GetWidth. }
-    procedure Draw(const Area: TArea); virtual; abstract;
+    procedure Draw(const Rectangle: TRectangle); virtual; abstract;
 
     { This will be called if user will press a key when currently
       selected item has this TGLMenuItemAccessory.
@@ -86,9 +86,9 @@ type
       to the top. (This is different than usual window system coords.)
 
       This will be called only if MouseX and MouseY will be within
-      appropriate Area of this accessory. This Area is also
+      appropriate Rectangle of this accessory. This Rectangle is also
       passed here, so you can e.g. calculate mouse position
-      relative to this accessory as (MouseX - Area.X0, MouseY - Area.Y0).
+      relative to this accessory as (MouseX - Rectangle.X0, MouseY - Rectangle.Y0).
 
       Note that while the user holds the mouse clicked (MousePressed <> []),
       the mouse is "grabbed" by this accessory, and even when the user
@@ -102,18 +102,18 @@ type
       You can use ParentMenu to call
       ParentMenu.CurrentItemAccessoryValueChanged. }
     function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const Area: TArea; ParentMenu: TGLMenu): boolean; virtual;
+      const Rectangle: TRectangle; ParentMenu: TGLMenu): boolean; virtual;
 
     { This will be called if user will move mouse over the currently selected
       menu item and menu item will have this accessory.
 
       Just like with MouseDown: This will be called only if NewX and NewY
-      will be within appropriate Area of accessory.
+      will be within appropriate Rectangle of accessory.
       You can use ParentMenu to call
       ParentMenu.CurrentItemAccessoryValueChanged. }
     procedure MouseMove(const NewX, NewY: Integer;
       const MousePressed: TMouseButtons;
-      const Area: TArea; ParentMenu: TGLMenu); virtual;
+      const Rectangle: TRectangle; ParentMenu: TGLMenu); virtual;
 
     { Should this accessory be freed when TGLMenu using it is freed.
       Useful to set this to @false when you want to share one TGLMenuItemAccessory
@@ -144,7 +144,7 @@ type
     class function TextWidth(const Text: string): Integer;
 
     function GetWidth(MenuFont: TGLBitmapFont): Integer; override;
-    procedure Draw(const Area: TArea); override;
+    procedure Draw(const Rectangle: TRectangle); override;
   end;
 
   { This is like TGLMenuItemArgument that displays boolean value
@@ -165,20 +165,20 @@ type
   private
     FDisplayValue: boolean;
   protected
-    procedure DrawSliderPosition(const Area: TArea; const Position: Single);
+    procedure DrawSliderPosition(const Rectangle: TRectangle; const Position: Single);
 
     { This returns a value of Position (for DrawSliderPosition, so in range 0..1)
       that would result in slider being drawn at XCoord screen position.
-      Takes Area as the area currently occupied by the whole slider. }
+      Takes Rectangle as the rectangle currently occupied by the whole slider. }
     function XCoordToSliderPosition(const XCoord: Single;
-      const Area: TArea): Single;
+      const Rectangle: TRectangle): Single;
 
-    procedure DrawSliderText(const Area: TArea; const Text: string);
+    procedure DrawSliderText(const Rectangle: TRectangle; const Text: string);
   public
     constructor Create;
 
     function GetWidth(MenuFont: TGLBitmapFont): Integer; override;
-    procedure Draw(const Area: TArea); override;
+    procedure Draw(const Rectangle: TRectangle); override;
 
     { Should the Value be displayed as text ?
       Usually useful --- but only if the Value has some meaning for the user.
@@ -202,17 +202,17 @@ type
       that it's within the allowed range. }
     property Value: Single read FValue write FValue;
 
-    procedure Draw(const Area: TArea); override;
+    procedure Draw(const Rectangle: TRectangle); override;
 
     function KeyDown(Key: TKey; C: char;
       ParentMenu: TGLMenu): boolean; override;
 
     function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const Area: TArea; ParentMenu: TGLMenu): boolean; override;
+      const Rectangle: TRectangle; ParentMenu: TGLMenu): boolean; override;
 
     procedure MouseMove(const NewX, NewY: Integer;
       const MousePressed: TMouseButtons;
-      const Area: TArea; ParentMenu: TGLMenu); override;
+      const Rectangle: TRectangle; ParentMenu: TGLMenu); override;
 
     function ValueToStr(const AValue: Single): string; virtual;
   end;
@@ -224,7 +224,7 @@ type
     FValue: Integer;
 
     function XCoordToValue(
-      const XCoord: Single; const Area: TArea): Integer;
+      const XCoord: Single; const Rectangle: TRectangle): Integer;
   public
     constructor Create(const ABeginRange, AEndRange, AValue: Integer);
 
@@ -235,17 +235,17 @@ type
       that it's within the allowed range. }
     property Value: Integer read FValue write FValue;
 
-    procedure Draw(const Area: TArea); override;
+    procedure Draw(const Rectangle: TRectangle); override;
 
     function KeyDown(Key: TKey; C: char;
       ParentMenu: TGLMenu): boolean; override;
 
     function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
-      const Area: TArea; ParentMenu: TGLMenu): boolean; override;
+      const Rectangle: TRectangle; ParentMenu: TGLMenu): boolean; override;
 
     procedure MouseMove(const NewX, NewY: Integer;
       const MousePressed: TMouseButtons;
-      const Area: TArea; ParentMenu: TGLMenu); override;
+      const Rectangle: TRectangle; ParentMenu: TGLMenu); override;
 
     function ValueToStr(const AValue: Integer): string; virtual;
   end;
@@ -256,15 +256,15 @@ type
     @orderedList(
 
       @item(PositionRelativeMenu: specifies (for X or Y)
-        what point of menu area is affected by Position value.
+        what point of menu rectangle is affected by Position value.
         In this case,
         @unorderedList(
           @itemSpacing Compact
           @item(prLowerBorder means that we want to
-            align left (or bottom) border of the menu area,)
-          @item(prMiddle means that we want to align middle of the menu area,)
+            align left (or bottom) border of the menu rectangle,)
+          @item(prMiddle means that we want to align middle of the menu rectangle,)
           @item(prHigherBorder means that we want to align right
-            (or top) border of the menu area.))
+            (or top) border of the menu rectangle.))
       )
 
       @item(PositionRelativeScreen: somewhat analogous.
@@ -293,7 +293,7 @@ type
         otherwise there is no way for the menu to be completely visible.)
       @item(If both are prMiddle, then the Position (most often just 0, 0
         in this case) specifies the shift between screen middle to
-        menu area middle. If Position is zero, then menu is just in the
+        menu rectangle middle. If Position is zero, then menu is just in the
         middle of the screen.)
       @item(If both are prHigherBorder, then Position specifies position
         of right/top menu border relative to right/top screen border.
@@ -328,9 +328,9 @@ type
     FPositionRelativeMenuY: TPositionRelative;
     FPositionRelativeScreenX: TPositionRelative;
     FPositionRelativeScreenY: TPositionRelative;
-    FAreas: TDynAreaArray;
-    FAccessoryAreas: TDynAreaArray;
-    FAllItemsArea: TArea;
+    FRectangles: TDynRectangleArray;
+    FAccessoryRectangles: TDynRectangleArray;
+    FAllItemsRectangle: TRectangle;
     FKeyNextItem: TKey;
     FKeyPreviousItem: TKey;
     FKeySelectItem: TKey;
@@ -396,7 +396,7 @@ type
       default prMiddle;
     { @groupEnd }
 
-    { PositionAbsolute expresses the position of the menu area
+    { PositionAbsolute expresses the position of the menu rectangle
       independently from all PositionRelative* properties.
       You can think of it as "What value would Position have
       if all PositionRelative* were equal prLowerBorder".
@@ -405,7 +405,7 @@ type
       all PositionRelative* are prLowerBorder, PositionAbsolute is indeed
       always equal to Position :)
 
-      This is read-only, is calculated by FixItemsAreas.
+      This is read-only, is calculated by FixItemsRectangles.
       It's calculated anyway because our drawing code needs this.
       You may find it useful if you want to draw something relative to menu
       position. }
@@ -443,7 +443,7 @@ type
     procedure GLContextClose; override;
 
     { Calculate final positions, sizes of menu items on the screen.
-      You must call FixItemsAreas between last modification of
+      You must call FixItemsRectangles between last modification of
       @unorderedList(
         @itemSpacing Compact
         @item Items
@@ -463,26 +463,26 @@ type
       )
       You can call this only while OpenGL context is initialized.
 
-      ContainerResize already calls FixItemsAreas, and window resize is already
+      ContainerResize already calls FixItemsRectangles, and window resize is already
       called automatically by window (at the addition to Controls list,
       or whenever window size changes). So in simplest cases (when you
       fill @link(Items) etc. properties before adding TGLMenu to Controls)
       you, in practice, do not have to call this explicitly. }
-    procedure FixItemsAreas;
+    procedure FixItemsRectangles;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
     { Calculates menu items positions, sizes.
-      These are initialized by FixItemsAreas.
+      These are initialized by FixItemsRectangles.
       They are absolutely read-only for the user of this class.
       You can use them to do some graphic effects, when you e.g.
       want to draw something on the screen that is somehow positioned
-      relative to some menu item or to whole menu area.
-      Note that AllItemsArea includes also some outside margin.
+      relative to some menu item or to whole menu rectangle.
+      Note that AllItemsRectangle includes also some outside margin.
       @groupBegin }
-    property Areas: TDynAreaArray read FAreas;
-    property AllItemsArea: TArea read FAllItemsArea;
-    property AccessoryAreas: TDynAreaArray read FAccessoryAreas;
+    property Rectangles: TDynRectangleArray read FRectangles;
+    property AllItemsRectangle: TRectangle read FAllItemsRectangle;
+    property AccessoryRectangles: TDynRectangleArray read FAccessoryRectangles;
     { @groupEnd }
 
     function DrawStyle: TUIControlDrawStyle; override;
@@ -564,9 +564,9 @@ type
       Default implementation in this class simply returns
       RegularSpaceBetweenItems always.
 
-      Note that this is used only at FixItemsAreas call.
+      Note that this is used only at FixItemsRectangles call.
       So when some variable affecting the implementation of this changes,
-      you should call FixItemsAreas again. }
+      you should call FixItemsRectangles again. }
     function SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal; virtual;
 
     { "Designer mode" is useful for a developer to visually design
@@ -615,7 +615,7 @@ type
       read FDesignerMode write SetDesignerMode default false;
 
     { Draw an indicator of being focused. Currently, this is a flashing
-      border around the menu area. Otherwise @link(Draw) ignores Focused parameter. }
+      border around the menu rectangle. Otherwise @link(Draw) ignores Focused parameter. }
     property DrawFocused: boolean read FDrawFocused write FDrawFocused
       default true;
   end;
@@ -752,7 +752,7 @@ end;
 
 function TGLMenuItemAccessory.MouseDown(
   const MouseX, MouseY: Integer; Button: TMouseButton;
-  const Area: TArea; ParentMenu: TGLMenu): boolean;
+  const Rectangle: TRectangle; ParentMenu: TGLMenu): boolean;
 begin
   { Nothing to do in this class. }
   Result := false;
@@ -760,7 +760,7 @@ end;
 
 procedure TGLMenuItemAccessory.MouseMove(const NewX, NewY: Integer;
   const MousePressed: TMouseButtons;
-  const Area: TArea; ParentMenu: TGLMenu);
+  const Rectangle: TRectangle; ParentMenu: TGLMenu);
 begin
   { Nothing to do in this class. }
 end;
@@ -784,12 +784,12 @@ begin
   Result := MaximumValueWidth;
 end;
 
-procedure TGLMenuItemArgument.Draw(const Area: TArea);
+procedure TGLMenuItemArgument.Draw(const Rectangle: TRectangle);
 begin
   MenuFontInit;
 
   glPushMatrix;
-    glTranslatef(Area.X0, Area.Y0 + MenuFont.Descend, 0);
+    glTranslatef(Rectangle.X0, Rectangle.Y0 + MenuFont.Descend, 0);
     glColorv(LightGreen3Single);
     glRasterPos2i(0, 0);
     MenuFont.Print(Value);
@@ -830,12 +830,12 @@ begin
   Result := ImageSlider.Width;
 end;
 
-procedure TGLMenuSlider.Draw(const Area: TArea);
+procedure TGLMenuSlider.Draw(const Rectangle: TRectangle);
 begin
   ImageSliderInit;
 
   glPushMatrix;
-    glTranslatef(Area.X0, Area.Y0 + (Area.Height - ImageSlider.Height) / 2, 0);
+    glTranslatef(Rectangle.X0, Rectangle.Y0 + (Rectangle.Height - ImageSlider.Height) / 2, 0);
     glRasterPos2i(0, 0);
     glCallList(GLList_ImageSlider);
   glPopMatrix;
@@ -844,45 +844,45 @@ end;
 const
   ImageSliderPositionMargin = 2;
 
-procedure TGLMenuSlider.DrawSliderPosition(const Area: TArea;
+procedure TGLMenuSlider.DrawSliderPosition(const Rectangle: TRectangle;
   const Position: Single);
 begin
   ImageSliderInit;
 
   glPushMatrix;
-    glTranslatef(Area.X0 + ImageSliderPositionMargin +
+    glTranslatef(Rectangle.X0 + ImageSliderPositionMargin +
       MapRange(Position, 0, 1, 0,
         ImageSlider.Width - 2 * ImageSliderPositionMargin -
         ImageSliderPosition.Width),
-      Area.Y0 + (Area.Height - ImageSliderPosition.Height) / 2, 0);
+      Rectangle.Y0 + (Rectangle.Height - ImageSliderPosition.Height) / 2, 0);
     glRasterPos2i(0, 0);
     glCallList(GLList_ImageSliderPosition);
   glPopMatrix;
 end;
 
 function TGLMenuSlider.XCoordToSliderPosition(
-  const XCoord: Single; const Area: TArea): Single;
+  const XCoord: Single; const Rectangle: TRectangle): Single;
 begin
   { I subtract below ImageSliderPosition.Width div 2
     because we want XCoord to be in the middle
     of ImageSliderPosition, not on the left. }
   Result := MapRange(XCoord - ImageSliderPosition.Width div 2,
-    Area.X0 + ImageSliderPositionMargin,
-    Area.X0 + ImageSlider.Width - 2 * ImageSliderPositionMargin -
+    Rectangle.X0 + ImageSliderPositionMargin,
+    Rectangle.X0 + ImageSlider.Width - 2 * ImageSliderPositionMargin -
     ImageSliderPosition.Width, 0, 1);
 
   Clamp(Result, 0, 1);
 end;
 
 procedure TGLMenuSlider.DrawSliderText(
-  const Area: TArea; const Text: string);
+  const Rectangle: TRectangle; const Text: string);
 begin
   SliderFontInit;
 
   glPushMatrix;
     glTranslatef(
-      Area.X0 + (Area.Width - SliderFont.TextWidth(Text)) / 2,
-      Area.Y0 + (Area.Height - SliderFont.RowHeight) / 2, 0);
+      Rectangle.X0 + (Rectangle.Width - SliderFont.TextWidth(Text)) / 2,
+      Rectangle.Y0 + (Rectangle.Height - SliderFont.RowHeight) / 2, 0);
     glColorv(Black3Single);
     glRasterPos2i(0, 0);
     SliderFont.Print(Text);
@@ -900,14 +900,14 @@ begin
   FValue := AValue;
 end;
 
-procedure TGLMenuFloatSlider.Draw(const Area: TArea);
+procedure TGLMenuFloatSlider.Draw(const Rectangle: TRectangle);
 begin
   inherited;
 
-  DrawSliderPosition(Area, MapRange(Value, BeginRange, EndRange, 0, 1));
+  DrawSliderPosition(Rectangle, MapRange(Value, BeginRange, EndRange, 0, 1));
 
   if DisplayValue then
-    DrawSliderText(Area, ValueToStr(Value));
+    DrawSliderText(Rectangle, ValueToStr(Value));
 end;
 
 function TGLMenuFloatSlider.KeyDown(Key: TKey; C: char;
@@ -947,14 +947,14 @@ end;
 
 function TGLMenuFloatSlider.MouseDown(
   const MouseX, MouseY: Integer; Button: TMouseButton;
-  const Area: TArea; ParentMenu: TGLMenu): boolean;
+  const Rectangle: TRectangle; ParentMenu: TGLMenu): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
   if Button = mbLeft then
   begin
-    FValue := MapRange(XCoordToSliderPosition(MouseX, Area), 0, 1,
+    FValue := MapRange(XCoordToSliderPosition(MouseX, Rectangle), 0, 1,
       BeginRange, EndRange);
     ParentMenu.CurrentItemAccessoryValueChanged;
     Result := ParentMenu.ExclusiveEvents;
@@ -963,11 +963,11 @@ end;
 
 procedure TGLMenuFloatSlider.MouseMove(const NewX, NewY: Integer;
   const MousePressed: TMouseButtons;
-  const Area: TArea; ParentMenu: TGLMenu);
+  const Rectangle: TRectangle; ParentMenu: TGLMenu);
 begin
   if mbLeft in MousePressed then
   begin
-    FValue := MapRange(XCoordToSliderPosition(NewX, Area), 0, 1,
+    FValue := MapRange(XCoordToSliderPosition(NewX, Rectangle), 0, 1,
       BeginRange, EndRange);
     ParentMenu.CurrentItemAccessoryValueChanged;
   end;
@@ -989,14 +989,14 @@ begin
   FValue := AValue;
 end;
 
-procedure TGLMenuIntegerSlider.Draw(const Area: TArea);
+procedure TGLMenuIntegerSlider.Draw(const Rectangle: TRectangle);
 begin
   inherited;
 
-  DrawSliderPosition(Area, MapRange(Value, BeginRange, EndRange, 0, 1));
+  DrawSliderPosition(Rectangle, MapRange(Value, BeginRange, EndRange, 0, 1));
 
   if DisplayValue then
-    DrawSliderText(Area, ValueToStr(Value));
+    DrawSliderText(Rectangle, ValueToStr(Value));
 end;
 
 function TGLMenuIntegerSlider.KeyDown(Key: TKey; C: char;
@@ -1031,25 +1031,25 @@ begin
 end;
 
 function TGLMenuIntegerSlider.XCoordToValue(
-  const XCoord: Single; const Area: TArea): Integer;
+  const XCoord: Single; const Rectangle: TRectangle): Integer;
 begin
   { We do additional Clamped over Round result to avoid any
     chance of floating-point errors due to lack of precision. }
   Result := Clamped(Round(
-    MapRange(XCoordToSliderPosition(XCoord, Area), 0, 1,
+    MapRange(XCoordToSliderPosition(XCoord, Rectangle), 0, 1,
       BeginRange, EndRange)), BeginRange, EndRange);
 end;
 
 function TGLMenuIntegerSlider.MouseDown(
   const MouseX, MouseY: Integer; Button: TMouseButton;
-  const Area: TArea; ParentMenu: TGLMenu): boolean;
+  const Rectangle: TRectangle; ParentMenu: TGLMenu): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
   if Button = mbLeft then
   begin
-    FValue := XCoordToValue(MouseX, Area);
+    FValue := XCoordToValue(MouseX, Rectangle);
     ParentMenu.CurrentItemAccessoryValueChanged;
     Result := ParentMenu.ExclusiveEvents;
   end;
@@ -1057,11 +1057,11 @@ end;
 
 procedure TGLMenuIntegerSlider.MouseMove(const NewX, NewY: Integer;
   const MousePressed: TMouseButtons;
-  const Area: TArea; ParentMenu: TGLMenu);
+  const Rectangle: TRectangle; ParentMenu: TGLMenu);
 begin
   if mbLeft in MousePressed then
   begin
-    FValue := XCoordToValue(NewX, Area);
+    FValue := XCoordToValue(NewX, Rectangle);
     ParentMenu.CurrentItemAccessoryValueChanged;
   end;
 end;
@@ -1078,8 +1078,8 @@ begin
   inherited;
   FItems := TStringList.Create;
   FCurrentItem := 0;
-  FAreas := TDynAreaArray.Create;
-  FAccessoryAreas := TDynAreaArray.Create;
+  FRectangles := TDynRectangleArray.Create;
+  FAccessoryRectangles := TDynRectangleArray.Create;
 
   FPositionRelativeMenuX := prMiddle;
   FPositionRelativeMenuY := prMiddle;
@@ -1118,8 +1118,8 @@ begin
     FreeAndNil(FItems);
   end;
 
-  FreeAndNil(FAccessoryAreas);
-  FreeAndNil(FAreas);
+  FreeAndNil(FAccessoryRectangles);
+  FreeAndNil(FRectangles);
   inherited;
 end;
 
@@ -1183,15 +1183,15 @@ end;
 const
   MarginBeforeAccessory = 20;
 
-procedure TGLMenu.FixItemsAreas;
+procedure TGLMenu.FixItemsRectangles;
 const
-  AllItemsAreaMargin = 30;
+  AllItemsRectangleMargin = 30;
 var
   I: Integer;
   WholeItemWidth, MaxAccessoryWidth: Integer;
   ItemsBelowHeight: Cardinal;
 begin
-  { If ContainerResize not called yet, wait for FixItemsAreas call
+  { If ContainerResize not called yet, wait for FixItemsRectangles call
     from the first ContainerResize. }
   if not ContainerSizeKnown then
     Exit;
@@ -1200,9 +1200,9 @@ begin
 
   ItemAccessoryGrabbed := -1;
 
-  FAccessoryAreas.Count := Items.Count;
+  FAccessoryRectangles.Count := Items.Count;
 
-  { calculate FAccessoryAreas[].Width, MaxItemWidth, MaxAccessoryWidth }
+  { calculate FAccessoryRectangles[].Width, MaxItemWidth, MaxAccessoryWidth }
 
   MaxItemWidth := 0;
   MaxAccessoryWidth := 0;
@@ -1211,39 +1211,39 @@ begin
     MaxTo1st(MaxItemWidth, MenuFont.TextWidth(Items[I]));
 
     if Items.Objects[I] <> nil then
-      FAccessoryAreas.Items[I].Width :=
+      FAccessoryRectangles.Items[I].Width :=
         TGLMenuItemAccessory(Items.Objects[I]).GetWidth(MenuFont) else
-      FAccessoryAreas.Items[I].Width := 0;
+      FAccessoryRectangles.Items[I].Width := 0;
 
-    MaxTo1st(MaxAccessoryWidth, FAccessoryAreas.Items[I].Width);
+    MaxTo1st(MaxAccessoryWidth, FAccessoryRectangles.Items[I].Width);
   end;
 
-  { calculate FAllItemsArea Width and Height }
+  { calculate FAllItemsRectangle Width and Height }
 
-  FAllItemsArea.Width := MaxItemWidth;
+  FAllItemsRectangle.Width := MaxItemWidth;
   if MaxAccessoryWidth <> 0 then
-    FAllItemsArea.Width += MarginBeforeAccessory + MaxAccessoryWidth;
+    FAllItemsRectangle.Width += MarginBeforeAccessory + MaxAccessoryWidth;
 
-  FAllItemsArea.Height := 0;
+  FAllItemsRectangle.Height := 0;
   for I := 0 to Items.Count - 1 do
   begin
-    FAllItemsArea.Height += MenuFont.RowHeight;
+    FAllItemsRectangle.Height += MenuFont.RowHeight;
     if I > 0 then
-      FAllItemsArea.Height += Integer(SpaceBetweenItems(I));
+      FAllItemsRectangle.Height += Integer(SpaceBetweenItems(I));
   end;
 
-  FAllItemsArea.Width += 2 * AllItemsAreaMargin;
-  FAllItemsArea.Height += 2 * AllItemsAreaMargin;
+  FAllItemsRectangle.Width += 2 * AllItemsRectangleMargin;
+  FAllItemsRectangle.Height += 2 * AllItemsRectangleMargin;
 
-  { calculate Areas Widths and Heights }
+  { calculate Rectangles Widths and Heights }
 
-  Areas.Count := 0;
+  Rectangles.Count := 0;
   for I := 0 to Items.Count - 1 do
   begin
     if MaxAccessoryWidth <> 0 then
       WholeItemWidth := MaxItemWidth + MarginBeforeAccessory + MaxAccessoryWidth else
       WholeItemWidth := MenuFont.TextWidth(Items[I]);
-    Areas.Add(Area(0, 0, WholeItemWidth,
+    Rectangles.Add(Rectangle(0, 0, WholeItemWidth,
       MenuFont.Descend + MenuFont.RowHeight));
   end;
 
@@ -1271,52 +1271,52 @@ begin
 
   case PositionRelativeMenuX of
     prLowerBorder : PositionMenuRelativeMove[0] := 0;
-    prMiddle      : PositionMenuRelativeMove[0] := FAllItemsArea.Width div 2;
-    prHigherBorder: PositionMenuRelativeMove[0] := FAllItemsArea.Width;
+    prMiddle      : PositionMenuRelativeMove[0] := FAllItemsRectangle.Width div 2;
+    prHigherBorder: PositionMenuRelativeMove[0] := FAllItemsRectangle.Width;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeMenuY of
     prLowerBorder : PositionMenuRelativeMove[1] := 0;
-    prMiddle      : PositionMenuRelativeMove[1] := FAllItemsArea.Height div 2;
-    prHigherBorder: PositionMenuRelativeMove[1] := FAllItemsArea.Height;
+    prMiddle      : PositionMenuRelativeMove[1] := FAllItemsRectangle.Height div 2;
+    prHigherBorder: PositionMenuRelativeMove[1] := FAllItemsRectangle.Height;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   FPositionAbsolute := Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
 
-  { Calculate positions of all areas. }
+  { Calculate positions of all rectangles. }
 
-  { we iterate downwards from Areas.High to 0, updating ItemsBelowHeight.
-    That's OpenGL (and so, Areas.Items[I].Y0) coordinates grow up, while
+  { we iterate downwards from Rectangles.High to 0, updating ItemsBelowHeight.
+    That's OpenGL (and so, Rectangles.Items[I].Y0) coordinates grow up, while
     our menu items are specified from highest to lowest. }
   ItemsBelowHeight := 0;
 
-  for I := Areas.High downto 0 do
+  for I := Rectangles.High downto 0 do
   begin
-    Areas.Items[I].X0 := PositionAbsolute[0] + AllItemsAreaMargin;
-    Areas.Items[I].Y0 := PositionAbsolute[1] + AllItemsAreaMargin + ItemsBelowHeight;
+    Rectangles.Items[I].X0 := PositionAbsolute[0] + AllItemsRectangleMargin;
+    Rectangles.Items[I].Y0 := PositionAbsolute[1] + AllItemsRectangleMargin + ItemsBelowHeight;
 
     if I > 0 then
       ItemsBelowHeight += Cardinal(MenuFont.RowHeight + Integer(SpaceBetweenItems(I)));
   end;
-  FAllItemsArea.X0 := PositionAbsolute[0];
-  FAllItemsArea.Y0 := PositionAbsolute[1];
+  FAllItemsRectangle.X0 := PositionAbsolute[0];
+  FAllItemsRectangle.Y0 := PositionAbsolute[1];
 
-  { Calculate FAccessoryAreas[].X0, Y0, Height }
-  for I := 0 to Areas.High do
+  { Calculate FAccessoryRectangles[].X0, Y0, Height }
+  for I := 0 to Rectangles.High do
   begin
-    FAccessoryAreas.Items[I].X0 := Areas.Items[I].X0 +
+    FAccessoryRectangles.Items[I].X0 := Rectangles.Items[I].X0 +
       MaxItemWidth + MarginBeforeAccessory;
-    FAccessoryAreas.Items[I].Y0 := Areas.Items[I].Y0;
-    FAccessoryAreas.Items[I].Height := Areas.Items[I].Height;
+    FAccessoryRectangles.Items[I].Y0 := Rectangles.Items[I].Y0;
+    FAccessoryRectangles.Items[I].Height := Rectangles.Items[I].Height;
   end;
 end;
 
 procedure TGLMenu.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 begin
   inherited;
-  FixItemsAreas;
+  FixItemsRectangles;
 end;
 
 function TGLMenu.DrawStyle: TUIControlDrawStyle;
@@ -1351,9 +1351,9 @@ begin
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
       glColor4f(0, 0, 0, BackgroundAlpha[Focused]);
-      glRectf(FAllItemsArea.X0, FAllItemsArea.Y0,
-        FAllItemsArea.X0 + FAllItemsArea.Width,
-        FAllItemsArea.Y0 + FAllItemsArea.Height);
+      glRectf(FAllItemsRectangle.X0, FAllItemsRectangle.Y0,
+        FAllItemsRectangle.X0 + FAllItemsRectangle.Width,
+        FAllItemsRectangle.Y0 + FAllItemsRectangle.Height);
     glDisable(GL_BLEND);
   end;
 
@@ -1369,7 +1369,7 @@ begin
   if Focused and DrawFocused then
   begin
     glColorv(CurrentItemBorderColor);
-    DrawGLRectBorder(FAllItemsArea);
+    DrawGLRectBorder(FAllItemsRectangle);
   end;
 
   for I := 0 to Items.Count - 1 do
@@ -1378,23 +1378,23 @@ begin
     begin
       glColorv(CurrentItemBorderColor);
       DrawGLRectBorder(
-        Areas.Items[I].X0 - CurrentItemBorderMargin,
-        Areas.Items[I].Y0,
-        Areas.Items[I].X0 + Areas.Items[I].Width + CurrentItemBorderMargin,
-        Areas.Items[I].Y0 + Areas.Items[I].Height);
+        Rectangles.Items[I].X0 - CurrentItemBorderMargin,
+        Rectangles.Items[I].Y0,
+        Rectangles.Items[I].X0 + Rectangles.Items[I].Width + CurrentItemBorderMargin,
+        Rectangles.Items[I].Y0 + Rectangles.Items[I].Height);
 
       glColorv(CurrentItemColor);
     end else
       glColorv(NonCurrentItemColor);
 
     glPushMatrix;
-      glTranslatef(Areas.Items[I].X0, Areas.Items[I].Y0 + MenuFont.Descend, 0);
+      glTranslatef(Rectangles.Items[I].X0, Rectangles.Items[I].Y0 + MenuFont.Descend, 0);
       glRasterPos2i(0, 0);
       MenuFont.Print(Items[I]);
     glPopMatrix;
 
     if Items.Objects[I] <> nil then
-      TGLMenuItemAccessory(Items.Objects[I]).Draw(FAccessoryAreas.Items[I]);
+      TGLMenuItemAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.Items[I]);
   end;
 
   if DesignerMode then
@@ -1430,7 +1430,7 @@ function TGLMenu.KeyDown(Key: TKey; C: char): boolean;
         (PositionScreenRelativeMove - PositionMenuRelativeMove)
       Currently it's equal OldChange. So
         PositionAbsolute = Position + OldChange
-      After P changes and FixItemsAreas does it's work, it's NewChange. So it's
+      After P changes and FixItemsRectangles does it's work, it's NewChange. So it's
         PositionAbsolute = Position + NewChange;
       But I want PositionAbsolute to stay the same. So I add (OldChange - NewChange)
       to the equation after:
@@ -1443,15 +1443,15 @@ function TGLMenu.KeyDown(Key: TKey; C: char): boolean;
       P := Low(P) else
       P := Succ(P);
 
-    { Call FixItemsAreas only to set new
+    { Call FixItemsRectangles only to set new
       PositionScreenRelativeMove - PositionMenuRelativeMove. }
-    FixItemsAreas;
+    FixItemsRectangles;
 
     NewChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
     Position := Position + OldChange - NewChange;
 
-    { Call FixItemsAreas once again, since Position changed. }
-    FixItemsAreas;
+    { Call FixItemsRectangles once again, since Position changed. }
+    FixItemsRectangles;
   end;
 
 const
@@ -1527,12 +1527,12 @@ var
   begin
     NewPositionAbsolute := Vector2Integer(MX, MY);
     { I want Position set such that (MX, MY) are lower/left corner
-      of menu area. I know that
+      of menu rectangle. I know that
         PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
       (MX, MY) are new PositionAbsolute, so I can calculate from
       this new desired Position value. }
     Position := NewPositionAbsolute - PositionScreenRelativeMove + PositionMenuRelativeMove;
-    FixItemsAreas;
+    FixItemsRectangles;
   end;
 
 var
@@ -1545,7 +1545,7 @@ begin
   MX := NewX;
   MY := ContainerHeight - NewY;
 
-  NewItemIndex := Areas.FindArea(MX, MY);
+  NewItemIndex := Rectangles.FindRectangle(MX, MY);
   if NewItemIndex <> -1 then
   begin
     if NewItemIndex <> CurrentItem then
@@ -1554,11 +1554,11 @@ begin
       then user just moves mouse within current item.
       So maybe we should call TGLMenuItemAccessory.MouseMove. }
     if (Items.Objects[CurrentItem] <> nil) and
-       (PointInArea(MX, MY, FAccessoryAreas.Items[CurrentItem])) and
+       (PointInRectangle(MX, MY, FAccessoryRectangles.Items[CurrentItem])) and
        (ItemAccessoryGrabbed = CurrentItem) then
       TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseMove(
         MX, MY, Container.MousePressed,
-        FAccessoryAreas.Items[CurrentItem], Self);
+        FAccessoryRectangles.Items[CurrentItem], Self);
   end;
 
   if DesignerMode then
@@ -1581,18 +1581,18 @@ begin
 
   if (CurrentItem <> -1) and
      (Items.Objects[CurrentItem] <> nil) and
-     (PointInArea(MX, MY, FAccessoryAreas.Items[CurrentItem])) and
+     (PointInRectangle(MX, MY, FAccessoryRectangles.Items[CurrentItem])) and
      (Container.MousePressed - [Button] = []) then
   begin
     ItemAccessoryGrabbed := CurrentItem;
     TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseDown(
-      MX, MY, Button, FAccessoryAreas.Items[CurrentItem], Self);
+      MX, MY, Button, FAccessoryRectangles.Items[CurrentItem], Self);
     Result := ExclusiveEvents;
   end;
 
   if Button = mbLeft then
   begin
-    NewItemIndex := Areas.FindArea(MX, MY);
+    NewItemIndex := Rectangles.FindRectangle(MX, MY);
     if NewItemIndex <> -1 then
     begin
       CurrentItem := NewItemIndex;
@@ -1662,7 +1662,7 @@ end;
 
 function TGLMenu.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := PointInArea(X, ContainerHeight - Y, FAllItemsArea);
+  Result := PointInRectangle(X, ContainerHeight - Y, FAllItemsRectangle);
 end;
 
 end.

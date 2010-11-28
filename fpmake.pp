@@ -244,7 +244,7 @@ begin
     end;
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
-    P.Targets.AddUnit('areas.pas');
+    P.Targets.AddUnit('rectangles.pas');
     P.Targets.AddUnit('keysmouse.pas');
     P.Targets.AddUnit('uicontrols.pas');
     P.Targets.AddUnit('cameras.pas');

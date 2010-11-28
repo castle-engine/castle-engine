@@ -10,7 +10,7 @@ unit AllKambiUIUnits;
 interface
 
 uses
-  areas,
+  rectangles,
   cameras,
   keysmouse,
   uicontrols

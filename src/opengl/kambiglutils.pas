@@ -81,7 +81,7 @@ interface
 
 uses Math, GL, GLU, GLExt,
   SysUtils, KambiUtils, VectorMath, Boxes3D,
-  Images, Matrix, Areas;
+  Images, Matrix, Rectangles;
 
 {$define read_interface}
 {$I glext_packed_depth_stencil.inc}
@@ -713,7 +713,7 @@ procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   Uses current OpenGL color.
   @groupBegin }
 procedure DrawGLRectBorder(const x1, y1, x2, y2: TGLfloat); overload;
-procedure DrawGLRectBorder(const Area: TArea); overload;
+procedure DrawGLRectBorder(const Rectangle: TRectangle); overload;
 { @groupEnd }
 
 function UnProjectGL(winx, winy, winz: TGLdouble): TVector3d;
@@ -1622,9 +1622,9 @@ begin
  glEnd;
 end;
 
-procedure DrawGLRectBorder(const Area: TArea);
+procedure DrawGLRectBorder(const Rectangle: TRectangle);
 begin
-  DrawGLRectBorder(Area.X0, Area.Y0, Area.X0 + Area.Width, Area.Y0 + Area.Height);
+  DrawGLRectBorder(Rectangle.X0, Rectangle.Y0, Rectangle.X0 + Rectangle.Width, Rectangle.Y0 + Rectangle.Height);
 end;
 
 function UnProjectGL(winx, winy, winz :TGLdouble): TVector3d;

@@ -507,8 +507,8 @@
         <Type Value="Include"/>
       </Item116>
       <Item117>
-        <Filename Value="../src/ui/areas.pas"/>
-        <UnitName Value="Areas"/>
+        <Filename Value="../src/ui/rectangles.pas"/>
+        <UnitName Value="Rectangles"/>
       </Item117>
       <Item118>
         <Filename Value="../src/ui/cameras.pas"/>
