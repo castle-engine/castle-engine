@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Areas (2D rectangles) manager. Main use is to detect in which
+{ 2D float rectangles (TArea).
+  Main use is to detect in which
   2D area on the screen user clicked with mouse.
 
   The usual use is to create many areas and add them to DefaultAreas manager.

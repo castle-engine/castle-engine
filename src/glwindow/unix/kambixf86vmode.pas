@@ -50,6 +50,8 @@
 
  THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION
 )
+
+  @exclude (This is only a C header translation --- no nice PasDoc docs.)
 }
 
 unit KambiXF86VMode;

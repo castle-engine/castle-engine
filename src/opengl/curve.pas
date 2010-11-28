@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(3d curve class TCurve and many basic descendants.) }
+{ 3D curves (TCurve and basic descendants). }
 
 unit Curve;
 

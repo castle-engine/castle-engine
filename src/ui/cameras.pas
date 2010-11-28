@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Camera to navigate in 3D space:
-  @link(TExamineCamera), @link(TWalkCamera) and various related classes.) }
+{ Cameras to navigate in 3D space (TExamineCamera, TWalkCamera, TUniversalCamera). }
 
 unit Cameras;
 

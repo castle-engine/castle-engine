@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(VRML scene as @link(TVRMLScene) class.) }
+{ VRML scenes (TVRMLScene). }
 
 unit VRMLScene;
 

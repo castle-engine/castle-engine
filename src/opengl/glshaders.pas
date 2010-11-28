@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Handling OpenGL shaders (GLSL and ARB vertex / fragment programs).
+{ OpenGL shaders (GLSL through the TGLSLProgram,
+  ARB assembly through TARBProgram descendants).
 
   Some common notes for all classes defined here:
 

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(TGLWindow is a window with associated OpenGL context.)
+{ Windows with associated OpenGL context (TGLWindow).
 
   @link(Application) object (instance of class @link(TGLApplication))
   is a central manager of all open @link(TGLWindow) windows.

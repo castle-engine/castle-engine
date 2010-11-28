@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple helper unit for setting up OpenGL full-screen anti-aliasing
-  (that is, multisamling). }
+{ Setup OpenGL full-screen anti-aliasing (multisamling). }
 unit GLAntiAliasing;
 
 interface

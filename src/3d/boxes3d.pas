@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Type TBox3D and many operations on it. }
+{ Axis-aligned 3D boxes (TBox3D). }
 unit Boxes3D;
 
 interface

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ DDS image file format handling. }
+{ DDS image file format handling (TDDSImage). }
 unit DDS;
 
 interface

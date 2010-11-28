@@ -14,6 +14,8 @@
       on target system. If zlib will not be installed, KambiZlibInited
       will be simply set to false.)
   )
+  
+  @exclude (This is only a C header translation --- no nice PasDoc docs.)
 }
 
 unit KambiZlib;

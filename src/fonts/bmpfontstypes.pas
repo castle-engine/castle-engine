@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(@name provides types and utilities for
-  defining bitmap fonts as constants in Pascal code.)
+{ Types to define bitmap fonts as constants in the Pascal code.
 
   Concrete examples of fonts defined using these types
   may be found in bfnt_xxx units.
@@ -67,10 +66,10 @@ type
       );
     #)
 
-    Notes about example above: The row has 
+    Notes about example above: The row has
     @link(TBFNTCharInfo.Width Width) = 8 which means that
     we need only 8 bits (one byte) to store it.
-    But since @link(TBFNTCharInfo.Alignment Alignment) = 2, 
+    But since @link(TBFNTCharInfo.Alignment Alignment) = 2,
     we need to use some multiply of 2 bytes
     to store a row, which means that each row actually uses 2 bytes
     (even though the contents of 2nd byte are always meaningless).
@@ -87,7 +86,7 @@ type
     matter that much, since then OpenGL will probably internally convert
     to the best alignment anyway).
 
-    Summing the example, we have 2 bytes and 12 rows 
+    Summing the example, we have 2 bytes and 12 rows
     (@link(TBFNTCharInfo.Height Height) = 2)
     so we need 24 bytes to store this character.
 

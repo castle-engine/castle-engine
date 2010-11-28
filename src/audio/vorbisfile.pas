@@ -1,6 +1,7 @@
 { API of vorbisfile library. Usually libvorbisfile.so under Unixes
   or vorbisfile.dll under Windows. This is just a quick translation
-  of /usr/include/vorbis/vorbisfile.h header. }
+  of /usr/include/vorbis/vorbisfile.h header.
+  @exclude (This is only a C header translation --- no nice PasDoc docs.) }
 unit VorbisFile;
 
 {$packrecords C}

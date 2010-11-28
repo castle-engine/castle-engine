@@ -13,9 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(@link(TVRMLShapeOctree) --- octree that provides
-  spatial structure of all TVRMLShape structures of a given
-  @link(TVRMLScene) object.)
+{ Octrees for fast 3D seaching in VRML shapes (TVRMLShapeOctree).
 
   Don't confuse it with @link(TVRMLTriangleOctree) from unit
   @link(VRMLTriangleOctree):

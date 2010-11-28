@@ -93,7 +93,6 @@ if (( $# == 0 )); then
                 ')' -prune ')' -or \
     '(' -type f -iname '*.pas' \
             -not '(' \
-              '(' -iwholename '*/imageslider_*.pas' ')' -or \
               '(' -iwholename '*/AllKambi*Units.pas' ')' -or \
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
               '(' -iwholename '*fonts/TTF_*.pas' ')' -or \

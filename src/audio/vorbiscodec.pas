@@ -1,4 +1,5 @@
-{ Minimal translation of C /usr/include/vorbis/codec.h header. }
+{ Minimal translation of C /usr/include/vorbis/codec.h header.
+  @exclude (This is only a C header translation --- no nice PasDoc docs.) }
 unit VorbisCodec;
 
 {$packrecords C}

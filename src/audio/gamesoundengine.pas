@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TGameSoundEngine class. }
+{ Easy game 3D sound manager (TGameSoundEngine). }
 unit GameSoundEngine;
 
 {$I kambiconf.inc}

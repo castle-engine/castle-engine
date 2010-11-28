@@ -13,9 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(This unit writes TTrueTypeFont or TBmpFont fonts as Pascal
-  source code units.) }
-
+{ Converting fonts (TTrueTypeFont or TBmpFont) to Pascal source code. }
 unit Font2PascalUnit;
 
 interface

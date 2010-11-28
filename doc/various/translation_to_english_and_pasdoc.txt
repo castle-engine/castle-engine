@@ -99,7 +99,7 @@ D   kambitimeutils.pas
 |   kambiutils.pas
 D   kambixmlconfig.pas
 D   kambixmlutils.pas
-D   kambizlib.pas
+E   kambizlib.pas
 D   kambizstream.pas
 D   parseparametersunit.pas
 D   progressconsole.pas
@@ -115,7 +115,7 @@ D   font2pascalunit.pas
 D   ttfontstypes.pas
 
   glwindow/
-D   unix/xf86vmode.pas
+E   unix/kambixf86vmode.pas
 D   unix/xlibutils.pas
 D   glsoundmenu.pas
 D   glwindow.pas

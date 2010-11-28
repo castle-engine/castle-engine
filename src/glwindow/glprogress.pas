@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Progress bar displayed in OpenGL inside GLWindow window.)
+{ Progress bar displayed in a TGLWindow.
 
   Simply set @code(GLProgressInterface.Window) to your TGLWindow
   instance, and assign

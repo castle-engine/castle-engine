@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ See TALSourceAllocator. }
+{ OpenAL sounds smart allocation (TALSourceAllocator). }
 unit ALSourceAllocator;
 
 interface
@@ -130,7 +130,7 @@ type
     procedure SortByImportance;
   end;
 
-  { This class manages a list of allocated OpenAL sounds.
+  { Manage allocated OpenAL sounds.
 
     The idea is that you leave to this class creating and deleting
     of OpenAL sounds. When you need OpenAL sound to do something,
