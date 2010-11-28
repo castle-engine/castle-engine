@@ -26,7 +26,7 @@ uses KambiUtils, SysUtils;
 
 type
   TArea = record
-    X0, Y0, Width, Height: Single;
+    X0, Y0, Width, Height: Integer;
   end;
   PArea = ^TArea;
 
@@ -45,15 +45,15 @@ type
       areas, which is more intuitive.
 
       Returns -1 if not found. }
-    function FindArea(const X, Y: Single): integer;
+    function FindArea(const X, Y: Integer): integer;
   end;
 
 const
   EmptyArea: TArea = (X0: 0; Y0: 0; Width: -1; Height: -1);
 
-function Area(const X0, Y0, Width, Height: Single): TArea;
+function Area(const X0, Y0, Width, Height: Integer): TArea;
 
-function PointInArea(const X, Y: Single; const Area: TArea): boolean;
+function PointInArea(const X, Y: Integer; const Area: TArea): boolean;
 
 {$undef read_interface}
 
@@ -64,7 +64,7 @@ implementation
 
 { TDynAreaArray -------------------------------------------------------------- }
 
-function TDynAreaArray.FindArea(const X, Y: Single): integer;
+function TDynAreaArray.FindArea(const X, Y: Integer): integer;
 begin
   for Result := High downto 0 do
     if PointInArea(X, Y, Items[Result]) then
@@ -74,7 +74,7 @@ end;
 
 { global funcs --------------------------------------------------------------- }
 
-function Area(const X0, Y0, Width, Height: Single): TArea;
+function Area(const X0, Y0, Width, Height: Integer): TArea;
 begin
   Result.X0 := X0;
   Result.Y0 := Y0;
@@ -82,7 +82,7 @@ begin
   Result.Height := Height;
 end;
 
-function PointInArea(const X, Y: Single; const Area: TArea): boolean;
+function PointInArea(const X, Y: Integer; const Area: TArea): boolean;
 begin
   Result := (X >= Area.X0) and (X <= Area.X0 + Area.Width) and
             (Y >= Area.Y0) and (Y <= Area.Y0 + Area.Height);

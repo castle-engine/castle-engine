@@ -65,7 +65,7 @@ type
       because we will not query GetWidth after every change of
       TGLMenuItemArgument.Value. Instead, TGLMenuItemArgument
       should return here the width of widest possible Value. }
-    function GetWidth(MenuFont: TGLBitmapFont): Single; virtual; abstract;
+    function GetWidth(MenuFont: TGLBitmapFont): Integer; virtual; abstract;
 
     { Draw yourself. Note that Area.Width is for sure the same
       as you returned in GetWidth. }
@@ -130,20 +130,20 @@ type
     the name of some key currently assigned to some function etc. }
   TGLMenuItemArgument = class(TGLMenuItemAccessory)
   private
-    FMaximumValueWidth: Single;
+    FMaximumValueWidth: Integer;
     FValue: string;
   public
-    constructor Create(const AMaximumValueWidth: Single);
+    constructor Create(const AMaximumValueWidth: Integer);
 
     property Value: string read FValue write FValue;
 
-    property MaximumValueWidth: Single
+    property MaximumValueWidth: Integer
       read FMaximumValueWidth write FMaximumValueWidth;
 
     { Calculate text width using font used by TGLMenuItemArgument. }
-    class function TextWidth(const Text: string): Single;
+    class function TextWidth(const Text: string): Integer;
 
-    function GetWidth(MenuFont: TGLBitmapFont): Single; override;
+    function GetWidth(MenuFont: TGLBitmapFont): Integer; override;
     procedure Draw(const Area: TArea); override;
   end;
 
@@ -177,7 +177,7 @@ type
   public
     constructor Create;
 
-    function GetWidth(MenuFont: TGLBitmapFont): Single; override;
+    function GetWidth(MenuFont: TGLBitmapFont): Integer; override;
     procedure Draw(const Area: TArea); override;
 
     { Should the Value be displayed as text ?
@@ -341,7 +341,7 @@ type
     FCurrentItemBorderColor2: TVector3Single;
     FCurrentItemColor: TVector3Single;
     FNonCurrentItemColor: TVector3Single;
-    MaxItemWidth: Single;
+    MaxItemWidth: Integer;
     FRegularSpaceBetweenItems: Cardinal;
     FDrawBackgroundRectangle: boolean;
     { Item accessory that currently has "grabbed" the mouse.
@@ -355,7 +355,7 @@ type
     procedure SetDesignerMode(const Value: boolean);
   private
     FPositionAbsolute,
-      PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2_Single;
+      PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2Integer;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -374,7 +374,7 @@ type
       because assigning a field of record property is a risk in ObjectPascal
       (you may be modifying only a temporary copy of the record returned
       by property getter). }
-    Position: TVector2_Single;
+    Position: TVector2Integer;
 
     { See TPositionRelative documentation for meaning of these four
       PositionRelativeXxx properties.
@@ -409,8 +409,7 @@ type
       It's calculated anyway because our drawing code needs this.
       You may find it useful if you want to draw something relative to menu
       position. }
-    property PositionAbsolute: TVector2_Single
-      read FPositionAbsolute;
+    property PositionAbsolute: TVector2Integer read FPositionAbsolute;
 
     { Items of this menu.
 
@@ -768,19 +767,19 @@ end;
 
 { TGLMenuItemArgument -------------------------------------------------------- }
 
-constructor TGLMenuItemArgument.Create(const AMaximumValueWidth: Single);
+constructor TGLMenuItemArgument.Create(const AMaximumValueWidth: Integer);
 begin
   inherited Create;
   FMaximumValueWidth := AMaximumValueWidth;
 end;
 
-class function TGLMenuItemArgument.TextWidth(const Text: string): Single;
+class function TGLMenuItemArgument.TextWidth(const Text: string): Integer;
 begin
   MenuFontInit;
   Result := MenuFont.TextWidth(Text);
 end;
 
-function TGLMenuItemArgument.GetWidth(MenuFont: TGLBitmapFont): Single;
+function TGLMenuItemArgument.GetWidth(MenuFont: TGLBitmapFont): Integer;
 begin
   Result := MaximumValueWidth;
 end;
@@ -825,7 +824,7 @@ begin
   FDisplayValue := true;
 end;
 
-function TGLMenuSlider.GetWidth(MenuFont: TGLBitmapFont): Single;
+function TGLMenuSlider.GetWidth(MenuFont: TGLBitmapFont): Integer;
 begin
   ImageSliderInit;
   Result := ImageSlider.Width;
@@ -1189,7 +1188,7 @@ const
   AllItemsAreaMargin = 30;
 var
   I: Integer;
-  WholeItemWidth, MaxAccessoryWidth: Single;
+  WholeItemWidth, MaxAccessoryWidth: Integer;
   ItemsBelowHeight: Cardinal;
 begin
   { If ContainerResize not called yet, wait for FixItemsAreas call
@@ -1205,8 +1204,8 @@ begin
 
   { calculate FAccessoryAreas[].Width, MaxItemWidth, MaxAccessoryWidth }
 
-  MaxItemWidth := 0.0;
-  MaxAccessoryWidth := 0.0;
+  MaxItemWidth := 0;
+  MaxAccessoryWidth := 0;
   for I := 0 to Items.Count - 1 do
   begin
     MaxTo1st(MaxItemWidth, MenuFont.TextWidth(Items[I]));
@@ -1214,7 +1213,7 @@ begin
     if Items.Objects[I] <> nil then
       FAccessoryAreas.Items[I].Width :=
         TGLMenuItemAccessory(Items.Objects[I]).GetWidth(MenuFont) else
-      FAccessoryAreas.Items[I].Width := 0.0;
+      FAccessoryAreas.Items[I].Width := 0;
 
     MaxTo1st(MaxAccessoryWidth, FAccessoryAreas.Items[I].Width);
   end;
@@ -1222,7 +1221,7 @@ begin
   { calculate FAllItemsArea Width and Height }
 
   FAllItemsArea.Width := MaxItemWidth;
-  if MaxAccessoryWidth <> 0.0 then
+  if MaxAccessoryWidth <> 0 then
     FAllItemsArea.Width += MarginBeforeAccessory + MaxAccessoryWidth;
 
   FAllItemsArea.Height := 0;
@@ -1241,7 +1240,7 @@ begin
   Areas.Count := 0;
   for I := 0 to Items.Count - 1 do
   begin
-    if MaxAccessoryWidth <> 0.0 then
+    if MaxAccessoryWidth <> 0 then
       WholeItemWidth := MaxItemWidth + MarginBeforeAccessory + MaxAccessoryWidth else
       WholeItemWidth := MenuFont.TextWidth(Items[I]);
     Areas.Add(Area(0, 0, WholeItemWidth,
@@ -1257,30 +1256,30 @@ begin
     PositionRelative* meaning. }
 
   case PositionRelativeScreenX of
-    prLowerBorder : PositionScreenRelativeMove.Data[0] := 0;
-    prMiddle      : PositionScreenRelativeMove.Data[0] := ContainerWidth div 2;
-    prHigherBorder: PositionScreenRelativeMove.Data[0] := ContainerWidth;
+    prLowerBorder : PositionScreenRelativeMove[0] := 0;
+    prMiddle      : PositionScreenRelativeMove[0] := ContainerWidth div 2;
+    prHigherBorder: PositionScreenRelativeMove[0] := ContainerWidth;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeScreenY of
-    prLowerBorder : PositionScreenRelativeMove.Data[1] := 0;
-    prMiddle      : PositionScreenRelativeMove.Data[1] := ContainerHeight div 2;
-    prHigherBorder: PositionScreenRelativeMove.Data[1] := ContainerHeight;
+    prLowerBorder : PositionScreenRelativeMove[1] := 0;
+    prMiddle      : PositionScreenRelativeMove[1] := ContainerHeight div 2;
+    prHigherBorder: PositionScreenRelativeMove[1] := ContainerHeight;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeMenuX of
-    prLowerBorder : PositionMenuRelativeMove.Data[0] := 0;
-    prMiddle      : PositionMenuRelativeMove.Data[0] := FAllItemsArea.Width / 2;
-    prHigherBorder: PositionMenuRelativeMove.Data[0] := FAllItemsArea.Width;
+    prLowerBorder : PositionMenuRelativeMove[0] := 0;
+    prMiddle      : PositionMenuRelativeMove[0] := FAllItemsArea.Width div 2;
+    prHigherBorder: PositionMenuRelativeMove[0] := FAllItemsArea.Width;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeMenuY of
-    prLowerBorder : PositionMenuRelativeMove.Data[1] := 0;
-    prMiddle      : PositionMenuRelativeMove.Data[1] := FAllItemsArea.Height / 2;
-    prHigherBorder: PositionMenuRelativeMove.Data[1] := FAllItemsArea.Height;
+    prLowerBorder : PositionMenuRelativeMove[1] := 0;
+    prMiddle      : PositionMenuRelativeMove[1] := FAllItemsArea.Height div 2;
+    prHigherBorder: PositionMenuRelativeMove[1] := FAllItemsArea.Height;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
@@ -1295,14 +1294,14 @@ begin
 
   for I := Areas.High downto 0 do
   begin
-    Areas.Items[I].X0 := PositionAbsolute.Data[0] + AllItemsAreaMargin;
-    Areas.Items[I].Y0 := PositionAbsolute.Data[1] + AllItemsAreaMargin + ItemsBelowHeight;
+    Areas.Items[I].X0 := PositionAbsolute[0] + AllItemsAreaMargin;
+    Areas.Items[I].Y0 := PositionAbsolute[1] + AllItemsAreaMargin + ItemsBelowHeight;
 
     if I > 0 then
       ItemsBelowHeight += Cardinal(MenuFont.RowHeight + Integer(SpaceBetweenItems(I)));
   end;
-  FAllItemsArea.X0 := PositionAbsolute.Data[0];
-  FAllItemsArea.Y0 := PositionAbsolute.Data[1];
+  FAllItemsArea.X0 := PositionAbsolute[0];
+  FAllItemsArea.Y0 := PositionAbsolute[1];
 
   { Calculate FAccessoryAreas[].X0, Y0, Height }
   for I := 0 to Areas.High do
@@ -1416,7 +1415,7 @@ function TGLMenu.KeyDown(Key: TKey; C: char): boolean;
 
   procedure IncPositionRelative(var P: TPositionRelative);
   var
-    OldChange, NewChange: TVector2_Single;
+    OldChange, NewChange: TVector2Integer;
   begin
     { We want to change P, but preserve PositionAbsolute.
       I.e. we want to change P, but also adjust Position such that
@@ -1505,8 +1504,8 @@ begin
             'PositionRelativeMenuX := %s;' +nl+
             'PositionRelativeMenuY := %s;' +nl+
             'DrawBackgroundRectangle := %s;',
-            [ Position.Data[0],
-              Position.Data[1],
+            [ Position[0],
+              Position[1],
               PositionRelativeName[PositionRelativeScreenX],
               PositionRelativeName[PositionRelativeScreenY],
               PositionRelativeName[PositionRelativeMenuX],
@@ -1524,9 +1523,9 @@ var
 
   procedure ChangePosition;
   var
-    NewPositionAbsolute: TVector2_Single;
+    NewPositionAbsolute: TVector2Integer;
   begin
-    NewPositionAbsolute.Init(MX, MY);
+    NewPositionAbsolute := Vector2Integer(MX, MY);
     { I want Position set such that (MX, MY) are lower/left corner
       of menu area. I know that
         PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
@@ -1654,8 +1653,8 @@ begin
   if (not FDesignerMode) and Value and (Container <> nil) then
   begin
     Container.SetMousePosition(
-      Round(PositionAbsolute.Data[0]),
-      ContainerHeight - Round(PositionAbsolute.Data[1]));
+      Round(PositionAbsolute[0]),
+      ContainerHeight - Round(PositionAbsolute[1]));
   end;
 
   FDesignerMode := Value;
