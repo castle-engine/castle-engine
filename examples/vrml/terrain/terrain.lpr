@@ -240,7 +240,7 @@ begin
           glEnable(GL_NORMALIZE);
         end;
 
-        if Shader then
+        if Shader and (GLSLProgram <> nil) then
         begin
           GLSLProgram.Enable;
 
@@ -279,7 +279,7 @@ begin
         DrawElevation(Elevation, Subdivision,
           WalkCamera.Position[0], WalkCamera.Position[1], BaseSize, LayersCount);
 
-        if Shader then
+        if Shader and (GLSLProgram <> nil) then
           GLSLProgram.Disable;
       glPopAttrib;
     end;
@@ -391,6 +391,12 @@ procedure GLSLProgramRegenerate;
 var
   Prefix: string;
 begin
+  if GLSLProgram = nil then
+  begin
+    Writeln('Warning: Your graphic card doesn''t support GLSL shaders.');
+    Exit;
+  end;
+
   GLSLProgram.DetachAllShaders;
   Prefix := '#define HEIGHT_IS_Z' + NL;
   if Fog then Prefix += '#define FOG' + NL;
@@ -443,7 +449,9 @@ begin
   GLTexRock := LoadTexture('rock_d01.png');
 
   { initialize GLSL program }
-  GLSLProgram := TGLSLProgram.Create;
+  if TGLSLProgram.ClassSupport <> gsNone then
+    GLSLProgram := TGLSLProgram.Create else
+    Shader := false;
   GLSLProgramRegenerate;
 end;
 
