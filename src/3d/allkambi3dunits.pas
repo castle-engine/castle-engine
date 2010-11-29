@@ -16,7 +16,6 @@ uses
   cubemap,
   frustum,
   kambioctree,
-  kambipolynomials,
   nurbs,
   object3dgeo,
   object3dmd3,

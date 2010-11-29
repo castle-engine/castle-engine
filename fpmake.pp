@@ -70,7 +70,6 @@ begin
     P.Targets.AddUnit('object3dmd3.pas');
     P.Targets.AddUnit('object3dobj.pas');
     P.Targets.AddUnit('object3ds.pas');
-    P.Targets.AddUnit('kambipolynomials.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
     P.Targets.AddUnit('renderstateunit.pas');
