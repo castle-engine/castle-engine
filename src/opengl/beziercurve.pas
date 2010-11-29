@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Rational Bezier curves (Bezier curves with weights)
-  and smooth interpolated curves (each segment is a separate Bezier curve).
+{ Rational (weighted) Bezier curves (TRationalBezierCurve)
+  and smooth curves (TSmoothInterpolatedCurve, each segment is a Bezier curve).
 
   Implemented first for bezier_curves program
   [http://vrmlengine.sourceforge.net/bezier_curves.php],

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Light set initialized from 3d model file: TVRMLLightSet class. }
+{ Lights initialized from VRML/X3D file (TVRMLLightSet). }
 unit VRMLLightSet;
 
 interface

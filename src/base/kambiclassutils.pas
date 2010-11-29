@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Basic classes and utilities (streams, strings, lists).
+{ Basic classes and class utilities (for streams, strings, lists and such).
   Many utilities for classes that are defined in the Classes unit,
   and some classes of our my own.
 

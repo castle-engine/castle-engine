@@ -1,3 +1,19 @@
+{
+  Copyright 2007-2010 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ OpenGL trick: cube map texture to normalize vectors. }
 unit NormalizationCubeMap;
 
 interface

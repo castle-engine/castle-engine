@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Parsing command-line options related to VRML Detail_ variables.) }
-
+{ Parsing command-line options that control the quadric rendering quality. }
 unit VRMLNodesDetailOptions;
 
 interface

@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(@link(TVRMLGLScene) class.) }
-
+{ VRML/X3D complete scene handling and OpenGL rendering (TVRMLGLScene). }
 unit VRMLGLScene;
 
 interface

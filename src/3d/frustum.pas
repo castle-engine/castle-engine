@@ -13,9 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Frustum object and helpers.
-  Frustum is represented as @link(TFrustum) type,
-  basically just 6 plane equations. }
+{ Frustum object (TFrustum) and helpers. }
 unit Frustum;
 
 interface

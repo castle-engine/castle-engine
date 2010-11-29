@@ -14,7 +14,8 @@
 }
 
 { 2D rectangles.
-  Main use is to detect in which 2D rectangle on the screen the mouse cursor is. }
+  Main use is to detect in which 2D rectangle on the screen the mouse cursor is.
+  @noAutoLinkHere }
 unit Rectangles;
 
 { Internal notes: the only remaining reasons against using TRect

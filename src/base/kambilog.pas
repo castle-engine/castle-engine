@@ -13,15 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple log unit. Has to be activated in your program (nothing in the
+{ Logging. Log has to be activated in your program (nothing in the
   kambi_vrml_game_engine units activates it automatically !) by InitializeLog.
   Various units of my engine print some logging info when @link(Log) is true.
 
   Prints log messages to StdOut, not to some external file.
   This is most useful and common behavior on Unixes.
   It also removed any problems with users asking "where can I find
-  this log file you generated ?". The downside is that Windows users
-  have to explicitly redirect StdOut of the GUI program to get log. }
+  the log file?". The downside is that Windows users
+  have to explicitly redirect StdOut of the GUI program to get the log. }
 unit KambiLog;
 
 interface

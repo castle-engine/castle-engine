@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TGLWindowVRMLBrowser class, simple VRML browser in a single
-  TGLWindow window. }
+{ Simple VRML browser window (TGLWindowVRMLBrowser descending from TGLWindow). }
 unit GLWindowVRMLBrowser;
 
 interface

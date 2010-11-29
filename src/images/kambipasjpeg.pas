@@ -1,20 +1,18 @@
-(*
-  @abstract(This is Kambi's reorganized version of pasjpeg.pas
-  unit from PasJPEG package.)
+{ Handling JPEG files.
+  This is a reorganized version of pasjpeg.pas unit from PasJPEG package. }
+unit KambiPasJpeg;
 
-  Look for string "Kambi" to find my changes.
+(*Look for string "Kambi" to find my changes.
   Mainly, stream and error managers were moved to separate units
   (and error manager changed greatly).
   Also {$I jconfig.inc} was removed (it is not needed for this unit)
   so this file can be used even if someone does not have pasjpeg sources
   with FPC (e.g. he has a precompiled FPC snapshot or install).
 
-  I'm planning to hack this file even
+  TODO: I'm planning to hack this file even
   more some day so that I can make nice&clean implementation of
-  Images_JPEG.inc
+  Images_jpeg.inc
 *)
-
-unit KambiPasJpeg;
 
 {$I kambiconf.inc}
 
@@ -24,24 +22,16 @@ unit KambiPasJpeg;
   package then this is valid.) }
 {$define BITS_IN_JSAMPLE_IS_8}
 
-{ Kambi turned off some checks to be safe, I know that some units in pasjpeg
+{ Turned off some checks to be safe, I know that some units in pasjpeg
   require range/overflow checking OFF (i.e. it is sometimes legal for them
   to do some overflow and/or range error). I'm not sure whether this
   unit wants it. But I want to be safe so I turned it off. }
 {$R-,Q-}
 
-{ Kambi:
-
-  inmemory is always treated as false under Unix and / or FPC -
+{ inmemory is always treated as false under Unix and / or FPC -
   because FPC+Linux / Kylix / FPC+Win32 compiled applications
   go crazy and crash when they try to handle large jpegs with
-  inmemory=true. TODO: I don't know why, I know only that this
-  code has been really prepared for Delphi+Win32 and that's
-  the reason why something may not work under FPC / Linux.
-
-  I didn't try yet, but for now I assume that all other Unixes
-  should be treated here the same as Linux.
-}
+  inmemory=true. }
 {$ifdef FPC}  {$define INMEMORY_FALSE} {$endif}
 {$ifdef UNIX} {$define INMEMORY_FALSE} {$endif}
 

@@ -13,9 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Some polynomials handling.
+{ Polynomials handling.
   Currently useful only for @link(Curve) unit.) }
-
 unit KambiPolynomials;
 
 interface
@@ -23,10 +22,10 @@ interface
 uses KambiUtils;
 
 type
-  { Natural cubic spline.
-    In Polish this is "naturalna funkcja sklejana III stopnia"
-    -- hopefully this is proper translation ?
+  { In Polish this is "naturalna funkcja sklejana III stopnia"
+    -- hopefully this is a proper translation? }
 
+  { Natural cubic spline.
     May be periodic or not. }
   TNaturalCubicSpline = class
   private

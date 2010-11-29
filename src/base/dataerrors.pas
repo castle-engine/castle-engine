@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Reporting warnings about reading data.
+{ Reporting warnings about something.
 
   This unit should be used by other units that read some data,
   when data may contain non-fatal errors (i.e. data is invalid,

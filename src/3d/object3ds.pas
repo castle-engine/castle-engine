@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Read 3D object from a 3DS file.) }
+{ 3DS format handling (TScene3ds and helpers). }
 
 unit Object3Ds;
 

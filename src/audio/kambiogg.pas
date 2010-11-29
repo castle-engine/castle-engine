@@ -5,10 +5,13 @@
   FPC's Ogg unit. Although, from the 1st glance, it will require
   fixing FPC's Ogg unit --- it will fail when Ogg lib is not available,
   while my Ogg and VorbisFile units are made such that they can continue
-  (function pointers are loaded in initialization and failure only 
+  (function pointers are loaded in initialization and failure only
   casues setting some bool variable to @false).
   Actually, Ogg unit doesn't link at all to ogg library (it's not needed,
-  only structs are needed). }
+  only structs are needed).
+
+  @exclude (Unit not really ready for PasDoc, with many comments from
+  original C headers.) }
 unit KambiOgg;
 
 {$packrecords C}

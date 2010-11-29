@@ -13,18 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Handling of 3D models in Wavefront OBJ format.)
+{ Wavefront OBJ 3D format handling (TObject3DOBJ).
 
-  First implementation based on information from [http://www.gametutorials.com].
-  Written without any particular reason --- I just saw some code doing so,
-  and it seemed extremely easy, and so I decided to implement it too.
-  And it works: we simply read "v", "vt" and "f" lines and that's all.
-
-  Later extended to handle also normal vectors and materials,
-  based on [http://www.fileformat.info/format/wavefrontobj/]
+  See [http://www.fileformat.info/format/wavefrontobj/]
   and [http://www.fileformat.info/format/material/].
   Texture filename is also read from material file. }
-
 unit Object3DOBJ;
 
 interface

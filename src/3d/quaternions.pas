@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Quaternion operations, in particular using unit quaternions to express
-  3D rotations. }
+{ Quaternions (in particular using them to express 3D rotations).
+  @noAutoLinkHere }
 unit Quaternions;
 
 interface

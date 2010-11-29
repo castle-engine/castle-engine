@@ -13,17 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(@link(TObject3DGEO) class to read 3d object description from
-  GEO files.)
-
-  This originally supported only the GEO files for PGK assignment on
-  ii.uni.wroc.pl. I think that they were in some older (or simplified?)
-  version of "Videoscape GEO file format", see
-  [http://local.wasp.uwa.edu.au/~pbourke/dataformats/geo/].
-  Later I updated this to actually handle the current Videoscape GEO
-  format, at least to handle geometry exported by Blender exporter.
-}
-
+{ 3D Videoscape GEO files handling (TObject3DGEO).
+  See [http://local.wasp.uwa.edu.au/~pbourke/dataformats/geo/],
+  handles at least geometry exported by Blender exporter. }
 unit Object3DGEO;
 
 interface
@@ -31,7 +23,7 @@ interface
 uses VectorMath, KambiUtils, Classes, SysUtils, Boxes3D, Base3D;
 
 type
-  { Simple reader of GEO files.
+  { Reader of GEO files.
     Note that contents of Verts and Faces are read-only for user of this unit. }
   TObject3DGEO = class(T3D)
   private

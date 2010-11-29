@@ -13,21 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(A set of general utilities for working with OpenAL.)
-
-  This unit provides many comfortable utilities to work with OpenAL.
-  Everything is based on my OpenAL binding in unit KambiOpenAL.
-  Most important things are BeginAL and EndAL
+{ Various utilities for working with OpenAL.
+  Everything is based on my OpenAL bindings in unit KambiOpenAL.
+  Most important things here are BeginAL and EndAL
   procedures for initializing / releasing OpenAL context.
-  Also TALSoundFile class is useful to load files into
+  Also TALSoundFile class is very useful to load files into
   OpenAL buffers.
 
-  This unit does @italic(not) use alut* functions from KambiOpenAL,
-  so your programs will not depend on existence of alut*
-  functions in some library. You can define symbol USE_ALUT
-  and recompile this unit to use alut* functions, but this
-  is really useful only for debugging. One can say that this
-  unit provides a superset of alut functionality.
+  Notes about alut (OpenAL utlity library): we don't use it.
+  (Although your own programs you can use it's functions,
+  as KambiOpenAL exports them.) For testing, you can recompile
+  this unit withsymbol USE_ALUT defined to actually use alut,
+  but this doesn't provide any real benefit for normal use.
 
   When you're using this unit, you shouldn't use any alc*
   functions and alutInit/alutExit functions from KambiOpenAL.

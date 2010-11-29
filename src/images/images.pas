@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-(*Loading, saving, and processing of 2D (and 3D) images.
+(*Loading, saving, and processing of 2D (and 3D) images (TImage and descendants).
   Storing images in the memory, loading and saving them from/to files in various
   formats, resizing, converting to grayscale, copying and merging,
   many other image operations --- it's all here.

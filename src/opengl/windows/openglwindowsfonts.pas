@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ This unit provides OpenGL fonts from Windows installed TrueType fonts.
+{ OpenGL fonts from TrueType fonts installed in Windows.
 
-  Implementation details: we create Windows font using unit WindowsFonts,
+  We create Windows font using unit WindowsFonts,
   then convert it to TTrueTypeFont/TBmpFont using unit WinFontConvert,
   then utilize it in OpenGL using unit OpenGLTTFonts/OpenGLBmpFonts.
   So this unit is just a simple wrapper for some other units.

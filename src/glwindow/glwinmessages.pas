@@ -14,8 +14,8 @@
 }
 
 (*
-  @abstract(Various dialog boxes (asking user for confirmation, question,
-  simple text input etc.) drawn by OpenGL inside @link(TGLWindow) window.)
+  @abstract(Dialog boxes (asking user for confirmation, question,
+  simple text input etc.) inside @link(TGLWindow).)
 
   Features:
 

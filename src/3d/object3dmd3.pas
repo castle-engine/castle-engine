@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TObject3DMD3 class. }
+{ MD3 (Quake3 and derivatives) format handling (TObject3DMD3). }
 unit Object3DMD3;
 
 interface

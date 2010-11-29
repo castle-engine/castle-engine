@@ -26,6 +26,9 @@ of every documentation comment. Do's and dont's:
    "The sensor value.", or simply nothing, as the function name already
    says everything.
 
+ - Write the documentations like orders, not like description.
+   E.g. "Do calculation.", not "Does calculation.".
+
  - Do not start the 1st (or, preferably, any other) sentence with
    the name of the item you're just documenting. If you document
    method FooBar, do not write "FooBar does something cool."
@@ -52,3 +55,7 @@ of every documentation comment. Do's and dont's:
      { Scene manager (TKamSceneManager) and viewport (TKamViewport) classes. }
    or
     { OpenGL bitmap fonts (TGLBitmapFont). }
+
+ - Do not start every documentation string with "Simple..." or "Trivial...".
+   We have a lot of simple and trivial wrappers over something else,
+   and it gets tiresome when every comments mentions this :)

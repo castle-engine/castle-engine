@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Sectors and waypoints, usually used to provide creature AI
-  a "graph map" of some level.)
+{ Sectors and waypoints, to improve creature AI in 3D levels.
   For user-oriented description what are sectors and waypoints,
   when they should be used etc. see "The Castle" developer docs,
   [http://vrmlengine.sourceforge.net/castle-development.php]. }

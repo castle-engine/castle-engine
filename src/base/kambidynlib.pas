@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TDynLib class. }
+{ Dynamic libraries loading (TDynLib). }
 unit KambiDynLib;
 
 interface

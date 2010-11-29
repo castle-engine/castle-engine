@@ -14,7 +14,7 @@
 }
 
 { Helpers for making modal boxes (TGLWindowState, TGLMode, TGLModeFrozenScreen)
-  cooperating with the GLWindow windows.
+  cooperating with the TGLWindow windows.
   They allow to easily save/restore TGLWindow attributes along
   with OpenGL state.
 

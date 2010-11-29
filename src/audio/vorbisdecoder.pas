@@ -1,3 +1,4 @@
+{ OggVorbis decoder. }
 unit VorbisDecoder;
 
 interface
@@ -7,7 +8,7 @@ uses SysUtils, Classes, KambiOpenAL;
 type
   EVorbisFileError = class(Exception);
 
-{ Simple OggVorbis decoder using vorbisfile library and working on
+{ OggVorbis decoder using vorbisfile library and working on
   ObjectPascal TStream objects.
 
   This checks VorbisFileInited at the beginning, so you don't have to

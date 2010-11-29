@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Menu items (suitable for menu on OpenGL in GLMenu) control TGameSoundEngine. }
+{ Menu items (suitable for GLMenu) to control the TGameSoundEngine. }
 unit GLSoundMenu;
 
 interface
