@@ -193,13 +193,13 @@ function Box3DSum(const box1, box2: TBox3D): TBox3D;
 procedure Box3DSumTo1st(var box1: TBox3D; const box2: TBox3D); overload;
 { @groupEnd }
 
-{ This enlarges Box1 so that it contains given Point. }
+{ Make Box1 larger if necessary, to contain given Point. }
 procedure Box3DSumTo1st(var box1: TBox3D; const Point: TVector3Single); overload;
 
 { Three box sizes. }
 function Box3DSizes(const box: TBox3D): TVector3Single;
 
-{ Calculates eight corners of the box, placing them in AllPoints^[0..7]. }
+{ Calculate eight corners of the box. Place them in AllPoints^[0..7]. }
 procedure Box3DGetAllPoints(allpoints: PVector3Single; const box: TBox3D);
 
 { Transform the Box by given matrix.
@@ -281,8 +281,8 @@ function IsBox3DSegmentCollision(
   const Segment1, Segment2: TVector3Single): boolean;
 
 var
-  { Special equality epsilon used by IsCenteredBox3DPlaneCollision
-    and IsBox3DPlaneCollision. For implementation reasons, they always
+  { Special equality epsilon used by IsCenteredBox3DPlaneCollision.
+    For implementation reasons, they always
     use Double precision (even when called with arguments with Single precision),
     and still have to use epsilon slightly larger than usual
     VectorMath.DoubleEqualityEpsilon. }
@@ -373,22 +373,23 @@ function Boxes3DCollision(const Box1, Box2: TBox3D): boolean;
   of 2D rectangles obtained by projecting both boxes on plane XY. }
 function Boxes3DXYCollision(const Box1, Box2: TBox3D): boolean;
 
-{ This calculates maximum Sqr(distance) of 8 box points to the (0, 0, 0)
+{ Calculate maximum Sqr(distance) of 8 box points to the (0, 0, 0)
   point. This can be useful when you want to get bounding sphere,
   centered in (0, 0, 0), around this Box. }
 function Box3DSqrRadius(const Box: TBox3D): Single;
 
-{ Just like Box3DSqrRadius, but this returns correct value
-  (not it's Sqr). Speed note: you pay here one Sqrt operation. }
+{ Calculate maximum distance of 8 box points to the (0, 0, 0)
+  point. }
 function Box3DRadius(const Box: TBox3D): Single;
 
-{ This is like projecting Box on XY plane (that is, we just ignore Z
-  coords of Box points here), and then calculates maximum Sqr(distance)
+{ Project Box on XY plane (that is, we just ignore Z
+  coords of Box points here), and calculate maximum Sqr(distance)
   in plane XY of 4 Box corners to point (0, 0). }
 function Box3DXYSqrRadius(const Box: TBox3D): Single;
 
-{ Just like Box3DXYSqrRadius, but this returns correct value
-  (not it's Sqr). Speed note: you pay here one Sqrt operation. }
+{ Project Box on XY plane (that is, we just ignore Z
+  coords of Box points here), and calculate maximum distance
+  in plane XY of 4 Box corners to point (0, 0). }
 function Box3DXYRadius(const Box: TBox3D): Single;
 
 { Check for collision betweeb box and sphere, fast @italic(but not

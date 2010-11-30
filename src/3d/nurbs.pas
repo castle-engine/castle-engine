@@ -32,8 +32,8 @@ interface
 
 uses SysUtils, KambiUtils, VectorMath, Boxes3D;
 
-{ Calculate the actual tessellation, that is the number of tessellation
-  points. This follows X3D spec for "an implementation subdividing
+{ Calculate the tessellation (number of NURBS points generated).
+  This follows X3D spec for "an implementation subdividing
   the surface into an equal number of subdivision steps".
   Give value of tessellation field, and count of controlPoints.
 

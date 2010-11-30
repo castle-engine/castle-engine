@@ -77,7 +77,7 @@ procedure CheckALUTInited;
 { @section(OpenAL devices) }
 
 const
-  { @name says what OpenAL device is generally the best.
+  { The suggested best OpenAL device.
 
     Theoretically always the default OpenAL device should be
     considered "the best", so BestALCDevice should be equal to ''.
@@ -89,7 +89,8 @@ const
   BestALCDevice = '';
 
 var
-  { This OpenAL device will be used when you will call TryBeginAL or BeginAL.
+  { OpenAL device to be used when initializing OpenAL context.
+    Used by TryBeginAL or BeginAL.
 
     I could make it instead a parameter for TryBeginAL / BeginAL procedures,
     but it's more comfortable to have a global variable for this ---
@@ -127,8 +128,8 @@ function EnumerationExtPresent: boolean; overload;
   OpenAL device named '' (empty string) supported. }
 procedure GetOpenALDevices(DevicesList: TStringList);
 
-{ Return nice, user-readable description of OpenAL device named
-  ALCDevice. Currently this returns nice string for
+{ Nice description of given OpenAL device.
+  Currently this returns nice string for
   @unorderedList(
     @item(Empty string (means "Default OpenAL device"))
     @item(Various Unix devices looking like @code('(( devices '(DEVICE-NAME) ))))
@@ -175,24 +176,24 @@ function OpenALOptionsHelp(PrintALCDeviceAsDefault: boolean): string;
 { @section(BeginAL, EndAL and related things) }
 
 var
-  { @true means that you successfully called [Try]BeginAL and you didn't
-    call EndAL after it. In other words, this means that you have
-    active OpenAL context (and KambiOpenAL functions are available,
-    i.e. ALInited is true and maybe even ALUTInited = true,
-    if you passed CheckForAlut = true to BeginAL). }
+  { Do we have active OpenAL context. This is @true when you successfully
+    called TryBeginAL or BeginAL (and you didn't call EndAL yet).
+    This also implies that OpenAL library is loaded, that is ALUTInited = @true. }
   ALActive: boolean = false;
 
-  { When @link(BeginAL) fails with EOpenALError or when
+  { Last error when initializing OpenAL context.
+    When @link(BeginAL) fails with EOpenALError or when
     @link(TryBeginAL) returns with false, they put error message in this variable.
-    When you're using @link(BeginAL) this variable is actually useless for you,
+
+    When you're using @link(BeginAL) this variable is rather useless,
     as this is equal to Message property of raised exception.
-    But this is of course useful when you're using @link(TryBeginAL),
-    as this is the only way to get detailed info why @link(TryBeginAL) failed. }
+    But when you're using @link(TryBeginAL),
+    this is the only way to get detailed info why @link(TryBeginAL) failed. }
   ALActivationErrorMessage: string = '';
 
   EFXSupported: boolean = false;
 
-{ BeginAL creates and activates OpenAL context for the ALCDevice device.
+{ Create and activate OpenAL context for the ALCDevice device.
 
   You should deactivate and free the context by calling EndAL.
   You should usually use @code(try .. finally .. end) construction for
@@ -319,17 +320,15 @@ type
 { ---------------------------------------------------------------------------- }
 { @section(Query AL state) }
 
-{ @groupBegin
-
-  Simple wrappers for alGetSource*, alGetBuffer*, alGetListener* and
-  alGetFloat/Integer/Boolean*. In many cases these should be more comfortable
+{ Comfortable wrappers for alGet*.
+  In many cases these should be more comfortable
   (because they are functions) and safer (no need to pass some pointer)
   than directly using related OpenAL functions.
 
   OpenAL errors are @italic(not) checked by these functions
   (i.e. CheckAL or alGetError is not called).
 
-  No checking does @code(Attribute) really return value of given type is done.
+  We don't check does @code(Attribute) really return value of given type.
   This means that if you will request value of the wrong type for
   given @code(Attribute), OpenAL may do some convertion, or may set the error
   state. In some cases you may even get nasty access violation errors
@@ -340,6 +339,8 @@ type
   or using AL_POSITION with a version that returns single TALfloat).
   So @italic(always check carefully that given @code(Attribute)
   supports the requested output value.)
+
+  @groupBegin
 }
 function alGetSource1i(SourceName: TALuint; Attribute: TALenum): TALint;
 function alGetSource1f(SourceName: TALuint; Attribute: TALenum): TALfloat;
@@ -362,35 +363,33 @@ function alcGetInterger1(deviceHandle:PALCdevice; token:TALenum): TALint;
 { ---------------------------------------------------------------------------- }
 { @section(Simple wrappers over OpenAL function to pass TALVector* types) }
 
-{ @groupBegin
-
-  These functions are simple wrappers over OpenAL functions
-  to allow you to pass TALVector* / TALTwoVectors* types.
+{ Comfortable wrappers over OpenAL functions that take vector types.
+  These take TALVector* / TALTwoVectors* types.
 
   Just like with alGet* wrappers (above in this unit),
   no error checking is done (no CheckAL etc.) and no
   checking does @code(Param) accept the given type of value is done.
-}
 
+  @groupBegin }
 procedure alSourceVector3f(SourceName: TALuint; Param: TALenum; const Value: TALVector3f);
 procedure alListenerVector3f(Param: TALenum; const Value: TALVector3f);
 procedure alListenerOrientation(const Dir, Up: TALVector3f); overload;
 procedure alListenerOrientation(const Orient: TALTwoVectors3f); overload;
+{ @groupEnd }
 
 { Set OpenAL listener position and orientation from currrent Camera properties. }
 procedure alListenerFromCamera(Camera: TCamera);
 
-{ @groupEnd }
-
 { ---------------------------------------------------------------------------- }
 { @section(State setting for compatibility between various OpenAL implementations) }
 
-{ @groupBegin
+{ Allocate OpenAL sources and buffers, making sure their initial state
+  conforms to specification.
 
   Unfortunately current Creative OpenAL Windows implementation violates
-  OpenAL specifitation : default source state (i.e. newly generated
-  source state) is not as it is specified by OpenAL implementation :
-  attributes MAX_DISTANCE, DIRECTION and CONE_OUTER_GAIN have different
+  OpenAL specifitation: default source state (i.e. newly generated
+  source state) is not as it is specified by OpenAL implementation.
+  Attributes MAX_DISTANCE, DIRECTION and CONE_OUTER_GAIN have different
   values.
 
   So alCreateSources calls alGenSources and then makes sure that all sources
@@ -399,18 +398,11 @@ procedure alListenerFromCamera(Camera: TCamera);
   to their proper values). alCreateBuffers does the same for alGenBuffers
   (which means, @italic(for now), that it simply calls alGenBuffers.)
 
-  (alCreateSources and alCreateBuffers may be extended at some time if
-  I discover some other incompatibilities in alGenSources/Buffers,
-  maybe in Windows and maybe in Linux implementation (and maybe in others?)).
-
-  So explaining it simply : always use alCreateSources and alCreateBuffers
-  instead alGenSources and alGenBuffers. (warning : no additional CheckAL
-  is called in alCreateSources and alCreateBuffers; their intent is to be
-  a complete analogy to calling alGenSources and alGenBuffers). }
-
+  To be on the safe side, you should always use
+  alCreateSources and alCreateBuffers instead alGenSources and alGenBuffers.
+  @groupBegin }
 procedure alCreateSources(n: TALsizei; sources: PALuint);
 procedure alCreateBuffers(n: TALsizei; buffers: PALuint);
-
 { @groupEnd }
 
 { @section(Other utils) --------------------------------------------------- }

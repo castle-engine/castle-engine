@@ -24,7 +24,8 @@ interface
 
 uses VectorMath;
 
-{ Given one viewing angle of the camera (FirstViewAngleDeg) and
+{ Calculate second viewing angle for perspective projection.
+  Given one viewing angle of the camera (FirstViewAngleDeg) and
   aspect ratio of your window sizes (SecondToFirstRatio),
   calculate second viewing angle of the camera.
 
