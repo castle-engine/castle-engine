@@ -1669,12 +1669,12 @@ begin
       used twice, once by unused geometry node, second time by used geometry
       node, is also Ok. }
 
-    VRMLNodesList_FreeWithNonParentedContentsAndNil(Materials);
-    VRMLNodesList_FreeWithNonParentedContentsAndNil(Geometries);
+    VRMLNodesList_FreeUnusedAndNil(Materials);
+    VRMLNodesList_FreeUnusedAndNil(Geometries);
 
     FreeAndNil(GeometriesMaterialNames);
 
-    VRMLNodesList_FreeWithNonParentedContentsAndNil(VisualScenes);
+    VRMLNodesList_FreeUnusedAndNil(VisualScenes);
 
     FreeWithContentsAndNil(Controllers);
   end;

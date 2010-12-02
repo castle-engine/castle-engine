@@ -3006,7 +3006,7 @@ begin
   Result := -1;
 end;
 
-procedure VRMLNodesList_FreeWithNonParentedContentsAndNil(var List: TVRMLNodesList);
+procedure VRMLNodesList_FreeUnusedAndNil(var List: TVRMLNodesList);
 var
   I: Integer;
 begin

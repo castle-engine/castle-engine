@@ -1986,9 +1986,9 @@ procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
 { Free and nil all State.Nodes. }
 procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);
 
-{ Free all VRML nodes with no parents on the list, then free and @nil the list
+{ Free all unused VRML/X3D nodes on the list, then free and @nil the list
   itself. }
-procedure VRMLNodesList_FreeWithNonParentedContentsAndNil(var List: TVRMLNodesList);
+procedure VRMLNodesList_FreeUnusedAndNil(var List: TVRMLNodesList);
 
 const
   ProjectionTypeToStr: array [TProjectionType] of string =
