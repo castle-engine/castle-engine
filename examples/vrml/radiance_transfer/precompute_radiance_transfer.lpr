@@ -108,7 +108,7 @@ begin
 
         for J := 0 to RaysPerVertex - 1 do
         begin
-          RayVectorPT := RandomUnitHemispherePointDensityConst;
+          RayVectorPT := RandomHemispherePointConst;
           RayVector := PhiThetaToXYZ(RayVectorPT, N);
           if not Scene.OctreeVisibleTriangles.IsRayCollision(V, RayVector,
             nil, true { yes, ignore margin at start, to not hit V },

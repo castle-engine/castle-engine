@@ -93,28 +93,28 @@ function PhiThetaToXYZ(const PhiTheta: TVector2Single;
 { Convert from XYZ representation of (hemi)sphere direction to PhiTheta. }
 function XYZToPhiTheta(const XYZ: TVector3Single): TVector2Single;
 
-{ Random point (direction) on hemisphere, sampled with
+{ Random point (direction) on unit hemisphere, sampled with
   constant density (p(Theta) = 1/2*Pi).
   @groupBegin }
-function RandomUnitHemispherePointDensityConst: TVector2Single;
-function RandomUnitHemispherePointDensityConstXYZ: TVector3Single;
+function RandomHemispherePointConst: TVector2Single;
+function RandomHemispherePointConstXYZ: TVector3Single;
 { @groupEnd }
 
-{ Random point (direction) on hemisphere, sampled with
+{ Random point (direction) on unit hemisphere, sampled with
   density p(Theta) = cos(Theta)/Pi.
   @groupBegin }
-function RandomUnitHemispherePointDensityCosTheta(
+function RandomHemispherePointCosTheta(
   out PdfValue: Single): TVector2Single;
-function RandomUnitHemispherePointDensityCosThetaXYZ(
+function RandomHemispherePointCosThetaXYZ(
   out PdfValue: Single): TVector3Single;
 { @groupEnd }
 
-{ Random point (direction) on hemisphere, sampled with
+{ Random point (direction) on unit hemisphere, sampled with
   density p(Theta) = (n+1) * (cos(Theta))^n / 2*Pi.
   @groupBegin }
-function RandomUnitHemispherePointDensityCosThetaExp(const n: Single;
+function RandomHemispherePointCosThetaExp(const n: Single;
   out PdfValue: Single): TVector2Single;
-function RandomUnitHemispherePointDensityCosThetaExpXYZ(const n: Single;
+function RandomHemispherePointCosThetaExpXYZ(const n: Single;
   out PdfValue: Single): TVector3Single;
 { @groupEnd }
 
@@ -182,13 +182,13 @@ begin
    SphereTheta0), result);
 end;
 
-function RandomUnitHemispherePointDensityConst: TVector2Single;
+function RandomHemispherePointConst: TVector2Single;
 begin
  result[0] := 2*Pi*Random;
  result[1] := ArcCos(Random);
 end;
 
-function RandomUnitHemispherePointDensityConstXYZ: TVector3Single;
+function RandomHemispherePointConstXYZ: TVector3Single;
 var r1, r2, sqroot: Single;
     cosinus, sinus: Float;
 begin
@@ -202,7 +202,7 @@ begin
  result[2] := r2;
 end;
 
-function RandomUnitHemispherePointDensityCosTheta(
+function RandomHemispherePointCosTheta(
   out PdfValue: Single): TVector2Single;
 var SqrtR2: Float;
 begin
@@ -213,7 +213,7 @@ begin
  PdfValue := SqrtR2 / Pi;
 end;
 
-function RandomUnitHemispherePointDensityCosThetaXYZ(
+function RandomHemispherePointCosThetaXYZ(
   out PdfValue: Single): TVector3Single;
 var SqRoot, r1, r2: Single;
     SinR1, CosR1: Float;
@@ -229,7 +229,7 @@ begin
  PdfValue := result[2];
 end;
 
-function RandomUnitHemispherePointDensityCosThetaExp(const n: Single;
+function RandomHemispherePointCosThetaExp(const n: Single;
   out PdfValue: Single): TVector2Single;
 var r2: Float;
 begin
@@ -240,7 +240,7 @@ begin
  PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
 end;
 
-function RandomUnitHemispherePointDensityCosThetaExpXYZ(const n: Single;
+function RandomHemispherePointCosThetaExpXYZ(const n: Single;
   out PdfValue: Single): TVector3Single;
 var r1, r2, r2Power, r2Root: Single;
     SinR1, CosR1: Float;

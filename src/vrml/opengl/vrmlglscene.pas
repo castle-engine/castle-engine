@@ -54,6 +54,7 @@ const
     ) }
   DefaultBlendingDestinationFactor = GL_ONE {_MINUS_SRC_ALPHA};
 
+  { }
   DefaultBlendingSort = false;
 
 type
@@ -1346,9 +1347,7 @@ type
 
 const
   { Options to pass to TVRMLGLScene.PrepareResources to make
-    sure that next call to TVRMLGLScene.RenderShadowVolume
-    (and TVRMLGLScene.RenderShadowVolumeCore etc.)
-    is as fast as possible.
+    sure that rendering with shadow volumes is as fast as possible.
 
     For now this actually could be equal to prManifoldEdges
     (prTrianglesListShadowCasters has to be prepared while preparing

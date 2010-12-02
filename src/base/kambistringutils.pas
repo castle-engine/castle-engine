@@ -176,7 +176,8 @@ function IsPrefix(const Prefix, S: string;
 function IsSuffix(const Suffix, S: string;
   IgnoreCase: boolean = true): boolean; overload;
 
-{ If IsPrefix(Prefix, S, IgnoreCase) then returns S with this prefix
+{ Removes the prefix, if it is present. More precisely, if
+  IsPrefix(Prefix, S, IgnoreCase) then returns S with this prefix
   removed. Else returns S. }
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 
@@ -186,8 +187,8 @@ function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
 { Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer);
 
-{ Return a pointer to S[CharNum], that is just @@S[CharNum],
-  however SChar doesn't avoids any range checking. }
+{ A pointer to S[CharNum], that is just @@S[CharNum],
+  avoiding range checking. }
 function SChar(const s: string; CharNum: integer): PChar;
 
 { Check whether S[Index] = C, also checking is Index within S length.
@@ -593,8 +594,8 @@ type
 
   EUnknownPercentFormat = class(Exception);
 
-{ SPercentReplace is something like a generalized Format routine:
-  searches for %x construction and replaces it with some string.
+{ Searches for %x patterns and replaces them with specified strings.
+  Something like a more generalized Format routine.
 
   More precisely: every two-char sequence that starts with PercentChar
   and then is followed by one of Replaces[I].c characters is replaced

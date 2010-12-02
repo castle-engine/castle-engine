@@ -390,7 +390,7 @@ type
     constructor Create(ErrorGL: TGLenum; const AdditionalComment: string = '');
   end;
 
-{ Check are there OpenGL errors stored (in glGetError),
+{ Check are any OpenGL errors recorded (in glGetError),
   and if yes it raises EOpenGLError.
   @raises EOpenGLError }
 procedure CheckGLErrors(const AdditionalComment: string {$ifdef DEFPARS} = '' {$endif}); overload;
@@ -1524,7 +1524,7 @@ begin
    zawsze taka szansa zachodzi - bo zawsze zachodzilaby ostra nierownosc wiec
    i nieostra takze.) }
  result:=0;
- for i:=0 to 7 do if Random<OneChance then result := result + (1 shl i);  
+ for i:=0 to 7 do if Random<OneChance then result := result + (1 shl i);
 end;
 
 function RandomPolyStipple(const BlackChance: Extended): TPolygonStipple;

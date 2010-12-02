@@ -63,11 +63,8 @@ type
   EOpenALError = class(Exception);
   EOpenALInitError = class(EOpenALError);
 
-{ Check is appropriate variable (ALInited, ALUTInited) @true,
-  if not --- raise EOpenALInitError with appropriate message.
-  Actually these trivial procedures are implemented only because
-  I wanted to place inside standard error messages for missing OpenAL
-  functionality.
+{ Check is appropriate variable (ALInited, ALUTInited) @true.
+  Raises EOpenALInitError with appropriate message if not.
 
   @raises EOpenALInitError If appropriate variable is @false. }
 procedure CheckALInited;

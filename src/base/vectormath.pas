@@ -1269,8 +1269,8 @@ function PointsDistanceSqr(const V1, V2: TVector3Double): Double; overload;
 function PointsDistanceSqr(const V1, V2: TVector2Single): Single; overload;
 function PointsDistanceSqr(const V1, V2: TVector2Double): Double; overload;
 
-{ Distance between 3D points projected on Z = 0 plane (i.e. Z coord
-  of points is just ignored.)
+{ Distance between points projected on the Z = 0 plane.
+  In other words, the Z coord of points is just ignored.
   @groupBegin }
 function PointsDistanceXYSqr(const V1, V2: TVector3Single): Single; overload;
 function PointsDistanceXYSqr(const V1, V2: TVector3Double): Double; overload;

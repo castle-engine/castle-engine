@@ -38,10 +38,10 @@ const
   DefaultGLMenuKeySliderIncrease = K_Right;
   DefaultGLMenuKeySliderDecrease = K_Left;
 
-  DefaultCurrentItemBorderColor1: TVector3Single = (   1,    1,    1) { White3Single };
-  DefaultCurrentItemBorderColor2: TVector3Single = ( 0.5,  0.5,  0.5) { Gray3Single };
-  DefaultCurrentItemColor       : TVector3Single = (   1,    1,  0.3) { Yellow3Single };
-  DefaultNonCurrentItemColor    : TVector3Single = (   1,    1,    1) { White3Single };
+  DefaultCurrentItemBorderColor1: TVector3Single = (   1,    1,    1) { White3Single  }; { }
+  DefaultCurrentItemBorderColor2: TVector3Single = ( 0.5,  0.5,  0.5) { Gray3Single   }; { }
+  DefaultCurrentItemColor       : TVector3Single = (   1,    1,  0.3) { Yellow3Single }; { }
+  DefaultNonCurrentItemColor    : TVector3Single = (   1,    1,    1) { White3Single  }; { }
 
   DefaultRegularSpaceBetweenItems = 10;
 

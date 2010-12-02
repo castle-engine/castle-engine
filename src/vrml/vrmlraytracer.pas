@@ -736,7 +736,7 @@ const
           IntersectNode^.World.Plane, EtaFrom, EtaTo);
         if Result then
           TracedDir := PhiThetaToXYZ(
-            RandomUnitHemispherePointDensityCosThetaExp(
+            RandomHemispherePointCosThetaExp(
               Round(MaterialInfo.TransSpecularExp),
               PdfValue),
             TransmittedRayVector);
@@ -957,15 +957,15 @@ const
            i wtedy konczymy sciezke. }
           case ck of
             ckTD: TracedDir := PhiThetaToXYZ(
-                    RandomUnitHemispherePointDensityCosTheta(PdfValue),
+                    RandomHemispherePointCosTheta(PdfValue),
                     -IntersectNormalInRay0Dir);
             ckTS: if not TryCalculateTransmittedSpecularRayVector(
                     TracedDir, PdfValue) then Exit;
             ckRD: TracedDir := PhiThetaToXYZ(
-                    RandomUnitHemispherePointDensityCosTheta(PdfValue),
+                    RandomHemispherePointCosTheta(PdfValue),
                     IntersectNormalInRay0Dir);
             ckRS: TracedDir := PhiThetaToXYZ(
-                    RandomUnitHemispherePointDensityCosThetaExp(
+                    RandomHemispherePointCosThetaExp(
                       Round(MaterialInfo.ReflSpecularExp),
                       PdfValue),
                     ReflectedRayVector(Normalized(RayVector),
