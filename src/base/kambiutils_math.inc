@@ -230,7 +230,7 @@ function DivRoundUp(Value, Divider: Integer): Integer; overload;
       So if SourceVal is beyond SourceEnd (that is,
       @code(SourceBegin < SourceEnd < SourceVal) or
       @code(SourceBegin > SourceEnd > SourceVal)) then the result
-      must be similarly beyong DestEnd.
+      must be similarly beyond DestEnd.
 
       As you can see, this works regardless if one, or both,
       of the ranges increase (range end is larger than range begin).)

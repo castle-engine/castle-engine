@@ -62,7 +62,7 @@ type
     given code part.
 
     This class does not inherit from @code(Exception) because it does not
-    signal some errornous situation (it must always be caught and silenced),
+    signal some errorneous situation (it must always be caught and silenced),
     also it doesn't need a Message property. *)
   TCodeBreaker = class(TObject);
 

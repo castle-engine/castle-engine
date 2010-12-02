@@ -568,7 +568,7 @@ function STruncateHash(const s: string): string;
 
 { Return the value to reproduce exactly string S by Format procedure.
   Saying simply, this doubles the "%" characters inside the string.
-  The intension is to make such string that
+  The intention is to make such string that
   @code(Format(SUnformattable(S), []) = S). In other words, "quote"
   any suspicious "%" characters in S for Format. }
 function SUnformattable(const s: string): string;
