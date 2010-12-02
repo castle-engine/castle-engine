@@ -4032,7 +4032,7 @@ var
 
   procedure HandleChangeEverything;
   begin
-    { An arbitrary change occured. }
+    { An arbitrary change occurred. }
     ScheduleChangedAll;
   end;
 

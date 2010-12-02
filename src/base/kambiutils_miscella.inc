@@ -73,7 +73,7 @@ type
     and usually the safest thing to do is to close the program at this point.
 
     We will add to your error message (passed to the constructor) some
-    instructive message, like @code('Internal error occured, please
+    instructive message, like @code('Internal error occurred, please
     submit this to the author : '). }
   EInternalError = class(Exception)
     constructor Create(const s: string);

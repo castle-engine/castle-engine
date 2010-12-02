@@ -198,7 +198,7 @@ type
           But this means that original callbacks have to be careful
           and @italic(never assume) that when some button is pressed
           (because it's included in MousePressed, or has MouseUp generated for it)
-          then for sure there occured some MouseDown for it.
+          then for sure there occurred some MouseDown for it.
         )
 
         @item(At destructor, we notify original callbacks about size changes

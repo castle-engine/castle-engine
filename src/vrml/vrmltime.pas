@@ -28,7 +28,7 @@ type
 
     More precisely, timestamp is actually a sum of @italic(Seconds +
     PlusTicks ticks). PlusTicks is the number of discrete "ticks" that
-    occured with the same Seconds value. A tick is, conceptually, an
+    occurred with the same Seconds value. A tick is, conceptually, an
     infinitely small amount of time.
 
     Ticks are used when comparing time values: when two timestamps

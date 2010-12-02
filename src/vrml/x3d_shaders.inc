@@ -493,7 +493,7 @@ begin
         on E: Exception do
           { Remember that VRMLWarning *may* raise an exception. }
           VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-            ' occured when trying to load '+
+            ' occurred when trying to load '+
             'shader file from URL "' + FullUrl + ' : ' + E.Message);
       end;
     end;

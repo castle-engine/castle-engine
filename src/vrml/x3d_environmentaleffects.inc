@@ -423,7 +423,7 @@ procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
         on E: Exception do
         begin
           VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-            ' occured when trying to load ' +
+            ' occurred when trying to load ' +
             'background image from URL "' + URL + '" : '+E.Message);
           { and silence exception }
         end;

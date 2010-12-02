@@ -127,7 +127,7 @@
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     { You can override this to do anything after the Inline children were
-      loaded. It's called only after actual loading occured, e.g. it's not
+      loaded. It's called only after actual loading occurred, e.g. it's not
       called when LoadInlined was called on the already-loaded node with
       CanReload = @false. }
     procedure AfterLoadInlined; virtual;
@@ -537,7 +537,7 @@ begin
         on E: Exception do
           { Careful here, as VRMLWarning may also raise exception. }
           VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-            ' occured when trying to load '+
+            ' occurred when trying to load '+
             'inline file from URL "' + FullUrl + ' : ' + E.Message);
       end;
     end;

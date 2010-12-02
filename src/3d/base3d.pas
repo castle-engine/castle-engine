@@ -353,7 +353,7 @@ type
       This is usually called by implementation of this 3D object,
       to notify others that it changed.
 
-      Changes is a set describing what changes occured.
+      Changes is a set describing what changes occurred.
       It can be [], meaning "something else", we'll
       still make OnVisibleChangeHere then. See TVisibleChange
       docs for possible values. It must specify all things that possibly

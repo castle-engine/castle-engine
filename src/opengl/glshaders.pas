@@ -736,7 +736,7 @@ begin
     gsStandard    : ProgramId := glCreateProgram         ();
   end;
 
-  { ProgramId = 0 means that an error occured. Citing GL documentation:
+  { ProgramId = 0 means that an error occurred. Citing GL documentation:
 
     gsARBExtension: ARB_shader_objects spec says about
       CreateProgramObjectARB(void): "If the program object

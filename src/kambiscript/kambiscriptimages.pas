@@ -208,7 +208,7 @@ begin
   except
     on E: Exception do
       raise EKamScriptError.Create('Exception ' + E.ClassName +
-        ' occured when trying to load ' +
+        ' occurred when trying to load ' +
         'image from url "' + FullUrl + '" : ' + E.Message);
   end;
 

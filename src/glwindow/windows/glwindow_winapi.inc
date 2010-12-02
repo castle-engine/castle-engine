@@ -228,13 +228,13 @@ function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT
 }
 
   procedure MaybeCapture;
-  { mouse down occured; so capture the mouse if it's not captured already }
+  { mouse down occurred; so capture the mouse if it's not captured already }
   begin
    if GetCapture <> H_Wnd then SetCapture(H_Wnd);
   end;
 
   procedure MaybeRelease;
-  { mouse up occured; release capture if all mouse buttons are now up }
+  { mouse up occurred; release capture if all mouse buttons are now up }
   begin
    if (mousePressed=[]) and (GetCapture = H_Wnd) then ReleaseCapture;
   end;

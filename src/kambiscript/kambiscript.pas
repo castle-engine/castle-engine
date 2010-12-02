@@ -162,9 +162,9 @@ type
     *)
     function Execute: TKamScriptValue;
 
-    { Try to execute expression, or return @nil if a mathematical error occured
+    { Try to execute expression, or return @nil if a mathematical error occurred
       within expression. "Math error within expression" means that
-      a EKamScriptAnyMathError exception occured while calculating expression.
+      a EKamScriptAnyMathError exception occurred while calculating expression.
 
       This is useful to secure you against math arguments errors ('ln(-3)',
       'sqrt(-3)') but still raises normal exception on other EKamScriptError
