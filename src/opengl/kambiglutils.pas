@@ -815,7 +815,7 @@ procedure glDrawBox3DWire(const Box: TBox3D);
   It can be safely placed in a display list. }
 procedure glDrawBox3DSimple(const Box: TBox3D);
 
-{ Draw triagle with given corners and texture coordinates.
+{ Draw triangle with given corners and texture coordinates.
   Normal vector is generated from CCW side.
 
   The triangle may b split into smaller triangles for rendering,

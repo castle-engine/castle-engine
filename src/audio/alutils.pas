@@ -374,7 +374,7 @@ procedure alListenerOrientation(const Dir, Up: TALVector3f); overload;
 procedure alListenerOrientation(const Orient: TALTwoVectors3f); overload;
 { @groupEnd }
 
-{ Set OpenAL listener position and orientation from currrent Camera properties. }
+{ Set OpenAL listener position and orientation from current Camera properties. }
 procedure alListenerFromCamera(Camera: TCamera);
 
 { ---------------------------------------------------------------------------- }
@@ -384,7 +384,7 @@ procedure alListenerFromCamera(Camera: TCamera);
   conforms to specification.
 
   Unfortunately current Creative OpenAL Windows implementation violates
-  OpenAL specifitation: default source state (i.e. newly generated
+  OpenAL specification: default source state (i.e. newly generated
   source state) is not as it is specified by OpenAL implementation.
   Attributes MAX_DISTANCE, DIRECTION and CONE_OUTER_GAIN have different
   values.
@@ -745,7 +745,7 @@ begin
  alutExit;
 
  {$else}
- { CheckALC first, in case some error is "hanging" not catched yet. }
+ { CheckALC first, in case some error is "hanging" not caught yet. }
  CheckALC('right before closing OpenAL context');
 
  if audio_context <> nil then

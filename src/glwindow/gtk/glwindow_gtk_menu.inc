@@ -372,7 +372,7 @@ procedure TGLWindow.BackendMenuInitialize;
        GTK_WIDGET( MenuEntryToGtkMenuItem(MainMenu.Entries[i]) ));
 
    { How to catch the moment when the menu bar is opened/selected/clicked
-     etc. by the user ? It should be catched when user enters menu by clicking
+     etc. by the user ? It should be caught when user enters menu by clicking
      on menu bar or pressing some menu key (like F10 in GTK 2).
 
      There is no way do this nicely in GTK 1 ?

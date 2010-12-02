@@ -1683,7 +1683,7 @@ type
     function GetFogStack: TVRMLBindableStackBasic; override;
 
     { If true, and also KambiLog.Log is true, then we will log
-      ChangedField and ChangedAll occurences. Useful only for debugging
+      ChangedField and ChangedAll occurrences. Useful only for debugging
       and optimizing VRML events engine. }
     property LogChanges: boolean
       read FLogChanges write FLogChanges default false;
@@ -3350,7 +3350,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     TActiveLight record of this light in every shape.
 
     TODO: code below updates too much, if the light was instantiated
-    many times then only some occurences should be updated, not all.
+    many times then only some occurrences should be updated, not all.
 
     TODO: for global lights, limited by radius field,
     we should also add / remove this light from some CurrentActiveLights. }
@@ -3901,7 +3901,7 @@ var
         to get handler would be a good idea. }
       Exit;
 
-    { Although (de)activation of time-dependent nodes will be also catched
+    { Although (de)activation of time-dependent nodes will be also caught
       by the nearest IncreaseTime run, it's good to explicitly
       call SetTime to catch it here.
 
@@ -4893,7 +4893,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
 
       Otherwise, it just adds the edge to EdgesSingle. This can happen
       if it's the 1st time this edge occurs, or maybe the 3d one, 5th...
-      all odd occurences, assuming that ordering of faces is consistent,
+      all odd occurrences, assuming that ordering of faces is consistent,
       so that counterpart edges are properly detected. }
     procedure AddEdgeCheckManifold(
       EdgesSingle: TDynManifoldEdgeArray;
@@ -5415,7 +5415,7 @@ begin
             I understand that they mean that you don't have to call
             PointingDeviceMove continously, you can only check this on
             actual mouse move. That is, isOver state changes are not
-            intended to be catched immediately if they happened because
+            intended to be caught immediately if they happened because
             the geometry is animating. But, still, all isOver changes *are*
             reported. I hope they don't mean that isOver changes because
             of underlying geometry animating should not be reported at all.

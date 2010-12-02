@@ -759,7 +759,7 @@ function Vector4Byte(const f4: TVector4Single): TVector4Byte; overload;
 function Vector4Byte(x, y, z, w: Byte): TVector4Byte; overload;
 function Vector4Byte(const f3: TVector3Byte; w: Byte): TVector4Byte; overload;
 
-{ Convert a point in homogenous coordinates into normal 3D point.
+{ Convert a point in homogeneous coordinates into normal 3D point.
   In other words, convert 4D @code((x, y, z, w)) into
   @code((x/w, y/w, z/w)). Make sure the 4th vector component <> 0. }
 function Vector3SinglePoint(const v: TVector4Single): TVector3Single;
@@ -1244,7 +1244,7 @@ function PlaneAntiMove(const Plane: TVector4Double;
   const Move: TVector3Double): TVector4Double; overload;
 { @groupEnd }
 
-{ Check if both direcions indicate the same side of given 3D plane.
+{ Check if both directions indicate the same side of given 3D plane.
   If one direction is parallel to the plane, also returns @true.
   You can specify only the first 3 components of plane equation (PlaneDir),
   since the 4th component would be ignored anyway.

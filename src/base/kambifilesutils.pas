@@ -337,7 +337,7 @@ function IsSymLink(const FileName: string): boolean; overload;
   do according to `info libc' and my (Kambi's) preferences. }
 {$ifdef UNIX} function HomePath: string; {$endif}
 
-{ Expand tidle (~) in path, just like shell. Expands ~ to
+{ Expand tilde (~) in path, just like shell. Expands ~ to
   ExclPathDelim(HomePath) under UNIX. Under Windows, does nothing. }
 function ExpandHomePath(const FileName: string): string;
 

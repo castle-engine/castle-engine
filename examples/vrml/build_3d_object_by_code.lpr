@@ -16,7 +16,7 @@
 { Simple example how to build a 3D object (which is equivalent to
   VRML/X3D nodes graph) by pure ObjectPascal code.
 
-  Check out latest X3D specifitation,
+  Check out latest X3D specification,
   http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html,
   as our
   http://vrmlengine.sourceforge.net/vrml_implementation_status.php

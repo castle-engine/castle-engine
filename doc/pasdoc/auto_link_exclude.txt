@@ -165,6 +165,8 @@ quit
 rate
 ray
 read
+rectangle
+rectangles
 rects
 red
 references

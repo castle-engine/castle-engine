@@ -114,7 +114,7 @@ begin
 
     FreeAndNil(Prog);
 
-    { test invalid index for vector_get/set is catched }
+    { test invalid index for vector_get/set is caught }
 
     Prog := ParseProgram('function main() vector_get(my_vec2, -1)', Vars);
     ExecuteExpectError;
@@ -215,7 +215,7 @@ begin
 
     FreeAndNil(Prog);
 
-    { test invalid index for vector_get/set is catched }
+    { test invalid index for vector_get/set is caught }
 
     Prog := ParseProgram('function main() vector_get(my_vec2, -1)', Vars);
     ExecuteExpectError;

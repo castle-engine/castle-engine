@@ -152,7 +152,7 @@ type
         be raised at the next fp operation (this is needed for fp operations
         to proceed in parallel, and be much faster).
         For executing KambiScript, Execute calls Math.ClearExceptions(true)
-        to make sure that all floating point errors are catched.
+        to make sure that all floating point errors are caught.
         This ensures that we can safely execute even invalid expressions
         (like 'ln(-3)') and get reliable exceptions.
 

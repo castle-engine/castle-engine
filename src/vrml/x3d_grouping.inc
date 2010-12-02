@@ -378,7 +378,7 @@ begin
     UpdateVRML2ActiveLights take this ParentGroup and add light everywhere.
     But that was 1. even slower, since it must traverse ParentGroup once again
     for each directional light, and for each shape within this ParentGroup,
-    it must find all it's occurences inside Shapes, and add light there
+    it must find all it's occurrences inside Shapes, and add light there
     2. it fails ugly in case of DEF / USE of shapes.
 
     See kambi_vrml_test_suite/vrml_2/directional_light_scope.wrl test. Imagine
@@ -395,7 +395,7 @@ begin
       }
 
     What would happen here ? ParentGroup.Enumerate would find S *two* times.
-    For each of these occurences, it would find *four* shapes with
+    For each of these occurrences, it would find *four* shapes with
     matching node value. So 1. all four spheres would be lighted (incorrect,
     only two spheres in the middle should be lighted) 2. all of them would
     be lighted two times by the same light... Fix for 1st problem would

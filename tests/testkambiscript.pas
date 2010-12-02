@@ -390,7 +390,7 @@ begin
     end;
     FreeAndNil(Prog);
 
-    { test "if" with missing else is catched correctly }
+    { test "if" with missing else is caught correctly }
     Prog := ParseProgram('function main() if(true, 123)', []);
     ExecuteExpectError;
     FreeAndNil(Prog);

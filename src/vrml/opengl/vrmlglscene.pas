@@ -3350,7 +3350,7 @@ begin
     if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
     Otherwise we would have to divide here LightPos3 by LightPos[3].
     Maybe in the future this requirement will be removed and we'll work
-    for any LightPos in homogenous coordinates, for now it's not really
+    for any LightPos in homogeneous coordinates, for now it's not really
     needed. }
   Result[0] := Original[0] -  LightPos3[0];
   Result[1] := Original[1] -  LightPos3[1];

@@ -53,16 +53,16 @@ type
     nasty errors). }
   PtrObject = ^TObject;
 
-  (*Class to be raised (like an exception) and catched, to exit from some
+  (*Class to be raised (like an exception) and caught, to exit from some
     code blocks.
 
-    When deriving new TCodeBreaker descendant, specify always where it catched.
-    It should be catched and silenced (without causing any errors) in appropriate
+    When deriving new TCodeBreaker descendant, specify always where it's caught.
+    It should be caught and silenced (without causing any errors) in appropriate
     place. This way doing @code(raise BreakXxx.Create) is a way to exit from
     given code part.
 
     This class does not inherit from @code(Exception) because it does not
-    signal some errornous situation (it must always be catched and silenced),
+    signal some errornous situation (it must always be caught and silenced),
     also it doesn't need a Message property. *)
   TCodeBreaker = class(TObject);
 

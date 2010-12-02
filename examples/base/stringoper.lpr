@@ -107,7 +107,7 @@ const
     '  UpperCase STR - print STR upper case. Conversion respects current locale.'+nl+
     '  LowerCase STR - print STR lower case. Conversion respects current locale.'+nl+
     '  ReplaceAll STR OLD-PATTERN NEW-PATTERN '+nl+
-    '    Replace is STR all occurences of OLD-PATTERN (not-case-sens)' +nl+
+    '    Replace is STR all occurrences of OLD-PATTERN (not-case-sens)' +nl+
     '    with NEW-PATTERN.' +nl+
     '  Trim STR - trim whitespaces at beginning and ending of STR' +nl+
     '  -- (druga grupa polecen - polecenia na ktore odp = true lub false' +nl+

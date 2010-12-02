@@ -59,7 +59,7 @@ const
 
 function RandomString: string;
 
-{ Replace all occurences of FromPattern string to ToPattern string,
+{ Replace all occurrences of FromPattern string to ToPattern string,
   within another string S.
 
   @code(StringReplaceAllTo1st(s, from, to)) is actually equivalent to
@@ -96,20 +96,20 @@ function BreakLine(const s: string; MaxCol: integer;
 { Returns S with all chars in ExcludedChars deleted. }
 function SDeleteChars(const s: string; const excludedChars: TSetOfChars): string;
 
-{ Replace all occurences of characters in FromChars with
+{ Replace all occurrences of characters in FromChars with
   the new string / character. There are three overloaded versions:
 
   @orderedList(
     @item(SReplaceChars(string, string, string) looks in S for characters within
       FromChars, and replaces them with characters on appropriate position
       in ToChars. For example, SReplaceChars(S, 'ab', 'cd') replaces
-      all occurences of 'a' into 'c' and all occurences of 'b' into 'd'.
+      all occurrences of 'a' into 'c' and all occurrences of 'b' into 'd'.
       It must always be Length(FromChars) <= Length(ToChars).)
 
-    @item(SReplaceChars(string, TSetOfChars, char) replaces all occurences
+    @item(SReplaceChars(string, TSetOfChars, char) replaces all occurrences
       of any character in given set with the one specified character.)
 
-    @item(SReplaceChars(string, char, char) simply replaces all occurences
+    @item(SReplaceChars(string, char, char) simply replaces all occurrences
       of one character into another.))
 
   @groupBegin
@@ -315,7 +315,7 @@ function NextTokenRestr(const s: string; var SeekPos: integer;
       @item(soMatchCase: makes searching case-sensitive (by default,
         case is ignored, taking locale into account).)
 
-      @item(soWholeWord: looks only for SubText occurences surrounded
+      @item(soWholeWord: looks only for SubText occurrences surrounded
         by characters from WordBorders (or the beginning/end of Text).
 
         Note that, while the beginning/end of Text is always treated like a word border,
@@ -364,7 +364,7 @@ function MatchingFind(const SubText, Text: string;
   This is equivalent to FindPos(SubText, Text, 1, Length(Text),
   [soWholeWord, soMatchCase], WordBorders). The only difference
   between standard Pos function is that this looks only for "words"
-  --- that is, occurences surrounded by WordBorders. }
+  --- that is, occurrences surrounded by WordBorders. }
 function FindWordPos(const SubText, Text: string;
   const WordBorders: TSetOfChars = DefaultWordBorders): integer; overload;
 
@@ -526,7 +526,7 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
 
   Patterns and Values arrays must have equal length.
   Patterns[0] will be replaced with Values[0], Patterns[1] with Values[0] etc.
-  Patterns are scanned from left to right, that is if two pattern occurences
+  Patterns are scanned from left to right, that is if two pattern occurrences
   overlap --- we will detect the leftmost one. If both patterns start
   at the same place (this means that one pattern is a prefix of the other),
   we will choose the first pattern in Patterns table.

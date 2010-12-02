@@ -78,7 +78,7 @@ procedure QuatConjugateTo1st(var Q: TQuaternion);
 { Rotate by unit quaternion.
 
   You can pass here TVector4Single, which is then understood to be a 3D
-  position in homogenous coordinates.
+  position in homogeneous coordinates.
   @groupBegin }
 function QuatRotate(const Q: TQuaternion;
   const Point: TVector4Single): TVector4Single; overload;

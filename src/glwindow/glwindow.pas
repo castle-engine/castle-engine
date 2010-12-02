@@ -832,7 +832,7 @@ type
 
       No need to call OpenWindowsRemove here, it's done by universal Close already.
       It's advised (although not totally required) that all errors during
-      CloseBackend should be catched and cause only CloseError.
+      CloseBackend should be caught and cause only CloseError.
       Reasoning: Close should, regardless of trouble, try to finalize as much
       as possible. }
     procedure CloseBackend;

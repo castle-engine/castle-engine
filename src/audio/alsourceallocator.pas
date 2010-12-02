@@ -44,7 +44,7 @@ type
   public
     { Create source. This allocates actual OpenAL source.
       Will raise ENoMoreOpenALSources if no more sources available
-      (ENoMoreOpenALSources should be catched and silenced by
+      (ENoMoreOpenALSources should be caught and silenced by
       TALSourceAllocator.AllocateSource). }
     constructor Create;
     destructor Destroy; override;
@@ -209,7 +209,7 @@ type
       If we can't allocate new OpenAL sound for this
       (because we already allocated MaxAllocatedSources, or
       OpenAL cannot allocate so many sources (so ENoMoreOpenALSources
-      is catched and silenced by this function), and all existing
+      is caught and silenced by this function), and all existing
       sounds are used and their Importance is > given here Importance),
       returns nil.
 

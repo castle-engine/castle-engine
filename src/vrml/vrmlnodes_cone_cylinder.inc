@@ -106,7 +106,7 @@ end;
     material binding per part. Will be used with
     material binding BIND_PER_FACE_INDEXED.
     We use PER_FACE_INDEXED instead of PER_VERTEX_INDEXED because
-    PER_VERTEX_INDEXED isn't perfectly implemeted (see OutsideBeginEnd
+    PER_VERTEX_INDEXED isn't perfectly implemented (see OutsideBeginEnd
     notes), besides it matches our needs better.
 
     Pass @nil if you don't need it.)

@@ -641,7 +641,7 @@ begin
   Assert(Loaded);
 
   { TODO: this is not good for the cache, if the image is referenced
-    more than one time than you will modify all occurences.
+    more than one time than you will modify all occurrences.
     Some MakeUnique method for TImagesCache needed.
     Also, simple_video_image_viewer.lpr should use it too
     before editing. }

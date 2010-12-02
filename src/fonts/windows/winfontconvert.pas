@@ -72,7 +72,7 @@ procedure Font2BitmapFont_HDc(dc: HDc; var Font: TBmpFont);
 procedure Font2TrueTypeFont_HDc(dc: HDc; var Font: TTrueTypeFont);
 { @groupEnd }
 
-{ Usally much more comfortable versions of Font2XxxFont_HDc
+{ Usually much more comfortable versions of Font2XxxFont_HDc
   and Font2XxxChar_HDc.
   They take HFont, not HDc. This way they avoid some strangeness
   of GetGlyphOutline function (that requires as an argument HDc with

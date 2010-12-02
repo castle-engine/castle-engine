@@ -143,7 +143,7 @@ type
   end;
 
 { Splits S by Splitter, and adds each splitted part to Strings.
-  Splitting is done by Splitter, i.e. if N is the number of occurences
+  Splitting is done by Splitter, i.e. if N is the number of occurrences
   of Splitter inside S, then it always adds N + 1 strings to Strings.
   Yes, this means that if S starts with Splitter then the first
   part is equal to ''. And if S ends with Splitter then the last

@@ -136,7 +136,7 @@ constructor TNodeComposedCubeMapTexture.Create(const ANodeName: string;
 begin
   inherited;
 
-  { TODO: changes to nodes inside will not be properly catched,
+  { TODO: changes to nodes inside will not be properly caught,
     they should result in chTextureRendererProperties on us. }
 
   FFdback := TSFNode.Create(Self, 'back', [TNodeX3DTexture2DNode]);

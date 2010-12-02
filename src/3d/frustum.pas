@@ -128,7 +128,7 @@ type
       This works with Ok with far plane in infinity.
       Then the 4 points of the far plane will be "in infinity",
       that is will have 4th component set to zero. Or, equivalently,
-      they will be directions. Homogenous coordinates allow us for this,
+      they will be directions. Homogeneous coordinates allow us for this,
       and in fact you can just render such points without any problems
       in OpenGL.
 

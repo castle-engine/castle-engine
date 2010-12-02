@@ -243,7 +243,7 @@ type
     vsKambiTriangulation
   );
 
-  { Nodes that wiill be saved inside TVRMLGraphTraverseState.LastNodes.
+  { Nodes that will be saved inside TVRMLGraphTraverseState.LastNodes.
     These are nodes that affect how following nodes are rendered,
     mostly for VRML 1.0 "state". }
   TTraverseStateLastNodes = record
@@ -4387,7 +4387,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
     { Note that we do not check whether ReferencedPrototype actually
       has the same fields/events as declared for externproto.
       Although when expanding IS clauses, missing declarations
-      or incorrect types or field/event will be catched, so the necessary
+      or incorrect types or field/event will be caught, so the necessary
       things will be checked when expanding. }
 
     InstantiateNonExternalPrototype(Proto.ReferencedPrototype);

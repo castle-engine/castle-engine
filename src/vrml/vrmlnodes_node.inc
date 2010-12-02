@@ -354,7 +354,7 @@
       when it's reference count is 0. So this freeing method
       is special in this regard.
 
-      Use this if you really want to remove all node occurences from the middle
+      Use this if you really want to remove all node occurrences from the middle
       of VRML hierarchy. }
     procedure FreeRemovingFromAllParents;
 
@@ -699,7 +699,7 @@
       ("active" as defined by @link(Traverse)). }
     function IsNodePresent(Node: TVRMLNode; OnlyActive: boolean): boolean;
 
-    { Count the occurences of given node class in our children.
+    { Count the occurrences of given node class in our children.
       For example, you can pass NodeClass = TVRMLLightNode to count
       the light sources in the scene.
 

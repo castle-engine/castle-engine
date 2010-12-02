@@ -47,7 +47,7 @@ type
 
   TVisibleChangeEvent = procedure (Sender: T3D; Changes: TVisibleChanges) of object;
 
-  { Triangle expessed in particular coordinate system, for T3DTriangle. }
+  { Triangle expressed in particular coordinate system, for T3DTriangle. }
   T3DTriangleGeometry = record
     Triangle: TTriangle3Single;
 
@@ -103,7 +103,7 @@ type
           If Local already contains world-space geometry, then World
           can just remain constant, and so is always Local copy.
 
-          If Local ontains local shape-space geometry, then World
+          If Local contains local shape-space geometry, then World
           will have to be updated by TVRMLTriangle.UpdateWorld whenever some octree item's
           geometry will be needed in world coords. This will have to be
           done e.g. by TVRMLBaseTrianglesOctree.XxxCollision for each returned item.)
@@ -214,7 +214,7 @@ type
       (although, for the same of various optimizations, you should try
       to make it as tight as reasonably possible.) For now, it's also OK
       to make it a little too small (nothing bad will happen).
-      Although all currently implemeted descendants (TVRMLScene, TVRMLAnimation,
+      Although all currently implemented descendants (TVRMLScene, TVRMLAnimation,
       more) guarantee it's never too small. }
     function BoundingBox: TBox3D; virtual; abstract;
 

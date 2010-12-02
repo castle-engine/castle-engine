@@ -63,7 +63,7 @@ const
   {$endif}
 
 procedure TTestVectorMath.TestPlaneOdcCollision;
-{ test below catched once fpc 1.0.10 bugs in inlines - so VectorMathInlines.inc
+{ test below caught once fpc 1.0.10 bugs in inlines - so VectorMathInlines.inc
   was disabled }
 var Intersection: TVector3Single;
     T: Single;
