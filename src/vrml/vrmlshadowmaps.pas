@@ -372,12 +372,34 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
 
     May remove some texCoord nodes, knowing that only the 1st
     RelevantTexCoordsCount nodes are used.
+    May add some texCoord nodes (with TextureCoordinateGenerator = BOUNDS),
+    to make sure that we have at least RelevantTexCoordsCount nodes.
 
     Returns the count of texCoords in TexCoordsCount, not counting the last
     TexGen node. }
   procedure HandleTexGen(var TexCoord: TVRMLNode;
     const TexGen: TNodeProjectedTextureCoordinate; out TexCoordsCount: Cardinal;
     const RelevantTexCoordsCount: Cardinal);
+
+    { Resize Coords. If you increase Coords, then new ones
+      are TextureCoordinateGenerator nodes (with mode=BOUNDS). }
+    procedure ResizeTexCoord(const Coords: TMFNode; const NewCount: Cardinal);
+    var
+      OldCount: Cardinal;
+      NewTexCoordGen: TNodeTextureCoordinateGenerator;
+      I: Integer;
+    begin
+      OldCount := Coords.Count;
+      Coords.Count := NewCount;
+
+      for I := OldCount to NewCount - 1 do
+      begin
+        NewTexCoordGen := TNodeTextureCoordinateGenerator.Create('', '');
+        NewTexCoordGen.FdMode.Value := 'BOUNDS';
+        Coords.Replace(I, NewTexCoordGen);
+      end;
+    end;
+
   var
     MTexCoord: TNodeMultiTextureCoordinate;
   begin
@@ -428,12 +450,10 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
 
     if Enable then
     begin
-      { At this point, remove not relevant texCoords. }
-      if TexCoordsCount > RelevantTexCoordsCount then
-      begin
-        MTexCoord.FdTexCoord.Count := RelevantTexCoordsCount;
-        TexCoordsCount := RelevantTexCoordsCount;
-      end;
+      { This makes sure to add new necessary TextureCoordinateGenerator nodes,
+        or remove unused nodes. to make their size right }
+      ResizeTexCoord(MTexCoord.FdTexCoord, RelevantTexCoordsCount);
+      TexCoordsCount := RelevantTexCoordsCount;
 
       MTexCoord.FdTexCoord.Add(TexGen);
     end;

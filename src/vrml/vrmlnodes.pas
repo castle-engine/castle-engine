@@ -924,10 +924,13 @@ type
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject); override;
     { Get or set the number of items.
+
       When increasing this, remember that new items of TMFNode
-      will be @nil, and generally you should initialize them to
-      something else then @nil (VRML/X3D don't really allow
-      NULL items inside MFNode fields).
+      will be @nil. You @bold(must immediately initialize them to
+      something else then @nil) by the @link(Replace) method.
+      Other TMFNode methods, and outside code working with MFNodes,
+      usually assumes that all MFNode children are non-nil.
+      (As VRML/X3D spec don't really allow NULL items inside MFNode fields.)
       @groupBegin }
     function GetCount: Integer; override;
     procedure SetCount(const Value: Integer); override;
@@ -3242,7 +3245,9 @@ procedure TMFNode.Replace(Index: Integer; Node: TVRMLNode);
 begin
   if FItems[Index] <> Node then
   begin
-    FItems[Index].RemoveParentField(Self);
+    { Replace is the only method that must work even when items are nil }
+    if FItems[Index] <> nil then
+      FItems[Index].RemoveParentField(Self);
     FItems[Index] := Node;
     FItems[Index].AddParentField(Self);
   end;
