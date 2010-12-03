@@ -1097,6 +1097,10 @@ var
         Result := tgWorldSpaceReflectionVector else
       if S = 'PROJECTION' then
         Result := tgProjection else
+      if S = 'BOUNDS' then
+        Result := tgBounds2d else
+      if S = 'BOUNDS3D' then
+        Result := tgBounds3d else
       begin
         Result := tgCoord;
         VRMLWarning(vwSerious, Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
@@ -1267,23 +1271,17 @@ var
   { Setup 2D texture coordinates suitable for IndexedFaceSet without
     explicit texture coords, following X3D 3D Texturing spec.
 
-    TexUnit = -1 means "all". We then set up and enable OpenGL
+    When TexUnitAll then we set up and enable OpenGL
     glTexGen correctly on all texture units within TexCoordsNeeded.
-    We also set TexImplementation := tcAllGenerated.
+    We also set TexImplementation := tcAllGenerated,
+    TexCoordGen (to tgBounds2d), TextureGen.
 
-    For TexUnit >= 0, we only sets up and enables OpenGL
-    glTexGen only on given unit.
+    Whem not TexUnitAll, we only set up and enable OpenGL
+    glTexGen on current unit. }
+  procedure Bounds2DTextureGen(const TexUnitAll: boolean);
 
-    Also sets given TexCoordGen[] to tgBounds2d so glTexGen will
-    be correctly disabled later. }
-  procedure Bounds2DTextureGen(const TexUnit: Integer);
-
-    procedure DoTexUnit(const TexUnit: Cardinal; const TexGenVectors: T3DTextureGen);
+    procedure DoTexUnit(const TexGenVectors: T3DTextureGen);
     begin
-      TexCoordGen[TexUnit] := tgBounds2d;
-      TextureGen[TexUnit] := TexGenVectors;
-      Renderer.ActiveTexture(TexUnit);
-
       { Setup OpenGL to generate tex coords automatically }
       glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
       glTexGenv(GL_S, GL_OBJECT_PLANE, TexGenVectors[0]);
@@ -1370,36 +1368,35 @@ var
 
     { use TexGenVectors on relevant tex units }
 
-    if TexUnit = -1 then
+    if TexUnitAll then
     begin
       TexImplementation := tcAllGenerated;
       SetTexLengths(TexCoordsNeeded);
       for I := 0 to TexCoordsNeeded - 1 do
-        DoTexUnit(I, TexGenVectors);
+      begin
+        TexCoordGen[I] := tgBounds2d;
+        TextureGen[I] := TexGenVectors;
+        Renderer.ActiveTexture(I);
+        DoTexUnit(TexGenVectors);
+      end;
     end else
-      DoTexUnit(TexUnit, TexGenVectors);
+      DoTexUnit(TexGenVectors);
   end;
 
   { Setup 3D texture coordinates suitable for "primitives without
     explicit texture coordinates", following X3D 3D Texturing spec.
 
-    TexUnit = -1 means "all". We then set up and enable OpenGL
+    When TexUnitAll then we set up and enable OpenGL
     glTexGen correctly on all texture units within TexCoordsNeeded.
-    We also set TexImplementation := tcAllGenerated.
+    We also set TexImplementation := tcAllGenerated,
+    TexCoordGen (to tgBounds3d), TextureGen.
 
-    For TexUnit >= 0, we only sets up and enables OpenGL
-    glTexGen only on given unit.
+    Whem not TexUnitAll, we only set up and enable OpenGL
+    glTexGen on current unit. }
+  procedure Bounds3DTextureGen(const TexUnitAll: boolean);
 
-    Also sets all TexCoordGen[] to tgBounds3d so glTexGen will
-    be correctly disabled later. }
-  procedure Bounds3DTextureGen(const TexUnit: Integer);
-
-    procedure DoTexUnit(const TexUnit: Cardinal; const TexGenVectors: T3DTextureGen);
+    procedure DoTexUnit(const TexGenVectors: T3DTextureGen);
     begin
-      TexCoordGen[TexUnit] := tgBounds3d;
-      TextureGen[TexUnit] := TexGenVectors;
-      Renderer.ActiveTexture(TexUnit);
-
       glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
       glTexGenv(GL_S, GL_OBJECT_PLANE, TexGenVectors[0]);
       glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -1455,14 +1452,19 @@ var
 
     { use TexGenVectors on relevant tex units }
 
-    if TexUnit = -1 then
+    if TexUnitAll then
     begin
       TexImplementation := tcAllGenerated;
       SetTexLengths(TexCoordsNeeded);
       for I := 0 to TexCoordsNeeded - 1 do
-        DoTexUnit(I, TexGenVectors);
+      begin
+        TexCoordGen[I] := tgBounds3d;
+        TextureGen[I] := TexGenVectors;
+        Renderer.ActiveTexture(I);
+        DoTexUnit(TexGenVectors);
+      end;
     end else
-      DoTexUnit(TexUnit, TexGenVectors);
+      DoTexUnit(TexGenVectors);
   end;
 
   { Set explicit coordinates as gl[Multi]TexCoordPointer, for all texture units
@@ -1731,6 +1733,8 @@ var
               glEnable(GL_TEXTURE_GEN_Q);
             end;
           end;
+        tgBounds2d: Bounds2DTextureGen(false);
+        tgBounds3d: Bounds3DTextureGen(false);
         else raise EInternalError.Create('SetupTextureGen - Gen?');
       end;
     end;
@@ -1779,7 +1783,7 @@ begin
              (TNodeMultiTexture(State.Texture).FdTexture.Items[0] is TNodeX3DTexture3DNode)
            ))) then
     begin
-      Bounds3DTextureGen(-1);
+      Bounds3DTextureGen(true);
     end else
     begin
       InitializeTexCoordGenArray;
@@ -1834,10 +1838,10 @@ begin
               EnableTextureCoordGen;
             end;
           end else
-            Bounds2DTextureGen(-1);
+            Bounds2DTextureGen(true);
         end;
       end else
-        Bounds2DTextureGen(-1);
+        Bounds2DTextureGen(true);
     end;
   end;
 end;
