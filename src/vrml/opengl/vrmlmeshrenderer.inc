@@ -1050,6 +1050,24 @@ begin
 end;
 
 procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin;
+
+  { Is a texture used on given unit, and it's 3D texture. }
+  function IsTexture3D(const TexUnit: Cardinal): boolean;
+  var
+    Tex: TNodeX3DTextureNode;
+  begin
+    Tex := State.Texture;
+    Result := (
+      (Tex <> nil) and
+      ( ( (TexUnit = 0) and
+          (Tex is TNodeX3DTexture3DNode) )
+        or
+        ( (Tex is TNodeMultiTexture) and
+          (TNodeMultiTexture(Tex).FdTexture.Count > TexUnit) and
+          (TNodeMultiTexture(Tex).FdTexture.Items[TexUnit] is TNodeX3DTexture3DNode)
+        )));
+  end;
+
 var
   { Just copies of Renderer.TexCoordsNeeded, UseMultiTexturing, for comfort }
   TexCoordsNeeded: Cardinal;
@@ -1079,7 +1097,7 @@ var
     exactly TexCoordsNeeded for UseMultiTexturing). }
   procedure InitializeTexCoordGenArray;
 
-    function TexCoordGenFromString(const S: string): TTextureCoordinateGeneration;
+    function TexCoordGenFromString(const S: string; const IsTexture3D: boolean): TTextureCoordinateGeneration;
     begin
       if S = 'SPHERE' then
         Result := tgSphere else
@@ -1098,6 +1116,12 @@ var
       if S = 'PROJECTION' then
         Result := tgProjection else
       if S = 'BOUNDS' then
+      begin
+        if IsTexture3D then
+          Result := tgBounds3d else
+          Result := tgBounds2d;
+      end else
+      if S = 'BOUNDS2D' then
         Result := tgBounds2d else
       if S = 'BOUNDS3D' then
         Result := tgBounds3d else
@@ -1159,7 +1183,8 @@ var
     begin
       InitializeTexLengths(1);
       TexCoordGenNode[0] := TNodeTextureCoordinateGenerator(TexCoord);
-      TexCoordGen    [0] := TexCoordGenFromString(TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value);
+      TexCoordGen    [0] := TexCoordGenFromString(TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value,
+        IsTexture3D(0));
     end else
     if TexCoord is TNodeProjectedTextureCoordinate then
     begin
@@ -1196,7 +1221,8 @@ var
         begin
           TexCoordGenNode[I] := TNodeTextureCoordinateGenerator(MultiTexCoord.Items[I]);
           TexCoordGen    [I] := TexCoordGenFromString(
-            TNodeTextureCoordinateGenerator(MultiTexCoord.Items[I]).FdMode.Value);
+            TNodeTextureCoordinateGenerator(MultiTexCoord.Items[I]).FdMode.Value,
+            IsTexture3D(I));
         end else
         if (MultiTexCoord.Items[I] <> nil) and
            (MultiTexCoord.Items[I] is TNodeProjectedTextureCoordinate) then
@@ -1776,12 +1802,7 @@ begin
     if { Original shape node is a primitive, without explicit texCoord }
        Shape.OriginalGeometry.AutoGenerate3DTexCoords and
        { First texture is 3D texture }
-       ( (State.Texture <> nil) and
-         ( (State.Texture is TNodeX3DTexture3DNode) or
-           ( (State.Texture is TNodeMultiTexture) and
-             (TNodeMultiTexture(State.Texture).FdTexture.Count <> 0) and
-             (TNodeMultiTexture(State.Texture).FdTexture.Items[0] is TNodeX3DTexture3DNode)
-           ))) then
+       IsTexture3D(0) then
     begin
       Bounds3DTextureGen(true);
     end else
