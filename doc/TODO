@@ -852,3 +852,6 @@ ScreenEffect ideas/TODOs:
 - Allow using other mapping then GL_NEAREST for screen effect,
   maybe change filtering before each screen effect.
 - glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
+- test gradient trick from hdr: to increase perceived contrast,
+  detect wide edges and make a gradient to lighter the light part,
+  and darken the dark part.
