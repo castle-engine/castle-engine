@@ -1,4 +1,19 @@
-{ TVRMLAnimation class. }
+{
+  Copyright 2006-2010 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Abstract precalculated animation (TVRMLAnimation). }
 unit VRMLAnimation;
 
 {$I kambiconf.inc}
@@ -8,9 +23,9 @@ interface
 uses KambiUtils, DOM, VRMLRendererOptimization, Base3D;
 
 type
-  { The non-OpenGL basis of our precalculated animation,
-    see TVRMLGLAnimation for a descendant of this that you
-    most probably want to use. }
+  { An abstract (cannot be rendered) precalculated animation.
+    You usually want to use a descendant of this class that can be rendered
+    in OpenGL, see TVRMLGLAnimation. }
   TVRMLAnimation = class(T3D)
   public
     { Load animation data from a given FileName to a set of variables.
