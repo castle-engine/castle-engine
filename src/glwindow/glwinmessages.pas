@@ -53,8 +53,8 @@
       For example, you can make the dialog box background partially transparent
       (by real transparency or by OpenGL stipple pattern).))
 
-  Call MessageXxx functions only when glwin.Closed = false.
-  Note that MessageXxx will do glwin.MakeCurrent (probably more than once).
+  Call MessageXxx functions only when Window.Closed = false.
+  Note that MessageXxx will do Window.MakeCurrent (probably more than once).
   Calling MessageXxx requires one free place on OpenGL attrib stack.
 
   Notes about implementation:
@@ -100,7 +100,7 @@
       you can implement you OnCloseQuery like
       @longCode(#
   if MessageYesNo('Are you sure ?') then
-    Glwin.Close;
+    Window.Close;
 #))
   )
 *)
@@ -129,11 +129,11 @@ type
   and simplest "OK" dialog box.
 
   @groupBegin }
-procedure MessageOK(glwin: TGLWindow; const s: string;
+procedure MessageOK(Window: TGLWindow; const s: string;
   textalign: TTextAlign = taMiddle); overload;
-procedure MessageOK(glwin: TGLWindow;  const SArray: array of string;
+procedure MessageOK(Window: TGLWindow;  const SArray: array of string;
   textalign: TTextAlign = taMiddle); overload;
-procedure MessageOK(glwin: TGLWindow;  textlist: TStringList;
+procedure MessageOK(Window: TGLWindow;  textlist: TStringList;
   textalign: TTextAlign = taMiddle); overload;
 { @groupEnd }
 
@@ -143,13 +143,13 @@ procedure MessageOK(glwin: TGLWindow;  textlist: TStringList;
   @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
 
   @groupBegin }
-function MessageInput(glwin: TGLWindow; const s: string;
+function MessageInput(Window: TGLWindow; const s: string;
   textalign: TTextAlign = taMiddle;
   const answerDefault: string = '';
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): string; overload;
-function MessageInput(glwin: TGLWindow; textlist: TStringList;
+function MessageInput(Window: TGLWindow; textlist: TStringList;
   textalign: TTextAlign = taMiddle;
   const answerDefault: string = '';
   answerMinLen: integer = 0;
@@ -163,12 +163,12 @@ function MessageInput(glwin: TGLWindow; textlist: TStringList;
   @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
 
   @groupBegin }
-function MessageInputQuery(glwin: TGLWindow; const s: string;
+function MessageInputQuery(Window: TGLWindow; const s: string;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
-function MessageInputQuery(glwin: TGLWindow; textlist: TStringList;
+function MessageInputQuery(Window: TGLWindow; textlist: TStringList;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
@@ -194,17 +194,17 @@ function MessageInputQuery(glwin: TGLWindow; textlist: TStringList;
     So you can't even know if user pressed lower of upper case letter.)
 
   @groupBegin }
-function MessageChar(glwin: TGLWindow; const s: string;
+function MessageChar(Window: TGLWindow; const s: string;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
   textalign: TTextAlign = taMiddle;
   IgnoreCase: boolean = false): char; overload;
-function MessageChar(glwin: TGLWindow;  const SArray: array of string;
+function MessageChar(Window: TGLWindow;  const SArray: array of string;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
   textalign: TTextAlign = taMiddle;
   IgnoreCase: boolean = false): char; overload;
-function MessageChar(glwin: TGLWindow;  textlist: TStringList;
+function MessageChar(Window: TGLWindow;  textlist: TStringList;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
   textalign: TTextAlign = taMiddle;
@@ -217,13 +217,13 @@ function MessageChar(glwin: TGLWindow;  textlist: TStringList;
   as Keys.TKey will be ignored, and will not close the dialog box).
 
   @groupBegin }
-function MessageKey(Glwin: TGLWindow; const S: string;
+function MessageKey(Window: TGLWindow; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
 
-function MessageKey(Glwin: TGLWindow; const SArray: array of string;
+function MessageKey(Window: TGLWindow; const SArray: array of string;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
 
-function MessageKey(Glwin: TGLWindow; TextList: TStringList;
+function MessageKey(Window: TGLWindow; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
 { @groupEnd }
 
@@ -237,24 +237,24 @@ function MessageKey(Glwin: TGLWindow; TextList: TStringList;
   If user pressed a key, returns appropriate Key (for sure <> K_None).
 
   @groupBegin }
-procedure MessageKeyMouse(Glwin: TGLWindow; const S: string;
+procedure MessageKeyMouse(Window: TGLWindow; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign;
   out Key: TKey;
   out MousePress: boolean; out MouseButton: TMouseButton;
   out MouseWheel: TMouseWheelDirection); overload;
 
-procedure MessageKeyMouse(Glwin: TGLWindow; TextList: TStringList;
+procedure MessageKeyMouse(Window: TGLWindow; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign;
   out Key: TKey;
   out MousePress: boolean; out MouseButton: TMouseButton;
   out MouseWheel: TMouseWheelDirection); overload;
 { @groupEnd }
 
-function MessageYesNo(glwin: TGLWindow; const s: string;
+function MessageYesNo(Window: TGLWindow; const s: string;
   textalign: TTextAlign = taMiddle): boolean; overload;
-function MessageYesNo(glwin: TGLWindow;  const SArray: array of string;
+function MessageYesNo(Window: TGLWindow;  const SArray: array of string;
   textalign: TTextAlign = taMiddle): boolean; overload;
-function MessageYesNo(glwin: TGLWindow;  textlist: TStringList;
+function MessageYesNo(Window: TGLWindow;  textlist: TStringList;
   textalign: TTextAlign = taMiddle): boolean; overload;
 
 { Ask user to input an unsigned integer.
@@ -268,18 +268,18 @@ function MessageYesNo(glwin: TGLWindow;  textlist: TStringList;
   --- no default answer.
 
   @groupBegin }
-function MessageInputCardinal(glwin: TGLWindow; const s: string;
+function MessageInputCardinal(Window: TGLWindow; const s: string;
   TextAlign: TTextAlign; const AnswerDefault: string): Cardinal; overload;
-function MessageInputCardinal(glwin: TGLWindow; const s: string;
+function MessageInputCardinal(Window: TGLWindow; const s: string;
   TextAlign: TTextAlign; AnswerDefault: Cardinal): Cardinal; overload;
 
-function MessageInputQueryCardinal(glwin: TGLWindow; const Title: string;
+function MessageInputQueryCardinal(Window: TGLWindow; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign): boolean;
 { @groupEnd }
 
 { Ask user to input a value in hexadecimal.
   Give MaxWidth = 0 to say that there is no maximum width. }
-function MessageInputQueryCardinalHex(glwin: TGLWindow; const Title: string;
+function MessageInputQueryCardinalHex(Window: TGLWindow; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
 
 { Ask user to input a floating-point number.
@@ -291,22 +291,22 @@ function MessageInputQueryCardinalHex(glwin: TGLWindow; const Title: string;
   number, and FloatToStr shows that this is really something like 0.0099xxxxx.
 
   @groupBegin }
-function MessageInputQuery(glwin: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TGLWindow; const Title: string;
   var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
-function MessageInputQuery(glwin: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TGLWindow; const Title: string;
   var Value: Single; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function MessageInputQuery(glwin: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TGLWindow; const Title: string;
   var Value: Double; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
 {$endif not EXTENDED_EQUALS_DOUBLE}
 { @groupEnd }
 
 function MessageInputQueryVector3Single(
-  glwin: TGLWindow; const Title: string;
+  Window: TGLWindow; const Title: string;
   var Value: TVector3Single; TextAlign: TTextAlign): boolean;
 
 function MessageInputQueryVector4Single(
-  glwin: TGLWindow; const Title: string;
+  Window: TGLWindow; const Title: string;
   var Value: TVector4Single; TextAlign: TTextAlign): boolean;
 
 type
@@ -485,10 +485,10 @@ type
       gdy zmienisz min/maxShiftY }
     function ShiftY: integer;
     property FloatShiftY: Single read FFloatshiftY;
-    procedure SetFloatShiftY(glwin: TGLWindow; newValue: Single);
+    procedure SetFloatShiftY(Window: TGLWindow; newValue: Single);
 
-    procedure SetFloatShiftYPageDown(Glwin: TGLWindow);
-    procedure SetFloatShiftYPageUp(Glwin: TGLWindow);
+    procedure SetFloatShiftYPageDown(Window: TGLWindow);
+    procedure SetFloatShiftYPageUp(Window: TGLWindow);
   public
     { minimalne i maksymalne sensowne wartosci dla shiftY }
     minShiftY, maxShiftY: integer;
@@ -549,7 +549,7 @@ type
 
     { bedzie wyswietlany jezeli DrawAdditional }
     property SAdditional: string read FSAdditional;
-    procedure SetSAdditional(glwin: TGLWindow; const value: string);
+    procedure SetSAdditional(Window: TGLWindow; const value: string);
   public
     UserData: Pointer;
 
@@ -563,39 +563,39 @@ type
 function TMessageData.ShiftY: integer;
 begin result := Round(FloatShiftY) end;
 
-procedure TMessageData.SetFloatShiftY(glwin: TGLWindow; newValue: Single);
+procedure TMessageData.SetFloatShiftY(Window: TGLWindow; newValue: Single);
 begin
  Clamp(newValue, minShiftY, maxShiftY);
  if newValue <> FloatShiftY then
  begin
   FFloatShiftY := newValue;
-  glwin.PostRedisplay;
+  Window.PostRedisplay;
  end;
 end;
 
-procedure TMessageData.SetFloatShiftYPageDown(Glwin: TGLWindow);
+procedure TMessageData.SetFloatShiftYPageDown(Window: TGLWindow);
 var
   PageHeight: Single;
 begin
   PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
-  SetFloatShiftY(Glwin, ShiftY + PageHeight);
+  SetFloatShiftY(Window, ShiftY + PageHeight);
 end;
 
-procedure TMessageData.SetFloatShiftYPageUp(Glwin: TGLWindow);
+procedure TMessageData.SetFloatShiftYPageUp(Window: TGLWindow);
 var
   PageHeight: Single;
 begin
   PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
-  SetFloatShiftY(Glwin, ShiftY - PageHeight);
+  SetFloatShiftY(Window, ShiftY - PageHeight);
 end;
 
-procedure TMessageData.SetSAdditional(glwin: TGLWindow; const value: string);
+procedure TMessageData.SetSAdditional(Window: TGLWindow; const value: string);
 begin
  FSAdditional := value;
- glwin.PostRedisplay;
+ Window.PostRedisplay;
  {moznaby zoptymalizowac rzeczy gdyby robic tutaj tylko czesc tego co jest
   robione w resizeMessg. }
- glwin.EventResize; { zeby zlamal SAdditional }
+ Window.EventResize; { zeby zlamal SAdditional }
 end;
 
 function TMessageData.ClosingInfoBoxHeight: Integer;
@@ -611,24 +611,24 @@ end;
 
 { GLWinMessage callbacks -------------------------------------------------- }
 
-procedure ResizeMessg(glwin: TGLWindow);
+procedure ResizeMessg(Window: TGLWindow);
 var
   MD: TMessageData;
   { width at which we should break our string lists md.Broken_Xxx }
   BreakWidth: integer;
   WindowScrolledHeight: Integer;
 begin
- glViewport(0, 0, glwin.Width, glwin.Height);
- ProjectionGLOrtho(0, glwin.Width, 0, glwin.Height);
+ glViewport(0, 0, Window.Width, Window.Height);
+ ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
 
  { calculate BreakWidth. We must here always subtract
    DrawMessg_ScrollBarWholeWidth to be on the safe side, because we don't know
    yet is md.ScrollBarVisible. }
- BreakWidth := max(0, glwin.Width -DrawMessg_BoxMargin*2
+ BreakWidth := max(0, Window.Width -DrawMessg_BoxMargin*2
                                 -DrawMessg_WindMargin*2
                                 -DrawMessg_ScrollBarWholeWidth);
 
- md := TMessageData(glwin.UserData);
+ md := TMessageData(Window.UserData);
 
  with md do
  begin
@@ -666,7 +666,7 @@ begin
 
   { Calculate WindowScrolledHeight --- number of pixels that are controlled
     by the scrollbar. }
-  WindowScrolledHeight := glwin.Height
+  WindowScrolledHeight := Window.Height
     - DrawMessg_BoxMargin * 2
     - DrawMessg_WindMargin * 2
     - ClosingInfoBoxHeight;
@@ -696,16 +696,16 @@ begin
 
   { min / maxShift mogly sie zmienic wiec trzeba sie upewnic ze shiftY ciagle jest
     w odpowiednim zakresie }
-  SetFloatShiftY(glwin, FloatShiftY);
+  SetFloatShiftY(Window, FloatShiftY);
  end;
 end;
 
-procedure KeyDownMessg(glwin: TGLWindow; key: TKey; c: char);
+procedure KeyDownMessg(Window: TGLWindow; key: TKey; c: char);
 var
   md: TMessageData;
   KeyHandled: boolean;
 begin
-  md := TMessageData(glwin.userdata);
+  md := TMessageData(Window.userdata);
 
   KeyHandled := false;
 
@@ -721,34 +721,34 @@ begin
   if MD.ScrollBarVisible then
   begin
     case Key of
-      K_PageUp:   begin md.setFloatShiftYPageUp(GlWin);         KeyHandled := true; end;
-      K_PageDown: begin md.setFloatShiftYPageDown(Glwin);       KeyHandled := true; end;
-      K_Home:     begin md.setFloatShiftY(glwin, md.minShiftY); KeyHandled := true; end;
-      K_End:      begin md.setFloatShiftY(glwin, md.maxShiftY); KeyHandled := true; end;
+      K_PageUp:   begin md.setFloatShiftYPageUp(Window);         KeyHandled := true; end;
+      K_PageDown: begin md.setFloatShiftYPageDown(Window);       KeyHandled := true; end;
+      K_Home:     begin md.setFloatShiftY(Window, md.minShiftY); KeyHandled := true; end;
+      K_End:      begin md.setFloatShiftY(Window, md.maxShiftY); KeyHandled := true; end;
     end;
   end;
 
   if not KeyHandled then
   begin
     if Assigned(md.OnUserKeyDown) then
-      md.OnUserKeyDown(glwin, Key, c);
+      md.OnUserKeyDown(Window, Key, c);
   end;
 end;
 
-procedure MouseDownMessg(glwin: TGLWindow; btn: TMouseButton);
+procedure MouseDownMessg(Window: TGLWindow; btn: TMouseButton);
 var mx, my: integer; { mousex, y przetlumaczone na wspolrzedne OpenGL'a tego okienka }
     md: TMessageData;
 begin
-  md := TMessageData(glwin.userdata);
+  md := TMessageData(Window.userdata);
 
-  mx := glwin.mouseX;
-  my := glwin.height-glwin.mouseY;
+  mx := Window.mouseX;
+  my := Window.height-Window.mouseY;
 
   if (btn = mbLeft) and
     md.ScrollBarVisible and PointInRect(mx, my, md.ScrollBarRect) then
   begin
-    if my < md.przewVisY1 then md.SetFloatShiftYPageDown(Glwin) else
-    if my > md.przewVisY2 then md.SetFloatShiftYPageUp(Glwin) else
+    if my < md.przewVisY1 then md.SetFloatShiftYPageDown(Window) else
+    if my > md.przewVisY2 then md.SetFloatShiftYPageUp(Window) else
     begin
       md.ScrollBarDragging := true;
     end;
@@ -757,24 +757,24 @@ begin
      PointInRect(mx, my, md.WholeMessageRect) then
   begin
     if Assigned(MD.OnUserMouseDown) then
-      MD.OnUserMouseDown(Glwin, Btn);
+      MD.OnUserMouseDown(Window, Btn);
   end;
 end;
 
-procedure MouseUpMessg(glwin: TGLWindow; btn: TMouseButton);
+procedure MouseUpMessg(Window: TGLWindow; btn: TMouseButton);
 begin
- if btn = mbLeft then TMessageData(glwin.userdata).ScrollBarDragging := false;
+ if btn = mbLeft then TMessageData(Window.userdata).ScrollBarDragging := false;
 end;
 
-procedure MouseMoveMessg(glwin: TGLWindow; newx, newy: integer);
+procedure MouseMoveMessg(Window: TGLWindow; newx, newy: integer);
 var md: TMessageData;
     moveY: integer;
 begin
- md := TMessageData(glwin.UserData);
+ md := TMessageData(Window.UserData);
  if not md.ScrollBarDragging then exit;
 
  { przesuniecie wzdluz y w mouse coords to }
- moveY:=(glwin.Height-newY) - (glwin.Height-glwin.MouseY);
+ moveY:=(Window.Height-newY) - (Window.Height-Window.MouseY);
 
  { ten ruch w strone dodatnia oznacza chec zobaczenia wyzej a wiec zmniejszenia shiftY.
    Wiec sobie go tutaj odwracamy. }
@@ -787,41 +787,41 @@ begin
                     * (md.notprettyMaxShiftY - md.minShiftY));
 
  { i gotowe, przesuwamy shiftY o moveY }
- md.setFloatShiftY(glwin, md.shiftY + moveY);
+ md.setFloatShiftY(Window, md.shiftY + moveY);
 end;
 
-procedure MouseWheelMessg(glwin: TGLWindow; const Scroll: Single; const Vertical: boolean);
+procedure MouseWheelMessg(Window: TGLWindow; const Scroll: Single; const Vertical: boolean);
 var
   MD: TMessageData;
 begin
   if Vertical then
   begin
-    MD := TMessageData(glwin.UserData);
-    MD.SetFloatShiftY(Glwin, MD.ShiftY - Scroll * MD.Font.RowHeight);
+    MD := TMessageData(Window.UserData);
+    MD.SetFloatShiftY(Window, MD.ShiftY - Scroll * MD.Font.RowHeight);
 
     if Assigned(MD.OnUserMouseWheel) then
-      MD.OnUserMouseWheel(Glwin, Scroll, Vertical);
+      MD.OnUserMouseWheel(Window, Scroll, Vertical);
   end;
 end;
 
-procedure IdleMessg(glwin: TGLWindow);
+procedure IdleMessg(Window: TGLWindow);
 
   function Faktor: Single;
   begin
-   result := 200.0 * glwin.Fps.IdleSpeed;
-   if mkCtrl in Glwin.Pressed.Modifiers then result *= 6;
+   result := 200.0 * Window.Fps.IdleSpeed;
+   if mkCtrl in Window.Pressed.Modifiers then result *= 6;
   end;
 
 var md: TMessageData;
 begin
- md := TMessageData(glwin.userdata);
- with glwin do begin
-  if Pressed[K_up] then md.setFloatShiftY(glwin, md.floatShiftY - Faktor);
-  if Pressed[K_down] then md.setFloatShiftY(glwin, md.floatShiftY + Faktor);
+ md := TMessageData(Window.userdata);
+ with Window do begin
+  if Pressed[K_up] then md.setFloatShiftY(Window, md.floatShiftY - Faktor);
+  if Pressed[K_down] then md.setFloatShiftY(Window, md.floatShiftY + Faktor);
  end;
 end;
 
-procedure DrawMessg(glwin: TGLWindow);
+procedure DrawMessg(Window: TGLWindow);
 var md: TMessageData;
 
   procedure DrawString(const text: string; textalign: TTextAlign);
@@ -876,7 +876,7 @@ const
   { szerokosc paska ScrollBara }
   ScrollBarInternalWidth = ScrollBarWholeWidth - ScrollBarMargin*2;
 begin
- md := TMessageData(glwin.UserData);
+ md := TMessageData(Window.UserData);
 
  { Robimy clear bo bgimg moze nie zakryc calego tla jezeli w trakcie MessageXxx
    user resized the window. }
@@ -897,13 +897,13 @@ begin
 
    Also WholeMessageRect is used by other things not in this procedure. }
  MD.WholeMessageRect := CenteredRect(
-   IntRect(0, 0, glwin.Width, glwin.Height),
+   IntRect(0, 0, Window.Width, Window.Height),
    Min(md.MaxLineWidth + BoxMargin*2 + RealScrollBarWholeWidth,
-     glwin.Width - WindMargin*2),
+     Window.Width - WindMargin*2),
    Min(MD.AllScrolledLinesCount * MD.Font.RowHeight +
        BoxMargin * 2 +
        MD.ClosingInfoBoxHeight,
-     glwin.Height - WindMargin*2));
+     Window.Height - WindMargin*2));
  MessageRect := MD.WholeMessageRect;
 
  { draw MessageRect (using
@@ -1012,7 +1012,7 @@ end;
     will be within WholeMessageRect. You should not react to mouse
     click on other places.
 }
-procedure GLWinMessage(glwin: TGLWindow; textlist: TStringList;
+procedure GLWinMessage(Window: TGLWindow; textlist: TStringList;
   textalign: TTextAlign; MessageOnUserKeyDown: TKeyCharFunc;
   MessageOnUserMouseDown: TMouseUpDownFunc;
   MessageOnUserMouseWheel: TMouseWheelFunc;
@@ -1020,18 +1020,18 @@ procedure GLWinMessage(glwin: TGLWindow; textlist: TStringList;
   messageUserdata: pointer;
   const AClosingInfo: string; { = '' znaczy "nie rysuj ClosingInfo" }
   AdrawAdditional: boolean; var ASAdditional: string);
-{ Robi cos co wyglada jak dialog window w srodku podanego glwin.
-  Na pewien czas podmienia callbacki glwin; mozna podac jaki
+{ Robi cos co wyglada jak dialog window w srodku podanego Window.
+  Na pewien czas podmienia callbacki Window; mozna podac jaki
   bedzie callback na OnKeyDown i OnDraw; W callbackach uzywamy
   ustawianej w tej procedurze strukturze TMessageData (bierzemy ja z
-  PMessageData(glwin.UserData) ). W ten sposob mozna wywolac na wielu
+  PMessageData(Window.UserData) ). W ten sposob mozna wywolac na wielu
   roznch okienkach GLWinMessage i wszystko bedzie dzialalo ok.
 
   OnDraw moze zasadniczo wygladac dowolnie, ale powinno uzywac zmiennych
   ustawionych dla niego w TMessageData mowiacych mu co i jak wypisac.
 
   Perspektywa w ktorej dziala OnDraw jest zawsze
-  Ortho2D(0, glwin.width, 0, glwin.height).
+  Ortho2D(0, Window.width, 0, Window.height).
 
   Zawartosc obiektu textlist nie bedzie modyfikowana - jest to gwarantowane.
 
@@ -1052,20 +1052,20 @@ begin
    (a nie chcielibysmy robic wtedy z flushem bo zainstalowalismy juz
    wlasne callbacki)
 
-   If we have DoubleBuffer then we simply call glwin.EventDraw,
+   If we have DoubleBuffer then we simply call Window.EventDraw,
    see comments at GLImage.SaveScreen_noflush to know why
    (in short: we DON'T want to use front buffer to save screen). }
- if glwin.DoubleBuffer then
+ if Window.DoubleBuffer then
  begin
-  glwin.EventBeforeDraw;
-  glwin.EventDraw;
+  Window.EventBeforeDraw;
+  Window.EventDraw;
  end else
-  glwin.FlushRedisplay;
+  Window.FlushRedisplay;
 
  {2 faza :
    Sejwujemy sobie wszystkie wlasciwosci okienka glwin ktore chcemy zmienic.
    Kiedy juz skonczymy bedziemy chcieli je odtworzyc. }
- SavedMode := TGLMode.CreateReset(glwin,
+ SavedMode := TGLMode.CreateReset(Window,
    GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
    GL_LINE_BIT or GL_POLYGON_STIPPLE_BIT or GL_TRANSFORM_BIT or
    GL_COLOR_BUFFER_BIT, false,
@@ -1083,7 +1083,7 @@ begin
    Actually, FakeMouseDown is @false by default, so this call is not needed. }
  SavedMode.FakeMouseDown := false;
 
- with glwin do begin
+ with Window do begin
   OnMouseMove := @mouseMoveMessg;
   OnMouseDown := @mouseDownMessg;
   OnMouseWheel := @MouseWheelMessg;
@@ -1126,7 +1126,7 @@ begin
    OnUserMouseDown := MessageOnUserMouseDown;
    OnUserMouseWheel := MessageOnUserMouseWheel;
    UserMouseDownOnlyWithinRect := AUserMouseDownOnlyWithinRect;
-   if glwin.DoubleBuffer then
+   if Window.DoubleBuffer then
     dlDrawBG := SaveScreenWhole_ToDisplayList_noflush(GL_BACK) else
     dlDrawBG := SaveScreenWhole_ToDisplayList_noflush(GL_FRONT);
    answered := false;
@@ -1158,11 +1158,11 @@ begin
     zainicjowane.
   Podobnie, zainicjowanie Userdata := messageData oczywiscie
     wymaga aby messageData bylo juz ustalone. }
-  glwin.Userdata := messageData;
+  Window.Userdata := messageData;
   { ustaw nasze projection matrix }
-  resizeMessg(glwin);
+  resizeMessg(Window);
   { ustaw nas na poczatku tekstu. }
-  MessageData.SetFloatShiftY(Glwin, MessageData.MinShiftY);
+  MessageData.SetFloatShiftY(Window, MessageData.MinShiftY);
 
   {6 faza :
     Robimy wlasna petle, az do messageData.answered. }
@@ -1184,7 +1184,7 @@ begin
  end;
 end;
 
-procedure GLWinMessage_NoAdditional(glwin: TGLWindow; textlist: TStringList;
+procedure GLWinMessage_NoAdditional(Window: TGLWindow; textlist: TStringList;
   textalign: TTextAlign;
   MessageOnUserKeyDown: TKeyCharFunc;
   MessageOnUserMouseDown: TMouseUpDownFunc;
@@ -1195,7 +1195,7 @@ procedure GLWinMessage_NoAdditional(glwin: TGLWindow; textlist: TStringList;
 var dummy: string;
 begin
  dummy := '';
- GLWinMessage(glwin, textlist, textalign, MessageOnUserKeyDown,
+ GLWinMessage(Window, textlist, textalign, MessageOnUserKeyDown,
    MessageOnUserMouseDown, MessageOnUserMouseWheel,
    AUserMouseDownOnlyWithinRect,
    messageUserdata, AClosingInfo, false, dummy);
@@ -1203,43 +1203,43 @@ end;
 
 { MessageOK function with callbacks ------------------------------------------ }
 
-procedure MouseDownMessgOK(glwin: TGLWindow; Btn: TMouseButton);
+procedure MouseDownMessgOK(Window: TGLWindow; Btn: TMouseButton);
 begin
   if Btn = mbLeft then
-    TMessageData(glwin.UserData).answered := true;
+    TMessageData(Window.UserData).answered := true;
 end;
 
-procedure KeyDownMessgOK(glwin: TGLWindow; key: TKey; c: char);
+procedure KeyDownMessgOK(Window: TGLWindow; key: TKey; c: char);
 begin
   if c = #13 then
-    TMessageData(glwin.UserData).answered := true;
+    TMessageData(Window.UserData).answered := true;
 end;
 
-procedure MessageOK(glwin: TGLWindow;  const SArray: array of string;
+procedure MessageOK(Window: TGLWindow;  const SArray: array of string;
   textalign: TTextAlign = taMiddle);
 var textlist: TStringList;
 begin
  textlist := TStringList.Create;
  try
   AddStrArrayToStrings(SArray, textlist);
-  MessageOK(glwin, textlist, textalign);
+  MessageOK(Window, textlist, textalign);
  finally textlist.Free end;
 end;
 
-procedure MessageOK(glwin: TGLWindow; const s: string; textalign: TTextAlign);
+procedure MessageOK(Window: TGLWindow; const s: string; textalign: TTextAlign);
 var textlist: TStringList;
 begin
  textlist := TStringList.Create;
  try
   Strings_SetText(textlist, s);
-  MessageOK(glwin, textlist, textalign);
+  MessageOK(Window, textlist, textalign);
  finally textlist.free end;
 end;
 
-procedure MessageOK(glwin: TGLWindow;  textlist: TStringList;
+procedure MessageOK(Window: TGLWindow;  textlist: TStringList;
   textalign: TTextAlign);
 begin
- GLWinMessage_NoAdditional(glwin, textlist, textalign,
+ GLWinMessage_NoAdditional(Window, textlist, textalign,
    {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgOK,
    {$ifdef FPC_OBJFPC} @ {$endif} MouseDownMessgOK, nil, true,
    nil, '[Enter]');
@@ -1258,11 +1258,11 @@ type
   end;
   PInputData = ^TInputData;
 
-procedure KeyDownMessgInput(glwin: TGLWindow; key: TKey; c: char);
+procedure KeyDownMessgInput(Window: TGLWindow; key: TKey; c: char);
 var md: TMessageData;
     id: PInputData;
 begin
- md := TMessageData(glwin.UserData);
+ md := TMessageData(Window.UserData);
  id := PInputData(md.userdata);
 
  { Under Windows, pressing ctrl+backspace causes key = K_BackSpace with
@@ -1275,15 +1275,15 @@ begin
  if (C = CharBackSpace) or (Key = K_BackSpace) then
  begin
    if md.SAdditional <> '' then
-     if mkCtrl in Glwin.Pressed.Modifiers then
-       md.SetSAdditional(glwin, '') else
-       md.SetSAdditional(glwin, Copy(md.SAdditional, 1, Length(md.SAdditional)-1));
+     if mkCtrl in Window.Pressed.Modifiers then
+       md.SetSAdditional(Window, '') else
+       md.SetSAdditional(Window, Copy(md.SAdditional, 1, Length(md.SAdditional)-1));
  end else
  case c of
   CharEnter:
     if Length(md.SAdditional) >= id^.answerMinLen then
      md.answered := true else
-     MessageOk(glwin, Format('You must enter at least %d characters.',
+     MessageOk(Window, Format('You must enter at least %d characters.',
        [id^.answerMinLen]), taMiddle);
   CharEscape:
     if id^.userCanCancel then
@@ -1295,11 +1295,11 @@ begin
    if (c <> #0) and
       (c in id^.answerAllowedChars) and
       ((id^.answerMaxLen = 0) or (length(md.SAdditional) < id^.answerMaxLen)) then
-     md.SetSAdditional(glwin, md.SAdditional + c);
+     md.SetSAdditional(Window, md.SAdditional + c);
  end;
 end;
 
-function MessageInput(glwin: TGLWindow; const s: string;
+function MessageInput(Window: TGLWindow; const s: string;
   textalign: TTextAlign; const answerDefault: string;
   answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): string;
 var textlist: TStringList;
@@ -1307,12 +1307,12 @@ begin
  textlist := TStringList.Create;
  try
   Strings_SetText(textlist, s);
-  result := MessageInput(glwin, textlist, textalign, answerDefault, answerMinLen,
+  result := MessageInput(Window, textlist, textalign, answerDefault, answerMinLen,
      answerMaxLen, answerAllowedChars);
  finally textlist.free end;
 end;
 
-function MessageInput(glwin: TGLWindow; textlist: TStringList;
+function MessageInput(Window: TGLWindow; textlist: TStringList;
   textalign: TTextAlign; const answerDefault: string;
   answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): string;
 var inputData: TInputData;
@@ -1323,12 +1323,12 @@ begin
  inputdata.userCanCancel := false;
  inputdata.answerCancelled := false;
  result := answerDefault;
- GLWinMessage(glwin, textlist, textalign,
+ GLWinMessage(Window, textlist, textalign,
    {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil, nil, false,
    @inputdata, '', true, result);
 end;
 
-function MessageInputQuery(glwin: TGLWindow; const s: string;
+function MessageInputQuery(Window: TGLWindow; const s: string;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
 var textlist: TStringList;
@@ -1336,12 +1336,12 @@ begin
  textlist := TStringList.Create;
  try
   Strings_SetText(textlist, s);
-  result := MessageInputQuery(glwin, textlist, answer, textalign, answerMinLen,
+  result := MessageInputQuery(Window, textlist, answer, textalign, answerMinLen,
      answerMaxLen, answerAllowedChars);
  finally textlist.free end;
 end;
 
-function MessageInputQuery(glwin: TGLWindow; textlist: TStringList;
+function MessageInputQuery(Window: TGLWindow; textlist: TStringList;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
 var inputData: TInputData;
@@ -1357,7 +1357,7 @@ begin
   GLWinMessage zmienna answer bo jezeli not result to nie chcemy zmieniac
   answer. }
  SAdditional := answer;
- GLWinMessage(glwin, textlist, textalign,
+ GLWinMessage(Window, textlist, textalign,
    {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil, nil, false,
    @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
  result := not inputdata.answerCancelled;
@@ -1374,12 +1374,12 @@ type
   end;
   PCharData = ^TCharData;
 
-procedure KeyDownMessgChar(glwin: TGLWindow; key: TKey; c: char);
+procedure KeyDownMessgChar(Window: TGLWindow; key: TKey; c: char);
 var
   md: TMessageData;
   cd: PCharData;
 begin
-  md := TMessageData(glwin.UserData);
+  md := TMessageData(Window.UserData);
   cd := PCharData(md.userdata);
 
   if cd^.IgnoreCase then
@@ -1400,7 +1400,7 @@ begin
   end;
 end;
 
-function MessageChar(glwin: TGLWindow; const s: string; const AllowedChars: TSetOfChars;
+function MessageChar(Window: TGLWindow; const s: string; const AllowedChars: TSetOfChars;
   const ClosingInfo: string; textalign: TTextAlign;
   IgnoreCase: boolean): char;
 var textlist: TStringList;
@@ -1408,11 +1408,11 @@ begin
  textlist := TStringList.Create;
  try
   Strings_SetText(textlist, s);
-  result := MessageChar(glwin, textlist, AllowedChars, ClosingInfo, textalign, IgnoreCase);
+  result := MessageChar(Window, textlist, AllowedChars, ClosingInfo, textalign, IgnoreCase);
  finally textlist.free end;
 end;
 
-function MessageChar(glwin: TGLWindow;  const SArray: array of string; const AllowedChars: TSetOfChars;
+function MessageChar(Window: TGLWindow;  const SArray: array of string; const AllowedChars: TSetOfChars;
   const ClosingInfo: string; textalign: TTextAlign;
   IgnoreCase: boolean): char; overload;
 var textlist: TStringList;
@@ -1420,11 +1420,11 @@ begin
  textlist := TStringList.Create;
  try
   AddStrArrayToStrings(SArray, textlist);
-  result := MessageChar(glwin, textlist, AllowedChars, ClosingInfo, textalign, IgnoreCase);
+  result := MessageChar(Window, textlist, AllowedChars, ClosingInfo, textalign, IgnoreCase);
  finally textlist.Free end;
 end;
 
-function MessageChar(glwin: TGLWindow; textlist: TStringList;
+function MessageChar(Window: TGLWindow; textlist: TStringList;
   const AllowedChars: TSetOfChars; const ClosingInfo: string;
   textalign: TTextAlign;
   IgnoreCase: boolean): char; overload;
@@ -1432,7 +1432,7 @@ var charData: TCharData;
 begin
  chardata.allowedChars := AllowedChars;
  chardata.IgnoreCase := IgnoreCase;
- GLWinMessage_NoAdditional(glwin, textlist, textalign,
+ GLWinMessage_NoAdditional(Window, textlist, textalign,
    @KeyDownMessgChar, nil, nil, false,
    @chardata, ClosingInfo);
  result := chardata.answer;
@@ -1446,12 +1446,12 @@ type
   end;
   PMessageKeyData = ^TMessageKeyData;
 
-procedure MessageKey_KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+procedure MessageKey_KeyDown(Window: TGLWindow; Key: TKey; C: char);
 var
   MD: TMessageData;
   KD: PMessageKeyData;
 begin
-  MD := TMessageData(Glwin.UserData);
+  MD := TMessageData(Window.UserData);
   KD := PMessageKeyData(MD.UserData);
 
   if Key <> K_None then
@@ -1461,7 +1461,7 @@ begin
   end;
 end;
 
-function MessageKey(Glwin: TGLWindow; const S: string;
+function MessageKey(Window: TGLWindow; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey;
 var
   TextList: TStringList;
@@ -1469,11 +1469,11 @@ begin
   TextList := TStringList.Create;
   try
     Strings_SetText(TextList, S);
-    Result := MessageKey(Glwin, TextList, ClosingInfo, TextAlign);
+    Result := MessageKey(Window, TextList, ClosingInfo, TextAlign);
   finally TextList.free end;
 end;
 
-function MessageKey(Glwin: TGLWindow; const SArray: array of string;
+function MessageKey(Window: TGLWindow; const SArray: array of string;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey;
 var
   TextList: TStringList;
@@ -1481,16 +1481,16 @@ begin
   TextList := TStringList.Create;
   try
     AddStrArrayToStrings(SArray, TextList);
-    Result := MessageKey(Glwin, TextList, ClosingInfo, TextAlign);
+    Result := MessageKey(Window, TextList, ClosingInfo, TextAlign);
   finally TextList.Free end;
 end;
 
-function MessageKey(Glwin: TGLWindow; TextList: TStringList;
+function MessageKey(Window: TGLWindow; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey;
 var
   MessageKeyData: TMessageKeyData;
 begin
-  GLWinMessage_NoAdditional(Glwin, TextList, TextAlign,
+  GLWinMessage_NoAdditional(Window, TextList, TextAlign,
     {$ifdef FPC_OBJFPC} @ {$endif} MessageKey_KeyDown, nil, nil, false,
     @MessageKeyData, ClosingInfo);
   Result := MessageKeyData.Answer;
@@ -1507,12 +1507,12 @@ type
   end;
   PMessageKeyMouseData = ^TMessageKeyMouseData;
 
-procedure MessageKeyMouse_KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+procedure MessageKeyMouse_KeyDown(Window: TGLWindow; Key: TKey; C: char);
 var
   MD: TMessageData;
   KD: PMessageKeyMouseData;
 begin
-  MD := TMessageData(Glwin.UserData);
+  MD := TMessageData(Window.UserData);
   KD := PMessageKeyMouseData(MD.UserData);
 
   if Key <> K_None then
@@ -1525,12 +1525,12 @@ begin
   end;
 end;
 
-procedure MessageKeyMouse_MouseDown(Glwin: TGLWindow; MouseButton: TMouseButton);
+procedure MessageKeyMouse_MouseDown(Window: TGLWindow; MouseButton: TMouseButton);
 var
   MD: TMessageData;
   KD: PMessageKeyMouseData;
 begin
-  MD := TMessageData(Glwin.UserData);
+  MD := TMessageData(Window.UserData);
   KD := PMessageKeyMouseData(MD.UserData);
 
   MD.Answered := true;
@@ -1540,13 +1540,13 @@ begin
   KD^.AnswerMouseWheel := mwNone;
 end;
 
-procedure MessageKeyMouse_MouseWheel(Glwin: TGLWindow;
+procedure MessageKeyMouse_MouseWheel(Window: TGLWindow;
   const Scroll: Single; const Vertical: boolean);
 var
   MD: TMessageData;
   KD: PMessageKeyMouseData;
 begin
-  MD := TMessageData(Glwin.UserData);
+  MD := TMessageData(Window.UserData);
   KD := PMessageKeyMouseData(MD.UserData);
 
   MD.Answered := true;
@@ -1556,7 +1556,7 @@ begin
   KD^.AnswerMouseWheel := MouseWheelDirection(Scroll, Vertical);
 end;
 
-procedure MessageKeyMouse(Glwin: TGLWindow; const S: string;
+procedure MessageKeyMouse(Window: TGLWindow; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign;
   out Key: TKey;
   out MousePress: boolean; out MouseButton: TMouseButton;
@@ -1567,12 +1567,12 @@ begin
   TextList := TStringList.Create;
   try
     Strings_SetText(TextList, S);
-    MessageKeyMouse(Glwin, TextList, ClosingInfo, TextAlign,
+    MessageKeyMouse(Window, TextList, ClosingInfo, TextAlign,
       Key, MousePress, MouseButton, MouseWheel);
   finally TextList.Free end;
 end;
 
-procedure MessageKeyMouse(Glwin: TGLWindow; TextList: TStringList;
+procedure MessageKeyMouse(Window: TGLWindow; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign;
   out Key: TKey;
   out MousePress: boolean; out MouseButton: TMouseButton;
@@ -1580,7 +1580,7 @@ procedure MessageKeyMouse(Glwin: TGLWindow; TextList: TStringList;
 var
   Data: TMessageKeyMouseData;
 begin
-  GLWinMessage_NoAdditional(Glwin, TextList, TextAlign,
+  GLWinMessage_NoAdditional(Window, TextList, TextAlign,
     {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_KeyDown,
     {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_MouseDown,
     {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_MouseWheel, false,
@@ -1600,58 +1600,58 @@ const
   MessageYesNo_ClosingInfo = '[Y]es/[N]o';
   MessageYesNo_AllowedChars: TSetOfChars = ['n','N','y','Y'];
 
-function MessageYesNo(glwin: TGLWindow; const s: string;
+function MessageYesNo(Window: TGLWindow; const s: string;
   textalign: TTextAlign): boolean; overload;
 begin
- result := LoCase(MessageChar(glwin, s, MessageYesNo_AllowedChars,
+ result := LoCase(MessageChar(Window, s, MessageYesNo_AllowedChars,
    MessageYesNo_ClosingInfo, textalign)) = MessageYesNo_YesLetter;
 end;
 
-function MessageYesNo(glwin: TGLWindow;  const SArray: array of string;
+function MessageYesNo(Window: TGLWindow;  const SArray: array of string;
   textalign: TTextAlign): boolean; overload;
 begin
- result := LoCase(MessageChar(glwin, SArray, MessageYesNo_AllowedChars,
+ result := LoCase(MessageChar(Window, SArray, MessageYesNo_AllowedChars,
    MessageYesNo_ClosingInfo, textalign)) = MessageYesNo_YesLetter;
 end;
 
-function MessageYesNo(glwin: TGLWindow;  textlist: TStringList;
+function MessageYesNo(Window: TGLWindow;  textlist: TStringList;
   textalign: TTextAlign): boolean; overload;
 begin
- result := LoCase(MessageChar(glwin, textlist, MessageYesNo_AllowedChars,
+ result := LoCase(MessageChar(Window, textlist, MessageYesNo_AllowedChars,
    MessageYesNo_ClosingInfo, textalign)) = MessageYesNo_YesLetter;
 end;
 
 { MessageInputCardinal ------------------------------------------------------- }
 
-function MessageInputCardinal(glwin: TGLWindow; const s: string;
+function MessageInputCardinal(Window: TGLWindow; const s: string;
   TextAlign: TTextAlign; const AnswerDefault: string): Cardinal;
 begin
- result := StrToInt( MessageInput(glwin, s, TextAlign, AnswerDefault,
+ result := StrToInt( MessageInput(Window, s, TextAlign, AnswerDefault,
    1, 0, ['0'..'9']) );
 end;
 
-function MessageInputCardinal(glwin: TGLWindow; const s: string;
+function MessageInputCardinal(Window: TGLWindow; const s: string;
   TextAlign: TTextAlign; AnswerDefault: Cardinal): Cardinal;
 begin
- result := MessageInputCardinal(glwin, s, TextAlign, IntToStr(AnswerDefault));
+ result := MessageInputCardinal(Window, s, TextAlign, IntToStr(AnswerDefault));
 end;
 
-function MessageInputQueryCardinal(glwin: TGLWindow; const Title: string;
+function MessageInputQueryCardinal(Window: TGLWindow; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign): boolean;
 var ValueStr: string;
 begin
  ValueStr := IntToStr(Value);
- Result := MessageInputQuery(glwin, Title, ValueStr, TextAlign, 1, 0, ['0'..'9']);
+ Result := MessageInputQuery(Window, Title, ValueStr, TextAlign, 1, 0, ['0'..'9']);
  if Result then
   Value := StrToInt(ValueStr);
 end;
 
-function MessageInputQueryCardinalHex(glwin: TGLWindow; const Title: string;
+function MessageInputQueryCardinalHex(Window: TGLWindow; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
 var ValueStr: string;
 begin
  ValueStr := IntToHex(Value, 4);
- Result := MessageInputQuery(glwin, Title, ValueStr, TextAlign, 1, MaxWidth,
+ Result := MessageInputQuery(Window, Title, ValueStr, TextAlign, 1, MaxWidth,
    ['0'..'9', 'a'..'f', 'A'..'F']);
  if Result then
   Value := StrHexToInt(ValueStr);
@@ -1659,7 +1659,7 @@ end;
 
 { MessageInputQuery on floats ------------------------------------------------ }
 
-function MessageInputQuery(glwin: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TGLWindow; const Title: string;
   var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var s: string;
 begin
@@ -1667,7 +1667,7 @@ begin
  if ValueAsString <> '' then
    S := ValueAsString else
    S := FloatToStr(Value);
- if MessageInputQuery(glwin, Title, s, TextAlign) then
+ if MessageInputQuery(Window, Title, s, TextAlign) then
  begin
   try
    Value := StrToFloat(s);
@@ -1675,31 +1675,31 @@ begin
   except
    on E: EConvertError do
    begin
-    MessageOK(glwin, 'Invalid floating point value : ' +E.Message, taLeft);
+    MessageOK(Window, 'Invalid floating point value : ' +E.Message, taLeft);
    end;
   end;
  end;
 end;
 
-function MessageInputQuery(glwin: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TGLWindow; const Title: string;
   var Value: Single; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var
   ValueExtended: Extended;
 begin
   ValueExtended := Value;
-  Result := MessageInputQuery(glwin, Title, ValueExtended, TextAlign, ValueAsString);
+  Result := MessageInputQuery(Window, Title, ValueExtended, TextAlign, ValueAsString);
   if Result then
     Value := ValueExtended;
 end;
 
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function MessageInputQuery(glwin: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TGLWindow; const Title: string;
   var Value: Double; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var
   ValueExtended: Extended;
 begin
   ValueExtended := Value;
-  Result := MessageInputQuery(glwin, Title, ValueExtended, TextAlign, ValueAsString);
+  Result := MessageInputQuery(Window, Title, ValueExtended, TextAlign, ValueAsString);
   if Result then
     Value := ValueExtended;
 end;
@@ -1708,13 +1708,13 @@ end;
 { MessageInputQueryVector3Single --------------------------------------------- }
 
 function MessageInputQueryVector3Single(
-  glwin: TGLWindow; const Title: string;
+  Window: TGLWindow; const Title: string;
   var Value: TVector3Single; TextAlign: TTextAlign): boolean;
 var s: string;
 begin
  Result := false;
  s := Format('%g %g %g', [Value[0], Value[1], Value[2]]);
- if MessageInputQuery(glwin, Title, s, TextAlign) then
+ if MessageInputQuery(Window, Title, s, TextAlign) then
  begin
   try
    Value := Vector3SingleFromStr(s);
@@ -1722,7 +1722,7 @@ begin
   except
    on E: EConvertError do
    begin
-    MessageOK(glwin, 'Invalid vector 3 value : ' + E.Message, taLeft);
+    MessageOK(Window, 'Invalid vector 3 value : ' + E.Message, taLeft);
    end;
   end;
  end;
@@ -1731,13 +1731,13 @@ end;
 { MessageInputQueryVector4Single --------------------------------------------- }
 
 function MessageInputQueryVector4Single(
-  glwin: TGLWindow; const Title: string;
+  Window: TGLWindow; const Title: string;
   var Value: TVector4Single; TextAlign: TTextAlign): boolean;
 var s: string;
 begin
  Result := false;
  s := Format('%g %g %g %g', [Value[0], Value[1], Value[2], Value[3]]);
- if MessageInputQuery(glwin, Title, s, TextAlign) then
+ if MessageInputQuery(Window, Title, s, TextAlign) then
  begin
   try
    Value := Vector4SingleFromStr(s);
@@ -1745,7 +1745,7 @@ begin
   except
    on E: EConvertError do
    begin
-    MessageOK(glwin, 'Invalid vector 4 value : ' + E.Message, taLeft);
+    MessageOK(Window, 'Invalid vector 4 value : ' + E.Message, taLeft);
    end;
   end;
  end;

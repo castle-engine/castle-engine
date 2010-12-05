@@ -22,8 +22,7 @@
 
   @orderedList(
     @item(Declare and create @link(TGLWindow) instance. (Or a descendant
-      like @link(TGLUIWindow) or @link(TGLWindowDemo)).
-      By convention, I name it @code(Glw) in my programs.)
+      like @link(TGLUIWindow) or @link(TGLWindowDemo).))
 
     @item(Assign Glw properties and callbacks like
       @link(TGLWindow.OnDraw OnDraw),
@@ -32,7 +31,7 @@
       @link(TGLWindow.Height Height),
       @link(TGLWindow.Caption Caption).)
 
-    @item(Call @link(TGLWindow.Open Glw.Open),
+    @item(Call @link(TGLWindow.Open Window.Open),
       this will actually show the window and it's
       associated OpenGL context. It also calls
       @link(TGLWindow.EventOpen EventOpen)
@@ -51,8 +50,8 @@
         @longCode(#  while Application.ProcessMessage do <something>;#)
       instead of Application.Run.
 
-      You can also call @link(TGLWindow.OpenAndRun Glw.OpenAndRun),
-      this is just a shortcut for Glw.Open + Application.Run.)
+      You can also call @link(TGLWindow.OpenAndRun Window.OpenAndRun),
+      this is just a shortcut for Window.Open + Application.Run.)
 
     @item(Application.Run ends when you call @link(TGLApplication.Quit Application.Quit)
       or when you close last visible window using @link(TGLWindow.Close Close(true)).
@@ -71,20 +70,20 @@
   uses GLWindow;
 
   var
-    Glw: TGLUIWindow;
+    Window: TGLUIWindow;
 
-  procedure Draw(Glwin: TGLWindow);
+  procedure Draw(Window: TGLWindow);
   begin  ...  end;
 
-  procedure Resize(Glwin: TGLWindow);
+  procedure Resize(Window: TGLWindow);
   begin  ...  end;
 
   begin
-    Glw := TGLUIWindow.Create(Application);
-    Glw.OnResize := @Resize;
-    Glw.OnDraw := @Draw;
-    Glw.Caption := 'Simplest GLWindow example';
-    Glw.OpenAndRun;
+    Window := TGLUIWindow.Create(Application);
+    Window.OnResize := @Resize;
+    Window.OnDraw := @Draw;
+    Window.Caption := 'Simplest GLWindow example';
+    Window.OpenAndRun;
   end.
 #)
 
@@ -115,11 +114,11 @@
   begin  ...  end;
 
   var
-    Glw: TMyWindow;
+    Window: TMyWindow;
   begin
-    Glw := TMyWindow.Create(Application);
-    Glw.Caption := 'Simplest GLWindow example using more OOP';
-    Glw.OpenAndRun;
+    Window := TMyWindow.Create(Application);
+    Window.Caption := 'Simplest GLWindow example using more OOP';
+    Window.OpenAndRun;
   end.
 #)
 
@@ -703,14 +702,14 @@ type
   TGLWindowMessageType = (mtInfo, mtWarning, mtQuestion, mtError, mtOther);
 
   TIdleFunc = procedure;
-  TGLWindowFunc = procedure(Glwin: TGLWindow);
+  TGLWindowFunc = procedure(Window: TGLWindow);
   TDrawFunc = TGLWindowFunc;
-  TKeyCharFunc = procedure(Glwin: TGLWindow; Key: TKey; C: char);
-  TMouseMoveFunc = procedure(Glwin: TGLWindow; NewX, NewY: Integer);
-  TMouseUpDownFunc = procedure(Glwin: TGLWindow; Button: TMouseButton);
-  TMouseWheelFunc = procedure(Glwin: TGLWindow; const Scroll: Single; const Vertical: boolean);
-  TMenuCommandFunc = procedure(Glwin: TGLWindow; Item: TMenuItem);
-  TGLContextLoweredFunc = procedure(Glwin: TGLWindow; const FailureMessage: string);
+  TKeyCharFunc = procedure(Window: TGLWindow; Key: TKey; C: char);
+  TMouseMoveFunc = procedure(Window: TGLWindow; NewX, NewY: Integer);
+  TMouseUpDownFunc = procedure(Window: TGLWindow; Button: TMouseButton);
+  TMouseWheelFunc = procedure(Window: TGLWindow; const Scroll: Single; const Vertical: boolean);
+  TMenuCommandFunc = procedure(Window: TGLWindow; Item: TMenuItem);
+  TGLContextLoweredFunc = procedure(Window: TGLWindow; const FailureMessage: string);
 
   TDynArrayItem_2 = TGLWindowFunc;
   PDynArrayItem_2 = ^TGLWindowFunc;
@@ -720,7 +719,7 @@ type
   TDynGLWindowFuncArray = class(TDynArray_2)
   public
     { Call all (non-nil) Items. With given Glwin parameter. }
-    procedure ExecuteAll(Glwin: TGLWindow);
+    procedure ExecuteAll(Window: TGLWindow);
   end;
 
   { Saved state of all callbacks
@@ -1396,7 +1395,7 @@ type
       @orderedList(
         @item(
           Most programs using OpenGL use depth testing, so many programs
-          would have to call something like @code(Glw.DepthBufferBits := 16).)
+          would have to call something like @code(Window.DepthBufferBits := 16).)
 
         @item(
           Often graphic cards / window systems / OSes give you an OpenGL
@@ -1406,7 +1405,7 @@ type
           If you're writing 3d program and sitting on some
           system that always gives you depth buffer (even if DepthBufferBits = 0)
           then it may happen that you forget to write in your program
-          @longCode(#  glw.DepthBufferBits := 16;#)
+          @longCode(#  Window.DepthBufferBits := 16;#)
 
           And while on your system everything will work, you will
           receive errors on other systems because you forgot to request a
@@ -1414,9 +1413,9 @@ type
       )
 
       Of course, if you are writing a program that does not need depth buffer
-      you should set glw.DepthBufferBits := 0. The only advantage of having
+      you should set Window.DepthBufferBits := 0. The only advantage of having
       default DepthBufferBits = 16 is that if you forget to set
-      Glw.DepthBufferBits := 0 your programs will still work (most graphic cards
+      Window.DepthBufferBits := 0 your programs will still work (most graphic cards
       will give you some depth buffer anyway).
       They will just use more resources than they should.
     }
@@ -1688,7 +1687,7 @@ type
       GLWinMessages unit offers some nice routines that you can safely
       use here, e.g. you can use it inside OnCloseQuery like
 
-        if MessageYesNo(glwin, 'Are you sure you want to quit?') then
+        if MessageYesNo(Window, 'Are you sure you want to quit?') then
          Close;
 
       Inside MessageYesNo, when we're processing events,
@@ -1910,16 +1909,16 @@ type
 
 @longCode(#
   Shadows := true;
-  Glw.StencilBufferBits := 8;
+  Window.StencilBufferBits := 8;
   try
-    Glw.Open;
+    Window.Open;
   except
     on EGLContextNotPossible do
     begin
       Shadows := false;
-      Glw.StencilBufferBits := 0;
+      Window.StencilBufferBits := 0;
       { try to open once again, this time without requesting stencil buffer }
-      Glw.Open;
+      Window.Open;
     end;
   end;
 #)
@@ -2072,7 +2071,7 @@ type
 
     { Asks user where to save the file (using @link(FileDialog),
       as default filename taking ProposedFname), if user accepts
-      calls glwin.SaveScreen(user-chosen-file-name); }
+      calls Window.SaveScreen(user-chosen-file-name); }
     procedure SaveScreenDialog(ProposedFileName: string);
 
     { @groupbegin
@@ -2572,7 +2571,7 @@ type
 
     { Add new item to OpenWindows.
       Windows must not be already on OpenWindows list. }
-    procedure OpenWindowsAdd(glwin: TGLWindow);
+    procedure OpenWindowsAdd(Window: TGLWindow);
 
     { Delete window from OpenWindows.
 
@@ -2583,10 +2582,10 @@ type
 
       If glwin was present on OpenWindows and after removing glwin
       OpenWindowsCount = 0 and QuitWhenLastWindowClosed then it calls Quit. }
-    procedure OpenWindowsRemove(glwin: TGLWindow; QuitWhenLastWindowClosed: boolean);
+    procedure OpenWindowsRemove(Window: TGLWindow; QuitWhenLastWindowClosed: boolean);
 
     { Find window on the OpenWindows list. Returns index, or -1 if not found. }
-    function FindWindow(glwin: TGLWindow): integer;
+    function FindWindow(Window: TGLWindow): integer;
 
     procedure CreateBackend;
     procedure DestroyBackend;
@@ -2836,7 +2835,7 @@ const
   glViewport(0, 0, Window.Width, Window.Height);
   ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
 #) }
-procedure Resize2D(glwin: TGLWindow);
+procedure Resize2D(Window: TGLWindow);
 
 {$undef read_interface}
 
@@ -2863,13 +2862,13 @@ uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit
 
 { TDynGLWindowFuncArray ------------------------------------------------ }
 
-procedure TDynGLWindowFuncArray.ExecuteAll(glwin: TGLwindow);
+procedure TDynGLWindowFuncArray.ExecuteAll(Window: TGLwindow);
 var i: integer;
 begin
  for i := 0 to Length-1 do
   if {$ifndef FPC_OBJFPC} @ {$endif} Items[i] <> nil then
   begin
-   Items[i](glwin);
+   Items[i](Window);
   end;
 end;
 
@@ -3629,7 +3628,7 @@ end;
 type
   TOptionProcData = record
     SpecifiedOptions: TGLWindowParseOptions;
-    glwin: TGLWindow;
+    Window: TGLWindow;
   end;
   POptionProcData = ^TOptionProcData;
 
@@ -3702,7 +3701,7 @@ var ProcData: POptionProcData absolute Data;
     end;
 
   begin
-   ProcData^.glwin.FullScreen := false;
+   ProcData^.Window.FullScreen := false;
    try
     sizeSpecified := false;
     positionSpecified := false;
@@ -3718,17 +3717,17 @@ var ProcData: POptionProcData absolute Data;
     {ok, now we can apply what we have}
     if sizeSpecified then
     begin
-     ProcData^.glwin.Width := parWidth;
-     ProcData^.glwin.Height := parHeight;
+     ProcData^.Window.Width := parWidth;
+     ProcData^.Window.Height := parHeight;
     end;
     if positionSpecified then
     begin
      if xoffPlus then
-      ProcData^.glwin.Left := parXoff else
-      ProcData^.glwin.Left := Application.ScreenWidth-parXoff-parWidth;
+      ProcData^.Window.Left := parXoff else
+      ProcData^.Window.Left := Application.ScreenWidth-parXoff-parWidth;
      if yoffPlus then
-      ProcData^.glwin.Top := parYoff else
-      ProcData^.glwin.Top := Application.ScreenHeight-parYoff-parHeight;
+      ProcData^.Window.Top := parYoff else
+      ProcData^.Window.Top := Application.ScreenHeight-parYoff-parHeight;
     end;
 
    except
@@ -3740,7 +3739,7 @@ var ProcData: POptionProcData absolute Data;
 begin
  Include(ProcData^.SpecifiedOptions, poGeometry);
  case OptionNum of
-  0: ProcData^.glwin.FullScreen := true;
+  0: ProcData^.Window.FullScreen := true;
   1: ApplyGeometryParam(Argument);
  end;
 end;
@@ -3752,7 +3751,7 @@ var ProcData: POptionProcData absolute Data;
   procedure ApplyFullScreenCustomParam(const option: string);
   var p: integer;
   begin
-   ProcData^.glwin.FullScreen := true;
+   ProcData^.Window.FullScreen := true;
    try
     p := CharsPos(['x','X'], option);
     if p = 0 then
@@ -3833,7 +3832,7 @@ var Data: TOptionProcData;
     ParamKind: TGLWindowParseOption;
 begin
  Data.SpecifiedOptions := [];
- Data.glwin := Self;
+ Data.Window := Self;
 
  for ParamKind := Low(ParamKind) to High(ParamKind) do
   if ParamKind in AllowedOptions then
@@ -4763,22 +4762,22 @@ begin
   result := FOpenWindows.Count;
 end;
 
-procedure TGLApplication.OpenWindowsAdd(glwin: TGLWindow);
+procedure TGLApplication.OpenWindowsAdd(Window: TGLWindow);
 begin
-  FOpenWindows.Add(glwin);
+  FOpenWindows.Add(Window);
 end;
 
-procedure TGLApplication.OpenWindowsRemove(glwin: TGLWindow;
+procedure TGLApplication.OpenWindowsRemove(Window: TGLWindow;
   QuitWhenLastWindowClosed: boolean);
 begin
-  if (FOpenWindows.Remove(glwin) <> -1) and
+  if (FOpenWindows.Remove(Window) <> -1) and
      (OpenWindowsCount = 0) and QuitWhenLastWindowClosed then Quit;
 end;
 
-function TGLApplication.FindWindow(glwin: TGLWindow): integer;
+function TGLApplication.FindWindow(Window: TGLWindow): integer;
 begin
   for result := 0 to OpenWindowsCount-1 do
-    if OpenWindows[result] = glwin then exit;
+    if OpenWindows[result] = Window then exit;
   result := -1;
 end;
 
@@ -4892,10 +4891,10 @@ end;
 
 { Resize2D ------------------------------------------------------------ }
 
-procedure Resize2D(glwin: TGLWindow);
+procedure Resize2D(Window: TGLWindow);
 begin
- glViewport(0, 0, glwin.Width, glwin.Height);
- ProjectionGLOrtho(0, glwin.Width, 0, glwin.Height);
+ glViewport(0, 0, Window.Width, Window.Height);
+ ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
 end;
 
 { init/fini --------------------------------------------------------------- }

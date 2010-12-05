@@ -85,31 +85,31 @@ uses SysUtils, KambiUtils,  BFNT_BitstreamVeraSans_Unit, Images, KeysMouse;
 
 { display -------------------------------------------------------------------- }
 
-procedure DisplayProgress(glwin: TGLWindow);
+procedure DisplayProgress(Window: TGLWindow);
 var
   Margin: integer;
   BarHeight, y1, y2, YMiddle: TGLfloat;
   Progress: TProgress;
   ProgressInterface: TGLProgressInterface;
 begin
-  Progress := TProgress(glwin.UserData);
+  Progress := TProgress(Window.UserData);
   ProgressInterface := Progress.UserInterface as TGLProgressInterface;
 
   glLoadIdentity;
   glRasterPos2i(0, 0);
   glCallList(ProgressInterface.list_drawProgressBG);
 
-  Margin := 100 * glwin.width div 800;
-  BarHeight := 50 * glwin.height div 600;
-  YMiddle := Glwin.Height * ProgressInterface.BarYPosition;
+  Margin := 100 * Window.width div 800;
+  BarHeight := 50 * Window.height div 600;
+  YMiddle := Window.Height * ProgressInterface.BarYPosition;
   y1 := YMiddle + BarHeight/2;
   y2 := YMiddle - BarHeight/2;
 
   glColor3ub(192, 192, 192);
-  glRectf(Margin, y1, glwin.width-Margin, y2);
+  glRectf(Margin, y1, Window.width-Margin, y2);
   glColor3f(0.2, 0.5, 0);
   glRectf(Margin, y1,
-    Margin + (Cardinal(glwin.width)-2*Margin) * Progress.Position/Progress.Max, y2);
+    Margin + (Cardinal(Window.width)-2*Margin) * Progress.Position/Progress.Max, y2);
 
   glColor3f(0, 0,0);
   glRasterPos2f(Margin + 20,

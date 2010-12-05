@@ -67,7 +67,7 @@ type
       2. expand routines Get, Set and SetStandard below. } { }
   public
     { Constructor. Gets the state of given window (like GetState). }
-    constructor Create(Glwin: TGLWindow);
+    constructor Create(Window: TGLWindow);
     destructor Destroy; override;
 
     { GetState saves the TGLWindow state, SetState applies this state
@@ -96,8 +96,8 @@ type
       )
 
       @groupBegin }
-    procedure GetState(Glwin: TGLWindow);
-    procedure SetState(Glwin: TGLWindow);
+    procedure GetState(Window: TGLWindow);
+    procedure SetState(Window: TGLWindow);
     { @groupEnd }
 
     { Resets all window properties (that are get / set by TGLWindowState).
@@ -128,7 +128,7 @@ type
       it's an empty callback, thus using it disables the possibility
       to close the window by window manager
       (usually using "close" button in some window corner or Alt+F4). }
-    class procedure SetStandardState(Glwin: TGLWindow;
+    class procedure SetStandardState(Window: TGLWindow;
       NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
       NewFPSActive: boolean);
   end;
@@ -137,7 +137,7 @@ type
     of TGLWindow properties (see TGLWindowState) and various OpenGL state. }
   TGLMode = class
   protected
-    glwin: TGLWindow;
+    Window: TGLWindow;
   private
     oldWinState: TGLWindowState;
     oldProjectionMatrix, oldTextureMatrix, oldModelviewMatrix: TMatrix4f;
@@ -178,7 +178,7 @@ type
 
         @item(
           All pressed keys and mouse butons are saved and faked to be released,
-          by calling TGLWindow.EventMouseUp, Glwin.EventKeyUp with original
+          by calling TGLWindow.EventMouseUp, Window.EventKeyUp with original
           callbacks.
           This way, if user releases some keys/mouse inside modal box,
           your original TGLWindow callbacks will not miss this fact.
@@ -213,7 +213,7 @@ type
           reinitializing window TGLUIWindow.Controls OpenGL resources,
           see TUIControl.DisableContextOpenClose.)
       ) }
-    constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+    constructor Create(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean);
 
     { Save OpenGL and TGLWindow state, and then change this to a standard
@@ -222,7 +222,7 @@ type
       This is a shortcut for @link(Create) followed by
       @link(TGLWindowState.SetStandardState), see there for explanation
       of parameters. }
-    constructor CreateReset(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+    constructor CreateReset(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean;
       NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
       NewFPSActive: boolean);
@@ -263,7 +263,7 @@ type
     SavedScreenWidth, SavedScreenHeight: Cardinal;
     FPolygonStipple: PPolygonStipple;
   public
-    constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+    constructor Create(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean;
       APolygonStipple: PPolygonStipple);
 
@@ -272,7 +272,7 @@ type
 
 { Empty TGLWindow callback, useful as TGLWindow.OnCloseQuery
   to disallow closing the window by user. }
-procedure NoClose(glwin: TGLWindow);
+procedure NoClose(Window: TGLWindow);
 
 implementation
 
@@ -280,11 +280,11 @@ uses KambiUtils, GLImages;
 
 { TGLWindowState -------------------------------------------------------------- }
 
-constructor TGLWindowState.Create(Glwin: TGLWindow);
+constructor TGLWindowState.Create(Window: TGLWindow);
 begin
   inherited Create;
   OldControls := TUIControlList.Create(false);
-  GetState(Glwin);
+  GetState(Window);
 end;
 
 destructor TGLWindowState.Destroy;
@@ -293,97 +293,97 @@ begin
   inherited;
 end;
 
-procedure TGLWindowState.GetState(Glwin: TGLWindow);
+procedure TGLWindowState.GetState(Window: TGLWindow);
 begin
-  oldCallbacks := Glwin.GetCallbacksState;
-  oldCaption := Glwin.Caption;
-  oldUserdata := Glwin.Userdata;
-  oldAutoRedisplay := Glwin.AutoRedisplay;
-  oldFPSActive := Glwin.Fps.Active;
-  oldMainMenu := Glwin.MainMenu;
-  if Glwin.MainMenu <> nil then
-    oldMainMenuEnabled := Glwin.MainMenu.Enabled;
-  OldCursor := Glwin.Cursor;
-  OldCustomCursor := Glwin.CustomCursor;
+  oldCallbacks := Window.GetCallbacksState;
+  oldCaption := Window.Caption;
+  oldUserdata := Window.Userdata;
+  oldAutoRedisplay := Window.AutoRedisplay;
+  oldFPSActive := Window.Fps.Active;
+  oldMainMenu := Window.MainMenu;
+  if Window.MainMenu <> nil then
+    oldMainMenuEnabled := Window.MainMenu.Enabled;
+  OldCursor := Window.Cursor;
+  OldCustomCursor := Window.CustomCursor;
 
-  if glwin is TGLWindowDemo then
+  if Window is TGLWindowDemo then
   begin
-    oldSwapFullScreen_Key := TGLWindowDemo(glwin).SwapFullScreen_Key;
-    oldClose_charkey := TGLWindowDemo(glwin).Close_charkey;
-    oldFpsShowOnCaption := TGLWindowDemo(glwin).FpsShowOnCaption;
+    oldSwapFullScreen_Key := TGLWindowDemo(Window).SwapFullScreen_Key;
+    oldClose_charkey := TGLWindowDemo(Window).Close_charkey;
+    oldFpsShowOnCaption := TGLWindowDemo(Window).FpsShowOnCaption;
   end;
 
-  if glwin is TGLUIWindow then
+  if Window is TGLUIWindow then
   begin
-    OldControls.Assign(TGLUIWindow(Glwin).Controls);
-    { protected now OldUseControls := TGLUIWindow(Glwin).UseControls; }
-    OldOnDrawStyle := TGLUIWindow(Glwin).OnDrawStyle;
+    OldControls.Assign(TGLUIWindow(Window).Controls);
+    { protected now OldUseControls := TGLUIWindow(Window).UseControls; }
+    OldOnDrawStyle := TGLUIWindow(Window).OnDrawStyle;
   end;
 end;
 
-procedure TGLWindowState.SetState(Glwin: TGLWindow);
+procedure TGLWindowState.SetState(Window: TGLWindow);
 begin
-  Glwin.SetCallbacksState(oldCallbacks);
-  Glwin.Caption := oldCaption;
-  Glwin.Userdata := oldUserdata;
-  Glwin.AutoRedisplay := oldAutoRedisplay;
-  Glwin.Fps.Active := oldFPSActive;
-  Glwin.MainMenu := oldMainMenu;
-  if Glwin.MainMenu <> nil then
-    Glwin.MainMenu.Enabled := OldMainMenuEnabled;
-  Glwin.Cursor := OldCursor;
-  Glwin.CustomCursor := OldCustomCursor;
+  Window.SetCallbacksState(oldCallbacks);
+  Window.Caption := oldCaption;
+  Window.Userdata := oldUserdata;
+  Window.AutoRedisplay := oldAutoRedisplay;
+  Window.Fps.Active := oldFPSActive;
+  Window.MainMenu := oldMainMenu;
+  if Window.MainMenu <> nil then
+    Window.MainMenu.Enabled := OldMainMenuEnabled;
+  Window.Cursor := OldCursor;
+  Window.CustomCursor := OldCustomCursor;
 
-  if glwin is TGLWindowDemo then
+  if Window is TGLWindowDemo then
   begin
-    TGLWindowDemo(glwin).SwapFullScreen_Key := oldSwapFullScreen_Key;
-    TGLWindowDemo(glwin).Close_charkey := oldClose_charkey;
-    TGLWindowDemo(glwin).FpsShowOnCaption := oldFpsShowOnCaption;
+    TGLWindowDemo(Window).SwapFullScreen_Key := oldSwapFullScreen_Key;
+    TGLWindowDemo(Window).Close_charkey := oldClose_charkey;
+    TGLWindowDemo(Window).FpsShowOnCaption := oldFpsShowOnCaption;
   end;
 
-  if glwin is TGLUIWindow then
+  if Window is TGLUIWindow then
   begin
-    TGLUIWindow(Glwin).Controls.Assign(OldControls);
-    { protected now TGLUIWindow(Glwin).UseControls := OldUseControls; }
-    TGLUIWindow(Glwin).OnDrawStyle := OldOnDrawStyle;
+    TGLUIWindow(Window).Controls.Assign(OldControls);
+    { protected now TGLUIWindow(Window).UseControls := OldUseControls; }
+    TGLUIWindow(Window).OnDrawStyle := OldOnDrawStyle;
   end;
 end;
 
-class procedure TGLWindowState.SetStandardState(glwin: TGLWindow;
+class procedure TGLWindowState.SetStandardState(Window: TGLWindow;
   NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
   NewFPSActive: boolean);
 begin
-  Glwin.SetCallbacksState(DefaultCallbacksState);
-  Glwin.OnDraw := NewDraw;
-  Glwin.OnResize := NewResize;
-  Glwin.OnCloseQuery := NewCloseQuery;
-  {Glwin.Caption := leave current value}
-  Glwin.Userdata := nil;
-  Glwin.AutoRedisplay := false;
-  Glwin.Fps.Active := NewFPSActive;
-  if Glwin.MainMenu <> nil then
-    Glwin.MainMenu.Enabled := false;
-  {Glwin.MainMenu := leave current value}
-  Glwin.Cursor := mcDefault;
+  Window.SetCallbacksState(DefaultCallbacksState);
+  Window.OnDraw := NewDraw;
+  Window.OnResize := NewResize;
+  Window.OnCloseQuery := NewCloseQuery;
+  {Window.Caption := leave current value}
+  Window.Userdata := nil;
+  Window.AutoRedisplay := false;
+  Window.Fps.Active := NewFPSActive;
+  if Window.MainMenu <> nil then
+    Window.MainMenu.Enabled := false;
+  {Window.MainMenu := leave current value}
+  Window.Cursor := mcDefault;
 
-  if glwin is TGLWindowDemo then
+  if Window is TGLWindowDemo then
   begin
-    TGLWindowDemo(glwin).SwapFullScreen_Key := K_None;
-    TGLWindowDemo(glwin).Close_charkey := #0;
-    TGLWindowDemo(glwin).FpsShowOnCaption := false;
+    TGLWindowDemo(Window).SwapFullScreen_Key := K_None;
+    TGLWindowDemo(Window).Close_charkey := #0;
+    TGLWindowDemo(Window).FpsShowOnCaption := false;
   end;
 
-  if glwin is TGLUIWindow then
+  if Window is TGLUIWindow then
   begin
-    TGLUIWindow(Glwin).Controls.Clear;
-    { protected now TGLUIWindow(Glwin).UseControls := true; }
-    TGLUIWindow(Glwin).OnDrawStyle := dsNone;
+    TGLUIWindow(Window).Controls.Clear;
+    { protected now TGLUIWindow(Window).UseControls := true; }
+    TGLUIWindow(Window).OnDrawStyle := dsNone;
   end;
 end;
 
 { GL Mode ---------------------------------------------------------------- }
 
-constructor TGLMode.Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+constructor TGLMode.Create(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
   APushPopGLWinMessagesTheme: boolean);
 
   procedure SimulateReleaseAll;
@@ -395,37 +395,37 @@ constructor TGLMode.Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
     { Simulate (to original callbacks) that user releases
       all mouse buttons and key presses now. }
     for Button := Low(Button) to High(Button) do
-      if Button in Glwin.MousePressed then
-        Glwin.EventMouseUp(Button);
+      if Button in Window.MousePressed then
+        Window.EventMouseUp(Button);
     for Key := Low(Key) to High(Key) do
-      if Glwin.Pressed[Key] then
-        Glwin.EventKeyUp(Key, #0);
+      if Window.Pressed[Key] then
+        Window.EventKeyUp(Key, #0);
     for C := Low(C) to High(C) do
-      if Glwin.Pressed.Characters[C] then
-        Glwin.EventKeyUp(K_None, C);
+      if Window.Pressed.Characters[C] then
+        Window.EventKeyUp(K_None, C);
   end;
 
 begin
  inherited Create;
 
- glwin := AGLWindow;
+ Window := AWindow;
 
  FFakeMouseDown := false;
  FRestoreProjectionMatrix := true;
  FRestoreModelviewMatrix := true;
  FRestoreTextureMatrix := true;
 
- Check(not Glwin.Closed, 'ModeGLEnter cannot be called on a closed GLWindow.');
+ Check(not Window.Closed, 'ModeGLEnter cannot be called on a closed GLWindow.');
 
- oldWinState := TGLWindowState.Create(glwin);
- oldWinWidth := Glwin.Width;
- oldWinHeight := Glwin.Height;
+ oldWinState := TGLWindowState.Create(Window);
+ oldWinWidth := Window.Width;
+ oldWinHeight := Window.Height;
 
  FPushPopGLWinMessagesTheme := APushPopGLWinMessagesTheme;
  if FPushPopGLWinMessagesTheme then
    oldGLWinMessagesTheme := GLWinMessagesTheme;
 
- Glwin.MakeCurrent;
+ Window.MakeCurrent;
 
  SimulateReleaseAll;
 
@@ -442,9 +442,9 @@ begin
  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
  SavePixelStoreUnpack(oldPixelStoreUnpack);
 
- Glwin.PostRedisplay;
+ Window.PostRedisplay;
 
- if AGLWindow is TGLUIWindow then
+ if AWindow is TGLUIWindow then
  begin
    { We know that at destruction these controls will be restored to
      the window's Controls list. So there's no point calling any
@@ -453,17 +453,17 @@ begin
      and at destruction when restoring.) }
 
    DisabledContextOpenClose := true;
-   TGLUIWindow(AGLWindow).Controls.BeginDisableContextOpenClose;
+   TGLUIWindow(AWindow).Controls.BeginDisableContextOpenClose;
  end;
 end;
 
-constructor TGLMode.CreateReset(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+constructor TGLMode.CreateReset(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
   APushPopGLWinMessagesTheme: boolean;
   NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
   NewFPSActive: boolean);
 begin
-  Create(AGLWindow, AttribsToPush, APushPopGLWinMessagesTheme);
-  TGLWindowState.SetStandardState(AGLWindow,
+  Create(AWindow, AttribsToPush, APushPopGLWinMessagesTheme);
+  TGLWindowState.SetStandardState(AWindow,
     NewDraw, NewResize, NewCloseQuery, NewFPSActive);
 end;
 
@@ -471,11 +471,11 @@ destructor TGLMode.Destroy;
 var
   btn: TMouseButton;
 begin
- oldWinState.SetState(glwin);
+ oldWinState.SetState(Window);
  FreeAndNil(oldWinState);
 
  if DisabledContextOpenClose then
-   TGLUIWindow(Glwin).Controls.EndDisableContextOpenClose;
+   TGLUIWindow(Window).Controls.EndDisableContextOpenClose;
 
  if FPushPopGLWinMessagesTheme then
    GLWinMessagesTheme := oldGLWinMessagesTheme;
@@ -484,9 +484,9 @@ begin
    in destructor we must take care of every possible situation
    (because this may be called in finally ... end things when
    everything should be possible). }
- if not Glwin.Closed then
+ if not Window.Closed then
  begin
-   Glwin.MakeCurrent;
+   Window.MakeCurrent;
 
    { restore OpenGL state }
    LoadPixelStoreUnpack(oldPixelStoreUnpack);
@@ -516,20 +516,20 @@ begin
      je powyzej }
    { Gdy byly aktywne nasze callbacki mogly zajsc zdarzenia co do ktorych
      oryginalne callbacki chcialyby byc poinformowane. Np. OnResize. }
-   if (oldWinWidth <> Glwin.Width) or
-      (oldWinHeight <> Glwin.Height) then
-    Glwin.EventResize;
+   if (oldWinWidth <> Window.Width) or
+      (oldWinHeight <> Window.Height) then
+    Window.EventResize;
 
    { udajemy ze wszystkie przyciski myszy jakie sa wcisniete sa wciskane wlasnie
      teraz }
    if FakeMouseDown then
      for btn := Low(btn) to High(btn) do
-       if btn in Glwin.mousePressed then
-         Glwin.EventMouseDown(btn);
+       if btn in Window.mousePressed then
+         Window.EventMouseDown(btn);
 
-   Glwin.PostRedisplay;
+   Window.PostRedisplay;
 
-   Glwin.Fps.IgnoreNextIdleSpeed;
+   Window.Fps.IgnoreNextIdleSpeed;
  end;
 
  inherited;
@@ -537,17 +537,17 @@ end;
 
 { TGLModeFrozenScreen ------------------------------------------------------ }
 
-procedure FrozenImageDraw(glwin: TGLWindow);
+procedure FrozenImageDraw(Window: TGLWindow);
 var Mode: TGLModeFrozenScreen;
     Attribs: TGLbitfield;
 begin
- Mode := TGLModeFrozenScreen(Glwin.UserData);
+ Mode := TGLModeFrozenScreen(Window.UserData);
 
  { TODO:  I should build display list with this in each FrozenImageResize
-   (Glwin.Width, Glwin.Height may change with time). }
+   (Window.Width, Window.Height may change with time). }
 
- if (Cardinal(Glwin.Width ) > Mode.SavedScreenWidth ) or
-    (Cardinal(Glwin.Height) > Mode.SavedScreenHeight) then
+ if (Cardinal(Window.Width ) > Mode.SavedScreenWidth ) or
+    (Cardinal(Window.Height) > Mode.SavedScreenHeight) then
   glClear(GL_COLOR_BUFFER_BIT);
 
  Attribs := GL_CURRENT_BIT or GL_ENABLE_BIT;
@@ -569,35 +569,35 @@ begin
     glEnable(GL_POLYGON_STIPPLE);
     KamGLPolygonStipple(Mode.FPolygonStipple);
     glColor3ub(0, 0, 0);
-    glRectf(0, 0, Glwin.Width, Glwin.Height);
+    glRectf(0, 0, Window.Width, Window.Height);
    end;
   finally glPopMatrix end;
  finally glPopAttrib end;
 end;
 
-constructor TGLModeFrozenScreen.Create(AGLWindow: TGLWindow;
+constructor TGLModeFrozenScreen.Create(AWindow: TGLWindow;
   AttribsToPush: TGLbitfield; APushPopGLWinMessagesTheme: boolean;
   APolygonStipple: PPolygonStipple);
 begin
- inherited Create(AGLWindow, AttribsToPush, APushPopGLWinMessagesTheme);
+ inherited Create(AWindow, AttribsToPush, APushPopGLWinMessagesTheme);
 
  FPolygonStipple := APolygonStipple;
 
  { We must do it before SaveScreen.
    Moreover, we must do it before we set our own projection below
    (calling EventResize) and before we set OnDraw to FrozenImageDraw
-   (because we want that Glwin.FlushRedisplay calls original OnDraw). }
- Glwin.FlushRedisplay;
+   (because we want that Window.FlushRedisplay calls original OnDraw). }
+ Window.FlushRedisplay;
 
- TGLWindowState.SetStandardState(AGLWindow,
+ TGLWindowState.SetStandardState(AWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
    {$ifdef FPC_OBJFPC} @ {$endif} NoClose,
-   AGLWindow.Fps.Active);
- AGLWindow.UserData := Self;
+   AWindow.Fps.Active);
+ AWindow.UserData := Self;
 
  { setup our 2d projection. We must do it before SaveScreen }
- Glwin.EventResize;
+ Window.EventResize;
 
  dlScreenImage := SaveScreenWhole_ToDisplayList_noflush(GL_FRONT,
    SavedScreenWidth, SavedScreenHeight);
@@ -612,7 +612,7 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure NoClose(glwin: TGLWindow);
+procedure NoClose(Window: TGLWindow);
 begin
 end;
 

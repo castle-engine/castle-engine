@@ -25,12 +25,12 @@ type
     In the future maybe such idea will be incorporated into GLMenu unit. }
   TGLMenuItem = class
   private
-    FGlwin: TGLWindow;
+    FWindow: TGLWindow;
   protected
-    property Glwin: TGLWindow read FGlwin;
+    property Window: TGLWindow read FWindow;
   public
     { Creates and adds this menu item to Menu. }
-    constructor Create(AGlwin: TGLWindow; Menu: TGLMenu);
+    constructor Create(AWindow: TGLWindow; Menu: TGLMenu);
     function Title: string; virtual; abstract;
     function Accessory: TGLMenuItemAccessory; virtual;
     procedure Selected; virtual;
@@ -43,7 +43,7 @@ type
   protected
     property SoundEngine: TGameSoundEngine read FSoundEngine;
   public
-    constructor Create(AGlwin: TGLWindow; Menu: TGLMenu;
+    constructor Create(AWindow: TGLWindow; Menu: TGLMenu;
       ASoundEngine: TGameSoundEngine);
   end;
 
@@ -66,7 +66,7 @@ type
     FSlider: TGLMenuVolumeSlider;
     property Slider: TGLMenuVolumeSlider read FSlider;
   public
-    constructor Create(AGlwin: TGLWindow; Menu: TGLMenu;
+    constructor Create(AWindow: TGLWindow; Menu: TGLMenu;
       ASoundEngine: TGameSoundEngine);
 
     { Call this if volume changed by something outside of this class. }
@@ -82,7 +82,7 @@ type
     FSlider: TGLMenuVolumeSlider;
     property Slider: TGLMenuVolumeSlider read FSlider;
   public
-    constructor Create(AGlwin: TGLWindow; Menu: TGLMenu;
+    constructor Create(AWindow: TGLWindow; Menu: TGLMenu;
       ASoundEngine: TGameSoundEngine);
 
     { Call this if volume changed by something outside of this class. }
@@ -99,11 +99,11 @@ uses Classes, KambiClassUtils, KambiUtils, GLWinMessages;
 
 { TGLMenuItem ---------------------------------------------------------------- }
 
-constructor TGLMenuItem.Create(AGlwin: TGLWindow; Menu: TGLMenu);
+constructor TGLMenuItem.Create(AWindow: TGLWindow; Menu: TGLMenu);
 begin
   inherited Create;
   Menu.Items.AddObject(Title, Accessory);
-  FGlwin := AGlwin;
+  FWindow := AWindow;
 end;
 
 function TGLMenuItem.Accessory: TGLMenuItemAccessory;
@@ -121,10 +121,10 @@ end;
 
 { TGLSoundMenuItem ----------------------------------------------------------- }
 
-constructor TGLSoundMenuItem.Create(AGlwin: TGLWindow;
+constructor TGLSoundMenuItem.Create(AWindow: TGLWindow;
   Menu: TGLMenu; ASoundEngine: TGameSoundEngine);
 begin
-  inherited Create(AGlwin, Menu);
+  inherited Create(AWindow, Menu);
   FSoundEngine := ASoundEngine;
 end;
 
@@ -146,7 +146,7 @@ begin
     Strings_AddSplittedString(S, SoundEngine.SoundInitializationReport, nl);
     SoundEngine.AppendALInformation(S);
 
-    MessageOK(Glwin, S, taLeft);
+    MessageOK(Window, S, taLeft);
   finally S.Free end;
 end;
 
@@ -166,7 +166,7 @@ end;
 
 { TGLSoundVolumeMenuItem ----------------------------------------------------- }
 
-constructor TGLSoundVolumeMenuItem.Create(AGlwin: TGLWindow; Menu: TGLMenu;
+constructor TGLSoundVolumeMenuItem.Create(AWindow: TGLWindow; Menu: TGLMenu;
   ASoundEngine: TGameSoundEngine);
 begin
   FSlider := TGLMenuVolumeSlider.Create(ASoundEngine.SoundVolume);
@@ -195,7 +195,7 @@ end;
 
 { TGLMusicVolumeMenuItem ----------------------------------------------------- }
 
-constructor TGLMusicVolumeMenuItem.Create(AGlwin: TGLWindow; Menu: TGLMenu;
+constructor TGLMusicVolumeMenuItem.Create(AWindow: TGLWindow; Menu: TGLMenu;
   ASoundEngine: TGameSoundEngine);
 begin
   FSlider := TGLMenuVolumeSlider.Create(ASoundEngine.MusicPlayer.MusicVolume);

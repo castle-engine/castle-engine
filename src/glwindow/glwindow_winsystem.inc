@@ -178,7 +178,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
   procedure HandleEvent;
   {$ifdef GLWINDOW_XLIB}
   var
-    glwin: TGLWindow;
+    Window: TGLWindow;
     evtype: longint;
   {$endif}
   begin
@@ -206,19 +206,19 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
         if glwin <> nil then
           case evtype of
             Expose: { XExposeEvent }
-               if event.xexpose.count = 0 then glwin.PostRedisplay;
+               if event.xexpose.count = 0 then Window.PostRedisplay;
             (*MapNotify: needRedisplay := true; { XMapEvent } <- niepotrzebne *)
-            KeyPress: glwin.X_KeyPress(event.xkey);  { XKeyEvent }
-            KeyRelease: glwin.X_KeyRelease(event.xkey);
-            ButtonPress: glwin.X_ButtonPress(event.xbutton); { XButtonPressEvent }
-            ButtonRelease: glwin.X_ButtonRelease(event.xbutton); { XButtonReleaseEvent }
-            MotionNotify: glwin.X_MotionNotify(event.xmotion); { XPointerMovedEvent }
-            ConfigureNotify: glwin.X_ConfigureNotify(event.xconfigure); { XConfigureEvent }
+            KeyPress: Window.X_KeyPress(event.xkey);  { XKeyEvent }
+            KeyRelease: Window.X_KeyRelease(event.xkey);
+            ButtonPress: Window.X_ButtonPress(event.xbutton); { XButtonPressEvent }
+            ButtonRelease: Window.X_ButtonRelease(event.xbutton); { XButtonReleaseEvent }
+            MotionNotify: Window.X_MotionNotify(event.xmotion); { XPointerMovedEvent }
+            ConfigureNotify: Window.X_ConfigureNotify(event.xconfigure); { XConfigureEvent }
             ClientMessage : { XClientMessageEvent - nie ma na to maski }
               if (event.xclient.data.l[0] = Integer(wmDeleteWindow)) then
-               glwin.DoCloseQuery;
-            ReparentNotify : glwin.parentwinXID := event.xreparent.parent;
-            FocusOut: glwin.X_FocusOut(event.xfocus);
+               Window.DoCloseQuery;
+            ReparentNotify : Window.parentwinXID := event.xreparent.parent;
+            FocusOut: Window.X_FocusOut(event.xfocus);
           end;
       end;
     end;
@@ -270,7 +270,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
 var
   WasAnyDrawing: boolean;
   I: integer;
-  Glwin: TGLWindow;
+  Window: TGLWindow;
 begin
   WasAnyMessage := false;
   try
@@ -309,18 +309,18 @@ begin
           Ponizszy kod wydaje sie miec paranoje na punkcie zamykania okna - pamietajmy
             ze Closed moze zostac wywolane na oknie w kazdym callbacku, takze w OnIdle
             i OnDraw. A Close usuwa to okno z listy OpenWindows, dlatego kopiujemy sobie
-            na poczatku OpenWindows[i] do glwin. }
+            na poczatku OpenWindows[i] do Window. }
         WasAnyDrawing := false;
         I := 0;
         while I < OpenWindowsCount do
         begin
           Glwin := OpenWindows[I];
-          Glwin.DoIdle;
-          if Glwin.Closed then Continue {don't Inc(I)};
+          Window.DoIdle;
+          if Window.Closed then Continue {don't Inc(I)};
           { Kolejnosc w OR ponizej MA ZNACZENIE : zawsze chemy wywolac
             FlushRedisplay2, nawet jesli WasAnyDrawing juz jest = true }
-          WasAnyDrawing := Glwin.FlushRedisplay2 or WasAnyDrawing;
-          if Glwin.Closed then Continue {don't Inc(I)};
+          WasAnyDrawing := Window.FlushRedisplay2 or WasAnyDrawing;
+          if Window.Closed then Continue {don't Inc(I)};
           Inc(I);
         end;
 

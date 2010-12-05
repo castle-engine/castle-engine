@@ -34,15 +34,15 @@ function gtk_check_menu_item_get_draw_as_radio(
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
 var
-  Glwin: TGLWindow absolute UserData;
+  Window: TGLWindow absolute UserData;
 begin
   { For reasons of using MenuRecreateForbidden, see signal_menu_item_select
     comments. }
-  Inc(Glwin.MenuRecreateForbidden);
+  Inc(Window.MenuRecreateForbidden);
   try
-    Glwin.ReleaseAllKeysAndMouse;
+    Window.ReleaseAllKeysAndMouse;
   finally
-    Dec(Glwin.MenuRecreateForbidden);
+    Dec(Window.MenuRecreateForbidden);
   end;
 
   Result := g_false;
@@ -80,13 +80,13 @@ end;
 function signal_menu_item_select(AItem: PGtkItem;
   UserData: gpointer): gboolean; cdecl;
 var
-  Glwin: TGLWindow absolute UserData;
+  Window: TGLWindow absolute UserData;
 begin
-  Inc(Glwin.MenuRecreateForbidden);
+  Inc(Window.MenuRecreateForbidden);
   try
-    Glwin.ReleaseAllKeysAndMouse;
+    Window.ReleaseAllKeysAndMouse;
   finally
-    Dec(Glwin.MenuRecreateForbidden);
+    Dec(Window.MenuRecreateForbidden);
   end;
 
   Result := g_false;

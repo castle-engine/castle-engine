@@ -186,7 +186,7 @@ begin
 end;
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
-var glwin: TGLWindow;
+var Window: TGLWindow;
 begin
  glwin := TGLWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
  { wszystkie hwnd jakie tu beda wpadac to beda nasze okna. Ale zanim
@@ -204,8 +204,8 @@ begin
    SetPixelFormat_WGLChoose also get here (as they use our
    Application.wndClassName). They don't set Get/SetWindowLongPtr, so Glwin here
    will be @nil in this case. }
- if Application.FindWindow(glwin) >= 0 then
-  result := glwin.WindowProc(uMsg, wParm, lParm) else
+ if Application.FindWindow(Window) >= 0 then
+  result := Window.WindowProc(uMsg, wParm, lParm) else
   result := DefWindowProc(hWnd, uMsg, wParm, lParm);
 end;
 

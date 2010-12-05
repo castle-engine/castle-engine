@@ -682,10 +682,10 @@ procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   {$endif}
 
 var MenuItem: TMenuItem;
-    glwin: TGLWindow;
+    Window: TGLWindow;
 begin
  MenuItem := MenuItemFromSmallId( PtrInt(Data) );
- glwin := TGLWindow( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
+ Window := TGLWindow( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
 
  if MenuItem is TMenuItemChecked then
  begin
@@ -715,7 +715,7 @@ begin
     procedure would be called once again (if we were using 1.,
     this would already be a bug, because this would lead to recursive
     call. If we were using 2., the bug will be
-    because we would call glwin.DoMenuCommand(MenuItem) TWICE.
+    because we would call Window.DoMenuCommand(MenuItem) TWICE.
 
     So I must temporary block this signal before doing
     gtk_check_menu_item_set_active. }
@@ -728,7 +728,7 @@ begin
   end;
  end;
 
- glwin.DoMenuCommand(MenuItem);
+ Window.DoMenuCommand(MenuItem);
 end;
 
 function signal_window_focus_out_event(AWindowGtk: PGtkWindow;
@@ -1767,14 +1767,14 @@ procedure TGLApplication.ProcessUpdates;
   procedure GlwindowsFlushRedisplay;
   var
     I: Integer;
-    Glwin: TGLWindow;
+    Window: TGLWindow;
   begin
     I := 0;
     while I < OpenWindowsCount do
     begin
-      Glwin := OpenWindows[I];
-      Glwin.FlushRedisplay;
-      if Glwin.Closed then Continue {don't Inc(I)};
+      Window := OpenWindows[I];
+      Window.FlushRedisplay;
+      if Window.Closed then Continue {don't Inc(I)};
       Inc(I);
     end;
   end;

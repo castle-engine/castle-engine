@@ -48,7 +48,7 @@ uses GL, GLU, KambiGLUtils, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Image
   AnswerDefault, MinLength, MaxLength and AnswerAllowedChars
   have the same meaning as in GLWinMessages unit. Initial Answer
   cannot contain characters outside AnswerAllowedChars. }
-function Input(glwin: TGLWindow;
+function Input(Window: TGLWindow;
   ReadBuffer: TGLenum; FlushGLWindow: boolean;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
@@ -73,11 +73,11 @@ function Input(glwin: TGLWindow;
   In this case, RasterX, RasterY should be position of lower-left
   screen corner (unless you actully want to shift the displayed screen).
   @groupBegin }
-procedure InputAnyKey(glwin: TGLWindow; const ImgFileName: string;
+procedure InputAnyKey(Window: TGLWindow; const ImgFileName: string;
   ResizeX, ResizeY, RasterX, RasterY: Integer); overload;
-procedure InputAnyKey(glwin: TGLWindow; const Img: TImage;
+procedure InputAnyKey(Window: TGLWindow; const Img: TImage;
   RasterX, RasterY: Integer); overload;
-procedure InputAnyKey(glwin: TGLWindow; ReadBuffer: TGLenum; FlushGLWindow: boolean;
+procedure InputAnyKey(Window: TGLWindow; ReadBuffer: TGLenum; FlushGLWindow: boolean;
   RasterX, RasterY: Integer); overload;
 { @groupEnd }
 
@@ -102,10 +102,10 @@ type
   end;
   PGLWinInputData = ^TGLWinInputData;
 
-procedure DrawGL(glwin: TGLWindow);
+procedure DrawGL(Window: TGLWindow);
 var D: PGLWinInputData;
 begin
- D := PGLWinInputData(glwin.UserData);
+ D := PGLWinInputData(Window.UserData);
 
  glRasterPos2i(D^.ScreenX0, D^.ScreenY0);
  glCallList(D^.dlBGImage);
@@ -113,15 +113,15 @@ begin
  D^.Font.Print(D^.Answer+'_');
 end;
 
-procedure KeyDown(glwin: TGLWindow; key: TKey; c: Char);
+procedure KeyDown(Window: TGLWindow; key: TKey; c: Char);
 var D: PGLWinInputData;
 begin
- D := PGLWinInputData(glwin.UserData);
+ D := PGLWinInputData(Window.UserData);
 
  case c of
   CharBackSpace:
     if Length(D^.Answer) > 0 then
-     begin SetLength(D^.Answer, Length(D^.Answer)-1); glwin.PostRedisplay; end;
+     begin SetLength(D^.Answer, Length(D^.Answer)-1); Window.PostRedisplay; end;
   CharEnter:
     if Between(Length(D^.Answer), D^.MinLength, D^.MaxLength) then
      D^.Answered := true;
@@ -129,13 +129,13 @@ begin
     if (c <> #0) and
        (c in D^.AnswerAllowedChars) and
        (Length(D^.Answer) < D^.MaxLength) then
-     begin D^.Answer += c; glwin.PostRedisplay; end;
+     begin D^.Answer += c; Window.PostRedisplay; end;
  end;
 end;
 
 { GLWinInput -------------------------------------------------------------- }
 
-function Input(glwin: TGLWindow;
+function Input(Window: TGLWindow;
   ReadBuffer: TGLenum; FlushGLWindow: boolean;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
@@ -148,7 +148,7 @@ var
   SavedMode: TGLMode;
   Data: TGLWinInputData;
 begin
-  if FlushGLWindow then glwin.FlushRedisplay;
+  if FlushGLWindow then Window.FlushRedisplay;
   Data.dlBGImage := SaveScreenWhole_ToDisplayList_noflush(ReadBuffer);
   Data.Answer := AnswerDefault;
   Data.MinLength := MinLength;
@@ -161,12 +161,12 @@ begin
   Data.AnswerX0 := AnswerX0;
   Data.AnswerY0 := AnswerY0;
 
-  SavedMode := TGLMode.CreateReset(glwin, 0, false,
+  SavedMode := TGLMode.CreateReset(Window, 0, false,
     {$ifdef FPC_OBJFPC} @ {$endif} DrawGL, nil,
     {$ifdef FPC_OBJFPC} @ {$endif} NoClose, false);
   try
-    Glwin.UserData := @Data;
-    Glwin.OnKeyDown := @KeyDown;
+    Window.UserData := @Data;
+    Window.OnKeyDown := @KeyDown;
 
     repeat Application.ProcessMessage(true) until Data.Answered;
 
@@ -184,60 +184,60 @@ type
   end;
   PInputAnyKeyData = ^TInputAnyKeyData;
 
-procedure DrawGLAnyKey(glwin: TGLWindow);
+procedure DrawGLAnyKey(Window: TGLWindow);
 var D: PInputAnyKeyData;
 begin
- D := PInputAnyKeyData(glwin.UserData);
+ D := PInputAnyKeyData(Window.UserData);
  if D^.DoClear then glClear(GL_COLOR_BUFFER_BIT);
  glCallList(D^.dlDrawImage);
 end;
 
-procedure KeyDownAnyKey(glwin: TGLWindow; key: TKey; c: char);
+procedure KeyDownAnyKey(Window: TGLWindow; key: TKey; c: char);
 var D: PInputAnyKeyData;
 begin
- D := PInputAnyKeyData(glwin.UserData);
+ D := PInputAnyKeyData(Window.UserData);
  D^.KeyPressed := true;
 end;
 
 { GLWinInputAnyKey ----------------------------------------------------------- }
 
-procedure InputAnyKeyCore(glwin: TGLWindow; dlDrawImage: TGLuint;
+procedure InputAnyKeyCore(Window: TGLWindow; dlDrawImage: TGLuint;
   RasterX, RasterY: Integer; BGImageWidth, BGImageHeight: Cardinal);
 var
   Data: TInputAnyKeyData;
   savedMode: TGLMode;
 begin
- SavedMode := TGLMode.CreateReset(glwin, GL_COLOR_BUFFER_BIT, false,
+ SavedMode := TGLMode.CreateReset(Window, GL_COLOR_BUFFER_BIT, false,
    {$ifdef FPC_OBJFPC} @ {$endif} DrawGLAnyKey, nil,
    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, false);
  try
   glDisable(GL_ALPHA_TEST);
 
-  Data.DoClear := (Cardinal(glwin.Width ) > BGImageWidth ) or
-                  (Cardinal(glwin.Height) > BGImageHeight);
+  Data.DoClear := (Cardinal(Window.Width ) > BGImageWidth ) or
+                  (Cardinal(Window.Height) > BGImageHeight);
   Data.dlDrawImage := dlDrawImage;
   Data.KeyPressed := false;
 
-  Glwin.UserData := @Data;
-  Glwin.OnKeyDown := @KeyDownAnyKey;
+  Window.UserData := @Data;
+  Window.OnKeyDown := @KeyDownAnyKey;
 
   glRasterPos2i(RasterX, RasterY);
   repeat Application.ProcessMessage(true) until Data.KeyPressed;
  finally SavedMode.Free end;
 end;
 
-procedure InputAnyKey(glwin: TGLWindow; const Img: TImage;
+procedure InputAnyKey(Window: TGLWindow; const Img: TImage;
   RasterX, RasterY: Integer);
 var
   DL: TGLuint;
 begin
   DL := ImageDrawToDisplayList(Img);
   try
-    InputAnyKeyCore(glwin, DL, RasterX, RasterY, Img.Width, Img.Height);
+    InputAnyKeyCore(Window, DL, RasterX, RasterY, Img.Width, Img.Height);
   finally glFreeDisplayList(DL) end;
 end;
 
-procedure InputAnyKey(glwin: TGLWindow; const ImgFileName: string;
+procedure InputAnyKey(Window: TGLWindow; const ImgFileName: string;
   ResizeX, ResizeY, RasterX, RasterY: Integer);
 var
   DL: TGLuint;
@@ -251,20 +251,20 @@ begin
     DL := ImageDrawToDisplayList(Image);
   finally FreeAndNil(Image) end;
   try
-    InputAnyKeyCore(glwin, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
+    InputAnyKeyCore(Window, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
   finally glFreeDisplayList(DL) end;
 end;
 
-procedure InputAnyKey(glwin: TGLWindow; ReadBuffer: TGLenum;
+procedure InputAnyKey(Window: TGLWindow; ReadBuffer: TGLenum;
   FlushGLWindow: boolean; RasterX, RasterY: Integer);
 var
   DL: TGLuint;
   BGImageWidth, BGImageHeight: Cardinal;
 begin
-  if FlushGLWindow then glwin.FlushRedisplay;
+  if FlushGLWindow then Window.FlushRedisplay;
   DL := SaveScreenWhole_ToDisplayList_noflush(ReadBuffer, BGImageWidth, BGImageHeight);
   try
-    InputAnyKeyCore(glwin, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
+    InputAnyKeyCore(Window, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
   finally glFreeDisplayList(DL) end;
 end;
 
