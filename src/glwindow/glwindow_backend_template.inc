@@ -25,6 +25,11 @@
 
 { TGLWindow ------------------------------------------------------------------ }
 
+procedure TGLWindow.CreateBackend;
+begin
+  { TODO (initialize backend-specific per-window stuff; may do nothing) }
+end;
+
 procedure TGLWindow.BackendMenuInitialize;
 begin
   { TODO (may do nothing if you do not care about displaying menu) }
@@ -63,7 +68,12 @@ end;
 
 procedure TGLWindow.OpenBackend;
 begin
-  { TODO }
+  { TODO (create OpenGL context, show window with this context) }
+end;
+
+procedure TGLWindow.CloseBackend;
+begin
+  { TODO (destroy OpenGL context, hide window; counterpart to OpenBackend) }
 end;
 
 procedure TGLWindow.PostRedisplay;
@@ -77,24 +87,15 @@ begin
   if not Closed then { TODO };
 end;
 
-procedure TGLWindow.CloseBackend;
-begin
-  { TODO }
-end;
-
 procedure TGLWindow.MakeCurrent;
-begin
-  { TODO }
-end;
-
-procedure TGLWindow.CreateBackend;
 begin
   { TODO }
 end;
 
 procedure TGLWindow.FlushRedisplay;
 begin
-  { TODO }
+  { TODO (redraw *now*, if PostRedisplay pending;
+    it's valid (although non-optimal) to just always call DoDraw here) }
 end;
 
 procedure TGLWindow.SetCursor(const Value: TMouseCursor);
@@ -124,7 +125,13 @@ begin
     { TODO };
 end;
 
-{ TGLWindow.*Dialog ---------------------------------------------------------- }
+{ TGLWindow dialogs ---------------------------------------------------------- }
+
+{ Methods below should make native-looking dialog boxes.
+  Alternatively, you can include glwindow_dialogs_by_glwinmessages.inc,
+  to have simple dialog boxes drawn on OpenGL context using our GLWinMessages
+  unit. }
+{ $I glwindow_dialogs_by_glwinmessages.inc}
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
@@ -148,8 +155,18 @@ begin
   { TODO }
 end;
 
-
 { TGLApplication ---------------------------------------------------------- }
+
+procedure TGLApplication.CreateBackend;
+begin
+  { TODO (initialize backend-specific stuff for the whole application;
+    may do nothing if you don't need anything) }
+end;
+
+procedure TGLApplication.DestroyBackend;
+begin
+  { TODO }
+end;
 
 function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
 begin
@@ -165,20 +182,13 @@ procedure TGLApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
-  { TODO }
+  { Implementing Run by calling ProcessMessage in a loop (like below)
+    is a valid and good implementation. Make sure your ProcessMessage
+    honours AllowSuspend = true, to avoid wasting CPU on "busy waiting". }
+  while ProcessMessage(true) do ;
 end;
 
 procedure TGLApplication.QuitWhenNoOpenWindows;
-begin
-  { TODO }
-end;
-
-procedure TGLApplication.CreateBackend;
-begin
-  { TODO }
-end;
-
-procedure TGLApplication.DestroyBackend;
 begin
   { TODO }
 end;
