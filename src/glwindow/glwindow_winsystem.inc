@@ -202,8 +202,8 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
         { zdarzenia ktore sa skierowane do konkretnego TGLWindow }
         { sprawdzamy czy okienko jest na liscie Application.OpenWindows, przy okazji
           zamieniajac windowXID na obiekt klasy TGLWindow. }
-        glwin := Application.FindWindowXID(event.xany. {$ifdef DELPHI} xwindow {$else} window {$endif});
-        if glwin <> nil then
+        Window := Application.FindWindowXID(event.xany. {$ifdef DELPHI} xwindow {$else} window {$endif});
+        if Window <> nil then
           case evtype of
             Expose: { XExposeEvent }
                if event.xexpose.count = 0 then Window.PostRedisplay;
@@ -314,7 +314,7 @@ begin
         I := 0;
         while I < OpenWindowsCount do
         begin
-          Glwin := OpenWindows[I];
+          Window := OpenWindows[I];
           Window.DoIdle;
           if Window.Closed then Continue {don't Inc(I)};
           { Kolejnosc w OR ponizej MA ZNACZENIE : zawsze chemy wywolac
