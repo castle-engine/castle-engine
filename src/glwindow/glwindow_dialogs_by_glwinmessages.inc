@@ -1,19 +1,20 @@
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
 begin
- Result := MessageInputQuery(Self, Title, FileName, taLeft);
+  Result := MessageInputQuery(Self, Title, FileName, taLeft);
 end;
 
 function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
-var NewColor: TVector3Single;
+var
+  NewColor: TVector3Single;
 begin
- Result := false;
- if not MessageInputQuery(Self, 'Input Red value:'  , NewColor[0], taLeft) then Exit;
- if not MessageInputQuery(Self, 'Input Green value:', NewColor[1], taLeft) then Exit;
- if not MessageInputQuery(Self, 'Input Blue value:' , NewColor[2], taLeft) then Exit;
+  Result := false;
+  if not MessageInputQuery(Self, 'Input Red value:'  , NewColor[0], taLeft) then Exit;
+  if not MessageInputQuery(Self, 'Input Green value:', NewColor[1], taLeft) then Exit;
+  if not MessageInputQuery(Self, 'Input Blue value:' , NewColor[2], taLeft) then Exit;
 
- Result := true;
- Color := NewColor;
+  Result := true;
+  Color := NewColor;
 end;
 
 procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
