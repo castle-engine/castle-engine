@@ -188,7 +188,7 @@ end;
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var Window: TGLWindow;
 begin
- glwin := TGLWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
+ Window := TGLWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
  { wszystkie hwnd jakie tu beda wpadac to beda nasze okna. Ale zanim
    ustawimy oknu SetWindowLongPtr (GetWindowLongPtr bedzie do tego czasu zwracac 0)
    ono juz dostaje jakies messagy - WM_CREATE i inne.
