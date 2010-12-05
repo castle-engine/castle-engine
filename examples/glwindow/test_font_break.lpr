@@ -25,20 +25,20 @@ uses GLWindow, GL, GLU, KambiGLUtils, OpenGLFonts, SysUtils, Classes,
   KambiUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath;
 
 var
-  Glw: TGLWindowDemo;
+  Window: TGLWindowDemo;
   Font: TGLBitmapFont_Abstract;
   BoxWidth: Integer;
 
-procedure Draw(glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 var x1, x2: Integer;
 begin
  glClear(GL_COLOR_BUFFER_BIT);
  glLoadIdentity;
- x1 := (glwin.Width - BoxWidth) div 2;
+ x1 := (Window.Width - BoxWidth) div 2;
  x2 := x1 + BoxWidth;
  glColorv(Yellow3Single);
- VerticalGLLine(x1, 0, glwin.Height);
- VerticalGLLine(x2, 0, glwin.Height);
+ VerticalGLLine(x1, 0, Window.Height);
+ VerticalGLLine(x2, 0, Window.Height);
  glColorv(White3Single);
  Font.PrintBrokenString(
    'blah blah blah, I''m a long long long text and'
@@ -54,29 +54,29 @@ begin
    false, 0);
 end;
 
-procedure Resize(glwin: TGLWindow);
+procedure Resize(Window: TGLWindow);
 begin
- glViewport(0, 0, glwin.Width, glwin.Height);
- ProjectionGLOrtho(0, glwin.Width, 0, glwin.Height);
- BoxWidth := glwin.Width * 2 div 3;
+ glViewport(0, 0, Window.Width, Window.Height);
+ ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
+ BoxWidth := Window.Width * 2 div 3;
 end;
 
-procedure Open(glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
 
-procedure Close(glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
  FreeAndNil(Font);
 end;
 
 begin
- Glw := TGLWindowDemo.Create(Application);
+ Window := TGLWindowDemo.Create(Application);
 
- glw.OnOpen := @Open;
- glw.OnClose := @Close;
- glw.OnResize := @Resize;
- glw.DepthBufferBits := 0;
- glw.OpenAndRun('Font.BreakLines demo', @Draw);
+ Window.OnOpen := @Open;
+ Window.OnClose := @Close;
+ Window.OnResize := @Resize;
+ Window.DepthBufferBits := 0;
+ Window.OpenAndRun('Font.BreakLines demo', @Draw);
 end.

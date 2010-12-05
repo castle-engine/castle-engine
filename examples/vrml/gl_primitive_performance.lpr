@@ -43,7 +43,7 @@ type
     );
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   Scene: TVRMLScene;
   Shape: TVRMLShape;
   Vertexes: TDynVector3SingleArray;
@@ -124,7 +124,7 @@ begin
   end;
 end;
 
-procedure Open(glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   Writeln('OpenGL has locking VAR support: ', GL_EXT_compiled_vertex_array);
   Writeln('Vertex arrays optimal fill: ',
@@ -162,7 +162,7 @@ var
     end;
   end;
 
-procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Window: TGLWindow; Item: TMenuItem);
 const
   VARModes = [
     rmVARTrianglesByVertex, rmVARLockedTrianglesByVertex,
@@ -215,10 +215,10 @@ begin
             glEnableClientState(GL_VERTEX_ARRAY);
           end;
         end;
-    200: Glwin.Close;
+    200: Window.Close;
     else Exit;
   end;
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 function CreateMainMenu: TMenu;
@@ -353,7 +353,7 @@ var
   ShapeNum: Integer;
   SceneManager: TMySceneManager;
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   Parameters.CheckHighAtLeast(1);
   Parameters.CheckHighAtMost(2);
@@ -407,18 +407,18 @@ begin
 
     SceneManager := TMySceneManager.Create(Application);
     SceneManager.Items.Add(Scene);
-    Glw.Controls.Add(SceneManager);
+    Window.Controls.Add(SceneManager);
 
     { to get quickier FPS update }
-    Glw.Fps.SecondsToAutoReset := 2;
-    Glw.FpsCaptionUpdateInterval := 1000;
-    Glw.AutoRedisplay := true;
+    Window.Fps.SecondsToAutoReset := 2;
+    Window.FpsCaptionUpdateInterval := 1000;
+    Window.AutoRedisplay := true;
 
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
+    Window.MainMenu := CreateMainMenu;
+    Window.OnMenuCommand := @MenuCommand;
 
-    Glw.OnOpen := @Open;
-    Glw.OpenAndRun;
+    Window.OnOpen := @Open;
+    Window.OpenAndRun;
   finally
     FreeAndNil(Scene);
     FreeAndNil(TrianglesCoordIndex);

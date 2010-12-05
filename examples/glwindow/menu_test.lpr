@@ -27,7 +27,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow, KambiGLUtils,
   GLWinMessages;
 
 var
-  Glw: TGLWindowDemo;
+  Window: TGLWindowDemo;
   { Some state variables that determine what will be drawn.
     Just to show that menu commands actually work... }
   CurrentColor: Integer = 0;
@@ -48,7 +48,7 @@ const
     (0, 0, 0)
   );
 
-procedure Draw(glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 begin
  glClear(GL_COLOR_BUFFER_BIT);
  glColorv(Colors[CurrentColor]);
@@ -71,20 +71,20 @@ begin
  end;
 end;
 
-procedure Resize(glwin: TGLWindow);
+procedure Resize(Window: TGLWindow);
 begin
- glViewport(0, 0, glwin.Width, glwin.Height);
+ glViewport(0, 0, Window.Width, Window.Height);
  ProjectionGLOrtho(-1, 1, -1, 1);
 end;
 
 var
   ChangeableMenu: TMenu;
 
-procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Window: TGLWindow; Item: TMenuItem);
 
   procedure ChangeChecked(Item: TMenuItemRadio);
   begin
-    Item.Checked := MessageYesNo(Glw, 'Should menu item "' +
+    Item.Checked := MessageYesNo(Window, 'Should menu item "' +
       SRemoveMnemonics(Item.Caption) + '" be checked ?', taLeft);
     if Item.Checked then
       case Item.IntData of
@@ -102,7 +102,7 @@ begin
   0..High(Colors): CurrentColor := Item.IntData;
   10: RectShape := true;
   11: RectShape := false;
-  20: glwin.Close;
+  20: Window.Close;
 
   21: MoveY := +0.5;
   22: MoveY :=  0.0;
@@ -111,7 +111,7 @@ begin
   25..27: ChangeChecked(Item as TMenuItemRadio);
 
   31: Filled := not Filled;
-  40: glwin.MainMenu.Append(TMenuItem.Create('New item', -1));
+  40: Window.MainMenu.Append(TMenuItem.Create('New item', -1));
   41: begin
        M := TMenu.Create('New submenu');
        M.Append(TMenuItem.Create('_One', -1));
@@ -121,7 +121,7 @@ begin
   42: ChangeableMenu.Append(TMenuItem.Create('New item', -1));
   else Exit;
  end;
- glw.PostRedisplay;
+ Window.PostRedisplay;
 end;
 
 var
@@ -131,13 +131,13 @@ var
   Radio: TMenuItemRadio;
   RadioGroup: TMenuItemRadioGroup;
 begin
- Glw := TGLWindowDemo.Create(Application);
+ Window := TGLWindowDemo.Create(Application);
   
  { create menu }
- glw.MainMenu := TMenu.Create('Main menu');
+ Window.MainMenu := TMenu.Create('Main menu');
  M := TMenu.Create('_File');
    M.Append(TMenuItem.Create('_Exit', 20));
-   glw.MainMenu.Append(M);
+   Window.MainMenu.Append(M);
  M := TMenu.Create('_Color');
    M.Append(TMenuItem.Create('_Red', 0));
    M.Append(TMenuItem.Create('_Green', 1));
@@ -147,7 +147,7 @@ begin
    M.Append(TMenuItem.Create('_White', 4));
    M.Append(TMenuItem.Create('Gr_ay', 5));
    M.Append(TMenuItem.Create('B_lack', 6));
-   glw.MainMenu.Append(M);
+   Window.MainMenu.Append(M);
 
  M := TMenu.Create('_Placement');
 
@@ -177,7 +177,7 @@ begin
    MenuHorizRight.Group := RadioGroup;
    M.Append(MenuHorizRight);
 
-   glw.MainMenu.Append(M);
+   Window.MainMenu.Append(M);
 
  M := TMenu.Create('_Shape');
    M.Append(TMenuItemChecked.Create('_Filled', 31, Filled, true));
@@ -187,20 +187,20 @@ begin
      M.Append(M2);
    M.Append(TMenuItem.Create('_Rectangle', 10, 'r'));
    M.Append(TMenuItem.Create('_Triangle',  11, 't'));
-   glw.MainMenu.Append(M);
+   Window.MainMenu.Append(M);
  M := TMenu.Create('_Change menu');
  ChangeableMenu := M;
    M.Append(TMenuItem.Create('Create new _main menu item', 40));
    M.Append(TMenuItem.Create('Create new _submenu here',   41));
    M.Append(TMenuItem.Create('Create new menu _item here', 42));
    M.Append(TMenuSeparator.Create);
-   glw.MainMenu.Append(M);
+   Window.MainMenu.Append(M);
 
- glw.OnMenuCommand := @MenuCommand;
- glw.OnResize := @Resize;
- glw.ParseParameters;
- glw.Width := 300;
- glw.Height := 300;
- glw.DepthBufferBits := 0;
- glw.OpenAndRun('Test Menu', @Draw);
+ Window.OnMenuCommand := @MenuCommand;
+ Window.OnResize := @Resize;
+ Window.ParseParameters;
+ Window.Width := 300;
+ Window.Height := 300;
+ Window.DepthBufferBits := 0;
+ Window.OpenAndRun('Test Menu', @Draw);
 end.

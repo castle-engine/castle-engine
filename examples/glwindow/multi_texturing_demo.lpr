@@ -173,7 +173,7 @@ end;
 
 { glw callbacks -------------------------------------------------------------- }
 
-procedure Open(glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 
   function LoadTexture(const FileName: string): TGLuint;
   begin
@@ -194,19 +194,19 @@ begin
 end;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   SceneManager: TKamSceneManager;
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   SceneManager := TKamSceneManager.Create(Application);
-  Glw.Controls.Add(SceneManager);
+  Window.Controls.Add(SceneManager);
   SceneManager.Items.Add(TMyGeometry.Create(Application));
 
   { parse params }
-  Glw.ParseParameters(StandardParseOptions);
+  Window.ParseParameters(StandardParseOptions);
   Parameters.CheckHigh(0);
 
-  Glw.OnOpen := @Open;
-  Glw.OpenAndRun;
+  Window.OnOpen := @Open;
+  Window.OpenAndRun;
 end.

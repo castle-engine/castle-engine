@@ -56,7 +56,7 @@ uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLExt, GLWindow,
   KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse, KambiSceneManager;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
 
   Scene: TVRMLGLScene;
   SceneForShadow: TVRMLGLScene;
@@ -447,7 +447,7 @@ end;
 var
   SceneManager: TKamSceneManager;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
@@ -462,45 +462,45 @@ begin
   glPointSize(10);
 end;
 
-procedure Close(Glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
   Scene.GLContextClose;
   SceneForShadow.GLContextClose;
 end;
 
-procedure Idle(glwin: TGLWindow);
+procedure Idle(Window: TGLWindow);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPosition[Coord] += Change * Glwin.Fps.IdleSpeed * 5;
+    LightPosition[Coord] += Change * Window.Fps.IdleSpeed * 5;
   end;
 
 begin
-  if Glwin.Pressed[K_A] then ChangeLightPosition(0, -1);
-  if Glwin.Pressed[K_D] then ChangeLightPosition(0,  1);
-  if Glwin.Pressed[K_S] then ChangeLightPosition(1, -1);
-  if Glwin.Pressed[K_W] then ChangeLightPosition(1,  1);
+  if Window.Pressed[K_A] then ChangeLightPosition(0, -1);
+  if Window.Pressed[K_D] then ChangeLightPosition(0,  1);
+  if Window.Pressed[K_S] then ChangeLightPosition(1, -1);
+  if Window.Pressed[K_W] then ChangeLightPosition(1,  1);
 
-  if Glwin.Pressed[K_Q] then
+  if Window.Pressed[K_Q] then
   begin
-    if mkShift in Glwin.Pressed.Modifiers then
+    if mkShift in Window.Pressed.Modifiers then
       ChangeLightPosition(2,  1) else
       ChangeLightPosition(2, -1);
   end;
 
-  if Glwin.Pressed[K_P] then
+  if Window.Pressed[K_P] then
   begin
-    if mkShift in Glwin.Pressed.Modifiers then
-      PlaneDistance -= Glwin.Fps.IdleSpeed * 5 else
-      PlaneDistance += Glwin.Fps.IdleSpeed * 5;
+    if mkShift in Window.Pressed.Modifiers then
+      PlaneDistance -= Window.Fps.IdleSpeed * 5 else
+      PlaneDistance += Window.Fps.IdleSpeed * 5;
   end;
 
-  RotationAngle += Glwin.Fps.IdleSpeed * 5;
+  RotationAngle += Window.Fps.IdleSpeed * 5;
 end;
 
 { menu ----------------------------------------------------------------------- }
 
-procedure MenuCommand(Glwin: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
 var
   S: string;
 begin
@@ -508,7 +508,7 @@ begin
     10:
       begin
         S := ExtractFilePath(SceneFileName);
-        if Glwin.FileDialog('Open 3d model (VRML etc.) file', S, true,
+        if Window.FileDialog('Open 3d model (VRML etc.) file', S, true,
           LoadVRML_FileFilters) then
         begin
           SceneForShadow.BeforeNodesFree; { loading Scene will free also SceneForShadow.RootNode }
@@ -518,12 +518,12 @@ begin
 
           SceneFileName := S;
           { refresh projection matrix, since Scene.BoundingBox changed }
-          Glwin.EventResize;
+          Window.EventResize;
           { reinit camera, since Scene.BoundingBox changed }
           (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
         end;
       end;
-    12: Glwin.Close;
+    12: Window.Close;
     60..62:
       begin
         PlaneConstCoord := MenuItem.IntData - 60;
@@ -579,17 +579,17 @@ end;
 var
   RootNode: TVRMLNode;
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   { parse parameters  }
-  Glw.ParseParameters(StandardParseOptions);
+  Window.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
     SceneFileName := Parameters[1] else
     SceneFileName := '';
 
   SceneManager := TMySceneManager.Create(Application);
-  Glw.Controls.Add(SceneManager);
+  Window.Controls.Add(SceneManager);
 
   VRMLWarning := @VRMLWarning_Write;
 
@@ -612,20 +612,20 @@ begin
     SceneForShadow.Attributes.PureGeometry := true;
 
     { init SceneManager.Camera }
-    SceneManager.Camera := TExamineCamera.Create(Glw);
+    SceneManager.Camera := TExamineCamera.Create(Window);
     (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
 
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
+    Window.MainMenu := CreateMainMenu;
+    Window.OnMenuCommand := @MenuCommand;
 
-    Glw.AutoRedisplay := true;
+    Window.AutoRedisplay := true;
 
-    Glw.StencilBufferBits := 1;
+    Window.StencilBufferBits := 1;
 
-    Glw.OnOpen := @Open;
-    Glw.OnClose := @Close;
-    Glw.OnIdle := @Idle;
-    Glw.OpenAndRun;
+    Window.OnOpen := @Open;
+    Window.OnClose := @Close;
+    Window.OnIdle := @Idle;
+    Window.OpenAndRun;
   finally
     FreeAndNil(SceneForShadow);
     FreeAndNil(Scene);

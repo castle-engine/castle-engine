@@ -192,7 +192,7 @@ end;
 
 { glw callbacks -------------------------------------------------------------- }
 
-procedure Open(glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 
   function LoadTexture(const FileName: string): TGLuint;
   begin
@@ -238,7 +238,7 @@ begin
   Tex[1] := LoadTexture('../../../../castle/data/textures/bridgerock512side.jpg');
 end;
 
-procedure Close(glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
   FreeAndNil(VertexProgram);
   FreeAndNil(FragmentProgram);
@@ -247,14 +247,14 @@ end;
 
 { menu ----------------------------------------------------------------------- }
 
-procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
 
   procedure LoadVertexProgramMenu;
   var
     S: string;
   begin
     S := '';
-    if Glwin.FileDialog('Open file with vertex program', S, true) then
+    if Window.FileDialog('Open file with vertex program', S, true) then
     begin
       VertexProgram.Load(FileToString(S));
       Writeln(VertexProgram.DebugInfo);
@@ -266,7 +266,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
     S: string;
   begin
     S := '';
-    if Glwin.FileDialog('Open file with fragment program', S, true) then
+    if Window.FileDialog('Open file with fragment program', S, true) then
     begin
       FragmentProgram.Load(FileToString(S));
       Writeln(FragmentProgram.DebugInfo);
@@ -282,7 +282,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
     S: string;
   begin
     S := '';
-    if Glwin.FileDialog('Open file with GLSL vertex or fragment shader', S, true,
+    if Window.FileDialog('Open file with GLSL vertex or fragment shader', S, true,
       GLSL_FileFilters) then
     begin
       GLSLProgram.DetachAllShaders;
@@ -299,7 +299,7 @@ begin
     10: LoadVertexProgramMenu;
     20: LoadFragmentProgramMenu;
     30: LoadGLSLProgramMenu;
-    200: Glwin.Close;
+    200: Window.Close;
   end;
 end;
 
@@ -320,23 +320,23 @@ end;
 { main program --------------------------------------------------------------- }
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   SceneManager: TKamSceneManager;
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   SceneManager := TKamSceneManager.Create(Application);
-  Glw.Controls.Add(SceneManager);
+  Window.Controls.Add(SceneManager);
   SceneManager.Items.Add(TMyGeometry.Create(Application));
 
   { parse params }
-  Glw.ParseParameters(StandardParseOptions);
+  Window.ParseParameters(StandardParseOptions);
   Parameters.CheckHigh(0);
 
-  Glw.MainMenu := CreateMainMenu;
-  Glw.OnMenuCommand := @MenuCommand;
+  Window.MainMenu := CreateMainMenu;
+  Window.OnMenuCommand := @MenuCommand;
 
-  Glw.OnOpen := @Open;
-  Glw.OnClose := @Close;
-  Glw.OpenAndRun;
+  Window.OnOpen := @Open;
+  Window.OnClose := @Close;
+  Window.OpenAndRun;
 end.

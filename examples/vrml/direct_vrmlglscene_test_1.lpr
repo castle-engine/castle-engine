@@ -49,35 +49,35 @@ uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
   KambiGLUtils, VRMLGLScene, Cameras, KambiFilesUtils, VRMLErrors;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   Scene: TVRMLGLScene;
   Camera: TCamera;
 
-procedure Draw(Glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Camera.Matrix);
   Scene.Render(nil, tgAll);
 end;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   glEnable(GL_LIGHT0); { headlight }
 end;
 
-procedure Close(Glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
   Scene.GLContextClose;
 end;
 
-procedure Resize(Glwin: TGLWindow);
+procedure Resize(Window: TGLWindow);
 begin
   Scene.GLProjection(Camera, Scene.BoundingBox,
-    0, 0, Glwin.Width, Glwin.Height);
+    0, 0, Window.Width, Window.Height);
 end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(1);
 
@@ -89,14 +89,14 @@ begin
     Writeln(Scene.Info(true, true, false));
 
     { init camera }
-    Camera := Scene.CreateCamera(Glw);
+    Camera := Scene.CreateCamera(Window);
     if Camera is TWalkCamera then
       (Camera as TWalkCamera).Gravity := false;
-    Glw.Controls.Add(Camera);
+    Window.Controls.Add(Camera);
 
-    Glw.OnOpen := @Open;
-    Glw.OnClose := @Close;
-    Glw.OnResize := @Resize;
-    Glw.OpenAndRun(ProgramName, @Draw);
+    Window.OnOpen := @Open;
+    Window.OnClose := @Close;
+    Window.OnResize := @Resize;
+    Window.OpenAndRun(ProgramName, @Draw);
   finally Scene.Free end;
 end.

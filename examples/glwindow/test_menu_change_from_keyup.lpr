@@ -31,12 +31,12 @@ program test_menu_change_from_keyup;
 uses VectorMath, GL, GLU, GLWindow, KambiGLUtils,
   ProgressUnit, GLProgress, KambiTimeUtils;
 
-procedure Draw(glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT);
 end;
 
-procedure KeyUp(Glwin: TGLWindow; Key: TKey; C: char);
+procedure KeyUp(Window: TGLWindow; Key: TKey; C: char);
 var
   I: Integer;
 begin
@@ -50,28 +50,28 @@ begin
   Progress.Fini;
 
   { Simpler version of this test: just directly modify the menu. }
-  Glwin.MainMenu.Enabled := false;
-  Glwin.MainMenu.Enabled := true;
+  Window.MainMenu.Enabled := false;
+  Window.MainMenu.Enabled := true;
 end;
 
 var
-  Glw: TGLWindowDemo;
+  Window: TGLWindowDemo;
   M: TMenu;
 begin
-  Glw := TGLWindowDemo.Create(Application);
+  Window := TGLWindowDemo.Create(Application);
 
   { Create menu }
-  Glw.MainMenu := TMenu.Create('Main menu');
+  Window.MainMenu := TMenu.Create('Main menu');
   M := TMenu.Create('_File');
     M.Append(TMenuItem.Create('Dummy 1', 20));
     M.Append(TMenuItem.Create('Dummy 2', 30));
-    Glw.MainMenu.Append(M);
+    Window.MainMenu.Append(M);
 
-  Glw.OnDraw := @Draw;
-  Glw.OnKeyUp := @KeyUp;
-  Glw.Open;
+  Window.OnDraw := @Draw;
+  Window.OnKeyUp := @KeyUp;
+  Window.Open;
 
-  GLProgressInterface.Window := Glw;
+  GLProgressInterface.Window := Window;
   Progress.UserInterface := GLProgressInterface;
 
   Application.Run;

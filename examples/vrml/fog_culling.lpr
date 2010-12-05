@@ -37,7 +37,7 @@ uses VectorMath, GL, GLU, GLWindow,
   KambiSceneManager;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   Scene: TVRMLGLScene;
 
 type
@@ -74,7 +74,7 @@ begin
       Scene.LastRender_VisibleShapesCount ]));
 end;
 
-procedure Open(glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   { We use quite large triangles for fog_culling level demo wall.
     This means that fog must be correctly rendered,
@@ -83,25 +83,25 @@ begin
   glHint(GL_FOG_HINT, GL_NICEST);
 end;
 
-procedure KeyDown(glwin: TGLWindow; Key: TKey; c: char);
+procedure KeyDown(Window: TGLWindow; Key: TKey; c: char);
 begin
   case Key of
     K_F:
       begin
         with Scene do Attributes.UseFog := not Attributes.UseFog;
-        Glw.PostRedisplay;
+        Window.PostRedisplay;
       end;
-    K_F5: glwin.SaveScreenDialog(FileNameAutoInc('fog_culling_screen_%d.png'));
+    K_F5: Window.SaveScreenDialog(FileNameAutoInc('fog_culling_screen_%d.png'));
   end;
 end;
 
 begin
   Parameters.CheckHigh(0);
 
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   SceneManager := TMySceneManager.Create(Application);
-  Glw.Controls.Add(SceneManager);
+  Window.Controls.Add(SceneManager);
 
   Scene := TVRMLGLScene.Create(Application);
   VRMLWarning := @VRMLWarning_Write;
@@ -117,7 +117,7 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
-  Glw.OnOpen := @Open;
-  Glw.OnKeyDown := @KeyDown;
-  Glw.OpenAndRun;
+  Window.OnOpen := @Open;
+  Window.OnKeyDown := @KeyDown;
+  Window.OpenAndRun;
 end.

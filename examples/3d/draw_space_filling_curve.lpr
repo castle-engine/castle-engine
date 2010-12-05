@@ -41,7 +41,7 @@ uses SysUtils, GL, GLU, GLWindow, KambiUtils, KambiGLUtils,
   GLImages;
 
 var
-  Glw: TGLWindowDemo;
+  Window: TGLWindowDemo;
   CurveImage: TRGBImage;
 const
   CurveCol: TVector3Byte = (255, 255, 255);
@@ -49,21 +49,21 @@ const
 
 { glwindow callbacks ------------------------------------------------------- }
 
-procedure Draw(glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 begin
   { If DoubleBuffer available, then use it.
     This program should work perfectly with and without DoubleBuffer. }
-  if glw.DoubleBuffer then glClear(GL_COLOR_BUFFER_BIT);
+  if Window.DoubleBuffer then glClear(GL_COLOR_BUFFER_BIT);
 
   ImageDraw(CurveImage);
 end;
 
-procedure Open(glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   glClearColor(0.5, 0.5, 0.5, 1.0);
 end;
 
-procedure CloseQueryNotAllowed(glwin: TGLWindow); begin end;
+procedure CloseQueryNotAllowed(Window: TGLWindow); begin end;
 
 { curve generation ------------------------------------------------------------ }
 
@@ -104,12 +104,12 @@ begin
   Inc(StepNum);
   if StepNum mod StepsToRedisplay = 0 then
   begin
-    Glw.PostRedisplay;
+    Window.PostRedisplay;
     Application.ProcessAllMessages;
     { Since we use TGLWindowDemo, user is able to close the window by
       pressing Escape. In this case we want to break the curve generation
       and end the program. }
-    if Glw.Closed then
+    if Window.Closed then
       ProgramBreak;
   end;
 end;
@@ -124,7 +124,7 @@ var
   { helper vars }
   StepsResolution, AllStepsCount: Cardinal;
 begin
-  Glw := TGLWindowDemo.Create(Application);
+  Window := TGLWindowDemo.Create(Application);
 
   { parse params }
   Parameters.CheckHighAtLeast(2);
@@ -140,17 +140,17 @@ begin
     InitialOrient := StrToInt(Parameters[4]) else}
   if DoPeano then InitialOrient := false else InitialOrient := true;
 
-  { setup glw, glw.Open }
-  glw.OnDraw := @Draw;
-  glw.OnResize := @Resize2D;
-  glw.OnOpen := @Open;
-  glw.DoubleBuffer := true;
-  glw.OnCloseQuery := @CloseQueryNotAllowed;
-  glw.ParseParameters(StandardParseOptions);
-  glw.Open;
+  { setup Window, Window.Open }
+  Window.OnDraw := @Draw;
+  Window.OnResize := @Resize2D;
+  Window.OnOpen := @Open;
+  Window.DoubleBuffer := true;
+  Window.OnCloseQuery := @CloseQueryNotAllowed;
+  Window.ParseParameters(StandardParseOptions);
+  Window.Open;
 
   { init CurveImage }
-  CurveImage := TRGBImage.Create(glw.Width, glw.Height);
+  CurveImage := TRGBImage.Create(Window.Width, Window.Height);
   try
     CurveImage.Clear(Vector4Byte(CurveImageBGCol, 0));
 
@@ -171,9 +171,9 @@ begin
       HilbertCurve(InitialOrient, InitialAngle, Level, @Step, nil);
 
     { show the window }
-    glw.PostRedisplay;
-    glw.OnCloseQuery := nil;
-    glw.Close_CharKey := CharEscape;
-    glw.OpenAndRun;
+    Window.PostRedisplay;
+    Window.OnCloseQuery := nil;
+    Window.Close_CharKey := CharEscape;
+    Window.OpenAndRun;
   finally FreeAndNil(CurveImage) end;
 end.

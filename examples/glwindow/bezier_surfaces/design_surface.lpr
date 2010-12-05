@@ -29,7 +29,7 @@ type
   TShow = (shNone, shWire, shFill);
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   Camera: TExamineCamera;
 
   Surface: TSurface;
@@ -75,13 +75,13 @@ begin
   S := S + ' - design Bezier surface';
 
   { This may be called from SurfaceNew when Fps.Active is not yet set.
-    In this case it's best to set Glw.Caption instead of Glw.FpsBaseCaption.
-    We shouldn't set here Glw.FpsBaseCaption, because Glw.FpsBaseCaption
-    will be initialized later (when Fps.Active is set true) from Glw.Caption... }
+    In this case it's best to set Window.Caption instead of Window.FpsBaseCaption.
+    We shouldn't set here Window.FpsBaseCaption, because Window.FpsBaseCaption
+    will be initialized later (when Fps.Active is set true) from Window.Caption... }
 
-  if Glw.Fps.Active then
-    Glw.FpsBaseCaption := S else
-    Glw.Caption := S;
+  if Window.Fps.Active then
+    Window.FpsBaseCaption := S else
+    Window.Caption := S;
 end;
 
 { surface new/load/save ------------------------------------------------------ }
@@ -145,7 +145,7 @@ begin
     on E: Exception do
     begin
       FreeAndNil(NewSurface);
-      MessageOK(Glw, 'Error while loading file "' + FileName +'" : ' + E.Message);
+      MessageOK(Window, 'Error while loading file "' + FileName +'" : ' + E.Message);
       Exit;
     end;
   end;
@@ -197,7 +197,7 @@ begin
     5, 10, 10);
 end;
 
-procedure Draw(glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Camera.Matrix);
@@ -259,11 +259,11 @@ begin
   glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
-    glProjectionPushPopOrtho2D(@DrawStatus, nil, 0, Glwin.Width, 0, Glwin.Height);
+    glProjectionPushPopOrtho2D(@DrawStatus, nil, 0, Window.Width, 0, Window.Height);
   glPopAttrib;
 end;
 
-procedure Open(glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHTING);
@@ -274,42 +274,42 @@ begin
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
 
-procedure Close(glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
   FreeAndNil(StatusFont);
 end;
 
-procedure Resize(glwin: TGLWindow);
+procedure Resize(Window: TGLWindow);
 begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
+  glViewport(0, 0, Window.Width, Window.Height);
   if ProjectionPerspective then
-    ProjectionGLPerspective(30, glwin.Width/glwin.Height, 0.1, 100) else
+    ProjectionGLPerspective(30, Window.Width/Window.Height, 0.1, 100) else
     ProjectionGLOrtho(-1, 1, -1, 1, 0.1, 100);
 end;
 
-procedure Idle(glwin: TGLWindow);
+procedure Idle(Window: TGLWindow);
 
   procedure Move(Coord, MoveDir: Integer);
   begin
     ControlPoints(CurrentCurve).Items[CurrentPoint][Coord] +=
-      MoveDir * Glwin.Fps.IdleSpeed * 50 * 0.01;
+      MoveDir * Window.Fps.IdleSpeed * 50 * 0.01;
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
-    Glwin.PostRedisplay;
+    Window.PostRedisplay;
   end;
 
 begin
   if (CurrentCurve <> - 1) and (CurrentPoint <> -1) then
   begin
-    if Glwin.Pressed.Characters['8'] then Move(1, +1);
-    if Glwin.Pressed.Characters['2'] then Move(1, -1);
-    if Glwin.Pressed.Characters['4'] then Move(0, -1);
-    if Glwin.Pressed.Characters['6'] then Move(0, +1);
-    if Glwin.Pressed.Characters['9'] then Move(2, +1);
-    if Glwin.Pressed.Characters['3'] then Move(2, -1);
+    if Window.Pressed.Characters['8'] then Move(1, +1);
+    if Window.Pressed.Characters['2'] then Move(1, -1);
+    if Window.Pressed.Characters['4'] then Move(0, -1);
+    if Window.Pressed.Characters['6'] then Move(0, +1);
+    if Window.Pressed.Characters['9'] then Move(2, +1);
+    if Window.Pressed.Characters['3'] then Move(2, -1);
   end;
 end;
 
-procedure MouseDown(Glwin: TGLWindow; Btn: TMouseButton);
+procedure MouseDown(Window: TGLWindow; Btn: TMouseButton);
 
   procedure SelectClosestControlPoint;
   var
@@ -342,8 +342,8 @@ procedure MouseDown(Glwin: TGLWindow; Btn: TMouseButton);
       for J := 0 to ControlPoints(I).High do
       begin
         Project(ControlPoints(I).Items[J], WinX, WinY);
-        Distance := Sqr(WinX - Glwin.MouseX) +
-                    Sqr(WinY - (Glwin.Height - Glwin.MouseY));
+        Distance := Sqr(WinX - Window.MouseX) +
+                    Sqr(WinY - (Window.Height - Window.MouseY));
         if Distance < BestDistance then
         begin
           BestCurve := I;
@@ -354,7 +354,7 @@ procedure MouseDown(Glwin: TGLWindow; Btn: TMouseButton);
 
     CurrentCurve := BestCurve;
     CurrentPoint := BestPoint;
-    Glwin.PostRedisplay;
+    Window.PostRedisplay;
     Dragging := false;
   end;
 
@@ -368,14 +368,14 @@ begin
   end;
 end;
 
-procedure MouseUp(Glwin: TGLWindow; Btn: TMouseButton);
+procedure MouseUp(Window: TGLWindow; Btn: TMouseButton);
 begin
   case Btn of
     mbRight: Dragging := false;
   end;
 end;
 
-procedure MouseMove(Glwin: TGLWindow; NewX, NewY: integer);
+procedure MouseMove(Window: TGLWindow; NewX, NewY: integer);
 var
   ModelMatrix, ProjMatrix: T16dArray;
   Viewport: TViewPortArray;
@@ -408,8 +408,8 @@ begin
     glGetIntegerv(GL_VIEWPORT, @Viewport);
 
     { My first try was to just take
-        UnProjectGL(NewX        , Glwin.Height - NewY        , 0),
-        UnProjectGL(Glwin.MouseX, Glwin.Height - Glwin.MouseY, 0)
+        UnProjectGL(NewX        , Window.Height - NewY        , 0),
+        UnProjectGL(Window.MouseX, Window.Height - Window.MouseY, 0)
       I.e. we can just set WinZ parameter of UnProjectGL to anything,
       it's only important to make it the same.
 
@@ -432,11 +432,11 @@ begin
     WinZ := ProjectToZ(ControlPoints(CurrentCurve).Items[CurrentPoint]);
 
     Move := Vector3Single(VectorSubtract(
-      UnProject(NewX        , Glwin.Height - NewY        , WinZ),
-      UnProject(Glwin.MouseX, Glwin.Height - Glwin.MouseY, WinZ)));
+      UnProject(NewX        , Window.Height - NewY        , WinZ),
+      UnProject(Window.MouseX, Window.Height - Window.MouseY, WinZ)));
     VectorAddTo1st(ControlPoints(CurrentCurve).Items[CurrentPoint], Move);
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
-    Glwin.PostRedisplay;
+    Window.PostRedisplay;
   end;
 end;
 
@@ -450,7 +450,7 @@ var
 
 procedure TDummy.VisibleChange(ChangedCamera: TObject);
 begin
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 
   { Once I thought that I should turn here Dragging off,
     since the selected point moved (and Camera.Matrix changed...)
@@ -462,7 +462,7 @@ end;
 
 { menu ------------------------------------------------------------ }
 
-procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
 
   procedure New;
   var
@@ -471,11 +471,11 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
     CurvesCount := Surface.Curves.Count;
     CurvesControlPointsCount :=
       (Surface.Curves[0] as TControlPointsCurve).ControlPoints.Count;
-    if not MessageInputQueryCardinal(Glwin,
+    if not MessageInputQueryCardinal(Window,
       'Y size (number of curves, min 2) :',
       CurvesCount, taLeft) then
       Exit;
-    if not MessageInputQueryCardinal(Glwin,
+    if not MessageInputQueryCardinal(Window,
       'X size (number of control points on each curve, min 2) :',
       CurvesControlPointsCount, taLeft) then
       Exit;
@@ -487,7 +487,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
     S: string;
   begin
     S := SurfaceFileName;
-    if Glwin.FileDialog('Open surface file', S, true) then
+    if Window.FileDialog('Open surface file', S, true) then
       SurfaceLoad(S);
   end;
 
@@ -496,7 +496,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
     S: string;
   begin
     S := SurfaceFileName;
-    if Glwin.FileDialog('Save surface file', S, false) then
+    if Window.FileDialog('Save surface file', S, false) then
       SurfaceSave(S);
   end;
 
@@ -550,14 +550,14 @@ begin
     71: ChangeCurrentPoint(+1);
     80: begin
           ProjectionPerspective := not ProjectionPerspective;
-          Glwin.EventResize;
+          Window.EventResize;
         end;
     100: SurfaceShow := shNone;
     101: SurfaceShow := shWire;
     102: SurfaceShow := shFill;
     else Exit;
   end;
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 function CreateMainMenu: TMenu;
@@ -618,31 +618,31 @@ end;
 { main ----------------------------------------------------------------------- }
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
-  Glw.OnMenuCommand := @MenuCommand;
-  Glw.MainMenu := CreateMainMenu;
+  Window.OnMenuCommand := @MenuCommand;
+  Window.MainMenu := CreateMainMenu;
 
-  Camera := TExamineCamera.Create(Glw);
+  Camera := TExamineCamera.Create(Window);
   Camera.OnVisibleChange := @Dummy.VisibleChange;
   Camera.Init(Box3D(Vector3Single(0, 0, -1),
                     Vector3Single(1, 1,  1)), 0.1);
   { conflicts with our MouseDown / MouseMove }
   Camera.MouseNavigation := false;
   Camera.Input_StopRotating.MouseButtonUse := false;
-  Glw.Controls.Add(Camera);
+  Window.Controls.Add(Camera);
 
-  Glw.OnOpen := @Open;
-  Glw.OnClose := @Close;
-  Glw.OnResize := @Resize;
-  Glw.OnIdle := @Idle;
-  Glw.OnMouseDown := @MouseDown;
-  Glw.OnMouseUp := @MouseUp;
-  Glw.OnMouseMove := @MouseMove;
-  Glw.OnDraw := @Draw;
+  Window.OnOpen := @Open;
+  Window.OnClose := @Close;
+  Window.OnResize := @Resize;
+  Window.OnIdle := @Idle;
+  Window.OnMouseDown := @MouseDown;
+  Window.OnMouseUp := @MouseUp;
+  Window.OnMouseMove := @MouseMove;
+  Window.OnDraw := @Draw;
 
   SurfaceNew(4, 4);
   try
-    Glw.OpenAndRun;
+    Window.OpenAndRun;
   finally FreeAndNil(Surface) end;
 end.

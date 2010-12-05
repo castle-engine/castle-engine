@@ -49,13 +49,13 @@
      Note that you could also abandon Scene.CreateCamera completely,
      and just do
 
-       Camera := TWalkCamera.Create(Glw);
+       Camera := TWalkCamera.Create(Window);
        Camera.Gravity := true;
        Camera.CameraRadius := 0.1; // something appropriate
        // and possibly some more Camera initialization
 
   4. Makes FPS timings right after starting the program correct:
-  - uses Glw.OnBeforeDraw and Scene.PrepareResources
+  - uses Window.OnBeforeDraw and Scene.PrepareResources
 }
 
 program direct_vrmlglscene_test_2;
@@ -66,38 +66,38 @@ uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLWindow,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors, VRMLTriangle;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   Scene: TVRMLGLScene;
   Camera: TUniversalCamera;
 
-procedure BeforeDraw(Glwin: TGLWindow);
+procedure BeforeDraw(Window: TGLWindow);
 begin
   Scene.PrepareResources([tgAll], [prRender, prBoundingBox], false);
 end;
 
-procedure Draw(Glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Camera.Matrix);
   Scene.RenderFrustum(Camera.Frustum, tgAll);
 end;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   glEnable(GL_LIGHT0); { headlight }
 end;
 
-procedure Close(Glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
   Scene.GLContextClose;
 end;
 
-procedure Resize(Glwin: TGLWindow);
+procedure Resize(Window: TGLWindow);
 begin
   { This sets OpenGL projection, also updating Camera.ProjectionMatrix,
     which is important for having correct Camera.Frustum. }
   Scene.GLProjection(Camera, Scene.BoundingBox,
-    0, 0, Glwin.Width, Glwin.Height);
+    0, 0, Window.Width, Window.Height);
 end;
 
 type
@@ -131,7 +131,7 @@ begin
 end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(1);
 
@@ -149,7 +149,7 @@ begin
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
     { init camera }
-    Camera := Scene.CreateCamera(Glw, 'WALK');
+    Camera := Scene.CreateCamera(Window, 'WALK');
     Camera.SetInitialView(
       Vector3Single(0, 0, 0),
       Vector3Single(1, 0, 0),
@@ -157,12 +157,12 @@ begin
     Camera.Walk.GoToInitial;
     Camera.Walk.OnMoveAllowed    := @THelperObj(nil).MoveAllowed;
     Camera.Walk.OnGetHeightAbove := @THelperObj(nil).GetHeightAbove;
-    Glw.Controls.Add(Camera);
+    Window.Controls.Add(Camera);
 
-    Glw.OnOpen := @Open;
-    Glw.OnClose := @Close;
-    Glw.OnResize := @Resize;
-    Glw.OnBeforeDraw := @BeforeDraw;
-    Glw.OpenAndRun(ProgramName, @Draw);
+    Window.OnOpen := @Open;
+    Window.OnClose := @Close;
+    Window.OnResize := @Resize;
+    Window.OnBeforeDraw := @BeforeDraw;
+    Window.OpenAndRun(ProgramName, @Draw);
   finally Scene.Free end;
 end.

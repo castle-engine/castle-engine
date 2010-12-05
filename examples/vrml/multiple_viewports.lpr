@@ -211,15 +211,15 @@ var
   Viewports: array [0..3] of TMyViewport;
   OpenButton, QuitButton: TKamGLButton;
 
-procedure Resize(Glwin: TGLWindow);
+procedure Resize(Window: TGLWindow);
 const
   Margin = 5;
 var
   W, H, ButtonHeight: Integer;
 begin
   ButtonHeight := OpenButton.Height + 2*Margin;
-  W := Glwin.Width div 2;
-  H := (Glwin.Height - ButtonHeight) div 2;
+  W := Window.Width div 2;
+  H := (Window.Height - ButtonHeight) div 2;
 
   Viewports[0].Left   :=       Margin;
   Viewports[0].Bottom :=       Margin;
@@ -242,9 +242,9 @@ begin
   Viewports[3].Height := H - 2*Margin;
 
   OpenButton.Left := Margin;
-  OpenButton.Bottom := Glwin.Height - ButtonHeight + Margin;
+  OpenButton.Bottom := Window.Height - ButtonHeight + Margin;
 
-  QuitButton.Left := Glwin.Width - Margin - QuitButton.Width;
+  QuitButton.Left := Window.Width - Margin - QuitButton.Width;
   QuitButton.Bottom := OpenButton.Bottom;
 end;
 

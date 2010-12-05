@@ -37,7 +37,7 @@ uses GL, GLU, GLWindow, KambiGLUtils, SysUtils, VectorMath,
 { global vars ------------------------------------------------------------ }
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
 
   { For the whole lifetime of a program we can have two curves.
     Precise one (must be TMathExprCurve) and approximating one
@@ -130,7 +130,7 @@ procedure SetApproxCurve; forward;
     releases SceneManager.Camera. This will cause SceneManager to set
     ApplyProjectionNeeded := true, and next ApplyProjection will set
     camera and projection suitable for current BoundingBox.
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 
   References to NewX/Y/ZFunction will be copied, so do NOT Free
   NewX/Y/ZFunction yourself after calling this procedure. }
@@ -147,12 +147,12 @@ begin
 
   SceneManager.Camera.Free;
 
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 { Frees ApproxCurve,
   Creates ApproxCurve (based on ApproxCurveXxx variables and PreciseCurve)
-  Glw.PostRedisplay; }
+  Window.PostRedisplay; }
 procedure SetApproxCurve;
 begin
   FreeAndNil(ApproxCurve);
@@ -160,12 +160,12 @@ begin
     PreciseCurve, ApproxCurveControlPointsCount);
   SceneManager.Items.Add(ApproxCurve);
 
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 { glw callbacks ------------------------------------------------------------ }
 
-procedure DrawStatus(Glwin: TGLWindow);
+procedure DrawStatus(Window: TGLWindow);
 var
   S: TStringList;
 begin
@@ -190,13 +190,13 @@ begin
   end;
 end;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   glPointSize(10);
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m14);
 end;
 
-procedure Close(Glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
   FreeAndNil(StatusFont);
 end;
@@ -271,7 +271,7 @@ type
     Result := true;
   end;
 
-procedure MenuCommand(Glwin: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
 
   { Inputs a string from user. User can accept the string or cancel
     operation. If user will cancel operation -- we will return false.
@@ -286,7 +286,7 @@ procedure MenuCommand(Glwin: TGLWindow; MenuItem: TMenuItem);
     ExprString: string;
   begin
     ExprString := '';
-    Result := MessageInputQuery(glw, Prompt, ExprString, taLeft);
+    Result := MessageInputQuery(Window, Prompt, ExprString, taLeft);
     if Result then
     begin
 
@@ -294,7 +294,7 @@ procedure MenuCommand(Glwin: TGLWindow; MenuItem: TMenuItem);
         Expr := ParseFloatExpression(ExprString, [TVariable]);
       except on E: EKamScriptSyntaxError do
         begin
-          MessageOK(glw, ExceptMessage(E, nil), taLeft);
+          MessageOK(Window, ExceptMessage(E, nil), taLeft);
           Result := false;
           Exit;
         end;
@@ -308,12 +308,12 @@ var
   NewTBegin, NewTEnd: Float;
 begin
   case MenuItem.IntData of
-    1: Glw.SwapFullScreen;
-    2: Glw.Close;
+    1: (Window as TGLUIWindow).SwapFullScreen;
+    2: Window.Close;
 
     201: StatusVisible := not StatusVisible;
     202: CurvesRenderSegments := Max(1,
-           MessageInputCardinal(glw, 'Render curves as ... segments ?', taLeft,
+           MessageInputCardinal(Window, 'Render curves as ... segments ?', taLeft,
              CurvesRenderSegments));
     203: CurvesRenderSegments := CurvesRenderSegments * 2;
     204: CurvesRenderSegments := Max(2, CurvesRenderSegments div 2);
@@ -324,8 +324,8 @@ begin
               MessageInputQueryFunction('Input y(t) = ', NewYFunction) and
               MessageInputQueryFunction('Input z(t) = ', NewZFunction) then
            begin
-             NewTBegin := MessageInputCardinal(glw, 'Input starting t value :', taLeft, '');
-             NewTEnd := MessageInputCardinal(glw, 'Input ending t value :', taLeft, '');
+             NewTBegin := MessageInputCardinal(Window, 'Input starting t value :', taLeft, '');
+             NewTEnd := MessageInputCardinal(Window, 'Input ending t value :', taLeft, '');
              SetPreciseCurve(NewXFunction, NewYFunction, NewZFunction,
                NewTBegin, NewTEnd);
            end;
@@ -335,7 +335,7 @@ begin
     401: ApproxCurveControlPointsVisible := not ApproxCurveControlPointsVisible;
     402: begin
            ApproxCurveControlPointsCount := Max(2, MessageInputCardinal(
-             glw, 'How many control points ?', taLeft, ''));
+             Window, 'How many control points ?', taLeft, ''));
            SetApproxCurve;
          end;
     403: begin
@@ -348,7 +348,7 @@ begin
          end;
     else raise EInternalError.Create('not impl menu item');
   end;
-  glwin.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 function CreateMainMenu: TMenu;
@@ -358,7 +358,7 @@ begin
   Result := TMenu.Create('Main menu');
     M := TMenu.Create('File');
     M.Append(TMenuItemChecked.Create('FullScreen on/off', 1, K_F11,
-      Glw.FullScreen, true));
+      Window.FullScreen, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Exit',                     2, CharEscape));
   Result.Append(M);
@@ -409,7 +409,7 @@ end;
 { main ------------------------------------------------------------ }
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   try
     ApproxCurveClass := TLagrangeInterpolatedCurve;
@@ -419,11 +419,11 @@ begin
     TVariable.OwnedByParentExpression := false;
 
     { init menu }
-    Glw.OnMenuCommand := @MenuCommand;
-    Glw.MainMenu := CreateMainMenu;
+    Window.OnMenuCommand := @MenuCommand;
+    Window.MainMenu := CreateMainMenu;
 
     SceneManager := TMySceneManager.Create(Application);
-    Glw.Controls.Add(SceneManager);
+    Window.Controls.Add(SceneManager);
 
     { init PreciseCurve }
     SetPreciseCurve(
@@ -432,12 +432,12 @@ begin
       TVariable,
       0, 4*Pi);
 
-    { open Glw, go ! }
-    Glw.OnOpen := @Open;
-    Glw.OnClose := @Close;
-    Glw.OnDraw := @DrawStatus;
-    Glw.OnDrawStyle := ds2D;
-    Glw.OpenAndRun;
+    { open Window, go ! }
+    Window.OnOpen := @Open;
+    Window.OnClose := @Close;
+    Window.OnDraw := @DrawStatus;
+    Window.OnDrawStyle := ds2D;
+    Window.OpenAndRun;
   finally
     FreeAndNil(PreciseCurve);
     FreeAndNil(ApproxCurve);

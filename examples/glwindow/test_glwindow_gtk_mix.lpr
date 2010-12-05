@@ -43,13 +43,13 @@ type
   end;
 
 var
-  Glw: TMyGLWindow;
+  Window: TMyGLWindow;
   Font: TGLOutlineFont_Abstract;
   Entry: PGtkWidget;
 
 procedure EntryTextChanged(editable: PGtkEditable; user_data: GPointer); cdecl;
 begin
- glw.PostRedisplay;
+ Window.PostRedisplay;
 end;
 
 function TMyGLWindow.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
@@ -68,7 +68,7 @@ begin
  gtk_widget_show(Result);
 end;
 
-procedure Draw(glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 begin
  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
  glLoadIdentity;
@@ -80,7 +80,7 @@ begin
  Font.Print(gtk_entry_get_text(GTK_ENTRY(Entry)));
 end;
 
-procedure Open(glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
  Font := TGLOutlineFont.Create(@TTF_BitstreamVeraSans, 10);
  glEnable(GL_DEPTH_TEST);
@@ -91,25 +91,25 @@ begin
  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 end;
 
-procedure Close(glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
  FreeAndNil(Font);
 end;
 
-procedure Resize(glwin: TGLWindow);
+procedure Resize(Window: TGLWindow);
 begin
- glViewport(0, 0, glwin.Width, glwin.Height);
- ProjectionGLPerspective(45, glwin.Width / glwin.Height, 0.1, 100);
+ glViewport(0, 0, Window.Width, Window.Height);
+ ProjectionGLPerspective(45, Window.Width / Window.Height, 0.1, 100);
 end;
 
 begin
- glw := TMyGLWindow.Create(nil);
+ Window := TMyGLWindow.Create(nil);
  try
-  glw.Width := 600;
-  glw.Height := 400;
-  glw.OnOpen := @Open;
-  glw.OnClose := @Close;
-  glw.OnResize := @Resize;
-  glw.OpenAndRun('GLWindow with some GTK widgets', @Draw);
- finally glw.Free end;
+  Window.Width := 600;
+  Window.Height := 400;
+  Window.OnOpen := @Open;
+  Window.OnClose := @Close;
+  Window.OnResize := @Resize;
+  Window.OpenAndRun('GLWindow with some GTK widgets', @Draw);
+ finally Window.Free end;
 end.

@@ -16,7 +16,7 @@
 { simplest_vrml_browser extended to render shadows.
 
   Besides setting ShadowVolumesPossible and ShadowVolumes to @true,
-  we also initialize window by Glw.OpenOptionalMultiSamplingAndStencil.
+  we also initialize window by Window.OpenOptionalMultiSamplingAndStencil.
   The latter allows us to smoothly fallback to rendering without shadows
   on GPUs that don't support stencil buffer (really really old graphic cards). }
 
@@ -30,7 +30,7 @@ uses KambiUtils, GLWindow, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
 var
   BrowserWindow: TGLWindowVRMLBrowser;
 
-procedure StencilOff(Glwin: TGLWindow; const FailureMessage: string);
+procedure StencilOff(Window: TGLWindow; const FailureMessage: string);
 begin
   BrowserWindow.ShadowVolumesPossible := false;
   Writeln('Stencil buffer not available, shadows could not be initialized');

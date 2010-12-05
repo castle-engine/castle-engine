@@ -71,11 +71,11 @@ uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
   KambiSceneManager;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   SceneManager: TKamSceneManager;
   Animation: TVRMLGLAnimation;
 
-procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+procedure KeyDown(Window: TGLWindow; Key: TKey; C: char);
 begin
   if C = ' ' then
     Animation.ResetTime(0.0);
@@ -157,9 +157,9 @@ const
   end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
-  Glw.ParseParameters(StandardParseOptions);
+  Window.ParseParameters(StandardParseOptions);
   ParseParameters(Options, @OptionProc, nil);
 
   try
@@ -183,19 +183,19 @@ begin
       Animation.TimeBackwards := Param_AnimTimeBackwards;
 
     { init SceneManager, with the Animation }
-    SceneManager := TKamSceneManager.Create(Glw);
-    Glw.Controls.Add(SceneManager);
+    SceneManager := TKamSceneManager.Create(Window);
+    Window.Controls.Add(SceneManager);
     SceneManager.MainScene := Animation.FirstScene;
     SceneManager.Items.Add(Animation);
 
-    GLProgressInterface.Window := Glw;
+    GLProgressInterface.Window := Window;
     Progress.UserInterface := GLProgressInterface;
 
-    Glw.AutoRedisplay := true;
-    Glw.OnKeyDown := @KeyDown;
-    Glw.Caption := ProgramName;
+    Window.AutoRedisplay := true;
+    Window.OnKeyDown := @KeyDown;
+    Window.Caption := ProgramName;
 
-    Glw.Open;
+    Window.Open;
 
     Progress.Init(Animation.ScenesCount, 'Preparing animation');
     try

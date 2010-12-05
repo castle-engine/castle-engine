@@ -16,7 +16,7 @@
 { Simple demo that can you can create SceneManager.Camera instance yourself.
 
   As you can see, in the simplest case you just
-  - use TGLUIWindow class, adding SceneManager to Glw.Controls
+  - use TGLUIWindow class, adding SceneManager to Window.Controls
   - init SceneManager.Camera at the beginning of your program
     (actually, we could left it not initialized,
     it would be automatically initialized to a default camera by scene manager,
@@ -68,14 +68,14 @@ begin
 end;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   SceneManager: TKamSceneManager;
   Cube: TCube;
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   SceneManager := TKamSceneManager.Create(Application);
-  Glw.Controls.Add(SceneManager);
+  Window.Controls.Add(SceneManager);
 
   Cube := TCube.Create(Application);
   SceneManager.Items.Add(Cube);
@@ -86,5 +86,5 @@ begin
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)), 0.1);
 
-  Glw.OpenAndRun;
+  Window.OpenAndRun;
 end.

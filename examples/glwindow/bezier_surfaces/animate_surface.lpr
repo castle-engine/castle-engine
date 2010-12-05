@@ -22,7 +22,7 @@ uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
   KambiStringUtils, GLWinMessages, KambiFilesUtils;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   Camera: TWalkCamera;
   Surface1, Surface2: TSurface;
   SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
@@ -89,7 +89,7 @@ begin
   CameraScene;
 end;
 
-procedure Draw(glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 const
   SurfaceXSegments = 20;
   SurfaceYSegments = 20;
@@ -127,7 +127,7 @@ begin
   finally FreeAndNil(Surface) end;
 end;
 
-procedure Open(glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHTING);
@@ -136,17 +136,17 @@ begin
   glShadeModel(GL_FLAT);
 end;
 
-procedure Resize(glwin: TGLWindow);
+procedure Resize(Window: TGLWindow);
 begin
-  glViewport(0, 0, glwin.Width, glwin.Height);
-  ProjectionGLPerspective(30, glwin.Width/glwin.Height, 0.1, 100);
+  glViewport(0, 0, Window.Width, Window.Height);
+  ProjectionGLPerspective(30, Window.Width/Window.Height, 0.1, 100);
 end;
 
-procedure Idle(Glwin: TGLWindow);
+procedure Idle(Window: TGLWindow);
 begin
   if FUp then
   begin
-    F += 0.01 * Glwin.Fps.IdleSpeed * 50;
+    F += 0.01 * Window.Fps.IdleSpeed * 50;
     if F >= 1.0 then
     begin
       F := 1.0;
@@ -154,7 +154,7 @@ begin
     end;
   end else
   begin
-    F -= 0.01 * Glwin.Fps.IdleSpeed * 50;
+    F -= 0.01 * Window.Fps.IdleSpeed * 50;
     if F <= 0.0 then
     begin
       F := 0.0;
@@ -163,7 +163,7 @@ begin
   end;
 end;
 
-procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+procedure KeyDown(Window: TGLWindow; Key: TKey; C: char);
 begin
   case C of
     'c': begin
@@ -184,25 +184,25 @@ begin
 end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
-  Camera := TWalkCamera.Create(Glw);
+  Camera := TWalkCamera.Create(Window);
   Camera.PreferGravityUpForRotations := false;
   Camera.PreferGravityUpForMoving := false;
-  Glw.Controls.Add(Camera);
+  Window.Controls.Add(Camera);
 
   Parameters.CheckHigh(1);
   SurfacesLoad(Parameters[1]);
   try
-    Glw.OnOpen := @Open;
-    Glw.OnResize := @Resize;
-    Glw.OnIdle := @Idle;
-    Glw.OnDraw := @Draw;
-    Glw.OnKeyDown := @KeyDown;
+    Window.OnOpen := @Open;
+    Window.OnResize := @Resize;
+    Window.OnIdle := @Idle;
+    Window.OnDraw := @Draw;
+    Window.OnKeyDown := @KeyDown;
 
-    Glw.AutoRedisplay := true;
+    Window.AutoRedisplay := true;
 
-    Glw.OpenAndRun;
+    Window.OpenAndRun;
   finally
     FreeAndNil(Surface1);
     FreeAndNil(Surface2);

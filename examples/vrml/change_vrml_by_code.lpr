@@ -45,7 +45,7 @@ uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
   KambiFilesUtils, VRMLErrors;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   SceneManager: TKamSceneManager;
   Scene: TVRMLGLScene;
 
@@ -54,7 +54,7 @@ var
   TransformBox3: TNodeTransform_2;
   TransformBox4: TNodeTransform_2;
 
-procedure Idle(glwin: TGLWindow);
+procedure Idle(Window: TGLWindow);
 begin
   { We want to keep track of current time here (for calculating rotations
     below). It's most natural to just use Scene.Time property for this.
@@ -81,7 +81,7 @@ begin
 end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(0);
   VRMLWarning := @VRMLWarning_Write;
@@ -97,16 +97,16 @@ begin
       'Box4Transform', true) as TNodeTransform_2;
 
     { init SceneManager with our Scene }
-    SceneManager := TKamSceneManager.Create(Glw);
-    Glw.Controls.Add(SceneManager);
+    SceneManager := TKamSceneManager.Create(Window);
+    Window.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);
 
     { init SceneManager.Camera }
-    SceneManager.Camera := TExamineCamera.Create(Glw);
+    SceneManager.Camera := TExamineCamera.Create(Window);
     (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
 
-    Glw.OnIdle := @Idle;
-    Glw.OpenAndRun;
+    Window.OnIdle := @Idle;
+    Window.OpenAndRun;
   finally Scene.Free end;
 end.

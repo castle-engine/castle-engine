@@ -26,7 +26,7 @@ uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
   KambiFilesUtils, VRMLErrors, Quaternions {$ifdef LOG} ,KambiLog {$endif};
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   SceneManager: TKamSceneManager;
   Scene: TVRMLGLScene;
 
@@ -37,7 +37,7 @@ const
 var
   Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TNodeTransform_2;
 
-procedure Idle(glwin: TGLWindow);
+procedure Idle(Window: TGLWindow);
 var
   I, J: Integer;
 begin
@@ -93,7 +93,7 @@ begin
 end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(0);
   VRMLWarning := @VRMLWarning_Write;
@@ -112,19 +112,19 @@ begin
     {$endif}
 
     { make SceneManager with our Scene }
-    SceneManager := TKamSceneManager.Create(Glw);
-    Glw.Controls.Add(SceneManager);
+    SceneManager := TKamSceneManager.Create(Window);
+    Window.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);
 
     { init SceneManager.Camera }
-    SceneManager.Camera := TExamineCamera.Create(Glw);
+    SceneManager.Camera := TExamineCamera.Create(Window);
     (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
     { set more interesting view by default }
     (SceneManager.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
       Normalized(Vector3Single(1, 1, 0)), Pi/4);
 
-    Glw.OnIdle := @Idle;
-    Glw.OpenAndRun;
+    Window.OnIdle := @Idle;
+    Window.OpenAndRun;
   finally Scene.Free end;
 end.

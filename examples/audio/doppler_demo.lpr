@@ -30,11 +30,11 @@ const
   ALDistanceScaling = 0.02;
 
 var
-  Glw: TGLWindowDemo;
+  Window: TGLWindowDemo;
   PreviousSourcePosition, SourcePosition, ListenerPosition: TVector3Single;
   Source: TALuint;
 
-procedure Draw(Glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -51,27 +51,27 @@ begin
   glEnd;
 end;
 
-procedure Timer(Glwin: TGLWindow);
+procedure Timer(Window: TGLWindow);
 begin
   alSourceVector3f(Source, AL_VELOCITY,
     (SourcePosition - PreviousSourcePosition) * ALDistanceScaling);
   PreviousSourcePosition := SourcePosition;
 end;
 
-procedure MouseMove(Glwin: TGLWindow; NewX, NewY: Integer);
+procedure MouseMove(Window: TGLWindow; NewX, NewY: Integer);
 begin
-  if mbLeft in Glw.MousePressed then
+  if mbLeft in Window.MousePressed then
   begin
-    SourcePosition := Vector3Single(NewX, Glwin.Height - NewY);
+    SourcePosition := Vector3Single(NewX, Window.Height - NewY);
     alSourceVector3f(Source, AL_POSITION, SourcePosition * ALDistanceScaling);
-    Glw.PostRedisplay;
+    Window.PostRedisplay;
   end;
 end;
 
 var
   Buffer: TALuint;
 begin
-  Glw := TGLWindowDemo.Create(Application);
+  Window := TGLWindowDemo.Create(Application);
 
   OpenALOptionsParse;
   BeginAL(false);
@@ -93,11 +93,11 @@ begin
     alListenerOrientation(Vector3Single(0, 1, 0), Vector3Single(0, 0, 1));
 
     Application.TimerMilisec := 1000;
-    Glw.OnTimer := @Timer;
-    Glw.OnDraw := @Draw;
-    Glw.OnResize := @Resize2D;
-    Glw.OnMouseMove := @MouseMove;
-    Glw.OpenAndRun;
+    Window.OnTimer := @Timer;
+    Window.OnDraw := @Draw;
+    Window.OnResize := @Resize2D;
+    Window.OnMouseMove := @MouseMove;
+    Window.OpenAndRun;
 
     alSourceStop(Source);
     alDeleteSources(1, @Source);

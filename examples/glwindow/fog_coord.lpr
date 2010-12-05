@@ -27,7 +27,7 @@ type
     procedure(AType: TGLenum; stride: TGLsizei; p: Pointer); OPENGL_CALL
 
 var
-  Glw: TGLWindowDemo;
+  Window: TGLWindowDemo;
 
   FogCoordExtProc: TFogCoordExtProc;
   FogCoordPointerExtProc: TFogCoordPointerExtProc;
@@ -172,7 +172,7 @@ static GLfloat fogcoord_pointer[][1] = {
 };*)
 {$endif}
 
-procedure Draw(Glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadIdentity;
@@ -224,13 +224,13 @@ begin
 {$endif}
 end;
 
-procedure Resize(Glwin: TGLWindow);
+procedure Resize(Window: TGLWindow);
 begin
-  glViewport(0, 0, Glwin.Width, Glwin.Height);
-  ProjectionGLPerspective(45.0, Glwin.Width/Glwin.Height, 0.1, 100.0);
+  glViewport(0, 0, Window.Width, Window.Height);
+  ProjectionGLPerspective(45.0, Window.Width/Window.Height, 0.1, 100.0);
 end;
 
-procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+procedure KeyDown(Window: TGLWindow; Key: TKey; C: char);
 begin
   case C of
     'f': SetFogMode(fogMode + 1);
@@ -263,7 +263,7 @@ begin
     'c': begin
            SetFogCoord(not fogCoord);
          end;
-    CharEscape: Glwin.Close;
+    CharEscape: Window.Close;
     else
       case Key of
         K_Up  : if camz < (DEPTH - 1.0) then camz += 1.0;
@@ -271,10 +271,10 @@ begin
         else Exit;
       end;
   end;
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 const
   Wrap: TTextureWrap2D = (GL_REPEAT, GL_REPEAT);
 begin
@@ -312,13 +312,13 @@ begin
 end;
 
 begin
-  Glw := TGLWindowDemo.Create(Application);
+  Window := TGLWindowDemo.Create(Application);
 
-  Glw.OnOpen := @Open;
-  Glw.OnResize := @Resize;
-  Glw.OnKeyDown := @KeyDown;
-  Glw.OnDraw := @Draw;
+  Window.OnOpen := @Open;
+  Window.OnResize := @Resize;
+  Window.OnKeyDown := @KeyDown;
+  Window.OnDraw := @Draw;
 
-  Glw.Open;
+  Window.Open;
   Application.Run;
 end.

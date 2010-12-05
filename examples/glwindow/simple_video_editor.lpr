@@ -30,7 +30,7 @@ uses KambiUtils, SysUtils, GLWindow, GL, GLU, GLImages,
   KambiTimeUtils;
 
 var
-  Glw: TGLWindowDemo;
+  Window: TGLWindowDemo;
 
   Video: TVideo;
   VideoFileName: string;
@@ -44,7 +44,7 @@ var
   MenuTimeBackwards: TMenuItemChecked;
   MenuRevert, MenuSave: TMenuItem;
 
-procedure Draw(Glwin: TGLWindow);
+procedure Draw(Window: TGLWindow);
 const
   TimeBarHeight = 10;
   TimeBarMargin = 2;
@@ -73,7 +73,7 @@ const
 
       glColorv(Yellow3Single);
       StatusFont.PrintStrings(Strs, 0, 10,
-        Glw.Height - StatusFont.RowHeight * Strs.Count - TimeBarHeight - 4);
+        Window.Height - StatusFont.RowHeight * Strs.Count - TimeBarHeight - 4);
     finally FreeAndNil(Strs) end;
   end;
 
@@ -88,23 +88,23 @@ begin
 
     { draw time of the video bar }
     glColorv(Black4Single);
-    glRectf(0, Glwin.Height - TimeBarHeight, Glwin.Width, Glwin.Height);
+    glRectf(0, Window.Height - TimeBarHeight, Window.Width, Window.Height);
     glColorv(Vector4Single(0.5, 0.5, 0.5, 1));
-    glRectf(TimeBarMargin, Glwin.Height - TimeBarHeight + TimeBarMargin,
+    glRectf(TimeBarMargin, Window.Height - TimeBarHeight + TimeBarMargin,
       MapRange(
         Video.IndexFromTime(Time),
         0, Video.Count - 1,
-        TimeBarMargin, Glwin.Width - TimeBarMargin),
-      Glwin.Height - TimeBarMargin);
+        TimeBarMargin, Window.Width - TimeBarMargin),
+      Window.Height - TimeBarMargin);
   end;
 
   DrawStatus(nil);
 end;
 
-procedure Idle(Glwin: TGLWindow);
+procedure Idle(Window: TGLWindow);
 begin
   if TimePlaying then
-    Time += Glwin.Fps.IdleSpeed;
+    Time += Window.Fps.IdleSpeed;
 end;
 
 procedure LoadVideo(const NewVideoFileName: string);
@@ -118,7 +118,7 @@ begin
     MenuSave.Enabled := Video.Loaded;
   except
     on E: Exception do
-      MessageOk(Glw, 'Loading of "' + VideoFileName + '" failed:' + NL +
+      MessageOk(Window, 'Loading of "' + VideoFileName + '" failed:' + NL +
         E.Message, taLeft);
   end;
 end;
@@ -130,28 +130,28 @@ begin
     VideoFileName := NewVideoFileName;
   except
     on E: Exception do
-      MessageOk(Glw, 'Saving of "' + NewVideoFileName + '" failed:' + NL +
+      MessageOk(Window, 'Saving of "' + NewVideoFileName + '" failed:' + NL +
         E.Message, taLeft);
   end;
 end;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
 
-  GLProgressInterface.Window := Glw;
+  GLProgressInterface.Window := Window;
   Progress.UserInterface := GLProgressInterface;
 
   if Parameters.High = 1 then
     LoadVideo(Parameters[1]);
 end;
 
-procedure Close(Glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
   FreeAndNil(StatusFont);
 end;
 
-procedure MenuCommand(Glwin: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
 var
   S: string;
   I: Integer;
@@ -161,13 +161,13 @@ begin
     10:
       begin
         S := ExtractFilePath(VideoFileName);
-        if Glwin.FileDialog('Open file', S, true) then
+        if Window.FileDialog('Open file', S, true) then
           LoadVideo(S);
       end;
     13:
       begin
         S := VideoFileName;
-        if Glwin.FileDialog('Save to file', S, false) then
+        if Window.FileDialog('Save to file', S, false) then
           SaveVideo(S);
       end;
     15:
@@ -175,7 +175,7 @@ begin
         if Video.Loaded then
           LoadVideo(VideoFileName);
       end;
-    20: Glwin.Close;
+    20: Window.Close;
     110: TimePlaying := not TimePlaying;
     120: Time := 0;
     130: Video.TimeLoop := not Video.TimeLoop;
@@ -234,7 +234,7 @@ begin
 
     445: begin
            FadeFrames := Min(10, Video.Count div 2);
-           if MessageInputQueryCardinal(Glwin,
+           if MessageInputQueryCardinal(Window,
              'How many frames to use for fading?', FadeFrames, taLeft) then
            begin
              Video.FadeWithSelf(FadeFrames, 'Fade with self');
@@ -301,7 +301,7 @@ end;
 var
   Cache: TImagesCache;
 begin
-  Glw := TGLWindowDemo.Create(Application);
+  Window := TGLWindowDemo.Create(Application);
 
   try
     Cache := TImagesCache.Create;
@@ -311,17 +311,17 @@ begin
     { We will actually handle 1st param in Init. }
     Parameters.CheckHighAtMost(1);
 
-    Glw.SetDemoOptions(K_F11, #0, true);
-    Glw.AutoRedisplay := true;
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
-    Glw.OnOpen := @Open;
-    Glw.OnClose := @Close;
-    Glw.OnDraw := @Draw;
-    Glw.OnIdle := @Idle;
-    Glw.OnResize := @Resize2D;
+    Window.SetDemoOptions(K_F11, #0, true);
+    Window.AutoRedisplay := true;
+    Window.MainMenu := CreateMainMenu;
+    Window.OnMenuCommand := @MenuCommand;
+    Window.OnOpen := @Open;
+    Window.OnClose := @Close;
+    Window.OnDraw := @Draw;
+    Window.OnIdle := @Idle;
+    Window.OnResize := @Resize2D;
 
-    Glw.OpenAndRun;
+    Window.OpenAndRun;
   finally
     FreeAndNil(Video);
     FreeAndNil(Cache);
