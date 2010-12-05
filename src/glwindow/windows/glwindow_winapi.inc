@@ -194,7 +194,7 @@ begin
    ono juz dostaje jakies messagy - WM_CREATE i inne.
    Mozemy je spokojnie zignorowac.
 
-   Co wiecej jednak, moze tak byc ze glwin <> nil ale wskazuje na okienko
+   Co wiecej jednak, moze tak byc ze Window <> nil ale wskazuje na okienko
    ktore juz jest zamkniete (a moze nawet na obiekt ktory juz zostal
    zwolniony z pamieci !). Dlaczego tak jest, patrz komentarz na poczatku
    GLWindow_winsystem.inc. Wiec sprawdzamy tutaj czy glwin jest na liscie
@@ -202,7 +202,7 @@ begin
 
    Moreover, temporary windows created by CreateTemporaryWindow in
    SetPixelFormat_WGLChoose also get here (as they use our
-   Application.wndClassName). They don't set Get/SetWindowLongPtr, so Glwin here
+   Application.wndClassName). They don't set Get/SetWindowLongPtr, so Window here
    will be @nil in this case. }
  if Application.FindWindow(Window) >= 0 then
   result := Window.WindowProc(uMsg, wParm, lParm) else
