@@ -3998,7 +3998,7 @@ procedure TVRMLGLRenderer.RenderShapeLights(
   LightsRenderer: TVRMLGLLightsCachingRenderer;
   State: TVRMLGraphTraverseState);
 begin
-  glMatrixMode(GL_MODELVIEW);
+  { We know we're inside GL_MODELVIEW now }
 
   { Render lights in given State, if Attributes.UseSceneLights.
 
@@ -4190,9 +4190,10 @@ begin
         end;
       end;
     end;
-  end;
 
-  glMatrixMode(GL_MODELVIEW);
+    { restore GL_MODELVIEW }
+    glMatrixMode(GL_MODELVIEW);
+  end;
 
   ClipPlanesBegin(State.ClipPlanes);
 
@@ -4550,9 +4551,11 @@ begin
       ActiveTexture(TextureTransformUnitsUsedMore.Items[I]);
       glPopMatrix;
     end;
+
+    { restore GL_MODELVIEW }
+    glMatrixMode(GL_MODELVIEW);
   end;
 
-  glMatrixMode(GL_MODELVIEW);
   glPopMatrix;
 
   ClipPlanesEnd;
