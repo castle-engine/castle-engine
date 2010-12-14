@@ -245,8 +245,8 @@ function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  
   Make sure RangeBegin < RangeEnd. }
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 
-{ Angle between a 2D line segments and OX axis. Angle 0 means that Y1=Y2
-  and X2>X1, then the angle increases as you rotate CCW. In radians. }
+{ Angle between a 2D line segments and OX axis. Angle 0 means that Y1 = Y2
+  and X2 > X1, then the angle increases as you rotate CCW. In radians. }
 function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
 
 { Calculate power Base to Exponent, knowing both arguments (and so,
@@ -404,54 +404,118 @@ procedure MaxTo1st(var a: Extended; const b: Extended); begin if B > A then A :=
 
 function IndexMax(const a0, a1, a2: Double): Integer;
 begin
- if a0>a1 then
+ if a0 > a1 then
  begin
-  if a2>a0 then result := 2 else result := 0
+  if a2 > a0 then result := 2 else result := 0
  end else
  begin
-  if a2>a1 then result := 2 else result := 1
+  if a2 > a1 then result := 2 else result := 1
  end;
 end;
 
 function IndexMin(const a0, a1, a2: Double): Integer;
 begin
- if a0<a1 then
+ if a0 < a1 then
  begin
-  if a2<a0 then result := 2 else result := 0
+  if a2 < a0 then result := 2 else result := 0
  end else
  begin
-  if a2<a1 then result := 2 else result := 1
+  if a2 < a1 then result := 2 else result := 1
  end;
 end;
 
-function Between(const a, vBegin, vEnd: Int64): boolean; {$I KambiUtils_implement_Between.inc}
-function Between(const a, vBegin, vEnd: integer): boolean; {$I KambiUtils_implement_Between.inc}
-function Between(const a, vBegin, vEnd: cardinal): boolean; {$I KambiUtils_implement_Between.inc}
-function Between(const a, vBegin, vEnd: Float): boolean; {$I KambiUtils_implement_Between.inc}
-function Between(const a, vBegin, vEnd: Char): boolean; {$I KambiUtils_implement_Between.inc}
+function Between(const a, vBegin, vEnd: Int64): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: integer): boolean;  begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: cardinal): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Float): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
+function Between(const a, vBegin, vEnd: Char): boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
 
-function Clamped(const a, vBegin, vEnd: Int64): Int64; {$I KambiUtils_implement_Clamped.inc}
-function Clamped(const a, vBegin, vEnd: integer): integer; {$I KambiUtils_implement_Clamped.inc}
-function Clamped(const a, vBegin, vEnd: cardinal): cardinal; {$I KambiUtils_implement_Clamped.inc}
-function Clamped(const a, vBegin, vEnd: Single): Single; {$I KambiUtils_implement_Clamped.inc}
-function Clamped(const a, vBegin, vEnd: Double): Double; {$I KambiUtils_implement_Clamped.inc}
+function Clamped(const a, vBegin, vEnd: Int64): Int64;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
+function Clamped(const a, vBegin, vEnd: integer): integer;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
+function Clamped(const a, vBegin, vEnd: cardinal): cardinal;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
+function Clamped(const a, vBegin, vEnd: Single): Single;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
+function Clamped(const a, vBegin, vEnd: Double): Double;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function Clamped(const a, vBegin, vEnd: Extended): Extended; {$I KambiUtils_implement_Clamped.inc}
+function Clamped(const a, vBegin, vEnd: Extended): Extended;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
 {$endif}
 
-procedure Clamp(var a: Int64;    const vBegin, vEnd: Int64); {$I KambiUtils_implement_Clamp.inc}
-procedure Clamp(var a: integer;  const vBegin, vEnd: integer); {$I KambiUtils_implement_Clamp.inc}
-procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); {$I KambiUtils_implement_Clamp.inc}
-procedure Clamp(var a: Single;   const vBegin, vEnd: Single); {$I KambiUtils_implement_Clamp.inc}
-procedure Clamp(var a: Double;   const vBegin, vEnd: Double); {$I KambiUtils_implement_Clamp.inc}
+procedure Clamp(var a: Int64;    const vBegin, vEnd: Int64);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: integer;  const vBegin, vEnd: integer);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: Single;   const vBegin, vEnd: Single);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure Clamp(var a: Double;   const vBegin, vEnd: Double);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); {$I KambiUtils_implement_Clamp.inc}
+procedure Clamp(var a: Extended; const vBegin, vEnd: Extended);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
 {$endif}
 
 procedure RestOf3dCoords(coord: integer; out first, second: integer);
 begin
- if coord=0 then first := 1 else first := 0;
- if coord=2 then second := 1 else second := 2;
+ if coord = 0 then first := 1 else first := 0;
+ if coord = 2 then second := 1 else second := 2;
 end;
 
 function ChangeIntCycle(value, change, maxValue: integer): integer;
@@ -460,7 +524,7 @@ begin
  result := (value+change) mod maxValue;
  {teraz wynik jest w zakresie -maxValue..maxValue gdzie maxValue to jest to
   oryginalne maxValue jakie dostalismy}
- if result<0 then result := result+maxValue;
+ if result < 0 then result := result+maxValue;
 end;
 
 { Lerp : l + (h-l) * a = l + a*h - a*l = (1-a) *l + a*h }
@@ -473,7 +537,7 @@ function Lerp(const a, l, h: Double): Double;                 begin result := l 
 
 function RoundUpToMultiply(value, multiplicator: Integer): Integer;
 begin
- if value mod multiplicator=0 then
+ if value mod multiplicator = 0 then
   result := value else
   result := ((value div multiplicator)+1)*multiplicator;
 end;
@@ -484,26 +548,26 @@ begin
    To proste na bitach : znajdz pierwszy od lewej (najstarszy) bit rowny 1.
    Reszte bitow na prawo wyzeruj i zwroc calosc jako result. }
  result := Cardinal(1 shl (SizeOf(Cardinal)*8-1));
- while (result<>0) and ((result and Value)=0) do result := result shr 1;
+ while (result <> 0) and ((result and Value) = 0) do result := result shr 1;
 end;
 
 function Biggest2Exponent(Value: Cardinal): integer;
 begin
  result := -1;
- while Value<>0 do
+ while Value <> 0 do
   begin Inc(result); Value := Value shr 1 end;
 end;
 
 function Smallest2Exponent(Value: Cardinal): Integer;
 begin
- if Value=0 then begin result := -1; Exit end;
+ if Value = 0 then begin result := -1; Exit end;
 
  for result := SizeOf(Value)*8-1 downto 0 do
   if ((LongWord(1) shl result) and Value) <> 0 then Break;
 
- { Wiemy ze Value<>0 wiec zawsze z powyzszego for'a wyjdziemy breakiem.
+ { Wiemy ze Value <> 0 wiec zawsze z powyzszego for'a wyjdziemy breakiem.
    Teraz result okresla pozycje najbardziej znaczacej 1-ki w liczbie Value.
-   Jezeli wszystkie pozostale bity sa rowne 0 (czyli Value=1 shl result)
+   Jezeli wszystkie pozostale bity sa rowne 0 (czyli Value = 1 shl result)
    to result juz jest dobry. Wpp. zeby 2^result bylo >= Value musimy
    zwiekszyc result o 1.}
  if Value <> Cardinal(1) shl result then Inc(result);
@@ -513,7 +577,7 @@ function Smallest2Power(Value: Cardinal): Cardinal;
 var Exp: Integer;
 begin
  Exp := Smallest2Exponent(Value);
- if Exp=-1 then
+ if Exp = -1 then
   result := 0 else
   result := 1 shl Exp;
 end;
@@ -522,9 +586,9 @@ function IsPowerOf2(Value: Cardinal): boolean;
 var i: Cardinal;
 begin
  i := Cardinal(1 shl (SizeOf(Cardinal)*8-1));
- while (i<>0) do
+ while (i <> 0) do
  begin
-  if i=Value then begin result := true; exit end;
+  if i = Value then begin result := true; exit end;
   i := i shr 1;
  end;
  result := false;
@@ -543,26 +607,26 @@ end;
 
 function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
 begin
- if y2>y1 then
+ if y2 > y1 then
  begin
   if SameValue(x1, x2) then
    result := Pi/2 else
   begin
    result := ArcTan( (y2-y1) / (x2-x1) );
-   if result<0 then result := result +Pi;
+   if result < 0 then result := result +Pi;
   end;
  end else
- if y1>y2 then
+ if y1 > y2 then
  begin
   if SameValue(x1, x2) then
    result := Pi*3/2 else
   begin
    result := ArcTan( (y2-y1) / (x2-x1) );
-   if result<0 then result := result +Pi;
+   if result < 0 then result := result +Pi;
    result := result +Pi;
   end;
  end else
- if x2>x1 then result := 0 else result := Pi;
+ if x2 > x1 then result := 0 else result := Pi;
 end;
 
 function NatNatPower(Base, Exponent: Cardinal): Cardinal;
@@ -570,7 +634,7 @@ var i : Cardinal;
 begin
  result := 1;
  i := Exponent;
- while i>0 do
+ while i > 0 do
  begin
   while not Odd(i) do
   begin
@@ -677,7 +741,7 @@ begin
       "while Remainder >= A", but this could loop (practically)
       forever for very small (or zero) B.
 
-      Instead we just clamp Remainder to [0, B] once again,the hard way. }
+      Instead we just clamp Remainder to [0, B] once again, the hard way. }
 
     Clamp(Remainder, 0, B);
   end;
