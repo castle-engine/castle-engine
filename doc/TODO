@@ -33,6 +33,9 @@ VBO:
   - Also, the fact that right now MovieTexture / some texture generation methods etc.
     disable display lists will not be an issue then. They will still be optimized
     by VBO.
+- Also extracting all useful rendering info, like tex coords etc.,
+  to replace poor Triangulate interface, for
+  https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=25&p=132#p132
 
 More Shaders:
 - GLSL attributes from X3D passing to shaders
