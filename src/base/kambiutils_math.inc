@@ -348,40 +348,40 @@ procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);   begin if X <= 
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$endif}
 
-{ Int64 versions }
-function min(const a, b: Int64): Int64; {$Include KambiUtils_implement_min2.inc}
-function max(const a, b: Int64): Int64; {$Include KambiUtils_implement_max2.inc}
-function min(const a, b, c: Int64): Int64; {$Include KambiUtils_implement_min3.inc}
-function max(const a, b, c: Int64): Int64; {$Include KambiUtils_implement_max3.inc}
-
-{ integer versions }
-function min(const a, b: integer): integer; {$Include KambiUtils_implement_min2.inc}
-function max(const a, b: integer): integer; {$Include KambiUtils_implement_max2.inc}
-function min(const a, b, c: integer): integer; {$Include KambiUtils_implement_min3.inc}
-function max(const a, b, c: integer): integer; {$Include KambiUtils_implement_max3.inc}
-
-{ cardinal versions }
-function min(const a, b: cardinal): cardinal; {$Include KambiUtils_implement_min2.inc}
-function max(const a, b: cardinal): cardinal; {$Include KambiUtils_implement_max2.inc}
-function min(const a, b, c: cardinal): cardinal; {$Include KambiUtils_implement_min3.inc}
-function max(const a, b, c: cardinal): cardinal; {$Include KambiUtils_implement_max3.inc}
-
-{ Single, Double, Extended }
-function min(const a, b: Single): Single; {$Include KambiUtils_implement_min2.inc}
-function max(const a, b: Single): Single; {$Include KambiUtils_implement_max2.inc}
-function min(const a, b, c: Single): Single; {$Include KambiUtils_implement_min3.inc}
-function max(const a, b, c: Single): Single; {$Include KambiUtils_implement_max3.inc}
-
-function min(const a, b: Double): Double; {$Include KambiUtils_implement_min2.inc}
-function max(const a, b: Double): Double; {$Include KambiUtils_implement_max2.inc}
-function min(const a, b, c: Double): Double; {$Include KambiUtils_implement_min3.inc}
-function max(const a, b, c: Double): Double; {$Include KambiUtils_implement_max3.inc}
-
+function Min(const a, b: Int64): Int64;       begin if A < B then Result := A else Result := B end;
+function Min(const a, b: integer): integer;   begin if A < B then Result := A else Result := B end;
+function Min(const a, b: cardinal): cardinal; begin if A < B then Result := A else Result := B end;
+function Min(const a, b: Single): Single;     begin if A < B then Result := A else Result := B end;
+function Min(const a, b: Double): Double;     begin if A < B then Result := A else Result := B end;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function min(const a, b: Extended): Extended; {$Include KambiUtils_implement_min2.inc}
-function max(const a, b: Extended): Extended; {$Include KambiUtils_implement_max2.inc}
-function min(const a, b, c: Extended): Extended; {$Include KambiUtils_implement_min3.inc}
-function max(const a, b, c: Extended): Extended; {$Include KambiUtils_implement_max3.inc}
+function Min(const a, b: Extended): Extended; begin if A < B then Result := A else Result := B end;
+{$endif}
+
+function Max(const a, b: Int64): Int64;       begin if A > B then Result := A else Result := B end;
+function Max(const a, b: integer): integer;   begin if A > B then Result := A else Result := B end;
+function Max(const a, b: cardinal): cardinal; begin if A > B then Result := A else Result := B end;
+function Max(const a, b: Single): Single;     begin if A > B then Result := A else Result := B end;
+function Max(const a, b: Double): Double;     begin if A > B then Result := A else Result := B end;
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+function Max(const a, b: Extended): Extended; begin if A > B then Result := A else Result := B end;
+{$endif}
+
+function Min(const a, b, c: Int64): Int64;       begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
+function Min(const a, b, c: integer): integer;   begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
+function Min(const a, b, c: cardinal): cardinal; begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
+function Min(const a, b, c: Single): Single;     begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
+function Min(const a, b, c: Double): Double;     begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+function Min(const a, b, c: Extended): Extended; begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
+{$endif}
+
+function Max(const a, b, c: Int64): Int64;       begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
+function Max(const a, b, c: integer): integer;   begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
+function Max(const a, b, c: cardinal): cardinal; begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
+function Max(const a, b, c: Single): Single;     begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
+function Max(const a, b, c: Double): Double;     begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+function Max(const a, b, c: Extended): Extended; begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
 {$endif}
 
 procedure MinTo1st(var a: Int64   ; const b: Int64   ); begin if B < A then A := B end;

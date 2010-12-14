@@ -39,6 +39,7 @@ type
     procedure TestDivMod;
     procedure TestClamp;
     procedure TestSimpleMath;
+    procedure TestMinMax;
   end;
 
 implementation
@@ -352,6 +353,14 @@ begin
 
   Assert(DivRoundUp(40, 4) = 10);
   Assert(DivRoundUp(42, 4) = 11);
+end;
+
+procedure TTestKambiUtils.TestMinMax;
+begin
+  Assert(Min(345, 789) = 345);
+  Assert(Max(345, 789) = 789);
+  Assert(Min(345, 123, 789) = 123);
+  Assert(Max(345, 123, 789) = 789);
 end;
 
 initialization
