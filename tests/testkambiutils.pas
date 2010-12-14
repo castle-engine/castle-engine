@@ -46,7 +46,7 @@ implementation
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} {$ifdef USE_LIBC} Libc, {$else} Unix, BaseUnix, {$endif} {$endif}
-  KambiUtils, Math, KambiTimeUtils;
+  KambiUtils, Math, KambiTimeUtils, VectorMath;
 
 {$I macspeedtest.inc}
 
@@ -330,8 +330,28 @@ begin
   Assert(A = 456);
   Assert(B = 123);
 
+  OrderUp(A, B);
+  Assert(A = 123);
+  Assert(B = 456);
+
+  OrderUp(789, 1024, A, B);
+  Assert(A = 789);
+  Assert(B = 1024);
+
   Assert(Between(3, -100, 100));
   Assert(not Between(-300, -100, 100));
+
+  Assert(FloatsEqual(MapRange(2  , 1  , 3  , 0  , 1  ), 0.5, 0.01));
+  Assert(FloatsEqual(MapRange(2.0, 1.0, 3.0, 0.0, 1.0), 0.5, 0.01));
+
+  Assert(FloatsEqual(MapRange(1.5, 3  , 1  , 0  , 1  ), 0.75, 0.01));
+  Assert(FloatsEqual(MapRange(1.5, 3.0, 1.0, 0.0, 1.0), 0.75, 0.01));
+
+  Assert(FloatsEqual(MapRange(1.5, 1  , 3  , 0  , 1  ), 0.25, 0.01));
+  Assert(FloatsEqual(MapRange(1.5, 1.0, 3.0, 0.0, 1.0), 0.25, 0.01));
+
+  Assert(DivRoundUp(40, 4) = 10);
+  Assert(DivRoundUp(42, 4) = 11);
 end;
 
 initialization

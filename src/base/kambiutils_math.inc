@@ -331,21 +331,21 @@ procedure SwapValues(var a, b: Extended); var Tmp: Extended; begin Tmp := A; A :
 procedure SwapValues(var a, b: char);     var Tmp: char;     begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Pointer);  var Tmp: Pointer;  begin Tmp := A; A := B; B := Tmp; end;
 
-procedure OrderUp(var Smaller, Larger: Int64);    {$I KambiUtils_implement_OrderUp.inc}
-procedure OrderUp(var Smaller, Larger: Integer);  {$I KambiUtils_implement_OrderUp.inc}
-procedure OrderUp(var Smaller, Larger: Cardinal); {$I KambiUtils_implement_OrderUp.inc}
-procedure OrderUp(var Smaller, Larger: Single);   {$I KambiUtils_implement_OrderUp.inc}
-procedure OrderUp(var Smaller, Larger: Double);   {$I KambiUtils_implement_OrderUp.inc}
+procedure OrderUp(var Smaller, Larger: Int64);    begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Integer);  begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Cardinal); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Single);   begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
+procedure OrderUp(var Smaller, Larger: Double);   begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure OrderUp(var Smaller, Larger: Extended); {$I KambiUtils_implement_OrderUp.inc}
+procedure OrderUp(var Smaller, Larger: Extended); begin if Smaller > Larger then SwapValues(Smaller, Larger); end;
 {$endif}
 
-procedure OrderUp(x, y: Integer;  var Smaller, Larger: Integer);   {$I KambiUtils_implement_OrderUp4.inc}
-procedure OrderUp(x, y: Cardinal; var Smaller, Larger: Cardinal); {$I KambiUtils_implement_OrderUp4.inc}
-procedure OrderUp(x, y: Single;   var Smaller, Larger: Single);     {$I KambiUtils_implement_OrderUp4.inc}
-procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);     {$I KambiUtils_implement_OrderUp4.inc}
+procedure OrderUp(x, y: Integer;  var Smaller, Larger: Integer);  begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Cardinal; var Smaller, Larger: Cardinal); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Single;   var Smaller, Larger: Single);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
+procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); {$I KambiUtils_implement_OrderUp4.inc}
+procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$endif}
 
 { Int64 versions }
@@ -594,11 +594,31 @@ begin
  result := false;
 end;
 
-function DivRoundUp(Value, Divider: Cardinal): Cardinal; {$I KambiUtils_implement_DivRoundUp.inc}
-function DivRoundUp(Value, Divider: Integer): Integer;   {$I KambiUtils_implement_DivRoundUp.inc}
+function DivRoundUp(Value, Divider: Cardinal): Cardinal;
+begin
+  Result := (Value + Divider - 1) div Divider;
+end;
 
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float;{$I KambiUtils_implement_MapRange.inc}
-function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;{$I KambiUtils_implement_MapRange.inc}
+function DivRoundUp(Value, Divider: Integer): Integer;
+begin
+  Result := (Value + Divider - 1) div Divider;
+end;
+
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float;
+begin
+  { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
+  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  { Map range 0..1 to DestBegin .. DestEnd }
+  Result := Result * (destEnd - destBegin) + destBegin;
+end;
+
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;
+begin
+  { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
+  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  { Map range 0..1 to DestBegin .. DestEnd }
+  Result := Result * (destEnd - destBegin) + destBegin;
+end;
 
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 begin
