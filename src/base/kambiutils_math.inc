@@ -319,17 +319,17 @@ function IntSqrt(const Value: Cardinal): Cardinal;
 
 {$ifdef read_implementation}
 
-procedure SwapValues(var a, b: Byte);     type TT = Byte;    {$I kambiutils_implement_swapvalues.inc}
-procedure SwapValues(var a, b: Int64);    type TT = Int64;   {$I kambiutils_implement_swapvalues.inc}
-procedure SwapValues(var a, b: Integer);  type TT = integer; {$I kambiutils_implement_swapvalues.inc}
-procedure SwapValues(var a, b: Cardinal); type TT = Cardinal;{$I kambiutils_implement_swapvalues.inc}
-procedure SwapValues(var a, b: Single);   type TT = Single;  {$I kambiutils_implement_swapvalues.inc}
-procedure SwapValues(var a, b: Double);   type TT = Double;  {$I kambiutils_implement_swapvalues.inc}
+procedure SwapValues(var a, b: Byte);     var Tmp: Byte;     begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Int64);    var Tmp: Int64;    begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Integer);  var Tmp: integer;  begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Cardinal); var Tmp: Cardinal; begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Single);   var Tmp: Single;   begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Double);   var Tmp: Double;   begin Tmp := A; A := B; B := Tmp; end;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure SwapValues(var a, b: Extended); type TT = Extended;{$I kambiutils_implement_swapvalues.inc}
+procedure SwapValues(var a, b: Extended); var Tmp: Extended; begin Tmp := A; A := B; B := Tmp; end;
 {$endif}
-procedure SwapValues(var a, b: char);     type TT = char;    {$I kambiutils_implement_swapvalues.inc}
-procedure SwapValues(var a, b: Pointer);  type TT = Pointer; {$I kambiutils_implement_swapvalues.inc}
+procedure SwapValues(var a, b: char);     var Tmp: char;     begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: Pointer);  var Tmp: Pointer;  begin Tmp := A; A := B; B := Tmp; end;
 
 procedure OrderUp(var Smaller, Larger: Int64);    {$I KambiUtils_implement_OrderUp.inc}
 procedure OrderUp(var Smaller, Larger: Integer);  {$I KambiUtils_implement_OrderUp.inc}

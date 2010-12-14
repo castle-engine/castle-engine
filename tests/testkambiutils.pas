@@ -37,6 +37,8 @@ type
     procedure TestOthers;
     procedure TestIntSqrt;
     procedure TestDivMod;
+    procedure TestClamp;
+    procedure TestSimpleMath;
   end;
 
 implementation
@@ -299,6 +301,37 @@ procedure TTestKambiUtils.TestDivMod;
 begin
   OneTest(-39, 20, -1, -19);
   OneTest(-9, 5, -1, -4);
+end;
+
+procedure TTestKambiUtils.TestClamp;
+var
+  A: Integer;
+begin
+  A := 123;
+  Clamp(A, 100, 200);
+  Assert(A = 123);
+  Clamp(A, 50, 100);
+  Assert(A = 100);
+  Clamp(A, 200, 300);
+  Assert(A = 200);
+
+  Assert(Clamped(123, 100, 200) = 123);
+  Assert(Clamped(123, 50, 100) = 100);
+  Assert(Clamped(123, 200, 300) = 200);
+end;
+
+procedure TTestKambiUtils.TestSimpleMath;
+var
+  A, B: Integer;
+begin
+  A := 123;
+  B := 456;
+  SwapValues(A, B);
+  Assert(A = 456);
+  Assert(B = 123);
+
+  Assert(Between(3, -100, 100));
+  Assert(not Between(-300, -100, 100));
 end;
 
 initialization
