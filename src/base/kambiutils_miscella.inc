@@ -94,20 +94,13 @@ procedure Check(TrueValue: boolean; const ErrMessage: string);
   Useful for writing case as:
 
 @longCode(#
-  case ArrayPos(variable, [val1, val2]) of
+  case ArrayPosStr(variable, [val1, val2]) of
     0 : Something1;
     1 : Something2;
     else SomethingElse;
   end;
-#)
-
-  @groupBegin }
-function ArrayPosPointer(A: pointer; const Arr: array of pointer): Integer; overload;
+#) }
 function ArrayPosStr(const A: string; const Arr: array of string): Integer; overload;
-function ArrayPosInt(A: Integer; const Arr: array of Integer): Integer; overload;
-function ArrayPosCard(A: Cardinal; const Arr: array of Cardinal): Integer; overload;
-function ArrayPosExt(A: Extended; const Arr: array of Extended): Integer; overload;
-{ @groupEnd }
 
 function ArrayPosText(const A: string; const Arr: array of string;
   IgnoreCase: boolean = true): Integer; overload;
@@ -187,41 +180,17 @@ end;
 
 { arrays searching ---------------------------------------- }
 
-(* PIERWSZE WERSJE - nie mozna tego bylo tak zrobic,
-   bo kompilator delphi/kylixa glupial gdy dostawal ta procedure
-   wywolana z drugim parametrem skonstruowanym w locie (blad "ambiguous call").
-   Przypuszczam ze kompilator probowal odgadnac typ elementow tablicy na
-   podstawie deklaracji procedury, ale w deklaracji procedury to bylo
-   nieustalone na skutek overloadu. W sumie jest to dosc logiczne, ale
-   moznaby to zrobic tak zeby dzialalo - odgadywac najpierw po pierwszym
-   parametrze ktora deklaracja procedury jest dobra a potem sprawdzac
-   typ elementow tablicy.
-
-deklaracje :
-function ArrayPos(A: pointer; const Arr: array of pointer): Integer; overload;
-function ArrayPos(const A: string; const Arr: array of string): Integer; overload;
-function ArrayPos(A: Integer; const Arr: array of Integer): Integer; overload;
-function ArrayPos(A: Cardinal; const Arr: array of Cardinal): Integer; overload;
-function ArrayPos(A: Extended; const Arr: array of Extended): Integer; overload;}
-
-implementacje :
-function ArrayPos(A: pointer; const Arr: array of pointer): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
-function ArrayPos(const A: string; const Arr: array of string): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
-function ArrayPos(A: Integer; const Arr: array of Integer): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
-function ArrayPos(A: Cardinal; const Arr: array of Cardinal): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
-function ArrayPos(A: Extended; const Arr: array of Extended): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
-*)
-
-function ArrayPosPointer(A: Pointer; const Arr: array of pointer): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
-function ArrayPosStr(const A: string; const Arr: array of string): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
-function ArrayPosInt(A: Integer; const Arr: array of Integer): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
-function ArrayPosCard(A: Cardinal; const Arr: array of Cardinal): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
-function ArrayPosExt(A: Extended; const Arr: array of Extended): Integer; {$Include KambiUtils_implement_ArrayPos.inc}
+function ArrayPosStr(const A: string; const Arr: array of string): Integer;
+begin
+  for Result := 0 to High(Arr) do
+    if Arr[result] = A then Exit;
+  Result := -1;
+end;
 
 function ArrayPosText(const A: string; const Arr: array of string;
   IgnoreCase: boolean): Integer;
 begin
- result := PArrayPosText(A, @Arr, High(Arr)+1, IgnoreCase);
+  Result := PArrayPosText(A, @Arr, High(Arr)+1, IgnoreCase);
 end;
 
 function PArrayPosStr(const A: string; Arr: PString; ArrCount: Integer): Integer;

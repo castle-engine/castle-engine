@@ -1298,14 +1298,12 @@ begin
 end;
 
 function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
-const
-  MipmapFilters: array [0..3] of TGLenum =
-  ( GL_NEAREST_MIPMAP_NEAREST,
-    GL_LINEAR_MIPMAP_NEAREST,
-    GL_NEAREST_MIPMAP_LINEAR,
-    GL_LINEAR_MIPMAP_LINEAR );
 begin
-  Result := ArrayPosCard(MinFilter, MipmapFilters) >= 0;
+  Result :=
+    ( (MinFilter = GL_NEAREST_MIPMAP_NEAREST) or
+      (MinFilter = GL_LINEAR_MIPMAP_NEAREST) or
+      (MinFilter = GL_NEAREST_MIPMAP_LINEAR) or
+      (MinFilter = GL_LINEAR_MIPMAP_LINEAR) );
 end;
 
 { Load Image through glCompressedTexImage2DARB.
