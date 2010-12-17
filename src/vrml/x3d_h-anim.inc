@@ -37,17 +37,13 @@
   end;
 
   TNodeHAnimHumanoid = class(TNodeX3DChildNode, INodeX3DBoundedObject, INodeTransform)
-  private
-    RestSkinCoord: TDynVector3SingleArray;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure ParseAfter(Names: TVRMLNames); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -111,8 +107,8 @@
 
   TNodeHAnimJoint = class(TNodeX3DGroupingNode, INodeTransform)
   private
-    HasRestTransform: boolean;
-    RestTransform, RestInvertedTransform: TMatrix4Single;
+    HasPreviousTransform: boolean;
+    PreviousTransform, PreviousInvertedTransform: TMatrix4Single;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -379,12 +375,6 @@ begin
   DefaultContainerField := 'children';
 end;
 
-destructor TNodeHAnimHumanoid.Destroy;
-begin
-  FreeAndNil(RestSkinCoord);
-  inherited;
-end;
-
 class function TNodeHAnimHumanoid.ClassNodeTypeName: string;
 begin
   Result := 'HAnimHumanoid';
@@ -453,20 +443,6 @@ end;
 function TNodeHAnimHumanoid.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
-end;
-
-procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
-begin
-  inherited;
-
-  { update RestSkinCoord }
-  FreeAndNil(RestSkinCoord);
-  if (FdSkinCoord.Value <> nil) and
-     (FdSkinCoord.Value is TNodeCoordinate) then
-  begin
-    RestSkinCoord := TDynVector3SingleArray.Create;
-    RestSkinCoord.Assign(TNodeCoordinate(FdSkinCoord.Value).FdPoint.Items);
-  end;
 end;
 
 constructor TNodeHAnimJoint.Create(const ANodeName: string;
@@ -557,34 +533,22 @@ end;
 procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
 
   { Animate skin along with this joint. Returns if something actually changed. }
-  function AnimateSkin(
-    CurrentSkinCoord, RestSkinCoord: TDynVector3SingleArray): boolean;
+  function AnimateSkin(CurrentSkinCoord: TDynVector3SingleArray): boolean;
   var
     Local: TVector4Single;
     I, CoordIndex: Integer;
     Weight: Single;
   begin
-    Result := false;
-
-    if CurrentSkinCoord.Count <> RestSkinCoord.Count then
-    begin
-      if Log then
-        WritelnLog('Humanoid', 'Cannot animate humanoid: skid coord count changed. Submit a bug with example model to have this fixed.');
-      { fix is to update RestSkinCoord more often, like at every count
-        change of HAnimHumanoid.skin or skin contents. }
-      Exit;
-    end;
-
     Result := true;
 
     for I := 0 to FdSkinCoordIndex.Count - 1 do
     begin
       CoordIndex := FdSkinCoordIndex.Items[I];
       if (CoordIndex < 0) or
-         (CoordIndex >= RestSkinCoord.Count) then
+         (CoordIndex >= CurrentSkinCoord.Count) then
       begin
         VRMLWarning(vwSerious, Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
-          [CoordIndex, RestSkinCoord.Count]));
+          [CoordIndex, CurrentSkinCoord.Count]));
         Continue;
       end;
 
@@ -592,17 +556,17 @@ procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
         Weight := FdSkinCoordWeight.Items[CoordIndex] else
         Weight := 1;
 
-      { get vertex rest position in local Joint coordinate space }
+      { get vertex position in local Joint coordinate space }
       Local := State.HumanoidInvertedTransform *
-        Vector4Single(RestSkinCoord.Items[CoordIndex]);
+        Vector4Single(CurrentSkinCoord.Items[CoordIndex]);
 
-      { our new State.HumanoidTransform is RestTransform * TransformChange.
-        So TransformChange = RestInvertedTransform * State.HumanoidTransform.
+      { our new State.HumanoidTransform is PreviousTransform * TransformChange.
+        So TransformChange = PreviousInvertedTransform * State.HumanoidTransform.
         Transform local by TransformChange (we don't want to apply
-        RestTransform again, as this transformation was already encoded
+        PreviousTransform again, as this transformation was already encoded
         in initial vertex position). }
       Local := Lerp(Weight, IdentityMatrix4Single,
-        RestInvertedTransform * State.HumanoidTransform) * Local;
+        PreviousInvertedTransform * State.HumanoidTransform) * Local;
 
       { get vertex position back in Humanoid coordinate space }
       { TODO: make VRMLWarning when this fails with div by zero }
@@ -625,22 +589,24 @@ begin
     IgnoreHumanoidTransformScale,
     Fdcenter, Fdrotation, Fdscale, FdscaleOrientation, Fdtranslation);
 
-  if not HasRestTransform then
-  begin
-    RestTransform := State.HumanoidTransform;
-    RestInvertedTransform := State.HumanoidInvertedTransform;
-    HasRestTransform := true;
-  end else
-  if (FdSkinCoordIndex.Count <> 0) and
+  if HasPreviousTransform and
+     (FdSkinCoordIndex.Count <> 0) and
      (State.Humanoid <> nil) and
      (State.Humanoid.FdSkinCoord.Value <> nil) and
-     (State.Humanoid.FdSkinCoord.Value is TNodeCoordinate) and
-     (State.Humanoid.RestSkinCoord <> nil) then
+     (State.Humanoid.FdSkinCoord.Value is TNodeCoordinate) then
   begin
     SkinCoordField := TNodeCoordinate(State.Humanoid.FdSkinCoord.Value).FdPoint;
-    if AnimateSkin(SkinCoordField.Items, State.Humanoid.RestSkinCoord) then
+    if AnimateSkin(SkinCoordField.Items) then
       SkinCoordField.Changed;
   end;
+
+  { remember joint transformation corresponding to current vertex position.
+    This also means that at the first time (when HasPreviousTransform was
+    false), we assume that vertex initial position already includes initial
+    transformation (which is exactly true, this is how bones work). }
+  PreviousTransform := State.HumanoidTransform;
+  PreviousInvertedTransform := State.HumanoidInvertedTransform;
+  HasPreviousTransform := true;
 end;
 
 function TNodeHAnimJoint.TransformationChange: TNodeTransformationChange;
