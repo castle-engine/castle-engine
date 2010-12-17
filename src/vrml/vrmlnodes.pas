@@ -1999,6 +1999,11 @@ procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes)
   itself. }
 procedure VRMLNodesList_FreeUnusedAndNil(var List: TVRMLNodesList);
 
+{ Generate two trivial triangles of a rectangle. }
+procedure LocalTriangulateRect(constCoord: integer;
+  const constCoordValue, x1, y1, x2, y2: Single;
+  Shape: TObject; NewTriangleProc: TNewTriangleProc);
+
 const
   ProjectionTypeToStr: array [TProjectionType] of string =
   ('Orthographic', 'Perspective');

@@ -179,6 +179,7 @@ type
     FBlenderObjectName: string;
     FBlenderMeshNode: TVRMLNode;
     FBlenderMeshName: string;
+    FDynamicGeometry: boolean;
 
     { Just like Geometry() and State(), except return @nil if no proxy available
       (when Geometry would return the same thing as OriginalGeometry).
@@ -548,6 +549,14 @@ type
     { @groupEnd }
 
     function DebugInfo(const Indent: string = ''): string; override;
+
+    { Local geometry is auto-detected as "often changing".
+      This is automatically detected (right now, by the first
+      LocalGeometryChanged call that has to rebuild the octree),
+      and may cause worse collision detection (using crude a approximation)
+      and rendering method better for dynamic geometry (without display lists,
+      that are suitable only for mostly static stuff). }
+    property DynamicGeometry: boolean read FDynamicGeometry write FDynamicGeometry;
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -1179,24 +1188,46 @@ end;
 function TVRMLShape.CreateTriangleOctree(
   const ALimits: TOctreeLimits;
   const ProgressTitle: string): TVRMLTriangleOctree;
+
+  procedure LocalTriangulateBox(const Box: TBox3D);
+  var
+    I, XCoord, YCoord: Integer;
+  begin
+    for I := 0 to 2 do
+    begin
+      RestOf3dCoords(I, XCoord, YCoord);
+      LocalTriangulateRect(I, Box[0][I], Box[0][XCoord], Box[0][YCoord], Box[1][XCoord], Box[1][YCoord], Self, @Result.AddItemTriangle);
+      LocalTriangulateRect(I, Box[1][I], Box[0][XCoord], Box[0][YCoord], Box[1][XCoord], Box[1][YCoord], Self, @Result.AddItemTriangle);
+    end;
+  end;
+
 begin
   Result := TVRMLTriangleOctree.Create(ALimits, LocalBoundingBox);
   try
-    Result.Triangles.AllowedCapacityOverflow := TrianglesCount(false);
-    try
-      if (ProgressTitle <> '') and
-         (Progress.UserInterface <> nil) and
-         (not Progress.Active) then
-      begin
-        Progress.Init(TrianglesCount(false), ProgressTitle, true);
-        try
-          TriangleOctreeToAdd := Result;
-          LocalTriangulate(false, @AddTriangleToOctreeProgress);
-        finally Progress.Fini end;
-      end else
-        LocalTriangulate(false, @Result.AddItemTriangle);
-    finally
-      Result.Triangles.AllowedCapacityOverflow := 4;
+    if DynamicGeometry then
+    begin
+      { Add 12 triangles for 6 cube (LocalBoundingBox) sides.
+        No point in progress here, as this is always fast. }
+      Result.Triangles.AllowedCapacityOverflow := 12;
+      try
+        LocalTriangulateBox(LocalBoundingBox);
+      finally Result.Triangles.AllowedCapacityOverflow := 4 end;
+    end else
+    begin
+      Result.Triangles.AllowedCapacityOverflow := TrianglesCount(false);
+      try
+        if (ProgressTitle <> '') and
+           (Progress.UserInterface <> nil) and
+           (not Progress.Active) then
+        begin
+          Progress.Init(TrianglesCount(false), ProgressTitle, true);
+          try
+            TriangleOctreeToAdd := Result;
+            LocalTriangulate(false, @AddTriangleToOctreeProgress);
+          finally Progress.Fini end;
+        end else
+          LocalTriangulate(false, @Result.AddItemTriangle);
+      finally Result.Triangles.AllowedCapacityOverflow := 4 end;
     end;
   except Result.Free; raise end;
 end;
@@ -1223,7 +1254,13 @@ procedure TVRMLShape.LocalGeometryChanged(
   const CalledFromParentScene, ChangedOnlyCoord: boolean);
 begin
   if OctreeTriangles <> nil then
+  begin
+    if (not DynamicGeometry) and Log then
+      WritelnLog('Shape', Format('Shape with geometry %s detected as dynamic, will use  more crude collision detection and more suitable rendering',
+        [OriginalGeometry.NodeTypeName]));
+    DynamicGeometry := true;
     FreeOctreeTriangles;
+  end;
 
   { Remove cached normals }
   FreeAndNil(FNormals);

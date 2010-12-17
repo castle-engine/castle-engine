@@ -109,8 +109,7 @@ end;
 
 procedure LocalTriangulateRect(constCoord: integer;
   const constCoordValue, x1, y1, x2, y2: Single;
-  Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc; MatNum: integer);
+  Shape: TObject; NewTriangleProc: TNewTriangleProc);
 var T: TTriangle3Single;
     i, c1, c2: integer;
 
@@ -121,18 +120,16 @@ var T: TTriangle3Single;
   end;
 
 begin
- // OverTriangulate = true not impl yet
-
- for i := 0 to 2 do T[i, constCoord] := constCoordValue;
- RestOf3dCoords(constCoord, c1, c2);
- TriAssign(0, x1, y1);
- TriAssign(1, x1, y2);
- TriAssign(2, x2, y2);
- NewTriangleProc(T, Shape, MatNum, -1, -1);
- TriAssign(0, x1, y1);
- TriAssign(1, x2, y2);
- TriAssign(2, x2, y1);
- NewTriangleProc(T, Shape, MatNum, -1, -1);
+  for i := 0 to 2 do T[i, constCoord] := constCoordValue;
+  RestOf3dCoords(constCoord, c1, c2);
+  TriAssign(0, x1, y1);
+  TriAssign(1, x1, y2);
+  TriAssign(2, x2, y2);
+  NewTriangleProc(T, Shape, 0, -1, -1);
+  TriAssign(0, x1, y1);
+  TriAssign(1, x2, y2);
+  TriAssign(2, x2, y1);
+  NewTriangleProc(T, Shape, 0, -1, -1);
 end;
 
 { Text nodes ----------------------------------------------------------------- }
@@ -156,7 +153,7 @@ var
 begin
   Box := LocalBoundingBox(State, ProxyGeometry, ProxyState);
   LocalTriangulateRect(2, 0, Box[0][0], Box[0][1], Box[1][0], Box[1][1],
-    Shape, State, false, NewTriangleProc, 0);
+    Shape, NewTriangleProc);
 end;
 
 procedure TNodeText.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
@@ -167,7 +164,7 @@ var
 begin
   Box := LocalBoundingBox(State, ProxyGeometry, ProxyState);
   LocalTriangulateRect(2, 0, Box[0][0], Box[0][1], Box[1][0], Box[1][1],
-    Shape, State, false, NewTriangleProc, 0);
+    Shape, NewTriangleProc);
 end;
 
 procedure TNodeText3D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
