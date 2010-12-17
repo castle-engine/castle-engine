@@ -535,43 +535,60 @@ procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
   { Animate skin along with this joint. Returns if something actually changed. }
   function AnimateSkin(CurrentSkinCoord: TDynVector3SingleArray): boolean;
   var
-    Local: TVector4Single;
+    LastWeight: Single;
+    LastVertexTransform: TMatrix4Single;
     I, CoordIndex: Integer;
     Weight: Single;
   begin
     Result := true;
 
-    for I := 0 to FdSkinCoordIndex.Count - 1 do
-    begin
-      CoordIndex := FdSkinCoordIndex.Items[I];
-      if (CoordIndex < 0) or
-         (CoordIndex >= CurrentSkinCoord.Count) then
+    LastWeight := MaxSingle; { impossible value }
+
+    try
+      for I := 0 to FdSkinCoordIndex.Count - 1 do
       begin
-        VRMLWarning(vwSerious, Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
-          [CoordIndex, CurrentSkinCoord.Count]));
-        Continue;
+        CoordIndex := FdSkinCoordIndex.Items[I];
+        if (CoordIndex < 0) or
+           (CoordIndex >= CurrentSkinCoord.Count) then
+        begin
+          VRMLWarning(vwSerious, Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
+            [CoordIndex, CurrentSkinCoord.Count]));
+          Continue;
+        end;
+
+        if CoordIndex < FdSkinCoordWeight.Items.Count then
+          Weight := FdSkinCoordWeight.Items[CoordIndex] else
+          Weight := 1;
+
+        if LastWeight <> Weight then
+        begin
+          { we cache LastVertexTransform matrix, since usually skinCoordWeight
+            have a lot of equal values }
+
+          LastVertexTransform :=
+            { get vertex position back in Humanoid coordinate space }
+            State.HumanoidTransform *
+            { our new State.HumanoidTransform is PreviousTransform * TransformChange.
+              So TransformChange = PreviousInvertedTransform * State.HumanoidTransform.
+              Transform local by TransformChange (we don't want to apply
+              PreviousTransform again, as this transformation was already encoded
+              in initial vertex position).
+              Lerp it with identify matrix, to account for weight }
+            Lerp(Weight, IdentityMatrix4Single,
+              PreviousInvertedTransform * State.HumanoidTransform) *
+            { get vertex position in local Joint coordinate space }
+            State.HumanoidInvertedTransform;
+          LastWeight := Weight;
+        end;
+
+        CurrentSkinCoord.Items[CoordIndex] := MatrixMultPoint(LastVertexTransform,
+          CurrentSkinCoord.Items[CoordIndex]);
       end;
-
-      if CoordIndex < FdSkinCoordWeight.Items.Count then
-        Weight := FdSkinCoordWeight.Items[CoordIndex] else
-        Weight := 1;
-
-      { get vertex position in local Joint coordinate space }
-      Local := State.HumanoidInvertedTransform *
-        Vector4Single(CurrentSkinCoord.Items[CoordIndex]);
-
-      { our new State.HumanoidTransform is PreviousTransform * TransformChange.
-        So TransformChange = PreviousInvertedTransform * State.HumanoidTransform.
-        Transform local by TransformChange (we don't want to apply
-        PreviousTransform again, as this transformation was already encoded
-        in initial vertex position). }
-      Local := Lerp(Weight, IdentityMatrix4Single,
-        PreviousInvertedTransform * State.HumanoidTransform) * Local;
-
-      { get vertex position back in Humanoid coordinate space }
-      { TODO: make VRMLWarning when this fails with div by zero }
-      CurrentSkinCoord.Items[CoordIndex] :=
-        Vector3SinglePoint(State.HumanoidTransform * Local);
+    except
+      { ETransformedResultInvalid may be raised by MultMatrixPoint
+        if some transformation resulted in invalid homogeneous vector
+        (that doesn't represent location). }
+      on ETransformedResultInvalid do VRMLWarning(vwSerious, 'Cannot transform skin vertex, result 4D vector is not a 3D location. This means you used some strange transformations inside the Humanoid.');
     end;
   end;
 
