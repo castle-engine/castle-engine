@@ -5,14 +5,18 @@ usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
 WWW:
-- Make one-sentence intro to each component and node on
-  http://vrmlengine.sourceforge.net/vrml_implementation_status.php
-  pages, so that they make sense when reading.
-  Link every node to X3D spec.
-
 * link to https://www.ohloh.net/p/vrmlengine/widgets somewhere?
   put a link with "I use it"? And a link to stats (with commit graph?)?
-- Any way to place icon nicely on header?
+
+- Add SVN commits google widget (idea from http://scandraid.sourceforge.net/)
+  <div style="float:right">
+  <script src="http://www.gmodules.com/ig/ifr?url=http://hosting.gmodules.com/ig/gadgets/file/101638777846294812126/2.xml&amp;up_url=http%3A%2F%2Fcia.vc%2Fstats%2Fproject%2Fvrmlengine%2F.rss&amp;up_style=1&amp;up_articles=10&amp;up_date=1&amp;up_size=50&amp;up_sort=1&amp;up_acolor=%2300c&amp;up_color=%23333333&amp;up_ads=1&amp;up_title=&amp;synd=open&amp;w=400&amp;h=200&amp;title=Recent+SVN+commits&amp;border=%23ffffff%7C3px%2C1px+solid+%23999999&amp;output=js"></script>
+  </div>
+  <!--
+  Configure gadget from:
+  http://www.gmodules.com/ig/creator?url=http://hosting.gmodules.com/ig/gadgets/file/101638777846294812126/2.xml&up_url=http%3A%2F%2Fcia.vc%2Fstats%2Fproject%2Fvrmlengine%2F.rss&up_style=1&up_articles=10&up_date=1&up_size=50&up_sort=1&up_acolor=%2300c&up_color=%23333333&up_ads=1&up_title=&synd=open&w=400&h=200&title=GSites+RSS&border=%23ffffff%7C3px%2C1px+solid+%23999999
+  -->
+
 ------------------------------------------------------------------------------
 3.8.0: Sound
 - Sound support, only stuff that maps naturally to OpenAL and is easy
@@ -858,3 +862,9 @@ ScreenEffect ideas/TODOs:
 - test gradient trick from hdr: to increase perceived contrast,
   detect wide edges and make a gradient to lighter the light part,
   and darken the dark part.
+
+MovieTexture:
+- ffmpeg player from
+  http://scandraid.svn.sourceforge.net/viewvc/scandraid/src/trunk/gui/ffmpeg.pas?revision=179&view=markup
+  http://scandraid.svn.sourceforge.net/viewvc/scandraid/src/trunk/external/ffmpeg/
+  integrate?
