@@ -550,12 +550,13 @@ type
 
     function DebugInfo(const Indent: string = ''): string; override;
 
-    { Local geometry is auto-detected as "often changing".
-      This is automatically detected (right now, by the first
-      LocalGeometryChanged call that has to rebuild the octree),
-      and may cause worse collision detection (using crude a approximation)
-      and rendering method better for dynamic geometry (without display lists,
-      that are suitable only for mostly static stuff). }
+    { Local geometry is treated as dynamic (changes very often, like every frame).
+      This is automatically detected and set to @true, although you can also
+      explicitly set this if you want.
+
+      Dynamic geometry has worse collision detection (using a crude
+      approximation) and falls back to rendering method better for
+      dynamic geometry (in particular, without display lists). }
     property DynamicGeometry: boolean read FDynamicGeometry write FDynamicGeometry;
   end;
 
