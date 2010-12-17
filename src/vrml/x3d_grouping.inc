@@ -863,13 +863,18 @@ end;
   Useful for various classes that mimic Transform node behavior,
   but for any reason do not want to descend from TNodeTransform_2. }
 
-procedure TransformState
+{$define TransformStateFunction := TransformState}
+{$define TransformMatricesFunction := TransformMatrices}
 {$I x3d_grouping_transformstate.inc}
 
-procedure TransformSimpleState
 {$define TRANSFORM_SIMPLE}
+{$define TransformStateFunction := SimpleTransformState}
+{$define TransformMatricesFunction := SimpleTransformMatrices}
 {$I x3d_grouping_transformstate.inc}
 {$undef TRANSFORM_SIMPLE}
+
+{$undef TransformStateFunction}
+{$undef TransformMatricesFunction}
 
 procedure TNodeTransform_2.ApplyTransform(State: TVRMLGraphTraverseState);
 begin

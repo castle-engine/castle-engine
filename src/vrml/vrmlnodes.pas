@@ -224,6 +224,7 @@ type
   TNodeX3DTextureNode = class;
   TVRMLEventsEngine = class;
   TNodeClipPlane = class;
+  TNodeHAnimHumanoid = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -585,6 +586,11 @@ type
       (And when multiple pointing device sensors are within the same
       grouping node, they all work.) }
     PointingDeviceSensors: TPointingDeviceSensorsList;
+
+    { For Humanoid skeleton, these contain cummulated joint transformation. }
+    HumanoidTransform, HumanoidInvertedTransform: TMatrix4Single;
+    { Humanoid node containing us, or @nil if none. }
+    Humanoid: TNodeHAnimHumanoid;
 
     { ClipPlanes affecting nodes within this state.
 
@@ -2500,6 +2506,7 @@ begin
   InsidePrototype := Source.InsidePrototype;
   InsideIgnoreCollision := Source.InsideIgnoreCollision;
   InsideInvisible := Source.InsideInvisible;
+  Humanoid := Source.Humanoid;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
 
@@ -2526,6 +2533,8 @@ begin
   Transform := Source.Transform;
   TransformScale := Source.TransformScale;
   InvertedTransform := Source.InvertedTransform;
+  HumanoidTransform := Source.HumanoidTransform;
+  HumanoidInvertedTransform := Source.HumanoidInvertedTransform;
 
   if PointingDeviceSensors.Count <> 0 then
   begin
