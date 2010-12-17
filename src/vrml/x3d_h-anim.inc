@@ -562,6 +562,7 @@ procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
   var
     Local: TVector4Single;
     I, CoordIndex: Integer;
+    Weight: Single;
   begin
     Result := false;
 
@@ -587,6 +588,10 @@ procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
         Continue;
       end;
 
+      if CoordIndex < FdSkinCoordWeight.Items.Count then
+        Weight := FdSkinCoordWeight.Items[CoordIndex] else
+        Weight := 1;
+
       { get vertex rest position in local Joint coordinate space }
       Local := State.HumanoidInvertedTransform *
         Vector4Single(RestSkinCoord.Items[CoordIndex]);
@@ -596,7 +601,8 @@ procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
         Transform local by TransformChange (we don't want to apply
         RestTransform again, as this transformation was already encoded
         in initial vertex position). }
-      Local := RestInvertedTransform * State.HumanoidTransform * Local;
+      Local := Lerp(Weight, IdentityMatrix4Single,
+        RestInvertedTransform * State.HumanoidTransform) * Local;
 
       { get vertex position back in Humanoid coordinate space }
       { TODO: make VRMLWarning when this fails with div by zero }
@@ -607,6 +613,7 @@ procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
 
 var
   IgnoreHumanoidTransformScale: Single;
+  SkinCoordField: TMFVec3f;
 begin
   inherited;
   TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
@@ -630,10 +637,9 @@ begin
      (State.Humanoid.FdSkinCoord.Value is TNodeCoordinate) and
      (State.Humanoid.RestSkinCoord <> nil) then
   begin
-    if AnimateSkin(
-      TNodeCoordinate(State.Humanoid.FdSkinCoord.Value).FdPoint.Items,
-                      State.Humanoid.RestSkinCoord) then
-      TNodeCoordinate(State.Humanoid.FdSkinCoord.Value).FdPoint.Changed;
+    SkinCoordField := TNodeCoordinate(State.Humanoid.FdSkinCoord.Value).FdPoint;
+    if AnimateSkin(SkinCoordField.Items, State.Humanoid.RestSkinCoord) then
+      SkinCoordField.Changed;
   end;
 end;
 
