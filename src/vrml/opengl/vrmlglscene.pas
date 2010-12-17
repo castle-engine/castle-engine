@@ -1414,7 +1414,11 @@ var
 begin
   if not EnableDisplayListValid then
   begin
-    { calculate EnableDisplayList }
+    { calculate EnableDisplayList.
+      I tried to take here DynamicGeometry into account, to always
+      set FEnableDisplayList = false when DynamicGeometry = true.
+      But this is worthless (tested on lucy from seamless examples):
+      rebuilding display list is slow, but direct rendering is also awfully slow. }
     FEnableDisplayList := true;
 
     EnumerateTextures(@DisableDisplayListFromTexture);
