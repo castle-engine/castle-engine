@@ -1254,7 +1254,7 @@ end;
 procedure TVRMLShape.LocalGeometryChanged(
   const CalledFromParentScene, ChangedOnlyCoord: boolean);
 begin
-  if OctreeTriangles <> nil then
+  if FOctreeTriangles <> nil then
   begin
     if (not DynamicGeometry) and Log then
       WritelnLog('Shape', Format('Shape with geometry %s detected as dynamic, will use  more crude collision detection and more suitable rendering',
