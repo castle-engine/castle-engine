@@ -527,6 +527,56 @@ begin
   inherited;
   TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
+  (*TODO:
+
+  - accumulate here HumanoidTransform (matrix) transformation
+    from the HAnimHumanoid to this joint.
+
+    Much like normal State.Transform, just
+    - set to identity when entering HAnimHumanoid in before traverse
+      (just in case of HAnimHumanoid within another)
+    - only in Joint needed to update this HumanoidTransform
+
+  - State must have containing Humanoid: TNodeHAnimHumanoid, for
+    - current TNodeHAnimHumanoid.FdSkinCoord
+    - TNodeHAnimHumanoid.RestSkinCoord (copied SkinCoord contents
+      at TraverseEnd)
+
+  - if not HasRestTransform then
+    begin
+      RestTransform := State.HumanoidTransform;
+      RestInvertedTransform := State.HumanoidInvertedTransform;
+      HasRestTransform := true;
+    end else
+    if (FdSkinCoordIndex.Count <> 0) and
+        (State.Humanoid <> nil) and
+        (State.Humanoid.FdSkinCoord.Value <> nil)
+        (State.Humanoid.RestSkinCoord <> nil)
+        then
+    begin
+      CurrentSkinCoord := State.Humanoid.FdSkinCoord.Value...;
+      RestSkinCoord := State.Humanoid.RestSkinCoord...;
+      ... check also CurrentSkinCoord and RestSkinCoord sizes are equal ...
+
+      { animate skin along with this joint }
+      for I := 0 to FdSkinCoordIndex.Count - 1 do
+      begin
+        { get vertex rest position in local Joint coordinate space }
+        Local := State.HumanoidInvertedTransform * RestSkinCoord[I];
+
+        { our new State.HumanoidTransform is RestTransform * TransformChange.
+          So TransformChange = RestInvertedTransform * State.HumanoidTransform.
+          Transform local by TransformChange (we don't want to apply
+          RestTransform again, as this transformation was already encoded
+          in initial vertex position). }
+        Local := RestInvertedTransform * State.HumanoidTransform * Local;
+
+        { get vertex position back in Humanoid coordinate space }
+        CurrentSkinCoord[I] := State.HumanoidTransform * Local;
+      end;
+      CurrentSkinCoord.Changed;
+    end;
+    *)
 end;
 
 function TNodeHAnimJoint.TransformationChange: TNodeTransformationChange;
