@@ -556,8 +556,8 @@ procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
           Continue;
         end;
 
-        if CoordIndex < FdSkinCoordWeight.Items.Count then
-          Weight := FdSkinCoordWeight.Items[CoordIndex] else
+        if I < FdSkinCoordWeight.Items.Count then
+          Weight := FdSkinCoordWeight.Items[I] else
           Weight := 1;
 
         if LastWeight <> Weight then
