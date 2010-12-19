@@ -35,13 +35,16 @@ const
   QuatIdentityRot: TQuaternion = (Vector: (0, 0, 0); Real: 1);
 
 { Calculate unit quaternion representing rotation around Axis
-  (must be normalized) by AngleRad angle (in radians).
+  by AngleRad angle (in radians).
 
-  Actually, non-normalized Axis may also be used, which will then
-  result in non-normalized quaternion that doesn't represent rotation...
-  so it's mostly useless for us. }
+  Axis must be normalized, or you have to pass NormalizeAxis = true
+  (then we'll normalize it ourselves inside). Otherwise you will
+  get non-normalized quaternion that doesn't represent rotation,
+  and is usually useless for us. }
 function QuatFromAxisAngle(const Axis: TVector3Single;
-  const AngleRad: Single): TQuaternion;
+  const AngleRad: Single; const NormalizeAxis: boolean = false): TQuaternion;
+function QuatFromAxisAngle(const AxisAngle: TVector4Single;
+  const NormalizeAxis: boolean = false): TQuaternion;
 
 { Calculate axis (will be normalized) and angle (will be in radians)
   of rotation encoded in unit quaternion Q.
@@ -159,15 +162,26 @@ implementation
 uses Math, KambiUtils;
 
 function QuatFromAxisAngle(const Axis: TVector3Single;
-  const AngleRad: Single): TQuaternion;
+  const AngleRad: Single; const NormalizeAxis: boolean): TQuaternion;
 var
   SinHalfAngle, CosHalfAngle: Float;
 begin
   { The quaternion requires half angles. }
   SinCos(AngleRad / 2, SinHalfAngle, CosHalfAngle);
 
+  if NormalizeAxis then
+    SinHalfAngle /= VectorLen(Axis);
+
   Result.Vector := VectorScale(Axis, SinHalfAngle);
   Result.Real := CosHalfAngle;
+end;
+
+function QuatFromAxisAngle(const AxisAngle: TVector4Single;
+  const NormalizeAxis: boolean): TQuaternion;
+var
+  Axis: TVector3Single absolute AxisAngle;
+begin
+  Result := QuatFromAxisAngle(Axis, AxisAngle[3], NormalizeAxis);
 end;
 
 procedure QuatToAxisAngle(const Q: TQuaternion;
@@ -309,16 +323,6 @@ begin
   end;
 end;
 
-{ Like QuatFromAxisAngle, except Axis is always normalized here,
-  and Axis+Angle are packed within a vector. }
-function QuatFromAxisAngle_UnnormalizedPacked(Rot: TVector4Single): TQuaternion;
-var
-  Axis: TVector3Single absolute Rot;
-begin
-  NormalizeTo1st(Axis);
-  Result := QuatFromAxisAngle(Axis, Rot[3]);
-end;
-
 function QuatToAxisAngle(const Q: TQuaternion): TVector4Single;
 var
   Axis: TVector3Single absolute Result;
@@ -382,8 +386,8 @@ end;
 function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
 begin
   Result := QuatToAxisAngle(SLerp(A,
-    QuatFromAxisAngle_UnnormalizedPacked(Rot1),
-    QuatFromAxisAngle_UnnormalizedPacked(Rot2)));
+    QuatFromAxisAngle(Rot1, true),
+    QuatFromAxisAngle(Rot2, true)));
 end;
 
 function NLerp(const A: Single; const Q1, Q2: TQuaternion;
@@ -403,8 +407,8 @@ function NLerp(const A: Single; const Rot1, Rot2: TVector4Single;
   const ForceShortestPath: boolean): TVector4Single;
 begin
   Result := QuatToAxisAngle(NLerp(A,
-    QuatFromAxisAngle_UnnormalizedPacked(Rot1),
-    QuatFromAxisAngle_UnnormalizedPacked(Rot2),
+    QuatFromAxisAngle(Rot1, true),
+    QuatFromAxisAngle(Rot2, true),
     ForceShortestPath));
 end;
 
