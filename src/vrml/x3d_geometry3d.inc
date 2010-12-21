@@ -1195,6 +1195,7 @@ begin
   Eventset_texCoordIndex.OnReceive.Add(@EventSet_texCoordIndexReceive);
 
   FFdcolorIndex := TMFInt32.Create(Self, 'colorIndex', []);
+   FdcolorIndex.SaveToStreamLineUptoNegative := true;
    FdcolorIndex.Exposed := false;
    FdcolorIndex.ChangesAlways := [chGeometry];
   Fields.Add(FFdcolorIndex);
@@ -1219,6 +1220,7 @@ begin
   { X3D specification comment: [0,Inf) }
 
   FFdnormalIndex := TMFInt32.Create(Self, 'normalIndex', []);
+   FdnormalIndex.SaveToStreamLineUptoNegative := true;
    FdnormalIndex.Exposed := false;
    FdnormalIndex.ChangesAlways := [chGeometry];
   Fields.Add(FFdnormalIndex);

@@ -1866,9 +1866,9 @@ type
     function RawItemToString(ItemNum: integer): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
-    { Set this to @true to make SaveToStreamDoNewLineAfterRawItem
-      answer @true only after negative indexes. This makes SaveToStream
-      have nice output for fields like IndexedFaceSet.coordIndex. }
+    { When saving to VRML/X3D classic encoding,
+      make newline after each negative value on the list.
+      This makes a nice output for fields like IndexedFaceSet.coordIndex. }
     property SaveToStreamLineUptoNegative: boolean
       read FSaveToStreamLineUptoNegative write FSaveToStreamLineUptoNegative
       default false;
@@ -2312,6 +2312,7 @@ type
     procedure SetItems(const Value: TDynSingleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
+    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
     property Items: TDynSingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2344,6 +2345,7 @@ type
     procedure SetItems(const Value: TDynDoubleArray);
   protected
     function RawItemToString(ItemNum: integer): string; override;
+    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
     property Items: TDynDoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -5397,9 +5399,7 @@ end;
 
 function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
 begin
- if SaveToStreamLineUptoNegative then
-  result := Items.Items[ItemNum] < 0 else
-  result := inherited;
+  Result := SaveToStreamLineUptoNegative and (Items.Items[ItemNum] < 0);
 end;
 
 function TMFLong.RawItemToString(ItemNum: integer): string;
@@ -5631,8 +5631,15 @@ end;
 
 { TMFFloat ------------------------------------------------------------------- }
 
+function TMFFloat.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+begin
+  Result := false;
+end;
+
 function TMFFloat.RawItemToString(ItemNum: integer): string;
-begin result := FloatToRawStr(Items.Items[ItemNum]) end;
+begin
+  Result := FloatToRawStr(Items.Items[ItemNum]);
+end;
 
 procedure TMFFloat.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 var
@@ -5661,8 +5668,15 @@ end;
 
 { TMFDouble -------------------------------------------------------------------- }
 
+function TMFDouble.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+begin
+  Result := false;
+end;
+
 function TMFDouble.RawItemToString(ItemNum: integer): string;
-begin result := FloatToRawStr(Items.Items[ItemNum]) end;
+begin
+  Result := FloatToRawStr(Items.Items[ItemNum]);
+end;
 
 procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 var
