@@ -53,7 +53,7 @@
       is defined, and it's even the default class property. So you can then treat
       the instances of this TDynArray_4 as real arrays.)
 
-    @item(DYNARRAY_IS_INIT_FINI: You have to define this if your type requires
+    @item(DYNARRAY_4_IS_INIT_FINI_TYPE: You have to define this if your type requires
       Initialize/Finalize call. Define this for AnsiStrings, interfaces,
       records containing AnsiStrings or interfaces and such.)
 
