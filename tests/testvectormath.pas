@@ -37,6 +37,7 @@ type
     procedure TestMultMatricesTranslation;
     procedure TestIndexedPolygonNormalArea;
     procedure TestSphereRayIntersection;
+    procedure TestMatrixMultiplication;
   end;
 
 function RandomVector: TVector3Single;
@@ -492,6 +493,40 @@ begin
   Result[1][3] := 0;
   Result[2][3] := 0;
   Result[3][3] := 1;
+end;
+
+procedure TTestVectorMath.TestMatrixMultiplication;
+var
+  M1, M2, M3, Result1, Result2: TMatrix4Single;
+  T1, T2, T3: TMatrix4Single;
+begin
+  M1[0] := Vector4Single(1, 0, 0, 0);
+  M1[1] := Vector4Single(0, 1, 0, 0);
+  M1[2] := Vector4Single(0, 0, 1, 0);
+  M1[2] := Vector4Single(-0.31, 1.26, -0.03, 1);
+
+  M2[0] := Vector4Single( 0.58,  0.75, 0.31, 0.00);
+  M2[1] := Vector4Single(-0.81,  0.52, 0.26, 0.00);
+  M2[2] := Vector4Single( 0.03, -0.40, 0.92, 0.00);
+  M2[3] := Vector4Single( 0.00,  0.00, 0.00, 1.00);
+
+  M3[0] := Vector4Single(1.00, 0.00, 0.00,  0.31);
+  M3[1] := Vector4Single(0.00, 1.00, 0.00, -1.26);
+  M3[2] := Vector4Single(0.00, 0.00, 1.00,  0.03);
+  M3[3] := Vector4Single(0.00, 0.00, 0.00,  1.00);
+
+  Result1 := M1 * M2;
+  Result2 := MatrixMult(M1, M2);
+  Assert(MatricesEqual(Result1, Result2, 0.1));
+
+  Result2 := MatrixMult(MatrixMult(M1, M2), M3);
+
+  Result1 := M1 * M2;
+  Result1 := Result1 * M3;
+  Assert(MatricesEqual(Result1, Result2, 0.1));
+
+  Result1 := M1 * M2 * M3;
+  Assert(MatricesEqual(Result1, Result2, 0.1));
 end;
 
 initialization

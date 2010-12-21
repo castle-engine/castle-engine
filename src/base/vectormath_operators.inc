@@ -162,6 +162,7 @@ operator - (const m1:Tmatrix4_single_data) : Tmatrix4_single_data;
 operator - (const m1:Tmatrix4_double_data) : Tmatrix4_double_data;
 operator - (const m1:Tmatrix4_extended_data) : Tmatrix4_extended_data;
 
+(* TODO: Fix, FPC matrix was ordered by rows, we should make transpose inside.
 operator * (const m1,m2:Tmatrix2_single_data) : Tmatrix2_single_data;
 operator * (const m1,m2:Tmatrix2_double_data) : Tmatrix2_double_data;
 operator * (const m1,m2:Tmatrix2_extended_data) : Tmatrix2_extended_data;
@@ -182,6 +183,11 @@ operator * (const m:Tmatrix3_extended_data;const v:Tvector3_extended_data) : Tve
 operator * (const m:Tmatrix4_single_data;const v:Tvector4_single_data) : Tvector4_single_data;
 operator * (const m:Tmatrix4_double_data;const v:Tvector4_double_data) : Tvector4_double_data;
 operator * (const m:Tmatrix4_extended_data;const v:Tvector4_extended_data) : Tvector4_extended_data;
+*)
+
+operator * (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
+operator * (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
+operator * (const m1,m2:Tmatrix4_extended_data) : Tmatrix4_extended_data;
 
 {Matrix/scalar operations}
 operator + (const m:Tmatrix2_single_data;const x:single) : Tmatrix2_single_data;
