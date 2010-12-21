@@ -505,7 +505,10 @@ begin
     begin
       RootJoint := TNodeHAnimJoint(FdSkeleton.Items[I]);
       if not RootJoint.HasPreviousCenter then
+      begin
+        RootJoint.HasPreviousCenter := true;
         RootJoint.PreviousCenter := RootJoint.FdCenter.Value;
+      end;
     end;
 end;
 
@@ -782,7 +785,10 @@ begin
       ChildJoint := TNodeHAnimJoint(FdChildren.Items[I]);
 
       if not ChildJoint.HasPreviousCenter then
+      begin
+        ChildJoint.HasPreviousCenter := true;
         ChildJoint.PreviousCenter := ChildJoint.FdCenter.Value;
+      end;
 
       ChildJoint.FdCenter.Value := AnimateSkinPoint(ChildJoint.PreviousCenter);
     end;
