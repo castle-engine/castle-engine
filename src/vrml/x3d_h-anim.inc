@@ -497,7 +497,7 @@ begin
 
   { TODO: skinned H-Anim implementation in progress }
 
-  TransformState(StateStack.Top, Fdcenter.Value, Fdrotation.Value, 
+  TransformState(StateStack.Top, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 
   { always before traversing into a joint, make sure is has PreviousCenter
@@ -785,18 +785,23 @@ var
   IgnoreHumanoidTransformScale: Single;
   I: Integer;
   ChildJoint: TNodeHAnimJoint;
+  LocalCenter: TVector3Single;
 begin
   inherited;
 
   { Normal State isn't really used for skinned animation }
-  TransformState(State, FdCenter.Value, Fdrotation.Value, 
+
+  LocalCenter := MatrixMultPoint(State.HumanoidInvertedTransform, FdCenter.Value);
+
+  TransformState(State, LocalCenter, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 
-  { update State.HumanoidTransform, State.HumanoidInvertedTransform. }
+  { update State.HumanoidTransform, State.HumanoidInvertedTransform
+    for child joints. }
   IgnoreHumanoidTransformScale := 1;
   TransformMatrices(State.HumanoidTransform, State.HumanoidInvertedTransform,
     IgnoreHumanoidTransformScale,
-    FdCenter.Value, Fdrotation.Value, Fdscale.Value, 
+    LocalCenter, Fdrotation.Value, Fdscale.Value,
     FdscaleOrientation.Value, Fdtranslation.Value);
 
   NewTransform := State.HumanoidTransform;
@@ -911,7 +916,7 @@ end;
 procedure TNodeHAnimSegment.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
-  TransformState(State, ZeroVector3Single, Fdrotation.Value, 
+  TransformState(State, ZeroVector3Single, Fdrotation.Value,
     Fdscale.Value, ZeroVector4Single, Fdtranslation.Value);
 end;
 
@@ -983,7 +988,7 @@ end;
 procedure TNodeHAnimSite.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
-  TransformState(State, Fdcenter.Value, Fdrotation.Value, 
+  TransformState(State, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 end;
 
