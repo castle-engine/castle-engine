@@ -522,13 +522,21 @@ function TNodeHAnimHumanoid.AnimateSkin: TMFVec3f;
   var
     New: TVector3Single;
     J: Integer;
+    WeightSum: Single;
   begin
     New := ZeroVector3Single;
-    { TODO: here we assume weights sum to 1 }
+    WeightSum := 0;
+
     for J := 0 to WJ.Count - 1 do
-      if WJ.Levels[J] = 0 then
+      if WJ.Levels[J] = Level then
+      begin
+        WeightSum += WJ.Weights[J];
         New += WJ.Joints[J].AnimateSkinPoint(Point) * WJ.Weights[J];
-    Point := New;
+      end;
+
+    { Take the possibility of non-1 weight sum into account.
+      When no joints affect this point, WeightSum = 0, this also works then. }
+    Point := Lerp(WeightSum, Point, New);
   end;
 
 var
@@ -577,7 +585,6 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
       CoordIndex: Integer;
       Weight: Single;
       Joint: TNodeHAnimJoint;
-      // Sum: Single;
     begin
       if LevelToDescend = 0 then
       begin
@@ -631,15 +638,6 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
 
       AddLevel(nil, FdJoints, 0, 0);
       //AddLevel(nil, FdJoints, 1, 1);
-
-      { Debug: list joints and weights sum for each vertex:
-      for I := 0 to WeightedJoints.Count - 1 do
-      begin
-        Sum := 0;
-        for J := 0 to WeightedJoints.Items[I].Count - 1 do
-          Sum += WeightedJoints.Items[I].Weights[J];
-        Writeln(Sum:2:0, ' (', WeightedJoints.Items[I].Count, ' joints)');
-      end; }
     end;
   end;
 
