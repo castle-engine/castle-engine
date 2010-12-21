@@ -139,7 +139,6 @@
 
   TNodeHAnimJoint = class(TNodeX3DGroupingNode, INodeTransform)
   private
-    { TODO: skinned H-Anim implementation in progress }
     PreviousTransform, PreviousInvertedTransform: TMatrix4Single;
     PreviousRotation: TVector4Single;
     PreviousCenter: TVector3Single;
@@ -495,8 +494,6 @@ begin
   StateStack.Top.HumanoidTransform := IdentityMatrix4Single;
   StateStack.Top.HumanoidInvertedTransform := IdentityMatrix4Single;
 
-  { TODO: skinned H-Anim implementation in progress }
-
   TransformState(StateStack.Top, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 
@@ -742,44 +739,10 @@ begin
 end;
 
 function TNodeHAnimJoint.AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
-var
-  PreviousRotationQ, RotationQ, ChangeQ: TQuaternion;
-  TransformChange: TMatrix4Single;
-  PreviousRotationInvert: TVector4Single;
-  LocalCenter: TVector3Single;
 begin
-  { $define LOCAL_SPACE_CORRECT} // without this, for now animation doesn't go wild far
-
-  PreviousRotationInvert := PreviousRotation;
-  PreviousRotationInvert[3] := -PreviousRotationInvert[3];
-  PreviousRotationQ := QuatFromAxisAngle(PreviousRotationInvert, true);
-  RotationQ := QuatFromAxisAngle(FdRotation.Value, true);
-  ChangeQ := QuatMultiply(RotationQ, PreviousRotationQ);
-
-  {$ifdef LOCAL_SPACE_CORRECT}
-  LocalCenter := MatrixMultPoint(PreviousInvertedTransform, PreviousCenter);
-  {$else}
-  LocalCenter := PreviousCenter;
-  {$endif}
-
-  TransformChange :=
-    { get vertex position back in Humanoid coordinate space }
-    {$ifdef LOCAL_SPACE_CORRECT}
-    PreviousTransform * {$endif}
-
-    TranslationMatrix(LocalCenter) *
-    QuatToRotationMatrix(ChangeQ) *
-    TranslationMatrix(-LocalCenter)
-
-    {$ifdef LOCAL_SPACE_CORRECT} *
-    { get vertex position in local Joint coordinate space }
-    PreviousInvertedTransform {$endif};
-
-  Result := MatrixMultPoint(TransformChange, Point);
-  Result += FdCenter.Value - PreviousCenter;
+  Result := MatrixMultPoint(NewTransform * PreviousInvertedTransform, Point);
 end;
 
-{ TODO: skinned H-Anim implementation in progress }
 procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
 var
   IgnoreHumanoidTransformScale: Single;
@@ -788,7 +751,6 @@ var
   LocalCenter: TVector3Single;
 begin
   inherited;
-
 
   { Spec says center / scale / scaleOrientation / translation
     are relative to humanoid root, but rotations are accumulated.
@@ -813,12 +775,6 @@ begin
 
   NewTransform := State.HumanoidTransform;
   NewInvertedTransform := State.HumanoidInvertedTransform;
-
-  { TODO:
-    - LOCAL_SPACE_CORRECT should be defined?
-    - NewTransform should be assigned before TransformMatrices above?
-      Affects only when animating, not 1st frame bugs.
-  }
 
   { animate centers of children joints }
   for I := 0 to FdChildren.Count - 1 do
