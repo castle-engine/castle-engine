@@ -138,8 +138,9 @@
 
   TNodeHAnimJoint = class(TNodeX3DGroupingNode, INodeTransform)
   private
-    PreviousTransform, PreviousInvertedTransform: TMatrix4Single;
-    NewTransform, NewInvertedTransform: TMatrix4Single;
+    PreviousTransform, PreviousInvertedTransform,
+      NewTransform, NewInvertedTransform,
+      AnimateSkinTransform: TMatrix4Single;
     { Copy NewTransform, NewInvertedTransform, to
       PreviousTransform, PreviousInvertedTransform. }
     procedure Applied;
@@ -685,7 +686,7 @@ end;
 
 function TNodeHAnimJoint.AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
 begin
-  Result := MatrixMultPoint(NewTransform * PreviousInvertedTransform, Point);
+  Result := MatrixMultPoint(AnimateSkinTransform, Point);
 end;
 
 procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
@@ -721,6 +722,8 @@ begin
   NewTransform := State.HumanoidTransform;
   NewInvertedTransform := State.HumanoidInvertedTransform;
 
+  AnimateSkinTransform := NewTransform * PreviousInvertedTransform;
+
   { animate centers of children joints }
   for I := 0 to FdChildren.Count - 1 do
     if FdChildren.Items[I] is TNodeHAnimJoint then
@@ -734,6 +737,7 @@ procedure TNodeHAnimJoint.Applied;
 begin
   PreviousTransform := NewTransform;
   PreviousInvertedTransform := NewInvertedTransform;
+  AnimateSkinTransform := IdentityMatrix4Single;
 end;
 
 function TNodeHAnimJoint.TransformationChange: TNodeTransformationChange;
