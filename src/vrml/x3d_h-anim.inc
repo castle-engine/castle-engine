@@ -720,7 +720,6 @@ begin
   PreviousRotationQ := QuatFromAxisAngle(PreviousRotationInvert, true);
   RotationQ := QuatFromAxisAngle(FdRotation.Value, true);
   ChangeQ := QuatMultiply(RotationQ, PreviousRotationQ);
-  TransformChange := QuatToRotationMatrix(ChangeQ);
 
   {$ifdef LOCAL_SPACE_CORRECT}
   LocalCenter := MatrixMultPoint(PreviousInvertedTransform, PreviousCenter);
@@ -729,21 +728,15 @@ begin
   {$endif}
 
   TransformChange :=
-    TranslationMatrix(-LocalCenter) *
-    TransformChange *
-    TranslationMatrix(LocalCenter);
-
-  TransformChange :=
     { get vertex position back in Humanoid coordinate space }
     {$ifdef LOCAL_SPACE_CORRECT}
     PreviousTransform * {$endif}
-    { our new State.HumanoidTransform is PreviousTransform * TransformChange.
-      So TransformChange = PreviousInvertedTransform * State.HumanoidTransform.
-      Transform local by TransformChange (we don't want to apply
-      PreviousTransform again, as this transformation was already encoded
-      in initial vertex position).
-      Lerp it with identify matrix, to account for weight }
-    TransformChange {$ifdef LOCAL_SPACE_CORRECT} *
+
+    TranslationMatrix(-LocalCenter) *
+    QuatToRotationMatrix(ChangeQ) *
+    TranslationMatrix(LocalCenter);
+
+    {$ifdef LOCAL_SPACE_CORRECT} *
     { get vertex position in local Joint coordinate space }
     PreviousInvertedTransform {$endif};
 
