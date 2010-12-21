@@ -767,9 +767,9 @@ begin
     {$ifdef LOCAL_SPACE_CORRECT}
     PreviousTransform * {$endif}
 
-    TranslationMatrix(-LocalCenter) *
+    TranslationMatrix(LocalCenter) *
     QuatToRotationMatrix(ChangeQ) *
-    TranslationMatrix(LocalCenter)
+    TranslationMatrix(-LocalCenter)
 
     {$ifdef LOCAL_SPACE_CORRECT} *
     { get vertex position in local Joint coordinate space }
@@ -816,7 +816,6 @@ begin
 
   { TODO:
     - LOCAL_SPACE_CORRECT should be defined?
-    - -/+ at Center above should be reverted?
     - NewTransform should be assigned before TransformMatrices above?
       Affects only when animating, not 1st frame bugs.
   }
