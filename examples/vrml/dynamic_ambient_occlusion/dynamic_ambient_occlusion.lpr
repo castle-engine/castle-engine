@@ -661,7 +661,8 @@ type
       VertexIndex: Integer);
 
     class procedure SceneGeometryChanged(Scene: TVRMLScene;
-      const SomeLocalGeometryChanged: boolean);
+      const SomeLocalGeometryChanged: boolean;
+      OnlyShapeChanged: TVRMLShape);
   end;
 
 class procedure THelper.VertexColor(var Color: TVector3Single;
@@ -696,7 +697,8 @@ begin
 end;
 
 class procedure THelper.SceneGeometryChanged(Scene: TVRMLScene;
-  const SomeLocalGeometryChanged: boolean);
+  const SomeLocalGeometryChanged: boolean;
+  OnlyShapeChanged: TVRMLShape);
 var
   OldElementsTexSize, OldElementsCount: Cardinal;
 begin
