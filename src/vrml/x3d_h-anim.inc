@@ -789,10 +789,17 @@ var
 begin
   inherited;
 
-  { Normal State isn't really used for skinned animation }
+
+  { Spec says center / scale / scaleOrientation / translation
+    are relative to humanoid root, but rotations are accumulated.
+    http://h-anim.org/Specifications/H-Anim200x/ISO_IEC_FCD_19774/ObjectInterfaces.html
+    So rotations are affected by center/etc. of joints above,
+    which means that I have to apply here LocalCenter, LocalScale and such?
+    But how? TODO: for now, we only apply LocalCenter.
+
+    Fortunately, normal State isn't really used for skinned animation. }
 
   LocalCenter := MatrixMultPoint(State.HumanoidInvertedTransform, FdCenter.Value);
-
   TransformState(State, LocalCenter, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 
