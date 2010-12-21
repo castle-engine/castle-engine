@@ -713,7 +713,7 @@ var
   PreviousRotationInvert: TVector4Single;
   LocalCenter: TVector3Single;
 begin
-  { $define LOCAL_SPACE_CORRECT} // both ways seem to ~work
+  { $define LOCAL_SPACE_CORRECT} // without this, for now animation doesn't go wild far
 
   PreviousRotationInvert := PreviousRotation;
   PreviousRotationInvert[3] := -PreviousRotationInvert[3];
@@ -734,7 +734,7 @@ begin
 
     TranslationMatrix(-LocalCenter) *
     QuatToRotationMatrix(ChangeQ) *
-    TranslationMatrix(LocalCenter);
+    TranslationMatrix(LocalCenter)
 
     {$ifdef LOCAL_SPACE_CORRECT} *
     { get vertex position in local Joint coordinate space }
