@@ -2129,7 +2129,7 @@ function PerspectiveProjMatrixRad(const fovyRad, aspect, zNear, zFar: Single): T
 
 { Multiply matrix M by translation matrix.
 
-  This is equivalent to M := MultMatrix(M, TranslationMatrix(Transl)),
+  This is equivalent to M := MatrixMult(M, TranslationMatrix(Transl)),
   but it works much faster since TranslationMatrix is a very simple matrix
   and multiplication by it may be much optimized.
 
@@ -2141,8 +2141,8 @@ function PerspectiveProjMatrixRad(const fovyRad, aspect, zNear, zFar: Single): T
   MultMatricesTranslation is analogous to calculating both
   TranslationMatrix(Transl) and it's inverse, and then
 @longCode(#
-  M := MultMatrix(M, translation);
-  MInvert := MultMatrix(inverted translation, MInvert);
+  M := MatrixMult(M, translation);
+  MInvert := MatrixMult(inverted translation, MInvert);
 #)
 
   The idea is that if M represented some translation, and MInvert it's
