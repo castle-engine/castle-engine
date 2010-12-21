@@ -711,6 +711,7 @@ var
   PreviousRotationQ, RotationQ, ChangeQ: TQuaternion;
   TransformChange: TMatrix4Single;
   PreviousRotationInvert: TVector4Single;
+  LocalCenter: TVector3Single;
 begin
   { $define LOCAL_SPACE_CORRECT} // both ways seem to ~work
 
@@ -721,21 +722,21 @@ begin
   ChangeQ := QuatMultiply(RotationQ, PreviousRotationQ);
   TransformChange := QuatToRotationMatrix(ChangeQ);
 
-  // this should not be done, only for testing!
-  // TransformChange := MatrixInverse(TransformChange,
-  //   MatrixDeterminant(TransformChange));
+  {$ifdef LOCAL_SPACE_CORRECT}
+  LocalCenter := MatrixMultPoint(PreviousInvertedTransform, PreviousCenter);
+  {$else}
+  LocalCenter := PreviousCenter;
+  {$endif}
 
   TransformChange :=
-   { TODO: should be +Center 1st, then -Center,
-     but reverse looks closer to correct? }
-    TranslationMatrix(-PreviousCenter) *
+    TranslationMatrix(-LocalCenter) *
     TransformChange *
-    TranslationMatrix(PreviousCenter);
+    TranslationMatrix(LocalCenter);
 
   TransformChange :=
     { get vertex position back in Humanoid coordinate space }
     {$ifdef LOCAL_SPACE_CORRECT}
-    NewTransform * {$endif}
+    PreviousTransform * {$endif}
     { our new State.HumanoidTransform is PreviousTransform * TransformChange.
       So TransformChange = PreviousInvertedTransform * State.HumanoidTransform.
       Transform local by TransformChange (we don't want to apply
@@ -744,7 +745,7 @@ begin
       Lerp it with identify matrix, to account for weight }
     TransformChange {$ifdef LOCAL_SPACE_CORRECT} *
     { get vertex position in local Joint coordinate space }
-    NewInvertedTransform {$endif};
+    PreviousInvertedTransform {$endif};
 
   Result := MatrixMultPoint(TransformChange, Point);
   Result += FdCenter.Value - PreviousCenter;
@@ -773,9 +774,10 @@ begin
   NewInvertedTransform := State.HumanoidInvertedTransform;
 
   { TODO:
-    - should NewTransform be assigned before or after TransformMatrices above?
     - LOCAL_SPACE_CORRECT should be defined?
     - -/+ at Center above should be reverted?
+    - NewTransform should be assigned before TransformMatrices above?
+      Affects only when animating, not 1st frame bugs.
   }
 
   { animate centers of children joints }
