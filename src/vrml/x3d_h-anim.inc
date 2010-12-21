@@ -497,8 +497,8 @@ begin
 
   { TODO: skinned H-Anim implementation in progress }
 
-  TransformState(StateStack.Top, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
-    Fdtranslation);
+  TransformState(StateStack.Top, Fdcenter.Value, Fdrotation.Value, 
+    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 
   { always before traversing into a joint, make sure is has PreviousCenter
     initialized, otherwise AnimateSkin with this joint generated undefined
@@ -789,14 +789,15 @@ begin
   inherited;
 
   { Normal State isn't really used for skinned animation }
-  TransformState(State, FdCenter, Fdrotation, Fdscale, FdscaleOrientation,
-    Fdtranslation);
+  TransformState(State, FdCenter.Value, Fdrotation.Value, 
+    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 
   { update State.HumanoidTransform, State.HumanoidInvertedTransform. }
   IgnoreHumanoidTransformScale := 1;
   TransformMatrices(State.HumanoidTransform, State.HumanoidInvertedTransform,
     IgnoreHumanoidTransformScale,
-    FdCenter, Fdrotation, Fdscale, FdscaleOrientation, Fdtranslation);
+    FdCenter.Value, Fdrotation.Value, Fdscale.Value, 
+    FdscaleOrientation.Value, Fdtranslation.Value);
 
   NewTransform := State.HumanoidTransform;
   NewInvertedTransform := State.HumanoidInvertedTransform;
@@ -910,7 +911,8 @@ end;
 procedure TNodeHAnimSegment.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
-  SimpleTransformState(State, Fdrotation, Fdscale, Fdtranslation);
+  TransformState(State, ZeroVector3Single, Fdrotation.Value, 
+    Fdscale.Value, ZeroVector4Single, Fdtranslation.Value);
 end;
 
 function TNodeHAnimSegment.TransformationChange: TNodeTransformationChange;
@@ -981,8 +983,8 @@ end;
 procedure TNodeHAnimSite.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
-  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
-    Fdtranslation);
+  TransformState(State, Fdcenter.Value, Fdrotation.Value, 
+    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 end;
 
 function TNodeHAnimSite.TransformationChange: TNodeTransformationChange;

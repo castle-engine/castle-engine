@@ -860,27 +860,15 @@ begin
 end;
 
 { Apply transformation to a TVRMLGraphTraverseState.
-  Useful for various classes that mimic Transform node behavior,
+  Useful for various classes that behave like Transform node,
   but for any reason do not want to descend from TNodeTransform_2. }
-
-{$define TransformStateFunction := TransformState}
-{$define TransformMatricesFunction := TransformMatrices}
 {$I x3d_grouping_transformstate.inc}
-
-{$define TRANSFORM_SIMPLE}
-{$define TransformStateFunction := SimpleTransformState}
-{$define TransformMatricesFunction := SimpleTransformMatrices}
-{$I x3d_grouping_transformstate.inc}
-{$undef TRANSFORM_SIMPLE}
-
-{$undef TransformStateFunction}
-{$undef TransformMatricesFunction}
 
 procedure TNodeTransform_2.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
-  TransformState(State, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
-    Fdtranslation);
+  TransformState(State, Fdcenter.Value, Fdrotation.Value,
+    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 end;
 
 function TNodeTransform_2.SuggestedVRMLVersion(

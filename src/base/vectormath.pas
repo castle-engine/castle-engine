@@ -2117,6 +2117,8 @@ function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Si
 
 procedure RotationMatricesRad(const AngleRad: Single; const Axis: TVector3Single;
   out Matrix, InvertedMatrix: TMatrix4Single);
+procedure RotationMatricesRad(const AxisAngle: TVector4Single;
+  out Matrix, InvertedMatrix: TMatrix4Single);
 
 function OrthoProjMatrix(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
 function Ortho2dProjMatrix(const left, right, bottom, top: Single): TMatrix4Single;
@@ -3547,6 +3549,14 @@ begin
 
   Result[0, 2] += -NormAxis[1];
   Result[1, 2] +=  NormAxis[0];
+end;
+
+procedure RotationMatricesRad(const AxisAngle: TVector4Single;
+  out Matrix, InvertedMatrix: TMatrix4Single);
+var
+  Axis: TVector3Single absolute AxisAngle;
+begin
+  RotationMatricesRad(AxisAngle[3], Axis, Matrix, InvertedMatrix);
 end;
 
 procedure RotationMatricesRad(const AngleRad: Single;

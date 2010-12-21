@@ -1,15 +1,13 @@
-procedure TransformMatricesFunction
- (var Transform, InvertedTransform: TMatrix4Single; var TransformScale: Single;
-  {$ifndef TRANSFORM_SIMPLE} center: TSFVec3f; {$endif}
-  rotation: TSFRotation;
-  scale: TSFVec3f;
-  {$ifndef TRANSFORM_SIMPLE} scaleOrientation: TSFRotation; {$endif}
-  translation: TSFVec3f);
+procedure TransformMatrices(var Transform, InvertedTransform: TMatrix4Single;
+  var TransformScale: Single;
+  center: TVector3Single;
+  rotation: TVector4Single;
+  scale: TVector3Single;
+  scaleOrientation: TVector4Single;
+  translation: TVector3Single);
 var
   M, IM: TMatrix4Single;
-  {$ifndef TRANSFORM_SIMPLE}
   MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
-  {$endif}
 begin
   { Inherited TVRMLGroupingNode already saved Transform and such.
 
@@ -17,36 +15,30 @@ begin
     below. }
 
   MultMatricesTranslation(Transform, InvertedTransform,
-    {$ifndef TRANSFORM_SIMPLE} VectorAdd(Translation.Value, Center.Value)
-    {$else} Translation.Value
-    {$endif});
+    VectorAdd(Translation, Center));
 
   { We avoid using RotationMatricesRad when angle = 0, since this
     is often the case, and it makes TransformState much faster
     (which is important --- TransformState is important for traversing state). }
-  if Rotation.RotationRad <> 0 then
+  if Rotation[3] <> 0 then
   begin
-    { Note that even Axis = zero is OK, both M and IM will be identity in
-      this case. }
-    RotationMatricesRad(Rotation.RotationRad, Rotation.Axis, M, IM);
+    { Note that even rotation Axis = zero is OK, both M and IM will be
+      identity in this case. }
+    RotationMatricesRad(Rotation, M, IM);
     Transform := MatrixMult(Transform, M);
     InvertedTransform := MatrixMult(IM, InvertedTransform);
   end;
 
-  if (Scale.Value[0] <> 1) or
-     (Scale.Value[1] <> 1) or
-     (Scale.Value[2] <> 1) then
+  if (Scale[0] <> 1) or
+     (Scale[1] <> 1) or
+     (Scale[2] <> 1) then
   begin
-    {$ifndef TRANSFORM_SIMPLE}
-    if ScaleOrientation.RotationRad <> 0 then
+    if ScaleOrientation[3] <> 0 then
     begin
-      RotationMatricesRad(ScaleOrientation.RotationRad, ScaleOrientation.Axis,
-        MRotateScaleOrient, IMRotateScaleOrient);
-
+      RotationMatricesRad(ScaleOrientation, MRotateScaleOrient, IMRotateScaleOrient);
       Transform := MatrixMult(Transform, MRotateScaleOrient);
       InvertedTransform := MatrixMult(IMRotateScaleOrient, InvertedTransform);
     end;
-    {$endif}
 
     { For scaling, we explicitly request that if ScalingFactor contains
       zero, IM will be forced to be identity (the 2nd param to ScalingMatrices
@@ -54,15 +46,13 @@ begin
       scaling factor to have 0 components (we need InvertedTransform only
       for special tricks). }
 
-    ScalingMatrices(Scale.Value, true, M, IM);
+    ScalingMatrices(Scale, true, M, IM);
     Transform := MatrixMult(Transform, M);
     InvertedTransform := MatrixMult(IM, InvertedTransform);
 
-    TransformScale *=
-      (Scale.Value[0] + Scale.Value[1] + Scale.Value[2]) / 3;
+    TransformScale *= (Scale[0] + Scale[1] + Scale[2]) / 3;
 
-    {$ifndef TRANSFORM_SIMPLE}
-    if ScaleOrientation.RotationRad <> 0 then
+    if ScaleOrientation[3] <> 0 then
     begin
       { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
         matrices below. Since we want to reverse them now, so normal
@@ -70,27 +60,19 @@ begin
       Transform := MatrixMult(Transform, IMRotateScaleOrient);
       InvertedTransform := MatrixMult(MRotateScaleOrient, InvertedTransform);
     end;
-    {$endif}
   end;
 
-  {$ifndef TRANSFORM_SIMPLE}
-  MultMatricesTranslation(Transform, InvertedTransform,
-    VectorNegate(Center.Value));
-  {$endif}
+  MultMatricesTranslation(Transform, InvertedTransform, VectorNegate(Center));
 end;
 
-procedure TransformStateFunction
- (State: TVRMLGraphTraverseState;
-  {$ifndef TRANSFORM_SIMPLE} center: TSFVec3f; {$endif}
-  rotation: TSFRotation;
-  scale: TSFVec3f;
-  {$ifndef TRANSFORM_SIMPLE} scaleOrientation: TSFRotation; {$endif}
-  translation: TSFVec3f);
+procedure TransformState(State: TVRMLGraphTraverseState;
+  center: TVector3Single;
+  rotation: TVector4Single;
+  scale: TVector3Single;
+  scaleOrientation: TVector4Single;
+  translation: TVector3Single);
 begin
-  TransformMatricesFunction(
+  TransformMatrices(
     State.Transform, State.InvertedTransform, State.TransformScale,
-    {$ifndef TRANSFORM_SIMPLE} center, {$endif}
-    rotation, scale,
-    {$ifndef TRANSFORM_SIMPLE} scaleOrientation, {$endif}
-    translation);
+    center, rotation, scale, scaleOrientation, translation);
 end;
