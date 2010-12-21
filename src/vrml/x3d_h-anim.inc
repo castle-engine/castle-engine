@@ -536,7 +536,7 @@ function TNodeHAnimHumanoid.AnimateSkin: TMFVec3f;
 
     { Take the possibility of non-1 weight sum into account.
       When no joints affect this point, WeightSum = 0, this also works then. }
-    Point := Lerp(WeightSum, Point, New);
+    Point := Point * (1 - WeightSum) + New;
   end;
 
 var
