@@ -936,8 +936,13 @@ begin
   { secure against ParentScene = nil, since this may be called from destructor }
 
   if ParentScene <> nil then
-    { some PVRMLTriangles became invalid }
-    TVRMLScene(ParentScene).PointingDeviceClear;
+  begin
+    { Some PVRMLTriangles will be freed. Make sure to clear
+      PointingDeviceOverItem, unless they belong to a different shape. }
+    if (TVRMLScene(ParentScene).PointingDeviceOverItem <> nil) and
+       (TVRMLScene(ParentScene).PointingDeviceOverItem^.Shape = Self) then
+      TVRMLScene(ParentScene).PointingDeviceClear;
+  end;
 
   FreeAndNil(FOctreeTriangles);
 end;
@@ -1278,8 +1283,8 @@ begin
   if not CalledFromParentScene then
   begin
     if ChangedOnlyCoord then
-      TVRMLScene(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord) else
-      TVRMLScene(ParentScene).DoGeometryChanged(gcLocalGeometryChanged);
+      TVRMLScene(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self) else
+      TVRMLScene(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
   end;
 end;
 

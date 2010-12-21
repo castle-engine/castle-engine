@@ -676,7 +676,8 @@ procedure Register;
 
 implementation
 
-uses Math, VRMLFields, ProgressUnit, Object3DAsVRML, KambiLog, DateUtils;
+uses Math, VRMLFields, ProgressUnit, Object3DAsVRML, KambiLog, DateUtils,
+  VRMLShape;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -698,7 +699,8 @@ type
       AProvidedRenderer: TVRMLGLRenderer;
       AParentAnimation: TVRMLGLAnimation);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
-    procedure DoGeometryChanged(const Change: TGeometryChange); override;
+    procedure DoGeometryChanged(const Change: TGeometryChange;
+      LocalGeometryShape: TVRMLShape); override;
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
     procedure CursorChange; override;
   end;
@@ -726,7 +728,8 @@ begin
   Static := true;
 end;
 
-procedure TVRMLGLAnimationScene.DoGeometryChanged(const Change: TGeometryChange);
+procedure TVRMLGLAnimationScene.DoGeometryChanged(const Change: TGeometryChange;
+  LocalGeometryShape: TVRMLShape);
 begin
   inherited;
   ParentAnimation.ValidBoundingBox := false;

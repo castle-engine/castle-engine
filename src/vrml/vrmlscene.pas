@@ -240,8 +240,18 @@ type
   TVRMLScene = class;
 
   TVRMLSceneNotification = procedure (Scene: TVRMLScene) of object;
+
+  { Callback for TVRMLScene.OnGeometryChanged.
+
+    SomeLocalGeometryChanged means that octree, triangles, bounding volumes
+    local to some shape changed (not just e.g. shape transformation).
+
+    OnlyShapeChanged is meaningful when SomeLocalGeometryChanged = @true.
+    If nil, it indicates that only the given shape geometry changed.
+    If not nil, assume that every shape's geometry potentially changed. }
   TVRMLSceneGeometryChanged = procedure (Scene: TVRMLScene;
-    const SomeLocalGeometryChanged: boolean) of object;
+    const SomeLocalGeometryChanged: boolean;
+    OnlyShapeChanged: TVRMLShape) of object;
 
   { VRML bindable nodes stack.
     This keeps a stack of TNodeX3DBindableNode, with comfortable routines
@@ -496,6 +506,9 @@ type
       Compared to gcLocalGeometryChanged, this means that model edges
       structure remains the same (this is helpful e.g. to avoid
       recalculating Manifold/BorderEdges in parent scene).
+
+      In this case, DoGeometryChanged parameter LocalGeometryShape is non-nil
+      and indicated the (only) shape that changed.
 
       @groupBegin }
     gcLocalGeometryChanged,
@@ -1054,7 +1067,8 @@ type
       This is public only for overloading (and for internal TVRMLShape
       access). Do not call this yourself --- TVRMLShape and TVRMLScene
       implementations know when and how to call this. }
-    procedure DoGeometryChanged(const Change: TGeometryChange); virtual;
+    procedure DoGeometryChanged(const Change: TGeometryChange;
+      LocalGeometryShape: TVRMLShape); virtual;
 
     { Call OnViewpointsChanged, if assigned. }
     procedure DoViewpointsChanged;
@@ -2926,7 +2940,7 @@ begin
         { Calculation traverses over active nodes (uses RootNode.Traverse). }
         fvMainLightForShadows];
 
-      DoGeometryChanged(gcActiveShapesChanged);
+      DoGeometryChanged(gcActiveShapesChanged, nil);
     end;
   end;
 end;
@@ -3053,7 +3067,7 @@ begin
 
   { Call DoGeometryChanged already here, as our old shapes already
     stopped to exist. }
-  DoGeometryChanged(gcAll);
+  DoGeometryChanged(gcAll, nil);
 
   { Delay calling OnBoundChanged from bindable stack changes.
 
@@ -3117,7 +3131,7 @@ begin
     { Call DoGeometryChanged here, as our new shapes are added.
       Probably, only one DoGeometryChanged(gcAll) is needed, but for safety
       --- we can call it twice, it's ultra-fast right now. }
-    DoGeometryChanged(gcAll);
+    DoGeometryChanged(gcAll, nil);
 
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     DoViewpointsChanged;
@@ -3412,10 +3426,10 @@ begin
         if Inactive = 0 then
         begin
           if Shape.Visible then
-            ParentScene.DoGeometryChanged(gcVisibleTransformChanged);
+            ParentScene.DoGeometryChanged(gcVisibleTransformChanged, nil);
 
           if Shape.Collidable then
-            ParentScene.DoGeometryChanged(gcCollidableTransformChanged);
+            ParentScene.DoGeometryChanged(gcCollidableTransformChanged, nil);
 
           AnythingChanged := true;
         end;
@@ -3788,7 +3802,7 @@ var
       { Calculation traverses over active nodes (uses RootNode.Traverse). }
       fvMainLightForShadows];
 
-    DoGeometryChanged(gcActiveShapesChanged);
+    DoGeometryChanged(gcActiveShapesChanged, nil);
 
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
@@ -4175,7 +4189,8 @@ begin
   finally EndChangesSchedule end;
 end;
 
-procedure TVRMLScene.DoGeometryChanged(const Change: TGeometryChange);
+procedure TVRMLScene.DoGeometryChanged(const Change: TGeometryChange;
+  LocalGeometryShape: TVRMLShape);
 var
   SomeLocalGeometryChanged: boolean;
   EdgesStructureChanged: boolean;
@@ -4244,7 +4259,10 @@ begin
     FreeAndNil(FOctreeDynamicCollisions);
 
   if Assigned(OnGeometryChanged) then
-    OnGeometryChanged(Self, SomeLocalGeometryChanged);
+    OnGeometryChanged(Self, SomeLocalGeometryChanged,
+      { We know LocalGeometryShape is nil now for Change not in
+        gcLocalGeometryChanged*. }
+      LocalGeometryShape);
 end;
 
 procedure TVRMLScene.DoViewpointsChanged;
