@@ -36,14 +36,34 @@
     public property Fdweight: TSFFloat read FFdweight;
   end;
 
+  TNodeHAnimJoint = class;
+
+  TWeightedJoints = object
+    Count: Cardinal;
+    Joints: array of TNodeHAnimJoint;
+    Weights: array of Single;
+    procedure Add(Joint: TNodeHAnimJoint; const Weight: Single);
+  end;
+  PWeightedJoints = ^TWeightedJoints;
+  TDynArrayItem_5 = TWeightedJoints;
+  PDynArrayItem_5 = PWeightedJoints;
+  {$define DYNARRAY_5_IS_STRUCT}
+  {$define DYNARRAY_5_IS_INIT_FINI_TYPE}
+  {$I dynarray_5.inc}
+  TDynWeightedJointsArray = TDynArray_5;
+
   TNodeHAnimHumanoid = class(TNodeX3DChildNode, INodeX3DBoundedObject, INodeTransform)
+  private
+    WeightedJoints: TDynWeightedJointsArray;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure ParseAfter(Names: TVRMLNames); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -111,8 +131,15 @@
     HasPreviousTransform: boolean;
     PreviousTransform, PreviousInvertedTransform: TMatrix4Single;
     PreviousRotation: TVector4Single;
-    NotFirstTime: boolean;
+    NewTransform, NewInvertedTransform: TMatrix4Single;
     NewCenter: TVector3Single;
+    { Apply
+        NewTransform, NewInvertedTransform, FdRotation, NewCenter to
+        PreviousTransform, PreviousInvertedTransform, PreviousRotation, FdCenter }
+    procedure Applied;
+    { Animate point, based on change between previous and new values
+      (see Applied for affected variables). }
+    function AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -247,6 +274,8 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+{$I dynarray_5.inc}
+
 constructor TNodeHAnimDisplacer.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -286,6 +315,15 @@ class function TNodeHAnimDisplacer.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TWeightedJoints.Add(Joint: TNodeHAnimJoint; const Weight: Single);
+begin
+  Inc(Count);
+  SetLength(Joints , Count);
+  SetLength(Weights, Count);
+  Joints [Count - 1] := Joint;
+  Weights[Count - 1] := Weight;
 end;
 
 constructor TNodeHAnimHumanoid.Create(const ANodeName: string;
@@ -379,6 +417,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
+destructor TNodeHAnimHumanoid.Destroy;
+begin
+  FreeAndNil(WeightedJoints);
+  inherited;
+end;
+
 class function TNodeHAnimHumanoid.ClassNodeTypeName: string;
 begin
   Result := 'HAnimHumanoid';
@@ -451,9 +495,105 @@ begin
 end;
 
 procedure TNodeHAnimHumanoid.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+
+  procedure AnimateSkin;
+  var
+    I, J: Integer;
+    SkinCoord: TDynVector3SingleArray;
+    New: TVector3Single;
+    WJ: PWeightedJoints;
+  begin
+    if not (
+      (FdSkinCoord.Value <> nil) and
+      (FdSkinCoord.Value is TNodeCoordinate) and
+      (WeightedJoints <> nil)) then Exit;
+
+    SkinCoord := TNodeCoordinate(FdSkinCoord.Value).FdPoint.Items;
+
+    if SkinCoord.Count <> WeightedJoints.Count then Exit;
+
+    for I := 0 to WeightedJoints.Count - 1 do
+    begin
+      New := ZeroVector3Single;
+      WJ := @(WeightedJoints.Items[I]);
+      { TODO: here we assume weights sum to 1 }
+      for J := 0 to WJ^.Count - 1 do
+        New += WJ^.Joints[J].AnimateSkinPoint(SkinCoord.Items[I]) *
+          WJ^.Weights[J];
+      SkinCoord.Items[I] := New;
+    end;
+
+    { TODO: TNodeCoordinate(FdSkinCoord).FdPoint.Changed; }
+
+    for I := 0 to FdJoints.Count - 1 do
+      if FdJoints.Items[I] is TNodeHAnimJoint then
+        TNodeHAnimJoint(FdJoints.Items[I]).Applied;
+  end;
+
 begin
+  AnimateSkin;
   StateStack.Pop;
   inherited;
+end;
+
+procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
+
+  procedure CalculateWeightedJoints;
+  var
+    SkinCoord: TDynVector3SingleArray;
+    I, J: Integer;
+    SkinCoordIndex: TDynLongIntArray;
+    CoordIndex: Integer;
+    Weight: Single;
+    Joint: TNodeHAnimJoint;
+    // Sum: Single;
+  begin
+    FreeAndNil(WeightedJoints);
+    if (FdSkinCoord.Value <> nil) and
+       (FdSkinCoord.Value is TNodeCoordinate) then
+    begin
+      SkinCoord := TNodeCoordinate(FdSkinCoord.Value).FdPoint.Items;
+      WeightedJoints := TDynWeightedJointsArray.Create(SkinCoord.Count);
+      WeightedJoints.FillChar(0); {< to set TWeightedJoints.Count = 0 }
+
+      for I := 0 to FdJoints.Count - 1 do
+        if FdJoints.Items[I] is TNodeHAnimJoint then
+        begin
+          Joint := TNodeHAnimJoint(FdJoints.Items[I]);
+          SkinCoordIndex := Joint.FdSkinCoordIndex.Items;
+          for J := 0 to SkinCoordIndex.Count - 1 do
+          begin
+            CoordIndex := SkinCoordIndex.Items[J];
+            if (CoordIndex < 0) or
+               (CoordIndex >= SkinCoord.Count) then
+            begin
+              VRMLWarning(vwSerious, Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
+                [CoordIndex, SkinCoord.Count]));
+              Continue;
+            end;
+
+            if J < Joint.FdSkinCoordWeight.Items.Count then
+              Weight := Joint.FdSkinCoordWeight.Items[J] else
+              Weight := 1;
+
+            WeightedJoints.Items[CoordIndex].Add(Joint, Weight);
+          end;
+        end;
+
+      { Debug: list joints and weights sum for each vertex:
+      for I := 0 to WeightedJoints.Count - 1 do
+      begin
+        Sum := 0;
+        for J := 0 to WeightedJoints.Items[I].Count - 1 do
+          Sum += WeightedJoints.Items[I].Weights[J];
+        Writeln(Sum:2:0, ' (', WeightedJoints.Items[I].Count, ' joints)');
+      end; }
+    end;
+  end;
+
+begin
+  inherited;
+  CalculateWeightedJoints;
 end;
 
 function TNodeHAnimHumanoid.TransformationChange: TNodeTransformationChange;
@@ -546,210 +686,62 @@ begin
   FdChildren.EnumerateValid(Func);
 end;
 
+function TNodeHAnimJoint.AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
+var
+  PreviousRotationQ, RotationQ, ChangeQ: TQuaternion;
+  TransformChange: TMatrix4Single;
+  PreviousRotationInvert: TVector4Single;
+begin
+  { $define LOCAL_SPACE_CORRECT} // both ways seem to ~work
+
+  PreviousRotationInvert := PreviousRotation;
+  PreviousRotationInvert[3] := -PreviousRotationInvert[3];
+  PreviousRotationQ := QuatFromAxisAngle(PreviousRotationInvert, true);
+  RotationQ := QuatFromAxisAngle(FdRotation.Value, true);
+  ChangeQ := QuatMultiply(RotationQ, PreviousRotationQ);
+  TransformChange := QuatToRotationMatrix(ChangeQ);
+
+  // this should not be done, only for testing!
+  // TransformChange := MatrixInverse(TransformChange,
+  //   MatrixDeterminant(TransformChange));
+
+  TransformChange :=
+   { TODO: should be LocalCenter.Value 1st, then -LocalCenter.Value,
+     but reverse looks closer to correct? }
+    TranslationMatrix(-FdCenter.Value) *
+    TransformChange *
+    TranslationMatrix(FdCenter.Value);
+
+  TransformChange :=
+    { get vertex position back in Humanoid coordinate space }
+    {$ifdef LOCAL_SPACE_CORRECT}
+    NewTransform * {$endif}
+    { our new State.HumanoidTransform is PreviousTransform * TransformChange.
+      So TransformChange = PreviousInvertedTransform * State.HumanoidTransform.
+      Transform local by TransformChange (we don't want to apply
+      PreviousTransform again, as this transformation was already encoded
+      in initial vertex position).
+      Lerp it with identify matrix, to account for weight }
+    TransformChange {$ifdef LOCAL_SPACE_CORRECT} *
+    { get vertex position in local Joint coordinate space }
+    NewInvertedTransform {$endif};
+
+  Result := MatrixMultPoint(TransformChange, Point);
+  Result += NewCenter - FdCenter.Value;
+end;
+
 { TODO: skinned H-Anim implementation in progress }
 procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
-
-  { Animate skin along with this joint. Returns if something actually changed. }
-  function AnimateSkin(CurrentSkinCoord: TDynVector3SingleArray): boolean;
-  var
-    LastWeight: Single;
-    LastVertexTransform: TMatrix4Single;
-
-    procedure AnimateSkinPoint(var Point: TVector3Single; const Weight: Single);
-    var
-      PreviousRotationQ, RotationQ, ChangeQ: TQuaternion;
-      TransformChange: TMatrix4Single;
-      PreviousRotationInvert: TVector4Single;
-    begin
-      if LastWeight <> Weight then
-      begin
-        { we cache LastVertexTransform matrix, since usually skinCoordWeight
-          have a lot of equal values }
-
-        // both below TransformChange := should lead to the same result!
-
-{$define ROTATE_SKIN_METHOD_1}
-{ $define ROTATE_SKIN_METHOD_2}
-{ $define ROTATE_SKIN_METHOD_3}
-
-        {$ifdef ROTATE_SKIN_METHOD_3}
-          {$undef LOCAL_SPACE_CORRECT} { we do our own local space correction }
-          {$define LERP_RESULT_FOR_WEIGHT} { needed, as we cannot do weights here). }
-          {$undef LOCAL_CENTER_CORRECT} { works best without }
-
-          { This is like ROTATE_SKIN_METHOD_2, but simpler. }
-          TransformChange :=
-            State.HumanoidTransform *
-            PreviousInvertedTransform;
-        {$endif}
-
-        {$ifdef ROTATE_SKIN_METHOD_2}
-          {$undef LOCAL_CENTER_CORRECT} { works best without }
-          {$define LOCAL_SPACE_CORRECT} // both ways seem to ~work
-          {$define LERP_RESULT_FOR_WEIGHT} // both ways seem to ~work
-
-          TransformChange := Lerp(
-            {$ifdef LERP_RESULT_FOR_WEIGHT} 1 {$else} Weight {$endif},
-            IdentityMatrix4Single,
-            PreviousInvertedTransform * State.HumanoidTransform);
-        {$endif}
-
-        {$ifdef ROTATE_SKIN_METHOD_1}
-          {$define LOCAL_CENTER_CORRECT} { Seems more sensible, and NewCenter shifting was done for it }
-          { $define LOCAL_SPACE_CORRECT} // both ways seem to ~work
-          { $define LERP_RESULT_FOR_WEIGHT} // both ways seem to ~work
-
-          PreviousRotationInvert := PreviousRotation;
-          PreviousRotationInvert[3] := -PreviousRotationInvert[3];
-          PreviousRotationQ := QuatFromAxisAngle(PreviousRotationInvert, true);
-          RotationQ := QuatFromAxisAngle(FdRotation.Value, true);
-          ChangeQ := QuatMultiply(RotationQ, PreviousRotationQ);
-          ChangeQ :=
-            {$ifdef LERP_RESULT_FOR_WEIGHT} ChangeQ
-            {$else} SLerp(Weight, QuatIdentityRot, ChangeQ) {$endif};
-
-          // if NotFirstTime then Exit;
-          //   TransformChange := QuatToRotationMatrix(SLerp(Weight, QuatIdentityRot, RotationQ))
-          TransformChange := QuatToRotationMatrix(ChangeQ);
-
-          // this should not be done, only for testing!
-          // TransformChange := MatrixInverse(TransformChange,
-          //   MatrixDeterminant(TransformChange));
-
-          TransformChange :=
-           { TODO: should be LocalCenter.Value 1st, then -LocalCenter.Value,
-             but reverse looks closer to correct? }
-            TranslationMatrix(-FdCenter.Value) *
-            TransformChange *
-            TranslationMatrix(FdCenter.Value);
-        {$endif}
-
-        LastVertexTransform :=
-          { get vertex position back in Humanoid coordinate space }
-          {$ifdef LOCAL_SPACE_CORRECT}
-          State.HumanoidTransform * {$endif}
-          { our new State.HumanoidTransform is PreviousTransform * TransformChange.
-            So TransformChange = PreviousInvertedTransform * State.HumanoidTransform.
-            Transform local by TransformChange (we don't want to apply
-            PreviousTransform again, as this transformation was already encoded
-            in initial vertex position).
-            Lerp it with identify matrix, to account for weight }
-          TransformChange {$ifdef LOCAL_SPACE_CORRECT} *
-          { get vertex position in local Joint coordinate space }
-          State.HumanoidInvertedTransform {$endif};
-        LastWeight := Weight;
-      end;
-
-      {$ifdef LERP_RESULT_FOR_WEIGHT}
-      Point := Lerp(Weight, Point, MatrixMultPoint(LastVertexTransform, Point));
-      {$else}
-      Point := MatrixMultPoint(LastVertexTransform, Point);
-      {$endif}
-    end;
-
-  var
-    I, CoordIndex: Integer;
-    Weight: Single;
-    ChildJoint: TNodeHAnimJoint;
-  begin
-    Result := true;
-
-    LastWeight := MaxSingle; { impossible value }
-
-    try
-      for I := 0 to FdSkinCoordIndex.Count - 1 do
-      begin
-        CoordIndex := FdSkinCoordIndex.Items[I];
-        if (CoordIndex < 0) or
-           (CoordIndex >= CurrentSkinCoord.Count) then
-        begin
-          VRMLWarning(vwSerious, Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
-            [CoordIndex, CurrentSkinCoord.Count]));
-          Continue;
-        end;
-
-        if I < FdSkinCoordWeight.Items.Count then
-          Weight := FdSkinCoordWeight.Items[I] else
-          Weight := 1;
-
-        AnimateSkinPoint(CurrentSkinCoord.Items[CoordIndex], Weight);
-      end;
-
-      { animate also centers of children joints }
-      {$ifdef LOCAL_CENTER_CORRECT}
-      for I := 0 to FdChildren.Count - 1 do
-        if FdChildren.Items[I] is TNodeHAnimJoint then
-        begin
-          ChildJoint := TNodeHAnimJoint(FdChildren.Items[I]);
-          ChildJoint.NewCenter :=  ChildJoint.FdCenter.Value;
-          AnimateSkinPoint(ChildJoint.NewCenter, 1);
-        end;
-      {$endif}
-    except
-      { ETransformedResultInvalid may be raised by MultMatrixPoint
-        if some transformation resulted in invalid homogeneous vector
-        (that doesn't represent location). }
-      on ETransformedResultInvalid do VRMLWarning(vwSerious, 'Cannot transform skin vertex, result 4D vector is not a 3D location. This means you used some strange transformations inside the Humanoid.');
-    end;
-  end;
-
-  { As center changes, also the points are moved. }
-  procedure MoveSkinToNewCenter(CurrentSkinCoord: TDynVector3SingleArray;
-    const Move: TVector3Single);
-  var
-    I, CoordIndex: Integer;
-    Weight: Single;
-    ChildJoint: TNodeHAnimJoint;
-  begin
-    for I := 0 to FdSkinCoordIndex.Count - 1 do
-    begin
-      CoordIndex := FdSkinCoordIndex.Items[I];
-      if (CoordIndex < 0) or
-         (CoordIndex >= CurrentSkinCoord.Count) then
-      begin
-        VRMLWarning(vwSerious, Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
-          [CoordIndex, CurrentSkinCoord.Count]));
-        Continue;
-      end;
-
-      if I < FdSkinCoordWeight.Items.Count then
-        Weight := FdSkinCoordWeight.Items[I] else
-        Weight := 1;
-
-      CurrentSkinCoord.Items[CoordIndex] += Move * Weight;
-    end;
-
-    { animate also centers of children joints }
-    {$ifdef LOCAL_CENTER_CORRECT}
-    for I := 0 to FdChildren.Count - 1 do
-      if FdChildren.Items[I] is TNodeHAnimJoint then
-      begin
-        ChildJoint := TNodeHAnimJoint(FdChildren.Items[I]);
-        ChildJoint.NewCenter += Move * Weight;
-      end;
-    {$endif}
-  end;
-
 var
   IgnoreHumanoidTransformScale: Single;
-  SkinCoordField: TMFVec3f;
-  SavedHumanoidTransform, SavedHumanoidInvertedTransform: TMatrix4Single;
+  I: Integer;
+  ChildJoint: TNodeHAnimJoint;
 begin
   inherited;
 
   { Normal State isn't really used for skinned animation }
   TransformState(State, FdCenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
-
-//  if NotFirstTime then Exit; // just for test, to make sure redoing it doesn't break anything
-
-  { update State.HumanoidTransform, State.HumanoidInvertedTransform. }
-  IgnoreHumanoidTransformScale := 1;
-  SavedHumanoidTransform := State.HumanoidTransform;
-  SavedHumanoidInvertedTransform := State.HumanoidInvertedTransform;
-  TransformMatrices(State.HumanoidTransform, State.HumanoidInvertedTransform,
-    IgnoreHumanoidTransformScale,
-    FdCenter, Fdrotation, Fdscale, FdscaleOrientation, Fdtranslation);
 
   { Looks like skinCoord is initially assuming joint transformation = no rotation? }
   if not HasPreviousTransform then
@@ -760,43 +752,37 @@ begin
     HasPreviousTransform := true;
   end;
 
-  if HasPreviousTransform and
-     (FdSkinCoordIndex.Count <> 0) and
-     (State.Humanoid <> nil) and
-     (State.Humanoid.FdSkinCoord.Value <> nil) and
-     (State.Humanoid.FdSkinCoord.Value is TNodeCoordinate) then
-  begin
-    { rotate around old center }
-    SkinCoordField := TNodeCoordinate(State.Humanoid.FdSkinCoord.Value).FdPoint;
-    if AnimateSkin(SkinCoordField.Items) then
+  { update State.HumanoidTransform, State.HumanoidInvertedTransform. }
+  IgnoreHumanoidTransformScale := 1;
+  TransformMatrices(State.HumanoidTransform, State.HumanoidInvertedTransform,
+    IgnoreHumanoidTransformScale,
+    FdCenter, Fdrotation, Fdscale, FdscaleOrientation, Fdtranslation);
+
+  NewTransform := State.HumanoidTransform;
+  NewInvertedTransform := State.HumanoidInvertedTransform;
+
+  { TODO:
+    - should NewTransform be assigned before or after TransformMatrices above?
+    - should we temporarily change FdCenter to NewCenter for TransformMatrices above?
+    - LOCAL_SPACE_CORRECT should be defined?
+    - -/+ at FdCenter.Value above should be reverted?
+  }
+
+  { animate centers of children joints }
+  for I := 0 to FdChildren.Count - 1 do
+    if FdChildren.Items[I] is TNodeHAnimJoint then
     begin
-      {$ifdef LOCAL_CENTER_CORRECT}
-      MoveSkinToNewCenter(SkinCoordField.Items, NewCenter - FdCenter.Value);
-
-      FdCenter.Value := NewCenter;
-
-      { center changed, so also matrix changed }
-      State.HumanoidTransform := SavedHumanoidTransform;
-      State.HumanoidInvertedTransform := SavedHumanoidInvertedTransform;
-      TransformMatrices(State.HumanoidTransform, State.HumanoidInvertedTransform,
-        IgnoreHumanoidTransformScale,
-        FdCenter, Fdrotation, Fdscale, FdscaleOrientation, Fdtranslation);
-      {$endif}
-
-      SkinCoordField.Changed;
+      ChildJoint := TNodeHAnimJoint(FdChildren.Items[I]);
+      ChildJoint.NewCenter := AnimateSkinPoint(ChildJoint.FdCenter.Value);
     end;
-  end;
+end;
 
-  { remember joint transformation corresponding to current vertex position.
-    This also means that at the first time (when HasPreviousTransform was
-    false), we assume that vertex initial position already includes initial
-    transformation (which is exactly true, this is how bones work). }
-  PreviousTransform := State.HumanoidTransform;
-  PreviousInvertedTransform := State.HumanoidInvertedTransform;
+procedure TNodeHAnimJoint.Applied;
+begin
+  PreviousTransform := NewTransform;
+  PreviousInvertedTransform := NewInvertedTransform;
   PreviousRotation := FdRotation.Value;
-  HasPreviousTransform := true;
-
-  NotFirstTime := true;
+  FdCenter.Value := NewCenter;
 end;
 
 function TNodeHAnimJoint.TransformationChange: TNodeTransformationChange;
