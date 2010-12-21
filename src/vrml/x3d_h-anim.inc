@@ -139,14 +139,14 @@
   TNodeHAnimJoint = class(TNodeX3DGroupingNode, INodeTransform)
   private
     { TODO: skinned H-Anim implementation in progress }
-    HasPreviousTransform: boolean;
     PreviousTransform, PreviousInvertedTransform: TMatrix4Single;
     PreviousRotation: TVector4Single;
+    PreviousCenter: TVector3Single;
+    HasPreviousCenter: boolean;
     NewTransform, NewInvertedTransform: TMatrix4Single;
-    NewCenter: TVector3Single;
     { Apply
-        NewTransform, NewInvertedTransform, FdRotation, NewCenter to
-        PreviousTransform, PreviousInvertedTransform, PreviousRotation, FdCenter }
+        NewTransform, NewInvertedTransform, FdRotation, FdCenter to
+        PreviousTransform, PreviousInvertedTransform, PreviousRotation, PreviousCenter }
     procedure Applied;
     { Animate point, based on change between previous and new values
       (see Applied for affected variables). }
@@ -497,11 +497,15 @@ begin
   TransformState(StateStack.Top, Fdcenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
 
+  { always before traversing into a joint, make sure is has PreviousCenter
+    initialized, otherwise AnimateSkin with this joint generated undefined
+    vertexes. }
   for I := 0 to FdSkeleton.Count - 1 do
     if FdSkeleton.Items[I] is TNodeHAnimJoint then
     begin
       RootJoint := TNodeHAnimJoint(FdSkeleton.Items[I]);
-      RootJoint.NewCenter := RootJoint.FdCenter.Value;
+      if not RootJoint.HasPreviousCenter then
+        RootJoint.PreviousCenter := RootJoint.FdCenter.Value;
     end;
 end;
 
@@ -668,6 +672,11 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
+
+  { skinCoord is initially assuming joint transformation = no rotation }
+  PreviousTransform := IdentityMatrix4Single;
+  PreviousInvertedTransform := IdentityMatrix4Single;
+  PreviousRotation := Vector4Single(0, 0, 1, 0);
 end;
 
 class function TNodeHAnimJoint.ClassNodeTypeName: string;
@@ -714,11 +723,11 @@ begin
   //   MatrixDeterminant(TransformChange));
 
   TransformChange :=
-   { TODO: should be LocalCenter.Value 1st, then -LocalCenter.Value,
+   { TODO: should be +Center 1st, then -Center,
      but reverse looks closer to correct? }
-    TranslationMatrix(-FdCenter.Value) *
+    TranslationMatrix(-PreviousCenter) *
     TransformChange *
-    TranslationMatrix(FdCenter.Value);
+    TranslationMatrix(PreviousCenter);
 
   TransformChange :=
     { get vertex position back in Humanoid coordinate space }
@@ -735,7 +744,7 @@ begin
     NewInvertedTransform {$endif};
 
   Result := MatrixMultPoint(TransformChange, Point);
-  Result += NewCenter - FdCenter.Value;
+  Result += FdCenter.Value - PreviousCenter;
 end;
 
 { TODO: skinned H-Anim implementation in progress }
@@ -751,15 +760,6 @@ begin
   TransformState(State, FdCenter, Fdrotation, Fdscale, FdscaleOrientation,
     Fdtranslation);
 
-  { Looks like skinCoord is initially assuming joint transformation = no rotation? }
-  if not HasPreviousTransform then
-  begin
-    PreviousTransform := IdentityMatrix4Single;
-    PreviousInvertedTransform := IdentityMatrix4Single;
-    PreviousRotation := Vector4Single(0, 0, 1, 0);
-    HasPreviousTransform := true;
-  end;
-
   { update State.HumanoidTransform, State.HumanoidInvertedTransform. }
   IgnoreHumanoidTransformScale := 1;
   TransformMatrices(State.HumanoidTransform, State.HumanoidInvertedTransform,
@@ -771,9 +771,8 @@ begin
 
   { TODO:
     - should NewTransform be assigned before or after TransformMatrices above?
-    - should we temporarily change FdCenter to NewCenter for TransformMatrices above?
     - LOCAL_SPACE_CORRECT should be defined?
-    - -/+ at FdCenter.Value above should be reverted?
+    - -/+ at Center above should be reverted?
   }
 
   { animate centers of children joints }
@@ -781,7 +780,11 @@ begin
     if FdChildren.Items[I] is TNodeHAnimJoint then
     begin
       ChildJoint := TNodeHAnimJoint(FdChildren.Items[I]);
-      ChildJoint.NewCenter := AnimateSkinPoint(ChildJoint.FdCenter.Value);
+
+      if not ChildJoint.HasPreviousCenter then
+        ChildJoint.PreviousCenter := ChildJoint.FdCenter.Value;
+
+      ChildJoint.FdCenter.Value := AnimateSkinPoint(ChildJoint.PreviousCenter);
     end;
 end;
 
@@ -790,7 +793,9 @@ begin
   PreviousTransform := NewTransform;
   PreviousInvertedTransform := NewInvertedTransform;
   PreviousRotation := FdRotation.Value;
-  FdCenter.Value := NewCenter;
+
+  HasPreviousCenter := true;
+  PreviousCenter := FdCenter.Value;
 end;
 
 function TNodeHAnimJoint.TransformationChange: TNodeTransformationChange;
