@@ -42,8 +42,7 @@
     Count: Cardinal;
     Joints: array of TNodeHAnimJoint;
     Weights: array of Single;
-    Levels: array of Cardinal;
-    procedure Add(Joint: TNodeHAnimJoint; const Weight: Single; const Level: Cardinal);
+    procedure Add(Joint: TNodeHAnimJoint; const Weight: Single);
   end;
   PWeightedJoints = ^TWeightedJoints;
   TDynArrayItem_5 = TWeightedJoints;
@@ -140,13 +139,12 @@
   TNodeHAnimJoint = class(TNodeX3DGroupingNode, INodeTransform)
   private
     PreviousTransform, PreviousInvertedTransform: TMatrix4Single;
-    PreviousRotation: TVector4Single;
     PreviousCenter: TVector3Single;
     HasPreviousCenter: boolean;
     NewTransform, NewInvertedTransform: TMatrix4Single;
     { Apply
-        NewTransform, NewInvertedTransform, FdRotation, FdCenter to
-        PreviousTransform, PreviousInvertedTransform, PreviousRotation, PreviousCenter }
+        NewTransform, NewInvertedTransform, FdCenter to
+        PreviousTransform, PreviousInvertedTransform, PreviousCenter }
     procedure Applied;
     { Animate point, based on change between previous and new values
       (see Applied for affected variables). }
@@ -328,15 +326,13 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TWeightedJoints.Add(Joint: TNodeHAnimJoint; const Weight: Single; const Level: Cardinal);
+procedure TWeightedJoints.Add(Joint: TNodeHAnimJoint; const Weight: Single);
 begin
   Inc(Count);
   SetLength(Joints , Count);
   SetLength(Weights, Count);
-  SetLength(Levels , Count);
   Joints [Count - 1] := Joint;
   Weights[Count - 1] := Weight;
-  Levels [Count - 1] := Level;
 end;
 
 constructor TNodeHAnimHumanoid.Create(const ANodeName: string;
@@ -514,8 +510,7 @@ end;
 
 function TNodeHAnimHumanoid.AnimateSkin: TMFVec3f;
 
-  procedure ApplyLevel(const Level: Cardinal; const WJ: TWeightedJoints;
-    var Point: TVector3Single);
+  procedure UpdateVertex(const WJ: TWeightedJoints; var Point: TVector3Single);
   var
     New: TVector3Single;
     J: Integer;
@@ -525,11 +520,10 @@ function TNodeHAnimHumanoid.AnimateSkin: TMFVec3f;
     WeightSum := 0;
 
     for J := 0 to WJ.Count - 1 do
-      if WJ.Levels[J] = Level then
-      begin
-        WeightSum += WJ.Weights[J];
-        New += WJ.Joints[J].AnimateSkinPoint(Point) * WJ.Weights[J];
-      end;
+    begin
+      WeightSum += WJ.Weights[J];
+      New += WJ.Joints[J].AnimateSkinPoint(Point) * WJ.Weights[J];
+    end;
 
     { Take the possibility of non-1 weight sum into account.
       When no joints affect this point, WeightSum = 0, this also works then. }
@@ -550,10 +544,7 @@ begin
   if SkinCoord.Count <> WeightedJoints.Count then Exit(nil);
 
   for I := 0 to WeightedJoints.Count - 1 do
-  begin
-    ApplyLevel(0, WeightedJoints.Items[I], SkinCoord.Items[I]);
-    //ApplyLevel(1, WeightedJoints.Items[I], SkinCoord.Items[I]);
-  end;
+    UpdateVertex(WeightedJoints.Items[I], SkinCoord.Items[I]);
 
   for I := 0 to FdJoints.Count - 1 do
     if FdJoints.Items[I] is TNodeHAnimJoint then
@@ -572,58 +563,11 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
   procedure CalculateWeightedJoints;
   var
     SkinCoord: TDynVector3SingleArray;
-
-    procedure AddLevel(JointToSave: TNodeHAnimJoint;
-      JointsList: TMFNode;
-      const LevelToSave: Cardinal; const LevelToDescend: Cardinal);
-    var
-      I, J: Integer;
-      SkinCoordIndex: TDynLongIntArray;
-      CoordIndex: Integer;
-      Weight: Single;
-      Joint: TNodeHAnimJoint;
-    begin
-      if LevelToDescend = 0 then
-      begin
-        for I := 0 to JointsList.Count - 1 do
-          if JointsList.Items[I] is TNodeHAnimJoint then
-          begin
-            Joint := TNodeHAnimJoint(JointsList.Items[I]);
-            SkinCoordIndex := Joint.FdSkinCoordIndex.Items;
-            for J := 0 to SkinCoordIndex.Count - 1 do
-            begin
-              CoordIndex := SkinCoordIndex.Items[J];
-              if (CoordIndex < 0) or
-                 (CoordIndex >= SkinCoord.Count) then
-              begin
-                VRMLWarning(vwSerious, Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
-                  [CoordIndex, SkinCoord.Count]));
-                Continue;
-              end;
-
-              if J < Joint.FdSkinCoordWeight.Items.Count then
-                Weight := Joint.FdSkinCoordWeight.Items[J] else
-                Weight := 1;
-
-              if LevelToSave = LevelToDescend then
-                JointToSave := Joint;
-              WeightedJoints.Items[CoordIndex].Add(JointToSave, Weight, LevelToSave);
-            end;
-          end;
-      end else
-      begin
-        for I := 0 to JointsList.Count - 1 do
-          if JointsList.Items[I] is TNodeHAnimJoint then
-          begin
-            Joint := TNodeHAnimJoint(JointsList.Items[I]);
-
-            if LevelToSave = LevelToDescend then
-              JointToSave := Joint;
-            AddLevel(JointToSave, Joint.FdChildren, LevelToSave, LevelToDescend - 1);
-          end;
-      end;
-    end;
-
+    I, J: Integer;
+    SkinCoordIndex: TDynLongIntArray;
+    CoordIndex: Integer;
+    Weight: Single;
+    Joint: TNodeHAnimJoint;
   begin
     FreeAndNil(WeightedJoints);
     if (FdSkinCoord.Value <> nil) and
@@ -633,8 +577,29 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
       WeightedJoints := TDynWeightedJointsArray.Create(SkinCoord.Count);
       WeightedJoints.FillChar(0); {< to set TWeightedJoints.Count = 0 }
 
-      AddLevel(nil, FdJoints, 0, 0);
-      //AddLevel(nil, FdJoints, 1, 1);
+      for I := 0 to FdJoints.Count - 1 do
+        if FdJoints.Items[I] is TNodeHAnimJoint then
+        begin
+          Joint := TNodeHAnimJoint(FdJoints.Items[I]);
+          SkinCoordIndex := Joint.FdSkinCoordIndex.Items;
+          for J := 0 to SkinCoordIndex.Count - 1 do
+          begin
+            CoordIndex := SkinCoordIndex.Items[J];
+            if (CoordIndex < 0) or
+               (CoordIndex >= SkinCoord.Count) then
+            begin
+              VRMLWarning(vwSerious, Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
+                [CoordIndex, SkinCoord.Count]));
+              Continue;
+            end;
+
+            if J < Joint.FdSkinCoordWeight.Items.Count then
+              Weight := Joint.FdSkinCoordWeight.Items[J] else
+              Weight := 1;
+
+            WeightedJoints.Items[CoordIndex].Add(Joint, Weight);
+          end;
+        end;
     end;
   end;
 
@@ -711,7 +676,6 @@ begin
   { skinCoord is initially assuming joint transformation = no rotation }
   PreviousTransform := IdentityMatrix4Single;
   PreviousInvertedTransform := IdentityMatrix4Single;
-  PreviousRotation := Vector4Single(0, 0, 1, 0);
 end;
 
 class function TNodeHAnimJoint.ClassNodeTypeName: string;
@@ -796,7 +760,6 @@ procedure TNodeHAnimJoint.Applied;
 begin
   PreviousTransform := NewTransform;
   PreviousInvertedTransform := NewInvertedTransform;
-  PreviousRotation := FdRotation.Value;
 
   HasPreviousCenter := true;
   PreviousCenter := FdCenter.Value;
