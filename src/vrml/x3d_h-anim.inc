@@ -123,6 +123,17 @@
 
     private FFdbboxSize: TSFVec3f;
     public property FdbboxSize: TSFVec3f read FFdbboxSize;
+
+    { Change the skin (in skinCoord), to follow the animation of joints.
+      Joints that changed are assumed to be already traversed by TVRMLNode.Traverse
+      (this prepares field values for AnimateSkinPoint call).
+
+      This method is used by TVRMLScene. Don't call this yourself.
+
+      Returns changed VRML/X3D coordinates field (or @nil if there is no skin).
+      You should call TVRMLField.Changed on it (unless you use it from some
+      TVRMLScene initialization, when there's no point in notifying about this). }
+    function AnimateSkin: TMFVec3f;
   end;
 
   TNodeHAnimJoint = class(TNodeX3DGroupingNode, INodeTransform)
@@ -494,42 +505,39 @@ begin
     end;
 end;
 
-procedure TNodeHAnimHumanoid.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+function TNodeHAnimHumanoid.AnimateSkin: TMFVec3f;
+var
+  I, J: Integer;
+  SkinCoord: TDynVector3SingleArray;
+  New: TVector3Single;
+  WJ: PWeightedJoints;
+begin
+  if not (
+    (FdSkinCoord.Value <> nil) and
+    (FdSkinCoord.Value is TNodeCoordinate) and
+    (WeightedJoints <> nil)) then Exit(nil);
 
-  procedure AnimateSkin;
-  var
-    I, J: Integer;
-    SkinCoord: TDynVector3SingleArray;
-    New: TVector3Single;
-    WJ: PWeightedJoints;
+  Result := TNodeCoordinate(FdSkinCoord.Value).FdPoint;
+  SkinCoord := Result.Items;
+  if SkinCoord.Count <> WeightedJoints.Count then Exit(nil);
+
+  for I := 0 to WeightedJoints.Count - 1 do
   begin
-    if not (
-      (FdSkinCoord.Value <> nil) and
-      (FdSkinCoord.Value is TNodeCoordinate) and
-      (WeightedJoints <> nil)) then Exit;
-
-    SkinCoord := TNodeCoordinate(FdSkinCoord.Value).FdPoint.Items;
-
-    if SkinCoord.Count <> WeightedJoints.Count then Exit;
-
-    for I := 0 to WeightedJoints.Count - 1 do
-    begin
-      New := ZeroVector3Single;
-      WJ := @(WeightedJoints.Items[I]);
-      { TODO: here we assume weights sum to 1 }
-      for J := 0 to WJ^.Count - 1 do
-        New += WJ^.Joints[J].AnimateSkinPoint(SkinCoord.Items[I]) *
-          WJ^.Weights[J];
-      SkinCoord.Items[I] := New;
-    end;
-
-    { TODO: TNodeCoordinate(FdSkinCoord).FdPoint.Changed; }
-
-    for I := 0 to FdJoints.Count - 1 do
-      if FdJoints.Items[I] is TNodeHAnimJoint then
-        TNodeHAnimJoint(FdJoints.Items[I]).Applied;
+    New := ZeroVector3Single;
+    WJ := @(WeightedJoints.Items[I]);
+    { TODO: here we assume weights sum to 1 }
+    for J := 0 to WJ^.Count - 1 do
+      New += WJ^.Joints[J].AnimateSkinPoint(SkinCoord.Items[I]) *
+        WJ^.Weights[J];
+    SkinCoord.Items[I] := New;
   end;
 
+  for I := 0 to FdJoints.Count - 1 do
+    if FdJoints.Items[I] is TNodeHAnimJoint then
+      TNodeHAnimJoint(FdJoints.Items[I]).Applied;
+end;
+
+procedure TNodeHAnimHumanoid.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   AnimateSkin;
   StateStack.Pop;

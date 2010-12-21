@@ -3482,6 +3482,19 @@ end;
 
 procedure TVRMLScene.TransformationChanged(TransformNode: TVRMLNode;
   Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
+
+  procedure UpdateHumanoidSkin(Humanoid: TNodeHAnimHumanoid);
+  var
+    ChangedSkin: TMFVec3f;
+  begin
+    if Humanoid <> nil then
+    begin
+      ChangedSkin := Humanoid.AnimateSkin;
+      if ChangedSkin <> nil then
+        ChangedSkin.Changed;
+    end;
+  end;
+
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
@@ -3556,6 +3569,10 @@ begin
 
         if TransformChangeHelper.AnythingChanged then
           DoVisibleChanged := true;
+
+        { take care of calling TNodeHAnimHumanoid.AnimateSkin when joint is animated }
+        if TransformNode is TNodeHAnimJoint then
+          UpdateHumanoidSkin(TransformShapeTree.TransformState.Humanoid);
       end;
     finally
       FreeAndNil(TraverseStack);
