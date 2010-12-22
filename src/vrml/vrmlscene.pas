@@ -577,6 +577,12 @@ type
       ChangedAll sets this back to false at the end. }
     ForceTeleportTransitions: boolean;
 
+    { Humanoids on which we should call AnimateSkin.
+      We don't do AnimateSkin immediately, as it would force slowdown
+      when many joints are changed at once (e.g. many joints, and each one
+      animated with it's own OrientationInterpolator). }
+    ScheduledHumanoidAnimateSkin: TVRMLNodesList;
+
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
     ShapeLODs: TObjectList;
@@ -2439,6 +2445,7 @@ begin
   GeneratedTextures := TDynGeneratedTextureArray.Create;
   ProximitySensors := TProximitySensorInstancesList.Create;
   ScreenEffectNodes := TVRMLNodesList.Create;
+  ScheduledHumanoidAnimateSkin := TVRMLNodesList.Create;
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -2484,6 +2491,7 @@ begin
     FreeAndNil(FInput_PointingDeviceActivate) else
     FInput_PointingDeviceActivate := nil;
 
+  FreeAndNil(ScheduledHumanoidAnimateSkin);
   FreeAndNil(ScreenEffectNodes);
   FreeAndNil(ProximitySensors);
   FreeAndNil(GeneratedTextures);
@@ -2953,6 +2961,7 @@ begin
   GeneratedTextures.Count := 0;
   ProximitySensors.Count := 0;
   ScreenEffectNodes.Count := 0;
+  ScheduledHumanoidAnimateSkin.Count := 0;
 
   { clear nodes before doing CheckForDeletedNodes below, as CheckForDeletedNodes
     may send some events so no invalid pointers must exist. }
@@ -3496,19 +3505,6 @@ end;
 
 procedure TVRMLScene.TransformationChanged(TransformNode: TVRMLNode;
   Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
-
-  procedure UpdateHumanoidSkin(Humanoid: TNodeHAnimHumanoid);
-  var
-    ChangedSkin: TMFVec3f;
-  begin
-    if Humanoid <> nil then
-    begin
-      ChangedSkin := Humanoid.AnimateSkin;
-      if ChangedSkin <> nil then
-        ChangedSkin.Changed;
-    end;
-  end;
-
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
@@ -3586,7 +3582,8 @@ begin
 
         { take care of calling TNodeHAnimHumanoid.AnimateSkin when joint is animated }
         if TransformNode is TNodeHAnimJoint then
-          UpdateHumanoidSkin(TransformShapeTree.TransformState.Humanoid);
+          ScheduledHumanoidAnimateSkin.AddIfNotExists(
+            TransformShapeTree.TransformState.Humanoid);
       end;
     finally
       FreeAndNil(TraverseStack);
@@ -5805,6 +5802,7 @@ procedure TVRMLScene.InternalSetTime(
 var
   SomethingChanged: boolean;
   I: Integer;
+  ChangedSkin: TMFVec3f;
 begin
   if ProcessEvents then
   begin
@@ -5829,6 +5827,15 @@ begin
         (TimeSensorNodes.Items[I] as TNodeTimeSensor).
           TimeDependentNodeHandler.SetTime(
             Time, NewValue, TimeIncrease, ResetTime, SomethingChanged);
+
+      for I := 0 to ScheduledHumanoidAnimateSkin.Count - 1 do
+      begin
+        ChangedSkin := (ScheduledHumanoidAnimateSkin.Items[I]
+          as TNodeHAnimHumanoid).AnimateSkin;
+        if ChangedSkin <> nil then
+          ChangedSkin.Changed;
+      end;
+      ScheduledHumanoidAnimateSkin.Count := 0;
     finally
       EndChangesSchedule;
     end;
