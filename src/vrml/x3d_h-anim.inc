@@ -38,23 +38,24 @@
 
   TNodeHAnimJoint = class;
 
-  TWeightedJoints = object
+  TVertexJoints = object
+    RestPosition: TVector3Single;
     Count: Cardinal;
     Joints: array of TNodeHAnimJoint;
     Weights: array of Single;
     procedure Add(Joint: TNodeHAnimJoint; const Weight: Single);
   end;
-  PWeightedJoints = ^TWeightedJoints;
-  TDynArrayItem_5 = TWeightedJoints;
-  PDynArrayItem_5 = PWeightedJoints;
+  PVertexJoints = ^TVertexJoints;
+  TDynArrayItem_5 = TVertexJoints;
+  PDynArrayItem_5 = PVertexJoints;
   {$define DYNARRAY_5_IS_STRUCT}
   {$define DYNARRAY_5_IS_INIT_FINI_TYPE}
   {$I dynarray_5.inc}
-  TDynWeightedJointsArray = TDynArray_5;
+  TDynVertexJointsArray = TDynArray_5;
 
   TNodeHAnimHumanoid = class(TNodeX3DChildNode, INodeX3DBoundedObject, INodeTransform)
   private
-    WeightedJoints: TDynWeightedJointsArray;
+    VertexJoints: TDynVertexJointsArray;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -138,19 +139,28 @@
 
   TNodeHAnimJoint = class(TNodeX3DGroupingNode, INodeTransform)
   private
-    PreviousTransform, PreviousInvertedTransform,
-      NewTransform, NewInvertedTransform,
-      AnimateSkinTransform: TMatrix4Single;
-    { Copy NewTransform, NewInvertedTransform, to
-      PreviousTransform, PreviousInvertedTransform. }
-    procedure Applied;
-    { Animate point, based on change between previous and new values
-      (see Applied for affected variables). }
+    AnimateSkinTransform: TMatrix4Single;
+    RestCenter: TVector3Single;
+    { Animate point, based on it's rest position.
+
+      We used, at one point, to apply here a relative change since last position.
+      - Advantage: no need to remember
+        TVertexJoints.RestPosition or RestCenter.
+      - Disadvantage: cummulation of errors was causing shrinking elbows
+        on seamless3d test model Lucy.
+      - Disadvantage 2: Relative change was causing
+        more complicated code, with the need to switch previous/new
+        transformations (since we cannot apply changes to vertexes during
+        traversing of joints, we had to be very careful: a change must
+        be applied only once, and then relative change must be reset to identity).
+        Without this, we can repply AnimateSkinPoint many times, and it's
+        always valid. }
     function AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
     procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
+    procedure ParseAfter(Names: TVRMLNames); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -324,7 +334,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TWeightedJoints.Add(Joint: TNodeHAnimJoint; const Weight: Single);
+procedure TVertexJoints.Add(Joint: TNodeHAnimJoint; const Weight: Single);
 begin
   Inc(Count);
   SetLength(Joints , Count);
@@ -426,7 +436,7 @@ end;
 
 destructor TNodeHAnimHumanoid.Destroy;
 begin
-  FreeAndNil(WeightedJoints);
+  FreeAndNil(VertexJoints);
   inherited;
 end;
 
@@ -491,7 +501,7 @@ end;
 
 function TNodeHAnimHumanoid.AnimateSkin: TMFVec3f;
 
-  procedure UpdateVertex(const WJ: TWeightedJoints; var Point: TVector3Single);
+  function UpdateVertex(const VJ: TVertexJoints): TVector3Single;
   var
     New: TVector3Single;
     J: Integer;
@@ -500,15 +510,15 @@ function TNodeHAnimHumanoid.AnimateSkin: TMFVec3f;
     New := ZeroVector3Single;
     WeightSum := 0;
 
-    for J := 0 to WJ.Count - 1 do
+    for J := 0 to VJ.Count - 1 do
     begin
-      WeightSum += WJ.Weights[J];
-      New += WJ.Joints[J].AnimateSkinPoint(Point) * WJ.Weights[J];
+      WeightSum += VJ.Weights[J];
+      New += VJ.Joints[J].AnimateSkinPoint(VJ.RestPosition) * VJ.Weights[J];
     end;
 
     { Take the possibility of non-1 weight sum into account.
       When no joints affect this point, WeightSum = 0, this also works then. }
-    Point := Point * (1 - WeightSum) + New;
+    Result := VJ.RestPosition * (1 - WeightSum) + New;
   end;
 
 var
@@ -518,18 +528,14 @@ begin
   if not (
     (FdSkinCoord.Value <> nil) and
     (FdSkinCoord.Value is TNodeCoordinate) and
-    (WeightedJoints <> nil)) then Exit(nil);
+    (VertexJoints <> nil)) then Exit(nil);
 
   Result := TNodeCoordinate(FdSkinCoord.Value).FdPoint;
   SkinCoord := Result.Items;
-  if SkinCoord.Count <> WeightedJoints.Count then Exit(nil);
+  if SkinCoord.Count <> VertexJoints.Count then Exit(nil);
 
-  for I := 0 to WeightedJoints.Count - 1 do
-    UpdateVertex(WeightedJoints.Items[I], SkinCoord.Items[I]);
-
-  for I := 0 to FdJoints.Count - 1 do
-    if FdJoints.Items[I] is TNodeHAnimJoint then
-      TNodeHAnimJoint(FdJoints.Items[I]).Applied;
+  for I := 0 to VertexJoints.Count - 1 do
+    SkinCoord.Items[I] := UpdateVertex(VertexJoints.Items[I]);
 end;
 
 procedure TNodeHAnimHumanoid.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
@@ -541,7 +547,7 @@ end;
 
 procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
 
-  procedure CalculateWeightedJoints;
+  procedure CalculateVertexJoints;
   var
     SkinCoord: TDynVector3SingleArray;
     I, J: Integer;
@@ -550,13 +556,18 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
     Weight: Single;
     Joint: TNodeHAnimJoint;
   begin
-    FreeAndNil(WeightedJoints);
+    FreeAndNil(VertexJoints);
     if (FdSkinCoord.Value <> nil) and
        (FdSkinCoord.Value is TNodeCoordinate) then
     begin
       SkinCoord := TNodeCoordinate(FdSkinCoord.Value).FdPoint.Items;
-      WeightedJoints := TDynWeightedJointsArray.Create(SkinCoord.Count);
-      WeightedJoints.FillChar(0); {< to set TWeightedJoints.Count = 0 }
+      VertexJoints := TDynVertexJointsArray.Create(SkinCoord.Count);
+
+      for I := 0 to SkinCoord.Count - 1 do
+      begin
+        VertexJoints.Items[I].RestPosition := SkinCoord.Items[I];
+        VertexJoints.Items[I].Count := 0; { initially }
+      end;
 
       for I := 0 to FdJoints.Count - 1 do
         if FdJoints.Items[I] is TNodeHAnimJoint then
@@ -578,7 +589,7 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
               Weight := Joint.FdSkinCoordWeight.Items[J] else
               Weight := 1;
 
-            WeightedJoints.Items[CoordIndex].Add(Joint, Weight);
+            VertexJoints.Items[CoordIndex].Add(Joint, Weight);
           end;
         end;
     end;
@@ -586,7 +597,7 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
 
 begin
   inherited;
-  CalculateWeightedJoints;
+  CalculateVertexJoints;
 end;
 
 function TNodeHAnimHumanoid.TransformationChange: TNodeTransformationChange;
@@ -654,10 +665,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  { skinCoord is initially assuming joint transformation = no rotation
-    (which also means that center value doesn't matter). }
-  PreviousTransform := IdentityMatrix4Single;
-  PreviousInvertedTransform := IdentityMatrix4Single;
+  AnimateSkinTransform := IdentityMatrix4Single;
 end;
 
 class function TNodeHAnimJoint.ClassNodeTypeName: string;
@@ -687,6 +695,12 @@ end;
 function TNodeHAnimJoint.AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
 begin
   Result := MatrixMultPoint(AnimateSkinTransform, Point);
+end;
+
+procedure TNodeHAnimJoint.ParseAfter(Names: TVRMLNames);
+begin
+  inherited;
+  RestCenter := FdCenter.Value;
 end;
 
 procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
@@ -719,10 +733,7 @@ begin
     LocalCenter, Fdrotation.Value, Fdscale.Value,
     FdscaleOrientation.Value, Fdtranslation.Value);
 
-  NewTransform := State.HumanoidTransform;
-  NewInvertedTransform := State.HumanoidInvertedTransform;
-
-  AnimateSkinTransform := NewTransform * PreviousInvertedTransform;
+  AnimateSkinTransform := State.HumanoidTransform;
 
   { animate centers of children joints }
   for I := 0 to FdChildren.Count - 1 do
@@ -733,14 +744,14 @@ begin
       { TODO: it's a little hack to update ChildJoint.FdCenter this way.
         The cleaner way would be to just
 
-          ChildJoint.FdCenter.Send(AnimateSkinPoint(ChildJoint.FdCenter.Value))
+          ChildJoint.FdCenter.Send(AnimateSkinPoint(ChildJoint.RestCenter))
 
         This would already do compare, send event if needed etc. (useful
         for view3dscene H-Anim joints visualization).
         But it would also notify the scene (events processor), and this causes
         slowdown and bugs (on lucy) right now. }
 
-      NewChildCenter := AnimateSkinPoint(ChildJoint.FdCenter.Value);
+      NewChildCenter := AnimateSkinPoint(ChildJoint.RestCenter);
       if not VectorsPerfectlyEqual(ChildJoint.FdCenter.Value, NewChildCenter) then
       begin
         ChildJoint.FdCenter.Value := NewChildCenter;
@@ -755,13 +766,6 @@ begin
           EventsEngine.IncreaseTimeTick;
       end;
     end;
-end;
-
-procedure TNodeHAnimJoint.Applied;
-begin
-  PreviousTransform := NewTransform;
-  PreviousInvertedTransform := NewInvertedTransform;
-  AnimateSkinTransform := IdentityMatrix4Single;
 end;
 
 function TNodeHAnimJoint.TransformationChange: TNodeTransformationChange;
