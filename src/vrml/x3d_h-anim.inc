@@ -746,6 +746,13 @@ begin
         ChildJoint.FdCenter.Value := NewChildCenter;
         if ChildJoint.FdCenter.Exposed then
           ChildJoint.FdCenter.EventOut.Send(NewChildCenter);
+
+        { Increasing here PlusTicks is a little hack.
+          If you'll next want to traverse a parent joint,
+          this center will again be changed, and should be send (otherwise
+          routes e.g. in Humanoid Visualization in view3dscene will not work). }
+        if EventsEngine <> nil then
+          EventsEngine.IncreaseTimeTick;
       end;
     end;
 end;
