@@ -694,7 +694,7 @@ var
   IgnoreHumanoidTransformScale: Single;
   I: Integer;
   ChildJoint: TNodeHAnimJoint;
-  LocalCenter: TVector3Single;
+  LocalCenter, NewChildCenter: TVector3Single;
 begin
   inherited;
 
@@ -729,7 +729,24 @@ begin
     if FdChildren.Items[I] is TNodeHAnimJoint then
     begin
       ChildJoint := TNodeHAnimJoint(FdChildren.Items[I]);
-      ChildJoint.FdCenter.Value := AnimateSkinPoint(ChildJoint.FdCenter.Value);
+
+      { TODO: it's a little hack to update ChildJoint.FdCenter this way.
+        The cleaner way would be to just
+
+          ChildJoint.FdCenter.Send(AnimateSkinPoint(ChildJoint.FdCenter.Value))
+
+        This would already do compare, send event if needed etc. (useful
+        for view3dscene H-Anim joints visualization).
+        But it would also notify the scene (events processor), and this causes
+        slowdown and bugs (on lucy) right now. }
+
+      NewChildCenter := AnimateSkinPoint(ChildJoint.FdCenter.Value);
+      if not VectorsPerfectlyEqual(ChildJoint.FdCenter.Value, NewChildCenter) then
+      begin
+        ChildJoint.FdCenter.Value := NewChildCenter;
+        if ChildJoint.FdCenter.Exposed then
+          ChildJoint.FdCenter.EventOut.Send(NewChildCenter);
+      end;
     end;
 end;
 
