@@ -868,3 +868,9 @@ MovieTexture:
   http://scandraid.svn.sourceforge.net/viewvc/scandraid/src/trunk/gui/ffmpeg.pas?revision=179&view=markup
   http://scandraid.svn.sourceforge.net/viewvc/scandraid/src/trunk/external/ffmpeg/
   integrate?
+
+H-Anim:
+- use skinNormal too.
+  Interpolate skin normals, not recalculate them each time.
+  This is what should be done according to seamless3d? reread http://www.seamless3d.com/hanim/index.html
+- THAnimJoint translation (and scale, and others besides rotate?) is vs humanoid center?
