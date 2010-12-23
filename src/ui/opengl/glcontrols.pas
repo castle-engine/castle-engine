@@ -294,6 +294,17 @@ begin
   glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
 end;
 
+{ Specify vertex at given pixel.
+
+  With standard OpenGL ortho projection,
+  glVertex takes coordinates in float [0..Width, 0..Height] range.
+  To reliably draw on (0,0) pixel you should pass (0+epsilon, 0+epsilon)
+  to glVertex. This procedure takes care of adding this epsilon. }
+procedure glVertexPixel(const X, Y: Integer);
+begin
+  glVertex2f(X + 0.1, Y + 0.1);
+end;
+
 { TKamGLFontControl ---------------------------------------------------------- }
 
 function TKamGLFontControl.TooltipStyle: TUIControlDrawStyle;
@@ -375,17 +386,17 @@ procedure TKamGLButton.Draw;
     if Inset then
       glColorOpacity(ColLightFrame, Opacity) else
       glColorOpacity(ColDarkFrame, Opacity);
-    glVertex2i( Level + Left            ,  Level + Bottom);
-    glVertex2i(-Level + Left + Width - 1,  Level + Bottom);
-    glVertex2i(-Level + Left + Width - 1,  Level + Bottom);
-    glVertex2i(-Level + Left + Width - 1, -Level + Bottom + Height - 1);
+    glVertexPixel( Level + Left            ,  Level + Bottom);
+    glVertexPixel(-Level + Left + Width - 1,  Level + Bottom);
+    glVertexPixel(-Level + Left + Width - 1,  Level + Bottom);
+    glVertexPixel(-Level + Left + Width - 1, -Level + Bottom + Height - 1);
     if Inset then
       glColorOpacity(ColDarkFrame, Opacity) else
       glColorOpacity(ColLightFrame, Opacity);
-    glVertex2i( Level + Left            ,  Level + Bottom + 1);
-    glVertex2i( Level + Left            , -Level + Bottom + Height - 1);
-    glVertex2i( Level + Left            , -Level + Bottom + Height - 1);
-    glVertex2i(-Level + Left + Width    , -Level + Bottom + Height - 1);
+    glVertexPixel( Level + Left            ,  Level + Bottom + 1);
+    glVertexPixel( Level + Left            , -Level + Bottom + Height - 1);
+    glVertexPixel( Level + Left            , -Level + Bottom + Height - 1);
+    glVertexPixel(-Level + Left + Width    , -Level + Bottom + Height - 1);
   end;
 
 var
@@ -404,11 +415,11 @@ begin
     glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
     glBegin(GL_QUADS);
       glColorOpacity(ColInsideDown[Focused and not Pressed], Opacity);
-      glVertex2i(Left        , Bottom);
-      glVertex2i(Left + Width, Bottom);
+      glVertexPixel(Left        , Bottom);
+      glVertexPixel(Left + Width, Bottom);
       glColorOpacity(ColInsideUp[Focused and not Pressed], Opacity);
-      glVertex2i(Left + Width, Bottom + Height);
-      glVertex2i(Left        , Bottom + Height);
+      glVertexPixel(Left + Width, Bottom + Height);
+      glVertexPixel(Left        , Bottom + Height);
     glEnd;
 
     glBegin(GL_LINES);
@@ -761,11 +772,11 @@ begin
     glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
     glBegin(GL_QUADS);
       glColorOpacity(PanelCol(ColInsideDown[false]), Opacity);
-      glVertex2i(Left        , Bottom);
-      glVertex2i(Left + Width, Bottom);
+      glVertexPixel(Left        , Bottom);
+      glVertexPixel(Left + Width, Bottom);
       glColorOpacity(PanelCol(ColInsideUp[false]), Opacity);
-      glVertex2i(Left + Width, Bottom + Height);
-      glVertex2i(Left        , Bottom + Height);
+      glVertexPixel(Left + Width, Bottom + Height);
+      glVertexPixel(Left        , Bottom + Height);
     glEnd;
   glPopAttrib;
 
@@ -775,14 +786,14 @@ begin
       glColorOpacity(ColDarkFrame, Opacity);
       for I := 0 to VerticalSeparators.Count - 1 do
       begin
-        glVertex2i(Left + VerticalSeparators[I], Bottom + SeparatorMargin);
-        glVertex2i(Left + VerticalSeparators[I], Bottom + Height - SeparatorMargin);
+        glVertexPixel(Left + VerticalSeparators[I], Bottom + SeparatorMargin);
+        glVertexPixel(Left + VerticalSeparators[I], Bottom + Height - SeparatorMargin);
       end;
       glColorOpacity(ColLightFrame, Opacity);
       for I := 0 to VerticalSeparators.Count - 1 do
       begin
-        glVertex2i(Left + VerticalSeparators[I] + 1, Bottom + SeparatorMargin);
-        glVertex2i(Left + VerticalSeparators[I] + 1, Bottom + Height - SeparatorMargin);
+        glVertexPixel(Left + VerticalSeparators[I] + 1, Bottom + SeparatorMargin);
+        glVertexPixel(Left + VerticalSeparators[I] + 1, Bottom + Height - SeparatorMargin);
       end;
     glEnd;
   end;
