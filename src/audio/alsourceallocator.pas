@@ -18,7 +18,7 @@ unit ALSourceAllocator;
 
 interface
 
-uses SysUtils, KambiOpenAL, KambiClassUtils, Classes, KambiUtils;
+uses SysUtils, KambiOpenAL, KambiClassUtils, Classes, KambiUtils, VectorMath;
 
 {$define read_interface}
 
@@ -41,6 +41,8 @@ type
       and in destructor (if constructor exited with ENoMoreOpenALSources). }
     FALSourceAllocated: boolean;
     FUserData: TObject;
+    FPosition: TVector3Single;
+    procedure SetPosition(const Value: TVector3Single);
   public
     { Create source. This allocates actual OpenAL source.
       Will raise ENoMoreOpenALSources if no more sources available
@@ -112,6 +114,8 @@ type
 
       You can call this only when Used = @true. }
     procedure DoUsingEnd; virtual;
+
+    property Position: TVector3Single read FPosition write SetPosition;
   end;
 
   TObjectsListItem_1 = TALAllocatedSource;
@@ -312,6 +316,12 @@ begin
 
   if Assigned(OnUsingEnd) then
     OnUsingEnd(Self);
+end;
+
+procedure TALAllocatedSource.SetPosition(const Value: TVector3Single);
+begin
+  FPosition := Value;
+  alSourceVector3f(ALSource, AL_POSITION, Value);
 end;
 
 { TALAllocatedSourcesList ----------------------------------------------------- }

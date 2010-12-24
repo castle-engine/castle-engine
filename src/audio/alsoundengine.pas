@@ -23,6 +23,7 @@ uses SysUtils, Classes, KambiOpenAL, ALSourceAllocator, VectorMath;
 const
   DefaultALMinAllocatedSources = 4;
   DefaultALMaxAllocatedSources = 16;
+  DefaultVolume = 1.0;
 
 type
   TALBuffer = TALuint;
@@ -50,10 +51,13 @@ type
   private
     FSoundInitializationReport: string;
     SourceAllocator: TALSourceAllocator;
+    FVolume: Single;
 
     { When SourceAllocator <> nil, these correspond to it's properties. }
     FALMinAllocatedSources: Cardinal;
     FALMaxAllocatedSources: Cardinal;
+
+    procedure SetVolume(const Value: Single);
 
     function GetALMinAllocatedSources: Cardinal;
     procedure SetALMinAllocatedSources(const Value: Cardinal);
@@ -90,34 +94,6 @@ type
       changes ALCDevice value, initializes context again
       (ALContextOpen). }
     procedure ALChangeDevice(const NewALCDevice: string);
-
-    { Min/max number of allocated OpenAL sources.
-
-      These properties are used when creating TALSourceAllocator.
-      When TALSourceAllocator is already created, these properties
-      correspond to allocator properties (setting them sets also
-      allocator properties).
-
-      In summary, you can treat these properties just like analogous
-      TALSourceAllocator properties, but you can freely operate on them
-      even when OpenAL is not initialized. Which is useful if user disabled
-      sound or you want to load/save these values from some config files
-      at time when OpenAL couldn't be initialized yet --- in such cases
-      AL allocator doesn't exist, but you can operate on these properties
-      without worry.
-
-      When changing Min/MaxAllocatedSources, remember to always keep
-      MinAllocatedSources <= MaxAllocatedSources.
-
-      @groupBegin }
-    property ALMinAllocatedSources: Cardinal
-      read GetALMinAllocatedSources write SetALMinAllocatedSources
-      default DefaultALMinAllocatedSources;
-
-    property ALMaxAllocatedSources: Cardinal
-      read GetALMaxAllocatedSources write SetALMaxAllocatedSources
-      default DefaultALMaxAllocatedSources;
-    { @groupEnd }
 
     { Load a sound file into OpenAL buffer. Result is never 0.
 
@@ -189,6 +165,41 @@ type
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
     procedure StopAllSources;
+
+  published
+    { Min/max number of allocated OpenAL sources.
+
+      These properties are used when creating TALSourceAllocator.
+      When TALSourceAllocator is already created, these properties
+      correspond to allocator properties (setting them sets also
+      allocator properties).
+
+      In summary, you can treat these properties just like analogous
+      TALSourceAllocator properties, but you can freely operate on them
+      even when OpenAL is not initialized. Which is useful if user disabled
+      sound or you want to load/save these values from some config files
+      at time when OpenAL couldn't be initialized yet --- in such cases
+      AL allocator doesn't exist, but you can operate on these properties
+      without worry.
+
+      When changing Min/MaxAllocatedSources, remember to always keep
+      MinAllocatedSources <= MaxAllocatedSources.
+
+      @groupBegin }
+    property ALMinAllocatedSources: Cardinal
+      read GetALMinAllocatedSources write SetALMinAllocatedSources
+      default DefaultALMinAllocatedSources;
+
+    property ALMaxAllocatedSources: Cardinal
+      read GetALMaxAllocatedSources write SetALMaxAllocatedSources
+      default DefaultALMaxAllocatedSources;
+    { @groupEnd }
+
+    { Sound volume, affects all OpenAL sounds (effects and music).
+      This must always be within 0..1 range.
+      0.0 means that there are no effects (this case should be optimized). }
+    property Volume: Single read FVolume write SetVolume
+      default DefaultVolume;
   end;
 
 var
@@ -206,6 +217,7 @@ begin
 
   FALMinAllocatedSources := DefaultALMinAllocatedSources;
   FALMaxAllocatedSources := DefaultALMaxAllocatedSources;
+  FVolume := DefaultVolume;
 end;
 
 procedure TALSoundEngine.ALContextOpen(const WasParam_NoSound: boolean);
@@ -224,6 +236,7 @@ begin
       'OpenAL initialized, sound enabled';
 
     try
+      alListenerf(AL_GAIN, Volume);
       SourceAllocator := TALSourceAllocator.Create(
         FALMinAllocatedSources, FALMaxAllocatedSources);
       CheckAL('initializing sounds (ALContextOpen)');
@@ -441,6 +454,16 @@ end;
 procedure TALSoundEngine.StopAllSources;
 begin
   SourceAllocator.StopAllSources;
+end;
+
+procedure TALSoundEngine.SetVolume(const Value: Single);
+begin
+  if Value <> FVolume then
+  begin
+    FVolume := Value;
+    if ALActive then
+      alListenerf(AL_GAIN, Volume);
+  end;
 end;
 
 end.

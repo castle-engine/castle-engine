@@ -29,7 +29,7 @@ const
   MaxSoundImportance = MaxInt;
 
 const
-  DefaultSoundVolume = 0.5;
+  DefaultGameVolume = 0.5;
   DefaultMusicVolume = 1.0;
 
 type
@@ -127,7 +127,6 @@ type
   TGameSoundEngine = class(TALSoundEngine)
   private
     FSoundImportanceNames: TStringList;
-    FSoundVolume: Single;
     FSoundNames: TStringList;
     FSoundsXmlFileName: string;
 
@@ -136,9 +135,6 @@ type
     { This is the only allowed instance of TMusicPlayer class,
       created and destroyed in this class create/destroy. }
     FMusicPlayer: TMusicPlayer;
-
-    function GetSoundVolume: Single;
-    procedure SetSoundVolume(const Value: Single);
   public
     constructor Create;
     destructor Destroy; override;
@@ -208,11 +204,7 @@ type
       const Position: TVector3Single;
       const Looping: boolean = false): TALAllocatedSource; overload;
 
-    { Sound volume, affects all OpenAL sounds (effects and music).
-      This must always be within 0..1 range.
-      0.0 means that there are no effects (this case should be optimized). }
-    property SoundVolume: Single read GetSoundVolume write SetSoundVolume
-      default DefaultSoundVolume;
+    property Volume default DefaultGameVolume;
 
     { Sound importance names and values.
       Each item is a name (as a string) and a value (that is stored in Objects
@@ -313,7 +305,7 @@ begin
   FSoundImportanceNames.CaseSensitive := true;
   AddSoundImportanceName('max', MaxSoundImportance);
 
-  FSoundVolume := DefaultSoundVolume;
+  FVolume := DefaultGameVolume;
 
   FSoundNames := TStringList.Create;
   FSoundNames.CaseSensitive := true;
@@ -343,8 +335,6 @@ begin
   inherited;
   if ALActive then
   begin
-    alListenerf(AL_GAIN, SoundVolume);
-
     ReadSoundInfos;
 
     Progress.Init(SoundInfos.Count - 1, 'Loading sounds');
@@ -403,21 +393,6 @@ begin
     SoundInfos.Items[SoundType].MinGain,
     SoundInfos.Items[SoundType].MaxGain,
     Position);
-end;
-
-function TGameSoundEngine.GetSoundVolume: Single;
-begin
-  Result := FSoundVolume;
-end;
-
-procedure TGameSoundEngine.SetSoundVolume(const Value: Single);
-begin
-  if Value <> FSoundVolume then
-  begin
-    FSoundVolume := Value;
-    if ALActive then
-      alListenerf(AL_GAIN, SoundVolume);
-  end;
 end;
 
 procedure TGameSoundEngine.ReadSoundInfos;
@@ -532,8 +507,7 @@ end;
 
 procedure TGameSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
 begin
-  SoundVolume := ConfigFile.GetFloat('sound/volume',
-    DefaultSoundVolume);
+  Volume := ConfigFile.GetFloat('sound/volume', DefaultGameVolume);
   MusicPlayer.MusicVolume := ConfigFile.GetFloat('sound/music/volume',
     DefaultMusicVolume);
   ALMinAllocatedSources := ConfigFile.GetValue(
@@ -546,8 +520,7 @@ end;
 
 procedure TGameSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
 begin
-  ConfigFile.SetDeleteFloat('sound/volume',
-    SoundVolume, DefaultSoundVolume);
+  ConfigFile.SetDeleteFloat('sound/volume', Volume, DefaultGameVolume);
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
   if MusicPlayer <> nil then
