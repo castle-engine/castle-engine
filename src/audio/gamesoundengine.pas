@@ -21,7 +21,7 @@ unit GameSoundEngine;
 interface
 
 uses Classes, VectorMath, KambiOpenAL, ALSourceAllocator, SysUtils,
-  KambiUtils, KambiXMLConfig;
+  KambiUtils, KambiXMLConfig, ALSoundEngine;
 
 {$define read_interface}
 
@@ -31,9 +31,6 @@ const
 const
   DefaultSoundVolume = 0.5;
   DefaultMusicVolume = 1.0;
-
-  DefaultALMinAllocatedSources = 4;
-  DefaultALMaxAllocatedSources = 16;
 
 type
   { This is a unique sound type identifier for sounds used within
@@ -127,28 +124,21 @@ type
     If you need more flexibility, you should write your own sound
     manager (or heavily extend this), using ALUtils and
     ALSourceAllocator units directly. }
-  TGameSoundEngine = class
+  TGameSoundEngine = class(TALSoundEngine)
   private
-    FSoundInitializationReport: string;
     FSoundImportanceNames: TStringList;
-
     FSoundVolume: Single;
-    function GetSoundVolume: Single;
-    procedure SetSoundVolume(const Value: Single);
-  private
     FSoundNames: TStringList;
+    FSoundsXmlFileName: string;
 
     SoundInfos: TDynSoundInfoArray;
-
-    { When SourceAllocator <> nil, these correspond to it's properties. }
-    FALMinAllocatedSources: Cardinal;
-    FALMaxAllocatedSources: Cardinal;
-
-    SourceAllocator: TALSourceAllocator;
 
     { This is the only allowed instance of TMusicPlayer class,
       created and destroyed in this class create/destroy. }
     FMusicPlayer: TMusicPlayer;
+
+    function GetSoundVolume: Single;
+    procedure SetSoundVolume(const Value: Single);
 
     { Set common properties for spatialized and non-spatialized
       sound effects. If Spatial = true, you have to always set this sound's
@@ -162,17 +152,13 @@ type
       ALSource: TALuint; SoundType: TSoundType;
       const Looping: boolean;
       const Spatial: boolean); overload;
-
-    function GetALMinAllocatedSources: Cardinal;
-    procedure SetALMinAllocatedSources(const Value: Cardinal);
-
-    function GetALMaxAllocatedSources: Cardinal;
-    procedure SetALMaxAllocatedSources(const Value: Cardinal);
-  private
-    FSoundsXmlFileName: string;
   public
     constructor Create;
     destructor Destroy; override;
+
+    { In addition to initializing OpenAL context, this also loads sound files. }
+    procedure ALContextOpen(const WasParam_NoSound: boolean); override;
+    procedure ALContextClose; override;
 
     { The XML file that contains description of your sounds.
       See @code(examples/sample_sounds.xml) file for a heavily
@@ -180,7 +166,7 @@ type
 
       It's crucial that you create such file, and eventually adjust
       this property before calling ReadSoundInfos (or ALContextOpen,
-      that always callsReadSoundInfos).
+      that always calls ReadSoundInfos).
 
       By default (in our constryctor) this is initialized to
       @code(ProgramDataPath + 'data' +
@@ -217,25 +203,10 @@ type
       @raises Exception On invalid SoundName }
     function SoundFromName(const SoundName: string): TSoundType;
 
-    { Call this always to initialize OpenAL and OpenAL context,
-      and load sound files. This sets SoundOpenializationReport
-      and ALActive.
-
-      You can set ALCDevice before calling this. }
-    procedure ALContextOpen(WasParam_NoSound: boolean); virtual;
-
     { This will call RefreshUsed on internal ALSourceAllocator,
       see TALSourceAllocator.RefreshUsed for info.
       It's silently ignored when not ALActive. }
     procedure ALRefreshUsedSources;
-
-    { Call this always to release OpenAL things.
-      This is ignored if not ALActive. }
-    procedure ALContextClose;
-
-    { If ALActive, then will append some info about current OpenAL used. }
-    procedure AppendALInformation(S: TStrings);
-    function ALInformation: string;
 
     { Play given sound. This should be used to play sounds
       that are not spatial actually, i.e. have no place in 3D space.
@@ -274,39 +245,9 @@ type
 
     procedure AddSoundImportanceName(const Name: string; Importance: Integer);
 
-    property SoundInitializationReport: string read FSoundInitializationReport;
-
     procedure ReadSoundInfos;
 
     property MusicPlayer: TMusicPlayer read FMusicPlayer;
-
-    { Min/max number of allocated OpenAL sources.
-
-      These properties are used when creating TALSourceAllocator.
-      When TALSourceAllocator is already created, these properties
-      correspond to allocator properties (setting them sets also
-      allocator properties).
-
-      In summary, you can treat these properties just like analogous
-      TALSourceAllocator properties, but you can freely operate on them
-      even when OpenAL is not initialized. Which is useful if user disabled
-      sound or you want to load/save these values from some config files
-      at time when OpenAL couldn't be initialized yet --- in such cases
-      AL allocator doesn't exist, but you can operate on these properties
-      without worry.
-
-      When changing Min/MaxAllocatedSources, remember to always keep
-      MinAllocatedSources <= MaxAllocatedSources.
-
-      @groupBegin }
-    property ALMinAllocatedSources: Cardinal
-      read GetALMinAllocatedSources write SetALMinAllocatedSources
-      default DefaultALMinAllocatedSources;
-
-    property ALMaxAllocatedSources: Cardinal
-      read GetALMaxAllocatedSources write SetALMaxAllocatedSources
-      default DefaultALMaxAllocatedSources;
-    { @groupEnd }
 
     { These methods load/save into config file some sound properties.
       Namely: sound/music volume, min/max allocated sounds,
@@ -320,12 +261,6 @@ type
     procedure LoadFromConfig(ConfigFile: TKamXMLConfig);
     procedure SaveToConfig(ConfigFile: TKamXMLConfig);
     { @groupEnd }
-
-    { Change ALCDevice while OpenAL is already initialized.
-      This cleanly closes the old device (ALContextClose),
-      changes ALCDevice value, initializes context again
-      (ALContextOpen). }
-    procedure ALChangeDevice(const NewALCDevice: string);
   end;
 
   { Music player. Objects of this class should be created only internally by
@@ -408,9 +343,6 @@ begin
 
   FSoundsXmlFileName := ProgramDataPath + 'data' +
     PathDelim + 'sounds' + PathDelim + 'index.xml';
-
-  FALMinAllocatedSources := DefaultALMinAllocatedSources;
-  FALMaxAllocatedSources := DefaultALMaxAllocatedSources;
 end;
 
 destructor TGameSoundEngine.Destroy;
@@ -422,63 +354,36 @@ begin
   inherited;
 end;
 
-procedure TGameSoundEngine.ALContextOpen(WasParam_NoSound: boolean);
+procedure TGameSoundEngine.ALContextOpen(const WasParam_NoSound: boolean);
 var
   ST: TSoundType;
 begin
-  Assert(not ALActive);
-
-  if WasParam_NoSound then
-    FSoundInitializationReport :=
-      'Sound disabled by --no-sound command-line option' else
-  if not TryBeginAL(false) then
-    FSoundInitializationReport :=
-      'OpenAL initialization failed : ' +ALActivationErrorMessage +nl+
-      'SOUND IS DISABLED' else
+  inherited;
+  if ALActive then
   begin
-    FSoundInitializationReport :=
-      'OpenAL initialized, sound enabled';
+    alListenerf(AL_GAIN, SoundVolume);
 
     ReadSoundInfos;
 
+    Progress.Init(SoundInfos.Count - 1, 'Loading sounds');
     try
-      SourceAllocator := TALSourceAllocator.Create(
-        FALMinAllocatedSources, FALMaxAllocatedSources);
-
-      alListenerf(AL_GAIN, SoundVolume);
-
-      Progress.Init(SoundInfos.Count - 1, 'Loading sounds');
-      try
-        { We do progress to "SoundInfos.Count - 1" because we start
-          iterating from ST = 1 because ST = 0 = stNone never exists. }
-        Assert(SoundInfos.Items[stNone].FileName = '');
-        for ST := 1 to SoundInfos.High do
+      { We do progress to "SoundInfos.Count - 1" because we start
+        iterating from ST = 1 because ST = 0 = stNone never exists. }
+      Assert(SoundInfos.Items[stNone].FileName = '');
+      for ST := 1 to SoundInfos.High do
+      begin
+        if SoundInfos.Items[ST].FileName <> '' then
         begin
-          if SoundInfos.Items[ST].FileName <> '' then
-          begin
-            SoundInfos.Items[ST].Buffer :=
-              TALSoundFile.alCreateBufferDataFromFile(
-                SoundInfos.Items[ST].FileName);
-          end;
-          Progress.Step;
+          SoundInfos.Items[ST].Buffer :=
+            TALSoundFile.alCreateBufferDataFromFile(
+              SoundInfos.Items[ST].FileName);
         end;
-      finally Progress.Fini; end;
+        Progress.Step;
+      end;
+    finally Progress.Fini; end;
 
-      MusicPlayer.AllocateSource;
-
-      CheckAL('initializing sounds (ALContextOpen)');
-    except
-      { If loading sounds above will fail, we have to finish already initialized
-        things here before reraising exception. }
-      FreeAndNil(SourceAllocator);
-      EndAL;
-      raise;
-    end;
+    MusicPlayer.AllocateSource;
   end;
-
-  if Log then
-    WritelnLogMultiline('Sound initialization',
-      SoundInitializationReport + nl + ALInformation);
 end;
 
 procedure TGameSoundEngine.ALContextClose;
@@ -487,20 +392,11 @@ var
 begin
   if ALActive then
   begin
-    FreeAndNil(SourceAllocator);
-
     for ST := 0 to SoundInfos.High do
       if SoundInfos.Items[ST].FileName <> '' then
         alDeleteBuffers(1, @SoundInfos.Items[ST].Buffer);
-
-    { EndAL may take a while on Unix OpenAL, so provide feedback
-      for user here (otherwise he (she?) may think that program hanged). }
-    Progress.Init(1, 'Closing sound device, please wait');
-    try
-      EndAL;
-      Progress.Step;
-    finally Progress.Fini; end;
   end;
+  inherited;
 end;
 
 procedure TGameSoundEngine.ALRefreshUsedSources;
@@ -606,37 +502,6 @@ begin
   end;
 end;
 
-procedure TGameSoundEngine.AppendALInformation(S: TStrings);
-begin
-  if ALActive then
-  begin
-    S.Append('');
-    S.Append('Version : ' + alGetString(AL_VERSION));
-    S.Append('Renderer : ' + alGetString(AL_RENDERER));
-    S.Append('Vendor : ' + alGetString(AL_VENDOR));
-    S.Append('Extensions : ' + alGetString(AL_EXTENSIONS));
-    S.Append('');
-    S.Append(Format('Allocated OpenAL sources: %d (min %d, max %d)',
-      [ SourceAllocator.AllocatedSources.Count,
-        SourceAllocator.MinAllocatedSources,
-        SourceAllocator.MaxAllocatedSources ]));
-    S.Append('');
-    S.Append('OggVorbis handling method: ' + TSoundOggVorbis.VorbisMethod);
-    S.Append('vorbisfile library available: ' + BoolToStr[VorbisFileInited]);
-  end;
-end;
-
-function TGameSoundEngine.ALInformation: string;
-var
-  S: TStringList;
-begin
-  S := TStringList.Create;
-  try
-    AppendALInformation(S);
-    Result := S.Text;
-  finally S.Free end;
-end;
-
 procedure TGameSoundEngine.ReadSoundInfos;
 var
   ST: TSoundType;
@@ -739,36 +604,6 @@ begin
     Result := Index;
 end;
 
-function TGameSoundEngine.GetALMinAllocatedSources: Cardinal;
-begin
-  Result := FALMinAllocatedSources;
-end;
-
-procedure TGameSoundEngine.SetALMinAllocatedSources(const Value: Cardinal);
-begin
-  if Value <> FALMinAllocatedSources then
-  begin
-    FALMinAllocatedSources := Value;
-    if SourceAllocator <> nil then
-      SourceAllocator.MinAllocatedSources := FALMinAllocatedSources;
-  end;
-end;
-
-function TGameSoundEngine.GetALMaxAllocatedSources: Cardinal;
-begin
-  Result := FALMaxAllocatedSources;
-end;
-
-procedure TGameSoundEngine.SetALMaxAllocatedSources(const Value: Cardinal);
-begin
-  if Value <> FALMaxAllocatedSources then
-  begin
-    FALMaxAllocatedSources := Value;
-    if SourceAllocator <> nil then
-      SourceAllocator.MaxAllocatedSources := FALMaxAllocatedSources;
-  end;
-end;
-
 procedure TGameSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
@@ -803,14 +638,6 @@ begin
   ConfigFile.SetDeleteValue('sound/allocated_sources/max',
     ALMaxAllocatedSources, DefaultALMaxAllocatedSources);
   ConfigFile.SetDeleteValue('sound/device', ALCDevice, BestALCDevice);
-end;
-
-procedure TGameSoundEngine.ALChangeDevice(const NewALCDevice: string);
-begin
-  ALContextClose;
-  OpenALRestart;
-  ALCDevice := NewALCDevice;
-  ALContextOpen(false);
 end;
 
 { TMusicPlayer --------------------------------------------------------------- }
