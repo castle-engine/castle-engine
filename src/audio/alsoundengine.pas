@@ -18,13 +18,17 @@ unit ALSoundEngine;
 
 interface
 
-uses Classes, KambiOpenAL, ALSourceAllocator, VectorMath;
+uses SysUtils, Classes, KambiOpenAL, ALSourceAllocator, VectorMath;
 
 const
   DefaultALMinAllocatedSources = 4;
   DefaultALMaxAllocatedSources = 16;
 
 type
+  TALBuffer = TALuint;
+
+  EALBufferNotLoaded = class(Exception);
+
   { OpenAL sound engine. Takes care of all the 3D sound stuff,
     wrapping OpenAL is a nice and comfortable interface.
 
@@ -115,6 +119,28 @@ type
       default DefaultALMaxAllocatedSources;
     { @groupEnd }
 
+    { Load a sound file into OpenAL buffer. Result is never 0.
+
+      The buffer should be released by FreeBuffer later when it's not needed.
+      Although we will take care to always free remaining buffers
+      before closing OpenAL context anyway. (And OpenAL would also free
+      the buffer anyway at closing, although some OpenAL versions
+      could write a warning about this.)
+
+      We have a cache of sound files here. An absolute (expanded) filename
+      will be recorded as being loaded to given buffer. Loading the same
+      filename second time returns the same OpenAL buffer. The buffer
+      is released only once you call FreeBuffer as many times as you called
+      LoadBuffer for it. }
+    function LoadBuffer(const FileName: string): TALBuffer;
+
+    { Free a sound file buffer. Ignored when buffer is zero.
+      Buffer is always set to zero after this.
+
+      @raises(EALBufferNotLoaded When invalid (not zero,
+        and not returned by LoadBuffer) buffer identifier is given.) }
+    procedure FreeBuffer(var Buffer: TALBuffer);
+
     { Play a sound from given buffer.
 
       We use a smart OpenAL sound allocator, so the sound will be actually
@@ -137,7 +163,7 @@ type
         In simple cases you can just ignore the result of this method.
         In advanced cases, you can use it to observe and update the sound
         later.) }
-    function PlaySound(const ALBuffer: TALuint;
+    function PlaySound(const ALBuffer: TALBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3Single): TALAllocatedSource;
@@ -150,6 +176,10 @@ type
       See TALSourceAllocator.RefreshUsed for info.
       This silently ignored when not ALActive. }
     procedure RefreshUsedSources;
+
+    { Stop all the sources currently playing. Especially useful since
+      you have to stop a source before releasing it's associated buffer. }
+    procedure StopAllSources;
   end;
 
 var
@@ -158,7 +188,7 @@ var
 
 implementation
 
-uses SysUtils, KambiUtils, KambiStringUtils, ALUtils, KambiLog, ProgressUnit,
+uses KambiUtils, KambiStringUtils, ALUtils, KambiLog, ProgressUnit,
   SoundFile, VorbisFile, KambiTimeUtils;
 
 constructor TALSoundEngine.Create;
@@ -284,7 +314,7 @@ begin
   end;
 end;
 
-function TALSoundEngine.PlaySound(const ALBuffer: TALuint;
+function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3Single): TALAllocatedSource;
@@ -376,6 +406,25 @@ procedure TALSoundEngine.RefreshUsedSources;
 begin
   if SourceAllocator <> nil then
     SourceAllocator.RefreshUsed;
+end;
+
+function TALSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
+begin
+  { TODO: for now, no cache }
+  Result := TALSoundFile.alCreateBufferDataFromFile(FileName);
+end;
+
+procedure TALSoundEngine.FreeBuffer(var Buffer: TALBuffer);
+begin
+  { TODO: for now, no cache.
+    TODO: Also, invalid buffer will cause OpenAL error.
+    TODO: also, remaining buffers not freed at exit. }
+  alFreeBuffer(Buffer);
+end;
+
+procedure TALSoundEngine.StopAllSources;
+begin
+  SourceAllocator.StopAllSources;
 end;
 
 end.

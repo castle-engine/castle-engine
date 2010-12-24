@@ -356,8 +356,7 @@ begin
       begin
         if SoundInfos.Items[ST].FileName <> '' then
         begin
-          SoundInfos.Items[ST].Buffer :=
-            TALSoundFile.alCreateBufferDataFromFile(
+          SoundInfos.Items[ST].Buffer := LoadBuffer(
               SoundInfos.Items[ST].FileName);
         end;
         Progress.Step;
@@ -374,9 +373,9 @@ var
 begin
   if ALActive then
   begin
+    StopAllSources;
     for ST := 0 to SoundInfos.High do
-      if SoundInfos.Items[ST].FileName <> '' then
-        alDeleteBuffers(1, @SoundInfos.Items[ST].Buffer);
+      FreeBuffer(SoundInfos.Items[ST].Buffer);
   end;
   inherited;
 end;

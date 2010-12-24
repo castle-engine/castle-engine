@@ -100,7 +100,7 @@ type
     property OnUsingEnd: TALAllocatedSourceEvent
       read FOnUsingEnd write FOnUsingEnd;
 
-    { In this class, it stops playing the source indicated by ALSource,
+    { Stops playing the source,
       sets Used to @false, and calls OnUsingEnd (if assigned).
 
       You can call this yourself if you want to stop playing the sound.
@@ -247,6 +247,8 @@ type
       You may need to call this procedure from time to time if you
       frequently perform some expensive operation for all used sources. }
     procedure RefreshUsed;
+
+    procedure StopAllSources;
   end;
 
 {$undef read_interface}
@@ -301,6 +303,12 @@ begin
     (like CurrentState := alGetSource1i(ALSource, AL_SOURCE_STATE))
     and simply always call alSourceStop. }
   alSourceStop(ALSource);
+
+  { Detach the buffer from source. Otherwise we couldn't free the buffer
+    while it's associated with the source. Also, this would be a problem
+    once we implement streaming on some sources: you have to reset
+    buffer to 0 before queing buffers on source. }
+  alSourcei(ALSource, AL_BUFFER, 0);
 
   if Assigned(OnUsingEnd) then
     OnUsingEnd(Self);
@@ -499,6 +507,15 @@ begin
     begin
       FAllocatedSources[I].DoUsingEnd;
     end;
+end;
+
+procedure TALSourceAllocator.StopAllSources;
+var
+  I: Integer;
+begin
+  for I := 0 to FAllocatedSources.High do
+    if FAllocatedSources[I].Used then
+      FAllocatedSources[I].DoUsingEnd;
 end;
 
 end.
