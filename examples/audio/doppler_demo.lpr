@@ -23,8 +23,8 @@
   http://vrmlengine.sourceforge.net/openal_notes.php }
 program doppler_demo;
 
-uses VectorMath, GLWindow, GL, GLU, KambiGLUtils,
-  KambiOpenAL, ALUtils;
+uses SysUtils, VectorMath, GLWindow, GL, GLU, KambiGLUtils,
+  KambiOpenAL, ALUtils, ALSoundEngine, ALSourceAllocator;
 
 const
   ALDistanceScaling = 0.02;
@@ -32,7 +32,7 @@ const
 var
   Window: TGLWindowDemo;
   PreviousSourcePosition, SourcePosition, ListenerPosition: TVector3Single;
-  Source: TALuint;
+  Source: TALAllocatedSource;
 
 procedure Draw(Window: TGLWindow);
 begin
@@ -53,7 +53,7 @@ end;
 
 procedure Timer(Window: TGLWindow);
 begin
-  alSourceVector3f(Source, AL_VELOCITY,
+  alSourceVector3f(Source.ALSource, AL_VELOCITY,
     (SourcePosition - PreviousSourcePosition) * ALDistanceScaling);
   PreviousSourcePosition := SourcePosition;
 end;
@@ -63,30 +63,31 @@ begin
   if mbLeft in Window.MousePressed then
   begin
     SourcePosition := Vector3Single(NewX, Window.Height - NewY);
-    alSourceVector3f(Source, AL_POSITION, SourcePosition * ALDistanceScaling);
+    alSourceVector3f(Source.ALSource, AL_POSITION, SourcePosition * ALDistanceScaling);
     Window.PostRedisplay;
   end;
 end;
 
 var
-  Buffer: TALuint;
+  Buffer: TALBuffer;
 begin
   Window := TGLWindowDemo.Create(Application);
 
   OpenALOptionsParse;
-  BeginAL(false);
+  SoundEngine := TALSoundEngine.Create;
+  SoundEngine.ALContextOpen(false);
   try
-    Buffer := TALSoundFile.alCreateBufferDataFromFile('tone.wav');
+    Buffer := SoundEngine.LoadBuffer('tone.wav');
 
     //alDopplerFactor(3.0);
 
-    alCreateSources(1, @Source);
-    alSourcei(Source, AL_BUFFER, Buffer);
-    alSourcei(Source, AL_LOOPING, AL_TRUE);
+    Source := SoundEngine.AllocateSound(1);
+    alSourcei(Source.ALSource, AL_BUFFER, Buffer);
+    alSourcei(Source.ALSource, AL_LOOPING, AL_TRUE);
     SourcePosition := Vector3Single(200, 300, 0);
     PreviousSourcePosition := SourcePosition;
-    alSourceVector3f(Source, AL_POSITION, SourcePosition * ALDistanceScaling);
-    alSourcePlay(Source);
+    alSourceVector3f(Source.ALSource, AL_POSITION, SourcePosition * ALDistanceScaling);
+    alSourcePlay(Source.ALSource);
 
     ListenerPosition := Vector3Single(300, 300, 0);
     alListenerVector3f(AL_POSITION, ListenerPosition * ALDistanceScaling);
@@ -98,9 +99,10 @@ begin
     Window.OnResize := @Resize2D;
     Window.OnMouseMove := @MouseMove;
     Window.OpenAndRun;
-
-    alSourceStop(Source);
-    alDeleteSources(1, @Source);
-    alDeleteBuffers(1, @Buffer);
-  finally EndAL end;
+  finally
+    SoundEngine.StopAllSources;
+    SoundEngine.FreeBuffer(Buffer);
+    SoundEngine.ALContextClose;
+    FreeAndNil(SoundEngine);
+  end;
 end.
