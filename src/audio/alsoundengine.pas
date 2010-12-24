@@ -363,7 +363,7 @@ function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
       alSourcef(ALSource, AL_REFERENCE_DISTANCE, 2.0);
 
       alSourcei(ALSource, AL_SOURCE_RELATIVE, AL_FALSE);
-      alSourceVector3f(ALSource, AL_POSITION, Position);
+      Result.Position := Position;
     end else
     begin
       { No attenuation by distance. }
@@ -376,7 +376,7 @@ function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
         That's why setting source position exactly on the player
         is needed here. }
       alSourcei(ALSource, AL_SOURCE_RELATIVE, AL_TRUE);
-      alSourceVector3f(ALSource, AL_POSITION, ZeroVector3Single);
+      Result.Position := ZeroVector3Single;
     end;
   end;
 
