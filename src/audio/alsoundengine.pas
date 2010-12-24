@@ -45,6 +45,7 @@ type
   TALSoundEngine = class
   private
     FSoundInitializationReport: string;
+    SourceAllocator: TALSourceAllocator;
 
     { When SourceAllocator <> nil, these correspond to it's properties. }
     FALMinAllocatedSources: Cardinal;
@@ -55,8 +56,6 @@ type
 
     function GetALMaxAllocatedSources: Cardinal;
     procedure SetALMaxAllocatedSources(const Value: Cardinal);
-  protected
-    SourceAllocator: TALSourceAllocator;
   public
     constructor Create;
 
@@ -142,6 +141,15 @@ type
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3Single): TALAllocatedSource;
+
+    { Detect unused sounds. If you rely on your sources receiving
+      TALAllocatedSource.OnUsingEnd in a timely manner, be sure to call
+      this method often. Otherwise, it's not needed to call this at all
+      (unused sounds will be detected automatically on-demand anyway).
+
+      See TALSourceAllocator.RefreshUsed for info.
+      This silently ignored when not ALActive. }
+    procedure RefreshUsedSources;
   end;
 
 var
@@ -176,9 +184,14 @@ begin
     FSoundInitializationReport :=
       'OpenAL initialized, sound enabled';
 
-    SourceAllocator := TALSourceAllocator.Create(
-      FALMinAllocatedSources, FALMaxAllocatedSources);
-    CheckAL('initializing sounds (ALContextOpen)');
+    try
+      SourceAllocator := TALSourceAllocator.Create(
+        FALMinAllocatedSources, FALMaxAllocatedSources);
+      CheckAL('initializing sounds (ALContextOpen)');
+    except
+      ALContextClose;
+      raise;
+    end;
   end;
 
   if Log then
@@ -357,6 +370,12 @@ begin
       alSourcePlay(Result.ALSource);
     end;
   end;
+end;
+
+procedure TALSoundEngine.RefreshUsedSources;
+begin
+  if SourceAllocator <> nil then
+    SourceAllocator.RefreshUsed;
 end;
 
 end.

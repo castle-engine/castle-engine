@@ -190,11 +190,6 @@ type
       @raises Exception On invalid SoundName }
     function SoundFromName(const SoundName: string): TSoundType;
 
-    { This will call RefreshUsed on internal ALSourceAllocator,
-      see TALSourceAllocator.RefreshUsed for info.
-      It's silently ignored when not ALActive. }
-    procedure ALRefreshUsedSources;
-
     { Play given sound. This should be used to play sounds
       that are not spatial actually, i.e. have no place in 3D space.
 
@@ -384,12 +379,6 @@ begin
         alDeleteBuffers(1, @SoundInfos.Items[ST].Buffer);
   end;
   inherited;
-end;
-
-procedure TGameSoundEngine.ALRefreshUsedSources;
-begin
-  if SourceAllocator <> nil then
-    SourceAllocator.RefreshUsed;
 end;
 
 function TGameSoundEngine.Sound(SoundType: TSoundType;

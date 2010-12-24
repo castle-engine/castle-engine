@@ -70,7 +70,7 @@ type
       be finalized in OnUsingEnd. }
     property UserData: TObject read FUserData write FUserData;
 
-    { This will be used when this OpenAL allocated sound will stop
+    { Called when this OpenAL allocated sound will no longer
       be used. It may stop be used because there are more demanding
       sources (see @link(Importance) and to keep MaxAllocatedSources)
       and we must assign this OpenAL sound slot to something else,
