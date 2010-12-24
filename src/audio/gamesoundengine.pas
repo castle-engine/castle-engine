@@ -64,8 +64,8 @@ type
     and later can be changed by calling ReadSoundInfos once again during the
     game (debug menu may have command like "Reload sounds/index.xml"). }
   TSoundInfo = record
-    { '' means that this sound is not implemented and will have
-      no OpenAL buffer associated with it. }
+    { '' means that this sound is not implemented and will never
+      have any OpenAL buffer associated with it. }
     FileName: string;
 
     { XxxGain are mapped directly on respective OpenAL source properties.
@@ -85,9 +85,9 @@ type
       This is ignored when sound is used for MusicPlayer.PlayedSound. }
     DefaultImportance: Cardinal;
 
-    { OpenAL buffer of this sound.
-      This is usable only when ALContextOpened
-      and only for sounds with FileName <> ''. }
+    { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
+      which may happen only if TGameSoundEngine.ALContextOpen was not yet
+      called or when sound has FileName = ''. }
     Buffer: TALuint;
   end;
 
@@ -395,30 +395,26 @@ end;
 function TGameSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TALAllocatedSource;
 begin
-  if SoundInfos.Items[SoundType].FileName <> '' then
-    Result := PlaySound(
-      SoundInfos.Items[SoundType].Buffer, false, Looping,
-      SoundInfos.Items[SoundType].DefaultImportance,
-      SoundInfos.Items[SoundType].Gain,
-      SoundInfos.Items[SoundType].MinGain,
-      SoundInfos.Items[SoundType].MaxGain,
-      ZeroVector3Single) else
-    Result := nil;
+  Result := PlaySound(
+    SoundInfos.Items[SoundType].Buffer, false, Looping,
+    SoundInfos.Items[SoundType].DefaultImportance,
+    SoundInfos.Items[SoundType].Gain,
+    SoundInfos.Items[SoundType].MinGain,
+    SoundInfos.Items[SoundType].MaxGain,
+    ZeroVector3Single);
 end;
 
 function TGameSoundEngine.Sound3d(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TALAllocatedSource;
 begin
-  if SoundInfos.Items[SoundType].FileName <> '' then
-    Result := PlaySound(
-      SoundInfos.Items[SoundType].Buffer, true, Looping,
-      SoundInfos.Items[SoundType].DefaultImportance,
-      SoundInfos.Items[SoundType].Gain,
-      SoundInfos.Items[SoundType].MinGain,
-      SoundInfos.Items[SoundType].MaxGain,
-      Position) else
-    Result := nil;
+  Result := PlaySound(
+    SoundInfos.Items[SoundType].Buffer, true, Looping,
+    SoundInfos.Items[SoundType].DefaultImportance,
+    SoundInfos.Items[SoundType].Gain,
+    SoundInfos.Items[SoundType].MinGain,
+    SoundInfos.Items[SoundType].MaxGain,
+    Position);
 end;
 
 function TGameSoundEngine.GetSoundVolume: Single;
@@ -461,8 +457,9 @@ begin
 
     { Init all SoundInfos to default values }
     SoundInfos.Count := SoundNames.Count;
-    { stNone has specific info: FileName is '', rest doesn't matter }
+    { stNone has specific info: FileName is '', Buffer is 0, rest doesn't matter }
     SoundInfos.Items[stNone].FileName := '';
+    SoundInfos.Items[stNone].Buffer := 0;
     { initialize other than stNone sounds }
     for ST := 1 to SoundInfos.High do
     begin
@@ -472,6 +469,7 @@ begin
       SoundInfos.Items[ST].MinGain := 0;
       SoundInfos.Items[ST].MaxGain := 1;
       SoundInfos.Items[ST].DefaultImportance := MaxSoundImportance;
+      SoundInfos.Items[ST].Buffer := 0; {< initially, will be loaded later }
     end;
 
     SoundElements := SoundConfig.DocumentElement.ChildNodes;
@@ -592,13 +590,11 @@ end;
 
 procedure TMusicPlayer.AllocateSource;
 begin
-  if FEngine.SoundInfos.Items[PlayedSound].FileName <> '' then
-    FAllocatedSource := FEngine.PlaySound(
-      FEngine.SoundInfos.Items[PlayedSound].Buffer, false, true,
-      MaxSoundImportance,
-      MusicVolume * FEngine.SoundInfos.Items[PlayedSound].Gain, 0, 1,
-      ZeroVector3Single) else
-    FAllocatedSource := nil;
+  FAllocatedSource := FEngine.PlaySound(
+    FEngine.SoundInfos.Items[PlayedSound].Buffer, false, true,
+    MaxSoundImportance,
+    MusicVolume * FEngine.SoundInfos.Items[PlayedSound].Gain, 0, 1,
+    ZeroVector3Single);
 
   if FAllocatedSource <> nil then
     FAllocatedSource.OnUsingEnd :=
