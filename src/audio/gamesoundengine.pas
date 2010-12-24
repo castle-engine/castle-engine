@@ -305,7 +305,7 @@ begin
   FSoundImportanceNames.CaseSensitive := true;
   AddSoundImportanceName('max', MaxSoundImportance);
 
-  FVolume := DefaultGameVolume;
+  Volume := DefaultGameVolume;
 
   FSoundNames := TStringList.Create;
   FSoundNames.CaseSensitive := true;

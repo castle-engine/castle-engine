@@ -169,7 +169,7 @@ end;
 constructor TGLSoundVolumeMenuItem.Create(AWindow: TGLWindow; Menu: TGLMenu;
   ASoundEngine: TGameSoundEngine);
 begin
-  FSlider := TGLMenuVolumeSlider.Create(ASoundEngine.SoundVolume);
+  FSlider := TGLMenuVolumeSlider.Create(ASoundEngine.Volume);
   inherited;
 end;
 
@@ -185,12 +185,12 @@ end;
 
 procedure TGLSoundVolumeMenuItem.AccessoryValueChanged;
 begin
-  SoundEngine.SoundVolume := Slider.Value;
+  SoundEngine.Volume := Slider.Value;
 end;
 
 procedure TGLSoundVolumeMenuItem.RefreshAccessory;
 begin
-  Slider.Value := SoundEngine.SoundVolume;
+  Slider.Value := SoundEngine.Volume;
 end;
 
 { TGLMusicVolumeMenuItem ----------------------------------------------------- }
