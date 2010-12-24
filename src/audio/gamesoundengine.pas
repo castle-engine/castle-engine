@@ -139,19 +139,6 @@ type
 
     function GetSoundVolume: Single;
     procedure SetSoundVolume(const Value: Single);
-
-    { Set common properties for spatialized and non-spatialized
-      sound effects. If Spatial = true, you have to always set this sound's
-      AL_POSITION after calling this. }
-    procedure alCommonSourceSetup(ALSource: TALuint;
-      const Looping: boolean;
-      const Spatial: boolean;
-      const ALBuffer: TALuint; const Gain, MinGain, MaxGain: Single); overload;
-
-    procedure alCommonSourceSetup(
-      ALSource: TALuint; SoundType: TSoundType;
-      const Looping: boolean;
-      const Spatial: boolean); overload;
   public
     constructor Create;
     destructor Destroy; override;
@@ -405,86 +392,33 @@ begin
     SourceAllocator.RefreshUsed;
 end;
 
-procedure TGameSoundEngine.alCommonSourceSetup(ALSource: TALuint;
-  const Looping: boolean;
-  const Spatial: boolean;
-  const ALBuffer: TALuint; const Gain, MinGain, MaxGain: Single);
-begin
-  alSourcei(ALSource, AL_BUFFER, ALBuffer);
-  alSourcei(ALSource, AL_LOOPING, BoolToAL[Looping]);
-  alSourcef(ALSource, AL_GAIN, Gain);
-  alSourcef(ALSource, AL_MIN_GAIN, MinGain);
-  alSourcef(ALSource, AL_MAX_GAIN, MaxGain);
-
-  if Spatial then
-  begin
-    { Set attenuation by distance. }
-    alSourcef(ALSource, AL_ROLLOFF_FACTOR, 0.1);
-    alSourcef(ALSource, AL_REFERENCE_DISTANCE, 2.0);
-
-    alSourcei(ALSource, AL_SOURCE_RELATIVE, AL_FALSE);
-  end else
-  begin
-    { No attenuation by distance. }
-    alSourcef(ALSource, AL_ROLLOFF_FACTOR, 0);
-
-    { Although AL_ROLLOFF_FACTOR := 0 turns off
-      attenuation by distance, we still have to turn off
-      any changes from player's orientation (so that the sound
-      is not played on left or right side, but normally).
-      That's why setting source position exactly on the player
-      is needed here. }
-    alSourcei(ALSource, AL_SOURCE_RELATIVE, AL_TRUE);
-    alSourceVector3f(ALSource, AL_POSITION, Vector3Single(0, 0, 0));
-  end;
-end;
-
-procedure TGameSoundEngine.alCommonSourceSetup(
-  ALSource: TALuint; SoundType: TSoundType;
-  const Looping: boolean;
-  const Spatial: boolean);
-begin
-  alCommonSourceSetup(ALSource, Looping, Spatial,
-    SoundInfos.Items[SoundType].Buffer,
-    SoundInfos.Items[SoundType].Gain,
-    SoundInfos.Items[SoundType].MinGain,
-    SoundInfos.Items[SoundType].MaxGain);
-end;
-
 function TGameSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TALAllocatedSource;
 begin
-  Result := nil;
-
-  if ALActive and (SoundInfos.Items[SoundType].FileName <> '') then
-  begin
-    Result := SourceAllocator.AllocateSource(
-      SoundInfos.Items[SoundType].DefaultImportance);
-    if Result <> nil then
-    begin
-      alCommonSourceSetup(Result.ALSource, SoundType, Looping, false);
-      alSourcePlay(Result.ALSource);
-    end;
-  end;
+  if SoundInfos.Items[SoundType].FileName <> '' then
+    Result := PlaySound(
+      SoundInfos.Items[SoundType].Buffer, false, Looping,
+      SoundInfos.Items[SoundType].DefaultImportance,
+      SoundInfos.Items[SoundType].Gain,
+      SoundInfos.Items[SoundType].MinGain,
+      SoundInfos.Items[SoundType].MaxGain,
+      ZeroVector3Single) else
+    Result := nil;
 end;
 
 function TGameSoundEngine.Sound3d(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TALAllocatedSource;
 begin
-  Result := nil;
-
-  if ALActive and (SoundInfos.Items[SoundType].FileName <> '') then
-  begin
-    Result := SourceAllocator.AllocateSource(
-      SoundInfos.Items[SoundType].DefaultImportance);
-    if Result <> nil then
-    begin
-      alCommonSourceSetup(Result.ALSource, SoundType, Looping, true);
-      alSourceVector3f(Result.ALSource, AL_POSITION, Position);
-      alSourcePlay(Result.ALSource);
-    end;
-  end;
+  if SoundInfos.Items[SoundType].FileName <> '' then
+    Result := PlaySound(
+      SoundInfos.Items[SoundType].Buffer, true, Looping,
+      SoundInfos.Items[SoundType].DefaultImportance,
+      SoundInfos.Items[SoundType].Gain,
+      SoundInfos.Items[SoundType].MinGain,
+      SoundInfos.Items[SoundType].MaxGain,
+      Position) else
+    Result := nil;
 end;
 
 function TGameSoundEngine.GetSoundVolume: Single;
@@ -658,53 +592,17 @@ end;
 
 procedure TMusicPlayer.AllocateSource;
 begin
-  if ALActive and (FEngine.SoundInfos.Items[PlayedSound].FileName <> '') then
-  begin
-    FAllocatedSource := FEngine.SourceAllocator.AllocateSource(MaxSoundImportance);
-    if FAllocatedSource <> nil then
-    begin
-      FEngine.alCommonSourceSetup(FAllocatedSource.ALSource, true, false,
-        FEngine.SoundInfos.Items[PlayedSound].Buffer,
-        MusicVolume * FEngine.SoundInfos.Items[PlayedSound].Gain, 0, 1);
+  if FEngine.SoundInfos.Items[PlayedSound].FileName <> '' then
+    FAllocatedSource := FEngine.PlaySound(
+      FEngine.SoundInfos.Items[PlayedSound].Buffer, false, true,
+      MaxSoundImportance,
+      MusicVolume * FEngine.SoundInfos.Items[PlayedSound].Gain, 0, 1,
+      ZeroVector3Single) else
+    FAllocatedSource := nil;
 
-      { This is a workaround needed on Apple OpenAL implementation
-        (although I think that at some time I experienced similar
-        problems (that would be cured by this workaround) on Linux
-        (Loki OpenAL implementation)).
-
-        The problem: music on some
-        levels doesn't play. This happens seemingly random: sometimes
-        when you load a level music starts playing, sometimes it's
-        silent. Then when you go to another level, then go back to the
-        same level, music plays.
-
-        Investigation: I found that sometimes changing the buffer
-        of the sound doesn't work immediately. Simple
-          Writeln(SoundInfos.Items[PlayedSound].Buffer, ' ',
-            alGetSource1ui(FAllocatedSource.ALSource, AL_BUFFER));
-        right after alCommonSourceSetup shows this (may output
-        two different values). Then if you wait a little, OpenAL
-        reports correct buffer. This probably means that OpenAL
-        internally finishes some tasks related to loading buffer
-        into source. Whatever it is, it seems that it doesn't
-        occur (or rather, is not noticeable) on normal game sounds
-        that are short --- but it's noticeable delay with larger
-        sounds, like typical music. (in any case, I can move
-        this workaround to alCommonSourceSetup at some point,
-        should the need arise).
-
-        So the natural workaround below follows. For OpenAL implementations
-        that immediately load the buffer, this will not cause any delay. }
-      while FEngine.SoundInfos.Items[PlayedSound].Buffer <>
-        alGetSource1ui(FAllocatedSource.ALSource, AL_BUFFER) do
-        Delay(10);
-
-      alSourcePlay(FAllocatedSource.ALSource);
-
-      FAllocatedSource.OnUsingEnd :=
-        {$ifdef FPC_OBJFPC} @ {$endif} AllocatedSourceUsingEnd;
-    end;
-  end;
+  if FAllocatedSource <> nil then
+    FAllocatedSource.OnUsingEnd :=
+      {$ifdef FPC_OBJFPC} @ {$endif} AllocatedSourceUsingEnd;
 end;
 
 procedure TMusicPlayer.SetPlayedSound(const Value: TSoundType);
