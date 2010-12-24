@@ -168,6 +168,15 @@ type
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3Single): TALAllocatedSource;
 
+    { Allocate sound for playing. You should initialize the OpenAL sound
+      properties and start playing the sound (you have
+      OpenAL sound identifier in TALAllocatedSource.ALSource).
+
+      Note that if you don't call alSourcePlay, the source may be detected
+      as unused (and recycled for another sound) at the next AllocateSound,
+      PlaySound, RefreshUsedSources and such calls. }
+    function AllocateSound(const Importance: Cardinal): TALAllocatedSource;
+
     { Detect unused sounds. If you rely on your sources receiving
       TALAllocatedSource.OnUsingEnd in a timely manner, be sure to call
       this method often. Otherwise, it's not needed to call this at all
@@ -312,6 +321,13 @@ begin
     if SourceAllocator <> nil then
       SourceAllocator.MaxAllocatedSources := FALMaxAllocatedSources;
   end;
+end;
+
+function TALSoundEngine.AllocateSound(const Importance: Cardinal): TALAllocatedSource;
+begin
+  if ALActive then
+    Result := SourceAllocator.AllocateSource(Importance) else
+    Result := nil;
 end;
 
 function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;

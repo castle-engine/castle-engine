@@ -18,7 +18,8 @@
   $2 = demo number (int between 0 ... 2). }
 program efx_demo;
 
-uses SysUtils, KambiUtils, KambiOpenAL, ALUtils, EFX, KambiTimeUtils;
+uses SysUtils, KambiUtils, KambiOpenAL, ALUtils, EFX, KambiTimeUtils,
+  ALSoundEngine, ALSourceAllocator;
 
 type
   TDemoMode = (
@@ -156,40 +157,42 @@ begin
 end;
 
 var
-  Buffer, Source: TALuint;
+  Buffer: TALBuffer;
+  Sound: TALAllocatedSource;
 begin
   OpenALOptionsParse;
-  BeginAL(false);
+  SoundEngine := TALSoundEngine.Create;
+  SoundEngine.ALContextOpen(false);
   try
-    alCreateSources(1, @Source);
-    CheckAL('preparing source and buffer');
+    { parse params }
+    Parameters.CheckHigh(2);
+    Buffer := SoundEngine.LoadBuffer(Parameters[1]);
+    DemoMode := TDemoMode(StrToInt(Parameters[2]));
 
-    try
-      { parse params }
-      Parameters.CheckHigh(2);
-      Buffer := TALSoundFile.alCreateBufferDataFromFile(Parameters[1]);
-      DemoMode := TDemoMode(StrToInt(Parameters[2]));
+    { play sound }
+    Sound := SoundEngine.AllocateSound(1);
+    if Sound = nil then
+      raise Exception.Create('Not possible to allocate even 1 source');
+    alSourcei(Sound.ALSource, AL_BUFFER, Buffer);
 
-      { play sound }
-      alSourcei(Source, AL_BUFFER, Buffer);
+    if EFXSupported then
+    begin
+      Writeln('EFX supported, applying effects (demo number ', Ord(DemoMode), ')');
+      InitEFX(Sound.ALSource);
+    end else
+      Writeln('EFX not supported, not using any effects');
 
-      if EFXSupported then
-      begin
-        Writeln('EFX supported, applying effects (demo number ', Ord(DemoMode), ')');
-        InitEFX(Source);
-      end else
-        Writeln('EFX not supported, not using any effects');
+    alSourcePlay(Sound.ALSource);
+    CheckAL('starting playing sound');
+    while alGetSource1i(Sound.ALSource, AL_SOURCE_STATE) = AL_PLAYING do Delay(100);
+    CheckAL('playing sound');
 
-      alSourcePlay(Source);
-      CheckAL('starting playing sound');
-      while alGetSource1i(Source, AL_SOURCE_STATE) = AL_PLAYING do Delay(100);
-      CheckAL('playing sound');
-
-      if EFXSupported then
-        CloseEFX;
-    finally
-      alDeleteSources(1, @Source);
-      alDeleteBuffers(1, @Buffer);
-    end;
-  finally EndAL end;
+    if EFXSupported then
+      CloseEFX;
+  finally
+    SoundEngine.StopAllSources;
+    SoundEngine.FreeBuffer(Buffer);
+    SoundEngine.ALContextClose;
+    FreeAndNil(SoundEngine);
+  end;
 end.
