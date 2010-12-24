@@ -20,37 +20,16 @@
   Also TALSoundFile class is very useful to load files into
   OpenAL buffers.
 
-  Notes about alut (OpenAL utlity library): we don't use it.
+  Notes about alut (OpenAL utility library): we don't use it.
   (Although your own programs you can use it's functions,
-  as KambiOpenAL exports them.) For testing, you can recompile
-  this unit withsymbol USE_ALUT defined to actually use alut,
-  but this doesn't provide any real benefit for normal use.
+  as KambiOpenAL exports them.)
 
   When you're using this unit, you shouldn't use any alc*
   functions and alutInit/alutExit functions from KambiOpenAL.
-  The rule is that this unit takes care about such things.
+  The rule is that this unit (or ALSoundEngine) takes care about such things.
 }
 
 unit ALUtils;
-
-{ Define symbol USE_ALUT to make Begin/EndAL be implemented using
-  alutInit/Exit. BeginAL will then always behave like CheckForAlut = true
-  (so user must have proper alut library installed, or alut functions
-  must be available in his openal library).
-  BeginAL will also ignore ALCDevice (as it's impossible to pass this
-  to alutInit). Everything else should work as it should.
-
-  Also, without USE_ALUT the code will do appropriate calls to alc*
-  functions and this means that eventual error messages will be more
-  detailed and clear.
-
-  Summary: there's actually no good reason to define USE_ALUT.
-  Everything works better without USE_ALUT defined.
-  So defining USE_ALUT may be useful only to test implementation of this
-  unit (if Begin/EndAL doesn't work, you can define USE_ALUT
-  and then check if it still fails).
-}
-{ $define USE_ALUT}
 
 interface
 
@@ -175,7 +154,7 @@ function OpenALOptionsHelp(PrintALCDeviceAsDefault: boolean): string;
 var
   { Do we have active OpenAL context. This is @true when you successfully
     called TryBeginAL or BeginAL (and you didn't call EndAL yet).
-    This also implies that OpenAL library is loaded, that is ALUTInited = @true. }
+    This also implies that OpenAL library is loaded, that is ALInited = @true. }
   ALActive: boolean = false;
 
   { Last error when initializing OpenAL context.
@@ -243,7 +222,6 @@ procedure EndAL;
 { ---------------------------------------------------------------------------- }
 { @section(ALC querying) }
 
-{$ifndef USE_ALUT}
 { Simple wrapper --- calls alcGetString with the device created
   by last TryBeginAL or BeginAL call (or nil if no
   TryBeginAL or BeginAL was called or the device was freed by
@@ -269,7 +247,6 @@ function GetALCString(enum: TALCenum): string;
   this function assumes that error state was "clear" before
   calling this function, i.e. al[c]GetError would return AL[C]_NO_ERROR. }
 function GetALCStringTrapped(enum: TALCenum): string;
-{$endif not USE_ALUT}
 
 { ---------------------------------------------------------------------------- }
 { @section(Error checking) }
@@ -455,9 +432,7 @@ end;
 
 { alc device choosing ------------------------------------------------------------ }
 
-{$ifndef USE_ALUT}
 procedure CheckALC(const situation: string); forward;
-{$endif}
 
 function SampleImpALCDeviceName(
   const RealDeviceName: string): string;
@@ -628,7 +603,6 @@ end;
 
 { implementation internal alc things  --------------------------------- }
 
-{$ifndef USE_ALUT}
 var
   audio_device: PALCdevice;
   audio_context: PALCcontext;
@@ -673,14 +647,10 @@ begin
     'OpenAL error ALC_xxx at '+situation+' : '+alcErrDescriptionStr);
  end;
 end;
-{$endif}
 
 { begin/end OpenAL ---------------------------------------------------- }
 
 procedure BeginAL(CheckForAlut: boolean);
-{$ifdef USE_ALUT}
-var argc: Integer;
-{$endif}
 begin
  { We don't do alcProcessContext/alcSuspendContext, no need
    (spec says that context is initially in processing state). }
@@ -689,14 +659,6 @@ begin
   ALActive := false;
   EFXSupported := false;
 
-  {$ifdef USE_ALUT}
-  CheckALUTInited;
-  argc := 0;
-  alutInit(argc, nil);
-  if alcGetCurrentContext() = nil then
-   raise EOpenALError.Create('OpenAL could not be initialized');
-
-  {$else}
   if CheckForAlut then
    CheckALUTInited else
    CheckALInited;
@@ -711,7 +673,6 @@ begin
 
   alcMakeContextCurrent(audio_context);
   CheckALC('initing OpenAL (alcMakeContextCurrent)');
-  {$endif USE_ALUT}
 
   ALActive := true;
   EFXSupported := Load_EFX(audio_device);
@@ -741,10 +702,6 @@ begin
  ALActive := false;
  EFXSupported := false;
 
- {$ifdef USE_ALUT}
- alutExit;
-
- {$else}
  { CheckALC first, in case some error is "hanging" not caught yet. }
  CheckALC('right before closing OpenAL context');
 
@@ -798,12 +755,10 @@ begin
     na czy przed wywolaniem alcCloseDevice bylo valid) }
   audio_device := nil;
  end;
- {$endif}
 end;
 
 { alc querying ------------------------------------------------------------ }
 
-{$ifndef USE_ALUT}
 function GetALCString(enum: TALCenum): string;
 begin
  result := alcGetString(audio_device, enum);
@@ -820,7 +775,6 @@ begin
   on E: EALError do result := '('+E.Message+')';
  end;
 end;
-{$endif USE_ALUT}
 
 { error checking ------------------------------------------------------- }
 
