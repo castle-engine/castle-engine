@@ -246,7 +246,7 @@ property SoundEngine: TALSoundEngine read GetSoundEngine write SetSoundEngine;
 
 implementation
 
-uses KambiUtils, KambiStringUtils, ALUtils, KambiLog, ProgressUnit,
+uses KambiUtils, KambiStringUtils, ALUtils, KambiLog,
   SoundFile, VorbisFile, EFX, ParseParametersUnit;
 
 type
@@ -470,14 +470,7 @@ begin
     if ALActive then
     begin
       inherited; { release sound allocator }
-
-      { EndAL may take a while on Unix OpenAL, so provide feedback
-        for user here (otherwise (s)he may think that program hanged). }
-      Progress.Init(1, 'Closing sound device, please wait');
-      try
-        EndAL;
-        Progress.Step;
-      finally Progress.Fini; end;
+      EndAL;
     end;
   end;
 end;
