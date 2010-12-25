@@ -54,6 +54,7 @@ type
     FVolume: Single;
     ALDevice: PALCdevice;
     ALContext: PALCcontext;
+    FEnable: boolean;
 
     { Check ALC errors. Requires valid ALDevice. }
     procedure CheckALC(const situation: string);
@@ -77,7 +78,7 @@ type
       You can check things like ALActive and SoundInitializationReport,
       but generally this class
       will hide from you the fact that sound is not initialized. }
-    procedure ALContextOpen(const WasParam_NoSound: boolean); override;
+    procedure ALContextOpen; override;
 
     { Release OpenAL context and resources.
 
@@ -162,7 +163,7 @@ type
 
       @definitionList(
         @itemLabel @--audio-device DEVICE-NAME
-        @item Set ALCDevice variable to given argument.
+        @item Set @link(Device) variable to given argument.
 
         @itemLabel @--print-audio-devices
         @item(
@@ -173,6 +174,9 @@ type
           like "Enumerating audio devices not supported by your OpenAL".
 
           Then do ProgramBreak.)
+
+        @itemLabel @--no-sound
+        @item Disable any sound (sets @link(Enable) to @false).
       )
 
       More user-oriented documentation for the above options is here:
@@ -200,11 +204,15 @@ type
 
     { Device to be used when initializing OpenAL context. }
     property Device: string read FDevice write FDevice;
+
+    { If not Enable, ALContextOpen will not initialize any OpenAL device.
+      This is useful if you simply want to disable any sound output
+      (or OpenAL usage), even when OpenAL library is available. }
+    property Enable: boolean read FEnable write FEnable default true;
   end;
 
 var
   SoundEngine: TALSoundEngine;
-  WasParam_NoSound: boolean = false;
 
 implementation
 
@@ -233,6 +241,7 @@ constructor TALSoundEngine.Create;
 begin
   inherited;
   FVolume := DefaultVolume;
+  FEnable := true;
 end;
 
 procedure TALSoundEngine.CheckALC(const situation: string);
@@ -279,7 +288,7 @@ begin
   end;
 end;
 
-procedure TALSoundEngine.ALContextOpen(const WasParam_NoSound: boolean);
+procedure TALSoundEngine.ALContextOpen;
 
   { Try to initialize OpenAL.
     Sets ALActive, EFXSupported.
@@ -320,7 +329,7 @@ var
 begin
   Assert(not ALActive);
 
-  if WasParam_NoSound then
+  if not Enable then
     FSoundInitializationReport :=
       'Sound disabled by --no-sound command-line option' else
   begin
@@ -462,7 +471,7 @@ begin
   ALContextClose;
   OpenALRestart;
   Device := NewDevice;
-  ALContextOpen(false);
+  ALContextOpen;
 end;
 
 function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
@@ -624,15 +633,17 @@ begin
 
          ProgramBreak;
        end;
+    2: Engine.Enable := false;
     else raise EInternalError.Create('OpenALOptionProc');
   end;
 end;
 
 procedure TALSoundEngine.ParseParameters;
 const
-  OpenALOptions: array[0..1] of TOption =
-  ( (Short:#0; Long:'audio-device'; Argument: oaRequired),
-    (Short:#0; Long:'print-audio-devices'; Argument: oaNone)
+  OpenALOptions: array [0..2] of TOption =
+  ( (Short: #0; Long: 'audio-device'; Argument: oaRequired),
+    (Short: #0; Long: 'print-audio-devices'; Argument: oaNone),
+    (Short: #0; Long: 'no-sound'; Argument: oaNone)
   );
 begin
   ParseParametersUnit.ParseParameters(OpenALOptions, @OptionProc, Self, true);
@@ -650,7 +661,8 @@ begin
   Result += nl+
     '  --print-audio-devices' +nl+
     '                        Print available audio devices' +nl+
-    '                        (not supported by every OpenAL implementation)';
+    '                        (not supported by every OpenAL implementation)' +nl+
+    '  --no-sound            Turn off sound';
 end;
 
 end.

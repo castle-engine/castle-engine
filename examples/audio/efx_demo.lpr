@@ -163,7 +163,7 @@ begin
   SoundEngine := TALSoundEngine.Create;
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
-  SoundEngine.ALContextOpen(false);
+  SoundEngine.ALContextOpen;
   try
     { parse params }
     Parameters.CheckHigh(2);

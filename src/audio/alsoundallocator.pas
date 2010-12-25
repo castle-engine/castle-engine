@@ -178,7 +178,7 @@ type
     procedure SetMaxAllocatedSources(const Value: Cardinal);
   public
     constructor Create;
-    procedure ALContextOpen(const WasParam_NoSound: boolean); virtual;
+    procedure ALContextOpen; virtual;
     procedure ALContextClose; virtual;
 
     { Allocate sound for playing. You should initialize the OpenAL sound
@@ -345,7 +345,7 @@ begin
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
 end;
 
-procedure TALSoundAllocator.ALContextOpen(const WasParam_NoSound: boolean);
+procedure TALSoundAllocator.ALContextOpen;
 var
   I: Integer;
 begin

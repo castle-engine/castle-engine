@@ -140,7 +140,7 @@ type
     destructor Destroy; override;
 
     { In addition to initializing OpenAL context, this also loads sound files. }
-    procedure ALContextOpen(const WasParam_NoSound: boolean); override;
+    procedure ALContextOpen; override;
     procedure ALContextClose; override;
 
     { The XML file that contains description of your sounds.
@@ -328,7 +328,7 @@ begin
   inherited;
 end;
 
-procedure TGameSoundEngine.ALContextOpen(const WasParam_NoSound: boolean);
+procedure TGameSoundEngine.ALContextOpen;
 var
   ST: TSoundType;
 begin

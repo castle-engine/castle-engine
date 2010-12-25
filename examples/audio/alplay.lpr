@@ -43,7 +43,7 @@ begin
   SoundEngine := TALSoundEngine.Create;
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
-  SoundEngine.ALContextOpen(false);
+  SoundEngine.ALContextOpen;
   try
     { prepare al state }
     { turn off any environmental effects }

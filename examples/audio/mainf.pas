@@ -72,7 +72,7 @@ begin
   SoundEngine := TALSoundEngine.Create;
   SoundEngine.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
   SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
-  SoundEngine.ALContextOpen(false);
+  SoundEngine.ALContextOpen;
   Timer1.Enabled := true;
 end;
 
