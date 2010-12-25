@@ -40,8 +40,8 @@ var
 begin
   DataWarning := @DataWarning_Write;
 
-  OpenALOptionsParse;
   SoundEngine := TALSoundEngine.Create;
+  SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen(false);
   try

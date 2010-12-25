@@ -15,18 +15,12 @@
 
 { Various utilities for working with OpenAL.
   Everything is based on my OpenAL bindings in unit KambiOpenAL.
-  Most important things here are BeginAL and EndAL
-  procedures for initializing / releasing OpenAL context.
-  Also TALSoundFile class is very useful to load files into
-  OpenAL buffers.
+  For higher-level class that takes care of initializing OpenAL
+  and loading and playing sounds, see TALSoundEngine.
 
-  Notes about alut (OpenAL utility library): we don't use it.
-  (Although your own programs you can use it's functions,
-  as KambiOpenAL exports them.)
-
-  When you're using this unit, you shouldn't use any alc*
-  functions and alutInit/alutExit functions from KambiOpenAL.
-  The rule is that this unit (or ALSoundEngine) takes care about such things.
+  You shouldn't use any alc* functions or alutInit/alutExit
+  functions from KambiOpenAL yourself. This unit and ALSoundEngine take care
+  about everything needed there.
 }
 
 unit ALUtils;
@@ -48,32 +42,6 @@ type
   @raises EOpenALInitError If appropriate variable is @false. }
 procedure CheckALInited;
 procedure CheckALUTInited;
-
-{ ---------------------------------------------------------------------------- }
-{ @section(OpenAL devices) }
-
-const
-  { The suggested best OpenAL device.
-
-    Theoretically always the default OpenAL device should be
-    considered "the best", so BestALCDevice should be equal to ''.
-    And that's indeed the current situation --- BestALCDevice
-    is a constant equal to ''. But, in the past there were
-    some reasons to set this to some other specific values for
-    some OSes... And I want to be able in the future to do such
-    tweaking again. }
-  BestALCDevice = '';
-
-var
-  { OpenAL device to be used when initializing OpenAL context.
-    Used by TryBeginAL or BeginAL.
-
-    I could make it instead a parameter for TryBeginAL / BeginAL procedures,
-    but it's more comfortable to have a global variable for this ---
-    it's useful e.g. to easily implement handling of @--audio-device option
-    in OpenALOptionsParse. TryBeginAL / BeginAL procedures assume anyway
-    that your program will require only one OpenAL context at any time. }
-  ALCDevice: string = BestALCDevice;
 
 { Check and use OpenAL enumeration extension.
   If OpenAL supports ALC_ENUMERATION_EXT, then we return @true
@@ -111,142 +79,6 @@ procedure GetOpenALDevices(DevicesList: TStringList);
     @item(Various Unix devices looking like @code('(( devices '(DEVICE-NAME) ))))
   ) }
 function ALCDeviceToNiceStr(const ALCDevice: string): string;
-
-{ This parses parameters in @link(Parameters) and interprets and removes
-  recognized options. Internally it uses ParseParameters with
-  ParseOnlyKnownLongOptions = @true. Recognized options :
-
-  @definitionList(
-    @itemLabel @--audio-device DEVICE-NAME
-    @item Set ALCDevice variable to given argument.
-
-    @itemLabel @--print-audio-devices
-    @item(
-      Use ALC_ENUMERATION_EXT to print all available OpenAL audio devices
-      to stdout (uses InfoWrite, so on Windows when program is GUI, it will
-      make a dialog box).
-      If this extension is not present, write something
-      like "Enumerating audio devices not supported by your OpenAL".
-
-      Then do ProgramBreak.)
-  )
-
-  More user-oriented documentation for the above options is here:
-  [http://vrmlengine.sourceforge.net/openal_notes.php#section_options] }
-procedure OpenALOptionsParse;
-
-{ This is help string for options parsed by OpenALOptionsParse.
-
-  Formatting is consistent with Kambi standards
-  (see file @code(../base/README.kambi_command_line_params)).
-
-  If PrintALCDeviceAsDefault then it will also say (near
-  the help for option @--audio-device) that "defauls device is ..."
-  and will give here current value of ALCDevice.
-  This is usually useful, e.g. if you don't intend to modify directly
-  ALCDevice (only indirectly via OpenALOptionsParse)
-  then you should give here true. }
-function OpenALOptionsHelp(PrintALCDeviceAsDefault: boolean): string;
-
-{ ---------------------------------------------------------------------------- }
-{ @section(BeginAL, EndAL and related things) }
-
-var
-  { Do we have active OpenAL context. This is @true when you successfully
-    called TryBeginAL or BeginAL (and you didn't call EndAL yet).
-    This also implies that OpenAL library is loaded, that is ALInited = @true. }
-  ALActive: boolean = false;
-
-  { Last error when initializing OpenAL context.
-    When @link(BeginAL) fails with EOpenALError or when
-    @link(TryBeginAL) returns with false, they put error message in this variable.
-
-    When you're using @link(BeginAL) this variable is rather useless,
-    as this is equal to Message property of raised exception.
-    But when you're using @link(TryBeginAL),
-    this is the only way to get detailed info why @link(TryBeginAL) failed. }
-  ALActivationErrorMessage: string = '';
-
-  EFXSupported: boolean = false;
-
-{ Create and activate OpenAL context for the ALCDevice device.
-
-  You should deactivate and free the context by calling EndAL.
-  You should usually use @code(try .. finally .. end) construction for
-  this, e.g.
-
-  @longCode(# BeginAL; try ... finally EndAL; end; #)
-
-  @raises(EOpenALError if something will go wrong)
-
-  Detailed description of what BeginAL does:
-
-  @orderedList(
-    @item(
-      Checks is ALInited = @true, if CheckForAlut then it also checks
-      is ALUTInited = @true. If the test will fail, raises EOpenALInitError.)
-
-    @item(
-      Init's OpenAL context using appropriate alc* functions
-      and using the device specified in ALCDevice variable.
-
-      If this initialization will fail, ALActive will be set to @false,
-      ALActivationErrorStr will be set to error message and
-      EOpenALError (but not EOpenALInitError) will be raised
-      (with Message equal to ALActivationErrorStr value).
-
-      If this initialization will succeed, ALActive will be set to @true.)
-
-    @item(
-      If the context will be successfully activated, we will also try to init
-      EFX extensions for it by doing EFXSupported := Load_EFX(Device).
-      If the context will not be activated for whatever reason,
-      EFXSupported will be set to @false.)
-  )
-}
-procedure BeginAL(CheckForAlut: boolean);
-
-{ This is like BeginAL but it doesn't raise EOpenALError.
-
-  So you should check ALActive
-  (if @false, error message will be in ALActivationErrorMessage)
-  to know whether initialization was successfull. }
-function TryBeginAL(CheckForAlut: boolean): boolean;
-
-{ This deactivates and frees the context initialized by last TryBeginAL
-  or BeginAL call. ALActive is set to @false.
-
-  If not ALActive, then this does nothing. }
-procedure EndAL;
-
-{ ---------------------------------------------------------------------------- }
-{ @section(ALC querying) }
-
-{ Simple wrapper --- calls alcGetString with the device created
-  by last TryBeginAL or BeginAL call (or nil if no
-  TryBeginAL or BeginAL was called or the device was freed by
-  EndAL). And returns normal Pascal AnsiString (so you don't have
-  to worry anymore that alcGetString returns a pointer to some
-  internal data in OpenAL library and you can't modify it). }
-function GetALCString(enum: TALCenum): string;
-
-{ Calls GetALCString and additionally checks alcGetError.
-  If alcGetError returns error, it returns string looking like
-  '(detailed error description)' (normal incorrect call to
-  alcGetString would return just nil).
-
-  Actually, this @italic(also) checks normal al error (alGetError instead
-  of alcGetError). Seems that when Darwin (Mac OS X) Apple's OpenAL
-  implementation fails to return some alcGetString
-  it reports this by setting AL error (instead of ALC one)
-  to "invalid value". Although (after fixes to detect OpenALSampleImplementation
-  at runtime and change constants values) this shouldn't happen anymore
-  it you pass normal consts to this function.
-
-  Just like all other functions that somehow check al[c]GetError,
-  this function assumes that error state was "clear" before
-  calling this function, i.e. al[c]GetError would return AL[C]_NO_ERROR. }
-function GetALCStringTrapped(enum: TALCenum): string;
 
 { ---------------------------------------------------------------------------- }
 { @section(Error checking) }
@@ -407,7 +239,7 @@ procedure alFreeBuffer(var Buffer: TALuint);
 
 implementation
 
-uses VectorMath, KambiStringUtils, EFX;
+uses VectorMath, KambiStringUtils;
 
 {$define read_implementation}
 
@@ -431,8 +263,6 @@ begin
 end;
 
 { alc device choosing ------------------------------------------------------------ }
-
-procedure CheckALC(const situation: string); forward;
 
 function SampleImpALCDeviceName(
   const RealDeviceName: string): string;
@@ -501,81 +331,6 @@ begin
   end;
 end;
 
-procedure OpenALOptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var
-  Message, DefaultDeviceName: string;
-  DeviceList: TStringList;
-  i, DefaultDeviceNum: Integer;
-begin
- case OptionNum of
-  0: ALCDevice := Argument;
-  1: begin
-      if not ALInited then
-       Message := 'OpenAL is not available - cannot print available audio devices' else
-      if not EnumerationExtPresent then
-       Message := 'Your OpenAL implementation does not support getting the list '+
-         'of available audio devices (ALC_ENUMERATION_EXT extension not present ' +
-         '(or not implemented correctly in case of Apple version)).' else
-      begin
-       DefaultDeviceName := alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER);
-       DefaultDeviceNum := -1;
-
-       DeviceList := TStringList.Create;
-       try
-        GetOpenALDevices(DeviceList);
-
-        DefaultDeviceNum := DeviceList.IndexOf(DefaultDeviceName);
-
-        Message := Format('%d available audio devices:', [DeviceList.Count]) + nl;
-        for i := 0 to DeviceList.Count-1 do
-        begin
-         Message += '  ' + DeviceList[i];
-         if i = DefaultDeviceNum then Message += ' (default OpenAL device)';
-         Message += nl;
-        end;
-
-        if DefaultDeviceNum = -1 then
-         Message += 'Default OpenAL device name is "' + DefaultDeviceName +
-           '" but this device was not listed as available device. ' +
-           'Bug in OpenAL ?';
-       finally DeviceList.Free end;
-      end;
-
-      InfoWrite(Message);
-
-      ProgramBreak;
-     end;
-  else raise EInternalError.Create('OpenALOptionProc');
- end;
-end;
-
-procedure OpenALOptionsParse;
-const
-  OpenALOptions: array[0..1] of TOption =
-  ( (Short:#0; Long:'audio-device'; Argument: oaRequired),
-    (Short:#0; Long:'print-audio-devices'; Argument: oaNone)
-  );
-begin
- ParseParameters(OpenALOptions,
-   {$ifdef FPC_OBJFPC} @ {$endif} OpenALOptionProc, nil, true);
-end;
-
-function OpenALOptionsHelp(PrintALCDeviceAsDefault: boolean): string;
-begin
- result:=
-   '  --audio-device DEVICE-NAME' +nl+
-   '                        Choose specific OpenAL audio device';
- if PrintALCDeviceAsDefault then
-  result += nl+
-    '                        Default audio device for this OS is:' +nl+
-    '                        '+ Iff(ALCDevice = '', '(OpenAL default device)', ALCDevice);
- result += nl+
-    '  --print-audio-devices' +nl+
-    '                        Print available audio devices' +nl+
-    '                        (not supported by every OpenAL implementation)';
-end;
-
 function ALCDeviceToNiceStr(const ALCDevice: string): string;
 begin
   if ALCDevice = '' then
@@ -599,181 +354,6 @@ begin
       Result := ALCDevice;
   end else
     Result := ALCDevice;
-end;
-
-{ implementation internal alc things  --------------------------------- }
-
-var
-  audio_device: PALCdevice;
-  audio_context: PALCcontext;
-
-{ dla bledow zglosznych przez alcGetError, stale ALC_xxx }
-type
-  EALCError = class(EOpenALError)
-  private
-    FALCErrorNum: TALenum;
-  public
-    property ALCErrorNum: TALenum read FALCErrorNum;
-    constructor Create(AALCErrorNum: TALenum; const AMessage: string);
-  end;
-
-constructor EALCError.Create(AALCErrorNum: TALenum; const AMessage: string);
-begin
- FALCErrorNum := AALCErrorNum;
- inherited Create(AMessage);
-end;
-
-procedure CheckALC(const situation: string);
-{ wymaga do dzialania valid audio_device ! }
-var err: TALenum;
-    alcErrDescription: PChar;
-    alcErrDescriptionStr: string;
-begin
- err := alcGetError(audio_device);
- if err <> ALC_NO_ERROR then
- begin
-  { moznaby tu uproscic zapis eliminujac zmienne alcErrDescription i alcErrDescriptionStr
-    i zamiast alcErrDescriptionStr uzyc po prostu alcGetString(audio_device, err).
-    Jedynym powodem dla ktorego jednak wprowadzam tu ta mala komplikacje jest fakt
-    ze sytuacja ze alcGetError zwroci cos niespodziewanego (bledny kod bledu) niestety
-    zdarza sie (implementacja Creative pod Windows nie jest doskonala...).
-    W zwiazku z tym chcemy sie nia zajac. }
-  alcErrDescription := alcGetString(audio_device, err);
-  if alcErrDescription = nil then
-   alcErrDescriptionStr := Format('(alc does not recognize this error number : %d)', [err]) else
-   alcErrDescriptionStr := alcErrDescription;
-
-  raise EALCError.Create(err,
-    'OpenAL error ALC_xxx at '+situation+' : '+alcErrDescriptionStr);
- end;
-end;
-
-{ begin/end OpenAL ---------------------------------------------------- }
-
-procedure BeginAL(CheckForAlut: boolean);
-begin
- { We don't do alcProcessContext/alcSuspendContext, no need
-   (spec says that context is initially in processing state). }
-
- try
-  ALActive := false;
-  EFXSupported := false;
-
-  if CheckForAlut then
-   CheckALUTInited else
-   CheckALInited;
-
-  audio_device := alcOpenDevice(PCharOrNil(ALCDevice));
-  if (audio_device = nil) then
-   raise EOpenALError.CreateFmt(
-     'OpenAL''s audio device "%s" is not available', [ALCDevice]);
-
-  audio_context := alcCreateContext(audio_device, nil);
-  CheckALC('initing OpenAL (alcCreateContext)');
-
-  alcMakeContextCurrent(audio_context);
-  CheckALC('initing OpenAL (alcMakeContextCurrent)');
-
-  ALActive := true;
-  EFXSupported := Load_EFX(audio_device);
- except
-  on E: EOpenALError do
-  begin
-   ALActivationErrorMessage := E.Message;
-   raise;
-  end;
- end;
-end;
-
-function TryBeginAL(CheckForAlut: boolean): boolean;
-begin
- try
-  BeginAL(CheckForAlut);
- except
-  on E: EOpenALError do ;
- end;
- result := ALActive;
-end;
-
-procedure EndAL;
-begin
- if not ALActive then Exit;
-
- ALActive := false;
- EFXSupported := false;
-
- { CheckALC first, in case some error is "hanging" not caught yet. }
- CheckALC('right before closing OpenAL context');
-
- if audio_context <> nil then
- begin
-   (* The OpenAL specification says
-
-      "The correct way to destroy a context is to first release
-      it using alcMakeCurrent with a NULL context. Applications
-      should not attempt to destroy a current context – doing so
-      will not work and will result in an ALC_INVALID_OPERATION error."
-
-      (See [http://openal.org/openal_webstf/specs/oal11spec_html/oal11spec6.html])
-
-      However, sample implementation (used on most Unixes,
-      before OpenAL soft came) can hang
-      on alcMakeContextCurrent(nil) call. Actually, it doesn't hang,
-      but it stops for a *very* long time (even a couple of minutes).
-      This is a known problem, see
-      [http://opensource.creative.com/pipermail/openal-devel/2005-March/002823.html]
-      and
-      [http://lists.berlios.de/pipermail/warzone-dev/2005-August/000441.html].
-
-      Tremulous code workarounds it like
-
-	if( Q_stricmp((const char* )qalGetString( AL_VENDOR ), "J. Valenzuela" ) ) {
-		qalcMakeContextCurrent( NULL );
-	}
-
-      ... and this seems a good idea, we do it also here.
-      Initially I wanted to do $ifdef UNIX, but checking for Sample implementation
-      with alGetString(AL_VENDOR) is more elegant (i.e. affecting more precisely
-      the problematic OpenAL implementations, e.g. allowing us to work
-      correctly with OpenAL soft too). *)
-
-  if not OpenALSampleImplementation then
-    alcMakeContextCurrent(nil);
-
-  alcDestroyContext(audio_context);
-  audio_context := nil;
-  CheckALC('closing OpenAL context');
- end;
-
- if audio_device <> nil then
- begin
-  alcCloseDevice(audio_device);
-  { w/g specyfikacji OpenAL generuje teraz error ALC_INVALID_DEVICE jesli
-    device bylo nieprawidlowe; ale niby jak mam sprawdzic ten blad ?
-    Przeciez zeby sprawdzic alcGetError potrzebuje miec valid device w reku,
-    a po wywolaniu alcCloseDevice(device) device jest invalid (bez wzgledu
-    na czy przed wywolaniem alcCloseDevice bylo valid) }
-  audio_device := nil;
- end;
-end;
-
-{ alc querying ------------------------------------------------------------ }
-
-function GetALCString(enum: TALCenum): string;
-begin
- result := alcGetString(audio_device, enum);
-end;
-
-function GetALCStringTrapped(enum: TALCenum): string;
-begin
- result := GetALCString(enum);
- try
-  CheckALC('alcGetString');
-  CheckAL('alcGetString');
- except
-  on E: EALCError do result := '('+E.Message+')';
-  on E: EALError do result := '('+E.Message+')';
- end;
 end;
 
 { error checking ------------------------------------------------------- }

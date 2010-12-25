@@ -133,9 +133,9 @@ begin
       'VENDOR : ', alGetString(AL_VENDOR), nl,
       'EXTENSIONS : ', alGetString(AL_EXTENSIONS), nl,
 
-      'ALC_DEFAULT_DEVICE_SPECIFIER : ', GetALCStringTrapped(ALC_DEFAULT_DEVICE_SPECIFIER), nl,
-      'ALC_DEVICE_SPECIFIER : ', GetALCStringTrapped(ALC_DEVICE_SPECIFIER), nl,
-      'ALC_EXTENSIONS : ', GetALCStringTrapped(ALC_EXTENSIONS), nl,
+      'ALC_DEFAULT_DEVICE_SPECIFIER : ', SoundEngine.GetContextString(ALC_DEFAULT_DEVICE_SPECIFIER), nl,
+      'ALC_DEVICE_SPECIFIER : ', SoundEngine.GetContextString(ALC_DEVICE_SPECIFIER), nl,
+      'ALC_EXTENSIONS : ', SoundEngine.GetContextString(ALC_EXTENSIONS), nl,
 
       nl,
       'ENUMERATION_EXT  --------------------------------', nl,
@@ -182,9 +182,9 @@ begin
     Writeln('EFX  -------------------------------');
     Device := alcGetContextsDevice(alcGetCurrentContext());
     Writeln('ALC_EXT_EFX extension present: ', alcIsExtensionPresent(Device, ALC_EXT_EFX_NAME));
-    Writeln('EFX supported (ALC_EXT_EFX extension and all entry points): ', EFXSupported);
+    Writeln('EFX supported (ALC_EXT_EFX extension and all entry points): ', SoundEngine.EFXSupported);
 
-    if EFXSupported then
+    if SoundEngine.EFXSupported then
     begin
       Writeln('ALC_MAX_AUXILIARY_SENDS: ', alcGetInterger1(Device, ALC_MAX_AUXILIARY_SENDS));
     end else
@@ -201,8 +201,8 @@ begin
 end;
 
 begin
-  OpenALOptionsParse;
   SoundEngine := TALSoundEngine.Create;
+  SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen(false);
   try

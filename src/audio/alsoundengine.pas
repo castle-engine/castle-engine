@@ -48,39 +48,64 @@ type
   TALSoundEngine = class(TALSoundAllocator)
   private
     FSoundInitializationReport: string;
+    FDevice: string;
+    FALActive: boolean;
+    FEFXSupported: boolean;
     FVolume: Single;
+    ALDevice: PALCdevice;
+    ALContext: PALCcontext;
+
+    { Check ALC errors. Requires valid ALDevice. }
+    procedure CheckALC(const situation: string);
 
     procedure SetVolume(const Value: Single);
   public
     constructor Create;
 
     { Initialize OpenAL library, and output device and context.
-      Sets SoundOpenializationReport and ALActive.
-      You can set ALCDevice before calling this.
+      Sets SoundInitializationReport and ALActive.
+      You can set @link(Device) before calling this.
+
+      If the context will be successfully activated, we will also try to init
+      EFX extensions for it by doing EFXSupported := Load_EFX(Device).
+      If the context will not be activated for whatever reason,
+      EFXSupported will be set to @false.
 
       Note that we continue (without any exception) if the initialization
       failed for any reason (maybe OpenAL library is not available,
       or no sound output device is available).
-      You can check things like ALActivationErrorMessage
-      and ALActive, but generally this class
+      You can check things like ALActive and SoundInitializationReport,
+      but generally this class
       will hide from you the fact that sound is not initialized. }
     procedure ALContextOpen(const WasParam_NoSound: boolean); override;
 
-    { Call this always to release OpenAL things.
-      This is ignored if not ALActive. }
+    { Release OpenAL context and resources.
+
+      ALActive is set to @false. This is ignored if ALActive is already @false. }
     procedure ALContextClose; override;
 
+    { Do we have active OpenAL context. This is @true when you successfully
+      called ALContextOpen (and you didn't call ALContextClose yet).
+      This also implies that OpenAL library is loaded, that is ALInited = @true. }
+    property ALActive: boolean read FALActive;
+
+    { Are OpenAL effects (EFX) extensions supported.
+      Meaningful only when ALActive, that is it's initialized by ALContextOpen. }
+    property EFXSupported: boolean read FEFXSupported;
+
     property SoundInitializationReport: string read FSoundInitializationReport;
+
+    { Wrapper for alcGetString. }
+    function GetContextString(Enum: TALCenum): string;
 
     { If ALActive, then will append some info about current OpenAL used. }
     procedure AppendALInformation(S: TStrings);
     function ALInformation: string;
 
-    { Change ALCDevice while OpenAL is already initialized.
+    { Change @link(Device) while OpenAL is already initialized.
       This cleanly closes the old device (ALContextClose),
-      changes ALCDevice value, initializes context again
-      (ALContextOpen). }
-    procedure ALChangeDevice(const NewALCDevice: string);
+      changes @link(Device) value, initializes context again (ALContextOpen). }
+    procedure ALChangeDevice(const NewDevice: string);
 
     { Load a sound file into OpenAL buffer. Result is never 0.
 
@@ -130,12 +155,51 @@ type
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3Single): TALSound;
+
+    { Parse parameters in @link(Parameters) and interprets and removes
+      recognized options. Internally it uses ParseParameters with
+      ParseOnlyKnownLongOptions = @true. Recognized options:
+
+      @definitionList(
+        @itemLabel @--audio-device DEVICE-NAME
+        @item Set ALCDevice variable to given argument.
+
+        @itemLabel @--print-audio-devices
+        @item(
+          Use ALC_ENUMERATION_EXT to print all available OpenAL audio devices
+          to stdout (uses InfoWrite, so on Windows when program is GUI, it will
+          make a dialog box).
+          If this extension is not present, write something
+          like "Enumerating audio devices not supported by your OpenAL".
+
+          Then do ProgramBreak.)
+      )
+
+      More user-oriented documentation for the above options is here:
+      [http://vrmlengine.sourceforge.net/openal_notes.php#section_options] }
+    procedure ParseParameters;
+
+    { Help string for options parsed by ParseParameters.
+
+      Formatting is consistent with Kambi standards
+      (see file @code(../base/README.kambi_command_line_params)).
+
+      If PrintCurrentDeviceAsDefault then it will also say (near
+      the help for option @--audio-device) that "defauls device is ..."
+      and will give here current value of Device.
+      This is usually useful, e.g. if you don't intend to modify directly
+      Device (only indirectly via ParseParameters)
+      then you should give here true. }
+    function ParseParametersHelp(PrintCurrentDeviceAsDefault: boolean): string;
   published
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
       0.0 means that there are no effects (this case should be optimized). }
     property Volume: Single read FVolume write SetVolume
       default DefaultVolume;
+
+    { Device to be used when initializing OpenAL context. }
+    property Device: string read FDevice write FDevice;
   end;
 
 var
@@ -145,7 +209,25 @@ var
 implementation
 
 uses KambiUtils, KambiStringUtils, ALUtils, KambiLog, ProgressUnit,
-  SoundFile, VorbisFile, KambiTimeUtils;
+  SoundFile, VorbisFile, KambiTimeUtils, EFX, ParseParametersUnit;
+
+type
+  { For alcGetError errors (ALC_xxx constants). }
+  EALCError = class(EOpenALError)
+  private
+    FALCErrorNum: TALenum;
+  public
+    property ALCErrorNum: TALenum read FALCErrorNum;
+    constructor Create(AALCErrorNum: TALenum; const AMessage: string);
+  end;
+
+constructor EALCError.Create(AALCErrorNum: TALenum; const AMessage: string);
+begin
+  FALCErrorNum := AALCErrorNum;
+  inherited Create(AMessage);
+end;
+
+{ TALSoundEngine ------------------------------------------------------------- }
 
 constructor TALSoundEngine.Create;
 begin
@@ -153,28 +235,112 @@ begin
   FVolume := DefaultVolume;
 end;
 
+procedure TALSoundEngine.CheckALC(const situation: string);
+var
+  err: TALenum;
+  alcErrDescription: PChar;
+  alcErrDescriptionStr: string;
+begin
+  err := alcGetError(ALDevice);
+  if err <> ALC_NO_ERROR then
+  begin
+    { moznaby tu uproscic zapis eliminujac zmienne alcErrDescription i alcErrDescriptionStr
+      i zamiast alcErrDescriptionStr uzyc po prostu alcGetString(ALDevice, err).
+      Jedynym powodem dla ktorego jednak wprowadzam tu ta mala komplikacje jest fakt
+      ze sytuacja ze alcGetError zwroci cos niespodziewanego (bledny kod bledu) niestety
+      zdarza sie (implementacja Creative pod Windows nie jest doskonala...).
+      W zwiazku z tym chcemy sie nia zajac. }
+    alcErrDescription := alcGetString(ALDevice, err);
+    if alcErrDescription = nil then
+     alcErrDescriptionStr := Format('(alc does not recognize this error number : %d)', [err]) else
+     alcErrDescriptionStr := alcErrDescription;
+
+    raise EALCError.Create(err,
+      'OpenAL error ALC_xxx at '+situation+' : '+alcErrDescriptionStr);
+  end;
+end;
+
+function TALSoundEngine.GetContextString(Enum: TALCenum): string;
+begin
+  result := alcGetString(ALDevice, enum);
+  try
+    CheckALC('alcGetString');
+    { Check also normal al error (alGetError instead
+      of alcGetError). Seems that when Darwin (Mac OS X) Apple's OpenAL
+      implementation fails to return some alcGetString
+      it reports this by setting AL error (instead of ALC one)
+      to "invalid value". Although (after fixes to detect OpenALSampleImplementation
+      at runtime and change constants values) this shouldn't happen anymore
+      it you pass normal consts to this function. }
+    CheckAL('alcGetString');
+  except
+    on E: EALCError do result := '('+E.Message+')';
+    on E: EALError do result := '('+E.Message+')';
+  end;
+end;
+
 procedure TALSoundEngine.ALContextOpen(const WasParam_NoSound: boolean);
+
+  { Try to initialize OpenAL.
+    Sets ALActive, EFXSupported.
+    If not ALActive, then ALActivationErrorMessage contains error description. }
+  procedure BeginAL(out ALActivationErrorMessage: string);
+  begin
+    { We don't do alcProcessContext/alcSuspendContext, no need
+      (spec says that context is initially in processing state). }
+
+    try
+      FALActive := false;
+      FEFXSupported := false;
+      ALActivationErrorMessage := '';
+
+      CheckALInited;
+
+      ALDevice := alcOpenDevice(PCharOrNil(Device));
+      if (ALDevice = nil) then
+        raise EOpenALError.CreateFmt(
+          'OpenAL''s audio device "%s" is not available', [Device]);
+
+      ALContext := alcCreateContext(ALDevice, nil);
+      CheckALC('initing OpenAL (alcCreateContext)');
+
+      alcMakeContextCurrent(ALContext);
+      CheckALC('initing OpenAL (alcMakeContextCurrent)');
+
+      FALActive := true;
+      FEFXSupported := Load_EFX(ALDevice);
+    except
+      on E: EOpenALError do
+        ALActivationErrorMessage := E.Message;
+    end;
+  end;
+
+var
+  ALActivationErrorMessage: string;
 begin
   Assert(not ALActive);
 
   if WasParam_NoSound then
     FSoundInitializationReport :=
       'Sound disabled by --no-sound command-line option' else
-  if not TryBeginAL(false) then
-    FSoundInitializationReport :=
-      'OpenAL initialization failed : ' +ALActivationErrorMessage +nl+
-      'SOUND IS DISABLED' else
   begin
-    FSoundInitializationReport :=
-      'OpenAL initialized, sound enabled';
+    BeginAL(ALActivationErrorMessage);
+    if not ALActive then
+      FSoundInitializationReport :=
+        'OpenAL initialization failed : ' +ALActivationErrorMessage +nl+
+        'SOUND IS DISABLED' else
+    begin
+      FSoundInitializationReport :=
+        'OpenAL initialized, sound enabled';
 
-    try
-      alListenerf(AL_GAIN, Volume);
-      inherited; { initialize sound allocator }
-      CheckAL('initializing sounds (ALContextOpen)');
-    except
-      ALContextClose;
-      raise;
+      try
+        alListenerf(AL_GAIN, Volume);
+        inherited; { initialize sound allocator }
+        CheckAL('initializing sounds (ALContextOpen)');
+      except
+        ALContextClose;
+        raise;
+      end;
     end;
   end;
 
@@ -184,6 +350,67 @@ begin
 end;
 
 procedure TALSoundEngine.ALContextClose;
+
+  procedure EndAL;
+  begin
+    FALActive := false;
+    FEFXSupported := false;
+
+    { CheckALC first, in case some error is "hanging" not caught yet. }
+    CheckALC('right before closing OpenAL context');
+
+    if ALContext <> nil then
+    begin
+      (* The OpenAL specification says
+
+         "The correct way to destroy a context is to first release
+         it using alcMakeCurrent with a NULL context. Applications
+         should not attempt to destroy a current context – doing so
+         will not work and will result in an ALC_INVALID_OPERATION error."
+
+         (See [http://openal.org/openal_webstf/specs/oal11spec_html/oal11spec6.html])
+
+         However, sample implementation (used on most Unixes,
+         before OpenAL soft came) can hang
+         on alcMakeContextCurrent(nil) call. Actually, it doesn't hang,
+         but it stops for a *very* long time (even a couple of minutes).
+         This is a known problem, see
+         [http://opensource.creative.com/pipermail/openal-devel/2005-March/002823.html]
+         and
+         [http://lists.berlios.de/pipermail/warzone-dev/2005-August/000441.html].
+
+         Tremulous code workarounds it like
+
+           if( Q_stricmp((const char* )qalGetString( AL_VENDOR ), "J. Valenzuela" ) ) {
+                   qalcMakeContextCurrent( NULL );
+           }
+
+         ... and this seems a good idea, we do it also here.
+         Initially I wanted to do $ifdef UNIX, but checking for Sample implementation
+         with alGetString(AL_VENDOR) is more elegant (i.e. affecting more precisely
+         the problematic OpenAL implementations, e.g. allowing us to work
+         correctly with OpenAL soft too). *)
+
+      if not OpenALSampleImplementation then
+        alcMakeContextCurrent(nil);
+
+      alcDestroyContext(ALContext);
+      ALContext := nil;
+      CheckALC('closing OpenAL context');
+    end;
+
+    if ALDevice <> nil then
+    begin
+      alcCloseDevice(ALDevice);
+      { w/g specyfikacji OpenAL generuje teraz error ALC_INVALID_DEVICE jesli
+        device bylo nieprawidlowe; ale niby jak mam sprawdzic ten blad ?
+        Przeciez zeby sprawdzic alcGetError potrzebuje miec valid device w reku,
+        a po wywolaniu alcCloseDevice(device) device jest invalid (bez wzgledu
+        na czy przed wywolaniem alcCloseDevice bylo valid) }
+      ALDevice := nil;
+    end;
+  end;
+
 begin
   if ALActive then
   begin
@@ -230,11 +457,11 @@ begin
   finally S.Free end;
 end;
 
-procedure TALSoundEngine.ALChangeDevice(const NewALCDevice: string);
+procedure TALSoundEngine.ALChangeDevice(const NewDevice: string);
 begin
   ALContextClose;
   OpenALRestart;
-  ALCDevice := NewALCDevice;
+  Device := NewDevice;
   ALContextOpen(false);
 end;
 
@@ -348,6 +575,82 @@ begin
     if ALActive then
       alListenerf(AL_GAIN, Volume);
   end;
+end;
+
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var
+  Message, DefaultDeviceName: string;
+  DeviceList: TStringList;
+  i, DefaultDeviceNum: Integer;
+  Engine: TALSoundEngine;
+begin
+  Engine := TALSoundEngine(Data);
+  case OptionNum of
+    0: Engine.Device := Argument;
+    1: begin
+         if not ALInited then
+           Message := 'OpenAL is not available - cannot print available audio devices' else
+         if not EnumerationExtPresent then
+           Message := 'Your OpenAL implementation does not support getting the list '+
+             'of available audio devices (ALC_ENUMERATION_EXT extension not present ' +
+             '(or not implemented correctly in case of Apple version)).' else
+         begin
+           DefaultDeviceName := alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER);
+           DefaultDeviceNum := -1;
+
+           DeviceList := TStringList.Create;
+           try
+             GetOpenALDevices(DeviceList);
+
+             DefaultDeviceNum := DeviceList.IndexOf(DefaultDeviceName);
+
+             Message := Format('%d available audio devices:', [DeviceList.Count]) + nl;
+             for i := 0 to DeviceList.Count-1 do
+             begin
+               Message += '  ' + DeviceList[i];
+               if i = DefaultDeviceNum then Message += ' (default OpenAL device)';
+               Message += nl;
+             end;
+
+             if DefaultDeviceNum = -1 then
+               Message += 'Default OpenAL device name is "' + DefaultDeviceName +
+                 '" but this device was not listed as available device. ' +
+                 'Bug in OpenAL ?';
+           finally DeviceList.Free end;
+         end;
+
+         InfoWrite(Message);
+
+         ProgramBreak;
+       end;
+    else raise EInternalError.Create('OpenALOptionProc');
+  end;
+end;
+
+procedure TALSoundEngine.ParseParameters;
+const
+  OpenALOptions: array[0..1] of TOption =
+  ( (Short:#0; Long:'audio-device'; Argument: oaRequired),
+    (Short:#0; Long:'print-audio-devices'; Argument: oaNone)
+  );
+begin
+  ParseParametersUnit.ParseParameters(OpenALOptions, @OptionProc, Self, true);
+end;
+
+function TALSoundEngine.ParseParametersHelp(PrintCurrentDeviceAsDefault: boolean): string;
+begin
+  Result :=
+    '  --audio-device DEVICE-NAME' +nl+
+    '                        Choose specific OpenAL audio device';
+  if PrintCurrentDeviceAsDefault then
+    Result += nl+
+      '                        Default audio device for this OS is:' +nl+
+      '                        '+ Iff(Device = '', '(OpenAL default device)', Device);
+  Result += nl+
+    '  --print-audio-devices' +nl+
+    '                        Print available audio devices' +nl+
+    '                        (not supported by every OpenAL implementation)';
 end;
 
 end.
