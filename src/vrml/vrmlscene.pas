@@ -409,6 +409,10 @@ type
   { @exclude }
   TProximitySensorInstancesList = TObjectsList_2;
 
+  TObjectsListItem_3 = TTimeDependentNodeHandler;
+  {$I objectslist_3.inc}
+  TTimeDependentHandlersList = TObjectsList_3;
+
   TCompiledScriptHandler = procedure (
     Value: TVRMLField; const Time: TVRMLTime) of object;
 
@@ -671,7 +675,8 @@ type
     procedure SetProcessEvents(const Value: boolean);
   private
     { This is collected by CollectNodesForEvents. @nil if not ProcessEvents. }
-    KeyDeviceSensorNodes, TimeSensorNodes, MovieTextureNodes: TVRMLNodesList;
+    KeyDeviceSensorNodes: TVRMLNodesList;
+    TimeDependentHandlers: TTimeDependentHandlersList;
     ProximitySensors: TProximitySensorInstancesList;
 
     procedure ClearCollectedNodesForEvents;
@@ -2106,6 +2111,7 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
 {$I dynarray_7.inc}
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
+{$I objectslist_3.inc}
 
 { TVRMLBindableStack ----------------------------------------------------- }
 
@@ -3916,18 +3922,20 @@ var
   end;
 
   procedure HandleChangeTimeStopStart;
+
+    function GetTimeDependentNodeHandler(Node: TVRMLNode): TTimeDependentNodeHandler;
+    begin
+      if Supports(Node, INodeX3DTimeDependentNode) then
+        Result := (Node as INodeX3DTimeDependentNode).TimeDependentNodeHandler else
+        Result := nil;
+    end;
+
   var
     DummySomethingChanged: boolean;
     Handler: TTimeDependentNodeHandler;
   begin
-    if Node is TNodeMovieTexture then
-      Handler := TNodeMovieTexture(Node).TimeDependentNodeHandler else
-    if Node is TNodeTimeSensor then
-      Handler := TNodeTimeSensor(Node).TimeDependentNodeHandler else
-      { Node not really time-dependent.
-        TODO: probably an interface method INodeX3DTimeDependentNode
-        to get handler would be a good idea. }
-      Exit;
+    Handler := GetTimeDependentNodeHandler(Node);
+    if Handler = nil then Exit; {< Node not time-dependent. }
 
     { Although (de)activation of time-dependent nodes will be also caught
       by the nearest IncreaseTime run, it's good to explicitly
@@ -5195,10 +5203,9 @@ begin
 
   if Node is TNodeX3DKeyDeviceSensorNode then
     KeyDeviceSensorNodes.AddIfNotExists(Node) else
-  if Node is TNodeTimeSensor then
-    TimeSensorNodes.AddIfNotExists(Node) else
-  if Node is TNodeMovieTexture then
-    MovieTextureNodes.AddIfNotExists(Node);
+  if Supports(Node, INodeX3DTimeDependentNode) then
+    TimeDependentHandlers.AddIfNotExists(
+      (Node as INodeX3DTimeDependentNode).TimeDependentNodeHandler);
 end;
 
 procedure TVRMLScene.ScriptsInitialize(Node: TVRMLNode);
@@ -5209,8 +5216,7 @@ end;
 procedure TVRMLScene.ClearCollectedNodesForEvents;
 begin
   KeyDeviceSensorNodes.Clear;
-  TimeSensorNodes.Clear;
-  MovieTextureNodes.Clear;
+  TimeDependentHandlers.Clear;
 end;
 
 procedure TVRMLScene.CollectNodesForEvents;
@@ -5285,8 +5291,7 @@ begin
     if Value then
     begin
       KeyDeviceSensorNodes := TVRMLNodesList.Create;
-      TimeSensorNodes := TVRMLNodesList.Create;
-      MovieTextureNodes := TVRMLNodesList.Create;
+      TimeDependentHandlers := TTimeDependentHandlersList.Create;
 
       FProcessEvents := Value;
 
@@ -5298,8 +5303,7 @@ begin
     begin
       if RootNode <> nil then UnregisterProcessEvents(RootNode);
       FreeAndNil(KeyDeviceSensorNodes);
-      FreeAndNil(TimeSensorNodes);
-      FreeAndNil(MovieTextureNodes);
+      FreeAndNil(TimeDependentHandlers);
       PointingDeviceClear;
 
       FProcessEvents := Value;
@@ -5800,7 +5804,7 @@ end;
 procedure TVRMLScene.InternalSetTime(
   const NewValue: TVRMLTime; const TimeIncrease: TKamTime; const ResetTime: boolean);
 var
-  SomethingChanged: boolean;
+  SomethingChanged, SomethingVisibleChanged: boolean;
   I: Integer;
   ChangedSkin: TMFVec3f;
 begin
@@ -5808,26 +5812,25 @@ begin
   begin
     BeginChangesSchedule;
     try
-      SomethingChanged := false;
 
-      for I := 0 to MovieTextureNodes.Count - 1 do
-        (MovieTextureNodes.Items[I] as TNodeMovieTexture).
-          TimeDependentNodeHandler.SetTime(
-            Time, NewValue, TimeIncrease, ResetTime, SomethingChanged);
+      for I := 0 to TimeDependentHandlers.Count - 1 do
+      begin
+        SomethingChanged := false;
+        TimeDependentHandlers[I].SetTime(
+          Time, NewValue, TimeIncrease, ResetTime, SomethingChanged);
 
-      { If SomethingChanged on MovieTexture nodes, then we have to redisplay.
-        Note that this is not needed for other time-dependent nodes
-        (like TimeSensor), as they are not visible (and so can influence
-        other nodes only by events, and this will change EventChanged
-        to catch it). }
-      if SomethingChanged then
+        SomethingVisibleChanged := SomethingChanged and
+          (TimeDependentHandlers[I].Node is TNodeMovieTexture);
+      end;
+
+      { If SomethingVisibleChanged (on MovieTexture nodes),
+        then we have to redisplay. }
+      if SomethingVisibleChanged then
         VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 
-      for I := 0 to TimeSensorNodes.Count - 1 do
-        (TimeSensorNodes.Items[I] as TNodeTimeSensor).
-          TimeDependentNodeHandler.SetTime(
-            Time, NewValue, TimeIncrease, ResetTime, SomethingChanged);
-
+      { call humanoids AnimateSkin now.
+        This could actually be done anywhere, as long as it gets called
+        fairly soon after every HAnimJoint animation. }
       for I := 0 to ScheduledHumanoidAnimateSkin.Count - 1 do
       begin
         ChangedSkin := (ScheduledHumanoidAnimateSkin.Items[I]
