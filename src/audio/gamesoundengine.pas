@@ -505,6 +505,9 @@ begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
 
+const
+  DefaultAudioDevice = '';
+
 procedure TGameSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
 begin
   Volume := ConfigFile.GetFloat('sound/volume', DefaultGameVolume);
@@ -515,7 +518,7 @@ begin
   MaxAllocatedSources := ConfigFile.GetValue(
     'sound/allocated_sources/max', DefaultMaxAllocatedSources);
 
-  ALCDevice := ConfigFile.GetValue('sound/device', BestALCDevice);
+  Device := ConfigFile.GetValue('sound/device', DefaultAudioDevice);
 end;
 
 procedure TGameSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
@@ -530,7 +533,7 @@ begin
     MinAllocatedSources, DefaultMinAllocatedSources);
   ConfigFile.SetDeleteValue('sound/allocated_sources/max',
     MaxAllocatedSources, DefaultMaxAllocatedSources);
-  ConfigFile.SetDeleteValue('sound/device', ALCDevice, BestALCDevice);
+  ConfigFile.SetDeleteValue('sound/device', Device, DefaultAudioDevice);
 end;
 
 { TMusicPlayer --------------------------------------------------------------- }
