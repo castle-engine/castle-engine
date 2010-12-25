@@ -160,7 +160,6 @@ var
   Buffer: TALBuffer;
   Sound: TALSound;
 begin
-  SoundEngine := TALSoundEngine.Create;
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen;
@@ -194,6 +193,5 @@ begin
     SoundEngine.StopAllSources;
     SoundEngine.FreeBuffer(Buffer);
     SoundEngine.ALContextClose;
-    FreeAndNil(SoundEngine);
   end;
 end.

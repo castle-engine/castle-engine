@@ -201,7 +201,6 @@ begin
 end;
 
 begin
-  SoundEngine := TALSoundEngine.Create;
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen;
@@ -209,6 +208,5 @@ begin
     Gets;
   finally
     SoundEngine.ALContextClose;
-    FreeAndNil(SoundEngine);
- end;
+  end;
 end.

@@ -40,7 +40,6 @@ var
 begin
   DataWarning := @DataWarning_Write;
 
-  SoundEngine := TALSoundEngine.Create;
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen;
@@ -87,6 +86,5 @@ begin
     end;
   finally
     SoundEngine.ALContextClose;
-    FreeAndNil(SoundEngine);
   end;
 end.

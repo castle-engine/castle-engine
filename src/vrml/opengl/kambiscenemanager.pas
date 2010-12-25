@@ -827,7 +827,7 @@ procedure Register;
 implementation
 
 uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit, RaysWindow, GLExt,
-  KambiLog, KambiStringUtils, VRMLGLRenderer;
+  KambiLog, KambiStringUtils, VRMLGLRenderer, ALSoundEngine;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -2033,6 +2033,8 @@ begin
       So this way MainScene.CameraChanged will also cause our VisibleChange. }
     MainScene.CameraChanged(Camera, CameraToChanges) else
     VisibleChange;
+
+  SoundEngine.UpdateListener(ACamera as TCamera);
 
   if Assigned(OnCameraChanged) then
     OnCameraChanged(ACamera);

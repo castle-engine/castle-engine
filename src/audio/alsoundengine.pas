@@ -30,19 +30,13 @@ type
     wrapping OpenAL is a nice and comfortable interface.
 
     There should always be only one instance of this class,
-    in global SoundEngine variable. You can create and assign it explicitly,
-    then you're also responsible for calling ALContextOpen,
-    then ALContextClose and freeing it at the end.
-    Or you can let the first TKamSceneManager to take care of this:
-    if the first TKamSceneManager.SoundEngine call will see that
-    global SoundEngine is not assigned, it will take care to create
-    it and initialize (and later close) OpenAL device.
+    in global SoundEngine variable. See docs at SoundEngine for more details.
 
-    This way you can just let TKamSceneManager to create sound engine
-    (on-demand, e.g. only when you open VRML/X3D file with Sound node).
-    Or you can explicitly create it, and then you're independent from
-    TKamSceneManager (you can create and destroy TKamSceneManager instances,
-    and keep the same sound engine instance). }
+    You can explicitly initialize OpenAL context by ALContextOpen,
+    and explicitly close it by ALContextClose. If you did not call ALContextOpen
+    explicitly (that is, ALInitialized is @false), then the first LoadBuffer
+    will automatically do it for you. If you do not call ALContextClose
+    explicitly, then at destructor we'll do it automatically. }
   TALSoundEngine = class(TALSoundAllocator)
   private
     FSoundInitializationReport: string;
@@ -53,6 +47,12 @@ type
     ALDevice: PALCdevice;
     ALContext: PALCcontext;
     FEnable: boolean;
+    FALInitialized: boolean;
+
+    { We record listener state regardless of ALActive. This way at the ALContextOpen
+      call we can immediately set the good listener parameters. }
+    ListenerPosition: TVector3Single;
+    ListenerOrientation: TALTwoVectors3f;
 
     { Check ALC errors. Requires valid ALDevice. }
     procedure CheckALC(const situation: string);
@@ -60,15 +60,11 @@ type
     procedure SetVolume(const Value: Single);
   public
     constructor Create;
+    destructor Destroy; override;
 
     { Initialize OpenAL library, and output device and context.
-      Sets SoundInitializationReport and ALActive.
+      Sets ALInitialized, ALActive, SoundInitializationReport, EFXSupported.
       You can set @link(Device) before calling this.
-
-      If the context will be successfully activated, we will also try to init
-      EFX extensions for it by doing EFXSupported := Load_EFX(Device).
-      If the context will not be activated for whatever reason,
-      EFXSupported will be set to @false.
 
       Note that we continue (without any exception) if the initialization
       failed for any reason (maybe OpenAL library is not available,
@@ -80,13 +76,19 @@ type
 
     { Release OpenAL context and resources.
 
-      ALActive is set to @false. This is ignored if ALActive is already @false. }
+      ALInitialized and ALActive are set to @false. It's allowed and harmless
+      to cal this when one of them is already @false. }
     procedure ALContextClose; override;
 
     { Do we have active OpenAL context. This is @true when you successfully
       called ALContextOpen (and you didn't call ALContextClose yet).
       This also implies that OpenAL library is loaded, that is ALInited = @true. }
     property ALActive: boolean read FALActive;
+
+    { Did we attempt to initialize OpenAL context. This indicates that ALContextOpen
+      was called, and not closed with ALContextClose yet. Contrary to ALActive,
+      this @italic(doesn't care if ALContextOpen was a success). }
+    property ALInitialized: boolean read FALInitialized;
 
     { Are OpenAL effects (EFX) extensions supported.
       Meaningful only when ALActive, that is it's initialized by ALContextOpen. }
@@ -215,8 +217,23 @@ type
     property Enable: boolean read FEnable write FEnable default true;
   end;
 
-var
-  SoundEngine: TALSoundEngine;
+function GetSoundEngine: TALSoundEngine;
+procedure SetSoundEngine(const Value: TALSoundEngine);
+
+{ The global instance of TALSoundEngine.
+
+  You can create and assign it explicitly. Or you can let the first access
+  to SoundEngine automatically create it (on demand,
+  e.g. when you open VRML/X3D file with a Sound node).
+  If you want to assign it explicitly, be sure to do it before
+  anything accesses the SoundEngine (like scene manager).
+  Assigning explicitly may be useful when you want
+  to assign a descendant of TALSoundEngine class.
+
+  You can also destroy it explicitly (remember to set it to nil afterwards,
+  usually use FreeAndNil). Or you can let this unit's finalization do it
+  automatically. }
+property SoundEngine: TALSoundEngine read GetSoundEngine write SetSoundEngine;
 
 implementation
 
@@ -246,6 +263,17 @@ begin
   inherited;
   FVolume := DefaultVolume;
   FEnable := true;
+
+  { Default OpenAL listener attributes }
+  ListenerPosition := ZeroVector3Single;
+  ListenerOrientation[0] := Vector3Single(0, 0, -1);
+  ListenerOrientation[1] := Vector3Single(0, 1, 0);
+end;
+
+destructor TALSoundEngine.Destroy;
+begin
+  ALContextClose;
+  inherited;
 end;
 
 procedure TALSoundEngine.CheckALC(const situation: string);
@@ -331,7 +359,8 @@ procedure TALSoundEngine.ALContextOpen;
 var
   ALActivationErrorMessage: string;
 begin
-  Assert(not ALActive);
+  Assert(not ALActive, 'OpenAL context is already active');
+  Assert(not ALInitialized, 'OpenAL context initialization was already attempted');
 
   if not Enable then
     FSoundInitializationReport :=
@@ -357,6 +386,7 @@ begin
     end;
   end;
 
+  FALInitialized := true;
   if Log then
     WritelnLogMultiline('Sound initialization',
       SoundInitializationReport + nl + ALInformation);
@@ -425,17 +455,21 @@ procedure TALSoundEngine.ALContextClose;
   end;
 
 begin
-  if ALActive then
+  if ALInitialized then
   begin
-    inherited; { release sound allocator }
+    FALInitialized := false;
+    if ALActive then
+    begin
+      inherited; { release sound allocator }
 
-    { EndAL may take a while on Unix OpenAL, so provide feedback
-      for user here (otherwise (s)he may think that program hanged). }
-    Progress.Init(1, 'Closing sound device, please wait');
-    try
-      EndAL;
-      Progress.Step;
-    finally Progress.Fini; end;
+      { EndAL may take a while on Unix OpenAL, so provide feedback
+        for user here (otherwise (s)he may think that program hanged). }
+      Progress.Init(1, 'Closing sound device, please wait');
+      try
+        EndAL;
+        Progress.Step;
+      finally Progress.Fini; end;
+    end;
   end;
 end;
 
@@ -568,6 +602,8 @@ end;
 
 function TALSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
 begin
+  if not ALInitialized then ALContextOpen;
+
   { TODO: for now, no cache }
   Result := TALSoundFile.alCreateBufferDataFromFile(FileName);
 end;
@@ -670,22 +706,20 @@ begin
 end;
 
 procedure TALSoundEngine.UpdateListener(Camera: TCamera);
-var
-  Pos: TVector3Single;
-  { We use Orientation vector, instead of two separate Dir, Up,
-    to not waste time or copying vector contents. }
-  Orientation: TALTwoVectors3f;
 begin
+  Camera.GetView(ListenerPosition, ListenerOrientation[0], ListenerOrientation[1]);
   if ALActive then
   begin
-    Camera.GetView(Pos, Orientation[0], Orientation[1]);
-    alListenerVector3f(AL_POSITION, Pos);
-    alListenerfv(AL_ORIENTATION, @Orientation);
+    alListenerVector3f(AL_POSITION, ListenerPosition);
+    alListenerfv(AL_ORIENTATION, @ListenerOrientation);
   end;
 end;
 
 procedure TALSoundEngine.UpdateListener(const Position, Direction, Up: TVector3Single);
 begin
+  ListenerPosition := Position;
+  ListenerOrientation[0] := Direction;
+  ListenerOrientation[1] := Up;
   if ALActive then
   begin
     alListenerVector3f(AL_POSITION, Position);
@@ -693,4 +727,24 @@ begin
   end;
 end;
 
+{ globals -------------------------------------------------------------------- }
+
+var
+  FSoundEngine: TALSoundEngine;
+
+function GetSoundEngine: TALSoundEngine;
+begin
+  if FSoundEngine = nil then
+    FSoundEngine := TALSoundEngine.Create;
+  Result := FSoundEngine;
+end;
+
+procedure SetSoundEngine(const Value: TALSoundEngine);
+begin
+  Assert(FSoundEngine = nil, 'SoundEngine is already assigned');
+  FSoundEngine := Value;
+end;
+
+finalization
+  FreeAndNil(FSoundEngine);
 end.

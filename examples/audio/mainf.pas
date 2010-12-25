@@ -69,7 +69,6 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
-  SoundEngine := TALSoundEngine.Create;
   SoundEngine.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
   SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
   SoundEngine.ALContextOpen;
@@ -112,7 +111,6 @@ end;
 procedure TMain.FormDestroy(Sender: TObject);
 begin
   SoundEngine.ALContextClose;
-  FreeAndNil(SoundEngine);
 end;
 
 procedure TMain.SourceUsingEnd(Sender: TALSound);
