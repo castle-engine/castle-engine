@@ -160,8 +160,8 @@ var
   Buffer: TALBuffer;
   Sound: TALSound;
 begin
-  OpenALOptionsParse;
   SoundEngine := TALSoundEngine.Create;
+  SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen(false);
   try
@@ -176,7 +176,7 @@ begin
       raise Exception.Create('Not possible to allocate even 1 source');
     alSourcei(Sound.ALSource, AL_BUFFER, Buffer);
 
-    if EFXSupported then
+    if SoundEngine.EFXSupported then
     begin
       Writeln('EFX supported, applying effects (demo number ', Ord(DemoMode), ')');
       InitEFX(Sound.ALSource);
@@ -188,7 +188,7 @@ begin
     while alGetSource1i(Sound.ALSource, AL_SOURCE_STATE) = AL_PLAYING do Delay(100);
     CheckAL('playing sound');
 
-    if EFXSupported then
+    if SoundEngine.EFXSupported then
       CloseEFX;
   finally
     SoundEngine.StopAllSources;
