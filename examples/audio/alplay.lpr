@@ -70,6 +70,7 @@ begin
           '  Format : ' + ALDataFormatToStr(FAL.SoundFile.DataFormat) + nl +
           '  Size (of sample in file) : ', FAL.SoundFile.DataSize, nl,
           '  Frequency : ',FAL.SoundFile.Frequency, nl,
+          '  Duration : ', FAL.SoundFile.Duration:0:2, ' seconds', nl,
           'Size (as returned by querying Buffer) : ', alGetBuffer1sizei(Buffer, AL_SIZE), nl
         );
       finally FAL.Free end;

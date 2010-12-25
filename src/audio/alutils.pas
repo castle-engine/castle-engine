@@ -29,7 +29,7 @@ interface
 
 {$define read_interface}
 
-uses SysUtils, KambiUtils, KambiOpenAL, Classes, SoundFile;
+uses SysUtils, KambiUtils, KambiOpenAL, Classes, SoundFile, KambiTimeUtils;
 
 type
   EOpenALError = class(Exception);
@@ -118,8 +118,8 @@ type
       "..." is taken from SoundFile's properties. }
     procedure alBufferData(buffer: TALuint);
 
-    class procedure alBufferDataFromFile(buffer: TALuint; const FileName: string);
-    class function alCreateBufferDataFromFile(const FileName: string): TALuint;
+    class procedure alBufferDataFromFile(buffer: TALuint; const FileName: string;
+      out Duration: TKamTime);
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -391,7 +391,7 @@ begin
 end;
 
 class procedure TALSoundFile.alBufferDataFromFile(buffer: TALuint;
-  const FileName: string);
+  const FileName: string; out Duration: TKamTime);
 var
   F: TSoundFile;
   FAL: TALSoundFile;
@@ -401,17 +401,9 @@ begin
     FAL := TALSoundFile.Create(F, false);
     try
       FAL.alBufferData(buffer);
+      Duration := F.Duration;
     finally FAL.Free end;
   finally F.Free end;
-end;
-
-class function TALSoundFile.alCreateBufferDataFromFile(
-  const FileName: string): TALuint;
-begin
-  alCreateBuffers(1, @result);
-  try
-    alBufferDataFromFile(result, FileName);
-  except alDeleteBuffers(1, @result); raise end;
 end;
 
 { query al state -------------------------------------------------------------- }

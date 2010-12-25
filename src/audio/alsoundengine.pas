@@ -18,7 +18,8 @@ unit ALSoundEngine;
 
 interface
 
-uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras;
+uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras,
+  KambiTimeUtils;
 
 const
   DefaultVolume = 1.0;
@@ -108,7 +109,12 @@ type
       changes @link(Device) value, initializes context again (ALContextOpen). }
     procedure ALChangeDevice(const NewDevice: string);
 
-    { Load a sound file into OpenAL buffer. Result is never 0.
+    { Load a sound file into OpenAL buffer.
+
+      Result is 0 only if we don't have a valid OpenAL context.
+      Note that this method will automatically call ALContextOpen if it wasn't
+      called yet. So result = zero means that ALContextOpen was called, but for some
+      reason failed.
 
       The buffer should be released by FreeBuffer later when it's not needed.
       Although we will take care to always free remaining buffers
@@ -120,8 +126,11 @@ type
       will be recorded as being loaded to given buffer. Loading the same
       filename second time returns the same OpenAL buffer. The buffer
       is released only once you call FreeBuffer as many times as you called
-      LoadBuffer for it. }
+      LoadBuffer for it.
+      @groupBegin }
+    function LoadBuffer(const FileName: string; out Duration: TKamTime): TALBuffer;
     function LoadBuffer(const FileName: string): TALBuffer;
+    { @groupEnd }
 
     { Free a sound file buffer. Ignored when buffer is zero.
       Buffer is always set to zero after this.
@@ -238,7 +247,7 @@ property SoundEngine: TALSoundEngine read GetSoundEngine write SetSoundEngine;
 implementation
 
 uses KambiUtils, KambiStringUtils, ALUtils, KambiLog, ProgressUnit,
-  SoundFile, VorbisFile, KambiTimeUtils, EFX, ParseParametersUnit;
+  SoundFile, VorbisFile, EFX, ParseParametersUnit;
 
 type
   { For alcGetError errors (ALC_xxx constants). }
@@ -600,12 +609,25 @@ begin
   end;
 end;
 
-function TALSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
+function TALSoundEngine.LoadBuffer(const FileName: string;
+  out Duration: TKamTime): TALBuffer;
 begin
   if not ALInitialized then ALContextOpen;
 
+  if not ALActive then Exit(0);
+
   { TODO: for now, no cache }
-  Result := TALSoundFile.alCreateBufferDataFromFile(FileName);
+  alCreateBuffers(1, @Result);
+  try
+    TALSoundFile.alBufferDataFromFile(Result, FileName, Duration);
+  except alDeleteBuffers(1, @Result); raise end;
+end;
+
+function TALSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
+var
+  Dummy: TKamTime;
+begin
+  Result := LoadBuffer(FileName, Dummy);
 end;
 
 procedure TALSoundEngine.FreeBuffer(var Buffer: TALBuffer);

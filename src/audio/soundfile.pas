@@ -23,7 +23,7 @@ unit SoundFile;
 
 interface
 
-uses SysUtils, KambiUtils, Classes, KambiOpenAL;
+uses SysUtils, KambiUtils, Classes, KambiOpenAL, KambiTimeUtils;
 
 type
   ESoundFormatNotSupportedByOpenAL = class(Exception);
@@ -58,6 +58,10 @@ type
     { Data format, as understood by OpenAL. }
     function DataFormat: TALuint; virtual; abstract;
     function Frequency: LongWord; virtual; abstract;
+
+    { Duration in seconds. Returns -1 if not known (DataSize or Frequency are zero,
+      or DataFormat is unknown). }
+    function Duration: TKamTime;
   end;
 
   TSoundFileClass = class of TSoundFile;
@@ -213,6 +217,22 @@ end;
 procedure TSoundFile.PrepareOpenAL;
 begin
   { Nothing to do in this class. }
+end;
+
+function TSoundFile.Duration: TKamTime;
+var
+  SampleSize: Cardinal;
+begin
+  case DataFormat of
+    AL_FORMAT_MONO8   : SampleSize := 1;
+    AL_FORMAT_MONO16  : SampleSize := 2;
+    AL_FORMAT_STEREO8 : SampleSize := 2;
+    AL_FORMAT_STEREO16: SampleSize := 4;
+    else Exit(-1);
+  end;
+  if (Frequency = 0) or (DataSize = 0) then
+    Exit(-1);
+  Result := DataSize / (Frequency * SampleSize);
 end;
 
 { TSoundMP3 ------------------------------------------------------------------ }

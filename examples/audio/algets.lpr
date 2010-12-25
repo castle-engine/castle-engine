@@ -116,6 +116,7 @@ var
 var
   TestSoundFileName: string;
   Device: PALCDevice;
+  IgnoredDuration: TKamTime;
 begin
   {$ifdef FORCE_COMPAT}
   alCreateSources(1, @SampleSource);
@@ -166,7 +167,7 @@ begin
     begin
       TestSoundFileName := Parameters[1];
 
-      TALSoundFile.alBufferDataFromFile(SampleBuffer, TestSoundFileName);
+      TALSoundFile.alBufferDataFromFile(SampleBuffer, TestSoundFileName, IgnoredDuration);
       alSourcei(SampleSource, AL_BUFFER, SampleBuffer);
 
       Write(
