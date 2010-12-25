@@ -354,7 +354,9 @@ constructor TSoundWAV.CreateFromStream(Stream: TStream);
 
 { WAV file reader. Written mostly based on
     http://www.technology.niagarac.on.ca/courses/comp630/WavFileFormat.html
-  and looking at alutLoadWAVFile implementation. }
+  and looking at alutLoadWAVFile implementation.
+  See also http://www.sonicspot.com/guide/wavefiles.html , this seems
+  a little more updated. }
 
 type
   TID = array[0..3]of char;
@@ -392,9 +394,7 @@ type
     SamplesPerSec: LongWord;
     AvgBytesPerSec: LongWord;
     BlockAlign: Word;
-    { Meaning of FormatSpecific depends on the FormatTag value.
-      For 1 (PCM) it means BitsPerSample. }
-    FormatSpecific: Word;
+    BitsPerSample: Word;
   end;
 
 var
@@ -428,6 +428,13 @@ begin
   begin
     Stream.ReadBuffer(Header, SizeOf(Header));
 
+{
+    Writeln('Got chunk "',
+      SReadableForm(Header.ID[0] + Header.ID[1] + Header.ID[2] + Header.ID[3]) +
+      '", length ', Header.Len,
+      ', remaining stream size ', Stream.Size - Stream.Position);
+}
+
     if IdCompare(Header.ID, 'fmt ') then
     begin
       Stream.ReadBuffer(Format, SizeOf(Format));
@@ -435,16 +442,24 @@ begin
         raise EInvalidWAV.Create('Loading WAV files not in PCM format not implemented');
       { calculate FDataFormat }
       case Format.Channels of
-        1: if Format.FormatSpecific = 8 then
+        1: if Format.BitsPerSample = 8 then
              FDataFormat := AL_FORMAT_MONO8 else
              FDataFormat := AL_FORMAT_MONO16;
-        2: if Format.FormatSpecific = 8 then
+        2: if Format.BitsPerSample = 8 then
              FDataFormat := AL_FORMAT_STEREO8 else
              FDataFormat := AL_FORMAT_STEREO16;
         else raise EInvalidWAV.Create('Only WAV files with 1 or 2 channels are allowed');
       end;
       { calculate FFrequency }
       FFrequency := Format.SamplesPerSec;
+      { There may be some additional stuff here in format chunk.
+        The meaning depends on FormatTag value.
+        http://www.sonicspot.com/guide/wavefiles.html
+        says they can only happen for compressed WAV data, but I have examples
+        of files created (probably) by Windows 95 wav recorder that
+        are uncompressed and still have some data here
+        (szklane_lasy/sounds/cantDoIt.wav). So be prepared always for some data here. }
+      Stream.Seek(Header.Len - SizeOf(Format), soFromCurrent);
     end else
 
     if IdCompare(Header.ID, 'data') then
@@ -459,10 +474,16 @@ begin
 
     begin
       { skip any unknown chunks }
-      { Writeln('Skipping unknown chunk '+IdToStr(Header.ID)); }
       Stream.Seek(Header.Len, soFromCurrent);
     end;
 
+    { all RIFF chunks are 2-byte-aligned, and DataSize doesn't include this padding,
+      according to http://www.sonicspot.com/guide/wavefiles.html
+      We have to account for it, and skip this padding (otherwise we would get
+      nonsense header next, that is cut off by eof and/or has wild Header.Len).
+      Testcase with szklane_lasy/sounds/cantDoIt.wav. }
+    if Odd(Header.Len) then
+      Stream.Seek(1, soFromCurrent);
   end;
 end;
 
