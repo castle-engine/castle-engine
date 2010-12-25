@@ -71,6 +71,10 @@
   end;
 
   TNodeSound = class(TNodeX3DSoundNode)
+  private
+    FTransform: TMatrix4Single;
+  protected
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -233,7 +237,7 @@ begin
           FdLoop.Value,
           Clamped(Round(SoundNode.FdPriority.Value * 1000), 0, 1000),
           SoundNode.FdIntensity.Value, 0, 1,
-          SoundNode.FdLocation.Value);
+          MatrixMultPoint(SoundNode.FTransform, SoundNode.FdLocation.Value));
         if Sound <> nil then
           Sound.OnUsingEnd := @SoundUsingEnd;
       end;
@@ -324,6 +328,14 @@ begin
   Fields.Add(FFdspatialize);
 
   DefaultContainerField := 'children';
+
+  FTransform := IdentityMatrix4Single;
+end;
+
+procedure TNodeSound.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+begin
+  inherited;
+  FTransform := StateStack.Top.Transform;
 end;
 
 class function TNodeSound.ClassNodeTypeName: string;
