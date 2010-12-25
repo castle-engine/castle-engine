@@ -491,7 +491,7 @@ function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
       alSourcef(ALSource, AL_ROLLOFF_FACTOR, 0.1);
       alSourcef(ALSource, AL_REFERENCE_DISTANCE, 2.0);
 
-      alSourcei(ALSource, AL_SOURCE_RELATIVE, AL_FALSE);
+      Result.Relative := false;
       Result.Position := Position;
     end else
     begin
@@ -504,7 +504,7 @@ function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
         is not played on left or right side, but normally).
         That's why setting source position exactly on the player
         is needed here. }
-      alSourcei(ALSource, AL_SOURCE_RELATIVE, AL_TRUE);
+      Result.Relative := true;
       Result.Position := ZeroVector3Single;
     end;
   end;

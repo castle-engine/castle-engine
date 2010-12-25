@@ -48,11 +48,12 @@ type
     FALSourceAllocated: boolean;
     FUserData: TObject;
     FPosition: TVector3Single;
-    FLooping: boolean;
+    FLooping, FRelative: boolean;
     FGain, FMinGain, FMaxGain: Single;
     FBuffer: TALBuffer;
     procedure SetPosition(const Value: TVector3Single);
     procedure SetLooping(const Value: boolean);
+    procedure SetRelative(const Value: boolean);
     procedure SetGain(const Value: Single);
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
@@ -130,6 +131,7 @@ type
 
     property Position: TVector3Single read FPosition write SetPosition;
     property Looping: boolean read FLooping write SetLooping;
+    property Relative: boolean read FRelative write SetRelative;
     property Gain: Single read FGain write SetGain;
     property MinGain: Single read FMinGain write SetMinGain;
     property MaxGain: Single read FMaxGain write SetMaxGain;
@@ -340,6 +342,12 @@ procedure TALSound.SetLooping(const Value: boolean);
 begin
   FLooping := Value;
   alSourcei(ALSource, AL_LOOPING, BoolToAL[Value]);
+end;
+
+procedure TALSound.SetRelative(const Value: boolean);
+begin
+  FRelative := Value;
+  alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[Value]);
 end;
 
 procedure TALSound.SetGain(const Value: Single);

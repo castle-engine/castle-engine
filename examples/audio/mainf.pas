@@ -44,7 +44,7 @@ type
     procedure SourceUsingEnd(Sender: TALSound);
   public
     { public declarations }
-  end; 
+  end;
 
 var
   Main: TMain;
@@ -97,15 +97,13 @@ begin
     UserData.FileName := FileNameEditSound.FileName;
     UserData.ALBuffer := Buffer;
     UserData.StartedTime := Now;
-      
+
     UsedSource.UserData := UserData;
 
-    alSourcei(UsedSource.ALSource, AL_BUFFER, UserData.ALBuffer);
-    alSourcei(UsedSource.ALSource, AL_SOURCE_RELATIVE, AL_TRUE);
-    alSourceVector3f(UsedSource.ALSource, AL_POSITION, Vector3Single(0, 0, 0));
-    if CheckBoxPlayLooping.Checked then
-      alSourcei(UsedSource.ALSource, AL_LOOPING, AL_TRUE) else
-      alSourcei(UsedSource.ALSource, AL_LOOPING, AL_FALSE);
+    UsedSource.Buffer := UserData.ALBuffer;
+    UsedSource.Relative := true;
+    UsedSource.Position := ZeroVector3Single;
+    UsedSource.Looping := CheckBoxPlayLooping.Checked;
 
     alSourcePlay(UsedSource.ALSource);
   end;

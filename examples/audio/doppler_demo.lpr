@@ -63,7 +63,7 @@ begin
   if mbLeft in Window.MousePressed then
   begin
     SourcePosition := Vector3Single(NewX, Window.Height - NewY);
-    alSourceVector3f(Source.ALSource, AL_POSITION, SourcePosition * ALDistanceScaling);
+    Source.Position := SourcePosition * ALDistanceScaling;
     Window.PostRedisplay;
   end;
 end;
@@ -87,7 +87,7 @@ begin
     Source.Looping := true;
     SourcePosition := Vector3Single(200, 300, 0);
     PreviousSourcePosition := SourcePosition;
-    alSourceVector3f(Source.ALSource, AL_POSITION, SourcePosition * ALDistanceScaling);
+    Source.Position := SourcePosition * ALDistanceScaling;
     alSourcePlay(Source.ALSource);
 
     ListenerPosition := Vector3Single(300, 300, 0);
