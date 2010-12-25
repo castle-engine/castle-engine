@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, Spin,
-  StdCtrls, Buttons, ALSourceAllocator, ExtCtrls, Grids, EditBtn;
+  StdCtrls, Buttons, ALSoundAllocator, ALSoundEngine, ExtCtrls, Grids, EditBtn;
 
 type
   { TMain }
@@ -15,7 +15,6 @@ type
     ButtonRefreshUsed: TButton;
     ButtonAllocateAndPlay: TButton;
     ButtonApplyAllocatorLimits: TButton;
-    ButtonRecreateAllocator: TButton;
     CheckBoxPlayLooping: TCheckBox;
     FileNameEditSound: TFileNameEdit;
     Label1: TLabel;
@@ -36,14 +35,13 @@ type
     Timer1: TTimer;
     procedure ButtonAllocateAndPlayClick(Sender: TObject);
     procedure ButtonApplyAllocatorLimitsClick(Sender: TObject);
-    procedure ButtonRecreateAllocatorClick(Sender: TObject);
     procedure ButtonRefreshUsedClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
-    SourceAllocator: TALSourceAllocator;
-    procedure SourceUsingEnd(Sender: TALAllocatedSource);
+    SoundEngine: TALSoundEngine;
+    procedure SourceUsingEnd(Sender: TALSound);
   public
     { public declarations }
   end; 
@@ -58,63 +56,46 @@ uses VectorMath, ALUtils, KambiOpenAL, KambiUtils, KambiStringUtils;
 { TMain }
 
 type
-  TALAllocatedSourceData = class
+  TALSoundData = class
     ALBuffer: TALuint;
     FileName: string;
     StartedTime: TTime;
   end;
 
-procedure TMain.ButtonRecreateAllocatorClick(Sender: TObject);
-begin
-  FreeAndNil(SourceAllocator);
-  SourceAllocator := TALSourceAllocator.Create(
-    SpinEditMinAllocatedSources.Value,
-    SpinEditMaxAllocatedSources.Value);
-end;
-
 procedure TMain.ButtonRefreshUsedClick(Sender: TObject);
 begin
-  SourceAllocator.RefreshUsed;
+  SoundEngine.RefreshUsedSources;
 end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
-  try
-    BeginAL(false);
-  except
-    on E: EOpenALError do
-    begin
-      MessageDlg('Exception ' + E.ClassName + ':' + NL + E.Message,
-        mtError, [mbOK], 0);
-      { Re-raise, to end the program and print this on console }
-      raise;
-    end;
-  end;
-  SourceAllocator := TALSourceAllocator.Create(
-    SpinEditMinAllocatedSources.Value,
-    SpinEditMaxAllocatedSources.Value);
+  SoundEngine := TALSoundEngine.Create;
+  SoundEngine.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
+  SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
+  SoundEngine.ALContextOpen(false);
   Timer1.Enabled := true;
 end;
 
 procedure TMain.ButtonApplyAllocatorLimitsClick(Sender: TObject);
 begin
-  SourceAllocator.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
-  SourceAllocator.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
+  SoundEngine.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
+  SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
 end;
 
 procedure TMain.ButtonAllocateAndPlayClick(Sender: TObject);
 var
-  UsedSource: TALAllocatedSource;
-  UserData: TALAllocatedSourceData;
+  UsedSource: TALSound;
+  UserData: TALSoundData;
+  Buffer: TALBuffer;
 begin
-  UsedSource := SourceAllocator.AllocateSource(SpinEditSourceImportance.Value);
+  Buffer := SoundEngine.LoadBuffer(FileNameEditSound.FileName);
+  UsedSource := SoundEngine.AllocateSound(SpinEditSourceImportance.Value);
 
   if UsedSource <> nil then
   begin
-    UserData := TALAllocatedSourceData.Create;
+    UserData := TALSoundData.Create;
     UserData.FileName := FileNameEditSound.FileName;
-    UserData.ALBuffer :=
-      TALSoundFile.alCreateBufferDataFromFile(UserData.FileName);
+    UserData.ALBuffer := Buffer;
     UserData.StartedTime := Now;
       
     UsedSource.UserData := UserData;
@@ -132,14 +113,14 @@ end;
 
 procedure TMain.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil(SourceAllocator);
-  EndAL;
+  SoundEngine.ALContextClose;
+  FreeAndNil(SoundEngine);
 end;
 
-procedure TMain.SourceUsingEnd(Sender: TALAllocatedSource);
+procedure TMain.SourceUsingEnd(Sender: TALSound);
 begin
   Assert(Sender.UserData <> nil);
-  alDeleteBuffers(1, @TALAllocatedSourceData(Sender.UserData).ALBuffer);
+  alDeleteBuffers(1, @TALSoundData(Sender.UserData).ALBuffer);
   Sender.UserData.Free;
   Sender.UserData := nil;
 end;
@@ -149,22 +130,22 @@ var
   I: Integer;
   S: string;
 begin
-  if SourceAllocator <> nil then
+  if SoundEngine <> nil then
   begin
     ListAllocatedSources.Clear;
-    for I := 0 to SourceAllocator.AllocatedSources.High do
+    for I := 0 to SoundEngine.AllocatedSources.High do
     begin
       S := Format('%d: AL source: %4d, used: %5s',
         [ I,
-          SourceAllocator.AllocatedSources[I].ALSource,
-          BoolToStrYesNo[SourceAllocator.AllocatedSources[I].Used] ]);
-      if SourceAllocator.AllocatedSources[I].Used then
+          SoundEngine.AllocatedSources[I].ALSource,
+          BoolToStrYesNo[SoundEngine.AllocatedSources[I].Used] ]);
+      if SoundEngine.AllocatedSources[I].Used then
         S += Format(', started on %s, importance: %d, filename: %s',
           [ FormatDateTime('tt',
-              TALAllocatedSourceData(
-                SourceAllocator.AllocatedSources[I].UserData).StartedTime),
-            SourceAllocator.AllocatedSources[I].Importance,
-            TALAllocatedSourceData(SourceAllocator.AllocatedSources[I].
+              TALSoundData(
+                SoundEngine.AllocatedSources[I].UserData).StartedTime),
+            SoundEngine.AllocatedSources[I].Importance,
+            TALSoundData(SoundEngine.AllocatedSources[I].
               UserData).FileName
           ]);
       ListAllocatedSources.Items.Append(S);

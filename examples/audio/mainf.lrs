@@ -1,66 +1,72 @@
 { To jest automatycznie wygenerowany plik zasobów lazarusa }
 
 LazarusResources.Add('TMain','FORMDATA',[
-  'TPF0'#5'TMain'#4'Main'#4'Left'#2'{'#6'Height'#3#6#2#3'Top'#2'E'#5'Width'#3
-  +#250#2#18'HorzScrollBar.Page'#3#2#3#18'VertScrollBar.Page'#3#240#1#13'Active'
-  +'Control'#7#5'Memo1'#7'Caption'#6#28'Test OpenAL source allocator'#12'Client'
-  +'Height'#3#6#2#11'ClientWidth'#3#250#2#8'OnCreate'#7#10'FormCreate'#9'OnDest'
-  +'roy'#7#11'FormDestroy'#8'Position'#7#15'poDesktopCenter'#10'LCLVersion'#6#6
-  +'0.9.29'#0#5'TMemo'#5'Memo1'#4'Left'#2#8#6'Height'#2'h'#3'Top'#2#8#5'Width'#3
-  +#231#2#7'Anchors'#11#5'akTop'#6'akLeft'#7'akRight'#0#13'Lines.Strings'#1#6
-  +#142'For basic demo, just press "Allocate and play sound source" a couple of'
-  +' times, and note that multiple sources will be intelligently allocated.'#6
-  +'8- OpenAL sources are managed based on their Importance. '#6'U- It''s best '
-  +'to use some long sounds, so that you can get many sounds playing at once.'#6
-  +'9- See TALSourceAllocator class documentation for details.'#0#8'TabOrder'#2
-  +#0#0#0#6'TPanel'#10'PanelLists'#4'Left'#2#8#6'Height'#3#221#0#3'Top'#3'('#1#5
-  +'Width'#3#231#2#7'Anchors'#11#5'akTop'#6'akLeft'#7'akRight'#8'akBottom'#0#12
-  +'ClientHeight'#3#221#0#11'ClientWidth'#3#231#2#8'TabOrder'#2#1#0#6'TLabel'#6
-  +'Label2'#4'Left'#2#24#6'Height'#2#18#3'Top'#2#16#5'Width'#3#129#0#7'Caption'
-  +#6#18'Allocated sources:'#11'ParentColor'#8#0#0#8'TListBox'#20'ListAllocated'
-  +'Sources'#4'Left'#2#24#6'Height'#3#174#0#3'Top'#2' '#5'Width'#3'D'#2#7'Ancho'
-  +'rs'#11#5'akTop'#6'akLeft'#7'akRight'#8'akBottom'#0#10'ItemHeight'#2#0#8'Tab'
-  +'Order'#2#0#8'TopIndex'#2#255#0#0#7'TButton'#17'ButtonRefreshUsed'#4'Left'#3
-  +'b'#2#6'Height'#2'%'#3'Top'#2' '#5'Width'#2'p'#7'Anchors'#11#5'akTop'#7'akRi'
-  +'ght'#0#8'AutoSize'#9#25'BorderSpacing.InnerBorder'#2#4#7'Caption'#6#12'Refr'
-  +'esh used'#7'OnClick'#7#22'ButtonRefreshUsedClick'#8'TabOrder'#2#1#0#0#0#6'T'
-  +'Panel'#20'PanelAllocatorLimits'#4'Left'#2#8#6'Height'#2'X'#3'Top'#2'x'#5'Wi'
-  +'dth'#3#231#2#7'Anchors'#11#5'akTop'#6'akLeft'#7'akRight'#0#12'ClientHeight'
-  +#2'X'#11'ClientWidth'#3#231#2#8'TabOrder'#2#2#0#6'TLabel'#24'LabelMaxAllocat'
-  +'edSources'#4'Left'#2#10#6'Height'#2#18#3'Top'#2'8'#5'Width'#3#163#0#7'Capti'
-  +'on'#6#23'Max allocated sources :'#11'ParentColor'#8#0#0#6'TLabel'#24'LabelM'
-  +'inAllocatedSources'#4'Left'#2#13#6'Height'#2#18#3'Top'#2#16#5'Width'#3#160#0
-  +#7'Caption'#6#23'Min allocated sources :'#11'ParentColor'#8#0#0#7'TButton'#26
-  +'ButtonApplyAllocatorLimits'#4'Left'#3#246#0#6'Height'#2'%'#3'Top'#2'0'#5'Wi'
-  +'dth'#3#246#0#8'AutoSize'#9#25'BorderSpacing.InnerBorder'#2#4#7'Caption'#6'"'
-  +'Apply to existing source allocator'#7'OnClick'#7#31'ButtonApplyAllocatorLim'
-  +'itsClick'#8'TabOrder'#2#0#0#0#9'TSpinEdit'#27'SpinEditMaxAllocatedSources'#4
-  +'Left'#3#176#0#6'Height'#2#27#3'Top'#2'8'#5'Width'#2'2'#8'MaxValue'#3#232#3#8
-  +'MinValue'#2#1#8'TabOrder'#2#1#5'Value'#2#6#0#0#9'TSpinEdit'#27'SpinEditMinA'
-  +'llocatedSources'#4'Left'#3#176#0#6'Height'#2#27#3'Top'#2#16#5'Width'#2'2'#8
-  +'MaxValue'#3#232#3#8'MinValue'#2#1#8'TabOrder'#2#2#5'Value'#2#4#0#0#7'TButto'
-  +'n'#23'ButtonRecreateAllocator'#4'Left'#3#246#0#6'Height'#2'%'#3'Top'#2#8#5
-  +'Width'#3#216#0#8'AutoSize'#9#25'BorderSpacing.InnerBorder'#2#4#7'Caption'#6
-  +#28'Recreate AL source allocator'#7'OnClick'#7#28'ButtonRecreateAllocatorCli'
-  +'ck'#8'TabOrder'#2#3#0#0#0#6'TPanel'#18'PanelSourcePlaying'#4'Left'#2#8#6'He'
-  +'ight'#2'I'#3'Top'#3#216#0#5'Width'#3#231#2#7'Anchors'#11#5'akTop'#6'akLeft'
-  +#7'akRight'#0#12'ClientHeight'#2'I'#11'ClientWidth'#3#231#2#8'TabOrder'#2#3#0
-  +#6'TLabel'#21'LabelSourceImportance'#4'Left'#2#8#6'Height'#2#18#3'Top'#2#16#5
-  +'Width'#3#141#0#7'Caption'#6#19'Source importance :'#11'ParentColor'#8#0#0#6
-  +'TLabel'#6'Label3'#4'Left'#2#8#6'Height'#2#18#3'Top'#2'1'#5'Width'#2'w'#7'Ca'
-  +'ption'#6#16'Sound filename :'#11'ParentColor'#8#0#0#13'TFileNameEdit'#17'Fi'
-  +'leNameEditSound'#4'Left'#3#160#0#6'Height'#2#27#3'Top'#2'('#5'Width'#3' '#1
-  +#8'FileName'#6'*../../../castle/data/sounds/evil_laugh.wav'#13'DialogOptions'
-  +#11#0#6'Filter'#6'''WAV files (*.wav)|*.wav|All files (*)|*'#11'FilterIndex'
-  +#2#0#15'HideDirectories'#8#11'ButtonWidth'#2#23#9'NumGlyphs'#2#1#9'MaxLength'
-  +#2#0#8'TabOrder'#2#0#0#0#9'TSpinEdit'#24'SpinEditSourceImportance'#4'Left'#3
-  +#160#0#6'Height'#2#27#3'Top'#2#9#5'Width'#2'2'#8'MaxValue'#3#232#3#8'MinValu'
-  +'e'#3#24#252#8'TabOrder'#2#1#0#0#7'TButton'#21'ButtonAllocateAndPlay'#4'Left'
-  +#3#239#1#6'Height'#2'%'#3'Top'#2#9#5'Width'#3#235#0#7'Anchors'#11#5'akTop'#7
-  +'akRight'#0#8'AutoSize'#9#25'BorderSpacing.InnerBorder'#2#4#7'Caption'#6#30
-  +'Allocate and play sound source'#7'OnClick'#7#26'ButtonAllocateAndPlayClick'
-  +#8'TabOrder'#2#2#0#0#9'TCheckBox'#19'CheckBoxPlayLooping'#4'Left'#3#246#0#6
-  +'Height'#2#22#3'Top'#2#9#5'Width'#2'j'#7'Caption'#6#12'Play looping'#8'TabOr'
-  +'der'#2#3#0#0#0#6'TTimer'#6'Timer1'#7'Enabled'#8#8'Interval'#2'd'#7'OnTimer'
-  +#7#11'Timer1Timer'#4'left'#3#144#1#3'top'#2'0'#0#0#0
+  'TPF0'#5'TMain'#4'Main'#4'Left'#3#164#1#6'Height'#3'T'#2#3'Top'#3#148#0#5'Wid'
+  +'th'#3#229#2#18'HorzScrollBar.Page'#3#2#3#18'VertScrollBar.Page'#3#240#1#13
+  +'ActiveControl'#7#5'Memo1'#7'Caption'#6#28'Test OpenAL source allocator'#12
+  +'ClientHeight'#3'T'#2#11'ClientWidth'#3#229#2#8'OnCreate'#7#10'FormCreate'#9
+  +'OnDestroy'#7#11'FormDestroy'#8'Position'#7#15'poDesktopCenter'#10'LCLVersio'
+  +'n'#6#8'0.9.28.2'#0#5'TMemo'#5'Memo1'#4'Left'#2#8#6'Height'#2'h'#3'Top'#2#8#5
+  +'Width'#3#210#2#7'Anchors'#11#5'akTop'#6'akLeft'#7'akRight'#0#13'Lines.Strin'
+  +'gs'#1#6#142'For basic demo, just press "Allocate and play sound source" a c'
+  +'ouple of times, and note that multiple sources will be intelligently alloca'
+  +'ted.'#6'8- OpenAL sources are managed based on their Importance. '#6'U- It'
+  +'''s best to use some long sounds, so that you can get many sounds playing a'
+  +'t once.'#6'9- See TALSourceAllocator class documentation for details.'#0#8
+  +'TabOrder'#2#0#0#0#6'TPanel'#10'PanelLists'#21'AnchorSideTop.Control'#7#18'P'
+  +'anelSourcePlaying'#18'AnchorSideTop.Side'#7#9'asrBottom'#4'Left'#2#8#6'Heig'
+  +'ht'#3#255#0#3'Top'#3'T'#1#5'Width'#3#210#2#7'Anchors'#11#5'akTop'#6'akLeft'
+  +#7'akRight'#8'akBottom'#0#17'BorderSpacing.Top'#2#8#12'ClientHeight'#3#255#0
+  +#11'ClientWidth'#3#210#2#8'TabOrder'#2#1#0#6'TLabel'#6'Label2'#4'Left'#2#24#6
+  +'Height'#2#25#3'Top'#2#0#5'Width'#3#184#0#7'Caption'#6#18'Allocated sources:'
+  +#11'ParentColor'#8#0#0#8'TListBox'#20'ListAllocatedSources'#4'Left'#2#24#6'H'
+  +'eight'#3#208#0#3'Top'#2' '#5'Width'#3#255#1#7'Anchors'#11#5'akTop'#6'akLeft'
+  +#7'akRight'#8'akBottom'#0#10'ItemHeight'#2#0#8'TabOrder'#2#0#8'TopIndex'#2
+  +#255#0#0#7'TButton'#17'ButtonRefreshUsed'#4'Left'#3'('#2#6'Height'#2','#3'To'
+  +'p'#2' '#5'Width'#3#149#0#7'Anchors'#11#5'akTop'#7'akRight'#0#8'AutoSize'#9
+  +#25'BorderSpacing.InnerBorder'#2#4#7'Caption'#6#12'Refresh used'#7'OnClick'#7
+  +#22'ButtonRefreshUsedClick'#8'TabOrder'#2#1#0#0#0#6'TPanel'#20'PanelAllocato'
+  +'rLimits'#4'Left'#2#8#6'Height'#2'T'#3'Top'#2'x'#5'Width'#3#210#2#7'Anchors'
+  +#11#5'akTop'#6'akLeft'#7'akRight'#0#8'AutoSize'#9#12'ClientHeight'#2'T'#11'C'
+  +'lientWidth'#3#210#2#8'TabOrder'#2#2#0#6'TLabel'#24'LabelMaxAllocatedSources'
+  +#4'Left'#2#1#6'Height'#2#25#3'Top'#2')'#5'Width'#3#234#0#7'Caption'#6#23'Max'
+  +' allocated sources :'#11'ParentColor'#8#0#0#6'TLabel'#24'LabelMinAllocatedS'
+  +'ources'#4'Left'#2#4#6'Height'#2#25#3'Top'#2#1#5'Width'#3#230#0#7'Caption'#6
+  +#23'Min allocated sources :'#11'ParentColor'#8#0#0#7'TButton'#26'ButtonApply'
+  +'AllocatorLimits'#22'AnchorSideLeft.Control'#7#27'SpinEditMaxAllocatedSource'
+  +'s'#19'AnchorSideLeft.Side'#7#9'asrBottom'#4'Left'#3'%'#1#6'Height'#2','#3'T'
+  +'op'#2'('#5'Width'#3'a'#1#8'AutoSize'#9#18'BorderSpacing.Left'#2#8#25'Border'
+  +'Spacing.InnerBorder'#2#4#7'Caption'#6'"Apply to existing source allocator'#7
+  +'OnClick'#7#31'ButtonApplyAllocatorLimitsClick'#8'TabOrder'#2#0#0#0#9'TSpinE'
+  +'dit'#27'SpinEditMaxAllocatedSources'#22'AnchorSideLeft.Control'#7#24'LabelM'
+  +'axAllocatedSources'#19'AnchorSideLeft.Side'#7#9'asrBottom'#4'Left'#3#235#0#6
+  +'Height'#2'"'#3'Top'#2')'#5'Width'#2'2'#8'MaxValue'#3#232#3#8'MinValue'#2#1#8
+  +'TabOrder'#2#1#5'Value'#2#6#0#0#9'TSpinEdit'#27'SpinEditMinAllocatedSources'
+  +#22'AnchorSideLeft.Control'#7#24'LabelMinAllocatedSources'#19'AnchorSideLeft'
+  +'.Side'#7#9'asrBottom'#4'Left'#3#234#0#6'Height'#2'"'#3'Top'#2#1#5'Width'#2
+  +'2'#8'MaxValue'#3#232#3#8'MinValue'#2#1#8'TabOrder'#2#2#5'Value'#2#4#0#0#0#6
+  +'TPanel'#18'PanelSourcePlaying'#4'Left'#2#8#6'Height'#2't'#3'Top'#3#216#0#5
+  +'Width'#3#210#2#7'Anchors'#11#5'akTop'#6'akLeft'#7'akRight'#0#8'AutoSize'#9
+  +#12'ClientHeight'#2't'#11'ClientWidth'#3#210#2#8'TabOrder'#2#3#0#6'TLabel'#21
+  +'LabelSourceImportance'#4'Left'#2#1#6'Height'#2#25#3'Top'#2#8#5'Width'#3#204
+  +#0#7'Caption'#6#19'Source importance :'#11'ParentColor'#8#0#0#6'TLabel'#6'La'
+  +'bel3'#4'Left'#2#1#6'Height'#2#25#3'Top'#2')'#5'Width'#3#172#0#7'Caption'#6
+  +#16'Sound filename :'#11'ParentColor'#8#0#0#13'TFileNameEdit'#17'FileNameEdi'
+  +'tSound'#22'AnchorSideLeft.Control'#7#6'Label3'#19'AnchorSideLeft.Side'#7#9
+  +'asrBottom'#4'Left'#3#173#0#6'Height'#2'"'#3'Top'#2' '#5'Width'#3' '#1#8'Fil'
+  +'eName'#6#8'tone.wav'#13'DialogOptions'#11#0#6'Filter'#6'''WAV files (*.wav)'
+  +'|*.wav|All files (*)|*'#11'FilterIndex'#2#0#15'HideDirectories'#8#11'Button'
+  +'Width'#2#23#9'NumGlyphs'#2#1#8'TabOrder'#2#0#0#0#9'TSpinEdit'#24'SpinEditSo'
+  +'urceImportance'#22'AnchorSideLeft.Control'#7#21'LabelSourceImportance'#19'A'
+  +'nchorSideLeft.Side'#7#9'asrBottom'#4'Left'#3#205#0#6'Height'#2'"'#3'Top'#2#1
+  +#5'Width'#2'2'#8'MaxValue'#3#232#3#8'MinValue'#3#24#252#8'TabOrder'#2#1#0#0#7
+  +'TButton'#21'ButtonAllocateAndPlay'#4'Left'#2#1#6'Height'#2','#3'Top'#2'H'#5
+  +'Width'#3'L'#1#8'AutoSize'#9#25'BorderSpacing.InnerBorder'#2#4#7'Caption'#6
+  +#30'Allocate and play sound source'#7'OnClick'#7#26'ButtonAllocateAndPlayCli'
+  +'ck'#8'TabOrder'#2#2#0#0#9'TCheckBox'#19'CheckBoxPlayLooping'#22'AnchorSideL'
+  +'eft.Control'#7#24'SpinEditSourceImportance'#19'AnchorSideLeft.Side'#7#9'asr'
+  ,'Bottom'#4'Left'#3#7#1#6'Height'#2#28#3'Top'#2#1#5'Width'#3#146#0#18'BorderS'
+  +'pacing.Left'#2#8#7'Caption'#6#12'Play looping'#8'TabOrder'#2#3#0#0#0#6'TTim'
+  +'er'#6'Timer1'#7'Enabled'#8#8'Interval'#2'd'#7'OnTimer'#7#11'Timer1Timer'#4
+  +'left'#3#144#1#3'top'#2'0'#0#0#0
 ]);

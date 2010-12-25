@@ -31,14 +31,14 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="10">
       <Unit0>
         <Filename Value="test_al_source_allocator.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="test_al_source_allocator"/>
         <CursorPos X="1" Y="10"/>
         <TopLine Value="1"/>
-        <UsageCount Value="25"/>
+        <UsageCount Value="26"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -46,10 +46,10 @@
         <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="7" Y="117"/>
-        <TopLine Value="94"/>
+        <CursorPos X="62" Y="91"/>
+        <TopLine Value="88"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="25"/>
+        <UsageCount Value="26"/>
         <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -100,8 +100,80 @@
         <TopLine Value="183"/>
         <UsageCount Value="10"/>
       </Unit8>
+      <Unit9>
+        <Filename Value="../../src/3d/sphericalharmonics.pas"/>
+        <UnitName Value="SphericalHarmonics"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit9>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="16" HistoryIndex="15">
+      <Position1>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="117" Column="7" TopLine="102"/>
+      </Position1>
+      <Position2>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="1" Column="16" TopLine="1"/>
+      </Position2>
+      <Position3>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="55" TopLine="1"/>
+      </Position3>
+      <Position4>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="78" Column="3" TopLine="67"/>
+      </Position4>
+      <Position5>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="74" Column="21" TopLine="66"/>
+      </Position5>
+      <Position6>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="76" Column="75" TopLine="63"/>
+      </Position6>
+      <Position7>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="67" Column="17" TopLine="57"/>
+      </Position7>
+      <Position8>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="34" Column="47" TopLine="34"/>
+      </Position8>
+      <Position9>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="1" Column="33" TopLine="1"/>
+      </Position9>
+      <Position10>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="148" Column="21" TopLine="137"/>
+      </Position10>
+      <Position11>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="91" Column="42" TopLine="80"/>
+      </Position11>
+      <Position12>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="38" Column="1" TopLine="27"/>
+      </Position12>
+      <Position13>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="144" Column="31" TopLine="136"/>
+      </Position13>
+      <Position14>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="96" Column="49" TopLine="88"/>
+      </Position14>
+      <Position15>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="102" Column="33" TopLine="86"/>
+      </Position15>
+      <Position16>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="144" Column="1" TopLine="133"/>
+      </Position16>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
@@ -140,13 +212,16 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="2">
+    <Exceptions Count="3">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
       <Item2>
         <Name Value="EFOpenError"/>
       </Item2>
+      <Item3>
+        <Name Value="EDynLibError"/>
+      </Item3>
     </Exceptions>
   </Debugging>
 </CONFIG>

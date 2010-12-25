@@ -1,23 +1,23 @@
 object Main: TMain
-  Left = 123
-  Height = 518
-  Top = 69
-  Width = 762
+  Left = 420
+  Height = 596
+  Top = 148
+  Width = 741
   HorzScrollBar.Page = 770
   VertScrollBar.Page = 496
   ActiveControl = Memo1
   Caption = 'Test OpenAL source allocator'
-  ClientHeight = 518
-  ClientWidth = 762
+  ClientHeight = 596
+  ClientWidth = 741
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poDesktopCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.28.2'
   object Memo1: TMemo
     Left = 8
     Height = 104
     Top = 8
-    Width = 743
+    Width = 722
     Anchors = [akTop, akLeft, akRight]
     Lines.Strings = (
       'For basic demo, just press "Allocate and play sound source" a couple of times, and note that multiple sources will be intelligently allocated.'
@@ -28,37 +28,40 @@ object Main: TMain
     TabOrder = 0
   end
   object PanelLists: TPanel
+    AnchorSideTop.Control = PanelSourcePlaying
+    AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 221
-    Top = 296
-    Width = 743
+    Height = 255
+    Top = 340
+    Width = 722
     Anchors = [akTop, akLeft, akRight, akBottom]
-    ClientHeight = 221
-    ClientWidth = 743
+    BorderSpacing.Top = 8
+    ClientHeight = 255
+    ClientWidth = 722
     TabOrder = 1
     object Label2: TLabel
       Left = 24
-      Height = 18
-      Top = 16
-      Width = 129
+      Height = 25
+      Top = 0
+      Width = 184
       Caption = 'Allocated sources:'
       ParentColor = False
     end
     object ListAllocatedSources: TListBox
       Left = 24
-      Height = 174
+      Height = 208
       Top = 32
-      Width = 580
+      Width = 511
       Anchors = [akTop, akLeft, akRight, akBottom]
       ItemHeight = 0
       TabOrder = 0
       TopIndex = -1
     end
     object ButtonRefreshUsed: TButton
-      Left = 610
-      Height = 37
+      Left = 552
+      Height = 44
       Top = 32
-      Width = 112
+      Width = 149
       Anchors = [akTop, akRight]
       AutoSize = True
       BorderSpacing.InnerBorder = 4
@@ -69,44 +72,50 @@ object Main: TMain
   end
   object PanelAllocatorLimits: TPanel
     Left = 8
-    Height = 88
+    Height = 84
     Top = 120
-    Width = 743
+    Width = 722
     Anchors = [akTop, akLeft, akRight]
-    ClientHeight = 88
-    ClientWidth = 743
+    AutoSize = True
+    ClientHeight = 84
+    ClientWidth = 722
     TabOrder = 2
     object LabelMaxAllocatedSources: TLabel
-      Left = 10
-      Height = 18
-      Top = 56
-      Width = 163
+      Left = 1
+      Height = 25
+      Top = 41
+      Width = 234
       Caption = 'Max allocated sources :'
       ParentColor = False
     end
     object LabelMinAllocatedSources: TLabel
-      Left = 13
-      Height = 18
-      Top = 16
-      Width = 160
+      Left = 4
+      Height = 25
+      Top = 1
+      Width = 230
       Caption = 'Min allocated sources :'
       ParentColor = False
     end
     object ButtonApplyAllocatorLimits: TButton
-      Left = 246
-      Height = 37
-      Top = 48
-      Width = 246
+      AnchorSideLeft.Control = SpinEditMaxAllocatedSources
+      AnchorSideLeft.Side = asrBottom
+      Left = 293
+      Height = 44
+      Top = 40
+      Width = 353
       AutoSize = True
+      BorderSpacing.Left = 8
       BorderSpacing.InnerBorder = 4
       Caption = 'Apply to existing source allocator'
       OnClick = ButtonApplyAllocatorLimitsClick
       TabOrder = 0
     end
     object SpinEditMaxAllocatedSources: TSpinEdit
-      Left = 176
-      Height = 27
-      Top = 56
+      AnchorSideLeft.Control = LabelMaxAllocatedSources
+      AnchorSideLeft.Side = asrBottom
+      Left = 235
+      Height = 34
+      Top = 41
       Width = 50
       MaxValue = 1000
       MinValue = 1
@@ -114,82 +123,76 @@ object Main: TMain
       Value = 6
     end
     object SpinEditMinAllocatedSources: TSpinEdit
-      Left = 176
-      Height = 27
-      Top = 16
+      AnchorSideLeft.Control = LabelMinAllocatedSources
+      AnchorSideLeft.Side = asrBottom
+      Left = 234
+      Height = 34
+      Top = 1
       Width = 50
       MaxValue = 1000
       MinValue = 1
       TabOrder = 2
       Value = 4
     end
-    object ButtonRecreateAllocator: TButton
-      Left = 246
-      Height = 37
-      Top = 8
-      Width = 216
-      AutoSize = True
-      BorderSpacing.InnerBorder = 4
-      Caption = 'Recreate AL source allocator'
-      OnClick = ButtonRecreateAllocatorClick
-      TabOrder = 3
-    end
   end
   object PanelSourcePlaying: TPanel
     Left = 8
-    Height = 73
+    Height = 116
     Top = 216
-    Width = 743
+    Width = 722
     Anchors = [akTop, akLeft, akRight]
-    ClientHeight = 73
-    ClientWidth = 743
+    AutoSize = True
+    ClientHeight = 116
+    ClientWidth = 722
     TabOrder = 3
     object LabelSourceImportance: TLabel
-      Left = 8
-      Height = 18
-      Top = 16
-      Width = 141
+      Left = 1
+      Height = 25
+      Top = 8
+      Width = 204
       Caption = 'Source importance :'
       ParentColor = False
     end
     object Label3: TLabel
-      Left = 8
-      Height = 18
-      Top = 49
-      Width = 119
+      Left = 1
+      Height = 25
+      Top = 41
+      Width = 172
       Caption = 'Sound filename :'
       ParentColor = False
     end
     object FileNameEditSound: TFileNameEdit
-      Left = 160
-      Height = 27
-      Top = 40
+      AnchorSideLeft.Control = Label3
+      AnchorSideLeft.Side = asrBottom
+      Left = 173
+      Height = 34
+      Top = 32
       Width = 288
-      FileName = '../../../castle/data/sounds/evil_laugh.wav'
+      FileName = 'tone.wav'
       DialogOptions = []
       Filter = 'WAV files (*.wav)|*.wav|All files (*)|*'
       FilterIndex = 0
       HideDirectories = False
       ButtonWidth = 23
       NumGlyphs = 1
-      MaxLength = 0
       TabOrder = 0
     end
     object SpinEditSourceImportance: TSpinEdit
-      Left = 160
-      Height = 27
-      Top = 9
+      AnchorSideLeft.Control = LabelSourceImportance
+      AnchorSideLeft.Side = asrBottom
+      Left = 205
+      Height = 34
+      Top = 1
       Width = 50
       MaxValue = 1000
       MinValue = -1000
       TabOrder = 1
     end
     object ButtonAllocateAndPlay: TButton
-      Left = 495
-      Height = 37
-      Top = 9
-      Width = 235
-      Anchors = [akTop, akRight]
+      Left = 1
+      Height = 44
+      Top = 72
+      Width = 332
       AutoSize = True
       BorderSpacing.InnerBorder = 4
       Caption = 'Allocate and play sound source'
@@ -197,10 +200,13 @@ object Main: TMain
       TabOrder = 2
     end
     object CheckBoxPlayLooping: TCheckBox
-      Left = 246
-      Height = 22
-      Top = 9
-      Width = 106
+      AnchorSideLeft.Control = SpinEditSourceImportance
+      AnchorSideLeft.Side = asrBottom
+      Left = 263
+      Height = 28
+      Top = 1
+      Width = 146
+      BorderSpacing.Left = 8
       Caption = 'Play looping'
       TabOrder = 3
     end
