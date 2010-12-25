@@ -333,10 +333,12 @@ var
   ST: TSoundType;
 begin
   inherited;
+
+  { initialize SoundInfos regardless of ALActive }
+  ReadSoundInfos;
+
   if ALActive then
   begin
-    ReadSoundInfos;
-
     Progress.Init(SoundInfos.Count - 1, 'Loading sounds');
     try
       { We do progress to "SoundInfos.Count - 1" because we start
