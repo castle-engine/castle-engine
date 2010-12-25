@@ -22,10 +22,14 @@ uses SysUtils, KambiOpenAL, KambiClassUtils, Classes, KambiUtils, VectorMath;
 
 {$define read_interface}
 
+const
+  DefaultMinAllocatedSources = 4;
+  DefaultMaxAllocatedSources = 16;
+
 type
   TALAllocatedSource = class;
 
-  TALAllocatedSourceEvent = procedure(Sender: TALAllocatedSource) of object;
+  TALAllocatedSourceEvent = procedure (Sender: TALAllocatedSource) of object;
 
   ENoMoreOpenALSources = class(Exception);
 
@@ -45,30 +49,29 @@ type
     procedure SetPosition(const Value: TVector3Single);
   public
     { Create source. This allocates actual OpenAL source.
-      Will raise ENoMoreOpenALSources if no more sources available
-      (ENoMoreOpenALSources should be caught and silenced by
-      TALSourceAllocator.AllocateSource). }
+      @raises(ENoMoreOpenALSources If no more sources available.
+        It should be caught and silenced by TALSourceAllocator.AllocateSound.) }
     constructor Create;
     destructor Destroy; override;
 
     property ALSource: TALuint read FALSource;
 
-    { Used means that we actually use this source to play something.
+    { Do we actually use this source to play something.
       Sources that are not Used are simply OpenAL allocated sources
       that are not used right now, and will be used when we will
       need them. }
     property Used: boolean read FUsed default false;
 
-    { If this sound is @link(Used), this is the priority of keeping it.
+    { The priority of keeping this source, relevant only when @link(Used).
 
       Higher Importance means that it's more important to keep it.
       (I didn't name this property "Priority" so that it's obvious
       that higher Importance means more important sound). }
     property Importance: Integer read FImportance default 0;
 
-    { This is intended to be used by the caller of
-      TALSourceAllocator.AllocateSource. It should be initialized
-      after calling TALSourceAllocator.AllocateSource, and should
+    { Any data comfortable to keep here by the caller of
+      TALSourceAllocator.AllocateSound. It should be initialized
+      after calling TALSourceAllocator.AllocateSound, and should
       be finalized in OnUsingEnd. }
     property UserData: TObject read FUserData write FUserData;
 
@@ -82,19 +85,19 @@ type
       stopped playing will be immediately reported to OnUsingEnd.
       In fact, a source may be considered in Used = @true state
       for a long time until it stopped playing. That's not a problem
-      for this unit --- TALSourceAllocator.AllocateSource is smart,
+      for this unit --- TALSourceAllocator.AllocateSound is smart,
       and it may actually check (and eventually mark with DoUsingEnd)
       whether some sources are in playing state,
       to avoid allocating unnecessary sources.
       However, if this is a problem for you (because e.g. you do
       some expensive operations to update all used sources every time)
       and you really desire OnUsingEnd to be called quickly after
-      sound stoppped playing, you may call TALSourceAllocator.RefreshUsed
+      sound stoppped playing, you may call TALSourceAllocator.RefreshUsedSources
       from time to time.
 
       In this event you should make sure to delete all references
       to this sound, because the TALAllocatedSource instance may
-      be freed after calling  OnUsingEnd.
+      be freed after calling OnUsingEnd.
 
       It's guaranteed that when this will be called,
       Used will be @false and ALSource will not be in AL_PLAYING
@@ -109,7 +112,7 @@ type
       It's preferable to call this (instead of manually calling
       alSourceStop), because this will immediately mark Used property
       as @false and will call OnUsingEnd. Otherwise we would have to
-      get source state at some time (they are checked in AllocateSource)
+      get source state at some time (they are checked in AllocateSound)
       and check it, then see that it's no longer playing.
 
       You can call this only when Used = @true. }
@@ -124,7 +127,7 @@ type
   private
     function IsSmallerByImportance(const AA, BB: TALAllocatedSource): boolean;
   public
-    { This sorts sounds by Used + Importance, descending.
+    { Sort sounds by Used + Importance, descending.
       First all sounds with Used = @true are placed,
       starting from the sound with largest Importance, and so on
       until the sound with smallest Importance.
@@ -135,30 +138,28 @@ type
   end;
 
   { Manage allocated OpenAL sounds.
-
-    The idea is that you leave to this class creating and deleting
-    of OpenAL sounds. When you need OpenAL sound to do something,
-    just call AllocateSource method.
+    You leave to this class creating and deleting of OpenAL sounds.
+    When you need OpenAL sound to do something, just call AllocateSound method.
 
     This class will manage OpenAL sources in an intelligent manner,
     which means when you need new sound, we may
     @orderedList(
-      @item(reuse already allocated sound that is not used to play anything)
-      @item(allocate new sound (but we will keep allocated sounds count
+      @item(Reuse already allocated sound that is not used to play anything.)
+      @item(Allocate new sound (but we will keep allocated sounds count
         within MaxAllocatedSources sound limit, to not overload OpenAL
         implementation with work).)
-      @item(we may simply interrupt already allocated sound, if new
+      @item(We may simply interrupt already allocated sound, if new
         sound is more important.)
     )
 
-    This class may exist only when OpenAL context is active
-    (and it's the same OpenAL context).
+    Our OpenAL resources are created in ALContextOpen, and released
+    in ALContextClose.
 
     The very reason behind this class is to hide from you the fact that
     the number of OpenAL sources are limited. In particular, this
     means that when OpenAL will run out of sources, no OpenAL error
     (alGetError) will be left, and no exception will be raised.
-    In the worst case TALSourceAllocator.AllocateSource will return nil,
+    In the worst case TALSourceAllocator.AllocateSound will return nil,
     but in more probable cases some other sources (unused, or with
     less priority) will be reused.
 
@@ -176,83 +177,78 @@ type
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
   public
-    constructor Create(const AMinAllocatedSources, AMaxAllocatedSources: Cardinal);
-    destructor Destroy; override;
+    procedure ALContextOpen(const WasParam_NoSound: boolean); virtual;
+    procedure ALContextClose; virtual;
 
-    { For the sake of speed, this class always has allocated at least
-      MinAllocatedSources OpenAL sources. This must be >= 1.
+    { Allocate sound for playing. You should initialize the OpenAL sound
+      properties and start playing the sound (you have
+      OpenAL sound identifier in TALAllocatedSource.ALSource).
 
-      Setting this to too large value (so large that OpenAL cannot create
-      so many sources) will raise ENoMoreOpenALSources.
-      Also creating the TALSourceAllocator instance with initial
-      value for MinAllocatedSources too large will raise ENoMoreOpenALSources.
-      So set this property to really *the minimal* number or required sources.
-      If you don't know what to do, just set this to 1.) }
-    property MinAllocatedSources: Cardinal
-      read FMinAllocatedSources write SetMinAllocatedSources;
+      Note that if you don't call alSourcePlay, the source may be detected
+      as unused (and recycled for another sound) at the next AllocateSound,
+      PlaySound, RefreshUsedSources and such calls.
 
-    { This class always has allocated at most
-      MaxAllocatedSources OpenAL sounds. That's why whenever you try to
-      get more sounds, sounds with less Importance may stop playing
-      (because their OpenAL sounds may be allocated to some other sound).
-      This limit must exist, because allocating too many sounds
-      is bad for OpenAL speed (not to mention that it may be impossible
-      under some OpenAL implementations, like Windows one).
+      If we can't allocate new OpenAL sound, we return nil.
+      This may happen your OpenAL context is not initialized.
+      It may also happen if we cannot create more sources (because
+      we hit MaxAllocatedSources limit, or OpenAL just refuses to create
+      more sources) and all existing sounds are used and their
+      Importance is > given here Importance.
 
-      This must always be >= MinAllocatedSources. }
-    property MaxAllocatedSources: Cardinal
-      read FMaxAllocatedSources write SetMaxAllocatedSources;
-
-    { Call this when you need new OpenAL sound.
-      This indicates that you want to use new sound.
-
-      This is the most important function of this class --- actually
-      the sole purpose of TALSourceAllocator and TALAllocatedSource
-      classes is to provide you this function.
-
-      If we can't allocate new OpenAL sound for this
-      (because we already allocated MaxAllocatedSources, or
-      OpenAL cannot allocate so many sources (so ENoMoreOpenALSources
-      is caught and silenced by this function), and all existing
-      sounds are used and their Importance is > given here Importance),
-      returns nil.
-
-      Else returns non-nil TALAllocatedSource instance, with Used to to @true
-      (to indicate that you'll use it) and Importance set as required.
-      You should initialize all properties of this sound
-      (it's buffer, gain, looping --- everything), and start playing it.
       Note for looping sounds: just like any other sound, looping sound
       may be stopped because the sounds are needed for other sounds.
       If you want to try to restart the looping sound, you will have
       to implement it yourself. Or you can just set Importance of looping
       sounds high enough, and don't use too many looping sounds,
       to never let them be eliminated by other sounds. }
-    function AllocateSource(const Importance: Integer): TALAllocatedSource;
+    function AllocateSound(const Importance: Integer): TALAllocatedSource;
 
-    { This is read-only from outside.
-      You can read AllocatedSources properties to know various things
-      about current state of TALSourceAllocator. But generally, this should
-      be avoided --- the way AllocatedSources are managed is internal
-      for this class. }
+    { All allocated (not necessarily used) OpenAL sources.
+      Useful only for advanced or debuging tasks, in normal circumstances
+      we mange this completely ourselves. This is @nil when ALContextOpen
+      was not yet called. }
     property AllocatedSources: TALAllocatedSourcesList read FAllocatedSources;
 
-    { Check and eventually set some sources from used to unused state.
+    { Detect unused sounds. If you rely on your sources receiving
+      TALAllocatedSource.OnUsingEnd in a timely manner, be sure to call
+      this method often. Otherwise, it's not needed to call this at all
+      (unused sounds will be detected automatically on-demand anyway).
 
       For every source that is marked as Used, this checks
       whether this source is actually in playing/paused state
       right now. If not, it calls DoUsingEnd (thus setting
-      Used to @false and triggering OnUsingEnd) for this source.
+      Used to @false and triggering OnUsingEnd) for this source. }
+    procedure RefreshUsedSources;
 
-      See TALAllocatedSource.OnUsingEnd for more description.
-      Generally, you don't need to call this procedure ---
-      this unit is smart, and every operation does such refreshing
-      (at least partially) by itself, when it's really needed
-      (e.g. AllocateSource may do this if no unused source will be found).
-      You may need to call this procedure from time to time if you
-      frequently perform some expensive operation for all used sources. }
-    procedure RefreshUsed;
-
+    { Stop all the sources currently playing. Especially useful since
+      you have to stop a source before releasing it's associated buffer. }
     procedure StopAllSources;
+  published
+    { Minimum / maximum number of allocated OpenAL sources.
+      Always keep MinAllocatedSources <= MaxAllocatedSources.
+
+      For the sake of speed, we always keep allocated at least
+      MinAllocatedSources OpenAL sources. This must be >= 1.
+      Setting MinAllocatedSources too large value will raise
+      ENoMoreOpenALSources.
+
+      At most MaxAllocatedSources sources may be simultaneously used (played).
+      This prevents us from allocating too many sounds,
+      which would be bad for OpenAL speed (not to mention that it may
+      be impossible under some OpenAL implementations, like Windows one).
+      When all MaxAllocatedSources sources are playing, the only way
+      to play another sound is to use appropriately high @code(Importance)
+      to AllocateSound.
+
+      @groupBegin }
+    property MinAllocatedSources: Cardinal
+      read FMinAllocatedSources write SetMinAllocatedSources
+      default DefaultMinAllocatedSources;
+
+    property MaxAllocatedSources: Cardinal
+      read FMaxAllocatedSources write SetMaxAllocatedSources
+      default DefaultMaxAllocatedSources;
+    { @groupEnd }
   end;
 
 {$undef read_interface}
@@ -341,22 +337,17 @@ end;
 
 { TALSourceAllocator ---------------------------------------------------------- }
 
-constructor TALSourceAllocator.Create(
-  const AMinAllocatedSources, AMaxAllocatedSources: Cardinal);
+procedure TALSourceAllocator.ALContextOpen(const WasParam_NoSound: boolean);
 var
   I: Integer;
 begin
-  inherited Create;
-  FMinAllocatedSources := AMinAllocatedSources;
-  FMaxAllocatedSources := AMaxAllocatedSources;
-
   FAllocatedSources := TALAllocatedSourcesList.Create;
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.High do
     FAllocatedSources[I] := TALAllocatedSource.Create;
 end;
 
-destructor TALSourceAllocator.Destroy;
+procedure TALSourceAllocator.ALContextClose;
 var
   I: Integer;
 begin
@@ -377,17 +368,18 @@ begin
 
     FreeAndNil(FAllocatedSources);
   end;
-
-  inherited;
 end;
 
-function TALSourceAllocator.AllocateSource(
+function TALSourceAllocator.AllocateSound(
   const Importance: Integer): TALAllocatedSource;
 var
   I: Integer;
   MinImportanceIndex: Integer;
 begin
   Result := nil;
+
+  { OpenAL context not initialized yet }
+  if FAllocatedSources = nil then Exit;
 
   { Try: maybe we have already allocated unused sound ?
     If no unused sound will be found, it will calculate
@@ -461,7 +453,7 @@ begin
     Result.FUsed := true;
   end;
 
-  CheckAL('allocating sound source (TALSourceAllocator.AllocateSource)');
+  CheckAL('allocating sound source (TALSourceAllocator.AllocateSound)');
 end;
 
 procedure TALSourceAllocator.SetMinAllocatedSources(const Value: Cardinal);
@@ -472,7 +464,8 @@ begin
   if Value <> FMinAllocatedSources then
   begin
     FMinAllocatedSources := Value;
-    if Cardinal(FAllocatedSources.Count) < MinAllocatedSources then
+    if (FAllocatedSources <> nil) and
+       (Cardinal(FAllocatedSources.Count) < MinAllocatedSources) then
     begin
       OldAllocatedSourcesCount := FAllocatedSources.Count;
       FAllocatedSources.Count := MinAllocatedSources;
@@ -489,11 +482,12 @@ begin
   if Value <> FMaxAllocatedSources then
   begin
     FMaxAllocatedSources := Value;
-    if Cardinal(FAllocatedSources.Count) > MaxAllocatedSources then
+    if (FAllocatedSources <> nil) and
+       (Cardinal(FAllocatedSources.Count) > MaxAllocatedSources) then
     begin
-      { RefreshUsed is useful here, so that we really cut off
+      { RefreshUsedSources is useful here, so that we really cut off
         the *currently* unused sources. }
-      RefreshUsed;
+      RefreshUsedSources;
       FAllocatedSources.SortByImportance;
 
       for I := MaxAllocatedSources to FAllocatedSources.High do
@@ -507,25 +501,27 @@ begin
   end;
 end;
 
-procedure TALSourceAllocator.RefreshUsed;
+procedure TALSourceAllocator.RefreshUsedSources;
 var
   I: Integer;
 begin
-  for I := 0 to FAllocatedSources.High do
-    if FAllocatedSources[I].Used and
-       (not alSourcePlayingOrPaused(FAllocatedSources[I].ALSource)) then
-    begin
-      FAllocatedSources[I].DoUsingEnd;
-    end;
+  if FAllocatedSources <> nil then
+    for I := 0 to FAllocatedSources.High do
+      if FAllocatedSources[I].Used and
+         (not alSourcePlayingOrPaused(FAllocatedSources[I].ALSource)) then
+      begin
+        FAllocatedSources[I].DoUsingEnd;
+      end;
 end;
 
 procedure TALSourceAllocator.StopAllSources;
 var
   I: Integer;
 begin
-  for I := 0 to FAllocatedSources.High do
-    if FAllocatedSources[I].Used then
-      FAllocatedSources[I].DoUsingEnd;
+  if FAllocatedSources <> nil then
+    for I := 0 to FAllocatedSources.High do
+      if FAllocatedSources[I].Used then
+        FAllocatedSources[I].DoUsingEnd;
 end;
 
 end.

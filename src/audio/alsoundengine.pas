@@ -21,8 +21,6 @@ interface
 uses SysUtils, Classes, KambiOpenAL, ALSourceAllocator, VectorMath;
 
 const
-  DefaultALMinAllocatedSources = 4;
-  DefaultALMaxAllocatedSources = 16;
   DefaultVolume = 1.0;
 
 type
@@ -47,23 +45,12 @@ type
     Or you can explicitly create it, and then you're independent from
     TKamSceneManager (you can create and destroy TKamSceneManager instances,
     and keep the same sound engine instance). }
-  TALSoundEngine = class
+  TALSoundEngine = class(TALSourceAllocator)
   private
     FSoundInitializationReport: string;
-    SourceAllocator: TALSourceAllocator;
     FVolume: Single;
 
-    { When SourceAllocator <> nil, these correspond to it's properties. }
-    FALMinAllocatedSources: Cardinal;
-    FALMaxAllocatedSources: Cardinal;
-
     procedure SetVolume(const Value: Single);
-
-    function GetALMinAllocatedSources: Cardinal;
-    procedure SetALMinAllocatedSources(const Value: Cardinal);
-
-    function GetALMaxAllocatedSources: Cardinal;
-    procedure SetALMaxAllocatedSources(const Value: Cardinal);
   public
     constructor Create;
 
@@ -77,11 +64,11 @@ type
       You can check things like ALActivationErrorMessage
       and ALActive (see TryBeginAL documentation), but generally this class
       will hide from you the fact that sound is not initialized. }
-    procedure ALContextOpen(const WasParam_NoSound: boolean); virtual;
+    procedure ALContextOpen(const WasParam_NoSound: boolean); override;
 
     { Call this always to release OpenAL things.
       This is ignored if not ALActive. }
-    procedure ALContextClose; virtual;
+    procedure ALContextClose; override;
 
     property SoundInitializationReport: string read FSoundInitializationReport;
 
@@ -129,7 +116,7 @@ type
       When Spatial = @false, then Position is ignored
       (you can pass anything, like ZeroVector3Single).
 
-      @returns(The allocated sound as TALSourceAllocator.
+      @returns(The allocated sound as TALAllocatedSource.
 
         Returns @nil when there were no resources to play another sound
         (and it wasn't important enough to override another sound).
@@ -143,58 +130,7 @@ type
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3Single): TALAllocatedSource;
-
-    { Allocate sound for playing. You should initialize the OpenAL sound
-      properties and start playing the sound (you have
-      OpenAL sound identifier in TALAllocatedSource.ALSource).
-
-      Note that if you don't call alSourcePlay, the source may be detected
-      as unused (and recycled for another sound) at the next AllocateSound,
-      PlaySound, RefreshUsedSources and such calls. }
-    function AllocateSound(const Importance: Cardinal): TALAllocatedSource;
-
-    { Detect unused sounds. If you rely on your sources receiving
-      TALAllocatedSource.OnUsingEnd in a timely manner, be sure to call
-      this method often. Otherwise, it's not needed to call this at all
-      (unused sounds will be detected automatically on-demand anyway).
-
-      See TALSourceAllocator.RefreshUsed for info.
-      This silently ignored when not ALActive. }
-    procedure RefreshUsedSources;
-
-    { Stop all the sources currently playing. Especially useful since
-      you have to stop a source before releasing it's associated buffer. }
-    procedure StopAllSources;
-
   published
-    { Min/max number of allocated OpenAL sources.
-
-      These properties are used when creating TALSourceAllocator.
-      When TALSourceAllocator is already created, these properties
-      correspond to allocator properties (setting them sets also
-      allocator properties).
-
-      In summary, you can treat these properties just like analogous
-      TALSourceAllocator properties, but you can freely operate on them
-      even when OpenAL is not initialized. Which is useful if user disabled
-      sound or you want to load/save these values from some config files
-      at time when OpenAL couldn't be initialized yet --- in such cases
-      AL allocator doesn't exist, but you can operate on these properties
-      without worry.
-
-      When changing Min/MaxAllocatedSources, remember to always keep
-      MinAllocatedSources <= MaxAllocatedSources.
-
-      @groupBegin }
-    property ALMinAllocatedSources: Cardinal
-      read GetALMinAllocatedSources write SetALMinAllocatedSources
-      default DefaultALMinAllocatedSources;
-
-    property ALMaxAllocatedSources: Cardinal
-      read GetALMaxAllocatedSources write SetALMaxAllocatedSources
-      default DefaultALMaxAllocatedSources;
-    { @groupEnd }
-
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
       0.0 means that there are no effects (this case should be optimized). }
@@ -214,9 +150,6 @@ uses KambiUtils, KambiStringUtils, ALUtils, KambiLog, ProgressUnit,
 constructor TALSoundEngine.Create;
 begin
   inherited;
-
-  FALMinAllocatedSources := DefaultALMinAllocatedSources;
-  FALMaxAllocatedSources := DefaultALMaxAllocatedSources;
   FVolume := DefaultVolume;
 end;
 
@@ -237,8 +170,7 @@ begin
 
     try
       alListenerf(AL_GAIN, Volume);
-      SourceAllocator := TALSourceAllocator.Create(
-        FALMinAllocatedSources, FALMaxAllocatedSources);
+      inherited; { initialize sound allocator }
       CheckAL('initializing sounds (ALContextOpen)');
     except
       ALContextClose;
@@ -255,7 +187,7 @@ procedure TALSoundEngine.ALContextClose;
 begin
   if ALActive then
   begin
-    FreeAndNil(SourceAllocator);
+    inherited; { release sound allocator }
 
     { EndAL may take a while on Unix OpenAL, so provide feedback
       for user here (otherwise (s)he may think that program hanged). }
@@ -278,9 +210,9 @@ begin
     S.Append('Extensions : ' + alGetString(AL_EXTENSIONS));
     S.Append('');
     S.Append(Format('Allocated OpenAL sources: %d (min %d, max %d)',
-      [ SourceAllocator.AllocatedSources.Count,
-        SourceAllocator.MinAllocatedSources,
-        SourceAllocator.MaxAllocatedSources ]));
+      [ AllocatedSources.Count,
+        MinAllocatedSources,
+        MaxAllocatedSources ]));
     S.Append('');
     S.Append('OggVorbis handling method: ' + TSoundOggVorbis.VorbisMethod);
     S.Append('vorbisfile library available: ' + BoolToStr[VorbisFileInited]);
@@ -304,43 +236,6 @@ begin
   OpenALRestart;
   ALCDevice := NewALCDevice;
   ALContextOpen(false);
-end;
-
-function TALSoundEngine.GetALMinAllocatedSources: Cardinal;
-begin
-  Result := FALMinAllocatedSources;
-end;
-
-procedure TALSoundEngine.SetALMinAllocatedSources(const Value: Cardinal);
-begin
-  if Value <> FALMinAllocatedSources then
-  begin
-    FALMinAllocatedSources := Value;
-    if SourceAllocator <> nil then
-      SourceAllocator.MinAllocatedSources := FALMinAllocatedSources;
-  end;
-end;
-
-function TALSoundEngine.GetALMaxAllocatedSources: Cardinal;
-begin
-  Result := FALMaxAllocatedSources;
-end;
-
-procedure TALSoundEngine.SetALMaxAllocatedSources(const Value: Cardinal);
-begin
-  if Value <> FALMaxAllocatedSources then
-  begin
-    FALMaxAllocatedSources := Value;
-    if SourceAllocator <> nil then
-      SourceAllocator.MaxAllocatedSources := FALMaxAllocatedSources;
-  end;
-end;
-
-function TALSoundEngine.AllocateSound(const Importance: Cardinal): TALAllocatedSource;
-begin
-  if ALActive then
-    Result := SourceAllocator.AllocateSource(Importance) else
-    Result := nil;
 end;
 
 function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
@@ -389,7 +284,7 @@ begin
 
   if ALActive and (ALBuffer <> 0) then
   begin
-    Result := SourceAllocator.AllocateSource(Importance);
+    Result := AllocateSound(Importance);
     if Result <> nil then
     begin
       alCommonSourceSetup(Result.ALSource);
@@ -431,12 +326,6 @@ begin
   end;
 end;
 
-procedure TALSoundEngine.RefreshUsedSources;
-begin
-  if SourceAllocator <> nil then
-    SourceAllocator.RefreshUsed;
-end;
-
 function TALSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
 begin
   { TODO: for now, no cache }
@@ -449,11 +338,6 @@ begin
     TODO: Also, invalid buffer will cause OpenAL error.
     TODO: also, remaining buffers not freed at exit. }
   alFreeBuffer(Buffer);
-end;
-
-procedure TALSoundEngine.StopAllSources;
-begin
-  SourceAllocator.StopAllSources;
 end;
 
 procedure TALSoundEngine.SetVolume(const Value: Single);

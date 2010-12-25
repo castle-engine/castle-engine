@@ -510,10 +510,10 @@ begin
   Volume := ConfigFile.GetFloat('sound/volume', DefaultGameVolume);
   MusicPlayer.MusicVolume := ConfigFile.GetFloat('sound/music/volume',
     DefaultMusicVolume);
-  ALMinAllocatedSources := ConfigFile.GetValue(
-    'sound/allocated_sources/min', DefaultALMinAllocatedSources);
-  ALMaxAllocatedSources := ConfigFile.GetValue(
-    'sound/allocated_sources/max', DefaultALMaxAllocatedSources);
+  MinAllocatedSources := ConfigFile.GetValue(
+    'sound/allocated_sources/min', DefaultMinAllocatedSources);
+  MaxAllocatedSources := ConfigFile.GetValue(
+    'sound/allocated_sources/max', DefaultMaxAllocatedSources);
 
   ALCDevice := ConfigFile.GetValue('sound/device', BestALCDevice);
 end;
@@ -527,9 +527,9 @@ begin
     ConfigFile.SetDeleteFloat('sound/music/volume',
       MusicPlayer.MusicVolume, DefaultMusicVolume);
   ConfigFile.SetDeleteValue('sound/allocated_sources/min',
-    ALMinAllocatedSources, DefaultALMinAllocatedSources);
+    MinAllocatedSources, DefaultMinAllocatedSources);
   ConfigFile.SetDeleteValue('sound/allocated_sources/max',
-    ALMaxAllocatedSources, DefaultALMaxAllocatedSources);
+    MaxAllocatedSources, DefaultMaxAllocatedSources);
   ConfigFile.SetDeleteValue('sound/device', ALCDevice, BestALCDevice);
 end;
 
