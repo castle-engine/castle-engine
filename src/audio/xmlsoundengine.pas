@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Easy game 3D sound manager (TGameSoundEngine). }
-unit GameSoundEngine;
+{ Sound engine loading sounds from XML file (TXmlSoundEngine). }
+unit XmlSoundEngine;
 
 {$I kambiconf.inc}
 
@@ -29,32 +29,32 @@ const
   MaxSoundImportance = MaxInt;
 
 const
-  DefaultGameVolume = 0.5;
+  DefaultXmlEngineVolume = 0.5;
   DefaultMusicVolume = 1.0;
 
 type
   { This is a unique sound type identifier for sounds used within
-    TGameSoundEngine.
+    TXmlSoundEngine.
 
     This is actually just an index to appropriate
-    TGameSoundEngine.SoundNames array, but you should always treat
+    TXmlSoundEngine.SoundNames array, but you should always treat
     this as an opaque type. }
   TSoundType = Cardinal;
 
 const
   { Special sound type that indicates that there is actually none sound.
-    @link(TGameSoundEngine.Sound) and @link(TGameSoundEngine.Sound3d)
+    @link(TXmlSoundEngine.Sound) and @link(TXmlSoundEngine.Sound3d)
     will do nothing when called with this sound type. }
   stNone = 0;
 
 type
-  { This is an internal type used within TGameSoundEngine.
+  { Sound information, internally used by TXmlSoundEngine.
 
     Although you still may want to familiarize with it's fields,
     as they correspond to appropriate fields in your sounds/index.xml file.
     All of the fields besides Buffer are initialized only by ReadSoundInfos.
 
-    From the point of view of end-user playing the game the number of sounds
+    From the point of view of end-user the number of sounds
     is constant for given game and their properties (expressed in
     TSoundInfo below) are also constant.
     However, for the sake of debugging/testing the game,
@@ -86,7 +86,7 @@ type
     DefaultImportance: Cardinal;
 
     { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
-      which may happen only if TGameSoundEngine.ALContextOpen was not yet
+      which may happen only if TXmlSoundEngine.ALContextOpen was not yet
       called or when sound has FileName = ''. }
     Buffer: TALuint;
   end;
@@ -101,30 +101,18 @@ type
 type
   TMusicPlayer = class;
 
-  { Easy to use sound manager, using OpenAL, ALUtils and
-    ALSoundAllocator underneath.
+  { Sound engine that loads it's sound data from a comfortable XML file.
+    It extends TALSoundEngine, so you can always load new buffers
+    and play them by TALSoundEngine.LoadBuffer, TALSoundEngine.PlaySound
+    and all other methods. This only adds easy preloaded sounds.
 
     At ALContextOpen, right before initializing OpenAL stuff,
     this reads sounds information from SoundsXmlFileName file.
-    When OpenAL is initialized, it loads all sound files.
+    When OpenAL is initialized, it loads all the sound files.
     Sound filenames are specified inside SoundsXmlFileName file
     (they may be relative filenames, relative to the location
-    of SoundsXmlFileName file).
-
-    So this assumes that you want to load all sound files
-    at once (along with initializing OpenAL context) and free them at once
-    when releasing AL context. And it requires that you place your
-    sounds data and XML file in appropriate locations.
-
-    So the basic principle of this unit is to
-    load all files at once, and require file like sounds/index.xml.
-    That's the price for having easy and comfortable unit.
-    All these assumptions are perfectly OK for most games,
-    for more general sound programs... not necessarily.
-    If you need more flexibility, you should write your own sound
-    manager (or heavily extend this), using ALUtils and
-    ALSoundAllocator units directly. }
-  TGameSoundEngine = class(TALSoundEngine)
+    of SoundsXmlFileName file). }
+  TXmlSoundEngine = class(TALSoundEngine)
   private
     FSoundImportanceNames: TStringList;
     FSoundNames: TStringList;
@@ -154,11 +142,11 @@ type
       By default (in our constryctor) this is initialized to
       @code(ProgramDataPath + 'data' +
         PathDelim + 'sounds' + PathDelim + 'index.xml')
-      which may be good location for most games. }
+      which may be good location for most programs. }
     property SoundsXmlFileName: string
       read FSoundsXmlFileName write FSoundsXmlFileName;
 
-    { This is a list of sound names used by your game.
+    { A list of sound names used by your program.
       Each sound has a unique name, used to identify sound in
       sounds/index.xml file and for SoundFromName function.
       These names are stored here.
@@ -168,7 +156,7 @@ type
       expressed as TSoundType value stNone) and name ''.
       stNone is a special sound as it actually means "no sound" in many cases.
 
-      You can (and should !) fill this array with all sound names
+      You can (and should !) fill this array with all the sound names
       your game is using @bold(before calling ALContextOpen)
       (or ReadSoundInfos, but ReadSoundInfos is usually called
       for the first time by ALContextOpen).
@@ -187,7 +175,7 @@ type
     function SoundFromName(const SoundName: string): TSoundType;
 
     { Play given sound. This should be used to play sounds
-      that are not spatial actually, i.e. have no place in 3D space.
+      that are not spatial, i.e. have no place in 3D space.
 
       Returns used TALSound (or nil if none was available).
       You don't have to do anything with this returned TALSound. }
@@ -204,7 +192,7 @@ type
       const Position: TVector3Single;
       const Looping: boolean = false): TALSound; overload;
 
-    property Volume default DefaultGameVolume;
+    property Volume default DefaultXmlEngineVolume;
 
     { Sound importance names and values.
       Each item is a name (as a string) and a value (that is stored in Objects
@@ -237,12 +225,12 @@ type
     { @groupEnd }
   end;
 
-  { Music player. Objects of this class should be created only internally by
-    TGameSoundEngine. }
+  { Music player. Instance of this class should be created only internally
+    by the TXmlSoundEngine. }
   TMusicPlayer = class
   private
     { Engine that owns this music player. }
-    FEngine: TGameSoundEngine;
+    FEngine: TXmlSoundEngine;
 
     FPlayedSound: TSoundType;
     procedure SetPlayedSound(const Value: TSoundType);
@@ -262,7 +250,7 @@ type
     function GetMusicVolume: Single;
     procedure SetMusicVolume(const Value: Single);
   public
-    constructor Create(AnEngine: TGameSoundEngine);
+    constructor Create(AnEngine: TXmlSoundEngine);
     destructor Destroy; override;
 
     { Currently played music.
@@ -291,9 +279,9 @@ uses ProgressUnit, ALUtils,
 {$define read_implementation}
 {$I dynarray_1.inc}
 
-{ TGameSoundEngine ----------------------------------------------------------- }
+{ TXmlSoundEngine ----------------------------------------------------------- }
 
-constructor TGameSoundEngine.Create;
+constructor TXmlSoundEngine.Create;
 begin
   inherited;
 
@@ -305,7 +293,7 @@ begin
   FSoundImportanceNames.CaseSensitive := true;
   AddSoundImportanceName('max', MaxSoundImportance);
 
-  Volume := DefaultGameVolume;
+  Volume := DefaultXmlEngineVolume;
 
   FSoundNames := TStringList.Create;
   FSoundNames.CaseSensitive := true;
@@ -319,7 +307,7 @@ begin
     PathDelim + 'sounds' + PathDelim + 'index.xml';
 end;
 
-destructor TGameSoundEngine.Destroy;
+destructor TXmlSoundEngine.Destroy;
 begin
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSoundNames);
@@ -328,7 +316,7 @@ begin
   inherited;
 end;
 
-procedure TGameSoundEngine.ALContextOpen;
+procedure TXmlSoundEngine.ALContextOpen;
 var
   ST: TSoundType;
 begin
@@ -359,7 +347,7 @@ begin
   end;
 end;
 
-procedure TGameSoundEngine.ALContextClose;
+procedure TXmlSoundEngine.ALContextClose;
 var
   ST: TSoundType;
 begin
@@ -372,7 +360,7 @@ begin
   inherited;
 end;
 
-function TGameSoundEngine.Sound(SoundType: TSoundType;
+function TXmlSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TALSound;
 begin
   Result := PlaySound(
@@ -384,7 +372,7 @@ begin
     ZeroVector3Single);
 end;
 
-function TGameSoundEngine.Sound3d(SoundType: TSoundType;
+function TXmlSoundEngine.Sound3d(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TALSound;
 begin
@@ -397,7 +385,7 @@ begin
     Position);
 end;
 
-procedure TGameSoundEngine.ReadSoundInfos;
+procedure TXmlSoundEngine.ReadSoundInfos;
 var
   ST: TSoundType;
   SoundConfig: TXMLDocument;
@@ -491,7 +479,7 @@ begin
   end;
 end;
 
-function TGameSoundEngine.SoundFromName(const SoundName: string): TSoundType;
+function TXmlSoundEngine.SoundFromName(const SoundName: string): TSoundType;
 var
   Index: Integer;
 begin
@@ -501,7 +489,7 @@ begin
     Result := Index;
 end;
 
-procedure TGameSoundEngine.AddSoundImportanceName(const Name: string;
+procedure TXmlSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
@@ -510,9 +498,9 @@ end;
 const
   DefaultAudioDevice = '';
 
-procedure TGameSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
+procedure TXmlSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
 begin
-  Volume := ConfigFile.GetFloat('sound/volume', DefaultGameVolume);
+  Volume := ConfigFile.GetFloat('sound/volume', DefaultXmlEngineVolume);
   MusicPlayer.MusicVolume := ConfigFile.GetFloat('sound/music/volume',
     DefaultMusicVolume);
   MinAllocatedSources := ConfigFile.GetValue(
@@ -523,9 +511,9 @@ begin
   Device := ConfigFile.GetValue('sound/device', DefaultAudioDevice);
 end;
 
-procedure TGameSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
+procedure TXmlSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
 begin
-  ConfigFile.SetDeleteFloat('sound/volume', Volume, DefaultGameVolume);
+  ConfigFile.SetDeleteFloat('sound/volume', Volume, DefaultXmlEngineVolume);
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
   if MusicPlayer <> nil then
@@ -540,7 +528,7 @@ end;
 
 { TMusicPlayer --------------------------------------------------------------- }
 
-constructor TMusicPlayer.Create(AnEngine: TGameSoundEngine);
+constructor TMusicPlayer.Create(AnEngine: TXmlSoundEngine);
 begin
   inherited Create;
   FMusicVolume := DefaultMusicVolume;

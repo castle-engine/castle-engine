@@ -14,7 +14,7 @@ uses
   alsoundengine,
   alutils,
   efx,
-  gamesoundengine,
+  xmlsoundengine,
   kambiogg,
   kambiopenal,
   soundfile,

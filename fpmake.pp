@@ -117,7 +117,7 @@ begin
     P.Targets.AddUnit('alsoundallocator.pas');
     P.Targets.AddUnit('alsoundengine.pas');
     P.Targets.AddUnit('alutils.pas');
-    P.Targets.AddUnit('gamesoundengine.pas');
+    P.Targets.AddUnit('xmlsoundengine.pas');
     P.Targets.AddUnit('kambiogg.pas');
     P.Targets.AddUnit('kambiopenal.pas');
     P.Targets.AddUnit('soundfile.pas');

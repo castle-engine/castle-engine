@@ -143,8 +143,8 @@
         <UnitName Value="EFX"/>
       </Item23>
       <Item24>
-        <Filename Value="../src/audio/gamesoundengine.pas"/>
-        <UnitName Value="GameSoundEngine"/>
+        <Filename Value="../src/audio/xmlsoundengine.pas"/>
+        <UnitName Value="XmlSoundEngine"/>
       </Item24>
       <Item25>
         <Filename Value="../src/audio/kambiogg.pas"/>

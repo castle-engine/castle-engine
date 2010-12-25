@@ -13,12 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ Menu items (suitable for GLMenu) to control the TGameSoundEngine. }
+{ Menu items (suitable for GLMenu) to control the TXmlSoundEngine. }
 unit GLSoundMenu;
 
 interface
 
-uses GLWindow, GLMenu, GameSoundEngine;
+uses GLWindow, GLMenu, XmlSoundEngine;
 
 type
   { An abstract class for GLSoundMenu items.
@@ -39,12 +39,12 @@ type
 
   TGLSoundMenuItem = class(TGLMenuItem)
   private
-    FSoundEngine: TGameSoundEngine;
+    FSoundEngine: TXmlSoundEngine;
   protected
-    property SoundEngine: TGameSoundEngine read FSoundEngine;
+    property SoundEngine: TXmlSoundEngine read FSoundEngine;
   public
     constructor Create(AWindow: TGLWindow; Menu: TGLMenu;
-      ASoundEngine: TGameSoundEngine);
+      ASoundEngine: TXmlSoundEngine);
   end;
 
   TGLSoundInfoMenuItem = class(TGLSoundMenuItem)
@@ -67,7 +67,7 @@ type
     property Slider: TGLMenuVolumeSlider read FSlider;
   public
     constructor Create(AWindow: TGLWindow; Menu: TGLMenu;
-      ASoundEngine: TGameSoundEngine);
+      ASoundEngine: TXmlSoundEngine);
 
     { Call this if volume changed by something outside of this class. }
     procedure RefreshAccessory;
@@ -83,7 +83,7 @@ type
     property Slider: TGLMenuVolumeSlider read FSlider;
   public
     constructor Create(AWindow: TGLWindow; Menu: TGLMenu;
-      ASoundEngine: TGameSoundEngine);
+      ASoundEngine: TXmlSoundEngine);
 
     { Call this if volume changed by something outside of this class. }
     procedure RefreshAccessory;
@@ -122,7 +122,7 @@ end;
 { TGLSoundMenuItem ----------------------------------------------------------- }
 
 constructor TGLSoundMenuItem.Create(AWindow: TGLWindow;
-  Menu: TGLMenu; ASoundEngine: TGameSoundEngine);
+  Menu: TGLMenu; ASoundEngine: TXmlSoundEngine);
 begin
   inherited Create(AWindow, Menu);
   FSoundEngine := ASoundEngine;
@@ -167,7 +167,7 @@ end;
 { TGLSoundVolumeMenuItem ----------------------------------------------------- }
 
 constructor TGLSoundVolumeMenuItem.Create(AWindow: TGLWindow; Menu: TGLMenu;
-  ASoundEngine: TGameSoundEngine);
+  ASoundEngine: TXmlSoundEngine);
 begin
   FSlider := TGLMenuVolumeSlider.Create(ASoundEngine.Volume);
   inherited;
@@ -196,7 +196,7 @@ end;
 { TGLMusicVolumeMenuItem ----------------------------------------------------- }
 
 constructor TGLMusicVolumeMenuItem.Create(AWindow: TGLWindow; Menu: TGLMenu;
-  ASoundEngine: TGameSoundEngine);
+  ASoundEngine: TXmlSoundEngine);
 begin
   FSlider := TGLMenuVolumeSlider.Create(ASoundEngine.MusicPlayer.MusicVolume);
   inherited;
