@@ -18,7 +18,7 @@ unit ALSoundEngine;
 
 interface
 
-uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath;
+uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras;
 
 const
   DefaultVolume = 1.0;
@@ -193,6 +193,12 @@ type
       Device (only indirectly via ParseParameters)
       then you should give here true. }
     function ParseParametersHelp(PrintCurrentDeviceAsDefault: boolean): string;
+
+    { Set OpenAL listener position and orientation.
+      @groupBegin }
+    procedure UpdateListener(Camera: TCamera);
+    procedure UpdateListener(const Position, Direction, Up: TVector3Single);
+    { @groupEnd }
   published
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
@@ -661,6 +667,30 @@ begin
     '                        Print available audio devices' +nl+
     '                        (not supported by every OpenAL implementation)' +nl+
     '  --no-sound            Turn off sound';
+end;
+
+procedure TALSoundEngine.UpdateListener(Camera: TCamera);
+var
+  Pos: TVector3Single;
+  { We use Orientation vector, instead of two separate Dir, Up,
+    to not waste time or copying vector contents. }
+  Orientation: TALTwoVectors3f;
+begin
+  if ALActive then
+  begin
+    Camera.GetView(Pos, Orientation[0], Orientation[1]);
+    alListenerVector3f(AL_POSITION, Pos);
+    alListenerfv(AL_ORIENTATION, @Orientation);
+  end;
+end;
+
+procedure TALSoundEngine.UpdateListener(const Position, Direction, Up: TVector3Single);
+begin
+  if ALActive then
+  begin
+    alListenerVector3f(AL_POSITION, Position);
+    alListenerOrientation(Direction, Up);
+  end;
 end;
 
 end.

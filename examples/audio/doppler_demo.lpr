@@ -91,8 +91,8 @@ begin
     alSourcePlay(Source.ALSource);
 
     ListenerPosition := Vector3Single(300, 300, 0);
-    alListenerVector3f(AL_POSITION, ListenerPosition * ALDistanceScaling);
-    alListenerOrientation(Vector3Single(0, 1, 0), Vector3Single(0, 0, 1));
+    SoundEngine.UpdateListener(ListenerPosition * ALDistanceScaling,
+      Vector3Single(0, 1, 0), Vector3Single(0, 0, 1));
 
     Application.TimerMilisec := 1000;
     Window.OnTimer := @Timer;
