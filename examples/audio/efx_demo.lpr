@@ -19,7 +19,7 @@
 program efx_demo;
 
 uses SysUtils, KambiUtils, KambiOpenAL, ALUtils, EFX, KambiTimeUtils,
-  ALSoundEngine, ALSourceAllocator;
+  ALSoundEngine, ALSoundAllocator;
 
 type
   TDemoMode = (
@@ -158,7 +158,7 @@ end;
 
 var
   Buffer: TALBuffer;
-  Sound: TALAllocatedSource;
+  Sound: TALSound;
 begin
   OpenALOptionsParse;
   SoundEngine := TALSoundEngine.Create;

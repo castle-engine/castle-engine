@@ -24,7 +24,7 @@
 program doppler_demo;
 
 uses SysUtils, VectorMath, GLWindow, GL, GLU, KambiGLUtils,
-  KambiOpenAL, ALUtils, ALSoundEngine, ALSourceAllocator;
+  KambiOpenAL, ALUtils, ALSoundEngine, ALSoundAllocator;
 
 const
   ALDistanceScaling = 0.02;
@@ -32,7 +32,7 @@ const
 var
   Window: TGLWindowDemo;
   PreviousSourcePosition, SourcePosition, ListenerPosition: TVector3Single;
-  Source: TALAllocatedSource;
+  Source: TALSound;
 
 procedure Draw(Window: TGLWindow);
 begin

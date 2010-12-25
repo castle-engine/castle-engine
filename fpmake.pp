@@ -114,7 +114,8 @@ begin
     P.Targets.AddUnit('vrmlglrenderer.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
-    P.Targets.AddUnit('alsourceallocator.pas');
+    P.Targets.AddUnit('alsoundallocator.pas');
+    P.Targets.AddUnit('alsoundengine.pas');
     P.Targets.AddUnit('alutils.pas');
     P.Targets.AddUnit('gamesoundengine.pas');
     P.Targets.AddUnit('kambiogg.pas');

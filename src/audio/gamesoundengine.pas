@@ -20,8 +20,8 @@ unit GameSoundEngine;
 
 interface
 
-uses Classes, VectorMath, KambiOpenAL, ALSourceAllocator, SysUtils,
-  KambiUtils, KambiXMLConfig, ALSoundEngine;
+uses Classes, VectorMath, KambiOpenAL, SysUtils,
+  KambiUtils, KambiXMLConfig, ALSoundEngine, ALSoundAllocator;
 
 {$define read_interface}
 
@@ -81,7 +81,7 @@ type
          of the music source. }
     Gain, MinGain, MaxGain: Single;
 
-    { Importance, as passed to TALSourceAllocator.
+    { Importance, as passed to TALSoundAllocator.
       This is ignored when sound is used for MusicPlayer.PlayedSound. }
     DefaultImportance: Cardinal;
 
@@ -102,7 +102,7 @@ type
   TMusicPlayer = class;
 
   { Easy to use sound manager, using OpenAL, ALUtils and
-    ALSourceAllocator underneath.
+    ALSoundAllocator underneath.
 
     At ALContextOpen, right before initializing OpenAL stuff,
     this reads sounds information from SoundsXmlFileName file.
@@ -123,7 +123,7 @@ type
     for more general sound programs... not necessarily.
     If you need more flexibility, you should write your own sound
     manager (or heavily extend this), using ALUtils and
-    ALSourceAllocator units directly. }
+    ALSoundAllocator units directly. }
   TGameSoundEngine = class(TALSoundEngine)
   private
     FSoundImportanceNames: TStringList;
@@ -189,20 +189,20 @@ type
     { Play given sound. This should be used to play sounds
       that are not spatial actually, i.e. have no place in 3D space.
 
-      Returns used TALAllocatedSource (or nil if none was available).
-      You don't have to do anything with this returned TALAllocatedSource. }
+      Returns used TALSound (or nil if none was available).
+      You don't have to do anything with this returned TALSound. }
     function Sound(SoundType: TSoundType;
-      const Looping: boolean = false): TALAllocatedSource;
+      const Looping: boolean = false): TALSound;
 
     { Play given sound at appropriate position in 3D space.
 
-      Returns used TALAllocatedSource (or nil if none was available).
-      You don't have to do anything with this returned TALAllocatedSource.
+      Returns used TALSound (or nil if none was available).
+      You don't have to do anything with this returned TALSound.
 
       @noAutoLinkHere }
     function Sound3d(SoundType: TSoundType;
       const Position: TVector3Single;
-      const Looping: boolean = false): TALAllocatedSource; overload;
+      const Looping: boolean = false): TALSound; overload;
 
     property Volume default DefaultGameVolume;
 
@@ -250,9 +250,9 @@ type
     { This is nil if we don't play music right now
       (because OpenAL is not initialized, or PlayedSound = stNone,
       or PlayerSound.FileName = '' (sound not existing)). }
-    FAllocatedSource: TALAllocatedSource;
+    FAllocatedSource: TALSound;
 
-    procedure AllocatedSourceUsingEnd(Sender: TALAllocatedSource);
+    procedure AllocatedSourceUsingEnd(Sender: TALSound);
 
     { Called by ALContextOpen. You should check here if
       PlayedSound <> stNone and eventually initialize FAllocatedSource. }
@@ -371,7 +371,7 @@ begin
 end;
 
 function TGameSoundEngine.Sound(SoundType: TSoundType;
-  const Looping: boolean): TALAllocatedSource;
+  const Looping: boolean): TALSound;
 begin
   Result := PlaySound(
     SoundInfos.Items[SoundType].Buffer, false, Looping,
@@ -384,7 +384,7 @@ end;
 
 function TGameSoundEngine.Sound3d(SoundType: TSoundType;
   const Position: TVector3Single;
-  const Looping: boolean): TALAllocatedSource;
+  const Looping: boolean): TALSound;
 begin
   Result := PlaySound(
     SoundInfos.Items[SoundType].Buffer, true, Looping,
@@ -579,7 +579,7 @@ begin
   end;
 end;
 
-procedure TMusicPlayer.AllocatedSourceUsingEnd(Sender: TALAllocatedSource);
+procedure TMusicPlayer.AllocatedSourceUsingEnd(Sender: TALSound);
 begin
   Assert(Sender = FAllocatedSource);
   FAllocatedSource.OnUsingEnd := nil;

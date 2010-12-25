@@ -18,7 +18,7 @@ unit ALSoundEngine;
 
 interface
 
-uses SysUtils, Classes, KambiOpenAL, ALSourceAllocator, VectorMath;
+uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath;
 
 const
   DefaultVolume = 1.0;
@@ -45,7 +45,7 @@ type
     Or you can explicitly create it, and then you're independent from
     TKamSceneManager (you can create and destroy TKamSceneManager instances,
     and keep the same sound engine instance). }
-  TALSoundEngine = class(TALSourceAllocator)
+  TALSoundEngine = class(TALSoundAllocator)
   private
     FSoundInitializationReport: string;
     FVolume: Single;
@@ -116,7 +116,7 @@ type
       When Spatial = @false, then Position is ignored
       (you can pass anything, like ZeroVector3Single).
 
-      @returns(The allocated sound as TALAllocatedSource.
+      @returns(The allocated sound as TALSound.
 
         Returns @nil when there were no resources to play another sound
         (and it wasn't important enough to override another sound).
@@ -129,7 +129,7 @@ type
     function PlaySound(const ALBuffer: TALBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
-      const Position: TVector3Single): TALAllocatedSource;
+      const Position: TVector3Single): TALSound;
   published
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
@@ -241,7 +241,7 @@ end;
 function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
-  const Position: TVector3Single): TALAllocatedSource;
+  const Position: TVector3Single): TALSound;
 
   procedure alCommonSourceSetup(ALSource: TALuint);
   begin

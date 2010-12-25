@@ -10,7 +10,8 @@ unit AllKambiAudioUnits;
 interface
 
 uses
-  alsourceallocator,
+  alsoundallocator,
+  alsoundengine,
   alutils,
   efx,
   gamesoundengine,
