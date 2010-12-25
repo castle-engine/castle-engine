@@ -43,10 +43,24 @@
   end;
 
   TNodeAudioClip = class(TNodeX3DSoundSourceNode, INodeX3DUrlObject)
+  private
+    FBufferLoaded: boolean;
+    Buffer: TALBuffer;
+    FDuration: TKamTime;
+    Sound: TALSound;
+    procedure SetBufferLoaded(const Value: boolean);
+    procedure SoundUsingEnd(ASound: TALSound);
+    procedure UpdatePlaying(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
+
+    { Did we attempt loading Buffer. You still have to check Buffer <> 0 to know
+      if it's successfully loaded. }
+    property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
   protected
     function CycleInterval: TKamTime; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -133,11 +147,27 @@ begin
   Fields.Add(FFdurl);
   { X3D specification comment: [urn] }
 
+  EventIsActive.OnReceive.Add(@UpdatePlaying);
+  EventIsPaused.OnReceive.Add(@UpdatePlaying);
+
   { Although X3D XML encoding spec says that "children" is default
     containerField, common sense says it should be "source".
     (Sound.source field is where AudioClip should be placed.)
     Testcase: FISH.x3d }
   DefaultContainerField := 'source';
+
+  FDuration := -1;
+end;
+
+destructor TNodeAudioClip.Destroy;
+begin
+  if Sound <> nil then
+  begin
+    Sound.DoUsingEnd;
+    Assert(Sound = nil);
+  end;
+  BufferLoaded := false;
+  inherited;
 end;
 
 class function TNodeAudioClip.ClassNodeTypeName: string;
@@ -163,8 +193,90 @@ end;
 
 function TNodeAudioClip.CycleInterval: TKamTime;
 begin
-  { AudioClip not implemented now, so just return 0 }
-  Result := 0;
+  { Secure from invalid FDuration (when sound file is not loaded, or duration
+    is just unknown) and from invalid FdPitch (user can set here anything). }
+  if (FDuration > 0) and (FdPitch.Value > 0) then
+    Result := FDuration * FdPitch.Value else
+    Result := 0;
+end;
+
+procedure TNodeAudioClip.SoundUsingEnd(ASound: TALSound);
+begin
+  Sound := nil;
+end;
+
+procedure TNodeAudioClip.UpdatePlaying(Event: TVRMLEvent; Value: TVRMLField;
+  const Time: TVRMLTime);
+
+  function GetSoundNode: TNodeSound;
+  begin
+    if (ParentFieldsCount <> 0) and
+       (ParentFields[0].ParentNode <> nil) and
+       (ParentFields[0].ParentNode is TNodeSound) then
+      Result := TNodeSound(ParentFields[0].ParentNode);
+  end;
+
+var
+  SoundNode: TNodeSound;
+begin
+  if TimeDependentNodeHandler.IsActive and not TimeDependentNodeHandler.IsPaused then
+  begin
+    { if not playing, try to start playing }
+    if Sound = nil then
+    begin
+      BufferLoaded := true;
+      SoundNode := GetSoundNode;
+      if (Buffer <> 0) and (SoundNode <> nil) then
+      begin
+        Sound := SoundEngine.PlaySound(Buffer,
+          SoundNode.FdSpatialize.Value,
+          FdLoop.Value,
+          Clamped(Round(SoundNode.FdPriority.Value * 1000), 0, 1000),
+          SoundNode.FdIntensity.Value, 0, 1,
+          SoundNode.FdLocation.Value);
+        if Sound <> nil then
+          Sound.OnUsingEnd := @SoundUsingEnd;
+      end;
+    end;
+  end else
+  begin
+    { if playing, try to stop playing }
+    if Sound <> nil then
+      Sound.DoUsingEnd;
+  end;
+end;
+
+procedure TNodeAudioClip.SetBufferLoaded(const Value: boolean);
+var
+  I: Integer;
+  FullUrl: string;
+  LoadedDuration: TKamTime;
+begin
+  if FBufferLoaded <> Value then
+  begin
+    FBufferLoaded := Value;
+
+    if Value then
+    begin
+      for I := 0 to FdUrl.Items.Count - 1 do
+      begin
+        FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+        try
+          Buffer := SoundEngine.LoadBuffer(FullUrl, LoadedDuration);
+          FDuration := LoadedDuration;
+          EventDuration_Changed.Send(FDuration);
+          Break;
+        except
+          on E: Exception do
+            { Remember that VRMLWarning *may* raise an exception. }
+            VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
+              ' occurred when trying to load '+
+              'sound file from URL "' + FullUrl + ' : ' + E.Message);
+        end;
+      end;
+    end else
+      SoundEngine.FreeBuffer(Buffer);
+  end;
 end;
 
 constructor TNodeSound.Create(const ANodeName: string;
