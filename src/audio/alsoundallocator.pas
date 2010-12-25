@@ -29,6 +29,8 @@ const
 type
   TALSound = class;
 
+  TALBuffer = TALuint;
+
   TALSoundEvent = procedure (Sender: TALSound) of object;
 
   ENoMoreOpenALSources = class(Exception);
@@ -46,7 +48,15 @@ type
     FALSourceAllocated: boolean;
     FUserData: TObject;
     FPosition: TVector3Single;
+    FLooping: boolean;
+    FGain, FMinGain, FMaxGain: Single;
+    FBuffer: TALBuffer;
     procedure SetPosition(const Value: TVector3Single);
+    procedure SetLooping(const Value: boolean);
+    procedure SetGain(const Value: Single);
+    procedure SetMinGain(const Value: Single);
+    procedure SetMaxGain(const Value: Single);
+    procedure SetBuffer(const Value: TALBuffer);
   public
     { Create sound. This allocates actual OpenAL source.
       @raises(ENoMoreOpenALSources If no more sources available.
@@ -119,6 +129,11 @@ type
     procedure DoUsingEnd; virtual;
 
     property Position: TVector3Single read FPosition write SetPosition;
+    property Looping: boolean read FLooping write SetLooping;
+    property Gain: Single read FGain write SetGain;
+    property MinGain: Single read FMinGain write SetMinGain;
+    property MaxGain: Single read FMaxGain write SetMaxGain;
+    property Buffer: TALBuffer read FBuffer write SetBuffer;
   end;
 
   TObjectsListItem_1 = TALSound;
@@ -309,7 +324,7 @@ begin
     while it's associated with the source. Also, this would be a problem
     once we implement streaming on some sources: you have to reset
     buffer to 0 before queing buffers on source. }
-  alSourcei(ALSource, AL_BUFFER, 0);
+  Buffer := 0;
 
   if Assigned(OnUsingEnd) then
     OnUsingEnd(Self);
@@ -319,6 +334,36 @@ procedure TALSound.SetPosition(const Value: TVector3Single);
 begin
   FPosition := Value;
   alSourceVector3f(ALSource, AL_POSITION, Value);
+end;
+
+procedure TALSound.SetLooping(const Value: boolean);
+begin
+  FLooping := Value;
+  alSourcei(ALSource, AL_LOOPING, BoolToAL[Value]);
+end;
+
+procedure TALSound.SetGain(const Value: Single);
+begin
+  FGain := Value;
+  alSourcef(ALSource, AL_GAIN, Value);
+end;
+
+procedure TALSound.SetMinGain(const Value: Single);
+begin
+  FMinGain := Value;
+  alSourcef(ALSource, AL_MIN_GAIN, Value);
+end;
+
+procedure TALSound.SetMaxGain(const Value: Single);
+begin
+  FMaxGain := Value;
+  alSourcef(ALSource, AL_MAX_GAIN, Value);
+end;
+
+procedure TALSound.SetBuffer(const Value: TALBuffer);
+begin
+  FBuffer := Value;
+  alSourcei(ALSource, AL_BUFFER, Value);
 end;
 
 { TALSoundsList ----------------------------------------------------- }

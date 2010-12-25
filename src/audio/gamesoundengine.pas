@@ -602,9 +602,7 @@ begin
   begin
     FMusicVolume := Value;
     if FAllocatedSource <> nil then
-      alSourcef(FAllocatedSource.ALSource,
-        AL_GAIN,
-        MusicVolume * FEngine.SoundInfos.Items[PlayedSound].Gain);
+      FAllocatedSource.Gain := MusicVolume * FEngine.SoundInfos.Items[PlayedSound].Gain;
   end;
 end;
 

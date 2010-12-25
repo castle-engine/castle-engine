@@ -174,7 +174,7 @@ begin
     Sound := SoundEngine.AllocateSound(1);
     if Sound = nil then
       raise Exception.Create('Not possible to allocate even 1 source');
-    alSourcei(Sound.ALSource, AL_BUFFER, Buffer);
+    Sound.Buffer := Buffer;
 
     if SoundEngine.EFXSupported then
     begin

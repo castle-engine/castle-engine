@@ -24,8 +24,6 @@ const
   DefaultVolume = 1.0;
 
 type
-  TALBuffer = TALuint;
-
   EALBufferNotLoaded = class(Exception);
 
   { OpenAL sound engine. Takes care of all the 3D sound stuff,
@@ -481,11 +479,11 @@ function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
 
   procedure alCommonSourceSetup(ALSource: TALuint);
   begin
-    alSourcei(ALSource, AL_BUFFER, ALBuffer);
-    alSourcei(ALSource, AL_LOOPING, BoolToAL[Looping]);
-    alSourcef(ALSource, AL_GAIN, Gain);
-    alSourcef(ALSource, AL_MIN_GAIN, MinGain);
-    alSourcef(ALSource, AL_MAX_GAIN, MaxGain);
+    Result.Buffer := ALBuffer;
+    Result.Looping := Looping;
+    Result.Gain := Gain;
+    Result.MinGain := MinGain;
+    Result.MaxGain := MaxGain;
 
     if Spatial then
     begin

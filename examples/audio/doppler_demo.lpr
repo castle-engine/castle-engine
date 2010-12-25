@@ -83,8 +83,8 @@ begin
     //alDopplerFactor(3.0);
 
     Source := SoundEngine.AllocateSound(1);
-    alSourcei(Source.ALSource, AL_BUFFER, Buffer);
-    alSourcei(Source.ALSource, AL_LOOPING, AL_TRUE);
+    Source.Buffer := Buffer;
+    Source.Looping := true;
     SourcePosition := Vector3Single(200, 300, 0);
     PreviousSourcePosition := SourcePosition;
     alSourceVector3f(Source.ALSource, AL_POSITION, SourcePosition * ALDistanceScaling);
