@@ -26,7 +26,7 @@
 program algets;
 
 uses KambiOpenAL, ALUtils, SysUtils, KambiUtils, VectorMath,
-  KambiStringUtils, EFX;
+  KambiStringUtils, EFX, ALSoundEngine;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.
 
@@ -202,9 +202,13 @@ end;
 
 begin
   OpenALOptionsParse;
-
-  BeginAL(false);
+  SoundEngine := TALSoundEngine.Create;
+  SoundEngine.MinAllocatedSources := 1;
+  SoundEngine.ALContextOpen(false);
   try
     Gets;
-  finally EndAL end;
+  finally
+    SoundEngine.ALContextClose;
+    FreeAndNil(SoundEngine);
+ end;
 end.

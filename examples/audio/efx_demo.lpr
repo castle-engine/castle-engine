@@ -162,6 +162,7 @@ var
 begin
   OpenALOptionsParse;
   SoundEngine := TALSoundEngine.Create;
+  SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen(false);
   try
     { parse params }

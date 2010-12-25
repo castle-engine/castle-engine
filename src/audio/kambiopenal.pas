@@ -172,9 +172,9 @@ const
   Unix OpenAL implementation seems to have a problem.
   It's reproduceable in "The Castle" code:
   When I want to switch from one OpenAL device to the other,
-  I would like to call EndAL (this releases OpenAL context and device),
-  change my device name, and call BeginAL (this allocates
-  OpenAL context and device). But this causes problems under Linux:
+  I would like to close OpenAL context and device,
+  change my device name, and create OpenAL context and device again.
+  But this causes problems under Linux:
   when user selects some non-working device (e.g. when I select
   esd device while Esound daemon is not running), OpenAL (correctly)
   doesn't let me initialize the device (returns nil).

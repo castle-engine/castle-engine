@@ -75,6 +75,7 @@ begin
 
   OpenALOptionsParse;
   SoundEngine := TALSoundEngine.Create;
+  SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen(false);
   try
     Buffer := SoundEngine.LoadBuffer('tone.wav');

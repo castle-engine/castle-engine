@@ -30,7 +30,8 @@
 }
 program alplay;
 
-uses KambiUtils, KambiOpenAL, ALUtils, SoundFile, KambiTimeUtils, DataErrors;
+uses SysUtils, KambiUtils, KambiOpenAL, ALUtils, SoundFile, KambiTimeUtils,
+  DataErrors, ALSoundEngine;
 
 var
   Buffer, Source: TALuint;
@@ -40,7 +41,9 @@ begin
   DataWarning := @DataWarning_Write;
 
   OpenALOptionsParse;
-  BeginAL(false);
+  SoundEngine := TALSoundEngine.Create;
+  SoundEngine.MinAllocatedSources := 1;
+  SoundEngine.ALContextOpen(false);
   try
     { prepare al state }
     { turn off any environmental effects }
@@ -52,7 +55,7 @@ begin
     alCreateBuffers(1, @Buffer);
     alCreateSources(1, @Source);
     CheckAL('preparing source and buffer');
-    
+
     try
       { parse params }
       Parameters.CheckHigh(1);
@@ -82,5 +85,8 @@ begin
       alDeleteSources(1, @Source);
       alDeleteBuffers(1, @Buffer);
     end;
-  finally EndAL end;
+  finally
+    SoundEngine.ALContextClose;
+    FreeAndNil(SoundEngine);
+  end;
 end.

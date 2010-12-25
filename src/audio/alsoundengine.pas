@@ -62,7 +62,7 @@ type
       failed for any reason (maybe OpenAL library is not available,
       or no sound output device is available).
       You can check things like ALActivationErrorMessage
-      and ALActive (see TryBeginAL documentation), but generally this class
+      and ALActive, but generally this class
       will hide from you the fact that sound is not initialized. }
     procedure ALContextOpen(const WasParam_NoSound: boolean); override;
 
