@@ -885,9 +885,8 @@ procedure TNodeImageTexture.LoadTextureData(out WasCacheUsed: boolean);
           on E: Exception do
           begin
             { Remember that VRMLWarning *may* raise an exception. }
-            VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-              ' occurred when trying to load ' +
-              'texture from data URI starting with "' + URLPrefix + '" : ' + E.Message);
+            VRMLWarning(vwIgnorable, Format(SDataURILoadError,
+              [E.ClassName, 'texture', URLPrefix, E.Message]));
             Result := false;
           end;
         end;
@@ -923,9 +922,8 @@ begin
       except
         on E: Exception do
           { Remember that VRMLWarning *may* raise an exception. }
-          VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-            ' occurred when trying to load ' +
-            'texture from url "' + FullUrl + '" : ' + E.Message);
+          VRMLWarning(vwIgnorable, Format(SLoadError,
+            [E.ClassName, 'texture', FullUrl, E.Message]));
       end;
     end;
 end;
@@ -1060,9 +1058,8 @@ begin
     except
       on E: Exception do
         { Remember that VRMLWarning *may* raise an exception. }
-        VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-          ' occurred when trying to load ' +
-          'video from filename "' + FullUrl + '" : ' + E.Message);
+        VRMLWarning(vwIgnorable, Format(SLoadError,
+          [E.ClassName, 'video', FullUrl, E.Message]));
     end;
   end;
 end;

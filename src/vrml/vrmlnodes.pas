@@ -2239,6 +2239,16 @@ uses
 
 {$define read_implementation}
 
+resourcestring
+  SExpectedInterfaceDeclaration =
+    'Expected interface declaration (for VRML 2.0: eventIn, eventOut, field or ' +
+    'exposedField keyword; for X3D: inputOnly, outputOnly, initializeOnly or ' +
+    'inputOutput keyword) but found %s';
+  SExpectedFieldType =
+    'Expected field type name (like SFVec2f etc.) but found %s';
+  SLoadError        = 'Exception %s occurred when trying to load %s from URL "%s": %s';
+  SDataURILoadError = 'Exception %s occurred when trying to load %s from data URI starting with "%s": %s';
+
 {$define GeometryNotImplemented :=
   function TGeometryNotImplemented.LocalBoundingBox(State: TVRMLGraphTraverseState;
     ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
@@ -2327,14 +2337,6 @@ uses
 {$I vrmlnodes_avalon.inc}
 {$I vrmlnodes_encoding_classic.inc}
 {$I vrmlnodes_encoding_xml.inc}
-
-resourcestring
-  SExpectedInterfaceDeclaration =
-    'Expected interface declaration (for VRML 2.0: eventIn, eventOut, field or ' +
-    'exposedField keyword; for X3D: inputOnly, outputOnly, initializeOnly or ' +
-    'inputOutput keyword) but found %s';
-  SExpectedFieldType =
-    'Expected field type name (like SFVec2f etc.) but found %s';
 
 function InterfaceDeclarationKeywords(
   const AccessTypes: TVRMLAccessTypes): TVRMLKeywords;

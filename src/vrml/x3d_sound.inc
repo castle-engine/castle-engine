@@ -276,9 +276,8 @@ begin
         except
           on E: Exception do
             { Remember that VRMLWarning *may* raise an exception. }
-            VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-              ' occurred when trying to load '+
-              'sound file from URL "' + FullUrl + ' : ' + E.Message);
+            VRMLWarning(vwIgnorable, Format(SLoadError,
+              [E.ClassName, 'sound file', FullUrl, E.Message]));
         end;
       end;
     end else

@@ -536,9 +536,8 @@ begin
       except
         on E: Exception do
           { Careful here, as VRMLWarning may also raise exception. }
-          VRMLWarning(vwIgnorable, 'Exception ' + E.ClassName +
-            ' occurred when trying to load '+
-            'inline file from URL "' + FullUrl + ' : ' + E.Message);
+          VRMLWarning(vwIgnorable, Format(SLoadError,
+            [E.ClassName, 'inline file', FullUrl, E.Message]));
       end;
     end;
 
