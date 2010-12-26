@@ -49,7 +49,7 @@ type
     FUserData: TObject;
     FPosition: TVector3Single;
     FLooping, FRelative: boolean;
-    FGain, FMinGain, FMaxGain: Single;
+    FGain, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TALBuffer;
     procedure SetPosition(const Value: TVector3Single);
     procedure SetLooping(const Value: boolean);
@@ -58,6 +58,7 @@ type
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
     procedure SetBuffer(const Value: TALBuffer);
+    procedure SetPitch(const Value: Single);
   public
     { Create sound. This allocates actual OpenAL source.
       @raises(ENoMoreOpenALSources If no more sources available.
@@ -136,6 +137,7 @@ type
     property MinGain: Single read FMinGain write SetMinGain;
     property MaxGain: Single read FMaxGain write SetMaxGain;
     property Buffer: TALBuffer read FBuffer write SetBuffer;
+    property Pitch: Single read FPitch write SetPitch;
   end;
 
   TObjectsListItem_1 = TALSound;
@@ -372,6 +374,12 @@ procedure TALSound.SetBuffer(const Value: TALBuffer);
 begin
   FBuffer := Value;
   alSourcei(ALSource, AL_BUFFER, Value);
+end;
+
+procedure TALSound.SetPitch(const Value: Single);
+begin
+  FPitch := Value;
+  alSourcef(ALSource, AL_PITCH, Value);
 end;
 
 { TALSoundsList ----------------------------------------------------- }

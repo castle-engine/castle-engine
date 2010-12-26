@@ -40,6 +40,9 @@
     { Event: SFTime, out } { }
     private FEventduration_changed: TVRMLEvent;
     public property Eventduration_changed: TVRMLEvent read FEventduration_changed;
+
+    { Pitch, corrected to always be > 0. }
+    function Pitch: Single;
   end;
 
   TNodeAudioClip = class(TNodeX3DSoundSourceNode, INodeX3DUrlObject)
@@ -145,6 +148,13 @@ begin
   DefaultContainerField := 'children';
 end;
 
+function TNodeX3DSoundSourceNode.Pitch: Single;
+begin
+  Result := FdPitch.Value;
+  if Result <= 0 then
+    Result := 1; { assign default pitch in case of trouble }
+end;
+
 constructor TNodeAudioClip.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -201,9 +211,9 @@ end;
 function TNodeAudioClip.CycleInterval: TKamTime;
 begin
   { Secure from invalid FDuration (when sound file is not loaded, or duration
-    is just unknown) and from invalid FdPitch (user can set here anything). }
-  if (FDuration > 0) and (FdPitch.Value > 0) then
-    Result := FDuration * FdPitch.Value else
+    is just unknown). }
+  if FDuration > 0 then
+    Result := FDuration / Pitch else
     Result := 0;
 end;
 
@@ -240,7 +250,8 @@ begin
           FdLoop.Value,
           Clamped(Round(SoundNode.FdPriority.Value * 1000), 0, 1000),
           SoundNode.FdIntensity.Value, 0, 1,
-          MatrixMultPoint(SoundNode.FTransform, SoundNode.FdLocation.Value));
+          MatrixMultPoint(SoundNode.FTransform, SoundNode.FdLocation.Value),
+          Pitch);
         if Sound <> nil then
           Sound.OnUsingEnd := @SoundUsingEnd;
       end;

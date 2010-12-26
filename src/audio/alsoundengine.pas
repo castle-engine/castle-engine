@@ -164,7 +164,8 @@ type
     function PlaySound(const ALBuffer: TALBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
-      const Position: TVector3Single): TALSound;
+      const Position: TVector3Single;
+      const Pitch: Single = 1): TALSound;
 
     { Parse parameters in @link(Parameters) and interprets and removes
       recognized options. Internally it uses ParseParameters with
@@ -517,7 +518,8 @@ end;
 function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
-  const Position: TVector3Single): TALSound;
+  const Position: TVector3Single;
+  const Pitch: Single): TALSound;
 
   procedure alCommonSourceSetup(ALSource: TALuint);
   begin
@@ -526,6 +528,7 @@ function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
     Result.Gain := Gain;
     Result.MinGain := MinGain;
     Result.MaxGain := MaxGain;
+    Result.Pitch := Pitch;
 
     if Spatial then
     begin
