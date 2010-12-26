@@ -51,6 +51,7 @@ type
     FLooping, FRelative: boolean;
     FGain, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TALBuffer;
+    FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
     procedure SetPosition(const Value: TVector3Single);
     procedure SetLooping(const Value: boolean);
     procedure SetRelative(const Value: boolean);
@@ -59,6 +60,9 @@ type
     procedure SetMaxGain(const Value: Single);
     procedure SetBuffer(const Value: TALBuffer);
     procedure SetPitch(const Value: Single);
+    procedure SetRolloffFactor(const Value: Single);
+    procedure SetReferenceDistance(const Value: Single);
+    procedure SetMaxDistance(const Value: Single);
   public
     { Create sound. This allocates actual OpenAL source.
       @raises(ENoMoreOpenALSources If no more sources available.
@@ -138,6 +142,9 @@ type
     property MaxGain: Single read FMaxGain write SetMaxGain;
     property Buffer: TALBuffer read FBuffer write SetBuffer;
     property Pitch: Single read FPitch write SetPitch;
+    property RolloffFactor: Single read FRolloffFactor write SetRolloffFactor;
+    property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance;
+    property MaxDistance: Single read FMaxDistance write SetMaxDistance;
   end;
 
   TObjectsListItem_1 = TALSound;
@@ -380,6 +387,24 @@ procedure TALSound.SetPitch(const Value: Single);
 begin
   FPitch := Value;
   alSourcef(ALSource, AL_PITCH, Value);
+end;
+
+procedure TALSound.SetRolloffFactor(const Value: Single);
+begin
+  FRolloffFactor := Value;
+  alSourcef(ALSource, AL_ROLLOFF_FACTOR, Value);
+end;
+
+procedure TALSound.SetReferenceDistance(const Value: Single);
+begin
+  FReferenceDistance := Value;
+  alSourcef(ALSource, AL_REFERENCE_DISTANCE, Value);
+end;
+
+procedure TALSound.SetMaxDistance(const Value: Single);
+begin
+  FMaxDistance := Value;
+  alSourcef(ALSource, AL_MAX_DISTANCE, Value);
 end;
 
 { TALSoundsList ----------------------------------------------------- }

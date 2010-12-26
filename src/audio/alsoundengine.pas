@@ -19,10 +19,13 @@ unit ALSoundEngine;
 interface
 
 uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras,
-  KambiTimeUtils;
+  KambiTimeUtils, Math;
 
 const
   DefaultVolume = 1.0;
+  DefaultDefaultRolloffFactor = 1.0;
+  DefaultDefaultReferenceDistance = 1.0;
+  DefaultDefaultMaxDistance = MaxSingle;
 
 type
   EALBufferNotLoaded = class(Exception);
@@ -49,6 +52,9 @@ type
     ALContext: PALCcontext;
     FEnable: boolean;
     FALInitialized: boolean;
+    FDefaultRolloffFactor: Single;
+    FDefaultReferenceDistance: Single;
+    FDefaultMaxDistance: Single;
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
       call we can immediately set the good listener parameters. }
@@ -166,6 +172,13 @@ type
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3Single;
       const Pitch: Single = 1): TALSound;
+    function PlaySound(const ALBuffer: TALBuffer;
+      const Spatial, Looping: boolean; const Importance: Cardinal;
+      const Gain, MinGain, MaxGain: Single;
+      const Position: TVector3Single;
+      const Pitch: Single;
+      const ReferenceDistance: Single;
+      const MaxDistance: Single): TALSound;
 
     { Parse parameters in @link(Parameters) and interprets and removes
       recognized options. Internally it uses ParseParameters with
@@ -225,6 +238,38 @@ type
       This is useful if you simply want to disable any sound output
       (or OpenAL usage), even when OpenAL library is available. }
     property Enable: boolean read FEnable write FEnable default true;
+
+    { How the sound is attenuated with the distance.
+      These are used only for spatialized sounds created with PlaySound.
+      The DefaultReferenceDistance and DefaultMaxDistance values
+      are used only if you don't supply explicit values to PlaySound.
+
+      The exact interpretation of these depends on current OpenAL
+      alDistanceModel, see OpenAL specification for exact equations.
+      In short:
+
+      @unorderedList(
+        @item(Smaller Rolloff Factor makes the attenuation weaker.
+          In particular 0 turns off attenuation by distance.
+          Default is 1.)
+        @item(Reference Distance is the distance at which exactly sound
+          gain is heard. Default is 1.)
+        @item(Max Distance interpretation depends on the model.
+          For "inverse clamped model", the gain is no longer scaled down
+          after reaching this distance. For linear models, the gain
+          reaches zero at this distance. Default is maximum float
+          (I don't know the interpretation of this for linear model).)
+      )
+
+      Our default values follow OpenAL default values.
+      @groupBegin }
+    property DefaultRolloffFactor: Single
+      read FDefaultRolloffFactor write FDefaultRolloffFactor default DefaultDefaultRolloffFactor;
+    property DefaultReferenceDistance: Single
+      read FDefaultReferenceDistance write FDefaultReferenceDistance default DefaultDefaultReferenceDistance;
+    property DefaultMaxDistance: Single
+      read FDefaultMaxDistance write FDefaultMaxDistance default DefaultDefaultMaxDistance;
+    { @groupEnd }
   end;
 
 function GetSoundEngine: TALSoundEngine;
@@ -272,6 +317,9 @@ constructor TALSoundEngine.Create;
 begin
   inherited;
   FVolume := DefaultVolume;
+  FDefaultRolloffFactor := DefaultDefaultRolloffFactor;
+  FDefaultReferenceDistance := DefaultDefaultReferenceDistance;
+  FDefaultMaxDistance := DefaultDefaultMaxDistance;
   FEnable := true;
 
   { Default OpenAL listener attributes }
@@ -519,40 +567,7 @@ function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3Single;
-  const Pitch: Single): TALSound;
-
-  procedure alCommonSourceSetup(ALSource: TALuint);
-  begin
-    Result.Buffer := ALBuffer;
-    Result.Looping := Looping;
-    Result.Gain := Gain;
-    Result.MinGain := MinGain;
-    Result.MaxGain := MaxGain;
-    Result.Pitch := Pitch;
-
-    if Spatial then
-    begin
-      { Set attenuation by distance. }
-      alSourcef(ALSource, AL_ROLLOFF_FACTOR, 0.1);
-      alSourcef(ALSource, AL_REFERENCE_DISTANCE, 2.0);
-
-      Result.Relative := false;
-      Result.Position := Position;
-    end else
-    begin
-      { No attenuation by distance. }
-      alSourcef(ALSource, AL_ROLLOFF_FACTOR, 0);
-
-      { Although AL_ROLLOFF_FACTOR := 0 turns off
-        attenuation by distance, we still have to turn off
-        any changes from player's orientation (so that the sound
-        is not played on left or right side, but normally).
-        That's why setting source position exactly on the player
-        is needed here. }
-      Result.Relative := true;
-      Result.Position := ZeroVector3Single;
-    end;
-  end;
+  const Pitch, ReferenceDistance, MaxDistance: Single): TALSound;
 
 const
   { For now, just always use CheckBufferLoaded. It doesn't seem to cause
@@ -566,7 +581,37 @@ begin
     Result := AllocateSound(Importance);
     if Result <> nil then
     begin
-      alCommonSourceSetup(Result.ALSource);
+      Result.Buffer := ALBuffer;
+      Result.Looping := Looping;
+      Result.Gain := Gain;
+      Result.MinGain := MinGain;
+      Result.MaxGain := MaxGain;
+      Result.Pitch := Pitch;
+
+      if Spatial then
+      begin
+        { Set default attenuation by distance. }
+        Result.RolloffFactor := DefaultRolloffFactor;
+        Result.ReferenceDistance := ReferenceDistance;
+        Result.MaxDistance := MaxDistance;
+
+        Result.Relative := false;
+        Result.Position := Position;
+      end else
+      begin
+        { No attenuation by distance. }
+        Result.RolloffFactor := 0;
+        { ReferenceDistance, MaxDistance don't matter in this case }
+
+        { Although AL_ROLLOFF_FACTOR := 0 turns off
+          attenuation by distance, we still have to turn off
+          any changes from player's orientation (so that the sound
+          is not played on left or right side, but normally).
+          That's why setting source position exactly on the player
+          is needed here. }
+        Result.Relative := true;
+        Result.Position := ZeroVector3Single;
+      end;
 
       if CheckBufferLoaded then
       begin
@@ -603,6 +648,18 @@ begin
       alSourcePlay(Result.ALSource);
     end;
   end;
+end;
+
+function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
+  const Spatial, Looping: boolean; const Importance: Cardinal;
+  const Gain, MinGain, MaxGain: Single;
+  const Position: TVector3Single;
+  const Pitch: Single): TALSound;
+begin
+  Result := PlaySound(ALBuffer, Spatial, Looping, Importance,
+    Gain, MinGain, MaxGain, Position, Pitch,
+    { use default values for next parameters }
+    DefaultReferenceDistance, DefaultMaxDistance);
 end;
 
 function TALSoundEngine.LoadBuffer(const FileName: string;
