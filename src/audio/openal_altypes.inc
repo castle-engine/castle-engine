@@ -340,10 +340,13 @@ const
    *
    * implicit: NONE, which disances distance attenuation.
    }
-  AL_DISTANCE_MODEL = $D000;
-  AL_INVERSE_DISTANCE = $D001;
-  AL_INVERSE_DISTANCE_CLAMPED = $D002;
-
+  AL_DISTANCE_MODEL            = $D000;
+  AL_INVERSE_DISTANCE          = $D001;
+  AL_INVERSE_DISTANCE_CLAMPED  = $D002;
+  AL_LINEAR_DISTANCE           = $D003; {< since OpenAL 1.1 }
+  AL_LINEAR_DISTANCE_CLAMPED   = $D004; {< since OpenAL 1.1 }
+  AL_EXPONENT_DISTANCE         = $D005; {< since OpenAL 1.1 }
+  AL_EXPONENT_DISTANCE_CLAMPED = $D006; {< since OpenAL 1.1 }
 
   {*
    * enables
