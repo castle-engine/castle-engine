@@ -73,6 +73,9 @@
   TNodeSound = class(TNodeX3DSoundNode)
   private
     FTransform: TMatrix4Single;
+    procedure UpdateSourcePosition;
+    procedure EventLocationReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
@@ -297,6 +300,7 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdlocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
+   Fdlocation.EventOut.OnReceive.Add(@EventLocationReceive);
   Fields.Add(FFdlocation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -332,10 +336,30 @@ begin
   FTransform := IdentityMatrix4Single;
 end;
 
+procedure TNodeSound.UpdateSourcePosition;
+var
+  AudioClip: TNodeAudioClip;
+begin
+  if (FdSource.Value <> nil) and
+     (FdSource.Value is TNodeAudioClip) then
+  begin
+    AudioClip := TNodeAudioClip(FdSource.Value);
+    if AudioClip.Sound <> nil then
+      AudioClip.Sound.Position := MatrixMultPoint(FTransform, FdLocation.Value);
+  end;
+end;
+
 procedure TNodeSound.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   FTransform := StateStack.Top.Transform;
+  UpdateSourcePosition;
+end;
+
+procedure TNodeSound.EventLocationReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+begin
+  UpdateSourcePosition;
 end;
 
 class function TNodeSound.ClassNodeTypeName: string;
