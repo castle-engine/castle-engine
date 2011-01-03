@@ -76,6 +76,7 @@
   TNodeSound = class(TNodeX3DSoundNode)
   private
     FTransform: TMatrix4Single;
+    FTransformScale: Single;
     procedure UpdateSourcePosition;
     procedure EventLocationReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -251,7 +252,11 @@ begin
           Clamped(Round(SoundNode.FdPriority.Value * 1000), 0, 1000),
           SoundNode.FdIntensity.Value, 0, 1,
           MatrixMultPoint(SoundNode.FTransform, SoundNode.FdLocation.Value),
-          Pitch);
+          Pitch,
+          { We pass min/maxFront as OpenAL reference distance/max distance,
+            as their meanings match for distance model = dmLinearDistanceClamped. }
+          SoundNode.FTransformScale * SoundNode.FdMinFront.Value,
+          SoundNode.FTransformScale * SoundNode.FdMaxFront.Value);
         if Sound <> nil then
           Sound.OnUsingEnd := @SoundUsingEnd;
       end;
@@ -344,6 +349,7 @@ begin
   DefaultContainerField := 'children';
 
   FTransform := IdentityMatrix4Single;
+  FTransformScale := 1;
 end;
 
 procedure TNodeSound.UpdateSourcePosition;
@@ -363,6 +369,7 @@ procedure TNodeSound.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   FTransform := StateStack.Top.Transform;
+  FTransformScale := StateStack.Top.TransformScale;
   UpdateSourcePosition;
 end;
 
