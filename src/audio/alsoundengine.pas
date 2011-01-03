@@ -21,11 +21,18 @@ interface
 uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras,
   KambiTimeUtils, Math;
 
+type
+  TALDistanceModel = (dmNone,
+    dmInverseDistance , dmInverseDistanceClamped,
+    dmLinearDistance  , dmLinearDistanceClamped,
+    dmExponentDistance, dmExponentDistanceClamped);
+
 const
   DefaultVolume = 1.0;
   DefaultDefaultRolloffFactor = 1.0;
   DefaultDefaultReferenceDistance = 1.0;
   DefaultDefaultMaxDistance = MaxSingle;
+  DefaultDistanceModel = dmLinearDistanceClamped;
 
 type
   EALBufferNotLoaded = class(Exception);
@@ -46,6 +53,7 @@ type
     FSoundInitializationReport: string;
     FDevice: string;
     FALActive: boolean;
+    FALMajorVersion, FALMinorVersion: Integer;
     FEFXSupported: boolean;
     FVolume: Single;
     ALDevice: PALCdevice;
@@ -55,6 +63,7 @@ type
     FDefaultRolloffFactor: Single;
     FDefaultReferenceDistance: Single;
     FDefaultMaxDistance: Single;
+    FDistanceModel: TALDistanceModel;
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
       call we can immediately set the good listener parameters. }
@@ -65,12 +74,17 @@ type
     procedure CheckALC(const situation: string);
 
     procedure SetVolume(const Value: Single);
+    procedure SetDistanceModel(const Value: TALDistanceModel);
+    { Call alDistanceModel with parameter derived from current DistanceModel.
+      Use only when ALActive. }
+    procedure UpdateDistanceModel;
   public
     constructor Create;
     destructor Destroy; override;
 
     { Initialize OpenAL library, and output device and context.
-      Sets ALInitialized, ALActive, SoundInitializationReport, EFXSupported.
+      Sets ALInitialized, ALActive, SoundInitializationReport, EFXSupported,
+      ALMajorVersion, ALMinorVersion.
       You can set @link(Device) before calling this.
 
       Note that we continue (without any exception) if the initialization
@@ -244,8 +258,8 @@ type
       The DefaultReferenceDistance and DefaultMaxDistance values
       are used only if you don't supply explicit values to PlaySound.
 
-      The exact interpretation of these depends on current OpenAL
-      alDistanceModel, see OpenAL specification for exact equations.
+      The exact interpretation of these depends on current
+      DistanceModel. See OpenAL specification for exact equations.
       In short:
 
       @unorderedList(
@@ -270,6 +284,23 @@ type
     property DefaultMaxDistance: Single
       read FDefaultMaxDistance write FDefaultMaxDistance default DefaultDefaultMaxDistance;
     { @groupEnd }
+
+    { How the sources are spatialized. For precise meaning, see OpenAL
+      specification of alDistanceModel.
+
+      Note that some models are actually available only since OpenAL 1.1
+      version. Older OpenAL versions may (but don't have to) support them
+      through extensions. We will internally do everything possible to
+      request given model, but eventually may fallback on some other model.
+      This probably will not be a problem in practice, as all modern OS
+      versions (Linux distros, Windows OpenAL installers etc.) include OpenAL
+      1.1.
+
+      The default distance model, DefaultDistanceModel, is the linear model
+      most conforming to VRML/X3D sound requirements. You can change it
+      if you want (for example, OpenAL default is dmInverseDistanceClamped). }
+    property DistanceModel: TALDistanceModel
+      read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
   end;
 
 function GetSoundEngine: TALSoundEngine;
@@ -293,7 +324,7 @@ property SoundEngine: TALSoundEngine read GetSoundEngine write SetSoundEngine;
 implementation
 
 uses KambiUtils, KambiStringUtils, ALUtils, KambiLog,
-  SoundFile, VorbisFile, EFX, ParseParametersUnit;
+  SoundFile, VorbisFile, EFX, ParseParametersUnit, StrUtils;
 
 type
   { For alcGetError errors (ALC_xxx constants). }
@@ -320,6 +351,7 @@ begin
   FDefaultRolloffFactor := DefaultDefaultRolloffFactor;
   FDefaultReferenceDistance := DefaultDefaultReferenceDistance;
   FDefaultMaxDistance := DefaultDefaultMaxDistance;
+  FDistanceModel := DefaultDistanceModel;
   FEnable := true;
 
   { Default OpenAL listener attributes }
@@ -380,6 +412,31 @@ end;
 
 procedure TALSoundEngine.ALContextOpen;
 
+  procedure ParseVersion(const Version: string; out Major, Minor: Integer);
+  var
+    DotP, SpaceP: Integer;
+  begin
+    { version unknown }
+    Major := 0;
+    Minor := 0;
+
+    DotP := Pos('.', Version);
+    if DotP <> 0 then
+    try
+      Major := StrToInt(Trim(Copy(Version, 1, DotP - 1)));
+      SpaceP := PosEx(' ', Version, DotP + 1);
+      if SpaceP <> 0 then
+        Minor := StrToInt(Trim(Copy(Version, DotP + 1, SpaceP - DotP))) else
+        Minor := StrToInt(Trim(SEnding(Version, DotP + 1)));
+    except
+      on EConvertError do
+      begin
+        Major := 0;
+        Minor := 0;
+      end;
+    end;
+  end;
+
   { Try to initialize OpenAL.
     Sets ALActive, EFXSupported.
     If not ALActive, then ALActivationErrorMessage contains error description. }
@@ -392,6 +449,8 @@ procedure TALSoundEngine.ALContextOpen;
       FALActive := false;
       FEFXSupported := false;
       ALActivationErrorMessage := '';
+      FALMajorVersion := 0;
+      FALMinorVersion := 0;
 
       CheckALInited;
 
@@ -408,6 +467,7 @@ procedure TALSoundEngine.ALContextOpen;
 
       FALActive := true;
       FEFXSupported := Load_EFX(ALDevice);
+      ParseVersion(alGetString(AL_VERSION), FALMajorVersion, FALMinorVersion);
     except
       on E: EOpenALError do
         ALActivationErrorMessage := E.Message;
@@ -435,6 +495,7 @@ begin
 
       try
         alListenerf(AL_GAIN, Volume);
+        UpdateDistanceModel;
         inherited; { initialize sound allocator }
         CheckAL('initializing sounds (ALContextOpen)');
       except
@@ -530,6 +591,7 @@ begin
   begin
     S.Append('');
     S.Append('Version : ' + alGetString(AL_VERSION));
+    S.Append(Format('Version Parsed : major: %d, minor: %d', [FALMajorVersion, FALMinorVersion]));
     S.Append('Renderer : ' + alGetString(AL_RENDERER));
     S.Append('Vendor : ' + alGetString(AL_VENDOR));
     S.Append('Extensions : ' + alGetString(AL_EXTENSIONS));
@@ -698,6 +760,41 @@ begin
     FVolume := Value;
     if ALActive then
       alListenerf(AL_GAIN, Volume);
+  end;
+end;
+
+procedure TALSoundEngine.UpdateDistanceModel;
+
+  function AtLeast(AMajor, AMinor: Integer): boolean;
+  begin
+    Result :=
+        (AMajor < FALMajorVersion) or
+      ( (AMajor = FALMajorVersion) and (AMinor <= FALMinorVersion) );
+  end;
+
+const
+  ALDistanceModelConsts: array [TALDistanceModel] of TALenum =
+  ( AL_NONE,
+    AL_INVERSE_DISTANCE, AL_INVERSE_DISTANCE_CLAMPED,
+    AL_LINEAR_DISTANCE, AL_LINEAR_DISTANCE_CLAMPED,
+    AL_EXPONENT_DISTANCE, AL_EXPONENT_DISTANCE_CLAMPED );
+var
+  Is11: boolean;
+begin
+  Is11 := AtLeast(1, 1);
+  if (not Is11) and (DistanceModel in [dmLinearDistance, dmExponentDistance]) then
+    alDistanceModel(AL_INVERSE_DISTANCE) else
+  if (not Is11) and (DistanceModel in [dmLinearDistanceClamped, dmExponentDistanceClamped]) then
+    alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED) else
+    alDistanceModel(ALDistanceModelConsts[DistanceModel]);
+end;
+
+procedure TALSoundEngine.SetDistanceModel(const Value: TALDistanceModel);
+begin
+  if Value <> FDistanceModel then
+  begin
+    FDistanceModel := Value;
+    if ALActive then UpdateDistanceModel;
   end;
 end;
 
