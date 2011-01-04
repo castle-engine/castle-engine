@@ -45,6 +45,15 @@ type
   end;
   TALBuffersCacheList = specialize TFPGObjectList<TALBuffersCache>;
 
+  TALDeviceDescription = class
+  private
+    FName, FNiceName: string;
+  public
+    property Name: string read FName;
+    property NiceName: string read FNiceName;
+  end;
+  TALDeviceDescriptionList = specialize TFPGObjectList<TALDeviceDescription>;
+
   { OpenAL sound engine. Takes care of all the 3D sound stuff,
     wrapping OpenAL is a nice and comfortable interface.
 
@@ -73,6 +82,7 @@ type
     FDefaultMaxDistance: Single;
     FDistanceModel: TALDistanceModel;
     BuffersCache: TALBuffersCacheList;
+    FDevices: TALDeviceDescriptionList;
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
       call we can immediately set the good listener parameters. }
@@ -243,6 +253,16 @@ type
     procedure UpdateListener(Camera: TCamera);
     procedure UpdateListener(const Position, Direction, Up: TVector3Single);
     { @groupEnd }
+
+    { List of available OpenAL sound devices. Read-only.
+
+      Use @code(Devices[].Name) as @link(Device) values.
+      On some OpenAL implementations, some other @link(Device) values may
+      be possible, e.g. old Loki implementation allowed some hints
+      to be encoded in Lisp-like language inside the @link(Device) string. }
+    property Devices: TALDeviceDescriptionList read FDevices;
+
+    function DeviceNiceName: string;
   published
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
@@ -352,9 +372,105 @@ begin
   inherited Create(AMessage);
 end;
 
+{ Check and use OpenAL enumeration extension.
+  If OpenAL supports ALC_ENUMERATION_EXT, then we return @true
+  and pDeviceList is initialized to the null-separated list of
+  possible OpenAL devices. }
+function EnumerationExtPresent(out pDeviceList: PChar): boolean;
+begin
+  Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
+  if Result then
+  begin
+    pDeviceList := alcGetString(nil, ALC_DEVICE_SPECIFIER);
+    Assert(pDeviceList <> nil);
+  end;
+end;
+
+function EnumerationExtPresent: boolean;
+begin
+  Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
+end;
+
 { TALSoundEngine ------------------------------------------------------------- }
 
 constructor TALSoundEngine.Create;
+
+  { Find available OpenAL devices, add them to FDevices.
+
+    It tries to use ALC_ENUMERATION_EXT extension, available on all modern
+    OpenAL implementations. If it fails, and we're dealing with
+    OpenAL "sample implementation" (older OpenAL Unix implementation)
+    then we return a hardcoded list of devices known to be supported
+    by this implementation.
+    This makes it working sensibly under all OpenAL implementations in use
+    today.
+
+    Also for every OpenAL implementation, we add an implicit
+    OpenAL default device named '' (empty string). }
+  procedure UpdateDevices;
+
+    procedure Add(const AName, ANiceName: string);
+    var
+      D: TALDeviceDescription;
+    begin
+      D := TALDeviceDescription.Create;
+      D.FName := AName;
+      D.FNiceName := ANiceName;
+      FDevices.Add(D);
+    end;
+
+    function SampleImpALCDeviceName(const ShortDeviceName: string): string;
+    begin
+      Result := '''(( devices ''(' + ShortDeviceName + ') ))';
+    end;
+
+  var
+    pDeviceList: PChar;
+  begin
+    Add('', 'Default OpenAL device');
+
+    if ALInited and EnumerationExtPresent(pDeviceList) then
+    begin
+      { parse pDeviceList }
+      while pDeviceList^ <> #0 do
+      begin
+        { automatic conversion PChar -> AnsiString below }
+        Add(pDeviceList, pDeviceList);
+
+        { advance position of pDeviceList }
+        pDeviceList := StrEnd(pDeviceList);
+        Inc(pDeviceList);
+      end;
+    end else
+    if ALInited and OpenALSampleImplementation then
+    begin
+      Add(SampleImpALCDeviceName('native'), 'Operating system native');
+      Add(SampleImpALCDeviceName('sdl'), 'SDL (Simple DirectMedia Layer)');
+
+      { aRts device is too unstable on my Linux:
+
+        When trying to initialize <tt>arts</tt> backend
+        I can bring the OpenAL library (and, consequently, whole program
+        using it) to crash with message <i>can't create mcop
+        directory</i>. Right after running konqueror, I get also
+        crash with message <i>*** glibc detected *** double free or corruption (out):
+        0x08538d88 ***</i>.
+
+        This is so unstable, that I think that I do a service
+        for users by *not* listing aRts in available OpenAL
+        devices. It's listed on [http://vrmlengine.sourceforge.net/openal_notes.php]
+        and that's enough.
+
+      Add(SampleImpALCDeviceName('arts'), 'aRts (analog Real time synthesizer)');
+      }
+
+      Add(SampleImpALCDeviceName('esd'), 'Esound (Enlightened Sound Daemon)');
+      Add(SampleImpALCDeviceName('alsa'), 'ALSA (Advanced Linux Sound Architecture)');
+      Add(SampleImpALCDeviceName('waveout'), 'WAVE file output');
+      Add(SampleImpALCDeviceName('null'), 'Null device (no output)');
+    end;
+  end;
+
 begin
   inherited;
   FVolume := DefaultVolume;
@@ -364,6 +480,9 @@ begin
   FDistanceModel := DefaultDistanceModel;
   FEnable := true;
   BuffersCache := TALBuffersCacheList.Create;
+
+  FDevices := TALDeviceDescriptionList.Create;
+  UpdateDevices;
 
   { Default OpenAL listener attributes }
   ListenerPosition := ZeroVector3Single;
@@ -375,6 +494,7 @@ destructor TALSoundEngine.Destroy;
 begin
   ALContextClose;
   FreeAndNil(BuffersCache);
+  FreeAndNil(FDevices);
   inherited;
 end;
 
@@ -869,8 +989,7 @@ procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   Message, DefaultDeviceName: string;
-  DeviceList: TStringList;
-  i, DefaultDeviceNum: Integer;
+  i: Integer;
   Engine: TALSoundEngine;
 begin
   Engine := TALSoundEngine(Data);
@@ -881,31 +1000,20 @@ begin
            Message := 'OpenAL is not available - cannot print available audio devices' else
          if not EnumerationExtPresent then
            Message := 'Your OpenAL implementation does not support getting the list '+
-             'of available audio devices (ALC_ENUMERATION_EXT extension not present ' +
-             '(or not implemented correctly in case of Apple version)).' else
+             'of available audio devices (ALC_ENUMERATION_EXT extension not present).' else
          begin
            DefaultDeviceName := alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER);
-           DefaultDeviceNum := -1;
 
-           DeviceList := TStringList.Create;
-           try
-             GetOpenALDevices(DeviceList);
-
-             DefaultDeviceNum := DeviceList.IndexOf(DefaultDeviceName);
-
-             Message := Format('%d available audio devices:', [DeviceList.Count]) + nl;
-             for i := 0 to DeviceList.Count-1 do
-             begin
-               Message += '  ' + DeviceList[i];
-               if i = DefaultDeviceNum then Message += ' (default OpenAL device)';
-               Message += nl;
-             end;
-
-             if DefaultDeviceNum = -1 then
-               Message += 'Default OpenAL device name is "' + DefaultDeviceName +
-                 '" but this device was not listed as available device. ' +
-                 'Bug in OpenAL ?';
-           finally DeviceList.Free end;
+           Message := Format('%d available audio devices:', [Engine.Devices.Count]) + nl;
+           for i := 0 to Engine.Devices.Count - 1 do
+           begin
+             Message += '  ' + Engine.Devices[i].NiceName;
+             if Engine.Devices[i].Name <> Engine.Devices[i].NiceName then
+               Message += ' (Real OpenAL name: "' + Engine.Devices[i].Name + '")';
+             if Engine.Devices[i].Name = DefaultDeviceName then
+               Message += ' (Equivalent to default device)';
+             Message += nl;
+           end;
          end;
 
          InfoWrite(Message);
@@ -940,7 +1048,6 @@ begin
   Result += nl+
     '  --print-audio-devices' +nl+
     '                        Print available audio devices' +nl+
-    '                        (not supported by every OpenAL implementation)' +nl+
     '  --no-sound            Turn off sound';
 end;
 
@@ -964,6 +1071,17 @@ begin
     alListenerVector3f(AL_POSITION, Position);
     alListenerOrientation(Direction, Up);
   end;
+end;
+
+function TALSoundEngine.DeviceNiceName: string;
+var
+  I: Integer;
+begin
+  for I := 0 to FDevices.Count - 1 do
+    if FDevices[I].Name = Device then
+      Exit(FDevices[I].NiceName);
+
+  Result := 'Some OpenAL device'; // some default
 end;
 
 { globals -------------------------------------------------------------------- }
