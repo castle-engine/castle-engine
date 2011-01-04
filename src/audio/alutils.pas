@@ -235,7 +235,7 @@ procedure alFreeBuffer(var Buffer: TALuint);
 
 implementation
 
-uses VectorMath, KambiStringUtils;
+uses VectorMath, KambiStringUtils, KambiLog;
 
 {$define read_implementation}
 
@@ -401,6 +401,14 @@ begin
     FAL := TALSoundFile.Create(F, false);
     try
       FAL.alBufferData(buffer);
+
+      { Write to log after PrepareOpenAL, as OggVorbis is potentially decoded
+        there (and this way we get to know it's duration). }
+      if Log then
+        WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',
+          [ FileName, F.ClassName, ALDataFormatToStr(F.DataFormat),
+            F.DataSize, F.Frequency, F.Duration ]));
+
       Duration := F.Duration;
     finally FAL.Free end;
   finally F.Free end;
