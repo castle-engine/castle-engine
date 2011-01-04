@@ -44,6 +44,10 @@ begin
   SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen;
   try
+    Writeln(SoundEngine.SoundInitializationReport);
+    if not SoundEngine.ALActive then
+      Halt;
+
     { prepare al state }
     { turn off any environmental effects }
     alDistanceModel(AL_NONE);
