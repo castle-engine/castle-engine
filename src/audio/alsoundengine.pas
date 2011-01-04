@@ -584,13 +584,22 @@ procedure TALSoundEngine.ALContextClose;
     end;
   end;
 
+var
+  I: Integer;
 begin
   if ALInitialized then
   begin
     FALInitialized := false;
     if ALActive then
     begin
-      inherited; { release sound allocator }
+      { release sound allocator first. This also stops all the sources,
+        which is required before we try to release their buffers. }
+      inherited;
+
+      for I := 0 to BuffersCache.Count - 1 do
+        alFreeBuffer(BuffersCache[I].Buffer);
+      BuffersCache.Count := 0;
+
       EndAL;
     end;
   end;
@@ -801,8 +810,6 @@ begin
     end;
 
   raise EALBufferNotLoaded.CreateFmt('OpenAL buffer %d not loaded', [Buffer]);
-
-  { TODO: remaining buffers not freed at exit. }
 end;
 
 procedure TALSoundEngine.SetVolume(const Value: Single);
