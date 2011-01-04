@@ -87,6 +87,7 @@ type
     { Call alDistanceModel with parameter derived from current DistanceModel.
       Use only when ALActive. }
     procedure UpdateDistanceModel;
+    procedure SetDevice(const Value: string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -132,11 +133,6 @@ type
     { If ALActive, then will append some info about current OpenAL used. }
     procedure AppendALInformation(S: TStrings);
     function ALInformation: string;
-
-    { Change @link(Device) while OpenAL is already initialized.
-      This cleanly closes the old device (ALContextClose),
-      changes @link(Device) value, initializes context again (ALContextOpen). }
-    procedure ALChangeDevice(const NewDevice: string);
 
     { Load a sound file into OpenAL buffer.
 
@@ -254,8 +250,13 @@ type
     property Volume: Single read FVolume write SetVolume
       default DefaultVolume;
 
-    { Device to be used when initializing OpenAL context. }
-    property Device: string read FDevice write FDevice;
+    { Sound output device, used when initializing OpenAL context.
+
+      You can change it even when OpenAL is already initialized.
+      Then we'll close the old device (ALContextClose),
+      change @link(Device) value, and initialize context again (ALContextOpen).
+      Note that you will need to reload your buffers and sources again. }
+    property Device: string read FDevice write SetDevice;
 
     { If not Enable, ALContextOpen will not initialize any OpenAL device.
       This is useful if you simply want to disable any sound output
@@ -637,14 +638,6 @@ begin
   finally S.Free end;
 end;
 
-procedure TALSoundEngine.ALChangeDevice(const NewDevice: string);
-begin
-  ALContextClose;
-  OpenALRestart;
-  Device := NewDevice;
-  ALContextOpen;
-end;
-
 function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
@@ -854,6 +847,21 @@ begin
   begin
     FDistanceModel := Value;
     if ALActive then UpdateDistanceModel;
+  end;
+end;
+
+procedure TALSoundEngine.SetDevice(const Value: string);
+begin
+  if Value <> FDevice then
+  begin
+    if ALInitialized then
+    begin
+      ALContextClose;
+      OpenALRestart;
+      FDevice := Value;
+      ALContextOpen;
+    end else
+      FDevice := Value;
   end;
 end;
 
