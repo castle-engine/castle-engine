@@ -213,9 +213,7 @@ type
 
     { These methods load/save into config file some sound properties.
       Namely: sound/music volume, min/max allocated sounds,
-      and current ALCDevice. ALCDevice is technically declared in
-      another unit, ALUtils, but still this is probably the best place
-      to save/load it.
+      and current Device.
 
       Everything is loaded/saved under the path sound/ inside ConfigFile.
 
