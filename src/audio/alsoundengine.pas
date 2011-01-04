@@ -614,7 +614,7 @@ begin
 
   if not Enable then
     FSoundInitializationReport :=
-      'Sound disabled by --no-sound command-line option' else
+      'Sound disabled (for example by the --no-sound command-line option)' else
   begin
     BeginAL(ALActivationErrorMessage);
     if not ALActive then
