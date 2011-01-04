@@ -98,6 +98,7 @@ type
       Use only when ALActive. }
     procedure UpdateDistanceModel;
     procedure SetDevice(const Value: string);
+    procedure SetEnable(const Value: boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -278,10 +279,16 @@ type
       Note that you will need to reload your buffers and sources again. }
     property Device: string read FDevice write SetDevice;
 
-    { If not Enable, ALContextOpen will not initialize any OpenAL device.
+    { Enable sound.
+
+      If @false, then ALContextOpen will not initialize any OpenAL device.
       This is useful if you simply want to disable any sound output
-      (or OpenAL usage), even when OpenAL library is available. }
-    property Enable: boolean read FEnable write FEnable default true;
+      (or OpenAL usage), even when OpenAL library is available.
+
+      If the OpenAL context is already initialized when setting this,
+      we will eventually close it. (More precisely, we will
+      do ALContextClose and then ALContextOpen again. This behaves correctly.) }
+    property Enable: boolean read FEnable write SetEnable default true;
 
     { How the sound is attenuated with the distance.
       These are used only for spatialized sounds created with PlaySound.
@@ -836,6 +843,10 @@ begin
 
           So the natural workaround below follows. For OpenAL implementations
           that immediately load the buffer, this will not cause any delay. }
+          
+        { We have to do CheckAL first, to catch evantual errors.
+          Otherwise the loop would hang. }
+        CheckAL('PlaySound');
         while ALBuffer <> alGetSource1ui(Result.ALSource, AL_BUFFER) do
           Delay(10);
       end;
@@ -982,6 +993,20 @@ begin
       ALContextOpen;
     end else
       FDevice := Value;
+  end;
+end;
+
+procedure TALSoundEngine.SetEnable(const Value: boolean);
+begin
+  if Value <> FEnable then
+  begin
+    if ALInitialized then
+    begin
+      ALContextClose;
+      FEnable := Value;
+      ALContextOpen;
+    end else
+      FEnable := Value;
   end;
 end;
 
