@@ -19,7 +19,7 @@ unit ALSoundEngine;
 interface
 
 uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras,
-  KambiTimeUtils, Math;
+  KambiTimeUtils, Math, FGL;
 
 type
   TALDistanceModel = (dmNone,
@@ -36,6 +36,14 @@ const
 
 type
   EALBufferNotLoaded = class(Exception);
+
+  TALBuffersCache = class
+    FileName: string; //< Absolute (expanded) file name.
+    Buffer: TALbuffer;
+    Duration: TKamTime;
+    References: Cardinal;
+  end;
+  TALBuffersCacheList = specialize TFPGObjectList<TALBuffersCache>;
 
   { OpenAL sound engine. Takes care of all the 3D sound stuff,
     wrapping OpenAL is a nice and comfortable interface.
@@ -64,6 +72,7 @@ type
     FDefaultReferenceDistance: Single;
     FDefaultMaxDistance: Single;
     FDistanceModel: TALDistanceModel;
+    BuffersCache: TALBuffersCacheList;
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
       call we can immediately set the good listener parameters. }
@@ -353,6 +362,7 @@ begin
   FDefaultMaxDistance := DefaultDefaultMaxDistance;
   FDistanceModel := DefaultDistanceModel;
   FEnable := true;
+  BuffersCache := TALBuffersCacheList.Create;
 
   { Default OpenAL listener attributes }
   ListenerPosition := ZeroVector3Single;
@@ -363,6 +373,7 @@ end;
 destructor TALSoundEngine.Destroy;
 begin
   ALContextClose;
+  FreeAndNil(BuffersCache);
   inherited;
 end;
 
@@ -726,16 +737,41 @@ end;
 
 function TALSoundEngine.LoadBuffer(const FileName: string;
   out Duration: TKamTime): TALBuffer;
+var
+  I: Integer;
+  Cache: TALBuffersCache;
+  FullFileName: string;
 begin
   if not ALInitialized then ALContextOpen;
 
   if not ALActive then Exit(0);
 
-  { TODO: for now, no cache }
+  FullFileName := ExpandFileName(FileName);
+
+  { try to load from cache (Result and Duration) }
+  for I := 0 to BuffersCache.Count - 1 do
+    if BuffersCache[I].FileName = FullFileName then
+    begin
+      Inc(BuffersCache[I].References);
+      if Log then
+        WritelnLog('Sound', Format('Loaded "%s" from cache, now has %d references',
+          [FullFileName, BuffersCache[I].References]));
+      Duration := BuffersCache[I].Duration;
+      Exit(BuffersCache[I].Buffer);
+    end;
+
+  { actually load, and add to cache }
   alCreateBuffers(1, @Result);
   try
     TALSoundFile.alBufferDataFromFile(Result, FileName, Duration);
   except alDeleteBuffers(1, @Result); raise end;
+
+  Cache := TALBuffersCache.Create;
+  Cache.FileName := FullFileName;
+  Cache.Buffer := Result;
+  Cache.Duration := Duration;
+  Cache.References := 1;
+  BuffersCache.Add(Cache);
 end;
 
 function TALSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
@@ -746,11 +782,27 @@ begin
 end;
 
 procedure TALSoundEngine.FreeBuffer(var Buffer: TALBuffer);
+var
+  I: Integer;
 begin
-  { TODO: for now, no cache.
-    TODO: Also, invalid buffer will cause OpenAL error.
-    TODO: also, remaining buffers not freed at exit. }
-  alFreeBuffer(Buffer);
+  if Buffer = 0 then Exit;
+
+  for I := 0 to BuffersCache.Count - 1 do
+    if BuffersCache[I].Buffer = Buffer then
+    begin
+      Buffer := 0;
+      Dec(BuffersCache[I].References);
+      if BuffersCache[I].References = 0 then
+      begin
+        alFreeBuffer(BuffersCache[I].Buffer);
+        BuffersCache.Delete(I);
+      end;
+      Exit;
+    end;
+
+  raise EALBufferNotLoaded.CreateFmt('OpenAL buffer %d not loaded', [Buffer]);
+
+  { TODO: remaining buffers not freed at exit. }
 end;
 
 procedure TALSoundEngine.SetVolume(const Value: Single);

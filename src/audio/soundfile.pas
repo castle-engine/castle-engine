@@ -171,7 +171,7 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 
 implementation
 
-uses KambiStringUtils, VorbisDecoder, VorbisFile, DataErrors;
+uses KambiStringUtils, VorbisDecoder, VorbisFile, DataErrors, KambiLog;
 
 { TSoundFile ----------------------------------------------------------------- }
 
@@ -205,6 +205,12 @@ begin
   if SameText(Ext, '.ogg') then
     DoIt(TSoundOggVorbis) else
     DoIt(TSoundWAV);
+
+  if Log then
+    WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',
+      [ FileName, Result.ClassName,
+        ALDataFormatToStr(Result.DataFormat),
+        Result.DataSize, Result.Frequency, Result.Duration ]));
 end;
 
 procedure TSoundFile.CheckALExtension(const S: string);
