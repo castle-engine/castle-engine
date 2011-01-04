@@ -18,10 +18,6 @@ WWW:
   -->
 
 ------------------------------------------------------------------------------
-3.8.0: Sound
-- Sound support, only stuff that maps naturally to OpenAL and is easy
-  with our current units (wav, ogg vorbis, AL sounds allocator)
-
 3.9.0: Modernize rendering (everything through VBO, various shaders improvements)
 VBO:
 - migration to Vertex Buffer Objects
@@ -874,3 +870,15 @@ H-Anim:
   Interpolate skin normals, not recalculate them each time.
   This is what should be done according to seamless3d? reread http://www.seamless3d.com/hanim/index.html
 - THAnimJoint translation (and scale, and others besides rotate?) is vs humanoid center?
+
+Sound:
+- Add sound volume control to view3dscene on toolbar.
+  Show only when SoundEngine.ALActive?
+
+- Maybe: Rename Used / DoUsingEnd / OnUsingEnd to something nicer?
+  But what? Playing / Stop / OnStop sound easy, but would be misleading,
+  as the detection when source is no longer playing isn't immediate.
+
+- Possible extensions:
+  Maybe: ext to make footsteps sound (default, and based on ground texture?)
+  Maybe: to control listener sound (does instantreality have such thing?)
