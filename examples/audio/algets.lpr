@@ -139,11 +139,6 @@ begin
       'ALC_EXTENSIONS : ', SoundEngine.GetContextString(ALC_EXTENSIONS), nl,
 
       nl,
-      'ENUMERATION_EXT  --------------------------------', nl,
-      'alcIsExtensionPresent(ALC_ENUMERATION_EXT) : ', alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT'), nl,
-      'improved test for ALC_ENUMERATION_EXT : ', EnumerationExtPresent, nl,
-
-      nl,
       'Get globals --------------------------------', nl,
       'DISTANCE_MODEL : ',DistanceModelToStr(alGetInteger(AL_DISTANCE_MODEL)), nl,
       'DOPPLER_FACTOR : ',FloatToNiceStr(alGetFloat(AL_DOPPLER_FACTOR)), nl,
