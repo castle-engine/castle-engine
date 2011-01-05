@@ -217,16 +217,6 @@ type
         @itemLabel @--audio-device DEVICE-NAME
         @item Set @link(Device) variable to given argument.
 
-        @itemLabel @--print-audio-devices
-        @item(
-          Use ALC_ENUMERATION_EXT to print all available OpenAL audio devices
-          to stdout (uses InfoWrite, so on Windows when program is GUI, it will
-          make a dialog box).
-          If this extension is not present, write something
-          like "Enumerating audio devices not supported by your OpenAL".
-
-          Then do ProgramBreak.)
-
         @itemLabel @--no-sound
         @item Disable any sound (sets @link(Enable) to @false).
       )
@@ -235,7 +225,10 @@ type
       [http://vrmlengine.sourceforge.net/openal_notes.php#section_options] }
     procedure ParseParameters;
 
-    { Help string for options parsed by ParseParameters. }
+    { Help string for options parsed by ParseParameters.
+
+      Note that it also lists the available OpenAL @link(Devices),
+      as they are valid arguments for the @--audio-device option. }
     function ParseParametersHelp: string;
 
     { Set OpenAL listener position and orientation.
@@ -1014,39 +1007,12 @@ end;
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
-  Message, DefaultDeviceName: string;
-  i: Integer;
   Engine: TALSoundEngine;
 begin
   Engine := TALSoundEngine(Data);
   case OptionNum of
     0: Engine.Device := Argument;
     1: begin
-         if not ALInited then
-           Message := 'OpenAL is not available - cannot print available audio devices' else
-         if not EnumerationExtPresent then
-           Message := 'Your OpenAL implementation does not support getting the list '+
-             'of available audio devices (ALC_ENUMERATION_EXT extension not present).' else
-         begin
-           DefaultDeviceName := alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER);
-
-           Message := Format('%d available audio devices:', [Engine.Devices.Count]) + nl;
-           for i := 0 to Engine.Devices.Count - 1 do
-           begin
-             Message += '  ' + Engine.Devices[i].NiceName;
-             if Engine.Devices[i].Name <> Engine.Devices[i].NiceName then
-               Message += ' (Real OpenAL name: "' + Engine.Devices[i].Name + '")';
-             if Engine.Devices[i].Name = DefaultDeviceName then
-               Message += ' (Equivalent to default device)';
-             Message += nl;
-           end;
-         end;
-
-         InfoWrite(Message);
-
-         ProgramBreak;
-       end;
-    2: begin
          Engine.Enable := false;
          Engine.EnableSaveToConfig := false;
        end;
@@ -1056,9 +1022,8 @@ end;
 
 procedure TALSoundEngine.ParseParameters;
 const
-  OpenALOptions: array [0..2] of TOption =
+  OpenALOptions: array [0..1] of TOption =
   ( (Short: #0; Long: 'audio-device'; Argument: oaRequired),
-    (Short: #0; Long: 'print-audio-devices'; Argument: oaNone),
     (Short: #0; Long: 'no-sound'; Argument: oaNone)
   );
 begin
@@ -1066,12 +1031,40 @@ begin
 end;
 
 function TALSoundEngine.ParseParametersHelp: string;
+
+  function DevicesHelp: string;
+  var
+    DefaultDeviceName: string;
+    I: Integer;
+  begin
+    if not ALInited then
+      Result := '                        Warning: OpenAL is not available, cannot print' +NL+
+                '                        available audio devices.' +NL else
+    if not EnumerationExtPresent then
+      Result := '                        Warning: OpenAL does not support getting the list'+NL+
+                '                        of available audio devices' +NL+
+                '                        (missing ALC_ENUMERATION_EXT), probably old OpenAL.' else
+    begin
+      DefaultDeviceName := alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER);
+
+      Result := Format('                        Available devices (%d):', [Devices.Count]) + nl;
+      for i := 0 to Devices.Count - 1 do
+      begin
+        Result += '                          ' + Devices[i].NiceName;
+        if Devices[i].Name <> Devices[i].NiceName then
+          Result += ' (Real OpenAL name: "' + Devices[i].Name + '")';
+        if Devices[i].Name = DefaultDeviceName then
+          Result += ' (Equivalent to default device)';
+        Result += nl;
+      end;
+    end;
+  end;
+
 begin
   Result :=
     '  --audio-device DEVICE-NAME' +nl+
-    '                        Choose specific OpenAL audio device' +nl+
-    '  --print-audio-devices' +nl+
-    '                        Print available audio devices' +nl+
+    '                        Choose specific OpenAL audio device.' +nl+
+    DevicesHelp +
     '  --no-sound            Turn off sound';
 end;
 
