@@ -90,7 +90,7 @@ type
     ListenerPosition: TVector3Single;
     ListenerOrientation: TALTwoVectors3f;
 
-    EnableSaveToConfig: boolean;
+    EnableSaveToConfig, DeviceSaveToConfig: boolean;
 
     { Check ALC errors. Requires valid ALDevice. }
     procedure CheckALC(const situation: string);
@@ -477,6 +477,7 @@ begin
   FDistanceModel := DefaultDistanceModel;
   FEnable := true;
   EnableSaveToConfig := true;
+  DeviceSaveToConfig := true;
   BuffersCache := TALBuffersCacheList.Create;
   FOnOpenClose := TDynNotifyEventArray.Create;
 
@@ -986,6 +987,7 @@ begin
       ALContextOpen;
     end else
       FDevice := Value;
+    DeviceSaveToConfig := true; // caller will eventually change it to false
   end;
 end;
 
@@ -1011,7 +1013,10 @@ var
 begin
   Engine := TALSoundEngine(Data);
   case OptionNum of
-    0: Engine.Device := Argument;
+    0: begin
+         Engine.Device := Argument;
+         Engine.DeviceSaveToConfig := false;
+       end;
     1: begin
          Engine.Enable := false;
          Engine.EnableSaveToConfig := false;
@@ -1115,7 +1120,8 @@ end;
 procedure TALSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
 begin
   inherited;
-  ConfigFile.SetDeleteValue('sound/device', Device, DefaultAudioDevice);
+  if DeviceSaveToConfig then
+    ConfigFile.SetDeleteValue('sound/device', Device, DefaultAudioDevice);
   if EnableSaveToConfig then
     ConfigFile.SetDeleteValue('sound/enable', Enable, DefaultAudioEnable);
 end;
