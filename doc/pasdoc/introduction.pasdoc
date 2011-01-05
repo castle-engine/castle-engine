@@ -194,13 +194,15 @@ units are allowed to be used by units in specific group.
 
   @itemLabel @code(audio)
   @item(
-    These are my audio units.
-    OpenAL header translation (KambiOpenAL),
-    OpenAL helper routines (@link(ALUtils)),
-    sound file formats (currently, WAV and OggVorbis) reader (@link(SoundFile)),
-    smart sound sources allocator (@link(ALSourceAllocator))
-    and finally some high-level class to comfortably
-    use this whole thing (@link(GameSoundEngine)).
+    3D sound support. @link(ALSoundEngine) gives you a very comfortable way
+    to load and play 3D sounds. The @link(XMLSoundEngine) additionally
+    reads 3D sounds descriptions from special XML file (useful for games
+    with fixed sound set).
+
+    Lower-level sound units include OpenAL header translation (KambiOpenAL) and
+    OpenAL helpers (@link(ALUtils)).
+    Sound file formats (currently, WAV and OggVorbis) are handled by the
+    @link(SoundFile) unit.
 
     @italic(Uses:) @code(base).)
 
@@ -231,7 +233,7 @@ units are allowed to be used by units in specific group.
     [http://vrmlengine.sourceforge.net/kambi_script.php].
 
     @italic(Uses:) @code(base), @code(images),
-      VRML parts also use @code(3models).)
+      VRML parts also use @code(vrml).)
 
   @itemLabel @code(ui)
   @item(
