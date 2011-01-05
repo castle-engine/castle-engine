@@ -53,8 +53,10 @@
     Sound: TALSound;
     procedure SetBufferLoaded(const Value: boolean);
     procedure SoundUsingEnd(ASound: TALSound);
-    procedure UpdatePlaying(Event: TVRMLEvent; Value: TVRMLField;
+    procedure UpdatePlayingEvent(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
+    procedure UpdatePlaying;
+    procedure ALOpenClose(Sender: TObject);
 
     { Did we attempt loading Buffer. You still have to check Buffer <> 0 to know
       if it's successfully loaded. }
@@ -165,8 +167,8 @@ begin
   Fields.Add(FFdurl);
   { X3D specification comment: [urn] }
 
-  EventIsActive.OnReceive.Add(@UpdatePlaying);
-  EventIsPaused.OnReceive.Add(@UpdatePlaying);
+  EventIsActive.OnReceive.Add(@UpdatePlayingEvent);
+  EventIsPaused.OnReceive.Add(@UpdatePlayingEvent);
 
   { Although X3D XML encoding spec says that "children" is default
     containerField, common sense says it should be "source".
@@ -175,6 +177,8 @@ begin
   DefaultContainerField := 'source';
 
   FDuration := -1;
+
+  SoundEngine.OnOpenClose.Add(@ALOpenClose);
 end;
 
 destructor TNodeAudioClip.Destroy;
@@ -185,6 +189,7 @@ begin
     Assert(Sound = nil);
   end;
   BufferLoaded := false;
+  SoundEngine.OnOpenClose.Remove(@ALOpenClose);
   inherited;
 end;
 
@@ -223,8 +228,13 @@ begin
   Sound := nil;
 end;
 
-procedure TNodeAudioClip.UpdatePlaying(Event: TVRMLEvent; Value: TVRMLField;
+procedure TNodeAudioClip.UpdatePlayingEvent(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TVRMLTime);
+begin
+  UpdatePlaying;
+end;
+
+procedure TNodeAudioClip.UpdatePlaying;
 
   function GetSoundNode: TNodeSound;
   begin
@@ -285,7 +295,13 @@ begin
       begin
         FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
         try
-          Buffer := SoundEngine.LoadBuffer(FullUrl, LoadedDuration);
+          { LoadBuffer inside may cause OpenAL open, and we don't want to
+            do ALOpenClose then. }
+          SoundEngine.OnOpenClose.Remove(@ALOpenClose);
+          try
+            Buffer := SoundEngine.LoadBuffer(FullUrl, LoadedDuration);
+          finally SoundEngine.OnOpenClose.Add(@ALOpenClose) end;
+
           FDuration := LoadedDuration;
           EventDuration_Changed.Send(FDuration);
           Break;
@@ -298,6 +314,21 @@ begin
       end;
     end else
       SoundEngine.FreeBuffer(Buffer);
+  end;
+end;
+
+procedure TNodeAudioClip.ALOpenClose(Sender: TObject);
+begin
+  if (Sender as TALSoundEngine).ALActive then
+  begin
+    { Maybe we should start playing? }
+    BufferLoaded := false; //< force reloading buffer next time
+    UpdatePlaying;
+  end else
+  begin
+    { Zero Buffer, since closing of OpenAL already freed it (and stopped the
+      Sound). }
+    Buffer := 0;
   end;
 end;
 
