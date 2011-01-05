@@ -238,18 +238,8 @@ type
       [http://vrmlengine.sourceforge.net/openal_notes.php#section_options] }
     procedure ParseParameters;
 
-    { Help string for options parsed by ParseParameters.
-
-      Formatting is consistent with Kambi standards
-      (see file @code(../base/README.kambi_command_line_params)).
-
-      If PrintCurrentDeviceAsDefault then it will also say (near
-      the help for option @--audio-device) that "defauls device is ..."
-      and will give here current value of Device.
-      This is usually useful, e.g. if you don't intend to modify directly
-      Device (only indirectly via ParseParameters)
-      then you should give here true. }
-    function ParseParametersHelp(PrintCurrentDeviceAsDefault: boolean): string;
+    { Help string for options parsed by ParseParameters. }
+    function ParseParametersHelp: string;
 
     { Set OpenAL listener position and orientation.
       @groupBegin }
@@ -1071,16 +1061,11 @@ begin
   ParseParametersUnit.ParseParameters(OpenALOptions, @OptionProc, Self, true);
 end;
 
-function TALSoundEngine.ParseParametersHelp(PrintCurrentDeviceAsDefault: boolean): string;
+function TALSoundEngine.ParseParametersHelp: string;
 begin
   Result :=
     '  --audio-device DEVICE-NAME' +nl+
-    '                        Choose specific OpenAL audio device';
-  if PrintCurrentDeviceAsDefault then
-    Result += nl+
-      '                        Default audio device for this OS is:' +nl+
-      '                        '+ Iff(Device = '', '(OpenAL default device)', Device);
-  Result += nl+
+    '                        Choose specific OpenAL audio device' +nl+
     '  --print-audio-devices' +nl+
     '                        Print available audio devices' +nl+
     '  --no-sound            Turn off sound';
