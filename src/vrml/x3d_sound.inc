@@ -51,6 +51,7 @@
     Buffer: TALBuffer;
     FDuration: TKamTime;
     Sound: TALSound;
+    InsideLoadBuffer: Cardinal;
     procedure SetBufferLoaded(const Value: boolean);
     procedure SoundUsingEnd(ASound: TALSound);
     procedure UpdatePlayingEvent(Event: TVRMLEvent; Value: TVRMLField;
@@ -296,11 +297,31 @@ begin
         FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
         try
           { LoadBuffer inside may cause OpenAL open, and we don't want to
-            do ALOpenClose then. }
-          SoundEngine.OnOpenClose.Remove(@ALOpenClose);
+            do ALOpenClose then.
+
+            Doing OnOpenClose.Remove/Add now would be bad, as this code
+            may be called when inside iterating over OnOpenClose:
+            (- SetEnable calls ALContextOpen
+             - that calls OnOpenClose.ExecuteAll
+             - that calls Self.ALOpenClose
+             - that calls UpdatePlaying
+             - that loads the buffer
+            ). Shuffling now OnOpenClose items (Add always adds at the end)
+            would mean that the same callback is again processed,
+            so Self.ALOpenClose is called with ALActive = true and Buffer <> 0,
+            so ALContextOpen releases a buffer for a playing sound source
+            so OpenAL raises error.
+
+            Testcase:
+            - start view3dscene with sound = on
+            - click CW on all 4 speakers in sound_final.x3dv
+            - turn sound off
+            - turn sound back on
+            - click on lower-bottom speakers }
+          Inc(InsideLoadBuffer);
           try
             Buffer := SoundEngine.LoadBuffer(FullUrl, LoadedDuration);
-          finally SoundEngine.OnOpenClose.Add(@ALOpenClose) end;
+          finally Dec(InsideLoadBuffer) end;
 
           FDuration := LoadedDuration;
           EventDuration_Changed.Send(FDuration);
@@ -313,12 +334,17 @@ begin
         end;
       end;
     end else
+    begin
+      Assert(Sound = nil, 'You can unload a buffer only when Sound is not playing');
       SoundEngine.FreeBuffer(Buffer);
+    end;
   end;
 end;
 
 procedure TNodeAudioClip.ALOpenClose(Sender: TObject);
 begin
+  if InsideLoadBuffer <> 0 then Exit;
+
   if (Sender as TALSoundEngine).ALActive then
   begin
     { Maybe we should start playing? }
