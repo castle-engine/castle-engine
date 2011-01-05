@@ -613,6 +613,8 @@ procedure TALSoundAllocator.RefreshUsedSources;
 var
   I: Integer;
 begin
+  CheckAL('before RefreshUsedSources');
+
   if FAllocatedSources <> nil then
     for I := 0 to FAllocatedSources.High do
       if FAllocatedSources[I].Used and

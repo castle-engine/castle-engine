@@ -20,7 +20,7 @@ unit XmlSoundEngine;
 
 interface
 
-uses Classes, VectorMath, KambiOpenAL, SysUtils,
+uses Classes, VectorMath, SysUtils,
   KambiUtils, KambiXMLConfig, ALSoundEngine, ALSoundAllocator;
 
 {$define read_interface}
@@ -88,7 +88,7 @@ type
     { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
       which may happen only if TXmlSoundEngine.ALContextOpen was not yet
       called or when sound has FileName = ''. }
-    Buffer: TALuint;
+    Buffer: TALbuffer;
   end;
 
   TDynArrayItem_1 = TSoundInfo;
@@ -262,7 +262,7 @@ type
 
 implementation
 
-uses ProgressUnit, ALUtils,
+uses ProgressUnit,
   KambiFilesUtils, DOM, KambiXMLRead, KambiXMLUtils,
   SoundFile, VorbisFile, KambiStringUtils, KambiTimeUtils, KambiLog;
 
