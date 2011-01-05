@@ -19,7 +19,7 @@ unit ALSoundEngine;
 interface
 
 uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras,
-  KambiTimeUtils, KambiXMLConfig, Math, FGL;
+  KambiTimeUtils, KambiXMLConfig, Math, FGL, KambiClassUtils;
 
 type
   TALDistanceModel = (dmNone,
@@ -83,6 +83,7 @@ type
     FDistanceModel: TALDistanceModel;
     BuffersCache: TALBuffersCacheList;
     FDevices: TALDeviceDescriptionList;
+    FOnALActiveChange: TDynNotifyEventArray;
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
       call we can immediately set the good listener parameters. }
@@ -259,6 +260,10 @@ type
 
     procedure LoadFromConfig(ConfigFile: TKamXMLConfig); override;
     procedure SaveToConfig(ConfigFile: TKamXMLConfig); override;
+
+    { Events fired after OpenAL context and device are being open or closed.
+      Check SoundEngine.ALActive inside to know which case occured. }
+    property OnALActiveChange: TDynNotifyEventArray read FOnALActiveChange;
   published
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
@@ -483,6 +488,7 @@ begin
   FEnable := true;
   EnableSaveToConfig := true;
   BuffersCache := TALBuffersCacheList.Create;
+  FOnALActiveChange := TDynNotifyEventArray.Create;
 
   FDevices := TALDeviceDescriptionList.Create;
   UpdateDevices;
@@ -498,6 +504,7 @@ begin
   ALContextClose;
   FreeAndNil(BuffersCache);
   FreeAndNil(FDevices);
+  FreeAndNil(FOnALActiveChange);
   inherited;
 end;
 
@@ -633,6 +640,7 @@ begin
         UpdateDistanceModel;
         inherited; { initialize sound allocator }
         CheckAL('initializing sounds (ALContextOpen)');
+        OnALActiveChange.ExecuteAll(Self);
       except
         ALContextClose;
         raise;
@@ -725,6 +733,8 @@ begin
       BuffersCache.Count := 0;
 
       EndAL;
+
+      OnALActiveChange.ExecuteAll(Self);
     end;
   end;
 end;

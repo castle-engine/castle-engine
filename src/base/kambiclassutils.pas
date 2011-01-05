@@ -47,6 +47,8 @@ interface
 
 uses Classes, SysUtils, KambiUtils, IniFiles, KambiStringUtils, Contnrs;
 
+{$define read_interface}
+
 { ---------------------------------------------------------------------------- }
 { @section(Text reading) }
 
@@ -634,6 +636,19 @@ type
     function IsLast(Value: TObject): boolean;
   end;
 
+  {$define DYNARRAY_17_IS_FUNCTION}
+  {$define DYNARRAY_17_IS_FUNCTION_METHOD}
+  TDynArrayItem_17 = TNotifyEvent;
+  PDynArrayItem_17 = ^TDynArrayItem_17;
+  {$I dynarray_17.inc}
+  TDynNotifyEventArray = class(TDynArray_17)
+  public
+    { Call all (non-nil) Items. }
+    procedure ExecuteAll(Sender: TObject);
+  end;
+
+{$undef read_interface}
+
 implementation
 
 uses
@@ -642,6 +657,9 @@ uses
   {$endif}
   {$ifdef MSWINDOWS} Windows {$endif}
   , StrUtils, KambiFilesUtils;
+
+{$define read_implementation}
+{$I dynarray_17.inc}
 
 { TTextReader ---------------------------------------------------------------- }
 
@@ -1586,8 +1604,19 @@ begin
   Result := (Count > 0) and (Items[Count - 1] = Value);
 end;
 
+{ TDynNotifyEventArray  ------------------------------------------------------ }
+
+procedure TDynNotifyEventArray.ExecuteAll(Sender: TObject);
+var
+  I: Integer;
+begin
+  for I := 0 to High do
+    if Assigned(Items[I]) then
+      Items[I](Sender);
+end;
+
 initialization
- InitStdStreams;
+  InitStdStreams;
 finalization
- FiniStdStreams;
+  FiniStdStreams;
 end.
