@@ -144,7 +144,6 @@ begin
     S.Append('Sound library (OpenAL) status:');
     S.Append('');
     Strings_AddSplittedString(S, SoundEngine.SoundInitializationReport, nl);
-    SoundEngine.AppendALInformation(S);
 
     MessageOK(Window, S, taLeft);
   finally S.Free end;

@@ -83,7 +83,7 @@ type
     FDistanceModel: TALDistanceModel;
     BuffersCache: TALBuffersCacheList;
     FDevices: TALDeviceDescriptionList;
-    FOnALActiveChange: TDynNotifyEventArray;
+    FOnOpenClose: TDynNotifyEventArray;
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
       call we can immediately set the good listener parameters. }
@@ -143,10 +143,6 @@ type
 
     { Wrapper for alcGetString. }
     function GetContextString(Enum: TALCenum): string;
-
-    { If ALActive, then will append some info about current OpenAL used. }
-    procedure AppendALInformation(S: TStrings);
-    function ALInformation: string;
 
     { Load a sound file into OpenAL buffer.
 
@@ -262,8 +258,9 @@ type
     procedure SaveToConfig(ConfigFile: TKamXMLConfig); override;
 
     { Events fired after OpenAL context and device are being open or closed.
-      Check SoundEngine.ALActive inside to know which case occured. }
-    property OnALActiveChange: TDynNotifyEventArray read FOnALActiveChange;
+      More precisely, when ALInitialized changes (and so, possibly, ALActive
+      changed). }
+    property OnOpenClose: TDynNotifyEventArray read FOnOpenClose;
   published
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
@@ -488,7 +485,7 @@ begin
   FEnable := true;
   EnableSaveToConfig := true;
   BuffersCache := TALBuffersCacheList.Create;
-  FOnALActiveChange := TDynNotifyEventArray.Create;
+  FOnOpenClose := TDynNotifyEventArray.Create;
 
   FDevices := TALDeviceDescriptionList.Create;
   UpdateDevices;
@@ -504,7 +501,7 @@ begin
   ALContextClose;
   FreeAndNil(BuffersCache);
   FreeAndNil(FDevices);
-  FreeAndNil(FOnALActiveChange);
+  FreeAndNil(FOnOpenClose);
   inherited;
 end;
 
@@ -616,6 +613,33 @@ procedure TALSoundEngine.ALContextOpen;
     end;
   end;
 
+  function ALInformation: string;
+  begin
+    Assert(ALActive);
+
+    Result := Format(
+      NL+
+      'Version : %s' +NL+
+      'Version Parsed : major: %d, minor: %d' +NL+
+      'Renderer : %s' +NL+
+      'Vendor : %s' +NL+
+      'Extensions : %s' +NL+
+      NL+
+      'Allocated OpenAL sources: min %d, max %d' +NL+
+      NL+
+      'OggVorbis handling method: %s' +NL+
+      'vorbisfile library available: %s',
+      [ alGetString(AL_VERSION),
+        FALMajorVersion, FALMinorVersion,
+        alGetString(AL_RENDERER),
+        alGetString(AL_VENDOR),
+        alGetString(AL_EXTENSIONS),
+        MinAllocatedSources, MaxAllocatedSources,
+        TSoundOggVorbis.VorbisMethod,
+        BoolToStr[VorbisFileInited]
+      ]);
+  end;
+
 var
   ALActivationErrorMessage: string;
 begin
@@ -624,23 +648,21 @@ begin
 
   if not Enable then
     FSoundInitializationReport :=
-      'Sound disabled (for example by the --no-sound command-line option)' else
+      'OpenAL initialization aborted: sound is disabled (by --no-sound command-line option, or menu item or such)' else
   begin
     BeginAL(ALActivationErrorMessage);
     if not ALActive then
       FSoundInitializationReport :=
-        'OpenAL initialization failed : ' +ALActivationErrorMessage +nl+
-        'SOUND IS DISABLED' else
+        'OpenAL initialization failed:' +NL+ ALActivationErrorMessage else
     begin
       FSoundInitializationReport :=
-        'OpenAL initialized, sound enabled';
+        'OpenAL initialized successfully' +NL+ ALInformation;
 
       try
         alListenerf(AL_GAIN, Volume);
         UpdateDistanceModel;
         inherited; { initialize sound allocator }
         CheckAL('initializing sounds (ALContextOpen)');
-        OnALActiveChange.ExecuteAll(Self);
       except
         ALContextClose;
         raise;
@@ -650,8 +672,9 @@ begin
 
   FALInitialized := true;
   if Log then
-    WritelnLogMultiline('Sound initialization',
-      SoundInitializationReport + nl + ALInformation);
+    WritelnLogMultiline('Sound', SoundInitializationReport);
+
+  OnOpenClose.ExecuteAll(Self);
 end;
 
 procedure TALSoundEngine.ALContextClose;
@@ -733,42 +756,13 @@ begin
       BuffersCache.Count := 0;
 
       EndAL;
-
-      OnALActiveChange.ExecuteAll(Self);
     end;
-  end;
-end;
 
-procedure TALSoundEngine.AppendALInformation(S: TStrings);
-begin
-  if ALActive then
-  begin
-    S.Append('');
-    S.Append('Version : ' + alGetString(AL_VERSION));
-    S.Append(Format('Version Parsed : major: %d, minor: %d', [FALMajorVersion, FALMinorVersion]));
-    S.Append('Renderer : ' + alGetString(AL_RENDERER));
-    S.Append('Vendor : ' + alGetString(AL_VENDOR));
-    S.Append('Extensions : ' + alGetString(AL_EXTENSIONS));
-    S.Append('');
-    S.Append(Format('Allocated OpenAL sources: %d (min %d, max %d)',
-      [ AllocatedSources.Count,
-        MinAllocatedSources,
-        MaxAllocatedSources ]));
-    S.Append('');
-    S.Append('OggVorbis handling method: ' + TSoundOggVorbis.VorbisMethod);
-    S.Append('vorbisfile library available: ' + BoolToStr[VorbisFileInited]);
-  end;
-end;
+    if Log then
+      WritelnLog('Sound', 'OpenAL closed');
 
-function TALSoundEngine.ALInformation: string;
-var
-  S: TStringList;
-begin
-  S := TStringList.Create;
-  try
-    AppendALInformation(S);
-    Result := S.Text;
-  finally S.Free end;
+    OnOpenClose.ExecuteAll(Self);
+  end;
 end;
 
 function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
