@@ -18,7 +18,8 @@ unit ALSoundAllocator;
 
 interface
 
-uses SysUtils, KambiOpenAL, KambiClassUtils, Classes, KambiUtils, VectorMath;
+uses SysUtils, KambiOpenAL, KambiClassUtils, Classes, KambiUtils, VectorMath,
+  KambiXMLConfig;
 
 {$define read_interface}
 
@@ -250,6 +251,19 @@ type
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
     procedure StopAllSources;
+
+    { Load and save into XML config file some sound engine properties.
+      Everything is loaded / saved under the path "sound/" inside ConfigFile.
+
+      TALSoundAllocator saves MinAllocatedSources, MaxAllocatedSources.
+      Descendant TALSoundEngine additionally saves current Device, Enable
+      (unless Enable was set by @--no-sound command-line option).
+      Descendant TXMLSoundEngine additionally saves sound and music volume.
+
+      @groupBegin }
+    procedure LoadFromConfig(ConfigFile: TKamXMLConfig); virtual;
+    procedure SaveToConfig(ConfigFile: TKamXMLConfig); virtual;
+    { @groupEnd }
   published
     { Minimum / maximum number of allocated OpenAL sources.
       Always keep MinAllocatedSources <= MaxAllocatedSources.
@@ -616,6 +630,22 @@ begin
     for I := 0 to FAllocatedSources.High do
       if FAllocatedSources[I].Used then
         FAllocatedSources[I].DoUsingEnd;
+end;
+
+procedure TALSoundAllocator.LoadFromConfig(ConfigFile: TKamXMLConfig);
+begin
+  MinAllocatedSources := ConfigFile.GetValue(
+    'sound/allocated_sources/min', DefaultMinAllocatedSources);
+  MaxAllocatedSources := ConfigFile.GetValue(
+    'sound/allocated_sources/max', DefaultMaxAllocatedSources);
+end;
+
+procedure TALSoundAllocator.SaveToConfig(ConfigFile: TKamXMLConfig);
+begin
+  ConfigFile.SetDeleteValue('sound/allocated_sources/min',
+    MinAllocatedSources, DefaultMinAllocatedSources);
+  ConfigFile.SetDeleteValue('sound/allocated_sources/max',
+    MaxAllocatedSources, DefaultMaxAllocatedSources);
 end;
 
 end.

@@ -211,16 +211,8 @@ type
 
     property MusicPlayer: TMusicPlayer read FMusicPlayer;
 
-    { These methods load/save into config file some sound properties.
-      Namely: sound/music volume, min/max allocated sounds,
-      and current Device.
-
-      Everything is loaded/saved under the path sound/ inside ConfigFile.
-
-      @groupBegin }
-    procedure LoadFromConfig(ConfigFile: TKamXMLConfig);
-    procedure SaveToConfig(ConfigFile: TKamXMLConfig);
-    { @groupEnd }
+    procedure LoadFromConfig(ConfigFile: TKamXMLConfig); override;
+    procedure SaveToConfig(ConfigFile: TKamXMLConfig); override;
   end;
 
   { Music player. Instance of this class should be created only internally
@@ -493,35 +485,23 @@ begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
 
-const
-  DefaultAudioDevice = '';
-
 procedure TXmlSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
 begin
+  inherited;
   Volume := ConfigFile.GetFloat('sound/volume', DefaultXmlEngineVolume);
   MusicPlayer.MusicVolume := ConfigFile.GetFloat('sound/music/volume',
     DefaultMusicVolume);
-  MinAllocatedSources := ConfigFile.GetValue(
-    'sound/allocated_sources/min', DefaultMinAllocatedSources);
-  MaxAllocatedSources := ConfigFile.GetValue(
-    'sound/allocated_sources/max', DefaultMaxAllocatedSources);
-
-  Device := ConfigFile.GetValue('sound/device', DefaultAudioDevice);
 end;
 
 procedure TXmlSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
 begin
+  inherited;
   ConfigFile.SetDeleteFloat('sound/volume', Volume, DefaultXmlEngineVolume);
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
   if MusicPlayer <> nil then
     ConfigFile.SetDeleteFloat('sound/music/volume',
       MusicPlayer.MusicVolume, DefaultMusicVolume);
-  ConfigFile.SetDeleteValue('sound/allocated_sources/min',
-    MinAllocatedSources, DefaultMinAllocatedSources);
-  ConfigFile.SetDeleteValue('sound/allocated_sources/max',
-    MaxAllocatedSources, DefaultMaxAllocatedSources);
-  ConfigFile.SetDeleteValue('sound/device', Device, DefaultAudioDevice);
 end;
 
 { TMusicPlayer --------------------------------------------------------------- }

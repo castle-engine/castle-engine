@@ -19,7 +19,7 @@ unit ALSoundEngine;
 interface
 
 uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras,
-  KambiTimeUtils, Math, FGL;
+  KambiTimeUtils, KambiXMLConfig, Math, FGL;
 
 type
   TALDistanceModel = (dmNone,
@@ -88,6 +88,8 @@ type
       call we can immediately set the good listener parameters. }
     ListenerPosition: TVector3Single;
     ListenerOrientation: TALTwoVectors3f;
+
+    EnableSaveToConfig: boolean;
 
     { Check ALC errors. Requires valid ALDevice. }
     procedure CheckALC(const situation: string);
@@ -264,6 +266,9 @@ type
     property Devices: TALDeviceDescriptionList read FDevices;
 
     function DeviceNiceName: string;
+
+    procedure LoadFromConfig(ConfigFile: TKamXMLConfig); override;
+    procedure SaveToConfig(ConfigFile: TKamXMLConfig); override;
   published
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
@@ -486,6 +491,7 @@ begin
   FDefaultMaxDistance := DefaultDefaultMaxDistance;
   FDistanceModel := DefaultDistanceModel;
   FEnable := true;
+  EnableSaveToConfig := true;
   BuffersCache := TALBuffersCacheList.Create;
 
   FDevices := TALDeviceDescriptionList.Create;
@@ -843,7 +849,7 @@ begin
 
           So the natural workaround below follows. For OpenAL implementations
           that immediately load the buffer, this will not cause any delay. }
-          
+
         { We have to do CheckAL first, to catch evantual errors.
           Otherwise the loop would hang. }
         CheckAL('PlaySound');
@@ -1007,6 +1013,7 @@ begin
       ALContextOpen;
     end else
       FEnable := Value;
+    EnableSaveToConfig := true; // caller will eventually change it to false
   end;
 end;
 
@@ -1045,7 +1052,10 @@ begin
 
          ProgramBreak;
        end;
-    2: Engine.Enable := false;
+    2: begin
+         Engine.Enable := false;
+         Engine.EnableSaveToConfig := false;
+       end;
     else raise EInternalError.Create('OpenALOptionProc');
   end;
 end;
@@ -1107,6 +1117,25 @@ begin
       Exit(FDevices[I].NiceName);
 
   Result := 'Some OpenAL device'; // some default
+end;
+
+const
+  DefaultAudioDevice = '';
+  DefaultAudioEnable = true;
+
+procedure TALSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
+begin
+  inherited;
+  Device := ConfigFile.GetValue('sound/device', DefaultAudioDevice);
+  Enable := ConfigFile.GetValue('sound/enable', DefaultAudioEnable);
+end;
+
+procedure TALSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
+begin
+  inherited;
+  ConfigFile.SetDeleteValue('sound/device', Device, DefaultAudioDevice);
+  if EnableSaveToConfig then
+    ConfigFile.SetDeleteValue('sound/enable', Enable, DefaultAudioEnable);
 end;
 
 { globals -------------------------------------------------------------------- }
