@@ -118,12 +118,9 @@
       8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
       cycleInterval, loop properties.
 
-      @param(SomethingChanged May only be set to @true (this method never
-        sets this to @false), when some state of time-dependent node
-        changed.) }
-    procedure SetTime(const OldValue, NewValue: TVRMLTime;
-      const TimeIncrease: TKamTime; const ResetTime: boolean;
-      var SomethingChanged: boolean);
+      @returns(If some state of time-dependent node  changed.) }
+    function SetTime(const OldValue, NewValue: TVRMLTime;
+      const TimeIncrease: TKamTime; const ResetTime: boolean): boolean;
   end;
 
   TNodeX3DTimeDependentNode = class(TNodeX3DChildNode, INodeX3DTimeDependentNode)
@@ -314,10 +311,9 @@ begin
   Result := OnCycleInterval();
 end;
 
-procedure TTimeDependentNodeHandler.SetTime(
+function TTimeDependentNodeHandler.SetTime(
   const OldValue, NewValue: TVRMLTime;
-  const TimeIncrease: TKamTime; const ResetTime: boolean;
-  var SomethingChanged: boolean);
+  const TimeIncrease: TKamTime; const ResetTime: boolean): boolean;
 
 var
   NewIsActive: boolean;
@@ -462,7 +458,7 @@ begin
         CycleTime := FdStartTime.Value;
       end;
 
-      SomethingChanged := true;
+      Result := true;
     end;
   end else
   if NewIsPaused then
@@ -473,11 +469,11 @@ begin
       NewIsPaused := false;
       { Advance only by the time passed since resumeTime. }
       IncreaseElapsedTime(NewValue.Seconds - FdResumeTime.Value, true);
-      SomethingChanged := true;
+      Result := true;
     end;
   end else
   begin
-    SomethingChanged := true;
+    Result := true;
 
     if (NewValue.Seconds >= FdStopTime.Value) and
        { stopTime is ignored if it's <= startTime }

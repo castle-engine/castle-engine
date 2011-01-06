@@ -3931,7 +3931,6 @@ var
     end;
 
   var
-    DummySomethingChanged: boolean;
     Handler: TTimeDependentNodeHandler;
   begin
     Handler := GetTimeDependentNodeHandler(Node);
@@ -3954,10 +3953,7 @@ var
       we would mistakenly interpret resuming (from paused state) just like
       activation (from stopped state), testcase time_sensor_3.x3dv.  }
 
-    Handler.SetTime(Time, Time, 0, false, DummySomethingChanged);
-
-    { DummySomethingChanged is simply ignored here (we do not have to report
-      changes anywhere). }
+    Handler.SetTime(Time, Time, 0, false);
 
     { No need to do VisibleChangeHere.
       Redisplay will be done by next IncreaseTime run, if active now. }
@@ -5804,7 +5800,7 @@ end;
 procedure TVRMLScene.InternalSetTime(
   const NewValue: TVRMLTime; const TimeIncrease: TKamTime; const ResetTime: boolean);
 var
-  SomethingChanged, SomethingVisibleChanged: boolean;
+  SomethingVisibleChanged: boolean;
   I: Integer;
   ChangedSkin: TMFVec3f;
 begin
@@ -5812,15 +5808,13 @@ begin
   begin
     BeginChangesSchedule;
     try
+      SomethingVisibleChanged := false;
 
       for I := 0 to TimeDependentHandlers.Count - 1 do
       begin
-        SomethingChanged := false;
-        TimeDependentHandlers[I].SetTime(
-          Time, NewValue, TimeIncrease, ResetTime, SomethingChanged);
-
-        SomethingVisibleChanged := SomethingChanged and
-          (TimeDependentHandlers[I].Node is TNodeMovieTexture);
+        if TimeDependentHandlers[I].SetTime(Time, NewValue, TimeIncrease, ResetTime) and
+          (TimeDependentHandlers[I].Node is TNodeMovieTexture) then
+          SomethingVisibleChanged := true;
       end;
 
       { If SomethingVisibleChanged (on MovieTexture nodes),
