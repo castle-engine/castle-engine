@@ -186,7 +186,7 @@ function Font2TTFChar_HDc(dc: HDC; c: char): PTTFChar;
 var GlyphMetrics: TGlyphMetrics;
     GlyphDataSize: Dword;
     Buffer : Pointer;
-    BufferEnd, PolygonEnd : TPointerUInt;
+    BufferEnd, PolygonEnd : PtrUInt;
     PolHeader : PTTPolygonHeader;
     PolCurve : PTTPolyCurve;
     i, j: integer;
@@ -247,21 +247,21 @@ begin
    ResultInfo.Height := GlyphMetrics.gmptGlyphOrigin.y + Integer(GlyphMetrics.gmBlackBoxY);
 
    { wskazniki na BufferEnd lub dalej wskazuja ZA Bufferem }
-   BufferEnd := TPointerUInt(Buffer)+GlyphDataSize;
+   BufferEnd := PtrUInt(Buffer)+GlyphDataSize;
 
    { calculate ResultItems. Only "Count" fields are left not initialized. }
    PolHeader := Buffer; { pierwszy PolHeader }
-   while TPointerUInt(PolHeader) < BufferEnd do
+   while PtrUInt(PolHeader) < BufferEnd do
    begin
     { czytaj PolHeader }
     ResultItemsAdd(pkNewPolygon);
-    PolygonEnd := TPointerUInt(PointerAdd(PolHeader, PolHeader^.cb));
+    PolygonEnd := PtrUInt(PointerAdd(PolHeader, PolHeader^.cb));
     lastPunkt.x := ToFloat(PolHeader^.pfxStart.x);
     lastPunkt.y := ToFloat(PolHeader^.pfxStart.y);
 
     { czytaj PolCurves }
     PolCurve := PointerAdd(PolHeader, SizeOf(TTPolygonHeader)); { pierwszy PolCurve }
-    while TPointerUInt(PolCurve) < PolygonEnd do
+    while PtrUInt(PolCurve) < PolygonEnd do
     begin
      case PolCurve^.wType of
       TT_PRIM_LINE : ResultItemsAdd(pkLines);
