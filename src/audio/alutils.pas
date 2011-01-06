@@ -35,12 +35,9 @@ type
   EOpenALError = class(Exception);
   EOpenALInitError = class(EOpenALError);
 
-{ Check is appropriate variable (ALInited, ALUTInited) @true.
-  Raises EOpenALInitError with appropriate message if not.
-
-  @raises EOpenALInitError If appropriate variable is @false. }
+{ Check is ALInited @true.
+  @raises EOpenALInitError If ALInited is @false. }
 procedure CheckALInited;
-procedure CheckALUTInited;
 
 { ---------------------------------------------------------------------------- }
 { @section(Error checking) }
@@ -206,19 +203,6 @@ procedure CheckALInited;
 begin
  if not ALInited then
   raise EOpenALInitError.Create('OpenAL library is not available');
-end;
-
-procedure CheckALUTInited;
-begin
- if not ALUTInited then
- begin
-  if ALInited then
-   raise EOpenALInitError.Create(
-     'OpenAL library is available but without alutXxx functions') else
-   raise EOpenALInitError.Create(
-     'OpenAL library with alutXxx functions is required, '+
-     'but not even base OpenAL library is available.');
- end;
 end;
 
 { error checking ------------------------------------------------------- }

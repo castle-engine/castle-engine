@@ -14,12 +14,11 @@
 }
 
 { OpenAL library bindings.
-  This is a translation of OpenAL C headers: @code(AL/al.h, AL/alc.h, AL/alut.h)
+  This is a translation of OpenAL C headers: @code(AL/al.h, AL/alc.h)
   (and included headers: @code(AL/altypes.h, AL/alctypes.h)).
 
   The library is loaded in unit initialization, and if not found
   we will merely set ALInited variable to @false.
-  (There's similar ALUTInited variable for alutXxx functions.)
   This allows you to check at runtime and gracefully work
   if OpenAL is not installed (e.g. you can turn off game sounds.)
 
@@ -59,12 +58,6 @@ unit KambiOpenAL;
   and for Debian testing OpenAL since 2005-11-12). }
 {$define OLD_OPENAL}
 
-{ Define if "alutXxx" functions may be found in the same library as
-  base OpenAL. Currently, when this is not defined, we will not look
-  for alutXxx functions at all (our engine doesn't use them). }
-{$ifdef LINUX} {$define ALUT_IN_AL_LIB} {$endif}
-{$ifdef FREEBSD} {$define ALUT_IN_AL_LIB} {$endif}
-
 interface
 
 uses SysUtils, VectorMath;
@@ -80,7 +73,6 @@ uses SysUtils, VectorMath;
 {$ifndef PASDOC}
 {$I openal_al.inc}
 {$I openal_alc.inc}
-{$I openal_alut.inc}
 {$endif}
 
 { ---------------------------------------------------------------------------- }
@@ -128,19 +120,6 @@ var
     alXxx i alcXxx beda rowne nil. }
   ALInited: boolean = false;
 
-  { ALUTInited means that functions alutXxx are loaded (their pointers
-    are loaded from appropriate library) AND that ALInited
-    is true. I.e. it is not posiible to have (ALUTInited = true and ALInited = false).
-    This may look like a simplification of a real situation because _if_ ever
-    (under some OS) alutXxx functions will be loaded from different library
-    than alXxx functions than it _is_ theoretically possible to have alutXxx
-    functions available but alXxx functions. But the truth is that alutXxx
-    functions are treated by me as COMPLETELY UNUSABLE if alXxx functions
-    are not available. So if ALInited = false, we will never even check
-    for alutXxx functions - if ALInited = false we will always set ALUTInited
-    to false too. }
-  ALUTInited: boolean = false;
-
 const
   OpenALDLL =
     {$ifdef UNIX}
@@ -159,8 +138,8 @@ const
 { Reset OpenAL library.
 
   In this unit's initialization, we link to OpenAL library, load all symbols,
-  and initialize ALInited and ALUTInited. In this unit's finalization,
-  we release library handles and set ALInited and ALUTInited back to @false.
+  and initialize ALInited. In this unit's finalization,
+  we release library handles and set ALInited back to @false.
 
   What this procedure does?
   It behaves like finalizing this unit (releasing OpenAL library handles),
@@ -230,7 +209,6 @@ begin
  if (ALLibrary = nil) and (OpenALDLLAlt <> '') then
    ALLibrary := TDynLib.Load(OpenALDLLAlt, false);
  ALInited := ALLibrary <> nil;
- ALUTInited := false; { I know it is initialized in unit's interface... but just to be sure... }
 
  if ALInited then
  begin
@@ -358,25 +336,6 @@ begin
     ALC_SYNC := $1009;
   end;
 
-  ALUTInited := {$ifdef ALUT_IN_AL_LIB} true {$else} false {$endif};
-  if ALUTInited then
-  begin
-    { alutXxx functions ---------------------------------------- }
-    try
-      Pointer({$ifndef FPC_OBJFPC} @ {$endif} alutInit) := ALLibrary.Symbol('alutInit');
-      Pointer({$ifndef FPC_OBJFPC} @ {$endif} alutExit) := ALLibrary.Symbol('alutExit');
-      Pointer({$ifndef FPC_OBJFPC} @ {$endif} alutLoadWAV) := ALLibrary.Symbol('alutLoadWAV');
-      Pointer({$ifndef FPC_OBJFPC} @ {$endif} alutLoadWAVFile) := ALLibrary.Symbol('alutLoadWAVFile');
-      Pointer({$ifndef FPC_OBJFPC} @ {$endif} alutLoadWAVMemory) := ALLibrary.Symbol('alutLoadWAVMemory');
-      Pointer({$ifndef FPC_OBJFPC} @ {$endif} alutUnloadWAV) := ALLibrary.Symbol('alutUnloadWAV');
-    except
-      on EDynLibError do
-        { If loading of some alutXxx function will fail, then set
-          ALUTInited to false and silence the exception. }
-        ALUTInited := false;
-    end;
-  end;
-
   {$undef FPC_OBJFPC}
  end;
 end;
@@ -384,7 +343,6 @@ end;
 procedure OpenALFinalization;
 begin
  ALInited := false;
- ALUTInited := false;
  FreeAndNil(ALLibrary);
 end;
 
