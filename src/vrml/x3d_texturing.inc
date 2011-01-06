@@ -255,7 +255,8 @@
     function TextureDescription: string; override;
   end;
 
-  TNodeMovieTexture = class(TNodeX3DTexture2DNode, INodeX3DSoundSourceNode, INodeX3DUrlObject)
+  TNodeMovieTexture = class(TNodeX3DTexture2DNode, INodeX3DSoundSourceNode,
+    INodeX3DUrlObject, INodeX3DTimeDependentNode)
   private
     FDuration: TKamTime;
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;

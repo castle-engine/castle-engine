@@ -1330,7 +1330,11 @@ procedure TTestVRMLNodes.TestTimeDependentNodeHandlerAvailable;
     begin
       B := (N as INodeX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
       C := (N as INodeX3DTimeDependentNode).TimeDependentNodeHandler.CycleInterval;
-    end;
+    end else
+    if (N is TNodeMovieTexture) or
+       (N is TNodeAudioClip) or
+       (N is TNodeTimeSensor) then
+      Assert(false, 'Node ' + N.ClassName + ' should support INodeX3DTimeDependentNode');
   end;
 
 var
