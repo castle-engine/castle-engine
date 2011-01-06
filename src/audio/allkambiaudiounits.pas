@@ -14,13 +14,13 @@ uses
   alsoundengine,
   alutils,
   efx,
-  xmlsoundengine,
   kambiogg,
   kambiopenal,
   soundfile,
   vorbiscodec,
   vorbisdecoder,
-  vorbisfile
+  vorbisfile,
+  xmlsoundengine
   ;
 
 implementation
