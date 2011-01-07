@@ -61,6 +61,8 @@
     must descend from X3DNode). }
   TVRMLGeometryNode = class(TNodeX3DNode)
   private
+    HasBounds2DST: boolean;
+    Bounds2DS, Bounds2DT: Integer;
     { Workaround http://bugs.freepascal.org/view.php?id=17402
       by these methods. }
     function CallProxyLocalBoundingBox(
@@ -425,6 +427,13 @@
     function AutoGenerate3DTexCoords: boolean; virtual;
 
     function TransformationChange: TNodeTransformationChange; override;
+
+    { Calculate texture S, T coordinates for BOUNDS2D texture mapping.
+      This mapping is like the default IndexedFaceSet texture mapping,
+      following X3D spec. We also use it for other geometry nodes,
+      and even allow explicitly requesting it by TextureCoordinateGenerator.mode = "BOUNDS2D". }
+    procedure GetTextureBounds2DST(const LocalBoxSizes: TVector3Single;
+      out S, T: Integer);
   end;
 
   { }
@@ -1022,6 +1031,33 @@ end;
 function TVRMLGeometryNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcGeometry;
+end;
+
+procedure TVRMLGeometryNode.GetTextureBounds2DST(const LocalBoxSizes: TVector3Single;
+  out S, T: Integer);
+var
+  C1, C2: Integer;
+begin
+  { Calculate SCoord and TCoord. Following VRML spec:
+    SCoord is the coord where LocalBBoxSize is largest,
+    TCoord is the second-to-largest (and if some sizes are equal,
+    then X is more important than Y than Z).
+
+    Do it once (setting HasBounds2DST), this fixes JoeH-AnimKick0a.x3dv
+    renderering, see x3d-public thread about view3dscene 3.8.0 announcement. }
+
+  if not HasBounds2DST then
+  begin
+    HasBounds2DST := true;
+    Bounds2DS := MaxVectorCoord(LocalBoxSizes);
+    RestOf3dCoords(Bounds2DS, C1, C2);
+    if LocalBoxSizes[C1] >= LocalBoxSizes[C2] then
+      Bounds2DT := C1 else
+      Bounds2DT := C2;
+  end;
+
+  S := Bounds2DS;
+  T := Bounds2DT;
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }

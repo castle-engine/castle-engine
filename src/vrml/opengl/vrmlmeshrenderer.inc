@@ -1360,7 +1360,7 @@ var
     end;
 
   var
-    SCoord, TCoord, C1, C2, I: integer;
+    SCoord, TCoord, I: integer;
     TexGenVectors: T3DTextureGen;
   begin
     { calculate TexGenVectors first }
@@ -1369,16 +1369,9 @@ var
 
     if not IsEmptyBox3d(LocalBBox) then
     begin
-      { Calculate SCoord and TCoord. Following VRML spec:
-        SCoord is the coord where LocalBBoxSize is largest,
-        TCoord is the second-to-largest (and if some sizes are equal,
-        then X is more important than Y than Z). }
       LocalBBoxSize := Box3DSizes(LocalBBox);
-      SCoord := MaxVectorCoord(LocalBBoxSize);
-      RestOf3dCoords(SCoord, C1, C2);
-      if LocalBboxSize[C1] >= LocalBBoxSize[C2] then
-        TCoord := C1 else
-        TCoord := C2;
+
+      Geometry.GetTextureBounds2DST(LocalBBoxSize, SCoord, TCoord);
 
       { Calculate TextureGen[0..1]. }
       SetupCoordGen(TexGenVectors[0], SCoord, 0, 1);
