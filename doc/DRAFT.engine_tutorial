@@ -1,12 +1,12 @@
-todo:
+TODO:
 - split vrml_engine_doc into more pieces,
 - move "vrml overview" to the end (maybe an annex or such).
-- The turorial below will probably be pasted as the 1st chapter of
+- The tutorial below will probably be pasted as the 1st chapter of
   vrml_engine_doc, and partially will replace the current
   http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_manager.html#section.scene_manager_basic
 
 ------------------------------------------------------------------------------
-0. Intoduction
+0. Introduction
 
 This tutorial shows how to make a simple 3D first-person game using our <i>Kambi VRML game engine</i>. We'll explain the basics of our engine, show you some simple programs and mention the most important classes.
 
@@ -90,7 +90,7 @@ We will load a game level from a 3D file. If you use a VRML/X3D file, this game 
 
 Or copy more interesting level model from kambi_vrml_game_engine/examples/vrml/models/: copy bridge_final.x3dv, bridge.wrl, and textures/ subdirectory to your project.
 
-- If you want, you can of course make your own new level. You can generally use any 3D modeller and export to any 3D format we can handle. Our other tutorial "how to make new level for CASTLE-2-NAME-HERE" describes from the basics how to use open-source Blender to create a level and export it to VRML/X3D. Highly adviced reading! :)
+- If you want, you can of course make your own new level. You can generally use any 3D modeler and export to any 3D format we can handle. Our other tutorial "how to make new level for CASTLE-2-NAME-HERE" describes from the basics how to use open-source Blender to create a level and export it to VRML/X3D. Highly advised reading! :)
 
 To load a level, change your code to this:
 
