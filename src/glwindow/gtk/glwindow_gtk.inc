@@ -190,7 +190,10 @@ private
     This initializes XDisplayGdk, XScreenGdk.
 
     You should call this when you know that XDisplayName is finally set.
-    Good choice is before initializing your window. }
+    Good choice is before initializing your window.
+
+    TODO: actually, gtk initializes x display at gtk_init time already.
+    It looks like --display works only because GTK parses this command-line option too? }
   procedure InitializeXDisplay;
   {$endif}
 
@@ -1954,13 +1957,13 @@ end;
 
 procedure TGLApplication.CreateBackend;
 {$ifdef DARWIN}
+const
+  AltXDisplayName = ':0';
 var
-  AltXDisplayName: string;
   AltDisplay: PGdkDisplay;
 begin
   if not gtk_init_check(@argc, @argv) then
   begin
-    AltXDisplayName := ':0';
     AltDisplay := gdk_display_open(PChar(AltXDisplayName));
 
     if AltDisplay <> nil then
