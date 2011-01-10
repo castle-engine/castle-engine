@@ -189,8 +189,8 @@ private
 
     This initializes XDisplayGdk, XScreenGdk.
 
-    You should call this when you know that last SetXDisplayName was
-    called --- good choice is before initializing your window. }
+    You should call this when you know that XDisplayName is finally set.
+    Good choice is before initializing your window. }
   procedure InitializeXDisplay;
   {$endif}
 
@@ -1801,7 +1801,7 @@ begin
 end;
 
 function TGLApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
-var 
+var
   i: Integer;
 begin
   for i := 0 to OpenWindowsCount - 1 do
@@ -1811,7 +1811,7 @@ begin
 end;
 
 function TGLApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
-var 
+var
   i: Integer;
 begin
   for i := 0 to OpenWindowsCount-1 do
@@ -1953,8 +1953,35 @@ begin
 end;
 
 procedure TGLApplication.CreateBackend;
+{$ifdef DARWIN}
+var
+  AltXDisplayName: string;
+  AltDisplay: PGdkDisplay;
+begin
+  if not gtk_init_check(@argc, @argv) then
+  begin
+    AltXDisplayName := ':0';
+    AltDisplay := gdk_display_open(PChar(AltXDisplayName));
+
+    if AltDisplay <> nil then
+    begin
+      Writeln(ErrOutput, 'Opening the default X display failed, retrying with "',
+         AltXDisplayName, '" to try to attach to running X server on Mac OS X.');
+      gdk_display_manager_set_default_display(gdk_display_manager_get(), AltDisplay);
+      gtk_init(@argc, @argv);
+
+      { if success, update XDisplayName to the one actually used }
+      XDisplayName := AltXDisplayName;
+    end else
+    begin
+      Writeln(ErrOutput, 'Opening X display failed (tried both the default, and "', AltXDisplayName, '"). Start X server first.');
+      Halt(1);
+    end;
+  end;
+  {$else}
 begin
   gtk_init(@argc, @argv);
+  {$endif}
 
   {$ifdef GLWINDOW_GTK_2}
   gtk_gl_init(@argc, @argv);
