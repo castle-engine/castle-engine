@@ -1,0 +1,166 @@
+todo:
+- split vrml_engine_doc into more pieces,
+- move "vrml overview" to the end (maybe an annex or such).
+- The turorial below will probably be pasted as the 1st chapter of
+  vrml_engine_doc, and partially will replace the current
+  http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_manager.html#section.scene_manager_basic
+
+------------------------------------------------------------------------------
+0. Intoduction
+
+This tutorial shows how to make a simple 3D first-person game using our <i>Kambi VRML game engine</i>. We'll explain the basics of our engine, show you some simple programs and mention the most important classes.
+
+Throughout this tutorial you will see a links to our <a>engine reference</a>, and you will eventually want to follow them to read detailed reference of stuff that interests you. Note that you can also just read the units source code --- the reference is automatically generated from the comments in the units interface, so if you're brave enough, you can just dive straight into the source.
+
+1. Download and install the engine, try the demos
+
+If you haven't done it yet, download the engine source code with examples from ....
+
+Run Lazarus, and open packages in the kambi_vrml_game_engine/packages/ subdirectory. Open and compile all three packages (kambi_base.lpk, kambi_components.lpk, kambi_glwindow.lpk), to test that things compile OK. Then install the package <i>kambi_components</i>. (Do not install kambi_glwindow --- you don't want to have this installed in Lazarus. You can install kambi_base explicitly, but there's no need to: installing kambi_components will also install kambi_base automatically.)
+
+Once packages are successfully installed, Lazarus restarts, and you should see "Kambi" tab of components at the top (screenshot). Sorry, we don't have icons for our components yet, so it looks a little boring. Mouse over the icons to see component names.
+
+Let's quickly open and run some demos, to make sure that everything works. I suggest running ... (some LCL demo) and ... (some glwindow demo).
+
+Now we'll start creating our own game from scratch.
+
+2. Creating OpenGL context --- a window (TGLUIWindow) or a Lazarus component (TKamOpenGLComponent)
+
+First of all, you need to initialize a rectangular area on the screen that will be able to display 3D content. This is called OpenGL context. There are two ways of doing this:
+
+- You can use our own GLWindow unit, that defines window class TGLUIWindow. This gives you the most OpenGL capabilities (our TGLUIWindow allows to request some funny stuff from OpenGL, not possible otherwise) and is usually best for 3D games.
+
+You can develop such programs using Lazarus, or any other text editor. The only real requirement is having a FreePascal installed.
+
+In this tutorial, we'll follow this way. We'll still be using Lazarus to compile our program, simply because it's the easiest and most popular method. But we will not use Lazarus form designer. As far as Lazarus is concerned, we're creating a "Custom Application" project.
+
+-> Create new project using Lazarus "New Project" menu item. Choose "Custom Application".
+
+Place this source code in your program file (lpr).
+
+[[
+var
+  Window: TGLUIWindow;
+begin
+  Window := TGLUIWindow.Create(Application);
+  Window.InitAndRun;
+end.
+]]
+
+Press "Run" and behold, a window! (without any contents drawn, so you will probably see the underlying screen contents underneath).
+
+- An alternative is to use our TKamOpenGLComponent inside normal Lazarus form. Just pick TKamOpenGLComponent from the component palette (tab "Kambi") and drop it on a regular Lazarus form. This allows for seamless integration with the normal application design using Lazarus, as you have a normal Lazarus form where you can place normal buttons and such. The downside is that our TKamOpenGLComponent inherits from Lazarus TOpenGLComponent, and it has some limitations (not all OpenGL features can be requested, sometimes mouse look may stutter a little because of Lazarus event loop processing).
+
+To develop such programs you use Lazarus, period.
+
+This tutorial suggests using the 1st method, GLWindow, not TKamOpenGLComponent. But it's really your choice, for TKamOpenGLComponent you only start differently: instead of creating a TGLUIWindow instance, you add TKamOpenGLComponent to a form. Everything else goes *almost* the same, as TKamOpenGLComponent is designed specifically to resemble TGLUIWindow, so they both share similar methods and properties (like "Controls", where we add our engine 2D and 3D stuff).
+
+-> Create new project using Lazarus "New Project" menu item. Choose "Application". Drop TKamOpenGLComponent on your form and resize it to fit the window. Press "Run" and behold :) Then follow the rest of the tutorial, with minimal adjustments.
+
+3. Creating 3D world --- scene manager
+
+Scene manager is a single TKamSceneManager class instance that knows literally everything about your 3D world. It is essential to create it, and add all your 3D stuff to it.
+
+In the simple scenario, by default TKamSceneManager also acts as a viewport filling the whole window. So the whole OpenGL context is drawn to show your 3D world. In more complex scenarios you can have many smaller viewports inside your window, but we'll not dive there in this tutorial (see <a href="http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.custom_viewports.html">Custom viewports notes</a>, and <tt>multiple_viewports</tt> example in engine sources, if you're interested in this).
+
+Change your code to initialize scene manager:
+
+[[
+var
+  Window: TGLUIWindow;
+  SceneManager: TKamSceneManager;
+begin
+  SceneManager := TKamSceneManager.Create(Application);
+
+  Window := TGLUIWindow.Create(Application);
+  Window.Controls.Add(SceneManager);
+  Window.InitAndRun;
+end.
+]]
+
+As you see, we give Application (this is defined in our GLWindow unit) as the owner (first constructor parameter) of both SceneManager and Window. This way we don't have to care about freeing them later. When the Application is freed (which is done automatically by GLWindow finalization), the SceneManager and Window will be freed too. You can pass "nil" instead of "Application" if you really want to avoid this automatic memory management, and free things yourself. This whole "owner" mechanism is actually a normal behavior of ObjectPascal components.
+
+The important new line is the Window.Controls.Add call. This way the scene manager (it's viewport) is visible on the window, which in turn means that all the 3D stuff we will add next is visible too.
+
+4. Adding your game level
+
+We will load a game level from a 3D file. If you use a VRML/X3D file, this game level doesn't have to be static --- it can already include animated stuff, 3D sounds, scripts, and such.
+
+- If you just want to try a ready level, download this 3D file (link to *standalone* vrml file, in a single x3d file, with no textures etc.). You can open it first with view3dscene to see how it looks like.
+
+Or copy more interesting level model from kambi_vrml_game_engine/examples/vrml/models/: copy bridge_final.x3dv, bridge.wrl, and textures/ subdirectory to your project.
+
+- If you want, you can of course make your own new level. You can generally use any 3D modeller and export to any 3D format we can handle. Our other tutorial "how to make new level for CASTLE-2-NAME-HERE" describes from the basics how to use open-source Blender to create a level and export it to VRML/X3D. Highly adviced reading! :)
+
+To load a level, change your code to this:
+
+[[
+var
+  Window: TGLUIWindow;
+  SceneManager: TKamSceneManager;
+  Scene: TVRMLGLScene;
+begin
+  Scene := TVRMLGLScene.Create(Application);
+  Scene.Load('my_scene.x3d');
+  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  Scene.ProcessEvents := true;
+
+  SceneManager := TKamSceneManager.Create(Application);
+  SceneManager.Items.Add(Scene);
+  SceneManager.MainScene := Scene;
+
+  Window := TGLUIWindow.Create(Application);
+  Window.Controls.Add(SceneManager);
+  Window.InitAndRun;
+end.
+]]
+
+At the beginning we create a new instance of TVRMLGLScene, and load it's contents from a file. Scene.Spatial determines what spatial structures (octrees for now) are created, the value [ssRendering, ssDynamicCollisions] is the most flexible one (it allows to speed up the rendering by frustum culling, detect collisions between player and level, and it adapts to a dynamic level that may have some animated parts). Scene.ProcessEvents activates animating VRML/X3D models (you can remove it if you know your level is, and always will be, static).
+
+The level is added to the scene manager. The level is also set as the "MainScene" of scene manager, this means that some central settings (like initial camera position, initial headlight status and such) can be obtained from this scene.
+
+5. Adding some items
+XXX
+
+6. Letting player pick up items
+XXX
+
+7. Display player life and weapon
+
+You often want to display something 2D on player screen. Let's draw a simple meter showing your life points.
+
+XXX
+
+Showing a weapon is a little more tricky, as it's a 3D thing, but it doesn't actually interact with the world, it's glued to the player view. So we don't actuallly want to add it the scene manager. Instead, we want to load it and render directly. OK, actually it's not that tricky, as you already know how to load a 3D stuff, and you already know how to add something custom-drawn to the window:
+
+XXX
+
+8. Adding some creatures
+XXX
+
+9. Adding some sounds
+
+As with many other operations, you can add and control sounds to you game either by Pascal code, or by editing your data files. This gives flexibility both to a programmer and the content designer. It's your choice which approach you use &mdash; usually it's better to keep as much as possible in data files, and use code only when necessary for non-trivial situations.
+
+First, get a sample sound file and place it within your game data. You can use this sample.wav file.
+
+To add a looping sound to your VRML/X3D file, just open xxx.x3dv and paste there this:
+
+[[
+Sound {
+  source AudioClip { url "sample.wav" loop TRUE }
+}
+]]
+
+Remember that URL "sample.wav" is specified relative to the location of your xxx.x3dv file. In the simplest case, just place both xxx.x3dv and sample.wav in the same directory, and you're fine.
+
+To play a sound from a code, add this code:
+
+[[
+Buffer := SceneManager.SoundEngine.LoadBuffer('sample.wav');
+SceneManager.SoundEngine.PlaySound(Buffer, ...); // see PlaySound reference for parameters
+]]
+
+You can free the buffer once the sound has stopped. It's not important for simple programs, as we will take care to always free it before closing OpenAL context.
+
+For more advanced uses, you can use the return value of PlaySound: it's either nil (if no OpenAL resources available to play this sound, and it's priority doesn't allow overriding other sounds) or it's a TALSound instance. If you have TALSound instance, you can use it's TALSound.OnUsingEnd event to be notified when source stops playing. You can also use other TALSound methods, e.g. update TALSound.Position, TALSound.Gain and such. You can stop playing the sound by TALSound.DoUsingEnd.
