@@ -588,7 +588,7 @@ end;
 { TGLApplication ------------------------------------------------------- }
 
 function TGLApplication.FindWindowXID(seekWindowXID: TWindow): TGLWindow;
-var 
+var
   i: integer;
 begin
   for i := 0 to OpenWindowsCount-1 do
@@ -636,10 +636,22 @@ var
   glXQueryExtension: function(dpy: PDisplay; errorb, event: Pointer): Boolean; cdecl;
 
 procedure TGLApplication.InitializeXDisplay;
+{$ifdef DARWIN}
+const
+  AltXDisplayName = ':0';
+{$endif}
 begin
   if XDisplay = nil then
-    raise ECheckFailed.Create('XOpenDisplay could not open display "' +
-      XDisplayName + '"');
+  begin
+    {$ifdef DARWIN}
+    Writeln(ErrOutput, Format('Opening the default X display "%s" failed, retrying with "%s" to try to attach to running X server on Mac OS X.',
+      [XDisplayName, AltXDisplayName]));
+    XDisplayName := AltXDisplayName;
+    if XDisplay = nil then
+    {$endif}
+
+    raise Exception.CreateFmt('XOpenDisplay could not open display "%s"', [XDisplayName]);
+  end;
 
   if not InitializeXDisplayDone then
   begin
