@@ -362,6 +362,14 @@ view3dscene 4.0:
 - JavaScript (http://besen.sourceforge.net/ or SpiderMonkey), or Python/Lua?
 - OpenGL ES, Android? (This would also suggest engine 3.0.0 bump.)
   With complete shaders pipeline of course.
+
+- Mac OS X dependencies and packaging fixes
+  - bundle doesn't run, why? (we attach to running x now)
+  - add to bundle that we handle x3dv / wrl etc (see Linux mime list?), with our icon
+
+- networking (at least http URLs) support
+- JavaScript support (either SpiderMonkey or besen?)
+
 ------------------------------------------------------------------------------
 Shadow maps todos:
 - Point light sources.
