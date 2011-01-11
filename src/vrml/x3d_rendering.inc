@@ -31,8 +31,15 @@
   { Geometry represented as arrays of indexes, vertex positions,
     texture coordinates and such. Many (eventually, all) geometry nodes
     (TVRMLGeometryNode) can be processed into an instance of this class.
-    Then it can be used to render (as this maps very naturally to OpenGL
-    vertex arrays and VBO) or further process the geometry. }
+
+    This can be used to render, as arrays here map very naturally to
+    an efficient OpenGL vertex arrays and VBOs. We use interleaving,
+    storing everything in two arrays: 1st one for positions and normals
+    (stuff that changes during coordinate morphing, most common dynamic shapes,
+    so we specifically think about optimizing it).
+    2nd one for everything else (colors, tex coords, also GLSL attributes).
+    This should allow for the most efficient usage, making use of interleaving
+    and still taking into account fast dynamic updates. }
   TGeometryArrays = class
   private
     FIndexes: TDynLongIntArray;
