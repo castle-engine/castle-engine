@@ -368,6 +368,9 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
+
+    function GeometryArrays(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TGeometryArrays; override;
   end;
 
   TNodeSphere_2 = class(TNodeX3DGeometryNode)
@@ -1295,6 +1298,68 @@ begin
   FdtexCoordIndex.Assign(Value);
   if EventsEngine <> nil then
     EventsEngine.ChangedField(FdtexCoordIndex);
+end;
+
+function TNodeIndexedFaceSet_2.GeometryArrays(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TGeometryArrays;
+var
+  BeginIndex, EndIndex, NextIndex, I, MaxIndex, IndexesCount: Integer;
+  Positions: TMFVec3f;
+begin
+  Result := TGeometryArrays.Create;
+
+  { calculate IndexesCount and MaxIndex, by one iteration over coordIndex }
+  IndexesCount := 0;
+  BeginIndex := 0;
+  MaxIndex := -1;
+  while BeginIndex < FdCoordIndex.Count do
+  begin
+    EndIndex := BeginIndex;
+    while (EndIndex < FdCoordIndex.Count) and
+          (FdCoordIndex.Items.Items[EndIndex] >= 0) do
+    begin
+      Inc(EndIndex);
+      MaxTo1st(MaxIndex, FdCoordIndex.Items.Items[EndIndex]);
+    end;
+    IndexesCount += Max(EndIndex - BeginIndex - 2, 0) * 3;
+    BeginIndex := EndIndex + 1;
+  end;
+
+  { calculate Positions }
+  Positions := Coordinates(State);
+
+  { check do we have enough coordinates. TGeometryArrays data may be passed
+    quite raw to OpenGL, so this may be our last chance to check correctess
+    and avoid passing data that would cause OpenGL errors. }
+  if MaxIndex >= Positions.Count then
+  begin
+    VRMLWarning(vwSerious, Format('Not enough coordinates: coordIndex references %d coordinates, but we only have %d coordinates',
+      [MaxIndex + 1, Positions.Count]));
+    Exit; { leave Result created but empty }
+  end;
+
+  Result.Indexes := TDynLongIntArray.Create(IndexesCount);
+
+  { calculate Result.Indexes contents: triangulate }
+  NextIndex := 0;
+  BeginIndex := 0;
+  while BeginIndex < FdCoordIndex.Count do
+  begin
+    EndIndex := BeginIndex;
+    while (EndIndex < FdCoordIndex.Count) and
+          (FdCoordIndex.Items.Items[EndIndex] >= 0) do
+      Inc(EndIndex);
+    for I := BeginIndex to EndIndex - 3 do
+    begin
+      Result.Indexes.Items[NextIndex] := FdCoordIndex.Items.Items[BeginIndex]; Inc(NextIndex);
+      Result.Indexes.Items[NextIndex] := FdCoordIndex.Items.Items[I + 1     ]; Inc(NextIndex);
+      Result.Indexes.Items[NextIndex] := FdCoordIndex.Items.Items[I + 2     ]; Inc(NextIndex);
+    end;
+    BeginIndex := EndIndex + 1;
+  end;
+
+  Result.Positions := Positions.Items;
+  Result.OwnsPositions := false;
 end;
 
 constructor TNodeSphere_2.Create(const ANodeName: string;

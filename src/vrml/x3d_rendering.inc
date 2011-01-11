@@ -23,6 +23,53 @@
 
   ENotCoordinateBasedNode = class(EVRMLError);
 
+  EGeometryArraysNotPossible = class(EVRMLError);
+
+  { Primitive geometry types. Analogous to OpenGL primitives. }
+  TGeometryPrimitive = (gpTriangles);
+
+  { Geometry represented as arrays of indexes, vertex positions,
+    texture coordinates and such. Many (eventually, all) geometry nodes
+    (TVRMLGeometryNode) can be processed into an instance of this class.
+    Then it can be used to render (as this maps very naturally to OpenGL
+    vertex arrays and VBO) or further process the geometry. }
+  TGeometryArrays = class
+  private
+    FIndexes: TDynLongIntArray;
+    FPrimitive: TGeometryPrimitive;
+    FPositions: TDynVector3SingleArray;
+    FOwnsPositions: boolean;
+  public
+    destructor Destroy; override;
+
+    { Indexes to remaining arrays.
+
+      If non-nil, we will render using these indexes,
+      which means that items on the remaining lists (vertex positions,
+      tex coords etc.) may be used multiple times. This is good
+      (the lists may be possibly shorter, and GPU will be able to reuse
+      more calculation results), but it's also limited: a vertex
+      must always have the same properties in this case (e.g. the same
+      normal vector, so shape must be completely smooth).
+
+      When this is nil, we will simply use all the vertexes in order.
+      So every item of the remaining lists will be processed exactly once,
+      in the given order. This seems dumb, but actually we're often forced
+      to use this: when you use flat (per-face) normals or colors,
+      then the same vertex position must be used many times with different
+      normal/color. If you want to use OpenGL vertex arrays for whole rendering,
+      this vertex position will just have to be duplicated (which is OK,
+      as the calculation results couldn't be shared anyway,
+      since normal/color are different). }
+    property Indexes: TDynLongIntArray read FIndexes write FIndexes;
+
+    property Primitive: TGeometryPrimitive read FPrimitive write FPrimitive;
+
+    property Positions: TDynVector3SingleArray read FPositions write FPositions;
+    property OwnsPositions: boolean read FOwnsPositions write FOwnsPositions
+      default false;
+  end;
+
   { Geometry nodes are the only nodes that produces some visible results
     during rendering. Much of the VRML language is just
     a method of describing properties how geometry nodes are displayed
@@ -434,6 +481,28 @@
       and even allow explicitly requesting it by TextureCoordinateGenerator.mode = "BOUNDS2D". }
     procedure GetTextureBounds2DST(const LocalBoxSizes: TVector3Single;
       out S, T: Integer);
+
+    { Create an instance of TGeometryArrays, decomposing this geometry
+      into simple arrays of primitives. Use to easily render and process
+      this geometry.
+
+      The returned TGeometryArrays instance may contain some references
+      to fields of this node. So be sure to free this TGeometryArrays
+      before freeing the actual node, otherwise you will have dangling
+      references.
+
+      You usually do not want to call this method. Instead, use TVRMLScene,
+      iterate over it's shapes, and for each shape use it's
+      TVRMLShape.GeometryArrays property. This way some geometry nodes
+      will be internally handled by @link(Proxy) geometry (for example,
+      spheres are actually converted under the hood to IndexedFaceSet,
+      which can make GeometryArrays). Also this way you don't need to care
+      about caching and freeing instances of TGeometryArrays.
+
+      @raises(EGeometryArraysNotPossible For nodes that cannot be converted
+        into such arrays.) }
+    function GeometryArrays(State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TGeometryArrays; virtual;
   end;
 
   { }
@@ -886,6 +955,17 @@
 
 {$ifdef read_implementation}
 
+{ TGeometryArrays ------------------------------------------------------------ }
+
+destructor TGeometryArrays.Destroy;
+begin
+  FreeAndNil(FIndexes);
+  if OwnsPositions then
+    FreeAndNil(FPositions) else
+    FPositions := nil;
+  inherited;
+end;
+
 { TVRMLGeometryNode ---------------------------------------------------------- }
 
 constructor TVRMLGeometryNode.Create(const ANodeName: string;
@@ -1058,6 +1138,14 @@ begin
 
   S := Bounds2DS;
   T := Bounds2DT;
+end;
+
+function TVRMLGeometryNode.GeometryArrays(State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TGeometryArrays;
+begin
+  raise EGeometryArraysNotPossible.CreateFmt('GeometryArrays not possible for node %s',
+    [ClassName]);
+  Result := nil; //< only to silence compiler warnings
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }

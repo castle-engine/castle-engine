@@ -258,6 +258,10 @@ unit VRMLGLRenderer;
   {$endif}
 {$endif}
 
+{ Enable TGeometryArrays based renderer. This will eventually become
+  the standard renderer, for now it's work-in-progress. }
+{ $define USE_VRML_GEOMETRY_ARRAYS}
+
 {$I kambiconf.inc}
 
 interface
@@ -4321,6 +4325,7 @@ var
     { We don't generate texture coords, so disable textures. }
     TextureNode := nil;
     {$endif}
+    {$ifdef USE_VRML_GEOMETRY_ARRAYS} TextureNode := nil; {$endif}
 
     TexCoordsNeeded := 0;
 
@@ -4455,6 +4460,18 @@ var
       UsedGLSL.Disable;
   end;
 
+  procedure RenderGeometryArrays(Arrays: TGeometryArrays);
+  begin
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT,
+      SizeOf(TVector3Single), Arrays.Positions.ItemsArray);
+
+    glDrawElements(GL_TRIANGLES, Arrays.Indexes.Count, GL_UNSIGNED_INT,
+      Arrays.Indexes.ItemsArray);
+
+    FreeAndNil(Arrays);
+  end;
+
 begin
   { make a copy to our class fields }
   CurrentShape := Shape;
@@ -4463,6 +4480,7 @@ begin
   CurrentState := Shape.OriginalState;
 
   {$ifndef USE_VRML_NODES_TRIANGULATION}
+  {$ifndef USE_VRML_GEOMETRY_ARRAYS}
   { We have to initalize MeshRenderer to something non-nil.
 
     First try to initialize from Shape.OriginalGeometry, only if this fails
@@ -4488,6 +4506,7 @@ begin
 
   Assert(MeshRenderer <> nil);
   {$endif}
+  {$endif}
 
   try
     RenderShadersBegin;
@@ -4501,8 +4520,17 @@ begin
           Shape.LocalTriangulate(true, @DrawTriangle);
           {$else}
 
+          {$ifdef USE_VRML_GEOMETRY_ARRAYS}
+          try
+            RenderGeometryArrays(Shape.Geometry.GeometryArrays(Shape.State, true));
+          except
+            on EGeometryArraysNotPossible do ;
+          end;
+          {$else}
+
           MeshRenderer.Render;
 
+          {$endif USE_VRML_GEOMETRY_ARRAYS}
           {$endif USE_VRML_NODES_TRIANGULATION}
 
         finally Render_MaterialsEnd end;
