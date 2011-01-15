@@ -672,6 +672,8 @@ type
     { Will be set to Normals or it's inverted version, to keep
       pointing from CCW. }
     CcwNormals: TDynVector3SingleArray;
+    FaceNormal: TVector3Single;
+    function CcwNormalsSafe(const Index: Integer): TVector3Single;
   protected
     NormalIndex: TMFLong;
     Normals: TDynVector3SingleArray;
@@ -2480,6 +2482,14 @@ begin
     Result := niNone;
 end;
 
+function TAbstractNorColMatTexCoordinateRenderer.CcwNormalsSafe(
+  const Index: Integer): TVector3Single;
+begin
+  if Index < CcwNormals.Count then
+    Result := CcwNormals.Items[Index] else
+    Result := ZeroVector3Single;
+end;
+
 procedure TAbstractNorColMatTexCoordinateRenderer.GetNormal(
   IndexNum: Integer; RangeNumber: Integer; out N: TVector3Single);
 begin
@@ -2518,8 +2528,12 @@ begin
       if CoordIndex <> nil then
       begin
         Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
-        { TODO: make sure we have enough CcwNormals }
-        Arrays.Normal(ArrayIndexNum)^ := CcwNormals.Items[IndexNum];
+        Arrays.Normal(ArrayIndexNum)^ := CcwNormalsSafe(IndexNum);
+      end;
+    niPerFace, niPerFaceNormalIndexed:
+      begin
+        Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
+        Arrays.Normal(ArrayIndexNum)^ := FaceNormal;
       end;
   end;
 
@@ -2570,15 +2584,15 @@ end;
 procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
-//todo:var
-//  N: PVector3Single;
 begin
   inherited;
 
-//  case NorImplementation of
-//    niPerFace:
-//      glNormalFromIndex(RangeNumber);
-//    niPerFaceNormalIndexed:
-//      glNormalFromIndex(NormalIndex.ItemsSafe[RangeNumber]);
-//  end;
+  { FaceNormal will be actually copied to Arrays.Normal in RenderVertex
+    for this face. }
+  case NorImplementation of
+    niPerFace:
+      FaceNormal := CcwNormalsSafe(RangeNumber);
+    niPerFaceNormalIndexed:
+      FaceNormal := CcwNormalsSafe(NormalIndex.ItemsSafe[RangeNumber]);
+  end;
 end;
