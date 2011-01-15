@@ -2269,41 +2269,6 @@ begin
         Mat1Implementation := miPerFaceMatIndexed;
   end;
 
-  if GLVersion.IsMesa and (GLVersion.MesaMajor < 6) and
-     (Mat1Implementation in
-     [ miPerVertexCoordIndexed,
-       miPerVertexMatIndexed ]) then
-  begin
-    { With older Mesa (confirmed that the bug is with 5.1 and is not with
-      6.4.2) when you use BindMaterial_1 inside
-      GenerateVertex it causes later
-      glPopAttrib (in RenderEnd) to crash with SIGSEGV.
-      gdb backtrace starts with
-
-      (gdb) bt
-      #0  0xa7a1639c in _mesa_PopAttrib ()
-         from /home/michal/installed/mesa/5.1/lib/libGL.so.1
-      from TVRMLGLRenderer.RenderEnd
-      from TVRMLGLScene.RenderEndSimple
-      from TVRMLGLScene.DLShape_PrepareEnd
-
-      Easy test for it: run `view3dscene materials.wrl' with
-      materials.wrl from VRML 1.0 demos from
-      [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php].
-
-      So I workaround this below by just using miOverall for old Mesa
-      versions. This causes incorrect rendering result, but at least
-      it works and often looks "sensible".
-
-      TODO: possibly this is cured now by using GL_COLOR_MATERIAL for
-      Renderer.Render_BindMaterial_1 inside glBegin/glEnd.
-      Check, and eventually remove this workaround.
-      TODO: even more possibly, new renderer with TGeometryArrays also
-      avoids this. Test and remove.
-    }
-    Mat1Implementation := miOverall;
-  end;
-
   { TODO: we handle all material bindings, but we handle BIND_PER_PART
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 end;
