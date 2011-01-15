@@ -67,6 +67,7 @@ type
   TQuadSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure GenerateCoordinate; override;
+    procedure PrepareIndexesPrimitives(out MaxIndex: Integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -612,6 +613,22 @@ begin
     Only for the sake of optimization we can force flat shading
     in allowed cases. }
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
+end;
+
+procedure TQuadSetRenderer.PrepareIndexesPrimitives(out MaxIndex: Integer);
+begin
+  Arrays.Primitive := gpQuads;
+
+  if CoordIndex <> nil then
+  begin
+    { indexes are just directly from CoordIndex in this case.
+      Only make sure we have only full quads (although nothing really
+      requires or promises that, but for the future). }
+    IndexesFromCoordIndex := TDynLongIntArray.Create;
+    IndexesFromCoordIndex.Assign(CoordIndex.Items);
+    IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 4) * 4;
+    MaxIndex := IndexesFromCoordIndex.Max;
+  end;
 end;
 
 procedure TQuadSetRenderer.GenerateCoordinate;

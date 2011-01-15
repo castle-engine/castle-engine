@@ -988,6 +988,9 @@ procedure TAbstractCoordinateRenderer.DoRender;
           glUnlockArraysEXT;
       end;
 
+  const
+    GLPrimitive: array [TGeometryPrimitive] of TGLenum =
+    ( GL_TRIANGLES, GL_QUADS );
   var
     I: Integer;
   begin
@@ -1050,9 +1053,9 @@ procedure TAbstractCoordinateRenderer.DoRender;
       LockArraysBegin;
       try
         if Arrays.Indexes <> nil then
-          glDrawElements(GL_TRIANGLES, Arrays.Indexes.Count, GL_UNSIGNED_INT,
-            Arrays.Indexes.ItemsArray) else
-          glDrawArrays(GL_TRIANGLES, 0, Arrays.Count);
+          glDrawElements(GLPrimitive[Arrays.Primitive],
+            Arrays.Indexes.Count, GL_UNSIGNED_INT, Arrays.Indexes.ItemsArray) else
+          glDrawArrays(GLPrimitive[Arrays.Primitive], 0, Arrays.Count);
       finally LockArraysEnd; end;
     finally
       if not GLVersion.IsMesa then
