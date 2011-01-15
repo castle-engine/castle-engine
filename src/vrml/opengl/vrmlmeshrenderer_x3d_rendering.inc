@@ -31,7 +31,10 @@ type
 
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
   TTriangleSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  private
+    TriFaceNormal: TVector3Single;
   protected
+    procedure RenderVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
     procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
   public
@@ -76,7 +79,10 @@ type
 
   { Renderer for X3D IndexedQuadSet and QuadSet nodes. }
   TQuadSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  private
+    QuadFaceNormal: TVector3Single;
   protected
+    procedure RenderVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
     procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
   public
@@ -298,6 +304,17 @@ begin
   end;
 end;
 
+procedure TTriangleSetRenderer.RenderVertex(IndexNum: Integer);
+begin
+  if NorImplementation = niNone then
+  begin
+    Assert(Arrays.Indexes = nil);
+    Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
+  end;
+
+  inherited;
+end;
+
 procedure TTriangleSetRenderer.GenerateCoordinate;
 var
   I: Integer;
@@ -311,13 +328,8 @@ begin
   while I + 2 < CoordCount do
   begin
     if NorImplementation = niNone then
-    begin
-//TODO:      glNormalv(TriangleNormal(
-//        GetVertex(I    ),
-//        GetVertex(I + 1),
-//        GetVertex(I + 2)));
-// TODO: Also, override PrepareAttributes to set AllowIndexed := false when needed
-    end;
+      TriFaceNormal := TriangleNormal(
+        GetVertex(I), GetVertex(I + 1), GetVertex(I + 2));
 
     RenderVertex(I    );
     RenderVertex(I + 1);
@@ -739,6 +751,17 @@ begin
   end;
 end;
 
+procedure TQuadSetRenderer.RenderVertex(IndexNum: Integer);
+begin
+  if NorImplementation = niNone then
+  begin
+    Assert(Arrays.Indexes = nil);
+    Arrays.Normal(ArrayIndexNum)^ := QuadFaceNormal;
+  end;
+
+  inherited;
+end;
+
 procedure TQuadSetRenderer.GenerateCoordinate;
 var
   I: Integer;
@@ -749,13 +772,10 @@ begin
   while I + 3 < CoordCount do
   begin
     if NorImplementation = niNone then
-    begin
       { Normal is average of normals of two triangles. }
-//TODO:      glNormalv(VectorAdd(
-//        TriangleNormal(GetVertex(I    ), GetVertex(I + 1), GetVertex(I + 2)),
-//        TriangleNormal(GetVertex(I    ), GetVertex(I + 2), GetVertex(I + 3))));
-// TODO: Also, override PrepareAttributes to set AllowIndexed := false when needed
-    end;
+      QuadFaceNormal := Normalized(
+        TriangleNormal(GetVertex(I), GetVertex(I + 1), GetVertex(I + 2)) +
+        TriangleNormal(GetVertex(I), GetVertex(I + 2), GetVertex(I + 3)) );
 
     RenderVertex(I    );
     RenderVertex(I + 1);
