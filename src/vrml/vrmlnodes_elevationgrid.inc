@@ -111,6 +111,7 @@ begin
     IFS.FdColorPerVertex.Value := FdColorPerVertex.Value;
     IFS.FdColor.Value := FdColor.Value;
     IFS.FdCreaseAngle.Value := FdCreaseAngle.Value;
+    IFS.FdFogCoord.Value := FdFogCoord.Value;
   except FreeAndNil(Result); raise end;
 end;
 

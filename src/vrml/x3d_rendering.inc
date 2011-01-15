@@ -413,6 +413,8 @@
     function ColorRGBA: TMFColorRGBA; virtual;
     { @groupEnd }
 
+    function FogCoord: TMFFloat; virtual;
+
     { Should renderer automatically generate 3D texture coordinates,
       in case we will apply 3D texture on this geometry.
 
@@ -492,9 +494,9 @@
       out ACoord: TMFVec3f): boolean; override;
 
     function TexCoordField: TSFNode; override;
-
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
+    function FogCoord: TMFFloat; override;
 
     { Returns normal.vector, assuming that "normal" field is set
       and specified Normal node. Otherwise returns @nil. }
@@ -625,6 +627,7 @@
 
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
+    function FogCoord: TMFFloat; override;
   end;
 
   TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -752,6 +755,7 @@
 
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
+    function FogCoord: TMFFloat; override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
@@ -813,6 +817,7 @@
 
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
+    function FogCoord: TMFFloat; override;
   end;
 
   TNodeTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -1023,6 +1028,11 @@ begin
   Result := nil;
 end;
 
+function TVRMLGeometryNode.FogCoord: TMFFloat;
+begin
+  Result := nil;
+end;
+
 function TVRMLGeometryNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := false;
@@ -1152,6 +1162,14 @@ begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColorRGBA) then
     Result := TNodeColorRGBA(FdColor.Value).FdColor else
+    Result := nil;
+end;
+
+function TNodeX3DComposedGeometryNode.FogCoord: TMFFloat;
+begin
+  if (FdFogCoord.Value <> nil) and
+     (FdFogCoord.Value is TNodeFogCoordinate) then
+    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
     Result := nil;
 end;
 
@@ -1429,6 +1447,14 @@ begin
     Result := nil;
 end;
 
+function TNodeIndexedLineSet_2.FogCoord: TMFFloat;
+begin
+  if (FdFogCoord.Value <> nil) and
+     (FdFogCoord.Value is TNodeFogCoordinate) then
+    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
+    Result := nil;
+end;
+
 function TNodeIndexedLineSet_2.CoordIndex: TMFLong;
 begin
   Result := FdCoordIndex;
@@ -1666,6 +1692,14 @@ begin
     Result := nil;
 end;
 
+function TNodeLineSet.FogCoord: TMFFloat;
+begin
+  if (FdFogCoord.Value <> nil) and
+     (FdFogCoord.Value is TNodeFogCoordinate) then
+    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
+    Result := nil;
+end;
+
 function TNodeLineSet.CoordRangesCounts(
   out RangeCount: TDynLongIntArray;
   out SRanges, SRangeName: string;
@@ -1783,6 +1817,14 @@ begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColorRGBA) then
     Result := TNodeColorRGBA(FdColor.Value).FdColor else
+    Result := nil;
+end;
+
+function TNodePointSet_2.FogCoord: TMFFloat;
+begin
+  if (FdFogCoord.Value <> nil) and
+     (FdFogCoord.Value is TNodeFogCoordinate) then
+    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
     Result := nil;
 end;
 

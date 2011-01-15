@@ -205,6 +205,7 @@
 
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
+    function FogCoord: TMFFloat; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
@@ -756,6 +757,14 @@ begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColorRGBA) then
     Result := TNodeColorRGBA(FdColor.Value).FdColor else
+    Result := nil;
+end;
+
+function TNodeElevationGrid.FogCoord: TMFFloat;
+begin
+  if (FdFogCoord.Value <> nil) and
+     (FdFogCoord.Value is TNodeFogCoordinate) then
+    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
     Result := nil;
 end;
 
