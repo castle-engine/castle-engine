@@ -56,8 +56,7 @@ type
 type
   { Forward-declare TDynLongintArray, used by AssignToInterleaved definitions. }
   { }
-  TDynArray_8 = class;
-  TDynLongintArray = TDynArray_8;
+  TDynLongintArray = class;
 
   { Base abstract dynamic array class. }
   TDynArrayBase = class
@@ -249,6 +248,11 @@ type
     procedure SetTrue(Index: Integer);
 
     function ToLongInt: TDynLongIntArray;
+  end;
+
+  TDynLongIntArray = class(TDynArray_8)
+  public
+    function Max: LongInt;
   end;
 
 {$endif}
@@ -523,6 +527,15 @@ begin
   Result := TDynLongIntArray.Create(Count);
   for I := 0 to High do
     Result.Items[I] := Ord(Items[I]);
+end;
+
+function TDynLongIntArray.Max: LongInt;
+var
+  I: Integer;
+begin
+  Result := Low(LongInt);
+  for I := 0 to High do
+    MaxTo1st(Result, Items[I]);
 end;
 
 {$endif}
