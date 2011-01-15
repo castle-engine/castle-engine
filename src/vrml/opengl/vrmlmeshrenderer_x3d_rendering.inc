@@ -36,7 +36,7 @@ type
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
-    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
+    procedure PrepareIndexesPrimitives; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -48,7 +48,7 @@ type
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
   protected
-    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
+    procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinate; override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
@@ -67,7 +67,7 @@ type
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
   protected
-    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
+    procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinate; override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
@@ -82,7 +82,7 @@ type
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
-    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
+    procedure PrepareIndexesPrimitives; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -95,7 +95,7 @@ type
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
   protected
-    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
+    procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinate; override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
@@ -291,7 +291,7 @@ begin
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
-procedure TTriangleSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+procedure TTriangleSetRenderer.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpTriangles;
 
@@ -303,7 +303,6 @@ begin
     IndexesFromCoordIndex := TDynLongIntArray.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
-    MaxIndex := IndexesFromCoordIndex.Max;
   end;
 end;
 
@@ -406,7 +405,7 @@ begin
   end;
 end;
 
-procedure TTriangleFanSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+procedure TTriangleFanSetRenderer.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpTriangleFan;
   Arrays.Counts := TDynCardinalArray.Create;
@@ -414,10 +413,7 @@ begin
     IndexesFromCoordIndex := TDynLongIntArray.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
   if CoordIndex <> nil then
-  begin
     Assert(Arrays.Counts.Sum = IndexesFromCoordIndex.Count);
-    MaxIndex := IndexesFromCoordIndex.Max;
-  end;
 end;
 
 procedure TTriangleFanSetRenderer.PrepareIndexesCoordsRange(
@@ -604,7 +600,7 @@ begin
   end;
 end;
 
-procedure TTriangleStripSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+procedure TTriangleStripSetRenderer.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpTriangleStrip;
   Arrays.Counts := TDynCardinalArray.Create;
@@ -612,10 +608,7 @@ begin
     IndexesFromCoordIndex := TDynLongIntArray.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
   if CoordIndex <> nil then
-  begin
     Assert(Arrays.Counts.Sum = IndexesFromCoordIndex.Count);
-    MaxIndex := IndexesFromCoordIndex.Max;
-  end;
 end;
 
 procedure TTriangleStripSetRenderer.PrepareIndexesCoordsRange(
@@ -759,7 +752,7 @@ begin
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
-procedure TQuadSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+procedure TQuadSetRenderer.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpQuads;
 
@@ -771,7 +764,6 @@ begin
     IndexesFromCoordIndex := TDynLongIntArray.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 4) * 4;
-    MaxIndex := IndexesFromCoordIndex.Max;
   end;
 end;
 
@@ -823,7 +815,7 @@ begin
       IndexesFromCoordIndex.Add(CoordIndex.Items[I]);
 end;
 
-procedure TLineSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+procedure TLineSetRenderer.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpLineStrip;
   Arrays.Counts := TDynCardinalArray.Create;
@@ -831,10 +823,7 @@ begin
     IndexesFromCoordIndex := TDynLongIntArray.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
   if CoordIndex <> nil then
-  begin
     Assert(Arrays.Counts.Sum = IndexesFromCoordIndex.Count);
-    MaxIndex := IndexesFromCoordIndex.Max;
-  end;
 end;
 
 procedure TLineSetRenderer.GenerateCoordsRange(

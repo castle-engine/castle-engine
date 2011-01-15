@@ -281,11 +281,8 @@ type
 
     { If CoordIndex assigned (this VRML/X3D node is IndexedXxx)
       then calculate and set IndexesFromCoordIndex here.
-      By the way, also calculate maximum index found in CoordIndex
-      (initiallly is Low(LongInt)).
-
-      Also, this is the place to set Arrays.Primitive. }
-    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); virtual; abstract;
+      This is also the place to set Arrays.Primitive and Arrays.Counts. }
+    procedure PrepareIndexesPrimitives; virtual; abstract;
 
     { Called when constructing Arrays, before the Arrays.Count is set.
       Descendants can override this to do stuff like Arrays.AddColor or
@@ -906,17 +903,21 @@ procedure TAbstractCoordinateRenderer.DoRender;
     AllowIndexed: boolean;
     MaxIndex: Integer;
   begin
-    MaxIndex := Low(LongInt);
-    PrepareIndexesPrimitives(MaxIndex);
+    PrepareIndexesPrimitives;
 
-    { check do we have enough coordinates. TGeometryArrays data may be passed
-      quite raw to OpenGL, so this may be our last chance to check correctess
-      and avoid passing data that would cause OpenGL errors. }
-    if MaxIndex >= Coord.Count then
+    if IndexesFromCoordIndex <> nil then
     begin
-      VRMLWarning(vwSerious, Format('Not enough coordinates: coordIndex references %d coordinates, but we only have %d coordinates',
-        [MaxIndex + 1, Coord.Count]));
-      Exit; { leave Arrays created but empty }
+      MaxIndex := IndexesFromCoordIndex.Max;
+
+      { check do we have enough coordinates. TGeometryArrays data may be passed
+        quite raw to OpenGL, so this may be our last chance to check correctess
+        and avoid passing data that would cause OpenGL errors. }
+      if MaxIndex >= Coord.Count then
+      begin
+        VRMLWarning(vwSerious, Format('Not enough coordinates: coordIndex references %d coordinates, but we only have %d coordinates',
+          [MaxIndex + 1, Coord.Count]));
+        Exit; { leave Arrays created but empty }
+      end;
     end;
 
     AllowIndexed := true;

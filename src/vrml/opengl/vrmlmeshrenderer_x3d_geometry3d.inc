@@ -39,7 +39,6 @@ type
     LightPositionObjectSpace: TVector3Single;
 
     IFSIndexesCount: Cardinal;
-    IFSMaxIndex: Integer;
     IFSNextIndex: Cardinal;
 
     procedure PrepareIndexesTriangle1(const TriIndices: TVector3Longint);
@@ -65,7 +64,7 @@ type
   protected
     { Set these in descendant's constructor. }
     FaceConvex: boolean;
-    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
+    procedure PrepareIndexesPrimitives; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -861,11 +860,8 @@ begin
   IFSIndexesCount += 3;
 end;
 
-{ update IFSIndexesCount, IFSMaxIndex }
 procedure TIndexedFaceSetRenderer.PrepareIndexesCoordsRange1(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
-var
-  I: Integer;
 begin
   if not FaceConvex then
   begin
@@ -881,9 +877,6 @@ begin
 
     IFSIndexesCount += Max(EndIndex - BeginIndex - 2, 0) * 3;
   end;
-
-  for I := BeginIndex to EndIndex - 1 do
-    MaxTo1st(IFSMaxIndex, CoordIndex.Items.Items[EndIndex]);
 end;
 
 procedure TIndexedFaceSetRenderer.PrepareIndexesTriangle2(
@@ -920,13 +913,11 @@ begin
   end;
 end;
 
-procedure TIndexedFaceSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+procedure TIndexedFaceSetRenderer.PrepareIndexesPrimitives;
 begin
-  { calculate IFSIndexesCount and IFSMaxIndex, by one iteration over coordIndex }
+  { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
-  IFSMaxIndex := MaxIndex;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange1);
-  MaxIndex := IFSMaxIndex;
 
   { calculate IndexesFromCoordIndex contents: triangulate }
   IndexesFromCoordIndex := TDynLongIntArray.Create(IFSIndexesCount);
