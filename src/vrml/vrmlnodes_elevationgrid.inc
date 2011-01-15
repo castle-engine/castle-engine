@@ -71,8 +71,8 @@ begin
       Coords.Count := XDimension * ZDimension;
       if not TexCoordProvided then
         TexCoords.Count := XDimension * ZDimension;
-      for I := 0 to XDimension - 1 do
-        for J := 0 to ZDimension - 1 do
+      for J := 0 to ZDimension - 1 do
+        for I := 0 to XDimension - 1 do
         begin
           Coords.Items[I + J * XDimension] := Vector3Single(
             FdXSpacing.Value * I,
@@ -89,8 +89,8 @@ begin
       CoordIndexes := IFS.CoordIndex.Items;
       CoordIndexes.Count := (XDimension - 1) * (ZDimension - 1) * 5;
       NextIndex := 0;
-      for I := 1 to XDimension - 1 do
-        for J := 1 to ZDimension - 1 do
+      for J := 1 to ZDimension - 1 do
+        for I := 1 to XDimension - 1 do
         begin
           { Vertices are ordered such that face is CCW from up
             (i.e. looking from positive Y axis). }
