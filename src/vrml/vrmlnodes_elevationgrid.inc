@@ -51,7 +51,9 @@ begin
     begin
       CoordNode := TNodeCoordinate.Create('', WWWBasePath);
       IFS.FdCoord.Value := CoordNode;
+      Coords := CoordNode.FdPoint.Items;
 
+      { calculate TexCoordProvided, set IFS.FdTexCoord, maybe set TexCoords }
       TexCoordProvided :=
         (FdTexCoord.Value <> nil) and
         (FdTexCoord.Value is TNodeTextureCoordinate) and
@@ -65,8 +67,9 @@ begin
       end;
 
       { generate coords (and other per-vertex stuff: tex coords) }
-      Coords := CoordNode.FdPoint.Items;
       Coords.Count := XDimension * ZDimension;
+      if not TexCoordProvided then
+        TexCoords.Count := XDimension * ZDimension;
       for I := 0 to XDimension - 1 do
         for J := 0 to ZDimension - 1 do
         begin
