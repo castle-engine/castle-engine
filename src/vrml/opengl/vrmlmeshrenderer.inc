@@ -2005,32 +2005,37 @@ procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin;
   procedure EnableTextureCoordArray;
   var
     I: Integer;
-  begin
-    { TODO: load to Arrays.TexCoord(...) }
-    if Renderer.UseMultiTexturing then
+
+    procedure Handle(const Dimensions: TTexCoordDimensions;
+      TexCoordArray: TDynArrayBase);
+    var
+      A: Pointer;
     begin
-      for I := 0 to Renderer.TexCoordsNeeded - 1 do
-        if TexCoordGen[I] in ExplicitTexCoords then
-        begin
-          glClientActiveTextureARB(
-            GL_TEXTURE0_ARB + Integer(Attributes.FirstGLFreeTexture) + I);
-          case TexCoordGen[I] of
-            tgExplicit2d: glTexCoordPointer(2, GL_FLOAT, 0, TexCoordArray2d[I].Items.ItemsArray);
-            tgExplicit3d: glTexCoordPointer(3, GL_FLOAT, 0, TexCoordArray3d[I].Items.ItemsArray);
-            tgExplicit4d: glTexCoordPointer(4, GL_FLOAT, 0, TexCoordArray4d[I].Items.ItemsArray);
-          end;
-          glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        end;
-    end else
-    if TexCoordGen[0] in ExplicitTexCoords then
-    begin
-      case TexCoordGen[0] of
-        tgExplicit2d: glTexCoordPointer(2, GL_FLOAT, 0, TexCoordArray2d[0].Items.ItemsArray);
-        tgExplicit3d: glTexCoordPointer(3, GL_FLOAT, 0, TexCoordArray3d[0].Items.ItemsArray);
-        tgExplicit4d: glTexCoordPointer(4, GL_FLOAT, 0, TexCoordArray4d[0].Items.ItemsArray);
+      A := Arrays.TexCoord(Dimensions, I, 0);
+
+      if TexImplementation = tcCoordIndexed then
+      begin
+        if Arrays.Indexes <> nil then
+          TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize) else
+          TexCoordArray.AssignToInterleavedIndexed(A, Arrays.AttributeSize, IndexesFromCoordIndex);
+      end else
+      begin
+        Assert(TexImplementation = tcNonIndexed);
+        Assert(Arrays.Indexes = nil);
+
+        if TexCoordArray.Count = Arrays.Count then
+          TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize) else
+          VRMLWarning(vwSerious, 'Arrays.Count invalid. TODO: bug, because indexes for CoordIndex <> indexes after triangulating and removing -1');
       end;
-      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     end;
+
+  begin
+    for I := 0 to Renderer.TexCoordsNeeded - 1 do
+      case TexCoordGen[I] of
+        tgExplicit2d: Handle(2, TexCoordArray2d[I].Items);
+        tgExplicit3d: Handle(3, TexCoordArray3d[I].Items);
+        tgExplicit4d: Handle(4, TexCoordArray4d[I].Items);
+      end;
   end;
 
 begin
@@ -2620,7 +2625,7 @@ begin
     Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
     if CcwNormals.Count = Arrays.Count then
       CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
-      VRMLWarning(vwSerious, 'CcwNormals.Count <> Arrays.Count. TODO: bug (make it assert then) or not (make it cleaner then)');
+      VRMLWarning(vwSerious, 'CcwNormals.Count <> Arrays.Count. TODO: bug, because indexes for CoordIndex <> indexes after triangulating and removing -1');
   end else
   if NorImplementation = niOverall then
   begin
