@@ -290,11 +290,12 @@ type
     property CurrentRangeNumber: Cardinal read FCurrentRangeNumber;
 
     { If CoordIndex assigned (this VRML/X3D node is IndexedXxx)
-      then calculate IndexesFromCoordIndex. By the way, also calculate
-      maximum index found in CoordIndex.
+      then calculate and set IndexesFromCoordIndex here.
+      By the way, also calculate maximum index found in CoordIndex
+      (initiallly is Low(LongInt)).
 
       Also, this is the place to set Arrays.Primitive. }
-    procedure PrepareIndexesPrimitives(out MaxIndex: Integer); virtual; abstract;
+    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); virtual; {TODO:abstract;}
 
     { Called when constructing Arrays, before the Arrays.Count is set.
       Descendants can override this to do stuff like Arrays.AddColor or
@@ -912,6 +913,18 @@ begin
   FCoordIndex := Geometry.CoordIndex;
 end;
 
+{ TODO: this should be abstract, but for testing it's easier for now
+  to only make a warning. }
+procedure TAbstractCoordinateRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+begin
+  Writeln(ClassName, ' has not implemented PrepareIndexesPrimitives');
+
+  if CoordIndex <> nil then
+  begin
+    IndexesFromCoordIndex := TDynLongIntArray.Create;
+  end;
+end;
+
 procedure TAbstractCoordinateRenderer.DoRender;
 
   { Calculate Arrays.Indexes, Arrays.Count, Arrays.Position,
@@ -921,6 +934,7 @@ procedure TAbstractCoordinateRenderer.DoRender;
     AllowIndexed: boolean;
     MaxIndex: Integer;
   begin
+    MaxIndex := Low(LongInt);
     PrepareIndexesPrimitives(MaxIndex);
 
     { check do we have enough coordinates. TGeometryArrays data may be passed

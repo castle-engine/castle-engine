@@ -53,7 +53,7 @@ type
   protected
     { Set these in descendant's constructor. }
     FaceConvex: boolean;
-    procedure PrepareIndexesPrimitives(out MaxIndex: Integer); override;
+    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -848,7 +848,7 @@ begin
   end;
 end;
 
-procedure TIndexedFaceSetRenderer.PrepareIndexesPrimitives(out MaxIndex: Integer);
+procedure TIndexedFaceSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
 var
   BeginIndex, EndIndex, NextIndex, I, IndexesCount: Integer;
 begin

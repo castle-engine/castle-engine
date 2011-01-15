@@ -67,7 +67,7 @@ type
   TQuadSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure GenerateCoordinate; override;
-    procedure PrepareIndexesPrimitives(out MaxIndex: Integer); override;
+    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -615,7 +615,7 @@ begin
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
-procedure TQuadSetRenderer.PrepareIndexesPrimitives(out MaxIndex: Integer);
+procedure TQuadSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
 begin
   Arrays.Primitive := gpQuads;
 
