@@ -143,8 +143,8 @@ type
     procedure IncNormal(var P: PVector3Single);
 
     procedure AddColor;
-    function Color: PVector3Single;
-    procedure IncColor(var P: PVector3Single);
+    function Color(const Index: Cardinal = 0): PVector4Single;
+    procedure IncColor(var P: PVector4Single);
 
     { TODO:
     procedure AddGLSLAttribute(const Name: string; const Size: Cardinal);
@@ -236,18 +236,19 @@ begin
   begin
     HasColor := true;
     ColorOffset := AttributeSize;
-    FAttributeSize += SizeOf(TVector3Single);
+    FAttributeSize += SizeOf(TVector4Single);
   end;
 end;
 
-function TGeometryArrays.Color: PVector3Single;
+function TGeometryArrays.Color(const Index: Cardinal): PVector4Single;
 begin
   if HasColor then
-    Result := PVector3Single(PtrUInt(PtrUInt(FAttributeArray) + ColorOffset)) else
+    Result := PVector4Single(PtrUInt(PtrUInt(FAttributeArray) +
+      ColorOffset + Index * AttributeSize)) else
     Result := nil;
 end;
 
-procedure TGeometryArrays.IncColor(var P: PVector3Single);
+procedure TGeometryArrays.IncColor(var P: PVector4Single);
 begin
   PtrUInt(P) += AttributeSize;
 end;

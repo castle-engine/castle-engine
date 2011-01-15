@@ -157,11 +157,12 @@ type
       only if bump mapping should be used and BumpMappingAllowed. }
     BumpMappingMethod: TBumpMappingMethod;
 
-    { @abstract(Will rendering of this node possibly call Renderer.SetColor?)
+    { @abstract(Will rendering of this node possibly call Renderer.SetColor,
+      or use Arrays.Color?)
 
       In this class, returns @false, set to @true in descendants to allow
-      Renderer.MaterialsBegin do some preparations if you later plan to call
-      SetColor. }
+      Renderer.MaterialsBegin do some preparations (like material from color
+      for lit stuff). }
     function NeedsSetColor: boolean; virtual;
 
     { @abstract(Will rendering of this node possibly call
@@ -584,6 +585,7 @@ type
   private
     RadianceTransferVertexSize: Cardinal;
     FRadianceTransfer: TDynVector3SingleArray;
+    FaceColor: TVector4Single;
     procedure SetRadianceTransfer(const Value: TDynVector3SingleArray);
   protected
     Color: TMFVec3f;
@@ -594,6 +596,7 @@ type
     property RadianceTransfer: TDynVector3SingleArray
       read FRadianceTransfer write SetRadianceTransfer;
 
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: integer); override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
@@ -1019,6 +1022,14 @@ procedure TAbstractCoordinateRenderer.DoRender;
 
       glEnableClientState(GL_NORMAL_ARRAY);
       glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
+
+      if (Arrays.Color <> nil) and
+         Attributes.ControlMaterials and
+         (not Attributes.PureGeometry) then
+      begin
+        glEnableClientState(GL_COLOR_ARRAY);
+        glColorPointer(3, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+      end;
 
       if GLUseMultiTexturing then
       begin
@@ -2305,6 +2316,24 @@ begin
     FRadianceTransfer := nil;
 end;
 
+procedure TAbstractColMatTexCoordinateRenderer.PrepareAttributes(var AllowIndexed: boolean);
+begin
+  inherited;
+
+  if Assigned(Renderer.Attributes.OnVertexColor) or
+     (RadianceTransfer <> nil) then
+  begin
+    Arrays.AddColor;
+    AllowIndexed := false;
+  end else
+  if (Color <> nil) or (ColorRGBA <> nil) then
+  begin
+    Arrays.AddColor;
+    if (ColorIndex <> nil) or (not ColorPerVertex) then
+      AllowIndexed := false;
+  end;
+end;
+
 procedure TAbstractColMatTexCoordinateRenderer.GenerateVertex(IndexNum: integer);
 var
   VertexColor: TVector3Single;
@@ -2336,7 +2365,7 @@ begin
 
     Renderer.Attributes.OnVertexColor(VertexColor, Shape,
       GetVertex(IndexNum), VertexIndex);
-    Renderer.SetColor(VertexColor);
+    Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, Renderer.Material_BoundOpacity);
   end else
   if RadianceTransfer <> nil then
   begin
@@ -2348,23 +2377,31 @@ begin
       @(RadianceTransfer.Items[VertexIndex * RadianceTransferVertexSize]),
       RadianceTransferVertexSize);
 
-    Renderer.SetColor(VertexColor);
+    Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, Renderer.Material_BoundOpacity);
   end else
-  if (Color <> nil) and ColorPerVertex then
+  if Color <> nil then
   begin
-    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-      Renderer.SetColor(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]) else
-    if CoordIndex <> nil then
-      Renderer.SetColor(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]) else
-      Renderer.SetColor(Color.ItemsSafe[IndexNum]);
+    if ColorPerVertex then
+    begin
+      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]], Renderer.Material_BoundOpacity) else
+      if CoordIndex <> nil then
+        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]], Renderer.Material_BoundOpacity) else
+        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[IndexNum], Renderer.Material_BoundOpacity);
+    end else
+      Arrays.Color(ArrayIndexNum)^ := FaceColor;
   end else
-  if (ColorRGBA <> nil) and ColorPerVertex then
+  if ColorRGBA <> nil then
   begin
-    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-      Renderer.SetColor(ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]) else
-    if CoordIndex <> nil then
-      Renderer.SetColor(ColorRGBA.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]) else
-      Renderer.SetColor(ColorRGBA.ItemsSafe[IndexNum]);
+    if ColorPerVertex then
+    begin
+      if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
+        Arrays.Color(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]] else
+      if CoordIndex <> nil then
+        Arrays.Color(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]] else
+        Arrays.Color(ArrayIndexNum)^ := ColorRGBA.ItemsSafe[IndexNum];
+    end else
+      Arrays.Color(ArrayIndexNum)^ := FaceColor;
   end;
 
   inherited;
@@ -2382,14 +2419,14 @@ begin
     if (Color <> nil) and (not ColorPerVertex) then
     begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        Renderer.SetColor(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
-        Renderer.SetColor(Color.ItemsSafe[RangeNumber]);
+        FaceColor := Vector4Single(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]], Renderer.Material_BoundOpacity) else
+        FaceColor := Vector4Single(Color.ItemsSafe[RangeNumber], Renderer.Material_BoundOpacity);
     end else
     if (ColorRGBA <> nil) and (not ColorPerVertex) then
     begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        Renderer.SetColor(ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
-        Renderer.SetColor(ColorRGBA.ItemsSafe[RangeNumber]);
+        FaceColor := ColorRGBA.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]] else
+        FaceColor := ColorRGBA.ItemsSafe[RangeNumber];
     end;
   end;
 end;
