@@ -20,14 +20,14 @@ type
   TPointSet_1Renderer = class(TAbstractCoordinateRenderer)
   protected
     procedure PrepareIndexesPrimitives; override;
-    procedure GenerateCoordinateBegin; override;
+    procedure RenderCoordinateBegin; override;
     procedure GenerateCoordinate; override;
   end;
 
   TPointSet_2Renderer = class(TAbstractColMatTexCoordinateRenderer)
   protected
     procedure PrepareIndexesPrimitives; override;
-    procedure GenerateCoordinateBegin; override;
+    procedure RenderCoordinateBegin; override;
     procedure GenerateCoordinate; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
@@ -118,12 +118,12 @@ type
     constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsSetColor: boolean; override;
   protected
-    procedure GenerateCoordinateBegin; override;
+    procedure RenderCoordinateBegin; override;
   end;
 
 { TPointSet_1Renderer -------------------------------------------------------- }
 
-procedure TPointSet_1Renderer.GenerateCoordinateBegin;
+procedure TPointSet_1Renderer.RenderCoordinateBegin;
 begin
   { TODO: handle various possible material binding here }
 
@@ -218,7 +218,7 @@ begin
   end;
 end;
 
-procedure TPointSet_2Renderer.GenerateCoordinateBegin;
+procedure TPointSet_2Renderer.RenderCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin
@@ -919,7 +919,7 @@ begin
   end;
 end;
 
-procedure TLineSet_2Renderer.GenerateCoordinateBegin;
+procedure TLineSet_2Renderer.RenderCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin

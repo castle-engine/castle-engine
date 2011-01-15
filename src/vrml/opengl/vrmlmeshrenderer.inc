@@ -163,20 +163,7 @@ type
     that is TVRMLGeometryNode.Coord returns @true.
     In our constructor we initialize Coord and CoordIndex
     from Geometry, using TVRMLGeometryNode.Coord and TVRMLGeometryNode.CoordIndex
-    values. If Coord will be @nil, nothing will be rendered.
-
-    Usage:
-    - Don't override Render --- this is already overridden here
-      to do everything necessary. Instead, override
-
-        GenerateCoordinateBegin
-        GenerateCoordinate
-        GenerateCoordinateEnd
-
-        RenderCoordinateEnd
-
-      These are called only when Coord is assigned.
-  }
+    values. If Coord will be @nil, nothing will be rendered. }
   TAbstractCoordinateRenderer = class(TVRMLMeshRenderer)
   private
     FCurrentRangeNumber: Cardinal;
@@ -223,20 +210,38 @@ type
       to various methods taking an index, like GenerateVertex. }
     function CoordCount: Integer;
 
+    { Don't override Render --- this is already overridden here
+      to do everything necessary. }
     procedure DoRender; override;
 
     { Override these to plug your rendering algorithm.
-      See the description of this class @className for usage overview
-      of these methods.
 
+      GenerateCoordinate must be overridden only by the classes
+      that actually know how to deconstruct (triangulate etc.) this node.
+      It must call GenerateVertex (or call GenerateCoordsRange,
+      that has to be then overridden to call GenerateVertex after inherited).
+
+      GenerateCoordinateBegin, GenerateCoordinateEnd will be called
+      before / after GenerateCoordinate. Useful to override by intermediate
+      classes here, that cannot triangulate, but still want to add something
+      before / after GenerateCoordinate.
       When overriding GenerateCoordinateBegin, always call inherited
       at the begin. When overriding GenerateCoordinateEnd, always call inherited
       at the end.
+
+      RenderCoordinateBegin, RenderCoordinateEnd are called around actual
+      vertex arrays rendering. Should be used to separate direct OpenGL
+      calls (like SetColor before rendering) from generating methods.
+      Although some classes for now also make direct OpenGL calls in earlier
+      methods (like PrepareAttributes), as this works too for now.
+
+      These are all called only when Coord is assigned.
 
       @groupBegin }
     procedure GenerateCoordinate; virtual; abstract;
     procedure GenerateCoordinateBegin; virtual;
     procedure GenerateCoordinateEnd; virtual;
+    procedure RenderCoordinateBegin; virtual;
     procedure RenderCoordinateEnd; virtual;
     { @groupEnd }
 
@@ -904,6 +909,9 @@ procedure TAbstractCoordinateRenderer.DoRender;
     First: Cardinal;
     Mode: TGLenum;
   begin
+    RenderCoordinateBegin;
+    try
+
     { Initialize vertex arrays that we we will use with indexed nodes.
       GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
       normal and texture coord arrays.
@@ -998,7 +1006,7 @@ procedure TAbstractCoordinateRenderer.DoRender;
         glPopClientAttrib;
     end;
 
-    RenderCoordinateEnd;
+    finally RenderCoordinateEnd end;
   end;
 
 begin
@@ -1028,6 +1036,11 @@ begin
 end;
 
 procedure TAbstractCoordinateRenderer.GenerateCoordinateEnd;
+begin
+  { nothing to do in this class }
+end;
+
+procedure TAbstractCoordinateRenderer.RenderCoordinateBegin;
 begin
   { nothing to do in this class }
 end;
