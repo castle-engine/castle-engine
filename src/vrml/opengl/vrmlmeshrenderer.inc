@@ -1003,10 +1003,12 @@ procedure TAbstractCoordinateRenderer.DoRender;
       end;
 
   const
-    GLPrimitive: array [TGeometryPrimitive] of TGLenum =
-    ( GL_TRIANGLES, GL_QUADS );
+    ToMode: array [TGeometryPrimitive] of TGLenum =
+    ( GL_TRIANGLES, GL_QUADS, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP );
   var
     I: Integer;
+    First: Cardinal;
+    Mode: TGLenum;
   begin
     { Initialize vertex arrays that we we will use with indexed nodes.
       GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
@@ -1066,10 +1068,27 @@ procedure TAbstractCoordinateRenderer.DoRender;
       { Lock arrays after setting up all arrays. }
       LockArraysBegin;
       try
+        Mode := ToMode[Arrays.Primitive];
+        First := 0;
         if Arrays.Indexes <> nil then
-          glDrawElements(GLPrimitive[Arrays.Primitive],
-            Arrays.Indexes.Count, GL_UNSIGNED_INT, Arrays.Indexes.ItemsArray) else
-          glDrawArrays(GLPrimitive[Arrays.Primitive], 0, Arrays.Count);
+        begin
+          if Arrays.Counts = nil then
+            glDrawElements(Mode, Arrays.Indexes.Count, GL_UNSIGNED_INT, Arrays.Indexes.Pointers[First]) else
+            for I := 0 to Arrays.Counts.Count - 1 do
+            begin
+              glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.Indexes.Pointers[First]);
+              First += Arrays.Counts[I];
+            end;
+        end else
+        begin
+          if Arrays.Counts = nil then
+            glDrawArrays(Mode, First, Arrays.Count) else
+            for I := 0 to Arrays.Counts.Count - 1 do
+            begin
+              glDrawArrays(Mode, First, Arrays.Counts[I]);
+              First += Arrays.Counts[I];
+            end;
+        end;
       finally LockArraysEnd; end;
     finally
       if not GLVersion.IsMesa then
@@ -2610,8 +2629,8 @@ begin
   if NorImplementation = niPerVertexCoordIndexed then
   begin
     if Arrays.Indexes <> nil then
-      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
-      CcwNormals.AssignToInterleavedIndexed(Arrays.Normal, Arrays.CoordinateSize, IndexesFromCoordIndex);
+      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize){TODO: else
+      CcwNormals.AssignToInterleavedIndexed(Arrays.Normal, Arrays.CoordinateSize, IndexesFromCoordIndex)};
   end else
   if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
   begin

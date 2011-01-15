@@ -22,7 +22,7 @@ uses KambiUtils, VectorMath, FGL;
 
 type
   { Primitive geometry types. Analogous to OpenGL primitives. }
-  TGeometryPrimitive = (gpTriangles, gpQuads);
+  TGeometryPrimitive = (gpTriangles, gpQuads, gpTriangleFan, gpTriangleStrip);
 
   TTexCoordDimensions = 2..4;
 
@@ -50,6 +50,7 @@ type
     FIndexes: TDynLongIntArray;
     FPrimitive: TGeometryPrimitive;
     FCount: Integer;
+    FCounts: TDynCardinalArray;
 
     FAttributeArray: Pointer;
     FAttributeSize: Cardinal;
@@ -93,6 +94,21 @@ type
     property Indexes: TDynLongIntArray read FIndexes write FIndexes;
 
     property Primitive: TGeometryPrimitive read FPrimitive write FPrimitive;
+
+    { If this is assigned, then the vertexes are divided into groups.
+      This is the only way to put many triangle strips, triangle fans and such
+      into one TGeometryArrays instance. For normal sets of triangles and quads
+      this has no use, as there's never a need to divide them for rendering.
+
+      Each value of this list specifies to take consecutive number of vertexes
+      for next primitive.
+      If Indexes are assigned, then they are divided into groups.
+      Otherwise, the other arrays (positions, normals etc.)
+      are divided into groups.
+
+      The sum of values must be equal to the Indexes.Count
+      (if Indexes assigned) or arrays Count (if Indexes not assigned). }
+    property Counts: TDynCardinalArray read FCounts write FCounts;
 
     { Memory containing vertex positions and normals, that is everything
       that changes during Coordinate.coord animation.
@@ -170,6 +186,7 @@ destructor TGeometryArrays.Destroy;
 begin
   FreeAndNil(FIndexes);
   FreeAndNil(FTexCoords);
+  FreeAndNil(FCounts);
   FreeMemNiling(FCoordinateArray);
   FreeMemNiling(FAttributeArray);
   inherited;

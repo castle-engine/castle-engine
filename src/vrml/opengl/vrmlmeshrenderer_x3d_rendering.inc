@@ -40,7 +40,12 @@ type
 
   { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
   TTriangleFanSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  private
+    procedure PrepareIndexesCoordsRange(
+      const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer);
   protected
+    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
     procedure GenerateCoordinate; override;
     procedure RenderCoordsRange(
       const RangeNumber: Cardinal;
@@ -55,7 +60,12 @@ type
     the same thing as IndexedTriangleStripSet, only defined more in
     Inventor/VRML 1.0 conventions). }
   TTriangleStripSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  private
+    procedure PrepareIndexesCoordsRange(
+      const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer);
   protected
+    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
     procedure GenerateCoordinate; override;
     procedure RenderCoordsRange(
       const RangeNumber: Cardinal;
@@ -379,6 +389,42 @@ begin
   end;
 end;
 
+procedure TTriangleFanSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+begin
+  Arrays.Primitive := gpTriangleFan;
+  Arrays.Counts := TDynCardinalArray.Create;
+  if CoordIndex <> nil then
+    IndexesFromCoordIndex := TDynLongIntArray.Create;
+  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  if CoordIndex <> nil then
+  begin
+    Assert(Arrays.Counts.Sum = IndexesFromCoordIndex.Count);
+    MaxIndex := IndexesFromCoordIndex.Max;
+  end;
+end;
+
+procedure TTriangleFanSetRenderer.PrepareIndexesCoordsRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+begin
+  if BeginIndex + 2 < EndIndex then
+  begin
+    Arrays.Counts.Add(EndIndex - BeginIndex);
+
+    if CoordIndex <> nil then
+    begin
+      IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex + 1]);
+
+      while BeginIndex + 2 < EndIndex do
+      begin
+        IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex + 2]);
+        Inc(BeginIndex);
+      end;
+    end;
+  end;
+end;
+
 procedure TTriangleFanSetRenderer.GenerateCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @RenderCoordsRange);
@@ -390,9 +436,11 @@ procedure TTriangleFanSetRenderer.RenderCoordsRange(
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
-    if NorImplementation = niNone then
+//TODO    if NorImplementation = niNone then
+//    if NorImplementation = niNone then
       { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
-      glNormalv(TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3)));
+//      glNormalv(TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3)));
+// TODO: Also, override PrepareAttributes to set AllowIndexed := false when needed
   end;
 
 var
@@ -402,8 +450,6 @@ begin
 
   if BeginIndex + 2 < EndIndex then
   begin
-    glBegin(GL_TRIANGLE_FAN);
-
     FirstIndex := BeginIndex;
 
     RenderVertex(BeginIndex);
@@ -415,8 +461,6 @@ begin
       RenderVertex(BeginIndex + 2);
       Inc(BeginIndex);
     end;
-
-    glEnd;
   end;
 end;
 
@@ -526,6 +570,42 @@ begin
   end;
 end;
 
+procedure TTriangleStripSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+begin
+  Arrays.Primitive := gpTriangleStrip;
+  Arrays.Counts := TDynCardinalArray.Create;
+  if CoordIndex <> nil then
+    IndexesFromCoordIndex := TDynLongIntArray.Create;
+  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  if CoordIndex <> nil then
+  begin
+    Assert(Arrays.Counts.Sum = IndexesFromCoordIndex.Count);
+    MaxIndex := IndexesFromCoordIndex.Max;
+  end;
+end;
+
+procedure TTriangleStripSetRenderer.PrepareIndexesCoordsRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+begin
+  if BeginIndex + 2 < EndIndex then
+  begin
+    Arrays.Counts.Add(EndIndex - BeginIndex);
+
+    if CoordIndex <> nil then
+    begin
+      IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex + 1]);
+
+      while BeginIndex + 2 < EndIndex do
+      begin
+        IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex + 2]);
+        Inc(BeginIndex);
+      end;
+    end;
+  end;
+end;
+
 procedure TTriangleStripSetRenderer.GenerateCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @RenderCoordsRange);
@@ -537,9 +617,10 @@ procedure TTriangleStripSetRenderer.RenderCoordsRange(
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
-    if NorImplementation = niNone then
+//TODO    if NorImplementation = niNone then
       { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
-      glNormalv(TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3)));
+//      glNormalv(TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3)));
+// TODO: Also, override PrepareAttributes to set AllowIndexed := false when needed
   end;
 
 var
@@ -549,8 +630,6 @@ begin
 
   if BeginIndex + 2 < EndIndex then
   begin
-    glBegin(GL_TRIANGLE_STRIP);
-
     RenderVertex(BeginIndex);
     RenderVertex(BeginIndex + 1);
 
@@ -565,8 +644,6 @@ begin
       Inc(BeginIndex);
       NormalOrder := not NormalOrder;
     end;
-
-    glEnd;
   end;
 end;
 
