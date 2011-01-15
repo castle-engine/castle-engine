@@ -212,6 +212,9 @@ type
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
     FCoordIndex: TMFLong;
+
+    { Available inside RenderCoordinate* }
+    Arrays: TGeometryArrays;
   protected
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
@@ -253,9 +256,9 @@ type
       at the end.
 
       @groupBegin }
-    procedure RenderCoordinate(Arrays: TGeometryArrays); virtual; abstract;
-    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); virtual;
-    procedure RenderCoordinateEnd(Arrays: TGeometryArrays); virtual;
+    procedure RenderCoordinate; virtual; abstract;
+    procedure RenderCoordinateBegin; virtual;
+    procedure RenderCoordinateEnd; virtual;
     { @groupEnd }
 
     { RenderCoordsRange is supposed to render one coordinate range.
@@ -286,15 +289,14 @@ type
       RenderCoordsRange. }
     property CurrentRangeNumber: Cardinal read FCurrentRangeNumber;
 
-    { Called when constructing TGeometryArrays, before the Count is set.
+    { Called when constructing Arrays, before the Arrays.Count is set.
       Descendants can override this to do stuff like Arrays.AddColor or
       Arrays.AddAttribute('foo'). Descendants can also set AllowIndexed
       to @false, if we can't use indexed rendering (because e.g. we have
       colors per-face, which means that the same vertex position may have
       different colors,  which means it has to be duplicated in arrays anyway,
       so there's no point in indexing). }
-    procedure PrepareAttributes(Arrays: TGeometryArrays;
-      var AllowIndexed: boolean); virtual;
+    procedure PrepareAttributes(var AllowIndexed: boolean); virtual;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -470,8 +472,8 @@ type
 
     procedure RenderVertex(IndexNum: Integer); override;
 
-    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); override;
-    procedure RenderCoordinateEnd(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinateBegin; override;
+    procedure RenderCoordinateEnd; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -527,7 +529,7 @@ type
     procedure RenderVertex(IndexNum: Integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
-    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsBindMaterial1InsideBeginEnd: boolean; override;
@@ -663,9 +665,11 @@ type
       pointing from CCW. }
     CcwNormals: TDynVector3SingleArray;
     procedure glNormalFromIndex(Index: Integer);
-  public
-    destructor Destroy; override;
   protected
+    NormalIndex: TMFLong;
+    Normals: TDynVector3SingleArray;
+    NormalsCcw: boolean;
+
     { This is calculated in constructor. Unlike similar TexImplementation
       (which is calculated only in RenderCoordsBegin).
       Reasons:
@@ -702,14 +706,12 @@ type
       (safer answer). }
     function NormalsFlat: boolean; virtual;
 
-    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); override;
-    procedure RenderCoordinateEnd(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinateBegin; override;
+    procedure RenderCoordinateEnd; override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
-  protected
-    NormalIndex: TMFLong;
-    Normals: TDynVector3SingleArray;
-    NormalsCcw: boolean;
+
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
 
     procedure RenderVertex(IndexNum: Integer); override;
   end;
@@ -904,7 +906,6 @@ procedure TAbstractCoordinateRenderer.DoRender;
 var
   { This is used only by LockArraysBegin and LockArraysEnd. }
   UseLockArrays: boolean;
-  Arrays: TGeometryArrays;
 
   procedure LockArraysBegin;
   begin
@@ -983,7 +984,7 @@ var
     end;
 
     AllowIndexed := true;
-    PrepareAttributes(Arrays, AllowIndexed);
+    PrepareAttributes(AllowIndexed);
 
     if AllowIndexed or (Arrays.Indexes = nil) then
     begin
@@ -1022,10 +1023,10 @@ begin
   try
     GenerateArrays;
 
-    RenderCoordinateBegin(Arrays);
+    RenderCoordinateBegin;
     try
-      RenderCoordinate(Arrays);
-    finally RenderCoordinateEnd(Arrays); end;
+      RenderCoordinate;
+    finally RenderCoordinateEnd; end;
 
     { Initialize vertex arrays that we we will use with indexed nodes.
       GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
@@ -1059,9 +1060,8 @@ begin
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
 
-      { TODO:
       glEnableClientState(GL_NORMAL_ARRAY);
-      glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal); }
+      glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
 
       { Lock arrays after setting up all arrays. }
       LockArraysBegin;
@@ -1078,18 +1078,17 @@ begin
   finally FreeAndNil(Arrays) end;
 end;
 
-procedure TAbstractCoordinateRenderer.PrepareAttributes(Arrays: TGeometryArrays;
-  var AllowIndexed: boolean);
+procedure TAbstractCoordinateRenderer.PrepareAttributes(var AllowIndexed: boolean);
 begin
   { nothing to do in this class }
 end;
 
-procedure TAbstractCoordinateRenderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
+procedure TAbstractCoordinateRenderer.RenderCoordinateBegin;
 begin
   { nothing to do in this class }
 end;
 
-procedure TAbstractCoordinateRenderer.RenderCoordinateEnd(Arrays: TGeometryArrays);
+procedure TAbstractCoordinateRenderer.RenderCoordinateEnd;
 begin
   { nothing to do in this class }
 end;
@@ -1168,7 +1167,7 @@ begin
     TexCoord := nil;
 end;
 
-procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
+procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin;
 
   { Is a texture used on given unit, and it's 3D texture. }
   function IsTexture3D(const TexUnit: Cardinal): boolean;
@@ -1979,7 +1978,7 @@ begin
   end;
 end;
 
-procedure TAbstractTexCoordinateRenderer.RenderCoordinateEnd(Arrays: TGeometryArrays);
+procedure TAbstractTexCoordinateRenderer.RenderCoordinateEnd;
 
   procedure DisableTextureGen(const TextureUnit: Cardinal);
   begin
@@ -2250,7 +2249,7 @@ begin
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
+procedure TAbstractMatTexCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
@@ -2426,9 +2425,19 @@ end;
 
 { TAbstractNorColMatTexCoordinateRenderer ----------------------------------------------------- }
 
-destructor TAbstractNorColMatTexCoordinateRenderer.Destroy;
+procedure TAbstractNorColMatTexCoordinateRenderer.PrepareAttributes(
+  var AllowIndexed: boolean);
 begin
   inherited;
+
+  if not (
+      { When IndexNum for normal works exactly like for position,
+        then normals can be indexed. This is true in two cases:
+        - there is no coordIndex, and normal vectors are not indexed
+        - there is coordIndex, and normal vectors are indexed by coordIndex }
+      (NorImplementation = niPerVertexCoordIndexed) or
+     ((NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil)) ) then
+    AllowIndexed := false;
 end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.glNormalFromIndex(Index: Integer);
@@ -2518,14 +2527,17 @@ begin
         as if we had used GetNormal. }
       glNormalFromIndex(NormalIndex.ItemsSafe[IndexNum]);
     niPerVertexNonIndexed:
-      if CoordIndex <> nil then
-        glNormalFromIndex(IndexNum);
+      begin
+        Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
+        { TODO: make sure we have enough CcwNormals }
+        Arrays.Normal(IndexNum)^ := CcwNormals.Items[IndexNum];
+      end;
   end;
 
   inherited;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
+procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
@@ -2539,14 +2551,9 @@ begin
     end;
   end;
 
-  if (NorImplementation = niPerVertexCoordIndexed) or
-     ( (NorImplementation = niPerVertexNonIndexed) and
-       (CoordIndex = nil) ) then
+  if Arrays.Indexes <> nil then
   begin
-    { When IndexNum for normal works exactly like for vertex,
-      we can use glNormalPointer. This is true in two cases:
-      - there is no coordIndex, and normal vectors are not indexed
-      - there is coordIndex, and normal vectors are indexed by coordIndex }
+    { Then we had to allow for indexes in PrepareAttributes. }
     glNormalPointer(GL_FLOAT, 0, CcwNormals.Items);
     glEnableClientState(GL_NORMAL_ARRAY);
   end else
@@ -2556,7 +2563,7 @@ begin
   end;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateEnd(Arrays: TGeometryArrays);
+procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateEnd;
 begin
   if (Normals <> nil) and (not NormalsCcw) then
     FreeAndNil(CcwNormals);

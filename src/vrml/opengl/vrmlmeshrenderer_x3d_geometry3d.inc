@@ -40,9 +40,9 @@ type
 
     procedure Render_Triangulated(const TriIndices: TVector3Longint);
   protected
-    procedure RenderCoordinate(Arrays: TGeometryArrays); override;
-    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); override;
-    procedure RenderCoordinateEnd(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinate; override;
+    procedure RenderCoordinateBegin; override;
+    procedure RenderCoordinateEnd; override;
     procedure RenderVertex(IndexNum: Integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
@@ -400,7 +400,7 @@ begin
   BumpMappingAllowed := true;
 end;
 
-procedure TIndexedFaceSetRenderer.RenderCoordinate(Arrays: TGeometryArrays);
+procedure TIndexedFaceSetRenderer.RenderCoordinate;
 begin
   { Making one TRIANGLES primitive is fast, and allows us to do everything
     we want.
@@ -634,7 +634,7 @@ begin
   inherited;
 end;
 
-procedure TIndexedFaceSetRenderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
+procedure TIndexedFaceSetRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
@@ -675,7 +675,7 @@ begin
   NormalsCcw := true; { always generated from CCW }
 end;
 
-procedure TIndexedFaceSetRenderer.RenderCoordinateEnd(Arrays: TGeometryArrays);
+procedure TIndexedFaceSetRenderer.RenderCoordinateEnd;
 begin
   inherited;
 end;

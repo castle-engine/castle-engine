@@ -32,7 +32,7 @@ type
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
   TTriangleSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
-    procedure RenderCoordinate(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinate; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -40,7 +40,7 @@ type
   { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
   TTriangleFanSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
-    procedure RenderCoordinate(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinate; override;
     procedure RenderCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
@@ -55,7 +55,7 @@ type
     Inventor/VRML 1.0 conventions). }
   TTriangleStripSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
-    procedure RenderCoordinate(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinate; override;
     procedure RenderCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
@@ -66,7 +66,7 @@ type
   { Renderer for X3D IndexedQuadSet and QuadSet nodes. }
   TQuadSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
-    procedure RenderCoordinate(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinate; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -75,7 +75,7 @@ type
     LineSet (VRML >= 2.0, although specification only since X3D). }
   TLineSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
-    procedure RenderCoordinate(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinate; override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   end;
@@ -92,7 +92,7 @@ type
     constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsSetColor: boolean; override;
   protected
-    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinateBegin; override;
   end;
 
 { TPointSet_1Renderer -------------------------------------------------------- }
@@ -270,7 +270,7 @@ begin
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
-procedure TTriangleSetRenderer.RenderCoordinate(Arrays: TGeometryArrays);
+procedure TTriangleSetRenderer.RenderCoordinate;
 var
   I: Integer;
 begin
@@ -361,7 +361,7 @@ begin
   end;
 end;
 
-procedure TTriangleFanSetRenderer.RenderCoordinate(Arrays: TGeometryArrays);
+procedure TTriangleFanSetRenderer.RenderCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @RenderCoordsRange);
 end;
@@ -508,7 +508,7 @@ begin
   end;
 end;
 
-procedure TTriangleStripSetRenderer.RenderCoordinate(Arrays: TGeometryArrays);
+procedure TTriangleStripSetRenderer.RenderCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @RenderCoordsRange);
 end;
@@ -614,7 +614,7 @@ begin
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
-procedure TQuadSetRenderer.RenderCoordinate(Arrays: TGeometryArrays);
+procedure TQuadSetRenderer.RenderCoordinate;
 var
   I: Integer;
 begin
@@ -655,7 +655,7 @@ begin
   glEnd;
 end;
 
-procedure TLineSetRenderer.RenderCoordinate(Arrays: TGeometryArrays);
+procedure TLineSetRenderer.RenderCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @RenderCoordsRange);
 end;
@@ -714,7 +714,7 @@ begin
   end;
 end;
 
-procedure TLineSet_2Renderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
+procedure TLineSet_2Renderer.RenderCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin

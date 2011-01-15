@@ -108,6 +108,7 @@ type
     property Count: Integer read FCount write SetCount;
 
     function Normal: PVector3Single;
+    function Normal(const Index: Cardinal): PVector3Single;
     procedure IncNormal(var P: PVector3Single);
 
     procedure AddColor;
@@ -164,6 +165,11 @@ end;
 function TGeometryArrays.Normal: PVector3Single;
 begin
   Result := FCoordinateArray;
+end;
+
+function TGeometryArrays.Normal(const Index: Cardinal): PVector3Single;
+begin
+  Result := PVector3Single(PtrUInt(PtrUInt(FCoordinateArray) + CoordinateSize * Index));
 end;
 
 procedure TGeometryArrays.IncNormal(var P: PVector3Single);
