@@ -222,7 +222,10 @@ procedure TPointSet_2Renderer.GenerateCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin
-  if (Color = nil) and (ColorRGBA = nil) then
+  { if base class doesn't do SetColor (or color array) already,
+    in particular if Color = ColorRGBA = nil,
+    then use color for full PointSet following specification. }
+  if not (inherited NeedsSetColor) then
   begin
     if State.ShapeNode = nil then
     begin
