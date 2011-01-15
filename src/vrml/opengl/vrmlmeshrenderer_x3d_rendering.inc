@@ -463,7 +463,12 @@ begin
       RenderVertex(BeginIndex + 2);
       Inc(BeginIndex);
     end;
-  end;
+  end else
+    { Note that in case of non-indexed TriangleFanSet, this will even
+      cause bad rendering of remaining stuff, as we will not add
+      count = 1 or 2 (necessary for omitting these vertexes).
+      This is invalid according to X3D spec, so no promise of valid rendering. }
+    VRMLWarning(vwSerious, 'Triangle fan has less than 3 vertexes.')
 end;
 
 { TTriangleStripSetRenderer -------------------------------------------------- }
@@ -648,7 +653,12 @@ begin
       Inc(BeginIndex);
       NormalOrder := not NormalOrder;
     end;
-  end;
+  end else
+    { Note that in case of non-indexed TriangleStripSet, this will even
+      cause bad rendering of remaining stuff, as we will not add
+      count = 1 or 2 (necessary for omitting these vertexes).
+      This is invalid according to X3D spec, so no promise of valid rendering. }
+    VRMLWarning(vwSerious, 'Triangle strip has less than 3 vertexes.');
 end;
 
 { TQuadSetRenderer ------------------------------------------------------- }
