@@ -906,38 +906,16 @@ begin
 end;
 
 procedure TAbstractCoordinateRenderer.DoRender;
-var
-  { This is used only by LockArraysBegin and LockArraysEnd. }
-  UseLockArrays: boolean;
 
-  procedure LockArraysBegin;
-  begin
-    { See
-      [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
-      for description of GL_EXT_compiled_vertex_array.
+  { If CoordIndex assigned (this VRML/X3D node is IndexedXxx)
+    then calculate IndexesFromCoordIndex. By the way, also calculate
+    maximum index found in CoordIndex.
 
-      Note that I can't use it when Arrays.Count has no items
-      (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
-    UseLockArrays := GL_EXT_compiled_vertex_array and (Arrays.Count <> 0);
-    if UseLockArrays then
-      glLockArraysEXT(0, Arrays.Count);
-  end;
-
-  procedure LockArraysEnd;
-  begin
-    if UseLockArrays then
-      glUnlockArraysEXT;
-  end;
-
-  { Calculate Arrays.Indexes, Arrays.Count, Arrays.Position,
-    call PrepareAttributes in the middle. }
-  procedure GenerateArrays;
+    Also, this is the place to set Arrays.Primitive. }
+  procedure PrepareIndexesPrimitives(out MaxIndex: Integer);
   var
-    BeginIndex, EndIndex, NextIndex, I, MaxIndex, IndexesCount: Integer;
-    AllowIndexed: boolean;
+    BeginIndex, EndIndex, NextIndex, I, IndexesCount: Integer;
   begin
-    { TODO: assume CoordIndex non-nil, and layed like for IFS }
-
     { calculate IndexesCount and MaxIndex, by one iteration over coordIndex }
     IndexesCount := 0;
     BeginIndex := 0;
@@ -953,16 +931,6 @@ var
       end;
       IndexesCount += Max(EndIndex - BeginIndex - 2, 0) * 3;
       BeginIndex := EndIndex + 1;
-    end;
-
-    { check do we have enough coordinates. TGeometryArrays data may be passed
-      quite raw to OpenGL, so this may be our last chance to check correctess
-      and avoid passing data that would cause OpenGL errors. }
-    if MaxIndex >= Coord.Count then
-    begin
-      VRMLWarning(vwSerious, Format('Not enough coordinates: coordIndex references %d coordinates, but we only have %d coordinates',
-        [MaxIndex + 1, Coord.Count]));
-      Exit; { leave Arrays created but empty }
     end;
 
     { calculate IndexesFromCoordIndex contents: triangulate }
@@ -983,6 +951,26 @@ var
       end;
       BeginIndex := EndIndex + 1;
     end;
+  end;
+
+  { Calculate Arrays.Indexes, Arrays.Count, Arrays.Position,
+    call PrepareAttributes in the middle. }
+  procedure GenerateArrays;
+  var
+    AllowIndexed: boolean;
+    MaxIndex: Integer;
+  begin
+    PrepareIndexesPrimitives(MaxIndex);
+
+    { check do we have enough coordinates. TGeometryArrays data may be passed
+      quite raw to OpenGL, so this may be our last chance to check correctess
+      and avoid passing data that would cause OpenGL errors. }
+    if MaxIndex >= Coord.Count then
+    begin
+      VRMLWarning(vwSerious, Format('Not enough coordinates: coordIndex references %d coordinates, but we only have %d coordinates',
+        [MaxIndex + 1, Coord.Count]));
+      Exit; { leave Arrays created but empty }
+    end;
 
     AllowIndexed := true;
     PrepareAttributes(AllowIndexed);
@@ -1001,31 +989,47 @@ var
       Coord.Items.AssignToInterleaved(Arrays.Position, Arrays.CoordinateSize);
     end else
     begin
-      Arrays.Count := IndexesCount;
+      Arrays.Count := IndexesFromCoordIndex.Count;
 
       { Expand IndexesFromCoordIndex, to specify vertexes multiple times }
       Coord.Items.AssignToInterleavedIndexed(
         Arrays.Position, Arrays.CoordinateSize, IndexesFromCoordIndex);
     end;
-  end;
-
-var
-  I: Integer;
-begin
-  if Coord = nil then
-    Exit;
-
-  IndexesFromCoordIndex := nil;
-  ArrayIndexNum := 0;
-  Arrays := TGeometryArrays.Create;
-  try
-    GenerateArrays;
 
     GenerateCoordinateBegin;
     try
       GenerateCoordinate;
     finally GenerateCoordinateEnd; end;
+  end;
 
+  procedure RenderArrays;
+
+    var
+      { This is used only by LockArraysBegin and LockArraysEnd. }
+      UseLockArrays: boolean;
+
+      procedure LockArraysBegin;
+      begin
+        { See
+          [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
+          for description of GL_EXT_compiled_vertex_array.
+
+          Note that I can't use it when Arrays.Count has no items
+          (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
+        UseLockArrays := GL_EXT_compiled_vertex_array and (Arrays.Count <> 0);
+        if UseLockArrays then
+          glLockArraysEXT(0, Arrays.Count);
+      end;
+
+      procedure LockArraysEnd;
+      begin
+        if UseLockArrays then
+          glUnlockArraysEXT;
+      end;
+
+  var
+    I: Integer;
+  begin
     { Initialize vertex arrays that we we will use with indexed nodes.
       GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
       normal and texture coord arrays.
@@ -1095,6 +1099,18 @@ begin
     end;
 
     RenderCoordinateEnd;
+  end;
+
+begin
+  if Coord = nil then
+    Exit;
+
+  IndexesFromCoordIndex := nil;
+  ArrayIndexNum := 0;
+  Arrays := TGeometryArrays.Create;
+  try
+    GenerateArrays;
+    RenderArrays;
   finally
     FreeAndNil(Arrays);
     FreeAndNil(IndexesFromCoordIndex);
