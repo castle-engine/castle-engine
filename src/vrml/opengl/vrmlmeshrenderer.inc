@@ -2037,8 +2037,8 @@ procedure TAbstractTexCoordinateRenderer.GenerateCoordinateBegin;
 
         if TexCoordArray.Count = Arrays.Count then
           TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize) else
-          VRMLWarning(vwSerious, Format('Texture coordinates count invalid. Expected %d, got %d',
-            [Arrays.Count, TexCoordArray.Count]));
+          VRMLWarning(vwSerious, Format('Texture coordinates count invalid for %s. Expected %d, got %d',
+            [Geometry.NodeTypeName, Arrays.Count, TexCoordArray.Count]));
       end;
     end;
 
@@ -2638,8 +2638,8 @@ begin
     Assert(Arrays.Indexes = nil);
     if CcwNormals.Count = Arrays.Count then
       CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
-      VRMLWarning(vwSerious, Format('Normal coordinates count invalid. Expected %d, got %d',
-        [Arrays.Count, CcwNormals.Count]));
+      VRMLWarning(vwSerious, Format('Normal coordinates count invalid for %s. Expected %d, got %d',
+        [Geometry.NodeTypeName, Arrays.Count, CcwNormals.Count]));
   end else
   if NorImplementation = niOverall then
   begin
