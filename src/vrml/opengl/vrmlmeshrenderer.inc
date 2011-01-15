@@ -706,13 +706,22 @@ type
     procedure GenerateVertex(IndexNum: Integer); override;
   end;
 
+  { Take care of everything related to setting fog coordinate.
+    Descendants don't have to do anything, this just works
+    (using TVRMLGeometryNode.FogCoord). }
   TAbstractFogNorColMatTexCoordinateRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  private
+    FogCoord: TDynSingleArray;
   protected
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
+    procedure RenderCoordinateBegin; override;
+    procedure RenderCoordinateEnd; override;
+  public
+    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
-  { Fullest implementation of coordinate renderer, used to derive
+  { Most complete implementation of coordinate renderer, used to derive
     non-abstract handlers for nodes. }
   TAbstractFinalCoordinateRenderer = TAbstractFogNorColMatTexCoordinateRenderer;
 
@@ -964,10 +973,8 @@ procedure TAbstractCoordinateRenderer.DoRender;
         glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
       end;
 
-      if Arrays.FogCoord <> nil then
+      if (Arrays.FogCoord <> nil) and GL_EXT_fog_coord then
       begin
-        { Before adding FogCoord, we already checked EXT_fog_coord presence.
-          In fact, TVRMLGLRenderer.InitializeFog already checked it. }
         glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
         glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
       end;
@@ -2552,12 +2559,20 @@ end;
 
 { TAbstractFogNorColMatTexCoordinateRenderer --------------------------------- }
 
+constructor TAbstractFogNorColMatTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
+begin
+  inherited;
+
+  if Geometry.FogCoord <> nil then
+    FogCoord := Geometry.FogCoord.Items;
+end;
+
 procedure TAbstractFogNorColMatTexCoordinateRenderer.PrepareAttributes(
   var AllowIndexed: boolean);
 begin
   inherited;
 
-  if Renderer.FogVolumetric then
+  if (FogCoord <> nil) or Renderer.FogVolumetric then
   begin
     Arrays.AddFogCoord;
     AllowIndexed := false;
@@ -2567,10 +2582,23 @@ end;
 procedure TAbstractFogNorColMatTexCoordinateRenderer.GenerateVertex(
   IndexNum: Integer);
 
-  procedure DoFogVolumetric;
+  function GetFogCoord: Single;
+  begin
+    { make IndexNum independent of coordIndex, always work like index to coords }
+    if CoordIndex <> nil then
+      IndexNum := CoordIndex.Items.Items[IndexNum];
+
+    { calculate Fog, based on FogCoord and IndexNum }
+    if IndexNum < FogCoord.Count then
+      Result := FogCoord.Items[IndexNum] else
+    if FogCoord.Count <> 0 then
+      Result := FogCoord.Last else
+      Result := 0; //< some default
+  end;
+
+  function GetFogVolumetric: Single;
   var
     Position, Projected: TVector3Single;
-    FogDistance: Single;
   begin
     { calculate global vertex position }
     if CoordIndex <> nil then
@@ -2580,19 +2608,24 @@ procedure TAbstractFogNorColMatTexCoordinateRenderer.GenerateVertex(
 
     Projected := PointOnLineClosestToPoint(
       ZeroVector3Single, Renderer.FogVolumetricDirection, Position);
-    FogDistance := VectorLen(Projected);
+    Result := VectorLen(Projected);
     if not AreParallelVectorsSameDirection(
       Projected, Renderer.FogVolumetricDirection) then
-      FogDistance := -FogDistance;
+      Result := -Result;
     { Now I want
-      - FogDistance = FogVolumetricVisibilityStart -> 0
-      - FogDistance = FogVolumetricVisibilityStart + X -> X
-        (so that FogDistance = FogVolumetricVisibilityStart +
+      - Result = FogVolumetricVisibilityStart -> 0
+      - Result = FogVolumetricVisibilityStart + X -> X
+        (so that Result = FogVolumetricVisibilityStart +
         FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
-    FogDistance -= Renderer.FogVolumetricVisibilityStart;
+    Result -= Renderer.FogVolumetricVisibilityStart;
+  end;
 
-    { When FogDistance < 0 our intention is to have no fog.
-      So FogDistance < 0 should be equivalent to FogDistance = 0.
+  procedure SetFog(const Fog: Single);
+  begin
+    { When Result < 0 our intention is to have no fog (at least
+      for volumetric fog, for explicit FogCoordinate we don't know what
+      was user's intention).
+      So Result < 0 should be equivalent to Result = 0.
       However, OpenGL doesn't necessarily interpret it like this.
 
       Since factor given by glFogCoordfEXT is interpreted just like
@@ -2625,21 +2658,62 @@ procedure TAbstractFogNorColMatTexCoordinateRenderer.GenerateVertex(
       parameters is a bad idea: you don't really know what OpenGL
       implementation will do. NVidia OpenGL seems to actually assume
       that factor < 0 means the same as factor = 0, so my code
-      worked OK without this "MaxTo1st(FogDistance, 0);" below
+      worked OK without clamping below
       (because NVidia OpenGL was actually doing it anyway).
       Mesa 3D (and Radeon, as I suspect, because similar problems
       were reported for "The Castle" on Radeon) seem to just use the negative
       value directly, which causes strange artifacts
       (see e.g. "The Castle" gate_final.wrl VRML file).
 
-      The line "MaxTo1st(FogDistance, 0);" makes volumetric fog work
-      OK as expected for all OpenGL implementations. }
-    MaxTo1st(FogDistance, 0);
-    Arrays.FogCoord(ArrayIndexNum)^ := FogDistance;
+      The clamping below makes volumetric fog work
+      OK as expected for all OpenGL implementations.
+
+      Note: we don't limit Fog to be <= 1 (although we could
+      for X3D FogCoordinate). glFogCoord is like a distance from the eye,
+      so it may be >= 1, and GetFogVolumetric depends on it to work. }
+    Arrays.FogCoord(ArrayIndexNum)^ := Max(Fog, 0);
   end;
 
 begin
+  if FogCoord <> nil then
+    SetFog(GetFogCoord) else
   if Renderer.FogVolumetric then
-    DoFogVolumetric;
+    SetFog(GetFogVolumetric);
+
   inherited;
 end;
+
+procedure TAbstractFogNorColMatTexCoordinateRenderer.RenderCoordinateBegin;
+begin
+  inherited;
+
+  if (FogCoord <> nil) and GL_EXT_fog_coord then
+  begin
+    { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
+      is already set correctly by RenderBegin. }
+    if not Renderer.FogVolumetric then
+      glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
+
+    glPushAttrib(GL_FOG_BIT);
+    glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
+    glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
+    glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
+  end;
+end;
+
+procedure TAbstractFogNorColMatTexCoordinateRenderer.RenderCoordinateEnd;
+begin
+  { Restore defaults }
+  if (FogCoord <> nil) and GL_EXT_fog_coord then
+  begin
+    glPopAttrib;
+
+    { Restore GL_FOG_COORDINATE_SOURCE_EXT. Actually, it seems glPopAttrib
+      also would restore it, but I didn't find it in the docs, so don't depend
+      on it. }
+    if not Renderer.FogVolumetric then
+      glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+  end;
+  inherited;
+end;
+
