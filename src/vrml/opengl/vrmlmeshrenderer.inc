@@ -807,6 +807,16 @@ procedure TAbstractCoordinateRenderer.DoRender;
   begin
     PrepareIndexesPrimitives;
 
+    { Assert about Arrays.Counts.Sum. Note that even when
+      IndexesFromCoordIndex = nil, it should usually be equal
+      to final Arrays.Count. But not always: it may not be equal
+      for invalid nodes, with non-complete triangle strips / fans etc.
+      (then Arrays.Counts will not contain all coordinates). }
+    Assert(
+      (Arrays.Counts = nil) or
+      (IndexesFromCoordIndex = nil) or
+      (Arrays.Counts.Sum = IndexesFromCoordIndex.Count) );
+
     if IndexesFromCoordIndex <> nil then
     begin
       MaxIndex := IndexesFromCoordIndex.Max;

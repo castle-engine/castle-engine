@@ -442,8 +442,6 @@ begin
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TDynLongIntArray.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
-  if CoordIndex <> nil then
-    Assert(Arrays.Counts.Sum = IndexesFromCoordIndex.Count);
 end;
 
 procedure TTriangleFanSetRenderer.PrepareIndexesCoordsRange(
@@ -637,8 +635,6 @@ begin
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TDynLongIntArray.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
-  if CoordIndex <> nil then
-    Assert(Arrays.Counts.Sum = IndexesFromCoordIndex.Count);
 end;
 
 procedure TTriangleStripSetRenderer.PrepareIndexesCoordsRange(
@@ -852,8 +848,6 @@ begin
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TDynLongIntArray.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
-  if CoordIndex <> nil then
-    Assert(Arrays.Counts.Sum = IndexesFromCoordIndex.Count);
 end;
 
 procedure TLineSetRenderer.GenerateCoordsRange(
