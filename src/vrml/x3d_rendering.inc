@@ -39,14 +39,26 @@
     so we specifically think about optimizing it).
     2nd one for everything else (colors, tex coords, also GLSL attributes).
     This should allow for the most efficient usage, making use of interleaving
-    and still taking into account fast dynamic updates. }
+    and still allowing fast dynamic updates in common cases. }
   TGeometryArrays = class
   private
     FIndexes: TDynLongIntArray;
     FPrimitive: TGeometryPrimitive;
-    FPositions: TDynVector3SingleArray;
-    FOwnsPositions: boolean;
+    FCount: Integer;
+
+    FAttributeArray: Pointer;
+    FAttributeSize: Cardinal;
+
+    FCoordinateArray: Pointer;
+    FCoordinateSize: Cardinal;
+
+    HasColor: boolean;
+    ColorOffset: Integer;
+
+    { TODO: GLSLAttributesOffsets: TStringList; }
+    procedure SetCount(const Value: Integer);
   public
+    constructor Create;
     destructor Destroy; override;
 
     { Indexes to remaining arrays.
@@ -72,9 +84,44 @@
 
     property Primitive: TGeometryPrimitive read FPrimitive write FPrimitive;
 
-    property Positions: TDynVector3SingleArray read FPositions write FPositions;
-    property OwnsPositions: boolean read FOwnsPositions write FOwnsPositions
-      default false;
+    { Memory containing vertex positions and normals, that is everything
+      that changes during Coordinate.coord animation.
+      CoordinateSize is size, in bytes, of one item of this array
+      (currently just constant, 2 * TVector3Single).
+      @groupBegin }
+    property CoordinateArray: Pointer read FCoordinateArray;
+    property CoordinateSize: Cardinal read FCoordinateSize;
+    { @groupEnd }
+
+    { Memory containing everything other vertex attribute, like color,
+      texture coordinates and GLSL attributes.
+      AttributeSize is size, in bytes, of one item of this array.
+      @groupBegin }
+    property AttributeArray: Pointer read FAttributeArray;
+    property AttributeSize: Cardinal read FAttributeSize;
+    { @groupEnd }
+
+    function Position: PVector3Single;
+    procedure IncPosition(var P: PVector3Single);
+
+    { Allocated number of items in vertex positions, normals, colors
+      and such arrays.
+      You can only set this once.
+      You must do all necessary AddColor / AddAttribute calls before setting this.
+      You can access all Position / Normal etc. pointers ony after setting this. }
+    property Count: Integer read FCount write SetCount;
+
+    function Normal: PVector3Single;
+    procedure IncNormal(var P: PVector3Single);
+
+    procedure AddColor;
+    function Color: PVector3Single;
+    procedure IncColor(var P: PVector3Single);
+
+    { TODO:
+    procedure AddGLSLAttribute(const Name: string; const Size: Cardinal);
+    function GLSLAttribute: Pointer;
+    procedure IncGLSLAttribute(var P: Pointer); }
   end;
 
   { Geometry nodes are the only nodes that produces some visible results
@@ -964,13 +1011,71 @@
 
 { TGeometryArrays ------------------------------------------------------------ }
 
+constructor TGeometryArrays.Create;
+begin
+  inherited;
+  FCoordinateSize := SizeOf(TVector3Single) * 2;
+  FAttributeSize := 0;
+end;
+
 destructor TGeometryArrays.Destroy;
 begin
   FreeAndNil(FIndexes);
-  if OwnsPositions then
-    FreeAndNil(FPositions) else
-    FPositions := nil;
+  FreeMemNiling(FCoordinateArray);
+  FreeMemNiling(FAttributeArray);
   inherited;
+end;
+
+procedure TGeometryArrays.SetCount(const Value: Integer);
+begin
+  if FCount <> Value then
+  begin
+    FCount := Value;
+    ReallocMem(FCoordinateArray, CoordinateSize * Value);
+    ReallocMem(FAttributeArray, AttributeSize * Value);
+  end;
+end;
+
+function TGeometryArrays.Position: PVector3Single;
+begin
+  Result := FCoordinateArray;
+end;
+
+procedure TGeometryArrays.IncPosition(var P: PVector3Single);
+begin
+  PtrUInt(P) += {CoordinateSize} SizeOf(TVector3Single) * 2;
+end;
+
+function TGeometryArrays.Normal: PVector3Single;
+begin
+  Result := FCoordinateArray;
+end;
+
+procedure TGeometryArrays.IncNormal(var P: PVector3Single);
+begin
+  PtrUInt(P) += {CoordinateSize} SizeOf(TVector3Single) * 2;
+end;
+
+procedure TGeometryArrays.AddColor;
+begin
+  if not HasColor then
+  begin
+    HasColor := true;
+    ColorOffset := AttributeSize;
+    FAttributeSize += SizeOf(TVector3Single);
+  end;
+end;
+
+function TGeometryArrays.Color: PVector3Single;
+begin
+  if HasColor then
+    Result := PVector3Single(PtrUInt(PtrUInt(FAttributeArray) + ColorOffset)) else
+    Result := nil;
+end;
+
+procedure TGeometryArrays.IncColor(var P: PVector3Single);
+begin
+  PtrUInt(P) += AttributeSize;
 end;
 
 { TVRMLGeometryNode ---------------------------------------------------------- }

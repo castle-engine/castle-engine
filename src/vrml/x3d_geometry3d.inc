@@ -1305,6 +1305,7 @@ function TNodeIndexedFaceSet_2.GeometryArrays(State: TVRMLGraphTraverseState;
 var
   BeginIndex, EndIndex, NextIndex, I, MaxIndex, IndexesCount: Integer;
   Positions: TMFVec3f;
+  Position: PVector3Single;
 begin
   Result := TGeometryArrays.Create;
 
@@ -1358,8 +1359,14 @@ begin
     BeginIndex := EndIndex + 1;
   end;
 
-  Result.Positions := Positions.Items;
-  Result.OwnsPositions := false;
+  Result.Count := Positions.Count;
+
+  Position := Result.Position;
+  for I := 0 to Result.Count - 1 do
+  begin
+    Position^ := Positions.Items.Items[I];
+    Result.IncPosition(Position);
+  end;
 end;
 
 constructor TNodeSphere_2.Create(const ANodeName: string;
