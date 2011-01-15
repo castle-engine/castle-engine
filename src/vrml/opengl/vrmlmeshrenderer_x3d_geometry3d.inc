@@ -870,11 +870,6 @@ begin
       @PrepareIndexesTriangle1, BeginIndex);
   end else
   begin
-    { Render convex face }
-    (* Alternative version:
-       TriangulateConvexFace(EndIndex - BeginIndex,
-         @GenerateVertex, BeginIndex); *)
-
     IFSIndexesCount += Max(EndIndex - BeginIndex - 2, 0) * 3;
   end;
 end;
@@ -899,11 +894,6 @@ begin
       @PrepareIndexesTriangle2, BeginIndex);
   end else
   begin
-    { Render convex face }
-    (* Alternative version:
-       TriangulateConvexFace(EndIndex - BeginIndex,
-         @GenerateVertex, BeginIndex); *)
-
     for I := BeginIndex to EndIndex - 3 do
     begin
       IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[BeginIndex]; Inc(IFSNextIndex);
