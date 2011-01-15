@@ -873,32 +873,32 @@ procedure TAbstractCoordinateRenderer.DoRender;
       { This is used only by LockArraysBegin and LockArraysEnd. }
       UseLockArrays: boolean;
 
-      procedure LockArraysBegin;
-      begin
-        { See
-          [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
-          for description of GL_EXT_compiled_vertex_array. }
-        UseLockArrays := GL_EXT_compiled_vertex_array and
-          { Under Radeon X1600 (chantal), fglrx, with roNone optimization,
-            rendering some shapes without indexes (like 16000heights from
-            http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html,
-            or shadow_fields demo) causes invalid results
-            (look like random vertexes). So disable using locking for them. }
-          (not (GLVersion.IsFglrx and
-                (Arrays.Indexes = nil) {TODO:and
-                (not Renderer.InsideDisplayList)})) and
-          { Don't use when Arrays.Count has no items,
-            glLockArraysEXT(0, 0) causes OpenGL error "invalid value". }
-         (Arrays.Count <> 0);
-        if UseLockArrays then
-          glLockArraysEXT(0, Arrays.Count);
-      end;
+    procedure LockArraysBegin;
+    begin
+      { See
+        [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
+        for description of GL_EXT_compiled_vertex_array. }
+      UseLockArrays := GL_EXT_compiled_vertex_array and
+        { Under Radeon X1600 (chantal), fglrx, with roNone optimization,
+          rendering some shapes without indexes (like 16000heights from
+          http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html,
+          or shadow_fields demo) causes invalid results
+          (look like random vertexes). So disable using locking for them. }
+        (not (GLVersion.IsFglrx and
+              (Arrays.Indexes = nil) {TODO:and
+              (not Renderer.InsideDisplayList)})) and
+        { Don't use when Arrays.Count has no items,
+          glLockArraysEXT(0, 0) causes OpenGL error "invalid value". }
+       (Arrays.Count <> 0);
+      if UseLockArrays then
+        glLockArraysEXT(0, Arrays.Count);
+    end;
 
-      procedure LockArraysEnd;
-      begin
-        if UseLockArrays then
-          glUnlockArraysEXT;
-      end;
+    procedure LockArraysEnd;
+    begin
+      if UseLockArrays then
+        glUnlockArraysEXT;
+    end;
 
   const
     ToMode: array [TGeometryPrimitive] of TGLenum =
