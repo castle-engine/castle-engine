@@ -1028,7 +1028,7 @@ procedure TAbstractCoordinateRenderer.DoRender;
          (not Attributes.PureGeometry) then
       begin
         glEnableClientState(GL_COLOR_ARRAY);
-        glColorPointer(3, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+        glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
       end;
 
       if GLUseMultiTexturing then
