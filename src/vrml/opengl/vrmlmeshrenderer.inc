@@ -222,7 +222,7 @@ type
 
     { Coordinate index, taken from Geometry.CoordIndex.
 
-      If @nil, then RenderVertex (and all other
+      If @nil, then GenerateVertex (and all other
       routines taking some index) will just directly index Coord
       (this is useful for non-indexed geometry, like TriangleSet
       instead of IndexedTriangleSet). }
@@ -233,15 +233,15 @@ type
       but this is internal information :) ).
       Given IndexNum indexes Coord, or (if CoordIndex is assigned)
       indexes CoordIndex (and CoordIndex then indexes actual Coord). }
-    procedure RenderVertex(IndexNum: Integer); virtual;
+    procedure GenerateVertex(IndexNum: Integer); virtual;
 
     { This gets vertex coordinate, exactly the same as would be
-      rendered by RenderVertex. Returned vertex is in local coordinate space
+      rendered by GenerateVertex. Returned vertex is in local coordinate space
       (use State.Transform if you want to get global coordinates). }
     function GetVertex(IndexNum: integer): TVector3f;
 
     { Count of indexes. You can pass index between 0 and CoordCount - 1
-      to various methods taking an index, like RenderVertex. }
+      to various methods taking an index, like GenerateVertex. }
     function CoordCount: Integer;
 
     procedure DoRender; override;
@@ -261,32 +261,29 @@ type
     procedure RenderCoordinateEnd; virtual;
     { @groupEnd }
 
-    { RenderCoordsRange is supposed to render one coordinate range.
+    { GenerateCoordsRange is supposed to generate arrays content for
+      one coordinate range.
       This is not called, not used, anywhere in this base
       TAbstractCoordinateRenderer class.
       In descendants, it may be useful to use this, like
-      Geometry.MakeCoordRanges(State, @RenderCoordsRange).
+      Geometry.MakeCoordRanges(State, @GenerateCoordsRange).
 
-      RenderCoordsRange is supposed to render the parts of the mesh
+      GenerateCoordsRange is supposed to generate the parts of the mesh
       between BeginIndex and EndIndex - 1 vertices.
       BeginIndex and EndIndex are indexes to CoordIndex array,
-      if CoordIndex is assigned, or just indexes to Coord.
-
-      As always, it's your responsibility to call appropriate glBegin / glEnd
-      around RenderVertex calls --- maybe within each RenderCoordsRange,
-      maybe the whole Geometry.MakeCoordRanges call is within such glbegin/end. }
-    procedure RenderCoordsRange(
+      if CoordIndex is assigned, or just indexes to Coord. }
+    procedure GenerateCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); virtual;
 
     { The number of current range, equal to RangeNumber passed to
-      RenderCoordsRange. Read this only while in RenderCoordsRange.
-      In fact, this is just set by RenderCoordsRange in this class
+      GenerateCoordsRange. Read this only while in GenerateCoordsRange.
+      In fact, this is just set by GenerateCoordsRange in this class
       (so call @code(inherited) first when overriding it).
 
-      It's comfortable e.g. when you need RangeNumber inside RenderVertex,
-      and you know that RenderVertex will be called only from
-      RenderCoordsRange. }
+      It's comfortable e.g. when you need RangeNumber inside GenerateVertex,
+      and you know that GenerateVertex will be called only from
+      GenerateCoordsRange. }
     property CurrentRangeNumber: Cardinal read FCurrentRangeNumber;
 
     { If CoordIndex assigned (this VRML/X3D node is IndexedXxx)
@@ -386,7 +383,7 @@ type
 
     - Set TexCoordIndex, if available. This works just like CoordIndex:
 
-      If @nil, then RenderVertex (and all other
+      If @nil, then GenerateVertex (and all other
       routines taking some index) will just directly index TexCoord
       (this is useful for non-indexed geometry, like TriangleSet
       instead of IndexedTriangleSet). Otherwise, they will index TexCoordIndex,
@@ -480,7 +477,7 @@ type
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
 
-    procedure RenderVertex(IndexNum: Integer); override;
+    procedure GenerateVertex(IndexNum: Integer); override;
 
     procedure GenerateCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
@@ -507,7 +504,7 @@ type
       simply does nothing for VRML >= 2.0 geometry nodes.
 
     Since this must have a notion of what "face" is, it assumes that
-    your RenderCoordsRange constitutes rendering of a single face.
+    your GenerateCoordsRange constitutes rendering of a single face.
     If this isn't true, then "per face" materials will not work
     correctly.
 
@@ -536,8 +533,8 @@ type
     MaterialBinding: Integer;
     procedure UpdateMat1Implementation;
 
-    procedure RenderVertex(IndexNum: Integer); override;
-    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+    procedure GenerateVertex(IndexNum: Integer); override;
+    procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
     procedure GenerateCoordinateBegin; override;
   public
@@ -556,7 +553,7 @@ type
 
       ColorPerVertex specifies per-vertex or per-face.
       Just like for VRML 1.0, the same restrictions apply:
-      - if you want per-face to work, then RenderCoordsRange must
+      - if you want per-face to work, then GenerateCoordsRange must
         correspond to a single face.
       - if you want per-vertex to work, you must use smooth shading.
 
@@ -605,9 +602,8 @@ type
     property RadianceTransfer: TDynVector3SingleArray
       read FRadianceTransfer write SetRadianceTransfer;
 
-    procedure RenderVertex(IndexNum: integer); override;
-    procedure RenderCoordsRange(
-      const RangeNumber: Cardinal;
+    procedure GenerateVertex(IndexNum: integer); override;
+    procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
@@ -695,7 +691,7 @@ type
       NormalBinding: Integer): TNormalsImplementation;
 
     { Returns normal vector for given vertex, identified by IndexNum
-      (IndexNum has the same meaning as for RenderVertex) and FaceNumber
+      (IndexNum has the same meaning as for GenerateVertex) and FaceNumber
       (since normals may be available per-face, we need to know face number
       as well as vertex number).
 
@@ -719,12 +715,12 @@ type
 
     procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinateEnd; override;
-    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+    procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
 
-    procedure RenderVertex(IndexNum: Integer); override;
+    procedure GenerateVertex(IndexNum: Integer); override;
   end;
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
@@ -1134,7 +1130,7 @@ begin
   { nothing to do in this class }
 end;
 
-procedure TAbstractCoordinateRenderer.RenderVertex(IndexNum: integer);
+procedure TAbstractCoordinateRenderer.GenerateVertex(IndexNum: integer);
 var
   VertexNum: integer;
 begin
@@ -1189,9 +1185,8 @@ begin
     Result := Coord.Items.Count;
 end;
 
-procedure TAbstractCoordinateRenderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
+procedure TAbstractCoordinateRenderer.GenerateCoordsRange(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   FCurrentRangeNumber := RangeNumber;
 end;
@@ -2193,7 +2188,7 @@ begin
   Tex[1] := Tex4f[1];
 end;
 
-procedure TAbstractTexCoordinateRenderer.RenderVertex(indexNum: integer);
+procedure TAbstractTexCoordinateRenderer.GenerateVertex(indexNum: integer);
 
   { You can call this only if TexCoordArray is non-empty.
 
@@ -2281,7 +2276,7 @@ begin
   begin
     { With older Mesa (confirmed that the bug is with 5.1 and is not with
       6.4.2) when you use BindMaterial_1 inside
-      RenderVertex it causes later
+      GenerateVertex it causes later
       glPopAttrib (in RenderEnd) to crash with SIGSEGV.
       gdb backtrace starts with
 
@@ -2303,6 +2298,8 @@ begin
       TODO: possibly this is cured now by using GL_COLOR_MATERIAL for
       Renderer.Render_BindMaterial_1 inside glBegin/glEnd.
       Check, and eventually remove this workaround.
+      TODO: even more possibly, new renderer with TGeometryArrays also
+      avoids this. Test and remove.
     }
     Mat1Implementation := miOverall;
   end;
@@ -2321,7 +2318,7 @@ begin
     Assert(Renderer.Material1BoundNumber = 0);
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.RenderVertex(IndexNum: Integer);
+procedure TAbstractMatTexCoordinateRenderer.GenerateVertex(IndexNum: Integer);
 begin
   case Mat1Implementation of
     miPerVertexCoordIndexed:
@@ -2333,9 +2330,8 @@ begin
   inherited;
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
+procedure TAbstractMatTexCoordinateRenderer.GenerateCoordsRange(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   inherited;
 
@@ -2387,7 +2383,7 @@ begin
     FRadianceTransfer := nil;
 end;
 
-procedure TAbstractColMatTexCoordinateRenderer.RenderVertex(IndexNum: integer);
+procedure TAbstractColMatTexCoordinateRenderer.GenerateVertex(IndexNum: integer);
 var
   VertexColor: TVector3Single;
   VertexIndex: Cardinal;
@@ -2452,9 +2448,8 @@ begin
   inherited;
 end;
 
-procedure TAbstractColMatTexCoordinateRenderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
+procedure TAbstractColMatTexCoordinateRenderer.GenerateCoordsRange(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   inherited;
 
@@ -2575,7 +2570,7 @@ begin
   Result := NorImplementation in [niOverall, niPerFace, niPerFaceNormalIndexed];
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.RenderVertex(IndexNum: Integer);
+procedure TAbstractNorColMatTexCoordinateRenderer.GenerateVertex(IndexNum: Integer);
 begin
   case NorImplementation of
     niPerVertexNormalIndexed:
@@ -2655,13 +2650,12 @@ begin
   inherited;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
+procedure TAbstractNorColMatTexCoordinateRenderer.GenerateCoordsRange(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   inherited;
 
-  { FaceNormal will be actually copied to Arrays.Normal in RenderVertex
+  { FaceNormal will be actually copied to Arrays.Normal in GenerateVertex
     for this face. }
   case NorImplementation of
     niPerFace:

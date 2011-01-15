@@ -34,7 +34,7 @@ type
   private
     TriFaceNormal: TVector3Single;
   protected
-    procedure RenderVertex(IndexNum: Integer); override;
+    procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
     procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
   public
@@ -50,8 +50,7 @@ type
   protected
     procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
     procedure GenerateCoordinate; override;
-    procedure RenderCoordsRange(
-      const RangeNumber: Cardinal;
+    procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
@@ -70,8 +69,7 @@ type
   protected
     procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
     procedure GenerateCoordinate; override;
-    procedure RenderCoordsRange(
-      const RangeNumber: Cardinal;
+    procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
@@ -82,7 +80,7 @@ type
   private
     QuadFaceNormal: TVector3Single;
   protected
-    procedure RenderVertex(IndexNum: Integer); override;
+    procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
     procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
   public
@@ -94,7 +92,7 @@ type
   TLineSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure GenerateCoordinate; override;
-    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+    procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   end;
 
@@ -280,7 +278,7 @@ begin
       (colors are always per vertex for triangle sets).
     - we have to use smooth shading if we have normals per vertex
     - if we have normals per face, smooth shading is still Ok
-      (since each face has separate RenderVertex calls).
+      (since each face has separate GenerateVertex calls).
 
     So always smooth shading is actually Ok.
     Only for the sake of optimization we can force flat shading
@@ -304,7 +302,7 @@ begin
   end;
 end;
 
-procedure TTriangleSetRenderer.RenderVertex(IndexNum: Integer);
+procedure TTriangleSetRenderer.GenerateVertex(IndexNum: Integer);
 begin
   if NorImplementation = niNone then
   begin
@@ -331,9 +329,9 @@ begin
       TriFaceNormal := TriangleNormal(
         GetVertex(I), GetVertex(I + 1), GetVertex(I + 2));
 
-    RenderVertex(I    );
-    RenderVertex(I + 1);
-    RenderVertex(I + 2);
+    GenerateVertex(I    );
+    GenerateVertex(I + 1);
+    GenerateVertex(I + 2);
 
     I += 3;
   end;
@@ -441,12 +439,11 @@ end;
 
 procedure TTriangleFanSetRenderer.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
+  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
-procedure TTriangleFanSetRenderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
+procedure TTriangleFanSetRenderer.GenerateCoordsRange(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
@@ -475,15 +472,15 @@ begin
       to something predictable. }
 
     DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
-    RenderVertex(BeginIndex);
+    GenerateVertex(BeginIndex);
 
     DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
-    RenderVertex(BeginIndex + 1);
+    GenerateVertex(BeginIndex + 1);
 
     while BeginIndex + 2 < EndIndex do
     begin
       DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
-      RenderVertex(BeginIndex + 2);
+      GenerateVertex(BeginIndex + 2);
       Inc(BeginIndex);
     end;
   end else
@@ -640,10 +637,10 @@ end;
 
 procedure TTriangleStripSetRenderer.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
+  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
-procedure TTriangleStripSetRenderer.RenderCoordsRange(
+procedure TTriangleStripSetRenderer.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
   procedure DoNormal(const v1, v2, v3: integer);
@@ -671,10 +668,10 @@ begin
       to something predictable. }
 
     DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
-    RenderVertex(BeginIndex);
+    GenerateVertex(BeginIndex);
 
     DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
-    RenderVertex(BeginIndex + 1);
+    GenerateVertex(BeginIndex + 1);
 
     NormalOrder := true;
 
@@ -683,7 +680,7 @@ begin
       if NormalOrder then
         DoNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
         DoNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
-      RenderVertex(BeginIndex + 2);
+      GenerateVertex(BeginIndex + 2);
       Inc(BeginIndex);
       NormalOrder := not NormalOrder;
     end;
@@ -749,7 +746,7 @@ begin
       (colors are always per vertex for quad sets).
     - we have to use smooth shading if we have normals per vertex
     - if we have normals per face, smooth shading is still Ok
-      (since each face has separate RenderVertex calls).
+      (since each face has separate GenerateVertex calls).
 
     So always smooth shading is actually Ok.
     Only for the sake of optimization we can force flat shading
@@ -773,7 +770,7 @@ begin
   end;
 end;
 
-procedure TQuadSetRenderer.RenderVertex(IndexNum: Integer);
+procedure TQuadSetRenderer.GenerateVertex(IndexNum: Integer);
 begin
   if NorImplementation = niNone then
   begin
@@ -799,10 +796,10 @@ begin
         TriangleNormal(GetVertex(I), GetVertex(I + 1), GetVertex(I + 2)) +
         TriangleNormal(GetVertex(I), GetVertex(I + 2), GetVertex(I + 3)) );
 
-    RenderVertex(I    );
-    RenderVertex(I + 1);
-    RenderVertex(I + 2);
-    RenderVertex(I + 3);
+    GenerateVertex(I    );
+    GenerateVertex(I + 1);
+    GenerateVertex(I + 2);
+    GenerateVertex(I + 3);
 
     I += 4;
   end;
@@ -810,21 +807,20 @@ end;
 
 { TIndexedLineSetRenderer -------------------------------------------------- }
 
-procedure TLineSetRenderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
+procedure TLineSetRenderer.GenerateCoordsRange(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var i: integer;
 begin
   inherited;
 
   glBegin(GL_LINE_STRIP);
-  for i := BeginIndex to endIndex - 1 do RenderVertex(i);
+  for i := BeginIndex to endIndex - 1 do GenerateVertex(i);
   glEnd;
 end;
 
 procedure TLineSetRenderer.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
+  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
 { TIndexedLineSet_1Renderer -------------------------------------------------- }

@@ -43,8 +43,8 @@ type
     procedure GenerateCoordinate; override;
     procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinateEnd; override;
-    procedure RenderVertex(IndexNum: Integer); override;
-    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+    procedure GenerateVertex(IndexNum: Integer); override;
+    procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
 
     { Auto-generate normals and set Normals, NormalsCcw, NorImplementation
@@ -452,11 +452,11 @@ begin
   }
 
   glBegin(GL_TRIANGLES);
-  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
+  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
   glEnd;
 end;
 
-procedure TIndexedFaceSetRenderer.RenderVertex(IndexNum: Integer);
+procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
 
   procedure DoBumpMapping;
   var
@@ -684,14 +684,13 @@ end;
 procedure TIndexedFaceSetRenderer.Render_Triangulated(
   const TriIndices: TVector3Longint);
 begin
-  RenderVertex(TriIndices[0]);
-  RenderVertex(TriIndices[1]);
-  RenderVertex(TriIndices[2]);
+  GenerateVertex(TriIndices[0]);
+  GenerateVertex(TriIndices[1]);
+  GenerateVertex(TriIndices[2]);
 end;
 
-procedure TIndexedFaceSetRenderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
+procedure TIndexedFaceSetRenderer.GenerateCoordsRange(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
   { Calculates HasTangentVectors, STangent, TTangent }
   procedure CalculateTangentVectors;
@@ -841,9 +840,9 @@ begin
 
     for I := BeginIndex to EndIndex - 3 do
     begin
-      RenderVertex(BeginIndex);
-      RenderVertex(I + 1);
-      RenderVertex(I + 2);
+      GenerateVertex(BeginIndex);
+      GenerateVertex(I + 1);
+      GenerateVertex(I + 2);
     end;
   end;
 end;
