@@ -391,17 +391,3 @@ begin
 end;
 
 { ---------------------------------------------------------------------------- }
-
-function TNodeCircle2D.TrianglesCount(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
-begin
-  Result := 0; { no triangles }
-end;
-
-function TNodeCircle2D.VerticesCount(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
-begin
-  Result := State.LastNodes.KambiTriangulation.QuadricSlices;
-end;

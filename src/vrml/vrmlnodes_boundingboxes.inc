@@ -557,13 +557,4 @@ begin
   finally FreeAndNil(E) end;
 end;
 
-{ ---------------------------------------------------------------------------- }
-
-function TNodeCircle2D.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
-begin
-  Result[0] := Vector3Single(-FdRadius.Value, -FdRadius.Value, 0);
-  Result[1] := Vector3Single( FdRadius.Value,  FdRadius.Value, 0);
-end;
-
 { eof ------------------------------------------------------------------------ }

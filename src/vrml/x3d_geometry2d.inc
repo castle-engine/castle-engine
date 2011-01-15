@@ -88,14 +88,9 @@
     private FFdradius: TSFFloat;
     public property Fdradius: TSFFloat read FFdradius;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
+    function Proxy(var State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
   end;
 
   TNodeDisk2D = class(TNodeX3DGeometryNode)
@@ -355,6 +350,42 @@ class function TNodeCircle2D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeCircle2D.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
+var
+  Slices: Integer;
+  C: TNodeCoordinate;
+  LineSet: TNodeLineSet absolute Result;
+  I: Integer;
+  AngleSin, AngleCos: Float;
+begin
+  LineSet := TNodeLineSet.Create(NodeName, WWWBasePath);
+  try
+    Slices := State.LastNodes.KambiTriangulation.QuadricSlices;
+
+    C := TNodeCoordinate.Create('', WWWBasePath);
+    C.FdPoint.Items.Count := Slices;
+    LineSet.FdCoord.Value := C;
+
+    { calculate C contents }
+    for I := 0 to Slices - 1 do
+    begin
+      SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
+
+      C.FdPoint.Items.Items[I] := Vector3Single(
+        AngleSin * FdRadius.Value,
+        AngleCos * FdRadius.Value, 0);
+    end;
+
+    LineSet.FdVertexCount.Items.Add(Slices);
+  except FreeAndNil(Result); raise end;
+end;
+
+function TNodeCircle2D.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
 end;
 
 constructor TNodeDisk2D.Create(const ANodeName: string;

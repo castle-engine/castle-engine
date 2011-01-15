@@ -1636,7 +1636,6 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I vrmlmeshrenderer.inc}
 {$I vrmlmeshrenderer_x3d_rendering.inc}
 {$I vrmlmeshrenderer_x3d_geometry3d.inc}
-{$I vrmlmeshrenderer_x3d_geometry2d.inc}
 {$I vrmlmeshrenderer_simple_nodes.inc}
 
 {$I resourcerenderer.inc}
@@ -4216,8 +4215,6 @@ procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLShape);
       ExposedMeshRenderer := TTextRenderer.Create(Self) else
     if AGeometry is TNodeText3D then
       ExposedMeshRenderer := TText3DRenderer.Create(Self) else
-    if AGeometry is TNodeCircle2D then
-      ExposedMeshRenderer := TCircle2DRenderer.Create(Self) else
       Result := false;
   end;
 

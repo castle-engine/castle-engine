@@ -548,10 +548,3 @@ begin
   LocalTriangulateCoordPolygons(Self, Shape, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
-
-procedure TNodeCircle2D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
-begin
-  { No triangles }
-end;
