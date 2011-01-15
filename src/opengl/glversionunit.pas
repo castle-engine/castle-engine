@@ -100,7 +100,7 @@ type
     { Detect NVidia GPU. }
     property VendorNVidia: boolean read FVendorNVidia;
 
-    { Detect Mesa DRI Intel with buggy GL_POINT_SET flag for glPushAttrib.
+    { Detect Mesa DRI Intel with buggy GL_POINT_BIT flag for glPushAttrib.
 
       Observed on Ubuntu 8.10 on computer "domek".
       It seems a bug in upstream Mesa 7.2, as it's reproducible with
