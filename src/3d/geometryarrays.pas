@@ -164,12 +164,14 @@ end;
 
 function TGeometryArrays.Normal: PVector3Single;
 begin
-  Result := FCoordinateArray;
+  Result := PVector3Single(PtrUInt(PtrUInt(FCoordinateArray) +
+    SizeOf(TVector3Single)));
 end;
 
 function TGeometryArrays.Normal(const Index: Cardinal): PVector3Single;
 begin
-  Result := PVector3Single(PtrUInt(PtrUInt(FCoordinateArray) + CoordinateSize * Index));
+  Result := PVector3Single(PtrUInt(PtrUInt(FCoordinateArray) +
+    SizeOf(TVector3Single) + CoordinateSize * Index));
 end;
 
 procedure TGeometryArrays.IncNormal(var P: PVector3Single);
