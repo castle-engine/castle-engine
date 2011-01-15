@@ -1033,7 +1033,8 @@ procedure TAbstractCoordinateRenderer.DoRender;
               Arrays.TexCoord(Arrays.TexCoords[I].Dimensions, I, 0));
           end;
       end else
-      if Arrays.TexCoords[0] <> nil then
+      if (Arrays.TexCoords.Count <> 0) and
+         (Arrays.TexCoords[0] <> nil) then
       begin
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glTexCoordPointer(Arrays.TexCoords[0].Dimensions, GL_FLOAT,
