@@ -62,6 +62,9 @@ type
     HasColor: boolean;
     ColorOffset: Integer;
 
+    HasFogCoord: boolean;
+    FogCoordOffset: Integer;
+
     FTexCoords: TGeometryTexCoordsList;
 
     { TODO: GLSLAttributesOffsets: TStringList; }
@@ -145,6 +148,9 @@ type
     procedure AddColor;
     function Color(const Index: Cardinal = 0): PVector4Single;
     procedure IncColor(var P: PVector4Single);
+
+    procedure AddFogCoord;
+    function FogCoord(const Index: Cardinal = 0): PSingle;
 
     { TODO:
     procedure AddGLSLAttribute(const Name: string; const Size: Cardinal);
@@ -251,6 +257,24 @@ end;
 procedure TGeometryArrays.IncColor(var P: PVector4Single);
 begin
   PtrUInt(P) += AttributeSize;
+end;
+
+procedure TGeometryArrays.AddFogCoord;
+begin
+  if not HasFogCoord then
+  begin
+    HasFogCoord := true;
+    FogCoordOffset := AttributeSize;
+    FAttributeSize += SizeOf(Single);
+  end;
+end;
+
+function TGeometryArrays.FogCoord(const Index: Cardinal = 0): PSingle;
+begin
+  if HasFogCoord then
+    Result := PSingle(PtrUInt(PtrUInt(FAttributeArray) +
+      FogCoordOffset + Index * AttributeSize)) else
+    Result := nil;
 end;
 
 procedure TGeometryArrays.AddTexCoord(const Dimensions: TTexCoordDimensions;

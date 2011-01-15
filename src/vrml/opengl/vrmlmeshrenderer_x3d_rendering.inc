@@ -35,7 +35,7 @@ type
   end;
 
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
-  TTriangleSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  TTriangleSetRenderer = class(TAbstractFinalCoordinateRenderer)
   private
     TriFaceNormal: TVector3Single;
   protected
@@ -47,7 +47,7 @@ type
   end;
 
   { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
-  TTriangleFanSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  TTriangleFanSetRenderer = class(TAbstractFinalCoordinateRenderer)
   private
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
@@ -66,7 +66,7 @@ type
     Also for Inventor 1.0 IndexedTriangleMesh (since this is almost
     the same thing as IndexedTriangleStripSet, only defined more in
     Inventor/VRML 1.0 conventions). }
-  TTriangleStripSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  TTriangleStripSetRenderer = class(TAbstractFinalCoordinateRenderer)
   private
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
@@ -81,7 +81,7 @@ type
   end;
 
   { Renderer for X3D IndexedQuadSet and QuadSet nodes. }
-  TQuadSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  TQuadSetRenderer = class(TAbstractFinalCoordinateRenderer)
   private
     QuadFaceNormal: TVector3Single;
   protected
@@ -94,7 +94,7 @@ type
 
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
     LineSet (VRML >= 2.0, although specification only since X3D). }
-  TLineSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  TLineSetRenderer = class(TAbstractFinalCoordinateRenderer)
   private
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;

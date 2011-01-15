@@ -706,6 +706,16 @@ type
     procedure GenerateVertex(IndexNum: Integer); override;
   end;
 
+  TAbstractFogNorColMatTexCoordinateRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  protected
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure GenerateVertex(IndexNum: Integer); override;
+  end;
+
+  { Fullest implementation of coordinate renderer, used to derive
+    non-abstract handlers for nodes. }
+  TAbstractFinalCoordinateRenderer = TAbstractFogNorColMatTexCoordinateRenderer;
+
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
 constructor TVRMLMeshRenderer.Create(ARenderer: TVRMLGLRenderer);
@@ -954,6 +964,14 @@ procedure TAbstractCoordinateRenderer.DoRender;
         glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
       end;
 
+      if Arrays.FogCoord <> nil then
+      begin
+        { Before adding FogCoord, we already checked EXT_fog_coord presence.
+          In fact, TVRMLGLRenderer.InitializeFog already checked it. }
+        glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
+        glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
+      end;
+
       if GLUseMultiTexturing then
       begin
         for I := 0 to Arrays.TexCoords.Count - 1 do
@@ -1051,104 +1069,7 @@ begin
 end;
 
 procedure TAbstractCoordinateRenderer.GenerateVertex(IndexNum: integer);
-
-(*
-  procedure SetFogColor(const Vert: TVector3Single);
-  var
-    VertGlobal, VertProjected: TVector3Single;
-    VertFogDistance: Single;
-  begin
-    { We check first, to avoid calculating VertGlobal when it's not needed. }
-    if Renderer.FogVolumetric then
-    begin
-      VertGlobal := MatrixMultPoint(State.Transform, Vert);
-
-      if Renderer.FogVolumetric then
-      begin
-        VertProjected := PointOnLineClosestToPoint(
-          ZeroVector3Single, Renderer.FogVolumetricDirection, VertGlobal);
-        VertFogDistance := VectorLen(VertProjected);
-        if not AreParallelVectorsSameDirection(
-          VertProjected, Renderer.FogVolumetricDirection) then
-          VertFogDistance := -VertFogDistance;
-        { Now I want
-          - VertFogDistance = FogVolumetricVisibilityStart -> 0
-          - VertFogDistance = FogVolumetricVisibilityStart + X -> X
-            (so that VertFogDistance = FogVolumetricVisibilityStart +
-            FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
-        VertFogDistance -= Renderer.FogVolumetricVisibilityStart;
-
-        { When VertFogDistance < 0 our intention is to have no fog.
-          So VertFogDistance < 0 should be equivalent to VertFogDistance = 0.
-          However, OpenGL doesn't necessarily interpret it like this.
-
-          Since factor given by glFogCoordfEXT is interpreted just like
-          eye distance (i.e. it's processed by appopriate linear or exp or exp2
-          equations), negative values may produce quite unexpected results
-          (unless you really look at the equations).
-
-          This is mentioned in the extension specification
-          [http://oss.sgi.com/projects/ogl-sample/registry/EXT/fog_coord.txt].
-          First is says:
-
-            * Should the specified value be used directly as the fog weighting
-              factor, or in place of the z input to the fog equations?
-
-              As the z input; more flexible and meets ISV requests.
-
-          ... which means that what glFogCoordfEXT gives is interpreted
-          just like eye distance for normal fog (so it's e.g. affected
-          by fog linear / exp / exp2 modes, affected by fog start and end values,
-          etc.). Later it says:
-
-            * Should the fog coordinate be restricted to non-negative values?
-
-              Perhaps. Eye-coordinate distance of fragments will be
-              non-negative due to clipping. Specifying explicit negative
-              coordinates may result in very large computed f values, although
-              they are defined to be clipped after computation.
-
-          ... and this is precisely why specifying negative glFogCoordfEXT
-          parameters is a bad idea: you don't really know what OpenGL
-          implementation will do. NVidia OpenGL seems to actually assume
-          that factor < 0 means the same as factor = 0, so my code
-          worked OK without this "MaxTo1st(VertFogDistance, 0);" below
-          (because NVidia OpenGL was actually doing it anyway).
-          Mesa 3D (and Radeon, as I suspect, because similar problems
-          were reported for "The Castle" on Radeon) seem to just use the negative
-          value directly, which causes strange artifacts
-          (see e.g. "The Castle" gate_final.wrl VRML file).
-
-          The line "MaxTo1st(VertFogDistance, 0);" makes volumetric fog work
-          OK as expected for all OpenGL implementations. }
-        MaxTo1st(VertFogDistance, 0);
-        glFogCoordfEXT(VertFogDistance);
-      end;
-    end;
-  end;
-*)
-
-var
-  VertexNum: integer;
 begin
-  { This assertion should never fail, it's the responsibility
-    of the programmer. }
-  Assert(IndexNum < CoordCount);
-
-  if CoordIndex <> nil then
-  begin
-    VertexNum := CoordIndex.Items.Items[IndexNum];
-    if VertexNum >= Coord.Count then
-    begin
-      CoordIndex.VRMLWarning_WrongVertexIndex(
-        Geometry.NodeTypeName, VertexNum, Coord.Count);
-      Exit;
-    end;
-  end else
-    VertexNum := IndexNum;
-
-  // TODO: port here SetFogColor code
-
   Inc(ArrayIndexNum);
 end;
 
@@ -2627,4 +2548,98 @@ begin
     niPerFaceNormalIndexed:
       FaceNormal := CcwNormalsSafe(NormalIndex.ItemsSafe[RangeNumber]);
   end;
+end;
+
+{ TAbstractFogNorColMatTexCoordinateRenderer --------------------------------- }
+
+procedure TAbstractFogNorColMatTexCoordinateRenderer.PrepareAttributes(
+  var AllowIndexed: boolean);
+begin
+  inherited;
+
+  if Renderer.FogVolumetric then
+  begin
+    Arrays.AddFogCoord;
+    AllowIndexed := false;
+  end;
+end;
+
+procedure TAbstractFogNorColMatTexCoordinateRenderer.GenerateVertex(
+  IndexNum: Integer);
+
+  procedure DoFogVolumetric;
+  var
+    Position, Projected: TVector3Single;
+    FogDistance: Single;
+  begin
+    { calculate global vertex position }
+    if CoordIndex <> nil then
+      Position := Coord.Items.Items[CoordIndex.Items.Items[IndexNum]] else
+      Position := Coord.Items.Items[IndexNum];
+    Position := MatrixMultPoint(State.Transform, Position);
+
+    Projected := PointOnLineClosestToPoint(
+      ZeroVector3Single, Renderer.FogVolumetricDirection, Position);
+    FogDistance := VectorLen(Projected);
+    if not AreParallelVectorsSameDirection(
+      Projected, Renderer.FogVolumetricDirection) then
+      FogDistance := -FogDistance;
+    { Now I want
+      - FogDistance = FogVolumetricVisibilityStart -> 0
+      - FogDistance = FogVolumetricVisibilityStart + X -> X
+        (so that FogDistance = FogVolumetricVisibilityStart +
+        FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
+    FogDistance -= Renderer.FogVolumetricVisibilityStart;
+
+    { When FogDistance < 0 our intention is to have no fog.
+      So FogDistance < 0 should be equivalent to FogDistance = 0.
+      However, OpenGL doesn't necessarily interpret it like this.
+
+      Since factor given by glFogCoordfEXT is interpreted just like
+      eye distance (i.e. it's processed by appopriate linear or exp or exp2
+      equations), negative values may produce quite unexpected results
+      (unless you really look at the equations).
+
+      This is mentioned in the extension specification
+      [http://oss.sgi.com/projects/ogl-sample/registry/EXT/fog_coord.txt].
+      First is says:
+
+        * Should the specified value be used directly as the fog weighting
+          factor, or in place of the z input to the fog equations?
+
+          As the z input; more flexible and meets ISV requests.
+
+      ... which means that what glFogCoordfEXT gives is interpreted
+      just like eye distance for normal fog (so it's e.g. affected
+      by fog linear / exp / exp2 modes, affected by fog start and end values,
+      etc.). Later it says:
+
+        * Should the fog coordinate be restricted to non-negative values?
+
+          Perhaps. Eye-coordinate distance of fragments will be
+          non-negative due to clipping. Specifying explicit negative
+          coordinates may result in very large computed f values, although
+          they are defined to be clipped after computation.
+
+      ... and this is precisely why specifying negative glFogCoordfEXT
+      parameters is a bad idea: you don't really know what OpenGL
+      implementation will do. NVidia OpenGL seems to actually assume
+      that factor < 0 means the same as factor = 0, so my code
+      worked OK without this "MaxTo1st(FogDistance, 0);" below
+      (because NVidia OpenGL was actually doing it anyway).
+      Mesa 3D (and Radeon, as I suspect, because similar problems
+      were reported for "The Castle" on Radeon) seem to just use the negative
+      value directly, which causes strange artifacts
+      (see e.g. "The Castle" gate_final.wrl VRML file).
+
+      The line "MaxTo1st(FogDistance, 0);" makes volumetric fog work
+      OK as expected for all OpenGL implementations. }
+    MaxTo1st(FogDistance, 0);
+    Arrays.FogCoord(ArrayIndexNum)^ := FogDistance;
+  end;
+
+begin
+  if Renderer.FogVolumetric then
+    DoFogVolumetric;
+  inherited;
 end;
