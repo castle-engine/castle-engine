@@ -212,9 +212,6 @@ type
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
     FCoordIndex: TMFLong;
-
-    { Available inside RenderCoordinate* }
-    Arrays: TGeometryArrays;
   protected
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
@@ -256,9 +253,9 @@ type
       at the end.
 
       @groupBegin }
-    procedure RenderCoordinate; virtual; abstract;
-    procedure RenderCoordinateBegin; virtual;
-    procedure RenderCoordinateEnd; virtual;
+    procedure RenderCoordinate(Arrays: TGeometryArrays); virtual; abstract;
+    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); virtual;
+    procedure RenderCoordinateEnd(Arrays: TGeometryArrays); virtual;
     { @groupEnd }
 
     { RenderCoordsRange is supposed to render one coordinate range.
@@ -288,6 +285,16 @@ type
       and you know that RenderVertex will be called only from
       RenderCoordsRange. }
     property CurrentRangeNumber: Cardinal read FCurrentRangeNumber;
+
+    { Called when constructing TGeometryArrays, before the Count is set.
+      Descendants can override this to do stuff like Arrays.AddColor or
+      Arrays.AddAttribute('foo'). Descendants can also set AllowIndexed
+      to @false, if we can't use indexed rendering (because e.g. we have
+      colors per-face, which means that the same vertex position may have
+      different colors,  which means it has to be duplicated in arrays anyway,
+      so there's no point in indexing). }
+    procedure PrepareAttributes(Arrays: TGeometryArrays;
+      var AllowIndexed: boolean); virtual;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -463,8 +470,8 @@ type
 
     procedure RenderVertex(IndexNum: Integer); override;
 
-    procedure RenderCoordinateBegin; override;
-    procedure RenderCoordinateEnd; override;
+    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinateEnd(Arrays: TGeometryArrays); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -520,7 +527,7 @@ type
     procedure RenderVertex(IndexNum: Integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
-    procedure RenderCoordinateBegin; override;
+    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsBindMaterial1InsideBeginEnd: boolean; override;
@@ -695,8 +702,8 @@ type
       (safer answer). }
     function NormalsFlat: boolean; virtual;
 
-    procedure RenderCoordinateBegin; override;
-    procedure RenderCoordinateEnd; override;
+    procedure RenderCoordinateBegin(Arrays: TGeometryArrays); override;
+    procedure RenderCoordinateEnd(Arrays: TGeometryArrays); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   protected
@@ -897,6 +904,7 @@ procedure TAbstractCoordinateRenderer.DoRender;
 var
   { This is used only by LockArraysBegin and LockArraysEnd. }
   UseLockArrays: boolean;
+  Arrays: TGeometryArrays;
 
   procedure LockArraysBegin;
   begin
@@ -904,12 +912,11 @@ var
       [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
       for description of GL_EXT_compiled_vertex_array.
 
-      Note that I can't use it when Coord has no items
+      Note that I can't use it when Arrays.Count has no items
       (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
-    UseLockArrays := GL_EXT_compiled_vertex_array and
-      (Coord.Items.Count <> 0);
+    UseLockArrays := GL_EXT_compiled_vertex_array and (Arrays.Count <> 0);
     if UseLockArrays then
-      glLockArraysEXT(0, Coord.Items.Count);
+      glLockArraysEXT(0, Arrays.Count);
   end;
 
   procedure LockArraysEnd;
@@ -918,10 +925,13 @@ var
       glUnlockArraysEXT;
   end;
 
-  procedure GenIFS;
+  { Calculate Arrays.Indexes, Arrays.Count, Arrays.Position,
+    call PrepareAttributes in the middle. }
+  procedure GenerateArrays;
   var
     BeginIndex, EndIndex, NextIndex, I, MaxIndex, IndexesCount: Integer;
     Position: PVector3Single;
+    AllowIndexed: boolean;
   begin
     { TODO: assume CoordIndex non-nil, and layed like for IFS }
 
@@ -972,13 +982,35 @@ var
       BeginIndex := EndIndex + 1;
     end;
 
-    Arrays.Count := Coord.Count;
+    AllowIndexed := true;
+    PrepareAttributes(Arrays, AllowIndexed);
 
-    Position := Arrays.Position;
-    for I := 0 to Arrays.Count - 1 do
+    if AllowIndexed or (Arrays.Indexes = nil) then
     begin
-      Position^ := Coord.Items.Items[I];
-      Arrays.IncPosition(Position);
+      { Leave Arrays.Indexes as they were }
+
+      Arrays.Count := Coord.Count;
+
+      Position := Arrays.Position;
+      for I := 0 to Arrays.Count - 1 do
+      begin
+        Position^ := Coord.Items.Items[I];
+        Arrays.IncPosition(Position);
+      end;
+    end else
+    begin
+      { Expand Arrays.Indexes, to specify vertexes multiple times }
+      Arrays.Count := IndexesCount;
+
+      Position := Arrays.Position;
+      for I := 0 to Arrays.Count - 1 do
+      begin
+        Position^ := Coord.Items.Items[Arrays.Indexes.Items[I]];
+        Arrays.IncPosition(Position);
+      end;
+
+      Arrays.Indexes.Free;
+      Arrays.Indexes := nil;
     end;
   end;
 
@@ -988,14 +1020,12 @@ begin
 
   Arrays := TGeometryArrays.Create;
   try
-    RenderCoordinateBegin;
+    GenerateArrays;
+
+    RenderCoordinateBegin(Arrays);
     try
-      RenderCoordinate;
-    finally RenderCoordinateEnd; end;
-
-    if not (Geometry is TNodeIndexedFaceSet_2) then Exit; // TODO
-
-    GenIFS;
+      RenderCoordinate(Arrays);
+    finally RenderCoordinateEnd(Arrays); end;
 
     { Initialize vertex arrays that we we will use with indexed nodes.
       GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
@@ -1036,8 +1066,10 @@ begin
       { Lock arrays after setting up all arrays. }
       LockArraysBegin;
       try
-        glDrawElements(GL_TRIANGLES, Arrays.Indexes.Count, GL_UNSIGNED_INT,
-          Arrays.Indexes.ItemsArray);
+        if Arrays.Indexes <> nil then
+          glDrawElements(GL_TRIANGLES, Arrays.Indexes.Count, GL_UNSIGNED_INT,
+            Arrays.Indexes.ItemsArray) else
+          glDrawArrays(GL_TRIANGLES, 0, Arrays.Count);
       finally LockArraysEnd; end;
     finally
       if not GLVersion.IsMesa then
@@ -1046,12 +1078,18 @@ begin
   finally FreeAndNil(Arrays) end;
 end;
 
-procedure TAbstractCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractCoordinateRenderer.PrepareAttributes(Arrays: TGeometryArrays;
+  var AllowIndexed: boolean);
 begin
   { nothing to do in this class }
 end;
 
-procedure TAbstractCoordinateRenderer.RenderCoordinateEnd;
+procedure TAbstractCoordinateRenderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
+begin
+  { nothing to do in this class }
+end;
+
+procedure TAbstractCoordinateRenderer.RenderCoordinateEnd(Arrays: TGeometryArrays);
 begin
   { nothing to do in this class }
 end;
@@ -1130,7 +1168,7 @@ begin
     TexCoord := nil;
 end;
 
-procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
 
   { Is a texture used on given unit, and it's 3D texture. }
   function IsTexture3D(const TexUnit: Cardinal): boolean;
@@ -1941,7 +1979,7 @@ begin
   end;
 end;
 
-procedure TAbstractTexCoordinateRenderer.RenderCoordinateEnd;
+procedure TAbstractTexCoordinateRenderer.RenderCoordinateEnd(Arrays: TGeometryArrays);
 
   procedure DisableTextureGen(const TextureUnit: Cardinal);
   begin
@@ -2212,7 +2250,7 @@ begin
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractMatTexCoordinateRenderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
 begin
   inherited;
 
@@ -2487,7 +2525,7 @@ begin
   inherited;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateBegin(Arrays: TGeometryArrays);
 begin
   inherited;
 
@@ -2518,7 +2556,7 @@ begin
   end;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateEnd;
+procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateEnd(Arrays: TGeometryArrays);
 begin
   if (Normals <> nil) and (not NormalsCcw) then
     FreeAndNil(CcwNormals);
