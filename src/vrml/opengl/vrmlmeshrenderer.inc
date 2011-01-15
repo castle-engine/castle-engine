@@ -215,6 +215,8 @@ type
 
     { Available inside RenderCoordinate* }
     Arrays: TGeometryArrays;
+    { Only when Arrays.Indexes = nil but original node was indexed. }
+    IndexesFromCoordIndex: TDynLongIntArray;
   protected
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
@@ -931,7 +933,6 @@ var
   procedure GenerateArrays;
   var
     BeginIndex, EndIndex, NextIndex, I, MaxIndex, IndexesCount: Integer;
-    Position: PVector3Single;
     AllowIndexed: boolean;
   begin
     { TODO: assume CoordIndex non-nil, and layed like for IFS }
@@ -963,9 +964,8 @@ var
       Exit; { leave Arrays created but empty }
     end;
 
-    Arrays.Indexes := TDynLongIntArray.Create(IndexesCount);
-
-    { calculate Arrays.Indexes contents: triangulate }
+    { calculate IndexesFromCoordIndex contents: triangulate }
+    IndexesFromCoordIndex := TDynLongIntArray.Create(IndexesCount);
     NextIndex := 0;
     BeginIndex := 0;
     while BeginIndex < CoordIndex.Count do
@@ -976,9 +976,9 @@ var
         Inc(EndIndex);
       for I := BeginIndex to EndIndex - 3 do
       begin
-        Arrays.Indexes.Items[NextIndex] := CoordIndex.Items.Items[BeginIndex]; Inc(NextIndex);
-        Arrays.Indexes.Items[NextIndex] := CoordIndex.Items.Items[I + 1     ]; Inc(NextIndex);
-        Arrays.Indexes.Items[NextIndex] := CoordIndex.Items.Items[I + 2     ]; Inc(NextIndex);
+        IndexesFromCoordIndex.Items[NextIndex] := CoordIndex.Items.Items[BeginIndex]; Inc(NextIndex);
+        IndexesFromCoordIndex.Items[NextIndex] := CoordIndex.Items.Items[I + 1     ]; Inc(NextIndex);
+        IndexesFromCoordIndex.Items[NextIndex] := CoordIndex.Items.Items[I + 2     ]; Inc(NextIndex);
       end;
       BeginIndex := EndIndex + 1;
     end;
@@ -986,32 +986,21 @@ var
     AllowIndexed := true;
     PrepareAttributes(AllowIndexed);
 
-    if AllowIndexed or (Arrays.Indexes = nil) then
+    if AllowIndexed or (IndexesFromCoordIndex = nil) then
     begin
-      { Leave Arrays.Indexes as they were }
+      Arrays.Indexes := IndexesFromCoordIndex;
+      IndexesFromCoordIndex := nil;
 
       Arrays.Count := Coord.Count;
 
-      Position := Arrays.Position;
-      for I := 0 to Arrays.Count - 1 do
-      begin
-        Position^ := Coord.Items.Items[I];
-        Arrays.IncPosition(Position);
-      end;
+      Coord.Items.AssignToInterleaved(Arrays.Position, Arrays.CoordinateSize);
     end else
     begin
-      { Expand Arrays.Indexes, to specify vertexes multiple times }
       Arrays.Count := IndexesCount;
 
-      Position := Arrays.Position;
-      for I := 0 to Arrays.Count - 1 do
-      begin
-        Position^ := Coord.Items.Items[Arrays.Indexes.Items[I]];
-        Arrays.IncPosition(Position);
-      end;
-
-      Arrays.Indexes.Free;
-      Arrays.Indexes := nil;
+      { Expand IndexesFromCoordIndex, to specify vertexes multiple times }
+      Coord.Items.AssignToInterleavedIndexed(
+        Arrays.Position, Arrays.CoordinateSize, IndexesFromCoordIndex);
     end;
   end;
 
@@ -1019,6 +1008,7 @@ begin
   if Coord = nil then
     Exit;
 
+  IndexesFromCoordIndex := nil;
   Arrays := TGeometryArrays.Create;
   try
     GenerateArrays;
@@ -1075,7 +1065,10 @@ begin
       if not GLVersion.IsMesa then
         glPopClientAttrib;
     end;
-  finally FreeAndNil(Arrays) end;
+  finally
+    FreeAndNil(Arrays);
+    FreeAndNil(IndexesFromCoordIndex);
+  end;
 end;
 
 procedure TAbstractCoordinateRenderer.PrepareAttributes(var AllowIndexed: boolean);
@@ -2551,11 +2544,15 @@ begin
     end;
   end;
 
-  if Arrays.Indexes <> nil then
+  if NorImplementation = niPerVertexCoordIndexed then
   begin
-    { Then we had to allow for indexes in PrepareAttributes. }
-    glNormalPointer(GL_FLOAT, 0, CcwNormals.Items);
-    glEnableClientState(GL_NORMAL_ARRAY);
+    if Arrays.Indexes <> nil then
+      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
+      CcwNormals.AssignToInterleavedIndexed(Arrays.Normal, Arrays.CoordinateSize, IndexesFromCoordIndex);
+  end else
+  if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
+  begin
+    { TODO }
   end else
   if NorImplementation = niOverall then
   begin
