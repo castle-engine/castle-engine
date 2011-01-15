@@ -2017,7 +2017,8 @@ procedure TAbstractTexCoordinateRenderer.GenerateCoordinateBegin;
 
         if TexCoordArray.Count = Arrays.Count then
           TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize) else
-          VRMLWarning(vwSerious, 'Arrays.Count invalid. TODO: bug, because indexes for CoordIndex <> indexes after triangulating and removing -1');
+          VRMLWarning(vwSerious, Format('Arrays.Count invalid for texture. TODO: bug, because indexes for CoordIndex <> indexes after triangulating and removing. %d %d',
+            [TexCoordArray.Count, Arrays.Count]));
       end;
     end;
 
@@ -2617,7 +2618,8 @@ begin
     Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
     if CcwNormals.Count = Arrays.Count then
       CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
-      VRMLWarning(vwSerious, 'CcwNormals.Count <> Arrays.Count. TODO: bug, because indexes for CoordIndex <> indexes after triangulating and removing -1');
+      VRMLWarning(vwSerious, Format('CcwNormals.Count <> Arrays.Count. TODO: bug, because indexes for CoordIndex <> indexes after triangulating and removing %d %d',
+        [CcwNormals.Count, Arrays.Count]));
   end else
   if NorImplementation = niOverall then
   begin
