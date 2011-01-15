@@ -478,6 +478,8 @@ type
     function GetTextureCoord(IndexNum: integer;
       const TextureUnit: Cardinal; out Tex: TVector2Single): boolean;
 
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+
     procedure RenderVertex(IndexNum: Integer); override;
 
     procedure RenderCoordinateBegin; override;
@@ -1015,6 +1017,8 @@ var
     end;
   end;
 
+var
+  I: Integer;
 begin
   if Coord = nil then
     Exit;
@@ -1064,6 +1068,27 @@ begin
 
       glEnableClientState(GL_NORMAL_ARRAY);
       glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
+
+      if Renderer.UseMultiTexturing then
+      begin
+        for I := 0 to Arrays.TexCoords.Count - 1 do
+          if Arrays.TexCoords[I] <> nil then
+          begin
+            glClientActiveTextureARB(GL_TEXTURE0_ARB +
+              Integer(Renderer.Attributes.FirstGLFreeTexture) + I);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glTexCoordPointer(Arrays.TexCoords[I].Dimensions, GL_FLOAT,
+              Arrays.AttributeSize,
+              Arrays.TexCoord(Arrays.TexCoords[I].Dimensions, I, 0));
+          end;
+      end else
+      if Arrays.TexCoords[0] <> nil then
+      begin
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(Arrays.TexCoords[0].Dimensions, GL_FLOAT,
+          Arrays.AttributeSize,
+          Arrays.TexCoord(Arrays.TexCoords[0].Dimensions, 0, 0));
+      end;
 
       { Lock arrays after setting up all arrays. }
       LockArraysBegin;
@@ -1174,7 +1199,8 @@ begin
     TexCoord := nil;
 end;
 
-procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractTexCoordinateRenderer.PrepareAttributes(
+  var AllowIndexed: boolean);
 
   { Is a texture used on given unit, and it's 3D texture. }
   function IsTexture3D(const TexUnit: Cardinal): boolean;
@@ -1611,42 +1637,6 @@ var
       DoTexUnit(TexGenVectors);
   end;
 
-  { Set explicit coordinates as gl[Multi]TexCoordPointer, for all texture units
-    (required from TexCoordsNeeded UseMultiTexturing) where
-    TexCoordGen[] = tgExplicit*.
-
-    Call this only if InitializeTexCoordGenArray generated some non-empty
-    TexCoordGen/Array. }
-  procedure EnableTextureCoordArray;
-  var
-    I: Integer;
-  begin
-    if UseMultiTexturing then
-    begin
-      for I := 0 to TexCoordsNeeded - 1 do
-        if TexCoordGen[I] in ExplicitTexCoords then
-        begin
-          glClientActiveTextureARB(
-            GL_TEXTURE0_ARB + Integer(Attributes.FirstGLFreeTexture) + I);
-          case TexCoordGen[I] of
-            tgExplicit2d: glTexCoordPointer(2, GL_FLOAT, 0, TexCoordArray2d[I].Items.ItemsArray);
-            tgExplicit3d: glTexCoordPointer(3, GL_FLOAT, 0, TexCoordArray3d[I].Items.ItemsArray);
-            tgExplicit4d: glTexCoordPointer(4, GL_FLOAT, 0, TexCoordArray4d[I].Items.ItemsArray);
-          end;
-          glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        end;
-    end else
-    if TexCoordGen[0] in ExplicitTexCoords then
-    begin
-      case TexCoordGen[0] of
-        tgExplicit2d: glTexCoordPointer(2, GL_FLOAT, 0, TexCoordArray2d[0].Items.ItemsArray);
-        tgExplicit3d: glTexCoordPointer(3, GL_FLOAT, 0, TexCoordArray3d[0].Items.ItemsArray);
-        tgExplicit4d: glTexCoordPointer(4, GL_FLOAT, 0, TexCoordArray4d[0].Items.ItemsArray);
-      end;
-      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    end;
-  end;
-
   { Set texture generation, for all texture units
     (required from TexCoordsNeeded UseMultiTexturing) where
     TexCoordGen[] <> tgExplicit.
@@ -1901,6 +1891,26 @@ var
     end;
   end;
 
+  procedure AddExplicitTextureCoordAttributes;
+  var
+    I: Integer;
+  begin
+    if UseMultiTexturing then
+    begin
+      for I := 0 to TexCoordsNeeded - 1 do
+        case TexCoordGen[I] of
+          tgExplicit2d: Arrays.AddTexCoord2D(I);
+          tgExplicit3d: Arrays.AddTexCoord3D(I);
+          tgExplicit4d: Arrays.AddTexCoord4D(I);
+        end;
+    end else
+    case TexCoordGen[0] of
+      tgExplicit2d: Arrays.AddTexCoord2D(0);
+      tgExplicit3d: Arrays.AddTexCoord3D(0);
+      tgExplicit4d: Arrays.AddTexCoord4D(0);
+    end;
+  end;
+
 begin
   inherited;
 
@@ -1937,17 +1947,14 @@ begin
 
           Assert(CoordIndex = nil);
 
-          { so IndexNum indexes directly Coord, and so also TexCoord. }
-          EnableTextureCoordArray;
-
-          { Setup generation of non-explicit texture coords }
+          AddExplicitTextureCoordAttributes;
           EnableTextureCoordGen;
         end else
         if TexCoordIndex.Count >= CoordIndex.Count then
         begin
           TexImplementation := tcTexIndexed;
 
-          { Setup generation of non-explicit texture coords }
+          AddExplicitTextureCoordAttributes;
           EnableTextureCoordGen;
         end else
         begin
@@ -1972,8 +1979,7 @@ begin
               glTexCoordPointer (inside EnableTextureCoordArray) would only collide with this. }
             if BumpMappingMethod = bmNone then
             begin
-              EnableTextureCoordArray;
-              { Setup generation of non-explicit texture coords }
+              AddExplicitTextureCoordAttributes;
               EnableTextureCoordGen;
             end;
           end else
@@ -1983,6 +1989,56 @@ begin
         Bounds2DTextureGen(true);
     end;
   end;
+
+  if TexImplementation in [tcTexIndexed, tcNonIndexed] then
+    AllowIndexed := false;
+end;
+
+procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin;
+
+  { Set explicit coordinates as gl[Multi]TexCoordPointer, for all texture units
+    (required from TexCoordsNeeded UseMultiTexturing) where
+    TexCoordGen[] = tgExplicit*.
+
+    Call this only if InitializeTexCoordGenArray generated some non-empty
+    TexCoordGen/Array. }
+  procedure EnableTextureCoordArray;
+  var
+    I: Integer;
+  begin
+    { TODO: load to Arrays.TexCoord(...) }
+    if Renderer.UseMultiTexturing then
+    begin
+      for I := 0 to Renderer.TexCoordsNeeded - 1 do
+        if TexCoordGen[I] in ExplicitTexCoords then
+        begin
+          glClientActiveTextureARB(
+            GL_TEXTURE0_ARB + Integer(Attributes.FirstGLFreeTexture) + I);
+          case TexCoordGen[I] of
+            tgExplicit2d: glTexCoordPointer(2, GL_FLOAT, 0, TexCoordArray2d[I].Items.ItemsArray);
+            tgExplicit3d: glTexCoordPointer(3, GL_FLOAT, 0, TexCoordArray3d[I].Items.ItemsArray);
+            tgExplicit4d: glTexCoordPointer(4, GL_FLOAT, 0, TexCoordArray4d[I].Items.ItemsArray);
+          end;
+          glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        end;
+    end else
+    if TexCoordGen[0] in ExplicitTexCoords then
+    begin
+      case TexCoordGen[0] of
+        tgExplicit2d: glTexCoordPointer(2, GL_FLOAT, 0, TexCoordArray2d[0].Items.ItemsArray);
+        tgExplicit3d: glTexCoordPointer(3, GL_FLOAT, 0, TexCoordArray3d[0].Items.ItemsArray);
+        tgExplicit4d: glTexCoordPointer(4, GL_FLOAT, 0, TexCoordArray4d[0].Items.ItemsArray);
+      end;
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    end;
+  end;
+
+begin
+  inherited;
+
+  if (BumpMappingMethod = bmNone) and
+     (TexImplementation in [tcNonIndexed, tcCoordIndexed]) then
+    EnableTextureCoordArray;
 end;
 
 procedure TAbstractTexCoordinateRenderer.RenderCoordinateEnd;
@@ -2130,25 +2186,22 @@ procedure TAbstractTexCoordinateRenderer.RenderVertex(indexNum: integer);
   procedure DoTexCoord(Index: Integer);
   var
     TextureUnit: Integer;
-    GLTextureUnit: TGLenum;
   begin
     if Renderer.UseMultiTexturing then
     begin
-      GLTextureUnit := GL_TEXTURE0 + Integer(Renderer.Attributes.FirstGLFreeTexture);
       for TextureUnit := 0 to Renderer.TexCoordsNeeded - 1 do
       begin
         case TexCoordGen[TextureUnit] of
-          tgExplicit2d: glMultiTexCoordv(GLTextureUnit, TexCoordArray2d[TextureUnit].ItemsSafe[Index]);
-          tgExplicit3d: glMultiTexCoordv(GLTextureUnit, TexCoordArray3d[TextureUnit].ItemsSafe[Index]);
-          tgExplicit4d: glMultiTexCoordv(GLTextureUnit, TexCoordArray4d[TextureUnit].ItemsSafe[Index]);
+          tgExplicit2d: Arrays.TexCoord2D(TextureUnit, ArrayIndexNum)^ := TexCoordArray2d[TextureUnit].ItemsSafe[Index];
+          tgExplicit3d: Arrays.TexCoord3D(TextureUnit, ArrayIndexNum)^ := TexCoordArray3d[TextureUnit].ItemsSafe[Index];
+          tgExplicit4d: Arrays.TexCoord4D(TextureUnit, ArrayIndexNum)^ := TexCoordArray4d[TextureUnit].ItemsSafe[Index];
         end;
-        Inc(GLTextureUnit);
       end;
     end else
     case TexCoordGen[0] of
-      tgExplicit2d: glTexCoordv(TexCoordArray2d[0].ItemsSafe[Index]);
-      tgExplicit3d: glTexCoordv(TexCoordArray3d[0].ItemsSafe[Index]);
-      tgExplicit4d: glTexCoordv(TexCoordArray4d[0].ItemsSafe[Index]);
+      tgExplicit2d: Arrays.TexCoord2D(0, ArrayIndexNum)^ := TexCoordArray2d[0].ItemsSafe[Index];
+      tgExplicit3d: Arrays.TexCoord3D(0, ArrayIndexNum)^ := TexCoordArray3d[0].ItemsSafe[Index];
+      tgExplicit4d: Arrays.TexCoord4D(0, ArrayIndexNum)^ := TexCoordArray4d[0].ItemsSafe[Index];
     end;
   end;
 
@@ -2156,25 +2209,9 @@ begin
   { Don't pass glTexCoordv here if BumpMappingMethod <> bmNone,
     then we'll handle passing texture coords appropriately
     ourselves. }
-  if BumpMappingMethod = bmNone then
-  begin
-    { We could use GetTextureCoord(IndexNum) here,
-      but since we have to check TexImplementation anyway,
-      we do it more directly. But the result is the same as if we had used
-      GetTextureCoord. }
-
-    case TexImplementation of
-      tcTexIndexed:
-        DoTexCoord(TexCoordIndex.Items.Items[IndexNum]);
-      { tcNonGenerated: don't do anything, no texture coords. }
-      { tcNonIndexed,
-        tcCoordIndexed: glTexCoordPointer takes care of it, will be done when
-          inherited will call DoGLArrayElement.
-
-        If texture coord is generated, then glTexGenv takes care of it.
-        This includes tcAllGenerated case. }
-    end;
-  end;
+  if (BumpMappingMethod = bmNone) and
+     (TexImplementation = tcTexIndexed) then
+    DoTexCoord(TexCoordIndex.Items.Items[IndexNum]);
 
   inherited;
 end;
