@@ -217,6 +217,12 @@ type
     Arrays: TGeometryArrays;
     { Only when Arrays.Indexes = nil but original node was indexed. }
     IndexesFromCoordIndex: TDynLongIntArray;
+    { Index to Arrays index.
+      If CoordIndex is assigned (that is either Arrays.Indexes or
+      IndexesFromCoordIndex are assigned) then points to current vertex
+      in Arrays.Indexes or IndexesFromCoordIndex. If CoordIndex not assigned,
+      this simply points to Arrays attributes. }
+    ArrayIndexNum: Integer;
   protected
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
@@ -233,10 +239,10 @@ type
 
     { Use this in descendants as analogy of glVertex / glDrawElement.
       This sends vertex to OpenGL (using TVRMLMeshRenderer.DoGLDrawElement,
-      but this is internal information :) ). Given IndexNum
-      indexes Coord, or if (CoordIndex is assigned) indexes CoordIndex
-      (and CoordIndex then indexes actual Coord). }
-    procedure RenderVertex(IndexNum: integer); virtual;
+      but this is internal information :) ).
+      Given IndexNum indexes Coord, or (if CoordIndex is assigned)
+      indexes CoordIndex (and CoordIndex then indexes actual Coord). }
+    procedure RenderVertex(IndexNum: Integer); virtual;
 
     { This gets vertex coordinate, exactly the same as would be
       rendered by RenderVertex. Returned vertex is in local coordinate space
@@ -1008,6 +1014,7 @@ begin
     Exit;
 
   IndexesFromCoordIndex := nil;
+  ArrayIndexNum := 0;
   Arrays := TGeometryArrays.Create;
   try
     GenerateArrays;
@@ -1106,6 +1113,8 @@ begin
     VertexNum := IndexNum;
 
   DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
+
+  Inc(ArrayIndexNum);
 end;
 
 function TAbstractCoordinateRenderer.GetVertex(IndexNum: integer): TVector3f;
@@ -2510,7 +2519,7 @@ begin
       begin
         Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
         { TODO: make sure we have enough CcwNormals }
-        Arrays.Normal(IndexNum)^ := CcwNormals.Items[IndexNum];
+        Arrays.Normal(ArrayIndexNum)^ := CcwNormals.Items[IndexNum];
       end;
   end;
 
