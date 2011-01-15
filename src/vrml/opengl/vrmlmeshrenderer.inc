@@ -149,7 +149,7 @@ type
 
       For descendants implementors:
       Don't do any OpenGL state changes here (initialization of OpenGL state
-      should go to Render, for example RenderCoordinateBegin). }
+      should go to Render). }
     constructor Create(ARenderer: TVRMLGLRenderer);
 
     { Do the actual render of the whole geometry.
@@ -189,23 +189,14 @@ type
     Usage:
     - Don't override Render --- this is already overridden here
       to do everything necessary. Instead, override
-        RenderCoordinate
-        RenderCoordinateBegin
+
+        GenerateCoordinateBegin
+        GenerateCoordinate
+        GenerateCoordinateEnd
+
         RenderCoordinateEnd
 
       These are called only when Coord is assigned.
-
-      Render pushes client attribs and sets up vertex array for Coord.
-      Then calls RenderCoordinateBegin and then locks arrays.
-      So RenderCoordinateBegin is a good place to initialize other
-      OpenGL arrays (for example, for texture coordinates or normal
-      coordinates) if you want.
-
-      Inside, RenderCoordinate is called.
-
-      Then arrays are unlocked, RenderCoordinateEnd is called (so it
-      should finalize whatever needs to be finalized for previous
-      RenderCoordinateBegin call) and client attribs are popped.
   }
   TAbstractCoordinateRenderer = class(TVRMLMeshRenderer)
   private
@@ -213,7 +204,7 @@ type
     FCoord: TMFVec3f;
     FCoordIndex: TMFLong;
 
-    { Available inside RenderCoordinate* }
+    { Available inside GenerateCoordinate* and RenderCoordinate* }
     Arrays: TGeometryArrays;
     { Only when Arrays.Indexes = nil but original node was indexed. }
     IndexesFromCoordIndex: TDynLongIntArray;
@@ -259,13 +250,14 @@ type
       See the description of this class @className for usage overview
       of these methods.
 
-      When overriding RenderCoordinateBegin, always call inherited
-      at the begin. When overriding RenderCoordinateEnd, always call inherited
+      When overriding GenerateCoordinateBegin, always call inherited
+      at the begin. When overriding GenerateCoordinateEnd, always call inherited
       at the end.
 
       @groupBegin }
-    procedure RenderCoordinate; virtual; abstract;
-    procedure RenderCoordinateBegin; virtual;
+    procedure GenerateCoordinate; virtual; abstract;
+    procedure GenerateCoordinateBegin; virtual;
+    procedure GenerateCoordinateEnd; virtual;
     procedure RenderCoordinateEnd; virtual;
     { @groupEnd }
 
@@ -482,7 +474,7 @@ type
 
     procedure RenderVertex(IndexNum: Integer); override;
 
-    procedure RenderCoordinateBegin; override;
+    procedure GenerateCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
@@ -539,7 +531,7 @@ type
     procedure RenderVertex(IndexNum: Integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
-    procedure RenderCoordinateBegin; override;
+    procedure GenerateCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsBindMaterial1InsideBeginEnd: boolean; override;
@@ -717,8 +709,8 @@ type
       (safer answer). }
     function NormalsFlat: boolean; virtual;
 
-    procedure RenderCoordinateBegin; override;
-    procedure RenderCoordinateEnd; override;
+    procedure GenerateCoordinateBegin; override;
+    procedure GenerateCoordinateEnd; override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
 
@@ -1029,18 +1021,17 @@ begin
   try
     GenerateArrays;
 
-    RenderCoordinateBegin;
+    GenerateCoordinateBegin;
     try
-      RenderCoordinate;
-    finally RenderCoordinateEnd; end;
+      GenerateCoordinate;
+    finally GenerateCoordinateEnd; end;
 
     { Initialize vertex arrays that we we will use with indexed nodes.
       GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
-      eventual normal and texture coord arrays (possibly set by
-      RenderCoordinateBegin).
+      normal and texture coord arrays.
 
-      Mesa3D: well, you know the drill. Mesa 7.2 (at least this one)
-      crashes awfully when using glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT).
+      Mesa 7.2 (at least this one) crashes awfully when using
+      glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT).
       The crash is a segfault, sometimes from my code, sometimes from
       within the mesa lib, sometimes from GTK... evidently, Mesa's
       glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT) cripples some memory
@@ -1102,6 +1093,8 @@ begin
       if not GLVersion.IsMesa then
         glPopClientAttrib;
     end;
+
+    RenderCoordinateEnd;
   finally
     FreeAndNil(Arrays);
     FreeAndNil(IndexesFromCoordIndex);
@@ -1113,7 +1106,12 @@ begin
   { nothing to do in this class }
 end;
 
-procedure TAbstractCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractCoordinateRenderer.GenerateCoordinateBegin;
+begin
+  { nothing to do in this class }
+end;
+
+procedure TAbstractCoordinateRenderer.GenerateCoordinateEnd;
 begin
   { nothing to do in this class }
 end;
@@ -1994,7 +1992,7 @@ begin
     AllowIndexed := false;
 end;
 
-procedure TAbstractTexCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractTexCoordinateRenderer.GenerateCoordinateBegin;
 
   { Set explicit coordinates as gl[Multi]TexCoordPointer, for all texture units
     (required from TexCoordsNeeded UseMultiTexturing) where
@@ -2061,7 +2059,7 @@ var
   I: Integer;
 begin
   { Disable OpenGL GL_TEXTURE_GEN_x, if was (possibly)
-    enabled by RenderCoordinateBegin. }
+    enabled by PrepareAttributes. }
   if Renderer.TexCoordsNeeded > 0 then
   begin
     if Renderer.UseMultiTexturing then
@@ -2298,7 +2296,7 @@ begin
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractMatTexCoordinateRenderer.GenerateCoordinateBegin;
 begin
   inherited;
 
@@ -2586,7 +2584,7 @@ begin
   inherited;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractNorColMatTexCoordinateRenderer.GenerateCoordinateBegin;
 
   procedure SetAllNormals(const Value: TVector3Single);
   var
@@ -2633,7 +2631,7 @@ begin
   end;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateEnd;
+procedure TAbstractNorColMatTexCoordinateRenderer.GenerateCoordinateEnd;
 begin
   if (Normals <> nil) and (not NormalsCcw) then
     FreeAndNil(CcwNormals);
