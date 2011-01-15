@@ -692,7 +692,8 @@ type
     DLShape_RenderBeginDisplayList: TGLuint;
     DLShape_RenderEndDisplayList: TGLuint;
 
-    { These create appropriate DLShape_Render*DisplayList display list. }
+    { These create appropriate DLShape_Render*DisplayList display list.
+      Do not call if RenderBeginEndToDisplayList = false. }
     procedure DLShape_PrepareBegin;
     procedure DLShape_PrepareEnd;
 
@@ -2722,15 +2723,7 @@ procedure TVRMLGLScene.DLShape_PrepareBegin;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
-  if not RenderBeginEndToDisplayList then
-  begin
-    { Although DLShape_PrepareBegin shouldn't call any actual OpenGL commands
-      outside of display list, (not RenderBeginEndToDisplayList) forces
-      us to call RenderBeginSimple here. See comments inside analogous
-      DLScene_Prepare situation. }
-    RenderBeginSimple;
-    Exit;
-  end;
+  Assert(RenderBeginEndToDisplayList);
 
   if not Renderer.Cache.RenderBegin_IncReference_Existing(
     Attributes, FogNode, DLShape_RenderBeginDisplayList) then
@@ -2762,11 +2755,7 @@ procedure TVRMLGLScene.DLShape_PrepareEnd;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
-  if not RenderBeginEndToDisplayList then
-  begin
-    RenderEndSimple;
-    Exit;
-  end;
+  Assert(RenderBeginEndToDisplayList);
 
   if not Renderer.Cache.RenderEnd_IncReference_Existing(
     Attributes, FogNode, DLShape_RenderEndDisplayList) then
@@ -2792,26 +2781,24 @@ end;
 
 procedure TVRMLGLScene.DLShape_RenderBegin;
 begin
-  if DLShape_RenderBeginDisplayList = 0 then
-    DLShape_PrepareBegin;
-
   if RenderBeginEndToDisplayList then
+  begin
+    if DLShape_RenderBeginDisplayList = 0 then
+      DLShape_PrepareBegin;
     glCallList(DLShape_RenderBeginDisplayList);
-
-  { if not RenderBeginEndToDisplayList, then DLShape_PrepareBegin just did
-    RenderBeginSimple }
+  end else
+    RenderBeginSimple;
 end;
 
 procedure TVRMLGLScene.DLShape_RenderEnd;
 begin
-  if DLShape_RenderEndDisplayList = 0 then
-    DLShape_PrepareEnd;
-
   if RenderBeginEndToDisplayList then
+  begin
+    if DLShape_RenderEndDisplayList = 0 then
+      DLShape_PrepareEnd;
     glCallList(DLShape_RenderEndDisplayList);
-
-  { if not RenderBeginEndToDisplayList, then DLShape_PrepareEnd just did
-    RenderEndSimple }
+  end else
+    RenderEndSimple;
 end;
 
 procedure TVRMLGLScene.DLShape_PrepareShape(
@@ -3127,9 +3114,14 @@ begin
 
       roShapeDisplayList:
         begin
-          { Prepare (if needed) GL stuff for begin/end and all shapes. }
-          if DLShape_RenderBeginDisplayList = 0 then
-            DLShape_PrepareBegin;
+          { We should do RenderBegin, always guaranteed before rendering shapes.
+            This also prepares RenderBegin display list, if any required.
+
+            Note that this doesn't guarantee that Renderer.RenderBegin
+            will be called, possibly only it's display list is called
+            (that may be shared and created by another TVRMLOpenGLRender,
+            so we may not call Renderer.RenderBegin at all, this is OK). }
+          DLShape_RenderBegin;
           try
             SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
             try
@@ -3139,10 +3131,7 @@ begin
                 DLShape_PrepareShape(TVRMLGLShape(SI.Current));
               end;
             finally FreeAndNil(SI) end;
-          finally
-            if DLShape_RenderEndDisplayList = 0 then
-              DLShape_PrepareEnd;
-          end;
+          finally DLShape_RenderEnd end;
         end;
     end;
 
