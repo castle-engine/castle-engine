@@ -15,7 +15,8 @@
 
 {
   TODO:
-  - Should render all vertexes by DoGLVertex or DoGLArrayElement,
+  - Should render all vertexes by TAbstractCoordinateRenderer,
+    or at least DoGLVertex,
     (so using GLU utils is not possible, or DrawGLPlane...,
     or text display lists... this will be difficult to implement
     without wasting resources)

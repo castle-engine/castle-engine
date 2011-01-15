@@ -46,14 +46,17 @@
 type
   TVRMLMeshRenderer = class
   private
-    { Common code before both DoGLVertex and DoGLArrayElement.
+    { Common code before DoGLVertex.
 
       In this class:
       - calls Renderer.OnBeforeGLVertex if assigned.
       - sets fog coordinate.
 
       Passed Vert is local vertex coordinate (in State.Transform space),
-      just like for glVertex. }
+      just like for glVertex.
+
+      TODO: this should all be ported to GenerateVertex, and everything
+      should use GenerateVertex, nothing DoGLVertex. }
     procedure DoBeforeGLVertex(const Vert: TVector3Single);
   private
     FRenderer: TVRMLGLRenderer;
@@ -62,17 +65,9 @@ type
     FGeometry: TVRMLGeometryNode;
     FAttributes: TVRMLRenderingAttributes;
   protected
-    { DoGLVertex and DoGLArrayElement are the only two methods
-      that can be used to render vertexes. One calls glVertex, second one
-      glArrayElemene, this should be self-explanatory.
-
-      Both call DoBeforeGLVertex at the beginning.
-
-      For DoGLArrayElement, we also need Verts: an array of vertexes
-      in local coordinates. The same one that you used to initialize
-      OpenGL vertex coord array (we may need to access vertex coord ourselves). }
+    { DoGLVertex calls DoBeforeGLVertex and glVertex.
+      TODO: immediate rendering, don't use! }
     procedure DoGLVertex(const Vert: TVector3Single);
-    procedure DoGLArrayElement(const Verts: PArray_Vector3Single; ith: TGLint);
 
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor.
@@ -228,9 +223,7 @@ type
       instead of IndexedTriangleSet). }
     property CoordIndex: TMFLong read FCoordIndex;
 
-    { Use this in descendants as analogy of glVertex / glDrawElement.
-      This sends vertex to OpenGL (using TVRMLMeshRenderer.DoGLDrawElement,
-      but this is internal information :) ).
+    { Generate arrays content for given vertex.
       Given IndexNum indexes Coord, or (if CoordIndex is assigned)
       indexes CoordIndex (and CoordIndex then indexes actual Coord). }
     procedure GenerateVertex(IndexNum: Integer); virtual;
@@ -820,17 +813,12 @@ begin
   end;
 end;
 
+{ TODO: immediate rendering, should be removed.
+  TAbstractCoordinateRenderer doesn't use this. }
 procedure TVRMLMeshRenderer.DoGLVertex(const Vert: TVector3Single);
 begin
   DoBeforeGLVertex(Vert);
-//  glVertexv(Vert); // TODO: uncomment, or remove this method
-end;
-
-procedure TVRMLMeshRenderer.DoGLArrayElement(
-  const Verts: PArray_Vector3Single; ith: TGLint);
-begin
-  DoBeforeGLVertex(Verts^[ith]);
-//  glArrayElement(ith); // TODO: uncomment, or remove this method
+  glVertexv(Vert);
 end;
 
 procedure TVRMLMeshRenderer.Render;
@@ -1150,7 +1138,7 @@ begin
   end else
     VertexNum := IndexNum;
 
-  DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
+  // TODO: port here DoBeforeGLVertex code
 
   Inc(ArrayIndexNum);
 end;
