@@ -34,13 +34,14 @@ function TNodeElevationGrid.Proxy(var State: TVRMLGraphTraverseState;
 }
 
 var
+  IFS: TNodeIndexedFaceSet_2 absolute Result;
   XDimension, ZDimension: Integer; {< shortcuts for appropriate fields values }
   TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
   CoordNode: TNodeCoordinate;
   Coords: TDynVector3SingleArray;
   TexCoords: TDynVector2SingleArray;
-  IFS: TNodeIndexedFaceSet_2 absolute Result;
+  CoordIndexes: TDynLongIntArray;
 begin
   IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
   try
@@ -85,20 +86,21 @@ begin
         end;
 
       { generate quads indexes }
-      IFS.CoordIndex.Items.Count := (XDimension - 1) * (ZDimension - 1) * 5;
+      CoordIndexes := IFS.CoordIndex.Items;
+      CoordIndexes.Count := (XDimension - 1) * (ZDimension - 1) * 5;
       NextIndex := 0;
       for I := 1 to XDimension - 1 do
         for J := 1 to ZDimension - 1 do
         begin
           { Vertices are ordered such that face is CCW from up
             (i.e. looking from positive Y axis). }
-          IFS.CoordIndex.Items.Items[NextIndex] := I     + (J - 1) * XDimension; Inc(NextIndex);
-          IFS.CoordIndex.Items.Items[NextIndex] := I - 1 + (J - 1) * XDimension; Inc(NextIndex);
-          IFS.CoordIndex.Items.Items[NextIndex] := I - 1 +  J      * XDimension; Inc(NextIndex);
-          IFS.CoordIndex.Items.Items[NextIndex] := I     +  J      * XDimension; Inc(NextIndex);
-          IFS.CoordIndex.Items.Items[NextIndex] := -1;                           Inc(NextIndex);
+          CoordIndexes.Items[NextIndex] := I     + (J - 1) * XDimension; Inc(NextIndex);
+          CoordIndexes.Items[NextIndex] := I - 1 + (J - 1) * XDimension; Inc(NextIndex);
+          CoordIndexes.Items[NextIndex] := I - 1 +  J      * XDimension; Inc(NextIndex);
+          CoordIndexes.Items[NextIndex] := I     +  J      * XDimension; Inc(NextIndex);
+          CoordIndexes.Items[NextIndex] := -1;                           Inc(NextIndex);
         end;
-      Assert(NextIndex = IFS.CoordIndex.Items.Count);
+      Assert(NextIndex = CoordIndexes.Count);
     end;
 
     IFS.FdSolid.Value := FdSolid.Value;
