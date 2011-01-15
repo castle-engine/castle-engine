@@ -402,7 +402,6 @@ type
     but still they want to allow user to change these attributes. }
   TVRMLRenderingAttributes = class(TPersistent)
   private
-    FOnBeforeGLVertex: TBeforeGLVertexProc;
     FOnRadianceTransfer: TRadianceTransferFunction;
     FOnVertexColor: TVertexColorFunction;
     FSmoothShading: boolean;
@@ -435,7 +434,6 @@ type
       caller must be aware that TVRMLGLRenderer was unprepared,
       and must prepare it again, otherwise rendering will fail).
       @groupBegin }
-    procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); virtual;
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
     procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
     procedure SetSmoothShading(const Value: boolean); virtual;
@@ -469,15 +467,6 @@ type
     procedure Assign(Source: TPersistent); override;
 
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$else} virtual; {$endif}
-
-    { Callback before rendering @italic(any) vertex.
-      Will be called with global (in VRML scene space) vertex coordinates,
-      right before glVertex call (but after glColor, glNormal, and all
-      other calls).
-
-      You can use this e.g. to provide custom glForCoord, or anything else. }
-    property OnBeforeGLVertex: TBeforeGLVertexProc
-      read FOnBeforeGLVertex write SetOnBeforeGLVertex;
 
     { Calculate vertex color from radiance transfer.
       If this is assigned, and geometry object has radianceTransfer
@@ -2794,10 +2783,8 @@ function TVRMLGLRendererContextCache.Shape_IncReference_Existing(
     or
       State1.Equals(State2)
     Which one is used, depends on whether two shapes with different
-    transformation can be considered equal. This depends on what
-    we do TVRMLMeshRenderer.DoBeforeGLVertex
-    (volumetric fog, OnBeforeGLVertex change vertex based on global
-    coords). }
+    transformation can be considered equal. This depends on whether
+    we have volumetric fog, based on global coords. }
   function StatesEqual(State1, State2: TVRMLGraphTraverseState): boolean;
   begin
     if CacheIgnoresTransform then
@@ -3060,7 +3047,6 @@ procedure TVRMLRenderingAttributes.Assign(Source: TPersistent);
 begin
   if Source is TVRMLRenderingAttributes then
   begin
-    OnBeforeGLVertex := TVRMLRenderingAttributes(Source).OnBeforeGLVertex;
     OnRadianceTransfer := TVRMLRenderingAttributes(Source).OnRadianceTransfer;
     OnVertexColor := TVRMLRenderingAttributes(Source).OnVertexColor;
     SmoothShading := TVRMLRenderingAttributes(Source).SmoothShading;
@@ -3086,7 +3072,6 @@ begin
   Result :=
     (SecondValue <> nil) and
     (SecondValue is TVRMLRenderingAttributes) and
-    (TVRMLRenderingAttributes(SecondValue).OnBeforeGLVertex = OnBeforeGLVertex) and
     (TVRMLRenderingAttributes(SecondValue).OnRadianceTransfer = OnRadianceTransfer) and
     (TVRMLRenderingAttributes(SecondValue).OnVertexColor = OnVertexColor) and
     (TVRMLRenderingAttributes(SecondValue).SmoothShading = SmoothShading) and
@@ -3133,16 +3118,6 @@ end;
 procedure TVRMLRenderingAttributes.BeforeChange;
 begin
   { Nothing to do in this class. }
-end;
-
-procedure TVRMLRenderingAttributes.SetOnBeforeGLVertex(
-  const Value: TBeforeGLVertexProc);
-begin
-  if OnBeforeGLVertex <> Value then
-  begin
-    BeforeChange;
-    FOnBeforeGLVertex := Value;
-  end;
 end;
 
 procedure TVRMLRenderingAttributes.SetOnRadianceTransfer(
@@ -4743,7 +4718,6 @@ begin
     { If we use any features that (may) render shape differently
       if shape's transform (or other stuff handled in RenderShapeBegin/End),
       then Result must be false. }
-    Assigned(Attributes.OnBeforeGLVertex) or
     Assigned(Attributes.OnVertexColor) or
     Assigned(Attributes.OnRadianceTransfer) or
     (BumpMappingMethod <> bmNone) or

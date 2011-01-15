@@ -49,7 +49,6 @@ type
     { Common code before DoGLVertex.
 
       In this class:
-      - calls Renderer.OnBeforeGLVertex if assigned.
       - sets fog coordinate.
 
       Passed Vert is local vertex coordinate (in State.Transform space),
@@ -743,8 +742,7 @@ var
   VertFogDistance: Single;
 begin
   { We check first, to avoid calculating VertGlobal when it's not needed. }
-  if Assigned(Attributes.OnBeforeGLVertex) or
-     Renderer.FogVolumetric then
+  if Renderer.FogVolumetric then
   begin
     VertGlobal := MatrixMultPoint(State.Transform, Vert);
 
@@ -809,9 +807,6 @@ begin
       MaxTo1st(VertFogDistance, 0);
       glFogCoordfEXT(VertFogDistance);
     end;
-
-    if Assigned(Attributes.OnBeforeGLVertex) then
-      Attributes.OnBeforeGLVertex(Geometry, VertGlobal);
   end;
 end;
 
