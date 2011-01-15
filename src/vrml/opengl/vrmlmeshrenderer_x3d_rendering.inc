@@ -90,7 +90,12 @@ type
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
     LineSet (VRML >= 2.0, although specification only since X3D). }
   TLineSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  private
+    procedure PrepareIndexesCoordsRange(
+      const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer);
   protected
+    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
     procedure GenerateCoordinate; override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
@@ -805,17 +810,41 @@ begin
   end;
 end;
 
-{ TIndexedLineSetRenderer -------------------------------------------------- }
+{ TLineSetRenderer ----------------------------------------------------------- }
+
+procedure TLineSetRenderer.PrepareIndexesCoordsRange(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
+var
+  I: Integer;
+begin
+  Arrays.Counts.Add(EndIndex - BeginIndex);
+  if CoordIndex <> nil then
+    for I := BeginIndex to EndIndex - 1 do
+      IndexesFromCoordIndex.Add(CoordIndex.Items[I]);
+end;
+
+procedure TLineSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+begin
+  Arrays.Primitive := gpLineStrip;
+  Arrays.Counts := TDynCardinalArray.Create;
+  if CoordIndex <> nil then
+    IndexesFromCoordIndex := TDynLongIntArray.Create;
+  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  if CoordIndex <> nil then
+  begin
+    Assert(Arrays.Counts.Sum = IndexesFromCoordIndex.Count);
+    MaxIndex := IndexesFromCoordIndex.Max;
+  end;
+end;
 
 procedure TLineSetRenderer.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
-var i: integer;
+var
+  I: Integer;
 begin
   inherited;
-
-  glBegin(GL_LINE_STRIP);
-  for i := BeginIndex to endIndex - 1 do GenerateVertex(i);
-  glEnd;
+  for I := BeginIndex to EndIndex - 1 do
+    GenerateVertex(I);
 end;
 
 procedure TLineSetRenderer.GenerateCoordinate;

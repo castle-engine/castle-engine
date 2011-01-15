@@ -285,7 +285,7 @@ type
       (initiallly is Low(LongInt)).
 
       Also, this is the place to set Arrays.Primitive. }
-    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); virtual; {TODO:abstract;}
+    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); virtual; abstract;
 
     { Called when constructing Arrays, before the Arrays.Count is set.
       Descendants can override this to do stuff like Arrays.AddColor or
@@ -897,18 +897,6 @@ begin
   FCoordIndex := Geometry.CoordIndex;
 end;
 
-{ TODO: this should be abstract, but for testing it's easier for now
-  to only make a warning. }
-procedure TAbstractCoordinateRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
-begin
-  Writeln(ClassName, ' has not implemented PrepareIndexesPrimitives');
-
-  if CoordIndex <> nil then
-  begin
-    IndexesFromCoordIndex := TDynLongIntArray.Create;
-  end;
-end;
-
 procedure TAbstractCoordinateRenderer.DoRender;
 
   { Calculate Arrays.Indexes, Arrays.Count, Arrays.Position,
@@ -988,7 +976,8 @@ procedure TAbstractCoordinateRenderer.DoRender;
 
   const
     ToMode: array [TGeometryPrimitive] of TGLenum =
-    ( GL_TRIANGLES, GL_QUADS, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP );
+    ( GL_TRIANGLES, GL_QUADS, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
+      GL_LINE_STRIP );
   var
     I: Integer;
     First: Cardinal;
