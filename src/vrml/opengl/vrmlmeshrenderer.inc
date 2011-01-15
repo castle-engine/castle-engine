@@ -666,7 +666,6 @@ type
     { Will be set to Normals or it's inverted version, to keep
       pointing from CCW. }
     CcwNormals: TDynVector3SingleArray;
-    procedure glNormalFromIndex(Index: Integer);
   protected
     NormalIndex: TMFLong;
     Normals: TDynVector3SingleArray;
@@ -2433,12 +2432,6 @@ begin
     AllowIndexed := false;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.glNormalFromIndex(Index: Integer);
-begin
-  if Index < CcwNormals.Count then
-    glNormalv(CcwNormals.Items[Index]);
-end;
-
 function TAbstractNorColMatTexCoordinateRenderer.
   NorImplementationFromVRML1Binding(NormalBinding: Integer): TNormalsImplementation;
 begin
@@ -2506,20 +2499,14 @@ end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.RenderVertex(IndexNum: Integer);
 begin
-  { If case of other NorImplementation, this will be handled elsewhere:
-    - niOverall is handled in RenderCoordinateBegin
-    - niNone is handled in descendants
-    - niPerVertexNonIndexed with CoordIndex = nil, and
-      inPerVertexCoordIndexed are also set up in RenderCoordinateBegin,
-      so glDrawElement will magically do this. }
-
   case NorImplementation of
-    niPerVertexNormalIndexed:
+//    niPerVertexNormalIndexed:
       { We could use GetNormal(IndexNum) here, but since we already checked
         NorImplementation, we do it more directly. But the result is the same
         as if we had used GetNormal. }
-      glNormalFromIndex(NormalIndex.ItemsSafe[IndexNum]);
+//todo:      Arrays.Normal(IndexNum)^ := CcwNormals.ItemsSafe[NormalIndex.ItemsSafe[IndexNum]];
     niPerVertexNonIndexed:
+      if CoordIndex <> nil then
       begin
         Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
         { TODO: make sure we have enough CcwNormals }
@@ -2552,11 +2539,14 @@ begin
   end else
   if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
   begin
-    { TODO }
+    Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
+    if CcwNormals.Count = Arrays.Count then
+      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
+      VRMLWarning(vwSerious, 'CcwNormals.Count <> Arrays.Count. TODO: bug (make it assert then) or not (make it cleaner then)');
   end else
   if NorImplementation = niOverall then
   begin
-    glNormalFromIndex(0);
+//todo:    glNormalFromIndex(0);
   end;
 end;
 
@@ -2571,13 +2561,15 @@ end;
 procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
+//todo:var
+//  N: PVector3Single;
 begin
   inherited;
 
-  case NorImplementation of
-    niPerFace:
-      glNormalFromIndex(RangeNumber);
-    niPerFaceNormalIndexed:
-      glNormalFromIndex(NormalIndex.ItemsSafe[RangeNumber]);
-  end;
+//  case NorImplementation of
+//    niPerFace:
+//      glNormalFromIndex(RangeNumber);
+//    niPerFaceNormalIndexed:
+//      glNormalFromIndex(NormalIndex.ItemsSafe[RangeNumber]);
+//  end;
 end;
