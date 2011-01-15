@@ -430,6 +430,19 @@ type
       set them truly (exactly) equal.
       Returns how many vertex positions were changed. }
     function MergeCloseVertexes(MergeDistance: Single): Cardinal;
+
+    { Copy our contents to given Target memory. Each item in Target
+      is separated by the Stride bytes. }
+    procedure AssignToInterleaved(Target: Pointer; const Stride: Cardinal);
+
+    { Copy our contents to given Target memory. Each item in Target
+      is separated by the Stride bytes.
+
+      We will copy Indexes.Count items. Item number I is taken
+      from Items[Indexes[I]]. It's your responsibility to make sure first
+      that all values on Indexes list are valid, that is >= 0 and < our Count. }
+    procedure AssignToInterleavedIndexed(Target: Pointer; const Stride: Cardinal;
+      Indexes: TDynLongIntArray);
   end;
 
   TDynArrayItem_2 = TVector2Single;
@@ -2530,6 +2543,29 @@ begin
     end;
 
     Inc(V1);
+  end;
+end;
+
+procedure TDynVector3SingleArray.AssignToInterleaved(Target: Pointer; const Stride: Cardinal);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    Move(Items[I], Target^, SizeOf(TVector3Single));
+    PtrUInt(Target) += Stride;
+  end;
+end;
+
+procedure TDynVector3SingleArray.AssignToInterleavedIndexed(Target: Pointer; const Stride: Cardinal;
+  Indexes: TDynLongIntArray);
+var
+  I: Integer;
+begin
+  for I := 0 to Indexes.Count - 1 do
+  begin
+    Move(Items[Indexes.Items[I]], Target^, SizeOf(TVector3Single));
+    PtrUInt(Target) += Stride;
   end;
 end;
 
