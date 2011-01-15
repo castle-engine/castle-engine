@@ -993,6 +993,10 @@ var
     AllowIndexed := true;
     PrepareAttributes(AllowIndexed);
 
+{    if Log then
+      WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
+        [Shape.Geometry.NodeTypeName, BoolToStr[AllowIndexed]]));}
+
     if AllowIndexed or (IndexesFromCoordIndex = nil) then
     begin
       Arrays.Indexes := IndexesFromCoordIndex;
