@@ -206,14 +206,16 @@
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
 
+    function Proxy(var State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
+
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
   end;
 
   TNodeExtrusion = class(TNodeX3DGeometryNode)

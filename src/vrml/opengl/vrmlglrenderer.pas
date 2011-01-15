@@ -4195,8 +4195,6 @@ procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLShape);
       ExposedMeshRenderer := TPointSet_1Renderer.Create(Self) else
     if AGeometry is TNodePointSet_2 then
       ExposedMeshRenderer := TPointSet_2Renderer.Create(Self) else
-    if AGeometry is TNodeElevationGrid then
-      ExposedMeshRenderer := TElevationGridRenderer.Create(Self) else
     if (AGeometry is TNodeTriangleSet) or
        (AGeometry is TNodeIndexedTriangleSet) then
       ExposedMeshRenderer := TTriangleSetRenderer.Create(Self) else

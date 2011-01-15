@@ -2285,6 +2285,7 @@ resourcestring
 {$I dynarray_4.inc}
 
 {$I vrmlnodes_extrusion.inc}
+{$I vrmlnodes_elevationgrid.inc}
 {$I vrmlnodes_boundingboxes.inc}
 {$I vrmlnodes_verticesandtrianglescounting.inc}
 {$I vrmlnodes_triangulating.inc}

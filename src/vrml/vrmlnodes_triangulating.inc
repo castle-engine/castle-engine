@@ -328,49 +328,6 @@ begin
   { No triangles }
 end;
 
-{ TNodeElevationGrid --------------------------------------------------------- }
-
-procedure TNodeElevationGrid.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
-var
-  I, J: Integer;
-  Last1, Last2, Next1, Next2: TVector3Single;
-begin
-  if IsNotEmpty then
-  begin
-    for I := 1 to FdXDimension.Value - 1 do
-    begin
-      Last1[0] := FdXSpacing.Value * (I - 1);
-      Last1[1] := FdHeight.Items.Items[I - 1];
-      Last1[2] := 0;
-      Last2[0] := FdXSpacing.Value * I;
-      Last2[1] := FdHeight.Items.Items[I];
-      Last2[2] := 0;
-      { Next X-coordinate will be const for the life of "for J := " below. }
-      Next1[0] := Last1[0];
-      Next2[0] := Last2[0];
-      for J := 1 to FdZDimension.Value - 1 do
-      begin
-        Next1[1] := FdHeight.Items.Items[I - 1 + J * FdXDimension.Value];
-        Next1[2] := FdZSpacing.Value * J;
-        Next2[1] := FdHeight.Items.Items[I + J * FdXDimension.Value];
-        Next2[2] := Next1[2];
-
-        { Should be revert here order based on FdCcw.Value ?
-          As far as I understand, no : ccw FALSE tells me that
-          normals point download (normal y is negative) and I
-          should eventually cull (if solid TRUE) the other side. }
-        NewTriangleProc(Triangle3Single(Last2, Last1, Next1), Shape, 0, -1, -1);
-        NewTriangleProc(Triangle3Single(Last2, Next1, Next2), Shape, 0, -1, -1);
-
-        Last1 := Next1;
-        Last2 := Next2;
-      end;
-    end;
-  end;
-end;
-
 { TCoordinateTriangulator ---------------------------------------------------- }
 
 type
