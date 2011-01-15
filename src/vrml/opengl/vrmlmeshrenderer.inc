@@ -1020,7 +1020,7 @@ procedure TAbstractCoordinateRenderer.DoRender;
       glEnableClientState(GL_NORMAL_ARRAY);
       glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
 
-      if Renderer.UseMultiTexturing then
+      if GLUseMultiTexturing then
       begin
         for I := 0 to Arrays.TexCoords.Count - 1 do
           if Arrays.TexCoords[I] <> nil then
@@ -1207,9 +1207,8 @@ procedure TAbstractTexCoordinateRenderer.PrepareAttributes(
   end;
 
 var
-  { Just copies of Renderer.TexCoordsNeeded, UseMultiTexturing, for comfort }
+  { Just copy of Renderer.TexCoordsNeeded, for comfort }
   TexCoordsNeeded: Cardinal;
-  UseMultiTexturing: boolean;
 
   { Set length of TexCoordGen*, TexCoordArray* arrays. }
   procedure SetTexLengths(const Count: Integer);
@@ -1227,12 +1226,12 @@ var
     1. Uses TexCoord, to get usable explicit texture coordinates.
     2. If this generated any usable coords (that is,
        Length(TexCoordGen/Array) <> 0 after 1st step) then this array
-       is grown/shrink using UseMultiTexturing/TexCoordsNeeded information.
+       is grown/shrink using GLUseMultiTexturing/TexCoordsNeeded information.
 
     After this, TexCoordGen/Array is either empty (if no (valid) texture coords
     found, or not required because TexCoordsNeeded = 0) or has required
-    number of items (exactly 1 for not UseMultiTexturing,
-    exactly TexCoordsNeeded for UseMultiTexturing). }
+    number of items (exactly 1 for not GLUseMultiTexturing,
+    exactly TexCoordsNeeded for GLUseMultiTexturing). }
   procedure InitializeTexCoordGenArray;
 
     function TexCoordGenFromString(const S: string; const IsTexture3D: boolean): TTextureCoordinateGeneration;
@@ -1387,10 +1386,10 @@ var
     Assert(Length(TexCoordGen) = Length(TexCoordArray3d));
     Assert(Length(TexCoordGen) = Length(TexCoordArray4d));
 
-    { Now fix using UseMultiTexturing, TexCoordsNeeded. }
+    { Now fix using GLUseMultiTexturing, TexCoordsNeeded. }
     if Length(TexCoordGen) <> 0 then
     begin
-      if UseMultiTexturing then
+      if GLUseMultiTexturing then
       begin
         if Cardinal(Length(TexCoordGen)) > TexCoordsNeeded then
         begin
@@ -1422,7 +1421,7 @@ var
       end else
       begin
         { I know at this point that TexCoordArray has at least one item.
-          So leave *only* this item, if not UseMultiTexturing. }
+          So leave *only* this item, if not GLUseMultiTexturing. }
         SetTexLengths(1);
       end;
     end;
@@ -1625,7 +1624,7 @@ var
   end;
 
   { Set texture generation, for all texture units
-    (required from TexCoordsNeeded UseMultiTexturing) where
+    (required from TexCoordsNeeded GLUseMultiTexturing) where
     TexCoordGen[] <> tgExplicit.
 
     Call this only if InitializeTexCoordGenArray generated some non-empty
@@ -1863,7 +1862,7 @@ var
   var
     I: Integer;
   begin
-    if UseMultiTexturing then
+    if GLUseMultiTexturing then
     begin
       for I := 0 to TexCoordsNeeded - 1 do
         if not (TexCoordGen[I] in ExplicitTexCoords) then
@@ -1896,7 +1895,6 @@ begin
   TexImplementation := tcNotGenerated;
 
   TexCoordsNeeded := Renderer.TexCoordsNeeded;
-  UseMultiTexturing := Renderer.UseMultiTexturing;
 
   { Make sure they are initially empty, since we check this afterwards. }
   SetLength(TexCoordGen    , 0);
@@ -1976,7 +1974,7 @@ end;
 procedure TAbstractTexCoordinateRenderer.GenerateCoordinateBegin;
 
   { Set explicit coordinates as gl[Multi]TexCoordPointer, for all texture units
-    (required from TexCoordsNeeded UseMultiTexturing) where
+    (required from TexCoordsNeeded GLUseMultiTexturing) where
     TexCoordGen[] = tgExplicit*.
 
     Call this only if InitializeTexCoordGenArray generated some non-empty
@@ -2045,7 +2043,7 @@ begin
     enabled by PrepareAttributes. }
   if Renderer.TexCoordsNeeded > 0 then
   begin
-    if Renderer.UseMultiTexturing then
+    if GLUseMultiTexturing then
     begin
       for I := 0 to Renderer.TexCoordsNeeded - 1 do
         if not (TexCoordGen[I] in ExplicitTexCoords) then

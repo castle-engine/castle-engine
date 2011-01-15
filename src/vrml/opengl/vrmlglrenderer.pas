@@ -1284,7 +1284,7 @@ type
 
       This is the number of texture units used.
       Always <= 1 if OpenGL doesn't support multitexturing
-      (UseMultiTexturing = @false).
+      (GLUseMultiTexturing = @false).
       It's also already clamped by the number of available texture units
       (determined from First/LastGLFreeTexture).
 
@@ -1293,17 +1293,9 @@ type
       purposes). }
     TexCoordsNeeded: Cardinal;
 
-    { @true if OpenGL allows and we should use multi-texturing
-      for VRML/X3D MultiTexture support.
-
-      This is orthogonal to bump mapping method, and in fact will be ignored
-      where bump mapping is used (bump mapping methods check the multitexturing
-      support explicitly, for themselves). }
-    UseMultiTexturing: boolean;
-
     { Set by RenderShapeBegin, used by RenderShapeEnd. Tells for which
       texture units we pushed and modified the texture matrix.
-      Always <= 1 if not UseMultiTexturing. }
+      Always <= 1 if not GLUseMultiTexturing. }
     TextureTransformUnitsUsed: Cardinal;
 
     { Set by RenderShapeBegin, used by RenderShapeEnd. Tells how many
@@ -3863,36 +3855,6 @@ procedure TVRMLGLRenderer.RenderBegin(FogNode: TNodeFog);
 
 var i: integer;
 begin
-  { calculate UseMultiTexturing: check extensions required for multitexturing.
-
-    We simply require all extensions, like
-    EXT_texture_env_combine and ARB_multitexture and
-    ARB_texture_env_dot3. If any of them is missing, I'll not use
-    multitexturing. This is acceptable, as all modern OpenGL versions
-    will have them all. }
-
-  UseMultiTexturing :=
-    { EXT_texture_env_combine (standard since 1.3) required }
-    (GL_EXT_texture_env_combine or GL_version_1_3) and
-
-    { Actually, other extensions also don't have to exist, they are built in
-      newer OpenGL version. But this requires getting their procedures under different
-      names (without extension suffix). For EXT_texture_env_combine, this is simpler
-      since it only defines new constants and these are the same, whether it's extension
-      or built-in GL 1.3. }
-
-    { ARB_multitexture required (TODO: standard since 1.3, see above comments) }
-    GL_ARB_multitexture and
-
-    { GL >= 1.3 required for GL_SUBTRACT.
-
-      As you see, actually this whole check could be substituted by GL >= 1.3,
-      as this allows GL_SUBTRACT and provides all extensions required here. }
-    GL_version_1_3 and
-
-    { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
-    GL_ARB_texture_env_dot3;
-
   { Push attribs and matrices (by pushing attribs FIRST we save also current
     matrix mode).
 
@@ -4153,10 +4115,10 @@ begin
             MultiTextureTransform.textureTransform.
 
             Cap by available texture units (First/LastGLFreeTexture,
-            and check UseMultiTexturing in case OpenGL cannot support
+            and check GLUseMultiTexturing in case OpenGL cannot support
             multitex at all). }
           TextureTransformUnitsUsed := Min(Transforms.Count, FreeGLTexturesCount);
-          if not UseMultiTexturing then
+          if not GLUseMultiTexturing then
             MinTo1st(TextureTransformUnitsUsed, 1);
 
           for I := 0 to TextureTransformUnitsUsed - 1 do
@@ -4345,7 +4307,7 @@ var
 
       if BumpMapping = nil then
       begin
-        GLTextureNode.EnableAll(FreeGLTexturesCount, UseMultiTexturing,
+        GLTextureNode.EnableAll(FreeGLTexturesCount,
           TexCoordsNeeded, Primitives3DTextureCoords);
       end else
       begin
@@ -4382,7 +4344,7 @@ var
       this way they will at least define correct texture coordinates
       for texture unit 0. }
 
-    if (TexCoordsNeeded > 0) and UseMultiTexturing then
+    if (TexCoordsNeeded > 0) and GLUseMultiTexturing then
       ActiveTexture(0);
   end;
 
@@ -4539,7 +4501,7 @@ begin
 
     for I := 0 to TextureTransformUnitsUsed - 1 do
     begin
-      { This code is Ok also when not UseMultiTexturing: then
+      { This code is Ok also when not GLUseMultiTexturing: then
         TextureTransformUnitsUsed for sure is <= 1 and ActiveTexture
         will be simply ignored. }
       ActiveTexture(I);

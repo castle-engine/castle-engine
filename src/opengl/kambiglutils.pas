@@ -306,6 +306,16 @@ var
   GLMaxClipPlanes: Cardinal;
   { @groupEnd }
 
+  { Are all OpenGL multi-texturing extensions for
+    VRML/X3D MultiTexture support available.
+
+    This checks a couple of extensions, not only ARB_multitexture,
+    that are in practice supported by virtually all existing GPU.
+    So it's acceptable to just check them all, and write your code for them,
+    and eventual fallback code (when this is false) write only for really
+    ancient GPUs. }
+  GLUseMultiTexturing: boolean;
+
 { Initialize all extensions and OpenGL versions.
 
   Calls all Load_GLXxx routines from glext unit, so tries to init
@@ -1209,6 +1219,36 @@ begin
    GLMaxRectangleTextureSize := 0;
 
  GLMaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES);
+
+  { calculate GLUseMultiTexturing: check extensions required for multitexturing.
+
+    We simply require all extensions, like
+    EXT_texture_env_combine and ARB_multitexture and
+    ARB_texture_env_dot3. If any of them is missing, I'll not use
+    multitexturing. This is acceptable, as all modern OpenGL versions
+    will have them all. }
+
+  GLUseMultiTexturing :=
+    { EXT_texture_env_combine (standard since 1.3) required }
+    (GL_EXT_texture_env_combine or GL_version_1_3) and
+
+    { Actually, other extensions also don't have to exist, they are built in
+      newer OpenGL version. But this requires getting their procedures under different
+      names (without extension suffix). For EXT_texture_env_combine, this is simpler
+      since it only defines new constants and these are the same, whether it's extension
+      or built-in GL 1.3. }
+
+    { ARB_multitexture required (also standard since 1.3, see above comments) }
+    GL_ARB_multitexture and
+
+    { GL >= 1.3 required for GL_SUBTRACT.
+
+      As you see, actually this whole check could be substituted by GL >= 1.3,
+      as this allows GL_SUBTRACT and provides all extensions required here. }
+    GL_version_1_3 and
+
+    { ARB_texture_env_dot3 required (also standard since 1.3, see above comments) }
+    GL_ARB_texture_env_dot3;
 end;
 {$endif}
 

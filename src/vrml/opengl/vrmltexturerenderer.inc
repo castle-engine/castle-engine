@@ -122,10 +122,10 @@
 
       TextureUnitsCount does *not* take into account whether multitexturing
       OpenGL extensions are available at all.
-      Look at UseMultiTexturing for this.
-      Think of UseMultiTexturing as capping TextureUnitsCount to 1
+      Look at GLUseMultiTexturing for this.
+      Think of GLUseMultiTexturing as capping TextureUnitsCount to 1
       (still, remember to honour TextureUnitsCount = 0 case in your implementation,
-      even when UseMultiTexturing = @true).
+      even when GLUseMultiTexturing = @true).
 
       You have to set TexCoordsNeeded, this is the count of texture units
       where some texture coordinates should be generated.
@@ -151,7 +151,6 @@
       but only to true, by this procedure. }
     procedure EnableAll(
       const TextureUnitsCount: Cardinal;
-      const UseMultiTexturing: boolean;
       out TexCoordsNeeded: Cardinal;
       var Primitives3DTextureCoords: boolean); virtual; abstract;
   end;
@@ -214,7 +213,6 @@
   public
     procedure EnableAll(
       const TextureUnitsCount: Cardinal;
-      const UseMultiTexturing: boolean;
       out TexCoordsNeeded: Cardinal;
       var Primitives3DTextureCoords: boolean); override;
   end;
@@ -244,7 +242,6 @@
       var Primitives3DTextureCoords: boolean): boolean; override;
     procedure EnableAll(
       const TextureUnitsCount: Cardinal;
-      const UseMultiTexturing: boolean;
       out TexCoordsNeeded: Cardinal;
       var Primitives3DTextureCoords: boolean); override;
   end;
@@ -711,7 +708,6 @@ end;
 
 procedure TGLSingleTextureNode.EnableAll(
   const TextureUnitsCount: Cardinal;
-  const UseMultiTexturing: boolean;
   out TexCoordsNeeded: Cardinal;
   var Primitives3DTextureCoords: boolean);
 begin
@@ -850,7 +846,6 @@ end;
 
 procedure TGLMultiTextureNode.EnableAll(
   const TextureUnitsCount: Cardinal;
-  const UseMultiTexturing: boolean;
   out TexCoordsNeeded: Cardinal;
   var Primitives3DTextureCoords: boolean);
 type
@@ -1227,7 +1222,7 @@ var
 begin
   { calculate TexCoordsNeeded }
   TexCoordsNeeded := Min(TextureUnitsCount, TextureNode.FdTexture.Count);
-  if not UseMultiTexturing then
+  if not GLUseMultiTexturing then
     MinTo1st(TexCoordsNeeded, 1);
 
   for I := 0 to TexCoordsNeeded - 1 do
@@ -1243,7 +1238,7 @@ begin
         Success := Renderer.GLTextureNodes.Enable(TNodeX3DTextureNode(ChildTex),
           I, Primitives3DTextureCoords);
 
-      if Success and UseMultiTexturing { needed OpenGL exts available } then
+      if Success and GLUseMultiTexturing { needed OpenGL exts available } then
       begin
         { Set all the multitexture mode-related stuff.
           Below we handle TextureNode.mode, source, color, alpha,
