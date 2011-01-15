@@ -1882,20 +1882,12 @@ var
   var
     I: Integer;
   begin
-    if UseMultiTexturing then
-    begin
-      for I := 0 to TexCoordsNeeded - 1 do
-        case TexCoordGen[I] of
-          tgExplicit2d: Arrays.AddTexCoord2D(I);
-          tgExplicit3d: Arrays.AddTexCoord3D(I);
-          tgExplicit4d: Arrays.AddTexCoord4D(I);
-        end;
-    end else
-    case TexCoordGen[0] of
-      tgExplicit2d: Arrays.AddTexCoord2D(0);
-      tgExplicit3d: Arrays.AddTexCoord3D(0);
-      tgExplicit4d: Arrays.AddTexCoord4D(0);
-    end;
+    for I := 0 to High(TexCoordGen) do
+      case TexCoordGen[I] of
+        tgExplicit2d: Arrays.AddTexCoord2D(I);
+        tgExplicit3d: Arrays.AddTexCoord3D(I);
+        tgExplicit4d: Arrays.AddTexCoord4D(I);
+      end;
   end;
 
 begin
@@ -2171,31 +2163,17 @@ end;
 
 procedure TAbstractTexCoordinateRenderer.GenerateVertex(indexNum: integer);
 
-  { You can call this only if TexCoordArray is non-empty.
-
-    This implies that InitializeTexCoordGenArray found usable
-    texture coordinates (either explicit or generated),
-    and TexCoordGen/Array has 1 (no UseMultiTexturing)
-    or exactly TexCoordsNeeded (when UseMultiTexturing) items. }
   procedure DoTexCoord(Index: Integer);
   var
     TextureUnit: Integer;
   begin
-    if Renderer.UseMultiTexturing then
+    for TextureUnit := 0 to High(TexCoordGen) do
     begin
-      for TextureUnit := 0 to Renderer.TexCoordsNeeded - 1 do
-      begin
-        case TexCoordGen[TextureUnit] of
-          tgExplicit2d: Arrays.TexCoord2D(TextureUnit, ArrayIndexNum)^ := TexCoordArray2d[TextureUnit].ItemsSafe[Index];
-          tgExplicit3d: Arrays.TexCoord3D(TextureUnit, ArrayIndexNum)^ := TexCoordArray3d[TextureUnit].ItemsSafe[Index];
-          tgExplicit4d: Arrays.TexCoord4D(TextureUnit, ArrayIndexNum)^ := TexCoordArray4d[TextureUnit].ItemsSafe[Index];
-        end;
+      case TexCoordGen[TextureUnit] of
+        tgExplicit2d: Arrays.TexCoord2D(TextureUnit, ArrayIndexNum)^ := TexCoordArray2d[TextureUnit].ItemsSafe[Index];
+        tgExplicit3d: Arrays.TexCoord3D(TextureUnit, ArrayIndexNum)^ := TexCoordArray3d[TextureUnit].ItemsSafe[Index];
+        tgExplicit4d: Arrays.TexCoord4D(TextureUnit, ArrayIndexNum)^ := TexCoordArray4d[TextureUnit].ItemsSafe[Index];
       end;
-    end else
-    case TexCoordGen[0] of
-      tgExplicit2d: Arrays.TexCoord2D(0, ArrayIndexNum)^ := TexCoordArray2d[0].ItemsSafe[Index];
-      tgExplicit3d: Arrays.TexCoord3D(0, ArrayIndexNum)^ := TexCoordArray3d[0].ItemsSafe[Index];
-      tgExplicit4d: Arrays.TexCoord4D(0, ArrayIndexNum)^ := TexCoordArray4d[0].ItemsSafe[Index];
     end;
   end;
 
