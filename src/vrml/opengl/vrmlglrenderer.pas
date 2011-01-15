@@ -4455,21 +4455,6 @@ var
       UsedGLSL.Disable;
   end;
 
-  procedure RenderGeometryArrays(Arrays: TGeometryArrays);
-  begin
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
-
-    { TODO:
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal); }
-
-    glDrawElements(GL_TRIANGLES, Arrays.Indexes.Count, GL_UNSIGNED_INT,
-      Arrays.Indexes.ItemsArray);
-
-    FreeAndNil(Arrays);
-  end;
-
 begin
   { make a copy to our class fields }
   CurrentShape := Shape;

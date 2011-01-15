@@ -212,6 +212,9 @@ type
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
     FCoordIndex: TMFLong;
+
+    { Available inside RenderCoordinate* }
+    Arrays: TGeometryArrays;
   protected
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
@@ -804,14 +807,14 @@ end;
 procedure TVRMLMeshRenderer.DoGLVertex(const Vert: TVector3Single);
 begin
   DoBeforeGLVertex(Vert);
-  glVertexv(Vert);
+//  glVertexv(Vert);
 end;
 
 procedure TVRMLMeshRenderer.DoGLArrayElement(
   const Verts: PArray_Vector3Single; ith: TGLint);
 begin
   DoBeforeGLVertex(Verts^[ith]);
-  glArrayElement(ith);
+//  glArrayElement(ith);
 end;
 
 procedure TVRMLMeshRenderer.Render;
@@ -915,54 +918,132 @@ var
       glUnlockArraysEXT;
   end;
 
+  procedure GenIFS;
+  var
+    BeginIndex, EndIndex, NextIndex, I, MaxIndex, IndexesCount: Integer;
+    Position: PVector3Single;
+  begin
+    { TODO: assume CoordIndex non-nil, and layed like for IFS }
+
+    { calculate IndexesCount and MaxIndex, by one iteration over coordIndex }
+    IndexesCount := 0;
+    BeginIndex := 0;
+    MaxIndex := -1;
+    while BeginIndex < CoordIndex.Count do
+    begin
+      EndIndex := BeginIndex;
+      while (EndIndex < CoordIndex.Count) and
+            (CoordIndex.Items.Items[EndIndex] >= 0) do
+      begin
+        Inc(EndIndex);
+        MaxTo1st(MaxIndex, CoordIndex.Items.Items[EndIndex]);
+      end;
+      IndexesCount += Max(EndIndex - BeginIndex - 2, 0) * 3;
+      BeginIndex := EndIndex + 1;
+    end;
+
+    { check do we have enough coordinates. TGeometryArrays data may be passed
+      quite raw to OpenGL, so this may be our last chance to check correctess
+      and avoid passing data that would cause OpenGL errors. }
+    if MaxIndex >= Coord.Count then
+    begin
+      VRMLWarning(vwSerious, Format('Not enough coordinates: coordIndex references %d coordinates, but we only have %d coordinates',
+        [MaxIndex + 1, Coord.Count]));
+      Exit; { leave Arrays created but empty }
+    end;
+
+    Arrays.Indexes := TDynLongIntArray.Create(IndexesCount);
+
+    { calculate Arrays.Indexes contents: triangulate }
+    NextIndex := 0;
+    BeginIndex := 0;
+    while BeginIndex < CoordIndex.Count do
+    begin
+      EndIndex := BeginIndex;
+      while (EndIndex < CoordIndex.Count) and
+            (CoordIndex.Items.Items[EndIndex] >= 0) do
+        Inc(EndIndex);
+      for I := BeginIndex to EndIndex - 3 do
+      begin
+        Arrays.Indexes.Items[NextIndex] := CoordIndex.Items.Items[BeginIndex]; Inc(NextIndex);
+        Arrays.Indexes.Items[NextIndex] := CoordIndex.Items.Items[I + 1     ]; Inc(NextIndex);
+        Arrays.Indexes.Items[NextIndex] := CoordIndex.Items.Items[I + 2     ]; Inc(NextIndex);
+      end;
+      BeginIndex := EndIndex + 1;
+    end;
+
+    Arrays.Count := Coord.Count;
+
+    Position := Arrays.Position;
+    for I := 0 to Arrays.Count - 1 do
+    begin
+      Position^ := Coord.Items.Items[I];
+      Arrays.IncPosition(Position);
+    end;
+  end;
+
 begin
   if Coord = nil then
     Exit;
 
-  { Initialize vertex arrays that we we will use with indexed nodes.
-    GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
-    eventual normal and texture coord arrays (possibly set by
-    RenderCoordinateBegin).
-
-    Mesa3D: well, you know the drill. Mesa 7.2 (at least this one)
-    crashes awfully when using glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT).
-    The crash is a segfault, sometimes from my code, sometimes from
-    within the mesa lib, sometimes from GTK... evidently, Mesa's
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT) cripples some memory
-    leading to crash at some random place later.
-
-    To reproduce: open with view3dscene almost any non-empty model,
-    like kambi_vrml_test_suite/x3d/kambi_extensions/teapot_simple.x3dv.
-    Sometimes you need to open it a couple of times... and you get this crash.
-    Reproducible easily on "chantal" (mac book pro) and "domek"
-    (netbook MSI Wind).
-
-    TODO: I don't know is it known bug, in what Mesa version it's produced
-    and when (if) it's fixed... for now I'll just avoid doing
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT) with Mesa.
-    Yes, this makes rendering code buggy (GL_CLIENT_VERTEX_ARRAY_BIT
-    "leaks out" from our VRML renderer), but it's not a problem
-    in practice for my programs --- I didn't depend anywhere that
-    VRML renderer preserves that glVertexPointer state.
-  }
-  if not GLVersion.IsMesa then
-    glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+  Arrays := TGeometryArrays.Create;
   try
-    glVertexPointer(3, GL_FLOAT, 0, Coord.Items.Items);
-    glEnableClientState(GL_VERTEX_ARRAY);
-
     RenderCoordinateBegin;
     try
+      RenderCoordinate;
+    finally RenderCoordinateEnd; end;
+
+    if not (Geometry is TNodeIndexedFaceSet_2) then Exit; // TODO
+
+    GenIFS;
+
+    { Initialize vertex arrays that we we will use with indexed nodes.
+      GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
+      eventual normal and texture coord arrays (possibly set by
+      RenderCoordinateBegin).
+
+      Mesa3D: well, you know the drill. Mesa 7.2 (at least this one)
+      crashes awfully when using glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT).
+      The crash is a segfault, sometimes from my code, sometimes from
+      within the mesa lib, sometimes from GTK... evidently, Mesa's
+      glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT) cripples some memory
+      leading to crash at some random place later.
+
+      To reproduce: open with view3dscene almost any non-empty model,
+      like kambi_vrml_test_suite/x3d/kambi_extensions/teapot_simple.x3dv.
+      Sometimes you need to open it a couple of times... and you get this crash.
+      Reproducible easily on "chantal" (mac book pro) and "domek"
+      (netbook MSI Wind).
+
+      TODO: I don't know is it known bug, in what Mesa version it's produced
+      and when (if) it's fixed... for now I'll just avoid doing
+      glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT) with Mesa.
+      Yes, this makes rendering code buggy (GL_CLIENT_VERTEX_ARRAY_BIT
+      "leaks out" from our VRML renderer), but it's not a problem
+      in practice for my programs --- I didn't depend anywhere that
+      VRML renderer preserves that glVertexPointer state.
+    }
+    if not GLVersion.IsMesa then
+      glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+    try
+      glEnableClientState(GL_VERTEX_ARRAY);
+      glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
+
+      { TODO:
+      glEnableClientState(GL_NORMAL_ARRAY);
+      glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal); }
+
       { Lock arrays after setting up all arrays. }
       LockArraysBegin;
       try
-        RenderCoordinate;
+        glDrawElements(GL_TRIANGLES, Arrays.Indexes.Count, GL_UNSIGNED_INT,
+          Arrays.Indexes.ItemsArray);
       finally LockArraysEnd; end;
-    finally RenderCoordinateEnd; end;
-  finally
-    if not GLVersion.IsMesa then
-      glPopClientAttrib;
-  end;
+    finally
+      if not GLVersion.IsMesa then
+        glPopClientAttrib;
+    end;
+  finally FreeAndNil(Arrays) end;
 end;
 
 procedure TAbstractCoordinateRenderer.RenderCoordinateBegin;
