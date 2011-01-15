@@ -807,14 +807,14 @@ end;
 procedure TVRMLMeshRenderer.DoGLVertex(const Vert: TVector3Single);
 begin
   DoBeforeGLVertex(Vert);
-//  glVertexv(Vert);
+//  glVertexv(Vert); // TODO: uncomment, or remove this method
 end;
 
 procedure TVRMLMeshRenderer.DoGLArrayElement(
   const Verts: PArray_Vector3Single; ith: TGLint);
 begin
   DoBeforeGLVertex(Verts^[ith]);
-//  glArrayElement(ith);
+//  glArrayElement(ith); // TODO: uncomment, or remove this method
 end;
 
 procedure TVRMLMeshRenderer.Render;
