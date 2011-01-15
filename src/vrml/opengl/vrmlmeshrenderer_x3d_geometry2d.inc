@@ -17,106 +17,10 @@
   component. }
 
 type
-  TRectangle2DRenderer = class(TVRMLMeshRenderer)
-  private
-    Rectangle2D: TNodeRectangle2D;
-  protected
-    procedure DoRender; override;
-  public
-    constructor Create(ARenderer: TVRMLGLRenderer);
-  end;
-
-  TPlaneRenderer = class(TVRMLMeshRenderer)
-  private
-    Plane: TNodePlane;
-  protected
-    procedure DoRender; override;
-  public
-    constructor Create(ARenderer: TVRMLGLRenderer);
-  end;
-
   TCircle2DRenderer = class(TVRMLMeshRenderer)
   protected
     procedure DoRender; override;
   end;
-
-{ TRectangle2DRenderer -------------------------------------------------------- }
-
-constructor TRectangle2DRenderer.Create(ARenderer: TVRMLGLRenderer);
-begin
-  inherited;
-  Rectangle2D := Geometry as TNodeRectangle2D;
-
-  CullBackFaces := Rectangle2D.FdSolid.Value;
-  FrontFaceCcw := true;
-end;
-
-procedure TRectangle2DRenderer.DoRender;
-var
-  V: TVector3Single;
-begin
-  glBegin(GL_QUADS);
-    glNormal3f(0, 0, 1);
-
-    V[0] := -Rectangle2D.FdSize.Value[0] / 2;
-    V[1] := -Rectangle2D.FdSize.Value[1] / 2;
-    V[2] := 0;
-
-    glTexCoord2f(0, 0);
-    DoGLVertex(V);
-
-    V[0] := -V[0];
-    glTexCoord2f(1, 0);
-    DoGLVertex(V);
-
-    V[1] := -V[1];
-    glTexCoord2f(1, 1);
-    DoGLVertex(V);
-
-    V[0] := -V[0];
-    glTexCoord2f(0, 1);
-    DoGLVertex(V);
-  glEnd;
-end;
-
-{ TPlaneRenderer -------------------------------------------------------- }
-
-constructor TPlaneRenderer.Create(ARenderer: TVRMLGLRenderer);
-begin
-  inherited;
-  Plane := Geometry as TNodePlane;
-
-  CullBackFaces := Plane.FdSolid.Value;
-  FrontFaceCcw := true;
-end;
-
-procedure TPlaneRenderer.DoRender;
-var
-  V: TVector3Single;
-begin
-  glBegin(GL_QUADS);
-    glNormal3f(0, 0, 1);
-
-    V[0] := -Plane.FdSize.Value[0] / 2;
-    V[1] := -Plane.FdSize.Value[1] / 2;
-    V[2] := 0;
-
-    glTexCoord2f(0, 0);
-    DoGLVertex(V);
-
-    V[0] := -V[0];
-    glTexCoord2f(1, 0);
-    DoGLVertex(V);
-
-    V[1] := -V[1];
-    glTexCoord2f(1, 1);
-    DoGLVertex(V);
-
-    V[0] := -V[0];
-    glTexCoord2f(0, 1);
-    DoGLVertex(V);
-  glEnd;
-end;
 
 { TCircle2DRenderer ---------------------------------------------------------- }
 

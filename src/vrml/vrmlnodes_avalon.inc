@@ -226,14 +226,9 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
+    function Proxy(var State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
   end;
 
   TNodeToggler = class(TNodeX3DChildNode)
@@ -837,6 +832,17 @@ class function TNodePlane.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+function TNodePlane.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
+begin
+  Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
+end;
+
+function TNodePlane.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
 end;
 
 type

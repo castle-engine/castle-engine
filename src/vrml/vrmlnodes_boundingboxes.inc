@@ -559,20 +559,6 @@ end;
 
 { ---------------------------------------------------------------------------- }
 
-function TNodeRectangle2D.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
-begin
-  Result[0] := Vector3Single(-FdSize.Value[0] / 2, -FdSize.Value[1] / 2, 0);
-  Result[1] := Vector3Single( FdSize.Value[1] / 2,  FdSize.Value[1] / 2, 0);
-end;
-
-function TNodePlane.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
-begin
-  Result[0] := Vector3Single(-FdSize.Value[0] / 2, -FdSize.Value[1] / 2, 0);
-  Result[1] := Vector3Single( FdSize.Value[1] / 2,  FdSize.Value[1] / 2, 0);
-end;
-
 function TNodeCircle2D.LocalBoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin

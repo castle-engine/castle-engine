@@ -190,14 +190,9 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
+    function Proxy(var State: TVRMLGraphTraverseState;
+      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
   end;
 
   TNodeTriangleSet2D = class(TNodeX3DGeometryNode)
@@ -512,6 +507,52 @@ class function TNodeRectangle2D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function Rectangle2DProxy(Original: TVRMLGeometryNode;
+  const Size: TVector2Single; const Solid: boolean): TVRMLGeometryNode;
+var
+  Coord: TNodeCoordinate;
+  TexCoord: TNodeTextureCoordinate;
+  QuadSet: TNodeQuadSet absolute Result;
+begin
+  QuadSet := TNodeQuadSet.Create(Original.NodeName, Original.WWWBasePath);
+  try
+    Coord := TNodeCoordinate.Create('', Original.WWWBasePath);
+    Coord.FdPoint.Items.Count := 4;
+    QuadSet.FdCoord.Value := Coord;
+
+    TexCoord := TNodeTextureCoordinate.Create('', Original.WWWBasePath);
+    TexCoord.FdPoint.Items.Count := 4;
+    QuadSet.FdTexCoord.Value := TexCoord;
+
+    { calculate Coord, TexCoord contents }
+
+    Coord.FdPoint.Items.Items[0] := Vector3Single(-Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.Items[0] := Vector2Single(0, 0);
+
+    Coord.FdPoint.Items.Items[1] := Vector3Single( Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.Items[1] := Vector2Single(1, 0);
+
+    Coord.FdPoint.Items.Items[2] := Vector3Single( Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.Items[2] := Vector2Single(1, 1);
+
+    Coord.FdPoint.Items.Items[3] := Vector3Single(-Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.Items[3] := Vector2Single(0, 1);
+
+    QuadSet.FdSolid.Value := Solid;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TNodeRectangle2D.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TVRMLGeometryNode;
+begin
+  Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
+end;
+
+function TNodeRectangle2D.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
 end;
 
 constructor TNodeTriangleSet2D.Create(const ANodeName: string;

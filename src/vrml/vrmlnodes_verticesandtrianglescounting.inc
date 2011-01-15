@@ -392,34 +392,6 @@ end;
 
 { ---------------------------------------------------------------------------- }
 
-function TNodeRectangle2D.TrianglesCount(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
-begin
-  Result := 2;
-end;
-
-function TNodeRectangle2D.VerticesCount(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
-begin
-  Result := 4;
-end;
-
-function TNodePlane.TrianglesCount(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
-begin
-  Result := 2;
-end;
-
-function TNodePlane.VerticesCount(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
-begin
-  Result := 4;
-end;
-
 function TNodeCircle2D.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;

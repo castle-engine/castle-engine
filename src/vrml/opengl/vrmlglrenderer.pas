@@ -4216,28 +4216,6 @@ procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLShape);
       ExposedMeshRenderer := TTextRenderer.Create(Self) else
     if AGeometry is TNodeText3D then
       ExposedMeshRenderer := TText3DRenderer.Create(Self) else
-{$ifdef CONE_NO_PROXY}
-    if AGeometry is TNodeCone_1 then
-      ExposedMeshRenderer := TCone_1Renderer.Create(Self) else
-    if AGeometry is TNodeCone_2 then
-      ExposedMeshRenderer := TCone_2Renderer.Create(Self) else
-    if AGeometry is TNodeCube_1 then
-      ExposedMeshRenderer := TCube_1Renderer.Create(Self) else
-    if AGeometry is TNodeBox then
-      ExposedMeshRenderer := TBoxRenderer.Create(Self) else
-    if AGeometry is TNodeCylinder_1 then
-      ExposedMeshRenderer := TCylinder_1Renderer.Create(Self) else
-    if AGeometry is TNodeCylinder_2 then
-      ExposedMeshRenderer := TCylinder_2Renderer.Create(Self) else
-    if AGeometry is TNodeSphere_1 then
-      ExposedMeshRenderer := TSphere_1Renderer.Create(Self) else
-    if AGeometry is TNodeSphere_2 then
-      ExposedMeshRenderer := TSphere_2Renderer.Create(Self) else
-{$endif}
-    if AGeometry is TNodeRectangle2D then
-      ExposedMeshRenderer := TRectangle2DRenderer.Create(Self) else
-    if AGeometry is TNodePlane then
-      ExposedMeshRenderer := TPlaneRenderer.Create(Self) else
     if AGeometry is TNodeCircle2D then
       ExposedMeshRenderer := TCircle2DRenderer.Create(Self) else
       Result := false;

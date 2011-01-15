@@ -549,49 +549,6 @@ begin
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
-{ ---------------------------------------------------------------------------- }
-
-procedure Rectangle2D_LocalTriangulate(Shape: TObject;
-  State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-  FdSize: TSFVec2f);
-var
-  Triangle: TTriangle3Single;
-  V: TVector3Single;
-begin
-  V[0] := -FdSize.Value[0] / 2;
-  V[1] := -FdSize.Value[1] / 2;
-  V[2] := 0;
-
-  Triangle[0] := V;
-  V[1] := -V[1];
-  Triangle[1] := V;
-  V[0] := -V[0];
-  Triangle[2] := V;
-  NewTriangleProc(Triangle, Shape, 0, -1, -1);
-
-  Triangle[1] := Triangle[2];
-  V[1] := -V[1];
-  Triangle[2] := V;
-  NewTriangleProc(Triangle, Shape, 0, -1, -1);
-end;
-
-procedure TNodeRectangle2D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
-begin
-  Rectangle2D_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
-    FdSize);
-end;
-
-procedure TNodePlane.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
-begin
-  Rectangle2D_LocalTriangulate(Shape, State, OverTriangulate, NewTriangleProc,
-    FdSize);
-end;
-
 procedure TNodeCircle2D.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
