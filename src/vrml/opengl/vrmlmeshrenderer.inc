@@ -2519,20 +2519,20 @@ end;
 procedure TAbstractNorColMatTexCoordinateRenderer.RenderVertex(IndexNum: Integer);
 begin
   case NorImplementation of
-//    niPerVertexNormalIndexed:
-      { We could use GetNormal(IndexNum) here, but since we already checked
-        NorImplementation, we do it more directly. But the result is the same
-        as if we had used GetNormal. }
-//todo:      Arrays.Normal(IndexNum)^ := CcwNormals.ItemsSafe[NormalIndex.ItemsSafe[IndexNum]];
+    niPerVertexNormalIndexed:
+      begin
+        Assert(Arrays.Indexes = nil);
+        Arrays.Normal(ArrayIndexNum)^ := CcwNormalsSafe(NormalIndex.ItemsSafe[IndexNum]);
+      end;
     niPerVertexNonIndexed:
       if CoordIndex <> nil then
       begin
-        Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
+        Assert(Arrays.Indexes = nil);
         Arrays.Normal(ArrayIndexNum)^ := CcwNormalsSafe(IndexNum);
       end;
     niPerFace, niPerFaceNormalIndexed:
       begin
-        Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
+        Assert(Arrays.Indexes = nil);
         Arrays.Normal(ArrayIndexNum)^ := FaceNormal;
       end;
   end;
