@@ -1636,7 +1636,7 @@ uses Math, Triangulator, NormalizationCubeMap,
 {$I vrmlmeshrenderer.inc}
 {$I vrmlmeshrenderer_x3d_rendering.inc}
 {$I vrmlmeshrenderer_x3d_geometry3d.inc}
-{$I vrmlmeshrenderer_simple_nodes.inc}
+{$I vrmlmeshrenderer_x3d_text.inc}
 
 {$I resourcerenderer.inc}
 {$I vrmltexturerenderer.inc}
@@ -4315,7 +4315,7 @@ var
 
     { Make active texture 0. This is helpful for rendering code of
       some primitives that do not support multitexturing now
-      (for example, primitives inside vrmlmeshrenderer_simple_nodes.inc),
+      (inside vrmlmeshrenderer_x3d_text.inc),
       this way they will at least define correct texture coordinates
       for texture unit 0. }
 
