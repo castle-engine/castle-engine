@@ -362,7 +362,9 @@ begin
   begin
     Normals := Shape.NormalsSmooth;
     NormalsCcw := true;
-    NorImplementation := niPerVertexCoordIndexed;
+    if CoordIndex <> nil then
+      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexNonIndexed;
   end else
   begin
     { In this case, per-face normals are generated.
@@ -543,7 +545,9 @@ begin
   begin
     Normals := Shape.NormalsSmooth;
     NormalsCcw := true;
-    NorImplementation := niPerVertexCoordIndexed;
+    if CoordIndex <> nil then
+      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexNonIndexed;
   end else
   begin
     { In this case, per-face normals are generated.

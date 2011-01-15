@@ -2629,8 +2629,8 @@ begin
   if NorImplementation = niPerVertexCoordIndexed then
   begin
     if Arrays.Indexes <> nil then
-      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize){TODO: else
-      CcwNormals.AssignToInterleavedIndexed(Arrays.Normal, Arrays.CoordinateSize, IndexesFromCoordIndex)};
+      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
+      CcwNormals.AssignToInterleavedIndexed(Arrays.Normal, Arrays.CoordinateSize, IndexesFromCoordIndex);
   end else
   if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
   begin
