@@ -866,9 +866,9 @@ procedure TAbstractCoordinateRenderer.DoRender;
         UseLockArrays := GL_EXT_compiled_vertex_array and
           { Under Radeon X1600 (chantal), fglrx, with roNone optimization,
             rendering some shapes without indexes (like 16000heights from
-            http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html )
-            causes invalid results (look like random vertexes).
-            So disable using locking for them. }
+            http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html,
+            or shadow_fields demo) causes invalid results
+            (look like random vertexes). So disable using locking for them. }
           (not (GLVersion.IsFglrx and
                 (Arrays.Indexes = nil) {TODO:and
                 (not Renderer.InsideDisplayList)})) and
