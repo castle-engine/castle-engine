@@ -53,6 +53,7 @@ type
   protected
     { Set these in descendant's constructor. }
     FaceConvex: boolean;
+    procedure PrepareIndexesPrimitives(out MaxIndex: Integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -844,6 +845,49 @@ begin
       RenderVertex(I + 1);
       RenderVertex(I + 2);
     end;
+  end;
+end;
+
+procedure TIndexedFaceSetRenderer.PrepareIndexesPrimitives(out MaxIndex: Integer);
+var
+  BeginIndex, EndIndex, NextIndex, I, IndexesCount: Integer;
+begin
+  { TODO: fix for non-convex faces }
+
+  { calculate IndexesCount and MaxIndex, by one iteration over coordIndex }
+  IndexesCount := 0;
+  BeginIndex := 0;
+  MaxIndex := -1;
+  while BeginIndex < CoordIndex.Count do
+  begin
+    EndIndex := BeginIndex;
+    while (EndIndex < CoordIndex.Count) and
+          (CoordIndex.Items.Items[EndIndex] >= 0) do
+    begin
+      Inc(EndIndex);
+      MaxTo1st(MaxIndex, CoordIndex.Items.Items[EndIndex]);
+    end;
+    IndexesCount += Max(EndIndex - BeginIndex - 2, 0) * 3;
+    BeginIndex := EndIndex + 1;
+  end;
+
+  { calculate IndexesFromCoordIndex contents: triangulate }
+  IndexesFromCoordIndex := TDynLongIntArray.Create(IndexesCount);
+  NextIndex := 0;
+  BeginIndex := 0;
+  while BeginIndex < CoordIndex.Count do
+  begin
+    EndIndex := BeginIndex;
+    while (EndIndex < CoordIndex.Count) and
+          (CoordIndex.Items.Items[EndIndex] >= 0) do
+      Inc(EndIndex);
+    for I := BeginIndex to EndIndex - 3 do
+    begin
+      IndexesFromCoordIndex.Items[NextIndex] := CoordIndex.Items.Items[BeginIndex]; Inc(NextIndex);
+      IndexesFromCoordIndex.Items[NextIndex] := CoordIndex.Items.Items[I + 1     ]; Inc(NextIndex);
+      IndexesFromCoordIndex.Items[NextIndex] := CoordIndex.Items.Items[I + 2     ]; Inc(NextIndex);
+    end;
+    BeginIndex := EndIndex + 1;
   end;
 end;
 
