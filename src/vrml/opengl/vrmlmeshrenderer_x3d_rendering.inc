@@ -33,6 +33,7 @@ type
   TTriangleSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure GenerateCoordinate; override;
+    procedure PrepareIndexesPrimitives(var MaxIndex: Integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -271,33 +272,49 @@ begin
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
+procedure TTriangleSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+begin
+  Arrays.Primitive := gpTriangles;
+
+  if CoordIndex <> nil then
+  begin
+    { indexes are just directly from CoordIndex in this case.
+      Only make sure we have only full triangles (although nothing really
+      requires or promises that, but for the future). }
+    IndexesFromCoordIndex := TDynLongIntArray.Create;
+    IndexesFromCoordIndex.Assign(CoordIndex.Items);
+    IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
+    MaxIndex := IndexesFromCoordIndex.Max;
+  end;
+end;
+
 procedure TTriangleSetRenderer.GenerateCoordinate;
 var
   I: Integer;
 begin
   I := 0;
-  glBegin(GL_TRIANGLES);
-    { X3D spec says "If the Coordinate node does not contain
-      a multiple of three coordinate values, the remaining
-      vertices shall be ignored.".
-      So we silently ignore any vertices above multiple of 3. }
-    while I + 2 < CoordCount do
+
+  { X3D spec says "If the Coordinate node does not contain
+    a multiple of three coordinate values, the remaining
+    vertices shall be ignored.".
+    So we silently ignore any vertices above multiple of 3. }
+  while I + 2 < CoordCount do
+  begin
+    if NorImplementation = niNone then
     begin
-      if NorImplementation = niNone then
-      begin
-        glNormalv(TriangleNormal(
-          GetVertex(I    ),
-          GetVertex(I + 1),
-          GetVertex(I + 2)));
-      end;
-
-      RenderVertex(I    );
-      RenderVertex(I + 1);
-      RenderVertex(I + 2);
-
-      I += 3;
+//TODO:      glNormalv(TriangleNormal(
+//        GetVertex(I    ),
+//        GetVertex(I + 1),
+//        GetVertex(I + 2)));
+// TODO: Also, override PrepareAttributes to set AllowIndexed := false when needed
     end;
-  glEnd();
+
+    RenderVertex(I    );
+    RenderVertex(I + 1);
+    RenderVertex(I + 2);
+
+    I += 3;
+  end;
 end;
 
 { TTriangleFanSetRenderer ---------------------------------------------------- }
@@ -636,26 +653,26 @@ var
   I: Integer;
 begin
   I := 0;
-  glBegin(GL_QUADS);
-    { X3D spec says to silently ignore any vertices above multiple of 4. }
-    while I + 3 < CoordCount do
+
+  { X3D spec says to silently ignore any vertices above multiple of 4. }
+  while I + 3 < CoordCount do
+  begin
+    if NorImplementation = niNone then
     begin
-      if NorImplementation = niNone then
-      begin
-        { Normal is average of normals of two triangles. }
-        glNormalv(VectorAdd(
-          TriangleNormal(GetVertex(I    ), GetVertex(I + 1), GetVertex(I + 2)),
-          TriangleNormal(GetVertex(I    ), GetVertex(I + 2), GetVertex(I + 3))));
-      end;
-
-      RenderVertex(I    );
-      RenderVertex(I + 1);
-      RenderVertex(I + 2);
-      RenderVertex(I + 3);
-
-      I += 4;
+      { Normal is average of normals of two triangles. }
+//TODO:      glNormalv(VectorAdd(
+//        TriangleNormal(GetVertex(I    ), GetVertex(I + 1), GetVertex(I + 2)),
+//        TriangleNormal(GetVertex(I    ), GetVertex(I + 2), GetVertex(I + 3))));
+// TODO: Also, override PrepareAttributes to set AllowIndexed := false when needed
     end;
-  glEnd();
+
+    RenderVertex(I    );
+    RenderVertex(I + 1);
+    RenderVertex(I + 2);
+    RenderVertex(I + 3);
+
+    I += 4;
+  end;
 end;
 
 { TIndexedLineSetRenderer -------------------------------------------------- }
