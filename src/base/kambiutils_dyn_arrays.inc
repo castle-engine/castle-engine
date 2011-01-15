@@ -54,6 +54,11 @@ type
 {$ifdef read_interface}
 
 type
+  { Forward-declare TDynLongintArray, used by AssignToInterleaved definitions. }
+  { }
+  TDynArray_8 = class;
+  TDynLongintArray = TDynArray_8;
+
   { Base abstract dynamic array class. }
   TDynArrayBase = class
   private
@@ -123,6 +128,27 @@ type
     constructor Create(ElementSize, InitialLength: Integer);
 
     destructor Destroy; override;
+
+    { Copy our contents to given Target memory. Each item in Target
+      is separated by the Stride bytes.
+
+      Warning: this is safely usable only for arrays of types that don't
+      require initialization / finalization. Otherwise target memory data
+      will be properly referenced. }
+    procedure AssignToInterleaved(Target: Pointer; const Stride: Cardinal);
+
+    { Copy our contents to given Target memory. Each item in Target
+      is separated by the Stride bytes.
+
+      We will copy Indexes.Count items. Item number I is taken
+      from Items[Indexes[I]]. It's your responsibility to make sure first
+      that all values on Indexes list are valid, that is >= 0 and < our Count.
+
+      Warning: this is safely usable only for arrays of types that don't
+      require initialization / finalization. Otherwise target memory data
+      will be properly referenced. }
+    procedure AssignToInterleavedIndexed(Target: Pointer; const Stride: Cardinal;
+      Indexes: TDynLongIntArray);
   end;
 
 { Declare all TDynXxxArray for standard Pascal types }
@@ -156,7 +182,7 @@ type
 
   {$define DYNARRAY_8_USE_EQUALITY_OP}
   {$define DYNARRAY_8_USE_PLUSMINUS_OP}
-  TDynArrayItem_8  = Longint ; PDynArrayItem_8  = PLongint ; {$I dynarray_8.inc}  TDynLongintArray  = TDynArray_8 ; TArray_Longint  = TInfiniteArray_8 ; PArray_Longint  = PInfiniteArray_8 ;
+  TDynArrayItem_8  = Longint ; PDynArrayItem_8  = PLongint ; {$I dynarray_8.inc}                                    TArray_Longint  = TInfiniteArray_8 ; PArray_Longint  = PInfiniteArray_8 ;
 
   {$define DYNARRAY_9_USE_EQUALITY_OP}
   {$define DYNARRAY_9_USE_PLUSMINUS_OP}
@@ -353,6 +379,33 @@ end;
 procedure TDynArrayBase.Clear;
 begin
   Count := 0;
+end;
+
+procedure TDynArrayBase.AssignToInterleaved(Target: Pointer; const Stride: Cardinal);
+var
+  I: Integer;
+  Source: Pointer;
+begin
+  Source := A;
+  for I := 0 to Count - 1 do
+  begin
+    Move(Source^, Target^, ItemSize);
+    PtrUInt(Source) += ItemSize;
+    PtrUInt(Target) += Stride;
+  end;
+end;
+
+procedure TDynArrayBase.AssignToInterleavedIndexed(Target: Pointer; const Stride: Cardinal;
+  Indexes: TDynLongIntArray);
+var
+  I: Integer;
+begin
+  for I := 0 to Indexes.Count - 1 do
+  begin
+    Move(Pointer(PtrUInt(PtrUInt(A) + Indexes.Items[I] * ItemSize))^,
+      Target^, ItemSize);
+    PtrUInt(Target) += Stride;
+  end;
 end;
 
 { include all implementations ---------------------------------------- }
