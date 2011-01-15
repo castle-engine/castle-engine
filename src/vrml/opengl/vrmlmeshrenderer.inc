@@ -207,7 +207,9 @@ type
       If CoordIndex is assigned (that is either Arrays.Indexes or
       IndexesFromCoordIndex are assigned) then points to current vertex
       in Arrays.Indexes or IndexesFromCoordIndex. If CoordIndex not assigned,
-      this simply points to Arrays attributes. }
+      this simply points to Arrays attributes.
+      You have to call GenerateVertex in exactly the same order as you
+      generated IndexesFromCoordIndex to make this valid. }
     ArrayIndexNum: Integer;
   protected
     { Coordinates, taken from Geometry.Coord.
