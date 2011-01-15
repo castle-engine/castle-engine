@@ -38,6 +38,18 @@ type
     STangent, TTangent: TVector3Single;
     LightPositionObjectSpace: TVector3Single;
 
+    IFSIndexesCount: Cardinal;
+    IFSMaxIndex: Integer;
+    IFSNextIndex: Cardinal;
+
+    procedure PrepareIndexesTriangle1(const TriIndices: TVector3Longint);
+    procedure PrepareIndexesTriangle2(const TriIndices: TVector3Longint);
+
+    procedure PrepareIndexesCoordsRange1(
+      const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
+    procedure PrepareIndexesCoordsRange2(
+      const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
+
     procedure GenerateTriangle(const TriIndices: TVector3Longint);
   protected
     procedure GenerateCoordinate; override;
@@ -451,9 +463,7 @@ begin
     and search for TryRenderingFaceAsFan comments.
   }
 
-  glBegin(GL_TRIANGLES);
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
-  glEnd;
 end;
 
 procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
@@ -829,14 +839,12 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
-      EndIndex-BeginIndex, Coord.Items.ItemsArray,
+      EndIndex - BeginIndex, Coord.Items.ItemsArray,
       @GenerateTriangle, BeginIndex);
   end else
   begin
-    { Render convex face }
     (* Alternative version:
-       TriangulateConvexFace(EndIndex - BeginIndex,
-         @GenerateVertex, BeginIndex); *)
+    TriangulateConvexFace(EndIndex - BeginIndex, @GenerateVertex, BeginIndex); *)
 
     for I := BeginIndex to EndIndex - 3 do
     begin
@@ -847,47 +855,84 @@ begin
   end;
 end;
 
-procedure TIndexedFaceSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
-var
-  BeginIndex, EndIndex, NextIndex, I, IndexesCount: Integer;
+procedure TIndexedFaceSetRenderer.PrepareIndexesTriangle1(
+  const TriIndices: TVector3Longint);
 begin
-  { TODO: fix for non-convex faces }
+  IFSIndexesCount += 3;
+end;
 
-  { calculate IndexesCount and MaxIndex, by one iteration over coordIndex }
-  IndexesCount := 0;
-  BeginIndex := 0;
-  MaxIndex := -1;
-  while BeginIndex < CoordIndex.Count do
+{ update IFSIndexesCount, IFSMaxIndex }
+procedure TIndexedFaceSetRenderer.PrepareIndexesCoordsRange1(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
+var
+  I: Integer;
+begin
+  if not FaceConvex then
   begin
-    EndIndex := BeginIndex;
-    while (EndIndex < CoordIndex.Count) and
-          (CoordIndex.Items.Items[EndIndex] >= 0) do
-    begin
-      Inc(EndIndex);
-      MaxTo1st(MaxIndex, CoordIndex.Items.Items[EndIndex]);
-    end;
-    IndexesCount += Max(EndIndex - BeginIndex - 2, 0) * 3;
-    BeginIndex := EndIndex + 1;
+    TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
+      EndIndex - BeginIndex, Coord.Items.ItemsArray,
+      @PrepareIndexesTriangle1, BeginIndex);
+  end else
+  begin
+    { Render convex face }
+    (* Alternative version:
+       TriangulateConvexFace(EndIndex - BeginIndex,
+         @GenerateVertex, BeginIndex); *)
+
+    IFSIndexesCount += Max(EndIndex - BeginIndex - 2, 0) * 3;
   end;
 
-  { calculate IndexesFromCoordIndex contents: triangulate }
-  IndexesFromCoordIndex := TDynLongIntArray.Create(IndexesCount);
-  NextIndex := 0;
-  BeginIndex := 0;
-  while BeginIndex < CoordIndex.Count do
+  for I := BeginIndex to EndIndex - 1 do
+    MaxTo1st(IFSMaxIndex, CoordIndex.Items.Items[EndIndex]);
+end;
+
+procedure TIndexedFaceSetRenderer.PrepareIndexesTriangle2(
+  const TriIndices: TVector3Longint);
+begin
+  IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[TriIndices[0]]; Inc(IFSNextIndex);
+  IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[TriIndices[1]]; Inc(IFSNextIndex);
+  IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[TriIndices[2]]; Inc(IFSNextIndex);
+end;
+
+procedure TIndexedFaceSetRenderer.PrepareIndexesCoordsRange2(
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
+var
+  I: Integer;
+begin
+  if not FaceConvex then
   begin
-    EndIndex := BeginIndex;
-    while (EndIndex < CoordIndex.Count) and
-          (CoordIndex.Items.Items[EndIndex] >= 0) do
-      Inc(EndIndex);
+    TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
+      EndIndex - BeginIndex, Coord.Items.ItemsArray,
+      @PrepareIndexesTriangle2, BeginIndex);
+  end else
+  begin
+    { Render convex face }
+    (* Alternative version:
+       TriangulateConvexFace(EndIndex - BeginIndex,
+         @GenerateVertex, BeginIndex); *)
+
     for I := BeginIndex to EndIndex - 3 do
     begin
-      IndexesFromCoordIndex.Items[NextIndex] := CoordIndex.Items.Items[BeginIndex]; Inc(NextIndex);
-      IndexesFromCoordIndex.Items[NextIndex] := CoordIndex.Items.Items[I + 1     ]; Inc(NextIndex);
-      IndexesFromCoordIndex.Items[NextIndex] := CoordIndex.Items.Items[I + 2     ]; Inc(NextIndex);
+      IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[BeginIndex]; Inc(IFSNextIndex);
+      IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[I + 1];      Inc(IFSNextIndex);
+      IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[I + 2];      Inc(IFSNextIndex);
     end;
-    BeginIndex := EndIndex + 1;
   end;
+end;
+
+procedure TIndexedFaceSetRenderer.PrepareIndexesPrimitives(var MaxIndex: Integer);
+begin
+  { calculate IFSIndexesCount and IFSMaxIndex, by one iteration over coordIndex }
+  IFSIndexesCount := 0;
+  IFSMaxIndex := MaxIndex;
+  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange1);
+  MaxIndex := IFSMaxIndex;
+
+  { calculate IndexesFromCoordIndex contents: triangulate }
+  IndexesFromCoordIndex := TDynLongIntArray.Create(IFSIndexesCount);
+  IFSNextIndex := 0;
+  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange2);
+  Assert(IFSNextIndex = IFSIndexesCount);
 end;
 
 { TIndexedFaceSet_1Renderer -------------------------------------------------- }
