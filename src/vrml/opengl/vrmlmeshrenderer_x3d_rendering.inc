@@ -450,11 +450,13 @@ procedure TTriangleFanSetRenderer.RenderCoordsRange(
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
-//TODO    if NorImplementation = niNone then
-//    if NorImplementation = niNone then
+    if NorImplementation = niNone then
+    begin
+      Assert(Arrays.Indexes = nil);
       { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
-//      glNormalv(TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3)));
-// TODO: Also, override PrepareAttributes to set AllowIndexed := false when needed
+      Arrays.Normal(ArrayIndexNum)^ :=
+        TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3));
+    end;
   end;
 
 var
@@ -466,7 +468,16 @@ begin
   begin
     FirstIndex := BeginIndex;
 
+    { Note that DoNormal for the first two vertexes is totally ignored
+      by OpenGL. When NorImplementation = niNone we have flat shading,
+      and then normal values for 1st two vertexes don't matter.
+      We set them only for security, to have this memory initialized
+      to something predictable. }
+
+    DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
     RenderVertex(BeginIndex);
+
+    DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
     RenderVertex(BeginIndex + 1);
 
     while BeginIndex + 2 < EndIndex do
@@ -633,15 +644,17 @@ begin
 end;
 
 procedure TTriangleStripSetRenderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
+  const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
-//TODO    if NorImplementation = niNone then
+    if NorImplementation = niNone then
+    begin
+      Assert(Arrays.Indexes = nil);
       { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
-//      glNormalv(TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3)));
-// TODO: Also, override PrepareAttributes to set AllowIndexed := false when needed
+      Arrays.Normal(ArrayIndexNum)^ :=
+        TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3));
+    end;
   end;
 
 var
@@ -651,7 +664,16 @@ begin
 
   if BeginIndex + 2 < EndIndex then
   begin
+    { Note that DoNormal for the first two vertexes is totally ignored
+      by OpenGL. When NorImplementation = niNone we have flat shading,
+      and then normal values for 1st two vertexes don't matter.
+      We set them only for security, to have this memory initialized
+      to something predictable. }
+
+    DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
     RenderVertex(BeginIndex);
+
+    DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
     RenderVertex(BeginIndex + 1);
 
     NormalOrder := true;
