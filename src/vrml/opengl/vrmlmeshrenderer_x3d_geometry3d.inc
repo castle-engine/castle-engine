@@ -38,7 +38,7 @@ type
     STangent, TTangent: TVector3Single;
     LightPositionObjectSpace: TVector3Single;
 
-    procedure Render_Triangulated(const TriIndices: TVector3Longint);
+    procedure GenerateTriangle(const TriIndices: TVector3Longint);
   protected
     procedure GenerateCoordinate; override;
     procedure GenerateCoordinateBegin; override;
@@ -681,7 +681,7 @@ begin
   inherited;
 end;
 
-procedure TIndexedFaceSetRenderer.Render_Triangulated(
+procedure TIndexedFaceSetRenderer.GenerateTriangle(
   const TriIndices: TVector3Longint);
 begin
   GenerateVertex(TriIndices[0]);
@@ -828,15 +828,15 @@ begin
 
   if not FaceConvex then
   begin
-   TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
-     EndIndex-BeginIndex, Coord.Items.ItemsArray,
-     @Render_Triangulated, BeginIndex);
+    TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
+      EndIndex-BeginIndex, Coord.Items.ItemsArray,
+      @GenerateTriangle, BeginIndex);
   end else
   begin
     { Render convex face }
     (* Alternative version:
        TriangulateConvexFace(EndIndex - BeginIndex,
-         @Render_Triangulated, BeginIndex); *)
+         @GenerateVertex, BeginIndex); *)
 
     for I := BeginIndex to EndIndex - 3 do
     begin
