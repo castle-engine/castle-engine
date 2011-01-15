@@ -2541,6 +2541,20 @@ begin
 end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateBegin;
+
+  procedure SetAllNormals(const Value: TVector3Single);
+  var
+    N: PVector3Single;
+    I: Integer;
+  begin
+    N := Arrays.Normal;
+    for I := 0 to Arrays.Count - 1 do
+    begin
+      N^ := Value;
+      Arrays.IncNormal(N);
+    end;
+  end;
+
 begin
   inherited;
 
@@ -2569,7 +2583,7 @@ begin
   end else
   if NorImplementation = niOverall then
   begin
-//todo:    glNormalFromIndex(0);
+    SetAllNormals(CcwNormalsSafe(0));
   end;
 end;
 
