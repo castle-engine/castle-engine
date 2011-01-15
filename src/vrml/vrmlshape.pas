@@ -459,11 +459,12 @@ type
       (that is, Geometry.Coord returns @true and sets ACoord <> @nil),
       and having Geometry.CoordIndex <> @nil.
 
+      For NormalsSmooth, also Geometry.CoordIndex = @nil is allowed,
+      but make sure that Geometry.CoordPolygons is available.
+      See CreateSmoothNormalsCoordinateNode.
+
       @unorderedList(
-        @item(Smooth normals are perfectly smooth.
-          They are per-vertex, calculated by CreateSmoothNormalsCoordinateNode.
-          You can call this only for VRML coordinate-based
-          Geometry implementing TVRMLGeometryNode.CoordPolygons.
+        @item(Smooth normals are perfectly smooth, per-vertex.
 
           As an exception, you can call this even when coords are currently
           empty (Geometry.Coord returns @true but ACoord is @nil),
