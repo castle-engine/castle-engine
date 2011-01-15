@@ -980,7 +980,7 @@ procedure TAbstractCoordinateRenderer.DoRender;
   const
     ToMode: array [TGeometryPrimitive] of TGLenum =
     ( GL_TRIANGLES, GL_QUADS, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
-      GL_LINE_STRIP );
+      GL_LINE_STRIP, GL_POINTS );
   var
     I: Integer;
     First: Cardinal;

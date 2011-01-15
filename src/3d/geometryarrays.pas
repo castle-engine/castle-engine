@@ -23,7 +23,7 @@ uses KambiUtils, VectorMath, FGL;
 type
   { Primitive geometry types. Analogous to OpenGL primitives. }
   TGeometryPrimitive = (gpTriangles, gpQuads, gpTriangleFan, gpTriangleStrip,
-    gpLineStrip);
+    gpLineStrip, gpPoints);
 
   TTexCoordDimensions = 2..4;
 

@@ -17,14 +17,20 @@
   component. }
 
 type
-  TPointSet_1Renderer = class(TVRMLMeshRenderer)
+  TPointSet_1Renderer = class(TAbstractCoordinateRenderer)
   protected
-    procedure DoRender; override;
+    procedure PrepareIndexesPrimitives; override;
+    procedure GenerateCoordinate; override;
   end;
 
-  TPointSet_2Renderer = class(TVRMLMeshRenderer)
+  TPointSet_2Renderer = class(TAbstractCoordinateRenderer)
+  private
+    Color: TMFColor;
+    ColorRGBA: TMFColorRGBA;
   protected
-    procedure DoRender; override;
+    procedure PrepareIndexesPrimitives; override;
+    procedure GenerateCoordinate; override;
+    procedure GenerateVertex(IndexNum: Integer); override;
   public
     function NeedsSetColor: boolean; override;
   end;
@@ -118,12 +124,25 @@ type
 
 { TPointSet_1Renderer -------------------------------------------------------- }
 
-procedure TPointSet_1Renderer.DoRender;
+procedure TPointSet_1Renderer.PrepareIndexesPrimitives;
 var
-  i, BeginIndex, numPoints: integer;
+  I, BeginIndex, NumPoints: integer;
   Node: TNodePointSet_1;
 begin
+  Arrays.Primitive := gpPoints;
+
   Node := Geometry as TNodePointSet_1;
+  Node.CalculateRange(State.LastNodes.Coordinate3, BeginIndex, numPoints);
+
+  { Although PointSet is not really indexed, we use IndexesFromCoordIndex
+    to implement BeginIndex / NumPoints limits. }
+  IndexesFromCoordIndex := TDynLongIntArray.Create;
+  for I := BeginIndex to BeginIndex + NumPoints - 1 do
+    IndexesFromCoordIndex.Add(I);
+end;
+
+procedure TPointSet_1Renderer.GenerateCoordinate;
+begin
   { TODO: handle various possible material binding here }
 
   { TODO: use here Last :
@@ -133,98 +152,84 @@ begin
 
   { Render_BindMaterial_1 set unlit color to emissiveColor,
     so we correct it now. }
+  { TODO: it's a hack to set color directly }
   if (not Attributes.PureGeometry) and
      Attributes.ControlMaterials then
     with State.LastNodes.Material do
       glColorv(DiffuseColor4Single(0));
-
-  Node.CalculateRange(State.LastNodes.Coordinate3, BeginIndex, numPoints);
-  glBegin(GL_POINTS);
-  for i := BeginIndex to BeginIndex+numPoints-1 do
-    DoGLVertex(State.LastNodes.Coordinate3.FdPoint.Items.Items[i]);
-  glEnd;
 end;
 
 { TPointSet_2Renderer -------------------------------------------------------- }
 
-procedure TPointSet_2Renderer.DoRender;
+procedure TPointSet_2Renderer.GenerateCoordinate;
 var
-  Node: TNodePointSet_2;
-var
-  Coord: TMFVec3f;
-  Color: TMFColor;
-  ColorRGBA: TMFColorRGBA;
   Material: TNodeMaterial_2;
-  I: Integer;
+  Node: TNodePointSet_2;
 begin
   Node := Geometry as TNodePointSet_2;
 
   { In VRML 2.0 PointSet is always unlit and not textured.
     Light is already disabled by Render_Material. }
 
-  if (Node.FdCoord.Value <> nil) and
-     (Node.FdCoord.Value is TNodeCoordinate) then
+  { PointSet color may come from various places:
+    1. Color or ColorRGBA node, for each point, if it's not NULL
+    2. Material.emissiveColor, for every point
+    3. If no material, we use default White3Single, for every point
+       (following general spec remark at Material node that
+       Material = NULL makes unlit white color) }
+  Color := nil;
+  ColorRGBA := nil;
+
+  if (Node.FdColor.Value <> nil) and
+     (Node.FdColor.Value is TNodeColor) then
   begin
-    Coord := TNodeCoordinate(Node.FdCoord.Value).FdPoint;
-
-    { PointSet color may come from various places:
-      1. Color or ColorRGBA node, for each point, if it's not NULL
-      2. Material.emissiveColor, for every point
-      3. If no material, we use default White3Single, for every point
-         (following general spec remark at Material node that
-         Material = NULL makes unlit white color) }
-    Color := nil;
-    ColorRGBA := nil;
-
-    if (Node.FdColor.Value <> nil) and
-       (Node.FdColor.Value is TNodeColor) then
+    Color := TNodeColor(Node.FdColor.Value).FdColor;
+    if Color.Count < Coord.Count then
     begin
-      Color := TNodeColor(Node.FdColor.Value).FdColor;
-      if Color.Count < Coord.Count then
-      begin
-        VRMLWarning(vwSerious, 'Not enough colors specified for PointSet');
-        Color := nil;
-      end;
+      VRMLWarning(vwSerious, 'Not enough colors specified for PointSet');
+      Color := nil;
     end;
-
-    if (Node.FdColor.Value <> nil) and
-       (Node.FdColor.Value is TNodeColorRGBA) then
-    begin
-      ColorRGBA := TNodeColorRGBA(Node.FdColor.Value).FdColor;
-      if ColorRGBA.Count < Coord.Count then
-      begin
-        VRMLWarning(vwSerious, 'Not enough colors specified for PointSet');
-        ColorRGBA := nil;
-      end;
-    end;
-
-    if (Color = nil) and (ColorRGBA = nil) then
-    begin
-      if State.ShapeNode = nil then
-      begin
-        VRMLWarning(vwSerious, 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-        Renderer.SetColor(White3Single);
-      end else
-      begin
-        Material := State.ShapeNode.Material;
-        if Material <> nil then
-          Renderer.SetColor(Material.FdEmissiveColor.Value) else
-          Renderer.SetColor(White3Single);
-      end;
-    end;
-
-    glBegin(GL_POINTS);
-    try
-      for I := 0 to Coord.Count - 1 do
-      begin
-        if Color <> nil then
-          Renderer.SetColor(Color.Items.Items[I]) else
-        if ColorRGBA <> nil then
-          Renderer.SetColor(ColorRGBA.Items.Items[I]);
-        DoGLVertex(Coord.Items.Items[i]);
-      end;
-    finally glEnd end;
   end;
+
+  if (Node.FdColor.Value <> nil) and
+     (Node.FdColor.Value is TNodeColorRGBA) then
+  begin
+    ColorRGBA := TNodeColorRGBA(Node.FdColor.Value).FdColor;
+    if ColorRGBA.Count < Coord.Count then
+    begin
+      VRMLWarning(vwSerious, 'Not enough colors specified for PointSet');
+      ColorRGBA := nil;
+    end;
+  end;
+
+  if (Color = nil) and (ColorRGBA = nil) then
+  begin
+    if State.ShapeNode = nil then
+    begin
+      VRMLWarning(vwSerious, 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
+      Renderer.SetColor(White3Single);
+    end else
+    begin
+      Material := State.ShapeNode.Material;
+      if Material <> nil then
+        Renderer.SetColor(Material.FdEmissiveColor.Value) else
+        Renderer.SetColor(White3Single);
+    end;
+  end;
+end;
+
+procedure TPointSet_2Renderer.PrepareIndexesPrimitives;
+begin
+  Arrays.Primitive := gpPoints;
+end;
+
+procedure TPointSet_2Renderer.GenerateVertex(IndexNum: Integer);
+begin
+  if Color <> nil then
+    Renderer.SetColor(Color.Items.Items[IndexNum]) else
+  if ColorRGBA <> nil then
+    Renderer.SetColor(ColorRGBA.Items.Items[IndexNum]);
+  inherited;
 end;
 
 function TPointSet_2Renderer.NeedsSetColor: boolean;
