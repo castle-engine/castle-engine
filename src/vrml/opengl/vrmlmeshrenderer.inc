@@ -2032,12 +2032,13 @@ procedure TAbstractTexCoordinateRenderer.GenerateCoordinateBegin;
       end else
       begin
         Assert(TexImplementation = tcNonIndexed);
+        Assert(CoordIndex = nil); { tcNonIndexed happens only for non-indexed triangle/quad primitives }
         Assert(Arrays.Indexes = nil);
 
         if TexCoordArray.Count = Arrays.Count then
           TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize) else
-          VRMLWarning(vwSerious, Format('Arrays.Count invalid for texture. TODO: bug, because indexes for CoordIndex <> indexes after triangulating and removing. %d %d',
-            [TexCoordArray.Count, Arrays.Count]));
+          VRMLWarning(vwSerious, Format('Texture coordinates count invalid. Expected %d, got %d',
+            [Arrays.Count, TexCoordArray.Count]));
       end;
     end;
 
@@ -2634,11 +2635,11 @@ begin
   end else
   if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
   begin
-    Assert(Arrays.Indexes = nil, 'PrepareAttributes should have disable Indexes');
+    Assert(Arrays.Indexes = nil);
     if CcwNormals.Count = Arrays.Count then
       CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
-      VRMLWarning(vwSerious, Format('CcwNormals.Count <> Arrays.Count. TODO: bug, because indexes for CoordIndex <> indexes after triangulating and removing %d %d',
-        [CcwNormals.Count, Arrays.Count]));
+      VRMLWarning(vwSerious, Format('Normal coordinates count invalid. Expected %d, got %d',
+        [Arrays.Count, CcwNormals.Count]));
   end else
   if NorImplementation = niOverall then
   begin
