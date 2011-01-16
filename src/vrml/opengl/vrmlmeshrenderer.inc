@@ -104,20 +104,14 @@ type
       implementation.
 
       Material for VRML 1.0: currently bound material is zero.
-      You can call Render_BindMaterial_1 inside.
-      You cannot call glMaterial or glColor here --- this is the task of
-      Render_BindMaterial_1.
+      You can set Arrays.Color inside for VRML 1.0 material changes inside.
 
       Texture: you only have to generate texture coordinates in descendants.
       For all texture units < TexCoordsNeeded. (For other tex units,
       you don't have to (but you can,
       although they will be unused) generate texture coords.)
       Do not change here the bound texture or operate on texture matrix
-      or texture enabled state.
-
-      For now, see comments at the beginning of
-      vrmlglrenderer_render_specificnodes.inc
-      for general direction what can and what can not be used here. }
+      or texture enabled state. }
     procedure DoRender; virtual; abstract;
 
     procedure WarningShadingProblems(
@@ -503,6 +497,8 @@ type
       For this reason, call UpdateMat1Implementation inside descendant
       constructor after changing this. }
     Mat1Implementation: TMaterials1Implementation;
+    FaceMaterial1Color: TVector4Single;
+    function GetMaterial1Color(const MaterialIndex: Integer): TVector4Single;
   protected
     { You can leave MaterialIndex as nil if you are sure that
       MaterialBinding will not be any _INDEXED value.
@@ -514,10 +510,10 @@ type
     MaterialBinding: Integer;
     procedure UpdateMat1Implementation;
 
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
-    procedure GenerateCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsBindMaterial1InsideBeginEnd: boolean; override;
@@ -2174,23 +2170,49 @@ begin
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.GenerateCoordinateBegin;
+function TAbstractMatTexCoordinateRenderer.NeedsBindMaterial1InsideBeginEnd: boolean;
+begin
+  Result := Mat1Implementation in
+    [ miPerFace, miPerFaceMatIndexed,
+      miPerVertexCoordIndexed, miPerVertexMatIndexed ];
+end;
+
+procedure TAbstractMatTexCoordinateRenderer.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
-  if (Geometry is TVRMLGeometryNode_1) and
-     (Mat1Implementation = miOverall) then
-    { For miOverall, job is already done by MaterialsBegin that bound index 0. }
-    Assert(Renderer.Material1BoundNumber = 0);
+  if NeedsBindMaterial1InsideBeginEnd then
+  begin
+    Arrays.AddColor;
+    if Mat1Implementation in
+      [ miPerFace, miPerFaceMatIndexed, miPerVertexMatIndexed ] then
+      AllowIndexed := false;
+  end;
+end;
+
+function TAbstractMatTexCoordinateRenderer.GetMaterial1Color(
+  const MaterialIndex: Integer): TVector4Single;
+var
+  M: TNodeMaterial_1;
+begin
+  M := State.LastNodes.Material;
+
+  case Renderer.MaterialFromColor of
+    GL_DIFFUSE : Result := Vector4Single(M.DiffuseColor3Single(MaterialIndex), M.Opacity(MaterialIndex));
+    GL_EMISSION: Result := Vector4Single(M.EmissiveColor3Single(MaterialIndex), M.Opacity(MaterialIndex));
+    else raise EInternalError.Create('MaterialFromColor?');
+  end;
 end;
 
 procedure TAbstractMatTexCoordinateRenderer.GenerateVertex(IndexNum: Integer);
 begin
   case Mat1Implementation of
     miPerVertexCoordIndexed:
-      Renderer.Render_BindMaterial_1(CoordIndex.ItemsSafe[IndexNum], true);
+      Arrays.Color(ArrayIndexNum)^ := GetMaterial1Color(CoordIndex.ItemsSafe[IndexNum]);
     miPerVertexMatIndexed:
-      Renderer.Render_BindMaterial_1(MaterialIndex.ItemsSafe[IndexNum], true);
+      Arrays.Color(ArrayIndexNum)^ := GetMaterial1Color(MaterialIndex.ItemsSafe[IndexNum]);
+    miPerFace, miPerFaceMatIndexed:
+      Arrays.Color(ArrayIndexNum)^ := FaceMaterial1Color;
   end;
 
   inherited;
@@ -2203,17 +2225,10 @@ begin
 
   case Mat1Implementation of
     miPerFace:
-      Renderer.Render_BindMaterial_1(RangeNumber, true);
+      FaceMaterial1Color := GetMaterial1Color(RangeNumber);
     miPerFaceMatIndexed:
-      Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[RangeNumber], true);
+      FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.Items[RangeNumber]);
   end;
-end;
-
-function TAbstractMatTexCoordinateRenderer.NeedsBindMaterial1InsideBeginEnd: boolean;
-begin
-  Result := Mat1Implementation in
-    [ miPerFace, miPerFaceMatIndexed,
-      miPerVertexCoordIndexed, miPerVertexMatIndexed ];
 end;
 
 { TAbstractColMatTexCoordinateRenderer --------------------------------------- }

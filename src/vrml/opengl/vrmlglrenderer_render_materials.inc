@@ -158,7 +158,7 @@ begin
 
   { set material. At the end, since this uses MaterialLit, M2. }
   if CurrentGeometry is TVRMLGeometryNode_1 then
-    Render_BindMaterial_1(0, false) else
+    Render_BindMaterial_1(0) else
     Render_MaterialsBegin_2(M2);
 end;
 
@@ -187,41 +187,16 @@ end;
 
 { Apply material (both VRML 1.0 and 2.0).
   Assumes MaterialLit is already calculated.
-
-  When not InsideBeginEnd, this sets full glMaterial and glColor.
-  This is Ok to be called even between glBegin/glEnd,
-  but it's very unoptimal then.
-
-  When InsideBeginEnd, we use limited but faster (when used often,
-  especially between glBegin/glEnd) version. It uses GL_COLOR_MATERIAL
-  (and depends on MaterialFromColorEnabled). }
+  This sets full glMaterial and glColor. }
 procedure TVRMLGLRenderer.Render_Material(
   const AmbientColor, DiffuseColor, SpecularColor, EmissiveColor: TVector3Single;
   const UnLitColor: TVector3Single;
-  const ShininessExp, Opacity: Single;
-  const InsideBeginEnd: boolean);
+  const ShininessExp, Opacity: Single);
 begin
   if Attributes.PureGeometry or (not Attributes.ControlMaterials) then Exit;
 
   Material_BoundOpacity := Opacity;
 
-  { What does it mean when InsideBeginEnd is true but
-    MaterialFromColorEnabled is false?
-    Assuming that all classes correctly set NeedsBindMaterial1InsideBeginEnd
-    before using InsideBeginEnd = true.
-    It means that MaterialsBegin decided GL_COLOR_MATERIAL is not needed,
-    because NodeLit was false.
-
-    So don't worry about it, the later code will work fine then. }
-
-  if InsideBeginEnd and MaterialFromColorEnabled then
-  begin
-    case MaterialFromColor of
-      GL_DIFFUSE : glColorv(Vector4Single(DiffuseColor, Opacity));
-      GL_EMISSION: glColorv(Vector4Single(EmissiveColor, Opacity));
-      else raise EInternalError.Create('MaterialFromColor?');
-    end;
-  end else
   if MaterialLit then
   begin
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(AmbientColor, Opacity));
@@ -259,8 +234,7 @@ end;
   So using GL_COLOR_MATERIAL is required for sensible speed and memory use.
   (For the same "castle" test, with GL_COLOR_MATERIAL implementation,
   we loose only ~10 MB on display lists and no speed difference) }
-procedure TVRMLGLRenderer.Render_BindMaterial_1(MatNum: Integer;
-  const InsideBeginEnd: boolean);
+procedure TVRMLGLRenderer.Render_BindMaterial_1(MatNum: Integer);
 var
   UnlitColor: TVector3Single;
   M: TNodeMaterial_1;
@@ -301,8 +275,7 @@ begin
     M.EmissiveColor3Single(MatNum),
     UnlitColor,
     M.ShininessExp(MatNum),
-    M.Opacity(MatNum),
-    InsideBeginEnd);
+    M.Opacity(MatNum));
 end;
 
 { Binds current VRML 2.0 Material. }
@@ -336,7 +309,7 @@ begin
       Material.FdEmissiveColor.Value,
       UnLitColor,
       Material.ShininessExp,
-      Material.Opacity, { inside glBegin/End } false);
+      Material.Opacity);
   end else
   begin
     Render_Material(
@@ -345,7 +318,7 @@ begin
       { From VRML 2.0 spec about Appearance node: when no Material is
         specified, object is unlit and unlit object color is (1, 1, 1). }
       White3Single,
-      { shininess } 0, { opacity } 1, { inside glBegin/End } false);
+      { shininess } 0, { opacity } 1);
   end;
 end;
 

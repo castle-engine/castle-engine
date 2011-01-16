@@ -1255,14 +1255,13 @@ type
 
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
-    procedure Render_BindMaterial_1(MatNum: integer; const InsideBeginEnd: boolean);
+    procedure Render_BindMaterial_1(MatNum: integer);
     procedure Render_MaterialsBegin_2(Material: TNodeMaterial_2);
     procedure Render_Material(
       const AmbientColor, DiffuseColor, SpecularColor,
         EmissiveColor: TVector3Single;
       const UnLitColor: TVector3Single;
-      const ShininessExp, Opacity: Single;
-      const InsideBeginEnd: boolean);
+      const ShininessExp, Opacity: Single);
     procedure SetColor(const Color: TVector3Single);
     procedure SetColor(const Color: TVector4Single);
 
