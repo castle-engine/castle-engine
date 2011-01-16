@@ -2101,7 +2101,7 @@ procedure TAbstractTexCoordinateRenderer.GenerateVertex(indexNum: integer);
 
 begin
   if TexImplementation = tcTexIndexed then
-    DoTexCoord(TexCoordIndex.Items.Items[IndexNum];
+    DoTexCoord(TexCoordIndex.Items.Items[IndexNum]);
 
   inherited;
 end;
