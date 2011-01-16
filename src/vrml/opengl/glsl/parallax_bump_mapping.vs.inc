@@ -1,5 +1,18 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "glsl_parallax_bump_mapping.vs" }
+{ DON'T EDIT -- this file was automatically generated from "parallax_bump_mapping.vs" }
+'/*' + LineEnding + 
+'  Copyright 2007-2010 Michalis Kamburelis.' + LineEnding + 
+'' + LineEnding + 
+'  This file is part of "Kambi VRML game engine".' + LineEnding + 
+'' + LineEnding + 
+'  "Kambi VRML game engine" is free software; see the file COPYING.txt,' + LineEnding + 
+'  included in this distribution, for details about the copyright.' + LineEnding + 
+'' + LineEnding + 
+'  "Kambi VRML game engine" is distributed in the hope that it will be useful,' + LineEnding + 
+'  but WITHOUT ANY WARRANTY; without even the implied warranty of' + LineEnding + 
+'  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + LineEnding + 
+'*/' + LineEnding + 
+'' + LineEnding + 
 '/* GLSL vertex shader to do bump mapping.' + LineEnding + 
 '   Version with parallax mapping.' + LineEnding + 
 '' + LineEnding + 
@@ -14,12 +27,13 @@
 'varying vec3 point_to_eye_in_tangent_space;' + LineEnding + 
 '' + LineEnding + 
 'attribute mat3 object_space_to_tangent;' + LineEnding + 
+'attribute vec2 tex_coord;' + LineEnding + 
 '' + LineEnding + 
 'varying vec3 light_dir_tangent;' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'  gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;' + LineEnding + 
+'  gl_TexCoord[0] = gl_TextureMatrix[0] * vec4(tex_coord, 0.0, 1.0);' + LineEnding + 
 '' + LineEnding + 
 '  /* Calculate light_dir_tangent, which is crucial for bump mapping.' + LineEnding + 
 '     This in some way does the same as LightDirectionInTangentSpace' + LineEnding + 

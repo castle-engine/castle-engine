@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "glsl_bump_mapping.vs" }
+{ DON'T EDIT -- this file was automatically generated from "bump_mapping.vs" }
 '/* GLSL vertex shader to do bump mapping.' + LineEnding + 
 '' + LineEnding + 
 '   This is converted to glsl_bump_mapping.vs.inc, and is them compiled' + LineEnding + 
@@ -11,12 +11,13 @@
 'uniform mat4 world_space_to_object;' + LineEnding + 
 '' + LineEnding + 
 'attribute mat3 object_space_to_tangent;' + LineEnding + 
+'attribute vec2 tex_coord;' + LineEnding + 
 '' + LineEnding + 
 'varying vec3 light_dir_tangent;' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'  gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;' + LineEnding + 
+'  gl_TexCoord[0] = gl_TextureMatrix[0] * vec4(tex_coord, 0.0, 1.0);' + LineEnding + 
 '' + LineEnding + 
 '  /* Calculate light_dir_tangent, which is crucial for bump mapping.' + LineEnding + 
 '     This in some way does the same as LightDirectionInTangentSpace' + LineEnding + 

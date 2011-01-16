@@ -1,5 +1,18 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "glsl_parallax_bump_mapping.fs" }
+{ DON'T EDIT -- this file was automatically generated from "parallax_bump_mapping.fs" }
+'/*' + LineEnding + 
+'  Copyright 2007-2010 Michalis Kamburelis.' + LineEnding + 
+'' + LineEnding + 
+'  This file is part of "Kambi VRML game engine".' + LineEnding + 
+'' + LineEnding + 
+'  "Kambi VRML game engine" is free software; see the file COPYING.txt,' + LineEnding + 
+'  included in this distribution, for details about the copyright.' + LineEnding + 
+'' + LineEnding + 
+'  "Kambi VRML game engine" is distributed in the hope that it will be useful,' + LineEnding + 
+'  but WITHOUT ANY WARRANTY; without even the implied warranty of' + LineEnding + 
+'  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + LineEnding + 
+'*/' + LineEnding + 
+'' + LineEnding + 
 '/* GLSL fragment shader to do bump mapping.' + LineEnding + 
 '   Version with parallax mapping.' + LineEnding + 
 '' + LineEnding + 

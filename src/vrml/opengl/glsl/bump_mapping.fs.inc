@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "glsl_bump_mapping.fs" }
+{ DON'T EDIT -- this file was automatically generated from "bump_mapping.fs" }
 '/* GLSL fragment shader to do bump mapping.' + LineEnding + 
 '' + LineEnding + 
 '   This is converted to glsl_bump_mapping.fs.inc, and is them compiled' + LineEnding + 
@@ -68,21 +68,5 @@
 '      max(dot(normal, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
 '  gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);' + LineEnding + 
-'' + LineEnding + 
-'/* This is more close to what bmMultiTexDotNormalized method did' + LineEnding + 
-'   (but it''s less correct and generally worse. I present it here' + LineEnding + 
-'   only to visually compare bmMultiTexDotNormalized and bmGLSLNormal,' + LineEnding + 
-'   to see that they are able to calculate the same.)' + LineEnding + 
-'*/' + LineEnding + 
-'/*' + LineEnding + 
-'  gl_FragColor =' + LineEnding + 
-'    //gl_FrontLightModelProduct.sceneColor +' + LineEnding + 
-'    gl_FrontLightProduct[0].ambient +' + LineEnding + 
-'    gl_FrontLightProduct[0].diffuse;' + LineEnding + 
-'' + LineEnding + 
-'  gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);' + LineEnding + 
-'' + LineEnding + 
-'  gl_FragColor *= max(dot(normal, light_dir), 0.0);' + LineEnding + 
-'*/' + LineEnding + 
 '}' + LineEnding + 
 ''
