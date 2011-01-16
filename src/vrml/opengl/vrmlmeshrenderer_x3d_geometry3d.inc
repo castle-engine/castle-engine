@@ -201,10 +201,9 @@ procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
     Check(GetTextureCoord(IndexNum, 0, Tex), 'TexCoord for BumpMapping');
 
     SetBumpMappingAttribs;
-    glMultiTexCoord2fARB(GL_TEXTURE0_ARB, Tex[0], Tex[1]);
-    { No need to pass texture coords for 2nd texture, GL_TEXTURE1_ARB.
-      Shader knows that they are the same, and will just use gl_TexCoord[0]
-      to access both textures. }
+
+    Renderer.BmGLSLAttribTexCoord[BumpMappingMethod >= bmGLSLParallax].
+      SetValue(Tex);
   end;
 
 begin

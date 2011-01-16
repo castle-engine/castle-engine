@@ -1167,6 +1167,7 @@ type
     BmSteepParallaxMapping: boolean;
 
     BmGLSLAttribObjectSpaceToTangent: array[boolean] of TGLSLAttribute;
+    BmGLSLAttribTexCoord: array[boolean] of TGLSLAttribute;
 
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRenderersList;
@@ -3456,6 +3457,8 @@ begin
   FreeAndNil(BmGLSLProgram[true]);
   FreeAndNil(BmGLSLAttribObjectSpaceToTangent[false]);
   FreeAndNil(BmGLSLAttribObjectSpaceToTangent[true]);
+  FreeAndNil(BmGLSLAttribTexCoord[false]);
+  FreeAndNil(BmGLSLAttribTexCoord[true]);
 end;
 
 function TVRMLGLRenderer.LastGLFreeLight: integer;

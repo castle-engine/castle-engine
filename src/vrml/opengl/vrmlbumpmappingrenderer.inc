@@ -207,6 +207,9 @@ procedure TBumpMappingRenderer.Prepare(State: TVRMLGraphTraverseState);
           Renderer.BmGLSLAttribObjectSpaceToTangent[Parallax] :=
             BmProgram.CreateAttribute('object_space_to_tangent');
 
+          Renderer.BmGLSLAttribTexCoord[Parallax] :=
+            BmProgram.CreateAttribute('tex_coord');
+
           BmProgram.Enable;
           BmProgram.SetUniform('light_position_world_space',
             Renderer.BumpMappingLightPosition);

@@ -381,16 +381,7 @@ type
     So you do not have to generate any texture coordinates (call
     gl[Multi]TexCoord etc.)
     in descendants. Everything related to textures is already
-    handled in this class.
-
-    (The only exception to above, when you need to generate some
-    texture coords, is when you allow bump mapping, that is
-    you set BumpMappingAllowed := true for your TAbstractTexCoordinateRenderer
-    descendant. See IndexedFaceSet implementation for now what must
-    be done then, and see implementation of this class to see what
-    is different when BumpMappingMethod <> bmNone.
-
-    GetTextureCoord may be useful in descendants in this case.) }
+    handled in this class. }
   TAbstractTexCoordinateRenderer = class(TAbstractCoordinateRenderer)
   private
     TexImplementation: TTextureCoordsImplementation;
@@ -1891,13 +1882,8 @@ begin
           begin
             TexImplementation := tcCoordIndexed;
 
-            { When BumpMappingMethod <> bmNone, texture coords will be
-              explicitly taken at each vertex using GetTextureCoord. }
-            if BumpMappingMethod = bmNone then
-            begin
-              AddExplicitTextureCoordAttributes;
-              EnableTextureCoordGen;
-            end;
+            AddExplicitTextureCoordAttributes;
+            EnableTextureCoordGen;
           end else
             Bounds2DTextureGen(true);
         end;
@@ -1959,8 +1945,7 @@ procedure TAbstractTexCoordinateRenderer.GenerateCoordinateBegin;
 begin
   inherited;
 
-  if (BumpMappingMethod = bmNone) and
-     (TexImplementation in [tcNonIndexed, tcCoordIndexed]) then
+  if TexImplementation in [tcNonIndexed, tcCoordIndexed] then
     EnableTextureCoordArray;
 end;
 
@@ -2115,12 +2100,8 @@ procedure TAbstractTexCoordinateRenderer.GenerateVertex(indexNum: integer);
   end;
 
 begin
-  { Don't pass glTexCoordv here if BumpMappingMethod <> bmNone,
-    then we'll handle passing texture coords appropriately
-    ourselves. }
-  if (BumpMappingMethod = bmNone) and
-     (TexImplementation = tcTexIndexed) then
-    DoTexCoord(TexCoordIndex.Items.Items[IndexNum]);
+  if TexImplementation = tcTexIndexed then
+    DoTexCoord(TexCoordIndex.Items.Items[IndexNum];
 
   inherited;
 end;
