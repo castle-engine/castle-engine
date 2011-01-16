@@ -1173,8 +1173,6 @@ type
     { To which fonts we made a reference in the cache ? }
     FontsReferences: array[TVRMLFontFamily, boolean, boolean] of boolean;
 
-    TexNormalizationCube: TGLuint;
-
     { ------------------------------------------------------------
       Rzeczy z ktorych mozna korzystac tylko w czasie Render. }
 
@@ -1532,7 +1530,7 @@ function FogParametersEqual(
 
 implementation
 
-uses Math, Triangulator, NormalizationCubeMap,
+uses Math, Triangulator,
   KambiStringUtils, GLVersionUnit, KambiLog, GeometryArrays,
   RenderStateUnit, VRMLCameraUtils, RaysWindow, VRMLShadowMaps;
 
@@ -3448,9 +3446,6 @@ begin
   BumpMappingRenderers.UnprepareAll;
   GLSLRenderers.UnprepareAll;
 
-  { unprepare TexNormalizationCube }
-  glFreeTexture(TexNormalizationCube);
-
   { unprepare BmGLSLProgram }
   FreeAndNil(BmGLSLProgram[false]);
   FreeAndNil(BmGLSLProgram[true]);
@@ -3545,9 +3540,7 @@ begin
     { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
     GL_ARB_texture_env_dot3 and
 
-    { At least 2 texture units (for MultiTexDotNotNormalized,
-      or for GLSL that does normalization in shader, without
-      the need for additional texture) }
+    { At least 2 texture units (original and normal map) }
     (TextureUnitsAvailable >= 2) and
 
     (TGLSLProgram.ClassSupport <> gsNone) then
