@@ -1646,28 +1646,6 @@ procedure TGLSLProgram.VertexAttribPointer(const Name: string;
   Ptr: Pointer);
 var
   Location: TGLint;
-
-{  procedure CheckARB;
-  var
-    Enabled: TGLint;
-    CheckPtr: Pointer;
-    CheckSize: TGLint;
-  begin
-    Writeln('Vertex array for "', Name, '" set with size ', Size);
-
-    glGetVertexAttribPointervARB(Location, GL_VERTEX_ATTRIB_ARRAY_POINTER, @CheckPtr);
-    if CheckPtr <> Ptr then
-      Writeln('Invalid vertex array pointer');
-
-    glGetVertexAttribivARB(Location, GL_VERTEX_ATTRIB_ARRAY_SIZE, @CheckSize);
-    if CheckSize <> Size then
-      Writeln('Invalid vertex array size');
-
-    glGetVertexAttribivARB(Location, GL_VERTEX_ATTRIB_ARRAY_ENABLED, @Enabled);
-    if Enabled = 0 then
-      Writeln('Failed to enable vertex array');
-  end;}
-
 begin
   case Support of
     gsARBExtension:
@@ -1675,7 +1653,6 @@ begin
         Location := GetAttribLocationARB(Name) + LocationOffset;
         glEnableVertexAttribArrayARB(Location);
         glVertexAttribPointerARB(Location, Size, AType, Normalized, Stride, Ptr);
-        {CheckARB;}
       end;
     gsStandard    :
       begin
