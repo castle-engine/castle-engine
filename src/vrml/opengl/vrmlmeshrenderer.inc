@@ -1892,8 +1892,7 @@ begin
             TexImplementation := tcCoordIndexed;
 
             { When BumpMappingMethod <> bmNone, texture coords will be
-              explicitly taken at each vertex using GetTextureCoord.
-              glTexCoordPointer (inside EnableTextureCoordArray) would only collide with this. }
+              explicitly taken at each vertex using GetTextureCoord. }
             if BumpMappingMethod = bmNone then
             begin
               AddExplicitTextureCoordAttributes;

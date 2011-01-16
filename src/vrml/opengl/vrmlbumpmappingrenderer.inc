@@ -137,19 +137,13 @@ procedure TBumpMappingRenderer.Prepare(State: TVRMLGraphTraverseState);
     BmProgram: TGLSLProgram;
   begin
     case Renderer.BumpMappingMethod of
-      bmMultiTexDotNormalized:
-        if Renderer.TexNormalizationCube = 0 then
-        begin
-          Renderer.TexNormalizationCube := MakeNormalizationCubeMap;
-        end;
-
       bmGLSLNormal,
       bmGLSLParallax:
         if Renderer.BmGLSLProgram[Parallax] = nil then
         begin
           BmProgram := TGLSLProgram.Create;
 
-          { If BumpMappingMethod is in bmGLSLAll, then we checked in
+          { If BumpMappingMethod  <> bmNone, then we checked in
             BumpMappingMethod that support is <> gsNone }
           Assert(BmProgram.Support <> gsNone);
 
@@ -280,10 +274,9 @@ begin
 
   if IsGLImageTexture(NormalMap) then
   begin
-    if IsGLImageTexture(HeightMap) and
-       (Renderer.BumpMappingMethod >= bmGLSLParallax) then
-      PrepareBumpMapping(true) else
-      PrepareBumpMapping(false);
+    PrepareBumpMapping(
+      IsGLImageTexture(HeightMap) and
+      (Renderer.BumpMappingMethod >= bmGLSLParallax));
   end;
 end;
 
@@ -320,108 +313,10 @@ function TBumpMappingRenderer.Enable(
 
 var
   TexOriginal: TGLuint;
-  TexOriginalAlpha: boolean;
   TexNormalMap: TGLuint;
   TexHeightMap: TGLuint;
   TexHeightMapScale: Single;
   MeshRenderer: TVRMLMeshRenderer;
-
-  { pass alpha from primary_color (this is actual material Opacity) *
-    texture alpha }
-  procedure glTexEnvAlphaFromMaterialAndTexture;
-  begin
-    if TexOriginalAlpha then
-    begin
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_MODULATE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
-    end else
-    begin
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
-    end;
-  end;
-
-  procedure EnableForMultiTexDotNotNormalized;
-  begin
-    Renderer.ActiveTexture(0);
-    glBindTexture(GL_TEXTURE_2D, TexNormalMap);
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-    { texture unit 0: make dot between PRIMARY_COLOR and
-      current texture (normal map). IOW, calculate diffuse factor. }
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_ARB);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-
-    Renderer.ActiveTexture(1);
-    glBindTexture(GL_TEXTURE_2D, TexOriginal);
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-    { texture unit 1: multiply diffuse factor by texture value. }
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-
-    glTexEnvAlphaFromMaterialAndTexture;
-  end;
-
-  procedure EnableForMultiTexDotNormalized;
-  begin
-    { texture unit 0: just lookup your coordinates (which are
-      3D lighting dir, not normalized) in cube map.
-      This calculates normalized lighting dir. }
-    Renderer.ActiveTexture(0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, Renderer.TexNormalizationCube);
-    glEnable(GL_TEXTURE_CUBE_MAP_ARB);
-    { make sure GL_TEXTURE_2D is disabled here (other bump mapping
-      methods could enable this) }
-    glDisable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-
-    Renderer.ActiveTexture(1);
-    glBindTexture(GL_TEXTURE_2D, TexNormalMap);
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-    { texture unit 1: make dot between previous (light dir normalized) and
-      current texture (normal map). IOW, calculate diffuse factor. }
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_ARB);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-
-    Renderer.ActiveTexture(2);
-    { We bind NormalAndBumpTex, although actually we don't use
-      bump stored there as alpha channel (they are only for emboss
-      method). }
-    glBindTexture(GL_TEXTURE_2D, TexOriginal);
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-    { texture unit 2: multiply diffuse factor by texture value. }
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-
-    glTexEnvAlphaFromMaterialAndTexture;
-  end;
 
   procedure EnableForGLSL;
   var
@@ -478,7 +373,6 @@ begin
       TexHeightMapScale := Node.FdHeightMapScale.Value;
 
       TexOriginal := TGLImageTextureNode(ColorTextureNode).GLName;
-      TexOriginalAlpha := TGLImageTextureNode(ColorTextureNode).AlphaChannelType = atSimpleYesNo;
 
       { use parallax only if the model actually has heightMap }
       if (TexHeightMap = 0) and
@@ -490,76 +384,17 @@ begin
   end;
 
   if Result and (MeshRenderer.BumpMappingMethod <> bmNone) then
-  begin
-    case MeshRenderer.BumpMappingMethod of
-      bmMultiTexDotNotNormalized: EnableForMultiTexDotNotNormalized;
-      bmMultiTexDotNormalized   : EnableForMultiTexDotNormalized;
-      bmGLSLNormal,
-      bmGLSLParallax            : EnableForGLSL;
-      else raise EInternalError.Create('BumpMappingMethod ?');
-    end;
-  end;
+    EnableForGLSL;
 end;
 
 procedure TBumpMappingRenderer.Disable;
 var
   MeshRenderer: TVRMLMeshRenderer;
-
-  { DisableXxx procedures disable textures (2d and cube map)
-    that were enabled by their SetXxx counterparts in RenderCoordinateBegin.
-    In case of shader implementation, this also disables the shader.
-
-    Note that they still leave some state behind:
-    - currently bound textures
-    - texture environments
-    - the currently bound texture is left unspecified
-    These must be set always when anything will enable some texture. }
-
-  procedure DisableForMultiTexDotNotNormalized;
-  begin
-    Renderer.ActiveTexture(0);
-    glDisable(GL_TEXTURE_2D);
-
-    Renderer.ActiveTexture(1);
-    glDisable(GL_TEXTURE_2D);
-  end;
-
-  procedure DisableForMultiTexDotNormalized;
-  begin
-    { texture unit 0: just lookup your coordinates (which are
-      3D lighting dir, not normalized) in cube map.
-      This calculates normalized lighting dir. }
-    Renderer.ActiveTexture(0);
-    glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-
-    Renderer.ActiveTexture(1);
-    glDisable(GL_TEXTURE_2D);
-
-    Renderer.ActiveTexture(2);
-    glDisable(GL_TEXTURE_2D);;
-  end;
-
-  procedure DisableForGLSL;
-  begin
-    { No need to disable textures, as we didn't enable them in
-      EnableForGLSL (shader doesn't need them enabled). }
-
-    Renderer.BmGLSLProgram[MeshRenderer.BumpMappingMethod >= bmGLSLParallax].Disable;
-  end;
-
 begin
   MeshRenderer := TVRMLMeshRenderer(Renderer.ExposedMeshRenderer);
 
   if MeshRenderer.BumpMappingMethod <> bmNone then
-  begin
-    case MeshRenderer.BumpMappingMethod of
-      bmMultiTexDotNotNormalized: DisableForMultiTexDotNotNormalized;
-      bmMultiTexDotNormalized   : DisableForMultiTexDotNormalized;
-      bmGLSLNormal,
-      bmGLSLParallax            : DisableForGLSL;
-      else raise EInternalError.Create('BumpMappingMethod ?');
-    end;
-  end;
+    Renderer.BmGLSLProgram[MeshRenderer.BumpMappingMethod >= bmGLSLParallax].Disable;
 end;
 
 { TBumpMappingRenderersList -------------------------------------------------- }

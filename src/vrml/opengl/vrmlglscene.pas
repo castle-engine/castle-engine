@@ -1198,24 +1198,9 @@ type
       is capped by @code(Attributes.BumpMappingMaximum)).
 
       You can change this at any time, and we will automatically do
-      everything needed to properly update this on next render.
-      But note that when BumpMappingMethod = one of bmMultiTexAll values,
-      changing BumpMappingLightPosition means that we have to rebuild some
-      resources (display lists etc.). So changing BumpMappingLightPosition
-      becomes really costly operation, unless Optimization = roNone.
-
-      In other words: if you plan to change BumpMappingLightPosition
-      really often (I mean, like every frame or such) then make sure that
-      either
-
-      @unorderedList(
-        @item(BumpMappingMethod in bmGLSLAll (requires newer GL hardware) or)
-        @item(Optimization is left as roNone)
-      )
-
-      But roNone means that you lose some other optimizations, so it may
-      be not desirable... in pratice, it's usually best decision to not update
-      BumpMappingLightPosition too often if BumpMappingMethod = one of bmMultiTexAll. }
+      everything needed to properly update this.
+      Since the only bump mapping implementation is now through modern shaders,
+      updating this is fast. }
     property BumpMappingLightPosition: TVector3Single
       read GetBumpMappingLightPosition write SetBumpMappingLightPosition;
 
@@ -4495,12 +4480,7 @@ procedure TVRMLGLScene.SetBumpMappingLightPosition(const Value: TVector3Single);
 begin
   Renderer.BumpMappingLightPosition := Value;
 
-  { For BumpMappingMethod in bmMultiTexAll, we have to remake display lists
-    after BumpMappingLightPosition changed. }
-
-  if (Renderer.BumpMappingMethod in bmMultiTexAll) and
-     (Optimization <> roNone) then
-    CloseGLRenderer;
+  { No need for CloseGLRenderer }
 end;
 
 function TVRMLGLScene.GetBumpMappingLightAmbientColor: TVector4Single;

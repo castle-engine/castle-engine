@@ -27,15 +27,7 @@ begin
   if ( (MeshRenderer <> nil) and
        (MeshRenderer.BumpMappingMethod <> bmNone) ) then
   begin
-    { When doing bump mapping by bmMultiTex*, we turn off lighting.
-      Bump mapping will calculate it per-pixel anyway.
-
-      In case of bmMultiTexDotNormalized, UnlitColor will be
-      applied (mixed with original texture to give primary_color).
-      In case of bmMultiTexDotNotNormalized,
-      UnlitColor will be ignored (we'll use glColor to pass light dir). }
-
-    { When doing bump mapping in bmGLSLAll, we always turn on lighting.
+    { When doing bump mapping <> bmNone, we always turn on lighting.
 
       We will calculate lighting using our equations, and actually
       it's not important whether light will be enabled or not.
@@ -47,7 +39,7 @@ begin
       with bump mapping are undefined. TODO: fix.)
     }
 
-    Result := MeshRenderer.BumpMappingMethod in bmGLSLAll;
+    Result := MeshRenderer.BumpMappingMethod  <> bmNone;
   end else
   begin
     Result := not (

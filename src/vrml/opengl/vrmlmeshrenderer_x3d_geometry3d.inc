@@ -135,62 +135,7 @@ procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
 
   procedure DoBumpMapping;
   var
-    Normal, Vertex: TVector3Single;
-
-    function CalculateLightDirTangent: TVector3Single;
-
-      function LightDirectionInTangentSpace(
-        const Vertex, Normal, STangent, TTangent: TVector3Single): TVector3Single;
-      var
-        ToTangent: TMatrix3Single;
-        I: Integer;
-      begin
-        for I := 0 to 2 do
-        begin
-          ToTangent[I, 0] := STangent[I];
-          ToTangent[I, 1] := TTangent[I];
-          ToTangent[I, 2] := Normal[I];
-        end;
-
-        Result := MatrixMultVector(ToTangent,
-          VectorSubtract(LightPositionObjectSpace, Vertex));
-      end;
-
-    var
-      LocalSTangent, LocalTTangent: TVector3Single;
-    begin
-      { calculate LightDirTangent }
-      if HasTangentVectors and
-        (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
-        (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
-      begin
-        if NormalsFlat then
-        begin
-          Result := LightDirectionInTangentSpace(
-            Vertex, Normal, STangent, TTangent);
-        end else
-        begin
-          { If not NormalsFlat, you want to calculate local STangent and TTangent,
-            I mean STangent and TTangent adjusted to current vertex (since each
-            vertex may have different normal on the face when not NormalsFlat).
-
-            Without doing this, you would see strange artefacts, smoothed
-            faces would look somewhat like flat faces. Concenptually, for smoothed
-            faces, whole tangent space should vary for each vertex, so Normal,
-            and both tangents may be different on each vertex. }
-
-          LocalSTangent := STangent;
-          MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
-
-          LocalTTangent := TTangent;
-          MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
-
-          Result := LightDirectionInTangentSpace(
-            Vertex, Normal, LocalSTangent, LocalTTangent);
-        end;
-      end else
-        Result := Vector3Single(0, 0, 1);
-    end;
+    Normal: TVector3Single;
 
     procedure SetBumpMappingAttribs;
 
@@ -213,9 +158,6 @@ procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
     var
       LocalSTangent, LocalTTangent: TVector3Single;
     begin
-      { This somewhat duplicates CalculateLightDirTangent logic,
-        but instead of calling LightDirectionInTangentSpace this must
-        call SetMatrixToTangent. }
       if HasTangentVectors and
         (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
         (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
@@ -252,55 +194,17 @@ procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
     end;
 
   var
-    LightDirTangent: TVector3Single;
     Tex: TVector2Single;
   begin
     GetNormal(IndexNum, CurrentRangeNumber, Normal);
 
-    { This is OK, we want Vertex in object space here. }
-    Vertex := Coord.Items.ItemsArray^[CoordIndex.Items.Items[indexNum]];
-
     Check(GetTextureCoord(IndexNum, 0, Tex), 'TexCoord for BumpMapping');
 
-    { set all textures coordinates }
-    case BumpMappingMethod of
-      bmMultiTexDotNotNormalized:
-        begin
-          LightDirTangent := CalculateLightDirTangent;
-          NormalizeTo1st(LightDirTangent);
-
-          { pass LightDirTangent as RGB color }
-          glColor3f((LightDirTangent[0] + 1) / 2,
-                    (LightDirTangent[1] + 1) / 2,
-                    (LightDirTangent[2] + 1) / 2);
-
-          glMultiTexCoord2fARB(GL_TEXTURE0_ARB, Tex[0], Tex[1]);
-          glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
-        end;
-
-      bmMultiTexDotNormalized:
-        begin
-          LightDirTangent := CalculateLightDirTangent;
-          glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
-            LightDirTangent[0],
-            LightDirTangent[1],
-            LightDirTangent[2]);
-
-          glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
-          glMultiTexCoord2fARB(GL_TEXTURE2_ARB, Tex[0], Tex[1]);
-        end;
-
-      bmGLSLNormal,
-      bmGLSLParallax:
-        begin
-          SetBumpMappingAttribs;
-          glMultiTexCoord2fARB(GL_TEXTURE0_ARB, Tex[0], Tex[1]);
-          { No need to pass texture coords for 2nd texture, GL_TEXTURE1_ARB.
-            Shader knows that they are the same, and will just use gl_TexCoord[0]
-            to access both textures. }
-        end;
-      else raise EInternalError.Create('BumpMappingMethod ?');
-    end;
+    SetBumpMappingAttribs;
+    glMultiTexCoord2fARB(GL_TEXTURE0_ARB, Tex[0], Tex[1]);
+    { No need to pass texture coords for 2nd texture, GL_TEXTURE1_ARB.
+      Shader knows that they are the same, and will just use gl_TexCoord[0]
+      to access both textures. }
   end;
 
 begin

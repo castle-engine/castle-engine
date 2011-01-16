@@ -882,16 +882,6 @@ begin
 
   Scene.Load(FileName);
 
-  { It would be better to match Scene.Optimization with
-    *current* BumpMappingMaximum, not with High(TBumpMappingMethod).
-    Scene.Optimization is settable during lifetime of Scene, so this
-    is possible. }
-  if TVRMLGLRenderer.GLContextBumpMappingMethod(
-    0, -1, High(TBumpMappingMethod), true, true, false) in
-    [bmNone] + bmGLSLAll then
-    Scene.Optimization := DefaultOptimization else
-    Scene.Optimization := roNone;
-
   { make octree for fast RenderFrustum }
   Progress.UserInterface := ProgressNullInterface;
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
