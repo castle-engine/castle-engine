@@ -27,12 +27,26 @@ type
 
   TTexCoordDimensions = 2..4;
 
-  { @exclude Internally used by TGeometryArrays }
+  { Texture coord array information, for TGeometryArrays. }
   TGeometryTexCoord = class
     Dimensions: TTexCoordDimensions;
     Offset: Integer;
   end;
   TGeometryTexCoordsList = specialize TFPGObjectList<TGeometryTexCoord>;
+
+  TGeometryAttribType = (atFloat, atVector2, atVector3, atVector4,
+    atMatrix3, atMatrix4);
+
+  { GLSL attributes array information, for TGeometryArrays. }
+  TGeometryAttrib = class
+    Name: string;
+    AType: TGeometryAttribType;
+    Offset: Integer;
+  end;
+  TGeometryAttribsList = class(specialize TFPGObjectList<TGeometryAttrib>)
+  public
+    function Find(const Name: string): TGeometryAttrib;
+  end;
 
   { Geometry represented as arrays of indexes, vertex positions,
     texture coordinates and such. Many (eventually, all) geometry nodes
@@ -66,12 +80,15 @@ type
     FogCoordOffset: Integer;
 
     FTexCoords: TGeometryTexCoordsList;
+    FAttribs: TGeometryAttribsList;
 
-    { TODO: GLSLAttributesOffsets: TStringList; }
     procedure SetCount(const Value: Integer);
-
     procedure AddTexCoord(const Dimensions: TTexCoordDimensions;
       const TextureUnit: Cardinal);
+    procedure AddGLSLAttribute(const AType: TGeometryAttribType;
+      const Name: string);
+    function GLSLAttribute(const AType: TGeometryAttribType;
+      const Name: string; const Index: Cardinal): Pointer;
   public
     constructor Create;
     destructor Destroy; override;
@@ -152,11 +169,6 @@ type
     procedure AddFogCoord;
     function FogCoord(const Index: Cardinal = 0): PSingle;
 
-    { TODO:
-    procedure AddGLSLAttribute(const Name: string; const Size: Cardinal);
-    function GLSLAttribute: Pointer;
-    procedure IncGLSLAttribute(var P: Pointer); }
-
     { Allocated in AttributeArray texture coords.
       Index is texture unit (counted from renderer first available texture
       unit). If given item is @nil on this list, then this texture unit
@@ -173,11 +185,42 @@ type
     function TexCoord2D(const TextureUnit, Index: Cardinal): PVector2Single;
     function TexCoord3D(const TextureUnit, Index: Cardinal): PVector3Single;
     function TexCoord4D(const TextureUnit, Index: Cardinal): PVector4Single;
+
+    property Attribs: TGeometryAttribsList read FAttribs;
+
+    procedure AddGLSLAttributeFloat(const Name: string);
+    procedure AddGLSLAttributeVector2(const Name: string);
+    procedure AddGLSLAttributeVector3(const Name: string);
+    procedure AddGLSLAttributeVector4(const Name: string);
+    procedure AddGLSLAttributeMatrix3(const Name: string);
+    procedure AddGLSLAttributeMatrix4(const Name: string);
+
+    function GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt = 0): Pointer;
+
+    function GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
+    function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2Single;
+    function GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3Single;
+    function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4Single;
+    function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3Single;
+    function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4Single;
   end;
 
 implementation
 
 uses SysUtils;
+
+{ TGeometryAttribsList ------------------------------------------------------- }
+
+function TGeometryAttribsList.Find(const Name: string): TGeometryAttrib;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Name = Name then
+      Exit(Items[I]);
+
+  Result := nil;
+end;
 
 { TGeometryArrays ------------------------------------------------------------ }
 
@@ -187,12 +230,14 @@ begin
   FCoordinateSize := SizeOf(TVector3Single) * 2;
   FAttributeSize := 0;
   FTexCoords := TGeometryTexCoordsList.Create;
+  FAttribs := TGeometryAttribsList.Create;
 end;
 
 destructor TGeometryArrays.Destroy;
 begin
   FreeAndNil(FIndexes);
   FreeAndNil(FTexCoords);
+  FreeAndNil(FAttribs);
   FreeAndNil(FCounts);
   FreeMemNiling(FCoordinateArray);
   FreeMemNiling(FAttributeArray);
@@ -347,6 +392,128 @@ end;
 function TGeometryArrays.TexCoord4D(const TextureUnit, Index: Cardinal): PVector4Single;
 begin
   Result := PVector4Single(TexCoord(4, TextureUnit, Index));
+end;
+
+const
+  AttribTypeName: array[TGeometryAttribType] of string =
+  ( 'float', 'vec2', 'vec3', 'vec4', 'mat3', 'mat4' );
+
+procedure TGeometryArrays.AddGLSLAttribute(const AType: TGeometryAttribType;
+  const Name: string);
+const
+  AttribSizes: array[TGeometryAttribType] of Cardinal =
+  ( SizeOf(Single),
+    SizeOf(TVector2Single),
+    SizeOf(TVector3Single),
+    SizeOf(TVector4Single),
+    SizeOf(TMatrix3Single),
+    SizeOf(TMatrix4Single)
+  );
+var
+  A: TGeometryAttrib;
+begin
+  A := Attribs.Find(Name);
+  if A <> nil then
+  begin
+    if A.AType <> AType then
+      raise Exception.CreateFmt('GLSL attribute "%s" is already allocated but for different type (%s) than currently requested (%s)',
+        [Name, AttribTypeName[A.AType], AttribTypeName[AType]]);
+  end else
+  begin
+    A := TGeometryAttrib.Create;
+    A.Name := Name;
+    A.AType := AType;
+    A.Offset := AttributeSize;
+    FAttributeSize += AttribSizes[AType];
+
+    Attribs.Add(A);
+  end;
+end;
+
+procedure TGeometryArrays.AddGLSLAttributeFloat(const Name: string);
+begin
+  AddGLSLAttribute(atFloat, Name);
+end;
+
+procedure TGeometryArrays.AddGLSLAttributeVector2(const Name: string);
+begin
+  AddGLSLAttribute(atVector2, Name);
+end;
+
+procedure TGeometryArrays.AddGLSLAttributeVector3(const Name: string);
+begin
+  AddGLSLAttribute(atVector3, Name);
+end;
+
+procedure TGeometryArrays.AddGLSLAttributeVector4(const Name: string);
+begin
+  AddGLSLAttribute(atVector4, Name);
+end;
+
+procedure TGeometryArrays.AddGLSLAttributeMatrix3(const Name: string);
+begin
+  AddGLSLAttribute(atMatrix3, Name);
+end;
+
+procedure TGeometryArrays.AddGLSLAttributeMatrix4(const Name: string);
+begin
+  AddGLSLAttribute(atMatrix4, Name);
+end;
+
+function TGeometryArrays.GLSLAttribute(const AType: TGeometryAttribType;
+  const Name: string; const Index: Cardinal): Pointer;
+var
+  A: TGeometryAttrib;
+begin
+  A := Attribs.Find(Name);
+
+  if A <> nil then
+  begin
+    if A.AType <> AType then
+      raise Exception.CreateFmt('GLSL attribute "%s" is allocated but for different type (%s) than currently requested (%s)',
+        [Name, AttribTypeName[A.AType], AttribTypeName[AType]]);
+    Result := Pointer(PtrUInt(PtrUInt(FAttributeArray) +
+      A.Offset + Index * AttributeSize));
+    Exit;
+  end;
+
+  raise Exception.CreateFmt('GLSL attribute "%s" is not allocated', [Name]);
+end;
+
+function TGeometryArrays.GLSLAttribute(A: TGeometryAttrib;
+  const Offset: PtrUInt): Pointer;
+begin
+  Result := Pointer(PtrUInt(PtrUInt(FAttributeArray) + A.Offset + Offset));
+end;
+
+function TGeometryArrays.GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
+begin
+  Result := GLSLAttribute(atFloat, Name, Index);
+end;
+
+function TGeometryArrays.GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2Single;
+begin
+  Result := GLSLAttribute(atVector2, Name, Index);
+end;
+
+function TGeometryArrays.GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3Single;
+begin
+  Result := GLSLAttribute(atVector3, Name, Index);
+end;
+
+function TGeometryArrays.GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4Single;
+begin
+  Result := GLSLAttribute(atVector4, Name, Index);
+end;
+
+function TGeometryArrays.GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3Single;
+begin
+  Result := GLSLAttribute(atMatrix3, Name, Index);
+end;
+
+function TGeometryArrays.GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4Single;
+begin
+  Result := GLSLAttribute(atMatrix4, Name, Index);
 end;
 
 end.

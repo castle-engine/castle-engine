@@ -52,6 +52,7 @@ type
     { Auto-generate normals and set Normals, NormalsCcw, NorImplementation
       properties to use them. }
     procedure AutoGenerateNormals(const CreaseAngle: Single);
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
   protected
     { Set these in descendant's constructor. }
     FaceConvex: boolean;
@@ -131,47 +132,59 @@ begin
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
+procedure TIndexedFaceSetRenderer.PrepareAttributes(var AllowIndexed: boolean);
+begin
+  inherited;
+  if BumpMappingMethod <> bmNone then
+  begin
+    Arrays.AddGLSLAttributeMatrix3('object_space_to_tangent');
+    Arrays.AddGLSLAttributeVector2('tex_coord');
+    { tex_coord may differ for each vertex occurence.
+      TODO: Actually, tex coord implementation determines it,
+      so we should depend on tex coord generator ancestor.
+      But it fails then, probably ArrayIndexNum is completely invalid in such cases. }
+    AllowIndexed := false;
+  end;
+end;
+
 procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
 
   procedure DoBumpMapping;
-  var
-    Normal: TVector3Single;
 
-    procedure SetBumpMappingAttribs;
+    function GetMatrixToTangent: TMatrix3Single;
 
-      procedure SetMatrixToTangent(const Normal, STangent, TTangent: TVector3Single);
+      procedure SetResult(const Normal, STangent, TTangent: TVector3Single);
       var
-        ToTangent: TMatrix3Single;
         I: Integer;
       begin
         for I := 0 to 2 do
         begin
-          ToTangent[I, 0] := STangent[I];
-          ToTangent[I, 1] := TTangent[I];
-          ToTangent[I, 2] := Normal[I];
+          Result[I, 0] := STangent[I];
+          Result[I, 1] := TTangent[I];
+          Result[I, 2] := Normal[I];
         end;
-
-        Renderer.BmGLSLAttribObjectSpaceToTangent[
-          BumpMappingMethod >= bmGLSLParallax].SetValue(ToTangent);
       end;
 
     var
       LocalSTangent, LocalTTangent: TVector3Single;
+      Normal: TVector3Single;
     begin
+      GetNormal(IndexNum, CurrentRangeNumber, Normal);
+
       if HasTangentVectors and
         (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
         (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
       begin
         if NormalsFlat then
         begin
-          SetMatrixToTangent(Normal, STangent, TTangent);
+          SetResult(Normal, STangent, TTangent);
         end else
         begin
           { If not NormalsFlat, you want to calculate local STangent and TTangent,
             I mean STangent and TTangent adjusted to current vertex (since each
             vertex may have different normal on the face when not NormalsFlat).
 
-            Without doing this, you would see strange artefacts, smoothed
+            Without doing this, you would see strange artifacts, smoothed
             faces would look somewhat like flat faces. Concenptually, for smoothed
             faces, whole tangent space should vary for each vertex, so Normal,
             and both tangents may be different on each vertex. }
@@ -182,11 +195,11 @@ procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
           LocalTTangent := TTangent;
           MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
 
-          SetMatrixToTangent(Normal, LocalSTangent, LocalTTangent);
+          SetResult(Normal, LocalSTangent, LocalTTangent);
         end;
       end else
       begin
-        SetMatrixToTangent(Normal,
+        SetResult(Normal,
           { would be more correct to set LocalSTangent as anything perpendicular
             to Normal, and LocalTTangent as vector product (normal, LocalSTangent) }
           Vector3Single(1, 0, 0), Vector3Single(0, 1, 0));
@@ -196,14 +209,11 @@ procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
   var
     Tex: TVector2Single;
   begin
-    GetNormal(IndexNum, CurrentRangeNumber, Normal);
+    Arrays.GLSLAttributeMatrix3('object_space_to_tangent',
+      ArrayIndexNum)^ := GetMatrixToTangent;
 
     Check(GetTextureCoord(IndexNum, 0, Tex), 'TexCoord for BumpMapping');
-
-    SetBumpMappingAttribs;
-
-    Renderer.BmGLSLAttribTexCoord[BumpMappingMethod >= bmGLSLParallax].
-      SetValue(Tex);
+    Arrays.GLSLAttributeVector2('tex_coord', ArrayIndexNum)^ := Tex;
   end;
 
 begin

@@ -1166,9 +1166,6 @@ type
       steep improvements. }
     BmSteepParallaxMapping: boolean;
 
-    BmGLSLAttribObjectSpaceToTangent: array[boolean] of TGLSLAttribute;
-    BmGLSLAttribTexCoord: array[boolean] of TGLSLAttribute;
-
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRenderersList;
     GLSLRenderers: TGLSLRenderersList;
@@ -1185,12 +1182,14 @@ type
       don't want to expose TVRMLMeshRenderer class in the interface. }
     ExposedMeshRenderer: TObject;
 
-    { kopie aktualnego Shape, Shape.State i Shape.Geometry na czas Render }
+    { During Render, values of current Shape, Shape.State, Shape.Geometry
+      and such. }
     CurrentShape: TVRMLShape;
     CurrentState: TVRMLGraphTraverseState;
     CurrentGeometry: TVRMLGeometryNode;
+    UsedGLSL: TGLSLRenderer;
 
-    { te zmienne sa wewnetrzne dla funkcji MeterialsBegin/End, BindMaterial }
+    { Variables internal for MeterialsBegin/End, BindMaterial }
     MaterialLit: boolean;
     Material1BoundNumber: integer;
     MaterialTemporaryDisabledFog: boolean;
@@ -3455,10 +3454,6 @@ begin
   { unprepare BmGLSLProgram }
   FreeAndNil(BmGLSLProgram[false]);
   FreeAndNil(BmGLSLProgram[true]);
-  FreeAndNil(BmGLSLAttribObjectSpaceToTangent[false]);
-  FreeAndNil(BmGLSLAttribObjectSpaceToTangent[true]);
-  FreeAndNil(BmGLSLAttribTexCoord[false]);
-  FreeAndNil(BmGLSLAttribTexCoord[true]);
 end;
 
 function TVRMLGLRenderer.LastGLFreeLight: integer;
@@ -4111,7 +4106,6 @@ procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLShape);
 var
   BumpMapping: TBumpMappingRenderer;
 
-  UsedGLSL: TGLSLRenderer;
   { > 0 means that UsedGLSL is non-nil *and* we already bound needed texture
     units when initializing shader. Always 0 otherwise. }
   UsedGLSLTexCoordsNeeded: Cardinal;

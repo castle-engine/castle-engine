@@ -348,6 +348,22 @@ type
     procedure SetUniform(const Name: string; const Value: TDynMatrix4SingleArray);
     { @groupEnd }
 
+    { Load and enable vertex attribute data.
+      This calls glVertexAttribPointer and enables it by
+      glEnableVertexAttribArray (or ARB extension equivalents),
+      see OpenGL reference for details.
+
+      The attribute name is automatically resolved to a "location".
+      We add LocationOffset (useful if you want to load matrix attributes,
+      when you have to load matrix columns separately, with
+      LocationOffset = column index).
+
+      @raises(EGLSLAttributeNotFound If the variable is not found within
+        the program.) }
+    procedure VertexAttribPointer(const Name: string; LocationOffset: TGLint;
+      Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
+      Ptr: Pointer);
+
     { Set attribute variable value.
       The used type must match the type of this variable in GLSL program.
 
@@ -1622,6 +1638,29 @@ begin
       gsStandard    : Result.Location := GetAttribLocation   (Name);
     end;
   except FreeAndNil(Result); raise end;
+end;
+
+procedure TGLSLProgram.VertexAttribPointer(const Name: string;
+  LocationOffset: TGLint;
+  Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
+  Ptr: Pointer);
+var
+  Location: TGLint;
+begin
+  case Support of
+    gsARBExtension:
+      begin
+        Location := GetAttribLocationARB(Name) + LocationOffset;
+        glEnableVertexAttribArrayARB(Location);
+        glVertexAttribPointerARB(Location, Size, AType, Normalized, Stride, Ptr);
+      end;
+    gsStandard    :
+      begin
+        Location := GetAttribLocation   (Name) + LocationOffset;
+        glEnableVertexAttribArray   (Location);
+        glVertexAttribPointer   (Location, Size, AType, Normalized, Stride, Ptr);
+      end;
+  end;
 end;
 
 end.

@@ -172,7 +172,7 @@ type
       If CoordIndex is assigned (that is either Arrays.Indexes or
       IndexesFromCoordIndex are assigned) then points to current vertex
       in Arrays.Indexes or IndexesFromCoordIndex. If CoordIndex not assigned,
-      this simply points to Arrays attributes.
+      this simply points to Arrays attributes (TODO: not really).
       You have to call GenerateVertex in exactly the same order as you
       generated IndexesFromCoordIndex to make this valid. }
     ArrayIndexNum: Integer;
@@ -874,10 +874,9 @@ procedure TAbstractCoordinateRenderer.DoRender;
   end;
 
   procedure RenderArrays;
-
-    var
-      { This is used only by LockArraysBegin and LockArraysEnd. }
-      UseLockArrays: boolean;
+  var
+    { This is used only by LockArraysBegin and LockArraysEnd. }
+    UseLockArrays: boolean;
 
     procedure LockArraysBegin;
     begin
@@ -904,6 +903,37 @@ procedure TAbstractCoordinateRenderer.DoRender;
     begin
       if UseLockArrays then
         glUnlockArraysEXT;
+    end;
+
+    procedure EnableVertexAttrib(GLSLProgram: TGLSLProgram);
+    var
+      I: Integer;
+    begin
+      for I := 0 to Arrays.Attribs.Count - 1 do
+      try
+        case Arrays.Attribs[I].AType of
+          atFloat  : GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+          atVector2: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 2, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+          atVector3: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+          atVector4: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+          atMatrix3:
+            begin
+              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single)));
+              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single) * 2));
+            end;
+          atMatrix4:
+            begin
+              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single)));
+              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 2));
+              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 3, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 3));
+            end;
+          else raise EInternalError.Create('Arrays.Attribs[I].AType?');
+        end;
+      except
+        on E: EGLSLAttributeNotFound do VRMLWarning(vwSerious, E.Message);
+      end;
     end;
 
   const
@@ -986,6 +1016,14 @@ procedure TAbstractCoordinateRenderer.DoRender;
         glTexCoordPointer(Arrays.TexCoords[0].Dimensions, GL_FLOAT,
           Arrays.AttributeSize,
           Arrays.TexCoord(Arrays.TexCoords[0].Dimensions, 0, 0));
+      end;
+
+      if Arrays.Attribs.Count <> 0 then
+      begin
+        if Renderer.UsedGLSL <> nil then
+          EnableVertexAttrib(Renderer.UsedGLSL.GLSLProgram) else
+        if BumpMappingMethod <> bmNone then
+          EnableVertexAttrib(Renderer.BmGLSLProgram[BumpMappingMethod >= bmGLSLParallax]);
       end;
 
       { Lock arrays after setting up all arrays. }
@@ -2089,6 +2127,7 @@ procedure TAbstractTexCoordinateRenderer.GenerateVertex(indexNum: integer);
   var
     TextureUnit: Integer;
   begin
+    Assert(Arrays.Indexes = nil);
     for TextureUnit := 0 to High(TexCoordGen) do
     begin
       case TexCoordGen[TextureUnit] of
