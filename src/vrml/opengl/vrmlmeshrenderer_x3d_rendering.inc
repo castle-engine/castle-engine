@@ -24,7 +24,7 @@ type
     procedure GenerateCoordinate; override;
   end;
 
-  TPointSet_2Renderer = class(TAbstractColMatTexCoordinateRenderer)
+  TPointSet_2Renderer = class(TAbstractColorRenderer)
   protected
     procedure PrepareIndexesPrimitives; override;
     procedure RenderCoordinateBegin; override;

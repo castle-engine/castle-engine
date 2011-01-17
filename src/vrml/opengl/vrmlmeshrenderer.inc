@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Utilities for VRML / X3D mesh rendering.
+{ VRML / X3D rendering.
   This is internal for VRMLGLRenderer unit.
 
   Some ideas for implementation:
@@ -407,7 +407,7 @@ type
     gl[Multi]TexCoord etc.)
     in descendants. Everything related to textures is already
     handled in this class. }
-  TAbstractTexCoordinateRenderer = class(TAbstractCoordinateRenderer)
+  TAbstractTextureCoordinateRenderer = class(TAbstractCoordinateRenderer)
   private
     TexImplementation: TTextureCoordsImplementation;
 
@@ -482,7 +482,7 @@ type
     miPerFace,
     miPerFaceMatIndexed);
 
-  { Enhances TAbstractTexCoordinateRenderer with the ability to handle
+  { Enhances TAbstractTextureCoordinateRenderer with the ability to handle
     per-face or per-vertex VRML 1.0 materials.
 
     Usage:
@@ -506,7 +506,7 @@ type
     Do not call Renderer.Render_BindMaterial_1
     in descendants. Everything related to VRML 1.0 materials is already
     handled in this class. }
-  TAbstractMatTexCoordinateRenderer = class(TAbstractTexCoordinateRenderer)
+  TAbstractMaterial1Renderer = class(TAbstractTextureCoordinateRenderer)
   private
     { Must be set in constructor. MaterialsBegin (may someday) depend on this.
 
@@ -535,7 +535,7 @@ type
     function NeedsBindMaterial1InsideBeginEnd: boolean; override;
   end;
 
-  { Enhances TAbstractMatTexCoordinateRenderer with the ability to handle
+  { Enhances TAbstractMaterial1Renderer with the ability to handle
     per-face or per-vertex VRML >= 2.0 colors.
 
     - Usage: set Color or ColorRGBA (at most one of them), ColorPerVertex,
@@ -581,7 +581,7 @@ type
     related to VRML 2.0 colors is handled in this class.
     So in summary, this class takes care of everything related to
     materials / colors. }
-  TAbstractColMatTexCoordinateRenderer = class(TAbstractMatTexCoordinateRenderer)
+  TAbstractColorRenderer = class(TAbstractMaterial1Renderer)
   private
     RadianceTransferVertexSize: Cardinal;
     FRadianceTransfer: TDynVector3SingleArray;
@@ -607,7 +607,7 @@ type
   end;
 
   TNormalsImplementation = (
-    { Do nothing about normals (in TAbstractNorColMatTexCoordinateRenderer)
+    { Do nothing about normals (in TAbstractNormalRenderer)
       class. Passing normals to OpenGL is left for descendants. }
     niNone,
     { The first item of Normals specifies the one and only normal
@@ -627,7 +627,7 @@ type
     { Face number is the index to NormalIndex, and this indexes Normals. }
     niPerFaceNormalIndexed);
 
-  { Enhances TAbstractColMatTexCoordinateRenderer with the ability
+  { Enhances TAbstractColorRenderer with the ability
     to use normals, both taken from user data (that is, stored in VRML file)
     and generated.
 
@@ -660,7 +660,7 @@ type
       related to normals in this class.
 
     Note that PerVertexXxx normals require smooth shading to work Ok. }
-  TAbstractNorColMatTexCoordinateRenderer = class(TAbstractColMatTexCoordinateRenderer)
+  TAbstractNormalRenderer = class(TAbstractColorRenderer)
   private
     { Will be set to Normals or it's inverted version, to keep
       pointing from CCW. }
@@ -676,7 +676,7 @@ type
       (which is calculated only in RenderCoordsBegin).
       Reasons:
       - Descendants may want to change NorImplementation. In other words,
-        full automatic detection only in TAbstractNorColMatTexCoordinateRenderer
+        full automatic detection only in TAbstractNormalRenderer
         is not done, it's possible in descendants to explicitly change this.
       - NodeLit uses this, so it must be available after creation and
         before rendering. }
@@ -721,7 +721,7 @@ type
   { Take care of everything related to setting fog coordinate.
     Descendants don't have to do anything, this just works
     (using TVRMLGeometryNode.FogCoord). }
-  TAbstractFogNorColMatTexCoordinateRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  TAbstractFogRenderer = class(TAbstractNormalRenderer)
   private
     FogCoord: TDynSingleArray;
   protected
@@ -739,7 +739,7 @@ type
     from VRML/X3D "attrib" field.
     Descendants don't have to do anything, this just works
     (using TVRMLGeometryNode.Attrib). }
-  TAbstractAttFogNorColMatTexCoordinateRenderer = class(TAbstractFogNorColMatTexCoordinateRenderer)
+  TAbstractShaderAttribRenderer = class(TAbstractFogRenderer)
   private
     Attrib: TX3DVertexAttributeNodes;
   protected
@@ -752,7 +752,7 @@ type
 
   { Most complete implementation of coordinate renderer, used to derive
     non-abstract handlers for nodes. }
-  TAbstractFinalCoordinateRenderer = TAbstractAttFogNorColMatTexCoordinateRenderer;
+  TAbstractFinalCoordinateRenderer = TAbstractShaderAttribRenderer;
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
@@ -1189,21 +1189,21 @@ begin
   FCurrentRangeNumber := RangeNumber;
 end;
 
-{ TAbstractTexCoordinateRenderer ----------------------------------------- }
+{ TAbstractTextureCoordinateRenderer ----------------------------------------- }
 
 { TODO:
   - maybe move NodeTextured here now? We can query created mesh renderer
     before calling it's render!
 }
 
-constructor TAbstractTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractTextureCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
   if not Geometry.TexCoord(State, TexCoord) then
     TexCoord := nil;
 end;
 
-procedure TAbstractTexCoordinateRenderer.PrepareAttributes(
+procedure TAbstractTextureCoordinateRenderer.PrepareAttributes(
   var AllowIndexed: boolean);
 
   { Is a texture used on given unit, and it's 3D texture. }
@@ -1982,7 +1982,7 @@ begin
     AllowIndexed := false;
 end;
 
-procedure TAbstractTexCoordinateRenderer.GenerateCoordinateBegin;
+procedure TAbstractTextureCoordinateRenderer.GenerateCoordinateBegin;
 
   { Set explicit coordinates as gl[Multi]TexCoordPointer, for all texture units
     (required from TexCoordsNeeded GLUseMultiTexturing) where
@@ -2035,7 +2035,7 @@ begin
     EnableTextureCoordArray;
 end;
 
-procedure TAbstractTexCoordinateRenderer.RenderCoordinateEnd;
+procedure TAbstractTextureCoordinateRenderer.RenderCoordinateEnd;
 
   procedure DisableTextureGen(const TextureUnit: Cardinal);
   begin
@@ -2066,7 +2066,7 @@ begin
   inherited;
 end;
 
-function TAbstractTexCoordinateRenderer.GetTextureCoord(
+function TAbstractTextureCoordinateRenderer.GetTextureCoord(
   IndexNum: integer; const TextureUnit: Cardinal;
   out Tex: TVector4Single): boolean;
 
@@ -2151,14 +2151,14 @@ begin
           SetTexFromTexCoordArray(TexCoordGen[TextureUnit], CoordIndex.Items.Items[IndexNum]);
         tcNonIndexed:
           SetTexFromTexCoordArray(TexCoordGen[TextureUnit], IndexNum);
-        else raise EInternalError.Create('TAbstractTexCoordinateRenderer.GetTextureCoord?');
+        else raise EInternalError.Create('TAbstractTextureCoordinateRenderer.GetTextureCoord?');
       end;
     end else
       Tex := GenerateTexCoord(TexCoordGen[TextureUnit]);
   end;
 end;
 
-function TAbstractTexCoordinateRenderer.GetTextureCoord(
+function TAbstractTextureCoordinateRenderer.GetTextureCoord(
   IndexNum: integer; const TextureUnit: Cardinal;
   out Tex: TVector2Single): boolean;
 var
@@ -2169,7 +2169,7 @@ begin
   Tex[1] := Tex4f[1];
 end;
 
-procedure TAbstractTexCoordinateRenderer.GenerateVertex(indexNum: integer);
+procedure TAbstractTextureCoordinateRenderer.GenerateVertex(indexNum: integer);
 
   procedure DoTexCoord(Index: Integer);
   var
@@ -2192,16 +2192,16 @@ begin
     DoTexCoord(TexCoordIndex.Items.Items[IndexNum]);
 end;
 
-{ TAbstractMatTexCoordinateRenderer ------------------------------------------ }
+{ TAbstractMaterial1Renderer ------------------------------------------ }
 
-constructor TAbstractMatTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractMaterial1Renderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
   MaterialBinding := BIND_DEFAULT;
   UpdateMat1Implementation;
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.UpdateMat1Implementation;
+procedure TAbstractMaterial1Renderer.UpdateMat1Implementation;
 
   function IndexListNotEmpty(MFIndexes: TMFLong): boolean;
   begin
@@ -2236,14 +2236,14 @@ begin
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 end;
 
-function TAbstractMatTexCoordinateRenderer.NeedsBindMaterial1InsideBeginEnd: boolean;
+function TAbstractMaterial1Renderer.NeedsBindMaterial1InsideBeginEnd: boolean;
 begin
   Result := Mat1Implementation in
     [ miPerFace, miPerFaceMatIndexed,
       miPerVertexCoordIndexed, miPerVertexMatIndexed ];
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.PrepareAttributes(var AllowIndexed: boolean);
+procedure TAbstractMaterial1Renderer.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
@@ -2256,7 +2256,7 @@ begin
   end;
 end;
 
-function TAbstractMatTexCoordinateRenderer.GetMaterial1Color(
+function TAbstractMaterial1Renderer.GetMaterial1Color(
   const MaterialIndex: Integer): TVector4Single;
 var
   M: TNodeMaterial_1;
@@ -2270,7 +2270,7 @@ begin
   end;
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.GenerateVertex(IndexNum: Integer);
+procedure TAbstractMaterial1Renderer.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
   case Mat1Implementation of
@@ -2283,7 +2283,7 @@ begin
   end;
 end;
 
-procedure TAbstractMatTexCoordinateRenderer.GenerateCoordsRange(
+procedure TAbstractMaterial1Renderer.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   inherited;
@@ -2296,9 +2296,9 @@ begin
   end;
 end;
 
-{ TAbstractColMatTexCoordinateRenderer --------------------------------------- }
+{ TAbstractColorRenderer --------------------------------------- }
 
-constructor TAbstractColMatTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractColorRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
 
@@ -2306,7 +2306,7 @@ begin
     RadianceTransfer := (Geometry as TNodeX3DComposedGeometryNode).FdRadianceTransfer.Items;
 end;
 
-procedure TAbstractColMatTexCoordinateRenderer.SetRadianceTransfer(
+procedure TAbstractColorRenderer.SetRadianceTransfer(
   const Value: TDynVector3SingleArray);
 begin
   FRadianceTransfer := Value;
@@ -2329,7 +2329,7 @@ begin
     FRadianceTransfer := nil;
 end;
 
-procedure TAbstractColMatTexCoordinateRenderer.PrepareAttributes(var AllowIndexed: boolean);
+procedure TAbstractColorRenderer.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
@@ -2347,7 +2347,7 @@ begin
   end;
 end;
 
-procedure TAbstractColMatTexCoordinateRenderer.GenerateVertex(IndexNum: integer);
+procedure TAbstractColorRenderer.GenerateVertex(IndexNum: integer);
 var
   VertexColor: TVector3Single;
   VertexIndex: Cardinal;
@@ -2419,7 +2419,7 @@ begin
   end;
 end;
 
-procedure TAbstractColMatTexCoordinateRenderer.GenerateCoordsRange(
+procedure TAbstractColorRenderer.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   inherited;
@@ -2443,7 +2443,7 @@ begin
   end;
 end;
 
-function TAbstractColMatTexCoordinateRenderer.NeedsSetColor: boolean;
+function TAbstractColorRenderer.NeedsSetColor: boolean;
 begin
   Result :=
     Assigned(Renderer.Attributes.OnVertexColor) or
@@ -2451,9 +2451,9 @@ begin
     (Color <> nil) or (ColorRGBA <> nil);
 end;
 
-{ TAbstractNorColMatTexCoordinateRenderer ----------------------------------------------------- }
+{ TAbstractNormalRenderer ----------------------------------------------------- }
 
-procedure TAbstractNorColMatTexCoordinateRenderer.PrepareAttributes(
+procedure TAbstractNormalRenderer.PrepareAttributes(
   var AllowIndexed: boolean);
 begin
   inherited;
@@ -2468,7 +2468,7 @@ begin
     AllowIndexed := false;
 end;
 
-function TAbstractNorColMatTexCoordinateRenderer.
+function TAbstractNormalRenderer.
   NorImplementationFromVRML1Binding(NormalBinding: Integer): TNormalsImplementation;
 begin
   Result := niNone;
@@ -2507,7 +2507,7 @@ begin
     Result := niNone;
 end;
 
-function TAbstractNorColMatTexCoordinateRenderer.CcwNormalsSafe(
+function TAbstractNormalRenderer.CcwNormalsSafe(
   const Index: Integer): TVector3Single;
 begin
   if Index < CcwNormals.Count then
@@ -2515,7 +2515,7 @@ begin
     Result := ZeroVector3Single;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.GetNormal(
+procedure TAbstractNormalRenderer.GetNormal(
   IndexNum: Integer; RangeNumber: Integer; out N: TVector3Single);
 begin
   case NorImplementation of
@@ -2536,12 +2536,12 @@ begin
   end;
 end;
 
-function TAbstractNorColMatTexCoordinateRenderer.NormalsFlat: boolean;
+function TAbstractNormalRenderer.NormalsFlat: boolean;
 begin
   Result := NorImplementation in [niOverall, niPerFace, niPerFaceNormalIndexed];
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.GenerateVertex(IndexNum: Integer);
+procedure TAbstractNormalRenderer.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
   case NorImplementation of
@@ -2564,7 +2564,7 @@ begin
   end;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.GenerateCoordinateBegin;
+procedure TAbstractNormalRenderer.GenerateCoordinateBegin;
 
   procedure SetAllNormals(const Value: TVector3Single);
   var
@@ -2612,7 +2612,7 @@ begin
   end;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.GenerateCoordinateEnd;
+procedure TAbstractNormalRenderer.GenerateCoordinateEnd;
 begin
   if (Normals <> nil) and (not NormalsCcw) then
     FreeAndNil(CcwNormals);
@@ -2620,7 +2620,7 @@ begin
   inherited;
 end;
 
-procedure TAbstractNorColMatTexCoordinateRenderer.GenerateCoordsRange(
+procedure TAbstractNormalRenderer.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   inherited;
@@ -2635,9 +2635,9 @@ begin
   end;
 end;
 
-{ TAbstractFogNorColMatTexCoordinateRenderer --------------------------------- }
+{ TAbstractFogRenderer --------------------------------- }
 
-constructor TAbstractFogNorColMatTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractFogRenderer.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
 
@@ -2645,7 +2645,7 @@ begin
     FogCoord := Geometry.FogCoord.Items;
 end;
 
-procedure TAbstractFogNorColMatTexCoordinateRenderer.PrepareAttributes(
+procedure TAbstractFogRenderer.PrepareAttributes(
   var AllowIndexed: boolean);
 begin
   inherited;
@@ -2654,7 +2654,7 @@ begin
     Arrays.AddFogCoord;
 end;
 
-procedure TAbstractFogNorColMatTexCoordinateRenderer.GenerateVertex(
+procedure TAbstractFogRenderer.GenerateVertex(
   IndexNum: Integer);
 
   function GetFogCoord: Single;
@@ -2757,7 +2757,7 @@ begin
     SetFog(GetFogVolumetric);
 end;
 
-procedure TAbstractFogNorColMatTexCoordinateRenderer.RenderCoordinateBegin;
+procedure TAbstractFogRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
@@ -2775,7 +2775,7 @@ begin
   end;
 end;
 
-procedure TAbstractFogNorColMatTexCoordinateRenderer.RenderCoordinateEnd;
+procedure TAbstractFogRenderer.RenderCoordinateEnd;
 begin
   { Restore defaults }
   if (FogCoord <> nil) and GL_EXT_fog_coord then
@@ -2791,9 +2791,9 @@ begin
   inherited;
 end;
 
-{ TAbstractAttFogNorColMatTexCoordinateRenderer ------------------------------ }
+{ TAbstractShaderAttribRenderer ------------------------------ }
 
-constructor TAbstractAttFogNorColMatTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractShaderAttribRenderer.Create(ARenderer: TVRMLGLRenderer);
 var
   A: TMFNode;
   I: Integer;
@@ -2812,13 +2812,13 @@ begin
       end;
 end;
 
-destructor TAbstractAttFogNorColMatTexCoordinateRenderer.Destroy;
+destructor TAbstractShaderAttribRenderer.Destroy;
 begin
   FreeAndNil(Attrib);
   inherited;
 end;
 
-procedure TAbstractAttFogNorColMatTexCoordinateRenderer.PrepareAttributes(var AllowIndexed: boolean);
+procedure TAbstractShaderAttribRenderer.PrepareAttributes(var AllowIndexed: boolean);
 var
   I: Integer;
 begin
@@ -2847,7 +2847,7 @@ begin
     end;
 end;
 
-procedure TAbstractAttFogNorColMatTexCoordinateRenderer.GenerateVertex(IndexNum: Integer);
+procedure TAbstractShaderAttribRenderer.GenerateVertex(IndexNum: Integer);
 var
   I: Integer;
   VertexIndex: Integer;
