@@ -131,7 +131,8 @@ begin
   PosNow := PosBegin;
   while (PosNow <= Length(Value)) and
         (Value[PosNow] <> ';') and
-        (Value[PosNow] <> ',') do
+        (Value[PosNow] <> ',') and
+        (Value[PosNow] <> ' ') do
     Inc(PosNow);
 
   if PosBegin < PosNow then
@@ -139,8 +140,12 @@ begin
 
   repeat
     { Now, we either stand on ";" (then read charset or base64 tag)
-      or we stand on "," (then read data and exit)
-      or we have end of string (then error). }
+      or we stand on "," or " " (then read data and exit)
+      or we have end of string (then error).
+
+      Note that terminating with space is invalid, unfortunately
+      http://www.web3d.org/x3d/content/examples/Basic/Shaders/_pages/page01.html
+      uses it. }
 
     if PosNow > Length(Value) then
     begin
@@ -153,7 +158,8 @@ begin
       PosNow := PosBegin;
       while (PosNow <= Length(Value)) and
             (Value[PosNow] <> ';') and
-            (Value[PosNow] <> ',') do
+            (Value[PosNow] <> ',') and
+            (Value[PosNow] <> ' ') do
         Inc(PosNow);
 
       Part := CopyPos(Value, PosBegin, PosNow - 1);
@@ -163,8 +169,10 @@ begin
         ValidCharset := SEnding(Part, Length('charset=') + 1) else
         DataWarning(Format('Data URI has invalid part "%s" (expected "base64" or "charset=...")', [Part]));
     end else
-    if Value[PosNow] = ',' then
+    if Value[PosNow] in [',', ' '] then
     begin
+      if Value[PosNow] = ' ' then
+        DataWarning('Data URI header terminated by space, which is invalid (you should terminate with a comma)');
       Break;
     end;
   until false;
