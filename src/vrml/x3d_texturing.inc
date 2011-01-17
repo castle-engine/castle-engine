@@ -787,112 +787,50 @@ procedure TNodeImageTexture.LoadTextureData(out WasCacheUsed: boolean);
     - returns false }
   function LoadImageFromDataProtocol(const URL: string): boolean;
   var
-    Mime, Charset: string;
-    Base64: boolean;
-    PosBegin, PosNow: Integer;
-    Part, URLPrefix: string;
+    Data: TDataURI;
     ImageFormat: TImageFormat;
-    SStream, DecStream: TStream;
   begin
-    Mime := 'text/plain'; { default mime-type when not specified }
-    Base64 := false; { default encoding is not base64 }
-    Charset := 'US-ASCII'; { default charset }
-
-    { First 5 characters were already parsed by UrlProtocolIs as "data:".
-      Read mime-type now. }
-
-    PosBegin := 6;
-    PosNow := PosBegin;
-    while (PosNow <= Length(URL)) and
-          (URL[PosNow] <> ';') and
-          (URL[PosNow] <> ',') do
-      Inc(PosNow);
-
-    if PosBegin < PosNow then
-      Mime := CopyPos(URL, PosBegin, PosNow - 1);
-
-    repeat
-      { Now, we either stand on ";" (then read charset or base64 tag)
-        or we stand on "," (then read data and exit)
-        or we have end of string (then error). }
-
-      if PosNow > Length(URL) then
-      begin
-        VRMLWarning(vwSerious, Format('Data URI "%s" unexpectedly ended (expected ",")', [URL]));
-        Exit(false);
-      end else
-      if URL[PosNow] = ';' then
-      begin
-        PosBegin := PosNow + 1;
-        PosNow := PosBegin;
-        while (PosNow <= Length(URL)) and
-              (URL[PosNow] <> ';') and
-              (URL[PosNow] <> ',') do
-          Inc(PosNow);
-
-        Part := CopyPos(URL, PosBegin, PosNow - 1);
-        if Part = 'base64' then
-          Base64 := true else
-        if IsPrefix('charset=', Part) then
-          Charset := SEnding(Part, Length('charset=') + 1) else
-          VRMLWarning(vwSerious, Format('Data URI has invalid part "%s" (expected "base64" or "charset=...")', [Part]));
-      end else
-      if URL[PosNow] = ',' then
-      begin
-        Break;
-      end;
-    until false;
-
-    if Log then
-      WritelnLog('Texture loading',
-        Format('Loading from data URI with mime "%s", charset "%s", base64 "%s"',
-        [Mime, Charset, BoolToStr[Base64]]));
-
-    if not Base64 then
-    begin
-      VRMLWarning(vwSerious, 'TODO: Loading from data URI not base64-encoded not implemented now, please report');
-      Exit(false);
-    end;
-
-    if Mime = 'image/bmp' then
-      ImageFormat := ifBMP else
-    if Mime = 'image/png' then
-      ImageFormat := ifPNG else
-    if (Mime = 'image/jpeg') or
-       (Mime = 'image/jpg') then
-      ImageFormat := ifJPEG else
-    if Mime = 'image/gif' then
-      ImageFormat := ifGIF else
-    begin
-      VRMLWarning(vwSerious, Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Mime]));
-      Exit(false);
-    end;
-
-    { URL without data part --- good to show user }
-    URLPrefix := Copy(URL, 1, PosNow - 1);
-
-    { Read data now }
-    SStream := TStringStream.Create(SEnding(URL, PosNow + 1));
+    Data := TDataURI.Create;
     try
-      DecStream := TBase64DecodingStream.Create(SStream, bdmMIME);
+      Data.URI := URL;
+
+      if not Data.Valid then Exit(false);
+
+      if Log then
+        WritelnLog('Texture loading',
+          Format('Loading from data URI with mime "%s", charset "%s", base64 "%s"',
+          [Data.Mime, Data.Charset, BoolToStr[Data.Base64]]));
+
+      if Data.Mime = 'image/bmp' then
+        ImageFormat := ifBMP else
+      if Data.Mime = 'image/png' then
+        ImageFormat := ifPNG else
+      if (Data.Mime = 'image/jpeg') or
+         (Data.Mime = 'image/jpg') then
+        ImageFormat := ifJPEG else
+      if Data.Mime = 'image/gif' then
+        ImageFormat := ifGIF else
+      begin
+        VRMLWarning(vwSerious, Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Data.Mime]));
+        Exit(false);
+      end;
+
       try
-        try
-          FTextureImage := LoadImage(DecStream, ImageFormat,
-            [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage], []);
-          WasCacheUsed := false;
-          FTextureUsedFullUrl := URLPrefix;
-          Result := true;
-        except
-          on E: Exception do
-          begin
-            { Remember that VRMLWarning *may* raise an exception. }
-            VRMLWarning(vwIgnorable, Format(SDataURILoadError,
-              [E.ClassName, 'texture', URLPrefix, E.Message]));
-            Result := false;
-          end;
+        FTextureImage := LoadImage(Data.Stream, ImageFormat,
+          [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage], []);
+        WasCacheUsed := false;
+        FTextureUsedFullUrl := Data.URIPrefix;
+        Result := true;
+      except
+        on E: Exception do
+        begin
+          { Remember that VRMLWarning *may* raise an exception. }
+          VRMLWarning(vwIgnorable, Format(SDataURILoadError,
+            [E.ClassName, 'texture', Data.URIPrefix, E.Message]));
+          Result := false;
         end;
-      finally FreeAndNil(DecStream) end;
-    finally FreeAndNil(SStream) end;
+      end;
+    finally FreeAndNil(Data) end;
   end;
 
 var

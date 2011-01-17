@@ -1,0 +1,203 @@
+{
+  Copyright 2010-2010 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+{ Reading data URI scheme (TDataURI). }
+unit DataURI;
+
+interface
+
+uses SysUtils, Classes;
+
+type
+  { Reading data URI scheme, see http://en.wikipedia.org/wiki/Data_URI_scheme.
+    Such URI specifies the MIME type and contains the data, encoded
+    in plain text or base64. That is, the data is not merely referenced / linked
+    (like with a usual URL), it's simply fully encoded inside the URI.
+    Since such URI can be used anywhere a normal URI is expected,
+    it allows you to inline any kind of data inside any container file.
+    For example, you can place images (textures) and such directly
+    inside a VRML/X3D file. }
+  TDataURI = class
+  private
+    StreamBegin: Cardinal;
+    SStream: TStringStream;
+    FStream: TStream;
+    FURI: string;
+    FMime: string;
+    FBase64: boolean;
+    FCharset: string;
+    FValid: boolean;
+    FURIPrefix: string;
+    procedure FreeStream;
+    procedure SetURI(const Value: string);
+  public
+    destructor Destroy; override;
+    class function IsDataURI(const URI: string): boolean;
+
+    { The data URI that this class reads.
+
+      When you set this, we read the beginning of URI.
+      If this is a valid data URI, then we set @link(Valid) to @true,
+      update Mime, Base64, Charset, URIPrefix accordingly, and you can call
+      @link(Stream) if you want to read actual contents.
+
+      If this is not a valid data URI, then we set @link(Valid) to @false,
+      make appropriate warning through DataWarning,
+      and reset Mime, Base64, Charset, URIPrefix to some default values. }
+    property URI: string read FURI write SetURI;
+    property Valid: boolean read FValid;
+    property Mime: string read FMime;
+    property Base64: boolean read FBase64;
+    property Charset: string read FCharset;
+    property URIPrefix: string read FURIPrefix;
+
+    { Read the actual data contents. If the @link(URI) is not valid
+      (includes the initial state when it's not set) then returns @nil.
+
+      The important property of this reader is that the no expensive
+      encoding is done until you call this method. In particular,
+      you can set URI, check Mime, and if you see that Mime
+      is something not interesting for you (for example, maybe you require
+      some image mime-type) just don't call this method. Then nothing
+      expensive will happen, e.g. data will not be base64-decoded without
+      a need. }
+    function Stream: TStream;
+  end;
+
+implementation
+
+uses KambiURLUtils, DataErrors, KambiStringUtils, Base64;
+
+procedure TDataURI.FreeStream;
+begin
+  FreeAndNil(FStream);
+  FreeAndNil(SStream);
+end;
+
+destructor TDataURI.Destroy;
+begin
+  FreeStream;
+  inherited;
+end;
+
+class function TDataURI.IsDataURI(const URI: string): boolean;
+begin
+  Result := UrlProtocolIs(URI, 'data');
+end;
+
+procedure TDataURI.SetURI(const Value: string);
+var
+  ValidMime, ValidCharset: string;
+  ValidBase64: boolean;
+  PosBegin, PosNow: Integer;
+  Part: string;
+begin
+  FreeStream;
+
+  FURI := Value;
+
+  { default values }
+  FValid := false;
+  FMime := 'text/plain'; { default mime-type when not specified }
+  FBase64 := false; { default encoding is not base64 }
+  FCharset := 'US-ASCII'; { default charset }
+  FURIPrefix := '';
+
+  if not IsDataURI(URI) then
+  begin
+    DataWarning('Not a data URI scheme');
+    Exit;
+  end;
+
+  ValidMime := FMime;
+  ValidCharset := FCharset;
+  ValidBase64 := FBase64;
+
+  { First 5 characters were already parsed by UrlProtocolIs as "data:".
+    Read mime-type now. }
+
+  PosBegin := 6;
+  PosNow := PosBegin;
+  while (PosNow <= Length(Value)) and
+        (Value[PosNow] <> ';') and
+        (Value[PosNow] <> ',') do
+    Inc(PosNow);
+
+  if PosBegin < PosNow then
+    ValidMime := CopyPos(Value, PosBegin, PosNow - 1);
+
+  repeat
+    { Now, we either stand on ";" (then read charset or base64 tag)
+      or we stand on "," (then read data and exit)
+      or we have end of string (then error). }
+
+    if PosNow > Length(Value) then
+    begin
+      DataWarning(Format('Data URI "%s" unexpectedly ended (expected ",")', [Value]));
+      Exit;
+    end else
+    if Value[PosNow] = ';' then
+    begin
+      PosBegin := PosNow + 1;
+      PosNow := PosBegin;
+      while (PosNow <= Length(Value)) and
+            (Value[PosNow] <> ';') and
+            (Value[PosNow] <> ',') do
+        Inc(PosNow);
+
+      Part := CopyPos(Value, PosBegin, PosNow - 1);
+      if Part = 'base64' then
+        ValidBase64 := true else
+      if IsPrefix('charset=', Part) then
+        ValidCharset := SEnding(Part, Length('charset=') + 1) else
+        DataWarning(Format('Data URI has invalid part "%s" (expected "base64" or "charset=...")', [Part]));
+    end else
+    if Value[PosNow] = ',' then
+    begin
+      Break;
+    end;
+  until false;
+
+  if not ValidBase64 then
+  begin
+    DataWarning('TODO: Loading from data URI not base64-encoded not implemented now, please report');
+    Exit;
+  end;
+
+  { Value without data part --- good to show user }
+  FURIPrefix := Copy(Value, 1, PosNow - 1);
+
+  FValid := true;
+  FMime := ValidMime;
+  FBase64 := ValidBase64;
+  FCharset := ValidCharset;
+
+  StreamBegin := PosNow + 1;
+end;
+
+function TDataURI.Stream: TStream;
+begin
+  if Valid then
+  begin
+    if FStream = nil then
+    begin
+      SStream := TStringStream.Create(SEnding(URI, StreamBegin));
+      FStream := TBase64DecodingStream.Create(SStream, bdmMIME);
+    end;
+    Result := FStream;
+  end else
+    Result := nil;
+end;
+
+end.

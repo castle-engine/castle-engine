@@ -2237,7 +2237,7 @@ uses
 
   Math, Triangulator, Object3DAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
-  KambiLog, KambiScriptParser, Base64,
+  KambiLog, KambiScriptParser, DataURI,
   {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Quaternions, Cameras, KambiXMLUtils;
 
 {$define read_implementation}
