@@ -468,6 +468,44 @@ function TNodeShaderPart.LoadContents: string;
     end;
   end;
 
+  { Load shader source from data URI.If success,
+    - sets FUsedFullUrl, ShaderSource
+    - returns true
+    otherwise
+    - makes VRMLWarning
+    - returns false }
+  function LoadFromDataProtocol(const URL: string; out ShaderSource: string): boolean;
+  var
+    Data: TDataURI;
+  begin
+    Data := TDataURI.Create;
+    try
+      Data.URI := URL;
+
+      if not Data.Valid then Exit(false);
+
+      if Data.Mime <> 'text/plain' then
+      begin
+        VRMLWarning(vwSerious, Format('Data mime-type "%s" not recognized as shader source, not loading. If this is a valid shader source mime type that should be supported, please report.', [Data.Mime]));
+        Exit(false);
+      end;
+
+      try
+        ShaderSource := ReadGrowingStreamToString(Data.Stream);
+        FUsedFullUrl := Data.URIPrefix;
+        Result := true;
+      except
+        on E: Exception do
+        begin
+          { Remember that VRMLWarning *may* raise an exception. }
+          VRMLWarning(vwIgnorable, Format(SDataURILoadError,
+            [E.ClassName, 'shader source', Data.URIPrefix, E.Message]));
+          Result := false;
+        end;
+      end;
+    finally FreeAndNil(Data) end;
+  end;
+
 var
   I: Integer;
   FullUrl: string;
@@ -482,6 +520,10 @@ begin
       Result := FdUrl.Items[I];
       FUsedFullUrl := 'SHADER-SOURCE-INLINED';
       Exit;
+    end else
+    if TDataURI.IsDataURI(FdUrl.Items[I]) then
+    begin
+      if LoadFromDataProtocol(FdUrl.Items[I], Result) then Break;
     end else
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
