@@ -140,10 +140,9 @@ begin
     Arrays.AddGLSLAttributeMatrix3('object_space_to_tangent');
     Arrays.AddGLSLAttributeVector2('tex_coord');
     { tex_coord may differ for each vertex occurence.
-      TODO: Actually, tex coord implementation determines it,
-      so we should depend on tex coord generator ancestor.
-      But it fails then, probably ArrayIndexNum is completely invalid in such cases. }
-    AllowIndexed := false;
+      But actually tex coord implementation in ancestor already determines it,
+      and changes AllowIndexed to false if needed.
+      So don't do anything with AllowIndexed here. }
   end;
 end;
 

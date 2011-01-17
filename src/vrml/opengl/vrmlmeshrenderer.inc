@@ -2651,10 +2651,7 @@ begin
   inherited;
 
   if (FogCoord <> nil) or Renderer.FogVolumetric then
-  begin
     Arrays.AddFogCoord;
-    AllowIndexed := false;
-  end;
 end;
 
 procedure TAbstractFogNorColMatTexCoordinateRenderer.GenerateVertex(
