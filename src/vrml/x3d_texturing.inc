@@ -847,7 +847,7 @@ begin
         and produce unclear error message. }
       VRMLWarning(vwIgnorable, Format('Empty URL for %s ignored', [NodeTypeName]));
     end else
-    if UrlProtocolIs(FdUrl.Items[I], 'data') then
+    if TDataURI.IsDataURI(FdUrl.Items[I]) then
     begin
       if LoadImageFromDataProtocol(FdUrl.Items[I]) then Break;
     end else
