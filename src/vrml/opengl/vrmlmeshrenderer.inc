@@ -1705,12 +1705,12 @@ var
           ProjectorValue := TNodeTextureCoordinateGenerator(GenNode).FdProjectedLight.Value;
           if (ProjectorValue <> nil) and
              (ProjectorValue is TNodeX3DLightNode) then
-	  begin
+          begin
             ProjectorLight := TNodeX3DLightNode(ProjectorValue);
-	    Projection := ProjectorLight.ProjectionMatrix;
-	    Modelview := ProjectorLight.ModelviewMatrix;
-	    Result := true;
-	  end else
+            Projection := ProjectorLight.ProjectionMatrix;
+            Modelview := ProjectorLight.ModelviewMatrix;
+            Result := true;
+          end else
             VRMLWarning(vwSerious, 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
         end else
         if GenNode is TNodeProjectedTextureCoordinate then
@@ -1718,20 +1718,20 @@ var
           ProjectorValue := TNodeProjectedTextureCoordinate(GenNode).FdProjector.Value;
           if (ProjectorValue <> nil) and
              (ProjectorValue is TNodeX3DLightNode) then
-	  begin
+          begin
             ProjectorLight := TNodeX3DLightNode(ProjectorValue);
-	    Projection := ProjectorLight.ProjectionMatrix;
-	    Modelview := ProjectorLight.ModelviewMatrix;
-	    Result := true;
-	  end else
+            Projection := ProjectorLight.ProjectionMatrix;
+            Modelview := ProjectorLight.ModelviewMatrix;
+            Result := true;
+          end else
           if (ProjectorValue <> nil) and
              (ProjectorValue is TNodeX3DViewpointNode) then
-	  begin
+          begin
             ProjectorViewpoint := TNodeX3DViewpointNode(ProjectorValue);
-	    Projection := ProjectorViewpoint.ProjectionMatrix;
-	    Modelview := ProjectorViewpoint.ModelviewMatrix;
-	    Result := true;
-	  end else
+            Projection := ProjectorViewpoint.ProjectionMatrix;
+            Modelview := ProjectorViewpoint.ModelviewMatrix;
+            Result := true;
+          end else
             VRMLWarning(vwSerious, 'ProjectedTextureCoordinate.projector is NULL or incorrect');
         end else
           { This should not actually happen (GenNode passed here should be like this) }
