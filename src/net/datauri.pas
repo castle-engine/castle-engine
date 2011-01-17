@@ -79,6 +79,9 @@ implementation
 
 uses KambiURLUtils, DataErrors, KambiStringUtils, Base64;
 
+{ TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
+  inside. }
+
 procedure TDataURI.FreeStream;
 begin
   FreeAndNil(FStream);
