@@ -177,12 +177,6 @@ begin
     end;
   until false;
 
-  if not ValidBase64 then
-  begin
-    DataWarning('TODO: Loading from data URI not base64-encoded not implemented now, please report');
-    Exit;
-  end;
-
   { Value without data part --- good to show user }
   FURIPrefix := Copy(Value, 1, PosNow - 1);
 
@@ -200,8 +194,12 @@ begin
   begin
     if FStream = nil then
     begin
-      SStream := TStringStream.Create(SEnding(URI, StreamBegin));
-      FStream := TBase64DecodingStream.Create(SStream, bdmMIME);
+      if Base64 then
+      begin
+        SStream := TStringStream.Create(SEnding(URI, StreamBegin));
+        FStream := TBase64DecodingStream.Create(SStream, bdmMIME);
+      end else
+        FStream := TStringStream.Create(SEnding(URI, StreamBegin));
     end;
     Result := FStream;
   end else
