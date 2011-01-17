@@ -23,6 +23,9 @@ uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
 
 {$define read_interface}
 
+const
+  DefaultRotation: TVector4Single = (0, 0, 1, 0);
+
 type
   EVRMLFieldAssign = class(Exception);
   EVRMLFieldAssignInvalidClass = class(EVRMLFieldAssign);
@@ -1828,6 +1831,8 @@ type
     DefaultValue: boolean;
     function GetItems: TDynBooleanArray;
     procedure SetItems(const Value: TDynBooleanArray);
+    function GetItemsSafe(Index: Integer): boolean;
+    procedure SetItemsSafe(Index: Integer; const Value: boolean);
   protected
     function RawItemToString(ItemNum: Integer): string; override;
   public
@@ -1848,6 +1853,12 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return false, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: boolean
+      read GetItemsSafe write SetItemsSafe;
 
     procedure Send(const AValue: array of boolean); overload;
   end;
@@ -1891,7 +1902,7 @@ type
     class function VRMLTypeName: string; override;
 
     { Access Items[] checking for range errors.
-      In case of errors, Get will return zero vector, Set will do nothing,
+      In case of errors, Get will return zero, Set will do nothing,
       and both will produce clear VRMLWarning. }
     property ItemsSafe[Index: Integer]: LongInt
       read GetItemsSafe write SetItemsSafe;
@@ -1933,6 +1944,8 @@ type
     DefaultValue: TMatrix3Single;
     function GetItems: TDynMatrix3SingleArray;
     procedure SetItems(const Value: TDynMatrix3SingleArray);
+    function GetItemsSafe(Index: Integer): TMatrix3Single;
+    procedure SetItemsSafe(Index: Integer; const Value: TMatrix3Single);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
@@ -1955,6 +1968,12 @@ type
 
     class function VRMLTypeName: string; override;
 
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return identity matrix, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: TMatrix3Single
+      read GetItemsSafe write SetItemsSafe;
+
     procedure Send(const AValue: array of TMatrix3Single); overload;
   end;
 
@@ -1964,6 +1983,8 @@ type
     DefaultValue: TMatrix3Double;
     function GetItems: TDynMatrix3DoubleArray;
     procedure SetItems(const Value: TDynMatrix3DoubleArray);
+    function GetItemsSafe(Index: Integer): TMatrix3Double;
+    procedure SetItemsSafe(Index: Integer; const Value: TMatrix3Double);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
@@ -1986,6 +2007,12 @@ type
 
     class function VRMLTypeName: string; override;
 
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return identity matrix, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: TMatrix3Double
+      read GetItemsSafe write SetItemsSafe;
+
     procedure Send(const AValue: array of TMatrix3Double); overload;
   end;
 
@@ -1995,6 +2022,8 @@ type
     DefaultValue: TMatrix4Single;
     function GetItems: TDynMatrix4SingleArray;
     procedure SetItems(const Value: TDynMatrix4SingleArray);
+    function GetItemsSafe(Index: Integer): TMatrix4Single;
+    procedure SetItemsSafe(Index: Integer; const Value: TMatrix4Single);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
@@ -2017,6 +2046,12 @@ type
 
     class function VRMLTypeName: string; override;
 
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return identity matrix, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: TMatrix4Single
+      read GetItemsSafe write SetItemsSafe;
+
     procedure Send(const AValue: array of TMatrix4Single); overload;
   end;
 
@@ -2026,6 +2061,8 @@ type
     DefaultValue: TMatrix4Double;
     function GetItems: TDynMatrix4DoubleArray;
     procedure SetItems(const Value: TDynMatrix4DoubleArray);
+    function GetItemsSafe(Index: Integer): TMatrix4Double;
+    procedure SetItemsSafe(Index: Integer; const Value: TMatrix4Double);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
@@ -2047,6 +2084,12 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
+
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return identity matrix, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: TMatrix4Double
+      read GetItemsSafe write SetItemsSafe;
 
     procedure Send(const AValue: array of TMatrix4Double); overload;
   end;
@@ -2166,7 +2209,7 @@ type
     class function VRMLTypeName: string; override;
 
     { Access Items[] checking for range errors.
-      In case of errors, Get will return zero vector, Set will do nothing,
+      In case of errors, Get will return (0, 0, 0, 1) vector, Set will do nothing,
       and both will produce clear VRMLWarning. }
     property ItemsSafe[Index: Integer]: TVector4Single
       read GetItemsSafe write SetItemsSafe;
@@ -2185,6 +2228,8 @@ type
     DefaultValue: TVector2Double;
     function GetItems: TDynVector2DoubleArray;
     procedure SetItems(const Value: TDynVector2DoubleArray);
+    function GetItemsSafe(Index: Integer): TVector2Double;
+    procedure SetItemsSafe(Index: Integer; const Value: TVector2Double);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
@@ -2207,6 +2252,12 @@ type
 
     class function VRMLTypeName: string; override;
 
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return zero vector, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: TVector2Double
+      read GetItemsSafe write SetItemsSafe;
+
     procedure Send(const AValue: array of TVector2Double); overload;
   end;
 
@@ -2216,6 +2267,8 @@ type
     DefaultValue: TVector3Double;
     function GetItems: TDynVector3DoubleArray;
     procedure SetItems(const Value: TDynVector3DoubleArray);
+    function GetItemsSafe(Index: Integer): TVector3Double;
+    procedure SetItemsSafe(Index: Integer; const Value: TVector3Double);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
@@ -2238,6 +2291,12 @@ type
 
     class function VRMLTypeName: string; override;
 
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return zero vector, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: TVector3Double
+      read GetItemsSafe write SetItemsSafe;
+
     procedure Send(const AValue: array of TVector3Double); overload;
   end;
 
@@ -2247,6 +2306,8 @@ type
     DefaultValue: TVector4Double;
     function GetItems: TDynVector4DoubleArray;
     procedure SetItems(const Value: TDynVector4DoubleArray);
+    function GetItemsSafe(Index: Integer): TVector4Double;
+    procedure SetItemsSafe(Index: Integer; const Value: TVector4Double);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
@@ -2269,6 +2330,12 @@ type
 
     class function VRMLTypeName: string; override;
 
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return (0, 0, 0, 1), Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: TVector4Double
+      read GetItemsSafe write SetItemsSafe;
+
     procedure Send(const AValue: array of TVector4Double); overload;
   end;
 
@@ -2278,6 +2345,8 @@ type
     DefaultValue: TVector4Single;
     function GetItems: TDynVector4SingleArray;
     procedure SetItems(const Value: TDynVector4SingleArray);
+    function GetItemsSafe(Index: Integer): TVector4Single;
+    procedure SetItemsSafe(Index: Integer; const Value: TVector4Single);
   protected
     function RawItemToString(ItemNum: Integer): string; override;
   public
@@ -2301,6 +2370,12 @@ type
 
     class function VRMLTypeName: string; override;
 
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return DefaultRotation, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: TVector4Single
+      read GetItemsSafe write SetItemsSafe;
+
     procedure Send(const AValue: array of TVector4Single); overload;
   end;
 
@@ -2310,6 +2385,8 @@ type
     DefaultValue: Single;
     function GetItems: TDynSingleArray;
     procedure SetItems(const Value: TDynSingleArray);
+    function GetItemsSafe(Index: Integer): Single;
+    procedure SetItemsSafe(Index: Integer; const Value: Single);
   protected
     function RawItemToString(ItemNum: integer): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
@@ -2334,6 +2411,12 @@ type
 
     class function VRMLTypeName: string; override;
 
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return zero, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: Single
+      read GetItemsSafe write SetItemsSafe;
+
     procedure Send(const AValue: array of Single); overload;
   end;
 
@@ -2343,6 +2426,8 @@ type
     DefaultValue: Double;
     function GetItems: TDynDoubleArray;
     procedure SetItems(const Value: TDynDoubleArray);
+    function GetItemsSafe(Index: Integer): Double;
+    procedure SetItemsSafe(Index: Integer; const Value: Double);
   protected
     function RawItemToString(ItemNum: integer): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
@@ -2367,6 +2452,12 @@ type
 
     class function VRMLTypeName: string; override;
 
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return zero, Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: Double
+      read GetItemsSafe write SetItemsSafe;
+
     procedure Send(const AValue: array of Double); overload;
   end;
 
@@ -2381,6 +2472,8 @@ type
     DefaultValue: string;
     function GetItems: TDynStringArray;
     procedure SetItems(const Value: TDynStringArray);
+    function GetItemsSafe(Index: Integer): string;
+    procedure SetItemsSafe(Index: Integer; const Value: string);
   protected
     function RawItemToString(ItemNum: Integer): string; override;
   public
@@ -2402,6 +2495,12 @@ type
     class function VRMLTypeName: string; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
+
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return '', Set will do nothing,
+      and both will produce clear VRMLWarning. }
+    property ItemsSafe[Index: Integer]: string
+      read GetItemsSafe write SetItemsSafe;
 
     procedure Send(const AValue: array of string); overload;
   end;
@@ -5046,6 +5145,25 @@ begin
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
 end;
+
+function TMF_CLASS.GetItemsSafe(Index: Integer): TMF_STATIC_ITEM;
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Result := Items.Items[Index] else
+  begin
+    VRMLWarning_InvalidIndex(Index, Count);
+    Result := TMF_DYN_DEFAULT_SAFE_VALUE;
+  end;
+end;
+
+procedure TMF_CLASS.SetItemsSafe(Index: Integer; const Value: TMF_STATIC_ITEM);
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Items.Items[Index] := Value else
+  begin
+    VRMLWarning_InvalidIndex(Index, Count);
+  end;
+end;
 }
 
 { dla niektorych klas MF nie bedzie mialo znaczenia ktorej wersji
@@ -5258,6 +5376,7 @@ end;
 {$define TMF_STATIC_ITEM := boolean}
 {$define TMF_CLASS_ITEM := TSFBool}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynBooleanArray}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := false}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 
@@ -5265,6 +5384,7 @@ IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 {$define TMF_STATIC_ITEM := Longint}
 {$define TMF_CLASS_ITEM := TSFLong}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynLongintArray}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := 0}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 
@@ -5273,6 +5393,7 @@ IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 {$define TMF_CLASS_ITEM := TSFVec2f}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector2SingleArray}
 {$define TMF_SCALAR := Single}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := ZeroVector2Single}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -5281,6 +5402,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS_ITEM := TSFVec3f}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector3SingleArray}
 {$define TMF_SCALAR := Single}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := ZeroVector3Single}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -5289,6 +5411,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS_ITEM := TSFVec4f}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4SingleArray}
 {$define TMF_SCALAR := Single}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := Vector4Single(0, 0, 0, 1)}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -5297,6 +5420,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS_ITEM := TSFVec2d}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector2DoubleArray}
 {$define TMF_SCALAR := Double}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := ZeroVector2Double}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -5305,6 +5429,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS_ITEM := TSFVec3d}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector3DoubleArray}
 {$define TMF_SCALAR := Double}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := ZeroVector3Double}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -5313,6 +5438,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS_ITEM := TSFVec4d}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4DoubleArray}
 {$define TMF_SCALAR := Double}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := Vector4Double(0, 0, 0, 1)}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -5321,6 +5447,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS_ITEM := TSFRotation}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4SingleArray}
 {$define TMF_SCALAR := Single}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := DefaultRotation}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -5328,6 +5455,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_STATIC_ITEM := Single}
 {$define TMF_CLASS_ITEM := TSFFloat}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynSingleArray}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := 0}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 
@@ -5335,6 +5463,7 @@ IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 {$define TMF_STATIC_ITEM := Double}
 {$define TMF_CLASS_ITEM := TSFDouble}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynDoubleArray}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := 0}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 
@@ -5342,6 +5471,7 @@ IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 {$define TMF_STATIC_ITEM := string}
 {$define TMF_CLASS_ITEM := TSFString}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynStringArray}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := ''}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 
@@ -5351,6 +5481,7 @@ IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix3SingleArray}
 {$define TMF_SCALAR := Single}
 {$define TSF_MATRIX_COLS := 3}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := IdentityMatrix3Single}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_MATRICES
 
@@ -5360,6 +5491,7 @@ IMPLEMENT_MF_CLASS_USING_MATRICES
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix3DoubleArray}
 {$define TMF_SCALAR := Double}
 {$define TSF_MATRIX_COLS := 3}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := IdentityMatrix3Double}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_MATRICES
 
@@ -5369,6 +5501,7 @@ IMPLEMENT_MF_CLASS_USING_MATRICES
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix4SingleArray}
 {$define TMF_SCALAR := Single}
 {$define TSF_MATRIX_COLS := 4}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := IdentityMatrix4Single}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_MATRICES
 
@@ -5378,6 +5511,7 @@ IMPLEMENT_MF_CLASS_USING_MATRICES
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix4DoubleArray}
 {$define TMF_SCALAR := Double}
 {$define TSF_MATRIX_COLS := 4}
+{$define TMF_DYN_DEFAULT_SAFE_VALUE := IdentityMatrix4Double}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_MATRICES
 
@@ -5408,25 +5542,6 @@ begin result := IntToStr(Items.Items[ItemNum]) end;
 class function TMFLong.VRMLTypeName: string;
 begin
   Result := 'MFLong';
-end;
-
-function TMFLong.GetItemsSafe(Index: Integer): LongInt;
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Result := Items.Items[Index] else
-  begin
-    VRMLWarning_InvalidIndex(Index, Count);
-    Result := 0;
-  end;
-end;
-
-procedure TMFLong.SetItemsSafe(Index: Integer; const Value: LongInt);
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Items.Items[Index] := Value else
-  begin
-    VRMLWarning_InvalidIndex(Index, Count);
-  end;
 end;
 
 procedure TMFLong.VRMLWarning_WrongVertexIndex(
@@ -5496,49 +5611,11 @@ begin
   Result := 'MFVec2f';
 end;
 
-function TMFVec2f.GetItemsSafe(Index: Integer): TVector2Single;
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Result := Items.Items[Index] else
-  begin
-    VRMLWarning_InvalidIndex(Index, Count);
-    Result := ZeroVector2Single;
-  end;
-end;
-
-procedure TMFVec2f.SetItemsSafe(Index: Integer; const Value: TVector2Single);
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Items.Items[Index] := Value else
-  begin
-    VRMLWarning_InvalidIndex(Index, Count);
-  end;
-end;
-
 { TMFVec3f ------------------------------------------------------------------- }
 
 class function TMFVec3f.VRMLTypeName: string;
 begin
   Result := 'MFVec3f';
-end;
-
-function TMFVec3f.GetItemsSafe(Index: Integer): TVector3Single;
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Result := Items.Items[Index] else
-  begin
-    VRMLWarning_InvalidIndex(Index, Count);
-    Result := ZeroVector3Single;
-  end;
-end;
-
-procedure TMFVec3f.SetItemsSafe(Index: Integer; const Value: TVector3Single);
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Items.Items[Index] := Value else
-  begin
-    VRMLWarning_InvalidIndex(Index, Count);
-  end;
 end;
 
 { TMFColor ------------------------------------------------------------------- }
@@ -5563,25 +5640,6 @@ end;
 class function TMFVec4f.VRMLTypeName: string;
 begin
   Result := 'MFVec4f';
-end;
-
-function TMFVec4f.GetItemsSafe(Index: Integer): TVector4Single;
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Result := Items.Items[Index] else
-  begin
-    VRMLWarning_InvalidIndex(Index, Count);
-    Result := ZeroVector4Single;
-  end;
-end;
-
-procedure TMFVec4f.SetItemsSafe(Index: Integer; const Value: TVector4Single);
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Items.Items[Index] := Value else
-  begin
-    VRMLWarning_InvalidIndex(Index, Count);
-  end;
 end;
 
 { TMFColorRGBA --------------------------------------------------------------- }
