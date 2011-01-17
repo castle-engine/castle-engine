@@ -63,56 +63,57 @@ type
 
 { TIndexedFaceSetRenderer -------------------------------------------------- }
 
+{ TIndexedFaceSetRenderer makes triangles, GL_TRIANGLES in OpenGL.
+  Making one TRIANGLES primitive is fast, and allows us to do everything
+  we want.
+
+  Old notes: I was experimenting also with making TRIANGLE_FAN (or POLYGON)
+  per face.
+
+  Advantages of TRIANGLE_FAN:
+
+  - TRIANGLE_FAN *may* increase speed, because vertices
+    are more shared and specified less times. For TRIANGLES, we waste 2 vertex
+    calls for every vertex (above 3) for each face.
+
+  - TRIANGLE_FAN workarounds NVidia GeForce 5200 bug for material
+    binding PER_FACE_INDEXED, see
+    kambi_vrml_test_suite/vrml_1/material_per_face_problematic_on_nvidia_gf_5200.wrl
+    Although the problem disappeared by itself after using GL_COLOR_MATERIAL
+    for VRML 1.0 per-face/vertex materials.
+
+  Avantages of TRIANGLES:
+
+  - TRIANGLE_FAN is highly unoptimal on newer GPUs (Radeon on chantal).
+    The problem is you have to call glEnd / glBegin again
+    a lot, and this hurts pipeline performance very badly. And the "sharing"
+    argument for TRIANGLE_FAN is weak, as newer GPUs cache vertex data
+    by index anyway.
+
+    Tests on Radeon X1600 (chantal, fglrx) show
+    TRIANGLES    FPS: 165/155
+    TRIANGLE_FAN FPS: 60/55
+    Clearly, TRIANGLES win.
+
+    Although tests on NVidia (kocury, GeForce FX 5200) don't show such
+    drastic difference.
+
+  - TRIANGLES workaround Radeon X1600 Darwin (Mac OS X 10.4.9)
+    OpenGL bugs. (With Linux fglrx on the same hardware there is no bug.)
+    It seems not able to handle GL_TRIANGLE_FAN properly,
+    which is visible on "The Gate" and
+    "Cages" levels of "The Castle": some triangles on these
+    levels (on "The Gate", it concerns that back wall and gate
+    geometry) seem to randomly disappear.
+
+  This is a shortcut of even longer old comments... For the full story,
+  see revision 6432,
+  http://vrmlengine.svn.sourceforge.net/viewvc/vrmlengine/trunk/kambi_vrml_game_engine/src/vrml/opengl/vrmlmeshrenderer_x3d_geometry3d.inc?revision=6432&view=markup
+  and search for TryRenderingFaceAsFan comments.
+}
+
 procedure TIndexedFaceSetRenderer.GenerateCoordinate;
 begin
-  { Making one TRIANGLES primitive is fast, and allows us to do everything
-    we want.
-
-    Old notes: I was experimenting also with making TRIANGLE_FAN (or POLYGON)
-    per face.
-
-    Advantages of TRIANGLE_FAN:
-
-    - TRIANGLE_FAN *may* increase speed, because vertices
-      are more shared and specified less times. For TRIANGLES, we waste 2 vertex
-      calls for every vertex (above 3) for each face.
-
-    - TRIANGLE_FAN workarounds NVidia GeForce 5200 bug for material
-      binding PER_FACE_INDEXED, see
-      kambi_vrml_test_suite/vrml_1/material_per_face_problematic_on_nvidia_gf_5200.wrl
-      Although the problem disappeared by itself after using GL_COLOR_MATERIAL
-      for VRML 1.0 per-face/vertex materials.
-
-    Avantages of TRIANGLES:
-
-    - TRIANGLE_FAN is highly unoptimal on newer GPUs (Radeon on chantal).
-      The problem is you have to call glEnd / glBegin again
-      a lot, and this hurts pipeline performance very badly. And the "sharing"
-      argument for TRIANGLE_FAN is weak, as newer GPUs cache vertex data
-      by index anyway.
-
-      Tests on Radeon X1600 (chantal, fglrx) show
-      TRIANGLES    FPS: 165/155
-      TRIANGLE_FAN FPS: 60/55
-      Clearly, TRIANGLES win.
-
-      Although tests on NVidia (kocury, GeForce FX 5200) don't show such
-      drastic difference.
-
-    - TRIANGLES workaround Radeon X1600 Darwin (Mac OS X 10.4.9)
-      OpenGL bugs. (With Linux fglrx on the same hardware there is no bug.)
-      It seems not able to handle GL_TRIANGLE_FAN properly,
-      which is visible on "The Gate" and
-      "Cages" levels of "The Castle": some triangles on these
-      levels (on "The Gate", it concerns that back wall and gate
-      geometry) seem to randomly disappear.
-
-    This is a shortcut of even longer old comments... For the full story,
-    see revision 6432,
-    http://vrmlengine.svn.sourceforge.net/viewvc/vrmlengine/trunk/kambi_vrml_game_engine/src/vrml/opengl/vrmlmeshrenderer_x3d_geometry3d.inc?revision=6432&view=markup
-    and search for TryRenderingFaceAsFan comments.
-  }
-
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
