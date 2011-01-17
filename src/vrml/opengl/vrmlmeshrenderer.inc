@@ -750,9 +750,9 @@ type
     destructor Destroy; override;
   end;
 
-  { Most complete implementation of coordinate renderer, used to derive
-    non-abstract handlers for nodes. }
-  TAbstractFinalCoordinateRenderer = TAbstractShaderAttribRenderer;
+  { Most complete implementation of coordinate renderer,
+    should be used to derive non-abstract renderers for nodes. }
+  TAbstractCompleteRenderer = TAbstractShaderAttribRenderer;
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 

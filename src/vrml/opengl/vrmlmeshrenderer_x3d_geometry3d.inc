@@ -22,7 +22,7 @@ type
     Note that this cannot deal with NorImplementation = niNone,
     you're expected to set NorImplementation to non-none in constructor.
     A simplest way to do this is to use AutoGenerateNormals. }
-  TIndexedFaceSetRenderer = class(TAbstractFinalCoordinateRenderer)
+  TIndexedFaceSetRenderer = class(TAbstractCompleteRenderer)
   private
     { Helpers for bump mapping }
     HasTangentVectors: boolean;
