@@ -220,8 +220,7 @@ type
       indexes CoordIndex (and CoordIndex then indexes actual Coord). }
     procedure GenerateVertex(IndexNum: Integer); virtual;
 
-    { This gets vertex coordinate, exactly the same as would be
-      rendered by GenerateVertex. Returned vertex is in local coordinate space
+    { This gets vertex coordinate Returned vertex is in local coordinate space
       (use State.Transform if you want to get global coordinates). }
     function GetVertex(IndexNum: integer): TVector3f;
 
@@ -750,9 +749,29 @@ type
     destructor Destroy; override;
   end;
 
+  TAbstractBumpMappingRenderer = class(TAbstractShaderAttribRenderer)
+  private
+    { Helpers for bump mapping }
+    HasTangentVectors: boolean;
+    STangent, TTangent: TVector3Single;
+    LightPositionObjectSpace: TVector3Single;
+  protected
+    procedure GenerateCoordinateBegin; override;
+    procedure GenerateVertex(IndexNum: Integer); override;
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+
+    { Update tangent vectors (HasTangentVectors, STangent, TTangent).
+      Without this, bump mapping will be wrong.
+      Give triangle indexes (like IndexNum for GenerateVertex). }
+    procedure CalculateTangentVectors(
+      const TriangleIndex1, TriangleIndex2, TriangleIndex3: Integer);
+  public
+    constructor Create(ARenderer: TVRMLGLRenderer);
+  end;
+
   { Most complete implementation of coordinate renderer,
     should be used to derive non-abstract renderers for nodes. }
-  TAbstractCompleteRenderer = TAbstractShaderAttribRenderer;
+  TAbstractCompleteRenderer = TAbstractBumpMappingRenderer;
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
@@ -1154,26 +1173,14 @@ begin
 end;
 
 function TAbstractCoordinateRenderer.GetVertex(IndexNum: integer): TVector3f;
-var
-  VertexNum: integer;
 begin
   { This assertion should never fail, it's the responsibility
     of the programmer. }
   Assert(IndexNum < CoordCount);
 
   if CoordIndex <> nil then
-  begin
-    VertexNum := CoordIndex.Items.Items[IndexNum];
-    if VertexNum >= Coord.Count then
-    begin
-      CoordIndex.VRMLWarning_WrongVertexIndex(
-        Geometry.NodeTypeName, VertexNum, Coord.Count);
-      Exit(ZeroVector3Single);
-    end;
-  end else
-    VertexNum := IndexNum;
-
-  Result := Coord.Items.Items[VertexNum];
+    Result := Coord.ItemsSafe[CoordIndex.Items.Items[IndexNum]] else
+    Result := Coord.Items.Items[IndexNum];
 end;
 
 function TAbstractCoordinateRenderer.CoordCount: Integer;
@@ -2890,5 +2897,238 @@ begin
         Arrays.GLSLAttributeMatrix4(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
           TNodeMatrix4VertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
     end;
+  end;
+end;
+
+{ TAbstractBumpMappingRenderer ----------------------------------------------- }
+
+constructor TAbstractBumpMappingRenderer.Create(ARenderer: TVRMLGLRenderer);
+begin
+  inherited;
+  BumpMappingAllowed := true;
+end;
+
+procedure TAbstractBumpMappingRenderer.PrepareAttributes(var AllowIndexed: boolean);
+begin
+  inherited;
+  if BumpMappingMethod <> bmNone then
+  begin
+    Arrays.AddGLSLAttributeMatrix3('object_space_to_tangent');
+    Arrays.AddGLSLAttributeVector2('tex_coord');
+    { tex_coord may differ for each vertex occurence.
+      But actually tex coord implementation in ancestor already determines it,
+      and changes AllowIndexed to false if needed.
+      So don't do anything with AllowIndexed here. }
+  end;
+end;
+
+procedure TAbstractBumpMappingRenderer.GenerateVertex(IndexNum: Integer);
+
+  procedure DoBumpMapping;
+
+    function GetMatrixToTangent: TMatrix3Single;
+
+      procedure SetResult(const Normal, STangent, TTangent: TVector3Single);
+      var
+        I: Integer;
+      begin
+        for I := 0 to 2 do
+        begin
+          Result[I, 0] := STangent[I];
+          Result[I, 1] := TTangent[I];
+          Result[I, 2] := Normal[I];
+        end;
+      end;
+
+    var
+      LocalSTangent, LocalTTangent: TVector3Single;
+      Normal: TVector3Single;
+    begin
+      GetNormal(IndexNum, CurrentRangeNumber, Normal);
+
+      if HasTangentVectors and
+        (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
+        (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
+      begin
+        if NormalsFlat then
+        begin
+          SetResult(Normal, STangent, TTangent);
+        end else
+        begin
+          { If not NormalsFlat, you want to calculate local STangent and TTangent,
+            I mean STangent and TTangent adjusted to current vertex (since each
+            vertex may have different normal on the face when not NormalsFlat).
+
+            Without doing this, you would see strange artifacts, smoothed
+            faces would look somewhat like flat faces. Concenptually, for smoothed
+            faces, whole tangent space should vary for each vertex, so Normal,
+            and both tangents may be different on each vertex. }
+
+          LocalSTangent := STangent;
+          MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
+
+          LocalTTangent := TTangent;
+          MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
+
+          SetResult(Normal, LocalSTangent, LocalTTangent);
+        end;
+      end else
+      begin
+        SetResult(Normal,
+          { would be more correct to set LocalSTangent as anything perpendicular
+            to Normal, and LocalTTangent as vector product (normal, LocalSTangent) }
+          Vector3Single(1, 0, 0), Vector3Single(0, 1, 0));
+      end;
+    end;
+
+  var
+    Tex: TVector2Single;
+  begin
+    Arrays.GLSLAttributeMatrix3('object_space_to_tangent',
+      ArrayIndexNum)^ := GetMatrixToTangent;
+
+    Check(GetTextureCoord(IndexNum, 0, Tex), 'TexCoord for BumpMapping');
+    Arrays.GLSLAttributeVector2('tex_coord', ArrayIndexNum)^ := Tex;
+  end;
+
+begin
+  inherited;
+  if BumpMappingMethod <> bmNone then
+    DoBumpMapping;
+end;
+
+procedure TAbstractBumpMappingRenderer.GenerateCoordinateBegin;
+begin
+  inherited;
+  if BumpMappingMethod <> bmNone then
+    LightPositionObjectSpace := MatrixMultPoint(
+      State.InvertedTransform,
+      Renderer.BumpMappingLightPosition);
+end;
+
+procedure TAbstractBumpMappingRenderer.CalculateTangentVectors(
+  const TriangleIndex1, TriangleIndex2, TriangleIndex3: Integer);
+
+  { This procedure can change Triangle*, but only by swapping some vertexes,
+    so we pass Triangle* by reference instead of by value, to avoid
+    needless mem copying.
+
+    Returns @false if cannot be calculated. }
+  function CalculateTangent(IsSTangent: boolean; var Tangent: TVector3Single;
+    var Triangle3D: TTriangle3Single;
+    var TriangleTexCoord: TTriangle2Single): boolean;
+  var
+    D: TVector2Single;
+    LineA, LineBC, DIn3D: TVector3Single;
+    MiddleIndex: Integer;
+    FarthestDistance, NewDistance, Alpha: Single;
+    SearchCoord, OtherCoord: Cardinal;
+  begin
+    if ISSTangent then
+      SearchCoord := 0 else
+      SearchCoord := 1;
+    OtherCoord := 1 - SearchCoord;
+
+    { choose such that 1st and 2nd points have longest distance along
+      OtherCoord, so 0 point is in the middle. }
+
+    { MiddleIndex means that
+      MiddleIndex, (MiddleIndex + 1) mod 3 are farthest. }
+
+    MiddleIndex := 2;
+    FarthestDistance := Abs(TriangleTexCoord[0][OtherCoord] - TriangleTexCoord[1][OtherCoord]);
+
+    NewDistance := Abs(TriangleTexCoord[1][OtherCoord] - TriangleTexCoord[2][OtherCoord]);
+    if NewDistance > FarthestDistance then
+    begin
+      MiddleIndex := 0;
+      FarthestDistance := NewDistance;
+    end;
+
+    NewDistance := Abs(TriangleTexCoord[2][OtherCoord] - TriangleTexCoord[0][OtherCoord]);
+    if NewDistance > FarthestDistance then
+    begin
+      MiddleIndex := 1;
+      FarthestDistance := NewDistance;
+    end;
+
+    if Zero(FarthestDistance) then
+      Exit(false);
+
+    if MiddleIndex <> 0 then
+    begin
+      SwapValues(TriangleTexCoord[0], TriangleTexCoord[MiddleIndex]);
+      SwapValues(Triangle3D      [0], Triangle3D      [MiddleIndex]);
+    end;
+
+    if IsSTangent then
+    begin
+      { we want line Y = TriangleTexCoord[0][1]. }
+      LineA[0] := 0;
+      LineA[1] := 1;
+      LineA[2] := -TriangleTexCoord[0][1];
+    end else
+    begin
+      { we want line X = TriangleTexCoord[0][0]. }
+      LineA[0] := 1;
+      LineA[1] := 0;
+      LineA[2] := -TriangleTexCoord[0][0];
+    end;
+    LineBC := LineOfTwoDifferentPoints2d(
+      TriangleTexCoord[1], TriangleTexCoord[2]);
+
+    try
+      D := Lines2DIntersection(LineA, LineBC);
+    except
+      on ELinesParallel do begin Result := false; Exit; end;
+    end;
+
+    { LineBC[0, 1] is vector 2D orthogonal to LineBC.
+      If Abs(LineBC[0]) is *smaller* then it means that B and C points
+      are most different on 0 coord. }
+    if Abs(LineBC[0]) < Abs(LineBC[1]) then
+      Alpha := (                  D[0] - TriangleTexCoord[1][0]) /
+               (TriangleTexCoord[2][0] - TriangleTexCoord[1][0]) else
+      Alpha := (                  D[1] - TriangleTexCoord[1][1]) /
+               (TriangleTexCoord[2][1] - TriangleTexCoord[1][1]);
+
+    DIn3D := VectorAdd(
+      VectorScale(Triangle3D[1], 1 - Alpha),
+      VectorScale(Triangle3D[2], Alpha));
+
+    if D[SearchCoord] > TriangleTexCoord[0][SearchCoord] then
+      Tangent := VectorSubtract(DIn3D, Triangle3D[0]) else
+      Tangent := VectorSubtract(Triangle3D[0], DIn3D);
+
+    NormalizeTo1st(Tangent);
+
+    Result := true;
+  end;
+
+var
+  Triangle3D: TTriangle3Single;
+  TriangleTexCoord: TTriangle2Single;
+begin
+  HasTangentVectors := false;
+  if BumpMappingMethod <> bmNone then
+  begin
+    { calculate Triangle3D }
+    Triangle3D[0] := GetVertex(TriangleIndex1);
+    Triangle3D[1] := GetVertex(TriangleIndex2);
+    Triangle3D[2] := GetVertex(TriangleIndex3);
+
+    { This is just to shut up FPC 2.2.0 warnings about
+      TriangleTexCoord not initialized. }
+    TriangleTexCoord[0][0] := 0.0;
+
+    HasTangentVectors :=
+      { calculate TriangleTexCoord }
+      GetTextureCoord(TriangleIndex1, 0, TriangleTexCoord[0]) and
+      GetTextureCoord(TriangleIndex2, 0, TriangleTexCoord[1]) and
+      GetTextureCoord(TriangleIndex3, 0, TriangleTexCoord[2]) and
+      { calculate STangent, TTangent }
+      CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
+      CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) and
+      (Abs(VectorDotProduct(STangent, TTangent)) < 0.95);
   end;
 end;
