@@ -168,13 +168,38 @@ type
     Arrays: TGeometryArrays;
     { Only when Arrays.Indexes = nil but original node was indexed. }
     IndexesFromCoordIndex: TDynLongIntArray;
-    { Index to Arrays index.
-      If CoordIndex is assigned (that is either Arrays.Indexes or
-      IndexesFromCoordIndex are assigned) then points to current vertex
-      in Arrays.Indexes or IndexesFromCoordIndex. If CoordIndex not assigned,
-      this simply points to Arrays attributes (TODO: not really).
-      You have to call GenerateVertex in exactly the same order as you
-      generated IndexesFromCoordIndex to make this valid. }
+
+    { Index to Arrays. Suitable always to index Arrays.Position / Color / Normal
+      and other Arrays attribute arrays. Calculated in
+      each TAbstractCoordinateRenderer.GenerateVertex,
+      always call "inherited" first fro GenerateVertex overrides.
+
+      There are three cases:
+
+      1. When CoordIndex <> nil (so we have indexed node) and
+         Arrays.Indexes <> nil (so we can render it by indexes,
+         because AllowIndexed = true) then it's an index to
+         node coordinates. It's equivalent to CoordIndex[IndexNum],
+         and it can be used to index node's Coord as well as Arrays.Position
+         (since they are ordered the same in this case).
+
+      2. When CoordIndex <> nil (so we have indexed node) and
+         Arrays.Indexes = nil (so we cannot render it by indexes,
+         because AllowIndexed = false) then it's a number of vertex,
+         that is it's incremented in each TAbstractCoordinateRenderer.GenerateVertex
+         call.
+
+         In this case IndexesFromCoordIndex <> nil,
+         and Arrays attributes have the same count as IndexesFromCoordIndex.Count.
+         GenerateVertex must be called in exactly the same order
+         as IndexesFromCoordIndex were generated for this.
+
+      3. When CoordIndex = nil (so we don't have an indexed node,
+         also Arrays.Indexes = IndexesFromCoordIndex = nil always in this case)
+         then it's an index to attributes. This is the trivial case,
+         as Arrays attributes are then ordered just like node's Coord.
+         It's equal to IndexNum then.
+    }
     ArrayIndexNum: Integer;
   protected
     { Coordinates, taken from Geometry.Coord.
@@ -1081,7 +1106,7 @@ begin
     Exit;
 
   IndexesFromCoordIndex := nil;
-  ArrayIndexNum := 0;
+  ArrayIndexNum := -1;
   Arrays := TGeometryArrays.Create;
   try
     GenerateArrays;
@@ -1119,7 +1144,13 @@ end;
 
 procedure TAbstractCoordinateRenderer.GenerateVertex(IndexNum: integer);
 begin
-  Inc(ArrayIndexNum);
+  if CoordIndex <> nil then
+  begin
+    if Arrays.Indexes = nil then
+      Inc(ArrayIndexNum) else
+      ArrayIndexNum := CoordIndex.Items.Items[IndexNum];
+  end else
+    ArrayIndexNum := IndexNum;
 end;
 
 function TAbstractCoordinateRenderer.GetVertex(IndexNum: integer): TVector3f;
@@ -2156,10 +2187,9 @@ procedure TAbstractTexCoordinateRenderer.GenerateVertex(indexNum: integer);
   end;
 
 begin
+  inherited;
   if TexImplementation = tcTexIndexed then
     DoTexCoord(TexCoordIndex.Items.Items[IndexNum]);
-
-  inherited;
 end;
 
 { TAbstractMatTexCoordinateRenderer ------------------------------------------ }
@@ -2242,6 +2272,7 @@ end;
 
 procedure TAbstractMatTexCoordinateRenderer.GenerateVertex(IndexNum: Integer);
 begin
+  inherited;
   case Mat1Implementation of
     miPerVertexCoordIndexed:
       Arrays.Color(ArrayIndexNum)^ := GetMaterial1Color(CoordIndex.ItemsSafe[IndexNum]);
@@ -2250,8 +2281,6 @@ begin
     miPerFace, miPerFaceMatIndexed:
       Arrays.Color(ArrayIndexNum)^ := FaceMaterial1Color;
   end;
-
-  inherited;
 end;
 
 procedure TAbstractMatTexCoordinateRenderer.GenerateCoordsRange(
@@ -2323,6 +2352,7 @@ var
   VertexColor: TVector3Single;
   VertexIndex: Cardinal;
 begin
+  inherited;
   { Implement different color per vertex here. }
   if Assigned(Renderer.Attributes.OnVertexColor) then
   begin
@@ -2387,8 +2417,6 @@ begin
     end else
       Arrays.Color(ArrayIndexNum)^ := FaceColor;
   end;
-
-  inherited;
 end;
 
 procedure TAbstractColMatTexCoordinateRenderer.GenerateCoordsRange(
@@ -2515,6 +2543,7 @@ end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.GenerateVertex(IndexNum: Integer);
 begin
+  inherited;
   case NorImplementation of
     niPerVertexNormalIndexed:
       begin
@@ -2533,8 +2562,6 @@ begin
         Arrays.Normal(ArrayIndexNum)^ := FaceNormal;
       end;
   end;
-
-  inherited;
 end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.GenerateCoordinateBegin;
@@ -2726,12 +2753,11 @@ procedure TAbstractFogNorColMatTexCoordinateRenderer.GenerateVertex(
   end;
 
 begin
+  inherited;
   if FogCoord <> nil then
     SetFog(GetFogCoord) else
   if Renderer.FogVolumetric then
     SetFog(GetFogVolumetric);
-
-  inherited;
 end;
 
 procedure TAbstractFogNorColMatTexCoordinateRenderer.RenderCoordinateBegin;
@@ -2829,6 +2855,7 @@ var
   I: Integer;
   VertexIndex: Integer;
 begin
+  inherited;
   if Attrib <> nil then
   begin
     if CoordIndex <> nil then
@@ -2867,6 +2894,4 @@ begin
           TNodeMatrix4VertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
     end;
   end;
-
-  inherited;
 end;

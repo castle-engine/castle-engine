@@ -338,13 +338,12 @@ end;
 
 procedure TTriangleSetRenderer.GenerateVertex(IndexNum: Integer);
 begin
+  inherited;
   if NorImplementation = niNone then
   begin
     Assert(Arrays.Indexes = nil);
     Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
   end;
-
-  inherited;
 end;
 
 procedure TTriangleSetRenderer.GenerateCoordinate;
@@ -500,16 +499,16 @@ begin
       We set them only for security, to have this memory initialized
       to something predictable. }
 
-    DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
     GenerateVertex(BeginIndex);
-
     DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
+
     GenerateVertex(BeginIndex + 1);
+    DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
 
     while BeginIndex + 2 < EndIndex do
     begin
-      DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
       GenerateVertex(BeginIndex + 2);
+      DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
       Inc(BeginIndex);
     end;
   end else
@@ -691,22 +690,24 @@ begin
       We set them only for security, to have this memory initialized
       to something predictable. }
 
-    DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
     GenerateVertex(BeginIndex);
-
     DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
+
     GenerateVertex(BeginIndex + 1);
+    DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
 
     NormalOrder := true;
 
     while BeginIndex + 2 < EndIndex do
     begin
+      GenerateVertex(BeginIndex + 2);
+
       if NormalOrder then
         DoNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
         DoNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
-      GenerateVertex(BeginIndex + 2);
-      Inc(BeginIndex);
       NormalOrder := not NormalOrder;
+
+      Inc(BeginIndex);
     end;
   end else
     { Note that in case of non-indexed TriangleStripSet, this will even
@@ -795,13 +796,12 @@ end;
 
 procedure TQuadSetRenderer.GenerateVertex(IndexNum: Integer);
 begin
+  inherited;
   if NorImplementation = niNone then
   begin
     Assert(Arrays.Indexes = nil);
     Arrays.Normal(ArrayIndexNum)^ := QuadFaceNormal;
   end;
-
-  inherited;
 end;
 
 procedure TQuadSetRenderer.GenerateCoordinate;

@@ -217,10 +217,9 @@ procedure TIndexedFaceSetRenderer.GenerateVertex(IndexNum: Integer);
   end;
 
 begin
+  inherited;
   if BumpMappingMethod <> bmNone then
     DoBumpMapping;
-
-  inherited;
 end;
 
 procedure TIndexedFaceSetRenderer.GenerateCoordinateBegin;
