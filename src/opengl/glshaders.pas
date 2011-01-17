@@ -359,10 +359,15 @@ type
       LocationOffset = column index).
 
       @raises(EGLSLAttributeNotFound If the variable is not found within
-        the program.) }
-    procedure VertexAttribPointer(const Name: string; LocationOffset: TGLint;
+        the program.)
+
+      @returns(Attribute location (with LocationOffset already applied).
+        You can use it with DisableVertexAttribArray.) }
+    function VertexAttribPointer(const Name: string; LocationOffset: TGLint;
       Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-      Ptr: Pointer);
+      Ptr: Pointer): TGLint;
+
+    class procedure DisableVertexAttribArray(Location: TGLint);
 
     { Set attribute variable value.
       The used type must match the type of this variable in GLSL program.
@@ -1640,26 +1645,32 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-procedure TGLSLProgram.VertexAttribPointer(const Name: string;
+function TGLSLProgram.VertexAttribPointer(const Name: string;
   LocationOffset: TGLint;
   Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-  Ptr: Pointer);
-var
-  Location: TGLint;
+  Ptr: Pointer): TGLint;
 begin
   case Support of
     gsARBExtension:
       begin
-        Location := GetAttribLocationARB(Name) + LocationOffset;
-        glEnableVertexAttribArrayARB(Location);
-        glVertexAttribPointerARB(Location, Size, AType, Normalized, Stride, Ptr);
+        Result := GetAttribLocationARB(Name) + LocationOffset;
+        glEnableVertexAttribArrayARB(Result);
+        glVertexAttribPointerARB(Result, Size, AType, Normalized, Stride, Ptr);
       end;
     gsStandard    :
       begin
-        Location := GetAttribLocation   (Name) + LocationOffset;
-        glEnableVertexAttribArray   (Location);
-        glVertexAttribPointer   (Location, Size, AType, Normalized, Stride, Ptr);
+        Result := GetAttribLocation   (Name) + LocationOffset;
+        glEnableVertexAttribArray   (Result);
+        glVertexAttribPointer   (Result, Size, AType, Normalized, Stride, Ptr);
       end;
+  end;
+end;
+
+class procedure TGLSLProgram.DisableVertexAttribArray(Location: TGLint);
+begin
+  case ClassSupport of
+    gsARBExtension: glDisableVertexAttribArrayARB(Location);
+    gsStandard    : glDisableVertexAttribArray   (Location);
   end;
 end;
 
