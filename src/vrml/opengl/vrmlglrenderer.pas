@@ -591,19 +591,9 @@ type
       See also other TVRMLGLRenderer.BumpMappingLightXxx properties,
       like TVRMLGLRenderer.BumpMappingLightDiffuseColor.
 
-      Some TODOs related to this:
-
-      @unorderedList(
-        @item(Bump mapping only works with IndexedFaceSet, or geometry
-          converted to IndexedFaceSet by proxy. In particular
-          [Indexed]Triangle/QuadSet don't handle bump mapping.
-          That's because we are able to calculate s/t tangent vectors
-          only on IndexedFaceSet.)
-
-        @item(For each texture, there must always be the same
-          normalMap and heightMap
-          (since we store it in the same TTextureImageReference).)
-      )
+      TODO: For each texture, there must always be the same
+      normalMap and heightMap
+      (since we store it in the same TTextureImageReference).
     }
     property BumpMappingMaximum: TBumpMappingMethod
       read FBumpMappingMaximum write SetBumpMappingMaximum

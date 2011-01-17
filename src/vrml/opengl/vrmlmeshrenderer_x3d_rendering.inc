@@ -42,6 +42,8 @@ type
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
     procedure PrepareIndexesPrimitives; override;
+    procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
+      out N: TVector3Single); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -49,6 +51,7 @@ type
   { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
   TTriangleFanSetRenderer = class(TAbstractCompleteRenderer)
   private
+    TriFaceNormal: TVector3Single;
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
@@ -57,6 +60,9 @@ type
     procedure GenerateCoordinate; override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
+    procedure GenerateVertex(IndexNum: Integer); override;
+    procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
+      out N: TVector3Single); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -68,6 +74,7 @@ type
     Inventor/VRML 1.0 conventions). }
   TTriangleStripSetRenderer = class(TAbstractCompleteRenderer)
   private
+    TriFaceNormal: TVector3Single;
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
@@ -76,6 +83,9 @@ type
     procedure GenerateCoordinate; override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
+    procedure GenerateVertex(IndexNum: Integer); override;
+    procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
+      out N: TVector3Single); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -88,6 +98,8 @@ type
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
     procedure PrepareIndexesPrimitives; override;
+    procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
+      out N: TVector3Single); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -346,6 +358,15 @@ begin
   end;
 end;
 
+procedure TTriangleSetRenderer.GetNormal(IndexNum: Integer; RangeNumber: Integer;
+  out N: TVector3Single);
+begin
+  if NorImplementation = niNone then
+    { TODO: hack, assuming GetNormal is only called for current face }
+    N := TriFaceNormal else
+    inherited GetNormal(IndexNum, RangeNumber, N);
+end;
+
 procedure TTriangleSetRenderer.GenerateCoordinate;
 var
   I: Integer;
@@ -361,6 +382,8 @@ begin
     if NorImplementation = niNone then
       TriFaceNormal := TriangleNormal(
         GetVertex(I), GetVertex(I + 1), GetVertex(I + 2));
+
+    CalculateTangentVectors(I, I + 1, I + 2);
 
     GenerateVertex(I    );
     GenerateVertex(I + 1);
@@ -470,18 +493,30 @@ begin
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
+procedure TTriangleFanSetRenderer.GenerateVertex(IndexNum: Integer);
+begin
+  inherited;
+  if NorImplementation = niNone then
+    Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
+end;
+
+procedure TTriangleFanSetRenderer.GetNormal(IndexNum: Integer; RangeNumber: Integer;
+  out N: TVector3Single);
+begin
+  if NorImplementation = niNone then
+    { TODO: hack, assuming GetNormal is only called for current face }
+    N := TriFaceNormal else
+    inherited GetNormal(IndexNum, RangeNumber, N);
+end;
+
 procedure TTriangleFanSetRenderer.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
-  procedure DoNormal(const v1, v2, v3: integer);
+  procedure FaceNormal(const v1, v2, v3: integer);
   begin
     if NorImplementation = niNone then
-    begin
-      Assert(Arrays.Indexes = nil);
       { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
-      Arrays.Normal(ArrayIndexNum)^ :=
-        TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3));
-    end;
+      TriFaceNormal := TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3));
   end;
 
 var
@@ -493,22 +528,24 @@ begin
   begin
     FirstIndex := BeginIndex;
 
-    { Note that DoNormal for the first two vertexes is totally ignored
+    { Note that normal for the first two vertexes is totally ignored
       by OpenGL. When NorImplementation = niNone we have flat shading,
       and then normal values for 1st two vertexes don't matter.
-      We set them only for security, to have this memory initialized
-      to something predictable. }
+      We set them
+      - for security, to have this memory initialized
+        to something predictable.
+      - also CalculateTangentVectors will call GetNormal that needs them. }
+
+    FaceNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
+    CalculateTangentVectors(BeginIndex, BeginIndex + 1, BeginIndex + 2);
 
     GenerateVertex(BeginIndex);
-    DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
-
     GenerateVertex(BeginIndex + 1);
-    DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
 
     while BeginIndex + 2 < EndIndex do
     begin
+      FaceNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
       GenerateVertex(BeginIndex + 2);
-      DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
       Inc(BeginIndex);
     end;
   end else
@@ -663,18 +700,30 @@ begin
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
+procedure TTriangleStripSetRenderer.GenerateVertex(IndexNum: Integer);
+begin
+  inherited;
+  if NorImplementation = niNone then
+    Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
+end;
+
+procedure TTriangleStripSetRenderer.GetNormal(IndexNum: Integer; RangeNumber: Integer;
+  out N: TVector3Single);
+begin
+  if NorImplementation = niNone then
+    { TODO: hack, assuming GetNormal is only called for current face }
+    N := TriFaceNormal else
+    inherited GetNormal(IndexNum, RangeNumber, N);
+end;
+
 procedure TTriangleStripSetRenderer.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
-  procedure DoNormal(const v1, v2, v3: integer);
+  procedure FaceNormal(const v1, v2, v3: integer);
   begin
     if NorImplementation = niNone then
-    begin
-      Assert(Arrays.Indexes = nil);
       { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
-      Arrays.Normal(ArrayIndexNum)^ :=
-        TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3));
-    end;
+      TriFaceNormal := TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3));
   end;
 
 var
@@ -684,28 +733,30 @@ begin
 
   if BeginIndex + 2 < EndIndex then
   begin
-    { Note that DoNormal for the first two vertexes is totally ignored
+    { Note that normal for the first two vertexes is totally ignored
       by OpenGL. When NorImplementation = niNone we have flat shading,
       and then normal values for 1st two vertexes don't matter.
-      We set them only for security, to have this memory initialized
-      to something predictable. }
+      We set them
+      - for security, to have this memory initialized
+        to something predictable.
+      - also CalculateTangentVectors will call GetNormal that needs them. }
+
+    FaceNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
+    CalculateTangentVectors(BeginIndex, BeginIndex + 1, BeginIndex + 2);
 
     GenerateVertex(BeginIndex);
-    DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
-
     GenerateVertex(BeginIndex + 1);
-    DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
 
     NormalOrder := true;
 
     while BeginIndex + 2 < EndIndex do
     begin
-      GenerateVertex(BeginIndex + 2);
-
       if NormalOrder then
-        DoNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
-        DoNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
+        FaceNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
+        FaceNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
       NormalOrder := not NormalOrder;
+
+      GenerateVertex(BeginIndex + 2);
 
       Inc(BeginIndex);
     end;
@@ -804,6 +855,15 @@ begin
   end;
 end;
 
+procedure TQuadSetRenderer.GetNormal(IndexNum: Integer; RangeNumber: Integer;
+  out N: TVector3Single);
+begin
+  if NorImplementation = niNone then
+    { TODO: hack, assuming GetNormal is only called for current face }
+    N := QuadFaceNormal else
+    inherited GetNormal(IndexNum, RangeNumber, N);
+end;
+
 procedure TQuadSetRenderer.GenerateCoordinate;
 var
   I: Integer;
@@ -818,6 +878,8 @@ begin
       QuadFaceNormal := Normalized(
         TriangleNormal(GetVertex(I), GetVertex(I + 1), GetVertex(I + 2)) +
         TriangleNormal(GetVertex(I), GetVertex(I + 2), GetVertex(I + 3)) );
+
+    CalculateTangentVectors(I, I + 1, I + 2);
 
     GenerateVertex(I    );
     GenerateVertex(I + 1);
