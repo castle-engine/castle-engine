@@ -926,6 +926,7 @@ type
     FParentNode: TVRMLNode;
     FAllowedChildren: TVRMLNodeClassesList;
     FAllowedChildrenAll: boolean;
+    function GetItems(const Index: Integer): TVRMLNode;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject); override;
@@ -985,6 +986,8 @@ type
       AddParentField / RemoveParentField, otherwise you
       could break reference-counting of nodes by ParentFields. }
     property Items: TVRMLNodesList read FItems;
+
+    property ItemsArray[Index: Integer]: TVRMLNode read GetItems; default;
 
     procedure Add(Node: TVRMLNode); overload;
     procedure Add(Position: Integer; Node: TVRMLNode); overload;
@@ -3463,6 +3466,11 @@ begin
   for I := 0 to Count - 1 do
     if ChildAllowed(Items[I]) then
       Func(ParentNode, Items[I]);
+end;
+
+function TMFNode.GetItems(const Index: Integer): TVRMLNode;
+begin
+  Result := FItems[Index];
 end;
 
 { TVRMLUnknownNode ---------------------------------------------------------------- }

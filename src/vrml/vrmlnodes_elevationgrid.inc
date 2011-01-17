@@ -112,6 +112,7 @@ begin
     IFS.FdColor.Value := FdColor.Value;
     IFS.FdCreaseAngle.Value := FdCreaseAngle.Value;
     IFS.FdFogCoord.Value := FdFogCoord.Value;
+    IFS.FdAttrib.AssignValue(FdAttrib);
   except FreeAndNil(Result); raise end;
 end;
 

@@ -708,9 +708,26 @@ type
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
+  TX3DVertexAttributeNodes = specialize TFPGObjectList<TNodeX3DVertexAttributeNode>;
+
+  { Take care of everything related to setting GLSL attributes
+    from VRML/X3D "attrib" field.
+    Descendants don't have to do anything, this just works
+    (using TVRMLGeometryNode.Attrib). }
+  TAbstractAttFogNorColMatTexCoordinateRenderer = class(TAbstractFogNorColMatTexCoordinateRenderer)
+  private
+    Attrib: TX3DVertexAttributeNodes;
+  protected
+    procedure PrepareAttributes(var AllowIndexed: boolean); override;
+    procedure GenerateVertex(IndexNum: Integer); override;
+  public
+    constructor Create(ARenderer: TVRMLGLRenderer);
+    destructor Destroy; override;
+  end;
+
   { Most complete implementation of coordinate renderer, used to derive
     non-abstract handlers for nodes. }
-  TAbstractFinalCoordinateRenderer = TAbstractFogNorColMatTexCoordinateRenderer;
+  TAbstractFinalCoordinateRenderer = TAbstractAttFogNorColMatTexCoordinateRenderer;
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
@@ -2751,3 +2768,105 @@ begin
   inherited;
 end;
 
+{ TAbstractAttFogNorColMatTexCoordinateRenderer ------------------------------ }
+
+constructor TAbstractAttFogNorColMatTexCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
+var
+  A: TMFNode;
+  I: Integer;
+begin
+  inherited;
+
+  A := Geometry.Attrib;
+  if A <> nil then
+    for I := 0 to A.Count - 1 do
+      if A[I] is TNodeX3DVertexAttributeNode then
+      begin
+        { To conserve time and memory, create Attrib instance only when needed }
+        if Attrib = nil then
+          Attrib := TX3DVertexAttributeNodes.Create(false);
+        Attrib.Add(TNodeX3DVertexAttributeNode(A[I]));
+      end;
+end;
+
+destructor TAbstractAttFogNorColMatTexCoordinateRenderer.Destroy;
+begin
+  FreeAndNil(Attrib);
+  inherited;
+end;
+
+procedure TAbstractAttFogNorColMatTexCoordinateRenderer.PrepareAttributes(var AllowIndexed: boolean);
+var
+  I: Integer;
+begin
+  inherited;
+  if Attrib <> nil then
+    for I := 0 to Attrib.Count - 1 do
+    begin
+      { call Arrays.AddGLSLAttribute* }
+      if Attrib[I] is TNodeFloatVertexAttribute then
+      begin
+        case TNodeFloatVertexAttribute(Attrib[I]).FdNumComponents.Value of
+          1: Arrays.AddGLSLAttributeFloat(Attrib[I].FdName.Value);
+          2: Arrays.AddGLSLAttributeVector2(Attrib[I].FdName.Value);
+          3: Arrays.AddGLSLAttributeVector3(Attrib[I].FdName.Value);
+          4: Arrays.AddGLSLAttributeVector4(Attrib[I].FdName.Value);
+          else VRMLWarning(vwSerious, Format('Invalid FloatVertexAttribute.numComponents: %d (should be between 1..4)',
+            [TNodeFloatVertexAttribute(Attrib[I]).FdNumComponents.Value]));
+        end;
+      end else
+      if Attrib[I] is TNodeMatrix3VertexAttribute then
+        Arrays.AddGLSLAttributeMatrix3(Attrib[I].FdName.Value) else
+      if Attrib[I] is TNodeMatrix4VertexAttribute then
+        Arrays.AddGLSLAttributeMatrix4(Attrib[I].FdName.Value) else
+        VRMLWarning(vwSerious, Format('Not handled vertex attribute class %s',
+          [Attrib[I].NodeTypeName]));
+    end;
+end;
+
+procedure TAbstractAttFogNorColMatTexCoordinateRenderer.GenerateVertex(IndexNum: Integer);
+var
+  I: Integer;
+  VertexIndex: Integer;
+begin
+  if Attrib <> nil then
+  begin
+    if CoordIndex <> nil then
+      VertexIndex := CoordIndex.Items.Items[IndexNum] else
+      VertexIndex := IndexNum;
+
+    for I := 0 to Attrib.Count - 1 do
+    begin
+      { set Arrays.GLSLAttribute*(ArrayIndexNum).
+        Note we don't do some warnings here, that were already done
+        in PrepareAttributes. }
+      if Attrib[I] is TNodeFloatVertexAttribute then
+      begin
+        case TNodeFloatVertexAttribute(Attrib[I]).FdNumComponents.Value of
+          1: Arrays.GLSLAttributeFloat(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
+          2: Arrays.GLSLAttributeVector2(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector2Single(
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2],
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2 + 1]);
+          3: Arrays.GLSLAttributeVector3(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector3Single(
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3],
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 1],
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 2]);
+          4: Arrays.GLSLAttributeVector4(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector4Single(
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4],
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 1],
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 2],
+               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 3]);
+        end;
+      end else
+      if Attrib[I] is TNodeMatrix3VertexAttribute then
+        Arrays.GLSLAttributeMatrix3(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
+          TNodeMatrix3VertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex] else
+      if Attrib[I] is TNodeMatrix4VertexAttribute then
+        Arrays.GLSLAttributeMatrix4(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
+          TNodeMatrix4VertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
+    end;
+  end;
+
+  inherited;
+end;

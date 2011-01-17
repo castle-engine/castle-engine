@@ -414,6 +414,7 @@
     { @groupEnd }
 
     function FogCoord: TMFFloat; virtual;
+    function Attrib: TMFNode; virtual;
 
     { Should renderer automatically generate 3D texture coordinates,
       in case we will apply 3D texture on this geometry.
@@ -497,6 +498,7 @@
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
     function FogCoord: TMFFloat; override;
+    function Attrib: TMFNode; override;
 
     { Returns normal.vector, assuming that "normal" field is set
       and specified Normal node. Otherwise returns @nil. }
@@ -628,6 +630,7 @@
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
     function FogCoord: TMFFloat; override;
+    function Attrib: TMFNode; override;
   end;
 
   TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -756,6 +759,7 @@
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
     function FogCoord: TMFFloat; override;
+    function Attrib: TMFNode; override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
@@ -818,6 +822,7 @@
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
     function FogCoord: TMFFloat; override;
+    function Attrib: TMFNode; override;
   end;
 
   TNodeTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -1033,6 +1038,11 @@ begin
   Result := nil;
 end;
 
+function TVRMLGeometryNode.Attrib: TMFNode;
+begin
+  Result := nil;
+end;
+
 function TVRMLGeometryNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := false;
@@ -1171,6 +1181,11 @@ begin
      (FdFogCoord.Value is TNodeFogCoordinate) then
     Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
     Result := nil;
+end;
+
+function TNodeX3DComposedGeometryNode.Attrib: TMFNode;
+begin
+  Result := FdAttrib;
 end;
 
 function TNodeX3DComposedGeometryNode.Normal: TMFVec3f;
@@ -1455,6 +1470,11 @@ begin
     Result := nil;
 end;
 
+function TNodeIndexedLineSet_2.Attrib: TMFNode;
+begin
+  Result := FdAttrib;
+end;
+
 function TNodeIndexedLineSet_2.CoordIndex: TMFLong;
 begin
   Result := FdCoordIndex;
@@ -1700,6 +1720,11 @@ begin
     Result := nil;
 end;
 
+function TNodeLineSet.Attrib: TMFNode;
+begin
+  Result := FdAttrib;
+end;
+
 function TNodeLineSet.CoordRangesCounts(
   out RangeCount: TDynLongIntArray;
   out SRanges, SRangeName: string;
@@ -1826,6 +1851,11 @@ begin
      (FdFogCoord.Value is TNodeFogCoordinate) then
     Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
     Result := nil;
+end;
+
+function TNodePointSet_2.Attrib: TMFNode;
+begin
+  Result := FdAttrib;
 end;
 
 procedure TNodePointSet_2.DirectEnumerateActive(

@@ -206,6 +206,7 @@
     function Color: TMFVec3f; override;
     function ColorRGBA: TMFColorRGBA; override;
     function FogCoord: TMFFloat; override;
+    function Attrib: TMFNode; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
@@ -766,6 +767,11 @@ begin
      (FdFogCoord.Value is TNodeFogCoordinate) then
     Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
     Result := nil;
+end;
+
+function TNodeElevationGrid.Attrib: TMFNode;
+begin
+  Result := FdAttrib;
 end;
 
 procedure TNodeElevationGrid.EventSet_HeightReceive(

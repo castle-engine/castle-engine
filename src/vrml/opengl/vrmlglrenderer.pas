@@ -267,7 +267,7 @@ uses
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
   KambiGLUtils, VRMLGLLightSet, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
-  GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D;
+  GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL;
 
 {$define read_interface}
 
