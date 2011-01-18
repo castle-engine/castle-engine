@@ -434,7 +434,7 @@ type
         (then Gen is one of tgBounds*.
         TexCoordGenNode and TexCoordArray* are undefined.)
 
-      This has the length of TexCoordsNeeded.
+      This has the length of TexCoordsNeeded or smaller.
       TexCoordGen/Array[0] are coords for 1st texture unit
       (that is, Renderer.FirstGLFreeTexture), and so on. }
     TexCoordGen: array of TTextureCoordinateGeneration;
@@ -1571,7 +1571,7 @@ var
     We also set TexImplementation := tcAllGenerated,
     TexCoordGen (to tgBounds3d), TextureGen.
 
-    Whem not TexUnitAll, we only set up and enable OpenGL
+    When not TexUnitAll, we only set up and enable OpenGL
     glTexGen on current unit. }
   procedure Bounds3DTextureGen(const TexUnitAll: boolean);
 
@@ -1888,7 +1888,7 @@ var
   begin
     if GLUseMultiTexturing then
     begin
-      for I := 0 to TexCoordsNeeded - 1 do
+      for I := 0 to Length(TexCoordGen) - 1 do
         if not (TexCoordGen[I] in ExplicitTexCoords) then
         begin
           Renderer.ActiveTexture(I);
@@ -2027,7 +2027,7 @@ procedure TAbstractTextureCoordinateRenderer.GenerateCoordinateBegin;
     end;
 
   begin
-    for I := 0 to Renderer.TexCoordsNeeded - 1 do
+    for I := 0 to Length(TexCoordGen) - 1 do
       case TexCoordGen[I] of
         tgExplicit2d: Handle(2, TexCoordArray2d[I].Items);
         tgExplicit3d: Handle(3, TexCoordArray3d[I].Items);
@@ -2058,17 +2058,9 @@ var
 begin
   { Disable OpenGL GL_TEXTURE_GEN_x, if was (possibly)
     enabled by PrepareAttributes. }
-  if Renderer.TexCoordsNeeded > 0 then
-  begin
-    if GLUseMultiTexturing then
-    begin
-      for I := 0 to Renderer.TexCoordsNeeded - 1 do
-        if not (TexCoordGen[I] in ExplicitTexCoords) then
-          DisableTextureGen(I);
-    end else
-    if not (TexCoordGen[0] in ExplicitTexCoords) then
-      DisableTextureGen(0);
-  end;
+  for I := 0 to Length(TexCoordGen) - 1 do
+    if not (TexCoordGen[I] in ExplicitTexCoords) then
+      DisableTextureGen(I);
 
   inherited;
 end;
