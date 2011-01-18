@@ -891,6 +891,7 @@ procedure TAbstractCoordinateRenderer.DoRender;
 
     if IndexesFromCoordIndex <> nil then
     begin
+      Assert(CoordIndex <> nil);
       MaxIndex := IndexesFromCoordIndex.Max;
 
       { check do we have enough coordinates. TGeometryArrays data may be passed
@@ -898,8 +899,8 @@ procedure TAbstractCoordinateRenderer.DoRender;
         and avoid passing data that would cause OpenGL errors. }
       if MaxIndex >= Coord.Count then
       begin
-        VRMLWarning(vwSerious, Format('Not enough coordinates: coordIndex references %d coordinates, but we only have %d coordinates',
-          [MaxIndex + 1, Coord.Count]));
+        CoordIndex.VRMLWarning_WrongVertexIndex(Geometry.NodeTypeName,
+          MaxIndex, Coord.Count);
         Exit; { leave Arrays created but empty }
       end;
     end;
