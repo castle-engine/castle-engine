@@ -45,15 +45,17 @@ begin
     begin
       Ptr1 := Image1.RGBPixels;
       Ptr2 := Image2.RGBPixels;
-      for X := 0 to Integer(Image1.Width) - 1 do
-        for Y := 0 to Integer(Image1.Height) - 1 do
+      { Count Y downward, to show respective to top in error message,
+        which is more common for image editing programs. }
+      for Y := Integer(Image1.Height) - 1 downto 0 do
+        for X := 0 to Integer(Image1.Width) - 1 do
         begin
           if (Abs(Ptr1^[0] - Ptr2^[0]) > Tolerance) or
              (Abs(Ptr1^[1] - Ptr2^[1]) > Tolerance) or
              (Abs(Ptr1^[2] - Ptr2^[2]) > Tolerance) then
           begin
-            Writeln(ErrOutput, Format('Image colors differ on pixel (%d,%d) (counted from the bottom-left)',
-              [X, Y]));
+            Writeln(ErrOutput, Format('Image colors differ on pixel (%d,%d) (counted from the top-left): first image has (%d,%d,%d) vs second image (%d,%d,%d)',
+              [X, Y, Ptr1^[0], Ptr1^[1], Ptr1^[2], Ptr2^[0], Ptr2^[1], Ptr2^[2]]));
             Halt(1);
           end;
           Inc(Ptr1);
