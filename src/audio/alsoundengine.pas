@@ -90,7 +90,7 @@ type
     ListenerPosition: TVector3Single;
     ListenerOrientation: TALTwoVectors3f;
 
-    EnableSaveToConfig, DeviceSaveToConfig: boolean;
+    FEnableSaveToConfig, DeviceSaveToConfig: boolean;
 
     { Check ALC errors. Requires valid ALDevice. }
     procedure CheckALC(const situation: string);
@@ -254,6 +254,11 @@ type
       More precisely, when ALInitialized changes (and so, possibly, ALActive
       changed). }
     property OnOpenClose: TDynNotifyEventArray read FOnOpenClose;
+
+    { Should we save @link(Enable) to config file in SaveToConfig call.
+      This is always reset to @true after setting @link(Enable) value. }
+    property EnableSaveToConfig: boolean
+      read FEnableSaveToConfig write FEnableSaveToConfig default true;
   published
     { Sound volume, affects all OpenAL sounds (effects and music).
       This must always be within 0..1 range.
@@ -476,7 +481,7 @@ begin
   FDefaultMaxDistance := DefaultDefaultMaxDistance;
   FDistanceModel := DefaultDistanceModel;
   FEnable := true;
-  EnableSaveToConfig := true;
+  FEnableSaveToConfig := true;
   DeviceSaveToConfig := true;
   BuffersCache := TALBuffersCacheList.Create;
   FOnOpenClose := TDynNotifyEventArray.Create;
@@ -1002,7 +1007,7 @@ begin
       ALContextOpen;
     end else
       FEnable := Value;
-    EnableSaveToConfig := true; // caller will eventually change it to false
+    FEnableSaveToConfig := true; // caller will eventually change it to false
   end;
 end;
 
