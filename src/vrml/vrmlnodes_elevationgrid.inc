@@ -21,17 +21,53 @@ function TNodeElevationGrid.Proxy(var State: TVRMLGraphTraverseState;
 
   - When colorPerVertex is different than normalPerVertex,
     neither flat nor smooth shading is good.
-  - Normal generation was a pain. A large code generating smooth-only normals
-    was done.
-  . creaseAngle was not supported,
-    only all smooth or all flat was supported.
+  - Normal generation was a pain. A code generating smooth-only normals
+    was implemented, and was already a pain to maintain (since with IndexedFaceSet,
+    we already had normal generation implemented).
+    creaseAngle was not supported, only all smooth or all flat was supported.
+  - Rendering by quads was sometimes not fully correct, as elevation grid
+    quads were not really planar. So with GPU performing any triangulation
+    it wants, results are undefined and not always the best.
+    Right now we triangulate ourselves along the shortest diagonal,
+    which improves the look much.
+    IndexedFaceSet is rendered through GL_TRIANGLES anyway.
 
   Using proxy to render ElevationGrid solves above troubles.
   Using proxy also makes simpler implementation than rendering,
   and also it's used for triangulating.
-  Although IndexedFaceSet is not so efficiently rendered
-  (will be split into triangles).
 }
+var
+  Coords: TDynVector3SingleArray;
+  CoordIndexes: TDynLongIntArray;
+
+  { Add to CoordIndexes a quad from given indexes.
+    Actually we add two triangles, looking at Coord to choose the best
+    triangulation. }
+  procedure Quad(const IndexNum, I1, I2, I3, I4: Integer);
+  begin
+    if PointsDistanceSqr(Coords.Items[I1], Coords.Items[I3]) <
+       PointsDistanceSqr(Coords.Items[I2], Coords.Items[I4]) then
+    begin
+      CoordIndexes.Items[IndexNum    ] := I1;
+      CoordIndexes.Items[IndexNum + 1] := I2;
+      CoordIndexes.Items[IndexNum + 2] := I3;
+      CoordIndexes.Items[IndexNum + 3] := -1;
+      CoordIndexes.Items[IndexNum + 4] := I3;
+      CoordIndexes.Items[IndexNum + 5] := I4;
+      CoordIndexes.Items[IndexNum + 6] := I1;
+      CoordIndexes.Items[IndexNum + 7] := -1;
+    end else
+    begin
+      CoordIndexes.Items[IndexNum    ] := I1;
+      CoordIndexes.Items[IndexNum + 1] := I2;
+      CoordIndexes.Items[IndexNum + 2] := I4;
+      CoordIndexes.Items[IndexNum + 3] := -1;
+      CoordIndexes.Items[IndexNum + 4] := I2;
+      CoordIndexes.Items[IndexNum + 5] := I3;
+      CoordIndexes.Items[IndexNum + 6] := I4;
+      CoordIndexes.Items[IndexNum + 7] := -1;
+    end;
+  end;
 
 var
   IFS: TNodeIndexedFaceSet_2 absolute Result;
@@ -39,9 +75,7 @@ var
   TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
   CoordNode: TNodeCoordinate;
-  Coords: TDynVector3SingleArray;
   TexCoords: TDynVector2SingleArray;
-  CoordIndexes: TDynLongIntArray;
 begin
   IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
   try
@@ -87,18 +121,19 @@ begin
 
       { generate quads indexes }
       CoordIndexes := IFS.CoordIndex.Items;
-      CoordIndexes.Count := (XDimension - 1) * (ZDimension - 1) * 5;
+      CoordIndexes.Count := (XDimension - 1) * (ZDimension - 1) * 8;
       NextIndex := 0;
       for J := 1 to ZDimension - 1 do
         for I := 1 to XDimension - 1 do
         begin
           { Vertices are ordered such that face is CCW from up
             (i.e. looking from positive Y axis). }
-          CoordIndexes.Items[NextIndex] := I     + (J - 1) * XDimension; Inc(NextIndex);
-          CoordIndexes.Items[NextIndex] := I - 1 + (J - 1) * XDimension; Inc(NextIndex);
-          CoordIndexes.Items[NextIndex] := I - 1 +  J      * XDimension; Inc(NextIndex);
-          CoordIndexes.Items[NextIndex] := I     +  J      * XDimension; Inc(NextIndex);
-          CoordIndexes.Items[NextIndex] := -1;                           Inc(NextIndex);
+          Quad(NextIndex,
+               I     + (J - 1) * XDimension,
+               I - 1 + (J - 1) * XDimension,
+               I - 1 +  J      * XDimension,
+               I     +  J      * XDimension);
+          NextIndex += 8;
         end;
       Assert(NextIndex = CoordIndexes.Count);
     end;
