@@ -366,7 +366,7 @@ begin
     Slices := State.LastNodes.KambiTriangulation.QuadricSlices;
 
     C := TNodeCoordinate.Create('', WWWBasePath);
-    C.FdPoint.Items.Count := Slices;
+    C.FdPoint.Items.Count := Slices + 1;
     LineSet.FdCoord.Value := C;
 
     { calculate C contents }
@@ -378,8 +378,10 @@ begin
         AngleSin * FdRadius.Value,
         AngleCos * FdRadius.Value, 0);
     end;
+    { close the circle }
+    C.FdPoint.Items.Items[Slices] := C.FdPoint.Items.Items[0];
 
-    LineSet.FdVertexCount.Items.Add(Slices);
+    LineSet.FdVertexCount.Items.Add(Slices + 1);
   except FreeAndNil(Result); raise end;
 end;
 
