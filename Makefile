@@ -258,6 +258,7 @@ EXAMPLES_BASE_NAMES := \
   examples/images/image_identify \
   examples/images/image_to_pas \
   examples/images/dds_remove_small_mipmaps \
+  examples/images/image_compare \
   examples/glwindow/gl_win_events \
   examples/glwindow/menu_test_alternative \
   examples/glwindow/menu_test \
