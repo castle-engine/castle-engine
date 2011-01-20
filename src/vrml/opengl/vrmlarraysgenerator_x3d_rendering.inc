@@ -156,34 +156,15 @@ begin
 end;
 
 procedure TPointSet_1Generator.PrepareIndexesPrimitives;
-var
-  I, BeginIndex, NumPoints: integer;
-  Node: TNodePointSet_1;
 begin
   Arrays.Primitive := gpPoints;
-
-  Node := Geometry as TNodePointSet_1;
-  Node.CalculateRange(State.LastNodes.Coordinate3, BeginIndex, numPoints);
-
-  { Although PointSet is not really indexed, we use IndexesFromCoordIndex
-    to implement BeginIndex / NumPoints limits. }
-{TODO: cannot use this trick, we depend in some places that CoordIndex
-  exists if IndexesFromCoordIndex exist.
-
-  IndexesFromCoordIndex := TDynLongIntArray.Create;
-  for I := BeginIndex to BeginIndex + NumPoints - 1 do
-    IndexesFromCoordIndex.Add(I);}
 end;
 
 procedure TPointSet_1Generator.GenerateCoordinate;
 var
-  I, BeginIndex, NumPoints: Integer;
-  Node: TNodePointSet_1;
+  I: Integer;
 begin
-  Node := Geometry as TNodePointSet_1;
-  Node.CalculateRange(State.LastNodes.Coordinate3, BeginIndex, numPoints);
-
-  for I := BeginIndex to BeginIndex + NumPoints - 1 do
+  for I := 0 to CoordCount - 1 do
     GenerateVertex(I);
 end;
 

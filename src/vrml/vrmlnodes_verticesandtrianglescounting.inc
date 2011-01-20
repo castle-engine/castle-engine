@@ -233,14 +233,6 @@ begin
   result := 0;
 end;
 
-function TNodePointSet_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
-var dummy, numPoints: integer;
-begin
- CalculateRange(State.LastNodes.Coordinate3, dummy, numPoints);
- result := numPoints;
-end;
-
 function Sphere_TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
   result := QUADRIC_SLICES * ((QUADRIC_STACKS-2)*2 + 2);

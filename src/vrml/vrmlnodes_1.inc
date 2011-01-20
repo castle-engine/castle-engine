@@ -215,8 +215,11 @@
   end;
 
   TNodePointSet_1 = class(TVRMLGeometryNode_1)
+  private
+    CoordSubrange: TMFVec3f;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdStartIndex: TSFLong;
@@ -225,18 +228,9 @@
     private FFdNumPoints: TSFLong;
     public property FdNumPoints: TSFLong read FFdNumPoints;
 
-    { Calculate startIndex and numPoints using appropriate fields.
-      Makes sure the returned numPoints is > 0,
-      and range [startIndex .. numPoints - 1] is within
-      the range [0 .. LastCoordinate3.FdPoint.Count - 1]. }
-    procedure CalculateRange(LastCoordinate3: TNodeCoordinate3;
-      out startIndex, numPoints: integer);
-
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
@@ -1148,6 +1142,14 @@ begin
   FFdnumPoints := TSFLong.Create(Self, 'numPoints', -1);
    FdnumPoints.ChangesAlways := [chGeometry];
   Fields.Add(FFdnumPoints);
+
+  CoordSubrange := TMFVec3f.Create(Self, '', []);
+end;
+
+destructor TNodePointSet_1.Destroy;
+begin
+  FreeAndNil(CoordSubrange);
+  inherited;
 end;
 
 class function TNodePointSet_1.ClassNodeTypeName: string;
@@ -1155,38 +1157,59 @@ begin
   result := 'PointSet';
 end;
 
-procedure TNodePointSet_1.CalculateRange(LastCoordinate3: TNodeCoordinate3;
-  out startIndex, numPoints: integer);
-begin
-  startIndex := FdStartIndex.Value;
-  numPoints := FdNumPoints.Value;
-  if startIndex >= LastCoordinate3.FdPoint.Count then
-  begin
-    startIndex := 0;
-    numPoints := 0;
-  end else
-  begin
-    if startIndex < 0 then
-    begin
-      if numPoints >= 0 then numPoints := numPoints + startIndex;
-      startIndex := 0;
-    end;
-
-    {startIndex juz jest na pewno dobry, teraz ew. popraw numPoints}
-    if numPoints >= 0 then
-    begin
-      if startIndex+numPoints > LastCoordinate3.FdPoint.Count then
-        numPoints := LastCoordinate3.FdPoint.Count - startIndex;
-    end else
-      numPoints := LastCoordinate3.FdPoint.Count - startIndex;
-  end;
-end;
-
 function TNodePointSet_1.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
+
+  procedure CalculateRange(CoordsCount: Cardinal;
+    out StartIndex, NumPoints: integer);
+  begin
+    startIndex := FdStartIndex.Value;
+    numPoints := FdNumPoints.Value;
+    if startIndex >= CoordsCount then
+    begin
+      startIndex := 0;
+      numPoints := 0;
+    end else
+    begin
+      if startIndex < 0 then
+      begin
+        if numPoints >= 0 then numPoints := numPoints + startIndex;
+        startIndex := 0;
+      end;
+
+      {startIndex juz jest na pewno dobry, teraz ew. popraw numPoints}
+      if numPoints >= 0 then
+      begin
+        if startIndex + numPoints > CoordsCount then
+          numPoints := CoordsCount - startIndex;
+      end else
+        numPoints := CoordsCount - startIndex;
+    end;
+  end;
+
+var
+  FullCoord: TMFVec3f;
+  StartIndex, NumPoints: integer;
 begin
   Result := true;
-  ACoord := State.LastNodes.Coordinate3.FdPoint;
+
+  FullCoord := State.LastNodes.Coordinate3.FdPoint;
+  CalculateRange(FullCoord.Count, StartIndex, NumPoints);
+
+  if (StartIndex = 0) and (NumPoints = FullCoord.Count) then
+    ACoord := FullCoord else
+  begin
+    { It's incredibly non-efficient to copy here, each time, coordinates
+      contents. However, it's also the simplest correct implementation
+      of the extremely-rare feature of startIndex / numPoints
+      (VRML 1.0 is rare and outdated already!).
+
+      As long as model stays static (and for strict VRML 1.0, it should
+      always remain static), this will not be actually often called. }
+    CoordSubrange.Items.Count := 0;
+    CoordSubrange.Items.AppendDynArray(FullCoord.Items, StartIndex, NumPoints);
+    ACoord := CoordSubrange;
+  end;
 end;
 
 constructor TNodeSphere_1.Create(const ANodeName: string; const AWWWBasePath: string);
