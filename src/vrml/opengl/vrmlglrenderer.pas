@@ -1246,13 +1246,6 @@ type
       VRML TextureTransform realized in RenderShapeBegin.) }
     procedure PushTextureUnit(const TexUnit: Cardinal);
   private
-    { Should primitives generate 3D texture coords, following
-      X3D spec "33.2.4 Texture coordinate generation for primitive objects".
-      This is mostly a hack now, as with multi-texturing each texture
-      unit may have either 2D or 3D texture, so this should be set
-      per-unit. }
-    Primitives3DTextureCoords: boolean;
-
     { ----------------------------------------------------------------- }
 
     { Inited in RenderBegin, according to our FogNode.
@@ -4113,7 +4106,6 @@ var
   begin
     { set defaults for non-local variables }
     BumpMapping :=  nil;
-    Primitives3DTextureCoords := false;
 
     if Attributes.PureGeometry then
     begin
@@ -4161,8 +4153,7 @@ var
 
       if BumpMapping = nil then
       begin
-        GLTextureNode.EnableAll(FreeGLTexturesCount,
-          TexCoordsNeeded, Primitives3DTextureCoords);
+        GLTextureNode.EnableAll(FreeGLTexturesCount, TexCoordsNeeded);
       end else
       begin
         { for bump mapping, always TexCoordsNeeded = 1 }
