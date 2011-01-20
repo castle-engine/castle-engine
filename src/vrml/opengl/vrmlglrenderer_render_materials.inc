@@ -49,8 +49,8 @@ procedure TVRMLGLRenderer.Render_MaterialsBegin;
         (Node is TNodePointSet_2) or
         { VRML 1.0 specification states that lines normals aren't generated
           --- instead, lines are drawn unlit when there are no normals specified. }
-        ( (Node is TNodeIndexedLineSet_1) and
-          ((MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation = niNone) ) or
+        ( (Node is TNodeIndexedLineSet_1) {TODO:and
+          ((MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation = niNone)} ) or
         { VRML 2.0 specification says that IndexedLineSet should always be unlit,
           X3D spec adds that LineSet is also always unlit. }
         (Node is TNodeIndexedLineSet_2) or

@@ -13,18 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ TVRMLMeshRenderer descendants implementing nodes in X3D "Rendering"
+{ TVRMLArraysGenerator descendants implementing nodes in X3D "Rendering"
   component. }
 
 type
-  TPointSet_1Renderer = class(TAbstractCoordinateRenderer)
+  TPointSet_1Generator = class(TVRMLArraysGenerator)
   protected
     procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinate; override;
   end;
 
-  TPointSet_2Renderer = class(TAbstractColorRenderer)
+  TPointSet_2Generator = class(TAbstractColorGenerator)
   protected
     procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinateBegin; override;
@@ -33,8 +33,8 @@ type
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
-  { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
-  TTriangleSetRenderer = class(TAbstractCompleteRenderer)
+  { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
+  TTriangleSetGenerator = class(TAbstractCompleteGenerator)
   private
     TriFaceNormal: TVector3Single;
   protected
@@ -48,8 +48,8 @@ type
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
-  { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
-  TTriangleFanSetRenderer = class(TAbstractCompleteRenderer)
+  { Generator for X3D IndexedTriangleFanSet and TriangleFanSet node. }
+  TTriangleFanSetGenerator = class(TAbstractCompleteGenerator)
   private
     TriFaceNormal: TVector3Single;
     procedure PrepareIndexesCoordsRange(
@@ -68,12 +68,12 @@ type
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
-  { Renderer for X3D IndexedTriangleStripSet and TriangleStripSet nodes.
+  { Generator for X3D IndexedTriangleStripSet and TriangleStripSet nodes.
 
     Also for Inventor 1.0 IndexedTriangleMesh (since this is almost
     the same thing as IndexedTriangleStripSet, only defined more in
     Inventor/VRML 1.0 conventions). }
-  TTriangleStripSetRenderer = class(TAbstractCompleteRenderer)
+  TTriangleStripSetGenerator = class(TAbstractCompleteGenerator)
   private
     TriFaceNormal: TVector3Single;
     VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
@@ -93,8 +93,8 @@ type
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
-  { Renderer for X3D IndexedQuadSet and QuadSet nodes. }
-  TQuadSetRenderer = class(TAbstractCompleteRenderer)
+  { Generator for X3D IndexedQuadSet and QuadSet nodes. }
+  TQuadSetGenerator = class(TAbstractCompleteGenerator)
   private
     QuadFaceNormal: TVector3Single;
   protected
@@ -110,7 +110,7 @@ type
 
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
     LineSet (VRML >= 2.0, although specification only since X3D). }
-  TLineSetRenderer = class(TAbstractCompleteRenderer)
+  TLineSetGenerator = class(TAbstractCompleteGenerator)
   private
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
@@ -122,23 +122,23 @@ type
       BeginIndex, EndIndex: Integer); override;
   end;
 
-  { Renderer for VRML <= 1.0 TNodeIndexedLineSet_1 }
-  TIndexedLineSet_1Renderer = class(TLineSetRenderer)
+  { Generator for VRML <= 1.0 TNodeIndexedLineSet_1 }
+  TIndexedLineSet_1Generator = class(TLineSetGenerator)
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
-  { Renderer for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
-  TLineSet_2Renderer = class(TLineSetRenderer)
+  { Generator for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
+  TLineSet_2Generator = class(TLineSetGenerator)
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   protected
     procedure GenerateCoordinateBegin; override;
   end;
 
-{ TPointSet_1Renderer -------------------------------------------------------- }
+{ TPointSet_1Generator -------------------------------------------------------- }
 
-procedure TPointSet_1Renderer.GenerateCoordinateBegin;
+procedure TPointSet_1Generator.GenerateCoordinateBegin;
 begin
   inherited;
 
@@ -155,7 +155,7 @@ begin
   Arrays.DefaultColor := State.LastNodes.Material.DiffuseColor4Single(0);
 end;
 
-procedure TPointSet_1Renderer.PrepareIndexesPrimitives;
+procedure TPointSet_1Generator.PrepareIndexesPrimitives;
 var
   I, BeginIndex, NumPoints: integer;
   Node: TNodePointSet_1;
@@ -172,7 +172,7 @@ begin
     IndexesFromCoordIndex.Add(I);
 end;
 
-procedure TPointSet_1Renderer.GenerateCoordinate;
+procedure TPointSet_1Generator.GenerateCoordinate;
 var
   I, BeginIndex, NumPoints: Integer;
   Node: TNodePointSet_1;
@@ -184,9 +184,9 @@ begin
     GenerateVertex(I);
 end;
 
-{ TPointSet_2Renderer -------------------------------------------------------- }
+{ TPointSet_2Generator -------------------------------------------------------- }
 
-constructor TPointSet_2Renderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TPointSet_2Generator.Create(ARenderer: TVRMLGLRenderer);
 var
   Node: TNodePointSet_2;
 begin
@@ -232,7 +232,7 @@ begin
   end;
 end;
 
-procedure TPointSet_2Renderer.GenerateCoordinateBegin;
+procedure TPointSet_2Generator.GenerateCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin
@@ -258,12 +258,12 @@ begin
   end;
 end;
 
-procedure TPointSet_2Renderer.PrepareIndexesPrimitives;
+procedure TPointSet_2Generator.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpPoints;
 end;
 
-procedure TPointSet_2Renderer.GenerateCoordinate;
+procedure TPointSet_2Generator.GenerateCoordinate;
 var
   I: Integer;
 begin
@@ -271,9 +271,9 @@ begin
     GenerateVertex(I);
 end;
 
-{ TTriangleSetRenderer ------------------------------------------------------- }
+{ TTriangleSetGenerator ------------------------------------------------------- }
 
-constructor TTriangleSetRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TTriangleSetGenerator.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
 
@@ -317,7 +317,7 @@ begin
   end;
 end;
 
-procedure TTriangleSetRenderer.GenerateCoordinateBegin;
+procedure TTriangleSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
 
@@ -334,7 +334,7 @@ begin
   Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
-procedure TTriangleSetRenderer.PrepareIndexesPrimitives;
+procedure TTriangleSetGenerator.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpTriangles;
 
@@ -349,7 +349,7 @@ begin
   end;
 end;
 
-procedure TTriangleSetRenderer.GenerateVertex(IndexNum: Integer);
+procedure TTriangleSetGenerator.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
   if NorImplementation = niNone then
@@ -359,7 +359,7 @@ begin
   end;
 end;
 
-procedure TTriangleSetRenderer.GetNormal(IndexNum: Integer; RangeNumber: Integer;
+procedure TTriangleSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
   out N: TVector3Single);
 begin
   if NorImplementation = niNone then
@@ -368,7 +368,7 @@ begin
     inherited GetNormal(IndexNum, RangeNumber, N);
 end;
 
-procedure TTriangleSetRenderer.GenerateCoordinate;
+procedure TTriangleSetGenerator.GenerateCoordinate;
 var
   I: Integer;
 begin
@@ -394,9 +394,9 @@ begin
   end;
 end;
 
-{ TTriangleFanSetRenderer ---------------------------------------------------- }
+{ TTriangleFanSetGenerator ---------------------------------------------------- }
 
-constructor TTriangleFanSetRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TTriangleFanSetGenerator.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
 
@@ -439,7 +439,7 @@ begin
   end;
 end;
 
-procedure TTriangleFanSetRenderer.GenerateCoordinateBegin;
+procedure TTriangleFanSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
 
@@ -462,7 +462,7 @@ begin
   end;
 end;
 
-procedure TTriangleFanSetRenderer.PrepareIndexesPrimitives;
+procedure TTriangleFanSetGenerator.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpTriangleFan;
   Arrays.Counts := TDynCardinalArray.Create;
@@ -471,7 +471,7 @@ begin
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
-procedure TTriangleFanSetRenderer.PrepareIndexesCoordsRange(
+procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
@@ -493,19 +493,19 @@ begin
   end;
 end;
 
-procedure TTriangleFanSetRenderer.GenerateCoordinate;
+procedure TTriangleFanSetGenerator.GenerateCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
-procedure TTriangleFanSetRenderer.GenerateVertex(IndexNum: Integer);
+procedure TTriangleFanSetGenerator.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
   if NorImplementation = niNone then
     Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
 end;
 
-procedure TTriangleFanSetRenderer.GetNormal(IndexNum: Integer; RangeNumber: Integer;
+procedure TTriangleFanSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
   out N: TVector3Single);
 begin
   if NorImplementation = niNone then
@@ -514,7 +514,7 @@ begin
     inherited GetNormal(IndexNum, RangeNumber, N);
 end;
 
-procedure TTriangleFanSetRenderer.GenerateCoordsRange(
+procedure TTriangleFanSetGenerator.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
   procedure FaceNormal(const v1, v2, v3: integer);
@@ -561,9 +561,9 @@ begin
     VRMLWarning(vwSerious, 'Triangle fan has less than 3 vertexes.')
 end;
 
-{ TTriangleStripSetRenderer -------------------------------------------------- }
+{ TTriangleStripSetGenerator -------------------------------------------------- }
 
-constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TTriangleStripSetGenerator.Create(ARenderer: TVRMLGLRenderer);
 
   procedure CreateForIndexedTriangleMesh_1;
   var
@@ -646,7 +646,7 @@ begin
   end;
 end;
 
-procedure TTriangleStripSetRenderer.GenerateCoordinateBegin;
+procedure TTriangleStripSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
 
@@ -681,7 +681,7 @@ begin
   end;
 end;
 
-procedure TTriangleStripSetRenderer.PrepareIndexesPrimitives;
+procedure TTriangleStripSetGenerator.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpTriangleStrip;
   Arrays.Counts := TDynCardinalArray.Create;
@@ -690,7 +690,7 @@ begin
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
-procedure TTriangleStripSetRenderer.PrepareIndexesCoordsRange(
+procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
@@ -712,19 +712,19 @@ begin
   end;
 end;
 
-procedure TTriangleStripSetRenderer.GenerateCoordinate;
+procedure TTriangleStripSetGenerator.GenerateCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
-procedure TTriangleStripSetRenderer.GenerateVertex(IndexNum: Integer);
+procedure TTriangleStripSetGenerator.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
   if NorImplementation = niNone then
     Arrays.Normal(ArrayIndexNum)^ := TriFaceNormal;
 end;
 
-procedure TTriangleStripSetRenderer.GetNormal(IndexNum: Integer; RangeNumber: Integer;
+procedure TTriangleStripSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
   out N: TVector3Single);
 begin
   if NorImplementation = niNone then
@@ -733,7 +733,7 @@ begin
     inherited GetNormal(IndexNum, RangeNumber, N);
 end;
 
-procedure TTriangleStripSetRenderer.GenerateCoordsRange(
+procedure TTriangleStripSetGenerator.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
   procedure FaceNormal(const v1, v2, v3: integer);
@@ -785,9 +785,9 @@ begin
     VRMLWarning(vwSerious, 'Triangle strip has less than 3 vertexes.');
 end;
 
-{ TQuadSetRenderer ------------------------------------------------------- }
+{ TQuadSetGenerator ------------------------------------------------------- }
 
-constructor TQuadSetRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TQuadSetGenerator.Create(ARenderer: TVRMLGLRenderer);
 begin
   inherited;
 
@@ -834,7 +834,7 @@ begin
   end;
 end;
 
-procedure TQuadSetRenderer.GenerateCoordinateBegin;
+procedure TQuadSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
 
@@ -851,7 +851,7 @@ begin
   Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
-procedure TQuadSetRenderer.PrepareIndexesPrimitives;
+procedure TQuadSetGenerator.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpQuads;
 
@@ -866,7 +866,7 @@ begin
   end;
 end;
 
-procedure TQuadSetRenderer.GenerateVertex(IndexNum: Integer);
+procedure TQuadSetGenerator.GenerateVertex(IndexNum: Integer);
 begin
   inherited;
   if NorImplementation = niNone then
@@ -876,7 +876,7 @@ begin
   end;
 end;
 
-procedure TQuadSetRenderer.GetNormal(IndexNum: Integer; RangeNumber: Integer;
+procedure TQuadSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
   out N: TVector3Single);
 begin
   if NorImplementation = niNone then
@@ -885,7 +885,7 @@ begin
     inherited GetNormal(IndexNum, RangeNumber, N);
 end;
 
-procedure TQuadSetRenderer.GenerateCoordinate;
+procedure TQuadSetGenerator.GenerateCoordinate;
 var
   I: Integer;
 begin
@@ -911,9 +911,9 @@ begin
   end;
 end;
 
-{ TLineSetRenderer ----------------------------------------------------------- }
+{ TLineSetGenerator ----------------------------------------------------------- }
 
-procedure TLineSetRenderer.PrepareIndexesCoordsRange(
+procedure TLineSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var
   I: Integer;
@@ -924,7 +924,7 @@ begin
       IndexesFromCoordIndex.Add(CoordIndex.Items[I]);
 end;
 
-procedure TLineSetRenderer.PrepareIndexesPrimitives;
+procedure TLineSetGenerator.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpLineStrip;
   Arrays.Counts := TDynCardinalArray.Create;
@@ -933,7 +933,7 @@ begin
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
-procedure TLineSetRenderer.GenerateCoordsRange(
+procedure TLineSetGenerator.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var
   I: Integer;
@@ -943,14 +943,14 @@ begin
     GenerateVertex(I);
 end;
 
-procedure TLineSetRenderer.GenerateCoordinate;
+procedure TLineSetGenerator.GenerateCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
-{ TIndexedLineSet_1Renderer -------------------------------------------------- }
+{ TIndexedLineSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedLineSet_1Renderer.Create(
+constructor TIndexedLineSet_1Generator.Create(
   ARenderer: TVRMLGLRenderer);
 var
   Node: TNodeIndexedLineSet_1;
@@ -973,9 +973,9 @@ begin
     State.LastNodes.NormalBinding.FdValue.Value);
 end;
 
-{ TLineSet_2Renderer --------------------------------------------------------- }
+{ TLineSet_2Generator --------------------------------------------------------- }
 
-constructor TLineSet_2Renderer.Create(
+constructor TLineSet_2Generator.Create(
   ARenderer: TVRMLGLRenderer);
 var
   NodeLS: TNodeLineSet;
@@ -1002,7 +1002,7 @@ begin
   end;
 end;
 
-procedure TLineSet_2Renderer.GenerateCoordinateBegin;
+procedure TLineSet_2Generator.GenerateCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin

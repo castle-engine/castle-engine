@@ -1527,6 +1527,7 @@ uses Math, Triangulator,
 {$I dynarray_13.inc}
 
 {$I vrmlmeshrenderer.inc}
+{$I vrmlarraysgenerator.inc}
 {$I vrmlmeshrenderer_x3d_rendering.inc}
 {$I vrmlmeshrenderer_x3d_geometry3d.inc}
 {$I vrmlmeshrenderer_x3d_text.inc}
@@ -4025,6 +4026,8 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLShape);
+var
+  Generator: TVRMLArraysGenerator;
 
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
   begin
@@ -4041,41 +4044,48 @@ procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLShape);
     MeshRenderer.Render. }
   function InitMeshRenderer(AGeometry: TVRMLGeometryNode): boolean;
   begin
+    Generator := nil;
     Result := true;
-    if AGeometry is TNodeIndexedTriangleMesh_1 then
-      ExposedMeshRenderer := TTriangleStripSetRenderer.Create(Self) else
-    if AGeometry is TNodeIndexedFaceSet_1 then
-      ExposedMeshRenderer := TIndexedFaceSet_1Renderer.Create(Self) else
-    if AGeometry is TNodeIndexedFaceSet_2 then
-      ExposedMeshRenderer := TIndexedFaceSet_2Renderer.Create(Self) else
-    if AGeometry is TNodeIndexedLineSet_1 then
-      ExposedMeshRenderer := TIndexedLineSet_1Renderer.Create(Self) else
-    if (AGeometry is TNodeIndexedLineSet_2) or
-       (AGeometry is TNodeLineSet) then
-      ExposedMeshRenderer := TLineSet_2Renderer.Create(Self) else
-    if AGeometry is TNodePointSet_1 then
-      ExposedMeshRenderer := TPointSet_1Renderer.Create(Self) else
-    if AGeometry is TNodePointSet_2 then
-      ExposedMeshRenderer := TPointSet_2Renderer.Create(Self) else
-    if (AGeometry is TNodeTriangleSet) or
-       (AGeometry is TNodeIndexedTriangleSet) then
-      ExposedMeshRenderer := TTriangleSetRenderer.Create(Self) else
-    if (AGeometry is TNodeTriangleFanSet) or
-       (AGeometry is TNodeIndexedTriangleFanSet) then
-      ExposedMeshRenderer := TTriangleFanSetRenderer.Create(Self) else
-    if (AGeometry is TNodeTriangleStripSet) or
-       (AGeometry is TNodeIndexedTriangleStripSet) then
-      ExposedMeshRenderer := TTriangleStripSetRenderer.Create(Self) else
-    if (AGeometry is TNodeQuadSet) or
-       (AGeometry is TNodeIndexedQuadSet) then
-      ExposedMeshRenderer := TQuadSetRenderer.Create(Self) else
+
     if AGeometry is TNodeAsciiText_1 then
       ExposedMeshRenderer := TAsciiTextRenderer.Create(Self) else
     if AGeometry is TNodeText then
       ExposedMeshRenderer := TTextRenderer.Create(Self) else
     if AGeometry is TNodeText3D then
       ExposedMeshRenderer := TText3DRenderer.Create(Self) else
+    if AGeometry is TNodeIndexedTriangleMesh_1 then
+      Generator := TTriangleStripSetGenerator.Create(Self) else
+    if AGeometry is TNodeIndexedFaceSet_1 then
+      Generator := TIndexedFaceSet_1Generator.Create(Self) else
+    if AGeometry is TNodeIndexedFaceSet_2 then
+      Generator := TIndexedFaceSet_2Generator.Create(Self) else
+    if AGeometry is TNodeIndexedLineSet_1 then
+      Generator := TIndexedLineSet_1Generator.Create(Self) else
+    if (AGeometry is TNodeIndexedLineSet_2) or
+       (AGeometry is TNodeLineSet) then
+      Generator := TLineSet_2Generator.Create(Self) else
+    if AGeometry is TNodePointSet_1 then
+      Generator := TPointSet_1Generator.Create(Self) else
+    if AGeometry is TNodePointSet_2 then
+      Generator := TPointSet_2Generator.Create(Self) else
+    if (AGeometry is TNodeTriangleSet) or
+       (AGeometry is TNodeIndexedTriangleSet) then
+      Generator := TTriangleSetGenerator.Create(Self) else
+    if (AGeometry is TNodeTriangleFanSet) or
+       (AGeometry is TNodeIndexedTriangleFanSet) then
+      Generator := TTriangleFanSetGenerator.Create(Self) else
+    if (AGeometry is TNodeTriangleStripSet) or
+       (AGeometry is TNodeIndexedTriangleStripSet) then
+      Generator := TTriangleStripSetGenerator.Create(Self) else
+    if (AGeometry is TNodeQuadSet) or
+       (AGeometry is TNodeIndexedQuadSet) then
+      Generator := TQuadSetGenerator.Create(Self) else
       Result := false;
+
+    { If we have Generator, create TCompleteCoordinateRenderer.
+      Well initialize TCompleteCoordinateRenderer.Arrays later from Generator. }
+    if Generator <> nil then
+      ExposedMeshRenderer := TCompleteCoordinateRenderer.Create(Self);
   end;
 
 var
@@ -4296,6 +4306,15 @@ begin
           { Simple rendering using LocalTriangulate. }
           Shape.LocalTriangulate(true, @DrawTriangle);
           {$else}
+
+          { initialize TBaseCoordinateRenderer.Arrays now }
+          if Generator <> nil then
+          begin
+            Assert(MeshRenderer is TBaseCoordinateRenderer);
+            Generator.GenerateArrays;
+            TBaseCoordinateRenderer(MeshRenderer).Arrays := Generator.Arrays;
+            FreeAndNil(Generator);
+          end;
 
           MeshRenderer.Render;
 

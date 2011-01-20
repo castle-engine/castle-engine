@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TVRMLMeshRenderer descendants implementing nodes in X3D "Geometry3D"
+{ TVRMLArraysGenerator descendants implementing nodes in X3D "Geometry3D"
   component. }
 
 type
@@ -22,7 +22,7 @@ type
     Note that this cannot deal with NorImplementation = niNone,
     you're expected to set NorImplementation to non-none in constructor.
     A simplest way to do this is to use AutoGenerateNormals. }
-  TIndexedFaceSetRenderer = class(TAbstractCompleteRenderer)
+  TIndexedFaceSetGenerator = class(TAbstractCompleteGenerator)
   private
     IFSIndexesCount: Cardinal;
     IFSNextIndex: Cardinal;
@@ -51,7 +51,7 @@ type
     procedure PrepareIndexesPrimitives; override;
   end;
 
-  TIndexedFaceSet_1Renderer = class(TIndexedFaceSetRenderer)
+  TIndexedFaceSet_1Generator = class(TIndexedFaceSetGenerator)
   private
     VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
   protected
@@ -60,14 +60,14 @@ type
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
-  TIndexedFaceSet_2Renderer = class(TIndexedFaceSetRenderer)
+  TIndexedFaceSet_2Generator = class(TIndexedFaceSetGenerator)
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
-{ TIndexedFaceSetRenderer -------------------------------------------------- }
+{ TIndexedFaceSetGenerator -------------------------------------------------- }
 
-{ TIndexedFaceSetRenderer makes triangles, GL_TRIANGLES in OpenGL.
+{ TIndexedFaceSetGenerator makes triangles, GL_TRIANGLES in OpenGL.
   Making one TRIANGLES primitive is fast, and allows us to do everything
   we want.
 
@@ -116,12 +116,12 @@ type
   and search for TryRenderingFaceAsFan comments.
 }
 
-procedure TIndexedFaceSetRenderer.GenerateCoordinate;
+procedure TIndexedFaceSetGenerator.GenerateCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
-procedure TIndexedFaceSetRenderer.AutoGenerateNormals(const CreaseAngle: Single);
+procedure TIndexedFaceSetGenerator.AutoGenerateNormals(const CreaseAngle: Single);
 begin
   { I could just do normal CreateNormals for all CreaseAngle values,
     so the test for "CreaseAngle <> 0" is not really required below.
@@ -152,12 +152,12 @@ begin
   NormalsCcw := true; { always generated from CCW }
 end;
 
-procedure TIndexedFaceSetRenderer.GenerateCoordinateEnd;
+procedure TIndexedFaceSetGenerator.GenerateCoordinateEnd;
 begin
   inherited;
 end;
 
-procedure TIndexedFaceSetRenderer.GenerateTriangle(
+procedure TIndexedFaceSetGenerator.GenerateTriangle(
   const TriIndices: TVector3Longint);
 begin
   GenerateVertex(TriIndices[0]);
@@ -165,7 +165,7 @@ begin
   GenerateVertex(TriIndices[2]);
 end;
 
-procedure TIndexedFaceSetRenderer.GenerateCoordsRange(
+procedure TIndexedFaceSetGenerator.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var
   I: Integer;
@@ -194,13 +194,13 @@ begin
   end;
 end;
 
-procedure TIndexedFaceSetRenderer.PrepareIndexesTriangle1(
+procedure TIndexedFaceSetGenerator.PrepareIndexesTriangle1(
   const TriIndices: TVector3Longint);
 begin
   IFSIndexesCount += 3;
 end;
 
-procedure TIndexedFaceSetRenderer.PrepareIndexesCoordsRange1(
+procedure TIndexedFaceSetGenerator.PrepareIndexesCoordsRange1(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   if not FaceConvex then
@@ -214,7 +214,7 @@ begin
   end;
 end;
 
-procedure TIndexedFaceSetRenderer.PrepareIndexesTriangle2(
+procedure TIndexedFaceSetGenerator.PrepareIndexesTriangle2(
   const TriIndices: TVector3Longint);
 begin
   IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[TriIndices[0]]; Inc(IFSNextIndex);
@@ -222,7 +222,7 @@ begin
   IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[TriIndices[2]]; Inc(IFSNextIndex);
 end;
 
-procedure TIndexedFaceSetRenderer.PrepareIndexesCoordsRange2(
+procedure TIndexedFaceSetGenerator.PrepareIndexesCoordsRange2(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var
   I: Integer;
@@ -243,7 +243,7 @@ begin
   end;
 end;
 
-procedure TIndexedFaceSetRenderer.PrepareIndexesPrimitives;
+procedure TIndexedFaceSetGenerator.PrepareIndexesPrimitives;
 begin
   { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
@@ -256,9 +256,9 @@ begin
   Assert(IFSNextIndex = IFSIndexesCount);
 end;
 
-{ TIndexedFaceSet_1Renderer -------------------------------------------------- }
+{ TIndexedFaceSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_1Renderer.Create(
+constructor TIndexedFaceSet_1Generator.Create(
   ARenderer: TVRMLGLRenderer);
 var
   SH: TNodeShapeHints;
@@ -298,7 +298,7 @@ begin
   RadianceTransfer := ANode.FdRadianceTransfer.Items;
 end;
 
-procedure TIndexedFaceSet_1Renderer.GenerateCoordinateBegin;
+procedure TIndexedFaceSet_1Generator.GenerateCoordinateBegin;
 begin
   inherited;
   { Already calculated in constructor, pass to Arrays now }
@@ -306,9 +306,9 @@ begin
   Arrays.CullBackFaces := VRML1CullBackFaces;
 end;
 
-{ TIndexedFaceSet_2Renderer -------------------------------------------------- }
+{ TIndexedFaceSet_2Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_2Renderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TIndexedFaceSet_2Generator.Create(ARenderer: TVRMLGLRenderer);
 var
   ANode: TNodeIndexedFaceSet_2;
 begin
