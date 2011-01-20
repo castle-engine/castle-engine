@@ -18,7 +18,7 @@ unit GeometryArrays;
 
 interface
 
-uses KambiUtils, VectorMath, FGL;
+uses KambiUtils, VectorMath, FGL, VRMLNodes;
 
 type
   { Primitive geometry types. Analogous to OpenGL primitives. }
@@ -27,9 +27,59 @@ type
 
   TTexCoordDimensions = 2..4;
 
-  { Texture coord array information, for TGeometryArrays. }
+  { Texture coordinate generation methods.
+
+    For their meaning, see the X3D specification about
+    TextureCoordinateGenerator.mode values.
+    We also add some extensions, see
+    [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_tex_coord_worldspace] and
+    [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_tex_coord_bounds].
+    We also support ProjectedTextureCoordinate, see
+    [http://vrmlengine.sourceforge.net/kambi_vrml_extensions_shadow_maps.php#section_ext_texture_gen_projective].
+
+    Special value tgExplicit means that texture coordinates are not generated. }
+  TTextureCoordinateGeneration = (
+    tgExplicit,
+    tgBounds2d,
+    tgBounds3d,
+    tgSphere,
+    tgCoord,
+    tgCoordEye,
+    tgCameraSpaceNormal,
+    tgWorldSpaceNormal,
+    tgCameraSpaceReflectionVector,
+    tgWorldSpaceReflectionVector,
+    tgProjection);
+
+  T3DTextureGen = array [0..2] of TVector4Single;
+
+  { Texture coord array information, for TGeometryArrays.
+    If Generation <> tgExplicit, then the actual array is not stored. }
   TGeometryTexCoord = class
+    Generation: TTextureCoordinateGeneration;
+
+    { If Generation is tgBounds2d or tgBounds3d, then
+      these are vectors used to generate
+      texture coords from local (object space) vertex positions.
+      TextureGen[0] says how to generate S texture coord,
+      TextureGen[1] says how to generate T texture coord,
+      and TextureGen[2] (only for tgBounds3d) is fo R tex coord.}
+    GenerationBoundsVector: T3DTextureGen;
+
+    { If Generation is not [tgExplicit, tgBounds2d, tgBounds3d]
+      then this is the TextureCoordinateGenerator or ProjectedTextureCoordinate
+      node that caused them.
+
+      For tgBounds2d, tgBounds3d, these may be nil but don't have to
+      (as tgBounds2d, tgBounds3d may be activated by TextureCoordinateGenerator,
+      but they may also be activated implicitly when default tex coords
+      are needed). }
+    GenerationNode: TNodeX3DTextureCoordinateNode;
+
+    { Dimensions, only for Generation = tgExplicit. }
     Dimensions: TTexCoordDimensions;
+
+    { Offset, only for Generation = tgExplicit. }
     Offset: Integer;
   end;
   TGeometryTexCoordsList = specialize TFPGObjectList<TGeometryTexCoord>;
@@ -83,7 +133,8 @@ type
     FAttribs: TGeometryAttribsList;
 
     procedure SetCount(const Value: Integer);
-    procedure AddTexCoord(const Dimensions: TTexCoordDimensions;
+    procedure AddTexCoord(const Generation: TTextureCoordinateGeneration;
+      const Dimensions: TTexCoordDimensions;
       const TextureUnit: Cardinal);
     procedure AddGLSLAttribute(const AType: TGeometryAttribType;
       const Name: string);
@@ -178,6 +229,12 @@ type
     procedure AddTexCoord2D(const TextureUnit: Cardinal);
     procedure AddTexCoord3D(const TextureUnit: Cardinal);
     procedure AddTexCoord4D(const TextureUnit: Cardinal);
+    { Add generated texture coord.
+      Such texture coord will not have actual data allocated in the array
+      (you're expected to instead setup and enable glTexGen when rendering).
+      Generation passed here must not be tgExplicit. }
+    procedure AddTexCoordGenerated(const Generation: TTextureCoordinateGeneration;
+      const TextureUnit: Cardinal);
 
     function TexCoord(const Dimensions: TTexCoordDimensions;
       const TextureUnit, Index: Cardinal): Pointer;
@@ -322,7 +379,9 @@ begin
     Result := nil;
 end;
 
-procedure TGeometryArrays.AddTexCoord(const Dimensions: TTexCoordDimensions;
+procedure TGeometryArrays.AddTexCoord(
+  const Generation: TTextureCoordinateGeneration;
+  const Dimensions: TTexCoordDimensions;
   const TextureUnit: Cardinal);
 var
   OldCount, I: Integer;
@@ -340,30 +399,46 @@ begin
   if TexCoords[TextureUnit] = nil then
   begin
     TexCoords[TextureUnit] := TGeometryTexCoord.Create;
+    TexCoords[TextureUnit].Generation := Generation;
     TexCoords[TextureUnit].Dimensions := Dimensions;
-    TexCoords[TextureUnit].Offset := AttributeSize;
-    FAttributeSize += SizeOf(Single) * Dimensions;
+    if Generation = tgExplicit then
+    begin
+      TexCoords[TextureUnit].Offset := AttributeSize;
+      FAttributeSize += SizeOf(Single) * Dimensions;
+    end;
   end else
   if TexCoords[TextureUnit].Dimensions <> Dimensions then
   begin
     raise Exception.CreateFmt('Texture unit %d is already allocated but for %-dimensional tex coords (while %d requested)',
       [TextureUnit, TexCoords[TextureUnit].Dimensions, Dimensions]);
-  end;
+  end else
+  if TexCoords[TextureUnit].Generation <> Generation then
+  begin
+    raise Exception.CreateFmt('Texture unit %d is already allocated but for different tex coords generation method',
+      [TextureUnit]);
+  end
+end;
+
+procedure TGeometryArrays.AddTexCoordGenerated(const Generation: TTextureCoordinateGeneration;
+  const TextureUnit: Cardinal);
+begin
+  Assert(Generation <> tgExplicit);
+  AddTexCoord(Generation, 2 { doesn't matter }, TextureUnit);
 end;
 
 procedure TGeometryArrays.AddTexCoord2D(const TextureUnit: Cardinal);
 begin
-  AddTexCoord(2, TextureUnit);
+  AddTexCoord(tgExplicit, 2, TextureUnit);
 end;
 
 procedure TGeometryArrays.AddTexCoord3D(const TextureUnit: Cardinal);
 begin
-  AddTexCoord(3, TextureUnit);
+  AddTexCoord(tgExplicit, 3, TextureUnit);
 end;
 
 procedure TGeometryArrays.AddTexCoord4D(const TextureUnit: Cardinal);
 begin
-  AddTexCoord(4, TextureUnit);
+  AddTexCoord(tgExplicit, 4, TextureUnit);
 end;
 
 function TGeometryArrays.TexCoord(const Dimensions: TTexCoordDimensions;
@@ -373,6 +448,7 @@ begin
      (TexCoords[TextureUnit] <> nil) then
   begin
     Assert(TexCoords[TextureUnit].Dimensions = Dimensions, 'Texture coord allocated but for different dimensions');
+    Assert(TexCoords[TextureUnit].Generation = tgExplicit, 'Texture coords are generated, not explicit, for this unit');
     Result := Pointer(PtrUInt(PtrUInt(FAttributeArray) +
       TexCoords[TextureUnit].Offset + Index * AttributeSize));
   end else
