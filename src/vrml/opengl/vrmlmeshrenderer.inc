@@ -1190,8 +1190,108 @@ var
     SetLength(TexCoordArray4d, Count);
   end;
 
-  procedure Bounds2DTextureGen(const TexUnitAll: boolean; const TextureUnit: Cardinal); forward;
-  procedure Bounds3DTextureGen(const TexUnitAll: boolean; const TextureUnit: Cardinal); forward;
+  function Bounds2DTextureGenVectors: TTextureGenerationVectors;
+  var
+    LocalBBox: TBox3D;
+    LocalBBoxSize: TVector3Single;
+
+    { Setup and enable glTexGen to make automatic 2D texture coords
+      based on shape bounding box. On texture unit 0. }
+    procedure SetupCoordGen(out Gen: TVector4f;
+      const Coord: integer; const GenStart, GenEnd: TGLfloat);
+
+    { We want to map float from range
+        LocalBBox[0, Coord]...LocalBBox[0, Coord] + LocalBBoxSize[Coord]
+      to
+        GenStart...GenEnd.
+
+      For a 3D point V let's define S1 as
+        S1 = (V[Coord] - LocalBBox[0, Coord]) / LocalBBoxSize[Coord]
+      and so S1 is in 0..1 range, now
+        S = S1 * (GenEnd - GenStart) + GenStart
+      and so S is in GenStart...GenEnd range, like we wanted.
+
+      It remains to rewrite this to a form that we can pass to OpenGL
+      glTexGenfv(..., GL_OBJECT_PLANE, ...).
+
+        S = V[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+           - LocalBBox[0, Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+           + GenStart
+
+      Simple check: for GenStart = 0, GenEnd = 1 this simplifies to
+        S = V[Coord] / LocalBBoxSize[Coord] -
+            LocalBBox[0, Coord] / LocalBBoxSize[Coord]
+          = (V[Coord] - LocalBBox[0, Coord]) / LocalBBoxSize[Coord]
+          = S1
+    }
+
+    begin
+      FillChar(Gen, SizeOf(Gen), 0);
+      Gen[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
+      Gen[3] :=
+        - LocalBBox[0, Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+        + GenStart;
+    end;
+
+  var
+    SCoord, TCoord: integer;
+  begin
+    LocalBBox := Shape.LocalBoundingBox;
+
+    if not IsEmptyBox3d(LocalBBox) then
+    begin
+      LocalBBoxSize := Box3DSizes(LocalBBox);
+
+      Geometry.GetTextureBounds2DST(LocalBBoxSize, SCoord, TCoord);
+
+      { Calculate TextureGen[0..1]. }
+      SetupCoordGen(Result[0], SCoord, 0, 1);
+      SetupCoordGen(Result[1], TCoord, 0, LocalBBoxSize[TCoord] / LocalBBoxSize[SCoord]);
+    end else
+    begin
+      { When local bounding box is empty, set these to any sensible value }
+      Result[0] := Vector4Single(1, 0, 0, 0);
+      Result[1] := Vector4Single(0, 1, 0, 0);
+    end;
+
+    Result[2] := Vector4Single(0, 0, 1, 0); //< whatever, just to be defined.
+  end;
+
+  function Bounds3DTextureGenVectors: TTextureGenerationVectors;
+  var
+    Box: TBox3D;
+    XStart, YStart, ZStart, XSize, YSize, ZSize: Single;
+  begin
+    Box := Shape.LocalBoundingBox;
+
+    if not IsEmptyBox3d(Box) then
+    begin
+      { Texture S should range from 0..1 when X changes from X1 .. X2.
+        So S = X / (X2 - X1) - X1 / (X2 - X1).
+        Same for T.
+        For R, X3D spec says that coords go backwards, so just SwapValues. }
+
+      SwapValues(Box[0][2], Box[1][2]);
+
+      XStart := Box[0][0];
+      YStart := Box[0][1];
+      ZStart := Box[0][2];
+
+      XSize := Box[1][0] - Box[0][0];
+      YSize := Box[1][1] - Box[0][1];
+      ZSize := Box[1][2] - Box[0][2];
+
+      Result[0] := Vector4Single(1 / XSize, 0, 0, - XStart / XSize);
+      Result[1] := Vector4Single(0, 1 / YSize, 0, - YStart / YSize);
+      Result[2] := Vector4Single(0, 0, 1 / ZSize, - ZStart / ZSize);
+    end else
+    begin
+      { When local bounding box is empty, set these to any sensible value }
+      Result[0] := Vector4Single(1, 0, 0, 0);
+      Result[1] := Vector4Single(0, 1, 0, 0);
+      Result[2] := Vector4Single(0, 0, 1, 0);
+    end;
+  end;
 
   { Initialize Arrays.TexCoords and TexCoordArray2/3/4d.
     At least for TexCoordsNeeded.
@@ -1278,9 +1378,9 @@ var
           IsTexture3D(0)), 0);
       Arrays.TexCoords[0].GenerationNode := TNodeTextureCoordinateGenerator(TexCoord);
       if Arrays.TexCoords[0].Generation = tgBounds2d then
-        Bounds2DTextureGen(false, 0) else
+        Arrays.TexCoords[0].GenerationBoundsVector := Bounds2DTextureGenVectors else
       if Arrays.TexCoords[0].Generation = tgBounds3d then
-        Bounds3DTextureGen(false, 0);
+        Arrays.TexCoords[0].GenerationBoundsVector := Bounds3DTextureGenVectors;
       SetTexLengths(1);
     end else
     if TexCoord is TNodeProjectedTextureCoordinate then
@@ -1320,9 +1420,9 @@ var
               TNodeTextureCoordinateGenerator(MultiTexCoord.Items[I]).FdMode.Value,
               IsTexture3D(I)), I);
           if Arrays.TexCoords[I].Generation = tgBounds2d then
-            Bounds2DTextureGen(false, I) else
+            Arrays.TexCoords[I].GenerationBoundsVector := Bounds2DTextureGenVectors else
           if Arrays.TexCoords[I].Generation = tgBounds3d then
-            Bounds3DTextureGen(false, I);
+            Arrays.TexCoords[I].GenerationBoundsVector := Bounds3DTextureGenVectors;
           Arrays.TexCoords[I].GenerationNode := TNodeTextureCoordinateGenerator(MultiTexCoord.Items[I]);
         end else
         if (MultiTexCoord.Items[I] <> nil) and
@@ -1334,7 +1434,7 @@ var
         begin
           { dummy default }
           Arrays.AddTexCoordGenerated(tgBounds2d, I);
-          Bounds2DTextureGen(false, I);
+          Arrays.TexCoords[I].GenerationBoundsVector := Bounds2DTextureGenVectors;
           if MultiTexCoord.Items[I] <> nil then
             VRMLWarning(vwSerious, Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [MultiTexCoord.Items[I].NodeTypeName])) else
             VRMLWarning(vwSerious, 'NULL texture coordinate node');
@@ -1392,165 +1492,42 @@ var
 
   { Setup 2D texture coordinates suitable for IndexedFaceSet without
     explicit texture coords, following X3D 3D Texturing spec.
-
-    When TexUnitAll then we set up texture generation (tgBounds2d)
+    We set texture generation to tgBounds2d
     on all texture units within TexCoordsNeeded.
-    We also set TexImplementation := tcAllGenerated.
-
-    Whem not TexUnitAll, we only setup tgBounds2d on given TextureUnit. }
-  procedure Bounds2DTextureGen(const TexUnitAll: boolean; const TextureUnit: Cardinal);
+    We also set TexImplementation := tcAllGenerated. }
+  procedure Bounds2DTextureGen;
   var
-    LocalBBox: TBox3D;
-    LocalBBoxSize: TVector3Single;
-
-    { Setup and enable glTexGen to make automatic 2D texture coords
-      based on shape bounding box. On texture unit 0. }
-    procedure SetupCoordGen(out Gen: TVector4f;
-      const Coord: integer; const GenStart, GenEnd: TGLfloat);
-
-    { We want to map float from range
-        LocalBBox[0, Coord]...LocalBBox[0, Coord] + LocalBBoxSize[Coord]
-      to
-        GenStart...GenEnd.
-
-      For a 3D point V let's define S1 as
-        S1 = (V[Coord] - LocalBBox[0, Coord]) / LocalBBoxSize[Coord]
-      and so S1 is in 0..1 range, now
-        S = S1 * (GenEnd - GenStart) + GenStart
-      and so S is in GenStart...GenEnd range, like we wanted.
-
-      It remains to rewrite this to a form that we can pass to OpenGL
-      glTexGenfv(..., GL_OBJECT_PLANE, ...).
-
-        S = V[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
-           - LocalBBox[0, Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
-           + GenStart
-
-      Simple check: for GenStart = 0, GenEnd = 1 this simplifies to
-        S = V[Coord] / LocalBBoxSize[Coord] -
-            LocalBBox[0, Coord] / LocalBBoxSize[Coord]
-          = (V[Coord] - LocalBBox[0, Coord]) / LocalBBoxSize[Coord]
-          = S1
-    }
-
-    begin
-      FillChar(Gen, SizeOf(Gen), 0);
-      Gen[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
-      Gen[3] :=
-        - LocalBBox[0, Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
-        + GenStart;
-    end;
-
-  var
-    SCoord, TCoord, I: integer;
-    TexGenVectors: T3DTextureGen;
+    I: integer;
+    TexGenVectors: TTextureGenerationVectors;
   begin
-    { calculate TexGenVectors first }
+    TexGenVectors := Bounds2DTextureGenVectors;
 
-    LocalBBox := Shape.LocalBoundingBox;
-
-    if not IsEmptyBox3d(LocalBBox) then
+    TexImplementation := tcAllGenerated;
+    SetTexLengths(TexCoordsNeeded);
+    for I := 0 to TexCoordsNeeded - 1 do
     begin
-      LocalBBoxSize := Box3DSizes(LocalBBox);
-
-      Geometry.GetTextureBounds2DST(LocalBBoxSize, SCoord, TCoord);
-
-      { Calculate TextureGen[0..1]. }
-      SetupCoordGen(TexGenVectors[0], SCoord, 0, 1);
-      SetupCoordGen(TexGenVectors[1], TCoord, 0, LocalBBoxSize[TCoord] / LocalBBoxSize[SCoord]);
-    end else
-    begin
-      { When local bounding box is empty, set these to any sensible value }
-      TexGenVectors[0] := Vector4Single(1, 0, 0, 0);
-      TexGenVectors[1] := Vector4Single(0, 1, 0, 0);
-    end;
-
-    TexGenVectors[2] := Vector4Single(0, 0, 1, 0); //< whatever, just to be defined.
-
-    { use TexGenVectors on relevant tex units }
-
-    if TexUnitAll then
-    begin
-      TexImplementation := tcAllGenerated;
-      SetTexLengths(TexCoordsNeeded);
-      for I := 0 to TexCoordsNeeded - 1 do
-      begin
-        Arrays.AddTexCoordGenerated(tgBounds2d, I);
-        Arrays.TexCoords[I].GenerationBoundsVector := TexGenVectors;
-      end;
-    end else
-    begin
-      Arrays.AddTexCoordGenerated(tgBounds2d, TextureUnit);
-      Arrays.TexCoords[TextureUnit].GenerationBoundsVector := TexGenVectors;
+      Arrays.AddTexCoordGenerated(tgBounds2d, I);
+      Arrays.TexCoords[I].GenerationBoundsVector := TexGenVectors;
     end;
   end;
 
   { Setup 3D texture coordinates suitable for "primitives without
     explicit texture coordinates", following X3D 3D Texturing spec.
-
-    When TexUnitAll then we setup tgBounds3d correctly
-    on all texture units within TexCoordsNeeded.
-    We also set TexImplementation := tcAllGenerated.
-
-    When not TexUnitAll, we only setup tgBounds3d on TextureUnit. }
-  procedure Bounds3DTextureGen(const TexUnitAll: boolean; const TextureUnit: Cardinal);
+    We set tgBounds3d on all texture units within TexCoordsNeeded.
+    We also set TexImplementation := tcAllGenerated. }
+  procedure Bounds3DTextureGen;
   var
-    Box: TBox3D;
-    XStart, YStart, ZStart, XSize, YSize, ZSize: Single;
     I: Integer;
-    TexGenVectors: T3DTextureGen;
+    TexGenVectors: TTextureGenerationVectors;
   begin
-    { calculate TexGenVectors first }
+    TexGenVectors := Bounds3DTextureGenVectors;
 
-    Box := Shape.LocalBoundingBox;
-
-    if not IsEmptyBox3d(Box) then
+    TexImplementation := tcAllGenerated;
+    SetTexLengths(TexCoordsNeeded);
+    for I := 0 to TexCoordsNeeded - 1 do
     begin
-
-      { It's easiest to generate them with glTexGen.
-
-        Texture S should range from 0..1 when X changes from X1 .. X2.
-        So S = X / (X2 - X1) - X1 / (X2 - X1).
-        Same for T.
-        For R, X3D spec says that coords go backwards, so just SwapValues.
-      }
-
-      SwapValues(Box[0][2], Box[1][2]);
-
-      XStart := Box[0][0];
-      YStart := Box[0][1];
-      ZStart := Box[0][2];
-
-      XSize := Box[1][0] - Box[0][0];
-      YSize := Box[1][1] - Box[0][1];
-      ZSize := Box[1][2] - Box[0][2];
-
-      TexGenVectors[0] := Vector4Single(1 / XSize, 0, 0, - XStart / XSize);
-      TexGenVectors[1] := Vector4Single(0, 1 / YSize, 0, - YStart / YSize);
-      TexGenVectors[2] := Vector4Single(0, 0, 1 / ZSize, - ZStart / ZSize);
-    end else
-    begin
-      { When local bounding box is empty, set these to any sensible value }
-      TexGenVectors[0] := Vector4Single(1, 0, 0, 0);
-      TexGenVectors[1] := Vector4Single(0, 1, 0, 0);
-      TexGenVectors[2] := Vector4Single(0, 0, 1, 0);
-    end;
-
-    { use TexGenVectors on relevant tex units }
-
-    if TexUnitAll then
-    begin
-      TexImplementation := tcAllGenerated;
-      SetTexLengths(TexCoordsNeeded);
-      for I := 0 to TexCoordsNeeded - 1 do
-      begin
-        Arrays.AddTexCoordGenerated(tgBounds3d, I);
-        Arrays.TexCoords[I].GenerationBoundsVector := TexGenVectors;
-      end;
-    end else
-    begin
-      Arrays.AddTexCoordGenerated(tgBounds3d, TextureUnit);
-      Arrays.TexCoords[TextureUnit].GenerationBoundsVector := TexGenVectors;
+      Arrays.AddTexCoordGenerated(tgBounds3d, I);
+      Arrays.TexCoords[I].GenerationBoundsVector := TexGenVectors;
     end;
   end;
 
@@ -1574,7 +1551,7 @@ begin
        { First texture is 3D texture }
        IsTexture3D(0) then
     begin
-      Bounds3DTextureGen(true, 0);
+      Bounds3DTextureGen;
     end else
     begin
       InitializeTexCoordGenArray;
@@ -1610,10 +1587,10 @@ begin
           begin
             TexImplementation := tcCoordIndexed;
           end else
-            Bounds2DTextureGen(true, 0);
+            Bounds2DTextureGen;
         end;
       end else
-        Bounds2DTextureGen(true, 0);
+        Bounds2DTextureGen;
     end;
   end;
 
@@ -1683,7 +1660,7 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
   procedure SetupTextureGen(const TexUnit: Cardinal;
     const Gen: TTextureCoordinateGeneration;
     const GenNode: TNodeX3DTextureCoordinateNode;
-    const GenBoundsVectors: T3DTextureGen);
+    const GenBoundsVectors: TTextureGenerationVectors);
 
     { Do the necessary things for WorldSpaceNormal and
       WorldSpaceReflectionVector. }

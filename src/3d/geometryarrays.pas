@@ -51,7 +51,7 @@ type
     tgWorldSpaceReflectionVector,
     tgProjection);
 
-  T3DTextureGen = array [0..2] of TVector4Single;
+  TTextureGenerationVectors = array [0..2] of TVector4Single;
 
   { Texture coord array information, for TGeometryArrays.
     If Generation <> tgExplicit, then the actual array is not stored. }
@@ -64,7 +64,7 @@ type
       TextureGen[0] says how to generate S texture coord,
       TextureGen[1] says how to generate T texture coord,
       and TextureGen[2] (only for tgBounds3d) is fo R tex coord.}
-    GenerationBoundsVector: T3DTextureGen;
+    GenerationBoundsVector: TTextureGenerationVectors;
 
     { If Generation is not [tgExplicit, tgBounds2d, tgBounds3d]
       then this is the TextureCoordinateGenerator or ProjectedTextureCoordinate
