@@ -1875,25 +1875,25 @@ function TAbstractTextureCoordinateRenderer.GetTextureCoord(
   IndexNum: integer; const TextureUnit: Cardinal;
   out Tex: TVector4Single): boolean;
 
-  function GenerateTexCoord(const Gen: TTextureCoordinateGeneration): TVector4Single;
+  function GenerateTexCoord(const TexCoord: TGeometryTexCoord): TVector4Single;
   var
     Vertex: TVector3Single;
   begin
-    case Gen of
+    case TexCoord.Generation of
       tgBounds2d:
         begin
           Vertex := GetVertex(IndexNum);
-          Result[0] := VectorDotProduct(Vertex, Arrays.TexCoords[TextureUnit].GenerationBoundsVector[0]);
-          Result[1] := VectorDotProduct(Vertex, Arrays.TexCoords[TextureUnit].GenerationBoundsVector[1]);
+          Result[0] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[0]);
+          Result[1] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[1]);
           Result[2] := 0;
           Result[3] := 1;
         end;
       tgBounds3d:
         begin
           Vertex := GetVertex(IndexNum);
-          Result[0] := VectorDotProduct(Vertex, Arrays.TexCoords[TextureUnit].GenerationBoundsVector[0]);
-          Result[1] := VectorDotProduct(Vertex, Arrays.TexCoords[TextureUnit].GenerationBoundsVector[1]);
-          Result[2] := VectorDotProduct(Vertex, Arrays.TexCoords[TextureUnit].GenerationBoundsVector[2]);
+          Result[0] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[0]);
+          Result[1] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[1]);
+          Result[2] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[2]);
           Result[3] := 1;
         end;
       tgCoord:
@@ -1905,12 +1905,11 @@ function TAbstractTextureCoordinateRenderer.GetTextureCoord(
           Result[3] := 1;
         end;
       else VRMLWarning(vwSerious, Format('Generating on CPU texture coordinates with %d not implemented yet',
-        [Gen]));
+        [TexCoord.Generation]));
     end;
   end;
 
-  { TTextureCoordinateGeneration must be one of tgExplicit* constants.
-    This sets Tex to TexCoordArray*[TextureUnit][Index] value. }
+  { Sets Tex to TexCoordArray*[TextureUnit][Index] value. }
   procedure SetTexFromTexCoordArray(const Dimensions: TTexCoordDimensions;
     const Index: Integer);
   var
@@ -1959,7 +1958,7 @@ begin
         else raise EInternalError.Create('TAbstractTextureCoordinateRenderer.GetTextureCoord?');
       end;
     end else
-      Tex := GenerateTexCoord(Arrays.TexCoords[TextureUnit].Generation);
+      Tex := GenerateTexCoord(Arrays.TexCoords[TextureUnit]);
   end;
 end;
 
