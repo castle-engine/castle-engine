@@ -129,6 +129,10 @@ type
     FTexCoords: TGeometryTexCoordsList;
     FAttribs: TGeometryAttribsList;
 
+    FCullBackFaces: boolean;
+    FFrontFaceCcw: boolean;
+    FForceFlatShading: boolean;
+
     procedure SetCount(const Value: Integer);
     procedure AddTexCoord(const Generation: TTextureCoordinateGeneration;
       const Dimensions: TTexCoordDimensions;
@@ -274,6 +278,29 @@ type
     function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4Single;
     function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3Single;
     function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4Single;
+
+    { CullBackFaces says if we should enable back-face culling.
+      If @true, then we should glEnable(GL_CULL_FACE),
+      and set glCullFace such that front face will be visible.
+      FrontFaceCcw says what is "front face".
+
+      FrontFaceCcw is ignored by renderer if CullBackFaces = @false.
+
+      Note that we *do not* implement FrontFaceCcw by glFrontFace,
+      we do a little more complicated trick,
+      see comments at the beginning of VRMLGLRenderer for explanation
+      (hint: plane mirrors).
+
+      @groupBegin }
+    property CullBackFaces: boolean
+      read FCullBackFaces write FCullBackFaces default false;
+    property FrontFaceCcw: boolean
+      read FFrontFaceCcw write FFrontFaceCcw default false;
+    { @groupEnd }
+
+    { Make the whole rendering with flat shading. }
+    property ForceFlatShading: boolean
+      read FForceFlatShading write FForceFlatShading default false;
   end;
 
 implementation

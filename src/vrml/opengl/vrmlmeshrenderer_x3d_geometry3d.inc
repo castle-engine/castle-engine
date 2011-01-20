@@ -52,6 +52,10 @@ type
   end;
 
   TIndexedFaceSet_1Renderer = class(TIndexedFaceSetRenderer)
+  private
+    VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
+  protected
+    procedure GenerateCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -275,9 +279,9 @@ begin
   { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
     (a autorzy VRMLi w ogole nie powinni podawac normali jesli
     nie podadza vertexOrdering innego niz UNKNOWN) }
-  FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+  VRML1FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
 
-  CullBackFaces :=
+  VRML1CullBackFaces :=
     (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
     (SH.FdShapeType.Value = SHTYPE_SOLID);
 
@@ -285,13 +289,21 @@ begin
 
   NormalIndex := ANode.FdNormalIndex;
   Normals := State.LastNodes.Normal.FdVector.Items;
-  NormalsCcw := FrontFaceCcw;
+  NormalsCcw := VRML1FrontFaceCcw;
   NorImplementation := NorImplementationFromVRML1Binding(
     State.LastNodes.NormalBinding.FdValue.Value);
   if NorImplementation = niNone then
     AutoGenerateNormals(SH.FdCreaseAngle.Value);
 
   RadianceTransfer := ANode.FdRadianceTransfer.Items;
+end;
+
+procedure TIndexedFaceSet_1Renderer.GenerateCoordinateBegin;
+begin
+  inherited;
+  { Already calculated in constructor, pass to Arrays now }
+  Arrays.FrontFaceCcw := VRML1FrontFaceCcw;
+  Arrays.CullBackFaces := VRML1CullBackFaces;
 end;
 
 { TIndexedFaceSet_2Renderer -------------------------------------------------- }
@@ -309,9 +321,7 @@ begin
   Normals := ANode.NormalItems;
   if Normals <> nil then
   begin
-    { FrontFaceCcw is calculated already, TVRMLMeshRenderer.Create
-      initializes it for all X3DComposedGeometryNode from ccw field. }
-    NormalsCcw := FrontFaceCcw;
+    NormalsCcw := ANode.FdCcw.Value;
     NormalIndex := ANode.FdNormalIndex;
     if ANode.FdNormalPerVertex.Value then
     begin

@@ -154,31 +154,6 @@ type
     }
     ArrayIndexNum: Integer;
   protected
-    { CullBackFaces says if we should enable back-face culling.
-      If @true, then in our Render, we will do glEnable(GL_CULL_FACE),
-      and set glCullFace such that front face will be visible.
-      FrontFaceCcw says what is "front face".
-
-      You can set these only in your constructor.
-      By default, both are false, unless the Geometry is of
-      X3DComposedGeometryNode type, then we use X3DComposedGeometryNode
-      solid/ccw fields. So for X3DComposedGeometryNode it's already handled
-      here -- it's set, and handled during Render.
-
-      In this class, FrontFaceCcw is ignored if CullBackFaces = @false.
-
-      Note that we *do not* implement these by glFrontFace, we do a little
-      more complicated trick, see comments at the beginning of VRMLGLRenderer
-      for explanation (hint: plane mirrors).
-
-      @groupBegin }
-    CullBackFaces: boolean;
-    FrontFaceCcw: boolean;
-    { @groupEnd }
-
-    { Make the whole rendering with flat shading. }
-    ForceFlatShading: boolean;
-
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
       If @nil then nothing will be rendered. }
@@ -720,12 +695,6 @@ begin
   Check(Geometry.Coord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
   FCoordIndex := Geometry.CoordIndex;
-
-  if Geometry is TNodeX3DComposedGeometryNode then
-  begin
-    CullBackFaces := (Geometry as TNodeX3DComposedGeometryNode).FdSolid.Value;
-    FrontFaceCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
-  end;
 end;
 
 procedure TAbstractCoordinateRenderer.Render;
@@ -1020,7 +989,11 @@ end;
 
 procedure TAbstractCoordinateRenderer.PrepareAttributes(var AllowIndexed: boolean);
 begin
-  { nothing to do in this class }
+  if Geometry is TNodeX3DComposedGeometryNode then
+  begin
+    Arrays.CullBackFaces := (Geometry as TNodeX3DComposedGeometryNode).FdSolid.Value;
+    Arrays.FrontFaceCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
+  end;
 end;
 
 procedure TAbstractCoordinateRenderer.GenerateCoordinateBegin;
@@ -1037,15 +1010,15 @@ procedure TAbstractCoordinateRenderer.RenderCoordinateBegin;
 begin
   PushedAttribs := 0;
 
-  if CullBackFaces then
+  if Arrays.CullBackFaces then
     PushedAttribs := PushedAttribs or GL_POLYGON_BIT;
-  if ForceFlatShading then
+  if Arrays.ForceFlatShading then
     PushedAttribs := PushedAttribs or GL_LIGHTING_BIT { for shade model };
 
   if PushedAttribs <> 0 then
     glPushAttrib(PushedAttribs);
 
-  if CullBackFaces then
+  if Arrays.CullBackFaces then
   begin
     { If vertex ordering is consistent and object is SOLID than we use OpenGL's
       backface culling.
@@ -1057,12 +1030,12 @@ begin
       glCullFace.
     }
     glEnable(GL_CULL_FACE);
-    if FrontFaceCcw then
+    if Arrays.FrontFaceCcw then
       glCullFace(GL_BACK) else
       glCullFace(GL_FRONT);
   end;
 
-  if ForceFlatShading then
+  if Arrays.ForceFlatShading then
   begin
     glShadeModel(GL_FLAT);
   end;

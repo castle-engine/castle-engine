@@ -43,6 +43,7 @@ type
     procedure PrepareIndexesPrimitives; override;
     procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
       out N: TVector3Single); override;
+    procedure GenerateCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -62,6 +63,7 @@ type
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
       out N: TVector3Single); override;
+    procedure GenerateCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -74,6 +76,7 @@ type
   TTriangleStripSetRenderer = class(TAbstractCompleteRenderer)
   private
     TriFaceNormal: TVector3Single;
+    VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
@@ -85,6 +88,7 @@ type
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
       out N: TVector3Single); override;
+    procedure GenerateCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -99,6 +103,7 @@ type
     procedure PrepareIndexesPrimitives; override;
     procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
       out N: TVector3Single); override;
+    procedure GenerateCoordinateBegin; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
@@ -287,8 +292,7 @@ begin
   Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    { FrontFaceCcw is already filled by ancestor }
-    NormalsCcw := FrontFaceCcw;
+    NormalsCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
 
     { For both TriangleSet and IndexedTriangleSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
@@ -311,6 +315,11 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+end;
+
+procedure TTriangleSetRenderer.GenerateCoordinateBegin;
+begin
+  inherited;
 
   { About shading:
     - we have to use smooth shading if we have colors
@@ -322,7 +331,7 @@ begin
     So always smooth shading is actually Ok.
     Only for the sake of optimization we can force flat shading
     in allowed cases. }
-  ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
+  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
 procedure TTriangleSetRenderer.PrepareIndexesPrimitives;
@@ -406,8 +415,7 @@ begin
   Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    { FrontFaceCcw is already filled by ancestor }
-    NormalsCcw := FrontFaceCcw;
+    NormalsCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
 
     { For both TriangleFanSet and IndexedTriangleFanSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
@@ -429,6 +437,11 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+end;
+
+procedure TTriangleFanSetRenderer.GenerateCoordinateBegin;
+begin
+  inherited;
 
   { About shading:
     - we have to use smooth shading if we have colors
@@ -441,9 +454,9 @@ begin
     Which means that colors mixed with per-face normals simply don't work.
     Documented on [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]. }
   if (NorImplementation = niNone) and (Color = nil) then
-    ForceFlatShading := true else
+    Arrays.ForceFlatShading := true else
   begin
-    ForceFlatShading := false;
+    Arrays.ForceFlatShading := false;
     if NorImplementation = niNone then
       WarningShadingProblems(true, false);
   end;
@@ -570,21 +583,17 @@ constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLGLRenderer);
     { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
       (a autorzy VRMLi w ogole nie powinni podawac normali jesli
       nie podadza vertexOrdering innego niz UNKNOWN) }
-    FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+    VRML1FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
 
-    CullBackFaces :=
+    VRML1CullBackFaces :=
       (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
       (SH.FdShapeType.Value = SHTYPE_SOLID);
 
     NormalIndex := ANode.FdNormalIndex;
     Normals := State.LastNodes.Normal.FdVector.Items;
-    NormalsCcw := FrontFaceCcw;
+    NormalsCcw := VRML1FrontFaceCcw;
     NorImplementation := NorImplementationFromVRML1Binding(
       State.LastNodes.NormalBinding.FdValue.Value);
-
-    { When generating, we always generate flat normals for IndexedTriangleMesh
-      (I don't know if I should use anything like "creaseAngle"?) }
-    ForceFlatShading := (NorImplementation = niNone) or NormalsFlat;
   end;
 
 begin
@@ -613,8 +622,7 @@ begin
   Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    { FrontFaceCcw is already filled by ancestor }
-    NormalsCcw := FrontFaceCcw;
+    NormalsCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
 
     { For both TriangleStripSet and IndexedTriangleStripSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
@@ -636,23 +644,40 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+end;
 
-  { About shading:
-    - we have to use smooth shading if we have colors
-      (colors are always per vertex for triangle sets).
-    - we have to use smooth shading if we have normals per vertex
-    - if we have normals per face, smooth shading is NOT correct
-      (as vertexes are shared between triangles; so in smooth shading,
-      face normals will be incorrectly distributed among vertexes).
+procedure TTriangleStripSetRenderer.GenerateCoordinateBegin;
+begin
+  inherited;
 
-    Which means that colors mixed with per-face normals simply don't work.
-    Documented on [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]. }
-  if (NorImplementation = niNone) and (Color = nil) then
-    ForceFlatShading := true else
+  if Geometry is TNodeIndexedTriangleMesh_1 then
   begin
-    ForceFlatShading := false;
-    if NorImplementation = niNone then
-      WarningShadingProblems(true, false);
+    { Already calculated in constructor, pass to Arrays now }
+    Arrays.FrontFaceCcw := VRML1FrontFaceCcw;
+    Arrays.CullBackFaces := VRML1CullBackFaces;
+
+    { When generating, we always generate flat normals for IndexedTriangleMesh
+      (I don't know if I should use anything like "creaseAngle"?) }
+    Arrays.ForceFlatShading := (NorImplementation = niNone) or NormalsFlat;
+  end else
+  begin
+    { About shading:
+      - we have to use smooth shading if we have colors
+        (colors are always per vertex for triangle sets).
+      - we have to use smooth shading if we have normals per vertex
+      - if we have normals per face, smooth shading is NOT correct
+        (as vertexes are shared between triangles; so in smooth shading,
+        face normals will be incorrectly distributed among vertexes).
+
+      Which means that colors mixed with per-face normals simply don't work.
+      Documented on [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]. }
+    if (NorImplementation = niNone) and (Color = nil) then
+      Arrays.ForceFlatShading := true else
+    begin
+      Arrays.ForceFlatShading := false;
+      if NorImplementation = niNone then
+        WarningShadingProblems(true, false);
+    end;
   end;
 end;
 
@@ -784,8 +809,7 @@ begin
   Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    { FrontFaceCcw is already filled by ancestor }
-    NormalsCcw := FrontFaceCcw;
+    NormalsCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
 
     { For both QuadSet and IndexedQuadSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex),
@@ -808,6 +832,11 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+end;
+
+procedure TQuadSetRenderer.GenerateCoordinateBegin;
+begin
+  inherited;
 
   { About shading:
     - we have to use smooth shading if we have colors
@@ -819,7 +848,7 @@ begin
     So always smooth shading is actually Ok.
     Only for the sake of optimization we can force flat shading
     in allowed cases. }
-  ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
+  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
 end;
 
 procedure TQuadSetRenderer.PrepareIndexesPrimitives;
