@@ -1344,6 +1344,72 @@ var
         end;
       end;
 
+      { For tgProjection generation, calculate matrix that should be passed
+        to glTexGen as eye plane.
+
+        Gets projector matrices from a TextureCoordinateGenerator or
+        ProjectedTextureCoordinate node.
+        If this projector is a correct light source or viewpoint,
+        then get it's projection and modelview matrix and return @true.
+        Returns @false (and does correct VRMLWarning)
+        if it's empty or incorrect. }
+      function GetProjectorMatrix(GeneratorNode: TVRMLNode;
+        out Matrix: TMatrix4Single): boolean;
+      const
+        ProjectionScalingMatrix: TMatrix4Single =
+        ( (0.5,   0,   0, 0),
+          (  0, 0.5,   0, 0),
+          (  0,   0, 0.5, 0),
+          (0.5, 0.5, 0.5, 1) );
+      var
+        ProjectorValue: TVRMLNode; { possible ProjectorLight or ProjectorViewpoint }
+        ProjectorLight: TNodeX3DLightNode;
+        ProjectorViewpoint: TNodeX3DViewpointNode;
+        Projection, Modelview: TMatrix4Single;
+      begin
+        Result := false;
+
+        if GeneratorNode is TNodeTextureCoordinateGenerator then
+        begin
+          ProjectorValue := TNodeTextureCoordinateGenerator(GeneratorNode).FdProjectedLight.Value;
+          if (ProjectorValue <> nil) and
+             (ProjectorValue is TNodeX3DLightNode) then
+          begin
+            ProjectorLight := TNodeX3DLightNode(ProjectorValue);
+            Projection := ProjectorLight.ProjectionMatrix;
+            Modelview := ProjectorLight.ModelviewMatrix;
+            Result := true;
+          end else
+            VRMLWarning(vwSerious, 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
+        end else
+        if GeneratorNode is TNodeProjectedTextureCoordinate then
+        begin
+          ProjectorValue := TNodeProjectedTextureCoordinate(GeneratorNode).FdProjector.Value;
+          if (ProjectorValue <> nil) and
+             (ProjectorValue is TNodeX3DLightNode) then
+          begin
+            ProjectorLight := TNodeX3DLightNode(ProjectorValue);
+            Projection := ProjectorLight.ProjectionMatrix;
+            Modelview := ProjectorLight.ModelviewMatrix;
+            Result := true;
+          end else
+          if (ProjectorValue <> nil) and
+             (ProjectorValue is TNodeX3DViewpointNode) then
+          begin
+            ProjectorViewpoint := TNodeX3DViewpointNode(ProjectorValue);
+            Projection := ProjectorViewpoint.ProjectionMatrix;
+            Modelview := ProjectorViewpoint.ModelviewMatrix;
+            Result := true;
+          end else
+            VRMLWarning(vwSerious, 'ProjectedTextureCoordinate.projector is NULL or incorrect');
+        end else
+          { This should not actually happen (GeneratorNode passed here should be like this) }
+          VRMLWarning(vwSerious, 'Invalid texture generator node');
+
+        if Result then
+          Matrix := ProjectionScalingMatrix * Projection * Modelview;
+      end;
+
     begin
       if TexCoord is TNodeTextureCoordinate then
       begin
@@ -1370,24 +1436,25 @@ var
         Arrays.AddTexCoordGenerated(
           TexCoordGenFromString(TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value,
             IsTexture3D(TextureUnit)), TextureUnit);
-        Arrays.TexCoords[TextureUnit].GenerationNode := TNodeTextureCoordinateGenerator(TexCoord);
-        if Arrays.TexCoords[TextureUnit].Generation = tgBounds2d then
-          Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds2DTextureGenVectors else
-        if Arrays.TexCoords[TextureUnit].Generation = tgBounds3d then
-          Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds3DTextureGenVectors;
       end else
       if TexCoord is TNodeProjectedTextureCoordinate then
       begin
         Arrays.AddTexCoordGenerated(tgProjection, TextureUnit);
-        Arrays.TexCoords[TextureUnit].GenerationNode := TNodeProjectedTextureCoordinate(TexCoord);
       end else
       begin
         { dummy default }
         Arrays.AddTexCoordGenerated(tgBounds2d, TextureUnit);
-        Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds2DTextureGenVectors;
         if TexCoord <> nil then
           VRMLWarning(vwSerious, Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [TexCoord.NodeTypeName])) else
           VRMLWarning(vwSerious, 'NULL texture coordinate node');
+      end;
+
+      { Calculate some Generation-specific values }
+      case Arrays.TexCoords[TextureUnit].Generation of
+        tgBounds2d: Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds2DTextureGenVectors;
+        tgBounds3d: Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds3DTextureGenVectors;
+        tgProjection: Arrays.TexCoords[TextureUnit].HasGenerationProjectorMatrix :=
+          GetProjectorMatrix(TexCoord, Arrays.TexCoords[TextureUnit].GenerationProjectorMatrix);
       end;
     end;
 
@@ -1432,10 +1499,10 @@ var
       begin
         if Arrays.TexCoords[LastCoord].Generation = tgExplicit then
         begin
-          Arrays.AddTexCoordGenerated(
-            Arrays.TexCoords[LastCoord].Generation, I);
-          Arrays.TexCoords[I].GenerationNode         := Arrays.TexCoords[LastCoord].GenerationNode;
-          Arrays.TexCoords[I].GenerationBoundsVector := Arrays.TexCoords[LastCoord].GenerationBoundsVector;
+          Arrays.AddTexCoordGenerated(Arrays.TexCoords[LastCoord].Generation, I);
+          Arrays.TexCoords[I].GenerationBoundsVector       := Arrays.TexCoords[LastCoord].GenerationBoundsVector;
+          Arrays.TexCoords[I].HasGenerationProjectorMatrix := Arrays.TexCoords[LastCoord].HasGenerationProjectorMatrix;
+          Arrays.TexCoords[I].GenerationProjectorMatrix    := Arrays.TexCoords[LastCoord].GenerationProjectorMatrix;
         end else
         case Arrays.TexCoords[LastCoord].Dimensions of
           2: begin
@@ -1622,11 +1689,8 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
 { Set texture generation, for all texture units where
   TexCoords[].Generation[] <> tgExplicit. }
 
-  { GenNode may be TextureCoordinateGenerator or ProjectedTextureCoordinate }
   procedure SetupTextureGen(const TexUnit: Cardinal;
-    const Gen: TTextureCoordinateGeneration;
-    const GenNode: TNodeX3DTextureCoordinateNode;
-    const GenBoundsVectors: TTextureGenerationVectors);
+    TexCoord: TGeometryTexCoord);
 
     { Do the necessary things for WorldSpaceNormal and
       WorldSpaceReflectionVector. }
@@ -1660,70 +1724,8 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
           [SuccessName, FailName]));
     end;
 
-    { Get projector matrices from a TextureCoordinateGenerator or
-      ProjectedTextureCoordinate node.
-      If this projector is a correct light source or viewpoint,
-      then get it's projection and modelview matrix and return @true.
-      Returns @false (and does correct VRMLWarning)
-      if it's empty or incorrect. }
-    function GetProjectorMatrices(Generator: TVRMLNode;
-      out Projection, Modelview: TMatrix4Single): boolean;
-    var
-      ProjectorValue: TVRMLNode; { possible ProjectorLight or ProjectorViewpoint }
-      ProjectorLight: TNodeX3DLightNode;
-      ProjectorViewpoint: TNodeX3DViewpointNode;
-    begin
-      Result := false;
-
-      if GenNode is TNodeTextureCoordinateGenerator then
-      begin
-        ProjectorValue := TNodeTextureCoordinateGenerator(GenNode).FdProjectedLight.Value;
-        if (ProjectorValue <> nil) and
-           (ProjectorValue is TNodeX3DLightNode) then
-        begin
-          ProjectorLight := TNodeX3DLightNode(ProjectorValue);
-          Projection := ProjectorLight.ProjectionMatrix;
-          Modelview := ProjectorLight.ModelviewMatrix;
-          Result := true;
-        end else
-          VRMLWarning(vwSerious, 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
-      end else
-      if GenNode is TNodeProjectedTextureCoordinate then
-      begin
-        ProjectorValue := TNodeProjectedTextureCoordinate(GenNode).FdProjector.Value;
-        if (ProjectorValue <> nil) and
-           (ProjectorValue is TNodeX3DLightNode) then
-        begin
-          ProjectorLight := TNodeX3DLightNode(ProjectorValue);
-          Projection := ProjectorLight.ProjectionMatrix;
-          Modelview := ProjectorLight.ModelviewMatrix;
-          Result := true;
-        end else
-        if (ProjectorValue <> nil) and
-           (ProjectorValue is TNodeX3DViewpointNode) then
-        begin
-          ProjectorViewpoint := TNodeX3DViewpointNode(ProjectorValue);
-          Projection := ProjectorViewpoint.ProjectionMatrix;
-          Modelview := ProjectorViewpoint.ModelviewMatrix;
-          Result := true;
-        end else
-          VRMLWarning(vwSerious, 'ProjectedTextureCoordinate.projector is NULL or incorrect');
-      end else
-        { This should not actually happen (GenNode passed here should be like this) }
-        VRMLWarning(vwSerious, 'Invalid texture generator node');
-    end;
-
-  const
-    ProjectionScalingMatrix: TMatrix4Single =
-    ( (0.5,   0,   0, 0),
-      (  0, 0.5,   0, 0),
-      (  0,   0, 0.5, 0),
-      (0.5, 0.5, 0.5, 1) );
-  var
-    ProjectionM: TMatrix4Single;
-    ProjectorProjectionMatrix, ProjectorModelviewMatrix: TMatrix4Single;
   begin
-    case Gen of
+    case TexCoord.Generation of
       tgSphere:
         begin
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -1780,7 +1782,7 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
             glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
 
-            if Gen = tgWorldSpaceNormal then
+            if TexCoord.Generation = tgWorldSpaceNormal then
               TextureTransformToWorldSpace('WORLDSPACENORMAL', 'CAMERASPACENORMAL');
           end;
 
@@ -1806,7 +1808,7 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
             glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
 
-            if Gen = tgWorldSpaceReflectionVector then
+            if TexCoord.Generation = tgWorldSpaceReflectionVector then
               TextureTransformToWorldSpace('WORLDSPACEREFLECTIONVECTOR', 'CAMERASPACEREFLECTIONVECTOR');
           end;
 
@@ -1816,28 +1818,22 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgProjection:
         begin
-          if GetProjectorMatrices(GenNode,
-            ProjectorProjectionMatrix, ProjectorModelviewMatrix) then
+          if TexCoord.HasGenerationProjectorMatrix then
           begin
             glPushMatrix;
               glLoadMatrix(RenderState.CameraMatrix);
-              ProjectionM := MatrixMult(
-                ProjectionScalingMatrix,
-                MatrixMult(
-                  ProjectorProjectionMatrix,
-                  ProjectorModelviewMatrix));
 
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_S, GL_EYE_PLANE, MatrixRow(ProjectionM, 0));
+              glTexGenv(GL_S, GL_EYE_PLANE, MatrixRow(TexCoord.GenerationProjectorMatrix, 0));
 
               glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_T, GL_EYE_PLANE, MatrixRow(ProjectionM, 1));
+              glTexGenv(GL_T, GL_EYE_PLANE, MatrixRow(TexCoord.GenerationProjectorMatrix, 1));
 
               glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_R, GL_EYE_PLANE, MatrixRow(ProjectionM, 2));
+              glTexGenv(GL_R, GL_EYE_PLANE, MatrixRow(TexCoord.GenerationProjectorMatrix, 2));
 
               glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_Q, GL_EYE_PLANE, MatrixRow(ProjectionM, 3));
+              glTexGenv(GL_Q, GL_EYE_PLANE, MatrixRow(TexCoord.GenerationProjectorMatrix, 3));
             glPopMatrix;
             glEnable(GL_TEXTURE_GEN_S);
             glEnable(GL_TEXTURE_GEN_T);
@@ -1849,20 +1845,20 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
         begin
           { Setup OpenGL to generate tex coords automatically }
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_S, GL_OBJECT_PLANE, GenBoundsVectors[0]);
+          glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_T, GL_OBJECT_PLANE, GenBoundsVectors[1]);
+          glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
           glEnable(GL_TEXTURE_GEN_S);
           glEnable(GL_TEXTURE_GEN_T);
         end;
       tgBounds3d:
         begin
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_S, GL_OBJECT_PLANE, GenBoundsVectors[0]);
+          glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_T, GL_OBJECT_PLANE, GenBoundsVectors[1]);
+          glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
           glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_R, GL_OBJECT_PLANE, GenBoundsVectors[2]);
+          glTexGenv(GL_R, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[2]);
           glEnable(GL_TEXTURE_GEN_S);
           glEnable(GL_TEXTURE_GEN_T);
           glEnable(GL_TEXTURE_GEN_R);
@@ -1875,23 +1871,12 @@ var
   I: Integer;
 begin
   inherited;
-  if GLUseMultiTexturing then
-  begin
-    for I := 0 to Arrays.TexCoords.Count - 1 do
-      if Arrays.TexCoords[I].Generation <> tgExplicit then
-      begin
-        Renderer.ActiveTexture(I);
-        SetupTextureGen(I, Arrays.TexCoords[I].Generation,
-                           Arrays.TexCoords[I].GenerationNode,
-                           Arrays.TexCoords[I].GenerationBoundsVector);
-      end;
-  end else
-  if Arrays.TexCoords[0].Generation <> tgExplicit then
-  begin
-    SetupTextureGen(0, Arrays.TexCoords[0].Generation,
-                       Arrays.TexCoords[0].GenerationNode,
-                       Arrays.TexCoords[0].GenerationBoundsVector);
-  end;
+  for I := 0 to Arrays.TexCoords.Count - 1 do
+    if Arrays.TexCoords[I].Generation <> tgExplicit then
+    begin
+      Renderer.ActiveTexture(I);
+      SetupTextureGen(I, Arrays.TexCoords[I]);
+    end;
 end;
 
 procedure TAbstractTextureCoordinateRenderer.RenderCoordinateEnd;

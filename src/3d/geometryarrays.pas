@@ -18,7 +18,7 @@ unit GeometryArrays;
 
 interface
 
-uses KambiUtils, VectorMath, FGL, VRMLNodes;
+uses KambiUtils, VectorMath, FGL;
 
 type
   { Primitive geometry types. Analogous to OpenGL primitives. }
@@ -54,7 +54,7 @@ type
   TTextureGenerationVectors = array [0..2] of TVector4Single;
 
   { Texture coord array information, for TGeometryArrays.
-    If Generation <> tgExplicit, then the actual array is not stored. }
+    If Generation <> tgExplicit, then the actual array data is not stored. }
   TGeometryTexCoord = class
     Generation: TTextureCoordinateGeneration;
 
@@ -66,15 +66,9 @@ type
       and TextureGen[2] (only for tgBounds3d) is fo R tex coord.}
     GenerationBoundsVector: TTextureGenerationVectors;
 
-    { If Generation is not [tgExplicit, tgBounds2d, tgBounds3d]
-      then this is the TextureCoordinateGenerator or ProjectedTextureCoordinate
-      node that caused them.
-
-      For tgBounds2d, tgBounds3d, these may be nil but don't have to
-      (as tgBounds2d, tgBounds3d may be activated by TextureCoordinateGenerator,
-      but they may also be activated implicitly when default tex coords
-      are needed). }
-    GenerationNode: TNodeX3DTextureCoordinateNode;
+    { For Generation = tgProjection, this is the matrix used for glTexGen }
+    HasGenerationProjectorMatrix: boolean;
+    GenerationProjectorMatrix: TMatrix4Single;
 
     { Dimensions, only for Generation = tgExplicit. }
     Dimensions: TTexCoordDimensions;
