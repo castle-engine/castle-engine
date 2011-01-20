@@ -133,21 +133,6 @@ type
       Renderer will set this to Renderer.BumpMappingMethod
       only if bump mapping should be used and BumpMappingAllowed. }
     BumpMappingMethod: TBumpMappingMethod;
-
-    { @abstract(Will rendering of this node possibly call Renderer.SetColor,
-      or use Arrays.Color?)
-
-      In this class, returns @false, set to @true in descendants to allow
-      Renderer.MaterialsBegin do some preparations (like material from color
-      for lit stuff). }
-    function NeedsSetColor: boolean; virtual;
-
-    { @abstract(Will rendering of this node possibly call
-      Renderer.Render_BindMaterial_1 with InsideBeginEnd = @true?)
-
-      In this class, returns @false, set to @true in descendants to allow
-      Renderer.MaterialsBegin do some preparations. }
-    function NeedsBindMaterial1InsideBeginEnd: boolean; virtual;
   end;
 
   { Base abstract class for rendering nodes with explicit "coord" field.
@@ -472,7 +457,6 @@ type
       BeginIndex, EndIndex: integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
-    function NeedsBindMaterial1InsideBeginEnd: boolean; override;
   end;
 
   { Enhances TAbstractMaterial1Renderer with the ability to handle
@@ -542,8 +526,6 @@ type
       BeginIndex, EndIndex: Integer); override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
-
-    function NeedsSetColor: boolean; override;
   end;
 
   TNormalsImplementation = (
@@ -789,16 +771,6 @@ begin
       Geometry.NodeTypeName]));
 end;
 
-function TVRMLMeshRenderer.NeedsSetColor: boolean;
-begin
-  Result := false;
-end;
-
-function TVRMLMeshRenderer.NeedsBindMaterial1InsideBeginEnd: boolean;
-begin
-  Result := false;
-end;
-
 { TAbstractCoordinateRenderer ------------------------------------------------ }
 
 constructor TAbstractCoordinateRenderer.Create(ARenderer: TVRMLGLRenderer);
@@ -947,7 +919,10 @@ procedure TAbstractCoordinateRenderer.DoRender;
     I: Integer;
     First: Cardinal;
     Mode: TGLenum;
+    MaterialFromColorEnabled: boolean;
   begin
+    MaterialFromColorEnabled := false;
+
     RenderCoordinateBegin;
     try
 
@@ -988,6 +963,17 @@ procedure TAbstractCoordinateRenderer.DoRender;
       if Attributes.ControlMaterials and
          (not Attributes.PureGeometry) then
       begin
+        MaterialFromColorEnabled := Renderer.NodeLit(Geometry);
+        if MaterialFromColorEnabled then
+        begin
+          case Arrays.ColorSetsMaterial of
+            cmDiffuse : glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+            cmEmissive: glColorMaterial(GL_FRONT_AND_BACK, GL_EMISSION);
+            else raise EInternalError.Create('Arrays.ColorSetsMaterial?');
+          end;
+          glEnable(GL_COLOR_MATERIAL);
+        end;
+
         if Arrays.Color <> nil then
         begin
           glEnableClientState(GL_COLOR_ARRAY);
@@ -1066,6 +1052,9 @@ procedure TAbstractCoordinateRenderer.DoRender;
     end;
 
     finally RenderCoordinateEnd end;
+
+    if MaterialFromColorEnabled then
+      glDisable(GL_COLOR_MATERIAL);
   end;
 
 begin
@@ -2039,20 +2028,20 @@ begin
     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 end;
 
-function TAbstractMaterial1Renderer.NeedsBindMaterial1InsideBeginEnd: boolean;
-begin
-  Result := Mat1Implementation in
-    [ miPerFace, miPerFaceMatIndexed,
-      miPerVertexCoordIndexed, miPerVertexMatIndexed ];
-end;
-
 procedure TAbstractMaterial1Renderer.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
-  if NeedsBindMaterial1InsideBeginEnd then
+  if Mat1Implementation in
+    [ miPerFace, miPerFaceMatIndexed,
+      miPerVertexCoordIndexed, miPerVertexMatIndexed ] then
   begin
     Arrays.AddColor;
+
+    if Renderer.VRML1OnlyEmissiveMaterial then
+      Arrays.ColorSetsMaterial := cmEmissive else
+      Arrays.ColorSetsMaterial := cmDiffuse;
+
     if Mat1Implementation in
       [ miPerFace, miPerFaceMatIndexed, miPerVertexMatIndexed ] then
       AllowIndexed := false;
@@ -2066,9 +2055,9 @@ var
 begin
   M := State.LastNodes.Material;
 
-  case Renderer.MaterialFromColor of
-    GL_DIFFUSE : Result := Vector4Single(M.DiffuseColor3Single(MaterialIndex), M.Opacity(MaterialIndex));
-    GL_EMISSION: Result := Vector4Single(M.EmissiveColor3Single(MaterialIndex), M.Opacity(MaterialIndex));
+  case Arrays.ColorSetsMaterial of
+    cmDiffuse : Result := Vector4Single(M.DiffuseColor3Single(MaterialIndex), M.Opacity(MaterialIndex));
+    cmEmissive: Result := Vector4Single(M.EmissiveColor3Single(MaterialIndex), M.Opacity(MaterialIndex));
     else raise EInternalError.Create('MaterialFromColor?');
   end;
 end;
@@ -2244,14 +2233,6 @@ begin
         FaceColor := ColorRGBA.ItemsSafe[RangeNumber];
     end;
   end;
-end;
-
-function TAbstractColorRenderer.NeedsSetColor: boolean;
-begin
-  Result :=
-    Assigned(Renderer.Attributes.OnVertexColor) or
-    (RadianceTransfer <> nil) or
-    (Color <> nil) or (ColorRGBA <> nil);
 end;
 
 { TAbstractNormalRenderer ----------------------------------------------------- }

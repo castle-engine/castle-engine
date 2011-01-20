@@ -92,6 +92,8 @@ type
     function Find(const Name: string): TGeometryAttrib;
   end;
 
+  TColorSetsMaterial = (cmDiffuse, cmEmissive);
+
   { Geometry represented as arrays of indexes, vertex positions,
     texture coordinates and such. Many (eventually, all) geometry nodes
     (TVRMLGeometryNode) can be processed into an instance of this class.
@@ -121,6 +123,7 @@ type
     ColorOffset: Integer;
     FHasDefaultColor: boolean;
     FDefaultColor: TVector4Single;
+    FColorSetsMaterial: TColorSetsMaterial;
 
     HasFogCoord: boolean;
     FogCoordOffset: Integer;
@@ -219,6 +222,11 @@ type
     property HasDefaultColor: boolean read FHasDefaultColor write FHasDefaultColor default false;
     property DefaultColor: TVector4Single read FDefaultColor write FDefaultColor;
     { @groupEnd }
+
+    { If a Color array or HasDefaultColor are present,
+      then what material property (for lighting) do they determine. }
+    property ColorSetsMaterial: TColorSetsMaterial
+      read FColorSetsMaterial write FColorSetsMaterial default cmDiffuse;
 
     procedure AddFogCoord;
     function FogCoord(const Index: Cardinal = 0): PSingle;

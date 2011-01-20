@@ -31,7 +31,6 @@ type
     procedure GenerateCoordinate; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
-    function NeedsSetColor: boolean; override;
   end;
 
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
@@ -128,7 +127,6 @@ type
   TLineSet_2Renderer = class(TLineSetRenderer)
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
-    function NeedsSetColor: boolean; override;
   protected
     procedure GenerateCoordinateBegin; override;
   end;
@@ -258,12 +256,6 @@ end;
 procedure TPointSet_2Renderer.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpPoints;
-end;
-
-function TPointSet_2Renderer.NeedsSetColor: boolean;
-begin
-  { Even when Color = ColorRGBA = nil, we do SetColor }
-  Result := true;
 end;
 
 procedure TPointSet_2Renderer.GenerateCoordinate;
@@ -1010,11 +1002,4 @@ begin
         Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity)
     end;
   end;
-end;
-
-function TLineSet_2Renderer.NeedsSetColor: boolean;
-begin
-  if Color = nil then
-    Result := true else
-    Result := inherited NeedsSetColor;
 end;

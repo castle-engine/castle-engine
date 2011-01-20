@@ -1182,9 +1182,7 @@ type
     Material1BoundNumber: integer;
     MaterialTemporaryDisabledFog: boolean;
     Material_BoundOpacity: Single;
-    MaterialFromColorEnabled: boolean;
-    { When MaterialFromColorEnabled is true, this indicates glMaterial component. }
-    MaterialFromColor: TGLenum;
+    VRML1OnlyEmissiveMaterial: boolean;
 
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;

@@ -88,43 +88,7 @@ begin
     VRML2Unlit := false;
   end;
 
-  { calculate and apply MaterialFromColorEnabled }
-  Assert(not MaterialFromColorEnabled);
-  MaterialFromColorEnabled := (MeshRenderer <> nil) and
-    (MeshRenderer.NeedsBindMaterial1InsideBeginEnd or
-     MeshRenderer.NeedsSetColor) and NodeLit(CurrentGeometry);
-  if MaterialFromColorEnabled then
-  begin
-    { For lit nodes, we want to set both unlit glColor and lit glMaterial
-      in SetColor.
-
-      Using GL_COLOR_MATERIAL is the best way to do this, this also works
-      much faster and more memory-efficient (AFAIK, OpenGL is prepared
-      to handle different glColor-per-vertex efficiently, but changing
-      whole glMaterial-per-vertex is not efficient (as glColor is pushed
-      with vertex data into the pipeline, while changing material settings
-      requires flushing part of current pipeline)). }
-
-    { When both NeedsBindMaterial1InsideBeginEnd and NeedsSetColor
-      are true, what to do?
-
-      TAbstractColMatTexCoordinateRenderer
-      descends from TAbstractMatTexCoordinateRenderer,
-      so NeedsSetColor takes precence over material color.
-      So set MaterialFromColor following NeedsSetColor needs. }
-    if MeshRenderer.NeedsSetColor then
-      MaterialFromColor := GL_DIFFUSE else
-    begin
-      Assert(MeshRenderer.NeedsBindMaterial1InsideBeginEnd);
-      if (M1 <> nil) and VRML1OnlyEmissive then
-        MaterialFromColor := GL_EMISSION else
-        { Then assume it's the diffuse that changes most often }
-        MaterialFromColor := GL_DIFFUSE;
-    end;
-
-    glColorMaterial(GL_FRONT_AND_BACK, MaterialFromColor);
-    glEnable(GL_COLOR_MATERIAL);
-  end;
+  VRML1OnlyEmissiveMaterial := (M1 <> nil) and VRML1OnlyEmissive;
 
   { calculate and apply MaterialTemporaryDisabledFog }
   MaterialTemporaryDisabledFog := FogEnabled and FogImmune;
@@ -169,12 +133,6 @@ begin
     glEnable(GL_FOG);
     MaterialTemporaryDisabledFog := false;
   end;
-
-  if MaterialFromColorEnabled then
-  begin
-    glDisable(GL_COLOR_MATERIAL);
-    MaterialFromColorEnabled := false;
-  end;
 end;
 
 { Apply material (both VRML 1.0 and 2.0).
@@ -211,21 +169,7 @@ end;
 { Sets current OpenGL material and color properties for material
   number MatNum from CurrentState.LastNodes.Material.
   This is ignored when CurrentGeometry is not TVRMLGeometryNode_1
-  (then VRML 2.0 approach to materials should be used).
-
-  Pass InsideBeginEnd to indicate that this is (possibly) called
-  inside glBegin/glEnd. Then the faster (but more limited) approach
-  will be used. The faster approach uses GL_COLOR_MATERIAL, instead
-  of changing the whole glMaterial.
-
-  Reasoning: Changing whole glMaterial
-  is allowed but prohibitively slow within glBegin/glEnd (or just: too often,
-  like for each face or vertex). It also eats a *lot* of memory in case of
-  display lists (~130 MB for "castle" spider_queen and spider animations,
-  on NVidia GeForce FX 5200, and ~15 fps instead of ~30).
-  So using GL_COLOR_MATERIAL is required for sensible speed and memory use.
-  (For the same "castle" test, with GL_COLOR_MATERIAL implementation,
-  we loose only ~10 MB on display lists and no speed difference) }
+  (then VRML 2.0 approach to materials should be used). }
 procedure TVRMLGLRenderer.Render_BindMaterial_1(MatNum: Integer);
 var
   UnlitColor: TVector3Single;
@@ -313,24 +257,3 @@ begin
       { shininess } 0, { opacity } 1);
   end;
 end;
-
-{ Setting current color can be only called after you set up materials by MaterialsBegin
-  (that also calls the 1st BindMaterial_1 or MaterialsBegin_2 that
-  set the materials alpha). Initially, this was for implementing the VRML >= 2.0
-  Color/ColorRGBA nodes.
-  But it's also functional for VRML 1.0 --- when OnRadianceTransfer or
-  OnVertexColor are used. Normally, in VRML 1.0 Render_BindMaterial_1
-  is the only way to change color.
-
-  This sets the unlit color,
-  and the diffuseColor of lit material.
-  This is good for VRML 2.0 nodes that use colors to either
-  set precalculated color (when unlit, i.e. material is NULL)
-  or to change diffuseColor (when lit, see specification "lighting equaltions",
-  term O_Drgb).
-
-  Actually, setting the lit material color is not done if not NodeLit
-  (no point in wasting 1 OpenGL call if material will never be used).
-  This optimization is implementd in Render_MaterialsBegin (although it affects
-  this procedure). There we check for NodeLit before turning on
-  GL_COLOR_MATERIAL, since when not NodeLit, material has never any use. }
