@@ -13,41 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{
-  TODO:
-  - Should render all vertexes by TAbstractCoordinateRenderer,
-    or at least DoGLVertex,
-    (so using GLU utils is not possible, or DrawGLPlane...,
-    or text display lists... this will be difficult to implement
-    without wasting resources)
-
-  - We set texture coords only for texture unit 0 here.
-    So using multi-texturing with these nodes will produce bad results:
-    although many textures will be enabled, actually only the 0th will
-    have predictable texture coords.
-}
-
 type
-  { Used for primitives that should honour automatic 3D texture coordinate
-    generation. (see X3D spec
-    "33.2.4 Texture coordinate generation for primitive objects").
+  { Our text renderer, for Text and Text3D geometry.
 
-    This will setup appropriate texture coord gen in Render
-    that takes care of Renderer.Primitives3DTextureCoords = @true
-    situation.
-
-    You should override DoRenderPrimitive (not DoRender!),
-    and generate your own 2D texture coords only if
-    PrimitiveMake2DTextureCoords (this checks "not Renderer.Primitives3DTextureCoords",
-    also checks Renderer.TexCoordsNeeded). }
-  TPrimitiveRenderer = class(TVRMLMeshRenderer)
-  protected
-    procedure DoRender; override;
-    procedure DoRenderPrimitive; virtual; abstract;
-
-    function PrimitiveMake2DTextureCoords: boolean;
-  end;
-
+    TODO: our text rendering completely omits the whole TGeometryArrays
+    and all features coming from it. So multi-texturing, texture generation,
+    vertex arrays and VBOs, and many other features simply don't work.
+    In the future, this should be changed: text rendering should simply
+    follow other nodes, and create triangles arrays in
+    GenerateCoordinate, and let normal rendering through TGeometryArrays
+    handle it. }
   TAbstractTextRenderer = class(TVRMLMeshRenderer)
   protected
     procedure RenderText(
@@ -76,71 +51,6 @@ type
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
   end;
-
-{ TPrimitiveRenderer --------------------------------------------------------- }
-
-procedure TPrimitiveRenderer.DoRender;
-
-  procedure BeginPrimitives3DTextureCoords;
-  var
-    Box: TBox3D;
-    XStart, YStart, ZStart, XSize, YSize, ZSize: Single;
-  begin
-    Box := Shape.LocalBoundingBox;
-
-    { If 3D texture coordinates are wanted, it's easiest to generate them
-      with glTexGen.
-
-      Texture S should range from 0..1 when X changes from X1 .. X2.
-      So S = X / (X2 - X1) - X1 / (X2 - X1).
-      Same for T.
-      For R, X3D spec says that coords go backwards, so just SwapValues.
-    }
-
-    SwapValues(Box[0][2], Box[1][2]);
-
-    XStart := Box[0][0];
-    YStart := Box[0][1];
-    ZStart := Box[0][2];
-
-    XSize := Box[1][0] - Box[0][0];
-    YSize := Box[1][1] - Box[0][1];
-    ZSize := Box[1][2] - Box[0][2];
-
-    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-    glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1 / XSize, 0, 0, - XStart / XSize));
-    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-    glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1 / YSize, 0, - YStart / YSize));
-    glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-    glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1 / ZSize, - ZStart / ZSize));
-    glEnable(GL_TEXTURE_GEN_S);
-    glEnable(GL_TEXTURE_GEN_T);
-    glEnable(GL_TEXTURE_GEN_R);
-  end;
-
-  procedure EndPrimitives3DTextureCoords;
-  begin
-    glDisable(GL_TEXTURE_GEN_S);
-    glDisable(GL_TEXTURE_GEN_T);
-    glDisable(GL_TEXTURE_GEN_R);
-  end;
-
-begin
-  if Renderer.Primitives3DTextureCoords then
-    BeginPrimitives3DTextureCoords;
-
-  DoRenderPrimitive;
-
-  if Renderer.Primitives3DTextureCoords then
-    EndPrimitives3DTextureCoords;
-end;
-
-function TPrimitiveRenderer.PrimitiveMake2DTextureCoords: boolean;
-begin
-  Result :=
-    (Renderer.TexCoordsNeeded > 0) and
-    (not Renderer.Primitives3DTextureCoords);
-end;
 
 { Text ----------------------------------------------------------------------- }
 
