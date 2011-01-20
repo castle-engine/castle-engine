@@ -2425,7 +2425,10 @@ begin
   inherited;
 
   if (FogCoord <> nil) or Renderer.FogVolumetric then
+  begin
     Arrays.AddFogCoord;
+    Arrays.FogDirectValues := FogCoord <> nil;
+  end;
 end;
 
 procedure TAbstractFogRenderer.GenerateVertex(
@@ -2535,7 +2538,9 @@ procedure TAbstractFogRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  if (FogCoord <> nil) and GL_EXT_fog_coord then
+  if (Arrays.FogCoord <> nil) and
+     Arrays.FogDirectValues and
+     GL_EXT_fog_coord then
   begin
     { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
       is already set correctly by RenderBegin. }
@@ -2552,7 +2557,9 @@ end;
 procedure TAbstractFogRenderer.RenderCoordinateEnd;
 begin
   { Restore defaults }
-  if (FogCoord <> nil) and GL_EXT_fog_coord then
+  if (Arrays.FogCoord <> nil) and
+     Arrays.FogDirectValues and
+     GL_EXT_fog_coord then
   begin
     glPopAttrib;
 

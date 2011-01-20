@@ -124,6 +124,7 @@ type
 
     HasFogCoord: boolean;
     FogCoordOffset: Integer;
+    FFogDirectValues: boolean;
 
     FTexCoords: TGeometryTexCoordsList;
     FAttribs: TGeometryAttribsList;
@@ -222,6 +223,14 @@ type
 
     procedure AddFogCoord;
     function FogCoord(const Index: Cardinal = 0): PSingle;
+
+    { If FogCoord present, does it specify direct fog intensities,
+      that should be used to change pixel colors without any further processing.
+      When this is @false, then fog coordinates are understood
+      as distance from the eye, and they are processed by linear/exp equations
+      before being used to blend pixel colors. }
+    property FogDirectValues: boolean
+      read FFogDirectValues write FFogDirectValues default false;
 
     { Allocated in AttributeArray texture coords.
       Index is texture unit (counted from renderer first available texture
