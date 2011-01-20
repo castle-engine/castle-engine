@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Generating TGeometryArrays for VRML/X3D shapes. }
+{ Generating TGeometryArrays for VRML/X3D shapes (TVRMLArraysGenerator). }
 unit VRMLArraysGenerator;
 
 interface
@@ -22,13 +22,12 @@ uses VRMLGLRenderer, VRMLShape, VRMLNodes, VRMLFields, KambiUtils,
   GeometryArrays, VectorMath;
 
 type
-  { Generates TGeometryArrays for a VRML/X3D shape.
+  { Generate TGeometryArrays for a VRML/X3D shape. This is the basis
+    of our renderer: generate a TGeometryArrays for a shape,
+    then TVRMLGLRenderer will pass TGeometryArrays to OpenGL.
 
     Geometry must be based on coordinates when using this,
-    that is TVRMLGeometryNode.Coord must return @true.
-    In our constructor we initialize Coord and CoordIndex
-    from Geometry, using TVRMLGeometryNode.Coord and TVRMLGeometryNode.CoordIndex
-    values. If Coord will be @nil, nothing will be rendered. }
+    that is TVRMLGeometryNode.Coord must return @true. }
   TVRMLArraysGenerator = class
   private
     FShape: TVRMLShape;
@@ -39,8 +38,8 @@ type
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
     FCoordIndex: TMFLong;
-
-    { Only when Arrays.Indexes = nil but original node was indexed. }
+  protected
+    { Indexes, only when Arrays.Indexes = nil but original node was indexed. }
     IndexesFromCoordIndex: TDynLongIntArray;
 
     { Index to Arrays. Suitable always to index Arrays.Position / Color / Normal
@@ -76,9 +75,9 @@ type
     }
     ArrayIndexNum: Integer;
 
-    { Available inside GenerateCoordinate* }
+    { Generated TGeometryArrays instance, available inside GenerateCoordinate*. }
     Arrays: TGeometryArrays;
-  protected
+
     { Current shape properties, constant for the whole
       lifetime of the generator, set in constructor.
       @groupBegin }
@@ -90,14 +89,14 @@ type
 
     procedure WarningShadingProblems(
       const ColorPerVertex, NormalPerVertex: boolean);
-  public
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
-  protected
+
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
-      If @nil then nothing will be rendered. }
+      If @nil then nothing will be rendered.
+
+      In our constructor we initialize Coord and CoordIndex
+      from Geometry, using TVRMLGeometryNode.Coord and
+      TVRMLGeometryNode.CoordIndex values. }
     property Coord: TMFVec3f read FCoord;
 
     { Coordinate index, taken from Geometry.CoordIndex.
@@ -113,7 +112,7 @@ type
       indexes CoordIndex (and CoordIndex then indexes actual Coord). }
     procedure GenerateVertex(IndexNum: Integer); virtual;
 
-    { This gets vertex coordinate Returned vertex is in local coordinate space
+    { Get vertex coordinate. Returned vertex is in local coordinate space
       (use State.Transform if you want to get global coordinates). }
     function GetVertex(IndexNum: integer): TVector3Single;
 
@@ -121,7 +120,7 @@ type
       to various methods taking an index, like GenerateVertex. }
     function CoordCount: Integer;
 
-    { Override these to generate contents of Arrays.
+    { Generate contents of Arrays.
       These are all called only when Coord is assigned.
 
       GenerateCoordinate can be overridden only by the class
@@ -140,9 +139,9 @@ type
     procedure GenerateCoordinate; virtual; abstract;
     procedure GenerateCoordinateBegin; virtual;
     procedure GenerateCoordinateEnd; virtual;
+    { @groupEnd }
 
-    { GenerateCoordsRange is supposed to generate arrays content for
-      one coordinate range.
+    { Generate arrays content for one coordinate range (like a face).
       This is not called, not used, anywhere in this base
       TAbstractCoordinateGenerator class.
       In descendants, it may be useful to use this, like
@@ -156,7 +155,7 @@ type
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); virtual;
 
-    { The number of current range, equal to RangeNumber passed to
+    { The number of current range (like a face), equal to RangeNumber passed to
       GenerateCoordsRange. Read this only while in GenerateCoordsRange.
       In fact, this is just set by GenerateCoordsRange in this class
       (so call @code(inherited) first when overriding it).
@@ -180,7 +179,7 @@ type
       so there's no point in indexing). }
     procedure PrepareAttributes(var AllowIndexed: boolean); virtual;
   public
-    { You have to assign these before calling GenerateArrays.
+    { Assign these before calling GenerateArrays.
       @groupBegin }
     TexCoordsNeeded: Cardinal;
     MaterialOpacity: Single;
@@ -190,6 +189,10 @@ type
     ShapeBumpMappingUsed: TBumpMappingMethod;
     BumpMappingLightPosition: TVector3Single;
     { @groupEnd }
+
+    constructor Create(AAttributes: TVRMLRenderingAttributes;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 
     { Create and generate Arrays contents. }
     function GenerateArrays: TGeometryArrays;
