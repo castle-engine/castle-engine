@@ -634,6 +634,8 @@ type
 
     function IsFirst(Value: TObject): boolean;
     function IsLast(Value: TObject): boolean;
+
+    procedure InsertIfNotExists(Index: Integer; Value: TObject);
   end;
 
   {$define DYNARRAY_17_IS_FUNCTION}
@@ -1602,6 +1604,12 @@ end;
 function TKamObjectList.IsLast(Value: TObject): boolean;
 begin
   Result := (Count > 0) and (Items[Count - 1] = Value);
+end;
+
+procedure TKamObjectList.InsertIfNotExists(Index: Integer; Value: TObject);
+begin
+  if IndexOf(Value) = -1 then
+    Insert(Index, Value);
 end;
 
 { TDynNotifyEventArray  ------------------------------------------------------ }
