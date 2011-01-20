@@ -1527,10 +1527,10 @@ uses Math, Triangulator,
 {$I dynarray_13.inc}
 
 {$I vrmlmeshrenderer.inc}
-{$I vrmlarraysgenerator.inc}
-{$I vrmlmeshrenderer_x3d_rendering.inc}
-{$I vrmlmeshrenderer_x3d_geometry3d.inc}
 {$I vrmlmeshrenderer_x3d_text.inc}
+{$I vrmlarraysgenerator.inc}
+{$I vrmlarraysgenerator_x3d_rendering.inc}
+{$I vrmlarraysgenerator_x3d_geometry3d.inc}
 
 {$I resourcerenderer.inc}
 {$I vrmltexturerenderer.inc}
