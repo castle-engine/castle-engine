@@ -30,7 +30,7 @@ type
     procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinate; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
@@ -45,7 +45,7 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for X3D IndexedTriangleFanSet and TriangleFanSet node. }
@@ -65,7 +65,7 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for X3D IndexedTriangleStripSet and TriangleStripSet nodes.
@@ -90,7 +90,7 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for X3D IndexedQuadSet and QuadSet nodes. }
@@ -105,7 +105,7 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
@@ -125,13 +125,13 @@ type
   { Generator for VRML <= 1.0 TNodeIndexedLineSet_1 }
   TIndexedLineSet_1Generator = class(TLineSetGenerator)
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
   TLineSet_2Generator = class(TLineSetGenerator)
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   protected
     procedure GenerateCoordinateBegin; override;
   end;
@@ -186,7 +186,7 @@ end;
 
 { TPointSet_2Generator -------------------------------------------------------- }
 
-constructor TPointSet_2Generator.Create(ARenderer: TVRMLGLRenderer);
+constructor TPointSet_2Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 var
   Node: TNodePointSet_2;
 begin
@@ -273,7 +273,7 @@ end;
 
 { TTriangleSetGenerator ------------------------------------------------------- }
 
-constructor TTriangleSetGenerator.Create(ARenderer: TVRMLGLRenderer);
+constructor TTriangleSetGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -315,6 +315,8 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+
+  ShapeBumpMappingAllowed := true;
 end;
 
 procedure TTriangleSetGenerator.GenerateCoordinateBegin;
@@ -396,7 +398,7 @@ end;
 
 { TTriangleFanSetGenerator ---------------------------------------------------- }
 
-constructor TTriangleFanSetGenerator.Create(ARenderer: TVRMLGLRenderer);
+constructor TTriangleFanSetGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -437,6 +439,8 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+
+  ShapeBumpMappingAllowed := true;
 end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinateBegin;
@@ -563,7 +567,7 @@ end;
 
 { TTriangleStripSetGenerator -------------------------------------------------- }
 
-constructor TTriangleStripSetGenerator.Create(ARenderer: TVRMLGLRenderer);
+constructor TTriangleStripSetGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 
   procedure CreateForIndexedTriangleMesh_1;
   var
@@ -598,6 +602,8 @@ constructor TTriangleStripSetGenerator.Create(ARenderer: TVRMLGLRenderer);
 
 begin
   inherited;
+
+  ShapeBumpMappingAllowed := true;
 
   if Geometry is TNodeIndexedTriangleMesh_1 then
   begin
@@ -787,7 +793,7 @@ end;
 
 { TQuadSetGenerator ------------------------------------------------------- }
 
-constructor TQuadSetGenerator.Create(ARenderer: TVRMLGLRenderer);
+constructor TQuadSetGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -832,6 +838,8 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+
+  ShapeBumpMappingAllowed := true;
 end;
 
 procedure TQuadSetGenerator.GenerateCoordinateBegin;
@@ -950,12 +958,11 @@ end;
 
 { TIndexedLineSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedLineSet_1Generator.Create(
-  ARenderer: TVRMLGLRenderer);
+constructor TIndexedLineSet_1Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 var
   Node: TNodeIndexedLineSet_1;
 begin
-  inherited Create(ARenderer);
+  inherited;
 
   Node := Geometry as TNodeIndexedLineSet_1;
 
@@ -975,13 +982,12 @@ end;
 
 { TLineSet_2Generator --------------------------------------------------------- }
 
-constructor TLineSet_2Generator.Create(
-  ARenderer: TVRMLGLRenderer);
+constructor TLineSet_2Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 var
   NodeLS: TNodeLineSet;
   NodeILS: TNodeIndexedLineSet_2;
 begin
-  inherited Create(ARenderer);
+  inherited;
 
   if Geometry is TNodeIndexedLineSet_2 then
   begin

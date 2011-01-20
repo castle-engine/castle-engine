@@ -55,10 +55,6 @@ type
     property Geometry: TVRMLGeometryNode read FGeometry;
     property Attributes: TVRMLRenderingAttributes read FAttributes;
   public
-    { TODO: nonsense, where should it be? generator needs it, renderer wants to set it }
-    BumpMappingMethod: TBumpMappingMethod;
-    BumpMappingAllowed: boolean;
-    
     { Constructor.
 
       For descendants implementors:
@@ -316,8 +312,9 @@ procedure TBaseCoordinateRenderer.Render;
       begin
         if Renderer.UsedGLSL <> nil then
           EnableVertexAttrib(Renderer.UsedGLSL.GLSLProgram) else
-        if BumpMappingMethod <> bmNone then
-          EnableVertexAttrib(Renderer.BmGLSLProgram[BumpMappingMethod >= bmGLSLParallax]);
+        if Renderer.ShapeBumpMappingUsed <> bmNone then
+          EnableVertexAttrib(Renderer.BmGLSLProgram[
+            Renderer.ShapeBumpMappingUsed >= bmGLSLParallax]);
       end;
 
       { Lock arrays after setting up all arrays. }

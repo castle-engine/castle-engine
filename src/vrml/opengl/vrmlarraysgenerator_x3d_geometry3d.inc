@@ -49,6 +49,8 @@ type
     { Set these in descendant's constructor. }
     FaceConvex: boolean;
     procedure PrepareIndexesPrimitives; override;
+  public
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   TIndexedFaceSet_1Generator = class(TIndexedFaceSetGenerator)
@@ -57,15 +59,21 @@ type
   protected
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   TIndexedFaceSet_2Generator = class(TIndexedFaceSetGenerator)
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
 { TIndexedFaceSetGenerator -------------------------------------------------- }
+
+constructor TIndexedFaceSetGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+begin
+  inherited;
+  ShapeBumpMappingAllowed := true;
+end;
 
 { TIndexedFaceSetGenerator makes triangles, GL_TRIANGLES in OpenGL.
   Making one TRIANGLES primitive is fast, and allows us to do everything
@@ -258,13 +266,12 @@ end;
 
 { TIndexedFaceSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_1Generator.Create(
-  ARenderer: TVRMLGLRenderer);
+constructor TIndexedFaceSet_1Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 var
   SH: TNodeShapeHints;
   ANode: TNodeIndexedFaceSet_1;
 begin
-  inherited Create(ARenderer);
+  inherited;
 
   ANode := Geometry as TNodeIndexedFaceSet_1;
 
@@ -308,11 +315,11 @@ end;
 
 { TIndexedFaceSet_2Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_2Generator.Create(ARenderer: TVRMLGLRenderer);
+constructor TIndexedFaceSet_2Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 var
   ANode: TNodeIndexedFaceSet_2;
 begin
-  inherited Create(ARenderer);
+  inherited;
 
   ANode := Geometry as TNodeIndexedFaceSet_2;
 

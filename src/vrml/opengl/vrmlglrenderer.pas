@@ -1177,6 +1177,16 @@ type
     CurrentGeometry: TVRMLGeometryNode;
     UsedGLSL: TGLSLRenderer;
 
+    { Is bump mapping allowed by the current shape.
+      Fully calculated only after InitMeshRenderer, as creating Generator
+      actually sets this. }
+    ShapeBumpMappingAllowed: boolean;
+    { Is bump mapping used, and what method is used, for current shape.
+      This is determined by ShapeBumpMappingAllowed,
+      global BumpMappingMethod, and by the texture information for current
+      shape (whether user provided normal map, height map etc.) }
+    ShapeBumpMappingUsed: TBumpMappingMethod;
+
     { Variables internal for MeterialsBegin/End, BindMaterial }
     MaterialLit: boolean;
     Material1BoundNumber: integer;
@@ -4054,36 +4064,36 @@ var
     if AGeometry is TNodeText3D then
       ExposedMeshRenderer := TText3DRenderer.Create(Self) else
     if AGeometry is TNodeIndexedTriangleMesh_1 then
-      Generator := TTriangleStripSetGenerator.Create(Self) else
+      Generator := TTriangleStripSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
     if AGeometry is TNodeIndexedFaceSet_1 then
-      Generator := TIndexedFaceSet_1Generator.Create(Self) else
+      Generator := TIndexedFaceSet_1Generator.Create(Self, ShapeBumpMappingAllowed) else
     if AGeometry is TNodeIndexedFaceSet_2 then
-      Generator := TIndexedFaceSet_2Generator.Create(Self) else
+      Generator := TIndexedFaceSet_2Generator.Create(Self, ShapeBumpMappingAllowed) else
     if AGeometry is TNodeIndexedLineSet_1 then
-      Generator := TIndexedLineSet_1Generator.Create(Self) else
+      Generator := TIndexedLineSet_1Generator.Create(Self, ShapeBumpMappingAllowed) else
     if (AGeometry is TNodeIndexedLineSet_2) or
        (AGeometry is TNodeLineSet) then
-      Generator := TLineSet_2Generator.Create(Self) else
+      Generator := TLineSet_2Generator.Create(Self, ShapeBumpMappingAllowed) else
     if AGeometry is TNodePointSet_1 then
-      Generator := TPointSet_1Generator.Create(Self) else
+      Generator := TPointSet_1Generator.Create(Self, ShapeBumpMappingAllowed) else
     if AGeometry is TNodePointSet_2 then
-      Generator := TPointSet_2Generator.Create(Self) else
+      Generator := TPointSet_2Generator.Create(Self, ShapeBumpMappingAllowed) else
     if (AGeometry is TNodeTriangleSet) or
        (AGeometry is TNodeIndexedTriangleSet) then
-      Generator := TTriangleSetGenerator.Create(Self) else
+      Generator := TTriangleSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
     if (AGeometry is TNodeTriangleFanSet) or
        (AGeometry is TNodeIndexedTriangleFanSet) then
-      Generator := TTriangleFanSetGenerator.Create(Self) else
+      Generator := TTriangleFanSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
     if (AGeometry is TNodeTriangleStripSet) or
        (AGeometry is TNodeIndexedTriangleStripSet) then
-      Generator := TTriangleStripSetGenerator.Create(Self) else
+      Generator := TTriangleStripSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
     if (AGeometry is TNodeQuadSet) or
        (AGeometry is TNodeIndexedQuadSet) then
-      Generator := TQuadSetGenerator.Create(Self) else
+      Generator := TQuadSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
       Result := false;
 
     { If we have Generator, create TCompleteCoordinateRenderer.
-      Well initialize TCompleteCoordinateRenderer.Arrays later from Generator. }
+      We'll initialize TCompleteCoordinateRenderer.Arrays later from Generator. }
     if Generator <> nil then
       ExposedMeshRenderer := TCompleteCoordinateRenderer.Create(Self);
   end;
@@ -4264,9 +4274,12 @@ var
 begin
   { make a copy to our class fields }
   CurrentShape := Shape;
-
   CurrentGeometry := Shape.OriginalGeometry;
   CurrentState := Shape.OriginalState;
+
+  { default ShapeBumpMapping* state }
+  ShapeBumpMappingAllowed := false;
+  ShapeBumpMappingUsed := bmNone;
 
   {$ifndef USE_VRML_NODES_TRIANGULATION}
   { We have to initalize MeshRenderer to something non-nil.

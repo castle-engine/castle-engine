@@ -58,8 +58,7 @@
     function Enable(State: TVRMLGraphTraverseState;
       ColorTextureNode: TGLTextureNode): boolean;
 
-    { Disable things enabled by successfull @link(Enable).
-      Note: it assumes MeshRenderer remained the same during this time. }
+    { Disable things enabled by successfull @link(Enable). }
     procedure Disable;
   end;
 
@@ -313,7 +312,6 @@ var
   TexNormalMap: TGLuint;
   TexHeightMap: TGLuint;
   TexHeightMapScale: Single;
-  MeshRenderer: TVRMLMeshRenderer;
 
   procedure EnableForGLSL;
   var
@@ -328,7 +326,7 @@ var
     Renderer.ActiveTexture(1);
     glBindTexture(GL_TEXTURE_2D, TexOriginal);
 
-    BmParallax := MeshRenderer.BumpMappingMethod >= bmGLSLParallax;
+    BmParallax := Renderer.ShapeBumpMappingUsed >= bmGLSLParallax;
 
     if BmParallax then
     begin
@@ -355,16 +353,13 @@ begin
 
   if not IsGLImageTexture(ColorTextureNode) then Exit;
 
-  MeshRenderer := TVRMLMeshRenderer(Renderer.ExposedMeshRenderer);
-
-  if (MeshRenderer <> nil) and
-     MeshRenderer.BumpMappingAllowed and
+  if Renderer.ShapeBumpMappingAllowed and
      (Renderer.BumpMappingMethod <> bmNone) then
   begin
     TexNormalMap := GLTexture(Node.FdNormalMap.Value);
     if TexNormalMap <> 0 then
     begin
-      MeshRenderer.BumpMappingMethod := Renderer.BumpMappingMethod;
+      Renderer.ShapeBumpMappingUsed := Renderer.BumpMappingMethod;
 
       TexHeightMap := GLTexture(Node.FdHeightMap.Value);
       TexHeightMapScale := Node.FdHeightMapScale.Value;
@@ -373,25 +368,22 @@ begin
 
       { use parallax only if the model actually has heightMap }
       if (TexHeightMap = 0) and
-         (MeshRenderer.BumpMappingMethod >= bmGLSLParallax) then
-        MeshRenderer.BumpMappingMethod := bmGLSLNormal;
+         (Renderer.ShapeBumpMappingUsed >= bmGLSLParallax) then
+        Renderer.ShapeBumpMappingUsed := bmGLSLNormal;
     end;
 
     Result := true;
   end;
 
-  if Result and (MeshRenderer.BumpMappingMethod <> bmNone) then
+  if Result and (Renderer.ShapeBumpMappingUsed <> bmNone) then
     EnableForGLSL;
 end;
 
 procedure TBumpMappingRenderer.Disable;
-var
-  MeshRenderer: TVRMLMeshRenderer;
 begin
-  MeshRenderer := TVRMLMeshRenderer(Renderer.ExposedMeshRenderer);
-
-  if MeshRenderer.BumpMappingMethod <> bmNone then
-    Renderer.BmGLSLProgram[MeshRenderer.BumpMappingMethod >= bmGLSLParallax].Disable;
+  if Renderer.ShapeBumpMappingUsed <> bmNone then
+    Renderer.BmGLSLProgram[
+      Renderer.ShapeBumpMappingUsed >= bmGLSLParallax].Disable;
 end;
 
 { TBumpMappingRenderersList -------------------------------------------------- }

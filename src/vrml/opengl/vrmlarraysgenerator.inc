@@ -74,11 +74,6 @@ type
     { Available inside GenerateCoordinate* }
     Arrays: TGeometryArrays;
   protected
-    { Initialized in our constructor to false.
-      Set this @italic(in constructor) (not later) to true when you're in
-      subclass able to do bump mapping. }
-    BumpMappingAllowed: boolean;
-
     { Current rendering properties, constant for the whole
       lifetime of the generator, set in constructor.
       Setting Renderer automatically sets Shape, State, Geometry, Attributes. }
@@ -91,12 +86,7 @@ type
     procedure WarningShadingProblems(
       const ColorPerVertex, NormalPerVertex: boolean);
   public
-    { Initialized in our constructor to bmNone.
-      Renderer will set this to Renderer.BumpMappingMethod
-      only if bump mapping should be used and BumpMappingAllowed. }
-    BumpMappingMethod: TBumpMappingMethod;
-
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   protected
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
@@ -294,7 +284,7 @@ type
 
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   TMaterials1Implementation = (miOverall,
@@ -352,7 +342,7 @@ type
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Enhances TAbstractMaterial1Generator with the ability to handle
@@ -421,7 +411,7 @@ type
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   TNormalsImplementation = (
@@ -546,7 +536,7 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
   end;
 
   TX3DVertexAttributeNodes = specialize TFPGObjectList<TNodeX3DVertexAttributeNode>;
@@ -562,7 +552,7 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
     destructor Destroy; override;
   end;
 
@@ -582,8 +572,6 @@ type
       Give triangle indexes (like IndexNum for GenerateVertex). }
     procedure CalculateTangentVectors(
       const TriangleIndex1, TriangleIndex2, TriangleIndex3: Integer);
-  public
-    constructor Create(ARenderer: TVRMLGLRenderer);
   end;
 
   { Most complete implementation of arrays generator,
@@ -592,7 +580,7 @@ type
 
 { TVRMLArraysGenerator ------------------------------------------------------ }
 
-constructor TVRMLArraysGenerator.Create(ARenderer: TVRMLGLRenderer);
+constructor TVRMLArraysGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited Create;
 
@@ -744,7 +732,7 @@ end;
 
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }
 
-constructor TAbstractTextureCoordinateGenerator.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractTextureCoordinateGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
   if not Geometry.TexCoord(State, TexCoord) then
@@ -1375,7 +1363,7 @@ end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
 
-constructor TAbstractMaterial1Generator.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractMaterial1Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
   MaterialBinding := BIND_DEFAULT;
@@ -1471,7 +1459,7 @@ end;
 
 { TAbstractColorGenerator --------------------------------------- }
 
-constructor TAbstractColorGenerator.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractColorGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -1697,7 +1685,8 @@ begin
     niPerFaceNormalIndexed:
       N := CcwNormals.Items[NormalIndex.ItemsSafe[RangeNumber]];
     else
-      raise EInternalError.Create('GetNormal: NorImplementation ?');
+      raise EInternalError.CreateFmt('NorImplementation unknown (probably niNone, and not overridden GetNormal) in class %s', 
+        [ClassName]);
   end;
 end;
 
@@ -1802,7 +1791,7 @@ end;
 
 { TAbstractFogGenerator --------------------------------- }
 
-constructor TAbstractFogGenerator.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractFogGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -1927,7 +1916,7 @@ end;
 
 { TAbstractShaderAttribGenerator ------------------------------ }
 
-constructor TAbstractShaderAttribGenerator.Create(ARenderer: TVRMLGLRenderer);
+constructor TAbstractShaderAttribGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
 var
   A: TMFNode;
   I: Integer;
@@ -2029,16 +2018,10 @@ end;
 
 { TAbstractBumpMappingGenerator ----------------------------------------------- }
 
-constructor TAbstractBumpMappingGenerator.Create(ARenderer: TVRMLGLRenderer);
-begin
-  inherited;
-  BumpMappingAllowed := true;
-end;
-
 procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
-  if BumpMappingMethod <> bmNone then
+  if Renderer.ShapeBumpMappingUsed <> bmNone then
   begin
     Arrays.AddGLSLAttributeMatrix3('object_space_to_tangent');
     Arrays.AddGLSLAttributeVector2('tex_coord');
@@ -2120,14 +2103,14 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
 begin
   inherited;
-  if BumpMappingMethod <> bmNone then
+  if Renderer.ShapeBumpMappingUsed <> bmNone then
     DoBumpMapping;
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-  if BumpMappingMethod <> bmNone then
+  if Renderer.ShapeBumpMappingUsed <> bmNone then
     LightPositionObjectSpace := MatrixMultPoint(
       State.InvertedTransform,
       Renderer.BumpMappingLightPosition);
@@ -2237,7 +2220,7 @@ var
   TriangleTexCoord: TTriangle2Single;
 begin
   HasTangentVectors := false;
-  if BumpMappingMethod <> bmNone then
+  if Renderer.ShapeBumpMappingUsed <> bmNone then
   begin
     { calculate Triangle3D }
     Triangle3D[0] := GetVertex(TriangleIndex1);

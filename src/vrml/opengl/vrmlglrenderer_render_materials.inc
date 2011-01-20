@@ -20,14 +20,12 @@ procedure TVRMLGLRenderer.Render_MaterialsBegin;
 
     Assumes already calculated:
     - MeshRenderer,
-    - MeshRenderer.BumpMappingMethod
+    - ShapeBumpMappingUsed
       (set by TBumpMappingRenderer.Enable called from RenderTexturesBegin),
-    - (MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation
-      (set in TIndexedLineSet_1Renderer.Create). }
+    - NorImplementation for TIndexedLineSet_1Generator }
   function NodeLit(Node: TVRMLGeometryNode): boolean;
   begin
-    if ( (MeshRenderer <> nil) and
-         (MeshRenderer.BumpMappingMethod <> bmNone) ) then
+    if ShapeBumpMappingUsed <> bmNone then
     begin
       { When doing bump mapping <> bmNone, we always turn on lighting.
 
@@ -36,12 +34,11 @@ procedure TVRMLGLRenderer.Render_MaterialsBegin;
         But it's important that we pass material values for ambient and diffuse
         (shader uses them), so we should behave like the node is lit.
 
-        (Actually, this will not work when Material node is @nil... then we can't
+        (TODO: Actually, this will not work when Material node is @nil... then we can't
         pass any ambient/diffuse lighting values, and results of rendering this
-        with bump mapping are undefined. TODO: fix.)
-      }
+        with bump mapping are undefined.) }
 
-      Result := MeshRenderer.BumpMappingMethod  <> bmNone;
+      Result := true;
     end else
     begin
       Result := not (
