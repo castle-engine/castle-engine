@@ -88,8 +88,6 @@ begin
     VRML2Unlit := false;
   end;
 
-  VRML1OnlyEmissiveMaterial := (M1 <> nil) and VRML1OnlyEmissive;
-
   { calculate and apply MaterialTemporaryDisabledFog }
   MaterialTemporaryDisabledFog := FogEnabled and FogImmune;
   if MaterialTemporaryDisabledFog then

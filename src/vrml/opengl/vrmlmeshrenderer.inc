@@ -2038,7 +2038,7 @@ begin
   begin
     Arrays.AddColor;
 
-    if Renderer.VRML1OnlyEmissiveMaterial then
+    if State.LastNodes.Material.OnlyEmissiveMaterial then
       Arrays.ColorSetsMaterial := cmEmissive else
       Arrays.ColorSetsMaterial := cmDiffuse;
 
@@ -2056,9 +2056,9 @@ begin
   M := State.LastNodes.Material;
 
   case Arrays.ColorSetsMaterial of
-    cmDiffuse : Result := Vector4Single(M.DiffuseColor3Single(MaterialIndex), M.Opacity(MaterialIndex));
-    cmEmissive: Result := Vector4Single(M.EmissiveColor3Single(MaterialIndex), M.Opacity(MaterialIndex));
-    else raise EInternalError.Create('MaterialFromColor?');
+    cmDiffuse : Result := M.DiffuseColor4Single(MaterialIndex);
+    cmEmissive: Result := M.EmissiveColor4Single(MaterialIndex);
+    else raise EInternalError.Create('Arrays.ColorSetsMaterial?');
   end;
 end;
 

@@ -1182,7 +1182,6 @@ type
     Material1BoundNumber: integer;
     MaterialTemporaryDisabledFog: boolean;
     Material_BoundOpacity: Single;
-    VRML1OnlyEmissiveMaterial: boolean;
 
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
