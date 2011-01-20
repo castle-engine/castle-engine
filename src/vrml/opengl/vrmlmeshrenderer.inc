@@ -232,17 +232,18 @@ type
       to do everything necessary. }
     procedure DoRender; override;
 
-    { Override these to plug your rendering algorithm.
+    { Override these to generate and render contents of Arrays.
+      These are all called only when Coord is assigned.
 
-      GenerateCoordinate must be overridden only by the classes
-      that actually know how to deconstruct (triangulate etc.) this node.
+      GenerateCoordinate can be overridden only by the class
+      that actually knows how to deconstruct (triangulate etc.) this node.
       It must call GenerateVertex (or call GenerateCoordsRange,
       that has to be then overridden to call GenerateVertex after inherited).
 
       GenerateCoordinateBegin, GenerateCoordinateEnd will be called
-      before / after GenerateCoordinate. Useful to override by intermediate
-      classes here, that cannot triangulate, but still want to add something
-      before / after GenerateCoordinate.
+      before / after GenerateCoordinate. It's useful to override them for
+      intermediate classes in this file, that cannot triangulate,
+      but still want to add something before / after GenerateCoordinate.
       When overriding GenerateCoordinateBegin, always call inherited
       at the begin. When overriding GenerateCoordinateEnd, always call inherited
       at the end.
@@ -250,10 +251,6 @@ type
       RenderCoordinateBegin, RenderCoordinateEnd are called around actual
       vertex arrays rendering. Should be used to separate direct OpenGL
       calls (like SetColor before rendering) from generating methods.
-      Although some classes for now also make direct OpenGL calls in earlier
-      methods (like PrepareAttributes), as this works too for now.
-
-      These are all called only when Coord is assigned.
 
       @groupBegin }
     procedure GenerateCoordinate; virtual; abstract;
@@ -380,8 +377,7 @@ type
       which of these is actually used.
 
       These arrays have always exactly the same length,
-      equal to Arrays.TexCoords.Count.
-      Not used when TexImplementation = tcNotGenerated. }
+      equal to Arrays.TexCoords.Count. }
     TexCoordArray2d: array of TMFVec2f;
     TexCoordArray3d: array of TMFVec3f;
     TexCoordArray4d: array of TMFVec4f;
