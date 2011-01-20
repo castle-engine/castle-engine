@@ -1633,13 +1633,11 @@ end;
 
 procedure TAbstractTextureCoordinateRenderer.GenerateCoordinateBegin;
 
-  { Set explicit coordinates as gl[Multi]TexCoordPointer, for all texture units
-    (required from TexCoordsNeeded GLUseMultiTexturing) where
-    TexCoordGen[] = tgExplicit*.
-
-    Call this only if InitializeTexCoordGenArray generated some non-empty
-    TexCoordGen/Array. }
-  procedure EnableTextureCoordArray;
+  { Set explicit texture coordinates in Arrays,
+    for texture units where Arrays.TexCoords[].Generation = tgExplicit.
+    This is only for TexImplementation in [tcNonIndexed, tcCoordIndexed],
+    other TexImplementation have to be handled elsewhere. }
+  procedure EnableExplicitTexCoord;
   var
     I: Integer;
 
@@ -1682,14 +1680,14 @@ begin
   inherited;
 
   if TexImplementation in [tcNonIndexed, tcCoordIndexed] then
-    EnableTextureCoordArray;
+    EnableExplicitTexCoord;
 end;
 
 procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
-{ Set texture generation, for all texture units where
-  TexCoords[].Generation[] <> tgExplicit. }
 
-  procedure SetupTextureGen(const TexUnit: Cardinal;
+  { Enable and set parameters of texture generation,
+    for texture units where TexCoords[].Generation[] <> tgExplicit. }
+  procedure EnableTextureGen(const TexUnit: Cardinal;
     TexCoord: TGeometryTexCoord);
 
     { Do the necessary things for WorldSpaceNormal and
@@ -1725,6 +1723,7 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
     end;
 
   begin
+    Renderer.ActiveTexture(TexUnit);
     case TexCoord.Generation of
       tgSphere:
         begin
@@ -1863,7 +1862,7 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
           glEnable(GL_TEXTURE_GEN_T);
           glEnable(GL_TEXTURE_GEN_R);
         end;
-      else raise EInternalError.Create('SetupTextureGen - Gen?');
+      else raise EInternalError.Create('EnableTextureGen - Gen?');
     end;
   end;
 
@@ -1873,10 +1872,7 @@ begin
   inherited;
   for I := 0 to Arrays.TexCoords.Count - 1 do
     if Arrays.TexCoords[I].Generation <> tgExplicit then
-    begin
-      Renderer.ActiveTexture(I);
-      SetupTextureGen(I, Arrays.TexCoords[I]);
-    end;
+      EnableTextureGen(I, Arrays.TexCoords[I]);
 end;
 
 procedure TAbstractTextureCoordinateRenderer.RenderCoordinateEnd;
@@ -1893,8 +1889,8 @@ procedure TAbstractTextureCoordinateRenderer.RenderCoordinateEnd;
 var
   I: Integer;
 begin
-  { Disable OpenGL GL_TEXTURE_GEN_x, if was (possibly)
-    enabled by PrepareAttributes. }
+  { Disable OpenGL GL_TEXTURE_GEN_x, if it was (possibly)
+    enabled by RenderCoordinateBegin. }
   for I := 0 to Arrays.TexCoords.Count - 1 do
     if Arrays.TexCoords[I].Generation <> tgExplicit then
       DisableTextureGen(I);
