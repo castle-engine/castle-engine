@@ -31,25 +31,23 @@ type
       const Strings: TDynStringArray;
       CurrentFont: TGLOutlineFont;
       const Depth: Single;
-      const MarkFrontFaces: boolean;
+      const CullBackFaces: boolean;
       const EventLineBounds, EventOrigin, EventTextBounds: TVRMLEvent);
   end;
 
   TAsciiTextRenderer = class(TAbstractTextRenderer)
-  protected
-    procedure DoRender; override;
+  public
+    procedure Render; override;
   end;
 
   TTextRenderer = class(TAbstractTextRenderer)
-  protected
-    procedure DoRender; override;
+  public
+    procedure Render; override;
   end;
 
   TText3DRenderer = class(TAbstractTextRenderer)
-  protected
-    procedure DoRender; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    procedure Render; override;
   end;
 
 { Text ----------------------------------------------------------------------- }
@@ -60,7 +58,7 @@ procedure TAbstractTextRenderer.RenderText(
   const Strings: TDynStringArray;
   CurrentFont: TGLOutlineFont;
   const Depth: Single;
-  const MarkFrontFaces: boolean;
+  const CullBackFaces: boolean;
   const EventLineBounds, EventOrigin, EventTextBounds: TVRMLEvent);
 
 var
@@ -170,11 +168,13 @@ begin
     glPushMatrix;
       glScalef(1, YScale, 1);
 
-      if MarkFrontFaces then
+      if CullBackFaces then
       begin
+        glPushAttrib(GL_POLYGON_BIT);
         { Outside face is CW now, so cull CCW. CCW = front face
           (remember, we can't use glFrontFace, we have to work with glCullFace here) }
-        glCullFace(GL_FRONT);
+        glCullFace(GL_FRONT); // saved by GL_POLYGON_BIT
+        glEnable(GL_CULL_FACE);
       end;
 
       { Normal pointing from CCW. }
@@ -200,7 +200,7 @@ begin
 
       if Depth <> 0 then
       begin
-        if MarkFrontFaces then
+        if CullBackFaces then
         begin
           { Outside face is CCW now, so cull CW. CW = back face
             (remember, we can't use glFrontFace, we have to work with glCullFace here) }
@@ -257,6 +257,9 @@ begin
         glPopAttrib;
       end;
 
+      if CullBackFaces then
+        glPopAttrib;
+
     glPopMatrix;
 
     { These events should be generated only when
@@ -268,7 +271,7 @@ begin
   finally FreeAndNil(TextWidths) end;
 end;
 
-procedure TAsciiTextRenderer.DoRender;
+procedure TAsciiTextRenderer.Render;
 var
   Node: TNodeAsciiText_1;
 begin
@@ -286,7 +289,7 @@ begin
     nil, nil, nil);
 end;
 
-procedure TTextRenderer.DoRender;
+procedure TTextRenderer.Render;
 var
   Node: TNodeText;
   Size, Spacing: Single;
@@ -322,20 +325,7 @@ begin
     Node.EventLineBounds, Node.EventOrigin, Node.EventTextBounds);
 end;
 
-constructor TText3DRenderer.Create(ARenderer: TVRMLGLRenderer);
-var
-  Node: TNodeText3D;
-begin
-  inherited;
-
-  Node := Geometry as TNodeText3D;
-
-  CullBackFaces := Node.FdSolid.Value;
-  { We don't set here FrontFaceCcw, it doesn't matter, we will
-    set glCullFace ourselves anyway. }
-end;
-
-procedure TText3DRenderer.DoRender;
+procedure TText3DRenderer.Render;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;

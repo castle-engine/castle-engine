@@ -66,36 +66,15 @@ type
       subclass able to do bump mapping. }
     BumpMappingAllowed: boolean;
 
-    { CullBackFaces says if we should enable back-face culling.
-      If @true, then in our Render, we will do glEnable(GL_CULL_FACE),
-      and set glCullFace such that front face will be visible.
-      FrontFaceCcw says what is "front face".
+    procedure WarningShadingProblems(
+      const ColorPerVertex, NormalPerVertex: boolean);
+  public
+    { Constructor.
 
-      You can set these only in your constructor.
-      By default, both are false, unless the Geometry is of
-      X3DComposedGeometryNode type, then we use X3DComposedGeometryNode
-      solid/ccw fields. So for X3DComposedGeometryNode it's already handled
-      here -- it's set, and handled during Render.
-
-      In this class, FrontFaceCcw is ignored if CullBackFaces = @false.
-
-      Note that we *do not* implement these by glFrontFace, we do a little
-      more complicated trick, see comments at the beginning of VRMLGLRenderer
-      for explanation (hint: plane mirrors).
-
-      If CullBackFaces = @true, then you can call glCullFace
-      in Render if you want to change which
-      faces are culled (ccw or cw) in the middle of rendering. We are inside
-      glPushAttrib(GL_POLYGON_BIT) anyway (if CullBackFaces),
-      so glCullFace changes are protected.
-
-      @groupBegin }
-    CullBackFaces: boolean;
-    FrontFaceCcw: boolean;
-    { @groupEnd }
-
-    { This causes the whole Render to be done with flat shading set. }
-    ForceFlatShading: boolean;
+      For descendants implementors:
+      Don't do any OpenGL state changes here (initialization of OpenGL state
+      should go to Render). }
+    constructor Create(ARenderer: TVRMLGLRenderer);
 
     { Render the whole geometry.
 
@@ -112,22 +91,7 @@ type
       although they will be unused) generate texture coords.)
       Do not change here the bound texture or operate on texture matrix
       or texture enabled state. }
-    procedure DoRender; virtual; abstract;
-
-    procedure WarningShadingProblems(
-      const ColorPerVertex, NormalPerVertex: boolean);
-  public
-    { Constructor.
-
-      For descendants implementors:
-      Don't do any OpenGL state changes here (initialization of OpenGL state
-      should go to Render). }
-    constructor Create(ARenderer: TVRMLGLRenderer);
-
-    { Do the actual render of the whole geometry.
-      Don't override this, this only sets some common things
-      (like CullBackFaces) and calls DoRender. }
-    procedure Render;
+    procedure Render; virtual; abstract;
   public
     { Initialized in our constructor to bmNone.
       Renderer will set this to Renderer.BumpMappingMethod
@@ -145,6 +109,9 @@ type
     values. If Coord will be @nil, nothing will be rendered. }
   TAbstractCoordinateRenderer = class(TVRMLMeshRenderer)
   private
+    { used by RenderCoordinateBegin/End for CullBackFaces and FrontFaceCcw
+      implementation. }
+    PushedAttribs: TGLbitfield;
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
     FCoordIndex: TMFLong;
@@ -187,6 +154,31 @@ type
     }
     ArrayIndexNum: Integer;
   protected
+    { CullBackFaces says if we should enable back-face culling.
+      If @true, then in our Render, we will do glEnable(GL_CULL_FACE),
+      and set glCullFace such that front face will be visible.
+      FrontFaceCcw says what is "front face".
+
+      You can set these only in your constructor.
+      By default, both are false, unless the Geometry is of
+      X3DComposedGeometryNode type, then we use X3DComposedGeometryNode
+      solid/ccw fields. So for X3DComposedGeometryNode it's already handled
+      here -- it's set, and handled during Render.
+
+      In this class, FrontFaceCcw is ignored if CullBackFaces = @false.
+
+      Note that we *do not* implement these by glFrontFace, we do a little
+      more complicated trick, see comments at the beginning of VRMLGLRenderer
+      for explanation (hint: plane mirrors).
+
+      @groupBegin }
+    CullBackFaces: boolean;
+    FrontFaceCcw: boolean;
+    { @groupEnd }
+
+    { Make the whole rendering with flat shading. }
+    ForceFlatShading: boolean;
+
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
       If @nil then nothing will be rendered. }
@@ -212,10 +204,6 @@ type
     { Count of indexes. You can pass index between 0 and CoordCount - 1
       to various methods taking an index, like GenerateVertex. }
     function CoordCount: Integer;
-
-    { Don't override Render --- this is already overridden here
-      to do everything necessary. }
-    procedure DoRender; override;
 
     { Override these to generate and render contents of Arrays.
       These are all called only when Coord is assigned.
@@ -285,6 +273,10 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); virtual;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
+
+    { Don't override this, it is already overridden here
+      to do everything necessary. }
+    procedure Render; override;
   end;
 
 type
@@ -707,57 +699,6 @@ begin
   FState := Renderer.CurrentState;
   FGeometry := Renderer.CurrentGeometry;
   FAttributes := Renderer.Attributes;
-
-  if Geometry is TNodeX3DComposedGeometryNode then
-  begin
-    CullBackFaces := (Geometry as TNodeX3DComposedGeometryNode).FdSolid.Value;
-    FrontFaceCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
-  end;
-end;
-
-procedure TVRMLMeshRenderer.Render;
-var
-  PushedAttribs: TGLbitfield;
-begin
-  PushedAttribs := 0;
-
-  if CullBackFaces then
-    PushedAttribs := PushedAttribs or GL_POLYGON_BIT;
-  if ForceFlatShading then
-    PushedAttribs := PushedAttribs or GL_LIGHTING_BIT { for shade model };
-
-  if PushedAttribs <> 0 then
-    glPushAttrib(PushedAttribs);
-
-  try
-    if CullBackFaces then
-    begin
-      { If vertex ordering is consistent and object is SOLID than we use OpenGL's
-        backface culling.
-
-        If FrontFaceCcw then we have to cull CW faces.
-        But note that we do not want to call OpenGL glFrontFace
-        (see VRMLGLRenderer comments for reasons), so instead of it we switch
-        glCullFace. Since we assume that front = always CCW, so we know how to call
-        glCullFace.
-      }
-      glEnable(GL_CULL_FACE);
-      if FrontFaceCcw then
-        glCullFace(GL_BACK) else
-        glCullFace(GL_FRONT);
-    end;
-
-    if ForceFlatShading then
-    begin
-      glShadeModel(GL_FLAT);
-    end;
-
-    DoRender;
-
-  finally
-    if PushedAttribs <> 0 then
-      glPopAttrib;
-  end;
 end;
 
 procedure TVRMLMeshRenderer.WarningShadingProblems(
@@ -779,9 +720,15 @@ begin
   Check(Geometry.Coord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
   FCoordIndex := Geometry.CoordIndex;
+
+  if Geometry is TNodeX3DComposedGeometryNode then
+  begin
+    CullBackFaces := (Geometry as TNodeX3DComposedGeometryNode).FdSolid.Value;
+    FrontFaceCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
+  end;
 end;
 
-procedure TAbstractCoordinateRenderer.DoRender;
+procedure TAbstractCoordinateRenderer.Render;
 
   { Calculate Arrays.Indexes, Arrays.Count, Arrays.Position,
     call PrepareAttributes in the middle. }
@@ -1088,12 +1035,43 @@ end;
 
 procedure TAbstractCoordinateRenderer.RenderCoordinateBegin;
 begin
-  { nothing to do in this class }
+  PushedAttribs := 0;
+
+  if CullBackFaces then
+    PushedAttribs := PushedAttribs or GL_POLYGON_BIT;
+  if ForceFlatShading then
+    PushedAttribs := PushedAttribs or GL_LIGHTING_BIT { for shade model };
+
+  if PushedAttribs <> 0 then
+    glPushAttrib(PushedAttribs);
+
+  if CullBackFaces then
+  begin
+    { If vertex ordering is consistent and object is SOLID than we use OpenGL's
+      backface culling.
+
+      If FrontFaceCcw then we have to cull CW faces.
+      But note that we do not want to call OpenGL glFrontFace
+      (see VRMLGLRenderer comments for reasons), so instead of it we switch
+      glCullFace. Since we assume that front = always CCW, so we know how to call
+      glCullFace.
+    }
+    glEnable(GL_CULL_FACE);
+    if FrontFaceCcw then
+      glCullFace(GL_BACK) else
+      glCullFace(GL_FRONT);
+  end;
+
+  if ForceFlatShading then
+  begin
+    glShadeModel(GL_FLAT);
+  end;
 end;
 
 procedure TAbstractCoordinateRenderer.RenderCoordinateEnd;
 begin
-  { nothing to do in this class }
+  if PushedAttribs <> 0 then
+    glPopAttrib;
 end;
 
 procedure TAbstractCoordinateRenderer.GenerateVertex(IndexNum: integer);
