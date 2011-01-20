@@ -1646,16 +1646,9 @@ begin
         Result := niPerFaceNormalIndexed;
   end;
 
-  { ponizsza instrukcja ma taki efekt : jezeli nie bylo zadnych normali w ostatnim
-    node Normal (albo wrecz nie bylo zadnego takiego node'a w pliku, czyli
-    LastNormal to DefaultNormalNode sceny) to bedziemy generowac normale.
-
-    Jezeli juz bylismy ustawieni na generowanie normali albo jezeli to jest
-    pusty indexed node (tzn. nie podaje zadnych faces - co jest przeciez
-    dopuszczalne) to ta instrukcja nie spowoduje zadnego efektu (a wiec
-    tez niczemu nie zaszkodzi). Wpp. (jezeli nie mielismy generowac
-    normali i node niepusty) ta instrukcja sprawi ze taki niepoprawny VRML
-    zostanie mimo wszystko dobrze odczytany i wyswietlony. }
+  { If no normals are provided (for VRML 1.0, this means that last Normal
+    node was empty, or it's the default empty node from DefaultLastNodes scen)
+    then generate normals. }
   if Normals.Count = 0 then
     Result := niNone;
 end;
@@ -1685,7 +1678,7 @@ begin
     niPerFaceNormalIndexed:
       N := CcwNormals.Items[NormalIndex.ItemsSafe[RangeNumber]];
     else
-      raise EInternalError.CreateFmt('NorImplementation unknown (probably niNone, and not overridden GetNormal) in class %s', 
+      raise EInternalError.CreateFmt('NorImplementation unknown (probably niNone, and not overridden GetNormal) in class %s',
         [ClassName]);
   end;
 end;

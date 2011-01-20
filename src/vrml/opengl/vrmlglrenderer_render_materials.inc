@@ -15,14 +15,8 @@
 
 procedure TVRMLGLRenderer.Render_MaterialsBegin;
 
-  { Judge whether the node can be lit, looking only at Node (not at State,
-    Material etc.).
-
-    Assumes already calculated:
-    - MeshRenderer,
-    - ShapeBumpMappingUsed
-      (set by TBumpMappingRenderer.Enable called from RenderTexturesBegin),
-    - NorImplementation for TIndexedLineSet_1Generator }
+  { Judge whether the node can be lit.
+    Assumes ShapeBumpMappingUsed is already calculated. }
   function NodeLit(Node: TVRMLGeometryNode): boolean;
   begin
     if ShapeBumpMappingUsed <> bmNone then
@@ -46,8 +40,8 @@ procedure TVRMLGLRenderer.Render_MaterialsBegin;
         (Node is TNodePointSet_2) or
         { VRML 1.0 specification states that lines normals aren't generated
           --- instead, lines are drawn unlit when there are no normals specified. }
-        ( (Node is TNodeIndexedLineSet_1) {TODO:and
-          ((MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation = niNone)} ) or
+        ( (Node is TNodeIndexedLineSet_1) and
+          (CurrentState.LastNodes.Normal.FdVector.Count = 0) ) or
         { VRML 2.0 specification says that IndexedLineSet should always be unlit,
           X3D spec adds that LineSet is also always unlit. }
         (Node is TNodeIndexedLineSet_2) or
