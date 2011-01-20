@@ -440,7 +440,7 @@ end;
 procedure TGeometryArrays.AddTexCoordCopy(
   const NewTextureUnit, ExistingTextureUnit: Cardinal);
 begin
-  if TexCoords[ExistingTextureUnit].Generation = tgExplicit then
+  if TexCoords[ExistingTextureUnit].Generation <> tgExplicit then
   begin
     AddTexCoordGenerated(TexCoords[ExistingTextureUnit].Generation, NewTextureUnit);
     TexCoords[NewTextureUnit].GenerationBoundsVector       := TexCoords[ExistingTextureUnit].GenerationBoundsVector;
