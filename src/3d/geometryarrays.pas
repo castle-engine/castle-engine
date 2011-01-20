@@ -229,6 +229,8 @@ type
       Generation passed here must not be tgExplicit. }
     procedure AddTexCoordGenerated(const Generation: TTextureCoordinateGeneration;
       const TextureUnit: Cardinal);
+    { Add texture coord, with configuration copied from existing texture coord. }
+    procedure AddTexCoordCopy(const NewTextureUnit, ExistingTextureUnit: Cardinal);
 
     function TexCoord(const Dimensions: TTexCoordDimensions;
       const TextureUnit, Index: Cardinal): Pointer;
@@ -433,6 +435,24 @@ end;
 procedure TGeometryArrays.AddTexCoord4D(const TextureUnit: Cardinal);
 begin
   AddTexCoord(tgExplicit, 4, TextureUnit);
+end;
+
+procedure TGeometryArrays.AddTexCoordCopy(
+  const NewTextureUnit, ExistingTextureUnit: Cardinal);
+begin
+  if TexCoords[ExistingTextureUnit].Generation = tgExplicit then
+  begin
+    AddTexCoordGenerated(TexCoords[ExistingTextureUnit].Generation, NewTextureUnit);
+    TexCoords[NewTextureUnit].GenerationBoundsVector       := TexCoords[ExistingTextureUnit].GenerationBoundsVector;
+    TexCoords[NewTextureUnit].HasGenerationProjectorMatrix := TexCoords[ExistingTextureUnit].HasGenerationProjectorMatrix;
+    TexCoords[NewTextureUnit].GenerationProjectorMatrix    := TexCoords[ExistingTextureUnit].GenerationProjectorMatrix;
+  end else
+  case TexCoords[ExistingTextureUnit].Dimensions of
+    2: AddTexCoord2D(NewTextureUnit);
+    3: AddTexCoord3D(NewTextureUnit);
+    4: AddTexCoord4D(NewTextureUnit);
+    else raise EInternalError.Create('TexCoords[ExistingTextureUnit].Dimensions?');
+  end;
 end;
 
 function TGeometryArrays.TexCoord(const Dimensions: TTexCoordDimensions;

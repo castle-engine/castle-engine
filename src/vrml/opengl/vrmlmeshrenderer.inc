@@ -1497,28 +1497,10 @@ var
           last channel is replicated. }
       for I := LastCoord + 1 to TexCoordsNeeded - 1 do
       begin
-        if Arrays.TexCoords[LastCoord].Generation = tgExplicit then
-        begin
-          Arrays.AddTexCoordGenerated(Arrays.TexCoords[LastCoord].Generation, I);
-          Arrays.TexCoords[I].GenerationBoundsVector       := Arrays.TexCoords[LastCoord].GenerationBoundsVector;
-          Arrays.TexCoords[I].HasGenerationProjectorMatrix := Arrays.TexCoords[LastCoord].HasGenerationProjectorMatrix;
-          Arrays.TexCoords[I].GenerationProjectorMatrix    := Arrays.TexCoords[LastCoord].GenerationProjectorMatrix;
-        end else
-        case Arrays.TexCoords[LastCoord].Dimensions of
-          2: begin
-               Arrays.AddTexCoord2D(I);
-               TexCoordArray2d[I] := TexCoordArray2d[LastCoord];
-             end;
-          3: begin
-               Arrays.AddTexCoord3D(I);
-               TexCoordArray3d[I] := TexCoordArray3d[LastCoord];
-             end;
-          4: begin
-               Arrays.AddTexCoord4D(I);
-               TexCoordArray4d[I] := TexCoordArray4d[LastCoord];
-             end;
-          else raise EInternalError.Create('Arrays.TexCoords[LastCoord].Dimensions?');
-        end;
+        Arrays.AddTexCoordCopy(I, LastCoord);
+        TexCoordArray2d[I] := TexCoordArray2d[LastCoord];
+        TexCoordArray3d[I] := TexCoordArray3d[LastCoord];
+        TexCoordArray4d[I] := TexCoordArray4d[LastCoord];
       end;
     end;
   end;
