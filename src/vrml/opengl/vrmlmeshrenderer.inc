@@ -1178,10 +1178,6 @@ procedure TAbstractTextureCoordinateRenderer.PrepareAttributes(
         )));
   end;
 
-var
-  { Just copy of Renderer.TexCoordsNeeded, for comfort }
-  TexCoordsNeeded: Cardinal;
-
   { Set length of TexCoordArray* arrays. }
   procedure SetTexLengths(const Count: Integer);
   begin
@@ -1293,14 +1289,11 @@ var
     end;
   end;
 
-  { Initialize Arrays.TexCoords and TexCoordArray2/3/4d.
-    At least for TexCoordsNeeded.
+  { Initialize Arrays.TexCoords and TexCoordArray2/3/4d, based on TexCoord.
 
-    Uses TexCoord.
-
-    If any usable tex coords are found (that is,
-    Arrays.TexCoords.Count <> 0) then this array is grown to contain
-    at least TexCoordsNeeded units. }
+    If any usable tex coords are found
+    (that is,  Arrays.TexCoords.Count <> 0 on exit) then this array
+    contains at least TexCoordsNeeded units. }
   procedure InitializeTexCoordGenArray;
 
     { Add single texture coord configuration
@@ -1484,18 +1477,18 @@ var
     Assert(Arrays.TexCoords.Count = Length(TexCoordArray4d));
 
     if (Arrays.TexCoords.Count <> 0) and
-       (Arrays.TexCoords.Count < TexCoordsNeeded) then
+       (Arrays.TexCoords.Count < Renderer.TexCoordsNeeded) then
     begin
       LastCoord := Arrays.TexCoords.Count - 1;
-      SetTexLengths(Arrays.TexCoords.Count);
+      SetTexLengths(Renderer.TexCoordsNeeded);
 
-      { We copy TexCoordArray*[LastCoord] to all following items.
+      { We copy tex coord LastCoord values to all following items.
         This way we do what X3D spec says:
         - if non-MultiTextureCoordinate is used for multitexturing,
           channel 0 is replicated
         - if MultiTextureCoordinate is used, but with too few items,
           last channel is replicated. }
-      for I := LastCoord + 1 to TexCoordsNeeded - 1 do
+      for I := LastCoord + 1 to Renderer.TexCoordsNeeded - 1 do
       begin
         Arrays.AddTexCoordCopy(I, LastCoord);
         TexCoordArray2d[I] := TexCoordArray2d[LastCoord];
@@ -1518,8 +1511,8 @@ var
     TexGenVectors := Bounds2DTextureGenVectors;
 
     TexImplementation := tcAllGenerated;
-    SetTexLengths(TexCoordsNeeded);
-    for I := 0 to TexCoordsNeeded - 1 do
+    SetTexLengths(Renderer.TexCoordsNeeded);
+    for I := 0 to Renderer.TexCoordsNeeded - 1 do
     begin
       Arrays.AddTexCoordGenerated(tgBounds2d, I);
       Arrays.TexCoords[I].GenerationBoundsVector := TexGenVectors;
@@ -1538,8 +1531,8 @@ var
     TexGenVectors := Bounds3DTextureGenVectors;
 
     TexImplementation := tcAllGenerated;
-    SetTexLengths(TexCoordsNeeded);
-    for I := 0 to TexCoordsNeeded - 1 do
+    SetTexLengths(Renderer.TexCoordsNeeded);
+    for I := 0 to Renderer.TexCoordsNeeded - 1 do
     begin
       Arrays.AddTexCoordGenerated(tgBounds3d, I);
       Arrays.TexCoords[I].GenerationBoundsVector := TexGenVectors;
@@ -1551,15 +1544,13 @@ begin
 
   TexImplementation := tcNotGenerated;
 
-  TexCoordsNeeded := Renderer.TexCoordsNeeded;
-
   { Make sure they are initially empty. }
   Assert(Arrays.TexCoords.Count = 0);
   Assert(Length(TexCoordArray2d) = 0);
   Assert(Length(TexCoordArray3d) = 0);
   Assert(Length(TexCoordArray4d) = 0);
 
-  if TexCoordsNeeded > 0 then
+  if Renderer.TexCoordsNeeded > 0 then
   begin
     if { Original shape node is a primitive, without explicit texCoord }
        Shape.OriginalGeometry.AutoGenerate3DTexCoords and
