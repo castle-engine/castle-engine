@@ -30,7 +30,9 @@ type
     procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinate; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
@@ -45,7 +47,9 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for X3D IndexedTriangleFanSet and TriangleFanSet node. }
@@ -65,7 +69,9 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for X3D IndexedTriangleStripSet and TriangleStripSet nodes.
@@ -90,7 +96,9 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for X3D IndexedQuadSet and QuadSet nodes. }
@@ -105,7 +113,9 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
@@ -125,13 +135,17 @@ type
   { Generator for VRML <= 1.0 TNodeIndexedLineSet_1 }
   TIndexedLineSet_1Generator = class(TLineSetGenerator)
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   { Generator for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
   TLineSet_2Generator = class(TLineSetGenerator)
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   protected
     procedure GenerateCoordinateBegin; override;
   end;
@@ -170,7 +184,9 @@ end;
 
 { TPointSet_2Generator -------------------------------------------------------- }
 
-constructor TPointSet_2Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TPointSet_2Generator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 var
   Node: TNodePointSet_2;
 begin
@@ -231,13 +247,13 @@ begin
     if State.ShapeNode = nil then
     begin
       VRMLWarning(vwSerious, 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-      Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity);
+      Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity);
     end else
     begin
       Material := State.ShapeNode.Material;
       if Material <> nil then
-        Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, Renderer.Material_BoundOpacity) else
-        Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity);
+        Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, MaterialOpacity) else
+        Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity);
     end;
   end;
 end;
@@ -257,7 +273,9 @@ end;
 
 { TTriangleSetGenerator ------------------------------------------------------- }
 
-constructor TTriangleSetGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TTriangleSetGenerator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -382,7 +400,9 @@ end;
 
 { TTriangleFanSetGenerator ---------------------------------------------------- }
 
-constructor TTriangleFanSetGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TTriangleFanSetGenerator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -551,7 +571,9 @@ end;
 
 { TTriangleStripSetGenerator -------------------------------------------------- }
 
-constructor TTriangleStripSetGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TTriangleStripSetGenerator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 
   procedure CreateForIndexedTriangleMesh_1;
   var
@@ -777,7 +799,9 @@ end;
 
 { TQuadSetGenerator ------------------------------------------------------- }
 
-constructor TQuadSetGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TQuadSetGenerator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -942,7 +966,9 @@ end;
 
 { TIndexedLineSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedLineSet_1Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TIndexedLineSet_1Generator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 var
   Node: TNodeIndexedLineSet_1;
 begin
@@ -966,7 +992,9 @@ end;
 
 { TLineSet_2Generator --------------------------------------------------------- }
 
-constructor TLineSet_2Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TLineSet_2Generator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 var
   NodeLS: TNodeLineSet;
   NodeILS: TNodeIndexedLineSet_2;
@@ -1012,13 +1040,13 @@ begin
     if State.ShapeNode = nil then
     begin
       VRMLWarning(vwSerious, 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-      Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity)
+      Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity)
     end else
     begin
       Material := State.ShapeNode.Material;
       if Material <> nil then
-        Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, Renderer.Material_BoundOpacity) else
-        Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity)
+        Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, MaterialOpacity) else
+        Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity)
     end;
   end;
 end;

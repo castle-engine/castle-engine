@@ -1191,7 +1191,7 @@ type
     MaterialLit: boolean;
     Material1BoundNumber: integer;
     MaterialTemporaryDisabledFog: boolean;
-    Material_BoundOpacity: Single;
+    MaterialOpacity: Single;
 
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
@@ -1515,9 +1515,9 @@ function FogParametersEqual(
 
 implementation
 
-uses Math, Triangulator,
-  KambiStringUtils, GLVersionUnit, KambiLog, GeometryArrays,
-  RenderStateUnit, VRMLCameraUtils, RaysWindow, VRMLShadowMaps;
+uses Math, KambiStringUtils, GLVersionUnit, KambiLog, GeometryArrays,
+  RenderStateUnit, VRMLCameraUtils, RaysWindow, VRMLShadowMaps,
+  VRMLArraysGenerator;
 
 {$define read_implementation}
 {$I dynarray_2.inc}
@@ -1531,9 +1531,6 @@ uses Math, Triangulator,
 
 {$I vrmlmeshrenderer.inc}
 {$I vrmlmeshrenderer_x3d_text.inc}
-{$I vrmlarraysgenerator.inc}
-{$I vrmlarraysgenerator_x3d_rendering.inc}
-{$I vrmlarraysgenerator_x3d_geometry3d.inc}
 
 {$I resourcerenderer.inc}
 {$I vrmltexturerenderer.inc}
@@ -4039,55 +4036,31 @@ var
       (Node is TNodeIndexedLineSet_2));
   end;
 
-  { If AGeometry should be rendered using one of TVRMLMeshRenderer
+  { If CurrentGeometry should be rendered using one of TVRMLMeshRenderer
     classes, then create appropriate MeshRenderer and return @true.
     Otherwise return @false and doesn't set MeshRenderer.
 
     Takes care of initializing MeshRenderer, so you have to call only
     MeshRenderer.Render. }
-  function InitMeshRenderer(AGeometry: TVRMLGeometryNode): boolean;
+  function InitMeshRenderer: boolean;
   begin
-    Generator := nil;
     Result := true;
 
-    if AGeometry is TNodeAsciiText_1 then
-      ExposedMeshRenderer := TAsciiTextRenderer.Create(Self) else
-    if AGeometry is TNodeText then
-      ExposedMeshRenderer := TTextRenderer.Create(Self) else
-    if AGeometry is TNodeText3D then
-      ExposedMeshRenderer := TText3DRenderer.Create(Self) else
-    if AGeometry is TNodeIndexedTriangleMesh_1 then
-      Generator := TTriangleStripSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
-    if AGeometry is TNodeIndexedFaceSet_1 then
-      Generator := TIndexedFaceSet_1Generator.Create(Self, ShapeBumpMappingAllowed) else
-    if AGeometry is TNodeIndexedFaceSet_2 then
-      Generator := TIndexedFaceSet_2Generator.Create(Self, ShapeBumpMappingAllowed) else
-    if AGeometry is TNodeIndexedLineSet_1 then
-      Generator := TIndexedLineSet_1Generator.Create(Self, ShapeBumpMappingAllowed) else
-    if (AGeometry is TNodeIndexedLineSet_2) or
-       (AGeometry is TNodeLineSet) then
-      Generator := TLineSet_2Generator.Create(Self, ShapeBumpMappingAllowed) else
-    if AGeometry is TNodePointSet_1 then
-      Generator := TPointSet_1Generator.Create(Self, ShapeBumpMappingAllowed) else
-    if AGeometry is TNodePointSet_2 then
-      Generator := TPointSet_2Generator.Create(Self, ShapeBumpMappingAllowed) else
-    if (AGeometry is TNodeTriangleSet) or
-       (AGeometry is TNodeIndexedTriangleSet) then
-      Generator := TTriangleSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
-    if (AGeometry is TNodeTriangleFanSet) or
-       (AGeometry is TNodeIndexedTriangleFanSet) then
-      Generator := TTriangleFanSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
-    if (AGeometry is TNodeTriangleStripSet) or
-       (AGeometry is TNodeIndexedTriangleStripSet) then
-      Generator := TTriangleStripSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
-    if (AGeometry is TNodeQuadSet) or
-       (AGeometry is TNodeIndexedQuadSet) then
-      Generator := TQuadSetGenerator.Create(Self, ShapeBumpMappingAllowed) else
-      Result := false;
+    Generator := CreateArraysGenerator(Self,
+      CurrentShape, CurrentState, CurrentGeometry, ShapeBumpMappingAllowed);
 
-    { If we have Generator, create TCompleteCoordinateRenderer.
-      We'll initialize TCompleteCoordinateRenderer.Arrays later from Generator. }
-    if Generator <> nil then
+    if Generator = nil then
+    begin
+      if CurrentGeometry is TNodeAsciiText_1 then
+        ExposedMeshRenderer := TAsciiTextRenderer.Create(Self) else
+      if CurrentGeometry is TNodeText then
+        ExposedMeshRenderer := TTextRenderer.Create(Self) else
+      if CurrentGeometry is TNodeText3D then
+        ExposedMeshRenderer := TText3DRenderer.Create(Self) else
+        Result := false;
+    end else
+      { If we have Generator, create TCompleteCoordinateRenderer.
+        We'll initialize TCompleteCoordinateRenderer.Arrays later from Generator. }
       ExposedMeshRenderer := TCompleteCoordinateRenderer.Create(Self);
   end;
 
@@ -4279,12 +4252,12 @@ begin
     --- try to use Shape.Geometry (possibly through Proxy).
     This is to allow nodes with a Proxy
     still be rendered using direct specialized method, if available. }
-  if not InitMeshRenderer(CurrentGeometry) then
+  if not InitMeshRenderer then
   begin
     CurrentGeometry := Shape.Geometry;
     CurrentState := Shape.State;
     if not ((CurrentGeometry <> Shape.OriginalGeometry) and
-      InitMeshRenderer(CurrentGeometry)) then
+      InitMeshRenderer) then
     begin
       VRMLWarning(vwSerious,
         { We display for user Shape.OriginalGeometry.NodeTypeName, as it's
@@ -4315,8 +4288,13 @@ begin
           if Generator <> nil then
           begin
             Assert(MeshRenderer is TBaseCoordinateRenderer);
-            Generator.GenerateArrays;
-            TBaseCoordinateRenderer(MeshRenderer).Arrays := Generator.Arrays;
+            Generator.TexCoordsNeeded := TexCoordsNeeded;
+            Generator.MaterialOpacity := MaterialOpacity;
+            Generator.FogVolumetric := FogVolumetric;
+            Generator.FogVolumetricDirection := FogVolumetricDirection;
+            Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
+            Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
+            TBaseCoordinateRenderer(MeshRenderer).Arrays := Generator.GenerateArrays;
             FreeAndNil(Generator);
           end;
 

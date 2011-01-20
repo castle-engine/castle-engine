@@ -14,9 +14,15 @@
 }
 
 { Generating TGeometryArrays for VRML/X3D shapes. }
+unit VRMLArraysGenerator;
+
+interface
+
+uses VRMLGLRenderer, VRMLShape, VRMLNodes, VRMLFields, KambiUtils,
+  GeometryArrays, VectorMath;
 
 type
-  { Generates TGeometryArrays for a VRML/X3D node.
+  { Generates TGeometryArrays for a VRML/X3D shape.
 
     Geometry must be based on coordinates when using this,
     that is TVRMLGeometryNode.Coord must return @true.
@@ -86,7 +92,9 @@ type
     procedure WarningShadingProblems(
       const ColorPerVertex, NormalPerVertex: boolean);
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   protected
     { Coordinates, taken from Geometry.Coord.
       Usually coming from (coord as Coordinate).points field.
@@ -108,7 +116,7 @@ type
 
     { This gets vertex coordinate Returned vertex is in local coordinate space
       (use State.Transform if you want to get global coordinates). }
-    function GetVertex(IndexNum: integer): TVector3f;
+    function GetVertex(IndexNum: integer): TVector3Single;
 
     { Count of indexes. You can pass index between 0 and CoordCount - 1
       to various methods taking an index, like GenerateVertex. }
@@ -173,10 +181,34 @@ type
       so there's no point in indexing). }
     procedure PrepareAttributes(var AllowIndexed: boolean); virtual;
   public
+    { You have to assign these before calling GenerateArrays.
+      @groupBegin }
+    TexCoordsNeeded: Cardinal;
+    MaterialOpacity: Single;
+    FogVolumetric: boolean;
+    FogVolumetricDirection: TVector3Single;
+    FogVolumetricVisibilityStart: Single;
+    ShapeBumpMappingUsed: TBumpMappingMethod;
+    { @groupEnd }
+
     { Create and generate Arrays contents. }
-    procedure GenerateArrays;
+    function GenerateArrays: TGeometryArrays;
   end;
 
+{ Create TVRMLArraysGenerator instance suitable for given AGeometry.
+  Returns @nil if not suitable generator for this node,
+  which means that this node cannot be rendered through TGeometryArrays. }
+function CreateArraysGenerator(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean):
+  TVRMLArraysGenerator;
+
+implementation
+
+uses SysUtils, KambiLog, FGL, VRMLErrors, Boxes3D, Triangulator,
+  KambiStringUtils;
+
+type
   TTextureCoordsImplementation = (
     { Texture coords not generated, because not needed by Renderer. }
     tcNotGenerated,
@@ -196,8 +228,7 @@ type
     { IndexNum is a direct index to TexCoordGen/Array[TextureUnit]. }
     tcNonIndexed);
 
-  { Enhances TAbstractCoordinateGenerator with the ability to handle
-    texture coordinate generation.
+  { Handle texture coordinates.
 
     Usage:
 
@@ -237,7 +268,7 @@ type
 
     This class takes care to generate tex coords, or use supplied
     TexCoord and TexCoordIndex. At least for texture units in
-    Renderer.TexCoordsNeeded (although we may pass some more, will be unused).
+    TexCoordsNeeded (although we may pass some more, will be unused).
     So you do not have to generate any texture coordinates
     in descendants. Everything related to textures is already
     handled in this class. }
@@ -284,7 +315,9 @@ type
 
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   TMaterials1Implementation = (miOverall,
@@ -293,8 +326,7 @@ type
     miPerFace,
     miPerFaceMatIndexed);
 
-  { Enhances TAbstractTextureCoordinateGenerator with the ability to handle
-    per-face or per-vertex VRML 1.0 materials.
+  { Handle per-face or per-vertex VRML 1.0 materials.
 
     Usage:
     - Just set MaterialIndex and MaterialBinding using your node's fields.
@@ -314,9 +346,7 @@ type
     so you should set this in your Render. There's no way to implement
     them with flat shading.
 
-    Do not call Renderer.Render_BindMaterial_1
-    in descendants. Everything related to VRML 1.0 materials is already
-    handled in this class. }
+    Everything related to VRML 1.0 materials is already handled in this class. }
   TAbstractMaterial1Generator = class(TAbstractTextureCoordinateGenerator)
   private
     { Must be set in constructor. MaterialsBegin (may someday) depend on this.
@@ -342,11 +372,12 @@ type
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
-  { Enhances TAbstractMaterial1Generator with the ability to handle
-    per-face or per-vertex VRML >= 2.0 colors.
+  { Handle per-face or per-vertex VRML >= 2.0 colors.
 
     - Usage: set Color or ColorRGBA (at most one of them), ColorPerVertex,
       ColorIndex.
@@ -411,7 +442,9 @@ type
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   TNormalsImplementation = (
@@ -435,8 +468,7 @@ type
     { Face number is the index to NormalIndex, and this indexes Normals. }
     niPerFaceNormalIndexed);
 
-  { Enhances TAbstractColorGenerator with the ability
-    to use normals, both taken from user data (that is, stored in VRML file)
+  { Handle normals, both taken from user data (that is, stored in VRML file)
     and generated.
 
     Usage:
@@ -526,7 +558,7 @@ type
     procedure GenerateVertex(IndexNum: Integer); override;
   end;
 
-  { Take care of everything related to setting fog coordinate.
+  { Handle fog coordinate.
     Descendants don't have to do anything, this just works
     (using TVRMLGeometryNode.FogCoord). }
   TAbstractFogGenerator = class(TAbstractNormalGenerator)
@@ -536,13 +568,14 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   TX3DVertexAttributeNodes = specialize TFPGObjectList<TNodeX3DVertexAttributeNode>;
 
-  { Take care of everything related to setting GLSL attributes
-    from VRML/X3D "attrib" field.
+  { Handle GLSL attributes from VRML/X3D "attrib" field.
     Descendants don't have to do anything, this just works
     (using TVRMLGeometryNode.Attrib). }
   TAbstractShaderAttribGenerator = class(TAbstractFogGenerator)
@@ -552,10 +585,21 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
     destructor Destroy; override;
   end;
 
+  { Handle bump mapping.
+
+    Descendants should:
+    - set ShapeBumpMappingAllowed to true is constructor,
+    - call CalculateTangentVectors when needed.
+    - Also make sure that GetNormal always
+      works (since it's called by CalculateTangentVectors),
+      so if you may use NorImplementation = niNone: be sure to override
+      GetNormal to return correct normal. }
   TAbstractBumpMappingGenerator = class(TAbstractShaderAttribGenerator)
   private
     { Helpers for bump mapping }
@@ -580,14 +624,16 @@ type
 
 { TVRMLArraysGenerator ------------------------------------------------------ }
 
-constructor TVRMLArraysGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TVRMLArraysGenerator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited Create;
 
   FRenderer := ARenderer;
-  FShape := Renderer.CurrentShape;
-  FState := Renderer.CurrentState;
-  FGeometry := Renderer.CurrentGeometry;
+  FShape := AShape;
+  FState := AState;
+  FGeometry := AGeometry;
   FAttributes := Renderer.Attributes;
 
   Check(Geometry.Coord(State, FCoord),
@@ -606,7 +652,7 @@ begin
       Geometry.NodeTypeName]));
 end;
 
-procedure TVRMLArraysGenerator.GenerateArrays;
+function TVRMLArraysGenerator.GenerateArrays: TGeometryArrays;
 var
   AllowIndexed: boolean;
   MaxIndex: Integer;
@@ -616,6 +662,7 @@ begin
   try
     ArrayIndexNum := -1;
     Arrays := TGeometryArrays.Create;
+    Result := Arrays;
 
     PrepareIndexesPrimitives;
 
@@ -706,7 +753,7 @@ begin
     ArrayIndexNum := IndexNum;
 end;
 
-function TVRMLArraysGenerator.GetVertex(IndexNum: integer): TVector3f;
+function TVRMLArraysGenerator.GetVertex(IndexNum: integer): TVector3Single;
 begin
   { This assertion should never fail, it's the responsibility
     of the programmer. }
@@ -732,7 +779,9 @@ end;
 
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }
 
-constructor TAbstractTextureCoordinateGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TAbstractTextureCoordinateGenerator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
   if not Geometry.TexCoord(State, TexCoord) then
@@ -774,8 +823,8 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
 
     { Setup and enable glTexGen to make automatic 2D texture coords
       based on shape bounding box. On texture unit 0. }
-    procedure SetupCoordGen(out Gen: TVector4f;
-      const Coord: integer; const GenStart, GenEnd: TGLfloat);
+    procedure SetupCoordGen(out Gen: TVector4Single;
+      const Coord: integer; const GenStart, GenEnd: Single);
 
     { We want to map float from range
         LocalBBox[0, Coord]...LocalBBox[0, Coord] + LocalBBoxSize[Coord]
@@ -1058,10 +1107,10 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     Assert(Arrays.TexCoords.Count = Length(TexCoordArray4d));
 
     if (Arrays.TexCoords.Count <> 0) and
-       (Arrays.TexCoords.Count < Renderer.TexCoordsNeeded) then
+       (Arrays.TexCoords.Count < TexCoordsNeeded) then
     begin
       LastCoord := Arrays.TexCoords.Count - 1;
-      SetTexLengths(Renderer.TexCoordsNeeded);
+      SetTexLengths(TexCoordsNeeded);
 
       { We copy tex coord LastCoord values to all following items.
         This way we do what X3D spec says:
@@ -1069,7 +1118,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           channel 0 is replicated
         - if MultiTextureCoordinate is used, but with too few items,
           last channel is replicated. }
-      for I := LastCoord + 1 to Renderer.TexCoordsNeeded - 1 do
+      for I := LastCoord + 1 to TexCoordsNeeded - 1 do
       begin
         Arrays.AddTexCoordCopy(I, LastCoord);
         TexCoordArray2d[I] := TexCoordArray2d[LastCoord];
@@ -1092,8 +1141,8 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     TexGenVectors := Bounds2DTextureGenVectors;
 
     TexImplementation := tcAllGenerated;
-    SetTexLengths(Renderer.TexCoordsNeeded);
-    for I := 0 to Renderer.TexCoordsNeeded - 1 do
+    SetTexLengths(TexCoordsNeeded);
+    for I := 0 to TexCoordsNeeded - 1 do
     begin
       Arrays.AddTexCoordGenerated(tgBounds2d, I);
       Arrays.TexCoords[I].GenerationBoundsVector := TexGenVectors;
@@ -1112,8 +1161,8 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     TexGenVectors := Bounds3DTextureGenVectors;
 
     TexImplementation := tcAllGenerated;
-    SetTexLengths(Renderer.TexCoordsNeeded);
-    for I := 0 to Renderer.TexCoordsNeeded - 1 do
+    SetTexLengths(TexCoordsNeeded);
+    for I := 0 to TexCoordsNeeded - 1 do
     begin
       Arrays.AddTexCoordGenerated(tgBounds3d, I);
       Arrays.TexCoords[I].GenerationBoundsVector := TexGenVectors;
@@ -1131,7 +1180,7 @@ begin
   Assert(Length(TexCoordArray3d) = 0);
   Assert(Length(TexCoordArray4d) = 0);
 
-  if Renderer.TexCoordsNeeded > 0 then
+  if TexCoordsNeeded > 0 then
   begin
     if { Original shape node is a primitive, without explicit texCoord }
        Shape.OriginalGeometry.AutoGenerate3DTexCoords and
@@ -1363,7 +1412,9 @@ end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
 
-constructor TAbstractMaterial1Generator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TAbstractMaterial1Generator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
   MaterialBinding := BIND_DEFAULT;
@@ -1459,7 +1510,9 @@ end;
 
 { TAbstractColorGenerator --------------------------------------- }
 
-constructor TAbstractColorGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TAbstractColorGenerator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -1473,7 +1526,7 @@ begin
   FRadianceTransfer := Value;
 
   if (RadianceTransfer.Count <> 0) and
-     Assigned(Renderer.Attributes.OnRadianceTransfer) then
+     Assigned(Attributes.OnRadianceTransfer) then
   begin
     if RadianceTransfer.Count mod Coord.Count <> 0 then
     begin
@@ -1494,7 +1547,7 @@ procedure TAbstractColorGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
-  if Assigned(Renderer.Attributes.OnVertexColor) or
+  if Assigned(Attributes.OnVertexColor) or
      (RadianceTransfer <> nil) then
   begin
     Arrays.AddColor;
@@ -1515,7 +1568,7 @@ var
 begin
   inherited;
   { Implement different color per vertex here. }
-  if Assigned(Renderer.Attributes.OnVertexColor) then
+  if Assigned(Attributes.OnVertexColor) then
   begin
     if CoordIndex <> nil then
       VertexIndex := CoordIndex.ItemsSafe[IndexNum] else
@@ -1538,9 +1591,9 @@ begin
     end else
       VertexColor := White3Single; { default fallback }
 
-    Renderer.Attributes.OnVertexColor(VertexColor, Shape,
+    Attributes.OnVertexColor(VertexColor, Shape,
       GetVertex(IndexNum), VertexIndex);
-    Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, Renderer.Material_BoundOpacity);
+    Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);
   end else
   if RadianceTransfer <> nil then
   begin
@@ -1548,21 +1601,21 @@ begin
       VertexIndex := CoordIndex.ItemsSafe[IndexNum] else
       VertexIndex := IndexNum;
 
-    VertexColor := Renderer.Attributes.OnRadianceTransfer(Geometry,
+    VertexColor := Attributes.OnRadianceTransfer(Geometry,
       @(RadianceTransfer.Items[VertexIndex * RadianceTransferVertexSize]),
       RadianceTransferVertexSize);
 
-    Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, Renderer.Material_BoundOpacity);
+    Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);
   end else
   if Color <> nil then
   begin
     if ColorPerVertex then
     begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]], Renderer.Material_BoundOpacity) else
+        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]], MaterialOpacity) else
       if CoordIndex <> nil then
-        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]], Renderer.Material_BoundOpacity) else
-        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[IndexNum], Renderer.Material_BoundOpacity);
+        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]], MaterialOpacity) else
+        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[IndexNum], MaterialOpacity);
     end else
       Arrays.Color(ArrayIndexNum)^ := FaceColor;
   end else
@@ -1586,14 +1639,14 @@ begin
   inherited;
 
   { Implement different color per face here. }
-  if (not Assigned(Renderer.Attributes.OnVertexColor)) and
+  if (not Assigned(Attributes.OnVertexColor)) and
      (RadianceTransfer = nil) then
   begin
     if (Color <> nil) and (not ColorPerVertex) then
     begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        FaceColor := Vector4Single(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]], Renderer.Material_BoundOpacity) else
-        FaceColor := Vector4Single(Color.ItemsSafe[RangeNumber], Renderer.Material_BoundOpacity);
+        FaceColor := Vector4Single(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]], MaterialOpacity) else
+        FaceColor := Vector4Single(Color.ItemsSafe[RangeNumber], MaterialOpacity);
     end else
     if (ColorRGBA <> nil) and (not ColorPerVertex) then
     begin
@@ -1784,7 +1837,9 @@ end;
 
 { TAbstractFogGenerator --------------------------------- }
 
-constructor TAbstractFogGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TAbstractFogGenerator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 begin
   inherited;
 
@@ -1797,7 +1852,7 @@ procedure TAbstractFogGenerator.PrepareAttributes(
 begin
   inherited;
 
-  if (FogCoord <> nil) or Renderer.FogVolumetric then
+  if (FogCoord <> nil) or FogVolumetric then
   begin
     Arrays.AddFogCoord;
     Arrays.FogDirectValues := FogCoord <> nil;
@@ -1832,17 +1887,17 @@ procedure TAbstractFogGenerator.GenerateVertex(
     Position := MatrixMultPoint(State.Transform, Position);
 
     Projected := PointOnLineClosestToPoint(
-      ZeroVector3Single, Renderer.FogVolumetricDirection, Position);
+      ZeroVector3Single, FogVolumetricDirection, Position);
     Result := VectorLen(Projected);
     if not AreParallelVectorsSameDirection(
-      Projected, Renderer.FogVolumetricDirection) then
+      Projected, FogVolumetricDirection) then
       Result := -Result;
     { Now I want
       - Result = FogVolumetricVisibilityStart -> 0
       - Result = FogVolumetricVisibilityStart + X -> X
         (so that Result = FogVolumetricVisibilityStart +
         FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
-    Result -= Renderer.FogVolumetricVisibilityStart;
+    Result -= FogVolumetricVisibilityStart;
   end;
 
   procedure SetFog(const Fog: Single);
@@ -1903,13 +1958,15 @@ begin
   inherited;
   if FogCoord <> nil then
     SetFog(GetFogCoord) else
-  if Renderer.FogVolumetric then
+  if FogVolumetric then
     SetFog(GetFogVolumetric);
 end;
 
 { TAbstractShaderAttribGenerator ------------------------------ }
 
-constructor TAbstractShaderAttribGenerator.Create(ARenderer: TVRMLGLRenderer; var ShapeBumpMappingAllowed: boolean);
+constructor TAbstractShaderAttribGenerator.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 var
   A: TMFNode;
   I: Integer;
@@ -2014,7 +2071,7 @@ end;
 procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
-  if Renderer.ShapeBumpMappingUsed <> bmNone then
+  if ShapeBumpMappingUsed <> bmNone then
   begin
     Arrays.AddGLSLAttributeMatrix3('object_space_to_tangent');
     Arrays.AddGLSLAttributeVector2('tex_coord');
@@ -2096,14 +2153,14 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
 begin
   inherited;
-  if Renderer.ShapeBumpMappingUsed <> bmNone then
+  if ShapeBumpMappingUsed <> bmNone then
     DoBumpMapping;
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateCoordinateBegin;
 begin
   inherited;
-  if Renderer.ShapeBumpMappingUsed <> bmNone then
+  if ShapeBumpMappingUsed <> bmNone then
     LightPositionObjectSpace := MatrixMultPoint(
       State.InvertedTransform,
       Renderer.BumpMappingLightPosition);
@@ -2213,7 +2270,7 @@ var
   TriangleTexCoord: TTriangle2Single;
 begin
   HasTangentVectors := false;
-  if Renderer.ShapeBumpMappingUsed <> bmNone then
+  if ShapeBumpMappingUsed <> bmNone then
   begin
     { calculate Triangle3D }
     Triangle3D[0] := GetVertex(TriangleIndex1);
@@ -2235,3 +2292,47 @@ begin
       (Abs(VectorDotProduct(STangent, TTangent)) < 0.95);
   end;
 end;
+
+{ non-abstract generators ---------------------------------------------------- }
+
+{$I vrmlarraysgenerator_x3d_rendering.inc}
+{$I vrmlarraysgenerator_x3d_geometry3d.inc}
+
+{ global routines ------------------------------------------------------------ }
+
+function CreateArraysGenerator(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean):
+  TVRMLArraysGenerator;
+begin
+  if AGeometry is TNodeIndexedTriangleMesh_1 then
+    Result := TTriangleStripSetGenerator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if AGeometry is TNodeIndexedFaceSet_1 then
+    Result := TIndexedFaceSet_1Generator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if AGeometry is TNodeIndexedFaceSet_2 then
+    Result := TIndexedFaceSet_2Generator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if AGeometry is TNodeIndexedLineSet_1 then
+    Result := TIndexedLineSet_1Generator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if (AGeometry is TNodeIndexedLineSet_2) or
+     (AGeometry is TNodeLineSet) then
+    Result := TLineSet_2Generator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if AGeometry is TNodePointSet_1 then
+    Result := TPointSet_1Generator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if AGeometry is TNodePointSet_2 then
+    Result := TPointSet_2Generator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if (AGeometry is TNodeTriangleSet) or
+     (AGeometry is TNodeIndexedTriangleSet) then
+    Result := TTriangleSetGenerator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if (AGeometry is TNodeTriangleFanSet) or
+     (AGeometry is TNodeIndexedTriangleFanSet) then
+    Result := TTriangleFanSetGenerator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if (AGeometry is TNodeTriangleStripSet) or
+     (AGeometry is TNodeIndexedTriangleStripSet) then
+    Result := TTriangleStripSetGenerator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+  if (AGeometry is TNodeQuadSet) or
+     (AGeometry is TNodeIndexedQuadSet) then
+    Result := TQuadSetGenerator.Create(ARenderer, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := nil;
+end;
+
+end.

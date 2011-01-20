@@ -135,7 +135,7 @@ procedure TVRMLGLRenderer.Render_Material(
 begin
   if Attributes.PureGeometry or (not Attributes.ControlMaterials) then Exit;
 
-  Material_BoundOpacity := Opacity;
+  MaterialOpacity := Opacity;
 
   if MaterialLit then
   begin
