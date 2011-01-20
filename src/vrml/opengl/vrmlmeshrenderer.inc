@@ -595,7 +595,7 @@ type
     NormalsCcw: boolean;
 
     { This is calculated in constructor. Unlike similar TexImplementation
-      (which is calculated only in RenderCoordsBegin).
+      (which is calculated only in GenerateCoordinateBegin).
       Reasons:
       - Descendants may want to change NorImplementation. In other words,
         full automatic detection only in TAbstractNormalRenderer
@@ -963,14 +963,12 @@ procedure TAbstractCoordinateRenderer.DoRender;
       if Attributes.ControlMaterials and
          (not Attributes.PureGeometry) then
       begin
-        MaterialFromColorEnabled := Renderer.NodeLit(Geometry);
+        MaterialFromColorEnabled := Renderer.MaterialLit;
         if MaterialFromColorEnabled then
         begin
-          case Arrays.ColorSetsMaterial of
-            cmDiffuse : glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-            cmEmissive: glColorMaterial(GL_FRONT_AND_BACK, GL_EMISSION);
-            else raise EInternalError.Create('Arrays.ColorSetsMaterial?');
-          end;
+          { We always set diffuse material component from the color.
+            This satisfies all cases. }
+          glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
           glEnable(GL_COLOR_MATERIAL);
         end;
 
@@ -2037,11 +2035,6 @@ begin
       miPerVertexCoordIndexed, miPerVertexMatIndexed ] then
   begin
     Arrays.AddColor;
-
-    if State.LastNodes.Material.OnlyEmissiveMaterial then
-      Arrays.ColorSetsMaterial := cmEmissive else
-      Arrays.ColorSetsMaterial := cmDiffuse;
-
     if Mat1Implementation in
       [ miPerFace, miPerFaceMatIndexed, miPerVertexMatIndexed ] then
       AllowIndexed := false;
@@ -2054,12 +2047,9 @@ var
   M: TNodeMaterial_1;
 begin
   M := State.LastNodes.Material;
-
-  case Arrays.ColorSetsMaterial of
-    cmDiffuse : Result := M.DiffuseColor4Single(MaterialIndex);
-    cmEmissive: Result := M.EmissiveColor4Single(MaterialIndex);
-    else raise EInternalError.Create('Arrays.ColorSetsMaterial?');
-  end;
+  if M.OnlyEmissiveMaterial then
+    Result := M.EmissiveColor4Single(MaterialIndex) else
+    Result := M.DiffuseColor4Single(MaterialIndex);
 end;
 
 procedure TAbstractMaterial1Renderer.GenerateVertex(IndexNum: Integer);
