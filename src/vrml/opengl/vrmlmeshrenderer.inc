@@ -1303,38 +1303,91 @@ var
     at least TexCoordsNeeded units. }
   procedure InitializeTexCoordGenArray;
 
-    function TexCoordGenFromString(const S: string; const IsTexture3D: boolean): TTextureCoordinateGeneration;
-    begin
-      if S = 'SPHERE' then
-        Result := tgSphere else
-      if S = 'COORD' then
-        Result := tgCoord else
-      if (S = 'COORD-EYE') or (S = 'CAMERASPACEPOSITION') then
-        Result := tgCoordEye else
-      if S = 'CAMERASPACENORMAL' then
-        Result := tgCameraSpaceNormal else
-      if S = 'WORLDSPACENORMAL' then
-        Result := tgWorldSpaceNormal else
-      if S = 'CAMERASPACEREFLECTIONVECTOR' then
-        Result := tgCameraSpaceReflectionVector else
-      if S = 'WORLDSPACEREFLECTIONVECTOR' then
-        Result := tgWorldSpaceReflectionVector else
-      if S = 'PROJECTION' then
-        Result := tgProjection else
-      if S = 'BOUNDS' then
+    { Add single texture coord configuration
+      to Arrays.TexCoord and TexCoordArray2/3/4d.
+      Assume that TexCoordArray2/3/4d already have required length.
+      Pass any TexCoord node except TNodeMultiTextureCoordinate. }
+    procedure AddSingleTexCoord(const TextureUnit: Cardinal; TexCoord: TVRMLNode);
+
+      function TexCoordGenFromString(const S: string; const IsTexture3D: boolean): TTextureCoordinateGeneration;
       begin
-        if IsTexture3D then
+        if S = 'SPHERE' then
+          Result := tgSphere else
+        if S = 'COORD' then
+          Result := tgCoord else
+        if (S = 'COORD-EYE') or (S = 'CAMERASPACEPOSITION') then
+          Result := tgCoordEye else
+        if S = 'CAMERASPACENORMAL' then
+          Result := tgCameraSpaceNormal else
+        if S = 'WORLDSPACENORMAL' then
+          Result := tgWorldSpaceNormal else
+        if S = 'CAMERASPACEREFLECTIONVECTOR' then
+          Result := tgCameraSpaceReflectionVector else
+        if S = 'WORLDSPACEREFLECTIONVECTOR' then
+          Result := tgWorldSpaceReflectionVector else
+        if S = 'PROJECTION' then
+          Result := tgProjection else
+        if S = 'BOUNDS' then
+        begin
+          if IsTexture3D then
+            Result := tgBounds3d else
+            Result := tgBounds2d;
+        end else
+        if S = 'BOUNDS2D' then
+          Result := tgBounds2d else
+        if S = 'BOUNDS3D' then
           Result := tgBounds3d else
-          Result := tgBounds2d;
-      end else
-      if S = 'BOUNDS2D' then
-        Result := tgBounds2d else
-      if S = 'BOUNDS3D' then
-        Result := tgBounds3d else
+        begin
+          Result := tgCoord;
+          VRMLWarning(vwSerious, Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
+            [S]));
+        end;
+      end;
+
+    begin
+      if TexCoord is TNodeTextureCoordinate then
       begin
-        Result := tgCoord;
-        VRMLWarning(vwSerious, Format('Unsupported TextureCoordinateGenerator.mode: "%s", will use "COORD" instead',
-          [S]));
+        Arrays.AddTexCoord2D(TextureUnit);
+        TexCoordArray2d[TextureUnit] := TNodeTextureCoordinate(TexCoord).FdPoint;
+      end else
+      if TexCoord is TNodeTextureCoordinate2 then
+      begin
+        Arrays.AddTexCoord2D(TextureUnit);
+        TexCoordArray2d[TextureUnit] := TNodeTextureCoordinate2(TexCoord).FdPoint;
+      end else
+      if TexCoord is TNodeTextureCoordinate3D then
+      begin
+        Arrays.AddTexCoord3D(TextureUnit);
+        TexCoordArray3d[TextureUnit] := TNodeTextureCoordinate3D(TexCoord).FdPoint;
+      end else
+      if TexCoord is TNodeTextureCoordinate4D then
+      begin
+        Arrays.AddTexCoord4D(TextureUnit);
+        TexCoordArray4d[TextureUnit] := TNodeTextureCoordinate4D(TexCoord).FdPoint;
+      end else
+      if TexCoord is TNodeTextureCoordinateGenerator then
+      begin
+        Arrays.AddTexCoordGenerated(
+          TexCoordGenFromString(TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value,
+            IsTexture3D(TextureUnit)), TextureUnit);
+        Arrays.TexCoords[TextureUnit].GenerationNode := TNodeTextureCoordinateGenerator(TexCoord);
+        if Arrays.TexCoords[TextureUnit].Generation = tgBounds2d then
+          Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds2DTextureGenVectors else
+        if Arrays.TexCoords[TextureUnit].Generation = tgBounds3d then
+          Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds3DTextureGenVectors;
+      end else
+      if TexCoord is TNodeProjectedTextureCoordinate then
+      begin
+        Arrays.AddTexCoordGenerated(tgProjection, TextureUnit);
+        Arrays.TexCoords[TextureUnit].GenerationNode := TNodeProjectedTextureCoordinate(TexCoord);
+      end else
+      begin
+        { dummy default }
+        Arrays.AddTexCoordGenerated(tgBounds2d, TextureUnit);
+        Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds2DTextureGenVectors;
+        if TexCoord <> nil then
+          VRMLWarning(vwSerious, Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [TexCoord.NodeTypeName])) else
+          VRMLWarning(vwSerious, 'NULL texture coordinate node');
       end;
     end;
 
@@ -1344,106 +1397,19 @@ var
   begin
     if TexCoord = nil then
     begin
-      { Leave TexCoords.Count = 0 }
+      { Leave TexCoords.Count = 0, no VRMLWarning }
       Exit;
-    end else
-    if TexCoord is TNodeTextureCoordinate then
-    begin
-      Arrays.AddTexCoord2D(0);
-      SetTexLengths(1);
-      TexCoordArray2d[0] := TNodeTextureCoordinate(TexCoord).FdPoint;
-    end else
-    if TexCoord is TNodeTextureCoordinate2 then
-    begin
-      Arrays.AddTexCoord2D(0);
-      SetTexLengths(1);
-      TexCoordArray2d[0] := TNodeTextureCoordinate2(TexCoord).FdPoint;
-    end else
-    if TexCoord is TNodeTextureCoordinate3D then
-    begin
-      Arrays.AddTexCoord3D(0);
-      SetTexLengths(1);
-      TexCoordArray3d[0] := TNodeTextureCoordinate3D(TexCoord).FdPoint;
-    end else
-    if TexCoord is TNodeTextureCoordinate4D then
-    begin
-      Arrays.AddTexCoord4D(0);
-      SetTexLengths(1);
-      TexCoordArray4d[0] := TNodeTextureCoordinate4D(TexCoord).FdPoint;
-    end else
-    if TexCoord is TNodeTextureCoordinateGenerator then
-    begin
-      Arrays.AddTexCoordGenerated(
-        TexCoordGenFromString(TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value,
-          IsTexture3D(0)), 0);
-      Arrays.TexCoords[0].GenerationNode := TNodeTextureCoordinateGenerator(TexCoord);
-      if Arrays.TexCoords[0].Generation = tgBounds2d then
-        Arrays.TexCoords[0].GenerationBoundsVector := Bounds2DTextureGenVectors else
-      if Arrays.TexCoords[0].Generation = tgBounds3d then
-        Arrays.TexCoords[0].GenerationBoundsVector := Bounds3DTextureGenVectors;
-      SetTexLengths(1);
-    end else
-    if TexCoord is TNodeProjectedTextureCoordinate then
-    begin
-      Arrays.AddTexCoordGenerated(tgProjection, 0);
-      Arrays.TexCoords[0].GenerationNode := TNodeProjectedTextureCoordinate(TexCoord);
-      SetTexLengths(1);
     end else
     if TexCoord is TNodeMultiTextureCoordinate then
     begin
       MultiTexCoord := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Items;
       SetTexLengths(MultiTexCoord.Count);
       for I := 0 to MultiTexCoord.Count - 1 do
-      begin
-        if (MultiTexCoord.Items[I] <> nil) and
-           (MultiTexCoord.Items[I] is TNodeTextureCoordinate) then
-        begin
-          Arrays.AddTexCoord2D(I);
-          TexCoordArray2d[I] := TNodeTextureCoordinate(MultiTexCoord.Items[I]).FdPoint;
-        end else
-        if (MultiTexCoord.Items[I] <> nil) and
-           (MultiTexCoord.Items[I] is TNodeTextureCoordinate3D) then
-        begin
-          Arrays.AddTexCoord3D(I);
-          TexCoordArray3d[I] := TNodeTextureCoordinate3D(MultiTexCoord.Items[I]).FdPoint;
-        end else
-        if (MultiTexCoord.Items[I] <> nil) and
-           (MultiTexCoord.Items[I] is TNodeTextureCoordinate4D) then
-        begin
-          Arrays.AddTexCoord4D(I);
-          TexCoordArray4d[I] := TNodeTextureCoordinate4D(MultiTexCoord.Items[I]).FdPoint;
-        end else
-        if (MultiTexCoord.Items[I] <> nil) and
-           (MultiTexCoord.Items[I] is TNodeTextureCoordinateGenerator) then
-        begin
-          Arrays.AddTexCoordGenerated(TexCoordGenFromString(
-              TNodeTextureCoordinateGenerator(MultiTexCoord.Items[I]).FdMode.Value,
-              IsTexture3D(I)), I);
-          if Arrays.TexCoords[I].Generation = tgBounds2d then
-            Arrays.TexCoords[I].GenerationBoundsVector := Bounds2DTextureGenVectors else
-          if Arrays.TexCoords[I].Generation = tgBounds3d then
-            Arrays.TexCoords[I].GenerationBoundsVector := Bounds3DTextureGenVectors;
-          Arrays.TexCoords[I].GenerationNode := TNodeTextureCoordinateGenerator(MultiTexCoord.Items[I]);
-        end else
-        if (MultiTexCoord.Items[I] <> nil) and
-           (MultiTexCoord.Items[I] is TNodeProjectedTextureCoordinate) then
-        begin
-          Arrays.AddTexCoordGenerated(tgProjection, I);
-          Arrays.TexCoords[I].GenerationNode := TNodeProjectedTextureCoordinate(MultiTexCoord.Items[I]);
-        end else
-        begin
-          { dummy default }
-          Arrays.AddTexCoordGenerated(tgBounds2d, I);
-          Arrays.TexCoords[I].GenerationBoundsVector := Bounds2DTextureGenVectors;
-          if MultiTexCoord.Items[I] <> nil then
-            VRMLWarning(vwSerious, Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [MultiTexCoord.Items[I].NodeTypeName])) else
-            VRMLWarning(vwSerious, 'NULL texture coordinate node');
-        end;
-      end;
+        AddSingleTexCoord(I, MultiTexCoord.Items[I]);
     end else
     begin
-      { Leave TexCoords.Count = 0 }
-      VRMLWarning(vwSerious, Format('Unsupported texture coordinate node: %s', [TexCoord.NodeTypeName]));
+      SetTexLengths(1);
+      AddSingleTexCoord(0, TexCoord);
     end;
 
     Assert(Arrays.TexCoords.Count = Length(TexCoordArray2d));
