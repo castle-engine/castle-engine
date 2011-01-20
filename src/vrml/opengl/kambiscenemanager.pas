@@ -1717,7 +1717,10 @@ begin
       if FViewports[I] is TKamViewport then
       begin
         Assert(TKamViewport(FViewports[I]).SceneManager = Self);
-        TKamViewport(FViewports[I]).SceneManager := nil;
+        { Set SceneManager by direct field (FSceneManager),
+          otherwise TKamViewport.SetSceneManager would try to update
+          our Viewports list, that we iterate over right now... }
+        TKamViewport(FViewports[I]).FSceneManager := nil;
       end;
     FreeAndNil(FViewports);
   end;
