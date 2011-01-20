@@ -137,6 +137,8 @@ type
 
 procedure TPointSet_1Renderer.GenerateCoordinateBegin;
 begin
+  inherited;
+
   { TODO: handle various possible material binding here }
 
   { TODO: use here Last :
@@ -231,10 +233,12 @@ procedure TPointSet_2Renderer.GenerateCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin
-  { if base class doesn't do SetColor (or color array) already,
-    in particular if Color = ColorRGBA = nil,
+  inherited;
+
+  { if base class didn't set color array
+    (in particular when Color = ColorRGBA = nil),
     then use color for full PointSet following specification. }
-  if not (inherited NeedsSetColor) then
+  if Arrays.Color = nil then
   begin
     Arrays.HasDefaultColor := true;
     if State.ShapeNode = nil then
@@ -249,8 +253,6 @@ begin
         Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity);
     end;
   end;
-
-  inherited;
 end;
 
 procedure TPointSet_2Renderer.PrepareIndexesPrimitives;
