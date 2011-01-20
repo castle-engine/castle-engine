@@ -167,9 +167,12 @@ begin
 
   { Although PointSet is not really indexed, we use IndexesFromCoordIndex
     to implement BeginIndex / NumPoints limits. }
+{TODO: cannot use this trick, we depend in some places that CoordIndex
+  exists if IndexesFromCoordIndex exist.
+
   IndexesFromCoordIndex := TDynLongIntArray.Create;
   for I := BeginIndex to BeginIndex + NumPoints - 1 do
-    IndexesFromCoordIndex.Add(I);
+    IndexesFromCoordIndex.Add(I);}
 end;
 
 procedure TPointSet_1Generator.GenerateCoordinate;
