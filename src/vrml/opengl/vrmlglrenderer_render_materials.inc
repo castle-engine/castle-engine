@@ -13,52 +13,53 @@
   ----------------------------------------------------------------------------
 }
 
-{ Judge whether the node can be lit, looking only at Node (not at State,
-  Material etc.).
-
-  Assumes already calculated:
-  - MeshRenderer,
-  - MeshRenderer.BumpMappingMethod
-    (set by TBumpMappingRenderer.Enable called from RenderTexturesBegin),
-  - (MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation
-    (set in TIndexedLineSet_1Renderer.Create). }
-function TVRMLGLRenderer.NodeLit(Node: TVRMLGeometryNode): boolean;
-begin
-  if ( (MeshRenderer <> nil) and
-       (MeshRenderer.BumpMappingMethod <> bmNone) ) then
-  begin
-    { When doing bump mapping <> bmNone, we always turn on lighting.
-
-      We will calculate lighting using our equations, and actually
-      it's not important whether light will be enabled or not.
-      But it's important that we pass material values for ambient and diffuse
-      (shader uses them), so we should behave like the node is lit.
-
-      (Actually, this will not work when Material node is @nil... then we can't
-      pass any ambient/diffuse lighting values, and results of rendering this
-      with bump mapping are undefined. TODO: fix.)
-    }
-
-    Result := MeshRenderer.BumpMappingMethod  <> bmNone;
-  end else
-  begin
-    Result := not (
-      (Node is TNodePointSet_1) or
-      (Node is TNodePointSet_2) or
-      { VRML 1.0 specification states that lines normals aren't generated
-        --- instead, lines are drawn unlit when there are no normals specified. }
-      ( (Node is TNodeIndexedLineSet_1) and
-        ((MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation = niNone) ) or
-      { VRML 2.0 specification says that IndexedLineSet should always be unlit,
-        X3D spec adds that LineSet is also always unlit. }
-      (Node is TNodeIndexedLineSet_2) or
-      (Node is TNodeLineSet) or
-      (Node is TNodeCircle2D)
-    );
-  end;
-end;
-
 procedure TVRMLGLRenderer.Render_MaterialsBegin;
+
+  { Judge whether the node can be lit, looking only at Node (not at State,
+    Material etc.).
+
+    Assumes already calculated:
+    - MeshRenderer,
+    - MeshRenderer.BumpMappingMethod
+      (set by TBumpMappingRenderer.Enable called from RenderTexturesBegin),
+    - (MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation
+      (set in TIndexedLineSet_1Renderer.Create). }
+  function NodeLit(Node: TVRMLGeometryNode): boolean;
+  begin
+    if ( (MeshRenderer <> nil) and
+         (MeshRenderer.BumpMappingMethod <> bmNone) ) then
+    begin
+      { When doing bump mapping <> bmNone, we always turn on lighting.
+
+        We will calculate lighting using our equations, and actually
+        it's not important whether light will be enabled or not.
+        But it's important that we pass material values for ambient and diffuse
+        (shader uses them), so we should behave like the node is lit.
+
+        (Actually, this will not work when Material node is @nil... then we can't
+        pass any ambient/diffuse lighting values, and results of rendering this
+        with bump mapping are undefined. TODO: fix.)
+      }
+
+      Result := MeshRenderer.BumpMappingMethod  <> bmNone;
+    end else
+    begin
+      Result := not (
+        (Node is TNodePointSet_1) or
+        (Node is TNodePointSet_2) or
+        { VRML 1.0 specification states that lines normals aren't generated
+          --- instead, lines are drawn unlit when there are no normals specified. }
+        ( (Node is TNodeIndexedLineSet_1) and
+          ((MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation = niNone) ) or
+        { VRML 2.0 specification says that IndexedLineSet should always be unlit,
+          X3D spec adds that LineSet is also always unlit. }
+        (Node is TNodeIndexedLineSet_2) or
+        (Node is TNodeLineSet) or
+        (Node is TNodeCircle2D)
+      );
+    end;
+  end;
+
 var
   M1: TNodeMaterial_1;
   M2: TNodeMaterial_2;
@@ -183,8 +184,8 @@ begin
 
   { Usually, UnlitColor should be from EmissiveColor3Single.
 
-    However, IndexedLineSet in VRML 1.0 is an exception. Note that
-    NodeLit may sometimes decide to draw it unlit, and sometimes lit
+    However, IndexedLineSet in VRML 1.0 is an exception.
+    NodeLit result for it is determined by whether it has normals
     (this is contrary to other nodes, that are always lit or unlit;
     well, forgetting about the "OnlyEmissiveMaterial" exceptional situation
     for the moment).

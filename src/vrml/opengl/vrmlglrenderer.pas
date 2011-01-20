@@ -1192,9 +1192,6 @@ type
         EmissiveColor: TVector3Single;
       const UnLitColor: TVector3Single;
       const ShininessExp, Opacity: Single);
-
-    { Judge whether the node can be lit. }
-    function NodeLit(Node: TVRMLGeometryNode): boolean;
   private
     { For how many texture units does Render must generate tex coords?
 
