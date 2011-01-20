@@ -16,10 +16,10 @@
 { Generating TGeometryArrays for VRML/X3D shapes. }
 
 type
-  { Generates TGeometryArrays for a coord-based node.
+  { Generates TGeometryArrays for a VRML/X3D node.
 
     Geometry must be based on coordinates when using this,
-    that is TVRMLGeometryNode.Coord returns @true.
+    that is TVRMLGeometryNode.Coord must return @true.
     In our constructor we initialize Coord and CoordIndex
     from Geometry, using TVRMLGeometryNode.Coord and TVRMLGeometryNode.CoordIndex
     values. If Coord will be @nil, nothing will be rendered. }

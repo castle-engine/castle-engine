@@ -1164,7 +1164,7 @@ type
     FontsReferences: array[TVRMLFontFamily, boolean, boolean] of boolean;
 
     { ------------------------------------------------------------
-      Rzeczy z ktorych mozna korzystac tylko w czasie Render. }
+      Things usable only during Render. }
 
     { Our mesh renderer. Actually of TVRMLMeshRenderer class, but I really
       don't want to expose TVRMLMeshRenderer class in the interface. }
@@ -1203,7 +1203,7 @@ type
       const UnLitColor: TVector3Single;
       const ShininessExp, Opacity: Single);
   private
-    { For how many texture units does Render must generate tex coords?
+    { For how many texture units does Render have to generate tex coords?
 
       This is the number of texture units used.
       Always <= 1 if OpenGL doesn't support multitexturing
