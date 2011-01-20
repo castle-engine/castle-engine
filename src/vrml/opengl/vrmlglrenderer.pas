@@ -1195,8 +1195,6 @@ type
         EmissiveColor: TVector3Single;
       const UnLitColor: TVector3Single;
       const ShininessExp, Opacity: Single);
-    procedure SetColor(const Color: TVector3Single);
-    procedure SetColor(const Color: TVector4Single);
 
     { Judge whether the node can be lit. }
     function NodeLit(Node: TVRMLGeometryNode): boolean;

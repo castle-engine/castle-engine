@@ -314,11 +314,7 @@ begin
   end;
 end;
 
-{ Sets current color. Version with 3 components preserves material alpha color.
-  Version with 4 components sets also the alpha component
-  (this is suitable for X3D ColorRGBA, that overrides material's alpha).
-
-  It can be only called after you set up materials by MaterialsBegin
+{ Setting current color can be only called after you set up materials by MaterialsBegin
   (that also calls the 1st BindMaterial_1 or MaterialsBegin_2 that
   set the materials alpha). Initially, this was for implementing the VRML >= 2.0
   Color/ColorRGBA nodes.
@@ -338,23 +334,3 @@ end;
   This optimization is implementd in Render_MaterialsBegin (although it affects
   this procedure). There we check for NodeLit before turning on
   GL_COLOR_MATERIAL, since when not NodeLit, material has never any use. }
-procedure TVRMLGLRenderer.SetColor(const Color: TVector3Single);
-begin
-  { We use Material_BoundOpacity since we do not want to change
-    material opacity here, only it's RGB part. }
-
-  if Attributes.PureGeometry or
-     (not Attributes.ControlMaterials) then
-    Exit;
-
-  glColorv(Vector4Single(Color, Material_BoundOpacity));
-end;
-
-procedure TVRMLGLRenderer.SetColor(const Color: TVector4Single);
-begin
-  if Attributes.PureGeometry or
-     (not Attributes.ControlMaterials) then
-    Exit;
-
-  glColorv(Color);
-end;

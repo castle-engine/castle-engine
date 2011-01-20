@@ -119,6 +119,8 @@ type
 
     HasColor: boolean;
     ColorOffset: Integer;
+    FHasDefaultColor: boolean;
+    FDefaultColor: TVector4Single;
 
     HasFogCoord: boolean;
     FogCoordOffset: Integer;
@@ -210,6 +212,13 @@ type
     procedure AddColor;
     function Color(const Index: Cardinal = 0): PVector4Single;
     procedure IncColor(var P: PVector4Single);
+
+    { When Color array is not initialized and HasDefaultColor,
+      then the default color will be set to DefaultColor.
+      @groupBegin }
+    property HasDefaultColor: boolean read FHasDefaultColor write FHasDefaultColor default false;
+    property DefaultColor: TVector4Single read FDefaultColor write FDefaultColor;
+    { @groupEnd }
 
     procedure AddFogCoord;
     function FogCoord(const Index: Cardinal = 0): PSingle;

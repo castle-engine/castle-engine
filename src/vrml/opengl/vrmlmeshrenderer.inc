@@ -985,12 +985,16 @@ procedure TAbstractCoordinateRenderer.DoRender;
       glEnableClientState(GL_NORMAL_ARRAY);
       glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
 
-      if (Arrays.Color <> nil) and
-         Attributes.ControlMaterials and
+      if Attributes.ControlMaterials and
          (not Attributes.PureGeometry) then
       begin
-        glEnableClientState(GL_COLOR_ARRAY);
-        glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+        if Arrays.Color <> nil then
+        begin
+          glEnableClientState(GL_COLOR_ARRAY);
+          glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+        end else
+        if Arrays.HasDefaultColor then
+          glColorv(Arrays.DefaultColor);
       end;
 
       if (Arrays.FogCoord <> nil) and GL_EXT_fog_coord then

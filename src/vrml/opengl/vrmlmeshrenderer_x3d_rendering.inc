@@ -20,14 +20,14 @@ type
   TPointSet_1Renderer = class(TAbstractCoordinateRenderer)
   protected
     procedure PrepareIndexesPrimitives; override;
-    procedure RenderCoordinateBegin; override;
+    procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinate; override;
   end;
 
   TPointSet_2Renderer = class(TAbstractColorRenderer)
   protected
     procedure PrepareIndexesPrimitives; override;
-    procedure RenderCoordinateBegin; override;
+    procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinate; override;
   public
     constructor Create(ARenderer: TVRMLGLRenderer);
@@ -130,12 +130,12 @@ type
     constructor Create(ARenderer: TVRMLGLRenderer);
     function NeedsSetColor: boolean; override;
   protected
-    procedure RenderCoordinateBegin; override;
+    procedure GenerateCoordinateBegin; override;
   end;
 
 { TPointSet_1Renderer -------------------------------------------------------- }
 
-procedure TPointSet_1Renderer.RenderCoordinateBegin;
+procedure TPointSet_1Renderer.GenerateCoordinateBegin;
 begin
   { TODO: handle various possible material binding here }
 
@@ -145,12 +145,9 @@ begin
     from Render_BindMaterial_1 at the beginning. }
 
   { Render_BindMaterial_1 set unlit color to emissiveColor,
-    so we correct it now. }
-  { TODO: it's a hack to set color directly }
-  if (not Attributes.PureGeometry) and
-     Attributes.ControlMaterials then
-    with State.LastNodes.Material do
-      glColorv(DiffuseColor4Single(0));
+    so correct it now to diffuseColor. }
+  Arrays.HasDefaultColor := true;
+  Arrays.DefaultColor := State.LastNodes.Material.DiffuseColor4Single(0);
 end;
 
 procedure TPointSet_1Renderer.PrepareIndexesPrimitives;
@@ -230,7 +227,7 @@ begin
   end;
 end;
 
-procedure TPointSet_2Renderer.RenderCoordinateBegin;
+procedure TPointSet_2Renderer.GenerateCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin
@@ -239,16 +236,17 @@ begin
     then use color for full PointSet following specification. }
   if not (inherited NeedsSetColor) then
   begin
+    Arrays.HasDefaultColor := true;
     if State.ShapeNode = nil then
     begin
       VRMLWarning(vwSerious, 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-      Renderer.SetColor(White3Single);
+      Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity);
     end else
     begin
       Material := State.ShapeNode.Material;
       if Material <> nil then
-        Renderer.SetColor(Material.FdEmissiveColor.Value) else
-        Renderer.SetColor(White3Single);
+        Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, Renderer.Material_BoundOpacity) else
+        Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity);
     end;
   end;
 
@@ -981,7 +979,7 @@ begin
   end;
 end;
 
-procedure TLineSet_2Renderer.RenderCoordinateBegin;
+procedure TLineSet_2Renderer.GenerateCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin
@@ -997,16 +995,17 @@ begin
        Material = NULL makes unlit white color) }
   if Color = nil then
   begin
+    Arrays.HasDefaultColor := true;
     if State.ShapeNode = nil then
     begin
       VRMLWarning(vwSerious, 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-      Renderer.SetColor(White3Single);
+      Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity)
     end else
     begin
       Material := State.ShapeNode.Material;
       if Material <> nil then
-        Renderer.SetColor(Material.FdEmissiveColor.Value) else
-        Renderer.SetColor(White3Single);
+        Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, Renderer.Material_BoundOpacity) else
+        Arrays.DefaultColor := Vector4Single(White3Single, Renderer.Material_BoundOpacity)
     end;
   end;
 end;
