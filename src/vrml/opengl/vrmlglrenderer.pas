@@ -284,7 +284,7 @@ type
     RadianceTransfer: PVector3Single;
     const RadianceTransferCount: Cardinal): TVector3Single of object;
 
-  { Callback used by TVRMLRendererAttributes.OnVertexColorFunction.
+  { Callback used by TVRMLRenderingAttributes.OnVertexColorFunction.
     Passed here VertexPosition is in local coordinates (that is,
     local of this object, multiply by State.Transform to get scene coords).
     VertexIndex is the direct index to Node.Coordinates. }
@@ -4046,7 +4046,7 @@ var
   begin
     Result := true;
 
-    Generator := CreateArraysGenerator(Self,
+    Generator := CreateArraysGenerator(Attributes,
       CurrentShape, CurrentState, CurrentGeometry, ShapeBumpMappingAllowed);
 
     if Generator = nil then
@@ -4294,6 +4294,7 @@ begin
             Generator.FogVolumetricDirection := FogVolumetricDirection;
             Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
             Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
+            Generator.BumpMappingLightPosition := BumpMappingLightPosition;
             TBaseCoordinateRenderer(MeshRenderer).Arrays := Generator.GenerateArrays;
             FreeAndNil(Generator);
           end;

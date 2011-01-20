@@ -50,7 +50,7 @@ type
     FaceConvex: boolean;
     procedure PrepareIndexesPrimitives; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer;
+    constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
@@ -61,21 +61,21 @@ type
   protected
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer;
+    constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
   TIndexedFaceSet_2Generator = class(TIndexedFaceSetGenerator)
   public
-    constructor Create(ARenderer: TVRMLGLRenderer;
+    constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
   end;
 
 { TIndexedFaceSetGenerator -------------------------------------------------- }
 
-constructor TIndexedFaceSetGenerator.Create(ARenderer: TVRMLGLRenderer;
+constructor TIndexedFaceSetGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 begin
@@ -149,7 +149,7 @@ begin
 
   if Coord = nil then Exit;
 
-  if Renderer.Attributes.SmoothShading and (CreaseAngle <> 0) then
+  if Attributes.SmoothShading and (CreaseAngle <> 0) then
   begin
     if CreaseAngle >= Pi then
     begin
@@ -274,7 +274,7 @@ end;
 
 { TIndexedFaceSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_1Generator.Create(ARenderer: TVRMLGLRenderer;
+constructor TIndexedFaceSet_1Generator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 var
@@ -325,7 +325,7 @@ end;
 
 { TIndexedFaceSet_2Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_2Generator.Create(ARenderer: TVRMLGLRenderer;
+constructor TIndexedFaceSet_2Generator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
 var
