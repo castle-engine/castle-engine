@@ -52,7 +52,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   TIndexedFaceSet_1Generator = class(TIndexedFaceSetGenerator)
@@ -63,14 +63,14 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   TIndexedFaceSet_2Generator = class(TIndexedFaceSetGenerator)
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
 { TIndexedFaceSetGenerator -------------------------------------------------- }

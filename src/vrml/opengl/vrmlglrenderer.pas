@@ -267,7 +267,8 @@ uses
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
   KambiGLUtils, VRMLGLLightSet, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
-  GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL;
+  GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL,
+  GeometryArrays;
 
 {$define read_interface}
 
@@ -1107,6 +1108,18 @@ type
   {$I vrmlbumpmappingrenderer.inc}
   {$I vrmlglslrenderer.inc}
 
+  { VRML shape that can be rendered. }
+  TVRMLRendererShape = class(TVRMLShape)
+  private
+    FArrays: TGeometryArrays;
+  public
+    destructor Destroy; override;
+
+    { Arrays to render this shape. Managed by TVRMLGLRenderer and TVRMLGLScene. }
+    property Arrays: TGeometryArrays read FArrays write FArrays;
+    procedure FreeArrays;
+  end;
+
   TVRMLGLRenderer = class
   private
     { ---------------------------------------------------------
@@ -1354,11 +1367,11 @@ type
     procedure RenderShapeLights(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeBegin(Shape: TVRMLShape);
-    procedure RenderShapeInside(Shape: TVRMLShape);
-    procedure RenderShapeEnd(Shape: TVRMLShape);
+    procedure RenderShapeBegin(Shape: TVRMLRendererShape);
+    procedure RenderShapeInside(Shape: TVRMLRendererShape);
+    procedure RenderShapeEnd(Shape: TVRMLRendererShape);
 
-    procedure RenderShape(Shape: TVRMLShape);
+    procedure RenderShape(Shape: TVRMLRendererShape);
 
     { Check Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
       context capabilities to see which bump mapping method (if any)
@@ -1515,7 +1528,7 @@ function FogParametersEqual(
 
 implementation
 
-uses Math, KambiStringUtils, GLVersionUnit, KambiLog, GeometryArrays,
+uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
   RenderStateUnit, VRMLCameraUtils, RaysWindow, VRMLShadowMaps,
   VRMLArraysGenerator;
 
@@ -3288,6 +3301,19 @@ begin
   inherited;
 end;
 
+{ TVRMLRendererShape --------------------------------------------------------- }
+
+procedure TVRMLRendererShape.FreeArrays;
+begin
+  FreeAndNil(FArrays);
+end;
+
+destructor TVRMLRendererShape.Destroy;
+begin
+  FreeArrays;
+  inherited;
+end;
+
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
 procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
@@ -3838,7 +3864,7 @@ begin
       Attributes.FirstGLFreeLight, LastGLFreeLight);}
 end;
 
-procedure TVRMLGLRenderer.RenderShapeBegin(Shape: TVRMLShape);
+procedure TVRMLGLRenderer.RenderShapeBegin(Shape: TVRMLRendererShape);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
@@ -4025,9 +4051,9 @@ begin
     glMultMatrix(State.Transform);
 end;
 
-procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLShape);
+procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape);
 var
-  Generator: TVRMLArraysGenerator;
+  GeneratorClass: TVRMLArraysGeneratorClass;
 
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
   begin
@@ -4046,10 +4072,9 @@ var
   begin
     Result := true;
 
-    Generator := CreateArraysGenerator(Attributes,
-      CurrentShape, CurrentState, CurrentGeometry, ShapeBumpMappingAllowed);
+    GeneratorClass := ArraysGenerator(CurrentGeometry);
 
-    if Generator = nil then
+    if GeneratorClass = nil then
     begin
       if CurrentGeometry is TNodeAsciiText_1 then
         ExposedMeshRenderer := TAsciiTextRenderer.Create(Self) else
@@ -4059,8 +4084,8 @@ var
         ExposedMeshRenderer := TText3DRenderer.Create(Self) else
         Result := false;
     end else
-      { If we have Generator, create TCompleteCoordinateRenderer.
-        We'll initialize TCompleteCoordinateRenderer.Arrays later from Generator. }
+      { If we have GeneratorClass, create TCompleteCoordinateRenderer.
+        We'll initialize TCompleteCoordinateRenderer.Arrays later. }
       ExposedMeshRenderer := TCompleteCoordinateRenderer.Create(Self);
   end;
 
@@ -4235,6 +4260,8 @@ var
       UsedGLSL.Disable;
   end;
 
+var
+  Generator: TVRMLArraysGenerator;
 begin
   { make a copy to our class fields }
   CurrentShape := Shape;
@@ -4285,18 +4312,27 @@ begin
           {$else}
 
           { initialize TBaseCoordinateRenderer.Arrays now }
-          if Generator <> nil then
+          if GeneratorClass <> nil then
           begin
+            { calculate Shape.Arrays }
+            if Shape.Arrays = nil then
+            begin
+              Generator := GeneratorClass.Create(Attributes,
+                CurrentShape, CurrentState, CurrentGeometry, ShapeBumpMappingAllowed);
+              try
+                Generator.TexCoordsNeeded := TexCoordsNeeded;
+                Generator.MaterialOpacity := MaterialOpacity;
+                Generator.FogVolumetric := FogVolumetric;
+                Generator.FogVolumetricDirection := FogVolumetricDirection;
+                Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
+                Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
+                Generator.BumpMappingLightPosition := BumpMappingLightPosition;
+                Shape.Arrays := Generator.GenerateArrays;
+              finally FreeAndNil(Generator) end;
+            end;
+
             Assert(MeshRenderer is TBaseCoordinateRenderer);
-            Generator.TexCoordsNeeded := TexCoordsNeeded;
-            Generator.MaterialOpacity := MaterialOpacity;
-            Generator.FogVolumetric := FogVolumetric;
-            Generator.FogVolumetricDirection := FogVolumetricDirection;
-            Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
-            Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
-            Generator.BumpMappingLightPosition := BumpMappingLightPosition;
-            TBaseCoordinateRenderer(MeshRenderer).Arrays := Generator.GenerateArrays;
-            FreeAndNil(Generator);
+            TBaseCoordinateRenderer(MeshRenderer).Arrays := Shape.Arrays;
           end;
 
           MeshRenderer.Render;
@@ -4315,7 +4351,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeEnd(Shape: TVRMLShape);
+procedure TVRMLGLRenderer.RenderShapeEnd(Shape: TVRMLRendererShape);
 
   { Disable OpenGL clip planes previously initialized by ClipPlanesBegin. }
   procedure ClipPlanesEnd;
@@ -4361,7 +4397,7 @@ begin
   { at the end, we're in modelview mode }
 end;
 
-procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLShape);
+procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape);
 begin
   RenderShapeBegin(Shape);
   try

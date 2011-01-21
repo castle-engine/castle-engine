@@ -32,7 +32,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
@@ -49,7 +49,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   { Generator for X3D IndexedTriangleFanSet and TriangleFanSet node. }
@@ -71,7 +71,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   { Generator for X3D IndexedTriangleStripSet and TriangleStripSet nodes.
@@ -98,7 +98,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   { Generator for X3D IndexedQuadSet and QuadSet nodes. }
@@ -115,7 +115,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
@@ -137,7 +137,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   { Generator for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
@@ -145,7 +145,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   protected
     procedure GenerateCoordinateBegin; override;
   end;

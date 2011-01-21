@@ -192,19 +192,18 @@ type
 
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); virtual;
 
     { Create and generate Arrays contents. }
     function GenerateArrays: TGeometryArrays;
   end;
 
-{ Create TVRMLArraysGenerator instance suitable for given AGeometry.
+  TVRMLArraysGeneratorClass = class of TVRMLArraysGenerator;
+
+{ TVRMLArraysGenerator class suitable for given geometry.
   Returns @nil if not suitable generator for this node,
   which means that this node cannot be rendered through TGeometryArrays. }
-function CreateArraysGenerator(AAttributes: TVRMLRenderingAttributes;
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean):
-  TVRMLArraysGenerator;
+function ArraysGenerator(AGeometry: TVRMLGeometryNode): TVRMLArraysGeneratorClass;
 
 implementation
 
@@ -320,7 +319,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   TMaterials1Implementation = (miOverall,
@@ -377,7 +376,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   { Handle per-face or per-vertex VRML >= 2.0 colors.
@@ -447,7 +446,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   TNormalsImplementation = (
@@ -573,7 +572,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
   end;
 
   TX3DVertexAttributeNodes = specialize TFPGObjectList<TNodeX3DVertexAttributeNode>;
@@ -590,7 +589,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
     destructor Destroy; override;
   end;
 
@@ -2301,38 +2300,35 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
-function CreateArraysGenerator(AAttributes: TVRMLRenderingAttributes;
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean):
-  TVRMLArraysGenerator;
+function ArraysGenerator(AGeometry: TVRMLGeometryNode): TVRMLArraysGeneratorClass;
 begin
   if AGeometry is TNodeIndexedTriangleMesh_1 then
-    Result := TTriangleStripSetGenerator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TTriangleStripSetGenerator else
   if AGeometry is TNodeIndexedFaceSet_1 then
-    Result := TIndexedFaceSet_1Generator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TIndexedFaceSet_1Generator else
   if AGeometry is TNodeIndexedFaceSet_2 then
-    Result := TIndexedFaceSet_2Generator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TIndexedFaceSet_2Generator else
   if AGeometry is TNodeIndexedLineSet_1 then
-    Result := TIndexedLineSet_1Generator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TIndexedLineSet_1Generator else
   if (AGeometry is TNodeIndexedLineSet_2) or
      (AGeometry is TNodeLineSet) then
-    Result := TLineSet_2Generator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TLineSet_2Generator else
   if AGeometry is TNodePointSet_1 then
-    Result := TPointSet_1Generator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TPointSet_1Generator else
   if AGeometry is TNodePointSet_2 then
-    Result := TPointSet_2Generator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TPointSet_2Generator else
   if (AGeometry is TNodeTriangleSet) or
      (AGeometry is TNodeIndexedTriangleSet) then
-    Result := TTriangleSetGenerator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TTriangleSetGenerator else
   if (AGeometry is TNodeTriangleFanSet) or
      (AGeometry is TNodeIndexedTriangleFanSet) then
-    Result := TTriangleFanSetGenerator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TTriangleFanSetGenerator else
   if (AGeometry is TNodeTriangleStripSet) or
      (AGeometry is TNodeIndexedTriangleStripSet) then
-    Result := TTriangleStripSetGenerator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TTriangleStripSetGenerator else
   if (AGeometry is TNodeQuadSet) or
      (AGeometry is TNodeIndexedQuadSet) then
-    Result := TQuadSetGenerator.Create(AAttributes, AShape, AState, AGeometry, ShapeBumpMappingAllowed) else
+    Result := TQuadSetGenerator else
     Result := nil;
 end;
 

@@ -378,7 +378,7 @@ type
   { TVRMLShape descendant for usage within TVRMLGLScene.
     Basically, this is just the same thing as TVRMLShape, with some
     internal information needed by TVRMLGLScene. }
-  TVRMLGLShape = class(TVRMLShape)
+  TVRMLGLShape = class(TVRMLRendererShape)
   private
     { Keeps track if this shape was passed to Renderer.Prepare. }
     PreparedForRenderer: boolean;
@@ -1477,6 +1477,12 @@ begin
       end;
   end;
 
+  if Changes - [chClipPlane, chTransform] <> [] then
+  begin
+    { When EnableDisplayList = false, the data must be regenerated every frame. }
+    FreeArrays;
+  end;
+
   if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
   begin
     GLScene.Renderer.Unprepare(State.Texture);
@@ -1874,6 +1880,7 @@ begin
                   Renderer.Cache.Shape_DecReference(S.DLShape_DisplayList);
                   S.DLShape_DisplayList := 0;
                 end;
+                S.FreeArrays; { TODO: do it regardless of Optimization }
               end;
             finally FreeAndNil(SI) end;
           end;
@@ -1932,6 +1939,10 @@ end;
 
 procedure TVRMLGLScene.RenderShape_NoLight(Shape: TVRMLGLShape);
 begin
+  { When EnableDisplayList = false, the data must be regenerated every frame. }
+  if not Shape.EnableDisplayList then
+    Shape.FreeArrays;
+
   Renderer.RenderShape(Shape);
 end;
 
@@ -1940,7 +1951,7 @@ procedure TVRMLGLScene.RenderShape_WithLight(
   Shape: TVRMLGLShape);
 begin
   Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-  Renderer.RenderShape(Shape);
+  RenderShape_NoLight(Shape);
 end;
 
 procedure TVRMLGLScene.RenderBeginSimple;

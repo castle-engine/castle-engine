@@ -101,8 +101,6 @@ type
     procedure RenderCoordinateEnd; virtual;
     { @groupEnd }
   public
-    destructor Destroy; override;
-
     { Don't override this, it is already overridden here
       to do everything necessary. }
     procedure Render; override;
@@ -136,12 +134,6 @@ begin
 end;
 
 { TBaseCoordinateRenderer ------------------------------------------------ }
-
-destructor TBaseCoordinateRenderer.Destroy;
-begin
-  FreeAndNil(Arrays);
-  inherited;
-end;
 
 procedure TBaseCoordinateRenderer.Render;
 
