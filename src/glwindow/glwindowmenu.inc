@@ -150,7 +150,7 @@
       @unorderedList(
         @item(TMenuItemRadio.Caption will be set to the Items[I]
           string. Additionally it will be quoted by SQuoteMenuEntryCaption
-          to avoid interpreting underscore characters.)
+          to avoid interpreting underscore characters (if QuoteCaption).)
 
         @item(TMenuItemRadio.IntData will be set to BaseIntData + the number
           of this item. (This is usually most comfortable,
@@ -175,7 +175,7 @@
     }
     function AppendRadioGroup(const Items: array of string;
       BaseIntData: Cardinal; SelectedIndex: Integer;
-      AAutoCheckedToggle: boolean): TMenuItemRadioGroup;
+      AAutoCheckedToggle: boolean; QuoteCaption: boolean = true): TMenuItemRadioGroup;
   end;
 
   { TMenuEntry that is a simple, clickable menu item.
@@ -631,16 +631,19 @@ end;
 
 function TMenu.AppendRadioGroup(const Items: array of string;
   BaseIntData: Cardinal; SelectedIndex: Integer;
-  AAutoCheckedToggle: boolean): TMenuItemRadioGroup;
+  AAutoCheckedToggle: boolean; QuoteCaption: boolean): TMenuItemRadioGroup;
 var
   Radio: TMenuItemRadio;
   I: Integer;
+  S: string;
 begin
   Result := nil;
   for I := 0 to High(Items) do
   begin
-    Radio := TMenuItemRadio.Create(
-      SQuoteMenuEntryCaption(Items[I]),
+    S := Items[I];
+    if QuoteCaption then
+      S := SQuoteMenuEntryCaption(S);
+    Radio := TMenuItemRadio.Create(S,
       Cardinal(I) + BaseIntData, I = SelectedIndex, AAutoCheckedToggle);
     if Result = nil then
       Result := Radio.Group else
