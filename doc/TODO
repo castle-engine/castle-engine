@@ -37,10 +37,6 @@ VBO:
   to replace poor Triangulate interface, for
   https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=25&p=132#p132
 
-More Shaders:
-- GLSL attributes from X3D passing to shaders
-* make http://freewrl.sourceforge.net/images/flutter.x3d
-  read: handle data:text/plain for shader source.
 - ? Take a shot at shader pipeline: make a shader that implements proper lighting eqs.
 ------------------------------------------------------------------------------
 Mirrors:
@@ -83,8 +79,6 @@ VBO transition:
 Primitives by Proxy more improvements:
 - Avoid incremental count +=, set count once in sphere/cone/cylinder/box
   proxy. This will speed them up a little.
-
-- ElevationGrid: make it also through Proxy now?
 
 - All Proxy* are called twice still, because all the shapes get destroyed
   (3 times?) before loading is complete... We could probably optimize it,
