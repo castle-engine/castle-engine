@@ -163,8 +163,6 @@ begin
       MaxTo1st(MaxTextWidth, TextWidths.Items[I]);
     end;
 
-    Renderer.Render_BindMaterial_1(0);
-
     glPushMatrix;
       glScalef(1, YScale, 1);
 

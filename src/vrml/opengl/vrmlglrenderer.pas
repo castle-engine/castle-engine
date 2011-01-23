@@ -1202,19 +1202,11 @@ type
 
     { Variables internal for MeterialsBegin/End, BindMaterial }
     MaterialLit: boolean;
-    Material1BoundNumber: integer;
     MaterialTemporaryDisabledFog: boolean;
     MaterialOpacity: Single;
 
-    procedure Render_MaterialsBegin;
-    procedure Render_MaterialsEnd;
-    procedure Render_BindMaterial_1(MatNum: integer);
-    procedure Render_MaterialsBegin_2(Material: TNodeMaterial_2);
-    procedure Render_Material(
-      const AmbientColor, DiffuseColor, SpecularColor,
-        EmissiveColor: TVector3Single;
-      const UnLitColor: TVector3Single;
-      const ShininessExp, Opacity: Single);
+    procedure RenderMaterialsBegin;
+    procedure RenderMaterialsEnd;
   private
     { For how many texture units does Render have to generate tex coords?
 
@@ -3605,7 +3597,7 @@ end;
 
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
-{$I VRMLGLRenderer_render_materials.inc}
+{$I vrmlglrenderer_render_materials.inc}
 
 procedure TVRMLGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
@@ -4307,7 +4299,7 @@ begin
     try
       RenderTexturesBegin;
       try
-        Render_MaterialsBegin;
+        RenderMaterialsBegin;
         try
           {$ifdef USE_VRML_NODES_TRIANGULATION}
           { Simple rendering using LocalTriangulate. }
@@ -4342,7 +4334,7 @@ begin
 
           {$endif USE_VRML_NODES_TRIANGULATION}
 
-        finally Render_MaterialsEnd end;
+        finally RenderMaterialsEnd end;
       finally RenderTexturesEnd end;
     finally RenderShadersEnd end;
   finally
