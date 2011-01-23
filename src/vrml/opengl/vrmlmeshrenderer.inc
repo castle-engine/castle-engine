@@ -184,7 +184,7 @@ begin
   begin
     glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, AVbo[2]);
     glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, AArrays.Indexes.Count * SizeOf(LongInt),
-      AArrays.Indexes, GL_STREAM_DRAW_ARB);
+      AArrays.Indexes.ItemsArray, GL_STREAM_DRAW_ARB);
   end;
 
   AArrays.FreeData;
