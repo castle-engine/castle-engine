@@ -187,85 +187,83 @@ begin
 end;
 
 procedure TBaseCoordinateRenderer.Render;
+var
+  { This is used only by LockArraysBegin and LockArraysEnd. }
+  UseLockArrays: boolean;
 
-  procedure RenderArrays;
-  var
-    { This is used only by LockArraysBegin and LockArraysEnd. }
-    UseLockArrays: boolean;
+  procedure LockArraysBegin;
+  begin
+    { See
+      [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
+      for description of GL_EXT_compiled_vertex_array. }
+    UseLockArrays := (Shape.Vbo[0] = 0) and
+      GL_EXT_compiled_vertex_array and
+      { Under Radeon X1600 (chantal), fglrx, with roNone optimization,
+        rendering some shapes without indexes (like 16000heights from
+        http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html,
+        or shadow_fields demo) causes invalid results
+        (look like random vertexes). So disable using locking for them. }
+      (not (GLVersion.IsFglrx and
+            (Arrays.Indexes = nil) {TODO:and
+            (not Renderer.InsideDisplayList)})) and
+      { Don't use when Arrays.Count has no items,
+        glLockArraysEXT(0, 0) causes OpenGL error "invalid value". }
+     (Arrays.Count <> 0);
+    if UseLockArrays then
+      glLockArraysEXT(0, Arrays.Count);
+  end;
 
-    procedure LockArraysBegin;
-    begin
-      { See
-        [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
-        for description of GL_EXT_compiled_vertex_array. }
-      UseLockArrays := (Shape.Vbo[0] = 0) and
-        GL_EXT_compiled_vertex_array and
-        { Under Radeon X1600 (chantal), fglrx, with roNone optimization,
-          rendering some shapes without indexes (like 16000heights from
-          http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html,
-          or shadow_fields demo) causes invalid results
-          (look like random vertexes). So disable using locking for them. }
-        (not (GLVersion.IsFglrx and
-              (Arrays.Indexes = nil) {TODO:and
-              (not Renderer.InsideDisplayList)})) and
-        { Don't use when Arrays.Count has no items,
-          glLockArraysEXT(0, 0) causes OpenGL error "invalid value". }
-       (Arrays.Count <> 0);
-      if UseLockArrays then
-        glLockArraysEXT(0, Arrays.Count);
-    end;
+  procedure LockArraysEnd;
+  begin
+    if UseLockArrays then
+      glUnlockArraysEXT;
+  end;
 
-    procedure LockArraysEnd;
-    begin
-      if UseLockArrays then
-        glUnlockArraysEXT;
-    end;
-
-    procedure EnableVertexAttrib(GLSLProgram: TGLSLProgram);
-    var
-      I: Integer;
-    begin
-      for I := 0 to Arrays.Attribs.Count - 1 do
-      try
-        case Arrays.Attribs[I].AType of
-          atFloat  : GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-          atVector2: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 2, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-          atVector3: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-          atVector4: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-          atMatrix3:
-            begin
-              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single)));
-              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single) * 2));
-            end;
-          atMatrix4:
-            begin
-              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single)));
-              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 2));
-              GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 3, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 3));
-            end;
-          else raise EInternalError.Create('Arrays.Attribs[I].AType?');
-        end;
-      except
-        on E: EGLSLAttributeNotFound do VRMLWarning(vwSerious, E.Message);
-      end;
-    end;
-
-  const
-    ToMode: array [TGeometryPrimitive] of TGLenum =
-    ( GL_TRIANGLES, GL_QUADS, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
-      GL_LINE_STRIP, GL_POINTS );
+  procedure EnableVertexAttrib(GLSLProgram: TGLSLProgram);
   var
     I: Integer;
-    First: Cardinal;
-    Mode: TGLenum;
-    MaterialFromColorEnabled: boolean;
   begin
-    MaterialFromColorEnabled := false;
-
-    RenderCoordinateBegin;
+    for I := 0 to Arrays.Attribs.Count - 1 do
     try
+      case Arrays.Attribs[I].AType of
+        atFloat  : GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector2: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 2, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector3: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector4: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atMatrix3:
+          begin
+            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single)));
+            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single) * 2));
+          end;
+        atMatrix4:
+          begin
+            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single)));
+            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 2));
+            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 3, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 3));
+          end;
+        else raise EInternalError.Create('Arrays.Attribs[I].AType?');
+      end;
+    except
+      on E: EGLSLAttributeNotFound do VRMLWarning(vwSerious, E.Message);
+    end;
+  end;
+
+const
+  ToMode: array [TGeometryPrimitive] of TGLenum =
+  ( GL_TRIANGLES, GL_QUADS, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
+    GL_LINE_STRIP, GL_POINTS );
+var
+  I: Integer;
+  First: Cardinal;
+  Mode: TGLenum;
+  MaterialFromColorEnabled: boolean;
+begin
+  MaterialFromColorEnabled := false;
+
+  RenderCoordinateBegin;
+  try
 
     { Initialize vertex arrays that we we will use with indexed nodes.
       GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
@@ -400,14 +398,10 @@ procedure TBaseCoordinateRenderer.Render;
         glPopClientAttrib;
     end;
 
-    finally RenderCoordinateEnd end;
+  finally RenderCoordinateEnd end;
 
-    if MaterialFromColorEnabled then
-      glDisable(GL_COLOR_MATERIAL);
-  end;
-
-begin
-  RenderArrays;
+  if MaterialFromColorEnabled then
+    glDisable(GL_COLOR_MATERIAL);
 end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
