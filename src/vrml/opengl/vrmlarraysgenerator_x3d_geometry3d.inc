@@ -134,27 +134,23 @@ end;
 
 procedure TIndexedFaceSetGenerator.AutoGenerateNormals(const CreaseAngle: Single);
 begin
-  { I could just do normal CreateNormals for all CreaseAngle values,
-    so the test for "CreaseAngle <> 0" is not really required below.
-    But I want to set NormalsFlat to @true whenever possible
-    (as NormalsFlat allow some optimizations), so the test for
-    "CreaseAngle <> 0" is useful there (as many VRML models will have
-    default creaseAngle = 0, so NormalsFlat = true optimizations may be
-    often applicable). }
+  { We could use the same NormalsCreaseAngle for all CreaseAngle values,
+    so the tests for CreaseAngle are not really required below.
+    But this way we're more optimal, as smooth normals allow normals
+    per-vertex (so the shape can be rendered with indexes), flat normals
+    may allow flat shading (may be faster) and such. }
 
   if Coord = nil then Exit;
 
+  if CreaseAngle >= Pi then
+  begin
+    Normals := Shape.NormalsSmooth;
+    NorImplementation := niPerVertexCoordIndexed;
+  end else
   if CreaseAngle <> 0 then
   begin
-    if CreaseAngle >= Pi then
-    begin
-      Normals := Shape.NormalsSmooth;
-      NorImplementation := niPerVertexCoordIndexed;
-    end else
-    begin
-      Normals := Shape.NormalsCreaseAngle(CreaseAngle);
-      NorImplementation := niPerVertexNonIndexed;
-    end;
+    Normals := Shape.NormalsCreaseAngle(CreaseAngle);
+    NorImplementation := niPerVertexNonIndexed;
   end else
   begin
     Normals := Shape.NormalsFlat;
