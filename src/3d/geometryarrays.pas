@@ -107,6 +107,8 @@ type
   TGeometryArrays = class
   private
     FIndexes: TDynLongIntArray;
+    FIndexesCount: Cardinal;
+    FHasIndexes: boolean;
     FPrimitive: TGeometryPrimitive;
     FCount: Integer;
     FCounts: TDynCardinalArray;
@@ -167,7 +169,18 @@ type
       since normal/color are different). }
     property Indexes: TDynLongIntArray read FIndexes write FIndexes;
 
+    { Information about Indexes.
+
+      You coulc as well use the @link(Indexes) property to get the same
+      information. You can use Indexes[Index], Indexes <> nil, Indexes.Count
+      and such. However, FreeData call (that you may use to conserve memory
+      usage after loading arrays to VBO) releases Indexes property,
+      while these properties stay the same.
+      @groupBegin }
     function IndexesPtr(const Index: Cardinal): PLongInt;
+    property IndexesCount: Cardinal read FIndexesCount;
+    property HasIndexes: boolean read FHasIndexes;
+    { @groupEnd }
 
     property Primitive: TGeometryPrimitive read FPrimitive write FPrimitive;
 
@@ -208,9 +221,12 @@ type
 
     { Allocated number of items in vertex positions, normals, colors
       and such arrays.
+
       You can only set this once.
       You must do all necessary AddColor / AddAttribute calls before setting this.
-      You can access all Position / Normal etc. pointers ony after setting this. }
+
+      You can access all Position / Normal etc. pointers ony after setting this.
+      Also, IndexesCount and HasIndexes is stored at this point. }
     property Count: Integer read FCount write SetCount;
 
     function Normal: PVector3Single;
@@ -307,10 +323,12 @@ type
     property ForceFlatShading: boolean
       read FForceFlatShading write FForceFlatShading default false;
 
-    { Release the allocated memory for arrays (CoordinateArray, AttributeArray).
-      Further calls to Normal, Color and such will return only an offset
-      relative to original arrays pointer. This is useful if you loaded
-      arrays data into GPU memory. }
+    { Release the allocated memory for arrays (CoordinateArray, AttributeArray,
+      Indexes). Further calls to IndexesPtr, Normal, Color and such will
+      return only an offset relative to the original arrays pointer.
+      This is very useful if you loaded arrays data into GPU memory
+      (like Vertex Buffer Object of OpenGL), and you will not need
+      the data anymore. }
     procedure FreeData;
 
     { Was FreeData called. }
@@ -363,6 +381,12 @@ begin
     FCount := Value;
     ReallocMem(FCoordinateArray, CoordinateSize * Value);
     ReallocMem(FAttributeArray, AttributeSize * Value);
+
+    { calculate FHasIndexes, FIndexesCount now }
+    FHasIndexes := Indexes <> nil;
+    if FHasIndexes then
+      FIndexesCount := Indexes.Count else
+      FIndexesCount := 0;
   end;
 end;
 
@@ -683,6 +707,7 @@ end;
 procedure TGeometryArrays.FreeData;
 begin
   FDataFreed := true;
+  FreeAndNil(FIndexes);
   FreeMemNiling(FCoordinateArray);
   FreeMemNiling(FAttributeArray);
 end;

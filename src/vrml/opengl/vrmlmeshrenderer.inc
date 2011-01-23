@@ -114,7 +114,11 @@ type
     { Generate VBO if needed, and reload VBO contents.
       Assumes GL_ARB_vertex_buffer_object is true.
 
-      Also Arrays.FreeData is called.
+      Arrays data @italic(must not) be freed (by TGeometryArrays.FreeData)
+      before calling this method. Also, this method will always call
+      Arrays.FreeData. So do not load the same TGeometryArrays instance
+      twice to the Vbo.
+
       We always keep assertion that Vbo is loaded <=> Arrays data is freed. }
     class procedure LoadArraysToVbo(const AArrays: TGeometryArrays;
       var AVbo: TVboArrays);
@@ -159,12 +163,12 @@ begin
   begin
     glGenBuffersARB(High(AVbo) + 1, @AVbo);
     if Log then
-      WritelnLog('Renderer', Format('Creating and loading data to VBO (%d,%d,%d)',
+      WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
         [AVbo[0], AVbo[1], AVbo[2]]));
   end else
   begin
     if Log then
-      WritelnLog('Renderer', Format('Loading data to existing VBO (%d,%d,%d)',
+      WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d)',
         [AVbo[0], AVbo[1], AVbo[2]]));
   end;
 
@@ -203,9 +207,7 @@ var
         http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html,
         or shadow_fields demo) causes invalid results
         (look like random vertexes). So disable using locking for them. }
-      (not (GLVersion.IsFglrx and
-            (Arrays.Indexes = nil) {TODO:and
-            (not Renderer.InsideDisplayList)})) and
+      (not (GLVersion.IsFglrx and Arrays.HasIndexes)) and
       { Don't use when Arrays.Count has no items,
         glLockArraysEXT(0, 0) causes OpenGL error "invalid value". }
      (Arrays.Count <> 0);
@@ -370,13 +372,13 @@ begin
       try
         Mode := ToMode[Arrays.Primitive];
         First := 0;
-        if Arrays.Indexes <> nil then
+        if Arrays.HasIndexes then
         begin
           if Shape.Vbo[2] <> 0 then
             glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Shape.Vbo[2]);
 
           if Arrays.Counts = nil then
-            glDrawElements(Mode, Arrays.Indexes.Count, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
+            glDrawElements(Mode, Arrays.IndexesCount, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
             for I := 0 to Arrays.Counts.Count - 1 do
             begin
               glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.IndexesPtr(First));
