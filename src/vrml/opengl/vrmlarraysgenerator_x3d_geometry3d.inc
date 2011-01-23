@@ -144,7 +144,7 @@ begin
 
   if Coord = nil then Exit;
 
-  if Attributes.SmoothShading and (CreaseAngle <> 0) then
+  if CreaseAngle <> 0 then
   begin
     if CreaseAngle >= Pi then
     begin

@@ -338,7 +338,6 @@ type
   private
     FOnRadianceTransfer: TRadianceTransferFunction;
     FOnVertexColor: TVertexColorFunction;
-    FSmoothShading: boolean;
     FLighting: boolean;
     FUseSceneLights: boolean;
     FFirstGLFreeLight: Cardinal;
@@ -370,7 +369,6 @@ type
       @groupBegin }
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
     procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
-    procedure SetSmoothShading(const Value: boolean); virtual;
     procedure SetLighting(const Value: boolean); virtual;
     procedure SetUseSceneLights(const Value: boolean); virtual;
     procedure SetFirstGLFreeLight(const Value: Cardinal); virtual;
@@ -425,14 +423,6 @@ type
       never change. }
     property OnVertexColor: TVertexColorFunction
       read FOnVertexColor write SetOnVertexColor;
-
-    { Use smooth (Gouraud) shading.
-      This controls whether we set OpenGL glShadeModel GL_SMOOTH or GL_FLAT.
-      Also, this affects the normal vectors generated during rendering
-      (always per-face for flat shading; passing smooth normals and alllowing
-      OpenGL to just choose one normal per face would not be 100% correct). }
-    property SmoothShading: boolean
-      read FSmoothShading write SetSmoothShading default true;
 
     { Should we will enable OpenGL lighting when rendering.
       This is @true by default, since it's wanted almost always.
@@ -2965,7 +2955,6 @@ begin
   begin
     OnRadianceTransfer := TVRMLRenderingAttributes(Source).OnRadianceTransfer;
     OnVertexColor := TVRMLRenderingAttributes(Source).OnVertexColor;
-    SmoothShading := TVRMLRenderingAttributes(Source).SmoothShading;
     Lighting := TVRMLRenderingAttributes(Source).Lighting;
     UseSceneLights := TVRMLRenderingAttributes(Source).UseSceneLights;
     FirstGLFreeLight := TVRMLRenderingAttributes(Source).FirstGLFreeLight;
@@ -2990,7 +2979,6 @@ begin
     (SecondValue is TVRMLRenderingAttributes) and
     (TVRMLRenderingAttributes(SecondValue).OnRadianceTransfer = OnRadianceTransfer) and
     (TVRMLRenderingAttributes(SecondValue).OnVertexColor = OnVertexColor) and
-    (TVRMLRenderingAttributes(SecondValue).SmoothShading = SmoothShading) and
     (TVRMLRenderingAttributes(SecondValue).Lighting = Lighting) and
     (TVRMLRenderingAttributes(SecondValue).UseSceneLights = UseSceneLights) and
     (TVRMLRenderingAttributes(SecondValue).FirstGLFreeLight = FirstGLFreeLight) and
@@ -3010,7 +2998,6 @@ constructor TVRMLRenderingAttributes.Create;
 begin
   inherited;
 
-  FSmoothShading := true;
   FLighting := true;
   FUseSceneLights := true;
   FFirstGLFreeLight := DefaultFirstGLFreeLight;
@@ -3053,15 +3040,6 @@ begin
   begin
     BeforeChange;
     FOnVertexColor := Value;
-  end;
-end;
-
-procedure TVRMLRenderingAttributes.SetSmoothShading(const Value: boolean);
-begin
-  if SmoothShading <> Value then
-  begin
-    BeforeChange;
-    FSmoothShading := Value;
   end;
 end;
 
@@ -3856,12 +3834,11 @@ begin
     glDisable(GL_CULL_FACE);
 
     glDisable(GL_ALPHA_TEST);
-    {AlphaFunc uzywane tylko dla textures i tam taka wartosc jest dobra}
+    { We only use glAlphaFunc for textures, and there this value is suitable }
     glAlphaFunc(GL_GEQUAL, 0.5);
 
-    if Attributes.SmoothShading then
-     glShadeModel(GL_SMOOTH) else
-     glShadeModel(GL_FLAT);
+    { Always smooth shading. Flat shading wasn't really useful. }
+    glShadeModel(GL_SMOOTH);
 
     if Attributes.Lighting then
       glEnable(GL_LIGHTING);
