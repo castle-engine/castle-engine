@@ -118,12 +118,12 @@ type
     FCoordinateArray: Pointer;
     FCoordinateSize: Cardinal;
 
-    HasColor: boolean;
+    FHasColor: boolean;
     ColorOffset: Integer;
     FHasDefaultColor: boolean;
     FDefaultColor: TVector4Single;
 
-    HasFogCoord: boolean;
+    FHasFogCoord: boolean;
     FogCoordOffset: Integer;
     FFogDirectValues: boolean;
 
@@ -220,6 +220,7 @@ type
     procedure AddColor;
     function Color(const Index: Cardinal = 0): PVector4Single;
     procedure IncColor(var P: PVector4Single);
+    property HasColor: boolean read FHasColor;
 
     { When Color array is not initialized and HasDefaultColor,
       then the default color will be set to DefaultColor.
@@ -230,6 +231,7 @@ type
 
     procedure AddFogCoord;
     function FogCoord(const Index: Cardinal = 0): PSingle;
+    property HasFogCoord: boolean read FHasFogCoord;
 
     { If FogCoord present, does it specify direct fog intensities,
       that should be used to change pixel colors without any further processing.
@@ -405,7 +407,7 @@ procedure TGeometryArrays.AddColor;
 begin
   if not HasColor then
   begin
-    HasColor := true;
+    FHasColor := true;
     ColorOffset := AttributeSize;
     FAttributeSize += SizeOf(TVector4Single);
   end;
@@ -429,7 +431,7 @@ procedure TGeometryArrays.AddFogCoord;
 begin
   if not HasFogCoord then
   begin
-    HasFogCoord := true;
+    FHasFogCoord := true;
     FogCoordOffset := AttributeSize;
     FAttributeSize += SizeOf(Single);
   end;

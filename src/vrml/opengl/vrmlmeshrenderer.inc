@@ -319,7 +319,7 @@ procedure TBaseCoordinateRenderer.Render;
           glEnable(GL_COLOR_MATERIAL);
         end;
 
-        if Arrays.Color <> nil then
+        if Arrays.HasColor then
         begin
           glEnableClientState(GL_COLOR_ARRAY);
           glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
@@ -328,7 +328,7 @@ procedure TBaseCoordinateRenderer.Render;
           glColorv(Arrays.DefaultColor);
       end;
 
-      if (Arrays.FogCoord <> nil) and GL_EXT_fog_coord then
+      if Arrays.HasFogCoord and GL_EXT_fog_coord then
       begin
         glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
         glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
@@ -679,7 +679,7 @@ procedure TFogCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  if (Arrays.FogCoord <> nil) and
+  if Arrays.HasFogCoord and
      Arrays.FogDirectValues and
      GL_EXT_fog_coord then
   begin
@@ -698,7 +698,7 @@ end;
 procedure TFogCoordinateRenderer.RenderCoordinateEnd;
 begin
   { Restore defaults }
-  if (Arrays.FogCoord <> nil) and
+  if Arrays.HasFogCoord and
      Arrays.FogDirectValues and
      GL_EXT_fog_coord then
   begin
