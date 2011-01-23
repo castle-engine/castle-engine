@@ -2,7 +2,7 @@ In this directory you can find Lazarus packages that allow you
 to easily use Kambi VRML game engine in Lazarus programs.
 
 Short instructions: just compile and install kambi_base and kambi_components.
-*Do not* install kambi_glwindow in Lazarus.
+*Do not* install kambi_glwindow in Lazarus (only compile it).
 
 ----------------------------------------
 Usage:
