@@ -225,35 +225,23 @@ unit VRMLGLRenderer;
   using TVRMLGeometryNode.LocalTriangulate and then this triangle
   will be passed to OpenGL.
 
-  This is a proof-of-concept implementation that shows that
-  using TVRMLGeometryNode.LocalTriangulate we can render all
-  nodes in the same manner --- no need to write separate rendering
-  routines for various TVRMLGeometryNode descendants.
-  All you have to do is to implement triangulating.
-
-  This is mainly for testing purposes, it allows you to test
-  LocalTriangulate and allows you to render nodes that don't have
-  specialized rendering procedure done yet. It has a couple of
-  practical disadvantages:
-  1) It's slower, and always will be, than dedicated rendering
-     procedures for each node.
-  2) Things that are not expressed as triangles
-     (IndexedLineSet, PointSet) will not be rendered at all.
-  3) It lacks some features, because the triangulating routines
-     do not return enough information. For example, textures
-     are not applied (texture coords are not generated),
-     flat shading is always used (because each triangle has
-     always the same normal vector).
-     This disadvantage could be removed (by extending information
-     that triangulate method returns for each node),
-     but it will always be non-optimal anyway --- see point 1) above.
+  This is usable only for TVRMLGeometryNode.LocalTriangulate testing.
+  - It's slower than the normal rendering method.
+  - Things that are not expressed as triangles
+    (IndexedLineSet, PointSet) will not be rendered at all.
+  - It lacks some features, because the triangulating routines
+    do not return enough information. For example, textures
+    are not applied (texture coords are not generated),
+    flat shading is always used (because each triangle has
+    always the same normal vector).
+    This disadvantage may be removed later (by extending information
+    that triangulate method returns for each node).
 }
 { $define USE_VRML_NODES_TRIANGULATION}
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
   {$ifdef RELEASE}
-    {$fatal Undefine USE_VRML_NODES_TRIANGULATION
-      for VRMLGLRenderer ---
+    {$fatal Undefine USE_VRML_NODES_TRIANGULATION for VRMLGLRenderer,
       you don't want to use this in RELEASE version. }
   {$endif}
 {$endif}
@@ -1279,7 +1267,7 @@ type
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
     procedure DrawTriangle(const Tri: TTriangle3Single;
-      Shape: TObject; State: TVRMLGraphTraverseState;
+      Shape: TObject;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
     {$endif}
 
@@ -3821,18 +3809,13 @@ end;
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
 procedure TVRMLGLRenderer.DrawTriangle(const Tri: TTriangle3Single;
-  Shape: TObject; State: TVRMLGraphTraverseState;
+  Shape: TObject;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
-  Render_BindMaterial_1(MatNum, false);
-
   glNormalv(TriangleNormal(Tri));
-
-  glBegin(GL_TRIANGLES);
-    glVertexv(Tri[0]);
-    glVertexv(Tri[1]);
-    glVertexv(Tri[2]);
-  glEnd;
+  glVertexv(Tri[0]);
+  glVertexv(Tri[1]);
+  glVertexv(Tri[2]);
 end;
 {$endif USE_VRML_NODES_TRIANGULATION}
 
@@ -4282,10 +4265,9 @@ begin
       InitMeshRenderer) then
     begin
       VRMLWarning(vwSerious,
-        { We display for user Shape.OriginalGeometry.NodeTypeName, as it's
-          Shape.OriginalGeometry that cannot be rendered. User is not interested in
-          the implementation fact that possibly actually proxy existed
-          and could not be rendered either. }
+        { We display for user OriginalGeometry name, not Geometry name.
+          User is not interested in the implementation detail
+          that we possibly tried rendering this shape through proxy. }
         'Rendering of node kind "' + Shape.OriginalGeometry.NodeTypeName + '" not implemented');
       Exit;
     end;
@@ -4303,7 +4285,9 @@ begin
         try
           {$ifdef USE_VRML_NODES_TRIANGULATION}
           { Simple rendering using LocalTriangulate. }
+          glBegin(GL_TRIANGLES);
           Shape.LocalTriangulate(true, @DrawTriangle);
+          glEnd;
           {$else}
 
           { initialize TBaseCoordinateRenderer.Arrays now }
