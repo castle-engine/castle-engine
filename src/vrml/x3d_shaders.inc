@@ -457,15 +457,8 @@ function TNodeShaderPart.LoadContents: string;
     doesn't start with any protocol *and*
     has some newlines (needed to recognize relative URLs without
     protocol correctly). }
-  var
-    Protocol: string;
   begin
-    Result := CharsPos([#10, #13], S) > 0;
-    if Result then
-    begin
-      Protocol := UrlProtocol(S);
-      Result := (Protocol = '') or (CharsPos(WhiteSpaces, S) > 0);
-    end;
+    Result := (CharsPos([#10, #13], S) > 0) and (UrlProtocol(S) = '');
   end;
 
   { Load shader source from data URI.If success,
