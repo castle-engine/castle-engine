@@ -1191,8 +1191,8 @@ type
     UsedGLSL: TGLSLRenderer;
 
     { Is bump mapping allowed by the current shape.
-      Fully calculated only after InitMeshRenderer, as creating Generator
-      actually sets this. }
+      Fully calculated only after InitMeshRenderer, as determining GeneratorClass
+      is needed to set this. }
     ShapeBumpMappingAllowed: boolean;
     { Is bump mapping used, and what method is used, for current shape.
       This is determined by ShapeBumpMappingAllowed,
@@ -4084,9 +4084,12 @@ var
         ExposedMeshRenderer := TText3DRenderer.Create(Self) else
         Result := false;
     end else
+    begin
       { If we have GeneratorClass, create TCompleteCoordinateRenderer.
         We'll initialize TCompleteCoordinateRenderer.Arrays later. }
       ExposedMeshRenderer := TCompleteCoordinateRenderer.Create(Self);
+      ShapeBumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
+    end;
   end;
 
 var
@@ -4318,7 +4321,7 @@ begin
             if Shape.Arrays = nil then
             begin
               Generator := GeneratorClass.Create(Attributes,
-                CurrentShape, CurrentState, CurrentGeometry, ShapeBumpMappingAllowed);
+                CurrentShape, CurrentState, CurrentGeometry);
               try
                 Generator.TexCoordsNeeded := TexCoordsNeeded;
                 Generator.MaterialOpacity := MaterialOpacity;

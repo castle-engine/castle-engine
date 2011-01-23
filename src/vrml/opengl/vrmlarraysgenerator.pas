@@ -192,10 +192,12 @@ type
 
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); virtual;
+      AGeometry: TVRMLGeometryNode); virtual;
 
     { Create and generate Arrays contents. }
     function GenerateArrays: TGeometryArrays;
+
+    class function BumpMappingAllowed: boolean; virtual;
   end;
 
   TVRMLArraysGeneratorClass = class of TVRMLArraysGenerator;
@@ -319,7 +321,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
   end;
 
   TMaterials1Implementation = (miOverall,
@@ -376,7 +378,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
   end;
 
   { Handle per-face or per-vertex VRML >= 2.0 colors.
@@ -446,7 +448,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
   end;
 
   TNormalsImplementation = (
@@ -572,7 +574,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
   end;
 
   TX3DVertexAttributeNodes = specialize TFPGObjectList<TNodeX3DVertexAttributeNode>;
@@ -589,14 +591,14 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
     destructor Destroy; override;
   end;
 
   { Handle bump mapping.
 
     Descendants should:
-    - set ShapeBumpMappingAllowed to true is constructor,
+    - override BumpMappingAllowed to return true,
     - call CalculateTangentVectors when needed.
     - Also make sure that GetNormal always
       works (since it's called by CalculateTangentVectors),
@@ -628,7 +630,7 @@ type
 
 constructor TVRMLArraysGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 begin
   inherited Create;
 
@@ -778,11 +780,16 @@ begin
   FCurrentRangeNumber := RangeNumber;
 end;
 
+class function TVRMLArraysGenerator.BumpMappingAllowed: boolean;
+begin
+  Result := false;
+end;
+
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }
 
 constructor TAbstractTextureCoordinateGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 begin
   inherited;
   if not Geometry.TexCoord(State, TexCoord) then
@@ -1415,7 +1422,7 @@ end;
 
 constructor TAbstractMaterial1Generator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 begin
   inherited;
   MaterialBinding := BIND_DEFAULT;
@@ -1513,7 +1520,7 @@ end;
 
 constructor TAbstractColorGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 begin
   inherited;
 
@@ -1840,7 +1847,7 @@ end;
 
 constructor TAbstractFogGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 begin
   inherited;
 
@@ -1967,7 +1974,7 @@ end;
 
 constructor TAbstractShaderAttribGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 var
   A: TMFNode;
   I: Integer;

@@ -32,7 +32,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
   end;
 
   { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
@@ -49,7 +49,8 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
+    class function BumpMappingAllowed: boolean; override;
   end;
 
   { Generator for X3D IndexedTriangleFanSet and TriangleFanSet node. }
@@ -71,7 +72,8 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
+    class function BumpMappingAllowed: boolean; override;
   end;
 
   { Generator for X3D IndexedTriangleStripSet and TriangleStripSet nodes.
@@ -98,7 +100,8 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
+    class function BumpMappingAllowed: boolean; override;
   end;
 
   { Generator for X3D IndexedQuadSet and QuadSet nodes. }
@@ -115,7 +118,8 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
+    class function BumpMappingAllowed: boolean; override;
   end;
 
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
@@ -137,7 +141,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
   end;
 
   { Generator for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
@@ -145,7 +149,7 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
   protected
     procedure GenerateCoordinateBegin; override;
   end;
@@ -186,7 +190,7 @@ end;
 
 constructor TPointSet_2Generator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 var
   Node: TNodePointSet_2;
 begin
@@ -275,7 +279,7 @@ end;
 
 constructor TTriangleSetGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 begin
   inherited;
 
@@ -317,8 +321,11 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+end;
 
-  ShapeBumpMappingAllowed := true;
+class function TTriangleSetGenerator.BumpMappingAllowed: boolean;
+begin
+  Result := true;
 end;
 
 procedure TTriangleSetGenerator.GenerateCoordinateBegin;
@@ -402,7 +409,7 @@ end;
 
 constructor TTriangleFanSetGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 begin
   inherited;
 
@@ -443,8 +450,11 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+end;
 
-  ShapeBumpMappingAllowed := true;
+class function TTriangleFanSetGenerator.BumpMappingAllowed: boolean;
+begin
+  Result := true;
 end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinateBegin;
@@ -573,7 +583,7 @@ end;
 
 constructor TTriangleStripSetGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 
   procedure CreateForIndexedTriangleMesh_1;
   var
@@ -608,8 +618,6 @@ constructor TTriangleStripSetGenerator.Create(AAttributes: TVRMLRenderingAttribu
 
 begin
   inherited;
-
-  ShapeBumpMappingAllowed := true;
 
   if Geometry is TNodeIndexedTriangleMesh_1 then
   begin
@@ -656,6 +664,11 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+end;
+
+class function TTriangleStripSetGenerator.BumpMappingAllowed: boolean;
+begin
+  Result := true;
 end;
 
 procedure TTriangleStripSetGenerator.GenerateCoordinateBegin;
@@ -801,7 +814,7 @@ end;
 
 constructor TQuadSetGenerator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 begin
   inherited;
 
@@ -846,8 +859,11 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
+end;
 
-  ShapeBumpMappingAllowed := true;
+class function TQuadSetGenerator.BumpMappingAllowed: boolean;
+begin
+  Result := true;
 end;
 
 procedure TQuadSetGenerator.GenerateCoordinateBegin;
@@ -968,7 +984,7 @@ end;
 
 constructor TIndexedLineSet_1Generator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 var
   Node: TNodeIndexedLineSet_1;
 begin
@@ -994,7 +1010,7 @@ end;
 
 constructor TLineSet_2Generator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 var
   NodeLS: TNodeLineSet;
   NodeILS: TNodeIndexedLineSet_2;

@@ -37,6 +37,9 @@ type
 
     procedure GenerateTriangle(const TriIndices: TVector3Longint);
   protected
+    { Set these in descendant's constructor. }
+    FaceConvex: boolean;
+
     procedure GenerateCoordinate; override;
     procedure GenerateCoordinateEnd; override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
@@ -45,14 +48,9 @@ type
     { Auto-generate normals and set Normals, NormalsCcw, NorImplementation
       properties to use them. }
     procedure AutoGenerateNormals(const CreaseAngle: Single);
-  protected
-    { Set these in descendant's constructor. }
-    FaceConvex: boolean;
     procedure PrepareIndexesPrimitives; override;
   public
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+    class function BumpMappingAllowed: boolean; override;
   end;
 
   TIndexedFaceSet_1Generator = class(TIndexedFaceSetGenerator)
@@ -63,24 +61,21 @@ type
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
   end;
 
   TIndexedFaceSet_2Generator = class(TIndexedFaceSetGenerator)
   public
     constructor Create(AAttributes: TVRMLRenderingAttributes;
       AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean); override;
+      AGeometry: TVRMLGeometryNode); override;
   end;
 
 { TIndexedFaceSetGenerator -------------------------------------------------- }
 
-constructor TIndexedFaceSetGenerator.Create(AAttributes: TVRMLRenderingAttributes;
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+class function TIndexedFaceSetGenerator.BumpMappingAllowed: boolean;
 begin
-  inherited;
-  ShapeBumpMappingAllowed := true;
+  Result := true;
 end;
 
 { TIndexedFaceSetGenerator makes triangles, GL_TRIANGLES in OpenGL.
@@ -276,7 +271,7 @@ end;
 
 constructor TIndexedFaceSet_1Generator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 var
   SH: TNodeShapeHints;
   ANode: TNodeIndexedFaceSet_1;
@@ -327,7 +322,7 @@ end;
 
 constructor TIndexedFaceSet_2Generator.Create(AAttributes: TVRMLRenderingAttributes;
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode; var ShapeBumpMappingAllowed: boolean);
+  AGeometry: TVRMLGeometryNode);
 var
   ANode: TNodeIndexedFaceSet_2;
 begin
