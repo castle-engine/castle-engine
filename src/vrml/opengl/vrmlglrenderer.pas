@@ -1102,6 +1102,17 @@ type
   TVRMLRendererShape = class(TVRMLShape)
   private
     FArrays: TGeometryArrays;
+
+    { Generate VBO if needed, and reload VBO contents.
+      Assumes GL_ARB_vertex_buffer_object is true.
+
+      Arrays data @italic(must not) be freed (by TGeometryArrays.FreeData)
+      before calling this method. Also, this method will always call
+      Arrays.FreeData. So do not load the same TGeometryArrays instance
+      twice to the Vbo.
+
+      We always keep assertion that Vbo is loaded <=> Arrays data is freed. }
+    procedure LoadArraysToVbo;
   public
     Vbo: TVboArrays;
     procedure FreeVBO;
@@ -3290,6 +3301,12 @@ end;
 
 { TVRMLRendererShape --------------------------------------------------------- }
 
+destructor TVRMLRendererShape.Destroy;
+begin
+  FreeArrays;
+  inherited;
+end;
+
 procedure TVRMLRendererShape.FreeArrays;
 begin
   FreeAndNil(FArrays);
@@ -3312,11 +3329,48 @@ begin
   end;
 end;
 
-destructor TVRMLRendererShape.Destroy;
+procedure TVRMLRendererShape.LoadArraysToVbo;
+var
+  DataUsage: TGLenum;
 begin
-  FreeArrays;
-  inherited;
+  Assert(GL_ARB_vertex_buffer_object);
+  Assert(not Arrays.DataFreed);
+
+  if Vbo[0] = 0 then
+  begin
+    glGenBuffersARB(High(Vbo) + 1, @Vbo);
+    if Log then
+      WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
+        [Vbo[0], Vbo[1], Vbo[2]]));
+  end else
+  begin
+    if Log then
+      WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d)',
+        [Vbo[0], Vbo[1], Vbo[2]]));
+  end;
+
+  if DynamicGeometry then
+    DataUsage := GL_DYNAMIC_DRAW_ARB else
+    DataUsage := GL_STATIC_DRAW_ARB;
+
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[0]);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.CoordinateSize,
+    Arrays.CoordinateArray, DataUsage);
+
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[1]);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.AttributeSize,
+    Arrays.AttributeArray, DataUsage);
+
+  if Arrays.Indexes <> nil then
+  begin
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[2]);
+    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Arrays.Indexes.Count * SizeOf(LongInt),
+      Arrays.Indexes.ItemsArray, GL_STATIC_DRAW_ARB);
+  end;
+
+  Arrays.FreeData;
 end;
+
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
@@ -4339,14 +4393,14 @@ begin
 
               { Always after regenerating Shape.Arrays, reload Shape.Vbo contents }
               if VBO and GL_ARB_vertex_buffer_object then
-                CoordinateRenderer.LoadArraysToVbo(Shape.Arrays, Shape.Vbo);
+                Shape.LoadArraysToVbo;
             end else
             begin
               { Shape.Arrays contents are already loaded, make sure that
                 Shape.Vbo are loaded too (in case Shape.Arrays were loaded
                 previously, when VBO = false). }
               if (Shape.Vbo[0] = 0) and VBO and GL_ARB_vertex_buffer_object then
-                CoordinateRenderer.LoadArraysToVbo(Shape.Arrays, Shape.Vbo);
+                Shape.LoadArraysToVbo;
             end;
 
             if VBO and GL_ARB_vertex_buffer_object then

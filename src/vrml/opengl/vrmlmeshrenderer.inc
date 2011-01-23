@@ -110,18 +110,6 @@ type
     { Don't override this, it is already overridden here
       to do everything necessary. }
     procedure Render; override;
-
-    { Generate VBO if needed, and reload VBO contents.
-      Assumes GL_ARB_vertex_buffer_object is true.
-
-      Arrays data @italic(must not) be freed (by TGeometryArrays.FreeData)
-      before calling this method. Also, this method will always call
-      Arrays.FreeData. So do not load the same TGeometryArrays instance
-      twice to the Vbo.
-
-      We always keep assertion that Vbo is loaded <=> Arrays data is freed. }
-    class procedure LoadArraysToVbo(const AArrays: TGeometryArrays;
-      var AVbo: TVboArrays);
   end;
 
   TTextureCoordinateRenderer = class(TBaseCoordinateRenderer)
@@ -152,43 +140,6 @@ begin
 end;
 
 { TBaseCoordinateRenderer ------------------------------------------------ }
-
-class procedure TBaseCoordinateRenderer.LoadArraysToVbo(
-  const AArrays: TGeometryArrays; var AVbo: TVboArrays);
-begin
-  Assert(GL_ARB_vertex_buffer_object);
-  Assert(not AArrays.DataFreed);
-
-  if AVbo[0] = 0 then
-  begin
-    glGenBuffersARB(High(AVbo) + 1, @AVbo);
-    if Log then
-      WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
-        [AVbo[0], AVbo[1], AVbo[2]]));
-  end else
-  begin
-    if Log then
-      WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d)',
-        [AVbo[0], AVbo[1], AVbo[2]]));
-  end;
-
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, AVbo[0]);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, AArrays.Count * AArrays.CoordinateSize,
-    AArrays.CoordinateArray, GL_STREAM_DRAW_ARB);
-
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, AVbo[1]);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, AArrays.Count * AArrays.AttributeSize,
-    AArrays.AttributeArray, GL_STREAM_DRAW_ARB);
-
-  if AArrays.Indexes <> nil then
-  begin
-    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, AVbo[2]);
-    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, AArrays.Indexes.Count * SizeOf(LongInt),
-      AArrays.Indexes.ItemsArray, GL_STREAM_DRAW_ARB);
-  end;
-
-  AArrays.FreeData;
-end;
 
 procedure TBaseCoordinateRenderer.Render;
 var

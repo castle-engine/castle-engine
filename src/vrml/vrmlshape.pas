@@ -557,7 +557,8 @@ type
 
       Dynamic geometry has worse collision detection (using a crude
       approximation) and falls back to rendering method better for
-      dynamic geometry (in particular, without display lists). }
+      dynamic geometry (for example, marking VBO data as dynamic for OpenGL
+      rendering). }
     property DynamicGeometry: boolean read FDynamicGeometry write FDynamicGeometry;
   end;
 
