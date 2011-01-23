@@ -1200,7 +1200,7 @@ type
       shape (whether user provided normal map, height map etc.) }
     ShapeBumpMappingUsed: TBumpMappingMethod;
 
-    { Variables internal for MeterialsBegin/End, BindMaterial }
+    { Variables for RenderMeterialsBegin/End }
     MaterialLit: boolean;
     MaterialTemporaryDisabledFog: boolean;
     MaterialOpacity: Single;
@@ -3597,7 +3597,7 @@ end;
 
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
-{$I vrmlglrenderer_render_materials.inc}
+{$I vrmlglrenderer_materials.inc}
 
 procedure TVRMLGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
