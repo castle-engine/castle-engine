@@ -110,6 +110,7 @@ type
     FPrimitive: TGeometryPrimitive;
     FCount: Integer;
     FCounts: TDynCardinalArray;
+    FDataFreed: boolean;
 
     FAttributeArray: Pointer;
     FAttributeSize: Cardinal;
@@ -165,6 +166,8 @@ type
       as the calculation results couldn't be shared anyway,
       since normal/color are different). }
     property Indexes: TDynLongIntArray read FIndexes write FIndexes;
+
+    function IndexesPtr(const Index: Cardinal): PLongInt;
 
     property Primitive: TGeometryPrimitive read FPrimitive write FPrimitive;
 
@@ -301,6 +304,15 @@ type
     { Make the whole rendering with flat shading. }
     property ForceFlatShading: boolean
       read FForceFlatShading write FForceFlatShading default false;
+
+    { Release the allocated memory for arrays (CoordinateArray, AttributeArray).
+      Further calls to Normal, Color and such will return only an offset
+      relative to original arrays pointer. This is useful if you loaded
+      arrays data into GPU memory. }
+    procedure FreeData;
+
+    { Was FreeData called. }
+    property DataFreed: boolean read FDataFreed;
   end;
 
 implementation
@@ -352,8 +364,16 @@ begin
   end;
 end;
 
+function TGeometryArrays.IndexesPtr(const Index: Cardinal): PLongInt;
+begin
+  Result := PLongInt(PtrUInt(Index * SizeOf(LongInt)));
+  if not DataFreed then
+    PtrUInt(Result) += PtrUInt(FIndexes.ItemsArray);
+end;
+
 function TGeometryArrays.Position: PVector3Single;
 begin
+  { When DataFreed, FCoordinateArray is already nil }
   Result := FCoordinateArray;
 end;
 
@@ -364,12 +384,14 @@ end;
 
 function TGeometryArrays.Normal: PVector3Single;
 begin
+  { When DataFreed, FCoordinateArray is already nil }
   Result := PVector3Single(PtrUInt(PtrUInt(FCoordinateArray) +
     SizeOf(TVector3Single)));
 end;
 
 function TGeometryArrays.Normal(const Index: Cardinal): PVector3Single;
 begin
+  { When DataFreed, FCoordinateArray is already nil }
   Result := PVector3Single(PtrUInt(PtrUInt(FCoordinateArray) +
     SizeOf(TVector3Single) + CoordinateSize * Index));
 end;
@@ -392,6 +414,7 @@ end;
 function TGeometryArrays.Color(const Index: Cardinal): PVector4Single;
 begin
   if HasColor then
+    { When DataFreed, FAttributeArray is already nil }
     Result := PVector4Single(PtrUInt(PtrUInt(FAttributeArray) +
       ColorOffset + Index * AttributeSize)) else
     Result := nil;
@@ -415,6 +438,7 @@ end;
 function TGeometryArrays.FogCoord(const Index: Cardinal = 0): PSingle;
 begin
   if HasFogCoord then
+    { When DataFreed, FAttributeArray is already nil }
     Result := PSingle(PtrUInt(PtrUInt(FAttributeArray) +
       FogCoordOffset + Index * AttributeSize)) else
     Result := nil;
@@ -508,6 +532,7 @@ begin
   begin
     Assert(TexCoords[TextureUnit].Dimensions = Dimensions, 'Texture coord allocated but for different dimensions');
     Assert(TexCoords[TextureUnit].Generation = tgExplicit, 'Texture coords are generated, not explicit, for this unit');
+    { When DataFreed, FAttributeArray is already nil }
     Result := Pointer(PtrUInt(PtrUInt(FAttributeArray) +
       TexCoords[TextureUnit].Offset + Index * AttributeSize));
   end else
@@ -607,6 +632,7 @@ begin
     if A.AType <> AType then
       raise Exception.CreateFmt('GLSL attribute "%s" is allocated but for different type (%s) than currently requested (%s)',
         [Name, AttribTypeName[A.AType], AttribTypeName[AType]]);
+    { When DataFreed, FAttributeArray is already nil }
     Result := Pointer(PtrUInt(PtrUInt(FAttributeArray) +
       A.Offset + Index * AttributeSize));
     Exit;
@@ -618,6 +644,7 @@ end;
 function TGeometryArrays.GLSLAttribute(A: TGeometryAttrib;
   const Offset: PtrUInt): Pointer;
 begin
+  { When DataFreed, FAttributeArray is already nil }
   Result := Pointer(PtrUInt(PtrUInt(FAttributeArray) + A.Offset + Offset));
 end;
 
@@ -649,6 +676,13 @@ end;
 function TGeometryArrays.GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4Single;
 begin
   Result := GLSLAttribute(atMatrix4, Name, Index);
+end;
+
+procedure TGeometryArrays.FreeData;
+begin
+  FDataFreed := true;
+  FreeMemNiling(FCoordinateArray);
+  FreeMemNiling(FAttributeArray);
 end;
 
 end.

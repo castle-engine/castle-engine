@@ -41,7 +41,7 @@ type
   TVRMLMeshRenderer = class
   private
     FRenderer: TVRMLGLRenderer;
-    FShape: TVRMLShape;
+    FShape: TVRMLRendererShape;
     FState: TVRMLGraphTraverseState;
     FGeometry: TVRMLGeometryNode;
     FAttributes: TVRMLRenderingAttributes;
@@ -50,7 +50,7 @@ type
       lifetime of the renderer, set in constructor.
       Setting Renderer automatically sets Shape, State, Geometry, Attributes. }
     property Renderer: TVRMLGLRenderer read FRenderer;
-    property Shape: TVRMLShape read FShape;
+    property Shape: TVRMLRendererShape read FShape;
     property State: TVRMLGraphTraverseState read FState;
     property Geometry: TVRMLGeometryNode read FGeometry;
     property Attributes: TVRMLRenderingAttributes read FAttributes;
@@ -101,9 +101,23 @@ type
     procedure RenderCoordinateEnd; virtual;
     { @groupEnd }
   public
+    { Set this to non-zero to use this VBO during rendering,
+      assuming Arrays contents are already loaded there.
+      In this case, Arrays data must be already freed
+      (by TGeometryArrays.FreeData). }
+    Vbo: TVboArrays;
+
     { Don't override this, it is already overridden here
       to do everything necessary. }
     procedure Render; override;
+
+    { Generate VBO if needed, and reload VBO contents.
+      Assumes GL_ARB_vertex_buffer_object is true.
+
+      Also Arrays.FreeData is called.
+      We always keep assertion that Vbo is loaded <=> Arrays data is freed. }
+    class procedure LoadArraysToVbo(const AArrays: TGeometryArrays;
+      var AVbo: TVboArrays);
   end;
 
   TTextureCoordinateRenderer = class(TBaseCoordinateRenderer)
@@ -135,6 +149,43 @@ end;
 
 { TBaseCoordinateRenderer ------------------------------------------------ }
 
+class procedure TBaseCoordinateRenderer.LoadArraysToVbo(
+  const AArrays: TGeometryArrays; var AVbo: TVboArrays);
+begin
+  Assert(GL_ARB_vertex_buffer_object);
+  Assert(not AArrays.DataFreed);
+
+  if AVbo[0] = 0 then
+  begin
+    glGenBuffersARB(High(AVbo) + 1, @AVbo);
+    if Log then
+      WritelnLog('Renderer', Format('Creating and loading data to VBO (%d,%d,%d)',
+        [AVbo[0], AVbo[1], AVbo[2]]));
+  end else
+  begin
+    if Log then
+      WritelnLog('Renderer', Format('Loading data to existing VBO (%d,%d,%d)',
+        [AVbo[0], AVbo[1], AVbo[2]]));
+  end;
+
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, AVbo[0]);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, AArrays.Count * AArrays.CoordinateSize,
+    AArrays.CoordinateArray, GL_STREAM_DRAW_ARB);
+
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, AVbo[1]);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, AArrays.Count * AArrays.AttributeSize,
+    AArrays.AttributeArray, GL_STREAM_DRAW_ARB);
+
+  if AArrays.Indexes <> nil then
+  begin
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, AVbo[2]);
+    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, AArrays.Indexes.Count * SizeOf(LongInt),
+      AArrays.Indexes, GL_STREAM_DRAW_ARB);
+  end;
+
+  AArrays.FreeData;
+end;
+
 procedure TBaseCoordinateRenderer.Render;
 
   procedure RenderArrays;
@@ -147,7 +198,8 @@ procedure TBaseCoordinateRenderer.Render;
       { See
         [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
         for description of GL_EXT_compiled_vertex_array. }
-      UseLockArrays := GL_EXT_compiled_vertex_array and
+      UseLockArrays := (Shape.Vbo[0] = 0) and
+        GL_EXT_compiled_vertex_array and
         { Under Radeon X1600 (chantal), fglrx, with roNone optimization,
           rendering some shapes without indexes (like 16000heights from
           http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html,
@@ -243,11 +295,17 @@ procedure TBaseCoordinateRenderer.Render;
     if not GLVersion.IsMesa then
       glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
     try
+      if Shape.Vbo[0] <> 0 then
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Shape.Vbo[0]);
+
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
 
       glEnableClientState(GL_NORMAL_ARRAY);
       glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
+
+      if Shape.Vbo[1] <> 0 then
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Shape.Vbo[1]);
 
       if Attributes.ControlMaterials and
          (not Attributes.PureGeometry) then
@@ -316,11 +374,14 @@ procedure TBaseCoordinateRenderer.Render;
         First := 0;
         if Arrays.Indexes <> nil then
         begin
+          if Shape.Vbo[2] <> 0 then
+            glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Shape.Vbo[2]);
+
           if Arrays.Counts = nil then
-            glDrawElements(Mode, Arrays.Indexes.Count, GL_UNSIGNED_INT, Arrays.Indexes.Pointers[First]) else
+            glDrawElements(Mode, Arrays.Indexes.Count, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
             for I := 0 to Arrays.Counts.Count - 1 do
             begin
-              glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.Indexes.Pointers[First]);
+              glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.IndexesPtr(First));
               First += Arrays.Counts[I];
             end;
         end else

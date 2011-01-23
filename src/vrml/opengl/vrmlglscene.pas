@@ -66,13 +66,14 @@ const
   roNone = VRMLRendererOptimization.roNone;
   roSceneDisplayList = VRMLRendererOptimization.roSceneDisplayList;
   roShapeDisplayList = VRMLRendererOptimization.roShapeDisplayList;
+  roVertexBufferObject = VRMLRendererOptimization.roVertexBufferObject;
   roSeparateShapes = roShapeDisplayList; // @deprecated name. @exclude
   roSeparateShapesNoTransform = roShapeDisplayList; // @deprecated name. @exclude
   roSceneAsAWhole = roSceneDisplayList; // @deprecated name. @exclude
 
   DefaultWireframeWidth = 3.0;
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
-  DefaultOptimization = roShapeDisplayList;
+  DefaultOptimization = roVertexBufferObject;
 
 type
   TVRMLGLShape = class;
@@ -1880,7 +1881,6 @@ begin
                   Renderer.Cache.Shape_DecReference(S.DLShape_DisplayList);
                   S.DLShape_DisplayList := 0;
                 end;
-                S.FreeArrays; { TODO: do it regardless of Optimization }
               end;
             finally FreeAndNil(SI) end;
           end;
@@ -1898,6 +1898,20 @@ begin
           end;
         end;
       end;
+  end;
+
+  { Free Arrays and Vbo of all shapes. }
+  if (Renderer <> nil) and (Shapes <> nil) then
+  begin
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false, false);
+    try
+      while SI.GetNext do
+      begin
+        S := TVRMLGLShape(SI.Current);
+        S.FreeArrays;
+        S.FreeVbo;
+      end;
+    finally FreeAndNil(SI) end;
   end;
 
   if ScreenEffectNodes <> nil then
@@ -1943,7 +1957,7 @@ begin
   if not Shape.EnableDisplayList then
     Shape.FreeArrays;
 
-  Renderer.RenderShape(Shape);
+  Renderer.RenderShape(Shape, Optimization = roVertexBufferObject);
 end;
 
 procedure TVRMLGLScene.RenderShape_WithLight(
@@ -2837,7 +2851,7 @@ begin
       'TVRMLGLScene.DLShape_PrepareShape');
     glNewList(Shape.DLShape_DisplayList, GL_COMPILE);
     try
-      Renderer.RenderShapeInside(Shape);
+      Renderer.RenderShapeInside(Shape, Optimization = roVertexBufferObject);
       glEndList;
     except
       glEndList;
@@ -3097,7 +3111,7 @@ begin
 
   if prRender in Options then
     case Optimization of
-      roNone: Common_PrepareAllShapes;
+      roNone, roVertexBufferObject: Common_PrepareAllShapes;
 
       roSceneDisplayList:
         begin
@@ -3154,7 +3168,7 @@ procedure TVRMLGLScene.Render(
   procedure RenderNormal;
   begin
     case Optimization of
-      roNone:
+      roNone, roVertexBufferObject:
         begin
           RenderShapesNoDisplayList(TestShapeVisibility,
             {$ifdef FPC_OBJFPC} @ {$endif} RenderShape_WithLight,

@@ -13,7 +13,8 @@ type
   TGLRendererOptimization = (
     roNone,
     roSceneDisplayList,
-    roShapeDisplayList
+    roShapeDisplayList,
+    roVertexBufferObject
   );
   PGLRendererOptimization = ^TGLRendererOptimization;
 
@@ -47,12 +48,14 @@ const
   RendererOptimizationNames: array[TGLRendererOptimization] of string =
   ( 'none',
     'scene-display-list',
-    'shape-display-list' );
+    'shape-display-list',
+    'vertex-buffer-object' );
 
   RendererOptimizationNiceNames: array[TGLRendererOptimization] of string =
   ( 'None',
     'Whole Scene by Display List',
-    'Shape by Display List' );
+    'Shape by Display List',
+    'Vertex Buffer Object' );
 
 implementation
 

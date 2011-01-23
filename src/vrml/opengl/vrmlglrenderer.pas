@@ -86,7 +86,7 @@
 
 @longCode(#
   RenderShapeLights(LightsRenderer, Shape.State);
-  RenderShape(Shape);
+  RenderShape(Shape, VBO);
 #)
 
       Remember that you can render only shapes that have Shape.State
@@ -97,7 +97,7 @@
 @longCode(#
   RenderShapeBegin(Shape);
   try
-    RenderShapeInside(Shape);
+    RenderShapeInside(Shape, VBO);
   finally RenderShapeEnd(Shape) end;
 #)
 
@@ -1096,11 +1096,16 @@ type
   {$I vrmlbumpmappingrenderer.inc}
   {$I vrmlglslrenderer.inc}
 
+  TVboArrays = array [0..2] of TGLuint;
+
   { VRML shape that can be rendered. }
   TVRMLRendererShape = class(TVRMLShape)
   private
     FArrays: TGeometryArrays;
   public
+    Vbo: TVboArrays;
+    procedure FreeVBO;
+
     destructor Destroy; override;
 
     { Arrays to render this shape. Managed by TVRMLGLRenderer and TVRMLGLScene. }
@@ -1173,7 +1178,7 @@ type
 
     { During Render, values of current Shape, Shape.State, Shape.Geometry
       and such. }
-    CurrentShape: TVRMLShape;
+    CurrentShape: TVRMLRendererShape;
     CurrentState: TVRMLGraphTraverseState;
     CurrentGeometry: TVRMLGeometryNode;
     UsedGLSL: TGLSLRenderer;
@@ -1348,10 +1353,10 @@ type
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       State: TVRMLGraphTraverseState);
     procedure RenderShapeBegin(Shape: TVRMLRendererShape);
-    procedure RenderShapeInside(Shape: TVRMLRendererShape);
+    procedure RenderShapeInside(Shape: TVRMLRendererShape; const VBO: boolean);
     procedure RenderShapeEnd(Shape: TVRMLRendererShape);
 
-    procedure RenderShape(Shape: TVRMLRendererShape);
+    procedure RenderShape(Shape: TVRMLRendererShape; const VBO: boolean);
 
     { Check Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
       context capabilities to see which bump mapping method (if any)
@@ -3288,6 +3293,23 @@ begin
   FreeAndNil(FArrays);
 end;
 
+procedure TVRMLRendererShape.FreeVBO;
+var
+  I: Integer;
+begin
+  if Vbo[0] <> 0 then
+  begin
+    { All Vbo must be zero, or none. }
+    for I := 0 to High(Vbo) do
+      Assert(Vbo[I] <> 0);
+
+    glDeleteBuffersARB(High(Vbo) + 1, @Vbo);
+
+    for I := 0 to High(Vbo) do
+      Vbo[I] := 0;
+  end;
+end;
+
 destructor TVRMLRendererShape.Destroy;
 begin
   FreeArrays;
@@ -4026,7 +4048,8 @@ begin
     glMultMatrix(State.Transform);
 end;
 
-procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape);
+procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
+  const VBO: boolean);
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
 
@@ -4240,6 +4263,7 @@ var
 
 var
   Generator: TVRMLArraysGenerator;
+  CoordinateRenderer: TBaseCoordinateRenderer;
 begin
   { make a copy to our class fields }
   CurrentShape := Shape;
@@ -4293,6 +4317,9 @@ begin
           { initialize TBaseCoordinateRenderer.Arrays now }
           if GeneratorClass <> nil then
           begin
+            Assert(MeshRenderer is TBaseCoordinateRenderer);
+            CoordinateRenderer := TBaseCoordinateRenderer(MeshRenderer);
+
             { calculate Shape.Arrays }
             if Shape.Arrays = nil then
             begin
@@ -4307,13 +4334,40 @@ begin
                 Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
                 Shape.Arrays := Generator.GenerateArrays;
               finally FreeAndNil(Generator) end;
+
+              { Always after regenerating Shape.Arrays, reload Shape.Vbo contents }
+              if VBO and GL_ARB_vertex_buffer_object then
+                CoordinateRenderer.LoadArraysToVbo(Shape.Arrays, Shape.Vbo);
+            end else
+            begin
+              { Shape.Arrays contents are already loaded, make sure that
+                Shape.Vbo are loaded too (in case Shape.Arrays were loaded
+                previously, when VBO = false). }
+              if (Shape.Vbo[0] = 0) and VBO and GL_ARB_vertex_buffer_object then
+                CoordinateRenderer.LoadArraysToVbo(Shape.Arrays, Shape.Vbo);
             end;
 
-            Assert(MeshRenderer is TBaseCoordinateRenderer);
-            TBaseCoordinateRenderer(MeshRenderer).Arrays := Shape.Arrays;
+            if VBO and GL_ARB_vertex_buffer_object then
+            begin
+              { Shape.Arrays contents are already loaded,
+                so Vbo contents are already loaded too }
+              Assert(Shape.Vbo[0] <> 0);
+              CoordinateRenderer.Vbo := Shape.Vbo;
+            end;
+
+            CoordinateRenderer.Arrays := Shape.Arrays;
           end;
 
           MeshRenderer.Render;
+
+          if (GeneratorClass <> nil) and VBO and GL_ARB_vertex_buffer_object then
+          begin
+            { unbind arrays, to have a clean state on exit.
+              TODO: this should not be needed, instead move to RenderEnd.
+              Check does occlusion query work Ok when some vbo is bound. }
+            glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+            glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+          end;
 
           {$endif USE_VRML_NODES_TRIANGULATION}
 
@@ -4375,11 +4429,11 @@ begin
   { at the end, we're in modelview mode }
 end;
 
-procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape);
+procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape; const VBO: boolean);
 begin
   RenderShapeBegin(Shape);
   try
-    RenderShapeInside(Shape);
+    RenderShapeInside(Shape, VBO);
   finally
     RenderShapeEnd(Shape);
   end;
