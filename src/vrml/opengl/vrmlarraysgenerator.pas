@@ -694,6 +694,7 @@ begin
 
     AllowIndexed := true;
     PrepareAttributes(AllowIndexed);
+    AllowIndexed := false; // TODO: very temporary, until vbo+indexes fixed
 
     if Log then
       WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
