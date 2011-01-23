@@ -1108,7 +1108,9 @@ type
 
     destructor Destroy; override;
 
-    { Arrays to render this shape. Managed by TVRMLGLRenderer and TVRMLGLScene. }
+    { An instance of TGeometryArrays, decomposing this shape geometry.
+      Used to easily render and process this geometry, if assigned.
+      This is managed by TVRMLGLRenderer and TVRMLGLScene. }
     property Arrays: TGeometryArrays read FArrays write FArrays;
     procedure FreeArrays;
   end;
