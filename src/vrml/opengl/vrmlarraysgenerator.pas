@@ -187,7 +187,6 @@ type
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
     ShapeBumpMappingUsed: TBumpMappingMethod;
-    BumpMappingLightPosition: TVector3Single;
     { @groupEnd }
 
     constructor Create(AAttributes: TVRMLRenderingAttributes;
@@ -609,9 +608,7 @@ type
     { Helpers for bump mapping }
     HasTangentVectors: boolean;
     STangent, TTangent: TVector3Single;
-    LightPositionObjectSpace: TVector3Single;
   protected
-    procedure GenerateCoordinateBegin; override;
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
 
@@ -2163,14 +2160,6 @@ begin
   inherited;
   if ShapeBumpMappingUsed <> bmNone then
     DoBumpMapping;
-end;
-
-procedure TAbstractBumpMappingGenerator.GenerateCoordinateBegin;
-begin
-  inherited;
-  if ShapeBumpMappingUsed <> bmNone then
-    LightPositionObjectSpace := MatrixMultPoint(
-      State.InvertedTransform, BumpMappingLightPosition);
 end;
 
 procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(

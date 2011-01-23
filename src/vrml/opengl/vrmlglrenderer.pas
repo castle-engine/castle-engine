@@ -4305,7 +4305,6 @@ begin
                 Generator.FogVolumetricDirection := FogVolumetricDirection;
                 Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
                 Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
-                Generator.BumpMappingLightPosition := BumpMappingLightPosition;
                 Shape.Arrays := Generator.GenerateArrays;
               finally FreeAndNil(Generator) end;
             end;
