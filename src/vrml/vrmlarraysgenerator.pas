@@ -1511,12 +1511,14 @@ procedure TAbstractColorGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
-  { calculate RadianceTransfer. Make it non-nil, and calculate
-    RadianceTransferVertexSize, if it's useful. }
   if Geometry is TNodeX3DComposedGeometryNode then
-  begin
     RadianceTransfer := (Geometry as TNodeX3DComposedGeometryNode).FdRadianceTransfer.Items;
 
+  { calculate final RadianceTransfer:
+    Leave it non-nil, and calculate RadianceTransferVertexSize,
+    if it's useful. }
+  if RadianceTransfer <> nil then
+  begin
     if (RadianceTransfer.Count <> 0) and
        Assigned(OnRadianceTransfer) then
     begin
