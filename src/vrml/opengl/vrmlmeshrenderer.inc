@@ -172,29 +172,37 @@ var
       glUnlockArraysEXT;
   end;
 
+{$ifdef DISABLE_ARRAYS}
+var
+  Locations: TDynLongIntArray;
+{$endif}
+
   procedure EnableVertexAttrib(GLSLProgram: TGLSLProgram);
   var
     I: Integer;
   begin
+    {$ifdef DISABLE_ARRAYS}
+    Locations := TDynLongIntArray.Create;
+    {$endif}
     for I := 0 to Arrays.Attribs.Count - 1 do
     try
       case Arrays.Attribs[I].AType of
-        atFloat  : GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atVector2: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 2, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atVector3: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atVector4: GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atFloat  : {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
+        atVector2: {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 2, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
+        atVector3: {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
+        atVector4: {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
         atMatrix3:
           begin
-            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single)));
-            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single) * 2));
+            {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
+            {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single))));
+            {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single) * 2)));
           end;
         atMatrix4:
           begin
-            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single)));
-            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 2));
-            GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 3, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 3));
+            {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
+            {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single))));
+            {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 2)));
+            {$ifdef DISABLE_ARRAYS} Locations.Add {$endif}(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 3, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 3)));
           end;
         else raise EInternalError.Create('Arrays.Attribs[I].AType?');
       end;
@@ -202,6 +210,48 @@ var
       on E: EGLSLAttributeNotFound do VRMLWarning(vwSerious, E.Message);
     end;
   end;
+
+{$ifdef DISABLE_ARRAYS}
+  procedure DisableArrays;
+  var
+    I: Integer;
+  begin
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+
+    if Attributes.ControlMaterials and
+       (not Attributes.PureGeometry) then
+      glDisableClientState(GL_COLOR_ARRAY);
+
+    if Arrays.HasFogCoord and GL_EXT_fog_coord then
+      glDisableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
+
+    if GLUseMultiTexturing then
+    begin
+      for I := 0 to Arrays.TexCoords.Count - 1 do
+        if (Arrays.TexCoords[I] <> nil) and
+           (Arrays.TexCoords[I].Generation = tgExplicit) then
+        begin
+          glClientActiveTextureARB(GL_TEXTURE0_ARB +
+            Integer(Renderer.Attributes.FirstGLFreeTexture) + I);
+          glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        end;
+    end else
+    if (Arrays.TexCoords.Count <> 0) and
+       (Arrays.TexCoords[0] <> nil) and
+       (Arrays.TexCoords[0].Generation = tgExplicit) then
+    begin
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    end;
+
+    if Locations <> nil then
+    begin
+      for I := 0 to Locations.Count - 1 do
+        TGLSLProgram.DisableVertexAttribArray(Locations.Items[I]);
+      FreeAndNil(Locations);
+    end;
+  end;
+{$endif}
 
 const
   ToMode: array [TGeometryPrimitive] of TGLenum =
@@ -214,6 +264,10 @@ var
   MaterialFromColorEnabled: boolean;
 begin
   MaterialFromColorEnabled := false;
+
+  {$ifdef DISABLE_ARRAYS} 
+  Locations := nil;
+  {$endif}
 
   RenderCoordinateBegin;
   try
@@ -349,6 +403,9 @@ begin
     finally
       if not GLVersion.IsMesa then
         glPopClientAttrib;
+      {$ifdef DISABLE_ARRAYS}
+      DisableArrays;
+      {$endif}
     end;
 
   finally RenderCoordinateEnd end;
