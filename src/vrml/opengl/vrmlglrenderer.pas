@@ -256,7 +256,7 @@ uses
   KambiGLUtils, VRMLGLLightSet, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
   GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL,
-  GeometryArrays;
+  GeometryArrays, VRMLArraysGenerator;
 
 {$define read_interface}
 
@@ -268,18 +268,6 @@ const
 type
   TBeforeGLVertexProc = procedure (Node: TVRMLGeometryNode;
     const Vert: TVector3Single) of object;
-
-  TRadianceTransferFunction = function (Node: TVRMLGeometryNode;
-    RadianceTransfer: PVector3Single;
-    const RadianceTransferCount: Cardinal): TVector3Single of object;
-
-  { Callback used by TVRMLRenderingAttributes.OnVertexColorFunction.
-    Passed here VertexPosition is in local coordinates (that is,
-    local of this object, multiply by State.Transform to get scene coords).
-    VertexIndex is the direct index to Node.Coordinates. }
-  TVertexColorFunction = procedure (var Color: TVector3Single;
-    Shape: TVRMLShape; const VertexPosition: TVector3Single;
-    VertexIndex: Integer) of object;
 
   { Various bump mapping methods. Generally sorted from worst one
     (bmNone, which does no bump mapping) to the best.
@@ -1517,8 +1505,7 @@ function FogParametersEqual(
 implementation
 
 uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
-  RenderStateUnit, VRMLCameraUtils, RaysWindow, VRMLShadowMaps,
-  VRMLArraysGenerator;
+  RenderStateUnit, VRMLCameraUtils, RaysWindow, VRMLShadowMaps;
 
 {$define read_implementation}
 {$I dynarray_2.inc}
@@ -4356,15 +4343,16 @@ begin
             { calculate Shape.Arrays }
             if Shape.Arrays = nil then
             begin
-              Generator := GeneratorClass.Create(Attributes,
-                CurrentShape, CurrentState, CurrentGeometry);
+              Generator := GeneratorClass.Create(CurrentShape, CurrentState, CurrentGeometry);
               try
                 Generator.TexCoordsNeeded := TexCoordsNeeded;
                 Generator.MaterialOpacity := MaterialOpacity;
                 Generator.FogVolumetric := FogVolumetric;
                 Generator.FogVolumetricDirection := FogVolumetricDirection;
                 Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
-                Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
+                Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed <> bmNone;
+                Generator.OnVertexColor := Attributes.OnVertexColor;
+                Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
                 Shape.Arrays := Generator.GenerateArrays;
               finally FreeAndNil(Generator) end;
 

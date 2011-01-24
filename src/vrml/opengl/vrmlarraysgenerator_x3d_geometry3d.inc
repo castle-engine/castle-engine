@@ -59,15 +59,13 @@ type
   protected
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode); override;
   end;
 
   TIndexedFaceSet_2Generator = class(TIndexedFaceSetGenerator)
   public
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode); override;
   end;
 
@@ -265,8 +263,7 @@ end;
 
 { TIndexedFaceSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_1Generator.Create(AAttributes: TVRMLRenderingAttributes;
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+constructor TIndexedFaceSet_1Generator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode);
 var
   SH: TNodeShapeHints;
@@ -316,8 +313,7 @@ end;
 
 { TIndexedFaceSet_2Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_2Generator.Create(AAttributes: TVRMLRenderingAttributes;
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+constructor TIndexedFaceSet_2Generator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode);
 var
   ANode: TNodeIndexedFaceSet_2;

@@ -18,10 +18,22 @@ unit VRMLArraysGenerator;
 
 interface
 
-uses VRMLGLRenderer, VRMLShape, VRMLNodes, VRMLFields, KambiUtils,
+uses VRMLShape, VRMLNodes, VRMLFields, KambiUtils,
   GeometryArrays, VectorMath;
 
 type
+  TRadianceTransferFunction = function (Node: TVRMLGeometryNode;
+    RadianceTransfer: PVector3Single;
+    const RadianceTransferCount: Cardinal): TVector3Single of object;
+
+  { Callback used by TVRMLRenderingAttributes.OnVertexColor.
+    Passed here VertexPosition is in local coordinates (that is,
+    local of this object, multiply by State.Transform to get scene coords).
+    VertexIndex is the direct index to Node.Coordinates. }
+  TVertexColorFunction = procedure (var Color: TVector3Single;
+    Shape: TVRMLShape; const VertexPosition: TVector3Single;
+    VertexIndex: Integer) of object;
+
   { Generate TGeometryArrays for a VRML/X3D shape. This is the basis
     of our renderer: generate a TGeometryArrays for a shape,
     then TVRMLGLRenderer will pass TGeometryArrays to OpenGL.
@@ -33,7 +45,6 @@ type
     FShape: TVRMLShape;
     FState: TVRMLGraphTraverseState;
     FGeometry: TVRMLGeometryNode;
-    FAttributes: TVRMLRenderingAttributes;
 
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
@@ -84,7 +95,6 @@ type
     property Shape: TVRMLShape read FShape;
     property State: TVRMLGraphTraverseState read FState;
     property Geometry: TVRMLGeometryNode read FGeometry;
-    property Attributes: TVRMLRenderingAttributes read FAttributes;
     { @groupEnd }
 
     procedure WarningShadingProblems(
@@ -186,11 +196,12 @@ type
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
-    ShapeBumpMappingUsed: TBumpMappingMethod;
+    ShapeBumpMappingUsed: boolean;
+    OnRadianceTransfer: TRadianceTransferFunction;
+    OnVertexColor: TVertexColorFunction;
     { @groupEnd }
 
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode); virtual;
 
     { Create and generate Arrays contents. }
@@ -318,8 +329,7 @@ type
 
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode); override;
   end;
 
@@ -375,8 +385,7 @@ type
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
   public
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode); override;
   end;
 
@@ -400,14 +409,9 @@ type
       accesses colors)
       and for face we'll use just face number.
 
-    - You can also set RadianceTransfer
-      (although we actually handle it here for all X3DComposedGeometryNode
-      descendants, which is pretty enough). If set, and non-empty,
-      and Attributes.OnRadianceTransfer are defined, we will use it.
-
-      Note that assigning RadianceTransfer some non-nil value may actually
-      result is setting it to nil (when we detect that RadianceTransfer should
-      not be used actually).
+    - We also handle RadianceTransfer for all X3DComposedGeometryNode
+      descendants. If set, and non-empty,
+      and OnRadianceTransfer is defined, we will use it.
 
       We will then ignore Color, ColorRGBA, ColorPerVertex, ColorIndex
       settings --- only the colors returned by OnRadianceTransfer
@@ -428,26 +432,18 @@ type
   TAbstractColorGenerator = class(TAbstractMaterial1Generator)
   private
     RadianceTransferVertexSize: Cardinal;
-    FRadianceTransfer: TDynVector3SingleArray;
+    RadianceTransfer: TDynVector3SingleArray;
     FaceColor: TVector4Single;
-    procedure SetRadianceTransfer(const Value: TDynVector3SingleArray);
   protected
     Color: TMFVec3f;
     ColorRGBA: TMFColorRGBA;
     ColorPerVertex: boolean;
     ColorIndex: TMFLong;
 
-    property RadianceTransfer: TDynVector3SingleArray
-      read FRadianceTransfer write SetRadianceTransfer;
-
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: integer); override;
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
-  public
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
   end;
 
   TNormalsImplementation = (
@@ -571,8 +567,7 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode); override;
   end;
 
@@ -588,8 +583,7 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(AAttributes: TVRMLRenderingAttributes;
-      AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
       AGeometry: TVRMLGeometryNode); override;
     destructor Destroy; override;
   end;
@@ -625,8 +619,7 @@ type
 
 { TVRMLArraysGenerator ------------------------------------------------------ }
 
-constructor TVRMLArraysGenerator.Create(AAttributes: TVRMLRenderingAttributes;
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
+constructor TVRMLArraysGenerator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode);
 begin
   inherited Create;
@@ -634,7 +627,6 @@ begin
   FShape := AShape;
   FState := AState;
   FGeometry := AGeometry;
-  FAttributes := AAttributes;
 
   Check(Geometry.Coord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
@@ -784,7 +776,7 @@ end;
 
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }
 
-constructor TAbstractTextureCoordinateGenerator.Create(AAttributes: TVRMLRenderingAttributes;
+constructor TAbstractTextureCoordinateGenerator.Create(
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode);
 begin
@@ -1417,7 +1409,7 @@ end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
 
-constructor TAbstractMaterial1Generator.Create(AAttributes: TVRMLRenderingAttributes;
+constructor TAbstractMaterial1Generator.Create(
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode);
 begin
@@ -1515,44 +1507,35 @@ end;
 
 { TAbstractColorGenerator --------------------------------------- }
 
-constructor TAbstractColorGenerator.Create(AAttributes: TVRMLRenderingAttributes;
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
-begin
-  inherited;
-
-  if Geometry is TNodeX3DComposedGeometryNode then
-    RadianceTransfer := (Geometry as TNodeX3DComposedGeometryNode).FdRadianceTransfer.Items;
-end;
-
-procedure TAbstractColorGenerator.SetRadianceTransfer(
-  const Value: TDynVector3SingleArray);
-begin
-  FRadianceTransfer := Value;
-
-  if (RadianceTransfer.Count <> 0) and
-     Assigned(Attributes.OnRadianceTransfer) then
-  begin
-    if RadianceTransfer.Count mod Coord.Count <> 0 then
-    begin
-      VRMLWarning(vwSerious, 'radianceTransfer field must be emppty, or have a number of items being multiple of coods');
-      FRadianceTransfer := nil;
-    end else
-    if RadianceTransfer.Count < Coord.Count then
-    begin
-      VRMLWarning(vwSerious, 'radianceTransfer field must be emppty, or have a number of items >= number of coods');
-      FRadianceTransfer := nil;
-    end else
-      RadianceTransferVertexSize := RadianceTransfer.Count div Coord.Count;
-  end else
-    FRadianceTransfer := nil;
-end;
-
 procedure TAbstractColorGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
-  if Assigned(Attributes.OnVertexColor) or
+  { calculate RadianceTransfer. Make it non-nil, and calculate
+    RadianceTransferVertexSize, if it's useful. }
+  if Geometry is TNodeX3DComposedGeometryNode then
+  begin
+    RadianceTransfer := (Geometry as TNodeX3DComposedGeometryNode).FdRadianceTransfer.Items;
+
+    if (RadianceTransfer.Count <> 0) and
+       Assigned(OnRadianceTransfer) then
+    begin
+      if RadianceTransfer.Count mod Coord.Count <> 0 then
+      begin
+        VRMLWarning(vwSerious, 'radianceTransfer field must be emppty, or have a number of items being multiple of coods');
+        RadianceTransfer := nil;
+      end else
+      if RadianceTransfer.Count < Coord.Count then
+      begin
+        VRMLWarning(vwSerious, 'radianceTransfer field must be emppty, or have a number of items >= number of coods');
+        RadianceTransfer := nil;
+      end else
+        RadianceTransferVertexSize := RadianceTransfer.Count div Coord.Count;
+    end else
+      RadianceTransfer := nil;
+  end;
+
+  if Assigned(OnVertexColor) or
      (RadianceTransfer <> nil) then
   begin
     Arrays.AddColor;
@@ -1573,7 +1556,7 @@ var
 begin
   inherited;
   { Implement different color per vertex here. }
-  if Assigned(Attributes.OnVertexColor) then
+  if Assigned(OnVertexColor) then
   begin
     if CoordIndex <> nil then
       VertexIndex := CoordIndex.ItemsSafe[IndexNum] else
@@ -1596,8 +1579,7 @@ begin
     end else
       VertexColor := White3Single; { default fallback }
 
-    Attributes.OnVertexColor(VertexColor, Shape,
-      GetVertex(IndexNum), VertexIndex);
+    OnVertexColor(VertexColor, Shape, GetVertex(IndexNum), VertexIndex);
     Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);
   end else
   if RadianceTransfer <> nil then
@@ -1606,7 +1588,7 @@ begin
       VertexIndex := CoordIndex.ItemsSafe[IndexNum] else
       VertexIndex := IndexNum;
 
-    VertexColor := Attributes.OnRadianceTransfer(Geometry,
+    VertexColor := OnRadianceTransfer(Geometry,
       @(RadianceTransfer.Items[VertexIndex * RadianceTransferVertexSize]),
       RadianceTransferVertexSize);
 
@@ -1644,7 +1626,7 @@ begin
   inherited;
 
   { Implement different color per face here. }
-  if (not Assigned(Attributes.OnVertexColor)) and
+  if (not Assigned(OnVertexColor)) and
      (RadianceTransfer = nil) then
   begin
     if (Color <> nil) and (not ColorPerVertex) then
@@ -1842,7 +1824,7 @@ end;
 
 { TAbstractFogGenerator --------------------------------- }
 
-constructor TAbstractFogGenerator.Create(AAttributes: TVRMLRenderingAttributes;
+constructor TAbstractFogGenerator.Create(
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode);
 begin
@@ -1969,7 +1951,7 @@ end;
 
 { TAbstractShaderAttribGenerator ------------------------------ }
 
-constructor TAbstractShaderAttribGenerator.Create(AAttributes: TVRMLRenderingAttributes;
+constructor TAbstractShaderAttribGenerator.Create(
   AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
   AGeometry: TVRMLGeometryNode);
 var
@@ -2076,7 +2058,7 @@ end;
 procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
-  if ShapeBumpMappingUsed <> bmNone then
+  if ShapeBumpMappingUsed then
   begin
     Arrays.AddGLSLAttributeMatrix3('object_space_to_tangent');
     Arrays.AddGLSLAttributeVector2('tex_coord');
@@ -2158,7 +2140,7 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
 begin
   inherited;
-  if ShapeBumpMappingUsed <> bmNone then
+  if ShapeBumpMappingUsed then
     DoBumpMapping;
 end;
 
@@ -2266,7 +2248,7 @@ var
   TriangleTexCoord: TTriangle2Single;
 begin
   HasTangentVectors := false;
-  if ShapeBumpMappingUsed <> bmNone then
+  if ShapeBumpMappingUsed then
   begin
     { calculate Triangle3D }
     Triangle3D[0] := GetVertex(TriangleIndex1);
