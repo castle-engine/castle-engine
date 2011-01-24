@@ -1343,11 +1343,12 @@ type
     procedure RenderShapeLights(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeBegin(Shape: TVRMLRendererShape);
+    procedure RenderShapeBegin(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
     procedure RenderShapeInside(Shape: TVRMLRendererShape; const VBO: boolean);
     procedure RenderShapeEnd(Shape: TVRMLRendererShape);
 
-    procedure RenderShape(Shape: TVRMLRendererShape; const VBO: boolean);
+    procedure RenderShape(Shape: TVRMLRendererShape; const VBO: boolean;
+      Fog: INodeX3DFogObject);
 
     { Check Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
       context capabilities to see which bump mapping method (if any)
@@ -3881,7 +3882,8 @@ begin
       Attributes.FirstGLFreeLight, LastGLFreeLight);}
 end;
 
-procedure TVRMLGLRenderer.RenderShapeBegin(Shape: TVRMLRendererShape);
+procedure TVRMLGLRenderer.RenderShapeBegin(Shape: TVRMLRendererShape;
+  Fog: INodeX3DFogObject);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
@@ -4450,9 +4452,10 @@ begin
   { at the end, we're in modelview mode }
 end;
 
-procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape; const VBO: boolean);
+procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
+  const VBO: boolean; Fog: INodeX3DFogObject);
 begin
-  RenderShapeBegin(Shape);
+  RenderShapeBegin(Shape, Fog);
   try
     RenderShapeInside(Shape, VBO);
   finally

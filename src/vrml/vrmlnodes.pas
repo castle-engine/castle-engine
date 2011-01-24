@@ -225,6 +225,7 @@ type
   TVRMLEventsEngine = class;
   TNodeClipPlane = class;
   TNodeHAnimHumanoid = class;
+  TNodeLocalFog = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -605,6 +606,10 @@ type
       Always @nil if empty. This allows us to optimize TVRMLGraphTraverseState
       processing. }
     ClipPlanes: TDynClipPlaneArray;
+
+    { Local fog settings. When @nil, it means use global fog (or no fog,
+      if no global fog defined in file). }
+    LocalFog: TNodeLocalFog;
 
     function AddClipPlane: PClipPlane;
   end;
@@ -2478,6 +2483,7 @@ begin
   InsidePrototype := 0;
   InsideIgnoreCollision := 0;
   InsideInvisible := 0;
+  LocalFog := nil;
 
   PointingDeviceSensors.Count := 0;
   FreeAndNil(ClipPlanes);
@@ -2518,6 +2524,7 @@ begin
   InsideIgnoreCollision := Source.InsideIgnoreCollision;
   InsideInvisible := Source.InsideInvisible;
   Humanoid := Source.Humanoid;
+  LocalFog := Source.LocalFog;
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
 
@@ -2602,7 +2609,8 @@ begin
     MatricesPerfectlyEqual(Transform, SV.Transform) and
     (TransformScale = SV.TransformScale) and
     MatricesPerfectlyEqual(TextureTransform, SV.TextureTransform) and
-    (ShapeNode = SV.ShapeNode);
+    (ShapeNode = SV.ShapeNode) and
+    (LocalFog = SV.LocalFog);
 
   if Result then
   begin
@@ -2620,7 +2628,7 @@ begin
   { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
     PointingDeviceSensors,
     ActiveLights, Transform, TransformScale, InvertedTransform,
-    TextureTransform, ClipPlanes are ignored by
+    TextureTransform, ClipPlanes, LocalFog are ignored by
     TVRMLGLRenderer.RenderShapeInside }
 
   Result := (ShapeNode = SecondValue.ShapeNode);

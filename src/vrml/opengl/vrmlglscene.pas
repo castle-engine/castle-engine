@@ -628,6 +628,9 @@ type
       (actually, none other should be allocated), currently
       it just frees resources for all possible Optimization values. }
     procedure OptimizationDestroy;
+
+    { Fog for this shape. @nil if none. }
+    function ShapeFog(Shape: TVRMLShape): INodeX3DFogObject;
   private
     PreparedFogNode: TNodeFog;
     PreparedFogScale: Single;
@@ -1951,13 +1954,20 @@ begin
   FBackgroundInvalidate;
 end;
 
+function TVRMLGLScene.ShapeFog(Shape: TVRMLShape): INodeX3DFogObject;
+begin
+  Result := Shape.State.LocalFog;
+  if Result = nil then
+    Result := FogNode;
+end;
+
 procedure TVRMLGLScene.RenderShape_NoLight(Shape: TVRMLGLShape);
 begin
   { When EnableDisplayList = false, the data must be regenerated every frame. }
   if not Shape.EnableDisplayList then
     Shape.FreeArrays;
 
-  Renderer.RenderShape(Shape, Optimization = roVertexBufferObject);
+  Renderer.RenderShape(Shape, Optimization = roVertexBufferObject, ShapeFog(Shape));
 end;
 
 procedure TVRMLGLScene.RenderShape_WithLight(
@@ -2884,7 +2894,7 @@ begin
   if Shape.EnableDisplayList then
   begin
     Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-    Renderer.RenderShapeBegin(Shape);
+    Renderer.RenderShapeBegin(Shape, ShapeFog(Shape));
     try
       glCallList(Shape.DLShape_DisplayList);
     finally

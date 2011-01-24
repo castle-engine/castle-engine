@@ -342,7 +342,9 @@ type
       CP := State.AddClipPlane;
       CP^.Node := TNodeClipPlane(Child);
       CP^.Transform := State.Transform;
-    end;
+    end else
+    if Child is TNodeLocalFog then
+      State.LocalFog := TNodeLocalFog(Child);
   end;
 
 function TVRMLGroupingNode.SeparateGroup: boolean;
