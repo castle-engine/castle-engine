@@ -158,7 +158,7 @@ var
         http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html,
         or shadow_fields demo) causes invalid results
         (look like random vertexes). So disable using locking for them. }
-      (not (GLVersion.IsFglrx and Arrays.HasIndexes)) and
+      (not (GLVersion.IsFglrx and not Arrays.HasIndexes)) and
       { Don't use when Arrays.Count has no items,
         glLockArraysEXT(0, 0) causes OpenGL error "invalid value". }
      (Arrays.Count <> 0);
