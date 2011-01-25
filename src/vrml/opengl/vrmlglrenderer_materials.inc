@@ -13,7 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-procedure TVRMLGLRenderer.RenderMaterialsBegin;
+var
+  MaterialTemporaryDisabledFog: boolean;
+
+procedure RenderMaterialsBegin;
 
   { Apply material (both VRML 1.0 and 2.0).
     Assumes MaterialLit is already calculated.
@@ -208,7 +211,7 @@ begin
     Material_2(M2);
 end;
 
-procedure TVRMLGLRenderer.RenderMaterialsEnd;
+procedure RenderMaterialsEnd;
 begin
   if not MaterialLit then
   begin

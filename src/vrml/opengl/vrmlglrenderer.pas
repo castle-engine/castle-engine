@@ -1158,13 +1158,9 @@ type
       shape (whether user provided normal map, height map etc.) }
     ShapeBumpMappingUsed: TBumpMappingMethod;
 
-    { Variables for RenderMeterialsBegin/End }
+    { Variables set by RenderShapeMaterials }
     MaterialLit: boolean;
-    MaterialTemporaryDisabledFog: boolean;
     MaterialOpacity: Single;
-
-    procedure RenderMaterialsBegin;
-    procedure RenderMaterialsEnd;
   private
     { For how many texture units does Render have to generate tex coords?
 
@@ -3606,8 +3602,6 @@ end;
 
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
-{$I vrmlglrenderer_materials.inc}
-
 procedure TVRMLGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
   if GL_ARB_multitexture then
@@ -4378,6 +4372,9 @@ end;
 
 procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
   const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass);
+
+  {$I vrmlglrenderer_materials.inc}
+
 begin
   RenderMaterialsBegin;
   try
