@@ -1258,7 +1258,15 @@ type
     procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
 
     procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; const VBO: boolean);
-    procedure RenderShapeInside(Shape: TVRMLRendererShape; const VBO: boolean);
+    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; const VBO: boolean);
+    procedure RenderShapeShaders(Shape: TVRMLRendererShape; const VBO: boolean;
+      GeneratorClass: TVRMLArraysGeneratorClass);
+    procedure RenderShapeTextures(Shape: TVRMLRendererShape; const VBO: boolean;
+      GeneratorClass: TVRMLArraysGeneratorClass; UsedGLSLTexCoordsNeeded: Cardinal);
+    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; const VBO: boolean;
+      GeneratorClass: TVRMLArraysGeneratorClass);
+    procedure RenderShapeInside(Shape: TVRMLRendererShape; const VBO: boolean;
+      GeneratorClass: TVRMLArraysGeneratorClass);
   private
     FBumpMappingLightPosition: TVector3Single;
     procedure SetBumpMappingLightPosition(const Value: TVector3Single);
@@ -4082,23 +4090,16 @@ begin
 
   glPushMatrix;
     glMultMatrix(Shape.State.Transform);
-    RenderShapeInside(Shape, VBO);
+    RenderShapeCreateMeshRenderer(Shape, VBO);
   glPopMatrix;
 
   ClipPlanesEnd;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
+procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
   const VBO: boolean);
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
-
-  function NodeTextured(Node: TVRMLGeometryNode): boolean;
-  begin
-    Result := not (
-      (Node is TNodePointSet_2) or
-      (Node is TNodeIndexedLineSet_2));
-  end;
 
   { If CurrentGeometry should be rendered using one of TVRMLMeshRenderer
     classes, then create appropriate MeshRenderer and return @true.
@@ -4130,12 +4131,133 @@ var
     end;
   end;
 
-var
-  BumpMapping: TBumpMappingRenderer;
+begin
+  { make a copy to our class fields }
+  CurrentShape := Shape;
+  CurrentGeometry := Shape.OriginalGeometry;
+  CurrentState := Shape.OriginalState;
 
+  { default ShapeBumpMapping* state }
+  ShapeBumpMappingAllowed := false;
+  ShapeBumpMappingUsed := bmNone;
+
+  {$ifndef USE_VRML_NODES_TRIANGULATION}
+  { We have to initalize MeshRenderer to something non-nil.
+
+    First try to initialize from Shape.OriginalGeometry, only if this fails
+    --- try to use Shape.Geometry (possibly through Proxy).
+    This is to allow nodes with a Proxy
+    still be rendered using direct specialized method, if available. }
+  if not InitMeshRenderer then
+  begin
+    CurrentGeometry := Shape.Geometry;
+    CurrentState := Shape.State;
+    if not ((CurrentGeometry <> Shape.OriginalGeometry) and
+      InitMeshRenderer) then
+    begin
+      VRMLWarning(vwSerious,
+        { We display for user OriginalGeometry name, not Geometry name.
+          User is not interested in the implementation detail
+          that we possibly tried rendering this shape through proxy. }
+        'Rendering of node kind "' + Shape.OriginalGeometry.NodeTypeName + '" not implemented');
+      Exit;
+    end;
+  end;
+
+  Assert(MeshRenderer <> nil);
+  {$endif}
+
+  try
+    RenderShapeShaders(Shape, VBO, GeneratorClass);
+  finally
+    FreeAndNil(ExposedMeshRenderer);
+
+    { Just for safety, force them @nil now }
+    CurrentGeometry := nil;
+    CurrentState := nil;
+  end;
+end;
+
+procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
+  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass);
+var
   { > 0 means that UsedGLSL is non-nil *and* we already bound needed texture
     units when initializing shader. Always 0 otherwise. }
   UsedGLSLTexCoordsNeeded: Cardinal;
+
+  { Find if some shader is available and prepared for this state.
+    If yes, then sets UsedGLSL to non-nil and enables this shader. }
+  procedure RenderShadersBegin;
+
+    function TextureCoordsDefined: Cardinal;
+    var
+      TexCoord: TVRMLNode;
+    begin
+      if CurrentShape.Geometry.TexCoord(CurrentState, TexCoord) and
+         (TexCoord <> nil) then
+      begin
+        if TexCoord is TNodeMultiTextureCoordinate then
+          Result := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Count else
+          Result := 1;
+      end else
+        Result := 0;
+    end;
+
+  var
+    TCD: Cardinal;
+  begin
+    UsedGLSL := nil;
+    UsedGLSLTexCoordsNeeded := 0;
+
+    if not Attributes.PureGeometry then
+    begin
+      UsedGLSL := GLSLRenderers.Enable(CurrentState, UsedGLSLTexCoordsNeeded);
+
+      { Only if we bound texture units defined in shader ComposedShader fields
+        (it we have shader but UsedGLSLTexCoordsNeeded = 0 then normal
+        texture apply (including normal TexCoordsNeeded calculation)
+        will be done):
+
+        Although we bound only UsedGLSLTexCoordsNeeded texture units,
+        we want to pass all texture coords defined in texCoord.
+        Shaders may use them (even when textures are not bound for them). }
+
+      if (UsedGLSL <> nil) and (UsedGLSLTexCoordsNeeded > 0) then
+      begin
+        TCD := TextureCoordsDefined;
+        if Log and (TCD > UsedGLSLTexCoordsNeeded) then
+          WritelnLog('TexCoord', Format('Texture coords defined in VRML/X3D for %d texture units, using them all, even though we bound only %d texture units. Reason: GLSL shaders may use them',
+            [TCD, UsedGLSLTexCoordsNeeded]));
+        MaxTo1st(UsedGLSLTexCoordsNeeded, TCD);
+      end;
+    end;
+  end;
+
+  procedure RenderShadersEnd;
+  begin
+    if UsedGLSL <> nil then
+      UsedGLSL.Disable;
+  end;
+
+begin
+  RenderShadersBegin;
+  try
+    RenderShapeTextures(Shape, VBO, GeneratorClass, UsedGLSLTexCoordsNeeded);
+  finally RenderShadersEnd end;
+end;
+
+procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
+  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass;
+  UsedGLSLTexCoordsNeeded: Cardinal);
+var
+  BumpMapping: TBumpMappingRenderer;
+
+  function NodeTextured(Node: TVRMLGeometryNode): boolean;
+  begin
+    Result := not (
+      (Node is TNodePointSet_2) or
+      (Node is TNodeIndexedLineSet_2));
+  end;
 
   procedure RenderTexturesBegin;
   var
@@ -4247,181 +4369,92 @@ var
       BumpMapping.Disable;
   end;
 
-  { Find if some shader is available and prepared for this state.
-    If yes, then sets UsedGLSL to non-nil and enables this shader. }
-  procedure RenderShadersBegin;
+begin
+  RenderTexturesBegin;
+  try
+    RenderShapeMaterials(Shape, VBO, GeneratorClass);
+  finally RenderTexturesEnd end;
+end;
 
-    function TextureCoordsDefined: Cardinal;
-    var
-      TexCoord: TVRMLNode;
-    begin
-      if CurrentShape.Geometry.TexCoord(CurrentState, TexCoord) and
-         (TexCoord <> nil) then
-      begin
-        if TexCoord is TNodeMultiTextureCoordinate then
-          Result := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Count else
-          Result := 1;
-      end else
-        Result := 0;
-    end;
+procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
+  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass);
+begin
+  RenderMaterialsBegin;
+  try
+    RenderShapeInside(Shape, VBO, GeneratorClass);
+  finally RenderMaterialsEnd end;
+end;
 
-  var
-    TCD: Cardinal;
-  begin
-    UsedGLSL := nil;
-    UsedGLSLTexCoordsNeeded := 0;
-
-    if not Attributes.PureGeometry then
-    begin
-      UsedGLSL := GLSLRenderers.Enable(CurrentState, UsedGLSLTexCoordsNeeded);
-
-      { Only if we bound texture units defined in shader ComposedShader fields
-        (it we have shader but UsedGLSLTexCoordsNeeded = 0 then normal
-        texture apply (including normal TexCoordsNeeded calculation)
-        will be done):
-
-        Although we bound only UsedGLSLTexCoordsNeeded texture units,
-        we want to pass all texture coords defined in texCoord.
-        Shaders may use them (even when textures are not bound for them). }
-
-      if (UsedGLSL <> nil) and (UsedGLSLTexCoordsNeeded > 0) then
-      begin
-        TCD := TextureCoordsDefined;
-        if Log and (TCD > UsedGLSLTexCoordsNeeded) then
-          WritelnLog('TexCoord', Format('Texture coords defined in VRML/X3D for %d texture units, using them all, even though we bound only %d texture units. Reason: GLSL shaders may use them',
-            [TCD, UsedGLSLTexCoordsNeeded]));
-        MaxTo1st(UsedGLSLTexCoordsNeeded, TCD);
-      end;
-    end;
-  end;
-
-  procedure RenderShadersEnd;
-  begin
-    if UsedGLSL <> nil then
-      UsedGLSL.Disable;
-  end;
-
+procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
+  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass);
 var
   Generator: TVRMLArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
 begin
-  { make a copy to our class fields }
-  CurrentShape := Shape;
-  CurrentGeometry := Shape.OriginalGeometry;
-  CurrentState := Shape.OriginalState;
+  {$ifdef USE_VRML_NODES_TRIANGULATION}
+  { Simple rendering using LocalTriangulate. }
+  glBegin(GL_TRIANGLES);
+  Shape.LocalTriangulate(true, @DrawTriangle);
+  glEnd;
+  {$else}
 
-  { default ShapeBumpMapping* state }
-  ShapeBumpMappingAllowed := false;
-  ShapeBumpMappingUsed := bmNone;
-
-  {$ifndef USE_VRML_NODES_TRIANGULATION}
-  { We have to initalize MeshRenderer to something non-nil.
-
-    First try to initialize from Shape.OriginalGeometry, only if this fails
-    --- try to use Shape.Geometry (possibly through Proxy).
-    This is to allow nodes with a Proxy
-    still be rendered using direct specialized method, if available. }
-  if not InitMeshRenderer then
+  { initialize TBaseCoordinateRenderer.Arrays now }
+  if GeneratorClass <> nil then
   begin
-    CurrentGeometry := Shape.Geometry;
-    CurrentState := Shape.State;
-    if not ((CurrentGeometry <> Shape.OriginalGeometry) and
-      InitMeshRenderer) then
+    Assert(MeshRenderer is TBaseCoordinateRenderer);
+    CoordinateRenderer := TBaseCoordinateRenderer(MeshRenderer);
+
+    { calculate Shape.Arrays }
+    if Shape.Arrays = nil then
     begin
-      VRMLWarning(vwSerious,
-        { We display for user OriginalGeometry name, not Geometry name.
-          User is not interested in the implementation detail
-          that we possibly tried rendering this shape through proxy. }
-        'Rendering of node kind "' + Shape.OriginalGeometry.NodeTypeName + '" not implemented');
-      Exit;
-    end;
-  end;
-
-  Assert(MeshRenderer <> nil);
-  {$endif}
-
-  try
-    RenderShadersBegin;
-    try
-      RenderTexturesBegin;
+      Generator := GeneratorClass.Create(CurrentShape, CurrentState, CurrentGeometry);
       try
-        RenderMaterialsBegin;
-        try
-          {$ifdef USE_VRML_NODES_TRIANGULATION}
-          { Simple rendering using LocalTriangulate. }
-          glBegin(GL_TRIANGLES);
-          Shape.LocalTriangulate(true, @DrawTriangle);
-          glEnd;
-          {$else}
+        Generator.TexCoordsNeeded := TexCoordsNeeded;
+        Generator.MaterialOpacity := MaterialOpacity;
+        Generator.FogVolumetric := FogVolumetric;
+        Generator.FogVolumetricDirection := FogVolumetricDirection;
+        Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
+        Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed <> bmNone;
+        Generator.OnVertexColor := Attributes.OnVertexColor;
+        Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
+        Shape.Arrays := Generator.GenerateArrays;
+      finally FreeAndNil(Generator) end;
 
-          { initialize TBaseCoordinateRenderer.Arrays now }
-          if GeneratorClass <> nil then
-          begin
-            Assert(MeshRenderer is TBaseCoordinateRenderer);
-            CoordinateRenderer := TBaseCoordinateRenderer(MeshRenderer);
+      { Always after regenerating Shape.Arrays, reload Shape.Vbo contents }
+      if VBO and GL_ARB_vertex_buffer_object then
+        Shape.LoadArraysToVbo;
+    end else
+    begin
+      { Shape.Arrays contents are already loaded, make sure that
+        Shape.Vbo are loaded too (in case Shape.Arrays were loaded
+        previously, when VBO = false). }
+      if (Shape.Vbo[0] = 0) and VBO and GL_ARB_vertex_buffer_object then
+        Shape.LoadArraysToVbo;
+    end;
 
-            { calculate Shape.Arrays }
-            if Shape.Arrays = nil then
-            begin
-              Generator := GeneratorClass.Create(CurrentShape, CurrentState, CurrentGeometry);
-              try
-                Generator.TexCoordsNeeded := TexCoordsNeeded;
-                Generator.MaterialOpacity := MaterialOpacity;
-                Generator.FogVolumetric := FogVolumetric;
-                Generator.FogVolumetricDirection := FogVolumetricDirection;
-                Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
-                Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed <> bmNone;
-                Generator.OnVertexColor := Attributes.OnVertexColor;
-                Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
-                Shape.Arrays := Generator.GenerateArrays;
-              finally FreeAndNil(Generator) end;
+    if VBO and GL_ARB_vertex_buffer_object then
+    begin
+      { Shape.Arrays contents are already loaded,
+        so Vbo contents are already loaded too }
+      Assert(Shape.Vbo[0] <> 0);
+      CoordinateRenderer.Vbo := Shape.Vbo;
+    end;
 
-              { Always after regenerating Shape.Arrays, reload Shape.Vbo contents }
-              if VBO and GL_ARB_vertex_buffer_object then
-                Shape.LoadArraysToVbo;
-            end else
-            begin
-              { Shape.Arrays contents are already loaded, make sure that
-                Shape.Vbo are loaded too (in case Shape.Arrays were loaded
-                previously, when VBO = false). }
-              if (Shape.Vbo[0] = 0) and VBO and GL_ARB_vertex_buffer_object then
-                Shape.LoadArraysToVbo;
-            end;
-
-            if VBO and GL_ARB_vertex_buffer_object then
-            begin
-              { Shape.Arrays contents are already loaded,
-                so Vbo contents are already loaded too }
-              Assert(Shape.Vbo[0] <> 0);
-              CoordinateRenderer.Vbo := Shape.Vbo;
-            end;
-
-            CoordinateRenderer.Arrays := Shape.Arrays;
-          end;
-
-          MeshRenderer.Render;
-
-          if (GeneratorClass <> nil) and VBO and GL_ARB_vertex_buffer_object then
-          begin
-            { unbind arrays, to have a clean state on exit.
-              TODO: this should not be needed, instead move to RenderEnd.
-              Check does occlusion query work Ok when some vbo is bound. }
-            glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-            glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-          end;
-
-          {$endif USE_VRML_NODES_TRIANGULATION}
-
-        finally RenderMaterialsEnd end;
-      finally RenderTexturesEnd end;
-    finally RenderShadersEnd end;
-  finally
-    FreeAndNil(ExposedMeshRenderer);
-
-    { Just for safety, force them @nil now }
-    CurrentGeometry := nil;
-    CurrentState := nil;
+    CoordinateRenderer.Arrays := Shape.Arrays;
   end;
+
+  MeshRenderer.Render;
+
+  if (GeneratorClass <> nil) and VBO and GL_ARB_vertex_buffer_object then
+  begin
+    { unbind arrays, to have a clean state on exit.
+      TODO: this should not be needed, instead move to RenderEnd.
+      Check does occlusion query work Ok when some vbo is bound. }
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+  end;
+
+  {$endif USE_VRML_NODES_TRIANGULATION}
 end;
 
 procedure TVRMLGLRenderer.PushTextureUnit(const TexUnit: Cardinal);
