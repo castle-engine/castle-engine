@@ -70,7 +70,7 @@ var
 
 procedure BeforeDraw(Window: TGLWindow);
 begin
-  Scene.PrepareResources([tgAll], [prRender, prBoundingBox], false);
+  Scene.PrepareResources([prRender, prBoundingBox], false);
 end;
 
 procedure Draw(Window: TGLWindow);
