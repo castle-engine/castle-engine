@@ -67,18 +67,6 @@
       yourself --- the renderer may depend that every state change goes
       through it. At the end of TVRMLGLRenderer.RenderEnd, the OpenGL state is restored
       just as it was before TVRMLGLRenderer.RenderBegin.
-
-      Any part of rendering may be saved in a display list.
-      You can use separate display lists for TVRMLGLRenderer.RenderBegin, each RenderShape,
-      TVRMLGLRenderer.RenderEnd etc., you can put whole rendering in one display list,
-      whatever you need.
-
-      It's guarenteed that TVRMLGLRenderer.RenderBegin and TVRMLGLRenderer.RenderEnd work doesn't depend
-      on RenderShape along the way, and each RenderShape is independent.
-      That is, if you save separate display list for TVRMLGLRenderer.RenderBegin,
-      for TVRMLGLRenderer.RenderEnd, and for some shapes, you can later reuse them ---
-      using saved TVRMLGLRenderer.RenderBegin / TVRMLGLRenderer.RenderEnd for rendering other shapes,
-      using saved shapes to render them again in any order etc.
     )
 
     @item(
@@ -91,20 +79,6 @@
 
       Remember that you can render only shapes that have Shape.State
       prepared by TVRMLGLRenderer.Prepare.
-
-      Alternatively, instead of simple RenderShape you can call
-
-@longCode(#
-  RenderShapeBegin(Shape);
-  try
-    RenderShapeInside(Shape, VBO);
-  finally RenderShapeEnd(Shape) end;
-#)
-
-      This is equivalent to RenderShape
-      (but sometimes it's better as it allows you to place
-      RenderShapeInside on a separate display list, that can be more
-      shared (because it doesn't take some transformations into account)).
 
       Make sure that VRML2ActiveLights are properly initialized if you
       plan to render VRML 2.0 nodes. TVRMLScene and descendants do
@@ -1205,15 +1179,10 @@ type
       purposes). }
     TexCoordsNeeded: Cardinal;
 
-    { Set by RenderShapeBegin, used by RenderShapeEnd. Tells for which
-      texture units we pushed and modified the texture matrix.
+    { For which texture units we pushed and modified the texture matrix.
+      Only inside RenderShape.
       Always <= 1 if not GLUseMultiTexturing. }
     TextureTransformUnitsUsed: Cardinal;
-
-    { Set by RenderShapeBegin, used by RenderShapeEnd. Tells how many
-      clip planes were enabled (and so, how many must be disabled
-      at the end). }
-    ClipPlanesEnabled: Cardinal;
 
     { Additional texture units used,
       in addition to 0..TextureTransformUnitsUsed - 1.
@@ -1287,6 +1256,9 @@ type
       exists, and shifting TextureUnit by GL_TEXTURE0_ARB +
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
+
+    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; const VBO: boolean);
+    procedure RenderShapeInside(Shape: TVRMLRendererShape; const VBO: boolean);
   private
     FBumpMappingLightPosition: TVector3Single;
     procedure SetBumpMappingLightPosition(const Value: TVector3Single);
@@ -1343,9 +1315,6 @@ type
     procedure RenderShapeLights(
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeBegin(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
-    procedure RenderShapeInside(Shape: TVRMLRendererShape; const VBO: boolean);
-    procedure RenderShapeEnd(Shape: TVRMLRendererShape);
 
     procedure RenderShape(Shape: TVRMLRendererShape; const VBO: boolean;
       Fog: INodeX3DFogObject);
@@ -3870,7 +3839,7 @@ begin
 
   { Render lights in given State, if Attributes.UseSceneLights.
 
-    This is done in RenderShapeLights, before RenderShapeBegin,
+    This is done before RenderShape,
     in particular before loading State.Transform --- this is good,
     as the lights positions/directions are in world coordinates. }
 
@@ -3882,8 +3851,8 @@ begin
       Attributes.FirstGLFreeLight, LastGLFreeLight);}
 end;
 
-procedure TVRMLGLRenderer.RenderShapeBegin(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject);
+procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
+  const VBO: boolean; Fog: INodeX3DFogObject);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
@@ -3911,57 +3880,6 @@ procedure TVRMLGLRenderer.RenderShapeBegin(Shape: TVRMLRendererShape;
       glMultMatrix(TextureTransform.TransformMatrix);
   end;
 
-  { Initialize OpenGL clip planes, looking at ClipPlanes list.
-    We know we're inside GL_MODELVIEW mode,
-    and we know all clip planes are currently disabled. }
-  procedure ClipPlanesBegin(ClipPlanes: TDynClipPlaneArray);
-  var
-    I: Integer;
-    ClipPlane: PClipPlane;
-  begin
-    ClipPlanesEnabled := 0;
-    { GLMaxClipPlanes should be >= 6 with every conforming OpenGL,
-      but still better check. }
-    if (GLMaxClipPlanes > 0) and (ClipPlanes <> nil) then
-      for I := 0 to ClipPlanes.Count - 1 do
-      begin
-        ClipPlane := @(ClipPlanes.Items[I]);
-        if ClipPlane^.Node.FdEnabled.Value then
-        begin
-          Assert(ClipPlanesEnabled < GLMaxClipPlanes);
-
-          { Nope, you should *not* multiply
-            ClipPlane^.Transform * plane yourself.
-            The plane equation cannot be transformed in the same way
-            as you transform normal 4D vertex/direction (Matrix * vector).
-            E.g. translating a plane this way, with a standard translation
-            matrix, would make nonsense plane as a result.
-            This much I understand :)
-
-            So what OpenGL does? Some voodoo to allow you to specify
-            plane equation in local (in current modelview) space,
-            and not worry about the math :)
-            http://www2.imm.dtu.dk/~jab/texgen.pdf sheds some light on this.
-            glClipPlane docs say that glClipPlane is multiplied by
-            the *inverse* of modelview. The wording is crucial here:
-            plane is multiplied by the matrix, not the other way around. }
-
-          glPushMatrix;
-            glMultMatrix(ClipPlane^.Transform);
-            glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled,
-              Vector4Double(ClipPlane^.Node.FdPlane.Value));
-            glEnable(GL_CLIP_PLANE0 + ClipPlanesEnabled);
-          glPopMatrix;
-
-          Inc(ClipPlanesEnabled);
-
-          { No more clip planes possible, regardless if there are any more
-            enabled clip planes on the list. }
-          if ClipPlanesEnabled = GLMaxClipPlanes then Break;
-        end;
-      end;
-  end;
-
 var
   TextureTransform: TNodeX3DTextureTransformNode;
   Child: TVRMLNode;
@@ -3979,7 +3897,7 @@ begin
   begin
     glMatrixMode(GL_TEXTURE);
 
-    { We work assuming that texture matrix before RenderShapeBegin was identity.
+    { We work assuming that texture matrix before RenderShape was identity.
       Texture transform encoded in VRML/X3D will be multiplied by this.
 
       This allows the programmer to eventually transform all textures
@@ -4064,10 +3982,110 @@ begin
     glMatrixMode(GL_MODELVIEW);
   end;
 
-  ClipPlanesBegin(State.ClipPlanes);
+  RenderShapeClipPlanes(Shape, VBO);
+
+  if (TextureTransformUnitsUsed <> 0) or
+     (TextureTransformUnitsUsedMore.Count <> 0) then
+  begin
+    glMatrixMode(GL_TEXTURE);
+
+    for I := 0 to TextureTransformUnitsUsed - 1 do
+    begin
+      { This code is Ok also when not GLUseMultiTexturing: then
+        TextureTransformUnitsUsed for sure is <= 1 and ActiveTexture
+        will be simply ignored. }
+      ActiveTexture(I);
+      glPopMatrix;
+    end;
+
+    for I := 0 to TextureTransformUnitsUsedMore.High do
+    begin
+      ActiveTexture(TextureTransformUnitsUsedMore.Items[I]);
+      glPopMatrix;
+    end;
+
+    { restore GL_MODELVIEW }
+    glMatrixMode(GL_MODELVIEW);
+  end;
+end;
+
+procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
+  const VBO: boolean);
+var
+  { How many clip planes were enabled (and so, how many must be disabled
+    at the end). }
+  ClipPlanesEnabled: Cardinal;
+
+  { Initialize OpenGL clip planes, looking at ClipPlanes list.
+    We know we're inside GL_MODELVIEW mode,
+    and we know all clip planes are currently disabled. }
+  procedure ClipPlanesBegin(ClipPlanes: TDynClipPlaneArray);
+  var
+    I: Integer;
+    ClipPlane: PClipPlane;
+  begin
+    ClipPlanesEnabled := 0;
+    { GLMaxClipPlanes should be >= 6 with every conforming OpenGL,
+      but still better check. }
+    if (GLMaxClipPlanes > 0) and (ClipPlanes <> nil) then
+      for I := 0 to ClipPlanes.Count - 1 do
+      begin
+        ClipPlane := @(ClipPlanes.Items[I]);
+        if ClipPlane^.Node.FdEnabled.Value then
+        begin
+          Assert(ClipPlanesEnabled < GLMaxClipPlanes);
+
+          { Nope, you should *not* multiply
+            ClipPlane^.Transform * plane yourself.
+            The plane equation cannot be transformed in the same way
+            as you transform normal 4D vertex/direction (Matrix * vector).
+            E.g. translating a plane this way, with a standard translation
+            matrix, would make nonsense plane as a result.
+            This much I understand :)
+
+            So what OpenGL does? Some voodoo to allow you to specify
+            plane equation in local (in current modelview) space,
+            and not worry about the math :)
+            http://www2.imm.dtu.dk/~jab/texgen.pdf sheds some light on this.
+            glClipPlane docs say that glClipPlane is multiplied by
+            the *inverse* of modelview. The wording is crucial here:
+            plane is multiplied by the matrix, not the other way around. }
+
+          glPushMatrix;
+            glMultMatrix(ClipPlane^.Transform);
+            glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled,
+              Vector4Double(ClipPlane^.Node.FdPlane.Value));
+            glEnable(GL_CLIP_PLANE0 + ClipPlanesEnabled);
+          glPopMatrix;
+
+          Inc(ClipPlanesEnabled);
+
+          { No more clip planes possible, regardless if there are any more
+            enabled clip planes on the list. }
+          if ClipPlanesEnabled = GLMaxClipPlanes then Break;
+        end;
+      end;
+  end;
+
+  { Disable OpenGL clip planes previously initialized by ClipPlanesBegin. }
+  procedure ClipPlanesEnd;
+  var
+    I: Integer;
+  begin
+    for I := 0 to ClipPlanesEnabled - 1 do
+      glDisable(GL_CLIP_PLANE0 + I);
+    ClipPlanesEnabled := 0; { not really needed, but for safety... }
+  end;
+
+begin
+  ClipPlanesBegin(Shape.State.ClipPlanes);
 
   glPushMatrix;
-    glMultMatrix(State.Transform);
+    glMultMatrix(Shape.State.Transform);
+    RenderShapeInside(Shape, VBO);
+  glPopMatrix;
+
+  ClipPlanesEnd;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
@@ -4406,63 +4424,6 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeEnd(Shape: TVRMLRendererShape);
-
-  { Disable OpenGL clip planes previously initialized by ClipPlanesBegin. }
-  procedure ClipPlanesEnd;
-  var
-    I: Integer;
-  begin
-    for I := 0 to ClipPlanesEnabled - 1 do
-      glDisable(GL_CLIP_PLANE0 + I);
-    ClipPlanesEnabled := 0; { not really needed, but for safety... }
-  end;
-
-var
-  I: Integer;
-begin
-  if (TextureTransformUnitsUsed <> 0) or
-     (TextureTransformUnitsUsedMore.Count <> 0) then
-  begin
-    glMatrixMode(GL_TEXTURE);
-
-    for I := 0 to TextureTransformUnitsUsed - 1 do
-    begin
-      { This code is Ok also when not GLUseMultiTexturing: then
-        TextureTransformUnitsUsed for sure is <= 1 and ActiveTexture
-        will be simply ignored. }
-      ActiveTexture(I);
-      glPopMatrix;
-    end;
-
-    for I := 0 to TextureTransformUnitsUsedMore.High do
-    begin
-      ActiveTexture(TextureTransformUnitsUsedMore.Items[I]);
-      glPopMatrix;
-    end;
-
-    { restore GL_MODELVIEW }
-    glMatrixMode(GL_MODELVIEW);
-  end;
-
-  glPopMatrix;
-
-  ClipPlanesEnd;
-
-  { at the end, we're in modelview mode }
-end;
-
-procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
-  const VBO: boolean; Fog: INodeX3DFogObject);
-begin
-  RenderShapeBegin(Shape, Fog);
-  try
-    RenderShapeInside(Shape, VBO);
-  finally
-    RenderShapeEnd(Shape);
-  end;
-end;
-
 procedure TVRMLGLRenderer.PushTextureUnit(const TexUnit: Cardinal);
 begin
   { Only continue if texture unit is not already pushed
@@ -4478,7 +4439,7 @@ begin
       to TextureTransformUnitsUsedMore. But there are optimizations possible,
       knowing that TextureTransformUnitsUsed already takes care of many units,
       and TextureTransformUnitsUsed can only be increased (by this
-      very method...) between RenderShapeBegin/End.
+      very method...) in RenderShape.
 
       If texture unit is = TextureTransformUnitsUsed, this can be taken care
       of easily, just increase TextureTransformUnitsUsed. (This is an often
@@ -4696,7 +4657,7 @@ begin
 
   Result := not (
     { If we use any features that (may) render shape differently
-      if shape's transform (or other stuff handled in RenderShapeBegin/End),
+      if shape's transform (or other stuff handled outside RenderShapeInside),
       then Result must be false. }
     Assigned(Attributes.OnVertexColor) or
     Assigned(Attributes.OnRadianceTransfer) or
