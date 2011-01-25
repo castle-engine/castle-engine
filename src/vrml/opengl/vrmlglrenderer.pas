@@ -41,8 +41,8 @@
       so it's important that the same pointer must always point to the
       same object (until it's unprepared).
 
-      TVRMLGLRenderer.Prepare requires active OpenGL context. It doesn't modify OpenGL
-      state (only allocates some resources like texture names and display lists).
+      TVRMLGLRenderer.Prepare requires active OpenGL context. It doesn't modify
+      OpenGL state (only allocates some resources like texture names).
       It cannot be called inside a display list.
     )
 
@@ -159,7 +159,7 @@
       will have correct normals and backface culling.
 
       Since we don't touch @code(glFrontFace) anywhere, this is possible to you.
-      And you can reuse display lists etc. for the scene in the mirror.
+      And you can reuse resources for the scene in the mirror.
     )
   )
 
@@ -370,9 +370,8 @@ type
       then this is used to calculate the color of each vertex.
 
       Note that this is evaluated when object is rendered.
-      If your object has dynamic lighting, you want to use roNone optimization,
-      otherwise colors returned by this are saved on display list and
-      never change. }
+      It causes the shapes resources to be regenerated at each render frame,
+      since we have to assume that results of this function change. }
     property OnRadianceTransfer: TRadianceTransferFunction
       read FOnRadianceTransfer write SetOnRadianceTransfer;
 
@@ -381,10 +380,8 @@ type
       the color of each vertex.
 
       Note that this is evaluated when object is rendered.
-      If this changes dynamically (for example, it calculates some dynamic
-      lighting), you want to use roNone optimization,
-      otherwise colors returned by this are saved on display list and
-      never change. }
+      It causes the shapes resources to be regenerated at each render frame,
+      since we have to assume that results of this function change. }
     property OnVertexColor: TVertexColorFunction
       read FOnVertexColor write SetOnVertexColor;
 
@@ -836,8 +833,7 @@ type
   { A cache that may be used by many TVRMLGLRenderer
     instances to share some common OpenGL resources.
 
-    For examples, texture names and OpenGL display lists
-    for fonts. Such things can usually be shared by all
+    For examples, texture names. Such things can usually be shared by all
     TVRMLGLRenderer instances used within the same OpenGL context.
     And this may save a lot of memory if you use many TVRMLGLRenderer
     instances in your program.
@@ -1294,11 +1290,9 @@ type
       This is meaningful if BumpMappingMethod <> bmNone.
 
       If the bump mapping shader is already prepared, then setting this property
-      simply sets the uniform value of this shader. And light direction
-      in tangent space is calculated by the shader. So you can simply reuse
-      your display lists. (If the bump mapping shader is not prepared yet,
-      then value set here will be used at preparation... so things work without
-      problems in any case.) }
+      simply sets the uniform value of this shader. Since the light direction
+      in tangent space is calculated by the shader, there's no need to
+      recalculate on CPU anything when this changes. }
     property BumpMappingLightPosition: TVector3Single
       read FBumpMappingLightPosition write SetBumpMappingLightPosition;
 
