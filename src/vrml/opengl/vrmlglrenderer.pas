@@ -987,10 +987,10 @@ type
     procedure Shape_DecReference(Arrays: TGeometryArrays);
   end;
 
-  {$I resourcerenderer.inc}
-  {$I vrmltexturerenderer.inc}
-  {$I vrmlbumpmappingrenderer.inc}
-  {$I vrmlglslrenderer.inc}
+  {$I vrmlglrenderer_resource.inc}
+  {$I vrmlglrenderer_texture.inc}
+  {$I vrmlglrenderer_bumpmapping.inc}
+  {$I vrmlglrenderer_glsl.inc}
 
   { VRML shape that can be rendered. }
   TVRMLRendererShape = class(TVRMLShape)
@@ -1415,10 +1415,10 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
 {$I vrmlmeshrenderer.inc}
 {$I vrmlmeshrenderer_x3d_text.inc}
 
-{$I resourcerenderer.inc}
-{$I vrmltexturerenderer.inc}
-{$I vrmlbumpmappingrenderer.inc}
-{$I vrmlglslrenderer.inc}
+{$I vrmlglrenderer_resource.inc}
+{$I vrmlglrenderer_texture.inc}
+{$I vrmlglrenderer_bumpmapping.inc}
+{$I vrmlglrenderer_glsl.inc}
 
 { TVRMLGLRendererContextCache -------------------------------------------- }
 
