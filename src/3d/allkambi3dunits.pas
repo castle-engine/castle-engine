@@ -15,6 +15,7 @@ uses
   convexhullunit,
   cubemap,
   frustum,
+  geometryarrays,
   kambioctree,
   nurbs,
   object3dgeo,

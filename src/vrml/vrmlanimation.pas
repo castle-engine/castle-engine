@@ -20,7 +20,7 @@ unit VRMLAnimation;
 
 interface
 
-uses KambiUtils, DOM, VRMLRendererOptimization, Base3D;
+uses KambiUtils, DOM, Base3D;
 
 type
   { An abstract (cannot be rendered) precalculated animation.
@@ -54,7 +54,6 @@ type
       ModelFileNames: TDynStringArray;
       Times: TDynSingleArray;
       out ScenesPerTime: Cardinal;
-      out AOptimization: TGLRendererOptimization;
       out EqualityEpsilon: Single;
       out ATimeLoop, ATimeBackwards: boolean);
 
@@ -73,7 +72,6 @@ type
       ModelFileNames: TDynStringArray;
       Times: TDynSingleArray;
       out ScenesPerTime: Cardinal;
-      out AOptimization: TGLRendererOptimization;
       out EqualityEpsilon: Single;
       out ATimeLoop, ATimeBackwards: boolean);
   end;
@@ -86,7 +84,6 @@ class procedure TVRMLAnimation.LoadFromFileToVars(const FileName: string;
   ModelFileNames: TDynStringArray;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
-  out AOptimization: TGLRendererOptimization;
   out EqualityEpsilon: Single;
   out ATimeLoop, ATimeBackwards: boolean);
 var
@@ -99,14 +96,13 @@ begin
 
     LoadFromDOMElementToVars(Document.DocumentElement,
       ExtractFilePath(FileName),
-      ModelFileNames, Times, ScenesPerTime, AOptimization,
+      ModelFileNames, Times, ScenesPerTime,
       EqualityEpsilon, ATimeLoop, ATimeBackwards);
   finally FreeAndNil(Document); end;
 end;
 
 const
   DefaultKAnimScenesPerTime = 30;
-  DefaultKAnimOptimization = roVertexBufferObject;
   DefaultKAnimEqualityEpsilon = 0.001;
   DefaultKAnimLoop = false;
   DefaultKAnimBackwards = false;
@@ -117,7 +113,6 @@ class procedure TVRMLAnimation.LoadFromDOMElementToVars(
   ModelFileNames: TDynStringArray;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
-  out AOptimization: TGLRendererOptimization;
   out EqualityEpsilon: Single;
   out ATimeLoop, ATimeBackwards: boolean);
 var
@@ -139,7 +134,6 @@ begin
 
   { Assign default values for optional attributes }
   ScenesPerTime := DefaultKAnimScenesPerTime;
-  AOptimization := DefaultKAnimOptimization;
   EqualityEpsilon := DefaultKAnimEqualityEpsilon;
   ATimeLoop := DefaultKAnimLoop;
   ATimeBackwards := DefaultKAnimBackwards;
@@ -150,7 +144,7 @@ begin
     if Attr.Name = 'scenes_per_time' then
       ScenesPerTime := StrToInt(Attr.Value) else
     if Attr.Name = 'optimization' then
-      AOptimization := RendererOptimizationFromName(Attr.Value, true) else
+      { ignore } else
     if Attr.Name = 'equality_epsilon' then
       EqualityEpsilon := StrToFloat(Attr.Value) else
     if Attr.Name = 'loop' then

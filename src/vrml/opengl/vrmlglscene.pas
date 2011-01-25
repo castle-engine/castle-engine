@@ -21,7 +21,7 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
-  VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight, VRMLRendererOptimization,
+  VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight,
   GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLGLLightSet, VRMLShape, Frustum,
   GLCubeMap, Base3D, GLShaders;
 
@@ -57,18 +57,9 @@ const
   { }
   DefaultBlendingSort = false;
 
-type
-  { }
-  TGLRendererOptimization = VRMLRendererOptimization.TGLRendererOptimization;
-  PGLRendererOptimization = VRMLRendererOptimization.PGLRendererOptimization;
-
 const
-  roNone = VRMLRendererOptimization.roNone;
-  roVertexBufferObject = VRMLRendererOptimization.roVertexBufferObject;
-
   DefaultWireframeWidth = 3.0;
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
-  DefaultOptimization = roVertexBufferObject;
 
 type
   TVRMLGLShape = class;
@@ -454,39 +445,25 @@ type
     fcBoth
   );
 
-  { VRML OpenGL scene, a final class to handle VRML models (including
-    their rendering in OpenGL).
-    This is a descendant of TVRMLScene that makes it easy to render
-    VRML scene into OpenGL. The point is that this class is the final,
-    comfortable utility to deal with VRML files when you want to be able
-    to render them using OpenGL.
+  { Complete handling and rendering of a 3D VRML/X3D scene.
+    This is a descendant of TVRMLScene that adds efficient rendering
+    using OpenGL.
 
-    This class uses internal @link(TVRMLGLRenderer) instance,
-    thus hiding some "cumbersomness" (is it English?) of the interface of
-    @link(TVRMLGLRenderer) class. Also this class provides some
-    functionality (like transparency using OpenGL blending)
-    and some optimizations (like using OpenGL's display lists)
-    that couldn't be achieved inside @link(TVRMLGLRenderer) class
-    (because they require looking at rendered VRML model as a whole,
-    not only as a separate Geometry+State parts).
-    See @link(Render) method for more details.
+    This uses internal @link(TVRMLGLRenderer) instance,
+    adding some features and comfortable methods on top of it (like blending).
+    See @link(Render) method for some details.
 
-    Also this class can provide comfortable management for
+    This class also provides comfortable management for
     @link(TVRMLGLBackground) instance associated with this VRML model,
     that may be used to render currenly bound VRML background.
     See @link(Background) function.
 
-    Connection with particular OpenGL context: from the 1st call
-    of [Prepare]Render or Background methods to the next call of
-    GLContextClose method or the destructor. Everything between
-    must be called within the @italic(same OpenGL context active).
-    In particular: remember that if you called Render method
-    at least once, you @bold(must) destroy this object or at least call
-    it's GLContextClose method @bold(before) releasing OpenGL context (that was
-    active during Render). }
+    Calling methods PrepareResources, Render or Background connects this
+    class with current OpenGL context. Which means that all the following
+    calls should be done with the same OpenGL context set as current.
+    Calling GLContextClose or the destructor removes this connection. }
   TVRMLGLScene = class(TVRMLScene)
   private
-    FOptimization: TGLRendererOptimization;
     Renderer: TVRMLGLRenderer;
 
     { This simply renders Shape, by calling
@@ -557,8 +534,6 @@ type
     FLastRender_SumNext: boolean;
 
     FUsingProvidedRenderer: boolean;
-
-    procedure SetOptimization(const Value: TGLRendererOptimization);
 
     { Fog for this shape. @nil if none. }
     function ShapeFog(Shape: TVRMLShape): INodeX3DFogObject;
@@ -1032,10 +1007,7 @@ type
       Although note that changing some attributes (the ones defined
       in base TVRMLRenderingAttributes class) may be a costly operation
       (next PrepareResources with prRender, or Render call, may need
-      to recalculate some things,
-      some display lists need to be rebuild etc.).
-      So don't change them e.g. every frame. You should use
-      Optimization = roNone if you really have to change attributes every frame. }
+      to recalculate some things). }
     function Attributes: TVRMLSceneRenderingAttributes;
 
     { Headlight that should be used for this scene (if HeadlightOn), or @nil.
@@ -1155,27 +1127,6 @@ type
       See TFrustumCulling. }
     property OctreeFrustumCulling: TFrustumCulling
       read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
-
-    { Optimization method used to render this model.
-
-      This is the only way how you can control internal behavior of this
-      class with regards to OpenGL display lists. You have to decide
-      which method is best, based on expected usage of this model:
-      Are you going to (often) change the model structure at runtime?
-      Is user going to see the scene usually as a whole, or only small
-      part of it (more precisely, is frustum culling sensible in this case)?
-
-      See VRMLRendererOptimization.TGLRendererOptimization
-      for discussion about various values you can set here.
-
-      You can change this property at run-time (that is, after this
-      object is created) but be warned that such change is of course costly
-      operation. Previous optimization resources must be freed,
-      and new resources will have to be created at next Render or
-      PrepareResources call (with prRender).
-      So don't change it e.g. every rendering frame. }
-    property Optimization: TGLRendererOptimization
-      read FOptimization write SetOptimization default DefaultOptimization;
   end;
 
   TObjectsListItem_1 = TVRMLGLScene;
@@ -1343,9 +1294,8 @@ var
   GLScene: TVRMLGLScene;
 
   { UseBlending is used by RenderShapesNoDisplayList to decide
-    is Blending used for given shape. In every optimization
-    method, you must make sure that you called
-    CalculateUseBlending() on every shape index before
+    is Blending used for given shape. Make sure that you called
+    CalculateUseBlending on every shape before
     using RenderShapesNoDisplayList.
 
     Note that CalculateUseBlending checks
@@ -1356,9 +1306,8 @@ var
     before user calls any FreeResources.
 
     In practice, right now it's most comfortable to call CalculateUseBlending
-    for all shapes, right after calling Renderer.Prepare on all of them,
-    regardless of Optimization. This is done by
-    Common_PrepareShape. To speed this up a little,
+    for all shapes, right after calling Renderer.Prepare on all of them.
+    To speed this up a little,
     we also have PreparedUseBlending variable to avoid preparing twice. }
 
   procedure CalculateUseBlending;
@@ -1560,8 +1509,6 @@ begin
       which is overridden here and uses Attributes.
     That's why I have to initialize them *before* "inherited Create" }
 
-  FOptimization := DefaultOptimization;
-
   { If Renderer already assigned, then we came here from
     CreateProvidedRenderer or CreateCustomCache. }
   if Renderer = nil then
@@ -1657,18 +1604,6 @@ begin
   Result := TVRMLGLShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
 
-procedure TVRMLGLScene.SetOptimization(const Value: TGLRendererOptimization);
-begin
-  { writeln('optim changes from ', RendererOptimizationNames[FOptimization],
-    ' to ', RendererOptimizationNames[Value]); }
-
-  if Value <> FOptimization then
-  begin
-    CloseGLRenderer;
-    FOptimization := Value;
-  end;
-end;
-
 procedure TVRMLGLScene.CloseGLRenderer;
 { This must be coded carefully, because
   - it's called by ChangedAll, and so may be called when our constructor
@@ -1761,7 +1696,7 @@ begin
   if not Shape.EnableDisplayList then
     Shape.FreeArrays;
 
-  Renderer.RenderShape(Shape, Optimization = roVertexBufferObject, ShapeFog(Shape));
+  Renderer.RenderShape(Shape, ShapeFog(Shape));
 end;
 
 procedure TVRMLGLScene.RenderShape_WithLight(

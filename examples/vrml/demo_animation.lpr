@@ -92,7 +92,6 @@ const
   { EqualityEpsilon used to marge nodes when creating animation.
     Larger values may speed up animation loading time and save memory use. }
   EqualityEpsilon = 0.001;
-  RendererOptimization: TGLRendererOptimization = DefaultOptimization;
 var
   AnimRootNodes: TVRMLNodesList;
   AnimTimes: TDynSingleArray;
@@ -118,7 +117,6 @@ begin
       AnimTimes[I] := StrToFloat(Parameters[(I+1) * 2]);
     end;
 
-    Animation.Optimization := RendererOptimization;
     Animation.Load(AnimRootNodes, true,
       AnimTimes, ScenesPerTime, EqualityEpsilon);
     Animation.TimeLoop := true;
@@ -199,7 +197,7 @@ begin
 
     Progress.Init(Animation.ScenesCount, 'Preparing animation');
     try
-      Animation.PrepareResources([tgAll], [prRender, prBoundingBox], true);
+      Animation.PrepareResources([prRender, prBoundingBox], true);
     finally Progress.Fini end;
 
     Application.Run;

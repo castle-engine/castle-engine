@@ -57,10 +57,8 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit,
   ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, DataErrors,
-  { VRML-related units: }
   VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, VRMLGLBackground,
-  VRMLGLRenderer, VRMLRendererOptimization, KambiSceneManager,
-  RenderStateUnit, VRMLErrors, GLControls;
+  VRMLGLRenderer, KambiSceneManager, RenderStateUnit, VRMLErrors, GLControls;
 
 const
   SceneBoundingBox: TBox3D =
@@ -969,8 +967,6 @@ begin
       [BumpMappingMethodNames[BumpMappingMaximum]]));
     S.Append(Format('VRML auto-detected best bump mapping method: %s',
       [BumpMappingMethodNames[Scene.BumpMappingMethod]]));
-    S.Append(Format('VRML optimization used: %s',
-      [RendererOptimizationNames[Scene.Optimization]]));
 
     Font.PrintStrings(S, 0, 5, 5);
 

@@ -846,16 +846,8 @@ end;
 procedure UpdateSceneAttribs;
 begin
   case DrawType of
-    dtNormalGL:
-      begin
-        Scene.Attributes.OnVertexColor := nil;
-        Scene.Optimization := DefaultOptimization;
-      end;
-    dtPass1, dtPass2:
-      begin
-        Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
-        Scene.Optimization := roNone;
-      end;
+    dtNormalGL:       Scene.Attributes.OnVertexColor := nil;
+    dtPass1, dtPass2: Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
     { else they don't matter }
   end;
 end;
@@ -890,7 +882,6 @@ begin
 
     Scene := TVRMLGLScene.Create(Glw);
     Scene.Load(Parameters[1]);
-    Scene.Optimization := roNone;
     Scene.Attributes.Lighting := false;
     UpdateSceneAttribs;
 

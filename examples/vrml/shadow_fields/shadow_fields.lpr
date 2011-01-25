@@ -544,7 +544,6 @@ begin
 
     SceneReceiver := TVRMLGLScene.Create(nil);
     SceneReceiver.Load(ShadowReceiverFileName);
-    SceneReceiver.Optimization := roNone;
 
     SceneLocalLight := TVRMLGLScene.Create(nil);
     SceneLocalLight.Load(LocalLightFileName);

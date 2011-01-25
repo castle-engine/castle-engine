@@ -97,15 +97,12 @@ type
 
     ValidBoundingBox: boolean;
     FBoundingBox: TBox3D;
-    FOptimization: TGLRendererOptimization;
     FCollisionUseLastScene: boolean;
 
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
     procedure SetShadowMapsVisualizeDepth(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
-
-    procedure SetOptimization(const Value: TGLRendererOptimization);
 
     function InfoBoundingBox: string;
   private
@@ -161,8 +158,6 @@ type
       You must call this (or some other loading routine like LoadFromFile)
       before you do almost anything with this object.
       Loaded changes to @true after calling this.
-
-      Animation is loaded with current @link(Optimization) value.
 
       @param(RootNodes
         Models describing the "predefined" frames of animation.
@@ -279,18 +274,17 @@ type
       @param(AllowStdIn If @true, then FileName = '-' is understood
         as "standard input".)
 
-      @param(LoadTimeAndOptimization If @true then loading changes
-        current Optimization, TimeLoop, TimeBackwards properties.
+      @param(LoadTime If @true then loading changes
+        current TimeLoop and TimeBackwards properties.
         Sometimes this is sensible (you want to allow control over them
         from the file), sometimes not (e.g. you set suitable values for them
         by code).
 
-        Note that, independent of this, you can always change TimeLoop,
-        TimeBackwards, Optimization properties later,
+        Note that, independent of this, you can always change TimeLoop
+        and TimeBackwards properties later,
         since these properties are writeable at any time.) }
     procedure LoadFromFile(const FileName: string;
-      const AllowStdIn: boolean;
-      const LoadTimeAndOptimization: boolean);
+      const AllowStdIn: boolean; const LoadTime: boolean);
 
     { This releases all resources allocared by Load (or LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
@@ -599,25 +593,6 @@ type
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards default false;
 
-    { Optimization of the animation. See TVRMLGLScene.Optimization.
-
-      When animation is @link(Loaded), this is equal to
-      TVRMLGLScene.Optimization of all loaded scenes.
-      That is, all loaded scenes should have the same Optimization, always.
-
-      You can access this even when animation is not @link(Loaded).
-      Note that changing this when animation is @link(Loaded) may be
-      a costly operation, see TVRMLGLScene.Optimization. So don't do it
-      e.g. every frame. And when loading, it's best to set Optimization
-      as desired @italic(before) calling @link(Load) for fasters loading.
-
-      Note that this class should generally use roShapeDisplayList
-      for Optimization, to conserve memory
-      in some common cases. See docs at TGLRendererOptimization type. }
-    property Optimization: TGLRendererOptimization
-      read FOptimization write SetOptimization
-      default DefaultOptimization;
-
     { Should collision checking check also last animation frame.
 
       Regardless of this value, we always check collision with the
@@ -715,7 +690,6 @@ begin
 
   inherited CreateProvidedRenderer(nil, AProvidedRenderer);
 
-  Optimization := FParentAnimation.Optimization;
   ShadowMaps := FParentAnimation.ShadowMaps;
   ShadowMapsPCF := FParentAnimation.ShadowMapsPCF;
   ShadowMapsVisualizeDepth := FParentAnimation.ShadowMapsVisualizeDepth;
@@ -784,7 +758,6 @@ begin
   inherited Create(AOwner);
   if Renderer = nil then
     Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
-  FOptimization := DefaultOptimization;
   FTimeLoop := true;
   FTimeBackwards := false;
   FTimePlaying := true;
@@ -1375,34 +1348,24 @@ begin
 end;
 
 procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
-  const AllowStdIn, LoadTimeAndOptimization: boolean);
+  const AllowStdIn, LoadTime: boolean);
 var
   Times: TDynSingleArray;
   RootNodes: TVRMLNodesList;
   ScenesPerTime: Cardinal;
   EqualityEpsilon: Single;
   NewTimeLoop, NewTimeBackwards: boolean;
-  NewOptimization: TGLRendererOptimization;
 begin
   Times := TDynSingleArray.Create;
   RootNodes := TVRMLNodesList.Create;
   try
-    NewOptimization := FOptimization; { default NewOptimization value }
-
     LoadVRMLSequence(FileName, AllowStdIn,
-      RootNodes, Times, ScenesPerTime, NewOptimization, EqualityEpsilon,
+      RootNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
-
-    if LoadTimeAndOptimization then
-      { Directly change FOptimization instead of going through SetOptimization.
-        This is valid, this way we'll not waste time on resetting optimization
-        of current scenes (that will be freed at the beginning of Load),
-        and new scenes will correctly get new optimization value anyway. }
-      FOptimization := NewOptimization;
 
     Load(RootNodes, true, Times, ScenesPerTime, EqualityEpsilon);
 
-    if LoadTimeAndOptimization then
+    if LoadTime then
     begin
       TimeLoop := NewTimeLoop;
       TimeBackwards := NewTimeBackwards;
@@ -1683,26 +1646,6 @@ end;
 procedure TVRMLGLAnimation.WritelnInfoNodes;
 begin
   FirstScene.WritelnInfoNodes;
-end;
-
-procedure TVRMLGLAnimation.SetOptimization(const Value: TGLRendererOptimization);
-var
-  I: Integer;
-begin
-  { Although TVRMLGLScene.SetOptimization already compares new value
-    with previous (and ignores setting the same value), we also compare
-    it to avoid potentially length iteration (when FScenes.High,
-    merely iterating may take a (small) time). }
-
-  if Value <> FOptimization then
-  begin
-    FOptimization := Value;
-    if FScenes <> nil then
-    begin
-      for I := 0 to FScenes.High do
-        FScenes[I].Optimization := Value;
-    end;
-  end;
 end;
 
 procedure TVRMLGLAnimation.SetOwnsFirstRootNode(const Value: boolean);

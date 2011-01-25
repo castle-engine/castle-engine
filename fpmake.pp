@@ -95,7 +95,6 @@ begin
     P.Targets.AddUnit('vrmlnodes.pas');
     P.Targets.AddUnit('vrmlnodesdetailoptions.pas');
     P.Targets.AddUnit('vrmlraytracer.pas');
-    P.Targets.AddUnit('vrmlrendereroptimization.pas');
     P.Targets.AddUnit('vrmlscene.pas');
     P.Targets.AddUnit('vrmlscenewaypoints.pas');
     P.Targets.AddUnit('vrmlshape.pas');

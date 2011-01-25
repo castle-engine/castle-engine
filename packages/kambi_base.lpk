@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="164">
+    <Files Count="163">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -680,10 +680,6 @@
         <Filename Value="../src/vrml/vrmlraytracer.pas"/>
         <UnitName Value="VRMLRayTracer"/>
       </Item155>
-      <Item156>
-        <Filename Value="../src/vrml/vrmlrendereroptimization.pas"/>
-        <UnitName Value="VRMLRendererOptimization"/>
-      </Item156>
       <Item157>
         <Filename Value="../src/vrml/vrmlscene.pas"/>
         <UnitName Value="VRMLScene"/>
@@ -712,10 +708,10 @@
         <Filename Value="../src/vrml/vrmltriangle.pas"/>
         <UnitName Value="VRMLTriangle"/>
       </Item163>
-      <Item164>
+      <Item156>
         <Filename Value="../src/vrml/vrmltriangleoctree.pas"/>
         <UnitName Value="VRMLTriangleOctree"/>
-      </Item164>
+      </Item156>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

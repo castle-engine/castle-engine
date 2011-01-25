@@ -65,7 +65,7 @@ unit Object3DAsVRML;
 interface
 
 uses VectorMath, SysUtils, VRMLNodes, Object3DMD3,
-  KambiUtils, VRMLRendererOptimization, Classes;
+  KambiUtils, Classes;
 
 function LoadGEO(const filename: string): TVRMLNode;
 
@@ -89,7 +89,6 @@ procedure LoadMD3Sequence(
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
-  var Optimization: TGLRendererOptimization;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 
@@ -154,20 +153,12 @@ const
 
   @param(ATimes Sequence of time values.
     Pass here some created and empty instance of TDynSingleArray.)
-
-  @param(AOptimization This is a @code(var) variable: it will
-    be set only if a file format will actually specify it
-    (for now, this is only for kanim format).
-    For other formats, it will not be modified.
-    So you should set this to "preferred Optimization value for
-    other formats than kanim".)
 }
 procedure LoadVRMLSequence(
   const FileName: string; AllowStdIn: boolean;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
-  var Optimization: TGLRendererOptimization;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 
@@ -784,7 +775,6 @@ procedure LoadMD3Sequence(
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
-  var Optimization: TGLRendererOptimization;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 var
@@ -866,7 +856,6 @@ procedure LoadVRMLSequence(const FileName: string; AllowStdIn: boolean;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
-  var Optimization: TGLRendererOptimization;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 
@@ -878,8 +867,7 @@ procedure LoadVRMLSequence(const FileName: string; AllowStdIn: boolean;
     ModelFileNames := TDynStringArray.Create;
     try
       TVRMLAnimation.LoadFromFileToVars(FileName, ModelFileNames, Times,
-        ScenesPerTime, Optimization, EqualityEpsilon,
-        TimeLoop, TimeBackwards);
+        ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
 
       Assert(ModelFileNames.Length = Times.Length);
       Assert(ModelFileNames.Length >= 1);
@@ -918,7 +906,7 @@ begin
     LoadKanim else
   if SameText(Ext, '.md3') then
     LoadMD3Sequence(FileName, RootNodes, Times, ScenesPerTime,
-      Optimization, EqualityEpsilon, TimeLoop, TimeBackwards) else
+      EqualityEpsilon, TimeLoop, TimeBackwards) else
     LoadSingle(LoadVRML(FileName, AllowStdIn));
 end;
 

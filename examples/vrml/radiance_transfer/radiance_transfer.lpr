@@ -266,7 +266,6 @@ begin
   Scene := TVRMLGLScene.Create(Application);
   VRMLWarning := @VRMLWarning_Write;
   Scene.Load(Parameters[1]);
-  Scene.Optimization := roNone;
 
   if IsEmptyBox3D(Scene.BoundingBox) then
   begin

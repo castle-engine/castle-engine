@@ -319,6 +319,7 @@ type
     FTextureModeGrayscale: TGLenum;
     FTextureModeRGB: TGLenum;
     FVarianceShadowMaps: boolean;
+    FVertexBufferObject: boolean;
   protected
     { These methods just set the value on given property,
       eventually calling BeforeChange.
@@ -350,6 +351,7 @@ type
     procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
     procedure SetTextureModeRGB(const Value: TGLenum); virtual;
     procedure SetVarianceShadowMaps(const Value: boolean); virtual;
+    procedure SetVertexBufferObject(const Value: boolean); virtual;
     { @groupEnd }
 
     { Called always before a rendering attribute (that is, any property
@@ -613,6 +615,12 @@ type
       that generates proper depths). }
     property VarianceShadowMaps: boolean read FVarianceShadowMaps
       write SetVarianceShadowMaps default DefaultVarianceShadowMaps;
+
+    { Use OpenGL vertex buffer object.
+      This is always a good idea. You can set this to @false
+      for debug purposes, e.g. to check how much speedup you get from VBO. }
+    property VertexBufferObject: boolean
+      read FVertexBufferObject write SetVertexBufferObject default true;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -1231,22 +1239,22 @@ type
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure ActiveTexture(const TextureUnit: Cardinal);
 
-    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; const VBO: boolean);
-    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; const VBO: boolean);
-    procedure RenderShapeShaders(Shape: TVRMLRendererShape; const VBO: boolean;
+    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape);
+    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape);
+    procedure RenderShapeShaders(Shape: TVRMLRendererShape;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
-    procedure RenderShapeTextures(Shape: TVRMLRendererShape; const VBO: boolean;
+    procedure RenderShapeTextures(Shape: TVRMLRendererShape;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState;
       UsedGLSLTexCoordsNeeded: Cardinal);
-    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; const VBO: boolean;
+    procedure RenderShapeMaterials(Shape: TVRMLRendererShape;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
-    procedure RenderShapeInside(Shape: TVRMLRendererShape; const VBO: boolean;
+    procedure RenderShapeInside(Shape: TVRMLRendererShape;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
@@ -1307,8 +1315,7 @@ type
       LightsRenderer: TVRMLGLLightsCachingRenderer;
       State: TVRMLGraphTraverseState);
 
-    procedure RenderShape(Shape: TVRMLRendererShape; const VBO: boolean;
-      Fog: INodeX3DFogObject);
+    procedure RenderShape(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
 
     { Check Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
       context capabilities to see which bump mapping method (if any)
@@ -2964,6 +2971,7 @@ begin
   FTextureModeGrayscale := GL_MODULATE;
   FTextureModeRGB := GL_MODULATE;
   FVarianceShadowMaps := DefaultVarianceShadowMaps;
+  FVertexBufferObject := true;
 end;
 
 procedure TVRMLRenderingAttributes.BeforeChange;
@@ -3172,6 +3180,15 @@ begin
   begin
     BeforeChange;
     FVarianceShadowMaps := Value;
+  end;
+end;
+
+procedure TVRMLRenderingAttributes.SetVertexBufferObject(const Value: boolean);
+begin
+  if VertexBufferObject <> Value then
+  begin
+    BeforeChange;
+    FVertexBufferObject := Value;
   end;
 end;
 
@@ -3830,7 +3847,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
-  const VBO: boolean; Fog: INodeX3DFogObject);
+  Fog: INodeX3DFogObject);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
@@ -3960,7 +3977,7 @@ begin
     glMatrixMode(GL_MODELVIEW);
   end;
 
-  RenderShapeClipPlanes(Shape, VBO);
+  RenderShapeClipPlanes(Shape);
 
   if (TextureTransformUnitsUsed <> 0) or
      (TextureTransformUnitsUsedMore.Count <> 0) then
@@ -3987,8 +4004,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
-  const VBO: boolean);
+procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape);
 var
   { How many clip planes were enabled (and so, how many must be disabled
     at the end). }
@@ -4060,14 +4076,13 @@ begin
 
   glPushMatrix;
     glMultMatrix(Shape.State.Transform);
-    RenderShapeCreateMeshRenderer(Shape, VBO);
+    RenderShapeCreateMeshRenderer(Shape);
   glPopMatrix;
 
   ClipPlanesEnd;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
-  const VBO: boolean);
+procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape);
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
 
@@ -4141,7 +4156,7 @@ begin
   {$endif}
 
   try
-    RenderShapeShaders(Shape, VBO, GeneratorClass,
+    RenderShapeShaders(Shape, GeneratorClass,
       MeshRenderer, CurrentGeometry, CurrentState);
   finally
     FreeAndNil(MeshRenderer);
@@ -4151,7 +4166,7 @@ end;
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
 procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
-  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass;
+  GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 var
@@ -4221,13 +4236,13 @@ var
 begin
   RenderShadersBegin;
   try
-    RenderShapeTextures(Shape, VBO, GeneratorClass,
+    RenderShapeTextures(Shape, GeneratorClass,
       MeshRenderer, CurrentGeometry, CurrentState, UsedGLSLTexCoordsNeeded);
   finally RenderShadersEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
-  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass;
+  GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState;
   UsedGLSLTexCoordsNeeded: Cardinal);
@@ -4356,13 +4371,13 @@ var
 begin
   RenderTexturesBegin;
   try
-    RenderShapeMaterials(Shape, VBO, GeneratorClass,
+    RenderShapeMaterials(Shape, GeneratorClass,
       MeshRenderer, CurrentGeometry, CurrentState);
   finally RenderTexturesEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
-  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass;
+  GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 
@@ -4371,18 +4386,19 @@ procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
 begin
   RenderMaterialsBegin;
   try
-    RenderShapeInside(Shape, VBO, GeneratorClass,
+    RenderShapeInside(Shape, GeneratorClass,
       MeshRenderer, CurrentGeometry, CurrentState);
   finally RenderMaterialsEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
-  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass;
+  GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 var
   Generator: TVRMLArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
+  VBO: boolean;
 begin
   {$ifdef USE_VRML_NODES_TRIANGULATION}
   { Simple rendering using LocalTriangulate. }
@@ -4396,6 +4412,8 @@ begin
   begin
     Assert(MeshRenderer is TBaseCoordinateRenderer);
     CoordinateRenderer := TBaseCoordinateRenderer(MeshRenderer);
+
+    VBO := Attributes.VertexBufferObject and GL_ARB_vertex_buffer_object;
 
     { calculate Shape.Arrays }
     if Shape.Arrays = nil then
@@ -4414,18 +4432,18 @@ begin
       finally FreeAndNil(Generator) end;
 
       { Always after regenerating Shape.Arrays, reload Shape.Vbo contents }
-      if VBO and GL_ARB_vertex_buffer_object then
+      if VBO then
         Shape.LoadArraysToVbo;
     end else
     begin
       { Shape.Arrays contents are already loaded, make sure that
         Shape.Vbo are loaded too (in case Shape.Arrays were loaded
         previously, when VBO = false). }
-      if (Shape.Vbo[0] = 0) and VBO and GL_ARB_vertex_buffer_object then
+      if VBO and (Shape.Vbo[0] = 0) then
         Shape.LoadArraysToVbo;
     end;
 
-    if VBO and GL_ARB_vertex_buffer_object then
+    if VBO then
     begin
       { Shape.Arrays contents are already loaded,
         so Vbo contents are already loaded too }
