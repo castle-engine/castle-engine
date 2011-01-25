@@ -42,25 +42,21 @@ type
   private
     FRenderer: TVRMLGLRenderer;
     FShape: TVRMLRendererShape;
-    FState: TVRMLGraphTraverseState;
     FGeometry: TVRMLGeometryNode;
+    FState: TVRMLGraphTraverseState;
     FAttributes: TVRMLRenderingAttributes;
   protected
     { Current rendering properties, constant for the whole
-      lifetime of the renderer, set in constructor.
-      Setting Renderer automatically sets Shape, State, Geometry, Attributes. }
+      lifetime of the renderer, set in constructor. }
     property Renderer: TVRMLGLRenderer read FRenderer;
     property Shape: TVRMLRendererShape read FShape;
-    property State: TVRMLGraphTraverseState read FState;
     property Geometry: TVRMLGeometryNode read FGeometry;
+    property State: TVRMLGraphTraverseState read FState;
     property Attributes: TVRMLRenderingAttributes read FAttributes;
   public
-    { Constructor.
-
-      For descendants implementors:
-      Don't do any OpenGL state changes here (initialization of OpenGL state
-      should go to Render). }
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TVRMLGLRenderer;
+      AShape: TVRMLRendererShape; AGeometry: TVRMLGeometryNode;
+      AState: TVRMLGraphTraverseState);
 
     { Render the whole geometry.
 
@@ -128,14 +124,16 @@ type
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
-constructor TVRMLMeshRenderer.Create(ARenderer: TVRMLGLRenderer);
+constructor TVRMLMeshRenderer.Create(ARenderer: TVRMLGLRenderer;
+  AShape: TVRMLRendererShape; AGeometry: TVRMLGeometryNode;
+  AState: TVRMLGraphTraverseState);
 begin
   inherited Create;
 
   FRenderer := ARenderer;
-  FShape := Renderer.CurrentShape;
-  FState := Renderer.CurrentState;
-  FGeometry := Renderer.CurrentGeometry;
+  FShape := AShape;
+  FGeometry := AGeometry;
+  FState := AState;
   FAttributes := Renderer.Attributes;
 end;
 

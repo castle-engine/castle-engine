@@ -1143,7 +1143,6 @@ type
 
     { During Render, values of current Shape, Shape.State, Shape.Geometry
       and such. }
-    CurrentShape: TVRMLRendererShape;
     CurrentState: TVRMLGraphTraverseState;
     CurrentGeometry: TVRMLGeometryNode;
     UsedGLSL: TGLSLRenderer;
@@ -4090,24 +4089,23 @@ var
     if GeneratorClass = nil then
     begin
       if CurrentGeometry is TNodeAsciiText_1 then
-        ExposedMeshRenderer := TAsciiTextRenderer.Create(Self) else
+        ExposedMeshRenderer := TAsciiTextRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
       if CurrentGeometry is TNodeText then
-        ExposedMeshRenderer := TTextRenderer.Create(Self) else
+        ExposedMeshRenderer := TTextRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
       if CurrentGeometry is TNodeText3D then
-        ExposedMeshRenderer := TText3DRenderer.Create(Self) else
+        ExposedMeshRenderer := TText3DRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
         Result := false;
     end else
     begin
       { If we have GeneratorClass, create TCompleteCoordinateRenderer.
         We'll initialize TCompleteCoordinateRenderer.Arrays later. }
-      ExposedMeshRenderer := TCompleteCoordinateRenderer.Create(Self);
+      ExposedMeshRenderer := TCompleteCoordinateRenderer.Create(Self, Shape, CurrentGeometry, CurrentState);
       ShapeBumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
     end;
   end;
 
 begin
   { make a copy to our class fields }
-  CurrentShape := Shape;
   CurrentGeometry := Shape.OriginalGeometry;
   CurrentState := Shape.OriginalState;
 
@@ -4167,7 +4165,7 @@ var
     var
       TexCoord: TVRMLNode;
     begin
-      if CurrentShape.Geometry.TexCoord(CurrentState, TexCoord) and
+      if Shape.Geometry.TexCoord(CurrentState, TexCoord) and
          (TexCoord <> nil) then
       begin
         if TexCoord is TNodeMultiTextureCoordinate then
@@ -4384,7 +4382,7 @@ begin
     { calculate Shape.Arrays }
     if Shape.Arrays = nil then
     begin
-      Generator := GeneratorClass.Create(CurrentShape, CurrentState, CurrentGeometry);
+      Generator := GeneratorClass.Create(Shape, CurrentState, CurrentGeometry);
       try
         Generator.TexCoordsNeeded := TexCoordsNeeded;
         Generator.MaterialOpacity := MaterialOpacity;
