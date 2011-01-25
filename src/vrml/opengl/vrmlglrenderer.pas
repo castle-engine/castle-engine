@@ -1137,14 +1137,6 @@ type
     { ------------------------------------------------------------
       Things usable only during Render. }
 
-    { Our mesh renderer. Actually of TVRMLMeshRenderer class, but I really
-      don't want to expose TVRMLMeshRenderer class in the interface. }
-    ExposedMeshRenderer: TObject;
-
-    { During Render, values of current Shape, Shape.State, Shape.Geometry
-      and such. }
-    CurrentState: TVRMLGraphTraverseState;
-    CurrentGeometry: TVRMLGeometryNode;
     UsedGLSL: TGLSLRenderer;
 
     { Is bump mapping allowed by the current shape.
@@ -1244,13 +1236,22 @@ type
     procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; const VBO: boolean);
     procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; const VBO: boolean);
     procedure RenderShapeShaders(Shape: TVRMLRendererShape; const VBO: boolean;
-      GeneratorClass: TVRMLArraysGeneratorClass);
+      GeneratorClass: TVRMLArraysGeneratorClass;
+      ExposedMeshRenderer: TObject;
+      CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
     procedure RenderShapeTextures(Shape: TVRMLRendererShape; const VBO: boolean;
-      GeneratorClass: TVRMLArraysGeneratorClass; UsedGLSLTexCoordsNeeded: Cardinal);
+      GeneratorClass: TVRMLArraysGeneratorClass;
+      ExposedMeshRenderer: TObject;
+      CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState;
+      UsedGLSLTexCoordsNeeded: Cardinal);
     procedure RenderShapeMaterials(Shape: TVRMLRendererShape; const VBO: boolean;
-      GeneratorClass: TVRMLArraysGeneratorClass);
+      GeneratorClass: TVRMLArraysGeneratorClass;
+      ExposedMeshRenderer: TObject;
+      CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
     procedure RenderShapeInside(Shape: TVRMLRendererShape; const VBO: boolean;
-      GeneratorClass: TVRMLArraysGeneratorClass);
+      GeneratorClass: TVRMLArraysGeneratorClass;
+      ExposedMeshRenderer: TObject;
+      CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
   private
     FBumpMappingLightPosition: TVector3Single;
     procedure SetBumpMappingLightPosition(const Value: TVector3Single);
@@ -3588,8 +3589,6 @@ end;
 
 { Render ---------------------------------------------------------------------- }
 
-{$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
-
 procedure TVRMLGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
   if GL_ARB_multitexture then
@@ -4074,6 +4073,10 @@ procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShap
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
 
+  MeshRenderer: TVRMLMeshRenderer;
+  CurrentGeometry: TVRMLGeometryNode;
+  CurrentState: TVRMLGraphTraverseState;
+
   { If CurrentGeometry should be rendered using one of TVRMLMeshRenderer
     classes, then create appropriate MeshRenderer and return @true.
     Otherwise return @false and doesn't set MeshRenderer.
@@ -4089,17 +4092,17 @@ var
     if GeneratorClass = nil then
     begin
       if CurrentGeometry is TNodeAsciiText_1 then
-        ExposedMeshRenderer := TAsciiTextRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
+        MeshRenderer := TAsciiTextRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
       if CurrentGeometry is TNodeText then
-        ExposedMeshRenderer := TTextRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
+        MeshRenderer := TTextRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
       if CurrentGeometry is TNodeText3D then
-        ExposedMeshRenderer := TText3DRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
+        MeshRenderer := TText3DRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
         Result := false;
     end else
     begin
       { If we have GeneratorClass, create TCompleteCoordinateRenderer.
         We'll initialize TCompleteCoordinateRenderer.Arrays later. }
-      ExposedMeshRenderer := TCompleteCoordinateRenderer.Create(Self, Shape, CurrentGeometry, CurrentState);
+      MeshRenderer := TCompleteCoordinateRenderer.Create(Self, Shape, CurrentGeometry, CurrentState);
       ShapeBumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
     end;
   end;
@@ -4140,18 +4143,19 @@ begin
   {$endif}
 
   try
-    RenderShapeShaders(Shape, VBO, GeneratorClass);
+    RenderShapeShaders(Shape, VBO, GeneratorClass,
+      MeshRenderer, CurrentGeometry, CurrentState);
   finally
-    FreeAndNil(ExposedMeshRenderer);
-
-    { Just for safety, force them @nil now }
-    CurrentGeometry := nil;
-    CurrentState := nil;
+    FreeAndNil(MeshRenderer);
   end;
 end;
 
+{$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
+
 procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
-  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass);
+  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass;
+  ExposedMeshRenderer: TObject;
+  CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 var
   { > 0 means that UsedGLSL is non-nil *and* we already bound needed texture
     units when initializing shader. Always 0 otherwise. }
@@ -4214,12 +4218,15 @@ var
 begin
   RenderShadersBegin;
   try
-    RenderShapeTextures(Shape, VBO, GeneratorClass, UsedGLSLTexCoordsNeeded);
+    RenderShapeTextures(Shape, VBO, GeneratorClass,
+      MeshRenderer, CurrentGeometry, CurrentState, UsedGLSLTexCoordsNeeded);
   finally RenderShadersEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
   const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass;
+  ExposedMeshRenderer: TObject;
+  CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState;
   UsedGLSLTexCoordsNeeded: Cardinal);
 var
   BumpMapping: TBumpMappingRenderer;
@@ -4344,24 +4351,30 @@ var
 begin
   RenderTexturesBegin;
   try
-    RenderShapeMaterials(Shape, VBO, GeneratorClass);
+    RenderShapeMaterials(Shape, VBO, GeneratorClass,
+      MeshRenderer, CurrentGeometry, CurrentState);
   finally RenderTexturesEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
-  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass);
+  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass;
+  ExposedMeshRenderer: TObject;
+  CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 
   {$I vrmlglrenderer_materials.inc}
 
 begin
   RenderMaterialsBegin;
   try
-    RenderShapeInside(Shape, VBO, GeneratorClass);
+    RenderShapeInside(Shape, VBO, GeneratorClass,
+      MeshRenderer, CurrentGeometry, CurrentState);
   finally RenderMaterialsEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
-  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass);
+  const VBO: boolean; GeneratorClass: TVRMLArraysGeneratorClass;
+  ExposedMeshRenderer: TObject;
+  CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 var
   Generator: TVRMLArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
