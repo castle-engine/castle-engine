@@ -986,7 +986,7 @@ type
       and you should use Arrays. Same for Vbo --- if they are zero,
       and you use them, then create and set them. }
     function Shape_IncReference(Shape: TVRMLRendererShape;
-      AFogNode: TNodeFog; AAttributes: TVRMLRenderingAttributes): PShapeCache;
+      AFogNode: TNodeFog; ARenderer: TVRMLGLRenderer): PShapeCache;
 
     procedure Shape_DecReference(Arrays: TGeometryArrays);
   end;
@@ -1371,10 +1371,6 @@ type
       CurrentViewpoint: TVRMLViewpointNode;
       CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3Single);
-
-    { Should CacheIgnoresTransform be passed to
-      Shape_IncReference_Existing. }
-    function CacheIgnoresTransform(Node: TNodeFog): boolean;
 
     { Load the ScreenEffect node GLSL shader.
       Will use Node.StateForShaderPrepare.
@@ -2553,8 +2549,35 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.Shape_IncReference(
-  Shape: TVRMLRendererShape;
-  AFogNode: TNodeFog; AAttributes: TVRMLRenderingAttributes): PShapeCache;
+  Shape: TVRMLRendererShape; AFogNode: TNodeFog;
+  ARenderer: TVRMLGLRenderer): PShapeCache;
+
+  function GetCacheIgnoresTransform: boolean;
+  var
+    Enabled, Volumetric: boolean;
+    VolumetricDirection: TVector3Single;
+    VolumetricVisibilityStart: Single;
+  begin
+    if { Force CacheIgnoresTransform to be false if our shape uses shaders.
+         Shaders may depend on coordinates in eye space, which obviously
+         may be different for shapes that differ even only on transform. }
+      (Shape.State.ShapeNode <> nil) and
+      (Shape.State.ShapeNode.Appearance <> nil) and
+      (Shape.State.ShapeNode.Appearance.FdShaders.Count <> 0) then
+      Exit(false);
+
+    ARenderer.InitializeFog(AFogNode, false, Enabled, Volumetric,
+      VolumetricDirection, VolumetricVisibilityStart);
+
+    Result := not (
+      { If we use any features that (may) render shape differently
+        if shape's transform (or other stuff handled outside RenderShapeInside),
+        then Result must be false. }
+      Assigned(ARenderer.Attributes.OnVertexColor) or
+      Assigned(ARenderer.Attributes.OnRadianceTransfer) or
+      (ARenderer.BumpMappingMethod <> bmNone) or
+      Volumetric);
+  end;
 
 var
   CacheIgnoresTransform: boolean;
@@ -2576,19 +2599,12 @@ var
 var
   I: Integer;
 begin
-  CacheIgnoresTransform := not (
-    { Force CacheIgnoresTransform to be false if our shape uses shaders.
-      Shaders may depend on coordinates in eye space, which obviously
-      may be different for shapes that differ even only on transform. }
-    (Shape.State.ShapeNode <> nil) and
-    (Shape.State.ShapeNode.Appearance <> nil) and
-    (Shape.State.ShapeNode.Appearance.FdShaders.Count <> 0)
-  );
+  CacheIgnoresTransform := GetCacheIgnoresTransform;
 
   for I := 0 to ShapeCaches.High do
   begin
     Result := ShapeCaches.Pointers[I];
-    if (Result^.Attributes.Equals(AAttributes)) and
+    if (Result^.Attributes.Equals(ARenderer.Attributes)) and
        (Result^.GeometryNode = Shape.Geometry) and
        StatesEqual(Result^.State, Shape.State) and
        FogParametersEqual(
@@ -2605,7 +2621,7 @@ begin
   { not found, so create new }
 
   Result := ShapeCaches.Add;
-  Result^.Attributes := AAttributes;
+  Result^.Attributes := ARenderer.Attributes;
   Result^.GeometryNode := Shape.Geometry;
   Result^.State := Shape.State;
   Result^.FogNode := AFogNode;
@@ -4437,25 +4453,6 @@ begin
     UpdateGeneratedShadowMap(TNodeGeneratedShadowMap(TextureNode)) else
   if TextureNode is TNodeRenderedTexture then
     UpdateRenderedTexture(TNodeRenderedTexture(TextureNode));
-end;
-
-function TVRMLGLRenderer.CacheIgnoresTransform(Node: TNodeFog): boolean;
-var
-  Enabled, Volumetric: boolean;
-  VolumetricDirection: TVector3Single;
-  VolumetricVisibilityStart: Single;
-begin
-  InitializeFog(Node, false, Enabled, Volumetric,
-    VolumetricDirection, VolumetricVisibilityStart);
-
-  Result := not (
-    { If we use any features that (may) render shape differently
-      if shape's transform (or other stuff handled outside RenderShapeInside),
-      then Result must be false. }
-    Assigned(Attributes.OnVertexColor) or
-    Assigned(Attributes.OnRadianceTransfer) or
-    (BumpMappingMethod <> bmNone) or
-    Volumetric);
 end;
 
 function FogParametersEqual(
