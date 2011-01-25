@@ -124,10 +124,7 @@ type
       PureGeometry setting.
       For now, avoid using weSolidWireframe with PureGeometry = @false if
       your model may have textures or shaders.
-      There's no way currently to reuse the same display list, while having
-      normal model textured/shaded and wireframe not textured/shaded.
-      If you really need this effect, you'll need two TVRMLGLScene
-      instances with different attributes rendering the same model. }
+      This should be fixed with new vbo renderer? }
     weSolidWireframe,
 
     { The model is rendered as normal, with silhouette outlined around it.
@@ -575,7 +572,7 @@ type
     destructor Destroy; override;
 
     { Destroy any associations of this object with current OpenGL context.
-      For example, release any allocated texture or display list names.
+      For example, release any allocated texture names.
 
       Generally speaking, destroys everything that is allocated by
       PrepareResources call. It's harmless to call this
@@ -594,22 +591,6 @@ type
       Although this internal object is not accessible to your code,
       you can get some detailed info about how rendering into OpenGL
       works by looking at comments in @link(VRMLGLRenderer) unit.
-
-      Each call to Render renders the scene,
-      roughly executing the same OpenGL commands as would be done by calling
-      following methods of @link(TVRMLGLRenderer) instance:
-
-      @unorderedList(
-        @item RenderBegin
-        @item(
-@longcode(#
-  for S := each item of Shapes list,
-    if (TestShapeVisibility is not assigned) or
-      (TestShapeVisibility returns true for given Shape) then
-    call Render(S.Geometry, S.State)
-#))
-        @item RenderEnd
-      )
 
       You should think of TestShapeVisibility
       as a way to optimize rendering, by quickly eliminating whole shapes
@@ -2442,11 +2423,10 @@ begin
 
     Although we don't really want to lose our connection with OpenGL
     context, in fact that's the only sensible thing to do now: since
-    everything possibly changed, we have to unprepare all now,
-    and invalidate all display lists.
+    everything possibly changed, we have to unprepare all now.
 
     This is done before inherited, as inherited may clear Shapes tree
-    (clearing per-shape information about referenced display lists etc.). }
+    (clearing per-shape information about referenced vbos etc.). }
   GLContextClose;
 
   inherited;
@@ -4025,7 +4005,7 @@ begin
   { TVRMLGLRenderer requires that attributes may be changed only when
     nothing is prepared. So we have to do at least Renderer.UnprepareAll.
     In practice, we have to do more: TVRMLGLScene must also be disconnected
-    from OpenGL, no display lists or such, since their state also depends
+    from OpenGL, no vbo or such, since their state also depends
     on the rendering results.
 
     So full CloseGLRenderer is needed. }
