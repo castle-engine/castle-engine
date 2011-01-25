@@ -1137,8 +1137,6 @@ type
     { ------------------------------------------------------------
       Things usable only during Render. }
 
-    UsedGLSL: TGLSLRenderer;
-
     { Is bump mapping allowed by the current shape.
       Fully calculated only after InitMeshRenderer, as determining GeneratorClass
       is needed to set this. }
@@ -4157,12 +4155,14 @@ procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
   ExposedMeshRenderer: TObject;
   CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 var
-  { > 0 means that UsedGLSL is non-nil *and* we already bound needed texture
-    units when initializing shader. Always 0 otherwise. }
+  UsedGLSLRenderer: TGLSLRenderer;
+  { > 0 means that UsedGLSLRenderer is non-nil *and* we already bound
+    needed texture units when initializing shader. Always 0 otherwise. }
   UsedGLSLTexCoordsNeeded: Cardinal;
 
   { Find if some shader is available and prepared for this state.
-    If yes, then sets UsedGLSL to non-nil and enables this shader. }
+    If yes, then sets UsedGLSLRenderer, MeshRenderer.UsedGLSL to non-nil
+    and enables this shader. }
   procedure RenderShadersBegin;
 
     function TextureCoordsDefined: Cardinal;
@@ -4182,12 +4182,15 @@ var
   var
     TCD: Cardinal;
   begin
-    UsedGLSL := nil;
+    UsedGLSLRenderer := nil;
     UsedGLSLTexCoordsNeeded := 0;
 
     if not Attributes.PureGeometry then
     begin
-      UsedGLSL := GLSLRenderers.Enable(CurrentState, UsedGLSLTexCoordsNeeded);
+      UsedGLSLRenderer := GLSLRenderers.Enable(CurrentState, UsedGLSLTexCoordsNeeded);
+
+      if UsedGLSLRenderer <> nil then
+        MeshRenderer.UsedGLSL := UsedGLSLRenderer.GLSLProgram;
 
       { Only if we bound texture units defined in shader ComposedShader fields
         (it we have shader but UsedGLSLTexCoordsNeeded = 0 then normal
@@ -4198,7 +4201,7 @@ var
         we want to pass all texture coords defined in texCoord.
         Shaders may use them (even when textures are not bound for them). }
 
-      if (UsedGLSL <> nil) and (UsedGLSLTexCoordsNeeded > 0) then
+      if (UsedGLSLRenderer <> nil) and (UsedGLSLTexCoordsNeeded > 0) then
       begin
         TCD := TextureCoordsDefined;
         if Log and (TCD > UsedGLSLTexCoordsNeeded) then
@@ -4211,8 +4214,8 @@ var
 
   procedure RenderShadersEnd;
   begin
-    if UsedGLSL <> nil then
-      UsedGLSL.Disable;
+    if UsedGLSLRenderer <> nil then
+      UsedGLSLRenderer.Disable;
   end;
 
 begin
@@ -4298,8 +4301,10 @@ var
       begin
         { for bump mapping, always TexCoordsNeeded = 1 }
         TexCoordsNeeded := 1;
-        if UsedGLSL <> nil then
+        if MeshRenderer.UsedGLSL <> nil then
           VRMLWarning(vwIgnorable, 'You use both GLSL shader (ComposedShader node) and bump mapping (normalMap, heightMap fields) on a single Shape. Note that this will (usually) not work correctly --- bump mapping has to set up special shader and multitexturing environment to work.');
+        { Change MeshRenderer.UsedGLSL to our bump mapping shader }
+        MeshRenderer.UsedGLSL := BmGLSLProgram[ShapeBumpMappingUsed >= bmGLSLParallax];
       end;
     end;
 

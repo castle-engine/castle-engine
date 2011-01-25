@@ -54,6 +54,10 @@ type
     property State: TVRMLGraphTraverseState read FState;
     property Attributes: TVRMLRenderingAttributes read FAttributes;
   public
+    { Set this to non-nil before calling Render, if you use any GLSL program.
+      This allows us to set GLSL attribs. }
+    UsedGLSL: TGLSLProgram;
+
     constructor Create(ARenderer: TVRMLGLRenderer;
       AShape: TVRMLRendererShape; AGeometry: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState);
@@ -361,14 +365,8 @@ begin
           Arrays.TexCoord(Arrays.TexCoords[0].Dimensions, 0, 0));
       end;
 
-      if Arrays.Attribs.Count <> 0 then
-      begin
-        if Renderer.UsedGLSL <> nil then
-          EnableVertexAttrib(Renderer.UsedGLSL.GLSLProgram) else
-        if Renderer.ShapeBumpMappingUsed <> bmNone then
-          EnableVertexAttrib(Renderer.BmGLSLProgram[
-            Renderer.ShapeBumpMappingUsed >= bmGLSLParallax]);
-      end;
+      if (Arrays.Attribs.Count <> 0) and (UsedGLSL <> nil) then
+        EnableVertexAttrib(UsedGLSL);
 
       { Lock arrays after setting up all arrays. }
       LockArraysBegin;
