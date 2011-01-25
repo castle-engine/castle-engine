@@ -359,6 +359,7 @@ type
 
     procedure DisableDisplayListFromTexture(Shape: TVRMLShape;
       Texture: TNodeX3DTextureNode);
+    procedure PrepareResources;
   private
     { Private things only for RenderFrustumOctree ---------------------- }
     RenderFrustumOctree_Visible: boolean;
@@ -1338,6 +1339,92 @@ begin
     PreparedUseBlending := false;
 
   EnableDisplayListValid := false;
+end;
+
+procedure TVRMLGLShape.PrepareResources;
+var
+  GLScene: TVRMLGLScene;
+
+  { UseBlending is used by RenderShapesNoDisplayList to decide
+    is Blending used for given shape. In every optimization
+    method, you must make sure that you called
+    CalculateUseBlending() on every shape index before
+    using RenderShapesNoDisplayList.
+
+    Note that CalculateUseBlending checks
+    Renderer.PreparedTextureAlphaChannelType,
+    so assumes that given shape is already prepared for Renderer.
+    It also looks at texture node, material node data,
+    so should be done right after preparing given state,
+    before user calls any FreeResources.
+
+    In practice, right now it's most comfortable to call CalculateUseBlending
+    for all shapes, right after calling Renderer.Prepare on all of them,
+    regardless of Optimization. This is done by
+    Common_PrepareShape. To speed this up a little,
+    we also have PreparedUseBlending variable to avoid preparing twice. }
+
+  procedure CalculateUseBlending;
+  var
+    UseBlending: boolean;
+    Tex: TNodeX3DTextureNode;
+    AlphaChannelType: TAlphaChannelType;
+  begin
+    { Note that we either render the whole geometry node with or without
+      blending.
+
+      Note that this looks at nodes, calling
+      State.LastNodes.Material.AllMaterialsTransparent, possibly looking
+      at TextureNode.TextureImage / TextureVidep etc.
+      So it's important to initialize UseBlending before
+      user has any chance to do FreeResources or to free RootNode
+      (see TVRMLScene.RootNode docs).
+
+      TODO: ideally, we would like to just push all our logic into
+      TVRMLShape.Transparent, and write just
+        UseBlending := Transparent;
+      But we cannot, for now: we need Renderer to check image's
+      AlphaChannelType efficiently.
+    }
+
+    UseBlending := Transparent;
+
+    if not UseBlending then
+    begin
+      { If texture exists with full range alpha channel then use blending.
+
+        Note that State.Texture may be TNodeMultiTexture --- that's Ok,
+        it's also prepared by Renderer, and has AlphaChannelType = atFullRange
+        if any child has atFullRange. So it automatically works Ok too. }
+
+      Tex := State.Texture;
+      if (Tex <> nil) and
+         GLScene.Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
+        UseBlending := AlphaChannelType = atFullRange;
+    end;
+  end;
+
+begin
+  GLScene := TVRMLGLScene(ParentScene);
+
+  if not PreparedForRenderer then
+  begin
+    GLScene.Renderer.Prepare(State);
+    PreparedForRenderer := true;
+  end;
+
+  if not PreparedUseBlending then
+  begin
+    CalculateUseBlending;
+    PreparedUseBlending := true;
+  end;
+
+  if GLScene.Attributes.ReallyUseOcclusionQuery and
+     (OcclusionQueryId = 0) then
+  begin
+    glGenQueriesARB(1, @OcclusionQueryId);
+    OcclusionQueryAsked := false;
+  end;
 end;
 
 { VRMLShapesSplitBlending ---------------------------------------------------- }
@@ -2438,93 +2525,6 @@ end;
 procedure TVRMLGLScene.PrepareResources(TransparentGroups: TTransparentGroups;
   Options: TPrepareResourcesOptions; ProgressStep: boolean);
 
-  procedure PrepareShape(Shape: TVRMLGLShape);
-
-    { UseBlending is used by RenderShapesNoDisplayList to decide
-      is Blending used for given shape. In every optimization
-      method, you must make sure that you called
-      CalculateUseBlending() on every shape index before
-      using RenderShapesNoDisplayList.
-
-      Note that CalculateUseBlending checks
-      Renderer.PreparedTextureAlphaChannelType,
-      so assumes that given shape is already prepared for Renderer.
-      It also looks at texture node, material node data,
-      so should be done right after preparing given state,
-      before user calls any FreeResources.
-
-      In practice, right now it's most comfortable to call CalculateUseBlending
-      for all shapes, right after calling Renderer.Prepare on all of them,
-      regardless of Optimization. This is done by
-      Common_PrepareShape. To speed this up a little,
-      we also have PreparedUseBlending variable to avoid preparing twice. }
-
-    procedure CalculateUseBlending(Shape: TVRMLGLShape);
-    var
-      UseBlending: boolean;
-      State: TVRMLGraphTraverseState;
-      Tex: TNodeX3DTextureNode;
-      AlphaChannelType: TAlphaChannelType;
-    begin
-      State := Shape.State;
-
-      { Note that we either render the whole geometry node with or without
-        blending.
-
-        Note that this looks at nodes, calling
-        State.LastNodes.Material.AllMaterialsTransparent, possibly looking
-        at TextureNode.TextureImage / TextureVidep etc.
-        So it's important to initialize UseBlending before
-        user has any chance to do FreeResources or to free RootNode
-        (see TVRMLScene.RootNode docs).
-
-        TODO: ideally, we would like to just push all our logic into
-        TVRMLShape.Transparent, and write just
-          UseBlending.Items[Index] := Shapes[Index].Transparent;
-        But we cannot, for now: we need Renderer to check image's
-        AlphaChannelType efficiently.
-      }
-
-      UseBlending := Shape.Transparent;
-
-      if not UseBlending then
-      begin
-        { If texture exists with full range alpha channel then use blending.
-
-          Note that State.Texture may be TNodeMultiTexture --- that's Ok,
-          it's also prepared by Renderer, and has AlphaChannelType = atFullRange
-          if any child has atFullRange. So it automatically works Ok too. }
-
-        Tex := State.Texture;
-        if (Tex <> nil) and
-           Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
-          UseBlending := AlphaChannelType = atFullRange;
-      end;
-
-      Shape.UseBlending := UseBlending;
-    end;
-
-  begin
-    if not Shape.PreparedForRenderer then
-    begin
-      Renderer.Prepare(Shape.State);
-      Shape.PreparedForRenderer := true;
-    end;
-
-    if not Shape.PreparedUseBlending then
-    begin
-      CalculateUseBlending(Shape);
-      Shape.PreparedUseBlending := true;
-    end;
-
-    if Attributes.ReallyUseOcclusionQuery and
-       (Shape.OcclusionQueryId = 0) then
-    begin
-      glGenQueriesARB(1, @Shape.OcclusionQueryId);
-      Shape.OcclusionQueryAsked := false;
-    end;
-  end;
-
   procedure PrepareAllShapes;
   var
     SI: TVRMLShapeTreeIterator;
@@ -2532,7 +2532,7 @@ procedure TVRMLGLScene.PrepareResources(TransparentGroups: TTransparentGroups;
     SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
     try
       while SI.GetNext do
-        PrepareShape(TVRMLGLShape(SI.Current));
+        TVRMLGLShape(SI.Current).PrepareResources;
     finally FreeAndNil(SI) end;
   end;
 
