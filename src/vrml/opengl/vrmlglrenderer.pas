@@ -802,23 +802,6 @@ type
   TDynShapeCacheArray = class(TDynArray_3)
   end;
 
-  TRenderBeginEndCache = record
-    Attributes: TVRMLRenderingAttributes;
-    FogNode: TNodeFog;
-    FogDistanceScaling: Single;
-
-    GLList: TGLuint;
-    References: Cardinal;
-  end;
-  PRenderBeginEndCache = ^TRenderBeginEndCache;
-
-  TDynArrayItem_4 = TRenderBeginEndCache;
-  PDynArrayItem_4 = PRenderBeginEndCache;
-  {$define DYNARRAY_4_IS_STRUCT}
-  {$I dynarray_4.inc}
-  TDynRenderBeginEndCacheArray = class(TDynArray_4)
-  end;
-
   TVRMLGLRenderer = class;
 
   { GLSL program integrated with VRML renderer. Adds ability to bind
@@ -867,8 +850,6 @@ type
     Texture3DCaches: TDynTexture3DCacheArray;
     TextureDepthOrFloatCaches: TDynTextureDepthOrFloatCacheArray;
     ShapeCaches: TDynShapeCacheArray;
-    RenderBeginCaches: TDynRenderBeginEndCacheArray;
-    RenderEndCaches: TDynRenderBeginEndCacheArray;
     GLSLProgramCaches: TDynGLSLProgramCacheArray;
 
     { Load given texture to OpenGL, using our cache.
@@ -1022,32 +1003,6 @@ type
       AGLList: TGLuint);
 
     procedure Shape_DecReference(
-      const GLList: TGLuint);
-
-    function RenderBegin_IncReference_Existing(
-      AAttributes: TVRMLRenderingAttributes;
-      AFogNode: TNodeFog;
-      out AGLList: TGLuint): boolean;
-
-    procedure RenderBegin_IncReference_New(
-      AAttributes: TVRMLRenderingAttributes;
-      AFogNode: TNodeFog;
-      AGLList: TGLuint);
-
-    procedure RenderBegin_DecReference(
-      const GLList: TGLuint);
-
-    function RenderEnd_IncReference_Existing(
-      AAttributes: TVRMLRenderingAttributes;
-      AFogNode: TNodeFog;
-      out AGLList: TGLuint): boolean;
-
-    procedure RenderEnd_IncReference_New(
-      AAttributes: TVRMLRenderingAttributes;
-      AFogNode: TNodeFog;
-      AGLList: TGLuint);
-
-    procedure RenderEnd_DecReference(
       const GLList: TGLuint);
   end;
 
@@ -1478,7 +1433,6 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
 {$define read_implementation}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
-{$I dynarray_4.inc}
 {$I dynarray_5.inc}
 {$I dynarray_7.inc}
 {$I dynarray_9.inc}
@@ -1506,8 +1460,6 @@ begin
   Texture3DCaches := TDynTexture3DCacheArray.Create;
   TextureDepthOrFloatCaches := TDynTextureDepthOrFloatCacheArray.Create;
   ShapeCaches := TDynShapeCacheArray.Create;
-  RenderBeginCaches := TDynRenderBeginEndCacheArray.Create;
-  RenderEndCaches := TDynRenderBeginEndCacheArray.Create;
   GLSLProgramCaches := TDynGLSLProgramCacheArray.Create;
 end;
 
@@ -1577,20 +1529,6 @@ begin
     Assert(ShapeCaches.Count = 0, 'Some references to Shapes still exist' +
       ' when freeing TVRMLGLRendererContextCache');
     FreeAndNil(ShapeCaches);
-  end;
-
-  if RenderBeginCaches <> nil then
-  begin
-    Assert(RenderBeginCaches.Count = 0, 'Some references to RenderBegins still exist' +
-      ' when freeing TVRMLGLRendererContextCache');
-    FreeAndNil(RenderBeginCaches);
-  end;
-
-  if RenderEndCaches <> nil then
-  begin
-    Assert(RenderEndCaches.Count = 0, 'Some references to RenderEnds still exist' +
-      ' when freeing TVRMLGLRendererContextCache');
-    FreeAndNil(RenderEndCaches);
   end;
 
   if GLSLProgramCaches <> nil then
@@ -2743,162 +2681,6 @@ begin
   raise EInternalError.CreateFmt(
     'TVRMLGLRendererContextCache.Shape_DecReference: ' +
     'no reference ' +
-    'found for display list %d', [GLList]);
-end;
-
-function TVRMLGLRendererContextCache.RenderBegin_IncReference_Existing(
-  AAttributes: TVRMLRenderingAttributes;
-  AFogNode: TNodeFog;
-  out AGLList: TGLuint): boolean;
-var
-  I: Integer;
-  RenderCache: PRenderBeginEndCache;
-begin
-  for I := 0 to RenderBeginCaches.High do
-  begin
-    RenderCache := RenderBeginCaches.Pointers[I];
-    if (RenderCache^.Attributes.Equals(AAttributes)) and
-      FogParametersEqual(
-        RenderCache^.FogNode, RenderCache^.FogDistanceScaling, AFogNode) then
-    begin
-      Inc(RenderCache^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : RenderBegin ', RenderCache^.GLList, ' : ', RenderCache^.References);
-      {$endif}
-      AGLList := RenderCache^.GLList;
-      Exit(true);
-    end;
-  end;
-
-  Exit(false);
-end;
-
-procedure TVRMLGLRendererContextCache.RenderBegin_IncReference_New(
-  AAttributes: TVRMLRenderingAttributes;
-  AFogNode: TNodeFog;
-  AGLList: TGLuint);
-var
-  RenderCache: PRenderBeginEndCache;
-begin
-  RenderCache := RenderBeginCaches.Add;
-  RenderCache^.Attributes := AAttributes;
-  RenderCache^.FogNode := AFogNode;
-  if AFogNode <> nil then
-    RenderCache^.FogDistanceScaling := AFogNode.TransformScale else
-    RenderCache^.FogDistanceScaling := 0;
-  RenderCache^.GLList := AGLList;
-  RenderCache^.References := 1;
-
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : RenderBegin ', RenderCache^.GLList, ' : ', 1);
-  {$endif}
-end;
-
-procedure TVRMLGLRendererContextCache.RenderBegin_DecReference(
-  const GLList: TGLuint);
-var
-  I: Integer;
-  RenderCache: PRenderBeginEndCache;
-begin
-  for I := 0 to RenderBeginCaches.High do
-  begin
-    RenderCache := RenderBeginCaches.Pointers[I];
-    if RenderCache^.GLList = GLList then
-    begin
-      Dec(RenderCache^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : RenderBegin ', RenderCache^.GLList, ' : ', RenderCache^.References);
-      {$endif}
-      if RenderCache^.References = 0 then
-      begin
-        FreeAndNil(RenderCache^.Attributes);
-        glFreeDisplayList(RenderCache^.GLList);
-        RenderBeginCaches.Delete(I, 1);
-      end;
-      Exit;
-    end;
-  end;
-
-  raise EInternalError.CreateFmt(
-    'TVRMLGLRendererContextCache.RenderBegin_DecReference: no reference ' +
-    'found for display list %d', [GLList]);
-end;
-
-function TVRMLGLRendererContextCache.RenderEnd_IncReference_Existing(
-  AAttributes: TVRMLRenderingAttributes;
-  AFogNode: TNodeFog;
-  out AGLList: TGLuint): boolean;
-var
-  I: Integer;
-  RenderCache: PRenderBeginEndCache;
-begin
-  for I := 0 to RenderEndCaches.High do
-  begin
-    RenderCache := RenderEndCaches.Pointers[I];
-    if (RenderCache^.Attributes.Equals(AAttributes)) and
-      FogParametersEqual(
-        RenderCache^.FogNode, RenderCache^.FogDistanceScaling, AFogNode) then
-    begin
-      Inc(RenderCache^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : RenderEnd ', RenderCache^.GLList, ' : ', RenderCache^.References);
-      {$endif}
-      AGLList := RenderCache^.GLList;
-      Exit(true);
-    end;
-  end;
-
-  Exit(false);
-end;
-
-procedure TVRMLGLRendererContextCache.RenderEnd_IncReference_New(
-  AAttributes: TVRMLRenderingAttributes;
-  AFogNode: TNodeFog;
-  AGLList: TGLuint);
-var
-  RenderCache: PRenderBeginEndCache;
-begin
-  RenderCache := RenderEndCaches.Add;
-  RenderCache^.Attributes := AAttributes;
-  RenderCache^.FogNode := AFogNode;
-  if AFogNode <> nil then
-    RenderCache^.FogDistanceScaling := AFogNode.TransformScale else
-    RenderCache^.FogDistanceScaling := 0;
-  RenderCache^.GLList := AGLList;
-  RenderCache^.References := 1;
-
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : RenderEnd ', RenderCache^.GLList, ' : ', 1);
-  {$endif}
-end;
-
-procedure TVRMLGLRendererContextCache.RenderEnd_DecReference(
-  const GLList: TGLuint);
-var
-  I: Integer;
-  RenderCache: PRenderBeginEndCache;
-begin
-  for I := 0 to RenderEndCaches.High do
-  begin
-    RenderCache := RenderEndCaches.Pointers[I];
-    if RenderCache^.GLList = GLList then
-    begin
-      Dec(RenderCache^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : RenderEnd ', RenderCache^.GLList, ' : ', RenderCache^.References);
-      {$endif}
-      if RenderCache^.References = 0 then
-      begin
-        FreeAndNil(RenderCache^.Attributes);
-        glFreeDisplayList(RenderCache^.GLList);
-        RenderEndCaches.Delete(I, 1);
-      end;
-      Exit;
-    end;
-  end;
-
-  raise EInternalError.CreateFmt(
-    'TVRMLGLRendererContextCache.RenderEnd_DecReference: no reference ' +
     'found for display list %d', [GLList]);
 end;
 
