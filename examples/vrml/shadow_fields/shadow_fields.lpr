@@ -541,7 +541,6 @@ begin
 
     SceneCaster := TVRMLGLScene.Create(nil);
     SceneCaster.Load(ShadowCasterFileName);
-    SceneCaster.Optimization := roSceneDisplayList;
 
     SceneReceiver := TVRMLGLScene.Create(nil);
     SceneReceiver.Load(ShadowReceiverFileName);
@@ -549,7 +548,6 @@ begin
 
     SceneLocalLight := TVRMLGLScene.Create(nil);
     SceneLocalLight.Load(LocalLightFileName);
-    SceneLocalLight.Optimization := roSceneDisplayList;
 
     CasterOOF := TShadowField.Create;
     CasterOOF.LoadFromFile(ChangeFileExt(ShadowCasterFileName, ShadowFieldExt));

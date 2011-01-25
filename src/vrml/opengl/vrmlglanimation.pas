@@ -618,7 +618,7 @@ type
       in some common cases. See docs at TGLRendererOptimization type. }
     property Optimization: TGLRendererOptimization
       read FOptimization write SetOptimization
-      default roShapeDisplayList;
+      default DefaultOptimization;
 
     { Should collision checking check also last animation frame.
 
@@ -786,7 +786,7 @@ begin
   inherited Create(AOwner);
   if Renderer = nil then
     Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
-  FOptimization := roShapeDisplayList;
+  FOptimization := DefaultOptimization;
   FTimeLoop := true;
   FTimeBackwards := false;
   FTimePlaying := true;

@@ -104,7 +104,6 @@ begin
   Scene := TVRMLGLScene.Create(nil);
   try
     Scene.Load(CreateVrmlGraph, true);
-    Scene.Optimization := roShapeDisplayList;
 
     {$ifdef LOG}
     InitializeLog('1.0');

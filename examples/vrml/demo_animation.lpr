@@ -92,7 +92,7 @@ const
   { EqualityEpsilon used to marge nodes when creating animation.
     Larger values may speed up animation loading time and save memory use. }
   EqualityEpsilon = 0.001;
-  RendererOptimization: TGLRendererOptimization = roShapeDisplayList;
+  RendererOptimization: TGLRendererOptimization = DefaultOptimization;
 var
   AnimRootNodes: TVRMLNodesList;
   AnimTimes: TDynSingleArray;

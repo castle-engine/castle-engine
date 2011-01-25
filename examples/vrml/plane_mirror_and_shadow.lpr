@@ -602,13 +602,11 @@ begin
   Scene := TVRMLGLScene.Create(nil);
   try
     Scene.Load(RootNode, true);
-    Scene.Optimization := roSceneDisplayList;
 
     { init SceneForShadow.
       It doesn't own RootNode, and always has RootNode = Scene.RootNode }
     SceneForShadow := TVRMLGLScene.Create(nil);
     SceneForShadow.Load(RootNode, false);
-    SceneForShadow.Optimization := roSceneDisplayList;
     SceneForShadow.Attributes.PureGeometry := true;
 
     { init SceneManager.Camera }

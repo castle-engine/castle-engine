@@ -30,8 +30,6 @@
     and GetHeightAbove methods
 
   2. Rendering with frustum culling
-  (- This is the default actually:
-    scene is loaded with Optimization = roShapeDisplayList.)
   (- This is already done by Scene.GLProjection:
     updating Camera.ProjectionMatrix.)
   - using Camera.Frustum and OctreeRendering

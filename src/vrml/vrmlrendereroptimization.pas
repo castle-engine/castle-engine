@@ -12,8 +12,6 @@ type
     See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.scene_gl.html#section.renderer_optimization]. }
   TGLRendererOptimization = (
     roNone,
-    roSceneDisplayList,
-    roShapeDisplayList,
     roVertexBufferObject
   );
   PGLRendererOptimization = ^TGLRendererOptimization;
@@ -47,14 +45,10 @@ function RendererOptimizationFromName(const S: string; IgnoreCase: boolean):
 const
   RendererOptimizationNames: array[TGLRendererOptimization] of string =
   ( 'none',
-    'scene-display-list',
-    'shape-display-list',
     'vertex-buffer-object' );
 
   RendererOptimizationNiceNames: array[TGLRendererOptimization] of string =
   ( 'None',
-    'Whole Scene by Display List',
-    'Shape by Display List',
     'Vertex Buffer Object' );
 
 implementation
@@ -71,11 +65,15 @@ begin
 
     { obsolete names, supported for compatibility }
     if AnsiSameText('scene-as-a-whole', S) then
-      Exit(roSceneDisplayList);
+      Exit(roVertexBufferObject);
 
     if AnsiSameText('separate-shapes', S) or
        AnsiSameText('separate-shapes-no-transform', S) then
-      Exit(roShapeDisplayList);
+      Exit(roVertexBufferObject);
+
+    if AnsiSameText('scene-display-list', S) or
+       AnsiSameText('shape-display-list', S) then
+      Exit(roVertexBufferObject);
   end else
   begin
     for Result := Low(RendererOptimizationNames) to High(RendererOptimizationNames) do
@@ -84,11 +82,15 @@ begin
 
     { obsolete names, supported for compatibility }
     if 'scene-as-a-whole' = S then
-      Exit(roSceneDisplayList);
+      Exit(roVertexBufferObject);
 
     if ('separate-shapes' = S) or
        ('separate-shapes-no-transform' = S) then
-      Exit(roShapeDisplayList);
+      Exit(roVertexBufferObject);
+      
+    if ('scene-display-list' = S) or
+       ('shape-display-list' = S) then
+      Exit(roVertexBufferObject);      
   end;
   raise Exception.Create('"'+s+'" does not match any of the allowed values');
 end;

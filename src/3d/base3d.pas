@@ -298,8 +298,6 @@ type
         resources and time to prepare for every possible TransparentGroup value.
 
         Note for TVRMLGLScene only:
-
-        Note that for Optimizations <> roSceneDisplayList
         preparing for every possible TransparentGroup value
         is actually not harmful. There's no additional use of resources,
         as the sum of [tgTransparent, tgOpaque] uses
