@@ -563,9 +563,6 @@ type
     { Fog for this shape. @nil if none. }
     function ShapeFog(Shape: TVRMLShape): INodeX3DFogObject;
   private
-    PreparedFogNode: TNodeFog;
-    PreparedFogScale: Single;
-  private
     { Used by UpdateGeneratedTextures, to prevent rendering the shape
       for which reflection texture is generated. (This wouldn't cause
       recursive loop in our engine, but still it's bad --- rendering
@@ -2545,11 +2542,6 @@ begin
 
   PrepareAllShapes;
 
-  PreparedFogNode := FogNode;
-  if PreparedFogNode <> nil then
-    PreparedFogScale := FogNode.TransformScale else
-    PreparedFogScale := 0;
-
   if prBackground in Options then
     PrepareBackground;
 
@@ -2572,11 +2564,6 @@ procedure TVRMLGLScene.Render(
       {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
       {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
       TransparentGroup, LightRenderEvent);
-
-    PreparedFogNode := FogNode;
-    if PreparedFogNode <> nil then
-      PreparedFogScale := FogNode.TransformScale else
-      PreparedFogScale := 0;
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);
