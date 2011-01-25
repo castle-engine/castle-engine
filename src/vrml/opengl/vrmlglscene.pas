@@ -64,12 +64,6 @@ const
 type
   TVRMLGLShape = class;
 
-  { Internal for TVRMLGLScene
-    @exclude }
-  TRenderShape = procedure (
-    LightsRenderer: TVRMLGLLightsCachingRenderer;
-    Shape: TVRMLGLShape) of object;
-  { @exclude }
   TObjectProcedure = procedure of object;
 
   TTestShapeVisibility = function (Shape: TVRMLGLShape): boolean
@@ -348,15 +342,10 @@ type
     { Is UseBlending calculated and current. }
     PreparedUseBlending: boolean;
 
-    procedure DisableDisplayListFromTexture(Shape: TVRMLShape;
-      Texture: TNodeX3DTextureNode);
     procedure PrepareResources;
   private
     { Private things only for RenderFrustumOctree ---------------------- }
     RenderFrustumOctree_Visible: boolean;
-
-    EnableDisplayListValid: boolean;
-    FEnableDisplayList: boolean;
 
     { ------------------------------------------------------------
       Private things used only when Attributes.ReallyUseOcclusionQuery }
@@ -373,14 +362,6 @@ type
   public
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TVRMLChanges); override;
-
-    { Can this shape be stored in a display list.
-
-      If @false then rendering of this shape cannot be stored
-      inside a display list, it must be passed to TVRMLGLRenderer
-      in each frame. This is basically a hack to render some nodes that
-      change too dynamically to store them in display list. }
-    function EnableDisplayList: boolean;
   end;
 
 type
@@ -466,53 +447,25 @@ type
   private
     Renderer: TVRMLGLRenderer;
 
-    { This simply renders Shape, by calling
-      Renderer.RenderShape. Remember to always use
-      Renderer.RenderShapeLight before actually using this to render! }
-    procedure RenderShape_NoLight(Shape: TVRMLGLShape);
-
-    { This renders Shape, by calling
-      Renderer.RenderShapeLight and Renderer.RenderShape. }
-    procedure RenderShape_WithLight(
-      LightsRenderer: TVRMLGLLightsCachingRenderer;
-      Shape: TVRMLGLShape);
-
-    procedure RenderBeginSimple;
-    procedure RenderEndSimple;
-
-    { Render everything, without using display lists.
+    { Render everything.
 
       Calls Renderer.RenderBegin.
-      Then on all potentially visible Shapes[] calls RenderShapeProc.
+      Then on all potentially visible Shapes[] calls RenderShape.
       "Potentially visible" is decided by TestShapeVisibility
       (shape is visible if TestShapeVisibility is @nil or returns
       @true for this shape) and TransparentGroup must include
-      given shape.
-      At the end calls Renderer.RenderEnd.
+      given shape. At the end calls Renderer.RenderEnd.
 
       Additionally this implements blending, looking at Attributes.Blending*,
       setting appropriate OpenGL state and rendering partially transparent
       shape before all opaque objects.
 
-      De facto this doesn't directly call Renderer.RenderBegin and Renderer.RenderEnd,
-      it only calls RenderBeginProc and RenderEndProc. These @bold(have) to
-      do Renderer.RenderBegin / Renderer.RenderEnd word as appropriate,
-      although they may implement this by using display list. See
-      RenderBeginSimple and RenderEndSimple.
-
-      This procedure never creates or uses any display list.
-      You can freely put it's contents inside display list
-      (assuming that RenderShapeProc, RenderBeginProc and RenderEndProc
-      are something that can be part of display list).
-
-      This sets FLastRender_RenderedShapesCount,
-        FLastRender_BoxesOcclusionQueriedCount,
-        FLastRender_VisibleShapesCount,
-        handling also handles LastRender_SumNext. }
-    procedure RenderShapesNoDisplayList(
+      Sets FLastRender_RenderedShapesCount,
+      FLastRender_BoxesOcclusionQueriedCount,
+      FLastRender_VisibleShapesCount,
+      handling also LastRender_SumNext. }
+    procedure RenderScene(
       TestShapeVisibility: TTestShapeVisibility;
-      RenderShapeProc: TRenderShape;
-      RenderBeginProc, RenderEndProc: TObjectProcedure;
       TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent);
 
@@ -1186,72 +1139,6 @@ end;
 
 { TVRMLGLShape --------------------------------------------------------------- }
 
-procedure TVRMLGLShape.DisableDisplayListFromTexture(Shape: TVRMLShape;
-  Texture: TNodeX3DTextureNode);
-begin
-  { If one of the textures used is MovieTexture, then disable display lists. }
-  if Texture is TNodeMovieTexture then
-    FEnableDisplayList := false;
-end;
-
-function TVRMLGLShape.EnableDisplayList: boolean;
-
-  function TexGenDisablesDL(Node: TVRMLNode): boolean;
-  begin
-    Result :=
-    (
-      Node is TNodeTextureCoordinateGenerator and
-      ((TNodeTextureCoordinateGenerator(Node).FdMode.Value = 'WORLDSPACEREFLECTIONVECTOR') or
-       (TNodeTextureCoordinateGenerator(Node).FdMode.Value = 'WORLDSPACENORMAL') or
-       (TNodeTextureCoordinateGenerator(Node).FdMode.Value = 'PROJECTION')
-      )
-    ) or
-    ( Node is TNodeProjectedTextureCoordinate );
-  end;
-
-var
-  I: Integer;
-  MulTexC: TVRMLNodesList;
-  TexCoord: TVRMLNode;
-begin
-  if not EnableDisplayListValid then
-  begin
-    { calculate EnableDisplayList.
-      I tried to take here DynamicGeometry into account, to always
-      set FEnableDisplayList = false when DynamicGeometry = true.
-      But this is worthless (tested on lucy from seamless examples):
-      rebuilding display list is slow, but direct rendering is also awfully slow. }
-    FEnableDisplayList := true;
-
-    EnumerateTextures(@DisableDisplayListFromTexture);
-
-    if FEnableDisplayList then
-    begin
-      { If texture coord is TextureCoordinateGenerator node
-        with some modes depending on camera (or ProjectedTextureCoordinate),
-        or if it's MultiTextureCoordinate with such item as a child,
-        then disable display lists. }
-      if Geometry.TexCoord(State, TexCoord) and
-         (TexCoord <> nil) then
-      begin
-        if TexGenDisablesDL(TexCoord) then
-          FEnableDisplayList := false else
-        if TexCoord is TNodeMultiTextureCoordinate then
-        begin
-          MulTexC := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Items;
-          for I := 0 to MulTexC.Count - 1 do
-            if TexGenDisablesDL(MulTexC[I]) then
-              FEnableDisplayList := false;
-        end;
-      end;
-    end;
-
-    EnableDisplayListValid := true;
-  end;
-
-  Result := FEnableDisplayList;
-end;
-
 procedure TVRMLGLShape.Changed(const InactiveOnly: boolean;
   const Changes: TVRMLChanges);
 var
@@ -1261,10 +1148,7 @@ begin
 
   GLScene := TVRMLGLScene(ParentScene);
 
-  { Transformation (and clip planes) changes don't affect
-    prepared arrays, as they are applied
-    outside of TVRMLGLRenderer.RenderShapeInside.
-
+  { Transformation changes don't affect prepared arrays.
     This can be quite crucial optimization in some cases,
     as you can animate Transform.translation/rotation/scale etc. efficiently.
     (no rebuilding of arrays needed). }
@@ -1285,30 +1169,23 @@ begin
   { When Material.transparency changes, recalculate UseBlending. }
   if chUseBlending in Changes then
     PreparedUseBlending := false;
-
-  EnableDisplayListValid := false;
 end;
 
 procedure TVRMLGLShape.PrepareResources;
 var
   GLScene: TVRMLGLScene;
 
-  { UseBlending is used by RenderShapesNoDisplayList to decide
+  { UseBlending is used by RenderScene to decide
     is Blending used for given shape. Make sure that you called
     CalculateUseBlending on every shape before
-    using RenderShapesNoDisplayList.
+    using RenderScene.
 
     Note that CalculateUseBlending checks
     Renderer.PreparedTextureAlphaChannelType,
     so assumes that given shape is already prepared for Renderer.
     It also looks at texture node, material node data,
     so should be done right after preparing given state,
-    before user calls any FreeResources.
-
-    In practice, right now it's most comfortable to call CalculateUseBlending
-    for all shapes, right after calling Renderer.Prepare on all of them.
-    To speed this up a little,
-    we also have PreparedUseBlending variable to avoid preparing twice. }
+    before user calls any FreeResources. }
 
   procedure CalculateUseBlending;
   var
@@ -1690,33 +1567,6 @@ begin
     Result := FogNode;
 end;
 
-procedure TVRMLGLScene.RenderShape_NoLight(Shape: TVRMLGLShape);
-begin
-  { When EnableDisplayList = false, the data must be regenerated every frame. }
-  if not Shape.EnableDisplayList then
-    Shape.FreeArrays;
-
-  Renderer.RenderShape(Shape, ShapeFog(Shape));
-end;
-
-procedure TVRMLGLScene.RenderShape_WithLight(
-  LightsRenderer: TVRMLGLLightsCachingRenderer;
-  Shape: TVRMLGLShape);
-begin
-  Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-  RenderShape_NoLight(Shape);
-end;
-
-procedure TVRMLGLScene.RenderBeginSimple;
-begin
- Renderer.RenderBegin(FogNode);
-end;
-
-procedure TVRMLGLScene.RenderEndSimple;
-begin
- Renderer.RenderEnd;
-end;
-
 { Given blending name (as defined by VRML BlendMode node spec,
   http://www.instantreality.org/documentation/nodetype/BlendMode/),
   returns @true and corresponding OpenGL constant as Factor.
@@ -1871,10 +1721,8 @@ begin
   glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_ARB, @Result);
 end;
 
-procedure TVRMLGLScene.RenderShapesNoDisplayList(
+procedure TVRMLGLScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility;
-  RenderShapeProc: TRenderShape;
-  RenderBeginProc, RenderEndProc: TObjectProcedure;
   TransparentGroup: TTransparentGroup;
   LightRenderEvent: TVRMLLightRenderEvent);
 
@@ -1935,18 +1783,32 @@ var
     end;
   end;
 
-  { Call RenderShapeProc if some tests succeed.
+  { Call RenderShape if some tests succeed.
     It assumes that test with TestShapeVisibility is already done. }
-  procedure RenderShapeProc_SomeTests(Shape: TVRMLGLShape);
+  procedure RenderShape_SomeTests(Shape: TVRMLGLShape);
 
     procedure DoRenderShape;
+
+      { Renders Shape, by calling Renderer.RenderShapeLight and Renderer.RenderShape. }
+      procedure RenderShape(Shape: TVRMLGLShape);
+      begin
+        Renderer.RenderShapeLights(LightsRenderer, Shape.State);
+
+        { Optionally free Shape arrays data now, if they need to be regenerated. }
+        if Assigned(Attributes.OnVertexColor) or
+           Assigned(Attributes.OnRadianceTransfer) then
+          Shape.FreeArrays;
+
+        Renderer.RenderShape(Shape, ShapeFog(Shape));
+      end;
+
     begin
       OcclusionBoxStateEnd;
 
       Inc(FLastRender_RenderedShapesCount);
       if Assigned(Attributes.OnBeforeShapeRender) then
         Attributes.OnBeforeShapeRender(Shape);
-      RenderShapeProc(LightsRenderer, Shape);
+      RenderShape(Shape);
     end;
 
   var
@@ -2018,13 +1880,13 @@ var
     end;
   end;
 
-  { Call RenderShapeProc if many tests, including TestShapeVisibility,
+  { Call RenderShape if many tests, including TestShapeVisibility,
     succeed. }
-  procedure RenderShapeProc_AllTests(Shape: TVRMLGLShape);
+  procedure RenderShape_AllTests(Shape: TVRMLGLShape);
   begin
     if ( (not Assigned(TestShapeVisibility)) or
          TestShapeVisibility(Shape)) then
-      RenderShapeProc_SomeTests(Shape);
+      RenderShape_SomeTests(Shape);
   end;
 
   procedure RenderAllAsOpaque;
@@ -2036,7 +1898,7 @@ var
       SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
       try
         while SI.GetNext do
-          RenderShapeProc_AllTests(TVRMLGLShape(SI.Current));
+          RenderShape_AllTests(TVRMLGLShape(SI.Current));
       finally FreeAndNil(SI) end;
     end;
   end;
@@ -2122,7 +1984,7 @@ var
           Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.Items[I]]);
           if Shape.RenderedFrameId <> FrameId then
           begin
-            RenderShapeProc_SomeTests(Shape);
+            RenderShape_SomeTests(Shape);
             Shape.RenderedFrameId := FrameId;
           end;
         end;
@@ -2353,8 +2215,7 @@ begin
     Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight, LightRenderEvent);
   try
 
-    if Assigned(RenderBeginProc) then
-      RenderBeginProc;
+    Renderer.RenderBegin(FogNode);
     try
       if Attributes.PureGeometry then
       begin
@@ -2362,7 +2223,7 @@ begin
           or GL_BLEND enable state. Just render everything. }
         RenderAllAsOpaque;
 
-        { Each RenderShapeProc_SomeTests inside could set OcclusionBoxState }
+        { Each RenderShape_SomeTests inside could set OcclusionBoxState }
         OcclusionBoxStateEnd;
       end else
       if Attributes.ReallyUseHierarchicalOcclusionQuery and
@@ -2391,7 +2252,7 @@ begin
             try
               { VRMLShapesSplitBlending already filtered shapes through
                 TestShapeVisibility callback, so below we can render them
-                with RenderShapeProc_SomeTests to skip checking
+                with RenderShape_SomeTests to skip checking
                 TestShapeVisibility twice.
                 This is a good thing: it means that sorting below has
                 much less shapes to consider. }
@@ -2403,7 +2264,7 @@ begin
                   OpaqueShapes.SortFrontToBack(CameraPosition);
 
                 for I := 0 to OpaqueShapes.Count - 1 do
-                  RenderShapeProc_SomeTests(TVRMLGLShape(OpaqueShapes.Items[I]));
+                  RenderShape_SomeTests(TVRMLGLShape(OpaqueShapes.Items[I]));
               end;
 
               { draw partially transparent objects }
@@ -2425,7 +2286,7 @@ begin
                 begin
                   AdjustBlendFunc(TVRMLGLShape(TransparentShapes.Items[I]),
                     BlendingSourceFactorSet, BlendingDestinationFactorSet);
-                  RenderShapeProc_SomeTests(TVRMLGLShape(TransparentShapes.Items[I]));
+                  RenderShape_SomeTests(TVRMLGLShape(TransparentShapes.Items[I]));
                 end;
               end;
             finally
@@ -2435,15 +2296,12 @@ begin
           end else
             RenderAllAsOpaque;
 
-          { Each RenderShapeProc_SomeTests inside could set OcclusionBoxState.
+          { Each RenderShape_SomeTests inside could set OcclusionBoxState.
             Finish it now, before following glPopAttrib. }
           OcclusionBoxStateEnd;
         finally glPopAttrib end;
       end;
-    finally
-      if Assigned(RenderEndProc) then
-        RenderEndProc;
-    end;
+    finally Renderer.RenderEnd end;
 
   finally
     { Tests:
@@ -2494,11 +2352,7 @@ procedure TVRMLGLScene.Render(
 
   procedure RenderNormal;
   begin
-    RenderShapesNoDisplayList(TestShapeVisibility,
-      {$ifdef FPC_OBJFPC} @ {$endif} RenderShape_WithLight,
-      {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
-      {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
-      TransparentGroup, LightRenderEvent);
+    RenderScene(TestShapeVisibility, TransparentGroup, LightRenderEvent);
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);
