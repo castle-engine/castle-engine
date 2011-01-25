@@ -288,25 +288,6 @@ type
       But it doesn't change any OpenGL state or buffers contents
       (at most, it allocates some texture and display list names).
 
-      @param(TransparentGroups For what TransparentGroup value
-        we should prepare rendering resources.
-        Important only if prRender is included in Options.
-
-        The idea is that
-        you're often interested in rendering only with tgAll, or
-        only with [tgTransparent, tgOpaque] --- so it would be a waste of
-        resources and time to prepare for every possible TransparentGroup value.
-
-        Note for TVRMLGLScene only:
-        preparing for every possible TransparentGroup value
-        is actually not harmful. There's no additional use of resources,
-        as the sum of [tgTransparent, tgOpaque] uses
-        the same resources as [tgAll]. In other words,
-        there's no difference in resource (and time) used between
-        preparing for [tgTransparent, tgOpaque], [tgAll] or
-        [tgTransparent, tgOpaque, tgAll] --- they'll all prepare the same
-        things.)
-
       @param(Options What features should be prepared to execute fast.
         See TPrepareResourcesOption,
         the names should be self-explanatory (they refer to appropriate
@@ -320,7 +301,6 @@ type
         Reason: octree preparations have a separate mechanism
         that may want to show progress.) }
     procedure PrepareResources(
-      TransparentGroups: TTransparentGroups;
       Options: TPrepareResourcesOptions;
       ProgressStep: boolean); virtual;
 
@@ -544,7 +524,6 @@ type
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
     procedure PrepareResources(
-      TransparentGroups: TTransparentGroups;
       Options: TPrepareResourcesOptions;
       ProgressStep: boolean); override;
     function PrepareResourcesSteps: Cardinal; override;
@@ -656,8 +635,8 @@ procedure T3D.RenderShadowVolume(
 begin
 end;
 
-procedure T3D.PrepareResources(TransparentGroups: TTransparentGroups;
-  Options: TPrepareResourcesOptions; ProgressStep: boolean);
+procedure T3D.PrepareResources(Options: TPrepareResourcesOptions;
+  ProgressStep: boolean);
 begin
 end;
 
@@ -939,14 +918,14 @@ begin
         ParentTransformIsIdentity, ParentTransform);
 end;
 
-procedure T3DList.PrepareResources(TransparentGroups: TTransparentGroups;
-  Options: TPrepareResourcesOptions; ProgressStep: boolean);
+procedure T3DList.PrepareResources(Options: TPrepareResourcesOptions;
+  ProgressStep: boolean);
 var
   I: Integer;
 begin
   inherited;
   for I := 0 to List.Count - 1 do
-    List[I].PrepareResources(TransparentGroups, Options, ProgressStep);
+    List[I].PrepareResources(Options, ProgressStep);
 end;
 
 function T3DList.PrepareResourcesSteps: Cardinal;

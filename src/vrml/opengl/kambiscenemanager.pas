@@ -1887,7 +1887,6 @@ end;
 procedure TKamSceneManager.PrepareResources(const DisplayProgressTitle: string);
 var
   Options: TPrepareResourcesOptions;
-  TG: TTransparentGroups;
 begin
   ChosenViewport := nil;
   NeedsUpdateGeneratedTextures := false;
@@ -1898,10 +1897,6 @@ begin
   if Viewports.Count <> 0 then
   begin
     Options := [prRender, prBackground, prBoundingBox, prScreenEffects];
-    { We never call tgAll from scene manager. Even for non-shadowed rendering
-      (one pass), we still may have many Items, so we always call all tgOpaque
-      before all tgTransparent. }
-    TG := [tgOpaque, tgTransparent];
 
     if Viewports.UsesShadowVolumes then
       Options := Options + prShadowVolume;
@@ -1928,10 +1923,10 @@ begin
     begin
       Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
       try
-        Items.PrepareResources(TG, Options, true);
+        Items.PrepareResources(Options, true);
       finally Progress.Fini end;
     end else
-      Items.PrepareResources(TG, Options, false);
+      Items.PrepareResources(Options, false);
 
     NeedsUpdateGeneratedTextures := true;
   end;

@@ -1929,9 +1929,7 @@ type
       This method will do exactly that. }
     procedure ViewChangedSuddenly; virtual;
 
-    procedure PrepareResources(
-      TransparentGroups: TTransparentGroups;
-      Options: TPrepareResourcesOptions;
+    procedure PrepareResources(Options: TPrepareResourcesOptions;
       ProgressStep: boolean); override;
 
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
@@ -6596,9 +6594,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.PrepareResources(
-  TransparentGroups: TTransparentGroups;
-  Options: TPrepareResourcesOptions;
+procedure TVRMLScene.PrepareResources(Options: TPrepareResourcesOptions;
   ProgressStep: boolean);
 
   procedure PrepareShapesOctrees;

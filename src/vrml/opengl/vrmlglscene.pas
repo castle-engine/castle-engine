@@ -655,8 +655,8 @@ type
       This is called automatically from the destructor. }
     procedure GLContextClose; override;
 
-    procedure PrepareResources(TransparentGroups: TTransparentGroups;
-      Options: TPrepareResourcesOptions; ProgressStep: boolean); override;
+    procedure PrepareResources(Options: TPrepareResourcesOptions;
+      ProgressStep: boolean); override;
 
     { Renders this VRML scene for OpenGL.
       This is probably the most important function in this class,
@@ -2519,7 +2519,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.PrepareResources(TransparentGroups: TTransparentGroups;
+procedure TVRMLGLScene.PrepareResources(
   Options: TPrepareResourcesOptions; ProgressStep: boolean);
 
   procedure PrepareAllShapes;
@@ -2597,7 +2597,7 @@ begin
       before actually rendering the shape).
 
     It's much simpler to just call PrepareResources at the beginning. }
-  PrepareResources([TransparentGroup], [prRender], false);
+  PrepareResources([prRender], false);
 
   case Attributes.WireframeEffect of
     weNormal: RenderNormal;

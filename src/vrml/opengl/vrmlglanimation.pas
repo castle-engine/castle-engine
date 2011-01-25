@@ -338,9 +338,7 @@ type
       Progress.Step then after preparing each scene.
       For portability, always check PrepareResourcesSteps, but for now this
       is just always equal ScenesCount. }
-    procedure PrepareResources(
-      TransparentGroups: TTransparentGroups;
-      Options: TPrepareResourcesOptions;
+    procedure PrepareResources(Options: TPrepareResourcesOptions;
       ProgressStep: boolean); override;
     function PrepareResourcesSteps: Cardinal; override;
 
@@ -1473,9 +1471,7 @@ begin
   Result := FScenes.Last;
 end;
 
-procedure TVRMLGLAnimation.PrepareResources(
-  TransparentGroups: TTransparentGroups;
-  Options: TPrepareResourcesOptions;
+procedure TVRMLGLAnimation.PrepareResources(Options: TPrepareResourcesOptions;
   ProgressStep: boolean);
 var
   I: Integer;
@@ -1490,7 +1486,7 @@ begin
     if I <> 0 then
       Exclude(SceneOptions, prManifoldAndBorderEdges);
 
-    FScenes[I].PrepareResources(TransparentGroups, SceneOptions, false);
+    FScenes[I].PrepareResources(SceneOptions, false);
 
     { TODO: this isn't so simple, since not all scenes have to structurally
       equal anymore. }
