@@ -265,7 +265,7 @@ var
 begin
   MaterialFromColorEnabled := false;
 
-  {$ifdef DISABLE_ARRAYS} 
+  {$ifdef DISABLE_ARRAYS}
   Locations := nil;
   {$endif}
 
@@ -464,6 +464,23 @@ end;
 
 procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
+  { If ARB_multitexturing available, sets texture coordinate for texture
+    unit TextureUnit (by appropriate glMultiTexCoord).
+    Otherwise (when no multitexturing), sets texture coordinate for
+    the only texture unit (glTexCoord).
+
+    The only thing that you have to care about is to specify TextureUnit <
+    FreeGLTexturesCount. Everything else (whether ARB_multitexturing
+    exists, and shifting TextureUnit by GL_TEXTURE0_ARB +
+    FirstGLFreeTexture values) is taken care of inside here. }
+  procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
+  begin
+    if GL_ARB_multitexture then
+      glMultiTexCoordv(GL_TEXTURE0_ARB +
+        Attributes.FirstGLFreeTexture + TextureUnit, TexCoord) else
+      glTexCoordv(TexCoord);
+  end;
+
   { Enable and set parameters of texture generation,
     for texture units where TexCoords[].Generation[] <> tgExplicit. }
   procedure EnableTextureGen(const TexUnit: Cardinal;
@@ -480,7 +497,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         like a direction, so we want to set Q = always 0.0
         (in homogeneous coords, this means that vector represents
         a direction and will be accordingly transformed). }
-      Renderer.MultiTexCoord(TexUnit, ZeroVector4Single);
+      MultiTexCoord(TexUnit, ZeroVector4Single);
 
       glMatrixMode(GL_TEXTURE);
       Renderer.PushTextureUnit(TexUnit);

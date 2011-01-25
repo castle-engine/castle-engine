@@ -1242,17 +1242,6 @@ type
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure ActiveTexture(const TextureUnit: Cardinal);
 
-    { If ARB_multitexturing available, sets texture coordinate for texture
-      unit TextureUnit (by appropriate glMultiTexCoord).
-      Otherwise (when no multitexturing), sets texture coordinate for
-      the only texture unit (glTexCoord).
-
-      The only thing that you have to care about is to specify TextureUnit <
-      FreeGLTexturesCount. Everything else (whether ARB_multitexturing
-      exists, and shifting TextureUnit by GL_TEXTURE0_ARB +
-      FirstGLFreeTexture values) is taken care of inside here. }
-    procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
-
     procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; const VBO: boolean);
     procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; const VBO: boolean);
     procedure RenderShapeShaders(Shape: TVRMLRendererShape; const VBO: boolean;
@@ -3607,15 +3596,6 @@ begin
   if GL_ARB_multitexture then
     glActiveTextureARB(GL_TEXTURE0_ARB +
       Attributes.FirstGLFreeTexture + TextureUnit);
-end;
-
-procedure TVRMLGLRenderer.MultiTexCoord(const TextureUnit: Cardinal;
-  const TexCoord: TVector4f);
-begin
-  if GL_ARB_multitexture then
-    glMultiTexCoordv(GL_TEXTURE0_ARB +
-      Attributes.FirstGLFreeTexture + TextureUnit, TexCoord) else
-    glTexCoordv(TexCoord);
 end;
 
 procedure TVRMLGLRenderer.InitializeFog(Node: TNodeFog;
