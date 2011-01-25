@@ -777,7 +777,10 @@ type
   {$I dynarray_13.inc}
   TDynTextureDepthOrFloatCacheArray = TDynArray_13;
 
-  { Cached VRML/X3D shape display list.
+  TVRMLRendererShape = class;
+  TVboArrays = array [0..2] of TGLuint;
+
+  { Cached shape resources.
     Note that Attributes and State are owned by this record
     (TVRMLGLRendererContextCache will make sure about creating/destroying
     them), but GeometryNode and FogNode are a references somewhere to the scene
@@ -790,8 +793,10 @@ type
     FogNode: TNodeFog;
     FogDistanceScaling: Single;
 
-    GLList: TGLuint;
     References: Cardinal;
+
+    Arrays: TGeometryArrays;
+    Vbo: TVboArrays;
   end;
   PShapeCache = ^TShapeCache;
 
@@ -799,8 +804,7 @@ type
   PDynArrayItem_3 = PShapeCache;
   {$define DYNARRAY_3_IS_STRUCT}
   {$I dynarray_3.inc}
-  TDynShapeCacheArray = class(TDynArray_3)
-  end;
+  TDynShapeCacheArray = TDynArray_3;
 
   TVRMLGLRenderer = class;
 
@@ -976,42 +980,21 @@ type
     procedure Fonts_DecReference(
       fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
 
-    { Display lists caches.
-      These will be used by TVRMLGLScene.
+    { Shape cache. We return PShapeCache, either existing or new one.
+      If Arrays are nil, it's a new one (and then Vbo are also zero),
+      and you should set them. Otherwise it's an existing PShapeCache,
+      and you should use Arrays. Same for Vbo --- if they are zero,
+      and you use them, then create and set them. }
+    function Shape_IncReference(Shape: TVRMLRendererShape;
+      AFogNode: TNodeFog; AAttributes: TVRMLRenderingAttributes): PShapeCache;
 
-      Note that we have two versions of Shape_IncReference,
-      because if the list will already exist in the cache then we don't want to
-      waste time on creating and immediately freeing unnecessary list.
-      you should call Shape_IncReference_Existing, and if @false
-      then you should build display list and call
-      Shape_IncReference_New. }
-
-    { }
-    function Shape_IncReference_Existing(
-      AAttributes: TVRMLRenderingAttributes;
-      AGeometryNode: TVRMLGeometryNode;
-      AState: TVRMLGraphTraverseState;
-      AFogNode: TNodeFog;
-      CacheIgnoresTransform: boolean;
-      out AGLList: TGLuint): boolean;
-
-    procedure Shape_IncReference_New(
-      AAttributes: TVRMLRenderingAttributes;
-      AGeometryNode: TVRMLGeometryNode;
-      AState: TVRMLGraphTraverseState;
-      AFogNode: TNodeFog;
-      AGLList: TGLuint);
-
-    procedure Shape_DecReference(
-      const GLList: TGLuint);
+    procedure Shape_DecReference(Arrays: TGeometryArrays);
   end;
 
   {$I resourcerenderer.inc}
   {$I vrmltexturerenderer.inc}
   {$I vrmlbumpmappingrenderer.inc}
   {$I vrmlglslrenderer.inc}
-
-  TVboArrays = array [0..2] of TGLuint;
 
   { VRML shape that can be rendered. }
   TVRMLRendererShape = class(TVRMLShape)
@@ -2569,13 +2552,12 @@ begin
     'found to GLSL program');
 end;
 
-function TVRMLGLRendererContextCache.Shape_IncReference_Existing(
-  AAttributes: TVRMLRenderingAttributes;
-  AGeometryNode: TVRMLGeometryNode;
-  AState: TVRMLGraphTraverseState;
-  AFogNode: TNodeFog;
+function TVRMLGLRendererContextCache.Shape_IncReference(
+  Shape: TVRMLRendererShape;
+  AFogNode: TNodeFog; AAttributes: TVRMLRenderingAttributes): PShapeCache;
+
+var
   CacheIgnoresTransform: boolean;
-  out AGLList: TGLuint): boolean;
 
   { Compares two VRML/X3D states by
       State1.EqualsNoTransform(State2)
@@ -2593,66 +2575,54 @@ function TVRMLGLRendererContextCache.Shape_IncReference_Existing(
 
 var
   I: Integer;
-  SSCache: PShapeCache;
 begin
-  { Force CacheIgnoresTransform to be false if our shape uses shaders.
-    Shaders may depend on coordinates in eye space, which obviously
-    may be different for shapes that differ even only on transform. }
-  if CacheIgnoresTransform and
-     (AState.ShapeNode <> nil) and
-     (AState.ShapeNode.Appearance <> nil) and
-     (AState.ShapeNode.Appearance.FdShaders.Count <> 0) then
-    CacheIgnoresTransform := false;
+  CacheIgnoresTransform := not (
+    { Force CacheIgnoresTransform to be false if our shape uses shaders.
+      Shaders may depend on coordinates in eye space, which obviously
+      may be different for shapes that differ even only on transform. }
+    (Shape.State.ShapeNode <> nil) and
+    (Shape.State.ShapeNode.Appearance <> nil) and
+    (Shape.State.ShapeNode.Appearance.FdShaders.Count <> 0)
+  );
 
   for I := 0 to ShapeCaches.High do
   begin
-    SSCache := ShapeCaches.Pointers[I];
-    if (SSCache^.Attributes.Equals(AAttributes)) and
-       (SSCache^.GeometryNode = AGeometryNode) and
-       StatesEqual(SSCache^.State, AState) and
+    Result := ShapeCaches.Pointers[I];
+    if (Result^.Attributes.Equals(AAttributes)) and
+       (Result^.GeometryNode = Shape.Geometry) and
+       StatesEqual(Result^.State, Shape.State) and
        FogParametersEqual(
-         SSCache^.FogNode, SSCache^.FogDistanceScaling, AFogNode) then
+         Result^.FogNode, Result^.FogDistanceScaling, AFogNode) then
     begin
-      Inc(SSCache^.References);
+      Inc(Result^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : Shape ', SSCache^.GLList, ' : ',
-        SSCache^.References);
+      Writeln('++ : Shape ', Result^.GLList, ' : ', Result^.References);
       {$endif}
-      AGLList := SSCache^.GLList;
-      Exit(true);
+      Exit(Result);
     end;
   end;
 
-  Exit(false);
-end;
+  { not found, so create new }
 
-procedure TVRMLGLRendererContextCache.Shape_IncReference_New(
-  AAttributes: TVRMLRenderingAttributes;
-  AGeometryNode: TVRMLGeometryNode;
-  AState: TVRMLGraphTraverseState;
-  AFogNode: TNodeFog;
-  AGLList: TGLuint);
-var
-  SSCache: PShapeCache;
-begin
-  SSCache := ShapeCaches.Add;
-  SSCache^.Attributes := AAttributes;
-  SSCache^.GeometryNode := AGeometryNode;
-  SSCache^.State := AState;
-  SSCache^.FogNode := AFogNode;
+  Result := ShapeCaches.Add;
+  Result^.Attributes := AAttributes;
+  Result^.GeometryNode := Shape.Geometry;
+  Result^.State := Shape.State;
+  Result^.FogNode := AFogNode;
   if AFogNode <> nil then
-    SSCache^.FogDistanceScaling := AFogNode.TransformScale else
-    SSCache^.FogDistanceScaling := 0;
-  SSCache^.GLList := AGLList;
-  SSCache^.References := 1;
+    Result^.FogDistanceScaling := AFogNode.TransformScale else
+    Result^.FogDistanceScaling := 0;
+  Result^.References := 1;
+  Result^.Arrays := nil;
+  FillChar(Result^.Vbo, SizeOf(Result^.Vbo), 0);
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : Shape ', SSCache^.GLList, ' : ', 1);
+  Writeln('++ : Shape ', Result^.GLList, ' : ', 1);
   {$endif}
 end;
 
 procedure TVRMLGLRendererContextCache.Shape_DecReference(
-  const GLList: TGLuint);
+  Arrays: TGeometryArrays);
 var
   I: Integer;
   SSCache: PShapeCache;
@@ -2660,28 +2630,25 @@ begin
   for I := 0 to ShapeCaches.High do
   begin
     SSCache := ShapeCaches.Pointers[I];
-    if SSCache^.GLList = GLList then
+    if SSCache^.Arrays = Arrays then
     begin
       Dec(SSCache^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : Shape ', SSCache^.GLList, ' : ',
-        SSCache^.References);
+      Writeln('-- : Shape ', SSCache^.GLList, ' : ', SSCache^.References);
       {$endif}
       if SSCache^.References = 0 then
       begin
         FreeAndNil(SSCache^.Attributes);
         FreeAndNil(SSCache^.State);
-        glFreeDisplayList(SSCache^.GLList);
+        { free arrays, vbo ? }
         ShapeCaches.Delete(I, 1);
       end;
       Exit;
     end;
   end;
 
-  raise EInternalError.CreateFmt(
-    'TVRMLGLRendererContextCache.Shape_DecReference: ' +
-    'no reference ' +
-    'found for display list %d', [GLList]);
+  raise EInternalError.Create(
+    'TVRMLGLRendererContextCache.Shape_DecReference: no reference found');
 end;
 
 { TVRMLRenderingAttributes --------------------------------------------------- }
