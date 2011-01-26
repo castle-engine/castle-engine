@@ -919,7 +919,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
   { Initialize Arrays.TexCoords and TexCoordArray2/3/4d, based on TexCoord.
 
     If any usable tex coords are found
-    (that is,  Arrays.TexCoords.Count <> 0 on exit) then this array
+    (that is, Arrays.TexCoords.Count <> 0 on exit) then this array
     contains at least TexCoordsNeeded units. }
   procedure InitializeTexCoordGenArray;
 
@@ -1186,6 +1186,20 @@ begin
     begin
       Bounds3DTextureGen;
     end else
+
+    { Handle VRML 1.0 case when TexCoord present but TexCoordIndex empty
+      before calling InitializeTexCoordGenArray. That's because we have
+      to ignore TexCoord in this case (so says VRML 1.0 spec, and it's
+      sensible since for VRML 1.0 there is always some last TexCoord node).
+      So we don't want to let InitializeTexCoordGenArray to call
+      any Arrays.AddTexCoord. }
+    if (State.ShapeNode = nil) and
+       (TexCoordIndex <> nil) and
+       (TexCoordIndex.Count < CoordIndex.Count) then
+    begin
+      Bounds2DTextureGen;
+    end else
+
     begin
       InitializeTexCoordGenArray;
       if Arrays.TexCoords.Count > 0 then
@@ -1196,7 +1210,6 @@ begin
             Triangle[Fan/Strip]Set, QuadSet. Spec says that TexCoord should be
             used just like Coord, so IndexNum indexes it directly. }
           TexImplementation := tcNonIndexed;
-
           Assert(CoordIndex = nil);
         end else
         if TexCoordIndex.Count >= CoordIndex.Count then
@@ -1204,7 +1217,7 @@ begin
           TexImplementation := tcTexIndexed;
         end else
         begin
-          { If TexCoord <> nil (non-empty TexCoordArray guarantees this)
+          { If TexCoord <> nil (non-zero Arrays.TexCoords.Count guarantees this)
             but TexCoordIndex is empty then
             - VRML 2.0 spec says that coordIndex is used
               to index texture coordinates for IndexedFaceSet.
@@ -1212,15 +1225,13 @@ begin
               coordinates should be generated (that's because for
               VRML 1.0 there is always some TexCoord <> nil,
               so it cannot be used to produce different behavior).
+              We handled this case in code above.
             - Note that this cannot happen at all for X3D primitives
               like IndexedTriangle[Fan/Strip]Set, QuadSet, since they
               have TexCoordIndex = CoordIndex (just taken from "index" field).
           }
-          if State.ShapeNode <> nil then
-          begin
-            TexImplementation := tcCoordIndexed;
-          end else
-            Bounds2DTextureGen;
+          Assert(State.ShapeNode <> nil);
+          TexImplementation := tcCoordIndexed;
         end;
       end else
         Bounds2DTextureGen;
