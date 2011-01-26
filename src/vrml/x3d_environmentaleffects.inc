@@ -41,9 +41,26 @@
 
   INodeX3DFogObject = interface(IVRMLNode)
   ['{F5C4E0A9-2214-4E3F-8E90-1E0305B2EBC6}']
-    property Fdcolor: TSFColor { read GetFdcolor }; { }
-    property FdfogType: TSFString { read GetFdfogType }; { }
-    property FdvisibilityRange: TSFFloat { read GetFdvisibilityRange }; { }
+    function GetFdcolor: TSFColor;
+    function GetFdfogType: TSFString;
+    function GetFdvisibilityRange: TSFFloat;
+    function GetFdvolumetric: TSFBool;
+    function GetFdvolumetricDirection: TSFVec3f;
+    function GetFdvolumetricVisibilityStart: TSFFloat;
+    function GetFdalternative: TSFNode;
+
+    property Fdcolor: TSFColor read GetFdcolor;
+    property FdfogType: TSFString read GetFdfogType;
+    property FdvisibilityRange: TSFFloat read GetFdvisibilityRange;
+    property Fdvolumetric: TSFBool read GetFdvolumetric;
+    property FdvolumetricDirection: TSFVec3f read GetFdvolumetricDirection;
+    property FdvolumetricVisibilityStart: TSFFloat read GetFdvolumetricVisibilityStart;
+    property Fdalternative: TSFNode read GetFdalternative;
+
+    function Alternative: INodeX3DFogObject;
+
+    function GetTransformScale: Single;
+    property TransformScale: Single read GetTransformScale;
   end;
 
   TBackgroundSide = (bsBack, bsBottom, bsFront, bsLeft, bsRight, bsTop);
@@ -148,6 +165,14 @@
 
   TNodeFog = class(TNodeX3DBindableNode, INodeX3DFogObject)
   private
+    function GetFdcolor: TSFColor;
+    function GetFdfogType: TSFString;
+    function GetFdvisibilityRange: TSFFloat;
+    function GetFdvolumetric: TSFBool;
+    function GetFdvolumetricDirection: TSFVec3f;
+    function GetFdvolumetricVisibilityStart: TSFFloat;
+    function GetFdalternative: TSFNode;
+    function GetTransformScale: Single;
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
@@ -184,10 +209,8 @@
     public property FdAlternative: TSFNode read FFdAlternative;
     { @groupEnd }
 
-    { Returns FdAlternative.Value already typecasted to TNodeFog.
-      If FdAlternative.Value is not of TNodeFog class, returns nil
-      (returns also nil when FdAlternative.Value is nil, obviously). }
-    function Alternative: TNodeFog;
+    { Returns FdAlternative.Value, or nil if not assigned or invalid. }
+    function Alternative: INodeX3DFogObject;
   end;
 
   TNodeFogCoordinate = class(TNodeX3DGeometricPropertyNode)
@@ -203,6 +226,15 @@
   end;
 
   TNodeLocalFog = class(TNodeX3DChildNode, INodeX3DFogObject)
+  private
+    function GetFdcolor: TSFColor;
+    function GetFdfogType: TSFString;
+    function GetFdvisibilityRange: TSFFloat;
+    function GetFdvolumetric: TSFBool;
+    function GetFdvolumetricDirection: TSFVec3f;
+    function GetFdvolumetricVisibilityStart: TSFFloat;
+    function GetFdalternative: TSFNode;
+    function GetTransformScale: Single;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -221,6 +253,26 @@
 
     private FFdvisibilityRange: TSFFloat;
     public property FdvisibilityRange: TSFFloat read FFdvisibilityRange;
+
+    { Fields below are Kambi's fog extensions, see
+      http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_fog_volumetric
+
+      @groupBegin }
+    private FFdVolumetric: TSFBool;
+    public property FdVolumetric: TSFBool read FFdVolumetric;
+
+    private FFdVolumetricDirection: TSFVec3f;
+    public property FdVolumetricDirection: TSFVec3f read FFdVolumetricDirection;
+
+    private FFdVolumetricVisibilityStart: TSFFloat;
+    public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
+
+    private FFdAlternative: TSFNode;
+    public property FdAlternative: TSFNode read FFdAlternative;
+    { @groupEnd }
+
+    { Returns FdAlternative.Value, or nil if not assigned or invalid. }
+    function Alternative: INodeX3DFogObject;
   end;
 
   TNodeTextureBackground = class(TNodeX3DBackgroundNode)
@@ -505,7 +557,7 @@ begin
    FdvolumetricVisibilityStart.ChangesAlways := [chEverything];
   Fields.Add(FFdvolumetricVisibilityStart);
 
-  FFdalternative := TSFNode.Create(Self, 'alternative', [TNodeFog]);
+  FFdalternative := TSFNode.Create(Self, 'alternative', INodeX3DFogObject);
    Fdalternative.ChangesAlways := [chEverything];
   Fields.Add(FFdalternative);
 
@@ -535,10 +587,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeFog.Alternative: TNodeFog;
+function TNodeFog.Alternative: INodeX3DFogObject;
 begin
-  if (FdAlternative.Value <> nil) and (FdAlternative.Value is TNodeFog) then
-    Result := TNodeFog(FdAlternative.Value) else
+  if (FdAlternative.Value <> nil) and
+     Supports(FdAlternative.Value, INodeX3DFogObject) then
+    Result := FdAlternative.Value as INodeX3DFogObject else
     Result := nil;
 end;
 
@@ -558,6 +611,46 @@ end;
 function TNodeFog.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcFog;
+end;
+
+function TNodeFog.GetFdcolor: TSFColor;
+begin
+  Result := FFdColor;
+end;
+
+function TNodeFog.GetFdfogType: TSFString;
+begin
+  Result := FdfogType;
+end;
+
+function TNodeFog.GetFdvisibilityRange: TSFFloat;
+begin
+  Result := FdvisibilityRange;
+end;
+
+function TNodeFog.GetFdvolumetric: TSFBool;
+begin
+  Result := FFdvolumetric;
+end;
+
+function TNodeFog.GetFdvolumetricDirection: TSFVec3f;
+begin
+  Result := FFdvolumetricDirection;
+end;
+
+function TNodeFog.GetFdvolumetricVisibilityStart: TSFFloat;
+begin
+  Result := FFdvolumetricVisibilityStart;
+end;
+
+function TNodeFog.GetFdalternative: TSFNode;
+begin
+  Result := FFdalternative;
+end;
+
+function TNodeFog.GetTransformScale: Single;
+begin
+  Result := TransformScale;
 end;
 
 constructor TNodeFogCoordinate.Create(const ANodeName: string;
@@ -611,6 +704,22 @@ begin
   Fields.Add(FFdvisibilityRange);
   { X3D specification comment: [0,-Inf) }
 
+  FFdvolumetric := TSFBool.Create(Self, 'volumetric', false);
+   Fdvolumetric.ChangesAlways := [chEverything];
+  Fields.Add(FFdvolumetric);
+
+  FFdvolumetricDirection := TSFVec3f.Create(Self, 'volumetricDirection', Vector3Single(0, -1, 0));
+   FdvolumetricDirection.ChangesAlways := [chEverything];
+  Fields.Add(FFdvolumetricDirection);
+
+  FFdvolumetricVisibilityStart := TSFFloat.Create(Self, 'volumetricVisibilityStart', 0);
+   FdvolumetricVisibilityStart.ChangesAlways := [chEverything];
+  Fields.Add(FFdvolumetricVisibilityStart);
+
+  FFdalternative := TSFNode.Create(Self, 'alternative', INodeX3DFogObject);
+   Fdalternative.ChangesAlways := [chEverything];
+  Fields.Add(FFdalternative);
+
   DefaultContainerField := 'children';
 end;
 
@@ -631,6 +740,54 @@ class function TNodeLocalFog.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeLocalFog.GetFdcolor: TSFColor;
+begin
+  Result := FFdColor;
+end;
+
+function TNodeLocalFog.GetFdfogType: TSFString;
+begin
+  Result := FdfogType;
+end;
+
+function TNodeLocalFog.GetFdvisibilityRange: TSFFloat;
+begin
+  Result := FdvisibilityRange;
+end;
+
+function TNodeLocalFog.GetFdvolumetric: TSFBool;
+begin
+  Result := FFdvolumetric;
+end;
+
+function TNodeLocalFog.GetFdvolumetricDirection: TSFVec3f;
+begin
+  Result := FFdvolumetricDirection;
+end;
+
+function TNodeLocalFog.GetFdvolumetricVisibilityStart: TSFFloat;
+begin
+  Result := FFdvolumetricVisibilityStart;
+end;
+
+function TNodeLocalFog.GetFdalternative: TSFNode;
+begin
+  Result := FFdalternative;
+end;
+
+function TNodeLocalFog.Alternative: INodeX3DFogObject;
+begin
+  if (FdAlternative.Value <> nil) and
+     Supports(FdAlternative.Value, INodeX3DFogObject) then
+    Result := FdAlternative.Value as INodeX3DFogObject else
+    Result := nil;
+end;
+
+function TNodeLocalFog.GetTransformScale: Single;
+begin
+  Result := 1; { TODO }
 end;
 
 constructor TNodeTextureBackground.Create(const ANodeName: string;
