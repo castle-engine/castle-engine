@@ -153,7 +153,7 @@ var
     { See
       [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
       for description of GL_EXT_compiled_vertex_array. }
-    UseLockArrays := (Shape.Vbo[0] = 0) and
+    UseLockArrays := (Vbo[0] = 0) and
       GL_EXT_compiled_vertex_array and
       { Under Radeon X1600 (chantal), fglrx, with roNone optimization,
         rendering some shapes without indexes (like 16000heights from
@@ -302,8 +302,8 @@ begin
     if not GLVersion.IsMesa then
       glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
     try
-      if Shape.Vbo[0] <> 0 then
-        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Shape.Vbo[0]);
+      if Vbo[0] <> 0 then
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[0]);
 
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
@@ -311,8 +311,8 @@ begin
       glEnableClientState(GL_NORMAL_ARRAY);
       glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
 
-      if Shape.Vbo[1] <> 0 then
-        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Shape.Vbo[1]);
+      if Vbo[1] <> 0 then
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[1]);
 
       if Attributes.ControlMaterials and
          (not Attributes.PureGeometry) then
@@ -375,8 +375,8 @@ begin
         First := 0;
         if Arrays.HasIndexes then
         begin
-          if Shape.Vbo[2] <> 0 then
-            glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Shape.Vbo[2]);
+          if Vbo[2] <> 0 then
+            glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[2]);
 
           if Arrays.Counts = nil then
             glDrawElements(Mode, Arrays.IndexesCount, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
