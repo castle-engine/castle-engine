@@ -2512,10 +2512,33 @@ begin
   fAllowedChildren := true;
 end;
 
+type
+  TVRML1SeparatorEnumerator = class
+    State: TVRMLGraphTraverseState;
+    procedure Enumerate(Node, Child: TVRMLNode);
+  end;
+
+procedure TVRML1SeparatorEnumerator.Enumerate(Node, Child: TVRMLNode);
+begin
+  if Child is TNodeLocalFog then
+    State.LocalFog := TNodeLocalFog(Child);
+end;
+
 procedure TVRMLSeparatorNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+var
+  Enumerator: TVRML1SeparatorEnumerator;
 begin
   inherited;
   StateStack.Push;
+
+  { Use TVRML1SeparatorEnumerator, to propagate LocalFog into children,
+    just like VRML >= 2 grouping nodes. Otherwise LocalFog would
+    not never work in VRML 1.0. }
+  Enumerator := TVRML1SeparatorEnumerator.Create;
+  try
+    Enumerator.State := StateStack.Top;
+    DirectEnumerateActive(@Enumerator.Enumerate);
+  finally FreeAndNil(Enumerator) end;
 end;
 
 procedure TVRMLSeparatorNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
