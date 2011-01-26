@@ -779,6 +779,7 @@ type
 
   { Cached shape resources. }
   TShapeCache = class
+  private
     Attributes: TVRMLRenderingAttributes;
     Geometry: TVRMLGeometryNode;
     State: TVRMLGraphTraverseState;
@@ -793,13 +794,15 @@ type
     Arrays: TGeometryArrays;
 
     Vbo: TVboArrays;
+    VboAllocatedUsage: TGLenum;
+    VboAllocatedSize: array [0..2] of Cardinal;
 
     { Like TVRMLRendererShape.LoadArraysToVbo,
       but takes explicit DynamicGeometry. }
     procedure LoadArraysToVbo(DynamicGeometry: boolean);
-
-    destructor Destroy; override;
     procedure FreeVBO;
+  public
+    destructor Destroy; override;
     procedure FreeArrays;
   end;
 
@@ -3021,11 +3024,31 @@ end;
 procedure TShapeCache.LoadArraysToVbo(DynamicGeometry: boolean);
 var
   DataUsage: TGLenum;
+  NewVbos: boolean;
+
+  { Bind Vbo buffer and load data. Updates AllocatedSize.
+    Uses glBufferSubData if possible, as it may be faster than glBufferData
+    (not confirmed by tests, although OpenGL manuals suggest it). }
+  procedure BufferData(const Target: TGLenum; const Size: Cardinal;
+    const Data: Pointer; const Vbo: TGLuint; var AllocatedSize: Cardinal);
+  begin
+    glBindBufferARB(Target, Vbo);
+    if NewVbos or
+      (VboAllocatedUsage <> DataUsage) or
+      (AllocatedSize <> Size) then
+    begin
+      glBufferDataARB(Target, Size, Data, DataUsage);
+      AllocatedSize := Size;
+    end else
+      glBufferSubDataARB(Target, 0, Size, Data);
+  end;
+
 begin
   Assert(GL_ARB_vertex_buffer_object);
   Assert(not Arrays.DataFreed);
 
-  if Vbo[0] = 0 then
+  NewVbos := Vbo[0] = 0;
+  if NewVbos then
   begin
     glGenBuffersARB(High(Vbo) + 1, @Vbo);
     if Log then
@@ -3042,20 +3065,19 @@ begin
     DataUsage := GL_DYNAMIC_DRAW_ARB else
     DataUsage := GL_STATIC_DRAW_ARB;
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[0]);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.CoordinateSize,
-    Arrays.CoordinateArray, DataUsage);
-
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[1]);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.AttributeSize,
-    Arrays.AttributeArray, DataUsage);
+  BufferData(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.CoordinateSize,
+    Arrays.CoordinateArray, Vbo[0], VboAllocatedSize[0]);
+  BufferData(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.AttributeSize,
+    Arrays.AttributeArray, Vbo[1], VboAllocatedSize[1]);
 
   if Arrays.Indexes <> nil then
   begin
-    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[2]);
-    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Arrays.Indexes.Count * SizeOf(LongInt),
-      Arrays.Indexes.ItemsArray, GL_STATIC_DRAW_ARB);
+    BufferData(GL_ELEMENT_ARRAY_BUFFER_ARB,
+      Arrays.Indexes.Count * SizeOf(LongInt), Arrays.Indexes.ItemsArray,
+      Vbo[2], VboAllocatedSize[2]);
   end;
+
+  VboAllocatedUsage := DataUsage;
 
   Arrays.FreeData;
 end;

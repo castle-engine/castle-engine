@@ -1249,6 +1249,10 @@ begin
 
     { ARB_texture_env_dot3 required (also standard since 1.3, see above comments) }
     GL_ARB_texture_env_dot3;
+
+  { Workaround http://bugs.freepascal.org/view.php?id=18613 }
+  if GL_ARB_vertex_buffer_object then
+    Pointer(glBufferSubDataARB) := Glext.wglGetProcAddress('glBufferSubDataARB');
 end;
 {$endif}
 
