@@ -153,11 +153,25 @@ begin
   SetLength(Result, ResultI - 1);
 end;
 
+function UrlProtocolSeparator(const S: string): Integer;
+var
+  I: Integer;
+begin
+  Result := Pos(':', S);
+  if Result <> 0 then
+  begin
+    { Protocol cannot contain newline characters.
+      This hardens our check for inline shader source code in url. }
+    for I := 1 to Result - 1 do
+      if S[I] in [#10, #13] then Exit(0);
+  end;
+end;
+
 function UrlProtocol(const S: string): string;
 var
   P: Integer;
 begin
-  P := Pos(':', S);
+  P := UrlProtocolSeparator(S);
   if P = 0 then
     Result := '' else
     Result := Copy(S, 1, P - 1);
@@ -177,7 +191,10 @@ begin
     Exit(false);
 
   for I := 1 to Length(Protocol) do
-    if UpCase(Protocol[I]) <> UpCase(S[I]) then
+    if (UpCase(Protocol[I]) <> UpCase(S[I])) or
+       { Protocol cannot contain #10, #13, so always return false
+         in this case. Consistent with UrlProtocol. }
+       (Protocol[I] in [#10, #13]) then
       Exit(false);
 
   Result := true;
@@ -187,7 +204,7 @@ function UrlDeleteProtocol(const S: string): string;
 var
   P: Integer;
 begin
-  P := Pos(':', S);
+  P := UrlProtocolSeparator(S);
   if P = 0 then
     Result := S else
     Result := SEnding(S, P + 1);
