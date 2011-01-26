@@ -794,6 +794,10 @@ type
 
     Vbo: TVboArrays;
 
+    { Like TVRMLRendererShape.LoadArraysToVbo,
+      but takes explicit DynamicGeometry. }
+    procedure LoadArraysToVbo(DynamicGeometry: boolean);
+
     destructor Destroy; override;
     procedure FreeVBO;
     procedure FreeArrays;
@@ -1404,37 +1408,6 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
 {$I vrmlglrenderer_texture.inc}
 {$I vrmlglrenderer_bumpmapping.inc}
 {$I vrmlglrenderer_glsl.inc}
-
-{ TShapeCache ---------------------------------------------------------------- }
-
-destructor TShapeCache.Destroy;
-begin
-  FreeArrays;
-  FreeVBO;
-  inherited;
-end;
-
-procedure TShapeCache.FreeVBO;
-var
-  I: Integer;
-begin
-  if Vbo[0] <> 0 then
-  begin
-    { All Vbo must be zero, or none. }
-    for I := 0 to High(Vbo) do
-      Assert(Vbo[I] <> 0);
-
-    glDeleteBuffersARB(High(Vbo) + 1, @Vbo);
-
-    for I := 0 to High(Vbo) do
-      Vbo[I] := 0;
-  end;
-end;
-
-procedure TShapeCache.FreeArrays;
-begin
-  FreeAndNil(Arrays);
-end;
 
 { TVRMLGLRendererContextCache -------------------------------------------- }
 
@@ -3010,49 +2983,85 @@ begin
   inherited;
 end;
 
-{ TVRMLRendererShape --------------------------------------------------------- }
+{ TShapeCache ---------------------------------------------------------------- }
 
-procedure TVRMLRendererShape.LoadArraysToVbo;
+destructor TShapeCache.Destroy;
+begin
+  FreeArrays;
+  FreeVBO;
+  inherited;
+end;
+
+procedure TShapeCache.FreeVBO;
+var
+  I: Integer;
+begin
+  if Vbo[0] <> 0 then
+  begin
+    { All Vbo must be zero, or none. }
+    for I := 0 to High(Vbo) do
+      Assert(Vbo[I] <> 0);
+
+    glDeleteBuffersARB(High(Vbo) + 1, @Vbo);
+
+    for I := 0 to High(Vbo) do
+      Vbo[I] := 0;
+  end;
+end;
+
+procedure TShapeCache.FreeArrays;
+begin
+  FreeAndNil(Arrays);
+end;
+
+procedure TShapeCache.LoadArraysToVbo(DynamicGeometry: boolean);
 var
   DataUsage: TGLenum;
 begin
   Assert(GL_ARB_vertex_buffer_object);
-  Assert(Cache <> nil);
-  Assert(not Cache.Arrays.DataFreed);
+  Assert(not Arrays.DataFreed);
 
-  if Cache.Vbo[0] = 0 then
+  if Vbo[0] = 0 then
   begin
-    glGenBuffersARB(High(Cache.Vbo) + 1, @Cache.Vbo);
+    glGenBuffersARB(High(Vbo) + 1, @Vbo);
     if Log then
       WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
-        [Cache.Vbo[0], Cache.Vbo[1], Cache.Vbo[2]]));
+        [Vbo[0], Vbo[1], Vbo[2]]));
   end else
   begin
     if Log then
       WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d)',
-        [Cache.Vbo[0], Cache.Vbo[1], Cache.Vbo[2]]));
+        [Vbo[0], Vbo[1], Vbo[2]]));
   end;
 
   if DynamicGeometry then
     DataUsage := GL_DYNAMIC_DRAW_ARB else
     DataUsage := GL_STATIC_DRAW_ARB;
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Cache.Vbo[0]);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Cache.Arrays.Count * Cache.Arrays.CoordinateSize,
-    Cache.Arrays.CoordinateArray, DataUsage);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[0]);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.CoordinateSize,
+    Arrays.CoordinateArray, DataUsage);
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Cache.Vbo[1]);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Cache.Arrays.Count * Cache.Arrays.AttributeSize,
-    Cache.Arrays.AttributeArray, DataUsage);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[1]);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.AttributeSize,
+    Arrays.AttributeArray, DataUsage);
 
-  if Cache.Arrays.Indexes <> nil then
+  if Arrays.Indexes <> nil then
   begin
-    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Cache.Vbo[2]);
-    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Cache.Arrays.Indexes.Count * SizeOf(LongInt),
-      Cache.Arrays.Indexes.ItemsArray, GL_STATIC_DRAW_ARB);
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[2]);
+    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Arrays.Indexes.Count * SizeOf(LongInt),
+      Arrays.Indexes.ItemsArray, GL_STATIC_DRAW_ARB);
   end;
 
-  Cache.Arrays.FreeData;
+  Arrays.FreeData;
+end;
+
+{ TVRMLRendererShape --------------------------------------------------------- }
+
+procedure TVRMLRendererShape.LoadArraysToVbo;
+begin
+  Assert(Cache <> nil);
+  Cache.LoadArraysToVbo(DynamicGeometry);
 end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
