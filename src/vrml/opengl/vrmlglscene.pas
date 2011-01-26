@@ -1135,7 +1135,8 @@ begin
     (no rebuilding of arrays needed). }
   if Changes - [chClipPlane, chTransform] <> [] then
   begin
-    Cache.FreeArrays;
+    if Cache <> nil then
+      Cache.FreeArrays;
     if Log and GLScene.LogChanges then
       WritelnLog('VRML changes', 'Shape OpenGL resources freed');
   end;
@@ -1776,8 +1777,9 @@ var
         Renderer.RenderShapeLights(LightsRenderer, Shape.State);
 
         { Optionally free Shape arrays data now, if they need to be regenerated. }
-        if Assigned(Attributes.OnVertexColor) or
-           Assigned(Attributes.OnRadianceTransfer) then
+        if (Assigned(Attributes.OnVertexColor) or
+            Assigned(Attributes.OnRadianceTransfer)) and
+           (Shape.Cache <> nil) then
           Shape.Cache.FreeArrays;
 
         Renderer.RenderShape(Shape, ShapeFog(Shape));
