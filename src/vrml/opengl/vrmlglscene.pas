@@ -2201,7 +2201,7 @@ begin
     Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight, LightRenderEvent);
   try
 
-    Renderer.RenderBegin(FogNode);
+    Renderer.RenderBegin;
     try
       if Attributes.PureGeometry then
       begin
@@ -2325,7 +2325,7 @@ procedure TVRMLGLScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        Renderer.RenderBegin(FogNode);
+        Renderer.RenderBegin;
         while SI.GetNext do
         begin
           Shape := TVRMLGLShape(SI.Current);

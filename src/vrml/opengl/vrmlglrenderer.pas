@@ -1126,8 +1126,8 @@ type
   private
     { ----------------------------------------------------------------- }
 
-    { Inited in RenderBegin, according to our FogNode.
-      If not UseFog then it's always false. }
+    { Currently set fog parameters, during render. }
+    FogNode: INodeX3DFogObject;
     FogVolumetric: boolean;
     FogEnabled: boolean;
     FogVolumetricDirection: TVector3Single;
@@ -1140,12 +1140,6 @@ type
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes.UseFog. }
     procedure GetFog(Node: INodeX3DFogObject;
-      out Enabled, Volumetric: boolean;
-      out VolumetricDirection: TVector3Single;
-      out VolumetricVisibilityStart: Single);
-    { Set OpenGL fog based on given fog node. Returns also fog parameters,
-      like GetFog. }
-    procedure RenderFog(Node: INodeX3DFogObject;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3Single;
       out VolumetricVisibilityStart: Single);
@@ -1166,6 +1160,7 @@ type
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure ActiveTexture(const TextureUnit: Cardinal);
 
+    procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
     procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
     procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
     procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
@@ -1239,7 +1234,7 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin(FogNode: TNodeFog);
+    procedure RenderBegin;
     procedure RenderEnd;
 
     procedure RenderShapeLights(
@@ -3408,77 +3403,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderFog(Node: INodeX3DFogObject;
-  out Enabled, Volumetric: boolean;
-  out VolumetricDirection: TVector3Single;
-  out VolumetricVisibilityStart: Single);
-var
-  FogType: Integer;
-  VisibilityRangeScaled: Single;
-const
-  FogDensityFactor = 3.0;
-begin
-  if not Attributes.UseFog then Exit;
-
-  GetFog(Node, Enabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
-
-  if Enabled then
-  begin
-    Assert(Node <> nil);
-
-    VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
-
-    if Node.FdVolumetric.Value and (not GL_EXT_fog_coord) then
-    begin
-      { Try to make normal fog that looks similar. This looks poorly,
-        but it's not a real problem --- EXT_fog_coord is supported
-        on all sensible GPUs nowadays. Increasing VisibilityRangeScaled
-        seems enough. }
-      VRMLWarning(vwIgnorable, 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
-      VisibilityRangeScaled *= 5;
-    end;
-
-    if Volumetric then
-    begin
-      glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
-    end else
-    begin
-      { If not Volumetric but still GL_EXT_fog_coord, we make sure
-        that we're *not* using FogCoord below. }
-      if GL_EXT_fog_coord then
-        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
-    end;
-
-    glFogv(GL_FOG_COLOR, Vector4Single(Node.FdColor.Value, 1.0));
-
-    { calculate FogType }
-    FogType := ArrayPosStr(Node.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
-    if FogType = -1 then
-    begin
-      VRMLWarning(vwSerious, 'Unknown fog type "' + Node.FdFogType.Value + '"');
-      FogType := 0;
-    end;
-
-    case FogType of
-      0:begin
-          glFogi(GL_FOG_MODE, GL_LINEAR);
-          glFogf(GL_FOG_START, 0);
-          glFogf(GL_FOG_END, VisibilityRangeScaled);
-        end;
-      1:begin
-          glFogi(GL_FOG_MODE, GL_EXP);
-          { patrz VRMLNotes.txt po komentarz dlaczego w ten sposob implementuje
-            mgle exponential VRMLa w OpenGLu }
-          glFogf(GL_FOG_DENSITY, FogDensityFactor / VisibilityRangeScaled);
-        end;
-    end;
-
-    glEnable(GL_FOG);
-  end else
-    glDisable(GL_FOG);
-end;
-
-procedure TVRMLGLRenderer.RenderBegin(FogNode: TNodeFog);
+procedure TVRMLGLRenderer.RenderBegin;
 
   procedure DisabeAllTextureUnits;
   var
@@ -3560,10 +3485,9 @@ begin
     if Attributes.UseSceneLights then
       for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
         glDisable(GL_LIGHT0+i);
-
-    RenderFog(FogNode, FogEnabled, FogVolumetric,
-      FogVolumetricDirection, FogVolumetricVisibilityStart);
   end;
+
+  Assert(FogNode = nil);
 end;
 
 procedure TVRMLGLRenderer.RenderEnd;
@@ -3573,6 +3497,8 @@ begin
   {pop matrices and attribs (popping attrib restores also saved matrix mode)}
   glPopClientAttrib;
   glPopAttrib;
+
+  FogNode := nil;
 end;
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
@@ -3608,6 +3534,93 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
+  Fog: INodeX3DFogObject);
+
+  { Set OpenGL fog based on given fog node. Returns also fog parameters,
+    like GetFog. }
+  procedure RenderFog(Node: INodeX3DFogObject;
+    out Enabled, Volumetric: boolean;
+    out VolumetricDirection: TVector3Single;
+    out VolumetricVisibilityStart: Single);
+  var
+    FogType: Integer;
+    VisibilityRangeScaled: Single;
+  const
+    FogDensityFactor = 3.0;
+  begin
+    if not Attributes.UseFog then Exit;
+
+    GetFog(Node, Enabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
+
+    if Enabled then
+    begin
+      Assert(Node <> nil);
+
+      VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
+
+      if Node.FdVolumetric.Value and (not GL_EXT_fog_coord) then
+      begin
+        { Try to make normal fog that looks similar. This looks poorly,
+          but it's not a real problem --- EXT_fog_coord is supported
+          on all sensible GPUs nowadays. Increasing VisibilityRangeScaled
+          seems enough. }
+        VRMLWarning(vwIgnorable, 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
+        VisibilityRangeScaled *= 5;
+      end;
+
+      if Volumetric then
+      begin
+        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
+      end else
+      begin
+        { If not Volumetric but still GL_EXT_fog_coord, we make sure
+          that we're *not* using FogCoord below. }
+        if GL_EXT_fog_coord then
+          glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+      end;
+
+      glFogv(GL_FOG_COLOR, Vector4Single(Node.FdColor.Value, 1.0));
+
+      { calculate FogType }
+      FogType := ArrayPosStr(Node.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
+      if FogType = -1 then
+      begin
+        VRMLWarning(vwSerious, 'Unknown fog type "' + Node.FdFogType.Value + '"');
+        FogType := 0;
+      end;
+
+      case FogType of
+        0:begin
+            glFogi(GL_FOG_MODE, GL_LINEAR);
+            glFogf(GL_FOG_START, 0);
+            glFogf(GL_FOG_END, VisibilityRangeScaled);
+          end;
+        1:begin
+            glFogi(GL_FOG_MODE, GL_EXP);
+            { patrz VRMLNotes.txt po komentarz dlaczego w ten sposob implementuje
+              mgle exponential VRMLa w OpenGLu }
+            glFogf(GL_FOG_DENSITY, FogDensityFactor / VisibilityRangeScaled);
+          end;
+      end;
+
+      glEnable(GL_FOG);
+    end else
+      glDisable(GL_FOG);
+  end;
+
+begin
+  { Enable / disable fog and set fog parameters if needed }
+  if Fog <> FogNode then
+  begin
+    FogNode := Fog;
+    RenderFog(FogNode, FogEnabled, FogVolumetric,
+      FogVolumetricDirection, FogVolumetricVisibilityStart);
+  end;
+
+  RenderShapeTextureTransform(Shape, Fog);
+end;
+
+procedure TVRMLGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
