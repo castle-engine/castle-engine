@@ -13,9 +13,6 @@
   ----------------------------------------------------------------------------
 }
 
-var
-  MaterialTemporaryDisabledFog: boolean;
-
 procedure RenderMaterialsBegin;
 
   { Apply material (both VRML 1.0 and 2.0).
@@ -125,17 +122,16 @@ procedure RenderMaterialsBegin;
 var
   M1: TNodeMaterial_1;
   M2: TNodeMaterial_2;
-  FogImmune, VRML1OnlyEmissive, VRML2Unlit: boolean;
+  VRML1OnlyEmissive, VRML2Unlit: boolean;
 begin
   { calculate material parameters:
-    M1, M2, FogImmune, VRML1OnlyEmissive, VRML2Unlit }
+    M1, M2, VRML1OnlyEmissive, VRML2Unlit }
   M1 := nil;
   M2 := nil;
   if CurrentGeometry is TVRMLGeometryNode_1 then
   begin
     { VRML 1.0 }
     M1 := CurrentState.LastNodes.Material;
-    FogImmune := M1.FdFogImmune.Value;
     { VRML 1.0 specification states that this is a special case
       and we should treat EmissiveColor as precalculated color.
       So we can turn lighting off to improve speed (in fact, we are supposed
@@ -148,23 +144,16 @@ begin
     if CurrentState.ShapeNode <> nil then
     begin
       M2 := CurrentState.ShapeNode.Material;
-      FogImmune := (M2 <> nil) and M2.FdFogImmune.Value;
       VRML1OnlyEmissive := false;
       { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
     end else
     begin
       VRMLWarning(vwSerious, 'VRML node "' + CurrentGeometry.NodeTypeName +
         '" can be specified only in a "geometry" field of "Shape" node');
-      FogImmune := false;
       VRML1OnlyEmissive := false;
     end;
     VRML2Unlit := M2 = nil;
   end;
-
-  { calculate and apply MaterialTemporaryDisabledFog }
-  MaterialTemporaryDisabledFog := FogEnabled and FogImmune;
-  if MaterialTemporaryDisabledFog then
-    glDisable(GL_FOG);
 
   { calculate and apply MaterialLit }
   MaterialLit :=
@@ -196,11 +185,7 @@ begin
     { PushAttrib is used to save GL_LIGHTING enabled state,
       as we cannot predict it (it's up to the VRMLGLRenderer caller
       whether the light is turned on). Obviously we don't want to explicitly
-      query GL_LIGHTING enabled state, push/pop is better.
-
-      Note that we use GL_LIGHTING_BIT instead of GL_ENABLE_BIT:
-      GL_ENABLE_BIT would also push/pop GL_FOG enabled state,
-      and this could cause problems when mixed with fogImmune. }
+      query GL_LIGHTING enabled state, push/pop is better. }
     glPushAttrib(GL_LIGHTING_BIT);
     glDisable(GL_LIGHTING);
   end;
@@ -217,13 +202,5 @@ begin
   begin
     glPopAttrib;
     MaterialLit := true; { restore default MaterialLit value, just in case }
-  end;
-
-  { Enable fog again, if needed. This was next shape rendering will
-    start with fog enabled (if it should be, according to FogEnabled). }
-  if MaterialTemporaryDisabledFog then
-  begin
-    glEnable(GL_FOG);
-    MaterialTemporaryDisabledFog := false;
   end;
 end;
