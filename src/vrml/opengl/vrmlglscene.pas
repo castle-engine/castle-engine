@@ -1171,7 +1171,6 @@ var
 
   procedure CalculateUseBlending;
   var
-    UseBlending: boolean;
     Tex: TNodeX3DTextureNode;
     AlphaChannelType: TAlphaChannelType;
   begin
