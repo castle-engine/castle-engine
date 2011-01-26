@@ -498,6 +498,8 @@ type
       for shadow maps. }
     AvoidNonShadowCasterRendering: boolean;
 
+    RenderPrepared: boolean;
+
     { Private things for RenderFrustum --------------------------------------- }
 
     function FrustumCulling_None(Shape: TVRMLGLShape): boolean;
@@ -1486,6 +1488,8 @@ var
   S: TVRMLGLShape;
   I: Integer;
 begin
+  RenderPrepared := false;
+
   { Free Arrays and Vbo of all shapes. }
   if (Renderer <> nil) and (Shapes <> nil) then
   begin
@@ -2301,10 +2305,34 @@ procedure TVRMLGLScene.PrepareResources(
   var
     SI: TVRMLShapeTreeIterator;
   begin
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false, false);
     try
       while SI.GetNext do
         TVRMLGLShape(SI.Current).PrepareResources;
+    finally FreeAndNil(SI) end;
+  end;
+
+  procedure PrepareRenderShapes;
+  var
+    SI: TVRMLShapeTreeIterator;
+    Shape: TVRMLGLShape;
+  begin
+    if Log then
+      WritelnLog('Renderer', 'Preparing rendering of all shapes');
+
+    { Note: we prepare also not visible shapes, in case they become visible. }
+    SI := TVRMLShapeTreeIterator.Create(Shapes, false, false);
+    try
+      Inc(Renderer.PrepareRenderShape);
+      try
+        Renderer.RenderBegin(FogNode);
+        while SI.GetNext do
+        begin
+          Shape := TVRMLGLShape(SI.Current);
+          Renderer.RenderShape(Shape, ShapeFog(Shape));
+        end;
+        Renderer.RenderEnd;
+      finally Dec(Renderer.PrepareRenderShape) end;
     finally FreeAndNil(SI) end;
   end;
 
@@ -2316,6 +2344,14 @@ begin
   if Dirty <> 0 then Exit;
 
   PrepareAllShapes;
+
+  if (prRender in Options) and not RenderPrepared then
+  begin
+    { We use RenderPrepared to avoid potentially expensive iteration
+      over shapes and expensive Renderer.RenderBegin/End. }
+    RenderPrepared := true;
+    PrepareRenderShapes;
+  end;
 
   if prBackground in Options then
     PrepareBackground;

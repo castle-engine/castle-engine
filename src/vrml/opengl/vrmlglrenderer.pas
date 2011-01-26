@@ -1192,6 +1192,10 @@ type
     FBumpMappingLightDiffuseColor: TVector4Single;
     procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
   public
+    { If > 0, RenderShape will not actually render, only prepare
+      per-shape resources for fast rendering (arrays and vbos). }
+    PrepareRenderShape: Cardinal;
+
     { Constructor.
 
       Passing nil as Cache will cause the private cache instance
@@ -4202,7 +4206,8 @@ begin
     CoordinateRenderer.Arrays := Shape.Cache.Arrays;
   end;
 
-  MeshRenderer.Render;
+  if PrepareRenderShape = 0 then
+    MeshRenderer.Render;
 
   if (GeneratorClass <> nil) and VBO and GL_ARB_vertex_buffer_object then
   begin
