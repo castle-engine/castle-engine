@@ -777,31 +777,29 @@ type
   TVRMLRendererShape = class;
   TVboArrays = array [0..2] of TGLuint;
 
-  { Cached shape resources.
-    Note that Attributes and State are owned by this record
-    (TVRMLGLRendererContextCache will make sure about creating/destroying
-    them), but GeometryNode and FogNode are a references somewhere to the scene
-    (they will be supplied to TVRMLGLRendererContextCache instance)
-    and we don't own them. }
-  TShapeCache = record
+  { Cached shape resources. }
+  TShapeCache = class
     Attributes: TVRMLRenderingAttributes;
-    GeometryNode: TVRMLGeometryNode;
+    Geometry: TVRMLGeometryNode;
     State: TVRMLGraphTraverseState;
     FogNode: TNodeFog;
     FogDistanceScaling: Single;
 
     References: Cardinal;
 
+    { An instance of TGeometryArrays, decomposing this shape geometry.
+      Used to easily render and process this geometry, if assigned.
+      This is managed by TVRMLGLRenderer and TVRMLGLScene. }
     Arrays: TGeometryArrays;
-    Vbo: TVboArrays;
-  end;
-  PShapeCache = ^TShapeCache;
 
-  TDynArrayItem_3 = TShapeCache;
-  PDynArrayItem_3 = PShapeCache;
-  {$define DYNARRAY_3_IS_STRUCT}
-  {$I dynarray_3.inc}
-  TDynShapeCacheArray = TDynArray_3;
+    Vbo: TVboArrays;
+
+    destructor Destroy; override;
+    procedure FreeVBO;
+    procedure FreeArrays;
+  end;
+
+  TShapeCacheList = specialize TFPGObjectList<TShapeCache>;
 
   TVRMLGLRenderer = class;
 
@@ -849,7 +847,7 @@ type
     TextureCubeMapCaches: TDynTextureCubeMapCacheArray;
     Texture3DCaches: TDynTexture3DCacheArray;
     TextureDepthOrFloatCaches: TDynTextureDepthOrFloatCacheArray;
-    ShapeCaches: TDynShapeCacheArray;
+    ShapeCaches: TShapeCacheList;
     GLSLProgramCaches: TDynGLSLProgramCacheArray;
 
     { Load given texture to OpenGL, using our cache.
@@ -976,15 +974,14 @@ type
     procedure Fonts_DecReference(
       fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
 
-    { Shape cache. We return PShapeCache, either existing or new one.
-      If Arrays are nil, it's a new one (and then Vbo are also zero),
-      and you should set them. Otherwise it's an existing PShapeCache,
-      and you should use Arrays. Same for Vbo --- if they are zero,
-      and you use them, then create and set them. }
+    { Shape cache. We return TShapeCache, either taking an existing
+      instance from cache or creating and adding a new one.
+      Called is responsible for checking are Arrays / Vbo zero and
+      eventually initializing and setting. }
     function Shape_IncReference(Shape: TVRMLRendererShape;
-      AFogNode: TNodeFog; ARenderer: TVRMLGLRenderer): PShapeCache;
+      AFogNode: TNodeFog; ARenderer: TVRMLGLRenderer): TShapeCache;
 
-    procedure Shape_DecReference(Arrays: TGeometryArrays);
+    procedure Shape_DecReference(var ShapeCache: TShapeCache);
   end;
 
   {$I vrmlglrenderer_resource.inc}
@@ -995,8 +992,6 @@ type
   { VRML shape that can be rendered. }
   TVRMLRendererShape = class(TVRMLShape)
   private
-    FArrays: TGeometryArrays;
-
     { Generate VBO if needed, and reload VBO contents.
       Assumes GL_ARB_vertex_buffer_object is true.
 
@@ -1008,16 +1003,7 @@ type
       We always keep assertion that Vbo is loaded <=> Arrays data is freed. }
     procedure LoadArraysToVbo;
   public
-    Vbo: TVboArrays;
-    procedure FreeVBO;
-
-    destructor Destroy; override;
-
-    { An instance of TGeometryArrays, decomposing this shape geometry.
-      Used to easily render and process this geometry, if assigned.
-      This is managed by TVRMLGLRenderer and TVRMLGLScene. }
-    property Arrays: TGeometryArrays read FArrays write FArrays;
-    procedure FreeArrays;
+    Cache: TShapeCache;
   end;
 
   TVRMLGLRenderer = class
@@ -1405,7 +1391,6 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
 
 {$define read_implementation}
 {$I dynarray_2.inc}
-{$I dynarray_3.inc}
 {$I dynarray_5.inc}
 {$I dynarray_7.inc}
 {$I dynarray_9.inc}
@@ -1420,6 +1405,37 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
 {$I vrmlglrenderer_bumpmapping.inc}
 {$I vrmlglrenderer_glsl.inc}
 
+{ TShapeCache ---------------------------------------------------------------- }
+
+destructor TShapeCache.Destroy;
+begin
+  FreeArrays;
+  FreeVBO;
+  inherited;
+end;
+
+procedure TShapeCache.FreeVBO;
+var
+  I: Integer;
+begin
+  if Vbo[0] <> 0 then
+  begin
+    { All Vbo must be zero, or none. }
+    for I := 0 to High(Vbo) do
+      Assert(Vbo[I] <> 0);
+
+    glDeleteBuffersARB(High(Vbo) + 1, @Vbo);
+
+    for I := 0 to High(Vbo) do
+      Vbo[I] := 0;
+  end;
+end;
+
+procedure TShapeCache.FreeArrays;
+begin
+  FreeAndNil(Arrays);
+end;
+
 { TVRMLGLRendererContextCache -------------------------------------------- }
 
 { $define DEBUG_VRML_RENDERER_CACHE}
@@ -1432,7 +1448,7 @@ begin
   TextureCubeMapCaches := TDynTextureCubeMapCacheArray.Create;
   Texture3DCaches := TDynTexture3DCacheArray.Create;
   TextureDepthOrFloatCaches := TDynTextureDepthOrFloatCacheArray.Create;
-  ShapeCaches := TDynShapeCacheArray.Create;
+  ShapeCaches := TShapeCacheList.Create;
   GLSLProgramCaches := TDynGLSLProgramCacheArray.Create;
 end;
 
@@ -2544,7 +2560,7 @@ end;
 
 function TVRMLGLRendererContextCache.Shape_IncReference(
   Shape: TVRMLRendererShape; AFogNode: TNodeFog;
-  ARenderer: TVRMLGLRenderer): PShapeCache;
+  ARenderer: TVRMLGLRenderer): TShapeCache;
 
   function GetCacheIgnoresTransform: boolean;
   var
@@ -2595,18 +2611,18 @@ var
 begin
   CacheIgnoresTransform := GetCacheIgnoresTransform;
 
-  for I := 0 to ShapeCaches.High do
+  for I := 0 to ShapeCaches.Count - 1 do
   begin
-    Result := ShapeCaches.Pointers[I];
-    if (Result^.Attributes.Equals(ARenderer.Attributes)) and
-       (Result^.GeometryNode = Shape.Geometry) and
-       StatesEqual(Result^.State, Shape.State) and
+    Result := ShapeCaches[I];
+    if (Result.Attributes.Equals(ARenderer.Attributes)) and
+       (Result.Geometry = Shape.Geometry) and
+       StatesEqual(Result.State, Shape.State) and
        FogParametersEqual(
-         Result^.FogNode, Result^.FogDistanceScaling, AFogNode) then
+         Result.FogNode, Result.FogDistanceScaling, AFogNode) then
     begin
-      Inc(Result^.References);
+      Inc(Result.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : Shape ', Result^.GLList, ' : ', Result^.References);
+      Writeln('++ : Shape ', PointerToStr(Result), ' (', Result.Geometry.NodeTypeName, ') : ', Result.References);
       {$endif}
       Exit(Result);
     end;
@@ -2614,45 +2630,39 @@ begin
 
   { not found, so create new }
 
-  Result := ShapeCaches.Add;
-  Result^.Attributes := ARenderer.Attributes;
-  Result^.GeometryNode := Shape.Geometry;
-  Result^.State := Shape.State;
-  Result^.FogNode := AFogNode;
+  Result := TShapeCache.Create;
+  ShapeCaches.Add(Result);
+  Result.Attributes := ARenderer.Attributes;
+  Result.Geometry := Shape.Geometry;
+  Result.State := Shape.State;
+  Result.FogNode := AFogNode;
   if AFogNode <> nil then
-    Result^.FogDistanceScaling := AFogNode.TransformScale else
-    Result^.FogDistanceScaling := 0;
-  Result^.References := 1;
-  Result^.Arrays := nil;
-  FillChar(Result^.Vbo, SizeOf(Result^.Vbo), 0);
+    Result.FogDistanceScaling := AFogNode.TransformScale else
+    Result.FogDistanceScaling := 0;
+  Result.References := 1;
+  Result.Arrays := nil;
+  FillChar(Result.Vbo, SizeOf(Result.Vbo), 0);
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : Shape ', Result^.GLList, ' : ', 1);
+  Writeln('++ : Shape ', PointerToStr(Result), ' (', Result.Geometry.NodeTypeName, ') : ', 1);
   {$endif}
 end;
 
-procedure TVRMLGLRendererContextCache.Shape_DecReference(
-  Arrays: TGeometryArrays);
+procedure TVRMLGLRendererContextCache.Shape_DecReference(var ShapeCache: TShapeCache);
 var
   I: Integer;
-  SSCache: PShapeCache;
 begin
-  for I := 0 to ShapeCaches.High do
+  for I := 0 to ShapeCaches.Count - 1 do
   begin
-    SSCache := ShapeCaches.Pointers[I];
-    if SSCache^.Arrays = Arrays then
+    if ShapeCaches[I] = ShapeCache then
     begin
-      Dec(SSCache^.References);
+      Dec(ShapeCache.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : Shape ', SSCache^.GLList, ' : ', SSCache^.References);
+      Writeln('-- : Shape ', PointerToStr(ShapeCache), ' (', ShapeCache.Geometry.NodeTypeName, ') : ', ShapeCache.References);
       {$endif}
-      if SSCache^.References = 0 then
-      begin
-        FreeAndNil(SSCache^.Attributes);
-        FreeAndNil(SSCache^.State);
-        { free arrays, vbo ? }
-        ShapeCaches.Delete(I, 1);
-      end;
+      if ShapeCache.References = 0 then
+        ShapeCaches.Delete(I);
+      ShapeCache := nil;
       Exit;
     end;
   end;
@@ -3003,76 +3013,48 @@ end;
 
 { TVRMLRendererShape --------------------------------------------------------- }
 
-destructor TVRMLRendererShape.Destroy;
-begin
-  FreeArrays;
-  inherited;
-end;
-
-procedure TVRMLRendererShape.FreeArrays;
-begin
-  FreeAndNil(FArrays);
-end;
-
-procedure TVRMLRendererShape.FreeVBO;
-var
-  I: Integer;
-begin
-  if Vbo[0] <> 0 then
-  begin
-    { All Vbo must be zero, or none. }
-    for I := 0 to High(Vbo) do
-      Assert(Vbo[I] <> 0);
-
-    glDeleteBuffersARB(High(Vbo) + 1, @Vbo);
-
-    for I := 0 to High(Vbo) do
-      Vbo[I] := 0;
-  end;
-end;
-
 procedure TVRMLRendererShape.LoadArraysToVbo;
 var
   DataUsage: TGLenum;
 begin
   Assert(GL_ARB_vertex_buffer_object);
-  Assert(not Arrays.DataFreed);
+  Assert(Cache <> nil);
+  Assert(not Cache.Arrays.DataFreed);
 
-  if Vbo[0] = 0 then
+  if Cache.Vbo[0] = 0 then
   begin
-    glGenBuffersARB(High(Vbo) + 1, @Vbo);
+    glGenBuffersARB(High(Cache.Vbo) + 1, @Cache.Vbo);
     if Log then
       WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
-        [Vbo[0], Vbo[1], Vbo[2]]));
+        [Cache.Vbo[0], Cache.Vbo[1], Cache.Vbo[2]]));
   end else
   begin
     if Log then
       WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d)',
-        [Vbo[0], Vbo[1], Vbo[2]]));
+        [Cache.Vbo[0], Cache.Vbo[1], Cache.Vbo[2]]));
   end;
 
   if DynamicGeometry then
     DataUsage := GL_DYNAMIC_DRAW_ARB else
     DataUsage := GL_STATIC_DRAW_ARB;
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[0]);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.CoordinateSize,
-    Arrays.CoordinateArray, DataUsage);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Cache.Vbo[0]);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Cache.Arrays.Count * Cache.Arrays.CoordinateSize,
+    Cache.Arrays.CoordinateArray, DataUsage);
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[1]);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.AttributeSize,
-    Arrays.AttributeArray, DataUsage);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, Cache.Vbo[1]);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Cache.Arrays.Count * Cache.Arrays.AttributeSize,
+    Cache.Arrays.AttributeArray, DataUsage);
 
-  if Arrays.Indexes <> nil then
+  if Cache.Arrays.Indexes <> nil then
   begin
-    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[2]);
-    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Arrays.Indexes.Count * SizeOf(LongInt),
-      Arrays.Indexes.ItemsArray, GL_STATIC_DRAW_ARB);
+    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Cache.Vbo[2]);
+    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Cache.Arrays.Indexes.Count * SizeOf(LongInt),
+      Cache.Arrays.Indexes.ItemsArray, GL_STATIC_DRAW_ARB);
   end;
 
-  Arrays.FreeData;
+  Cache.Arrays.FreeData;
 end;
-
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
@@ -4172,10 +4154,14 @@ begin
     Assert(MeshRenderer is TBaseCoordinateRenderer);
     CoordinateRenderer := TBaseCoordinateRenderer(MeshRenderer);
 
+    { calculate Shape.Cache }
+    if Shape.Cache = nil then
+      Shape.Cache := Cache.Shape_IncReference(Shape, nil{TODO:Fog}, Self);
+
     VBO := Attributes.VertexBufferObject and GL_ARB_vertex_buffer_object;
 
-    { calculate Shape.Arrays }
-    if Shape.Arrays = nil then
+    { calculate Shape.Cache.Arrays }
+    if Shape.Cache.Arrays = nil then
     begin
       Generator := GeneratorClass.Create(Shape, CurrentState, CurrentGeometry);
       try
@@ -4187,18 +4173,17 @@ begin
         Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed <> bmNone;
         Generator.OnVertexColor := Attributes.OnVertexColor;
         Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
-        Shape.Arrays := Generator.GenerateArrays;
+        Shape.Cache.Arrays := Generator.GenerateArrays;
       finally FreeAndNil(Generator) end;
 
-      { Always after regenerating Shape.Arrays, reload Shape.Vbo contents }
+      { Always after regenerating Shape.Cache.Arrays, reload Shape.Cache.Vbo contents }
       if VBO then
         Shape.LoadArraysToVbo;
     end else
     begin
-      { Shape.Arrays contents are already loaded, make sure that
-        Shape.Vbo are loaded too (in case Shape.Arrays were loaded
-        previously, when VBO = false). }
-      if VBO and (Shape.Vbo[0] = 0) then
+      { Arrays contents are already loaded, make sure that Vbo are loaded too
+        (in case Arrays were loaded previously, when VBO = false). }
+      if VBO and (Shape.Cache.Vbo[0] = 0) then
         Shape.LoadArraysToVbo;
     end;
 
@@ -4206,11 +4191,11 @@ begin
     begin
       { Shape.Arrays contents are already loaded,
         so Vbo contents are already loaded too }
-      Assert(Shape.Vbo[0] <> 0);
-      CoordinateRenderer.Vbo := Shape.Vbo;
+      Assert(Shape.Cache.Vbo[0] <> 0);
+      CoordinateRenderer.Vbo := Shape.Cache.Vbo;
     end;
 
-    CoordinateRenderer.Arrays := Shape.Arrays;
+    CoordinateRenderer.Arrays := Shape.Cache.Arrays;
   end;
 
   MeshRenderer.Render;

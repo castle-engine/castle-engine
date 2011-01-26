@@ -1135,7 +1135,7 @@ begin
     (no rebuilding of arrays needed). }
   if Changes - [chClipPlane, chTransform] <> [] then
   begin
-    FreeArrays;
+    Cache.FreeArrays;
     if Log and GLScene.LogChanges then
       WritelnLog('VRML changes', 'Shape OpenGL resources freed');
   end;
@@ -1498,8 +1498,8 @@ begin
       while SI.GetNext do
       begin
         S := TVRMLGLShape(SI.Current);
-        S.FreeArrays;
-        S.FreeVbo;
+        if S.Cache <> nil then
+          Renderer.Cache.Shape_DecReference(S.Cache);
       end;
     finally FreeAndNil(SI) end;
   end;
@@ -1778,7 +1778,7 @@ var
         { Optionally free Shape arrays data now, if they need to be regenerated. }
         if Assigned(Attributes.OnVertexColor) or
            Assigned(Attributes.OnRadianceTransfer) then
-          Shape.FreeArrays;
+          Shape.Cache.FreeArrays;
 
         Renderer.RenderShape(Shape, ShapeFog(Shape));
       end;
