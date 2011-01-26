@@ -782,7 +782,7 @@ type
     Attributes: TVRMLRenderingAttributes;
     Geometry: TVRMLGeometryNode;
     State: TVRMLGraphTraverseState;
-    FogNode: TNodeFog;
+    Fog: INodeX3DFogObject;
     FogDistanceScaling: Single;
 
     References: Cardinal;
@@ -979,7 +979,7 @@ type
       Called is responsible for checking are Arrays / Vbo zero and
       eventually initializing and setting. }
     function Shape_IncReference(Shape: TVRMLRendererShape;
-      AFogNode: TNodeFog; ARenderer: TVRMLGLRenderer): TShapeCache;
+      Fog: INodeX3DFogObject; ARenderer: TVRMLGLRenderer): TShapeCache;
 
     procedure Shape_DecReference(var ShapeCache: TShapeCache);
   end;
@@ -1137,7 +1137,7 @@ type
       If ActuallyApply = @false then we only calculate the "out" parameters
       (Enabled and such), not actually setting up the fog parameters
       for OpenGL. }
-    procedure InitializeFog(Node: TNodeFog;
+    procedure InitializeFog(Node: INodeX3DFogObject;
       const ActuallyApply: boolean;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3Single;
@@ -1159,22 +1159,22 @@ type
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure ActiveTexture(const TextureUnit: Cardinal);
 
-    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape);
-    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape);
-    procedure RenderShapeShaders(Shape: TVRMLRendererShape;
+    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
+    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
+    procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
-    procedure RenderShapeTextures(Shape: TVRMLRendererShape;
+    procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState;
       UsedGLSLTexCoordsNeeded: Cardinal);
-    procedure RenderShapeMaterials(Shape: TVRMLRendererShape;
+    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
-    procedure RenderShapeInside(Shape: TVRMLRendererShape;
+    procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
@@ -1379,8 +1379,8 @@ const
   For the 2nd fog node, transform scale is taken from
   current FogNode2.TransformScale. }
 function FogParametersEqual(
-  FogNode1: TNodeFog; const FogDistanceScaling1: Single;
-  FogNode2: TNodeFog): boolean;
+  Fog1: INodeX3DFogObject; const FogDistanceScaling1: Single;
+  Fog2: INodeX3DFogObject): boolean;
 
 {$undef read_interface}
 
@@ -2559,7 +2559,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.Shape_IncReference(
-  Shape: TVRMLRendererShape; AFogNode: TNodeFog;
+  Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
   ARenderer: TVRMLGLRenderer): TShapeCache;
 
   function GetCacheIgnoresTransform: boolean;
@@ -2576,7 +2576,7 @@ function TVRMLGLRendererContextCache.Shape_IncReference(
       (Shape.State.ShapeNode.Appearance.FdShaders.Count <> 0) then
       Exit(false);
 
-    ARenderer.InitializeFog(AFogNode, false, Enabled, Volumetric,
+    ARenderer.InitializeFog(Fog, false, Enabled, Volumetric,
       VolumetricDirection, VolumetricVisibilityStart);
 
     Result := not (
@@ -2617,8 +2617,7 @@ begin
     if (Result.Attributes.Equals(ARenderer.Attributes)) and
        (Result.Geometry = Shape.Geometry) and
        StatesEqual(Result.State, Shape.State) and
-       FogParametersEqual(
-         Result.FogNode, Result.FogDistanceScaling, AFogNode) then
+       FogParametersEqual(Result.Fog, Result.FogDistanceScaling, Fog) then
     begin
       Inc(Result.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -2635,9 +2634,9 @@ begin
   Result.Attributes := ARenderer.Attributes;
   Result.Geometry := Shape.Geometry;
   Result.State := Shape.State;
-  Result.FogNode := AFogNode;
-  if AFogNode <> nil then
-    Result.FogDistanceScaling := AFogNode.TransformScale else
+  Result.Fog := Fog;
+  if Fog <> nil then
+    Result.FogDistanceScaling := Fog.TransformScale else
     Result.FogDistanceScaling := 0;
   Result.References := 1;
   Result.Arrays := nil;
@@ -3352,7 +3351,7 @@ begin
       Attributes.FirstGLFreeTexture + TextureUnit);
 end;
 
-procedure TVRMLGLRenderer.InitializeFog(Node: TNodeFog;
+procedure TVRMLGLRenderer.InitializeFog(Node: INodeX3DFogObject;
   const ActuallyApply: boolean;
   out Enabled, Volumetric: boolean;
   out VolumetricDirection: TVector3Single;
@@ -3718,7 +3717,7 @@ begin
     glMatrixMode(GL_MODELVIEW);
   end;
 
-  RenderShapeClipPlanes(Shape);
+  RenderShapeClipPlanes(Shape, Fog);
 
   if (TextureTransformUnitsUsed <> 0) or
      (TextureTransformUnitsUsedMore.Count <> 0) then
@@ -3745,7 +3744,8 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape);
+procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
+  Fog: INodeX3DFogObject);
 var
   { How many clip planes were enabled (and so, how many must be disabled
     at the end). }
@@ -3817,13 +3817,14 @@ begin
 
   glPushMatrix;
     glMultMatrix(Shape.State.Transform);
-    RenderShapeCreateMeshRenderer(Shape);
+    RenderShapeCreateMeshRenderer(Shape, Fog);
   glPopMatrix;
 
   ClipPlanesEnd;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape);
+procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
+  Fog: INodeX3DFogObject);
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
 
@@ -3897,7 +3898,7 @@ begin
   {$endif}
 
   try
-    RenderShapeShaders(Shape, GeneratorClass,
+    RenderShapeShaders(Shape, Fog, GeneratorClass,
       MeshRenderer, CurrentGeometry, CurrentState);
   finally
     FreeAndNil(MeshRenderer);
@@ -3907,7 +3908,7 @@ end;
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
 procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
-  GeneratorClass: TVRMLArraysGeneratorClass;
+  Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 var
@@ -3977,13 +3978,13 @@ var
 begin
   RenderShadersBegin;
   try
-    RenderShapeTextures(Shape, GeneratorClass,
+    RenderShapeTextures(Shape, Fog, GeneratorClass,
       MeshRenderer, CurrentGeometry, CurrentState, UsedGLSLTexCoordsNeeded);
   finally RenderShadersEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
-  GeneratorClass: TVRMLArraysGeneratorClass;
+  Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState;
   UsedGLSLTexCoordsNeeded: Cardinal);
@@ -4112,13 +4113,13 @@ var
 begin
   RenderTexturesBegin;
   try
-    RenderShapeMaterials(Shape, GeneratorClass,
+    RenderShapeMaterials(Shape, Fog, GeneratorClass,
       MeshRenderer, CurrentGeometry, CurrentState);
   finally RenderTexturesEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
-  GeneratorClass: TVRMLArraysGeneratorClass;
+  Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 
@@ -4127,13 +4128,13 @@ procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
 begin
   RenderMaterialsBegin;
   try
-    RenderShapeInside(Shape, GeneratorClass,
+    RenderShapeInside(Shape, Fog, GeneratorClass,
       MeshRenderer, CurrentGeometry, CurrentState);
   finally RenderMaterialsEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
-  GeneratorClass: TVRMLArraysGeneratorClass;
+  Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
 var
@@ -4156,7 +4157,7 @@ begin
 
     { calculate Shape.Cache }
     if Shape.Cache = nil then
-      Shape.Cache := Cache.Shape_IncReference(Shape, nil{TODO:Fog}, Self);
+      Shape.Cache := Cache.Shape_IncReference(Shape, Fog, Self);
 
     VBO := Attributes.VertexBufferObject and GL_ARB_vertex_buffer_object;
 
@@ -4435,13 +4436,13 @@ begin
 end;
 
 function FogParametersEqual(
-  FogNode1: TNodeFog; const FogDistanceScaling1: Single;
-  FogNode2: TNodeFog): boolean;
+  Fog1: INodeX3DFogObject; const FogDistanceScaling1: Single;
+  Fog2: INodeX3DFogObject): boolean;
 begin
-  Result := (FogNode1 = FogNode2);
+  Result := (Fog1 = Fog2);
   { If both fog nodes are nil, don't compare scaling }
-  if Result and (FogNode1 <> nil) then
-    Result := FogDistanceScaling1 = FogNode2.TransformScale;
+  if Result and (Fog1 <> nil) then
+    Result := FogDistanceScaling1 = Fog2.TransformScale;
 end;
 
 end.
