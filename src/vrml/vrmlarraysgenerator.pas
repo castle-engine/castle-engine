@@ -155,7 +155,7 @@ type
       This is not called, not used, anywhere in this base
       TAbstractCoordinateGenerator class.
       In descendants, it may be useful to use this, like
-      Geometry.MakeCoordRanges(State, @GenerateCoordsRange).
+      Geometry.MakeCoordRanges(State, @@GenerateCoordsRange).
 
       GenerateCoordsRange is supposed to generate the parts of the mesh
       between BeginIndex and EndIndex - 1 vertices.
