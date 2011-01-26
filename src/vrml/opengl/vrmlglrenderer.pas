@@ -3409,28 +3409,22 @@ begin
   if FogType = -1 then
   begin
     VRMLWarning(vwSerious, 'Unknown fog type "' + Node.FdFogType.Value + '"');
-    InitializeFog(Node.Alternative, ActuallyApply,
-      Enabled, Volumetric,
-      VolumetricDirection, VolumetricVisibilityStart);
-    Exit;
+    FogType := 0;
   end;
+
+  VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
 
   if Node.FdVolumetric.Value and (not GL_EXT_fog_coord) then
   begin
-    { Earlier I tried in such cases to just do a normal fog
-      that looks "similar". But it turns out to be impossible
-      to automatically decide what non-volumetric fog setting (if any) will
-      look similar to requested volumetric fog.
-      So right now I just resort to "alternative" field. }
-    InitializeFog(Node.Alternative, ActuallyApply,
-      Enabled, Volumetric,
-      VolumetricDirection, VolumetricVisibilityStart);
-    Exit;
+    { Try to make normal fog that looks similar. This looks poorly,
+      but it's not a real problem --- EXT_fog_coord is supported
+      on all sensible GPUs nowadays. Increasing VisibilityRangeScaled
+      seems enough. }
+    VRMLWarning(vwIgnorable, 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
+    VisibilityRangeScaled *= 5;
   end;
 
   Enabled := true;
-
-  VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
 
   Volumetric := Node.FdVolumetric.Value and GL_EXT_fog_coord;
 

@@ -47,7 +47,6 @@
     function GetFdvolumetric: TSFBool;
     function GetFdvolumetricDirection: TSFVec3f;
     function GetFdvolumetricVisibilityStart: TSFFloat;
-    function GetFdalternative: TSFNode;
 
     property Fdcolor: TSFColor read GetFdcolor;
     property FdfogType: TSFString read GetFdfogType;
@@ -55,9 +54,6 @@
     property Fdvolumetric: TSFBool read GetFdvolumetric;
     property FdvolumetricDirection: TSFVec3f read GetFdvolumetricDirection;
     property FdvolumetricVisibilityStart: TSFFloat read GetFdvolumetricVisibilityStart;
-    property Fdalternative: TSFNode read GetFdalternative;
-
-    function Alternative: INodeX3DFogObject;
 
     function GetTransformScale: Single;
     property TransformScale: Single read GetTransformScale;
@@ -171,7 +167,6 @@
     function GetFdvolumetric: TSFBool;
     function GetFdvolumetricDirection: TSFVec3f;
     function GetFdvolumetricVisibilityStart: TSFFloat;
-    function GetFdalternative: TSFNode;
     function GetTransformScale: Single;
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -208,9 +203,6 @@
     private FFdAlternative: TSFNode;
     public property FdAlternative: TSFNode read FFdAlternative;
     { @groupEnd }
-
-    { Returns FdAlternative.Value, or nil if not assigned or invalid. }
-    function Alternative: INodeX3DFogObject;
   end;
 
   TNodeFogCoordinate = class(TNodeX3DGeometricPropertyNode)
@@ -233,7 +225,6 @@
     function GetFdvolumetric: TSFBool;
     function GetFdvolumetricDirection: TSFVec3f;
     function GetFdvolumetricVisibilityStart: TSFFloat;
-    function GetFdalternative: TSFNode;
     function GetTransformScale: Single;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -266,13 +257,7 @@
 
     private FFdVolumetricVisibilityStart: TSFFloat;
     public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
-
-    private FFdAlternative: TSFNode;
-    public property FdAlternative: TSFNode read FFdAlternative;
     { @groupEnd }
-
-    { Returns FdAlternative.Value, or nil if not assigned or invalid. }
-    function Alternative: INodeX3DFogObject;
   end;
 
   TNodeTextureBackground = class(TNodeX3DBackgroundNode)
@@ -557,7 +542,8 @@ begin
    FdvolumetricVisibilityStart.ChangesAlways := [chEverything];
   Fields.Add(FFdvolumetricVisibilityStart);
 
-  FFdalternative := TSFNode.Create(Self, 'alternative', INodeX3DFogObject);
+  { Only for backward compatibility. Not used anymore. }
+  FFdalternative := TSFNode.Create(Self, 'alternative', [TNodeFog]);
    Fdalternative.ChangesAlways := [chEverything];
   Fields.Add(FFdalternative);
 
@@ -585,14 +571,6 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
-end;
-
-function TNodeFog.Alternative: INodeX3DFogObject;
-begin
-  if (FdAlternative.Value <> nil) and
-     Supports(FdAlternative.Value, INodeX3DFogObject) then
-    Result := FdAlternative.Value as INodeX3DFogObject else
-    Result := nil;
 end;
 
 procedure TNodeFog.EventSet_BindReceive(
@@ -641,11 +619,6 @@ end;
 function TNodeFog.GetFdvolumetricVisibilityStart: TSFFloat;
 begin
   Result := FFdvolumetricVisibilityStart;
-end;
-
-function TNodeFog.GetFdalternative: TSFNode;
-begin
-  Result := FFdalternative;
 end;
 
 function TNodeFog.GetTransformScale: Single;
@@ -716,10 +689,6 @@ begin
    FdvolumetricVisibilityStart.ChangesAlways := [chEverything];
   Fields.Add(FFdvolumetricVisibilityStart);
 
-  FFdalternative := TSFNode.Create(Self, 'alternative', INodeX3DFogObject);
-   Fdalternative.ChangesAlways := [chEverything];
-  Fields.Add(FFdalternative);
-
   DefaultContainerField := 'children';
 end;
 
@@ -770,19 +739,6 @@ end;
 function TNodeLocalFog.GetFdvolumetricVisibilityStart: TSFFloat;
 begin
   Result := FFdvolumetricVisibilityStart;
-end;
-
-function TNodeLocalFog.GetFdalternative: TSFNode;
-begin
-  Result := FFdalternative;
-end;
-
-function TNodeLocalFog.Alternative: INodeX3DFogObject;
-begin
-  if (FdAlternative.Value <> nil) and
-     Supports(FdAlternative.Value, INodeX3DFogObject) then
-    Result := FdAlternative.Value as INodeX3DFogObject else
-    Result := nil;
 end;
 
 function TNodeLocalFog.GetTransformScale: Single;
