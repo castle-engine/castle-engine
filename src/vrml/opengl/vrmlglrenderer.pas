@@ -1380,16 +1380,6 @@ const
     'Dot (by GLSL)',
     'Dot with steep parallax (by GLSL)' );
 
-{ Compare two saved fog parameters.
-  For the 1st fog node, we supply a scaling separately,
-  to account for the fact that scaling may change while fog reference
-  remains the same.
-  For the 2nd fog node, transform scale is taken from
-  current FogNode2.TransformScale. }
-function FogParametersEqual(
-  Fog1: INodeX3DFogObject; const FogDistanceScaling1: Single;
-  Fog2: INodeX3DFogObject): boolean;
-
 var
   { Should we log every event of a cache TVRMLGLRendererContextCache.
     You have to InitializeLog first (see KambiLog) to make this actually
@@ -2553,9 +2543,8 @@ begin
   begin
     Result := ShapeCaches[I];
     if (Result.Geometry = Shape.Geometry) and
-       (Result.Attributes.EqualForShapeCache(ARenderer.Attributes)) and
-       Result.State.Equals(Shape.State, IgnoreStateTransform) and
-       FogParametersEqual(Result.Fog, Result.FogDistanceScaling, Fog) then
+       Result.Attributes.EqualForShapeCache(ARenderer.Attributes) and
+       Result.State.Equals(Shape.State, IgnoreStateTransform) then
     begin
       Inc(Result.References);
       if LogRendererCache and Log then
@@ -4386,16 +4375,6 @@ begin
     UpdateGeneratedShadowMap(TNodeGeneratedShadowMap(TextureNode)) else
   if TextureNode is TNodeRenderedTexture then
     UpdateRenderedTexture(TNodeRenderedTexture(TextureNode));
-end;
-
-function FogParametersEqual(
-  Fog1: INodeX3DFogObject; const FogDistanceScaling1: Single;
-  Fog2: INodeX3DFogObject): boolean;
-begin
-  Result := (Fog1 = Fog2);
-  { If both fog nodes are nil, don't compare scaling }
-  if Result and (Fog1 <> nil) then
-    Result := FogDistanceScaling1 = Fog2.TransformScale;
 end;
 
 end.
