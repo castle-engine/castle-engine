@@ -453,11 +453,6 @@ end;
 
 { TTextureCoordinateRenderer ----------------------------------------- }
 
-{ TODO:
-  - maybe move NodeTextured here now? We can query created mesh renderer
-    before calling it's render!
-}
-
 procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
   { If ARB_multitexturing available, sets texture coordinate for texture
