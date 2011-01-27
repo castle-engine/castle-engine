@@ -1388,6 +1388,13 @@ function FogParametersEqual(
   Fog1: INodeX3DFogObject; const FogDistanceScaling1: Single;
   Fog2: INodeX3DFogObject): boolean;
 
+var
+  { Should we log every event of a cache TVRMLGLRendererContextCache.
+    You have to InitializeLog first (see KambiLog) to make this actually
+    meaningful. This allows to see how the cache performs. It also causes
+    a @italic(lot) of log messages, usually too many even for debugging. }
+  LogRendererCache: boolean = false;
+
 {$undef read_interface}
 
 implementation
@@ -1412,8 +1419,6 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
 {$I vrmlglrenderer_glsl.inc}
 
 { TVRMLGLRendererContextCache -------------------------------------------- }
-
-{ $define DEBUG_VRML_RENDERER_CACHE}
 
 constructor TVRMLGLRendererContextCache.Create;
 begin
@@ -1513,9 +1518,8 @@ begin
   if Fonts[fsfam, fsbold, fsitalic].Instance = nil then
     Fonts[fsfam, fsbold, fsitalic].Instance := TGLOutlineFont.Create(TTF_Font);
   Result := Fonts[fsfam, fsbold, fsitalic].Instance;
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : Font : ', Fonts[fsfam, fsbold, fsitalic].References);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('++', 'Font: %d', [Fonts[fsfam, fsbold, fsitalic].References]);
 end;
 
 procedure TVRMLGLRendererContextCache.Fonts_DecReference(
@@ -1524,9 +1528,8 @@ begin
   Dec(Fonts[fsfam, fsbold, fsitalic].References);
   if Fonts[fsfam, fsbold, fsitalic].References = 0 then
     FreeAndNil(Fonts[fsfam, fsbold, fsitalic].Instance);
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('-- : Font : ', Fonts[fsfam, fsbold, fsitalic].References);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('--', 'Font: %d', [Fonts[fsfam, fsbold, fsitalic].References]);
 end;
 
 const
@@ -1581,9 +1584,8 @@ begin
        (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : ', TextureFullUrl, ' : ', TextureCached^.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached^.References]);
       AlphaChannelType := TextureCached^.AlphaChannelType;
       Exit(TextureCached^.GLName);
     end;
@@ -1626,9 +1628,8 @@ begin
 
   AlphaChannelType := TextureCached^.AlphaChannelType;
 
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : ', TextureFullUrl, ' : ', 1);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TVRMLGLRendererContextCache.TextureImage_DecReference(
@@ -1640,10 +1641,9 @@ begin
     if TextureImageCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(TextureImageCaches.Items[I].References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : ', TextureImageCaches.Items[I].FullUrl, ' : ',
-                       TextureImageCaches.Items[I].References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('--', '%s: %d', [TextureImageCaches.Items[I].FullUrl,
+                                    TextureImageCaches.Items[I].References]);
       if TextureImageCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(TextureImageCaches.Items[I].GLName));
@@ -1682,9 +1682,8 @@ begin
        (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : ', TextureFullUrl, ' : ', TextureCached^.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached^.References]);
       AlphaChannelType := TextureCached^.AlphaChannelType;
       Exit(TextureCached^.GLVideo);
     end;
@@ -1719,9 +1718,8 @@ begin
 
   AlphaChannelType := TextureCached^.AlphaChannelType;
 
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : ', TextureFullUrl, ' : ', 1);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
 end;
 
 procedure TVRMLGLRendererContextCache.TextureVideo_DecReference(
@@ -1733,10 +1731,9 @@ begin
     if TextureVideoCaches.Items[I].GLVideo = TextureVideo then
     begin
       Dec(TextureVideoCaches.Items[I].References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : ', TextureVideoCaches.Items[I].FullUrl, ' : ',
-                       TextureVideoCaches.Items[I].References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('--', '%s: %d', [TextureVideoCaches.Items[I].FullUrl,
+                                    TextureVideoCaches.Items[I].References]);
       if TextureVideoCaches.Items[I].References = 0 then
       begin
         FreeAndNil(TextureVideoCaches.Items[I].GLVideo);
@@ -1773,9 +1770,8 @@ begin
        (TextureCached^.Anisotropy = Anisotropy) then
     begin
       Inc(TextureCached^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : cube map ', PointerToStr(Node), ' : ', TextureCached^.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), TextureCached^.References]);
       AlphaChannelType := TextureCached^.AlphaChannelType;
       Exit(TextureCached^.GLName);
     end;
@@ -1819,9 +1815,8 @@ begin
 
   AlphaChannelType := TextureCached^.AlphaChannelType;
 
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : cube map ', PointerToStr(Node), ' : ', 1);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), 1]);
 end;
 
 procedure TVRMLGLRendererContextCache.TextureCubeMap_DecReference(
@@ -1833,9 +1828,8 @@ begin
     if TextureCubeMapCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(TextureCubeMapCaches.Items[I].References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : cube map ', PointerToStr(TextureCubeMapCaches.Items[I].InitialNode), ' : ', TextureCubeMapCaches.Items[I].References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches.Items[I].InitialNode), TextureCubeMapCaches.Items[I].References]);
       if TextureCubeMapCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(TextureCubeMapCaches.Items[I].GLName));
@@ -1871,9 +1865,8 @@ begin
        (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : 3d texture ', PointerToStr(Node), ' : ', TextureCached^.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), TextureCached^.References]);
       AlphaChannelType := TextureCached^.AlphaChannelType;
       Exit(TextureCached^.GLName);
     end;
@@ -1909,9 +1902,8 @@ begin
 
   AlphaChannelType := TextureCached^.AlphaChannelType;
 
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : 3d texture ', PointerToStr(Node), ' : ', 1);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), 1]);
 end;
 
 procedure TVRMLGLRendererContextCache.Texture3D_DecReference(
@@ -1923,9 +1915,8 @@ begin
     if Texture3DCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(Texture3DCaches.Items[I].References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : 3d texture ', PointerToStr(Texture3DCaches.Items[I].InitialNode), ' : ', Texture3DCaches.Items[I].References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches.Items[I].InitialNode), Texture3DCaches.Items[I].References]);
       if Texture3DCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(Texture3DCaches.Items[I].GLName));
@@ -1956,9 +1947,8 @@ begin
        (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : Depth texture ', PointerToStr(Node), ' : ', TextureCached^.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), TextureCached^.References]);
       Exit(TextureCached^.GLName);
     end;
   end;
@@ -2008,9 +1998,8 @@ begin
   TextureCached^.Wrap := TextureWrap;
   TextureCached^.GLName := Result;
 
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : Depth texture ', PointerToStr(Node), ' : ', 1);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), 1]);
 end;
 
 procedure TVRMLGLRendererContextCache.TextureDepth_DecReference(
@@ -2022,9 +2011,8 @@ begin
     if TextureDepthOrFloatCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(TextureDepthOrFloatCaches.Items[I].References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : Depth texture ', PointerToStr(TextureDepthOrFloatCaches.Items[I].InitialNode), ' : ', TextureDepthOrFloatCaches.Items[I].References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.Items[I].InitialNode), TextureDepthOrFloatCaches.Items[I].References]);
       if TextureDepthOrFloatCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(TextureDepthOrFloatCaches.Items[I].GLName));
@@ -2057,9 +2045,8 @@ begin
        (TextureCached^.Wrap = TextureWrap) then
     begin
       Inc(TextureCached^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : Float texture ', PointerToStr(Node), ' : ', TextureCached^.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), TextureCached^.References]);
       Exit(TextureCached^.GLName);
     end;
   end;
@@ -2090,9 +2077,8 @@ begin
     inside TextureCached as well... Ignore this, useless for now ---
     one Node will require only one float texture anyway. }
 
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : Float texture ', PointerToStr(Node), ' : ', 1);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), 1]);
 end;
 
 procedure TVRMLGLRendererContextCache.TextureFloat_DecReference(
@@ -2104,9 +2090,8 @@ begin
     if TextureDepthOrFloatCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(TextureDepthOrFloatCaches.Items[I].References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : Float texture ', PointerToStr(TextureDepthOrFloatCaches.Items[I].InitialNode), ' : ', TextureDepthOrFloatCaches.Items[I].References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.Items[I].InitialNode), TextureDepthOrFloatCaches.Items[I].References]);
       if TextureDepthOrFloatCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(TextureDepthOrFloatCaches.Items[I].GLName));
@@ -2430,10 +2415,8 @@ begin
     if GLSLProgramCache^.ProgramNode = ProgramNode then
     begin
       Inc(GLSLProgramCache^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : GLSL program ' + ProgramNode.DescribeUsedUrls + ' : ',
-        GLSLProgramCache^.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('++', 'GLSL program %s: %d', [ProgramNode.DescribeUsedUrls, GLSLProgramCache^.References]);
       Exit(GLSLProgramCache^.GLSLProgram);
     end;
   end;
@@ -2461,9 +2444,8 @@ begin
   GLSLProgramCache^.References := 1;
   GLSLProgramCache^.GLSLProgram := Result;
 
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : GLSL program ' + ProgramNode.DescribeUsedUrls + ' : ', 1);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('++', 'GLSL program %s: %d', [ProgramNode.DescribeUsedUrls, 1]);
 end;
 
 function TVRMLGLRendererContextCache.GLSLProgram_IncReference(
@@ -2501,10 +2483,8 @@ begin
     if GLSLProgramCache^.GLSLProgram = GLSLProgram then
     begin
       Dec(GLSLProgramCache^.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : GLSLProgram ' + GLSLProgramCache^.ProgramNode.DescribeUsedUrls + ' : ',
-        GLSLProgramCache^.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('--', 'GLSLProgram %s: %d', [GLSLProgramCache^.ProgramNode.DescribeUsedUrls, GLSLProgramCache^.References]);
       if GLSLProgramCache^.References = 0 then
       begin
         { Remove EventReceiveGLSLUniform callback,
@@ -2595,9 +2575,8 @@ begin
        FogParametersEqual(Result.Fog, Result.FogDistanceScaling, Fog) then
     begin
       Inc(Result.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : Shape ', PointerToStr(Result), ' (', Result.Geometry.NodeTypeName, ') : ', Result.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.NodeTypeName, Result.References]);
       Exit(Result);
     end;
   end;
@@ -2617,9 +2596,8 @@ begin
   Result.Arrays := nil;
   FillChar(Result.Vbo, SizeOf(Result.Vbo), 0);
 
-  {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : Shape ', PointerToStr(Result), ' (', Result.Geometry.NodeTypeName, ') : ', 1);
-  {$endif}
+  if LogRendererCache and Log then
+    WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.NodeTypeName, Result.References]);
 end;
 
 procedure TVRMLGLRendererContextCache.Shape_DecReference(var ShapeCache: TShapeCache);
@@ -2631,9 +2609,8 @@ begin
     if ShapeCaches[I] = ShapeCache then
     begin
       Dec(ShapeCache.References);
-      {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : Shape ', PointerToStr(ShapeCache), ' (', ShapeCache.Geometry.NodeTypeName, ') : ', ShapeCache.References);
-      {$endif}
+      if LogRendererCache and Log then
+        WritelnLog('--', 'Shape %s (%s): %d', [PointerToStr(ShapeCache), ShapeCache.Geometry.NodeTypeName, ShapeCache.References]);
       if ShapeCache.References = 0 then
         ShapeCaches.Delete(I);
       ShapeCache := nil;

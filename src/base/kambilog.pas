@@ -40,6 +40,12 @@ procedure InitializeLog(const ProgramVersion: string);
   for it when @link(Log) = false. }
 procedure WritelnLog(const Title: string; const LogMessage: string);
 
+{ Write to log file. Call this only if @link(Log) = @true.
+
+  This is a shortcut for @code(WritelnLog(Title, Format(LogMessageBase, Args))). }
+procedure WritelnLog(const Title: string; const LogMessageBase: string;
+  const Args: array of const);
+
 { Just like WritelnLog, but assumes that LogMessage already contains
   final newline --- so it doesn't add additional newline. }
 procedure WriteLog(const Title: string; const LogMessage: string);
@@ -79,6 +85,8 @@ procedure InitializeLog(const ProgramVersion: string);
   end;
 
 begin
+  if Log then Exit; { ignore 2nd call to InitializeLog }
+
   { Ideally, check for "StdOutStream = nil" should be all that is needed,
     and wrapping WritelnStr inside try...except should not be needed.
     But... see StdOutStream comments: you cannot
@@ -115,6 +123,12 @@ end;
 procedure WritelnLog(const Title: string; const LogMessage: string);
 begin
   WriteLog(Title, LogMessage + NL);
+end;
+
+procedure WritelnLog(const Title: string; const LogMessageBase: string;
+  const Args: array of const);
+begin
+  WritelnLog(Title, Format(LogMessageBase, Args));
 end;
 
 procedure WriteLogMultiline(const Title: string; const LogMessage: string);
