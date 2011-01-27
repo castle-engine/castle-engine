@@ -14,8 +14,9 @@
 }
 
 { VRML low-level rendering (TVRMLGLRenderer).
-  You usually don't want to use this renderer directly, you rather want
-  to use TVRMLGLScene that hides the dirty details of this renderer.
+  You usually don't want to use this renderer directly, you should
+  rather use TVRMLGLScene that wraps this renderer and gives you simple
+  method to render whole scene.
 
   The overview of this class can also be found in my master's thesis
   [http://vrmlengine.sourceforge.net/vrml_engine_doc.php]
@@ -25,7 +26,7 @@
 
   @orderedList(
     @item(
-      First you have to call @link(TVRMLGLRenderer.Prepare) for all
+      Call @link(TVRMLGLRenderer.Prepare) for all
       the states that you want to later render. The order of calling TVRMLGLRenderer.Prepare
       methods doesn't matter, also you are free to prepare states that you
       will not actually use later. Of course a state, once prepared,
@@ -70,19 +71,11 @@
     )
 
     @item(
-      Between TVRMLGLRenderer.RenderBegin and TVRMLGLRenderer.RenderEnd you should render the shapes by:
-
-@longCode(#
-  RenderShapeLights(LightsRenderer, Shape.State);
-  RenderShape(Shape, VBO);
-#)
+      Between TVRMLGLRenderer.RenderBegin and TVRMLGLRenderer.RenderEnd
+      you should render the shapes by calling RenderShape.
 
       Remember that you can render only shapes that have Shape.State
       prepared by TVRMLGLRenderer.Prepare.
-
-      Make sure that VRML2ActiveLights are properly initialized if you
-      plan to render VRML 2.0 nodes. TVRMLScene and descendants do
-      this for you usually.
     )
 
     @item(
@@ -1126,6 +1119,9 @@ type
   private
     { ----------------------------------------------------------------- }
 
+    { Available between RenderBegin / RenderEnd. }
+    LightsRenderer: TVRMLGLLightsCachingRenderer;
+
     { Currently set fog parameters, during render. }
     FogNode: INodeX3DFogObject;
     FogVolumetric: boolean;
@@ -1160,6 +1156,7 @@ type
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure ActiveTexture(const TextureUnit: Cardinal);
 
+    procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
     procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
     procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
     procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
@@ -1234,12 +1231,8 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin;
+    procedure RenderBegin(LightRenderEvent: TVRMLLightRenderEvent);
     procedure RenderEnd;
-
-    procedure RenderShapeLights(
-      LightsRenderer: TVRMLGLLightsCachingRenderer;
-      State: TVRMLGraphTraverseState);
 
     procedure RenderShape(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
 
@@ -3380,7 +3373,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderBegin;
+procedure TVRMLGLRenderer.RenderBegin(LightRenderEvent: TVRMLLightRenderEvent);
 
   procedure DisabeAllTextureUnits;
   var
@@ -3465,10 +3458,19 @@ begin
   end;
 
   Assert(FogNode = nil);
+
+  LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
+    Attributes.FirstGLFreeLight, LastGLFreeLight, LightRenderEvent);
 end;
 
 procedure TVRMLGLRenderer.RenderEnd;
 begin
+  { Tests:
+  Writeln('LightsRenderer stats: light setups done ',
+    LightsRenderer.Statistics[true], ' vs avoided ',
+    LightsRenderer.Statistics[false]); }
+  FreeAndNil(LightsRenderer);
+
   ActiveTexture(0);
 
   {pop matrices and attribs (popping attrib restores also saved matrix mode)}
@@ -3490,27 +3492,22 @@ begin
 end;
 {$endif USE_VRML_NODES_TRIANGULATION}
 
-procedure TVRMLGLRenderer.RenderShapeLights(
-  LightsRenderer: TVRMLGLLightsCachingRenderer;
-  State: TVRMLGraphTraverseState);
+procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
+  Fog: INodeX3DFogObject);
 begin
-  { We know we're inside GL_MODELVIEW now }
-
-  { Render lights in given State, if Attributes.UseSceneLights.
-
-    This is done before RenderShape,
-    in particular before loading State.Transform --- this is good,
-    as the lights positions/directions are in world coordinates. }
-
   if Attributes.UseSceneLights then
-    LightsRenderer.Render(State.CurrentActiveLights);
+    { Done before loading State.Transform, as the lights
+      positions/directions are in world coordinates. }
+    LightsRenderer.Render(Shape.State.CurrentActiveLights);
 
     { Without LightsRenderer, we would do it like this:
     glLightsFromVRML(State.CurrentActiveLights,
       Attributes.FirstGLFreeLight, LastGLFreeLight);}
+
+  RenderShapeFog(Shape, Fog);
 end;
 
-procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
+procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject);
 
   { Set OpenGL fog based on given fog node. Returns also fog parameters,

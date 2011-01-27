@@ -1710,14 +1710,10 @@ procedure TVRMLGLScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility;
   TransparentGroup: TTransparentGroup;
   LightRenderEvent: TVRMLLightRenderEvent);
-
 const
   AllOrOpaque = [tgAll, tgOpaque];
   AllOrTransparent = [tgAll, tgTransparent];
-
 var
-  LightsRenderer: TVRMLGLLightsCachingRenderer;
-
   OcclusionBoxState: boolean;
 
   procedure OcclusionBoxStateBegin;
@@ -1774,11 +1770,9 @@ var
 
     procedure DoRenderShape;
 
-      { Renders Shape, by calling Renderer.RenderShapeLight and Renderer.RenderShape. }
+      { Renders Shape, by calling Renderer.RenderShape. }
       procedure RenderShape(Shape: TVRMLGLShape);
       begin
-        Renderer.RenderShapeLights(LightsRenderer, Shape.State);
-
         { Optionally free Shape arrays data now, if they need to be regenerated. }
         if (Assigned(Attributes.OnVertexColor) or
             Assigned(Attributes.OnRadianceTransfer)) and
@@ -2197,105 +2191,93 @@ begin
 
   OcclusionBoxState := false;
 
-  LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
-    Attributes.FirstGLFreeLight, Renderer.LastGLFreeLight, LightRenderEvent);
+  Renderer.RenderBegin(LightRenderEvent);
   try
+    if Attributes.PureGeometry then
+    begin
+      { When PureGeometry, we don't want to do anything with glDepthMask
+        or GL_BLEND enable state. Just render everything. }
+      RenderAllAsOpaque;
 
-    Renderer.RenderBegin;
-    try
-      if Attributes.PureGeometry then
-      begin
-        { When PureGeometry, we don't want to do anything with glDepthMask
-          or GL_BLEND enable state. Just render everything. }
-        RenderAllAsOpaque;
+      { Each RenderShape_SomeTests inside could set OcclusionBoxState }
+      OcclusionBoxStateEnd;
+    end else
+    if Attributes.ReallyUseHierarchicalOcclusionQuery and
+       (not Attributes.DebugHierOcclusionQueryResults) and
+       (RenderState.Target = rtScreen) and
+       (OctreeRendering <> nil) then
+    begin
+      DoHierarchicalOcclusionQuery;
 
-        { Each RenderShape_SomeTests inside could set OcclusionBoxState }
-        OcclusionBoxStateEnd;
-      end else
-      if Attributes.ReallyUseHierarchicalOcclusionQuery and
-         (not Attributes.DebugHierOcclusionQueryResults) and
-         (RenderState.Target = rtScreen) and
-         (OctreeRendering <> nil) then
-      begin
-        DoHierarchicalOcclusionQuery;
+      { Inside we could set OcclusionBoxState }
+      OcclusionBoxStateEnd;
+    end else
+    begin
+      glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+      try
+        if Attributes.ControlBlending then
+        begin
+          glDepthMask(GL_TRUE);
+          glDisable(GL_BLEND);
+        end;
+        if Attributes.ControlBlending and Attributes.Blending then
+        begin
+          VRMLShapesSplitBlending(Shapes, true, true, false,
+            TestShapeVisibility,
+            OpaqueShapes, TransparentShapes);
+          try
+            { VRMLShapesSplitBlending already filtered shapes through
+              TestShapeVisibility callback, so below we can render them
+              with RenderShape_SomeTests to skip checking
+              TestShapeVisibility twice.
+              This is a good thing: it means that sorting below has
+              much less shapes to consider. }
 
-        { Inside we could set OcclusionBoxState }
-        OcclusionBoxStateEnd;
-      end else
-      begin
-        glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-        try
-          if Attributes.ControlBlending then
-          begin
-            glDepthMask(GL_TRUE);
-            glDisable(GL_BLEND);
-          end;
-          if Attributes.ControlBlending and Attributes.Blending then
-          begin
-            VRMLShapesSplitBlending(Shapes, true, true, false,
-              TestShapeVisibility,
-              OpaqueShapes, TransparentShapes);
-            try
-              { VRMLShapesSplitBlending already filtered shapes through
-                TestShapeVisibility callback, so below we can render them
-                with RenderShape_SomeTests to skip checking
-                TestShapeVisibility twice.
-                This is a good thing: it means that sorting below has
-                much less shapes to consider. }
+            { draw fully opaque objects }
+            if TransparentGroup in AllOrOpaque then
+            begin
+              if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
+                OpaqueShapes.SortFrontToBack(CameraPosition);
 
-              { draw fully opaque objects }
-              if TransparentGroup in AllOrOpaque then
-              begin
-                if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
-                  OpaqueShapes.SortFrontToBack(CameraPosition);
-
-                for I := 0 to OpaqueShapes.Count - 1 do
-                  RenderShape_SomeTests(TVRMLGLShape(OpaqueShapes.Items[I]));
-              end;
-
-              { draw partially transparent objects }
-              if (TransparentShapes.Count <> 0) and
-                 (TransparentGroup in AllOrTransparent) then
-              begin
-                glDepthMask(GL_FALSE);
-                glEnable(GL_BLEND);
-
-                { Set glBlendFunc using Attributes.BlendingXxxFactor }
-                BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
-                BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
-                glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
-
-                if CameraViewKnown and Attributes.BlendingSort then
-                  TransparentShapes.SortBackToFront(CameraPosition);
-
-                for I := 0 to TransparentShapes.Count - 1 do
-                begin
-                  AdjustBlendFunc(TVRMLGLShape(TransparentShapes.Items[I]),
-                    BlendingSourceFactorSet, BlendingDestinationFactorSet);
-                  RenderShape_SomeTests(TVRMLGLShape(TransparentShapes.Items[I]));
-                end;
-              end;
-            finally
-              FreeAndNil(OpaqueShapes);
-              FreeAndNil(TransparentShapes);
+              for I := 0 to OpaqueShapes.Count - 1 do
+                RenderShape_SomeTests(TVRMLGLShape(OpaqueShapes.Items[I]));
             end;
-          end else
-            RenderAllAsOpaque;
 
-          { Each RenderShape_SomeTests inside could set OcclusionBoxState.
-            Finish it now, before following glPopAttrib. }
-          OcclusionBoxStateEnd;
-        finally glPopAttrib end;
-      end;
-    finally Renderer.RenderEnd end;
+            { draw partially transparent objects }
+            if (TransparentShapes.Count <> 0) and
+               (TransparentGroup in AllOrTransparent) then
+            begin
+              glDepthMask(GL_FALSE);
+              glEnable(GL_BLEND);
 
-  finally
-    { Tests:
-    Writeln('LightsRenderer stats: light setups done ',
-      LightsRenderer.Statistics[true], ' vs avoided ',
-      LightsRenderer.Statistics[false]); }
-    FreeAndNil(LightsRenderer);
-  end;
+              { Set glBlendFunc using Attributes.BlendingXxxFactor }
+              BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
+              BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
+              glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
+
+              if CameraViewKnown and Attributes.BlendingSort then
+                TransparentShapes.SortBackToFront(CameraPosition);
+
+              for I := 0 to TransparentShapes.Count - 1 do
+              begin
+                AdjustBlendFunc(TVRMLGLShape(TransparentShapes.Items[I]),
+                  BlendingSourceFactorSet, BlendingDestinationFactorSet);
+                RenderShape_SomeTests(TVRMLGLShape(TransparentShapes.Items[I]));
+              end;
+            end;
+          finally
+            FreeAndNil(OpaqueShapes);
+            FreeAndNil(TransparentShapes);
+          end;
+        end else
+          RenderAllAsOpaque;
+
+        { Each RenderShape_SomeTests inside could set OcclusionBoxState.
+          Finish it now, before following glPopAttrib. }
+        OcclusionBoxStateEnd;
+      finally glPopAttrib end;
+    end;
+  finally Renderer.RenderEnd end;
 end;
 
 procedure TVRMLGLScene.PrepareResources(
@@ -2325,7 +2307,7 @@ procedure TVRMLGLScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        Renderer.RenderBegin;
+        Renderer.RenderBegin(nil);
         while SI.GetNext do
         begin
           Shape := TVRMLGLShape(SI.Current);
