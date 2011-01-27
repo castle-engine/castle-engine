@@ -1557,7 +1557,7 @@ type
       to be done from time to time right before OnDraw and that is very
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnDraw because this would cause a sudden big change in
-      Fps.FrameTime value (and DrawSpeed). So you can avoid this by putting
+      Fps.FrameTime value. So you can avoid this by putting
       this in OnBeforeDraw. }
     property OnBeforeDraw: TDrawFunc read FOnBeforeDraw write FOnBeforeDraw;
 

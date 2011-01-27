@@ -272,16 +272,16 @@ type
 
       This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method
-      --- all things will be prepared "as needed" anyway.
-      But this means that some calls may sometimes take a long time,
-      e.g. the first @link(Render) call may take a long time because it may
-      have to prepare display lists that will be reused in next @link(Render)
-      calls. This may cause a strange behavior of the program: rendering of the
-      first frame takes unusually long time (which confuses user, and
-      also makes things like TGLWindow.DrawSpeed strange for a short
-      time). So calling this procedure may be desirable.
-      You may want to show to user that "now we're preparing
-      the VRML scene --- please wait".
+      --- everything will be prepared "as needed" anyway.
+      But if you allow everything to be prepared "as needed",
+      then e.g. the first @link(Render) call may take a long time because it may
+      have to prepare resources that will be reused in next @link(Render) calls.
+      This is bad, as your program will seem very slow at the beginning
+      (when rendering resources are prepared, so a first frame,
+      or a couple of first frames, if it's something
+      like a precalculated animation). To avoid this, call this method,
+      showing the user something like "now we're preparing
+      the resources --- please wait".
 
       For OpenGL rendered objects, this method ties this object
       to the current OpenGL context.
