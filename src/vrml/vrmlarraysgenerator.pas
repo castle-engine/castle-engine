@@ -964,8 +964,8 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         end;
       end;
 
-      { For tgProjection generation, calculate matrix that should be passed
-        to glTexGen as eye plane.
+      { For tgProjection generation, calculate function that should be
+        later used to calculate matrix to pass to glTexGen as eye plane.
 
         Gets projector matrices from a TextureCoordinateGenerator or
         ProjectedTextureCoordinate node.
@@ -973,21 +973,11 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         then get it's projection and modelview matrix and return @true.
         Returns @false (and does correct VRMLWarning)
         if it's empty or incorrect. }
-      function GetProjectorMatrix(GeneratorNode: TVRMLNode;
-        out Matrix: TMatrix4Single): boolean;
-      const
-        ProjectionScalingMatrix: TMatrix4Single =
-        ( (0.5,   0,   0, 0),
-          (  0, 0.5,   0, 0),
-          (  0,   0, 0.5, 0),
-          (0.5, 0.5, 0.5, 1) );
+      function GetProjectorMatrixFunction(GeneratorNode: TVRMLNode): TProjectorMatrixFunction;
       var
         ProjectorValue: TVRMLNode; { possible ProjectorLight or ProjectorViewpoint }
-        ProjectorLight: TNodeX3DLightNode;
-        ProjectorViewpoint: TNodeX3DViewpointNode;
-        Projection, Modelview: TMatrix4Single;
       begin
-        Result := false;
+        Result := nil;
 
         if GeneratorNode is TNodeTextureCoordinateGenerator then
         begin
@@ -995,10 +985,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           if (ProjectorValue <> nil) and
              (ProjectorValue is TNodeX3DLightNode) then
           begin
-            ProjectorLight := TNodeX3DLightNode(ProjectorValue);
-            Projection := ProjectorLight.ProjectionMatrix;
-            Modelview := ProjectorLight.ModelviewMatrix;
-            Result := true;
+            Result := @TNodeX3DLightNode(ProjectorValue).GetProjectorMatrix;
           end else
             VRMLWarning(vwSerious, 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
         end else
@@ -1008,26 +995,17 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
           if (ProjectorValue <> nil) and
              (ProjectorValue is TNodeX3DLightNode) then
           begin
-            ProjectorLight := TNodeX3DLightNode(ProjectorValue);
-            Projection := ProjectorLight.ProjectionMatrix;
-            Modelview := ProjectorLight.ModelviewMatrix;
-            Result := true;
+            Result := @TNodeX3DLightNode(ProjectorValue).GetProjectorMatrix;
           end else
           if (ProjectorValue <> nil) and
              (ProjectorValue is TNodeX3DViewpointNode) then
           begin
-            ProjectorViewpoint := TNodeX3DViewpointNode(ProjectorValue);
-            Projection := ProjectorViewpoint.ProjectionMatrix;
-            Modelview := ProjectorViewpoint.ModelviewMatrix;
-            Result := true;
+            Result := @TNodeX3DViewpointNode(ProjectorValue).GetProjectorMatrix;
           end else
             VRMLWarning(vwSerious, 'ProjectedTextureCoordinate.projector is NULL or incorrect');
         end else
           { This should not actually happen (GeneratorNode passed here should be like this) }
           VRMLWarning(vwSerious, 'Invalid texture generator node');
-
-        if Result then
-          Matrix := ProjectionScalingMatrix * Projection * Modelview;
       end;
 
     begin
@@ -1073,8 +1051,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
       case Arrays.TexCoords[TextureUnit].Generation of
         tgBounds2d: Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds2DTextureGenVectors;
         tgBounds3d: Arrays.TexCoords[TextureUnit].GenerationBoundsVector := Bounds3DTextureGenVectors;
-        tgProjection: Arrays.TexCoords[TextureUnit].HasGenerationProjectorMatrix :=
-          GetProjectorMatrix(TexCoord, Arrays.TexCoords[TextureUnit].GenerationProjectorMatrix);
+        tgProjection: Arrays.TexCoords[TextureUnit].GenerationProjectorMatrix := GetProjectorMatrixFunction(TexCoord);
       end;
     end;
 

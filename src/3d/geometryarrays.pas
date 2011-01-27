@@ -51,6 +51,8 @@ type
     tgWorldSpaceReflectionVector,
     tgProjection);
 
+  TProjectorMatrixFunction = function: TMatrix4Single of object;
+
   TTextureGenerationVectors = array [0..2] of TVector4Single;
 
   { Texture coord array information, for TGeometryArrays.
@@ -66,9 +68,9 @@ type
       and TextureGen[2] (only for tgBounds3d) is fo R tex coord.}
     GenerationBoundsVector: TTextureGenerationVectors;
 
-    { For Generation = tgProjection, this is the matrix used for glTexGen }
-    HasGenerationProjectorMatrix: boolean;
-    GenerationProjectorMatrix: TMatrix4Single;
+    { For Generation = tgProjection, this is the function that generates
+      matrix used for glTexGen }
+    GenerationProjectorMatrix: TProjectorMatrixFunction;
 
     { Dimensions, only for Generation = tgExplicit. }
     Dimensions: TTexCoordDimensions;
@@ -539,7 +541,6 @@ begin
   begin
     AddTexCoordGenerated(TexCoords[ExistingTextureUnit].Generation, NewTextureUnit);
     TexCoords[NewTextureUnit].GenerationBoundsVector       := TexCoords[ExistingTextureUnit].GenerationBoundsVector;
-    TexCoords[NewTextureUnit].HasGenerationProjectorMatrix := TexCoords[ExistingTextureUnit].HasGenerationProjectorMatrix;
     TexCoords[NewTextureUnit].GenerationProjectorMatrix    := TexCoords[ExistingTextureUnit].GenerationProjectorMatrix;
   end else
   case TexCoords[ExistingTextureUnit].Dimensions of

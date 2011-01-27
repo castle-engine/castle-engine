@@ -134,6 +134,7 @@
       @groupBegin }
     function ProjectionMatrix: TMatrix4Single; virtual;
     function ModelviewMatrix: TMatrix4Single;
+    function GetProjectorMatrix: TMatrix4Single;
     { @groupEnd }
   end;
 
@@ -533,6 +534,11 @@ var
 begin
   GetView(CamPos, CamDir, CamUp, GravityUp);
   Result := LookDirMatrix(CamPos, CamDir, CamUp);
+end;
+
+function TNodeX3DViewpointNode.GetProjectorMatrix: TMatrix4Single;
+begin
+  Result := ProjectionMatrix * ModelviewMatrix;
 end;
 
 constructor TNodeBillboard.Create(const ANodeName: string;

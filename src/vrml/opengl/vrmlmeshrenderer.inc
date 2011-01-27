@@ -509,6 +509,14 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           [SuccessName, FailName]));
     end;
 
+  const
+    ProjectorScalingMatrix: TMatrix4Single =
+    ( (0.5,   0,   0, 0),
+      (  0, 0.5,   0, 0),
+      (  0,   0, 0.5, 0),
+      (0.5, 0.5, 0.5, 1) );
+  var
+    ProjectorMatrix: TMatrix4Single;
   begin
     Renderer.ActiveTexture(TexUnit);
     case TexCoord.Generation of
@@ -604,22 +612,23 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgProjection:
         begin
-          if TexCoord.HasGenerationProjectorMatrix then
+          if Assigned(TexCoord.GenerationProjectorMatrix) then
           begin
+            ProjectorMatrix := ProjectorScalingMatrix * TexCoord.GenerationProjectorMatrix();
             glPushMatrix;
               glLoadMatrix(RenderState.CameraMatrix);
 
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_S, GL_EYE_PLANE, MatrixRow(TexCoord.GenerationProjectorMatrix, 0));
+              glTexGenv(GL_S, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 0));
 
               glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_T, GL_EYE_PLANE, MatrixRow(TexCoord.GenerationProjectorMatrix, 1));
+              glTexGenv(GL_T, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 1));
 
               glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_R, GL_EYE_PLANE, MatrixRow(TexCoord.GenerationProjectorMatrix, 2));
+              glTexGenv(GL_R, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 2));
 
               glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_Q, GL_EYE_PLANE, MatrixRow(TexCoord.GenerationProjectorMatrix, 3));
+              glTexGenv(GL_Q, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 3));
             glPopMatrix;
             glEnable(GL_TEXTURE_GEN_S);
             glEnable(GL_TEXTURE_GEN_T);

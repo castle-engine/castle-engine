@@ -90,6 +90,7 @@
     function ProjectionMatrix: TMatrix4Single; virtual;
     function ModelviewMatrix: TMatrix4Single; virtual;
     function ModelviewRotationMatrix: TMatrix4Single; virtual;
+    function GetProjectorMatrix: TMatrix4Single;
     { @groupEnd }
 
     { Light location, direction and up vectors.
@@ -398,6 +399,11 @@ end;
 function TNodeX3DLightNode.ModelviewRotationMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
+end;
+
+function TNodeX3DLightNode.GetProjectorMatrix: TMatrix4Single;
+begin
+  Result := ProjectionMatrix * ModelviewMatrix;
 end;
 
 function TNodeX3DLightNode.LocationLocal: TVector3Single;
