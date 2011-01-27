@@ -2932,18 +2932,30 @@ var
   { Bind Vbo buffer and load data. Updates AllocatedSize.
     Uses glBufferSubData if possible, as it may be faster than glBufferData
     (not confirmed by tests, although OpenGL manuals suggest it). }
-  procedure BufferData(const Target: TGLenum; const Size: Cardinal;
-    const Data: Pointer; const Vbo: TGLuint; var AllocatedSize: Cardinal);
+  procedure BufferData(const VboType: TVboType;
+    const Target: TGLenum; const Size: Cardinal; const Data: Pointer);
   begin
-    glBindBufferARB(Target, Vbo);
     if NewVbos or
-      (VboAllocatedUsage <> DataUsage) or
-      (AllocatedSize <> Size) then
+       (VboType in VboToReload) or
+       { In normal circumstances, when vbo is already loaded,
+         it should have already the appropriate size. But through VRML/X3D
+         events, user may be able to actually incorrectly change
+         coordinates, such that new ones have different size than the old ones
+         --- in this case, VboToReload optimization fails, and we have
+         to reload data (or we'll get terrible OpenGL segfaults later,
+         as it tries to access non-existent data from vertex arrays). }
+       (VboAllocatedSize[VboType] <> Size) then
     begin
-      glBufferDataARB(Target, Size, Data, DataUsage);
-      AllocatedSize := Size;
-    end else
-      glBufferSubDataARB(Target, 0, Size, Data);
+      glBindBufferARB(Target, Vbo[VboType]);
+      if NewVbos or
+        (VboAllocatedUsage <> DataUsage) or
+        (VboAllocatedSize[VboType] <> Size) then
+      begin
+        glBufferDataARB(Target, Size, Data, DataUsage);
+        VboAllocatedSize[VboType] := Size;
+      end else
+        glBufferSubDataARB(Target, 0, Size, Data);
+    end;
   end;
 
   function VboTypesToStr(const VboTypes: TVboTypes): string;
@@ -2970,7 +2982,6 @@ begin
   NewVbos := Vbo[vtCoordinate] = 0;
   if NewVbos then
   begin
-    VboToReload := AllVboTypes;
     glGenBuffersARB(Ord(High(Vbo)) + 1, @Vbo);
     if Log then
       WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
@@ -2987,20 +2998,15 @@ begin
     DataUsage := GL_DYNAMIC_DRAW_ARB else
     DataUsage := GL_STATIC_DRAW_ARB;
 
-  if vtCoordinate in VboToReload then
-    BufferData(GL_ARRAY_BUFFER_ARB,
-      Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray,
-      Vbo[vtCoordinate], VboAllocatedSize[vtCoordinate]);
+  BufferData(vtCoordinate, GL_ARRAY_BUFFER_ARB,
+    Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray);
 
-  if vtAttribute in VboToReload then
-    BufferData(GL_ARRAY_BUFFER_ARB,
-      Arrays.Count * Arrays.AttributeSize, Arrays.AttributeArray,
-      Vbo[vtAttribute], VboAllocatedSize[vtAttribute]);
+  BufferData(vtAttribute, GL_ARRAY_BUFFER_ARB,
+    Arrays.Count * Arrays.AttributeSize, Arrays.AttributeArray);
 
-  if (Arrays.Indexes <> nil) and (vtIndex in VboToReload) then
-    BufferData(GL_ELEMENT_ARRAY_BUFFER_ARB,
-      Arrays.Indexes.Count * SizeOf(LongInt), Arrays.Indexes.ItemsArray,
-      Vbo[vtIndex], VboAllocatedSize[vtIndex]);
+  if Arrays.Indexes <> nil then
+    BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER_ARB,
+      Arrays.Indexes.Count * SizeOf(LongInt), Arrays.Indexes.ItemsArray);
 
   VboAllocatedUsage := DataUsage;
 
