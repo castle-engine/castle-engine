@@ -514,7 +514,7 @@ unit GLWindow;
 
 { Only relevant for GLWINDOW_GLUT backend:
   Define to use FPC Glut/FreeGlut unit. Otherwise, our KambiGlut will be used.
-  
+
   In the future, our KambiGlut unit will be removed. But currently,
   you need FPC >= 2.5.1 for FreeGlut unit, so keep using KambiGlut by default. }
 { $define FPC_GLUT_UNIT}
