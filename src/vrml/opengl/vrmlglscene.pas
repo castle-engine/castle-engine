@@ -178,7 +178,7 @@ type
       be used. }
     function ReallyUseHierarchicalOcclusionQuery: boolean;
   protected
-    procedure BeforeChange; override;
+    procedure ReleaseCachedResources; override;
 
     procedure SetBlending(const Value: boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
@@ -4017,76 +4017,49 @@ begin
     (TVRMLSceneRenderingAttributes(SecondValue).UseHierarchicalOcclusionQuery = UseHierarchicalOcclusionQuery);
 end;
 
-procedure TVRMLSceneRenderingAttributes.BeforeChange;
+procedure TVRMLSceneRenderingAttributes.ReleaseCachedResources;
 begin
   inherited;
 
-  { TVRMLGLRenderer requires that attributes may be changed only when
-    nothing is prepared. So we have to do at least Renderer.UnprepareAll.
-    In practice, we have to do more: TVRMLGLScene must also be disconnected
-    from OpenGL, no vbo or such, since their state also depends
-    on the rendering results.
-
-    So full CloseGLRenderer is needed. }
+  { We have to do at least Renderer.UnprepareAll.
+    Actually, we have to do more: TVRMLGLScene must also be disconnected
+    from OpenGL, to release screen effects (referencing renderer shaders)
+    and such. So full CloseGLRenderer is needed. }
 
   FScenes.CloseGLRenderer;
 end;
 
 procedure TVRMLSceneRenderingAttributes.SetBlending(const Value: boolean);
 begin
-  if Blending <> Value then
-  begin
-    BeforeChange;
-    FBlending := Value;
-  end;
+  FBlending := Value;
 end;
 
 procedure TVRMLSceneRenderingAttributes.SetBlendingSourceFactor(
   const Value: TGLenum);
 begin
-  if BlendingSourceFactor <> Value then
-  begin
-    BeforeChange;
-    FBlendingSourceFactor := Value;
-  end;
+  FBlendingSourceFactor := Value;
 end;
 
 procedure TVRMLSceneRenderingAttributes.SetBlendingDestinationFactor(
   const Value: TGLenum);
 begin
-  if BlendingDestinationFactor <> Value then
-  begin
-    BeforeChange;
-    FBlendingDestinationFactor := Value;
-  end;
+  FBlendingDestinationFactor := Value;
 end;
 
 procedure TVRMLSceneRenderingAttributes.SetBlendingSort(const Value: boolean);
 begin
-  if BlendingSort <> Value then
-  begin
-    BeforeChange;
-    FBlendingSort := Value;
-  end;
+  FBlendingSort := Value;
 end;
 
 procedure TVRMLSceneRenderingAttributes.SetControlBlending(const Value: boolean);
 begin
-  if ControlBlending <> Value then
-  begin
-    BeforeChange;
-    FControlBlending := Value;
-  end;
+  FControlBlending := Value;
 end;
 
 procedure TVRMLSceneRenderingAttributes.SetOnBeforeShapeRender(
   const Value: TBeforeShapeRenderProc);
 begin
-  if OnBeforeShapeRender <> Value then
-  begin
-    BeforeChange;
-    FOnBeforeShapeRender := Value;
-  end;
+  FOnBeforeShapeRender := Value;
 end;
 
 procedure TVRMLSceneRenderingAttributes.SetUseOcclusionQuery(const Value: boolean);

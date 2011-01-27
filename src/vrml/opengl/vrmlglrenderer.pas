@@ -315,13 +315,7 @@ type
     FVertexBufferObject: boolean;
   protected
     { These methods just set the value on given property,
-      eventually calling BeforeChange.
-
-      In descendants you can do something more here, like automatic
-      calling UnprepareAll of related TVRMLGLRenderer
-      (this is not done here, as this would be dangerous ---
-      caller must be aware that TVRMLGLRenderer was unprepared,
-      and must prepare it again, otherwise rendering will fail).
+      eventually calling ReleaseCachedResources.
       @groupBegin }
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
     procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
@@ -347,9 +341,20 @@ type
     procedure SetVertexBufferObject(const Value: boolean); virtual;
     { @groupEnd }
 
-    { Called always before a rendering attribute (that is, any property
-      of this class that has an effect on rendering) changes. }
-    procedure BeforeChange; virtual;
+    { Called before changing an attribute that requires the release
+      of things cached in a renderer. This includes attributes that affect:
+
+      @unorderedList(
+        @item(How TShapeCache.Arrays contents are generated.
+          For example, Generator uses TexCoordsNeeded, so changing
+          any attribute that affects TexCoordsNeeded calls this method.
+          Likewise OnVertexColor determines if color array will be loaded at all.)
+
+        @item(How (and if) TShapeCache.Vbo are loaded.)
+
+        @item(How textures are loaded (texture filtering options affect them).)
+      ) }
+    procedure ReleaseCachedResources; virtual;
   public
     constructor Create; virtual;
 
@@ -2529,8 +2534,8 @@ function TVRMLGLRendererContextCache.Shape_IncReference(
 
     Result := not (
       { If we use any features that (may) render shape differently
-        if shape's transform (or other stuff handled outside RenderShapeInside),
-        then Result must be false. }
+        if shape's transform (or other stuff handled outside arrays
+        and vrmlmeshrenderer), then Result must be false. }
       Assigned(ARenderer.Attributes.OnVertexColor) or
       Assigned(ARenderer.Attributes.OnRadianceTransfer) or
       (ARenderer.BumpMappingMethod <> bmNone) or
@@ -2687,7 +2692,7 @@ begin
   FVertexBufferObject := true;
 end;
 
-procedure TVRMLRenderingAttributes.BeforeChange;
+procedure TVRMLRenderingAttributes.ReleaseCachedResources;
 begin
   { Nothing to do in this class. }
 end;
@@ -2697,7 +2702,7 @@ procedure TVRMLRenderingAttributes.SetOnRadianceTransfer(
 begin
   if OnRadianceTransfer <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FOnRadianceTransfer := Value;
   end;
 end;
@@ -2707,61 +2712,41 @@ procedure TVRMLRenderingAttributes.SetOnVertexColor(
 begin
   if OnVertexColor <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FOnVertexColor := Value;
   end;
 end;
 
 procedure TVRMLRenderingAttributes.SetLighting(const Value: boolean);
 begin
-  if Lighting <> Value then
-  begin
-    BeforeChange;
-    FLighting := Value;
-  end;
+  FLighting := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetUseSceneLights(const Value: boolean);
 begin
-  if UseSceneLights <> Value then
-  begin
-    BeforeChange;
-    FUseSceneLights := Value;
-  end;
+  FUseSceneLights := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetFirstGLFreeLight(const Value: Cardinal);
 begin
-  if FirstGLFreeLight <> Value then
-  begin
-    BeforeChange;
-    FFirstGLFreeLight := Value;
-  end;
+  FFirstGLFreeLight := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetLastGLFreeLight(const Value: integer);
 begin
-  if LastGLFreeLight <> Value then
-  begin
-    BeforeChange;
-    FLastGLFreeLight := Value;
-  end;
+  FLastGLFreeLight := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetControlMaterials(const Value: boolean);
 begin
-  if ControlMaterials <> Value then
-  begin
-    BeforeChange;
-    FControlMaterials := Value;
-  end;
+  FControlMaterials := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetControlTextures(const Value: boolean);
 begin
   if ControlTextures <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FControlTextures := Value;
   end;
 end;
@@ -2770,7 +2755,7 @@ procedure TVRMLRenderingAttributes.SetEnableTextures(const Value: boolean);
 begin
   if EnableTextures <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FEnableTextures := Value;
   end;
 end;
@@ -2779,7 +2764,7 @@ procedure TVRMLRenderingAttributes.SetFirstGLFreeTexture(const Value: Cardinal);
 begin
   if FirstGLFreeTexture <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FFirstGLFreeTexture := Value;
   end;
 end;
@@ -2788,7 +2773,7 @@ procedure TVRMLRenderingAttributes.SetLastGLFreeTexture(const Value: integer);
 begin
   if LastGLFreeTexture <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FLastGLFreeTexture := Value;
   end;
 end;
@@ -2797,7 +2782,7 @@ procedure TVRMLRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
 begin
   if TextureMinFilter <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FTextureMinFilter := Value;
   end;
 end;
@@ -2806,25 +2791,21 @@ procedure TVRMLRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
 begin
   if TextureMagFilter <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FTextureMagFilter := Value;
   end;
 end;
 
 procedure TVRMLRenderingAttributes.SetPointSize(const Value: TGLFloat);
 begin
-  if PointSize <> Value then
-  begin
-    BeforeChange;
-    FPointSize := Value;
-  end;
+  FPointSize := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetUseFog(const Value: boolean);
 begin
   if UseFog <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FUseFog := Value;
   end;
 end;
@@ -2834,64 +2815,40 @@ procedure TVRMLRenderingAttributes.SetBumpMappingMaximum(
 begin
   if BumpMappingMaximum <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FBumpMappingMaximum := Value;
   end;
 end;
 
 procedure TVRMLRenderingAttributes.SetGLSLShaders(const Value: boolean);
 begin
-  if GLSLShaders <> Value then
-  begin
-    { TODO: this is a huge hack for VSM: changing GLSLShaders is done
-      inside TVRMLGLScene.Render, to allow using our own VSM shader
-      generating depth. In that case, we really do not want to trigger
-      BeforeChange when changing Attributes.GLSLShaders value
-      (this would cause CloseGLRenderer on all scenes, thus freeing
-      VSM texture and shader resources currently used... bad idea).
-
-      Eventually, this should be solved one day by throwing away
-      display lists, using only VBO, and allowing changes to Attributes
-      happen without any speed penalty (no need for any costly BeforeChange
-      and such). }
-    if not VarianceShadowMaps then
-      BeforeChange;
-    FGLSLShaders := Value;
-  end;
+  FGLSLShaders := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetPureGeometry(const Value: boolean);
 begin
   if PureGeometry <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FPureGeometry := Value;
   end;
 end;
 
 procedure TVRMLRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
 begin
-  if TextureModeGrayscale <> Value then
-  begin
-    BeforeChange;
-    FTextureModeGrayscale := Value;
-  end;
+  FTextureModeGrayscale := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
 begin
-  if TextureModeRGB <> Value then
-  begin
-    BeforeChange;
-    FTextureModeRGB := Value;
-  end;
+  FTextureModeRGB := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetVarianceShadowMaps(const Value: boolean);
 begin
   if VarianceShadowMaps <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources; { TODO: needed? }
     FVarianceShadowMaps := Value;
   end;
 end;
@@ -2900,7 +2857,7 @@ procedure TVRMLRenderingAttributes.SetVertexBufferObject(const Value: boolean);
 begin
   if VertexBufferObject <> Value then
   begin
-    BeforeChange;
+    ReleaseCachedResources;
     FVertexBufferObject := Value;
   end;
 end;
