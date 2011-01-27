@@ -160,7 +160,6 @@ type
     FWireframeColor: TVector3Single;
     FWireframeWidth: Single;
     FWireframeEffect: TVRMLWireframeEffect;
-    FOnBeforeShapeRender: TBeforeShapeRenderProc;
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
     FDebugHierOcclusionQueryResults: boolean;
@@ -185,7 +184,6 @@ type
     procedure SetBlendingDestinationFactor(const Value: TGLenum); virtual;
     procedure SetBlendingSort(const Value: boolean); virtual;
     procedure SetControlBlending(const Value: boolean); virtual;
-    procedure SetOnBeforeShapeRender(const Value: TBeforeShapeRenderProc); virtual;
     procedure SetUseOcclusionQuery(const Value: boolean); virtual;
   public
     constructor Create; override;
@@ -256,16 +254,6 @@ type
     property WireframeWidth: Single
       read FWireframeWidth write FWireframeWidth default DefaultWireframeWidth;
     { @groupEnd }
-
-    { If assigned, this callback will be called always right before rendering
-      given shape. Use this if you want to customize rendering, this is
-      the place for per-shape code.
-
-      For example, you can use this to activate GLSL shader for this specific
-      shape, or to pass uniform values to GLSL shader that only change
-      once before each shape. }
-    property OnBeforeShapeRender: TBeforeShapeRenderProc
-      read FOnBeforeShapeRender write SetOnBeforeShapeRender;
 
     { Should we use ARB_occlusion_query (if available) to avoid rendering
       shapes that didn't pass occlusion test in previous frame.
@@ -1786,8 +1774,6 @@ var
       OcclusionBoxStateEnd;
 
       Inc(FLastRender_RenderedShapesCount);
-      if Assigned(Attributes.OnBeforeShapeRender) then
-        Attributes.OnBeforeShapeRender(Shape);
       RenderShape(Shape);
     end;
 
@@ -3995,7 +3981,6 @@ begin
     BlendingDestinationFactor := S.BlendingDestinationFactor;
     BlendingSort := S.BlendingSort;
     ControlBlending := S.ControlBlending;
-    OnBeforeShapeRender := S.OnBeforeShapeRender;
     UseOcclusionQuery := S.UseOcclusionQuery;
     UseHierarchicalOcclusionQuery := S.UseHierarchicalOcclusionQuery;
     inherited;
@@ -4012,7 +3997,6 @@ begin
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingDestinationFactor = BlendingDestinationFactor) and
     (TVRMLSceneRenderingAttributes(SecondValue).BlendingSort = BlendingSort) and
     (TVRMLSceneRenderingAttributes(SecondValue).ControlBlending = ControlBlending) and
-    (TVRMLSceneRenderingAttributes(SecondValue).OnBeforeShapeRender = OnBeforeShapeRender) and
     (TVRMLSceneRenderingAttributes(SecondValue).UseOcclusionQuery = UseOcclusionQuery) and
     (TVRMLSceneRenderingAttributes(SecondValue).UseHierarchicalOcclusionQuery = UseHierarchicalOcclusionQuery);
 end;
@@ -4054,12 +4038,6 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetControlBlending(const Value: boolean);
 begin
   FControlBlending := Value;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetOnBeforeShapeRender(
-  const Value: TBeforeShapeRenderProc);
-begin
-  FOnBeforeShapeRender := Value;
 end;
 
 procedure TVRMLSceneRenderingAttributes.SetUseOcclusionQuery(const Value: boolean);
