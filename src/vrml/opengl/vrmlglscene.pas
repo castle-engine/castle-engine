@@ -1118,14 +1118,16 @@ begin
 
   GLScene := TVRMLGLScene(ParentScene);
 
-  { Ignore changes that don't affect prepared arrays,
-    like transformation, clip planes and everything else that is applied
-    by renderer every time, and doesn't affect TGeometryArrays. }
-  if Changes * [chCoordinate, chVisibleVRML1State, chGeometryVRML1State,
-    chColorNode, chTextureCoordinate, chGeometry, chFontStyle] <> [] then
+  if Cache <> nil then
   begin
-    if Cache <> nil then
-      Cache.FreeArrays;
+    { Ignore changes that don't affect prepared arrays,
+      like transformation, clip planes and everything else that is applied
+      by renderer every time, and doesn't affect TGeometryArrays. }
+    if Changes * [chCoordinate] <> [] then
+      Cache.FreeArrays([vtCoordinate]) else
+    if Changes * [chVisibleVRML1State, chGeometryVRML1State,
+      chColorNode, chTextureCoordinate, chGeometry, chFontStyle] <> [] then
+      Cache.FreeArrays(AllVboTypes);
   end;
 
   if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
@@ -1762,7 +1764,7 @@ var
         if (Assigned(Attributes.OnVertexColor) or
             Assigned(Attributes.OnRadianceTransfer)) and
            (Shape.Cache <> nil) then
-          Shape.Cache.FreeArrays;
+          Shape.Cache.FreeArrays([vtAttribute]);
 
         Renderer.RenderShape(Shape, ShapeFog(Shape));
       end;

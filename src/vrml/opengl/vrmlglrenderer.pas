@@ -777,7 +777,9 @@ type
   TDynTextureDepthOrFloatCacheArray = TDynArray_13;
 
   TVRMLRendererShape = class;
-  TVboArrays = array [0..2] of TGLuint;
+  TVboType = (vtCoordinate, vtAttribute, vtIndex);
+  TVboTypes = set of TVboType;
+  TVboArrays = array [TVboType] of TGLuint;
 
   { Cached shape resources. }
   TShapeCache = class
@@ -795,17 +797,24 @@ type
       This is managed by TVRMLGLRenderer and TVRMLGLScene. }
     Arrays: TGeometryArrays;
 
+    { What Vbos do we need to reload.
+      Next time (right after creating arrays) we load vbo contents,
+      we'll look at this to know which parts to actually reload to vbo.
+      This is extended at each FreeArrays call. }
+    VboToReload: TVboTypes;
+
     Vbo: TVboArrays;
     VboAllocatedUsage: TGLenum;
-    VboAllocatedSize: array [0..2] of Cardinal;
+    VboAllocatedSize: array [TVboType] of Cardinal;
 
     { Like TVRMLRendererShape.LoadArraysToVbo,
       but takes explicit DynamicGeometry. }
     procedure LoadArraysToVbo(DynamicGeometry: boolean);
     procedure FreeVBO;
   public
+    constructor Create;
     destructor Destroy; override;
-    procedure FreeArrays;
+    procedure FreeArrays(const Changed: TVboTypes);
   end;
 
   TShapeCacheList = specialize TFPGObjectList<TShapeCache>;
@@ -1379,6 +1388,8 @@ const
   ( 'None',
     'Dot (by GLSL)',
     'Dot with steep parallax (by GLSL)' );
+
+  AllVboTypes = [Low(TVboType) .. High(TVboType)];
 
 var
   { Should we log every event of a cache TVRMLGLRendererContextCache.
@@ -2565,8 +2576,6 @@ begin
     Result.FogDistanceScaling := Fog.TransformScale else
     Result.FogDistanceScaling := 0;
   Result.References := 1;
-  Result.Arrays := nil;
-  FillChar(Result.Vbo, SizeOf(Result.Vbo), 0);
 
   if LogRendererCache and Log then
     WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.NodeTypeName, Result.References]);
@@ -2879,33 +2888,40 @@ end;
 
 { TShapeCache ---------------------------------------------------------------- }
 
+constructor TShapeCache.Create;
+begin
+  inherited;
+  VboToReload := AllVboTypes;
+end;
+
 destructor TShapeCache.Destroy;
 begin
-  FreeArrays;
+  FreeArrays(AllVboTypes);
   FreeVBO;
   inherited;
 end;
 
 procedure TShapeCache.FreeVBO;
 var
-  I: Integer;
+  I: TVboType;
 begin
-  if Vbo[0] <> 0 then
+  if Vbo[vtCoordinate] <> 0 then
   begin
     { All Vbo must be zero, or none. }
-    for I := 0 to High(Vbo) do
+    for I := Low(I) to High(I) do
       Assert(Vbo[I] <> 0);
 
-    glDeleteBuffersARB(High(Vbo) + 1, @Vbo);
+    glDeleteBuffersARB(Ord(High(Vbo)) + 1, @Vbo);
 
-    for I := 0 to High(Vbo) do
+    for I := Low(I) to High(I) do
       Vbo[I] := 0;
   end;
 end;
 
-procedure TShapeCache.FreeArrays;
+procedure TShapeCache.FreeArrays(const Changed: TVboTypes);
 begin
   FreeAndNil(Arrays);
+  VboToReload += Changed;
 end;
 
 procedure TShapeCache.LoadArraysToVbo(DynamicGeometry: boolean);
@@ -2930,43 +2946,71 @@ var
       glBufferSubDataARB(Target, 0, Size, Data);
   end;
 
+  function VboTypesToStr(const VboTypes: TVboTypes): string;
+  const
+    Names: array [TVboType] of string =
+    ( 'Coordinate', 'Attribute', 'Index' );
+  var
+    I: TVboType;
+  begin
+    Result := '';
+    for I := Low(I) to High(I) do
+      if I in VboTypes then
+      begin
+        if Result <> '' then Result += ',';
+        Result += Names[I];
+      end;
+    Result := '[' + Result + ']';
+  end;
+
 begin
   Assert(GL_ARB_vertex_buffer_object);
   Assert(not Arrays.DataFreed);
 
-  NewVbos := Vbo[0] = 0;
+  NewVbos := Vbo[vtCoordinate] = 0;
   if NewVbos then
   begin
-    glGenBuffersARB(High(Vbo) + 1, @Vbo);
+    VboToReload := AllVboTypes;
+    glGenBuffersARB(Ord(High(Vbo)) + 1, @Vbo);
     if Log then
       WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
-        [Vbo[0], Vbo[1], Vbo[2]]));
+        [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex]]));
   end else
   begin
     if Log then
-      WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d)',
-        [Vbo[0], Vbo[1], Vbo[2]]));
+      WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d), reloading %s',
+        [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex],
+         VboTypesToStr(VboToReload)]));
   end;
 
   if DynamicGeometry then
     DataUsage := GL_DYNAMIC_DRAW_ARB else
     DataUsage := GL_STATIC_DRAW_ARB;
 
-  BufferData(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.CoordinateSize,
-    Arrays.CoordinateArray, Vbo[0], VboAllocatedSize[0]);
-  BufferData(GL_ARRAY_BUFFER_ARB, Arrays.Count * Arrays.AttributeSize,
-    Arrays.AttributeArray, Vbo[1], VboAllocatedSize[1]);
+  if vtCoordinate in VboToReload then
+    BufferData(GL_ARRAY_BUFFER_ARB,
+      Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray,
+      Vbo[vtCoordinate], VboAllocatedSize[vtCoordinate]);
 
-  if Arrays.Indexes <> nil then
-  begin
+  if vtAttribute in VboToReload then
+    BufferData(GL_ARRAY_BUFFER_ARB,
+      Arrays.Count * Arrays.AttributeSize, Arrays.AttributeArray,
+      Vbo[vtAttribute], VboAllocatedSize[vtAttribute]);
+
+  if (Arrays.Indexes <> nil) and (vtIndex in VboToReload) then
     BufferData(GL_ELEMENT_ARRAY_BUFFER_ARB,
       Arrays.Indexes.Count * SizeOf(LongInt), Arrays.Indexes.ItemsArray,
-      Vbo[2], VboAllocatedSize[2]);
-  end;
+      Vbo[vtIndex], VboAllocatedSize[vtIndex]);
 
   VboAllocatedUsage := DataUsage;
 
   Arrays.FreeData;
+
+  { Vbos are fully loaded now. By setting them to empty here,
+    we can later at FreeArrays update VboToReload (and this way things
+    work even if you call FreeArrays multiple times, the needed updates
+    are summed). }
+  VboToReload := [];
 end;
 
 { TVRMLRendererShape --------------------------------------------------------- }
@@ -4125,7 +4169,7 @@ begin
     begin
       { Arrays contents are already loaded, make sure that Vbo are loaded too
         (in case Arrays were loaded previously, when VBO = false). }
-      if VBO and (Shape.Cache.Vbo[0] = 0) then
+      if VBO and (Shape.Cache.Vbo[vtCoordinate] = 0) then
         Shape.LoadArraysToVbo;
     end;
 
@@ -4133,7 +4177,7 @@ begin
     begin
       { Shape.Arrays contents are already loaded,
         so Vbo contents are already loaded too }
-      Assert(Shape.Cache.Vbo[0] <> 0);
+      Assert(Shape.Cache.Vbo[vtCoordinate] <> 0);
       CoordinateRenderer.Vbo := Shape.Cache.Vbo;
     end;
 
