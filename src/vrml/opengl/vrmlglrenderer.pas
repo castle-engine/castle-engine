@@ -3425,7 +3425,18 @@ begin
       glDisable(GL_TEXTURE_GEN_T);
       glDisable(GL_TEXTURE_GEN_Q);
     end;
+
+    { We don't really need to enable GL_NORMALIZE.
+      We always provide normalized normals (that's how vrmlarraysgenerator.pas
+      and vrmlmeshrenderer.inc always calculate them, and when provided
+      in VRML/X3D they should also be already normalized).
+      However, turning GL_NORMALIZE doesn't give us *any* performance
+      benefit as far as I tested (with castle gate, on high-end GPUs
+      like Radeon X1600 and low-end like Intel).
+      So leave GL_NORMALIZE enabled --- it will help for invalid VRML/X3D
+      files that have unnomalized normals. }
     glEnable(GL_NORMALIZE);
+
     glPointSize(Attributes.PointSize);
     glEnable(GL_DEPTH_TEST);
 
