@@ -219,6 +219,7 @@
 
   TNodeLocalFog = class(TNodeX3DChildNode, INodeX3DFogObject)
   private
+    FTransformScale: Single;
     function GetFdcolor: TSFColor;
     function GetFdfogType: TSFString;
     function GetFdvisibilityRange: TSFFloat;
@@ -226,6 +227,8 @@
     function GetFdvolumetricDirection: TSFVec3f;
     function GetFdvolumetricVisibilityStart: TSFFloat;
     function GetTransformScale: Single;
+  protected
+    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -690,6 +693,14 @@ begin
   Fields.Add(FFdvolumetricVisibilityStart);
 
   DefaultContainerField := 'children';
+
+  FTransformScale := 1;
+end;
+
+procedure TNodeLocalFog.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+begin
+  inherited;
+  FTransformScale := StateStack.Top.TransformScale;
 end;
 
 class function TNodeLocalFog.ClassNodeTypeName: string;
@@ -743,7 +754,11 @@ end;
 
 function TNodeLocalFog.GetTransformScale: Single;
 begin
-  Result := 1; { TODO }
+  { TODO: this is actually bad, each LocalFog occurence may have
+    different scale, depending on parent transform node.
+    We should keep LocalFogScale in State, and pass it along
+    to RenderShape. This method should not exist. }
+  Result := FTransformScale;
 end;
 
 constructor TNodeTextureBackground.Create(const ANodeName: string;
