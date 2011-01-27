@@ -2515,7 +2515,7 @@ function TVRMLGLRendererContextCache.Shape_IncReference(
   Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
   ARenderer: TVRMLGLRenderer): TShapeCache;
 
-  function GetCacheIgnoresTransform: boolean;
+  function IgnoreStateTransform: boolean;
   var
     Enabled, Volumetric: boolean;
     VolumetricDirection: TVector3Single;
@@ -2543,33 +2543,14 @@ function TVRMLGLRendererContextCache.Shape_IncReference(
   end;
 
 var
-  CacheIgnoresTransform: boolean;
-
-  { Compares two VRML/X3D states by
-      State1.EqualsNoTransform(State2)
-    or
-      State1.Equals(State2)
-    Which one is used, depends on whether two shapes with different
-    transformation can be considered equal. This depends on whether
-    we have volumetric fog, based on global coords. }
-  function StatesEqual(State1, State2: TVRMLGraphTraverseState): boolean;
-  begin
-    if CacheIgnoresTransform then
-      Result := State1.EqualsNoTransform(State2) else
-      Result := State1.Equals(State2);
-  end;
-
-var
   I: Integer;
 begin
-  CacheIgnoresTransform := GetCacheIgnoresTransform;
-
   for I := 0 to ShapeCaches.Count - 1 do
   begin
     Result := ShapeCaches[I];
-    if (Result.Attributes.Equals(ARenderer.Attributes)) and
-       (Result.Geometry = Shape.Geometry) and
-       StatesEqual(Result.State, Shape.State) and
+    if (Result.Geometry = Shape.Geometry) and
+       (Result.Attributes.Equals(ARenderer.Attributes)) and
+       Result.State.Equals(Shape.State, IgnoreStateTransform) and
        FogParametersEqual(Result.Fog, Result.FogDistanceScaling, Fog) then
     begin
       Inc(Result.References);

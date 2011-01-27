@@ -496,15 +496,13 @@ type
     procedure Clear;
 
     { Compare with other TVRMLGraphTraverseState instance.
-      The idea is that two states are equal if, when applied to the same
-      VRML node, they "mean" the same thing, i.e. produce the same shape,
-      behavior etc. }
-    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
-
-    { This is like @link(Equals) but it ignores some fields that are
-      ignored when rendering using TVRMLGLRenderer.RenderShapeInside.
-      For example, it ignores Transform, TransformScale, InvertedTransform. }
-    function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
+      True if these two states, when applied to the same geometry,
+      result in the same TGeometryArrays output.
+      If IgnoreTransform then we should ignore transformation during comparison
+      (it means that renderer is absolutely sure that different transformation
+      of geometry doesn't affect the generated arrays). }
+    function Equals(SecondValue: TVRMLGraphTraverseState;
+      const IgnoreTransform: boolean): boolean;
 
     { Returns texture node that should be used for nodes within this State.
       Regardless of VRML/X3D version. May return multi-texture
@@ -2569,69 +2567,20 @@ begin
     FreeAndNil(ClipPlanes);
 end;
 
-function TVRMLGraphTraverseState.Equals(SecondValue: TObject): boolean;
-
-  function LightArraysEqual(L1, L2: TDynActiveLightArray): boolean;
-  begin
-    Result := ((L1 = nil) and (L2 = nil)) or L1.Equals(L2);
-  end;
-
-  function ClipPlanesEqual(C1, C2: TDynClipPlaneArray): boolean;
-  begin
-    Result := ((C1 = nil) and (C2 = nil)) or C1.Equals(C2);
-  end;
-
-var
-  SV: TVRMLGraphTraverseState;
-  SN: TVRML1StateNode;
-begin
-  { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
-    PointingDeviceSensors
-    are currently ignored by Equals,
-    since Equals is used for TVRMLGLRenderer where difference
-    in these is not important. This may be clarified in the interface
-    and improved later. }
-
-  Result :=
-    (SecondValue <> nil) and
-    (SecondValue is TVRMLGraphTraverseState);
-
-  if not Result then Exit;
-
-  SV := TVRMLGraphTraverseState(SecondValue);
-
-  Result :=
-    LightArraysEqual(VRML1ActiveLights, SV.VRML1ActiveLights) and
-    LightArraysEqual(VRML2ActiveLights, SV.VRML2ActiveLights) and
-    ClipPlanesEqual(ClipPlanes, SV.ClipPlanes) and
-    { no need to compare InvertedTransform, it should be equal when normal
-      Transform is equal. }
-    MatricesPerfectlyEqual(Transform, SV.Transform) and
-    (TransformScale = SV.TransformScale) and
-    MatricesPerfectlyEqual(TextureTransform, SV.TextureTransform) and
-    (ShapeNode = SV.ShapeNode) and
-    (LocalFog = SV.LocalFog);
-
-  if Result then
-  begin
-    for SN := Low(SN) to High(SN) do
-      if SV.LastNodes.Nodes[SN] <> LastNodes.Nodes[SN] then
-        Exit(false);
-  end;
-end;
-
-function TVRMLGraphTraverseState.EqualsNoTransform(
-  SecondValue: TVRMLGraphTraverseState): boolean;
+function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState;
+  const IgnoreTransform: boolean): boolean;
 var
   SN: TVRML1StateNode;
 begin
-  { InsideInline, InsidePrototype, InsideIgnoreCollision, InsideInvisible,
-    PointingDeviceSensors,
-    ActiveLights, Transform, TransformScale, InvertedTransform,
-    TextureTransform, ClipPlanes, LocalFog are ignored by
-    TVRMLGLRenderer.RenderShapeInside }
+  { Many fields are ignored by Equals, as they have no effect on generated
+    TGeometryArrays for shapes. Like InsideInline, InsidePrototype and many
+    others. }
 
-  Result := (ShapeNode = SecondValue.ShapeNode);
+  Result :=
+    (IgnoreTransform or MatricesPerfectlyEqual(Transform, SecondValue.Transform)) and
+    MatricesPerfectlyEqual(TextureTransform, SecondValue.TextureTransform) and
+    (ShapeNode = SecondValue.ShapeNode) and
+    (LocalFog = SecondValue.LocalFog);
 
   if Result then
   begin
