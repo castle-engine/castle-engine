@@ -1118,16 +1118,14 @@ begin
 
   GLScene := TVRMLGLScene(ParentScene);
 
-  { Transformation changes don't affect prepared arrays.
-    This can be quite crucial optimization in some cases,
-    as you can animate Transform.translation/rotation/scale etc. efficiently.
-    (no rebuilding of arrays needed). }
-  if Changes - [chClipPlane, chTransform] <> [] then
+  { Ignore changes that don't affect prepared arrays,
+    like transformation, clip planes and everything else that is applied
+    by renderer every time, and doesn't affect TGeometryArrays. }
+  if Changes * [chCoordinate, chVisibleVRML1State, chGeometryVRML1State,
+    chColorNode, chTextureCoordinate, chGeometry, chFontStyle] <> [] then
   begin
     if Cache <> nil then
       Cache.FreeArrays;
-    if Log and GLScene.LogChanges then
-      WritelnLog('VRML changes', 'Shape OpenGL resources freed');
   end;
 
   if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
