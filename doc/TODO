@@ -20,19 +20,6 @@ WWW:
 ------------------------------------------------------------------------------
 3.9.0: Modernize rendering (everything through VBO, various shaders improvements)
 VBO:
-- migration to Vertex Buffer Objects
-- Add rendering mode:
-
-  - Shapes By Display List (same as roShapeDisplayList now, but with VA constructed and loaded)
-  - new Shapes by VBO (new default)
-
-  - Move more stuff outside of RenderShapeNoTransform:
-    probably shaders, materials, textures can and should all be moved
-    outside of display list?
-    (No need for this once VBO rendering opt will be implemented.)
-  - Also, the fact that right now MovieTexture / some texture generation methods etc.
-    disable display lists will not be an issue then. They will still be optimized
-    by VBO.
 - Also extracting all useful rendering info, like tex coords etc.,
   to replace poor Triangulate interface, for
   https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=25&p=132#p132
@@ -58,23 +45,6 @@ Mirrors:
   probably the Collada->VRML convertion should be fixed,
   to include "mirror" (as it will be useful then) but allow
   "Save To VRML (without Kambi extensions)" option.
-------------------------------------------------------------------------------
-VBO transition:
-
-- Make stuff use VBO instead of locked vertex arrays.
-
-- Note for future VBO transition, from
-  http://developer.amd.com/media/gpu_assets/ATI_OpenGL_Programming_and_Optimization_Guide.pdf
-
-        Vertex array calls can be compiled into a display list. Compiling the regular OpenGL 1.2 vertex
-        array usage may potentially allow the driver to perform various optimizations on the input vertex data.
-        But it should be noted that if vertex arrays are intended to be compiled into a Display List, the vertex
-        array should not be stored in a Vertex Buffer Object. Compiling vertex arrays stored in Vertex Buffer
-        Objects will cause a significant performance hit when the vertex data is read back from video memory
-        during the display list compilation.
-
-  So, either VBO or display lists. Not both.
-
 ------------------------------------------------------------------------------
 Primitives by Proxy more improvements:
 - Avoid incremental count +=, set count once in sphere/cone/cylinder/box
@@ -242,10 +212,10 @@ Scene manager / controls / better Lazarus integration:
   all the vrml scenes to mix their OpenGL lights could be great?
 
   We would like to easily allow VRML lights (with global=TRUE,
-  this will be following VRML idea) to be shared, but this requires dynamic
-  OpenGL light allocation (not governed by Scene.Attributes.First/Last).
-  This means lights may change without any need to update DLs.
-  Hm, but we already have this - besides roSceneDisplayList, lights are outside DL?
+  this will be following VRML idea) to be shared.
+  This requires dynamic OpenGL light allocation (not governed by Scene.Attributes.First/Last).
+  Lights are already set fully dynamically (outside of disp list,
+  even before vbo transition) so this should be doable.
 
   We could also have just allow MainScene to take all the lights and leave
   them set for other scenes. Hm, actually sensible...
@@ -454,10 +424,6 @@ Various ideas:
   edge (to make it shortest). This would force correct look of all
   IndexedQuadSet, including NurbsPatchSurface.
 
-- on kocury win 2000 prof with Geforce 5200, FBO config is never supported.
-  While on Linux (32, 64) it's Ok.
-  Why? Driver buggy? Test can we get FBO under *any* windows system?
-
 - Only on x86_64: GLU tesselatator is ultra-slow.
 
   So loading anything with a 3D Font takes some time (around 4-5 seconds per font; while it's instanteneous on 32bit). 3D Font is right now used only by VRML Text node, no program initializes TGLOutlineFont directly.
@@ -478,8 +444,6 @@ Various ideas:
   For now, possibly I would just need basic ASCII support, so not all 256 characters need to be defined?
   Done: we use only a subset: SimpleAsciiCharacters. 4-5 and 37 seconds measures are with this already enabled... so it's working, but it's still slow.
 
-- fix vrmlengine for seamless avatars - or is it javascript lack?
-
 - view3dscene: rest of nurbs:
   finish X3D nurbs component up to level 2, update vrml_impl_status about it.
   Remaining:
@@ -497,7 +461,7 @@ Effects, techniques, passes:
 ------------------------------------------------------------------------------
 Occlusion culling:
 
-- make RenderState.StenilTest be used also to pause (not update visibility) in hierarch oq, it would be a waste of temporal conh to not pause there.
+- make RenderState.StencilTest be used also to pause (not update visibility) in hierarch oq, it would be a waste of temporal conh to not pause there.
 
 - if tests show hierarchical is much better than UseOcclusionQuery,
   old UseOcclusionQuery may be removed (and this may be renamed
@@ -557,9 +521,6 @@ sk±d kreski na water w water_reflections_normalmap (both nvidia and radeon show 
 
 ImageGLInternalFormat should use symbolic names, not numbers!
 (Check, since which OpenGL version?)
-
-Shadow maps implementation rest:
-- PROJECTION texture mapping disables displays lists, which seriously limits this technique... Fix. Use VBOs to make things fast even without disp lists. Move texture coord generation out of the display list.
 
 Dynamically changing camera radius may be implemented (along with decreasing camerapreferredheight, decrease cam radius?)
 
@@ -681,17 +642,6 @@ Hm, not so difficult, but this is something for later. For now we will have to l
 
 ------------------------------------------------------------------------------
 after view3dscene 3.0:
-
-- display lists optimization may be wasted even without calling GeometryChanged
-  often (for example, constantly changing material may force it).
-
-  This has to be detected then inside TVRMLGLScene.
-  When some shape is changed too often, switch to roNone for it.
-  (When it's changed often but only with chTransform only,
-  roShapeDisplayList is OK)
-
-  Later: actually, I think it's better to solve it by
-  simply moving more stuff out of display list.
 
 - fix extensions to all be gracefully declared by EXTERNPROTO,
   post to Joerg from white_dune
