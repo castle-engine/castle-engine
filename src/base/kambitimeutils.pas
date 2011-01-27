@@ -245,31 +245,18 @@ type
     controlled by the user of TGLWindow / TKamOpenGLControl. }
   TFramesPerSecond = class
   private
-    { FramesRendered = 0 means "no frame was rendered yet" }
-    FramesRendered: Int64;
-
-    { if FramesRendered > 0 then FirstTimeTick is the time of first
-      _RenderEnd call. }
-    FirstTimeTick: LongWord;
-
-    { set in _RenderBegin }
-    RenderStartTime: TKamTimerResult;
-
-    { how much time passed inside frame rendering }
-    FrameTimePassed: TKamTimerResult;
-
     FActive: boolean;
-    procedure SetActive(Value: boolean);
-
-  private
-    FDrawSpeed: Single;
-
-    FSecondsToAutoReset: Cardinal;
-    FHoldsAfterReset: TMilisecTime;
-
+    FFrameTime: Double;
+    FRealTime: Double;
     FIdleSpeed: Single;
     DoIgnoreNextIdleSpeed: boolean;
     FIdleStartTime: TKamTimerResult;
+    LastRecalculateTime: TMilisecTime;
+    RenderStartTime: TKamTimerResult;
+    { 0 means "no frame was rendered yet" }
+    FramesRendered: Int64;
+    { how much time passed inside frame rendering }
+    FrameTimePassed: TKamTimerResult;
   public
     constructor Create;
 
@@ -279,7 +266,7 @@ type
 
     { Turn on/off frames per second measuring.
       Before using FrameTime or RealTime you must set Active to @true. }
-    property Active: boolean read FActive write SetActive;
+    property Active: boolean read FActive write FActive;
 
     { Rendering speed in frames per second. This tells FPS,
       if we would only call Draw (EventDraw, OnDraw) all the time.
@@ -289,7 +276,7 @@ type
       frames seldom, because there's no need to do it more often).
 
       @seealso RealTime }
-    function FrameTime: Double;
+    property FrameTime: Double read FFrameTime;
 
     { How many frames per second were rendered. This is a real number
       of EventDraw (OnDraw) calls per second. This means that it's actual
@@ -299,74 +286,7 @@ type
       just don't need to render frames continously.
 
       @seealso FrameTime }
-    function RealTime: Double;
-
-    { Reset the FPS measuring.
-      Alternative to doing @code(Active := false; Active := true). }
-    procedure Reset;
-
-    { FPS measurements reset after this number of seconds.
-      This way RealTime / FrameTime always show the average FPS numbers
-      during the last SecondsToAutoReset seconds (well, actually it's
-      more complicated, see HoldsAfterReset).
-
-      This way RealTime / FrameTime don't change too rapidly
-      (so they are good indicator of current FPS speed, as opposed to
-      e.g. DrawSpeed which changes every frame so it very unstable).
-      They also change rapidly enough --- you don't want to see measuments
-      from too long time ago.
-
-      Change SecondsToAutoReset when not Active = @false.  }
-    property SecondsToAutoReset: Cardinal
-        read FSecondsToAutoReset
-       write FSecondsToAutoReset default 6;
-
-    { How to keep previous FPS measurements, when they reset by
-      SecondsToAutoReset?
-
-      When measurements are reset by SecondsToAutoReset, you actually don't
-      want to totally forget previous measurements (as this would make
-      your RealTime / FrameTime unstable for a short time).
-      Instead, you want to assume that current RealTime / FrameTime
-      was measured during last HoldsAfterReset miliseconds.
-
-      This way RealTime / FrameTime stay more stable.
-
-      So actually the measurements are reset at each
-      SecondsToAutoReset * 1000 - HoldsAfterReset miliseconds. }
-    property HoldsAfterReset: TMilisecTime
-        read FHoldsAfterReset
-       write FHoldsAfterReset default 1000;
-
-    { @abstract(How much time it took to render last frame?)
-
-      This returns the time of last EventDraw (that by default just calls
-      OnDraw callback).
-      The time is in seconds, 1.0 = 1 second. In other words, if FrameTime
-      would be measured only based on the last frame time and
-      FrameTime = 1.0 then DrawSpeed is 1.0. (In reality,
-      FrameTime is measured a little better, to average the time
-      of a couple of last frames).
-
-      So for two times faster computer DrawSpeed is = 0.5,
-      for two times slower DrawSpeed = 2.0. This is useful for doing
-      time-based rendering, when you want to scale some changes
-      by computer speed, to get perceived animation speed the same on every
-      computer, regardless of computer's speed. Although remember this measures
-      only EventDraw (OnDraw) speed, so if you do anything else
-      taking some time (e.g. you perform some calculations during OnIdle)
-      you're probably much safer to use IdleSpeed.
-
-      Note that if you have "unstable" rendering times (for example,
-      some OnDraw calls will do something costly like implicitly
-      preparing VRML models on first Render) then DrawSpeed value will
-      also raise suddenly on such frames. That's why you should do
-      any potentially lengthy operations, like preparing VRML scene,
-      in OnBeforeDraw, that is not taken into account when calculating
-      DrawSpeed.
-
-      This is independent from @link(Active) setting, it works always. }
-    property DrawSpeed: Single read FDrawSpeed;
+    property RealTime: Double read FRealTime;
 
     { @abstract(How much time passed since last EventIdle (OnIdle) call?)
 
@@ -377,10 +297,10 @@ type
       by computer speed, to get perceived animation speed the same on every
       computer, regardless of computer's speed.
 
-      This is like DrawSpeed, but calculated as a time between
+      This is calculated as a time between
       start of previous Idle event and start of current Idle event.
-      So this really measures your whole loop time (unlike DrawSpeed
-      that measures only EventDraw (OnDraw) speed).
+      So this really measures your whole loop time (unlike previous DrawSpeed
+      that measured only EventDraw (OnDraw) speed).
 
       You can sanely use this only within EventIdle (OnIdle).
 
@@ -605,134 +525,63 @@ end;
 { TFramesPerSecond ----------------------------------------------------------- }
 
 constructor TFramesPerSecond.Create;
+const
+  DefaultFps = 30.0;
 begin
   inherited;
 
-  FSecondsToAutoReset := 6;
-  HoldsAfterReset := 1000;
-
-  { Just init DrawSpeed, IdleSpeed to some sensible default.
-    Rendering time 30 frames per second seems sensible default for 3D game
-    right?
+  { Just init times to some sensible default.
 
     For IdleSpeed this is actually not essential, since we call
     IgnoreNextCompSpeed anyway. But in case programmer will (incorrectly!)
     try to use IdleSpeed before EventIdle (OnIdle) call, it's useful to have
     here some predictable value. }
-  FDrawSpeed := 1 / 30;
-  FIdleSpeed := 1 / 30;
+  FIdleSpeed := 1 / DefaultFps;
+  FFrameTime := DefaultFps;
+  FRealTime := DefaultFps;
 
   IgnoreNextIdleSpeed;
 end;
 
-procedure TFramesPerSecond.Reset;
-var
-  NowTick: TMilisecTime;
-  OldFrameTime, OldRealTime: Double;
-begin
-  { We could just set FramesRendered = 0 and FrameTimePassed = 0.
-    This would basically reset the FPS measurements.
-
-    But it would be very crude solution. Right after Reset, our FrameTime/
-    RealTime measurements would be completely wrong.
-    So we use HoldsAfterReset to counteract this. }
-
-  if HoldsAfterReset = 0 then
-  begin
-    { reset brutally }
-    FramesRendered := 0;
-    FrameTimePassed := 0;
-  end else
-  begin
-    if FramesRendered <> 0 then
-    begin
-      { save measures }
-      OldFrameTime := FrameTime;
-      OldRealTime := RealTime;
-    end else
-    begin
-      { Init some default measures. Otherwise FPS would be wild at the start
-        of the program, when FramesRendered = 0. }
-      OldFrameTime := 80;
-      OldRealTime := 80;
-    end;
-
-    { fake that already HoldsAfterReset time passed }
-    NowTick := GetTickCount;
-    if NowTick > HoldsAfterReset then
-      FirstTimeTick := NowTick - HoldsAfterReset else
-      { Once in 49 days FirstTimeTick has to be wrong... }
-      FirstTimeTick := 0;
-
-    { Adjust FramesRendered to make new RealTime = OldRealTime.
-      RealTime = FramesRendered * 1000 / HoldsAfterReset sos }
-    FramesRendered := Round(OldRealTime * HoldsAfterReset / 1000.0);
-
-    { Adjust FrameTimePassed to make new FrameTime = OldFrameTime.
-
-      Remember that FrameTimePassed is in KamTimerFrequency units.
-      So we want to
-      FramesRendered  / (FrameTimePassed / KamTimerFrequency) = FrameTime so
-      FramesRendered * KamTimerFrequency  / FrameTimePassed = FrameTime so
-      FramesRendered * KamTimerFrequency / FrameTime = FrameTimePassed. }
-    if OldFrameTime = 0 then
-      FrameTimePassed := 0 else
-      FrameTimePassed := Round(FramesRendered * KamTimerFrequency / OldFrameTime);
-  end;
-end;
-
-procedure TFramesPerSecond.SetActive(Value: boolean);
-begin
-  if Value = Active then Exit;
-
-  FActive := Value;
-  if Value then
-    Reset;
-end;
-
 procedure TFramesPerSecond._RenderBegin;
 begin
-  { Do this even when not Active: RenderStartTime is needed to calc DrawSpeed }
-
+  if not Active then Exit;
   RenderStartTime := KamTimer;
 end;
 
 procedure TFramesPerSecond._RenderEnd;
+const
+  TimeToRecalculate = 1000; { in miliseconds }
 var
-  NowTick: TMilisecTime;
+  NowTime: TMilisecTime;
 begin
-  { ((KamTimer-RenderStartTime) / KamTimerFrequency) = time of last frame
-    rendering time. }
-  FDrawSpeed := (KamTimer - RenderStartTime) / KamTimerFrequency;
-
   if not Active then Exit;
 
-  NowTick := GetTickCount;
-  if ((NowTick - FirstTimeTick) div 1000) >= SecondsToAutoReset then
-    Reset;
-
-  if FramesRendered = 0 then FirstTimeTick := NowTick;
   Inc(FramesRendered);
-  FrameTimePassed := FrameTimePassed + KamTimer - RenderStartTime;
-end;
+  FrameTimePassed += KamTimer - RenderStartTime;
 
-function TFramesPerSecond.RealTime: Double;
-var
-  TimePass: TMilisecTime;
-begin
-  Assert(Active, 'RealTime called but FPS counting not Activated');
-  TimePass := GetTickCount - FirstTimeTick;
-  if TimePass > 0 then
-    Result := FramesRendered * 1000 / TimePass else
-    Result := 0;
-end;
+  NowTime := GetTickCount;
+  if NowTime - LastRecalculateTime >= TimeToRecalculate then
+  begin
+    { update FRealTime, FFrameTime once for TimeToRecalculate time.
+      This way they don't change rapidly.
 
-function TFramesPerSecond.FrameTime: Double;
-begin
-  Assert(Active, 'FrameTime called but FPS counting not Activated');
-  if FrameTimePassed > 0 then
-    Result := FramesRendered * KamTimerFrequency / FrameTimePassed else
-    Result := 0;
+      Previosuly we used more elaborate hacks for this (resetting
+      their times after a longer periods, but keeping some previous
+      results), but they were complex and bad: when the game speed
+      was changing suddenly, FRealTime, FFrameTime should also change
+      suddenly, not gradually increase / decrease. }
+
+    FRealTime := FramesRendered * 1000 / (NowTime - LastRecalculateTime);
+
+    if FrameTimePassed > 0 then
+      FFrameTime := FramesRendered * KamTimerFrequency / FrameTimePassed else
+      FFrameTime := 0;
+
+    LastRecalculateTime := NowTime;
+    FramesRendered := 0;
+    FrameTimePassed := 0;
+  end;
 end;
 
 procedure TFramesPerSecond._IdleBegin;
