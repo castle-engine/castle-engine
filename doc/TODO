@@ -834,3 +834,17 @@ Sound:
 - Possible extensions:
   Maybe: ext to make footsteps sound (default, and based on ground texture?)
   Maybe: to control listener sound (does instantreality have such thing?)
+
+Renderer:
+- Updating TGeometryArrays is still not optimal, because even
+  when VboToReload is not full, Generator still allocates and calculates
+  all the arrays. We don't reload them all to OpenGL, but they are still
+  calculated and waste time for TVRMLArrayGenerator.
+
+  Only parts of TGeometryArrays should be regenerated --- not possible
+  with current TVRMLArrayGenerator, we'll have to make
+  TVRMLArrayGenerator descendants work like "components", that is inserted
+  into the generation, so each TVRMLArrayGenerator descendant
+  like TColorGenerator is independent from others.
+
+  Maybe split TGeometryArrays into three, following TVboType.
