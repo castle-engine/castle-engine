@@ -190,7 +190,6 @@ type
     destructor Destroy; override;
 
     procedure Assign(Source: TPersistent); override;
-    function Equals(SecondValue: TObject): boolean; override;
 
     { Render partially transparent objects.
 
@@ -3986,19 +3985,6 @@ begin
     inherited;
   end else
     inherited;
-end;
-
-function TVRMLSceneRenderingAttributes.Equals(SecondValue: TObject): boolean;
-begin
-  Result := (inherited Equals(SecondValue)) and
-    (SecondValue is TVRMLSceneRenderingAttributes) and
-    (TVRMLSceneRenderingAttributes(SecondValue).Blending = Blending) and
-    (TVRMLSceneRenderingAttributes(SecondValue).BlendingSourceFactor = BlendingSourceFactor) and
-    (TVRMLSceneRenderingAttributes(SecondValue).BlendingDestinationFactor = BlendingDestinationFactor) and
-    (TVRMLSceneRenderingAttributes(SecondValue).BlendingSort = BlendingSort) and
-    (TVRMLSceneRenderingAttributes(SecondValue).ControlBlending = ControlBlending) and
-    (TVRMLSceneRenderingAttributes(SecondValue).UseOcclusionQuery = UseOcclusionQuery) and
-    (TVRMLSceneRenderingAttributes(SecondValue).UseHierarchicalOcclusionQuery = UseHierarchicalOcclusionQuery);
 end;
 
 procedure TVRMLSceneRenderingAttributes.ReleaseCachedResources;

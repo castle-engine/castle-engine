@@ -360,7 +360,11 @@ type
 
     procedure Assign(Source: TPersistent); override;
 
-    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$else} virtual; {$endif}
+    { Is the second TVRMLRenderingAttributes instance on all fields
+      that affect TShapeCache, that is things that affect generated geometry
+      arrays or vbo. This compares the subset of variables that call
+      ReleaseCachedResources --- only the ones that affect TShapeCache. }
+    function EqualForShapeCache(SecondValue: TVRMLRenderingAttributes): boolean; virtual;
 
     { Calculate vertex color from radiance transfer.
       If this is assigned, and geometry object has radianceTransfer
@@ -2549,7 +2553,7 @@ begin
   begin
     Result := ShapeCaches[I];
     if (Result.Geometry = Shape.Geometry) and
-       (Result.Attributes.Equals(ARenderer.Attributes)) and
+       (Result.Attributes.EqualForShapeCache(ARenderer.Attributes)) and
        Result.State.Equals(Shape.State, IgnoreStateTransform) and
        FogParametersEqual(Result.Fog, Result.FogDistanceScaling, Fog) then
     begin
@@ -2626,26 +2630,17 @@ begin
     inherited;
 end;
 
-function TVRMLRenderingAttributes.Equals(SecondValue: TObject): boolean;
+function TVRMLRenderingAttributes.EqualForShapeCache(
+  SecondValue: TVRMLRenderingAttributes): boolean;
 begin
   Result :=
-    (SecondValue <> nil) and
-    (SecondValue is TVRMLRenderingAttributes) and
-    (TVRMLRenderingAttributes(SecondValue).OnRadianceTransfer = OnRadianceTransfer) and
-    (TVRMLRenderingAttributes(SecondValue).OnVertexColor = OnVertexColor) and
-    (TVRMLRenderingAttributes(SecondValue).Lighting = Lighting) and
-    (TVRMLRenderingAttributes(SecondValue).UseSceneLights = UseSceneLights) and
-    (TVRMLRenderingAttributes(SecondValue).FirstGLFreeLight = FirstGLFreeLight) and
-    (TVRMLRenderingAttributes(SecondValue).LastGLFreeLight = LastGLFreeLight) and
-    (TVRMLRenderingAttributes(SecondValue).ControlMaterials = ControlMaterials) and
-    (TVRMLRenderingAttributes(SecondValue).ControlTextures = ControlTextures) and
-    (TVRMLRenderingAttributes(SecondValue).EnableTextures = EnableTextures) and
-    (TVRMLRenderingAttributes(SecondValue).FirstGLFreeTexture = FirstGLFreeTexture) and
-    (TVRMLRenderingAttributes(SecondValue).LastGLFreeTexture = LastGLFreeTexture) and
-    (TVRMLRenderingAttributes(SecondValue).TextureMinFilter = TextureMinFilter) and
-    (TVRMLRenderingAttributes(SecondValue).TextureMagFilter = TextureMagFilter) and
-    (TVRMLRenderingAttributes(SecondValue).PointSize = PointSize) and
-    (TVRMLRenderingAttributes(SecondValue).UseFog = UseFog);
+    (SecondValue.OnRadianceTransfer = OnRadianceTransfer) and
+    (SecondValue.OnVertexColor = OnVertexColor) and
+    (SecondValue.ControlTextures = ControlTextures) and
+    (SecondValue.EnableTextures = EnableTextures) and
+    (SecondValue.FirstGLFreeTexture = FirstGLFreeTexture) and
+    (SecondValue.LastGLFreeTexture = LastGLFreeTexture) and
+    (SecondValue.UseFog = UseFog);
 end;
 
 constructor TVRMLRenderingAttributes.Create;
