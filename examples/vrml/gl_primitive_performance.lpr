@@ -410,7 +410,6 @@ begin
     Window.Controls.Add(SceneManager);
 
     { to get quickier FPS update }
-    Window.Fps.SecondsToAutoReset := 2;
     Window.FpsCaptionUpdateInterval := 1000;
     Window.AutoRedisplay := true;
 
