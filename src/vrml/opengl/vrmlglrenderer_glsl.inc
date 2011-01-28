@@ -270,11 +270,10 @@ function TGLSLRenderer.Enable(out BoundTextureUnits: Cardinal): boolean;
 begin
   BoundTextureUnits := 0;
   if (GLSLProgram <> nil) and
-    { TODO: checking here Attributes.GLSLShaders should not be needed,
-      as TGLSLRenderersList.Prepare makes sure GLSL shaders should
-      not be even prepared when Attributes.GLSLShaders is false.
-      However, for our trick for VSM to remove BeforeChange
-      from SetGLSLShaders, this is needed. }
+    { Check here for Attributes.GLSLShaders, not at TGLSLRenderersList.Prepare.
+      This way we can quickly change Attributes.GLSLShaders value at runtime
+      (this is even used for VarianceShadowMaps, see TVRMLGLScene.Render
+      RestoreGLSLShaders trick), no need to prepare again everything. }
     Renderer.Attributes.GLSLShaders then
   begin
     GLSLProgram.Enable;
@@ -325,8 +324,7 @@ var
   GLSLRenderer: TGLSLRenderer;
 begin
   GLSLProgram := nil;
-  if (not ARenderer.Attributes.PureGeometry) and
-     ARenderer.Attributes.GLSLShaders then
+  if not ARenderer.Attributes.PureGeometry then
   begin
     for I := 0 to Shaders.Count - 1 do
     begin
