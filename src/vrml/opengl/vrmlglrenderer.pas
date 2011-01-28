@@ -2822,7 +2822,7 @@ procedure TVRMLRenderingAttributes.SetVarianceShadowMaps(const Value: boolean);
 begin
   if VarianceShadowMaps <> Value then
   begin
-    ReleaseCachedResources; { TODO: needed? }
+    ReleaseCachedResources;
     FVarianceShadowMaps := Value;
   end;
 end;
