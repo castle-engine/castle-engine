@@ -502,7 +502,7 @@ type
       (it means that renderer is absolutely sure that different transformation
       of geometry doesn't affect the generated arrays). }
     function Equals(SecondValue: TVRMLGraphTraverseState;
-      const IgnoreTransform: boolean): boolean;
+      const IgnoreTransform: boolean): boolean; {$ifdef TOBJECT_HAS_EQUALS} reintroduce; {$endif}
 
     { Returns texture node that should be used for nodes within this State.
       Regardless of VRML/X3D version. May return multi-texture
