@@ -2303,6 +2303,9 @@ begin
   '  Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
   '  Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
   '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
+  '  Multi-texturing (a couple of related extensions): ' + BoolToStr[GLUseMultiTexturing] +nl+
+  '  Vertex Buffer Object: ' + BoolToStr[GL_ARB_vertex_buffer_object] +nl+
+  nl+
   '  Extensions: ' +glGetString(GL_EXTENSIONS) +nl+
   nl+
 
