@@ -2464,7 +2464,7 @@ begin
       EGLSLShaderCompileError or EGLSLProgramLinkError }
     on E: EGLSLError do
     begin
-      VRMLWarning(vwSerious, 'Error when initializing GLSL shader : ' + E.Message);
+      VRMLWarning(vwSerious, 'Error when initializing GLSL shader: ' + E.Message);
       Result := nil;
       ProgramNode.EventIsSelected.Send(false);
     end;

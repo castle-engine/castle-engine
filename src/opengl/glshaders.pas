@@ -773,7 +773,7 @@ begin
   }
 
   if ProgramId = 0 then
-    raise EGLSLError.Create('Creation of GLSL program failed');
+    raise EGLSLError.Create('Cannot create GLSL shader program');
 
   ShaderIds := TDynGLuintArray.Create;
 
