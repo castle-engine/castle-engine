@@ -145,36 +145,6 @@ end;
 
 procedure TBaseCoordinateRenderer.Render;
 var
-  { This is used only by LockArraysBegin and LockArraysEnd. }
-  UseLockArrays: boolean;
-
-  procedure LockArraysBegin;
-  begin
-    { See
-      [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
-      for description of GL_EXT_compiled_vertex_array. }
-    UseLockArrays := (Vbo[vtCoordinate] = 0) and
-      GL_EXT_compiled_vertex_array and
-      { Under Radeon X1600 (chantal), fglrx, with roNone optimization,
-        rendering some shapes without indexes (like 16000heights from
-        http://www.web3d.org/x3d/content/examples/Conformance/Geometry/ElevationGrid/index.html,
-        or shadow_fields demo) causes invalid results
-        (look like random vertexes). So disable using locking for them. }
-      (not (GLVersion.IsFglrx and not Arrays.HasIndexes)) and
-      { Don't use when Arrays.Count has no items,
-        glLockArraysEXT(0, 0) causes OpenGL error "invalid value". }
-     (Arrays.Count <> 0);
-    if UseLockArrays then
-      glLockArraysEXT(0, Arrays.Count);
-  end;
-
-  procedure LockArraysEnd;
-  begin
-    if UseLockArrays then
-      glUnlockArraysEXT;
-  end;
-
-var
   Locations: TDynLongIntArray;
 
   procedure EnableVertexAttrib(GLSLProgram: TGLSLProgram);
@@ -333,34 +303,30 @@ begin
     if (Arrays.Attribs.Count <> 0) and (UsedGLSL <> nil) then
       EnableVertexAttrib(UsedGLSL);
 
-    { Lock arrays after setting up all arrays. }
-    LockArraysBegin;
-    try
-      Mode := ToMode[Arrays.Primitive];
-      First := 0;
-      if Arrays.HasIndexes then
-      begin
-        if Vbo[vtIndex] <> 0 then
-          glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[vtIndex]);
+    Mode := ToMode[Arrays.Primitive];
+    First := 0;
+    if Arrays.HasIndexes then
+    begin
+      if Vbo[vtIndex] <> 0 then
+        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[vtIndex]);
 
-        if Arrays.Counts = nil then
-          glDrawElements(Mode, Arrays.IndexesCount, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
-          for I := 0 to Arrays.Counts.Count - 1 do
-          begin
-            glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.IndexesPtr(First));
-            First += Arrays.Counts[I];
-          end;
-      end else
-      begin
-        if Arrays.Counts = nil then
-          glDrawArrays(Mode, First, Arrays.Count) else
-          for I := 0 to Arrays.Counts.Count - 1 do
-          begin
-            glDrawArrays(Mode, First, Arrays.Counts[I]);
-            First += Arrays.Counts[I];
-          end;
-      end;
-    finally LockArraysEnd; end;
+      if Arrays.Counts = nil then
+        glDrawElements(Mode, Arrays.IndexesCount, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
+        for I := 0 to Arrays.Counts.Count - 1 do
+        begin
+          glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.IndexesPtr(First));
+          First += Arrays.Counts[I];
+        end;
+    end else
+    begin
+      if Arrays.Counts = nil then
+        glDrawArrays(Mode, First, Arrays.Count) else
+        for I := 0 to Arrays.Counts.Count - 1 do
+        begin
+          glDrawArrays(Mode, First, Arrays.Counts[I]);
+          First += Arrays.Counts[I];
+        end;
+    end;
 
     { We disable arrays explicitly. We could alternatively try
       glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT), but
