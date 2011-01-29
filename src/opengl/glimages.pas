@@ -1363,9 +1363,16 @@ var
         niepodzielne na 4). }
       BeforeUnpackImage(UnpackData, Image);
       try
+        { Workaround Mesa 7.9-devel bug (at least with Intel DRI,
+          on Ubuntu 10.10, observed on domek): glTexImage2D accidentaly
+          enables GL_TEXTURE_2D. }
+        if GLVersion.IsMesa then glPushAttrib(GL_ENABLE_BIT);
+
         glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
           Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
           Image.RawPixels);
+
+        if GLVersion.IsMesa then glPopAttrib;
       finally AfterUnpackImage(UnpackData, Image) end;
     end;
 
