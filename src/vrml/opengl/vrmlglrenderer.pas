@@ -3358,7 +3358,8 @@ procedure TVRMLGLRenderer.RenderBegin(LightRenderEvent: TVRMLLightRenderEvent);
     end;
   end;
 
-var i: integer;
+var
+  I: Integer;
 begin
   { Push attribs and matrices (by pushing attribs FIRST we save also current
     matrix mode).
@@ -3370,7 +3371,6 @@ begin
   if not GLVersion.BuggyPointSetAttrib then
     glPushAttrib(GL_ALL_ATTRIB_BITS) else
     glPushAttrib(GL_ALL_ATTRIB_BITS and (not GL_POINT_BIT));
-  glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
 
   { TODO: push/pop is not fully correctly done for multitexturing now:
     - We should push/pop all texture units matrices.
@@ -3385,7 +3385,7 @@ begin
   DisabeAllTextureUnits;
   ActiveTexture(0);
 
-  {init our OpenGL state}
+  { init our OpenGL state }
   glMatrixMode(GL_MODELVIEW);
 
   if not Attributes.PureGeometry then
@@ -3395,6 +3395,7 @@ begin
     begin
       glDisable(GL_TEXTURE_GEN_S);
       glDisable(GL_TEXTURE_GEN_T);
+      glDisable(GL_TEXTURE_GEN_R);
       glDisable(GL_TEXTURE_GEN_Q);
     end;
 
@@ -3436,8 +3437,8 @@ begin
       glEnable(GL_LIGHTING);
 
     if Attributes.UseSceneLights then
-      for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
-        glDisable(GL_LIGHT0+i);
+      for I := Attributes.FirstGLFreeLight to LastGLFreeLight do
+        glDisable(GL_LIGHT0 + I);
   end;
 
   Assert(FogNode = nil);
@@ -3454,10 +3455,14 @@ begin
     LightsRenderer.Statistics[false]); }
   FreeAndNil(LightsRenderer);
 
-  ActiveTexture(0);
+  { Restore active texture unit to 0 }
+  if GLUseMultiTexturing then
+  begin
+    ActiveTexture(0);
+    glClientActiveTextureARB(GL_TEXTURE0_ARB + Attributes.FirstGLFreeTexture);
+  end;
 
-  {pop matrices and attribs (popping attrib restores also saved matrix mode)}
-  glPopClientAttrib;
+  { pop matrices and attribs (popping attrib restores also saved matrix mode) }
   glPopAttrib;
 
   FogNode := nil;
