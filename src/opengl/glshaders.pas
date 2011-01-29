@@ -587,7 +587,7 @@ begin
 
   { if GL_version_2_0 then
     Result := gsStandard else }
-  if Load_GL_ARB_vertex_program then
+  if GL_ARB_vertex_program then
     Result := gsARBExtension else
     Result := gsNone;
 end;
@@ -619,7 +619,7 @@ begin
 
   { if GL_version_2_0 then
     Result := gsStandard else }
-  if Load_GL_ARB_fragment_program then
+  if GL_ARB_fragment_program then
     Result := gsARBExtension else
     Result := gsNone;
 end;
@@ -804,10 +804,7 @@ class function TGLSLProgram.ClassSupport: TGLSupport;
 begin
   if GL_version_2_0 then
     Result := gsStandard else
-  if Load_GL_ARB_shader_objects and
-     Load_GL_ARB_vertex_shader and
-     Load_GL_ARB_fragment_shader and
-     Load_GL_ARB_shading_language_100 then
+  if GLUseARBGLSL then
     Result := gsARBExtension else
     Result := gsNone;
 end;

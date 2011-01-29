@@ -316,6 +316,9 @@ var
     ancient GPUs. }
   GLUseMultiTexturing: boolean;
 
+  { Are all OpenGL ARB extesions for GLSL available. }
+  GLUseARBGLSL: boolean;
+
 { Initialize all extensions and OpenGL versions.
 
   Calls all Load_GLXxx routines from glext unit, so tries to init
@@ -1249,6 +1252,11 @@ begin
 
     { ARB_texture_env_dot3 required (also standard since 1.3, see above comments) }
     GL_ARB_texture_env_dot3;
+
+  GLUseARBGLSL := Load_GL_ARB_shader_objects and
+                  Load_GL_ARB_vertex_shader and
+                  Load_GL_ARB_fragment_shader and
+                  Load_GL_ARB_shading_language_100;
 
   { Workaround http://bugs.freepascal.org/view.php?id=18613 }
   if GL_ARB_vertex_buffer_object then
