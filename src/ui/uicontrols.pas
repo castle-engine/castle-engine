@@ -258,7 +258,7 @@ type
           to something suitable, see TKamSceneManager.ApplyProjection and
           TVRMLGLScene.GLProjection.
 
-          Then al controls with DrawStyle = ds2D are drawn.
+          Then all the controls with DrawStyle = ds2D are drawn.
           For them, OpenGL projection is guaranteed to be set to standard 2D
           projection, like by @code(gluOrtho2D(0, Container.Width, 0, Container.Height)).
           And OpenGL viewport is guaranteed to contain whole container.)
@@ -281,6 +281,9 @@ type
           )
           If you require anything else, set this yourself.)
       )
+
+      When @link(Exists) is @false, remember to do nothing in Draw,
+      and return dsNone in DrawStyle.
 
       @groupBegin }
     function DrawStyle: TUIControlDrawStyle; virtual;
