@@ -848,3 +848,10 @@ Renderer:
   like TColorGenerator is independent from others.
 
   Maybe split TGeometryArrays into three, following TVboType.
+
+- room_parallax example: when another room comes into view,
+  the chair/table disappear. Only with bump mapping on.
+
+  Only on fglrx, not with nvidia or even macosx with same gpu.
+  Another bug of shitty fglrx.
+  This was also happening with old renderer.
