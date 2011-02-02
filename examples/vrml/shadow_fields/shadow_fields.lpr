@@ -181,7 +181,8 @@ begin
 
   SceneReceiver.Render(nil, tgAll);
 
-  glEnable(GL_LIGHTING); { shadow caster is always lit }
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
   glPushMatrix;
     glTranslatev(NavigatorCaster.MoveAmount);
     glScalef(NavigatorCaster.ScaleFactor,
@@ -190,6 +191,8 @@ begin
     SceneCaster.Render(nil, tgAll);
   glPopMatrix;
 
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
   glPushMatrix;
     glTranslatev(NavigatorLocalLight.MoveAmount);
     glScalef(NavigatorLocalLight.ScaleFactor,
@@ -198,7 +201,7 @@ begin
     SceneLocalLight.Render(nil, tgAll);
   glPopMatrix;
 
-  glDisable(GL_LIGHTING);
+  { GL_LIGHTING is disabled by VRML renderer now }
 
   glPushMatrix;
     DrawEnvLight(false);
@@ -206,6 +209,7 @@ begin
 
   glEnable(GL_DEPTH_TEST);
     glColorv(Blue3Single);
+    glPointSize(10); { VRML renderer will reset point size }
     glBegin(GL_POINTS);
       glVertexv(NavigatorSFExplorer.MoveAmount);
     glEnd;
@@ -216,9 +220,6 @@ end;
 
 procedure Open(Glwin: TGLWindow);
 begin
-  glEnable(GL_LIGHT0);
-  glPointSize(10);
-
   GLList_EnvLight := glGenListsCheck(1, 'GLList_EnvLight');
   glNewList(GLList_EnvLight, GL_COMPILE);
     KamGluSphere(1, 10, 10);
