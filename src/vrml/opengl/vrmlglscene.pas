@@ -2317,7 +2317,14 @@ begin
     { We use RenderPrepared to avoid potentially expensive iteration
       over shapes and expensive Renderer.RenderBegin/End. }
     RenderPrepared := true;
-    PrepareRenderShapes;
+
+    { Do not prepare when OnVertexColor or OnRadianceTransfer used,
+      as we can only call these callbacks during render (otherwise they
+      may be unprepared, like no texture for dynamic_ambient_occlusion.lpr). }
+    if not
+      (Assigned(Attributes.OnVertexColor) or
+       Assigned(Attributes.OnRadianceTransfer)) then
+      PrepareRenderShapes;
   end;
 
   if prBackground in Options then
