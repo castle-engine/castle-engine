@@ -35,6 +35,8 @@
   private
     function GetAppearance: TNodeAppearance;
     procedure SetAppearance(const Value: TNodeAppearance);
+    function GetMaterial: TNodeMaterial_2;
+    procedure SetMaterial(const Value: TNodeMaterial_2);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -56,9 +58,10 @@
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
 
-    { This is a shortcut for FdAppearance.Value.
-      If anything makes this impossible (Apperance field is NULL,
-      or wrong class) then returns @nil. }
+    { Apperance of this shape.
+
+      This is a comfortable shortcut for FdAppearance.Value,
+      checking whether it's class is appropriate. }
     property Appearance: TNodeAppearance read GetAppearance write SetAppearance;
 
     { This is a shortcut for FdAppearance.Value.FdTexture.Value.
@@ -71,9 +74,14 @@
       of Apperance. }
     function TextureTransform: TNodeX3DTextureTransformNode;
 
-    { This is like @link(Texture), but it returns Material
-      of Apperance. }
-    function Material: TNodeMaterial_2;
+    { Get / set the (simple, one-sided) material of this shape.
+      This is a shortcut for accessing "material" field of Apperance,
+      that is @code(TNodeAppearance(FdAppearance.Value).FdMaterial.Value),
+      checking whether nodes are set to appropriate types along the way.
+
+      When setting this material to something non-nil, we make sure
+      to also set Appearance to something non-nil. }
+    property Material: TNodeMaterial_2 read GetMaterial write SetMaterial;
 
     private FFdoctreeTriangles: TSFNode;
     public property FdoctreeTriangles: TSFNode read FFdoctreeTriangles;
@@ -445,6 +453,33 @@ begin
   FdAppearance.Value := Value;
 end;
 
+function TNodeX3DShapeNode.GetMaterial: TNodeMaterial_2;
+var
+  App: TNodeAppearance;
+begin
+  App := Appearance;
+  if (App <> nil) and
+     (App.FdMaterial.Value <> nil) and
+     (App.FdMaterial.Value is TNodeMaterial_2) then
+    Result := TNodeMaterial_2(App.FdMaterial.Value) else
+    Result := nil;
+end;
+
+procedure TNodeX3DShapeNode.SetMaterial(const Value: TNodeMaterial_2);
+var
+  App: TNodeAppearance;
+begin
+  App := Appearance;
+  if App <> nil then
+    App.FdMaterial.Value := Value else
+  if Value <> nil then
+  begin
+    App := TNodeAppearance.Create('', WWWBasePath);
+    Appearance := App;
+    App.FdMaterial.Value := Value;
+  end;
+end;
+
 function TNodeX3DShapeNode.Texture: TNodeX3DTextureNode;
 var
   A: TNodeAppearance;
@@ -472,21 +507,6 @@ begin
     if (A.FdTextureTransform.Value <> nil) and
        (A.FdTextureTransform.Value is TNodeX3DTextureTransformNode) then
       Result := TNodeX3DTextureTransformNode(A.FdTextureTransform.Value);
-  end;
-end;
-
-function TNodeX3DShapeNode.Material: TNodeMaterial_2;
-var
-  A: TNodeAppearance;
-begin
-  Result := nil;
-  if (FdAppearance.Value <> nil) and
-     (FdAppearance.Value is TNodeAppearance) then
-  begin
-    A := TNodeAppearance(FdAppearance.Value);
-    if (A.FdMaterial.Value <> nil) and
-       (A.FdMaterial.Value is TNodeMaterial_2) then
-      Result := TNodeMaterial_2(A.FdMaterial.Value);
   end;
 end;
 
