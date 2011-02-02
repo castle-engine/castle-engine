@@ -388,14 +388,15 @@ type
     property OnVertexColor: TVertexColorFunction
       read FOnVertexColor write SetOnVertexColor;
 
-    { Should we will enable OpenGL lighting when rendering.
-      This is @true by default, since it's wanted almost always.
+    { Enable OpenGL lighting when rendering.
+      This is @true by default, since it's almost always wanted.
 
       When Lighting is @false, we do not enable OpenGL lighting,
       but you can still manually enable OpenGL lighting yourself.
-      Regardless of this, we always pass to OpenGL information about
+      Regardless of the value of this property, we always pass
+      to OpenGL information about
       materials and colors, so our rendering looks as good as possible
-      both with and without OpenGL lighting. }
+      with and without OpenGL lighting. }
     property Lighting: boolean
       read FLighting write SetLighting default true;
 
