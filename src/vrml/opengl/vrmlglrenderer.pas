@@ -88,11 +88,11 @@
 
   @bold(OpenGL state affecting VRML rendering:)
 
-  Some OpenGL state is unconditionally reset by TVRMLGLRenderer.RenderBegin
-  (to protect us from doing something nonsensible; don't worry,
-  TVRMLGLRenderer.RenderEnd restores it). But there's also some OpenGL state that
-  we let affect our rendering. This allows you to customize VRML rendering
-  by using normal OpenGL commands.
+  Some OpenGL state is unconditionally reset by TVRMLGLRenderer.RenderBegin.
+  See TVRMLRenderingAttributes.PreserveOpenGLState.
+
+  There's also some OpenGL state that we let affect our rendering.
+  This allows you to customize VRML rendering by using normal OpenGL commands.
 
   @unorderedList(
     @item(First of all, current matrix values (MODELVIEW,
@@ -313,6 +313,7 @@ type
     FTextureModeRGB: TGLenum;
     FVarianceShadowMaps: boolean;
     FVertexBufferObject: boolean;
+    FPreserveOpenGLState: boolean;
   protected
     { These methods just set the value on given property,
       eventually calling ReleaseCachedResources.
@@ -620,6 +621,15 @@ type
       for debug purposes, e.g. to check how much speedup you get from VBO. }
     property VertexBufferObject: boolean
       read FVertexBufferObject write SetVertexBufferObject default true;
+
+    { Do we have to restore OpenGL state at the end of rendering.
+      If @true, then RenderEnd restores the exact OpenGL state that was
+      before RenderBegin. This is comfortable if you do any other rendering
+      besides VRML scene, and depend on some state preserved.
+      Unfortunately this is also quite expensive, and can slow down
+      the rendering. }
+    property PreserveOpenGLState: boolean
+      read FPreserveOpenGLState write FPreserveOpenGLState default false;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -1195,6 +1205,11 @@ type
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
+
+    { Reset various OpenGL state parameters, done at RenderBegin
+      (to prepare state for following RenderShape calls) and at RenderEnd
+      (to leave *somewhat* defined state afterwards). }
+    procedure RenderCleanState(const Beginning: boolean);
   private
     FBumpMappingLightPosition: TVector3Single;
     procedure SetBumpMappingLightPosition(const Value: TVector3Single);
@@ -2664,6 +2679,7 @@ begin
   FTextureModeRGB := GL_MODULATE;
   FVarianceShadowMaps := DefaultVarianceShadowMaps;
   FVertexBufferObject := true;
+  FPreserveOpenGLState := false;
 end;
 
 procedure TVRMLRenderingAttributes.ReleaseCachedResources;
@@ -3345,7 +3361,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderBegin(LightRenderEvent: TVRMLLightRenderEvent);
+procedure TVRMLGLRenderer.RenderCleanState(const Beginning: boolean);
 
   procedure DisabeAllTextureUnits;
   var
@@ -3361,29 +3377,14 @@ procedure TVRMLGLRenderer.RenderBegin(LightRenderEvent: TVRMLLightRenderEvent);
 var
   I: Integer;
 begin
-  { Push attribs and matrices (by pushing attribs FIRST we save also current
-    matrix mode).
-
-    Note for BuggyPointSetAttrib: yes, this may cause bugs,
-    as glPointSize call "leaks" out. But there's nothing we can do about it,
-    we cannot use GL_POINT_BIT as it crashes Mesa (and produces "invalid
-    enumerant" error in case of debug compile). }
-  if not GLVersion.BuggyPointSetAttrib then
-    glPushAttrib(GL_ALL_ATTRIB_BITS) else
-    glPushAttrib(GL_ALL_ATTRIB_BITS and (not GL_POINT_BIT));
-
-  { TODO: push/pop is not fully correctly done for multitexturing now:
-    - We should push/pop all texture units matrices.
-      Right now, we actually push only 0th texture unit matrix.
-    - Make sure that currently active texture unit is saved ?
-      I'm not sure, does some glPushAttrib param saves this ?
-
-    Push/pop texture state saves environment state of all texture units, so at least
-    we got glTexEnv covered. (this says OpenGL manpage for glPushAttrib,
-    and it applies to both multitexturing by ARB extension and by standard GL).
-  }
   DisabeAllTextureUnits;
-  ActiveTexture(0);
+
+  { Restore active texture unit to 0 }
+  if GLUseMultiTexturing then
+  begin
+    ActiveTexture(0);
+    glClientActiveTextureARB(GL_TEXTURE0_ARB + Attributes.FirstGLFreeTexture);
+  end;
 
   { init our OpenGL state }
   glMatrixMode(GL_MODELVIEW);
@@ -3408,10 +3409,10 @@ begin
       like Radeon X1600 and low-end like Intel).
       So leave GL_NORMALIZE enabled --- it will help for invalid VRML/X3D
       files that have unnomalized normals. }
-    glEnable(GL_NORMALIZE);
+    SetGLEnabled(GL_NORMALIZE, Beginning);
 
     glPointSize(Attributes.PointSize);
-    glEnable(GL_DEPTH_TEST);
+    SetGLEnabled(GL_DEPTH_TEST, Beginning);
 
     if not GLVersion.BuggyLightModelTwoSide then
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
@@ -3434,12 +3435,50 @@ begin
     glShadeModel(GL_SMOOTH);
 
     if Attributes.Lighting then
-      glEnable(GL_LIGHTING);
+      SetGLEnabled(GL_LIGHTING, Beginning);
 
     if Attributes.UseSceneLights then
       for I := Attributes.FirstGLFreeLight to LastGLFreeLight do
         glDisable(GL_LIGHT0 + I);
+
+    glDisable(GL_FOG);
   end;
+end;
+
+procedure TVRMLGLRenderer.RenderBegin(LightRenderEvent: TVRMLLightRenderEvent);
+var
+  Attribs: TGLbitfield;
+begin
+  if Attributes.PreserveOpenGLState then
+  begin
+    { Push OpenGL attributes that can be changed by RenderCleanState, RenderShape }
+    Attribs := GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT
+      or GL_FOG_BIT or GL_LIGHTING_BIT or GL_POLYGON_BIT or GL_TEXTURE_BIT
+      or GL_TRANSFORM_BIT;
+    { When BuggyPointSetAttrib, then glPointSize call "leaks" out.
+      But there's nothing we can do about it, we cannot use GL_POINT_BIT
+      as it crashes Mesa (and produces "invalid enumerant" error in case
+      of debug compile). }
+    if not GLVersion.BuggyPointSetAttrib then
+      Attribs := Attribs or GL_POINT_BIT;
+    glPushAttrib(Attribs);
+
+    { Note that push/pop is not fully correctly done for multitexturing:
+      - We should push/pop all texture units matrices.
+        Right now, we actually push only 0th texture unit matrix.
+      - We should make sure that currently active texture unit is saved?
+        I'm not sure, does some glPushAttrib param saves this?
+
+      Push/pop texture state saves environment state of all texture units,
+      so at least we got glTexEnv covered. (this says OpenGL manpage for
+      glPushAttrib, and it applies to both multitexturing by
+      ARB extension and by standard GL).
+    }
+  end;
+
+  glPushMatrix;
+
+  RenderCleanState(true);
 
   Assert(FogNode = nil);
 
@@ -3455,17 +3494,14 @@ begin
     LightsRenderer.Statistics[false]); }
   FreeAndNil(LightsRenderer);
 
-  { Restore active texture unit to 0 }
-  if GLUseMultiTexturing then
-  begin
-    ActiveTexture(0);
-    glClientActiveTextureARB(GL_TEXTURE0_ARB + Attributes.FirstGLFreeTexture);
-  end;
-
-  { pop matrices and attribs (popping attrib restores also saved matrix mode) }
-  glPopAttrib;
-
   FogNode := nil;
+
+  glPopMatrix;
+
+  { pop attribs }
+  if Attributes.PreserveOpenGLState then
+    glPopAttrib else
+    RenderCleanState(false);
 end;
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
