@@ -778,9 +778,11 @@ begin
   glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
 
   glPushAttrib(GL_ENABLE_BIT);
+    glEnable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
 
     glColorv(Yellow3Single);
+    glPointSize(10); { VRML renderer will reset it }
     glBegin(GL_POINTS);
       glVertexv(LightPosition);
     glEnd;
@@ -796,6 +798,10 @@ begin
     Scene.RenderFrustum(RenderState.CameraFrustum, tgAll);
   end else
   begin
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_DEPTH_TEST);
+
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
 
     ModelInvertedTrasformation := IdentityMatrix4Single;
@@ -1085,13 +1091,7 @@ begin
 
   Check(MaxTextureUnits >= 2, 'At least 2 texture units required for dot3 (for emboss, 3 texture units)');
 
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_DEPTH_TEST);
-
   glClearColor(0.3, 0.3, 0.3, 1);
-
-  glPointSize(10);
 
   LoadTextureBumpMap('brick_1.png'      , 'brick_1_bump.png', NormalAndBumpTex[0]);
   LoadTextureBumpMap('brick_1_light.png', 'brick_1_bump.png', LighterAndBumpTex[0]);
