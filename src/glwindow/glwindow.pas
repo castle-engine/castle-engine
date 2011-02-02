@@ -2071,9 +2071,11 @@ type
       const xpos, ypos, SavedAreaWidth,
         SavedAreaHeight: integer): TGLuint; overload;
 
-    { Asks user where to save the file (using @link(FileDialog),
-      as default filename taking ProposedFname), if user accepts
-      calls Window.SaveScreen(user-chosen-file-name); }
+    { Asks and saves current screenshot.
+      Asks user where to save the file (using @link(FileDialog),
+      as default filename taking ProposedFname).
+      If user accepts calls Window.SaveScreen.
+      In case of problems with saving, shows a dialog (doesn't raise exception). }
     procedure SaveScreenDialog(ProposedFileName: string);
 
     { @groupbegin
@@ -3536,7 +3538,11 @@ procedure TGLWindow.SaveScreenDialog(ProposedFileName: string);
 begin
   if FileDialog('Save screen to file', ProposedFileName, false,
     SaveImage_FileFilters) then
-   SaveScreen(ProposedFileName);
+  try
+    SaveScreen(ProposedFileName);
+  except
+    on E: Exception do MessageOK('Unable to save screen: ' + E.Message, mtError);
+  end;
 end;
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
