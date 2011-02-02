@@ -685,8 +685,10 @@ begin
       LoadVRMLClassic(LightSetVrmlName, false), true, 0, -1);
     Scene := TVRMLGLScene.Create(nil);
     Scene.Load(SceneVrmlName);
+    Scene.Attributes.PreserveOpenGLState := true;
     ShadowCaster := TVRMLGLScene.Create(nil);
     ShadowCaster.Load(ShadowCasterVrmlName);
+    ShadowCaster.Attributes.PreserveOpenGLState := true;
     SceneBoundingBox := Box3DSum(Scene.BoundingBox, ShadowCaster.BoundingBox);
 
     { calculate MainLightPosition }

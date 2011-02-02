@@ -602,12 +602,14 @@ begin
   Scene := TVRMLGLScene.Create(nil);
   try
     Scene.Load(RootNode, true);
+    Scene.Attributes.PreserveOpenGLState := true;
 
     { init SceneForShadow.
       It doesn't own RootNode, and always has RootNode = Scene.RootNode }
     SceneForShadow := TVRMLGLScene.Create(nil);
     SceneForShadow.Load(RootNode, false);
     SceneForShadow.Attributes.PureGeometry := true;
+    SceneForShadow.Attributes.PreserveOpenGLState := true;
 
     { init SceneManager.Camera }
     SceneManager.Camera := TExamineCamera.Create(Window);
