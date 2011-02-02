@@ -245,30 +245,17 @@ function ImageDrawPartToDisplayList(
   if you have double-buffered window, of course.
 }
 
-{ Saves the current color buffer contents
-  to an image file or to TRGBImage object.
+{ Save the current color buffer contents to image.
+  Does glReadBuffer(ReadBuffer) and then glReadPixels with appropriate
+  parameters.
 
-  Sidenote: useful function to generate image
-  filename for game screenshots is @link(FileNameAutoInc) in @link(KambiUtils)
-  unit.
+  The suffix "noflush" in the name is there to remind you that this
+  function grabs the current buffer contents. Usually you want to
+  call something like @link(TGLWindow.FlushRedisplay) right before grabbing
+  from the front buffer (which isn't reliable anyway), or redraw
+  (like by TGLWindow.EventDraw) right before grabbing from the back buffer.
 
-  It does glReadBuffer(ReadBuffer) and then glReadPixels
-  with appropriate parameters. In case of overloaded version
-  that takes a FileName, it then saves image to file using @link(SaveImage).
-
-  It has such strange name (_noflush) to remind you that this
-  function does not do anything like @link(TGLWindow.FlushRedisplay)
-  but you should usually take care of doing something like that
-  before saving contents of OpenGL front buffer. In other words,
-  remember that this function saves the *current* contents of
-  color buffer -- so be sure that it contains what you want
-  before using this function.
-
-  The versions that don't get any xpos, ypos, width, height parameters
-  save the whole screen (more precisely, the current OpenGL viewport).
-
-  Note that you can pass here any ReadBuffer value allowed by
-  glReadBuffer OpenGL function.
+  See TGLWindow.SaveScreen for more friendly ways to capture the screen.
 
   Version with ImageClass can save to any image format from PixelsImageClasses.
 
@@ -276,10 +263,11 @@ function ImageDrawPartToDisplayList(
   You must pass here already created TImage instance, it's class,
   Width and Height will be used when saving.
 
-  @groupBegin }
-procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum); overload;
-function SaveScreen_noflush(ReadBuffer: TGLenum): TRGBImage; overload;
+  We always take explicit Width, Height (from parameter, or from Image.Width,
+  Image.Height). Guessing screen size automatically doesn't really work,
+  as the viewport may change when we use custom viewports.
 
+  @groupBegin }
 function SaveScreen_noflush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TRGBImage; overload;
 
@@ -294,7 +282,7 @@ procedure SaveScreen_noflush(
   ReadBuffer: TGLenum); overload;
 { @groupEnd }
 
-{ Like SaveScreen_noflush(ReadBuffer), except it may make the width larger,
+{ Save the screen, except it may make the width larger,
   to make it divisible by four,
   to workaround Radeon bug TGLVersion.BuggyDrawOddWidth.
 
@@ -307,11 +295,11 @@ procedure SaveScreen_noflush(
   then that you will see an additional column at the right filled
   with garbage colors (due to enlarging of screen done here).
   Ideally, it would be best to draw this only by
-  ImageDrawPart(0, 0, RealScreenWidth, Image.Height)
-  (that is: use RealScreenWidth when drawing, not Image.Width)
+  ImageDrawPart(0, 0, Width (given here, not Image.Width), Image.Height)
   but it may not be possible --- again, thanks to TGLVersion.BuggyDrawOddWidth. }
-function SaveAlignedScreen_noflush(ReadBuffer: TGLenum;
-  out RealScreenWidth: Cardinal): TRGBImage;
+function SaveAlignedScreen_noflush(
+  const XPos, YPos: Integer; Width: Cardinal; const Height: Cardinal;
+  const ReadBuffer: TGLenum): TRGBImage;
 
 { Captures current screen and creates a display list to draw it in the future.
 
@@ -324,27 +312,10 @@ function SaveAlignedScreen_noflush(ReadBuffer: TGLenum;
   to workaround GLVersion.BuggyDrawOddWidth bug,
   we also have to actually draw it a little larger),
   but the intention of this procedure is to
-  completely hide this completexity from you.
-
-  They have "Whole_" in their name, otherwise they could be easily
-  confused with SaveScreen_ToDisplayList_noflush that takes 5 integers
-  (and can save a part of the screen).
-
-  @groupBegin }
-function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum;
-  out SavedScreenWidth, SavedScreenHeight: Cardinal): TGLuint;
-function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint;
-{ @groupEnd }
-
-{ Saves the current color buffer (captured like
-  @link(SaveScreen_noflush)) into the display list to redraw it.
-  That is, it returns newly created display list that contains
-  call to ImageDraw on a captured image.
-
-  @groupBegin }
-function SaveScreen_ToDisplayList_noflush(xpos, ypos, width, height: integer;
-  ReadBuffer: TGLenum): TGLuint; overload;
-{ @groupEnd }
+  completely hide this completexity from you. }
+function SaveScreen_ToDisplayList_noflush(
+  const XPos, YPos: Integer; const Width, Height: Cardinal;
+  const ReadBuffer: TGLenum): TGLuint;
 
 { ----------------------------------------------------------------------
   Adjusting image size to load them as textures. }
@@ -1002,72 +973,30 @@ begin
   Result := TRGBImage(SaveScreen_noflush(TRGBImage, xpos, ypos, width, height, ReadBuffer));
 end;
 
-procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum);
-var
-  img: TRGBImage;
+function SaveAlignedScreen_noflush(
+  const XPos, YPos: Integer; Width: Cardinal; const Height: Cardinal;
+  const ReadBuffer: TGLenum): TRGBImage;
 begin
-  img := SaveScreen_noflush(ReadBuffer);
-  try
-    SaveImage(img, FileName);
-  finally Img.Free end;
-end;
-
-function SaveScreen_noflush(ReadBuffer: TGLenum): TRGBImage;
-var
-  Viewport: TVector4i;
-begin
-  glGetIntegerv(GL_VIEWPORT, @viewport);
-  result := SaveScreen_noflush(viewport[0], viewport[1], viewport[2], viewport[3], ReadBuffer);
-end;
-
-function SaveAlignedScreen_noflush(ReadBuffer: TGLenum;
-  out RealScreenWidth: Cardinal): TRGBImage;
-var
-  Viewport: TVector4i;
-begin
-  glGetIntegerv(GL_VIEWPORT, @viewport);
-  RealScreenWidth := Viewport[2];
-
-  if GLVersion.BuggyDrawOddWidth and (RealScreenWidth mod 4 <> 0) then
-    Viewport[2] += (4 - RealScreenWidth mod 4);
-
-  result := SaveScreen_noflush(viewport[0], viewport[1], viewport[2], viewport[3], ReadBuffer);
-end;
-
-function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum;
-  out SavedScreenWidth, SavedScreenHeight: Cardinal): TGLuint;
-var
-  ScreenImage: TRGBImage;
-begin
-   ScreenImage := SaveAlignedScreen_noflush(ReadBuffer, SavedScreenWidth);
-   try
-     SavedScreenHeight := ScreenImage.Height;
-     { There was an idea to do here
-         ImageDrawPartToDisplayList(ScreenImage,
-           0, 0, SavedScreenWidth, SavedScreenHeight);
-       to draw only part of the screen when GLVersion.BuggyDrawOddWidth.
-       Unfortunately, it doesn't really work, drawing the screen
-       is buggy with GLVersion.BuggyDrawOddWidth... }
-     Result := ImageDrawToDisplayList(ScreenImage);
-   finally FreeAndNil(ScreenImage) end;
-end;
-
-function SaveScreenWhole_ToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint;
-var
-  SavedScreenWidth, SavedScreenHeight: Cardinal;
-begin
-  Result := SaveScreenWhole_ToDisplayList_noflush(ReadBuffer,
-    SavedScreenWidth, SavedScreenHeight);
+  if GLVersion.BuggyDrawOddWidth and (Width mod 4 <> 0) then
+    Width += (4 - Width mod 4);
+  Result := SaveScreen_noflush(XPos, YPos, Width, Height, ReadBuffer);
 end;
 
 function SaveScreen_ToDisplayList_noflush(
-  xpos, ypos, width, height: integer; ReadBuffer: TGLenum): TGLuint;
-var img: TImage;
+  const XPos, YPos: Integer; const Width, Height: Cardinal;
+  const ReadBuffer: TGLenum): TGLuint;
+var
+  ScreenImage: TRGBImage;
 begin
- img := SaveScreen_noflush(xpos, ypos, width, height, ReadBuffer);
- try
-  result := ImageDrawToDisplayList(img);
- finally Img.Free end;
+  ScreenImage := SaveAlignedScreen_noflush(XPos, YPos, Width, Height, ReadBuffer);
+  try
+    { There was an idea to do here
+        ImageDrawPartToDisplayList(ScreenImage, 0, 0, Width, Height);
+      to draw only part of the screen when GLVersion.BuggyDrawOddWidth.
+      Unfortunately, it doesn't really work, even drawing the screen
+      is buggy with GLVersion.BuggyDrawOddWidth... }
+    Result := ImageDrawToDisplayList(ScreenImage);
+  finally FreeAndNil(ScreenImage) end;
 end;
 
 { ----------------------------------------------------------------------

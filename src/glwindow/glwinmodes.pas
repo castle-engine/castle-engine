@@ -599,8 +599,10 @@ begin
  { setup our 2d projection. We must do it before SaveScreen }
  Window.EventResize;
 
- dlScreenImage := SaveScreenWhole_ToDisplayList_noflush(GL_FRONT,
-   SavedScreenWidth, SavedScreenHeight);
+ SavedScreenWidth  := Window.Width;
+ SavedScreenHeight := Window.Height;
+ dlScreenImage := SaveScreen_ToDisplayList_noflush(
+   0, 0, SavedScreenWidth, SavedScreenHeight, GL_FRONT);
 end;
 
 destructor TGLModeFrozenScreen.Destroy;

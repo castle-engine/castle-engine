@@ -378,8 +378,7 @@ var
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
-  KambiClassUtils, SysUtils, GLWinModes, KambiLog,
-  GLImages;
+  KambiClassUtils, SysUtils, GLWinModes, KambiLog, GLImages;
 
 { TIntRect ------------------------------------------------------------------- }
 
@@ -1127,8 +1126,8 @@ begin
    OnUserMouseWheel := MessageOnUserMouseWheel;
    UserMouseDownOnlyWithinRect := AUserMouseDownOnlyWithinRect;
    if Window.DoubleBuffer then
-    dlDrawBG := SaveScreenWhole_ToDisplayList_noflush(GL_BACK) else
-    dlDrawBG := SaveScreenWhole_ToDisplayList_noflush(GL_FRONT);
+    dlDrawBG := SaveScreen_ToDisplayList_noflush(0, 0, Window.Width, Window.Height, GL_BACK) else
+    dlDrawBG := SaveScreen_ToDisplayList_noflush(0, 0, Window.Width, Window.Height, GL_FRONT);
    answered := false;
    if GLWinMessagesTheme.Font = nil then
     font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18) else

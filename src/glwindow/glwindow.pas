@@ -2058,7 +2058,9 @@ type
       @groupBegin }
     procedure SaveScreen(const fname: string); overload;
     function SaveScreen: TRGBImage; overload;
-    function SaveAlignedScreen(out RealScreenWidth: Cardinal): TRGBImage;
+    { Saves screen, making sure Image width is a multiple of 4 on buggy Radeon
+      drivers. The meaningful image width is equal to window's @link(Width). }
+    function SaveAlignedScreen: TRGBImage;
     function SaveScreen_ToDisplayList: TGLuint; overload;
     { @groupEnd }
 
@@ -3441,44 +3443,40 @@ end;
   -------------------------------------------------------------------------- }
 
 procedure TGLWindow.SaveScreen(const fname: string);
+var
+  Image: TRGBImage;
 begin
- if DoubleBuffer then
- begin
-  EventBeforeDraw;
-  EventDraw;
-  SaveScreen_noflush(fname, GL_BACK);
- end else
- begin
-  FlushRedisplay;
-  SaveScreen_noflush(fname, GL_FRONT);
- end;
+  Image := SaveScreen;
+  try
+    SaveImage(Image, fname);
+  finally FreeAndNil(Image) end;
 end;
 
 function TGLWindow.SaveScreen: TRGBImage;
-begin
- if DoubleBuffer then
- begin
-  EventBeforeDraw;
-  EventDraw;
-  Result := SaveScreen_noflush(GL_BACK);
- end else
- begin
-  FlushRedisplay;
-  Result := SaveScreen_noflush(GL_FRONT);
- end;
-end;
-
-function TGLWindow.SaveAlignedScreen(out RealScreenWidth: Cardinal): TRGBImage;
 begin
   if DoubleBuffer then
   begin
     EventBeforeDraw;
     EventDraw;
-    Result := SaveAlignedScreen_noflush(GL_BACK, RealScreenWidth);
+    Result := SaveScreen_noflush(0, 0, Width, Height, GL_BACK);
   end else
   begin
     FlushRedisplay;
-    Result := SaveAlignedScreen_noflush(GL_FRONT, RealScreenWidth);
+    Result := SaveScreen_noflush(0, 0, Width, Height, GL_FRONT);
+  end;
+end;
+
+function TGLWindow.SaveAlignedScreen: TRGBImage;
+begin
+  if DoubleBuffer then
+  begin
+    EventBeforeDraw;
+    EventDraw;
+    Result := SaveAlignedScreen_noflush(0, 0, Width, Height, GL_BACK);
+  end else
+  begin
+    FlushRedisplay;
+    Result := SaveAlignedScreen_noflush(0, 0, Width, Height, GL_FRONT);
   end;
 end;
 
@@ -3503,16 +3501,16 @@ end;
 
 function TGLWindow.SaveScreen_ToDisplayList: TGLuint;
 begin
- if DoubleBuffer then
- begin
-  EventBeforeDraw;
-  EventDraw;
-  Result := SaveScreenWhole_ToDisplayList_noflush(GL_BACK);
- end else
- begin
-  FlushRedisplay;
-  Result := SaveScreenWhole_ToDisplayList_noflush(GL_FRONT);
- end;
+  if DoubleBuffer then
+  begin
+    EventBeforeDraw;
+    EventDraw;
+    Result := SaveScreen_ToDisplayList_noflush(0, 0, Width, Height, GL_BACK);
+  end else
+  begin
+    FlushRedisplay;
+    Result := SaveScreen_ToDisplayList_noflush(0, 0, Width, Height, GL_FRONT);
+  end;
 end;
 
 function TGLWindow.SaveScreen_ToDisplayList(
