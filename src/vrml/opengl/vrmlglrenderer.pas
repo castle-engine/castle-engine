@@ -3407,8 +3407,11 @@ begin
       However, turning GL_NORMALIZE doesn't give us *any* performance
       benefit as far as I tested (with castle gate, on high-end GPUs
       like Radeon X1600 and low-end like Intel).
-      So leave GL_NORMALIZE enabled --- it will help for invalid VRML/X3D
-      files that have unnomalized normals. }
+
+      So leave GL_NORMALIZE enabled, it's still useful:
+      - for invalid VRML/X3D files that have unnomalized normals.
+      - in case caller loaded a scaling matrix
+        (for example, Examine camera may allow user to scale the object). }
     SetGLEnabled(GL_NORMALIZE, Beginning);
 
     glPointSize(Attributes.PointSize);
