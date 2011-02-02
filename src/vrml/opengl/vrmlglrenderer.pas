@@ -3479,9 +3479,10 @@ begin
     }
   end;
 
-  glPushMatrix;
-
   RenderCleanState(true);
+
+  { push matrix after RenderCleanState, to be sure we're in modelview mode }
+  glPushMatrix;
 
   Assert(FogNode = nil);
 
