@@ -41,7 +41,7 @@ uses GL, GLU, KambiGLUtils, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Image
   If FlushGLWindow then we'll make Window.FlushRedisplay before capturing
   (you should set FlushGLWindow = @true when ReadBuffer = GL_FRONT).
 
-  ScreenX0, ScreenY0 is raster position for lower-left screen corner
+  ScreenX0, ScreenY0 is raster position for lower-left screen corner.
 
   AnswerX0, AnswerY0 is raster position for displaying user answer.
 
@@ -149,7 +149,8 @@ var
   Data: TGLWinInputData;
 begin
   if FlushGLWindow then Window.FlushRedisplay;
-  Data.dlBGImage := SaveScreenWhole_ToDisplayList_noflush(ReadBuffer);
+  Data.dlBGImage := SaveScreen_ToDisplayList_noflush(
+    0, 0, Window.Width, Window.Height, ReadBuffer);
   Data.Answer := AnswerDefault;
   Data.MinLength := MinLength;
   Data.MaxLength := MaxLength;
@@ -262,7 +263,10 @@ var
   BGImageWidth, BGImageHeight: Cardinal;
 begin
   if FlushGLWindow then Window.FlushRedisplay;
-  DL := SaveScreenWhole_ToDisplayList_noflush(ReadBuffer, BGImageWidth, BGImageHeight);
+  BGImageWidth := Window.Width;
+  BGImageHeight := Window.Height;
+  DL := SaveScreen_ToDisplayList_noflush(
+    0, 0, BGImageWidth, BGImageHeight, ReadBuffer);
   try
     InputAnyKeyCore(Window, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
   finally glFreeDisplayList(DL) end;
