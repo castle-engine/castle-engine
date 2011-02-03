@@ -406,7 +406,11 @@ var
 begin
   for I := 0 to Indexes.Count - 1 do
   begin
-    Move(Pointer(PtrUInt(PtrUInt(A) + Indexes.Items[I] * ItemSize))^,
+    { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
+      This would cause noticeable slowdown when using AssignToInterleavedIndexed
+      for VRMLArraysGenerator, that in turn affects dynamic scenes
+      and especially dynamic shading like radiance_transfer. }
+    Move(Pointer(PtrUInt(A) + PtrUInt(Indexes.Items[I]) * ItemSize)^,
       Target^, ItemSize);
     PtrUInt(Target) += Stride;
   end;
