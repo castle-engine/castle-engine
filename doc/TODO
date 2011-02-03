@@ -856,5 +856,14 @@ Renderer:
   Another bug of shitty fglrx.
   This was also happening with old renderer.
 
+- optimization to render IndexedFaceSet using GL_QUADS is easy now,
+  detect in 1st pass that only quads,
+  and later set gpQuad.
+  Check speedup.
+
+  But is it useful? ElevationGrid uses smart triangles.
+  Restore quads in ElevationGrid, and then check speedup.
+  If large -> make ElevationGrid use quads back.
+
 Make bitmap font rendering faster, and modern: use textures,
 not glBitmap.
