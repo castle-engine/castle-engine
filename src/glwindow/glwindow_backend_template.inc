@@ -87,7 +87,7 @@ begin
   if not Closed then { TODO };
 end;
 
-procedure TGLWindow.MakeCurrent;
+procedure TGLWindow.BackendMakeCurrent;
 begin
   { TODO }
 end;

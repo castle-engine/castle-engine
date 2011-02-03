@@ -874,7 +874,7 @@ begin
   gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(Caption));
 end;
 
-procedure TGLWindow.MakeCurrent;
+procedure TGLWindow.BackendMakeCurrent;
 begin
  Assert(not Closed);
 
@@ -886,7 +886,7 @@ begin
    gdk_gl_window_impl_x11_make_context_current
    and gdk_gl_drawable_gl_end doesn't do anything.
    So I can simply forget about gdk_gl_drawable_gl
-   and call gdk_gl_drawable_gl_begin on MakeCurrent.
+   and call gdk_gl_drawable_gl_begin on BackendMakeCurrent.
 
    In case GLAreaGtk is implemented by gdkglpixmap-win32
    (this is not possible to achieve now in GLWindow, but maybe

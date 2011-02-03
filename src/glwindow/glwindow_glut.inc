@@ -465,9 +465,9 @@ begin
  glutHwnd := 0;
 end;
 
-procedure TGLWindow.MakeCurrent;
+procedure TGLWindow.BackendMakeCurrent;
 begin
- glutSetWindow(glutHwnd);
+  glutSetWindow(glutHwnd);
 end;
 
 procedure TGLWindow.CreateBackend;

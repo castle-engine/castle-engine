@@ -836,6 +836,10 @@ type
       as possible. }
     procedure CloseBackend;
 
+    { Make the OpenGL context of this window current (active for following
+      OpenGL commands). }
+    procedure BackendMakeCurrent;
+
     procedure CloseError(const error: string);
 
     { Swap OpenGL buffers.
@@ -2569,6 +2573,9 @@ type
     FTimerMilisec :Cardinal;
     FVideoColorBits: integer;
     FVideoFrequency: Cardinal;
+    { Current window with OpenGL context active.
+      Update in TGLWindow.MakeCurrent, also TGLWindow.Close. }
+    Current: TGLWindow;
 
     FOpenWindows: TGLWindowsList;
     function GetOpenWindows(Index: integer): TGLWindow;
@@ -3101,6 +3108,8 @@ begin
 
   FClosed := true;
 
+  Application.Current := nil;
+
   { Note: it is important here that OpenWindowsRemove will not raise any error
     if Self is not on OpenWindows list. This is useful if the window was partially
     constructed.
@@ -3117,6 +3126,18 @@ begin
   if closeerrors <> '' then
    raise Exception.Create('Error(errors?) while trying to close GlWindow : '+nl+closeerrors);
  end;
+end;
+
+procedure TGLWindow.MakeCurrent;
+begin
+  { Calling BackendMakeCurrent is done very often (before every event,
+    so a couple of times for every frame). And usually it's useless,
+    as most games have only 1 open window. }
+  if Application.Current <> Self then
+  begin
+    BackendMakeCurrent;
+    Application.Current := Self;
+  end;
 end;
 
 procedure TGLWindow.SetAutoRedisplay(value: boolean);

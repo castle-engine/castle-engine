@@ -338,7 +338,7 @@ begin
           Otherwise we could miss some key up / mouse up, when user releases it over
           another program/window.
           Do not do this when InCloseBackend, as ReleaseAllKeysAndMouse causes
-          some DoKeyUp/DoMouseUp (and these even cause MakeCurrent), and no DoXxx
+          some DoKeyUp/DoMouseUp (and these even cause BackendMakeCurrent), and no DoXxx
           should be done when the window is closing and releasing it's resources. }
         ReleaseAllKeysAndMouse;
     { Don't Exit, let control flow to DefWindowProc. }
@@ -1106,7 +1106,7 @@ begin
  finally InCloseBackend := false; end;
 end;
 
-procedure TGLWindow.MakeCurrent;
+procedure TGLWindow.BackendMakeCurrent;
 begin
   Assert(not Closed);
   KambiOSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');

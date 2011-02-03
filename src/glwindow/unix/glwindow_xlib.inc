@@ -397,7 +397,7 @@ begin
       0, 0, 0, 0, NewMouseX, NewMouseY);
 end;
 
-procedure TGLWindow.MakeCurrent;
+procedure TGLWindow.BackendMakeCurrent;
 begin
   Assert(not Closed);
   Check( glXMakeCurrent(Application.XDisplay, windowXID, glcontext), 'glXMakeCurrent');
