@@ -782,6 +782,12 @@ type
       (so you may prefer to prepare it before, e.g. by calling PrepareResources
       with prShadowVolume included).
 
+      We look at some Attributes, like Attributes.Blending, because transparent
+      triangles have to be handled a little differently, and when
+      Attributes.Blending = false then all triangles are forced to be opaque.
+      In other words, this takes Attributes into account, to cooperate with
+      our Render method.
+
       LightPos is the light position. LightPos[3] must be 1
       (to indicate positional light) or 0 (a directional light).
 
@@ -3028,6 +3034,7 @@ var
   var
     TrianglePtr: PTriangle3Single;
     I: Integer;
+    OpaqueCount: Cardinal;
   begin
     TrianglesPlaneSide.Count := Triangles.Count;
     TrianglePtr := Triangles.Pointers[0];
@@ -3035,10 +3042,16 @@ var
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos[3] <> 0);
 
+    if Attributes.ControlBlending and
+       Attributes.Blending and
+       (not Attributes.PureGeometry) then
+      OpaqueCount := Triangles.OpaqueCount else
+      OpaqueCount := Triangles.Count; { everything is opaque in this case }
+
     if TransformIsIdentity then
     begin
       OpaqueTrianglesBegin;
-      for I := 0 to Triangles.OpaqueCount - 1 do
+      for I := 0 to Integer(OpaqueCount) - 1 do
       begin
         TrianglesPlaneSide.Items[I] := PlaneSide_Identity(TrianglePtr^);
         Inc(TrianglePtr);
@@ -3046,7 +3059,7 @@ var
       OpaqueTrianglesEnd;
 
       TransparentTrianglesBegin;
-      for I := Triangles.OpaqueCount to Triangles.Count - 1 do
+      for I := OpaqueCount to Triangles.Count - 1 do
       begin
         TrianglesPlaneSide.Items[I] := PlaneSide_Identity(TrianglePtr^);
         Inc(TrianglePtr);
@@ -3055,7 +3068,7 @@ var
     end else
     begin
       OpaqueTrianglesBegin;
-      for I := 0 to Triangles.OpaqueCount - 1 do
+      for I := 0 to Integer(OpaqueCount) - 1 do
       begin
         TrianglesPlaneSide.Items[I] := PlaneSide_NotIdentity(TrianglePtr^);
         Inc(TrianglePtr);
@@ -3063,7 +3076,7 @@ var
       OpaqueTrianglesEnd;
 
       TransparentTrianglesBegin;
-      for I := Triangles.OpaqueCount to Triangles.Count - 1 do
+      for I := OpaqueCount to Triangles.Count - 1 do
       begin
         TrianglesPlaneSide.Items[I] := PlaneSide_NotIdentity(TrianglePtr^);
         Inc(TrianglePtr);
