@@ -855,3 +855,6 @@ Renderer:
   Only on fglrx, not with nvidia or even macosx with same gpu.
   Another bug of shitty fglrx.
   This was also happening with old renderer.
+
+Make bitmap font rendering faster, and modern: use textures,
+not glBitmap.
