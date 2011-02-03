@@ -268,7 +268,6 @@ EXAMPLES_BASE_NAMES := \
   examples/glwindow/multi_texturing_demo \
   examples/glwindow/shading_langs/shading_langs_demo \
   examples/glwindow/demo_camera \
-  examples/glwindow/fog_coord \
   examples/glwindow/simple_video_editor \
   examples/glwindow/test_menu_change_from_keyup \
   examples/glwindow/bezier_surfaces/animate_surface \
