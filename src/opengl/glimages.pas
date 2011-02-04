@@ -1922,6 +1922,49 @@ begin
   glDeleteTextures(1, @Tex);
 end;
 
+{ BindFramebuffer stack ------------------------------------------------------ }
+
+var
+  { We may want to use an FBO, while another FBO is already used.
+
+    Right now, this situation happens only when we use view3dscene
+    with --screenshot option, and we load a scene that uses a generated
+    texture (like RenderedTexture or GeneratedShadowMap).
+
+    It's important in such cases that the we should restore at the end
+    previously bound FBO --- not necessarily just FBO number 0. }
+  BoundFboStack: TDynLongWordArray;
+
+{ Use instead of glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Fbo),
+  for non-zero Fbo. This will bind and add this Fbo to stack. }
+procedure BindFramebuffer(const Fbo: TGLuint);
+begin
+  Assert(Fbo <> 0);
+  if BoundFboStack = nil then
+    BoundFboStack := TDynLongWordArray.Create;
+  BoundFboStack.Add(Fbo);
+
+  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Fbo);
+end;
+
+{ Remove the top Fbo from the stack, and bind previous (new top) Fbo.
+  Binds FBO number 0 (normal OpenGL buffer) if stack becomes empty. }
+procedure UnbindFramebuffer;
+var
+  PreviousFbo: TGLuint;
+begin
+  if (BoundFboStack <> nil) and (BoundFboStack.Count <> 0) then
+  begin
+    BoundFboStack.DecLength;
+    if BoundFboStack.Count <> 0 then
+      PreviousFbo := BoundFboStack.Last else
+      PreviousFbo := 0;
+  end else
+    PreviousFbo := 0;
+
+  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, PreviousFbo);
+end;
+
 { TGLRenderToTexture --------------------------------------------------------- }
 
 constructor TGLRenderToTexture.Create(const AWidth, AHeight: Cardinal);
@@ -1954,10 +1997,10 @@ begin
     if Framebuffer <> 0 then
     begin
       if not FramebufferBound then
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
+        BindFramebuffer(Framebuffer);
       glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
       if not FramebufferBound then
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        UnbindFramebuffer;
     end;
   end;
 end;
@@ -1994,6 +2037,7 @@ procedure TGLRenderToTexture.GLContextOpen;
 var
   Status: TGLenum;
   PackedDepthBufferFormat: TGLenum;
+  Success: boolean;
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
@@ -2005,7 +2049,7 @@ begin
         [ GLMaxRenderbufferSize, GLMaxRenderbufferSize, Width, Height ]);
 
     glGenFramebuffersEXT(1, @Framebuffer);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
+    BindFramebuffer(Framebuffer);
 
     { Used for tbColor or tbNone, when we don't want to capture depth buffer,
       and so it's Ok to pack depth and stencil together.
@@ -2070,27 +2114,33 @@ begin
             AttachSeparateStencilRenderbuffer;
       end;
 
-    Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-    case Status of
-      GL_FRAMEBUFFER_COMPLETE_EXT: { cool, continue };
-      GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-        begin
-          GLContextClose;
+    Success := false;
+    try
+      Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+      case Status of
+        GL_FRAMEBUFFER_COMPLETE_EXT:
+          Success := true;
+        GL_FRAMEBUFFER_UNSUPPORTED_EXT:
           DataWarning('Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach');
-        end;
-      else
-        raise EFramebufferInvalid.CreateFmt('Framebuffer check failed: %s (FBO error number %d)',
-          [ FramebufferStatusToString(Status), Status]);
-    end;
+        else
+          raise EFramebufferInvalid.CreateFmt('Framebuffer check failed: %s (FBO error number %d)',
+            [ FramebufferStatusToString(Status), Status]);
+      end;
+    finally
+      { Always, regardless of Success, unbind FBO and restore normal gl*Buffer }
+      glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+      UnbindFramebuffer;
 
-    { Unbind renderbuffer, framebuffer }
-    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+      if Buffer = tbDepth then
+      begin
+        glDrawBuffer(GL_BACK);
+        glReadBuffer(GL_BACK);
+      end;
 
-    if Buffer = tbDepth then
-    begin
-      glDrawBuffer(GL_BACK);
-      glReadBuffer(GL_BACK);
+      { If failure, release resources. In particular, this sets Framebuffer = 0,
+        which will be a signal to other methods that FBO is not supported. }
+      if not Success then
+        GLContextClose;
     end;
   end;
 
@@ -2130,7 +2180,7 @@ begin
   begin
     if not FramebufferBound then
     begin
-      glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
+      BindFramebuffer(Framebuffer);
       FramebufferBound := true;
 
       if Buffer = tbDepth then
@@ -2203,7 +2253,7 @@ begin
     Assert(FramebufferBound);
     if not RenderBeginFollows then
     begin
-      glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+      UnbindFramebuffer;
       FramebufferBound := false;
 
       if Buffer = tbDepth then
@@ -2228,4 +2278,6 @@ begin
   GLImages.GenerateMipmap(CompleteTextureTarget);
 end;
 
+finalization
+  FreeAndNil(BoundFboStack);
 end.
