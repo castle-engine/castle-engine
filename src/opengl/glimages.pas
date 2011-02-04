@@ -1993,7 +1993,7 @@ procedure TGLRenderToTexture.GLContextOpen;
 
 var
   Status: TGLenum;
-  DepthBufferFormat: TGLenum;
+  PackedDepthBufferFormat: TGLenum;
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
@@ -2007,33 +2007,28 @@ begin
     glGenFramebuffersEXT(1, @Framebuffer);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Framebuffer);
 
+    { Used for tbColor or tbNone, when we don't want to capture depth buffer,
+      and so it's Ok to pack depth and stencil together.
+
+      When EXT_packed_depth_stencil is present, and stencil is wanted
+      (a very common case!, as most GPUs have EXT_packed_depth_stencil
+      and for shadow volumes we want stencil) we desperately want to
+      use one renderbuffer with combined depth/stencil info.
+      Other possibilities may be not available at all (e.g. Radeon on chantal,
+      but probably most GPUs with EXT_packed_depth_stencil). }
+    if Stencil and GL_EXT_packed_depth_stencil then
+      PackedDepthBufferFormat := GL_DEPTH_STENCIL_EXT else
+      PackedDepthBufferFormat := GL_DEPTH_COMPONENT;
+
     case Buffer of
       tbColor:
         begin
           glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
 
-          { When EXT_packed_depth_stencil is present, and stencil is wanted
-            (a very common case!, as most GPUs have EXT_packed_depth_stencil
-            and for shadow volumes we want stencil) we desperately want to
-            use one renderbuffer with combined depth/stencil info.
-            Other possibilities may be not available at all (e.g. Radeon on chantal,
-            but probably most GPUs with EXT_packed_depth_stencil). }
-
-          if Stencil and GL_EXT_packed_depth_stencil then
-            DepthBufferFormat := GL_DEPTH_STENCIL_EXT else
-            DepthBufferFormat := GL_DEPTH_COMPONENT;
-
           glGenRenderbuffersEXT(1, @RenderbufferDepth);
           glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferDepth);
-          glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, DepthBufferFormat, Width, Height);
+          glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, PackedDepthBufferFormat, Width, Height);
           glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
-
-          if Stencil then
-          begin
-            if GL_EXT_packed_depth_stencil then
-              glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth) else
-              AttachSeparateStencilRenderbuffer;
-          end;
         end;
       tbDepth:
         begin
@@ -2042,18 +2037,11 @@ begin
           glReadBuffer(GL_NONE);
 
           glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, TextureTarget, Texture, 0);
-
-          if Stencil then
-            { only separate stencil buffer possible in this case }
-            AttachSeparateStencilRenderbuffer;
         end;
       tbColorAndDepth:
         begin
           glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
           glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, DepthTextureTarget, DepthTexture, 0);
-          if Stencil then
-            { only separate stencil buffer possible in this case }
-            AttachSeparateStencilRenderbuffer;
         end;
       tbNone:
         begin
@@ -2064,11 +2052,23 @@ begin
 
           glGenRenderbuffersEXT(1, @RenderbufferDepth);
           glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferDepth);
-          glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, DepthBufferFormat, Width, Height);
+          glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, PackedDepthBufferFormat, Width, Height);
           glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
         end;
       else raise EInternalError.Create('Buffer 1?');
     end;
+
+    { setup stencil buffer }
+    if Stencil then
+      case Buffer of
+        tbDepth, tbColorAndDepth:
+          { only separate stencil buffer possible in this case }
+          AttachSeparateStencilRenderbuffer;
+        tbColor, tbNone:
+          if GL_EXT_packed_depth_stencil then
+            glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth) else
+            AttachSeparateStencilRenderbuffer;
+      end;
 
     Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
     case Status of
