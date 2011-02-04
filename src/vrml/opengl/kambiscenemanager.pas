@@ -1332,6 +1332,19 @@ begin
     begin
       glLoadMatrix(RenderState.CameraRotationMatrix);
 
+      { The background rendering doesn't like custom OrthoViewDimensions.
+        They could make the background sky box very small, such that it
+        doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
+        testcase. So temporary set good perspective projection. }
+      if not PerspectiveView then
+      begin
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix;
+        glLoadMatrix(PerspectiveProjMatrixDeg(45, CorrectWidth / CorrectHeight,
+          ProjectionNear, ProjectionFar));
+        glMatrixMode(GL_MODELVIEW);
+      end;
+
       if BackgroundWireframe then
       begin
         { Color buffer needs clear *now*, before drawing background. }
@@ -1342,6 +1355,13 @@ begin
         finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
       end else
         UsedBackground.Render;
+
+      if not PerspectiveView then
+      begin
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix;
+        glMatrixMode(GL_MODELVIEW);
+      end;
     end else
       ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
   end;
