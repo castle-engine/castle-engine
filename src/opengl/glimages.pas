@@ -805,6 +805,12 @@ type
 
       @raises(EGenerateMipmapNotAvailable If glGenerateMipmap not available.) }
     procedure GenerateMipmap;
+
+    { Color buffer name. Use only when Buffer = tbNone, between GLContextOpen
+      and GLContextClose. This is the buffer name that you should pass to
+      glReadBuffer (or our SaveScreen_NoFlush), currently it's just
+      GL_COLOR_ATTACHMENT0_EXT if we actually have FBO or GL_BACK if not. }
+    function ColorBuffer: TGLuint;
   end;
 
 implementation
@@ -2301,6 +2307,13 @@ procedure TGLRenderToTexture.GenerateMipmap;
 begin
   glBindTexture(CompleteTextureTarget, Texture);
   GLImages.GenerateMipmap(CompleteTextureTarget);
+end;
+
+function TGLRenderToTexture.ColorBuffer: TGLuint;
+begin
+  if Framebuffer <> 0 then
+    Result := GL_COLOR_ATTACHMENT0_EXT else
+    Result := GL_BACK;
 end;
 
 finalization
