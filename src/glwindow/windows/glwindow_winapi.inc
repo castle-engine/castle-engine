@@ -1021,22 +1021,12 @@ begin
    ze "dziala kiedy wywolamy PostRedisplay". }
  Application.OpenWindowsAdd(Self);
 
- { On Windows, it seems I can't implement Visible option.
-   OpenGL context is just useless without ShowWindow(h_Wnd, SW_SHOW),
-   i.e. you cannot use this to render off-screen
-   and then capture the output, because the output on non-visible window is not
-   recorded anywhere, reading color buffer returns only black or only white.
-
-   Actually, even normal screen capture, with Visible, goes wrong when part
-   of the window is obscured by other window. In other words, off-screen rendering
-   works only for window parts actually visible on screen.
-
-   I guess this can be fixed only by implementing
-   actual render-to-bitmap OpenGL initialization. }
-
- ShowWindow(h_Wnd, SW_SHOW);
- SetForegroundWindow(h_Wnd);
- SetFocus(h_Wnd);
+ if Visible then
+ begin
+   ShowWindow(h_Wnd, SW_SHOW);
+   SetForegroundWindow(h_Wnd);
+   SetFocus(h_Wnd);
+ end;
 
  { Windows does not send us WM_SIZE messages when FullScreen (that's probably
    caused by our special dwStyle and dwStyleEx for FullScreen, probably
