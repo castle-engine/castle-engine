@@ -2310,11 +2310,13 @@ begin
   '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
   '  Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
   '  Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
-  '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
   '  Multi-texturing (a couple of related extensions): ' + BoolToStr[GLUseMultiTexturing] +nl+
+  '  Framebuffer Object: ' + BoolToStr[GL_EXT_framebuffer_object] +nl+
   '  Vertex Buffer Object: ' + BoolToStr[GL_ARB_vertex_buffer_object] +nl+
+  '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
+  '  S3TC compressed textures: ' + BoolToStr[GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc] +nl+
   nl+
-  '  Extensions: ' +glGetString(GL_EXTENSIONS) +nl+
+  '  All extensions: ' +glGetString(GL_EXTENSIONS) +nl+
   nl+
 
   '-----------------------------' +nl+
