@@ -894,152 +894,152 @@ var
   WindowRect, ClientRect: TRect;
   H_Menu: HMenu;
 begin
- if ColorBits = 0 then ColorBits := Application.VideoColorBits;
+  if ColorBits = 0 then ColorBits := Application.VideoColorBits;
 
- { optionally hide mouse in FullScreem,
-   set dwStyle and dwExStyle for our window }
- if FFullScreen then
- begin
-  dwExStyle := WS_EX_APPWINDOW;
-  dwStyle := DWord(WS_POPUP); { glut daje tutaj tez WS_MAXIMIZE; bez znaczenia, jak sadze; }
- end else
- begin
-  dwExStyle := WS_EX_APPWINDOW or WS_EX_WINDOWEDGE;
-  if ResizeAllowed = raAllowed then
+  { optionally hide mouse in FullScreem,
+    set dwStyle and dwExStyle for our window }
+  if FFullScreen then
   begin
-   { jezeli rozmiary ekranu nie spelniaja wymagan min/max Width/Height to nie dajemy
-     przycisku MAXIMIZE dla okienka. Ponizszy test nie jest precyzyjny bo okienko
-     zmaksymalizowane ma wewnetrzna szerokosc / wysokosc troche mniejsze od
-     ScreenW/ScreemH. Ale szczerze mowiac nie mam ochoty sie babrac w badaniu
-     szerokosci ramki zmaksymalizowanego okienka. Po prostu - jezeli ponizszy check
-     spowoduje ze nie bedzie przycisku MAXIMIZE mimo ze moglby byc to trudno, to tylko
-     drobna niewygoda dla usera. Jezeli spowoduje ze przycisk MAXIMIZE bedzie mimo ze
-     nie powinno go byc to obwarowane checkami DoResize zignoruje nieprawidlowy rozmiar
-     i juz. }
-   if (not between(Application.ScreenWidth, minWidth, maxWidth)) or
-      (not between(Application.ScreenHeight, minHeight, maxHeight)) then
-    dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX or WS_THICKFRAME else
-    dwStyle := WS_OVERLAPPEDWINDOW;
+    dwExStyle := WS_EX_APPWINDOW;
+    dwStyle := DWord(WS_POPUP); { glut daje tutaj tez WS_MAXIMIZE; bez znaczenia, jak sadze; }
   end else
-   { dwStyle jest tu dokladnien taki sam jak WS_OVERLAPPEDWINDOW ale bez
-     WS_THICKFRAME i WS_MAXIMIZEBOX czyli nie mozna resizowac okna. }
-   dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX;
- end;
- dwStyle := dwStyle or WS_CLIPSIBLINGS or WS_CLIPCHILDREN;
+  begin
+    dwExStyle := WS_EX_APPWINDOW or WS_EX_WINDOWEDGE;
+    if ResizeAllowed = raAllowed then
+    begin
+      { jezeli rozmiary ekranu nie spelniaja wymagan min/max Width/Height to nie dajemy
+        przycisku MAXIMIZE dla okienka. Ponizszy test nie jest precyzyjny bo okienko
+        zmaksymalizowane ma wewnetrzna szerokosc / wysokosc troche mniejsze od
+        ScreenW/ScreemH. Ale szczerze mowiac nie mam ochoty sie babrac w badaniu
+        szerokosci ramki zmaksymalizowanego okienka. Po prostu - jezeli ponizszy check
+        spowoduje ze nie bedzie przycisku MAXIMIZE mimo ze moglby byc to trudno, to tylko
+        drobna niewygoda dla usera. Jezeli spowoduje ze przycisk MAXIMIZE bedzie mimo ze
+        nie powinno go byc to obwarowane checkami DoResize zignoruje nieprawidlowy rozmiar
+        i juz. }
+      if (not between(Application.ScreenWidth, minWidth, maxWidth)) or
+         (not between(Application.ScreenHeight, minHeight, maxHeight)) then
+        dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX or WS_THICKFRAME else
+        dwStyle := WS_OVERLAPPEDWINDOW;
+    end else
+      { dwStyle jest tu dokladnien taki sam jak WS_OVERLAPPEDWINDOW ale bez
+        WS_THICKFRAME i WS_MAXIMIZEBOX czyli nie mozna resizowac okna. }
+      dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX;
+  end;
+  dwStyle := dwStyle or WS_CLIPSIBLINGS or WS_CLIPCHILDREN;
 
- WindowRect := Bounds(fleft, ftop, fwidth, fheight);
- { Adjust WindowRect - so that ClientRect will hold the requested size and
-   position. Whole WindowRect will be a bit larger (depends on dwStyle,
-   dwExStyle).
+  WindowRect := Bounds(fleft, ftop, fwidth, fheight);
+  { Adjust WindowRect - so that ClientRect will hold the requested size and
+    position. Whole WindowRect will be a bit larger (depends on dwStyle,
+    dwExStyle).
 
-   Note that when FullScreen = true there is no need to do this - the intention
-   of FullScreen is that whole window (with menu) covers whole screen and
-   window has no frame. So WindowRect should be (0, 0, Application.ScreenWidth,
-   Application.ScreenHeight) and this is already set. I could write it like that:
-     AdjustWindowRectEx(WindowRect, dwStyle,
-       (not FullScreen) and (MainMenu <> nil), dwExStyle);
-   but it's more clear to just omit AdjustWindowRectEx call when FullScreen.
+    Note that when FullScreen = true there is no need to do this - the intention
+    of FullScreen is that whole window (with menu) covers whole screen and
+    window has no frame. So WindowRect should be (0, 0, Application.ScreenWidth,
+    Application.ScreenHeight) and this is already set. I could write it like that:
+      AdjustWindowRectEx(WindowRect, dwStyle,
+        (not FullScreen) and (MainMenu <> nil), dwExStyle);
+    but it's more clear to just omit AdjustWindowRectEx call when FullScreen.
 
-   Note the (documented) WinAPI bug here: AdjustWindowRectEx cannot take
-   into account if the menu bar wraps (in two or more rows). This wrapping
-   happens, depending on menu contents and user fonts. But AdjustWindowRectEx
-   has to way to account for it: it only knows if the menu exists at all.
-   Documented in MSDN explicitly: "The AdjustWindowRectEx function does not add
-   extra space when a menu bar wraps to two or more rows.", with no workaround
-   pointed...
+    Note the (documented) WinAPI bug here: AdjustWindowRectEx cannot take
+    into account if the menu bar wraps (in two or more rows). This wrapping
+    happens, depending on menu contents and user fonts. But AdjustWindowRectEx
+    has to way to account for it: it only knows if the menu exists at all.
+    Documented in MSDN explicitly: "The AdjustWindowRectEx function does not add
+    extra space when a menu bar wraps to two or more rows.", with no workaround
+    pointed...
 
-   This means that actual OpenGL area size may be different than
-   requested (OnResize will report it corectly, eventually lying, honoring
-   ResizeAllowed properrty). Happened e.g. when glViewImage allowed minimal
-   window size = 200, and default welcome image had 256x256 pixels.
-   When you opened glViewImage with no params in directory with no images,
-   then OpenGL area of size 256x256 was requested, which was so narrow that
-   menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
-   and glViewImage had to add a vertical scrollbar to display welcome image.
- }
- if not FullScreen then
-  AdjustWindowRectEx(WindowRect, dwStyle, MainMenu <> nil, dwExStyle);
+    This means that actual OpenGL area size may be different than
+    requested (OnResize will report it corectly, eventually lying, honoring
+    ResizeAllowed properrty). Happened e.g. when glViewImage allowed minimal
+    window size = 200, and default welcome image had 256x256 pixels.
+    When you opened glViewImage with no params in directory with no images,
+    then OpenGL area of size 256x256 was requested, which was so narrow that
+    menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
+    and glViewImage had to add a vertical scrollbar to display welcome image.
+  }
+  if not FullScreen then
+    AdjustWindowRectEx(WindowRect, dwStyle, MainMenu <> nil, dwExStyle);
 
- { calculate H_Menu }
- if MainMenu <> nil then
-  H_Menu := WindowsMenuFromGLWindowMenu(MainMenu, true) else
-  H_Menu := 0;
+  { calculate H_Menu }
+  if MainMenu <> nil then
+    H_Menu := WindowsMenuFromGLWindowMenu(MainMenu, true) else
+    H_Menu := 0;
 
- { main point : create the window }
- H_wnd := CreateWindowEx(dwExStyle,
-   PChar(Application.wndClassName), PChar(fCaption),
-   dwStyle,
-   windowRect.left, windowRect.top,
-   windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
-   0 { no parent window }, H_Menu, hInstance,
-   nil { don't pass anything to WM_CREATE } );
- Check( h_Wnd <> 0, 'CreateWindowEx failed');
+  { main point : create the window }
+  H_wnd := CreateWindowEx(dwExStyle,
+    PChar(Application.wndClassName), PChar(fCaption),
+    dwStyle,
+    windowRect.left, windowRect.top,
+    windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
+    0 { no parent window }, H_Menu, hInstance,
+    nil { don't pass anything to WM_CREATE } );
+  Check( h_Wnd <> 0, 'CreateWindowEx failed');
 
- { See WM_MOVE handling comments why this is needed to make Top correct. }
- if FullScreen and (MainMenu <> nil) then
-   FTop += GetSystemMetrics(SM_CYMENU);
+  { See WM_MOVE handling comments why this is needed to make Top correct. }
+  if FullScreen and (MainMenu <> nil) then
+    FTop += GetSystemMetrics(SM_CYMENU);
 
- SetWindowLongPtr(h_Wnd, GWL_USERDATA, PtrUInt(Self));
+  SetWindowLongPtr(h_Wnd, GWL_USERDATA, PtrUInt(Self));
 
- { get h_DC and set pixel format }
+  { get h_DC and set pixel format }
 
- h_Dc := GetDC(h_Wnd);
- Check ( h_Dc <> 0, 'GetDC failed');
+  h_Dc := GetDC(h_Wnd);
+  Check ( h_Dc <> 0, 'GetDC failed');
 
- { Actually, everything is implemented such that I can just call
-   here SetPixelFormat_WGLChoose. SetPixelFormat_WGLChoose will eventually
-   fall back to SetPixelFormat_ClassicChoose, if needed.
+  { Actually, everything is implemented such that I can just call
+    here SetPixelFormat_WGLChoose. SetPixelFormat_WGLChoose will eventually
+    fall back to SetPixelFormat_ClassicChoose, if needed.
 
-   For now, SetPixelFormat_ClassicChoose is simply more tested, and
-   SetPixelFormat_WGLChoose is needed only in case of multi-sampling.
-   So, to play it safe, for view3dscene 2.4.0 and engine 1.3.0 release
-   I just call SetPixelFormat_WGLChoose only if multisampling is requested.
+    For now, SetPixelFormat_ClassicChoose is simply more tested, and
+    SetPixelFormat_WGLChoose is needed only in case of multi-sampling.
+    So, to play it safe, for view3dscene 2.4.0 and engine 1.3.0 release
+    I just call SetPixelFormat_WGLChoose only if multisampling is requested.
 
-   So in the future I may simplify this "if" to just call SetPixelFormat_WGLChoose
-   always. }
- if MultiSampling > 1 then
-   SetPixelFormat_WGLChoose else
-   SetPixelFormat_ClassicChoose;
+    So in the future I may simplify this "if" to just call SetPixelFormat_WGLChoose
+    always. }
+  if MultiSampling > 1 then
+    SetPixelFormat_WGLChoose else
+    SetPixelFormat_ClassicChoose;
 
- if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
-  raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
+  if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
+    raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
 
- { jezeli ColorBits bylo = 0 to teraz dowiedz sie co dostalismy }
- if ColorBits = 0 then
-  ColorBits := GetDeviceCaps(h_DC, BITSPIXEL);
+  { jezeli ColorBits bylo = 0 to teraz dowiedz sie co dostalismy }
+  if ColorBits = 0 then
+    ColorBits := GetDeviceCaps(h_DC, BITSPIXEL);
 
- { create gl context and make it current }
- h_GLRc := wglCreateContext(h_Dc);
- KambiOSCheck(h_GLRc <> 0, 'wglCreateContext');
- MakeCurrent;
+  { create gl context and make it current }
+  h_GLRc := wglCreateContext(h_Dc);
+  KambiOSCheck(h_GLRc <> 0, 'wglCreateContext');
+  MakeCurrent;
 
- { robimy OpenWindowsAdd PRZED ShowWindow bo ShowWindow wywoluje WinProc
-   z message'm kazacym nam sie odmalowac. Wiec zeby przetworzyc tego messaga
-   (ktory powoduje po prostu PostRedisplay) nasze okienko musi byc
-   zarejestrowane w Application.OpenWindows. Dlaczego nie zrobic po prostu PostRedisplay ?
-   Tak jest porzadniej, no i w ten sposob wiem DLACZEGO to dziala, a nie tylko
-   ze "dziala kiedy wywolamy PostRedisplay". }
- Application.OpenWindowsAdd(Self);
+  { robimy OpenWindowsAdd PRZED ShowWindow bo ShowWindow wywoluje WinProc
+    z message'm kazacym nam sie odmalowac. Wiec zeby przetworzyc tego messaga
+    (ktory powoduje po prostu PostRedisplay) nasze okienko musi byc
+    zarejestrowane w Application.OpenWindows. Dlaczego nie zrobic po prostu PostRedisplay ?
+    Tak jest porzadniej, no i w ten sposob wiem DLACZEGO to dziala, a nie tylko
+    ze "dziala kiedy wywolamy PostRedisplay". }
+  Application.OpenWindowsAdd(Self);
 
- if Visible then
- begin
-   ShowWindow(h_Wnd, SW_SHOW);
-   SetForegroundWindow(h_Wnd);
-   SetFocus(h_Wnd);
- end;
+  if Visible then
+  begin
+    ShowWindow(h_Wnd, SW_SHOW);
+    SetForegroundWindow(h_Wnd);
+    SetFocus(h_Wnd);
+  end;
 
- { Windows does not send us WM_SIZE messages when FullScreen (that's probably
-   caused by our special dwStyle and dwStyleEx for FullScreen, probably
-   by the lack of WS_OVERLAPPED in dwStyle). But we should check it here,
-   because it's possible that the real Width/Height of the OpenGL window is now
-   NOT Application.ScreenWidth/Height - that's because of MainMenu, it takes some space.
-   So we check client rect size explicitly, with GetClientRect, and call DoResize
-   (we don't care here about ResizeAllowed, DoResize will take care of averything). }
- if FullScreen then
- begin
-  KambiOSCheck( GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
-  DoResize(ClientRect.Right-ClientRect.Left, ClientRect.Bottom-ClientRect.Top, false);
- end;
+  { Windows does not send us WM_SIZE messages when FullScreen (that's probably
+    caused by our special dwStyle and dwStyleEx for FullScreen, probably
+    by the lack of WS_OVERLAPPED in dwStyle). But we should check it here,
+    because it's possible that the real Width/Height of the OpenGL window is now
+    NOT Application.ScreenWidth/Height - that's because of MainMenu, it takes some space.
+    So we check client rect size explicitly, with GetClientRect, and call DoResize
+    (we don't care here about ResizeAllowed, DoResize will take care of averything). }
+  if FullScreen then
+  begin
+    KambiOSCheck( GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
+    DoResize(ClientRect.Right-ClientRect.Left, ClientRect.Bottom-ClientRect.Top, false);
+  end;
 end;
 
 procedure TGLWindow.SetCursor(const Value: TMouseCursor);
