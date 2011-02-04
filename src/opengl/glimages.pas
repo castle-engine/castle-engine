@@ -1948,8 +1948,18 @@ begin
 end;
 
 { Remove the top Fbo from the stack, and bind previous (new top) Fbo.
-  Binds FBO number 0 (normal OpenGL buffer) if stack becomes empty. }
-procedure UnbindFramebuffer;
+  Binds FBO number 0 (normal OpenGL buffer) if stack becomes empty.
+
+  PreviousFboDefaultBuffer is set to the default draw buffer suitable
+  for currently (after this call) bound FBO. It's GL_BACK if we're
+  now in normal rendering to window (TODO: we assume you always use double-buffer then),
+  or GL_COLOR_ATTACHMENT0_EXT if we're in another non-window FBO.
+  TODO: it should be GL_NONE if we're in another non-window FBO for tbDepth.
+  Without this, if you would blindly try glDrawBuffer(GL_BACK)
+  after UnbindFramebuffer, and you are in another single-buffered FBO,
+  OpenGL (at least NVidia and fglrx) will (rightly) report OpenGL
+  "invalid enum" error. }
+procedure UnbindFramebuffer(out PreviousFboDefaultBuffer: TGLenum);
 var
   PreviousFbo: TGLuint;
 begin
@@ -1962,7 +1972,19 @@ begin
   end else
     PreviousFbo := 0;
 
+  if PreviousFbo = 0 then
+    PreviousFboDefaultBuffer := GL_BACK else
+    PreviousFboDefaultBuffer := GL_COLOR_ATTACHMENT0_EXT;
+
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, PreviousFbo);
+end;
+
+procedure UnbindFramebuffer;
+var
+  PreviousFboDefaultBuffer: TGLenum;
+begin
+  UnbindFramebuffer(PreviousFboDefaultBuffer);
+  { ignore PreviousFboDefaultBuffer }
 end;
 
 { TGLRenderToTexture --------------------------------------------------------- }
@@ -2038,6 +2060,7 @@ var
   Status: TGLenum;
   PackedDepthBufferFormat: TGLenum;
   Success: boolean;
+  PreviousFboDefaultBuffer: TGLenum;
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
@@ -2129,12 +2152,12 @@ begin
     finally
       { Always, regardless of Success, unbind FBO and restore normal gl*Buffer }
       glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
-      UnbindFramebuffer;
+      UnbindFramebuffer(PreviousFboDefaultBuffer);
 
       if Buffer = tbDepth then
       begin
-        glDrawBuffer(GL_BACK);
-        glReadBuffer(GL_BACK);
+        glDrawBuffer(PreviousFboDefaultBuffer);
+        glReadBuffer(PreviousFboDefaultBuffer);
       end;
 
       { If failure, release resources. In particular, this sets Framebuffer = 0,
@@ -2239,6 +2262,8 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
   end;
 {$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}
 
+var
+  PreviousFboDefaultBuffer: TGLenum;
 begin
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
   if Buffer <> tbDepth then
@@ -2253,13 +2278,13 @@ begin
     Assert(FramebufferBound);
     if not RenderBeginFollows then
     begin
-      UnbindFramebuffer;
+      UnbindFramebuffer(PreviousFboDefaultBuffer);
       FramebufferBound := false;
 
       if Buffer = tbDepth then
       begin
-        glDrawBuffer(GL_BACK);
-        glReadBuffer(GL_BACK);
+        glDrawBuffer(PreviousFboDefaultBuffer);
+        glReadBuffer(PreviousFboDefaultBuffer);
       end;
     end;
   end else
