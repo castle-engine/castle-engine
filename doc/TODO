@@ -539,8 +539,6 @@ There are still some rough situations when camera "shakes" when going around the
   - use float textures
   - add to make easily usable from the engine?
 
-- when capturing screenshots/movies in batch mode, use FBO
-
 S3TC:
 - (minor) image_identify cannot display info about S3TC compressed images
 - (minor) glViewImage can open s3tc compressed images, but it cannot be the 1st image on command-line (since opengl context is not ready then yet, so no decompressor initialized)
@@ -684,14 +682,6 @@ Things for much later:
   done? (but it's not, right now, as was seen rather useless...).
 
   Postponed / half resigned.
-
-- fix Intel Mesa crashes on domek,
-  generally run full test (including screenshots) on domek and fix everything.
-
-  For now all fixed on chantal with upstream mesa 7.2,
-  and most fixed on domek. Some remaining issues on domek remain,
-  see ~/sources/mesa/bug_arith_error.txt on domek,
-  postponed for later (let's see how they handle reported GL_POINT_BIT bug first).
 
 - make doc without protected stuff?
   Decide when really nice docs are made.
