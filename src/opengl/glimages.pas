@@ -604,7 +604,7 @@ type
   EFramebufferSizeTooLow = class(EFramebufferError);
   EFramebufferInvalid  = class(EFramebufferError);
 
-  TGLRenderToTextureBuffer = (tbColor, tbDepth, tbColorAndDepth);
+  TGLRenderToTextureBuffer = (tbColor, tbDepth, tbColorAndDepth, tbNone);
 
   { Rendering to texture with OpenGL.
     Uses framebuffer (if available), and has fallback to glCopyTexSubImage2D
@@ -623,7 +623,7 @@ type
     FDepthTexture: TGLuint;
 
     FGLInitialized: boolean;
-    Framebuffer, RenderbufferDepth, RenderbufferStencil: TGLuint;
+    Framebuffer, RenderbufferColor, RenderbufferDepth, RenderbufferStencil: TGLuint;
 
     FramebufferBound: boolean;
   public
@@ -642,13 +642,15 @@ type
     property Height: Cardinal read FHeight write FHeight;
     { @groupEnd }
 
-    { Texture associated with rendered the buffer of rendered image.
+    { Texture associated with the rendered buffer image.
       If @link(Buffer) is tbColor or tbColorAndDepth then we will capture
       here color contents. If @link(Buffer) is tbDepth then we will capture
       here depth contents (useful e.g. for shadow maps).
+      If If @link(Buffer) is tbNone, this is ignored.
 
-      We currently require this texture to be set to valid texture (not 0)
-      before GLContextOpen. Also, if you later change it,
+      We require this texture to be set to a valid texture (not 0)
+      before GLContextOpen (unless Buffer is tbNone).
+      Also, if you later change it,
       be careful to assign here other textures of only the same size and format.
       This allows us to call glCheckFramebufferStatusEXT (and eventually
       fallback to non-stencil version) right at GLContextOpen call, and no need
@@ -702,6 +704,11 @@ type
         @item(tbDepth: the @link(Texture) will contain depth contents.)
         @item(tbColorAndDepth: the @link(Texture) will contain color
           contents, the @link(DepthTexture) will contain depth contents.)
+        @item(tbNone: we will not capture screen contents to any texture
+          at all. This is useful for rendering a screen that you want
+          to manually capture to normal memory with glReadPixels
+          (see also SaveScreen_noflush in this unit or TGLWindow.SaveScreen).
+          Be sure to capture the screen before RenderEnd.)
       )
 
       For tbDepth and tbColorAndDepth, the texture that will receive
@@ -1964,7 +1971,7 @@ procedure TGLRenderToTexture.GLContextOpen;
     case Status of
       GL_FRAMEBUFFER_COMPLETE_EXT                      : Result := 'Complete (no error)';
       GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT         : Result := 'INCOMPLETE_ATTACHMENT: Not all framebuffer attachment points are "framebuffer attachment complete"';
-      GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT : Result := 'INCOMPLETE_MISSING_ATTACHMENT: None image attached to the framebuffer';
+      GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT : Result := 'INCOMPLETE_MISSING_ATTACHMENT: None image attached to the framebuffer. On some GPUs/drivers (fglrx) it may also mean that desired image size is too large';
       GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT         : Result := 'INCOMPLETE_DIMENSIONS: Not all attached images have the same width and height';
       GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT            : Result := 'INCOMPLETE_FORMATS: Not all images attached to the attachment points COLOR_ATTACHMENT* have the same internal format';
       GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT        : Result := 'INCOMPLETE_DRAW_BUFFER: The value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE_EXT is NONE for some color attachment point(s) named by DRAW_BUFFERi';
@@ -2048,6 +2055,18 @@ begin
             { only separate stencil buffer possible in this case }
             AttachSeparateStencilRenderbuffer;
         end;
+      tbNone:
+        begin
+          glGenRenderbuffersEXT(1, @RenderbufferColor);
+          glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferColor);
+          glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGB, Width, Height);
+          glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, RenderbufferColor);
+
+          glGenRenderbuffersEXT(1, @RenderbufferDepth);
+          glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferDepth);
+          glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, DepthBufferFormat, Width, Height);
+          glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
+        end;
       else raise EInternalError.Create('Buffer 1?');
     end;
 
@@ -2099,6 +2118,7 @@ procedure TGLRenderToTexture.GLContextClose;
   end;
 
 begin
+  FreeRenderbuffer(RenderbufferColor);
   FreeRenderbuffer(RenderbufferDepth);
   FreeRenderbuffer(RenderbufferStencil);
   FreeFramebuffer(Framebuffer);
@@ -2193,6 +2213,7 @@ begin
       end;
     end;
   end else
+  if Buffer <> tbNone then
   begin
     { Actually update OpenGL texture }
     glBindTexture(CompleteTextureTarget, Texture);
