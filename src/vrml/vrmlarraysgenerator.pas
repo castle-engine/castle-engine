@@ -649,17 +649,21 @@ var
   AllowIndexed: boolean;
   MaxIndex: Integer;
 begin
+  Arrays := TGeometryArrays.Create;
+  Result := Arrays;
+
+  { no geometry if coordinates are empty. Leave empty Arrays. }
+  if Coord = nil then Exit;
+
   { initialize stuff for generating }
   IndexesFromCoordIndex := nil;
   try
     ArrayIndexNum := -1;
-    Arrays := TGeometryArrays.Create;
-    Result := Arrays;
 
     PrepareIndexesPrimitives;
 
     { Assert about Arrays.Counts.Sum. Note that even when
-      IndexesFromCoordIndex = nil, it should usually be equal
+      IndexesFromCoordIndex = nil, Arrays.Counts.Sum should usually be equal
       to final Arrays.Count. But not always: it may not be equal
       for invalid nodes, with non-complete triangle strips / fans etc.
       (then Arrays.Counts will not contain all coordinates). }
