@@ -1695,7 +1695,7 @@ end;
 
 function TVRMLShape.DebugInfo(const Indent: string): string;
 begin
-  Result := Indent + Geometry.NodeTypeName + NL;
+  Result := Indent + OriginalGeometry.NodeTypeName + NL;
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }

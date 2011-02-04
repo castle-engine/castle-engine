@@ -693,7 +693,7 @@ begin
 
     if Log then
       WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
-        [Shape.Geometry.NodeTypeName, BoolToStr[AllowIndexed]]));
+        [Shape.OriginalGeometry.NodeTypeName, BoolToStr[AllowIndexed]]));
 
     if AllowIndexed or (IndexesFromCoordIndex = nil) then
     begin
