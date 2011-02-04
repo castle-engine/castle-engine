@@ -55,14 +55,14 @@ procedure RenderMaterialsBegin;
     { Usually, UnlitColor should be from EmissiveColor3Single.
 
       However, IndexedLineSet in VRML 1.0 is an exception.
-      NodeLit result for it is determined by whether it has normals
+      MaterialLit result for it is determined by whether it has normals
       (this is contrary to other nodes, that are always lit or unlit;
       well, forgetting about the "OnlyEmissiveMaterial" exceptional situation
       for the moment).
 
-      If it's determined to be unlit by NodeLit
-      (so when OnlyEmissiveMaterial is @false, then only NodeLit = @false
-      can force using UnlitColor), we want the unlit color to be the same
+      If it's determined to be unlit by TNodeIndexedLineSet_1.Lit
+      (that is, it has not enough normals), but OnlyEmissiveMaterial is @false
+      (we have usable material diffuse), we want the unlit color to be the same
       as when it was lit but we were watching with GL_LIGHTING off.
       RenderMaterial uses DiffuseColor in such case.
 
@@ -169,10 +169,8 @@ begin
       not (
         (CurrentGeometry is TNodePointSet_1) or
         (CurrentGeometry is TNodePointSet_2) or
-        { VRML 1.0 specification states that lines normals aren't generated
-          --- instead, lines are drawn unlit when there are no normals specified. }
         ( (CurrentGeometry is TNodeIndexedLineSet_1) and
-          (CurrentState.LastNodes.Normal.FdVector.Count = 0) ) or
+          (not TNodeIndexedLineSet_1(CurrentGeometry).Lit(CurrentState)) ) or
         { VRML 2.0 specification says that IndexedLineSet should always be unlit,
           X3D spec adds that LineSet is also always unlit. }
         (CurrentGeometry is TNodeIndexedLineSet_2) or

@@ -212,6 +212,11 @@
 
     function TexCoord(State: TVRMLGraphTraverseState;
       out ATexCoord: TVRMLNode): boolean; override;
+
+    { Do we have enough normals information to render this node lit.
+      VRML 1.0 specification explicitly mentions that IndexedLineSet is treated
+      specially: it's unlit if there are not enough normals specified. }
+    function Lit(State: TVRMLGraphTraverseState): boolean;
   end;
 
   TNodePointSet_1 = class(TVRMLGeometryNode_1)
@@ -1129,6 +1134,29 @@ function TNodeIndexedLineSet_1.TexCoord(State: TVRMLGraphTraverseState;
 begin
   Result := true;
   ATexCoord := State.LastNodes.TextureCoordinate2;
+end;
+
+function TNodeIndexedLineSet_1.Lit(State: TVRMLGraphTraverseState): boolean;
+begin
+  { This somewhat follows the logic of
+    TAbstractNormalGenerator.NorImplementationFromVRML1Binding,
+    answering "false" when NorImplementationFromVRML1Binding sets "niNone". }
+
+  { for _INDEXED normal binding, check normalIndex non-empty }
+  case State.LastNodes.NormalBinding.FdValue.Value of
+    BIND_DEFAULT,
+    BIND_PER_VERTEX_INDEXED,
+    BIND_PER_PART_INDEXED,
+    BIND_PER_FACE_INDEXED:
+      Result := (FdNormalIndex.Count <> 0) and
+                (FdNormalIndex.Items.Items[0] >= 0);
+    else
+      Result := true;
+  end;
+
+  { check Normal.vector non-empty }
+  if State.LastNodes.Normal.FdVector.Count = 0 then
+    Result := false;
 end;
 
 constructor TNodePointSet_1.Create(const ANodeName: string; const AWWWBasePath: string);
