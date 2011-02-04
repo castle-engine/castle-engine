@@ -1512,26 +1512,52 @@ type
       It's ignored on non-GTK 2 backends. }
     property GtkIconName: string read FGtkIconName write FGtkIconName;
 
-    { Should this window be actually displayed on the desktop.
-      Set to @false for special tricks.
-
+    (*Should this window be actually displayed on the desktop.
       In all normal programs you want to leave this as @true, as the
       main purpose of the window is to actually be visible and interactive
-      on the desktop. But in some very special cases you really
-      need some OpenGL context but you don't want to display a visible
-      window for the user to see. One example is the @--screenshot
-      option of view3dscene, see
+      on the desktop.
+
+      Setting this to @false allows you to get an OpenGL context without
+      showing anything on the desktop. This can be used for rendering
+      and capturing OpenGL stuff without showing it on the desktop.
+      One example is the @--screenshot option of view3dscene, see
       [http://vrmlengine.sourceforge.net/view3dscene.php#section_screenshot].
 
-      A cleaner way to achieve this would be to actually initialize
-      content to render to off-screen bitmap. This would also allow
-      window size to not be limited by screen size etc.
-      But there are many non-portable
-      ways to do this, and often it means using software-only OpenGL
-      implementation (with poor speed, without shaders etc.).
-      So in practice, it's easiest to use this property,
-      in combination with FBO (TGLRenderToTexture class) for offscreen
-      rendering. }
+      If you implement such thing, remember that you should not render
+      and capture the normal front or back buffer contents.
+      OpenGL makes no guarantee that a hidden window will have any allocated
+      memory, so capturing hidden window contents isn't useful (you may
+      get something valid, or you may get random / blank screen, depending
+      on OS and GPU). However, you can create Framebuffer Object
+      on modern GPUs, and capture it's contents. An example code snippet:
+
+@longCode(#
+{ add GLImages, Images to your uses clause }
+
+var
+  ScreenshotRender: TGLRenderToTexture;
+  Image: TRGBImage;
+begin
+  ScreenshotRender := TGLRenderToTexture.Create(Width, Height);
+  try
+    ScreenshotRender.Buffer := tbNone;
+    ScreenshotRender.GLContextOpen;
+    ScreenshotRender.RenderBegin;
+
+    { render your stuff here }
+
+    { capture the screen }
+    glFlush;
+    Image := SaveScreen_NoFlush(0, 0, Width, Height, GL_BACK);
+    try
+      SaveImage(Image, 'aaa.png');
+    finally FreeAndNil(Image) end;
+
+    ScreenshotRender.RenderEnd;
+  finally FreeAndNil(ScreenshotRender) end;
+end;
+#)
+       *)
     property Visible: boolean read FVisible write FVisible default true;
 
     { Caption of the window. By default it's initialized to ProgramName.
