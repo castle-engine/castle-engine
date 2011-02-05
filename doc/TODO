@@ -855,9 +855,15 @@ Renderer:
   Restore quads in ElevationGrid, and then check speedup.
   If large -> make ElevationGrid use quads back.
 
-Make bitmap font rendering faster, and modern: use textures,
-not glBitmap.
+- Make bitmap font rendering faster, and modern: use textures,
+  not glBitmap.
 
 - on Windows (czarny) Radeon, some problems with
   view3dscen --screenshot 0 a.png chess.x3dv
   (no problems on other models?)
+
+- Completely remove the need for TVRMLGLRenderer.Prepare.
+  We don't use display lists anymore, we can just prepare everything
+  inside TVRMLGLRenderer.RenderBegin.
+  In fact, TVRMLGLScene already calls Render to prepare arrays/VBOs.
+  We should let and prepare everything else this way, along the rendering.
