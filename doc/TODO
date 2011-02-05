@@ -857,3 +857,7 @@ Renderer:
 
 Make bitmap font rendering faster, and modern: use textures,
 not glBitmap.
+
+- on Windows (czarny) Radeon, some problems with
+  view3dscen --screenshot 0 a.png chess.x3dv
+  (no problems on other models?)
