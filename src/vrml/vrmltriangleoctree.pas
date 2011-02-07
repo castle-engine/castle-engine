@@ -230,7 +230,7 @@ var
 begin
   AddedSomewhere := false;
 
-  Triangle := @(ParentTree.Triangles.Items[ItemIndex].Loc.Triangle);
+  Triangle := @(ParentTree.Triangles.Items[ItemIndex].Local.Triangle);
 
   { First prototype of this just run SecondTestAndAdd 8 times, without
     initial SubnodesWithBox checking. It turns out that it's faster
@@ -313,8 +313,8 @@ begin
   begin
     Inc(ParentTree.DirectCollisionTestsCounter);
     Result := Items[i];
-    if IsTriangleSphereCollision(Result^.Loc.Triangle,
-      Result^.Loc.Plane, pos, Radius) and
+    if IsTriangleSphereCollision(Result^.Local.Triangle,
+      Result^.Local.Plane, pos, Radius) and
       (TriangleToIgnore <> Result) and
       ( (not Assigned(TrianglesToIgnoreFunc)) or
         (not TrianglesToIgnoreFunc(ParentTree, Result)) ) then
@@ -349,7 +349,7 @@ begin
   begin
     Inc(ParentTree.DirectCollisionTestsCounter);
     Result := Items[i];
-    if IsBox3DTriangleCollision(ABox, Result^.Loc.Triangle) and
+    if IsBox3DTriangleCollision(ABox, Result^.Local.Triangle) and
       (TriangleToIgnore <> Result) and
       ( (not Assigned(TrianglesToIgnoreFunc)) or
         (not TrianglesToIgnoreFunc(ParentTree, Result)) ) then

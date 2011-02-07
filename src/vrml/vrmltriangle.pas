@@ -684,7 +684,7 @@ end;
 
 procedure TVRMLTriangle.UpdateWorld;
 begin
-  World.Triangle := TriangleTransform(Loc.Triangle, State.Transform);
+  World.Triangle := TriangleTransform(Local.Triangle, State.Transform);
   World.Plane := TriangleNormPlane(World.Triangle);
   World.Area := VectorMath.TriangleArea(World.Triangle);
 end;
@@ -711,7 +711,7 @@ begin
 
     Result := TryTriangleSegmentDirCollision(
       Intersection, IntersectionDistance,
-      Loc.Triangle, Loc.Plane,
+      Local.Triangle, Local.Plane,
       Odc0, OdcVector);
     Inc(DirectCollisionTestsCounter);
 
@@ -754,7 +754,7 @@ begin
 
     result := TryTriangleRayCollision(
       Intersection, IntersectionDistance,
-      Loc.Triangle, Loc.Plane,
+      Local.Triangle, Local.Plane,
       Ray0, RayVector);
     Inc(DirectCollisionTestsCounter);
 

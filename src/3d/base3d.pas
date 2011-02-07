@@ -108,7 +108,7 @@ type
           geometry will be needed in world coords. This will have to be
           done e.g. by TVRMLBaseTrianglesOctree.XxxCollision for each returned item.)
       ) }
-    Loc, World: T3DTriangleGeometry;
+    Local, World: T3DTriangleGeometry;
   end;
   P3DTriangle = ^T3DTriangle;
 
@@ -585,11 +585,11 @@ uses SysUtils, KambiUtils;
 
 constructor T3DTriangle.Init(const ATriangle: TTriangle3Single);
 begin
-  Loc.Triangle := ATriangle;
-  Loc.Plane := TriangleNormPlane(ATriangle);
-  Loc.Area := TriangleArea(ATriangle);
+  Local.Triangle := ATriangle;
+  Local.Plane := TriangleNormPlane(ATriangle);
+  Local.Area := TriangleArea(ATriangle);
 
-  World := Loc;
+  World := Local;
 end;
 
 { T3DCollision ------------------------------------------------------------- }
