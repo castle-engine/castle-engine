@@ -876,3 +876,7 @@ Renderer:
   Except right now we analyze whole scene, not shapes...
   Anyway, we'll have to switch to analyzing shapes, to port our shadows
   extensions (from SM) to shadow volumes?
+
+- Merely using "Remove selected face" sets the geometry to "dynamic",
+  and further picking shows it's only a bounding box. This disables
+  using "Remove selected face" many times on the same shape.
