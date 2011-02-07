@@ -3932,6 +3932,8 @@ begin
   end;
 
   Assert(MeshRenderer <> nil);
+  {$else}
+  MeshRenderer := nil;
   {$endif}
 
   try
