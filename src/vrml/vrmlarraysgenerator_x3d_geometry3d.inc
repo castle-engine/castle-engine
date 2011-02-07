@@ -230,8 +230,10 @@ end;
 procedure TIndexedFaceSetGenerator.PrepareIndexesCoordsRange2(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var
-  I: Integer;
+  I, IFSNextIndexBegin: Integer;
 begin
+  IFSNextIndexBegin := IFSNextIndex;
+
   if not FaceConvex then
   begin
     TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
@@ -246,6 +248,13 @@ begin
       IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[I + 2];      Inc(IFSNextIndex);
     end;
   end;
+
+  if FaceIndexNeeded then
+    for I := IFSNextIndexBegin to IFSNextIndex - 1 do
+    begin
+      Arrays.FaceIndexBegin[I] := BeginIndex;
+      Arrays.FaceIndexEnd[I] := EndIndex;
+    end;
 end;
 
 procedure TIndexedFaceSetGenerator.PrepareIndexesPrimitives;
@@ -253,6 +262,12 @@ begin
   { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange1);
+
+  if FaceIndexNeeded then
+  begin
+    Arrays.FaceIndexBegin := TDynLongIntArray.Create(IFSIndexesCount);
+    Arrays.FaceIndexEnd := TDynLongIntArray.Create(IFSIndexesCount);
+  end;
 
   { calculate IndexesFromCoordIndex contents: triangulate }
   IndexesFromCoordIndex := TDynLongIntArray.Create(IFSIndexesCount);

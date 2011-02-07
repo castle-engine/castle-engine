@@ -1103,6 +1103,7 @@ begin
     try
       Generator.TexCoordsNeeded := TexCoordsNeeded;
       Generator.MaterialOpacity := MaterialOpacity;
+      Generator.FaceIndexNeeded := true;
       { Leave the rest of Generator properties as default }
       Result := Generator.GenerateArrays;
     finally FreeAndNil(Generator) end;
@@ -1760,6 +1761,7 @@ var
   var
     VI1, VI2, VI3: Integer;
     Triangle: TTriangle3Single;
+    FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
   begin
     if Arrays.Indexes <> nil then
     begin
@@ -1775,7 +1777,23 @@ var
     Triangle[0] := Arrays.Position(VI1)^;
     Triangle[1] := Arrays.Position(VI2)^;
     Triangle[2] := Arrays.Position(VI3)^;
-    NewTriangleProc(Triangle, Self, 0, -1, -1);
+
+    FaceCoordIndexBegin := -1;
+    FaceCoordIndexEnd := -1;
+
+    if (Arrays.FaceIndexBegin <> nil) and
+       (Arrays.FaceIndexEnd <> nil) then
+    begin
+      Assert(Arrays.FaceIndexBegin[RangeBeginIndex + I1] = Arrays.FaceIndexBegin[RangeBeginIndex + I2]);
+      Assert(Arrays.FaceIndexBegin[RangeBeginIndex + I1] = Arrays.FaceIndexBegin[RangeBeginIndex + I3]);
+      FaceCoordIndexBegin := Arrays.FaceIndexBegin[RangeBeginIndex + I1];
+
+      Assert(Arrays.FaceIndexEnd[RangeBeginIndex + I1] = Arrays.FaceIndexEnd[RangeBeginIndex + I2]);
+      Assert(Arrays.FaceIndexEnd[RangeBeginIndex + I1] = Arrays.FaceIndexEnd[RangeBeginIndex + I3]);
+      FaceCoordIndexEnd := Arrays.FaceIndexEnd[RangeBeginIndex + I1];
+    end;
+
+    NewTriangleProc(Triangle, Self, 0, FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 
   { Call NewTriangle, triangulating indexes 0 .. Count - 1. }

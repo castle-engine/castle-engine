@@ -198,6 +198,8 @@ type
     ShapeBumpMappingUsed: boolean;
     OnRadianceTransfer: TRadianceTransferFunction;
     OnVertexColor: TVertexColorFunction;
+    { Do we need TGeometryArrays.FaceIndex* }
+    FaceIndexNeeded: boolean;
     { @groupEnd }
 
     constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
