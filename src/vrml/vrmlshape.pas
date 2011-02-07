@@ -25,7 +25,7 @@ interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, KambiClassUtils,
   KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree, VRMLTriangle,
-  VRMLFields;
+  VRMLFields, GeometryArrays;
 
 {$define read_interface}
 
@@ -273,6 +273,12 @@ type
     function VerticesCount(OverTriangulate: boolean): Cardinal;
     function TrianglesCount(OverTriangulate: boolean): Cardinal;
     { @groupEnd }
+
+    { Decompose the geometry into primitives, with arrays of per-vertex data.
+
+      Returns @nil for geometry that cannot be currently decomposed into
+      arrays, this happens for Text nodes (Text, Text3D, AsciiText). }
+    function GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
 
     { Calculates bounding sphere based on BoundingBox.
       In the future this may be changed to use BoundingSphere method
@@ -793,7 +799,7 @@ type
 implementation
 
 uses ProgressUnit, VRMLScene, VRMLErrors, NormalsCalculator, KambiLog,
-  KambiStringUtils;
+  KambiStringUtils, VRMLArraysGenerator;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1047,6 +1053,61 @@ begin
     end;
   end;
   Result := FTrianglesCount[OverTriangulate];
+end;
+
+function TVRMLShape.GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
+var
+  G: TVRMLGeometryNode;
+  S: TVRMLGraphTraverseState;
+
+  function MaterialOpacity: Single;
+  begin
+    if G is TVRMLGeometryNode_1 then
+      Result := S.LastNodes.Material.Opacity(0) else
+    if (S.ShapeNode <> nil) and
+       (S.ShapeNode.Material <> nil) then
+      Result := S.ShapeNode.Material.Opacity else
+      Result := 1;
+  end;
+
+  function TexCoordsNeeded: Cardinal;
+  begin
+    if G is TVRMLGeometryNode_1 then
+    begin
+      { We don't want to actually load the texture here,
+        so only check is filename/image set. }
+      if (S.LastNodes.Texture2.FdFilename.Value <> '') or
+         (S.LastNodes.Texture2.FdImage.Value <> nil) then
+        Result := 1 else
+        Result := 0;
+    end else
+    if S.ShapeNode.Texture <> nil then
+    begin
+      if S.ShapeNode.Texture is TNodeMultiTexture then
+        Result := TNodeMultiTexture(S.ShapeNode.Texture).FdTexture.Count else
+        Result := 1;
+    end else
+      Result := 0;
+  end;
+
+var
+  GeneratorClass: TVRMLArraysGeneratorClass;
+  Generator: TVRMLArraysGenerator;
+begin
+  G := Geometry(OverTriangulate);
+  S := State(OverTriangulate);
+  GeneratorClass := ArraysGenerator(G);
+  if GeneratorClass <> nil then
+  begin
+    Generator := GeneratorClass.Create(Self, S, G);
+    try
+      Generator.TexCoordsNeeded := TexCoordsNeeded;
+      Generator.MaterialOpacity := MaterialOpacity;
+      { Leave the rest of Generator properties as default }
+      Result := Generator.GenerateArrays;
+    finally FreeAndNil(Generator) end;
+  end else
+    Result := nil;
 end;
 
 procedure TVRMLShape.FreeProxy;
@@ -1665,8 +1726,6 @@ begin
     Result := nil;
 end;
 
-procedure TVRMLShape.Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
-begin
   { Always pass the same OverTriangulate value to ProxyGeometry/State(),
     and to Triangulate(). This is sensible:
 
@@ -1679,18 +1738,76 @@ begin
     2. if a node does not use Proxy, then ProxyGeometry/State() parameters
        don't matter. The parameter to Triangulate() then decides
        the triangulation.
+
+    TODO: old comment, sensible, move if relevant.
   }
 
+procedure TVRMLShape.Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
   OriginalGeometry.Triangulate(Self, OriginalState, OverTriangulate, NewTriangleProc,
     ProxyGeometry(OverTriangulate),
     ProxyState(OverTriangulate));
 end;
 
 procedure TVRMLShape.LocalTriangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+var
+  Arrays: TGeometryArrays;
+
+  procedure NewTriangle(const I1, I2, I3: Cardinal);
+  var
+    VI1, VI2, VI3: Integer;
+    Triangle: TTriangle3Single;
+  begin
+    if Arrays.Indexes <> nil then
+    begin
+      VI1 := Arrays.Indexes[I1];
+      VI2 := Arrays.Indexes[I2];
+      VI3 := Arrays.Indexes[I3];
+    end else
+    begin
+      VI1 := I1;
+      VI2 := I2;
+      VI3 := I3;
+    end;
+    Triangle[0] := Arrays.Position(VI1)^;
+    Triangle[1] := Arrays.Position(VI2)^;
+    Triangle[2] := Arrays.Position(VI3)^;
+    NewTriangleProc(Triangle, Self, 0, -1, -1);
+  end;
+
+var
+  I, Count: Cardinal;
 begin
-  OriginalGeometry.LocalTriangulate(Self, OriginalState, OverTriangulate, NewTriangleProc,
-    ProxyGeometry(OverTriangulate),
-    ProxyState(OverTriangulate));
+  Arrays := GeometryArrays(OverTriangulate);
+  try
+    { TODO: The case of Arrays = nil is supposed to be removed some day,
+      when Text nodes will generate correct arrays. }
+    if Arrays = nil then
+      OriginalGeometry.LocalTriangulate(Self, OriginalState, OverTriangulate,
+        NewTriangleProc,
+        ProxyGeometry(OverTriangulate),
+        ProxyState(OverTriangulate)) else
+    begin
+      if Arrays.Indexes <> nil then
+        Count := Arrays.IndexesCount else
+        Count := Arrays.Count;
+      case Arrays.Primitive of
+        gpTriangles:
+          begin
+            I := 0;
+            while I + 2 < Count do
+            begin
+              NewTriangle(I, I + 1, I + 2);
+              I += 3;
+            end;
+          end;
+        gpQuads: { TODO };
+        gpTriangleFan: { TODO };
+        gpTriangleStrip: { TODO };
+        else { gpLineStrip, gpPoints don't make triangles } ;
+      end;
+    end;
+  finally FreeAndNil(Arrays) end;
 end;
 
 function TVRMLShape.DebugInfo(const Indent: string): string;
