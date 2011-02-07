@@ -867,3 +867,12 @@ Renderer:
   inside TVRMLGLRenderer.RenderBegin.
   In fact, TVRMLGLScene already calls Render to prepare arrays/VBOs.
   We should let and prepare everything else this way, along the rendering.
+
+- Shadow volumes: Make non-manifold shadow casters automatically ignored.
+  Things like
+  ./view3dscene ../castle/data/levels/gate_background/gate_final.wrl
+  ./view3dscene ../castle/data/levels/hello_world/hello_world_final.wrl
+  are bound to make errors now.
+  Except right now we analyze whole scene, not shapes...
+  Anyway, we'll have to switch to analyzing shapes, to port our shadows
+  extensions (from SM) to shadow volumes?
