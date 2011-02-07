@@ -888,3 +888,15 @@ Renderer:
 
 - Improve raytracer to use INormal (smooth normals), ITexCoord (load and use
   textures).
+
+- ~/sources/vrmlengine/trunk/kambi_vrml_test_suite/x3d/shadow_maps/primitives.x3dv
+  has invalid texture coords copied.
+
+  This is currently harmless and is silently
+  ignored, because CopyCount may be smaller than Count.
+  It can be observed by changing kambiutils_dyn_arrays.inc
+  to make EAssignInterleavedRangeError when Count <> CopyCount
+  (not only when it's > CopyCount).
+
+  Reason: both proxies (over-triangulate and not) are used,
+  and invalid texcoord is copied, see TODO in vrmlshadowmaps.pas.

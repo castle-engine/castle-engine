@@ -1176,14 +1176,7 @@ begin
   GeneratorClass := ArraysGenerator(G);
   if GeneratorClass <> nil then
   begin
-    Generator := GeneratorClass.Create(Self,
-    //OverTriangulate);
-    {OverTriangulate}true); { TODO: why is this true needed?
-      looks like generating with OverTriangulate = false
-      and TexCoordsNeeded > 0 always causes trouble (invalid memory later).
-      See 
-      ~/sources/vrmlengine/trunk/kambi_vrml_test_suite/x3d/shadow_maps/primitives.x3dv
-      }
+    Generator := GeneratorClass.Create(Self, OverTriangulate);
     try
       Generator.TexCoordsNeeded := TexCoordsNeeded;
       Generator.MaterialOpacity := MaterialOpacity;

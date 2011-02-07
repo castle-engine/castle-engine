@@ -58,6 +58,8 @@ type
   { }
   TDynLongintArray = class;
 
+  EAssignInterleavedRangeError = class(Exception);
+
   { Base abstract dynamic array class. }
   TDynArrayBase = class
   private
@@ -131,23 +133,37 @@ type
     { Copy our contents to given Target memory. Each item in Target
       is separated by the Stride bytes.
 
+      We copy CopyCount items (you usually want to pass the count of Target
+      data here). Our Count must be >= CopyCount,
+      we check it and eventually raise EAssignInterleavedRangeError.
+
       Warning: this is safely usable only for arrays of types that don't
       require initialization / finalization. Otherwise target memory data
-      will be properly referenced. }
-    procedure AssignToInterleaved(Target: Pointer; const Stride: Cardinal);
+      will be properly referenced.
+
+      @raises EAssignInterleavedRangeError When Count < CopyCount. }
+    procedure AssignToInterleaved(Target: Pointer;
+      const Stride, CopyCount: Cardinal);
 
     { Copy our contents to given Target memory. Each item in Target
       is separated by the Stride bytes.
 
-      We will copy Indexes.Count items. Item number I is taken
-      from Items[Indexes[I]]. It's your responsibility to make sure first
-      that all values on Indexes list are valid, that is >= 0 and < our Count.
+      We copy CopyCount items (you usually want to pass the count of Target
+      data here). Indexes.Count must be >= CopyCount,
+      we check it and eventually raise EAssignInterleavedRangeError.
+
+      Item number I is taken from Items[Indexes[I]].
+      All values on Indexes list must be valid (that is >= 0 and < our Count),
+      or we raise EAssignInterleavedRangeError.
 
       Warning: this is safely usable only for arrays of types that don't
       require initialization / finalization. Otherwise target memory data
-      will be properly referenced. }
-    procedure AssignToInterleavedIndexed(Target: Pointer; const Stride: Cardinal;
-      Indexes: TDynLongIntArray);
+      will be properly referenced.
+
+      @raises EAssignInterleavedRangeError(When Indexes.Count < CopyCount,
+        or some index points outside of array.) }
+    procedure AssignToInterleavedIndexed(Target: Pointer;
+      const Stride, CopyCount: Cardinal; Indexes: TDynLongIntArray);
   end;
 
 { Declare all TDynXxxArray for standard Pascal types }
@@ -385,13 +401,18 @@ begin
   Count := 0;
 end;
 
-procedure TDynArrayBase.AssignToInterleaved(Target: Pointer; const Stride: Cardinal);
+procedure TDynArrayBase.AssignToInterleaved(Target: Pointer;
+  const Stride, CopyCount: Cardinal);
 var
   I: Integer;
   Source: Pointer;
 begin
+  if Count < CopyCount then
+    raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
+      [Count, CopyCount]);
+
   Source := A;
-  for I := 0 to Count - 1 do
+  for I := 0 to CopyCount - 1 do
   begin
     Move(Source^, Target^, ItemSize);
     PtrUInt(Source) += ItemSize;
@@ -399,18 +420,29 @@ begin
   end;
 end;
 
-procedure TDynArrayBase.AssignToInterleavedIndexed(Target: Pointer; const Stride: Cardinal;
-  Indexes: TDynLongIntArray);
+procedure TDynArrayBase.AssignToInterleavedIndexed(Target: Pointer;
+  const Stride, CopyCount: Cardinal; Indexes: TDynLongIntArray);
 var
   I: Integer;
+  Index: LongInt;
 begin
-  for I := 0 to Indexes.Count - 1 do
+  if Indexes.Count < CopyCount then
+    raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
+      [Indexes.Count, CopyCount]);
+
+  for I := 0 to CopyCount - 1 do
   begin
+    Index := Indexes.Items[I];
+    if (Index < 0) or
+       (Index >= Count) then
+      raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items',
+        [Index, Count]);
+
     { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
       This would cause noticeable slowdown when using AssignToInterleavedIndexed
       for VRMLArraysGenerator, that in turn affects dynamic scenes
       and especially dynamic shading like radiance_transfer. }
-    Move(Pointer(PtrUInt(A) + PtrUInt(Indexes.Items[I]) * ItemSize)^,
+    Move(Pointer(PtrUInt(A) + PtrUInt(Index) * ItemSize)^,
       Target^, ItemSize);
     PtrUInt(Target) += Stride;
   end;

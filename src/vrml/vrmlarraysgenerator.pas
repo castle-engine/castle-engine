@@ -678,7 +678,7 @@ begin
       MaxIndex := IndexesFromCoordIndex.Max;
 
       { check do we have enough coordinates. TGeometryArrays data may be passed
-        quite raw to OpenGL, so this may be our last chance to check correctess
+        quite raw to OpenGL, so this may be our last chance to check correctness
         and avoid passing data that would cause OpenGL errors. }
       if MaxIndex >= Coord.Count then
       begin
@@ -691,31 +691,37 @@ begin
     AllowIndexed := true;
     PrepareAttributes(AllowIndexed);
 
-    if Log then
-      WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
-        [Shape.OriginalGeometry.NodeTypeName, BoolToStr[AllowIndexed]]));
-
-    if AllowIndexed or (IndexesFromCoordIndex = nil) then
-    begin
-      Arrays.Indexes := IndexesFromCoordIndex;
-      IndexesFromCoordIndex := nil;
-
-      Arrays.Count := Coord.Count;
-
-      Coord.Items.AssignToInterleaved(Arrays.Position, Arrays.CoordinateSize);
-    end else
-    begin
-      Arrays.Count := IndexesFromCoordIndex.Count;
-
-      { Expand IndexesFromCoordIndex, to specify vertexes multiple times }
-      Coord.Items.AssignToInterleavedIndexed(
-        Arrays.Position, Arrays.CoordinateSize, IndexesFromCoordIndex);
-    end;
-
-    GenerateCoordinateBegin;
     try
-      GenerateCoordinate;
-    finally GenerateCoordinateEnd; end;
+      if Log then
+        WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
+          [Shape.OriginalGeometry.NodeTypeName, BoolToStr[AllowIndexed]]));
+
+      if AllowIndexed or (IndexesFromCoordIndex = nil) then
+      begin
+        Arrays.Indexes := IndexesFromCoordIndex;
+        IndexesFromCoordIndex := nil;
+
+        Arrays.Count := Coord.Count;
+
+        Coord.Items.AssignToInterleaved(Arrays.Position, Arrays.CoordinateSize, Arrays.Count);
+      end else
+      begin
+        Arrays.Count := IndexesFromCoordIndex.Count;
+
+        { Expand IndexesFromCoordIndex, to specify vertexes multiple times }
+        Coord.Items.AssignToInterleavedIndexed(
+          Arrays.Position, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
+      end;
+
+      GenerateCoordinateBegin;
+      try
+        GenerateCoordinate;
+      finally GenerateCoordinateEnd; end;
+    except
+      on E: EAssignInterleavedRangeError do
+        VRMLWarning(vwSerious, Format('Invalid number of items in a normal or texture coordinate array for geometry "%s": %s',
+          [Shape.OriginalGeometry.NodeTypeName, E.Message]));
+    end;
   finally FreeAndNil(IndexesFromCoordIndex); end;
 end;
 
@@ -1241,18 +1247,14 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
       if TexImplementation = tcCoordIndexed then
       begin
         if Arrays.Indexes <> nil then
-          TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize) else
-          TexCoordArray.AssignToInterleavedIndexed(A, Arrays.AttributeSize, IndexesFromCoordIndex);
+          TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize, Arrays.Count) else
+          TexCoordArray.AssignToInterleavedIndexed(A, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
       end else
       begin
         Assert(TexImplementation = tcNonIndexed);
         Assert(CoordIndex = nil); { tcNonIndexed happens only for non-indexed triangle/quad primitives }
         Assert(Arrays.Indexes = nil);
-
-        if TexCoordArray.Count = Arrays.Count then
-          TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize) else
-          VRMLWarning(vwSerious, Format('Texture coordinates count invalid for %s. Expected %d, got %d',
-            [Geometry.NodeTypeName, Arrays.Count, TexCoordArray.Count]));
+        TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize, Arrays.Count);
       end;
     end;
 
@@ -1772,16 +1774,13 @@ begin
   if NorImplementation = niPerVertexCoordIndexed then
   begin
     if Arrays.Indexes <> nil then
-      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
-      CcwNormals.AssignToInterleavedIndexed(Arrays.Normal, Arrays.CoordinateSize, IndexesFromCoordIndex);
+      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize, Arrays.Count) else
+      CcwNormals.AssignToInterleavedIndexed(Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
   end else
   if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
   begin
     Assert(Arrays.Indexes = nil);
-    if CcwNormals.Count = Arrays.Count then
-      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize) else
-      VRMLWarning(vwSerious, Format('Normal coordinates count invalid for %s. Expected %d, got %d',
-        [Geometry.NodeTypeName, Arrays.Count, CcwNormals.Count]));
+    CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
   end else
   if NorImplementation = niOverall then
   begin
