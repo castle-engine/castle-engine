@@ -133,6 +133,27 @@ type
 
       @seealso TVRMLBaseTrianglesOctree.IgnoreForShadowRays }
     function IgnoreForShadowRays: boolean;
+
+    { For a given position (in world coordinates), return the texture
+      coordinate at this point. It is an interpolated texture coordinate
+      from our per-vertex texture coordinates in @link(TexCoord) field.
+
+      This assumes that Position actually lies within the triangle.
+
+      The ITexCoord2D returns the same, but cut to the first 2 texture
+      coordinate components. Usable for normal 2D textures.
+      @groupBegin }
+    function ITexCoord(const Point: TVector3Single): TVector4Single;
+    function ITexCoord2D(const Point: TVector3Single): TVector2Single;
+    { @groupEnd }
+
+    { For a given position (in world coordinates), return the smooth
+      normal vector at this point. It is an interpolated normal
+      from our per-vertex normals in @link(Normal) field.
+      Like them, it is a normal vector in local coordinates.
+
+      This assumes that Position actally lies within the triangle. }
+    function INormal(const Point: TVector3Single): TVector3Single;
   end;
   PVRMLTriangle = ^TVRMLTriangle;
 
@@ -821,6 +842,34 @@ function TVRMLTriangle.IgnoreForShadowRays: boolean;
 begin
   Result := ({ IsTransparent } Transparency > SingleEqualityEpsilon) or
     NonShadowCaster(State);
+end;
+
+function TVRMLTriangle.ITexCoord(const Point: TVector3Single): TVector4Single;
+var
+  B: TVector3Single;
+begin
+  B := Barycentric(World.Triangle, Point);
+  Result := TexCoord[0] * B[0] +
+            TexCoord[1] * B[1] +
+            TexCoord[2] * B[2];
+end;
+
+function TVRMLTriangle.ITexCoord2D(const Point: TVector3Single): TVector2Single;
+var
+  V: TVector4Single;
+begin
+  V := ITexCoord(Point);
+  Move(V, Result, SizeOf(TVector2Single));
+end;
+
+function TVRMLTriangle.INormal(const Point: TVector3Single): TVector3Single;
+var
+  B: TVector3Single;
+begin
+  B := Barycentric(World.Triangle, Point);
+  Result := Normal[0] * B[0] +
+            Normal[1] * B[1] +
+            Normal[2] * B[2];
 end;
 
 { TVRMLBaseTrianglesOctreeNode -----------------------------------------------

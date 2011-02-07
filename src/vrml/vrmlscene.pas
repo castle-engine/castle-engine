@@ -5532,15 +5532,13 @@ begin
                   we can get this by InverseTransform. }
                 MatrixMultPoint(OverItem^.State.InvertedTransform, OverPoint), Time);
 
-              { The best normal I can generate for now is flat normal
-                for the hit triangle. }
-              TouchSensor.EventHitNormal_Changed.Send(
-                OverItem^.World.Normal, Time);
+              if TouchSensor.EventHitNormal_Changed.SendNeeded then
+                TouchSensor.EventHitNormal_Changed.Send(
+                  OverItem^.INormal(OverPoint), Time);
 
-              { TODO: hitTexCoord_changed generation should also be done
-                here, but honestly I just cannot do this with current
-                information. Triangulation must be much improved to
-                provide this. }
+              if TouchSensor.EventHitTexCoord_Changed.SendNeeded then
+                TouchSensor.EventHitTexCoord_Changed.Send(
+                  OverItem^.ITexCoord2D(OverPoint), Time);
             end;
           end;
       end;
