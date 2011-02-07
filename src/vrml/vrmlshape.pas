@@ -74,7 +74,7 @@ type
 
   TFaceIndex = FaceIndex.TFaceIndex;
 
-  TNewTriangleProc = procedure (const Tri: TTriangle3Single;
+  TTriangleEvent = procedure (const Triangle: TTriangle3Single;
     Shape: TObject; const Face: TFaceIndex) of object;
 
   { Tree of VRML shapes.
@@ -510,7 +510,7 @@ type
       http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_caster). }
     function ShadowCaster: boolean;
 
-    { Triangulate shape. Calls NewTriangleProc callback for each triangle.
+    { Triangulate shape. Calls TriangleEvent callback for each triangle.
       LocalTriangulate returns coordinates in local shape transformation
       (that is, not transformed by State.Transform yet).
 
@@ -519,8 +519,8 @@ type
       additional stacks.
 
       @groupBegin }
-    procedure Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
-    procedure LocalTriangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+    procedure Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
+    procedure LocalTriangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
     { @groupEnd }
 
     { For scenes exported from Blender, get Blender object/mesh names
@@ -1303,8 +1303,7 @@ function TVRMLShape.CreateTriangleOctree(
   procedure LocalTriangulateBox(const Box: TBox3D);
 
     procedure LocalTriangulateRect(constCoord: integer;
-      const constCoordValue, x1, y1, x2, y2: Single;
-      Shape: TObject; NewTriangleProc: TNewTriangleProc);
+      const constCoordValue, x1, y1, x2, y2: Single);
     var
       T: TTriangle3Single;
       i, c1, c2: integer;
@@ -1321,11 +1320,11 @@ function TVRMLShape.CreateTriangleOctree(
       TriAssign(0, x1, y1);
       TriAssign(1, x1, y2);
       TriAssign(2, x2, y2);
-      NewTriangleProc(T, Shape, UnknownFaceIndex);
+      Result.AddItemTriangle(T, Self, UnknownFaceIndex);
       TriAssign(0, x1, y1);
       TriAssign(1, x2, y2);
       TriAssign(2, x2, y1);
-      NewTriangleProc(T, Shape, UnknownFaceIndex);
+      Result.AddItemTriangle(T, Self, UnknownFaceIndex);
     end;
 
   var
@@ -1334,8 +1333,8 @@ function TVRMLShape.CreateTriangleOctree(
     for I := 0 to 2 do
     begin
       RestOf3dCoords(I, XCoord, YCoord);
-      LocalTriangulateRect(I, Box[0][I], Box[0][XCoord], Box[0][YCoord], Box[1][XCoord], Box[1][YCoord], Self, @Result.AddItemTriangle);
-      LocalTriangulateRect(I, Box[1][I], Box[0][XCoord], Box[0][YCoord], Box[1][XCoord], Box[1][YCoord], Self, @Result.AddItemTriangle);
+      LocalTriangulateRect(I, Box[0][I], Box[0][XCoord], Box[0][YCoord], Box[1][XCoord], Box[1][YCoord]);
+      LocalTriangulateRect(I, Box[1][I], Box[0][XCoord], Box[0][YCoord], Box[1][XCoord], Box[1][YCoord]);
     end;
   end;
 
@@ -1795,12 +1794,12 @@ begin
     Result := nil;
 end;
 
-procedure TVRMLShape.LocalTriangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure TVRMLShape.LocalTriangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
 var
   Arrays: TGeometryArrays;
   RangeBeginIndex: Integer;
 
-  { Call NewTriangleProc once. Give indexes to Arrays (Arrays.Indexes,
+  { Call TriangleEvent once. Give indexes to Arrays (Arrays.Indexes,
     if assigned, otherwise direct coordinates), relative to RangeBeginIndex. }
   procedure Triangle(const I1, I2, I3: Cardinal);
   var
@@ -1827,7 +1826,7 @@ var
       Face := Arrays.Faces.Items[RangeBeginIndex + I1] else
       Face := UnknownFaceIndex;
 
-    NewTriangleProc(Triangle, Self, Face);
+    TriangleEvent(Triangle, Self, Face);
   end;
 
   { Call NewTriangle, triangulating indexes 0 .. Count - 1. }
@@ -1904,7 +1903,7 @@ end;
 type
   TTriangulateRedirect = class
     Transform: PMatrix4Single;
-    NewTriangleProc: TNewTriangleProc;
+    TriangleEvent: TTriangleEvent;
     procedure LocalNewTriangle(const Triangle: TTriangle3Single;
       Shape: TObject; const Face: TFaceIndex);
   end;
@@ -1913,17 +1912,17 @@ procedure TTriangulateRedirect.LocalNewTriangle(
   const Triangle: TTriangle3Single;
   Shape: TObject; const Face: TFaceIndex);
 begin
-  NewTriangleProc(TriangleTransform(Triangle, Transform^), Shape, Face);
+  TriangleEvent(TriangleTransform(Triangle, Transform^), Shape, Face);
 end;
 
-procedure TVRMLShape.Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure TVRMLShape.Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
 var
   TR: TTriangulateRedirect;
 begin
   TR := TTriangulateRedirect.Create;
   try
     TR.Transform := @(State.Transform);
-    TR.NewTriangleProc := NewTriangleProc;
+    TR.TriangleEvent := TriangleEvent;
     LocalTriangulate(OverTriangulate, @TR.LocalNewTriangle);
   finally FreeAndNil(TR) end;
 end;

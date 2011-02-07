@@ -4563,7 +4563,7 @@ function TVRMLScene.CreateTriangleOctree(
   const ProgressTitle: string;
   const Collidable: boolean): TVRMLTriangleOctree;
 
-  procedure FillOctree(AddTriProc: TNewTriangleProc);
+  procedure FillOctree(TriangleEvent: TTriangleEvent);
   var
     SI: TVRMLShapeTreeIterator;
   begin
@@ -4572,7 +4572,7 @@ function TVRMLScene.CreateTriangleOctree(
       while SI.GetNext do
         if (Collidable and SI.Current.Collidable) or
            ((not Collidable) and SI.Current.Visible) then
-          SI.Current.Triangulate(false, AddTriProc);
+          SI.Current.Triangulate(false, TriangleEvent);
     finally FreeAndNil(SI) end;
   end;
 
