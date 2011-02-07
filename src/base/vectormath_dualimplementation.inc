@@ -499,6 +499,13 @@ begin
   if v[2] > v[result] then result := 2;
 end;
 
+function MinVectorCoord(const v: TVector3): integer;
+begin
+  result := 0;
+  if v[1] < v[result] then result := 1;
+  if v[2] < v[result] then result := 2;
+end;
+
 function MaxVectorCoord(const v: TVector4): integer;
 begin
   result := 0;

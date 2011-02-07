@@ -1155,6 +1155,9 @@ function MaxAbsVectorCoord(const v: TVector3Single): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Double): integer; overload;
 { @groupEnd }
 
+function MinVectorCoord(const v: TVector3Single): integer; overload;
+function MinVectorCoord(const v: TVector3Double): integer; overload;
+
 procedure SortAbsVectorCoord(const v: TVector3Single; out Max, Middle, Min: Integer); overload;
 procedure SortAbsVectorCoord(const v: TVector3Double; out Max, Middle, Min: Integer); overload;
 
@@ -1855,6 +1858,22 @@ function Polygon2dArea(const Verts: array of TVector2Single): Single; overload;
 
 { Random triangle point, chosen with a constant density for triangle area. }
 function SampleTrianglePoint(const Tri: TTriangle3Single): TVector3Single;
+
+{ For a given Point lying on a given Triangle, calculate it's barycentric
+  coordinates.
+
+  The resulting Barycentric coordinates can be used for linearly
+  interpolating values along the triangle, as they satisfy the equation:
+
+@preformatted(
+  Result[0] * Triangle[0] +
+  Result[1] * Triangle[1] +
+  Result[2] * Triangle[2] = Point
+)
+
+  See also [http://en.wikipedia.org/wiki/Barycentric_coordinate_system_%28mathematics%29] }
+function Barycentric(const Triangle: TTriangle3Single;
+  const Point: TVector3Single): TVector3Single;
 
 { Converting stuff to string ---------------------------------------------------
 
@@ -2783,7 +2802,7 @@ end;
 
 function Vector4Single(const v3: TVector3Single; const w: Single{=1}): TVector4Single;
 begin
-  move(v3, result, SizeOf(TVector3Single)); 
+  move(v3, result, SizeOf(TVector3Single));
   result[3] := w;
 end;
 
@@ -3436,12 +3455,58 @@ function SampleTrianglePoint(const Tri: TTriangle3Single): TVector3Single;
 var
   r1Sqrt, r2: Single;
 begin
-  { na podstawie GlobalIllumComp, punkt (17) }
+  { Based on "Global Illumination Compendium" }
   r1Sqrt := Sqrt(Random);
   r2 := Random;
   result := VectorScale(Tri[0], 1-r1Sqrt);
   VectorAddTo1st(result, VectorScale(Tri[1], (1-r2)*r1Sqrt));
   VectorAddTo1st(result, VectorScale(Tri[2], r2*r1Sqrt));
+end;
+
+function Barycentric(const Triangle: TTriangle3Single;
+  const Point: TVector3Single): TVector3Single;
+
+  { TODO: a tiny bit of Boxes3D unit used here, to prevent any dependency
+    from VectorMath to Boxes3D. }
+  type
+    TBox3D     = array [0..1] of TVector3Single;
+
+  function Box3DSizes(const Box: TBox3D): TVector3Single;
+  begin
+    Result[0] := Box[1, 0] - Box[0, 0];
+    Result[1] := Box[1, 1] - Box[0, 1];
+    Result[2] := Box[1, 2] - Box[0, 2];
+  end;
+
+  function TriangleBoundingBox(const T: TTriangle3Single): TBox3D;
+  begin
+    MinMax(T[0][0], T[1][0], T[2][0], Result[0][0], Result[1][0]);
+    MinMax(T[0][1], T[1][1], T[2][1], Result[0][1], Result[1][1]);
+    MinMax(T[0][2], T[1][2], T[2][2], Result[0][2], Result[1][2]);
+  end;
+
+var
+  C1, C2: Integer;
+  Det: Single;
+begin
+  { Map triangle and point into 2D, where the solution is simpler.
+    Calculate C1 and C2 --- two largest coordinates of
+    triangle axis-aligned bounding box. }
+  RestOf3DCoords(MinVectorCoord(Box3DSizes(TriangleBoundingBox(Triangle))), C1, C2);
+
+  { Now calculate coordinates on 2D, following equations at wikipedia }
+  Det :=
+    (Triangle[1][C2] - Triangle[2][C2]) * (Triangle[0][C1] - Triangle[2][C1]) +
+    (Triangle[0][C2] - Triangle[2][C2]) * (Triangle[2][C1] - Triangle[1][C1]);
+  Result[0] := (
+    (Triangle[1][C2] - Triangle[2][C2]) * (      Point[C1] - Triangle[2][C1]) +
+    (      Point[C2] - Triangle[2][C2]) * (Triangle[2][C1] - Triangle[1][C1])
+    ) / Det;
+  Result[1] := (
+    (      Point[C2] - Triangle[2][C2]) * (Triangle[0][C1] - Triangle[2][C1]) +
+    (Triangle[2][C2] - Triangle[0][C2]) * (      Point[C1] - Triangle[2][C1])
+    ) / Det;
+  Result[2] := 1 - Result[0] - Result[1];
 end;
 
 function VectorToNiceStr(const v: array of Byte): string; overload;
