@@ -59,14 +59,12 @@ type
   protected
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
   TIndexedFaceSet_2Generator = class(TIndexedFaceSetGenerator)
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
 { TIndexedFaceSetGenerator -------------------------------------------------- }
@@ -142,16 +140,16 @@ begin
 
   if CreaseAngle >= Pi then
   begin
-    Normals := Shape.NormalsSmooth;
+    Normals := Shape.NormalsSmooth(OverTriangulate);
     NorImplementation := niPerVertexCoordIndexed;
   end else
   if CreaseAngle <> 0 then
   begin
-    Normals := Shape.NormalsCreaseAngle(CreaseAngle);
+    Normals := Shape.NormalsCreaseAngle(OverTriangulate, CreaseAngle);
     NorImplementation := niPerVertexNonIndexed;
   end else
   begin
-    Normals := Shape.NormalsFlat;
+    Normals := Shape.NormalsFlat(OverTriangulate);
     NorImplementation := niPerFace;
   end;
   NormalsCcw := true; { always generated from CCW }
@@ -275,8 +273,7 @@ end;
 
 { TIndexedFaceSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_1Generator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TIndexedFaceSet_1Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
   SH: TNodeShapeHints;
   ANode: TNodeIndexedFaceSet_1;
@@ -325,8 +322,7 @@ end;
 
 { TIndexedFaceSet_2Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_2Generator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TIndexedFaceSet_2Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
   ANode: TNodeIndexedFaceSet_2;
 begin

@@ -266,6 +266,7 @@ type
     { Meaningful only when svNormals in Validities and
       NormalsCached = ncCreaseAngle. }
     FNormalsCreaseAngle: Single;
+    FNormalsOverTriangulate: boolean;
 
     { Free and nil FOctreeTriangles. Also, makes sure to call
       PointingDeviceClear on ParentScene (since some PVRMLTriangle pointers
@@ -519,12 +520,11 @@ type
       Normals generated always point out from CCW (FromCCW = @true
       is passed to all Create*Normals internally).
 
-      Note that this always uses Geometry with OverTriangulate = @true.
-
       @groupBegin }
-    function NormalsSmooth: TDynVector3SingleArray;
-    function NormalsFlat: TDynVector3SingleArray;
-    function NormalsCreaseAngle(const CreaseAngle: Single): TDynVector3SingleArray;
+    function NormalsSmooth(OverTriangulate: boolean): TDynVector3SingleArray;
+    function NormalsFlat(OverTriangulate: boolean): TDynVector3SingleArray;
+    function NormalsCreaseAngle(OverTriangulate: boolean;
+      const CreaseAngle: Single): TDynVector3SingleArray;
     { @groupEnd }
 
     procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
@@ -1176,7 +1176,14 @@ begin
   GeneratorClass := ArraysGenerator(G);
   if GeneratorClass <> nil then
   begin
-    Generator := GeneratorClass.Create(Self, S, G);
+    Generator := GeneratorClass.Create(Self,
+    //OverTriangulate);
+    {OverTriangulate}true); { TODO: why is this true needed?
+      looks like generating with OverTriangulate = false
+      and TexCoordsNeeded > 0 always causes trouble (invalid memory later).
+      See 
+      ~/sources/vrmlengine/trunk/kambi_vrml_test_suite/x3d/shadow_maps/primitives.x3dv
+      }
     try
       Generator.TexCoordsNeeded := TexCoordsNeeded;
       Generator.MaterialOpacity := MaterialOpacity;
@@ -1600,9 +1607,13 @@ begin
   {$endif}
 end;
 
-function TVRMLShape.NormalsSmooth: TDynVector3SingleArray;
+function TVRMLShape.NormalsSmooth(OverTriangulate: boolean): TDynVector3SingleArray;
+var
+  G: TVRMLGeometryNode;
+  S: TVRMLGraphTraverseState;
 begin
   if not ((svNormals in Validities) and
+          (FNormalsOverTriangulate = OverTriangulate) and
           (FNormalsCached = ncSmooth)) then
   begin
     if Log then
@@ -1612,17 +1623,25 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    FNormals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
+    G := Geometry(OverTriangulate);
+    S := State(OverTriangulate);
+
+    FNormals := CreateSmoothNormalsCoordinateNode(G, S, true);
     FNormalsCached := ncSmooth;
+    FNormalsOverTriangulate := OverTriangulate;
     Include(Validities, svNormals);
   end;
 
   Result := FNormals;
 end;
 
-function TVRMLShape.NormalsFlat: TDynVector3SingleArray;
+function TVRMLShape.NormalsFlat(OverTriangulate: boolean): TDynVector3SingleArray;
+var
+  G: TVRMLGeometryNode;
+  S: TVRMLGraphTraverseState;
 begin
   if not ((svNormals in Validities) and
+          (FNormalsOverTriangulate = OverTriangulate) and
           (FNormalsCached = ncFlat)) then
   begin
     if Log then
@@ -1632,19 +1651,28 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    FNormals := CreateFlatNormals(Geometry.CoordIndex.Items,
-      Geometry.Coordinates(State).Items, true);
+    G := Geometry(OverTriangulate);
+    S := State(OverTriangulate);
+
+    FNormals := CreateFlatNormals(G.CoordIndex.Items,
+      G.Coordinates(S).Items, true);
     FNormalsCached := ncFlat;
+    FNormalsOverTriangulate := OverTriangulate;
     Include(Validities, svNormals);
   end;
 
   Result := FNormals;
 end;
 
-function TVRMLShape.NormalsCreaseAngle(const CreaseAngle: Single): TDynVector3SingleArray;
+function TVRMLShape.NormalsCreaseAngle(OverTriangulate: boolean;
+  const CreaseAngle: Single): TDynVector3SingleArray;
+var
+  G: TVRMLGeometryNode;
+  S: TVRMLGraphTraverseState;
 begin
   if not ((svNormals in Validities) and
           (FNormalsCached = ncCreaseAngle) and
+          (FNormalsOverTriangulate = OverTriangulate) and
           (FNormalsCreaseAngle = CreaseAngle)) then
   begin
     if Log then
@@ -1654,9 +1682,13 @@ begin
     FreeAndNil(FNormals);
     Exclude(Validities, svNormals);
 
-    FNormals := CreateNormals(Geometry.CoordIndex.Items,
-      Geometry.Coordinates(State).Items, CreaseAngle, true);
+    G := Geometry(OverTriangulate);
+    S := State(OverTriangulate);
+
+    FNormals := CreateNormals(G.CoordIndex.Items,
+      G.Coordinates(S).Items, CreaseAngle, true);
     FNormalsCached := ncCreaseAngle;
+    FNormalsOverTriangulate := OverTriangulate;
     FNormalsCreaseAngle := CreaseAngle;
     Include(Validities, svNormals);
   end;

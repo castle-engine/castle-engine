@@ -30,8 +30,7 @@ type
     procedure GenerateCoordinateBegin; override;
     procedure GenerateCoordinate; override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
   { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
@@ -46,8 +45,7 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
     class function BumpMappingAllowed: boolean; override;
   end;
 
@@ -68,8 +66,7 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
     class function BumpMappingAllowed: boolean; override;
   end;
 
@@ -95,8 +92,7 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
     class function BumpMappingAllowed: boolean; override;
   end;
 
@@ -112,8 +108,7 @@ type
       out N: TVector3Single); override;
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
     class function BumpMappingAllowed: boolean; override;
   end;
 
@@ -134,15 +129,13 @@ type
   { Generator for VRML <= 1.0 TNodeIndexedLineSet_1 }
   TIndexedLineSet_1Generator = class(TLineSetGenerator)
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
   { Generator for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
   TLineSet_2Generator = class(TLineSetGenerator)
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   protected
     procedure GenerateCoordinateBegin; override;
   end;
@@ -181,8 +174,7 @@ end;
 
 { TPointSet_2Generator -------------------------------------------------------- }
 
-constructor TPointSet_2Generator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TPointSet_2Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
   Node: TNodePointSet_2;
 begin
@@ -269,8 +261,7 @@ end;
 
 { TTriangleSetGenerator ------------------------------------------------------- }
 
-constructor TTriangleSetGenerator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TTriangleSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 begin
   inherited;
 
@@ -301,7 +292,7 @@ begin
   if (Geometry is TNodeIndexedTriangleSet) and
      TNodeIndexedTriangleSet(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth;
+    Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
   end else
@@ -398,8 +389,7 @@ end;
 
 { TTriangleFanSetGenerator ---------------------------------------------------- }
 
-constructor TTriangleFanSetGenerator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TTriangleFanSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 begin
   inherited;
 
@@ -429,7 +419,7 @@ begin
   end else
   if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth;
+    Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
     if CoordIndex <> nil then
       NorImplementation := niPerVertexCoordIndexed else
@@ -571,9 +561,7 @@ end;
 
 { TTriangleStripSetGenerator -------------------------------------------------- }
 
-constructor TTriangleStripSetGenerator.Create(
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TTriangleStripSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 
   procedure CreateForIndexedTriangleMesh_1;
   var
@@ -643,7 +631,7 @@ begin
   end else
   if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth;
+    Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
     if CoordIndex <> nil then
       NorImplementation := niPerVertexCoordIndexed else
@@ -802,8 +790,7 @@ end;
 
 { TQuadSetGenerator ------------------------------------------------------- }
 
-constructor TQuadSetGenerator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TQuadSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 begin
   inherited;
 
@@ -837,7 +824,7 @@ begin
   if (Geometry is TNodeIndexedQuadSet) and
      TNodeIndexedQuadSet(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth;
+    Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
   end else
@@ -971,8 +958,7 @@ end;
 
 { TIndexedLineSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedLineSet_1Generator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TIndexedLineSet_1Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
   Node: TNodeIndexedLineSet_1;
 begin
@@ -996,8 +982,7 @@ end;
 
 { TLineSet_2Generator --------------------------------------------------------- }
 
-constructor TLineSet_2Generator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TLineSet_2Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
   NodeLS: TNodeLineSet;
   NodeILS: TNodeIndexedLineSet_2;

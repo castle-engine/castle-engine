@@ -3907,34 +3907,23 @@ var
 
 begin
   { make a copy to our class fields }
-  CurrentGeometry := Shape.OriginalGeometry;
-  CurrentState := Shape.OriginalState;
+  CurrentGeometry := Shape.Geometry;
+  CurrentState := Shape.State;
 
   { default ShapeBumpMapping* state }
   ShapeBumpMappingAllowed := false;
   ShapeBumpMappingUsed := bmNone;
 
   {$ifndef USE_VRML_TRIANGULATION}
-  { We have to initalize MeshRenderer to something non-nil.
-
-    First try to initialize from Shape.OriginalGeometry, only if this fails
-    --- try to use Shape.Geometry (possibly through Proxy).
-    This is to allow nodes with a Proxy
-    still be rendered using direct specialized method, if available. }
+  { Initalize MeshRenderer to something non-nil. }
   if not InitMeshRenderer then
   begin
-    CurrentGeometry := Shape.Geometry;
-    CurrentState := Shape.State;
-    if not ((CurrentGeometry <> Shape.OriginalGeometry) and
-      InitMeshRenderer) then
-    begin
-      VRMLWarning(vwSerious,
-        { We display for user OriginalGeometry name, not Geometry name.
-          User is not interested in the implementation detail
-          that we possibly tried rendering this shape through proxy. }
-        'Rendering of node kind "' + Shape.OriginalGeometry.NodeTypeName + '" not implemented');
-      Exit;
-    end;
+    VRMLWarning(vwSerious,
+      { We display for user OriginalGeometry name, not Geometry name.
+        User is not interested in the implementation detail
+        that we possibly tried rendering this shape through proxy. }
+      'Rendering of node kind "' + Shape.OriginalGeometry.NodeTypeName + '" not implemented');
+    Exit;
   end;
 
   Assert(MeshRenderer <> nil);
@@ -4202,7 +4191,7 @@ begin
     { calculate Shape.Cache.Arrays }
     if Shape.Cache.Arrays = nil then
     begin
-      Generator := GeneratorClass.Create(Shape, CurrentState, CurrentGeometry);
+      Generator := GeneratorClass.Create(Shape, true);
       try
         Generator.TexCoordsNeeded := TexCoordsNeeded;
         Generator.MaterialOpacity := MaterialOpacity;

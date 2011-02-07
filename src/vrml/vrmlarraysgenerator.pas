@@ -48,6 +48,10 @@ type
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
     FCoordIndex: TMFLong;
+
+    { How Geometry and State are generated from Shape.
+      We have to record it, to use with Shape.Normals* later. }
+    OverTriangulate: boolean;
   protected
     { Indexes, only when Arrays.Indexes = nil but original node was indexed. }
     IndexesFromCoordIndex: TDynLongIntArray;
@@ -202,8 +206,7 @@ type
     FacesNeeded: boolean;
     { @groupEnd }
 
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); virtual;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); virtual;
 
     { Create and generate Arrays contents. }
     function GenerateArrays: TGeometryArrays;
@@ -330,8 +333,7 @@ type
 
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
   TMaterials1Implementation = (miOverall,
@@ -386,8 +388,7 @@ type
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
   { Handle per-face or per-vertex VRML >= 2.0 colors.
@@ -568,8 +569,7 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
   TX3DVertexAttributeNodes = specialize TFPGObjectList<TNodeX3DVertexAttributeNode>;
@@ -584,8 +584,7 @@ type
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
   public
-    constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-      AGeometry: TVRMLGeometryNode); override;
+    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
     destructor Destroy; override;
   end;
 
@@ -620,14 +619,14 @@ type
 
 { TVRMLArraysGenerator ------------------------------------------------------ }
 
-constructor TVRMLArraysGenerator.Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TVRMLArraysGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 begin
   inherited Create;
 
   FShape := AShape;
-  FState := AState;
-  FGeometry := AGeometry;
+  OverTriangulate := AOverTriangulate;
+  FGeometry := FShape.Geometry(OverTriangulate);
+  FState := FShape.State(OverTriangulate);
 
   Check(Geometry.Coord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
@@ -781,9 +780,7 @@ end;
 
 { TAbstractTextureCoordinateGenerator ----------------------------------------- }
 
-constructor TAbstractTextureCoordinateGenerator.Create(
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TAbstractTextureCoordinateGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 begin
   inherited;
   if not Geometry.TexCoord(State, TexCoord) then
@@ -1402,9 +1399,7 @@ end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
 
-constructor TAbstractMaterial1Generator.Create(
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TAbstractMaterial1Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 begin
   inherited;
   MaterialBinding := BIND_DEFAULT;
@@ -1819,9 +1814,7 @@ end;
 
 { TAbstractFogGenerator --------------------------------- }
 
-constructor TAbstractFogGenerator.Create(
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TAbstractFogGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 begin
   inherited;
 
@@ -1946,9 +1939,7 @@ end;
 
 { TAbstractShaderAttribGenerator ------------------------------ }
 
-constructor TAbstractShaderAttribGenerator.Create(
-  AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
-  AGeometry: TVRMLGeometryNode);
+constructor TAbstractShaderAttribGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
   A: TMFNode;
   I: Integer;
