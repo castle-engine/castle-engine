@@ -46,7 +46,6 @@ type
   TVRMLSceneValidity = (fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
     fvTrianglesListShadowCasters,
     fvManifoldAndBorderEdges,
     fvMainLightForShadows,
@@ -207,24 +206,6 @@ type
     { Free triangle list created by TrianglesListShadowCasters call.
       This list is also implicitly created by ManifoldEdges or BorderEdges. }
     frTrianglesListShadowCasters,
-
-    { Free triangle list created by TrianglesList(false) call.
-      This list is also implicitly created by constructing triangle octree.
-
-      Note that if you made an accident and you will use TrianglesList(false)
-      after FreeResources, then you will get no crash,
-      but TrianglesList(false) will be regenerated. So you may experience
-      slowdown if you inappropriately use this feature. }
-    frTrianglesListNotOverTriangulate,
-
-    { Free triangle list created by TrianglesList(true) call.
-      Analogous to frTrianglesListNotOverTriangulate.
-
-      Note that if you made an accident and you will use TrianglesList(true)
-      after FreeResources, then you will get no crash,
-      but TrianglesList(true) will be regenerated. So you may experience
-      slowdown if you inappropriately use this feature. }
-    frTrianglesListOverTriangulate,
 
     { Free edges lists in ManifoldEdges and BorderEdges.
 
@@ -625,25 +606,11 @@ type
   private
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;
-
-    { If appropriate fvXxx is not in Validities, then
-      - free if needed appropriate FTrianglesList[] item
-      - calculate appropriate FTrianglesList[] item
-      - add appropriate fvXxx to Validities. }
-    procedure ValidateTrianglesList(OverTriangulate: boolean);
-  private
-    FTrianglesList:
-      array[boolean { OverTriangulate ?}] of TDynTriangle3SingleArray;
-  private
     FTrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
 
     { Removes fvTrianglesListShadowCasters from Validities,
       and clears FTrianglesListShadowCasters variable. }
     procedure InvalidateTrianglesListShadowCasters;
-
-    { Removes fvTrianglesList[Not]OverTriangulate from Validities,
-      and clears FTrianglesList[] variable. }
-    procedure InvalidateTrianglesList(const OverTriangulate: boolean);
 
     function GetViewpointCore(
       const OnlyPerspective: boolean;
@@ -1370,20 +1337,6 @@ type
       A trivial shortcut for FogStack.Top.
       It returns currently bound Fog node, or @nil if none. }
     function FogNode: TNodeFog;
-
-    { This returns an array of all triangles of this scene.
-      I.e. it triangulates the scene, adding all non-degenerated
-      (see IsValidTriangles) triangles to the list.
-
-      It's your responsibility what to do with resulting
-      object, when to free it etc. }
-    function CreateTrianglesList(OverTriangulate: boolean):
-      TDynTriangle3SingleArray;
-
-    { Just like CreateTrianglesList, but results of this function are cached,
-      and returned object is read-only for you. Don't modify it, don't free it. }
-    function TrianglesList(OverTriangulate: boolean):
-      TDynTriangle3SingleArray;
 
     { Returns an array of triangles that should be shadow casters
       for this scene.
@@ -2485,8 +2438,6 @@ begin
   HeadlightInitialized := false;
 
   { free FTrianglesList* variables }
-  InvalidateTrianglesList(false);
-  InvalidateTrianglesList(true);
   InvalidateTrianglesListShadowCasters;
 
   { frees FManifoldEdges, FBorderEdges if needed }
@@ -3109,8 +3060,6 @@ begin
     Validities := [];
 
     { Clear variables after removing fvTrianglesList* from Validities }
-    InvalidateTrianglesList(false);
-    InvalidateTrianglesList(true);
     InvalidateTrianglesListShadowCasters;
 
     { Clear variables after removing fvManifoldAndBorderEdges from Validities }
@@ -3792,7 +3741,6 @@ var
       fvBoundingBox,
       fvVerticesCountNotOver, fvVerticesCountOver,
       fvTrianglesCountNotOver, fvTrianglesCountOver,
-      fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
       fvTrianglesListShadowCasters,
       fvManifoldAndBorderEdges
     }
@@ -4198,12 +4146,9 @@ begin
   Validities := Validities - [fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
     fvTrianglesListShadowCasters];
 
   { Clear variables after removing fvTrianglesList* }
-  InvalidateTrianglesList(false);
-  InvalidateTrianglesList(true);
   InvalidateTrianglesListShadowCasters;
 
   { First, call LocalGeometryChanged(true, ...) on shapes when needed.
@@ -4751,21 +4696,6 @@ end;
 
 { triangles list ------------------------------------------------------------- }
 
-procedure TVRMLScene.ValidateTrianglesList(OverTriangulate: boolean);
-var
-  ValidityValue: TVRMLSceneValidity;
-begin
-  if OverTriangulate then
-    ValidityValue := fvTrianglesListOverTriangulate else
-    ValidityValue := fvTrianglesListNotOverTriangulate;
-  if not (ValidityValue in Validities) then
-  begin
-    FreeAndNil(FTrianglesList[OverTriangulate]);
-    FTrianglesList[OverTriangulate] := CreateTrianglesList(OverTriangulate);
-    Include(Validities, ValidityValue);
-  end;
-end;
-
 type
   TTriangleAdder = class
     TriangleList: TDynTriangle3SingleArray;
@@ -4782,49 +4712,6 @@ procedure TTriangleAdder.AddTriangle(Shape: TObject;
 begin
   if IsValidTriangle(Position) then
     TriangleList.Add(Position);
-end;
-
-function TVRMLScene.CreateTrianglesList(OverTriangulate: boolean):
-  TDynTriangle3SingleArray;
-var
-  SI: TVRMLShapeTreeIterator;
-  TriangleAdder: TTriangleAdder;
-begin
-  Result := TDynTriangle3SingleArray.Create;
-  try
-    Result.AllowedCapacityOverflow := TrianglesCount(false);
-    try
-      TriangleAdder := TTriangleAdder.Create;
-      try
-        TriangleAdder.TriangleList := Result;
-
-        SI := TVRMLShapeTreeIterator.Create(Shapes, true);
-        try
-          while SI.GetNext do
-            SI.Current.Triangulate(OverTriangulate, @TriangleAdder.AddTriangle);
-        finally FreeAndNil(SI) end;
-
-      finally FreeAndNil(TriangleAdder) end;
-    finally Result.AllowedCapacityOverflow := 4 end;
-  except Result.Free; raise end;
-end;
-
-function TVRMLScene.TrianglesList(OverTriangulate: boolean):
-  TDynTriangle3SingleArray;
-begin
-  ValidateTrianglesList(OverTriangulate);
-  Result := FTrianglesList[OverTriangulate];
-end;
-
-procedure TVRMLScene.InvalidateTrianglesList(const OverTriangulate: boolean);
-var
-  ValidityValue: TVRMLSceneValidity;
-begin
-  if OverTriangulate then
-    ValidityValue := fvTrianglesListOverTriangulate else
-    ValidityValue := fvTrianglesListNotOverTriangulate;
-  Exclude(Validities, ValidityValue);
-  FreeAndNil(FTrianglesList[OverTriangulate]);
 end;
 
 function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
@@ -5167,12 +5054,6 @@ begin
   if (frBackgroundImageInNodes in Resources) and (RootNode <> nil) then
     RootNode.EnumerateNodes(TNodeBackground,
       @FreeResources_UnloadBackgroundImage, false);
-
-  if frTrianglesListNotOverTriangulate in Resources then
-    InvalidateTrianglesList(false);
-
-  if frTrianglesListOverTriangulate in Resources then
-    InvalidateTrianglesList(true);
 
   if frTrianglesListShadowCasters in Resources then
     InvalidateTrianglesListShadowCasters;
@@ -6612,12 +6493,6 @@ begin
 
   if prBoundingBox in Options then
     BoundingBox { ignore the result };
-
-  if prTrianglesListNotOverTriangulate in Options then
-    TrianglesList(false);
-
-  if prTrianglesListOverTriangulate in Options then
-    TrianglesList(true);
 
   if prTrianglesListShadowCasters in Options then
     TrianglesListShadowCasters;

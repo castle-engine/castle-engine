@@ -120,8 +120,6 @@ type
 
   { Various things that T3D.PrepareResources may prepare. }
   TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
-    prTrianglesListNotOverTriangulate,
-    prTrianglesListOverTriangulate,
     prTrianglesListShadowCasters,
     prManifoldAndBorderEdges,
     { Prepare octrees (determined by things like TVRMLScene.Spatial). }

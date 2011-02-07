@@ -362,8 +362,6 @@ const
   prRender = Base3D.prRender;
   prBackground = Base3D.prBackground;
   prBoundingBox = Base3D.prBoundingBox;
-  prTrianglesListNotOverTriangulate = Base3D.prTrianglesListNotOverTriangulate;
-  prTrianglesListOverTriangulate = Base3D.prTrianglesListOverTriangulate;
   prTrianglesListShadowCasters = Base3D.prTrianglesListShadowCasters;
   prManifoldAndBorderEdges = Base3D.prManifoldAndBorderEdges;
 
