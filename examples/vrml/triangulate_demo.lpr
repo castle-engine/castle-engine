@@ -4,15 +4,19 @@ uses SysUtils, VectorMath, VRMLScene, VRMLShape;
 
 type
   TTriangleHandler = class
-    procedure HandleTriangle(const Triangle: TTriangle3Single;
-      Shape: TObject; const Face: TFaceIndex);
+    procedure HandleTriangle(Shape: TObject;
+      const Position: TTriangle3Single;
+      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Face: TFaceIndex);
   end;
 
-procedure TTriangleHandler.HandleTriangle(const Triangle: TTriangle3Single;
-  Shape: TObject; const Face: TFaceIndex);
+procedure TTriangleHandler.HandleTriangle(Shape: TObject;
+  const Position: TTriangle3Single;
+  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Face: TFaceIndex);
 begin
   Writeln('Triangle position (in world coordinates): ',
-    TriangleToNiceStr(Triangle));
+    TriangleToNiceStr(Position));
 end;
 
 var
@@ -29,15 +33,13 @@ begin
       Handler := TTriangleHandler.Create;
       try
         while SI.GetNext do
+          { Try also LocalTriangulate instead of Triangulate,
+            to have Position in local shape coordinates. }
           SI.Current.Triangulate(true, @Handler.HandleTriangle);
       finally FreeAndNil(Handler) end;
     finally FreeAndNil(SI) end;
 
-    { An alternative method 1: you can also use Scene.TrianglesList.
-      This is much easier, but it only gives you triangle positions
-      (no normal, tex coords, etc.). }
-
-    { An alternative method 2: use Scene.OctreeVisibleTriangles.Triangles.
+    { An alternative method: use Scene.OctreeVisibleTriangles.Triangles.
       This is available only when Scene.Spatial contains appropriate flag.
       This method is useful in larger programs, when besides writing triangles,
       you want to e.g. render or perform collision detection with the scene.
