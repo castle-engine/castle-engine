@@ -74,8 +74,34 @@ type
 
   TFaceIndex = FaceIndex.TFaceIndex;
 
-  TTriangleEvent = procedure (const Triangle: TTriangle3Single;
-    Shape: TObject; const Face: TFaceIndex) of object;
+  { Triangle information, called by TVRMLShape.LocalTriangulate and such.
+
+    @param(Shape A shape containing this triangle.
+      This is always an instance of TVRMLShape class, but due
+      to unit dependencies it cannot be declared as such.)
+
+    @param(Normal Normal vectors, for each triangle point.)
+
+    @param(TexCoord Texture coordinates, for each triangle point.
+
+      Each texture coordinate is a 4D vector, since we may have 3D textures
+      referenced by 4D (homogeneous) coordinates. For normal 2D textures,
+      you can simply take the first 2 components of the vector,
+      and ignore the remaining 2 components. The 3th component is always
+      0 if was not specified (if model had only 2D texture coords).
+      The 4th component is always 1 if was not specified
+      (if model had only 2D or 3D texture coords).
+
+      In case of multi-texturing, this describes coordinates
+      of the first texture unit.
+      In case no texture is defined, this is undefined.)
+
+    @param(Face Describes the indexes of this face, for editing / removing it.
+      See TFaceIndex.) }
+  TTriangleEvent = procedure (Shape: TObject;
+    const Position: TTriangle3Single;
+    const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+    const Face: TFaceIndex) of object;
 
   { Tree of VRML shapes.
 
@@ -205,8 +231,10 @@ type
     procedure FreeProxy;
   private
     TriangleOctreeToAdd: TVRMLTriangleOctree;
-    procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-      Shape: TObject; const Face: TFaceIndex);
+    procedure AddTriangleToOctreeProgress(Shape: TObject;
+      const Position: TTriangle3Single;
+      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Face: TFaceIndex);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TVRMLTriangleOctree;
   private
@@ -808,6 +836,12 @@ uses ProgressUnit, VRMLScene, VRMLErrors, NormalsCalculator, KambiLog,
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
 
+const
+  UnknownTexCoord: TTriangle4Single = (
+    (0, 0, 0, 1),
+    (0, 0, 0, 1),
+    (0, 0, 0, 1) );
+
 { TVRMLShapeTree ------------------------------------------------------------ }
 
 constructor TVRMLShapeTree.Create(AParentScene: TObject);
@@ -1288,12 +1322,13 @@ begin
   end;
 end;
 
-procedure TVRMLShape.AddTriangleToOctreeProgress(
-  const Triangle: TTriangle3Single;
-  Shape: TObject; const Face: TFaceIndex);
+procedure TVRMLShape.AddTriangleToOctreeProgress(Shape: TObject;
+  const Position: TTriangle3Single;
+  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Face: TFaceIndex);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape, Face);
+  TriangleOctreeToAdd.AddItemTriangle(Shape, Position, Normal, TexCoord, Face);
 end;
 
 function TVRMLShape.CreateTriangleOctree(
@@ -1305,26 +1340,34 @@ function TVRMLShape.CreateTriangleOctree(
     procedure LocalTriangulateRect(constCoord: integer;
       const constCoordValue, x1, y1, x2, y2: Single);
     var
-      T: TTriangle3Single;
+      Position, Normal: TTriangle3Single;
       i, c1, c2: integer;
 
       procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
       begin
-        T[TriIndex, c1] := c1value;
-        T[TriIndex, c2] := c2value;
+        Position[TriIndex, c1] := c1value;
+        Position[TriIndex, c2] := c2value;
       end;
 
     begin
-      for I := 0 to 2 do T[I, ConstCoord] := ConstCoordValue;
       RestOf3dCoords(constCoord, c1, c2);
+
+      for I := 0 to 2 do
+      begin
+        Position[I, ConstCoord] := ConstCoordValue;
+        Normal[I, C1] := 0;
+        Normal[I, C2] := 0;
+        Normal[I, ConstCoord] := 1; { TODO: or -1 }
+      end;
+
       TriAssign(0, x1, y1);
       TriAssign(1, x1, y2);
       TriAssign(2, x2, y2);
-      Result.AddItemTriangle(T, Self, UnknownFaceIndex);
+      Result.AddItemTriangle(Self, Position, Normal, UnknownTexCoord, UnknownFaceIndex);
       TriAssign(0, x1, y1);
       TriAssign(1, x2, y2);
       TriAssign(2, x2, y1);
-      Result.AddItemTriangle(T, Self, UnknownFaceIndex);
+      Result.AddItemTriangle(Self, Position, Normal, UnknownTexCoord, UnknownFaceIndex);
     end;
 
   var
@@ -1804,7 +1847,8 @@ var
   procedure Triangle(const I1, I2, I3: Cardinal);
   var
     VI1, VI2, VI3: Integer;
-    Triangle: TTriangle3Single;
+    Position, Normal: TTriangle3Single;
+    TexCoord: TTriangle4Single;
     Face: TFaceIndex;
   begin
     if Arrays.Indexes <> nil then
@@ -1818,15 +1862,43 @@ var
       VI2 := RangeBeginIndex + I2;
       VI3 := RangeBeginIndex + I3;
     end;
-    Triangle[0] := Arrays.Position(VI1)^;
-    Triangle[1] := Arrays.Position(VI2)^;
-    Triangle[2] := Arrays.Position(VI3)^;
+    Position[0] := Arrays.Position(VI1)^;
+    Position[1] := Arrays.Position(VI2)^;
+    Position[2] := Arrays.Position(VI3)^;
+    Normal[0] := Arrays.Normal(VI1)^;
+    Normal[1] := Arrays.Normal(VI2)^;
+    Normal[2] := Arrays.Normal(VI3)^;
+
+    if (Arrays.TexCoords.Count <> 0) and
+       (Arrays.TexCoords[0] <> nil) and
+       (Arrays.TexCoords[0].Generation = tgExplicit) then
+    begin
+      case Arrays.TexCoords[0].Dimensions of
+        2: begin
+             TexCoord[0] := Vector4Single(Arrays.TexCoord2D(0, VI1)^);
+             TexCoord[1] := Vector4Single(Arrays.TexCoord2D(0, VI2)^);
+             TexCoord[2] := Vector4Single(Arrays.TexCoord2D(0, VI3)^);
+           end;
+        3: begin
+             TexCoord[0] := Vector4Single(Arrays.TexCoord3D(0, VI1)^);
+             TexCoord[1] := Vector4Single(Arrays.TexCoord3D(0, VI2)^);
+             TexCoord[2] := Vector4Single(Arrays.TexCoord3D(0, VI3)^);
+           end;
+        4: begin
+             TexCoord[0] := Arrays.TexCoord4D(0, VI1)^;
+             TexCoord[1] := Arrays.TexCoord4D(0, VI2)^;
+             TexCoord[2] := Arrays.TexCoord4D(0, VI3)^;
+           end;
+        else raise EInternalError.Create('Arrays.TexCoord[0].Dimensions? at tvrmlshape.localtriangulate');
+      end;
+    end else
+      TexCoord := UnknownTexCoord;
 
     if Arrays.Faces <> nil then
       Face := Arrays.Faces.Items[RangeBeginIndex + I1] else
       Face := UnknownFaceIndex;
 
-    TriangleEvent(Triangle, Self, Face);
+    TriangleEvent(Self, Position, Normal, TexCoord, Face);
   end;
 
   { Call NewTriangle, triangulating indexes 0 .. Count - 1. }
@@ -1904,15 +1976,18 @@ type
   TTriangulateRedirect = class
     Transform: PMatrix4Single;
     TriangleEvent: TTriangleEvent;
-    procedure LocalNewTriangle(const Triangle: TTriangle3Single;
-      Shape: TObject; const Face: TFaceIndex);
+    procedure LocalNewTriangle(Shape: TObject;
+      const Position: TTriangle3Single;
+      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Face: TFaceIndex);
   end;
 
-procedure TTriangulateRedirect.LocalNewTriangle(
-  const Triangle: TTriangle3Single;
-  Shape: TObject; const Face: TFaceIndex);
+procedure TTriangulateRedirect.LocalNewTriangle(Shape: TObject;
+  const Position: TTriangle3Single;
+  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Face: TFaceIndex);
 begin
-  TriangleEvent(TriangleTransform(Triangle, Transform^), Shape, Face);
+  TriangleEvent(Shape, TriangleTransform(Position, Transform^), Normal, TexCoord, Face);
 end;
 
 procedure TVRMLShape.Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);

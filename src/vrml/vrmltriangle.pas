@@ -39,17 +39,18 @@ type
   TVRMLTriangle = object(T3DTriangle)
   public
     { Initialize new triangle.
-      Given ATriangle must satisfy IsValidTriangle. }
-    constructor Init(const ATriangle: TTriangle3Single;
-      AShape: TObject; const AFace: TFaceIndex);
+      Given APosition must satisfy IsValidTriangle. }
+    constructor Init(AShape: TObject;
+      const APosition: TTriangle3Single;
+      const ANormal: TTriangle3Single; const ATexCoord: TTriangle4Single;
+      const AFace: TFaceIndex);
 
     procedure UpdateWorld;
   public
-    { Shape containing this triangle.
-      This must be an instance of TVRMLShape, but due to unit dependencies
-      it cannot be declared as such. }
+    { See TTriangleEvent for the meaning of these fields. }
     Shape: TObject;
-
+    Normal: TTriangle3Single;
+    TexCoord: TTriangle4Single;
     Face: TFaceIndex;
 
     {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
@@ -659,12 +660,16 @@ uses KambiStringUtils, VRMLShape;
 
 { TVRMLTriangle  ------------------------------------------------------------- }
 
-constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
-  AShape: TObject; const AFace: TFaceIndex);
+constructor TVRMLTriangle.Init(AShape: TObject;
+  const APosition: TTriangle3Single;
+  const ANormal: TTriangle3Single; const ATexCoord: TTriangle4Single;
+  const AFace: TFaceIndex);
 begin
-  inherited Init(ATriangle);
+  inherited Init(APosition);
 
   Shape := AShape;
+  Normal := ANormal;
+  TexCoord := ATexCoord;
   Face := AFace;
 
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}

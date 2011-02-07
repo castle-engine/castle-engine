@@ -798,8 +798,10 @@ type
     { @groupEnd }
   private
     TriangleOctreeToAdd: TVRMLTriangleOctree;
-    procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-      Shape: TObject; const Face: TFaceIndex);
+    procedure AddTriangleToOctreeProgress(Shape: TObject;
+      const Position: TTriangle3Single;
+      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Face: TFaceIndex);
   private
     FTriangleOctreeLimits: TOctreeLimits;
     FTriangleOctreeProgressTitle: string;
@@ -4403,12 +4405,13 @@ begin
   Result := @FShapeOctreeLimits;
 end;
 
-procedure TVRMLScene.AddTriangleToOctreeProgress(
-  const Triangle: TTriangle3Single;
-  Shape: TObject; const Face: TFaceIndex);
+procedure TVRMLScene.AddTriangleToOctreeProgress(Shape: TObject;
+  const Position: TTriangle3Single;
+  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Face: TFaceIndex);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape, Face);
+  TriangleOctreeToAdd.AddItemTriangle(Shape, Position, Normal, TexCoord, Face);
 end;
 
 procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
@@ -4766,16 +4769,20 @@ end;
 type
   TTriangleAdder = class
     TriangleList: TDynTriangle3SingleArray;
-    procedure AddTriangle(const Triangle: TTriangle3Single;
-      Shape: TObject; const Face: TFaceIndex);
+    procedure AddTriangle(Shape: TObject;
+      const Position: TTriangle3Single;
+      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Face: TFaceIndex);
   end;
 
-  procedure TTriangleAdder.AddTriangle(const Triangle: TTriangle3Single;
-    Shape: TObject; const Face: TFaceIndex);
-  begin
-    if IsValidTriangle(Triangle) then
-      TriangleList.Add(Triangle);
-  end;
+procedure TTriangleAdder.AddTriangle(Shape: TObject;
+  const Position: TTriangle3Single;
+  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Face: TFaceIndex);
+begin
+  if IsValidTriangle(Position) then
+    TriangleList.Add(Position);
+end;
 
 function TVRMLScene.CreateTrianglesList(OverTriangulate: boolean):
   TDynTriangle3SingleArray;

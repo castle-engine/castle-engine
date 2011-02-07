@@ -177,11 +177,13 @@ type
 
     function TreeRoot: TTriangleOctreeNode;
 
-    { Add a single Triangle. Automatically checks whether IsValidTriangle.
+    { Add a single triangle. Automatically checks whether IsValidTriangle.
       Before adding a lot of triangles, it's suggested to increase
       Triangles.AllowedCapacityCount.  }
-    procedure AddItemTriangle(const Triangle: TTriangle3Single;
-      Shape: TObject; const Face: TFaceIndex);
+    procedure AddItemTriangle(Shape: TObject;
+      const Position: TTriangle3Single;
+      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Face: TFaceIndex);
 
     { Internal for cooperation with TVRMLShapeOctree.
       @exclude }
@@ -498,12 +500,14 @@ begin
     [ Triangles.Count, ItemsCount, ItemsCount / Triangles.Count] );
 end;
 
-procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
-  Shape: TObject; const Face: TFaceIndex);
+procedure TVRMLTriangleOctree.AddItemTriangle(Shape: TObject;
+  const Position: TTriangle3Single;
+  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Face: TFaceIndex);
 begin
-  if IsValidTriangle(Triangle) then
+  if IsValidTriangle(Position) then
   begin
-    Triangles.Add^.Init(Triangle, Shape, Face);
+    Triangles.Add^.Init(Shape, Position, Normal, TexCoord, Face);
     TreeRoot.AddItem(Triangles.High);
   end;
 end;
