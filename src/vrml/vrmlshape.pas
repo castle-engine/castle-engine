@@ -274,10 +274,7 @@ type
     function TrianglesCount(OverTriangulate: boolean): Cardinal;
     { @groupEnd }
 
-    { Decompose the geometry into primitives, with arrays of per-vertex data.
-
-      Returns @nil for geometry that cannot be currently decomposed into
-      arrays, this happens for Text nodes (Text, Text3D, AsciiText). }
+    { Decompose the geometry into primitives, with arrays of per-vertex data. }
     function GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
 
     { Calculates bounding sphere based on BoundingBox.
@@ -1090,6 +1087,46 @@ var
       Result := 0;
   end;
 
+  function ArrayForBox(Box: TBox3D): TGeometryArrays;
+  begin
+    { When there's no TVRMLArraysGenerator suitable, then we either have
+      a Text node (Text, AsciiText, Text3D) or an unsupported node.
+
+      For now, we make an array describing a single quad: this shape's
+      bounding box in XY plane. This is good for 2D Text nodes,
+      this way they are easily represented in an octree (so they can be
+      picked, and used with VRML/X3D Anchor, TouchSensor and such nodes).
+
+      VRML >= 2.0 specs say that 2D Text doesn't participate in collision
+      detection. This is very sensible, as normal triangulation of Text would
+      produce a lot of triangles. On the other hard, I found many VRML models
+      that expect Text within Anchor and TouchSensor to be "clickable" ---
+      which means that some rough triangulation of text is desired.
+
+      TODO: the text should not participate in collision
+      detection (but still participate in picking).
+
+      TODO: for Text3D, we should probably make arrays describing
+      a cube, with 6 faces, not a flat face. }
+
+    Result := TGeometryArrays.Create;
+    if not IsEmptyBox3D(Box) then
+    begin
+      Result.Primitive := gpQuads;
+      Result.Count := 4;
+
+      Result.Position(0)^ := Vector3Single(Box[0][0], Box[0][1], Box[0][2]);
+      Result.Position(1)^ := Vector3Single(Box[1][0], Box[0][1], Box[0][2]);
+      Result.Position(2)^ := Vector3Single(Box[1][0], Box[1][1], Box[0][2]);
+      Result.Position(3)^ := Vector3Single(Box[0][0], Box[1][1], Box[0][2]);
+
+      Result.Normal(0)^ := UnitVector3Single[2];
+      Result.Normal(1)^ := UnitVector3Single[2];
+      Result.Normal(2)^ := UnitVector3Single[2];
+      Result.Normal(3)^ := UnitVector3Single[2];
+    end;
+  end;
+
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
   Generator: TVRMLArraysGenerator;
@@ -1108,7 +1145,7 @@ begin
       Result := Generator.GenerateArrays;
     finally FreeAndNil(Generator) end;
   end else
-    Result := nil;
+    Result := ArrayForBox(LocalBoundingBox);
 end;
 
 procedure TVRMLShape.FreeProxy;
@@ -1853,26 +1890,17 @@ var
 begin
   Arrays := GeometryArrays(OverTriangulate);
   try
-    { TODO: The case of Arrays = nil is supposed to be removed some day,
-      when Text nodes will generate correct arrays. }
-    if Arrays = nil then
-      OriginalGeometry.LocalTriangulate(Self, OriginalState, OverTriangulate,
-        NewTriangleProc,
-        ProxyGeometry(OverTriangulate),
-        ProxyState(OverTriangulate)) else
-    begin
-      if Arrays.Indexes <> nil then
-        Count := Arrays.IndexesCount else
-        Count := Arrays.Count;
-      RangeBeginIndex := 0;
-      if Arrays.Counts = nil then
-        TriangulateRange(Count) else
-        for I := 0 to Arrays.Counts.Count - 1 do
-        begin
-          TriangulateRange(Arrays.Counts[I]);
-          RangeBeginIndex += Arrays.Counts[I];
-        end;
-    end;
+    if Arrays.Indexes <> nil then
+      Count := Arrays.IndexesCount else
+      Count := Arrays.Count;
+    RangeBeginIndex := 0;
+    if Arrays.Counts = nil then
+      TriangulateRange(Count) else
+      for I := 0 to Arrays.Counts.Count - 1 do
+      begin
+        TriangulateRange(Arrays.Counts[I]);
+        RangeBeginIndex += Arrays.Counts[I];
+      end;
   finally FreeAndNil(Arrays) end;
 end;
 
