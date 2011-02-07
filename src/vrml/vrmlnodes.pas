@@ -693,10 +693,6 @@ type
   TEnumerateReplaceNodesFunction =
     procedure (ParentNode: TVRMLNode; var Node: TVRMLNode) of object;
 
-  TNewTriangleProc = procedure (const Tri: TTriangle3Single;
-    Shape: TObject;
-    const FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
-
   TSFNode = class;
   TMFNode = class;
   TVRMLPrototypeNode = class;

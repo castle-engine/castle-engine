@@ -72,6 +72,10 @@ type
   TEnumerateShapeTexturesFunction = procedure (Shape: TVRMLShape;
     Texture: TNodeX3DTextureNode) of object;
 
+  TNewTriangleProc = procedure (const Tri: TTriangle3Single;
+    Shape: TObject;
+    const FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
+
   { Tree of VRML shapes.
 
     Although VRML model already provides the tree (graph of VRML nodes),
