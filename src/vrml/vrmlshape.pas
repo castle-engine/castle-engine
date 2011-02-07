@@ -506,11 +506,13 @@ type
       http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_caster). }
     function ShadowCaster: boolean;
 
-    { Triangulate shape.
+    { Triangulate shape. Calls NewTriangleProc callback for each triangle.
+      LocalTriangulate returns coordinates in local shape transformation
+      (that is, not transformed by State.Transform yet).
 
-      These are comfortable and efficient wrappers over calling
-      TVRMLGeometryNode.Triangulate and TVRMLGeometryNode.LocalTriangulate
-      on Geometry.
+      OverTriangulate determines if we should make more triangles for Gouraud
+      shading. For example, it makes Cones and Cylinders divided into
+      additional stacks.
 
       @groupBegin }
     procedure Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
@@ -1764,29 +1766,6 @@ begin
     Result := nil;
 end;
 
-  { Always pass the same OverTriangulate value to ProxyGeometry/State(),
-    and to Triangulate(). This is sensible:
-
-    1. if a node uses Proxy, then the OverTriangulate parameter
-       to the ProxyGeometry/State() will already cause using appropriate
-       triangulation during convertion to the IndexedFaceSet.
-       Such IndexedFaceSet will ignore OverTriangulate parameter
-       to Triangulate().
-
-    2. if a node does not use Proxy, then ProxyGeometry/State() parameters
-       don't matter. The parameter to Triangulate() then decides
-       the triangulation.
-
-    TODO: old comment, sensible, move if relevant.
-  }
-
-procedure TVRMLShape.Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
-begin
-  OriginalGeometry.Triangulate(Self, OriginalState, OverTriangulate, NewTriangleProc,
-    ProxyGeometry(OverTriangulate),
-    ProxyState(OverTriangulate));
-end;
-
 procedure TVRMLShape.LocalTriangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var
   Arrays: TGeometryArrays;
@@ -1902,6 +1881,34 @@ begin
         RangeBeginIndex += Arrays.Counts[I];
       end;
   finally FreeAndNil(Arrays) end;
+end;
+
+type
+  TTriangulateRedirect = class
+    Transform: PMatrix4Single;
+    NewTriangleProc: TNewTriangleProc;
+    procedure LocalNewTriangle(const Triangle: TTriangle3Single;
+      Shape: TObject; const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  end;
+
+procedure TTriangulateRedirect.LocalNewTriangle(
+  const Triangle: TTriangle3Single;
+  Shape: TObject; const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+begin
+  NewTriangleProc(TriangleTransform(Triangle, Transform^),
+    Shape, FaceCoordIndexBegin, FaceCoordIndexEnd);
+end;
+
+procedure TVRMLShape.Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+var
+  TR: TTriangulateRedirect;
+begin
+  TR := TTriangulateRedirect.Create;
+  try
+    TR.Transform := @(State.Transform);
+    TR.NewTriangleProc := NewTriangleProc;
+    LocalTriangulate(OverTriangulate, @TR.LocalNewTriangle);
+  finally FreeAndNil(TR) end;
 end;
 
 function TVRMLShape.DebugInfo(const Indent: string): string;
