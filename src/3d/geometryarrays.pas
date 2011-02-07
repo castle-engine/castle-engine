@@ -219,6 +219,7 @@ type
     { @groupEnd }
 
     function Position: PVector3Single;
+    function Position(const Index: Cardinal): PVector3Single;
     procedure IncPosition(var P: PVector3Single);
 
     { Allocated number of items in vertex positions, normals, colors
@@ -227,7 +228,7 @@ type
       You can only set this once.
       You must do all necessary AddColor / AddAttribute calls before setting this.
 
-      You can access all Position / Normal etc. pointers ony after setting this.
+      You can access all Position / Normal etc. pointers only after setting this.
       Also, IndexesCount and HasIndexes is stored at this point. }
     property Count: Integer read FCount write SetCount;
 
@@ -403,6 +404,12 @@ function TGeometryArrays.Position: PVector3Single;
 begin
   { When DataFreed, FCoordinateArray is already nil }
   Result := FCoordinateArray;
+end;
+
+function TGeometryArrays.Position(const Index: Cardinal): PVector3Single;
+begin
+  { When DataFreed, FCoordinateArray is already nil }
+  Result := PVector3Single(PtrUInt(FCoordinateArray) + CoordinateSize * Index);
 end;
 
 procedure TGeometryArrays.IncPosition(var P: PVector3Single);
