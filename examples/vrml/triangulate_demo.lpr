@@ -33,7 +33,11 @@ begin
       finally FreeAndNil(Handler) end;
     finally FreeAndNil(SI) end;
 
-    { An alternative method is to use Scene.OctreeVisibleTriangles.Triangles.
+    { An alternative method 1: you can also use Scene.TrianglesList.
+      This is much easier, but it only gives you triangle positions
+      (no normal, tex coords, etc.). }
+
+    { An alternative method 2: use Scene.OctreeVisibleTriangles.Triangles.
       This is available only when Scene.Spatial contains appropriate flag.
       This method is useful in larger programs, when besides writing triangles,
       you want to e.g. render or perform collision detection with the scene.
