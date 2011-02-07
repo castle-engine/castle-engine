@@ -1933,7 +1933,7 @@ var
           while I + 2 < Count do
           begin
             Triangle(0, I + 1, I + 2);
-            I += 3;
+            Inc(I);
           end;
         end;
       gpTriangleStrip:
@@ -1946,7 +1946,7 @@ var
               Triangle(I    , I + 1, I + 2) else
               Triangle(I + 1, I    , I + 2);
             NormalOrder := not NormalOrder;
-            I += 3;
+            Inc(I);
           end;
         end;
       else { gpLineStrip, gpPoints don't make triangles } ;
