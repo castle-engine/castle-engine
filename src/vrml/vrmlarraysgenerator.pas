@@ -18,8 +18,7 @@ unit VRMLArraysGenerator;
 
 interface
 
-uses VRMLShape, VRMLNodes, VRMLFields, KambiUtils,
-  GeometryArrays, VectorMath;
+uses VRMLShape, VRMLNodes, VRMLFields, KambiUtils, GeometryArrays, VectorMath;
 
 type
   TRadianceTransferFunction = function (Node: TVRMLGeometryNode;
