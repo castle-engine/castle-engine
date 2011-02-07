@@ -202,7 +202,7 @@ type
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
       Shape: TObject;
-      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+      const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TVRMLTriangleOctree;
   private
@@ -1248,10 +1248,10 @@ end;
 procedure TVRMLShape.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
   Shape: TObject;
-  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape, MatNum,
+  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape,
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
@@ -1793,7 +1793,7 @@ var
       FaceCoordIndexEnd := Arrays.FaceIndexEnd[RangeBeginIndex + I1];
     end;
 
-    NewTriangleProc(Triangle, Self, 0, FaceCoordIndexBegin, FaceCoordIndexEnd);
+    NewTriangleProc(Triangle, Self, FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 
   { Call NewTriangle, triangulating indexes 0 .. Count - 1. }

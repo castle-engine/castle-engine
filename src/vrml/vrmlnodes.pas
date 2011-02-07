@@ -695,7 +695,7 @@ type
 
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
     Shape: TObject;
-    const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
+    const FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
 
   TSFNode = class;
   TMFNode = class;

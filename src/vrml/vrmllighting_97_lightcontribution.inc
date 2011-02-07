@@ -92,10 +92,10 @@ begin
  end else
  begin
    M1 := IntersectNode.State.LastNodes.Material;
-   MaterialAmbientColor := M1.AmbientColor3Single(IntersectNode.MatNum);
-   MaterialDiffuseColor := M1.DiffuseColor3Single(IntersectNode.MatNum);
-   MaterialSpecularColor := M1.SpecularColor3Single(IntersectNode.MatNum);
-   MaterialShininessExp := M1.ShininessExp(IntersectNode.MatNum);
+   MaterialAmbientColor := M1.AmbientColor3Single(0);
+   MaterialDiffuseColor := M1.DiffuseColor3Single(0);
+   MaterialSpecularColor := M1.SpecularColor3Single(0);
+   MaterialShininessExp := M1.ShininessExp(0);
  end;
  {$endif}
  LightNode := TVRMLLightNode(Light.LightNode);

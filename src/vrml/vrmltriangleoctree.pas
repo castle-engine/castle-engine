@@ -182,7 +182,7 @@ type
       Triangles.AllowedCapacityCount.  }
     procedure AddItemTriangle(const Triangle: TTriangle3Single;
       Shape: TObject;
-      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+      const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
     { Internal for cooperation with TVRMLShapeOctree.
       @exclude }
@@ -501,13 +501,11 @@ end;
 
 procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
   Shape: TObject;
-  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   if IsValidTriangle(Triangle) then
   begin
-    Triangles.Add^.Init(
-      Triangle, Shape, MatNum,
-      FaceCoordIndexBegin, FaceCoordIndexEnd);
+    Triangles.Add^.Init(Triangle, Shape, FaceCoordIndexBegin, FaceCoordIndexEnd);
     TreeRoot.AddItem(Triangles.High);
   end;
 end;

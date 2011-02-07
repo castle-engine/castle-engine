@@ -41,15 +41,14 @@ type
     { Initialize new triangle.
       Given ATriangle must satisfy IsValidTriangle. }
     constructor Init(const ATriangle: TTriangle3Single;
-      AShape: TObject; const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
+      AShape: TObject; const AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
 
     procedure UpdateWorld;
   public
     { Shape containing this triangle.
       This must be an instance of TVRMLShape, but due to unit dependencies
-      it cannot be declared such. }
+      it cannot be declared as such. }
     Shape: TObject;
-    MatNum: integer;
 
     { If this triangle is part of a face created by coordIndex field
       (like all faces in IndexedFaceSet) then these fields indicate where
@@ -674,12 +673,11 @@ uses KambiStringUtils, VRMLShape;
 
 constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
   AShape: TObject;
-  const AMatNum, AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
+  const AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
 begin
   inherited Init(ATriangle);
 
   Shape := AShape;
-  MatNum := AMatNum;
   FaceCoordIndexBegin := AFaceCoordIndexBegin;
   FaceCoordIndexEnd := AFaceCoordIndexEnd;
 
@@ -793,7 +791,7 @@ begin
       Result := M2.MaterialInfo else
       Result := nil;
   end else
-    Result := State.LastNodes.Material.MaterialInfo(MatNum);
+    Result := State.LastNodes.Material.MaterialInfo(0);
 end;
 
 function TVRMLTriangle.Transparency: Single;
@@ -807,7 +805,7 @@ begin
       Result := M2.FdTransparency.Value else
       Result := 0;
   end else
-    Result := State.LastNodes.Material.Transparency(MatNum);
+    Result := State.LastNodes.Material.Transparency(0);
 end;
 
 function TVRMLTriangle.IsTransparent: boolean;

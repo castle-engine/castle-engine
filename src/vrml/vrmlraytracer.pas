@@ -400,8 +400,8 @@ var
     begin
       { VRML 1.0 }
       M1 := IntersectNode^.State.LastNodes.Material;
-      MaterialMirror := M1.Mirror(IntersectNode^.MatNum);
-      MaterialTransparency := M1.Transparency(IntersectNode^.MatNum);
+      MaterialMirror := M1.Mirror(0);
+      MaterialTransparency := M1.Transparency(0);
     end;
 
     Result := VRML97Emission(IntersectNode^, InitialDepth <> 0);
@@ -550,7 +550,7 @@ end;
     end else
     begin
       { VRML 1.0 }
-      Result := Item.State.LastNodes.Material.EmissiveColor3Single(Item.MatNum);
+      Result := Item.State.LastNodes.Material.EmissiveColor3Single(0);
     end;
   end;
 

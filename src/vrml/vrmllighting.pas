@@ -152,8 +152,8 @@ begin
   begin
     M1 := IntersectNode.State.LastNodes.Material;
     if LightingCalculationOn then
-      Result := M1.EmissiveColor3Single(IntersectNode.MatNum) else
-      Result := M1.DiffuseColor3Single(IntersectNode.MatNum);
+      Result := M1.EmissiveColor3Single(0) else
+      Result := M1.DiffuseColor3Single(0);
   end;
 end;
 
