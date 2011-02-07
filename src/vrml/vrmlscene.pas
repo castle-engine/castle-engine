@@ -799,8 +799,7 @@ type
   private
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-      Shape: TObject;
-      const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+      Shape: TObject; const Face: TFaceIndex);
   private
     FTriangleOctreeLimits: TOctreeLimits;
     FTriangleOctreeProgressTitle: string;
@@ -4406,11 +4405,10 @@ end;
 
 procedure TVRMLScene.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
-  Shape: TObject;
-  const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  Shape: TObject; const Face: TFaceIndex);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape, FaceCoordIndexBegin, FaceCoordIndexEnd);
+  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape, Face);
 end;
 
 procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
@@ -4769,13 +4767,11 @@ type
   TTriangleAdder = class
     TriangleList: TDynTriangle3SingleArray;
     procedure AddTriangle(const Triangle: TTriangle3Single;
-      Shape: TObject;
-      const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+      Shape: TObject; const Face: TFaceIndex);
   end;
 
   procedure TTriangleAdder.AddTriangle(const Triangle: TTriangle3Single;
-    Shape: TObject;
-    const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+    Shape: TObject; const Face: TFaceIndex);
   begin
     if IsValidTriangle(Triangle) then
       TriangleList.Add(Triangle);

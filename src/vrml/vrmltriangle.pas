@@ -22,7 +22,7 @@ unit VRMLTriangle;
 interface
 
 uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Base3D, Boxes3D,
-  KambiOctree;
+  KambiOctree, FaceIndex;
 
 {$define read_interface}
 
@@ -41,7 +41,7 @@ type
     { Initialize new triangle.
       Given ATriangle must satisfy IsValidTriangle. }
     constructor Init(const ATriangle: TTriangle3Single;
-      AShape: TObject; const AFaceCoordIndexBegin, AFaceCoordIndexEnd: integer);
+      AShape: TObject; const AFace: TFaceIndex);
 
     procedure UpdateWorld;
   public
@@ -50,19 +50,7 @@ type
       it cannot be declared as such. }
     Shape: TObject;
 
-    { If this triangle is part of a face created by coordIndex field
-      (like all faces in IndexedFaceSet) then these fields indicate where
-      in this coordIndex this face is located.
-
-      You should look into Geometry, get it's coordIndex field,
-      and the relevant indexes are between FaceCoordIndexBegin
-      and FaceCoordIndexEnd - 1. Index FaceCoordIndexEnd is either
-      non-existing (coordIndex list ended) or is the "-1" (faces separator
-      on coordIndex fields).
-
-      If this triangle doesn't come from any coordIndex (e.g. because Geometry
-      is a TNodeSphere) then both FaceCoordIndex* are -1. }
-    FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
+    Face: TFaceIndex;
 
     {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
     { Tag of an object (like a ray or a line segment)
@@ -672,14 +660,12 @@ uses KambiStringUtils, VRMLShape;
 { TVRMLTriangle  ------------------------------------------------------------- }
 
 constructor TVRMLTriangle.Init(const ATriangle: TTriangle3Single;
-  AShape: TObject;
-  const AFaceCoordIndexBegin, AFaceCoordIndexEnd: Integer);
+  AShape: TObject; const AFace: TFaceIndex);
 begin
   inherited Init(ATriangle);
 
   Shape := AShape;
-  FaceCoordIndexBegin := AFaceCoordIndexBegin;
-  FaceCoordIndexEnd := AFaceCoordIndexEnd;
+  Face := AFace;
 
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
   MailboxSavedTag := -1;

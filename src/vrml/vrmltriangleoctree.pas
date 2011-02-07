@@ -30,7 +30,7 @@ unit VRMLTriangleOctree;
 interface
 
 uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Boxes3D,
-  KambiOctree, VRMLTriangle, Base3D;
+  KambiOctree, VRMLTriangle, Base3D, FaceIndex;
 
 {$define read_interface}
 
@@ -181,8 +181,7 @@ type
       Before adding a lot of triangles, it's suggested to increase
       Triangles.AllowedCapacityCount.  }
     procedure AddItemTriangle(const Triangle: TTriangle3Single;
-      Shape: TObject;
-      const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+      Shape: TObject; const Face: TFaceIndex);
 
     { Internal for cooperation with TVRMLShapeOctree.
       @exclude }
@@ -500,12 +499,11 @@ begin
 end;
 
 procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
-  Shape: TObject;
-  const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  Shape: TObject; const Face: TFaceIndex);
 begin
   if IsValidTriangle(Triangle) then
   begin
-    Triangles.Add^.Init(Triangle, Shape, FaceCoordIndexBegin, FaceCoordIndexEnd);
+    Triangles.Add^.Init(Triangle, Shape, Face);
     TreeRoot.AddItem(Triangles.High);
   end;
 end;

@@ -198,8 +198,8 @@ type
     ShapeBumpMappingUsed: boolean;
     OnRadianceTransfer: TRadianceTransferFunction;
     OnVertexColor: TVertexColorFunction;
-    { Do we need TGeometryArrays.FaceIndex* }
-    FaceIndexNeeded: boolean;
+    { Do we need TGeometryArrays.Faces }
+    FacesNeeded: boolean;
     { @groupEnd }
 
     constructor Create(AShape: TVRMLShape; AState: TVRMLGraphTraverseState;
@@ -221,7 +221,7 @@ function ArraysGenerator(AGeometry: TVRMLGeometryNode): TVRMLArraysGeneratorClas
 implementation
 
 uses SysUtils, KambiLog, FGL, VRMLErrors, Boxes3D, Triangulator,
-  KambiStringUtils;
+  KambiStringUtils, FaceIndex;
 
 type
   TTextureCoordsImplementation = (

@@ -25,7 +25,7 @@ interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, KambiClassUtils,
   KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree, VRMLTriangle,
-  VRMLFields, GeometryArrays;
+  VRMLFields, GeometryArrays, FaceIndex;
 
 {$define read_interface}
 
@@ -72,9 +72,10 @@ type
   TEnumerateShapeTexturesFunction = procedure (Shape: TVRMLShape;
     Texture: TNodeX3DTextureNode) of object;
 
+  TFaceIndex = FaceIndex.TFaceIndex;
+
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
-    Shape: TObject;
-    const FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
+    Shape: TObject; const Face: TFaceIndex) of object;
 
   { Tree of VRML shapes.
 
@@ -205,8 +206,7 @@ type
   private
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-      Shape: TObject;
-      const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+      Shape: TObject; const Face: TFaceIndex);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TVRMLTriangleOctree;
   private
@@ -1146,7 +1146,7 @@ begin
     try
       Generator.TexCoordsNeeded := TexCoordsNeeded;
       Generator.MaterialOpacity := MaterialOpacity;
-      Generator.FaceIndexNeeded := true;
+      Generator.FacesNeeded := true;
       { Leave the rest of Generator properties as default }
       Result := Generator.GenerateArrays;
     finally FreeAndNil(Generator) end;
@@ -1290,12 +1290,10 @@ end;
 
 procedure TVRMLShape.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
-  Shape: TObject;
-  const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  Shape: TObject; const Face: TFaceIndex);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape,
-    FaceCoordIndexBegin, FaceCoordIndexEnd);
+  TriangleOctreeToAdd.AddItemTriangle(Triangle, Shape, Face);
 end;
 
 function TVRMLShape.CreateTriangleOctree(
@@ -1323,11 +1321,11 @@ function TVRMLShape.CreateTriangleOctree(
       TriAssign(0, x1, y1);
       TriAssign(1, x1, y2);
       TriAssign(2, x2, y2);
-      NewTriangleProc(T, Shape, -1, -1);
+      NewTriangleProc(T, Shape, UnknownFaceIndex);
       TriAssign(0, x1, y1);
       TriAssign(1, x2, y2);
       TriAssign(2, x2, y1);
-      NewTriangleProc(T, Shape, -1, -1);
+      NewTriangleProc(T, Shape, UnknownFaceIndex);
     end;
 
   var
@@ -1808,7 +1806,7 @@ var
   var
     VI1, VI2, VI3: Integer;
     Triangle: TTriangle3Single;
-    FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
+    Face: TFaceIndex;
   begin
     if Arrays.Indexes <> nil then
     begin
@@ -1825,22 +1823,11 @@ var
     Triangle[1] := Arrays.Position(VI2)^;
     Triangle[2] := Arrays.Position(VI3)^;
 
-    FaceCoordIndexBegin := -1;
-    FaceCoordIndexEnd := -1;
+    if Arrays.Faces <> nil then
+      Face := Arrays.Faces.Items[RangeBeginIndex + I1] else
+      Face := UnknownFaceIndex;
 
-    if (Arrays.FaceIndexBegin <> nil) and
-       (Arrays.FaceIndexEnd <> nil) then
-    begin
-      Assert(Arrays.FaceIndexBegin[RangeBeginIndex + I1] = Arrays.FaceIndexBegin[RangeBeginIndex + I2]);
-      Assert(Arrays.FaceIndexBegin[RangeBeginIndex + I1] = Arrays.FaceIndexBegin[RangeBeginIndex + I3]);
-      FaceCoordIndexBegin := Arrays.FaceIndexBegin[RangeBeginIndex + I1];
-
-      Assert(Arrays.FaceIndexEnd[RangeBeginIndex + I1] = Arrays.FaceIndexEnd[RangeBeginIndex + I2]);
-      Assert(Arrays.FaceIndexEnd[RangeBeginIndex + I1] = Arrays.FaceIndexEnd[RangeBeginIndex + I3]);
-      FaceCoordIndexEnd := Arrays.FaceIndexEnd[RangeBeginIndex + I1];
-    end;
-
-    NewTriangleProc(Triangle, Self, FaceCoordIndexBegin, FaceCoordIndexEnd);
+    NewTriangleProc(Triangle, Self, Face);
   end;
 
   { Call NewTriangle, triangulating indexes 0 .. Count - 1. }
@@ -1919,15 +1906,14 @@ type
     Transform: PMatrix4Single;
     NewTriangleProc: TNewTriangleProc;
     procedure LocalNewTriangle(const Triangle: TTriangle3Single;
-      Shape: TObject; const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+      Shape: TObject; const Face: TFaceIndex);
   end;
 
 procedure TTriangulateRedirect.LocalNewTriangle(
   const Triangle: TTriangle3Single;
-  Shape: TObject; const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  Shape: TObject; const Face: TFaceIndex);
 begin
-  NewTriangleProc(TriangleTransform(Triangle, Transform^),
-    Shape, FaceCoordIndexBegin, FaceCoordIndexEnd);
+  NewTriangleProc(TriangleTransform(Triangle, Transform^), Shape, Face);
 end;
 
 procedure TVRMLShape.Triangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);

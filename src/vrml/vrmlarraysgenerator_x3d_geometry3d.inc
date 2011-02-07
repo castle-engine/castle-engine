@@ -249,11 +249,11 @@ begin
     end;
   end;
 
-  if FaceIndexNeeded then
+  if FacesNeeded then
     for I := IFSNextIndexBegin to IFSNextIndex - 1 do
     begin
-      Arrays.FaceIndexBegin[I] := BeginIndex;
-      Arrays.FaceIndexEnd[I] := EndIndex;
+      Arrays.Faces.Items[I].IndexBegin := BeginIndex;
+      Arrays.Faces.Items[I].IndexEnd := EndIndex;
     end;
 end;
 
@@ -263,11 +263,8 @@ begin
   IFSIndexesCount := 0;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange1);
 
-  if FaceIndexNeeded then
-  begin
-    Arrays.FaceIndexBegin := TDynLongIntArray.Create(IFSIndexesCount);
-    Arrays.FaceIndexEnd := TDynLongIntArray.Create(IFSIndexesCount);
-  end;
+  if FacesNeeded then
+    Arrays.Faces := TFaceIndexesList.Create(IFSIndexesCount);
 
   { calculate IndexesFromCoordIndex contents: triangulate }
   IndexesFromCoordIndex := TDynLongIntArray.Create(IFSIndexesCount);

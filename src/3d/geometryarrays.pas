@@ -18,7 +18,7 @@ unit GeometryArrays;
 
 interface
 
-uses KambiUtils, VectorMath, FGL;
+uses KambiUtils, VectorMath, FGL, FaceIndex;
 
 type
   { Primitive geometry types. Analogous to OpenGL primitives. }
@@ -138,8 +138,7 @@ type
     FFrontFaceCcw: boolean;
     FForceFlatShading: boolean;
 
-    FFaceIndexBegin: TDynLongIntArray;
-    FFaceIndexEnd: TDynLongIntArray;
+    FFaces: TFaceIndexesList;
 
     procedure SetCount(const Value: Integer);
     procedure AddTexCoord(const Generation: TTextureCoordinateGeneration;
@@ -341,14 +340,11 @@ type
     property DataFreed: boolean read FDataFreed;
 
     { Information about faces. Generated for some geometry types.
-      Generated only when TVRMLArraysGenerator.FaceIndexNeeded is @true.
+      Generated only when TVRMLArraysGenerator.FacesNeeded is @true.
       Generated only for indexed shapes. When Indexes <> nil,
       these have the same count as Indexes.Count. Otherwise these
-      have the same count as our @link(Count).
-      @groupBegin }
-    property FaceIndexBegin: TDynLongIntArray read FFaceIndexBegin write FFaceIndexBegin;
-    property FaceIndexEnd: TDynLongIntArray read FFaceIndexEnd write FFaceIndexEnd;
-    { @groupEnd }
+      have the same count as our @link(Count). }
+    property Faces: TFaceIndexesList read FFaces write FFaces;
   end;
 
 implementation
@@ -387,8 +383,7 @@ begin
   FreeAndNil(FCounts);
   FreeMemNiling(FCoordinateArray);
   FreeMemNiling(FAttributeArray);
-  FreeAndNil(FFaceIndexBegin);
-  FreeAndNil(FFaceIndexEnd);
+  FreeAndNil(FFaces);
   inherited;
 end;
 
@@ -733,8 +728,7 @@ begin
   FreeAndNil(FIndexes);
   FreeMemNiling(FCoordinateArray);
   FreeMemNiling(FAttributeArray);
-  FreeAndNil(FFaceIndexBegin);
-  FreeAndNil(FFaceIndexEnd);
+  FreeAndNil(FFaces);
 end;
 
 end.

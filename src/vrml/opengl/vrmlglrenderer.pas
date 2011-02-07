@@ -1171,8 +1171,7 @@ type
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
     procedure DrawTriangle(const Tri: TTriangle3Single;
-      Shape: TObject;
-      const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+      Shape: TObject; const Face: TFaceIndex);
     {$endif}
 
     { If ARB_multitexturing available, this sets currently active texture unit.
@@ -3511,8 +3510,7 @@ end;
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
 procedure TVRMLGLRenderer.DrawTriangle(const Tri: TTriangle3Single;
-  Shape: TObject;
-  const FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  Shape: TObject; const Face: TFaceIndex);
 begin
   glNormalv(TriangleNormal(Tri));
   glVertexv(Tri[0]);

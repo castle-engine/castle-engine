@@ -5,11 +5,11 @@ uses SysUtils, VectorMath, VRMLScene, VRMLShape;
 type
   TTriangleHandler = class
     procedure HandleTriangle(const Triangle: TTriangle3Single;
-      Shape: TObject; const FaceCoordIndexBegin, FaceCoordIndexEnd: Integer);
+      Shape: TObject; const Face: TFaceIndex);
   end;
 
 procedure TTriangleHandler.HandleTriangle(const Triangle: TTriangle3Single;
-  Shape: TObject; const FaceCoordIndexBegin, FaceCoordIndexEnd: Integer);
+  Shape: TObject; const Face: TFaceIndex);
 begin
   Writeln('Triangle position (in world coordinates): ',
     TriangleToNiceStr(Triangle));
