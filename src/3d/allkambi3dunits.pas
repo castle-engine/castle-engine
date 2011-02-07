@@ -14,6 +14,7 @@ uses
   boxes3d,
   convexhullunit,
   cubemap,
+  faceindex,
   frustum,
   geometryarrays,
   kambioctree,

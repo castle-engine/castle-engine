@@ -63,6 +63,7 @@ begin
     P.Targets.AddUnit('boxes3d.pas');
     P.Targets.AddUnit('convexhullunit.pas');
     P.Targets.AddUnit('cubemap.pas');
+    P.Targets.AddUnit('faceindex.pas');
     P.Targets.AddUnit('frustum.pas');
     P.Targets.AddUnit('kambioctree.pas');
     P.Targets.AddUnit('nurbs.pas');
