@@ -1752,27 +1752,82 @@ end;
 procedure TVRMLShape.LocalTriangulate(OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var
   Arrays: TGeometryArrays;
+  RangeBeginIndex: Integer;
 
-  procedure NewTriangle(const I1, I2, I3: Cardinal);
+  { Call NewTriangleProc once. Give indexes to Arrays (Arrays.Indexes,
+    if assigned, otherwise direct coordinates), relative to RangeBeginIndex. }
+  procedure Triangle(const I1, I2, I3: Cardinal);
   var
     VI1, VI2, VI3: Integer;
     Triangle: TTriangle3Single;
   begin
     if Arrays.Indexes <> nil then
     begin
-      VI1 := Arrays.Indexes[I1];
-      VI2 := Arrays.Indexes[I2];
-      VI3 := Arrays.Indexes[I3];
+      VI1 := Arrays.Indexes[RangeBeginIndex + I1];
+      VI2 := Arrays.Indexes[RangeBeginIndex + I2];
+      VI3 := Arrays.Indexes[RangeBeginIndex + I3];
     end else
     begin
-      VI1 := I1;
-      VI2 := I2;
-      VI3 := I3;
+      VI1 := RangeBeginIndex + I1;
+      VI2 := RangeBeginIndex + I2;
+      VI3 := RangeBeginIndex + I3;
     end;
     Triangle[0] := Arrays.Position(VI1)^;
     Triangle[1] := Arrays.Position(VI2)^;
     Triangle[2] := Arrays.Position(VI3)^;
     NewTriangleProc(Triangle, Self, 0, -1, -1);
+  end;
+
+  { Call NewTriangle, triangulating indexes 0 .. Count - 1. }
+  procedure TriangulateRange(const Count: Cardinal);
+  var
+    I: Cardinal;
+    NormalOrder: boolean;
+  begin
+    case Arrays.Primitive of
+      gpTriangles:
+        begin
+          I := 0;
+          while I + 2 < Count do
+          begin
+            Triangle(I, I + 1, I + 2);
+            I += 3;
+          end;
+        end;
+      gpQuads:
+        begin
+          I := 0;
+          while I + 3 < Count do
+          begin
+            Triangle(I, I + 1, I + 2);
+            Triangle(I, I + 2, I + 3);
+            I += 4;
+          end;
+        end;
+      gpTriangleFan:
+        begin
+          I := 0;
+          while I + 2 < Count do
+          begin
+            Triangle(0, I + 1, I + 2);
+            I += 3;
+          end;
+        end;
+      gpTriangleStrip:
+        begin
+          I := 0;
+          NormalOrder := true;
+          while I + 2 < Count do
+          begin
+            if NormalOrder then
+              Triangle(I    , I + 1, I + 2) else
+              Triangle(I + 1, I    , I + 2);
+            NormalOrder := not NormalOrder;
+            I += 3;
+          end;
+        end;
+      else { gpLineStrip, gpPoints don't make triangles } ;
+    end;
   end;
 
 var
@@ -1791,21 +1846,14 @@ begin
       if Arrays.Indexes <> nil then
         Count := Arrays.IndexesCount else
         Count := Arrays.Count;
-      case Arrays.Primitive of
-        gpTriangles:
-          begin
-            I := 0;
-            while I + 2 < Count do
-            begin
-              NewTriangle(I, I + 1, I + 2);
-              I += 3;
-            end;
-          end;
-        gpQuads: { TODO };
-        gpTriangleFan: { TODO };
-        gpTriangleStrip: { TODO };
-        else { gpLineStrip, gpPoints don't make triangles } ;
-      end;
+      RangeBeginIndex := 0;
+      if Arrays.Counts = nil then
+        TriangulateRange(Count) else
+        for I := 0 to Arrays.Counts.Count - 1 do
+        begin
+          TriangulateRange(Arrays.Counts[I]);
+          RangeBeginIndex += Arrays.Counts[I];
+        end;
     end;
   finally FreeAndNil(Arrays) end;
 end;
