@@ -2005,11 +2005,6 @@ procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes)
   itself. }
 procedure VRMLNodesList_FreeUnusedAndNil(var List: TVRMLNodesList);
 
-{ Generate two trivial triangles of a rectangle. }
-procedure LocalTriangulateRect(constCoord: integer;
-  const constCoordValue, x1, y1, x2, y2: Single;
-  Shape: TObject; NewTriangleProc: TNewTriangleProc);
-
 const
   ProjectionTypeToStr: array [TProjectionType] of string =
   ('Orthographic', 'Perspective');
@@ -2273,11 +2268,6 @@ resourcestring
   begin
     Result := 0;
   end;
-
-  procedure TGeometryNotImplemented.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-    ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
-  begin
-  end;
 }
 
 {$I objectslist_1.inc}
@@ -2294,7 +2284,6 @@ resourcestring
 {$I vrmlnodes_elevationgrid.inc}
 {$I vrmlnodes_boundingboxes.inc}
 {$I vrmlnodes_verticesandtrianglescounting.inc}
-{$I vrmlnodes_triangulating.inc}
 {$I vrmlnodes_coordpolygons.inc}
 {$I vrmlnodes_eventsengine.inc}
 {$I vrmlnodes_cone_cylinder.inc}

@@ -19,8 +19,6 @@
   { IndexedTriangleMesh (from Inventor 1.0). }
   TNodeIndexedTriangleMesh_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
     class function ClassNodeTypeName: string; override;
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
 
     procedure CoordPolygons(
       State: TVRMLGraphTraverseState;

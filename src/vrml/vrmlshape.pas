@@ -1299,6 +1299,33 @@ function TVRMLShape.CreateTriangleOctree(
   const ProgressTitle: string): TVRMLTriangleOctree;
 
   procedure LocalTriangulateBox(const Box: TBox3D);
+
+    procedure LocalTriangulateRect(constCoord: integer;
+      const constCoordValue, x1, y1, x2, y2: Single;
+      Shape: TObject; NewTriangleProc: TNewTriangleProc);
+    var
+      T: TTriangle3Single;
+      i, c1, c2: integer;
+
+      procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
+      begin
+        T[TriIndex, c1] := c1value;
+        T[TriIndex, c2] := c2value;
+      end;
+
+    begin
+      for I := 0 to 2 do T[I, ConstCoord] := ConstCoordValue;
+      RestOf3dCoords(constCoord, c1, c2);
+      TriAssign(0, x1, y1);
+      TriAssign(1, x1, y2);
+      TriAssign(2, x2, y2);
+      NewTriangleProc(T, Shape, -1, -1);
+      TriAssign(0, x1, y1);
+      TriAssign(1, x2, y2);
+      TriAssign(2, x2, y1);
+      NewTriangleProc(T, Shape, -1, -1);
+    end;
+
   var
     I, XCoord, YCoord: Integer;
   begin
