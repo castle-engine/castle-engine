@@ -1253,11 +1253,7 @@ begin
       and convert into appropriate nice warning.
       We cleaned GL error at the beginning of SetUniform
       (at the end of macro glGetUniformLocation*), so if there's an error
-      now --- we know it's because of glUniform.
-
-      Note: we could do here CheckGLErrors and catch EOpenGLError,
-      but it's simpler and more efficient to just check it directly. }
-
+      now --- we know it's because of glUniform. }
     ErrorCode := glGetError();
     if ErrorCode <> GL_NO_ERROR then
       DataWarning(Format('Error when setting GLSL uniform variable "%s" (check that the type of the variable in shader source code matches): OpenGL error (%d): %s',

@@ -399,14 +399,21 @@ type
   { }
   EOpenGLError = class(Exception)
   public
-    ErrorGLCode: TGLenum;
-    constructor Create(ErrorGL: TGLenum; const AdditionalComment: string = '');
+    ErrorCode: TGLenum;
+    constructor Create(const AErrorCode: TGLenum;
+      const AdditionalComment: string = '');
   end;
 
-{ Check are any OpenGL errors recorded (in glGetError),
-  and if yes it raises EOpenGLError.
+{ Check are any OpenGL errors recorded (in glGetError).
+  If there are errors, our behavior depends on whether we were compiled
+  with -dRELEASE. With -dRELEASE, we make DataWarning. This way eventual
+  errors in release builds don't completely abort your program.
+
+  Without -dRELEASE, we raise EOpenGLError. So a developer is strongly
+  suggested to fix the code to not produce OpenGL errors, never ever.
+
   @raises EOpenGLError }
-procedure CheckGLErrors(const AdditionalComment: string {$ifdef DEFPARS} = '' {$endif}); overload;
+procedure CheckGLErrors(const AdditionalComment: string = '');
 
 { Raise EOpenGLError for given OpenGL error code.
   Suitable for registering as GLU_TESS_ERROR for gluTessCallback,
@@ -987,7 +994,7 @@ implementation
 {$define read_implementation}
 
 uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages,
-  KambiLog;
+  KambiLog, DataErrors;
 
 {$I glext_packed_depth_stencil.inc}
 
@@ -1264,34 +1271,40 @@ begin
 end;
 {$endif}
 
-{ klasa EOpenGLError i procedura CheckGLErrors
- ---------------------------------------------------------------------------------------}
+{ EOpenGLError, CheckGLErrors ------------------------------------------------ }
 
-constructor EOpenGLError.Create(ErrorGL: TGLenum; const AdditionalComment: string);
-var MessagePrefix: string;
+function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string): string;
 begin
- if AdditionalComment <> '' then
-  MessagePrefix := AdditionalComment + nl else
-  MessagePrefix := '';
- inherited Create(
-   MessagePrefix + 'OpenGL error (number ' +IntToStr(ErrorGL) +
-   ') reported : ' + gluErrorString(ErrorGL));
- ErrorGLCode := ErrorGL;
+  if AdditionalComment <> '' then
+    Result := AdditionalComment + nl else
+    Result := '';
+  Result += Format('OpenGL error (%d): %s', [ErrorCode, gluErrorString(ErrorCode)]);
+end;
+
+constructor EOpenGLError.Create(const AErrorCode: TGLenum; const AdditionalComment: string);
+begin
+  ErrorCode := AErrorCode;
+  inherited Create(GLErrorString(ErrorCode, AdditionalComment));
 end;
 
 procedure CheckGLErrors(const AdditionalComment: string);
-var ErrorCode: TGLenum;
+var
+  ErrorCode: TGLenum;
 begin
- ErrorCode := glGetError();
- if ErrorCode <> GL_NO_ERROR then
-  raise EOpenGLError.Create(ErrorCode, AdditionalComment);
+  ErrorCode := glGetError();
+  if ErrorCode <> GL_NO_ERROR then
+    {$ifdef RELEASE}
+    DataWarning(GLErrorString(ErrorCode, AdditionalComment));
+    {$else}
+    raise EOpenGLError.Create(ErrorCode, AdditionalComment);
+    {$endif}
 end;
 
 procedure ReportGLError(ErrorCode: TGLenum);
   {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
   {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
 begin
- raise EOpenGLError.Create(ErrorCode);
+  raise EOpenGLError.Create(ErrorCode);
 end;
 
 { usprawnienia glGet ---------------------------------------------------------------------}

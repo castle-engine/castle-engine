@@ -87,8 +87,9 @@ begin
   Window.EventBeforeDraw;
   Window.EventDraw;
 
-  { check GL errors now, otherwise that could be deferred to unrelated
-    CheckGLErrors call later. This way we know what 3D filenam caused the error. }
+  { Check OpenGL errors now, otherwise they could be detected by an unrelated
+    CheckGLErrors call later. This way we know what 3D filename caused
+    the error. }
   CheckGLErrors;
 end;
 

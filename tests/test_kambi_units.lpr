@@ -14,6 +14,8 @@ uses
   Interfaces, Forms, GuiTestRunner, kambi_base,
   {$endif}
 
+  DataErrors,
+
   { Test units (their order determines default tests order) }
   TestKambiUtils,
   TestDynArrays,
@@ -31,7 +33,7 @@ uses
   TestVRMLGLScene,
   TestVRMLScene,
   { Not used anymore --- IntRects stuff is internal inside GLWinMessages,
-    and honestly not important enough. 
+    and honestly not important enough.
   TestIntRects, }
   TestSpaceFillingCurves,
   TestObjectsList,
@@ -55,6 +57,8 @@ uses
 {var
   T: TTestVRMLNodesOptimizedProxy;}
 begin
+  DataWarning := @DataWarning_Write;
+
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.
 
