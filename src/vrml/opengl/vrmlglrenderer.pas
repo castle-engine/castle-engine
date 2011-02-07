@@ -173,8 +173,8 @@
   as TVRMLGeometryNode.Triangulate.
 
   Although for debug purposes, we have a renderer using
-  TVRMLGeometryNode.Triangulate, see notes about
-  USE_VRML_NODES_TRIANGULATION in the source code.
+  TVRMLShape.LocalTriangulate, see notes about
+  USE_VRML_TRIANGULATION in the source code.
 
   @bold(About OpenGL extensions:)
 
@@ -187,28 +187,28 @@
 
 unit VRMLGLRenderer;
 
-{ When you define USE_VRML_NODES_TRIANGULATION, an alternative
+{ When you define USE_VRML_TRIANGULATION, an alternative
   rendering method will be used. Each node will be triangulated
-  using TVRMLGeometryNode.LocalTriangulate and then this triangle
+  using TVRMLShape.LocalTriangulate, and each generated triangle
   will be passed to OpenGL.
 
-  This is usable only for TVRMLGeometryNode.LocalTriangulate testing.
-  - It's slower than the normal rendering method.
+  This is usable only for TVRMLShape.LocalTriangulate testing.
+  - It's slower than the normal rendering method,
+    as triangles are passed to the OpenGL in the most naive immediate way,
+    without any vertex arrays or VBOs. In fact, it will not work with
+    OpenGL >= 3.
   - Things that are not expressed as triangles
     (IndexedLineSet, PointSet) will not be rendered at all.
   - It lacks some features, because the triangulating routines
-    do not return enough information. For example, textures
-    are not applied (texture coords are not generated),
-    flat shading is always used (because each triangle has
-    always the same normal vector).
-    This disadvantage may be removed later (by extending information
-    that triangulate method returns for each node).
+    do not return enough information. For example, multi-texturing
+    does not work (correctly), as TTriangleEvent currently only passes
+    the coordinates for first texture unit.
 }
-{ $define USE_VRML_NODES_TRIANGULATION}
+{ $define USE_VRML_TRIANGULATION}
 
-{$ifdef USE_VRML_NODES_TRIANGULATION}
+{$ifdef USE_VRML_TRIANGULATION}
   {$ifdef RELEASE}
-    {$fatal Undefine USE_VRML_NODES_TRIANGULATION for VRMLGLRenderer,
+    {$fatal Undefine USE_VRML_TRIANGULATION for VRMLGLRenderer,
       you don't want to use this in RELEASE version. }
   {$endif}
 {$endif}
@@ -1169,9 +1169,11 @@ type
       out VolumetricDirection: TVector3Single;
       out VolumetricVisibilityStart: Single);
 
-    {$ifdef USE_VRML_NODES_TRIANGULATION}
-    procedure DrawTriangle(const Tri: TTriangle3Single;
-      Shape: TObject; const Face: TFaceIndex);
+    {$ifdef USE_VRML_TRIANGULATION}
+    procedure DrawTriangle(Shape: TObject;
+      const Position: TTriangle3Single;
+      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Face: TFaceIndex);
     {$endif}
 
     { If ARB_multitexturing available, this sets currently active texture unit.
@@ -3508,16 +3510,22 @@ begin
     RenderCleanState(false);
 end;
 
-{$ifdef USE_VRML_NODES_TRIANGULATION}
-procedure TVRMLGLRenderer.DrawTriangle(const Tri: TTriangle3Single;
-  Shape: TObject; const Face: TFaceIndex);
+{$ifdef USE_VRML_TRIANGULATION}
+procedure TVRMLGLRenderer.DrawTriangle(Shape: TObject;
+  const Position: TTriangle3Single;
+  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Face: TFaceIndex);
+var
+  I: Integer;
 begin
-  glNormalv(TriangleNormal(Tri));
-  glVertexv(Tri[0]);
-  glVertexv(Tri[1]);
-  glVertexv(Tri[2]);
+  for I := 0 to 2 do
+  begin
+    glNormalv(Normal[I]);
+    glTexCoordv(TexCoord[I]);
+    glVertexv(Position[I]);
+  end;
 end;
-{$endif USE_VRML_NODES_TRIANGULATION}
+{$endif USE_VRML_TRIANGULATION}
 
 procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject);
@@ -3906,7 +3914,7 @@ begin
   ShapeBumpMappingAllowed := false;
   ShapeBumpMappingUsed := bmNone;
 
-  {$ifndef USE_VRML_NODES_TRIANGULATION}
+  {$ifndef USE_VRML_TRIANGULATION}
   { We have to initalize MeshRenderer to something non-nil.
 
     First try to initialize from Shape.OriginalGeometry, only if this fails
@@ -4060,15 +4068,8 @@ var
     end;
 
     AlphaTest := false;
-
     TextureNode := CurrentState.Texture;
-    {$ifdef USE_VRML_NODES_TRIANGULATION}
-    { We don't generate texture coords, so disable textures. }
-    TextureNode := nil;
-    {$endif}
-
     TexCoordsNeeded := 0;
-
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
 
     if UsedGLSLTexCoordsNeeded > 0 then
@@ -4179,7 +4180,7 @@ var
   CoordinateRenderer: TBaseCoordinateRenderer;
   VBO: boolean;
 begin
-  {$ifdef USE_VRML_NODES_TRIANGULATION}
+  {$ifdef USE_VRML_TRIANGULATION}
   { Simple rendering using LocalTriangulate. }
   glBegin(GL_TRIANGLES);
   Shape.LocalTriangulate(true, @DrawTriangle);
@@ -4248,7 +4249,7 @@ begin
     glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
   end;
 
-  {$endif USE_VRML_NODES_TRIANGULATION}
+  {$endif USE_VRML_TRIANGULATION}
 end;
 
 procedure TVRMLGLRenderer.PushTextureUnit(const TexUnit: Cardinal);
