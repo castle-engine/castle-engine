@@ -56,12 +56,6 @@ type
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode;
       ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    procedure Triangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-      OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
-    procedure LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-      OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState); override;
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
   end;
@@ -96,20 +90,6 @@ function TNastyProxy.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangul
 begin
   raise ENastyProxy.Create('Something tried to use unoptimized TrianglesCount');
   Result := 0; { silence compiler warnings }
-end;
-
-procedure TNastyProxy.Triangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
-begin
-  raise ENastyProxy.Create('Something tried to use unoptimized Triangulate');
-end;
-
-procedure TNastyProxy.LocalTriangulate(Shape: TObject; State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState);
-begin
-  raise ENastyProxy.Create('Something tried to use unoptimized LocalTriangulate');
 end;
 
 function TNastyProxy.Proxy(var State: TVRMLGraphTraverseState;

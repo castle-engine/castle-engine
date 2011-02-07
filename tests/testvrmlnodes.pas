@@ -81,10 +81,6 @@ type
     procedure TestTimeDependentNodeHandlerAvailable;
 
     procedure TestINodeTransform;
-  private
-    procedure DummyTriangleProc(const Tri: TTriangle3Single;
-      Shape: TObject;
-      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
 implementation
@@ -938,12 +934,6 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.DummyTriangleProc(const Tri: TTriangle3Single;
-  Shape: TObject;
-  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
-begin
-end;
-
 procedure TTestVRMLNodes.TestGeometryNodesImplemented;
 var
   I: Integer;
@@ -972,10 +962,6 @@ begin
           G.VerticesCount(State, false, ProxyGeometry, ProxyState);
           G.TrianglesCount(State, true, ProxyGeometry, ProxyState);
           G.TrianglesCount(State, false, ProxyGeometry, ProxyState);
-          G.Triangulate(nil, State, true, @DummyTriangleProc, ProxyGeometry, ProxyState);
-          G.Triangulate(nil, State, false, @DummyTriangleProc, ProxyGeometry, ProxyState);
-          G.LocalTriangulate(nil, State, true, @DummyTriangleProc, ProxyGeometry, ProxyState);
-          G.LocalTriangulate(nil, State, false, @DummyTriangleProc, ProxyGeometry, ProxyState);
 
           { free proxy temp objects }
           if ProxyGeometry <> nil then FreeAndNil(ProxyGeometry);
