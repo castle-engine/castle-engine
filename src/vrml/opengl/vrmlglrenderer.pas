@@ -223,7 +223,7 @@ uses
   KambiGLUtils, VRMLGLLightSet, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
   GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL,
-  GeometryArrays, VRMLArraysGenerator;
+  GeometryArrays, VRMLArraysGenerator, VRMLShader;
 
 {$define read_interface}
 
@@ -314,6 +314,7 @@ type
     FVarianceShadowMaps: boolean;
     FVertexBufferObject: boolean;
     FPreserveOpenGLState: boolean;
+    FForceShaderRendering: boolean;
   protected
     { These methods just set the value on given property,
       eventually calling ReleaseCachedResources.
@@ -631,6 +632,21 @@ type
       the rendering. }
     property PreserveOpenGLState: boolean
       read FPreserveOpenGLState write FPreserveOpenGLState default false;
+
+    { Render everything through GLSL shaders. This affects shapes
+      that can be rendered with fixed-function pipeline as well as shaders.
+      Such shapes don't need shaders for any effects
+      (no shadow maps, no bump mapping etc.) and no user shaders are present
+      in VRML/X3D file.
+
+      If @false, we let them render with fixed-function pipeline.
+      If @true, we always create and use appropriate shader for such shapes.
+
+      This is applied only when GLSLShaders = @true. When GLSLShaders = @false,
+      no shapes use shaders, ever. Also, when PureGeometry = @true,
+      no shaders (or fixed-function shading) is done. }
+    property ForceShaderRendering: boolean
+      read FForceShaderRendering write FForceShaderRendering default false;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -1033,6 +1049,7 @@ type
     procedure LoadArraysToVbo;
   public
     Cache: TShapeCache;
+    ShaderProgram: TGLSLProgram;
   end;
 
   TVRMLGLRenderer = class
@@ -1186,22 +1203,28 @@ type
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure ActiveTexture(const TextureUnit: Cardinal);
 
-    procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
-    procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
-    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
-    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
+    procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+      Shader: TVRMLShader);
+    procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+      Shader: TVRMLShader);
+    procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+      Shader: TVRMLShader);
+    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+      Shader: TVRMLShader);
+    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+      Shader: TVRMLShader);
     procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      GeneratorClass: TVRMLArraysGeneratorClass;
+      Shader: TVRMLShader; GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
     procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      GeneratorClass: TVRMLArraysGeneratorClass;
+      Shader: TVRMLShader; GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       UsedGLSLTexCoordsNeeded: Cardinal);
     procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      GeneratorClass: TVRMLArraysGeneratorClass;
+      Shader: TVRMLShader; GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
     procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      GeneratorClass: TVRMLArraysGeneratorClass;
+      Shader: TVRMLShader; GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
 
     { Reset various OpenGL state parameters, done at RenderBegin
@@ -3525,6 +3548,17 @@ end;
 
 procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject);
+var
+  Shader: TVRMLShader;
+begin
+  Shader := TVRMLShader.Create;
+  try
+    RenderShapeLights(Shape, Fog, Shader);
+  finally FreeAndNil(Shader) end;
+end;
+
+procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
+  Fog: INodeX3DFogObject; Shader: TVRMLShader);
 begin
   if Attributes.UseSceneLights then
     { Done before loading State.Transform, as the lights
@@ -3535,11 +3569,11 @@ begin
     glLightsFromVRML(State.CurrentActiveLights,
       Attributes.FirstGLFreeLight, LastGLFreeLight);}
 
-  RenderShapeFog(Shape, Fog);
+  RenderShapeFog(Shape, Fog, Shader);
 end;
 
 procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject);
+  Fog: INodeX3DFogObject; Shader: TVRMLShader);
 
   { Set OpenGL fog based on given fog node. Returns also fog parameters,
     like GetFog. }
@@ -3622,11 +3656,11 @@ begin
       FogVolumetricDirection, FogVolumetricVisibilityStart);
   end;
 
-  RenderShapeTextureTransform(Shape, Fog);
+  RenderShapeTextureTransform(Shape, Fog, Shader);
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject);
+  Fog: INodeX3DFogObject; Shader: TVRMLShader);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
@@ -3756,7 +3790,7 @@ begin
     glMatrixMode(GL_MODELVIEW);
   end;
 
-  RenderShapeClipPlanes(Shape, Fog);
+  RenderShapeClipPlanes(Shape, Fog, Shader);
 
   if (TextureTransformUnitsUsed <> 0) or
      (TextureTransformUnitsUsedMore.Count <> 0) then
@@ -3784,7 +3818,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject);
+  Fog: INodeX3DFogObject; Shader: TVRMLShader);
 var
   { How many clip planes were enabled (and so, how many must be disabled
     at the end). }
@@ -3856,14 +3890,14 @@ begin
 
   glPushMatrix;
     glMultMatrix(Shape.State.Transform);
-    RenderShapeCreateMeshRenderer(Shape, Fog);
+    RenderShapeCreateMeshRenderer(Shape, Fog, Shader);
   glPopMatrix;
 
   ClipPlanesEnd;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject);
+  Fog: INodeX3DFogObject; Shader: TVRMLShader);
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
   MeshRenderer: TVRMLMeshRenderer;
@@ -3921,7 +3955,7 @@ begin
   {$endif}
 
   try
-    RenderShapeShaders(Shape, Fog, GeneratorClass, MeshRenderer);
+    RenderShapeShaders(Shape, Fog, Shader, GeneratorClass, MeshRenderer);
   finally
     FreeAndNil(MeshRenderer);
   end;
@@ -3930,7 +3964,8 @@ end;
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
 procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
+  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
 var
   UsedGLSLRenderer: TGLSLRenderer;
@@ -3999,13 +4034,14 @@ var
 begin
   RenderShadersBegin;
   try
-    RenderShapeTextures(Shape, Fog, GeneratorClass,
+    RenderShapeTextures(Shape, Fog, Shader, GeneratorClass,
       MeshRenderer, UsedGLSLTexCoordsNeeded);
   finally RenderShadersEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
+  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   UsedGLSLTexCoordsNeeded: Cardinal);
 var
@@ -4126,12 +4162,13 @@ var
 begin
   RenderTexturesBegin;
   try
-    RenderShapeMaterials(Shape, Fog, GeneratorClass, MeshRenderer);
+    RenderShapeMaterials(Shape, Fog, Shader, GeneratorClass, MeshRenderer);
   finally RenderTexturesEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
+  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
 
   {$I vrmlglrenderer_materials.inc}
@@ -4139,13 +4176,22 @@ procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
 begin
   RenderMaterialsBegin;
   try
-    RenderShapeInside(Shape, Fog, GeneratorClass, MeshRenderer);
+    RenderShapeInside(Shape, Fog, Shader, GeneratorClass, MeshRenderer);
   finally RenderMaterialsEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
+  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
+
+  function ForceShaderRendering: boolean;
+  begin
+    Result := Attributes.ForceShaderRendering and
+              Attributes.GLSLShaders and
+         (not Attributes.PureGeometry);
+  end;
+
 var
   Generator: TVRMLArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
@@ -4163,6 +4209,23 @@ begin
   begin
     Assert(MeshRenderer is TBaseCoordinateRenderer);
     CoordinateRenderer := TBaseCoordinateRenderer(MeshRenderer);
+
+    { calculate and use Shape.ShaderProgram }
+    if ForceShaderRendering and (Shape.ShaderProgram = nil) then
+    begin
+      try
+        Shape.ShaderProgram := Shader.CreateProgram;
+      except on E: EGLSLError do
+        VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
+          [Shape.OriginalGeometry.NodeTypeName, E.Message]));
+      end;
+    end;
+
+    if ForceShaderRendering and (Shape.ShaderProgram <> nil) then
+    begin
+      MeshRenderer.UsedGLSL := Shape.ShaderProgram;
+      Shape.ShaderProgram.Enable;
+    end;
 
     { calculate Shape.Cache }
     if Shape.Cache = nil then
@@ -4218,6 +4281,11 @@ begin
       Check does occlusion query work Ok when some vbo is bound. }
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
     glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+  end;
+
+  if ForceShaderRendering and (Shape.ShaderProgram <> nil) then
+  begin
+    Shape.ShaderProgram.Disable;
   end;
 
   {$endif USE_VRML_TRIANGULATION}

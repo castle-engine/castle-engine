@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Setting up OpenGL shading (TVRMLShaderGenerator). }
-unit VRMLShaderGenerator;
+{ Setting up OpenGL shading (TVRMLShader). }
+unit VRMLShader;
 
 interface
 
@@ -23,15 +23,15 @@ uses GLShaders;
 type
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
-    you can use the @link(ShaderProgram) to create and link a program
+    you can use the @link(CreateProgram) to create and link a program
     (that you should then enable), or simply allow the fixed-function
     pipeline to work.
 
     This is used internally by TVRMLGLRenderer. It isn't supposed to be used
     directly by other code. }
-  TVRMLShaderGenerator = class
+  TVRMLShader = class
   public
-    function ShaderProgram: TGLSLProgram;
+    function CreateProgram: TGLSLProgram;
   end;
 
 implementation
@@ -56,12 +56,14 @@ implementation
   and our shaders just use it.
 }
 
-function TVRMLShaderGenerator.ShaderProgram: TGLSLProgram;
+function TVRMLShader.CreateProgram: TGLSLProgram;
 begin
   Result := TGLSLProgram.Create;
-  Result.AttachVertexShader({$I template.vs.inc});
-  Result.AttachFragmentShader({$I template.fs.inc});
-  Result.Link(true);
+  try
+    Result.AttachVertexShader({$I template.vs.inc});
+    Result.AttachFragmentShader({$I template.fs.inc});
+    Result.Link(true);
+  except Result.Free; raise end;
 end;
 
 end.
