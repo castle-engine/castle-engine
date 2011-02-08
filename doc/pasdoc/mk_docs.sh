@@ -139,7 +139,11 @@ pasdoc \
   --introduction=../doc/pasdoc/introduction.pasdoc \
   --auto-link \
   --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt \
-  --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt
+  --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt \
+  --visible-members public,published,automated
+
+# We hide protected members, for now. Makes a cleaner documentation,
+# more useful for engine users, not interested in engine internals.
 
 #  \
 # --graphviz-classes --link-gv-classes jpg \

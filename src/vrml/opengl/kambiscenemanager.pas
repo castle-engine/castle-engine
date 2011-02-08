@@ -696,12 +696,12 @@ type
         @item Decides what headlight is used (by TVRMLGLScene.Headlight).
 
         @item(Decides what background is rendered.
-          Althuogh you can override this by overriding @link(Background)
-          method.)
+          @italic(Notes for implementing descendants of this class:)
+          You can change this by overriding Background method.)
 
         @item(Decides if, and where, the main light casting shadows is.
-          Although you can override this by overriding @link(MainLightForShadows)
-          method.)
+          @italic(Notes for implementing descendants of this class:)
+          You can change this by overriding MainLightForShadows method.)
 
         @item Determines OpenGL projection for the scene, see ApplyProjection.
 

@@ -266,16 +266,13 @@ type
     function Evaluate(x: Float): Float;
   end;
 
-  { This is a curve defined as [Sx(t), Sy(t), Sz(t)] where
-    S?(t) are natural cubic splines. Interface works the same as for
-    TLagrangeInterpolatedCurve, only this time interpolation is done
-    differently.
-
-    Whether it's Closed depends on the value returned by @link(Closed)
-    (it may depend on ControlPoints, i.e. it will be recalculated in
-    UpdateControlPoints). }
+  { 3D curve defined by three 1D natural cubic splines.
+    Works just like TLagrangeInterpolatedCurve, only the interpolation
+    is different now. }
   TNaturalCubicSplineCurve_Abstract = class(TInterpolatedCurve)
   protected
+    { Is the curve closed. May depend on ControlPoints,
+      it will be recalculated in UpdateControlPoints. }
     function Closed: boolean; virtual; abstract;
   private
     { Created/Freed in UpdateControlPoints, Freed in Destroy }
@@ -288,12 +285,9 @@ type
     destructor Destroy; override;
   end;
 
-  { @abstract(Same as TNaturalCubicSplineCurve_Abstract, only it's
-    Closed when ControlPoints first and last are the same
-    (i.e. VectorsEqual(ControlPoints[0], ControlPoints[ControlPoints.Count-1])).)
-
-    This is the most sensible non-abstract implementation of
-    NaturalCubicSplineCurve. }
+  { 3D curve defined by three 1D natural cubic splines, automatically
+    closed if first and last points match. This is the most often suitable
+    non-abstract implementation of TNaturalCubicSplineCurve_Abstract. }
   TNaturalCubicSplineCurve = class(TNaturalCubicSplineCurve_Abstract)
   protected
     function Closed: boolean; override;
@@ -301,7 +295,7 @@ type
     class function NiceClassName: string; override;
   end;
 
-  { TNaturalCubicSplineCurve_Abstract that is always Closed. }
+  { 3D curve defined by three 1D natural cubic splines, always treated as closed. }
   TNaturalCubicSplineCurveAlwaysClosed = class(TNaturalCubicSplineCurve_Abstract)
   protected
     function Closed: boolean; override;
@@ -309,7 +303,7 @@ type
     class function NiceClassName: string; override;
   end;
 
-  { TNaturalCubicSplineCurve_Abstract that is never Closed. }
+  { 3D curve defined by three 1D natural cubic splines, never treated as closed. }
   TNaturalCubicSplineCurveNeverClosed = class(TNaturalCubicSplineCurve_Abstract)
   protected
     function Closed: boolean; override;

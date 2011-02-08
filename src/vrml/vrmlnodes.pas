@@ -896,7 +896,7 @@ type
       (allowed by ChildAllowed).
 
       The main use for this is to simplify implementation of
-      @link(TVRMLNode.DirectEnumerateActive) overrides in TVRMLNode descendants. }
+      TVRMLNode.DirectEnumerateActive overrides in TVRMLNode descendants. }
     procedure EnumerateValid(Func: TEnumerateChildrenFunction);
   end;
 
@@ -1058,7 +1058,7 @@ type
       (allowed by ChildAllowed).
 
       The main use for this is to simplify implementation of
-      @link(TVRMLNode.DirectEnumerateActive) overrides in TVRMLNode descendants. }
+      TVRMLNode.DirectEnumerateActive overrides in TVRMLNode descendants. }
     procedure EnumerateValid(Func: TEnumerateChildrenFunction);
   end;
 

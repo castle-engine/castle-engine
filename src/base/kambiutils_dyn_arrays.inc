@@ -160,7 +160,7 @@ type
       require initialization / finalization. Otherwise target memory data
       will be properly referenced.
 
-      @raises EAssignInterleavedRangeError(When Indexes.Count < CopyCount,
+      @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
         or some index points outside of array.) }
     procedure AssignToInterleavedIndexed(Target: Pointer;
       const Stride, CopyCount: Cardinal; Indexes: TDynLongIntArray);

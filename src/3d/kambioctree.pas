@@ -381,51 +381,51 @@ type
       AItemsInNonLeafNodes: boolean);
     destructor Destroy; override;
 
-    { This traverses octree seeking for nodes that collide
-      (or, in some situations, @italic(possibly) collide)
-      with given Frustum. Then it returns every item in such nodes
-      with EnumerateOctreeItemsFunc.
+    { Traverse octree seeking for nodes that (possibly) collide
+      with given Frustum. For every such item
+      calls given EnumerateOctreeItemsFunc.
 
-      It may return the same ItemIndex multiple times.
-
-      It requires that ParentTree.ItemsInNonLeafNodes = true
+      Requires that ParentTree.ItemsInNonLeafNodes = true
       (checked by assertion here, so only if you have assertions on).
-      I may implement it one day to work with octree with
-      ParentTree.ItemsInNonLeafNodes = false, but it will be
-      (usually) much slower on such tree anyway.
+      May be implemented one day to work with
+      ParentTree.ItemsInNonLeafNodes = false too, but it will be
+      (usually) much slower on such tree.
 
-      It passes to EnumerateOctreeItemsFunc ItemIndex (i.e. one
-      of items of ItemIndices[] array). It also passes to
-      EnumerateOctreeItemsFunc parameter CollidesForSure.
+      It gives to EnumerateOctreeItemsFunc an ItemIndex,
+      an index to octrees items. This is just taken from ItemIndices array.
+      May call EnumerateOctreeItemsFunc with the same ItemIndex multiple times.
 
-      If passed CollidesForSure = true then octree node that
-      had this item was found to be entirely in the frustum.
-      This means that (assuming that octree item that is in some
-      octree node always collides with Box of this node,
-      and it should always be true (unless you screwed up your
-      @link(TOctreeNode.PutItemIntoSubNodes) :))
-      given octree item for sure collides with frustum.
+      It also gives to EnumerateOctreeItemsFunc parameter CollidesForSure:
 
-      If passed CollidesForSure = false then given octree item
-      was found inside some octree leaf that may only partially
-      (or not at all) collide with frustum.
-      And this function doesn't check whether your *octree item*
-      possibly collides with Frustum (since in this generic
-      octree unit, KambiOctree, we have no knowledge about
-      geometry of your octree items).
-      So you may want to check inside EnumerateOctreeItemsFunc handler
-      your octree items versus Frustum, if you want to
-      have greatest possibility of eliminating octree items
-      that are not within your frustum (but beware that too many
-      checks for visibility can also cost you too much time...).
+      @unorderedList(
+        @item(If CollidesForSure = true then octree node that
+          had this item was found to be entirely in the frustum.
+          This means that (assuming that octree item that is in some
+          octree node always collides with Box of this node,
+          and it should always be true)
+          given octree item for sure collides with frustum.)
 
-      That's where CollidesForSure parameter is useful:
-      if it's true then you already know for sure that frustum
-      collides with this octree item, so you don't have to waste your
-      time on additional checks.
+        @item(If CollidesForSure = false then given octree item
+          was found inside some octree leaf that may only partially
+          (or not at all) collide with frustum.
+          And this function doesn't check whether your @italic(octree item)
+          possibly collides with Frustum (since in this generic
+          octree unit, KambiOctree, we have no knowledge about
+          geometry of your octree items).
+          So you may want to check inside EnumerateOctreeItemsFunc handler
+          your octree items versus Frustum, if you want to
+          have greatest possibility of eliminating octree items
+          that are not within your frustum (but beware that too many
+          checks for visibility can also cost you too much time...).
 
-      Internal notes:
-      This simply calls TreeRoot.EnumerateCollidingOctreeItems. }
+          That why CollidesForSure may be useful:
+          if it's true then you already know for sure that frustum
+          collides with this octree item, so you don't have to waste your
+          time on additional checks.)
+      )
+
+      @italic(Notes for implementing descendants of this class:)
+      This method simply calls TreeRoot.EnumerateCollidingOctreeItems. }
     procedure EnumerateCollidingOctreeItems(
       const Frustum: TFrustum;
       EnumerateOctreeItemsFunc: TEnumerateOctreeItemsFunc);
@@ -434,10 +434,11 @@ type
       Describes how many leaves / non-leaves  we have,
       how many items in leaves we have and on each level and in summary.
 
-      Every line, including the last one, is terminated by nl.
+      Every line, including the last one, is terminated by newline.
 
-      This appends @link(StatisticsBonus) result, so if you want to
-      extend it in descendants you should override @link(StatisticsBonus). }
+      @italic(Notes for implementing descendants of this class:)
+      You can override StatisticsBonus, it's appended to the result of this
+      method. }
     function Statistics: string;
   end;
 

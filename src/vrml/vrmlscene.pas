@@ -271,10 +271,7 @@ type
     procedure EndChangesSchedule;
   protected
     { Notification when the currently bound node, that is
-      @link(Top), changed. This also includes notification
-      when @link(Top) changed to (or from) @nil, that is
-      when no node becomes bound or when some node is initially bound.
-
+      @link(Top), changed.
       In this class, just calls OnBoundChanged if assigned. }
     procedure DoBoundChanged; virtual;
 
@@ -313,8 +310,9 @@ type
     procedure Set_Bind(Node: TNodeX3DBindableNode; const Value: boolean); override;
 
     { Notification when the currently bound node, that is
-      @link(Top), changed.
-      @seealso DoBoundChanged }
+      @link(Top), changed. This also includes notification
+      when @link(Top) changed to (or from) @nil, that is
+      when no node becomes bound or when some node is initially bound. }
     property OnBoundChanged: TVRMLSceneNotification
       read FOnBoundChanged write FOnBoundChanged;
   end;
@@ -1525,8 +1523,7 @@ type
       write SetPointingDeviceActive default false;
 
     { Event called PointingDeviceSensors or
-      PointingDeviceActiveSensors lists (possibly) changed.
-      @seeAlso DoPointingDeviceSensorsChange }
+      PointingDeviceActiveSensors lists (possibly) changed. }
     property OnPointingDeviceSensorsChange: TNotifyEvent
       read FOnPointingDeviceSensorsChange
       write FOnPointingDeviceSensorsChange;
