@@ -1,0 +1,17 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+COMPONENT Shaders:1
+
+Shape {
+  appearance Appearance {
+    material Material { diffuseColor 1 1 0 }
+    shaders ComposedShader {
+      language "GLSL"
+      parts [
+        ShaderPart { type "VERTEX" url "template.vs" }
+        ShaderPart { type "FRAGMENT" url "template.fs" }
+      ]
+    }
+  }
+  geometry Sphere { }
+}
