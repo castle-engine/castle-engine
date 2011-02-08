@@ -28,15 +28,15 @@
 '       TODO: in what coords is gl_LightSource[i].position? */' + LineEnding + 
 '    vec3 light_dir = gl_LightSource[i].position.xyz;' + LineEnding + 
 '    gl_FragColor += gl_FrontLightProduct[i].diffuse' + LineEnding + 
-'      * max(dot(normal_camera, light_dir), 0.0);' + LineEnding + 
+'      * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
 '    /* add specular term */' + LineEnding + 
-'    vec3 reflect = normalize(-reflect(light_dir, normal_camera));' + LineEnding + 
+'    vec3 reflect = normalize(-reflect(light_dir, normal_eye));' + LineEnding + 
 '    /* vertex to camera direction = camera pos - vertex pos.' + LineEnding + 
 '       We work in eye space here, so camera pos = always zero. */' + LineEnding + 
-'    vec3 vertex_to_camera_dir = normalize(-vertex_camera);' + LineEnding + 
+'    vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));' + LineEnding + 
 '    gl_FragColor += gl_FrontLightProduct[i].specular' + LineEnding + 
-'      * pow(max(dot(reflect, vertex_to_camera_dir),0.0),' + LineEnding + 
+'      * pow(max(dot(reflect, vertex_to_camera_dir), 0.0),' + LineEnding + 
 '            gl_FrontMaterial.shininess);' + LineEnding + 
 '  }' + LineEnding + 
 '' + LineEnding + 

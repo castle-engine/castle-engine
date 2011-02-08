@@ -8,17 +8,17 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 
-'varying vec4 vertex_world;' + LineEnding + 
-'varying vec3 normal_world;' + LineEnding + 
+'varying vec4 vertex_eye;' + LineEnding + 
+'varying vec3 normal_eye;' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '//  gl_TexCoord[0] = gl_TextureMatrix[0] * vec4(tex_coord, 0.0, 1.0);' + LineEnding + 
-'  vertex_world = gl_ModelViewMatrix * gl_Vertex;' + LineEnding + 
+'  vertex_eye = gl_ModelViewMatrix * gl_Vertex;' + LineEnding + 
 '  /* Yes, we need to normalize here,' + LineEnding + 
 '     and then fragment shader will also normalize?' + LineEnding + 
 '     TODO: think, make sure. */' + LineEnding + 
-'  normal_world = normalize(gl_NormalMatrix * gl_Normal);' + LineEnding + 
+'  normal_eye = normalize(gl_NormalMatrix * gl_Normal);' + LineEnding + 
 '  gl_Position = ftransform();' + LineEnding + 
 '}' + LineEnding + 
 ''
