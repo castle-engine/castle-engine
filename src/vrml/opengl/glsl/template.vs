@@ -11,7 +11,8 @@ varying vec3 normal_eye;
 
 void main(void)
 {
-//  gl_TexCoord[0] = gl_TextureMatrix[0] * vec4(tex_coord, 0.0, 1.0);
+  /* *** TEXTURE-COORD-PASS *** */
+
   vertex_eye = gl_ModelViewMatrix * gl_Vertex;
   /* Yes, we need to normalize here,
      and then fragment shader will also normalize?

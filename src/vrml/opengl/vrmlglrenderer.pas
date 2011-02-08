@@ -1203,6 +1203,11 @@ type
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure ActiveTexture(const TextureUnit: Cardinal);
 
+    { Disable any (fixed-function) texturing (2D, 3D, cube map, and so on)
+      on given texture unit. }
+    procedure DisableTexture(const TextureUnit: Cardinal);
+    procedure DisableCurrentTexture;
+
     procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       Shader: TVRMLShader);
     procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
@@ -3360,6 +3365,24 @@ begin
       Attributes.FirstGLFreeTexture + TextureUnit);
 end;
 
+procedure TVRMLGLRenderer.DisableTexture(const TextureUnit: Cardinal);
+begin
+  { TODO: what to do for Shader? We cannot disable texture later...
+    We should detect it, and do enable only when appropriate }
+
+  { This must be synchronized, and disable all that can be enabled
+    by TVRMLShape.EnableTexture }
+  ActiveTexture(TextureUnit);
+  DisableCurrentTexture;
+end;
+
+procedure TVRMLGLRenderer.DisableCurrentTexture;
+begin
+  glDisable(GL_TEXTURE_2D);
+  if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+  if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+end;
+
 procedure TVRMLGLRenderer.GetFog(Node: INodeX3DFogObject;
   out Enabled, Volumetric: boolean;
   out VolumetricDirection: TVector3Single;
@@ -3389,10 +3412,7 @@ procedure TVRMLGLRenderer.RenderCleanState(const Beginning: boolean);
     I: Integer;
   begin
     for I := Attributes.FirstGLFreeTexture to LastGLFreeTexture do
-    begin
-      ActiveTexture(I);
-      TGLTextureNode.TextureEnableDisable(etOff);
-    end;
+      DisableTexture(I);
   end;
 
 var
@@ -4102,7 +4122,7 @@ var
 
       if BumpMapping = nil then
       begin
-        GLTextureNode.EnableAll(FreeGLTexturesCount, TexCoordsNeeded);
+        GLTextureNode.EnableAll(FreeGLTexturesCount, TexCoordsNeeded, Shader);
       end else
       begin
         { for bump mapping, always TexCoordsNeeded = 1 }
@@ -4151,10 +4171,7 @@ var
     if BumpMapping = nil then
     begin
       for I := 0 to TexCoordsNeeded - 1 do
-      begin
-        ActiveTexture(I);
-        TGLTextureNode.TextureEnableDisable(etOff);
-      end;
+        DisableTexture(I);
     end else
       BumpMapping.Disable;
   end;
@@ -4225,6 +4242,7 @@ begin
     begin
       MeshRenderer.UsedGLSL := Shape.ShaderProgram;
       Shape.ShaderProgram.Enable;
+      Shader.SetupUniforms(Shape.ShaderProgram);
     end;
 
     { calculate Shape.Cache }

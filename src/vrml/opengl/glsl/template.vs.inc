@@ -13,7 +13,8 @@
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'//  gl_TexCoord[0] = gl_TextureMatrix[0] * vec4(tex_coord, 0.0, 1.0);' + LineEnding + 
+'  /* *** TEXTURE-COORD-PASS *** */' + LineEnding + 
+'' + LineEnding + 
 '  vertex_eye = gl_ModelViewMatrix * gl_Vertex;' + LineEnding + 
 '  /* Yes, we need to normalize here,' + LineEnding + 
 '     and then fragment shader will also normalize?' + LineEnding + 

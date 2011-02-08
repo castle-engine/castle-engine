@@ -9,6 +9,8 @@
 varying vec4 vertex_eye;
 varying vec3 normal_eye;
 
+/* *** FRAGMENT-SHADER-DECLARE *** */
+
 void main(void)
 {
   gl_FragColor = gl_FrontLightModelProduct.sceneColor;
@@ -38,5 +40,5 @@ void main(void)
             gl_FrontMaterial.shininess);
   }
 
-// gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);
+  /* *** TEXTURE-APPLY *** */
 }

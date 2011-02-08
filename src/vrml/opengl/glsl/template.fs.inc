@@ -11,6 +11,8 @@
 'varying vec4 vertex_eye;' + LineEnding + 
 'varying vec3 normal_eye;' + LineEnding + 
 '' + LineEnding + 
+'/* *** FRAGMENT-SHADER-DECLARE *** */' + LineEnding + 
+'' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  gl_FragColor = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
@@ -40,6 +42,6 @@
 '            gl_FrontMaterial.shininess);' + LineEnding + 
 '  }' + LineEnding + 
 '' + LineEnding + 
-'// gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);' + LineEnding + 
+'  /* *** TEXTURE-APPLY *** */' + LineEnding + 
 '}' + LineEnding + 
 ''
