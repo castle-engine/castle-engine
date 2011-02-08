@@ -98,6 +98,7 @@ const
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D');
 var
   Uniform: TUniform;
+  TextureSampleCall: string;
 begin
   { Enable for fixed-function pipeline }
   if GLUseMultiTexturing then
@@ -137,10 +138,18 @@ begin
 
   TextureCoordPass += Format('gl_TexCoord[%d] = gl_TextureMatrix[%0:d] * gl_MultiTexCoord%0:d;' + NL,
     [TextureUnit]);
-  { TODO: always modulate mode for now
-    TODO: other TextureType may require different gets than texture2D }
-  TextureApply += Format('gl_FragColor *= texture2D(%s, gl_TexCoord[%d].st);' + NL,
-    [Uniform.Name, TextureUnit]);
+  { TODO: always modulate mode for now }
+  case TextureType of
+    tt2D      : TextureSampleCall := 'texture2D(%s, %s.st)';
+    tt2DShadow: TextureSampleCall := 'shadow2DProj(%s, %s)';
+    ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
+    { For 3D textures, remember we may get 4D tex coords
+      through TextureCoordinate4D, so we have to use texture3DProj }
+    tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
+    else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
+  end;
+  TextureApply += Format('gl_FragColor *= ' + TextureSampleCall + ';' + NL,
+    [Uniform.Name, 'gl_TexCoord[' + IntToStr(TextureUnit) + ']']);
   FragmentShaderDeclare += Format('uniform %s %s;' + NL,
     [OpenGLTextureType[TextureType], Uniform.Name]);
 end;
