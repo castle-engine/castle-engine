@@ -65,6 +65,7 @@ begin
     P.Targets.AddUnit('cubemap.pas');
     P.Targets.AddUnit('faceindex.pas');
     P.Targets.AddUnit('frustum.pas');
+    P.Targets.AddUnit('geometryarrays.pas');
     P.Targets.AddUnit('kambioctree.pas');
     P.Targets.AddUnit('nurbs.pas');
     P.Targets.AddUnit('object3dgeo.pas');
@@ -91,6 +92,7 @@ begin
     P.Targets.AddUnit('vrmlcamerautils.pas');
     P.Targets.AddUnit('vrmlerrors.pas');
     P.Targets.AddUnit('vrmlfields.pas');
+    P.Targets.AddUnit('vrmlarraysgenerator.pas');
     P.Targets.AddUnit('vrmllexer.pas');
     P.Targets.AddUnit('vrmllightset.pas');
     P.Targets.AddUnit('vrmlnodes.pas');
