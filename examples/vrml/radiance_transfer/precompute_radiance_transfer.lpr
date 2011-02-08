@@ -242,7 +242,7 @@ begin
             smooth normals. Simple, and thanks to NormalsCalculator
             this works for all VRML coord-based nodes (and only for
             those RadianceTransfer is defined). }
-          Normals := SI.Current.NormalsSmooth;
+          Normals := SI.Current.NormalsSmooth(true);
           ComputeTransfer(RadianceTransfer, Geometry.Coordinates(State).Items,
             State.Transform, DiffuseColor(State));
         end;
