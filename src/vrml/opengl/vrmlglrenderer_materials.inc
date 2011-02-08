@@ -69,7 +69,7 @@ procedure RenderMaterialsBegin;
       Admittedly, I'm doing it all by just guessing what user may want...
       VRML 1.0 spec doesn't specify here what should really be done, i.e. what
       unlit color should be used. }
-    if (CurrentGeometry is TNodeIndexedLineSet_1) and (not M.OnlyEmissiveMaterial) then
+    if (Shape.Geometry is TNodeIndexedLineSet_1) and (not M.OnlyEmissiveMaterial) then
       UnlitColor := M.DiffuseColor3Single(0) else
       UnlitColor := M.EmissiveColor3Single(0);
 
@@ -95,7 +95,7 @@ procedure RenderMaterialsBegin;
 
       { Otherwise Circle2D would be always white.
         X3D spec doesn't say anything about this, so I use diffuse color. }
-      if CurrentGeometry is TNodeCircle2D then
+      if Shape.Geometry is TNodeCircle2D then
         UnLitColor := Material.FdDiffuseColor.Value;
 
       RenderMaterial(
@@ -128,10 +128,10 @@ begin
     M1, M2, VRML1OnlyEmissive, VRML2Unlit }
   M1 := nil;
   M2 := nil;
-  if CurrentGeometry is TVRMLGeometryNode_1 then
+  if Shape.Geometry is TVRMLGeometryNode_1 then
   begin
     { VRML 1.0 }
-    M1 := CurrentState.LastNodes.Material;
+    M1 := Shape.State.LastNodes.Material;
     { VRML 1.0 specification states that this is a special case
       and we should treat EmissiveColor as precalculated color.
       So we can turn lighting off to improve speed (in fact, we are supposed
@@ -141,14 +141,14 @@ begin
   end else
   begin
     { VRML 2.0 }
-    if CurrentState.ShapeNode <> nil then
+    if Shape.State.ShapeNode <> nil then
     begin
-      M2 := CurrentState.ShapeNode.Material;
+      M2 := Shape.State.ShapeNode.Material;
       VRML1OnlyEmissive := false;
       { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
     end else
     begin
-      VRMLWarning(vwSerious, 'VRML node "' + CurrentGeometry.NodeTypeName +
+      VRMLWarning(vwSerious, 'VRML node "' + Shape.Geometry.NodeTypeName +
         '" can be specified only in a "geometry" field of "Shape" node');
       VRML1OnlyEmissive := false;
     end;
@@ -167,15 +167,15 @@ begin
       (not VRML1OnlyEmissive) and
       (not VRML2Unlit) and
       not (
-        (CurrentGeometry is TNodePointSet_1) or
-        (CurrentGeometry is TNodePointSet_2) or
-        ( (CurrentGeometry is TNodeIndexedLineSet_1) and
-          (not TNodeIndexedLineSet_1(CurrentGeometry).Lit(CurrentState)) ) or
+        (Shape.Geometry is TNodePointSet_1) or
+        (Shape.Geometry is TNodePointSet_2) or
+        ( (Shape.Geometry is TNodeIndexedLineSet_1) and
+          (not TNodeIndexedLineSet_1(Shape.Geometry).Lit(Shape.State)) ) or
         { VRML 2.0 specification says that IndexedLineSet should always be unlit,
           X3D spec adds that LineSet is also always unlit. }
-        (CurrentGeometry is TNodeIndexedLineSet_2) or
-        (CurrentGeometry is TNodeLineSet) or
-        (CurrentGeometry is TNodeCircle2D)
+        (Shape.Geometry is TNodeIndexedLineSet_2) or
+        (Shape.Geometry is TNodeLineSet) or
+        (Shape.Geometry is TNodeCircle2D)
       )
     );
   if not MaterialLit then
@@ -189,7 +189,7 @@ begin
   end;
 
   { set material. At the end, since this uses MaterialLit, M1, M2. }
-  if CurrentGeometry is TVRMLGeometryNode_1 then
+  if Shape.Geometry is TVRMLGeometryNode_1 then
     Material_1(M1) else
     Material_2(M2);
 end;

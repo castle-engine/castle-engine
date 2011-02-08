@@ -1192,21 +1192,17 @@ type
     procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
     procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       GeneratorClass: TVRMLArraysGeneratorClass;
-      ExposedMeshRenderer: TObject;
-      CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
+      ExposedMeshRenderer: TObject);
     procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
-      CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState;
       UsedGLSLTexCoordsNeeded: Cardinal);
     procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       GeneratorClass: TVRMLArraysGeneratorClass;
-      ExposedMeshRenderer: TObject;
-      CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
+      ExposedMeshRenderer: TObject);
     procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       GeneratorClass: TVRMLArraysGeneratorClass;
-      ExposedMeshRenderer: TObject;
-      CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
+      ExposedMeshRenderer: TObject);
 
     { Reset various OpenGL state parameters, done at RenderBegin
       (to prepare state for following RenderShape calls) and at RenderEnd
@@ -3870,12 +3866,9 @@ procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShap
   Fog: INodeX3DFogObject);
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
-
   MeshRenderer: TVRMLMeshRenderer;
-  CurrentGeometry: TVRMLGeometryNode;
-  CurrentState: TVRMLGraphTraverseState;
 
-  { If CurrentGeometry should be rendered using one of TVRMLMeshRenderer
+  { If Shape.Geometry should be rendered using one of TVRMLMeshRenderer
     classes, then create appropriate MeshRenderer and return @true.
     Otherwise return @false and doesn't set MeshRenderer.
 
@@ -3885,31 +3878,27 @@ var
   begin
     Result := true;
 
-    GeneratorClass := ArraysGenerator(CurrentGeometry);
+    GeneratorClass := ArraysGenerator(Shape.Geometry);
 
     if GeneratorClass = nil then
     begin
-      if CurrentGeometry is TNodeAsciiText_1 then
-        MeshRenderer := TAsciiTextRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
-      if CurrentGeometry is TNodeText then
-        MeshRenderer := TTextRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
-      if CurrentGeometry is TNodeText3D then
-        MeshRenderer := TText3DRenderer.Create(Self, Shape, CurrentGeometry, CurrentState) else
+      if Shape.Geometry is TNodeAsciiText_1 then
+        MeshRenderer := TAsciiTextRenderer.Create(Self, Shape) else
+      if Shape.Geometry is TNodeText then
+        MeshRenderer := TTextRenderer.Create(Self, Shape) else
+      if Shape.Geometry is TNodeText3D then
+        MeshRenderer := TText3DRenderer.Create(Self, Shape) else
         Result := false;
     end else
     begin
       { If we have GeneratorClass, create TCompleteCoordinateRenderer.
         We'll initialize TCompleteCoordinateRenderer.Arrays later. }
-      MeshRenderer := TCompleteCoordinateRenderer.Create(Self, Shape, CurrentGeometry, CurrentState);
+      MeshRenderer := TCompleteCoordinateRenderer.Create(Self, Shape);
       ShapeBumpMappingAllowed := GeneratorClass.BumpMappingAllowed;
     end;
   end;
 
 begin
-  { make a copy to our class fields }
-  CurrentGeometry := Shape.Geometry;
-  CurrentState := Shape.State;
-
   { default ShapeBumpMapping* state }
   ShapeBumpMappingAllowed := false;
   ShapeBumpMappingUsed := bmNone;
@@ -3932,8 +3921,7 @@ begin
   {$endif}
 
   try
-    RenderShapeShaders(Shape, Fog, GeneratorClass,
-      MeshRenderer, CurrentGeometry, CurrentState);
+    RenderShapeShaders(Shape, Fog, GeneratorClass, MeshRenderer);
   finally
     FreeAndNil(MeshRenderer);
   end;
@@ -3943,8 +3931,7 @@ end;
 
 procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
-  ExposedMeshRenderer: TObject;
-  CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
+  ExposedMeshRenderer: TObject);
 var
   UsedGLSLRenderer: TGLSLRenderer;
   { > 0 means that UsedGLSLRenderer is non-nil *and* we already bound
@@ -3960,7 +3947,7 @@ var
     var
       TexCoord: TVRMLNode;
     begin
-      if Shape.Geometry.TexCoord(CurrentState, TexCoord) and
+      if Shape.Geometry.TexCoord(Shape.State, TexCoord) and
          (TexCoord <> nil) then
       begin
         if TexCoord is TNodeMultiTextureCoordinate then
@@ -3978,7 +3965,7 @@ var
 
     if not Attributes.PureGeometry then
     begin
-      UsedGLSLRenderer := GLSLRenderers.Enable(CurrentState, UsedGLSLTexCoordsNeeded);
+      UsedGLSLRenderer := GLSLRenderers.Enable(Shape.State, UsedGLSLTexCoordsNeeded);
 
       if UsedGLSLRenderer <> nil then
         MeshRenderer.UsedGLSL := UsedGLSLRenderer.GLSLProgram;
@@ -4013,14 +4000,13 @@ begin
   RenderShadersBegin;
   try
     RenderShapeTextures(Shape, Fog, GeneratorClass,
-      MeshRenderer, CurrentGeometry, CurrentState, UsedGLSLTexCoordsNeeded);
+      MeshRenderer, UsedGLSLTexCoordsNeeded);
   finally RenderShadersEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
-  CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState;
   UsedGLSLTexCoordsNeeded: Cardinal);
 var
   BumpMapping: TBumpMappingRenderer;
@@ -4057,7 +4043,7 @@ var
     end;
 
     AlphaTest := false;
-    TextureNode := CurrentState.Texture;
+    TextureNode := Shape.State.Texture;
     TexCoordsNeeded := 0;
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
 
@@ -4069,14 +4055,14 @@ var
     end else
     if (TextureNode <> nil) and
        Attributes.EnableTextures and
-       NodeTextured(CurrentGeometry) and
+       NodeTextured(Shape.Geometry) and
        (GLTextureNode <> nil) then
     begin
       { This works also for TextureNode being TNodeMultiTexture,
         since it has smartly calculated AlphaChannelType. }
       AlphaTest := GLTextureNode.AlphaChannelType = atSimpleYesNo;
 
-      BumpMapping := BumpMappingRenderers.Enable(CurrentState, GLTextureNode);
+      BumpMapping := BumpMappingRenderers.Enable(Shape.State, GLTextureNode);
 
       if BumpMapping = nil then
       begin
@@ -4140,30 +4126,26 @@ var
 begin
   RenderTexturesBegin;
   try
-    RenderShapeMaterials(Shape, Fog, GeneratorClass,
-      MeshRenderer, CurrentGeometry, CurrentState);
+    RenderShapeMaterials(Shape, Fog, GeneratorClass, MeshRenderer);
   finally RenderTexturesEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
-  ExposedMeshRenderer: TObject;
-  CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
+  ExposedMeshRenderer: TObject);
 
   {$I vrmlglrenderer_materials.inc}
 
 begin
   RenderMaterialsBegin;
   try
-    RenderShapeInside(Shape, Fog, GeneratorClass,
-      MeshRenderer, CurrentGeometry, CurrentState);
+    RenderShapeInside(Shape, Fog, GeneratorClass, MeshRenderer);
   finally RenderMaterialsEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; GeneratorClass: TVRMLArraysGeneratorClass;
-  ExposedMeshRenderer: TObject;
-  CurrentGeometry: TVRMLGeometryNode; CurrentState: TVRMLGraphTraverseState);
+  ExposedMeshRenderer: TObject);
 var
   Generator: TVRMLArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;

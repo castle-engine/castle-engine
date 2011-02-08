@@ -58,9 +58,7 @@ type
       This allows us to set GLSL attribs. }
     UsedGLSL: TGLSLProgram;
 
-    constructor Create(ARenderer: TVRMLGLRenderer;
-      AShape: TVRMLRendererShape; AGeometry: TVRMLGeometryNode;
-      AState: TVRMLGraphTraverseState);
+    constructor Create(ARenderer: TVRMLGLRenderer; AShape: TVRMLRendererShape);
 
     { Render the whole geometry.
 
@@ -129,15 +127,14 @@ type
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
 constructor TVRMLMeshRenderer.Create(ARenderer: TVRMLGLRenderer;
-  AShape: TVRMLRendererShape; AGeometry: TVRMLGeometryNode;
-  AState: TVRMLGraphTraverseState);
+  AShape: TVRMLRendererShape);
 begin
   inherited Create;
 
   FRenderer := ARenderer;
   FShape := AShape;
-  FGeometry := AGeometry;
-  FState := AState;
+  FGeometry := AShape.Geometry;
+  FState := AShape.State;
   FAttributes := Renderer.Attributes;
 end;
 
