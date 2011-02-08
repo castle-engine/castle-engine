@@ -18,13 +18,11 @@ WWW:
   -->
 
 ------------------------------------------------------------------------------
-3.9.0: Modernize rendering (everything through VBO, various shaders improvements)
-VBO:
-- Also extracting all useful rendering info, like tex coords etc.,
-  to replace poor Triangulate interface, for
-  https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=25&p=132#p132
-
-- ? Take a shot at shader pipeline: make a shader that implements proper lighting eqs.
+3.10.0:
+- Shader pipeline: make a shader that implements proper lighting eqs.
+  Construct a shader during rendering.
+  Allow modifying it by user ComposedShader special hooks.
+  Read on CgFX.
 ------------------------------------------------------------------------------
 Mirrors:
 - RenderedTexture.scene (let VA know).
@@ -323,16 +321,20 @@ Scene manager / controls / better Lazarus integration:
   see kambi_vrml_test_suite/x3d/cubemap_generated_recursive.x3dv
 ------------------------------------------------------------------------------
 view3dscene 4.0:
-- JavaScript (http://besen.sourceforge.net/ or SpiderMonkey), or Python/Lua?
+- JavaScript (http://besen.sourceforge.net/
+  or http://code.google.com/p/fpcjs/ (SpiderMonkey?))
+
+- Maybe Python or Lua scripting too?
+
 - OpenGL ES, Android? (This would also suggest engine 3.0.0 bump.)
   With complete shaders pipeline of course.
 
 - Mac OS X dependencies and packaging fixes
   - bundle doesn't run, why? (we attach to running x now)
   - add to bundle that we handle x3dv / wrl etc (see Linux mime list?), with our icon
+  Rest from http://vrmlengine.sourceforge.net/macosx_requirements.php#section_help_wanted
 
 - networking (at least http URLs) support
-- JavaScript support (either SpiderMonkey or besen?)
 
 ------------------------------------------------------------------------------
 Shadow maps todos:
@@ -364,7 +366,7 @@ Various ideas:
 
 - A precise control over how steep hill you can climb.
 
-- screenshot: 10 November - http://vcg.isti.cnr.it/cgf/index.php ?
+- screenshot (per year contest?): http://vcg.isti.cnr.it/cgf/index.php
 
 - kambi_vrml_test_suite/x3d/import_export.x3dv fails
   on view3dscene load+save test (run_tests.sh).
