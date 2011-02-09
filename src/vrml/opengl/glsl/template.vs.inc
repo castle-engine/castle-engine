@@ -20,7 +20,7 @@
 '  normal_eye = normalize(gl_NormalMatrix * gl_Normal);' + LineEnding + 
 '' + LineEnding + 
 '  /* This may use vertex_eye for texgen */' + LineEnding + 
-'  /* *** TEXTURE-COORD-PASS *** */' + LineEnding + 
+'  /* *** VERTEX-PROCESSING *** */' + LineEnding + 
 '' + LineEnding + 
 '  gl_Position = ftransform();' + LineEnding + 
 '}' + LineEnding + 

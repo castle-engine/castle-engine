@@ -3883,7 +3883,7 @@ var
             glMultMatrix(ClipPlane^.Transform);
             glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled,
               Vector4Double(ClipPlane^.Node.FdPlane.Value));
-            glEnable(GL_CLIP_PLANE0 + ClipPlanesEnabled);
+            Shader.EnableClipPlane(ClipPlanesEnabled);
           glPopMatrix;
 
           Inc(ClipPlanesEnabled);
@@ -3901,7 +3901,7 @@ var
     I: Integer;
   begin
     for I := 0 to ClipPlanesEnabled - 1 do
-      glDisable(GL_CLIP_PLANE0 + I);
+      Shader.DisableClipPlane(I);
     ClipPlanesEnabled := 0; { not really needed, but for safety... }
   end;
 

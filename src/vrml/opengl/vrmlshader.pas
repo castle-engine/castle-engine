@@ -55,7 +55,8 @@ type
   private
     Uniforms: TUniformsList;
     TextureApply, TextureCoordInitialize,
-      TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare: string;
+      TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare,
+      ClipPlane: string;
   public
     destructor Destroy; override;
 
@@ -64,6 +65,8 @@ type
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Component: TTexGenComponent; const Plane: TTexGenPlane);
     procedure DisableTexGen(const TextureUnit: Cardinal);
+    procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
+    procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
 
     function CreateProgram: TGLSLProgram;
     procedure SetupUniforms(AProgram: TGLSLProgram);
@@ -214,6 +217,18 @@ begin
   glDisable(GL_TEXTURE_GEN_Q);
 end;
 
+procedure TVRMLShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
+begin
+  glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
+  if ClipPlane = '' then
+    ClipPlane := 'gl_ClipVertex = vertex_eye;';
+end;
+
+procedure TVRMLShader.DisableClipPlane(const ClipPlaneIndex: Cardinal);
+begin
+  glDisable(GL_CLIP_PLANE0 + ClipPlaneIndex);
+end;
+
 function TVRMLShader.CreateProgram: TGLSLProgram;
 
   procedure Replace(var S: string; const ParameterName, ParameterValue: string);
@@ -225,8 +240,8 @@ var
   FS, VS: string;
 begin
   VS := {$I template.vs.inc};
-  Replace(VS, 'TEXTURE-COORD-PASS', 
-    TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix);
+  Replace(VS, 'VERTEX-PROCESSING', TextureCoordInitialize + TextureCoordGen
+    + TextureCoordMatrix + ClipPlane);
 
   FS := {$I template.fs.inc};
   Replace(FS, 'TEXTURE-APPLY', TextureApply);

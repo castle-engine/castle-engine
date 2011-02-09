@@ -18,7 +18,7 @@ void main(void)
   normal_eye = normalize(gl_NormalMatrix * gl_Normal);
 
   /* This may use vertex_eye for texgen */
-  /* *** TEXTURE-COORD-PASS *** */
+  /* *** VERTEX-PROCESSING *** */
 
   gl_Position = ftransform();
 }
