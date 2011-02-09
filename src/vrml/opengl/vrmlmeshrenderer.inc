@@ -89,6 +89,12 @@ type
 
     { Available inside RenderCoordinate* }
     Arrays: TGeometryArrays;
+
+    { Set by ShaderBegin, used by ShaderEnd }
+    ShaderProgramUsed: boolean;
+
+    procedure ShaderBegin;
+    procedure ShaderEnd;
   protected
     { Override these to render contents of Arrays.
       These are all called only when Coord is assigned.
@@ -104,6 +110,9 @@ type
       In this case, Arrays data must be already freed
       (by TGeometryArrays.FreeData). }
     Vbo: TVboArrays;
+
+    { You have to set this before calling Render, to enable proper shading. }
+    Shader: TVRMLShader;
 
     { Don't override this, it is already overridden here
       to do everything necessary. }
@@ -139,6 +148,44 @@ begin
 end;
 
 { TBaseCoordinateRenderer ------------------------------------------------ }
+
+procedure TBaseCoordinateRenderer.ShaderBegin;
+
+  function ForceShaderRendering: boolean;
+  begin
+    Result := Attributes.ForceShaderRendering and
+              Attributes.GLSLShaders and
+         (not Attributes.PureGeometry);
+  end;
+
+begin
+  ShaderProgramUsed := false;
+
+  { calculate and use Shape.ShaderProgram }
+  if ForceShaderRendering and (Shape.ShaderProgram = nil) then
+  begin
+    try
+      Shape.ShaderProgram := Shader.CreateProgram;
+    except on E: EGLSLError do
+      VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
+        [Shape.OriginalGeometry.NodeTypeName, E.Message]));
+    end;
+  end;
+
+  if ForceShaderRendering and (Shape.ShaderProgram <> nil) then
+  begin
+    UsedGLSL := Shape.ShaderProgram;
+    Shape.ShaderProgram.Enable;
+    Shader.SetupUniforms(Shape.ShaderProgram);
+    ShaderProgramUsed := true;
+  end;
+end;
+
+procedure TBaseCoordinateRenderer.ShaderEnd;
+begin
+  if ShaderProgramUsed then
+    Shape.ShaderProgram.Disable;
+end;
 
 procedure TBaseCoordinateRenderer.Render;
 var
@@ -232,6 +279,7 @@ begin
 
   RenderCoordinateBegin;
   try
+    ShaderBegin;
 
     { Initialize vertex arrays that we we will use with indexed nodes. }
     if Vbo[vtCoordinate] <> 0 then
@@ -333,6 +381,8 @@ begin
 
     if MaterialFromColorEnabled then
       glDisable(GL_COLOR_MATERIAL);
+
+    ShaderEnd;
   finally RenderCoordinateEnd end;
 end;
 

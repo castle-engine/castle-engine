@@ -4201,14 +4201,6 @@ procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; Shader: TVRMLShader;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
-
-  function ForceShaderRendering: boolean;
-  begin
-    Result := Attributes.ForceShaderRendering and
-              Attributes.GLSLShaders and
-         (not Attributes.PureGeometry);
-  end;
-
 var
   Generator: TVRMLArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
@@ -4226,24 +4218,6 @@ begin
   begin
     Assert(MeshRenderer is TBaseCoordinateRenderer);
     CoordinateRenderer := TBaseCoordinateRenderer(MeshRenderer);
-
-    { calculate and use Shape.ShaderProgram }
-    if ForceShaderRendering and (Shape.ShaderProgram = nil) then
-    begin
-      try
-        Shape.ShaderProgram := Shader.CreateProgram;
-      except on E: EGLSLError do
-        VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
-          [Shape.OriginalGeometry.NodeTypeName, E.Message]));
-      end;
-    end;
-
-    if ForceShaderRendering and (Shape.ShaderProgram <> nil) then
-    begin
-      MeshRenderer.UsedGLSL := Shape.ShaderProgram;
-      Shape.ShaderProgram.Enable;
-      Shader.SetupUniforms(Shape.ShaderProgram);
-    end;
 
     { calculate Shape.Cache }
     if Shape.Cache = nil then
@@ -4287,6 +4261,7 @@ begin
     end;
 
     CoordinateRenderer.Arrays := Shape.Cache.Arrays;
+    CoordinateRenderer.Shader := Shader;
   end;
 
   if PrepareRenderShape = 0 then
@@ -4299,11 +4274,6 @@ begin
       Check does occlusion query work Ok when some vbo is bound. }
     glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
     glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-  end;
-
-  if ForceShaderRendering and (Shape.ShaderProgram <> nil) then
-  begin
-    Shape.ShaderProgram.Disable;
   end;
 
   {$endif USE_VRML_TRIANGULATION}
