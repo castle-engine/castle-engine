@@ -13,13 +13,15 @@
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'  /* *** TEXTURE-COORD-PASS *** */' + LineEnding + 
-'' + LineEnding + 
 '  vertex_eye = gl_ModelViewMatrix * gl_Vertex;' + LineEnding + 
 '  /* Yes, we need to normalize here,' + LineEnding + 
 '     and then fragment shader will also normalize?' + LineEnding + 
 '     TODO: think, make sure. */' + LineEnding + 
 '  normal_eye = normalize(gl_NormalMatrix * gl_Normal);' + LineEnding + 
+'' + LineEnding + 
+'  /* This may use vertex_eye for texgen */' + LineEnding + 
+'  /* *** TEXTURE-COORD-PASS *** */' + LineEnding + 
+'' + LineEnding + 
 '  gl_Position = ftransform();' + LineEnding + 
 '}' + LineEnding + 
 ''

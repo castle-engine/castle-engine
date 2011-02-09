@@ -36,10 +36,12 @@ type
         utSingle: (Single: Single);
     end;
   end;
+  TUniformsList = specialize TFPGObjectList<TUniform>;
 
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D);
 
-  TUniformsList = specialize TFPGObjectList<TUniform>;
+  TTexGenPlane = (tgpEye, tgpObject, tgpSphere, tgpNormal, tgpReflection);
+  TTexGenComponent = 0..3;
 
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
@@ -52,18 +54,25 @@ type
   TVRMLShader = class
   private
     Uniforms: TUniformsList;
-    TextureApply, TextureCoordPass, FragmentShaderDeclare: string;
+    TextureApply, TextureCoordInitialize,
+      TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare: string;
   public
     destructor Destroy; override;
+
     procedure EnableTexture(const TextureUnit: Cardinal;
       const TextureType: TTextureType);
+    procedure EnableTexGen(const TextureUnit: Cardinal;
+      const Component: TTexGenComponent; const Plane: TTexGenPlane);
+    procedure DisableTexGen(const TextureUnit: Cardinal);
+
     function CreateProgram: TGLSLProgram;
     procedure SetupUniforms(AProgram: TGLSLProgram);
   end;
 
 implementation
 
-uses SysUtils, GL, GLExt, KambiUtils, KambiStringUtils, KambiGLUtils;
+uses SysUtils, GL, GLExt, KambiUtils, KambiStringUtils, KambiGLUtils,
+  VRMLErrors, KambiLog;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day.
@@ -136,7 +145,9 @@ begin
     Uniforms := TUniformsList.Create;
   Uniforms.Add(Uniform);
 
-  TextureCoordPass += Format('gl_TexCoord[%d] = gl_TextureMatrix[%0:d] * gl_MultiTexCoord%0:d;' + NL,
+  TextureCoordInitialize += Format('gl_TexCoord[%d] = gl_MultiTexCoord%0:d;' + NL,
+    [TextureUnit]);
+  TextureCoordMatrix += Format('gl_TexCoord[%d] = gl_TextureMatrix[%0:d] * gl_TexCoord[%0:d];' + NL,
     [TextureUnit]);
   { TODO: always modulate mode for now }
   case TextureType of
@@ -154,6 +165,55 @@ begin
     [OpenGLTextureType[TextureType], Uniform.Name]);
 end;
 
+procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
+  const Component: TTexGenComponent; const Plane: TTexGenPlane);
+const
+  PlaneComponentNames: array [TTexGenComponent] of char = ('S', 'T', 'R', 'Q');
+  { Note: R changes to p ! }
+  VectorComponentNames: array [TTexGenComponent] of char = ('s', 't', 'p', 'q');
+var
+  PlaneName, Source: string;
+begin
+  { Enable for fixed-function pipeline }
+  if GLUseMultiTexturing then
+    glActiveTextureARB(GL_TEXTURE0 + TextureUnit);
+  case Component of
+    0: glEnable(GL_TEXTURE_GEN_S);
+    1: glEnable(GL_TEXTURE_GEN_T);
+    2: glEnable(GL_TEXTURE_GEN_R);
+    3: glEnable(GL_TEXTURE_GEN_Q);
+    else raise EInternalError.Create('TVRMLShader.EnableTexGen:Component?');
+  end;
+
+  { Enable for shader pipeline.
+    See helpful info about simulating glTexGen in GLSL in:
+    http://www.mail-archive.com/osg-users@lists.openscenegraph.org/msg14238.html }
+
+  case Plane of
+    tgpEye   : begin PlaneName := 'gl_EyePlane'   ; Source := 'vertex_eye'; end;
+    tgpObject: begin PlaneName := 'gl_ObjectPlane'; Source := 'gl_Vertex' ; end;
+    tgpSphere: begin VRMLWarning(vwIgnorable, '"Sphere" texture generation for shader pipeline not implemented yet'); Exit; end;
+    tgpNormal: begin VRMLWarning(vwIgnorable, '"Normal" texture generation for shader pipeline not implemented yet'); Exit; end;
+    tgpReflection: begin VRMLWarning(vwIgnorable, '"Reflection" texture generation for shader pipeline not implemented yet'); Exit; end;
+    else raise EInternalError.Create('TVRMLShader.EnableTexGen:Plane?');
+  end;
+
+  TextureCoordGen += Format('gl_TexCoord[%d].%s = dot(%s, %s%s[%0:d]);' + NL,
+    [TextureUnit, VectorComponentNames[Component],
+     Source, PlaneName, PlaneComponentNames[Component]]);
+end;
+
+procedure TVRMLShader.DisableTexGen(const TextureUnit: Cardinal);
+begin
+  { Disable for fixed-function pipeline }
+  if GLUseMultiTexturing then
+    glActiveTextureARB(GL_TEXTURE0 + TextureUnit);
+  glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
+  glDisable(GL_TEXTURE_GEN_R);
+  glDisable(GL_TEXTURE_GEN_Q);
+end;
+
 function TVRMLShader.CreateProgram: TGLSLProgram;
 
   procedure Replace(var S: string; const ParameterName, ParameterValue: string);
@@ -165,11 +225,18 @@ var
   FS, VS: string;
 begin
   VS := {$I template.vs.inc};
-  Replace(VS, 'TEXTURE-COORD-PASS', TextureCoordPass);
+  Replace(VS, 'TEXTURE-COORD-PASS', 
+    TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix);
 
   FS := {$I template.fs.inc};
   Replace(FS, 'TEXTURE-APPLY', TextureApply);
   Replace(FS, 'FRAGMENT-SHADER-DECLARE', FragmentShaderDeclare);
+
+  if Log then
+  begin
+    WritelnLogMultiline('Generated GLSL vertex shader', VS);
+    WritelnLogMultiline('Generated GLSL vertex shader', FS);
+  end;
 
   Result := TGLSLProgram.Create;
   try

@@ -11,12 +11,14 @@ varying vec3 normal_eye;
 
 void main(void)
 {
-  /* *** TEXTURE-COORD-PASS *** */
-
   vertex_eye = gl_ModelViewMatrix * gl_Vertex;
   /* Yes, we need to normalize here,
      and then fragment shader will also normalize?
      TODO: think, make sure. */
   normal_eye = normalize(gl_NormalMatrix * gl_Normal);
+
+  /* This may use vertex_eye for texgen */
+  /* *** TEXTURE-COORD-PASS *** */
+
   gl_Position = ftransform();
 }
