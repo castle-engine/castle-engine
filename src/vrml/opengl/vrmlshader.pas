@@ -235,7 +235,7 @@ begin
   if Log then
   begin
     WritelnLogMultiline('Generated GLSL vertex shader', VS);
-    WritelnLogMultiline('Generated GLSL vertex shader', FS);
+    WritelnLogMultiline('Generated GLSL fragment shader', FS);
   end;
 
   Result := TGLSLProgram.Create;
