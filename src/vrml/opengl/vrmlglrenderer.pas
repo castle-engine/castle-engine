@@ -320,10 +320,6 @@ type
       @groupBegin }
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
     procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
-    procedure SetLighting(const Value: boolean); virtual;
-    procedure SetUseSceneLights(const Value: boolean); virtual;
-    procedure SetFirstGLFreeLight(const Value: Cardinal); virtual;
-    procedure SetLastGLFreeLight(const Value: integer); virtual;
     procedure SetControlMaterials(const Value: boolean); virtual;
     procedure SetControlTextures(const Value: boolean); virtual;
     procedure SetEnableTextures(const Value: boolean); virtual;
@@ -333,7 +329,6 @@ type
     procedure SetPointSize(const Value: TGLFloat); virtual;
     procedure SetUseFog(const Value: boolean); virtual;
     procedure SetBumpMappingMaximum(const Value: TBumpMappingMethod); virtual;
-    procedure SetGLSLShaders(const Value: boolean); virtual;
     procedure SetPureGeometry(const Value: boolean); virtual;
     procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
     procedure SetTextureModeRGB(const Value: TGLenum); virtual;
@@ -397,7 +392,7 @@ type
       materials and colors, so our rendering looks as good as possible
       with and without OpenGL lighting. }
     property Lighting: boolean
-      read FLighting write SetLighting default true;
+      read FLighting write FLighting default true;
 
     { Should we setup VRML/X3D lights as OpenGL lights during rendering.
 
@@ -420,11 +415,11 @@ type
 
       @groupBegin }
     property UseSceneLights: boolean
-      read FUseSceneLights write SetUseSceneLights default true;
+      read FUseSceneLights write FUseSceneLights default true;
     property FirstGLFreeLight: Cardinal
-      read FFirstGLFreeLight write SetFirstGLFreeLight default DefaultFirstGLFreeLight;
+      read FFirstGLFreeLight write FFirstGLFreeLight default DefaultFirstGLFreeLight;
     property LastGLFreeLight: integer
-      read FLastGLFreeLight write SetLastGLFreeLight default -1;
+      read FLastGLFreeLight write FLastGLFreeLight default -1;
     { @groupEnd }
 
     { Should we take care of applying appropriate
@@ -546,7 +541,7 @@ type
       When this is @false, the renderer does not control GLSL shaders
       (it does not set any GLSL program active etc.). Which means that
       the caller is free to apply any shader for the whole rendered scene. }
-    property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
+    property GLSLShaders: boolean read FGLSLShaders write FGLSLShaders
       default true;
 
     { Use this to render pure geometry, without any colors, materials,
@@ -2710,26 +2705,6 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetLighting(const Value: boolean);
-begin
-  FLighting := Value;
-end;
-
-procedure TVRMLRenderingAttributes.SetUseSceneLights(const Value: boolean);
-begin
-  FUseSceneLights := Value;
-end;
-
-procedure TVRMLRenderingAttributes.SetFirstGLFreeLight(const Value: Cardinal);
-begin
-  FFirstGLFreeLight := Value;
-end;
-
-procedure TVRMLRenderingAttributes.SetLastGLFreeLight(const Value: integer);
-begin
-  FLastGLFreeLight := Value;
-end;
-
 procedure TVRMLRenderingAttributes.SetControlMaterials(const Value: boolean);
 begin
   FControlMaterials := Value;
@@ -2802,11 +2777,6 @@ begin
     ReleaseCachedResources;
     FBumpMappingMaximum := Value;
   end;
-end;
-
-procedure TVRMLRenderingAttributes.SetGLSLShaders(const Value: boolean);
-begin
-  FGLSLShaders := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetPureGeometry(const Value: boolean);
