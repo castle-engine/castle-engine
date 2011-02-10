@@ -42,12 +42,9 @@
 '{' + LineEnding + 
 '  gl_FragColor = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
 '' + LineEnding + 
-'/* TODO: We assume we have constant num of lights' + LineEnding + 
-'   TODO: two-side lighting? */' + LineEnding + 
-'' + LineEnding + 
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
-'    for (int i = 0; i < 1; i++)' + LineEnding + 
+'    for (int i = 0; i < LIGHTS_ENABLED; i++)' + LineEnding + 
 '      add_light_contribution(gl_FragColor, normal_eye,' + LineEnding + 
 '        gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);' + LineEnding + 
 '  } else' + LineEnding + 

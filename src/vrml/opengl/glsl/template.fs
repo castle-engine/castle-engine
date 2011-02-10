@@ -40,12 +40,9 @@ void main(void)
 {
   gl_FragColor = gl_FrontLightModelProduct.sceneColor;
 
-/* TODO: We assume we have constant num of lights
-   TODO: two-side lighting? */
-
   if (gl_FrontFacing)
   {
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < LIGHTS_ENABLED; i++)
       add_light_contribution(gl_FragColor, normal_eye,
         gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);
   } else
