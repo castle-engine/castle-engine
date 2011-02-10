@@ -61,8 +61,19 @@ type
     FLightsEnabled: Cardinal;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
     FVisualizeDepthMap: boolean;
+    VertexShaderComplete: string;
+    FragmentShaderComplete: string;
   public
+    constructor Create;
     destructor Destroy; override;
+
+    { Insert a piece of code at given plugging point.
+      Inserts code right before the magic @code(/* PLUG ...*/) comments,
+      this way many Plug calls for the same PlugName will insert code in the same
+      order. If RemovePlugName then magic comment will be removed from shader
+      source, so it will not be available for further effects. }
+    procedure Plug(const PlugName: string; const PlugValue: string;
+      const RemovePlugName: boolean = false);
 
     procedure EnableTexture(const TextureUnit: Cardinal;
       const TextureType: TTextureType; const ShadowMapSize: Cardinal = 0);
@@ -88,7 +99,7 @@ type
 implementation
 
 uses SysUtils, GL, GLExt, KambiUtils, KambiStringUtils, KambiGLUtils,
-  VRMLErrors, KambiLog;
+  VRMLErrors, KambiLog, StrUtils;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day.
@@ -109,6 +120,13 @@ uses SysUtils, GL, GLExt, KambiUtils, KambiStringUtils, KambiGLUtils,
   using direct normal OpenGL fixed-function functions in VRMLGLRenderer,
   and our shaders just use it.
 }
+
+constructor TVRMLShader.Create;
+begin
+  inherited;
+  VertexShaderComplete := {$I template.vs.inc};
+  FragmentShaderComplete := {$I template.fs.inc};
+end;
 
 destructor TVRMLShader.Destroy;
 begin
@@ -313,28 +331,58 @@ begin
     '  discard;' + NL;
 end;
 
-function TVRMLShader.CreateProgram: TGLSLProgram;
+{ Insert a piece of code at given plugging point.
+  Inserts code right before the magic @code(/* PLUG ...*/) comments,
+  this way many Plug calls for the same PlugName will insert code in the same
+  order. If RemovePlugName then magic comment will be removed from shader
+  source, so it will not be available for further effects. }
+procedure TVRMLShader.Plug(const PlugName: string; const PlugValue: string;
+  const RemovePlugName: boolean = false);
+var
+  PlugCommentBegin: string;
 
-  procedure Replace(var S: string; const ParameterName, ParameterValue: string);
+  function TryPlug(var Code: string): boolean;
+  var
+    PBegin, PEnd: Integer;
+    PlugDeclaration: string;
   begin
-    StringReplaceAllTo1st(S, '/* *** ' + ParameterName + ' *** */', ParameterValue, false);
+    Result := false;
+    PBegin := Pos(PlugCommentBegin, Code);
+    if PBegin <> 0 then
+    begin
+      PEnd := PosEx('*/', Code, PBegin + Length(PlugCommentBegin));
+      if PEnd <> 0 then
+      begin
+        Result := true;
+        PlugDeclaration := Trim(CopyPos(Code, PBegin + Length(PlugCommentBegin),
+          PEnd - 1));
+        {TODO:if PlugDeclaration = 'declaration' then}
+        if RemovePlugName then
+          DeletePos(Code, PBegin, PEnd + 1);
+        Code := Copy(Code, 0, PBegin - 1) + PlugValue + SEnding(Code, PBegin);
+      end;
+    end;
   end;
 
+begin
+  PlugCommentBegin := '/* PLUG: ' + PlugName + ' ';
+  if not TryPlug(VertexShaderComplete) then
+    if not TryPlug(FragmentShaderComplete) then
+      VRMLWarning(vwIgnorable, Format('Plugging point "%s" for shader code not found',
+        [PlugName]));
+end;
+
+
+function TVRMLShader.CreateProgram: TGLSLProgram;
 const
   PCFDefine: array [TPercentageCloserFiltering] of string =
   ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
-
-var
-  FS, VS: string;
 begin
-  VS := {$I template.vs.inc};
-  Replace(VS, 'VERTEX-DECLARE', ''); { no need for now }
-  Replace(VS, 'VERTEX-PROCESSING', TextureCoordInitialize + TextureCoordGen
+  Plug('vertex-process', TextureCoordInitialize + TextureCoordGen
     + TextureCoordMatrix + ClipPlane);
 
-  FS := {$I template.fs.inc};
-  Replace(FS, 'TEXTURE-APPLY', TextureApply);
-  Replace(FS, 'FRAGMENT-DECLARE',
+  Plug('texture-apply', TextureApply);
+  Plug('fragment-declare',
     FragmentShaderDeclare +
     PCFDefine[PercentageCloserFiltering] + NL +
     {$I shadow_map_common.fs.inc} +
@@ -344,19 +392,18 @@ begin
       to run such shader, saying it cannot run in hardware...
       So we have to set this by #define. }
     Format('#define LIGHTS_ENABLED %d' + NL, [LightsEnabled]));
-
-  Replace(FS, 'FRAGMENT-END', FragmentEnd);
+  Plug('fragment-end', FragmentEnd);
 
   if Log then
   begin
-    WritelnLogMultiline('Generated GLSL vertex shader', VS);
-    WritelnLogMultiline('Generated GLSL fragment shader', FS);
+    WritelnLogMultiline('Generated GLSL vertex shader', VertexShaderComplete);
+    WritelnLogMultiline('Generated GLSL fragment shader', FragmentShaderComplete);
   end;
 
   Result := TGLSLProgram.Create;
   try
-    Result.AttachVertexShader(VS);
-    Result.AttachFragmentShader(FS);
+    Result.AttachVertexShader(VertexShaderComplete);
+    Result.AttachFragmentShader(FragmentShaderComplete);
     Result.Link(true);
   except Result.Free; raise end;
 end;
