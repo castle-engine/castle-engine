@@ -11,7 +11,7 @@
 'varying vec4 vertex_eye;' + LineEnding + 
 'varying vec3 normal_eye;' + LineEnding + 
 '' + LineEnding + 
-'/* *** FRAGMENT-SHADER-DECLARE *** */' + LineEnding + 
+'/* *** FRAGMENT-DECLARE *** */' + LineEnding + 
 '' + LineEnding + 
 'void add_light_contribution(inout vec4 color,' + LineEnding + 
 '  const in vec3 normal_eye,' + LineEnding + 
@@ -52,7 +52,7 @@
 '        gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);' + LineEnding + 
 '  } else' + LineEnding + 
 '  {' + LineEnding + 
-'    for (int i = 0; i < 1; i++)' + LineEnding + 
+'    for (int i = 0; i < LIGHTS_ENABLED; i++)' + LineEnding + 
 '      add_light_contribution(gl_FragColor, -normal_eye,' + LineEnding + 
 '        gl_BackLightProduct[i], gl_LightSource[i], gl_BackMaterial);' + LineEnding + 
 '  }' + LineEnding + 

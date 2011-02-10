@@ -9,7 +9,7 @@
 varying vec4 vertex_eye;
 varying vec3 normal_eye;
 
-/* *** FRAGMENT-SHADER-DECLARE *** */
+/* *** FRAGMENT-DECLARE *** */
 
 void add_light_contribution(inout vec4 color,
   const in vec3 normal_eye,
@@ -50,7 +50,7 @@ void main(void)
         gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);
   } else
   {
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < LIGHTS_ENABLED; i++)
       add_light_contribution(gl_FragColor, -normal_eye,
         gl_BackLightProduct[i], gl_LightSource[i], gl_BackMaterial);
   }

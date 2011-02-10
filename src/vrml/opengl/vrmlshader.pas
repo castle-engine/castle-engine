@@ -58,6 +58,7 @@ type
     TextureApply, TextureCoordInitialize,
       TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare,
       ClipPlane: string;
+    FLightsEnabled: Cardinal;
   public
     destructor Destroy; override;
 
@@ -70,6 +71,8 @@ type
     procedure DisableTexGen(const TextureUnit: Cardinal);
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
+
+    property LightsEnabled: Cardinal read FLightsEnabled write FLightsEnabled;
 
     function CreateProgram: TGLSLProgram;
     procedure SetupUniforms(AProgram: TGLSLProgram);
@@ -291,13 +294,15 @@ var
   FS, VS: string;
 begin
   VS := {$I template.vs.inc};
+  Replace(VS, 'VERTEX-DECLARE', ''); { no need for now }
   Replace(VS, 'VERTEX-PROCESSING', TextureCoordInitialize + TextureCoordGen
     + TextureCoordMatrix + ClipPlane);
 
   FS := {$I template.fs.inc};
   Replace(FS, 'TEXTURE-APPLY', TextureApply);
-  Replace(FS, 'FRAGMENT-SHADER-DECLARE',
-    FragmentShaderDeclare + {$I shadow_map_common.fs.inc});
+  Replace(FS, 'FRAGMENT-DECLARE',
+    FragmentShaderDeclare + {$I shadow_map_common.fs.inc} +
+    Format('#define LIGHTS_ENABLED %d' + NL, [LightsEnabled]));
 
   if Log then
   begin

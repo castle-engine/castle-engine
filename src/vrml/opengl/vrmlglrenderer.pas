@@ -3532,15 +3532,16 @@ end;
 
 procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; Shader: TVRMLShader);
+var
+  LightsEnabled: Cardinal;
 begin
   if Attributes.UseSceneLights then
     { Done before loading State.Transform, as the lights
       positions/directions are in world coordinates. }
-    LightsRenderer.Render(Shape.State.CurrentActiveLights);
+    LightsRenderer.Render(Shape.State.CurrentActiveLights, LightsEnabled) else
+    LightsEnabled := LightsRenderer.GLLightNum1 + 1;
 
-    { Without LightsRenderer, we would do it like this:
-    glLightsFromVRML(State.CurrentActiveLights,
-      Attributes.FirstGLFreeLight, LastGLFreeLight);}
+  Shader.LightsEnabled := LightsEnabled;
 
   RenderShapeFog(Shape, Fog, Shader);
 end;

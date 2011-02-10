@@ -8,6 +8,8 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 
+'/* *** VERTEX-DECLARE *** */' + LineEnding + 
+'' + LineEnding + 
 'varying vec4 vertex_eye;' + LineEnding + 
 'varying vec3 normal_eye;' + LineEnding + 
 '' + LineEnding + 

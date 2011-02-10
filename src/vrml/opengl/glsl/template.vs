@@ -6,6 +6,8 @@
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
+/* *** VERTEX-DECLARE *** */
+
 varying vec4 vertex_eye;
 varying vec3 normal_eye;
 

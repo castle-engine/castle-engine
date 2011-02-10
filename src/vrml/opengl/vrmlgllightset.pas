@@ -120,9 +120,14 @@ type
       const ALightRenderEvent: TVRMLLightRenderEvent);
 
     { Render lights. Lights (TDynActiveLightArray) may be @nil,
-      it's equal to passing an empty array of lights. }
-    procedure Render(Lights: TDynActiveLightArray);
-    procedure Render(Lights: PArray_ActiveLight; LightsCount: Integer);
+      it's equal to passing an empty array of lights.
+
+      Returns LightsEnabled, a number of enabled lights, including GLLightNum1
+      (in other words, it assumes that first GLLightNum1 lights are already
+      reserved and enabled by caller). }
+    procedure Render(Lights: TDynActiveLightArray; out LightsEnabled: Cardinal);
+    procedure Render(Lights: PArray_ActiveLight; LightsCount: Integer;
+      out LightsEnabled: Cardinal);
 
     property GLLightNum1: Integer read FGLLightNum1;
     property GLLightNum2: Integer read FGLLightNum2;
@@ -443,15 +448,16 @@ begin
     SetLength(LightsDone, GLLightNum2 - GLLightNum1 + 1);
 end;
 
-procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynActiveLightArray);
+procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynActiveLightArray;
+  out LightsEnabled: Cardinal);
 begin
   if Lights <> nil then
-    Render(Lights.ItemsArray, Lights.Count) else
-    Render(nil, 0);
+    Render(Lights.ItemsArray, Lights.Count, LightsEnabled) else
+    Render(nil, 0, LightsEnabled);
 end;
 
 procedure TVRMLGLLightsCachingRenderer.Render(Lights: PArray_ActiveLight;
-  LightsCount: Integer);
+  LightsCount: Integer; out LightsEnabled: Cardinal);
 
   function NeedRenderLight(Index: Integer; Light: PActiveLight): boolean;
   begin
@@ -486,12 +492,14 @@ begin
     for i := 0 to GLLightNum2 - GLLightNum1 do
       if NeedRenderLight(I, @(Lights^[i])) then
         glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, LightRenderEvent);
+    LightsEnabled := GLLightNum2 + 1;
   end else
   begin
     { use some OpenGL lights for VRML lights, disable rest of the lights }
     for i := 0 to LightsCount - 1 do
       if NeedRenderLight(I, @(Lights^[i])) then
         glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, LightRenderEvent);
+    LightsEnabled := GLLightNum1 + LightsCount;
     for i := LightsCount to GLLightNum2-GLLightNum1 do
       if NeedRenderLight(I, nil) then
         glDisable(GL_LIGHT0 + GLLightNum1 + i);
