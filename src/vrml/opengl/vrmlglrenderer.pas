@@ -1032,6 +1032,11 @@ type
   public
     Cache: TShapeCache;
     ShaderProgram: TGLSLProgram;
+    { With what LightsEnabled was ShaderProgram prepared?
+      TODO: make is a more general mechanism, maybe store inside TGLSLProgram
+      descendant (defined in VRMLShader unit) such stuff and decide inside
+      VRMLShader unit when to recreate. }
+    ShaderProgramLightsEnabled: Cardinal;
   end;
 
   TVRMLGLRenderer = class

@@ -162,10 +162,14 @@ begin
   ShaderProgramUsed := false;
 
   { calculate and use Shape.ShaderProgram }
-  if ForceShaderRendering and (Shape.ShaderProgram = nil) then
+  if ForceShaderRendering and
+    ( (Shape.ShaderProgram = nil) or
+      (Shape.ShaderProgramLightsEnabled <> Shader.LightsEnabled) ) then
   begin
     try
+      FreeAndNil(Shape.ShaderProgram);
       Shape.ShaderProgram := Shader.CreateProgram;
+      Shape.ShaderProgramLightsEnabled := Shader.LightsEnabled;
     except on E: EGLSLError do
       VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
         [Shape.OriginalGeometry.NodeTypeName, E.Message]));
