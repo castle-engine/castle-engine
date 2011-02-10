@@ -401,11 +401,12 @@ type
 
     { Should we setup VRML/X3D lights as OpenGL lights during rendering.
 
-      VRML/X3D lights are loaded into OpenGL lights using the range of
-      FirstGLFreeLight ... LastGLFreeLight. LastGLFreeLight = -1 means
-      "the last possible OpenGL light", that is glGet(GL_MAX_LIGHT)-1.
+      VRML/X3D lights are loaded into OpenGL light numbers between
+      FirstGLFreeLight and LastGLFreeLight. LastGLFreeLight = -1
+      means that all the lights to the last are available
+      (it's essentially a shortcut for glGetInteger(GL_MAX_LIGHT) - 1).
       Note that by default we treat all lights except the 0th (typically
-      useful for making headlight) as "free to use" for VRML lights.
+      useful for making headlight) as "free to use" for VRML/X3D lights.
 
       This is independent from the @link(Lighting) property (which merely
       says whether we will turn OpenGL lighting on at all).
@@ -1054,13 +1055,6 @@ type
       GLContext-specific things, so freed (or reset in some other way to default
         uninitialized values) in UnprepareAll. }
 
-    { FLastGLFreeLight = -1 if not calculated.
-      GLContext - specific, so it is reset to -1 in UnprepareAll.
-      Use always LastGLFreeLight, not FLastGLFreeLight or Attributes.LastGLFreeLight
-      to get LastGLFreeLight. LastGLFreeLight function will not ever return -1
-      and will minimize amount of calls to glGetInteger() }
-    FLastGLFreeLight: integer;
-
     { Returns Attributes.LastGLFreeTexture,
       or (when Attributes.LastGLFreeTexture is -1)
       returns glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1. }
@@ -1379,11 +1373,7 @@ type
       out AlphaChannelType: TAlphaChannelType): boolean;
 
     { Last available OpenGL light number.
-
-      This is never -1, in contrast to Attributes.LastGLFreeLight.
-      In other words, if Attributes.LastGLFreeLight, then this method
-      will actually make appropriate glGetInteger call to get number of
-      available lights in this OpenGL context. }
+      This is never -1, in contrast to Attributes.LastGLFreeLight. }
     function LastGLFreeLight: integer;
 
     { Update generated texture for this shape.
@@ -2864,10 +2854,6 @@ constructor TVRMLGLRenderer.Create(
 begin
   inherited Create;
 
-  { This is something different than FAttributes.FLastGLFreeLight.
-    See LastGLFreeLight function. }
-  FLastGLFreeLight := -1;
-
   FLastGLFreeTexture := -1;
 
   FBumpMappingLightAmbientColor := DefaultBumpMappingLightAmbientColor;
@@ -3167,7 +3153,6 @@ var
   fsfam: TVRMLFontFamily;
   fsbold , fsitalic: boolean;
 begin
-  FLastGLFreeLight := -1;
   FLastGLFreeTexture := -1;
   BumpMappingMethodIsCached := false;
 
@@ -3195,14 +3180,9 @@ end;
 
 function TVRMLGLRenderer.LastGLFreeLight: integer;
 begin
- if FLastGLFreeLight = -1 then
- begin
-  {jezeli jeszcze nie pobrane FLastGLFreeLight to pobierz je teraz:}
-  if Attributes.LastGLFreeLight = -1 then
-   FLastGLFreeLight := glGetInteger(GL_MAX_LIGHTS)-1 else
-   FLastGLFreeLight := Attributes.LastGLFreeLight;
- end;
- result := FLastGLFreeLight;
+  Result := Attributes.LastGLFreeLight;
+  if Result = -1 then
+    Result += GLMaxLights;
 end;
 
 function TVRMLGLRenderer.LastGLFreeTexture: Cardinal;

@@ -296,6 +296,7 @@ var
     Initialized to 0 if appropriate OpenGL extension is not available.
     @groupBegin }
   GLMaxTextureSize: Cardinal;
+  GLMaxLights: Cardinal;
   GLMaxTextureUnitsARB: Cardinal;
   GLMaxCubeMapTextureSizeARB: Cardinal;
   GLMax3DTextureSizeEXT: Cardinal;
@@ -1185,6 +1186,7 @@ begin
  GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
 
  GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
+ GLMaxLights := glGetInteger(GL_MAX_LIGHTS);
 
  if GL_ARB_multitexture then
    GLMaxTextureUnitsARB := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) else
@@ -2374,7 +2376,7 @@ begin
   'Limits:' +nl+
   '  Max clip planes: ' + IntToStr(GLMaxClipPlanes) +nl+
   '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
-  '  Max lights: ' +GetInteger(GL_MAX_LIGHTS) +nl+
+  '  Max lights: ' + IntToStr(GLMaxLights) +nl+
   '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
   '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
   '  Max texture size: ' + IntToStr(GLMaxTextureSize) +nl+
