@@ -12,9 +12,10 @@ varying vec3 normal_eye;
 /* *** FRAGMENT-SHADER-DECLARE *** */
 
 void add_light_contribution(inout vec4 color,
+  const in vec3 normal_eye,
   const in gl_LightProducts light_products,
   const in gl_LightSourceParameters light_source,
-  const in vec3 normal_eye)
+  const in gl_MaterialParameters material)
 {
   /* add ambient term */
   color += light_products.ambient;
@@ -32,8 +33,7 @@ void add_light_contribution(inout vec4 color,
      We work in eye space here, so camera pos = always zero. */
   vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));
   color += light_products.specular
-    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0),
-          gl_FrontMaterial.shininess);
+    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);
 }
 
 void main(void)
@@ -46,13 +46,13 @@ void main(void)
   if (gl_FrontFacing)
   {
     for (int i = 0; i < 1; i++)
-      add_light_contribution(gl_FragColor,
-        gl_FrontLightProduct[i], gl_LightSource[i], normal_eye);
+      add_light_contribution(gl_FragColor, normal_eye,
+        gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);
   } else
   {
     for (int i = 0; i < 1; i++)
-      add_light_contribution(gl_FragColor,
-        gl_BackLightProduct[i], gl_LightSource[i], -normal_eye);
+      add_light_contribution(gl_FragColor, -normal_eye,
+        gl_BackLightProduct[i], gl_LightSource[i], gl_BackMaterial);
   }
 
   /* *** TEXTURE-APPLY *** */

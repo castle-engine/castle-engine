@@ -14,9 +14,10 @@
 '/* *** FRAGMENT-SHADER-DECLARE *** */' + LineEnding + 
 '' + LineEnding + 
 'void add_light_contribution(inout vec4 color,' + LineEnding + 
+'  const in vec3 normal_eye,' + LineEnding + 
 '  const in gl_LightProducts light_products,' + LineEnding + 
 '  const in gl_LightSourceParameters light_source,' + LineEnding + 
-'  const in vec3 normal_eye)' + LineEnding + 
+'  const in gl_MaterialParameters material)' + LineEnding + 
 '{' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 
 '  color += light_products.ambient;' + LineEnding + 
@@ -34,8 +35,7 @@
 '     We work in eye space here, so camera pos = always zero. */' + LineEnding + 
 '  vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));' + LineEnding + 
 '  color += light_products.specular' + LineEnding + 
-'    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0),' + LineEnding + 
-'          gl_FrontMaterial.shininess);' + LineEnding + 
+'    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);' + LineEnding + 
 '}' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
@@ -48,13 +48,13 @@
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
 '    for (int i = 0; i < 1; i++)' + LineEnding + 
-'      add_light_contribution(gl_FragColor,' + LineEnding + 
-'        gl_FrontLightProduct[i], gl_LightSource[i], normal_eye);' + LineEnding + 
+'      add_light_contribution(gl_FragColor, normal_eye,' + LineEnding + 
+'        gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);' + LineEnding + 
 '  } else' + LineEnding + 
 '  {' + LineEnding + 
 '    for (int i = 0; i < 1; i++)' + LineEnding + 
-'      add_light_contribution(gl_FragColor,' + LineEnding + 
-'        gl_BackLightProduct[i], gl_LightSource[i], -normal_eye);' + LineEnding + 
+'      add_light_contribution(gl_FragColor, -normal_eye,' + LineEnding + 
+'        gl_BackLightProduct[i], gl_LightSource[i], gl_BackMaterial);' + LineEnding + 
 '  }' + LineEnding + 
 '' + LineEnding + 
 '  /* *** TEXTURE-APPLY *** */' + LineEnding + 
