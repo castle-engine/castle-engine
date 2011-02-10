@@ -173,6 +173,8 @@ begin
       FreeAndNil(Shape.ShaderProgram);
       Shape.ShaderProgram := Shader.CreateProgram;
       Shape.ShaderProgramLightsEnabled := Shader.LightsEnabled;
+      Shape.ShaderProgramPCF := Shader.PercentageCloserFiltering;
+      Shape.ShaderProgramVisualizeDepthMap := Shader.VisualizeDepthMap;
     except on E: EGLSLError do
       VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
         [Shape.OriginalGeometry.NodeTypeName, E.Message]));
