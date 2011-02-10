@@ -2356,10 +2356,6 @@ function TVRMLGLRendererContextCache.GLSLProgram_IncReference_Core(
       begin
         Part := TNodeShaderPart(ProgramNode.FdParts.Items[I]);
 
-        if Part is TNodeShaderPartShadowMap then
-          TNodeShaderPartShadowMap(Part).VarianceShadowMapsEnabled :=
-            TGLGeneratedShadowMap.ClassVarianceShadowMaps(AAttributes);
-
         PartType := UpperCase(Part.FdType.Value);
         if PartType <> Part.FdType.Value then
           VRMLWarning(vwSerious, Format('ShaderPart.type should be uppercase, but is not: "%s"', [

@@ -43,31 +43,11 @@ const
     @item(extend it's "texture" field with appropriate GeneratedShadowMap,)
     @item(extend it's "texCoord" field with appropriate
       ProjectedTextureCoordinate,)
-    @item(override appearance's "shaders", to use appropriate shadow map
-      shader.)
   ) }
 procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal;
   const DefaultVisualizeShadowMap: boolean);
-
-type
-  { Shadow map shader, either a normal one or a special designed for
-    Variance Shadow Maps. This is used to choose from VRMLGLRenderer
-    whether we want VSM or not.
-
-    This is dirty internal stuff.
-    @exclude }
-  TNodeShaderPartShadowMap = class(TNodeShaderPart)
-  private
-    VSMContents: string;
-  public
-    { Use a different, special shader code designed for Variance Shadow Maps.
-      If you set this to @true, LoadContents will return a special hardcoded
-      VSM shader. }
-    VarianceShadowMapsEnabled: boolean;
-    function LoadContents: string; override;
-  end;
 
 implementation
 
@@ -76,16 +56,6 @@ uses SysUtils, KambiUtils, VRMLFields, VRMLErrors, KambiStringUtils, Math,
 
 {$define read_interface}
 {$define read_implementation}
-
-function TNodeShaderPartShadowMap.LoadContents: string;
-begin
-  if VarianceShadowMapsEnabled then
-  begin
-    Result := VSMContents;
-    FUsedFullUrl := 'INTERNAL-VARIANCE-SHADOW-MAP-SHADER';
-  end else
-    Result := inherited;
-end;
 
 const
   MaxBaseTextures = 1;
@@ -209,9 +179,7 @@ end;
 
 procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
 
-  { Add/Remove/Replace ShadowMap to the textures used by the material
-    (TODO: and by shaders, in the future; for now, we overuse the fact
-    that our shaders will get normal textures anyway).
+  { Add/Remove/Replace ShadowMap to the textures used by the material.
 
     Converts Texture to MultiTexture, to add the shadow map
     preserving old texture.
