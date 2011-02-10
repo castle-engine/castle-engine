@@ -29,13 +29,19 @@ void add_light_contribution(inout vec4 color,
        so there's no need to divide by it. This is true for our VRML/X3D
        lights. */
     /* positional light */
-    light_dir = light_source.position.xyz - vec3(vertex_eye);
+    light_dir = normalize(light_source.position.xyz - vec3(vertex_eye));
+
+    /* non-spot lights have always cutoff = 180, with cos = -1,
+       so the check below will always be false. No need to explicitly
+       compare with -1, nice. */
+    if (dot(normalize(light_source.spotDirection), -light_dir) <
+        light_source.spotCosCutoff)
+      return;
   } else
   {
     /* directional light */
-    light_dir = light_source.position.xyz;
+    light_dir = normalize(light_source.position.xyz);
   }
-  light_dir = normalize(light_dir);
 
   color += light_products.diffuse
     * max(dot(normal_eye, light_dir), 0.0);

@@ -31,13 +31,19 @@
 '       so there''s no need to divide by it. This is true for our VRML/X3D' + LineEnding + 
 '       lights. */' + LineEnding + 
 '    /* positional light */' + LineEnding + 
-'    light_dir = light_source.position.xyz - vec3(vertex_eye);' + LineEnding + 
+'    light_dir = normalize(light_source.position.xyz - vec3(vertex_eye));' + LineEnding + 
+'' + LineEnding + 
+'    /* non-spot lights have always cutoff = 180, with cos = -1,' + LineEnding + 
+'       so the check below will always be false. No need to explicitly' + LineEnding + 
+'       compare with -1, nice. */' + LineEnding + 
+'    if (dot(normalize(light_source.spotDirection), -light_dir) <' + LineEnding + 
+'        light_source.spotCosCutoff)' + LineEnding + 
+'      return;' + LineEnding + 
 '  } else' + LineEnding + 
 '  {' + LineEnding + 
 '    /* directional light */' + LineEnding + 
-'    light_dir = light_source.position.xyz;' + LineEnding + 
+'    light_dir = normalize(light_source.position.xyz);' + LineEnding + 
 '  }' + LineEnding + 
-'  light_dir = normalize(light_dir);' + LineEnding + 
 '' + LineEnding + 
 '  color += light_products.diffuse' + LineEnding + 
 '    * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
