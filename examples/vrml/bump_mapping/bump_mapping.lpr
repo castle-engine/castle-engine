@@ -795,7 +795,7 @@ begin
       so I change it back to default GL value. }
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
-    Scene.RenderFrustum(RenderState.CameraFrustum, tgAll);
+    Scene.RenderFrustum(RenderState.CameraFrustum, 1, tgAll);
   end else
   begin
     glEnable(GL_LIGHTING);

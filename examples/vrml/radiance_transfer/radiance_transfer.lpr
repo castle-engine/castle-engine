@@ -110,7 +110,7 @@ begin
     glViewport(0, 0, ContainerWidth, ContainerHeight);
   end;
 
-  Scene.Render(nil, tgAll);
+  Scene.Render(nil, 1, tgAll);
 
   DrawLight(false);
 end;

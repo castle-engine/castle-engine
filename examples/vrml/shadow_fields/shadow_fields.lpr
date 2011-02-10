@@ -179,7 +179,7 @@ begin
     glViewport(0, 0, Glwin.Width, Glwin.Height);
   end;
 
-  SceneReceiver.Render(nil, tgAll);
+  SceneReceiver.Render(nil, 0, tgAll);
 
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
@@ -188,7 +188,7 @@ begin
     glScalef(NavigatorCaster.ScaleFactor,
              NavigatorCaster.ScaleFactor,
              NavigatorCaster.ScaleFactor);
-    SceneCaster.Render(nil, tgAll);
+    SceneCaster.Render(nil, 1, tgAll);
   glPopMatrix;
 
   glEnable(GL_LIGHTING);
@@ -198,7 +198,7 @@ begin
     glScalef(NavigatorLocalLight.ScaleFactor,
              NavigatorLocalLight.ScaleFactor,
              NavigatorLocalLight.ScaleFactor);
-    SceneLocalLight.Render(nil, tgAll);
+    SceneLocalLight.Render(nil, 1, tgAll);
   glPopMatrix;
 
   { GL_LIGHTING is disabled by VRML renderer now }

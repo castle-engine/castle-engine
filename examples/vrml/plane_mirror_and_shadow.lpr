@@ -199,7 +199,7 @@ var
             almost exactly like Scene (the same set of glVertex etc.),
             but it's rendered with Attributes.PureGeometry = @true
             (we want it's color to be consistently black). }
-          SceneForShadow.Render(nil, tgAll);
+          SceneForShadow.Render(nil, 1, tgAll);
         glPopMatrix();
       glPopAttrib();
     glPopMatrix();
@@ -280,7 +280,7 @@ var
             We swap CCW to CW --- sides that were CCW previously (and had to
             be culled, or have normal vectors pointing from them) are now CW. }
           glFrontFace(GL_CW);
-          Scene.Render(nil, tgAll);
+          Scene.Render(nil, 1, tgAll);
           glFrontFace(GL_CCW);
         glPopMatrix();
 
@@ -336,7 +336,7 @@ begin
     { Render normal Scene }
     glPushMatrix();
       glRotatef(RotationAngle, 1, 1, 1);
-      Scene.Render(nil, tgAll);
+      Scene.Render(nil, 1, tgAll);
     glPopMatrix();
 
     BoxMaxSize := Box3DMaxSize(Box);

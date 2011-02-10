@@ -51,14 +51,16 @@ end;
 type
   TMySceneManager = class(TKamSceneManager)
   protected
-    procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    procedure Render3D(const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
     procedure ApplyProjection; override;
   end;
 
 var
   SceneManager: TMySceneManager;
 
-procedure TMySceneManager.Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TMySceneManager.Render3D(const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup; InShadow: boolean);
 
   { This was brutally copied from vrmlnodes_triangulating.inc
     (Sphere_LocalTriangulate), then adjusted. See there for comments. }

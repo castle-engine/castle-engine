@@ -457,13 +457,13 @@ var
 
 type
   TMySceneManager = class(TKamSceneManager)
-    procedure RenderFromView3D; override;
+    procedure RenderFromView3D(const LightsEnabled: Cardinal); override;
   end;
 
 var
   SceneManager: TMySceneManager;
 
-procedure TMySceneManager.RenderFromView3D;
+procedure TMySceneManager.RenderFromView3D(const LightsEnabled: Cardinal);
 
   { If ElementsIntensityTex = nil,
     then all element discs will have the same glMaterial.
@@ -624,7 +624,7 @@ begin
       begin
         glPushAttrib(GL_ENABLE_BIT);
           glEnable(GL_LIGHTING);
-          Scene.Render(nil, tgAll);
+          Scene.Render(nil, LightsEnabled, tgAll);
         glPopAttrib;
       end;
     dtElements:
@@ -648,7 +648,7 @@ begin
         FullRenderIntensityTex := CaptureAORect(false);
         try
           FullRenderShape := nil;
-          Scene.Render(nil, tgAll);
+          Scene.Render(nil, LightsEnabled, tgAll);
         finally FreeAndNil(FullRenderIntensityTex) end;
       end;
   end;
