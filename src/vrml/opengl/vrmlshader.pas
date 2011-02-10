@@ -185,8 +185,14 @@ begin
       begin
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
-        // TODO:
-        TextureCoordGen += Format('gl_TexCoord[%d].xyz = vec3(0.0, 0.0, 0.0);' + NL,
+        TextureCoordGen += Format(
+          { Sphere mapping in GLSL adapted from
+            http://www.ozone3d.net/tutorials/glsl_texturing_p04.php#part_41
+            by Jerome Guinot aka 'JeGX', many thanks! }
+          'vec3 r = reflect( normalize(vec3(vertex_eye)), normal_eye );' + NL +
+	  'float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );' + NL +
+          '/* Using 1.0 / 2.0 instead of 0.5 to workaround fglrx bugs */' + NL +
+	  'gl_TexCoord[%d].st = r.xy / m + vec2(1.0, 1.0) / 2.0;',
           [TextureUnit]);
       end;
     tgNormal:
