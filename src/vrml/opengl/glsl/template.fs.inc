@@ -81,5 +81,7 @@
 '  }' + LineEnding + 
 '' + LineEnding + 
 '  /* *** TEXTURE-APPLY *** */' + LineEnding + 
+'' + LineEnding + 
+'  /* *** FRAGMENT-END *** */' + LineEnding + 
 '}' + LineEnding + 
 ''
