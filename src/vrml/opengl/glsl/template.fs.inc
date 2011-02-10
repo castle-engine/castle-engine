@@ -67,7 +67,10 @@
 '      add_light_contribution(gl_FragColor, normal_eye,' + LineEnding + 
 '        gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);' + LineEnding + 
 '    /* Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding + 
-'       and it''s always opaque */' + LineEnding + 
+'       and it''s always opaque.' + LineEnding + 
+'       Using diffuse.a is actually exactly what fixed-function pipeline does' + LineEnding + 
+'       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html' + LineEnding + 
+'    */' + LineEnding + 
 '    gl_FragColor.a = gl_FrontMaterial.diffuse.a;' + LineEnding + 
 '  } else' + LineEnding + 
 '  {' + LineEnding + 

@@ -65,7 +65,10 @@ void main(void)
       add_light_contribution(gl_FragColor, normal_eye,
         gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);
     /* Otherwise, alpha is usually large after previous add_light_contribution,
-       and it's always opaque */
+       and it's always opaque.
+       Using diffuse.a is actually exactly what fixed-function pipeline does
+       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html
+    */
     gl_FragColor.a = gl_FrontMaterial.diffuse.a;
   } else
   {
