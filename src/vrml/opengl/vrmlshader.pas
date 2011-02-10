@@ -75,6 +75,9 @@ type
     procedure Plug(const PlugName: string; const PlugValue: string;
       const RemovePlugName: boolean = false);
 
+    function CreateProgram: TGLSLProgram;
+    procedure SetupUniforms(AProgram: TGLSLProgram);
+
     procedure EnableTexture(const TextureUnit: Cardinal;
       const TextureType: TTextureType; const ShadowMapSize: Cardinal = 0);
     procedure EnableTexGen(const TextureUnit: Cardinal;
@@ -91,9 +94,6 @@ type
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
     property VisualizeDepthMap: boolean
       read FVisualizeDepthMap write FVisualizeDepthMap;
-
-    function CreateProgram: TGLSLProgram;
-    procedure SetupUniforms(AProgram: TGLSLProgram);
   end;
 
 implementation
@@ -132,6 +132,90 @@ destructor TVRMLShader.Destroy;
 begin
   FreeAndNil(Uniforms);
   inherited;
+end;
+
+procedure TVRMLShader.Plug(const PlugName: string; const PlugValue: string;
+  const RemovePlugName: boolean = false);
+var
+  PlugCommentBegin: string;
+
+  function TryPlug(var Code: string): boolean;
+  var
+    PBegin, PEnd: Integer;
+    PlugDeclaration: string;
+  begin
+    Result := false;
+    PBegin := Pos(PlugCommentBegin, Code);
+    if PBegin <> 0 then
+    begin
+      PEnd := PosEx('*/', Code, PBegin + Length(PlugCommentBegin));
+      if PEnd <> 0 then
+      begin
+        Result := true;
+        PlugDeclaration := Trim(CopyPos(Code, PBegin + Length(PlugCommentBegin),
+          PEnd - 1));
+        {TODO:if PlugDeclaration = 'declaration' then}
+        if RemovePlugName then
+          DeletePos(Code, PBegin, PEnd + 1);
+        Code := Copy(Code, 0, PBegin - 1) + PlugValue + SEnding(Code, PBegin);
+      end;
+    end;
+  end;
+
+begin
+  PlugCommentBegin := '/* PLUG: ' + PlugName + ' ';
+  if not TryPlug(VertexShaderComplete) then
+    if not TryPlug(FragmentShaderComplete) then
+      VRMLWarning(vwIgnorable, Format('Plugging point "%s" for shader code not found',
+        [PlugName]));
+end;
+
+function TVRMLShader.CreateProgram: TGLSLProgram;
+const
+  PCFDefine: array [TPercentageCloserFiltering] of string =
+  ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
+begin
+  Plug('vertex-process', TextureCoordInitialize + TextureCoordGen
+    + TextureCoordMatrix + ClipPlane);
+
+  Plug('texture-apply', TextureApply);
+  Plug('fragment-declare',
+    FragmentShaderDeclare +
+    PCFDefine[PercentageCloserFiltering] + NL +
+    {$I shadow_map_common.fs.inc} +
+    { Passing LightsEnabled as uniform would enable me to reuse
+      created GLSL program more. However, this could be slower,
+      depending on GPU. And, in fact, fglrx at least on Radeon X1600 refuses
+      to run such shader, saying it cannot run in hardware...
+      So we have to set this by #define. }
+    Format('#define LIGHTS_ENABLED %d' + NL, [LightsEnabled]));
+  Plug('fragment-end', FragmentEnd);
+
+  if Log then
+  begin
+    WritelnLogMultiline('Generated GLSL vertex shader', VertexShaderComplete);
+    WritelnLogMultiline('Generated GLSL fragment shader', FragmentShaderComplete);
+  end;
+
+  Result := TGLSLProgram.Create;
+  try
+    Result.AttachVertexShader(VertexShaderComplete);
+    Result.AttachFragmentShader(FragmentShaderComplete);
+    Result.Link(true);
+  except Result.Free; raise end;
+end;
+
+procedure TVRMLShader.SetupUniforms(AProgram: TGLSLProgram);
+var
+  I: Integer;
+begin
+  if Uniforms <> nil then
+    for I := 0 to Uniforms.Count - 1 do
+      case Uniforms[I].AType of
+        utLongInt: AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.LongInt);
+        utSingle : AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.Single );
+        else raise EInternalError.Create('TVRMLShader.SetupUniforms:Uniforms[I].Type?');
+      end;
 end;
 
 procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
@@ -329,96 +413,6 @@ begin
     '/* Do the trick with 1.0 / 2.0, instead of comparing with 0.5, to avoid fglrx bugs */' + NL +
     'if (2.0 * gl_FragColor.a < 1.0)' + NL +
     '  discard;' + NL;
-end;
-
-{ Insert a piece of code at given plugging point.
-  Inserts code right before the magic @code(/* PLUG ...*/) comments,
-  this way many Plug calls for the same PlugName will insert code in the same
-  order. If RemovePlugName then magic comment will be removed from shader
-  source, so it will not be available for further effects. }
-procedure TVRMLShader.Plug(const PlugName: string; const PlugValue: string;
-  const RemovePlugName: boolean = false);
-var
-  PlugCommentBegin: string;
-
-  function TryPlug(var Code: string): boolean;
-  var
-    PBegin, PEnd: Integer;
-    PlugDeclaration: string;
-  begin
-    Result := false;
-    PBegin := Pos(PlugCommentBegin, Code);
-    if PBegin <> 0 then
-    begin
-      PEnd := PosEx('*/', Code, PBegin + Length(PlugCommentBegin));
-      if PEnd <> 0 then
-      begin
-        Result := true;
-        PlugDeclaration := Trim(CopyPos(Code, PBegin + Length(PlugCommentBegin),
-          PEnd - 1));
-        {TODO:if PlugDeclaration = 'declaration' then}
-        if RemovePlugName then
-          DeletePos(Code, PBegin, PEnd + 1);
-        Code := Copy(Code, 0, PBegin - 1) + PlugValue + SEnding(Code, PBegin);
-      end;
-    end;
-  end;
-
-begin
-  PlugCommentBegin := '/* PLUG: ' + PlugName + ' ';
-  if not TryPlug(VertexShaderComplete) then
-    if not TryPlug(FragmentShaderComplete) then
-      VRMLWarning(vwIgnorable, Format('Plugging point "%s" for shader code not found',
-        [PlugName]));
-end;
-
-
-function TVRMLShader.CreateProgram: TGLSLProgram;
-const
-  PCFDefine: array [TPercentageCloserFiltering] of string =
-  ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
-begin
-  Plug('vertex-process', TextureCoordInitialize + TextureCoordGen
-    + TextureCoordMatrix + ClipPlane);
-
-  Plug('texture-apply', TextureApply);
-  Plug('fragment-declare',
-    FragmentShaderDeclare +
-    PCFDefine[PercentageCloserFiltering] + NL +
-    {$I shadow_map_common.fs.inc} +
-    { Passing LightsEnabled as uniform would enable me to reuse
-      created GLSL program more. However, this could be slower,
-      depending on GPU. And, in fact, fglrx at least on Radeon X1600 refuses
-      to run such shader, saying it cannot run in hardware...
-      So we have to set this by #define. }
-    Format('#define LIGHTS_ENABLED %d' + NL, [LightsEnabled]));
-  Plug('fragment-end', FragmentEnd);
-
-  if Log then
-  begin
-    WritelnLogMultiline('Generated GLSL vertex shader', VertexShaderComplete);
-    WritelnLogMultiline('Generated GLSL fragment shader', FragmentShaderComplete);
-  end;
-
-  Result := TGLSLProgram.Create;
-  try
-    Result.AttachVertexShader(VertexShaderComplete);
-    Result.AttachFragmentShader(FragmentShaderComplete);
-    Result.Link(true);
-  except Result.Free; raise end;
-end;
-
-procedure TVRMLShader.SetupUniforms(AProgram: TGLSLProgram);
-var
-  I: Integer;
-begin
-  if Uniforms <> nil then
-    for I := 0 to Uniforms.Count - 1 do
-      case Uniforms[I].AType of
-        utLongInt: AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.LongInt);
-        utSingle : AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.Single );
-        else raise EInternalError.Create('TVRMLShader.SetupUniforms:Uniforms[I].Type?');
-      end;
 end;
 
 end.
