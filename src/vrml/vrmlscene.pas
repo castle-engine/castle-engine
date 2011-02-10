@@ -547,7 +547,6 @@ type
     FOwnsInput_PointingDeviceActivate: boolean;
     FStatic: boolean;
     FShadowMaps: boolean;
-    FShadowMapsVisualizeDepth: boolean;
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
     { All CameraFromViewpoint calls will disable smooth (animated)
@@ -838,8 +837,6 @@ type
       You can override it in descendants to create something more specialized. }
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
-
-    procedure SetShadowMapsVisualizeDepth(const Value: boolean); virtual;
 
     procedure UpdateHeadlightOnFromNavigationInfo;
   protected
@@ -2002,12 +1999,9 @@ type
       [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_maps].
       When using these lower-level nodes, this property does not matter
       This property (and related ones
-      like ShadowMapsVisualizeDepth, ShadowMapsDefaultSize)
+      like ShadowMapsDefaultSize)
       is relevant only for handling shadows by the "receiveShadows" field. }
     property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
-
-    property ShadowMapsVisualizeDepth: boolean
-     read FShadowMapsVisualizeDepth write SetShadowMapsVisualizeDepth default false;
 
     { Default shadow map texture size.
 
@@ -2387,7 +2381,6 @@ begin
   FOwnsInput_PointingDeviceActivate := true;
 
   FShadowMaps := true;
-  FShadowMapsVisualizeDepth := false;
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 
   { We could call here ScheduleChangedAll (or directly ChangedAll),
@@ -3083,7 +3076,7 @@ begin
   if ScheduledShadowMapsProcessing then
   begin
     ProcessShadowMapsReceivers(RootNode, Shapes, ShadowMaps,
-      ShadowMapsDefaultSize, ShadowMapsVisualizeDepth);
+      ShadowMapsDefaultSize);
     ScheduledShadowMapsProcessing := false;
   end;
 
@@ -6598,20 +6591,6 @@ begin
 
     ScheduledShadowMapsProcessing := true;
     ScheduleChangedAll;
-  end;
-end;
-
-procedure TVRMLScene.SetShadowMapsVisualizeDepth(const Value: boolean);
-begin
-  if FShadowMapsVisualizeDepth <> Value then
-  begin
-    FShadowMapsVisualizeDepth := Value;
-
-    if ShadowMaps then { if not ShadowMaps, then no need to reprocess }
-    begin
-      ScheduledShadowMapsProcessing := true;
-      ScheduleChangedAll;
-    end;
   end;
 end;
 

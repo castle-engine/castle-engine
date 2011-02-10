@@ -46,8 +46,7 @@ const
   ) }
 procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
   const Enable: boolean;
-  const DefaultShadowMapSize: Cardinal;
-  const DefaultVisualizeShadowMap: boolean);
+  const DefaultShadowMapSize: Cardinal);
 
 implementation
 
@@ -82,7 +81,6 @@ type
   public
     Enable: boolean;
     DefaultShadowMapSize: Cardinal;
-    DefaultVisualizeShadowMap: boolean;
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
     ShadowCastersBox: TBox3D;
     LightsCastingOnEverything: TVRMLNodesList;
@@ -166,9 +164,6 @@ begin
     set NodeName, such that it has NodeNameSuffix. This is needed for
     HandleShadowMap, so that it can be removed later. }
   Result^.ShadowMap.NodeName := LightUniqueName + '_ShadowMap' + NodeNameSuffix;
-
-  if DefaultVisualizeShadowMap then
-    Result^.ShadowMap.FdCompareMode.Value := 'NONE';
 
   { create new ProjectedTextureCoordinate node }
 
@@ -566,8 +561,7 @@ end;
 
 procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
   const Enable: boolean;
-  const DefaultShadowMapSize: Cardinal;
-  const DefaultVisualizeShadowMap: boolean);
+  const DefaultShadowMapSize: Cardinal);
 var
   Lights: TDynLightArray;
   L: PLight;
@@ -581,7 +575,6 @@ begin
   try
     Lights.Enable := Enable;
     Lights.DefaultShadowMapSize := DefaultShadowMapSize;
-    Lights.DefaultVisualizeShadowMap := DefaultVisualizeShadowMap;
     Lights.ShadowCastersBox := EmptyBox3D;
 
     { calculate Lights.LightsCastingOnEverything first }

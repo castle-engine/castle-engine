@@ -91,7 +91,6 @@ type
     FTimeAtLoad: TKamTime;
     FTime: TKamTime;
     FShadowMaps: boolean;
-    FShadowMapsVisualizeDepth: boolean;
     FShadowMapsDefaultSize: Cardinal;
 
     ValidBoundingBox: boolean;
@@ -99,7 +98,6 @@ type
     FCollisionUseLastScene: boolean;
 
     procedure SetShadowMaps(const Value: boolean);
-    procedure SetShadowMapsVisualizeDepth(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
     function InfoBoundingBox: string;
@@ -628,8 +626,6 @@ type
       See TVRMLScene.ShadowMaps and related properties for documentation.
       @groupBegin }
     property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
-    property ShadowMapsVisualizeDepth: boolean
-     read FShadowMapsVisualizeDepth write SetShadowMapsVisualizeDepth default false;
     property ShadowMapsDefaultSize: Cardinal
       read FShadowMapsDefaultSize write SetShadowMapsDefaultSize
       default DefaultShadowMapsDefaultSize;
@@ -688,7 +684,6 @@ begin
   inherited CreateProvidedRenderer(nil, AProvidedRenderer);
 
   ShadowMaps := FParentAnimation.ShadowMaps;
-  ShadowMapsVisualizeDepth := FParentAnimation.ShadowMapsVisualizeDepth;
   ShadowMapsDefaultSize := FParentAnimation.ShadowMapsDefaultSize;
 
   Load(ARootNode, AOwnsRootNode);
@@ -759,7 +754,6 @@ begin
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
   FShadowMaps := true;
-  FShadowMapsVisualizeDepth := false;
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 end;
 
@@ -2004,21 +1998,6 @@ begin
     begin
       for I := 0 to FScenes.High do
         FScenes[I].ShadowMaps := Value;
-    end;
-  end;
-end;
-
-procedure TVRMLGLAnimation.SetShadowMapsVisualizeDepth(const Value: boolean);
-var
-  I: Integer;
-begin
-  if Value <> FShadowMapsVisualizeDepth then
-  begin
-    FShadowMapsVisualizeDepth := Value;
-    if FScenes <> nil then
-    begin
-      for I := 0 to FScenes.High do
-        FScenes[I].ShadowMapsVisualizeDepth := Value;
     end;
   end;
 end;
