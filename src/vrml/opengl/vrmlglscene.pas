@@ -448,7 +448,8 @@ type
       handling also LastRender_SumNext. }
     procedure RenderScene(
       TestShapeVisibility: TTestShapeVisibility;
-      TransparentGroup: TTransparentGroup;
+      const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent);
 
     { Destroy any associations of Renderer with OpenGL context.
@@ -609,12 +610,12 @@ type
           but it has some important disadvantages if your OnDraw does
           not consist of only one call to Render. E.g. instead of simple
 @longCode(#
-  Scene.Render(nil, tgAll);
+  Scene.Render(nil, LightsEnabled, tgAll);
 #)
           you have
 @longCode(#
-  Scene1.Render(nil, tgAll);
-  Scene2.Render(nil, tgAll);
+  Scene1.Render(nil, LightsEnabled, tgAll);
+  Scene2.Render(nil, LightsEnabled, tgAll);
 #)
           The code above it not good if both scenes contain some
           opaque and some transparent objects.
@@ -624,11 +625,11 @@ type
 
           So that's when TransparentGroups come to use: you can write
 @longCode(#
-  Scene1.Render(nil, tgOpaque);
-  Scene2.Render(nil, tgOpaque);
+  Scene1.Render(nil, LightsEnabled, tgOpaque);
+  Scene2.Render(nil, LightsEnabled, tgOpaque);
 
-  Scene1.Render(nil, tgTransparent);
-  Scene2.Render(nil, tgTransparent);
+  Scene1.Render(nil, LightsEnabled, tgTransparent);
+  Scene2.Render(nil, LightsEnabled, tgTransparent);
 #)
           Note that when Attributes.Blending is @false then everything
           is always opaque, so tgOpaque renders everything and tgTransparent
@@ -636,7 +637,8 @@ type
         ))
     }
     procedure Render(TestShapeVisibility: TTestShapeVisibility;
-      TransparentGroup: TTransparentGroup;
+      const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent = nil);
 
     { This renders the scene eliminating Shapes that are entirely
@@ -650,11 +652,13 @@ type
       find visible Shape. Otherwise, we will just enumerate all
       Shapes (which may be slower if you really have a lot of Shapes). }
     procedure RenderFrustum(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup;
+      const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent = nil);
 
     procedure Render(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup;
+      const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup;
       InShadow: boolean); override;
 
     { LastRender_ properties provide you read-only statistics
@@ -1700,7 +1704,8 @@ end;
 
 procedure TVRMLGLScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility;
-  TransparentGroup: TTransparentGroup;
+  const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup;
   LightRenderEvent: TVRMLLightRenderEvent);
 const
   AllOrOpaque = [tgAll, tgOpaque];
@@ -2181,7 +2186,7 @@ begin
 
   OcclusionBoxState := false;
 
-  Renderer.RenderBegin(LightRenderEvent);
+  Renderer.RenderBegin(LightsEnabled, LightRenderEvent);
   try
     if Attributes.PureGeometry then
     begin
@@ -2297,7 +2302,7 @@ procedure TVRMLGLScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        Renderer.RenderBegin(nil);
+        Renderer.RenderBegin(0, nil);
         while SI.GetNext do
         begin
           Shape := TVRMLGLShape(SI.Current);
@@ -2344,12 +2349,13 @@ end;
 
 procedure TVRMLGLScene.Render(
   TestShapeVisibility: TTestShapeVisibility;
-  TransparentGroup: TTransparentGroup;
+  const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup;
   LightRenderEvent: TVRMLLightRenderEvent);
 
   procedure RenderNormal;
   begin
-    RenderScene(TestShapeVisibility, TransparentGroup, LightRenderEvent);
+    RenderScene(TestShapeVisibility, LightsEnabled, TransparentGroup, LightRenderEvent);
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);
@@ -3415,7 +3421,8 @@ end;
 { RenderFrustum and helpers -------------------------------------------------- }
 
 procedure TVRMLGLScene.RenderFrustum(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup;
+  const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup;
   LightRenderEvent: TVRMLLightRenderEvent);
 
   procedure RenderFrustumOctree(Octree: TVRMLShapeOctree);
@@ -3430,7 +3437,7 @@ procedure TVRMLGLScene.RenderFrustum(const Frustum: TFrustum;
 
     Octree.EnumerateCollidingOctreeItems(Frustum,
       @RenderFrustumOctree_EnumerateShapes);
-    Render(@RenderFrustumOctree_TestShape, TransparentGroup, LightRenderEvent);
+    Render(@RenderFrustumOctree_TestShape, LightsEnabled, TransparentGroup, LightRenderEvent);
   end;
 
 begin
@@ -3438,7 +3445,7 @@ begin
 
   if OctreeRendering <> nil then
     RenderFrustumOctree(OctreeRendering) else
-    Render(FrustumCullingFunc, TransparentGroup, LightRenderEvent);
+    Render(FrustumCullingFunc, LightsEnabled, TransparentGroup, LightRenderEvent);
 end;
 
 function TVRMLGLScene.RenderFrustumOctree_TestShape(
@@ -3461,7 +3468,8 @@ begin
 end;
 
 procedure TVRMLGLScene.Render(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup; InShadow: boolean);
+  const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup; InShadow: boolean);
 var
   RestoreGLSLShaders: boolean;
 begin
@@ -3475,8 +3483,8 @@ begin
       Attributes.GLSLShaders := false;
 
     if InShadow then
-      RenderFrustum(Frustum, TransparentGroup, @LightRenderInShadow) else
-      RenderFrustum(Frustum, TransparentGroup, nil);
+      RenderFrustum(Frustum, LightsEnabled, TransparentGroup, @LightRenderInShadow) else
+      RenderFrustum(Frustum, LightsEnabled, TransparentGroup, nil);
 
     if RestoreGLSLShaders then
       Attributes.GLSLShaders := true;

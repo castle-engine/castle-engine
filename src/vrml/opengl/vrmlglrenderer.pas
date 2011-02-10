@@ -277,7 +277,6 @@ type
 
 const
   DefaultBumpMappingMaximum = bmNone;
-  DefaultFirstGLFreeLight = 1;
   DefaultVarianceShadowMaps = false;
 
 type
@@ -295,8 +294,6 @@ type
     FOnVertexColor: TVertexColorFunction;
     FLighting: boolean;
     FUseSceneLights: boolean;
-    FFirstGLFreeLight: Cardinal;
-    FLastGLFreeLight: integer;
     FControlMaterials: boolean;
     FControlTextures: boolean;
     FEnableTextures: boolean;
@@ -397,11 +394,11 @@ type
     { Should we setup VRML/X3D lights as OpenGL lights during rendering.
 
       VRML/X3D lights are loaded into OpenGL light numbers between
-      FirstGLFreeLight and LastGLFreeLight. LastGLFreeLight = -1
-      means that all the lights to the last are available
-      (it's essentially a shortcut for glGetInteger(GL_MAX_LIGHT) - 1).
-      Note that by default we treat all lights except the 0th (typically
-      useful for making headlight) as "free to use" for VRML/X3D lights.
+      given (to RenderBegin) LightsEnabled, and the last available OpenGL light.
+      Lights before and up to the LightsEnabled must be always enabled,
+      by your own code.
+      This is necessary, as our shader pipeline must know about all enabled
+      lights, from VRML/X3D or not.
 
       This is independent from the @link(Lighting) property (which merely
       says whether we will turn OpenGL lighting on at all).
@@ -411,16 +408,9 @@ type
       of @link(Lighting) and @link(UseSceneLights) values.)
       You can use your own lights instead of scene lights (set UseSceneLights
       to @false), or in addition to scene lights (leave UseSceneLights
-      as @true and adjust FirstGLFreeLight / LastGLFreeLight).
-
-      @groupBegin }
+      as @true and increase LightsEnabled as necessary). }
     property UseSceneLights: boolean
       read FUseSceneLights write FUseSceneLights default true;
-    property FirstGLFreeLight: Cardinal
-      read FFirstGLFreeLight write FFirstGLFreeLight default DefaultFirstGLFreeLight;
-    property LastGLFreeLight: integer
-      read FLastGLFreeLight write FLastGLFreeLight default -1;
-    { @groupEnd }
 
     { Should we take care of applying appropriate
       materials and colors on your model.
@@ -1161,6 +1151,11 @@ type
     FCache: TVRMLGLRendererContextCache;
     OwnsCache: boolean;
 
+    { First OpenGL light available for VRML/X3D rendering.
+      In other words, the number of lights enabled outside of this renderer.
+      Set in each RenderBegin. }
+    FirstLight: Cardinal;
+
     { Get VRML/X3D fog parameters, based on fog node and Attributes.UseFog. }
     procedure GetFog(Node: INodeX3DFogObject;
       out Enabled, Volumetric: boolean;
@@ -1270,7 +1265,8 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin(LightRenderEvent: TVRMLLightRenderEvent);
+    procedure RenderBegin(const LightsEnabled: Cardinal;
+      LightRenderEvent: TVRMLLightRenderEvent);
     procedure RenderEnd;
 
     procedure RenderShape(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
@@ -1366,10 +1362,6 @@ type
     function PreparedTextureAlphaChannelType(
       TextureNode: TNodeX3DTextureNode;
       out AlphaChannelType: TAlphaChannelType): boolean;
-
-    { Last available OpenGL light number.
-      This is never -1, in contrast to Attributes.LastGLFreeLight. }
-    function LastGLFreeLight: integer;
 
     { Update generated texture for this shape.
 
@@ -2629,8 +2621,6 @@ begin
     OnVertexColor := TVRMLRenderingAttributes(Source).OnVertexColor;
     Lighting := TVRMLRenderingAttributes(Source).Lighting;
     UseSceneLights := TVRMLRenderingAttributes(Source).UseSceneLights;
-    FirstGLFreeLight := TVRMLRenderingAttributes(Source).FirstGLFreeLight;
-    LastGLFreeLight := TVRMLRenderingAttributes(Source).LastGLFreeLight;
     ControlMaterials := TVRMLRenderingAttributes(Source).ControlMaterials;
     ControlTextures := TVRMLRenderingAttributes(Source).ControlTextures;
     EnableTextures := TVRMLRenderingAttributes(Source).EnableTextures;
@@ -2661,8 +2651,6 @@ begin
 
   FLighting := true;
   FUseSceneLights := true;
-  FFirstGLFreeLight := DefaultFirstGLFreeLight;
-  FLastGLFreeLight := -1;
   FLastGLFreeTexture := -1;
   FControlMaterials := true;
   FControlTextures := true;
@@ -3148,13 +3136,6 @@ begin
   FreeAndNil(BmGLSLProgram[true]);
 end;
 
-function TVRMLGLRenderer.LastGLFreeLight: integer;
-begin
-  Result := Attributes.LastGLFreeLight;
-  if Result = -1 then
-    Result += GLMaxLights;
-end;
-
 function TVRMLGLRenderer.LastGLFreeTexture: Cardinal;
 begin
   if FLastGLFreeTexture = -1 then
@@ -3405,14 +3386,15 @@ begin
       SetGLEnabled(GL_LIGHTING, Beginning);
 
     if Attributes.UseSceneLights then
-      for I := Attributes.FirstGLFreeLight to LastGLFreeLight do
+      for I := FirstLight to GLMaxLights - 1 do
         glDisable(GL_LIGHT0 + I);
 
     glDisable(GL_FOG);
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderBegin(LightRenderEvent: TVRMLLightRenderEvent);
+procedure TVRMLGLRenderer.RenderBegin(const LightsEnabled: Cardinal;
+  LightRenderEvent: TVRMLLightRenderEvent);
 var
   Attribs: TGLbitfield;
 begin
@@ -3443,6 +3425,8 @@ begin
     }
   end;
 
+  FirstLight := LightsEnabled;
+
   RenderCleanState(true);
 
   { push matrix after RenderCleanState, to be sure we're in modelview mode }
@@ -3451,7 +3435,7 @@ begin
   Assert(FogNode = nil);
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
-    Attributes.FirstGLFreeLight, LastGLFreeLight, LightRenderEvent);
+    FirstLight, GLMaxLights - 1, LightRenderEvent);
 end;
 
 procedure TVRMLGLRenderer.RenderEnd;
@@ -3509,7 +3493,7 @@ begin
     { Done before loading State.Transform, as the lights
       positions/directions are in world coordinates. }
     LightsRenderer.Render(Shape.State.CurrentActiveLights, LightsEnabled) else
-    LightsEnabled := LightsRenderer.GLLightNum1 + 1;
+    LightsEnabled := FirstLight;
 
   Shader.LightsEnabled := LightsEnabled;
 

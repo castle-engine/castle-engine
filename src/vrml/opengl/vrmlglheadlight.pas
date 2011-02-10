@@ -61,25 +61,6 @@ type
       const HeadlightFromCurrentView: boolean;
       Camera: TCamera);
     { @groupEnd }
-
-    { This is like Light.Render(GLLightNumber, true, ...), but will call
-      glDisable(GL_LIGHT_GLLightNumber) if Light is nil.
-
-      In effect, you can call this procedure with nil or non-nil
-      parameter, and you can be sure that enabled/disabled state
-      of light GL_LIGHT_GLLightNumber will be set.
-
-      @groupBegin }
-    class procedure RenderOrDisable(Light: TVRMLGLHeadlight;
-      GLLightNumber: Cardinal;
-      const HeadlightFromCurrentView: boolean;
-      const HeadlightPosition, HeadlightDirection: TVector3Single);
-
-    class procedure RenderOrDisable(Light: TVRMLGLHeadlight;
-      GLLightNumber: Cardinal;
-      const HeadlightFromCurrentView: boolean;
-      Camera: TCamera);
-    { @groupEnd }
   end;
 
 implementation
@@ -158,28 +139,6 @@ var
 begin
   Camera.GetView(Pos, Dir, Up);
   Render(GLLightNumber, CallEnabled, HeadlightFromCurrentView, Pos, Dir);
-end;
-
-class procedure TVRMLGLHeadLight.RenderOrDisable(Light: TVRMLGLHeadlight;
-  GLLightNumber: Cardinal;
-  const HeadlightFromCurrentView: boolean;
-  const HeadlightPosition, HeadlightDirection: TVector3Single);
-begin
-  if Light <> nil then
-    Light.Render(GLLightNumber, true,
-      HeadlightFromCurrentView, HeadlightPosition, HeadlightDirection) else
-    glDisable(GL_LIGHT0 + GLLightNumber);
-end;
-
-class procedure TVRMLGLHeadLight.RenderOrDisable(Light: TVRMLGLHeadlight;
-  GLLightNumber: Cardinal;
-  const HeadlightFromCurrentView: boolean;
-  Camera: TCamera);
-var
-  Pos, Dir, Up: TVector3Single;
-begin
-  Camera.GetView(Pos, Dir, Up);
-  RenderOrDisable(Light, GLLightNumber, HeadlightFromCurrentView, Pos, Dir);
 end;
 
 end.

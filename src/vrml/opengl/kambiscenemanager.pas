@@ -97,12 +97,14 @@ type
       this is the simplest method to override. (Or you can use OnRender3D
       event, which is called at the end of this method.)
       Just pass to OpenGL your 3D geometry here. }
-    procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
+    procedure Render3D(const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
 
     { Render 3D items that are never in shadows (are not shadow receivers).
       This will always be called once with tgOpaque, and once with tgTransparent
       argument, from RenderFromView. }
-    procedure RenderNeverShadowed(TransparentGroup: TTransparentGroup); virtual;
+    procedure RenderNeverShadowed(const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup); virtual;
 
     { Render shadow quads for all the things rendered by @link(Render3D).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
@@ -118,18 +120,18 @@ type
 
     { Render the headlight. Called by RenderFromViewEverything,
       when camera matrix is set.
-      Should enable or disable OpenGL GL_LIGHT0 for headlight.
+      If headlight is on, this will enable and set appropriate OpenGL
+      light properties, and increment LightsEnabled.
 
       Implementation in this class uses headlight defined
       in the MainScene, following NavigationInfo.headlight and KambiHeadlight
-      nodes. If MainScene is not assigned, this does nothing (doesn't touch
-      GL_LIGHT0). }
-    procedure RenderHeadLight; virtual;
+      nodes. If MainScene is not assigned, this does nothing. }
+    procedure RenderHeadLight(var LightsEnabled: Cardinal); virtual;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
       when everything (clearing, background, headlight, loading camera
       matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
-    procedure RenderFromView3D; virtual;
+    procedure RenderFromView3D(const LightsEnabled: Cardinal); virtual;
 
     { Render everything (by RenderFromViewEverything) on the screen.
       Takes care to set RenderState (Target = rtScreen and camera as given),
@@ -1227,9 +1229,10 @@ begin
     Result := false;
 end;
 
-procedure TKamAbstractViewport.Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TKamAbstractViewport.Render3D(const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
-  GetItems.Render(RenderState.CameraFrustum, TransparentGroup, InShadow);
+  GetItems.Render(RenderState.CameraFrustum, LightsEnabled, TransparentGroup, InShadow);
   if Assigned(OnRender3D) then
     OnRender3D(Self, TransparentGroup, InShadow);
 end;
@@ -1239,7 +1242,7 @@ begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
-procedure TKamAbstractViewport.RenderHeadLight;
+procedure TKamAbstractViewport.RenderHeadLight(var LightsEnabled: Cardinal);
 var
   HC: TCamera;
 begin
@@ -1266,20 +1269,24 @@ begin
       (probably, to one of your viewpoints' cameras).
       Or use a hacky HeadlightFromViewport. }
 
-    if HC <> nil then
-      TVRMLGLHeadlight.RenderOrDisable(GetMainScene.Headlight,
-        0, (RenderState.Target = rtScreen) and (HC = Camera), HC);
+    if (HC <> nil) and (GetMainScene.Headlight <> nil) then
+    begin
+      GetMainScene.Headlight.Render(LightsEnabled, true,
+        (RenderState.Target = rtScreen) and (HC = Camera), HC);
+      Inc(LightsEnabled);
+    end;
   end;
 
-  { if MainScene = nil, do not control GL_LIGHT0 here. }
+  { if MainScene = nil, do not enable any light. }
 end;
 
-procedure TKamAbstractViewport.RenderNeverShadowed(TransparentGroup: TTransparentGroup);
+procedure TKamAbstractViewport.RenderNeverShadowed(const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup);
 begin
   { Nothing to do in this class }
 end;
 
-procedure TKamAbstractViewport.RenderFromView3D;
+procedure TKamAbstractViewport.RenderFromView3D(const LightsEnabled: Cardinal);
 
   procedure RenderNoShadows;
   begin
@@ -1289,16 +1296,16 @@ procedure TKamAbstractViewport.RenderFromView3D;
       covered by non-transparent objects (that are in fact further away from
       the camera). }
 
-    RenderNeverShadowed(tgOpaque);
-    Render3D(tgOpaque, false);
-    Render3D(tgTransparent, false);
-    RenderNeverShadowed(tgTransparent);
+    RenderNeverShadowed(LightsEnabled, tgOpaque);
+    Render3D(LightsEnabled, tgOpaque, false);
+    Render3D(LightsEnabled, tgTransparent, false);
+    RenderNeverShadowed(LightsEnabled, tgTransparent);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
     GetShadowVolumeRenderer.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
-    GetShadowVolumeRenderer.Render(@RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
+    GetShadowVolumeRenderer.Render(LightsEnabled, @RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
   end;
 
 var
@@ -1312,10 +1319,20 @@ begin
 end;
 
 procedure TKamAbstractViewport.RenderFromViewEverything;
+
+  procedure DisableLights(const Count: Cardinal);
+  var
+    I: Integer;
+  begin
+    for I := 0 to Integer(Count) - 1 do
+      glDisable(GL_LIGHT0 + I);
+  end;
+
 var
   ClearBuffers: TGLbitfield;
   UsedBackground: TVRMLGLBackground;
   MainLightPosition: TVector4Single; { ignored }
+  LightsEnabled, LightsEnabledByHeadlight: Cardinal;
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
@@ -1378,9 +1395,15 @@ begin
 
   glLoadMatrix(RenderState.CameraMatrix);
 
-  RenderHeadLight;
+  LightsEnabled := 0;
+  RenderHeadLight(LightsEnabled);
+  LightsEnabledByHeadlight := LightsEnabled;
 
-  RenderFromView3D;
+  RenderFromView3D(LightsEnabled);
+
+  { cleanup after RenderHeadLight: disable (for fixed-function pipeline) lights
+    enabled inside RenderHeadLight. }
+  DisableLights(LightsEnabledByHeadlight);
 end;
 
 procedure RenderScreenEffect(ViewportPtr: Pointer);
