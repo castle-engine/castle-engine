@@ -64,11 +64,15 @@ void main(void)
     for (int i = 0; i < LIGHTS_ENABLED; i++)
       add_light_contribution(gl_FragColor, normal_eye,
         gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);
+    /* Otherwise, alpha is usually large after previous add_light_contribution,
+       and it's always opaque */
+    gl_FragColor.a = gl_FrontMaterial.diffuse.a;
   } else
   {
     for (int i = 0; i < LIGHTS_ENABLED; i++)
       add_light_contribution(gl_FragColor, -normal_eye,
         gl_BackLightProduct[i], gl_LightSource[i], gl_BackMaterial);
+    gl_FragColor.a = gl_BackMaterial.diffuse.a;
   }
 
   /* *** TEXTURE-APPLY *** */
