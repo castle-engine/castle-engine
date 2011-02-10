@@ -165,7 +165,9 @@ begin
   if ForceShaderRendering and
     ( (Shape.ShaderProgram = nil) or
       (Shape.ShaderProgramLightsEnabled <> Shader.LightsEnabled) or
-      (Shape.ShaderProgramPCF <> Shader.PercentageCloserFiltering) ) then
+      (Shape.ShaderProgramPCF <> Shader.PercentageCloserFiltering) or
+      (Shape.ShaderProgramVisualizeDepthMap <> Shader.VisualizeDepthMap)
+    ) then
   begin
     try
       FreeAndNil(Shape.ShaderProgram);

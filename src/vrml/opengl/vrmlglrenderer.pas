@@ -312,6 +312,7 @@ type
     FPreserveOpenGLState: boolean;
     FForceShaderRendering: boolean;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
+    FVisualizeDepthMap: boolean;
   protected
     { These methods just set the value on given property,
       eventually calling ReleaseCachedResources.
@@ -636,6 +637,11 @@ type
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering
       default DefaultPercentageCloserFiltering;
+
+    { Visualize depths stored in the shadow maps, instead of using them to
+      actually make shadow. }
+    property VisualizeDepthMap: boolean
+      read FVisualizeDepthMap write FVisualizeDepthMap default false;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -1045,6 +1051,7 @@ type
       VRMLShader unit when to recreate. }
     ShaderProgramLightsEnabled: Cardinal;
     ShaderProgramPCF: TPercentageCloserFiltering;
+    ShaderProgramVisualizeDepthMap: boolean;
   end;
 
   TVRMLGLRenderer = class
@@ -3495,6 +3502,7 @@ begin
   Shader := TVRMLShader.Create;
   try
     Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
+    Shader.VisualizeDepthMap := Attributes.VisualizeDepthMap;
     RenderShapeLights(Shape, Fog, Shader);
   finally FreeAndNil(Shader) end;
 end;

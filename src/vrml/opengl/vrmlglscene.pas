@@ -529,6 +529,7 @@ type
       AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; override;
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; override;
+    procedure SetShadowMapsVisualizeDepth(const Value: boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -3968,6 +3969,12 @@ begin
         TNodeScreenEffect(ScreenEffectNodes[I]).FdNeedsDepth.Value then
       Exit(true);
   Exit(false);
+end;
+
+procedure TVRMLGLScene.SetShadowMapsVisualizeDepth(const Value: boolean);
+begin
+  inherited;
+  Attributes.VisualizeDepthMap := Value;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

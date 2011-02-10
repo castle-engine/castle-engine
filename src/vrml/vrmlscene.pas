@@ -576,7 +576,6 @@ type
     procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
     procedure SetStatic(const Value: boolean);
     procedure SetShadowMaps(const Value: boolean);
-    procedure SetShadowMapsVisualizeDepth(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
     { Handle change of transformation of INodeTransform node.
@@ -839,6 +838,8 @@ type
       You can override it in descendants to create something more specialized. }
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
+
+    procedure SetShadowMapsVisualizeDepth(const Value: boolean); virtual;
 
     procedure UpdateHeadlightOnFromNavigationInfo;
   protected
@@ -2005,19 +2006,6 @@ type
       is relevant only for handling shadows by the "receiveShadows" field. }
     property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
 
-    { Visualize depths stored in the shadow maps, instead of using them to
-      actually make shadow.
-
-      Affects how shadow maps are handled for the "receiveShadows"
-      field.  This is taken into account at the scene @link(Load) time,
-      and only if @link(ShadowMaps) is @true.
-
-      Even without turning this on, VRML author can always activate it
-      explicitly for specific lights. For this, you have to use
-      @code(X3DLightNode.defaultShadowMap) field,
-      and place a GeneratedShadowMap node there. If the
-      @code(GeneratedShadowMap.compareMode) is set to @code('NONE'),
-      we will always visualize depths of this shadow map. }
     property ShadowMapsVisualizeDepth: boolean
      read FShadowMapsVisualizeDepth write SetShadowMapsVisualizeDepth default false;
 

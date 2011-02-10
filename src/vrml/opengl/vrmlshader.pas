@@ -60,6 +60,7 @@ type
       ClipPlane: string;
     FLightsEnabled: Cardinal;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
+    FVisualizeDepthMap: boolean;
   public
     destructor Destroy; override;
 
@@ -76,6 +77,8 @@ type
     property LightsEnabled: Cardinal read FLightsEnabled write FLightsEnabled;
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
+    property VisualizeDepthMap: boolean
+      read FVisualizeDepthMap write FVisualizeDepthMap;
 
     function CreateProgram: TGLSLProgram;
     procedure SetupUniforms(AProgram: TGLSLProgram);
@@ -119,7 +122,7 @@ const
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D');
 var
   Uniform: TUniform;
-  TextureSampleCall: string;
+  TextureSampleCall, TextureTypeName: string;
 begin
   { Enable for fixed-function pipeline }
   if GLUseMultiTexturing then
@@ -164,7 +167,12 @@ begin
   { TODO: always modulate mode for now }
   case TextureType of
     tt2D      : TextureSampleCall := 'texture2D(%s, %s.st)';
-    tt2DShadow: TextureSampleCall := 'shadow(%s, %s)';
+    tt2DShadow:
+      begin
+        if VisualizeDepthMap then
+          TextureSampleCall := 'vec4(vec3(shadow_depth(%s, %s)), gl_FragColor.a)' else
+          TextureSampleCall := 'shadow(%s, %s)';
+      end;
     ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
     { For 3D textures, remember we may get 4D tex coords
       through TextureCoordinate4D, so we have to use texture3DProj }
@@ -173,8 +181,11 @@ begin
   end;
   TextureApply += Format('gl_FragColor *= ' + TextureSampleCall + ';' + NL,
     [Uniform.Name, 'gl_TexCoord[' + IntToStr(TextureUnit) + ']']);
+  TextureTypeName := OpenGLTextureType[TextureType];
+  if (TextureType = tt2DShadow) and VisualizeDepthMap then
+    TextureTypeName := 'sampler2D'; { force type to normal texture in this case }
   FragmentShaderDeclare += Format('uniform %s %s;' + NL,
-    [OpenGLTextureType[TextureType], Uniform.Name]);
+    [TextureTypeName, Uniform.Name]);
 
   if TextureType = tt2DShadow then
   begin
