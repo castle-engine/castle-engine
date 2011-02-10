@@ -57,7 +57,7 @@ type
     Uniforms: TUniformsList;
     TextureApply, TextureCoordInitialize,
       TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare,
-      ClipPlane: string;
+      ClipPlane, FragmentEnd: string;
     FLightsEnabled: Cardinal;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
     FVisualizeDepthMap: boolean;
@@ -73,6 +73,7 @@ type
     procedure DisableTexGen(const TextureUnit: Cardinal);
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
+    procedure EnableAlphaTest;
 
     property LightsEnabled: Cardinal read FLightsEnabled write FLightsEnabled;
     property PercentageCloserFiltering: TPercentageCloserFiltering
@@ -297,6 +298,18 @@ begin
   glDisable(GL_CLIP_PLANE0 + ClipPlaneIndex);
 end;
 
+procedure TVRMLShader.EnableAlphaTest;
+begin
+  { Enable for fixed-function pipeline }
+  glEnable(GL_ALPHA_TEST);
+
+  { Enable for shader pipeline. We know alpha comparison is always < 0.5 }
+  FragmentEnd +=
+    '/* Do the trick with 1.0 / 2.0, instead of comparing with 0.5, to avoid fglrx bugs */' + NL +
+    'if (2.0 * gl_FragColor.a < 1.0)' + NL +
+    '  discard;' + NL;
+end;
+
 function TVRMLShader.CreateProgram: TGLSLProgram;
 
   procedure Replace(var S: string; const ParameterName, ParameterValue: string);
@@ -328,6 +341,8 @@ begin
       to run such shader, saying it cannot run in hardware...
       So we have to set this by #define. }
     Format('#define LIGHTS_ENABLED %d' + NL, [LightsEnabled]));
+
+  Replace(FS, 'FRAGMENT-END', FragmentEnd);
 
   if Log then
   begin

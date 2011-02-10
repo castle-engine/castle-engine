@@ -79,4 +79,6 @@ void main(void)
   }
 
   /* *** TEXTURE-APPLY *** */
+
+  /* *** FRAGMENT-END *** */
 }

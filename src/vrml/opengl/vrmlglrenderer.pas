@@ -4079,7 +4079,9 @@ var
       I don't see any sensible way to solve this with fixed-function OpenGL
       pipeline, that's just how GL_MODULATE with GL_ALPHA_TEST work. }
 
-    SetGLEnabled(GL_ALPHA_TEST, AlphaTest);
+    if AlphaTest then
+      Shader.EnableAlphaTest else
+      glDisable(GL_ALPHA_TEST);
 
     { Make active texture 0. This is helpful for rendering code of
       some primitives that do not support multitexturing now
