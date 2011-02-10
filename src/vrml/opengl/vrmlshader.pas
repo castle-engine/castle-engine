@@ -171,7 +171,7 @@ begin
       begin
         if VisualizeDepthMap then
           TextureSampleCall := 'vec4(vec3(shadow_depth(%s, %s)), gl_FragColor.a)' else
-          TextureSampleCall := 'shadow(%s, %s)';
+          TextureSampleCall := 'shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)';
       end;
     ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
     { For 3D textures, remember we may get 4D tex coords

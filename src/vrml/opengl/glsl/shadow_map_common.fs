@@ -5,11 +5,8 @@
 //#define PCF4_BILINEAR
 //#define PCF16
 
-/* Define texture size in pixels, to make perfect PCF.
-   This is defined when including this shader in Pascal code, automatically. */
-//#define SHADOW_MAP_SIZE 1024.0
-
-float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord)
+float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord,
+  const in float size)
 {
   /* Avoid back-projecting shadows. */
   if (shadowMapCoord.z < 0.0) return 0.0;
@@ -24,10 +21,10 @@ float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord)
 
 #ifdef PCF4_BILINEAR
 
-  /* We have to scale up/down by texture SHADOW_MAP_SIZE to make the floor/fract
+  /* We have to scale up/down by texture size to make the floor/fract
      perform real bilinear filtering.
      This also means that we have to handle xy and z separately. */
-  vec2 tc_full = SHADOW_MAP_SIZE * coord2;
+  vec2 tc_full = size * coord2;
   float z = shadowMapCoord.z / shadowMapCoord.w;
 
   vec2 tc = floor(tc_full.xy);
@@ -35,16 +32,16 @@ float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord)
   vec2 f1 = vec2(1.0, 1.0) - f;
 
   return (
-    shadow2D(shadowMap, vec3( tc.x        / SHADOW_MAP_SIZE,  tc.y        / SHADOW_MAP_SIZE, z)).r * f1.x * f1.y +
-    shadow2D(shadowMap, vec3( tc.x        / SHADOW_MAP_SIZE, (tc.y + 1.0) / SHADOW_MAP_SIZE, z)).r * f1.x *  f.y +
-    shadow2D(shadowMap, vec3((tc.x + 1.0) / SHADOW_MAP_SIZE,  tc.y        / SHADOW_MAP_SIZE, z)).r *  f.x * f1.y +
-    shadow2D(shadowMap, vec3((tc.x + 1.0) / SHADOW_MAP_SIZE, (tc.y + 1.0) / SHADOW_MAP_SIZE, z)).r *  f.x *  f.y
+    shadow2D(shadowMap, vec3( tc.x        / size,  tc.y        / size, z)).r * f1.x * f1.y +
+    shadow2D(shadowMap, vec3( tc.x        / size, (tc.y + 1.0) / size, z)).r * f1.x *  f.y +
+    shadow2D(shadowMap, vec3((tc.x + 1.0) / size,  tc.y        / size, z)).r *  f.x * f1.y +
+    shadow2D(shadowMap, vec3((tc.x + 1.0) / size, (tc.y + 1.0) / size, z)).r *  f.x *  f.y
     ) / 2.0; /* TODO: why /2.0 instead of /4.0 needed? */
 
 #elif defined(PCF4)
 
   /* PCF with 2x2 kernel */
-  float offset = shadowMapCoord.w / SHADOW_MAP_SIZE;
+  float offset = shadowMapCoord.w / size;
   return (
     shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset, -offset, 0.0, 0.0)).r +
     shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset,  offset, 0.0, 0.0)).r +
@@ -54,7 +51,7 @@ float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord)
 
 #elif defined(PCF16)
 
-  float offset = shadowMapCoord.w / SHADOW_MAP_SIZE;
+  float offset = shadowMapCoord.w / size;
   return
     (
       shadow2DProj(shadowMap, shadowMapCoord + vec4(-offset * 1.5, -offset * 1.5, 0.0, 0.0)).r +
