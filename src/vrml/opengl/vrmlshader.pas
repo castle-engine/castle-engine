@@ -302,6 +302,11 @@ begin
   Replace(FS, 'TEXTURE-APPLY', TextureApply);
   Replace(FS, 'FRAGMENT-DECLARE',
     FragmentShaderDeclare + {$I shadow_map_common.fs.inc} +
+    { Passing LightsEnabled as uniform would enable me to reuse
+      created GLSL program more. However, this would be slightly slower.
+      And fglrx at least on Radeon X1600 refuses to run such shader,
+      saying it cannot run in hardware...
+      So we have to set this by #define. }
     Format('#define LIGHTS_ENABLED %d' + NL, [LightsEnabled]));
 
   if Log then
