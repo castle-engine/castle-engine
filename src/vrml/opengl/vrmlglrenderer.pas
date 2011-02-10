@@ -631,7 +631,8 @@ type
     property ForceShaderRendering: boolean
       read FForceShaderRendering write FForceShaderRendering default false;
 
-    { If shadow maps are used, what PCF method is used. }
+    { Use Percentage Closer Filtering to improve shadow maps look.
+      This decides the sampling method of all depth textures. }
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering
       default DefaultPercentageCloserFiltering;

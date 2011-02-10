@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, VRMLGLScene,
   KambiUtils, Boxes3D, KambiClassUtils, VRMLAnimation, KeysMouse,
-  KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle, VRMLShadowMaps;
+  KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle;
 
 {$define read_interface}
 
@@ -91,7 +91,6 @@ type
     FTimeAtLoad: TKamTime;
     FTime: TKamTime;
     FShadowMaps: boolean;
-    FShadowMapsPCF: TPercentageCloserFiltering;
     FShadowMapsVisualizeDepth: boolean;
     FShadowMapsDefaultSize: Cardinal;
 
@@ -100,7 +99,6 @@ type
     FCollisionUseLastScene: boolean;
 
     procedure SetShadowMaps(const Value: boolean);
-    procedure SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
     procedure SetShadowMapsVisualizeDepth(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
@@ -630,8 +628,6 @@ type
       See TVRMLScene.ShadowMaps and related properties for documentation.
       @groupBegin }
     property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
-    property ShadowMapsPCF: TPercentageCloserFiltering
-      read FShadowMapsPCF write SetShadowMapsPCF default pcf16;
     property ShadowMapsVisualizeDepth: boolean
      read FShadowMapsVisualizeDepth write SetShadowMapsVisualizeDepth default false;
     property ShadowMapsDefaultSize: Cardinal
@@ -692,7 +688,6 @@ begin
   inherited CreateProvidedRenderer(nil, AProvidedRenderer);
 
   ShadowMaps := FParentAnimation.ShadowMaps;
-  ShadowMapsPCF := FParentAnimation.ShadowMapsPCF;
   ShadowMapsVisualizeDepth := FParentAnimation.ShadowMapsVisualizeDepth;
   ShadowMapsDefaultSize := FParentAnimation.ShadowMapsDefaultSize;
 
@@ -764,7 +759,6 @@ begin
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
   FShadowMaps := true;
-  FShadowMapsPCF := pcf16;
   FShadowMapsVisualizeDepth := false;
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 end;
@@ -2010,21 +2004,6 @@ begin
     begin
       for I := 0 to FScenes.High do
         FScenes[I].ShadowMaps := Value;
-    end;
-  end;
-end;
-
-procedure TVRMLGLAnimation.SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
-var
-  I: Integer;
-begin
-  if Value <> FShadowMapsPCF then
-  begin
-    FShadowMapsPCF := Value;
-    if FScenes <> nil then
-    begin
-      for I := 0 to FScenes.High do
-        FScenes[I].ShadowMapsPCF := Value;
     end;
   end;
 end;

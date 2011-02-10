@@ -547,7 +547,6 @@ type
     FOwnsInput_PointingDeviceActivate: boolean;
     FStatic: boolean;
     FShadowMaps: boolean;
-    FShadowMapsPCF: TPercentageCloserFiltering;
     FShadowMapsVisualizeDepth: boolean;
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
@@ -842,7 +841,6 @@ type
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
 
     procedure UpdateHeadlightOnFromNavigationInfo;
-    procedure SetShadowMapsPCF(const Value: TPercentageCloserFiltering); virtual;
   protected
     GeneratedTextures: TDynGeneratedTextureArray;
 
@@ -2003,21 +2001,9 @@ type
       [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_maps].
       When using these lower-level nodes, this property does not matter
       This property (and related ones
-      like ShadowMapsPCF, ShadowMapsVisualizeDepth, ShadowMapsDefaultSize)
+      like ShadowMapsVisualizeDepth, ShadowMapsDefaultSize)
       is relevant only for handling shadows by the "receiveShadows" field. }
     property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
-
-    { Use Percentage Closer Filtering to improve shadow maps look.
-
-      Affects how shadow maps are handled for the "receiveShadows"
-      field.  This is taken into account at the scene @link(Load) time,
-      and only if @link(ShadowMaps) is @true.
-
-      TODO: this will be removed. Only Attributes.PercentageCloserFiltering
-      should be used. For now, this sets Attributes.PercentageCloserFiltering. }
-    property ShadowMapsPCF: TPercentageCloserFiltering
-      read FShadowMapsPCF write SetShadowMapsPCF
-      default DefaultPercentageCloserFiltering;
 
     { Visualize depths stored in the shadow maps, instead of using them to
       actually make shadow.
@@ -2413,7 +2399,6 @@ begin
   FOwnsInput_PointingDeviceActivate := true;
 
   FShadowMaps := true;
-  FShadowMapsPCF := DefaultPercentageCloserFiltering;
   FShadowMapsVisualizeDepth := false;
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 
@@ -3110,7 +3095,7 @@ begin
   if ScheduledShadowMapsProcessing then
   begin
     ProcessShadowMapsReceivers(RootNode, Shapes, ShadowMaps,
-      ShadowMapsDefaultSize, ShadowMapsVisualizeDepth, ShadowMapsPCF);
+      ShadowMapsDefaultSize, ShadowMapsVisualizeDepth);
     ScheduledShadowMapsProcessing := false;
   end;
 
@@ -6625,20 +6610,6 @@ begin
 
     ScheduledShadowMapsProcessing := true;
     ScheduleChangedAll;
-  end;
-end;
-
-procedure TVRMLScene.SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
-begin
-  if FShadowMapsPCF <> Value then
-  begin
-    FShadowMapsPCF := Value;
-
-    if ShadowMaps then { if not ShadowMaps, then no need to reprocess }
-    begin
-      ScheduledShadowMapsProcessing := true;
-      ScheduleChangedAll;
-    end;
   end;
 end;
 
