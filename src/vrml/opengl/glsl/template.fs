@@ -13,7 +13,8 @@ varying vec3 normal_eye;
 
 void add_light_contribution(inout vec4 color,
   const in gl_LightProducts light_products,
-  const in gl_LightSourceParameters light_source)
+  const in gl_LightSourceParameters light_source,
+  const in vec3 normal_eye)
 {
   /* add ambient term */
   color += light_products.ambient;
@@ -42,9 +43,17 @@ void main(void)
 /* TODO: We assume we have constant num of lights
    TODO: two-side lighting? */
 
-  for (int i = 0; i < 1; i++)
-    add_light_contribution(gl_FragColor,
-      gl_FrontLightProduct[i], gl_LightSource[i]);
+  if (gl_FrontFacing)
+  {
+    for (int i = 0; i < 1; i++)
+      add_light_contribution(gl_FragColor,
+        gl_FrontLightProduct[i], gl_LightSource[i], normal_eye);
+  } else
+  {
+    for (int i = 0; i < 1; i++)
+      add_light_contribution(gl_FragColor,
+        gl_BackLightProduct[i], gl_LightSource[i], -normal_eye);
+  }
 
   /* *** TEXTURE-APPLY *** */
 }

@@ -15,7 +15,8 @@
 '' + LineEnding + 
 'void add_light_contribution(inout vec4 color,' + LineEnding + 
 '  const in gl_LightProducts light_products,' + LineEnding + 
-'  const in gl_LightSourceParameters light_source)' + LineEnding + 
+'  const in gl_LightSourceParameters light_source,' + LineEnding + 
+'  const in vec3 normal_eye)' + LineEnding + 
 '{' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 
 '  color += light_products.ambient;' + LineEnding + 
@@ -44,9 +45,17 @@
 '/* TODO: We assume we have constant num of lights' + LineEnding + 
 '   TODO: two-side lighting? */' + LineEnding + 
 '' + LineEnding + 
-'  for (int i = 0; i < 1; i++)' + LineEnding + 
-'    add_light_contribution(gl_FragColor,' + LineEnding + 
-'      gl_FrontLightProduct[i], gl_LightSource[i]);' + LineEnding + 
+'  if (gl_FrontFacing)' + LineEnding + 
+'  {' + LineEnding + 
+'    for (int i = 0; i < 1; i++)' + LineEnding + 
+'      add_light_contribution(gl_FragColor,' + LineEnding + 
+'        gl_FrontLightProduct[i], gl_LightSource[i], normal_eye);' + LineEnding + 
+'  } else' + LineEnding + 
+'  {' + LineEnding + 
+'    for (int i = 0; i < 1; i++)' + LineEnding + 
+'      add_light_contribution(gl_FragColor,' + LineEnding + 
+'        gl_BackLightProduct[i], gl_LightSource[i], -normal_eye);' + LineEnding + 
+'  }' + LineEnding + 
 '' + LineEnding + 
 '  /* *** TEXTURE-APPLY *** */' + LineEnding + 
 '}' + LineEnding + 
