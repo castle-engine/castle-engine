@@ -62,7 +62,7 @@ type
     destructor Destroy; override;
 
     procedure EnableTexture(const TextureUnit: Cardinal;
-      const TextureType: TTextureType);
+      const TextureType: TTextureType; const ShadowMapSize: Cardinal = 0);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComponent; const Component: TTexComponent);
     procedure EnableTexGen(const TextureUnit: Cardinal;
@@ -107,7 +107,7 @@ begin
 end;
 
 procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
-  const TextureType: TTextureType);
+  const TextureType: TTextureType; const ShadowMapSize: Cardinal);
 const
   OpenGLTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D');
@@ -158,7 +158,7 @@ begin
   { TODO: always modulate mode for now }
   case TextureType of
     tt2D      : TextureSampleCall := 'texture2D(%s, %s.st)';
-    tt2DShadow: TextureSampleCall := 'shadow2DProj(%s, %s)';
+    tt2DShadow: TextureSampleCall := 'shadow(%s, %s)';
     ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
     { For 3D textures, remember we may get 4D tex coords
       through TextureCoordinate4D, so we have to use texture3DProj }
@@ -169,6 +169,12 @@ begin
     [Uniform.Name, 'gl_TexCoord[' + IntToStr(TextureUnit) + ']']);
   FragmentShaderDeclare += Format('uniform %s %s;' + NL,
     [OpenGLTextureType[TextureType], Uniform.Name]);
+
+  if TextureType = tt2DShadow then
+  begin
+    FragmentShaderDeclare += Format('#define SHADOW_MAP_SIZE %d' + NL,
+      [ShadowMapSize]);
+  end;
 end;
 
 procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
@@ -290,7 +296,8 @@ begin
 
   FS := {$I template.fs.inc};
   Replace(FS, 'TEXTURE-APPLY', TextureApply);
-  Replace(FS, 'FRAGMENT-SHADER-DECLARE', FragmentShaderDeclare);
+  Replace(FS, 'FRAGMENT-SHADER-DECLARE',
+    FragmentShaderDeclare + {$I shadow_map_common.fs.inc});
 
   if Log then
   begin
