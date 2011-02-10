@@ -940,7 +940,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
       function TexCoordGenFromString(const S: string; const IsTexture3D: boolean): TTextureCoordinateGeneration;
       begin
         if S = 'SPHERE' then
-          Result := tgSphere else
+          Result := tgSphereMap else
         if S = 'COORD' then
           Result := tgCoord else
         if (S = 'COORD-EYE') or (S = 'CAMERASPACEPOSITION') then

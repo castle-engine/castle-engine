@@ -42,7 +42,7 @@ type
     tgExplicit,
     tgBounds2d,
     tgBounds3d,
-    tgSphere,
+    tgSphereMap,
     tgCoord,
     tgCoordEye,
     tgCameraSpaceNormal,

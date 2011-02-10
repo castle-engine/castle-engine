@@ -40,8 +40,9 @@ type
 
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D);
 
-  TTexGenPlane = (tgpEye, tgpObject, tgpSphere, tgpNormal, tgpReflection);
-  TTexGenComponent = 0..3;
+  TTexGenerationComponent = (tgEye, tgObject);
+  TTexGenerationComplete = (tgSphere, tgNormal, tgReflection);
+  TTexComponent = 0..3;
 
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
@@ -63,7 +64,9 @@ type
     procedure EnableTexture(const TextureUnit: Cardinal;
       const TextureType: TTextureType);
     procedure EnableTexGen(const TextureUnit: Cardinal;
-      const Component: TTexGenComponent; const Plane: TTexGenPlane);
+      const Generation: TTexGenerationComponent; const Component: TTexComponent);
+    procedure EnableTexGen(const TextureUnit: Cardinal;
+      const Generation: TTexGenerationComplete);
     procedure DisableTexGen(const TextureUnit: Cardinal);
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
@@ -169,11 +172,50 @@ begin
 end;
 
 procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
-  const Component: TTexGenComponent; const Plane: TTexGenPlane);
+  const Generation: TTexGenerationComplete);
+begin
+  { Enable for fixed-function pipeline }
+  if GLUseMultiTexturing then
+    glActiveTextureARB(GL_TEXTURE0 + TextureUnit);
+  { glEnable(GL_TEXTURE_GEN_*) below }
+
+  { Enable for shader pipeline }
+  case Generation of
+    tgSphere:
+      begin
+        glEnable(GL_TEXTURE_GEN_S);
+        glEnable(GL_TEXTURE_GEN_T);
+        // TODO:
+        TextureCoordGen += Format('gl_TexCoord[%d].xyz = vec3(0.0, 0.0, 0.0);' + NL,
+          [TextureUnit]);
+      end;
+    tgNormal:
+      begin
+        glEnable(GL_TEXTURE_GEN_S);
+        glEnable(GL_TEXTURE_GEN_T);
+        glEnable(GL_TEXTURE_GEN_R);
+        TextureCoordGen += Format('gl_TexCoord[%d].xyz = normal_eye;' + NL,
+          [TextureUnit]);
+      end;
+    tgReflection:
+      begin
+        glEnable(GL_TEXTURE_GEN_S);
+        glEnable(GL_TEXTURE_GEN_T);
+        glEnable(GL_TEXTURE_GEN_R);
+        { Negate reflect result --- just like for kambi_vrml_test_suite/x3d/water_reflections/water_reflections_normalmap.fs }
+        TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(vertex_eye), normal_eye);' + NL,
+          [TextureUnit]);
+      end;
+    else raise EInternalError.Create('TVRMLShader.EnableTexGen:Generation?');
+  end;
+end;
+
+procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
+  const Generation: TTexGenerationComponent; const Component: TTexComponent);
 const
-  PlaneComponentNames: array [TTexGenComponent] of char = ('S', 'T', 'R', 'Q');
+  PlaneComponentNames: array [TTexComponent] of char = ('S', 'T', 'R', 'Q');
   { Note: R changes to p ! }
-  VectorComponentNames: array [TTexGenComponent] of char = ('s', 't', 'p', 'q');
+  VectorComponentNames: array [TTexComponent] of char = ('s', 't', 'p', 'q');
 var
   PlaneName, Source: string;
 begin
@@ -192,28 +234,15 @@ begin
     See helpful info about simulating glTexGen in GLSL in:
     http://www.mail-archive.com/osg-users@lists.openscenegraph.org/msg14238.html }
 
-  case Plane of
-    tgpEye, tgpObject:
-      begin
-        if Plane = tgpEye then
-          begin PlaneName := 'gl_EyePlane'   ; Source := 'vertex_eye'; end else
-          begin PlaneName := 'gl_ObjectPlane'; Source := 'gl_Vertex' ; end;
-        TextureCoordGen += Format('gl_TexCoord[%d].%s = dot(%s, %s%s[%0:d]);' + NL,
-          [TextureUnit, VectorComponentNames[Component],
-           Source, PlaneName, PlaneComponentNames[Component]]);
-      end;
-    tgpSphere:
-      begin VRMLWarning(vwIgnorable, '"Sphere" texture generation for shader pipeline not implemented yet'); Exit; end;
-    tgpNormal:
-      begin
-        TextureCoordGen += Format('gl_TexCoord[%d].%s = normal_eye.%1:s;' + NL,
-          [TextureUnit, VectorComponentNames[Component]]);
-      end;
-    tgpReflection:
-      begin VRMLWarning(vwIgnorable, '"Reflection" texture generation for shader pipeline not implemented yet'); Exit; end;
-    else raise EInternalError.Create('TVRMLShader.EnableTexGen:Plane?');
+  case Generation of
+    tgEye   : begin PlaneName := 'gl_EyePlane'   ; Source := 'vertex_eye'; end;
+    tgObject: begin PlaneName := 'gl_ObjectPlane'; Source := 'gl_Vertex' ; end;
+    else raise EInternalError.Create('TVRMLShader.EnableTexGen:Generation?');
   end;
 
+  TextureCoordGen += Format('gl_TexCoord[%d].%s = dot(%s, %s%s[%0:d]);' + NL,
+    [TextureUnit, VectorComponentNames[Component],
+     Source, PlaneName, PlaneComponentNames[Component]]);
 end;
 
 procedure TVRMLShader.DisableTexGen(const TextureUnit: Cardinal);
