@@ -17,13 +17,26 @@ void add_light_contribution(inout vec4 color,
   const in gl_LightSourceParameters light_source,
   const in gl_MaterialParameters material)
 {
+  vec3 light_dir;
+
   /* add ambient term */
   color += light_products.ambient;
 
   /* add diffuse term */
-  /* TODO: assume directional light.
-     TODO: in what coords is light_source.position? */
-  vec3 light_dir = light_source.position.xyz;
+  if (light_source.position.w != 0.0)
+  {
+    /* we assume in this case light_source.position.w == 1,
+       so there's no need to divide by it. This is true for our VRML/X3D
+       lights. */
+    /* positional light */
+    light_dir = light_source.position.xyz - vec3(vertex_eye);
+  } else
+  {
+    /* directional light */
+    light_dir = light_source.position.xyz;
+  }
+  light_dir = normalize(light_dir);
+
   color += light_products.diffuse
     * max(dot(normal_eye, light_dir), 0.0);
 

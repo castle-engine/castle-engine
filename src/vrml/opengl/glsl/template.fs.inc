@@ -19,13 +19,26 @@
 '  const in gl_LightSourceParameters light_source,' + LineEnding + 
 '  const in gl_MaterialParameters material)' + LineEnding + 
 '{' + LineEnding + 
+'  vec3 light_dir;' + LineEnding + 
+'' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 
 '  color += light_products.ambient;' + LineEnding + 
 '' + LineEnding + 
 '  /* add diffuse term */' + LineEnding + 
-'  /* TODO: assume directional light.' + LineEnding + 
-'     TODO: in what coords is light_source.position? */' + LineEnding + 
-'  vec3 light_dir = light_source.position.xyz;' + LineEnding + 
+'  if (light_source.position.w != 0.0)' + LineEnding + 
+'  {' + LineEnding + 
+'    /* we assume in this case light_source.position.w == 1,' + LineEnding + 
+'       so there''s no need to divide by it. This is true for our VRML/X3D' + LineEnding + 
+'       lights. */' + LineEnding + 
+'    /* positional light */' + LineEnding + 
+'    light_dir = light_source.position.xyz - vec3(vertex_eye);' + LineEnding + 
+'  } else' + LineEnding + 
+'  {' + LineEnding + 
+'    /* directional light */' + LineEnding + 
+'    light_dir = light_source.position.xyz;' + LineEnding + 
+'  }' + LineEnding + 
+'  light_dir = normalize(light_dir);' + LineEnding + 
+'' + LineEnding + 
 '  color += light_products.diffuse' + LineEnding + 
 '    * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
