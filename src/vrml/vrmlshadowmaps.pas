@@ -27,6 +27,8 @@ const
   PCFNames: array [TPercentageCloserFiltering] of string =
   ( 'Simple', 'PCF 4', 'PCF 4 Bilinear', 'PCF 16' );
 
+  DefaultPercentageCloserFiltering = pcf16;
+
 { Automatically handle VRML/X3D "receiveShadows" field
   by inserting appropriate lower-level nodes.
 

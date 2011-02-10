@@ -20,7 +20,7 @@ unit VRMLShader;
 
 interface
 
-uses GLShaders, FGL;
+uses GLShaders, FGL, VRMLShadowMaps;
 
 type
   { Uniform value type, for TUniform. }
@@ -59,6 +59,7 @@ type
       TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare,
       ClipPlane: string;
     FLightsEnabled: Cardinal;
+    FPercentageCloserFiltering: TPercentageCloserFiltering;
   public
     destructor Destroy; override;
 
@@ -73,6 +74,8 @@ type
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
 
     property LightsEnabled: Cardinal read FLightsEnabled write FLightsEnabled;
+    property PercentageCloserFiltering: TPercentageCloserFiltering
+      read FPercentageCloserFiltering write FPercentageCloserFiltering;
 
     function CreateProgram: TGLSLProgram;
     procedure SetupUniforms(AProgram: TGLSLProgram);
@@ -290,6 +293,10 @@ function TVRMLShader.CreateProgram: TGLSLProgram;
     StringReplaceAllTo1st(S, '/* *** ' + ParameterName + ' *** */', ParameterValue, false);
   end;
 
+const
+  PCFDefine: array [TPercentageCloserFiltering] of string =
+  ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
+
 var
   FS, VS: string;
 begin
@@ -301,7 +308,9 @@ begin
   FS := {$I template.fs.inc};
   Replace(FS, 'TEXTURE-APPLY', TextureApply);
   Replace(FS, 'FRAGMENT-DECLARE',
-    FragmentShaderDeclare + {$I shadow_map_common.fs.inc} +
+    FragmentShaderDeclare +
+    PCFDefine[PercentageCloserFiltering] + NL +
+    {$I shadow_map_common.fs.inc} +
     { Passing LightsEnabled as uniform would enable me to reuse
       created GLSL program more. However, this could be slower,
       depending on GPU. And, in fact, fglrx at least on Radeon X1600 refuses

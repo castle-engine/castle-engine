@@ -223,7 +223,7 @@ uses
   KambiGLUtils, VRMLGLLightSet, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
   GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL,
-  GeometryArrays, VRMLArraysGenerator, VRMLShader;
+  GeometryArrays, VRMLArraysGenerator, VRMLShader, VRMLShadowMaps;
 
 {$define read_interface}
 
@@ -311,6 +311,7 @@ type
     FVertexBufferObject: boolean;
     FPreserveOpenGLState: boolean;
     FForceShaderRendering: boolean;
+    FPercentageCloserFiltering: TPercentageCloserFiltering;
   protected
     { These methods just set the value on given property,
       eventually calling ReleaseCachedResources.
@@ -629,6 +630,11 @@ type
       no shaders (or fixed-function shading) is done. }
     property ForceShaderRendering: boolean
       read FForceShaderRendering write FForceShaderRendering default false;
+
+    { If shadow maps are used, what PCF method is used. }
+    property PercentageCloserFiltering: TPercentageCloserFiltering
+      read FPercentageCloserFiltering write FPercentageCloserFiltering
+      default DefaultPercentageCloserFiltering;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -1037,6 +1043,7 @@ type
       descendant (defined in VRMLShader unit) such stuff and decide inside
       VRMLShader unit when to recreate. }
     ShaderProgramLightsEnabled: Cardinal;
+    ShaderProgramPCF: TPercentageCloserFiltering;
   end;
 
   TVRMLGLRenderer = class
@@ -1416,7 +1423,7 @@ var
 implementation
 
 uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
-  RenderStateUnit, VRMLCameraUtils, RaysWindow, VRMLShadowMaps;
+  RenderStateUnit, VRMLCameraUtils, RaysWindow;
 
 {$define read_implementation}
 {$I dynarray_2.inc}
@@ -2671,6 +2678,7 @@ begin
   FVarianceShadowMaps := DefaultVarianceShadowMaps;
   FVertexBufferObject := true;
   FPreserveOpenGLState := false;
+  FPercentageCloserFiltering := DefaultPercentageCloserFiltering;
 end;
 
 procedure TVRMLRenderingAttributes.ReleaseCachedResources;
@@ -3485,6 +3493,7 @@ var
 begin
   Shader := TVRMLShader.Create;
   try
+    Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
     RenderShapeLights(Shape, Fog, Shader);
   finally FreeAndNil(Shader) end;
 end;

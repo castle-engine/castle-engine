@@ -164,7 +164,8 @@ begin
   { calculate and use Shape.ShaderProgram }
   if ForceShaderRendering and
     ( (Shape.ShaderProgram = nil) or
-      (Shape.ShaderProgramLightsEnabled <> Shader.LightsEnabled) ) then
+      (Shape.ShaderProgramLightsEnabled <> Shader.LightsEnabled) or
+      (Shape.ShaderProgramPCF <> Shader.PercentageCloserFiltering) ) then
   begin
     try
       FreeAndNil(Shape.ShaderProgram);

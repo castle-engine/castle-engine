@@ -2284,7 +2284,7 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2DShadow);
+  Shader.EnableTexture(TextureUnit, tt2DShadow, Size);
 end;
 
 procedure TGLGeneratedShadowMap.Update(

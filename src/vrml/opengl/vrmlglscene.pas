@@ -23,7 +23,7 @@ uses
   VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
   VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight,
   GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLGLLightSet, VRMLShape, Frustum,
-  GLCubeMap, Base3D, GLShaders;
+  GLCubeMap, Base3D, GLShaders, VRMLShadowMaps;
 
 {$define read_interface}
 
@@ -529,6 +529,7 @@ type
       AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; override;
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; override;
+    procedure SetShadowMapsPCF(const Value: TPercentageCloserFiltering); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -3968,6 +3969,12 @@ begin
         TNodeScreenEffect(ScreenEffectNodes[I]).FdNeedsDepth.Value then
       Exit(true);
   Exit(false);
+end;
+
+procedure TVRMLGLScene.SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
+begin
+  Attributes.PercentageCloserFiltering := Value;
+  inherited;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

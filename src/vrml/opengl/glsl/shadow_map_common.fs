@@ -1,13 +1,12 @@
 /* Define exactly one of PCF* symbols, or none (to not use any PCF).
-   Note: this is handled by the VRMLShadowMap unit, when including this shader,
+   This is defined (or not) when including this shader in Pascal code,
    automatically. */
 //#define PCF4
 //#define PCF4_BILINEAR
 //#define PCF16
 
 /* Define texture size in pixels, to make perfect PCF.
-   Note: this is handled by the VRMLShadowMap unit, when including this shader,
-   automatically. */
+   This is defined when including this shader in Pascal code, automatically. */
 //#define SHADOW_MAP_SIZE 1024.0
 
 float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord)

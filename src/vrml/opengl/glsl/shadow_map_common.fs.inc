@@ -1,15 +1,14 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "shadow_map_common.fs" }
 '/* Define exactly one of PCF* symbols, or none (to not use any PCF).' + LineEnding + 
-'   Note: this is handled by the VRMLShadowMap unit, when including this shader,' + LineEnding + 
+'   This is defined (or not) when including this shader in Pascal code,' + LineEnding + 
 '   automatically. */' + LineEnding + 
 '//#define PCF4' + LineEnding + 
 '//#define PCF4_BILINEAR' + LineEnding + 
 '//#define PCF16' + LineEnding + 
 '' + LineEnding + 
 '/* Define texture size in pixels, to make perfect PCF.' + LineEnding + 
-'   Note: this is handled by the VRMLShadowMap unit, when including this shader,' + LineEnding + 
-'   automatically. */' + LineEnding + 
+'   This is defined when including this shader in Pascal code, automatically. */' + LineEnding + 
 '//#define SHADOW_MAP_SIZE 1024.0' + LineEnding + 
 '' + LineEnding + 
 'float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord)' + LineEnding + 

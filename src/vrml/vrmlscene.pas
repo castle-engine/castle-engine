@@ -577,7 +577,6 @@ type
     procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
     procedure SetStatic(const Value: boolean);
     procedure SetShadowMaps(const Value: boolean);
-    procedure SetShadowMapsPCF(const Value: TPercentageCloserFiltering);
     procedure SetShadowMapsVisualizeDepth(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
@@ -843,6 +842,7 @@ type
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
 
     procedure UpdateHeadlightOnFromNavigationInfo;
+    procedure SetShadowMapsPCF(const Value: TPercentageCloserFiltering); virtual;
   protected
     GeneratedTextures: TDynGeneratedTextureArray;
 
@@ -2011,9 +2011,13 @@ type
 
       Affects how shadow maps are handled for the "receiveShadows"
       field.  This is taken into account at the scene @link(Load) time,
-      and only if @link(ShadowMaps) is @true. }
+      and only if @link(ShadowMaps) is @true.
+
+      TODO: this will be removed. Only Attributes.PercentageCloserFiltering
+      should be used. For now, this sets Attributes.PercentageCloserFiltering. }
     property ShadowMapsPCF: TPercentageCloserFiltering
-      read FShadowMapsPCF write SetShadowMapsPCF default pcf16;
+      read FShadowMapsPCF write SetShadowMapsPCF
+      default DefaultPercentageCloserFiltering;
 
     { Visualize depths stored in the shadow maps, instead of using them to
       actually make shadow.
@@ -2409,7 +2413,7 @@ begin
   FOwnsInput_PointingDeviceActivate := true;
 
   FShadowMaps := true;
-  FShadowMapsPCF := pcf16;
+  FShadowMapsPCF := DefaultPercentageCloserFiltering;
   FShadowMapsVisualizeDepth := false;
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 
