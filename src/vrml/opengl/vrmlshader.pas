@@ -193,17 +193,27 @@ begin
     http://www.mail-archive.com/osg-users@lists.openscenegraph.org/msg14238.html }
 
   case Plane of
-    tgpEye   : begin PlaneName := 'gl_EyePlane'   ; Source := 'vertex_eye'; end;
-    tgpObject: begin PlaneName := 'gl_ObjectPlane'; Source := 'gl_Vertex' ; end;
-    tgpSphere: begin VRMLWarning(vwIgnorable, '"Sphere" texture generation for shader pipeline not implemented yet'); Exit; end;
-    tgpNormal: begin VRMLWarning(vwIgnorable, '"Normal" texture generation for shader pipeline not implemented yet'); Exit; end;
-    tgpReflection: begin VRMLWarning(vwIgnorable, '"Reflection" texture generation for shader pipeline not implemented yet'); Exit; end;
+    tgpEye, tgpObject:
+      begin
+        if Plane = tgpEye then
+          begin PlaneName := 'gl_EyePlane'   ; Source := 'vertex_eye'; end else
+          begin PlaneName := 'gl_ObjectPlane'; Source := 'gl_Vertex' ; end;
+        TextureCoordGen += Format('gl_TexCoord[%d].%s = dot(%s, %s%s[%0:d]);' + NL,
+          [TextureUnit, VectorComponentNames[Component],
+           Source, PlaneName, PlaneComponentNames[Component]]);
+      end;
+    tgpSphere:
+      begin VRMLWarning(vwIgnorable, '"Sphere" texture generation for shader pipeline not implemented yet'); Exit; end;
+    tgpNormal:
+      begin
+        TextureCoordGen += Format('gl_TexCoord[%d].%s = normal_eye.%1:s;' + NL,
+          [TextureUnit, VectorComponentNames[Component]]);
+      end;
+    tgpReflection:
+      begin VRMLWarning(vwIgnorable, '"Reflection" texture generation for shader pipeline not implemented yet'); Exit; end;
     else raise EInternalError.Create('TVRMLShader.EnableTexGen:Plane?');
   end;
 
-  TextureCoordGen += Format('gl_TexCoord[%d].%s = dot(%s, %s%s[%0:d]);' + NL,
-    [TextureUnit, VectorComponentNames[Component],
-     Source, PlaneName, PlaneComponentNames[Component]]);
 end;
 
 procedure TVRMLShader.DisableTexGen(const TextureUnit: Cardinal);

@@ -19,7 +19,7 @@
 '     TODO: think, make sure. */' + LineEnding + 
 '  normal_eye = normalize(gl_NormalMatrix * gl_Normal);' + LineEnding + 
 '' + LineEnding + 
-'  /* This may use vertex_eye for texgen */' + LineEnding + 
+'  /* This may use vertex_eye, normal_eye and such */' + LineEnding + 
 '  /* *** VERTEX-PROCESSING *** */' + LineEnding + 
 '' + LineEnding + 
 '  gl_Position = ftransform();' + LineEnding + 

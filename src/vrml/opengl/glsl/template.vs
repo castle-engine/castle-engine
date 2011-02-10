@@ -17,7 +17,7 @@ void main(void)
      TODO: think, make sure. */
   normal_eye = normalize(gl_NormalMatrix * gl_Normal);
 
-  /* This may use vertex_eye for texgen */
+  /* This may use vertex_eye, normal_eye and such */
   /* *** VERTEX-PROCESSING *** */
 
   gl_Position = ftransform();
