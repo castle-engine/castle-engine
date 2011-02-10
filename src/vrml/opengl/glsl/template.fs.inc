@@ -13,6 +13,30 @@
 '' + LineEnding + 
 '/* *** FRAGMENT-SHADER-DECLARE *** */' + LineEnding + 
 '' + LineEnding + 
+'void add_light_contribution(inout vec4 color,' + LineEnding + 
+'  const in gl_LightProducts light_products,' + LineEnding + 
+'  const in gl_LightSourceParameters light_source)' + LineEnding + 
+'{' + LineEnding + 
+'  /* add ambient term */' + LineEnding + 
+'  color += light_products.ambient;' + LineEnding + 
+'' + LineEnding + 
+'  /* add diffuse term */' + LineEnding + 
+'  /* TODO: assume directional light.' + LineEnding + 
+'     TODO: in what coords is light_source.position? */' + LineEnding + 
+'  vec3 light_dir = light_source.position.xyz;' + LineEnding + 
+'  color += light_products.diffuse' + LineEnding + 
+'    * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
+'' + LineEnding + 
+'  /* add specular term */' + LineEnding + 
+'  vec3 reflect = normalize(-reflect(light_dir, normal_eye));' + LineEnding + 
+'  /* vertex to camera direction = camera pos - vertex pos.' + LineEnding + 
+'     We work in eye space here, so camera pos = always zero. */' + LineEnding + 
+'  vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));' + LineEnding + 
+'  color += light_products.specular' + LineEnding + 
+'    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0),' + LineEnding + 
+'          gl_FrontMaterial.shininess);' + LineEnding + 
+'}' + LineEnding + 
+'' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  gl_FragColor = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
@@ -21,26 +45,8 @@
 '   TODO: two-side lighting? */' + LineEnding + 
 '' + LineEnding + 
 '  for (int i = 0; i < 1; i++)' + LineEnding + 
-'  {' + LineEnding + 
-'    /* add ambient term */' + LineEnding + 
-'    gl_FragColor += gl_FrontLightProduct[i].ambient;' + LineEnding + 
-'' + LineEnding + 
-'    /* add diffuse term */' + LineEnding + 
-'    /* TODO: assume directional light.' + LineEnding + 
-'       TODO: in what coords is gl_LightSource[i].position? */' + LineEnding + 
-'    vec3 light_dir = gl_LightSource[i].position.xyz;' + LineEnding + 
-'    gl_FragColor += gl_FrontLightProduct[i].diffuse' + LineEnding + 
-'      * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
-'' + LineEnding + 
-'    /* add specular term */' + LineEnding + 
-'    vec3 reflect = normalize(-reflect(light_dir, normal_eye));' + LineEnding + 
-'    /* vertex to camera direction = camera pos - vertex pos.' + LineEnding + 
-'       We work in eye space here, so camera pos = always zero. */' + LineEnding + 
-'    vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));' + LineEnding + 
-'    gl_FragColor += gl_FrontLightProduct[i].specular' + LineEnding + 
-'      * pow(max(dot(reflect, vertex_to_camera_dir), 0.0),' + LineEnding + 
-'            gl_FrontMaterial.shininess);' + LineEnding + 
-'  }' + LineEnding + 
+'    add_light_contribution(gl_FragColor,' + LineEnding + 
+'      gl_FrontLightProduct[i], gl_LightSource[i]);' + LineEnding + 
 '' + LineEnding + 
 '  /* *** TEXTURE-APPLY *** */' + LineEnding + 
 '}' + LineEnding + 

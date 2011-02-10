@@ -11,6 +11,30 @@ varying vec3 normal_eye;
 
 /* *** FRAGMENT-SHADER-DECLARE *** */
 
+void add_light_contribution(inout vec4 color,
+  const in gl_LightProducts light_products,
+  const in gl_LightSourceParameters light_source)
+{
+  /* add ambient term */
+  color += light_products.ambient;
+
+  /* add diffuse term */
+  /* TODO: assume directional light.
+     TODO: in what coords is light_source.position? */
+  vec3 light_dir = light_source.position.xyz;
+  color += light_products.diffuse
+    * max(dot(normal_eye, light_dir), 0.0);
+
+  /* add specular term */
+  vec3 reflect = normalize(-reflect(light_dir, normal_eye));
+  /* vertex to camera direction = camera pos - vertex pos.
+     We work in eye space here, so camera pos = always zero. */
+  vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));
+  color += light_products.specular
+    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0),
+          gl_FrontMaterial.shininess);
+}
+
 void main(void)
 {
   gl_FragColor = gl_FrontLightModelProduct.sceneColor;
@@ -19,26 +43,8 @@ void main(void)
    TODO: two-side lighting? */
 
   for (int i = 0; i < 1; i++)
-  {
-    /* add ambient term */
-    gl_FragColor += gl_FrontLightProduct[i].ambient;
-
-    /* add diffuse term */
-    /* TODO: assume directional light.
-       TODO: in what coords is gl_LightSource[i].position? */
-    vec3 light_dir = gl_LightSource[i].position.xyz;
-    gl_FragColor += gl_FrontLightProduct[i].diffuse
-      * max(dot(normal_eye, light_dir), 0.0);
-
-    /* add specular term */
-    vec3 reflect = normalize(-reflect(light_dir, normal_eye));
-    /* vertex to camera direction = camera pos - vertex pos.
-       We work in eye space here, so camera pos = always zero. */
-    vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));
-    gl_FragColor += gl_FrontLightProduct[i].specular
-      * pow(max(dot(reflect, vertex_to_camera_dir), 0.0),
-            gl_FrontMaterial.shininess);
-  }
+    add_light_contribution(gl_FragColor,
+      gl_FrontLightProduct[i], gl_LightSource[i]);
 
   /* *** TEXTURE-APPLY *** */
 }
