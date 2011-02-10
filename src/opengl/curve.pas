@@ -78,7 +78,8 @@ type
       read FDefaultSegments write FDefaultSegments default 10;
 
     procedure Render(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+      const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
 
     constructor Create(const ATBegin, ATEnd: Float); reintroduce;
   end;
@@ -337,7 +338,8 @@ begin
 end;
 
 procedure TCurve.Render(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup; InShadow: boolean);
+  const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
   if TransparentGroup in [tgAll, tgOpaque] then
     Render(DefaultSegments);

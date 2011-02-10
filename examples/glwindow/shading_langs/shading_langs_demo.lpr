@@ -37,12 +37,14 @@ type
   TMyGeometry = class(T3D)
   public
     procedure Render(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+      const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
     function BoundingBox: TBox3D; override;
   end;
 
 procedure TMyGeometry.Render(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup; InShadow: boolean);
+  const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup; InShadow: boolean);
 
   { Draw cube using really old-fashioned approach (no vertex arrays,
     just specify by hand 6 quads, 4 vertexes and tex coords each). }

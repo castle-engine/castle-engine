@@ -86,14 +86,16 @@ var
 type
   TMySceneManager = class(TKamSceneManager)
   protected
-    procedure Render3D(TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    procedure Render3D(const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
   end;
 
 var
   SceneManager: TMySceneManager;
 
 procedure TMySceneManager.Render3D(
-  TransparentGroup: TTransparentGroup; InShadow: boolean);
+  const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
   if not (TransparentGroup in [tgAll, tgOpaque]) then Exit;
 
