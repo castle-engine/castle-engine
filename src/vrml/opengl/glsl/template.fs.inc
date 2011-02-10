@@ -11,7 +11,8 @@
 'varying vec4 vertex_eye;' + LineEnding + 
 'varying vec3 normal_eye;' + LineEnding + 
 '' + LineEnding + 
-'/* *** FRAGMENT-DECLARE *** */' + LineEnding + 
+'/* PLUG: fragment-declare-variables declaration */' + LineEnding + 
+'/* PLUG: fragment-declare-procedures declaration */' + LineEnding + 
 '' + LineEnding + 
 'void add_light_contribution(inout vec4 color,' + LineEnding + 
 '  const in vec3 normal_eye,' + LineEnding + 
@@ -80,8 +81,8 @@
 '    gl_FragColor.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 
 '' + LineEnding + 
-'  /* *** TEXTURE-APPLY *** */' + LineEnding + 
+'  /* PLUG: texture-apply (gl_FragColor) (inout vec4 fragment_color) */' + LineEnding + 
 '' + LineEnding + 
-'  /* *** FRAGMENT-END *** */' + LineEnding + 
+'  /* PLUG: fragment-end (gl_FragColor) (const in vec4 fragment_color) */' + LineEnding + 
 '}' + LineEnding + 
 ''

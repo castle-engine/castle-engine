@@ -63,6 +63,7 @@ type
     FVisualizeDepthMap: boolean;
     VertexShaderComplete: string;
     FragmentShaderComplete: string;
+    PlugIdentifiers: Cardinal;
   public
     constructor Create;
     destructor Destroy; override;
@@ -70,10 +71,20 @@ type
     { Insert a piece of code at given plugging point.
       Inserts code right before the magic @code(/* PLUG ...*/) comments,
       this way many Plug calls for the same PlugName will insert code in the same
-      order. If RemovePlugName then magic comment will be removed from shader
-      source, so it will not be available for further effects. }
+      order.
+
+      @param(ForceDirectInsertion Set to @true to force inserting
+        PlugValue code right at the place of magic comment, without
+        wrapping it inside a procedure call. This allows for unsafe code
+        insertion. Effectively, this treats every magic comment like
+        a "declaration".
+        (Useful for some tricks, e.g. you can "return" from main
+        for shadow maps visualization.))
+
+      @param(RemovePlug Should we remove the magic comment from shader
+        source, so it will not be available for further effects.) }
     procedure Plug(const PlugName: string; const PlugValue: string;
-      const RemovePlugName: boolean = false);
+      const RemovePlug, ForceDirectInsertion: boolean);
 
     function CreateProgram: TGLSLProgram;
     procedure SetupUniforms(AProgram: TGLSLProgram);
@@ -135,37 +146,127 @@ begin
 end;
 
 procedure TVRMLShader.Plug(const PlugName: string; const PlugValue: string;
-  const RemovePlugName: boolean = false);
-var
-  PlugCommentBegin: string;
+  const RemovePlug, ForceDirectInsertion: boolean);
 
-  function TryPlug(var Code: string): boolean;
+  { Derive procedure call and declaration code from plug parameter and PlugValue }
+  procedure PlugProcedure(const Parameter: string;
+    out ProcedureCall, ProcedureDeclaration: string);
+
+    function MoveToOpeningParen(var P: Integer): boolean;
+    begin
+      Result := true;
+      repeat
+        Inc(P);
+
+        if P > Length(Parameter) then
+        begin
+          VRMLWarning(vwIgnorable, 'PLUG parameter unexpected end (not closed parenthesis)');
+          Exit(false);
+        end;
+
+        if (Parameter[P] <> '(') and
+           not (Parameter[P] in WhiteSpaces) then
+        begin
+          VRMLWarning(vwIgnorable, Format('PLUG parameter unexpected character "%s" (expected opening parenthesis "(")',
+            [Parameter[P]]));
+          Exit(false);
+        end;
+      until Parameter[P] = '(';
+    end;
+
+    function MoveToMatchingParen(var P: Integer): boolean;
+    var
+      ParenLevel: Cardinal;
+    begin
+      Result := true;
+      ParenLevel := 1;
+
+      repeat
+        Inc(P);
+        if P > Length(Parameter) then
+        begin
+          VRMLWarning(vwIgnorable, 'PLUG parameter unexpected end (not closed parenthesis)');
+          Exit(false);
+        end;
+
+        if Parameter[P] = '(' then
+          Inc(ParenLevel) else
+        if Parameter[P] = ')' then
+          Dec(ParenLevel);
+      until ParenLevel = 0;
+    end;
+
+  var
+    ProcedureName: string;
+    CallBegin, CallEnd, DeclarationBegin, DeclarationEnd: Integer;
+  begin
+    ProcedureName := 'plug_' + IntToStr(PlugIdentifiers);
+    Inc(PlugIdentifiers);
+
+    CallBegin := 0;
+    if not MoveToOpeningParen(CallBegin) then Exit;
+    CallEnd := CallBegin;
+    if not MoveToMatchingParen(CallEnd) then Exit;
+
+    DeclarationBegin := CallEnd;
+    if not MoveToOpeningParen(DeclarationBegin) then Exit;
+    DeclarationEnd := DeclarationBegin;
+    if not MoveToMatchingParen(DeclarationEnd) then Exit;
+
+    ProcedureCall := ProcedureName +
+      CopyPos(Parameter, CallBegin, CallEnd) + ';' + NL;
+    ProcedureDeclaration := 'void ' + ProcedureName +
+      CopyPos(Parameter, DeclarationBegin, DeclarationEnd) + NL +
+      '{' + NL + PlugValue + NL + '}' + NL;
+  end;
+
+var
+  CommentBegin: string;
+
+  function TryPlug(var Code: string; const PlugNameDeclareProcedures: string): boolean;
+
+    procedure InsertIntoCode(const P: Integer; const S: string);
+    begin
+      Code := Copy(Code, 0, P - 1) + S + SEnding(Code, P);
+    end;
+
   var
     PBegin, PEnd: Integer;
-    PlugDeclaration: string;
+    Parameter, ProcedureCall, ProcedureDeclaration: string;
   begin
     Result := false;
-    PBegin := Pos(PlugCommentBegin, Code);
+    PBegin := Pos(CommentBegin, Code);
     if PBegin <> 0 then
     begin
-      PEnd := PosEx('*/', Code, PBegin + Length(PlugCommentBegin));
+      PEnd := PosEx('*/', Code, PBegin + Length(CommentBegin));
       if PEnd <> 0 then
       begin
         Result := true;
-        PlugDeclaration := Trim(CopyPos(Code, PBegin + Length(PlugCommentBegin),
-          PEnd - 1));
-        {TODO:if PlugDeclaration = 'declaration' then}
-        if RemovePlugName then
+        Parameter := Trim(CopyPos(Code, PBegin + Length(CommentBegin), PEnd - 1));
+
+        if RemovePlug then
           DeletePos(Code, PBegin, PEnd + 1);
-        Code := Copy(Code, 0, PBegin - 1) + PlugValue + SEnding(Code, PBegin);
+
+        if Trim(PlugValue) <> '' then
+        begin
+          if ForceDirectInsertion or (Parameter = 'declaration') then
+            InsertIntoCode(PBegin, PlugValue + NL) else
+          begin
+            PlugProcedure(Parameter, ProcedureCall, ProcedureDeclaration);
+            InsertIntoCode(PBegin,  ProcedureCall);
+            { We use recursive Plug call, to insert procedure declaration
+              at appropriate place. }
+            Plug(PlugNameDeclareProcedures, ProcedureDeclaration, false, true);
+          end;
+        end;
       end;
     end;
   end;
 
 begin
-  PlugCommentBegin := '/* PLUG: ' + PlugName + ' ';
-  if not TryPlug(VertexShaderComplete) then
-    if not TryPlug(FragmentShaderComplete) then
+  CommentBegin := '/* PLUG: ' + PlugName + ' ';
+  if not TryPlug(VertexShaderComplete, 'vertex-declare-procedures') then
+    if not TryPlug(FragmentShaderComplete, 'fragment-declare-procedures') then
       VRMLWarning(vwIgnorable, Format('Plugging point "%s" for shader code not found',
         [PlugName]));
 end;
@@ -176,20 +277,25 @@ const
   ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
 begin
   Plug('vertex-process', TextureCoordInitialize + TextureCoordGen
-    + TextureCoordMatrix + ClipPlane);
+    + TextureCoordMatrix + ClipPlane,
+    false, true);
 
-  Plug('texture-apply', TextureApply);
-  Plug('fragment-declare',
+  Plug('texture-apply', TextureApply,
+    false, true);
+  Plug('fragment-declare-variables',
     FragmentShaderDeclare +
     PCFDefine[PercentageCloserFiltering] + NL +
-    {$I shadow_map_common.fs.inc} +
     { Passing LightsEnabled as uniform would enable me to reuse
       created GLSL program more. However, this could be slower,
       depending on GPU. And, in fact, fglrx at least on Radeon X1600 refuses
       to run such shader, saying it cannot run in hardware...
       So we have to set this by #define. }
-    Format('#define LIGHTS_ENABLED %d' + NL, [LightsEnabled]));
-  Plug('fragment-end', FragmentEnd);
+    Format('#define LIGHTS_ENABLED %d' + NL, [LightsEnabled]),
+    false, true);
+  Plug('fragment-declare-procedures', {$I shadow_map_common.fs.inc},
+    false, true);
+  Plug('fragment-end', FragmentEnd,
+    false, true);
 
   if Log then
   begin
@@ -202,6 +308,9 @@ begin
     Result.AttachVertexShader(VertexShaderComplete);
     Result.AttachFragmentShader(FragmentShaderComplete);
     Result.Link(true);
+
+    Result.UniformNotFoundAction := uaWarning;
+    Result.UniformTypeMismatchAction := utWarning;
   except Result.Free; raise end;
 end;
 

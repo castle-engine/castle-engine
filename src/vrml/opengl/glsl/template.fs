@@ -9,7 +9,8 @@
 varying vec4 vertex_eye;
 varying vec3 normal_eye;
 
-/* PLUG: fragment-declare declaration */
+/* PLUG: fragment-declare-variables declaration */
+/* PLUG: fragment-declare-procedures declaration */
 
 void add_light_contribution(inout vec4 color,
   const in vec3 normal_eye,
@@ -78,7 +79,7 @@ void main(void)
     gl_FragColor.a = gl_BackMaterial.diffuse.a;
   }
 
-  /* PLUG: texture-apply void %s(inout vec4 fragment_color) */
+  /* PLUG: texture-apply (gl_FragColor) (inout vec4 fragment_color) */
 
-  /* PLUG: fragment-end void %s(const in vec4 fragment_color) */
+  /* PLUG: fragment-end (gl_FragColor) (const in vec4 fragment_color) */
 }
