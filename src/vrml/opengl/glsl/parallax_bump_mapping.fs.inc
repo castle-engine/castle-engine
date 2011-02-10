@@ -125,7 +125,7 @@
 '    texture2D(tex_normal_map, texture_coord)) * 2.0 - vec3(1, 1, 1);' + LineEnding + 
 '' + LineEnding + 
 '  /* TODO: two-sided lighting.' + LineEnding + 
-'     See glsl_bump_mapping.fs for comments why it''s not done now.' + LineEnding + 
+'     See bump_mapping.fs for comments why it''s not done now.' + LineEnding + 
 '' + LineEnding + 
 '  if (!gl_FrontFacing)' + LineEnding + 
 '    normal.z = -normal.z;' + LineEnding + 

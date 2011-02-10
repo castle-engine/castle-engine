@@ -33,9 +33,7 @@ void main(void)
 {
   gl_TexCoord[0] = gl_TextureMatrix[0] * vec4(tex_coord, 0.0, 1.0);
 
-  /* Calculate light_dir_tangent, which is crucial for bump mapping.
-     This in some way does the same as LightDirectionInTangentSpace
-     function in VRMLGLRenderer, but this works in shader. */
+  /* Calculate light_dir_tangent, which is crucial for bump mapping. */
   vec3 light_position_object_space =
     vec3(world_space_to_object * vec4(light_position_world_space, 1));
   vec3 light_dir_object_space = light_position_object_space - vec3(gl_Vertex);

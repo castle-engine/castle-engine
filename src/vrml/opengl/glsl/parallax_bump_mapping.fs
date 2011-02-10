@@ -123,7 +123,7 @@ void main(void)
     texture2D(tex_normal_map, texture_coord)) * 2.0 - vec3(1, 1, 1);
 
   /* TODO: two-sided lighting.
-     See glsl_bump_mapping.fs for comments why it's not done now.
+     See bump_mapping.fs for comments why it's not done now.
 
   if (!gl_FrontFacing)
     normal.z = -normal.z;
