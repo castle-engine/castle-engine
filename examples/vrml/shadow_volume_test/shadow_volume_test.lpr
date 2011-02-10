@@ -167,12 +167,12 @@ procedure TMySceneManager.RenderFromViewEverything;
 
   procedure RenderEverything;
   begin
-    Scene.Render(nil, 0, tgAll);
+    Scene.Render(nil, 1, tgAll);
     if IsRenderShadowCaster then
     begin
       glPushMatrix;
         glMultMatrix(ShadowCasterNav.Matrix);
-        ShadowCaster.Render(nil, 0, tgAll);
+        ShadowCaster.Render(nil, 1, tgAll);
       glPopMatrix;
     end;
   end;
