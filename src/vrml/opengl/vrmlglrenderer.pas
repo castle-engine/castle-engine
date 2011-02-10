@@ -300,7 +300,6 @@ type
     FControlMaterials: boolean;
     FControlTextures: boolean;
     FEnableTextures: boolean;
-    FFirstGLFreeTexture: Cardinal;
     FLastGLFreeTexture: integer;
     FTextureMinFilter: TGLint;
     FTextureMagFilter: TGLint;
@@ -328,7 +327,6 @@ type
     procedure SetControlMaterials(const Value: boolean); virtual;
     procedure SetControlTextures(const Value: boolean); virtual;
     procedure SetEnableTextures(const Value: boolean); virtual;
-    procedure SetFirstGLFreeTexture(const Value: Cardinal); virtual;
     procedure SetLastGLFreeTexture(const Value: integer); virtual;
     procedure SetTextureMinFilter(const Value: TGLint); virtual;
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
@@ -474,9 +472,9 @@ type
     property EnableTextures: boolean
       read FEnableTextures write SetEnableTextures default true;
 
-    { Which OpenGL texture units are free to use.
+    { How many OpenGL texture units are free to use.
 
-      Note that for now we assume that at least one texture unit is free.
+      Note that we always assume that at least one texture unit is available.
       If OpenGL multitexturing is not available, we will just use the default
       texture unit.
 
@@ -485,8 +483,6 @@ type
       glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1.
 
       @groupBegin }
-    property FirstGLFreeTexture: Cardinal
-      read FFirstGLFreeTexture write SetFirstGLFreeTexture default 0;
     property LastGLFreeTexture: Integer
       read FLastGLFreeTexture write SetLastGLFreeTexture default -1;
     { @groupEnd }
@@ -1065,18 +1061,14 @@ type
       and will minimize amount of calls to glGetInteger() }
     FLastGLFreeLight: integer;
 
-    { Use always LastGLFreeTexture, this will never return -1.
-      Will return Attributes.LastGLFreeTexture, or
-      glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) -1 if -1.
-
-      To minimize number of glGetInteger calls, the result of this is cached
-      in FLastGLFreeTexture. }
+    { Returns Attributes.LastGLFreeTexture,
+      or (when Attributes.LastGLFreeTexture is -1)
+      returns glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1. }
     FLastGLFreeTexture: Integer;
     function LastGLFreeTexture: Cardinal;
 
     { Number of available texture units.
-      Just a shortcut for LastGLFreeTexture - FirstGLFreeTexture + 1,
-      always >= 0. }
+      Just a shortcut for LastGLFreeTexture + 1. }
     function FreeGLTexturesCount: Cardinal;
   private
     BumpMappingMethodCached: TBumpMappingMethod;
@@ -1194,13 +1186,12 @@ type
     {$endif}
 
     { If ARB_multitexturing available, this sets currently active texture unit.
-      TextureUnit is newly active unit, this is added to GL_TEXTURE0_ARB
-      + FirstGLFreeTexture.
+      TextureUnit is newly active unit, this is added to GL_TEXTURE0_ARB.
 
       So the only thing that you have to care about is to specify TextureUnit <
       FreeGLTexturesCount.
-      Everything else (ARB_multitexturing, GL_TEXTURE0_ARB,
-      FirstGLFreeTexture values) is taken care of inside here. }
+      Everything else (ARB_multitexturing, GL_TEXTURE0_ARB)
+      is taken care of inside here. }
     procedure ActiveTexture(const TextureUnit: Cardinal);
 
     { Disable any (fixed-function) texturing (2D, 3D, cube map, and so on)
@@ -1324,7 +1315,6 @@ type
       attributes instances created yet, but you want to know right now
       what bump mapping will be available. }
     class function GLContextBumpMappingMethod(
-      const FirstGLFreeTexture: Cardinal;
       ALastGLFreeTexture: Integer;
       const AttributesBumpMappingMaximum: TBumpMappingMethod;
       const AttributesControlTextures, AttributesEnableTextures, AttributesPureGeometry: boolean):
@@ -2659,7 +2649,6 @@ begin
     ControlMaterials := TVRMLRenderingAttributes(Source).ControlMaterials;
     ControlTextures := TVRMLRenderingAttributes(Source).ControlTextures;
     EnableTextures := TVRMLRenderingAttributes(Source).EnableTextures;
-    FirstGLFreeTexture := TVRMLRenderingAttributes(Source).FirstGLFreeTexture;
     LastGLFreeTexture := TVRMLRenderingAttributes(Source).LastGLFreeTexture;
     TextureMinFilter := TVRMLRenderingAttributes(Source).TextureMinFilter;
     TextureMagFilter := TVRMLRenderingAttributes(Source).TextureMagFilter;
@@ -2677,7 +2666,6 @@ begin
     (SecondValue.OnVertexColor = OnVertexColor) and
     (SecondValue.ControlTextures = ControlTextures) and
     (SecondValue.EnableTextures = EnableTextures) and
-    (SecondValue.FirstGLFreeTexture = FirstGLFreeTexture) and
     (SecondValue.LastGLFreeTexture = LastGLFreeTexture) and
     (SecondValue.UseFog = UseFog);
 end;
@@ -2690,7 +2678,6 @@ begin
   FUseSceneLights := true;
   FFirstGLFreeLight := DefaultFirstGLFreeLight;
   FLastGLFreeLight := -1;
-  FFirstGLFreeTexture := 0;
   FLastGLFreeTexture := -1;
   FControlMaterials := true;
   FControlTextures := true;
@@ -2773,15 +2760,6 @@ begin
   begin
     ReleaseCachedResources;
     FEnableTextures := Value;
-  end;
-end;
-
-procedure TVRMLRenderingAttributes.SetFirstGLFreeTexture(const Value: Cardinal);
-begin
-  if FirstGLFreeTexture <> Value then
-  begin
-    ReleaseCachedResources;
-    FFirstGLFreeTexture := Value;
   end;
 end;
 
@@ -3245,13 +3223,10 @@ end;
 
 function TVRMLGLRenderer.FreeGLTexturesCount: Cardinal;
 begin
-  if LastGLFreeTexture >= Attributes.FirstGLFreeTexture then
-    Result := LastGLFreeTexture - Attributes.FirstGLFreeTexture + 1 else
-    Result := 0;
+  Result := LastGLFreeTexture + 1;
 end;
 
 class function TVRMLGLRenderer.GLContextBumpMappingMethod(
-  const FirstGLFreeTexture: Cardinal;
   ALastGLFreeTexture: Integer;
   const AttributesBumpMappingMaximum: TBumpMappingMethod;
   const AttributesControlTextures, AttributesEnableTextures, AttributesPureGeometry: boolean):
@@ -3276,7 +3251,7 @@ begin
       ALastGLFreeTexture := 0;
   end;
 
-  TextureUnitsAvailable := ALastGLFreeTexture - FirstGLFreeTexture + 1;
+  TextureUnitsAvailable := ALastGLFreeTexture + 1;
 
   if (AttributesBumpMappingMaximum > bmNone) and
      AttributesControlTextures and
@@ -3326,7 +3301,6 @@ begin
   if not BumpMappingMethodIsCached then
   begin
     BumpMappingMethodCached := GLContextBumpMappingMethod(
-      Attributes.FirstGLFreeTexture,
       LastGLFreeTexture,
       Attributes.BumpMappingMaximum,
       Attributes.ControlTextures,
@@ -3361,8 +3335,7 @@ end;
 procedure TVRMLGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
   if GL_ARB_multitexture then
-    glActiveTextureARB(GL_TEXTURE0_ARB +
-      Attributes.FirstGLFreeTexture + TextureUnit);
+    glActiveTextureARB(GL_TEXTURE0_ARB + TextureUnit);
 end;
 
 procedure TVRMLGLRenderer.DisableTexture(const TextureUnit: Cardinal);
@@ -3411,7 +3384,7 @@ procedure TVRMLGLRenderer.RenderCleanState(const Beginning: boolean);
   var
     I: Integer;
   begin
-    for I := Attributes.FirstGLFreeTexture to LastGLFreeTexture do
+    for I := 0 to LastGLFreeTexture do
       DisableTexture(I);
   end;
 
@@ -3424,7 +3397,7 @@ begin
   if GLUseMultiTexturing then
   begin
     ActiveTexture(0);
-    glClientActiveTextureARB(GL_TEXTURE0_ARB + Attributes.FirstGLFreeTexture);
+    glClientActiveTextureARB(GL_TEXTURE0_ARB);
   end;
 
   { init our OpenGL state }

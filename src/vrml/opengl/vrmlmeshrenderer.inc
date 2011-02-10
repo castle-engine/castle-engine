@@ -243,8 +243,7 @@ var
         if (Arrays.TexCoords[I] <> nil) and
            (Arrays.TexCoords[I].Generation = tgExplicit) then
         begin
-          glClientActiveTextureARB(GL_TEXTURE0_ARB +
-            Integer(Renderer.Attributes.FirstGLFreeTexture) + I);
+          glClientActiveTextureARB(GL_TEXTURE0_ARB + I);
           glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         end;
     end else
@@ -327,8 +326,7 @@ begin
         if (Arrays.TexCoords[I] <> nil) and
            (Arrays.TexCoords[I].Generation = tgExplicit) then
         begin
-          glClientActiveTextureARB(GL_TEXTURE0_ARB +
-            Integer(Renderer.Attributes.FirstGLFreeTexture) + I);
+          glClientActiveTextureARB(GL_TEXTURE0_ARB + I);
           glEnableClientState(GL_TEXTURE_COORD_ARRAY);
           glTexCoordPointer(Arrays.TexCoords[I].Dimensions, GL_FLOAT,
             Arrays.AttributeSize,
@@ -438,13 +436,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
     The only thing that you have to care about is to specify TextureUnit <
     FreeGLTexturesCount. Everything else (whether ARB_multitexturing
-    exists, and shifting TextureUnit by GL_TEXTURE0_ARB +
-    FirstGLFreeTexture values) is taken care of inside here. }
+    exists, and shifting TextureUnit by GL_TEXTURE0_ARB) is taken care of inside here. }
   procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
   begin
     if GL_ARB_multitexture then
-      glMultiTexCoordv(GL_TEXTURE0_ARB +
-        Attributes.FirstGLFreeTexture + TextureUnit, TexCoord) else
+      glMultiTexCoordv(GL_TEXTURE0_ARB + TextureUnit, TexCoord) else
       glTexCoordv(TexCoord);
   end;
 
@@ -500,8 +496,8 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         begin
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpSphere);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpSphere);
+          Shader.EnableTexGen(TexUnit, 0, tgpSphere);
+          Shader.EnableTexGen(TexUnit, 1, tgpSphere);
         end;
       tgCoord:
         begin
@@ -511,9 +507,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1, 0, 0));
           glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1, 0));
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpObject);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpObject);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 2, tgpObject);
+          Shader.EnableTexGen(TexUnit, 0, tgpObject);
+          Shader.EnableTexGen(TexUnit, 1, tgpObject);
+          Shader.EnableTexGen(TexUnit, 2, tgpObject);
         end;
       tgCoordEye:
         begin
@@ -530,9 +526,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
             glTexGenv(GL_R, GL_EYE_PLANE, Vector4Single(0, 0, 1, 0));
           glPopMatrix;
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpEye);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpEye);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 2, tgpEye);
+          Shader.EnableTexGen(TexUnit, 0, tgpEye);
+          Shader.EnableTexGen(TexUnit, 1, tgpEye);
+          Shader.EnableTexGen(TexUnit, 2, tgpEye);
         end;
       tgCameraSpaceNormal,
       tgWorldSpaceNormal:
@@ -547,9 +543,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
             glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1, 0));
 
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpObject);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpObject);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 2, tgpObject);
+            Shader.EnableTexGen(TexUnit, 0, tgpObject);
+            Shader.EnableTexGen(TexUnit, 1, tgpObject);
+            Shader.EnableTexGen(TexUnit, 2, tgpObject);
           end else
           begin
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
@@ -559,9 +555,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             if TexCoord.Generation = tgWorldSpaceNormal then
               TextureTransformToWorldSpace('WORLDSPACENORMAL', 'CAMERASPACENORMAL');
 
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpNormal);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpNormal);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 2, tgpNormal);
+            Shader.EnableTexGen(TexUnit, 0, tgpNormal);
+            Shader.EnableTexGen(TexUnit, 1, tgpNormal);
+            Shader.EnableTexGen(TexUnit, 2, tgpNormal);
           end;
         end;
       tgCameraSpaceReflectionVector,
@@ -577,9 +573,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
             glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1, 0));
 
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpObject);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpObject);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 2, tgpObject);
+            Shader.EnableTexGen(TexUnit, 0, tgpObject);
+            Shader.EnableTexGen(TexUnit, 1, tgpObject);
+            Shader.EnableTexGen(TexUnit, 2, tgpObject);
           end else
           begin
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
@@ -589,9 +585,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             if TexCoord.Generation = tgWorldSpaceReflectionVector then
               TextureTransformToWorldSpace('WORLDSPACEREFLECTIONVECTOR', 'CAMERASPACEREFLECTIONVECTOR');
 
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpReflection);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpReflection);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 2, tgpReflection);
+            Shader.EnableTexGen(TexUnit, 0, tgpReflection);
+            Shader.EnableTexGen(TexUnit, 1, tgpReflection);
+            Shader.EnableTexGen(TexUnit, 2, tgpReflection);
           end;
         end;
       tgProjection:
@@ -614,10 +610,10 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
               glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
               glTexGenv(GL_Q, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 3));
             glPopMatrix;
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpEye);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpEye);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 2, tgpEye);
-            Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 3, tgpEye);
+            Shader.EnableTexGen(TexUnit, 0, tgpEye);
+            Shader.EnableTexGen(TexUnit, 1, tgpEye);
+            Shader.EnableTexGen(TexUnit, 2, tgpEye);
+            Shader.EnableTexGen(TexUnit, 3, tgpEye);
           end;
         end;
       tgBounds2d:
@@ -627,8 +623,8 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpObject);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpObject);
+          Shader.EnableTexGen(TexUnit, 0, tgpObject);
+          Shader.EnableTexGen(TexUnit, 1, tgpObject);
         end;
       tgBounds3d:
         begin
@@ -638,9 +634,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
           glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_R, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[2]);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 0, tgpObject);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 1, tgpObject);
-          Shader.EnableTexGen(Attributes.FirstGLFreeTexture + TexUnit, 2, tgpObject);
+          Shader.EnableTexGen(TexUnit, 0, tgpObject);
+          Shader.EnableTexGen(TexUnit, 1, tgpObject);
+          Shader.EnableTexGen(TexUnit, 2, tgpObject);
         end;
       else raise EInternalError.Create('EnableTextureGen - Gen?');
     end;
@@ -663,7 +659,7 @@ begin
     enabled by RenderCoordinateBegin. }
   for I := 0 to Arrays.TexCoords.Count - 1 do
     if Arrays.TexCoords[I].Generation <> tgExplicit then
-      Shader.DisableTexGen(Attributes.FirstGLFreeTexture + I);
+      Shader.DisableTexGen(I);
 
   inherited;
 end;
