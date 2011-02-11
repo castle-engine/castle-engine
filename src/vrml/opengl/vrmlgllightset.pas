@@ -138,44 +138,22 @@ type
     This allows you to load lights from a VRML/X3D file,
     and use these lights with any 3D objects (for example,
     maybe you want to share the same lights across many TVRMLGLScene
-    or other 3D objects you render with OpenGL).
-
-    This object is connected to the OpenGL context since the first
-    RenderLights call (when a display list may be created)
-    up to the GLContextClose close (when we make sure that any OpenGL
-    resources like display lists are released). GLContextClose is
-    also automatically done in the destructor (so you don't have
-    to call it explicitly, if OpenGL context will still be available
-    at destruction time). }
+    or other 3D objects you render with OpenGL). }
   TVRMLGLLightSet = class(TVRMLLightSet)
   private
-    dlRenderLights: TGLuint; { < 0 means "not initialized" }
     FGLLightNum1, FGLLightNum2: Integer;
 
-    { This is like GLLightNum2, but it's not -1.
-      Initialized by CalculateRealGLLightNum2.
-      Deinitialized in GLContextClose (by setting this to invalid value = -1). }
-    RealGLLightNum2: Integer;
-    procedure CalculateRealGLLightNum2;
-    procedure SetGLLightNum1(Value: Integer);
-    procedure SetGLLightNum2(Value: Integer);
+    { This is like GLLightNum2, but it's not -1. }
+    function RealGLLightNum2: Integer;
   public
     { Constructor. Forces you to provide values for properties that
       have no sensible (and safe) default, like GLLightNum1, GLLightNum2. }
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AGLLightNum1, AGLLightNum2: Integer);
 
-    destructor Destroy; override;
-
-    { Recalculate the @link(Lights) property, looking at VRML/X3D
-      properties in the @link(RootNode). Releases any connections with
-      the OpenGL context (like GLContextClose), since our display lists
-      will have to be recreated if lights changed. }
-    procedure CalculateLights; override;
-
     { Number of the first OpenGL light that we can set.
       Just like for glLightsFromVRML. }
-    property glLightNum1: Integer read FGLLightNum1 write SetGLLightNum1;
+    property glLightNum1: Integer read FGLLightNum1 write FGLLightNum1;
 
     { Number of the last OpenGL light that we can set.
       Just like for glLightsFromVRML.
@@ -183,14 +161,10 @@ type
       May be set to -1, to indicate that all the lights (from glLightNum1)
       are available to use. In other words, -1 is equivalent to
       glGet(GL_MAX_LIGHT)-1. }
-    property glLightNum2: Integer read FGLLightNum2 write SetGLLightNum2;
+    property glLightNum2: Integer read FGLLightNum2 write FGLLightNum2;
 
     { Set up OpenGL lights properties to correspond to given VRML lights.
-      This is a wrapper around glLightsFromVRML that automatically
-      manages a display list that does glLightsFromVRML call.
-
-      This function creates connection between this object and
-      current OpenGL context. }
+      This is a wrapper around glLightsFromVRML. }
     procedure RenderLights;
 
     { Disable all the OpenGL lights (in glLightNum1 .. glLightNum2 range). }
@@ -208,17 +182,6 @@ type
       neither disabled, nor enabled --- usually you should enable them
       as needed by RenderLights). }
     procedure TurnLightsOffForShadows;
-
-    { Close any connection between this object and current OpenGL context.
-      After calling this, you can e.g. switch to another context and use
-      this object there. You can also destroy current context and
-      then free this object.
-
-      Calling GLContextClose when there is no connection between this object and
-      gl context (e.g. calling it twice in a row) is a valid NOP.
-
-      This is also called by the destructor. }
-    procedure GLContextClose;
   end;
 
 implementation
@@ -510,70 +473,30 @@ end;
 
 { TVRMLGLLightSet ------------------------------------------------------------ }
 
-procedure TVRMLGLLightSet.SetGLLightNum1(Value: Integer);
+constructor TVRMLGLLightSet.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+  AGLLightNum1, AGLLightNum2: Integer);
 begin
-  if FGLLightNum1 <> Value then
-  begin
-    FGLLightNum1 := Value;
-    GLContextClose;
-  end;
+  inherited Create(ARootNode, AOwnsRootNode);
+  FGLLightNum1 := AGLLightNum1;
+  FGLLightNum2 := AGLLightNum2;
 end;
 
-procedure TVRMLGLLightSet.SetGLLightNum2(Value: Integer);
+function TVRMLGLLightSet.RealGLLightNum2: Integer;
 begin
-  if FGLLightNum2 <> Value then
-  begin
-    FGLLightNum2 := Value;
-    GLContextClose;
-  end;
-end;
-
-procedure TVRMLGLLightSet.CalculateLights;
-begin
-  GLContextClose;
-  inherited;
-end;
-
-procedure TVRMLGLLightSet.CalculateRealGLLightNum2;
-begin
-  if RealGLLightNum2 = -1 then
-  begin
-    RealGLLightNum2 := GLLightNum2;
-    if RealGLLightNum2 = -1 then
-      RealGLLightNum2 := glGetInteger(GL_MAX_LIGHTS) - 1;
-  end;
+  Result := GLLightNum2;
+  if Result = -1 then
+    Result += GLMaxLights;
 end;
 
 procedure TVRMLGLLightSet.RenderLights;
 begin
-  if dlRenderLights = 0 then
-  begin
-    CalculateRealGLLightNum2;
-
-    dlRenderLights := glGenListsCheck(1, 'TVRMLGLLightSet.RenderLights');
-
-    { As usual, I don't use here GL_COMPILE_AND_EXECUTE (because this
-      can result in non-optimal display list). I use GL_COMPILE,
-      and then I just call this list. }
-
-    glNewList(dlRenderLights, GL_COMPILE);
-    try
-      glLightsFromVRML(Lights, glLightNum1, RealGLLightNum2,
-        { For now, LightRenderEvent is always nil here, as I didn't need
-          it with TVRMLGLLightSet. There are no problems to add
-          LightRenderEvent to TVRMLGLLightSet in the future. }
-        nil);
-    finally glEndList end;
-  end;
-
-  glCallList(dlRenderLights);
+  glLightsFromVRML(Lights, glLightNum1, RealGLLightNum2, nil);
 end;
 
 procedure TVRMLGLLightSet.TurnLightsOff;
 var
   I: Integer;
 begin
-  CalculateRealGLLightNum2;
   for I := GLLightNum1 to RealGLLightNum2 do
     glDisable(GL_LIGHT0 + I);
 end;
@@ -583,8 +506,6 @@ var
   MyLightNum, GLLightNum: Integer;
   L: PActiveLight;
 begin
-  CalculateRealGLLightNum2;
-
   L := Lights.Pointers[0];
   for MyLightNum := 0 to Lights.Count - 1 do
   begin
@@ -598,27 +519,6 @@ begin
 
     Inc(L);
   end;
-end;
-
-procedure TVRMLGLLightSet.GLContextClose;
-begin
-  glFreeDisplayList(dlRenderLights);
-  RealGLLightNum2 := -1;
-end;
-
-constructor TVRMLGLLightSet.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AGLLightNum1, AGLLightNum2: Integer);
-begin
-  inherited Create(ARootNode, AOwnsRootNode);
-  FGLLightNum1 := AGLLightNum1;
-  FGLLightNum2 := AGLLightNum2;
-  RealGLLightNum2 := -1;
-end;
-
-destructor TVRMLGLLightSet.Destroy;
-begin
-  GLContextClose;
-  inherited;
 end;
 
 end.
