@@ -62,10 +62,13 @@
 '{' + LineEnding + 
 '  gl_FragColor = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
 '' + LineEnding + 
+'  vec3 normal_eye_fragment = normalize(normal_eye);' + LineEnding + 
+'  /* PLUG: fragment-normal-eye (normal_eye_fragment) (inout vec3 normal_eye_fragment) */' + LineEnding + 
+'' + LineEnding + 
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
 '    for (int i = 0; i < LIGHTS_ENABLED; i++)' + LineEnding + 
-'      add_light_contribution(gl_FragColor, normal_eye,' + LineEnding + 
+'      add_light_contribution(gl_FragColor, normal_eye_fragment,' + LineEnding + 
 '        gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);' + LineEnding + 
 '    /* Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding + 
 '       and it''s always opaque.' + LineEnding + 
@@ -76,7 +79,7 @@
 '  } else' + LineEnding + 
 '  {' + LineEnding + 
 '    for (int i = 0; i < LIGHTS_ENABLED; i++)' + LineEnding + 
-'      add_light_contribution(gl_FragColor, -normal_eye,' + LineEnding + 
+'      add_light_contribution(gl_FragColor, -normal_eye_fragment,' + LineEnding + 
 '        gl_BackLightProduct[i], gl_LightSource[i], gl_BackMaterial);' + LineEnding + 
 '    gl_FragColor.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 

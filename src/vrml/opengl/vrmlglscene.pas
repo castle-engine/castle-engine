@@ -885,15 +885,6 @@ type
     FBackgroundValid: boolean;
     procedure FBackgroundInvalidate;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
-
-    function GetBumpMappingLightPosition: TVector3Single;
-    procedure SetBumpMappingLightPosition(const Value: TVector3Single);
-
-    function GetBumpMappingLightAmbientColor: TVector4Single;
-    procedure SetBumpMappingLightAmbientColor(const Value: TVector4Single);
-
-    function GetBumpMappingLightDiffuseColor: TVector4Single;
-    procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
   public
     property BackgroundSkySphereRadius: Single
       read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
@@ -959,32 +950,6 @@ type
 
       @seealso TVRMLGLRenderer.BumpMappingMethod }
     function BumpMappingMethod: TBumpMappingMethod;
-
-    { Light position used for bump mapping.
-
-      This is meaningful only if you enabled bump mapping
-      and we are actually able to use bump mapping
-      (@code(BumpMappingMethod <> bmNone), and BumpMappingMethod
-      is capped by @code(Attributes.BumpMappingMaximum)).
-
-      You can change this at any time, and we will automatically do
-      everything needed to properly update this.
-      Since the only bump mapping implementation is now through modern shaders,
-      updating this is fast. }
-    property BumpMappingLightPosition: TVector3Single
-      read GetBumpMappingLightPosition write SetBumpMappingLightPosition;
-
-    { Ambient color of light used for bump mapping.
-      This property simply controls corresponding property of underlying
-      Renderer instance, see TVRMLGLRenderer.BumpMappingLightAmbientColor. }
-    property BumpMappingLightAmbientColor: TVector4Single
-      read GetBumpMappingLightAmbientColor write SetBumpMappingLightAmbientColor;
-
-    { Diffuse color of light used for bump mapping.
-      This property simply controls corresponding property of underlying
-      Renderer instance, see TVRMLGLRenderer.BumpMappingLightDiffuseColor. }
-    property BumpMappingLightDiffuseColor: TVector4Single
-      read GetBumpMappingLightDiffuseColor write SetBumpMappingLightDiffuseColor;
 
     { Set OpenGL projection, based on currently
       bound Viewpoint, NavigationInfo and used camera.
@@ -3617,38 +3582,6 @@ end;
 function TVRMLGLScene.BumpMappingMethod: TBumpMappingMethod;
 begin
   Result := Renderer.BumpMappingMethod;
-end;
-
-function TVRMLGLScene.GetBumpMappingLightPosition: TVector3Single;
-begin
-  Result := Renderer.BumpMappingLightPosition;
-end;
-
-procedure TVRMLGLScene.SetBumpMappingLightPosition(const Value: TVector3Single);
-begin
-  Renderer.BumpMappingLightPosition := Value;
-
-  { No need for CloseGLRenderer }
-end;
-
-function TVRMLGLScene.GetBumpMappingLightAmbientColor: TVector4Single;
-begin
-  Result := Renderer.BumpMappingLightAmbientColor;
-end;
-
-procedure TVRMLGLScene.SetBumpMappingLightAmbientColor(const Value: TVector4Single);
-begin
-  Renderer.BumpMappingLightAmbientColor := Value;
-end;
-
-function TVRMLGLScene.GetBumpMappingLightDiffuseColor: TVector4Single;
-begin
-  Result := Renderer.BumpMappingLightDiffuseColor;
-end;
-
-procedure TVRMLGLScene.SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
-begin
-  Renderer.BumpMappingLightDiffuseColor := Value;
 end;
 
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;

@@ -2044,32 +2044,20 @@ procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: bool
 begin
   inherited;
   if ShapeBumpMappingUsed then
-  begin
-    Arrays.AddGLSLAttributeMatrix3('object_space_to_tangent');
-    Arrays.AddGLSLAttributeVector2('tex_coord');
-    { tex_coord may differ for each vertex occurence.
-      But actually tex coord implementation in ancestor already determines it,
-      and changes AllowIndexed to false if needed.
-      So don't do anything with AllowIndexed here. }
-  end;
+    Arrays.AddGLSLAttributeMatrix3('tangent_to_object_space');
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
   procedure DoBumpMapping;
 
-    function GetMatrixToTangent: TMatrix3Single;
+    function TangentToObjectSpace: TMatrix3Single;
 
       procedure SetResult(const Normal, STangent, TTangent: TVector3Single);
-      var
-        I: Integer;
       begin
-        for I := 0 to 2 do
-        begin
-          Result[I, 0] := STangent[I];
-          Result[I, 1] := TTangent[I];
-          Result[I, 2] := Normal[I];
-        end;
+        Result[0] := STangent;
+        Result[1] := TTangent;
+        Result[2] := Normal;
       end;
 
     var
@@ -2113,14 +2101,9 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
       end;
     end;
 
-  var
-    Tex: TVector2Single;
   begin
-    Arrays.GLSLAttributeMatrix3('object_space_to_tangent',
-      ArrayIndexNum)^ := GetMatrixToTangent;
-
-    Check(GetTextureCoord(IndexNum, 0, Tex), 'TexCoord for BumpMapping');
-    Arrays.GLSLAttributeVector2('tex_coord', ArrayIndexNum)^ := Tex;
+    Arrays.GLSLAttributeMatrix3('tangent_to_object_space',
+      ArrayIndexNum)^ := TangentToObjectSpace;
   end;
 
 begin

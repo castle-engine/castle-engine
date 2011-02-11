@@ -84,7 +84,8 @@ type
       @param(RemovePlug Should we remove the magic comment from shader
         source, so it will not be available for further effects.) }
     procedure Plug(const PlugName: string; const PlugValue: string;
-      const RemovePlug, ForceDirectInsertion: boolean);
+      const RemovePlug: boolean = false;
+      const ForceDirectInsertion: boolean = false);
 
     function CreateProgram: TGLSLProgram;
     procedure SetupUniforms(AProgram: TGLSLProgram);
@@ -99,6 +100,7 @@ type
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
+    procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
 
     property LightsEnabled: Cardinal read FLightsEnabled write FLightsEnabled;
     property PercentageCloserFiltering: TPercentageCloserFiltering
@@ -522,6 +524,40 @@ begin
     '/* Do the trick with 1.0 / 2.0, instead of comparing with 0.5, to avoid fglrx bugs */' + NL +
     'if (2.0 * gl_FragColor.a < 1.0)' + NL +
     '  discard;' + NL;
+end;
+
+procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
+var
+  Uniform: TUniform;
+begin
+  Plug('vertex-declare-variables',
+    'attribute mat3 tangent_to_object_space;' +NL+
+    'varying mat3 tangent_to_eye_space;');
+
+  Plug('vertex-process',
+    'tangent_to_eye_space = gl_NormalMatrix * tangent_to_object_space;');
+
+  Plug('fragment-declare-variables',
+    'varying mat3 tangent_to_eye_space;' +NL+
+    'uniform sampler2D tex_normal_map;');
+
+  Plug('fragment-normal-eye',
+    '/* Read normal from the texture, this is the very idea of bump mapping.' +NL+
+    '   Unpack normals, they are in texture in [0..1] range and I want in [-1..1].' +NL+
+    '   Our normal map is always indexed using gl_TexCoord[0] (this way' +NL+
+    '   we depend on already correct gl_TexCoord[0], multiplied by TextureTransform' +NL+
+    '   and such). */' +NL+
+    'normal_eye_fragment = normalize(tangent_to_eye_space * (' +NL+
+    '  texture2D(tex_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0)));');
+
+  Uniform := TUniform.Create;
+  Uniform.Name := 'tex_normal_map';
+  Uniform.AType := utLongInt;
+  Uniform.Value.LongInt := NormalMapTextureUnit;
+
+  if Uniforms = nil then
+    Uniforms := TUniformsList.Create;
+  Uniforms.Add(Uniform);
 end;
 
 end.

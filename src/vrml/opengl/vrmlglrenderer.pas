@@ -1073,25 +1073,6 @@ type
     BumpMappingMethodCached: TBumpMappingMethod;
     BumpMappingMethodIsCached: boolean;
 
-    { Will be created by some prepare, if BumpMappingMethod <> bmNone
-      and it's detected that bump mapping will be actually used.
-
-      Boolean index indicates whether it's the version with parallax
-      mapping. }
-    BmGLSLProgram: array[boolean] of TGLSLProgram;
-
-    { Only if BumpMappingMethod  <> bmNone and BmGLSLProgram[true] is prepared
-      (GLSL program for bump mapping with parallax mapping)
-      this will indicate whether we prepared version with or without
-      "steep" parallax mapping.
-
-      Note that I didn't add another TBumpMappingMethod value, like
-      bmGLSLSteepParallax, because availability of steep parallax mapping
-      is checked only when it's program is actually compiled.
-      Failure to compile causes us to fallback to normal parallax, without
-      steep improvements. }
-    BmSteepParallaxMapping: boolean;
-
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRenderersList;
     GLSLRenderers: TGLSLRenderersList;
@@ -1231,15 +1212,6 @@ type
       (to prepare state for following RenderShape calls) and at RenderEnd
       (to leave *somewhat* defined state afterwards). }
     procedure RenderCleanState(const Beginning: boolean);
-  private
-    FBumpMappingLightPosition: TVector3Single;
-    procedure SetBumpMappingLightPosition(const Value: TVector3Single);
-  private
-    FBumpMappingLightAmbientColor: TVector4Single;
-    procedure SetBumpMappingLightAmbientColor(const Value: TVector4Single);
-  private
-    FBumpMappingLightDiffuseColor: TVector4Single;
-    procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
   public
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
@@ -1324,39 +1296,6 @@ type
       const AttributesBumpMappingMaximum: TBumpMappingMethod;
       const AttributesControlTextures, AttributesEnableTextures, AttributesPureGeometry: boolean):
       TBumpMappingMethod;
-
-    { Sets light position used for bump mapping.
-      This is meaningful if BumpMappingMethod <> bmNone.
-
-      If the bump mapping shader is already prepared, then setting this property
-      simply sets the uniform value of this shader. Since the light direction
-      in tangent space is calculated by the shader, there's no need to
-      recalculate on CPU anything when this changes. }
-    property BumpMappingLightPosition: TVector3Single
-      read FBumpMappingLightPosition write SetBumpMappingLightPosition;
-
-    { Ambient color of the light calculated when doing bump mapping.
-
-      When doing bump mapping, we don't use VRML lights. Instead some
-      properties of the light are controlled by BumpMappingLightPosition
-      (or TVRMLGLScene.BumpMappingLightPosition) and attributes like
-      this one.
-
-      Default value is DefaultBumpMappingLightAmbientColor.
-
-      4th component of the color has the same meaning and use as 4th color
-      component for OpenGL lights. Usually, just set this to 1.0. }
-    property BumpMappingLightAmbientColor: TVector4Single
-      read FBumpMappingLightAmbientColor
-      write SetBumpMappingLightAmbientColor;
-
-    { Diffuse color of the light calculated when doing bump mapping.
-      See also comments at BumpMappingLightAmbientColor.
-
-      Default value is DefaultBumpMappingLightDiffuseColor. }
-    property BumpMappingLightDiffuseColor: TVector4Single
-      read FBumpMappingLightDiffuseColor
-      write SetBumpMappingLightDiffuseColor;
 
     { Get calculated TImage.AlphaChannelType for a prepared texture.
 
@@ -2831,12 +2770,6 @@ begin
 
   FLastGLFreeTexture := -1;
 
-  FBumpMappingLightAmbientColor := DefaultBumpMappingLightAmbientColor;
-  FBumpMappingLightDiffuseColor := DefaultBumpMappingLightDiffuseColor;
-
-  { asumme that "steep" version of parallax mapping is possible }
-  BmSteepParallaxMapping := true;
-
   FAttributes := AttributesClass.Create;
 
   GLTextureNodes := TGLTextureNodes.Create;
@@ -3131,10 +3064,7 @@ begin
   FLastGLFreeTexture := -1;
   BumpMappingMethodIsCached := false;
 
-  { asumme that "steep" version of parallax mapping is possible }
-  BmSteepParallaxMapping := true;
-
-  {niszcz fonty}
+  { release fonts }
   for fsfam := Low(fsfam) to High(fsfam) do
     for fsbold := Low(boolean) to High(boolean) do
       for fsitalic := Low(boolean) to High(boolean) do
@@ -3147,10 +3077,6 @@ begin
   GLTextureNodes.UnprepareAll;
   BumpMappingRenderers.UnprepareAll;
   GLSLRenderers.UnprepareAll;
-
-  { unprepare BmGLSLProgram }
-  FreeAndNil(BmGLSLProgram[false]);
-  FreeAndNil(BmGLSLProgram[true]);
 end;
 
 function TVRMLGLRenderer.LastGLFreeTexture: Cardinal;
@@ -3991,8 +3917,6 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   UsedGLSLTexCoordsNeeded: Cardinal);
-var
-  BumpMapping: TBumpMappingRenderer;
 
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
   begin
@@ -4007,9 +3931,6 @@ var
     GLTextureNode: TGLTextureNode;
     AlphaTest: boolean;
   begin
-    { set defaults for non-local variables }
-    BumpMapping :=  nil;
-
     if Attributes.PureGeometry then
     begin
       TexCoordsNeeded := 0;
@@ -4045,20 +3966,13 @@ var
         since it has smartly calculated AlphaChannelType. }
       AlphaTest := GLTextureNode.AlphaChannelType = atSimpleYesNo;
 
-      BumpMapping := BumpMappingRenderers.Enable(Shape.State, GLTextureNode);
+      GLTextureNode.EnableAll(FreeGLTexturesCount, TexCoordsNeeded, Shader);
 
-      if BumpMapping = nil then
-      begin
-        GLTextureNode.EnableAll(FreeGLTexturesCount, TexCoordsNeeded, Shader);
-      end else
-      begin
-        { for bump mapping, always TexCoordsNeeded = 1 }
-        TexCoordsNeeded := 1;
-        if MeshRenderer.UsedGLSL <> nil then
-          VRMLWarning(vwIgnorable, 'You use both GLSL shader (ComposedShader node) and bump mapping (normalMap, heightMap fields) on a single Shape. Note that this will (usually) not work correctly --- bump mapping has to set up special shader and multitexturing environment to work.');
-        { Change MeshRenderer.UsedGLSL to our bump mapping shader }
-        MeshRenderer.UsedGLSL := BmGLSLProgram[ShapeBumpMappingUsed >= bmGLSLParallax];
-      end;
+      { If there is any texture, and we have room for one more texture,
+        try enabling bump mapping }
+      if (TexCoordsNeeded > 0) and
+         (TexCoordsNeeded < FreeGLTexturesCount) then
+        BumpMappingRenderers.Enable(Shape.State, TexCoordsNeeded, Shader);
     end;
 
     { Set ALPHA_TEST enabled state.
@@ -4097,12 +4011,8 @@ var
   var
     I: Integer;
   begin
-    if BumpMapping = nil then
-    begin
-      for I := 0 to TexCoordsNeeded - 1 do
-        DisableTexture(I);
-    end else
-      BumpMapping.Disable;
+    for I := 0 to TexCoordsNeeded - 1 do
+      DisableTexture(I);
   end;
 
 begin
@@ -4240,66 +4150,6 @@ begin
       Inc(TextureTransformUnitsUsed) else
       TextureTransformUnitsUsedMore.Add(TexUnit);
   end;
-end;
-
-procedure TVRMLGLRenderer.SetBumpMappingLightPosition(const Value: TVector3Single);
-
-  procedure SetInProgram(Prog: TGLSLProgram);
-  begin
-    if Prog <> nil then
-    begin
-      { so BumpMappingMethod >= bmGLSLNormal and it's already prepared }
-      Prog.Enable;
-      Prog.SetUniform('light_position_world_space', BumpMappingLightPosition);
-      Prog.Disable;
-    end;
-  end;
-
-begin
-  FBumpMappingLightPosition := Value;
-
-  SetInProgram(BmGLSLProgram[false]);
-  SetInProgram(BmGLSLProgram[true]);
-end;
-
-procedure TVRMLGLRenderer.SetBumpMappingLightAmbientColor(const Value: TVector4Single);
-
-  procedure SetInProgram(Prog: TGLSLProgram);
-  begin
-    if Prog <> nil then
-    begin
-      { so BumpMappingMethod >= bmGLSLNormal and it's already prepared }
-      Prog.Enable;
-      Prog.SetUniform('light_ambient_color', BumpMappingLightAmbientColor);
-      Prog.Disable;
-    end;
-  end;
-
-begin
-  FBumpMappingLightAmbientColor := Value;
-
-  SetInProgram(BmGLSLProgram[false]);
-  SetInProgram(BmGLSLProgram[true]);
-end;
-
-procedure TVRMLGLRenderer.SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
-
-  procedure SetInProgram(Prog: TGLSLProgram);
-  begin
-    if Prog <> nil then
-    begin
-      { so BumpMappingMethod >= bmGLSLNormal and it's already prepared }
-      Prog.Enable;
-      Prog.SetUniform('light_diffuse_color', BumpMappingLightDiffuseColor);
-      Prog.Disable;
-    end;
-  end;
-
-begin
-  FBumpMappingLightDiffuseColor := Value;
-
-  SetInProgram(BmGLSLProgram[false]);
-  SetInProgram(BmGLSLProgram[true]);
 end;
 
 procedure TVRMLGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
