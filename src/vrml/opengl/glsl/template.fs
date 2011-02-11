@@ -63,6 +63,13 @@ void main(void)
   vec3 normal_eye_fragment = normalize(normal_eye);
   /* PLUG: fragment-normal-eye (normal_eye_fragment) (inout vec3 normal_eye_fragment) */
 
+/* LIGHTS_ENABLED will be already defined here when this shader
+   is included from our engine. This is used only for quick testing
+   template.fs by opening template_test.x3dv. */
+#ifndef LIGHTS_ENABLED
+#define LIGHTS_ENABLED 1
+#endif
+
   if (gl_FrontFacing)
   {
     for (int i = 0; i < LIGHTS_ENABLED; i++)
