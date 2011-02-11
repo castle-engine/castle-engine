@@ -157,26 +157,18 @@ begin
 
   { calculate and apply MaterialLit }
   MaterialLit :=
-    { When doing bump mapping <> bmNone, we always turn on lighting.
-      We will calculate lighting using our equations, and actually
-      it's not important whether light will be enabled or not.
-      But it's important that we pass material values for ambient and diffuse
-      (shader uses them), so we should behave like the node is lit. }
-    (ShapeBumpMappingUsed <> bmNone) or
-    (
-      (not VRML1OnlyEmissive) and
-      (not VRML2Unlit) and
-      not (
-        (Shape.Geometry is TNodePointSet_1) or
-        (Shape.Geometry is TNodePointSet_2) or
-        ( (Shape.Geometry is TNodeIndexedLineSet_1) and
-          (not TNodeIndexedLineSet_1(Shape.Geometry).Lit(Shape.State)) ) or
-        { VRML 2.0 specification says that IndexedLineSet should always be unlit,
-          X3D spec adds that LineSet is also always unlit. }
-        (Shape.Geometry is TNodeIndexedLineSet_2) or
-        (Shape.Geometry is TNodeLineSet) or
-        (Shape.Geometry is TNodeCircle2D)
-      )
+    (not VRML1OnlyEmissive) and
+    (not VRML2Unlit) and
+    not (
+      (Shape.Geometry is TNodePointSet_1) or
+      (Shape.Geometry is TNodePointSet_2) or
+      ( (Shape.Geometry is TNodeIndexedLineSet_1) and
+        (not TNodeIndexedLineSet_1(Shape.Geometry).Lit(Shape.State)) ) or
+      { VRML 2.0 specification says that IndexedLineSet should always be unlit,
+        X3D spec adds that LineSet is also always unlit. }
+      (Shape.Geometry is TNodeIndexedLineSet_2) or
+      (Shape.Geometry is TNodeLineSet) or
+      (Shape.Geometry is TNodeCircle2D)
     );
   if not MaterialLit then
   begin

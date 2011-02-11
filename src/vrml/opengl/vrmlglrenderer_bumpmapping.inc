@@ -1,34 +1,7 @@
 {$ifdef read_interface}
 
-  { Rendering with bump mapping. This requires some special preparations,
-    enabling / disabling state and such, so it's natural to have this
-    in a nice separated class. It's associated with KambiAppearance node
-    defining heightMap, normalMap and other bump mapping properties.
-
-    Previously, some of this state was stored along inside TGLImageTextureNode.
-    But this caused many problems:
-
-    @unorderedList(
-      @item(
-        First of all --- bump mapping doesn't really work with normal
-        texturing, as it has to apply multitextuting and shaders by itself.
-        Handling it inside vrmltexturerenderer.inc was complicating
-        vrmltexturerenderer.inc, adding exceptional cases inside it's code.
-        It should be the other way around: bump mapping code should use
-        lower-level vrmltexturerenderer.inc to load and manager it's
-        normal / height maps. (And it's done this way currently.))
-
-      @item(
-        Actual texture was tied to it's normalMap and heightMap,
-        e.g. you cauldn't use the same VRML ImageTexture node with different
-        normalMap / heightMap in the same VRML file.)
-    )
-
-    TODO: for now, bump mapping is used only if the node has normal texture
-    too. It should be possible to use bump mapping even if the node is colored
-    only by material (in this case we should remember to still generate
-    texture coords etc.).
-  }
+  { Rendering with bump mapping. It's associated with KambiAppearance node
+    defining heightMap, normalMap and other bump mapping properties. }
   TBumpMappingRenderer = class(TResourceRenderer)
   private
     class function IsImageTexture(ANode: TVRMLNode): boolean;
@@ -39,9 +12,7 @@
 
     function Node: TNodeKambiAppearance;
 
-    { Prepare normalMap, heightMap (if exist) for rendering.
-      If some success (there's a chance that bump mapping may be enabled
-      for some configuration), prepares other resources for bump mapping too. }
+    { Prepare normalMap, heightMap (if exist) for rendering. }
     procedure Prepare(State: TVRMLGraphTraverseState);
 
     { Release things initialized by Prepare. }
@@ -117,7 +88,7 @@ end;
 procedure TBumpMappingRenderer.Prepare(State: TVRMLGraphTraverseState);
 begin
   { don't bother loading textures for bump mapping if not enabled }
-  if Renderer.BumpMappingMethod = bmNone then Exit;
+  if not Renderer.Attributes.BumpMapping then Exit;
 
   { Note: We cannot store returned TGLTextureNode references in TBumpMappingRenderer
     instance (although it's tempting, as it would be comfortable).
@@ -168,13 +139,13 @@ begin
   Result := false;
 
   if Renderer.ShapeBumpMappingAllowed and
-     (Renderer.BumpMappingMethod <> bmNone) then
+     Renderer.Attributes.BumpMapping then
   begin
     TexNormalMap := GLTexture(Node.FdNormalMap.Value);
     if TexNormalMap <> 0 then
     begin
       Result := true;
-      Renderer.ShapeBumpMappingUsed := Renderer.BumpMappingMethod;
+      Renderer.ShapeBumpMappingUsed := true;
 
       Renderer.ActiveTexture(TextureUnit);
       glBindTexture(GL_TEXTURE_2D, TexNormalMap);

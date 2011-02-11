@@ -227,56 +227,11 @@ uses
 
 {$define read_interface}
 
-const
-  { }
-  DefaultBumpMappingLightAmbientColor: TVector4Single = (0, 0, 0, 1);
-  DefaultBumpMappingLightDiffuseColor: TVector4Single = (1, 1, 1, 1);
-
 type
   TBeforeGLVertexProc = procedure (Node: TVRMLGeometryNode;
     const Vert: TVector3Single) of object;
 
-  { Various bump mapping methods. Generally sorted from worst one
-    (bmNone, which does no bump mapping) to the best.
-    Which one is chosen is determined at runtime, based on OpenGL capabilities,
-    and on TVRMLRenderingAttributes.BumpMappingMaximum. }
-  TBumpMappingMethod = (
-    { No bump mapping done. }
-    bmNone,
-
-    { Normal (calculate light by "dot" per pixel) bump mapping using GLSL
-      shader. This requires OpenGL that supports GLSL.
-
-      @orderedList(
-        @item(Light position in tangent space is calculated by shader program.
-          In short, this means that you can use good renderer optimization
-          even if you change BumpMappingLightPosition every frame. )
-
-        @item(Honours material ambient and diffuse properties
-          like it should.)
-
-        @item(Honours properties like BumpMappingLightAmbientColor,
-          BumpMappingLightDiffuseColor,
-          so you can control the light more like normal OpenGL light.)
-      ) }
-    bmGLSLNormal,
-
-    { This is like bmGLSLNormal, but additionally (if the heightMap of the surface
-      is available) this will do parallax mapping.
-      Steep parallax mapping with self-shadowing,
-      if supported by hardware, otherwise classic parallax mapping
-      (with offset limiting, i.e. with E.z component removed).
-
-      Parallax mapping, in short, means that the texture coordinate is perturbed,
-      based on texture heightMap topology and camera direction, to create
-      illusion of 3D shape instead of flat texture.
-      This makes e.g. the bricks on the texture really
-      visible as "standing out", in 3D, from the wall. And self-shadowing
-      means that these bricks even cast appropriate shadows on each other. }
-    bmGLSLParallax);
-
 const
-  DefaultBumpMappingMaximum = bmNone;
   DefaultVarianceShadowMaps = false;
 
 type
@@ -302,7 +257,7 @@ type
     FTextureMagFilter: TGLint;
     FPointSize: TGLFloat;
     FUseFog: boolean;
-    FBumpMappingMaximum: TBumpMappingMethod;
+    FBumpMapping: boolean;
     FGLSLShaders: boolean;
     FPureGeometry: boolean;
     FTextureModeGrayscale: TGLenum;
@@ -327,7 +282,7 @@ type
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
     procedure SetPointSize(const Value: TGLFloat); virtual;
     procedure SetUseFog(const Value: boolean); virtual;
-    procedure SetBumpMappingMaximum(const Value: TBumpMappingMethod); virtual;
+    procedure SetBumpMapping(const Value: boolean); virtual;
     procedure SetPureGeometry(const Value: boolean); virtual;
     procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
     procedure SetTextureModeRGB(const Value: TGLenum); virtual;
@@ -500,33 +455,31 @@ type
     property UseFog: boolean
       read FUseFog write SetUseFog default true;
 
-    { Enable bump mapping. This sets maximum allowed bump mapping method
-      (actual method used may be lower, depending on OpenGL capabilities
-      and information provided in VRML model, like normalMap and heightMap).
-      Set to bmNone (default) to disable using bump mapping.
-      Set to High(TBumpMappingMethod) to enable best implemented bump mapping.
+    { Use bump mapping. To actually use this, particular shape must also
+      provide normal map (and height map, if you want parallax bump mapping).
+      This also requires some OpenGL capabilities, in particular GLSL.
 
-      To actually use this, it requires also
-      some OpenGL capabilities (some extensions present, and enough texture
-      units available). And naturally it comes to use only if
-      VRML model will specify normalMap field for some shapes nodes.
-      For parallax mapping, heightMap is also needed.
+      Simple bump mapping (when only normal map is available)
+      means that normals are provided in the texture, and lighting
+      is calculated per-fragment.
 
-      You have to update Renderer.BumpMappingLightPosition if enable bump
-      mappping (that is, you set BumpMappingMaximum to something <> bmNone),
-      to actually specify how bumps should appear.
-      See TVRMLGLRenderer.BumpMappingLightPosition, or
-      TVRMLGLScene.BumpMappingLightPosition for more comfortable version.
-      See also other TVRMLGLRenderer.BumpMappingLightXxx properties,
-      like TVRMLGLRenderer.BumpMappingLightDiffuseColor.
+      Parallax bump mapping means that additionally the texture coordinate
+      is perturbed, based on height map and camera direction, to create
+      illusion of 3D shape instead of flat surface.
+      This makes e.g. the bricks on the texture really
+      visible as "standing out", in 3D, from the wall. And self-shadowing
+      means that these bricks even cast appropriate shadows on each other.
+
+      We try to do the steep parallax mapping with self-shadowing (if GPU allows),
+      which makes nice effects and allows self-shadowing.
+      On worse GPUs, we at least use height map to do classic parallax mapping
+      (with offset limiting, i.e. with E.z component removed).
 
       TODO: For each texture, there must always be the same
       normalMap and heightMap
-      (since we store it in the same TTextureImageReference).
-    }
-    property BumpMappingMaximum: TBumpMappingMethod
-      read FBumpMappingMaximum write SetBumpMappingMaximum
-      default bmNone;
+      (since we store it in the same TTextureImageReference). }
+    property BumpMapping: boolean
+      read FBumpMapping write SetBumpMapping default true;
 
     { Use GLSL shaders defined in the VRML/X3D model.
 
@@ -1070,8 +1023,8 @@ type
       Just a shortcut for LastGLFreeTexture + 1. }
     function FreeGLTexturesCount: Cardinal;
   private
-    BumpMappingMethodCached: TBumpMappingMethod;
-    BumpMappingMethodIsCached: boolean;
+    BumpMappingCached: boolean;
+    BumpMappingIsCached: boolean;
 
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRenderersList;
@@ -1087,11 +1040,11 @@ type
       Fully calculated only after InitMeshRenderer, as determining GeneratorClass
       is needed to set this. }
     ShapeBumpMappingAllowed: boolean;
-    { Is bump mapping used, and what method is used, for current shape.
+    { Is bump mapping used for current shape.
       This is determined by ShapeBumpMappingAllowed,
-      global BumpMappingMethod, and by the texture information for current
+      global BumpMapping, and by the texture information for current
       shape (whether user provided normal map, height map etc.) }
-    ShapeBumpMappingUsed: TBumpMappingMethod;
+    ShapeBumpMappingUsed: boolean;
 
     { Variables set by RenderShapeMaterials }
     MaterialLit: boolean;
@@ -1263,22 +1216,13 @@ type
 
     procedure RenderShape(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
 
-    { Check Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
-      context capabilities to see which bump mapping method (if any)
-      should be used.
-
-      More precisely: this checks Attributes.BumpMappingMaximum,
-      Attributes.ControlTextures, Attributes.EnableTextures.
-      Then checks are appropriate OpenGL capabilities
-      present (GL_ARB_multitexture and friends, GLSL for better methods).
-      Then checks are enough texture units available (using First/LastGLFreeTexture).
+    { Check Attributes (like Attributes.BumpMapping) and OpenGL
+      context capabilities to see if bump mapping can  be used.
 
       This method is mainly for debugging purposes, as this class handles everything
       related to bump mapping inside. This function may be usable for you
-      only to display to user this property. Note that calling this
-      ties us to current OpenGL context (just like any PrepareXxx or RenderXxx
-      call). }
-    function BumpMappingMethod: TBumpMappingMethod;
+      to display this to user. }
+    function BumpMapping: boolean;
 
     { How we would support bump mapping in current OpenGL context, with given
       Attributes values.
@@ -1286,16 +1230,15 @@ type
       The contract is that if you @italic(create TVRMLGLRenderer in current
       OpenGL context) and @italic(set it's Attributes just like parameters to
       this method) then @italic(created TVRMLGLRenderer will
-      have BumpMappingMethod the same as what this function tells).
+      have BumpMapping the same as what this function tells).
 
       This is helpful if you don't have TVRMLGLRenderer and it's
       attributes instances created yet, but you want to know right now
       what bump mapping will be available. }
-    class function GLContextBumpMappingMethod(
-      ALastGLFreeTexture: Integer;
-      const AttributesBumpMappingMaximum: TBumpMappingMethod;
+    class function GLContextBumpMapping(
+      const AttributesBumpMapping: boolean;
       const AttributesControlTextures, AttributesEnableTextures, AttributesPureGeometry: boolean):
-      TBumpMappingMethod;
+      boolean;
 
     { Get calculated TImage.AlphaChannelType for a prepared texture.
 
@@ -1351,11 +1294,6 @@ type
   EVRMLGLRendererror = class(EVRMLError);
 
 const
-  BumpMappingMethodNames: array [TBumpMappingMethod] of string =
-  ( 'None',
-    'Dot (by GLSL)',
-    'Dot with steep parallax (by GLSL)' );
-
   AllVboTypes = [Low(TVboType) .. High(TVboType)];
 
 var
@@ -2506,7 +2444,6 @@ function TVRMLGLRendererContextCache.Shape_IncReference(
         and vrmlmeshrenderer), then Result must be false. }
       Assigned(ARenderer.Attributes.OnVertexColor) or
       Assigned(ARenderer.Attributes.OnRadianceTransfer) or
-      (ARenderer.BumpMappingMethod <> bmNone) or
       Volumetric);
   end;
 
@@ -2614,7 +2551,7 @@ begin
   FTextureMagFilter := GL_LINEAR;
   FPointSize := 3.0;
   FUseFog := true;
-  FBumpMappingMaximum := bmNone;
+  FBumpMapping := true;
   FGLSLShaders := true;
   FTextureModeGrayscale := GL_MODULATE;
   FTextureModeRGB := GL_MODULATE;
@@ -2713,13 +2650,12 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetBumpMappingMaximum(
-  const Value: TBumpMappingMethod);
+procedure TVRMLRenderingAttributes.SetBumpMapping(const Value: boolean);
 begin
-  if BumpMappingMaximum <> Value then
+  if BumpMapping <> Value then
   begin
     ReleaseCachedResources;
-    FBumpMappingMaximum := Value;
+    FBumpMapping := Value;
   end;
 end;
 
@@ -3062,7 +2998,7 @@ var
   fsbold , fsitalic: boolean;
 begin
   FLastGLFreeTexture := -1;
-  BumpMappingMethodIsCached := false;
+  BumpMappingIsCached := false;
 
   { release fonts }
   for fsfam := Low(fsfam) to High(fsfam) do
@@ -3100,37 +3036,16 @@ begin
   Result := LastGLFreeTexture + 1;
 end;
 
-class function TVRMLGLRenderer.GLContextBumpMappingMethod(
-  ALastGLFreeTexture: Integer;
-  const AttributesBumpMappingMaximum: TBumpMappingMethod;
+class function TVRMLGLRenderer.GLContextBumpMapping(
+  const AttributesBumpMapping: boolean;
   const AttributesControlTextures, AttributesEnableTextures, AttributesPureGeometry: boolean):
-  TBumpMappingMethod;
-var
-  TextureUnitsAvailable: Cardinal;
+  boolean;
 begin
-  if ALastGLFreeTexture = -1 then
-  begin
-    { When ALastGLFreeTexture = -1, we get this from OpenGL, thus somewhat
-      duplicating functionality that we already implemented in
-      TVRMLGLRenderer.LastGLFreeTexture method. However, this is useful:
-
-      - When calling GLContextBumpMappingMethod internally, by BumpMappingMethod,
-        TVRMLGLRenderer.LastGLFreeTexture will be passed, so it's never -1.
-
-      - When calling GLContextBumpMappingMethod from other places, in 99%
-        of the cases it's very comfortable being able to pass -1 for this. }
-
-    if GL_ARB_multitexture then
-      ALastGLFreeTexture := GLMaxTextureUnitsARB - 1 else
-      ALastGLFreeTexture := 0;
-  end;
-
-  TextureUnitsAvailable := ALastGLFreeTexture + 1;
-
-  if (AttributesBumpMappingMaximum > bmNone) and
-     AttributesControlTextures and
-     AttributesEnableTextures and
-     (not AttributesPureGeometry) and
+  Result :=
+    AttributesBumpMapping and
+    AttributesControlTextures and
+    AttributesEnableTextures and
+    (not AttributesPureGeometry) and
 
     { EXT_texture_env_combine (standard since 1.3) required }
     (GL_EXT_texture_env_combine or GL_version_1_3) and
@@ -3153,42 +3068,27 @@ begin
     { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
     GL_ARB_texture_env_dot3 and
 
-    { At least 2 texture units (original and normal map) }
-    (TextureUnitsAvailable >= 2) and
-
-    (TGLSLProgram.ClassSupport <> gsNone) then
-  begin
-    { parallax mapping requires one more texture, since height map must be
-      passed too. }
-    if TextureUnitsAvailable >= 3 then
-      Result := bmGLSLParallax else
-      Result := bmGLSLNormal;
-  end else
-    Result := bmNone;
-
-  if Result > AttributesBumpMappingMaximum then
-    Result := AttributesBumpMappingMaximum;
+    (TGLSLProgram.ClassSupport <> gsNone);
 end;
 
-function TVRMLGLRenderer.BumpMappingMethod: TBumpMappingMethod;
+function TVRMLGLRenderer.BumpMapping: boolean;
 begin
-  if not BumpMappingMethodIsCached then
+  if not BumpMappingIsCached then
   begin
-    BumpMappingMethodCached := GLContextBumpMappingMethod(
-      LastGLFreeTexture,
-      Attributes.BumpMappingMaximum,
+    BumpMappingCached := GLContextBumpMapping(
+      Attributes.BumpMapping,
       Attributes.ControlTextures,
       Attributes.EnableTextures,
       Attributes.PureGeometry);
 
     if Log then
-      WritelnLog('Bump mapping', 'Bump mapping method detected: "' +
-        BumpMappingMethodNames[BumpMappingMethodCached] + '"');
+      WritelnLog('Bump mapping', 'Bump mapping detected: "' +
+        BoolToStr[BumpMappingCached] + '"');
 
-    BumpMappingMethodIsCached := true;
+    BumpMappingIsCached := true;
   end;
 
-  Result := BumpMappingMethodCached;
+  Result := BumpMappingCached;
 end;
 
 function TVRMLGLRenderer.PreparedTextureAlphaChannelType(
@@ -3808,7 +3708,7 @@ var
 begin
   { default ShapeBumpMapping* state }
   ShapeBumpMappingAllowed := false;
-  ShapeBumpMappingUsed := bmNone;
+  ShapeBumpMappingUsed := false;
 
   {$ifndef USE_VRML_TRIANGULATION}
   { Initalize MeshRenderer to something non-nil. }
@@ -4074,7 +3974,7 @@ begin
         Generator.FogVolumetric := FogVolumetric;
         Generator.FogVolumetricDirection := FogVolumetricDirection;
         Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
-        Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed <> bmNone;
+        Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
         Generator.OnVertexColor := Attributes.OnVertexColor;
         Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
         Shape.Cache.Arrays := Generator.GenerateArrays;

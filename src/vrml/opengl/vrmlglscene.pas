@@ -938,19 +938,6 @@ type
       rendering. }
     function Headlight: TVRMLGLHeadlight;
 
-    { @abstract(Which bump mapping method will be used ?)
-
-      This is decided and controlled internally, based on
-      Attributes.BumpMappingMaximum, Attributes.ControlTextures,
-      Attributes.EnableTextures, and current OpenGL capabilities.
-      So the only use of this function is when you want to report this
-      to user, or for debug purposes etc.
-
-      Note that calling this ties us to current OpenGL context.
-
-      @seealso TVRMLGLRenderer.BumpMappingMethod }
-    function BumpMappingMethod: TBumpMappingMethod;
-
     { Set OpenGL projection, based on currently
       bound Viewpoint, NavigationInfo and used camera.
       Takes into account Viewpoint type (perspective/orthogonal),
@@ -3577,11 +3564,6 @@ end;
 function TVRMLGLScene.Attributes: TVRMLSceneRenderingAttributes;
 begin
   Result := Renderer.Attributes as TVRMLSceneRenderingAttributes;
-end;
-
-function TVRMLGLScene.BumpMappingMethod: TBumpMappingMethod;
-begin
-  Result := Renderer.BumpMappingMethod;
 end;
 
 procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
