@@ -1023,9 +1023,6 @@ type
       Just a shortcut for LastGLFreeTexture + 1. }
     function FreeGLTexturesCount: Cardinal;
   private
-    BumpMappingCached: boolean;
-    BumpMappingIsCached: boolean;
-
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRenderersList;
     GLSLRenderers: TGLSLRenderersList;
@@ -1049,7 +1046,7 @@ type
     { Variables set by RenderShapeMaterials }
     MaterialLit: boolean;
     MaterialOpacity: Single;
-  private
+
     { For how many texture units does Render have to generate tex coords?
 
       This is the number of texture units used.
@@ -1087,6 +1084,10 @@ type
       "pushed" multiple times (both by PushTextureUnit and normal
       VRML TextureTransform realized in RenderShapeBegin.) }
     procedure PushTextureUnit(const TexUnit: Cardinal);
+
+    { Check Attributes (like Attributes.BumpMapping) and OpenGL
+      context capabilities to see if bump mapping can be used. }
+    function BumpMapping: boolean;
   private
     { ----------------------------------------------------------------- }
 
@@ -1215,30 +1216,6 @@ type
     procedure RenderEnd;
 
     procedure RenderShape(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
-
-    { Check Attributes (like Attributes.BumpMapping) and OpenGL
-      context capabilities to see if bump mapping can  be used.
-
-      This method is mainly for debugging purposes, as this class handles everything
-      related to bump mapping inside. This function may be usable for you
-      to display this to user. }
-    function BumpMapping: boolean;
-
-    { How we would support bump mapping in current OpenGL context, with given
-      Attributes values.
-
-      The contract is that if you @italic(create TVRMLGLRenderer in current
-      OpenGL context) and @italic(set it's Attributes just like parameters to
-      this method) then @italic(created TVRMLGLRenderer will
-      have BumpMapping the same as what this function tells).
-
-      This is helpful if you don't have TVRMLGLRenderer and it's
-      attributes instances created yet, but you want to know right now
-      what bump mapping will be available. }
-    class function GLContextBumpMapping(
-      const AttributesBumpMapping: boolean;
-      const AttributesControlTextures, AttributesEnableTextures, AttributesPureGeometry: boolean):
-      boolean;
 
     { Get calculated TImage.AlphaChannelType for a prepared texture.
 
@@ -2998,7 +2975,6 @@ var
   fsbold , fsitalic: boolean;
 begin
   FLastGLFreeTexture := -1;
-  BumpMappingIsCached := false;
 
   { release fonts }
   for fsfam := Low(fsfam) to High(fsfam) do
@@ -3036,16 +3012,13 @@ begin
   Result := LastGLFreeTexture + 1;
 end;
 
-class function TVRMLGLRenderer.GLContextBumpMapping(
-  const AttributesBumpMapping: boolean;
-  const AttributesControlTextures, AttributesEnableTextures, AttributesPureGeometry: boolean):
-  boolean;
+function TVRMLGLRenderer.BumpMapping: boolean;
 begin
   Result :=
-    AttributesBumpMapping and
-    AttributesControlTextures and
-    AttributesEnableTextures and
-    (not AttributesPureGeometry) and
+    Attributes.BumpMapping and
+    Attributes.ControlTextures and
+    Attributes.EnableTextures and
+    (not Attributes.PureGeometry) and
 
     { EXT_texture_env_combine (standard since 1.3) required }
     (GL_EXT_texture_env_combine or GL_version_1_3) and
@@ -3069,26 +3042,6 @@ begin
     GL_ARB_texture_env_dot3 and
 
     (TGLSLProgram.ClassSupport <> gsNone);
-end;
-
-function TVRMLGLRenderer.BumpMapping: boolean;
-begin
-  if not BumpMappingIsCached then
-  begin
-    BumpMappingCached := GLContextBumpMapping(
-      Attributes.BumpMapping,
-      Attributes.ControlTextures,
-      Attributes.EnableTextures,
-      Attributes.PureGeometry);
-
-    if Log then
-      WritelnLog('Bump mapping', 'Bump mapping detected: "' +
-        BoolToStr[BumpMappingCached] + '"');
-
-    BumpMappingIsCached := true;
-  end;
-
-  Result := BumpMappingCached;
 end;
 
 function TVRMLGLRenderer.PreparedTextureAlphaChannelType(

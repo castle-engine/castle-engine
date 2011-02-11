@@ -88,7 +88,7 @@ end;
 procedure TBumpMappingRenderer.Prepare(State: TVRMLGraphTraverseState);
 begin
   { don't bother loading textures for bump mapping if not enabled }
-  if not Renderer.Attributes.BumpMapping then Exit;
+  if not Renderer.BumpMapping then Exit;
 
   { Note: We cannot store returned TGLTextureNode references in TBumpMappingRenderer
     instance (although it's tempting, as it would be comfortable).
@@ -139,7 +139,7 @@ begin
   Result := false;
 
   if Renderer.ShapeBumpMappingAllowed and
-     Renderer.Attributes.BumpMapping then
+     Renderer.BumpMapping then
   begin
     TexNormalMap := GLTexture(Node.FdNormalMap.Value);
     if TexNormalMap <> 0 then
