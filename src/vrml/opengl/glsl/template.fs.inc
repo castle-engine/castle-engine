@@ -23,6 +23,7 @@
 '' + LineEnding + 
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
+'    gl_FragColor += gl_FrontMaterial.emission;' + LineEnding + 
 '    /* PLUG: add-light-contribution-front (gl_FragColor, normal_eye_fragment, gl_FrontMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */' + LineEnding + 
 '' + LineEnding + 
 '    /* Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding + 
@@ -32,6 +33,7 @@
 '    gl_FragColor.a = gl_FrontMaterial.diffuse.a;' + LineEnding + 
 '  } else' + LineEnding + 
 '  {' + LineEnding + 
+'    gl_FragColor += gl_BackMaterial.emission;' + LineEnding + 
 '    normal_eye_fragment = -normal_eye_fragment;' + LineEnding + 
 '    /* PLUG: add-light-contribution-back (gl_FragColor, normal_eye_fragment, gl_BackMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */' + LineEnding + 
 '    gl_FragColor.a = gl_BackMaterial.diffuse.a;' + LineEnding + 

@@ -21,6 +21,7 @@ void main(void)
 
   if (gl_FrontFacing)
   {
+    gl_FragColor += gl_FrontMaterial.emission;
     /* PLUG: add-light-contribution-front (gl_FragColor, normal_eye_fragment, gl_FrontMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */
 
     /* Otherwise, alpha is usually large after previous add_light_contribution,
@@ -30,6 +31,7 @@ void main(void)
     gl_FragColor.a = gl_FrontMaterial.diffuse.a;
   } else
   {
+    gl_FragColor += gl_BackMaterial.emission;
     normal_eye_fragment = -normal_eye_fragment;
     /* PLUG: add-light-contribution-back (gl_FragColor, normal_eye_fragment, gl_BackMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */
     gl_FragColor.a = gl_BackMaterial.diffuse.a;
