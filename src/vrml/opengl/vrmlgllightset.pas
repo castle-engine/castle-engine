@@ -75,14 +75,20 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
   we may require one modelview stack slot, we will always preserve
   the modelview matrix value.
 
+  Returns LightsEnabled, a number of enabled lights, including GLLightNum1
+  (in other words, it assumes that first GLLightNum1 lights are already
+  reserved and enabled by caller).
+
   @groupBegin }
 procedure glLightsFromVRML(Lights: PArray_ActiveLight; LightsCount: Integer;
   glLightNum1, glLightNum2: Integer;
-  LightRenderEvent: TVRMLLightRenderEvent); overload;
+  LightRenderEvent: TVRMLLightRenderEvent;
+  out LightsEnabled: Cardinal); overload;
 
 procedure glLightsFromVRML(Lights: TDynActiveLightArray;
   glLightNum1, glLightNum2: Integer;
-  LightRenderEvent: TVRMLLightRenderEvent); overload;
+  LightRenderEvent: TVRMLLightRenderEvent;
+  out LightsEnabled: Cardinal); overload;
 { @groupEnd }
 
 type
@@ -140,33 +146,15 @@ type
     maybe you want to share the same lights across many TVRMLGLScene
     or other 3D objects you render with OpenGL). }
   TVRMLGLLightSet = class(TVRMLLightSet)
-  private
-    FGLLightNum1, FGLLightNum2: Integer;
-
-    { This is like GLLightNum2, but it's not -1. }
-    function RealGLLightNum2: Integer;
   public
-    { Constructor. Forces you to provide values for properties that
-      have no sensible (and safe) default, like GLLightNum1, GLLightNum2. }
-    constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AGLLightNum1, AGLLightNum2: Integer);
-
-    { Number of the first OpenGL light that we can set.
-      Just like for glLightsFromVRML. }
-    property glLightNum1: Integer read FGLLightNum1 write FGLLightNum1;
-
-    { Number of the last OpenGL light that we can set.
-      Just like for glLightsFromVRML.
-
-      May be set to -1, to indicate that all the lights (from glLightNum1)
-      are available to use. In other words, -1 is equivalent to
-      glGet(GL_MAX_LIGHT)-1. }
-    property glLightNum2: Integer read FGLLightNum2 write FGLLightNum2;
-
     { Set up OpenGL lights properties to correspond to given VRML lights.
-      This is a wrapper around glLightsFromVRML. }
-    procedure RenderLights;
+      This is a wrapper around glLightsFromVRML.
 
+      Reads LightsEnabled, to know how many lights are already allocated.
+      Increases LightsEnabled for our lights. }
+    procedure RenderLights(var LightsEnabled: Cardinal);
+
+(* TODO:
     { Disable all the OpenGL lights (in glLightNum1 .. glLightNum2 range). }
     procedure TurnLightsOff;
 
@@ -182,6 +170,7 @@ type
       neither disabled, nor enabled --- usually you should enable them
       as needed by RenderLights). }
     procedure TurnLightsOffForShadows;
+*)
   end;
 
 implementation
@@ -367,7 +356,8 @@ end;
 procedure glLightsFromVRML(
   Lights: PArray_ActiveLight; LightsCount: Integer;
   glLightNum1, glLightNum2: Integer;
-  LightRenderEvent: TVRMLLightRenderEvent);
+  LightRenderEvent: TVRMLLightRenderEvent;
+  out LightsEnabled: Cardinal);
 var
   I: Integer;
 begin
@@ -376,11 +366,13 @@ begin
     { use all available OpenGL lights }
     for i := 0 to GLLightNum2 - GLLightNum1 do
       glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, LightRenderEvent);
+    LightsEnabled := GLLightNum2 + 1;
   end else
   begin
     { use some OpenGL lights for VRML lights, disable rest of the lights }
     for i := 0 to LightsCount - 1 do
       glLightFromVRMLLight(GLLightNum1 + i, Lights^[i], true, LightRenderEvent);
+    LightsEnabled := GLLightNum1 + LightsCount;
     for i := LightsCount to GLLightNum2-GLLightNum1 do
       glDisable(GL_LIGHT0 + GLLightNum1 + i);
   end;
@@ -388,10 +380,11 @@ end;
 
 procedure glLightsFromVRML(Lights: TDynActiveLightArray;
   GLLightNum1, GLLightNum2: Integer;
-  LightRenderEvent: TVRMLLightRenderEvent);
+  LightRenderEvent: TVRMLLightRenderEvent;
+  out LightsEnabled: Cardinal);
 begin
   glLightsFromVRML(Lights.ItemsArray, Lights.Count, GLLightNum1, GLLightNum2,
-    LightRenderEvent);
+    LightRenderEvent, LightsEnabled);
 end;
 
 { TVRMLGLLightsCachingRenderer ----------------------------------------------- }
@@ -473,31 +466,20 @@ end;
 
 { TVRMLGLLightSet ------------------------------------------------------------ }
 
-constructor TVRMLGLLightSet.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AGLLightNum1, AGLLightNum2: Integer);
+procedure TVRMLGLLightSet.RenderLights(var LightsEnabled: Cardinal);
+var
+  LightsEnabledBefore: Cardinal;
 begin
-  inherited Create(ARootNode, AOwnsRootNode);
-  FGLLightNum1 := AGLLightNum1;
-  FGLLightNum2 := AGLLightNum2;
+  LightsEnabledBefore := LightsEnabled;
+  glLightsFromVRML(Lights, LightsEnabledBefore, GLMaxLights - 1, nil, LightsEnabled);
 end;
 
-function TVRMLGLLightSet.RealGLLightNum2: Integer;
-begin
-  Result := GLLightNum2;
-  if Result = -1 then
-    Result += GLMaxLights;
-end;
-
-procedure TVRMLGLLightSet.RenderLights;
-begin
-  glLightsFromVRML(Lights, glLightNum1, RealGLLightNum2, nil);
-end;
-
+(* TODO: replace everywhere uses of this with proper implementation
 procedure TVRMLGLLightSet.TurnLightsOff;
 var
   I: Integer;
 begin
-  for I := GLLightNum1 to RealGLLightNum2 do
+  for I := GLLightNum1 to Integer(GLMaxLights) - 1 do
     glDisable(GL_LIGHT0 + I);
 end;
 
@@ -513,13 +495,13 @@ begin
 
     if L^.LightNode.FdKambiShadows.Value then
     begin
-      if GLLightNum <= RealGLLightNum2 then
+      if GLLightNum < GLMaxLights then
         glDisable(GL_LIGHT0 + GLLightNum);
     end;
 
     Inc(L);
   end;
 end;
+*)
 
 end.
-
