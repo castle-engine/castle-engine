@@ -111,13 +111,6 @@ var
 
   NormalizedDot3First: boolean = false;
 
-  { Vars below for bmVRML only }
-
-  { Default TVRMLRenderingAttributes.BumpMappingMaximum is bmNone,
-    but in this program by default the best method is allowed
-    (to show the effect). }
-  BumpMappingMaximum: TBumpMappingMethod = High(TBumpMappingMethod);
-
 { ---------------------------------------------------------------------------- }
 
 { Returns (unnormalized) direction from Vertex to LightPosition,
@@ -879,8 +872,12 @@ end;
 procedure LoadSceneCore(const FileName: string);
 begin
   FreeAndNil(Scene);
+  
+  // TODO: recreating Scene breaks synchronization between this
+  // Attributes.BumpMapping and menu item checked.
 
   Scene := TVRMLGLScene.Create(nil);
+  Scene.Attributes.ForceShaderRendering := true; // TODO: needed for now
   if Method = bmVRML then
     SceneManager.Items.Add(Scene); { readd Scene to SceneManager }
 
@@ -891,8 +888,6 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
   Scene.Spatial := [ssRendering { add here ssDynamicCollisions
     if you want more features, like mouse picking of objects }];
-
-  Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;
 
   Scene.ProcessEvents := true;
 end;
@@ -907,7 +902,7 @@ begin
   LightPosition := Vector3Single(3, 3, 5);
 
   { When bmVRML, these two should always be equal }
-  Scene.BumpMappingLightPosition := LightPosition;
+  //TODO:Scene.BumpMappingLightPosition := LightPosition;
 
   { reinit both cameras }
 
@@ -969,10 +964,6 @@ begin
     S.Append(Format('Emboss scale: %f', [EmbossScale]));
     S.Append(Format('Emboss alpha multiply by blending: %s',
       [BoolToStr[EmbossAlphaMultiplyByBlending]]));
-    S.Append(Format('VRML maximum bump mapping method allowed: %s',
-      [BumpMappingMethodNames[BumpMappingMaximum]]));
-    S.Append(Format('VRML auto-detected best bump mapping method: %s',
-      [BumpMappingMethodNames[Scene.BumpMappingMethod]]));
 
     Font.PrintStrings(S, 0, 5, 5);
 
@@ -1153,8 +1144,8 @@ begin
       ChangeLightPosition(2, -1);
   end;
 
-  if LightPositionChanged and (Method = bmVRML) then
-    Scene.BumpMappingLightPosition := LightPosition;
+//TODO:  if LightPositionChanged and (Method = bmVRML) then
+//TODO:    Scene.BumpMappingLightPosition := LightPosition;
 
   if Glwin.Pressed[K_J] then XShift -= Glwin.Fps.IdleSpeed * 50 / 1000;
   if Glwin.Pressed[K_L] then XShift += Glwin.Fps.IdleSpeed * 50 / 1000;
@@ -1206,55 +1197,30 @@ begin
       end;
     601:
       begin
-        C := Vector3SingleCut(Scene.BumpMappingLightAmbientColor);
-        if Glwin.ColorDialog(C) then
-          Scene.BumpMappingLightAmbientColor := Vector4Single(C, 1);
+//TODO:        C := Vector3SingleCut(Scene.BumpMappingLightAmbientColor);
+//TODO:        if Glwin.ColorDialog(C) then
+//TODO:          Scene.BumpMappingLightAmbientColor := Vector4Single(C, 1);
       end;
     602:
       begin
-        C := Vector3SingleCut(Scene.BumpMappingLightDiffuseColor);
-        if Glwin.ColorDialog(C) then
-          Scene.BumpMappingLightDiffuseColor := Vector4Single(C, 1);
+//TODO:        C := Vector3SingleCut(Scene.BumpMappingLightDiffuseColor);
+//TODO:        if Glwin.ColorDialog(C) then
+//TODO:          Scene.BumpMappingLightDiffuseColor := Vector4Single(C, 1);
       end;
     610:
       if (Method = bmVRML) and not IsEmptyBox3D(Scene.BoundingBox) then
       begin
         LightPosition := Box3DMiddle(Scene.BoundingBox);
         LightPosition[2] := Scene.BoundingBox[1][2];
-        Scene.BumpMappingLightPosition := LightPosition;
+//TODO:        Scene.BumpMappingLightPosition := LightPosition;
       end;
-    1100..1200:
-      begin
-        Assert(BumpMappingMaximum = Scene.Attributes.BumpMappingMaximum);
-        BumpMappingMaximum := TBumpMappingMethod(MenuItem.IntData - 1100);
-        Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;
-      end;
+    1100: Scene.Attributes.BumpMapping := not Scene.Attributes.BumpMapping;
   end;
 end;
 
 function CreateMainMenu: TMenu;
-
-  procedure AppendBumpMappingMethods(M: TMenu);
-  var
-    BM: TBumpMappingMethod;
-    Radio: TMenuItemRadio;
-    RadioGroup: TMenuItemRadioGroup;
-  begin
-    RadioGroup := nil;
-    for BM := Low(BM) to High(BM) do
-    begin
-      Radio := TMenuItemRadio.Create(
-        SQuoteMenuEntryCaption(BumpMappingMethodNames[BM]),
-        Ord(BM) + 1100, BM = BumpMappingMaximum, true);
-      if RadioGroup = nil then
-        RadioGroup := Radio.Group else
-        Radio.Group := RadioGroup;
-      M.Append(Radio);
-    end;
-  end;
-
 var
-  M, M2: TMenu;
+  M: TMenu;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
@@ -1281,9 +1247,8 @@ begin
   M := TMenu.Create('_VRML');
     M.Append(TMenuItem.Create('_Open VRML Model ...', 600, CtrlO));
     M.Append(TMenuSeparator.Create);
-    M2 := TMenu.Create('Maximum bump mapping method allowed');
-      AppendBumpMappingMethods(M2);
-      M.Append(M2);
+    M.Append(TMenuItemChecked.Create('Bump Mapping Enabled', 1100,
+      true { default Scene.Attributes.BumpMapping }, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Change _Ambient Light Color (Only When GLSL Is Used) ...', 601));
     M.Append(TMenuItem.Create('Change _Diffuse Light Color (Only When GLSL Is Used) ...', 602));
