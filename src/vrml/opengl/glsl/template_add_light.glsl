@@ -2,10 +2,8 @@
 
 vec3 light_dir;
 
-/* add ambient term */
-color += light_products.ambient;
-
-/* add diffuse term */
+/* Check light_source.position first, as we want to add nothing
+   (not even ambient term) when were outside of spot light cone. */
 if (light_source.position.w != 0.0)
 {
   /* we assume in this case light_source.position.w == 1,
@@ -26,6 +24,10 @@ if (light_source.position.w != 0.0)
   light_dir = normalize(light_source.position.xyz);
 }
 
+/* add ambient term */
+color += light_products.ambient;
+
+/* add diffuse term */
 color += light_products.diffuse
   * max(dot(normal_eye, light_dir), 0.0);
 

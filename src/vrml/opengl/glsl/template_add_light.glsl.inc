@@ -4,10 +4,8 @@
 '' + LineEnding + 
 'vec3 light_dir;' + LineEnding + 
 '' + LineEnding + 
-'/* add ambient term */' + LineEnding + 
-'color += light_products.ambient;' + LineEnding + 
-'' + LineEnding + 
-'/* add diffuse term */' + LineEnding + 
+'/* Check light_source.position first, as we want to add nothing' + LineEnding + 
+'   (not even ambient term) when were outside of spot light cone. */' + LineEnding + 
 'if (light_source.position.w != 0.0)' + LineEnding + 
 '{' + LineEnding + 
 '  /* we assume in this case light_source.position.w == 1,' + LineEnding + 
@@ -28,6 +26,10 @@
 '  light_dir = normalize(light_source.position.xyz);' + LineEnding + 
 '}' + LineEnding + 
 '' + LineEnding + 
+'/* add ambient term */' + LineEnding + 
+'color += light_products.ambient;' + LineEnding + 
+'' + LineEnding + 
+'/* add diffuse term */' + LineEnding + 
 'color += light_products.diffuse' + LineEnding + 
 '  * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
