@@ -165,14 +165,14 @@ var
 
 procedure TMySceneManager.RenderFromViewEverything;
 
-  procedure RenderEverything;
+  procedure RenderEverything(const LightsEnabled: Cardinal);
   begin
-    Scene.Render(nil, 1, tgAll);
+    Scene.Render(nil, LightsEnabled, tgAll);
     if IsRenderShadowCaster then
     begin
       glPushMatrix;
         glMultMatrix(ShadowCasterNav.Matrix);
-        ShadowCaster.Render(nil, 1, tgAll);
+        ShadowCaster.Render(nil, LightsEnabled, tgAll);
       glPopMatrix;
     end;
   end;
@@ -243,9 +243,10 @@ procedure TMySceneManager.RenderFromViewEverything;
   end;
 
   { Rendering with hard shadows by SV algorithm. }
-  procedure RenderWithShadows;
+  procedure RenderWithShadows(const LightsEnabled: Cardinal);
   var
     StencilShadowBits: TGLuint;
+    NewLightsEnabled: Cardinal;
   begin
     if (ShadowsImplementation = siStencilTwoSided) and
        (not SV.StencilTwoSided) then
@@ -288,7 +289,7 @@ procedure TMySceneManager.RenderFromViewEverything;
 
     glStencilMask(StencilShadowBits);
 
-    RenderEverything;
+    RenderEverything(LightsEnabled);
     glEnable(GL_STENCIL_TEST);
       { Note that stencil buffer is set to all 0 now. }
 
@@ -353,19 +354,24 @@ procedure TMySceneManager.RenderFromViewEverything;
           GL_DEPTH_BUFFER_BIT { for glDepthFunc } or
           GL_LIGHTING_BIT { for LightSet.RenderLights });
         glDepthFunc(GL_LEQUAL);
-        LightSet.RenderLights;
+        NewLightsEnabled := LightsEnabled;
+        LightSet.RenderLights(NewLightsEnabled);
         { setup stencil : don't modify stencil, stencil test passes only for =0 }
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
 
-        RenderEverything;
+        RenderEverything(NewLightsEnabled);
       glPopAttrib;
     glDisable(GL_STENCIL_TEST);
   end;
 
+var
+  LightsEnabled: Cardinal;
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
   glLoadMatrix(RenderState.CameraMatrix);
+
+  LightsEnabled := 1;
 
   SV.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
 
@@ -379,11 +385,11 @@ begin
       later switch ShadowsImplementation to something else, we can't
       let lights affect it. }
     glPushAttrib(GL_LIGHTING_BIT);
-      LightSet.RenderLights;
-      RenderEverything;
+      LightSet.RenderLights(LightsEnabled);
+      RenderEverything(LightsEnabled);
     glPopAttrib;
   end else
-    RenderWithShadows;
+    RenderWithShadows(LightsEnabled);
 
   if ShowShadowQuads then
   begin
@@ -487,7 +493,6 @@ procedure Close(glwin: TGLWindow);
 begin
   Scene.GLContextClose;
   ShadowCaster.GLContextClose;
-  LightSet.GLContextClose;
 
   FreeAndNil(Font);
 
@@ -681,8 +686,7 @@ begin
 
     { init vrml-related objects }
     VRMLWarning := @VRMLWarning_Write;
-    LightSet := TVRMLGLLightSet.Create(
-      LoadVRMLClassic(LightSetVrmlName, false), true, 0, -1);
+    LightSet := TVRMLGLLightSet.Create(LoadVRMLClassic(LightSetVrmlName, false), true);
     Scene := TVRMLGLScene.Create(nil);
     Scene.Load(SceneVrmlName);
     Scene.Attributes.PreserveOpenGLState := true;
