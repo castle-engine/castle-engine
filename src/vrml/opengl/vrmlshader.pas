@@ -90,6 +90,8 @@ type
     function CreateProgram: TGLSLProgram;
     procedure SetupUniforms(AProgram: TGLSLProgram);
 
+    procedure AddUniform(Uniform: TUniform);
+
     procedure EnableTexture(const TextureUnit: Cardinal;
       const TextureType: TTextureType; const ShadowMapSize: Cardinal = 0);
     procedure EnableTexGen(const TextureUnit: Cardinal;
@@ -329,6 +331,13 @@ begin
       end;
 end;
 
+procedure TVRMLShader.AddUniform(Uniform: TUniform);
+begin
+  if Uniforms = nil then
+    Uniforms := TUniformsList.Create;
+  Uniforms.Add(Uniform);
+end;
+
 procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
   const TextureType: TTextureType; const ShadowMapSize: Cardinal);
 const
@@ -370,9 +379,7 @@ begin
   Uniform.AType := utLongInt;
   Uniform.Value.LongInt := TextureUnit;
 
-  if Uniforms = nil then
-    Uniforms := TUniformsList.Create;
-  Uniforms.Add(Uniform);
+  AddUniform(Uniform);
 
   TextureCoordInitialize += Format('gl_TexCoord[%d] = gl_MultiTexCoord%0:d;' + NL,
     [TextureUnit]);
@@ -555,9 +562,7 @@ begin
   Uniform.AType := utLongInt;
   Uniform.Value.LongInt := NormalMapTextureUnit;
 
-  if Uniforms = nil then
-    Uniforms := TUniformsList.Create;
-  Uniforms.Add(Uniform);
+  AddUniform(Uniform);
 end;
 
 end.
