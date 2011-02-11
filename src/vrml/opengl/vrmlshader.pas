@@ -44,6 +44,15 @@ type
   TTexGenerationComplete = (tgSphere, tgNormal, tgReflection);
   TTexComponent = 0..3;
 
+  TVRMLShaderProgram = class(TGLSLProgram)
+  private
+    { State of TVRMLShader when creating this shader.
+      Used to decide when shader needs to be regenerated. }
+    LightsEnabled: Cardinal;
+    PercentageCloserFiltering: TPercentageCloserFiltering;
+    VisualizeDepthMap: boolean;
+  end;
+
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
     you can use the @link(CreateProgram) to create and link a program
@@ -63,6 +72,7 @@ type
     VertexShaderComplete: string;
     FragmentShaderComplete: string;
     PlugIdentifiers: Cardinal;
+    LightsEnabled: Cardinal;
   public
     constructor Create;
     destructor Destroy; override;
@@ -86,8 +96,14 @@ type
       const RemovePlug: boolean = false;
       const ForceDirectInsertion: boolean = false);
 
-    function CreateProgram: TGLSLProgram;
-    procedure SetupUniforms(AProgram: TGLSLProgram);
+    function CreateProgram: TVRMLShaderProgram;
+    procedure SetupUniforms(AProgram: TVRMLShaderProgram);
+
+    { Given one TVRMLShaderProgram, created for the same shape by CreateProgram,
+      do these program settings matching current TVRMLShader settings.
+      This is used to decide when shape settings (for example,
+      lights count or such) change and require regenerating the shader. }
+    function ProgramSettingsEqual(AProgram: TVRMLShaderProgram): boolean;
 
     procedure AddUniform(Uniform: TUniform);
 
@@ -274,7 +290,7 @@ begin
         [PlugName]));
 end;
 
-function TVRMLShader.CreateProgram: TGLSLProgram;
+function TVRMLShader.CreateProgram: TVRMLShaderProgram;
 const
   PCFDefine: array [TPercentageCloserFiltering] of string =
   ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
@@ -300,7 +316,7 @@ begin
     WritelnLogMultiline('Generated GLSL fragment shader', FragmentShaderComplete);
   end;
 
-  Result := TGLSLProgram.Create;
+  Result := TVRMLShaderProgram.Create;
   try
     Result.AttachVertexShader(VertexShaderComplete);
     Result.AttachFragmentShader(FragmentShaderComplete);
@@ -308,10 +324,23 @@ begin
 
     Result.UniformNotFoundAction := uaWarning;
     Result.UniformTypeMismatchAction := utWarning;
+
+    Result.LightsEnabled := LightsEnabled;
+    Result.PercentageCloserFiltering := PercentageCloserFiltering;
+    Result.VisualizeDepthMap := VisualizeDepthMap;
   except Result.Free; raise end;
 end;
 
-procedure TVRMLShader.SetupUniforms(AProgram: TGLSLProgram);
+function TVRMLShader.ProgramSettingsEqual(AProgram: TVRMLShaderProgram): boolean;
+begin
+  Result := (
+    (AProgram.LightsEnabled = LightsEnabled) and
+    (AProgram.PercentageCloserFiltering = PercentageCloserFiltering) and
+    (AProgram.VisualizeDepthMap = VisualizeDepthMap)
+  );
+end;
+
+procedure TVRMLShader.SetupUniforms(AProgram: TVRMLShaderProgram);
 var
   I: Integer;
 begin
@@ -570,6 +599,7 @@ begin
   StringReplaceAllTo1st(LightCode[true ], 'light_source', Format('gl_LightSource[%d]', [Number]), false);
   Plug('add-light-contribution-back' , LightCode[false]);
   Plug('add-light-contribution-front', LightCode[true]);
+  Inc(LightsEnabled);
 end;
 
 end.

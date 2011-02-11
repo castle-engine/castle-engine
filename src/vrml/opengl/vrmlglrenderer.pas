@@ -997,13 +997,7 @@ type
     procedure LoadArraysToVbo;
   public
     Cache: TShapeCache;
-    ShaderProgram: TGLSLProgram;
-    { With what values was ShaderProgram prepared?
-      TODO: make is a more general mechanism, maybe store inside TGLSLProgram
-      descendant (defined in VRMLShader unit) such stuff and decide inside
-      VRMLShader unit when to recreate. }
-    ShaderProgramPCF: TPercentageCloserFiltering;
-    ShaderProgramVisualizeDepthMap: boolean;
+    ShaderProgram: TVRMLShaderProgram;
   end;
 
   TVRMLGLRenderer = class
