@@ -14,50 +14,6 @@
 '/* PLUG: fragment-declare-variables declaration */' + LineEnding + 
 '/* PLUG: fragment-declare-procedures declaration */' + LineEnding + 
 '' + LineEnding + 
-'void add_light_contribution(inout vec4 color,' + LineEnding + 
-'  const in vec3 normal_eye,' + LineEnding + 
-'  const in gl_LightProducts light_products,' + LineEnding + 
-'  const in gl_LightSourceParameters light_source,' + LineEnding + 
-'  const in gl_MaterialParameters material)' + LineEnding + 
-'{' + LineEnding + 
-'  vec3 light_dir;' + LineEnding + 
-'' + LineEnding + 
-'  /* add ambient term */' + LineEnding + 
-'  color += light_products.ambient;' + LineEnding + 
-'' + LineEnding + 
-'  /* add diffuse term */' + LineEnding + 
-'  if (light_source.position.w != 0.0)' + LineEnding + 
-'  {' + LineEnding + 
-'    /* we assume in this case light_source.position.w == 1,' + LineEnding + 
-'       so there''s no need to divide by it. This is true for our VRML/X3D' + LineEnding + 
-'       lights. */' + LineEnding + 
-'    /* positional light */' + LineEnding + 
-'    light_dir = normalize(light_source.position.xyz - vec3(vertex_eye));' + LineEnding + 
-'' + LineEnding + 
-'    /* non-spot lights have always cutoff = 180, with cos = -1,' + LineEnding + 
-'       so the check below will always be false. No need to explicitly' + LineEnding + 
-'       compare with -1, nice. */' + LineEnding + 
-'    if (dot(normalize(light_source.spotDirection), -light_dir) <' + LineEnding + 
-'        light_source.spotCosCutoff)' + LineEnding + 
-'      return;' + LineEnding + 
-'  } else' + LineEnding + 
-'  {' + LineEnding + 
-'    /* directional light */' + LineEnding + 
-'    light_dir = normalize(light_source.position.xyz);' + LineEnding + 
-'  }' + LineEnding + 
-'' + LineEnding + 
-'  color += light_products.diffuse' + LineEnding + 
-'    * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
-'' + LineEnding + 
-'  /* add specular term */' + LineEnding + 
-'  vec3 reflect = normalize(-reflect(light_dir, normal_eye));' + LineEnding + 
-'  /* vertex to camera direction = camera pos - vertex pos.' + LineEnding + 
-'     We work in eye space here, so camera pos = always zero. */' + LineEnding + 
-'  vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));' + LineEnding + 
-'  color += light_products.specular' + LineEnding + 
-'    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);' + LineEnding + 
-'}' + LineEnding + 
-'' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  gl_FragColor = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
@@ -65,29 +21,19 @@
 '  vec3 normal_eye_fragment = normalize(normal_eye);' + LineEnding + 
 '  /* PLUG: fragment-normal-eye (normal_eye_fragment) (inout vec3 normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
-'/* LIGHTS_ENABLED will be already defined here when this shader' + LineEnding + 
-'   is included from our engine. This is used only for quick testing' + LineEnding + 
-'   template.fs by opening template_test.x3dv. */' + LineEnding + 
-'#ifndef LIGHTS_ENABLED' + LineEnding + 
-'#define LIGHTS_ENABLED 1' + LineEnding + 
-'#endif' + LineEnding + 
-'' + LineEnding + 
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
-'    for (int i = 0; i < LIGHTS_ENABLED; i++)' + LineEnding + 
-'      add_light_contribution(gl_FragColor, normal_eye_fragment,' + LineEnding + 
-'        gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);' + LineEnding + 
+'    /* PLUG: add-light-contribution-front (gl_FragColor, normal_eye_fragment, gl_FrontMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */' + LineEnding + 
+'' + LineEnding + 
 '    /* Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding + 
 '       and it''s always opaque.' + LineEnding + 
 '       Using diffuse.a is actually exactly what fixed-function pipeline does' + LineEnding + 
-'       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html' + LineEnding + 
-'    */' + LineEnding + 
+'       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */' + LineEnding + 
 '    gl_FragColor.a = gl_FrontMaterial.diffuse.a;' + LineEnding + 
 '  } else' + LineEnding + 
 '  {' + LineEnding + 
-'    for (int i = 0; i < LIGHTS_ENABLED; i++)' + LineEnding + 
-'      add_light_contribution(gl_FragColor, -normal_eye_fragment,' + LineEnding + 
-'        gl_BackLightProduct[i], gl_LightSource[i], gl_BackMaterial);' + LineEnding + 
+'    normal_eye_fragment = -normal_eye_fragment;' + LineEnding + 
+'    /* PLUG: add-light-contribution-back (gl_FragColor, normal_eye_fragment, gl_BackMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */' + LineEnding + 
 '    gl_FragColor.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 
 '' + LineEnding + 

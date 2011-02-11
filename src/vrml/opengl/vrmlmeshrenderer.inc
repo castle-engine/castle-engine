@@ -164,7 +164,7 @@ begin
   { calculate and use Shape.ShaderProgram }
   if ForceShaderRendering and
     ( (Shape.ShaderProgram = nil) or
-      (Shape.ShaderProgramLightsEnabled <> Shader.LightsEnabled) or
+//TODO:      (Shape.ShaderProgramLightsEnabled <> Shader.LightsEnabled) or
       (Shape.ShaderProgramPCF <> Shader.PercentageCloserFiltering) or
       (Shape.ShaderProgramVisualizeDepthMap <> Shader.VisualizeDepthMap)
     ) then
@@ -172,7 +172,7 @@ begin
     try
       FreeAndNil(Shape.ShaderProgram);
       Shape.ShaderProgram := Shader.CreateProgram;
-      Shape.ShaderProgramLightsEnabled := Shader.LightsEnabled;
+//TODO:      Shape.ShaderProgramLightsEnabled := Shader.LightsEnabled;
       Shape.ShaderProgramPCF := Shader.PercentageCloserFiltering;
       Shape.ShaderProgramVisualizeDepthMap := Shader.VisualizeDepthMap;
     except on E: EGLSLError do

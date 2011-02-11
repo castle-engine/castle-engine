@@ -5,7 +5,8 @@ ALL_OUTPUT := parallax_bump_mapping.vs.inc parallax_bump_mapping.fs.inc \
   shadow_map_common.fs.inc \
   variance_shadow_map_common.fs.inc \
   variance_shadow_map_generate.fs.inc \
-  template.vs.inc template.fs.inc
+  template.vs.inc template.fs.inc \
+  template_add_light.glsl.inc
 
 .PHONY: all
 all: $(ALL_OUTPUT)

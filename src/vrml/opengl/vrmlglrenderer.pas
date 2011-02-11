@@ -998,11 +998,10 @@ type
   public
     Cache: TShapeCache;
     ShaderProgram: TGLSLProgram;
-    { With what LightsEnabled was ShaderProgram prepared?
+    { With what values was ShaderProgram prepared?
       TODO: make is a more general mechanism, maybe store inside TGLSLProgram
       descendant (defined in VRMLShader unit) such stuff and decide inside
       VRMLShader unit when to recreate. }
-    ShaderProgramLightsEnabled: Cardinal;
     ShaderProgramPCF: TPercentageCloserFiltering;
     ShaderProgramVisualizeDepthMap: boolean;
   end;
@@ -3286,14 +3285,19 @@ procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; Shader: TVRMLShader);
 var
   LightsEnabled: Cardinal;
+  I: Integer;
 begin
+  for I := 0 to Integer(FirstLight) - 1 do
+    Shader.EnableLight(I, nil);
+
   if Attributes.UseSceneLights then
+  begin
     { Done before loading State.Transform, as the lights
       positions/directions are in world coordinates. }
-    LightsRenderer.Render(Shape.State.CurrentActiveLights, LightsEnabled) else
-    LightsEnabled := FirstLight;
-
-  Shader.LightsEnabled := LightsEnabled;
+    LightsRenderer.Render(Shape.State.CurrentActiveLights, LightsEnabled);
+    for I := FirstLight to Integer(LightsEnabled) - 1 do
+      Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight]^.LightNode);
+  end;
 
   RenderShapeFog(Shape, Fog, Shader);
 end;

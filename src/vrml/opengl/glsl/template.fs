@@ -12,50 +12,6 @@ varying vec3 normal_eye;
 /* PLUG: fragment-declare-variables declaration */
 /* PLUG: fragment-declare-procedures declaration */
 
-void add_light_contribution(inout vec4 color,
-  const in vec3 normal_eye,
-  const in gl_LightProducts light_products,
-  const in gl_LightSourceParameters light_source,
-  const in gl_MaterialParameters material)
-{
-  vec3 light_dir;
-
-  /* add ambient term */
-  color += light_products.ambient;
-
-  /* add diffuse term */
-  if (light_source.position.w != 0.0)
-  {
-    /* we assume in this case light_source.position.w == 1,
-       so there's no need to divide by it. This is true for our VRML/X3D
-       lights. */
-    /* positional light */
-    light_dir = normalize(light_source.position.xyz - vec3(vertex_eye));
-
-    /* non-spot lights have always cutoff = 180, with cos = -1,
-       so the check below will always be false. No need to explicitly
-       compare with -1, nice. */
-    if (dot(normalize(light_source.spotDirection), -light_dir) <
-        light_source.spotCosCutoff)
-      return;
-  } else
-  {
-    /* directional light */
-    light_dir = normalize(light_source.position.xyz);
-  }
-
-  color += light_products.diffuse
-    * max(dot(normal_eye, light_dir), 0.0);
-
-  /* add specular term */
-  vec3 reflect = normalize(-reflect(light_dir, normal_eye));
-  /* vertex to camera direction = camera pos - vertex pos.
-     We work in eye space here, so camera pos = always zero. */
-  vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));
-  color += light_products.specular
-    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);
-}
-
 void main(void)
 {
   gl_FragColor = gl_FrontLightModelProduct.sceneColor;
@@ -63,29 +19,19 @@ void main(void)
   vec3 normal_eye_fragment = normalize(normal_eye);
   /* PLUG: fragment-normal-eye (normal_eye_fragment) (inout vec3 normal_eye_fragment) */
 
-/* LIGHTS_ENABLED will be already defined here when this shader
-   is included from our engine. This is used only for quick testing
-   template.fs by opening template_test.x3dv. */
-#ifndef LIGHTS_ENABLED
-#define LIGHTS_ENABLED 1
-#endif
-
   if (gl_FrontFacing)
   {
-    for (int i = 0; i < LIGHTS_ENABLED; i++)
-      add_light_contribution(gl_FragColor, normal_eye_fragment,
-        gl_FrontLightProduct[i], gl_LightSource[i], gl_FrontMaterial);
+    /* PLUG: add-light-contribution-front (gl_FragColor, normal_eye_fragment, gl_FrontMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */
+
     /* Otherwise, alpha is usually large after previous add_light_contribution,
        and it's always opaque.
        Using diffuse.a is actually exactly what fixed-function pipeline does
-       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html
-    */
+       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */
     gl_FragColor.a = gl_FrontMaterial.diffuse.a;
   } else
   {
-    for (int i = 0; i < LIGHTS_ENABLED; i++)
-      add_light_contribution(gl_FragColor, -normal_eye_fragment,
-        gl_BackLightProduct[i], gl_LightSource[i], gl_BackMaterial);
+    normal_eye_fragment = -normal_eye_fragment;
+    /* PLUG: add-light-contribution-back (gl_FragColor, normal_eye_fragment, gl_BackMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */
     gl_FragColor.a = gl_BackMaterial.diffuse.a;
   }
 

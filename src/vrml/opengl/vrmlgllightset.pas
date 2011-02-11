@@ -113,7 +113,6 @@ type
     FGLLightNum1, FGLLightNum2: Integer;
     FLightRenderEvent: TVRMLLightRenderEvent;
     LightsKnown: boolean;
-    LightsDone: array of PActiveLight;
   public
     { Statistics of how many OpenGL light setups were done
       (Statistics[true]) vs how many were avoided (Statistics[false]).
@@ -121,6 +120,8 @@ type
       class sensible (as opposed to directly rendering with glLightsFromVRML
       calls). }
     Statistics: array [boolean] of Cardinal;
+
+    LightsDone: array of PActiveLight;
 
     constructor Create(const AGLLightNum1, AGLLightNum2: Integer;
       const ALightRenderEvent: TVRMLLightRenderEvent);

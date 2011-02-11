@@ -20,7 +20,7 @@ unit VRMLShader;
 
 interface
 
-uses GLShaders, FGL, VRMLShadowMaps;
+uses GLShaders, FGL, VRMLShadowMaps, VRMLNodes;
 
 type
   { Uniform value type, for TUniform. }
@@ -58,7 +58,6 @@ type
     TextureApply, TextureCoordInitialize,
       TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare,
       ClipPlane, FragmentEnd: string;
-    FLightsEnabled: Cardinal;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
     FVisualizeDepthMap: boolean;
     VertexShaderComplete: string;
@@ -103,8 +102,8 @@ type
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
     procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
+    procedure EnableLight(const Number: Cardinal; Node: TVRMLLightNode);
 
-    property LightsEnabled: Cardinal read FLightsEnabled write FLightsEnabled;
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
     property VisualizeDepthMap: boolean
@@ -288,13 +287,7 @@ begin
     false, true);
   Plug('fragment-declare-variables',
     FragmentShaderDeclare +
-    PCFDefine[PercentageCloserFiltering] + NL +
-    { Passing LightsEnabled as uniform would enable me to reuse
-      created GLSL program more. However, this could be slower,
-      depending on GPU. And, in fact, fglrx at least on Radeon X1600 refuses
-      to run such shader, saying it cannot run in hardware...
-      So we have to set this by #define. }
-    Format('#define LIGHTS_ENABLED %d' + NL, [LightsEnabled]),
+    PCFDefine[PercentageCloserFiltering],
     false, true);
   Plug('fragment-declare-procedures', {$I shadow_map_common.fs.inc},
     false, true);
@@ -563,6 +556,20 @@ begin
   Uniform.Value.LongInt := NormalMapTextureUnit;
 
   AddUniform(Uniform);
+end;
+
+procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TVRMLLightNode);
+var
+  LightCode: array [boolean] of string; //< indexed by "front"
+begin
+  LightCode[false] := {$I template_add_light.glsl.inc};
+  LightCode[true ] := {$I template_add_light.glsl.inc};
+  StringReplaceAllTo1st(LightCode[false], 'light_products', Format('gl_BackLightProduct[%d]' , [Number]), false);
+  StringReplaceAllTo1st(LightCode[true ], 'light_products', Format('gl_FrontLightProduct[%d]', [Number]), false);
+  StringReplaceAllTo1st(LightCode[false], 'light_source', Format('gl_LightSource[%d]', [Number]), false);
+  StringReplaceAllTo1st(LightCode[true ], 'light_source', Format('gl_LightSource[%d]', [Number]), false);
+  Plug('add-light-contribution-back' , LightCode[false]);
+  Plug('add-light-contribution-front', LightCode[true]);
 end;
 
 end.
