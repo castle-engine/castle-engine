@@ -355,7 +355,7 @@ procedure TMySceneManager.RenderFromViewEverything;
           GL_LIGHTING_BIT { for LightSet.RenderLights });
         glDepthFunc(GL_LEQUAL);
         NewLightsEnabled := LightsEnabled;
-        LightSet.RenderLights(NewLightsEnabled);
+        LightSet.Render(NewLightsEnabled);
         { setup stencil : don't modify stencil, stencil test passes only for =0 }
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
@@ -385,7 +385,7 @@ begin
       later switch ShadowsImplementation to something else, we can't
       let lights affect it. }
     glPushAttrib(GL_LIGHTING_BIT);
-      LightSet.RenderLights(LightsEnabled);
+      LightSet.Render(LightsEnabled);
       RenderEverything(LightsEnabled);
     glPopAttrib;
   end else
@@ -570,7 +570,7 @@ begin
       end;
     10, 11:
       begin
-        Writeln(MakeVRMLCameraStr(MenuItem.IntData - 9,
+        Writeln(MakeVRMLCameraStr(MenuItem.IntData - 9, false,
           SceneNav.Position,
           SceneNav.Direction,
           SceneNav.Up,
@@ -661,7 +661,7 @@ begin
     Result.Append(M);
   M := TMenu.Create('_Console');
     M.Append(TMenuItem.Create('Print current _camera (for VRML 1.0)', 10));
-    M.Append(TMenuItem.Create('Print current _camera (for VRML 2.0)', 11));
+    M.Append(TMenuItem.Create('Print current _camera (for VRML 2.0, X3D classic)', 11));
     M.Append(TMenuItem.Create('Print shadow caster _transformation', 20));
     Result.Append(M);
 end;
@@ -701,9 +701,8 @@ begin
       MainLightPosition := Vector4Single(L^.TransfLocation, 1) else
     if L^.LightNode is TVRMLDirectionalLightNode then
       MainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
-      raise Exception.CreateFmt('TVRMLGLLightSet.TurnLightsOffForShadows: ' +
-        'light node "%s" cannot be used to cast shadows, it has no position ' +
-        'and no direction', [L^.LightNode.NodeTypeName]);
+      raise Exception.CreateFmt('Light node "%s" cannot be used to cast shadows, it has no position and no direction',
+        [L^.LightNode.NodeTypeName]);
 
     { init SceneManager, with a Scene inside }
     SceneManager := TMySceneManager.Create(Glw);
