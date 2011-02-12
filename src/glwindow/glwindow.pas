@@ -3259,29 +3259,27 @@ end;
 
 procedure TGLWindow.DoCloseQuery;
 begin
- MakeCurrent;
- if EventCloseQuery then Close;
+  MakeCurrent;
+  if EventCloseQuery then Close;
 end;
 
 procedure TGLWindow.DoDraw;
 begin
- { musimy tu uwzgledniac fakt ze w Event[Before]Draw moglismy zamknac okienko }
+  MakeCurrent;
 
- MakeCurrent;
+  EventBeforeDraw;
+  if Closed then Exit; { check, in case window got closed in the event }
 
- EventBeforeDraw;
- if Closed then exit;
+  Fps._RenderBegin;
+  try
+    EventDraw;
+    if Closed then Exit; { check, in case window got closed in the event }
 
- Fps._RenderBegin;
- try
-  EventDraw;
-  if Closed then exit;
+    if DoubleBuffer then SwapBuffers else glFlush;
+    if AutoRedisplay then PostRedisplay;
+  finally Fps._RenderEnd end;
 
-  if DoubleBuffer then SwapBuffers else glFlush;
-  if AutoRedisplay then PostRedisplay;
- finally Fps._RenderEnd end;
-
- {$ifdef GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors; {$endif}
+  {$ifdef GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TGLWindow.DoDraw'); {$endif}
 end;
 
 procedure TGLWindow.DoKeyDown(Key: TKey; CharKey: char);
