@@ -597,6 +597,11 @@ type
       dynamic geometry (for example, marking VBO data as dynamic for OpenGL
       rendering). }
     property DynamicGeometry: boolean read FDynamicGeometry write FDynamicGeometry;
+
+    { Shape node in VRML/X3D graph.
+      This is always present for VRML >= 2 (including X3D).
+      For VRML 1.0 and Inventor this is @nil. }
+    function Node: TNodeX3DShapeNode;
   end;
 
   TObjectsListItem_2 = TVRMLShapeTree;
@@ -2030,6 +2035,11 @@ end;
 function TVRMLShape.DebugInfo(const Indent: string): string;
 begin
   Result := Indent + OriginalGeometry.NodeTypeName + NL;
+end;
+
+function TVRMLShape.Node: TNodeX3DShapeNode;
+begin
+  Result := State.ShapeNode;
 end;
 
 { TVRMLShapeTreeGroup -------------------------------------------------------- }

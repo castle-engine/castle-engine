@@ -37,6 +37,10 @@
     procedure SetAppearance(const Value: TNodeAppearance);
     function GetMaterial: TNodeMaterial_2;
     procedure SetMaterial(const Value: TNodeMaterial_2);
+    function GetTexture: TNodeX3DTextureNode;
+    procedure SetTexture(const Value: TNodeX3DTextureNode);
+    function GetTextureTransform: TNodeX3DTextureTransformNode;
+    procedure SetTextureTransform(const Value: TNodeX3DTextureTransformNode);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -64,15 +68,21 @@
       checking whether it's class is appropriate. }
     property Appearance: TNodeAppearance read GetAppearance write SetAppearance;
 
-    { This is a shortcut for FdAppearance.Value.FdTexture.Value.
-      If anything makes this impossible (Apperance field is NULL,
-      or Appearance.Texture field is NULL, or wrong node class is
-      passed as Appearance or Texture node), then returns nil. }
-    function Texture: TNodeX3DTextureNode;
+    { The texture of this shape.
+      This is a shortcut for accessing "texture" field of Apperance,
+      that is @code(TNodeAppearance(FdAppearance.Value).FdTexture.Value),
+      checking whether nodes are set to appropriate types along the way.
 
-    { This is like @link(Texture), but it returns TextureTransform
-      of Apperance. }
-    function TextureTransform: TNodeX3DTextureTransformNode;
+      When setting this to something non-nil, we make sure
+      to also set Appearance to something non-nil. }
+    property Texture: TNodeX3DTextureNode read GetTexture write SetTexture;
+
+    { Texture transformation of this shape.
+      Similar to @link(Texture), this is just a comfortable property
+      for getting and setting the appropriate Appearance field,
+      checking class types along the way. }
+    property TextureTransform: TNodeX3DTextureTransformNode
+      read GetTextureTransform write SetTextureTransform;
 
     { Get / set the (simple, one-sided) material of this shape.
       This is a shortcut for accessing "material" field of Apperance,
@@ -480,33 +490,57 @@ begin
   end;
 end;
 
-function TNodeX3DShapeNode.Texture: TNodeX3DTextureNode;
+function TNodeX3DShapeNode.GetTexture: TNodeX3DTextureNode;
 var
-  A: TNodeAppearance;
+  App: TNodeAppearance;
 begin
-  Result := nil;
-  if (FdAppearance.Value <> nil) and
-     (FdAppearance.Value is TNodeAppearance) then
+  App := Appearance;
+  if (App <> nil) and
+     (App.FdTexture.Value <> nil) and
+     (App.FdTexture.Value is TNodeX3DTextureNode) then
+    Result := TNodeX3DTextureNode(App.FdTexture.Value) else
+    Result := nil;
+end;
+
+procedure TNodeX3DShapeNode.SetTexture(const Value: TNodeX3DTextureNode);
+var
+  App: TNodeAppearance;
+begin
+  App := Appearance;
+  if App <> nil then
+    App.FdTexture.Value := Value else
+  if Value <> nil then
   begin
-    A := TNodeAppearance(FdAppearance.Value);
-    if (A.FdTexture.Value <> nil) and
-       (A.FdTexture.Value is TNodeX3DTextureNode) then
-      Result := TNodeX3DTextureNode(A.FdTexture.Value);
+    App := TNodeAppearance.Create('', WWWBasePath);
+    Appearance := App;
+    App.FdTexture.Value := Value;
   end;
 end;
 
-function TNodeX3DShapeNode.TextureTransform: TNodeX3DTextureTransformNode;
+function TNodeX3DShapeNode.GetTextureTransform: TNodeX3DTextureTransformNode;
 var
-  A: TNodeAppearance;
+  App: TNodeAppearance;
 begin
-  Result := nil;
-  if (FdAppearance.Value <> nil) and
-     (FdAppearance.Value is TNodeAppearance) then
+  App := Appearance;
+  if (App <> nil) and
+     (App.FdTextureTransform.Value <> nil) and
+     (App.FdTextureTransform.Value is TNodeX3DTextureTransformNode) then
+    Result := TNodeX3DTextureTransformNode(App.FdTextureTransform.Value) else
+    Result := nil;
+end;
+
+procedure TNodeX3DShapeNode.SetTextureTransform(const Value: TNodeX3DTextureTransformNode);
+var
+  App: TNodeAppearance;
+begin
+  App := Appearance;
+  if App <> nil then
+    App.FdTextureTransform.Value := Value else
+  if Value <> nil then
   begin
-    A := TNodeAppearance(FdAppearance.Value);
-    if (A.FdTextureTransform.Value <> nil) and
-       (A.FdTextureTransform.Value is TNodeX3DTextureTransformNode) then
-      Result := TNodeX3DTextureTransformNode(A.FdTextureTransform.Value);
+    App := TNodeAppearance.Create('', WWWBasePath);
+    Appearance := App;
+    App.FdTextureTransform.Value := Value;
   end;
 end;
 
