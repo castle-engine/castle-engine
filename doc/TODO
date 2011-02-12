@@ -82,14 +82,6 @@ VSM:
 - Using special RenderState.Target = rtVarianceShadowMap feels unclean.
   It would be better to pass to Render() something like [dsDoNotControlShaders]?
 
-- GLSLShaders must be turnable on/off without any speed decrease.
-  This means that it depends on display list->vbo transition.
-  Then the TODO in TVRMLRenderingAttributes.SetGLSLShaders may be removed.
-
-- Currently, rendering optimization must be roNone for VSM (otherwise,
-  without BeforeChange call in SetGLSLShaders, we will not realize
-  that shaders should not be used anymore).
-
 - Eventually, in the future, make DefaultVarianceShadowMaps as true.
 - Allow to set anisotropic filtering for shadow maps, makes sense for VSM.
 
@@ -628,8 +620,12 @@ Shadow volumes finish:
     from the whole scene, so we lost the separation into triangles.
     (OTOH, whole scene must be manifold, not necessarily one shape).
 ------------------------------------------------------------------------------
-- prt: implement on shaders? this way roNone not needed, also special radianceTransfer field support not needed. Shaders vertex attrib nodes will have to be supported.
-       make this easily usable by VRML authors, that is make it's rendering more integrated and available also from e.g. view3dscene
+- prt: implement on shaders.
+  Instead of our own radianceTransfer field, pass through vertex attribute nodes
+  (except, it doesn't fit any vertex attribute node for now?).
+  Remove radianceTransfer field, OnRadianceTransfer callbacks.
+
+  make this easily usable by VRML authors, that is make it's rendering more integrated and available also from e.g. view3dscene
 
 - remake quat unit on Matrix vectors (with overloaded operators would be fun)
 
@@ -782,17 +778,13 @@ VRMLNodes:
 - TransformSensor: need to make separate shapes subtree for every X3DGroupingNode?
   What else?
 
-- Billboard: separate shapes subtree for every Billboard, this is obvious,
-  but also --- how to apply transform along the way?
-  We heavily depend that we have full transform at each shape,
-  we don't want to recalculate it each time we traverse.
-  For Billboard, we will have to.
-
 - StaticGroup: would avoid the need for separate subtree for Transform etc.
   nodes? Worth the complications?
 
 ScreenEffect ideas/TODOs:
 - How to make Stencil available for needsDepth=TRUE case?
+  Should we create and pass a texture with packed depth + stencil,
+  is it usable as sampler2DShadow and such then?
 - Allow using other mapping then GL_NEAREST for screen effect,
   maybe change filtering before each screen effect.
 - glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
