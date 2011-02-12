@@ -661,9 +661,23 @@ end;
 procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode);
 var
   LightShader: TLightShader;
+  Defines: string;
 begin
+  Defines := '';
+  if Node <> nil then
+  begin
+    Defines += '#define LIGHT_TYPE_KNOWN' + NL;
+    if Node is TVRMLPositionalLightNode then
+    begin
+      Defines += '#define LIGHT_TYPE_POSITIONAL' + NL;
+      if (Node is TNodeSpotLight_1) or
+         (Node is TNodeSpotLight_2) then
+        Defines  += '#define LIGHT_TYPE_SPOT' + NL;
+    end;
+  end;
+
   LightShader := TLightShader.Create;
-  LightShader.Code := {$I template_add_light.glsl.inc};
+  LightShader.Code := Defines + {$I template_add_light.glsl.inc};
   StringReplaceAllTo1st(LightShader.Code, 'light_number', IntToStr(Number), false);
   LightShader.Node := Node;
 
