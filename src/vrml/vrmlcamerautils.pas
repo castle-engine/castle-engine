@@ -48,11 +48,12 @@ const
 
 { Constructs string with VRML node defining camera with given
   properties. }
-function MakeVRMLCameraStr(Version: TVRMLCameraVersion;
+function MakeVRMLCameraStr(const Version: TVRMLCameraVersion;
+  const Xml: boolean;
   const Position, Direction, Up, GravityUp: TVector3Single): string;
 
 { Constructs TVRMLNode defining camera with given properties. }
-function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
+function MakeVRMLCameraNode(const Version: TVRMLCameraVersion;
   const WWWBasePath: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TVRMLNode;
 
@@ -60,49 +61,91 @@ implementation
 
 uses SysUtils, Cameras;
 
-function MakeVRMLCameraStr(Version: TVRMLCameraVersion;
+function MakeVRMLCameraStr(const Version: TVRMLCameraVersion;
+  const Xml: boolean;
   const Position, Direction, Up, GravityUp: TVector3Single): string;
 const
-  UntransformedViewpoint: array [TVRMLCameraVersion] of string = (
-    'PerspectiveCamera {' +nl+
-    '  position %s' +nl+
-    '  orientation %s' +nl+
-    '}',
-    'Viewpoint {' +nl+
-    '  position %s' +nl+
-    '  orientation %s' +nl+
-    '}'
+  Comment: array [boolean] of string = (
+    '# Camera settings "encoded" in the VRML declaration below :' +nl+
+    '# direction %s' +nl+
+    '# up %s' +nl+
+    '# gravityUp %s' + nl,
+
+    '<!-- Camera settings "encoded" in the VRML declaration below :' +nl+
+    '  direction %s' +nl+
+    '  up %s' +nl+
+    '  gravityUp %s -->' + nl);
+
+  UntransformedViewpoint: array [TVRMLCameraVersion, boolean] of string = (
+    ('PerspectiveCamera {' +nl+
+     '  position %s' +nl+
+     '  orientation %s' +nl+
+     '}',
+
+     '<PerspectiveCamera' +nl+
+     '  position="%s"' +nl+
+     '  orientation="%s"' +nl+
+     '/>'),
+
+    ('Viewpoint {' +nl+
+     '  position %s' +nl+
+     '  orientation %s' +nl+
+     '}',
+
+     '<Viewpoint' +nl+
+     '  position="%s"' +nl+
+     '  orientation="%s"' +nl+
+     '/>')
   );
-  TransformedViewpoint: array [TVRMLCameraVersion] of string = (
-    'Separator {' +nl+
-    '  Transform {' +nl+
-    '    translation %s' +nl+
-    '    rotation %s %s' +nl+
-    '  }' +nl+
-    '  PerspectiveCamera {' +nl+
-    '    position 0 0 0 # camera position is expressed by translation' +nl+
-    '    orientation %s' +nl+
-    '  }' +nl+
-    '}',
-    'Transform {' +nl+
-    '  translation %s' +nl+
-    '  rotation %s %s' +nl+
-    '  children Viewpoint {' +nl+
-    '    position 0 0 0 # camera position is expressed by translation' +nl+
-    '    orientation %s' +nl+
-    '  }' +nl+
-    '}'
+  TransformedViewpoint: array [TVRMLCameraVersion, boolean] of string = (
+    ('Separator {' +nl+
+     '  Transform {' +nl+
+     '    translation %s' +nl+
+     '    rotation %s %s' +nl+
+     '  }' +nl+
+     '  PerspectiveCamera {' +nl+
+     '    position 0 0 0 # camera position is expressed by translation' +nl+
+     '    orientation %s' +nl+
+     '  }' +nl+
+     '}',
+
+     '<Separator>' +nl+
+     '  <Transform' +nl+
+     '    translation="%s"' +nl+
+     '    rotation="%s %s"' +nl+
+     '  />' +nl+
+     '  <!-- the camera position is already expressed by the translation above -->' +nl+
+     '  <PerspectiveCamera' +nl+
+     '    position="0 0 0"' +nl+
+     '    orientation="%s"' +nl+
+     '  />' +nl+
+     '</Separator>'),
+
+    ('Transform {' +nl+
+     '  translation %s' +nl+
+     '  rotation %s %s' +nl+
+     '  children Viewpoint {' +nl+
+     '    position 0 0 0 # camera position is expressed by translation' +nl+
+     '    orientation %s' +nl+
+     '  }' +nl+
+     '}',
+
+     '<Transform' +nl+
+     '  translation="%s"' +nl+
+     '  rotation="%s %s">' +nl+
+     '  <!-- the camera position is already expressed by the translation above -->' +nl+
+     '  <Viewpoint' +nl+
+     '    position="0 0 0"' +nl+
+     '    orientation="%s"' +nl+
+     '  />' +nl+
+     '</Transform>')
   );
 
 var
   RotationVectorForGravity: TVector3Single;
   AngleForGravity: Single;
 begin
-  Result := Format(
-    '# Camera settings "encoded" in the VRML declaration below :' +nl+
-    '# direction %s' +nl+
-    '# up %s' +nl+
-    '# gravityUp %s' + nl,
+  Result := Format(Comment[Xml],
     [ VectorToRawStr(Direction),
       VectorToRawStr(Up),
       VectorToRawStr(GravityUp) ]);
@@ -114,7 +157,7 @@ begin
       just the same. So we can use untranslated Viewpoint node. }
     Result := Result +
       Format(
-        UntransformedViewpoint[Version],
+        UntransformedViewpoint[Version, Xml],
         [ VectorToRawStr(Position),
           VectorToRawStr( CamDirUp2Orient(Direction, Up) ) ]);
   end else
@@ -125,7 +168,7 @@ begin
     AngleForGravity := AngleRadBetweenVectors(DefaultVRMLGravityUp, GravityUp);
     Result := Result +
       Format(
-        TransformedViewpoint[Version],
+        TransformedViewpoint[Version, Xml],
         [ VectorToRawStr(Position),
           VectorToRawStr(RotationVectorForGravity),
           FloatToRawStr(AngleForGravity),
@@ -145,7 +188,7 @@ begin
   end;
 end;
 
-function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
+function MakeVRMLCameraNode(const Version: TVRMLCameraVersion;
   const WWWBasePath: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TVRMLNode;
 var
