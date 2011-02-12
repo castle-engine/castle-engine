@@ -55,10 +55,13 @@ type
 
   TLightShader = class
   private
-    Code: array [boolean] of string; //< indexed by "front"
-    Node: TVRMLLightNode;
+    Code: string;
+    Node: TNodeX3DLightNode;
   end;
-  TLightShaders = specialize TFPGObjectList<TLightShader>;
+  TLightShaders = class(specialize TFPGObjectList<TLightShader>)
+  private
+    function Find(const Node: TNodeX3DLightNode; out Shader: TLightShader): boolean;
+  end;
 
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
@@ -128,7 +131,8 @@ type
     procedure AddUniform(Uniform: TUniform);
 
     procedure EnableTexture(const TextureUnit: Cardinal;
-      const TextureType: TTextureType; const ShadowMapSize: Cardinal = 0);
+      const TextureType: TTextureType; const ShadowMapSize: Cardinal = 0;
+      const ShadowLight: TNodeX3DLightNode = nil);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComponent; const Component: TTexComponent);
     procedure EnableTexGen(const TextureUnit: Cardinal;
@@ -138,7 +142,7 @@ type
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
     procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
-    procedure EnableLight(const Number: Cardinal; Node: TVRMLLightNode);
+    procedure EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode);
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
@@ -152,7 +156,8 @@ uses SysUtils, GL, GLExt, KambiUtils, KambiStringUtils, KambiGLUtils,
   VRMLErrors, KambiLog, StrUtils;
 
 { TODO: a way to turn off using fixed-function pipeline completely
-  will be needed some day.
+  will be needed some day. Currently, some functions here call
+  fixed-function glEnable... stuff.
 
   TODO: caching shader programs, using the same program if all settings
   are the same, will be needed some day. TShapeCache is not a good place
@@ -170,6 +175,24 @@ uses SysUtils, GL, GLExt, KambiUtils, KambiStringUtils, KambiGLUtils,
   using direct normal OpenGL fixed-function functions in VRMLGLRenderer,
   and our shaders just use it.
 }
+
+{ TLightShaders -------------------------------------------------------------- }
+
+function TLightShaders.Find(const Node: TNodeX3DLightNode; out Shader: TLightShader): boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Node = Node then
+    begin
+      Shader := Items[I];
+      Exit(true);
+    end;
+  Shader := nil;
+  Result := false;
+end;
+
+{ TVRMLShader ---------------------------------------------------------------- }
 
 constructor TVRMLShader.Create;
 begin
@@ -338,8 +361,10 @@ begin
   for I := 0 to LightShaders.Count - 1 do
     if LightShaders[I] <> nil then
     begin
-      Plug('add-light-contribution-back' , LightShaders[I].Code[false]);
-      Plug('add-light-contribution-front', LightShaders[I].Code[true] );
+      Plug('add-light-contribution-back' , StringReplace(LightShaders[I].Code,
+        'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]));
+      Plug('add-light-contribution-front', StringReplace(LightShaders[I].Code,
+        'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]));
     end;
 
   if Log then
@@ -393,13 +418,15 @@ begin
 end;
 
 procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
-  const TextureType: TTextureType; const ShadowMapSize: Cardinal);
+  const TextureType: TTextureType; const ShadowMapSize: Cardinal;
+  const ShadowLight: TNodeX3DLightNode);
 const
   OpenGLTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D');
 var
   Uniform: TUniform;
   TextureSampleCall: string;
+  ShadowLightShader: TLightShader;
 begin
   { Enable for fixed-function pipeline }
   if GLUseMultiTexturing then
@@ -455,18 +482,29 @@ begin
       [Uniform.Name]);
   end else
   begin
-    { TODO: always modulate mode for now }
-    case TextureType of
-      tt2D      : TextureSampleCall := 'texture2D(%s, %s.st)';
-      tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), gl_FragColor.a)';
-      ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
-      { For 3D textures, remember we may get 4D tex coords
-        through TextureCoordinate4D, so we have to use texture3DProj }
-      tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
-      else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
+    if (TextureType = tt2DShadow) and
+       (ShadowLight <> nil) and
+       LightShaders.Find(ShadowLight, ShadowLightShader) then
+    begin
+      PlugCustom(ShadowLightShader.Code, 'fragment-declare-procedures',
+        'light-scale', Format('scale *= shadow(%s, gl_TexCoord[%d], %d.0);',
+        [Uniform.Name, TextureUnit, ShadowMapSize]),
+        false, true);
+    end else
+    begin
+      { TODO: always modulate mode for now }
+      case TextureType of
+        tt2D      : TextureSampleCall := 'texture2D(%s, %s.st)';
+        tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), gl_FragColor.a)';
+        ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
+        { For 3D textures, remember we may get 4D tex coords
+          through TextureCoordinate4D, so we have to use texture3DProj }
+        tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
+        else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
+      end;
+      TextureApply += Format('gl_FragColor *= ' + TextureSampleCall + ';' + NL,
+        [Uniform.Name, 'gl_TexCoord[' + IntToStr(TextureUnit) + ']']);
     end;
-    TextureApply += Format('gl_FragColor *= ' + TextureSampleCall + ';' + NL,
-      [Uniform.Name, 'gl_TexCoord[' + IntToStr(TextureUnit) + ']']);
     FragmentShaderDeclare += Format('uniform %s %s;' + NL,
       [OpenGLTextureType[TextureType], Uniform.Name]);
   end;
@@ -619,27 +657,20 @@ begin
   AddUniform(Uniform);
 end;
 
-procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TVRMLLightNode);
+procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode);
 var
   LightShader: TLightShader;
 begin
+  LightShader := TLightShader.Create;
+  LightShader.Code := {$I template_add_light.glsl.inc};
+  StringReplaceAllTo1st(LightShader.Code, 'light_number', IntToStr(Number), false);
+  LightShader.Node := Node;
+
   if LightShaders = nil then
     LightShaders := TLightShaders.Create;
-
   if Number >= LightShaders.Count then
     LightShaders.Count := Number + 1;
-
-  LightShader := TLightShader.Create;
   LightShaders[Number] := LightShader;
-
-  LightShader.Code[false] := {$I template_add_light.glsl.inc};
-  LightShader.Code[true ] := {$I template_add_light.glsl.inc};
-  StringReplaceAllTo1st(LightShader.Code[false], 'light_products', Format('gl_BackLightProduct[%d]' , [Number]), false);
-  StringReplaceAllTo1st(LightShader.Code[true ], 'light_products', Format('gl_FrontLightProduct[%d]', [Number]), false);
-  StringReplaceAllTo1st(LightShader.Code[false], 'light_source', Format('gl_LightSource[%d]', [Number]), false);
-  StringReplaceAllTo1st(LightShader.Code[true ], 'light_source', Format('gl_LightSource[%d]', [Number]), false);
-
-  LightShader.Node := Node;
 
   Inc(LightsEnabled);
 end;
