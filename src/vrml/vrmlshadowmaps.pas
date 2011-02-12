@@ -181,14 +181,15 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
     Returns the count of textures in TexturesCount, not counting the last
     ShadowMap texture. }
   procedure HandleShadowMap(var Texture: TVRMLNode;
-    const ShadowMap: TNodeGeneratedShadowMap; out TexturesCount: Cardinal);
+    const ShadowMap: TNodeGeneratedShadowMap; out TexturesCount: Cardinal;
+    const LightNode: TNodeX3DLightNode);
 
     function OldShadowMap(Node: TVRMLNode): boolean;
     begin
       Result :=
         IsSuffix(NodeNameSuffix, Node.NodeName) and
         (Node is TNodeGeneratedShadowMap) and
-        (TNodeGeneratedShadowMap(Node).Light = ShadowMap.Light);
+        (TNodeGeneratedShadowMap(Node).Light = LightNode);
     end;
 
   var
@@ -259,7 +260,8 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
     TexGen node. }
   procedure HandleTexGen(var TexCoord: TVRMLNode;
     const TexGen: TNodeProjectedTextureCoordinate; out TexCoordsCount: Cardinal;
-    const RelevantTexCoordsCount: Cardinal);
+    const RelevantTexCoordsCount: Cardinal;
+    const LightNode: TNodeX3DLightNode);
 
     { Resize Coords. If you increase Coords, then new ones
       are TextureCoordinateGenerator nodes (with mode=BOUNDS). }
@@ -285,7 +287,7 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
       Result :=
         IsSuffix(NodeNameSuffix, Node.NodeName) and
         (Node is TNodeProjectedTextureCoordinate) and
-        (TNodeProjectedTextureCoordinate(Node).FdProjector.Value = TexGen.FdProjector.Value);
+        (TNodeProjectedTextureCoordinate(Node).FdProjector.Value = LightNode);
     end;
 
   var
@@ -400,11 +402,11 @@ var
     Light := FindLight(LightNode);
 
     Texture := ShapeNode.Texture;
-    HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
+    HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount, LightNode);
     App.FdTexture.Value := Texture;
 
     TexCoord := Shape.Geometry.TexCoordField.Value;
-    HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount, TexturesCount);
+    HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount, TexturesCount, LightNode);
     Shape.Geometry.TexCoordField.Value := TexCoord;
 
     if (Shape.Geometry <> Shape.OriginalGeometry) and
