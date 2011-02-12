@@ -6,7 +6,7 @@
 var Spot: Single;
     Attenuat: Single;
 
-    LightNode: TVRMLLightNode;
+    LightNode: TNodeX3DLightNode;
     PosLightNode: TVRMLPositionalLightNode absolute LightNode;
 
     Factors: TVector3Single;
@@ -98,7 +98,7 @@ begin
    MaterialShininessExp := M1.ShininessExp(0);
  end;
  {$endif}
- LightNode := TVRMLLightNode(Light.LightNode);
+ LightNode := TNodeX3DLightNode(Light.LightNode);
 
  if (not LightNode.FdOn.Value) then
  begin

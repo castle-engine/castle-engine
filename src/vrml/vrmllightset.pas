@@ -106,13 +106,13 @@ procedure TVRMLLightSet.AddToLights(
   Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 begin
-  Lights.Add((Node as TVRMLLightNode).CreateActiveLight(StateStack.Top));
+  Lights.Add((Node as TNodeX3DLightNode).CreateActiveLight(StateStack.Top));
 end;
 
 procedure TVRMLLightSet.CalculateLights;
 begin
   Lights.Length := 0;
-  RootNode.Traverse(TVRMLLightNode, @AddToLights);
+  RootNode.Traverse(TNodeX3DLightNode, @AddToLights);
 end;
 
 function TVRMLLightSet.MainLightForShadows(

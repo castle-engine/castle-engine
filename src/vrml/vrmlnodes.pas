@@ -103,7 +103,7 @@
       There are also abstract classes that do not correspond directly to any
       nodes in the specification, and were merely invented here to better
       organize the implementation. They are named @code(TVRMLXxxNode),
-      like TVRMLGeometryNode, TVRML2DTextureNode, TVRMLLightNode, TVRMLUnknownNode.)
+      like TVRMLGeometryNode, TVRML2DTextureNode, TVRMLUnknownNode.)
 
     @item(
       Optional suffix _1 or _2 or _3 after the node class name indicates that
@@ -204,7 +204,6 @@ const
 type
   { forward declarations } { }
   TVRMLNodesList = class;
-  TVRMLLightNodesList = class;
   TVRMLNode = class;
   TNodeCoordinate3 = class;
   TNodeShapeHints = class;
@@ -216,7 +215,7 @@ type
   TNodeTexture2 = class;
   TNodeTextureCoordinate2 = class;
   TVRMLGeometryNode = class;
-  TVRMLLightNode = class;
+  TNodeX3DLightNode = class;
   TNodeKambiTriangulation = class;
   TNodeX3DShapeNode = class;
   TVRML2DTextureNode = class;
@@ -272,10 +271,10 @@ type
     we keep here a couple of light's properties already multiplied
     by the transformation.
 
-    This record may be initialized only by TVRMLLightNode.CreateActiveLight.
-    Update it (when transform changes) by TVRMLLightNode.UpdateActiveLight. }
+    This record may be initialized only by TNodeX3DLightNode.CreateActiveLight.
+    Update it (when transform changes) by TNodeX3DLightNode.UpdateActiveLight. }
   TActiveLight = record
-    LightNode: TVRMLLightNode;
+    LightNode: TNodeX3DLightNode;
 
     Transform: TMatrix4Single;
     TransformScale: Single;
@@ -302,7 +301,7 @@ type
   TDynActiveLightArray = class(TDynArray_1)
   public
     { Find given light node on the list. Return -1 if not found. }
-    function IndexOfLightNode(LightNode: TVRMLLightNode): integer;
+    function IndexOfLightNode(LightNode: TNodeX3DLightNode): integer;
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
   end;
   TArray_ActiveLight = TInfiniteArray_1;
@@ -731,7 +730,7 @@ type
     ntcBackground, //< TNodeX3DBackgroundNode
     ntcFog, //< TNodeFog
     ntcViewpoint, //< TVRMLViewpointNode
-    ntcLight, //< TVRMLLightNode
+    ntcLight, //< TNodeX3DLightNode
     ntcProximitySensor //< TNodeProximitySensor
   );
 
@@ -2266,7 +2265,6 @@ resourcestring
   end;
 }
 
-{$I objectslist_1.inc}
 {$I objectslist_2.inc}
 {$I objectslist_3.inc}
 {$I objectslist_4.inc}
@@ -2346,7 +2344,7 @@ end;
 
 { TDynActiveLightArray --------------------------------------------------------- }
 
-function TDynActiveLightArray.IndexOfLightNode(LightNode: TVRMLLightNode): integer;
+function TDynActiveLightArray.IndexOfLightNode(LightNode: TNodeX3DLightNode): integer;
 begin
   for Result := 0 to High do
     if Items[Result].LightNode = LightNode then

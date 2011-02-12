@@ -145,7 +145,7 @@ type
     chUseBlending,
 
     { Light property that is taken into account in TActiveLight record changed.
-      Only allowed on node's descending from TVRMLLightNode.
+      Only allowed on node's descending from TNodeX3DLightNode.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.

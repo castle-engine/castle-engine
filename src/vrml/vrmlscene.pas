@@ -357,7 +357,7 @@ type
     function IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
     function FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
     procedure AddShapeTexture(Shape: TVRMLShape; Tex: TNodeX3DTextureNode);
-    procedure UpdateShadowMaps(LightNode: TVRMLLightNode);
+    procedure UpdateShadowMaps(LightNode: TNodeX3DLightNode);
   end;
 
   { For each transform node (INodeTransform),
@@ -780,7 +780,7 @@ type
   private
     FMainLightForShadowsExists: boolean;
     FMainLightForShadows: TVector4Single;
-    FMainLightForShadowsNode: TVRMLLightNode;
+    FMainLightForShadowsNode: TNodeX3DLightNode;
     FMainLightForShadowsTransform: TMatrix4Single;
     procedure SearchMainLightForShadows(
       Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
@@ -2311,7 +2311,7 @@ begin
   end;
 end;
 
-procedure TDynGeneratedTextureArray.UpdateShadowMaps(LightNode: TVRMLLightNode);
+procedure TDynGeneratedTextureArray.UpdateShadowMaps(LightNode: TNodeX3DLightNode);
 var
   I: Integer;
 begin
@@ -2777,7 +2777,7 @@ begin
     end;
   end else
 
-  if Node is TVRMLLightNode then
+  if Node is TNodeX3DLightNode then
   begin
     { TODO: currently this means that lights within inactive Switch child
       work as active, just like other lights.
@@ -2792,7 +2792,7 @@ begin
 
     { Add lights to ChangedAll_TraversedLights }
     ParentScene.ChangedAll_TraversedLights.Add(
-      (Node as TVRMLLightNode).CreateActiveLight(StateStack.Top));
+      (Node as TNodeX3DLightNode).CreateActiveLight(StateStack.Top));
   end else
 
   if Node is TNodeSwitch_2 then
@@ -2957,7 +2957,7 @@ procedure TVRMLScene.ChangedAll;
   var
     I: Integer;
     L: PActiveLight;
-    LNode: TVRMLLightNode;
+    LNode: TNodeX3DLightNode;
   begin
     for I := 0 to ChangedAll_TraversedLights.High do
     begin
@@ -3289,7 +3289,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLight(LightNode: TVRMLLightNode);
+  procedure HandleLight(LightNode: TNodeX3DLightNode);
   { When the transformation of light node changes, we should update every
     TActiveLight record of this light in every shape.
 
@@ -3392,7 +3392,7 @@ begin
           When this will be implemented, then also when transformation
           of viewpoint changes here we'll have to do something. }
       end;
-    ntcLight: HandleLight(TVRMLLightNode(Node));
+    ntcLight: HandleLight(TNodeX3DLightNode(Node));
     ntcProximitySensor:
       begin
         Check(Shapes^.Index < Shapes^.Group.Children.Count,
@@ -3635,9 +3635,9 @@ var
     J: integer;
     SI: TVRMLShapeTreeIterator;
     ActiveLight: PActiveLight;
-    LightNode: TVRMLLightNode;
+    LightNode: TNodeX3DLightNode;
   begin
-    LightNode := Node as TVRMLLightNode;
+    LightNode := Node as TNodeX3DLightNode;
 
     { Update all TActiveLight records with LightNode = this Node.
 
@@ -6283,7 +6283,7 @@ procedure TVRMLScene.SearchMainLightForShadows(
   Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
-  L: TVRMLLightNode absolute Node;
+  L: TNodeX3DLightNode absolute Node;
 begin
   if L.FdKambiShadows.Value and
      L.FdKambiShadowsMain.Value then
@@ -6303,7 +6303,7 @@ procedure TVRMLScene.ValidateMainLightForShadows;
     FMainLightForShadowsExists := false;
     if RootNode <> nil then
     try
-      RootNode.Traverse(TVRMLLightNode, @SearchMainLightForShadows);
+      RootNode.Traverse(TNodeX3DLightNode, @SearchMainLightForShadows);
     except on BreakMainLightForShadows do ; end;
   end;
 

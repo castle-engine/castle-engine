@@ -14,12 +14,19 @@
 }
 
 {$ifdef read_interface}
-  { X3DLightNode. }
+  { Base class for all VRML / X3D light nodes.
+
+    Note that even the old VRML 1.0 light nodes inherit from this.
+    Although they interpret some bits differently
+    ("ambientIntensity" < 0 has special meaning,
+    and "global" is ignored --- VRML 1.0 has own light scoping rules),
+    most of the fields behave identically. }
   TNodeX3DLightNode = class(TNodeX3DChildNode)
   private
     FTransform: TMatrix4Single;
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -120,22 +127,7 @@
       @raises EBox3DEmpty When used with an empty box. }
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); virtual; abstract;
-  end;
 
-  { This is the base class for all VRML / X3D light nodes.
-
-    This is for all VRML versions --- in particular, VRML 1.0 nodes
-    also inherit from this, to reuse this and other light classes.
-    The fact that it descends from TNodeX3DLightNode is no problem for older
-    than X3D versions, the interpretation of all fields is the same
-    (and older VRML versions only benefit from additional fields).
-    Well, actually, VRML 1.0 interprets them a little differently
-    ("ambientIntensity" < 0 has special meaning,
-    and "global" is ignored --- VRML 1.0 has own scoping rules by traversing). }
-  TVRMLLightNode = class(TNodeX3DLightNode)
-  protected
-    procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-  public
     { Create TActiveLight record describing this light node under given
       State. }
     function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight;
@@ -158,11 +150,10 @@
     function TransformationChange: TNodeTransformationChange; override;
   end;
 
-  TObjectsListItem_1 = TVRMLLightNode;
-  {$I objectslist_1.inc}
-  TVRMLLightNodesList = class(TObjectsList_1);
+  { Deprecated name for TNodeX3DLightNode. @deprecated }
+  TVRMLLightNode = TNodeX3DLightNode;
 
-  TVRMLDirectionalLightNode = class(TVRMLLightNode)
+  TVRMLDirectionalLightNode = class(TNodeX3DLightNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -187,7 +178,7 @@
       out MinDistance, MaxDistance: Single); override;
   end;
 
-  TVRMLPositionalLightNode = class(TVRMLLightNode)
+  TVRMLPositionalLightNode = class(TNodeX3DLightNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -440,14 +431,14 @@ begin
     Up := AnyOrthogonalVector(Dir);
 end;
 
-function TVRMLLightNode.CreateActiveLight(
+function TNodeX3DLightNode.CreateActiveLight(
   State: TVRMLGraphTraverseState): TActiveLight;
 begin
   Result.LightNode := Self;
   UpdateActiveLightState(Result, State);
 end;
 
-procedure TVRMLLightNode.UpdateActiveLightState(
+procedure TNodeX3DLightNode.UpdateActiveLightState(
   var ActiveLight: TActiveLight;
   State: TVRMLGraphTraverseState);
 begin
@@ -456,20 +447,20 @@ begin
   UpdateActiveLight(ActiveLight);
 end;
 
-procedure TVRMLLightNode.UpdateActiveLight(
+procedure TNodeX3DLightNode.UpdateActiveLight(
   var ActiveLight: TActiveLight);
 begin
   { Nothing to do in this class. }
   Assert(ActiveLight.LightNode = Self);
 end;
 
-procedure TVRMLLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TNodeX3DLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Top.AddVRML1ActiveLight(CreateActiveLight(StateStack.Top));
 end;
 
-function TVRMLLightNode.TransformationChange: TNodeTransformationChange;
+function TNodeX3DLightNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcLight;
 end;

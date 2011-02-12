@@ -50,7 +50,7 @@ type
     FSpot: boolean;
     FSpotCutOffAngle: Single;
     FSpotDropOffRate: Single;
-    ActiveLightNode: TVRMLLightNode;
+    ActiveLightNode: TNodeX3DLightNode;
   public
     constructor Create(HeadLightNode: TNodeKambiHeadLight);
     destructor Destroy; override;
