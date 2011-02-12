@@ -183,6 +183,15 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
     ShadowMap texture. }
   procedure HandleShadowMap(var Texture: TVRMLNode;
     const ShadowMap: TNodeGeneratedShadowMap; out TexturesCount: Cardinal);
+
+    function OldShadowMap(Node: TVRMLNode): boolean;
+    begin
+      Result :=
+        IsSuffix(NodeNameSuffix, Node.NodeName) and
+        (Node is TNodeGeneratedShadowMap) and
+        (TNodeGeneratedShadowMap(Node).Light = ShadowMap.Light);
+    end;
+
   var
     MTexture: TNodeMultiTexture;
   begin
@@ -206,9 +215,12 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
         Exit;
       end;
 
-      { Remove old GeneratedShadowMap that we added there. }
+      { Remove old GeneratedShadowMap that we added there.
+        TODO: this is probably not eager enough: if we had many shadow maps
+        (many lights cast on this shape), then our old shadow map may
+        not be last. We should search for it. }
       if (TexturesCount <> 0) and
-         IsSuffix(NodeNameSuffix, MTexture.FdTexture.Items.Last.NodeName) then
+         OldShadowMap(MTexture.FdTexture.Items.Last) then
       begin
         MTexture.FdTexture.Delete(TexturesCount - 1);
         Dec(TexturesCount);
@@ -269,6 +281,14 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
       end;
     end;
 
+    function OldTexGen(Node: TVRMLNode): boolean;
+    begin
+      Result :=
+        IsSuffix(NodeNameSuffix, Node.NodeName) and
+        (Node is TNodeProjectedTextureCoordinate) and
+        (TNodeProjectedTextureCoordinate(Node).FdProjector.Value = TexGen.FdProjector.Value);
+    end;
+
   var
     MTexCoord: TNodeMultiTextureCoordinate;
   begin
@@ -292,9 +312,12 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
         Exit;
       end;
 
-      { Remove old TextureCoordinate that we added there. }
+      { Remove old TextureCoordinate that we added there.
+        TODO: this is probably not eager enough: if we had many shadow maps
+        (many lights cast on this shape), then our old texcoord may
+        not be last. We should search for it. }
       if (TexCoordsCount <> 0) and
-         IsSuffix(NodeNameSuffix, MTexCoord.FdTexCoord.Items.Last.NodeName) then
+         OldTexGen(MTexCoord.FdTexCoord.Items.Last) then
       begin
         MTexCoord.FdTexCoord.Delete(TexCoordsCount - 1);
         Dec(TexCoordsCount);
@@ -365,13 +388,7 @@ var
 
   { 1. Add/Remove/Replace ShadowMap
     2. Add/Remove/Replace TexGen
-    3. Add/Remove/Replace shader to the shaders field.
-
-    TODO: finish handling multiple shadow maps on the same mesh.
-    This should basically already work (we check is old texture / texCoord
-    already a multi-texture, and behave Ok), what is missing is actually
-    implementing and using then a shader taking into account many shadow maps.
-  }
+    3. Add/Remove/Replace shader to the shaders field. }
   procedure HandleLight(LightNode: TNodeX3DLightNode);
   var
     Light: PLight;
@@ -459,8 +476,8 @@ begin
   if (App = nil) and
      (LightsCastingOnEverything.Count <> 0) then
   begin
-    ShapeNode.FdAppearance.Value := TNodeAppearance.Create('', ShapeNode.WWWBasePath);
-    App := ShapeNode.Appearance; { recalculate App }
+    App := TNodeAppearance.Create('', ShapeNode.WWWBasePath); { recalculate App }
+    ShapeNode.Appearance := App;
   end;
 
   { If the previous check left App = nil, then we know this shape
