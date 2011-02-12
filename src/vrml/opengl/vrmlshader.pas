@@ -53,6 +53,13 @@ type
     VisualizeDepthMap: boolean;
   end;
 
+  TLightShader = class
+  private
+    Code: array [boolean] of string; //< indexed by "front"
+    Node: TVRMLLightNode;
+  end;
+  TLightShaders = specialize TFPGObjectList<TLightShader>;
+
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
     you can use the @link(CreateProgram) to create and link a program
@@ -73,6 +80,7 @@ type
     FragmentShaderComplete: string;
     PlugIdentifiers: Cardinal;
     LightsEnabled: Cardinal;
+    LightShaders: TLightShaders;
   public
     constructor Create;
     destructor Destroy; override;
@@ -161,6 +169,7 @@ end;
 destructor TVRMLShader.Destroy;
 begin
   FreeAndNil(Uniforms);
+  FreeAndNil(LightShaders);
   inherited;
 end;
 
@@ -294,6 +303,8 @@ function TVRMLShader.CreateProgram: TVRMLShaderProgram;
 const
   PCFDefine: array [TPercentageCloserFiltering] of string =
   ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
+var
+  I: Integer;
 begin
   Plug('vertex-process', TextureCoordInitialize + TextureCoordGen
     + TextureCoordMatrix + ClipPlane,
@@ -309,6 +320,13 @@ begin
     false, true);
   Plug('fragment-end', FragmentEnd,
     false, true);
+
+  for I := 0 to LightShaders.Count - 1 do
+    if LightShaders[I] <> nil then
+    begin
+      Plug('add-light-contribution-back' , LightShaders[I].Code[false]);
+      Plug('add-light-contribution-front', LightShaders[I].Code[true] );
+    end;
 
   if Log then
   begin
@@ -589,16 +607,26 @@ end;
 
 procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TVRMLLightNode);
 var
-  LightCode: array [boolean] of string; //< indexed by "front"
+  LightShader: TLightShader;
 begin
-  LightCode[false] := {$I template_add_light.glsl.inc};
-  LightCode[true ] := {$I template_add_light.glsl.inc};
-  StringReplaceAllTo1st(LightCode[false], 'light_products', Format('gl_BackLightProduct[%d]' , [Number]), false);
-  StringReplaceAllTo1st(LightCode[true ], 'light_products', Format('gl_FrontLightProduct[%d]', [Number]), false);
-  StringReplaceAllTo1st(LightCode[false], 'light_source', Format('gl_LightSource[%d]', [Number]), false);
-  StringReplaceAllTo1st(LightCode[true ], 'light_source', Format('gl_LightSource[%d]', [Number]), false);
-  Plug('add-light-contribution-back' , LightCode[false]);
-  Plug('add-light-contribution-front', LightCode[true]);
+  if LightShaders = nil then
+    LightShaders := TLightShaders.Create;
+
+  if Number >= LightShaders.Count then
+    LightShaders.Count := Number + 1;
+
+  LightShader := TLightShader.Create;
+  LightShaders[Number] := LightShader;
+
+  LightShader.Code[false] := {$I template_add_light.glsl.inc};
+  LightShader.Code[true ] := {$I template_add_light.glsl.inc};
+  StringReplaceAllTo1st(LightShader.Code[false], 'light_products', Format('gl_BackLightProduct[%d]' , [Number]), false);
+  StringReplaceAllTo1st(LightShader.Code[true ], 'light_products', Format('gl_FrontLightProduct[%d]', [Number]), false);
+  StringReplaceAllTo1st(LightShader.Code[false], 'light_source', Format('gl_LightSource[%d]', [Number]), false);
+  StringReplaceAllTo1st(LightShader.Code[true ], 'light_source', Format('gl_LightSource[%d]', [Number]), false);
+
+  LightShader.Node := Node;
+
   Inc(LightsEnabled);
 end;
 
