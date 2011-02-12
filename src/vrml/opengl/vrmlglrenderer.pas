@@ -3280,6 +3280,7 @@ procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
 var
   LightsEnabled: Cardinal;
   I: Integer;
+  Lights: TDynActiveLightArray;
 begin
   for I := 0 to Integer(FirstLight) - 1 do
     Shader.EnableLight(I, nil);
@@ -3288,9 +3289,13 @@ begin
   begin
     { Done before loading State.Transform, as the lights
       positions/directions are in world coordinates. }
-    LightsRenderer.Render(Shape.State.CurrentActiveLights, LightsEnabled);
-    for I := FirstLight to Integer(LightsEnabled) - 1 do
-      Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight]^.LightNode);
+    Lights := Shape.State.CurrentActiveLights;
+    if Lights <> nil then
+    begin
+      LightsRenderer.Render(Lights, LightsEnabled);
+      for I := FirstLight to Integer(LightsEnabled) - 1 do
+        Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight]^.LightNode);
+    end;
   end;
 
   RenderShapeFog(Shape, Fog, Shader);
