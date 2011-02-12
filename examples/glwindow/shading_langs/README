@@ -434,4 +434,4 @@ Demos:
 - see bump mapping in VRML engine, when bmGLSLNormal and bmGLSLParallax,
   implemented using GLSL shaders,
   see parallax bump mapping,
-  examples in kambi_vrml_test_suite/vrml_2/kambi_extensions/bump_mapping
+  examples in kambi_vrml_test_suite/bump_mapping
