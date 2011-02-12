@@ -26,11 +26,14 @@
 '  light_dir = normalize(light_source.position.xyz);' + LineEnding + 
 '}' + LineEnding + 
 '' + LineEnding + 
+'float scale = 1.0;' + LineEnding + 
+'/* PLUG: light-scale (scale) (inout float scale) */' + LineEnding + 
+'' + LineEnding + 
 '/* add ambient term */' + LineEnding + 
-'color += light_products.ambient;' + LineEnding + 
+'vec4 light_color = light_products.ambient;' + LineEnding + 
 '' + LineEnding + 
 '/* add diffuse term */' + LineEnding + 
-'color += light_products.diffuse' + LineEnding + 
+'light_color += light_products.diffuse' + LineEnding + 
 '  * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
 '/* add specular term */' + LineEnding + 
@@ -38,6 +41,8 @@
 '/* vertex to camera direction = camera pos - vertex pos.' + LineEnding + 
 '   We work in eye space here, so camera pos = always zero. */' + LineEnding + 
 'vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));' + LineEnding + 
-'color += light_products.specular' + LineEnding + 
+'light_color += light_products.specular' + LineEnding + 
 '  * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);' + LineEnding + 
+'' + LineEnding + 
+'color += light_color;' + LineEnding + 
 ''
