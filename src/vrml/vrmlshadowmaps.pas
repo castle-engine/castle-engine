@@ -57,7 +57,6 @@ uses SysUtils, KambiUtils, VRMLFields, VRMLErrors, KambiStringUtils, Math,
 {$define read_implementation}
 
 const
-  MaxBaseTextures = 1;
   { Suffix of VRML node names created by ProcessShadowMapsReceivers
     transformation. }
   NodeNameSuffix = '_generated_by_ProcessShadowMapsReceivers';
@@ -437,12 +436,6 @@ var
     begin
       VRMLWarning(vwIgnorable, Format('Texture units (%d) used by the Appearance.texture non-equal with used by texCoord (%d). This is too complicated setup to easily use shadow maps by the "receiveShadows".',
         [TexturesCount, TexCoordsCount]));
-      Exit;
-    end;
-
-    if TexCoordsCount > MaxBaseTextures then
-    begin
-      VRMLWarning(vwIgnorable, Format('Shadow map shader for %d base textures not implemented yet.', [TexCoordsCount]));
       Exit;
     end;
 
