@@ -88,24 +88,6 @@ type
       Reads LightsEnabled, to know how many lights are already allocated.
       Increases LightsEnabled for our lights. }
     procedure Render(var LightsEnabled: Cardinal);
-
-(* TODO:
-    { Disable all the OpenGL lights (in glLightNum1 .. glLightNum2 range). }
-    procedure TurnLightsOff;
-
-    { Disable all the lights not supposed to shine in the shadow,
-      for shadow volumes.
-
-      Simply disables lights with @code(kambiShadows) field set to @true.
-      See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_shadows]
-      for more info.
-
-      Lights with kambiShadows = FALSE are ignored:
-      they are left untouched by this method (they are
-      neither disabled, nor enabled --- usually you should enable them
-      as needed by RenderLights). }
-    procedure TurnLightsOffForShadows;
-*)
   end;
 
 implementation
@@ -380,35 +362,5 @@ begin
   RenderLights(nil, Lights, LightsEnabledBefore, GLMaxLights - 1,
     nil, LightsEnabled);
 end;
-
-(* TODO: replace everywhere uses of this with proper implementation
-procedure TVRMLGLLightSet.TurnLightsOff;
-var
-  I: Integer;
-begin
-  for I := GLLightNum1 to Integer(GLMaxLights) - 1 do
-    glDisable(GL_LIGHT0 + I);
-end;
-
-procedure TVRMLGLLightSet.TurnLightsOffForShadows;
-var
-  MyLightNum, GLLightNum: Integer;
-  L: PActiveLight;
-begin
-  L := Lights.Pointers[0];
-  for MyLightNum := 0 to Lights.Count - 1 do
-  begin
-    GLLightNum := MyLightNum + GLLightNum1;
-
-    if L^.LightNode.FdKambiShadows.Value then
-    begin
-      if GLLightNum < GLMaxLights then
-        glDisable(GL_LIGHT0 + GLLightNum);
-    end;
-
-    Inc(L);
-  end;
-end;
-*)
 
 end.
