@@ -104,6 +104,18 @@ type
       const RemovePlug: boolean = false;
       const ForceDirectInsertion: boolean = false);
 
+    { More flexible version of Plug, that searches and replaces within specified
+      code string. It also returns success.
+
+      Note that in case of a plug that creates new GLSL function, the new function
+      is still added to the global (complete) shader code.
+      That is, PlugNameDeclareProcedures is still searched in the complete shader
+      code (it doesn't matter if Code equals to one of *ShaderComplete or not). }
+    function PlugCustom(
+      var Code: string; const PlugNameDeclareProcedures: string;
+      const PlugName: string; const PlugValue: string;
+      const RemovePlug, ForceDirectInsertion: boolean): boolean;
+
     function CreateProgram: TVRMLShaderProgram;
     procedure SetupUniforms(AProgram: TVRMLShaderProgram);
 
@@ -173,8 +185,10 @@ begin
   inherited;
 end;
 
-procedure TVRMLShader.Plug(const PlugName: string; const PlugValue: string;
-  const RemovePlug, ForceDirectInsertion: boolean);
+function TVRMLShader.PlugCustom(
+  var Code: string; const PlugNameDeclareProcedures: string;
+  const PlugName: string; const PlugValue: string;
+  const RemovePlug, ForceDirectInsertion: boolean): boolean;
 
   { Derive procedure call and declaration code from plug parameter and PlugValue }
   procedure PlugProcedure(const Parameter: string;
@@ -248,55 +262,55 @@ procedure TVRMLShader.Plug(const PlugName: string; const PlugValue: string;
       '{' + NL + PlugValue + NL + '}' + NL;
   end;
 
-var
-  CommentBegin: string;
-
-  function TryPlug(var Code: string; const PlugNameDeclareProcedures: string): boolean;
-
-    procedure InsertIntoCode(const P: Integer; const S: string);
-    begin
-      Code := Copy(Code, 0, P - 1) + S + SEnding(Code, P);
-    end;
-
-  var
-    PBegin, PEnd: Integer;
-    Parameter, ProcedureCall, ProcedureDeclaration: string;
+  procedure InsertIntoCode(const P: Integer; const S: string);
   begin
-    Result := false;
-    PBegin := Pos(CommentBegin, Code);
-    if PBegin <> 0 then
+    Code := Copy(Code, 0, P - 1) + S + SEnding(Code, P);
+  end;
+
+var
+  PBegin, PEnd: Integer;
+  Parameter, ProcedureCall, ProcedureDeclaration: string;
+  CommentBegin: string;
+begin
+  Result := false;
+  CommentBegin := '/* PLUG: ' + PlugName + ' ';
+  PBegin := Pos(CommentBegin, Code);
+  if PBegin <> 0 then
+  begin
+    PEnd := PosEx('*/', Code, PBegin + Length(CommentBegin));
+    if PEnd <> 0 then
     begin
-      PEnd := PosEx('*/', Code, PBegin + Length(CommentBegin));
-      if PEnd <> 0 then
+      Result := true;
+      Parameter := Trim(CopyPos(Code, PBegin + Length(CommentBegin), PEnd - 1));
+
+      if RemovePlug then
+        DeletePos(Code, PBegin, PEnd + 1);
+
+      if Trim(PlugValue) <> '' then
       begin
-        Result := true;
-        Parameter := Trim(CopyPos(Code, PBegin + Length(CommentBegin), PEnd - 1));
-
-        if RemovePlug then
-          DeletePos(Code, PBegin, PEnd + 1);
-
-        if Trim(PlugValue) <> '' then
+        if ForceDirectInsertion or (Parameter = 'declaration') then
+          InsertIntoCode(PBegin, PlugValue + NL) else
         begin
-          if ForceDirectInsertion or (Parameter = 'declaration') then
-            InsertIntoCode(PBegin, PlugValue + NL) else
-          begin
-            PlugProcedure(Parameter, ProcedureCall, ProcedureDeclaration);
-            InsertIntoCode(PBegin,  ProcedureCall);
-            { We use recursive Plug call, to insert procedure declaration
-              at appropriate place. }
-            Plug(PlugNameDeclareProcedures, ProcedureDeclaration, false, true);
-          end;
+          PlugProcedure(Parameter, ProcedureCall, ProcedureDeclaration);
+          InsertIntoCode(PBegin,  ProcedureCall);
+          { We use recursive Plug call, to insert procedure declaration
+            at appropriate place. }
+          Plug(PlugNameDeclareProcedures, ProcedureDeclaration, false, true);
         end;
       end;
     end;
   end;
+end;
 
+procedure TVRMLShader.Plug(const PlugName: string; const PlugValue: string;
+  const RemovePlug, ForceDirectInsertion: boolean);
 begin
-  CommentBegin := '/* PLUG: ' + PlugName + ' ';
-  if not TryPlug(VertexShaderComplete, 'vertex-declare-procedures') then
-    if not TryPlug(FragmentShaderComplete, 'fragment-declare-procedures') then
-      VRMLWarning(vwIgnorable, Format('Plugging point "%s" for shader code not found',
-        [PlugName]));
+  if not PlugCustom(VertexShaderComplete, 'vertex-declare-procedures',
+    PlugName, PlugValue, RemovePlug, ForceDirectInsertion) then
+  if not PlugCustom(FragmentShaderComplete, 'fragment-declare-procedures',
+    PlugName, PlugValue, RemovePlug, ForceDirectInsertion) then
+    VRMLWarning(vwIgnorable, Format('Plugging point "%s" for shader code not found',
+      [PlugName]));
 end;
 
 function TVRMLShader.CreateProgram: TVRMLShaderProgram;
