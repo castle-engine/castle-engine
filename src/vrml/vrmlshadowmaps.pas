@@ -218,23 +218,12 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
   var
     MTexture: TNodeMultiTexture;
   begin
-    { calculate MTexture and TexturesCount }
+    { calculate MTexture }
     if (Texture <> nil) and
        (Texture is TNodeMultiTexture) then
     begin
       { if Texture already is MultiTexture, then we're already Ok }
       MTexture := TNodeMultiTexture(Texture);
-      TexturesCount := MTexture.FdTexture.Count;
-
-      { If the texture that we want to add is already present, abort.
-        This may happen, as HandleLight may iterate many times over
-        the same light. }
-      if (TexturesCount <> 0) and
-         (MTexture.FdTexture.Items.IndexOf(ShadowMap) <> -1) then
-      begin
-        Dec(TexturesCount);
-        Exit;
-      end;
     end else
     begin
       MTexture := TNodeMultiTexture.Create('', '');
@@ -244,14 +233,21 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
           (new "texture" field on the same position) }
         MTexture.PositionInParent := Texture.PositionInParent;
         MTexture.FdTexture.Add(Texture);
-        TexturesCount := 1;
-      end else
-        TexturesCount := 0;
+      end;
       Texture := MTexture;
     end;
-
     Assert(Texture = MTexture);
-    Assert(TexturesCount = MTexture.FdTexture.Count);
+
+    TexturesCount := MTexture.FdTexture.Count;
+
+    { If the texture that we want to add is already present, abort.
+      This may happen, as HandleLight may iterate many times over
+      the same light. }
+    if MTexture.FdTexture.Items.IndexOf(ShadowMap) <> -1 then
+    begin
+      Dec(TexturesCount);
+      Exit;
+    end;
 
     MTexture.FdTexture.Add(ShadowMap);
   end;
@@ -265,10 +261,10 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
     May add some texCoord nodes (with TextureCoordinateGenerator = BOUNDS),
     to make sure that we have at least RelevantTexCoordsCount nodes.
 
-    Returns the count of texCoords in TexCoordsCount, not counting the last
-    TexGen node. }
+    Makes sure that the count of texCoords is exactly RelevantTexCoordsCount,
+    not counting the last (newly added) TexGen node. }
   procedure HandleTexGen(var TexCoord: TVRMLNode;
-    const TexGen: TNodeProjectedTextureCoordinate; out TexCoordsCount: Cardinal;
+    const TexGen: TNodeProjectedTextureCoordinate;
     const RelevantTexCoordsCount: Cardinal);
 
     { Resize Coords. If you increase Coords, then new ones
@@ -293,23 +289,12 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
   var
     MTexCoord: TNodeMultiTextureCoordinate;
   begin
-    { calculate MTexCoord and TexCoordsCount }
+    { calculate MTexCoord }
     if (TexCoord <> nil) and
        (TexCoord is TNodeMultiTextureCoordinate) then
     begin
       { if TexCoord already is MultiTextureCoordinate, then we're already Ok }
       MTexCoord := TNodeMultiTextureCoordinate(TexCoord);
-      TexCoordsCount := MTexCoord.FdTexCoord.Count;
-
-      { If the texcoord that we want to add is already present, abort.
-        This may happen, as HandleLight may iterate many times over
-        the same light. }
-      if (TexCoordsCount <> 0) and
-         (MTexCoord.FdTexCoord.Items.IndexOf(TexGen) <> -1) then
-      begin
-        Dec(TexCoordsCount);
-        Exit;
-      end;
     end else
     begin
       MTexCoord := TNodeMultiTextureCoordinate.Create('', '');
@@ -319,21 +304,22 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
           (new "texCoord" field on the same position) }
         MTexCoord.PositionInParent := TexCoord.PositionInParent;
         MTexCoord.FdTexCoord.Add(TexCoord);
-        TexCoordsCount := 1;
-      end else
-        TexCoordsCount := 0;
+      end;
       TexCoord := MTexCoord;
     end;
-
     Assert(TexCoord = MTexCoord);
-    Assert(TexCoordsCount = MTexCoord.FdTexCoord.Count);
 
-    { This makes sure to add new necessary TextureCoordinateGenerator nodes,
-      or remove unused nodes. to make their size right }
-    ResizeTexCoord(MTexCoord.FdTexCoord, RelevantTexCoordsCount);
-    TexCoordsCount := RelevantTexCoordsCount;
+    { If the texcoord that we want to add is already present, abort.
+      This may happen, as HandleLight may iterate many times over
+      the same light. }
+    if MTexCoord.FdTexCoord.Items.IndexOf(TexGen) = -1 then
+    begin
+      { Add new necessary TextureCoordinateGenerator nodes,
+        or remove unused nodes, to make texCoord size right }
+      ResizeTexCoord(MTexCoord.FdTexCoord, RelevantTexCoordsCount);
 
-    MTexCoord.FdTexCoord.Add(TexGen);
+      MTexCoord.FdTexCoord.Add(TexGen);
+    end;
   end;
 
   { Change textureTransform into MultiTextureTransform if necessary.
@@ -376,7 +362,7 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
     Texture: TNodeX3DTextureNode;
     TextureTransform: TNodeX3DTextureTransformNode;
     TexCoord: TVRMLNode;
-    TexturesCount, TexCoordsCount: Cardinal;
+    TexturesCount: Cardinal;
     Box: TBox3D;
     MinReceiverDistance, MaxReceiverDistance: Single;
   begin
@@ -387,7 +373,7 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
     Shape.Node.Texture := Texture;
 
     TexCoord := Shape.Geometry.TexCoordField.Value;
-    HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount, TexturesCount);
+    HandleTexGen(TexCoord, Light^.TexGen, TexturesCount);
     Shape.Geometry.TexCoordField.Value := TexCoord;
 
     if (Shape.Geometry <> Shape.OriginalGeometry) and
@@ -414,13 +400,6 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
     TextureTransform := Shape.Node.TextureTransform;
     HandleTextureTransform(TextureTransform);
     Shape.Node.TextureTransform := TextureTransform;
-
-    if TexCoordsCount <> TexturesCount then
-    begin
-      VRMLWarning(vwIgnorable, Format('Texture units (%d) used by the Appearance.texture non-equal with used by texCoord (%d). This is too complicated setup to easily use shadow maps by the "receiveShadows".',
-        [TexturesCount, TexCoordsCount]));
-      Exit;
-    end;
 
     Box := Shape.BoundingBox;
     if not IsEmptyBox3D(Box) then
