@@ -1,7 +1,7 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "parallax_bump_mapping.vs" }
 '/*' + LineEnding + 
-'  Copyright 2007-2010 Michalis Kamburelis.' + LineEnding + 
+'  Copyright 2007-2011 Michalis Kamburelis.' + LineEnding + 
 '' + LineEnding + 
 '  This file is part of "Kambi VRML game engine".' + LineEnding + 
 '' + LineEnding + 
