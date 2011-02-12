@@ -18,11 +18,7 @@ WWW:
   -->
 
 ------------------------------------------------------------------------------
-3.10.0:
-- Shader pipeline: make a shader that implements proper lighting eqs.
-  Construct a shader during rendering.
-  Allow modifying it by user ComposedShader special hooks.
-  Read on CgFX.
+3.10.0: Shader pipeline. Compositing shaders.
 ------------------------------------------------------------------------------
 Mirrors:
 - RenderedTexture.scene (let VA know).
@@ -209,6 +205,8 @@ Scene manager / controls / better Lazarus integration:
 
   We could also have just allow MainScene to take all the lights and leave
   them set for other scenes. Hm, actually sensible...
+
+  Also, an idea: move castle lights editor straight to view3dscene!
 
 - castle: besides level (MainScene, and level objects as additional stuff),
   it would be most perfect if castle creatures / items would be part of
