@@ -306,7 +306,8 @@ begin
 
     if LightOn then
     begin
-      if (Cache = nil) or Cache.NeedRenderLight(I, Light) then
+      if (Cache = nil) or
+          Cache.NeedRenderLight(LightsEnabled - GLLightNum1, Light) then
         glLightFromVRMLLight(LightsEnabled, Light^);
       Inc(LightsEnabled);
       if LightsEnabled > GLLightNum2 then Exit;
@@ -315,7 +316,8 @@ begin
 
   if LightsEnabled <= GLLightNum2 then
     for I := LightsEnabled to GLLightNum2 do
-      if (Cache = nil) or Cache.NeedRenderLight(I - GLLightNum1, nil) then
+      if (Cache = nil) or
+          Cache.NeedRenderLight(I - GLLightNum1, nil) then
         glDisable(GL_LIGHT0 + I);
 end;
 
