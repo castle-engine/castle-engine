@@ -366,7 +366,7 @@ assembly langs actually).
 
     This reflects assembly shading langs underneath, and ability to "swizzle"
     vector components for free. E.g. in
-    kambi_vrml_test_suite/x3d/shaders/glsl_some_deform.vs,
+    kambi_vrml_test_suite/shaders/glsl_some_deform.vs,
     initial code was
       v[0] += v[1];
       v[2] += v[1];
@@ -417,7 +417,7 @@ assembly langs actually).
     See ../../glshaders.pas for full code of class to handle GLSL programs,
     using both std GL or ARB versions.
 
-  See kambi_vrml_test_suite/x3d/shaders/
+  See kambi_vrml_test_suite/shaders/
   for demo how it's used from X3D (aka VRML 3.0).
 
   http://www.opengl.org/code/category/C20

@@ -429,7 +429,7 @@ begin
   App := Shape.Node.Appearance;
 
   { If Appearance is NULL, but we should create it --- do it.
-    Testcase: x3d/shadow_maps/primitives.x3dv with appearance commented out. }
+    Testcase: shadow_maps/primitives.x3dv with appearance commented out. }
   if (App = nil) and
      (LightsCastingOnEverything.Count <> 0) then
   begin

@@ -880,7 +880,7 @@ Renderer:
 - Improve raytracer to use INormal (smooth normals), ITexCoord (load and use
   textures).
 
-- ~/sources/vrmlengine/trunk/kambi_vrml_test_suite/x3d/shadow_maps/primitives.x3dv
+- ~/sources/vrmlengine/trunk/kambi_vrml_test_suite/shadow_maps/primitives.x3dv
   has invalid texture coords copied.
 
   This is currently harmless and is silently
