@@ -275,6 +275,8 @@
 
     private FFdcompareMode: TSFstring;
     public property FdcompareMode: TSFString read FFdcompareMode;
+
+    function Light: TNodeX3DLightNode;
   end;
 
   TNodeProjectedTextureCoordinate = class(TNodeX3DTextureCoordinateNode)
@@ -828,6 +830,13 @@ end;
 class function TNodeGeneratedShadowMap.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+function TNodeGeneratedShadowMap.Light: TNodeX3DLightNode;
+begin
+  if FdLight.Value is TNodeX3DLightNode then
+    Result := TNodeX3DLightNode(FdLight.Value) else
+    Result := nil;
 end;
 
 constructor TNodeProjectedTextureCoordinate.Create(const ANodeName: string;
