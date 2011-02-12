@@ -78,18 +78,17 @@ type
 type
   TDynLightArray = class(TDynArray_1)
   public
-    Enable: boolean;
     DefaultShadowMapSize: Cardinal;
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
     ShadowCastersBox: TBox3D;
     LightsCastingOnEverything: TVRMLNodesList;
 
     { Find existing or add new TLight record for this light node.
-      If Enable, this also creates shadow map and texture generator nodes
-      for this light. }
+      This also creates shadow map and texture generator nodes for this light. }
     function FindLight(Light: TNodeX3DLightNode): PLight;
 
-    procedure HandleShape(Shape: TVRMLShape);
+    procedure ShapeRemove(Shape: TVRMLShape);
+    procedure ShapeAdd(Shape: TVRMLShape);
 
     { Finish calculating light's projectionXxx parameters,
       and assing them to the light node. }
@@ -111,13 +110,6 @@ begin
   Result := Add;
   Result^.Light := Light;
   Result^.MaxShadowReceiverDistance := 0;
-
-  if not Enable then
-  begin
-    Result^.ShadowMap := nil;
-    Result^.TexGen := nil;
-    Exit;
-  end;
 
   { Assign unique nodenames to the created ShadowMap and TexGen nodes,
     this way when saving they will be shared by DEF/USE.
@@ -171,27 +163,58 @@ begin
   Result^.TexGen.FdProjector.Value := Light;
 end;
 
-procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
+{ If this shape was processed by some ShapeAdd previously,
+  removed the ProjectedTextureCoordinate and GeneratedShadowMap nodes we added. }
+procedure TDynLightArray.ShapeRemove(Shape: TVRMLShape);
 
-  { Add/Remove/Replace ShadowMap to the textures used by the material.
+  { Remove old GeneratedShadowMap nodes that we added. }
+  procedure RemoveOldShadowMap(Texture: TMFNode);
+  var
+    I: Integer;
+  begin
+    I := 0;
+    while I < Texture.Count do
+      if IsSuffix(NodeNameSuffix, Texture[I].NodeName) and
+         (Texture[I] is TNodeGeneratedShadowMap) then
+        Texture.Delete(I) else
+        Inc(I);
+  end;
 
-    Converts Texture to MultiTexture, to add the shadow map
+  { Remove old ProjectedTextureCoordinate nodes that we added. }
+  procedure RemoveOldTexGen(TexCoord: TMFNode);
+  var
+    I: Integer;
+  begin
+    I := 0;
+    while I < TexCoord.Count do
+      if IsSuffix(NodeNameSuffix, TexCoord[I].NodeName) and
+         (TexCoord[I] is TNodeProjectedTextureCoordinate) then
+        TexCoord.Delete(I) else
+        Inc(I);
+  end;
+
+begin
+  if Shape.Node <> nil then
+  begin
+    if Shape.Node.Texture is TNodeMultiTexture then
+      RemoveOldShadowMap(TNodeMultiTexture(Shape.Node.Texture).FdTexture);
+    if (Shape.Geometry.TexCoordField <> nil) and
+       (Shape.Geometry.TexCoordField.Value <> nil) and
+       (Shape.Geometry.TexCoordField.Value is TNodeMultiTextureCoordinate) then
+      RemoveOldTexGen(TNodeMultiTextureCoordinate(Shape.Geometry.TexCoordField.Value).FdTexCoord);
+  end;
+end;
+
+procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
+
+  { Add ShadowMap to the textures used by the shape.
+    Always converts Texture to TNodeMultiTexture, to add the shadow map
     preserving old texture.
 
     Returns the count of textures in TexturesCount, not counting the last
     ShadowMap texture. }
   procedure HandleShadowMap(var Texture: TVRMLNode;
-    const ShadowMap: TNodeGeneratedShadowMap; out TexturesCount: Cardinal;
-    const LightNode: TNodeX3DLightNode);
-
-    function OldShadowMap(Node: TVRMLNode): boolean;
-    begin
-      Result :=
-        IsSuffix(NodeNameSuffix, Node.NodeName) and
-        (Node is TNodeGeneratedShadowMap) and
-        (TNodeGeneratedShadowMap(Node).Light = LightNode);
-    end;
-
+    const ShadowMap: TNodeGeneratedShadowMap; out TexturesCount: Cardinal);
   var
     MTexture: TNodeMultiTexture;
   begin
@@ -203,27 +226,14 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
       MTexture := TNodeMultiTexture(Texture);
       TexturesCount := MTexture.FdTexture.Count;
 
-      { If the last texture is the one we want to add
-        (this also implies that ShadowMap is non-nil and so Enable is true)
-        then we're all set, nothing more to do.
+      { If the texture that we want to add is already present, abort.
         This may happen, as HandleLight may iterate many times over
         the same light. }
       if (TexturesCount <> 0) and
-         (MTexture.FdTexture.Items.Last = ShadowMap) then
+         (MTexture.FdTexture.Items.IndexOf(ShadowMap) <> -1) then
       begin
         Dec(TexturesCount);
         Exit;
-      end;
-
-      { Remove old GeneratedShadowMap that we added there.
-        TODO: this is probably not eager enough: if we had many shadow maps
-        (many lights cast on this shape), then our old shadow map may
-        not be last. We should search for it. }
-      if (TexturesCount <> 0) and
-         OldShadowMap(MTexture.FdTexture.Items.Last) then
-      begin
-        MTexture.FdTexture.Delete(TexturesCount - 1);
-        Dec(TexturesCount);
       end;
     end else
     begin
@@ -243,13 +253,12 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
     Assert(Texture = MTexture);
     Assert(TexturesCount = MTexture.FdTexture.Count);
 
-    if Enable then
-      MTexture.FdTexture.Add(ShadowMap);
+    MTexture.FdTexture.Add(ShadowMap);
   end;
 
-  { Add/Remove/Replace to the texCoord field.
-
-    Converts texCoord to multi tex coord, to preserve previous tex coord.
+  { Add to the texCoord field.
+    Converts texCoord to TNodeMultiTextureCoordinate,
+    to preserve previous tex coord.
 
     May remove some texCoord nodes, knowing that only the 1st
     RelevantTexCoordsCount nodes are used.
@@ -260,8 +269,7 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
     TexGen node. }
   procedure HandleTexGen(var TexCoord: TVRMLNode;
     const TexGen: TNodeProjectedTextureCoordinate; out TexCoordsCount: Cardinal;
-    const RelevantTexCoordsCount: Cardinal;
-    const LightNode: TNodeX3DLightNode);
+    const RelevantTexCoordsCount: Cardinal);
 
     { Resize Coords. If you increase Coords, then new ones
       are TextureCoordinateGenerator nodes (with mode=BOUNDS). }
@@ -282,14 +290,6 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
       end;
     end;
 
-    function OldTexGen(Node: TVRMLNode): boolean;
-    begin
-      Result :=
-        IsSuffix(NodeNameSuffix, Node.NodeName) and
-        (Node is TNodeProjectedTextureCoordinate) and
-        (TNodeProjectedTextureCoordinate(Node).FdProjector.Value = LightNode);
-    end;
-
   var
     MTexCoord: TNodeMultiTextureCoordinate;
   begin
@@ -301,27 +301,14 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
       MTexCoord := TNodeMultiTextureCoordinate(TexCoord);
       TexCoordsCount := MTexCoord.FdTexCoord.Count;
 
-      { If the last texcoord is the one we want to add
-        (this also implies that TexGen is non-nil and so Enable is true)
-        then we're all set, nothing more to do.
+      { If the texcoord that we want to add is already present, abort.
         This may happen, as HandleLight may iterate many times over
         the same light. }
       if (TexCoordsCount <> 0) and
-         (MTexCoord.FdTexCoord.Items.Last = TexGen) then
+         (MTexCoord.FdTexCoord.Items.IndexOf(TexGen) <> -1) then
       begin
         Dec(TexCoordsCount);
         Exit;
-      end;
-
-      { Remove old TextureCoordinate that we added there.
-        TODO: this is probably not eager enough: if we had many shadow maps
-        (many lights cast on this shape), then our old texcoord may
-        not be last. We should search for it. }
-      if (TexCoordsCount <> 0) and
-         OldTexGen(MTexCoord.FdTexCoord.Items.Last) then
-      begin
-        MTexCoord.FdTexCoord.Delete(TexCoordsCount - 1);
-        Dec(TexCoordsCount);
       end;
     end else
     begin
@@ -341,15 +328,12 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
     Assert(TexCoord = MTexCoord);
     Assert(TexCoordsCount = MTexCoord.FdTexCoord.Count);
 
-    if Enable then
-    begin
-      { This makes sure to add new necessary TextureCoordinateGenerator nodes,
-        or remove unused nodes. to make their size right }
-      ResizeTexCoord(MTexCoord.FdTexCoord, RelevantTexCoordsCount);
-      TexCoordsCount := RelevantTexCoordsCount;
+    { This makes sure to add new necessary TextureCoordinateGenerator nodes,
+      or remove unused nodes. to make their size right }
+    ResizeTexCoord(MTexCoord.FdTexCoord, RelevantTexCoordsCount);
+    TexCoordsCount := RelevantTexCoordsCount;
 
-      MTexCoord.FdTexCoord.Add(TexGen);
-    end;
+    MTexCoord.FdTexCoord.Add(TexGen);
   end;
 
   { Change textureTransform into MultiTextureTransform if necessary.
@@ -367,7 +351,7 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
     We do not add/remove from there anything (we do not need any
     texture transforms there, X3D will assume identity for texture units
     without corresponding TextureTransform node, this is Ok). }
-  procedure HandleTextureTransform(var TextureTransform: TVRMLNode);
+  procedure HandleTextureTransform(var TextureTransform: TNodeX3DTextureTransformNode);
   var
     MultiTT: TNodeMultiTextureTransform;
   begin
@@ -383,17 +367,14 @@ procedure TDynLightArray.HandleShape(Shape: TVRMLShape);
     end;
   end;
 
-var
-  ShapeNode: TNodeX3DShapeNode;
-  App: TNodeAppearance;
-
-  { 1. Add/Remove/Replace ShadowMap
-    2. Add/Remove/Replace TexGen
-    3. Add/Remove/Replace shader to the shaders field. }
+  { 1. Add necessary ShadowMap
+    2. Add necessary TexGen
+    3. Convert texture, texCoord, textureTransform to multi-texture if needed }
   procedure HandleLight(LightNode: TNodeX3DLightNode);
   var
     Light: PLight;
-    Texture, TextureTransform: TVRMLNode;
+    Texture: TNodeX3DTextureNode;
+    TextureTransform: TNodeX3DTextureTransformNode;
     TexCoord: TVRMLNode;
     TexturesCount, TexCoordsCount: Cardinal;
     Box: TBox3D;
@@ -401,12 +382,12 @@ var
   begin
     Light := FindLight(LightNode);
 
-    Texture := ShapeNode.Texture;
-    HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount, LightNode);
-    App.FdTexture.Value := Texture;
+    Texture := Shape.Node.Texture;
+    HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
+    Shape.Node.Texture := Texture;
 
     TexCoord := Shape.Geometry.TexCoordField.Value;
-    HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount, TexturesCount, LightNode);
+    HandleTexGen(TexCoord, Light^.TexGen, TexCoordsCount, TexturesCount);
     Shape.Geometry.TexCoordField.Value := TexCoord;
 
     if (Shape.Geometry <> Shape.OriginalGeometry) and
@@ -430,9 +411,9 @@ var
       Shape.OriginalGeometry.TexCoordField.Value := TexCoord;
     end;
 
-    TextureTransform := App.FdTextureTransform.Value;
+    TextureTransform := Shape.Node.TextureTransform;
     HandleTextureTransform(TextureTransform);
-    App.FdTextureTransform.Value := TextureTransform;
+    Shape.Node.TextureTransform := TextureTransform;
 
     if TexCoordsCount <> TexturesCount then
     begin
@@ -457,22 +438,24 @@ var
 
 var
   I: Integer;
+  App: TNodeAppearance;
 begin
-  ShapeNode := Shape.State.ShapeNode;
-  if ShapeNode = nil then
+  if Shape.Node = nil then
   begin
     HandleShadowCaster;
-    Exit; { VRML <= 1.0 shapes cannot be shadow maps receivers }
+    Exit; { VRML <= 1.0 shapes cannot be shadow maps receivers,
+      but they can be shadow casters }
   end;
+
+  App := Shape.Node.Appearance;
 
   { If Appearance is NULL, but we should create it --- do it.
     Testcase: x3d/shadow_maps/primitives.x3dv with appearance commented out. }
-  App := ShapeNode.Appearance;
   if (App = nil) and
      (LightsCastingOnEverything.Count <> 0) then
   begin
-    App := TNodeAppearance.Create('', ShapeNode.WWWBasePath); { recalculate App }
-    ShapeNode.Appearance := App;
+    App := TNodeAppearance.Create('', Shape.Node.WWWBasePath); { recalculate App }
+    Shape.Node.Appearance := App;
   end;
 
   { If the previous check left App = nil, then we know this shape
@@ -585,22 +568,34 @@ begin
 
   Lights := TDynLightArray.Create;
   try
-    Lights.Enable := Enable;
-    Lights.DefaultShadowMapSize := DefaultShadowMapSize;
-    Lights.ShadowCastersBox := EmptyBox3D;
-
-    { calculate Lights.LightsCastingOnEverything first }
-    Lights.LightsCastingOnEverything := TVRMLNodesList.Create;
-    Model.EnumerateNodes(TNodeX3DLightNode, @Lights.HandleLightCastingOnEverything, false);
-
-    { Enumerate all (active and not) shapes for the receiveShadows
-      calculations. In case a shape is not active, it may become active later
+    { Shapes.Traverse here enumerate all (active and not) shapes.
+      In case a shape is not active, it may become active later
       (e.g. by Switch.whichChoice change), and ProcessShadowMapsReceivers
       will not necessarily be run again. So we better account for this
       shape already. }
-    Shapes.Traverse(@Lights.HandleShape, false);
+
+    { We first remove all old GeneratedShadowMap / ProjectedTextureCoordinate
+      nodes, in one Shapes.Traverse run. Then, if Enable,
+      we make another Shapes.Traverse run and only add necessary nodes.
+
+      Previously I tried to do both (removal and addition) at the same time,
+      but this was just too error-prone. Notice that multiple shapes may refer
+      to the same light node. And shapes may have multiple GeneratedShadowMap,
+      if they receive shadow from more then one light. So it was too easy
+      to remove a shadow map (or projector) that we have just added... }
+    Shapes.Traverse(@Lights.ShapeRemove, false);
 
     if Enable then
+    begin
+      Lights.DefaultShadowMapSize := DefaultShadowMapSize;
+      Lights.ShadowCastersBox := EmptyBox3D;
+
+      { calculate Lights.LightsCastingOnEverything first }
+      Lights.LightsCastingOnEverything := TVRMLNodesList.Create;
+      Model.EnumerateNodes(TNodeX3DLightNode, @Lights.HandleLightCastingOnEverything, false);
+
+      Shapes.Traverse(@Lights.ShapeAdd, false);
+
       for I := 0 to Lights.Count - 1 do
       begin
         L := Lights.Pointers[I];
@@ -617,7 +612,8 @@ begin
         L^.TexGen := nil;
       end;
 
-    FreeAndNil(Lights.LightsCastingOnEverything);
+      FreeAndNil(Lights.LightsCastingOnEverything);
+    end;
   finally FreeAndNil(Lights) end;
 end;
 
