@@ -199,6 +199,7 @@ begin
   inherited;
   VertexShaderComplete := {$I template.vs.inc};
   FragmentShaderComplete := {$I template.fs.inc};
+  LightShaders := TLightShaders.Create;
 end;
 
 destructor TVRMLShader.Destroy;
@@ -666,8 +667,6 @@ begin
   StringReplaceAllTo1st(LightShader.Code, 'light_number', IntToStr(Number), false);
   LightShader.Node := Node;
 
-  if LightShaders = nil then
-    LightShaders := TLightShaders.Create;
   if Number >= LightShaders.Count then
     LightShaders.Count := Number + 1;
   LightShaders[Number] := LightShader;
