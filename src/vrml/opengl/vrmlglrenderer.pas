@@ -2400,9 +2400,9 @@ function TVRMLGLRendererContextCache.Shape_IncReference(
     if { Force CacheIgnoresTransform to be false if our shape uses shaders.
          Shaders may depend on coordinates in eye space, which obviously
          may be different for shapes that differ even only on transform. }
-      (Shape.State.ShapeNode <> nil) and
-      (Shape.State.ShapeNode.Appearance <> nil) and
-      (Shape.State.ShapeNode.Appearance.FdShaders.Count <> 0) then
+      (Shape.Node <> nil) and
+      (Shape.Node.Appearance <> nil) and
+      (Shape.Node.Appearance.FdShaders.Count <> 0) then
       Exit(false);
 
     ARenderer.GetFog(Fog, Enabled, Volumetric,

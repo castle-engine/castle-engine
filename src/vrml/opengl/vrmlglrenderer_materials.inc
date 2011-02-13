@@ -141,9 +141,9 @@ begin
   end else
   begin
     { VRML 2.0 }
-    if Shape.State.ShapeNode <> nil then
+    if Shape.Node <> nil then
     begin
-      M2 := Shape.State.ShapeNode.Material;
+      M2 := Shape.Node.Material;
       VRML1OnlyEmissive := false;
       { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
     end else
