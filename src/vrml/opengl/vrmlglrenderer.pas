@@ -2955,7 +2955,7 @@ begin
   if Node is TNodeX3DTextureNode then
     GLTextureNodes.Unprepare(Node);
 
-  if Node is TNodeKambiAppearance then
+  if Node is TNodeAppearance then
     BumpMappingRenderers.Unprepare(Node);
 
   if Node is TNodeComposedShader then

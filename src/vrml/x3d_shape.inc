@@ -144,6 +144,24 @@
 
     private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
+
+    private FFdNormalMap: TSFNode;
+    public property FdNormalMap: TSFNode read FFdNormalMap;
+
+    private FFdHeightMap: TSFNode;
+    public property FdHeightMap: TSFNode read FFdHeightMap;
+
+    private FFdHeightMapScale: TSFFloat;
+    public property FdHeightMapScale: TSFFloat read FFdHeightMapScale;
+
+    { blendMode property.
+
+      This is modelled after Avalon extension on [http://www.instantreality.org/].
+      See [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
+      and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
+      It allows you to use BlendMode nodes, which I consider very useful. }
+    private FFdBlendMode: TSFNode;
+    public property FdBlendMode: TSFNode read FFdBlendMode;
   end;
 
   TNodeFillProperties = class(TNodeX3DAppearanceChildNode)
@@ -584,6 +602,22 @@ begin
   FFdShadowCaster := TSFBool.Create(Self, 'shadowCaster', true);
    FdShadowCaster.ChangesAlways := [chShadowCasters];
   Fields.Add(FFdShadowCaster);
+
+  FFdnormalMap := TSFNode.Create(Self, 'normalMap', [TNodeX3DTextureNode]);
+   FdnormalMap.ChangesAlways := [chEverything];
+  Fields.Add(FFdnormalMap);
+
+  FFdheightMap := TSFNode.Create(Self, 'heightMap', [TNodeX3DTextureNode]);
+   FdheightMap.ChangesAlways := [chEverything];
+  Fields.Add(FFdheightMap);
+
+  FFdheightMapScale := TSFFloat.Create(Self, 'heightMapScale', DefaultHeightMapScale);
+   FdheightMapScale.ChangesAlways := [chEverything];
+  Fields.Add(FFdheightMapScale);
+
+  FFdblendMode := TSFNode.Create(Self, 'blendMode', [TNodeBlendMode]);
+   FdblendMode.ChangesAlways := [chEverything];
+  Fields.Add(FFdblendMode);
 
   FFdEffects := TMFNode.Create(Self, 'effects', [TNodeEffect]);
    FdEffects.Exposed := false;

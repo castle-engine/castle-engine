@@ -1,16 +1,16 @@
 {$ifdef read_interface}
 
-  { Rendering with bump mapping. It's associated with KambiAppearance node
+  { Rendering with bump mapping. It's associated with Appearance node
     defining heightMap, normalMap and other bump mapping properties. }
   TBumpMappingRenderer = class(TResourceRenderer)
   private
     class function IsImageTexture(ANode: TVRMLNode): boolean;
     class function IsGLImageTexture(GLNode: TGLTextureNode): boolean;
   public
-    { ANode must be TNodeKambiAppearance }
+    { ANode must be TNodeAppearance }
     constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); override;
 
-    function Node: TNodeKambiAppearance;
+    function Node: TNodeAppearance;
 
     { Prepare normalMap, heightMap (if exist) for rendering. }
     procedure Prepare(State: TVRMLGraphTraverseState);
@@ -29,21 +29,21 @@
   public
     { Looks for item with given Node.
       Returns -1 if not found. }
-    function NodeIndex(ANode: TNodeKambiAppearance): Integer;
+    function NodeIndex(ANode: TNodeAppearance): Integer;
 
     { Looks for item with given Node.
       Returns @nil if not found. }
-    function Node(ANode: TNodeKambiAppearance): TBumpMappingRenderer;
+    function Node(ANode: TNodeAppearance): TBumpMappingRenderer;
 
     property Items[Index: Integer]: TBumpMappingRenderer read GetItems; default;
 
-    { If this State contains appropriate TNodeKambiAppearance,
+    { If this State contains appropriate TNodeAppearance,
       this will create and prepare TBumpMappingRenderer instance for it
       (if one doesn't exist already). }
     procedure Prepare(State: TVRMLGraphTraverseState;
       ARenderer: TVRMLGLRenderer);
 
-    { If this State contains appropriate TNodeKambiAppearance,
+    { If this State contains appropriate TNodeAppearance,
       and TBumpMappingRenderer instance is prepared for this Node,
       we will call it's Enable method here.
 
@@ -60,13 +60,13 @@
 
 constructor TBumpMappingRenderer.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode);
 begin
-  Assert(ANode is TNodeKambiAppearance, 'TBumpMappingRenderer.Create acceps as Node only TNodeKambiAppearance');
+  Assert(ANode is TNodeAppearance, 'TBumpMappingRenderer.Create acceps as Node only TNodeAppearance');
   inherited;
 end;
 
-function TBumpMappingRenderer.Node: TNodeKambiAppearance;
+function TBumpMappingRenderer.Node: TNodeAppearance;
 begin
-  Result := TNodeKambiAppearance(inherited Node);
+  Result := TNodeAppearance(inherited Node);
 end;
 
 class function TBumpMappingRenderer.IsImageTexture(ANode: TVRMLNode): boolean;
@@ -156,12 +156,12 @@ end;
 
 { TBumpMappingRenderersList -------------------------------------------------- }
 
-function TBumpMappingRenderersList.NodeIndex(ANode: TNodeKambiAppearance): Integer;
+function TBumpMappingRenderersList.NodeIndex(ANode: TNodeAppearance): Integer;
 begin
   Result := inherited NodeIndex(ANode);
 end;
 
-function TBumpMappingRenderersList.Node(ANode: TNodeKambiAppearance): TBumpMappingRenderer;
+function TBumpMappingRenderersList.Node(ANode: TNodeAppearance): TBumpMappingRenderer;
 begin
   Result := TBumpMappingRenderer(inherited Node(ANode));
 end;
@@ -174,14 +174,13 @@ end;
 procedure TBumpMappingRenderersList.Prepare(State: TVRMLGraphTraverseState;
   ARenderer: TVRMLGLRenderer);
 var
-  ANode: TNodeKambiAppearance;
+  ANode: TNodeAppearance;
   BumpMappingRenderer: TBumpMappingRenderer;
 begin
   if (State.ShapeNode <> nil) and
-     (State.ShapeNode.FdAppearance.Value <> nil) and
-     (State.ShapeNode.FdAppearance.Value is TNodeKambiAppearance) then
+     (State.ShapeNode.Appearance <> nil) then
   begin
-    ANode := TNodeKambiAppearance(State.ShapeNode.FdAppearance.Value);
+    ANode := State.ShapeNode.Appearance;
     if Node(ANode) = nil then
     begin
       BumpMappingRenderer := TBumpMappingRenderer.Create(ARenderer, ANode);
@@ -195,15 +194,14 @@ function TBumpMappingRenderersList.Enable(State: TVRMLGraphTraverseState;
   const TextureUnit: Cardinal;
   Shader: TVRMLShader): TBumpMappingRenderer;
 var
-  ANode: TNodeKambiAppearance;
+  ANode: TNodeAppearance;
 begin
   Result := nil;
 
   if (State.ShapeNode <> nil) and
-     (State.ShapeNode.FdAppearance.Value <> nil) and
-     (State.ShapeNode.FdAppearance.Value is TNodeKambiAppearance) then
+     (State.ShapeNode.Appearance <> nil) then
   begin
-    ANode := TNodeKambiAppearance(State.ShapeNode.FdAppearance.Value);
+    ANode := State.ShapeNode.Appearance;
     Result := Node(ANode);
     if Result <> nil then
     begin

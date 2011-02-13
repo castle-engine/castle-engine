@@ -515,11 +515,7 @@ type
       Otherwise it returns texture from LastNodes.Texture2. }
     function Texture: TNodeX3DTextureNode;
 
-    { Returns BlendMode for this state, or @nil if not present.
-
-      Details: if ShapeNode <> nil (VRML >= 2.0), and it's Appearance <> nil, and it's
-      a KambiAppearance and it has BlendMode <> nil... then returns it.
-      Otherwise @nil. }
+    { Returns BlendMode for this state, or @nil if not present. }
     function BlendMode: TNodeBlendMode;
 
   public
@@ -2588,9 +2584,9 @@ begin
   if ShapeNode <> nil then
   begin
     Node := ShapeNode.FdAppearance.Value;
-    if (Node <> nil) and (Node is TNodeKambiAppearance) then
+    if (Node <> nil) and (Node is TNodeAppearance) then
     begin
-      Node := TNodeKambiAppearance(Node).FdBlendMode.Value;
+      Node := TNodeAppearance(Node).FdBlendMode.Value;
       if (Node <> nil) and (Node is TNodeBlendMode) then
         Result := TNodeBlendMode(Node);
     end;
