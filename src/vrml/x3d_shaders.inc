@@ -129,7 +129,7 @@
   end;
 
   TNodeShaderPart = class(TNodeX3DNode, INodeX3DUrlObject)
-  protected
+  private
     FUsedFullUrl: string;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -152,7 +152,7 @@
       then this will propagate this exception).
 
       Sets UsedFullUrl. }
-    function LoadContents: string; virtual;
+    function LoadContents: string;
 
     { Once the LoadContents is called, this is set to the URL that was used to load
       the shader contents, or '' if no URL was used, or something
@@ -450,7 +450,8 @@ begin
   Result := 'ShaderPart';
 end;
 
-function TNodeShaderPart.LoadContents: string;
+function ShaderLoadContents(var UsedFullUrl: string;
+  const Node: TVRMLNode; const FdUrl: TMFString): string;
 
   function IsDirectShaderSource(const S: string): boolean;
   { URL is recognized as direct shader source if it
@@ -485,7 +486,7 @@ function TNodeShaderPart.LoadContents: string;
 
       try
         ShaderSource := ReadGrowingStreamToString(Data.Stream);
-        FUsedFullUrl := Data.URIPrefix;
+        UsedFullUrl := Data.URIPrefix;
         Result := true;
       except
         on E: Exception do
@@ -503,7 +504,7 @@ var
   I: Integer;
   FullUrl: string;
 begin
-  FUsedFullUrl := '';
+  UsedFullUrl := '';
   Result := '';
 
   for I := 0 to FdUrl.Items.Count - 1 do
@@ -511,7 +512,7 @@ begin
     if IsDirectShaderSource(FdUrl.Items[I]) then
     begin
       Result := FdUrl.Items[I];
-      FUsedFullUrl := 'SHADER-SOURCE-INLINED';
+      UsedFullUrl := 'SHADER-SOURCE-INLINED';
       Exit;
     end else
     if TDataURI.IsDataURI(FdUrl.Items[I]) then
@@ -519,10 +520,10 @@ begin
       if LoadFromDataProtocol(FdUrl.Items[I], Result) then Break;
     end else
     begin
-      FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+      FullUrl := Node.PathFromWWWBasePath(FdUrl.Items[I]);
       try
         Result := FileToString(FullUrl);
-        FUsedFullUrl := FullUrl;
+        UsedFullUrl := FullUrl;
         Exit;
       except
         on E: Exception do
@@ -533,11 +534,16 @@ begin
     end;
   end;
 
-  if CDataExists then
+  if Node.CDataExists then
   begin
-    Result := CData;
-    FUsedFullUrl := '#CDATA';
+    Result := Node.CData;
+    UsedFullUrl := '#CDATA';
   end;
+end;
+
+function TNodeShaderPart.LoadContents: string;
+begin
+  Result := ShaderLoadContents(FUsedFullUrl, Self, FdUrl);
 end;
 
 function TNodeShaderPart.SuggestedVRMLVersion(

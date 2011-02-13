@@ -141,6 +141,9 @@
 
     private FFdShadowCaster: TSFBool;
     public property FdShadowCaster: TSFBool read FFdShadowCaster;
+
+    private FFdEffects: TMFNode;
+    public property FdEffects: TMFNode read FFdEffects;
   end;
 
   TNodeFillProperties = class(TNodeX3DAppearanceChildNode)
@@ -581,6 +584,11 @@ begin
   FFdShadowCaster := TSFBool.Create(Self, 'shadowCaster', true);
    FdShadowCaster.ChangesAlways := [chShadowCasters];
   Fields.Add(FFdShadowCaster);
+
+  FFdEffects := TMFNode.Create(Self, 'effects', [TNodeEffect]);
+   FdEffects.Exposed := false;
+   FdEffects.ChangesAlways := [chEverything];
+  Fields.Add(FFdEffects);
 
   { In edition 2 of X3D XML encoding, this is empty... but in earlier
     versions, this was "appearance" and this seems more sensible,

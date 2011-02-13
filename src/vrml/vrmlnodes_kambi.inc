@@ -348,6 +348,43 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  TNodeEffect = class(TNodeX3DNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdlanguage: TSFString;
+    public property FdLanguage: TSFString read FFdlanguage;
+
+    private FFdParts: TMFNode;
+    public property FdParts: TMFNode read FFdParts;
+  end;
+
+  TNodeEffectPart = class(TNodeX3DNode, INodeX3DUrlObject)
+  private
+    FUsedFullUrl: string;
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
+
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
+
+    { Load shader code from node's URLs (or CDATA).
+      Will return '' if no valid URLs and no CDATA present.
+      Sets UsedFullUrl. }
+    function LoadContents: string;
+
+    { Once the LoadContents is called, this is set to the URL that was
+      used to load the shader contents. See also TNodeShaderPart.UsedFullUrl. }
+    property UsedFullUrl: string read FUsedFullUrl;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -922,6 +959,63 @@ begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
+constructor TNodeEffect.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdlanguage := TSFString.Create(Self, 'language', '');
+   Fdlanguage.Exposed := false;
+   Fdlanguage.ChangesAlways := [chEverything];
+  Fields.Add(FFdlanguage);
+
+  FFdParts := TMFNode.Create(Self, 'parts', [TNodeEffectPart]);
+   FdParts.Exposed := false;
+   FdParts.ChangesAlways := [chEverything];
+  Fields.Add(FFdParts);
+
+  HasInterfaceDeclarations := AllAccessTypes;
+end;
+
+class function TNodeEffect.ClassNodeTypeName: string;
+begin
+  Result := 'Effect';
+end;
+
+class function TNodeEffect.URNMatching(const URN: string): boolean;
+begin
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeEffectPart.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdName := TSFString.Create(Self, 'name', '');
+   FdName.Exposed := false;
+   FdName.ChangesAlways := [chEverything];
+  Fields.Add(FFdName);
+
+  FFdurl := TMFString.Create(Self, 'url', []);
+   Fdurl.Exposed := false;
+   Fdurl.ChangesAlways := [chEverything];
+  Fields.Add(FFdurl);
+end;
+
+class function TNodeEffectPart.ClassNodeTypeName: string;
+begin
+  Result := 'EffectPart';
+end;
+
+class function TNodeEffectPart.URNMatching(const URN: string): boolean;
+begin
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+function TNodeEffectPart.LoadContents: string;
+begin
+  Result := ShaderLoadContents(FUsedFullUrl, Self, FdUrl);
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -936,7 +1030,9 @@ begin
     TNodeGeneratedShadowMap,
     TNodeProjectedTextureCoordinate,
     TNodeScreenEffect,
-    TNodeMultiGeneratedTextureCoordinate
+    TNodeMultiGeneratedTextureCoordinate,
+    TNodeEffect,
+    TNodeEffectPart
   ]);
 end;
 
