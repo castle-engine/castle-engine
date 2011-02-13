@@ -168,6 +168,12 @@ begin
   begin
     try
       FreeAndNil(Shape.ShaderProgram);
+
+      Shader.ApplyInternalEffects;
+      if (Shape.Node <> nil) and
+         (Shape.Node.Appearance <> nil) then
+        Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
+
       Shape.ShaderProgram := Shader.CreateProgram;
     except on E: EGLSLError do
       VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',

@@ -119,6 +119,7 @@ type
       const PlugName: string; const PlugValue: string;
       const RemovePlug, ForceDirectInsertion: boolean): boolean;
 
+    procedure ApplyInternalEffects;
     function CreateProgram: TVRMLShaderProgram;
     procedure SetupUniforms(AProgram: TVRMLShaderProgram);
 
@@ -148,6 +149,8 @@ type
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
     property VisualizeDepthMap: boolean
       read FVisualizeDepthMap write FVisualizeDepthMap;
+
+    procedure EnableEffects(Effects: TMFNode);
   end;
 
 implementation
@@ -337,7 +340,7 @@ begin
       [PlugName]));
 end;
 
-function TVRMLShader.CreateProgram: TVRMLShaderProgram;
+procedure TVRMLShader.ApplyInternalEffects;
 const
   PCFDefine: array [TPercentageCloserFiltering] of string =
   ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
@@ -367,7 +370,10 @@ begin
       Plug('add-light-contribution-front', StringReplace(LightShaders[I].Code,
         'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]));
     end;
+end;
 
+function TVRMLShader.CreateProgram: TVRMLShaderProgram;
+begin
   if Log then
   begin
     WritelnLogMultiline('Generated GLSL vertex shader', VertexShaderComplete);
@@ -686,6 +692,41 @@ begin
   LightShaders[Number] := LightShader;
 
   Inc(LightsEnabled);
+end;
+
+procedure TVRMLShader.EnableEffects(Effects: TMFNode);
+
+  procedure EnableEffect(Effect: TNodeEffect);
+
+    procedure EnableEffectPart(Part: TNodeEffectPart);
+    var
+      Contents: string;
+    begin
+      Contents := Part.LoadContents;
+      if Contents <> '' then
+        Plug(Part.FdName.Value, Contents);
+    end;
+
+  var
+    I: Integer;
+  begin
+    if Effect.FdLanguage.Value <> 'GLSL' then
+      VRMLWarning(vwIgnorable, Format('Unknown shading language "%s" for Effect node',
+        [Effect.FdLanguage.Value]));
+
+    for I := 0 to Effect.FdParts.Count - 1 do
+      if Effect.FdParts[I] is TNodeEffectPart then
+        EnableEffectPart(TNodeEffectPart(Effect.FdParts[I]));
+
+    { TODO: uniforms from shader }
+  end;
+
+var
+  I: Integer;
+begin
+  for I := 0 to Effects.Count - 1 do
+    if Effects[I] is TNodeEffect then
+      EnableEffect(TNodeEffect(Effects[I]));
 end;
 
 end.
