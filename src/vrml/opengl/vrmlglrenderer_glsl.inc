@@ -170,42 +170,6 @@ begin
 end;
 
 procedure TGLSLRenderer.Prepare(State: TVRMLGraphTraverseState);
-
-  { Scan IDecls for SFNode and MFNode fields, prepare texture nodes inside. }
-  procedure PrepareShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
-
-    { If TextureNode <> @nil and is a texture node, prepare it. }
-    procedure PrepareTexture(TextureNode: TVRMLNode);
-    begin
-      if (TextureNode <> nil) and
-         (TextureNode is TNodeX3DTextureNode) then
-        Renderer.GLTextureNodes.Prepare(State,
-          TNodeX3DTextureNode(TextureNode), Renderer);
-    end;
-
-  var
-    I, J: Integer;
-    UniformField: TVRMLField;
-  begin
-    for I := 0 to IDecls.Count - 1 do
-    begin
-      UniformField := IDecls.Items[I].Field;
-
-      if UniformField <> nil then
-      begin
-        if UniformField is TSFNode then
-        begin
-          PrepareTexture(TSFNode(UniformField).Value);
-        end else
-        if UniformField is TMFNode then
-        begin
-          for J := 0 to TMFNode(UniformField).Count - 1 do
-            PrepareTexture(TMFNode(UniformField).Items[J]);
-        end;
-      end;
-    end;
-  end;
-
 begin
   GLSLProgram := Renderer.Cache.GLSLProgram_IncReference(Node, Renderer.Attributes);
 
@@ -217,52 +181,18 @@ begin
     { Only if GLSL program successfully created, prepare all texture nodes
       in Node.InterfaceDeclarations. These will be passed to uniform
       variable values in Enable. }
-    PrepareShaderFields(Node.InterfaceDeclarations);
+    Renderer.GLTextureNodes.PrepareInterfaceDeclarationsTextures(
+      Node, State, Renderer);
   end;
 end;
 
 procedure TGLSLRenderer.Unprepare;
-
-  { Scan IDecls for SFNode and MFNode fields, unprepare texture nodes inside. }
-  procedure UnprepareShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
-
-    { If TextureNode <> @nil and is a texture node, prepare it. }
-    procedure UnprepareTexture(TextureNode: TVRMLNode);
-    begin
-      if (TextureNode <> nil) and
-         (TextureNode is TNodeX3DTextureNode) then
-        Renderer.GLTextureNodes.Unprepare(TNodeX3DTextureNode(TextureNode));
-    end;
-
-  var
-    I, J: Integer;
-    UniformField: TVRMLField;
-  begin
-    for I := 0 to IDecls.Count - 1 do
-    begin
-      UniformField := IDecls.Items[I].Field;
-
-      if UniformField <> nil then
-      begin
-        if UniformField is TSFNode then
-        begin
-          UnprepareTexture(TSFNode(UniformField).Value);
-        end else
-        if UniformField is TMFNode then
-        begin
-          for J := 0 to TMFNode(UniformField).Count - 1 do
-            UnprepareTexture(TMFNode(UniformField).Items[J]);
-        end;
-      end;
-    end;
-  end;
-
 begin
   if GLSLProgram <> nil then
   begin
     Renderer.Cache.GLSLProgram_DecReference(GLSLProgram);
-
-    UnprepareShaderFields(Node.InterfaceDeclarations);
+    Renderer.GLTextureNodes.UnprepareInterfaceDeclarationsTextures(
+      Node, Renderer);
   end;
 end;
 

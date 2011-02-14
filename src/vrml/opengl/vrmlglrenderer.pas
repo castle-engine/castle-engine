@@ -2571,6 +2571,8 @@ procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
 var
   FontStyle: TNodeFontStyle_2;
+  I: Integer;
+  Effects: TMFNode;
 begin
   { przygotuj font }
   if State.ShapeNode = nil then
@@ -2627,6 +2629,14 @@ begin
   BumpMappingRenderers.Prepare(State, Self);
 
   GLSLRenderers.Prepare(State, Self);
+
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.Appearance <> nil) then
+  begin
+    Effects := State.ShapeNode.Appearance.FdEffects;
+    for I := 0 to Effects.Count - 1 do
+      GLTextureNodes.PrepareInterfaceDeclarationsTextures(Effects[I], State, Self);
+  end;
 end;
 
 procedure TVRMLGLRenderer.PrepareScreenEffect(Node: TNodeScreenEffect);
@@ -2666,6 +2676,8 @@ begin
 
   if Node is TNodeComposedShader then
     GLSLRenderers.Unprepare(Node);
+
+  GLTextureNodes.UnprepareInterfaceDeclarationsTextures(Node, Self);
 end;
 
 procedure TVRMLGLRenderer.UnprepareAll;
