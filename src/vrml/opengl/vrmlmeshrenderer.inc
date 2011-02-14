@@ -182,8 +182,11 @@ begin
 
       Shader.LinkProgram(Shape.ShaderProgram);
     except on E: EGLSLError do
-      VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
-        [Shape.OriginalGeometry.NodeTypeName, E.Message]));
+      begin
+        FreeAndNil(Shape.ShaderProgram);
+        VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
+          [Shape.OriginalGeometry.NodeTypeName, E.Message]));
+      end;
     end;
   end;
 
