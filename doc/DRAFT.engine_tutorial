@@ -157,8 +157,8 @@ Remember that URL "sample.wav" is specified relative to the location of your xxx
 To play a sound from a code, add this code:
 
 [[
-Buffer := SceneManager.SoundEngine.LoadBuffer('sample.wav');
-SceneManager.SoundEngine.PlaySound(Buffer, ...); // see PlaySound reference for parameters
+Buffer := SoundEngine.LoadBuffer('sample.wav');
+SoundEngine.PlaySound(Buffer, ...); // see PlaySound reference for parameters
 ]]
 
 You can free the buffer once the sound has stopped. It's not important for simple programs, as we will take care to always free it before closing OpenAL context.
