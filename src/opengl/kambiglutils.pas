@@ -297,7 +297,6 @@ var
     @groupBegin }
   GLMaxTextureSize: Cardinal;
   GLMaxLights: Cardinal;
-  GLMaxTextureUnitsARB: Cardinal;
   GLMaxCubeMapTextureSizeARB: Cardinal;
   GLMax3DTextureSizeEXT: Cardinal;
   GLMaxTextureMaxAnisotropyEXT: Single;
@@ -306,6 +305,11 @@ var
   GLMaxRectangleTextureSize: Cardinal;
   GLMaxClipPlanes: Cardinal;
   { @groupEnd }
+
+  { Numer of texture units available.
+    Equal to glGetInteger(GL_MAX_TEXTURE_UNITS_ARB), if multi-texturing
+    available. Equal to 1 (OpenGL supports always 1 texture) otherwise. }
+  GLMaxTextureUnits: Cardinal;
 
   { Are all OpenGL multi-texturing extensions for
     VRML/X3D MultiTexture support available.
@@ -1189,8 +1193,8 @@ begin
  GLMaxLights := glGetInteger(GL_MAX_LIGHTS);
 
  if GL_ARB_multitexture then
-   GLMaxTextureUnitsARB := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) else
-   GLMaxTextureUnitsARB := 0;
+   GLMaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) else
+   GLMaxTextureUnits := 1;
 
  if GL_ARB_texture_cube_map then
    GLMaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB) else
@@ -2232,13 +2236,6 @@ function GLInformationString: string;
         ]);
   end;
 
-  function GetMaxTextureUnits: string;
-  begin
-    if GL_ARB_multitexture then
-      Result := IntToStr(GLMaxTextureUnitsARB) else
-      Result := 'ARB_multitexture not available';
-  end;
-
   function GetMaxCubeMapTextureSize: string;
   begin
     if GL_ARB_texture_cube_map then
@@ -2381,7 +2378,7 @@ begin
   '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
   '  Max texture size: ' + IntToStr(GLMaxTextureSize) +nl+
   '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
-  '  Max texture units: ' + GetMaxTextureUnits +nl+
+  '  Max texture units: ' + IntToStr(GLMaxTextureUnits) +nl+
   '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
   '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
   '  Max rectangle texture size: ' + GetMaxRectangleTextureSize +nl+

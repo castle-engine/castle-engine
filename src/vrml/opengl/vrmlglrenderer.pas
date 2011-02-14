@@ -252,7 +252,6 @@ type
     FControlMaterials: boolean;
     FControlTextures: boolean;
     FEnableTextures: boolean;
-    FLastGLFreeTexture: integer;
     FTextureMinFilter: TGLint;
     FTextureMagFilter: TGLint;
     FPointSize: TGLFloat;
@@ -277,7 +276,6 @@ type
     procedure SetControlMaterials(const Value: boolean); virtual;
     procedure SetControlTextures(const Value: boolean); virtual;
     procedure SetEnableTextures(const Value: boolean); virtual;
-    procedure SetLastGLFreeTexture(const Value: integer); virtual;
     procedure SetTextureMinFilter(const Value: TGLint); virtual;
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
     procedure SetPointSize(const Value: TGLFloat); virtual;
@@ -414,21 +412,6 @@ type
       ) }
     property EnableTextures: boolean
       read FEnableTextures write SetEnableTextures default true;
-
-    { How many OpenGL texture units are free to use.
-
-      Note that we always assume that at least one texture unit is available.
-      If OpenGL multitexturing is not available, we will just use the default
-      texture unit.
-
-      LastGLFreeTexture = -1 means that up to the end, all texture units
-      are available. In other words, -1 is equivalent to
-      glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1.
-
-      @groupBegin }
-    property LastGLFreeTexture: Integer
-      read FLastGLFreeTexture write SetLastGLFreeTexture default -1;
-    { @groupEnd }
 
     { Default minification and magnification filters for textures.
       These can be overridden on a per-texture basis in VRML / X3D files
@@ -991,18 +974,8 @@ type
   private
     { ---------------------------------------------------------
       GLContext-specific things, so freed (or reset in some other way to default
-        uninitialized values) in UnprepareAll. }
+      uninitialized values) in UnprepareAll. }
 
-    { Returns Attributes.LastGLFreeTexture,
-      or (when Attributes.LastGLFreeTexture is -1)
-      returns glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1. }
-    FLastGLFreeTexture: Integer;
-    function LastGLFreeTexture: Cardinal;
-
-    { Number of available texture units.
-      Just a shortcut for LastGLFreeTexture + 1. }
-    function FreeGLTexturesCount: Cardinal;
-  private
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRenderersList;
     GLSLRenderers: TGLSLRenderersList;
@@ -1027,17 +1000,14 @@ type
     MaterialLit: boolean;
     MaterialOpacity: Single;
 
-    { For how many texture units does Render have to generate tex coords?
-
+    { For how many texture units do we have to generate tex coords.
       This is the number of texture units used.
-      Always <= 1 if OpenGL doesn't support multitexturing
-      (GLUseMultiTexturing = @false).
-      It's also already clamped by the number of available texture units
-      (determined from First/LastGLFreeTexture).
 
-      Always = 1 if bump mapping is used (our multitexturing setup is
-      special then, we will actually use more texture units for special
-      purposes). }
+      It's always clamped by the number of available texture units
+      (GLMaxTextureUnits).
+      Always <= 1 if OpenGL doesn't support multitexturing.
+      TODO: when ARB_multitexture, but not GLUseMultiTexturing,
+      this will be > 1. Is everything ready for this? }
     TexCoordsNeeded: Cardinal;
 
     { For which texture units we pushed and modified the texture matrix.
@@ -2236,7 +2206,6 @@ begin
     ControlMaterials := TVRMLRenderingAttributes(Source).ControlMaterials;
     ControlTextures := TVRMLRenderingAttributes(Source).ControlTextures;
     EnableTextures := TVRMLRenderingAttributes(Source).EnableTextures;
-    LastGLFreeTexture := TVRMLRenderingAttributes(Source).LastGLFreeTexture;
     TextureMinFilter := TVRMLRenderingAttributes(Source).TextureMinFilter;
     TextureMagFilter := TVRMLRenderingAttributes(Source).TextureMagFilter;
     PointSize := TVRMLRenderingAttributes(Source).PointSize;
@@ -2253,7 +2222,6 @@ begin
     (SecondValue.OnVertexColor = OnVertexColor) and
     (SecondValue.ControlTextures = ControlTextures) and
     (SecondValue.EnableTextures = EnableTextures) and
-    (SecondValue.LastGLFreeTexture = LastGLFreeTexture) and
     (SecondValue.UseFog = UseFog);
 end;
 
@@ -2263,7 +2231,6 @@ begin
 
   FLighting := true;
   FUseSceneLights := true;
-  FLastGLFreeTexture := -1;
   FControlMaterials := true;
   FControlTextures := true;
   FEnableTextures := true;
@@ -2326,15 +2293,6 @@ begin
   begin
     ReleaseCachedResources;
     FEnableTextures := Value;
-  end;
-end;
-
-procedure TVRMLRenderingAttributes.SetLastGLFreeTexture(const Value: integer);
-begin
-  if LastGLFreeTexture <> Value then
-  begin
-    ReleaseCachedResources;
-    FLastGLFreeTexture := Value;
   end;
 end;
 
@@ -2423,8 +2381,6 @@ constructor TVRMLGLRenderer.Create(
   ACache: TVRMLGLRendererContextCache);
 begin
   inherited Create;
-
-  FLastGLFreeTexture := -1;
 
   FAttributes := AttributesClass.Create;
 
@@ -2717,8 +2673,6 @@ var
   fsfam: TVRMLFontFamily;
   fsbold , fsitalic: boolean;
 begin
-  FLastGLFreeTexture := -1;
-
   { release fonts }
   for fsfam := Low(fsfam) to High(fsfam) do
     for fsbold := Low(boolean) to High(boolean) do
@@ -2732,27 +2686,6 @@ begin
   GLTextureNodes.UnprepareAll;
   BumpMappingRenderers.UnprepareAll;
   GLSLRenderers.UnprepareAll;
-end;
-
-function TVRMLGLRenderer.LastGLFreeTexture: Cardinal;
-begin
-  if FLastGLFreeTexture = -1 then
-  begin
-    if Attributes.LastGLFreeTexture = -1 then
-    begin
-      { actually get this from OpenGL }
-      if GL_ARB_multitexture then
-        FLastGLFreeTexture := GLMaxTextureUnitsARB - 1 else
-        FLastGLFreeTexture := 0;
-    end else
-      FLastGLFreeTexture := Attributes.LastGLFreeTexture;
-  end;
-  Result := FLastGLFreeTexture;
-end;
-
-function TVRMLGLRenderer.FreeGLTexturesCount: Cardinal;
-begin
-  Result := LastGLFreeTexture + 1;
 end;
 
 function TVRMLGLRenderer.BumpMapping: boolean;
@@ -2854,7 +2787,7 @@ procedure TVRMLGLRenderer.RenderCleanState(const Beginning: boolean);
   var
     I: Integer;
   begin
-    for I := 0 to LastGLFreeTexture do
+    for I := 0 to GLMaxTextureUnits - 1 do
       DisableTexture(I);
   end;
 
@@ -3225,13 +3158,8 @@ begin
 
           { Multitexturing, so use as many texture units as there are children in
             MultiTextureTransform.textureTransform.
-
-            Cap by available texture units (First/LastGLFreeTexture,
-            and check GLUseMultiTexturing in case OpenGL cannot support
-            multitex at all). }
-          TextureTransformUnitsUsed := Min(Transforms.Count, FreeGLTexturesCount);
-          if not GLUseMultiTexturing then
-            MinTo1st(TextureTransformUnitsUsed, 1);
+            Cap by available texture units. }
+          TextureTransformUnitsUsed := Min(Transforms.Count, GLMaxTextureUnits);
 
           for I := 0 to TextureTransformUnitsUsed - 1 do
           begin
@@ -3572,12 +3500,12 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
         since it has smartly calculated AlphaChannelType. }
       AlphaTest := GLTextureNode.AlphaChannelType = atSimpleYesNo;
 
-      GLTextureNode.EnableAll(FreeGLTexturesCount, TexCoordsNeeded, Shader);
+      GLTextureNode.EnableAll(GLMaxTextureUnits, TexCoordsNeeded, Shader);
 
       { If there is any texture, and we have room for one more texture,
         try enabling bump mapping }
       if (TexCoordsNeeded > 0) and
-         (TexCoordsNeeded < FreeGLTexturesCount) then
+         (TexCoordsNeeded < GLMaxTextureUnits) then
         BumpMappingRenderers.Enable(Shape.State, TexCoordsNeeded, Shader);
     end;
 

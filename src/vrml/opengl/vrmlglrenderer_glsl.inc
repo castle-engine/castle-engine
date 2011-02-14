@@ -97,7 +97,7 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
       if (TextureNode <> nil) and
          (TextureNode is TNodeX3DTextureNode) then
       begin
-        if BoundTextureUnits < Renderer.FreeGLTexturesCount then
+        if BoundTextureUnits < GLMaxTextureUnits then
         begin
           if Renderer.GLTextureNodes.Bind(
             TNodeX3DTextureNode(TextureNode), BoundTextureUnits) then
