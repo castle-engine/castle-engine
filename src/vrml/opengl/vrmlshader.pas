@@ -105,6 +105,7 @@ type
   TVRMLShader = class
   private
     Uniforms: TUniformsList;
+    UniformsNodes: TVRMLNodesList;
     TextureApply, TextureCoordInitialize,
       TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare,
       ClipPlane, FragmentEnd: string;
@@ -462,6 +463,8 @@ procedure TVRMLGLSLBaseProgram.BindUniforms(const Node: TVRMLNode);
 var
   I: Integer;
 begin
+  Assert(Node.HasInterfaceDeclarations <> []);
+  Assert(Node.InterfaceDeclarations <> nil);
   for I := 0 to Node.InterfaceDeclarations.Count - 1 do
     BindUniform(Node.InterfaceDeclarations[I]);
 end;
@@ -479,6 +482,7 @@ end;
 destructor TVRMLShader.Destroy;
 begin
   FreeAndNil(Uniforms);
+  FreeAndNil(UniformsNodes);
   FreeAndNil(LightShaders);
   inherited;
 end;
@@ -686,6 +690,10 @@ begin
         utSingle : AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.Single );
         else raise EInternalError.Create('TVRMLShader.SetupUniforms:Uniforms[I].Type?');
       end;
+
+  if UniformsNodes <> nil then
+    for I := 0 to UniformsNodes.Count - 1 do
+      AProgram.BindUniforms(UniformsNodes[I]);
 end;
 
 procedure TVRMLShader.AddUniform(Uniform: TUniform);
@@ -989,7 +997,9 @@ procedure TVRMLShader.EnableEffects(Effects: TMFNode);
       if Effect.FdParts[I] is TNodeEffectPart then
         EnableEffectPart(TNodeEffectPart(Effect.FdParts[I]));
 
-    { TODO: uniforms from shader }
+    if UniformsNodes = nil then
+      UniformsNodes := TVRMLNodesList.Create;
+    UniformsNodes.Add(Effect);
   end;
 
 var
