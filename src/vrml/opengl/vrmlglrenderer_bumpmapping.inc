@@ -19,7 +19,7 @@
     procedure Unprepare; override;
 
     { Enable things for rendering with bump mapping. Returns success. }
-    function Enable(const TextureUnit: Cardinal;
+    function Enable(var BoundTextureUnits: Cardinal;
       Shader: TVRMLShader): boolean;
   end;
 
@@ -50,7 +50,7 @@
       We return the TBumpMappingRenderer instance only if it existed
       and it's Enable method returned @true. Otherwise, we return @nil. }
     function Enable(State: TVRMLGraphTraverseState;
-      const TextureUnit: Cardinal;
+      var BoundTextureUnits: Cardinal;
       Shader: TVRMLShader): TBumpMappingRenderer;
   end;
 
@@ -112,7 +112,7 @@ begin
     Renderer.GLTextureNodes.Unprepare(TVRML2DTextureNode(Node.FdHeightMap.Value));
 end;
 
-function TBumpMappingRenderer.Enable(const TextureUnit: Cardinal;
+function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
   Shader: TVRMLShader): boolean;
 
   { Return OpenGL texture initialized for texture node Node.
@@ -147,9 +147,10 @@ begin
       Result := true;
       Renderer.ShapeBumpMappingUsed := true;
 
-      Renderer.ActiveTexture(TextureUnit);
+      Renderer.ActiveTexture(BoundTextureUnits);
       glBindTexture(GL_TEXTURE_2D, TexNormalMap);
-      Shader.EnableBumpMapping(TextureUnit);
+      Shader.EnableBumpMapping(BoundTextureUnits);
+      Inc(BoundTextureUnits);
     end;
   end;
 end;
@@ -191,7 +192,7 @@ begin
 end;
 
 function TBumpMappingRenderersList.Enable(State: TVRMLGraphTraverseState;
-  const TextureUnit: Cardinal;
+  var BoundTextureUnits: Cardinal;
   Shader: TVRMLShader): TBumpMappingRenderer;
 var
   ANode: TNodeAppearance;
@@ -205,7 +206,7 @@ begin
     Result := Node(ANode);
     if Result <> nil then
     begin
-      if not Result.Enable(TextureUnit, Shader) then
+      if not Result.Enable(BoundTextureUnits, Shader) then
         Result := nil;
     end;
   end;
