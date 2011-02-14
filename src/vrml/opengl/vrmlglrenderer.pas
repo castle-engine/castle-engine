@@ -798,7 +798,7 @@ type
 
   { GLSL program integrated with VRML renderer. Adds ability to bind
     VRML textures to uniform variables of GLSL shader. }
-  TVRMLGLSLProgram = class(TGLSLProgram)
+  TVRMLGLSLProgram = class(TVRMLGLSLBaseProgram)
   private
     Renderer: TVRMLGLRenderer;
     Node: TNodeComposedShader;
@@ -929,19 +929,6 @@ type
 
     procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
-
-    { Set GLSLProgram uniform variable from VRML field value.
-      Uniform name is contained in UniformName. UniformValue indicates
-      uniform type and new value (UniformValue.Name is not used).
-
-      This ignores SFNode / MFNode fields (these will be set each
-      time when enabling this shader). }
-    procedure SetUniformFromField(
-      GLSLProgram: TGLSLProgram; UniformName: string;
-      UniformValue: TVRMLField);
-
-    procedure EventReceiveGLSLUniform(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
 
     { Creates and links appropriate TGLSLProgram.
       Takes care of sending ComposedShader.isValid event (but not isSelected).
@@ -1983,213 +1970,17 @@ begin
     'found to texture %d', [TextureGLName]);
 end;
 
-procedure TVRMLGLRendererContextCache.SetUniformFromField(
-  GLSLProgram: TGLSLProgram; UniformName: string;
-  UniformValue: TVRMLField);
-var
-  TempF: TDynSingleArray;
-  TempVec2f: TDynVector2SingleArray;
-  TempVec3f: TDynVector3SingleArray;
-  TempVec4f: TDynVector4SingleArray;
-  TempMat3f: TDynMatrix3SingleArray;
-  TempMat4f: TDynMatrix4SingleArray;
-begin
-  { program must be active to set uniform values. }
-  GLSLProgram.Enable;
-
-  if UniformValue is TSFBool then
-    GLSLProgram.SetUniform(UniformName, TSFBool(UniformValue).Value) else
-  if UniformValue is TSFLong then
-    { Handling of SFLong also takes care of SFInt32. }
-    GLSLProgram.SetUniform(UniformName, TSFLong(UniformValue).Value) else
-  if UniformValue is TSFVec2f then
-    GLSLProgram.SetUniform(UniformName, TSFVec2f(UniformValue).Value) else
-  { Check TSFColor first, otherwise TSFVec3f would also catch and handle
-    TSFColor. And we don't want this: for GLSL, color is passed
-    as vec4 (so says the spec, I guess that the reason is that for GLSL most
-    input/output colors are vec4). }
-  if UniformValue is TSFColor then
-    GLSLProgram.SetUniform(UniformName, Vector4Single(TSFColor(UniformValue).Value, 1.0)) else
-  if UniformValue is TSFVec3f then
-    GLSLProgram.SetUniform(UniformName, TSFVec3f(UniformValue).Value) else
-  if UniformValue is TSFVec4f then
-    GLSLProgram.SetUniform(UniformName, TSFVec4f(UniformValue).Value) else
-  if UniformValue is TSFRotation then
-    GLSLProgram.SetUniform(UniformName, TSFRotation(UniformValue).Value) else
-  if UniformValue is TSFMatrix3f then
-    GLSLProgram.SetUniform(UniformName, TSFMatrix3f(UniformValue).Value) else
-  if UniformValue is TSFMatrix4f then
-    GLSLProgram.SetUniform(UniformName, TSFMatrix4f(UniformValue).Value) else
-  if UniformValue is TSFFloat then
-    GLSLProgram.SetUniform(UniformName, TSFFloat(UniformValue).Value) else
-  if UniformValue is TSFDouble then
-    { SFDouble also takes care of SFTime }
-    GLSLProgram.SetUniform(UniformName, TSFDouble(UniformValue).Value) else
-
-  { Double-precision vector and matrix types.
-
-    Note that X3D spec specifies only mapping for SF/MFVec3d, 4d
-    (not specifying any mapping for SF/MFVec2d, and all matrix types).
-    And it specifies that they map to types float3, float4 ---
-    which are not valid types in GLSL?
-
-    So I simply ignore non-sensible specification, and take
-    the reasonable approach: support all double-precision vectors and matrices,
-    just like single-precision. }
-  if UniformValue is TSFVec2d then
-    GLSLProgram.SetUniform(UniformName, Vector2Single(TSFVec2d(UniformValue).Value)) else
-  if UniformValue is TSFVec3d then
-    GLSLProgram.SetUniform(UniformName, Vector3Single(TSFVec3d(UniformValue).Value)) else
-  if UniformValue is TSFVec4d then
-    GLSLProgram.SetUniform(UniformName, Vector4Single(TSFVec4d(UniformValue).Value)) else
-  if UniformValue is TSFMatrix3d then
-    GLSLProgram.SetUniform(UniformName, Matrix3Single(TSFMatrix3d(UniformValue).Value)) else
-  if UniformValue is TSFMatrix4d then
-    GLSLProgram.SetUniform(UniformName, Matrix4Single(TSFMatrix4d(UniformValue).Value)) else
-
-  { Now repeat this for array types }
-  if UniformValue is TMFBool then
-    GLSLProgram.SetUniform(UniformName, TMFBool(UniformValue).Items) else
-  if UniformValue is TMFLong then
-    GLSLProgram.SetUniform(UniformName, TMFLong(UniformValue).Items) else
-  if UniformValue is TMFVec2f then
-    GLSLProgram.SetUniform(UniformName, TMFVec2f(UniformValue).Items) else
-  if UniformValue is TMFColor then
-  begin
-    TempVec4f := TMFColor(UniformValue).Items.ToVector4Single(1.0);
-    try
-      GLSLProgram.SetUniform(UniformName, TempVec4f);
-    finally FreeAndNil(TempVec4f) end;
-  end else
-  if UniformValue is TMFVec3f then
-    GLSLProgram.SetUniform(UniformName, TMFVec3f(UniformValue).Items) else
-  if UniformValue is TMFVec4f then
-    GLSLProgram.SetUniform(UniformName, TMFVec4f(UniformValue).Items) else
-  if UniformValue is TMFRotation then
-    GLSLProgram.SetUniform(UniformName, TMFRotation(UniformValue).Items) else
-  if UniformValue is TMFMatrix3f then
-    GLSLProgram.SetUniform(UniformName, TMFMatrix3f(UniformValue).Items) else
-  if UniformValue is TMFMatrix4f then
-    GLSLProgram.SetUniform(UniformName, TMFMatrix4f(UniformValue).Items) else
-  if UniformValue is TMFFloat then
-    GLSLProgram.SetUniform(UniformName, TMFFloat(UniformValue).Items) else
-  if UniformValue is TMFDouble then
-  begin
-    TempF := TMFDouble(UniformValue).Items.ToSingle;
-    try
-      GLSLProgram.SetUniform(UniformName, TempF);
-    finally FreeAndNil(TempF) end;
-  end else
-  if UniformValue is TMFVec2d then
-  begin
-    TempVec2f := TMFVec2d(UniformValue).Items.ToVector2Single;
-    try
-      GLSLProgram.SetUniform(UniformName, TempVec2f);
-    finally FreeAndNil(TempVec2f) end;
-  end else
-  if UniformValue is TMFVec3d then
-  begin
-    TempVec3f := TMFVec3d(UniformValue).Items.ToVector3Single;
-    try
-      GLSLProgram.SetUniform(UniformName, TempVec3f);
-    finally FreeAndNil(TempVec3f) end;
-  end else
-  if UniformValue is TMFVec4d then
-  begin
-    TempVec4f := TMFVec4d(UniformValue).Items.ToVector4Single;
-    try
-      GLSLProgram.SetUniform(UniformName, TempVec4f);
-    finally FreeAndNil(TempVec4f) end;
-  end else
-  if UniformValue is TMFMatrix3d then
-  begin
-    TempMat3f := TMFMatrix3d(UniformValue).Items.ToMatrix3Single;
-    try
-      GLSLProgram.SetUniform(UniformName, TempMat3f);
-    finally FreeAndNil(TempMat3f) end;
-  end else
-  if UniformValue is TMFMatrix4d then
-  begin
-    TempMat4f := TMFMatrix4d(UniformValue).Items.ToMatrix4Single;
-    try
-      GLSLProgram.SetUniform(UniformName, TempMat4f);
-    finally FreeAndNil(TempMat4f) end;
-  end else
-  if (UniformValue is TSFNode) or
-     (UniformValue is TMFNode) then
-  begin
-    { Nothing to do, these will be set by TGLSLRenderer.Enable }
-  end else
-    { TODO: other field types, full list is in X3D spec in
-      "OpenGL shading language (GLSL) binding".
-      Remaining:
-      SF/MFImage }
-    VRMLWarning(vwSerious, 'Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
-
-  { TODO: this should restore previously bound program }
-  GLSLProgram.Disable;
-end;
-
-procedure TVRMLGLRendererContextCache.EventReceiveGLSLUniform(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
-var
-  I: Integer;
-  UniformName: string;
-  GLSLProgramCache: PGLSLProgramCache;
-  EventsEngine: TVRMLEventsEngine;
-begin
-  if Event.ParentExposedField = nil then
-    UniformName := Event.Name else
-    UniformName := Event.ParentExposedField.Name;
-
-  { We need to find GLSLProgram instance, to know which GLSL program
-    actually has this uniform variable. We can do it: Event.ParentNode
-    should point to appropriate ComposedShader node, so we can find
-    corresponding GLSLProgramCaches item, and this will contain
-    needed GLSLProgram. }
-
-  for I := 0 to GLSLProgramCaches.High do
-  begin
-    GLSLProgramCache := GLSLProgramCaches.Pointers[I];
-
-    if GLSLProgramCache^.ProgramNode = Event.ParentNode then
-    begin
-      SetUniformFromField(GLSLProgramCache^.GLSLProgram, UniformName, Value);
-
-      { Although ExposedEvents implementation already sends notification
-        about changes to EventsEngine, we can also get here
-        by eventIn invocation (which doesn't trigger
-        EventsEngine.ChangedField, since it doesn't change a field...).
-        So we should explicitly do VisibleChangeHere here, to make sure
-        it gets called when uniform changed. }
-
-      EventsEngine := GLSLProgramCache^.ProgramNode.EventsEngine;
-      if EventsEngine <> nil then
-        EventsEngine.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-
-      Exit;
-    end;
-  end;
-
-  VRMLWarning(vwSerious, Format(
-    'INTERNAL ERROR, we can continue but please report a bug: uniform variable "%s" should be set from event now, but it turns out that GLSL program for this event''s ComposedShader node is not in the cache',
-    [Event.Name]));
-end;
-
 function TVRMLGLRendererContextCache.GLSLProgram_IncReference_Core(
   ProgramNode: TNodeComposedShader;
   AAttributes: TVRMLRenderingAttributes): TVRMLGLSLProgram;
 
-  procedure LoadGLSLProgram(GLSLProgram: TGLSLProgram;
+  procedure LoadGLSLProgram(GLSLProgram: TVRMLGLSLProgram;
     ProgramNode: TNodeComposedShader);
   var
     I: Integer;
     Part: TNodeShaderPart;
     PartType, Source: String;
     HasAnyShader: boolean;
-    IDecls: TVRMLInterfaceDeclarationsList;
-    UniformField: TVRMLField;
-    UniformEvent: TVRMLEvent;
   begin
     HasAnyShader := false;
 
@@ -2251,31 +2042,7 @@ function TVRMLGLRendererContextCache.GLSLProgram_IncReference_Core(
     GLSLProgram.UniformNotFoundAction := uaWarning;
     GLSLProgram.UniformTypeMismatchAction := utWarning;
 
-    IDecls := ProgramNode.InterfaceDeclarations;
-
-    for I := 0 to IDecls.Count - 1 do
-    begin
-      UniformField := IDecls.Items[I].Field;
-      UniformEvent := IDecls.Items[I].Event;
-
-      { Set initial value for this GLSL uniform variable,
-        from VRML field or exposedField }
-
-      if UniformField <> nil then
-      begin
-        { Ok, we have a field with a value (interface declarations with
-          fields inside ComposedShader always have a value).
-          So set GLSL uniform variable from this field. }
-        SetUniformFromField(GLSLProgram, UniformField.Name, UniformField);
-      end;
-
-      { Allow future changing of this GLSL uniform variable,
-        from VRML eventIn or exposedField }
-      if (UniformField <> nil) and UniformField.Exposed then
-        UniformField.ExposedEvents[false].OnReceive.Add(@EventReceiveGLSLUniform) else
-      if (UniformEvent <> nil) and UniformEvent.InEvent then
-        UniformEvent.OnReceive.Add(@EventReceiveGLSLUniform);
-    end;
+    GLSLProgram.BindUniforms(ProgramNode);
   end;
 
 var
@@ -2345,11 +2112,8 @@ end;
 procedure TVRMLGLRendererContextCache.GLSLProgram_DecReference(
   const GLSLProgram: TVRMLGLSLProgram);
 var
-  I, J: Integer;
+  I: Integer;
   GLSLProgramCache: PGLSLProgramCache;
-  IDecls: TVRMLInterfaceDeclarationsList;
-  UniformField: TVRMLField;
-  UniformEvent: TVRMLEvent;
 begin
   for I := 0 to GLSLProgramCaches.High do
   begin
@@ -2361,20 +2125,6 @@ begin
         WritelnLog('--', 'GLSLProgram %s: %d', [GLSLProgramCache^.ProgramNode.DescribeUsedUrls, GLSLProgramCache^.References]);
       if GLSLProgramCache^.References = 0 then
       begin
-        { Remove EventReceiveGLSLUniform callback,
-          reverting the work done in GLSLProgram_IncReference. }
-        IDecls := GLSLProgramCache^.ProgramNode.InterfaceDeclarations;
-        for J := 0 to IDecls.Count - 1 do
-        begin
-          UniformField := IDecls.Items[J].Field;
-          UniformEvent := IDecls.Items[J].Event;
-
-          if (UniformField <> nil) and UniformField.Exposed then
-            UniformField.ExposedEvents[false].OnReceive.Remove(@EventReceiveGLSLUniform) else
-          if (UniformEvent <> nil) and UniformEvent.InEvent then
-            UniformEvent.OnReceive.Remove(@EventReceiveGLSLUniform);
-        end;
-
         FreeAndNil(GLSLProgramCache^.GLSLProgram);
         GLSLProgramCaches.Delete(I, 1);
       end;
