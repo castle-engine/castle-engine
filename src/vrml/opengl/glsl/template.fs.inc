@@ -42,7 +42,14 @@
 '    gl_FragColor.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 
 '' + LineEnding + 
-'  /* PLUG: texture_apply (gl_FragColor) */' + LineEnding + 
+'  /* NVidia GeForce 450 GTS (kocury) fails to compile a shader when' + LineEnding + 
+'     we pass gl_FragColor as inout parameter (testcase even fresnel_and_toon.x3dv).' + LineEnding + 
+'     Radeon X1600 (fglrx, chantal) works with it OK.' + LineEnding + 
+'     For now, just the simplest workaround: use temp variably. */' + LineEnding + 
+'' + LineEnding + 
+'  vec4 fragment_color = gl_FragColor;' + LineEnding + 
+'  /* PLUG: texture_apply (fragment_color) */' + LineEnding + 
+'  gl_FragColor = fragment_color;' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: fragment_end (gl_FragColor) */' + LineEnding + 
 '}' + LineEnding + 
