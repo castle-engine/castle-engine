@@ -11,20 +11,22 @@
 'varying vec4 vertex_eye;' + LineEnding + 
 'varying vec3 normal_eye;' + LineEnding + 
 '' + LineEnding + 
-'/* PLUG: fragment-declare-variables declaration */' + LineEnding + 
-'/* PLUG: fragment-declare-procedures declaration */' + LineEnding + 
+'/* PLUG: $declare-variables$ */' + LineEnding + 
+'/* PLUG: $declare-procedures$ */' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  gl_FragColor = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
 '' + LineEnding + 
 '  vec3 normal_eye_fragment = normalize(normal_eye);' + LineEnding + 
-'  /* PLUG: fragment-normal-eye (normal_eye_fragment) (inout vec3 normal_eye_fragment) */' + LineEnding + 
+'  /* PLUG: fragment_normal_eye (normal_eye_fragment) */' + LineEnding + 
+'  /* (inout vec3 normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
 '    gl_FragColor += gl_FrontMaterial.emission;' + LineEnding + 
-'    /* PLUG: add-light-contribution-front (gl_FragColor, normal_eye_fragment, gl_FrontMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */' + LineEnding + 
+'    /* PLUG: add_light_contribution_front (gl_FragColor, normal_eye_fragment, gl_FrontMaterial) */' + LineEnding + 
+'    /* (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */' + LineEnding + 
 '' + LineEnding + 
 '    /* Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding + 
 '       and it''s always opaque.' + LineEnding + 
@@ -35,12 +37,13 @@
 '  {' + LineEnding + 
 '    gl_FragColor += gl_BackMaterial.emission;' + LineEnding + 
 '    normal_eye_fragment = -normal_eye_fragment;' + LineEnding + 
-'    /* PLUG: add-light-contribution-back (gl_FragColor, normal_eye_fragment, gl_BackMaterial) (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */' + LineEnding + 
+'    /* PLUG: add_light_contribution_back (gl_FragColor, normal_eye_fragment, gl_BackMaterial) */' + LineEnding + 
+'    /* (inout vec4 color, const in vec3 normal_eye, const in gl_MaterialParameters material) */' + LineEnding + 
 '    gl_FragColor.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 
 '' + LineEnding + 
-'  /* PLUG: texture-apply (gl_FragColor) (inout vec4 fragment_color) */' + LineEnding + 
+'  /* PLUG: texture_apply (gl_FragColor) */' + LineEnding + 
 '' + LineEnding + 
-'  /* PLUG: fragment-end (gl_FragColor) (const in vec4 fragment_color) */' + LineEnding + 
+'  /* PLUG: fragment_end (gl_FragColor) */' + LineEnding + 
 '}' + LineEnding + 
 ''

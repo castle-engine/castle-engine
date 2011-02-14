@@ -20,7 +20,8 @@ unit VRMLShader;
 
 interface
 
-uses GLShaders, FGL, VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes;
+uses GLShaders, FGL, VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes,
+  KambiUtils;
 
 type
   { Uniform value type, for TUniform. }
@@ -104,8 +105,11 @@ type
 
   TLightShader = class
   private
-    Code: string;
+    Code: TDynStringArray;
     Node: TNodeX3DLightNode;
+  public
+    constructor Create;
+    destructor Destroy; override;
   end;
   TLightShaders = class(specialize TFPGObjectList<TLightShader>)
   private
@@ -130,45 +134,26 @@ type
       ClipPlane, FragmentEnd: string;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
     FVisualizeDepthMap: boolean;
-    VertexShaderComplete: string;
-    FragmentShaderComplete: string;
+    VertexShaderComplete, FragmentShaderComplete: TDynStringArray;
     PlugIdentifiers: Cardinal;
     LightsEnabled: Cardinal;
     LightShaders: TLightShaders;
+
+    procedure PlugDirectly(Code: TDynStringArray; const PlugName, PlugValue: string);
   public
     constructor Create;
     destructor Destroy; override;
 
-    { Insert a piece of code at given plugging point.
+    { Detect defined PLUG_xxx functions within PlugValue,
+      and insert them into appropriate code (determined by EffectPartType).
       Inserts code right before the magic @code(/* PLUG ...*/) comments,
-      this way many Plug calls for the same PlugName will insert code in the same
-      order.
-
-      @param(ForceDirectInsertion Set to @true to force inserting
-        PlugValue code right at the place of magic comment, without
-        wrapping it inside a procedure call. This allows for unsafe code
-        insertion. Effectively, this treats every magic comment like
-        a "declaration".
-        (Useful for some tricks, e.g. you can "return" from main
-        for shadow maps visualization.))
-
-      @param(RemovePlug Should we remove the magic comment from shader
-        source, so it will not be available for further effects.) }
-    procedure Plug(const PlugName: string; const PlugValue: string;
-      const RemovePlug: boolean = false;
-      const ForceDirectInsertion: boolean = false);
+      this way many Plug calls that defined the same PLUG_xxx function
+      will be called in the same order. }
+    procedure Plug(const EffectPartType: string; const PlugValue: string);
 
     { More flexible version of Plug, that searches and replaces within specified
-      code string. It also returns success.
-
-      Note that in case of a plug that creates new GLSL function, the new function
-      is still added to the global (complete) shader code.
-      That is, PlugNameDeclareProcedures is still searched in the complete shader
-      code (it doesn't matter if Code equals to one of *ShaderComplete or not). }
-    function PlugCustom(
-      var Code: string; const PlugNameDeclareProcedures: string;
-      const PlugName: string; const PlugValue: string;
-      const RemovePlug, ForceDirectInsertion: boolean): boolean;
+      code. }
+    procedure PlugCustom(const Code: TDynStringArray; PlugValue: string);
 
     procedure ApplyInternalEffects;
     procedure LinkProgram(AProgram: TVRMLShaderProgram);
@@ -205,7 +190,7 @@ type
 
 implementation
 
-uses SysUtils, GL, GLExt, KambiUtils, KambiStringUtils, KambiGLUtils,
+uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
   VRMLErrors, KambiLog, StrUtils, VectorMath, Base3D;
 
 { TODO: a way to turn off using fixed-function pipeline completely
@@ -228,6 +213,20 @@ uses SysUtils, GL, GLExt, KambiUtils, KambiStringUtils, KambiGLUtils,
   using direct normal OpenGL fixed-function functions in VRMLGLRenderer,
   and our shaders just use it.
 }
+
+{ TLightShader --------------------------------------------------------------- }
+
+constructor TLightShader.Create;
+begin
+  inherited;
+  Code := TDynStringArray.Create;
+end;
+
+destructor TLightShader.Destroy;
+begin
+  FreeAndNil(Code);
+  inherited;
+end;
 
 { TLightShaders -------------------------------------------------------------- }
 
@@ -506,8 +505,10 @@ end;
 constructor TVRMLShader.Create;
 begin
   inherited;
-  VertexShaderComplete := {$I template.vs.inc};
-  FragmentShaderComplete := {$I template.fs.inc};
+  VertexShaderComplete := TDynStringArray.Create;
+  VertexShaderComplete.Add({$I template.vs.inc});
+  FragmentShaderComplete := TDynStringArray.Create;
+  FragmentShaderComplete.Add({$I template.fs.inc});
   LightShaders := TLightShaders.Create;
 end;
 
@@ -516,135 +517,101 @@ begin
   FreeAndNil(Uniforms);
   FreeAndNil(UniformsNodes);
   FreeAndNil(LightShaders);
+  FreeAndNil(VertexShaderComplete);
+  FreeAndNil(FragmentShaderComplete);
   inherited;
 end;
 
-function TVRMLShader.PlugCustom(
-  var Code: string; const PlugNameDeclareProcedures: string;
-  const PlugName: string; const PlugValue: string;
-  const RemovePlug, ForceDirectInsertion: boolean): boolean;
+procedure TVRMLShader.PlugCustom(const Code: TDynStringArray; PlugValue: string);
+const
+  PlugPrefix = 'PLUG_';
 
-  { Derive procedure call and declaration code from plug parameter and PlugValue }
-  procedure PlugProcedure(const Parameter: string;
-    out ProcedureCall, ProcedureDeclaration: string);
-
-    function MoveToOpeningParen(var P: Integer): boolean;
-    begin
-      Result := true;
-      repeat
-        Inc(P);
-
-        if P > Length(Parameter) then
-        begin
-          VRMLWarning(vwIgnorable, 'PLUG parameter unexpected end (not closed parenthesis)');
-          Exit(false);
-        end;
-
-        if (Parameter[P] <> '(') and
-           not (Parameter[P] in WhiteSpaces) then
-        begin
-          VRMLWarning(vwIgnorable, Format('PLUG parameter unexpected character "%s" (expected opening parenthesis "(")',
-            [Parameter[P]]));
-          Exit(false);
-        end;
-      until Parameter[P] = '(';
-    end;
-
-    function MoveToMatchingParen(var P: Integer): boolean;
-    var
-      ParenLevel: Cardinal;
-    begin
-      Result := true;
-      ParenLevel := 1;
-
-      repeat
-        Inc(P);
-        if P > Length(Parameter) then
-        begin
-          VRMLWarning(vwIgnorable, 'PLUG parameter unexpected end (not closed parenthesis)');
-          Exit(false);
-        end;
-
-        if Parameter[P] = '(' then
-          Inc(ParenLevel) else
-        if Parameter[P] = ')' then
-          Dec(ParenLevel);
-      until ParenLevel = 0;
-    end;
-
+  { Find PLUG_xxx function inside PlugValue. Returns xxx (the part after
+    PLUG_) if found, or '' if not found. }
+  function FindPlugName(const PlugValue: string): string;
+  const
+    IdentifierChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
   var
-    ProcedureName: string;
-    CallBegin, CallEnd, DeclarationBegin, DeclarationEnd: Integer;
+    P, PBegin: Integer;
   begin
-    ProcedureName := 'plug_' + IntToStr(PlugIdentifiers);
-    Inc(PlugIdentifiers);
+    Result := ''; { assume failure }
+    P := Pos(PlugPrefix, PlugValue);
+    if P <> 0 then
+    begin
+      { There must be whitespace before PLUG_ }
+      if (P > 1) and (not (PlugValue[P - 1] in WhiteSpaces)) then Exit;
+      P += Length(PlugPrefix);
+      PBegin := P;
+      { There must be at least one identifier char after PLUG_ }
+      if (P > Length(PlugValue)) or
+         (not (PlugValue[P] in IdentifierChars)) then Exit;
+      repeat
+        Inc(P);
+      until (P > Length(PlugValue)) or (not (PlugValue[P] in IdentifierChars));
+      { There must be a whitespace or ( after PLUG_xxx }
+      if (P > Length(PlugValue)) or (not (PlugValue[P] in (WhiteSpaces + ['(']))) then
+        Exit;
 
-    CallBegin := 0;
-    if not MoveToOpeningParen(CallBegin) then Exit;
-    CallEnd := CallBegin;
-    if not MoveToMatchingParen(CallEnd) then Exit;
-
-    DeclarationBegin := CallEnd;
-    if not MoveToOpeningParen(DeclarationBegin) then Exit;
-    DeclarationEnd := DeclarationBegin;
-    if not MoveToMatchingParen(DeclarationEnd) then Exit;
-
-    ProcedureCall := ProcedureName +
-      CopyPos(Parameter, CallBegin, CallEnd) + ';' + NL;
-    ProcedureDeclaration := 'void ' + ProcedureName +
-      CopyPos(Parameter, DeclarationBegin, DeclarationEnd) + NL +
-      '{' + NL + PlugValue + NL + '}' + NL;
+      Result := CopyPos(PlugValue, PBegin, P - 1);
+    end;
   end;
 
   procedure InsertIntoCode(const P: Integer; const S: string);
   begin
-    Code := Copy(Code, 0, P - 1) + S + SEnding(Code, P);
+    Code[0] := Copy(Code[0], 1, P - 1) + S + SEnding(Code[0], P);
   end;
 
 var
   PBegin, PEnd: Integer;
-  Parameter, ProcedureCall, ProcedureDeclaration: string;
-  CommentBegin: string;
+  Parameter, PlugName, ProcedureName, CommentBegin: string;
 begin
-  Result := false;
-  CommentBegin := '/* PLUG: ' + PlugName + ' ';
-  PBegin := Pos(CommentBegin, Code);
-  if PBegin <> 0 then
-  begin
-    PEnd := PosEx('*/', Code, PBegin + Length(CommentBegin));
-    if PEnd <> 0 then
+  repeat
+    PlugName := FindPlugName(PlugValue);
+    if PlugName = '' then Break;
+
+    CommentBegin := '/* PLUG: ' + PlugName + ' ';
+    PBegin := Pos(CommentBegin, Code[0]); { TODO: only Code[0] processed for now }
+    if PBegin <> 0 then
     begin
-      Result := true;
-      Parameter := Trim(CopyPos(Code, PBegin + Length(CommentBegin), PEnd - 1));
-
-      if RemovePlug then
-        DeletePos(Code, PBegin, PEnd + 1);
-
-      if Trim(PlugValue) <> '' then
+      PEnd := PosEx('*/', Code[0], PBegin + Length(CommentBegin));
+      if PEnd <> 0 then
       begin
-        if ForceDirectInsertion or (Parameter = 'declaration') then
-          InsertIntoCode(PBegin, PlugValue + NL) else
-        begin
-          PlugProcedure(Parameter, ProcedureCall, ProcedureDeclaration);
-          InsertIntoCode(PBegin,  ProcedureCall);
-          { We use recursive Plug call, to insert procedure declaration
-            at appropriate place. }
-          Plug(PlugNameDeclareProcedures, ProcedureDeclaration, false, true);
-        end;
-      end;
-    end;
-  end;
+        ProcedureName := 'plugged_' + IntToStr(PlugIdentifiers);
+        Inc(PlugIdentifiers);
+
+        StringReplaceAllTo1st(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
+
+        Parameter := Trim(CopyPos(Code[0], PBegin + Length(CommentBegin), PEnd - 1));
+        InsertIntoCode(PBegin, ProcedureName + Parameter + ';' + NL);
+
+        PlugDirectly(Code, '$declare-procedures$', PlugValue);
+      end else
+        VRMLWarning(vwIgnorable, Format('Plug name "%s" comment not properly closed, treating like not declared', [PlugName]));
+    end else
+      VRMLWarning(vwIgnorable, Format('Plug name "%s" not declared', [PlugName]));
+  until false;
 end;
 
-procedure TVRMLShader.Plug(const PlugName: string; const PlugValue: string;
-  const RemovePlug, ForceDirectInsertion: boolean);
+procedure TVRMLShader.Plug(const EffectPartType: string; const PlugValue: string);
 begin
-  if not PlugCustom(VertexShaderComplete, 'vertex-declare-procedures',
-    PlugName, PlugValue, RemovePlug, ForceDirectInsertion) then
-  if not PlugCustom(FragmentShaderComplete, 'fragment-declare-procedures',
-    PlugName, PlugValue, RemovePlug, ForceDirectInsertion) then
-    VRMLWarning(vwIgnorable, Format('Plugging point "%s" for shader code not found',
-      [PlugName]));
+  if EffectPartType = 'VERTEX' then
+    PlugCustom(VertexShaderComplete, PlugValue) else
+  if EffectPartType = 'FRAGMENT' then
+    PlugCustom(FragmentShaderComplete, PlugValue) else
+    VRMLWarning(vwIgnorable, Format('EffectPart.type "%s" is not recognized',
+      [EffectPartType]));
+end;
+
+procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
+  const PlugName, PlugValue: string);
+begin
+  { TODO: make better. PlugDirectly is always one-time? }
+  if Pos('/* PLUG: ' + PlugName, Code[0]) = 0 then
+    VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
+
+  Code[0] := StringReplace(Code[0],
+    '/* PLUG: ' + PlugName, PlugValue + NL +
+    '/* PLUG: ' + PlugName, []);
 end;
 
 procedure TVRMLShader.ApplyInternalEffects;
@@ -653,29 +620,38 @@ const
   ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
 var
   I: Integer;
+  LightFrontCode, LightBackCode: string;
 begin
-  Plug('vertex-process', TextureCoordInitialize + TextureCoordGen
-    + TextureCoordMatrix + ClipPlane,
-    false, true);
-
-  Plug('texture-apply', TextureApply,
-    false, true);
-  Plug('fragment-declare-variables',
-    FragmentShaderDeclare +
-    PCFDefine[PercentageCloserFiltering],
-    false, true);
-  Plug('fragment-declare-procedures', {$I shadow_map_common.fs.inc},
-    false, true);
-  Plug('fragment-end', FragmentEnd,
-    false, true);
+  PlugDirectly(VertexShaderComplete, 'vertex_process',
+    TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane);
+  PlugDirectly(FragmentShaderComplete, 'texture_apply', TextureApply);
+  PlugDirectly(FragmentShaderComplete, '$declare-variables$',
+    FragmentShaderDeclare + PCFDefine[PercentageCloserFiltering]);
+  PlugDirectly(FragmentShaderComplete, '$declare-procedures$',
+    {$I shadow_map_common.fs.inc});
+  PlugDirectly(FragmentShaderComplete, 'fragment_end', FragmentEnd);
 
   for I := 0 to LightShaders.Count - 1 do
     if LightShaders[I] <> nil then
     begin
-      Plug('add-light-contribution-back' , StringReplace(LightShaders[I].Code,
-        'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]));
-      Plug('add-light-contribution-front', StringReplace(LightShaders[I].Code,
-        'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]));
+      { remove $declare-procedures$ plug now, it would conflict with the same
+        plug in fragment shader }
+      LightFrontCode := StringReplace(LightShaders[I].Code[0],
+        '/* PLUG: $declare-procedures$ */', '', [rfReplaceAll]);
+      LightBackCode := LightFrontCode;
+
+      LightFrontCode := StringReplace(LightFrontCode,
+        'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
+      LightBackCode := StringReplace(LightBackCode,
+        'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
+
+      LightFrontCode := StringReplace(LightFrontCode,
+        'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
+      LightBackCode := StringReplace(LightBackCode,
+        'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
+
+      PlugCustom(FragmentShaderComplete, LightFrontCode);
+      PlugCustom(FragmentShaderComplete, LightBackCode);
     end;
 end;
 
@@ -701,15 +677,23 @@ procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
     AProgram.Disable;
   end;
 
+var
+  I: Integer;
 begin
   if Log then
   begin
-    WritelnLogMultiline('Generated GLSL vertex shader', VertexShaderComplete);
-    WritelnLogMultiline('Generated GLSL fragment shader', FragmentShaderComplete);
+    for I := 0 to VertexShaderComplete.Count - 1 do
+      WritelnLogMultiline(Format('Generated GLSL vertex shader[%d]', [I]),
+        VertexShaderComplete[I]);
+    for I := 0 to FragmentShaderComplete.Count - 1 do
+      WritelnLogMultiline(Format('Generated GLSL fragment shader[%d]', [I]),
+        FragmentShaderComplete[I]);
   end;
 
-  AProgram.AttachVertexShader(VertexShaderComplete);
-  AProgram.AttachFragmentShader(FragmentShaderComplete);
+  for I := 0 to VertexShaderComplete.Count - 1 do
+    AProgram.AttachVertexShader(VertexShaderComplete[I]);
+  for I := 0 to FragmentShaderComplete.Count - 1 do
+    AProgram.AttachFragmentShader(FragmentShaderComplete[I]);
   AProgram.Link(true);
 
   AProgram.UniformNotFoundAction := uaWarning;
@@ -808,10 +792,12 @@ begin
        (ShadowLight <> nil) and
        LightShaders.Find(ShadowLight, ShadowLightShader) then
     begin
-      PlugCustom(ShadowLightShader.Code, 'fragment-declare-procedures',
-        'light-scale', Format('scale *= shadow(%s, gl_TexCoord[%d], %d.0);',
-        [Uniform.Name, TextureUnit, ShadowMapSize]),
-        false, true);
+      PlugCustom(ShadowLightShader.Code,
+        Format('void PLUG_light_scale(inout float scale) ' +
+        '{ ' +
+        '  scale *= shadow(%s, gl_TexCoord[%d], %d.0); ' +
+        '} ',
+        [Uniform.Name, TextureUnit, ShadowMapSize]));
     end else
     begin
       { TODO: always modulate mode for now }
@@ -951,25 +937,29 @@ procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
 var
   Uniform: TUniform;
 begin
-  Plug('vertex-declare-variables',
+  PlugCustom(VertexShaderComplete,
     'attribute mat3 tangent_to_object_space;' +NL+
-    'varying mat3 tangent_to_eye_space;');
-
-  Plug('vertex-process',
-    'tangent_to_eye_space = gl_NormalMatrix * tangent_to_object_space;');
-
-  Plug('fragment-declare-variables',
     'varying mat3 tangent_to_eye_space;' +NL+
-    'uniform sampler2D tex_normal_map;');
+    NL+
+    'void PLUG_vertex_process(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+    '{' +NL+
+    '  tangent_to_eye_space = gl_NormalMatrix * tangent_to_object_space;' +NL+
+    '}');
 
-  Plug('fragment-normal-eye',
-    '/* Read normal from the texture, this is the very idea of bump mapping.' +NL+
-    '   Unpack normals, they are in texture in [0..1] range and I want in [-1..1].' +NL+
-    '   Our normal map is always indexed using gl_TexCoord[0] (this way' +NL+
-    '   we depend on already correct gl_TexCoord[0], multiplied by TextureTransform' +NL+
-    '   and such). */' +NL+
-    'normal_eye_fragment = normalize(tangent_to_eye_space * (' +NL+
-    '  texture2D(tex_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0)));');
+  PlugCustom(FragmentShaderComplete,
+    'varying mat3 tangent_to_eye_space;' +NL+
+    'uniform sampler2D tex_normal_map;' +NL+
+    NL+
+    'void PLUG_fragment_normal_eye(inout vec3 normal_eye_fragment)' +NL+
+    '{' +NL+
+    '  /* Read normal from the texture, this is the very idea of bump mapping.' +NL+
+    '     Unpack normals, they are in texture in [0..1] range and I want in [-1..1].' +NL+
+    '     Our normal map is always indexed using gl_TexCoord[0] (this way' +NL+
+    '     we depend on already correct gl_TexCoord[0], multiplied by TextureTransform' +NL+
+    '     and such). */' +NL+
+    '  normal_eye_fragment = normalize(tangent_to_eye_space * (' +NL+
+    '    texture2D(tex_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0)));' +NL+
+    '}');
 
   Uniform := TUniform.Create;
   Uniform.Name := 'tex_normal_map';
@@ -998,8 +988,9 @@ begin
   end;
 
   LightShader := TLightShader.Create;
-  LightShader.Code := Defines + {$I template_add_light.glsl.inc};
-  StringReplaceAllTo1st(LightShader.Code, 'light_number', IntToStr(Number), false);
+  LightShader.Code.Add(Defines + {$I template_add_light.glsl.inc});
+  LightShader.Code[0] := StringReplace(LightShader.Code[0],
+    'light_number', IntToStr(Number), [rfReplaceAll]);
   LightShader.Node := Node;
 
   if Number >= LightShaders.Count then
@@ -1019,7 +1010,7 @@ procedure TVRMLShader.EnableEffects(Effects: TMFNode);
     begin
       Contents := Part.LoadContents;
       if Contents <> '' then
-        Plug(Part.FdName.Value, Contents);
+        Plug(Part.FdType.Value, Contents);
     end;
 
   var

@@ -8,8 +8,8 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 
-'/* PLUG: vertex-declare-variables declaration */' + LineEnding + 
-'/* PLUG: vertex-declare-procedures declaration */' + LineEnding + 
+'/* PLUG: $declare-variables$ */' + LineEnding + 
+'/* PLUG: $declare-procedures$ */' + LineEnding + 
 '' + LineEnding + 
 'varying vec4 vertex_eye;' + LineEnding + 
 'varying vec3 normal_eye;' + LineEnding + 
@@ -22,7 +22,8 @@
 '     TODO: think, make sure. */' + LineEnding + 
 '  normal_eye = normalize(gl_NormalMatrix * gl_Normal);' + LineEnding + 
 '' + LineEnding + 
-'  /* PLUG: vertex-process (vertex_eye, normal_eye) (const in vec4 vertex_eye, const in vec3 normal_eye) */' + LineEnding + 
+'  /* PLUG: vertex_process (vertex_eye, normal_eye) */' + LineEnding + 
+'  /* (const in vec4 vertex_eye, const in vec3 normal_eye) */' + LineEnding + 
 '' + LineEnding + 
 '  gl_Position = ftransform();' + LineEnding + 
 '}' + LineEnding + 

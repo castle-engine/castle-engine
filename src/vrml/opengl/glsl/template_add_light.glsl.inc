@@ -4,6 +4,14 @@
 '   It really only makes sense when used from within VRMLShader unit,' + LineEnding + 
 '   it''s not a standalone piece of code. */' + LineEnding + 
 '' + LineEnding + 
+'/* PLUG: $declare-procedures$ */' + LineEnding + 
+'' + LineEnding + 
+'void PLUG_add_light_contribution_side(inout vec4 color,' + LineEnding + 
+'  const in vec3 normal_eye, const in gl_MaterialParameters material)' + LineEnding + 
+'{' + LineEnding + 
+'' + LineEnding + 
+'/* TODO: fix indent, after commit */' + LineEnding + 
+'' + LineEnding + 
 'vec3 light_dir;' + LineEnding + 
 '' + LineEnding + 
 '/* Calculate light_dir */' + LineEnding + 
@@ -50,7 +58,7 @@
 '#endif' + LineEnding + 
 '' + LineEnding + 
 'float scale = 1.0;' + LineEnding + 
-'/* PLUG: light-scale (scale) (inout float scale) */' + LineEnding + 
+'/* PLUG: light_scale (scale) */' + LineEnding + 
 '' + LineEnding + 
 '/* add ambient term */' + LineEnding + 
 'vec4 light_color = gl_SideLightProduct[light_number].ambient;' + LineEnding + 
@@ -72,4 +80,6 @@
 '#undef LIGHT_TYPE_POSITIONAL' + LineEnding + 
 '#undef LIGHT_TYPE_SPOT' + LineEnding + 
 '#undef LIGHT_TYPE_KNOWN' + LineEnding + 
+'' + LineEnding + 
+'}' + LineEnding + 
 ''

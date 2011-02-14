@@ -351,8 +351,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdName: TSFString;
-    public property FdName: TSFString read FFdName;
+    private FFdtype: TSFString;
+    public property Fdtype: TSFString read FFdtype;
 
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -956,10 +956,10 @@ constructor TNodeEffectPart.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  FFdName := TSFString.Create(Self, 'name', '');
-   FdName.Exposed := false;
-   FdName.ChangesAlways := [chEverything];
-  Fields.Add(FFdName);
+  FFdtype := TSFString.Create(Self, 'type', 'VERTEX');
+   Fdtype.Exposed := false;
+   Fdtype.ChangesAlways := [chEverything];
+  Fields.Add(FFdtype);
 
   FFdurl := TMFString.Create(Self, 'url', []);
    Fdurl.Exposed := false;

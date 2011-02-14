@@ -2,6 +2,14 @@
    It really only makes sense when used from within VRMLShader unit,
    it's not a standalone piece of code. */
 
+/* PLUG: $declare-procedures$ */
+
+void PLUG_add_light_contribution_side(inout vec4 color,
+  const in vec3 normal_eye, const in gl_MaterialParameters material)
+{
+
+/* TODO: fix indent, after commit */
+
 vec3 light_dir;
 
 /* Calculate light_dir */
@@ -48,7 +56,7 @@ if (gl_LightSource[light_number].position.w != 0.0)
 #endif
 
 float scale = 1.0;
-/* PLUG: light-scale (scale) (inout float scale) */
+/* PLUG: light_scale (scale) */
 
 /* add ambient term */
 vec4 light_color = gl_SideLightProduct[light_number].ambient;
@@ -70,3 +78,5 @@ color += light_color * scale;
 #undef LIGHT_TYPE_POSITIONAL
 #undef LIGHT_TYPE_SPOT
 #undef LIGHT_TYPE_KNOWN
+
+}
