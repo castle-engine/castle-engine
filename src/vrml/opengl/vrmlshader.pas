@@ -105,7 +105,7 @@ type
 
   TLightShader = class
   private
-    Code: TDynStringArray;
+    Code: array [boolean] of TDynStringArray;
     Node: TNodeX3DLightNode;
   public
     constructor Create;
@@ -219,12 +219,14 @@ uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
 constructor TLightShader.Create;
 begin
   inherited;
-  Code := TDynStringArray.Create;
+  Code[false] := TDynStringArray.Create;
+  Code[true]  := TDynStringArray.Create;
 end;
 
 destructor TLightShader.Destroy;
 begin
-  FreeAndNil(Code);
+  FreeAndNil(Code[false]);
+  FreeAndNil(Code[true ]);
   inherited;
 end;
 
@@ -620,7 +622,6 @@ const
   ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
 var
   I: Integer;
-  LightFrontCode, LightBackCode: string;
 begin
   PlugDirectly(VertexShaderComplete, 'vertex_process',
     TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane);
@@ -636,22 +637,13 @@ begin
     begin
       { remove $declare-procedures$ plug now, it would conflict with the same
         plug in fragment shader }
-      LightFrontCode := StringReplace(LightShaders[I].Code[0],
+      LightShaders[I].Code[false][0] := StringReplace(LightShaders[I].Code[false][0],
         '/* PLUG: $declare-procedures$ */', '', [rfReplaceAll]);
-      LightBackCode := LightFrontCode;
+      LightShaders[I].Code[true ][0] := StringReplace(LightShaders[I].Code[true ][0],
+        '/* PLUG: $declare-procedures$ */', '', [rfReplaceAll]);
 
-      LightFrontCode := StringReplace(LightFrontCode,
-        'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
-      LightBackCode := StringReplace(LightBackCode,
-        'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
-
-      LightFrontCode := StringReplace(LightFrontCode,
-        'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
-      LightBackCode := StringReplace(LightBackCode,
-        'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
-
-      PlugCustom(FragmentShaderComplete, LightFrontCode);
-      PlugCustom(FragmentShaderComplete, LightBackCode);
+      PlugCustom(FragmentShaderComplete, LightShaders[I].Code[false][0]);
+      PlugCustom(FragmentShaderComplete, LightShaders[I].Code[true ][0]);
     end;
 end;
 
@@ -731,7 +723,7 @@ const
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D');
 var
   Uniform: TUniform;
-  TextureSampleCall: string;
+  TextureSampleCall, ShadowMapEffect: string;
   ShadowLightShader: TLightShader;
 begin
   { Enable for fixed-function pipeline }
@@ -792,12 +784,16 @@ begin
        (ShadowLight <> nil) and
        LightShaders.Find(ShadowLight, ShadowLightShader) then
     begin
-      PlugCustom(ShadowLightShader.Code,
-        Format('void PLUG_light_scale(inout float scale) ' +
+      ShadowMapEffect := Format('void PLUG_light_scale(inout float scale) ' +
         '{ ' +
         '  scale *= shadow(%s, gl_TexCoord[%d], %d.0); ' +
         '} ',
-        [Uniform.Name, TextureUnit, ShadowMapSize]));
+        [Uniform.Name, TextureUnit, ShadowMapSize]);
+      { Calls PlugCustom two times, note that we'll use expand ShadowMapEffect
+        to two different functions. TODO: Maybe in the future make it nicer,
+        but no real need for now. }
+      PlugCustom(ShadowLightShader.Code[false], ShadowMapEffect);
+      PlugCustom(ShadowLightShader.Code[true ], ShadowMapEffect);
     end else
     begin
       { TODO: always modulate mode for now }
@@ -972,7 +968,7 @@ end;
 procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode);
 var
   LightShader: TLightShader;
-  Defines: string;
+  Defines, Code: string;
 begin
   Defines := '';
   if Node <> nil then
@@ -988,10 +984,22 @@ begin
   end;
 
   LightShader := TLightShader.Create;
-  LightShader.Code.Add(Defines + {$I template_add_light.glsl.inc});
-  LightShader.Code[0] := StringReplace(LightShader.Code[0],
-    'light_number', IntToStr(Number), [rfReplaceAll]);
   LightShader.Node := Node;
+
+  Code := Defines + {$I template_add_light.glsl.inc};
+  Code := StringReplace(Code, 'light_number', IntToStr(Number), [rfReplaceAll]);
+  LightShader.Code[false].Add(Code);
+  LightShader.Code[true ].Add(Code);
+
+  LightShader.Code[true ][0] := StringReplace(LightShader.Code[true ][0],
+    'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
+  LightShader.Code[false][0] := StringReplace(LightShader.Code[false][0],
+    'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
+
+  LightShader.Code[true ][0] := StringReplace(LightShader.Code[true ][0],
+    'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
+  LightShader.Code[false][0] := StringReplace(LightShader.Code[false][0],
+    'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
 
   if Number >= LightShaders.Count then
     LightShaders.Count := Number + 1;
