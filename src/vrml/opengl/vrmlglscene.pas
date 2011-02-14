@@ -1092,7 +1092,7 @@ begin
 
   if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
   begin
-    GLScene.Renderer.Unprepare(State.Texture);
+    GLScene.Renderer.UnprepareTexture(State.Texture);
     PreparedForRenderer := false;
     PreparedUseBlending := false;
   end;

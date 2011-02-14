@@ -1146,8 +1146,8 @@ type
       do not change, do not free them. }
     procedure Prepare(State: TVRMLGraphTraverseState);
 
-    { Release resources for this node. }
-    procedure Unprepare(Node: TVRMLNode);
+    { Release resources for this texture. }
+    procedure UnprepareTexture(Node: TNodeX3DTextureNode);
 
     { Release every OpenGL and VRML resource. That is release any knowledge
       connecting us to the current OpenGL context and any knowledge
@@ -2663,21 +2663,9 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.Unprepare(Node: TVRMLNode);
+procedure TVRMLGLRenderer.UnprepareTexture(Node: TNodeX3DTextureNode);
 begin
-  { Note that fonts (for LastNode is TNodeFontStyle) are not unprepared
-    here, since Cache.Fonts are shared by all font nodes. }
-
-  if Node is TNodeX3DTextureNode then
-    GLTextureNodes.Unprepare(Node);
-
-  if Node is TNodeAppearance then
-    BumpMappingRenderers.Unprepare(Node);
-
-  if Node is TNodeComposedShader then
-    GLSLRenderers.Unprepare(Node);
-
-  GLTextureNodes.UnprepareInterfaceDeclarationsTextures(Node, Self);
+  GLTextureNodes.Unprepare(Node);
 end;
 
 procedure TVRMLGLRenderer.UnprepareAll;
