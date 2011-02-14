@@ -114,6 +114,9 @@ type
     { You have to set this before calling Render, to enable proper shading. }
     Shader: TVRMLShader;
 
+    { Used (and updated) to the number of OpenGL texture units reserved. }
+    BoundTextureUnits: Cardinal;
+
     { Don't override this, it is already overridden here
       to do everything necessary. }
     procedure Render; override;
@@ -174,7 +177,10 @@ begin
          (Shape.Node.Appearance <> nil) then
         Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
 
-      Shape.ShaderProgram := Shader.CreateProgram;
+      Shape.ShaderProgram := TVRMLGLSLProgram.Create;
+      Shape.ShaderProgram.Renderer := Renderer;
+
+      Shader.LinkProgram(Shape.ShaderProgram);
     except on E: EGLSLError do
       VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
         [Shape.OriginalGeometry.NodeTypeName, E.Message]));
@@ -185,7 +191,7 @@ begin
   begin
     UsedGLSL := Shape.ShaderProgram;
     Shape.ShaderProgram.Enable;
-    Shader.SetupUniforms(Shape.ShaderProgram);
+    Shape.ShaderProgram.SetupUniforms(BoundTextureUnits);
     ShaderProgramUsed := true;
   end;
 end;

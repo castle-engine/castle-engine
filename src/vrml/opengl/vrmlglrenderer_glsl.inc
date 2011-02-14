@@ -117,6 +117,7 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
     BoundValue: LongInt;
     UniformValue: TDynLongIntArray;
   begin
+    Assert(IDecls <> nil);
     for I := 0 to IDecls.Count - 1 do
     begin
       UniformField := IDecls.Items[I].Field;
@@ -151,9 +152,12 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
     end;
   end;
 
+var
+  I: Integer;
 begin
   Result := inherited SetupUniforms(BoundTextureUnits);
-  BindShaderFields(Node.InterfaceDeclarations);
+  for I := 0 to UniformsNodes.Count - 1 do
+    BindShaderFields(UniformsNodes[I].InterfaceDeclarations);
 end;
 
 { TGLSLRenderer -------------------------------------------------------------- }
@@ -176,8 +180,6 @@ begin
   if GLSLProgram <> nil then
   begin
     GLSLProgram.Renderer := Renderer;
-    GLSLProgram.Node := Node;
-
     { Only if GLSL program successfully created, prepare all texture nodes
       in Node.InterfaceDeclarations. These will be passed to uniform
       variable values in Enable. }

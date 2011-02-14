@@ -44,11 +44,24 @@ type
   TTexGenerationComplete = (tgSphere, tgNormal, tgReflection);
   TTexComponent = 0..3;
 
-  { GLSL program integrated with VRML/X3D. Adds ability to bind uniform
-    values from VRML/X3D fields, and to observe VRML/X3D events
-    and automatically update uniform values. }
-  TVRMLGLSLBaseProgram = class(TGLSLProgram)
+  { GLSL program integrated with VRML/X3D and TVRMLShader.
+    Allows to bind uniform values from VRML/X3D fields,
+    and to observe VRML/X3D events and automatically update uniform values.
+    Also allows to initialize and check program by TVRMLShader.LinkProgram,
+    TVRMLShader.ProgramSettingsEqual. }
+  TVRMLShaderProgram = class(TGLSLProgram)
   private
+    { State of TVRMLShader when initializing this shader by LinkProgram.
+      Used to decide when shader needs to be regenerated.
+      Note that our shaders for ComposedShader are not touched by LinkProgram,
+      so they don't use these fields (which isn't a problem, since they
+      also don't use ProgramSettingsEqual).
+      @groupBegin }
+    LightsEnabled: Cardinal;
+    PercentageCloserFiltering: TPercentageCloserFiltering;
+    VisualizeDepthMap: boolean;
+    { @groupEnd }
+
     { Events where we registered our EventReceive method. }
     EventsObserved: TVRMLEventsList;
 
@@ -68,22 +81,25 @@ type
       and will automatically update uniform value when we receive an event. }
     procedure BindUniform(const FieldOrEvent: TVRMLInterfaceDeclaration;
       const EnableDisable: boolean);
+  protected
+    { Nodes that have interface declarations with textures for this shader. }
+    UniformsNodes: TVRMLNodesList;
   public
     constructor Create;
     destructor Destroy; override;
 
-    { Set and observe uniform variables from given Node.InterfaceDeclarations. }
-    procedure BindUniforms(const Node: TVRMLNode;
-      const EnableDisable: boolean);
-  end;
+    { Set and observe uniform variables from given Node.InterfaceDeclarations.
 
-  TVRMLShaderProgram = class(TVRMLGLSLBaseProgram)
-  private
-    { State of TVRMLShader when creating this shader.
-      Used to decide when shader needs to be regenerated. }
-    LightsEnabled: Cardinal;
-    PercentageCloserFiltering: TPercentageCloserFiltering;
-    VisualizeDepthMap: boolean;
+      Non-texture fields are set immediately.
+      Non-texture fields are events are then observed by this shader,
+      and automatically updated when changed.
+
+      Texture fields have to be updated by descendant (like TVRMLGLSLProgram),
+      using the UniformsNodes list. These methods add nodes to this list.
+      @groupBegin }
+    procedure BindUniforms(const Node: TVRMLNode; const EnableDisable: boolean);
+    procedure BindUniforms(const Nodes: TVRMLNodesList; const EnableDisable: boolean);
+    { @groupEnd }
   end;
 
   TLightShader = class
@@ -98,15 +114,16 @@ type
 
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
-    you can use the @link(CreateProgram) to create and link a program
-    (that you should then enable), or simply allow the fixed-function
-    pipeline to work.
+    you can create TVRMLShaderProgram instance
+    and initialize it by LinkProgram here, then enable it if you want.
+    Or you can simply allow the fixed-function pipeline to work.
 
     This is used internally by TVRMLGLRenderer. It isn't supposed to be used
     directly by other code. }
   TVRMLShader = class
   private
     Uniforms: TUniformsList;
+    { If non-nil, the list of effect nodes that determine uniforms of our program. }
     UniformsNodes: TVRMLNodesList;
     TextureApply, TextureCoordInitialize,
       TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare,
@@ -154,10 +171,9 @@ type
       const RemovePlug, ForceDirectInsertion: boolean): boolean;
 
     procedure ApplyInternalEffects;
-    function CreateProgram: TVRMLShaderProgram;
-    procedure SetupUniforms(AProgram: TVRMLShaderProgram);
+    procedure LinkProgram(AProgram: TVRMLShaderProgram);
 
-    { Given one TVRMLShaderProgram, created for the same shape by CreateProgram,
+    { Given one TVRMLShaderProgram, created for the same shape by LinkProgram,
       do these program settings matching current TVRMLShader settings.
       This is used to decide when shape settings (for example,
       lights count or such) change and require regenerating the shader. }
@@ -229,15 +245,16 @@ begin
   Result := false;
 end;
 
-{ TVRMLGLSLBaseProgram ------------------------------------------------------- }
+{ TVRMLShaderProgram ------------------------------------------------------- }
 
-constructor TVRMLGLSLBaseProgram.Create;
+constructor TVRMLShaderProgram.Create;
 begin
   inherited;
   EventsObserved := TVRMLEventsList.Create;
+  UniformsNodes := TVRMLNodesList.Create;
 end;
 
-destructor TVRMLGLSLBaseProgram.Destroy;
+destructor TVRMLShaderProgram.Destroy;
 var
   I: Integer;
 begin
@@ -247,10 +264,11 @@ begin
       EventsObserved[I].OnReceive.Remove(@EventReceive);
     FreeAndNil(EventsObserved);
   end;
+  FreeAndNil(UniformsNodes);
   inherited;
 end;
 
-procedure TVRMLGLSLBaseProgram.BindUniform(const FieldOrEvent: TVRMLInterfaceDeclaration;
+procedure TVRMLShaderProgram.BindUniform(const FieldOrEvent: TVRMLInterfaceDeclaration;
   const EnableDisable: boolean);
 var
   UniformField: TVRMLField;
@@ -287,7 +305,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLSLBaseProgram.SetUniformFromField(
+procedure TVRMLShaderProgram.SetUniformFromField(
   const UniformName: string; const UniformValue: TVRMLField;
   const EnableDisable: boolean);
 var
@@ -436,7 +454,7 @@ begin
     Disable;
 end;
 
-procedure TVRMLGLSLBaseProgram.EventReceive(
+procedure TVRMLShaderProgram.EventReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   UniformName: string;
@@ -462,7 +480,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLSLBaseProgram.BindUniforms(const Node: TVRMLNode;
+procedure TVRMLShaderProgram.BindUniforms(const Node: TVRMLNode;
   const EnableDisable: boolean);
 var
   I: Integer;
@@ -471,6 +489,16 @@ begin
   Assert(Node.InterfaceDeclarations <> nil);
   for I := 0 to Node.InterfaceDeclarations.Count - 1 do
     BindUniform(Node.InterfaceDeclarations[I], EnableDisable);
+  UniformsNodes.Add(Node);
+end;
+
+procedure TVRMLShaderProgram.BindUniforms(const Nodes: TVRMLNodesList;
+  const EnableDisable: boolean);
+var
+  I: Integer;
+begin
+  for I := 0 to Nodes.Count - 1 do
+    BindUniforms(Nodes[I], EnableDisable);
 end;
 
 { TVRMLShader ---------------------------------------------------------------- }
@@ -651,7 +679,28 @@ begin
     end;
 end;
 
-function TVRMLShader.CreateProgram: TVRMLShaderProgram;
+procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
+
+  procedure SetupUniformsOnce;
+  var
+    I: Integer;
+  begin
+    AProgram.Enable;
+
+    if Uniforms <> nil then
+      for I := 0 to Uniforms.Count - 1 do
+        case Uniforms[I].AType of
+          utLongInt: AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.LongInt);
+          utSingle : AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.Single );
+          else raise EInternalError.Create('TVRMLShader.SetupUniformsOnce:Uniforms[I].Type?');
+        end;
+
+    if UniformsNodes <> nil then
+      AProgram.BindUniforms(UniformsNodes, false);
+
+    AProgram.Disable;
+  end;
+
 begin
   if Log then
   begin
@@ -659,19 +708,19 @@ begin
     WritelnLogMultiline('Generated GLSL fragment shader', FragmentShaderComplete);
   end;
 
-  Result := TVRMLShaderProgram.Create;
-  try
-    Result.AttachVertexShader(VertexShaderComplete);
-    Result.AttachFragmentShader(FragmentShaderComplete);
-    Result.Link(true);
+  AProgram.AttachVertexShader(VertexShaderComplete);
+  AProgram.AttachFragmentShader(FragmentShaderComplete);
+  AProgram.Link(true);
 
-    Result.UniformNotFoundAction := uaWarning;
-    Result.UniformTypeMismatchAction := utWarning;
+  AProgram.UniformNotFoundAction := uaWarning;
+  AProgram.UniformTypeMismatchAction := utWarning;
 
-    Result.LightsEnabled := LightsEnabled;
-    Result.PercentageCloserFiltering := PercentageCloserFiltering;
-    Result.VisualizeDepthMap := VisualizeDepthMap;
-  except Result.Free; raise end;
+  AProgram.LightsEnabled := LightsEnabled;
+  AProgram.PercentageCloserFiltering := PercentageCloserFiltering;
+  AProgram.VisualizeDepthMap := VisualizeDepthMap;
+
+  { set uniforms that will not need to be updated at each SetupUniforms call }
+  SetupUniformsOnce;
 end;
 
 function TVRMLShader.ProgramSettingsEqual(AProgram: TVRMLShaderProgram): boolean;
@@ -681,23 +730,6 @@ begin
     (AProgram.PercentageCloserFiltering = PercentageCloserFiltering) and
     (AProgram.VisualizeDepthMap = VisualizeDepthMap)
   );
-end;
-
-procedure TVRMLShader.SetupUniforms(AProgram: TVRMLShaderProgram);
-var
-  I: Integer;
-begin
-  if Uniforms <> nil then
-    for I := 0 to Uniforms.Count - 1 do
-      case Uniforms[I].AType of
-        utLongInt: AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.LongInt);
-        utSingle : AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.Single );
-        else raise EInternalError.Create('TVRMLShader.SetupUniforms:Uniforms[I].Type?');
-      end;
-
-  if UniformsNodes <> nil then
-    for I := 0 to UniformsNodes.Count - 1 do
-      AProgram.BindUniforms(UniformsNodes[I], false);
 end;
 
 procedure TVRMLShader.AddUniform(Uniform: TUniform);

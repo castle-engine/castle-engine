@@ -781,10 +781,9 @@ type
 
   { GLSL program integrated with VRML renderer. Adds ability to bind
     VRML textures to uniform variables of GLSL shader. }
-  TVRMLGLSLProgram = class(TVRMLGLSLBaseProgram)
+  TVRMLGLSLProgram = class(TVRMLShaderProgram)
   private
     Renderer: TVRMLGLRenderer;
-    Node: TNodeComposedShader;
   public
     function SetupUniforms(var BoundTextureUnits: Cardinal): boolean; override;
   end;
@@ -967,7 +966,7 @@ type
     procedure LoadArraysToVbo;
   public
     Cache: TShapeCache;
-    ShaderProgram: TVRMLShaderProgram;
+    ShaderProgram: TVRMLGLSLProgram;
   end;
 
   TVRMLGLRenderer = class
@@ -1000,14 +999,17 @@ type
     MaterialLit: boolean;
     MaterialOpacity: Single;
 
-    { For how many texture units do we have to generate tex coords.
-      This is the number of texture units used.
+    { How many texture units are used.
 
       It's always clamped by the number of available texture units
       (GLMaxTextureUnits).
       Always <= 1 if OpenGL doesn't support multitexturing.
       TODO: when ARB_multitexture, but not GLUseMultiTexturing,
       this will be > 1. Is everything ready for this? }
+    BoundTextureUnits: Cardinal;
+
+    { For how many texture units do we have to generate tex coords.
+      Always <= BoundTextureUnits. }
     TexCoordsNeeded: Cardinal;
 
     { For which texture units we pushed and modified the texture matrix.
@@ -3465,11 +3467,11 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
     GLTextureNode: TGLTextureNode;
     AlphaTest: boolean;
   begin
+    TexCoordsNeeded := 0;
+    BoundTextureUnits := 0;
+
     if Attributes.PureGeometry then
-    begin
-      TexCoordsNeeded := 0;
       Exit;
-    end;
 
     if not Attributes.ControlTextures then
     begin
@@ -3477,19 +3479,21 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
         (like setting active texture, enabling/disabling it, don't even look
         at VRML texture node.) }
       TexCoordsNeeded := 1;
+      BoundTextureUnits := 1;
       Exit;
     end;
 
     AlphaTest := false;
     TextureNode := Shape.State.Texture;
-    TexCoordsNeeded := 0;
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
 
     if UsedGLSLTexCoordsNeeded > 0 then
     begin
-      { Do not bind/enable normal textures. Just set TexCoordsNeeded,
+      { Do not bind/enable normal textures. Just set
+        BoundTextureUnits and TexCoordsNeeded (equal),
         to generate tex coords for textures used in the shader. }
       TexCoordsNeeded := UsedGLSLTexCoordsNeeded;
+      BoundTextureUnits := UsedGLSLTexCoordsNeeded;
     end else
     if (TextureNode <> nil) and
        Attributes.EnableTextures and
@@ -3501,12 +3505,15 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
       AlphaTest := GLTextureNode.AlphaChannelType = atSimpleYesNo;
 
       GLTextureNode.EnableAll(GLMaxTextureUnits, TexCoordsNeeded, Shader);
+      BoundTextureUnits := TexCoordsNeeded;
 
       { If there is any texture, and we have room for one more texture,
-        try enabling bump mapping }
+        try enabling bump mapping. Note that we don't increase
+        TexCoordsNeeded for this, as bump mapping uses the existing
+        texture coord. }
       if (TexCoordsNeeded > 0) and
          (TexCoordsNeeded < GLMaxTextureUnits) then
-        BumpMappingRenderers.Enable(Shape.State, TexCoordsNeeded, Shader);
+        BumpMappingRenderers.Enable(Shape.State, BoundTextureUnits, Shader);
     end;
 
     { Set ALPHA_TEST enabled state.
@@ -3635,6 +3642,7 @@ begin
 
     CoordinateRenderer.Arrays := Shape.Cache.Arrays;
     CoordinateRenderer.Shader := Shader;
+    CoordinateRenderer.BoundTextureUnits := BoundTextureUnits;
   end;
 
   if PrepareRenderShape = 0 then
