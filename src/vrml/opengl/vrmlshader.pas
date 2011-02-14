@@ -66,13 +66,15 @@ type
     { Set uniform shader variable from VRML/X3D field (exposed or not).
       We also start observing an exposed field or eventIn,
       and will automatically update uniform value when we receive an event. }
-    procedure BindUniform(const FieldOrEvent: TVRMLInterfaceDeclaration);
+    procedure BindUniform(const FieldOrEvent: TVRMLInterfaceDeclaration;
+      const EnableDisable: boolean);
   public
     constructor Create;
     destructor Destroy; override;
 
     { Set and observe uniform variables from given Node.InterfaceDeclarations. }
-    procedure BindUniforms(const Node: TVRMLNode);
+    procedure BindUniforms(const Node: TVRMLNode;
+      const EnableDisable: boolean);
   end;
 
   TVRMLShaderProgram = class(TVRMLGLSLBaseProgram)
@@ -248,7 +250,8 @@ begin
   inherited;
 end;
 
-procedure TVRMLGLSLBaseProgram.BindUniform(const FieldOrEvent: TVRMLInterfaceDeclaration);
+procedure TVRMLGLSLBaseProgram.BindUniform(const FieldOrEvent: TVRMLInterfaceDeclaration;
+  const EnableDisable: boolean);
 var
   UniformField: TVRMLField;
   UniformEvent, ObservedEvent: TVRMLEvent;
@@ -264,7 +267,7 @@ begin
     { Ok, we have a field with a value (interface declarations with
       fields inside ComposedShader / Effect always have a value).
       So set GLSL uniform variable from this field. }
-    SetUniformFromField(UniformField.Name, UniformField, true);
+    SetUniformFromField(UniformField.Name, UniformField, EnableDisable);
   end;
 
   { Allow future changing of this GLSL uniform variable,
@@ -459,14 +462,15 @@ begin
   end;
 end;
 
-procedure TVRMLGLSLBaseProgram.BindUniforms(const Node: TVRMLNode);
+procedure TVRMLGLSLBaseProgram.BindUniforms(const Node: TVRMLNode;
+  const EnableDisable: boolean);
 var
   I: Integer;
 begin
   Assert(Node.HasInterfaceDeclarations <> []);
   Assert(Node.InterfaceDeclarations <> nil);
   for I := 0 to Node.InterfaceDeclarations.Count - 1 do
-    BindUniform(Node.InterfaceDeclarations[I]);
+    BindUniform(Node.InterfaceDeclarations[I], EnableDisable);
 end;
 
 { TVRMLShader ---------------------------------------------------------------- }
@@ -693,7 +697,7 @@ begin
 
   if UniformsNodes <> nil then
     for I := 0 to UniformsNodes.Count - 1 do
-      AProgram.BindUniforms(UniformsNodes[I]);
+      AProgram.BindUniforms(UniformsNodes[I], false);
 end;
 
 procedure TVRMLShader.AddUniform(Uniform: TUniform);

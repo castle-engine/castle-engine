@@ -2042,7 +2042,7 @@ function TVRMLGLRendererContextCache.GLSLProgram_IncReference_Core(
     GLSLProgram.UniformNotFoundAction := uaWarning;
     GLSLProgram.UniformTypeMismatchAction := utWarning;
 
-    GLSLProgram.BindUniforms(ProgramNode);
+    GLSLProgram.BindUniforms(ProgramNode, true);
   end;
 
 var
