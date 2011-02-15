@@ -770,8 +770,11 @@ begin
     { visualizing depth map requires a little different approach:
       - we use shadow_depth() instead of shadow() function
       - we *set* gl_FragColor, not modulate it, to ignore previous textures
-      - we return after, to ignore following textures
-      - the sampler is sampler2D, not sampler2DShadow }
+      - we call "return" after, to ignore following textures
+      - the sampler is sampler2D, not sampler2DShadow
+      - also, we use gl_FragColor (while we should use fragment_color otherwise),
+        because we don't care about previous texture operations and
+        we want to return immediately. }
     TextureSampleCall := 'vec4(vec3(shadow_depth(%s, %s)), gl_FragColor.a)';
     TextureApply += Format('gl_FragColor = ' + TextureSampleCall + ';' + NL +
       'return;',
@@ -799,14 +802,14 @@ begin
       { TODO: always modulate mode for now }
       case TextureType of
         tt2D      : TextureSampleCall := 'texture2D(%s, %s.st)';
-        tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), gl_FragColor.a)';
+        tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), fragment_color.a)';
         ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
         { For 3D textures, remember we may get 4D tex coords
           through TextureCoordinate4D, so we have to use texture3DProj }
         tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
         else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
       end;
-      TextureApply += Format('gl_FragColor *= ' + TextureSampleCall + ';' + NL,
+      TextureApply += Format('fragment_color *= ' + TextureSampleCall + ';' + NL,
         [Uniform.Name, 'gl_TexCoord[' + IntToStr(TextureUnit) + ']']);
     end;
     FragmentShaderDeclare += Format('uniform %s %s;' + NL,
