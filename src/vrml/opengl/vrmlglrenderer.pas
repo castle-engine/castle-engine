@@ -746,8 +746,9 @@ type
     Geometry: TVRMLGeometryNode;
     State: TVRMLGraphTraverseState;
     Fog: INodeX3DFogObject;
-    FogDistanceScaling: Single;
-
+    FogVolumetric: boolean;
+    FogVolumetricDirection: TVector3Single;
+    FogVolumetricVisibilityStart: Single;
     References: Cardinal;
 
     { An instance of TGeometryArrays, decomposing this shape geometry.
@@ -2111,12 +2112,12 @@ end;
 function TVRMLGLRendererContextCache.Shape_IncReference(
   Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
   ARenderer: TVRMLGLRenderer): TShapeCache;
+var
+  FogEnabled, FogVolumetric: boolean;
+  FogVolumetricDirection: TVector3Single;
+  FogVolumetricVisibilityStart: Single;
 
   function IgnoreStateTransform: boolean;
-  var
-    Enabled, Volumetric: boolean;
-    VolumetricDirection: TVector3Single;
-    VolumetricVisibilityStart: Single;
   begin
     if { Force CacheIgnoresTransform to be false if our shape uses shaders.
          Shaders may depend on coordinates in eye space, which obviously
@@ -2126,27 +2127,48 @@ function TVRMLGLRendererContextCache.Shape_IncReference(
       (Shape.Node.Appearance.FdShaders.Count <> 0) then
       Exit(false);
 
-    ARenderer.GetFog(Fog, Enabled, Volumetric,
-      VolumetricDirection, VolumetricVisibilityStart);
-
     Result := not (
       { If we use any features that (may) render shape differently
         if shape's transform (or other stuff handled outside arrays
         and vrmlmeshrenderer), then Result must be false. }
       Assigned(ARenderer.Attributes.OnVertexColor) or
       Assigned(ARenderer.Attributes.OnRadianceTransfer) or
-      Volumetric);
+      FogVolumetric);
+  end;
+
+  function FogVolumetricEqual(
+    const Volumetric1: boolean;
+    const VolumetricDirection1: TVector3Single;
+    const VolumetricVisibilityStart1: Single;
+    const Volumetric2: boolean;
+    const VolumetricDirection2: TVector3Single;
+    const VolumetricVisibilityStart2: Single): boolean;
+  begin
+    Result := (Volumetric1 = Volumetric2) and
+      ( (not Volumetric1) or
+        ( VectorsPerfectlyEqual(VolumetricDirection1, VolumetricDirection2) and
+          (VolumetricVisibilityStart1 = VolumetricVisibilityStart2) ) );
   end;
 
 var
   I: Integer;
 begin
+  ARenderer.GetFog(Fog, FogEnabled, FogVolumetric,
+    FogVolumetricDirection, FogVolumetricVisibilityStart);
+
   for I := 0 to ShapeCaches.Count - 1 do
   begin
     Result := ShapeCaches[I];
     if (Result.Geometry = Shape.Geometry) and
        Result.Attributes.EqualForShapeCache(ARenderer.Attributes) and
-       Result.State.Equals(Shape.State, IgnoreStateTransform) then
+       Result.State.Equals(Shape.State, IgnoreStateTransform) and
+       FogVolumetricEqual(
+         Result.FogVolumetric,
+         Result.FogVolumetricDirection,
+         Result.FogVolumetricVisibilityStart,
+         FogVolumetric,
+         FogVolumetricDirection,
+         FogVolumetricVisibilityStart) then
     begin
       Inc(Result.References);
       if LogRendererCache and Log then
@@ -2163,9 +2185,9 @@ begin
   Result.Geometry := Shape.Geometry;
   Result.State := Shape.State;
   Result.Fog := Fog;
-  if Fog <> nil then
-    Result.FogDistanceScaling := Fog.TransformScale else
-    Result.FogDistanceScaling := 0;
+  Result.FogVolumetric := FogVolumetric;
+  Result.FogVolumetricDirection := FogVolumetricDirection;
+  Result.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
   Result.References := 1;
 
   if LogRendererCache and Log then
