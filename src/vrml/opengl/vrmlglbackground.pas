@@ -47,6 +47,8 @@ type
     szescianNieba_list: TGLuint;
     nieboTex: packed array [TBackgroundSide] of TGLuint;
   public
+    Transform: TMatrix4Single;
+
     { Render background around.
 
       Current modelview matrix should contain only the camera rotation.
@@ -94,7 +96,7 @@ type
 
       Any of the TBackgroundImages passed here may be @nil,
       or of a class that can be rendered as OpenGL textures (TextureImageClasses). }
-    constructor Create(const Transform: TMatrix4Single;
+    constructor Create(
       GroundAngle: PArray_Single; GroundAngleCount: Integer;
       GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
       const Imgs: TBackgroundImages;
@@ -125,7 +127,10 @@ const
 
 procedure TVRMLGLBackground.Render;
 begin
- glCallList(szescianNieba_list);
+  glPushMatrix;
+    glMultMatrix(Transform);
+    glCallList(szescianNieba_list);
+  glPopMatrix;
 end;
 
 class function TVRMLGLBackground.NearFarToSkySphereRadius(const zNear, zFar: Single;
@@ -164,7 +169,7 @@ begin
     Result := (Min + Max) / 2;
 end;
 
-constructor TVRMLGLBackground.Create(const Transform: TMatrix4Single;
+constructor TVRMLGLBackground.Create(
   GroundAngle: PArray_Single; GroundAngleCount: Integer;
   GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
   const Imgs: TBackgroundImages;
@@ -360,7 +365,6 @@ begin
 
  glNewList(szescianNieba_list, GL_COMPILE);
  glPushAttrib(GL_ENABLE_BIT or GL_TEXTURE_BIT or GL_COLOR_BUFFER_BIT);
- glPushMatrix;
  try
    glDisable(GL_DEPTH_TEST);
    glDisable(GL_LIGHTING);
@@ -372,8 +376,6 @@ begin
    glDisable(GL_TEXTURE_2D);
    if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
    if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
-
-   glMultMatrix(Transform);
 
    { wykonujemy najbardziej elementarna optymalizacje : jesli mamy 6 tekstur
      i zadna nie ma kanalu alpha (a w praktyce jest to chyba najczestsza sytuacja)
@@ -451,7 +453,6 @@ begin
 
    for bs := Low(bs) to High(bs) do RenderTextureSide(bs);
  finally
-  glPopMatrix;
   glPopAttrib;
   glEndList;
  end;

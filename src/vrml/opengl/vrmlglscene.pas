@@ -3464,7 +3464,6 @@ end;
 procedure TVRMLGLScene.PrepareBackground;
 { After PrepareBackground assertion FBackgroundValid is valid }
 var
-  BgTransform: TMatrix4Single;
   BgNode: TNodeBackground;
   SkyAngleCount: Integer;
   SkyColorCount: Integer;
@@ -3487,7 +3486,6 @@ begin
         [BackgroundSkySphereRadius]));
 
     BgNode := TNodeBackground(BackgroundStack.Top);
-    BgTransform := BgNode.Transform;
 
     SkyAngleCount := BgNode.FdSkyAngle.Count;
     SkyColorCount := BgNode.FdSkyColor.Count;
@@ -3527,20 +3525,12 @@ begin
           GroundColorCount := GroundAngleCount + 1;
       end;
 
-      { TODO: We should extract here only rotation from BgTransform matrix.
-        Below is a very hacky way of at least cancelling the translation.
-        This will work OK for any rigid body matrix, i.e. composed only from
-        rotation and translation. }
-      BgTransform[3, 0] := 0;
-      BgTransform[3, 1] := 0;
-      BgTransform[3, 2] := 0;
-
       { The call to BgNode.BgImages is important here, as it may actually
         load the images from file. So first we want to set
         BgNode.Cache as appropriate. }
       BgNode.Cache := Renderer.Cache;
 
-      FBackground := TVRMLGLBackground.Create(BgTransform,
+      FBackground := TVRMLGLBackground.Create(
         @(BgNode.FdGroundAngle.Items.Items[0]), GroundAngleCount,
         @(BgNode.FdGroundColor.Items.Items[0]), GroundColorCount,
         BgNode.BgImages,
@@ -3556,9 +3546,18 @@ begin
 end;
 
 function TVRMLGLScene.Background: TVRMLGLBackground;
+var
+  BackgroundNode: TNodeX3DBackgroundNode;
 begin
- PrepareBackground;
- result := FBackground;
+  PrepareBackground;
+  Result := FBackground;
+
+  BackgroundNode := BackgroundStack.Top as TNodeX3DBackgroundNode;
+  if BackgroundNode <> nil then
+  begin
+    Assert(Result <> nil, 'Since we have Background node, also a background renderer should be already created');
+    Result.Transform := BackgroundNode.TransformRotation;
+  end;
 end;
 
 function TVRMLGLScene.Attributes: TVRMLSceneRenderingAttributes;

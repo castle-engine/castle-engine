@@ -3366,9 +3366,9 @@ begin
       end;
     ntcBackground:
       begin
-        { TODO: make this work to actually change displayed background }
-        if Node = ParentScene.BackgroundStack.Top then
-          raise BreakTransformChangeFailed.Create('bound ' + Node.NodeTypeName);
+        { Just make redraw. It will redraw the background with
+          new transform correctly. }
+        AnythingChanged := true;
       end;
     ntcFog:
       begin

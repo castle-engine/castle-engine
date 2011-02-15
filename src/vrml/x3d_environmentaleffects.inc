@@ -37,6 +37,8 @@
 
     private FFdtransparency: TSFFloat;
     public property Fdtransparency: TSFFloat read FFdtransparency;
+
+    function TransformRotation: TMatrix4Single;
   end;
 
   INodeX3DFogObject = interface(IVRMLNode)
@@ -344,6 +346,17 @@ end;
 function TNodeX3DBackgroundNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcBackground;
+end;
+
+function TNodeX3DBackgroundNode.TransformRotation: TMatrix4Single;
+begin
+  Result := Transform;
+
+  { TODO: We should extract here only rotation from BgTransform matrix.
+    Below is a very hacky way of at least cancelling the translation.
+    This will work OK for any rigid body matrix, i.e. composed only from
+    rotation and translation. }
+  Result[3] := ZeroVector4Single;
 end;
 
 constructor TBackgroundImages.InitClear;
