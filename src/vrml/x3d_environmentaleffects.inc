@@ -301,27 +301,27 @@ begin
   inherited;
 
   FFdgroundAngle := TMFFloat.Create(Self, 'groundAngle', []);
-   FdgroundAngle.ChangesAlways := [chEverything];
+   FdgroundAngle.ChangesAlways := [chBackground];
   Fields.Add(FFdgroundAngle);
   { X3D specification comment: [0,Pi/2] }
 
   FFdgroundColor := TMFColor.Create(Self, 'groundColor', []);
-   FdgroundColor.ChangesAlways := [chEverything];
+   FdgroundColor.ChangesAlways := [chBackground];
   Fields.Add(FFdgroundColor);
   { X3D specification comment: [0,1] }
 
   FFdskyAngle := TMFFloat.Create(Self, 'skyAngle', []);
-   FdskyAngle.ChangesAlways := [chEverything];
+   FdskyAngle.ChangesAlways := [chBackground];
   Fields.Add(FFdskyAngle);
   { X3D specification comment: [0,Pi] }
 
   FFdskyColor := TMFColor.Create(Self, 'skyColor', Vector3Single(0, 0, 0));
-   FdskyColor.ChangesAlways := [chEverything];
+   FdskyColor.ChangesAlways := [chBackground];
   Fields.Add(FFdskyColor);
   { X3D specification comment: [0,1] }
 
   FFdtransparency := TSFFloat.Create(Self, 'transparency', 0);
-   Fdtransparency.ChangesAlways := [chEverything];
+   Fdtransparency.ChangesAlways := [chBackground];
   Fields.Add(FFdtransparency);
   { X3D specification comment: [0,1] }
 

@@ -839,6 +839,8 @@ type
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
 
     procedure UpdateHeadlightOnFromNavigationInfo;
+
+    procedure InvalidateBackground; virtual;
   protected
     GeneratedTextures: TDynGeneratedTextureArray;
 
@@ -4035,6 +4037,12 @@ var
     VisibleChangeHere([vcVisibleNonGeometry]);
   end;
 
+  procedure HandleBackground;
+  begin
+    InvalidateBackground;
+    VisibleChangeHere([vcVisibleNonGeometry]);
+  end;
+
 begin
   Node := TVRMLNode(Field.ParentNode);
   Assert(Node <> nil);
@@ -4096,6 +4104,7 @@ begin
     if chDragSensorEnabled in Changes then HandleChangeDragSensorEnabled;
     if chNavigationInfo in Changes then HandleChangeNavigationInfo;
     if chScreenEffectEnabled in Changes then HandleChangeScreenEffectEnabled;
+    if chBackground in Changes then HandleBackground;
     if chEverything in Changes then HandleChangeEverything;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,
@@ -6617,6 +6626,10 @@ begin
      (WorldInfoNode.FdTitle.Value <> '') then
     Result := WorldInfoNode.FdTitle.Value else
     Result := ExtractFileName(FileName);
+end;
+
+procedure TVRMLScene.InvalidateBackground;
+begin
 end;
 
 end.

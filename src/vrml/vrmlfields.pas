@@ -286,6 +286,10 @@ type
     { ScreenEffect.enabled changed }
     chScreenEffectEnabled,
 
+    { X3DBackgroundNode properties that are stored inside TVRMLGLBackground
+      display list have changed. }
+    chBackground,
+
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
       TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
@@ -2575,6 +2579,7 @@ const
     'X3DDragSensorNode.enabled',
     'NavigationInfo',
     'ScreenEffect.enabled',
+    'Background',
     'Everything' );
 
 function VRMLChangesToStr(const Changes: TVRMLChanges): string;

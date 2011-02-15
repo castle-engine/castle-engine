@@ -529,6 +529,7 @@ type
       AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; override;
     function CreateHeadLightInstance
       (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; override;
+    procedure InvalidateBackground; override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -879,11 +880,10 @@ type
     { Is FBackground valid ? We can't use "nil" FBackground value to flag this
       (bacause nil is valid value for Background function).
       If not FBackgroundValid then FBackground must always be nil.
-      Never set FBackgroundValid to false directly - use FBackgroundInvalidate,
+      Never set FBackgroundValid to false directly - use InvalidateBackground,
       this will automatically call FreeAndNil(FBackground) before setting
       FBackgroundValid to false. }
     FBackgroundValid: boolean;
-    procedure FBackgroundInvalidate;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
   public
     property BackgroundSkySphereRadius: Single
@@ -1016,11 +1016,11 @@ type
   {$I objectslist_1.inc}
   TVRMLGLScenesList = class(TObjectsList_1)
   private
-    { Just call FBackgroundInvalidate or CloseGLRenderer on all items.
+    { Just call InvalidateBackground or CloseGLRenderer on all items.
       These methods are private, because corresponding methods in
       TVRMLGLScene are also private and we don't want to expose
       them here. }
-    procedure FBackgroundInvalidate;
+    procedure InvalidateBackground;
     procedure CloseGLRenderer;
   public
     { Just call GLContextClose on all items. }
@@ -1490,7 +1490,7 @@ procedure TVRMLGLScene.GLContextClose;
 begin
   inherited;
   CloseGLRenderer;
-  FBackgroundInvalidate;
+  InvalidateBackground;
 end;
 
 function TVRMLGLScene.ShapeFog(Shape: TVRMLShape): INodeX3DFogObject;
@@ -3445,18 +3445,18 @@ end;
 
 { Background-related things ---------------------------------------- }
 
-procedure TVRMLGLScene.FBackgroundInvalidate;
+procedure TVRMLGLScene.InvalidateBackground;
 begin
- FreeAndNil(FBackground);
- FBackgroundNode := nil;
- FBackgroundValid := false;
+  FreeAndNil(FBackground);
+  FBackgroundNode := nil;
+  FBackgroundValid := false;
 end;
 
 procedure TVRMLGLScene.SetBackgroundSkySphereRadius(const Value: Single);
 begin
   if Value <> FBackgroundSkySphereRadius then
   begin
-    FBackgroundInvalidate;
+    InvalidateBackground;
     FBackgroundSkySphereRadius := Value;
   end;
 end;
@@ -3476,7 +3476,7 @@ begin
   { Background is created, but not suitable for current
     BackgroundStack.Top. So destroy it. }
   if FBackgroundValid then
-    FBackgroundInvalidate;
+    InvalidateBackground;
 
   if (BackgroundStack.Top <> nil) and
      (BackgroundStack.Top is TNodeBackground) then
@@ -4007,7 +4007,7 @@ begin
      Items[I].GLContextClose;
 end;
 
-procedure TVRMLGLScenesList.FBackgroundInvalidate;
+procedure TVRMLGLScenesList.InvalidateBackground;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4015,7 +4015,7 @@ var
 begin
  for I := 0 to Count - 1 do
    if Items[I] <> nil then
-     Items[I].FBackgroundInvalidate;
+     Items[I].InvalidateBackground;
 end;
 
 procedure TVRMLGLScenesList.CloseGLRenderer;
