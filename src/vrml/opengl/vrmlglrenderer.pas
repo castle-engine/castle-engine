@@ -1049,7 +1049,6 @@ type
     { Currently set fog parameters, during render. }
     FogNode: INodeX3DFogObject;
     FogVolumetric: boolean;
-    FogEnabled: boolean;
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
 
@@ -2992,12 +2991,13 @@ procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
   { Set OpenGL fog based on given fog node. Returns also fog parameters,
     like GetFog. }
   procedure RenderFog(Node: INodeX3DFogObject;
-    out Enabled, Volumetric: boolean;
+    out Volumetric: boolean;
     out VolumetricDirection: TVector3Single;
     out VolumetricVisibilityStart: Single);
   var
     FogType: Integer;
     VisibilityRangeScaled: Single;
+    Enabled: boolean;
   const
     FogDensityFactor = 3.0;
   begin
@@ -3066,7 +3066,7 @@ begin
   if Fog <> FogNode then
   begin
     FogNode := Fog;
-    RenderFog(FogNode, FogEnabled, FogVolumetric,
+    RenderFog(FogNode, FogVolumetric,
       FogVolumetricDirection, FogVolumetricVisibilityStart);
   end;
 
