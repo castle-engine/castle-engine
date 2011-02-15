@@ -410,7 +410,7 @@ begin
           ReturnClosestIntersection,
           TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
       except
-        on ETransformedResultInvalid do Result := nil;
+        on ETransformedResultInvalid do ThisResult := nil;
       end;
       if (ThisResult <> nil) and
          ( (Result = nil) or
@@ -548,7 +548,7 @@ begin
           ReturnClosestIntersection,
           TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
       except
-        on ETransformedResultInvalid do Result := nil;
+        on ETransformedResultInvalid do ThisResult := nil;
       end;
       if (ThisResult <> nil) and
          ( (Result = nil) or
