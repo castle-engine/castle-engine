@@ -48,6 +48,25 @@
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
   end;
 
+  TNodeColorSetInterpolator = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdkeyValue: TMFColor;
+    public property FdkeyValue: TMFColor read FFdkeyValue;
+
+    { Event: MFColor, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+  end;
+
   TNodeCoordinateInterpolator = class(TNodeX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
@@ -479,6 +498,50 @@ procedure TNodeColorInterpolator.EventSet_FractionReceive(
 {$define SingleInterpolatorDefault := ZeroVector3Single}
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
+
+constructor TNodeColorSetInterpolator.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdkeyValue := TMFColor.Create(Self, 'keyValue', []);
+  Fields.Add(FFdkeyValue);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFColor, false);
+  Events.Add(FEventvalue_changed);
+
+  DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
+end;
+
+class function TNodeColorSetInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'ColorSetInterpolator';
+end;
+
+function TNodeColorSetInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
+class function TNodeColorSetInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeColorSetInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+{$define MultipleInterpolatorFieldType := TMFColor}
+{$define MultipleInterpolatorFieldTypePostprocess := }
+MultipleInterpolator
 
 constructor TNodeCoordinateInterpolator.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -1008,6 +1071,7 @@ procedure RegisterInterpolationNodes;
 begin
   NodesManager.RegisterNodeClasses([
     TNodeColorInterpolator,
+    TNodeColorSetInterpolator,
     TNodeCoordinateInterpolator,
     TNodeCoordinateInterpolator2D,
     TNodeEaseInEaseOut,
