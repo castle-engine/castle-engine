@@ -182,7 +182,8 @@ type
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
 
-    procedure EnableEffects(Effects: TMFNode);
+    procedure EnableEffects(Effects: TMFNode;
+      const CustomCode: TDynStringArray = nil);
   end;
 
 implementation
@@ -783,7 +784,7 @@ begin
        (ShadowLight <> nil) and
        LightShaders.Find(ShadowLight, ShadowLightShader) then
     begin
-      ShadowMapEffect := Format('void PLUG_light_scale(inout float scale) ' +
+      ShadowMapEffect := Format('void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material) ' +
         '{ ' +
         '  scale *= shadow(%s, gl_TexCoord[%d], %d.0); ' +
         '} ',
@@ -1000,6 +1001,12 @@ begin
   LightShader.Code[false][0] := StringReplace(LightShader.Code[false][0],
     'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
 
+  if Node <> nil then
+  begin
+    EnableEffects(Node.FdEffects, LightShader.Code[true ]);
+    EnableEffects(Node.FdEffects, LightShader.Code[false]);
+  end;
+
   if Number >= LightShaders.Count then
     LightShaders.Count := Number + 1;
   LightShaders[Number] := LightShader;
@@ -1007,7 +1014,8 @@ begin
   Inc(LightsEnabled);
 end;
 
-procedure TVRMLShader.EnableEffects(Effects: TMFNode);
+procedure TVRMLShader.EnableEffects(Effects: TMFNode;
+  const CustomCode: TDynStringArray);
 
   procedure EnableEffect(Effect: TNodeEffect);
 
@@ -1017,7 +1025,9 @@ procedure TVRMLShader.EnableEffects(Effects: TMFNode);
     begin
       Contents := Part.LoadContents;
       if Contents <> '' then
-        Plug(Part.FdType.Value, Contents);
+        if CustomCode <> nil then
+          PlugCustom(CustomCode, Contents) else
+          Plug(Part.FdType.Value, Contents);
     end;
 
   var

@@ -55,7 +55,7 @@
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  float scale = 1.0;' + LineEnding + 
-'  /* PLUG: light_scale (scale) */' + LineEnding + 
+'  /* PLUG: light_scale (scale, normal_eye, light_dir, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */' + LineEnding + 
 '' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 
 '  vec4 light_color = gl_SideLightProduct[light_number].ambient;' + LineEnding + 

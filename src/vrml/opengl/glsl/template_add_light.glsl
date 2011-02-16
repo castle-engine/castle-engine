@@ -53,7 +53,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 #endif
 
   float scale = 1.0;
-  /* PLUG: light_scale (scale) */
+  /* PLUG: light_scale (scale, normal_eye, light_dir, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */
 
   /* add ambient term */
   vec4 light_color = gl_SideLightProduct[light_number].ambient;

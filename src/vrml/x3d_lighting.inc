@@ -73,6 +73,9 @@
     private FFdShadows: TSFBool;
     public property FdShadows: TSFBool read FFdShadows;
 
+    private FFdEffects: TMFNode;
+    public property FdEffects: TMFNode read FFdEffects;
+
     { Transformation of this light node.
       Normal lights can be instanced many times within the scene, with
       various transformation, so @italic(this transformation property
@@ -363,6 +366,11 @@ begin
    FdShadows.Exposed := false;
    FdShadows.ChangesAlways := [chEverything];
   Fields.Add(FFdShadows);
+
+  FFdEffects := TMFNode.Create(Self, 'effects', [TNodeEffect]);
+   FdEffects.Exposed := false;
+   FdEffects.ChangesAlways := [chEverything];
+  Fields.Add(FFdEffects);
 
   DefaultContainerField := 'children';
 
