@@ -60,7 +60,6 @@ type
       @groupBegin }
     LightsEnabled: Cardinal;
     PercentageCloserFiltering: TPercentageCloserFiltering;
-    VisualizeDepthMap: boolean;
     { @groupEnd }
 
     { Events where we registered our EventReceive method. }
@@ -133,7 +132,6 @@ type
       TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare,
       ClipPlane, FragmentEnd: string;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
-    FVisualizeDepthMap: boolean;
     VertexShaderComplete, FragmentShaderComplete: TDynStringArray;
     PlugIdentifiers: Cardinal;
     LightsEnabled: Cardinal;
@@ -168,7 +166,8 @@ type
 
     procedure EnableTexture(const TextureUnit: Cardinal;
       const TextureType: TTextureType; const ShadowMapSize: Cardinal = 0;
-      const ShadowLight: TNodeX3DLightNode = nil);
+      const ShadowLight: TNodeX3DLightNode = nil;
+      const ShadowVisualizeDepth: boolean = false);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComponent; const Component: TTexComponent);
     procedure EnableTexGen(const TextureUnit: Cardinal;
@@ -182,8 +181,6 @@ type
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
-    property VisualizeDepthMap: boolean
-      read FVisualizeDepthMap write FVisualizeDepthMap;
 
     procedure EnableEffects(Effects: TMFNode);
   end;
@@ -693,7 +690,6 @@ begin
 
   AProgram.LightsEnabled := LightsEnabled;
   AProgram.PercentageCloserFiltering := PercentageCloserFiltering;
-  AProgram.VisualizeDepthMap := VisualizeDepthMap;
 
   { set uniforms that will not need to be updated at each SetupUniforms call }
   SetupUniformsOnce;
@@ -703,8 +699,7 @@ function TVRMLShader.ProgramSettingsEqual(AProgram: TVRMLShaderProgram): boolean
 begin
   Result := (
     (AProgram.LightsEnabled = LightsEnabled) and
-    (AProgram.PercentageCloserFiltering = PercentageCloserFiltering) and
-    (AProgram.VisualizeDepthMap = VisualizeDepthMap)
+    (AProgram.PercentageCloserFiltering = PercentageCloserFiltering)
   );
 end;
 
@@ -717,7 +712,8 @@ end;
 
 procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
   const TextureType: TTextureType; const ShadowMapSize: Cardinal;
-  const ShadowLight: TNodeX3DLightNode);
+  const ShadowLight: TNodeX3DLightNode;
+  const ShadowVisualizeDepth: boolean);
 const
   OpenGLTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D');
@@ -765,7 +761,7 @@ begin
   TextureCoordMatrix += Format('gl_TexCoord[%d] = gl_TextureMatrix[%0:d] * gl_TexCoord[%0:d];' + NL,
     [TextureUnit]);
 
-  if (TextureType = tt2DShadow) and VisualizeDepthMap then
+  if (TextureType = tt2DShadow) and ShadowVisualizeDepth then
   begin
     { visualizing depth map requires a little different approach:
       - we use shadow_depth() instead of shadow() function

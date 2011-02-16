@@ -401,6 +401,10 @@
       that satisfies all OpenGL sizes requirements. }
     Size: Cardinal;
 
+    { Do we visualize depth map, because of Attributes.VisualizeDepthMap
+      or compareMode = NONE. }
+    VisualizeDepthMap: boolean;
+
     function TextureNode: TNodeGeneratedShadowMap;
 
     procedure Unprepare; override;
@@ -1593,7 +1597,7 @@ begin
     end;
 
     GLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, nil, Width, Height);
+      TextureNode, TextureWrap, nil, Width, Height, false);
   end else
   begin
     InitialImage := TRGBImage.Create(Width, Height);
@@ -2292,6 +2296,9 @@ begin
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;
 
+  VisualizeDepthMap := (TextureNode.FdCompareMode.Value = 'NONE') or
+    Renderer.Attributes.VisualizeDepthMap;
+
   { At least in case of float textures for VSM, CLAMP_TO_EDGE is needed
     (instead of standard clamp to border). Didn't see any difference
     for depth textures. }
@@ -2326,7 +2333,8 @@ begin
     end;
 
     GLName := Renderer.Cache.TextureDepth_IncReference(
-      TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size);
+      TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size,
+      VisualizeDepthMap);
   end;
 
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
@@ -2369,7 +2377,8 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2DShadow, Size, TextureNode.Light);
+  Shader.EnableTexture(TextureUnit, tt2DShadow, Size, TextureNode.Light,
+    VisualizeDepthMap);
 end;
 
 procedure TGLGeneratedShadowMap.Update(

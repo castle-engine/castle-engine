@@ -286,6 +286,7 @@ type
     procedure SetTextureModeRGB(const Value: TGLenum); virtual;
     procedure SetVarianceShadowMaps(const Value: boolean); virtual;
     procedure SetVertexBufferObject(const Value: boolean); virtual;
+    procedure SetVisualizeDepthMap(const Value: boolean); virtual;
     { @groupEnd }
 
     { Called before changing an attribute that requires the release
@@ -577,7 +578,7 @@ type
     { Visualize depths stored in the shadow maps, instead of using them to
       actually make shadow. }
     property VisualizeDepthMap: boolean
-      read FVisualizeDepthMap write FVisualizeDepthMap default false;
+      read FVisualizeDepthMap write SetVisualizeDepthMap default false;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -881,7 +882,8 @@ type
       Node: TNodeX3DTextureNode;
       const TextureWrap: TTextureWrap2D;
       DepthCompareField: TSFString;
-      const Width, Height: Cardinal): TGLuint;
+      const Width, Height: Cardinal;
+      const VisualizeDepthMap: boolean): TGLuint;
 
     procedure TextureDepth_DecReference(
       const TextureGLName: TGLuint);
@@ -1771,7 +1773,8 @@ function TVRMLGLRendererContextCache.TextureDepth_IncReference(
   Node: TNodeX3DTextureNode;
   const TextureWrap: TTextureWrap2D;
   DepthCompareField: TSFString;
-  const Width, Height: Cardinal): TGLuint;
+  const Width, Height: Cardinal;
+  const VisualizeDepthMap: boolean): TGLuint;
 var
   I: Integer;
   TextureCached: PTextureDepthOrFloatCache;
@@ -1809,6 +1812,18 @@ begin
   begin
     if DepthCompareField <> nil then
     begin
+      if VisualizeDepthMap or (DepthCompareField.Value = 'NONE') then
+      begin
+        { Using Attributes.VisualizeDepthMap effectively forces
+          every shadow map's compareMode to be NONE.
+          Although on some GPUs (Radeon X1600 (fglrx, chantal))
+          setting compareMode to NONE is not needed (one can use them
+          as sampler2D in shaders anyway, and extract depth as grayscale),
+          on other GPUs (NVidia GeForce 450 (kocury)) it is needed
+          (otherwise depth map only returns 0/1 values, not grayscale).
+          Spec suggests it should be needed. }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+      end else
       if DepthCompareField.Value = 'COMPARE_R_LEQUAL' then
       begin
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
@@ -1819,8 +1834,6 @@ begin
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
       end else
-      if DepthCompareField.Value = 'NONE' then
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE) else
         VRMLWarning(vwSerious, Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
     end else
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
@@ -2394,6 +2407,15 @@ begin
   begin
     ReleaseCachedResources;
     FVertexBufferObject := Value;
+  end;
+end;
+
+procedure TVRMLRenderingAttributes.SetVisualizeDepthMap(const Value: boolean);
+begin
+  if VisualizeDepthMap <> Value then
+  begin
+    ReleaseCachedResources;
+    FVisualizeDepthMap := Value;
   end;
 end;
 
@@ -2976,7 +2998,6 @@ begin
   Shader := TVRMLShader.Create;
   try
     Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
-    Shader.VisualizeDepthMap := Attributes.VisualizeDepthMap;
     RenderShapeLights(Shape, Fog, Shader);
   finally FreeAndNil(Shader) end;
 end;
