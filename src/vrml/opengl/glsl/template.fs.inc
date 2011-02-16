@@ -12,6 +12,7 @@
 'varying vec3 normal_eye;' + LineEnding + 
 '' + LineEnding + 
 '/* PLUG: $declare-variables$ */' + LineEnding + 
+'/* PLUG: $declare-shadow-map-procedures$ */' + LineEnding + 
 '/* PLUG: $declare-procedures$ */' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 

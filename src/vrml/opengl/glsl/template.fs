@@ -10,6 +10,7 @@ varying vec4 vertex_eye;
 varying vec3 normal_eye;
 
 /* PLUG: $declare-variables$ */
+/* PLUG: $declare-shadow-map-procedures$ */
 /* PLUG: $declare-procedures$ */
 
 void main(void)

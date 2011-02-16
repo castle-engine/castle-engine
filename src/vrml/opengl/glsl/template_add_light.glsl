@@ -2,8 +2,6 @@
    It really only makes sense when used from within VRMLShader unit,
    it's not a standalone piece of code. */
 
-/* PLUG: $declare-procedures$ */
-
 void PLUG_add_light_contribution_side(inout vec4 color,
   const in vec3 normal_eye, const in gl_MaterialParameters material)
 {

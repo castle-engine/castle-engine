@@ -4,8 +4,6 @@
 '   It really only makes sense when used from within VRMLShader unit,' + LineEnding + 
 '   it''s not a standalone piece of code. */' + LineEnding + 
 '' + LineEnding + 
-'/* PLUG: $declare-procedures$ */' + LineEnding + 
-'' + LineEnding + 
 'void PLUG_add_light_contribution_side(inout vec4 color,' + LineEnding + 
 '  const in vec3 normal_eye, const in gl_MaterialParameters material)' + LineEnding + 
 '{' + LineEnding + 

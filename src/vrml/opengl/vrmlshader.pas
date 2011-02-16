@@ -104,7 +104,7 @@ type
 
   TLightShader = class
   private
-    Code: array [boolean] of TDynStringArray;
+    Code: TDynStringArray;
     Node: TNodeX3DLightNode;
   public
     constructor Create;
@@ -143,15 +143,17 @@ type
     destructor Destroy; override;
 
     { Detect defined PLUG_xxx functions within PlugValue,
-      and insert them into appropriate code (determined by EffectPartType).
-      Inserts code right before the magic @code(/* PLUG ...*/) comments,
+      insert calls to them into given Code,
+      insert their declarations (just whole PlugValue) into code of final shader
+      (determined by EffectPartType).
+      When Code = nil then we insert both calls and declarations into
+      code of final shader (determined by EffectPartType).
+
+      Inserts calls right before the magic @code(/* PLUG ...*/) comments,
       this way many Plug calls that defined the same PLUG_xxx function
       will be called in the same order. }
-    procedure Plug(const EffectPartType: string; const PlugValue: string);
-
-    { More flexible version of Plug, that searches and replaces within specified
-      code. }
-    procedure PlugCustom(const Code: TDynStringArray; PlugValue: string);
+    procedure Plug(const EffectPartType: string; PlugValue: string;
+      Code: TDynStringArray = nil);
 
     procedure ApplyInternalEffects;
     procedure LinkProgram(AProgram: TVRMLShaderProgram);
@@ -183,7 +185,7 @@ type
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
 
     procedure EnableEffects(Effects: TMFNode;
-      const CustomCode: TDynStringArray = nil);
+      const Code: TDynStringArray = nil);
   end;
 
 implementation
@@ -217,14 +219,12 @@ uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
 constructor TLightShader.Create;
 begin
   inherited;
-  Code[false] := TDynStringArray.Create;
-  Code[true]  := TDynStringArray.Create;
+  Code := TDynStringArray.Create;
 end;
 
 destructor TLightShader.Destroy;
 begin
-  FreeAndNil(Code[false]);
-  FreeAndNil(Code[true ]);
+  FreeAndNil(Code);
   inherited;
 end;
 
@@ -522,7 +522,8 @@ begin
   inherited;
 end;
 
-procedure TVRMLShader.PlugCustom(const Code: TDynStringArray; PlugValue: string);
+procedure TVRMLShader.Plug(const EffectPartType: string; PlugValue: string;
+  Code: TDynStringArray);
 const
   PlugPrefix = 'PLUG_';
 
@@ -564,7 +565,21 @@ const
 var
   PBegin, PEnd: Integer;
   Parameter, PlugName, ProcedureName, CommentBegin: string;
+  CodeForPlugValue: TDynStringArray;
 begin
+  if EffectPartType = 'VERTEX' then
+    CodeForPlugValue := VertexShaderComplete else
+  if EffectPartType = 'FRAGMENT' then
+    CodeForPlugValue := FragmentShaderComplete else
+  begin
+    VRMLWarning(vwIgnorable, Format('EffectPart.type "%s" is not recognized',
+      [EffectPartType]));
+    Exit;
+  end;
+
+  if Code = nil then
+    Code := CodeForPlugValue;
+
   repeat
     PlugName := FindPlugName(PlugValue);
     if PlugName = '' then Break;
@@ -584,22 +599,12 @@ begin
         Parameter := Trim(CopyPos(Code[0], PBegin + Length(CommentBegin), PEnd - 1));
         InsertIntoCode(PBegin, ProcedureName + Parameter + ';' + NL);
 
-        PlugDirectly(Code, '$declare-procedures$', PlugValue);
+        PlugDirectly(CodeForPlugValue, '$declare-procedures$', PlugValue);
       end else
         VRMLWarning(vwIgnorable, Format('Plug name "%s" comment not properly closed, treating like not declared', [PlugName]));
     end else
       VRMLWarning(vwIgnorable, Format('Plug name "%s" not declared', [PlugName]));
   until false;
-end;
-
-procedure TVRMLShader.Plug(const EffectPartType: string; const PlugValue: string);
-begin
-  if EffectPartType = 'VERTEX' then
-    PlugCustom(VertexShaderComplete, PlugValue) else
-  if EffectPartType = 'FRAGMENT' then
-    PlugCustom(FragmentShaderComplete, PlugValue) else
-    VRMLWarning(vwIgnorable, Format('EffectPart.type "%s" is not recognized',
-      [EffectPartType]));
 end;
 
 procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
@@ -620,28 +625,35 @@ const
   ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
 var
   I: Integer;
+  LightShaderBack, LightShaderFront: string;
 begin
   PlugDirectly(VertexShaderComplete, 'vertex_process',
     TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane);
   PlugDirectly(FragmentShaderComplete, 'texture_apply', TextureApply);
   PlugDirectly(FragmentShaderComplete, '$declare-variables$',
     FragmentShaderDeclare + PCFDefine[PercentageCloserFiltering]);
-  PlugDirectly(FragmentShaderComplete, '$declare-procedures$',
+  PlugDirectly(FragmentShaderComplete, '$declare-shadow-map-procedures$',
     {$I shadow_map_common.fs.inc});
   PlugDirectly(FragmentShaderComplete, 'fragment_end', FragmentEnd);
 
   for I := 0 to LightShaders.Count - 1 do
     if LightShaders[I] <> nil then
     begin
-      { remove $declare-procedures$ plug now, it would conflict with the same
-        plug in fragment shader }
-      LightShaders[I].Code[false][0] := StringReplace(LightShaders[I].Code[false][0],
-        '/* PLUG: $declare-procedures$ */', '', [rfReplaceAll]);
-      LightShaders[I].Code[true ][0] := StringReplace(LightShaders[I].Code[true ][0],
-        '/* PLUG: $declare-procedures$ */', '', [rfReplaceAll]);
+      LightShaderBack  := LightShaders[I].Code[0];
+      LightShaderFront := LightShaders[I].Code[0];
 
-      PlugCustom(FragmentShaderComplete, LightShaders[I].Code[false][0]);
-      PlugCustom(FragmentShaderComplete, LightShaders[I].Code[true ][0]);
+      LightShaderBack := StringReplace(LightShaderBack,
+        'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
+      LightShaderFront := StringReplace(LightShaderFront,
+        'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
+
+      LightShaderBack := StringReplace(LightShaderBack,
+        'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
+      LightShaderFront := StringReplace(LightShaderFront,
+        'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
+
+      Plug('FRAGMENT', LightShaderBack);
+      Plug('FRAGMENT', LightShaderFront);
     end;
 end;
 
@@ -720,7 +732,7 @@ const
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D');
 var
   Uniform: TUniform;
-  TextureSampleCall, ShadowMapEffect: string;
+  TextureSampleCall: string;
   ShadowLightShader: TLightShader;
 begin
   { Enable for fixed-function pipeline }
@@ -784,16 +796,13 @@ begin
        (ShadowLight <> nil) and
        LightShaders.Find(ShadowLight, ShadowLightShader) then
     begin
-      ShadowMapEffect := Format('void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material) ' +
-        '{ ' +
-        '  scale *= shadow(%s, gl_TexCoord[%d], %d.0); ' +
-        '} ',
-        [Uniform.Name, TextureUnit, ShadowMapSize]);
-      { Calls PlugCustom two times, note that we'll use expand ShadowMapEffect
-        to two different functions. TODO: Maybe in the future make it nicer,
-        but no real need for now. }
-      PlugCustom(ShadowLightShader.Code[false], ShadowMapEffect);
-      PlugCustom(ShadowLightShader.Code[true ], ShadowMapEffect);
+      Plug('FRAGMENT',
+        Format('void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
+        '{' +NL+
+        '  scale *= shadow(%s, gl_TexCoord[%d], %d.0);' +NL+
+        '}',
+        [Uniform.Name, TextureUnit, ShadowMapSize]),
+        ShadowLightShader.Code);
     end else
     begin
       { TODO: always modulate mode for now }
@@ -933,7 +942,7 @@ procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
 var
   Uniform: TUniform;
 begin
-  PlugCustom(VertexShaderComplete,
+  Plug('VERTEX',
     'attribute mat3 tangent_to_object_space;' +NL+
     'varying mat3 tangent_to_eye_space;' +NL+
     NL+
@@ -942,7 +951,7 @@ begin
     '  tangent_to_eye_space = gl_NormalMatrix * tangent_to_object_space;' +NL+
     '}');
 
-  PlugCustom(FragmentShaderComplete,
+  Plug('FRAGMENT',
     'varying mat3 tangent_to_eye_space;' +NL+
     'uniform sampler2D tex_normal_map;' +NL+
     NL+
@@ -988,24 +997,10 @@ begin
 
   Code := Defines + {$I template_add_light.glsl.inc};
   Code := StringReplace(Code, 'light_number', IntToStr(Number), [rfReplaceAll]);
-  LightShader.Code[false].Add(Code);
-  LightShader.Code[true ].Add(Code);
-
-  LightShader.Code[true ][0] := StringReplace(LightShader.Code[true ][0],
-    'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
-  LightShader.Code[false][0] := StringReplace(LightShader.Code[false][0],
-    'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
-
-  LightShader.Code[true ][0] := StringReplace(LightShader.Code[true ][0],
-    'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
-  LightShader.Code[false][0] := StringReplace(LightShader.Code[false][0],
-    'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
+  LightShader.Code.Add(Code);
 
   if Node <> nil then
-  begin
-    EnableEffects(Node.FdEffects, LightShader.Code[true ]);
-    EnableEffects(Node.FdEffects, LightShader.Code[false]);
-  end;
+    EnableEffects(Node.FdEffects, LightShader.Code);
 
   if Number >= LightShaders.Count then
     LightShaders.Count := Number + 1;
@@ -1015,7 +1010,7 @@ begin
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TMFNode;
-  const CustomCode: TDynStringArray);
+  const Code: TDynStringArray);
 
   procedure EnableEffect(Effect: TNodeEffect);
 
@@ -1025,9 +1020,7 @@ procedure TVRMLShader.EnableEffects(Effects: TMFNode;
     begin
       Contents := Part.LoadContents;
       if Contents <> '' then
-        if CustomCode <> nil then
-          PlugCustom(CustomCode, Contents) else
-          Plug(Part.FdType.Value, Contents);
+        Plug(Part.FdType.Value, Contents, Code);
     end;
 
   var
