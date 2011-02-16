@@ -88,22 +88,8 @@
 '' + LineEnding + 
 '   This way shadow_map_1_show_depth.fs may be used instead of shadow_map_1.fs.' + LineEnding + 
 '   Note that you have to use compareMode "NONE" inside GeneratedShadowMap' + LineEnding + 
-'   (otherwise getting it as sampler2D may not be sensible, depends on GPU).' + LineEnding + 
-'' + LineEnding + 
-'   Note: it''s possible to see the depths without the GLSL at all too:' + LineEnding + 
-'   1. use compareMode "NONE" inside GeneratedShadowMap' + LineEnding + 
-'   2. to avoid mixing with the normal color texture and material' + LineEnding + 
-'      (that make it difficult to actually see the depth variations)' + LineEnding + 
-'      you can use "REPLACE" mode mapping with GeneratedShadowMap.' + LineEnding + 
-'' + LineEnding + 
-'      For example, replace all' + LineEnding + 
-'        texture MultiTexture {' + LineEnding + 
-'      with' + LineEnding + 
-'        texture MultiTexture { mode [ "REPLACE / MODULATE", "REPLACE / MODULATE" ]' + LineEnding + 
-'      inside sunny_street_processed.x3dv.' + LineEnding + 
-'      By using "REPLACE / MODULATE" instead of "REPLACE" we allow to' + LineEnding + 
-'      modulate alpha (and only replace RGB channels), this allows' + LineEnding + 
-'      alpha-test texture of the leaves still work Ok.' + LineEnding + 
+'   (otherwise getting it as sampler2D may not be sensible, depends on GPU;' + LineEnding + 
+'   Looks like Radeon tolerated any compareMode, but NVidia requires "NONE".).' + LineEnding + 
 '*/' + LineEnding + 
 'float shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord)' + LineEnding + 
 '{' + LineEnding + 
