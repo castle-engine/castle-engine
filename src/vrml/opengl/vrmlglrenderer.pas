@@ -2614,10 +2614,18 @@ procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
+  procedure PrepareEffects(Effects: TMFNode);
+  var
+    I: Integer;
+  begin
+    for I := 0 to Effects.Count - 1 do
+      GLTextureNodes.PrepareInterfaceDeclarationsTextures(Effects[I], State, Self);
+  end;
+
 var
   FontStyle: TNodeFontStyle_2;
   I: Integer;
-  Effects: TMFNode;
+  Lights: TDynActiveLightArray;
 begin
   { przygotuj font }
   if State.ShapeNode = nil then
@@ -2677,11 +2685,12 @@ begin
 
   if (State.ShapeNode <> nil) and
      (State.ShapeNode.Appearance <> nil) then
-  begin
-    Effects := State.ShapeNode.Appearance.FdEffects;
-    for I := 0 to Effects.Count - 1 do
-      GLTextureNodes.PrepareInterfaceDeclarationsTextures(Effects[I], State, Self);
-  end;
+    PrepareEffects(State.ShapeNode.Appearance.FdEffects);
+
+  Lights := State.CurrentActiveLights;
+  if Lights <> nil then
+    for I := 0 to Lights.Count - 1 do
+      PrepareEffects(Lights.Items[I].LightNode.FdEffects);
 end;
 
 procedure TVRMLGLRenderer.PrepareScreenEffect(Node: TNodeScreenEffect);
