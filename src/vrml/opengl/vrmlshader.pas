@@ -1086,8 +1086,11 @@ procedure TVRMLShader.EnableEffects(Effects: TMFNode;
     I: Integer;
   begin
     if Effect.FdLanguage.Value <> 'GLSL' then
+    begin
       VRMLWarning(vwIgnorable, Format('Unknown shading language "%s" for Effect node',
         [Effect.FdLanguage.Value]));
+      Exit;
+    end;
 
     for I := 0 to Effect.FdParts.Count - 1 do
       if Effect.FdParts[I] is TNodeEffectPart then
