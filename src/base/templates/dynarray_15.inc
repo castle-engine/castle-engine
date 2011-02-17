@@ -370,7 +370,7 @@ var
   I, C: Integer;
 begin
   C := Count;
-  Cardinal(Count) := Cardinal(Count) + DuplicateCount;
+  Count := Count + DuplicateCount;
   for I := C to Count - 1 do
     Items[I] := Item;
 end;
