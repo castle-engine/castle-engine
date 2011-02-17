@@ -35,6 +35,9 @@
       In this class, simply returns NodeTypeName.
       Override to say something more descriptive. }
     function TextureDescription: string; virtual;
+
+    private FFdEffects: TMFNode;
+    public property FdEffects: TMFNode read FFdEffects;
   end;
 
   TNodeTextureProperties = class;
@@ -534,6 +537,11 @@ constructor TNodeX3DTextureNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
+
+  FFdEffects := TMFNode.Create(Self, 'effects', [TNodeEffect]);
+   FdEffects.Exposed := false;
+   FdEffects.ChangesAlways := [chEverything];
+  Fields.Add(FFdEffects);
 
   DefaultContainerField := 'texture';
 end;

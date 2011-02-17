@@ -1424,7 +1424,7 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2D);
+  Shader.EnableTexture(TextureUnit, tt2D, TextureNode);
 end;
 
 { TGLMovieTextureNode -------------------------------------------------------- }
@@ -1520,7 +1520,7 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2D);
+  Shader.EnableTexture(TextureUnit, tt2D, TextureNode);
 end;
 
 { TGLRenderedTextureNode ----------------------------------------------------- }
@@ -1668,7 +1668,7 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2D);
+  Shader.EnableTexture(TextureUnit, tt2D, TextureNode);
 end;
 
 procedure TGLRenderedTextureNode.Update(
@@ -1890,7 +1890,7 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, ttCubeMap);
+  Shader.EnableTexture(TextureUnit, ttCubeMap, TextureNode);
 end;
 
 { TGLComposedCubeMapTextureNode ---------------------------------------------- }
@@ -2249,7 +2249,7 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt3D);
+  Shader.EnableTexture(TextureUnit, tt3D, TextureNode);
 end;
 
 { TGLGeneratedShadowMap ------------------------------------------------------ }
@@ -2377,8 +2377,8 @@ begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2DShadow, Size, TextureNode.Light,
-    VisualizeDepthMap);
+  Shader.EnableTexture(TextureUnit, tt2DShadow, TextureNode,
+    Size, TextureNode.Light, VisualizeDepthMap);
 end;
 
 procedure TGLGeneratedShadowMap.Update(
