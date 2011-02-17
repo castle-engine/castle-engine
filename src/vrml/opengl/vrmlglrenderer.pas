@@ -998,10 +998,6 @@ type
       shape (whether user provided normal map, height map etc.) }
     ShapeBumpMappingUsed: boolean;
 
-    { Variables set by RenderShapeMaterials }
-    MaterialLit: boolean;
-    MaterialOpacity: Single;
-
     { How many texture units are used.
 
       It's always clamped by the number of available texture units
@@ -1092,28 +1088,39 @@ type
     procedure DisableTexture(const TextureUnit: Cardinal);
     procedure DisableCurrentTexture;
 
+    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+      Shader: TVRMLShader);
     procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      Shader: TVRMLShader);
+      Shader: TVRMLShader;
+      const MaterialOpacity: Single; const MaterialLit: boolean;
+      const MaterialSpecularColor: TVector3Single);
     procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      Shader: TVRMLShader);
+      Shader: TVRMLShader;
+      const MaterialOpacity: Single; const MaterialLit: boolean);
     procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      Shader: TVRMLShader);
+      Shader: TVRMLShader;
+      const MaterialOpacity: Single; const MaterialLit: boolean);
     procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      Shader: TVRMLShader);
+      Shader: TVRMLShader;
+      const MaterialOpacity: Single; const MaterialLit: boolean);
     procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      Shader: TVRMLShader);
+      Shader: TVRMLShader;
+      const MaterialOpacity: Single; const MaterialLit: boolean);
     procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      Shader: TVRMLShader; GeneratorClass: TVRMLArraysGeneratorClass;
+      Shader: TVRMLShader;
+      const MaterialOpacity: Single; const MaterialLit: boolean;
+      GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
     procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      Shader: TVRMLShader; GeneratorClass: TVRMLArraysGeneratorClass;
+      Shader: TVRMLShader;
+      const MaterialOpacity: Single; const MaterialLit: boolean;
+      GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       UsedGLSLTexCoordsNeeded: Cardinal);
-    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      Shader: TVRMLShader; GeneratorClass: TVRMLArraysGeneratorClass;
-      ExposedMeshRenderer: TObject);
     procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
-      Shader: TVRMLShader; GeneratorClass: TVRMLArraysGeneratorClass;
+      Shader: TVRMLShader;
+      const MaterialOpacity: Single; const MaterialLit: boolean;
+      GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
 
     { Reset various OpenGL state parameters, done at RenderBegin
@@ -3007,19 +3014,34 @@ begin
   Shader := TVRMLShader.Create;
   try
     Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
-    RenderShapeLights(Shape, Fog, Shader);
+    RenderShapeMaterials(Shape, Fog, Shader);
   finally FreeAndNil(Shader) end;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
+procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; Shader: TVRMLShader);
+
+  {$I vrmlglrenderer_materials.inc}
+
+begin
+  RenderMaterialsBegin;
+  try
+    RenderShapeLights(Shape, Fog, Shader, MaterialOpacity, MaterialLit,
+      MaterialSpecularColor);
+  finally RenderMaterialsEnd end;
+end;
+
+procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
+  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  const MaterialOpacity: Single; const MaterialLit: boolean;
+  const MaterialSpecularColor: TVector3Single);
 var
   LightsEnabled: Cardinal;
   I: Integer;
   Lights: TDynActiveLightArray;
 begin
   for I := 0 to Integer(FirstLight) - 1 do
-    Shader.EnableLight(I, nil);
+    Shader.EnableLight(I, nil, MaterialSpecularColor);
 
   if Attributes.UseSceneLights then
   begin
@@ -3030,15 +3052,17 @@ begin
     begin
       LightsRenderer.Render(Lights, LightsEnabled);
       for I := FirstLight to Integer(LightsEnabled) - 1 do
-        Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight]^.LightNode);
+        Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight]^.LightNode,
+          MaterialSpecularColor);
     end;
   end;
 
-  RenderShapeFog(Shape, Fog, Shader);
+  RenderShapeFog(Shape, Fog, Shader, MaterialOpacity, MaterialLit);
 end;
 
 procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader);
+  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  const MaterialOpacity: Single; const MaterialLit: boolean);
 
   { Set OpenGL fog based on given fog node. Returns also fog parameters,
     like GetFog. }
@@ -3122,11 +3146,12 @@ begin
       FogVolumetricDirection, FogVolumetricVisibilityStart);
   end;
 
-  RenderShapeTextureTransform(Shape, Fog, Shader);
+  RenderShapeTextureTransform(Shape, Fog, Shader, MaterialOpacity, MaterialLit);
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader);
+  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  const MaterialOpacity: Single; const MaterialLit: boolean);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
@@ -3251,7 +3276,7 @@ begin
     glMatrixMode(GL_MODELVIEW);
   end;
 
-  RenderShapeClipPlanes(Shape, Fog, Shader);
+  RenderShapeClipPlanes(Shape, Fog, Shader, MaterialOpacity, MaterialLit);
 
   if (TextureTransformUnitsUsed <> 0) or
      (TextureTransformUnitsUsedMore.Count <> 0) then
@@ -3279,7 +3304,8 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader);
+  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  const MaterialOpacity: Single; const MaterialLit: boolean);
 var
   { How many clip planes were enabled (and so, how many must be disabled
     at the end). }
@@ -3351,14 +3377,15 @@ begin
 
   glPushMatrix;
     glMultMatrix(Shape.State.Transform);
-    RenderShapeCreateMeshRenderer(Shape, Fog, Shader);
+    RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, MaterialLit);
   glPopMatrix;
 
   ClipPlanesEnd;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader);
+  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  const MaterialOpacity: Single; const MaterialLit: boolean);
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
   MeshRenderer: TVRMLMeshRenderer;
@@ -3416,7 +3443,8 @@ begin
   {$endif}
 
   try
-    RenderShapeShaders(Shape, Fog, Shader, GeneratorClass, MeshRenderer);
+    RenderShapeShaders(Shape, Fog, Shader, MaterialOpacity, MaterialLit,
+      GeneratorClass, MeshRenderer);
   finally
     FreeAndNil(MeshRenderer);
   end;
@@ -3426,6 +3454,7 @@ end;
 
 procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  const MaterialOpacity: Single; const MaterialLit: boolean;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
 var
@@ -3495,13 +3524,14 @@ var
 begin
   RenderShadersBegin;
   try
-    RenderShapeTextures(Shape, Fog, Shader, GeneratorClass,
-      MeshRenderer, UsedGLSLTexCoordsNeeded);
+    RenderShapeTextures(Shape, Fog, Shader, MaterialOpacity, MaterialLit,
+      GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
   finally RenderShadersEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  const MaterialOpacity: Single; const MaterialLit: boolean;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   UsedGLSLTexCoordsNeeded: Cardinal);
@@ -3611,26 +3641,14 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
 begin
   RenderTexturesBegin;
   try
-    RenderShapeMaterials(Shape, Fog, Shader, GeneratorClass, MeshRenderer);
+    RenderShapeInside(Shape, Fog, Shader, MaterialOpacity, MaterialLit,
+      GeneratorClass, MeshRenderer);
   finally RenderTexturesEnd end;
-end;
-
-procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader;
-  GeneratorClass: TVRMLArraysGeneratorClass;
-  ExposedMeshRenderer: TObject);
-
-  {$I vrmlglrenderer_materials.inc}
-
-begin
-  RenderMaterialsBegin;
-  try
-    RenderShapeInside(Shape, Fog, Shader, GeneratorClass, MeshRenderer);
-  finally RenderMaterialsEnd end;
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  const MaterialOpacity: Single; const MaterialLit: boolean;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
 var
@@ -3695,6 +3713,7 @@ begin
     CoordinateRenderer.Arrays := Shape.Cache.Arrays;
     CoordinateRenderer.Shader := Shader;
     CoordinateRenderer.BoundTextureUnits := BoundTextureUnits;
+    CoordinateRenderer.MaterialLit := MaterialLit;
   end;
 
   if PrepareRenderShape = 0 then

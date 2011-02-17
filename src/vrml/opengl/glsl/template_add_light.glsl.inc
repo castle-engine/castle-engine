@@ -56,25 +56,34 @@
 '  /* PLUG: light_scale (scale, normal_eye, light_dir, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */' + LineEnding + 
 '' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 
-'  vec4 light_color = gl_SideLightProduct[light_number].ambient;' + LineEnding + 
+'  vec4 light_color =' + LineEnding + 
+'#ifdef LIGHT_HAS_AMBIENT' + LineEnding + 
+'  gl_SideLightProduct[light_number].ambient;' + LineEnding + 
+'#else' + LineEnding + 
+'  vec4(0.0);' + LineEnding + 
+'#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* add diffuse term */' + LineEnding + 
 '  light_color += gl_SideLightProduct[light_number].diffuse' + LineEnding + 
 '    * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
 '  /* add specular term */' + LineEnding + 
+'#ifdef LIGHT_HAS_SPECULAR' + LineEnding + 
 '  vec3 reflect = normalize(-reflect(light_dir, normal_eye));' + LineEnding + 
 '  /* vertex to camera direction = camera pos - vertex pos.' + LineEnding + 
 '     We work in eye space here, so camera pos = always zero. */' + LineEnding + 
 '  vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));' + LineEnding + 
 '  light_color += gl_SideLightProduct[light_number].specular' + LineEnding + 
 '    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);' + LineEnding + 
+'#endif' + LineEnding + 
 '' + LineEnding + 
 '  color += light_color * scale;' + LineEnding + 
 '' + LineEnding + 
 '#undef LIGHT_TYPE_POSITIONAL' + LineEnding + 
 '#undef LIGHT_TYPE_SPOT' + LineEnding + 
 '#undef LIGHT_TYPE_KNOWN' + LineEnding + 
+'#undef LIGHT_HAS_AMBIENT' + LineEnding + 
+'#undef LIGHT_HAS_SPECULAR' + LineEnding + 
 '' + LineEnding + 
 '}' + LineEnding + 
 ''

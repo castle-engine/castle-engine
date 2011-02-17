@@ -20,8 +20,8 @@ unit VRMLShader;
 
 interface
 
-uses GLShaders, FGL, VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes,
-  KambiUtils;
+uses VectorMath, GLShaders, FGL, VRMLShadowMaps, VRMLTime, VRMLFields,
+  VRMLNodes, KambiUtils;
 
 type
   { Uniform value type, for TUniform. }
@@ -179,7 +179,8 @@ type
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
     procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
-    procedure EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode);
+    procedure EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
+      const MaterialSpecularColor: TVector3Single);
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
@@ -191,7 +192,7 @@ type
 implementation
 
 uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
-  VRMLErrors, KambiLog, StrUtils, VectorMath, Base3D;
+  VRMLErrors, KambiLog, StrUtils, Base3D;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day. Currently, some functions here call
@@ -974,7 +975,8 @@ begin
   AddUniform(Uniform);
 end;
 
-procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode);
+procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
+  const MaterialSpecularColor: TVector3Single);
 var
   LightShader: TLightShader;
   Defines, Code: string;
@@ -990,6 +992,14 @@ begin
          (Node is TNodeSpotLight_2) then
         Defines  += '#define LIGHT_TYPE_SPOT' + NL;
     end;
+    if Node.FdAmbientIntensity.Value <> 0 then
+      Defines  += '#define LIGHT_HAS_AMBIENT' + NL;
+    if not PerfectlyZeroVector(MaterialSpecularColor) then
+      Defines  += '#define LIGHT_HAS_SPECULAR' + NL;
+  end else
+  begin
+    Defines  += '#define LIGHT_HAS_AMBIENT' + NL;
+    Defines  += '#define LIGHT_HAS_SPECULAR' + NL;
   end;
 
   LightShader := TLightShader.Create;

@@ -13,6 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
+var
+  MaterialLit: boolean;
+  MaterialSpecularColor: TVector3Single;
+  MaterialOpacity: Single;
+
 procedure RenderMaterialsBegin;
 
   { Apply material (both VRML 1.0 and 2.0).
@@ -25,6 +30,7 @@ procedure RenderMaterialsBegin;
   begin
     if Attributes.PureGeometry or (not Attributes.ControlMaterials) then Exit;
 
+    MaterialSpecularColor := SpecularColor;
     MaterialOpacity := Opacity;
 
     if MaterialLit then
