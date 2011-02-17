@@ -223,8 +223,8 @@ function ArraysGenerator(AGeometry: TVRMLGeometryNode): TVRMLArraysGeneratorClas
 
 implementation
 
-uses SysUtils, KambiLog, FGL, VRMLErrors, Boxes3D, Triangulator,
-  KambiStringUtils, FaceIndex;
+uses SysUtils, KambiLog, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, 
+  VRMLErrors, Boxes3D, Triangulator, KambiStringUtils, FaceIndex;
 
 type
   TTextureCoordsImplementation = (

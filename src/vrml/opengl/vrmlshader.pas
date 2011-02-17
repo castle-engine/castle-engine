@@ -20,8 +20,8 @@ unit VRMLShader;
 
 interface
 
-uses VectorMath, GLShaders, FGL, VRMLShadowMaps, VRMLTime, VRMLFields,
-  VRMLNodes, KambiUtils;
+uses VectorMath, GLShaders, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+  VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, KambiUtils;
 
 type
   { Uniform value type, for TUniform. }

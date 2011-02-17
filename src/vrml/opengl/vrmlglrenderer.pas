@@ -222,7 +222,8 @@ uses
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
   KambiGLUtils, VRMLGLLightSet, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
-  GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL,
+  GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL
+  {$ifdef VER2_2}, FGLObjectList22 {$endif},
   GeometryArrays, VRMLArraysGenerator, VRMLShader, VRMLShadowMaps;
 
 {$define read_interface}

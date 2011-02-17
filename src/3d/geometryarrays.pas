@@ -18,7 +18,8 @@ unit GeometryArrays;
 
 interface
 
-uses KambiUtils, VectorMath, FGL, FaceIndex;
+uses KambiUtils, VectorMath, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+  FaceIndex;
 
 type
   { Primitive geometry types. Analogous to OpenGL primitives. }

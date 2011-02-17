@@ -19,7 +19,8 @@ unit ALSoundEngine;
 interface
 
 uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras,
-  KambiTimeUtils, KambiXMLConfig, Math, FGL, KambiClassUtils;
+  KambiTimeUtils, KambiXMLConfig, Math, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+  KambiClassUtils;
 
 type
   TALDistanceModel = (dmNone,
