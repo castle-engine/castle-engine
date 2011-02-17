@@ -39,7 +39,7 @@ type
   end;
   TUniformsList = specialize TFPGObjectList<TUniform>;
 
-  TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D);
+  TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
 
   TTexGenerationComponent = (tgEye, tgObject);
   TTexGenerationComplete = (tgSphere, tgNormal, tgReflection);
@@ -772,10 +772,10 @@ procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
 
 const
   OpenGLTextureType: array [TTextureType] of string =
-  ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D');
+  ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
 var
   Uniform: TUniform;
-  TextureSampleCall, TextureShader: string;
+  TextureSampleCall, TextureShader, TexCoordName: string;
   ShadowLightShader: TLightShader;
 begin
   { Enable for fixed-function pipeline }
@@ -800,22 +800,33 @@ begin
         if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
         if GL_EXT_texture3D        then glEnable(GL_TEXTURE_3D_EXT);
       end;
+    ttShader:
+      begin
+        glDisable(GL_TEXTURE_2D);
+        if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+        if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+      end;
     else raise EInternalError.Create('TextureEnableDisable?');
   end;
 
   { Enable for shader pipeline }
 
-  Uniform := TUniform.Create;
-  Uniform.Name := Format('texture_%d', [TextureUnit]);
-  Uniform.AType := utLongInt;
-  Uniform.Value.LongInt := TextureUnit;
+  if TextureType <> ttShader then
+  begin
+    Uniform := TUniform.Create;
+    Uniform.Name := Format('texture_%d', [TextureUnit]);
+    Uniform.AType := utLongInt;
+    Uniform.Value.LongInt := TextureUnit;
 
-  AddUniform(Uniform);
+    AddUniform(Uniform);
+  end;
 
-  TextureCoordInitialize += Format('gl_TexCoord[%d] = gl_MultiTexCoord%0:d;' + NL,
-    [TextureUnit]);
-  TextureCoordMatrix += Format('gl_TexCoord[%d] = gl_TextureMatrix[%0:d] * gl_TexCoord[%0:d];' + NL,
-    [TextureUnit]);
+  TexCoordName := Format('gl_TexCoord[%d]', [TextureUnit]);
+
+  TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
+    [TexCoordName, TextureUnit]);
+  TextureCoordMatrix += Format('%s = gl_TextureMatrix[%d] * %0:s;' + NL,
+    [TexCoordName, TextureUnit]);
 
   if (TextureType = tt2DShadow) and ShadowVisualizeDepth then
   begin
@@ -857,19 +868,27 @@ begin
         { For 3D textures, remember we may get 4D tex coords
           through TextureCoordinate4D, so we have to use texture3DProj }
         tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
+        ttShader  : TextureSampleCall := 'vec4(1.0, 0.0, 1.0, 1.0)';
         else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
       end;
 
-      TextureShader := Format('texture_color = ' + TextureSampleCall + ';' +NL+
-        '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
-        [Uniform.Name, 'gl_TexCoord[' + IntToStr(TextureUnit) + ']']);
+      if TextureType <> ttShader then
+        TextureShader := Format('texture_color = ' + TextureSampleCall + ';' +NL+
+          '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
+          [Uniform.Name, TexCoordName]) else
+        TextureShader := Format('texture_color = ' + TextureSampleCall + ';' +NL+
+          '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
+          [TexCoordName]);
+
       TextureShaderEffects(TextureShader);
 
       { TODO: always modulate mode for now }
       TextureApply += TextureShader + 'fragment_color *= texture_color;' + NL;
     end;
-    FragmentShaderDeclare += Format('uniform %s %s;' + NL,
-      [OpenGLTextureType[TextureType], Uniform.Name]);
+
+    if TextureType <> ttShader then
+      FragmentShaderDeclare += Format('uniform %s %s;' + NL,
+        [OpenGLTextureType[TextureType], Uniform.Name]);
   end;
 end;
 

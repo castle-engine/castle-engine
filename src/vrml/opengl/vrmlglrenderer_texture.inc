@@ -423,6 +423,18 @@
     class function ClassVarianceShadowMaps(Attributes: TVRMLRenderingAttributes): boolean;
   end;
 
+  TGLShaderTexture = class(TGLSingleTextureNode)
+  protected
+    class function IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
+      ANode: TNodeX3DTextureNode): boolean; override;
+    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+  public
+    procedure Unprepare; override;
+    function Bind(const TextureUnit: Cardinal): boolean; override;
+    function Enable(const TextureUnit: Cardinal;
+      Shader: TVRMLShader): boolean; override;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -564,7 +576,8 @@ begin
           TryResult(TGLImageCubeMapTextureNode) or
           TryResult(TGLGeneratedCubeMapTextureNode) or
           TryResult(TGL3DTextureNode) or
-          TryResult(TGLGeneratedShadowMap) ) then
+          TryResult(TGLGeneratedShadowMap) or
+          TryResult(TGLShaderTexture) ) then
     Result := nil;
 end;
 
@@ -2435,6 +2448,43 @@ begin
     RenderToTexture.GenerateMipmap;
 
   NeedsRestoreViewport := true;
+end;
+
+{ TGLShaderTexture ------------------------------------------------------ }
+
+class function TGLShaderTexture.IsClassForTextureNode(Cache: TTexturesImagesVideosCache;
+  ANode: TNodeX3DTextureNode): boolean;
+begin
+  Result := ANode is TNodeShaderTexture;
+end;
+
+procedure TGLShaderTexture.PrepareCore(State: TVRMLGraphTraverseState);
+begin
+  { no need to do anything }
+end;
+
+procedure TGLShaderTexture.Unprepare;
+begin
+  { no need to do anything }
+end;
+
+function TGLShaderTexture.Bind(const TextureUnit: Cardinal): boolean;
+begin
+  Result := true;
+  { no need to actually do anything }
+
+  { TODO: ShaderTexture should not need to increase the TextureUnit.
+    It's not loaded to OpenGL, so it doesn't take the multitexture slot.
+    For now we increase it, only to pass texture coords to it. }
+end;
+
+function TGLShaderTexture.Enable(const TextureUnit: Cardinal;
+  Shader: TVRMLShader): boolean;
+begin
+  Result := Bind(TextureUnit);
+  if not Result then Exit;
+
+  Shader.EnableTexture(TextureUnit, ttShader, TextureNode);
 end;
 
 {$endif read_implementation}

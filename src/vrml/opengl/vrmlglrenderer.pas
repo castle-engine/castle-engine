@@ -2644,6 +2644,7 @@ var
   FontStyle: TNodeFontStyle_2;
   I: Integer;
   Lights: TDynActiveLightArray;
+  Texture: TNodeX3DTextureNode;
 begin
   { przygotuj font }
   if State.ShapeNode = nil then
@@ -2709,6 +2710,17 @@ begin
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
       PrepareEffects(Lights.Items[I].LightNode.FdEffects);
+
+  Texture := State.Texture;
+  if Texture <> nil then
+  begin
+    PrepareEffects(Texture.FdEffects);
+    if Texture is TNodeMultiTexture then
+      for I := 0 to TNodeMultiTexture(Texture).FdTexture.Count - 1 do
+        if TNodeMultiTexture(Texture).FdTexture[I] is TNodeX3DTextureNode then
+          PrepareEffects(TNodeX3DTextureNode(TNodeMultiTexture(Texture).
+            FdTexture[I]).FdEffects);
+  end;
 end;
 
 procedure TVRMLGLRenderer.PrepareScreenEffect(Node: TNodeScreenEffect);

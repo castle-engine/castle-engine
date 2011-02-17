@@ -367,6 +367,16 @@
     property UsedFullUrl: string read FUsedFullUrl;
   end;
 
+  TNodeShaderTexture = class(TNodeX3DTextureNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFddefaultTexCoord: TSFString;
+    public property FdDefaultTexCoord: TSFString read FFddefaultTexCoord;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -982,6 +992,26 @@ begin
   Result := ShaderLoadContents(FUsedFullUrl, Self, FdUrl);
 end;
 
+constructor TNodeShaderTexture.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdDefaultTexCoord := TSFString.Create(Self, 'defaultTexCoord', 'BOUNDS2D');
+   FdDefaultTexCoord.Exposed := false;
+   FdDefaultTexCoord.ChangesAlways := [chEverything];
+  Fields.Add(FFdDefaultTexCoord);
+end;
+
+class function TNodeShaderTexture.ClassNodeTypeName: string;
+begin
+  Result := 'ShaderTexture';
+end;
+
+class function TNodeShaderTexture.URNMatching(const URN: string): boolean;
+begin
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -998,7 +1028,8 @@ begin
     TNodeScreenEffect,
     TNodeMultiGeneratedTextureCoordinate,
     TNodeEffect,
-    TNodeEffectPart
+    TNodeEffectPart,
+    TNodeShaderTexture
   ]);
 end;
 
