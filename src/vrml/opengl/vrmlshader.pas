@@ -564,10 +564,26 @@ const
     Code[0] := Copy(Code[0], 1, P - 1) + S + SEnding(Code[0], P);
   end;
 
+  function FindPlugOccurence(const CommentBegin, Code: string;
+    const CodeSearchBegin: Integer; out PBegin, PEnd: Integer): boolean;
+  begin
+    Result := false;
+    PBegin := PosEx(CommentBegin, Code, CodeSearchBegin);
+    if PBegin <> 0 then
+    begin
+      PEnd := PosEx('*/', Code, PBegin + Length(CommentBegin));
+      Result :=  PEnd <> 0;
+      if not Result then
+        VRMLWarning(vwIgnorable, Format('Plug comment "%s" not properly closed, treating like not declared',
+          [CommentBegin]));
+    end;
+  end;
+
 var
-  PBegin, PEnd: Integer;
+  PBegin, PEnd, CodeSearchBegin: Integer;
   Parameter, PlugName, ProcedureName, CommentBegin: string;
   CodeForPlugValue: TDynStringArray;
+  AnyOccurences: boolean;
 begin
   if EffectPartType = 'VERTEX' then
     CodeForPlugValue := VertexShaderComplete else
@@ -587,22 +603,25 @@ begin
     if PlugName = '' then Break;
 
     CommentBegin := '/* PLUG: ' + PlugName + ' ';
-    PBegin := Pos(CommentBegin, Code[0]); { TODO: only Code[0] processed for now }
-    if PBegin <> 0 then
+
+    ProcedureName := 'plugged_' + IntToStr(PlugIdentifiers);
+    StringReplaceAllTo1st(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
+    Inc(PlugIdentifiers);
+
+    { TODO: only Code[0] processed for now }
+    AnyOccurences := false;
+    CodeSearchBegin := 1;
+    while FindPlugOccurence(CommentBegin, Code[0], CodeSearchBegin, PBegin, PEnd) do
     begin
-      PEnd := PosEx('*/', Code[0], PBegin + Length(CommentBegin));
-      if PEnd <> 0 then
-      begin
-        ProcedureName := 'plugged_' + IntToStr(PlugIdentifiers);
-        Inc(PlugIdentifiers);
+      Parameter := Trim(CopyPos(Code[0], PBegin + Length(CommentBegin), PEnd - 1));
+      InsertIntoCode(PBegin, ProcedureName + Parameter + ';' + NL);
 
-        StringReplaceAllTo1st(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
+      { do not find again the same plug comment by FindPlugOccurence }
+      CodeSearchBegin := PEnd;
+      AnyOccurences := true;
+    end;
 
-        Parameter := Trim(CopyPos(Code[0], PBegin + Length(CommentBegin), PEnd - 1));
-        InsertIntoCode(PBegin, ProcedureName + Parameter + ';' + NL);
-      end else
-        VRMLWarning(vwIgnorable, Format('Plug name "%s" comment not properly closed, treating like not declared', [PlugName]));
-    end else
+    if not AnyOccurences then
       VRMLWarning(vwIgnorable, Format('Plug name "%s" not declared', [PlugName]));
   until false;
 
