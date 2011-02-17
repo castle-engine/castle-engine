@@ -576,7 +576,18 @@ type
       default DefaultPercentageCloserFiltering;
 
     { Visualize depths stored in the shadow maps, instead of using them to
-      actually make shadow. }
+      actually make shadow.
+
+      Even without turning this on, VRML author can always activate it
+      explicitly for specific lights. For this, you have to use
+      @code(X3DLightNode.defaultShadowMap) field,
+      and place a GeneratedShadowMap node there. If the
+      @code(GeneratedShadowMap.compareMode) is set to @code('NONE'),
+      we will always visualize depths of this shadow map.
+
+      Setting this property to @true has the same effect as setting
+      compareMode to "NONE" on all (explicit and implicitly created)
+      GeneratedShadowMap nodes. }
     property VisualizeDepthMap: boolean
       read FVisualizeDepthMap write SetVisualizeDepthMap default false;
   end;
