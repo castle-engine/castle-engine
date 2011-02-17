@@ -144,10 +144,10 @@ type
 
     { Detect defined PLUG_xxx functions within PlugValue,
       insert calls to them into given Code,
-      insert their declarations (just whole PlugValue) into code of final shader
-      (determined by EffectPartType).
-      When Code = nil then we insert both calls and declarations into
-      code of final shader (determined by EffectPartType).
+      insert the PlugValue (which should be variable and functions declarations)
+      into code of final shader (determined by EffectPartType).
+      When Code = nil then we insert both calls and PlugValue into
+      code of the final shader (determined by EffectPartType).
 
       Inserts calls right before the magic @code(/* PLUG ...*/) comments,
       this way many Plug calls that defined the same PLUG_xxx function
@@ -600,13 +600,15 @@ begin
 
         Parameter := Trim(CopyPos(Code[0], PBegin + Length(CommentBegin), PEnd - 1));
         InsertIntoCode(PBegin, ProcedureName + Parameter + ';' + NL);
-
-        PlugDirectly(CodeForPlugValue, '$declare-procedures$', PlugValue);
       end else
         VRMLWarning(vwIgnorable, Format('Plug name "%s" comment not properly closed, treating like not declared', [PlugName]));
     end else
       VRMLWarning(vwIgnorable, Format('Plug name "%s" not declared', [PlugName]));
   until false;
+
+  { regardless if any (and how many) plug points were found,
+    always insert PlugValue into CodeForPlugValue }
+  PlugDirectly(CodeForPlugValue, '$declare-procedures$', PlugValue);
 end;
 
 procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
