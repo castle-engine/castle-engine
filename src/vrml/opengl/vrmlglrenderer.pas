@@ -233,6 +233,8 @@ type
     const Vert: TVector3Single) of object;
 
 const
+  DefaultPointSize = 3.0;
+  DefaultLineWidth = 2.0;
   DefaultVarianceShadowMaps = false;
 
 type
@@ -256,6 +258,7 @@ type
     FTextureMinFilter: TGLint;
     FTextureMagFilter: TGLint;
     FPointSize: TGLFloat;
+    FLineWidth: TGLFloat;
     FUseFog: boolean;
     FBumpMapping: boolean;
     FGLSLShaders: boolean;
@@ -279,7 +282,6 @@ type
     procedure SetEnableTextures(const Value: boolean); virtual;
     procedure SetTextureMinFilter(const Value: TGLint); virtual;
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
-    procedure SetPointSize(const Value: TGLFloat); virtual;
     procedure SetUseFog(const Value: boolean); virtual;
     procedure SetBumpMapping(const Value: boolean); virtual;
     procedure SetPureGeometry(const Value: boolean); virtual;
@@ -426,10 +428,14 @@ type
       read FTextureMagFilter write SetTextureMagFilter default GL_LINEAR;
     { @groupEnd }
 
-    { How large OpenGL points should be.
-      This has currently effect only on VRML/X3D PointSet rendering. }
+    { Size of points. This has an effect on VRML/X3D PointSet rendering. }
     property PointSize: TGLFloat
-      read FPointSize write SetPointSize default 3.0;
+      read FPointSize write FPointSize default DefaultPointSize;
+
+    { Line width. This has an effect on VRML/X3D LineSet rendering,
+      and on wireframe rendering for TVRMLSceneRenderingAttributes.WireframeEffect. }
+    property LineWidth: Single
+      read FLineWidth write FLineWidth default DefaultLineWidth;
 
     { Should we control fog, rendering fog following VRML/X3D defined fog.
       If @true then we will enable/disable and set all the properties
@@ -2264,6 +2270,7 @@ begin
     TextureMinFilter := TVRMLRenderingAttributes(Source).TextureMinFilter;
     TextureMagFilter := TVRMLRenderingAttributes(Source).TextureMagFilter;
     PointSize := TVRMLRenderingAttributes(Source).PointSize;
+    LineWidth := TVRMLRenderingAttributes(Source).LineWidth;
     UseFog := TVRMLRenderingAttributes(Source).UseFog;
   end else
     inherited;
@@ -2291,7 +2298,8 @@ begin
   FEnableTextures := true;
   FTextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
   FTextureMagFilter := GL_LINEAR;
-  FPointSize := 3.0;
+  FPointSize := DefaultPointSize;
+  FLineWidth := DefaultLineWidth;
   FUseFog := true;
   FBumpMapping := true;
   FGLSLShaders := true;
@@ -2367,11 +2375,6 @@ begin
     ReleaseCachedResources;
     FTextureMagFilter := Value;
   end;
-end;
-
-procedure TVRMLRenderingAttributes.SetPointSize(const Value: TGLFloat);
-begin
-  FPointSize := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetUseFog(const Value: boolean);
@@ -2891,6 +2894,9 @@ begin
   { init our OpenGL state }
   glMatrixMode(GL_MODELVIEW);
 
+  glPointSize(Attributes.PointSize);
+  glLineWidth(Attributes.LineWidth); { saved by GL_LINE_BIT }
+
   if not Attributes.PureGeometry then
   begin
     glDisable(GL_COLOR_MATERIAL);
@@ -2916,7 +2922,6 @@ begin
         (for example, Examine camera may allow user to scale the object). }
     SetGLEnabled(GL_NORMALIZE, Beginning);
 
-    glPointSize(Attributes.PointSize);
     SetGLEnabled(GL_DEPTH_TEST, Beginning);
 
     if not GLVersion.BuggyLightModelTwoSide then
@@ -2960,7 +2965,7 @@ begin
     { Push OpenGL attributes that can be changed by RenderCleanState, RenderShape }
     Attribs := GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT
       or GL_FOG_BIT or GL_LIGHTING_BIT or GL_POLYGON_BIT or GL_TEXTURE_BIT
-      or GL_TRANSFORM_BIT;
+      or GL_TRANSFORM_BIT or GL_LINE_BIT;
     { When BuggyPointSetAttrib, then glPointSize call "leaks" out.
       But there's nothing we can do about it, we cannot use GL_POINT_BIT
       as it crashes Mesa (and produces "invalid enumerant" error in case

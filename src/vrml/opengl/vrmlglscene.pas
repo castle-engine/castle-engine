@@ -58,7 +58,6 @@ const
   DefaultBlendingSort = false;
 
 const
-  DefaultWireframeWidth = 3.0;
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
 
 type
@@ -75,7 +74,7 @@ type
 
     Generally, two other attributes may affect the way wireframe is rendered:
     TVRMLSceneRenderingAttributes.WireframeColor and
-    TVRMLSceneRenderingAttributes.WireframeWidth, quite self-explanatory. }
+    TVRMLSceneRenderingAttributes.LineWidth, quite self-explanatory. }
   TVRMLWireframeEffect = (
 
     { Default setting, model polygons are simply passed to OpenGL.
@@ -85,8 +84,7 @@ type
 
     { The model is rendered in wireframe mode.
 
-      WireframeWidth is used as wireframe line width (regardless of
-      PureGeometry).
+      LineWidth is used as wireframe line width (regardless of PureGeometry).
 
       Depending on TVRMLSceneRenderingAttributes.PureGeometry value:
 
@@ -107,7 +105,7 @@ type
       is too see wireframe version of the model but still render shapes
       solid (e.g. filled polygons with depth test).
 
-      WireframeColor and WireframeWidth are used as wireframe
+      WireframeColor and LineWidth are used as wireframe
       line color/width (regardless of current PureGeometry value).
 
       This usually gives best results when PureGeometry is on.
@@ -133,7 +131,7 @@ type
       makes the wireframe mesh slightly at the back of the model. This way
       only the silhouette is visible from the wireframe rendering.
 
-      WireframeColor and WireframeWidth are used as silhouette
+      WireframeColor and LineWidth are used as silhouette
       line color/width (regardless of current PureGeometry value).
 
       This is sometimes sensible to use with PureGeometry = @true.
@@ -158,7 +156,6 @@ type
     FBlendingSort: boolean;
     FControlBlending: boolean;
     FWireframeColor: TVector3Single;
-    FWireframeWidth: Single;
     FWireframeEffect: TVRMLWireframeEffect;
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
@@ -243,16 +240,10 @@ type
     property WireframeEffect: TVRMLWireframeEffect
       read FWireframeEffect write FWireframeEffect default weNormal;
 
-    { Wireframe color and width, used with some WireframeEffect values.
-
-      Default value of WireframeColor is DefaultWireframeColor.
-
-      @groupBegin }
+    { Wireframe color, used with some WireframeEffect values.
+      Default value is DefaultWireframeColor. }
     property WireframeColor: TVector3Single
       read FWireframeColor write FWireframeColor;
-    property WireframeWidth: Single
-      read FWireframeWidth write FWireframeWidth default DefaultWireframeWidth;
-    { @groupEnd }
 
     { Should we use ARB_occlusion_query (if available) to avoid rendering
       shapes that didn't pass occlusion test in previous frame.
@@ -2312,9 +2303,8 @@ procedure TVRMLGLScene.Render(
 
   procedure RenderWireframe(UseWireframeColor: boolean);
   begin
-    glPushAttrib(GL_POLYGON_BIT or GL_LINE_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
+    glPushAttrib(GL_POLYGON_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
-      glLineWidth(Attributes.WireframeWidth); { saved by GL_LINE_BIT }
       if UseWireframeColor then
       begin
         glColorv(Attributes.WireframeColor); { saved by GL_CURRENT_BIT }
@@ -3897,7 +3887,6 @@ begin
   FControlBlending := true;
 
   FWireframeEffect := weNormal;
-  FWireframeWidth := DefaultWireframeWidth;
   FWireframeColor := DefaultWireframeColor;
 
   FScenes := TVRMLGLScenesList.Create;
