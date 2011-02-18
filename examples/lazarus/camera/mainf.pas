@@ -31,12 +31,14 @@ type
   TCube = class(T3D)
   public
     procedure Render(const Frustum: TFrustum;
-      TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+      const LightsEnabled: Cardinal;
+      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
     function BoundingBox: TBox3D; override;
   end;
 
 procedure TCube.Render(const Frustum: TFrustum;
-  TransparentGroup: TTransparentGroup; InShadow: boolean);
+  const LightsEnabled: Cardinal;
+  const TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
   if TransparentGroup in [tgAll, tgOpaque] then
   begin
