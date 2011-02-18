@@ -40,7 +40,6 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
-    SoundEngine: TALSoundEngine;
     procedure SourceUsingEnd(Sender: TALSound);
   public
     { public declarations }
@@ -126,26 +125,22 @@ var
   I: Integer;
   S: string;
 begin
-  if SoundEngine <> nil then
+  ListAllocatedSources.Clear;
+  for I := 0 to SoundEngine.AllocatedSources.High do
   begin
-    ListAllocatedSources.Clear;
-    for I := 0 to SoundEngine.AllocatedSources.High do
-    begin
-      S := Format('%d: AL source: %4d, used: %5s',
-        [ I,
-          SoundEngine.AllocatedSources[I].ALSource,
-          BoolToStrYesNo[SoundEngine.AllocatedSources[I].Used] ]);
-      if SoundEngine.AllocatedSources[I].Used then
-        S += Format(', started on %s, importance: %d, filename: %s',
-          [ FormatDateTime('tt',
-              TALSoundData(
-                SoundEngine.AllocatedSources[I].UserData).StartedTime),
-            SoundEngine.AllocatedSources[I].Importance,
-            TALSoundData(SoundEngine.AllocatedSources[I].
-              UserData).FileName
-          ]);
-      ListAllocatedSources.Items.Append(S);
-    end;
+    S := Format('%d: AL source: %4d, used: %5s',
+      [ I,
+        SoundEngine.AllocatedSources[I].ALSource,
+        BoolToStrYesNo[SoundEngine.AllocatedSources[I].Used] ]);
+    if SoundEngine.AllocatedSources[I].Used then
+      S += Format(', started on %s, importance: %d, filename: %s',
+        [ FormatDateTime('tt', TALSoundData(
+            SoundEngine.AllocatedSources[I].UserData).StartedTime),
+          SoundEngine.AllocatedSources[I].Importance,
+          TALSoundData(SoundEngine.AllocatedSources[I].
+            UserData).FileName
+        ]);
+    ListAllocatedSources.Items.Append(S);
   end;
 end;
 
