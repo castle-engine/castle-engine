@@ -43,8 +43,8 @@
       <Unit0>
         <Filename Value="fft_tests.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
+        <CursorPos X="1" Y="287"/>
+        <TopLine Value="265"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
@@ -62,7 +62,12 @@
         <UsageCount Value="20"/>
       </Unit2>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="1" HistoryIndex="0">
+      <Position1>
+        <Filename Value="fft_tests.lpr"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position1>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>

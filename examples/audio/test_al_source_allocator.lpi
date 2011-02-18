@@ -31,7 +31,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="12">
       <Unit0>
         <Filename Value="test_al_source_allocator.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -46,8 +46,8 @@
         <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="62" Y="91"/>
-        <TopLine Value="88"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="26"/>
         <Loaded Value="True"/>
@@ -107,8 +107,24 @@
         <TopLine Value="1"/>
         <UsageCount Value="10"/>
       </Unit9>
+      <Unit10>
+        <Filename Value="../../src/audio/alsoundallocator.pas"/>
+        <UnitName Value="ALSoundAllocator"/>
+        <CursorPos X="1" Y="572"/>
+        <TopLine Value="560"/>
+        <UsageCount Value="10"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="../../src/audio/alsoundengine.pas"/>
+        <UnitName Value="ALSoundEngine"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="337"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit11>
     </Units>
-    <JumpHistory Count="16" HistoryIndex="15">
+    <JumpHistory Count="20" HistoryIndex="19">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="117" Column="7" TopLine="102"/>
@@ -173,6 +189,22 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="144" Column="1" TopLine="133"/>
       </Position16>
+      <Position17>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="91" Column="62" TopLine="88"/>
+      </Position17>
+      <Position18>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="72" Column="9" TopLine="61"/>
+      </Position18>
+      <Position19>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="43" Column="1" TopLine="29"/>
+      </Position19>
+      <Position20>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="42" TopLine="1"/>
+      </Position20>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

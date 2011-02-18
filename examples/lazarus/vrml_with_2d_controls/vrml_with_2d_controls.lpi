@@ -88,9 +88,7 @@
         <UnitName Value="KambiGLControl"/>
         <CursorPos X="28" Y="1253"/>
         <TopLine Value="1237"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit5>
       <Unit6>
         <Filename Value="..\..\..\src\ui\uicontrols.pas"/>
@@ -132,21 +130,17 @@
         <UnitName Value="GLImages"/>
         <CursorPos X="34" Y="190"/>
         <TopLine Value="168"/>
-        <EditorIndex Value="3"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit11>
       <Unit12>
         <Filename Value="..\..\..\src\images\images.pas"/>
         <UnitName Value="Images"/>
         <CursorPos X="20" Y="1537"/>
         <TopLine Value="1515"/>
-        <EditorIndex Value="2"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit12>
     </Units>
-    <JumpHistory Count="23" HistoryIndex="22">
+    <JumpHistory Count="9" HistoryIndex="8">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="36" Column="18" TopLine="16"/>
@@ -168,77 +162,21 @@
         <Caret Line="67" Column="22" TopLine="53"/>
       </Position5>
       <Position6>
-        <Filename Value="..\..\..\src\images\images.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position6>
-      <Position7>
-        <Filename Value="..\..\..\src\images\images.pas"/>
-        <Caret Line="35" Column="54" TopLine="24"/>
-      </Position7>
-      <Position8>
-        <Filename Value="..\..\..\src\images\images.pas"/>
-        <Caret Line="43" Column="21" TopLine="24"/>
-      </Position8>
-      <Position9>
-        <Filename Value="..\..\..\src\images\images.pas"/>
-        <Caret Line="1471" Column="22" TopLine="1450"/>
-      </Position9>
-      <Position10>
         <Filename Value="mainf.pas"/>
         <Caret Line="63" Column="74" TopLine="51"/>
-      </Position10>
-      <Position11>
+      </Position6>
+      <Position7>
         <Filename Value="mainf.pas"/>
         <Caret Line="64" Column="74" TopLine="51"/>
-      </Position11>
-      <Position12>
+      </Position7>
+      <Position8>
         <Filename Value="mainf.pas"/>
         <Caret Line="65" Column="74" TopLine="51"/>
-      </Position12>
-      <Position13>
+      </Position8>
+      <Position9>
         <Filename Value="mainf.pas"/>
         <Caret Line="66" Column="74" TopLine="51"/>
-      </Position13>
-      <Position14>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="1105" Column="17" TopLine="1088"/>
-      </Position14>
-      <Position15>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="728" Column="48" TopLine="728"/>
-      </Position15>
-      <Position16>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="734" Column="48" TopLine="728"/>
-      </Position16>
-      <Position17>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="735" Column="43" TopLine="728"/>
-      </Position17>
-      <Position18>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="736" Column="25" TopLine="728"/>
-      </Position18>
-      <Position19>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="737" Column="60" TopLine="728"/>
-      </Position19>
-      <Position20>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="759" Column="60" TopLine="748"/>
-      </Position20>
-      <Position21>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="760" Column="24" TopLine="748"/>
-      </Position21>
-      <Position22>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="1229" Column="38" TopLine="1207"/>
-      </Position22>
-      <Position23>
-        <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
-        <Caret Line="908" Column="17" TopLine="897"/>
-      </Position23>
+      </Position9>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

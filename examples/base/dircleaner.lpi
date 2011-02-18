@@ -6,7 +6,6 @@
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
-        <UseDefaultCompilerOptions Value="True"/>
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>

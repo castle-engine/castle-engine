@@ -39,7 +39,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="5">
       <Unit0>
         <Filename Value="camera.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -52,8 +52,8 @@
         <ComponentName Value="MainForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="36" Y="67"/>
-        <TopLine Value="52"/>
+        <CursorPos X="32" Y="34"/>
+        <TopLine Value="28"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
@@ -72,8 +72,15 @@
         <TopLine Value="979"/>
         <UsageCount Value="10"/>
       </Unit3>
+      <Unit4>
+        <Filename Value="../../../src/3d/base3d.pas"/>
+        <UnitName Value="Base3D"/>
+        <CursorPos X="37" Y="236"/>
+        <TopLine Value="230"/>
+        <UsageCount Value="10"/>
+      </Unit4>
     </Units>
-    <JumpHistory Count="14" HistoryIndex="13">
+    <JumpHistory Count="18" HistoryIndex="17">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="33" Column="31" TopLine="11"/>
@@ -130,6 +137,22 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="16" Column="1" TopLine="1"/>
       </Position14>
+      <Position15>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="67" Column="36" TopLine="50"/>
+      </Position15>
+      <Position16>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="33" Column="15" TopLine="22"/>
+      </Position16>
+      <Position17>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="28" Column="49" TopLine="22"/>
+      </Position17>
+      <Position18>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="35" Column="13" TopLine="22"/>
+      </Position18>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

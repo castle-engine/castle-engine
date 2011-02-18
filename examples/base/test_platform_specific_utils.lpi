@@ -11,6 +11,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -34,14 +35,30 @@
         <PackageName Value="kambi_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="test_platform_specific_utils.lpr"/>
         <IsPartOfProject Value="True"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="../../src/base/kambifilesutils.pas"/>
+        <UnitName Value="KambiFilesUtils"/>
+        <CursorPos X="1" Y="940"/>
+        <TopLine Value="929"/>
+        <UsageCount Value="10"/>
+      </Unit1>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="1" HistoryIndex="0">
+      <Position1>
+        <Filename Value="test_platform_specific_utils.lpr"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position1>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>

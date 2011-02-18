@@ -11,6 +11,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -41,7 +42,11 @@
       <Unit0>
         <Filename Value="doppler_demo.lpr"/>
         <IsPartOfProject Value="True"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
       </Unit0>
     </Units>
     <JumpHistory Count="0" HistoryIndex="-1"/>
