@@ -29,8 +29,8 @@
 
   For example:
     kanim_to_interpolators coord_MOD_Plane \
-    ../../../../kambi_vrml_test_suite/x3d/water_reflections/water.kanim \
-    ../../../../kambi_vrml_test_suite/x3d/water_reflections/water_converted.wrl
+    ../../../../kambi_vrml_test_suite/water/water.kanim \
+    ../../../../kambi_vrml_test_suite/water/water_converted.wrl
 }
 program kanim_to_interpolators;
 
