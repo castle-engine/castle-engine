@@ -325,6 +325,7 @@ begin
     glDisable(GL_LIGHTING);
 
     glColorv(Yellow3Single);
+    glPointSize(10); { VRML renderer will reset it }
     glBegin(GL_POINTS);
       glVertexv(LightPosition);
     glEnd;
@@ -458,8 +459,6 @@ begin
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
   glClearColor(ClearColor[0], ClearColor[1], ClearColor[2], ClearColor[3]);
-
-  glPointSize(10);
 end;
 
 procedure Close(Window: TGLWindow);
