@@ -32,27 +32,27 @@ const
   DefaultBlendingSourceFactor = GL_SRC_ALPHA;
 
   { Default value of Attributes.BlendingDestinationFactor.
+    See TVRMLSceneRenderingAttributes.BlendingDestinationFactor.
 
-    Why isn't the default value GL_ONE_MINUS_SRC_ALPHA ?
-    See [http://vrmlengine.sourceforge.net/vrml_engine_doc.php],
-    chapter "OpenGL rendering", section about "mat transparency
-    using blending". And comments below.
+    Using ONE_MINUS_SRC_ALPHA is the standard value for 3D graphic stuff,
+    often producing best results. However, it causes troubles when
+    multiple transparent shapes are visible on the same screen pixel.
+    For closed convex 3D objects, using backface culling
+    (solid = TRUE for geometry) helps. For multiple transparent shapes,
+    sorting the transparent shapes helps,
+    see TVRMLSceneRenderingAttributes.BlendingSort.
+    Sometimes, no solution works for all camera angles.
 
-    In short:
+    Another disadvantage of ONE_MINUS_SRC_ALPHA may be that
+    the color of opaque shapes disappears too quickly from
+    resulting image (since GL_ONE_MINUS_SRC_ALPHA scales it down).
+    So the image may be darker than you like.
 
-    @unorderedList(
-      @item(The disadvantage of GL_ONE is that resulting image
-        will be bright (maybe too bright) where partially transparent objects
-        are.)
-
-      @item(The disadvantage of GL_ONE_MINUS_SRC_ALPHA is that
-        the color of opaque object behind disappears too quickly from
-        resulting image (since GL_ONE_MINUS_SRC_ALPHA scales it down).
-
-        Also, it requires sorting for 100% correctness, and sorting is not
-        implemented yet. See TVRMLSceneRenderingAttributes.Blending.)
-    ) }
-  DefaultBlendingDestinationFactor = GL_ONE {_MINUS_SRC_ALPHA};
+    You can instead consider using GL_ONE, that doesn't require sorting
+    and never has problems with multiple transparent shapes.
+    On the other hand, it only adds to the color,
+    often making too bright results. }
+  DefaultBlendingDestinationFactor = GL_ONE_MINUS_SRC_ALPHA;
 
   { }
   DefaultBlendingSort = false;
