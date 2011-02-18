@@ -22,6 +22,8 @@ Once packages are successfully installed, Lazarus restarts, and you should see "
 
 Let's quickly open and run some demos, to make sure that everything works. I suggest running ... (some LCL demo) and ... (some glwindow demo).
 
+Make sure you have installed the necessary libraries first, or some of the demos will not work. The required libraries (.so under Unix, .dll under Windows) are mentioned in the <a href="http://vrmlengine.sourceforge.net/apidoc/html/introduction.html#SectionLibraries">Requirements -&gt; Libraries</a> section of our reference introduction. Under Windows, you will usually want to grab http://vrmlengine.sourceforge.net/miscella/win32_dlls.zip and place them somewhere on your $PATH, or just place them in every directory with .exe files that you compile with our engine.
+
 Now we'll start creating our own game from scratch.
 
 2. Creating OpenGL context --- a window (TGLUIWindow) or a Lazarus component (TKamOpenGLComponent)
