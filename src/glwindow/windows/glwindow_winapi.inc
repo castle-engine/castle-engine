@@ -318,6 +318,10 @@ function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT
     if Key <> K_None then DoKeyUp(Key);
   end;
 
+{ FPC <= 2.2.4 doesn't define WM_MOUSEHWHEEL in rtl/win/wininc/messages.inc }
+{$ifdef VER2_0} const WM_MOUSEHWHEEL= $020E; {$endif}
+{$ifdef VER2_2} const WM_MOUSEHWHEEL= $020E; {$endif}
+
 begin
   Result := 0;
 
@@ -640,7 +644,7 @@ procedure TGLWindow.OpenWinSystemDepend;
     pfd: Tpixelformatdescriptor;
   begin
     FillChar(pfd, SizeOf(pfd), 0);
-    with pfd do 
+    with pfd do
     begin
       nSize := SizeOf(TPIXELFORMATDESCRIPTOR);
       nVersion := 1;
