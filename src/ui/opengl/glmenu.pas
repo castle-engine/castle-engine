@@ -1331,6 +1331,7 @@ procedure TGLMenu.Draw;
   procedure DrawPositionRelativeLine;
   begin
     glColorv(White3Single);
+    glLineWidth(1.0);
     glBegin(GL_LINES);
       glVertexv(PositionScreenRelativeMove);
       glVertexv(PositionAbsolute + PositionMenuRelativeMove);

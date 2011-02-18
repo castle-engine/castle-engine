@@ -269,6 +269,7 @@ type
             @item The modelview matrix value.
             @item The raster position.
             @item The color (glColor), material (glMaterial) values.
+            @item The line width, point size.
           )
           Every other change should be wrapped in appropriate glPushAttrib / glPopAttrib.)
 

@@ -422,6 +422,7 @@ begin
       glVertexPixel(Left        , Bottom + Height);
     glEnd;
 
+    glLineWidth(1.0);
     glBegin(GL_LINES);
       DrawFrame(0, Pressed);
       DrawFrame(1, Pressed);
@@ -782,6 +783,7 @@ begin
 
   if VerticalSeparators.Count <> 0 then
   begin
+    glLineWidth(1.0);
     glBegin(GL_LINES);
       glColorOpacity(ColDarkFrame, Opacity);
       for I := 0 to VerticalSeparators.Count - 1 do
