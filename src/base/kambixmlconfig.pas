@@ -30,14 +30,15 @@ unit KambiXMLConfig;
 
 interface
 
-uses KambiUtils, {$ifdef USE_OLD_XMLCFG} XMLCfg {$else} XMLConf {$endif}, DOM;
+uses KambiUtils, {$ifdef USE_OLD_XMLCFG} XMLCfg {$else} XMLConf {$endif}, DOM,
+  VectorMath;
 
 type
   { Store configuration in XML format.
 
     This is a descendant of TXMLConfig that adds various small extensions:
-    float types storing (GetFloat, SetFloat, SetDeleteFloat),
-    PathElement utility. }
+    float types (GetFloat, SetFloat, SetDeleteFloat),
+    vector types, PathElement utility. }
   TKamXMLConfig = class(TXMLConfig)
   public
     { Internal notes: At the beginning I made the float methods
@@ -60,12 +61,24 @@ type
     { }
     function GetFloat(const APath: string;
       const ADefaultValue: Float): Float;
-
     procedure SetFloat(const APath: string;
       const AValue: Float);
-
     procedure SetDeleteFloat(const APath: string;
       const AValue, ADefaultValue: Float);
+
+    function GetValue(const APath: string;
+      const ADefaultValue: TVector3Single): TVector3Single; overload;
+    procedure SetValue(const APath: string;
+      const AValue: TVector3Single); overload;
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TVector3Single); overload;
+
+    function GetValue(const APath: string;
+      const ADefaultValue: TVector4Single): TVector4Single; overload;
+    procedure SetValue(const APath: string;
+      const AValue: TVector4Single); overload;
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TVector4Single); overload;
 
     { For a given path, return correspond DOM element of XML tree.
       This is useful if you want to mix XMLConfig style operations
@@ -127,6 +140,64 @@ procedure TKamXMLConfig.SetDeleteFloat(const APath: string;
   const AValue, ADefaultValue: Float);
 begin
   SetDeleteValue(APath, FloatToStr(AValue), FloatToStr(ADefaultValue));
+end;
+
+const
+  VectorComponentPaths: array [0..3] of string =
+  ('/x', '/y', '/z', '/w');
+
+function TKamXMLConfig.GetValue(const APath: string;
+  const ADefaultValue: TVector3Single): TVector3Single;
+var
+  I: Integer;
+begin
+  for I := 0 to 2 do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+procedure TKamXMLConfig.SetValue(const APath: string;
+  const AValue: TVector3Single);
+var
+  I: Integer;
+begin
+  for I := 0 to 2 do
+    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+end;
+
+procedure TKamXMLConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TVector3Single);
+var
+  I: Integer;
+begin
+  for I := 0 to 2 do
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+end;
+
+function TKamXMLConfig.GetValue(const APath: string;
+  const ADefaultValue: TVector4Single): TVector4Single;
+var
+  I: Integer;
+begin
+  for I := 0 to 3 do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+procedure TKamXMLConfig.SetValue(const APath: string;
+  const AValue: TVector4Single);
+var
+  I: Integer;
+begin
+  for I := 0 to 3 do
+    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+end;
+
+procedure TKamXMLConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TVector4Single);
+var
+  I: Integer;
+begin
+  for I := 0 to 3 do
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
 function TKamXMLConfig.PathElement(const APath: string): TDOMElement;
