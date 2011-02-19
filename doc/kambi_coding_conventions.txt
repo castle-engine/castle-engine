@@ -135,9 +135,6 @@ of documentation, see
   MBCS (multi byte character set) strings. Contributions are welcome,
   if someone needs it.
 
-- If in some Polish comments you will see Polish ogonki -- they should
-  be in ISO-8859-2 coding.
-
 Michalis Kamburelis (aka Kambi)
 <michalis.kambi@gmail.com>
 http://vrmlengine.sourceforge.net/
