@@ -16,7 +16,11 @@
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'  vertex_eye = gl_ModelViewMatrix * gl_Vertex;' + LineEnding + 
+'  vec4 vertex_object = gl_Vertex;' + LineEnding + 
+'  vec3 normal_object = gl_Normal;' + LineEnding + 
+'  /* PLUG: vertex_object_space (vertex_object, normal_object) */' + LineEnding + 
+'' + LineEnding + 
+'  vertex_eye = gl_ModelViewMatrix * vertex_object;' + LineEnding + 
 '  /* Yes, we need to normalize here,' + LineEnding + 
 '     and then fragment shader will also normalize?' + LineEnding + 
 '     TODO: think, make sure. */' + LineEnding + 

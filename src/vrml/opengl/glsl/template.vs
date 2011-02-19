@@ -14,11 +14,15 @@ varying vec3 normal_eye;
 
 void main(void)
 {
-  vertex_eye = gl_ModelViewMatrix * gl_Vertex;
+  vec4 vertex_object = gl_Vertex;
+  vec3 normal_object = gl_Normal;
+  /* PLUG: vertex_object_space (vertex_object, normal_object) */
+
+  vertex_eye = gl_ModelViewMatrix * vertex_object;
   /* Yes, we need to normalize here,
      and then fragment shader will also normalize?
      TODO: think, make sure. */
-  normal_eye = normalize(gl_NormalMatrix * gl_Normal);
+  normal_eye = normalize(gl_NormalMatrix * normal_object);
 
   /* PLUG: vertex_process (vertex_eye, normal_eye) */
   /* (const in vec4 vertex_eye, const in vec3 normal_eye) */
