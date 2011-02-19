@@ -4,7 +4,15 @@ In paricular, ../../www/TODO contains "next-release" stuff,
 usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
+3.10.0: Finish shader pipeline. Finish compositing shaders paper and work.
+
+------------------------------------------------------------------------------
 WWW:
+- more stuff to sidebar?
+  Maybe view3dscene should have a sidebar, with links to forum,bugs etc.
+  Make "donate" place on the sidebar, with links to flattr and fundr?
+  (see opengameart for nice example).
+
 * link to https://www.ohloh.net/p/vrmlengine/widgets somewhere?
   put a link with "I use it"? And a link to stats (with commit graph?)?
 
@@ -16,9 +24,6 @@ WWW:
   Configure gadget from:
   http://www.gmodules.com/ig/creator?url=http://hosting.gmodules.com/ig/gadgets/file/101638777846294812126/2.xml&up_url=http%3A%2F%2Fcia.vc%2Fstats%2Fproject%2Fvrmlengine%2F.rss&up_style=1&up_articles=10&up_date=1&up_size=50&up_sort=1&up_acolor=%2300c&up_color=%23333333&up_ads=1&up_title=&synd=open&w=400&h=200&title=GSites+RSS&border=%23ffffff%7C3px%2C1px+solid+%23999999
   -->
-
-------------------------------------------------------------------------------
-3.10.0: Shader pipeline. Compositing shaders.
 ------------------------------------------------------------------------------
 Mirrors:
 - RenderedTexture.scene (let VA know).

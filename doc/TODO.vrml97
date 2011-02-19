@@ -1,4 +1,4 @@
-VRML 97 TODO items:
+VRML TODO items:
 
 - Saving to VRML known problems:
   - When saving external prototype, we save all fields, always, not only
@@ -10,22 +10,18 @@ VRML 97 TODO items:
 
 - finish checking NIST tests
 
-- Remaining places where my code temporarily cannot handle VRML 2.0 files,
-  should be updated:
+- Conversion from 3DS, Wavefront, MD3 (some others) still goes through
+  VRML 1.0. Make a proper 3DS/others -> VRML 2.0 converter in object3dasvrml.pas
+  (grep for _1 where I used only VRML 1.0 nodes versions)
 
-  - Conversion from other 3D formats (make 3DS -> VRML 2.0 converter):
-    ./object3dasvrml.pas
-    (grep for _1 where I used only VRML 1.0 nodes versions)
+  Fix WWW pages on http://vrmlengine.sourceforge.net/ then
+  (grep for VRML 1.0...),
+  they say that convertion only to VRML 1.0 is available.
+  And on freshmeat.
 
-    Fix WWW pages on http://vrmlengine.sourceforge.net/ then
-    (grep for VRML 1.0...),
-    they say that convertion only to VRML 1.0 is available.
-    And on freshmeat.
+  Also fix appropriate section in vrml_engine_doc.
 
-    Also fix appropriate section in vrml_engine_doc.
-
-- KambiTriangulation should also be fixed just like DirectionalLight.
-  Or maybe it should be made a new field of Apperance ?
+- KambiTriangulation should be fixed, to go to Appearance.triangulation?
 
 ----------------------------------------
 - Resolving url fields (MFString, see 4.5.2, 4.5.3).
@@ -35,14 +31,6 @@ VRML 97 TODO items:
   Or lnet.
   Yes, this definitely must be "pluggable" to allow various
   network libraries to plug there ..
-
-----------------------------------------
-4.6.7.2 Environmental sensors
-4.6.7.3 Pointing-device sensors
-------------------------------------------------------------------------------
-- Scripting:
-  - 4.5.4 Scripting language protocols
-  - 4.12 Scripting
 
 ------------------------------------------------------------------------------
 For scripting we will also have to implement a tricky feature, that is currently completely ignored because you cannot access it without scripts:
@@ -97,8 +85,6 @@ test implemented events:
 - ElevationGrid: set_height
 - Extrusion:  set_crossSection, set_orientation, set_scale, set_spine
 - IndexedFaceSet: set_colorIndex, set_coordIndex, set_normalIndex, set_texCoordIndex
-
-- Inline.set_url, InlineLoadControl.set_url
 ------------------------------------------------------------------------------
 The way of rendering Background and TextureBackground by TBackgroundGL
 is bad. It's not intergrated with rest of VRML rendering, so it cannot
@@ -116,8 +102,6 @@ LoadSensor - not so trivial, delaying for the future.
 
 Also auto-turn off boundingbox calculation? this also can hurt us now...
 Seems to not be needed now, delaying for the future.
-
-React to NavigationInfo bound changes from view3dscene, something has to be done? We can registed to NavigationInfoStack.OnBoundChanged if needed.
 
 Anchor finishing touches:
 - for non-3D model data, X3D spec says:
