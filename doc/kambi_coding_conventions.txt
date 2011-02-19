@@ -73,11 +73,6 @@ of documentation, see
     Stride may be negative. Stride may also be 0, then it means
     that Stride = SizeOf(<type>).
 
-  - If beside a variable or class' field/property I write
-    comment like "{ = <value> }" then it means that this
-    variable is initialized to <value> in unit initialization
-    (or in class constructor, in case of class' field/property).
-
 - Compilation symbols used:
 
   Besides standard FPC, GPC and Delphi ones (like MSWINDOWS, UNIX, LINUX,
