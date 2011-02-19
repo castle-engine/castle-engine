@@ -27,5 +27,9 @@ void main(void)
   /* PLUG: vertex_process (vertex_eye, normal_eye) */
   /* (const in vec4 vertex_eye, const in vec3 normal_eye) */
 
+#ifdef VERTEX_OBJECT_SPACE_CHANGED
+  gl_Position = gl_ProjectionMatrix * vertex_eye;
+#else
   gl_Position = ftransform();
+#endif
 }

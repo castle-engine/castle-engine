@@ -29,6 +29,10 @@
 '  /* PLUG: vertex_process (vertex_eye, normal_eye) */' + LineEnding + 
 '  /* (const in vec4 vertex_eye, const in vec3 normal_eye) */' + LineEnding + 
 '' + LineEnding + 
+'#ifdef VERTEX_OBJECT_SPACE_CHANGED' + LineEnding + 
+'  gl_Position = gl_ProjectionMatrix * vertex_eye;' + LineEnding + 
+'#else' + LineEnding + 
 '  gl_Position = ftransform();' + LineEnding + 
+'#endif' + LineEnding + 
 '}' + LineEnding + 
 ''
