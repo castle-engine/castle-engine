@@ -223,7 +223,7 @@ function ArraysGenerator(AGeometry: TVRMLGeometryNode): TVRMLArraysGeneratorClas
 
 implementation
 
-uses SysUtils, KambiLog, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, 
+uses SysUtils, KambiLog, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   VRMLErrors, Boxes3D, Triangulator, KambiStringUtils, FaceIndex;
 
 type
@@ -798,18 +798,28 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
 
   { Is a texture used on given unit, and it's 3D texture. }
   function IsTexture3D(const TexUnit: Cardinal): boolean;
+
+    { Knowing that Tex is not nil,
+      check is it a single (not MultiTexture) 3D texture. }
+    function IsSingleTexture3D(Tex: TVRMLNode): boolean;
+    begin
+      Result :=
+         (Tex is TNodeX3DTexture3DNode) or
+        ((Tex is TNodeShaderTexture) and
+         (TNodeShaderTexture(Tex).FdDefaultTexCoord.Value = 'BOUNDS3D'));
+    end;
+
   var
     Tex: TNodeX3DTextureNode;
   begin
     Tex := State.Texture;
     Result := (
       (Tex <> nil) and
-      ( ( (TexUnit = 0) and
-          (Tex is TNodeX3DTexture3DNode) )
+      ( ( (TexUnit = 0) and IsSingleTexture3D(Tex) )
         or
         ( (Tex is TNodeMultiTexture) and
           (TNodeMultiTexture(Tex).FdTexture.Count > TexUnit) and
-          (TNodeMultiTexture(Tex).FdTexture.Items[TexUnit] is TNodeX3DTexture3DNode)
+          IsSingleTexture3D(TNodeMultiTexture(Tex).FdTexture.Items[TexUnit])
         )));
   end;
 
