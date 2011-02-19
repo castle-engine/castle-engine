@@ -86,6 +86,9 @@ if (( $# == 0 )); then
   # they should not be used in any program (they are only to simplify
   # compilation).
   #
+  # Don't generate docs for fglobjectlist22.pas, as this is only a hack
+  # for FPC <= 2.24. Also, it doesn't parse, due to defining generics.
+  #
   # Don't generate docs for units created only for example programs.
   find .  \
     '(' -type d '(' -iname old -or \
@@ -93,6 +96,7 @@ if (( $# == 0 )); then
                 ')' -prune ')' -or \
     '(' -type f -iname '*.pas' \
             -not '(' \
+              '(' -iwholename '*/fglobjectlist22.pas' ')' -or \
               '(' -iwholename '*/AllKambi*Units.pas' ')' -or \
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
               '(' -iwholename '*fonts/TTF_*.pas' ')' -or \
