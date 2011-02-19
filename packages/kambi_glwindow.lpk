@@ -6,8 +6,8 @@
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/glwindow/unix/;../src/glwindow/windows/;../src/glwindow/gtk/"/>
-        <OtherUnitFiles Value="../src/glwindow/;../src/glwindow/windows/"/>
+        <IncludeFiles Value="../src/glwindow/unix;../src/glwindow/windows;../src/glwindow/gtk;../src/base;../src/base/templates"/>
+        <OtherUnitFiles Value="../src/glwindow;../src/glwindow/windows"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -50,7 +50,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="16">
+    <Files Count="17">
       <Item1>
         <Filename Value="../src/glwindow/glwindowvrmlbrowser.pas"/>
         <UnitName Value="GLWindowVRMLBrowser"/>
@@ -119,6 +119,10 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="xlibutils"/>
       </Item16>
+      <Item17>
+        <Filename Value="../src/base/kambiconf.inc"/>
+        <Type Value="Include"/>
+      </Item17>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
