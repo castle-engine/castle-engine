@@ -49,7 +49,7 @@
 '     For now, just the simplest workaround: use temp variably. */' + LineEnding + 
 '' + LineEnding + 
 '  vec4 fragment_color = gl_FragColor;' + LineEnding + 
-'  /* PLUG: texture_apply (fragment_color) */' + LineEnding + 
+'  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '  gl_FragColor = fragment_color;' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: fragment_end (gl_FragColor) */' + LineEnding + 

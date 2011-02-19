@@ -47,7 +47,7 @@ void main(void)
      For now, just the simplest workaround: use temp variably. */
 
   vec4 fragment_color = gl_FragColor;
-  /* PLUG: texture_apply (fragment_color) */
+  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
   gl_FragColor = fragment_color;
 
   /* PLUG: fragment_end (gl_FragColor) */
