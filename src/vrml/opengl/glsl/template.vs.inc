@@ -24,7 +24,7 @@
 '  /* Yes, we need to normalize here,' + LineEnding + 
 '     and then fragment shader will also normalize?' + LineEnding + 
 '     TODO: think, make sure. */' + LineEnding + 
-'  normal_eye = normalize(gl_NormalMatrix * gl_Normal);' + LineEnding + 
+'  normal_eye = normalize(gl_NormalMatrix * normal_object);' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: vertex_process (vertex_eye, normal_eye) */' + LineEnding + 
 '  /* (const in vec4 vertex_eye, const in vec3 normal_eye) */' + LineEnding + 
