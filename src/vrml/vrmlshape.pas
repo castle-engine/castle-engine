@@ -1745,20 +1745,26 @@ procedure TVRMLShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunctio
 var
   ComposedShader: TNodeComposedShader;
   I: Integer;
+  App: TNodeAppearance;
 begin
   HandleTextureNode(State.LastNodes.Texture2);
 
   if (State.ShapeNode <> nil) and
      (State.ShapeNode.Appearance <> nil) then
   begin
-    HandleTextureNode(State.ShapeNode.Appearance.FdTexture.Value);
+    App := State.ShapeNode.Appearance;
+    HandleTextureNode(App.FdTexture.Value);
 
-    for I := 0 to State.ShapeNode.Appearance.FdShaders.Items.Count - 1 do
+    for I := 0 to App.FdShaders.Count - 1 do
     begin
-      ComposedShader := State.ShapeNode.Appearance.FdShaders.GLSLShader(I);
+      ComposedShader := App.FdShaders.GLSLShader(I);
       if ComposedShader <> nil then
         HandleShaderFields(ComposedShader.InterfaceDeclarations);
     end;
+
+    for I := 0 to App.FdEffects.Count - 1 do
+      if App.FdEffects[I] is TNodeEffect then
+        HandleShaderFields(TNodeEffect(App.FdEffects[I]).InterfaceDeclarations);
   end;
 end;
 
