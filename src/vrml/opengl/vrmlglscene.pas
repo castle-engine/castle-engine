@@ -3639,6 +3639,14 @@ var
       if FieldOfView.High >= 1 then OrthoViewDimensions[1] := FieldOfView.Items[1];
       if FieldOfView.High >= 2 then OrthoViewDimensions[2] := FieldOfView.Items[2];
       if FieldOfView.High >= 3 then OrthoViewDimensions[3] := FieldOfView.Items[3];
+    end else
+    if (ViewpointNode <> nil) and
+       (ViewpointNode is TNodeOrthographicCamera) then
+    begin
+      OrthoViewDimensions[0] := -TNodeOrthographicCamera(ViewpointNode).FdHeight.Value / 2;
+      OrthoViewDimensions[1] := -TNodeOrthographicCamera(ViewpointNode).FdHeight.Value / 2;
+      OrthoViewDimensions[2] :=  TNodeOrthographicCamera(ViewpointNode).FdHeight.Value / 2;
+      OrthoViewDimensions[3] :=  TNodeOrthographicCamera(ViewpointNode).FdHeight.Value / 2;
     end;
 
     TNodeOrthoViewpoint.AspectFieldOfView(OrthoViewDimensions,
@@ -3664,6 +3672,9 @@ begin
   if (ViewpointNode <> nil) and
      (ViewpointNode is TNodeViewpoint) then
     PerspectiveFieldOfView := TNodeViewpoint(ViewpointNode).FdFieldOfView.Value else
+  if (ViewpointNode <> nil) and
+     (ViewpointNode is TNodePerspectiveCamera) then
+    PerspectiveFieldOfView := TNodePerspectiveCamera(ViewpointNode).FdHeightAngle.Value else
     PerspectiveFieldOfView := DefaultViewpointFieldOfView;
 
   PerspectiveViewAngles[0] := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(

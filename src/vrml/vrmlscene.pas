@@ -1287,9 +1287,8 @@ type
     { GetViewpoint and GetPerspectiveViewpoint return the properties
       of the defined Viewpoint in VRML file, or some default viewpoint
       properties if no viewpoint is found in RootNode graph. They seek for
-      nodes Viewpoint (for VRML 97) or OrthoViewpoint (any X3DViewpointNode
-      actually, for X3D), PerspectiveCamera and OrthographicCamera
-      (for VRML 1.0) in the scene graph.
+      nodes Viewpoint, OrthoViewpoint (actually, for any X3DViewpointNode),
+      as well as PerspectiveCamera and OrthographicCamera (for VRML 1.0).
 
       GetPerspectiveViewpoint omits OrthographicCamera andy OrthoViewpoint.
 

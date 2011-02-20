@@ -692,9 +692,6 @@
     private FFdFocalDistance: TSFFloat;
     public property FdFocalDistance: TSFFloat read FFdFocalDistance;
 
-    private FFdHeightAngle: TSFFloat;
-    public property FdHeightAngle: TSFFloat read FFdHeightAngle;
-
     { Ignored fields, some unknown extensions to VRML 1.0 spec.
       Some models ([http://www-vrl.umich.edu/sel_prj/EECS498/]) use them.
       @groupBegin }
@@ -712,13 +709,25 @@
   end;
 
   TNodeOrthographicCamera = class(TVRMLCameraNode_1)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
     class function ClassNodeTypeName: string; override;
     class function ProjectionType: TProjectionType; override;
+
+    private FFdHeight: TSFFloat;
+    public property FdHeight: TSFFloat read FFdHeight;
   end;
 
   TNodePerspectiveCamera = class(TVRMLCameraNode_1)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
     class function ClassNodeTypeName: string; override;
     class function ProjectionType: TProjectionType; override;
+
+    private FFdHeightAngle: TSFFloat;
+    public property FdHeightAngle: TSFFloat read FFdHeightAngle;
   end;
 
   TNodeDirectionalLight_1 = class(TVRMLDirectionalLightNode)
@@ -2218,9 +2227,6 @@ begin
   FFdfocalDistance := TSFFloat.Create(Self, 'focalDistance', 5, true);
   Fields.Add(FFdfocalDistance);
 
-  FFdheightAngle := TSFFloat.Create(Self, 'heightAngle', Pi / 4, true);
-  Fields.Add(FFdheightAngle);
-
   FFdnearDistance := TSFFloat.Create(Self, 'nearDistance', 0);
    FdnearDistance.ChangesAlways := [chViewpointProjection];
   Fields.Add(FFdnearDistance);
@@ -2243,6 +2249,15 @@ begin
     true, 1, 0, 1000);
 end;
 
+constructor TNodeOrthographicCamera.Create(
+  const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdheight := TSFFloat.Create(Self, 'height', 2, true);
+  Fields.Add(FFdheight);
+end;
+
 class function TNodeOrthographicCamera.ClassNodeTypeName: string;
 begin
   result := 'OrthographicCamera';
@@ -2251,6 +2266,15 @@ end;
 class function TNodeOrthographicCamera.ProjectionType: TProjectionType;
 begin
   result := ptOrthographic;
+end;
+
+constructor TNodePerspectiveCamera.Create(
+  const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdheightAngle := TSFFloat.Create(Self, 'heightAngle', Pi / 4, true);
+  Fields.Add(FFdheightAngle);
 end;
 
 class function TNodePerspectiveCamera.ClassNodeTypeName: string;

@@ -1715,6 +1715,9 @@ var
       if (Viewpoint <> nil) and
          (Viewpoint is TNodeViewpoint) then
         FieldOfView := TNodeViewpoint(Viewpoint).FdFieldOfView.Value else
+      if (Viewpoint <> nil) and
+         (Viewpoint is TNodePerspectiveCamera) then
+        FieldOfView := TNodePerspectiveCamera(Viewpoint).FdHeightAngle.Value else
         FieldOfView := DefaultViewpointFieldOfView;
 
       AngleOfViewX := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(
@@ -1747,6 +1750,14 @@ var
         if FieldOfView.High >= 1 then FinalFieldOfView[1] := FieldOfView.Items[1];
         if FieldOfView.High >= 2 then FinalFieldOfView[2] := FieldOfView.Items[2];
         if FieldOfView.High >= 3 then FinalFieldOfView[3] := FieldOfView.Items[3];
+      end else
+      if (Viewpoint <> nil) and
+         (Viewpoint is TNodeOrthographicCamera) then
+      begin
+        FinalFieldOfView[0] := -TNodeOrthographicCamera(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[1] := -TNodeOrthographicCamera(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[2] :=  TNodeOrthographicCamera(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[3] :=  TNodeOrthographicCamera(Viewpoint).FdHeight.Value / 2;
       end;
 
       TNodeOrthoViewpoint.AspectFieldOfView(FinalFieldOfView, Width / Height);
