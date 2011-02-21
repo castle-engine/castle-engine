@@ -1065,6 +1065,8 @@ type
 
     { Currently set fog parameters, during render. }
     FogNode: INodeX3DFogObject;
+    FogEnabled: boolean;
+    FogType: TFogType;
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
@@ -2995,6 +2997,7 @@ begin
   glPushMatrix;
 
   Assert(FogNode = nil);
+  Assert(not FogEnabled);
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
     FirstLight, GLMaxLights - 1, LightRenderEvent);
@@ -3009,6 +3012,7 @@ begin
   FreeAndNil(LightsRenderer);
 
   FogNode := nil;
+  FogEnabled := false;
 
   glPopMatrix;
 
@@ -3100,17 +3104,15 @@ procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
     out VolumetricDirection: TVector3Single;
     out VolumetricVisibilityStart: Single);
   var
-    FogType: Integer;
     VisibilityRangeScaled: Single;
-    Enabled: boolean;
   const
     FogDensityFactor = 3.0;
   begin
     if not Attributes.UseFog then Exit;
 
-    GetFog(Node, Enabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
+    GetFog(Node, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
 
-    if Enabled then
+    if FogEnabled then
     begin
       Assert(Node <> nil);
 
@@ -3140,25 +3142,26 @@ procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
       glFogv(GL_FOG_COLOR, Vector4Single(Node.FdColor.Value, 1.0));
 
       { calculate FogType }
-      FogType := ArrayPosStr(Node.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
-      if FogType = -1 then
+      if Node.FdFogType.Value = 'LINEAR' then
+        FogType := ftLinear else
+      if Node.FdFogType.Value = 'EXPONENTIAL' then
+        FogType := ftExp else
       begin
         VRMLWarning(vwSerious, 'Unknown fog type "' + Node.FdFogType.Value + '"');
-        FogType := 0;
+        FogType := ftLinear;
       end;
 
       case FogType of
-        0:begin
+        ftLinear: begin
             glFogi(GL_FOG_MODE, GL_LINEAR);
             glFogf(GL_FOG_START, 0);
             glFogf(GL_FOG_END, VisibilityRangeScaled);
           end;
-        1:begin
+        ftExp: begin
             glFogi(GL_FOG_MODE, GL_EXP);
-            { patrz VRMLNotes.txt po komentarz dlaczego w ten sposob implementuje
-              mgle exponential VRMLa w OpenGLu }
             glFogf(GL_FOG_DENSITY, FogDensityFactor / VisibilityRangeScaled);
           end;
+        else raise EInternalError.Create('TVRMLGLRenderer.RenderShapeFog:FogType?');
       end;
 
       glEnable(GL_FOG);
@@ -3174,6 +3177,9 @@ begin
     RenderFog(FogNode, FogVolumetric,
       FogVolumetricDirection, FogVolumetricVisibilityStart);
   end;
+
+  if FogEnabled then
+    Shader.EnableFog(FogType);
 
   RenderShapeTextureTransform(Shape, Fog, Shader, MaterialOpacity, MaterialLit);
 end;

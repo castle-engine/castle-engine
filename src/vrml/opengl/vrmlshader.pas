@@ -45,6 +45,8 @@ type
   TTexGenerationComplete = (tgSphere, tgNormal, tgReflection);
   TTexComponent = 0..3;
 
+  TFogType = (ftLinear, ftExp);
+
   { GLSL program integrated with VRML/X3D and TVRMLShader.
     Allows to bind uniform values from VRML/X3D fields,
     and to observe VRML/X3D events and automatically update uniform values.
@@ -182,12 +184,12 @@ type
     procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
     procedure EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
       const MaterialSpecularColor: TVector3Single);
+    procedure EnableEffects(Effects: TMFNode;
+      const Code: TDynStringArray = nil);
+    procedure EnableFog(const FogType: TFogType);
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
-
-    procedure EnableEffects(Effects: TMFNode;
-      const Code: TDynStringArray = nil);
   end;
 
 implementation
@@ -1126,6 +1128,30 @@ begin
   for I := 0 to Effects.Count - 1 do
     if Effects[I] is TNodeEffect then
       EnableEffect(TNodeEffect(Effects[I]));
+end;
+
+procedure TVRMLShader.EnableFog(const FogType: TFogType);
+var
+  FogFactor: string;
+begin
+  Plug('VERTEX',
+    'void PLUG_vertex_process(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+    '{' +NL+
+    '  gl_FogFragCoord = vertex_eye.z;' +NL+
+    '}');
+
+  case FogType of
+    ftLinear: FogFactor := '(gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale';
+    ftExp   : FogFactor := 'exp(-gl_Fog.density * gl_FogFragCoord)';
+    else raise EInternalError.Create('TVRMLShader.EnableFog:FogType?');
+  end;
+
+  Plug('FRAGMENT',
+      'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
+      '{' +NL+
+      '  fragment_color.rgb = mix(fragment_color.rgb, gl_Fog.color.rgb,' +NL+
+      '    clamp(1.0 - ' + FogFactor + ', 0.0, 1.0));' +NL+
+      '}');
 end;
 
 end.
