@@ -135,8 +135,6 @@ type
   end;
 
   TShaderCoordinateRenderer = class(TFogCoordinateRenderer)
-  private
-    ShaderProgramUsed: boolean;
   protected
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
@@ -684,7 +682,6 @@ procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
 
 begin
   inherited;
-  ShaderProgramUsed := false;
 
   Shader.ApplyInternalEffects;
   if (Shape.Node <> nil) and
@@ -717,13 +714,12 @@ begin
     UsedGLSL := Shape.ShaderProgram;
     Shape.ShaderProgram.Enable;
     Shape.ShaderProgram.SetupUniforms(BoundTextureUnits);
-    ShaderProgramUsed := true;
   end;
 end;
 
 procedure TShaderCoordinateRenderer.RenderCoordinateEnd;
 begin
-  if ShaderProgramUsed then
-    Shape.ShaderProgram.Disable;
+  if UsedGLSL <> nil then
+    UsedGLSL.Disable;
   inherited;
 end;
