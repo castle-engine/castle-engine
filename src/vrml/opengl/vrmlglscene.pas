@@ -2236,6 +2236,7 @@ procedure TVRMLGLScene.PrepareResources(
   var
     SI: TVRMLShapeTreeIterator;
     Shape: TVRMLGLShape;
+    LightsEnabled: Cardinal;
   begin
     if Log then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
@@ -2245,7 +2246,12 @@ procedure TVRMLGLScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        Renderer.RenderBegin(0, nil);
+        { With what LightsEnabled will most probably this scene be rendered }
+        LightsEnabled := 0;
+        if Headlight <> nil then
+          Inc(LightsEnabled);
+
+        Renderer.RenderBegin(LightsEnabled, nil);
         while SI.GetNext do
         begin
           Shape := TVRMLGLShape(SI.Current);
