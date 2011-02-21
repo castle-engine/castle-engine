@@ -47,25 +47,18 @@ type
 
   TFogType = (ftLinear, ftExp);
 
+  TShaderCodeHash = QWord;
+
   { GLSL program integrated with VRML/X3D and TVRMLShader.
     Allows to bind uniform values from VRML/X3D fields,
     and to observe VRML/X3D events and automatically update uniform values.
     Also allows to initialize and check program by TVRMLShader.LinkProgram,
-    TVRMLShader.ProgramSettingsEqual. }
+    and get a hash of it by TVRMLShader.CodeHash. }
   TVRMLShaderProgram = class(TGLSLProgram)
   private
-    { State of TVRMLShader when initializing this shader by LinkProgram.
-      Used to decide when shader needs to be regenerated.
-      Note that our shaders for ComposedShader are not touched by LinkProgram,
-      so they don't use these fields (which isn't a problem, since they
-      also don't use ProgramSettingsEqual).
-      @groupBegin }
-    LightsEnabled: Cardinal;
-    PercentageCloserFiltering: TPercentageCloserFiltering;
-    { @groupEnd }
-
     { Events where we registered our EventReceive method. }
     EventsObserved: TVRMLEventsList;
+    FCodeHash: TShaderCodeHash;
 
     { Set uniform variable from VRML/X3D field value.
       Uniform name is contained in UniformName. UniformValue indicates
@@ -89,6 +82,11 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
+    { Hash of TVRMLShader code used when initializing this shader
+      by LinkProgram. Used to decide when shader needs to be regenerated,
+      and when it can be shared. }
+    property CodeHash: TShaderCodeHash read FCodeHash write FCodeHash;
 
     { Set and observe uniform variables from given Node.InterfaceDeclarations.
 
@@ -136,8 +134,9 @@ type
     FPercentageCloserFiltering: TPercentageCloserFiltering;
     VertexShaderComplete, FragmentShaderComplete: TDynStringArray;
     PlugIdentifiers: Cardinal;
-    LightsEnabled: Cardinal;
     LightShaders: TLightShaders;
+    FCodeHash: TShaderCodeHash;
+    CodeHashCalculated: boolean;
 
     procedure PlugDirectly(Code: TDynStringArray; const PlugName, PlugValue: string);
   public
@@ -160,11 +159,14 @@ type
     procedure ApplyInternalEffects;
     procedure LinkProgram(AProgram: TVRMLShaderProgram);
 
-    { Given one TVRMLShaderProgram, created for the same shape by LinkProgram,
-      do these program settings matching current TVRMLShader settings.
-      This is used to decide when shape settings (for example,
-      lights count or such) change and require regenerating the shader. }
-    function ProgramSettingsEqual(AProgram: TVRMLShaderProgram): boolean;
+    { Calculate the hash of all the current TVRMLShader settings,
+      that is the hash of GLSL program code initialized by this shader
+      LinkProgram. You should use this only when the GLSL program source
+      is completely initialized (all TVRMLShader settings are set).
+
+      It can be used to decide when the shader GLSL program needs
+      to be regenerated, shared etc. }
+    function CodeHash: TShaderCodeHash;
 
     procedure AddUniform(Uniform: TUniform);
 
@@ -727,19 +729,64 @@ begin
   AProgram.UniformNotFoundAction := uaWarning;
   AProgram.UniformTypeMismatchAction := utWarning;
 
-  AProgram.LightsEnabled := LightsEnabled;
-  AProgram.PercentageCloserFiltering := PercentageCloserFiltering;
+  AProgram.CodeHash := CodeHash;
 
   { set uniforms that will not need to be updated at each SetupUniforms call }
   SetupUniformsOnce;
 end;
 
-function TVRMLShader.ProgramSettingsEqual(AProgram: TVRMLShaderProgram): boolean;
+function TVRMLShader.CodeHash: TShaderCodeHash;
+
+  function CodeHashCalculate: TShaderCodeHash;
+  type
+    TShaderCodeHashRec = packed record Sum, XorValue: LongWord; end;
+
+    procedure AddString(const S: AnsiString; var Res: TShaderCodeHashRec);
+    var
+      PS: PLongWord;
+      Last: LongWord;
+      I: Integer;
+    begin
+      PS := PLongWord(S);
+
+      {$include norqcheckbegin.inc}
+
+      for I := 0 to Length(S) div 4 do
+      begin
+        Res.Sum := Res.Sum + PS^;
+        Res.XorValue := Res.XorValue xor PS^;
+      end;
+
+      if Length(S) mod 4 = 0 then
+      begin
+        Last := 0;
+        Move(S[(Length(S) div 4) * 4], Last, Length(S) mod 4);
+        Res.Sum := Res.Sum + Last;
+        Res.XorValue := Res.XorValue xor Last;
+      end;
+
+      {$include norqcheckend.inc}
+    end;
+
+  var
+    Res: TShaderCodeHashRec absolute Result;
+    I: Integer;
+  begin
+    Res.Sum := 0;
+    Res.XorValue := 0;
+    for I := 0 to VertexShaderComplete.Count - 1 do
+      AddString(VertexShaderComplete[I], Res);
+    for I := 0 to FragmentShaderComplete.Count - 1 do
+      AddString(FragmentShaderComplete[I], Res);
+  end;
+
 begin
-  Result := (
-    (AProgram.LightsEnabled = LightsEnabled) and
-    (AProgram.PercentageCloserFiltering = PercentageCloserFiltering)
-  );
+  if not CodeHashCalculated then
+  begin
+    FCodeHash := CodeHashCalculate;
+    CodeHashCalculated := true;
+  end;
+  Result := FCodeHash;
 end;
 
 procedure TVRMLShader.AddUniform(Uniform: TUniform);
@@ -1085,8 +1132,6 @@ begin
   if Number >= LightShaders.Count then
     LightShaders.Count := Number + 1;
   LightShaders[Number] := LightShader;
-
-  Inc(LightsEnabled);
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TMFNode;

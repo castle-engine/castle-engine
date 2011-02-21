@@ -166,18 +166,18 @@ procedure TBaseCoordinateRenderer.ShaderBegin;
 begin
   ShaderProgramUsed := false;
 
+  Shader.ApplyInternalEffects;
+  if (Shape.Node <> nil) and
+     (Shape.Node.Appearance <> nil) then
+    Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
+
   { calculate and use Shape.ShaderProgram }
   if ForceShaderRendering and
     ( (Shape.ShaderProgram = nil) or
-      (not Shader.ProgramSettingsEqual(Shape.ShaderProgram)) ) then
+      (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) ) then
   begin
     try
       FreeAndNil(Shape.ShaderProgram);
-
-      Shader.ApplyInternalEffects;
-      if (Shape.Node <> nil) and
-         (Shape.Node.Appearance <> nil) then
-        Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
 
       Shape.ShaderProgram := TVRMLGLSLProgram.Create;
       Shape.ShaderProgram.Renderer := Renderer;
