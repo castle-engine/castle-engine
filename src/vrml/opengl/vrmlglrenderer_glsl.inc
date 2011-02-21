@@ -6,6 +6,7 @@
   private
     Renderer: TVRMLGLRenderer;
   public
+    constructor Create(ARenderer: TVRMLGLRenderer);
     function SetupUniforms(var BoundTextureUnits: Cardinal): boolean; override;
   end;
 
@@ -14,6 +15,12 @@
 {$ifdef read_implementation}
 
 { TVRMLGLSLProgram ----------------------------------------------------------- }
+
+constructor TVRMLGLSLProgram.Create(ARenderer: TVRMLGLRenderer);
+begin
+  inherited Create;
+  Renderer := ARenderer;
+end;
 
 function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
 

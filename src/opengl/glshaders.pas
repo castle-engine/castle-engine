@@ -40,7 +40,8 @@ unit GLShaders;
 
 interface
 
-uses SysUtils, Classes, GL, GLU, GLExt, KambiGLUtils, KambiUtils, VectorMath;
+uses SysUtils, Classes, GL, GLU, GLExt, KambiGLUtils, KambiUtils, VectorMath,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
   TGLSupport = (gsNone, gsARBExtension, gsStandard);
@@ -425,6 +426,8 @@ type
         the program.) }
     function CreateAttribute(const Name: string): TGLSLAttribute;
   end;
+
+  TGLSLProgramsList = specialize TFPGObjectList<TGLSLProgram>;
 
 const
   GLSupportNames: array [TGLSupport] of string =

@@ -193,7 +193,7 @@ type
     procedure EnableEffects(Effects: TMFNode;
       const Code: TDynStringArray = nil);
     procedure EnableFog(const FogType: TFogType);
-    function EnableCustomShaderCode(State: TVRMLGraphTraverseState;
+    function EnableCustomShaderCode(Shaders: TMFNodeShaders;
       out Node: TNodeComposedShader): boolean;
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
@@ -1235,77 +1235,71 @@ begin
     '}');
 end;
 
-function TVRMLShader.EnableCustomShaderCode(State: TVRMLGraphTraverseState;
+function TVRMLShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;
   out Node: TNodeComposedShader): boolean;
 var
   I, J: Integer;
   Part: TNodeShaderPart;
   PartType, Source: String;
-  Shaders: TMFNodeShaders;
 begin
   Result := false;
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) then
+  for I := 0 to Shaders.Count - 1 do
   begin
-    Shaders := State.ShapeNode.Appearance.FdShaders;
-    for I := 0 to Shaders.Count - 1 do
+    Node := Shaders.GLSLShader(I);
+    if Node <> nil then
     begin
-      Node := Shaders.GLSLShader(I);
-      if Node <> nil then
-      begin
-        Result := true;
+      Result := true;
 
-        VertexShaderComplete.Count := 0;
-        FragmentShaderComplete.Count := 0;
+      VertexShaderComplete.Count := 0;
+      FragmentShaderComplete.Count := 0;
 
-        { Iterate over Node.FdParts, looking for vertex shaders
-          and fragment shaders. }
+      { Iterate over Node.FdParts, looking for vertex shaders
+        and fragment shaders. }
 
-        for J := 0 to Node.FdParts.Count - 1 do
-          if Node.FdParts[J] is TNodeShaderPart then
+      for J := 0 to Node.FdParts.Count - 1 do
+        if Node.FdParts[J] is TNodeShaderPart then
+        begin
+          Part := TNodeShaderPart(Node.FdParts[J]);
+
+          PartType := UpperCase(Part.FdType.Value);
+          if PartType <> Part.FdType.Value then
+            VRMLWarning(vwSerious, Format('ShaderPart.type should be uppercase, but is not: "%s"',
+              [Part.FdType.Value]));
+
+          if PartType = 'VERTEX' then
           begin
-            Part := TNodeShaderPart(Node.FdParts[J]);
+            Source := Part.LoadContents;
+            if Source <> '' then
+              VertexShaderComplete.Add(Source);
+          end else
 
-            PartType := UpperCase(Part.FdType.Value);
-            if PartType <> Part.FdType.Value then
-              VRMLWarning(vwSerious, Format('ShaderPart.type should be uppercase, but is not: "%s"',
-                [Part.FdType.Value]));
+          if PartType = 'FRAGMENT' then
+          begin
+            Source := Part.LoadContents;
+            if Source <> '' then
+              FragmentShaderComplete.Add(Source);
+          end else
 
-            if PartType = 'VERTEX' then
-            begin
-              Source := Part.LoadContents;
-              if Source <> '' then
-                VertexShaderComplete.Add(Source);
-            end else
+            VRMLWarning(vwSerious, Format('Unknown type for ShaderPart: "%s"',
+              [PartType]));
+        end;
 
-            if PartType = 'FRAGMENT' then
-            begin
-              Source := Part.LoadContents;
-              if Source <> '' then
-                FragmentShaderComplete.Add(Source);
-            end else
+      Node.EventIsSelected.Send(true);
 
-              VRMLWarning(vwSerious, Format('Unknown type for ShaderPart: "%s"',
-                [PartType]));
-          end;
+      if UniformsNodes = nil then
+        UniformsNodes := TVRMLNodesList.Create;
+      UniformsNodes.Add(Node);
 
-        Node.EventIsSelected.Send(true);
+      { For sending isValid to this node later }
+      SelectedNode := Node;
 
-        if UniformsNodes = nil then
-          UniformsNodes := TVRMLNodesList.Create;
-        UniformsNodes.Add(Node);
+      { Ignore missing plugs, as iur plugs are (probably) not found there }
+      WarnMissingPlugs := false;
 
-        { For sending isValid to this node later }
-        SelectedNode := Node;
-
-        { Ignore missing plugs, as iur plugs are (probably) not found there }
-        WarnMissingPlugs := false;
-
-        Break;
-      end else
-      if Shaders[I] is TNodeX3DShaderNode then
-        TNodeX3DShaderNode(Shaders[I]).EventIsSelected.Send(false);
-    end;
+      Break;
+    end else
+    if Shaders[I] is TNodeX3DShaderNode then
+      TNodeX3DShaderNode(Shaders[I]).EventIsSelected.Send(false);
   end;
 end;
 

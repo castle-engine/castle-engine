@@ -696,9 +696,7 @@ begin
     try
       FreeAndNil(Shape.ShaderProgram);
 
-      Shape.ShaderProgram := TVRMLGLSLProgram.Create;
-      Shape.ShaderProgram.Renderer := Renderer;
-
+      Shape.ShaderProgram := TVRMLGLSLProgram.Create(Renderer);
       Shader.LinkProgram(Shape.ShaderProgram);
     except on E: EGLSLError do
       begin

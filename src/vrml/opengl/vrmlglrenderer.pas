@@ -959,6 +959,7 @@ type
 
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRenderersList;
+    ScreenEffectPrograms: TGLSLProgramsList;
 
     { To which fonts we made a reference in the cache ? }
     FontsReferences: array[TVRMLFontFamily, boolean, boolean] of boolean;
@@ -1107,6 +1108,8 @@ type
       (to prepare state for following RenderShape calls) and at RenderEnd
       (to leave *somewhat* defined state afterwards). }
     procedure RenderCleanState(const Beginning: boolean);
+
+    procedure PrepareIDecls(Nodes: TMFNode; State: TVRMLGraphTraverseState);
   public
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
@@ -1197,15 +1200,14 @@ type
       CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3Single);
 
-    { Load the ScreenEffect node GLSL shader.
-      Will use Node.StateForShaderPrepare.
-      Will make sure that Node.ShaderLoaded is true.
-      If necessary (when Node.ShaderLoaded changes from false to true),
-      it may set Node.Shader if some GLSL program was successfully loaded.
+    { Load GLSL shader for the ScreenEffect node.
+      Makes sure that Node.ShaderLoaded is true.
+      When changing Node.ShaderLoaded false to true tries to initialize
+      the shader, setting Node.Shader if some GLSL program
+      was successfully loaded.
 
-      The GLSL program (TGLSLProgram), along with it's ComposedShader node reference,
-      will be stored here (on GLSLRenderers list). So they will be automatically
-      unprepared during UnprepareAll call. }
+      The GLSL program (TGLSLProgram) will be stored here,
+      and will be automatically freed during UnprepareAll call. }
     procedure PrepareScreenEffect(Node: TNodeScreenEffect);
   end;
 
@@ -2239,6 +2241,7 @@ begin
 
   GLTextureNodes := TGLTextureNodes.Create;
   BumpMappingRenderers := TBumpMappingRenderersList.Create;
+  ScreenEffectPrograms := TGLSLProgramsList.Create;
 
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
@@ -2255,6 +2258,7 @@ begin
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(GLTextureNodes);
   FreeAndNil(BumpMappingRenderers);
+  FreeAndNil(ScreenEffectPrograms);
   FreeAndNil(FAttributes);
 
   if OwnsCache then
@@ -2406,6 +2410,15 @@ end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
+procedure TVRMLGLRenderer.PrepareIDecls(Nodes: TMFNode;
+  State: TVRMLGraphTraverseState);
+var
+  I: Integer;
+begin
+  for I := 0 to Nodes.Count - 1 do
+    GLTextureNodes.PrepareInterfaceDeclarationsTextures(Nodes[I], State, Self);
+end;
+
 procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
   procedure PrepareFont(
@@ -2418,14 +2431,6 @@ procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
       Cache.Fonts_IncReference(fsfam, fsbold, fsitalic, TTF_Font);
       FontsReferences[fsfam, fsbold, fsitalic] := true;
     end;
-  end;
-
-  procedure PrepareIDecls(Nodes: TMFNode);
-  var
-    I: Integer;
-  begin
-    for I := 0 to Nodes.Count - 1 do
-      GLTextureNodes.PrepareInterfaceDeclarationsTextures(Nodes[I], State, Self);
   end;
 
 var
@@ -2491,30 +2496,32 @@ begin
   if (State.ShapeNode <> nil) and
      (State.ShapeNode.Appearance <> nil) then
   begin
-    PrepareIDecls(State.ShapeNode.Appearance.FdEffects);
-    PrepareIDecls(State.ShapeNode.Appearance.FdShaders);
+    PrepareIDecls(State.ShapeNode.Appearance.FdEffects, State);
+    PrepareIDecls(State.ShapeNode.Appearance.FdShaders, State);
   end;
 
   Lights := State.CurrentActiveLights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
-      PrepareIDecls(Lights.Items[I].LightNode.FdEffects);
+      PrepareIDecls(Lights.Items[I].LightNode.FdEffects, State);
 
   Texture := State.Texture;
   if Texture <> nil then
   begin
-    PrepareIDecls(Texture.FdEffects);
+    PrepareIDecls(Texture.FdEffects, State);
     if Texture is TNodeMultiTexture then
       for I := 0 to TNodeMultiTexture(Texture).FdTexture.Count - 1 do
         if TNodeMultiTexture(Texture).FdTexture[I] is TNodeX3DTextureNode then
           PrepareIDecls(TNodeX3DTextureNode(TNodeMultiTexture(Texture).
-            FdTexture[I]).FdEffects);
+            FdTexture[I]).FdEffects, State);
   end;
 end;
 
 procedure TVRMLGLRenderer.PrepareScreenEffect(Node: TNodeScreenEffect);
 var
-  ShaderProgram: TGLSLProgram;
+  Shader: TVRMLShader;
+  ShaderProgram: TVRMLGLSLProgram;
+  ShaderNode: TNodeComposedShader;
 begin
   if not Node.ShaderLoaded then
   begin
@@ -2522,18 +2529,33 @@ begin
     Node.ShaderLoaded := true;
     if Node.FdEnabled.Value then
     begin
-      { TODO: GLSLRenderers.Prepare(Node.StateForShaderPrepare, Self,
-        Node.FdShaders, ShaderProgram); }
-      ShaderProgram := nil;
-      
-      if ShaderProgram <> nil then
-      begin
-        { We have to ignore invalid uniforms, as it's normal that when
-          rendering screen effect we will pass some screen_* variables
-          that you will not use. }
-        ShaderProgram.UniformNotFoundAction := uaIgnore;
-        Node.Shader := ShaderProgram;
-      end;
+      { make sure that textures inside shaders are prepared }
+      PrepareIDecls(Node.FdShaders, Node.StateForShaderPrepare);
+
+      Shader := TVRMLShader.Create;
+      try
+        { for ScreenEffect, we require that some ComposedShader was present.
+          Rendering with default TVRMLShader shader makes no sense. }
+        if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
+        try
+          ShaderProgram := TVRMLGLSLProgram.Create(Self);
+          Shader.LinkProgram(ShaderProgram);
+
+          { We have to ignore invalid uniforms, as it's normal that when
+            rendering screen effect we will pass some screen_* variables
+            that you will not use. }
+          ShaderProgram.UniformNotFoundAction := uaIgnore;
+
+          Node.Shader := ShaderProgram;
+          ScreenEffectPrograms.Add(ShaderProgram);
+        except on E: EGLSLError do
+          begin
+            FreeAndNil(ShaderProgram);
+            VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for ScreenEffect: %s',
+              [E.Message]));
+          end;
+        end;
+      finally FreeAndNil(Shader) end;
     end;
   end;
 end;
@@ -2560,6 +2582,7 @@ begin
 
   GLTextureNodes.UnprepareAll;
   BumpMappingRenderers.UnprepareAll;
+  ScreenEffectPrograms.Count := 0; { this will free programs inside }
 end;
 
 function TVRMLGLRenderer.BumpMapping: boolean;
@@ -3343,7 +3366,9 @@ begin
       (this is even used for VarianceShadowMaps, see TVRMLGLScene.Render
       RestoreGLSLShaders trick), no need to prepare again everything. }
      Attributes.GLSLShaders and
-     Shader.EnableCustomShaderCode(Shape.State, UsedShaderNode) then
+     (Shape.Node <> nil) and
+     (Shape.Node.Appearance <> nil) and
+     Shader.EnableCustomShaderCode(Shape.Node.Appearance.FdShaders, UsedShaderNode) then
   begin
     UsedGLSLTexCoordsNeeded := TextureUnitsDefined(UsedShaderNode);
 
