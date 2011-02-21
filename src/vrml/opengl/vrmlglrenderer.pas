@@ -3751,8 +3751,8 @@ begin
     CoordinateRenderer.MaterialLit := MaterialLit;
   end;
 
-  if PrepareRenderShape = 0 then
-    MeshRenderer.Render;
+  MeshRenderer.PrepareRenderShape := PrepareRenderShape;
+  MeshRenderer.Render;
 
   if (GeneratorClass <> nil) and VBO and GL_ARB_vertex_buffer_object then
   begin

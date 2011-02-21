@@ -58,6 +58,10 @@ type
       This allows us to set GLSL attribs. }
     UsedGLSL: TGLSLProgram;
 
+    { If > 0, RenderShape will not actually render, only prepare
+      per-shape resources for fast rendering (arrays and vbos). }
+    PrepareRenderShape: Cardinal;
+
     constructor Create(ARenderer: TVRMLGLRenderer; AShape: TVRMLRendererShape);
 
     { Render the whole geometry.
@@ -300,105 +304,108 @@ begin
   try
     ShaderBegin;
 
-    { Initialize vertex arrays that we we will use with indexed nodes. }
-    if Vbo[vtCoordinate] <> 0 then
-      glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[vtCoordinate]);
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
-
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
-
-    if Vbo[vtAttribute] <> 0 then
-      glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[vtAttribute]);
-
-    if Attributes.ControlMaterials and
-       (not Attributes.PureGeometry) then
+    if PrepareRenderShape = 0 then
     begin
-      MaterialFromColorEnabled := MaterialLit;
-      if MaterialFromColorEnabled then
+      { Initialize vertex arrays that we we will use with indexed nodes. }
+      if Vbo[vtCoordinate] <> 0 then
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[vtCoordinate]);
+
+      glEnableClientState(GL_VERTEX_ARRAY);
+      glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
+
+      glEnableClientState(GL_NORMAL_ARRAY);
+      glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
+
+      if Vbo[vtAttribute] <> 0 then
+        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[vtAttribute]);
+
+      if Attributes.ControlMaterials and
+         (not Attributes.PureGeometry) then
       begin
-        { We always set diffuse material component from the color.
-          This satisfies all cases. }
-        glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-        glEnable(GL_COLOR_MATERIAL);
+        MaterialFromColorEnabled := MaterialLit;
+        if MaterialFromColorEnabled then
+        begin
+          { We always set diffuse material component from the color.
+            This satisfies all cases. }
+          glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+          glEnable(GL_COLOR_MATERIAL);
+        end;
+
+        if Arrays.HasColor then
+        begin
+          glEnableClientState(GL_COLOR_ARRAY);
+          glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+        end else
+        if Arrays.HasDefaultColor then
+          glColorv(Arrays.DefaultColor);
       end;
 
-      if Arrays.HasColor then
+      if Arrays.HasFogCoord and GL_EXT_fog_coord then
       begin
-        glEnableClientState(GL_COLOR_ARRAY);
-        glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+        glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
+        glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
+      end;
+
+      if GLUseMultiTexturing then
+      begin
+        for I := 0 to Arrays.TexCoords.Count - 1 do
+          if (Arrays.TexCoords[I] <> nil) and
+             (Arrays.TexCoords[I].Generation = tgExplicit) then
+          begin
+            glClientActiveTextureARB(GL_TEXTURE0_ARB + I);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glTexCoordPointer(Arrays.TexCoords[I].Dimensions, GL_FLOAT,
+              Arrays.AttributeSize,
+              Arrays.TexCoord(Arrays.TexCoords[I].Dimensions, I, 0));
+          end;
       end else
-      if Arrays.HasDefaultColor then
-        glColorv(Arrays.DefaultColor);
+      if (Arrays.TexCoords.Count <> 0) and
+         (Arrays.TexCoords[0] <> nil) and
+         (Arrays.TexCoords[0].Generation = tgExplicit) then
+      begin
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(Arrays.TexCoords[0].Dimensions, GL_FLOAT,
+          Arrays.AttributeSize,
+          Arrays.TexCoord(Arrays.TexCoords[0].Dimensions, 0, 0));
+      end;
+
+      if (Arrays.Attribs.Count <> 0) and (UsedGLSL <> nil) then
+        EnableVertexAttrib(UsedGLSL);
+
+      Mode := ToMode[Arrays.Primitive];
+      First := 0;
+      if Arrays.HasIndexes then
+      begin
+        if Vbo[vtIndex] <> 0 then
+          glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[vtIndex]);
+
+        if Arrays.Counts = nil then
+          glDrawElements(Mode, Arrays.IndexesCount, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
+          for I := 0 to Arrays.Counts.Count - 1 do
+          begin
+            glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.IndexesPtr(First));
+            First += Arrays.Counts[I];
+          end;
+      end else
+      begin
+        if Arrays.Counts = nil then
+          glDrawArrays(Mode, First, Arrays.Count) else
+          for I := 0 to Arrays.Counts.Count - 1 do
+          begin
+            glDrawArrays(Mode, First, Arrays.Counts[I]);
+            First += Arrays.Counts[I];
+          end;
+      end;
+
+      { We disable arrays explicitly. We could alternatively try
+        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT), but
+        1. it makes Mesa 7.2 segfault
+        2. I don't know if it really works for GLSL vertex attribs arrays. }
+      DisableArrays;
+
+      if MaterialFromColorEnabled then
+        glDisable(GL_COLOR_MATERIAL);
     end;
-
-    if Arrays.HasFogCoord and GL_EXT_fog_coord then
-    begin
-      glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
-      glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
-    end;
-
-    if GLUseMultiTexturing then
-    begin
-      for I := 0 to Arrays.TexCoords.Count - 1 do
-        if (Arrays.TexCoords[I] <> nil) and
-           (Arrays.TexCoords[I].Generation = tgExplicit) then
-        begin
-          glClientActiveTextureARB(GL_TEXTURE0_ARB + I);
-          glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-          glTexCoordPointer(Arrays.TexCoords[I].Dimensions, GL_FLOAT,
-            Arrays.AttributeSize,
-            Arrays.TexCoord(Arrays.TexCoords[I].Dimensions, I, 0));
-        end;
-    end else
-    if (Arrays.TexCoords.Count <> 0) and
-       (Arrays.TexCoords[0] <> nil) and
-       (Arrays.TexCoords[0].Generation = tgExplicit) then
-    begin
-      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-      glTexCoordPointer(Arrays.TexCoords[0].Dimensions, GL_FLOAT,
-        Arrays.AttributeSize,
-        Arrays.TexCoord(Arrays.TexCoords[0].Dimensions, 0, 0));
-    end;
-
-    if (Arrays.Attribs.Count <> 0) and (UsedGLSL <> nil) then
-      EnableVertexAttrib(UsedGLSL);
-
-    Mode := ToMode[Arrays.Primitive];
-    First := 0;
-    if Arrays.HasIndexes then
-    begin
-      if Vbo[vtIndex] <> 0 then
-        glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[vtIndex]);
-
-      if Arrays.Counts = nil then
-        glDrawElements(Mode, Arrays.IndexesCount, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
-        for I := 0 to Arrays.Counts.Count - 1 do
-        begin
-          glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.IndexesPtr(First));
-          First += Arrays.Counts[I];
-        end;
-    end else
-    begin
-      if Arrays.Counts = nil then
-        glDrawArrays(Mode, First, Arrays.Count) else
-        for I := 0 to Arrays.Counts.Count - 1 do
-        begin
-          glDrawArrays(Mode, First, Arrays.Counts[I]);
-          First += Arrays.Counts[I];
-        end;
-    end;
-
-    { We disable arrays explicitly. We could alternatively try
-      glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT), but
-      1. it makes Mesa 7.2 segfault
-      2. I don't know if it really works for GLSL vertex attribs arrays. }
-    DisableArrays;
-
-    if MaterialFromColorEnabled then
-      glDisable(GL_COLOR_MATERIAL);
 
     ShaderEnd;
   finally RenderCoordinateEnd end;

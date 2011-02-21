@@ -149,6 +149,8 @@ var
 var
   I: Integer;
 begin
+  if PrepareRenderShape <> 0 then Exit;
+
   YScale := Size / CurrentFont.RowHeight;
   { TODO: Use maxEntent, length for VRML 2.0.
     Use width for VRML 1.0. }
