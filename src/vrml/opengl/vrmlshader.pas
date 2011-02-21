@@ -751,16 +751,17 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
 
       {$include norqcheckbegin.inc}
 
-      for I := 0 to Length(S) div 4 do
+      for I := 1 to Length(S) div 4 do
       begin
         Res.Sum := Res.Sum + PS^;
         Res.XorValue := Res.XorValue xor PS^;
+        Inc(PS);
       end;
 
       if Length(S) mod 4 = 0 then
       begin
         Last := 0;
-        Move(S[(Length(S) div 4) * 4], Last, Length(S) mod 4);
+        Move(S[(Length(S) div 4) * 4 + 1], Last, Length(S) mod 4);
         Res.Sum := Res.Sum + Last;
         Res.XorValue := Res.XorValue xor Last;
       end;
