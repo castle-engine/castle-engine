@@ -1988,69 +1988,10 @@ function TVRMLGLRendererContextCache.GLSLProgram_IncReference_Core(
 
   procedure LoadGLSLProgram(GLSLProgram: TVRMLGLSLProgram;
     ProgramNode: TNodeComposedShader);
-  var
-    I: Integer;
-    Part: TNodeShaderPart;
-    PartType, Source: String;
-    HasAnyShader: boolean;
   begin
-    HasAnyShader := false;
-
-    { Iterate over ProgramNode.FdParts, looking for vertex shaders
-      and fragment shaders. Note that more than one vertex/fragment shader
-      is OK (as long as each has only one main() entry, OpenGL will check
-      this when linking program). }
-
-    for I := 0 to ProgramNode.FdParts.Count - 1 do
-      if ProgramNode.FdParts.Items[I] is TNodeShaderPart then
-      begin
-        Part := TNodeShaderPart(ProgramNode.FdParts.Items[I]);
-
-        PartType := UpperCase(Part.FdType.Value);
-        if PartType <> Part.FdType.Value then
-          VRMLWarning(vwSerious, Format('ShaderPart.type should be uppercase, but is not: "%s"', [
-            Part.FdType.Value]));
-
-        if PartType = 'VERTEX' then
-        begin
-          Source := Part.LoadContents;
-          if Part.UsedFullUrl <> '' then
-          begin
-            GLSLProgram.AttachVertexShader(Source);
-            HasAnyShader := true;
-          end;
-        end else
-
-        if PartType = 'FRAGMENT' then
-        begin
-          Source := Part.LoadContents;
-          if Part.UsedFullUrl <> '' then
-          begin
-            GLSLProgram.AttachFragmentShader(Source);
-            HasAnyShader := true;
-          end;
-        end else
-
-          VRMLWarning(vwSerious, Format('Unknown type for ShaderPart: "%s"',
-            [PartType]));
-      end;
-
-    if not HasAnyShader then
-      raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
-
+    { TODO: remove }
     GLSLProgram.Link(true);
 
-    { X3D spec "OpenGL shading language (GLSL) binding" says
-      "If the name is not available as a uniform variable in the
-      provided shader source, the values of the node shall be ignored"
-      (although it says when talking about "Vertex attributes",
-      seems they mixed attributes and uniforms meaning in spec?).
-
-      So we do not allow EGLSLUniformNotFound to be raised.
-      GLSLProgram.SetUniform will go to DataWarning always (ignored by default).
-
-      Also type errors, when variable exists in shader but has different type,
-      will be send to DataWarning. }
     GLSLProgram.UniformNotFoundAction := uaWarning;
     GLSLProgram.UniformTypeMismatchAction := utWarning;
 
@@ -3493,75 +3434,97 @@ procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
 var
-  UsedGLSLRenderer: TGLSLRenderer;
-  { > 0 means that UsedGLSLRenderer is non-nil *and* we already bound
-    needed texture units when initializing shader. Always 0 otherwise. }
+  { > 0 means that we had custom shader node *and* it already
+    needs given number texture units. Always 0 otherwise. }
   UsedGLSLTexCoordsNeeded: Cardinal;
 
-  { Find if some shader is available and prepared for this state.
-    If yes, then sets UsedGLSLRenderer, MeshRenderer.UsedGLSL to non-nil
-    and enables this shader. }
-  procedure RenderShadersBegin;
-
-    function TextureCoordsDefined: Cardinal;
-    var
-      TexCoord: TVRMLNode;
+  function TextureCoordsDefined: Cardinal;
+  var
+    TexCoord: TVRMLNode;
+  begin
+    if Shape.Geometry.TexCoord(Shape.State, TexCoord) and
+       (TexCoord <> nil) then
     begin
-      if Shape.Geometry.TexCoord(Shape.State, TexCoord) and
-         (TexCoord <> nil) then
-      begin
-        if TexCoord is TNodeMultiTextureCoordinate then
-          Result := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Count else
-          Result := 1;
-      end else
+      if TexCoord is TNodeMultiTextureCoordinate then
+        Result := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Count else
+        Result := 1;
+    end else
+      Result := 0;
+  end;
+
+  function TextureUnitsDefined(Node: TNodeComposedShader): Cardinal;
+
+    function TextureUnits(Node: TVRMLNode): Cardinal;
+    begin
+      if Node is TNodeMultiTexture then
+        Result := TNodeMultiTexture(Node).FdTexture.Count else
+      if Node is TNodeX3DTextureNode then
+        Result := 1 else
         Result := 0;
     end;
 
   var
-    TCD: Cardinal;
+    I, J: Integer;
+    UniformField: TVRMLField;
+    IDecls: TVRMLInterfaceDeclarationsList;
   begin
-    UsedGLSLRenderer := nil;
-    UsedGLSLTexCoordsNeeded := 0;
-
-    if not Attributes.PureGeometry then
+    IDecls := Node.InterfaceDeclarations;
+    Result := 0;
+    Assert(IDecls <> nil);
+    for I := 0 to IDecls.Count - 1 do
     begin
-      UsedGLSLRenderer := GLSLRenderers.Enable(Shape.State, UsedGLSLTexCoordsNeeded);
+      UniformField := IDecls.Items[I].Field;
 
-      if UsedGLSLRenderer <> nil then
-        MeshRenderer.UsedGLSL := UsedGLSLRenderer.GLSLProgram;
-
-      { Only if we bound texture units defined in shader ComposedShader fields
-        (it we have shader but UsedGLSLTexCoordsNeeded = 0 then normal
-        texture apply (including normal TexCoordsNeeded calculation)
-        will be done):
-
-        Although we bound only UsedGLSLTexCoordsNeeded texture units,
-        we want to pass all texture coords defined in texCoord.
-        Shaders may use them (even when textures are not bound for them). }
-
-      if (UsedGLSLRenderer <> nil) and (UsedGLSLTexCoordsNeeded > 0) then
+      if UniformField <> nil then
       begin
-        TCD := TextureCoordsDefined;
-        if Log and (TCD > UsedGLSLTexCoordsNeeded) then
-          WritelnLog('TexCoord', Format('Texture coords defined in VRML/X3D for %d texture units, using them all, even though we bound only %d texture units. Reason: GLSL shaders may use them',
-            [TCD, UsedGLSLTexCoordsNeeded]));
-        MaxTo1st(UsedGLSLTexCoordsNeeded, TCD);
+        if UniformField is TSFNode then
+          Result += TextureUnits(TSFNode(UniformField).Value) else
+        if UniformField is TMFNode then
+          for J := 0 to TMFNode(UniformField).Count - 1 do
+            Result += TextureUnits(TMFNode(UniformField)[J]);
       end;
     end;
   end;
 
-  procedure RenderShadersEnd;
+var
+  TCD: Cardinal;
+  UsedShaderNode: TNodeComposedShader;
+begin
+  { Use custom shader code (ComposedShader) if available. }
+
+  UsedGLSLTexCoordsNeeded := 0;
+
+  if (not Attributes.PureGeometry) and
+     { Check here for Attributes.GLSLShaders.
+      This way we can quickly change Attributes.GLSLShaders value at runtime
+      (this is even used for VarianceShadowMaps, see TVRMLGLScene.Render
+      RestoreGLSLShaders trick), no need to prepare again everything. }
+     Attributes.GLSLShaders and
+     Shader.EnableCustomShaderCode(Shape.State, UsedShaderNode) then
   begin
-    if UsedGLSLRenderer <> nil then
-      UsedGLSLRenderer.Disable;
+    UsedGLSLTexCoordsNeeded := TextureUnitsDefined(UsedShaderNode);
+
+    { Only if we bound texture units defined in shader ComposedShader fields
+      (it we have shader but UsedGLSLTexCoordsNeeded = 0 then normal
+      texture apply (including normal TexCoordsNeeded calculation)
+      will be done):
+
+      Although we bound only UsedGLSLTexCoordsNeeded texture units,
+      we want to pass all texture coords defined in texCoord.
+      Shaders may use them (even when textures are not bound for them). }
+
+    if UsedGLSLTexCoordsNeeded > 0 then
+    begin
+      TCD := TextureCoordsDefined;
+      if Log and (TCD > UsedGLSLTexCoordsNeeded) then
+        WritelnLog('TexCoord', Format('Texture coords defined in VRML/X3D for %d texture units, using them all, even though we bound only %d texture units. Reason: GLSL shaders may use them',
+          [TCD, UsedGLSLTexCoordsNeeded]));
+      MaxTo1st(UsedGLSLTexCoordsNeeded, TCD);
+    end;
   end;
 
-begin
-  RenderShadersBegin;
-  try
-    RenderShapeTextures(Shape, Fog, Shader, MaterialOpacity, MaterialLit,
-      GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
-  finally RenderShadersEnd end;
+  RenderShapeTextures(Shape, Fog, Shader, MaterialOpacity, MaterialLit,
+    GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;

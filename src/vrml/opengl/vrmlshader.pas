@@ -157,6 +157,9 @@ type
       Code: TDynStringArray = nil);
 
     procedure ApplyInternalEffects;
+
+    { Add fragment and vertex shader code, link.
+      @raises EGLSLError In case of troubles with linking. }
     procedure LinkProgram(AProgram: TVRMLShaderProgram);
 
     { Calculate the hash of all the current TVRMLShader settings,
@@ -189,6 +192,8 @@ type
     procedure EnableEffects(Effects: TMFNode;
       const Code: TDynStringArray = nil);
     procedure EnableFog(const FogType: TFogType);
+    function EnableCustomShaderCode(State: TVRMLGraphTraverseState;
+      out Node: TNodeComposedShader): boolean;
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
@@ -563,9 +568,10 @@ const
     end;
   end;
 
-  procedure InsertIntoCode(const P: Integer; const S: string);
+  procedure InsertIntoCode(const CodeIndex, P: Integer; const S: string);
   begin
-    Code[0] := Copy(Code[0], 1, P - 1) + S + SEnding(Code[0], P);
+    Code[CodeIndex] := Copy(Code[CodeIndex], 1, P - 1) + S +
+      SEnding(Code[CodeIndex], P);
   end;
 
   function FindPlugOccurence(const CommentBegin, Code: string;
@@ -584,7 +590,7 @@ const
   end;
 
 var
-  PBegin, PEnd, CodeSearchBegin: Integer;
+  PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
   Parameter, PlugName, ProcedureName, CommentBegin: string;
   CodeForPlugValue: TDynStringArray;
   AnyOccurences: boolean;
@@ -612,17 +618,19 @@ begin
     StringReplaceAllTo1st(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
     Inc(PlugIdentifiers);
 
-    { TODO: only Code[0] processed for now }
     AnyOccurences := false;
-    CodeSearchBegin := 1;
-    while FindPlugOccurence(CommentBegin, Code[0], CodeSearchBegin, PBegin, PEnd) do
+    for CodeIndex := 0 to Code.Count - 1 do
     begin
-      Parameter := Trim(CopyPos(Code[0], PBegin + Length(CommentBegin), PEnd - 1));
-      InsertIntoCode(PBegin, ProcedureName + Parameter + ';' + NL);
+      CodeSearchBegin := 1;
+      while FindPlugOccurence(CommentBegin, Code[CodeIndex], CodeSearchBegin, PBegin, PEnd) do
+      begin
+        Parameter := Trim(CopyPos(Code[CodeIndex], PBegin + Length(CommentBegin), PEnd - 1));
+        InsertIntoCode(CodeIndex, PBegin, ProcedureName + Parameter + ';' + NL);
 
-      { do not find again the same plug comment by FindPlugOccurence }
-      CodeSearchBegin := PEnd;
-      AnyOccurences := true;
+        { do not find again the same plug comment by FindPlugOccurence }
+        CodeSearchBegin := PEnd;
+        AnyOccurences := true;
+      end;
     end;
 
     if not AnyOccurences then
@@ -637,6 +645,8 @@ end;
 procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
   const PlugName, PlugValue: string);
 begin
+  if Code.Count = 0 then Exit; // TODO: hack, assume only Code[0] matters
+
   { TODO: make better. PlugDirectly is always one-time? }
   if Pos('/* PLUG: ' + PlugName, Code[0]) = 0 then
     VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
@@ -720,12 +730,25 @@ begin
         FragmentShaderComplete[I]);
   end;
 
+  if (VertexShaderComplete.Count = 0) and
+     (FragmentShaderComplete.Count = 0) then
+    raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
+
   for I := 0 to VertexShaderComplete.Count - 1 do
     AProgram.AttachVertexShader(VertexShaderComplete[I]);
   for I := 0 to FragmentShaderComplete.Count - 1 do
     AProgram.AttachFragmentShader(FragmentShaderComplete[I]);
   AProgram.Link(true);
 
+  { X3D spec "OpenGL shading language (GLSL) binding" says
+    "If the name is not available as a uniform variable in the
+    provided shader source, the values of the node shall be ignored"
+    (although it says when talking about "Vertex attributes",
+    seems they mixed attributes and uniforms meaning in spec?).
+
+    So we do not allow EGLSLUniformNotFound to be raised.
+    Also type errors, when variable exists in shader but has different type,
+    will be send to DataWarning. }
   AProgram.UniformNotFoundAction := uaWarning;
   AProgram.UniformTypeMismatchAction := utWarning;
 
@@ -1193,11 +1216,74 @@ begin
   end;
 
   Plug('FRAGMENT',
-      'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
-      '{' +NL+
-      '  fragment_color.rgb = mix(fragment_color.rgb, gl_Fog.color.rgb,' +NL+
-      '    clamp(1.0 - ' + FogFactor + ', 0.0, 1.0));' +NL+
-      '}');
+    'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
+    '{' +NL+
+    '  fragment_color.rgb = mix(fragment_color.rgb, gl_Fog.color.rgb,' +NL+
+    '    clamp(1.0 - ' + FogFactor + ', 0.0, 1.0));' +NL+
+    '}');
+end;
+
+function TVRMLShader.EnableCustomShaderCode(State: TVRMLGraphTraverseState;
+  out Node: TNodeComposedShader): boolean;
+var
+  I, J: Integer;
+  Part: TNodeShaderPart;
+  PartType, Source: String;
+  Shaders: TMFNodeShaders;
+begin
+  Result := false;
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.Appearance <> nil) then
+  begin
+    Shaders := State.ShapeNode.Appearance.FdShaders;
+    for I := 0 to Shaders.Count - 1 do
+    begin
+      Node := Shaders.GLSLShader(I);
+      if Node <> nil then
+      begin
+        Result := true;
+
+        VertexShaderComplete.Count := 0;
+        FragmentShaderComplete.Count := 0;
+
+        { Iterate over Node.FdParts, looking for vertex shaders
+          and fragment shaders. }
+
+        for J := 0 to Node.FdParts.Count - 1 do
+          if Node.FdParts[J] is TNodeShaderPart then
+          begin
+            Part := TNodeShaderPart(Node.FdParts[J]);
+
+            PartType := UpperCase(Part.FdType.Value);
+            if PartType <> Part.FdType.Value then
+              VRMLWarning(vwSerious, Format('ShaderPart.type should be uppercase, but is not: "%s"',
+                [Part.FdType.Value]));
+
+            if PartType = 'VERTEX' then
+            begin
+              Source := Part.LoadContents;
+              if Source <> '' then
+                VertexShaderComplete.Add(Source);
+            end else
+
+            if PartType = 'FRAGMENT' then
+            begin
+              Source := Part.LoadContents;
+              if Source <> '' then
+                FragmentShaderComplete.Add(Source);
+            end else
+
+              VRMLWarning(vwSerious, Format('Unknown type for ShaderPart: "%s"',
+                [PartType]));
+          end;
+
+        if UniformsNodes = nil then
+          UniformsNodes := TVRMLNodesList.Create;
+        UniformsNodes.Add(Node);
+        Break;
+      end;
+    end;
+  end;
 end;
 
 end.
