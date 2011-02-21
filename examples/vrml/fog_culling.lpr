@@ -24,15 +24,15 @@
   spheres scattered around. Fog culling will work best on it.
 
   Handles keys:
-    'f' turns fog on/off
+    'f' turns fog culling on/off
     F5 makes a screenshot
 }
 
 program fog_culling;
 
-uses VectorMath, GL, GLU, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, Cameras,
-  KambiGLUtils, VRMLScene, VRMLGLScene,
+uses SysUtils, VectorMath, GL, GLU, GLWindow, KambiStringUtils,
+  KambiClassUtils, KambiUtils, Classes, Cameras,
+  KambiGLUtils, VRMLNodes, VRMLScene, VRMLGLScene,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors,
   KambiSceneManager;
 
@@ -64,16 +64,20 @@ begin
         Sqrt(Shape.BoundingSphereRadiusSqr));
 end;
 
+var
+  FogCulling: boolean = true;
+
 procedure TMySceneManager.Render3D(const LightsEnabled: Cardinal;
   const TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
-  if Scene.Attributes.UseFog then
+  if FogCulling then
     Scene.Render(@TestFogVisibility, LightsEnabled, TransparentGroup) else
     inherited;
 
-  Writeln(Format('Rendered Shapes: %d / %d',
+  Writeln(Format('Rendered Shapes: %d / %d (fog culling: %s)',
     [ Scene.LastRender_RenderedShapesCount,
-      Scene.LastRender_VisibleShapesCount ]));
+      Scene.LastRender_VisibleShapesCount,
+      BoolToStr[FogCulling] ]));
 end;
 
 procedure Open(Window: TGLWindow);
@@ -86,11 +90,22 @@ begin
 end;
 
 procedure KeyDown(Window: TGLWindow; Key: TKey; c: char);
+var
+  FogNode: TNodeFog;
 begin
   case Key of
     K_F:
       begin
-        with Scene do Attributes.UseFog := not Attributes.UseFog;
+        FogCulling := not FogCulling;
+
+        { Also, turn on/off actual fog on the model (if any).
+          We do it by changing Fog.VisibilityRange (0 means no fog). }
+        FogNode := Scene.FogStack.Top as TNodeFog;
+        if FogNode <> nil then
+          if FogCulling then
+            FogNode.FdVisibilityRange.Send(30) else
+            FogNode.FdVisibilityRange.Send(0);
+
         Window.PostRedisplay;
       end;
     K_F5: Window.SaveScreenDialog(FileNameAutoInc('fog_culling_screen_%d.png'));

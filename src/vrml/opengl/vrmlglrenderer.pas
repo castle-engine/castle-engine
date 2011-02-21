@@ -261,7 +261,6 @@ type
     FTextureMagFilter: TGLint;
     FPointSize: TGLFloat;
     FLineWidth: TGLFloat;
-    FUseFog: boolean;
     FBumpMapping: boolean;
     FShaders: TShadersRendering;
     FPureGeometry: boolean;
@@ -283,7 +282,6 @@ type
     procedure SetEnableTextures(const Value: boolean); virtual;
     procedure SetTextureMinFilter(const Value: TGLint); virtual;
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
-    procedure SetUseFog(const Value: boolean); virtual;
     procedure SetBumpMapping(const Value: boolean); virtual;
     procedure SetPureGeometry(const Value: boolean); virtual;
     procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
@@ -437,15 +435,6 @@ type
       and on wireframe rendering for TVRMLSceneRenderingAttributes.WireframeEffect. }
     property LineWidth: Single
       read FLineWidth write FLineWidth default DefaultLineWidth;
-
-    { Should we control fog, rendering fog following VRML/X3D defined fog.
-      If @true then we will enable/disable and set all the properties
-      of OpenGL fog as necessary.
-
-      If @false, we don't touch fog settings. You can control it yourself,
-      or just leave it disabled (OpenGL defaults). }
-    property UseFog: boolean
-      read FUseFog write SetUseFog default true;
 
     { Use bump mapping. To actually use this, particular shape must also
       provide normal map (and height map, if you want parallax bump mapping).
@@ -1048,7 +1037,7 @@ type
       Set in each RenderBegin. }
     FirstLight: Cardinal;
 
-    { Get VRML/X3D fog parameters, based on fog node and Attributes.UseFog. }
+    { Get VRML/X3D fog parameters, based on fog node and Attributes. }
     procedure GetFog(Node: INodeX3DFogObject;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3Single;
@@ -2065,7 +2054,6 @@ begin
     TextureMagFilter := TVRMLRenderingAttributes(Source).TextureMagFilter;
     PointSize := TVRMLRenderingAttributes(Source).PointSize;
     LineWidth := TVRMLRenderingAttributes(Source).LineWidth;
-    UseFog := TVRMLRenderingAttributes(Source).UseFog;
   end else
     inherited;
 end;
@@ -2077,8 +2065,7 @@ begin
     (SecondValue.OnRadianceTransfer = OnRadianceTransfer) and
     (SecondValue.OnVertexColor = OnVertexColor) and
     (SecondValue.ControlTextures = ControlTextures) and
-    (SecondValue.EnableTextures = EnableTextures) and
-    (SecondValue.UseFog = UseFog);
+    (SecondValue.EnableTextures = EnableTextures);
 end;
 
 constructor TVRMLRenderingAttributes.Create;
@@ -2094,7 +2081,6 @@ begin
   FTextureMagFilter := GL_LINEAR;
   FPointSize := DefaultPointSize;
   FLineWidth := DefaultLineWidth;
-  FUseFog := true;
   FBumpMapping := true;
   FShaders := DefaultShaders;
   FTextureModeGrayscale := GL_MODULATE;
@@ -2168,15 +2154,6 @@ begin
   begin
     ReleaseCachedResources;
     FTextureMagFilter := Value;
-  end;
-end;
-
-procedure TVRMLRenderingAttributes.SetUseFog(const Value: boolean);
-begin
-  if UseFog <> Value then
-  begin
-    ReleaseCachedResources;
-    FUseFog := Value;
   end;
 end;
 
@@ -2667,7 +2644,7 @@ procedure TVRMLGLRenderer.GetFog(Node: INodeX3DFogObject;
   out VolumetricDirection: TVector3Single;
   out VolumetricVisibilityStart: Single);
 begin
-  Enabled := Attributes.UseFog and
+  Enabled := (not Attributes.PureGeometry) and
     (Node <> nil) and (Node.FdVisibilityRange.Value <> 0.0);
   Volumetric := Enabled and Node.FdVolumetric.Value and GL_EXT_fog_coord;
 
@@ -2921,8 +2898,6 @@ procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
   const
     FogDensityFactor = 3.0;
   begin
-    if not Attributes.UseFog then Exit;
-
     GetFog(Node, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
 
     if FogEnabled then
