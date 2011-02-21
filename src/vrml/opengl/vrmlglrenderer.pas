@@ -56,10 +56,10 @@
       @italic(before) unpreparing them. This was depending on the fact that
       during unprepare we will not actually dereference pointers
       (not look at nodes contents etc.). This is forbidden since 2010-03-25,
-      as it causes some difficult problems (like GLSLProgram_DecReference really
-      needs to look at VRML nodes), and was inherently unclean and unsafe
-      (it's not a nice programming practice to have a pointers that
-      may be invalid).
+      as it causes some difficult problems (like TVRMLShaderProgram.Destroy
+      really needs to access some VRML nodes), and was inherently unclean
+      and unsafe (it's not a nice programming practice to have a pointers
+      that may be invalid).
     )
 
     @item(
@@ -799,30 +799,6 @@ type
 
   TVRMLGLRenderer = class;
 
-  { GLSL program integrated with VRML renderer. Adds ability to bind
-    VRML textures to uniform variables of GLSL shader. }
-  TVRMLGLSLProgram = class(TVRMLShaderProgram)
-  private
-    Renderer: TVRMLGLRenderer;
-  public
-    function SetupUniforms(var BoundTextureUnits: Cardinal): boolean; override;
-  end;
-
-  TGLSLProgramCache = record
-    ProgramNode: TNodeComposedShader;
-    { GLSL program for this shader. Always non-nil. }
-    GLSLProgram: TVRMLGLSLProgram;
-    References: Cardinal;
-  end;
-  PGLSLProgramCache = ^TGLSLProgramCache;
-
-  TDynArrayItem_5 = TGLSLProgramCache;
-  PDynArrayItem_5 = PGLSLProgramCache;
-  {$define DYNARRAY_5_IS_STRUCT}
-  {$I dynarray_5.inc}
-  TDynGLSLProgramCacheArray = class(TDynArray_5)
-  end;
-
   { A cache that may be used by many TVRMLGLRenderer
     instances to share some common OpenGL resources.
 
@@ -843,7 +819,6 @@ type
     Texture3DCaches: TDynTexture3DCacheArray;
     TextureDepthOrFloatCaches: TDynTextureDepthOrFloatCacheArray;
     ShapeCaches: TShapeCacheList;
-    GLSLProgramCaches: TDynGLSLProgramCacheArray;
 
     { Load given texture to OpenGL, using our cache.
 
@@ -932,20 +907,6 @@ type
 
     procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
-
-    { Creates and links appropriate TGLSLProgram.
-      Takes care of sending ComposedShader.isValid event (but not isSelected).
-      @raises EGLSLError In case program cannot be linked. }
-    function GLSLProgram_IncReference_Core(
-      ProgramNode: TNodeComposedShader;
-      AAttributes: TVRMLRenderingAttributes): TVRMLGLSLProgram;
-    { Creates and links appropriate TGLSLProgram.
-      Takes care of sending ComposedShader.isSelected, isValid event.
-      Returns nil (and does VRMLWarning) if program cannot be linked. }
-    function GLSLProgram_IncReference(
-      ProgramNode: TNodeComposedShader;
-      AAttributes: TVRMLRenderingAttributes): TVRMLGLSLProgram;
-    procedure GLSLProgram_DecReference(const GLSLProgram: TVRMLGLSLProgram);
   public
     constructor Create;
     destructor Destroy; override;
@@ -998,7 +959,6 @@ type
 
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRenderersList;
-    GLSLRenderers: TGLSLRenderersList;
 
     { To which fonts we made a reference in the cache ? }
     FontsReferences: array[TVRMLFontFamily, boolean, boolean] of boolean;
@@ -1270,7 +1230,6 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
 
 {$define read_implementation}
 {$I dynarray_2.inc}
-{$I dynarray_5.inc}
 {$I dynarray_7.inc}
 {$I dynarray_9.inc}
 {$I dynarray_11.inc}
@@ -1295,7 +1254,6 @@ begin
   Texture3DCaches := TDynTexture3DCacheArray.Create;
   TextureDepthOrFloatCaches := TDynTextureDepthOrFloatCacheArray.Create;
   ShapeCaches := TShapeCacheList.Create;
-  GLSLProgramCaches := TDynGLSLProgramCacheArray.Create;
 end;
 
 destructor TVRMLGLRendererContextCache.Destroy;
@@ -1364,13 +1322,6 @@ begin
     Assert(ShapeCaches.Count = 0, 'Some references to Shapes still exist' +
       ' when freeing TVRMLGLRendererContextCache');
     FreeAndNil(ShapeCaches);
-  end;
-
-  if GLSLProgramCaches <> nil then
-  begin
-    Assert(GLSLProgramCaches.Count = 0, 'Some references to GLSLProgram' +
-      '  still exist when freeing TVRMLGLRendererContextCache');
-    FreeAndNil(GLSLProgramCaches);
   end;
 
   inherited;
@@ -1982,114 +1933,6 @@ begin
     'found to texture %d', [TextureGLName]);
 end;
 
-function TVRMLGLRendererContextCache.GLSLProgram_IncReference_Core(
-  ProgramNode: TNodeComposedShader;
-  AAttributes: TVRMLRenderingAttributes): TVRMLGLSLProgram;
-
-  procedure LoadGLSLProgram(GLSLProgram: TVRMLGLSLProgram;
-    ProgramNode: TNodeComposedShader);
-  begin
-    { TODO: remove }
-    GLSLProgram.Link(true);
-
-    GLSLProgram.UniformNotFoundAction := uaWarning;
-    GLSLProgram.UniformTypeMismatchAction := utWarning;
-
-    GLSLProgram.BindUniforms(ProgramNode, true);
-  end;
-
-var
-  I: Integer;
-  GLSLProgramCache: PGLSLProgramCache;
-begin
-  for I := 0 to GLSLProgramCaches.High do
-  begin
-    GLSLProgramCache := GLSLProgramCaches.Pointers[I];
-
-    if GLSLProgramCache^.ProgramNode = ProgramNode then
-    begin
-      Inc(GLSLProgramCache^.References);
-      if LogRendererCache and Log then
-        WritelnLog('++', 'GLSL program %s: %d', [ProgramNode.DescribeUsedUrls, GLSLProgramCache^.References]);
-      Exit(GLSLProgramCache^.GLSLProgram);
-    end;
-  end;
-
-  { Initialize Result first, before calling GLSLProgramCaches.Add.
-    That's because in case of loading problems,
-    we don't want to add program to cache (because caller would have
-    no way to call GLSLProgram_DecReference later). }
-
-  Result := TVRMLGLSLProgram.Create;
-  try
-    LoadGLSLProgram(Result, ProgramNode);
-    ProgramNode.EventIsValid.Send(true);
-  except
-    { In case of problems with initializing GLSL program, free the program
-      and reraise exception. Outer GLSLProgram_IncReference
-      will take care of converting it to VRMLWarning. }
-    FreeAndNil(Result);
-    ProgramNode.EventIsValid.Send(false);
-    raise;
-  end;
-
-  GLSLProgramCache := GLSLProgramCaches.Add;
-  GLSLProgramCache^.ProgramNode := ProgramNode;
-  GLSLProgramCache^.References := 1;
-  GLSLProgramCache^.GLSLProgram := Result;
-
-  if LogRendererCache and Log then
-    WritelnLog('++', 'GLSL program %s: %d', [ProgramNode.DescribeUsedUrls, 1]);
-end;
-
-function TVRMLGLRendererContextCache.GLSLProgram_IncReference(
-  ProgramNode: TNodeComposedShader;
-  AAttributes: TVRMLRenderingAttributes): TVRMLGLSLProgram;
-begin
-  try
-    Result := GLSLProgram_IncReference_Core(ProgramNode, AAttributes);
-    ProgramNode.EventIsSelected.Send(true);
-  except
-    { EGLSLError catches errors from Cache.GLSLProgram_IncReference_Core,
-      including GLShaders errors like
-      EGLSLShaderCompileError or EGLSLProgramLinkError }
-    on E: EGLSLError do
-    begin
-      VRMLWarning(vwSerious, 'Error when initializing GLSL shader: ' + E.Message);
-      Result := nil;
-      ProgramNode.EventIsSelected.Send(false);
-    end;
-  end;
-end;
-
-procedure TVRMLGLRendererContextCache.GLSLProgram_DecReference(
-  const GLSLProgram: TVRMLGLSLProgram);
-var
-  I: Integer;
-  GLSLProgramCache: PGLSLProgramCache;
-begin
-  for I := 0 to GLSLProgramCaches.High do
-  begin
-    GLSLProgramCache := GLSLProgramCaches.Pointers[I];
-    if GLSLProgramCache^.GLSLProgram = GLSLProgram then
-    begin
-      Dec(GLSLProgramCache^.References);
-      if LogRendererCache and Log then
-        WritelnLog('--', 'GLSLProgram %s: %d', [GLSLProgramCache^.ProgramNode.DescribeUsedUrls, GLSLProgramCache^.References]);
-      if GLSLProgramCache^.References = 0 then
-      begin
-        FreeAndNil(GLSLProgramCache^.GLSLProgram);
-        GLSLProgramCaches.Delete(I, 1);
-      end;
-      Exit;
-    end;
-  end;
-
-  raise EInternalError.Create(
-    'TVRMLGLRendererContextCache.GLSLProgram_DecReference: no reference ' +
-    'found to GLSL program');
-end;
-
 function TVRMLGLRendererContextCache.Shape_IncReference(
   Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
   ARenderer: TVRMLGLRenderer): TShapeCache;
@@ -2396,7 +2239,6 @@ begin
 
   GLTextureNodes := TGLTextureNodes.Create;
   BumpMappingRenderers := TBumpMappingRenderersList.Create;
-  GLSLRenderers := TGLSLRenderersList.Create;
 
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
@@ -2413,7 +2255,6 @@ begin
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(GLTextureNodes);
   FreeAndNil(BumpMappingRenderers);
-  FreeAndNil(GLSLRenderers);
   FreeAndNil(FAttributes);
 
   if OwnsCache then
@@ -2579,12 +2420,12 @@ procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
-  procedure PrepareEffects(Effects: TMFNode);
+  procedure PrepareIDecls(Nodes: TMFNode);
   var
     I: Integer;
   begin
-    for I := 0 to Effects.Count - 1 do
-      GLTextureNodes.PrepareInterfaceDeclarationsTextures(Effects[I], State, Self);
+    for I := 0 to Nodes.Count - 1 do
+      GLTextureNodes.PrepareInterfaceDeclarationsTextures(Nodes[I], State, Self);
   end;
 
 var
@@ -2647,25 +2488,26 @@ begin
 
   BumpMappingRenderers.Prepare(State, Self);
 
-  GLSLRenderers.Prepare(State, Self);
-
   if (State.ShapeNode <> nil) and
      (State.ShapeNode.Appearance <> nil) then
-    PrepareEffects(State.ShapeNode.Appearance.FdEffects);
+  begin
+    PrepareIDecls(State.ShapeNode.Appearance.FdEffects);
+    PrepareIDecls(State.ShapeNode.Appearance.FdShaders);
+  end;
 
   Lights := State.CurrentActiveLights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
-      PrepareEffects(Lights.Items[I].LightNode.FdEffects);
+      PrepareIDecls(Lights.Items[I].LightNode.FdEffects);
 
   Texture := State.Texture;
   if Texture <> nil then
   begin
-    PrepareEffects(Texture.FdEffects);
+    PrepareIDecls(Texture.FdEffects);
     if Texture is TNodeMultiTexture then
       for I := 0 to TNodeMultiTexture(Texture).FdTexture.Count - 1 do
         if TNodeMultiTexture(Texture).FdTexture[I] is TNodeX3DTextureNode then
-          PrepareEffects(TNodeX3DTextureNode(TNodeMultiTexture(Texture).
+          PrepareIDecls(TNodeX3DTextureNode(TNodeMultiTexture(Texture).
             FdTexture[I]).FdEffects);
   end;
 end;
@@ -2680,8 +2522,10 @@ begin
     Node.ShaderLoaded := true;
     if Node.FdEnabled.Value then
     begin
-      GLSLRenderers.Prepare(Node.StateForShaderPrepare, Self,
-        Node.FdShaders, ShaderProgram);
+      { TODO: GLSLRenderers.Prepare(Node.StateForShaderPrepare, Self,
+        Node.FdShaders, ShaderProgram); }
+      ShaderProgram := nil;
+      
       if ShaderProgram <> nil then
       begin
         { We have to ignore invalid uniforms, as it's normal that when
@@ -2716,7 +2560,6 @@ begin
 
   GLTextureNodes.UnprepareAll;
   BumpMappingRenderers.UnprepareAll;
-  GLSLRenderers.UnprepareAll;
 end;
 
 function TVRMLGLRenderer.BumpMapping: boolean;
