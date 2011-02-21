@@ -672,14 +672,8 @@ end;
 { TShaderCoordinateRenderer -------------------------------------------------- }
 
 procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
-
-  function ForceShaderRendering: boolean;
-  begin
-    Result := Attributes.ForceShaderRendering and
-              Attributes.GLSLShaders and
-         (not Attributes.PureGeometry);
-  end;
-
+var
+  UseShaderRendering: boolean;
 begin
   inherited;
 
@@ -688,8 +682,12 @@ begin
      (Shape.Node.Appearance <> nil) then
     Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
 
+  UseShaderRendering := (not Attributes.PureGeometry) and
+    ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
+       (Attributes.Shaders = srAlways) );
+
   { calculate and use Shape.ShaderProgram }
-  if ForceShaderRendering and
+  if UseShaderRendering and
     ( (Shape.ShaderProgram = nil) or
       (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) ) then
   begin
@@ -707,7 +705,7 @@ begin
     end;
   end;
 
-  if ForceShaderRendering and (Shape.ShaderProgram <> nil) then
+  if UseShaderRendering and (Shape.ShaderProgram <> nil) then
   begin
     UsedGLSL := Shape.ShaderProgram;
     Shape.ShaderProgram.Enable;

@@ -139,6 +139,7 @@ type
     CodeHashCalculated: boolean;
     SelectedNode: TNodeComposedShader;
     WarnMissingPlugs: boolean;
+    FShapeRequiresShaders: boolean;
     procedure PlugDirectly(Code: TDynStringArray; const PlugName, PlugValue: string);
   public
     constructor Create;
@@ -198,6 +199,9 @@ type
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
+
+    property ShapeRequiresShaders: boolean read FShapeRequiresShaders
+      write FShapeRequiresShaders;
   end;
 
 implementation
@@ -906,6 +910,9 @@ begin
     AddUniform(Uniform);
   end;
 
+  if TextureType in [ttShader, tt2DShadow] then
+    ShapeRequiresShaders := true;
+
   TexCoordName := Format('gl_TexCoord[%d]', [TextureUnit]);
 
   TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
@@ -1126,6 +1133,8 @@ begin
   Uniform.Value.LongInt := NormalMapTextureUnit;
 
   AddUniform(Uniform);
+
+  ShapeRequiresShaders := true;
 end;
 
 procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
@@ -1181,7 +1190,10 @@ procedure TVRMLShader.EnableEffects(Effects: TMFNode;
     begin
       Contents := Part.LoadContents;
       if Contents <> '' then
+      begin
         Plug(Part.FdType.Value, Contents, Code);
+        ShapeRequiresShaders := true;
+      end;
     end;
 
   var
@@ -1295,6 +1307,8 @@ begin
 
       { Ignore missing plugs, as iur plugs are (probably) not found there }
       WarnMissingPlugs := false;
+
+      ShapeRequiresShaders := true;
 
       Break;
     end else

@@ -231,11 +231,13 @@ uses
 type
   TBeforeGLVertexProc = procedure (Node: TVRMLGeometryNode;
     const Vert: TVector3Single) of object;
+  TShadersRendering = (srDisable, srWhenRequired, srAlways);
 
 const
   DefaultPointSize = 3.0;
   DefaultLineWidth = 2.0;
   DefaultVarianceShadowMaps = false;
+  DefaultShaders = srWhenRequired;
 
 type
   { Various properties that control rendering done
@@ -261,14 +263,13 @@ type
     FLineWidth: TGLFloat;
     FUseFog: boolean;
     FBumpMapping: boolean;
-    FGLSLShaders: boolean;
+    FShaders: TShadersRendering;
     FPureGeometry: boolean;
     FTextureModeGrayscale: TGLenum;
     FTextureModeRGB: TGLenum;
     FVarianceShadowMaps: boolean;
     FVertexBufferObject: boolean;
     FPreserveOpenGLState: boolean;
-    FForceShaderRendering: boolean;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
     FVisualizeDepthMap: boolean;
   protected
@@ -472,13 +473,33 @@ type
     property BumpMapping: boolean
       read FBumpMapping write SetBumpMapping default true;
 
-    { Use GLSL shaders defined in the VRML/X3D model.
+    { When GLSL shaders are used.
 
-      When this is @false, the renderer does not control GLSL shaders
-      (it does not set any GLSL program active etc.). Which means that
-      the caller is free to apply any shader for the whole rendered scene. }
-    property GLSLShaders: boolean read FGLSLShaders write FGLSLShaders
-      default true;
+      @unorderedList(
+        @item(srDisable Never use shaders for anything.
+          This means that "shaders", "effects" VRML/X3D fields
+          are ignored, and various effects are disabled
+          (like shadow maps, bump mapping, screen effects).
+
+          In this case, the renderer doesn't even enable/disable
+          any shaders, and the caller can enable some GLSL program
+          for the whole model.)
+
+        @item(srWhenRequired Enable only for shapes that require it.
+          For shapes that don't strictly require shaders
+          (don't have ComposedShader, don't use shadow maps,
+          don't have any shader effects etc.) use fixed-function pipeline.)
+
+        @item(srAlways Enable for all shapes, render everything by GLSL shaders.
+          Everything will look beautiful (per-pixel lighting for all shapes),
+          but rendering may be slower.)
+      )
+
+      Note that PureGeometry = @true also disables all shaders.
+      That is, when PureGeometry = @true, the value of this property
+      doesn't matter, it's always treated like srDisable. }
+    property Shaders: TShadersRendering read FShaders write FShaders
+      default DefaultShaders;
 
     { Use this to render pure geometry, without any colors, materials,
       lights, etc. If this is @true, only pure geometry will be rendered.
@@ -560,21 +581,6 @@ type
       the rendering. }
     property PreserveOpenGLState: boolean
       read FPreserveOpenGLState write FPreserveOpenGLState default false;
-
-    { Render everything through GLSL shaders. This affects shapes
-      that can be rendered with fixed-function pipeline as well as shaders.
-      Such shapes don't need shaders for any effects
-      (no shadow maps, no bump mapping etc.) and no user shaders are present
-      in VRML/X3D file.
-
-      If @false, we let them render with fixed-function pipeline.
-      If @true, we always create and use appropriate shader for such shapes.
-
-      This is applied only when GLSLShaders = @true. When GLSLShaders = @false,
-      no shapes use shaders, ever. Also, when PureGeometry = @true,
-      no shaders (or fixed-function shading) is done. }
-    property ForceShaderRendering: boolean
-      read FForceShaderRendering write FForceShaderRendering default false;
 
     { Use Percentage Closer Filtering to improve shadow maps look.
       This decides the sampling method of all depth textures. }
@@ -2090,7 +2096,7 @@ begin
   FLineWidth := DefaultLineWidth;
   FUseFog := true;
   FBumpMapping := true;
-  FGLSLShaders := true;
+  FShaders := DefaultShaders;
   FTextureModeGrayscale := GL_MODULATE;
   FTextureModeRGB := GL_MODULATE;
   FVarianceShadowMaps := DefaultVarianceShadowMaps;
@@ -3360,13 +3366,7 @@ begin
 
   UsedGLSLTexCoordsNeeded := 0;
 
-  if (not Attributes.PureGeometry) and
-     { Check here for Attributes.GLSLShaders.
-      This way we can quickly change Attributes.GLSLShaders value at runtime
-      (this is even used for VarianceShadowMaps, see TVRMLGLScene.Render
-      RestoreGLSLShaders trick), no need to prepare again everything. }
-     Attributes.GLSLShaders and
-     (Shape.Node <> nil) and
+  if (Shape.Node <> nil) and
      (Shape.Node.Appearance <> nil) and
      Shader.EnableCustomShaderCode(Shape.Node.Appearance.FdShaders, UsedShaderNode) then
   begin

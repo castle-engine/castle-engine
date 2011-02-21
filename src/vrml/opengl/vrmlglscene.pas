@@ -3419,23 +3419,26 @@ procedure TVRMLGLScene.Render(const Frustum: TFrustum;
   const LightsEnabled: Cardinal;
   const TransparentGroup: TTransparentGroup; InShadow: boolean);
 var
-  RestoreGLSLShaders: boolean;
+  RestoreShaders: boolean;
+  RestoreShadersValue: TShadersRendering;
 begin
   if Exists and (Dirty = 0) then
   begin
     { When rendering to Variance Shadow Map, caller uses it's own shader.
       Our own shaders must be turned off. }
-    RestoreGLSLShaders := (RenderState.Target = rtVarianceShadowMap)
-      and Attributes.GLSLShaders;
-    if RestoreGLSLShaders then
-      Attributes.GLSLShaders := false;
+    RestoreShaders := RenderState.Target = rtVarianceShadowMap;
+    if RestoreShaders then
+    begin
+      RestoreShadersValue := Attributes.Shaders;
+      Attributes.Shaders := srDisable;
+    end;
 
     if InShadow then
       RenderFrustum(Frustum, LightsEnabled, TransparentGroup, @LightRenderInShadow) else
       RenderFrustum(Frustum, LightsEnabled, TransparentGroup, nil);
 
-    if RestoreGLSLShaders then
-      Attributes.GLSLShaders := true;
+    if RestoreShaders then
+      Attributes.Shaders := RestoreShadersValue;
   end;
 end;
 
@@ -3847,13 +3850,14 @@ var
   SE: TNodeScreenEffect;
 begin
   Result := 0;
-  for I := 0 to ScreenEffectNodes.Count - 1 do
-  begin
-    SE := TNodeScreenEffect(ScreenEffectNodes[I]);
-    Renderer.PrepareScreenEffect(SE);
-    if SE.Shader <> nil then
-      Inc(Result);
-  end;
+  if Attributes.Shaders <> srDisable then
+    for I := 0 to ScreenEffectNodes.Count - 1 do
+    begin
+      SE := TNodeScreenEffect(ScreenEffectNodes[I]);
+      Renderer.PrepareScreenEffect(SE);
+      if SE.Shader <> nil then
+        Inc(Result);
+    end;
 end;
 
 function TVRMLGLScene.ScreenEffects(Index: Integer): TGLSLProgram;
@@ -3873,6 +3877,7 @@ begin
         Exit(TGLSLProgram(SE.Shader)) else
         Dec(Index);
   end;
+
   raise EInternalError.Create('TVRMLGLScene.ScreenEffects: Invalid index');
 end;
 
