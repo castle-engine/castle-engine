@@ -137,7 +137,8 @@ type
     LightShaders: TLightShaders;
     FCodeHash: TShaderCodeHash;
     CodeHashCalculated: boolean;
-
+    SelectedNode: TNodeComposedShader;
+    WarnMissingPlugs: boolean;
     procedure PlugDirectly(Code: TDynStringArray; const PlugName, PlugValue: string);
   public
     constructor Create;
@@ -521,6 +522,7 @@ begin
   FragmentShaderComplete := TDynStringArray.Create;
   FragmentShaderComplete.Add({$I template.fs.inc});
   LightShaders := TLightShaders.Create;
+  WarnMissingPlugs := true;
 end;
 
 destructor TVRMLShader.Destroy;
@@ -633,7 +635,7 @@ begin
       end;
     end;
 
-    if not AnyOccurences then
+    if (not AnyOccurences) and WarnMissingPlugs then
       VRMLWarning(vwIgnorable, Format('Plug name "%s" not declared', [PlugName]));
   until false;
 
@@ -648,7 +650,8 @@ begin
   if Code.Count = 0 then Exit; // TODO: hack, assume only Code[0] matters
 
   { TODO: make better. PlugDirectly is always one-time? }
-  if Pos('/* PLUG: ' + PlugName, Code[0]) = 0 then
+  if WarnMissingPlugs and
+     (Pos('/* PLUG: ' + PlugName, Code[0]) = 0) then
     VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
 
   Code[0] := StringReplace(Code[0],
@@ -730,15 +733,24 @@ begin
         FragmentShaderComplete[I]);
   end;
 
-  if (VertexShaderComplete.Count = 0) and
-     (FragmentShaderComplete.Count = 0) then
-    raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
+  try
+    if (VertexShaderComplete.Count = 0) and
+       (FragmentShaderComplete.Count = 0) then
+      raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
-  for I := 0 to VertexShaderComplete.Count - 1 do
-    AProgram.AttachVertexShader(VertexShaderComplete[I]);
-  for I := 0 to FragmentShaderComplete.Count - 1 do
-    AProgram.AttachFragmentShader(FragmentShaderComplete[I]);
-  AProgram.Link(true);
+    for I := 0 to VertexShaderComplete.Count - 1 do
+      AProgram.AttachVertexShader(VertexShaderComplete[I]);
+    for I := 0 to FragmentShaderComplete.Count - 1 do
+      AProgram.AttachFragmentShader(FragmentShaderComplete[I]);
+    AProgram.Link(true);
+
+    if SelectedNode <> nil then
+      SelectedNode.EventIsValid.Send(true);
+  except
+    if SelectedNode <> nil then
+      SelectedNode.EventIsValid.Send(false);
+    raise;
+  end;
 
   { X3D spec "OpenGL shading language (GLSL) binding" says
     "If the name is not available as a uniform variable in the
@@ -1277,11 +1289,22 @@ begin
                 [PartType]));
           end;
 
+        Node.EventIsSelected.Send(true);
+
         if UniformsNodes = nil then
           UniformsNodes := TVRMLNodesList.Create;
         UniformsNodes.Add(Node);
+
+        { For sending isValid to this node later }
+        SelectedNode := Node;
+
+        { Ignore missing plugs, as iur plugs are (probably) not found there }
+        WarnMissingPlugs := false;
+
         Break;
-      end;
+      end else
+      if Shaders[I] is TNodeX3DShaderNode then
+        TNodeX3DShaderNode(Shaders[I]).EventIsSelected.Send(false);
     end;
   end;
 end;
