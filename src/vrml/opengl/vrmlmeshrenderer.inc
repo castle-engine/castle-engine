@@ -93,12 +93,6 @@ type
 
     { Available inside RenderCoordinate* }
     Arrays: TGeometryArrays;
-
-    { Set by ShaderBegin, used by ShaderEnd }
-    ShaderProgramUsed: boolean;
-
-    procedure ShaderBegin;
-    procedure ShaderEnd;
   protected
     { Override these to render contents of Arrays.
       These are all called only when Coord is assigned.
@@ -140,7 +134,15 @@ type
     procedure RenderCoordinateEnd; override;
   end;
 
-  TCompleteCoordinateRenderer = TFogCoordinateRenderer;
+  TShaderCoordinateRenderer = class(TFogCoordinateRenderer)
+  private
+    ShaderProgramUsed: boolean;
+  protected
+    procedure RenderCoordinateBegin; override;
+    procedure RenderCoordinateEnd; override;
+  end;
+
+  TCompleteCoordinateRenderer = TShaderCoordinateRenderer;
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
@@ -157,59 +159,6 @@ begin
 end;
 
 { TBaseCoordinateRenderer ------------------------------------------------ }
-
-procedure TBaseCoordinateRenderer.ShaderBegin;
-
-  function ForceShaderRendering: boolean;
-  begin
-    Result := Attributes.ForceShaderRendering and
-              Attributes.GLSLShaders and
-         (not Attributes.PureGeometry);
-  end;
-
-begin
-  ShaderProgramUsed := false;
-
-  Shader.ApplyInternalEffects;
-  if (Shape.Node <> nil) and
-     (Shape.Node.Appearance <> nil) then
-    Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
-
-  { calculate and use Shape.ShaderProgram }
-  if ForceShaderRendering and
-    ( (Shape.ShaderProgram = nil) or
-      (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) ) then
-  begin
-    try
-      FreeAndNil(Shape.ShaderProgram);
-
-      Shape.ShaderProgram := TVRMLGLSLProgram.Create;
-      Shape.ShaderProgram.Renderer := Renderer;
-
-      Shader.LinkProgram(Shape.ShaderProgram);
-    except on E: EGLSLError do
-      begin
-        FreeAndNil(Shape.ShaderProgram);
-        VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
-          [Shape.OriginalGeometry.NodeTypeName, E.Message]));
-      end;
-    end;
-  end;
-
-  if ForceShaderRendering and (Shape.ShaderProgram <> nil) then
-  begin
-    UsedGLSL := Shape.ShaderProgram;
-    Shape.ShaderProgram.Enable;
-    Shape.ShaderProgram.SetupUniforms(BoundTextureUnits);
-    ShaderProgramUsed := true;
-  end;
-end;
-
-procedure TBaseCoordinateRenderer.ShaderEnd;
-begin
-  if ShaderProgramUsed then
-    Shape.ShaderProgram.Disable;
-end;
 
 procedure TBaseCoordinateRenderer.Render;
 var
@@ -302,8 +251,6 @@ begin
 
   RenderCoordinateBegin;
   try
-    ShaderBegin;
-
     if PrepareRenderShape = 0 then
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
@@ -406,8 +353,6 @@ begin
       if MaterialFromColorEnabled then
         glDisable(GL_COLOR_MATERIAL);
     end;
-
-    ShaderEnd;
   finally RenderCoordinateEnd end;
 end;
 
@@ -723,5 +668,62 @@ begin
     if not Renderer.FogVolumetric then
       glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
   end;
+  inherited;
+end;
+
+{ TShaderCoordinateRenderer -------------------------------------------------- }
+
+procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
+
+  function ForceShaderRendering: boolean;
+  begin
+    Result := Attributes.ForceShaderRendering and
+              Attributes.GLSLShaders and
+         (not Attributes.PureGeometry);
+  end;
+
+begin
+  inherited;
+  ShaderProgramUsed := false;
+
+  Shader.ApplyInternalEffects;
+  if (Shape.Node <> nil) and
+     (Shape.Node.Appearance <> nil) then
+    Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
+
+  { calculate and use Shape.ShaderProgram }
+  if ForceShaderRendering and
+    ( (Shape.ShaderProgram = nil) or
+      (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) ) then
+  begin
+    try
+      FreeAndNil(Shape.ShaderProgram);
+
+      Shape.ShaderProgram := TVRMLGLSLProgram.Create;
+      Shape.ShaderProgram.Renderer := Renderer;
+
+      Shader.LinkProgram(Shape.ShaderProgram);
+    except on E: EGLSLError do
+      begin
+        FreeAndNil(Shape.ShaderProgram);
+        VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
+          [Shape.OriginalGeometry.NodeTypeName, E.Message]));
+      end;
+    end;
+  end;
+
+  if ForceShaderRendering and (Shape.ShaderProgram <> nil) then
+  begin
+    UsedGLSL := Shape.ShaderProgram;
+    Shape.ShaderProgram.Enable;
+    Shape.ShaderProgram.SetupUniforms(BoundTextureUnits);
+    ShaderProgramUsed := true;
+  end;
+end;
+
+procedure TShaderCoordinateRenderer.RenderCoordinateEnd;
+begin
+  if ShaderProgramUsed then
+    Shape.ShaderProgram.Disable;
   inherited;
 end;
