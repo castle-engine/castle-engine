@@ -146,6 +146,11 @@ type
     SelectedNode: TNodeComposedShader;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
+
+    { Special form of Plug. It inserts the PlugValue source code directly
+      at the position of given plug comment (no function call
+      or anything is added). It also assumes that PlugName occurs only once
+      it the Code, for speed. }
     procedure PlugDirectly(Code: TDynStringArray; const PlugName, PlugValue: string);
   public
     constructor Create;
@@ -557,6 +562,11 @@ end;
 
 { TVRMLShader ---------------------------------------------------------------- }
 
+function InsertIntoString(const Base: string; const P: Integer; const S: string): string;
+begin
+  Result := Copy(Base, 1, P - 1) + S + SEnding(Base, P);
+end;
+
 constructor TVRMLShader.Create;
 begin
   inherited;
@@ -615,8 +625,7 @@ const
 
   procedure InsertIntoCode(const CodeIndex, P: Integer; const S: string);
   begin
-    Code[CodeIndex] := Copy(Code[CodeIndex], 1, P - 1) + S +
-      SEnding(Code[CodeIndex], P);
+    Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, S);
   end;
 
   function FindPlugOccurence(const CommentBegin, Code: string;
@@ -689,17 +698,21 @@ end;
 
 procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
   const PlugName, PlugValue: string);
+var
+  P: Integer;
 begin
   if Code.Count = 0 then Exit; // TODO: hack, assume only Code[0] matters
 
-  { TODO: make better. PlugDirectly is always one-time? }
-  if WarnMissingPlugs and
-     (Pos('/* PLUG: ' + PlugName, Code[0]) = 0) then
-    VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
+  P := Pos('/* PLUG: ' + PlugName, Code[0]);
 
-  Code[0] := StringReplace(Code[0],
-    '/* PLUG: ' + PlugName, PlugValue + NL +
-    '/* PLUG: ' + PlugName, []);
+  if P = 0 then
+  begin
+    if WarnMissingPlugs then
+      VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
+    Exit;
+  end;
+
+  Code[0] := InsertIntoString(Code[0], P, PlugValue + NL);
 end;
 
 procedure TVRMLShader.ApplyInternalEffects;
