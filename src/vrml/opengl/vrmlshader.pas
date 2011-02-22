@@ -102,13 +102,19 @@ type
     { @groupEnd }
   end;
 
+  TVRMLShader = class;
+
   TLightShader = class
   private
-    Code: TDynStringArray;
+    Number: Cardinal;
     Node: TNodeX3DLightNode;
+    MaterialSpecularColor: TVector3Single;
+    Shader: TVRMLShader;
+    { Code calculated (on demand, when method called) using above vars. }
+    FCode: TDynStringArray;
   public
-    constructor Create;
     destructor Destroy; override;
+    function Code: TDynStringArray;
   end;
   TLightShaders = class(specialize TFPGObjectList<TLightShader>)
   private
@@ -232,16 +238,49 @@ uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
 
 { TLightShader --------------------------------------------------------------- }
 
-constructor TLightShader.Create;
-begin
-  inherited;
-  Code := TDynStringArray.Create;
-end;
-
 destructor TLightShader.Destroy;
 begin
-  FreeAndNil(Code);
+  FreeAndNil(FCode);
   inherited;
+end;
+
+function TLightShader.Code: TDynStringArray;
+var
+  Defines: string;
+begin
+  if FCode = nil then
+  begin
+    FCode := TDynStringArray.Create;
+
+    Defines := '';
+    if Node <> nil then
+    begin
+      Defines += '#define LIGHT_TYPE_KNOWN' + NL;
+      if Node is TVRMLPositionalLightNode then
+      begin
+        Defines += '#define LIGHT_TYPE_POSITIONAL' + NL;
+        if (Node is TNodeSpotLight_1) or
+           (Node is TNodeSpotLight_2) then
+          Defines += '#define LIGHT_TYPE_SPOT' + NL;
+      end;
+      if Node.FdAmbientIntensity.Value <> 0 then
+        Defines += '#define LIGHT_HAS_AMBIENT' + NL;
+      if not PerfectlyZeroVector(MaterialSpecularColor) then
+        Defines += '#define LIGHT_HAS_SPECULAR' + NL;
+    end else
+    begin
+      Defines += '#define LIGHT_HAS_AMBIENT' + NL;
+      Defines += '#define LIGHT_HAS_SPECULAR' + NL;
+    end;
+
+    FCode.Add(Defines + StringReplace({$I template_add_light.glsl.inc},
+      'light_number', IntToStr(Number), [rfReplaceAll]));
+
+    if Node <> nil then
+      Shader.EnableEffects(Node.FdEffects, FCode);
+  end;
+
+  Result := FCode;
 end;
 
 { TLightShaders -------------------------------------------------------------- }
@@ -685,7 +724,7 @@ begin
     if LightShaders[I] <> nil then
     begin
       LightShaderBack  := LightShaders[I].Code[0];
-      LightShaderFront := LightShaders[I].Code[0];
+      LightShaderFront := LightShaderBack;
 
       LightShaderBack := StringReplace(LightShaderBack,
         'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
@@ -1141,42 +1180,14 @@ procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TNodeX3DLightNod
   const MaterialSpecularColor: TVector3Single);
 var
   LightShader: TLightShader;
-  Defines, Code: string;
 begin
-  Defines := '';
-  if Node <> nil then
-  begin
-    Defines += '#define LIGHT_TYPE_KNOWN' + NL;
-    if Node is TVRMLPositionalLightNode then
-    begin
-      Defines += '#define LIGHT_TYPE_POSITIONAL' + NL;
-      if (Node is TNodeSpotLight_1) or
-         (Node is TNodeSpotLight_2) then
-        Defines  += '#define LIGHT_TYPE_SPOT' + NL;
-    end;
-    if Node.FdAmbientIntensity.Value <> 0 then
-      Defines  += '#define LIGHT_HAS_AMBIENT' + NL;
-    if not PerfectlyZeroVector(MaterialSpecularColor) then
-      Defines  += '#define LIGHT_HAS_SPECULAR' + NL;
-  end else
-  begin
-    Defines  += '#define LIGHT_HAS_AMBIENT' + NL;
-    Defines  += '#define LIGHT_HAS_SPECULAR' + NL;
-  end;
-
   LightShader := TLightShader.Create;
+  LightShader.Number := Number;
   LightShader.Node := Node;
+  LightShader.MaterialSpecularColor := MaterialSpecularColor;
+  LightShader.Shader := Self;
 
-  Code := Defines + {$I template_add_light.glsl.inc};
-  Code := StringReplace(Code, 'light_number', IntToStr(Number), [rfReplaceAll]);
-  LightShader.Code.Add(Code);
-
-  if Node <> nil then
-    EnableEffects(Node.FdEffects, LightShader.Code);
-
-  if Number >= LightShaders.Count then
-    LightShaders.Count := Number + 1;
-  LightShaders[Number] := LightShader;
+  LightShaders.Add(LightShader);
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TMFNode;
