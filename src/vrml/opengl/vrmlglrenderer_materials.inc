@@ -176,27 +176,11 @@ begin
       (Shape.Geometry is TNodeLineSet) or
       (Shape.Geometry is TNodeCircle2D)
     );
-  if not MaterialLit then
-  begin
-    { PushAttrib is used to save GL_LIGHTING enabled state,
-      as we cannot predict it (it's up to the VRMLGLRenderer caller
-      whether the light is turned on). Obviously we don't want to explicitly
-      query GL_LIGHTING enabled state, push/pop is better. }
-    glPushAttrib(GL_LIGHTING_BIT);
-    glDisable(GL_LIGHTING);
-  end;
+
+  SetGLEnabled(GL_LIGHTING, Attributes.Lighting and MaterialLit);
 
   { set material. At the end, since this uses MaterialLit, M1, M2. }
   if Shape.Geometry is TVRMLGeometryNode_1 then
     Material_1(M1) else
     Material_2(M2);
-end;
-
-procedure RenderMaterialsEnd;
-begin
-  if not MaterialLit then
-  begin
-    glPopAttrib;
-    MaterialLit := true; { restore default MaterialLit value, just in case }
-  end;
 end;

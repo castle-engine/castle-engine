@@ -340,12 +340,12 @@ type
     { Enable OpenGL lighting when rendering.
       This is @true by default, since it's almost always wanted.
 
-      When Lighting is @false, we do not enable OpenGL lighting,
-      but you can still manually enable OpenGL lighting yourself.
-      Regardless of the value of this property, we always pass
-      to OpenGL information about
-      materials and colors, so our rendering looks as good as possible
-      with and without OpenGL lighting. }
+      When Lighting is @false, we disable OpenGL lighting.
+      (We had previously a different approach, when we left GL_LIGHTING
+      untouched and caller could enable/disable it. But this doesn't really
+      work for modern OpenGL, the renderer really has to know if lighting
+      is enabled. (to generate proper shaders, and to avoid clumsy
+      glPushAttrib / glPopAttrib at some places).) }
     property Lighting: boolean
       read FLighting write FLighting default true;
 
@@ -2736,8 +2736,7 @@ begin
     { Always smooth shading. Flat shading wasn't really useful. }
     glShadeModel(GL_SMOOTH);
 
-    if Attributes.Lighting then
-      SetGLEnabled(GL_LIGHTING, Beginning);
+    SetGLEnabled(GL_LIGHTING, Beginning and Attributes.Lighting);
 
     if Attributes.UseSceneLights then
       for I := FirstLight to GLMaxLights - 1 do
@@ -2848,10 +2847,9 @@ procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
 
 begin
   RenderMaterialsBegin;
-  try
-    RenderShapeLights(Shape, Fog, Shader, MaterialOpacity, MaterialLit,
-      MaterialSpecularColor);
-  finally RenderMaterialsEnd end;
+
+  RenderShapeLights(Shape, Fog, Shader, MaterialOpacity, MaterialLit,
+    MaterialSpecularColor);
 end;
 
 procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
@@ -2863,6 +2861,9 @@ var
   I: Integer;
   Lights: TDynActiveLightArray;
 begin
+  { TODO: when not MaterialLit, no point in setting up lights.
+    Except it no lighting doesn't yet work for shader rendering. }
+
   for I := 0 to Integer(FirstLight) - 1 do
     Shader.EnableLight(I, nil, MaterialSpecularColor);
 
