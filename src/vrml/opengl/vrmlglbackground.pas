@@ -157,7 +157,7 @@ begin
   Max := zFar;
 
   { The new sphere radius should be in [Min...Max].
-    For maximum safety (from floating point troubles), be require
+    For maximum safety (from floating point troubles), we require
     that it's within slightly smaller "safe" range. }
 
   SafeMin := Lerp(0.1, Min, Max);
