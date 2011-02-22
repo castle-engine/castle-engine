@@ -877,7 +877,6 @@ begin
   // Attributes.BumpMapping and menu item checked.
 
   Scene := TVRMLGLScene.Create(nil);
-  Scene.Attributes.ForceShaderRendering := true; // TODO: needed for now
   if Method = bmVRML then
     SceneManager.Items.Add(Scene); { readd Scene to SceneManager }
 
