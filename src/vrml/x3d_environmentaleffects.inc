@@ -356,7 +356,9 @@ begin
     Below is a very hacky way of at least cancelling the translation.
     This will work OK for any rigid body matrix, i.e. composed only from
     rotation and translation. }
-  Result[3] := ZeroVector4Single;
+  Result[3][0] := 0;
+  Result[3][1] := 0;
+  Result[3][2] := 0;
 end;
 
 constructor TBackgroundImages.InitClear;
