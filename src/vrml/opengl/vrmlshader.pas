@@ -146,6 +146,20 @@ type
     SelectedNode: TNodeComposedShader;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
+
+    { We have to optimize the most often case of TVRMLShader usage,
+      when the shader is not needed or is already prepared.
+
+      - Enabling shader features should not do anything time-consuming,
+        as it's done every frame. This means that we cannot construct
+        complete shader source code on the fly, as this would mean
+        slowdown at every frame for every shape.
+        So enabling a feature merely records the demand for this feature.
+
+      - It must also set ShapeRequiresShaders := true, if needed.
+      - It must change the result of CodeHash.
+      - Actually adding this feature to shader source may be done at LinkProgram.
+    }
     AppearanceEffects: TMFNode;
 
     procedure EnableEffects(Effects: TMFNode;
