@@ -677,21 +677,16 @@ var
 begin
   inherited;
 
+  if (Shape.Node <> nil) and
+     (Shape.Node.Appearance <> nil) then
+    Shader.EnableAppearanceEffects(Shape.Node.Appearance.FdEffects);
+
   UseShaderRendering := (not Attributes.PureGeometry) and
     ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
        (Attributes.Shaders = srAlways) );
 
   if UseShaderRendering then
   begin
-    { no need to do ApplyInternalEffects when no shader rendering.
-      TODO: beware, this is quite time-consuming.
-      Probably ApplyInternalEffects does a lot of text replacements
-      to insert lights, optimize. }
-    Shader.ApplyInternalEffects;
-    if (Shape.Node <> nil) and
-       (Shape.Node.Appearance <> nil) then
-      Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
-
     { calculate and use Shape.ShaderProgram }
     if (Shape.ShaderProgram = nil) or
        (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) then

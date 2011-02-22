@@ -146,6 +146,10 @@ type
     SelectedNode: TNodeComposedShader;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
+    AppearanceEffects: TMFNode;
+
+    procedure EnableEffects(Effects: TMFNode;
+      const Code: TDynStringArray = nil);
 
     { Special form of Plug. It inserts the PlugValue source code directly
       at the position of given plug comment (no function call
@@ -168,8 +172,6 @@ type
       will be called in the same order. }
     procedure Plug(const EffectPartType: string; PlugValue: string;
       Code: TDynStringArray = nil);
-
-    procedure ApplyInternalEffects;
 
     { Add fragment and vertex shader code, link.
       @raises EGLSLError In case of troubles with linking. }
@@ -202,11 +204,10 @@ type
     procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
     procedure EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
       const MaterialSpecularColor: TVector3Single);
-    procedure EnableEffects(Effects: TMFNode;
-      const Code: TDynStringArray = nil);
     procedure EnableFog(const FogType: TFogType);
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
       out Node: TNodeComposedShader): boolean;
+    procedure EnableAppearanceEffects(Effects: TMFNode);
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
@@ -715,45 +716,45 @@ begin
   Code[0] := InsertIntoString(Code[0], P, PlugValue + NL);
 end;
 
-procedure TVRMLShader.ApplyInternalEffects;
-const
-  PCFDefine: array [TPercentageCloserFiltering] of string =
-  ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
-var
-  I: Integer;
-  LightShaderBack, LightShaderFront: string;
-begin
-  PlugDirectly(VertexShaderComplete, 'vertex_process',
-    TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane);
-  PlugDirectly(FragmentShaderComplete, 'texture_apply',
-    TextureColorDeclare + TextureApply);
-  PlugDirectly(FragmentShaderComplete, '$declare-variables$',
-    FragmentShaderDeclare + PCFDefine[PercentageCloserFiltering]);
-  PlugDirectly(FragmentShaderComplete, '$declare-shadow-map-procedures$',
-    {$I shadow_map_common.fs.inc});
-  PlugDirectly(FragmentShaderComplete, 'fragment_end', FragmentEnd);
-
-  for I := 0 to LightShaders.Count - 1 do
-  begin
-    LightShaderBack  := LightShaders[I].Code[0];
-    LightShaderFront := LightShaderBack;
-
-    LightShaderBack := StringReplace(LightShaderBack,
-      'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
-    LightShaderFront := StringReplace(LightShaderFront,
-      'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
-
-    LightShaderBack := StringReplace(LightShaderBack,
-      'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
-    LightShaderFront := StringReplace(LightShaderFront,
-      'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
-
-    Plug('FRAGMENT', LightShaderBack);
-    Plug('FRAGMENT', LightShaderFront);
-  end;
-end;
-
 procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
+
+  procedure ApplyInternalEffects;
+  const
+    PCFDefine: array [TPercentageCloserFiltering] of string =
+    ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
+  var
+    I: Integer;
+    LightShaderBack, LightShaderFront: string;
+  begin
+    PlugDirectly(VertexShaderComplete, 'vertex_process',
+      TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane);
+    PlugDirectly(FragmentShaderComplete, 'texture_apply',
+      TextureColorDeclare + TextureApply);
+    PlugDirectly(FragmentShaderComplete, '$declare-variables$',
+      FragmentShaderDeclare + PCFDefine[PercentageCloserFiltering]);
+    PlugDirectly(FragmentShaderComplete, '$declare-shadow-map-procedures$',
+      {$I shadow_map_common.fs.inc});
+    PlugDirectly(FragmentShaderComplete, 'fragment_end', FragmentEnd);
+
+    for I := 0 to LightShaders.Count - 1 do
+    begin
+      LightShaderBack  := LightShaders[I].Code[0];
+      LightShaderFront := LightShaderBack;
+
+      LightShaderBack := StringReplace(LightShaderBack,
+        'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
+      LightShaderFront := StringReplace(LightShaderFront,
+        'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
+
+      LightShaderBack := StringReplace(LightShaderBack,
+        'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
+      LightShaderFront := StringReplace(LightShaderFront,
+        'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
+
+      Plug('FRAGMENT', LightShaderBack);
+      Plug('FRAGMENT', LightShaderFront);
+    end;
+  end;
 
   procedure SetupUniformsOnce;
   var
@@ -778,6 +779,11 @@ procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
 var
   I: Integer;
 begin
+  ApplyInternalEffects;
+
+  if AppearanceEffects <> nil then
+    EnableEffects(AppearanceEffects);
+
   if Log then
   begin
     for I := 0 to VertexShaderComplete.Count - 1 do
@@ -827,6 +833,8 @@ end;
 
 function TVRMLShader.CodeHash: TShaderCodeHash;
 
+  {$include norqcheckbegin.inc}
+
   function CodeHashCalculate: TShaderCodeHash;
   type
     TShaderCodeHashRec = packed record Sum, XorValue: LongWord; end;
@@ -839,7 +847,6 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
     begin
       PS := PLongWord(S);
 
-      {$include norqcheckbegin.inc}
 
       for I := 1 to Length(S) div 4 do
       begin
@@ -855,8 +862,6 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
         Res.Sum := Res.Sum + Last;
         Res.XorValue := Res.XorValue xor Last;
       end;
-
-      {$include norqcheckend.inc}
     end;
 
   var
@@ -869,7 +874,15 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
       AddString(VertexShaderComplete[I], Res);
     for I := 0 to FragmentShaderComplete.Count - 1 do
       AddString(FragmentShaderComplete[I], Res);
+
+    { Add to hash things that affect generated shader code,
+      but are applied after CodeHash is calculated:
+      LightShaders, AppearanceEffects, more to come. }
+    Res.Sum += LightShaders.Count;
+    Res.XorValue := Res.XorValue xor LongWord(PtrUInt(AppearanceEffects));
   end;
+
+  {$include norqcheckend.inc}
 
 begin
   if not CodeHashCalculated then
@@ -1200,6 +1213,13 @@ begin
   LightShader.Shader := Self;
 
   LightShaders.Add(LightShader);
+
+  { Mark ShapeRequiresShaders now, don't depend on EnableEffects call doing it,
+    as EnableEffects will be done from LinkProgram when it's too late
+    to set ShapeRequiresShaders. }
+  if (Node <> nil) and
+     (Node.FdEffects.Count <> 0) then
+    ShapeRequiresShaders := true;
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TMFNode;
@@ -1338,6 +1358,16 @@ begin
     if Shaders[I] is TNodeX3DShaderNode then
       TNodeX3DShaderNode(Shaders[I]).EventIsSelected.Send(false);
   end;
+end;
+
+procedure TVRMLShader.EnableAppearanceEffects(Effects: TMFNode);
+begin
+  { Mark ShapeRequiresShaders now, don't depend on EnableEffects call doing it,
+    as EnableEffects will be done from LinkProgram when it's too late
+    to set ShapeRequiresShaders. }
+  AppearanceEffects := Effects;
+  if AppearanceEffects.Count <> 0 then
+    ShapeRequiresShaders := true;
 end;
 
 end.
