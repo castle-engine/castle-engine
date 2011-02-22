@@ -721,24 +721,23 @@ begin
   PlugDirectly(FragmentShaderComplete, 'fragment_end', FragmentEnd);
 
   for I := 0 to LightShaders.Count - 1 do
-    if LightShaders[I] <> nil then
-    begin
-      LightShaderBack  := LightShaders[I].Code[0];
-      LightShaderFront := LightShaderBack;
+  begin
+    LightShaderBack  := LightShaders[I].Code[0];
+    LightShaderFront := LightShaderBack;
 
-      LightShaderBack := StringReplace(LightShaderBack,
-        'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
-      LightShaderFront := StringReplace(LightShaderFront,
-        'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
+    LightShaderBack := StringReplace(LightShaderBack,
+      'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
+    LightShaderFront := StringReplace(LightShaderFront,
+      'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
 
-      LightShaderBack := StringReplace(LightShaderBack,
-        'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
-      LightShaderFront := StringReplace(LightShaderFront,
-        'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
+    LightShaderBack := StringReplace(LightShaderBack,
+      'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
+    LightShaderFront := StringReplace(LightShaderFront,
+      'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
 
-      Plug('FRAGMENT', LightShaderBack);
-      Plug('FRAGMENT', LightShaderFront);
-    end;
+    Plug('FRAGMENT', LightShaderBack);
+    Plug('FRAGMENT', LightShaderFront);
+  end;
 end;
 
 procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
