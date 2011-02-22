@@ -3552,9 +3552,12 @@ begin
   Result := FBackground;
 
   BackgroundNode := BackgroundStack.Top as TNodeX3DBackgroundNode;
-  if BackgroundNode <> nil then
+  if (BackgroundNode <> nil) and
+     { We have to still check Result, since not every TNodeX3DBackgroundNode
+       is supported now, so for some background nodes we still have
+       Result = nil. }
+     (Result <> nil) then
   begin
-    Assert(Result <> nil, 'Since we have Background node, also a background renderer should be already created');
     Result.Transform := BackgroundNode.TransformRotation;
   end;
 end;
