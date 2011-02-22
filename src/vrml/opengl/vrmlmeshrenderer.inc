@@ -677,20 +677,24 @@ var
 begin
   inherited;
 
-  Shader.ApplyInternalEffects;
-  if (Shape.Node <> nil) and
-     (Shape.Node.Appearance <> nil) then
-    Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
-
   UseShaderRendering := (not Attributes.PureGeometry) and
     ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
        (Attributes.Shaders = srAlways) );
 
-  { calculate and use Shape.ShaderProgram }
-  if UseShaderRendering and
-    ( (Shape.ShaderProgram = nil) or
-      (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) ) then
+  if UseShaderRendering then
   begin
+    { no need to do ApplyInternalEffects when no shader rendering.
+      TODO: beware, this is quite time-consuming.
+      Probably ApplyInternalEffects does a lot of text replacements
+      to insert lights, optimize. }
+    Shader.ApplyInternalEffects;
+    if (Shape.Node <> nil) and
+       (Shape.Node.Appearance <> nil) then
+      Shader.EnableEffects(Shape.Node.Appearance.FdEffects);
+
+    { calculate and use Shape.ShaderProgram }
+    if (Shape.ShaderProgram = nil) or
+       (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) then
     try
       FreeAndNil(Shape.ShaderProgram);
 
@@ -703,13 +707,13 @@ begin
           [Shape.OriginalGeometry.NodeTypeName, E.Message]));
       end;
     end;
-  end;
 
-  if UseShaderRendering and (Shape.ShaderProgram <> nil) then
-  begin
-    UsedGLSL := Shape.ShaderProgram;
-    Shape.ShaderProgram.Enable;
-    Shape.ShaderProgram.SetupUniforms(BoundTextureUnits);
+    if Shape.ShaderProgram <> nil then
+    begin
+      UsedGLSL := Shape.ShaderProgram;
+      Shape.ShaderProgram.Enable;
+      Shape.ShaderProgram.SetupUniforms(BoundTextureUnits);
+    end;
   end;
 end;
 
