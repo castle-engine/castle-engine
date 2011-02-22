@@ -1259,7 +1259,7 @@ begin
       now --- we know it's because of glUniform. }
     ErrorCode := glGetError();
     if ErrorCode <> GL_NO_ERROR then
-      DataWarning(Format('Error when setting GLSL uniform variable "%s" (check that the type of the variable in shader source code matches): OpenGL error (%d): %s',
+      DataWarning(Format('Error when setting GLSL uniform variable "%s". Probably the type in the shader source code does not match with the type declared in VRML/X3D. OpenGL error (%d): %s',
         [UniformName, ErrorCode,  gluErrorString(ErrorCode)]));
   end;
 end;
