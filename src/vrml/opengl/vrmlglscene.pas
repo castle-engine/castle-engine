@@ -182,6 +182,8 @@ type
     procedure SetBlendingSort(const Value: boolean); virtual;
     procedure SetControlBlending(const Value: boolean); virtual;
     procedure SetUseOcclusionQuery(const Value: boolean); virtual;
+
+    procedure SetShaders(const Value: TShadersRendering); override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -4006,6 +4008,24 @@ function TVRMLSceneRenderingAttributes.
 begin
   Result := UseHierarchicalOcclusionQuery and GL_ARB_occlusion_query and
     (GLQueryCounterBits > 0);
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetShaders(const Value: TShadersRendering);
+var
+  I: Integer;
+begin
+  if Shaders <> Value then
+  begin
+    inherited;
+    { When swithing to a higher TShadersRendering value
+      (that uses more shaders), we want to force generating necessary
+      shaders at the next PrepareResources call. Otherwise shaders would
+      be prepared only when shapes come into view, which means that navigating
+      awfully stutters for some time after changing this property. }
+    for I := 0 to FScenes.Count - 1 do
+      if FScenes[I] <> nil then
+        FScenes[I].RenderPrepared := false;
+  end;
 end;
 
 { TVRMLGLScenesList ------------------------------------------------------ }

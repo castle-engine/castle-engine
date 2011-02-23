@@ -289,6 +289,7 @@ type
     procedure SetVarianceShadowMaps(const Value: boolean); virtual;
     procedure SetVertexBufferObject(const Value: boolean); virtual;
     procedure SetVisualizeDepthMap(const Value: boolean); virtual;
+    procedure SetShaders(const Value: TShadersRendering); virtual;
     { @groupEnd }
 
     { Called before changing an attribute that requires the release
@@ -2210,6 +2211,11 @@ begin
     ReleaseCachedResources;
     FVisualizeDepthMap := Value;
   end;
+end;
+
+procedure TVRMLRenderingAttributes.SetShaders(const Value: TShadersRendering);
+begin
+  FShaders := Value;
 end;
 
 { TVRMLGLRenderer ---------------------------------------------------------- }
