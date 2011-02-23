@@ -953,7 +953,7 @@ begin
   Fields.Add(FFdParts);
 
   FFdenabled := TSFBool.Create(Self, 'enabled', true);
-   Fdenabled.ChangesAlways := [];
+   Fdenabled.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdenabled);
 
   HasInterfaceDeclarations := AllAccessTypes;
