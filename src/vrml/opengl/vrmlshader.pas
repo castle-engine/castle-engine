@@ -1048,6 +1048,7 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
       but are applied after CodeHash is calculated (like in LinkProgram). }
     Res.Sum += LightShaders.Count;
     Res.Sum += TextureShaders.Count;
+    Res.Sum += Ord(PercentageCloserFiltering);
     Res.XorValue := Res.XorValue xor LongWord(PtrUInt(AppearanceEffects));
   end;
 
