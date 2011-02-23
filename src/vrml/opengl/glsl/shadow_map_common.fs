@@ -31,12 +31,11 @@ float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord,
   vec2 f = fract(tc_full.xy);
   vec2 f1 = vec2(1.0, 1.0) - f;
 
-  return (
+  return
     shadow2D(shadowMap, vec3( tc.x        / size,  tc.y        / size, z)).r * f1.x * f1.y +
     shadow2D(shadowMap, vec3( tc.x        / size, (tc.y + 1.0) / size, z)).r * f1.x *  f.y +
     shadow2D(shadowMap, vec3((tc.x + 1.0) / size,  tc.y        / size, z)).r *  f.x * f1.y +
-    shadow2D(shadowMap, vec3((tc.x + 1.0) / size, (tc.y + 1.0) / size, z)).r *  f.x *  f.y
-    ) / 2.0; /* TODO: why /2.0 instead of /4.0 needed? */
+    shadow2D(shadowMap, vec3((tc.x + 1.0) / size, (tc.y + 1.0) / size, z)).r *  f.x *  f.y;
 
 #elif defined(PCF4)
 

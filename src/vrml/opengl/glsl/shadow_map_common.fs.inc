@@ -33,12 +33,11 @@
 '  vec2 f = fract(tc_full.xy);' + LineEnding + 
 '  vec2 f1 = vec2(1.0, 1.0) - f;' + LineEnding + 
 '' + LineEnding + 
-'  return (' + LineEnding + 
+'  return' + LineEnding + 
 '    shadow2D(shadowMap, vec3( tc.x        / size,  tc.y        / size, z)).r * f1.x * f1.y +' + LineEnding + 
 '    shadow2D(shadowMap, vec3( tc.x        / size, (tc.y + 1.0) / size, z)).r * f1.x *  f.y +' + LineEnding + 
 '    shadow2D(shadowMap, vec3((tc.x + 1.0) / size,  tc.y        / size, z)).r *  f.x * f1.y +' + LineEnding + 
-'    shadow2D(shadowMap, vec3((tc.x + 1.0) / size, (tc.y + 1.0) / size, z)).r *  f.x *  f.y' + LineEnding + 
-'    ) / 2.0; /* TODO: why /2.0 instead of /4.0 needed? */' + LineEnding + 
+'    shadow2D(shadowMap, vec3((tc.x + 1.0) / size, (tc.y + 1.0) / size, z)).r *  f.x *  f.y;' + LineEnding + 
 '' + LineEnding + 
 '#elif defined(PCF4)' + LineEnding + 
 '' + LineEnding + 
