@@ -693,7 +693,7 @@ begin
     try
       if Log then
         WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d)',
-          [Shape.OriginalGeometry.NodeTypeName, 
+          [Shape.DebugName, 
            BoolToStr[Shape.ShaderProgram = nil],
            Renderer.FirstLight]);
 
@@ -705,7 +705,7 @@ begin
       begin
         FreeAndNil(Shape.ShaderProgram);
         VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
-          [Shape.OriginalGeometry.NodeTypeName, E.Message]));
+          [Shape.DebugName, E.Message]));
       end;
     end;
 

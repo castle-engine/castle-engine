@@ -3259,11 +3259,8 @@ begin
   { Initalize MeshRenderer to something non-nil. }
   if not InitMeshRenderer then
   begin
-    VRMLWarning(vwSerious,
-      { We display for user OriginalGeometry name, not Geometry name.
-        User is not interested in the implementation detail
-        that we possibly tried rendering this shape through proxy. }
-      'Rendering of node kind "' + Shape.OriginalGeometry.NodeTypeName + '" not implemented');
+    VRMLWarning(vwSerious, Format('Rendering of node kind "%s" not implemented',
+      [Shape.DebugName]));
     Exit;
   end;
 

@@ -694,7 +694,7 @@ begin
     try
       if Log then
         WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
-          [Shape.OriginalGeometry.NodeTypeName, BoolToStr[AllowIndexed]]));
+          [Shape.DebugName, BoolToStr[AllowIndexed]]));
 
       if AllowIndexed or (IndexesFromCoordIndex = nil) then
       begin
@@ -719,8 +719,8 @@ begin
       finally GenerateCoordinateEnd; end;
     except
       on E: EAssignInterleavedRangeError do
-        VRMLWarning(vwSerious, Format('Invalid number of items in a normal or texture coordinate array for geometry "%s": %s',
-          [Shape.OriginalGeometry.NodeTypeName, E.Message]));
+        VRMLWarning(vwSerious, Format('Invalid number of items in a normal or texture coordinate array for shape "%s": %s',
+          [Shape.DebugName, E.Message]));
     end;
   finally FreeAndNil(IndexesFromCoordIndex); end;
 end;
