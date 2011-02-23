@@ -87,7 +87,7 @@ type
 
     { Call VisibleChangeHere to redisplay the scene.
 
-      If you include one the chVisibleGeometry, chVisibleNonGeometry,
+      If you include one of the chVisibleGeometry, chVisibleNonGeometry,
       chCamera then this flag (chRedisplay) makes no effect.
       Otherwise, this flag should be used if your change requires
       redisplay of the 3D view for some other reasons. }
