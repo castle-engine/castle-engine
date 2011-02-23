@@ -692,8 +692,10 @@ begin
        (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) then
     try
       if Log then
-        WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s)',
-          [Shape.OriginalGeometry.NodeTypeName, BoolToStr[Shape.ShaderProgram = nil]]);
+        WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d)',
+          [Shape.OriginalGeometry.NodeTypeName, 
+           BoolToStr[Shape.ShaderProgram = nil],
+           Renderer.FirstLight]);
 
       FreeAndNil(Shape.ShaderProgram);
 
