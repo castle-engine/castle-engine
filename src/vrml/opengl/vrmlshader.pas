@@ -1039,6 +1039,25 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
       end;
     end;
 
+    procedure AddPointerHash(Ptr: Pointer; var Res: TShaderCodeHashRec);
+    begin
+      { This will cut the pointer on non-32bit processors.
+        But that's not a problem --- we just want it for hash,
+        taking the least significant 32 bits from pointer is OK for this. }
+      Res.Sum += LongWord(PtrUInt(Ptr));
+      Res.XorValue := Res.XorValue xor LongWord(PtrUInt(Ptr));
+    end;
+
+    procedure AddEffectsHash(Nodes: TVRMLNodesList; var Res: TShaderCodeHashRec);
+    var
+      I: Integer;
+    begin
+      for I := 0 to Nodes.Count - 1 do
+        if (Nodes[I] is TNodeEffect) and
+           TNodeEffect(Nodes[I]).FdEnabled.Value then
+          AddPointerHash(Nodes[I], Res);
+    end;
+
   var
     Res: TShaderCodeHashRec absolute Result;
     I: Integer;
@@ -1055,9 +1074,10 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
     Res.Sum += LightShaders.Count;
     Res.Sum += TextureShaders.Count;
     Res.Sum += Ord(PercentageCloserFiltering);
-    Res.XorValue := Res.XorValue xor LongWord(PtrUInt(AppearanceEffects));
+    if AppearanceEffects <> nil then
+      AddEffectsHash(AppearanceEffects.Items, Res);
     if GroupEffects <> nil then
-      Res.Sum += GroupEffects.Count;
+      AddEffectsHash(GroupEffects, Res);
   end;
 
   {$include norqcheckend.inc}
@@ -1336,6 +1356,8 @@ procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
   var
     I: Integer;
   begin
+    if not Effect.FdEnabled.Value then Exit;
+
     if Effect.FdLanguage.Value <> 'GLSL' then
     begin
       VRMLWarning(vwIgnorable, Format('Unknown shading language "%s" for Effect node',

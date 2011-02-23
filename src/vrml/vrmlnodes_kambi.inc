@@ -341,6 +341,9 @@
 
     private FFdParts: TMFNode;
     public property FdParts: TMFNode read FFdParts;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
   end;
 
   TNodeEffectPart = class(TNodeX3DNode, INodeX3DUrlObject)
@@ -948,6 +951,10 @@ begin
    FdParts.Exposed := false;
    FdParts.ChangesAlways := [chEverything];
   Fields.Add(FFdParts);
+
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
+   Fdenabled.ChangesAlways := [];
+  Fields.Add(FFdenabled);
 
   HasInterfaceDeclarations := AllAccessTypes;
 end;
