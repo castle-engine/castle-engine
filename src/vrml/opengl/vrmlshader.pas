@@ -945,6 +945,10 @@ var
 var
   I: Integer;
 begin
+  { set CodeHash now, otherwise applying effects below could change it
+    (if it's now already calculated) }
+  AProgram.CodeHash := CodeHash;
+
   EnableTextures;
   EnableInternalEffects;
   EnableLights;
@@ -991,8 +995,6 @@ begin
     will be send to DataWarning. }
   AProgram.UniformNotFoundAction := uaWarning;
   AProgram.UniformTypeMismatchAction := utWarning;
-
-  AProgram.CodeHash := CodeHash;
 
   { set uniforms that will not need to be updated at each SetupUniforms call }
   SetupUniformsOnce;
