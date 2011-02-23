@@ -225,6 +225,7 @@ type
   TNodeClipPlane = class;
   TNodeHAnimHumanoid = class;
   TNodeLocalFog = class;
+  TNodeEffect = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -603,6 +604,9 @@ type
     { Local fog settings. When @nil, it means use global fog (or no fog,
       if no global fog defined in file). }
     LocalFog: TNodeLocalFog;
+
+    { Effects (TNodeEffect) affecting this state. }
+    Effects: TVRMLNodesList;
 
     function AddClipPlane: PClipPlane;
   end;
@@ -2443,6 +2447,7 @@ begin
   FreeAndNil(VRML2ActiveLights);
   FreeAndNil(PointingDeviceSensors);
   FreeAndNil(ClipPlanes);
+  FreeAndNil(Effects);
 
   inherited;
 end;
@@ -2463,9 +2468,10 @@ begin
   LocalFog := nil;
 
   PointingDeviceSensors.Count := 0;
-  FreeAndNil(ClipPlanes);
   FreeAndNil(VRML1ActiveLights);
   FreeAndNil(VRML2ActiveLights);
+  FreeAndNil(ClipPlanes);
+  FreeAndNil(Effects);
 end;
 
 procedure TVRMLGraphTraverseState.AddVRML1ActiveLight(const Light: TActiveLight);
@@ -2544,6 +2550,14 @@ begin
     ClipPlanes.Assign(Source.ClipPlanes);
   end else
     FreeAndNil(ClipPlanes);
+
+  if Source.Effects <> nil then
+  begin
+    if Effects = nil then
+      Effects := TVRMLNodesList.Create;
+    Effects.Assign(Source.Effects);
+  end else
+    FreeAndNil(Effects);
 end;
 
 function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState;

@@ -680,6 +680,8 @@ begin
   if (Shape.Node <> nil) and
      (Shape.Node.Appearance <> nil) then
     Shader.EnableAppearanceEffects(Shape.Node.Appearance.FdEffects);
+  if Shape.State.Effects <> nil then
+    Shader.EnableGroupEffects(Shape.State.Effects);
 
   UseShaderRendering := (not Attributes.PureGeometry) and
     ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
@@ -693,7 +695,7 @@ begin
     try
       if Log then
         WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d)',
-          [Shape.DebugName, 
+          [Shape.DebugName,
            BoolToStr[Shape.ShaderProgram = nil],
            Renderer.FirstLight]);
 

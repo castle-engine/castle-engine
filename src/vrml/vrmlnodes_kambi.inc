@@ -330,7 +330,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeEffect = class(TNodeX3DNode)
+  TNodeEffect = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;

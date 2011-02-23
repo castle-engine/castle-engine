@@ -344,7 +344,13 @@ type
       CP^.Transform := State.Transform;
     end else
     if Child is TNodeLocalFog then
-      State.LocalFog := TNodeLocalFog(Child);
+      State.LocalFog := TNodeLocalFog(Child) else
+    if Child is TNodeEffect then
+    begin
+      if State.Effects = nil then
+        State.Effects := TVRMLNodesList.Create;
+      State.Effects.Add(Child);
+    end;
   end;
 
 function TVRMLGroupingNode.SeparateGroup: boolean;

@@ -177,8 +177,11 @@ type
       - Actually adding this feature to shader source may be done at LinkProgram.
     }
     AppearanceEffects: TMFNode;
+    GroupEffects: TVRMLNodesList;
 
     procedure EnableEffects(Effects: TMFNode;
+      const Code: TDynStringArray = nil);
+    procedure EnableEffects(Effects: TVRMLNodesList;
       const Code: TDynStringArray = nil);
 
     { Special form of Plug. It inserts the PlugValue source code directly
@@ -238,6 +241,7 @@ type
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
       out Node: TNodeComposedShader): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
+    procedure EnableGroupEffects(Effects: TVRMLNodesList);
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
@@ -954,6 +958,8 @@ begin
   EnableLights;
   if AppearanceEffects <> nil then
     EnableEffects(AppearanceEffects);
+  if GroupEffects <> nil then
+    EnableEffects(GroupEffects);
 
   if Log and LogShaders then
   begin
@@ -1050,6 +1056,8 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
     Res.Sum += TextureShaders.Count;
     Res.Sum += Ord(PercentageCloserFiltering);
     Res.XorValue := Res.XorValue xor LongWord(PtrUInt(AppearanceEffects));
+    if GroupEffects <> nil then
+      Res.Sum += GroupEffects.Count;
   end;
 
   {$include norqcheckend.inc}
@@ -1304,6 +1312,12 @@ end;
 
 procedure TVRMLShader.EnableEffects(Effects: TMFNode;
   const Code: TDynStringArray);
+begin
+  EnableEffects(Effects.Items, Code);
+end;
+
+procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
+  const Code: TDynStringArray);
 
   procedure EnableEffect(Effect: TNodeEffect);
 
@@ -1442,11 +1456,18 @@ end;
 
 procedure TVRMLShader.EnableAppearanceEffects(Effects: TMFNode);
 begin
+  AppearanceEffects := Effects;
   { Mark ShapeRequiresShaders now, don't depend on EnableEffects call doing it,
     as EnableEffects will be done from LinkProgram when it's too late
     to set ShapeRequiresShaders. }
-  AppearanceEffects := Effects;
   if AppearanceEffects.Count <> 0 then
+    ShapeRequiresShaders := true;
+end;
+
+procedure TVRMLShader.EnableGroupEffects(Effects: TVRMLNodesList);
+begin
+  GroupEffects := Effects;
+  if GroupEffects.Count <> 0 then
     ShapeRequiresShaders := true;
 end;
 

@@ -1106,6 +1106,7 @@ type
     procedure RenderCleanState(const Beginning: boolean);
 
     procedure PrepareIDecls(Nodes: TMFNode; State: TVRMLGraphTraverseState);
+    procedure PrepareIDecls(Nodes: TVRMLNodesList; State: TVRMLGraphTraverseState);
   public
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
@@ -2401,6 +2402,12 @@ end;
 
 procedure TVRMLGLRenderer.PrepareIDecls(Nodes: TMFNode;
   State: TVRMLGraphTraverseState);
+begin
+  PrepareIDecls(Nodes.Items, State);
+end;
+
+procedure TVRMLGLRenderer.PrepareIDecls(Nodes: TVRMLNodesList;
+  State: TVRMLGraphTraverseState);
 var
   I: Integer;
 begin
@@ -2488,6 +2495,9 @@ begin
     PrepareIDecls(State.ShapeNode.Appearance.FdEffects, State);
     PrepareIDecls(State.ShapeNode.Appearance.FdShaders, State);
   end;
+
+  if State.Effects <> nil then
+    PrepareIDecls(State.Effects, State);
 
   Lights := State.CurrentActiveLights;
   if Lights <> nil then
