@@ -116,10 +116,27 @@ type
     destructor Destroy; override;
     function Code: TDynStringArray;
   end;
+
   TLightShaders = class(specialize TFPGObjectList<TLightShader>)
   private
     function Find(const Node: TNodeX3DLightNode; out Shader: TLightShader): boolean;
   end;
+
+  TTextureShader = class
+  private
+    TextureUnit: Cardinal;
+    TextureType: TTextureType;
+    Node: TNodeX3DTextureNode;
+    ShadowMapSize: Cardinal;
+    ShadowLight: TNodeX3DLightNode;
+    ShadowVisualizeDepth: boolean;
+    Shader: TVRMLShader;
+  public
+    procedure Enable(var TextureApply, TextureColorDeclare,
+      TextureCoordInitialize, TextureCoordMatrix, FragmentShaderDeclare: string);
+  end;
+
+  TTextureShaders = specialize TFPGObjectList<TTextureShader>;
 
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
@@ -134,13 +151,12 @@ type
     Uniforms: TUniformsList;
     { If non-nil, the list of effect nodes that determine uniforms of our program. }
     UniformsNodes: TVRMLNodesList;
-    TextureApply, TextureColorDeclare, TextureCoordInitialize,
-      TextureCoordGen, TextureCoordMatrix, FragmentShaderDeclare,
-      ClipPlane, FragmentEnd: string;
+    TextureCoordGen, ClipPlane, FragmentEnd: string;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
     VertexShaderComplete, FragmentShaderComplete: TDynStringArray;
     PlugIdentifiers: Cardinal;
     LightShaders: TLightShaders;
+    TextureShaders: TTextureShaders;
     FCodeHash: TShaderCodeHash;
     CodeHashCalculated: boolean;
     SelectedNode: TNodeComposedShader;
@@ -575,6 +591,117 @@ begin
     BindUniforms(Nodes[I], EnableDisable);
 end;
 
+{ TTextureShader ------------------------------------------------------------- }
+
+procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
+  TextureCoordInitialize, TextureCoordMatrix, FragmentShaderDeclare: string);
+
+  procedure EnableEffectsString(var Code: string);
+  var
+    S: TDynStringArray;
+  begin
+    { optimize, no need for TStringList creation in case of no effects }
+    if Node.FdEffects.Count <> 0 then
+    begin
+      S := TDynStringArray.Create;
+      try
+        S.Add(Code);
+        Shader.EnableEffects(Node.FdEffects, S);
+        Code := S[0];
+      finally FreeAndNil(S) end;
+    end;
+  end;
+
+const
+  OpenGLTextureType: array [TTextureType] of string =
+  ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
+var
+  Uniform: TUniform;
+  TextureSampleCall, Code, TexCoordName: string;
+  ShadowLightShader: TLightShader;
+begin
+  if TextureType <> ttShader then
+  begin
+    Uniform := TUniform.Create;
+    Uniform.Name := Format('texture_%d', [TextureUnit]);
+    Uniform.AType := utLongInt;
+    Uniform.Value.LongInt := TextureUnit;
+
+    Shader.AddUniform(Uniform);
+  end;
+
+  TexCoordName := Format('gl_TexCoord[%d]', [TextureUnit]);
+
+  TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
+    [TexCoordName, TextureUnit]);
+  TextureCoordMatrix += Format('%s = gl_TextureMatrix[%d] * %0:s;' + NL,
+    [TexCoordName, TextureUnit]);
+
+  if (TextureType = tt2DShadow) and
+      ShadowVisualizeDepth then
+  begin
+    { visualizing depth map requires a little different approach:
+      - we use shadow_depth() instead of shadow() function
+      - we *set* gl_FragColor, not modulate it, to ignore previous textures
+      - we call "return" after, to ignore following textures
+      - the sampler is sampler2D, not sampler2DShadow
+      - also, we use gl_FragColor (while we should use fragment_color otherwise),
+        because we don't care about previous texture operations and
+        we want to return immediately. }
+    TextureSampleCall := 'vec4(vec3(shadow_depth(%s, %s)), gl_FragColor.a)';
+    TextureApply += Format('gl_FragColor = ' + TextureSampleCall + ';' + NL +
+      'return;',
+      [Uniform.Name, TexCoordName]);
+    FragmentShaderDeclare += Format('uniform sampler2D %s;' + NL,
+      [Uniform.Name]);
+  end else
+  begin
+    if (TextureType = tt2DShadow) and
+       (ShadowLight <> nil) and
+       Shader.LightShaders.Find(ShadowLight, ShadowLightShader) then
+    begin
+      Shader.Plug('FRAGMENT',
+        Format('void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
+        '{' +NL+
+        '  scale *= shadow(%s, gl_TexCoord[%d], %d.0);' +NL+
+        '}',
+        [Uniform.Name, TextureUnit, ShadowMapSize]),
+        ShadowLightShader.Code);
+    end else
+    begin
+      if TextureColorDeclare = '' then
+        TextureColorDeclare := 'vec4 texture_color;' + NL;
+      case TextureType of
+        tt2D      : TextureSampleCall := 'texture2D(%s, %s.st)';
+        tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), fragment_color.a)';
+        ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
+        { For 3D textures, remember we may get 4D tex coords
+          through TextureCoordinate4D, so we have to use texture3DProj }
+        tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
+        ttShader  : TextureSampleCall := 'vec4(1.0, 0.0, 1.0, 1.0)';
+        else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
+      end;
+
+      if TextureType <> ttShader then
+        Code := Format('texture_color = ' + TextureSampleCall + ';' +NL+
+          '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
+          [Uniform.Name, TexCoordName]) else
+        Code := Format('texture_color = ' + TextureSampleCall + ';' +NL+
+          '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
+          [TexCoordName]);
+
+      EnableEffectsString(Code);
+
+      { TODO: always modulate mode for now }
+      TextureApply += Code + 'fragment_color *= texture_color;' + NL;
+    end;
+
+    if TextureType <> ttShader then
+      FragmentShaderDeclare += Format('uniform %s %s;' + NL,
+        [OpenGLTextureType[TextureType], Uniform.Name]);
+  end;
+end;
+
 { TVRMLShader ---------------------------------------------------------------- }
 
 function InsertIntoString(const Base: string; const P: Integer; const S: string): string;
@@ -590,6 +717,7 @@ begin
   FragmentShaderComplete := TDynStringArray.Create;
   FragmentShaderComplete.Add({$I template.fs.inc});
   LightShaders := TLightShaders.Create;
+  TextureShaders := TTextureShaders.Create;
   WarnMissingPlugs := true;
 end;
 
@@ -598,6 +726,7 @@ begin
   FreeAndNil(Uniforms);
   FreeAndNil(UniformsNodes);
   FreeAndNil(LightShaders);
+  FreeAndNil(TextureShaders);
   FreeAndNil(VertexShaderComplete);
   FreeAndNil(FragmentShaderComplete);
   inherited;
@@ -731,14 +860,31 @@ begin
 end;
 
 procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
+var
+  TextureApply, TextureColorDeclare, TextureCoordInitialize,
+    TextureCoordMatrix, FragmentShaderDeclare: string;
 
-  procedure ApplyInternalEffects;
+  procedure EnableTextures;
+  var
+    I: Integer;
+  begin
+    TextureApply := '';
+    TextureColorDeclare := '';
+    TextureCoordInitialize := '';
+    TextureCoordMatrix := '';
+    FragmentShaderDeclare := '';
+
+    for I := 0 to TextureShaders.Count - 1 do
+      TextureShaders[I].Enable(TextureApply, TextureColorDeclare,
+        TextureCoordInitialize, TextureCoordMatrix, FragmentShaderDeclare);
+  end;
+
+  { Applies effects from various strings here.
+    This also finalizes applying textures. }
+  procedure EnableInternalEffects;
   const
     PCFDefine: array [TPercentageCloserFiltering] of string =
     ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
-  var
-    I: Integer;
-    LightShaderBack, LightShaderFront: string;
   begin
     PlugDirectly(VertexShaderComplete, 'vertex_process',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane);
@@ -749,7 +895,13 @@ procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
     PlugDirectly(FragmentShaderComplete, '$declare-shadow-map-procedures$',
       {$I shadow_map_common.fs.inc});
     PlugDirectly(FragmentShaderComplete, 'fragment_end', FragmentEnd);
+  end;
 
+  procedure EnableLights;
+  var
+    I: Integer;
+    LightShaderBack, LightShaderFront: string;
+  begin
     for I := 0 to LightShaders.Count - 1 do
     begin
       LightShaderBack  := LightShaders[I].Code[0];
@@ -793,8 +945,9 @@ procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
 var
   I: Integer;
 begin
-  ApplyInternalEffects;
-
+  EnableTextures;
+  EnableInternalEffects;
+  EnableLights;
   if AppearanceEffects <> nil then
     EnableEffects(AppearanceEffects);
 
@@ -890,9 +1043,9 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
       AddString(FragmentShaderComplete[I], Res);
 
     { Add to hash things that affect generated shader code,
-      but are applied after CodeHash is calculated:
-      LightShaders, AppearanceEffects, more to come. }
+      but are applied after CodeHash is calculated (like in LinkProgram). }
     Res.Sum += LightShaders.Count;
+    Res.Sum += TextureShaders.Count;
     Res.XorValue := Res.XorValue xor LongWord(PtrUInt(AppearanceEffects));
   end;
 
@@ -920,30 +1073,8 @@ procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
   const ShadowMapSize: Cardinal;
   const ShadowLight: TNodeX3DLightNode;
   const ShadowVisualizeDepth: boolean);
-
-  procedure TextureShaderEffects(var TextureShader: string);
-  var
-    S: TDynStringArray;
-  begin
-    { optimize, no need for TStringList creation in case of no effects }
-    if Node.FdEffects.Count <> 0 then
-    begin
-      S := TDynStringArray.Create;
-      try
-        S.Add(TextureShader);
-        EnableEffects(Node.FdEffects, S);
-        TextureShader := S[0];
-      finally FreeAndNil(S) end;
-    end;
-  end;
-
-const
-  OpenGLTextureType: array [TTextureType] of string =
-  ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
 var
-  Uniform: TUniform;
-  TextureSampleCall, TextureShader, TexCoordName: string;
-  ShadowLightShader: TLightShader;
+  TextureShader: TTextureShader;
 begin
   { Enable for fixed-function pipeline }
   if GLUseMultiTexturing then
@@ -978,88 +1109,20 @@ begin
 
   { Enable for shader pipeline }
 
-  if TextureType <> ttShader then
-  begin
-    Uniform := TUniform.Create;
-    Uniform.Name := Format('texture_%d', [TextureUnit]);
-    Uniform.AType := utLongInt;
-    Uniform.Value.LongInt := TextureUnit;
+  TextureShader := TTextureShader.Create;
+  TextureShader.TextureUnit := TextureUnit;
+  TextureShader.TextureType := TextureType;
+  TextureShader.Node := Node;
+  TextureShader.ShadowMapSize := ShadowMapSize;
+  TextureShader.ShadowLight := ShadowLight;
+  TextureShader.ShadowVisualizeDepth := ShadowVisualizeDepth;
+  TextureShader.Shader := Self;
 
-    AddUniform(Uniform);
-  end;
+  TextureShaders.Add(TextureShader);
 
-  if TextureType in [ttShader, tt2DShadow] then
+  if (TextureType in [ttShader, tt2DShadow]) or
+     (Node.FdEffects.Count <> 0) then
     ShapeRequiresShaders := true;
-
-  TexCoordName := Format('gl_TexCoord[%d]', [TextureUnit]);
-
-  TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
-    [TexCoordName, TextureUnit]);
-  TextureCoordMatrix += Format('%s = gl_TextureMatrix[%d] * %0:s;' + NL,
-    [TexCoordName, TextureUnit]);
-
-  if (TextureType = tt2DShadow) and ShadowVisualizeDepth then
-  begin
-    { visualizing depth map requires a little different approach:
-      - we use shadow_depth() instead of shadow() function
-      - we *set* gl_FragColor, not modulate it, to ignore previous textures
-      - we call "return" after, to ignore following textures
-      - the sampler is sampler2D, not sampler2DShadow
-      - also, we use gl_FragColor (while we should use fragment_color otherwise),
-        because we don't care about previous texture operations and
-        we want to return immediately. }
-    TextureSampleCall := 'vec4(vec3(shadow_depth(%s, %s)), gl_FragColor.a)';
-    TextureApply += Format('gl_FragColor = ' + TextureSampleCall + ';' + NL +
-      'return;',
-      [Uniform.Name, 'gl_TexCoord[' + IntToStr(TextureUnit) + ']']);
-    FragmentShaderDeclare += Format('uniform sampler2D %s;' + NL,
-      [Uniform.Name]);
-  end else
-  begin
-    if (TextureType = tt2DShadow) and
-       (ShadowLight <> nil) and
-       LightShaders.Find(ShadowLight, ShadowLightShader) then
-    begin
-      Plug('FRAGMENT',
-        Format('void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
-        '{' +NL+
-        '  scale *= shadow(%s, gl_TexCoord[%d], %d.0);' +NL+
-        '}',
-        [Uniform.Name, TextureUnit, ShadowMapSize]),
-        ShadowLightShader.Code);
-    end else
-    begin
-      if TextureColorDeclare = '' then
-        TextureColorDeclare := 'vec4 texture_color;' + NL;
-      case TextureType of
-        tt2D      : TextureSampleCall := 'texture2D(%s, %s.st)';
-        tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), fragment_color.a)';
-        ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
-        { For 3D textures, remember we may get 4D tex coords
-          through TextureCoordinate4D, so we have to use texture3DProj }
-        tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
-        ttShader  : TextureSampleCall := 'vec4(1.0, 0.0, 1.0, 1.0)';
-        else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
-      end;
-
-      if TextureType <> ttShader then
-        TextureShader := Format('texture_color = ' + TextureSampleCall + ';' +NL+
-          '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
-          [Uniform.Name, TexCoordName]) else
-        TextureShader := Format('texture_color = ' + TextureSampleCall + ';' +NL+
-          '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
-          [TexCoordName]);
-
-      TextureShaderEffects(TextureShader);
-
-      { TODO: always modulate mode for now }
-      TextureApply += TextureShader + 'fragment_color *= texture_color;' + NL;
-    end;
-
-    if TextureType <> ttShader then
-      FragmentShaderDeclare += Format('uniform %s %s;' + NL,
-        [OpenGLTextureType[TextureType], Uniform.Name]);
-  end;
 end;
 
 procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
