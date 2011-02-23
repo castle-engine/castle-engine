@@ -691,6 +691,10 @@ begin
     if (Shape.ShaderProgram = nil) or
        (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) then
     try
+      if Log then
+        WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s)',
+          [Shape.OriginalGeometry.NodeTypeName, BoolToStr[Shape.ShaderProgram = nil]]);
+
       FreeAndNil(Shape.ShaderProgram);
 
       Shape.ShaderProgram := TVRMLGLSLProgram.Create(Renderer);
