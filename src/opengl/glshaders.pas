@@ -433,6 +433,9 @@ const
   GLSupportNames: array [TGLSupport] of string =
   ( 'None', 'ARB Extension', 'Standard' );
 
+var
+  LogShaders: boolean;
+
 implementation
 
 uses KambiStringUtils, DataErrors, KambiLog;
@@ -1172,7 +1175,7 @@ begin
       'GLSL shader linked but rejected, as it seems it will run in software.' +
       'Program info log is "%s"', [ProgramInfoLog]);
 
-  if Log then
+  if Log and LogShaders then
     WritelnLogMultiline('GLSL', 'GLSL program successfully linked. Information:' + NL + DebugInfo);
 end;
 

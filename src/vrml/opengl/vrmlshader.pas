@@ -951,7 +951,7 @@ begin
   if AppearanceEffects <> nil then
     EnableEffects(AppearanceEffects);
 
-  if Log then
+  if Log and LogShaders then
   begin
     for I := 0 to VertexShaderComplete.Count - 1 do
       WritelnLogMultiline(Format('Generated GLSL vertex shader[%d]', [I]),
