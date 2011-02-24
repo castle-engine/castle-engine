@@ -13,6 +13,7 @@
 '' + LineEnding + 
 '/* PLUG: $declare-variables$ */' + LineEnding + 
 '/* PLUG: $declare-shadow-map-procedures$ */' + LineEnding + 
+'/* PLUG: $declare-forward-procedures$ */' + LineEnding + 
 '/* PLUG: $declare-procedures$ */' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 

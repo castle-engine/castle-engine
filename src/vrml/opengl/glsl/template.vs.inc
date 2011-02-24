@@ -9,6 +9,7 @@
 '*/' + LineEnding + 
 '' + LineEnding + 
 '/* PLUG: $declare-variables$ */' + LineEnding + 
+'/* PLUG: $declare-forward-procedures$ */' + LineEnding + 
 '/* PLUG: $declare-procedures$ */' + LineEnding + 
 '' + LineEnding + 
 'varying vec4 vertex_eye;' + LineEnding + 

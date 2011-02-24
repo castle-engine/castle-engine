@@ -7,6 +7,7 @@
 */
 
 /* PLUG: $declare-variables$ */
+/* PLUG: $declare-forward-procedures$ */
 /* PLUG: $declare-procedures$ */
 
 varying vec4 vertex_eye;

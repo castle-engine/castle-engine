@@ -189,10 +189,14 @@ type
 
     { Detect defined PLUG_xxx functions within PlugValue,
       insert calls to them into given Code,
+      insert forward declarations of their calls into final shader,
       insert the PlugValue (which should be variable and functions declarations)
       into code of final shader (determined by EffectPartType).
-      When Code = nil then we insert both calls and PlugValue into
-      code of the final shader (determined by EffectPartType).
+
+      When Code = nil then we assume code of final shader.
+      So we insert a call to plugged_x function, and PlugValue (defining this
+      plugged_x function) into the same final shader source
+      (determined by EffectPartType).
 
       Inserts calls right before the magic @code(/* PLUG ...*/) comments,
       this way many Plug calls that defined the same PLUG_xxx function
@@ -269,6 +273,52 @@ uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
   using direct normal OpenGL fixed-function functions in VRMLGLRenderer,
   and our shaders just use it.
 }
+
+{ String helpers ------------------------------------------------------------- }
+
+function MoveToOpeningParen(const S: string; var P: Integer): boolean;
+begin
+  Result := true;
+  repeat
+    Inc(P);
+
+    if P > Length(S) then
+    begin
+      VRMLWarning(vwIgnorable, 'PLUG declaration unexpected end (no opening parenthesis "(")');
+      Exit(false);
+    end;
+
+    if (S[P] <> '(') and
+       not (S[P] in WhiteSpaces) then
+    begin
+      VRMLWarning(vwIgnorable, Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(")',
+        [S[P]]));
+      Exit(false);
+    end;
+  until S[P] = '(';
+ end;
+
+function MoveToMatchingParen(const S: string; var P: Integer): boolean;
+var
+  ParenLevel: Cardinal;
+begin
+  Result := true;
+  ParenLevel := 1;
+
+  repeat
+    Inc(P);
+    if P > Length(S) then
+    begin
+      VRMLWarning(vwIgnorable, 'PLUG declaration unexpected end (no closing parenthesis ")")');
+      Exit(false);
+    end;
+
+    if S[P] = '(' then
+      Inc(ParenLevel) else
+    if S[P] = ')' then
+      Dec(ParenLevel);
+  until ParenLevel = 0;
+end;
 
 { TLightShader --------------------------------------------------------------- }
 
@@ -741,13 +791,15 @@ procedure TVRMLShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
 const
   PlugPrefix = 'PLUG_';
 
-  { Find PLUG_xxx function inside PlugValue. Returns xxx (the part after
-    PLUG_) if found, or '' if not found. }
-  function FindPlugName(const PlugValue: string): string;
+  { Find PLUG_xxx function inside PlugValue.
+    Returns xxx (the part after PLUG_),
+    and DeclaredParameters (or this plug function). Or '' if not found. }
+  function FindPlugName(const PlugValue: string;
+    out DeclaredParameters: string): string;
   const
     IdentifierChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
   var
-    P, PBegin: Integer;
+    P, PBegin, DPBegin, DPEnd: Integer;
   begin
     Result := ''; { assume failure }
     P := Pos(PlugPrefix, PlugValue);
@@ -768,6 +820,13 @@ const
         Exit;
 
       Result := CopyPos(PlugValue, PBegin, P - 1);
+
+      DPBegin := P - 1;
+      if not MoveToOpeningParen(PlugValue, DPBegin) then Exit('');
+      DPEnd := DPBegin;
+      if not MoveToMatchingParen(PlugValue, DPEnd) then Exit('');
+
+      DeclaredParameters := CopyPos(PlugValue, DPBegin, DPEnd);
     end;
   end;
 
@@ -793,7 +852,8 @@ const
 
 var
   PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
-  Parameter, PlugName, ProcedureName, CommentBegin: string;
+  Parameter, PlugName, ProcedureName, CommentBegin, PlugDeclaredParameters,
+    PlugForwardDeclarations: string;
   CodeForPlugValue: TDynStringArray;
   AnyOccurences: boolean;
 begin
@@ -802,8 +862,10 @@ begin
   if Code = nil then
     Code := CodeForPlugValue;
 
+  PlugForwardDeclarations := '';
+
   repeat
-    PlugName := FindPlugName(PlugValue);
+    PlugName := FindPlugName(PlugValue, PlugDeclaredParameters);
     if PlugName = '' then Break;
 
     CommentBegin := '/* PLUG: ' + PlugName + ' ';
@@ -811,6 +873,8 @@ begin
     ProcedureName := 'plugged_' + IntToStr(PlugIdentifiers);
     StringReplaceAllTo1st(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
     Inc(PlugIdentifiers);
+
+    PlugForwardDeclarations += 'void ' + ProcedureName + PlugDeclaredParameters + ';' + NL;
 
     AnyOccurences := false;
     for CodeIndex := 0 to Code.Count - 1 do
@@ -834,6 +898,11 @@ begin
   { regardless if any (and how many) plug points were found,
     always insert PlugValue into CodeForPlugValue }
   PlugDirectly(CodeForPlugValue, '$declare-procedures$', PlugValue);
+
+  { all added "plugged_x" functions must be forward declared first.
+    Otherwise they could be defined after they are needed, or inside different
+    compilation unit. }
+  PlugDirectly(CodeForPlugValue, '$declare-forward-procedures$', PlugForwardDeclarations);
 end;
 
 procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
@@ -888,6 +957,8 @@ var
       TextureColorDeclare + TextureApply);
     PlugDirectly(Source[stFragment], '$declare-variables$',
       FragmentShaderDeclare + PCFDefine[PercentageCloserFiltering]);
+    { TODO: remove $declare-shadow-map-procedures$, in favor of using
+      forward }
     PlugDirectly(Source[stFragment], '$declare-shadow-map-procedures$',
       {$I shadow_map_common.fs.inc});
     PlugDirectly(Source[stFragment], 'fragment_end', FragmentEnd);
