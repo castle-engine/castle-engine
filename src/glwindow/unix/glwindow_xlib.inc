@@ -459,6 +459,11 @@ begin
   { does nothing }
 end;
 
+function TGLWindow.MenuUpdateCheckedFast: boolean;
+begin
+  Result := false;
+end;
+
 procedure TGLWindow.SwapBuffers;
 begin
  glXSwapBuffers(Application.XDisplay, windowXID);

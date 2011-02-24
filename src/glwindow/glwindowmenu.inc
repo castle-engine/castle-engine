@@ -335,17 +335,14 @@
     FChecked: boolean;
     FAutoCheckedToggle: boolean;
   protected
-    { Called when Checked property is assigned.
-
-      Note that this is overriden ina a "dirty" way
-      (i.e. not calling "ingerited") in TMenuItemRadio descendant. }
+    { Called when Checked property is assigned. }
     procedure SetChecked(Value: boolean); virtual;
 
     { This is called from DoCommand when AutoCheckedToggle is @true.
       It's supposed to actually implement the AutoCheckedToggle behavior.
 
       Note that this is overriden ina a "dirty" way
-      (i.e. not calling "ingerited") in TMenuItemRadio descendant. }
+      (i.e. not calling "inherited") in TMenuItemRadio descendant. }
     procedure DoAutoCheckedToggle; virtual;
   public
     property Checked: boolean read FChecked write SetChecked;
@@ -924,6 +921,8 @@ procedure TMenuItemRadioGroup.SetSelected(Value: TMenuItemRadio);
 var
   I: Integer;
   Item: TMenuItemRadio;
+  CheckedFast: boolean;
+  P: TGLWindow;
 begin
   { When count is 0, we have no items belonging to our group.
     So selected may only be nil.
@@ -940,7 +939,19 @@ begin
     Exit;
   end;
 
-  Items[0].MenuFinalize;
+  P := Items[0].CorrectParentWindow;
+  if (P <> nil) and P.Closed then P := nil;
+
+  { When not CheckedFast, then each SetChecked is expensive.
+    So it's better to operate here on internal FChecked field
+    and call MenuFinalize/MenuInitialize only once.
+    When CheckedFast, don't do this, as using MenuFinalize/MenuInitialize
+    would be slower then (and would recreate menu,
+    e.g. hiding detached menus on GTK). }
+  CheckedFast := (P = nil) or P.MenuUpdateCheckedFast;
+
+  if not CheckedFast then
+    P.MenuFinalize;
 
   FSelected := Value;
 
@@ -948,11 +959,12 @@ begin
   begin
     Item := Items[I];
     Item.FChecked := Item = Selected;
+    if CheckedFast then
+      if P <> nil then P.MenuUpdateChecked(Item);
   end;
 
-  { Note that for efficiency we operate here on internal FChecked field
-    and call MenuFinalize/MenuInitialize only once. }
-  Items[0].MenuInitialize;
+  if not CheckedFast then
+    P.MenuInitialize;
 end;
 
 (*

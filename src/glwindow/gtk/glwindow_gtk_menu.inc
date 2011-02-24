@@ -487,3 +487,8 @@ begin
     MenuItemUnblock(PGtkMenuItem(EntryGtk), Entry);
   end;
 end;
+
+function TGLWindow.MenuUpdateCheckedFast: boolean;
+begin
+  Result := true;
+end;

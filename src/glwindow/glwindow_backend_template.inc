@@ -61,6 +61,11 @@ begin
     but don't care about updating it fast) }
 end;
 
+function TGLWindow.MenuUpdateCheckedFast: boolean;
+begin
+  Result := false;
+end;
+
 procedure TGLWindow.SwapBuffers;
 begin
   { TODO }

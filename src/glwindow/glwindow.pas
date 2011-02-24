@@ -908,6 +908,7 @@ type
     procedure MenuUpdateCaption(Entry: TMenuEntryWithCaption);
     procedure MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
     procedure MenuUpdateChecked(Entry: TMenuItemChecked);
+    function MenuUpdateCheckedFast: boolean;
     { @groupEnd }
 
     procedure CreateBackend;

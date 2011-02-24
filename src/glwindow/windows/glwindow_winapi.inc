@@ -625,6 +625,11 @@ begin
   MenuInitialize;
 end;
 
+function TGLWindow.MenuUpdateCheckedFast: boolean;
+begin
+  Result := false;
+end;
+
 procedure TGLWindow.OpenWinSystemDepend;
 
   { Both SetPixelFormat* set pixel format (required context capabilities)

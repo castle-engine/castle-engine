@@ -289,6 +289,11 @@ begin
   MenuInitialize;
 end;
 
+function TGLWindow.MenuUpdateCheckedFast: boolean;
+begin
+  Result := false;
+end;
+
 { ------------------------------------------------------------------------------
   procedury obslugujace TGLWindow poprzez GLUTa }
 
