@@ -147,7 +147,7 @@ type
     UniformsNodes: TVRMLNodesList;
     TextureCoordGen, ClipPlane, FragmentEnd: string;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
-    VertexShaderComplete, FragmentShaderComplete: TDynStringArray;
+    Source: array [TShaderType] of TDynStringArray;
     PlugIdentifiers: Cardinal;
     LightShaders: TLightShaders;
     TextureShaders: TTextureShaders;
@@ -197,7 +197,7 @@ type
       Inserts calls right before the magic @code(/* PLUG ...*/) comments,
       this way many Plug calls that defined the same PLUG_xxx function
       will be called in the same order. }
-    procedure Plug(const EffectPartType: string; PlugValue: string;
+    procedure Plug(const EffectPartType: TShaderType; PlugValue: string;
       Code: TDynStringArray = nil);
 
     { Add fragment and vertex shader code, link.
@@ -658,7 +658,7 @@ begin
        (ShadowLight <> nil) and
        Shader.LightShaders.Find(ShadowLight, ShadowLightShader) then
     begin
-      Shader.Plug('FRAGMENT',
+      Shader.Plug(stFragment,
         Format('void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
         '{' +NL+
         '  scale *= shadow(%s, gl_TexCoord[%d], %d.0);' +NL+
@@ -708,29 +708,35 @@ begin
 end;
 
 constructor TVRMLShader.Create;
+var
+  SourceType: TShaderType;
 begin
   inherited;
-  VertexShaderComplete := TDynStringArray.Create;
-  VertexShaderComplete.Add({$I template.vs.inc});
-  FragmentShaderComplete := TDynStringArray.Create;
-  FragmentShaderComplete.Add({$I template.fs.inc});
+
+  for SourceType := Low(SourceType) to High(SourceType) do
+    Source[SourceType] := TDynStringArray.Create;
+  Source[stVertex].Add({$I template.vs.inc});
+  Source[stFragment].Add({$I template.fs.inc});
+
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureShaders.Create;
   WarnMissingPlugs := true;
 end;
 
 destructor TVRMLShader.Destroy;
+var
+  SourceType: TShaderType;
 begin
   FreeAndNil(Uniforms);
   FreeAndNil(UniformsNodes);
   FreeAndNil(LightShaders);
   FreeAndNil(TextureShaders);
-  FreeAndNil(VertexShaderComplete);
-  FreeAndNil(FragmentShaderComplete);
+  for SourceType := Low(SourceType) to High(SourceType) do
+    FreeAndNil(Source[SourceType]);
   inherited;
 end;
 
-procedure TVRMLShader.Plug(const EffectPartType: string; PlugValue: string;
+procedure TVRMLShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
   Code: TDynStringArray);
 const
   PlugPrefix = 'PLUG_';
@@ -791,15 +797,7 @@ var
   CodeForPlugValue: TDynStringArray;
   AnyOccurences: boolean;
 begin
-  if EffectPartType = 'VERTEX' then
-    CodeForPlugValue := VertexShaderComplete else
-  if EffectPartType = 'FRAGMENT' then
-    CodeForPlugValue := FragmentShaderComplete else
-  begin
-    VRMLWarning(vwIgnorable, Format('EffectPart.type "%s" is not recognized',
-      [EffectPartType]));
-    Exit;
-  end;
+  CodeForPlugValue := Source[EffectPartType];
 
   if Code = nil then
     Code := CodeForPlugValue;
@@ -884,15 +882,15 @@ var
     PCFDefine: array [TPercentageCloserFiltering] of string =
     ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
   begin
-    PlugDirectly(VertexShaderComplete, 'vertex_process',
+    PlugDirectly(Source[stVertex], 'vertex_process',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane);
-    PlugDirectly(FragmentShaderComplete, 'texture_apply',
+    PlugDirectly(Source[stFragment], 'texture_apply',
       TextureColorDeclare + TextureApply);
-    PlugDirectly(FragmentShaderComplete, '$declare-variables$',
+    PlugDirectly(Source[stFragment], '$declare-variables$',
       FragmentShaderDeclare + PCFDefine[PercentageCloserFiltering]);
-    PlugDirectly(FragmentShaderComplete, '$declare-shadow-map-procedures$',
+    PlugDirectly(Source[stFragment], '$declare-shadow-map-procedures$',
       {$I shadow_map_common.fs.inc});
-    PlugDirectly(FragmentShaderComplete, 'fragment_end', FragmentEnd);
+    PlugDirectly(Source[stFragment], 'fragment_end', FragmentEnd);
   end;
 
   procedure EnableLights;
@@ -915,8 +913,8 @@ var
       LightShaderFront := StringReplace(LightShaderFront,
         'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
 
-      Plug('FRAGMENT', LightShaderBack);
-      Plug('FRAGMENT', LightShaderFront);
+      Plug(stFragment, LightShaderBack);
+      Plug(stFragment, LightShaderFront);
     end;
   end;
 
@@ -953,23 +951,23 @@ begin
 
   if Log and LogShaders then
   begin
-    for I := 0 to VertexShaderComplete.Count - 1 do
+    for I := 0 to Source[stVertex].Count - 1 do
       WritelnLogMultiline(Format('Generated GLSL vertex shader[%d]', [I]),
-        VertexShaderComplete[I]);
-    for I := 0 to FragmentShaderComplete.Count - 1 do
+        Source[stVertex][I]);
+    for I := 0 to Source[stFragment].Count - 1 do
       WritelnLogMultiline(Format('Generated GLSL fragment shader[%d]', [I]),
-        FragmentShaderComplete[I]);
+        Source[stFragment][I]);
   end;
 
   try
-    if (VertexShaderComplete.Count = 0) and
-       (FragmentShaderComplete.Count = 0) then
+    if (Source[stVertex].Count = 0) and
+       (Source[stFragment].Count = 0) then
       raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
-    for I := 0 to VertexShaderComplete.Count - 1 do
-      AProgram.AttachVertexShader(VertexShaderComplete[I]);
-    for I := 0 to FragmentShaderComplete.Count - 1 do
-      AProgram.AttachFragmentShader(FragmentShaderComplete[I]);
+    for I := 0 to Source[stVertex].Count - 1 do
+      AProgram.AttachVertexShader(Source[stVertex][I]);
+    for I := 0 to Source[stFragment].Count - 1 do
+      AProgram.AttachFragmentShader(Source[stFragment][I]);
     AProgram.Link(true);
 
     if SelectedNode <> nil then
@@ -1054,10 +1052,10 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
   begin
     Res.Sum := 0;
     Res.XorValue := 0;
-    for I := 0 to VertexShaderComplete.Count - 1 do
-      AddString(VertexShaderComplete[I], Res);
-    for I := 0 to FragmentShaderComplete.Count - 1 do
-      AddString(FragmentShaderComplete[I], Res);
+    for I := 0 to Source[stVertex].Count - 1 do
+      AddString(Source[stVertex][I], Res);
+    for I := 0 to Source[stFragment].Count - 1 do
+      AddString(Source[stFragment][I], Res);
 
     { Add to hash things that affect generated shader code,
       but are applied after CodeHash is calculated (like in LinkProgram). }
@@ -1198,7 +1196,7 @@ const
   { Note: R changes to p ! }
   VectorComponentNames: array [TTexComponent] of char = ('s', 't', 'p', 'q');
 var
-  PlaneName, Source: string;
+  PlaneName, CoordSource: string;
 begin
   { Enable for fixed-function pipeline }
   if GLUseMultiTexturing then
@@ -1216,14 +1214,14 @@ begin
     http://www.mail-archive.com/osg-users@lists.openscenegraph.org/msg14238.html }
 
   case Generation of
-    tgEye   : begin PlaneName := 'gl_EyePlane'   ; Source := 'vertex_eye'; end;
-    tgObject: begin PlaneName := 'gl_ObjectPlane'; Source := 'gl_Vertex' ; end;
+    tgEye   : begin PlaneName := 'gl_EyePlane'   ; CoordSource := 'vertex_eye'; end;
+    tgObject: begin PlaneName := 'gl_ObjectPlane'; CoordSource := 'gl_Vertex' ; end;
     else raise EInternalError.Create('TVRMLShader.EnableTexGen:Generation?');
   end;
 
   TextureCoordGen += Format('gl_TexCoord[%d].%s = dot(%s, %s%s[%0:d]);' + NL,
     [TextureUnit, VectorComponentNames[Component],
-     Source, PlaneName, PlaneComponentNames[Component]]);
+     CoordSource, PlaneName, PlaneComponentNames[Component]]);
 end;
 
 procedure TVRMLShader.DisableTexGen(const TextureUnit: Cardinal);
@@ -1265,7 +1263,7 @@ procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
 var
   Uniform: TUniform;
 begin
-  Plug('VERTEX',
+  Plug(stVertex,
     'attribute mat3 tangent_to_object_space;' +NL+
     'varying mat3 tangent_to_eye_space;' +NL+
     NL+
@@ -1274,7 +1272,7 @@ begin
     '  tangent_to_eye_space = gl_NormalMatrix * tangent_to_object_space;' +NL+
     '}');
 
-  Plug('FRAGMENT',
+  Plug(stFragment,
     'varying mat3 tangent_to_eye_space;' +NL+
     'uniform sampler2D tex_normal_map;' +NL+
     NL+
@@ -1334,11 +1332,12 @@ procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
     procedure EnableEffectPart(Part: TNodeEffectPart);
     var
       Contents: string;
+      PartType: TShaderType;
     begin
       Contents := Part.LoadContents;
-      if Contents <> '' then
+      if (Contents <> '') and Part.FdType.GetValue(PartType) then
       begin
-        Plug(Part.FdType.Value, Contents, Code);
+        Plug(PartType, Contents, Code);
         ShapeRequiresShaders := true;
       end;
     end;
@@ -1376,7 +1375,7 @@ procedure TVRMLShader.EnableFog(const FogType: TFogType);
 var
   FogFactor: string;
 begin
-  Plug('VERTEX',
+  Plug(stVertex,
     'void PLUG_vertex_process(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
     '{' +NL+
     '  gl_FogFragCoord = vertex_eye.z;' +NL+
@@ -1388,7 +1387,7 @@ begin
     else raise EInternalError.Create('TVRMLShader.EnableFog:FogType?');
   end;
 
-  Plug('FRAGMENT',
+  Plug(stFragment,
     'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
     '{' +NL+
     '  fragment_color.rgb = mix(fragment_color.rgb, gl_Fog.color.rgb,' +NL+
@@ -1401,7 +1400,8 @@ function TVRMLShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;
 var
   I, J: Integer;
   Part: TNodeShaderPart;
-  PartType, Source: String;
+  PartSource: String;
+  PartType, SourceType: TShaderType;
 begin
   Result := false;
   for I := 0 to Shaders.Count - 1 do
@@ -1411,38 +1411,19 @@ begin
     begin
       Result := true;
 
-      VertexShaderComplete.Count := 0;
-      FragmentShaderComplete.Count := 0;
+      { Clear whole Source }
+      for SourceType := Low(SourceType) to High(SourceType) do
+        Source[SourceType].Count := 0;
 
       { Iterate over Node.FdParts, looking for vertex shaders
         and fragment shaders. }
-
       for J := 0 to Node.FdParts.Count - 1 do
         if Node.FdParts[J] is TNodeShaderPart then
         begin
           Part := TNodeShaderPart(Node.FdParts[J]);
-
-          PartType := UpperCase(Part.FdType.Value);
-          if PartType <> Part.FdType.Value then
-            VRMLWarning(vwSerious, Format('ShaderPart.type should be uppercase, but is not: "%s"',
-              [Part.FdType.Value]));
-
-          if PartType = 'VERTEX' then
-          begin
-            Source := Part.LoadContents;
-            if Source <> '' then
-              VertexShaderComplete.Add(Source);
-          end else
-
-          if PartType = 'FRAGMENT' then
-          begin
-            Source := Part.LoadContents;
-            if Source <> '' then
-              FragmentShaderComplete.Add(Source);
-          end else
-
-            VRMLWarning(vwSerious, Format('Unknown type for ShaderPart: "%s"',
-              [PartType]));
+          PartSource := Part.LoadContents;
+          if (PartSource <> '') and Part.FdType.GetValue(PartType) then
+            Source[PartType].Add(PartSource);
         end;
 
       Node.EventIsSelected.Send(true);

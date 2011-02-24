@@ -128,6 +128,17 @@
     public property Fdprograms: TMFNode read FFdprograms;
   end;
 
+  TShaderType = (stVertex, stFragment);
+
+  TSFStringShaderType = class(TSFString)
+  private
+    UpperCaseChecked, WarningInvalidValueDone: boolean;
+  protected
+    function ExposedEventsFieldClass: TVRMLFieldClass; override;
+  public
+    function GetValue(out AValue: TShaderType): boolean;
+  end;
+
   TNodeShaderPart = class(TNodeX3DNode, INodeX3DUrlObject)
   private
     FUsedFullUrl: string;
@@ -141,8 +152,8 @@
     private FFdurl: TMFString;
     public property Fdurl: TMFString read FFdurl;
 
-    private FFdtype: TSFString;
-    public property Fdtype: TSFString read FFdtype;
+    private FFdtype: TSFStringShaderType;
+    public property Fdtype: TSFStringShaderType read FFdtype;
 
     { Load shader code from node's URLs (or CDATA).
 
@@ -174,8 +185,8 @@
     private FFdurl: TMFString;
     public property Fdurl: TMFString read FFdurl;
 
-    private FFdtype: TSFString;
-    public property Fdtype: TSFString read FFdtype;
+    private FFdtype: TSFStringShaderType;
+    public property Fdtype: TSFStringShaderType read FFdtype;
   end;
 {$endif read_interface}
 
@@ -424,6 +435,44 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TSFStringShaderType.ExposedEventsFieldClass: TVRMLFieldClass;
+begin
+  Result := TSFString;
+end;
+
+function TSFStringShaderType.GetValue(out AValue: TShaderType): boolean;
+var
+  UpperValue: string;
+begin
+  UpperValue := UpperCase(Value);
+
+  if (not UpperCaseChecked) and (UpperValue <> Value) then
+  begin
+    VRMLWarning(vwSerious, Format('Shader "type" should be uppercase, but is not: "%s"',
+      [Value]));
+    UpperCaseChecked := true;
+  end;
+
+  if UpperValue = 'VERTEX' then
+  begin
+    AValue := stVertex;
+    Result := true;
+  end else
+  if UpperValue = 'FRAGMENT' then
+  begin
+    AValue := stFragment;
+    Result := true;
+  end else
+  begin
+    Result := false;
+    if not WarningInvalidValueDone then
+    begin
+      VRMLWarning(vwSerious, Format('Unknown "type" for shader: "%s"', [Value]));
+      WarningInvalidValueDone := true;
+    end;
+  end;
+end;
+
 constructor TNodeShaderPart.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -434,7 +483,7 @@ begin
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
-  FFdtype := TSFString.Create(Self, 'type', 'VERTEX');
+  FFdtype := TSFStringShaderType.Create(Self, 'type', 'VERTEX');
    Fdtype.Exposed := false;
    Fdtype.ChangesAlways := [chEverything];
   Fields.Add(FFdtype);
@@ -569,7 +618,7 @@ begin
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
-  FFdtype := TSFString.Create(Self, 'type', 'VERTEX');
+  FFdtype := TSFStringShaderType.Create(Self, 'type', 'VERTEX');
   FFdtype.Exposed := false;
   Fields.Add(FFdtype);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }

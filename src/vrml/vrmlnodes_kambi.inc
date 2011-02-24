@@ -354,8 +354,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtype: TSFString;
-    public property Fdtype: TSFString read FFdtype;
+    private FFdtype: TSFStringShaderType;
+    public property Fdtype: TSFStringShaderType read FFdtype;
 
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -973,7 +973,7 @@ constructor TNodeEffectPart.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  FFdtype := TSFString.Create(Self, 'type', 'VERTEX');
+  FFdtype := TSFStringShaderType.Create(Self, 'type', 'VERTEX');
    Fdtype.Exposed := false;
    Fdtype.ChangesAlways := [chEverything];
   Fields.Add(FFdtype);
