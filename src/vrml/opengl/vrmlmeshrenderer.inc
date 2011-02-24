@@ -690,8 +690,8 @@ begin
   if UseShaderRendering then
   begin
     { calculate and use Shape.ShaderProgram }
-    if (Shape.ShaderProgram = nil) or
-       (Shape.ShaderProgram.CodeHash <> Shader.CodeHash) then
+    if (not Shape.ShaderProgramLoaded) or
+       (Shape.ShaderProgramHash <> Shader.CodeHash) then
     try
       if Log then
         WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d)',
@@ -699,13 +699,18 @@ begin
            BoolToStr[Shape.ShaderProgram = nil],
            Renderer.FirstLight]);
 
-      FreeAndNil(Shape.ShaderProgram);
+      { set CodeHash now, otherwise applying effects in LinkProgram could change it }
+      Shape.ShaderProgramHash := Shader.CodeHash;
+      Shape.ShaderProgramLoaded := true;
 
+      FreeAndNil(Shape.ShaderProgram);
       Shape.ShaderProgram := TVRMLGLSLProgram.Create(Renderer);
       Shader.LinkProgram(Shape.ShaderProgram);
     except on E: EGLSLError do
       begin
         FreeAndNil(Shape.ShaderProgram);
+        { Note: leave ShaderProgramLoaded = true and ShaderProgramHash set,
+          to avoid reinitializing this shader. }
         VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
           [Shape.DebugName, E.Message]));
       end;

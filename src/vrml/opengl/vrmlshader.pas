@@ -58,7 +58,6 @@ type
   private
     { Events where we registered our EventReceive method. }
     EventsObserved: TVRMLEventsList;
-    FCodeHash: TShaderCodeHash;
 
     { Set uniform variable from VRML/X3D field value.
       Uniform name is contained in UniformName. UniformValue indicates
@@ -82,11 +81,6 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-
-    { Hash of TVRMLShader code used when initializing this shader
-      by LinkProgram. Used to decide when shader needs to be regenerated,
-      and when it can be shared. }
-    property CodeHash: TShaderCodeHash read FCodeHash write FCodeHash;
 
     { Set and observe uniform variables from given Node.InterfaceDeclarations.
 
@@ -949,10 +943,6 @@ var
 var
   I: Integer;
 begin
-  { set CodeHash now, otherwise applying effects below could change it
-    (if it's now already calculated) }
-  AProgram.CodeHash := CodeHash;
-
   EnableTextures;
   EnableInternalEffects;
   EnableLights;

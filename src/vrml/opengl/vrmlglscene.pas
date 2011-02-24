@@ -1444,7 +1444,7 @@ begin
         S := TVRMLGLShape(SI.Current);
         if S.Cache <> nil then
           Renderer.Cache.Shape_DecReference(S.Cache);
-        FreeAndNil(S.ShaderProgram);
+        S.FreeShaderProgram;
       end;
     finally FreeAndNil(SI) end;
   end;

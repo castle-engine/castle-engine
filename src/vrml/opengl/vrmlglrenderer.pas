@@ -932,6 +932,21 @@ type
   { VRML shape that can be rendered. }
   TVRMLRendererShape = class(TVRMLShape)
   private
+    { When ShaderProgramLoaded, then ShaderProgramHash is set
+      and ShaderProgram is initialized. }
+    ShaderProgramLoaded: boolean;
+
+    { Hash of TVRMLShader code used when initializing this shader
+      by LinkProgram. Used to decide when shader needs to be regenerated,
+      and when it can be shared.
+      Available if any only if ShaderProgramLoaded, otherwise undefined. }
+    ShaderProgramHash: TShaderCodeHash;
+
+    { Actual GLSL program.
+      When not ShaderProgramLoaded, it's always @nil.
+      When ShaderProgramLoaded, it may be @nil (if it failed to link). }
+    ShaderProgram: TVRMLGLSLProgram;
+
     { Generate VBO if needed, and reload VBO contents.
       Assumes GL_ARB_vertex_buffer_object is true.
 
@@ -944,7 +959,7 @@ type
     procedure LoadArraysToVbo;
   public
     Cache: TShapeCache;
-    ShaderProgram: TVRMLGLSLProgram;
+    procedure FreeShaderProgram;
   end;
 
   TVRMLGLRenderer = class
@@ -2396,6 +2411,12 @@ procedure TVRMLRendererShape.LoadArraysToVbo;
 begin
   Assert(Cache <> nil);
   Cache.LoadArraysToVbo(DynamicGeometry);
+end;
+
+procedure TVRMLRendererShape.FreeShaderProgram;
+begin
+  FreeAndNil(ShaderProgram);
+  ShaderProgramLoaded := false;
 end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
