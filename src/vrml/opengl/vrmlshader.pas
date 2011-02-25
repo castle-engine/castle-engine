@@ -174,22 +174,29 @@ type
     GroupEffects: TVRMLNodesList;
 
     procedure EnableEffects(Effects: TMFNode;
-      const Code: TDynStringArray = nil);
+      const Code: TDynStringArray = nil;
+      const ForwardDeclareInFinalShader: boolean = false);
     procedure EnableEffects(Effects: TVRMLNodesList;
-      const Code: TDynStringArray = nil);
+      const Code: TDynStringArray = nil;
+      const ForwardDeclareInFinalShader: boolean = false);
 
     { Special form of Plug. It inserts the PlugValue source code directly
       at the position of given plug comment (no function call
       or anything is added). It also assumes that PlugName occurs only once
-      it the Code, for speed. }
-    procedure PlugDirectly(Code: TDynStringArray; const PlugName, PlugValue: string);
+      in the Code, for speed. }
+    procedure PlugDirectly(Code: TDynStringArray;
+      const CodeIndex: Cardinal;
+      const PlugName, PlugValue: string;
+      const InsertAtBeginIfNotFound: boolean);
   public
     constructor Create;
     destructor Destroy; override;
 
     { Detect defined PLUG_xxx functions within PlugValue,
       insert calls to them into given Code,
-      insert forward declarations of their calls into final shader,
+      insert forward declarations of their calls into Code too
+      (this allows to work with separate compilation units, and also makes
+      procedure declaration order less important),
       insert the PlugValue (which should be variable and functions declarations)
       into code of final shader (determined by EffectPartType).
 
@@ -198,11 +205,18 @@ type
       plugged_x function) into the same final shader source
       (determined by EffectPartType).
 
+      ForwardDeclareInFinalShader should be used only when Code is not nil.
+      It means that forward declarations for Code[0] will be inserted
+      into final shader code, not into Code[0]. This is useful if your
+      Code[0] is special, and it will be pasted directly (not as plug)
+      into final shader code.
+
       Inserts calls right before the magic @code(/* PLUG ...*/) comments,
       this way many Plug calls that defined the same PLUG_xxx function
       will be called in the same order. }
     procedure Plug(const EffectPartType: TShaderType; PlugValue: string;
-      Code: TDynStringArray = nil);
+      Code: TDynStringArray = nil;
+      const ForwardDeclareInFinalShader: boolean = false);
 
     { Add fragment and vertex shader code, link.
       @raises EGLSLError In case of troubles with linking. }
@@ -694,11 +708,14 @@ begin
        Shader.LightShaders.Find(ShadowLight, ShadowLightShader) then
     begin
       Shader.Plug(stFragment,
-        Format('void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
+        Format('uniform %s %s;',
+        [OpenGLTextureType[TextureType], Uniform.Name]) +NL+
+        'float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord, const in float size);' +NL+
+        'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
         '{' +NL+
-        '  scale *= shadow(%s, gl_TexCoord[%d], %d.0);' +NL+
+        Format('  scale *= shadow(%s, gl_TexCoord[%d], %d.0);',
+        [Uniform.Name, TextureUnit, ShadowMapSize]) +NL+
         '}',
-        [Uniform.Name, TextureUnit, ShadowMapSize]),
         ShadowLightShader.Code);
     end else
     begin
@@ -725,7 +742,7 @@ begin
             '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
             [TexCoordName]));
 
-        Shader.EnableEffects(Node.FdEffects, Code);
+        Shader.EnableEffects(Node.FdEffects, Code, true);
 
         { Use generated Code. Code[0] for texture is a little special,
           we add it to TextureApply that will be directly placed within
@@ -737,11 +754,11 @@ begin
 
       { TODO: always modulate mode for now }
       TextureApply += 'fragment_color *= texture_color;' + NL;
-    end;
 
-    if TextureType <> ttShader then
-      FragmentShaderDeclare += Format('uniform %s %s;' + NL,
-        [OpenGLTextureType[TextureType], Uniform.Name]);
+      if TextureType <> ttShader then
+        FragmentShaderDeclare += Format('uniform %s %s;' + NL,
+          [OpenGLTextureType[TextureType], Uniform.Name]);
+    end;
   end;
 end;
 
@@ -782,7 +799,7 @@ begin
 end;
 
 procedure TVRMLShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
-  Code: TDynStringArray);
+  Code: TDynStringArray; const ForwardDeclareInFinalShader: boolean);
 const
   PlugPrefix = 'PLUG_';
 
@@ -848,16 +865,14 @@ const
 var
   PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
   Parameter, PlugName, ProcedureName, CommentBegin, PlugDeclaredParameters,
-    PlugForwardDeclarations: string;
+    PlugForwardDeclaration: string;
   CodeForPlugValue: TDynStringArray;
-  AnyOccurences: boolean;
+  AnyOccurences, AnyOccurencesInThisCodeIndex: boolean;
 begin
   CodeForPlugValue := Source[EffectPartType];
 
   if Code = nil then
     Code := CodeForPlugValue;
-
-  PlugForwardDeclarations := '';
 
   repeat
     PlugName := FindPlugName(PlugValue, PlugDeclaredParameters);
@@ -869,12 +884,13 @@ begin
     StringReplaceAllTo1st(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
     Inc(PlugIdentifiers);
 
-    PlugForwardDeclarations += 'void ' + ProcedureName + PlugDeclaredParameters + ';' + NL;
+    PlugForwardDeclaration := 'void ' + ProcedureName + PlugDeclaredParameters + ';' + NL;
 
     AnyOccurences := false;
     for CodeIndex := 0 to Code.Count - 1 do
     begin
       CodeSearchBegin := 1;
+      AnyOccurencesInThisCodeIndex := false;
       while FindPlugOccurence(CommentBegin, Code[CodeIndex], CodeSearchBegin, PBegin, PEnd) do
       begin
         Parameter := Trim(CopyPos(Code[CodeIndex], PBegin + Length(CommentBegin), PEnd - 1));
@@ -882,7 +898,19 @@ begin
 
         { do not find again the same plug comment by FindPlugOccurence }
         CodeSearchBegin := PEnd;
+
+        AnyOccurencesInThisCodeIndex := true;
         AnyOccurences := true;
+      end;
+
+      if AnyOccurencesInThisCodeIndex then
+      begin
+        { added "plugged_x" function must be forward declared first.
+          Otherwise it could be defined after it is needed, or inside different
+          compilation unit. }
+        if ForwardDeclareInFinalShader and (CodeIndex = 0) then
+          PlugDirectly(CodeForPlugValue, CodeIndex, '$declare-forward-procedures$', PlugForwardDeclaration, true) else
+          PlugDirectly(Code            , CodeIndex, '$declare-forward-procedures$', PlugForwardDeclaration, true);
       end;
     end;
 
@@ -892,35 +920,24 @@ begin
 
   { regardless if any (and how many) plug points were found,
     always insert PlugValue into CodeForPlugValue }
-  PlugDirectly(CodeForPlugValue, '$declare-procedures$', PlugValue);
-
-  { all added "plugged_x" functions must be forward declared first.
-    Otherwise they could be defined after they are needed, or inside different
-    compilation unit. }
-  PlugDirectly(CodeForPlugValue, '$declare-forward-procedures$', PlugForwardDeclarations);
+  CodeForPlugValue.Add(PlugValue);
 end;
 
 procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
-  const PlugName, PlugValue: string);
+  const CodeIndex: Cardinal;
+  const PlugName, PlugValue: string;
+  const InsertAtBeginIfNotFound: boolean);
 var
   P: Integer;
 begin
-  if Code.Count = 0 then Exit;
+  P := Pos('/* PLUG: ' + PlugName, Code[CodeIndex]);
 
-  { TODO: assume only Code[0] matters for PlugDirectly.
-    This may be Ok for now, PlugDirectly is used only with plug names that
-    are known to be inside Code[0]. In fact, this may be a nice optimization. }
-
-  P := Pos('/* PLUG: ' + PlugName, Code[0]);
-
-  if P = 0 then
-  begin
-    if WarnMissingPlugs then
-      VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
-    Exit;
-  end;
-
-  Code[0] := InsertIntoString(Code[0], P, PlugValue + NL);
+  if P <> 0 then
+    Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, PlugValue + NL) else
+  if InsertAtBeginIfNotFound then
+    Code[CodeIndex] := PlugValue + NL + Code[CodeIndex] else
+  if WarnMissingPlugs then
+    VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
 end;
 
 procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
@@ -950,17 +967,17 @@ var
     PCFDefine: array [TPercentageCloserFiltering] of string =
     ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
   begin
-    PlugDirectly(Source[stVertex], 'vertex_process',
-      TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane);
-    PlugDirectly(Source[stFragment], 'texture_apply',
-      TextureColorDeclare + TextureApply);
-    PlugDirectly(Source[stFragment], '$declare-variables$',
-      FragmentShaderDeclare + PCFDefine[PercentageCloserFiltering]);
+    PlugDirectly(Source[stVertex], 0, 'vertex_process',
+      TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
+    PlugDirectly(Source[stFragment], 0, 'texture_apply',
+      TextureColorDeclare + TextureApply, false);
+    PlugDirectly(Source[stFragment], 0, '$declare-variables$',
+      FragmentShaderDeclare + PCFDefine[PercentageCloserFiltering], false);
     { TODO: remove $declare-shadow-map-procedures$, in favor of using
       forward }
-    PlugDirectly(Source[stFragment], '$declare-shadow-map-procedures$',
-      {$I shadow_map_common.fs.inc});
-    PlugDirectly(Source[stFragment], 'fragment_end', FragmentEnd);
+    PlugDirectly(Source[stFragment], 0, '$declare-shadow-map-procedures$',
+      {$I shadow_map_common.fs.inc}, false);
+    PlugDirectly(Source[stFragment], 0, 'fragment_end', FragmentEnd, false);
   end;
 
   procedure EnableLights;
@@ -1392,13 +1409,15 @@ begin
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TMFNode;
-  const Code: TDynStringArray);
+  const Code: TDynStringArray;
+  const ForwardDeclareInFinalShader: boolean);
 begin
-  EnableEffects(Effects.Items, Code);
+  EnableEffects(Effects.Items, Code, ForwardDeclareInFinalShader);
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
-  const Code: TDynStringArray);
+  const Code: TDynStringArray;
+  const ForwardDeclareInFinalShader: boolean);
 
   procedure EnableEffect(Effect: TNodeEffect);
 
@@ -1410,7 +1429,7 @@ procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
       Contents := Part.LoadContents;
       if (Contents <> '') and Part.FdType.GetValue(PartType) then
       begin
-        Plug(PartType, Contents, Code);
+        Plug(PartType, Contents, Code, ForwardDeclareInFinalShader);
         ShapeRequiresShaders := true;
       end;
     end;
