@@ -988,6 +988,15 @@ var
       TextureColorDeclare + TextureApply, false);
     PlugDirectly(Source[stFragment], 0, '/* PLUG: fragment_end', FragmentEnd, false);
 
+    { TODO: Using true as last param here would be better
+      (composed_shader_using_plugs.x3dv should not need /* PLUG-DECLARATIONS */),
+      but it could also add unneeded stuff --- if ComposedShader is not prepared,
+      then it could make it break (e.g. adding stuff before #version and such).
+      This waits for fixing ComposedShader: normal textures should not be
+      passed then at all, so our texture_0 should not even exist
+      and TextureUniformsDeclare should be empty?
+      This would also fix "missing texture_0" warnings on normal shaders/
+      demos. }
     PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
       TextureUniformsDeclare, false);
 
