@@ -881,6 +881,14 @@ begin
     PlugName := FindPlugName(PlugValue, PlugDeclaredParameters);
     if PlugName = '' then Break;
 
+    { When using vertex_object_space_change plug, we need to do something
+      special: use VERTEX_OBJECT_SPACE_CHANGED, otherwise standard
+      ftransform() will ignore vertex object space change. }
+    if (PlugName = 'vertex_object_space_change') and
+       (Code = Source[stVertex]) then
+      PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
+        '#define VERTEX_OBJECT_SPACE_CHANGED', false);
+
     CommentBegin := '/* PLUG: ' + PlugName + ' ';
 
     ProcedureName := 'plugged_' + IntToStr(PlugIdentifiers);
