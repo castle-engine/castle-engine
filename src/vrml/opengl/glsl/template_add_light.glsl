@@ -1,9 +1,9 @@
-/* This shader code will be used for adding light source contribution.
-   It really only makes sense when used from within VRMLShader unit,
-   it's not a standalone piece of code. */
+/* Shader code used for adding light source contribution. */
 
 void PLUG_add_light_contribution_side(inout vec4 color,
-  const in vec3 normal_eye, const in gl_MaterialParameters material)
+  const in vec4 vertex_eye,
+  const in vec3 normal_eye,
+  const in gl_MaterialParameters material)
 {
   vec3 light_dir;
 
