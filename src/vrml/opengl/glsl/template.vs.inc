@@ -17,16 +17,19 @@
 '{' + LineEnding + 
 '  vec4 vertex_object = gl_Vertex;' + LineEnding + 
 '  vec3 normal_object = gl_Normal;' + LineEnding + 
+'  /* PLUG: vertex_object_space_change (vertex_object, normal_object) */' + LineEnding + 
 '  /* PLUG: vertex_object_space (vertex_object, normal_object) */' + LineEnding + 
 '' + LineEnding + 
 '  vertex_eye = gl_ModelViewMatrix * vertex_object;' + LineEnding + 
-'  /* Yes, we need to normalize here,' + LineEnding + 
-'     and then fragment shader will also normalize?' + LineEnding + 
-'     TODO: think, make sure. */' + LineEnding + 
+'  /* Although we will normalize it again in the fragment shader' + LineEnding + 
+'     (otherwise interpolated result could be shorter < 1, imagine a case' + LineEnding + 
+'     when normals point the almost opposite directions on the opposite' + LineEnding + 
+'     vertexes), we also have to normalize it in vertex shader (otherwise' + LineEnding + 
+'     a much longer normal on one vertex would pull all the interpolated' + LineEnding + 
+'     normals, thus making their direction invalid in fragment shaders). */' + LineEnding + 
 '  normal_eye = normalize(gl_NormalMatrix * normal_object);' + LineEnding + 
 '' + LineEnding + 
-'  /* PLUG: vertex_process (vertex_eye, normal_eye) */' + LineEnding + 
-'  /* (const in vec4 vertex_eye, const in vec3 normal_eye) */' + LineEnding + 
+'  /* PLUG: vertex_eye_space (vertex_eye, normal_eye) */' + LineEnding + 
 '' + LineEnding + 
 '#ifdef VERTEX_OBJECT_SPACE_CHANGED' + LineEnding + 
 '  gl_Position = gl_ProjectionMatrix * vertex_eye;' + LineEnding + 

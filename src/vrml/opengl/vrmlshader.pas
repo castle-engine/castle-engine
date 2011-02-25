@@ -982,7 +982,7 @@ var
     PCFDefine: array [TPercentageCloserFiltering] of string =
     ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
   begin
-    PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_process',
+    PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
     PlugDirectly(Source[stFragment], 0, '/* PLUG: texture_apply',
       TextureColorDeclare + TextureApply, false);
@@ -1389,7 +1389,7 @@ begin
     'attribute mat3 tangent_to_object_space;' +NL+
     'varying mat3 tangent_to_eye_space;' +NL+
     NL+
-    'void PLUG_vertex_process(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+    'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
     '{' +NL+
     '  tangent_to_eye_space = gl_NormalMatrix * tangent_to_object_space;' +NL+
     '}');
@@ -1500,7 +1500,7 @@ var
   FogFactor: string;
 begin
   Plug(stVertex,
-    'void PLUG_vertex_process(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+    'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
     '{' +NL+
     '  gl_FogFragCoord = vertex_eye.z;' +NL+
     '}');

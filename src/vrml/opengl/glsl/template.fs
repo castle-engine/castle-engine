@@ -45,7 +45,7 @@ void main(void)
   /* NVidia GeForce 450 GTS (kocury) fails to compile a shader when
      we pass gl_FragColor as inout parameter (testcase even fresnel_and_toon.x3dv).
      Radeon X1600 (fglrx, chantal) works with it OK.
-     For now, just the simplest workaround: use temp variably. */
+     The simplest workaround: use a temp variable to hold it. */
 
   vec4 fragment_color = gl_FragColor;
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
