@@ -127,7 +127,7 @@ type
     Shader: TVRMLShader;
   public
     procedure Enable(var TextureApply, TextureColorDeclare,
-      TextureCoordInitialize, TextureCoordMatrix, FragmentShaderDeclare: string);
+      TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare: string);
   end;
 
   TTextureShaders = specialize TFPGObjectList<TTextureShader>;
@@ -656,7 +656,7 @@ end;
 { TTextureShader ------------------------------------------------------------- }
 
 procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
-  TextureCoordInitialize, TextureCoordMatrix, FragmentShaderDeclare: string);
+  TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare: string);
 const
   OpenGLTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
@@ -699,7 +699,7 @@ begin
     TextureApply += Format('gl_FragColor = ' + TextureSampleCall + ';' + NL +
       'return;',
       [Uniform.Name, TexCoordName]);
-    FragmentShaderDeclare += Format('uniform sampler2D %s;' + NL,
+    TextureUniformsDeclare += Format('uniform sampler2D %s;' + NL,
       [Uniform.Name]);
   end else
   begin
@@ -748,15 +748,18 @@ begin
           we add it to TextureApply that will be directly placed within
           the source. }
         TextureApply += Code[0];
-        for I := 1 to Code.Count - 1 do
-          Shader.Source[stFragment].Add(Code[I]);
+        { Don't add to empty Source[stFragment], in case ComposedShader
+          doesn't want any fragment shader }
+        if Shader.Source[stFragment].Count <> 0 then
+          for I := 1 to Code.Count - 1 do
+            Shader.Source[stFragment].Add(Code[I]);
       finally FreeAndNil(Code) end;
 
       { TODO: always modulate mode for now }
       TextureApply += 'fragment_color *= texture_color;' + NL;
 
       if TextureType <> ttShader then
-        FragmentShaderDeclare += Format('uniform %s %s;' + NL,
+        TextureUniformsDeclare += Format('uniform %s %s;' + NL,
           [OpenGLTextureType[TextureType], Uniform.Name]);
     end;
   end;
@@ -955,7 +958,7 @@ end;
 procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
 var
   TextureApply, TextureColorDeclare, TextureCoordInitialize,
-    TextureCoordMatrix, FragmentShaderDeclare: string;
+    TextureCoordMatrix, TextureUniformsDeclare: string;
 
   procedure EnableTextures;
   var
@@ -965,11 +968,11 @@ var
     TextureColorDeclare := '';
     TextureCoordInitialize := '';
     TextureCoordMatrix := '';
-    FragmentShaderDeclare := '';
+    TextureUniformsDeclare := '';
 
     for I := 0 to TextureShaders.Count - 1 do
       TextureShaders[I].Enable(TextureApply, TextureColorDeclare,
-        TextureCoordInitialize, TextureCoordMatrix, FragmentShaderDeclare);
+        TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare);
   end;
 
   { Applies effects from various strings here.
@@ -984,12 +987,14 @@ var
     PlugDirectly(Source[stFragment], 0, 'texture_apply',
       TextureColorDeclare + TextureApply, false);
     PlugDirectly(Source[stFragment], 0, '$declare-variables$',
-      FragmentShaderDeclare + PCFDefine[PercentageCloserFiltering], false);
-    { TODO: remove $declare-shadow-map-procedures$, in favor of using
-      forward }
-    PlugDirectly(Source[stFragment], 0, '$declare-shadow-map-procedures$',
-      {$I shadow_map_common.fs.inc}, false);
+      TextureUniformsDeclare, false);
     PlugDirectly(Source[stFragment], 0, 'fragment_end', FragmentEnd, false);
+
+    { Don't add to empty Source[stFragment], in case ComposedShader
+      doesn't want any fragment shader }
+    if Source[stFragment].Count <> 0 then
+      Source[stFragment].Add(PCFDefine[PercentageCloserFiltering] + NL +
+        {$I shadow_map_common.fs.inc});
   end;
 
   procedure EnableLights;

@@ -10,7 +10,12 @@ varying vec4 vertex_eye;
 varying vec3 normal_eye;
 
 /* PLUG: $declare-variables$ */
-/* PLUG: $declare-shadow-map-procedures$ */
+
+/* Forward declare shadow maps utilities. */
+float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord,
+  const in float size);
+float shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord);
+
 /* PLUG: $declare-forward-procedures$ */
 /* PLUG: $declare-procedures$ */
 
