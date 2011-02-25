@@ -997,6 +997,11 @@ var
     I, J: Integer;
     LightShaderBack, LightShaderFront: string;
   begin
+    { If we have no fragment shader (means that we used ComposedShader node
+      without fragment shader) then don't add light sources code.
+      Otherwise we would create a fragment shader without any main() inside. }
+    if Source[stFragment].Count = 0 then Exit;
+
     for I := 0 to LightShaders.Count - 1 do
     begin
       LightShaderBack  := LightShaders[I].Code[0];
