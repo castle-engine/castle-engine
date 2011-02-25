@@ -182,7 +182,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight);
           beamWidth = 0 => GL_SPOT_EXPONENT = 5
           beamWidth = Pi/4 => GL_SPOT_EXPONENT =~ 0.5 / 0.9 =~ 1/2
           beamWidth = Pi/2 => GL_SPOT_EXPONENT =~ 0.5 / 1.67 =~ 1/3
-        Honestly I don't see how it's much better than our atbitrary way... }
+        Honestly I don't see how it's much better than our arbitrary way... }
     if LightNode.FdBeamWidth.Value >= LightNode.FdCutOffAngle.Value then
       glLightf(glLightNum, GL_SPOT_EXPONENT, 0) else
       glLightf(glLightNum, GL_SPOT_EXPONENT, 1
