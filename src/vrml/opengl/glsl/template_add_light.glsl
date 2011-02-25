@@ -24,11 +24,11 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   /* Check gl_LightSource[light_number].position first, as we want to add nothing
      (not even ambient term) when were outside of spot light cone. */
 
+  float spot_cos = dot(normalize(gl_LightSource[light_number].spotDirection), -light_dir);
   /* non-spot lights have always cutoff = 180, with cos = -1,
      so the check below will always be false. No need to explicitly
      compare with -1, nice. */
-  if (dot(normalize(gl_LightSource[light_number].spotDirection), -light_dir) <
-      gl_LightSource[light_number].spotCosCutoff)
+  if (spot_cos < gl_LightSource[light_number].spotCosCutoff)
     return;
 #endif
 
@@ -52,6 +52,10 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 
   float scale = 1.0;
   /* PLUG: light_scale (scale, normal_eye, light_dir, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */
+
+#ifdef LIGHT_TYPE_SPOT
+  scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);
+#endif
 
   /* add ambient term */
   vec4 light_color =

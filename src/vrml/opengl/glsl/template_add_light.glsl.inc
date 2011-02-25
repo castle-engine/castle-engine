@@ -26,11 +26,11 @@
 '  /* Check gl_LightSource[light_number].position first, as we want to add nothing' + LineEnding + 
 '     (not even ambient term) when were outside of spot light cone. */' + LineEnding + 
 '' + LineEnding + 
+'  float spot_cos = dot(normalize(gl_LightSource[light_number].spotDirection), -light_dir);' + LineEnding + 
 '  /* non-spot lights have always cutoff = 180, with cos = -1,' + LineEnding + 
 '     so the check below will always be false. No need to explicitly' + LineEnding + 
 '     compare with -1, nice. */' + LineEnding + 
-'  if (dot(normalize(gl_LightSource[light_number].spotDirection), -light_dir) <' + LineEnding + 
-'      gl_LightSource[light_number].spotCosCutoff)' + LineEnding + 
+'  if (spot_cos < gl_LightSource[light_number].spotCosCutoff)' + LineEnding + 
 '    return;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
@@ -54,6 +54,10 @@
 '' + LineEnding + 
 '  float scale = 1.0;' + LineEnding + 
 '  /* PLUG: light_scale (scale, normal_eye, light_dir, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */' + LineEnding + 
+'' + LineEnding + 
+'#ifdef LIGHT_TYPE_SPOT' + LineEnding + 
+'  scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);' + LineEnding + 
+'#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 
 '  vec4 light_color =' + LineEnding + 
