@@ -1,11 +1,11 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "template_add_light.glsl" }
-'/* This shader code will be used for adding light source contribution.' + LineEnding + 
-'   It really only makes sense when used from within VRMLShader unit,' + LineEnding + 
-'   it''s not a standalone piece of code. */' + LineEnding + 
+'/* Shader code used for adding light source contribution. */' + LineEnding + 
 '' + LineEnding + 
 'void PLUG_add_light_contribution_side(inout vec4 color,' + LineEnding + 
-'  const in vec3 normal_eye, const in gl_MaterialParameters material)' + LineEnding + 
+'  const in vec4 vertex_eye,' + LineEnding + 
+'  const in vec3 normal_eye,' + LineEnding + 
+'  const in gl_MaterialParameters material)' + LineEnding + 
 '{' + LineEnding + 
 '  vec3 light_dir;' + LineEnding + 
 '' + LineEnding + 
