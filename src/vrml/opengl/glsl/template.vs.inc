@@ -8,9 +8,7 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 
-'/* PLUG: $declare-variables$ */' + LineEnding + 
-'/* PLUG: $declare-forward-procedures$ */' + LineEnding + 
-'/* PLUG: $declare-procedures$ */' + LineEnding + 
+'/* PLUG-DECLARATIONS */' + LineEnding + 
 '' + LineEnding + 
 'varying vec4 vertex_eye;' + LineEnding + 
 'varying vec3 normal_eye;' + LineEnding + 
