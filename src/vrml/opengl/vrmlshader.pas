@@ -912,8 +912,8 @@ begin
           Otherwise it could be defined after it is needed, or inside different
           compilation unit. }
         if ForwardDeclareInFinalShader and (CodeIndex = 0) then
-          PlugDirectly(CodeForPlugValue, CodeIndex, '$declare-forward-procedures$', PlugForwardDeclaration, true) else
-          PlugDirectly(Code            , CodeIndex, '$declare-forward-procedures$', PlugForwardDeclaration, true);
+          PlugDirectly(CodeForPlugValue, CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true) else
+          PlugDirectly(Code            , CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true);
       end;
     end;
 
@@ -938,7 +938,7 @@ begin
 
   if CodeIndex < Code.Count then
   begin
-    P := Pos('/* PLUG: ' + PlugName, Code[CodeIndex]);
+    P := Pos(PlugName, Code[CodeIndex]);
     if P <> 0 then
     begin
       Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, PlugValue + NL);
@@ -982,13 +982,14 @@ var
     PCFDefine: array [TPercentageCloserFiltering] of string =
     ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
   begin
-    PlugDirectly(Source[stVertex], 0, 'vertex_process',
+    PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_process',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
-    PlugDirectly(Source[stFragment], 0, 'texture_apply',
+    PlugDirectly(Source[stFragment], 0, '/* PLUG: texture_apply',
       TextureColorDeclare + TextureApply, false);
-    PlugDirectly(Source[stFragment], 0, '$declare-forward-procedures$',
+    PlugDirectly(Source[stFragment], 0, '/* PLUG: fragment_end', FragmentEnd, false);
+
+    PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
       TextureUniformsDeclare, false);
-    PlugDirectly(Source[stFragment], 0, 'fragment_end', FragmentEnd, false);
 
     { Don't add to empty Source[stFragment], in case ComposedShader
       doesn't want any fragment shader }

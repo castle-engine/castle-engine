@@ -14,7 +14,7 @@ float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord,
   const in float size);
 float shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord);
 
-/* PLUG: $declare-forward-procedures$ */
+/* PLUG-DECLARATIONS */
 
 void main(void)
 {
