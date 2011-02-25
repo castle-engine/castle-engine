@@ -929,14 +929,26 @@ procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
   const InsertAtBeginIfNotFound: boolean);
 var
   P: Integer;
+  Done:  boolean;
 begin
-  P := Pos('/* PLUG: ' + PlugName, Code[CodeIndex]);
+  Done := false;
 
-  if P <> 0 then
-    Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, PlugValue + NL) else
-  if InsertAtBeginIfNotFound then
-    Code[CodeIndex] := PlugValue + NL + Code[CodeIndex] else
-  if WarnMissingPlugs then
+  if CodeIndex < Code.Count then
+  begin
+    P := Pos('/* PLUG: ' + PlugName, Code[CodeIndex]);
+    if P <> 0 then
+    begin
+      Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, PlugValue + NL);
+      Done := true;
+    end else
+    if InsertAtBeginIfNotFound then
+    begin
+      Code[CodeIndex] := PlugValue + NL + Code[CodeIndex];
+      Done := true;
+    end;
+  end;
+
+  if (not Done) and WarnMissingPlugs then
     VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
 end;
 
