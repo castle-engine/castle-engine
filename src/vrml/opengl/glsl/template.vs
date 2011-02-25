@@ -6,9 +6,7 @@
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
-/* PLUG: $declare-variables$ */
 /* PLUG: $declare-forward-procedures$ */
-/* PLUG: $declare-procedures$ */
 
 varying vec4 vertex_eye;
 varying vec3 normal_eye;

@@ -986,7 +986,7 @@ var
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
     PlugDirectly(Source[stFragment], 0, 'texture_apply',
       TextureColorDeclare + TextureApply, false);
-    PlugDirectly(Source[stFragment], 0, '$declare-variables$',
+    PlugDirectly(Source[stFragment], 0, '$declare-forward-procedures$',
       TextureUniformsDeclare, false);
     PlugDirectly(Source[stFragment], 0, 'fragment_end', FragmentEnd, false);
 
