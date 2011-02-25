@@ -643,30 +643,15 @@ end;
 
 procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
   TextureCoordInitialize, TextureCoordMatrix, FragmentShaderDeclare: string);
-
-  procedure EnableEffectsString(var Code: string);
-  var
-    S: TDynStringArray;
-  begin
-    { optimize, no need for TStringList creation in case of no effects }
-    if Node.FdEffects.Count <> 0 then
-    begin
-      S := TDynStringArray.Create;
-      try
-        S.Add(Code);
-        Shader.EnableEffects(Node.FdEffects, S);
-        Code := S[0];
-      finally FreeAndNil(S) end;
-    end;
-  end;
-
 const
   OpenGLTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
 var
   Uniform: TUniform;
-  TextureSampleCall, Code, TexCoordName: string;
+  TextureSampleCall, TexCoordName: string;
   ShadowLightShader: TLightShader;
+  Code: TDynStringArray;
+  I: Integer;
 begin
   if TextureType <> ttShader then
   begin
@@ -730,18 +715,28 @@ begin
         else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
       end;
 
-      if TextureType <> ttShader then
-        Code := Format('texture_color = ' + TextureSampleCall + ';' +NL+
-          '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
-          [Uniform.Name, TexCoordName]) else
-        Code := Format('texture_color = ' + TextureSampleCall + ';' +NL+
-          '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
-          [TexCoordName]);
+      Code := TDynStringArray.Create;
+      try
+        if TextureType <> ttShader then
+          Code.Add(Format('texture_color = ' + TextureSampleCall + ';' +NL+
+            '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
+            [Uniform.Name, TexCoordName])) else
+          Code.Add(Format('texture_color = ' + TextureSampleCall + ';' +NL+
+            '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
+            [TexCoordName]));
 
-      EnableEffectsString(Code);
+        Shader.EnableEffects(Node.FdEffects, Code);
+
+        { Use generated Code. Code[0] for texture is a little special,
+          we add it to TextureApply that will be directly placed within
+          the source. }
+        TextureApply += Code[0];
+        for I := 1 to Code.Count - 1 do
+          Shader.Source[stFragment].Add(Code[I]);
+      finally FreeAndNil(Code) end;
 
       { TODO: always modulate mode for now }
-      TextureApply += Code + 'fragment_color *= texture_color;' + NL;
+      TextureApply += 'fragment_color *= texture_color;' + NL;
     end;
 
     if TextureType <> ttShader then
@@ -910,7 +905,11 @@ procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
 var
   P: Integer;
 begin
-  if Code.Count = 0 then Exit; // TODO: hack, assume only Code[0] matters
+  if Code.Count = 0 then Exit;
+
+  { TODO: assume only Code[0] matters for PlugDirectly.
+    This may be Ok for now, PlugDirectly is used only with plug names that
+    are known to be inside Code[0]. In fact, this may be a nice optimization. }
 
   P := Pos('/* PLUG: ' + PlugName, Code[0]);
 
@@ -966,7 +965,7 @@ var
 
   procedure EnableLights;
   var
-    I: Integer;
+    I, J: Integer;
     LightShaderBack, LightShaderFront: string;
   begin
     for I := 0 to LightShaders.Count - 1 do
@@ -986,6 +985,9 @@ var
 
       Plug(stFragment, LightShaderBack);
       Plug(stFragment, LightShaderFront);
+
+      for J := 1 to LightShaders[I].Code.Count - 1 do
+        Source[stFragment].Add(LightShaders[I].Code[J]);
     end;
   end;
 
