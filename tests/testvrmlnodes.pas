@@ -1026,7 +1026,8 @@ begin
          (VRML1StateNode <> vsCoordinate3) then
       begin
         for J := 0 to N.Fields.Count - 1 do
-          if N.Fields[J].Name <> 'metadata' then
+          if (N.Fields[J].Name <> 'metadata') and
+             (N.Fields[J].Name <> 'effects') then
           try
             Assert((chVisibleVRML1State in N.Fields[J].Changes) or
                    (chGeometryVRML1State in N.Fields[J].Changes));
@@ -1177,7 +1178,8 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       FieldIs(Field, TNodeX3DViewpointNode, 'centerOfRotation') or { also not implemented }
       FieldIs(Field, TVRMLViewpointNode, 'cameraMatrixSendAlsoOnOffscreenRendering') or
       FieldIs(Field, TVRMLCameraNode_1, 'focalDistance') or
-      FieldIs(Field, TVRMLCameraNode_1, 'heightAngle') or
+      FieldIs(Field, TNodePerspectiveCamera, 'heightAngle') or
+      FieldIs(Field, TNodeOrthographicCamera, 'height') or
       FieldIs(Field, TNodeMovieTexture, 'speed') or
       FieldIs(Field, TNodeSeparator, 'renderCulling') or { ignored }
       FieldIs(Field, TNodeInline, 'load') or { handled by eventout callback }
