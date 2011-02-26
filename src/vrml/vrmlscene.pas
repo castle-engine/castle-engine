@@ -3944,7 +3944,7 @@ var
       Scene.HeadlightOn --- each UpdateHeadlightOnFromNavigationInfo
       then overrides what user did, so don't call it when not needed.
 
-      Testcase: kambi_vrml_test_suite/x3d/headlight_anim.x3dv when
+      Testcase: demo_models/x3d/headlight_anim.x3dv when
       NavigationInfo node is removed, try pressing Ctrl+H in view3dscene. }
 
     HeadlightInitialized := false;

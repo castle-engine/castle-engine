@@ -38,7 +38,7 @@ type
 
     @unorderedList(
       @item("Single" precision is sometimes @italic(not) enough for this.
-        Proof: open rotate.kanim (from kambi_vrml_test_suite).
+        Proof: open rotate.kanim (from demo_models).
         Change "on display" time pass to 1000, wait a couple seconds
         (world time will reach a couple of thousands),
         change "on display" time pass back to 1.

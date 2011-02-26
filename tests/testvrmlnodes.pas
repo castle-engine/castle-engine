@@ -283,8 +283,8 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
 
 begin
   {$ifdef VRMLENGINE_TRUNK_AVAILABLE}
-  TestReadWrite('../../kambi_vrml_test_suite/x3d/proto_sfnode_default.x3dv');
-  TestReadWrite('../../kambi_vrml_test_suite/x3d/tricky_def_use.x3dv');
+  TestReadWrite('../../demo_models/x3d/proto_sfnode_default.x3dv');
+  TestReadWrite('../../demo_models/x3d/tricky_def_use.x3dv');
   {$endif VRMLENGINE_TRUNK_AVAILABLE}
 end;
 

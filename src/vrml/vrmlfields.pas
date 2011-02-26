@@ -344,7 +344,7 @@ type
       parent. When saving, we will sort everything according to
       PositionInParent.
 
-      See e.g. ../../kambi_vrml_test_suite/x3d/tricky_def_use.x3dv
+      See e.g. ../../demo_models/x3d/tricky_def_use.x3dv
       for tests of some tricky layout. When reading such file we have
       to record PositionInParent to be able to save such file correctly. }
     property PositionInParent: Integer
@@ -416,7 +416,7 @@ type
       but you can have many "IS" clauses connecting events,
       also exposedField may have "IS" clause that should be interpreted
       actually as links to it's exposed events).
-      See e.g. @code(kambi_vrml_test_suite/x3d/proto_events_test_3.x3dv).
+      See e.g. @code(demo_models/x3d/proto_events_test_3.x3dv).
 
       Note that having "IS" clauses doesn't mean that the field should
       be considered "without any value". This is not a good way of thinking,

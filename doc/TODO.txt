@@ -122,8 +122,8 @@ Scene manager / controls / better Lazarus integration:
 
 - animating Background in kanim doesn't work out of the box,
   since TKamSceneManager looks at MainScene.Background by default.
-  Concerns kambi_vrml_test_suite/kanim/background_color_animation.kanim,
-  probably also kambi_vrml_test_suite/kanim/slow_background_animation.kanim
+  Concerns demo_models/kanim/background_color_animation.kanim,
+  probably also demo_models/kanim/slow_background_animation.kanim
   (but didn't get to finishing loading slow_background_animation.kanim),
   viewed e.g. in view3dscene (but probably everywhere with scene manager).
 
@@ -313,7 +313,7 @@ Scene manager / controls / better Lazarus integration:
   A 2nd plane sensor would be useful? At some angles, plane sensor behaves bad.
 
   Rot sensor - on teapot, even initial very small drag rotates it too much,
-  see kambi_vrml_test_suite/x3d/cubemap_generated_recursive.x3dv
+  see demo_models/x3d/cubemap_generated_recursive.x3dv
 ------------------------------------------------------------------------------
 view3dscene 4.0:
 - JavaScript (http://besen.sourceforge.net/
@@ -351,7 +351,7 @@ Various ideas:
 
 - screenshot (per year contest?): http://vcg.isti.cnr.it/cgf/index.php
 
-- kambi_vrml_test_suite/x3d/import_export.x3dv fails
+- demo_models/x3d/import_export.x3dv fails
   on view3dscene load+save test (run_tests.sh).
 
   That's because TVRMLImport.SaveToStream doesn't bind the
@@ -413,7 +413,7 @@ Various ideas:
 
   So loading anything with a 3D Font takes some time (around 4-5 seconds per font; while it's instanteneous on 32bit). 3D Font is right now used only by VRML Text node, no program initializes TGLOutlineFont directly.
 
-  The slowness can be seen e.g. in castle when loading ("credits" model has 3D fonts). Or in view3dscene when opening any file using font, like x3d/cubemap_generated_in_dynamic_world.x3dv. Extreme case is kambi_vrml_test_suite/vrml_2/text.wrl: all 9 fonts used, loading time is 37 seconds.
+  The slowness can be seen e.g. in castle when loading ("credits" model has 3D fonts). Or in view3dscene when opening any file using font, like x3d/cubemap_generated_in_dynamic_world.x3dv. Extreme case is demo_models/vrml_2/text.wrl: all 9 fonts used, loading time is 37 seconds.
 
   This is also a blocker for making "welcome scene" in view3dscene using Text font.
 
@@ -678,7 +678,7 @@ Things for much later:
 ------------------------------------------------------------------------------
 
 macosx glViewImage -dRELEASE fpc 2.4.0:
-  tiling on kambi_vrml_test_suite/textures/17_gris_... looks bad.
+  tiling on demo_models/textures/17_gris_... looks bad.
   Start screen tiling works fine.
 
   Images on kambi_lines are also broken the same way.
@@ -864,7 +864,7 @@ Renderer:
 - Improve raytracer to use INormal (smooth normals), ITexCoord (load and use
   textures).
 
-- ~/sources/vrmlengine/trunk/kambi_vrml_test_suite/shadow_maps/primitives.x3dv
+- ~/sources/vrmlengine/trunk/demo_models/shadow_maps/primitives.x3dv
   has invalid texture coords copied.
 
   This is currently harmless and is silently

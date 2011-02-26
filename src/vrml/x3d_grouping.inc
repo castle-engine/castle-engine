@@ -389,7 +389,7 @@ begin
     it must find all it's occurrences inside Shapes, and add light there
     2. it fails ugly in case of DEF / USE of shapes.
 
-    See kambi_vrml_test_suite/vrml_2/directional_light_scope.wrl test. Imagine
+    See demo_models/vrml_2/directional_light_scope.wrl test. Imagine
     (simplified VRML below) :
 
       Group {

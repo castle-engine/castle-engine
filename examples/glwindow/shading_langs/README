@@ -365,8 +365,7 @@ assembly langs actually).
       v.xyz = ...;
 
     This reflects assembly shading langs underneath, and ability to "swizzle"
-    vector components for free. E.g. in
-    kambi_vrml_test_suite/shaders/glsl_some_deform.vs,
+    vector components for free. E.g. in demo_models/shaders/glsl_some_deform.vs,
     initial code was
       v[0] += v[1];
       v[2] += v[1];
@@ -417,8 +416,7 @@ assembly langs actually).
     See ../../glshaders.pas for full code of class to handle GLSL programs,
     using both std GL or ARB versions.
 
-  See kambi_vrml_test_suite/shaders/
-  for demo how it's used from X3D (aka VRML 3.0).
+  See demo_models/shaders/ for demo how it's used from X3D (aka VRML 3.0).
 
   http://www.opengl.org/code/category/C20
 
@@ -426,7 +424,7 @@ assembly langs actually).
 More:
 
 Demos:
-- see kambi_vrml_test_suite demos:
+- see demo_models demos:
   - shaders.x3dv
   - see specular_demo_phong_shading
   - see e.g. fountain VRML with toon shading applied
@@ -434,4 +432,4 @@ Demos:
 - see bump mapping in VRML engine, when bmGLSLNormal and bmGLSLParallax,
   implemented using GLSL shaders,
   see parallax bump mapping,
-  examples in kambi_vrml_test_suite/bump_mapping
+  examples in demo_models/bump_mapping

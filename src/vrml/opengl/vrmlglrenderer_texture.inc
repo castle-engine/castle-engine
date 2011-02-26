@@ -2161,7 +2161,7 @@ begin
     before showing this texture, to recreate mipmaps.
 
     To see bug, comment below, and run view3scene on
-    kambi_vrml_test_suite/x3d/cubemap_generated_recursive.x3dv
+    demo_models/x3d/cubemap_generated_recursive.x3dv
     Before pressing [space] (which triggers Update method), teapots
     (or any other objects, reproducible with various IndexedFaceSets)
     will have seemingly random mipmaps (base level 0 is Ok, RGB(255,0,255),

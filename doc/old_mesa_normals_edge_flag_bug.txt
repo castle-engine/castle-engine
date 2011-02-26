@@ -15,7 +15,7 @@ And the Mesa version where the problem is fixed is not known yet
 --- should be added to openglttfonts.pas near GLVersion.IsMesa check.
 
 Tests on VRMLs from
-[http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php] and
+[http://vrmlengine.sourceforge.net/demo_models.php] and
 [http://vrmlengine.sourceforge.net/vrml_engine_doc.php].
 
 simplest_sphere_1.wrl:

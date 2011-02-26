@@ -1311,7 +1311,7 @@ begin
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
-        { Negate reflect result --- just like for kambi_vrml_test_suite/water/water_reflections_normalmap.fs }
+        { Negate reflect result --- just like for demo_models/water/water_reflections_normalmap.fs }
         TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(vertex_eye), normal_eye);' + NL,
           [TextureUnit]);
       end;

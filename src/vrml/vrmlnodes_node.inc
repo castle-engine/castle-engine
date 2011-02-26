@@ -934,8 +934,8 @@
 
       TODO: memory leaks are known to be possible in some difficult cases
       with PrototypeInstanceHelpers. See e.g.
-      ../../../kambi_vrml_test_suite/vrml_2/warnings/errors/proto_leak.wrl and
-      ../../../kambi_vrml_test_suite/vrml_2/warnings/errors/proto_leak_2.wrl
+      ../../../demo_models/vrml_2/warnings/errors/proto_leak.wrl and
+      ../../../demo_models/vrml_2/warnings/errors/proto_leak_2.wrl
       for simple testcases. Reason: PrototypeInstanceHelpers may contain,
       by DEF statements, links to Self.
       This causes circular dependency (Self is child of some node on
@@ -2467,8 +2467,7 @@ begin
        PrototypeInstanceSourceNode.SaveToStream could cause another
        recursive PrototypeInstanceSourceNode.SaveToStream with
        nested proto). For example test read + save
-       kambi_vrml_test_suite/x3d/key_sensor.x3dv, to see that check
-       below is needed. }
+       demo_models/x3d/key_sensor.x3dv, to see that check below is needed. }
      not (Self is TVRMLPrototypeNode) then
   begin
     { If this is an expanded prototype, than delegate writing to the

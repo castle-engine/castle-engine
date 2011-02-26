@@ -124,7 +124,7 @@ type
       I also see this on Mac OS X with the same GPU (driver GL_VERSION:
       2.0 ATI-1.4.56, GL_RENDERER: ATI Radeon X1600 OpenGL Engine).
       Although it's less common on Mac OS X, but can be seen with
-      kambi_vrml_test_suite/x3d/kambi_extensions/rendered_texture.x3dv:
+      demo_models/x3d/rendered_texture.x3dv:
       open it, then make some operation that saves screen,
       e.g. open dialog by Ctrl+O.
 

@@ -76,7 +76,7 @@
 
       @unorderedList(
         @item(On Mesa, small artifacts occur (strange cracks appears on
-          non-power-of-2 texture, see kambi_vrml_test_suite/inlined_textures.wrl).
+          non-power-of-2 texture, see inlined_textures.wrl in demo_models).
           That's the @italic(best) result compared to other vendors, see below.)
 
         @item(On ATI (fglrx on Linux on Mac Book Pro),
@@ -95,12 +95,12 @@
           great NVidia, they will for sure do this right. Well, yes, it works
           correctly on NVidia (GeForce FX 5200)... but the slowdown is
           enormous. For trivial box with 4x3 texture (see
-          kambi_vrml_test_suite/inlined_textures.wrl), that normally runs with
+          inlined_textures.wrl in demo_models), that normally runs with
           virtually infinite speed, suddenly the speed becomes like 1 frame per second !
           Other example when the slowdown is enormous: castle/levels/castle_hall.wrl
 
           You can test yourself (with view3dscene using
-          kambi_vrml_test_suite/inlined_textures.wrl model;
+          inlined_textures.wrl model;
           just compile view3dscene to use non-power-of-2 textures;
           contact me if you want a binary compiled as such for testing.)
 
@@ -1019,8 +1019,8 @@ function TextureNonPowerOfTwo: boolean;
 begin
   Result := false
     { Using this makes OpenGL *sooo* slow...
-      see e.g. castle/levels/castle_hall_final.wrl
-      model or kambi_vrml_test_suite/inlined_textures.wrl.
+      see e.g. castle/levels/castle_hall_final.wrl model or 
+      demo_models/inlined_textures.wrl.
       So it's better to scale textures to be power of 2. }
     {GL_ARB_texture_non_power_of_two or GL_version_2_0};
 end;
@@ -1354,7 +1354,7 @@ var
     Doing so results in mipmaps being ignored, and seemingly GL_NEAREST
     mininification filtering used (ignoring our set MinFilter filtering).
     This could be easily observed with
-    kambi_vrml_test_suite/x3d/tex_visualize_mipmaps.x3dv,
+    demo_models/x3d/tex_visualize_mipmaps.x3dv,
     switching to viewpoint like "Mipmaps from DDS" or "Colored mipmaps from DDS"
     --- you could clearly see that mipmaps are ignored and ugly nearest filtering
     gets used.
@@ -1894,7 +1894,7 @@ begin
   glBindTexture(GL_TEXTURE_2D, Tex);
 
   { Testcase that fails on Radeon chantal (ATI Radeon X1600) Linux:
-    kambi_vrml_test_suite/textures/marble_with_mipmaps_s3tc.dds
+    demo_models/textures/marble_with_mipmaps_s3tc.dds
 
     No problem on NVidia (fpc 2.2.2 kocury/linux/32, fpc 2.2.4 kocury/linux/32),
     and no problem on Mac OS X with the same GPU (also chantal, 32bit, fpc 2.2.4).

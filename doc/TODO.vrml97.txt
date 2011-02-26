@@ -6,7 +6,7 @@ VRML TODO items:
     that were not specified in original file (so should have default value
     specified by proto) will be specified in new file, with default value 0.
 
-- kambi_vrml_test_suite adjust to EXTERNPROTO/PROTOs more
+- demo_models adjust to EXTERNPROTO/PROTOs more
 
 - finish checking NIST tests
 

@@ -137,7 +137,7 @@ type
       based on Single type is sufficient, calculating FrustumPoints
       on Single type is *not* sufficient, practical example: run
       @preformatted(
-        view3dscene kambi_vrml_test_suite/vrml_2/cones.wrl
+        view3dscene demo_models/vrml_2/cones.wrl
       )
       and jump to viewpoint named "Frustum needs double-precision".
 

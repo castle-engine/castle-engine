@@ -363,7 +363,7 @@ begin
     NegateOneQuaternion := 1;
 
   { Sometimes CosTheta may get slightly > 1, and then ArcCos fails with
-    EInvalidArgument. Testcase: kambi_vrml_test_suite/x3d/orientation_cos_1.x3d
+    EInvalidArgument. Testcase: demo_models/x3d/orientation_cos_1.x3d
     with view3dscene. }
   MinTo1st(CosTheta, 1);
 

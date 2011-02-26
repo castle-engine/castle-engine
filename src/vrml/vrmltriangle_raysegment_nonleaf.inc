@@ -37,7 +37,7 @@
     RayVector: TYPE_VECTOR3;
   {$endif}
 
-    { For kambi_vrml_test_suite/vrml_1/flat_triangles_octree_test.wrl,
+    { For demo_models/vrml_1/flat_triangles_octree_test.wrl,
       this really needs some tolerance. And SingleEqualityEpsilon
       was too small. }
     function Box3DPointInsideTolerant(
@@ -113,8 +113,7 @@
 
            Starting StartSubnode[i] should be the one closer the Ray0.
 
-           See
-           kambi_vrml_test_suite/vrml_1/flat_triangles_octree_test.wrl
+           See demo_models/vrml_1/flat_triangles_octree_test.wrl
            for example when this is needed (with new okDynamicCollisions,
            this plane is flat within it's octree, even when it's transformed
            by rotation). }

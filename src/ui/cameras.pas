@@ -3304,7 +3304,7 @@ var
                large CompSpeed) any model with gravity on and camera slightly
                higher then CameraPreferredHeight (we want to trigger IsFallingDown
                right when the model is loaded). E.g. run "view3dscene
-               kambi_vrml_test_suite/vrml_1/kambi_extensions/navigation_info_tests/speed_2.wrl".
+               demo_models/vrml_1/kambi_extensions/navigation_info_tests/speed_2.wrl".
                If FallingDownSpeedIncrease will be done before FallingDownEffect,
                then you'll see that at the very first frame FFallingDownSpeed
                was increased so much (because CompSpeed was large) that it triggered

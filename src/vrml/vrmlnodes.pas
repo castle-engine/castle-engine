@@ -3699,7 +3699,7 @@ begin
       by other node name) (otherwise "USE Xxx" could be used, which
       is acceptable).
 
-      See ../../kambi_vrml_test_suite/x3d/proto_sfnode_default.x3dv
+      See ../../../demo_models/x3d/proto_sfnode_default.x3dv
       and tricky_def_use.x3dv for
       examples (open and save it back e.g. in view3dscene).
 
@@ -4203,7 +4203,7 @@ begin
         Such nodes with "IS" clauses may be added by InstantiateIsClauses,
         when our own PROTO has fields with SFNode / MFNode type,
         and they contain "IS" clauses that should be handled by other
-        (outer) proto. See e.g. kambi_vrml_test_suite/vrml_2/proto_nested_expand.wrl
+        (outer) proto. See e.g. demo_models/vrml_2/proto_nested_expand.wrl
         testcase.
 
      (The 2nd point could also be fixed by simply moving recursive call to
@@ -4315,7 +4315,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
 
          PressedText { string "zero" }
 
-       (this is a simplified part of ../../../kambi_vrml_test_suite/x3d/key_sensor.x3dv
+       (this is a simplified part of ../../../demo_models/x3d/key_sensor.x3dv
        file). In such case, when PressedText, you may get Shape that already
        was expanded from SimpleText. So NodeCopy will have PrototypeInstance
        = true. Or NodeCopy may be TVRMLRootNode_1/2 wrapper, then it's
