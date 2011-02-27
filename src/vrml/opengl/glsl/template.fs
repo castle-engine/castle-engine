@@ -21,8 +21,7 @@ void main(void)
   gl_FragColor = gl_FrontLightModelProduct.sceneColor;
 
   vec3 normal_eye_fragment = normalize(normal_eye);
-  /* PLUG: fragment_normal_eye (normal_eye_fragment) */
-  /* (inout vec3 normal_eye_fragment) */
+  /* PLUG: fragment_eye_space (vertex_eye, normal_eye_fragment) */
 
   if (gl_FrontFacing)
   {

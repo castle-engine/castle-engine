@@ -1406,7 +1406,7 @@ begin
     'varying mat3 tangent_to_eye_space;' +NL+
     'uniform sampler2D tex_normal_map;' +NL+
     NL+
-    'void PLUG_fragment_normal_eye(inout vec3 normal_eye_fragment)' +NL+
+    'void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)' +NL+
     '{' +NL+
     '  /* Read normal from the texture, this is the very idea of bump mapping.' +NL+
     '     Unpack normals, they are in texture in [0..1] range and I want in [-1..1].' +NL+

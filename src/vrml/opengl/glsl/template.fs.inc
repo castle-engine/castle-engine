@@ -23,8 +23,7 @@
 '  gl_FragColor = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
 '' + LineEnding + 
 '  vec3 normal_eye_fragment = normalize(normal_eye);' + LineEnding + 
-'  /* PLUG: fragment_normal_eye (normal_eye_fragment) */' + LineEnding + 
-'  /* (inout vec3 normal_eye_fragment) */' + LineEnding + 
+'  /* PLUG: fragment_eye_space (vertex_eye, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
