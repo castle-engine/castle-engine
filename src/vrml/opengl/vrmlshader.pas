@@ -172,6 +172,7 @@ type
     }
     AppearanceEffects: TMFNode;
     GroupEffects: TVRMLNodesList;
+    Lighting: boolean;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TDynStringArray = nil;
@@ -254,6 +255,7 @@ type
       out Node: TNodeComposedShader): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TVRMLNodesList);
+    procedure EnableLighting;
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
@@ -1020,31 +1022,39 @@ var
     I, J: Integer;
     LightShaderBack, LightShaderFront: string;
   begin
-    { If we have no fragment shader (means that we used ComposedShader node
-      without fragment shader) then don't add light sources code.
-      Otherwise we would create a fragment shader without any main() inside. }
-    if Source[stFragment].Count = 0 then Exit;
+    { If we have no fragment/vertex shader (means that we used ComposedShader
+      node without one shader) then don't add any code.
+      Otherwise we would create a shader without any main() inside. }
+    if (Source[stFragment].Count = 0) or
+       (Source[stVertex].Count = 0) then
+      Exit;
 
-    for I := 0 to LightShaders.Count - 1 do
+    if Lighting then
     begin
-      LightShaderBack  := LightShaders[I].Code[0];
-      LightShaderFront := LightShaderBack;
+      Source[stFragment][0] := '#define LIT' + NL + Source[stFragment][0];
+      Source[stVertex  ][0] := '#define LIT' + NL + Source[stVertex  ][0];
 
-      LightShaderBack := StringReplace(LightShaderBack,
-        'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
-      LightShaderFront := StringReplace(LightShaderFront,
-        'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
+      for I := 0 to LightShaders.Count - 1 do
+      begin
+        LightShaderBack  := LightShaders[I].Code[0];
+        LightShaderFront := LightShaderBack;
 
-      LightShaderBack := StringReplace(LightShaderBack,
-        'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
-      LightShaderFront := StringReplace(LightShaderFront,
-        'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
+        LightShaderBack := StringReplace(LightShaderBack,
+          'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
+        LightShaderFront := StringReplace(LightShaderFront,
+          'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
 
-      Plug(stFragment, LightShaderBack);
-      Plug(stFragment, LightShaderFront);
+        LightShaderBack := StringReplace(LightShaderBack,
+          'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
+        LightShaderFront := StringReplace(LightShaderFront,
+          'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
 
-      for J := 1 to LightShaders[I].Code.Count - 1 do
-        Source[stFragment].Add(LightShaders[I].Code[J]);
+        Plug(stFragment, LightShaderBack);
+        Plug(stFragment, LightShaderFront);
+
+        for J := 1 to LightShaders[I].Code.Count - 1 do
+          Source[stFragment].Add(LightShaders[I].Code[J]);
+      end;
     end;
   end;
 
@@ -1196,6 +1206,8 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
       AddEffectsHash(AppearanceEffects.Items, Res);
     if GroupEffects <> nil then
       AddEffectsHash(GroupEffects, Res);
+    if Lighting then
+      Res.Sum += 123;
   end;
 
   {$include norqcheckend.inc}
@@ -1594,6 +1606,11 @@ begin
   GroupEffects := Effects;
   if GroupEffects.Count <> 0 then
     ShapeRequiresShaders := true;
+end;
+
+procedure TVRMLShader.EnableLighting;
+begin
+  Lighting := true;
 end;
 
 end.

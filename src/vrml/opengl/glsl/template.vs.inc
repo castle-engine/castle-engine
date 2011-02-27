@@ -31,6 +31,11 @@
 '' + LineEnding + 
 '  /* PLUG: vertex_eye_space (vertex_eye, normal_eye) */' + LineEnding + 
 '' + LineEnding + 
+'#ifndef LIT' + LineEnding + 
+'  gl_FrontColor = gl_Color;' + LineEnding + 
+'  gl_BackColor = gl_Color;' + LineEnding + 
+'#endif' + LineEnding + 
+'' + LineEnding + 
 '#ifdef VERTEX_OBJECT_SPACE_CHANGED' + LineEnding + 
 '  gl_Position = gl_ProjectionMatrix * vertex_eye;' + LineEnding + 
 '#else' + LineEnding + 

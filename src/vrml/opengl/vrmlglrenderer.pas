@@ -2898,23 +2898,25 @@ var
   I: Integer;
   Lights: TDynActiveLightArray;
 begin
-  { TODO: when not MaterialLit, no point in setting up lights.
-    Except it no lighting doesn't yet work for shader rendering. }
-
-  for I := 0 to Integer(FirstLight) - 1 do
-    Shader.EnableLight(I, nil, MaterialSpecularColor);
-
-  if Attributes.UseSceneLights then
+  { When lighting is off (for either shaders or fixed-function),
+    there is no point in setting up lights. }
+  if MaterialLit then
   begin
-    { Done before loading State.Transform, as the lights
-      positions/directions are in world coordinates. }
-    Lights := Shape.State.CurrentActiveLights;
-    if Lights <> nil then
+    for I := 0 to Integer(FirstLight) - 1 do
+      Shader.EnableLight(I, nil, MaterialSpecularColor);
+
+    if Attributes.UseSceneLights then
     begin
-      LightsRenderer.Render(Lights, LightsEnabled);
-      for I := FirstLight to Integer(LightsEnabled) - 1 do
-        Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight]^.LightNode,
-          MaterialSpecularColor);
+      { Done before loading State.Transform, as the lights
+        positions/directions are in world coordinates. }
+      Lights := Shape.State.CurrentActiveLights;
+      if Lights <> nil then
+      begin
+        LightsRenderer.Render(Lights, LightsEnabled);
+        for I := FirstLight to Integer(LightsEnabled) - 1 do
+          Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight]^.LightNode,
+            MaterialSpecularColor);
+      end;
     end;
   end;
 

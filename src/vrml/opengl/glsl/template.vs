@@ -29,6 +29,11 @@ void main(void)
 
   /* PLUG: vertex_eye_space (vertex_eye, normal_eye) */
 
+#ifndef LIT
+  gl_FrontColor = gl_Color;
+  gl_BackColor = gl_Color;
+#endif
+
 #ifdef VERTEX_OBJECT_SPACE_CHANGED
   gl_Position = gl_ProjectionMatrix * vertex_eye;
 #else

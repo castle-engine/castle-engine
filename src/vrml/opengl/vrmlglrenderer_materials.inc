@@ -162,7 +162,7 @@ begin
   end;
 
   { calculate and apply MaterialLit }
-  MaterialLit :=
+  MaterialLit := Attributes.Lighting and
     (not VRML1OnlyEmissive) and
     (not VRML2Unlit) and
     not (
@@ -177,7 +177,9 @@ begin
       (Shape.Geometry is TNodeCircle2D)
     );
 
-  SetGLEnabled(GL_LIGHTING, Attributes.Lighting and MaterialLit);
+  SetGLEnabled(GL_LIGHTING, MaterialLit);
+  if MaterialLit then
+    Shader.EnableLighting;
 
   { set material. At the end, since this uses MaterialLit, M1, M2. }
   if Shape.Geometry is TVRMLGeometryNode_1 then

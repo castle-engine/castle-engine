@@ -20,35 +20,38 @@
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'  gl_FragColor = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
+'  /* NVidia GeForce 450 GTS (kocury) fails to compile a shader when' + LineEnding + 
+'     we pass gl_FragColor as inout parameter (testcase even fresnel_and_toon.x3dv).' + LineEnding + 
+'     Radeon X1600 (fglrx, chantal) works with it OK.' + LineEnding + 
+'     So we just use fragment_color everywhere, and only assign it' + LineEnding + 
+'     to gl_FragColor at the end. */' + LineEnding + 
+'  vec4 fragment_color = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
 '' + LineEnding + 
 '  vec3 normal_eye_fragment = normalize(normal_eye);' + LineEnding + 
 '  /* PLUG: fragment_eye_space (vertex_eye, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
+'#ifdef LIT' + LineEnding + 
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
-'    gl_FragColor += gl_FrontMaterial.emission;' + LineEnding + 
-'    /* PLUG: add_light_contribution_front (gl_FragColor, vertex_eye, normal_eye_fragment, gl_FrontMaterial) */' + LineEnding + 
+'    fragment_color += gl_FrontMaterial.emission;' + LineEnding + 
+'    /* PLUG: add_light_contribution_front (fragment_color, vertex_eye, normal_eye_fragment, gl_FrontMaterial) */' + LineEnding + 
 '' + LineEnding + 
 '    /* Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding + 
 '       and it''s always opaque.' + LineEnding + 
 '       Using diffuse.a is actually exactly what fixed-function pipeline does' + LineEnding + 
 '       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */' + LineEnding + 
-'    gl_FragColor.a = gl_FrontMaterial.diffuse.a;' + LineEnding + 
+'    fragment_color.a = gl_FrontMaterial.diffuse.a;' + LineEnding + 
 '  } else' + LineEnding + 
 '  {' + LineEnding + 
-'    gl_FragColor += gl_BackMaterial.emission;' + LineEnding + 
+'    fragment_color += gl_BackMaterial.emission;' + LineEnding + 
 '    normal_eye_fragment = -normal_eye_fragment;' + LineEnding + 
-'    /* PLUG: add_light_contribution_back (gl_FragColor, vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding + 
-'    gl_FragColor.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
+'    /* PLUG: add_light_contribution_back (fragment_color, vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding + 
+'    fragment_color.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 
+'#else' + LineEnding + 
+'  fragment_color = gl_Color;' + LineEnding + 
+'#endif' + LineEnding + 
 '' + LineEnding + 
-'  /* NVidia GeForce 450 GTS (kocury) fails to compile a shader when' + LineEnding + 
-'     we pass gl_FragColor as inout parameter (testcase even fresnel_and_toon.x3dv).' + LineEnding + 
-'     Radeon X1600 (fglrx, chantal) works with it OK.' + LineEnding + 
-'     The simplest workaround: use a temp variable to hold it. */' + LineEnding + 
-'' + LineEnding + 
-'  vec4 fragment_color = gl_FragColor;' + LineEnding + 
 '  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '  gl_FragColor = fragment_color;' + LineEnding + 
