@@ -115,7 +115,7 @@ type
     { Used (and updated) to the number of OpenGL texture units reserved. }
     BoundTextureUnits: Cardinal;
 
-    MaterialLit: boolean;
+    Lighting: boolean;
 
     { Don't override this, it is already overridden here
       to do everything necessary. }
@@ -267,7 +267,8 @@ begin
       if Attributes.ControlMaterials and
          (not Attributes.PureGeometry) then
       begin
-        MaterialFromColorEnabled := MaterialLit;
+        MaterialFromColorEnabled := (Arrays.HasColor or Arrays.HasDefaultColor)
+         and Lighting;
         if MaterialFromColorEnabled then
         begin
           { We always set diffuse material component from the color.

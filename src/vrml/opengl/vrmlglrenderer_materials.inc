@@ -14,7 +14,7 @@
 }
 
 var
-  MaterialLit: boolean;
+  Lighting, MaterialLit: boolean;
   MaterialSpecularColor: TVector3Single;
   MaterialOpacity: Single;
 
@@ -33,7 +33,7 @@ procedure RenderMaterialsBegin;
     MaterialSpecularColor := SpecularColor;
     MaterialOpacity := Opacity;
 
-    if MaterialLit then
+    if Lighting then
     begin
       glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(AmbientColor, Opacity));
       glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(DiffuseColor, Opacity));
@@ -41,15 +41,23 @@ procedure RenderMaterialsBegin;
       glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4Single(EmissiveColor, Opacity));
       glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, ShininessExp);
 
-      { Use also glColor for unlit things. This way this code will be able
-        to work regardless of glEnable(GL_LIGHTING) state (even if we
-        will put this on GL display list and then will call such list
-        with various states of glEnable(GL_LIGHTING)). }
-      glColorv(Vector4Single(DiffuseColor, Opacity));
+      { If MaterialLit, we know that GL_LIGHTING is enabled
+        (for fixed-function, or shader). So no point in setting glColor. }
     end else
-    begin
+    if MaterialLit then
+      { When the lighting is disabled because of Attributes.Lighting
+        (not because of this shape's material), it's best to use diffuse color.
+        Otherwise most of normal VRML 1.0 scenes would have black shapes
+        (as that's the default emissive color, usually used for unlit)
+        and all VRML 2.0 scenes would have white shapes (as that's
+        the unlit color).
+
+        VRML/X3D spec doesn't say anything about this,
+        as they are written like Attributes.Lighting = always @true.
+        So we can just do whatever seems natural for user that
+        turned off lighting. }
+      glColorv(Vector4Single(DiffuseColor, Opacity)) else
       glColorv(Vector4Single(UnLitColor, Opacity));
-    end;
   end;
 
   { Sets current OpenGL material and color properties for VRML 1.0 material
@@ -161,8 +169,8 @@ begin
     VRML2Unlit := M2 = nil;
   end;
 
-  { calculate and apply MaterialLit }
-  MaterialLit := Attributes.Lighting and
+  { calculate MaterialLit (like Lighting, but ignores Attributes.Lighting) }
+  MaterialLit :=
     (not VRML1OnlyEmissive) and
     (not VRML2Unlit) and
     not (
@@ -177,8 +185,10 @@ begin
       (Shape.Geometry is TNodeCircle2D)
     );
 
-  SetGLEnabled(GL_LIGHTING, MaterialLit);
-  if MaterialLit then
+  { calculate and apply Lighting }
+  Lighting := Attributes.Lighting and MaterialLit;
+  SetGLEnabled(GL_LIGHTING, Lighting);
+  if Lighting then
     Shader.EnableLighting;
 
   { set material. At the end, since this uses MaterialLit, M1, M2. }
