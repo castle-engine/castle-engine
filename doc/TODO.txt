@@ -6,6 +6,11 @@ usually has a list of blockers typically worked upon right before release.
 ------------------------------------------------------------------------------
 3.10.0: Finish shader pipeline. Finish compositing shaders paper and work.
 
+3.11.0:
+- Most of the work during this time will go to Blender exporter fixes.
+- Collada improvements.
+- Support for Ogre data files, notify on forum?
+Make GLWinMessages buttons clickable, reported for castle many times.
 ------------------------------------------------------------------------------
 WWW:
 - more stuff to sidebar?
