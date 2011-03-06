@@ -296,7 +296,7 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/change_vrml_by_code_2 \
   examples/vrml/vrml_browser_script_compiled \
   examples/vrml/simplest_vrml_browser \
-  examples/vrml/simplest_vrml_browser_with_shadows \
+  examples/vrml/simplest_vrml_browser_with_shadow_volumes \
   examples/vrml/shadow_fields/precompute_shadow_field \
   examples/vrml/shadow_fields/shadow_fields \
   examples/vrml/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
