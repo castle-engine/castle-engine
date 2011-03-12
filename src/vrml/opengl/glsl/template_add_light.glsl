@@ -57,17 +57,21 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);
 #endif
 
+  vec4 ambient = gl_SideLightProduct[light_number].ambient;
+  vec4 diffuse = gl_SideLightProduct[light_number].diffuse;
+  vec4 specular = gl_SideLightProduct[light_number].specular;
+  /* PLUG: material_light_colors (ambient, diffuse, specular, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */
+
   /* add ambient term */
   vec4 light_color =
 #ifdef LIGHT_HAS_AMBIENT
-  gl_SideLightProduct[light_number].ambient;
+  ambient;
 #else
   vec4(0.0);
 #endif
 
   /* add diffuse term */
-  light_color += gl_SideLightProduct[light_number].diffuse
-    * max(dot(normal_eye, light_dir), 0.0);
+  light_color += diffuse * max(dot(normal_eye, light_dir), 0.0);
 
   /* add specular term */
 #ifdef LIGHT_HAS_SPECULAR
@@ -75,7 +79,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   /* vertex to camera direction = camera pos - vertex pos.
      We work in eye space here, so camera pos = always zero. */
   vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));
-  light_color += gl_SideLightProduct[light_number].specular
+  light_color += specular
     * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);
 #endif
 

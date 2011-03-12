@@ -59,17 +59,21 @@
 '  scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
+'  vec4 ambient = gl_SideLightProduct[light_number].ambient;' + LineEnding + 
+'  vec4 diffuse = gl_SideLightProduct[light_number].diffuse;' + LineEnding + 
+'  vec4 specular = gl_SideLightProduct[light_number].specular;' + LineEnding + 
+'  /* PLUG: material_light_colors (ambient, diffuse, specular, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */' + LineEnding + 
+'' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 
 '  vec4 light_color =' + LineEnding + 
 '#ifdef LIGHT_HAS_AMBIENT' + LineEnding + 
-'  gl_SideLightProduct[light_number].ambient;' + LineEnding + 
+'  ambient;' + LineEnding + 
 '#else' + LineEnding + 
 '  vec4(0.0);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* add diffuse term */' + LineEnding + 
-'  light_color += gl_SideLightProduct[light_number].diffuse' + LineEnding + 
-'    * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
+'  light_color += diffuse * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
 '  /* add specular term */' + LineEnding + 
 '#ifdef LIGHT_HAS_SPECULAR' + LineEnding + 
@@ -77,7 +81,7 @@
 '  /* vertex to camera direction = camera pos - vertex pos.' + LineEnding + 
 '     We work in eye space here, so camera pos = always zero. */' + LineEnding + 
 '  vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));' + LineEnding + 
-'  light_color += gl_SideLightProduct[light_number].specular' + LineEnding + 
+'  light_color += specular' + LineEnding + 
 '    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
