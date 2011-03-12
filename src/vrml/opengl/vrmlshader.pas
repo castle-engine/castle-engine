@@ -172,7 +172,7 @@ type
     }
     AppearanceEffects: TMFNode;
     GroupEffects: TVRMLNodesList;
-    Lighting: boolean;
+    Lighting, MaterialFromColor: boolean;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TDynStringArray = nil;
@@ -256,6 +256,7 @@ type
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TVRMLNodesList);
     procedure EnableLighting;
+    procedure EnableMaterialFromColor;
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
@@ -991,11 +992,17 @@ var
   const
     PCFDefine: array [TPercentageCloserFiltering] of string =
     ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
+  var
+    FragmentAlphaFromColor: string;
   begin
+    if MaterialFromColor then
+      FragmentAlphaFromColor := 'fragment_color.a = gl_Color.a;' + NL else
+      FragmentAlphaFromColor := '';
+
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
     PlugDirectly(Source[stFragment], 0, '/* PLUG: texture_apply',
-      TextureColorDeclare + TextureApply, false);
+      FragmentAlphaFromColor + TextureColorDeclare + TextureApply, false);
     PlugDirectly(Source[stFragment], 0, '/* PLUG: fragment_end', FragmentEnd, false);
 
     { TODO: Using true as last param here would be better
@@ -1078,12 +1085,31 @@ var
     AProgram.Disable;
   end;
 
+  procedure EnableShaderMaterialFromColor;
+  begin
+    if MaterialFromColor then
+    begin
+      Plug(stVertex,
+        'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+        '{' +NL+
+        '  gl_FrontColor = gl_Color;' +NL+
+        '  gl_BackColor = gl_Color;' +NL+
+        '}');
+      Plug(stFragment,
+        'void PLUG_material_light_colors(inout vec4 ambient, inout vec4 diffuse, inout vec4 specular, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
+        '{' +NL+
+        '  diffuse = light_products.diffuse * gl_Color;' +NL+
+        '}');
+    end;
+  end;
+
 var
   I: Integer;
 begin
   EnableTextures;
   EnableInternalEffects;
   EnableLights;
+  EnableShaderMaterialFromColor;
   if AppearanceEffects <> nil then
     EnableEffects(AppearanceEffects);
   if GroupEffects <> nil then
@@ -1208,6 +1234,8 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
       AddEffectsHash(GroupEffects, Res);
     if Lighting then
       Res.Sum += 123;
+    if MaterialFromColor then
+      Res.Sum += 456;
   end;
 
   {$include norqcheckend.inc}
@@ -1611,6 +1639,17 @@ end;
 procedure TVRMLShader.EnableLighting;
 begin
   Lighting := true;
+end;
+
+procedure TVRMLShader.EnableMaterialFromColor;
+begin
+  { We always set diffuse material component from the color.
+    This satisfies all cases. }
+  glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+  glEnable(GL_COLOR_MATERIAL);
+
+  { This will cause appropriate shader later }
+  MaterialFromColor := true;
 end;
 
 end.

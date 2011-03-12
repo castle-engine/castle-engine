@@ -93,6 +93,8 @@ type
 
     { Available inside RenderCoordinate* }
     Arrays: TGeometryArrays;
+
+    function HasColor: boolean;
   protected
     { Override these to render contents of Arrays.
       These are all called only when Coord is assigned.
@@ -134,7 +136,15 @@ type
     procedure RenderCoordinateEnd; override;
   end;
 
-  TShaderCoordinateRenderer = class(TFogCoordinateRenderer)
+  TMaterialFromColorCoordinateRenderer = class(TFogCoordinateRenderer)
+  private
+    MaterialFromColorEnabled: boolean;
+  protected
+    procedure RenderCoordinateBegin; override;
+    procedure RenderCoordinateEnd; override;
+  end;
+
+  TShaderCoordinateRenderer = class(TMaterialFromColorCoordinateRenderer)
   protected
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
@@ -241,10 +251,7 @@ var
   I: Integer;
   First: Cardinal;
   Mode: TGLenum;
-  MaterialFromColorEnabled: boolean;
 begin
-  MaterialFromColorEnabled := false;
-
   Locations := nil;
 
   RenderCoordinateBegin;
@@ -264,19 +271,8 @@ begin
       if Vbo[vtAttribute] <> 0 then
         glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[vtAttribute]);
 
-      if Attributes.ControlMaterials and
-         (not Attributes.PureGeometry) then
+      if HasColor then
       begin
-        MaterialFromColorEnabled := (Arrays.HasColor or Arrays.HasDefaultColor)
-         and Lighting;
-        if MaterialFromColorEnabled then
-        begin
-          { We always set diffuse material component from the color.
-            This satisfies all cases. }
-          glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-          glEnable(GL_COLOR_MATERIAL);
-        end;
-
         if Arrays.HasColor then
         begin
           glEnableClientState(GL_COLOR_ARRAY);
@@ -348,9 +344,6 @@ begin
         1. it makes Mesa 7.2 segfault
         2. I don't know if it really works for GLSL vertex attribs arrays. }
       DisableArrays;
-
-      if MaterialFromColorEnabled then
-        glDisable(GL_COLOR_MATERIAL);
     end;
   finally RenderCoordinateEnd end;
 end;
@@ -394,6 +387,13 @@ procedure TBaseCoordinateRenderer.RenderCoordinateEnd;
 begin
   if PushedAttribs <> 0 then
     glPopAttrib;
+end;
+
+function TBaseCoordinateRenderer.HasColor: boolean;
+begin
+  Result := Attributes.ControlMaterials and
+    (not Attributes.PureGeometry) and
+    (Arrays.HasColor or Arrays.HasDefaultColor);
 end;
 
 { TTextureCoordinateRenderer ----------------------------------------- }
@@ -667,6 +667,24 @@ begin
     if not Renderer.FogVolumetric then
       glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
   end;
+  inherited;
+end;
+
+{ TMaterialFromColorCoordinateRenderer --------------------------------------- }
+
+procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateBegin;
+begin
+  inherited;
+
+  MaterialFromColorEnabled := HasColor and Lighting;
+  if MaterialFromColorEnabled then
+    Shader.EnableMaterialFromColor;
+end;
+
+procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateEnd;
+begin
+  if MaterialFromColorEnabled then
+    glDisable(GL_COLOR_MATERIAL);
   inherited;
 end;
 
