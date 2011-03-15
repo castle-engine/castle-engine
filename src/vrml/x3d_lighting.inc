@@ -429,10 +429,16 @@ procedure TNodeX3DLightNode.GetView(out Pos, Dir, Up: TVector3Single);
 begin
   Pos := MatrixMultPoint    (Transform, LocationLocal);
   Dir := MatrixMultDirection(Transform, DirectionLocal);
-  Up  := MatrixMultDirection(Transform, FdUp.Value);
 
-  { When the "up" vector is parallel to the dir (in particular,
-    when "up" field has a default zero value) then adjust up vector.
+  Up := FdUp.Value;
+  { Up = zero means "calculate anything suitable".
+    We could let AnyOrthogonalVector do this job, but when +Y is sensible
+    (when it results in something non-parallel to Dir), let's use it.
+    This makes calculated "up" more deterministic. }
+  if PerfectlyZeroVector(Up) then
+    Up := Vector3Single(0, 1, 0);
+  Up := MatrixMultDirection(Transform, Up);
+  { When the "up" vector is parallel to the dir then fix it.
     Note: when "up" is not parallel, then ModelviewMatrix will
     take care of adjusting it to be orthogonal. }
   if VectorsParallel(Up, Dir) then
