@@ -725,7 +725,12 @@ begin
       if TextureColorDeclare = '' then
         TextureColorDeclare := 'vec4 texture_color;' + NL;
       case TextureType of
-        tt2D      : TextureSampleCall := 'texture2D(%s, %s.st)';
+        { Most of the time, 'texture2D(%s, %s.st)' would be enough.
+          But we may get 4D tex coords (that is, with last component <> 1)
+          - through TextureCoordinate4D
+          - through projected texture mapping, when using perspective light
+            (spot light) or perspective viewpoint. }
+        tt2D      : TextureSampleCall := 'texture2DProj(%s, %s)';
         tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), fragment_color.a)';
         ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
         { For 3D textures, remember we may get 4D tex coords
