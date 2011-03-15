@@ -3,7 +3,7 @@
 '/* Generic GLSL vertex shader template. It will be used' + LineEnding + 
 '   by vrmlshadergenerator.pas to construct final shader.' + LineEnding + 
 '' + LineEnding + 
-'   This is converted to template.vs.inc, and is them compiled' + LineEnding + 
+'   This is converted to template.vs.inc, and is then compiled' + LineEnding + 
 '   in program''s binary.' + LineEnding + 
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding + 
 '*/' + LineEnding + 
