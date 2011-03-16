@@ -43,6 +43,13 @@
 '    /* PLUG: add_light_contribution_back (fragment_color, vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding + 
 '    fragment_color.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 
+'' + LineEnding + 
+'  /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.' + LineEnding + 
+'     This isn''t really mandatory, but scenes with many lights could easily' + LineEnding + 
+'     have colors > 1 and then the textures will look "burned out".' + LineEnding + 
+'     Of course, for future HDR rendering we will turn this off. */' + LineEnding + 
+'  fragment_color.rgb = min(fragment_color.rgb, 1.0);' + LineEnding + 
+'' + LineEnding + 
 '#else' + LineEnding + 
 '  vec4 fragment_color = gl_Color;' + LineEnding + 
 '#endif' + LineEnding + 
