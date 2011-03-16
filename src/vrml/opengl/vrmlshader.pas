@@ -1103,7 +1103,7 @@ var
       Plug(stFragment,
         'void PLUG_material_light_colors(inout vec4 ambient, inout vec4 diffuse, inout vec4 specular, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
         '{' +NL+
-        '  diffuse = light_products.diffuse * gl_Color;' +NL+
+        '  diffuse = light_source.diffuse * gl_Color;' +NL+
         '}');
     end;
   end;
