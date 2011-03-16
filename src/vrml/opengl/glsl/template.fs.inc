@@ -49,11 +49,11 @@
 '     have colors > 1 and then the textures will look "burned out".' + LineEnding + 
 '     Of course, for future HDR rendering we will turn this off. */' + LineEnding + 
 '  fragment_color.rgb = min(fragment_color.rgb, 1.0);' + LineEnding + 
-'' + LineEnding + 
 '#else' + LineEnding + 
 '  vec4 fragment_color = gl_Color;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
+'  /* PLUG: lighting_apply (fragment_color, vertex_eye, normal_eye_fragment) */' + LineEnding + 
 '  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 

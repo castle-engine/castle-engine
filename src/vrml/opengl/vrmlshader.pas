@@ -997,17 +997,11 @@ var
   const
     PCFDefine: array [TPercentageCloserFiltering] of string =
     ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
-  var
-    FragmentAlphaFromColor: string;
   begin
-    if MaterialFromColor then
-      FragmentAlphaFromColor := 'fragment_color.a = gl_Color.a;' + NL else
-      FragmentAlphaFromColor := '';
-
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
     PlugDirectly(Source[stFragment], 0, '/* PLUG: texture_apply',
-      FragmentAlphaFromColor + TextureColorDeclare + TextureApply, false);
+      TextureColorDeclare + TextureApply, false);
     PlugDirectly(Source[stFragment], 0, '/* PLUG: fragment_end', FragmentEnd, false);
 
     { TODO: Using true as last param here would be better
@@ -1132,6 +1126,11 @@ var
         'void PLUG_material_light_colors(inout vec4 ambient, inout vec4 diffuse, inout vec4 specular, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
         '{' +NL+
         '  diffuse = light_source.diffuse * gl_Color;' +NL+
+        '}' +NL+
+        NL+
+        'void PLUG_lighting_apply(inout vec4 fragment_color, const vec4 vertex_eye, const vec3 normal_eye_fragment)' +NL+
+        '{' +NL+
+        '  fragment_color.a = gl_Color.a;' +NL+
         '}');
     end;
   end;

@@ -47,11 +47,11 @@ void main(void)
      have colors > 1 and then the textures will look "burned out".
      Of course, for future HDR rendering we will turn this off. */
   fragment_color.rgb = min(fragment_color.rgb, 1.0);
-
 #else
   vec4 fragment_color = gl_Color;
 #endif
 
+  /* PLUG: lighting_apply (fragment_color, vertex_eye, normal_eye_fragment) */
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
 
