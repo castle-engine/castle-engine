@@ -1123,7 +1123,7 @@ var
             never glColor. }
 
       Plug(stFragment,
-        'void PLUG_material_light_colors(inout vec4 ambient, inout vec4 diffuse, inout vec4 specular, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
+        'void PLUG_material_light_diffuse(inout vec4 diffuse, const in vec4 vertex_eye, const in vec3 normal_eye, const in gl_LightSourceParameters light_source, const in gl_MaterialParameters material)' +NL+
         '{' +NL+
         '  diffuse = light_source.diffuse * gl_Color;' +NL+
         '}' +NL+

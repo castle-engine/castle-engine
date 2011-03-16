@@ -59,29 +59,26 @@
 '  scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
-'  vec4 ambient = gl_SideLightProduct[light_number].ambient;' + LineEnding + 
-'  vec4 diffuse = gl_SideLightProduct[light_number].diffuse;' + LineEnding + 
-'  vec4 specular = gl_SideLightProduct[light_number].specular;' + LineEnding + 
-'  /* PLUG: material_light_colors (ambient, diffuse, specular, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */' + LineEnding + 
-'' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 
 '  vec4 light_color =' + LineEnding + 
 '#ifdef LIGHT_HAS_AMBIENT' + LineEnding + 
-'  ambient;' + LineEnding + 
+'  gl_SideLightProduct[light_number].ambient;' + LineEnding + 
 '#else' + LineEnding + 
 '  vec4(0.0);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* add diffuse term */' + LineEnding + 
+'  vec4 diffuse = gl_SideLightProduct[light_number].diffuse;' + LineEnding + 
+'  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye, gl_LightSource[light_number], material) */' + LineEnding + 
 '  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
 '  light_color += diffuse * diffuse_factor;' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIGHT_HAS_SPECULAR' + LineEnding + 
 '  /* add specular term */' + LineEnding + 
 '  if (diffuse_factor != 0.0)' + LineEnding + 
-'    light_color += specular * pow(max(' + LineEnding + 
-'      dot(vec3(gl_LightSource[light_number].halfVector), normal_eye),' + LineEnding + 
-'      0.0), material.shininess);' + LineEnding + 
+'    light_color += gl_SideLightProduct[light_number].specular *' + LineEnding + 
+'      pow(max(dot(vec3(gl_LightSource[light_number].halfVector), normal_eye),' + LineEnding + 
+'        0.0), material.shininess);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  color += light_color * scale;' + LineEnding + 
