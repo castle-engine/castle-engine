@@ -1648,9 +1648,7 @@ end;
 
 procedure TVRMLShader.EnableMaterialFromColor;
 begin
-  { We always set diffuse material component from the color.
-    This satisfies all cases. }
-  glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+  { glColorMaterial is already set by TVRMLGLRenderer.RenderBegin }
   glEnable(GL_COLOR_MATERIAL);
 
   { This will cause appropriate shader later }

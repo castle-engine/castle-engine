@@ -2767,8 +2767,10 @@ begin
     glDisable(GL_CULL_FACE);
 
     glDisable(GL_ALPHA_TEST);
-    { We only use glAlphaFunc for textures, and there this value is suitable }
-    glAlphaFunc(GL_GEQUAL, 0.5);
+    { We only use glAlphaFunc for textures, and there this value is suitable.
+      We never change glAlphaFunc during rendering, so no need to call this in RenderEnd. }
+    if Beginning then
+      glAlphaFunc(GL_GEQUAL, 0.5);
 
     { Always smooth shading. Flat shading wasn't really useful. }
     glShadeModel(GL_SMOOTH);
@@ -2780,6 +2782,16 @@ begin
         glDisable(GL_LIGHT0 + I);
 
     glDisable(GL_FOG);
+
+    { - We always set diffuse material component from the color.
+        This satisfies all cases.
+      - TVRMLShader.EnableMaterialFromColor
+        takes care of actually enabling COLOR_MATERIAL, it depends on
+        the setting below.
+      - We never change glColorMaterial during rendering,
+        so no need to call this in RenderEnd. }
+    if Beginning then
+      glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
   end;
 end;
 
