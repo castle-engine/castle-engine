@@ -71,16 +71,15 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 #endif
 
   /* add diffuse term */
-  light_color += diffuse * max(dot(normal_eye, light_dir), 0.0);
+  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
+  light_color += diffuse * diffuse_factor;
 
-  /* add specular term */
 #ifdef LIGHT_HAS_SPECULAR
-  vec3 reflect = normalize(-reflect(light_dir, normal_eye));
-  /* vertex to camera direction = camera pos - vertex pos.
-     We work in eye space here, so camera pos = always zero. */
-  vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));
-  light_color += specular
-    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);
+  /* add specular term */
+  if (diffuse_factor != 0.0)
+    light_color += specular * pow(max(
+      dot(vec3(gl_LightSource[light_number].halfVector), normal_eye),
+      0.0), material.shininess);
 #endif
 
   color += light_color * scale;

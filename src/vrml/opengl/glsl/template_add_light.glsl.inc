@@ -73,16 +73,15 @@
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* add diffuse term */' + LineEnding + 
-'  light_color += diffuse * max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
+'  float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);' + LineEnding + 
+'  light_color += diffuse * diffuse_factor;' + LineEnding + 
 '' + LineEnding + 
-'  /* add specular term */' + LineEnding + 
 '#ifdef LIGHT_HAS_SPECULAR' + LineEnding + 
-'  vec3 reflect = normalize(-reflect(light_dir, normal_eye));' + LineEnding + 
-'  /* vertex to camera direction = camera pos - vertex pos.' + LineEnding + 
-'     We work in eye space here, so camera pos = always zero. */' + LineEnding + 
-'  vec3 vertex_to_camera_dir = normalize(-vec3(vertex_eye));' + LineEnding + 
-'  light_color += specular' + LineEnding + 
-'    * pow(max(dot(reflect, vertex_to_camera_dir), 0.0), material.shininess);' + LineEnding + 
+'  /* add specular term */' + LineEnding + 
+'  if (diffuse_factor != 0.0)' + LineEnding + 
+'    light_color += specular * pow(max(' + LineEnding + 
+'      dot(vec3(gl_LightSource[light_number].halfVector), normal_eye),' + LineEnding + 
+'      0.0), material.shininess);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  color += light_color * scale;' + LineEnding + 
