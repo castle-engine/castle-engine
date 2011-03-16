@@ -1100,6 +1100,25 @@ var
         '  gl_FrontColor = gl_Color;' +NL+
         '  gl_BackColor = gl_Color;' +NL+
         '}');
+
+        { Sidenote: What happens without this? That is, what's in OpenGL
+          gl_FrontLightProducts when glEnable(GL_COLOR_MATERIAL) was called
+          --- the value from glMaterial call, or the value from glColor
+          (or color array)? IOW, is glEnable(GL_COLOR_MATERIAL) automatically
+          already applied for shader uniforms?
+
+          Looks like it's undefined:
+          - NVidia GeForce 450 GTS (kocury) behaves like an undefined
+            color (from some previous shape) leaked on the current shape.
+
+            (Although for MaterialFromColor, we always have lit shape,
+            with set glMaterial, and set glColor (or color array).
+            Although we set glColor (or color array) after enabling
+            GL_COLOR_MATERIAL, which means material color is undefined
+            for a short time, but it's always defined before actual glDraw*
+            call.)
+        }
+
       Plug(stFragment,
         'void PLUG_material_light_colors(inout vec4 ambient, inout vec4 diffuse, inout vec4 specular, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
         '{' +NL+
