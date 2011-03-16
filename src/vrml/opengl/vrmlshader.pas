@@ -1102,7 +1102,8 @@ var
         '}');
 
         { Sidenote: What happens without this? That is, what's in OpenGL
-          gl_FrontLightProducts when glEnable(GL_COLOR_MATERIAL) was called
+          gl_Front/BackLightProducts (used by normal shader code) when
+          glEnable(GL_COLOR_MATERIAL) was called
           --- the value from glMaterial call, or the value from glColor
           (or color array)? IOW, is glEnable(GL_COLOR_MATERIAL) automatically
           already applied for shader uniforms?
@@ -1117,7 +1118,15 @@ var
             GL_COLOR_MATERIAL, which means material color is undefined
             for a short time, but it's always defined before actual glDraw*
             call.)
-        }
+
+            Looks like NVidia just doesn't know (like me :) what to put
+            inside uniform gl_Front/BackLightProducts, so it just doesn't
+            change it at all.
+
+          - Radeon X1600 (fglrx, chantal) behaves like GL_COLOR_MATERIAL
+            doesn't affect shader. gl_Front/BackLightProducts contain
+            (it seems) values from glMaterial (multiplied by light),
+            never glColor. }
 
       Plug(stFragment,
         'void PLUG_material_light_colors(inout vec4 ambient, inout vec4 diffuse, inout vec4 specular, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
