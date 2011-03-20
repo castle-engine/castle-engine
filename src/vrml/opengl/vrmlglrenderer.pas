@@ -254,6 +254,7 @@ type
     FOnVertexColor: TVertexColorFunction;
     FLighting: boolean;
     FUseSceneLights: boolean;
+    FOpacity: Single;
     FEnableTextures: boolean;
     FTextureMinFilter: TGLint;
     FTextureMagFilter: TGLint;
@@ -366,6 +367,10 @@ type
       as @true and increase LightsEnabled as necessary). }
     property UseSceneLights: boolean
       read FUseSceneLights write FUseSceneLights default true;
+
+    { Opacity for all rendered shapes. Setting this to something < 1
+      you can make every shape transparent. }
+    property Opacity: Single read FOpacity write FOpacity default 1;
 
     { Take model textures into account. When @true (default),
       then our engine takes care of everything related to texturing
@@ -2023,6 +2028,7 @@ begin
     OnVertexColor := TVRMLRenderingAttributes(Source).OnVertexColor;
     Lighting := TVRMLRenderingAttributes(Source).Lighting;
     UseSceneLights := TVRMLRenderingAttributes(Source).UseSceneLights;
+    Opacity := TVRMLRenderingAttributes(Source).Opacity;
     EnableTextures := TVRMLRenderingAttributes(Source).EnableTextures;
     TextureMinFilter := TVRMLRenderingAttributes(Source).TextureMinFilter;
     TextureMagFilter := TVRMLRenderingAttributes(Source).TextureMagFilter;
@@ -2047,6 +2053,7 @@ begin
 
   FLighting := true;
   FUseSceneLights := true;
+  FOpacity := 1;
   FEnableTextures := true;
   FTextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
   FTextureMagFilter := GL_LINEAR;

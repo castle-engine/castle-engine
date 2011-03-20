@@ -26,19 +26,19 @@ procedure RenderMaterialsBegin;
   procedure RenderMaterial(
     const AmbientColor, DiffuseColor, SpecularColor, EmissiveColor: TVector3Single;
     const UnLitColor: TVector3Single;
-    const ShininessExp, Opacity: Single);
+    const ShininessExp, ShapeOpacity: Single);
   begin
     if Attributes.PureGeometry then Exit;
 
     MaterialSpecularColor := SpecularColor;
-    MaterialOpacity := Opacity;
+    MaterialOpacity := ShapeOpacity * Attributes.Opacity;
 
     if Lighting then
     begin
-      glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(AmbientColor, Opacity));
-      glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(DiffuseColor, Opacity));
-      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4Single(SpecularColor, Opacity));
-      glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4Single(EmissiveColor, Opacity));
+      glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(AmbientColor, MaterialOpacity));
+      glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(DiffuseColor, MaterialOpacity));
+      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4Single(SpecularColor, MaterialOpacity));
+      glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4Single(EmissiveColor, MaterialOpacity));
       glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, ShininessExp);
 
       { If MaterialLit, we know that GL_LIGHTING is enabled
@@ -56,8 +56,8 @@ procedure RenderMaterialsBegin;
         as they are written like Attributes.Lighting = always @true.
         So we can just do whatever seems natural for user that
         turned off lighting. }
-      glColorv(Vector4Single(DiffuseColor, Opacity)) else
-      glColorv(Vector4Single(UnLitColor, Opacity));
+      glColorv(Vector4Single(DiffuseColor, MaterialOpacity)) else
+      glColorv(Vector4Single(UnLitColor, MaterialOpacity));
   end;
 
   { Sets current OpenGL material and color properties for VRML 1.0 material
