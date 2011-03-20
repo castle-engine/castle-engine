@@ -28,7 +28,7 @@ procedure RenderMaterialsBegin;
     const UnLitColor: TVector3Single;
     const ShininessExp, Opacity: Single);
   begin
-    if Attributes.PureGeometry or (not Attributes.ControlMaterials) then Exit;
+    if Attributes.PureGeometry then Exit;
 
     MaterialSpecularColor := SpecularColor;
     MaterialOpacity := Opacity;

@@ -211,8 +211,7 @@ var
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 
-    if Attributes.ControlMaterials and
-       (not Attributes.PureGeometry) then
+    if not Attributes.PureGeometry then
       glDisableClientState(GL_COLOR_ARRAY);
 
     if Arrays.HasFogCoord and GL_EXT_fog_coord then
@@ -391,8 +390,7 @@ end;
 
 function TBaseCoordinateRenderer.HasColor: boolean;
 begin
-  Result := Attributes.ControlMaterials and
-    (not Attributes.PureGeometry) and
+  Result := (not Attributes.PureGeometry) and
     (Arrays.HasColor or Arrays.HasDefaultColor);
 end;
 

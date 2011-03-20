@@ -254,8 +254,6 @@ type
     FOnVertexColor: TVertexColorFunction;
     FLighting: boolean;
     FUseSceneLights: boolean;
-    FControlMaterials: boolean;
-    FControlTextures: boolean;
     FEnableTextures: boolean;
     FTextureMinFilter: TGLint;
     FTextureMagFilter: TGLint;
@@ -277,8 +275,6 @@ type
       @groupBegin }
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
     procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
-    procedure SetControlMaterials(const Value: boolean); virtual;
-    procedure SetControlTextures(const Value: boolean); virtual;
     procedure SetEnableTextures(const Value: boolean); virtual;
     procedure SetTextureMinFilter(const Value: TGLint); virtual;
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
@@ -371,49 +367,12 @@ type
     property UseSceneLights: boolean
       read FUseSceneLights write FUseSceneLights default true;
 
-    { Should we take care of applying appropriate
-      materials and colors on your model.
+    { Take model textures into account. When @true (default),
+      then our engine takes care of everything related to texturing
+      for you: enabling and using textures for textured parts of the model,
+      disabling textures for non-textured parts.
 
-      For special purposes, you can set this to @false.
-      Then you are expected to set glColor/glMaterial yourself. }
-    property ControlMaterials: boolean
-      read FControlMaterials write SetControlMaterials default true;
-
-    { Should we take care of everything related
-      to texturing your model. Textures will be automatically activated
-      (for multitexturing), enabled/disabled, bound, and texture coordinates
-      will be used/generated, according to your VRML model data
-      (and EnableTextures attribute).
-
-      For special purposes, you can set this to @false.
-      Then our engine assumes no control over the
-      enabled/disabled state of OpenGL texturing and the currently bound texture.
-      Texture coordinates will still be generated, if applicable.
-      This is useful when your model specifies texture coordinates but
-      still you want to control from your program which (if any) texture is
-      currently bound and enabled. }
-    property ControlTextures: boolean
-      read FControlTextures write SetControlTextures default true;
-
-    { If ControlTextures is @true, then this property determines
-      whether we should actually take model textures into account.
-      In other words:
-
-      @unorderedList(
-        @item(When ControlTextures = EnableTextures = @true (default),
-          then our engine takes care of everything related to texturing
-          for you: enabling and using textures for textured parts of the model,
-          disabling textures for non-textured parts.)
-
-        @item(When ControlTextures = @true but EnableTextures = @false,
-          you force the engine to ignore textures in your model.
-          The whole scene will be rendered with glDisable(GL_TEXTURE_*),
-          texture coordinates will not be generated etc.
-          This is for special purposes.)
-
-        @item(When ControlTextures = @false, value of EnableTextures
-          doesn't matter. See ControlTextures for description.)
-      ) }
+      Otherwise, textures are disabled. }
     property EnableTextures: boolean
       read FEnableTextures write SetEnableTextures default true;
 
@@ -2064,8 +2023,6 @@ begin
     OnVertexColor := TVRMLRenderingAttributes(Source).OnVertexColor;
     Lighting := TVRMLRenderingAttributes(Source).Lighting;
     UseSceneLights := TVRMLRenderingAttributes(Source).UseSceneLights;
-    ControlMaterials := TVRMLRenderingAttributes(Source).ControlMaterials;
-    ControlTextures := TVRMLRenderingAttributes(Source).ControlTextures;
     EnableTextures := TVRMLRenderingAttributes(Source).EnableTextures;
     TextureMinFilter := TVRMLRenderingAttributes(Source).TextureMinFilter;
     TextureMagFilter := TVRMLRenderingAttributes(Source).TextureMagFilter;
@@ -2081,7 +2038,6 @@ begin
   Result :=
     (SecondValue.OnRadianceTransfer = OnRadianceTransfer) and
     (SecondValue.OnVertexColor = OnVertexColor) and
-    (SecondValue.ControlTextures = ControlTextures) and
     (SecondValue.EnableTextures = EnableTextures);
 end;
 
@@ -2091,8 +2047,6 @@ begin
 
   FLighting := true;
   FUseSceneLights := true;
-  FControlMaterials := true;
-  FControlTextures := true;
   FEnableTextures := true;
   FTextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
   FTextureMagFilter := GL_LINEAR;
@@ -2130,20 +2084,6 @@ begin
   begin
     ReleaseCachedResources;
     FOnVertexColor := Value;
-  end;
-end;
-
-procedure TVRMLRenderingAttributes.SetControlMaterials(const Value: boolean);
-begin
-  FControlMaterials := Value;
-end;
-
-procedure TVRMLRenderingAttributes.SetControlTextures(const Value: boolean);
-begin
-  if ControlTextures <> Value then
-  begin
-    ReleaseCachedResources;
-    FControlTextures := Value;
   end;
 end;
 
@@ -2609,7 +2549,6 @@ function TVRMLGLRenderer.BumpMapping: boolean;
 begin
   Result :=
     Attributes.BumpMapping and
-    Attributes.ControlTextures and
     Attributes.EnableTextures and
     (not Attributes.PureGeometry) and
 
@@ -2729,13 +2668,10 @@ begin
   if not Attributes.PureGeometry then
   begin
     glDisable(GL_COLOR_MATERIAL);
-    if Attributes.ControlTextures then
-    begin
-      glDisable(GL_TEXTURE_GEN_S);
-      glDisable(GL_TEXTURE_GEN_T);
-      glDisable(GL_TEXTURE_GEN_R);
-      glDisable(GL_TEXTURE_GEN_Q);
-    end;
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+    glDisable(GL_TEXTURE_GEN_R);
+    glDisable(GL_TEXTURE_GEN_Q);
 
     { We don't really need to enable GL_NORMALIZE.
       We always provide normalized normals (that's how vrmlarraysgenerator.pas
@@ -3444,16 +3380,6 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
 
     if Attributes.PureGeometry then
       Exit;
-
-    if not Attributes.ControlTextures then
-    begin
-      { Require texture coordinates for 1st texture, but don't do anything else
-        (like setting active texture, enabling/disabling it, don't even look
-        at VRML texture node.) }
-      TexCoordsNeeded := 1;
-      BoundTextureUnits := 1;
-      Exit;
-    end;
 
     AlphaTest := false;
     TextureNode := Shape.State.Texture;
