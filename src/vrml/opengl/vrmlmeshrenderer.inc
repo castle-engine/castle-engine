@@ -733,11 +733,11 @@ begin
       end;
     end;
 
-    if Shape.ShaderProgram <> nil then
+    UsedGLSL := Shape.ShaderProgram;
+    if UsedGLSL <> nil then
     begin
-      UsedGLSL := Shape.ShaderProgram;
-      Shape.ShaderProgram.Enable;
-      Shape.ShaderProgram.SetupUniforms(BoundTextureUnits);
+      UsedGLSL.Enable;
+      UsedGLSL.SetupUniforms(BoundTextureUnits);
     end;
   end;
 end;
