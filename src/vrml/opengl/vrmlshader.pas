@@ -673,7 +673,7 @@ begin
   if TextureType <> ttShader then
   begin
     Uniform := TUniform.Create;
-    Uniform.Name := Format('texture_%d', [TextureUnit]);
+    Uniform.Name := Format('kambi_texture_%d', [TextureUnit]);
     Uniform.AType := utLongInt;
     Uniform.Value.LongInt := TextureUnit;
 
