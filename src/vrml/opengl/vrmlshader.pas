@@ -125,6 +125,10 @@ type
     ShadowLight: TNodeX3DLightNode;
     ShadowVisualizeDepth: boolean;
     Shader: TVRMLShader;
+
+    { Uniform to set for this texture. May be empty. }
+    UniformName: string;
+    UniformValue: LongInt;
   public
     procedure Enable(var TextureApply, TextureColorDeclare,
       TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare: string);
@@ -184,11 +188,14 @@ type
     { Special form of Plug. It inserts the PlugValue source code directly
       at the position of given plug comment (no function call
       or anything is added). It also assumes that PlugName occurs only once
-      in the Code, for speed. }
-    procedure PlugDirectly(Code: TDynStringArray;
+      in the Code, for speed.
+
+      Returns if plug code was inserted (always @true when
+      InsertAtBeginIfNotFound). }
+    function PlugDirectly(Code: TDynStringArray;
       const CodeIndex: Cardinal;
       const PlugName, PlugValue: string;
-      const InsertAtBeginIfNotFound: boolean);
+      const InsertAtBeginIfNotFound: boolean): boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -282,8 +289,6 @@ uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
 
   Maybe caching should be done in this unit, or maybe in TVRMLGLRenderer
   in some TShapeShaderCache or such.
-
-  TODO: a way to turn on/off per-pixel shading should be available.
 
   TODO: some day, avoid using predefined OpenGL state variables.
   Use only shader uniforms. Right now, we allow some state to be assigned
@@ -664,7 +669,6 @@ const
   OpenGLTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
 var
-  Uniform: TUniform;
   TextureSampleCall, TexCoordName: string;
   ShadowLightShader: TLightShader;
   Code: TDynStringArray;
@@ -672,13 +676,10 @@ var
 begin
   if TextureType <> ttShader then
   begin
-    Uniform := TUniform.Create;
-    Uniform.Name := Format('kambi_texture_%d', [TextureUnit]);
-    Uniform.AType := utLongInt;
-    Uniform.Value.LongInt := TextureUnit;
-
-    Shader.AddUniform(Uniform);
-  end;
+    UniformName := Format('kambi_texture_%d', [TextureUnit]);
+    UniformValue := TextureUnit;
+  end else
+    UniformName := '';
 
   TexCoordName := Format('gl_TexCoord[%d]', [TextureUnit]);
 
@@ -701,9 +702,9 @@ begin
     TextureSampleCall := 'vec4(vec3(shadow_depth(%s, %s)), gl_FragColor.a)';
     TextureApply += Format('gl_FragColor = ' + TextureSampleCall + ';' + NL +
       'return;',
-      [Uniform.Name, TexCoordName]);
+      [UniformName, TexCoordName]);
     TextureUniformsDeclare += Format('uniform sampler2D %s;' + NL,
-      [Uniform.Name]);
+      [UniformName]);
   end else
   begin
     if (TextureType = tt2DShadow) and
@@ -712,12 +713,12 @@ begin
     begin
       Shader.Plug(stFragment,
         Format('uniform %s %s;',
-        [OpenGLTextureType[TextureType], Uniform.Name]) +NL+
+        [OpenGLTextureType[TextureType], UniformName]) +NL+
         'float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord, const in float size);' +NL+
         'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
         '{' +NL+
         Format('  scale *= shadow(%s, gl_TexCoord[%d], %d.0);',
-        [Uniform.Name, TextureUnit, ShadowMapSize]) +NL+
+        [UniformName, TextureUnit, ShadowMapSize]) +NL+
         '}',
         ShadowLightShader.Code);
     end else
@@ -745,7 +746,7 @@ begin
         if TextureType <> ttShader then
           Code.Add(Format('texture_color = ' + TextureSampleCall + ';' +NL+
             '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
-            [Uniform.Name, TexCoordName])) else
+            [UniformName, TexCoordName])) else
           Code.Add(Format('texture_color = ' + TextureSampleCall + ';' +NL+
             '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
             [TexCoordName]));
@@ -768,7 +769,7 @@ begin
 
       if TextureType <> ttShader then
         TextureUniformsDeclare += Format('uniform %s %s;' + NL,
-          [OpenGLTextureType[TextureType], Uniform.Name]);
+          [OpenGLTextureType[TextureType], UniformName]);
     end;
   end;
 end;
@@ -942,15 +943,14 @@ begin
   CodeForPlugValue.Add(PlugValue);
 end;
 
-procedure TVRMLShader.PlugDirectly(Code: TDynStringArray;
+function TVRMLShader.PlugDirectly(Code: TDynStringArray;
   const CodeIndex: Cardinal;
   const PlugName, PlugValue: string;
-  const InsertAtBeginIfNotFound: boolean);
+  const InsertAtBeginIfNotFound: boolean): boolean;
 var
   P: Integer;
-  Done:  boolean;
 begin
-  Done := false;
+  Result := false;
 
   if CodeIndex < Code.Count then
   begin
@@ -958,16 +958,16 @@ begin
     if P <> 0 then
     begin
       Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, PlugValue + NL);
-      Done := true;
+      Result := true;
     end else
     if InsertAtBeginIfNotFound then
     begin
       Code[CodeIndex] := PlugValue + NL + Code[CodeIndex];
-      Done := true;
+      Result := true;
     end;
   end;
 
-  if (not Done) and WarnMissingPlugs then
+  if (not Result) and WarnMissingPlugs then
     VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
 end;
 
@@ -975,6 +975,7 @@ procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
 var
   TextureApply, TextureColorDeclare, TextureCoordInitialize,
     TextureCoordMatrix, TextureUniformsDeclare: string;
+  TextureUniformsSet: boolean;
 
   procedure EnableTextures;
   var
@@ -985,6 +986,7 @@ var
     TextureCoordInitialize := '';
     TextureCoordMatrix := '';
     TextureUniformsDeclare := '';
+    TextureUniformsSet := true;
 
     for I := 0 to TextureShaders.Count - 1 do
       TextureShaders[I].Enable(TextureApply, TextureColorDeclare,
@@ -1004,17 +1006,21 @@ var
       TextureColorDeclare + TextureApply, false);
     PlugDirectly(Source[stFragment], 0, '/* PLUG: fragment_end', FragmentEnd, false);
 
-    { TODO: Using true as last param here would be better
-      (composed_shader_using_plugs.x3dv should not need /* PLUG-DECLARATIONS */),
-      but it could also add unneeded stuff --- if ComposedShader is not prepared,
-      then it could make it break (e.g. adding stuff before #version and such).
-      This waits for fixing ComposedShader: normal textures should not be
-      passed then at all, so our texture_0 should not even exist
-      and TextureUniformsDeclare should be empty?
-      This would also fix "missing texture_0" warnings on normal shaders/
-      demos. }
-    PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
-      TextureUniformsDeclare, false);
+    if not PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
+      TextureUniformsDeclare, false) then
+    begin
+      { When we cannot find /* PLUG-DECLARATIONS */, it also means we have
+        base shader from ComposedShader. In this case, forcing
+        TextureUniformsDeclare at the beginning of shader code
+        (by InsertAtBeginIfNotFound) would be bad (in case ComposedShader
+        has some #version at the beginning). So we choose the safer route
+        to *not* integrate our texture handling with ComposedShader.
+
+        We also remove uniform values for textures, to avoid
+        "unused kambi_texture_%d" warning. Setting TextureUniformsSet
+        will make it happen. }
+      TextureUniformsSet := false;
+    end;
 
     { Don't add to empty Source[stFragment], in case ComposedShader
       doesn't want any fragment shader }
@@ -1069,6 +1075,12 @@ var
     I: Integer;
   begin
     AProgram.Enable;
+
+    if TextureUniformsSet then
+      for I := 0 to TextureShaders.Count - 1 do
+        if TextureShaders[I].UniformName <> '' then
+          AProgram.SetUniform(TextureShaders[I].UniformName,
+                              TextureShaders[I].UniformValue);
 
     if Uniforms <> nil then
       for I := 0 to Uniforms.Count - 1 do
