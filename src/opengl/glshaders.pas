@@ -438,7 +438,7 @@ var
 
 implementation
 
-uses KambiStringUtils, DataErrors, KambiLog;
+uses KambiStringUtils, DataErrors, KambiLog, GLVersionUnit;
 
 { Comfortable shortcut for glGetProgramivARB that always returns 1 value. }
 function glGetProgramiARB(target: TGLenum; pname: TGLenum): TGLint;
@@ -1198,7 +1198,18 @@ end;
 procedure TGLSLProgram.Disable;
 begin
   case Support of
-    gsARBExtension: glUseProgramObjectARB(0);
+    gsARBExtension:
+      begin
+        glUseProgramObjectARB(0);
+        { Workaround for fglrx bug (Radeon X1600 (chantal)).
+          Reproduce: open demo_models/x3d/anchor_test.x3dv,
+          and switch in view3dscene "Shaders -> Enable For Everything".
+          Text should be still rendered without shaders in this case
+          (we cannot currently render text through shaders).
+          Without the hack below, the shader from sphere would remain
+          active and text would look black. }
+        if GLVersion.IsFglrx then glUseProgramObjectARB(0);
+      end;
     gsStandard    : glUseProgram         (0);
   end;
 end;
