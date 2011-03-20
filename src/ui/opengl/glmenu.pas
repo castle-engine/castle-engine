@@ -1370,6 +1370,7 @@ begin
   if Focused and DrawFocused then
   begin
     glColorv(CurrentItemBorderColor);
+    glLineWidth(1.0);
     DrawGLRectBorder(FAllItemsRectangle);
   end;
 
@@ -1378,6 +1379,7 @@ begin
     if I = CurrentItem then
     begin
       glColorv(CurrentItemBorderColor);
+      glLineWidth(1.0);
       DrawGLRectBorder(
         Rectangles.Items[I].X0 - CurrentItemBorderMargin,
         Rectangles.Items[I].Y0,
