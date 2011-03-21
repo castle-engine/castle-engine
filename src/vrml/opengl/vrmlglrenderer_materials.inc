@@ -187,7 +187,7 @@ begin
 
   { calculate and apply Lighting }
   Lighting := Attributes.Lighting and MaterialLit;
-  SetGLEnabled(GL_LIGHTING, Lighting);
+  FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;
 

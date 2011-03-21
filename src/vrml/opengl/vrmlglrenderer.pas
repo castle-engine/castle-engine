@@ -980,6 +980,7 @@ type
 
     FCullFace: TCullFace;
     FSmoothShading: boolean;
+    FFixedFunctionLighting: boolean;
 
     { This calls glPushMatrix, assuming that current matrix mode is GL_TEXTURE
       and current tex unit is TexUnit (always make sure this is true when
@@ -1001,12 +1002,15 @@ type
 
     procedure SetCullFace(const Value: TCullFace);
     procedure SetSmoothShading(const Value: boolean);
+    procedure SetFixedFunctionLighting(const Value: boolean);
 
     { Change glCullFace and GL_CULL_FACE enabled by this property.
       This way we avoid redundant state changes. }
     property CullFace: TCullFace read FCullFace write SetCullFace;
     { Change glShadeModel by this property. }
     property SmoothShading: boolean read FSmoothShading write SetSmoothShading;
+    { Change GL_LIGHTING enabled by this property. }
+    property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
   private
     { ----------------------------------------------------------------- }
 
@@ -2729,7 +2733,13 @@ begin
     FSmoothShading := true;
     glShadeModel(GL_SMOOTH);
 
-    SetGLEnabled(GL_LIGHTING, Beginning and Attributes.Lighting);
+    if Beginning then
+    begin
+      { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
+      FFixedFunctionLighting := Attributes.Lighting;
+      SetGLEnabled(GL_LIGHTING, FFixedFunctionLighting);
+    end else
+      glDisable(GL_LIGHTING);
 
     if Attributes.UseSceneLights then
       for I := FirstLight to GLMaxLights - 1 do
@@ -3755,6 +3765,15 @@ begin
     if Value then
       glShadeModel(GL_SMOOTH) else
       glShadeModel(GL_FLAT);
+  end;
+end;
+
+procedure TVRMLGLRenderer.SetFixedFunctionLighting(const Value: boolean);
+begin
+  if FFixedFunctionLighting <> Value then
+  begin
+    FFixedFunctionLighting := Value;
+    SetGLEnabled(GL_LIGHTING, FixedFunctionLighting);
   end;
 end;
 

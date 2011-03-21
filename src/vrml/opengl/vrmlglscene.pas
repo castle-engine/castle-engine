@@ -2319,6 +2319,8 @@ procedure TVRMLGLScene.Render(
         glDisable(GL_TEXTURE_2D); { saved by GL_CURRENT_BIT }
         glDisable(GL_LIGHTING); { saved by GL_CURRENT_BIT }
       end;
+      { TODO: glDisable(GL_LIGHTING) above is ignored now.
+        EnableLighting should be used (and restored). }
       RenderNormal;
     glPopAttrib;
   end;
