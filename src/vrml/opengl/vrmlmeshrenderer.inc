@@ -87,10 +87,6 @@ type
     instance to generate TGeometryArrays contents, then renders them. }
   TBaseCoordinateRenderer = class(TVRMLMeshRenderer)
   private
-    { used by RenderCoordinateBegin/End for CullBackFaces and FrontFaceCcw
-      implementation. }
-    PushedAttribs: TGLbitfield;
-
     { Available inside RenderCoordinate* }
     Arrays: TGeometryArrays;
 
@@ -349,14 +345,6 @@ end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
 begin
-  PushedAttribs := 0;
-
-  if Arrays.ForceFlatShading then
-    PushedAttribs := PushedAttribs or GL_LIGHTING_BIT { for shade model };
-
-  if PushedAttribs <> 0 then
-    glPushAttrib(PushedAttribs);
-
   { Always make sure Renderer.CullFace is suitable }
   if Arrays.CullBackFaces then
   begin
@@ -368,16 +356,11 @@ begin
   end else
     Renderer.CullFace := cfNone;
 
-  if Arrays.ForceFlatShading then
-  begin
-    glShadeModel(GL_FLAT);
-  end;
+  Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateEnd;
 begin
-  if PushedAttribs <> 0 then
-    glPopAttrib;
 end;
 
 function TBaseCoordinateRenderer.HasColor: boolean;

@@ -174,6 +174,9 @@ begin
         Renderer.CullFace := cfCCW else
         Renderer.CullFace := cfNone;
 
+      { Make sure Renderer.SmoothShading is suitable }
+      Renderer.SmoothShading := true;
+
       { Normal pointing from CCW. }
       glNormal3f(0, 0, -1);
 
@@ -227,29 +230,25 @@ begin
           that's why I render extrusions after rendering all front and back caps.
           For now, normals for extrusions are suitable only for flat shading,
           so we set flat shading. }
+        Renderer.SmoothShading := false;
 
-        glPushAttrib(GL_LIGHTING_BIT);
-          glShadeModel(GL_FLAT);
+        for I := 0 to Strings.Count - 1 do
+        begin
+          glPushMatrix;
+            glScalef(XScale, 1, 1);
 
-          for I := 0 to Strings.Count - 1 do
-          begin
-            glPushMatrix;
-              glScalef(XScale, 1, 1);
+            { TODO: when using Justify <> fjBegin I should also
+              change texOriginX here, at least for VRML 1.0 --- check
+              for VRML 2.0. }
+            glTranslatef(StringPosX(I), StringPosY(I), -Depth);
 
-              { TODO: when using Justify <> fjBegin I should also
-                change texOriginX here, at least for VRML 1.0 --- check
-                for VRML 2.0. }
-              glTranslatef(StringPosX(I), StringPosY(I), -Depth);
-
-              { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
-                popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
-              if Renderer.TexCoordsNeeded > 0 then
-                CurrentFont.PrintTexturedExtrusionAndMove(Strings[i], Depth, 0, 0) else
-                CurrentFont.PrintExtrusionAndMove(Strings[i], Depth);
-            glPopMatrix;
-          end;
-
-        glPopAttrib;
+            { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
+              popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
+            if Renderer.TexCoordsNeeded > 0 then
+              CurrentFont.PrintTexturedExtrusionAndMove(Strings[i], Depth, 0, 0) else
+              CurrentFont.PrintExtrusionAndMove(Strings[i], Depth);
+          glPopMatrix;
+        end;
       end;
 
     glPopMatrix;

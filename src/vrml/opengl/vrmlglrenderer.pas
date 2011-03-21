@@ -979,6 +979,7 @@ type
     TextureTransformUnitsUsedMore: TDynLongIntArray;
 
     FCullFace: TCullFace;
+    FSmoothShading: boolean;
 
     { This calls glPushMatrix, assuming that current matrix mode is GL_TEXTURE
       and current tex unit is TexUnit (always make sure this is true when
@@ -999,10 +1000,13 @@ type
     function BumpMapping: boolean;
 
     procedure SetCullFace(const Value: TCullFace);
+    procedure SetSmoothShading(const Value: boolean);
 
-    { Change glCullFace and GL_CULL_FACE enabled by changing this property.
+    { Change glCullFace and GL_CULL_FACE enabled by this property.
       This way we avoid redundant state changes. }
     property CullFace: TCullFace read FCullFace write SetCullFace;
+    { Change glShadeModel by this property. }
+    property SmoothShading: boolean read FSmoothShading write SetSmoothShading;
   private
     { ----------------------------------------------------------------- }
 
@@ -2721,7 +2725,8 @@ begin
     if Beginning then
       glAlphaFunc(GL_GEQUAL, 0.5);
 
-    { Always smooth shading. Flat shading wasn't really useful. }
+    { Initialize FSmoothShading, make sure OpenGL state is appropriate }
+    FSmoothShading := true;
     glShadeModel(GL_SMOOTH);
 
     SetGLEnabled(GL_LIGHTING, Beginning and Attributes.Lighting);
@@ -3739,6 +3744,17 @@ begin
       cfCCW: begin glCullFace(GL_FRONT); glEnable(GL_CULL_FACE); end;
       else raise EInternalError.Create('SetCullFace:Value?');
     end;
+  end;
+end;
+
+procedure TVRMLGLRenderer.SetSmoothShading(const Value: boolean);
+begin
+  if FSmoothShading <> Value then
+  begin
+    FSmoothShading := Value;
+    if Value then
+      glShadeModel(GL_SMOOTH) else
+      glShadeModel(GL_FLAT);
   end;
 end;
 
