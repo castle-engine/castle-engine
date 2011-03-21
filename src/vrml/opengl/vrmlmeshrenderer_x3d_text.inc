@@ -168,14 +168,11 @@ begin
     glPushMatrix;
       glScalef(1, YScale, 1);
 
+      { Make sure Renderer.CullFace is suitable }
       if CullBackFaces then
-      begin
-        glPushAttrib(GL_POLYGON_BIT);
-        { Outside face is CW now, so cull CCW. CCW = front face
-          (remember, we can't use glFrontFace, we have to work with glCullFace here) }
-        glCullFace(GL_FRONT); // saved by GL_POLYGON_BIT
-        glEnable(GL_CULL_FACE);
-      end;
+        { Outside face is CW now, so cull CCW. }
+        Renderer.CullFace := cfCCW else
+        Renderer.CullFace := cfNone;
 
       { Normal pointing from CCW. }
       glNormal3f(0, 0, -1);
@@ -200,12 +197,10 @@ begin
 
       if Depth <> 0 then
       begin
+        { Make sure Renderer.CullFace is suitable }
         if CullBackFaces then
-        begin
-          { Outside face is CCW now, so cull CW. CW = back face
-            (remember, we can't use glFrontFace, we have to work with glCullFace here) }
-          glCullFace(GL_BACK);
-        end;
+          Renderer.CullFace := cfCW else
+          Renderer.CullFace := cfNone;
 
         { Normal pointing from CCW. }
         glNormal3f(0, 0, -1);
@@ -256,9 +251,6 @@ begin
 
         glPopAttrib;
       end;
-
-      if CullBackFaces then
-        glPopAttrib;
 
     glPopMatrix;
 

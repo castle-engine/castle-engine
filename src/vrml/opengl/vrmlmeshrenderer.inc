@@ -351,30 +351,22 @@ procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
 begin
   PushedAttribs := 0;
 
-  if Arrays.CullBackFaces then
-    PushedAttribs := PushedAttribs or GL_POLYGON_BIT;
   if Arrays.ForceFlatShading then
     PushedAttribs := PushedAttribs or GL_LIGHTING_BIT { for shade model };
 
   if PushedAttribs <> 0 then
     glPushAttrib(PushedAttribs);
 
+  { Always make sure Renderer.CullFace is suitable }
   if Arrays.CullBackFaces then
   begin
     { If vertex ordering is consistent and object is SOLID than we use OpenGL's
-      backface culling.
-
-      If FrontFaceCcw then we have to cull CW faces.
-      But note that we do not want to call OpenGL glFrontFace
-      (see VRMLGLRenderer comments for reasons), so instead of it we switch
-      glCullFace. Since we assume that front = always CCW, so we know how to call
-      glCullFace.
-    }
-    glEnable(GL_CULL_FACE);
+      backface culling. If FrontFaceCcw then we have to cull CW faces. }
     if Arrays.FrontFaceCcw then
-      glCullFace(GL_BACK) else
-      glCullFace(GL_FRONT);
-  end;
+      Renderer.CullFace := cfCW else
+      Renderer.CullFace := cfCCW;
+  end else
+    Renderer.CullFace := cfNone;
 
   if Arrays.ForceFlatShading then
   begin

@@ -232,6 +232,8 @@ type
   TBeforeGLVertexProc = procedure (Node: TVRMLGeometryNode;
     const Vert: TVector3Single) of object;
   TShadersRendering = (srDisable, srWhenRequired, srAlways);
+  { Faces to cull (make invisible) during VRML/X3D rendering. }
+  TCullFace = (cfNone, cfCW, cfCCW);
 
 const
   DefaultPointSize = 3.0;
@@ -976,6 +978,8 @@ type
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TDynLongIntArray;
 
+    FCullFace: TCullFace;
+
     { This calls glPushMatrix, assuming that current matrix mode is GL_TEXTURE
       and current tex unit is TexUnit (always make sure this is true when
       calling it!).
@@ -993,6 +997,12 @@ type
     { Check Attributes (like Attributes.BumpMapping) and OpenGL
       context capabilities to see if bump mapping can be used. }
     function BumpMapping: boolean;
+
+    procedure SetCullFace(const Value: TCullFace);
+
+    { Change glCullFace and GL_CULL_FACE enabled by changing this property.
+      This way we avoid redundant state changes. }
+    property CullFace: TCullFace read FCullFace write SetCullFace;
   private
     { ----------------------------------------------------------------- }
 
@@ -2701,12 +2711,8 @@ begin
     if Log then
       WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
 
-    { While rendering Indexed_Faces_Or_Triangles we may temporarily
-      enable/disable GL_CULL_FACE and change glCullFace. We want to make
-      sure from what state we start, so we set if here.
-      Note that we *do not* set glFrontFace --- see comments at the beginning
-      of this unit to know why. }
-    glCullFace(GL_BACK);
+    { Initialize FCullFace, make sure OpenGL state is set as appropriate }
+    FCullFace := cfNone;
     glDisable(GL_CULL_FACE);
 
     glDisable(GL_ALPHA_TEST);
@@ -3714,6 +3720,26 @@ begin
     UpdateGeneratedShadowMap(TNodeGeneratedShadowMap(TextureNode)) else
   if TextureNode is TNodeRenderedTexture then
     UpdateRenderedTexture(TNodeRenderedTexture(TextureNode));
+end;
+
+procedure TVRMLGLRenderer.SetCullFace(const Value: TCullFace);
+begin
+  if FCullFace <> Value then
+  begin
+    FCullFace := Value;
+
+    { We do not want to touch OpenGL glFrontFace (this will be useful
+      for planar mirrors, where caller should be able to control glFrontFace).
+      So we use only glCullFace. We assume that glFrontFace = always CCW,
+      so we know how to call glCullFace. }
+
+    case Value of
+      cfNone: glDisable(GL_CULL_FACE);
+      cfCW:  begin glCullFace(GL_BACK);  glEnable(GL_CULL_FACE); end;
+      cfCCW: begin glCullFace(GL_FRONT); glEnable(GL_CULL_FACE); end;
+      else raise EInternalError.Create('SetCullFace:Value?');
+    end;
+  end;
 end;
 
 end.
