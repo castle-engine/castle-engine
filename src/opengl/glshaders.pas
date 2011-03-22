@@ -189,11 +189,12 @@ type
         will be detected to be running in software.) }
     procedure Link(RequireRunningInHardware: boolean);
 
-    { Enable (use) this program. }
+    { Enable (use) this program. Shortcut for @code(CurrentProgram := Self). }
     procedure Enable;
 
-    { Disable this program (use the fixed function pipeline). }
-    procedure Disable;
+    { Disable this program (use the fixed function pipeline).
+      Shortcut for @code(CurrentProgram := nil). }
+    class procedure Disable;
 
     { Override this to set uniform values, in particular to
       bind the textures used by this shader, right after each @link(Enable)
@@ -390,6 +391,17 @@ const
 var
   LogShaders: boolean;
 
+function GetCurrentProgram: TGLSLProgram;
+procedure SetCurrentProgram(const Value: TGLSLProgram);
+
+{ Currently enabled GLSL program.
+  @nil if fixed-function pipeline should be used.
+  Setting this property encapsulates the OpenGL glUseProgram
+  (or equivalent ARB extension), additionally preventing redundant glUseProgram
+  calls. }
+property CurrentProgram: TGLSLProgram
+  read GetCurrentProgram write SetCurrentProgram;
+
 implementation
 
 uses KambiStringUtils, DataErrors, KambiLog, GLVersionUnit;
@@ -447,6 +459,48 @@ begin
     StringReplaceAllTo1st(Result, #0, NL);
   end else
     Result := '';
+end;
+
+var
+  FCurrentProgram: TGLSLProgram;
+
+function GetCurrentProgram: TGLSLProgram;
+begin
+  Result := FCurrentProgram;
+end;
+
+procedure SetCurrentProgram(const Value: TGLSLProgram);
+begin
+  if FCurrentProgram <> Value then
+  begin
+    FCurrentProgram := Value;
+
+    if Value <> nil then
+    begin
+      case TGLSLProgram.ClassSupport of
+        gsARBExtension: glUseProgramObjectARB(Value.ProgramId);
+        gsStandard    : glUseProgram         (Value.ProgramId);
+      end;
+    end else
+    begin
+      case TGLSLProgram.ClassSupport of
+        gsARBExtension:
+          begin
+            glUseProgramObjectARB(0);
+            { Workaround for fglrx bug (Radeon X1600 (chantal)).
+              Reproduce: open demo_models/x3d/anchor_test.x3dv,
+              and switch in view3dscene "Shaders -> Enable For Everything".
+              Text should be still rendered without shaders in this case
+              (we cannot currently render text through shaders).
+              Without the hack below, the shader from sphere would remain
+              active and text would look black. }
+            if GLVersion.IsFglrx then glUseProgramObjectARB(0);
+          end;
+        gsStandard    : glUseProgram         (0);
+      end;
+  end;
+end;
+
 end;
 
 { TARBProgram ---------------------------------------------------------------- }
@@ -1023,29 +1077,12 @@ end;
 
 procedure TGLSLProgram.Enable;
 begin
-  case Support of
-    gsARBExtension: glUseProgramObjectARB(ProgramId);
-    gsStandard    : glUseProgram         (ProgramId);
-  end;
+  CurrentProgram := Self;
 end;
 
-procedure TGLSLProgram.Disable;
+class procedure TGLSLProgram.Disable;
 begin
-  case Support of
-    gsARBExtension:
-      begin
-        glUseProgramObjectARB(0);
-        { Workaround for fglrx bug (Radeon X1600 (chantal)).
-          Reproduce: open demo_models/x3d/anchor_test.x3dv,
-          and switch in view3dscene "Shaders -> Enable For Everything".
-          Text should be still rendered without shaders in this case
-          (we cannot currently render text through shaders).
-          Without the hack below, the shader from sphere would remain
-          active and text would look black. }
-        if GLVersion.IsFglrx then glUseProgramObjectARB(0);
-      end;
-    gsStandard    : glUseProgram         (0);
-  end;
+  CurrentProgram := nil;
 end;
 
 function TGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
