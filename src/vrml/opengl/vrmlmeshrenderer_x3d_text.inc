@@ -151,6 +151,9 @@ var
 begin
   if PrepareRenderShape <> 0 then Exit;
 
+  { Make sure CurrentProgram is correct }
+  CurrentProgram := nil;
+
   YScale := Size / CurrentFont.RowHeight;
   { TODO: Use maxEntent, length for VRML 2.0.
     Use width for VRML 1.0. }

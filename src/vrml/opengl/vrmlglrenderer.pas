@@ -2822,6 +2822,8 @@ begin
   if Attributes.PreserveOpenGLState then
     glPopAttrib else
     RenderCleanState(false);
+
+  CurrentProgram := nil;
 end;
 
 {$ifdef USE_VRML_TRIANGULATION}

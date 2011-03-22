@@ -54,10 +54,6 @@ type
     property State: TVRMLGraphTraverseState read FState;
     property Attributes: TVRMLRenderingAttributes read FAttributes;
   public
-    { Set this to non-nil before calling Render, if you use any GLSL program.
-      This allows us to set GLSL attribs. }
-    UsedGLSL: TGLSLProgram;
-
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
     PrepareRenderShape: Cardinal;
@@ -143,7 +139,6 @@ type
   TShaderCoordinateRenderer = class(TMaterialFromColorCoordinateRenderer)
   protected
     procedure RenderCoordinateBegin; override;
-    procedure RenderCoordinateEnd; override;
   end;
 
   TCompleteCoordinateRenderer = TShaderCoordinateRenderer;
@@ -306,8 +301,10 @@ begin
           Arrays.TexCoord(Arrays.TexCoords[0].Dimensions, 0, 0));
       end;
 
-      if (Arrays.Attribs.Count <> 0) and (UsedGLSL <> nil) then
-        EnableVertexAttrib(UsedGLSL);
+      { We know now that CurrentProgram is the program set by
+        TShaderCoordinateRenderer.RenderCoordinateBegin }
+      if (Arrays.Attribs.Count <> 0) and (CurrentProgram <> nil) then
+        EnableVertexAttrib(CurrentProgram);
 
       Mode := ToMode[Arrays.Primitive];
       First := 0;
@@ -708,18 +705,10 @@ begin
       end;
     end;
 
-    UsedGLSL := Shape.ShaderProgram;
-    if UsedGLSL <> nil then
-    begin
-      UsedGLSL.Enable;
-      UsedGLSL.SetupUniforms(BoundTextureUnits);
-    end;
-  end;
-end;
+    CurrentProgram := Shape.ShaderProgram;
+  end else
+    CurrentProgram := nil;
 
-procedure TShaderCoordinateRenderer.RenderCoordinateEnd;
-begin
-  if UsedGLSL <> nil then
-    UsedGLSL.Disable;
-  inherited;
+  if CurrentProgram <> nil then
+    CurrentProgram.SetupUniforms(BoundTextureUnits);
 end;
