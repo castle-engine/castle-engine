@@ -24,21 +24,6 @@ uses VectorMath, GLShaders, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, KambiUtils;
 
 type
-  { Uniform value type, for TUniform. }
-  TUniformType = (utLongInt, utSingle);
-
-  { Uniform value to set after binding shader. }
-  TUniform = class
-    Name: string;
-    AType: TUniformType;
-    Value: record
-      case Integer of
-        utLongInt: (LongInt: LongInt);
-        utSingle: (Single: Single);
-    end;
-  end;
-  TUniformsList = specialize TFPGObjectList<TUniform>;
-
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
 
   TTexGenerationComponent = (tgEye, tgObject);
@@ -146,7 +131,6 @@ type
     directly by other code. }
   TVRMLShader = class
   private
-    Uniforms: TUniformsList;
     { If non-nil, the list of effect nodes that determine uniforms of our program. }
     UniformsNodes: TVRMLNodesList;
     TextureCoordGen, ClipPlane, FragmentEnd: string;
@@ -160,6 +144,8 @@ type
     SelectedNode: TNodeComposedShader;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
+    BumpMappingUniformName: string;
+    BumpMappingUniformValue: LongInt;
 
     { We have to optimize the most often case of TVRMLShader usage,
       when the shader is not needed or is already prepared.
@@ -238,8 +224,6 @@ type
       It can be used to decide when the shader GLSL program needs
       to be regenerated, shared etc. }
     function CodeHash: TShaderCodeHash;
-
-    procedure AddUniform(Uniform: TUniform);
 
     procedure EnableTexture(const TextureUnit: Cardinal;
       const TextureType: TTextureType; const Node: TNodeX3DTextureNode;
@@ -801,7 +785,6 @@ destructor TVRMLShader.Destroy;
 var
   SourceType: TShaderType;
 begin
-  FreeAndNil(Uniforms);
   FreeAndNil(UniformsNodes);
   FreeAndNil(LightShaders);
   FreeAndNil(TextureShaders);
@@ -1077,18 +1060,16 @@ var
     AProgram.Enable;
 
     if TextureUniformsSet then
+    begin
       for I := 0 to TextureShaders.Count - 1 do
         if TextureShaders[I].UniformName <> '' then
           AProgram.SetUniform(TextureShaders[I].UniformName,
                               TextureShaders[I].UniformValue);
+    end;
 
-    if Uniforms <> nil then
-      for I := 0 to Uniforms.Count - 1 do
-        case Uniforms[I].AType of
-          utLongInt: AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.LongInt);
-          utSingle : AProgram.SetUniform(Uniforms[I].Name, Uniforms[I].Value.Single );
-          else raise EInternalError.Create('TVRMLShader.SetupUniformsOnce:Uniforms[I].Type?');
-        end;
+    if BumpMappingUniformName <> '' then
+      AProgram.SetUniform(BumpMappingUniformName,
+                          BumpMappingUniformValue);
 
     if UniformsNodes <> nil then
       AProgram.BindUniforms(UniformsNodes, false);
@@ -1293,13 +1274,6 @@ begin
   Result := FCodeHash;
 end;
 
-procedure TVRMLShader.AddUniform(Uniform: TUniform);
-begin
-  if Uniforms = nil then
-    Uniforms := TUniformsList.Create;
-  Uniforms.Add(Uniform);
-end;
-
 procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
   const TextureType: TTextureType;
   const Node: TNodeX3DTextureNode;
@@ -1474,8 +1448,6 @@ begin
 end;
 
 procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
-var
-  Uniform: TUniform;
 begin
   Plug(stVertex,
     'attribute mat3 tangent_to_object_space;' +NL+
@@ -1501,12 +1473,8 @@ begin
     '    texture2D(kambi_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0)));' +NL+
     '}');
 
-  Uniform := TUniform.Create;
-  Uniform.Name := 'kambi_normal_map';
-  Uniform.AType := utLongInt;
-  Uniform.Value.LongInt := NormalMapTextureUnit;
-
-  AddUniform(Uniform);
+  BumpMappingUniformName := 'kambi_normal_map';
+  BumpMappingUniformValue := NormalMapTextureUnit;
 
   ShapeRequiresShaders := true;
 end;
