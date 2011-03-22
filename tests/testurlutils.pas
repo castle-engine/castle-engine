@@ -28,14 +28,27 @@ type
 
 implementation
 
+uses KambiUtils;
+
 procedure TTestURLUtils.TestUrlProtocol;
+var
+  Colon: Integer;
 begin
   Assert(UrlProtocol('data:blah:foo') = 'data');
-  Assert(UrlProtocolIs('data:blah:foo', 'data'));
-  Assert(not UrlProtocolIs('data:blah:foo', 'data1'));
-  Assert(not UrlProtocolIs('data:blah:foo', 'dat'));
-  Assert(not UrlProtocolIs('data', 'data'));
-  Assert(not UrlProtocolIs('', 'data'));
+  Assert(UrlProtocolIs('data:blah:foo', 'data', Colon));
+  Assert(not UrlProtocolIs('data:blah:foo', 'data1', Colon));
+  Assert(not UrlProtocolIs('data:blah:foo', 'dat', Colon));
+  Assert(not UrlProtocolIs('data', 'data', Colon));
+  Assert(not UrlProtocolIs('', 'data', Colon));
+
+  Assert(UrlProtocol('ecmascript:xyz') = 'ecmascript');
+  Assert(UrlDeleteProtocol('ecmascript:xyz') = 'xyz');
+
+  Assert(UrlProtocol('     ' + NL + '    ecmascript:xyz') = 'ecmascript');
+  Assert(UrlDeleteProtocol('     ' + NL + '    ecmascript:xyz') = 'xyz');
+
+  Assert(UrlProtocol('void main()' + NL + 'ecmascript:xyz') = '');
+  Assert(UrlDeleteProtocol('void main()' + NL + 'ecmascript:xyz') = 'void main()' + NL + 'ecmascript:xyz');
 end;
 
 initialization
