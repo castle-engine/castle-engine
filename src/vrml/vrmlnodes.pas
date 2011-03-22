@@ -4531,7 +4531,7 @@ begin
 
   E := DOMGetChildElement(Element, 'ProtoBody', false);
   if E = nil then
-    raise EX3DXmlError.Create('Missing <ProtoBody> inside <ProtoDeclare> element');
+    raise EX3DXmlError.CreateFmt('Missing <ProtoBody> inside <ProtoDeclare> element of prototype "%s"', [Name]);
 
   FreeAndNil(FNode);
 
