@@ -1104,6 +1104,7 @@ type
 {$I vrmlnodes_97_nurbs.inc}
 {$I vrmlnodes_kambi.inc}
 {$I vrmlnodes_avalon.inc}
+{$I vrmlnodes_bitmanagement.inc}
 
 { TVRMLUnknownNode --------------------------------------------------- }
 
@@ -2325,6 +2326,7 @@ resourcestring
 {$I vrmlnodes_97_nurbs.inc}
 {$I vrmlnodes_kambi.inc}
 {$I vrmlnodes_avalon.inc}
+{$I vrmlnodes_bitmanagement.inc}
 {$I vrmlnodes_encoding_classic.inc}
 {$I vrmlnodes_encoding_xml.inc}
 
@@ -5695,6 +5697,7 @@ initialization
   {$ifdef KAMBI_HAS_NURBS} RegisterVRML97NodesNurbs; {$endif}
   RegisterKambiNodes;
   RegisterAvalonNodes;
+  RegisterBitManagementNodes;
 
   { X3D components registration : }
 
