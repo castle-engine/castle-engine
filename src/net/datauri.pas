@@ -43,6 +43,7 @@ type
     procedure SetURI(const Value: string);
   public
     destructor Destroy; override;
+    class function IsDataURI(const URI: string; out Colon: Integer): boolean;
     class function IsDataURI(const URI: string): boolean;
 
     { The data URI that this class reads.
@@ -94,16 +95,23 @@ begin
   inherited;
 end;
 
-class function TDataURI.IsDataURI(const URI: string): boolean;
+class function TDataURI.IsDataURI(const URI: string; out Colon: Integer): boolean;
 begin
-  Result := UrlProtocolIs(URI, 'data');
+  Result := UrlProtocolIs(URI, 'data', Colon);
+end;
+
+class function TDataURI.IsDataURI(const URI: string): boolean;
+var
+  Colon: Integer; { ignored }
+begin
+  Result := UrlProtocolIs(URI, 'data', Colon);
 end;
 
 procedure TDataURI.SetURI(const Value: string);
 var
   ValidMime, ValidCharset: string;
   ValidBase64: boolean;
-  PosBegin, PosNow: Integer;
+  PosBegin, PosNow, Colon: Integer;
   Part: string;
 begin
   FreeStream;
@@ -117,7 +125,7 @@ begin
   FCharset := 'US-ASCII'; { default charset }
   FURIPrefix := '';
 
-  if not IsDataURI(URI) then
+  if not IsDataURI(URI, Colon) then
   begin
     DataWarning('Not a data URI scheme');
     Exit;
@@ -127,10 +135,10 @@ begin
   ValidCharset := FCharset;
   ValidBase64 := FBase64;
 
-  { First 5 characters were already parsed by UrlProtocolIs as "data:".
+  { First Colon characters were already parsed by UrlProtocolIs as "data:".
     Read mime-type now. }
 
-  PosBegin := 6;
+  PosBegin := Colon + 1;
   PosNow := PosBegin;
   while (PosNow <= Length(Value)) and
         (Value[PosNow] <> ';') and

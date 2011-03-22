@@ -55,7 +55,7 @@ function UrlProtocol(const S: string): string;
   This is equivalent to checking UrlProtocol(S) = Protocol, ignoring case,
   although may be a little faster. Given Protocol string cannot contain
   ":" character. }
-function UrlProtocolIs(const S: string; Protocol: string): boolean;
+function UrlProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
 
 function UrlDeleteProtocol(const S: string): string;
 
@@ -153,61 +153,70 @@ begin
   SetLength(Result, ResultI - 1);
 end;
 
-function UrlProtocolSeparator(const S: string): Integer;
+{ Detect protocol delimiting positions.
+  If returns true, then for sure:
+  - FirstCharacter < Colon
+  - FirstCharacter >= 1
+  - Colon > 1 }
+function UrlProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): boolean;
 var
   I: Integer;
 begin
-  Result := Pos(':', S);
-  if Result <> 0 then
+  Result := false;
+  Colon := Pos(':', S);
+  if Colon <> 0 then
   begin
+    (* Skip beginning whitespace from protocol.
+       This allows us to detect properly "ecmascript:" protocol in
+
+      Script { url "
+        ecmascript:..." }
+    *)
+    FirstCharacter := 1;
+    while (FirstCharacter < Colon) and (S[FirstCharacter] in WhiteSpaces) do
+      Inc(FirstCharacter);
+
     { Protocol cannot contain newline characters.
       This hardens our check for inline shader source code in url. }
-    for I := 1 to Result - 1 do
-      if S[I] in [#10, #13] then Exit(0);
+    for I := FirstCharacter to Colon - 1 do
+      if S[I] in [#10, #13] then Exit;
+
+    Result := FirstCharacter < Colon;
   end;
 end;
 
 function UrlProtocol(const S: string): string;
 var
-  P: Integer;
+  FirstCharacter, Colon: Integer;
 begin
-  P := UrlProtocolSeparator(S);
-  if P = 0 then
-    Result := '' else
-    Result := Copy(S, 1, P - 1);
+  if UrlProtocolIndex(S, FirstCharacter, Colon) then
+    Result := CopyPos(S, FirstCharacter, Colon - 1) else
+    Result := '';
 end;
 
-function UrlProtocolIs(const S: string; Protocol: string): boolean;
+function UrlProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
 var
-  I: Integer;
+  FirstCharacter, I: Integer;
 begin
-  { we need at least Protocol characters + 1 (for the ":" sign) is S }
-  if Length(S) < Length(Protocol) + 1 then
-    Exit(false);
-
-  { for incorrect protocol, this check will usually fail, so check
-    it first (before actually comparing Protocol string). }
-  if S[Length(Protocol) + 1] <> ':' then
-    Exit(false);
-
-  for I := 1 to Length(Protocol) do
-    if (UpCase(Protocol[I]) <> UpCase(S[I])) or
-       { Protocol cannot contain #10, #13, so always return false
-         in this case. Consistent with UrlProtocol. }
-       (Protocol[I] in [#10, #13]) then
-      Exit(false);
-
-  Result := true;
+  Result := false;
+  if UrlProtocolIndex(S, FirstCharacter, Colon) and
+     (Colon - FirstCharacter = Length(Protocol)) then
+  begin
+    for I := 1 to Length(Protocol) do
+      if UpCase(Protocol[I]) <> UpCase(S[I - FirstCharacter + 1]) then
+        Exit;
+    Result := true;
+  end;
 end;
 
 function UrlDeleteProtocol(const S: string): string;
 var
-  P: Integer;
+  FirstCharacter, Colon: Integer;
 begin
-  P := UrlProtocolSeparator(S);
-  if P = 0 then
-    Result := S else
-    Result := SEnding(S, P + 1);
+  if UrlProtocolIndex(S, FirstCharacter, Colon) then
+    { Cut off also whitespace before FirstCharacter }
+    Result := SEnding(S, Colon + 1) else
+    Result := S;
 end;
 
 end.
