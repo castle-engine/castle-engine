@@ -534,7 +534,7 @@ type
       ACache: TVRMLGLRendererContextCache);
 
     { A very special constructor, that forces this class to use
-      provided AProvidedRenderer. AProvidedRenderer must be <> @nil.
+      provided ACustomRenderer. ACustomRenderer must be <> @nil.
 
       Note that this renderer must be created with AttributesClass
       = TVRMLSceneRenderingAttributes.
@@ -552,8 +552,8 @@ type
       information about textures and images loaded into OpenGL.
       And this is crucial for TVRMLGLAnimation, otherwise animation with
       100 scenes would load the same texture to OpenGL 100 times. }
-    constructor CreateProvidedRenderer(AOwner: TComponent;
-      AProvidedRenderer: TVRMLGLRenderer);
+    constructor CreateCustomRenderer(AOwner: TComponent;
+      ACustomRenderer: TVRMLGLRenderer);
 
     destructor Destroy; override;
 
@@ -1314,7 +1314,7 @@ begin
     That's why I have to initialize them *before* "inherited Create" }
 
   { Cache may be already assigned, when we came here from
-    CreateProvidedRenderer or CreateCustomCache. }
+    CreateCustomRenderer or CreateCustomCache. }
   if Cache = nil then
   begin
     FOwnsCache := true;
@@ -1322,7 +1322,7 @@ begin
   end;
 
   { Renderer may be already assigned, when we came here from
-    CreateProvidedRenderer. }
+    CreateCustomRenderer. }
   if Renderer = nil then
   begin
     FOwnsRenderer := true;
@@ -1359,14 +1359,14 @@ begin
   Create(AOwner);
 end;
 
-constructor TVRMLGLScene.CreateProvidedRenderer(
-  AOwner: TComponent; AProvidedRenderer: TVRMLGLRenderer);
+constructor TVRMLGLScene.CreateCustomRenderer(
+  AOwner: TComponent; ACustomRenderer: TVRMLGLRenderer);
 begin
   FOwnsCache := false;
-  FCache := AProvidedRenderer.Cache;
+  FCache := ACustomRenderer.Cache;
 
   FOwnsRenderer := false;
-  Renderer := AProvidedRenderer;
+  Renderer := ACustomRenderer;
 
   Create(AOwner);
 end;
@@ -1387,10 +1387,10 @@ begin
       are decremented. So cache used when loading these images must be
       available.
 
-      If we used provided renderer, then this is not
+      If we used custom renderer, then this is not
       our problem: if OwnsRootNode then RootNode will be freed soon
       by "inherited", if not OwnsRootNode then it's the using programmer
-      responsibility to free both RootNode and ProvidedRenderer
+      responsibility to free both RootNode and CustomRenderer
       in exactly this order.
 
       If we used our own renderer (actually, this is needed only if we used

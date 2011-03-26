@@ -664,7 +664,7 @@ type
   public
     constructor CreateForAnimation(
       ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AProvidedRenderer: TVRMLGLRenderer;
+      ACustomRenderer: TVRMLGLRenderer;
       AParentAnimation: TVRMLGLAnimation);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
     procedure DoGeometryChanged(const Change: TGeometryChange;
@@ -675,7 +675,7 @@ type
 
 constructor TVRMLGLAnimationScene.CreateForAnimation(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AProvidedRenderer: TVRMLGLRenderer;
+  ACustomRenderer: TVRMLGLRenderer;
   AParentAnimation: TVRMLGLAnimation);
 begin
   { ParentAnimation is used by DoGeometryChanged, which is virtual and
@@ -683,7 +683,7 @@ begin
     So ParentAnimation must be set even before inherited constructor. }
   FParentAnimation := AParentAnimation;
 
-  inherited CreateProvidedRenderer(nil, AProvidedRenderer);
+  inherited CreateCustomRenderer(nil, ACustomRenderer);
 
   ShadowMaps := FParentAnimation.ShadowMaps;
   ShadowMapsDefaultSize := FParentAnimation.ShadowMapsDefaultSize;
