@@ -1396,8 +1396,7 @@ type
       Details:
       @unorderedList(
         @item(
-          Prototype.Node may be just a wrapper, i.e. TVRMLRootNode_1
-          or TVRMLRootNode_2.
+          Prototype.Node may be just a wrapper, i.e. TVRMLRootNode.
 
           In this case the first children of Prototype.Node is used
           to create instance. The rest of the wrapper (with this first children
@@ -1488,11 +1487,9 @@ type
     { These are actual prototype contents: all nodes, prototypes, routes
       defined within this prototype.
 
-      We wrap this all inside a single
-      VRML node, just like we do when reading whole VRML file:
-      if the whole thing is exactly one VRML node, then this is this node.
-      Otherwise, we wrap inside artificial TVRMLRootNode_1 or
-      TVRMLRootNode_2.
+      We return a single TVRMLNode instance.
+      It may be a TVRMLRootNode, it even has to be TVRMLRootNode when
+      we have more than one node inside a prototype.
 
       You have permission to write to this property, to be able to
       write code that constructs prototypes (like needed by X3D XML reader).
@@ -4222,7 +4219,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
   var
     NodeCopy, NewPrototypeInstanceHelpers: TVRMLNode;
   begin
-    { Even when Proto.Node is a wrapper (TVRMLRootNode_*),
+    { Even when Proto.Node is a wrapper (TVRMLRootNode),
       we want to copy the whole Proto.Node, instead of copying separately
       Proto.Node.SmartChildren[0], Proto.Node.SmartChildren[1] etc.
       This way, DEF / USE links, routes links (internal, for nested
@@ -4247,8 +4244,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
       raise;
     end;
 
-    if (Proto.Node is TVRMLRootNode_1) or
-       (Proto.Node is TVRMLRootNode_2) then
+    if Proto.Node is TVRMLRootNode then
     begin
       if NodeCopy.SmartChildrenCount = 0 then
       begin
@@ -4301,7 +4297,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
        (this is a simplified part of ../../../demo_models/x3d/key_sensor.x3dv
        file). In such case, when PressedText, you may get Shape that already
        was expanded from SimpleText. So NodeCopy will have PrototypeInstance
-       = true. Or NodeCopy may be TVRMLRootNode_1/2 wrapper, then it's
+       = true. Or NodeCopy may be TVRMLRootNode wrapper, then it's
        first item (that is assigned to Result) will
        have PrototypeInstance = true.
 
@@ -4551,8 +4547,8 @@ begin
   NodeNames := TVRMLNodeNames.Create(false);
   try
     SaveProperties.WritelnIndent('{');
-    { Node may be TVRMLRootNode_* here, that's OK,
-      TVRMLRootNode_*.SaveToStream will magically handle this right. }
+    { Node may be TVRMLRootNode here, that's OK,
+      TVRMLRootNode.SaveToStream will magically handle this right. }
     SaveProperties.IncIndent;
     Node.SaveToStream(SaveProperties, NodeNames);
     SaveProperties.DecIndent;

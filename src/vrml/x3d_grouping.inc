@@ -104,62 +104,54 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  { Interface common for all TVRMLRootNode_* versions. }
-  IVRMLRootNode = interface(IVRMLNode)
-  ['{3BBD44B0-792A-4715-BA62-352A76756D59}']
-    function GetSaveAsRootNode: boolean;
-    procedure SetSaveAsRootNode(const Value: boolean);
+  { A top-level VRML node. This is what you get by parsing 3D model from file.
 
-    { Should SaveToStream take care to nicely save us, treating as
-      a root node of whole VRML file or prototype.
+    It is declared as a descendant of VRML >= 2.0 Group node,
+    but it's used with all VRML versions (including VRML 1.0 and Inventor).
+    This makes things simple (previously we had two separate TVRMLRootNode_1
+    and TVRMLRootNode_2, which was complicating stuff).
 
-      If this node isn't a root node, you should set this to @false
-      (or saving this node may generate dumb contents).
-      Although, generally, you should avoid using the TVRMLRootNode_*
-      class at all for non-root nodes. }
-    property SaveAsRootNode: boolean read GetSaveAsRootNode write SetSaveAsRootNode
-      default true;
-  end;
+    This way VRML/X3D files may have many nodes at the top level
+    (which is a standard feature of VRML >= 2.0, but we also allow it for
+    VRML 1.0 as a commonly used extension). It may also have prototypes,
+    routes etc. at the root level.
 
-  { A Group node that is added when VRML >= 2.0 file contains more
-    than one node at the root level. (Or contains any prototypes,
-    routes etc. at the root level, as they must all be stored inside
-    some node's properties).
-
-    See TVRMLRootNode_1 for some more comments about why this
-    descends from TNodeGroup_2. }
-  TVRMLRootNode_2 = class(TNodeGroup_2, IVRMLRootNode)
+    This also allows us to record in one place some information that
+    is returned by the parser. Like parsed VRML/X3D version, X3D profile,
+    some namespace information (exported names and such). }
+  TVRMLRootNode = class(TNodeGroup_2)
   private
     FForceVersion: boolean;
     FForceVersionMajor: Integer;
     FForceVersionMinor: Integer;
+    FSaveAsRootNode: boolean;
     FX3DProfile: string;
     FX3DComponentNames: TDynStringArray;
     FX3DComponentLevels: TDynLongIntArray;
     FX3DMetaKeys: TDynStringArray;
     FX3DMetaValues: TDynStringArray;
-    FSaveAsRootNode: boolean;
-
-    { To satisfy interface IVRMLRootNode }
-    function GetSaveAsRootNode: boolean;
-    procedure SetSaveAsRootNode(const Value: boolean);
   protected
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    { See IVRMLRootNode.SaveAsRootNode. }
+    { Should SaveToStream take care to nicely save us, treating as
+      a root node of whole VRML file or prototype.
+
+      If this node isn't a root node, you should set this to @false
+      (or saving this node may generate dumb contents).
+      Although, generally, you should avoid using the TVRMLRootNode
+      class at all for non-root nodes. }
     property SaveAsRootNode: boolean read FSaveAsRootNode write FSaveAsRootNode
       default true;
 
-    (*Save TVRMLRootNode_* contents to the stream.
-
-      If SaveAsRootNode then TVRMLRootNode_* is saved to the stream
-      in a special way, so that actually
-      only it's contents are written, without surrounding { } braces.
-      This way, when saving, we "undo" the artificial wrapping in
-      TVRMLRootNode_* that was done by ParseVRMLStatements and LoadVRMLClassic. *)
+    (*Save contents to the stream.
+      If SaveAsRootNode then this is saved to stream in a special way,
+      so that actually only it's contents are written, without
+      surrounding { } braces.
+      This way, when saving, we avoid the artificial wrapping in
+      TVRMLRootNode that was done by ParseVRMLStatements and LoadVRMLClassic. *)
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);  override;
 
     { Set ForceVersion to @true to make SuggestedVRMLVersion of this class
@@ -584,7 +576,7 @@ begin
     true, 2, 0, 1000);
 end;
 
-procedure TVRMLRootNode_2.CreateNode;
+procedure TVRMLRootNode.CreateNode;
 begin
   inherited;
   FX3DComponentNames := TDynStringArray.Create;
@@ -592,19 +584,14 @@ begin
   FX3DMetaKeys := TDynStringArray.Create;
   FX3DMetaValues := TDynStringArray.Create;
   FSaveAsRootNode := true;
+
+  { this used to be needed to work correctly as VRML 1.0 root node.
+    Not sure is it needed still... }
+  FParsingAllowedChildren := true;
+  FAllowedChildren := true;
 end;
 
-function TVRMLRootNode_2.GetSaveAsRootNode: boolean;
-begin
-  Result := FSaveAsRootNode;
-end;
-
-procedure TVRMLRootNode_2.SetSaveAsRootNode(const Value: boolean);
-begin
-  FSaveAsRootNode := Value;
-end;
-
-destructor TVRMLRootNode_2.Destroy;
+destructor TVRMLRootNode.Destroy;
 begin
   FreeAndNil(FX3DComponentNames);
   FreeAndNil(FX3DComponentLevels);
@@ -613,23 +600,31 @@ begin
   inherited;
 end;
 
-procedure TVRMLRootNode_2.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLRootNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
   I: integer;
   FileItems: TVRMLFileItemsList;
 begin
   if SaveAsRootNode then
   begin
-    { Special things for TVRMLRootNode_2 saving:
-      NodeName is ignored (should be '').
-      Only field "children" is used, and in a special way (we write it's
-      nodes, without writing field name "children [" "]").
-      Other fields are ignored (should never have any meaning). }
+    { Special things for root node saving:
+      - NodeName is ignored (should be '').
+      - Fields are ignored, except "children", that holds VRML >= 2 children.
+        And it's output in a special way, without writing "children [...]"
+        around.
+        Other fields are ignored (should never have any meaning).
+
+      VRML <= 1 children are inside VRML1Children[], just like for regular
+      VRML <= 1 Group.
+    }
 
     FileItems := TVRMLFileItemsList.Create;
     try
       for I := 0 to Prototypes.Count - 1 do
         FileItems.Add(Prototypes[I]);
+
+      for i := 0 to VRML1ChildrenCount - 1 do
+        FileItems.Add(VRML1Children[i]);
 
       for i := 0 to FdChildren.Count - 1 do
         FileItems.Add(FdChildren.Items[I]);
@@ -649,7 +644,7 @@ begin
     inherited;
 end;
 
-function TVRMLRootNode_2.SuggestedVRMLVersion(
+function TVRMLRootNode.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
@@ -658,13 +653,13 @@ begin
       true, ForceVersionMajor, ForceVersionMinor, 10 * 1000);
 end;
 
-function TVRMLRootNode_2.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+function TVRMLRootNode.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
 var
-  Res: TVRMLRootNode_2;
+  Res: TVRMLRootNode;
 begin
   Result := inherited;
 
-  Res := Result as TVRMLRootNode_2;
+  Res := Result as TVRMLRootNode;
 
   Res.ForceVersion := ForceVersion;
   Res.ForceVersionMajor := ForceVersionMajor;
@@ -678,7 +673,7 @@ begin
   Res.X3DMetaValues.Assign(X3DMetaValues);
 end;
 
-procedure TVRMLRootNode_2.ForceSaveAsX3D(const AMajor: Integer = 3;
+procedure TVRMLRootNode.ForceSaveAsX3D(const AMajor: Integer = 3;
   const AMinor: Integer = 2;
   const AProfile: string = 'Interchange');
 begin

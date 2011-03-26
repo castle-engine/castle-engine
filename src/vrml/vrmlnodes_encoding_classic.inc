@@ -329,36 +329,21 @@ end;
 { This parses a sequence of VRML statements: any number of nodes,
   (external) protypes, routes, import/export declarations.
   This is good to use to parse whole VRML file,
-  or a (non-external) prototype content.
-
-  Returns a single VRML node. If there was exactly one statement
-  and it was a node statement, returns this node. Otherwise,
-  returns everything read wrapped in artifical TVRMLRootNode_1
-  or TVRMLRootNode_2 instance. }
+  or a (non-external) prototype content. }
 function ParseVRMLStatements(
   Lexer: TVRMLLexer; Names: TVRMLNames;
   const EndToken: TVRMLToken;
-  ParseX3DHeader: boolean): TVRMLNode;
+  ParseX3DHeader: boolean): TVRMLRootNode;
 var
   PositionInParent: Integer;
 
   { Create root group node, appropriate for current VRML version in Lexer. }
-  function CreateRootNode: TVRMLNode;
+  function CreateRootNode: TVRMLRootNode;
   begin
-    if TVRMLRootNode_1.ForVRMLVersion(
-        Lexer.VRMLVerMajor, Lexer.VRMLVerMinor) then
-    begin
-      Result := TVRMLRootNode_1.Create('', Names.WWWBasePath);
-      TVRMLRootNode_1(Result).ForceVersion := true;
-      TVRMLRootNode_1(Result).ForceVersionMajor := Lexer.VRMLVerMajor;
-      TVRMLRootNode_1(Result).ForceVersionMinor := Lexer.VRMLVerMinor;
-    end else
-    begin
-      Result := TVRMLRootNode_2.Create('', Names.WWWBasePath);
-      TVRMLRootNode_2(Result).ForceVersion := true;
-      TVRMLRootNode_2(Result).ForceVersionMajor := Lexer.VRMLVerMajor;
-      TVRMLRootNode_2(Result).ForceVersionMinor := Lexer.VRMLVerMinor;
-    end;
+    Result := TVRMLRootNode.Create('', Names.WWWBasePath);
+    Result.ForceVersion := true;
+    Result.ForceVersionMajor := Lexer.VRMLVerMajor;
+    Result.ForceVersionMinor := Lexer.VRMLVerMinor;
   end;
 
   procedure ParseProfile;
@@ -367,7 +352,7 @@ var
     begin
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtName, 'X3D profile name');
-      (Result as TVRMLRootNode_2).X3DProfile := Lexer.TokenName;
+      Result.X3DProfile := Lexer.TokenName;
 
       Lexer.NextToken;
     end else
@@ -393,8 +378,8 @@ var
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtInteger, 'X3D component level');
       Level := Lexer.TokenInteger;
-      (Result as TVRMLRootNode_2).X3DComponentNames.Add(Name);
-      (Result as TVRMLRootNode_2).X3DComponentLevels.Add(Level);
+      Result.X3DComponentNames.Add(Name);
+      Result.X3DComponentLevels.Add(Level);
 
       Lexer.NextToken;
     end;
@@ -413,8 +398,8 @@ var
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtString, 'X3D meta value');
       Value := Lexer.TokenString;
-      (Result as TVRMLRootNode_2).X3DMetaKeys.Add(Key);
-      (Result as TVRMLRootNode_2).X3DMetaValues.Add(Value);
+      Result.X3DMetaKeys.Add(Key);
+      Result.X3DMetaValues.Add(Value);
 
       Lexer.NextToken;
     end;
@@ -525,12 +510,10 @@ begin
       to be stored in a root group
     - Finally, ForceVersion mechanism is available for RootGroup to force
       writing of specific VRML version.
-    - And for X3D, TVRMLRootNode_2 has to be enhanced
+    - And for X3D, TVRMLRootNode has to be enhanced
       to keep other top-level X3D data: profile, components, meta statements.
 
-    So now, we simply always create root node by ParseVRMLStatements
-    (although the interface should not guarantee this, in case I'll change
-    my mind later). }
+    So now, we simply always create root node by ParseVRMLStatements. }
 
   Result := CreateRootNode;
   try
@@ -700,9 +683,9 @@ var
 
   procedure SaveProfile;
   begin
-    if (Node is TVRMLRootNode_2) and
-       (TVRMLRootNode_2(Node).X3DProfile <> '') then
-      SaveProperties.Writeln('PROFILE ' + TVRMLRootNode_2(Node).X3DProfile + NL) else
+    if (Node is TVRMLRootNode) and
+       (TVRMLRootNode(Node).X3DProfile <> '') then
+      SaveProperties.Writeln('PROFILE ' + TVRMLRootNode(Node).X3DProfile + NL) else
       { Just output some profile, as every X3D file should have this.
         We actually don't detect for now in any way which profile
         would be best. }
@@ -713,12 +696,12 @@ var
   var
     I: Integer;
   begin
-    if Node is TVRMLRootNode_2 then
-      for I := 0 to TVRMLRootNode_2(Node).X3DComponentNames.Count - 1 do
+    if Node is TVRMLRootNode then
+      for I := 0 to TVRMLRootNode(Node).X3DComponentNames.Count - 1 do
       begin
         SaveProperties.Writeln(Format('COMPONENT %s:%d' + NL,
-          [ TVRMLRootNode_2(Node).X3DComponentNames[I],
-            TVRMLRootNode_2(Node).X3DComponentLevels[I] ]));
+          [ TVRMLRootNode(Node).X3DComponentNames[I],
+            TVRMLRootNode(Node).X3DComponentLevels[I] ]));
       end;
   end;
 
@@ -726,12 +709,12 @@ var
   var
     I: Integer;
   begin
-    if Node is TVRMLRootNode_2 then
-      for I := 0 to TVRMLRootNode_2(Node).X3DMetaKeys.Count - 1 do
+    if Node is TVRMLRootNode then
+      for I := 0 to TVRMLRootNode(Node).X3DMetaKeys.Count - 1 do
       begin
         SaveProperties.Writeln(Format('META %s %s' + NL,
-          [ StringToVRMLStringToken(TVRMLRootNode_2(Node).X3DMetaKeys[I]),
-            StringToVRMLStringToken(TVRMLRootNode_2(Node).X3DMetaValues[I])]));
+          [ StringToVRMLStringToken(TVRMLRootNode(Node).X3DMetaKeys[I]),
+            StringToVRMLStringToken(TVRMLRootNode(Node).X3DMetaValues[I])]));
       end;
   end;
 
@@ -781,8 +764,8 @@ begin
       SaveMetas;
     end;
 
-    { Node may be TVRMLRootNode_* here, that's OK,
-      TVRMLRootNode_*.SaveToStream will magically handle this right. }
+    { Node may be TVRMLRootNode here, that's OK,
+      TVRMLRootNode.SaveToStream will magically handle this right. }
     Node.SaveToStream(SaveProperties, NodeNames);
   finally
     FreeAndNil(SaveProperties);

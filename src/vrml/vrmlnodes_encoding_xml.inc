@@ -48,7 +48,7 @@ function ParseXMLNode(Element: TDOMElement;
   NilIfUnresolvedUSE: boolean): TVRMLNode; forward;
 function ParseVRMLStatements(Element: TDOMElement;
   ParseX3DHeader: boolean;
-  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TVRMLNode; forward;
+  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TVRMLRootNode; forward;
 
 { Checks is Element a correct <connect> element, extracting
   nodeField and protoField value. Returns @true if all Ok, otherwise
@@ -305,24 +305,20 @@ end;
 
   It's somewhat similar to classic VRML ParseVRMLStatements.
   (Admittedly, it was even implemented by copying and modifying
-  classic ParseVRMLStatements :) ).
-
-  Returns a single VRML node. If there was exactly one statement
-  and it was a node statement, returns this node. Otherwise,
-  returns everything read wrapped in artifical TVRMLRootNode_2 instance. }
+  classic ParseVRMLStatements :) ). }
 function ParseVRMLStatements(Element: TDOMElement;
   ParseX3DHeader: boolean;
-  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TVRMLNode;
+  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TVRMLRootNode;
 var
   PositionInParent: Integer;
 
   { Create root group node. }
-  function CreateRootNode: TVRMLNode;
+  function CreateRootNode: TVRMLRootNode;
   begin
-    Result := TVRMLRootNode_2.Create('', Names.WWWBasePath);
-    TVRMLRootNode_2(Result).ForceVersion := true;
-    TVRMLRootNode_2(Result).ForceVersionMajor := Names.VRMLVerMajor;
-    TVRMLRootNode_2(Result).ForceVersionMinor := Names.VRMLVerMinor;
+    Result := TVRMLRootNode.Create('', Names.WWWBasePath);
+    Result.ForceVersion := true;
+    Result.ForceVersionMajor := Names.VRMLVerMajor;
+    Result.ForceVersionMinor := Names.VRMLVerMinor;
   end;
 
   procedure ParseProfile;
@@ -332,7 +328,7 @@ var
     { parse "profile" attribute }
     if DOMGetAttribute(X3DHeaderElement, 'profile', Profile) then
     begin
-      (Result as TVRMLRootNode_2).X3DProfile := Profile;
+      Result.X3DProfile := Profile;
     end else
       { We allow PROFILE to be omitted.
         Actually, we do not use profile for anything right now. }
@@ -360,8 +356,8 @@ var
           MetaContent := '';
           DOMGetAttribute(I.Current, 'name', MetaName);
           DOMGetAttribute(I.Current, 'content', MetaContent);
-          (Result as TVRMLRootNode_2).X3DMetaKeys.Add(MetaName);
-          (Result as TVRMLRootNode_2).X3DMetaValues.Add(MetaContent);
+          Result.X3DMetaKeys.Add(MetaName);
+          Result.X3DMetaValues.Add(MetaContent);
         end else
         if I.Current.TagName = 'component' then
         begin
@@ -369,8 +365,8 @@ var
           begin
             if not DOMGetIntegerAttribute(I.Current, 'level', ComponentLevel) then
               ComponentLevel := 1;
-            (Result as TVRMLRootNode_2).X3DComponentNames.Add(ComponentName);
-            (Result as TVRMLRootNode_2).X3DComponentLevels.Add(ComponentLevel);
+            Result.X3DComponentNames.Add(ComponentName);
+            Result.X3DComponentLevels.Add(ComponentLevel);
           end else
             VRMLWarning(vwSerious, Format('X3D XML: <component> element without required "name" attribute',
               [I.Current.TagName]));

@@ -486,18 +486,15 @@ end;
 
 procedure TNodeInline.LoadInlined(CanReload: boolean; Exported: TVRMLNodeNames = nil);
 
-  { The Inlined contents are usually TVRMLRootNode_*,
+  { The Inlined contents are usually TVRMLRootNode,
     but they should not be saved as such. Although usually this doesn't
     get saved (since we do not save inline contents), but it may happen
     if you copy VRML nodes around, e.g. "expanding" inlines like
-    castle-process-3d-model.
-
-    Doing this inside local procedure to limit lifetime of IVRMLRootNode,
-    to secure against http://bugs.freepascal.org/view.php?id=10374 }
+    castle-process-3d-model. }
   procedure InlinedIsNotRootNode;
   begin
-    if Supports(FInlined, IVRMLRootNode) then
-      (FInlined as IVRMLRootNode).SaveAsRootNode := false;
+    if FInlined is TVRMLRootNode then
+      (FInlined as TVRMLRootNode).SaveAsRootNode := false;
   end;
 
 var

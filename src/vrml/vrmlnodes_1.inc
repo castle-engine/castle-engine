@@ -797,58 +797,6 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  { A Group node that is added when VRML 1.0 file contains more than one root
-    node.
-
-    We represent this special "artifical" group as a TVRMLRootNode_1,
-    @italic(that is a descendant of TNodeGroup_1 (not the other way around)).
-    This way you can entirely forget about this issue and just process
-    the VRML model as you like, and the only downside will be that you
-    will actually work with a very slightly different model
-    (with additional Group node) than what was encoded in the file.
-    You can also test for (Node is TVRMLRootNode_1/2) and
-    recognize this special case. }
-  TVRMLRootNode_1 = class(TNodeGroup_1, IVRMLRootNode)
-  private
-    FForceVersion: boolean;
-    FForceVersionMajor: Integer;
-    FForceVersionMinor: Integer;
-    FSaveAsRootNode: boolean;
-
-    { To satisfy interface IVRMLRootNode }
-    function GetSaveAsRootNode: boolean;
-    procedure SetSaveAsRootNode(const Value: boolean);
-  protected
-    function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
-  public
-    procedure CreateNode; override;
-
-    { See IVRMLRootNode.SaveAsRootNode. }
-    property SaveAsRootNode: boolean read FSaveAsRootNode write FSaveAsRootNode
-      default true;
-
-    (*Save TVRMLRootNode_* contents to stream.
-
-      If SaveAsRootNode then TVRMLRootNode_* is saved to stream in a special way, so that actually
-      only it's contents are written, without surrounding { } braces.
-      This way, when saving, we "undo" the artificial wrapping in
-      TVRMLRootNode_* that was done by ParseVRMLStatements and LoadVRMLClassic. *)
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);  override;
-
-    { Set ForceVersion to @true to make SuggestedVRMLVersion of this class
-      return suggest ForceVersionMajor, ForceVersionMinor with strong
-      priority.
-
-      @groupBegin }
-    property ForceVersion: boolean read FForceVersion write FForceVersion default false;
-    property ForceVersionMajor: Integer read FForceVersionMajor write FForceVersionMajor;
-    property ForceVersionMinor: Integer read FForceVersionMinor write FForceVersionMinor;
-    { @groupEnd }
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-  end;
-
   { Base class for VRML 1.0 nodes that push / pop all attributes and matrices.
     It is used in implementation of VRML 1.0 Separator and WWWAnchor.
     Also WWWInline does the same work, when it's "separate" field is true. }
@@ -2466,78 +2414,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 1, 0, 1000);
-end;
-
-procedure TVRMLRootNode_1.CreateNode;
-begin
-  inherited;
-  FSaveAsRootNode := true;
-end;
-
-function TVRMLRootNode_1.GetSaveAsRootNode: boolean;
-begin
-  Result := FSaveAsRootNode;
-end;
-
-procedure TVRMLRootNode_1.SetSaveAsRootNode(const Value: boolean);
-begin
-  FSaveAsRootNode := Value;
-end;
-
-procedure TVRMLRootNode_1.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
-var
-  I: integer;
-  FileItems: TVRMLFileItemsList;
-begin
-  if SaveAsRootNode then
-  begin
-    { Special things for TVRMLRootNode_1 saving:
-      NodeName is ignored (should be '').
-      Fields are ignored (should never have any meaning). }
-
-    FileItems := TVRMLFileItemsList.Create;
-    try
-      for I := 0 to Prototypes.Count - 1 do
-        FileItems.Add(Prototypes[I]);
-
-      for i := 0 to VRML1ChildrenCount - 1 do
-        FileItems.Add(VRML1Children[i]);
-
-      for I := 0 to Routes.Count - 1 do
-        FileItems.Add(Routes[I]);
-
-      for I := 0 to ImportsList.Count - 1 do
-        FileItems.Add(ImportsList[I]);
-
-      for I := 0 to ExportsList.Count - 1 do
-        FileItems.Add(ExportsList[I]);
-
-      FileItems.SaveToStream(SaveProperties, NodeNames);
-    finally FreeAndNil(FileItems) end;
-  end else
-    inherited;
-end;
-
-function TVRMLRootNode_1.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
-var
-  Res: TVRMLRootNode_1;
-begin
-  Result := inherited;
-
-  Res := Result as TVRMLRootNode_1;
-
-  Res.ForceVersion := ForceVersion;
-  Res.ForceVersionMajor := ForceVersionMajor;
-  Res.ForceVersionMinor := ForceVersionMinor;
-end;
-
-function TVRMLRootNode_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  if ForceVersion then
-    AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-      true, ForceVersionMajor, ForceVersionMinor, 10 * 1000);
 end;
 
 procedure TVRMLSeparatorNode.CreateNode;

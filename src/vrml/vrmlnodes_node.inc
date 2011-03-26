@@ -834,7 +834,7 @@
           (incompatible exceptions are some NURBS and geo changes)
           valid in VRML 97 is also valid in X3D.)
 
-        @item(10 * 1000 is used by TVRMLRootNode_1 and TVRMLRootNode_2
+        @item(10 * 1000 is used by TVRMLRootNode
           ForceVersion mechanism. This way we can always force VRML version
           using this node, which is useful to write files with the same
           VRML version as was read from disk.)
