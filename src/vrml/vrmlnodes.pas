@@ -472,22 +472,11 @@ type
     ShapeNode: TNodeX3DShapeNode;
 
     constructor CreateCopy(Source: TVRMLGraphTraverseState);
-    constructor Create(const ADefaultLastNodes: TTraverseStateLastNodes); overload;
 
-    { Standard constructor, uses global StateDefaultNodes as initial
-      LastNodes state.
-
-      Using a global StateDefaultNodes is useful, since this way
-      the references to default VRML 1.0 state nodes are always
-      valid (so you can e.g. quickly copy TVRMLGraphTraverseState,
-      and free the previous TVRMLGraphTraverseState instance,
-      and the node references stay the same).
-
-      Also this improves caching in some cases, because sometimes
-      we assume that nodes are equal only when their references are equal
-      (e.g. TVRMLGraphTraverseState.Equals does this, and this is used
-      by Shape caching in TVRMLGLRendererContextCache). }
-    constructor Create; overload;
+    { Standard constructor.
+      Uses global StateDefaultNodes as default nodes for VRML 1.0 state.
+      This makes it fast, and improves cache (more nodes have equal reference). }
+    constructor Create;
 
     destructor Destroy; override;
 
@@ -2178,12 +2167,6 @@ var
   { Cache, for all the resources not tied with renderer context. }
   VRMLCache: TVRMLNodesCache;
 
-  { Starting state nodes for TVRMLGraphTraverseState.Create.
-
-    This is read-only from outside, initialized and finalized in
-    this unit. }
-  StateDefaultNodes: TTraverseStateLastNodes;
-
 { Find a range within "key" field corresponding to given Fraction.
   Returns the index of @bold(right) range delimiter.
   So for normal ranges (between two values of "key" field) it's
@@ -2414,6 +2397,10 @@ end;
 
 { TVRMLGraphTraverseState ---------------------------------------------------- }
 
+var
+  { Starting state nodes for TVRMLGraphTraverseState.Create. }
+  StateDefaultNodes: TTraverseStateLastNodes;
+
 procedure TVRMLGraphTraverseState.CommonCreate;
 begin
   inherited Create;
@@ -2426,7 +2413,7 @@ begin
   Assign(Source);
 end;
 
-constructor TVRMLGraphTraverseState.Create(const ADefaultLastNodes: TTraverseStateLastNodes);
+constructor TVRMLGraphTraverseState.Create;
 begin
   CommonCreate;
 
@@ -2435,12 +2422,7 @@ begin
   InvertedTransform := IdentityMatrix4Single;
 
   TextureTransform := IdentityMatrix4Single;
-  AssignLastNodes(ADefaultLastNodes);
-end;
-
-constructor TVRMLGraphTraverseState.Create;
-begin
-  Create(StateDefaultNodes);
+  AssignLastNodes(StateDefaultNodes);
 end;
 
 destructor TVRMLGraphTraverseState.Destroy;
