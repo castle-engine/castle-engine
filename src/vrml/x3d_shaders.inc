@@ -235,17 +235,13 @@ begin
    Fdparts.ChangesAlways := [chEverything];
   Fields.Add(FFdparts);
 
-  { Note about additional ComposedShader fields:
-    they should have
-
+  { Note that additional ComposedShader fields should have
       ChangesAlways := [chVisibleGeometry, chVisibleNonGeometry]
-
     because you want to redisplay when they change.
-    (TVRMLGLRenderer registers and takes care
-    to update shaders' uniform variables. We don't have to do
-    anything here, no need to rebuild/recalculate anything.)
-    But actually TVRMLGLRenderer calls this in
-    TVRMLGLRendererContextCache.EventReceiveGLSLUniform.
+
+    But TVRMLGLRenderer takes care of it already. When shaders'
+    uniform variables change, we call EventsEngine.VisibleChangeHere.
+    Implemented inside TVRMLShaderProgram.EventReceive.
 
     TODO: but when you don't use events, but directly change them
     and call ChangedField, we should do something here? }
