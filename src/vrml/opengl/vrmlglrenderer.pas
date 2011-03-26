@@ -1028,7 +1028,6 @@ type
     FAttributes: TVRMLRenderingAttributes;
 
     FCache: TVRMLGLRendererContextCache;
-    OwnsCache: boolean;
 
     { First OpenGL light available for VRML/X3D rendering.
       In other words, the number of lights enabled outside of this renderer.
@@ -1109,14 +1108,8 @@ type
       per-shape resources for fast rendering (arrays and vbos). }
     PrepareRenderShape: Cardinal;
 
-    { Constructor.
-
-      Passing nil as Cache will cause the private cache instance
-      to be created and used for this TVRMLGLRenderer.
-      I.e. no cache will be shared between different TVRMLGLRenderer
-      instances. Otherwise you can pass here your Cache. Of course
-      it has to remain created for the whole lifetime while
-      this TVRMLGLRenderer is created. }
+    { Constructor. Always pass a cache instance --- preferably,
+      something created and used by many scenes. }
     constructor Create(AttributesClass: TVRMLRenderingAttributesClass;
       ACache: TVRMLGLRendererContextCache);
 
@@ -2215,10 +2208,8 @@ begin
 
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
-  OwnsCache := ACache = nil;
-  if OwnsCache then
-    FCache := TVRMLGLRendererContextCache.Create else
-    FCache := ACache;
+  FCache := ACache;
+  Assert(FCache <> nil);
 end;
 
 destructor TVRMLGLRenderer.Destroy;
@@ -2231,8 +2222,7 @@ begin
   FreeAndNil(ScreenEffectPrograms);
   FreeAndNil(FAttributes);
 
-  if OwnsCache then
-    FreeAndNil(FCache);
+  FCache := nil; // we don't own cache
 
   inherited;
 end;

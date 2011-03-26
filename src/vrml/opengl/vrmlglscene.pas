@@ -462,7 +462,11 @@ type
     FLastRender_VisibleShapesCount: Cardinal;
     FLastRender_SumNext: boolean;
 
-    FUsingProvidedRenderer: boolean;
+    FOwnsRenderer: boolean;
+    FOwnsCache: boolean;
+    FCache: TVRMLGLRendererContextCache;
+    property Cache: TVRMLGLRendererContextCache read FCache;
+    property OwnsCache: boolean read FOwnsCache;
 
     { Fog for this shape. @nil if none. }
     function ShapeFog(Shape: TVRMLShape): INodeX3DFogObject;
@@ -1309,12 +1313,20 @@ begin
       which is overridden here and uses Attributes.
     That's why I have to initialize them *before* "inherited Create" }
 
-  { If Renderer already assigned, then we came here from
+  { Cache may be already assigned, when we came here from
     CreateProvidedRenderer or CreateCustomCache. }
+  if Cache = nil then
+  begin
+    FOwnsCache := true;
+    FCache := TVRMLGLRendererContextCache.Create;
+  end;
+
+  { Renderer may be already assigned, when we came here from
+    CreateProvidedRenderer. }
   if Renderer = nil then
   begin
-    FUsingProvidedRenderer := false;
-    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
+    FOwnsRenderer := true;
+    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, Cache);
   end;
 
   Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
@@ -1340,8 +1352,9 @@ end;
 constructor TVRMLGLScene.CreateCustomCache(
   AOwner: TComponent; ACache: TVRMLGLRendererContextCache);
 begin
-  FUsingProvidedRenderer := false;
-  Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
+  FOwnsCache := false;
+  Assert(ACache <> nil);
+  FCache := ACache;
 
   Create(AOwner);
 end;
@@ -1349,7 +1362,10 @@ end;
 constructor TVRMLGLScene.CreateProvidedRenderer(
   AOwner: TComponent; AProvidedRenderer: TVRMLGLRenderer);
 begin
-  FUsingProvidedRenderer := true;
+  FOwnsCache := false;
+  FCache := AProvidedRenderer.Cache;
+
+  FOwnsRenderer := false;
   Renderer := AProvidedRenderer;
 
   Create(AOwner);
@@ -1364,7 +1380,7 @@ begin
   if Renderer <> nil then
     Attributes.FScenes.Remove(Self);
 
-  if not FUsingProvidedRenderer then
+  if FOwnsRenderer then
   begin
     { We must release all connections between RootNode and Renderer first.
       Reason: when freeing RootNode, image references (from texture nodes)
@@ -1393,7 +1409,12 @@ begin
     FreeResources([frTextureDataInNodes, frBackgroundImageInNodes]);
 
     FreeAndNil(Renderer);
-  end;
+  end else
+    Renderer := nil;
+
+  if OwnsCache then
+    FreeAndNil(FCache) else
+    FCache := nil;
 
   inherited;
 end;
@@ -1453,7 +1474,7 @@ begin
     for I := 0 to ScreenEffectNodes.Count - 1 do
       CloseGLScreenEffect(TNodeScreenEffect(ScreenEffectNodes[I]));
 
-  { TODO: if FUsingProvidedRenderer then we should do something more detailed
+  { TODO: if FOwnsRenderer then we should do something more detailed
     then just Renderer.UnprepareAll. It's not needed for TVRMLGLAnimation
     right now, so it's not implemented. }
   if Renderer <> nil then Renderer.UnprepareAll;

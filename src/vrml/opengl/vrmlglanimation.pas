@@ -81,6 +81,8 @@ type
     function GetScenes(I: Integer): TVRMLGLScene;
   private
     Renderer: TVRMLGLRenderer;
+    Cache: TVRMLGLRendererContextCache;
+    OwnsCache: boolean;
     FTimeBegin, FTimeEnd: Single;
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
@@ -747,8 +749,15 @@ end;
 constructor TVRMLGLAnimation.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  if Renderer = nil then
-    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, nil);
+
+  if Cache = nil then
+  begin
+    OwnsCache := true;
+    Cache := TVRMLGLRendererContextCache.Create;
+  end;
+
+  Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, Cache);
+
   FTimeLoop := true;
   FTimeBackwards := false;
   FTimePlaying := true;
@@ -760,7 +769,9 @@ end;
 constructor TVRMLGLAnimation.CreateCustomCache(AOwner: TComponent;
   ACache: TVRMLGLRendererContextCache);
 begin
-  Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
+  OwnsCache := false;
+  Cache := ACache;
+
   Create(AOwner);
 end;
 
@@ -768,6 +779,9 @@ destructor TVRMLGLAnimation.Destroy;
 begin
   Close;
   FreeAndNil(Renderer);
+  if OwnsCache then
+    FreeAndNil(Cache) else
+    Cache := nil;
   inherited;
 end;
 
