@@ -24,7 +24,7 @@ uses
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs, VRMLHeadLight,
-  RenderStateUnit, Base3D, VRMLShadowMaps;
+  RenderStateUnit, Base3D, VRMLShadowMaps, TextureImages;
 
 {$define read_interface}
 
@@ -844,6 +844,10 @@ type
   protected
     GeneratedTextures: TDynGeneratedTextureArray;
 
+    { Cache used by this scene. Always initialized to non-nil by constructor. }
+    Cache: TTexturesImagesVideosCache;
+    OwnsCache: boolean;
+
     { Called after PointingDeviceSensors or
       PointingDeviceActiveSensors lists (possibly) changed.
 
@@ -854,6 +858,9 @@ type
     procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TVRMLField); override;
   public
     constructor Create(AOwner: TComponent); override;
+
+    constructor CreateCustomCache(
+      AOwner: TComponent; ACache: TTexturesImagesVideosCache);
 
     { Load new 3D model (from VRML node tree).
       This replaces RootNode with new value.
@@ -2351,6 +2358,15 @@ constructor TVRMLScene.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  if Cache = nil then
+  begin
+    { If cache not created yet (by descendants constructor),
+      create now TTexturesImagesVideosCache instance.
+      Note that TVRMLGLScene *always* initializes Cache earlier. }
+    OwnsCache := true;
+    Cache := TTexturesImagesVideosCache.Create;
+  end;
+
   FRootNode := nil;
   FOwnsRootNode := true;
 
@@ -2392,6 +2408,16 @@ begin
     anyway when RootNode = nil). }
 
   ChangeListeners.Add(Self); { by default FStatic is false }
+end;
+
+constructor TVRMLScene.CreateCustomCache(
+  AOwner: TComponent; ACache: TTexturesImagesVideosCache);
+begin
+  OwnsCache := false;
+  Assert(ACache <> nil);
+  Cache := ACache;
+
+  Create(AOwner);
 end;
 
 destructor TVRMLScene.Destroy;
@@ -2439,6 +2465,11 @@ begin
   FreeAndNil(FOctreeCollidableTriangles);
 
   if OwnsRootNode then FreeAndNil(FRootNode);
+
+  if OwnsCache then
+    FreeAndNil(Cache) else
+    Cache := nil;
+
   inherited;
 end;
 

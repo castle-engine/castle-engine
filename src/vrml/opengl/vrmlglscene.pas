@@ -463,10 +463,6 @@ type
     FLastRender_SumNext: boolean;
 
     FOwnsRenderer: boolean;
-    FOwnsCache: boolean;
-    FCache: TVRMLGLRendererContextCache;
-    property Cache: TVRMLGLRendererContextCache read FCache;
-    property OwnsCache: boolean read FOwnsCache;
 
     { Fog for this shape. @nil if none. }
     function ShapeFog(Shape: TVRMLShape): INodeX3DFogObject;
@@ -529,9 +525,6 @@ type
     procedure InvalidateBackground; override;
   public
     constructor Create(AOwner: TComponent); override;
-
-    constructor CreateCustomCache(AOwner: TComponent;
-      ACache: TVRMLGLRendererContextCache);
 
     { A very special constructor, that forces this class to use
       provided ACustomRenderer. ACustomRenderer must be <> @nil.
@@ -1317,8 +1310,8 @@ begin
     CreateCustomRenderer or CreateCustomCache. }
   if Cache = nil then
   begin
-    FOwnsCache := true;
-    FCache := TVRMLGLRendererContextCache.Create;
+    OwnsCache := true;
+    Cache := TVRMLGLRendererContextCache.Create;
   end;
 
   { Renderer may be already assigned, when we came here from
@@ -1326,7 +1319,8 @@ begin
   if Renderer = nil then
   begin
     FOwnsRenderer := true;
-    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, Cache);
+    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, 
+      Cache as TVRMLGLRendererContextCache);
   end;
 
   Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
@@ -1349,26 +1343,13 @@ begin
    OctreeFrustumCulling := fcBox; { set through property setter }
 end;
 
-constructor TVRMLGLScene.CreateCustomCache(
-  AOwner: TComponent; ACache: TVRMLGLRendererContextCache);
-begin
-  FOwnsCache := false;
-  Assert(ACache <> nil);
-  FCache := ACache;
-
-  Create(AOwner);
-end;
-
 constructor TVRMLGLScene.CreateCustomRenderer(
   AOwner: TComponent; ACustomRenderer: TVRMLGLRenderer);
 begin
-  FOwnsCache := false;
-  FCache := ACustomRenderer.Cache;
-
   FOwnsRenderer := false;
   Renderer := ACustomRenderer;
 
-  Create(AOwner);
+  CreateCustomCache(AOwner, ACustomRenderer.Cache);
 end;
 
 destructor TVRMLGLScene.Destroy;
@@ -1411,10 +1392,6 @@ begin
     FreeAndNil(Renderer);
   end else
     Renderer := nil;
-
-  if OwnsCache then
-    FreeAndNil(FCache) else
-    FCache := nil;
 
   inherited;
 end;
