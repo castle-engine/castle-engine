@@ -181,7 +181,8 @@ uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3D, Images, TTFontsTypes, VRMLErrors,
   Videos, VRMLTime, Base3D,
   KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages,
-  KambiXMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator;
+  KambiXMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 
@@ -226,12 +227,11 @@ type
   TNodeHAnimHumanoid = class;
   TNodeLocalFog = class;
   TNodeEffect = class;
+  TVRMLRootNode = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
   TVRMLNodeProc = procedure (node: TVRMLNode) of object;
-
-  TVRMLNodesCache = TTexturesImagesVideosCache;
 
   TVRML1StateNode =
   (
@@ -724,6 +724,35 @@ type
     ntcLight, //< TNodeX3DLightNode
     ntcProximitySensor //< TNodeProximitySensor
   );
+
+  { @exclude Internal for TVRMLNodesCache. }
+  TCachedNode = class
+  private
+    URL: string;
+    References: Cardinal;
+    Node: TVRMLRootNode;
+  end;
+  TCachedNodesList = specialize TFPGObjectList<TCachedNode>;
+
+  { Cache for VRML resources not specific to renderer (OpenGL).
+    Includes all TTexturesImagesVideosCache resources (image, texture, movie
+    data) and adds cache for 3D models. }
+  TVRMLNodesCache = class(TTexturesImagesVideosCache)
+  private
+    CachedNodes: TCachedNodesList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    { Load 3D model, just like LoadVRML but with a cache.
+      URL must be absolute (not relative) filename. }
+    function Load3D_IncReference(const URL: string): TVRMLRootNode;
+
+    { Unload previously loaded here 3D model.
+      Node may be @nil (then it's ignored), or something loaded by
+      Load3D_IncReference (then it's released and changed to @nil). }
+    procedure Load3D_DecReference(var Node: TVRMLRootNode);
+  end;
 
 {$I vrmlnodes_node.inc}
 
@@ -2728,6 +2757,98 @@ end;
 
 {$I vrmlnodes_node.inc}
 
+{ TVRMLNodesCache ------------------------------------------------------------ }
+
+{ $define DEBUG_CACHE}
+
+constructor TVRMLNodesCache.Create;
+begin
+  inherited;
+  CachedNodes := TCachedNodesList.Create;
+end;
+
+destructor TVRMLNodesCache.Destroy;
+begin
+  if CachedNodes <> nil then
+  begin
+    Assert(CachedNodes.Count = 0, ' Some references to 3D models still exist when freeing TVRMLNodesCache');
+    FreeAndNil(CachedNodes);
+  end;
+  inherited;
+end;
+
+function TVRMLNodesCache.Load3D_IncReference(const URL: string): TVRMLRootNode;
+var
+  I: Integer;
+  C: TCachedNode;
+begin
+  for I := 0 to CachedNodes.Count - 1 do
+  begin
+    C := CachedNodes[I];
+    if C.URL = URL then
+    begin
+      Inc(C.References);
+
+      {$ifdef DEBUG_CACHE}
+      Writeln('++ : 3D model ', URL, ' : ', C.References);
+      {$endif}
+
+      Exit(C.Node);
+    end;
+  end;
+
+  { Initialize Result first, before calling CachedNodes.Add.
+    That's because in case LoadVRML raises exception,
+    we don't want to add image to cache (because caller would have
+    no way to call Load3D_DecReference later). }
+
+  Result := LoadVRML(URL, false);
+
+  C := TCachedNode.Create;
+  CachedNodes.Add(C);
+  C.References := 1;
+  C.URL := URL;
+  C.Node := Result;
+
+  {$ifdef DEBUG_CACHE}
+  Writeln('++ : 3D model ', URL, ' : ', 1);
+  {$endif}
+end;
+
+procedure TVRMLNodesCache.Load3D_DecReference(var Node: TVRMLRootNode);
+var
+  I: Integer;
+  C: TCachedNode;
+begin
+  if Node = nil then Exit;
+
+  for I := 0 to CachedNodes.Count - 1 do
+  begin
+    C := CachedNodes[I];
+    if C.Node = Node then
+    begin
+      {$ifdef DEBUG_CACHE}
+      Writeln('-- : 3D model ', C.URL, ' : ', C.References - 1);
+      {$endif}
+
+      Node := nil;
+
+      if C.References = 1 then
+      begin
+        FreeAndNil(C.Node);
+        CachedNodes.Delete(I);
+      end else
+        Dec(C.References);
+
+      Exit;
+    end;
+  end;
+
+  raise EInternalError.CreateFmt(
+    'TVRMLNodesCache.Load3D_DecReference: no reference found for 3D model %s',
+    [PointerToStr(Node)]);
+end;
+
 { TVRMLNodeClassesList ------------------------------------------------------- }
 
 function TVRMLNodeClassesList.GetItems(Index: Integer): TVRMLNodeClass;
@@ -4714,7 +4835,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     URL := CombinePaths(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := LoadVRML(URL, false);
+      ReferencedPrototypeNode := VRMLCache.Load3D_IncReference(URL);
       PrototypeNames := ReferencedPrototypeNode.PrototypeNames;
     except
       on E: Exception do
@@ -4727,7 +4848,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     FReferencedPrototype := TryFindProtoNonExternal(Anchor);
     if FReferencedPrototype = nil then
     begin
-      FreeAndNil(ReferencedPrototypeNode);
+      VRMLCache.Load3D_DecReference(ReferencedPrototypeNode);
       if Anchor = '' then
         ProtoWarning('No PROTO found') else
         ProtoWarning(Format('No PROTO named "%s" found', [Anchor]));
@@ -4770,7 +4891,7 @@ begin
   { FReferencedPrototype will be freed as part of ReferencedPrototypeNode }
   FReferencedPrototype := nil;
 
-  FreeAndNil(ReferencedPrototypeNode);
+  VRMLCache.Load3D_DecReference(ReferencedPrototypeNode);
 
   FReferencedClass := nil;
 end;
