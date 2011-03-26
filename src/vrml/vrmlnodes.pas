@@ -2177,6 +2177,12 @@ var
     will be destroyed. }
   AnyNodeDestructionNotifications: TDynNodeDestructionNotificationArray;
 
+  { Default cache. This is your last resort, usually you should prefer
+    TVRMLScene.Cache or TVRMLGLAnimation.Cache. Use this cache only if you
+    don't have any TVRMLScene or such, and you directly load and keep
+    TVRMLNode instances. }
+  DefaultCache: TVRMLNodesCache;
+
   { Starting state nodes for TVRMLGraphTraverseState.Create.
 
     This is read-only from outside, initialized and finalized in
@@ -5600,10 +5606,6 @@ begin
 end;
 
 { global procedures ---------------------------------------------------------- }
-
-var
-  { Cache for TraverseState_CreateNodes }
-  DefaultCache: TVRMLNodesCache;
 
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
 var
