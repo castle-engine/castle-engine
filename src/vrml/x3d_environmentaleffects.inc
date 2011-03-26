@@ -86,10 +86,6 @@
       this in our implementation) }
     FBgImages: TBackgroundImages;
 
-    { Non-nil only if FBgImages should be freed using
-      UsedCache.TextureImage_DecReference. }
-    UsedCache: TTexturesImagesVideosCache;
-
     procedure SetBgImagesLoaded(const Value: boolean);
 
     function GetBgImages: TBackgroundImages;
@@ -456,11 +452,7 @@ procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
     begin
       try
         URL := PathFromWWWBasePath(Urls.Items.Items[i]);
-        if Cache <> nil then
-        begin
-          FBgImages.Images[bs] := Cache.TextureImage_IncReference(URL);
-        end else
-          FBgImages.Images[bs] := LoadTextureImage(URL);
+        FBgImages.Images[bs] := Cache.TextureImage_IncReference(URL);
         Break;
       except
         on E: Exception do
@@ -492,11 +484,9 @@ begin
         FbgImages.FreeAll(Cache);
         raise;
       end;
-      UsedCache := Cache;
     end else
     begin
-      FbgImages.FreeAll(UsedCache);
-      UsedCache := nil;
+      FbgImages.FreeAll(Cache);
     end;
 
     FBgImagesLoaded := Value;
