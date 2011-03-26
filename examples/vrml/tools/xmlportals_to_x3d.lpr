@@ -353,7 +353,7 @@ end;
 
 var
   Doc: TXMLDocument;
-  OutputRoot: TVRMLRootNode_2;
+  OutputRoot: TVRMLRootNode;
   OutputSwitch: TNodeSwitch_2;
 begin
   Parameters.CheckHigh(2);
@@ -372,7 +372,7 @@ begin
     MeshPx := DOMGetChildElement(DOMGetChildElement(
       Doc.DocumentElement, 'm_pMesh', true), 'px', true);
 
-    OutputRoot := TVRMLRootNode_2.Create('', '');
+    OutputRoot := TVRMLRootNode.Create('', '');
     try
       ReadGeometry(OutputRoot);
 

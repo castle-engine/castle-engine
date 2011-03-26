@@ -478,7 +478,7 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
     CountSteps, X, Z: Cardinal;
     Size, MinX, MinZ, MaxX, MaxZ: Extended;
     Grid: TNodeElevationGrid;
-    Root: TVRMLRootNode_2;
+    Root: TVRMLRootNode;
     Shape: TNodeShape;
     Shader: TNodeComposedShader;
     TexSand: TNodeImageTexture;
@@ -498,7 +498,7 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
     MaxX := WalkCamera.Position[0] + Size/2;
     MaxZ := WalkCamera.Position[1] - Size/2; // Z direction is inverted
 
-    Root := TVRMLRootNode_2.Create('', '');
+    Root := TVRMLRootNode.Create('', '');
     try
       Shape := TNodeShape.Create('', '');
       Root.FdChildren.Add(Shape);
