@@ -90,7 +90,7 @@ end;
 
 procedure TGLWindowVRMLBrowser.Load(const SceneFileName: string);
 begin
-  Load(LoadVRML(SceneFileName, false), true);
+  Load(LoadVRML(SceneFileName, DefaultCache, false), true);
 end;
 
 procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
