@@ -266,7 +266,7 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
       First := TDynVRMLTokenInfoArray.Create;
       First.ReadFromFile(FileName);
 
-      Node := LoadVRMLClassic(FileName, DefaultCache, false);
+      Node := LoadVRMLClassic(FileName, false);
       NewFile := GetTempPath + 'test_kambi_vrml_game_engine.wrl';
       SaveVRMLClassic(Node, NewFile, '');
 
@@ -296,7 +296,7 @@ var
   var
     N: TVRMLNode;
   begin
-    N := C.Create('', '', DefaultCache);
+    N := C.Create('', '');
     try
       Result := L.IndexOfAnyAncestor(N) <> -1;
     finally FreeAndNil(N) end;
@@ -335,7 +335,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '', DefaultCache);
+    N := NodesManager.Registered[I].Create('', '');
     try
 
       { Writeln(N.NodeTypeName, ' ', Supports(N, INodeX3DChildNode)); }
@@ -571,7 +571,7 @@ begin
 
       { Just to make sure, check also the created class
         (I don't trust FPC interfaces for now...) }
-      N := AllowedChildrenNodes[I].Create('', '', DefaultCache);
+      N := AllowedChildrenNodes[I].Create('', '');
       try
         Assert(Supports(N, INodeX3DChildNode));
       finally FreeAndNil(N) end;
@@ -848,7 +848,7 @@ begin
 
     for I := 0 to NodesManager.RegisteredCount - 1 do
     begin
-      N := NodesManager.Registered[I].Create('', '', DefaultCache);
+      N := NodesManager.Registered[I].Create('', '');
       try
         Index := ContainerFieldList.IndexOfName(N.NodeTypeName);
         if (Index <> -1) and
@@ -877,7 +877,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '', DefaultCache);
+    N := NodesManager.Registered[I].Create('', '');
     try
       if (N is TVRMLGeometryNode) and
          { TNodeContour2D is an exception, see TNodeContour2D comments.
@@ -945,7 +945,7 @@ begin
   try
     for I := 0 to NodesManager.RegisteredCount - 1 do
     begin
-      N := NodesManager.Registered[I].Create('', '', DefaultCache);
+      N := NodesManager.Registered[I].Create('', '');
       try
         if N is TVRMLGeometryNode then
         try
@@ -985,7 +985,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '', DefaultCache);
+    N := NodesManager.Registered[I].Create('', '');
     try
       if N is TVRMLGeometryNode then
       begin
@@ -1020,7 +1020,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '', DefaultCache);
+    N := NodesManager.Registered[I].Create('', '');
     try
       if N.VRML1StateNode(VRML1StateNode) and
          (VRML1StateNode <> vsCoordinate3) then
@@ -1060,7 +1060,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '', DefaultCache);
+    N := NodesManager.Registered[I].Create('', '');
     try
       if N is TNodeX3DColorNode then
       begin
@@ -1094,7 +1094,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '', DefaultCache);
+    N := NodesManager.Registered[I].Create('', '');
     try
       if N is TNodeX3DTextureCoordinateNode then
       begin
@@ -1291,7 +1291,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '', DefaultCache);
+    N := NodesManager.Registered[I].Create('', '');
     try
       for J := 0 to N.Fields.Count - 1 do
       try
@@ -1333,7 +1333,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '', DefaultCache);
+    N := NodesManager.Registered[I].Create('', '');
     try
       CheckTimeDependentNodeHandler(N);
     except
@@ -1362,7 +1362,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '', DefaultCache);
+    N := NodesManager.Registered[I].Create('', '');
     try
       { if a node has field with chTransform, it must support INodeTransform.
         TVRMLScene.HandleChangeTransform assumes this. }

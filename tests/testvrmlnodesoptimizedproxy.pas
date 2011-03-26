@@ -145,49 +145,49 @@ type
 function TNodeCone_1_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, WWWBasePath, Cache);
+  Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
 function TNodeCone_2_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, WWWBasePath, Cache);
+  Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
 function TNodeCylinder_1_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, WWWBasePath, Cache);
+  Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
 function TNodeCylinder_2_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, WWWBasePath, Cache);
+  Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
 function TNodeBox_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, WWWBasePath, Cache);
+  Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
 function TNodeCube_1_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, WWWBasePath, Cache);
+  Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
 function TNodeSphere_1_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, WWWBasePath, Cache);
+  Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
 function TNodeSphere_2_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, WWWBasePath, Cache);
+  Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
 { TTestVRMLNodesOptimizedProxy ----------------------------------------------- }
@@ -224,13 +224,13 @@ var
   procedure InitializeNode(NodeClass: TVRMLNodeClass; GoodNodeClass: TVRMLNodeClass);
   begin
     FinalizeNode;
-    NastyGeometry := (NodeClass.Create('', '', DefaultCache)) as TVRMLGeometryNode;
+    NastyGeometry := (NodeClass.Create('', '')) as TVRMLGeometryNode;
     NastyShape := TVRMLShape.Create(nil, NastyGeometry, TVRMLGraphTraverseState.CreateCopy(State), nil);
 
     { create also proxy, inside it's own shape.
       This can be used to test that proxy results, *if* they would be used,
       would be the same. }
-    GoodGeometry := (GoodNodeClass.Create('', '', DefaultCache)) as TVRMLGeometryNode;
+    GoodGeometry := (GoodNodeClass.Create('', '')) as TVRMLGeometryNode;
 
     ProxyStateO := State;
     ProxyGeometryO := GoodGeometry.Proxy(ProxyStateO, true);
