@@ -85,6 +85,40 @@
     public property Fdviewpoint: TSFNode read FFdviewpoint;
   end;
 
+  TNodeMouseSensor = class(TNodeX3DSensorNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdeventsProcessed: TSFBool;
+    public property FdeventsProcessed: TSFBool read FFdeventsProcessed;
+
+    { Event: SFVec2f, out } { }
+    private FEventclient: TVRMLEvent;
+    public property Eventclient: TVRMLEvent read FEventclient;
+
+    { Event: SFVec2f, out } { }
+    private FEventposition: TVRMLEvent;
+    public property Eventposition: TVRMLEvent read FEventposition;
+
+    { Event: SFBool, out } { }
+    private FEventlButton: TVRMLEvent;
+    public property EventlButton: TVRMLEvent read FEventlButton;
+
+    { Event: SFBool, out } { }
+    private FEventmButton: TVRMLEvent;
+    public property EventmButton: TVRMLEvent read FEventmButton;
+
+    { Event: SFBool, out } { }
+    private FEventrButton: TVRMLEvent;
+    public property EventrButton: TVRMLEvent read FEventrButton;
+
+    { Event: SFFloat, out } { }
+    private FEventmouseWheel: TVRMLEvent;
+    public property EventmouseWheel: TVRMLEvent read FEventmouseWheel;
+  end;
+
   TNodeOrderedGroup = class(TNodeGroup_2)
   public
     class function ClassNodeTypeName: string; override;
@@ -178,6 +212,43 @@ begin
     (URN = URNBitManagementNodes + ClassNodeTypeName);
 end;
 
+constructor TNodeMouseSensor.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdeventsProcessed := TSFBool.Create(Self, 'eventsProcessed', true);
+  Fields.Add(FFdeventsProcessed);
+
+  FEventclient := TVRMLEvent.Create(Self, 'client', TSFVec2f, false);
+  Events.Add(FEventclient);
+
+  FEventposition := TVRMLEvent.Create(Self, 'position', TSFVec2f, false);
+  Events.Add(FEventposition);
+
+  FEventlButton := TVRMLEvent.Create(Self, 'lButton', TSFBool, false);
+  Events.Add(FEventlButton);
+
+  FEventmButton := TVRMLEvent.Create(Self, 'mButton', TSFBool, false);
+  Events.Add(FEventmButton);
+
+  FEventrButton := TVRMLEvent.Create(Self, 'rButton', TSFBool, false);
+  Events.Add(FEventrButton);
+
+  FEventmouseWheel := TVRMLEvent.Create(Self, 'mouseWheel', TSFFloat, false);
+  Events.Add(FEventmouseWheel);
+end;
+
+class function TNodeMouseSensor.ClassNodeTypeName: string;
+begin
+  Result := 'MouseSensor';
+end;
+
+class function TNodeMouseSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNBitManagementNodes + ClassNodeTypeName);
+end;
+
 class function TNodeOrderedGroup.ClassNodeTypeName: string;
 begin
   Result := 'OrderedGroup';
@@ -195,6 +266,7 @@ begin
     TNodeCircle,
     TNodeLayer2D,
     TNodeLayer3D,
+    TNodeMouseSensor,
     TNodeOrderedGroup
   ]);
 end;
