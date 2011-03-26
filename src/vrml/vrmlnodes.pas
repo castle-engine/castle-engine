@@ -746,12 +746,12 @@ type
 
     { Load 3D model, just like LoadVRML but with a cache.
       URL must be absolute (not relative) filename. }
-    function Load3D_IncReference(const URL: string): TVRMLRootNode;
+    function Load3D(const URL: string): TVRMLRootNode;
 
     { Unload previously loaded here 3D model.
       Node may be @nil (then it's ignored), or something loaded by
-      Load3D_IncReference (then it's released and changed to @nil). }
-    procedure Load3D_DecReference(var Node: TVRMLRootNode);
+      Load3D (then it's released and changed to @nil). }
+    procedure Free3D(var Node: TVRMLRootNode);
   end;
 
 {$I vrmlnodes_node.inc}
@@ -2777,7 +2777,7 @@ begin
   inherited;
 end;
 
-function TVRMLNodesCache.Load3D_IncReference(const URL: string): TVRMLRootNode;
+function TVRMLNodesCache.Load3D(const URL: string): TVRMLRootNode;
 var
   I: Integer;
   C: TCachedNode;
@@ -2800,7 +2800,7 @@ begin
   { Initialize Result first, before calling CachedNodes.Add.
     That's because in case LoadVRML raises exception,
     we don't want to add image to cache (because caller would have
-    no way to call Load3D_DecReference later). }
+    no way to call Free3D later). }
 
   Result := LoadVRML(URL, false);
 
@@ -2815,7 +2815,7 @@ begin
   {$endif}
 end;
 
-procedure TVRMLNodesCache.Load3D_DecReference(var Node: TVRMLRootNode);
+procedure TVRMLNodesCache.Free3D(var Node: TVRMLRootNode);
 var
   I: Integer;
   C: TCachedNode;
@@ -2844,8 +2844,7 @@ begin
     end;
   end;
 
-  raise EInternalError.CreateFmt(
-    'TVRMLNodesCache.Load3D_DecReference: no reference found for 3D model %s',
+  raise EInternalError.CreateFmt('Free3D: no reference found for 3D model %s',
     [PointerToStr(Node)]);
 end;
 
@@ -4835,7 +4834,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     URL := CombinePaths(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := VRMLCache.Load3D_IncReference(URL);
+      ReferencedPrototypeNode := VRMLCache.Load3D(URL);
       PrototypeNames := ReferencedPrototypeNode.PrototypeNames;
     except
       on E: Exception do
@@ -4848,7 +4847,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     FReferencedPrototype := TryFindProtoNonExternal(Anchor);
     if FReferencedPrototype = nil then
     begin
-      VRMLCache.Load3D_DecReference(ReferencedPrototypeNode);
+      VRMLCache.Free3D(ReferencedPrototypeNode);
       if Anchor = '' then
         ProtoWarning('No PROTO found') else
         ProtoWarning(Format('No PROTO named "%s" found', [Anchor]));
@@ -4891,7 +4890,7 @@ begin
   { FReferencedPrototype will be freed as part of ReferencedPrototypeNode }
   FReferencedPrototype := nil;
 
-  VRMLCache.Load3D_DecReference(ReferencedPrototypeNode);
+  VRMLCache.Free3D(ReferencedPrototypeNode);
 
   FReferencedClass := nil;
 end;
