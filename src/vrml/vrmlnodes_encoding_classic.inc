@@ -57,12 +57,12 @@ const
 
   @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
 function LoadVRMLClassic(Stream: TPeekCharStream;
-  const WWWBasePath: string; Cache: TVRMLNodesCache;
+  const WWWBasePath: string;
   PrototypeNames: TVRMLPrototypeNames = nil;
   Exported: TVRMLNodeNames = nil): TVRMLNode; overload;
 
 function LoadVRMLClassicFromString(const VRMLContents: string;
-  const WWWBasePath: string; Cache: TVRMLNodesCache): TVRMLNode; overload;
+  const WWWBasePath: string): TVRMLNode; overload;
 
 { Load VRML/X3D file in classic encoding, return it's root node.
 
@@ -76,13 +76,13 @@ function LoadVRMLClassicFromString(const VRMLContents: string;
   @param(PrototypeNames If <> @nil, will be filled with global
     prototype namespace at the end of parsing the file.
     Useful mostly for EXTERNPROTO implementation.) }
-function LoadVRMLClassic(const FileName: string; Cache: TVRMLNodesCache;
+function LoadVRMLClassic(const FileName: string;
   AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames = nil;
   Exported: TVRMLNodeNames = nil): TVRMLNode; overload;
 
 { Deprecated name for LoadVRMLClassic. @deprecated }
-function ParseVRMLFile(const FileName: string; Cache: TVRMLNodesCache;
+function ParseVRMLFile(const FileName: string;
   AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
 
@@ -193,18 +193,18 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
     begin
       if (Proto is TVRMLExternalPrototype) and
          (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
-        Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath, Names.Cache) else
-        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Names.Cache, Proto);
+        Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
+        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
     end else
     begin
       NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName,
         Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
       if NodeClass <> nil then
       begin
-        Result := NodeClass.Create(nodename, Names.WWWBasePath, Names.Cache);
+        Result := NodeClass.Create(nodename, Names.WWWBasePath);
       end else
       begin
-        Result := TVRMLUnknownNode.CreateUnknown(nodename, Names.WWWBasePath, Names.Cache, NodeTypeName);
+        Result := TVRMLUnknownNode.CreateUnknown(nodename, Names.WWWBasePath, NodeTypeName);
       end;
     end;
 
@@ -348,13 +348,13 @@ var
     if TVRMLRootNode_1.ForVRMLVersion(
         Lexer.VRMLVerMajor, Lexer.VRMLVerMinor) then
     begin
-      Result := TVRMLRootNode_1.Create('', Names.WWWBasePath, Names.Cache);
+      Result := TVRMLRootNode_1.Create('', Names.WWWBasePath);
       TVRMLRootNode_1(Result).ForceVersion := true;
       TVRMLRootNode_1(Result).ForceVersionMajor := Lexer.VRMLVerMajor;
       TVRMLRootNode_1(Result).ForceVersionMinor := Lexer.VRMLVerMinor;
     end else
     begin
-      Result := TVRMLRootNode_2.Create('', Names.WWWBasePath, Names.Cache);
+      Result := TVRMLRootNode_2.Create('', Names.WWWBasePath);
       TVRMLRootNode_2(Result).ForceVersion := true;
       TVRMLRootNode_2(Result).ForceVersionMajor := Lexer.VRMLVerMajor;
       TVRMLRootNode_2(Result).ForceVersionMinor := Lexer.VRMLVerMinor;
@@ -580,7 +580,7 @@ begin
 end;
 
 function LoadVRMLClassic(Stream: TPeekCharStream;
-  const WWWBasePath: string; Cache: TVRMLNodesCache;
+  const WWWBasePath: string;
   PrototypeNames: TVRMLPrototypeNames;
   Exported: TVRMLNodeNames): TVRMLNode;
 var
@@ -589,7 +589,7 @@ var
 begin
   Lexer := TVRMLLexer.Create(Stream, false);
   try
-    Names := TVRMLNames.Create(false, WWWBasePath, Cache, Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
+    Names := TVRMLNames.Create(false, WWWBasePath, Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
     try
       Result := ParseVRMLStatements(Lexer, Names, vtEnd, true);
       if PrototypeNames <> nil then
@@ -600,7 +600,7 @@ begin
   finally FreeAndNil(Lexer) end;
 end;
 
-function LoadVRMLClassic(const FileName: string; Cache: TVRMLNodesCache; 
+function LoadVRMLClassic(const FileName: string;
   AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames;
   Exported: TVRMLNodeNames): TVRMLNode;
@@ -612,7 +612,7 @@ function LoadVRMLClassic(const FileName: string; Cache: TVRMLNodesCache;
   begin
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := LoadVRMLClassic(Stream, WWWBasePath, Cache, PrototypeNames, Exported);
+      Result := LoadVRMLClassic(Stream, WWWBasePath, PrototypeNames, Exported);
     finally Stream.Free end;
   end;
 
@@ -673,22 +673,22 @@ begin
 end;
 
 function LoadVRMLClassicFromString(const VRMLContents: string;
-  const WWWBasePath: string; Cache: TVRMLNodesCache): TVRMLNode; overload;
+  const WWWBasePath: string): TVRMLNode; overload;
 var
   Stream: TPeekCharStream;
 begin
   Stream := TSimplePeekCharStream.Create(
     TStringStream.Create(VRMLContents), true);
   try
-    Result := LoadVRMLClassic(Stream, WWWBasePath, Cache);
+    Result := LoadVRMLClassic(Stream, WWWBasePath);
   finally FreeAndNil(Stream) end;
 end;
 
-function ParseVRMLFile(const FileName: string; Cache: TVRMLNodesCache;
+function ParseVRMLFile(const FileName: string;
   AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
 begin
-  Result := LoadVRMLClassic(FileName, Cache, AllowStdIn, PrototypeNames);
+  Result := LoadVRMLClassic(FileName, AllowStdIn, PrototypeNames);
 end;
 
 { saving --------------------------------------------------------------------- }

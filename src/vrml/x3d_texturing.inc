@@ -631,7 +631,7 @@ procedure TVRML2DTextureNode.SetIsTextureLoaded(Value: boolean);
 
     LoadTextureData(WasCacheUsed);
     if WasCacheUsed then
-      UsedCache := Cache;
+      UsedCache := VRMLCache;
   end;
 
 begin
@@ -842,7 +842,7 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
       try
-        FTextureImage := Cache.TextureImage_IncReference(FullUrl, FTextureDDS);
+        FTextureImage := VRMLCache.TextureImage_IncReference(FullUrl, FTextureDDS);
         WasCacheUsed := true;
         FTextureUsedFullUrl := FullUrl;
         Break;
@@ -972,7 +972,7 @@ begin
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      FTextureVideo := Cache.Video_IncReference(FullUrl);
+      FTextureVideo := VRMLCache.Video_IncReference(FullUrl);
 
       { if loading succeded, set WasCacheUsed and others and break. }
       WasCacheUsed := true;

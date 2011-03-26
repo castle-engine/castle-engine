@@ -422,6 +422,10 @@ type
   private
     Renderer: TVRMLGLRenderer;
 
+    { Cache used by this scene. Always initialized to non-nil by constructor. }
+    Cache: TVRMLGLRendererContextCache;
+    OwnsCache: boolean;
+
     { Render everything.
 
       Calls Renderer.RenderBegin.
@@ -525,6 +529,8 @@ type
     procedure InvalidateBackground; override;
   public
     constructor Create(AOwner: TComponent); override;
+
+    constructor CreateCustomCache(AOwner: TComponent; ACache: TVRMLGLRendererContextCache);
 
     { A very special constructor, that forces this class to use
       provided ACustomRenderer. ACustomRenderer must be <> @nil.
@@ -1303,11 +1309,6 @@ begin
   { inherited Create *may* call some virtual things overriden here
     (although right now it doesn't): it may bind new viewpoint which
     may call ViewChangedSuddenly which is overridden here and uses Attributes.
-
-    Also, we have to set FCache to our TVRMLGLRendererContextCache
-    (otherwise more generic TVRMLNodesCache would be created in ancestor
-    constructor).
-
     That's why I have to initialize them *before* "inherited Create" }
 
   { Cache may be already assigned, when we came here from
@@ -1315,7 +1316,7 @@ begin
   if Cache = nil then
   begin
     OwnsCache := true;
-    FCache := TVRMLGLRendererContextCache.Create;
+    Cache := TVRMLGLRendererContextCache.Create;
   end;
 
   { Renderer may be already assigned, when we came here from
@@ -1323,8 +1324,7 @@ begin
   if Renderer = nil then
   begin
     FOwnsRenderer := true;
-    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes,
-      Cache as TVRMLGLRendererContextCache);
+    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, Cache);
   end;
 
   Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
@@ -1345,6 +1345,16 @@ begin
 
   FOctreeFrustumCulling := fcBoth;
    OctreeFrustumCulling := fcBox; { set through property setter }
+end;
+
+constructor TVRMLGLScene.CreateCustomCache(
+  AOwner: TComponent; ACache: TVRMLGLRendererContextCache);
+begin
+  OwnsCache := false;
+  Assert(ACache <> nil);
+  Cache := ACache;
+
+  Create(AOwner);
 end;
 
 constructor TVRMLGLScene.CreateCustomRenderer(
@@ -3745,7 +3755,7 @@ end;
 function TVRMLGLScene.CreateHeadLightInstance
   (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight;
 begin
-  Result := TVRMLGLHeadLight.Create(Cache, HeadLightNode);
+  Result := TVRMLGLHeadLight.Create(HeadLightNode);
 end;
 
 function TVRMLGLScene.Headlight: TVRMLGLHeadlight;

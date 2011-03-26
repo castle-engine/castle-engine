@@ -73,7 +73,6 @@
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
     FEventsEngine: TVRMLEventsEngine;
-    FCache: TVRMLNodesCache;
 
     { Internally used by PROTO instantiating mechanism,
       in TVRMLPrototypeNode.InstantiateIsClauses
@@ -474,7 +473,7 @@
     { Constructor. Initializes various properties:
 
       @unorderedList(
-        @item(NodeName, WWWBasePath, Cache are initialized
+        @item(NodeName, WWWBasePath are initialized
           directly from given parameters.)
         @item(The @link(Fields), @link(Events) lists are filled
           in every descendant, to have all the fields/events defined
@@ -484,8 +483,7 @@
           in CreateNode, that is called at the end of this constructor.)
       )
     }
-    constructor Create(const ANodeName: string; const AWWWBasePath: string;
-      ACache: TVRMLNodesCache); virtual;
+    constructor Create(const ANodeName, AWWWBasePath: string); virtual;
 
     destructor Destroy; override;
 
@@ -1080,8 +1078,6 @@
       that would be quite slow.
       @exclude }
     function TransformationChange: TNodeTransformationChange; virtual;
-
-    property Cache: TVRMLNodesCache read FCache;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -1128,7 +1124,7 @@ end;
 
 { TVRMLNode ------------------------------------------------------------------ }
 
-constructor TVRMLNode.Create(const ANodeName: string; const AWWWBasePath: string; ACache: TVRMLNodesCache);
+constructor TVRMLNode.Create(const ANodeName, AWWWBasePath: string);
 begin
   inherited Create;
   FAllowedChildren := false;
@@ -1153,9 +1149,6 @@ begin
   FInterfaceDeclarations := nil;
 
   FDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
-
-  FCache := ACache;
-  Assert(Cache <> nil, 'Cache must be set at TVRMLNode construction');
 
   CreateNode;
 end;
@@ -2866,7 +2859,7 @@ end;
 
 function TVRMLNode.DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
 begin
-  Result := TVRMLNodeClass(ClassType).Create(NodeName, WWWBasePath, Cache);
+  Result := TVRMLNodeClass(ClassType).Create(NodeName, WWWBasePath);
 end;
 
 function TVRMLNode.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;

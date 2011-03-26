@@ -82,7 +82,6 @@ type
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
     ShadowCastersBox: TBox3D;
     LightsCastingOnEverything: TVRMLNodesList;
-    Cache: TVRMLNodesCache;
 
     { Find existing or add new TLight record for this light node.
       This also creates shadow map and texture generator nodes for this light. }
@@ -142,7 +141,7 @@ begin
     Result^.ShadowMap.KeepExistingEnd;
   end else
   begin
-    Result^.ShadowMap := TNodeGeneratedShadowMap.Create('', '', Cache);
+    Result^.ShadowMap := TNodeGeneratedShadowMap.Create('', '');
     Result^.ShadowMap.FdUpdate.Value := 'ALWAYS';
     Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
   end;
@@ -159,7 +158,7 @@ begin
 
   { create new ProjectedTextureCoordinate node }
 
-  Result^.TexGen := TNodeProjectedTextureCoordinate.Create('', '', Cache);
+  Result^.TexGen := TNodeProjectedTextureCoordinate.Create('', '');
   Result^.TexGen.NodeName := LightUniqueName + '_TexGen' + NodeNameSuffix;
   Result^.TexGen.FdProjector.Value := Light;
 end;
@@ -227,7 +226,7 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
       MTexture := TNodeMultiTexture(Texture);
     end else
     begin
-      MTexture := TNodeMultiTexture.Create('', '', Cache);
+      MTexture := TNodeMultiTexture.Create('', '');
       if Texture <> nil then
       begin
         { set position in parent only for more deterministic output
@@ -281,7 +280,7 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
 
       for I := OldCount to NewCount - 1 do
       begin
-        NewTexCoordGen := TNodeTextureCoordinateGenerator.Create('', '', Cache);
+        NewTexCoordGen := TNodeTextureCoordinateGenerator.Create('', '');
         NewTexCoordGen.FdMode.Value := 'BOUNDS';
         Coords.Replace(I, NewTexCoordGen);
       end;
@@ -298,7 +297,7 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
       MTexCoord := TNodeMultiTextureCoordinate(TexCoord);
     end else
     begin
-      MTexCoord := TNodeMultiTextureCoordinate.Create('', '', Cache);
+      MTexCoord := TNodeMultiTextureCoordinate.Create('', '');
       if TexCoord <> nil then
       begin
         { set position in parent only for more deterministic output
@@ -345,7 +344,7 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
     if (TextureTransform <> nil) and
        (TextureTransform is TNodeTextureTransform) then
     begin
-      MultiTT := TNodeMultiTextureTransform.Create('', '', Cache);
+      MultiTT := TNodeMultiTextureTransform.Create('', '');
       { set position in parent only for more deterministic output
 	(new "texture" field on the same position) }
       MultiTT.PositionInParent := TextureTransform.PositionInParent;
@@ -434,7 +433,7 @@ begin
   if (App = nil) and
      (LightsCastingOnEverything.Count <> 0) then
   begin
-    App := TNodeAppearance.Create('', Shape.Node.WWWBasePath, Cache); { recalculate App }
+    App := TNodeAppearance.Create('', Shape.Node.WWWBasePath); { recalculate App }
     Shape.Node.Appearance := App;
   end;
 
@@ -569,7 +568,6 @@ begin
     begin
       Lights.DefaultShadowMapSize := DefaultShadowMapSize;
       Lights.ShadowCastersBox := EmptyBox3D;
-      Lights.Cache := Model.Cache;
 
       { calculate Lights.LightsCastingOnEverything first }
       Lights.LightsCastingOnEverything := TVRMLNodesList.Create;

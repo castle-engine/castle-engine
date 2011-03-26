@@ -67,25 +67,25 @@ interface
 uses VectorMath, SysUtils, VRMLNodes, Object3DMD3,
   KambiUtils, Classes;
 
-function LoadGEO(const filename: string; Cache: TVRMLNodesCache): TVRMLNode;
+function LoadGEO(const filename: string): TVRMLNode;
 
-function LoadWavefrontOBJ(const filename: string; Cache: TVRMLNodesCache): TVRMLNode;
+function LoadWavefrontOBJ(const filename: string): TVRMLNode;
 
-function Load3DS(const filename: string; Cache: TVRMLNodesCache): TVRMLNode;
+function Load3DS(const filename: string): TVRMLNode;
 
-function LoadMD3(const FileName: string; Cache: TVRMLNodesCache): TVRMLNode;
+function LoadMD3(const FileName: string): TVRMLNode;
 
 { Load a specific animation frame from a given Md3 model.
   @param Md3 is the MD3 file to use.
   @param FrameNumber is the frame number to load, must be < Md3.Count.
   @param WWWBasePath is the base URL, set for TVRMLNode.WWWBasePath. }
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const WWWBasePath: string; Cache: TVRMLNodesCache): TVRMLNode;
+  const WWWBasePath: string): TVRMLNode;
 
 { This is much like LoadVRMLSequence, but it only handles MD3 files.
   Usually you want to use LoadVRMLSequence, not this procedure. }
 procedure LoadMD3Sequence(
-  const FileName: string; Cache: TVRMLNodesCache;
+  const FileName: string;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
@@ -105,13 +105,13 @@ procedure LoadMD3Sequence(
 
   @param(Exported If non-nil, we will assign here node names
     exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
-function LoadVRML(const filename: string; Cache: TVRMLNodesCache;
+function LoadVRML(const filename: string;
   AllowStdIn: boolean = false;
   PrototypeNames: TVRMLPrototypeNames = nil;
   Exported: TVRMLNodeNames = nil): TVRMLNode;
 
 { Deprecated name for LoadVRML. @deprecated }
-function LoadAsVRML(const filename: string; Cache: TVRMLNodesCache;
+function LoadAsVRML(const filename: string;
   AllowStdIn: boolean = false;
   PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
 
@@ -157,7 +157,7 @@ const
     Pass here some created and empty instance of TDynSingleArray.)
 }
 procedure LoadVRMLSequence(
-  const FileName: string; Cache: TVRMLNodesCache;
+  const FileName: string;
   AllowStdIn: boolean;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
@@ -214,7 +214,7 @@ begin  result := 'File_' + ToVRMLName(filename)  end;
 
 { Load* ---------------------------------------------------------------------- }
 
-function LoadGEO(const filename: string; Cache: TVRMLNodesCache): TVRMLNode;
+function LoadGEO(const filename: string): TVRMLNode;
 var geo: TObject3DGEO;
     verts: TNodeCoordinate3;
     faces: TNodeIndexedFaceSet_1;
@@ -224,11 +224,11 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  geo := TObject3DGEO.Create(filename);
  try
-  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath, Cache);
+  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
   try
-   verts := TNodeCoordinate3.Create('', WWWBasePath, Cache);
+   verts := TNodeCoordinate3.Create('', WWWBasePath);
    result.VRML1ChildAdd(verts);
-   faces := TNodeIndexedFaceSet_1.Create('', WWWBasePath, Cache);
+   faces := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
    result.VRML1ChildAdd(faces);
 
    verts.FdPoint.Items.SetLength(0);
@@ -246,7 +246,7 @@ begin
  finally geo.Free end;
 end;
 
-function LoadWavefrontOBJ(const filename: string; Cache: TVRMLNodesCache): TVRMLNode;
+function LoadWavefrontOBJ(const filename: string): TVRMLNode;
 const
   { na czas konstruowania duzych tablic indeksow pozwalamy sobie ustawiac
     bardzo duze dopuszczalne AllowedCapacityOverflow zeby wszystko bylo szybko.
@@ -285,18 +285,18 @@ begin
       couldn't animate them. Conceptually, you can say that OBJ filename
       shouldn't be recorded as VRML field name, since filename is something
       not related to actual *content* of the model. },
-    WWWBasePath, Cache);
+    WWWBasePath);
   try
-   MaterialsSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath, Cache);
+   MaterialsSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath);
    Result.VRML1ChildAdd(MaterialsSwitch);
 
    for I := 0 to Obj.Materials.Count - 1 do
    begin
      MaterialGroup := TNodeGroup_1.Create(
-       MatOBJNameToVRMLName(Obj.Materials.Items[I].Name), WWWBasePath, Cache);
+       MatOBJNameToVRMLName(Obj.Materials.Items[I].Name), WWWBasePath);
      MaterialsSwitch.VRML1ChildAdd(MaterialGroup);
 
-     Material := TNodeMaterial_1.Create('', WWWBasePath, Cache);
+     Material := TNodeMaterial_1.Create('', WWWBasePath);
      MaterialGroup.VRML1ChildAdd(Material);
      Material.FdAmbientColor.Items.SetLength(1);
      Material.FdAmbientColor.Items.Items[0] := Obj.Materials.Items[I].AmbientColor;
@@ -310,22 +310,22 @@ begin
      Material.FdShininess.Items.Items[0] :=
        Obj.Materials.Items[I].SpecularExponent / 128.0;
 
-     Texture := TNodeTexture2.Create('', WWWBasePath, Cache);
+     Texture := TNodeTexture2.Create('', WWWBasePath);
      MaterialGroup.VRML1ChildAdd(Texture);
      Texture.FdFilename.Value := Obj.Materials.Items[I].DiffuseTextureFileName;
    end;
 
-   verts := TNodeCoordinate3.Create('',WWWBasePath, Cache);
+   verts := TNodeCoordinate3.Create('',WWWBasePath);
    result.VRML1ChildAdd(verts);
    verts.FdPoint.Items.SetLength(0);
    verts.FdPoint.Items.AppendDynArray(obj.Verts);
 
-   texcoords := TNodeTextureCoordinate2.Create('', WWWBasePath, Cache);
+   texcoords := TNodeTextureCoordinate2.Create('', WWWBasePath);
    result.VRML1ChildAdd(texcoords);
    texcoords.FdPoint.Items.SetLength(0);
    texcoords.FdPoint.Items.AppendDynArray(obj.TexCoords);
 
-   Normals := TNodeNormal.Create('', WWWBasePath, Cache);
+   Normals := TNodeNormal.Create('', WWWBasePath);
    Result.VRML1ChildAdd(Normals);
    Normals.FdVector.Items.SetLength(0);
    Normals.FdVector.Items.AppendDynArray(Obj.Normals);
@@ -337,7 +337,7 @@ begin
     FacesWithNormals := Obj.Faces.Items[i].HasNormals;
     FacesWithMaterial := Obj.Faces.Items[i].Material;
 
-    FacesSeparator := TNodeSeparator.Create('', WWWBasePath, Cache);
+    FacesSeparator := TNodeSeparator.Create('', WWWBasePath);
     Result.VRML1ChildAdd(FacesSeparator);
 
     if FacesWithMaterial <> nil then
@@ -372,7 +372,7 @@ begin
     end;
     *)
 
-    faces := TNodeIndexedFaceSet_1.Create('',WWWBasePath, Cache);
+    faces := TNodeIndexedFaceSet_1.Create('',WWWBasePath);
     FacesSeparator.VRML1ChildAdd(faces);
     faces.FdCoordIndex.Items.SetLength(0);
     faces.FdCoordIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
@@ -421,7 +421,7 @@ begin
  finally obj.Free end;
 end;
 
-function Load3DS(const filename: string; Cache: TVRMLNodesCache): TVRMLNode;
+function Load3DS(const filename: string): TVRMLNode;
 var WWWBasePath: string;
 
   const
@@ -484,13 +484,13 @@ var WWWBasePath: string;
   begin
    if scene.Cameras.Count = 0 then Exit;
 
-   camSwitch := TNodeSwitch_1.Create(CamerasSwitchName, WWWBasePath, Cache);
+   camSwitch := TNodeSwitch_1.Create(CamerasSwitchName, WWWBasePath);
    node.VRML1ChildAdd(camSwitch);
    camSwitch.FdWhichChild.Value := 0;
 
    for i := 0 to scene.Cameras.Count-1 do
    begin
-    camera := MakeVRMLCameraNode(1, WWWBasePath, Cache,
+    camera := MakeVRMLCameraNode(1, WWWBasePath,
       scene.Cameras[i].CamPos,
       scene.Cameras[i].CamDir,
       scene.Cameras[i].CamUp,
@@ -509,13 +509,13 @@ var WWWBasePath: string;
   begin
    if Scene.Lights.Count = 0 then Exit;
 
-   lightGroup := TNodeGroup_1.Create('Lights', WWWBasePath, Cache);
+   lightGroup := TNodeGroup_1.Create('Lights', WWWBasePath);
    node.VRML1ChildAdd(lightGroup);
 
    for i := 0 to Scene.Lights.Count-1 do
    begin
     light := TNodePointLight_1.Create(Light3dsNameToVRMLName(
-      Scene.Lights[i].Name), WWWBasePath, Cache);
+      Scene.Lights[i].Name), WWWBasePath);
     lightGroup.VRML1ChildAdd(light);
 
     light.FdOn.Value := Scene.Lights[i].Enabled;
@@ -540,22 +540,22 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  obj3ds := TScene3ds.Create(filename);
  try
-  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath, Cache);
+  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
   try
    Add3dsCameras(obj3ds, result);
    Add3dsLights(obj3ds, result);
 
    { konstruuj liste materiali jako dzieci materialSwitch }
-   materialSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath, Cache);
+   materialSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath);
    result.VRML1ChildAdd(materialSwitch);
 
    for i := 0 to obj3ds.Materials.Count-1 do
    begin
-    materialGroup := TNodeGroup_1.Create(Mat3dsNameToVRMLName(obj3ds.Materials[i].Name), WWWBasePath, Cache);
+    materialGroup := TNodeGroup_1.Create(Mat3dsNameToVRMLName(obj3ds.Materials[i].Name), WWWBasePath);
     materialSwitch.VRML1ChildAdd(materialGroup);
 
     { dodaj Material node }
-    tmp := TNodeMaterial_1.Create('', WWWBasePath, Cache);
+    tmp := TNodeMaterial_1.Create('', WWWBasePath);
     materialGroup.VRML1ChildAdd(tmp);
     TNodeMaterial_1(tmp).FdAmbientColor.Items.SetLength(1);
     TNodeMaterial_1(tmp).FdAmbientColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].AmbientCol);
@@ -571,11 +571,11 @@ begin
     if obj3ds.Materials[i].TextureMap1.Exists then
     begin
      { dodaj Texture2 i Texture2Transform nodes }
-     tmp := TNodeTexture2.Create('', WWWBasePath, Cache);
+     tmp := TNodeTexture2.Create('', WWWBasePath);
      materialGroup.VRML1ChildAdd(tmp);
      TNodeTexture2(tmp).FdFilename.Value := obj3ds.Materials[i].TextureMap1.MapFilename;
 
-     tmp := TNodeTexture2Transform.Create('', WWWBasePath, Cache);
+     tmp := TNodeTexture2Transform.Create('', WWWBasePath);
      materialGroup.VRML1ChildAdd(tmp);
      TNodeTexture2Transform(tmp).FdScaleFactor.Value :=
        Vector2Single(obj3ds.Materials[i].TextureMap1.UScale,
@@ -590,11 +590,11 @@ begin
    begin
     trimesh3ds := obj3ds.Trimeshes[i];
 
-    trimeshGroup := TNodeGroup_1.Create(Trimesh3dsNameToVRMLName(trimesh3ds.Name), WWWBasePath, Cache);
+    trimeshGroup := TNodeGroup_1.Create(Trimesh3dsNameToVRMLName(trimesh3ds.Name), WWWBasePath);
     result.VRML1ChildAdd(trimeshGroup);
 
     { zapisz Coordinate3 }
-    trimeshCoords := TNodeCoordinate3.Create('', WWWBasePath, Cache);
+    trimeshCoords := TNodeCoordinate3.Create('', WWWBasePath);
     trimeshGroup.VRML1ChildAdd(trimeshCoords);
     trimeshCoords.FdPoint.Items.SetLength(trimesh3ds.VertsCount);
     for j := 0 to trimesh3ds.VertsCount-1 do
@@ -603,7 +603,7 @@ begin
     { zapisz TextureCoordinate2 jesli je mamy }
     if trimesh3ds.HasTexCoords then
     begin
-     trimeshTexCoords := TNodeTextureCoordinate2.Create('', WWWBasePath, Cache);
+     trimeshTexCoords := TNodeTextureCoordinate2.Create('', WWWBasePath);
      trimeshGroup.VRML1ChildAdd(trimeshTexCoords);
      trimeshTexCoords.FdPoint.Items.SetLength(trimesh3ds.VertsCount);
      for j := 0 to trimesh3ds.VertsCount-1 do
@@ -615,7 +615,7 @@ begin
     while j < trimesh3ds.FacesCount do
     begin
      FaceMaterialNum := trimesh3ds.Faces^[j].FaceMaterialIndex;
-     facesSep := TNodeSeparator.Create('', WWWBasePath, Cache);
+     facesSep := TNodeSeparator.Create('', WWWBasePath);
      trimeshGroup.VRML1ChildAdd(facesSep);
 
      { uzyj materialu }
@@ -627,7 +627,7 @@ begin
      if (FaceMaterialNum >= 0) and
         (obj3ds.Materials[FaceMaterialNum].TextureMap1.Exists) and
         (not trimesh3ds.HasTexCoords) then
-      facesSep.VRML1ChildAdd(TNodeTexture2.Create('Turn_Texture_Off', WWWBasePath, Cache));
+      facesSep.VRML1ChildAdd(TNodeTexture2.Create('Turn_Texture_Off', WWWBasePath));
 
      { zapisz faces o tym samym FaceMaterialNum.
        Mamy przynajmniej jedno takie face. }
@@ -635,7 +635,7 @@ begin
      ThisMaterialFacesCount := SameMaterialFacesCount(trimesh3ds.Faces,
        trimesh3ds.FacesCount, j);
 
-     indexedFacesNode := TNodeIndexedFaceSet_1.Create('', WWWBasePath, Cache);
+     indexedFacesNode := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
      facesSep.VRML1ChildAdd(indexedFacesNode);
      indexedFacesNode.FdCoordIndex.Items.SetLength(ThisMaterialFacesCount*4);
 
@@ -665,7 +665,7 @@ begin
 end;
 
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const WWWBasePath: string; Cache: TVRMLNodesCache): TVRMLNode;
+  const WWWBasePath: string): TVRMLNode;
 
   function MakeCoordinates(Vertexes: TDynMd3VertexArray;
     VertexesInFrameCount: Cardinal): TNodeCoordinate3;
@@ -673,7 +673,7 @@ function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
     I: Integer;
     V: PMd3Vertex;
   begin
-    Result := TNodeCoordinate3.Create('', WWWBasePath, Cache);
+    Result := TNodeCoordinate3.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := VertexesInFrameCount;
     V := Vertexes.Pointers[VertexesInFrameCount * FrameNumber];
     for I := 0 to VertexesInFrameCount - 1 do
@@ -692,7 +692,7 @@ function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
     I: Integer;
     V: PMd3TexCoord;
   begin
-    Result := TNodeTextureCoordinate2.Create('', WWWBasePath, Cache);
+    Result := TNodeTextureCoordinate2.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := TextureCoords.Count;
     V := TextureCoords.Pointers[0];
     for I := 0 to TextureCoords.Count - 1 do
@@ -706,7 +706,7 @@ function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
   var
     I: Integer;
   begin
-    Result := TNodeIndexedFaceSet_1.Create('', WWWBasePath, Cache);
+    Result := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
     Result.FdCoordIndex.Items.Count := Triangles.Count * 4;
     Result.FdTextureCoordIndex.Items.Count := Triangles.Count * 4;
     for I := 0 to Triangles.Count - 1 do
@@ -725,7 +725,7 @@ function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
 
   function MakeSeparator(Surface: TMd3Surface): TNodeSeparator;
   begin
-    Result := TNodeSeparator.Create(ToVRMLName(Surface.Name), WWWBasePath, Cache);
+    Result := TNodeSeparator.Create(ToVRMLName(Surface.Name), WWWBasePath);
     Result.VRML1ChildAdd(MakeTextureCoordinates(Surface.TextureCoords));
     Result.VRML1ChildAdd(MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount));
     Result.VRML1ChildAdd(MakeIndexes(Surface.Triangles));
@@ -739,12 +739,12 @@ begin
     ToVRMLName(Md3.Name
       { Although adding here FrameNumber is not a bad idea, but VRMLGLAnimation
         requires for now that sequence of VRML models have the same node names }
-      { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath, Cache);
+      { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath);
 
   { MD3 files have no camera. I add camera here, just to force GravityUp
     to be in +Z, since this is the convention used in all MD3 file that
     I saw (so I guess that Quake3 engine generally uses this convention). }
-  Result.VRML1ChildAdd(MakeVRMLCameraNode(1, WWWBasePath, Cache,
+  Result.VRML1ChildAdd(MakeVRMLCameraNode(1, WWWBasePath,
     Vector3Single(0, 0, 0),
     Vector3Single(1, 0, 0),
     Vector3Single(0, 0, 1),
@@ -752,7 +752,7 @@ begin
 
   if Md3.TextureFileName <> '' then
   begin
-    Texture := TNodeTexture2.Create('', WWWBasePath, Cache);
+    Texture := TNodeTexture2.Create('', WWWBasePath);
     Result.VRML1ChildAdd(Texture);
     Texture.FdFilename.Value := Md3.TextureFileName;
   end;
@@ -761,7 +761,7 @@ begin
     Result.VRML1ChildAdd(MakeSeparator(Md3.Surfaces[I]));
 end;
 
-function LoadMD3(const FileName: string; Cache: TVRMLNodesCache): TVRMLNode;
+function LoadMD3(const FileName: string): TVRMLNode;
 var
   Md3: TObject3DMD3;
   WWWBasePath: string;
@@ -769,12 +769,12 @@ begin
   WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
   Md3 := TObject3DMD3.Create(FileName);
   try
-    Result := LoadMD3Frame(Md3, 0, WWWBasePath, Cache);
+    Result := LoadMD3Frame(Md3, 0, WWWBasePath);
   finally FreeAndNil(Md3) end;
 end;
 
 procedure LoadMD3Sequence(
-  const FileName: string; Cache: TVRMLNodesCache;
+  const FileName: string;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
@@ -791,7 +791,7 @@ begin
     { handle each MD3 frame }
     for I := 0 to Md3.FramesCount - 1 do
     begin
-      RootNodes.Add(LoadMD3Frame(Md3, I, WWWBasePath, Cache));
+      RootNodes.Add(LoadMD3Frame(Md3, I, WWWBasePath));
       Times.Add(I / 30);
     end;
 
@@ -810,7 +810,7 @@ begin
   finally FreeAndNil(Md3) end;
 end;
 
-function LoadVRML(const filename: string; Cache: TVRMLNodesCache;
+function LoadVRML(const filename: string;
   AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames;
   Exported: TVRMLNodeNames): TVRMLNode;
@@ -829,20 +829,20 @@ begin
   if Exported <> nil then Exported.Clear;
 
   if AllowStdIn and (FileName = '-') then
-    result := LoadVRMLClassic('-', Cache, true, PrototypeNames, Exported) else
+    result := LoadVRMLClassic('-', true, PrototypeNames, Exported) else
   begin
     Ext := ExtractFileExt(filename);
     if Ext = '.gz' then
       Ext := ExtractFileExt(DeleteFileExt(FileName)) + Ext;
     case ArrayPosText(Ext, Extensions) of
-      0: result := LoadGEO(filename, Cache);
-      1: result := Load3DS(filename, Cache);
-      2: result := LoadWavefrontOBJ(filename, Cache);
-      3..9: result := LoadVRMLClassic(filename, Cache, false, PrototypeNames, Exported);
-      10: Result := LoadMD3(FileName, Cache);
-      11: Result := LoadCollada(FileName, Cache);
-      12: Result := LoadX3DXml(FileName, Cache, false, PrototypeNames, Exported);
-      13, 14: Result := LoadX3DXml(FileName, Cache, true, PrototypeNames, Exported);
+      0: result := LoadGEO(filename);
+      1: result := Load3DS(filename);
+      2: result := LoadWavefrontOBJ(filename);
+      3..9: result := LoadVRMLClassic(filename, false, PrototypeNames, Exported);
+      10: Result := LoadMD3(FileName);
+      11: Result := LoadCollada(FileName);
+      12: Result := LoadX3DXml(FileName, false, PrototypeNames, Exported);
+      13, 14: Result := LoadX3DXml(FileName, true, PrototypeNames, Exported);
       else raise Exception.CreateFmt(
         'Unrecognized file extension "%s" for 3D model file "%s"',
         [Ext, FileName]);
@@ -850,14 +850,14 @@ begin
   end;
 end;
 
-function LoadAsVRML(const filename: string; Cache: TVRMLNodesCache;
+function LoadAsVRML(const filename: string;
   AllowStdIn: boolean;
   PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
 begin
-  Result := LoadVRML(FileName, Cache, AllowStdIn, PrototypeNames);
+  Result := LoadVRML(FileName, AllowStdIn, PrototypeNames);
 end;
 
-procedure LoadVRMLSequence(const FileName: string; Cache: TVRMLNodesCache;
+procedure LoadVRMLSequence(const FileName: string;
   AllowStdIn: boolean;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
@@ -882,7 +882,7 @@ procedure LoadVRMLSequence(const FileName: string; Cache: TVRMLNodesCache;
       RootNodes.Count := ModelFileNames.Count;
       for I := 0 to ModelFileNames.High do
       try
-        RootNodes[I] := LoadVRML(ModelFileNames[I], Cache);
+        RootNodes[I] := LoadVRML(ModelFileNames[I]);
       except
         for J := 0 to I - 1 do
           RootNodes.FreeAndNil(J);
@@ -911,9 +911,9 @@ begin
   if SameText(Ext, '.kanim') then
     LoadKanim else
   if SameText(Ext, '.md3') then
-    LoadMD3Sequence(FileName, Cache, RootNodes, Times, ScenesPerTime,
+    LoadMD3Sequence(FileName, RootNodes, Times, ScenesPerTime,
       EqualityEpsilon, TimeLoop, TimeBackwards) else
-    LoadSingle(LoadVRML(FileName, Cache, AllowStdIn));
+    LoadSingle(LoadVRML(FileName, AllowStdIn));
 end;
 
 end.

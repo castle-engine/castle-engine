@@ -772,7 +772,7 @@ type
     Instance of this class is tied to particular OpenGL context if and only if
     there are some TVRMLGLRenderer instances using this cache and
     tied to that OpenGL context. }
-  TVRMLGLRendererContextCache = class(TTexturesImagesVideosCache)
+  TVRMLGLRendererContextCache = class
   private
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TextureImageCaches: TDynTextureImageCacheArray;

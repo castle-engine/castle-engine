@@ -452,7 +452,7 @@ procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
     begin
       try
         URL := PathFromWWWBasePath(Urls.Items.Items[i]);
-        FBgImages.Images[bs] := Cache.TextureImage_IncReference(URL);
+        FBgImages.Images[bs] := VRMLCache.TextureImage_IncReference(URL);
         Break;
       except
         on E: Exception do
@@ -481,12 +481,12 @@ begin
         { In case of trouble, free the images that were loaded.
           This may happen if VRMLWarning raises exception and some
           image cannot be loaded. }
-        FbgImages.FreeAll(Cache);
+        FbgImages.FreeAll(VRMLCache);
         raise;
       end;
     end else
     begin
-      FbgImages.FreeAll(Cache);
+      FbgImages.FreeAll(VRMLCache);
     end;
 
     FBgImagesLoaded := Value;

@@ -1131,9 +1131,9 @@ type
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
 
     { base Create will throw exception. Always use CreateUnknown* }
-    constructor Create(const ANodeName: string; const AWWWBasePath: string; ACache: TVRMLNodesCache); override;
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    constructor CreateUnknown(const ANodeName, AWWWBasePath: string; ACache: TVRMLNodesCache; const ANodeTypeName :string);
+    constructor CreateUnknown(const ANodeName, AWWWBasePath: string; const ANodeTypeName :string);
   end;
 
 { TVRMLInterfaceDeclaration -------------------------------------------------- }
@@ -1375,8 +1375,8 @@ type
   public
     { This constructor will raise exception for TVRMLPrototypeNode.
       Always use CreatePrototypeNode for this node class. }
-    constructor Create(const ANodeName, AWWWBasePath: string; ACache: TVRMLNodesCache); override;
-    constructor CreatePrototypeNode(const ANodeName, AWWWBasePath: string; ACache: TVRMLNodesCache;
+    constructor Create(const ANodeName, AWWWBasePath: string); override;
+    constructor CreatePrototypeNode(const ANodeName, AWWWBasePath: string;
       APrototype: TVRMLPrototypeBase);
     function NodeTypeName: string; override;
 
@@ -1543,7 +1543,7 @@ type
     { Loads URL, until the first success. Sets either ReferencedClass to non-nil
       (if it's built-in node) or ReferencedPrototype (if prototype expansion
       found in external file). }
-    procedure LoadReferenced(Cache: TVRMLNodesCache);
+    procedure LoadReferenced;
     procedure UnloadReferenced;
   end;
 
@@ -1832,7 +1832,6 @@ type
   private
     FVRMLVerMajor, FVRMLVerMinor: integer;
     FWWWBasePath: string;
-    FCache: TVRMLNodesCache;
     FNodes: TVRMLNodeNames;
     FPrototypes: TVRMLPrototypeNames;
     FImported: TVRMLNodeNames;
@@ -1840,14 +1839,13 @@ type
     FImportable: TVRMLImportableNames;
   public
     constructor Create(const AAutoRemoveNodes: boolean;
-      const AWWWBasePath: string; ACache: TVRMLNodesCache;
+      const AWWWBasePath: string;
       const AVRMLVerMajor, AVRMLVerMinor: Integer);
     destructor Destroy; override;
 
     { Base path for resolving URLs from nodes in this namespace.
       See TVRMLNode.WWWBasePath. }
     property WWWBasePath: string read FWWWBasePath;
-    property Cache: TVRMLNodesCache read FCache;
 
     { VRML version numbers, for resolving node class names.
       Conventions the same as for TVRMLLexer.VRMLVerMajor,
@@ -2177,11 +2175,8 @@ var
     will be destroyed. }
   AnyNodeDestructionNotifications: TDynNodeDestructionNotificationArray;
 
-  { Default cache. This is your last resort, usually you should prefer
-    TVRMLScene.Cache or TVRMLGLAnimation.Cache. Use this cache only if you
-    don't have any TVRMLScene or such, and you directly load and keep
-    TVRMLNode instances. }
-  DefaultCache: TVRMLNodesCache;
+  { Cache, for all the resources not tied with renderer context. }
+  VRMLCache: TVRMLNodesCache;
 
   { Starting state nodes for TVRMLGraphTraverseState.Create.
 
@@ -3486,23 +3481,23 @@ begin
     ''' (named '''+NodeName+''')');
 end;
 
-constructor TVRMLUnknownNode.Create(const ANodeName: string; const AWWWBasePath: string; ACache: TVRMLNodesCache);
+constructor TVRMLUnknownNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   { Safety check: never create a TVRMLUnknownNode instance by this method,
     to not leave FNodeTypeName unset. }
   raise Exception.Create('You cannot create Unknown node using default constructor');
 end;
 
-constructor TVRMLUnknownNode.CreateUnknown(const ANodeName, AWWWBasePath: string; ACache: TVRMLNodesCache; const ANodeTypeName :string);
+constructor TVRMLUnknownNode.CreateUnknown(const ANodeName, AWWWBasePath: string; const ANodeTypeName :string);
 begin
-  inherited Create(ANodeName, AWWWBasePath, ACache);
+  inherited Create(ANodeName, AWWWBasePath);
   fNodeTypeName := ANodeTypeName;
 end;
 
 function TVRMLUnknownNode.DeepCopyCreate(
   CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
 begin
-  Result := TVRMLUnknownNode.CreateUnknown(NodeName, WWWBasePath, Cache, NodeTypeName);
+  Result := TVRMLUnknownNode.CreateUnknown(NodeName, WWWBasePath, NodeTypeName);
 end;
 
 { TVRMLInterfaceDeclaration -------------------------------------------------- }
@@ -3892,21 +3887,21 @@ end;
 
 { TVRMLPrototypeNode --------------------------------------------------------- }
 
-constructor TVRMLPrototypeNode.Create(const ANodeName, AWWWBasePath: string; ACache: TVRMLNodesCache);
+constructor TVRMLPrototypeNode.Create(const ANodeName, AWWWBasePath: string);
 begin
   raise EInternalError.Create('TVRMLPrototypeNode node must be created' +
     ' using CreatePrototypeNode, never default constructor');
 end;
 
 constructor TVRMLPrototypeNode.CreatePrototypeNode(
-  const ANodeName, AWWWBasePath: string; ACache: TVRMLNodesCache;
+  const ANodeName, AWWWBasePath: string;
   APrototype: TVRMLPrototypeBase);
 var
   I: TVRMLInterfaceDeclaration;
   Index: Integer;
   ProtoInitial: TVRMLPrototypeBase;
 begin
-  inherited Create(ANodeName, AWWWBasePath, ACache);
+  inherited Create(ANodeName, AWWWBasePath);
   FPrototype := APrototype;
 
   ProtoInitial := Prototype;
@@ -3933,7 +3928,7 @@ end;
 
 function TVRMLPrototypeNode.DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
 begin
-  Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, WWWBasePath, Cache,
+  Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, WWWBasePath,
     { TODO: for now, we don't copy proto, instead simply passing the same
       proto reference. }
     Prototype);
@@ -4502,7 +4497,7 @@ begin
     available outside. }
   OldNames := Names;
   Names := TVRMLNames.Create(true,
-    OldNames.WWWBasePath, OldNames.Cache, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
+    OldNames.WWWBasePath, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
   try
     Names.Prototypes.Assign(OldNames.Prototypes);
     FNode := ParseVRMLStatements(Lexer, Names, vtCloseCurlyBracket, false);
@@ -4549,7 +4544,7 @@ begin
     available outside. }
   OldNames := Names;
   Names := TVRMLNames.Create(true,
-    OldNames.WWWBasePath, OldNames.Cache, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
+    OldNames.WWWBasePath, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
   try
     Names.Prototypes.Assign(OldNames.Prototypes);
     Node := ParseVRMLStatements(E, false, nil, Names);
@@ -4617,7 +4612,7 @@ begin
 
   Names.Prototypes.Bind(Self);
 
-  LoadReferenced(Names.Cache);
+  LoadReferenced;
 end;
 
 procedure TVRMLExternalPrototype.ParseXML(Element: TDOMElement; Names: TVRMLNames);
@@ -4638,7 +4633,7 @@ begin
 
   Names.Prototypes.Bind(Self);
 
-  LoadReferenced(Names.Cache);
+  LoadReferenced;
 end;
 
 procedure TVRMLExternalPrototype.SaveToStream(
@@ -4655,7 +4650,7 @@ begin
   URLList.SaveToStream(SaveProperties, NodeNames);
 end;
 
-procedure TVRMLExternalPrototype.LoadReferenced(Cache: TVRMLNodesCache);
+procedure TVRMLExternalPrototype.LoadReferenced;
 
   procedure LoadInterfaceDeclarationsValues;
   var
@@ -4734,7 +4729,7 @@ var
     URL := CombinePaths(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := LoadVRML(URL, Cache, false, PrototypeNames);
+      ReferencedPrototypeNode := LoadVRML(URL, false, PrototypeNames);
     except
       on E: Exception do
       begin
@@ -5539,12 +5534,11 @@ end;
 { TVRMLNames ----------------------------------------------------------------- }
 
 constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean;
-  const AWWWBasePath: string; ACache: TVRMLNodesCache;
+  const AWWWBasePath: string;
   const AVRMLVerMajor, AVRMLVerMinor: Integer);
 begin
   inherited Create;
   FWWWBasePath := AWWWBasePath;
-  FCache := ACache;
   FVRMLVerMajor := AVRMLVerMajor;
   FVRMLVerMinor := AVRMLVerMinor;
   FNodes := TVRMLNodeNames.Create(AAutoRemoveNodes);
@@ -5612,8 +5606,7 @@ var
   SN: TVRML1StateNode;
 begin
   for SN := Low(SN) to High(SN) do
-    StateNodes.Nodes[SN] := TraverseStateLastNodesClasses[SN].Create(
-      '', '', DefaultCache);
+    StateNodes.Nodes[SN] := TraverseStateLastNodesClasses[SN].Create('', '');
 end;
 
 procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);
@@ -5742,7 +5735,7 @@ initialization
   RegisterFollowersNodes;
   RegisterParticleSystemsNodes;
 
-  DefaultCache := TVRMLNodesCache.Create;
+  VRMLCache := TVRMLNodesCache.Create;
   TraverseState_CreateNodes(StateDefaultNodes);
   TraverseSingleStack := TVRMLGraphTraverseStateStack.Create;
 
@@ -5752,7 +5745,7 @@ finalization
 
   TraverseState_FreeAndNilNodes(StateDefaultNodes);
   FreeAndNil(TraverseSingleStack);
-  FreeAndNil(DefaultCache);
+  FreeAndNil(VRMLCache);
 
   FreeAndNil(NodesManager);
   FreeAndNil(AnyNodeDestructionNotifications);

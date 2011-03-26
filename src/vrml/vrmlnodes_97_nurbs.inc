@@ -462,7 +462,7 @@ function TNodeNurbsCurve_2.Proxy(var State: TVRMLGraphTraverseState;
 var
   KnotDouble, WeightDouble: TDynDoubleArray;
 begin
-  Result := TNodeLineSet.Create(NodeName, WWWBasePath, Cache);
+  Result := TNodeLineSet.Create(NodeName, WWWBasePath);
   try
     KnotDouble := FdKnot.Items.ToDouble;
     WeightDouble := FdWeight.Items.ToDouble;
@@ -709,7 +709,7 @@ function TNodeNurbsSurface.Proxy(var State: TVRMLGraphTraverseState;
 var
   UKnotDouble, VKnotDouble, WeightDouble: TDynDoubleArray;
 begin
-  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath, Cache);
+  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
   try
     { For NurbsPatchSurfaceProxy (and underlying NurbsSurfacePoint)
       we want knots and weights to be double-precision.

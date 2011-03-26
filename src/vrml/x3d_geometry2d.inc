@@ -346,11 +346,11 @@ var
   I: Integer;
   AngleSin, AngleCos: Float;
 begin
-  LineSet := TNodeLineSet.Create(NodeName, WWWBasePath, Cache);
+  LineSet := TNodeLineSet.Create(NodeName, WWWBasePath);
   try
     Slices := State.LastNodes.KambiTriangulation.QuadricSlices;
 
-    C := TNodeCoordinate.Create('', WWWBasePath, Cache);
+    C := TNodeCoordinate.Create('', WWWBasePath);
     C.FdPoint.Items.Count := Slices + 1;
     LineSet.FdCoord.Value := C;
 
@@ -530,13 +530,13 @@ var
   TexCoord: TNodeTextureCoordinate;
   QuadSet: TNodeQuadSet absolute Result;
 begin
-  QuadSet := TNodeQuadSet.Create(Original.NodeName, Original.WWWBasePath, Original.Cache);
+  QuadSet := TNodeQuadSet.Create(Original.NodeName, Original.WWWBasePath);
   try
-    Coord := TNodeCoordinate.Create('', Original.WWWBasePath, Original.Cache);
+    Coord := TNodeCoordinate.Create('', Original.WWWBasePath);
     Coord.FdPoint.Items.Count := 4;
     QuadSet.FdCoord.Value := Coord;
 
-    TexCoord := TNodeTextureCoordinate.Create('', Original.WWWBasePath, Original.Cache);
+    TexCoord := TNodeTextureCoordinate.Create('', Original.WWWBasePath);
     TexCoord.FdPoint.Items.Count := 4;
     QuadSet.FdTexCoord.Value := TexCoord;
 

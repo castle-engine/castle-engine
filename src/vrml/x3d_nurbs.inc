@@ -824,7 +824,7 @@ begin
   Increase := (Knot.Last - Knot.First) / (Tess - 1);
 
   { make resulting Coordinate node }
-  ResultCoord := TNodeCoordinate.Create('', LS.WWWBasePath, LS.Cache);
+  ResultCoord := TNodeCoordinate.Create('', LS.WWWBasePath);
   LS.FdCoord.Value := ResultCoord;
 
   { calculate result Coordinate.point field }
@@ -846,7 +846,7 @@ function TNodeNurbsCurve_3.Proxy(var State: TVRMLGraphTraverseState;
 var
   ControlPoint: TDynVector3SingleArray;
 begin
-  Result := TNodeLineSet.Create(NodeName, WWWBasePath, Cache);
+  Result := TNodeLineSet.Create(NodeName, WWWBasePath);
   try
     { TODO: we should handle here all TNodeX3DCoordinateNode }
     if (FdControlPoint.Value <> nil) and
@@ -1227,11 +1227,11 @@ begin
   VIncrease := (VKnot.Last - VKnot.First) / (VTess - 1);
 
   { make resulting Coordinate and Normal nodes }
-  QS.FdCoord.Value := TNodeCoordinate.Create('', QS.WWWBasePath, QS.Cache);
+  QS.FdCoord.Value := TNodeCoordinate.Create('', QS.WWWBasePath);
   ResultCoord := (QS.FdCoord.Value as TNodeCoordinate).FdPoint.Items;
   ResultCoord.Count := UTess * VTess;
 
-  QS.FdNormal.Value := TNodeNormal.Create('', QS.WWWBasePath, QS.Cache);
+  QS.FdNormal.Value := TNodeNormal.Create('', QS.WWWBasePath);
   ResultNormal := (QS.FdNormal.Value as TNodeNormal).FdVector.Items;
   ResultNormal.Count := UTess * VTess;
 
@@ -1287,7 +1287,7 @@ begin
       (or cube for 3D coordinates) are generated automatically
       from the parametric subdivision.". I think this means that tex coords
       S/T = 0..1 range from starting to ending knot. }
-    QS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', QS.WWWBasePath, QS.Cache);
+    QS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', QS.WWWBasePath);
     ResultTexCoord := (QS.FdTexCoord.Value as TNodeTextureCoordinate).FdPoint.Items;
     ResultTexCoord.Count := UTess * VTess;
     for I := 0 to UTess - 1 do
@@ -1306,7 +1306,7 @@ function TNodeNurbsPatchSurface.Proxy(var State: TVRMLGraphTraverseState;
 var
   ControlPoint: TDynVector3SingleArray;
 begin
-  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath, Cache);
+  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
   try
     { TODO: we should handle here all TNodeX3DCoordinateNode }
     if (FdControlPoint.Value <> nil) and

@@ -350,7 +350,7 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FullUrl);
       try
-        NewRootNode := LoadVRML(FullUrl, Cache, false);
+        NewRootNode := LoadVRML(FullUrl, false);
       except
         on E: Exception do
         begin
@@ -528,7 +528,7 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
       try
-        FInlined := LoadVRML(FullUrl, Cache, false, nil, Exported);
+        FInlined := LoadVRML(FullUrl, false, nil, Exported);
         Break;
       except
         on E: Exception do

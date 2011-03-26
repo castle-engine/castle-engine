@@ -1078,7 +1078,7 @@ procedure TVRMLGLAnimation.LoadCore(
       Exit(Model1);
 
     Result := TVRMLNodeClass(Model1.ClassType).Create(Model1.NodeName,
-      Model1.WWWBasePath, Model1.Cache);
+      Model1.WWWBasePath);
     try
       { We already loaded all inlines (in CheckVRMLModelsStructurallyEqual).
         We have to mark it now, by setting Loaded := true field as necessary
@@ -1360,7 +1360,7 @@ begin
   Times := TDynSingleArray.Create;
   RootNodes := TVRMLNodesList.Create;
   try
-    LoadVRMLSequence(FileName, Cache, AllowStdIn,
+    LoadVRMLSequence(FileName, AllowStdIn,
       RootNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
 
