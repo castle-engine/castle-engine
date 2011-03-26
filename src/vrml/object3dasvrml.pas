@@ -67,20 +67,20 @@ interface
 uses VectorMath, SysUtils, VRMLNodes, Object3DMD3,
   KambiUtils, Classes;
 
-function LoadGEO(const filename: string): TVRMLNode;
+function LoadGEO(const filename: string): TVRMLRootNode;
 
-function LoadWavefrontOBJ(const filename: string): TVRMLNode;
+function LoadWavefrontOBJ(const filename: string): TVRMLRootNode;
 
-function Load3DS(const filename: string): TVRMLNode;
+function Load3DS(const filename: string): TVRMLRootNode;
 
-function LoadMD3(const FileName: string): TVRMLNode;
+function LoadMD3(const FileName: string): TVRMLRootNode;
 
 { Load a specific animation frame from a given Md3 model.
   @param Md3 is the MD3 file to use.
   @param FrameNumber is the frame number to load, must be < Md3.Count.
   @param WWWBasePath is the base URL, set for TVRMLNode.WWWBasePath. }
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const WWWBasePath: string): TVRMLNode;
+  const WWWBasePath: string): TVRMLRootNode;
 
 { This is much like LoadVRMLSequence, but it only handles MD3 files.
   Usually you want to use LoadVRMLSequence, not this procedure. }
@@ -96,24 +96,13 @@ procedure LoadMD3Sequence(
   then loads model converting it to VRML.
 
   @param(AllowStdIn If AllowStdIn and FileName = '-' then it will load
-    a VRML file from StdInStream (using GetCurrentDir as WWWBasePath).)
-
-  @param(PrototypeNames If <> @nil, will be filled with global
-    prototype namespace at the end of parsing the file.
-    This will only be used if loaded file is VRML/X3D.
-    Useful mostly for EXTERNPROTO implementation.)
-
-  @param(Exported If non-nil, we will assign here node names
-    exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
+    a VRML file from StdInStream (using GetCurrentDir as WWWBasePath).) }
 function LoadVRML(const filename: string;
-  AllowStdIn: boolean = false;
-  PrototypeNames: TVRMLPrototypeNames = nil;
-  Exported: TVRMLNodeNames = nil): TVRMLNode;
+  AllowStdIn: boolean = false): TVRMLRootNode;
 
 { Deprecated name for LoadVRML. @deprecated }
 function LoadAsVRML(const filename: string;
-  AllowStdIn: boolean = false;
-  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
+  AllowStdIn: boolean = false): TVRMLRootNode;
 
 const
   { File filters for files loaded by LoadVRML, suitable
@@ -214,7 +203,7 @@ begin  result := 'File_' + ToVRMLName(filename)  end;
 
 { Load* ---------------------------------------------------------------------- }
 
-function LoadGEO(const filename: string): TVRMLNode;
+function LoadGEO(const filename: string): TVRMLRootNode;
 var geo: TObject3DGEO;
     verts: TNodeCoordinate3;
     faces: TNodeIndexedFaceSet_1;
@@ -224,8 +213,12 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  geo := TObject3DGEO.Create(filename);
  try
-  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
+  result := TVRMLRootNode.Create(FileNameToVRMLName(filename), WWWBasePath);
   try
+   Result.ForceVersion := true;
+   Result.ForceVersionMajor := 1;
+   Result.ForceVersionMinor := 0;
+
    verts := TNodeCoordinate3.Create('', WWWBasePath);
    result.VRML1ChildAdd(verts);
    faces := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
@@ -246,7 +239,7 @@ begin
  finally geo.Free end;
 end;
 
-function LoadWavefrontOBJ(const filename: string): TVRMLNode;
+function LoadWavefrontOBJ(const filename: string): TVRMLRootNode;
 const
   { na czas konstruowania duzych tablic indeksow pozwalamy sobie ustawiac
     bardzo duze dopuszczalne AllowedCapacityOverflow zeby wszystko bylo szybko.
@@ -279,7 +272,7 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  obj := TObject3DOBJ.Create(filename);
  try
-  result := TNodeGroup_1.Create(''
+  result := TVRMLRootNode.Create(''
     { I used to put here FileNameToVRMLName(filename), but
       it made two OBJ models structurally not equal, so demo_animation
       couldn't animate them. Conceptually, you can say that OBJ filename
@@ -287,6 +280,10 @@ begin
       not related to actual *content* of the model. },
     WWWBasePath);
   try
+   Result.ForceVersion := true;
+   Result.ForceVersionMajor := 1;
+   Result.ForceVersionMinor := 0;
+
    MaterialsSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath);
    Result.VRML1ChildAdd(MaterialsSwitch);
 
@@ -421,7 +418,7 @@ begin
  finally obj.Free end;
 end;
 
-function Load3DS(const filename: string): TVRMLNode;
+function Load3DS(const filename: string): TVRMLRootNode;
 var WWWBasePath: string;
 
   const
@@ -540,8 +537,12 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  obj3ds := TScene3ds.Create(filename);
  try
-  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
+  result := TVRMLRootNode.Create(FileNameToVRMLName(filename), WWWBasePath);
   try
+   Result.ForceVersion := true;
+   Result.ForceVersionMajor := 1;
+   Result.ForceVersionMinor := 0;
+
    Add3dsCameras(obj3ds, result);
    Add3dsLights(obj3ds, result);
 
@@ -665,7 +666,7 @@ begin
 end;
 
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const WWWBasePath: string): TVRMLNode;
+  const WWWBasePath: string): TVRMLRootNode;
 
   function MakeCoordinates(Vertexes: TDynMd3VertexArray;
     VertexesInFrameCount: Cardinal): TNodeCoordinate3;
@@ -735,11 +736,15 @@ var
   I: Integer;
   Texture: TNodeTexture2;
 begin
-  Result := TNodeGroup_1.Create(
+  Result := TVRMLRootNode.Create(
     ToVRMLName(Md3.Name
       { Although adding here FrameNumber is not a bad idea, but VRMLGLAnimation
         requires for now that sequence of VRML models have the same node names }
       { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath);
+
+  Result.ForceVersion := true;
+  Result.ForceVersionMajor := 1;
+  Result.ForceVersionMinor := 0;
 
   { MD3 files have no camera. I add camera here, just to force GravityUp
     to be in +Z, since this is the convention used in all MD3 file that
@@ -761,7 +766,7 @@ begin
     Result.VRML1ChildAdd(MakeSeparator(Md3.Surfaces[I]));
 end;
 
-function LoadMD3(const FileName: string): TVRMLNode;
+function LoadMD3(const FileName: string): TVRMLRootNode;
 var
   Md3: TObject3DMD3;
   WWWBasePath: string;
@@ -811,9 +816,7 @@ begin
 end;
 
 function LoadVRML(const filename: string;
-  AllowStdIn: boolean;
-  PrototypeNames: TVRMLPrototypeNames;
-  Exported: TVRMLNodeNames): TVRMLNode;
+  AllowStdIn: boolean): TVRMLRootNode;
 const
   GzExt = '.gz';
   Extensions: array [0..14] of string =
@@ -826,10 +829,8 @@ const
 var
   Ext: string;
 begin
-  if Exported <> nil then Exported.Clear;
-
   if AllowStdIn and (FileName = '-') then
-    result := LoadVRMLClassic('-', true, PrototypeNames, Exported) else
+    result := LoadVRMLClassic('-', true) else
   begin
     Ext := ExtractFileExt(filename);
     if Ext = '.gz' then
@@ -838,11 +839,11 @@ begin
       0: result := LoadGEO(filename);
       1: result := Load3DS(filename);
       2: result := LoadWavefrontOBJ(filename);
-      3..9: result := LoadVRMLClassic(filename, false, PrototypeNames, Exported);
+      3..9: result := LoadVRMLClassic(filename, false);
       10: Result := LoadMD3(FileName);
       11: Result := LoadCollada(FileName);
-      12: Result := LoadX3DXml(FileName, false, PrototypeNames, Exported);
-      13, 14: Result := LoadX3DXml(FileName, true, PrototypeNames, Exported);
+      12: Result := LoadX3DXml(FileName, false);
+      13, 14: Result := LoadX3DXml(FileName, true);
       else raise Exception.CreateFmt(
         'Unrecognized file extension "%s" for 3D model file "%s"',
         [Ext, FileName]);
@@ -851,10 +852,9 @@ begin
 end;
 
 function LoadAsVRML(const filename: string;
-  AllowStdIn: boolean;
-  PrototypeNames: TVRMLPrototypeNames): TVRMLNode;
+  AllowStdIn: boolean): TVRMLRootNode;
 begin
-  Result := LoadVRML(FileName, AllowStdIn, PrototypeNames);
+  Result := LoadVRML(FileName, AllowStdIn);
 end;
 
 procedure LoadVRMLSequence(const FileName: string;

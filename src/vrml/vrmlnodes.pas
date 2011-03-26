@@ -1509,7 +1509,7 @@ type
       values have "USE ..." clauses.
       So it's best to keep whole ReferencedPrototypeNode (whole VRML file
       that contained this prototype) loaded. }
-    ReferencedPrototypeNode: TVRMLNode;
+    ReferencedPrototypeNode: TVRMLRootNode;
 
     FReferencedPrototype: TVRMLPrototype;
 
@@ -1828,6 +1828,14 @@ type
       const AWWWBasePath: string;
       const AVRMLVerMajor, AVRMLVerMinor: Integer);
     destructor Destroy; override;
+
+    { Extract names, before destructing this object.
+      This method can be used only right before calling the destructor.
+      It copies the prototype and exported names list (names visible
+      from the outside), and sets them to @nil (to avoid releasing them
+      at destruction). }
+    procedure ExtractNames(out APrototypes: TVRMLPrototypeNames;
+      out AExported: TVRMLNodeNames);
 
     { Base path for resolving URLs from nodes in this namespace.
       See TVRMLNode.WWWBasePath. }
@@ -4666,12 +4674,10 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     end;
   end;
 
-var
-  PrototypeNames: TVRMLPrototypeNames;
-
   function LoadFromExternalVRML(const RelativeURL: string): boolean;
   var
     URL: string;
+    PrototypeNames: TVRMLPrototypeNames;
 
     procedure ProtoWarning(const S: string);
     begin
@@ -4686,13 +4692,14 @@ var
     var
       I: Integer;
     begin
-      for I := 0 to PrototypeNames.Count - 1 do
-        if PrototypeNames.Objects[I] is TVRMLPrototype then
-        begin
-          Result := TVRMLPrototype(PrototypeNames.Objects[I]);
-          if (Name = '') or (Result.Name = Name) then
-            Exit;
-        end;
+      if PrototypeNames <> nil then
+        for I := 0 to PrototypeNames.Count - 1 do
+          if PrototypeNames.Objects[I] is TVRMLPrototype then
+          begin
+            Result := TVRMLPrototype(PrototypeNames.Objects[I]);
+            if (Name = '') or (Result.Name = Name) then
+              Exit;
+          end;
       Result := nil;
     end;
 
@@ -4707,7 +4714,8 @@ var
     URL := CombinePaths(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := LoadVRML(URL, false, PrototypeNames);
+      ReferencedPrototypeNode := LoadVRML(URL, false);
+      PrototypeNames := ReferencedPrototypeNode.PrototypeNames;
     except
       on E: Exception do
       begin
@@ -4746,18 +4754,15 @@ var
 begin
   UnloadReferenced;
 
-  PrototypeNames := TVRMLPrototypeNames.Create;
-  try
-    for I := 0 to URLList.Count - 1 do
-    begin
-      S := URLList.Items.Items[I];
-      if IsPrefix('urn:', S) then
-        Loaded := LoadFromURN(S) else
-        Loaded := LoadFromExternalVRML(S);
-      if Loaded then
-        Break;
-    end;
-  finally FreeAndNil(PrototypeNames); end;
+  for I := 0 to URLList.Count - 1 do
+  begin
+    S := URLList.Items.Items[I];
+    if IsPrefix('urn:', S) then
+      Loaded := LoadFromURN(S) else
+      Loaded := LoadFromExternalVRML(S);
+    if Loaded then
+      Break;
+  end;
 end;
 
 procedure TVRMLExternalPrototype.UnloadReferenced;
@@ -5534,6 +5539,16 @@ begin
   FreeAndNil(FExported);
   FreeAndNil(FImportable);
   inherited;
+end;
+
+procedure TVRMLNames.ExtractNames(out APrototypes: TVRMLPrototypeNames;
+  out AExported: TVRMLNodeNames);
+begin
+  APrototypes := FPrototypes;
+  AExported := FExported;
+
+  FPrototypes := nil;
+  FExported := nil;
 end;
 
 procedure TVRMLNames.DoExport(E: TVRMLExport);

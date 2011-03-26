@@ -48,21 +48,12 @@ const
   sometimes compressed with gzip). You should already pass here a stream
   with uncompressed text data.
 
-  @param(PrototypeNames If <> @nil, will be filled with global
-    prototype namespace at the end of parsing the file.
-    Useful mostly for EXTERNPROTO implementation.)
-
-  @param(Exported If non-nil, we will assign here node names
-    exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.)
-
   @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
 function LoadVRMLClassic(Stream: TPeekCharStream;
-  const WWWBasePath: string;
-  PrototypeNames: TVRMLPrototypeNames = nil;
-  Exported: TVRMLNodeNames = nil): TVRMLNode; overload;
+  const WWWBasePath: string): TVRMLRootNode; overload;
 
 function LoadVRMLClassicFromString(const VRMLContents: string;
-  const WWWBasePath: string): TVRMLNode; overload;
+  const WWWBasePath: string): TVRMLRootNode; overload;
 
 { Load VRML/X3D file in classic encoding, return it's root node.
 
@@ -71,20 +62,13 @@ function LoadVRMLClassicFromString(const VRMLContents: string;
   uncompressing it on the fly).
 
   If AllowStdIn then FileName = '-' is understood as "standard input"
-  (StdInStream). Base path for resolving URLs in this case is GetCurrentDir.
-
-  @param(PrototypeNames If <> @nil, will be filled with global
-    prototype namespace at the end of parsing the file.
-    Useful mostly for EXTERNPROTO implementation.) }
+  (StdInStream). Base path for resolving URLs in this case is GetCurrentDir. }
 function LoadVRMLClassic(const FileName: string;
-  AllowStdIn: boolean;
-  PrototypeNames: TVRMLPrototypeNames = nil;
-  Exported: TVRMLNodeNames = nil): TVRMLNode; overload;
+  AllowStdIn: boolean): TVRMLRootNode; overload;
 
 { Deprecated name for LoadVRMLClassic. @deprecated }
 function ParseVRMLFile(const FileName: string;
-  AllowStdIn: boolean;
-  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
+  AllowStdIn: boolean): TVRMLRootNode;
 
 { Write VRML file with given root Node.
   This includes writing VRML header '#VRML ...'.
@@ -563,9 +547,7 @@ begin
 end;
 
 function LoadVRMLClassic(Stream: TPeekCharStream;
-  const WWWBasePath: string;
-  PrototypeNames: TVRMLPrototypeNames;
-  Exported: TVRMLNodeNames): TVRMLNode;
+  const WWWBasePath: string): TVRMLRootNode;
 var
   Lexer: TVRMLLexer;
   Names: TVRMLNames;
@@ -575,27 +557,22 @@ begin
     Names := TVRMLNames.Create(false, WWWBasePath, Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
     try
       Result := ParseVRMLStatements(Lexer, Names, vtEnd, true);
-      if PrototypeNames <> nil then
-        PrototypeNames.Assign(Names.Prototypes);
-      if Exported <> nil then
-        Exported.Assign(Names.Exported);
+      Names.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
     finally FreeAndNil(Names) end;
   finally FreeAndNil(Lexer) end;
 end;
 
 function LoadVRMLClassic(const FileName: string;
-  AllowStdIn: boolean;
-  PrototypeNames: TVRMLPrototypeNames;
-  Exported: TVRMLNodeNames): TVRMLNode;
+  AllowStdIn: boolean): TVRMLRootNode;
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
-    const WWWBasePath: string): TVRMLNode;
+    const WWWBasePath: string): TVRMLRootNode;
   var
     Stream: TPeekCharStream;
   begin
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := LoadVRMLClassic(Stream, WWWBasePath, PrototypeNames, Exported);
+      Result := LoadVRMLClassic(Stream, WWWBasePath);
     finally Stream.Free end;
   end;
 
@@ -656,7 +633,7 @@ begin
 end;
 
 function LoadVRMLClassicFromString(const VRMLContents: string;
-  const WWWBasePath: string): TVRMLNode; overload;
+  const WWWBasePath: string): TVRMLRootNode; overload;
 var
   Stream: TPeekCharStream;
 begin
@@ -668,10 +645,9 @@ begin
 end;
 
 function ParseVRMLFile(const FileName: string;
-  AllowStdIn: boolean;
-  PrototypeNames: TVRMLPrototypeNames = nil): TVRMLNode;
+  AllowStdIn: boolean): TVRMLRootNode;
 begin
-  Result := LoadVRMLClassic(FileName, AllowStdIn, PrototypeNames);
+  Result := LoadVRMLClassic(FileName, AllowStdIn);
 end;
 
 { saving --------------------------------------------------------------------- }

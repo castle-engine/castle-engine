@@ -525,7 +525,9 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
       try
-        FInlined := LoadVRML(FullUrl, false, nil, Exported);
+        FInlined := LoadVRML(FullUrl, false);
+        if TVRMLRootNode(FInlined).ExportedNames <> nil then
+          Exported.Assign(TVRMLRootNode(FInlined).ExportedNames);
         Break;
       except
         on E: Exception do

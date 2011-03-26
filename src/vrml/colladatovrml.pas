@@ -44,7 +44,7 @@ uses VRMLNodes;
   extensions (for example, Material.mirror may be <> 0,
   see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_material_mirror]. }
 function LoadCollada(const FileName: string;
-  const AllowKambiExtensions: boolean = false): TVRMLNode;
+  const AllowKambiExtensions: boolean = false): TVRMLRootNode;
 
 implementation
 
@@ -83,7 +83,7 @@ end;
 { LoadCollada ---------------------------------------------------------- }
 
 function LoadCollada(const FileName: string;
-  const AllowKambiExtensions: boolean): TVRMLNode;
+  const AllowKambiExtensions: boolean): TVRMLRootNode;
 var
   WWWBasePath: string;
 
@@ -1612,8 +1612,12 @@ begin
     VisualScenes := TVRMLNodesList.Create;
     Controllers := TColladaControllersList.Create;
 
-    Result := TNodeGroup_2.Create('', WWWBasePath);
+    Result := TVRMLRootNode.Create('', WWWBasePath);
     try
+      Result.ForceVersion := true;
+      Result.ForceVersionMajor := 2;
+      Result.ForceVersionMinor := 0;
+
       { First read library_effects.
 
         Effects may be referenced by materials,

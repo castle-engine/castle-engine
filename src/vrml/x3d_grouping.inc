@@ -130,6 +130,8 @@
     FX3DComponentLevels: TDynLongIntArray;
     FX3DMetaKeys: TDynStringArray;
     FX3DMetaValues: TDynStringArray;
+    FPrototypeNames: TVRMLPrototypeNames;
+    FExportedNames: TVRMLNodeNames;
   protected
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
@@ -193,6 +195,14 @@
     procedure ForceSaveAsX3D(const AMajor: Integer = 3;
       const AMinor: Integer = 2;
       const AProfile: string = 'Interchange');
+
+    { Global prototype namespace at the end of parsing the file.
+      Useful for things like EXTERNPROTO implementation. }
+    property PrototypeNames: TVRMLPrototypeNames read FPrototypeNames;
+
+    { Node names exported from the file by EXPORT keyword.
+      Useful for importing them later, to handle IMPORT/EXPORT X3D mechanism. }
+    property ExportedNames: TVRMLNodeNames read FExportedNames;
   end;
 
   TNodeStaticGroup = class(TVRMLGroupingNode, INodeX3DBoundedObject)
@@ -597,6 +607,8 @@ begin
   FreeAndNil(FX3DComponentLevels);
   FreeAndNil(FX3DMetaKeys);
   FreeAndNil(FX3DMetaValues);
+  FreeAndNil(FPrototypeNames);
+  FreeAndNil(FExportedNames);
   inherited;
 end;
 
