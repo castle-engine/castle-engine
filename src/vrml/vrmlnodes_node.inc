@@ -479,9 +479,6 @@
       initialized to @false. }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); virtual;
 
-    { CreateParse simply does Create and then calls Parse. }
-    constructor CreateParse(const ANodeName: string; Lexer: TVRMLLexer; Names: TVRMLNames);
-
     destructor Destroy; override;
 
     { Name of the VRML/X3D node. Never empty.
@@ -1563,12 +1560,6 @@ end;
 class function TVRMLNode.ClassNodeTypeName: string;
 begin
  result := '';
-end;
-
-constructor TVRMLNode.CreateParse(const ANodeName: string; Lexer: TVRMLLexer; Names: TVRMLNames);
-begin
-  Create(ANodeName, '');
-  Parse(Lexer, Names);
 end;
 
 function TVRMLNode.PathFromWWWBasePath(const RelativePath: string): string;
