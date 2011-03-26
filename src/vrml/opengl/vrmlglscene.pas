@@ -1407,6 +1407,10 @@ begin
   end else
     Renderer := nil;
 
+  if OwnsCache then
+    FreeAndNil(Cache) else
+    Cache := nil;
+
   inherited;
 end;
 
