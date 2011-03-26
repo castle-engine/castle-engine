@@ -627,8 +627,6 @@ procedure TVRML2DTextureNode.SetIsTextureLoaded(Value: boolean);
   var
     WasCacheUsed: boolean;
   begin
-    Assert(Cache <> nil, 'Cache must be set before loading the texture');
-
     FreeAndNilTextureData;
 
     LoadTextureData(WasCacheUsed);

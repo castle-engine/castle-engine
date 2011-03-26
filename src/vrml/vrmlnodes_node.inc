@@ -1155,6 +1155,7 @@ begin
   FDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
 
   FCache := ACache;
+  Assert(Cache <> nil, 'Cache must be set at TVRMLNode construction');
 
   CreateNode;
 end;
