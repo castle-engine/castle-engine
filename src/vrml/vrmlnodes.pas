@@ -2161,6 +2161,11 @@ const
     extensions. }
   URNKambiNodes = 'urn:vrmlengine.sourceforge.net:node:';
 
+  { URN to indicate BitManagement nodes. This should work, according to
+    http://www.bitmanagement.com/developer/contact/examples/layer/index.html
+    example EXTERNPROTO. }
+  URNBitManagementNodes = 'urn:inet:bitmanagement.de:node:';
+
 const
   AllAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput];
   RestrictedAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly];
