@@ -32,7 +32,7 @@
     But some invalid VRML 1.0 models use it,
     e.g. [http://www-vrl.umich.edu/sel_prj/EECS498/]. }
   TNodeRotationXYZ = class(TVRMLTransformationNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdAxis: TSFEnum;
@@ -59,7 +59,7 @@ begin
   ATexCoord := State.LastNodes.TextureCoordinate2;
 end;
 
-constructor TNodeRotationXYZ.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeRotationXYZ.CreateNode;
 begin
   inherited;
 

@@ -28,7 +28,7 @@ type
     X3DMetadataObject. So you cannot have metadata of metadata of...) }
   TNodeX3DNode = class(TVRMLNode, INodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdmetadata: TSFNode;
     public property Fdmetadata: TSFNode read FFdmetadata;
@@ -40,7 +40,7 @@ type
 
   TNodeX3DChildNode = class(TNodeX3DNode, INodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   TNodeX3DBindableNode = class(TNodeX3DChildNode)
@@ -50,7 +50,7 @@ type
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Event: SFBool, in } { }
     private FEventset_bind: TVRMLEvent;
@@ -117,7 +117,7 @@ type
 
   TNodeX3DSensorNode = class(TNodeX3DChildNode, INodeX3DSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
@@ -129,7 +129,7 @@ type
 
   TNodeMetadataDouble = class(TNodeX3DNode, INodeX3DMetadataObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -147,7 +147,7 @@ type
 
   TNodeMetadataFloat = class(TNodeX3DNode, INodeX3DMetadataObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -165,7 +165,7 @@ type
 
   TNodeMetadataInteger = class(TNodeX3DNode, INodeX3DMetadataObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -183,7 +183,7 @@ type
 
   TNodeMetadataSet = class(TNodeX3DNode, INodeX3DMetadataObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -201,7 +201,7 @@ type
 
   TNodeMetadataString = class(TNodeX3DNode, INodeX3DMetadataObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -219,7 +219,7 @@ type
 
   TNodeWorldInfo = class(TNodeX3DInfoNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -236,8 +236,7 @@ type
 
 {$ifdef read_implementation}
 
-constructor TNodeX3DNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DNode.CreateNode;
 begin
   inherited;
 
@@ -245,8 +244,7 @@ begin
   Fields.Add(FFdmetadata);
 end;
 
-constructor TNodeX3DChildNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DChildNode.CreateNode;
 begin
   inherited;
 
@@ -257,8 +255,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeX3DBindableNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DBindableNode.CreateNode;
 begin
   inherited;
 
@@ -284,8 +281,7 @@ begin
   FTransformScale := StateStack.Top.TransformScale;
 end;
 
-constructor TNodeX3DSensorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DSensorNode.CreateNode;
 begin
   inherited;
 
@@ -296,8 +292,7 @@ begin
   Events.Add(FEventisActive);
 end;
 
-constructor TNodeMetadataDouble.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMetadataDouble.CreateNode;
 begin
   inherited;
 
@@ -332,8 +327,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMetadataFloat.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMetadataFloat.CreateNode;
 begin
   inherited;
 
@@ -368,8 +362,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMetadataInteger.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMetadataInteger.CreateNode;
 begin
   inherited;
 
@@ -404,8 +397,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMetadataSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMetadataSet.CreateNode;
 begin
   inherited;
 
@@ -440,8 +432,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMetadataString.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMetadataString.CreateNode;
 begin
   inherited;
 
@@ -476,8 +467,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeWorldInfo.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeWorldInfo.CreateNode;
 begin
   inherited;
 

@@ -17,7 +17,7 @@
   { }
   TNodeX3DNetworkSensorNode = class(TNodeX3DSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   INodeX3DUrlObject = interface(IVRMLNode)
@@ -32,7 +32,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -134,7 +134,7 @@
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
     procedure ParseAfter(Names: TVRMLNames); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -203,7 +203,7 @@
   protected
     procedure AfterLoadInlined; override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -214,7 +214,7 @@
 
   TNodeLoadSensor = class(TNodeX3DNetworkSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -242,16 +242,14 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DNetworkSensorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DNetworkSensorNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeAnchor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeAnchor.CreateNode;
 begin
   inherited;
 
@@ -352,7 +350,7 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FullUrl);
       try
-        NewRootNode := LoadVRML(FullUrl, false);
+        NewRootNode := LoadVRML(FullUrl, Cache, false);
       except
         on E: Exception do
         begin
@@ -385,8 +383,7 @@ begin
   Result := false;
 end;
 
-constructor TNodeInline.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeInline.CreateNode;
 begin
   inherited;
 
@@ -531,7 +528,7 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
       try
-        FInlined := LoadVRML(FullUrl, false, nil, Exported);
+        FInlined := LoadVRML(FullUrl, Cache, false, nil, Exported);
         Break;
       except
         on E: Exception do
@@ -652,7 +649,7 @@ begin
   end;
 end;
 
-constructor TNodeInlineLoadControl.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeInlineLoadControl.CreateNode;
 begin
   inherited;
 
@@ -697,8 +694,7 @@ begin
   end;
 end;
 
-constructor TNodeLoadSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLoadSensor.CreateNode;
 begin
   inherited;
 

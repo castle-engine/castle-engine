@@ -17,7 +17,7 @@
   { }
   TNodeBox = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -49,7 +49,7 @@
   protected
     procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -93,7 +93,7 @@
   protected
     procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -141,7 +141,7 @@
     procedure EventSet_HeightReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -231,7 +231,7 @@
     procedure Eventset_spineReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -319,7 +319,7 @@
     procedure Eventset_texCoordIndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -374,7 +374,7 @@
 
   TNodeSphere_2 = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -408,8 +408,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeBox.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeBox.CreateNode;
 begin
   inherited;
 
@@ -460,8 +459,7 @@ begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-constructor TNodeCone_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCone_2.CreateNode;
 begin
   inherited;
 
@@ -539,8 +537,7 @@ begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-constructor TNodeCylinder_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCylinder_2.CreateNode;
 begin
   inherited;
 
@@ -623,8 +620,7 @@ begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-constructor TNodeElevationGrid.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeElevationGrid.CreateNode;
 begin
   inherited;
 
@@ -780,8 +776,7 @@ begin
     EventsEngine.ChangedField(FdHeight);
 end;
 
-constructor TNodeExtrusion.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeExtrusion.CreateNode;
 begin
   inherited;
 
@@ -1008,7 +1003,7 @@ var
   TexCapsMin, TexCapsMax: TVector2Single;
   TexCapsTranslation, TexCapsScale: Single;
 begin
-  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath, Cache);
   try
     E := TVRMLExtrusion.Create;
     try
@@ -1019,7 +1014,7 @@ begin
 
       { Fill CoordNode }
 
-      CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+      CoordNode := TNodeCoordinate.Create('', WWWBasePath, Cache);
       IFS.FdCoord.Value := CoordNode;
 
       CoordNode.FdPoint.Items.Length := SidesCount;
@@ -1036,7 +1031,7 @@ begin
 
       { Fill TexCoordNode }
 
-      TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath);
+      TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath, Cache);
       IFS.FdTexCoord.Value := TexCoordNode;
 
       Len := SidesCount;
@@ -1188,8 +1183,7 @@ begin
     EventsEngine.ChangedField(Fdspine);
 end;
 
-constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeIndexedFaceSet_2.CreateNode;
 begin
   inherited;
 
@@ -1312,8 +1306,7 @@ begin
     EventsEngine.ChangedField(FdtexCoordIndex);
 end;
 
-constructor TNodeSphere_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSphere_2.CreateNode;
 begin
   inherited;
 

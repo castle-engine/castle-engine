@@ -25,7 +25,7 @@
 
   @param(Exported If non-nil, we will assign here node names
     exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
-function LoadX3DXml(const FileName: string;
+function LoadX3DXml(const FileName: string; Cache: TVRMLNodesCache;
   Gzipped: boolean;
   PrototypeNames: TVRMLPrototypeNames = nil;
   Exported: TVRMLNodeNames = nil): TVRMLNode;
@@ -158,8 +158,8 @@ function ParseXMLNode(Element: TDOMElement;
 
       if (Proto is TVRMLExternalPrototype) and
          (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
-        Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
-        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
+        Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath, Names.Cache) else
+        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Names.Cache, Proto);
 
       Names.Nodes.Bind(Result, false);
 
@@ -220,12 +220,12 @@ function ParseXMLNode(Element: TDOMElement;
         Names.VRMLVerMajor, Names.VRMLVerMinor);
       if NodeClass <> nil then
       begin
-        Result := NodeClass.Create(NodeName, Names.WWWBasePath);
+        Result := NodeClass.Create(NodeName, Names.WWWBasePath, Names.Cache);
         Names.Nodes.Bind(Result, false);
         Result.ParseXML(Element, Names);
       end else
       begin
-        Result := TVRMLUnknownNode.CreateUnknown(NodeName, Names.WWWBasePath, NodeTypeName);
+        Result := TVRMLUnknownNode.CreateUnknown(NodeName, Names.WWWBasePath, Names.Cache, NodeTypeName);
 
         { In classic VRML parser, we had special TVRMLUnknownNode.Parse
           that performed the "magic" trick of
@@ -319,7 +319,7 @@ var
   { Create root group node. }
   function CreateRootNode: TVRMLNode;
   begin
-    Result := TVRMLRootNode_2.Create('', Names.WWWBasePath);
+    Result := TVRMLRootNode_2.Create('', Names.WWWBasePath, Names.Cache);
     TVRMLRootNode_2(Result).ForceVersion := true;
     TVRMLRootNode_2(Result).ForceVersionMajor := Names.VRMLVerMajor;
     TVRMLRootNode_2(Result).ForceVersionMinor := Names.VRMLVerMinor;
@@ -477,7 +477,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DXml(const FileName: string;
+function LoadX3DXml(const FileName: string; Cache: TVRMLNodesCache;
   Gzipped: boolean; PrototypeNames: TVRMLPrototypeNames;
   Exported: TVRMLNodeNames): TVRMLNode;
 var
@@ -532,7 +532,7 @@ begin
     SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
 
     { X3D XML requires AutoRemove = true below }
-    Names := TVRMLNames.Create(true, WWWBasePath, VRMLVerMajor, VRMLVerMinor);
+    Names := TVRMLNames.Create(true, WWWBasePath, Cache, VRMLVerMajor, VRMLVerMinor);
     try
       Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement, Names);
 

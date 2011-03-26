@@ -43,6 +43,7 @@ type
     ) }
   TVRMLHeadLight = class
   private
+    FCache: TVRMLNodesCache;
     FAmbientIntensity: Single;
     FAttenuation: TVector3Single;
     FColor: TVector3Single;
@@ -51,8 +52,10 @@ type
     FSpotCutOffAngle: Single;
     FSpotDropOffRate: Single;
     ActiveLightNode: TNodeX3DLightNode;
+
+    property Cache: TVRMLNodesCache read FCache;
   public
-    constructor Create(HeadLightNode: TNodeKambiHeadLight);
+    constructor Create(ACache: TVRMLNodesCache; HeadLightNode: TNodeKambiHeadLight);
     destructor Destroy; override;
 
     property AmbientIntensity: Single read FAmbientIntensity write FAmbientIntensity;
@@ -82,7 +85,8 @@ implementation
 
 uses SysUtils, Math;
 
-constructor TVRMLHeadLight.Create(HeadLightNode: TNodeKambiHeadLight);
+constructor TVRMLHeadLight.Create(ACache: TVRMLNodesCache;
+  HeadLightNode: TNodeKambiHeadLight);
 
   procedure CreateFromNode(Node: TNodeKambiHeadLight);
   begin
@@ -98,11 +102,13 @@ constructor TVRMLHeadLight.Create(HeadLightNode: TNodeKambiHeadLight);
 begin
   inherited Create;
 
+  FCache := ACache;
+
   if HeadLightNode <> nil then
     CreateFromNode(HeadLightNode) else
   begin
     { Create temporary HeadLightNode with default values. }
-    HeadLightNode := TNodeKambiHeadLight.Create('', '');
+    HeadLightNode := TNodeKambiHeadLight.Create('', '', Cache);
     try
       CreateFromNode(HeadLightNode);
     finally FreeAndNil(HeadLightNode) end;
@@ -122,7 +128,7 @@ begin
 
   if Spot then
   begin
-    ActiveLightNode := TNodeSpotLight_2.Create('', '');
+    ActiveLightNode := TNodeSpotLight_2.Create('', '', Cache);
     TNodeSpotLight_2(ActiveLightNode).FdLocation.Value := Position;
     TNodeSpotLight_2(ActiveLightNode).FdDirection.Value := Direction;
 
@@ -140,7 +146,7 @@ begin
     TNodeSpotLight_2(ActiveLightNode).FdAttenuation.Value := Attenuation;
   end else
   begin
-    ActiveLightNode := TNodeDirectionalLight_2.Create('', '');
+    ActiveLightNode := TNodeDirectionalLight_2.Create('', '', Cache);
     TNodeDirectionalLight_2(ActiveLightNode).FdDirection.Value := Direction;
   end;
 

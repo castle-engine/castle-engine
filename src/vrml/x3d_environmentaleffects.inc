@@ -20,7 +20,7 @@
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     private FFdgroundAngle: TMFFloat;
@@ -89,13 +89,12 @@
     { Non-nil only if FBgImages should be freed using
       UsedCache.TextureImage_DecReference. }
     UsedCache: TTexturesImagesVideosCache;
-    FCache: TTexturesImagesVideosCache;
 
     procedure SetBgImagesLoaded(const Value: boolean);
 
     function GetBgImages: TBackgroundImages;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
@@ -150,15 +149,6 @@
       by setting this to @false and then to @true again. }
     property BgImagesLoaded: boolean read FBgImagesLoaded
       write SetBgImagesLoaded;
-
-    { Set this to non-nil before background images are loaded, this way bacground
-      images will be loaded from this cache.
-
-      They will also be freed using this
-      cache then (so remember that used cache must remain valid for the lifetime
-      of this node, or you have to call BgImagesLoaded := false explicitly to
-      break the connection from this node to the cache). }
-    property Cache: TTexturesImagesVideosCache read FCache write FCache;
   end;
 
   TNodeFog = class(TNodeX3DBindableNode, INodeX3DFogObject)
@@ -173,7 +163,7 @@
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -209,7 +199,7 @@
 
   TNodeFogCoordinate = class(TNodeX3DGeometricPropertyNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -232,7 +222,7 @@
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -267,7 +257,7 @@
 
   TNodeTextureBackground = class(TNodeX3DBackgroundNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -295,8 +285,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DBackgroundNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DBackgroundNode.CreateNode;
 begin
   inherited;
 
@@ -388,8 +377,7 @@ begin
   end;
 end;
 
-constructor TNodeBackground.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeBackground.CreateNode;
 begin
   inherited;
 
@@ -528,8 +516,7 @@ begin
   Result := FBgImages;
 end;
 
-constructor TNodeFog.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeFog.CreateNode;
 begin
   inherited;
 
@@ -644,8 +631,7 @@ begin
   Result := TransformScale;
 end;
 
-constructor TNodeFogCoordinate.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeFogCoordinate.CreateNode;
 begin
   inherited;
 
@@ -675,8 +661,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeLocalFog.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLocalFog.CreateNode;
 begin
   inherited;
 
@@ -776,8 +761,7 @@ begin
   Result := FTransformScale;
 end;
 
-constructor TNodeTextureBackground.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTextureBackground.CreateNode;
 begin
   inherited;
 

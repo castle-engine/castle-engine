@@ -36,7 +36,7 @@
   { }
   TNodeGeoCoordinate = class(TNodeX3DCoordinateNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -56,7 +56,7 @@
 
   TNodeGeoElevationGrid = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -128,7 +128,7 @@
 
   TNodeGeoLocation = class(TNodeX3DGroupingNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -146,7 +146,7 @@
 
   TNodeGeoLOD = class(TVRMLGroupingNode, INodeX3DBoundedObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -199,7 +199,7 @@
 
   TNodeGeoMetadata = class(TNodeX3DInfoNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -217,7 +217,7 @@
 
   TNodeGeoOrigin = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -235,7 +235,7 @@
 
   TNodeGeoPositionInterpolator = class(TNodeX3DInterpolatorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -261,7 +261,7 @@
 
   TNodeGeoProximitySensor = class(TNodeX3DEnvironmentalSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -295,7 +295,7 @@
 
   TNodeGeoTouchSensor = class(TNodeX3DTouchSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -326,7 +326,7 @@
 
   TNodeGeoTransform = class(TNodeX3DGroupingNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -356,7 +356,7 @@
 
   TNodeGeoViewpoint = class(TNodeX3DViewpointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -395,8 +395,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeGeoCoordinate.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoCoordinate.CreateNode;
 begin
   inherited;
 
@@ -440,8 +439,7 @@ begin
   Result := FdPoint.Items.Count;
 end;
 
-constructor TNodeGeoElevationGrid.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoElevationGrid.CreateNode;
 begin
   inherited;
 
@@ -564,8 +562,7 @@ end;
 {$define TGeometryNotImplemented := TNodeGeoElevationGrid}
 GeometryNotImplemented
 
-constructor TNodeGeoLocation.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoLocation.CreateNode;
 begin
   inherited;
 
@@ -602,8 +599,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeGeoLOD.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoLOD.CreateNode;
 begin
   inherited;
 
@@ -691,8 +687,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeGeoMetadata.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoMetadata.CreateNode;
 begin
   inherited;
 
@@ -726,8 +721,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeGeoOrigin.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoOrigin.CreateNode;
 begin
   inherited;
 
@@ -766,8 +760,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeGeoPositionInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoPositionInterpolator.CreateNode;
 begin
   inherited;
 
@@ -809,8 +802,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeGeoProximitySensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoProximitySensor.CreateNode;
 begin
   inherited;
 
@@ -859,8 +851,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeGeoTouchSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoTouchSensor.CreateNode;
 begin
   inherited;
 
@@ -905,8 +896,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeGeoTransform.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoTransform.CreateNode;
 begin
   inherited;
 
@@ -959,8 +949,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeGeoViewpoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeoViewpoint.CreateNode;
 begin
   inherited;
 

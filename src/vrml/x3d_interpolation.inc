@@ -19,7 +19,7 @@
   protected
     function KeyRange(const Fraction: Single; out T: Single): Integer;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Event: SFFloat, in } { }
     private FEventset_fraction: TVRMLEvent;
@@ -34,7 +34,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -53,7 +53,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -72,7 +72,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -91,7 +91,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -107,7 +107,7 @@
 
   TNodeEaseInEaseOut = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -133,7 +133,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -152,7 +152,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -171,7 +171,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -190,7 +190,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -209,7 +209,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -225,7 +225,7 @@
 
   TNodeSplinePositionInterpolator = class(TNodeX3DInterpolatorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -250,7 +250,7 @@
 
   TNodeSplinePositionInterpolator2D = class(TNodeX3DInterpolatorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -275,7 +275,7 @@
 
   TNodeSplineScalarInterpolator = class(TNodeX3DInterpolatorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -300,7 +300,7 @@
 
   TNodeSquadOrientationInterpolator = class(TNodeX3DInterpolatorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -433,8 +433,7 @@ begin
   end;
 end;}
 
-constructor TNodeX3DInterpolatorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -454,8 +453,7 @@ begin
   Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);
 end;
 
-constructor TNodeColorInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeColorInterpolator.CreateNode;
 begin
   inherited;
 
@@ -499,8 +497,7 @@ procedure TNodeColorInterpolator.EventSet_FractionReceive(
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
-constructor TNodeColorSetInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeColorSetInterpolator.CreateNode;
 begin
   inherited;
 
@@ -543,8 +540,7 @@ procedure TNodeColorSetInterpolator.EventSet_FractionReceive(
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
 
-constructor TNodeCoordinateInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCoordinateInterpolator.CreateNode;
 begin
   inherited;
 
@@ -587,8 +583,7 @@ procedure TNodeCoordinateInterpolator.EventSet_FractionReceive(
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
 
-constructor TNodeCoordinateInterpolator2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCoordinateInterpolator2D.CreateNode;
 begin
   inherited;
 
@@ -629,8 +624,7 @@ procedure TNodeCoordinateInterpolator2D.EventSet_FractionReceive(
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
 
-constructor TNodeEaseInEaseOut.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeEaseInEaseOut.CreateNode;
 begin
   inherited;
 
@@ -670,8 +664,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeNormalInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNormalInterpolator.CreateNode;
 begin
   inherited;
 
@@ -714,8 +707,7 @@ procedure TNodeNormalInterpolator.EventSet_FractionReceive(
 {$define MultipleInterpolatorFieldTypePostprocess := OutputValue.Items.Normalize;}
 MultipleInterpolator
 
-constructor TNodeOrientationInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeOrientationInterpolator.CreateNode;
 begin
   inherited;
 
@@ -765,8 +757,7 @@ procedure TNodeOrientationInterpolator.EventSet_FractionReceive(
 {$define SingleInterpolatorLerp := SLerp}
 SingleInterpolator
 
-constructor TNodePositionInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePositionInterpolator.CreateNode;
 begin
   inherited;
 
@@ -810,8 +801,7 @@ procedure TNodePositionInterpolator.EventSet_FractionReceive(
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
-constructor TNodePositionInterpolator2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePositionInterpolator2D.CreateNode;
 begin
   inherited;
 
@@ -853,8 +843,7 @@ procedure TNodePositionInterpolator2D.EventSet_FractionReceive(
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
-constructor TNodeScalarInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeScalarInterpolator.CreateNode;
 begin
   inherited;
 
@@ -898,8 +887,7 @@ procedure TNodeScalarInterpolator.EventSet_FractionReceive(
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
-constructor TNodeSplinePositionInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSplinePositionInterpolator.CreateNode;
 begin
   inherited;
 
@@ -942,8 +930,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeSplinePositionInterpolator2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSplinePositionInterpolator2D.CreateNode;
 begin
   inherited;
 
@@ -986,8 +973,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeSplineScalarInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSplineScalarInterpolator.CreateNode;
 begin
   inherited;
 
@@ -1030,8 +1016,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeSquadOrientationInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSquadOrientationInterpolator.CreateNode;
 begin
   inherited;
 

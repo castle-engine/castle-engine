@@ -43,7 +43,7 @@ uses VRMLNodes;
   Only if AllowKambiExtensions, it may use some of our engine specific
   extensions (for example, Material.mirror may be <> 0,
   see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_material_mirror]. }
-function LoadCollada(const FileName: string;
+function LoadCollada(const FileName: string; Cache: TVRMLNodesCache;
   const AllowKambiExtensions: boolean = false): TVRMLNode;
 
 implementation
@@ -82,7 +82,7 @@ end;
 
 { LoadCollada ---------------------------------------------------------- }
 
-function LoadCollada(const FileName: string;
+function LoadCollada(const FileName: string; Cache: TVRMLNodesCache;
   const AllowKambiExtensions: boolean): TVRMLNode;
 var
   WWWBasePath: string;
@@ -172,7 +172,7 @@ var
     if not DOMGetAttribute(EffectElement, 'id', Id) then
       Id := '';
 
-    Effect := TNodeMaterial_2.Create(Id, WWWBasePath);
+    Effect := TNodeMaterial_2.Create(Id, WWWBasePath, Cache);
     Effects.Add(Effect);
 
     ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
@@ -350,7 +350,7 @@ var
       I: Integer;
       Mat: TNodeMaterial_2;
     begin
-      Mat := TNodeMaterial_2.Create(MatId, WWWBasePath);
+      Mat := TNodeMaterial_2.Create(MatId, WWWBasePath, Cache);
       Materials.Add(Mat);
 
       ShaderElement := DOMGetChildElement(MatElement, 'shader', false);
@@ -710,7 +710,7 @@ var
 
       VerticesOffset := 0;
 
-      IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath);
+      IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath, Cache);
       Geometries.Add(IndexedFaceSet);
       IndexedFaceSet.FdCoordIndex.Items.Count := 0;
       IndexedFaceSet.FdSolid.Value := false;
@@ -719,7 +719,7 @@ var
         to have some non-zero creaseAngle by default. }
       IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
 
-      Coord := TNodeCoordinate.Create(VerticesId, WWWBasePath);
+      Coord := TNodeCoordinate.Create(VerticesId, WWWBasePath, Cache);
       IndexedFaceSet.FdCoord.Value := Coord;
       Coord.FdPoint.Items.Assign(Vertices);
 
@@ -1137,7 +1137,7 @@ var
           [MaterialId]));
       end else
       begin
-        Shape.FdAppearance.Value := TNodeAppearance.Create('', WWWBasePath);
+        Shape.FdAppearance.Value := TNodeAppearance.Create('', WWWBasePath, Cache);
         (Shape.FdAppearance.Value as TNodeAppearance).FdMaterial.Value :=
           Materials[MaterialIndex];
       end;
@@ -1163,7 +1163,7 @@ var
             '<geometry> element "%s"', [GeometryId]));
         end else
         begin
-          Shape := TNodeShape.Create('', WWWBasePath);
+          Shape := TNodeShape.Create('', WWWBasePath, Cache);
           ParentGroup.FdChildren.Add(Shape);
           Shape.FdGeometry.Value := Geometries[GeometryIndex];
 
@@ -1207,15 +1207,15 @@ var
           begin
             if Controller.BoundShapeMatrixIdentity then
             begin
-              Group := TNodeGroup_2.Create('', WWWBasePath);
+              Group := TNodeGroup_2.Create('', WWWBasePath, Cache);
             end else
             begin
-              Group := TNodeMatrixTransform_2.Create('', WWWBasePath);
+              Group := TNodeMatrixTransform_2.Create('', WWWBasePath, Cache);
               TNodeMatrixTransform_2(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
             end;
             ParentGroup.FdChildren.Add(Group);
 
-            Shape := TNodeShape.Create('', WWWBasePath);
+            Shape := TNodeShape.Create('', WWWBasePath, Cache);
             Group.FdChildren.Add(Shape);
             Shape.FdGeometry.Value := Geometries[GeometryIndex];
 
@@ -1243,7 +1243,7 @@ var
     var
       NewNodeTransform: TNodeTransform_2;
     begin
-      NewNodeTransform := TNodeTransform_2.Create('', WWWBasePath);
+      NewNodeTransform := TNodeTransform_2.Create('', WWWBasePath, Cache);
       NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
@@ -1254,7 +1254,7 @@ var
     var
       NewNodeTransform: TNodeMatrixTransform_2;
     begin
-      NewNodeTransform := TNodeMatrixTransform_2.Create('', WWWBasePath);
+      NewNodeTransform := TNodeMatrixTransform_2.Create('', WWWBasePath, Cache);
       NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
@@ -1273,7 +1273,7 @@ var
     if not DOMGetAttribute(NodeElement, 'id', NodeId) then
       NodeId := '';
 
-    NodeTransform := TNodeTransform_2.Create(NodeId, WWWBasePath);
+    NodeTransform := TNodeTransform_2.Create(NodeId, WWWBasePath, Cache);
     ParentGroup.FdChildren.Add(NodeTransform);
 
     { First iterate to gather all transformations.
@@ -1419,7 +1419,7 @@ var
     var
       Group: TNodeGroup_2;
     begin
-      Group := TNodeGroup_2.Create(SceneId, WWWBasePath);
+      Group := TNodeGroup_2.Create(SceneId, WWWBasePath, Cache);
       ResultModel.FdChildren.Add(Group);
 
       ReadNodesSequence(Group, SceneElement);
@@ -1448,7 +1448,7 @@ var
     if not DOMGetAttribute(VisualSceneElement, 'id', VisualSceneId) then
       VisualSceneId := '';
 
-    Group := TNodeGroup_2.Create(VisualSceneId, WWWBasePath);
+    Group := TNodeGroup_2.Create(VisualSceneId, WWWBasePath, Cache);
     VisualScenes.Add(Group);
     VisualScenesSwitch.FdChildren.Add(Group);
 
@@ -1474,7 +1474,7 @@ var
       That's good --- it's always nice to keep some data when
       converting. }
 
-    VisualScenesSwitch := TNodeSwitch_2.Create(LibraryId, WWWBasePath);
+    VisualScenesSwitch := TNodeSwitch_2.Create(LibraryId, WWWBasePath, Cache);
     ResultModel.FdChildren.Add(VisualScenesSwitch);
 
     Children := LibraryElement.ChildNodes;
@@ -1557,7 +1557,7 @@ var
   var
     Info: TNodeWorldInfo;
   begin
-    Info := TNodeWorldInfo.Create('', WWWBasePath);
+    Info := TNodeWorldInfo.Create('', WWWBasePath, Cache);
     Element.FdChildren.Add(Info);
     Info.FdInfo.Items.Add(S);
   end;
@@ -1612,7 +1612,7 @@ begin
     VisualScenes := TVRMLNodesList.Create;
     Controllers := TColladaControllersList.Create;
 
-    Result := TNodeGroup_2.Create('', WWWBasePath);
+    Result := TNodeGroup_2.Create('', WWWBasePath, Cache);
     try
       { First read library_effects.
 

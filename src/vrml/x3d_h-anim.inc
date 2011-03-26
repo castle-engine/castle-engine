@@ -17,7 +17,7 @@
   { }
   TNodeHAnimDisplacer = class(TNodeX3DGeometricPropertyNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -63,7 +63,7 @@
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure ParseAfter(Names: TVRMLNames); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
@@ -162,7 +162,7 @@
     procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
     procedure ParseAfter(Names: TVRMLNames); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -215,7 +215,7 @@
       Func: TEnumerateChildrenFunction); override;
     procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -262,7 +262,7 @@
       Func: TEnumerateChildrenFunction); override;
     procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -293,8 +293,7 @@
 {$ifdef read_implementation}
 {$I dynarray_5.inc}
 
-constructor TNodeHAnimDisplacer.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeHAnimDisplacer.CreateNode;
 begin
   inherited;
 
@@ -343,8 +342,7 @@ begin
   Weights[Count - 1] := Weight;
 end;
 
-constructor TNodeHAnimHumanoid.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeHAnimHumanoid.CreateNode;
 begin
   inherited;
 
@@ -605,8 +603,7 @@ begin
   Result := ntcTransform;
 end;
 
-constructor TNodeHAnimJoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeHAnimJoint.CreateNode;
 begin
   inherited;
 
@@ -773,8 +770,7 @@ begin
   Result := ntcTransform;
 end;
 
-constructor TNodeHAnimSegment.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeHAnimSegment.CreateNode;
 begin
   inherited;
 
@@ -853,8 +849,7 @@ begin
   Result := ntcTransform;
 end;
 
-constructor TNodeHAnimSite.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeHAnimSite.CreateNode;
 begin
   inherited;
 

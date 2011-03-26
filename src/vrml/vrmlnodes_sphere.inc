@@ -183,12 +183,12 @@ var
   TexCoords: TDynVector2SingleArray;
   IFS: TNodeIndexedFaceSet_2 absolute Result;
 begin
-  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath, Cache);
   try
-    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+    CoordNode := TNodeCoordinate.Create('', WWWBasePath, Cache);
     IFS.FdCoord.Value := CoordNode;
 
-    NormalNode := TNodeNormal.Create('', WWWBasePath);
+    NormalNode := TNodeNormal.Create('', WWWBasePath, Cache);
     IFS.FdNormal.Value := NormalNode;
     IFS.FdNormalPerVertex.Value := true;
 
@@ -199,7 +199,7 @@ begin
       TexCoords := nil;
     end else
     begin
-      TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath);
+      TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath, Cache);
       IFS.FdTexCoord.Value := TexCoordNode;
       TexCoords := TexCoordNode.FdPoint.Items;
     end;
@@ -227,27 +227,27 @@ var
   MaterialBinding: TNodeMaterialBinding;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
-  IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
+  IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath, Cache);
   try
     { we have to modify State, so make a copy of it }
     State := TVRMLGraphTraverseState.CreateCopy(State);
 
-    CoordNode := TNodeCoordinate3.Create('', WWWBasePath);
+    CoordNode := TNodeCoordinate3.Create('', WWWBasePath, Cache);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
-    NormalNode := TNodeNormal.Create('', WWWBasePath);
+    NormalNode := TNodeNormal.Create('', WWWBasePath, Cache);
     State.SetLastNodes(vsNormal, NormalNode, true);
 
-    NormalBinding := TNodeNormalBinding.Create('', WWWBasePath);
+    NormalBinding := TNodeNormalBinding.Create('', WWWBasePath, Cache);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
     State.SetLastNodes(vsNormalBinding, NormalBinding, true);
 
-    TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
+    TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath, Cache);
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
-    ShapeHints := TNodeShapeHints.Create('', '');
+    ShapeHints := TNodeShapeHints.Create('', WWWBasePath, Cache);
     { For VRML 1.0, Sphere is never solid. }
     ShapeHints.FdshapeType.Value := SHTYPE_UNKNOWN;
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
@@ -256,7 +256,7 @@ begin
     State.SetLastNodes(vsShapeHints, ShapeHints, true);
 
     { calculate MaterialBinding. Sphere has always only 1 material. }
-    MaterialBinding := TNodeMaterialBinding.Create('', '');
+    MaterialBinding := TNodeMaterialBinding.Create('', WWWBasePath, Cache);
     MaterialBinding.FdValue.Value := BIND_OVERALL;
     State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
 

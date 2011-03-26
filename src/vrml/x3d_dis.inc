@@ -17,7 +17,7 @@
   { }
   TNodeDISEntityManager = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -49,7 +49,7 @@
 
   TNodeDISEntityTypeMapping = class(TNodeX3DInfoNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -82,7 +82,7 @@
 
   TNodeEspduTransform = class(TNodeX3DGroupingNode, INodeX3DSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -367,7 +367,7 @@
 
   TNodeReceiverPdu = class(TNodeX3DSensorNode, INodeX3DBoundedObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -459,7 +459,7 @@
 
   TNodeSignalPdu = class(TNodeX3DSensorNode, INodeX3DBoundedObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -551,7 +551,7 @@
 
   TNodeTransmitterPdu = class(TNodeX3DSensorNode, INodeX3DBoundedObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -692,8 +692,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeDISEntityManager.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeDISEntityManager.CreateNode;
 begin
   inherited;
 
@@ -743,8 +742,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeDISEntityTypeMapping.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeDISEntityTypeMapping.CreateNode;
 begin
   inherited;
 
@@ -809,8 +807,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeEspduTransform.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeEspduTransform.CreateNode;
 begin
   inherited;
 
@@ -1133,8 +1130,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeReceiverPdu.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeReceiverPdu.CreateNode;
 begin
   inherited;
 
@@ -1257,8 +1253,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeSignalPdu.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSignalPdu.CreateNode;
 begin
   inherited;
 
@@ -1381,8 +1376,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeTransmitterPdu.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTransmitterPdu.CreateNode;
 begin
   inherited;
 

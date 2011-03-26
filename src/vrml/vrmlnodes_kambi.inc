@@ -18,7 +18,7 @@
 
 {$ifdef read_interface}
   TNodeKambiTriangulation = class(TNodeX3DChildNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdQuadricSlices: TSFLong;
@@ -47,7 +47,7 @@
 
   TNodeKambiHeadLight = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdAmbientIntensity: TSFFloat;
@@ -76,7 +76,7 @@
 
   TNodeText3D = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdstring: TMFString;
@@ -126,7 +126,7 @@
     Actually, our version is just a subset of their node. }
   TNodeBlendMode = class(TNodeX3DAppearanceChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -145,7 +145,7 @@
 
   TNodeKambiAppearance = class(TNodeAppearance)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -159,7 +159,7 @@
   protected
     procedure AfterLoadInlined; override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -180,7 +180,7 @@
 
   TNodeKambiNavigationInfo = class(TNodeNavigationInfo)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -213,7 +213,7 @@
 
   TNodeKambiOctreeProperties = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -231,7 +231,7 @@
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
@@ -263,7 +263,7 @@
 
   TNodeProjectedTextureCoordinate = class(TNodeX3DTextureCoordinateNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -281,7 +281,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -332,7 +332,7 @@
 
   TNodeEffect = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -350,7 +350,7 @@
   private
     FUsedFullUrl: string;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -372,7 +372,7 @@
 
   TNodeShaderTexture = class(TNodeX3DTextureNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -386,7 +386,7 @@
 const
   TriangulationUseDef = -1;
 
-constructor TNodeKambiTriangulation.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeKambiTriangulation.CreateNode;
 begin
   inherited;
 
@@ -467,7 +467,7 @@ begin
   Result := 'KambiHeadLight';
 end;
 
-constructor TNodeKambiHeadLight.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeKambiHeadLight.CreateNode;
 const
   HeadLightDefaultAmbientIntensity = 0;
   HeadLightDefaultAttenuation: TVector3Single = (1, 0, 0);
@@ -533,7 +533,7 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeText3D.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeText3D.CreateNode;
 begin
   inherited;
 
@@ -589,7 +589,7 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeBlendMode.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeBlendMode.CreateNode;
 begin
   inherited;
 
@@ -624,12 +624,12 @@ begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeKambiAppearance.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeKambiAppearance.CreateNode;
 begin
   inherited;
 end;
 
-constructor TNodeKambiInline.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeKambiInline.CreateNode;
 begin
   inherited;
 
@@ -694,8 +694,7 @@ begin
     end;
 end;
 
-constructor TNodeKambiNavigationInfo.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeKambiNavigationInfo.CreateNode;
 begin
   inherited;
 
@@ -755,8 +754,7 @@ begin
     Result := nil;
 end;
 
-constructor TNodeKambiOctreeProperties.Create(
-  const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeKambiOctreeProperties.CreateNode;
 begin
   inherited;
 
@@ -792,8 +790,7 @@ begin
     VRMLWarning(vwSerious, 'KambiOctreeProperties.leafCapacity must be >= -1');
 end;
 
-constructor TNodeGeneratedShadowMap.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeneratedShadowMap.CreateNode;
 begin
   inherited;
 
@@ -855,8 +852,7 @@ begin
     Result := nil;
 end;
 
-constructor TNodeProjectedTextureCoordinate.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeProjectedTextureCoordinate.CreateNode;
 begin
   inherited;
 
@@ -883,8 +879,7 @@ begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeScreenEffect.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeScreenEffect.CreateNode;
 begin
   inherited;
 
@@ -938,7 +933,7 @@ begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeEffect.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeEffect.CreateNode;
 begin
   inherited;
 
@@ -969,7 +964,7 @@ begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeEffectPart.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeEffectPart.CreateNode;
 begin
   inherited;
 
@@ -999,7 +994,7 @@ begin
   Result := ShaderLoadContents(FUsedFullUrl, Self, FdUrl);
 end;
 
-constructor TNodeShaderTexture.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeShaderTexture.CreateNode;
 begin
   inherited;
 

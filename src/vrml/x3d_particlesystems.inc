@@ -17,7 +17,7 @@
   { }
   TNodeX3DParticleEmitterNode = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdspeed: TSFFloat;
     public property Fdspeed: TSFFloat read FFdspeed;
@@ -34,7 +34,7 @@
 
   TNodeX3DParticlePhysicsModelNode = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
@@ -42,7 +42,7 @@
 
   TNodeBoundedPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -54,7 +54,7 @@
 
   TNodeConeEmitter = class(TNodeX3DParticleEmitterNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -72,7 +72,7 @@
 
   TNodeExplosionEmitter = class(TNodeX3DParticleEmitterNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -84,7 +84,7 @@
 
   TNodeGravityPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -96,7 +96,7 @@
 
   TNodeParticleSystem = class(TNodeX3DShapeNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -148,7 +148,7 @@
 
   TNodePointEmitter = class(TNodeX3DParticleEmitterNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -163,7 +163,7 @@
 
   TNodePolylineEmitter = class(TNodeX3DParticleEmitterNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -185,7 +185,7 @@
 
   TNodeSurfaceEmitter = class(TNodeX3DParticleEmitterNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -204,7 +204,7 @@
 
   TNodeVolumeEmitter = class(TNodeX3DParticleEmitterNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -229,7 +229,7 @@
 
   TNodeWindPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -251,8 +251,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DParticleEmitterNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DParticleEmitterNode.CreateNode;
 begin
   inherited;
 
@@ -277,8 +276,7 @@ begin
   DefaultContainerField := 'emitter';
 end;
 
-constructor TNodeX3DParticlePhysicsModelNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DParticlePhysicsModelNode.CreateNode;
 begin
   inherited;
 
@@ -288,8 +286,7 @@ begin
   DefaultContainerField := 'physics';
 end;
 
-constructor TNodeBoundedPhysicsModel.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeBoundedPhysicsModel.CreateNode;
 begin
   inherited;
 
@@ -316,8 +313,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeConeEmitter.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeConeEmitter.CreateNode;
 begin
   inherited;
 
@@ -351,8 +347,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeExplosionEmitter.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeExplosionEmitter.CreateNode;
 begin
   inherited;
 
@@ -379,8 +374,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeGravityPhysicsModel.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGravityPhysicsModel.CreateNode;
 begin
   inherited;
 
@@ -408,8 +402,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeParticleSystem.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeParticleSystem.CreateNode;
 begin
   inherited;
 
@@ -489,8 +482,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePointEmitter.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePointEmitter.CreateNode;
 begin
   inherited;
 
@@ -520,8 +512,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePolylineEmitter.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePolylineEmitter.CreateNode;
 begin
   inherited;
 
@@ -560,8 +551,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeSurfaceEmitter.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSurfaceEmitter.CreateNode;
 begin
   inherited;
 
@@ -597,8 +587,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeVolumeEmitter.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeVolumeEmitter.CreateNode;
 begin
   inherited;
 
@@ -641,8 +630,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeWindPhysicsModel.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeWindPhysicsModel.CreateNode;
 begin
   inherited;
 

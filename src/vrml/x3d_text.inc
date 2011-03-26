@@ -17,7 +17,7 @@
   { }
   TNodeX3DFontStyleNode = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   { Font family that can be specified by FontStyle node in family
@@ -32,7 +32,7 @@
 
   TNodeFontStyle_2 = class(TNodeX3DFontStyleNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -88,7 +88,7 @@
 
   TNodeText = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -136,8 +136,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DFontStyleNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DFontStyleNode.CreateNode;
 begin
   inherited;
 
@@ -152,8 +151,7 @@ const
     {typewriter} ( ((@TTF_BitstreamVeraSansMono),(@TTF_BitstreamVeraSansMono_Italic)), ((@TTF_BitstreamVeraSansMono_Bold), (@TTF_BitstreamVeraSansMono_Bold_Italic)) )
   );
 
-constructor TNodeFontStyle_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeFontStyle_2.CreateNode;
 begin
   inherited;
 
@@ -392,8 +390,7 @@ begin
   Result := TTF_Font_Results[DefaultFamily, DefaultBold, DefaultItalic];
 end;
 
-constructor TNodeText.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeText.CreateNode;
 begin
   inherited;
 

@@ -81,7 +81,7 @@ type
     function GetScenes(I: Integer): TVRMLGLScene;
   private
     Renderer: TVRMLGLRenderer;
-    Cache: TVRMLGLRendererContextCache;
+    FCache: TVRMLGLRendererContextCache;
     OwnsCache: boolean;
     FTimeBegin, FTimeEnd: Single;
     FTimeLoop: boolean;
@@ -565,6 +565,8 @@ type
       const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
     function Dragging: boolean; override;
+
+    property Cache: TVRMLGLRendererContextCache read FCache;
   published
     { Is the animation time playing, and how fast.
 
@@ -740,11 +742,7 @@ end;
   CreateCustomCache --- we would miss executing descendant's constructor code.
 
   So only our Create may call "inherited Create".
-
-  CreateCustomCache should always call just "Create" (virtual).
-  To do this (since CreateCustomCache must initialize Renderer)
-  we initialize Renderer in CreateCustomCache, and in Create check
-  Renderer = nil before setting default renderer. }
+  CreateCustomCache should always call just "Create" (virtual). }
 
 constructor TVRMLGLAnimation.Create(AOwner: TComponent);
 begin
@@ -753,7 +751,7 @@ begin
   if Cache = nil then
   begin
     OwnsCache := true;
-    Cache := TVRMLGLRendererContextCache.Create;
+    FCache := TVRMLGLRendererContextCache.Create;
   end;
 
   Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, Cache);
@@ -770,7 +768,7 @@ constructor TVRMLGLAnimation.CreateCustomCache(AOwner: TComponent;
   ACache: TVRMLGLRendererContextCache);
 begin
   OwnsCache := false;
-  Cache := ACache;
+  FCache := ACache;
 
   Create(AOwner);
 end;
@@ -780,8 +778,8 @@ begin
   Close;
   FreeAndNil(Renderer);
   if OwnsCache then
-    FreeAndNil(Cache) else
-    Cache := nil;
+    FreeAndNil(FCache) else
+    FCache := nil;
   inherited;
 end;
 
@@ -1080,7 +1078,7 @@ procedure TVRMLGLAnimation.LoadCore(
       Exit(Model1);
 
     Result := TVRMLNodeClass(Model1.ClassType).Create(Model1.NodeName,
-      Model1.WWWBasePath);
+      Model1.WWWBasePath, Model1.Cache);
     try
       { We already loaded all inlines (in CheckVRMLModelsStructurallyEqual).
         We have to mark it now, by setting Loaded := true field as necessary
@@ -1362,7 +1360,7 @@ begin
   Times := TDynSingleArray.Create;
   RootNodes := TVRMLNodesList.Create;
   try
-    LoadVRMLSequence(FileName, AllowStdIn,
+    LoadVRMLSequence(FileName, Cache, AllowStdIn,
       RootNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
 

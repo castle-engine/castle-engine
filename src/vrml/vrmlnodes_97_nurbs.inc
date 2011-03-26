@@ -23,7 +23,7 @@
 {$ifdef read_interface}
   TNodeCoordinateDeformer = class(TVRMLGroupingNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     { Event: MFNode, in } { }
@@ -94,7 +94,7 @@
 
   TNodeNurbsCurve_2 = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdcontrolPoint: TMFVec3f;
@@ -131,7 +131,7 @@
 
   TNodeNurbsGroup = class(TNodeX3DGroupingNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdtessellationScale: TSFFloat;
@@ -147,7 +147,7 @@
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     { Event: SFFloat, in } { }
@@ -182,7 +182,7 @@
 
   TNodeNurbsSurface = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdcontrolPoint: TMFVec3f;
@@ -241,7 +241,7 @@
 
   TNodeNurbsTextureSurface = class(TVRMLNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdcontrolPoint: TMFVec2f;
@@ -275,7 +275,7 @@
 
   TNodeTrimmedSurface = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     { Event: MFNode, in } { }
@@ -307,7 +307,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeCoordinateDeformer.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeCoordinateDeformer.CreateNode;
 begin
   inherited;
 
@@ -406,7 +406,7 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeNurbsCurve_2.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeNurbsCurve_2.CreateNode;
 begin
   inherited;
 
@@ -462,7 +462,7 @@ function TNodeNurbsCurve_2.Proxy(var State: TVRMLGraphTraverseState;
 var
   KnotDouble, WeightDouble: TDynDoubleArray;
 begin
-  Result := TNodeLineSet.Create(NodeName, WWWBasePath);
+  Result := TNodeLineSet.Create(NodeName, WWWBasePath, Cache);
   try
     KnotDouble := FdKnot.Items.ToDouble;
     WeightDouble := FdWeight.Items.ToDouble;
@@ -503,7 +503,7 @@ begin
   Result := 0;
 end;
 
-constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeNurbsGroup.CreateNode;
 begin
   inherited;
 
@@ -530,7 +530,7 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeNurbsPositionInterpolator_2.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeNurbsPositionInterpolator_2.CreateNode;
 begin
   inherited;
 
@@ -620,7 +620,7 @@ begin
   EventValue_Changed.Send(OutputValue, Time);
 end;
 
-constructor TNodeNurbsSurface.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeNurbsSurface.CreateNode;
 begin
   inherited;
 
@@ -709,7 +709,7 @@ function TNodeNurbsSurface.Proxy(var State: TVRMLGraphTraverseState;
 var
   UKnotDouble, VKnotDouble, WeightDouble: TDynDoubleArray;
 begin
-  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
+  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath, Cache);
   try
     { For NurbsPatchSurfaceProxy (and underlying NurbsSurfacePoint)
       we want knots and weights to be double-precision.
@@ -784,7 +784,7 @@ begin
     Result := 0;
 end;
 
-constructor TNodeNurbsTextureSurface.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeNurbsTextureSurface.CreateNode;
 begin
   inherited;
 
@@ -838,7 +838,7 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeTrimmedSurface.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeTrimmedSurface.CreateNode;
 begin
   inherited;
 

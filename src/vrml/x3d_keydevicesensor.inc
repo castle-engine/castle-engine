@@ -17,7 +17,7 @@
   { }
   TNodeX3DKeyDeviceSensorNode = class(TNodeX3DSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { React to key down/up events.
 
@@ -42,7 +42,7 @@
   private
     AltKey, ControlKey, ShiftKey: boolean;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -85,7 +85,7 @@
     EnteredText: string;
     Active: boolean;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -108,8 +108,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DKeyDeviceSensorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DKeyDeviceSensorNode.CreateNode;
 begin
   inherited;
 
@@ -145,8 +144,7 @@ begin
   end;
 end;
 
-constructor TNodeKeySensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeKeySensor.CreateNode;
 begin
   inherited;
 
@@ -274,8 +272,7 @@ begin
   inherited;
 end;
 
-constructor TNodeStringSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeStringSensor.CreateNode;
 begin
   inherited;
 

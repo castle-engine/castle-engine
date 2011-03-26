@@ -29,7 +29,7 @@
 
   TNodeLayer2D = class(TNodeGroup_2)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -48,7 +48,7 @@
 
   TNodeLayer3D = class(TNodeGroup_2)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -87,7 +87,7 @@
 
   TNodeMouseSensor = class(TNodeX3DSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -138,7 +138,7 @@ begin
     (URN = URNBitManagementNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeLayer2D.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeLayer2D.CreateNode;
 begin
   inherited;
 
@@ -166,7 +166,7 @@ begin
     (URN = URNBitManagementNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeLayer3D.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeLayer3D.CreateNode;
 begin
   inherited;
 
@@ -212,7 +212,7 @@ begin
     (URN = URNBitManagementNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMouseSensor.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeMouseSensor.CreateNode;
 begin
   inherited;
 

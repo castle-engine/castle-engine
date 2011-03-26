@@ -17,12 +17,12 @@
   { }
   TNodeX3DLayoutNode = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   TNodeLayout = class(TNodeX3DLayoutNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -49,7 +49,7 @@
 
   TNodeLayoutGroup = class(TNodeX3DGroupingNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -64,7 +64,7 @@
 
   TNodeLayoutLayer = class(TNodeX3DLayerNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -87,7 +87,7 @@
 
   TNodeScreenFontStyle = class(TNodeX3DFontStyleNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -123,7 +123,7 @@
 
   TNodeScreenGroup = class(TNodeX3DGroupingNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -133,16 +133,14 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DLayoutNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DLayoutNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeLayout.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLayout.CreateNode;
 begin
   inherited;
 
@@ -192,8 +190,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeLayoutGroup.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLayoutGroup.CreateNode;
 begin
   inherited;
 
@@ -225,8 +222,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeLayoutLayer.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLayoutLayer.CreateNode;
 begin
   inherited;
 
@@ -262,8 +258,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeScreenFontStyle.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeScreenFontStyle.CreateNode;
 begin
   inherited;
 
@@ -327,8 +322,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeScreenGroup.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeScreenGroup.CreateNode;
 begin
   inherited;
 

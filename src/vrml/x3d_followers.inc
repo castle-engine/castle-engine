@@ -17,7 +17,7 @@
   { }
   TNodeX3DFollowerNode = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Event: SFBool, out } { }
     private FEventisActive: TVRMLEvent;
@@ -26,7 +26,7 @@
 
   TNodeX3DDamperNode = class(TNodeX3DFollowerNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdtau: TSFTime;
     public property Fdtau: TSFTime read FFdtau;
@@ -40,7 +40,7 @@
 
   TNodeX3DChaserNode = class(TNodeX3DFollowerNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdduration: TSFTime;
     public property Fdduration: TSFTime read FFdduration;
@@ -48,7 +48,7 @@
 
   TNodeColorDamper = class(TNodeX3DDamperNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -75,7 +75,7 @@
 
   TNodeCoordinateDamper = class(TNodeX3DDamperNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -102,7 +102,7 @@
 
   TNodeOrientationChaser = class(TNodeX3DChaserNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -129,7 +129,7 @@
 
   TNodeOrientationDamper = class(TNodeX3DDamperNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -156,7 +156,7 @@
 
   TNodePositionChaser = class(TNodeX3DChaserNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -183,7 +183,7 @@
 
   TNodePositionChaser2D = class(TNodeX3DChaserNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -210,7 +210,7 @@
 
   TNodePositionDamper = class(TNodeX3DDamperNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -237,7 +237,7 @@
 
   TNodePositionDamper2D = class(TNodeX3DDamperNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -264,7 +264,7 @@
 
   TNodeScalarChaser = class(TNodeX3DChaserNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -291,7 +291,7 @@
 
   TNodeTexCoordDamper2D = class(TNodeX3DDamperNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -319,8 +319,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DFollowerNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DFollowerNode.CreateNode;
 begin
   inherited;
 
@@ -330,8 +329,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeX3DDamperNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DDamperNode.CreateNode;
 begin
   inherited;
 
@@ -351,8 +349,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeX3DChaserNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DChaserNode.CreateNode;
 begin
   inherited;
 
@@ -364,8 +361,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeColorDamper.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeColorDamper.CreateNode;
 begin
   inherited;
 
@@ -408,8 +404,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCoordinateDamper.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCoordinateDamper.CreateNode;
 begin
   inherited;
 
@@ -452,8 +447,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeOrientationChaser.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeOrientationChaser.CreateNode;
 begin
   inherited;
 
@@ -496,8 +490,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeOrientationDamper.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeOrientationDamper.CreateNode;
 begin
   inherited;
 
@@ -540,8 +533,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePositionChaser.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePositionChaser.CreateNode;
 begin
   inherited;
 
@@ -584,8 +576,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePositionChaser2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePositionChaser2D.CreateNode;
 begin
   inherited;
 
@@ -630,8 +621,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePositionDamper.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePositionDamper.CreateNode;
 begin
   inherited;
 
@@ -674,8 +664,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePositionDamper2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePositionDamper2D.CreateNode;
 begin
   inherited;
 
@@ -718,8 +707,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeScalarChaser.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeScalarChaser.CreateNode;
 begin
   inherited;
 
@@ -762,8 +750,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeTexCoordDamper2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTexCoordDamper2D.CreateNode;
 begin
   inherited;
 

@@ -28,7 +28,7 @@
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdOn: TSFBool;
     public property FdOn: TSFBool read FFdOn;
@@ -158,7 +158,7 @@
 
   TVRMLDirectionalLightNode = class(TNodeX3DLightNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdDirection: TSFVec3f;
@@ -183,7 +183,7 @@
 
   TVRMLPositionalLightNode = class(TNodeX3DLightNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdLocation: TSFVec3f;
     public property FdLocation: TSFVec3f read FFdLocation;
@@ -220,7 +220,7 @@
 
   TVRMLPointLightNode = class(TVRMLPositionalLightNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     function LocationLocal: TVector3Single; override;
@@ -230,7 +230,7 @@
 
   TNodeDirectionalLight_2 = class(TVRMLDirectionalLightNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -241,7 +241,7 @@
 
   TNodePointLight_2 = class(TVRMLPointLightNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -257,7 +257,7 @@
 
   TNodeSpotLight_2 = class(TVRMLPositionalLightNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -300,8 +300,7 @@ const
   FallbackProjectionFar = 100;
   FallbackProjectionRectangle: TVector4Single = (-10, -10, 10, 10);
 
-constructor TNodeX3DLightNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DLightNode.CreateNode;
 begin
   inherited;
 
@@ -479,7 +478,7 @@ begin
   Result := ntcLight;
 end;
 
-constructor TVRMLDirectionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TVRMLDirectionalLightNode.CreateNode;
 begin
   inherited;
 
@@ -569,7 +568,7 @@ begin
   Box3DDirectionDistances(Box, Location, Direction, MinDistance, MaxDistance);
 end;
 
-constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TVRMLPositionalLightNode.CreateNode;
 begin
   inherited;
 
@@ -629,7 +628,7 @@ ATTENUATION_IMPLEMENTATION
 function TVRMLPositionalLightNode.Attenuation(const DistanceToLight: Double): Double;
 ATTENUATION_IMPLEMENTATION
 
-constructor TVRMLPointLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TVRMLPointLightNode.CreateNode;
 begin
   inherited;
   { no new fields - this is just TVRMLPositionalLightNode }
@@ -651,8 +650,7 @@ begin
   Box3DPointDistances(Box, Location, MinDistance, MaxDistance);
 end;
 
-constructor TNodeDirectionalLight_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeDirectionalLight_2.CreateNode;
 begin
   inherited;
 
@@ -682,8 +680,7 @@ begin
   Result := VerMajor >= 2;
 end;
 
-constructor TNodePointLight_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePointLight_2.CreateNode;
 begin
   inherited;
 
@@ -737,8 +734,7 @@ begin
   ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.TransformScale;
 end;
 
-constructor TNodeSpotLight_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSpotLight_2.CreateNode;
 begin
   inherited;
 

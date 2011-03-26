@@ -17,7 +17,7 @@
   { }
   TNodeX3DEnvironmentalSensorNode = class(TNodeX3DSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdcenter: TSFVec3f;
     public property Fdcenter: TSFVec3f read FFdcenter;
@@ -36,7 +36,7 @@
 
   TNodeProximitySensor = class(TNodeX3DEnvironmentalSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -58,7 +58,7 @@
 
   TNodeTransformSensor = class(TNodeX3DEnvironmentalSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -78,7 +78,7 @@
 
   TNodeVisibilitySensor = class(TNodeX3DEnvironmentalSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -88,8 +88,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DEnvironmentalSensorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DEnvironmentalSensorNode.CreateNode;
 begin
   inherited;
 
@@ -112,8 +111,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeProximitySensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeProximitySensor.CreateNode;
 begin
   inherited;
 
@@ -155,8 +153,7 @@ begin
   Result := ntcProximitySensor;
 end;
 
-constructor TNodeTransformSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTransformSensor.CreateNode;
 begin
   inherited;
 
@@ -191,8 +188,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeVisibilitySensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeVisibilitySensor.CreateNode;
 begin
   inherited;
 

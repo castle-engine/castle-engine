@@ -32,7 +32,7 @@
   { }
   TNodeX3DPointingDeviceSensorNode = class(TNodeX3DSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFddescription: TSFString;
     public property Fddescription: TSFString read FFddescription;
@@ -63,7 +63,7 @@
 
   TNodeX3DDragSensorNode = class(TNodeX3DPointingDeviceSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdautoOffset: TSFBool;
     public property FdautoOffset: TSFBool read FFdautoOffset;
@@ -79,7 +79,7 @@
 
   TNodeX3DTouchSensorNode = class(TNodeX3DPointingDeviceSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Event: SFTime, out } { }
     private FEventtouchTime: TVRMLEvent;
@@ -111,7 +111,7 @@
     { Last value of rotation_changed send, meaningful only if WasRotation. }
     RotationAngle: Single;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -163,7 +163,7 @@
     { Last value of translation_changed send, meaningful only if WasTranslation. }
     Translation: TVector3Single;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -208,7 +208,7 @@
     { Last value of rotation_changed send, meaningful only if WasRotation. }
     Rotation: TVector4Single;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -230,7 +230,7 @@
 
   TNodeTouchSensor = class(TNodeX3DTouchSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -283,8 +283,7 @@ end;
 
 { Rest of nodes -------------------------------------------------------------- }
 
-constructor TNodeX3DPointingDeviceSensorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DPointingDeviceSensorNode.CreateNode;
 begin
   inherited;
 
@@ -307,8 +306,7 @@ begin
   EventIsActive.Send(false, Time);
 end;
 
-constructor TNodeX3DDragSensorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DDragSensorNode.CreateNode;
 begin
   inherited;
 
@@ -326,8 +324,7 @@ begin
   { Nothing to do in this class }
 end;
 
-constructor TNodeX3DTouchSensorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DTouchSensorNode.CreateNode;
 begin
   inherited;
 
@@ -335,8 +332,7 @@ begin
   Events.Add(FEventtouchTime);
 end;
 
-constructor TNodeCylinderSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCylinderSensor.CreateNode;
 begin
   inherited;
 
@@ -484,8 +480,7 @@ begin
   end;
 end;
 
-constructor TNodePlaneSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePlaneSensor.CreateNode;
 begin
   inherited;
 
@@ -658,8 +653,7 @@ begin
   end;
 end;
 
-constructor TNodeSphereSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSphereSensor.CreateNode;
 begin
   inherited;
 
@@ -763,8 +757,7 @@ begin
   end;
 end;
 
-constructor TNodeTouchSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTouchSensor.CreateNode;
 begin
   inherited;
 

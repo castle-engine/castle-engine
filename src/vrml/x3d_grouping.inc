@@ -60,7 +60,7 @@
     procedure EventRemoveChildrenReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Event: MFNode, in } { }
     private FEventaddChildren: TVRMLEvent;
@@ -93,7 +93,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -146,7 +146,7 @@
   protected
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
 
     { See IVRMLRootNode.SaveAsRootNode. }
@@ -208,7 +208,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -240,7 +240,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdwhichChoice: TSFInt32;
@@ -275,7 +275,7 @@
       Func: TEnumerateChildrenFunction); override;
     procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -463,8 +463,7 @@ begin
   inherited;
 end;
 
-constructor TNodeX3DGroupingNode.Create(
-  const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeX3DGroupingNode.CreateNode;
 begin
   inherited;
 
@@ -544,7 +543,7 @@ begin
     FdChildren.Items.Remove(MF.Items[I]);
 end;
 
-constructor TNodeGroup_2.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeGroup_2.CreateNode;
 begin
   inherited;
 
@@ -585,8 +584,7 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TVRMLRootNode_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TVRMLRootNode_2.CreateNode;
 begin
   inherited;
   FX3DComponentNames := TDynStringArray.Create;
@@ -694,8 +692,7 @@ begin
   end;
 end;
 
-constructor TNodeStaticGroup.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeStaticGroup.CreateNode;
 begin
   inherited;
 
@@ -749,7 +746,7 @@ begin
     Func(Self, FdChildren.Items[I]);
 end;
 
-constructor TNodeSwitch_2.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeSwitch_2.CreateNode;
 begin
   inherited;
 
@@ -805,7 +802,7 @@ begin
   Result := ntcSwitch;
 end;
 
-constructor TNodeTransform_2.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeTransform_2.CreateNode;
 begin
   inherited;
 

@@ -23,7 +23,7 @@
   TNodeX3DProductStructureChildNode = class(TNodeX3DChildNode,
     INodeX3DProductStructureChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdname: TSFString;
     public property Fdname: TSFString read FFdname;
@@ -31,7 +31,7 @@
 
   TNodeCADAssembly = class(TNodeX3DGroupingNode, INodeX3DProductStructureChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -43,7 +43,7 @@
 
   TNodeCADFace = class(TNodeX3DProductStructureChildNode, INodeX3DBoundedObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -61,7 +61,7 @@
 
   TNodeCADLayer = class(TNodeX3DGroupingNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -76,7 +76,7 @@
 
   TNodeCADPart = class(TNodeX3DGroupingNode, INodeX3DProductStructureChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -103,7 +103,7 @@
 
   TNodeIndexedQuadSet = class(TNodeX3DComposedGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -128,7 +128,7 @@
 
   TNodeQuadSet = class(TNodeX3DComposedGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -145,8 +145,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DProductStructureChildNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DProductStructureChildNode.CreateNode;
 begin
   inherited;
 
@@ -156,8 +155,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeCADAssembly.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCADAssembly.CreateNode;
 begin
   inherited;
 
@@ -186,8 +184,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCADFace.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCADFace.CreateNode;
 begin
   inherited;
 
@@ -226,8 +223,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCADLayer.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCADLayer.CreateNode;
 begin
   inherited;
 
@@ -259,8 +255,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCADPart.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCADPart.CreateNode;
 begin
   inherited;
 
@@ -309,8 +304,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeIndexedQuadSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeIndexedQuadSet.CreateNode;
 begin
   inherited;
 
@@ -348,8 +342,7 @@ begin
   Result := FdIndex;
 end;
 
-constructor TNodeQuadSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeQuadSet.CreateNode;
 begin
   inherited;
 end;

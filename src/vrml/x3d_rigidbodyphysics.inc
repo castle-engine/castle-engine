@@ -17,7 +17,7 @@
   { }
   TNodeX3DNBodyCollidableNode = class(TNodeX3DChildNode, INodeX3DBoundedObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
@@ -37,7 +37,7 @@
 
   TNodeX3DNBodyCollisionSpaceNode = class(TNodeX3DNode, INodeX3DBoundedObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
@@ -51,7 +51,7 @@
 
   TNodeX3DRigidJointNode = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdbody1: TSFNode;
     public property Fdbody1: TSFNode read FFdbody1;
@@ -65,7 +65,7 @@
 
   TNodeBallJoint = class(TNodeX3DRigidJointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -85,7 +85,7 @@
 
   TNodeCollidableOffset = class(TNodeX3DNBodyCollidableNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -97,7 +97,7 @@
 
   TNodeCollidableShape = class(TNodeX3DNBodyCollidableNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -109,7 +109,7 @@
 
   TNodeCollisionCollection = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -148,7 +148,7 @@
 
   TNodeCollisionSensor = class(TNodeX3DSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -168,7 +168,7 @@
 
   TNodeCollisionSpace = class(TNodeX3DNBodyCollisionSpaceNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -183,7 +183,7 @@
 
   TNodeContact = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -240,7 +240,7 @@
 
   TNodeDoubleAxisHingeJoint = class(TNodeX3DRigidJointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -323,7 +323,7 @@
 
   TNodeMotorJoint = class(TNodeX3DRigidJointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -407,7 +407,7 @@
 
   TNodeRigidBody = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -485,7 +485,7 @@
 
   TNodeRigidBodyCollection = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -543,7 +543,7 @@
 
   TNodeSingleAxisHingeJoint = class(TNodeX3DRigidJointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -586,7 +586,7 @@
 
   TNodeSliderJoint = class(TNodeX3DRigidJointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -618,7 +618,7 @@
 
   TNodeUniversalJoint = class(TNodeX3DRigidJointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -665,8 +665,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DNBodyCollidableNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DNBodyCollidableNode.CreateNode;
 begin
   inherited;
 
@@ -692,8 +691,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
 
-constructor TNodeX3DNBodyCollisionSpaceNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DNBodyCollisionSpaceNode.CreateNode;
 begin
   inherited;
 
@@ -711,8 +709,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
 
-constructor TNodeX3DRigidJointNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DRigidJointNode.CreateNode;
 begin
   inherited;
 
@@ -729,8 +726,7 @@ begin
   DefaultContainerField := 'joints';
 end;
 
-constructor TNodeBallJoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeBallJoint.CreateNode;
 begin
   inherited;
 
@@ -763,8 +759,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCollidableOffset.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCollidableOffset.CreateNode;
 begin
   inherited;
 
@@ -792,8 +787,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCollidableShape.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCollidableShape.CreateNode;
 begin
   inherited;
 
@@ -821,8 +815,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCollisionCollection.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCollisionCollection.CreateNode;
 begin
   inherited;
 
@@ -884,8 +877,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCollisionSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCollisionSensor.CreateNode;
 begin
   inherited;
 
@@ -918,8 +910,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCollisionSpace.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCollisionSpace.CreateNode;
 begin
   inherited;
 
@@ -951,8 +942,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeContact.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeContact.CreateNode;
 begin
   inherited;
 
@@ -1038,8 +1028,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeDoubleAxisHingeJoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeDoubleAxisHingeJoint.CreateNode;
 begin
   inherited;
 
@@ -1140,8 +1129,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMotorJoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMotorJoint.CreateNode;
 begin
   inherited;
 
@@ -1248,8 +1236,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeRigidBody.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeRigidBody.CreateNode;
 begin
   inherited;
 
@@ -1356,8 +1343,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeRigidBodyCollection.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeRigidBodyCollection.CreateNode;
 begin
   inherited;
 
@@ -1438,8 +1424,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeSingleAxisHingeJoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSingleAxisHingeJoint.CreateNode;
 begin
   inherited;
 
@@ -1495,8 +1480,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeSliderJoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSliderJoint.CreateNode;
 begin
   inherited;
 
@@ -1545,8 +1529,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeUniversalJoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeUniversalJoint.CreateNode;
 begin
   inherited;
 

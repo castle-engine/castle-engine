@@ -17,7 +17,7 @@
   { }
   TNodeX3DSoundNode = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   INodeX3DSoundSourceNode = interface(INodeX3DTimeDependentNode)
@@ -29,7 +29,7 @@
 
   TNodeX3DSoundSourceNode = class(TNodeX3DTimeDependentNode, INodeX3DSoundSourceNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFddescription: TSFString;
     public property Fddescription: TSFString read FFddescription;
@@ -65,7 +65,7 @@
   protected
     function CycleInterval: TKamTime; override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
@@ -86,7 +86,7 @@
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -126,16 +126,14 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DSoundNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DSoundNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeX3DSoundSourceNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DSoundSourceNode.CreateNode;
 begin
   inherited;
 
@@ -159,8 +157,7 @@ begin
     Result := 1; { assign default pitch in case of trouble }
 end;
 
-constructor TNodeAudioClip.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeAudioClip.CreateNode;
 begin
   inherited;
 
@@ -358,8 +355,7 @@ begin
   end;
 end;
 
-constructor TNodeSound.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSound.CreateNode;
 begin
   inherited;
 

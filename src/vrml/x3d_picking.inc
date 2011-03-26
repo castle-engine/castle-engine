@@ -23,7 +23,7 @@
 
   TNodeX3DPickSensorNode = class(TNodeX3DSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdobjectType: TMFString;
     public property FdobjectType: TMFString read FFdobjectType;
@@ -47,7 +47,7 @@
 
   TNodeLinePickSensor = class(TNodeX3DPickSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -68,7 +68,7 @@
 
   TNodePickableGroup = class(TNodeX3DGroupingNode, INodeX3DPickableObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -83,7 +83,7 @@
 
   TNodePointPickSensor = class(TNodeX3DPickSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -96,7 +96,7 @@
 
   TNodePrimitivePickSensor = class(TNodeX3DPickSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -105,7 +105,7 @@
 
   TNodeVolumePickSensor = class(TNodeX3DPickSensorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -115,8 +115,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DPickSensorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DPickSensorNode.CreateNode;
 begin
   inherited;
 
@@ -151,8 +150,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeLinePickSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLinePickSensor.CreateNode;
 begin
   inherited;
 
@@ -187,8 +185,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePickableGroup.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePickableGroup.CreateNode;
 begin
   inherited;
 
@@ -221,8 +218,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePointPickSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePointPickSensor.CreateNode;
 begin
   inherited;
 
@@ -251,8 +247,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePrimitivePickSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePrimitivePickSensor.CreateNode;
 begin
   inherited;
 
@@ -278,8 +273,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeVolumePickSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeVolumePickSensor.CreateNode;
 begin
   inherited;
 

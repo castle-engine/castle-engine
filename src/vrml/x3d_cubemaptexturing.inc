@@ -17,12 +17,12 @@
   { }
   TNodeX3DEnvironmentTextureNode = class(TNodeX3DTextureNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   TNodeComposedCubeMapTexture = class(TNodeX3DEnvironmentTextureNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -76,7 +76,7 @@
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
@@ -99,7 +99,7 @@
 
   TNodeImageCubeMapTexture = class(TNodeX3DEnvironmentTextureNode, INodeX3DUrlObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -125,14 +125,12 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DEnvironmentTextureNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DEnvironmentTextureNode.CreateNode;
 begin
   inherited;
 end;
 
-constructor TNodeComposedCubeMapTexture.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeComposedCubeMapTexture.CreateNode;
 begin
   inherited;
 
@@ -233,8 +231,7 @@ begin
     Result := [];
 end;
 
-constructor TNodeGeneratedCubeMapTexture.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeGeneratedCubeMapTexture.CreateNode;
 begin
   inherited;
 
@@ -282,8 +279,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeImageCubeMapTexture.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeImageCubeMapTexture.CreateNode;
 begin
   inherited;
 

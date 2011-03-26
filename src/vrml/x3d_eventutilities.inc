@@ -53,7 +53,7 @@
     procedure SendValueChanged(const ValueIndex: Integer;
       const Time: TVRMLTime); virtual; abstract;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Event: SFBool, in } { }
     private FEventnext: TVRMLEvent;
@@ -73,7 +73,7 @@
 
   TNodeX3DTriggerNode = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   TNodeBooleanFilter = class(TNodeX3DChildNode)
@@ -81,7 +81,7 @@
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -109,7 +109,7 @@
     procedure SendValueChanged(const ValueIndex: Integer;
       const Time: TVRMLTime); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -128,7 +128,7 @@
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -147,7 +147,7 @@
     procedure EventSet_triggerTimeReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -167,7 +167,7 @@
     procedure SendValueChanged(const ValueIndex: Integer;
       const Time: TVRMLTime); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -186,7 +186,7 @@
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -209,7 +209,7 @@
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -227,8 +227,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DSequencerNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DSequencerNode.CreateNode;
 begin
   inherited;
 
@@ -346,16 +345,14 @@ begin
   end;
 end;
 
-constructor TNodeX3DTriggerNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DTriggerNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeBooleanFilter.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeBooleanFilter.CreateNode;
 begin
   inherited;
 
@@ -406,8 +403,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeBooleanSequencer.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeBooleanSequencer.CreateNode;
 begin
   inherited;
 
@@ -448,8 +444,7 @@ begin
     EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
 end;
 
-constructor TNodeBooleanToggle.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeBooleanToggle.CreateNode;
 begin
   inherited;
 
@@ -492,8 +487,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeBooleanTrigger.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeBooleanTrigger.CreateNode;
 begin
   inherited;
 
@@ -532,8 +526,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeIntegerSequencer.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeIntegerSequencer.CreateNode;
 begin
   inherited;
 
@@ -575,8 +568,7 @@ begin
     EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
 end;
 
-constructor TNodeIntegerTrigger.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeIntegerTrigger.CreateNode;
 begin
   inherited;
 
@@ -621,8 +613,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeTimeTrigger.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTimeTrigger.CreateNode;
 begin
   inherited;
 

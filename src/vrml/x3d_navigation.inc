@@ -24,7 +24,7 @@
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     private FFdOrientation: TSFRotation;
@@ -113,7 +113,7 @@
 
   TNodeX3DViewpointNode = class(TVRMLViewpointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdcenterOfRotation: TSFVec3f;
     public property FdcenterOfRotation: TSFVec3f read FFdcenterOfRotation;
@@ -147,7 +147,7 @@
       Func: TEnumerateChildrenFunction); override;
     procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -173,7 +173,7 @@
       Func: TEnumerateChildrenFunction;
       StateStack: TVRMLGraphTraverseStateStack); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -222,7 +222,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdcenter: TSFVec3f;
@@ -244,7 +244,7 @@
 
   TNodeLOD_2 = class(TVRMLLODNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -267,7 +267,7 @@
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -301,7 +301,7 @@
 
   TNodeOrthoViewpoint = class(TNodeX3DViewpointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -328,7 +328,7 @@
 
   TNodeViewpoint = class(TNodeX3DViewpointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -375,7 +375,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -402,8 +402,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TVRMLViewpointNode.Create(
-  const ANodeName: string; const AWWWBasePath: string);
+procedure TVRMLViewpointNode.CreateNode;
 begin
   inherited;
 
@@ -502,8 +501,7 @@ begin
   Result := ntcViewpoint;
 end;
 
-constructor TNodeX3DViewpointNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DViewpointNode.CreateNode;
 begin
   inherited;
 
@@ -541,8 +539,7 @@ begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
 
-constructor TNodeBillboard.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeBillboard.CreateNode;
 begin
   inherited;
 
@@ -656,8 +653,7 @@ begin
   Result := ntcTransform;
 end;
 
-constructor TNodeCollision.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCollision.CreateNode;
 begin
   inherited;
 
@@ -759,7 +755,7 @@ begin
   end;
 end;
 
-constructor TVRMLLODNode.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TVRMLLODNode.CreateNode;
 begin
   inherited;
 
@@ -809,7 +805,7 @@ begin
   Result := ntcLOD;
 end;
 
-constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeLOD_2.CreateNode;
 begin
   inherited;
   FdChildren.AddAlternativeName('level', 2);
@@ -854,8 +850,7 @@ begin
     true, 3, 0, 1000);
 end;
 
-constructor TNodeNavigationInfo.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNavigationInfo.CreateNode;
 begin
   inherited;
 
@@ -929,8 +924,7 @@ begin
       GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
-constructor TNodeOrthoViewpoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeOrthoViewpoint.CreateNode;
 begin
   inherited;
 
@@ -1061,8 +1055,7 @@ begin
   end;
 end;
 
-constructor TNodeViewpoint.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeViewpoint.CreateNode;
 begin
   inherited;
 
@@ -1152,8 +1145,7 @@ begin
     1, 100); { TODO: near, far projection testing values }
 end;
 
-constructor TNodeViewpointGroup.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeViewpointGroup.CreateNode;
 begin
   inherited;
 

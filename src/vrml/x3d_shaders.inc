@@ -17,7 +17,7 @@
   { }
   TNodeX3DShaderNode = class(TNodeX3DAppearanceChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Event: SFBool, in } { }
     private FEventactivate: TVRMLEvent;
@@ -37,7 +37,7 @@
 
   TNodeX3DVertexAttributeNode = class(TNodeX3DGeometricPropertyNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdname: TSFString;
     public property Fdname: TSFString read FFdname;
@@ -49,7 +49,7 @@
 
   TNodeComposedShader = class(TNodeX3DShaderNode, INodeX3DProgrammableShaderObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -67,7 +67,7 @@
 
   TNodeFloatVertexAttribute = class(TNodeX3DVertexAttributeNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -82,7 +82,7 @@
 
   TNodeMatrix3VertexAttribute = class(TNodeX3DVertexAttributeNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -94,7 +94,7 @@
 
   TNodeMatrix4VertexAttribute = class(TNodeX3DVertexAttributeNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -106,7 +106,7 @@
 
   TNodePackagedShader = class(TNodeX3DShaderNode, INodeX3DUrlObject, INodeX3DProgrammableShaderObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -118,7 +118,7 @@
 
   TNodeProgramShader = class(TNodeX3DShaderNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -143,7 +143,7 @@
   private
     FUsedFullUrl: string;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -176,7 +176,7 @@
 
   TNodeShaderProgram = class(TNodeX3DNode, INodeX3DUrlObject, INodeX3DProgrammableShaderObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -191,8 +191,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DShaderNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DShaderNode.CreateNode;
 begin
   inherited;
 
@@ -214,8 +213,7 @@ begin
   DefaultContainerField := 'shaders';
 end;
 
-constructor TNodeX3DVertexAttributeNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DVertexAttributeNode.CreateNode;
 begin
   inherited;
 
@@ -226,8 +224,7 @@ begin
   DefaultContainerField := 'attrib';
 end;
 
-constructor TNodeComposedShader.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeComposedShader.CreateNode;
 begin
   inherited;
 
@@ -279,8 +276,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeFloatVertexAttribute.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeFloatVertexAttribute.CreateNode;
 begin
   inherited;
 
@@ -313,8 +309,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMatrix3VertexAttribute.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMatrix3VertexAttribute.CreateNode;
 begin
   inherited;
 
@@ -342,8 +337,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMatrix4VertexAttribute.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMatrix4VertexAttribute.CreateNode;
 begin
   inherited;
 
@@ -371,8 +365,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePackagedShader.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePackagedShader.CreateNode;
 begin
   inherited;
 
@@ -403,8 +396,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeProgramShader.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeProgramShader.CreateNode;
 begin
   inherited;
 
@@ -469,8 +461,7 @@ begin
   end;
 end;
 
-constructor TNodeShaderPart.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeShaderPart.CreateNode;
 begin
   inherited;
 
@@ -605,8 +596,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeShaderProgram.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeShaderProgram.CreateNode;
 begin
   inherited;
 

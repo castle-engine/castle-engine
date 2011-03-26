@@ -131,7 +131,7 @@
   protected
     function CycleInterval: TKamTime; virtual; abstract;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
 
     private FFdloop: TSFBool;
@@ -172,7 +172,7 @@
   protected
     function CycleInterval: TKamTime; override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
@@ -566,8 +566,7 @@ end;
 
 { VRML/X3D nodes ------------------------------------------------------------- }
 
-constructor TNodeX3DTimeDependentNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DTimeDependentNode.CreateNode;
 begin
   inherited;
 
@@ -632,8 +631,7 @@ begin
   Result := FTimeDependentNodeHandler;
 end;
 
-constructor TNodeTimeSensor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTimeSensor.CreateNode;
 begin
   inherited;
 

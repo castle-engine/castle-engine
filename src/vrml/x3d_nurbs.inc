@@ -23,7 +23,7 @@
   { }
   TNodeX3DNurbsControlCurveNode = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdcontrolPoint: TMFVec2d;
     public property FdcontrolPoint: TMFVec2d read FFdcontrolPoint;
@@ -37,7 +37,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdcontrolPoint: TSFNode;
     public property FdcontrolPoint: TSFNode read FFdcontrolPoint;
@@ -94,7 +94,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -122,7 +122,7 @@
 
   TNodeContourPolyline2D = class(TNodeX3DNurbsControlCurveNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -131,7 +131,7 @@
 
   TNodeCoordinateDouble = class(TNodeX3DCoordinateNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -148,7 +148,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -187,7 +187,7 @@
 
   TNodeNurbsCurve2D = class(TNodeX3DNurbsControlCurveNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -217,7 +217,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -246,7 +246,7 @@
 
   TNodeNurbsPatchSurface = class(TNodeX3DNurbsSurfaceGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -271,7 +271,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -302,7 +302,7 @@
 
   TNodeNurbsSet = class(TNodeX3DChildNode, INodeX3DBoundedObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -342,7 +342,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -390,7 +390,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -422,7 +422,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -451,7 +451,7 @@
 
   TNodeNurbsTextureCoordinate = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -487,7 +487,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -516,8 +516,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DNurbsControlCurveNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DNurbsControlCurveNode.CreateNode;
 begin
   inherited;
 
@@ -528,8 +527,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeX3DNurbsSurfaceGeometryNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DNurbsSurfaceGeometryNode.CreateNode;
 begin
   inherited;
 
@@ -615,8 +613,7 @@ begin
   FdtexCoord.EnumerateValid(Func);
 end;
 
-constructor TNodeContour2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeContour2D.CreateNode;
 begin
   inherited;
 
@@ -665,8 +662,7 @@ end;
 {$define TGeometryNotImplemented := TNodeContour2D}
 GeometryNotImplemented
 
-constructor TNodeContourPolyline2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeContourPolyline2D.CreateNode;
 begin
   inherited;
 
@@ -692,8 +688,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCoordinateDouble.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCoordinateDouble.CreateNode;
 begin
   inherited;
 
@@ -728,8 +723,7 @@ begin
   Result := FdPoint.Items.Count;
 end;
 
-constructor TNodeNurbsCurve_3.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsCurve_3.CreateNode;
 begin
   inherited;
 
@@ -830,7 +824,7 @@ begin
   Increase := (Knot.Last - Knot.First) / (Tess - 1);
 
   { make resulting Coordinate node }
-  ResultCoord := TNodeCoordinate.Create('', '');
+  ResultCoord := TNodeCoordinate.Create('', LS.WWWBasePath, LS.Cache);
   LS.FdCoord.Value := ResultCoord;
 
   { calculate result Coordinate.point field }
@@ -852,7 +846,7 @@ function TNodeNurbsCurve_3.Proxy(var State: TVRMLGraphTraverseState;
 var
   ControlPoint: TDynVector3SingleArray;
 begin
-  Result := TNodeLineSet.Create(NodeName, WWWBasePath);
+  Result := TNodeLineSet.Create(NodeName, WWWBasePath, Cache);
   try
     { TODO: we should handle here all TNodeX3DCoordinateNode }
     if (FdControlPoint.Value <> nil) and
@@ -898,8 +892,7 @@ begin
   Result := 0;
 end;
 
-constructor TNodeNurbsCurve2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsCurve2D.CreateNode;
 begin
   inherited;
 
@@ -949,8 +942,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeNurbsOrientationInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsOrientationInterpolator.CreateNode;
 begin
   inherited;
 
@@ -1052,8 +1044,7 @@ begin
   EventValue_Changed.Send(Orientation, Time);
 end;
 
-constructor TNodeNurbsPatchSurface.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsPatchSurface.CreateNode;
 begin
   inherited;
 end;
@@ -1236,11 +1227,11 @@ begin
   VIncrease := (VKnot.Last - VKnot.First) / (VTess - 1);
 
   { make resulting Coordinate and Normal nodes }
-  QS.FdCoord.Value := TNodeCoordinate.Create('', '');
+  QS.FdCoord.Value := TNodeCoordinate.Create('', QS.WWWBasePath, QS.Cache);
   ResultCoord := (QS.FdCoord.Value as TNodeCoordinate).FdPoint.Items;
   ResultCoord.Count := UTess * VTess;
 
-  QS.FdNormal.Value := TNodeNormal.Create('', '');
+  QS.FdNormal.Value := TNodeNormal.Create('', QS.WWWBasePath, QS.Cache);
   ResultNormal := (QS.FdNormal.Value as TNodeNormal).FdVector.Items;
   ResultNormal.Count := UTess * VTess;
 
@@ -1296,7 +1287,7 @@ begin
       (or cube for 3D coordinates) are generated automatically
       from the parametric subdivision.". I think this means that tex coords
       S/T = 0..1 range from starting to ending knot. }
-    QS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', '');
+    QS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', QS.WWWBasePath, QS.Cache);
     ResultTexCoord := (QS.FdTexCoord.Value as TNodeTextureCoordinate).FdPoint.Items;
     ResultTexCoord.Count := UTess * VTess;
     for I := 0 to UTess - 1 do
@@ -1315,7 +1306,7 @@ function TNodeNurbsPatchSurface.Proxy(var State: TVRMLGraphTraverseState;
 var
   ControlPoint: TDynVector3SingleArray;
 begin
-  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
+  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath, Cache);
   try
     { TODO: we should handle here all TNodeX3DCoordinateNode }
     if (FdControlPoint.Value <> nil) and
@@ -1387,8 +1378,7 @@ begin
     Result := 0;
 end;
 
-constructor TNodeNurbsPositionInterpolator_3.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsPositionInterpolator_3.CreateNode;
 begin
   inherited;
 
@@ -1487,8 +1477,7 @@ begin
   EventValue_Changed.Send(OutputValue, Time);
 end;
 
-constructor TNodeNurbsSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsSet.CreateNode;
 begin
   inherited;
 
@@ -1537,8 +1526,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeNurbsSurfaceInterpolator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsSurfaceInterpolator.CreateNode;
 begin
   inherited;
 
@@ -1695,8 +1683,7 @@ begin
   EventNormal_Changed.Send(OutputNormal, Time);
 end;
 
-constructor TNodeNurbsSweptSurface.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsSweptSurface.CreateNode;
 begin
   inherited;
 
@@ -1748,8 +1735,7 @@ end;
 {$define TGeometryNotImplemented := TNodeNurbsSweptSurface}
 GeometryNotImplemented
 
-constructor TNodeNurbsSwungSurface.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsSwungSurface.CreateNode;
 begin
   inherited;
 
@@ -1801,8 +1787,7 @@ end;
 {$define TGeometryNotImplemented := TNodeNurbsSwungSurface}
 GeometryNotImplemented
 
-constructor TNodeNurbsTextureCoordinate.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsTextureCoordinate.CreateNode;
 begin
   inherited;
 
@@ -1866,8 +1851,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeNurbsTrimmedSurface.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNurbsTrimmedSurface.CreateNode;
 begin
   inherited;
 

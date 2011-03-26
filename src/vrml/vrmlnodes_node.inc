@@ -73,6 +73,7 @@
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
     FEventsEngine: TVRMLEventsEngine;
+    FCache: TVRMLNodesCache;
 
     { Internally used by PROTO instantiating mechanism,
       in TVRMLPrototypeNode.InstantiateIsClauses
@@ -224,6 +225,8 @@
 
     { Called at the end of parsing (in both classic and XML encoding). }
     procedure ParseAfter(Names: TVRMLNames); virtual;
+
+    procedure CreateNode; virtual;
   public
     { Node fields.
 
@@ -468,16 +471,21 @@
     { Parse node body, i.e. mainly node's fields. }
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
 
-    { Constructor. Initializes NodeName, WWWBasePath from given parameters.
+    { Constructor. Initializes various properties:
 
-      Every node class also initializes the @link(Fields) table
-      in the constructor, defining it's fields and setting them to their
-      default values.
-
-      VRML 1.0 nodes may also want to adjust AllowedChildren
-      and ParsingAllowedChildren now. In the TVRMLNode class, they are simply
-      initialized to @false. }
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); virtual;
+      @unorderedList(
+        @item(NodeName, WWWBasePath, Cache are initialized
+          directly from given parameters.)
+        @item(The @link(Fields), @link(Events) lists are filled
+          in every descendant, to have all the fields/events defined
+          by the specification.)
+        @item(DefaultContainerField, and other node-specific
+          stuff, is filled in descendants. This is actually implemented
+          in CreateNode, that is called at the end of this constructor.)
+      )
+    }
+    constructor Create(const ANodeName: string; const AWWWBasePath: string;
+      ACache: TVRMLNodesCache); virtual;
 
     destructor Destroy; override;
 
@@ -1072,6 +1080,8 @@
       that would be quite slow.
       @exclude }
     function TransformationChange: TNodeTransformationChange; virtual;
+
+    property Cache: TVRMLNodesCache read FCache;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -1118,7 +1128,7 @@ end;
 
 { TVRMLNode ------------------------------------------------------------------ }
 
-constructor TVRMLNode.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TVRMLNode.Create(const ANodeName: string; const AWWWBasePath: string; ACache: TVRMLNodesCache);
 begin
   inherited Create;
   FAllowedChildren := false;
@@ -1143,6 +1153,10 @@ begin
   FInterfaceDeclarations := nil;
 
   FDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
+
+  FCache := ACache;
+
+  CreateNode;
 end;
 
 destructor TVRMLNode.Destroy;
@@ -2038,6 +2052,10 @@ procedure TVRMLNode.ParseAfter(Names: TVRMLNames);
 begin
 end;
 
+procedure TVRMLNode.CreateNode;
+begin
+end;
+
 type
   TEnumerateNodes0Enumerator = class
     Proc: TVRMLNodeProc;
@@ -2847,7 +2865,7 @@ end;
 
 function TVRMLNode.DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
 begin
-  Result := TVRMLNodeClass(ClassType).Create(NodeName, WWWBasePath);
+  Result := TVRMLNodeClass(ClassType).Create(NodeName, WWWBasePath, Cache);
 end;
 
 function TVRMLNode.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;

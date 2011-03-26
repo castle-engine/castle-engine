@@ -72,11 +72,10 @@
       OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
   public
-    { Constructor.
-
+    { Constructor for node.
       Only sets DefaultContainerField to 'geometry', since this is valid
       for all X3D nodes descending from TVRMLGeometryNode. }
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Calculate bounding box of this geometry node.
       They require State of this node during VRML traverse state --- this
@@ -392,7 +391,7 @@
 
   TNodeX3DColorNode = class(TNodeX3DGeometricPropertyNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   TNodeX3DComposedGeometryNode = class(TNodeX3DGeometryNode)
@@ -400,7 +399,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdattrib: TMFNode;
     public property Fdattrib: TMFNode read FFdattrib;
@@ -455,7 +454,7 @@
 
   TNodeX3DCoordinateNode = class(TNodeX3DGeometricPropertyNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Count of coordinates within. }
     function CoordCount: Cardinal; virtual; abstract;
@@ -466,7 +465,7 @@
 
   TNodeClipPlane = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -481,7 +480,7 @@
 
   TNodeColor = class(TNodeX3DColorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -493,7 +492,7 @@
 
   TNodeColorRGBA = class(TNodeX3DColorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -505,7 +504,7 @@
 
   TNodeCoordinate = class(TNodeX3DCoordinateNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -524,7 +523,7 @@
     procedure EventSet_CoordIndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -580,7 +579,7 @@
     procedure EventSet_IndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -608,7 +607,7 @@
     procedure EventSet_IndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -636,7 +635,7 @@
     procedure EventSet_IndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -664,7 +663,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -703,7 +702,7 @@
 
   TNodeNormal = class(TNodeX3DNormalNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     { TNodeNormal, as probably the only node in the engine right now,
@@ -724,7 +723,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -759,7 +758,7 @@
 
   TNodeTriangleFanSet = class(TNodeX3DComposedGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -782,7 +781,7 @@
 
   TNodeTriangleSet = class(TNodeX3DComposedGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -798,7 +797,7 @@
 
   TNodeTriangleStripSet = class(TNodeX3DComposedGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -824,8 +823,7 @@
 
 { TVRMLGeometryNode ---------------------------------------------------------- }
 
-constructor TVRMLGeometryNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TVRMLGeometryNode.CreateNode;
 begin
   inherited;
 
@@ -1008,16 +1006,14 @@ end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }
 
-constructor TNodeX3DColorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DColorNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'color';
 end;
 
-constructor TNodeX3DComposedGeometryNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DComposedGeometryNode.CreateNode;
 begin
   inherited;
 
@@ -1141,16 +1137,14 @@ begin
   FdtexCoord.EnumerateValid(Func);
 end;
 
-constructor TNodeX3DCoordinateNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DCoordinateNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'coord';
 end;
 
-constructor TNodeClipPlane.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeClipPlane.CreateNode;
 begin
   inherited;
 
@@ -1188,8 +1182,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeColor.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeColor.CreateNode;
 begin
   inherited;
 
@@ -1220,8 +1213,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeColorRGBA.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeColorRGBA.CreateNode;
 begin
   inherited;
 
@@ -1250,8 +1242,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCoordinate.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCoordinate.CreateNode;
 begin
   inherited;
 
@@ -1287,8 +1278,7 @@ begin
   Result := FdPoint.Items.Count;
 end;
 
-constructor TNodeIndexedLineSet_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeIndexedLineSet_2.CreateNode;
 begin
   inherited;
 
@@ -1422,8 +1412,7 @@ begin
     EventsEngine.ChangedField(FdCoordIndex);
 end;
 
-constructor TNodeIndexedTriangleFanSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeIndexedTriangleFanSet.CreateNode;
 begin
   inherited;
 
@@ -1470,8 +1459,7 @@ begin
     EventsEngine.ChangedField(FdIndex);
 end;
 
-constructor TNodeIndexedTriangleSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeIndexedTriangleSet.CreateNode;
 begin
   inherited;
 
@@ -1518,8 +1506,7 @@ begin
     EventsEngine.ChangedField(FdIndex);
 end;
 
-constructor TNodeIndexedTriangleStripSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeIndexedTriangleStripSet.CreateNode;
 begin
   inherited;
 
@@ -1566,8 +1553,7 @@ begin
     EventsEngine.ChangedField(FdIndex);
 end;
 
-constructor TNodeLineSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLineSet.CreateNode;
 begin
   inherited;
 
@@ -1672,8 +1658,7 @@ begin
   FdfogCoord.EnumerateValid(Func);
 end;
 
-constructor TNodeNormal.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeNormal.CreateNode;
 begin
   inherited;
 
@@ -1697,8 +1682,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePointSet_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePointSet_2.CreateNode;
 begin
   inherited;
 
@@ -1793,8 +1777,7 @@ begin
   FdfogCoord.EnumerateValid(Func);
 end;
 
-constructor TNodeTriangleFanSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTriangleFanSet.CreateNode;
 begin
   inherited;
 
@@ -1835,8 +1818,7 @@ begin
   Result := true;
 end;
 
-constructor TNodeTriangleSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTriangleSet.CreateNode;
 begin
   inherited;
 end;
@@ -1860,8 +1842,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeTriangleStripSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTriangleStripSet.CreateNode;
 begin
   inherited;
 

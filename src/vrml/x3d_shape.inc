@@ -23,7 +23,7 @@
 
   TNodeX3DMaterialNode = class(TNodeX3DAppearanceChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   TNodeAppearance = class;
@@ -45,7 +45,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdappearance: TSFNode;
     public property Fdappearance: TSFNode read FFdappearance;
@@ -112,7 +112,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -166,7 +166,7 @@
 
   TNodeFillProperties = class(TNodeX3DAppearanceChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -187,7 +187,7 @@
 
   TNodeLineProperties = class(TNodeX3DAppearanceChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -207,7 +207,7 @@
 
   TNodeMaterial_2 = class(TNodeX3DMaterialNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -341,7 +341,7 @@
 
   TNodeShape = class(TNodeX3DShapeNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -350,7 +350,7 @@
 
   TNodeTwoSidedMaterial = class(TNodeX3DMaterialNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -399,8 +399,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DMaterialNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DMaterialNode.CreateNode;
 begin
   inherited;
 
@@ -411,8 +410,7 @@ begin
   DefaultContainerField := 'material';
 end;
 
-constructor TNodeX3DShapeNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DShapeNode.CreateNode;
 begin
   inherited;
 
@@ -505,7 +503,7 @@ begin
     App.FdMaterial.Value := Value else
   if Value <> nil then
   begin
-    App := TNodeAppearance.Create('', WWWBasePath);
+    App := TNodeAppearance.Create('', WWWBasePath, Cache);
     Appearance := App;
     App.FdMaterial.Value := Value;
   end;
@@ -532,7 +530,7 @@ begin
     App.FdTexture.Value := Value else
   if Value <> nil then
   begin
-    App := TNodeAppearance.Create('', WWWBasePath);
+    App := TNodeAppearance.Create('', WWWBasePath, Cache);
     Appearance := App;
     App.FdTexture.Value := Value;
   end;
@@ -559,14 +557,13 @@ begin
     App.FdTextureTransform.Value := Value else
   if Value <> nil then
   begin
-    App := TNodeAppearance.Create('', WWWBasePath);
+    App := TNodeAppearance.Create('', WWWBasePath, Cache);
     Appearance := App;
     App.FdTextureTransform.Value := Value;
   end;
 end;
 
-constructor TNodeAppearance.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeAppearance.CreateNode;
 begin
   inherited;
 
@@ -680,8 +677,7 @@ begin
   FFdtextureTransform.EnumerateValid(Func);
 end;
 
-constructor TNodeFillProperties.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeFillProperties.CreateNode;
 begin
   inherited;
 
@@ -721,8 +717,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeLineProperties.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLineProperties.CreateNode;
 begin
   inherited;
 
@@ -759,8 +754,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMaterial_2.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMaterial_2.CreateNode;
 begin
   inherited;
 
@@ -969,8 +963,7 @@ end;
 
 { TNodeShape ----------------------------------------------------------------- }
 
-constructor TNodeShape.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeShape.CreateNode;
 begin
   inherited;
 end;
@@ -996,8 +989,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeTwoSidedMaterial.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTwoSidedMaterial.CreateNode;
 begin
   inherited;
 

@@ -54,7 +54,7 @@ function MakeVRMLCameraStr(const Version: TVRMLCameraVersion;
 
 { Constructs TVRMLNode defining camera with given properties. }
 function MakeVRMLCameraNode(const Version: TVRMLCameraVersion;
-  const WWWBasePath: string;
+  const WWWBasePath: string; Cache: TVRMLNodesCache;
   const Position, Direction, Up, GravityUp: TVector3Single): TVRMLNode;
 
 implementation
@@ -189,7 +189,7 @@ begin
 end;
 
 function MakeVRMLCameraNode(const Version: TVRMLCameraVersion;
-  const WWWBasePath: string;
+  const WWWBasePath: string; Cache: TVRMLNodesCache;
   const Position, Direction, Up, GravityUp: TVector3Single): TVRMLNode;
 var
   RotationVectorForGravity: TVector3Single;
@@ -206,8 +206,8 @@ begin
     { Then GravityUp is parallel to DefaultVRMLGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
     case Version of
-      1: ViewpointNode := TNodePerspectiveCamera.Create('', '');
-      2: ViewpointNode := TNodeViewpoint.Create('', '');
+      1: ViewpointNode := TNodePerspectiveCamera.Create('', WWWBasePath, Cache);
+      2: ViewpointNode := TNodeViewpoint.Create('', WWWBasePath, Cache);
       else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
     end;
     ViewpointNode.Position.Value := Position;
@@ -234,15 +234,15 @@ begin
       RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity));
     case Version of
       1: begin
-           Transform_1 := TNodeTransform_1.Create('', '');
+           Transform_1 := TNodeTransform_1.Create('', WWWBasePath, Cache);
            Transform_1.FdTranslation.Value := Position;
            Transform_1.FdRotation.Value := Rotation;
 
-           ViewpointNode := TNodePerspectiveCamera.Create('', '');
+           ViewpointNode := TNodePerspectiveCamera.Create('', WWWBasePath, Cache);
            ViewpointNode.Position.Value := ZeroVector3Single;
            ViewpointNode.FdOrientation.Value := Orientation;
 
-           Separator := TNodeSeparator.Create('', '');
+           Separator := TNodeSeparator.Create('', WWWBasePath, Cache);
            Separator.VRML1ChildAdd(Transform_1);
            Separator.VRML1ChildAdd(ViewpointNode);
 
@@ -250,11 +250,11 @@ begin
          end;
 
       2: begin
-           Transform_2 := TNodeTransform_2.Create('', '');
+           Transform_2 := TNodeTransform_2.Create('', WWWBasePath, Cache);
            Transform_2.FdTranslation.Value := Position;
            Transform_2.FdRotation.Value := Rotation;
 
-           ViewpointNode := TNodeViewpoint.Create('', '');
+           ViewpointNode := TNodeViewpoint.Create('', WWWBasePath, Cache);
            ViewpointNode.Position.Value := ZeroVector3Single;
            ViewpointNode.FdOrientation.Value := Orientation;
 

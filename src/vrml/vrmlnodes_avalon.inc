@@ -26,7 +26,7 @@
       Func: TEnumerateChildrenFunction); override;
     procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -44,7 +44,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -77,7 +77,7 @@
     procedure EventWriteReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
@@ -103,7 +103,7 @@
     procedure EventInReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -125,7 +125,7 @@
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
@@ -216,7 +216,7 @@
 
   TNodePlane = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -244,7 +244,7 @@
     procedure EventResetReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -284,7 +284,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeMatrixTransform_2.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeMatrixTransform_2.CreateNode;
 begin
   inherited;
 
@@ -361,8 +361,7 @@ begin
   Result := ntcTransform;
 end;
 
-constructor TNodeTeapot.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTeapot.CreateNode;
 begin
   inherited;
 
@@ -419,9 +418,9 @@ var
   CoordNode: TNodeCoordinate;
   IFS: TNodeIndexedFaceSet_2 absolute Result;
 begin
-  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath, Cache);
   try
-    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+    CoordNode := TNodeCoordinate.Create('', WWWBasePath, Cache);
     IFS.FdCoord.Value := CoordNode;
     if FdManifold.Value then
       CoordNode.FdPoint.Items.AssignArray(TeapotManifoldCoord) else
@@ -467,8 +466,7 @@ begin
   Result := FdTexCoord;
 end;
 
-constructor TNodeLogger.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLogger.CreateNode;
 begin
   inherited;
 
@@ -629,8 +627,7 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeConverter.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeConverter.CreateNode;
 begin
   inherited;
 
@@ -675,8 +672,7 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeRenderedTexture.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeRenderedTexture.CreateNode;
 begin
   inherited;
 
@@ -806,8 +802,7 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePlane.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePlane.CreateNode;
 begin
   inherited;
 
@@ -869,7 +864,7 @@ begin
   inherited;
 end;
 
-constructor TNodeToggler.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeToggler.CreateNode;
 begin
   inherited;
 

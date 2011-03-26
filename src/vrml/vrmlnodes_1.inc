@@ -47,7 +47,7 @@
   end;
 
   TNodeAsciiText_1 = class(TVRMLGeometryNode_1)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdString: TMFString;
@@ -75,7 +75,7 @@
   end;
 
   TNodeCone_1 = class(TVRMLGeometryNode_1)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdParts: TSFBitMask;
@@ -101,7 +101,7 @@
   end;
 
   TNodeCube_1 = class(TVRMLGeometryNode_1)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdWidth: TSFFloat;
@@ -127,7 +127,7 @@
   end;
 
   TNodeCylinder_1 = class(TVRMLGeometryNode_1)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdParts: TSFBitMask;
@@ -156,7 +156,7 @@
     (IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet). }
   TVRMLIndexedNode_1 = class(TVRMLGeometryNode_1)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdCoordIndex: TMFLong;
     public property FdCoordIndex: TMFLong read FFdCoordIndex;
@@ -184,7 +184,7 @@
 
   TNodeIndexedFaceSet_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     class function ClassNodeTypeName: string; override;
 
@@ -217,7 +217,7 @@
   private
     CoordSubrange: TMFVec3f;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
 
@@ -235,7 +235,7 @@
   end;
 
   TNodeSphere_1 = class(TVRMLGeometryNode_1)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdRadius: TSFFloat;
@@ -255,7 +255,7 @@
   end;
 
   TNodeCoordinate3 = class(TNodeX3DChildNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdPoint: TMFVec3f;
@@ -267,7 +267,7 @@
 
   TNodeFontStyle_1 = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdSize: TSFFloat;
@@ -292,7 +292,7 @@
   end;
 
   TNodeInfo = class(TNodeX3DChildNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdString: TSFString;
@@ -307,7 +307,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdRange: TMFFloat;
@@ -326,7 +326,7 @@
   TVRMLMaterialInfo_1 = class;
 
   TNodeMaterial_1 = class(TNodeX3DChildNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdAmbientColor: TMFColor;
@@ -452,7 +452,7 @@
   end;
 
   TNodeMaterialBinding = class(TNodeX3DChildNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdValue: TSFEnum;
@@ -463,7 +463,7 @@
   end;
 
   TNodeNormalBinding = class(TNodeX3DChildNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdValue: TSFEnum;
@@ -485,8 +485,7 @@
       texture. }
     procedure LoadTextureData(out CacheUsed: boolean); override;
   public
-    constructor Create(const ANodeName: string;
-      const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdFilename: TSFString;
@@ -523,7 +522,7 @@
   protected
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdTranslation: TSFVec2f;
@@ -545,7 +544,7 @@
   end;
 
   TNodeTextureCoordinate2 = class(TNodeX3DChildNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdPoint: TMFVec2f;
@@ -560,7 +559,7 @@
     function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdVertexOrdering: TSFEnum;
@@ -594,7 +593,7 @@
 
   { VRML 1.0 MatrixTransform node. }
   TNodeMatrixTransform_1 = class(TVRMLTransformationNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdMatrix: TSFMatrix;
@@ -622,7 +621,7 @@
   end;
 
   TNodeRotation = class(TVRMLTransformationNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdRotation: TSFRotation;
@@ -633,7 +632,7 @@
   end;
 
   TNodeScale = class(TVRMLTransformationNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdScaleFactor: TSFVec3f;
@@ -645,7 +644,7 @@
 
   TNodeTransform_1 = class(TVRMLTransformationNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdTranslation: TSFVec3f;
@@ -671,7 +670,7 @@
   end;
 
   TNodeTranslation = class(TVRMLTransformationNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdTranslation: TSFVec3f;
@@ -684,7 +683,7 @@
   { Common base class for all cameras in VRML 1.0. }
   TVRMLCameraNode_1 = class(TVRMLViewpointNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
@@ -710,7 +709,7 @@
 
   TNodeOrthographicCamera = class(TVRMLCameraNode_1)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     class function ClassNodeTypeName: string; override;
     class function ProjectionType: TProjectionType; override;
@@ -721,7 +720,7 @@
 
   TNodePerspectiveCamera = class(TVRMLCameraNode_1)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     class function ClassNodeTypeName: string; override;
     class function ProjectionType: TProjectionType; override;
@@ -732,7 +731,7 @@
 
   TNodeDirectionalLight_1 = class(TVRMLDirectionalLightNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -743,7 +742,7 @@
 
   TNodePointLight_1 = class(TVRMLPointLightNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -754,7 +753,7 @@
 
   TNodeSpotLight_1 = class(TVRMLPositionalLightNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdDirection: TSFVec3f;
@@ -788,7 +787,7 @@
 
   TNodeGroup_1 = class(TNodeX3DChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -822,7 +821,7 @@
   protected
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { See IVRMLRootNode.SaveAsRootNode. }
     property SaveAsRootNode: boolean read FSaveAsRootNode write FSaveAsRootNode
@@ -858,7 +857,7 @@
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -866,7 +865,7 @@
 
   TNodeSeparator = class(TVRMLSeparatorNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdRenderCulling: TSFEnum;
@@ -878,7 +877,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdWhichChild: TSFLong;
@@ -899,7 +898,7 @@
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     function SuggestedVRMLVersion(
@@ -907,7 +906,7 @@
   end;
 
   TNodeWWWAnchor = class(TVRMLSeparatorNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdName: TSFString;
@@ -931,7 +930,7 @@
   protected
     function SeparateGroup: boolean; override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
     function SuggestedVRMLVersion(
@@ -957,7 +956,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeAsciiText_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeAsciiText_1.CreateNode;
 begin
   inherited;
 
@@ -988,7 +987,7 @@ begin
   Result := TVRMLFontJustify(FdJustification.Value);
 end;
 
-constructor TNodeCone_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeCone_1.CreateNode;
 begin
   inherited;
 
@@ -1015,7 +1014,7 @@ begin
   Result := true;
 end;
 
-constructor TNodeCube_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeCube_1.CreateNode;
 begin
   inherited;
 
@@ -1042,7 +1041,7 @@ begin
   Result := true;
 end;
 
-constructor TNodeCylinder_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeCylinder_1.CreateNode;
 begin
   inherited;
 
@@ -1069,7 +1068,7 @@ begin
   Result := true;
 end;
 
-constructor TVRMLIndexedNode_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TVRMLIndexedNode_1.CreateNode;
 begin
   inherited;
 
@@ -1104,7 +1103,7 @@ begin
   Result := FdCoordIndex;
 end;
 
-constructor TNodeIndexedFaceSet_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeIndexedFaceSet_1.CreateNode;
 begin
   inherited;
 
@@ -1160,7 +1159,7 @@ begin
     Result := false;
 end;
 
-constructor TNodePointSet_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodePointSet_1.CreateNode;
 begin
   inherited;
 
@@ -1241,7 +1240,7 @@ begin
   end;
 end;
 
-constructor TNodeSphere_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeSphere_1.CreateNode;
 begin
   inherited;
 
@@ -1260,7 +1259,7 @@ begin
   Result := true;
 end;
 
-constructor TNodeCoordinate3.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeCoordinate3.CreateNode;
 begin
   inherited;
 
@@ -1282,7 +1281,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeFontStyle_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeFontStyle_1.CreateNode;
 begin
   inherited;
 
@@ -1337,7 +1336,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeInfo.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeInfo.CreateNode;
 begin
   inherited;
 
@@ -1358,7 +1357,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeLOD_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeLOD_1.CreateNode;
 begin
   inherited;
 
@@ -1406,7 +1405,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeMaterial_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeMaterial_1.CreateNode;
 begin
   inherited;
 
@@ -1705,7 +1704,7 @@ begin
   Result := FNode.TransSpecularExp(FIndex);
 end;
 
-constructor TNodeMaterialBinding.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeMaterialBinding.CreateNode;
 begin
   inherited;
 
@@ -1727,7 +1726,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeNormalBinding.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeNormalBinding.CreateNode;
 begin
   inherited;
 
@@ -1749,7 +1748,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeTexture2.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeTexture2.CreateNode;
 begin
   inherited;
 
@@ -1849,7 +1848,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeTexture2Transform.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeTexture2Transform.CreateNode;
 begin
   inherited;
 
@@ -1901,7 +1900,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeTextureCoordinate2.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeTextureCoordinate2.CreateNode;
 begin
   inherited;
 
@@ -1923,8 +1922,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeShapeHints.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeShapeHints.CreateNode;
 begin
   inherited;
 
@@ -2013,7 +2011,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeMatrixTransform_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeMatrixTransform_1.CreateNode;
 begin
   inherited;
 
@@ -2051,7 +2049,7 @@ begin
   Result := VerMajor <= 1;
 end;
 
-constructor TNodeRotation.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeRotation.CreateNode;
 begin
   inherited;
 
@@ -2079,7 +2077,7 @@ begin
   Result := 1;
 end;
 
-constructor TNodeScale.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeScale.CreateNode;
 begin
   inherited;
 
@@ -2105,7 +2103,7 @@ begin
               FdScaleFactor.Value[2] ) / 3;
 end;
 
-constructor TNodeTransform_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeTransform_1.CreateNode;
 begin
   inherited;
 
@@ -2188,7 +2186,7 @@ begin
   Result := VerMajor <= 1;
 end;
 
-constructor TNodeTranslation.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeTranslation.CreateNode;
 begin
   inherited;
 
@@ -2213,8 +2211,7 @@ begin
   Result := 1;
 end;
 
-constructor TVRMLCameraNode_1.Create(
-  const ANodeName: string; const AWWWBasePath: string);
+procedure TVRMLCameraNode_1.CreateNode;
 begin
   inherited;
 
@@ -2249,8 +2246,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeOrthographicCamera.Create(
-  const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeOrthographicCamera.CreateNode;
 begin
   inherited;
 
@@ -2268,8 +2264,7 @@ begin
   result := ptOrthographic;
 end;
 
-constructor TNodePerspectiveCamera.Create(
-  const ANodeName: string; const AWWWBasePath: string);
+procedure TNodePerspectiveCamera.CreateNode;
 begin
   inherited;
 
@@ -2287,8 +2282,7 @@ begin
   result := ptPerspective;
 end;
 
-constructor TNodeDirectionalLight_1.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeDirectionalLight_1.CreateNode;
 begin
   inherited;
 
@@ -2311,8 +2305,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodePointLight_1.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePointLight_1.CreateNode;
 begin
   inherited;
 
@@ -2339,8 +2332,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeSpotLight_1.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeSpotLight_1.CreateNode;
 begin
   inherited;
 
@@ -2451,7 +2443,7 @@ begin
   Box3DDirectionDistances(Box, Location, Direction, MinDistance, MaxDistance);
 end;
 
-constructor TNodeGroup_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeGroup_1.CreateNode;
 begin
   inherited;
   fParsingAllowedChildren := true;
@@ -2476,8 +2468,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TVRMLRootNode_1.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TVRMLRootNode_1.CreateNode;
 begin
   inherited;
   FSaveAsRootNode := true;
@@ -2549,7 +2540,7 @@ begin
       true, ForceVersionMajor, ForceVersionMinor, 10 * 1000);
 end;
 
-constructor TVRMLSeparatorNode.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TVRMLSeparatorNode.CreateNode;
 begin
   inherited;
   fParsingAllowedChildren := true;
@@ -2599,7 +2590,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeSeparator.CreateNode;
 begin
   inherited;
 
@@ -2612,7 +2603,7 @@ begin
   result := 'Separator';
 end;
 
-constructor TNodeSwitch_1.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeSwitch_1.CreateNode;
 begin
   inherited;
 
@@ -2662,7 +2653,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeTransformSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeTransformSeparator.CreateNode;
 begin
   inherited;
   fParsingAllowedChildren := true;
@@ -2701,7 +2692,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeWWWAnchor.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeWWWAnchor.CreateNode;
 begin
   inherited;
 
@@ -2720,7 +2711,7 @@ begin
   result := 'WWWAnchor';
 end;
 
-constructor TNodeWWWInline.Create(const ANodeName: string; const AWWWBasePath: string);
+procedure TNodeWWWInline.CreateNode;
 begin
   inherited;
 

@@ -17,7 +17,7 @@
   { }
   TNodeArc2D = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -43,7 +43,7 @@
 
   TNodeArcClose2D = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -75,7 +75,7 @@
 
   TNodeCircle2D = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -91,7 +91,7 @@
 
   TNodeDisk2D = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -123,7 +123,7 @@
     In X3D normal name, "lineSegments", will be used. }
   TNodePolyline2D = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -143,7 +143,7 @@
 
   TNodePolypoint2D = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -163,7 +163,7 @@
 
   TNodeRectangle2D = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -182,7 +182,7 @@
 
   TNodeTriangleSet2D = class(TNodeX3DGeometryNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -206,8 +206,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeArc2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeArc2D.CreateNode;
 begin
   inherited;
 
@@ -252,8 +251,7 @@ end;
 {$define TGeometryNotImplemented := TNodeArc2D}
 GeometryNotImplemented
 
-constructor TNodeArcClose2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeArcClose2D.CreateNode;
 begin
   inherited;
 
@@ -309,8 +307,7 @@ end;
 {$define TGeometryNotImplemented := TNodeArcClose2D}
 GeometryNotImplemented
 
-constructor TNodeCircle2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeCircle2D.CreateNode;
 begin
   inherited;
 
@@ -349,11 +346,11 @@ var
   I: Integer;
   AngleSin, AngleCos: Float;
 begin
-  LineSet := TNodeLineSet.Create(NodeName, WWWBasePath);
+  LineSet := TNodeLineSet.Create(NodeName, WWWBasePath, Cache);
   try
     Slices := State.LastNodes.KambiTriangulation.QuadricSlices;
 
-    C := TNodeCoordinate.Create('', WWWBasePath);
+    C := TNodeCoordinate.Create('', WWWBasePath, Cache);
     C.FdPoint.Items.Count := Slices + 1;
     LineSet.FdCoord.Value := C;
 
@@ -378,8 +375,7 @@ begin
   Result := false;
 end;
 
-constructor TNodeDisk2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeDisk2D.CreateNode;
 begin
   inherited;
 
@@ -423,8 +419,7 @@ end;
 {$define TGeometryNotImplemented := TNodeDisk2D}
 GeometryNotImplemented
 
-constructor TNodePolyline2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePolyline2D.CreateNode;
 begin
   inherited;
 
@@ -461,8 +456,7 @@ end;
 {$define TGeometryNotImplemented := TNodePolyline2D}
 GeometryNotImplemented
 
-constructor TNodePolypoint2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePolypoint2D.CreateNode;
 begin
   inherited;
 
@@ -494,8 +488,7 @@ end;
 {$define TGeometryNotImplemented := TNodePolypoint2D}
 GeometryNotImplemented
 
-constructor TNodeRectangle2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeRectangle2D.CreateNode;
 begin
   inherited;
 
@@ -537,13 +530,13 @@ var
   TexCoord: TNodeTextureCoordinate;
   QuadSet: TNodeQuadSet absolute Result;
 begin
-  QuadSet := TNodeQuadSet.Create(Original.NodeName, Original.WWWBasePath);
+  QuadSet := TNodeQuadSet.Create(Original.NodeName, Original.WWWBasePath, Original.Cache);
   try
-    Coord := TNodeCoordinate.Create('', Original.WWWBasePath);
+    Coord := TNodeCoordinate.Create('', Original.WWWBasePath, Original.Cache);
     Coord.FdPoint.Items.Count := 4;
     QuadSet.FdCoord.Value := Coord;
 
-    TexCoord := TNodeTextureCoordinate.Create('', Original.WWWBasePath);
+    TexCoord := TNodeTextureCoordinate.Create('', Original.WWWBasePath, Original.Cache);
     TexCoord.FdPoint.Items.Count := 4;
     QuadSet.FdTexCoord.Value := TexCoord;
 
@@ -576,8 +569,7 @@ begin
   Result := false;
 end;
 
-constructor TNodeTriangleSet2D.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTriangleSet2D.CreateNode;
 begin
   inherited;
 

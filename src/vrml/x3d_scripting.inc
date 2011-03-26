@@ -36,7 +36,7 @@
     procedure ExecuteScript(const FunctionName: string;
       ReceivedValue: TVRMLField);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
 
     private FFdurl: TMFString;
@@ -71,7 +71,7 @@
     procedure IDeclEventReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -89,8 +89,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DScriptNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DScriptNode.CreateNode;
 begin
   inherited;
 
@@ -355,8 +354,7 @@ begin
     KambiScriptVariables.ResetLastEventTimes;
 end;
 
-constructor TNodeScript.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeScript.CreateNode;
 begin
   inherited;
 

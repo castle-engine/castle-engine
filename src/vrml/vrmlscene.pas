@@ -24,7 +24,7 @@ uses
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs, VRMLHeadLight,
-  RenderStateUnit, Base3D, VRMLShadowMaps, TextureImages;
+  RenderStateUnit, Base3D, VRMLShadowMaps;
 
 {$define read_interface}
 
@@ -845,7 +845,7 @@ type
     GeneratedTextures: TDynGeneratedTextureArray;
 
     { Cache used by this scene. Always initialized to non-nil by constructor. }
-    Cache: TTexturesImagesVideosCache;
+    FCache: TVRMLNodesCache;
     OwnsCache: boolean;
 
     { Called after PointingDeviceSensors or
@@ -860,7 +860,7 @@ type
     constructor Create(AOwner: TComponent); override;
 
     constructor CreateCustomCache(
-      AOwner: TComponent; ACache: TTexturesImagesVideosCache);
+      AOwner: TComponent; ACache: TVRMLNodesCache);
 
     { Load new 3D model (from VRML node tree).
       This replaces RootNode with new value.
@@ -1932,6 +1932,8 @@ type
       (or it has empty title) then returns last loaded FileName
       (without directory). }
     function Caption: string;
+
+    property Cache: TVRMLNodesCache read FCache;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing @link(Time).
@@ -2361,10 +2363,10 @@ begin
   if Cache = nil then
   begin
     { If cache not created yet (by descendants constructor),
-      create now TTexturesImagesVideosCache instance.
+      create now TVRMLNodesCache instance.
       Note that TVRMLGLScene *always* initializes Cache earlier. }
     OwnsCache := true;
-    Cache := TTexturesImagesVideosCache.Create;
+    FCache := TVRMLNodesCache.Create;
   end;
 
   FRootNode := nil;
@@ -2411,11 +2413,11 @@ begin
 end;
 
 constructor TVRMLScene.CreateCustomCache(
-  AOwner: TComponent; ACache: TTexturesImagesVideosCache);
+  AOwner: TComponent; ACache: TVRMLNodesCache);
 begin
   OwnsCache := false;
   Assert(ACache <> nil);
-  Cache := ACache;
+  FCache := ACache;
 
   Create(AOwner);
 end;
@@ -2467,8 +2469,8 @@ begin
   if OwnsRootNode then FreeAndNil(FRootNode);
 
   if OwnsCache then
-    FreeAndNil(Cache) else
-    Cache := nil;
+    FreeAndNil(FCache) else
+    FCache := nil;
 
   inherited;
 end;
@@ -2508,7 +2510,7 @@ begin
   { Note that if LoadVRML fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }
 
-  Load(LoadVRML(AFileName, AllowStdIn), true, AResetTime);
+  Load(LoadVRML(AFileName, Cache, AllowStdIn), true, AResetTime);
 
   FFileName := AFileName;
 end;
@@ -6366,7 +6368,7 @@ end;
 function TVRMLScene.CreateHeadLightInstance
   (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight;
 begin
-  Result := TVRMLHeadLight.Create(HeadLightNode);
+  Result := TVRMLHeadLight.Create(Cache, HeadLightNode);
 end;
 
 procedure TVRMLScene.SetHeadlightOn(const Value: boolean);

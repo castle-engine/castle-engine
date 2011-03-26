@@ -1301,9 +1301,13 @@ end;
 constructor TVRMLGLScene.Create(AOwner: TComponent);
 begin
   { inherited Create *may* call some virtual things overriden here
-    (although right now it doesn't):
-    - it may bind new viewpoint which may call ViewChangedSuddenly
-      which is overridden here and uses Attributes.
+    (although right now it doesn't): it may bind new viewpoint which
+    may call ViewChangedSuddenly which is overridden here and uses Attributes.
+
+    Also, we have to set FCache to our TVRMLGLRendererContextCache
+    (otherwise more generic TVRMLNodesCache would be created in ancestor
+    constructor).
+
     That's why I have to initialize them *before* "inherited Create" }
 
   { Cache may be already assigned, when we came here from
@@ -1311,7 +1315,7 @@ begin
   if Cache = nil then
   begin
     OwnsCache := true;
-    Cache := TVRMLGLRendererContextCache.Create;
+    FCache := TVRMLGLRendererContextCache.Create;
   end;
 
   { Renderer may be already assigned, when we came here from
@@ -1319,7 +1323,7 @@ begin
   if Renderer = nil then
   begin
     FOwnsRenderer := true;
-    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, 
+    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes,
       Cache as TVRMLGLRendererContextCache);
   end;
 
@@ -3526,11 +3530,6 @@ begin
           GroundColorCount := GroundAngleCount + 1;
       end;
 
-      { The call to BgNode.BgImages is important here, as it may actually
-        load the images from file. So first we want to set
-        BgNode.Cache as appropriate. }
-      BgNode.Cache := Renderer.Cache;
-
       FBackground := TVRMLGLBackground.Create(
         @(BgNode.FdGroundAngle.Items.Items[0]), GroundAngleCount,
         @(BgNode.FdGroundColor.Items.Items[0]), GroundColorCount,
@@ -3746,7 +3745,7 @@ end;
 function TVRMLGLScene.CreateHeadLightInstance
   (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight;
 begin
-  Result := TVRMLGLHeadLight.Create(HeadLightNode);
+  Result := TVRMLGLHeadLight.Create(Cache, HeadLightNode);
 end;
 
 function TVRMLGLScene.Headlight: TVRMLGLHeadlight;

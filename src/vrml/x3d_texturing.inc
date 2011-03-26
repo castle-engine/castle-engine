@@ -17,12 +17,12 @@
   { }
   TNodeX3DTextureCoordinateNode = class(TNodeX3DGeometricPropertyNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   TNodeX3DTextureNode = class(TNodeX3DAppearanceChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     { Short description how texture is defined, is it inline or loaded
       from URL, is it video of simple image texture.
@@ -75,9 +75,6 @@
 
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);
-  private
-    FCache: TTexturesImagesVideosCache;
-
     procedure FreeAndNilTextureData;
   protected
     FTextureUsedFullUrl: string;
@@ -117,8 +114,7 @@
       simple crashes). }
     procedure LoadTextureData(out WasCacheUsed: boolean); virtual;
   public
-    constructor Create(const ANodeName: string;
-      const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
 
     { TextureImage, TextureDDS and TextureVideo contain actual texture data.
@@ -131,8 +127,6 @@
       don't need to do anything. Just check and use them when you want,
       and things will just work. See IsTextureLoaded for more control
       about loading / unloading.
-
-      Be sure to set Cache before loading the texture data.
 
       Note that either one of TextureImage or TextureVideo may be @nil,
       if the other one is loaded. Or when loading failed with non-fatal
@@ -179,12 +173,6 @@
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
 
-    { Cache instance used to load images and videos.
-      Be sure to set Cache before loading the texture.
-      TODO: allow Cache to be @nil. }
-    property Cache: TTexturesImagesVideosCache
-      read FCache write FCache;
-
     function RepeatS: boolean; virtual; abstract;
     function RepeatT: boolean; virtual; abstract;
 
@@ -218,7 +206,7 @@
 
   TNodeX3DTexture2DNode = class(TVRML2DTextureNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdrepeatS: TSFBool;
     public property FdrepeatS: TSFBool read FFdrepeatS;
@@ -237,7 +225,7 @@
 
   TNodeX3DTextureTransformNode = class(TNodeX3DAppearanceChildNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     function TransformMatrix: TMatrix4Single; virtual; abstract;
   end;
@@ -246,7 +234,7 @@
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -268,7 +256,7 @@
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
@@ -340,7 +328,7 @@
 
   TNodeMultiTexture = class(TNodeX3DTextureNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -367,7 +355,7 @@
 
   TNodeMultiTextureCoordinate = class(TNodeX3DTextureCoordinateNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -379,7 +367,7 @@
 
   TNodeMultiTextureTransform = class(TNodeX3DTextureTransformNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -401,7 +389,7 @@
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -415,7 +403,7 @@
 
   TNodeTextureCoordinate = class(TNodeX3DTextureCoordinateNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -427,7 +415,7 @@
 
   TNodeTextureCoordinateGenerator = class(TNodeX3DTextureCoordinateNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -452,7 +440,7 @@
 
   TNodeTextureProperties = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -494,7 +482,7 @@
 
   TNodeTextureTransform = class(TNodeX3DTextureTransformNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -521,8 +509,7 @@
 
 { TNodeX3DTextureCoordinateNode ---------------------------------------------- }
 
-constructor TNodeX3DTextureCoordinateNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DTextureCoordinateNode.CreateNode;
 begin
   inherited;
 
@@ -533,8 +520,7 @@ end;
 
 { TNodeX3DTextureNode -------------------------------------------------------- }
 
-constructor TNodeX3DTextureNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DTextureNode.CreateNode;
 begin
   inherited;
 
@@ -553,8 +539,7 @@ end;
 
 { TVRML2DTextureNode ----------------------------------------------------------- }
 
-constructor TVRML2DTextureNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TVRML2DTextureNode.CreateNode;
 begin
   inherited;
 
@@ -704,8 +689,7 @@ end;
 
 { TNodeX3DTexture2DNode ------------------------------------------------------ }
 
-constructor TNodeX3DTexture2DNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DTexture2DNode.CreateNode;
 begin
   inherited;
 
@@ -743,16 +727,14 @@ begin
     Result := nil;
 end;
 
-constructor TNodeX3DTextureTransformNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DTextureTransformNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'textureTransform';
 end;
 
-constructor TNodeImageTexture.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeImageTexture.CreateNode;
 begin
   inherited;
 
@@ -882,8 +864,7 @@ begin
     Result := 'none';
 end;
 
-constructor TNodeMovieTexture.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMovieTexture.CreateNode;
 begin
   inherited;
 
@@ -1025,8 +1006,7 @@ begin
     Result := 'none';
 end;
 
-constructor TNodeMultiTexture.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMultiTexture.CreateNode;
 begin
   inherited;
 
@@ -1076,8 +1056,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMultiTextureCoordinate.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMultiTextureCoordinate.CreateNode;
 begin
   inherited;
 
@@ -1105,8 +1084,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeMultiTextureTransform.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeMultiTextureTransform.CreateNode;
 begin
   inherited;
 
@@ -1140,8 +1118,7 @@ begin
   Result := IdentityMatrix4Single; { avoid warnings that result not set }
 end;
 
-constructor TNodePixelTexture.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodePixelTexture.CreateNode;
 begin
   inherited;
 
@@ -1189,8 +1166,7 @@ begin
     result := 'none';
 end;
 
-constructor TNodeTextureCoordinate.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTextureCoordinate.CreateNode;
 begin
   inherited;
 
@@ -1221,8 +1197,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeTextureCoordinateGenerator.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTextureCoordinateGenerator.CreateNode;
 begin
   inherited;
 
@@ -1272,8 +1247,7 @@ begin
   Result := 'TextureCoordGen';
 end;
 
-constructor TNodeTextureProperties.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTextureProperties.CreateNode;
 begin
   inherited;
 
@@ -1356,8 +1330,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeTextureTransform.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeTextureTransform.CreateNode;
 begin
   inherited;
 

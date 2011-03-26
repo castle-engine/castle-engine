@@ -17,7 +17,7 @@
   { }
   TNodeX3DLayerNode = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
 
     private FFdisPickable: TSFBool;
     public property FdisPickable: TSFBool read FFdisPickable;
@@ -28,12 +28,12 @@
 
   TNodeX3DViewportNode = class(TNodeX3DGroupingNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
   end;
 
   TNodeLayer = class(TNodeX3DLayerNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -53,7 +53,7 @@
 
   TNodeLayerSet = class(TNodeX3DNode)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -71,7 +71,7 @@
 
   TNodeViewport = class(TNodeX3DGroupingNode, INodeX3DBoundedObject)
   public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -84,8 +84,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DLayerNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DLayerNode.CreateNode;
 begin
   inherited;
 
@@ -98,14 +97,12 @@ begin
   DefaultContainerField := 'layers';
 end;
 
-constructor TNodeX3DViewportNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeX3DViewportNode.CreateNode;
 begin
   inherited;
 end;
 
-constructor TNodeLayer.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLayer.CreateNode;
 begin
   inherited;
 
@@ -138,8 +135,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeLayerSet.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeLayerSet.CreateNode;
 begin
   inherited;
 
@@ -176,8 +172,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeViewport.Create(const ANodeName: string;
-  const AWWWBasePath: string);
+procedure TNodeViewport.CreateNode;
 begin
   inherited;
 
