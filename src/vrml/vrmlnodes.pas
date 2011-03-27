@@ -791,6 +791,8 @@ type
     procedure AddRegisteredImplementing(Interf: TGUID);
   end;
 
+  TAllowedChildren = (acAll, acClasses, acInterface);
+
   { VRML/X3D field holding a reference to a single node.
     It's defined in this unit, not in VRMLFields, since it uses
     TVRMLNode definition. NULL value of the field is indicated by
@@ -808,8 +810,9 @@ type
   private
     FValue: TVRMLNode;
     FParentNode: TVRMLNode;
-    FAllowedChildrenAll: boolean;
-    FAllowedChildren: TVRMLNodeClassesList;
+    AllowedChildren: TAllowedChildren;
+    AllowedChildrenClasses: TVRMLNodeClassesList;
+    AllowedChildrenInterface: TGUID;
     procedure SetValue(AValue: TVRMLNode);
   private
     FDefaultValue: TVRMLNode;
@@ -820,38 +823,26 @@ type
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject); override;
   public
+    { Construct a field allowing any children class.
+      Suitable only for special cases. For example, in instantiated prototypes,
+      we must initially just allow all children, otherwise valid prototypes
+      with SFNode/MFNode would cause warnings when parsing. }
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
       const AName: string); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
-      const AnAllowedChildren: array of TVRMLNodeClass;
+      const AAllowedChildrenClasses: array of TVRMLNodeClass;
       AValue: TVRMLNode = nil); overload;
-    { Constructor that takes AnAllowedChildren as TVRMNodeClassesList.
-      Note that we copy the contents of AnAllowedChildren, not the
-      reference. }
+    { Constructor that takes a list of allowed children classes.
+      Note that we copy the contents of AAllowedChildrenClasses,
+      not the reference. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
-      AnAllowedChildren: TVRMLNodeClassesList;
+      AAllowedChildrenClasses: TVRMLNodeClassesList;
       AValue: TVRMLNode = nil); overload;
-    { Constructor that initializes AllowedChildren to all
-      classes implementing AllowedChildrenInterface. }
+    { Constructor that allows as children any implementor of given interface. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
-      AllowedChildrenInterface: TGUID;
+      AnAllowedChildrenInterface: TGUID;
       AValue: TVRMLNode = nil); overload;
     destructor Destroy; override;
-
-    { This says that all children are allowed, regardless of
-      AllowedChildren value.
-
-      CreateUndefined creates always object with
-      AllowedChildrenAll = @true (otherwise AllowedChildren list is empty
-      and nothing would be allowed; but for e.g. fields in instantiated
-      prototypes, we must initially just allow all, otherwise valid prototypes
-      with SFNode/MFNode would cause warnings when parsing).
-
-      Other constructors set AllowedChildren
-      to something meaningful and set this to @false. You can change this
-      to @true then if you consciously want to turn this check off. }
-    property AllowedChildrenAll: boolean
-      read FAllowedChildrenAll write FAllowedChildrenAll;
 
     { DefaultValue of SFNode field.
 
@@ -948,8 +939,9 @@ type
     FDefaultItems: TVRMLNodesList;
     FDefaultValueExists: boolean;
     FParentNode: TVRMLNode;
-    FAllowedChildren: TVRMLNodeClassesList;
-    FAllowedChildrenAll: boolean;
+    AllowedChildren: TAllowedChildren;
+    AllowedChildrenClasses: TVRMLNodeClassesList;
+    AllowedChildrenInterface: TGUID;
     function GetItems(const Index: Integer): TVRMLNode;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
@@ -967,35 +959,23 @@ type
     procedure SetCount(const Value: Integer); override;
     { @groupEnd }
   public
+    { Construct a field allowing any children class.
+      Suitable only for special cases. For example, in instantiated prototypes,
+      we must initially just allow all children, otherwise valid prototypes
+      with SFNode/MFNode would cause warnings when parsing. }
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
       const AName: string); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
-      const AnAllowedChildren: array of TVRMLNodeClass); overload;
-    { Constructor that takes AnAllowedChildren as TVRMNodeClassesList.
-      Note that we copy the contents of AnAllowedChildren, not the
-      reference. }
+      const AAllowedChildrenClasses: array of TVRMLNodeClass); overload;
+    { Constructor that takes a list of allowed children classes.
+      Note that we copy the contents of AAllowedChildrenClasses,
+      not the reference. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
-      AnAllowedChildren: TVRMLNodeClassesList); overload;
-    { Constructor that initializes AllowedChildren to all
-      classes implementing AllowedChildrenInterface. }
+      AAllowedChildrenClasses: TVRMLNodeClassesList); overload;
+    { Constructor that allows as children any implementor of given interface. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
-      AllowedChildrenInterface: TGUID); overload;
+      AnAllowedChildrenInterface: TGUID); overload;
     destructor Destroy; override;
-
-    { If @true then all the children are allowed, regardless of
-      AllowedChildren value.
-
-      CreateUndefined creates always object with
-      AllowedChildrenAll = @true (otherwise AllowedChildren list is empty
-      and nothing would be allowed; but for e.g. fields in instantiated
-      prototypes, we must initially just allow all, otherwise valid prototypes
-      with SFNode/MFNode would cause warnings when parsing).
-
-      Other constructors set AllowedChildren
-      to something meaningful and set this to @false. You can change this
-      to @true then if you consciously want to turn this check off. }
-    property AllowedChildrenAll: boolean
-      read FAllowedChildrenAll write FAllowedChildrenAll;
 
     { TODO:
       Replace TMFNode.Items by a list with notifications?
@@ -2919,15 +2899,15 @@ begin
   inherited;
   Value := nil;
 
-  FAllowedChildren := TVRMLNodeClassesList.Create;
-  FAllowedChildrenAll := true;
+  AllowedChildren := acAll;
+  { AllowedChildrenClasses may remain nil in this case }
 
   FDefaultValue := nil;
   FDefaultValueExists := false;
 end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
-  const AnAllowedChildren: array of TVRMLNodeClass;
+  const AAllowedChildrenClasses: array of TVRMLNodeClass;
   AValue: TVRMLNode);
 begin
   inherited Create(AParentNode, AName);
@@ -2936,40 +2916,41 @@ begin
     but casted to TVRMLNode }
   FParentNode := AParentNode;
 
-  FAllowedChildren.AssignArray(AnAllowedChildren);
-  FAllowedChildrenAll := false;
+  AllowedChildren := acClasses;
+  if AllowedChildrenClasses = nil then
+    AllowedChildrenClasses := TVRMLNodeClassesList.Create;
+  AllowedChildrenClasses.AssignArray(AAllowedChildrenClasses);
 
   Value := AValue;
   AssignDefaultValueFromValue;
 end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
-  AnAllowedChildren: TVRMLNodeClassesList;
+  AAllowedChildrenClasses: TVRMLNodeClassesList;
   AValue: TVRMLNode);
 begin
   Create(AParentNode, AName, [], AValue);
 
-  FAllowedChildren.Assign(AnAllowedChildren);
-  FAllowedChildrenAll := false;
+  Assert(AllowedChildren = acClasses);
+  Assert(AllowedChildrenClasses <> nil);
+  AllowedChildrenClasses.Assign(AAllowedChildrenClasses);
 end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
-  AllowedChildrenInterface: TGUID;
+  AnAllowedChildrenInterface: TGUID;
   AValue: TVRMLNode);
-var
-  AllowedChildren: TVRMLNodeClassesList;
 begin
-  { TODO: this unnecessarily creates long list of AllowedChildren,
-    and depends on current NodesManager registered nodes.
-    Some day I may improve this, to just store AllowedChildrenInterface
-    inside, and check at runtime "Supports".
-    Same thing for MFNode analogous constructor. }
+  inherited Create(AParentNode, AName);
 
-  AllowedChildren := TVRMLNodeClassesList.Create;
-  AllowedChildren.AddRegisteredImplementing(AllowedChildrenInterface);
-  try
-    Create(AParentNode, AName, AllowedChildren, AValue);
-  finally FreeAndNil(AllowedChildren) end;
+  { FParentNode is just a copy of inherited (TVRMLFieldOrEvent) FParentNode,
+    but casted to TVRMLNode }
+  FParentNode := AParentNode;
+
+  AllowedChildren := acInterface;
+  AllowedChildrenInterface := AnAllowedChildrenInterface;
+
+  Value := AValue;
+  AssignDefaultValueFromValue;
 end;
 
 destructor TSFNode.Destroy;
@@ -2978,15 +2959,18 @@ begin
   Value := nil;
   { To delete Self from DefaultValue.FParentFields, and eventually free DefaultValue. }
   DefaultValue := nil;
-  FreeAndNil(FAllowedChildren);
+  FreeAndNil(AllowedChildrenClasses);
   inherited;
 end;
 
 function TSFNode.ChildAllowed(Child: TVRMLNode): boolean;
 begin
-  Result := (Child = nil) or
-    AllowedChildrenAll or
-    (FAllowedChildren.IndexOfAnyAncestor(Child) <> -1);
+  case AllowedChildren of
+    acAll      : Result := true;
+    acClasses  : Result := (Child = nil) or (AllowedChildrenClasses.IndexOfAnyAncestor(Child) <> -1);
+    acInterface: Result := (Child = nil) or Supports(Child, AllowedChildrenInterface);
+    else raise EInternalError.Create('AllowedChildren?');
+  end;
 end;
 
 function TSFNode.CurrentChildAllowed: boolean;
@@ -3193,21 +3177,23 @@ begin
   inherited;
   FItems := TVRMLNodesList.Create;
 
-  FAllowedChildren := TVRMLNodeClassesList.Create;
-  FAllowedChildrenAll := true;
+  AllowedChildren := acAll;
+  { AllowedChildrenClasses may remain nil in this case }
 
   FDefaultItems := TVRMLNodesList.Create;
   FDefaultValueExists := false;
 end;
 
 constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
-  const AnAllowedChildren: array of TVRMLNodeClass);
+  const AAllowedChildrenClasses: array of TVRMLNodeClass);
 begin
   inherited Create(AParentNode, AName);
   FParentNode := AParentNode;
 
-  FAllowedChildren.AssignArray(AnAllowedChildren);
-  FAllowedChildrenAll := false;
+  AllowedChildren := acClasses;
+  if AllowedChildrenClasses = nil then
+    AllowedChildrenClasses := TVRMLNodeClassesList.Create;
+  AllowedChildrenClasses.AssignArray(AAllowedChildrenClasses);
 
   { In the future, this constructor may also allow setting DefaultItems
     from parameters. For now, this is not needed anywhere.
@@ -3216,24 +3202,28 @@ begin
 end;
 
 constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
-  AnAllowedChildren: TVRMLNodeClassesList);
+  AAllowedChildrenClasses: TVRMLNodeClassesList);
 begin
   Create(AParentNode, AName, []);
 
-  FAllowedChildren.Assign(AnAllowedChildren);
-  FAllowedChildrenAll := false;
+  Assert(AllowedChildren = acClasses);
+  Assert(AllowedChildrenClasses <> nil);
+  AllowedChildrenClasses.Assign(AAllowedChildrenClasses);
 end;
 
 constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
-  AllowedChildrenInterface: TGUID);
-var
-  AllowedChildren: TVRMLNodeClassesList;
+  AnAllowedChildrenInterface: TGUID);
 begin
-  AllowedChildren := TVRMLNodeClassesList.Create;
-  AllowedChildren.AddRegisteredImplementing(AllowedChildrenInterface);
-  try
-    Create(AParentNode, AName, AllowedChildren);
-  finally FreeAndNil(AllowedChildren) end;
+  inherited Create(AParentNode, AName);
+  FParentNode := AParentNode;
+
+  AllowedChildren := acInterface;
+  AllowedChildrenInterface := AnAllowedChildrenInterface;
+
+  { In the future, this constructor may also allow setting DefaultItems
+    from parameters. For now, this is not needed anywhere.
+    We assume DefaultItems = [] if you used this constructor. }
+  DefaultValueExists := true;
 end;
 
 destructor TMFNode.Destroy;
@@ -3242,7 +3232,7 @@ begin
   ClearDefault;
   FreeAndNil(FItems);
   FreeAndNil(FDefaultItems);
-  FreeAndNil(FAllowedChildren);
+  FreeAndNil(AllowedChildrenClasses);
   inherited;
 end;
 
@@ -3390,9 +3380,12 @@ end;
 
 function TMFNode.ChildAllowed(Child: TVRMLNode): boolean;
 begin
-  Result := (Child = nil) or
-    AllowedChildrenAll or
-    (FAllowedChildren.IndexOfAnyAncestor(Child) <> -1);
+  case AllowedChildren of
+    acAll      : Result := true;
+    acClasses  : Result := (Child = nil) or (AllowedChildrenClasses.IndexOfAnyAncestor(Child) <> -1);
+    acInterface: Result := (Child = nil) or Supports(Child, AllowedChildrenInterface);
+    else raise EInternalError.Create('AllowedChildren?');
+  end;
 end;
 
 procedure TMFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
