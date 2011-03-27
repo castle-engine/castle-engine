@@ -312,8 +312,12 @@ begin
   gluTessCallback(tobj, GLU_TESS_BEGIN, TCallBack(glBegin));
   gluTessCallback(tobj, GLU_TESS_END, TCallBack(glEnd));
 
-  { This is a workaround of Mesa3D bug.
-    See ../doc/mesa_normals_edge_flag_bug.txt }
+  { Workaround for Mesa3D bug. Testcase:
+      $ view3dscene cones.wrl
+      view3dscene: tnl/t_save_api.c:1605: _tnl_EndList: Assertion `((TNLcontext *)((ctx)->swtnl_context))->save.vertex_size == 0' failed.
+    Mesa version: bug confirmed with Mesa 6.5.1 and 6.5.2,
+    not observed on Mesa 5.1 and 6.4.2.
+    See ../../doc/old_mesa_normals_edge_flag_bug.txt in SVN for details. }
   if not GLVersion.IsMesa then
     gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, TCallBack(glEdgeFlag));
 
