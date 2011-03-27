@@ -745,7 +745,13 @@ type
     destructor Destroy; override;
 
     { Load 3D model, just like LoadVRML but with a cache.
-      URL must be absolute (not relative) filename. }
+      URL must be absolute (not relative) filename.
+
+      Note that this should not be used if you plan to modify the model graph
+      (for example by VRML/X3D events). In such case, the cache should not
+      be used, as it would make all the model instances shared.
+      For example, if you inline the same model multiple times, you could not
+      modify one instance independent from another. }
     function Load3D(const URL: string): TVRMLRootNode;
 
     { Unload previously loaded here 3D model.
@@ -4827,9 +4833,6 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     Anchor: string;
   begin
     Result := false;
-
-    { TODO: in case of prototype libraries, it's wasteful to load URL each time
-      for each external prototype. We should have some cache of prototypes. }
 
     URL := CombinePaths(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
