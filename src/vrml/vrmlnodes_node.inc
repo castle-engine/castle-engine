@@ -1403,6 +1403,7 @@ procedure TVRMLNode.DirectEnumerateAll(
   Func: TEnumerateChildrenFunction);
 var
   I, J: Integer;
+  F: TVRMLField;
   SF: TSFNode;
   MF: TMFNode;
 begin
@@ -1411,15 +1412,16 @@ begin
 
   for I := 0 to Fields.Count - 1 do
   begin
-    if Fields[I] is TSFNode then
+    F := Fields[I];
+    if F is TSFNode then
     begin
-      SF := TSFNode(Fields[I]);
+      SF := TSFNode(F);
       if SF.Value <> nil then
         Func(Self, SF.Value);
     end else
-    if Fields[I] is TMFNode then
+    if F is TMFNode then
     begin
-      MF := TMFNode(Fields[I]);
+      MF := TMFNode(F);
       for J := 0 to MF.Items.Count - 1 do
         Func(Self, MF.Items[J]);
     end;
