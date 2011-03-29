@@ -13,6 +13,14 @@ usually has a list of blockers typically worked upon right before release.
 Make GLWinMessages buttons clickable, reported for castle many times.
 ------------------------------------------------------------------------------
 WWW:
+- "How you can help" page, move donation links there,
+  also mention "Add wikipedia article about our engine" (preferably redirecting view3dscene -> there)
+
+- wp-embed? everywhere - vrmleng, michalis?
+  http://embedwordpress.com/ - nope, that's more a description how to create wordpress themes...
+  I want to easily insert wordpress into an existing php page.
+  Something started in /home/michalis/public_html/wordpress/part.php (chantal)
+
 - more stuff to sidebar?
   Maybe view3dscene should have a sidebar, with links to forum,bugs etc.
   Make "donate" place on the sidebar, with links to flattr and fundr?
