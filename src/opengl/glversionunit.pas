@@ -425,13 +425,26 @@ begin
 
   FBuggyGenerateMipmap := IsMesa and (not MesaVersionAtLeast(7, 5, 0));
 
-  { Confirmed bug on 9.10 and 10.3 (on hp ProBook "czarny").
-    On 8.12 (MacBook Pro "chantal") worked fine.
-    Assuming bug present on all >= 9.x.
+  { On which fglrx versions does this occur?
 
-    Internal version numbering: "Catalyst 8.12" is "fglrx 8.561".
-    "Catalyst 9.1" is "fglrx 8.573". }
-  FBuggyLightModelTwoSide := IsFglrx and ReleaseExists and (Release >= 8573);
+    - On Catalyst 8.12 (fglrx 8.561) all seems to work fine
+      (tested on MacBook Pro "chantal").
+
+    - Catalyst 9.1 (fglrx 8.573) - not known.
+      Below we only *assume* the bug started from 9.1.
+
+    - On Catalyst 9.10 and 10.3 the bug does occur.
+      Tested on Radeon HD 4300 (on HP ProBook "czarny"), Ubuntu x86_64.
+
+    - Bug confirmed also on Ubuntu 10.04 (fglrx 8.723).
+      Tested on Radeon HD 4300 (on HP ProBook "czarny"), Ubuntu x86_64.
+
+    - Bug disappeared on Ubuntu 10.10 (fglrx 8.780). Seems fixed there.
+      (fglrx bugzilla was wiped, so we don't have any official
+      confirmation about this from AMD.) }
+
+  FBuggyLightModelTwoSide := IsFglrx and ReleaseExists and
+    (Release >= 8573) and (Release < 8780);
   if BuggyLightModelTwoSide then
     FBuggyLightModelTwoSideMessage := 'Detected fglrx (ATI proprietary Linux drivers) version >= 9.x. ' + 'Setting GL_LIGHT_MODEL_TWO_SIDE to GL_TRUE may cause nasty bugs on some shaders (see http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14), so disabling two-sided lighting.' else
     FBuggyLightModelTwoSideMessage := '';
