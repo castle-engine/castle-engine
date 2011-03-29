@@ -928,6 +928,14 @@ type
     procedure FreeShaderProgram;
   end;
 
+  { Line types (patterns). For ease of implementation, ordered exactly like
+    VRML/X3D LineProperties.linetype field. }
+  TLineType = (ltSolid,
+    ltDashed,
+    ltDotted,
+    ltDashedDotted,
+    ltDashDotDot);
+
   TVRMLGLRenderer = class
   private
     { ---------------------------------------------------------
@@ -981,6 +989,8 @@ type
     FCullFace: TCullFace;
     FSmoothShading: boolean;
     FFixedFunctionLighting: boolean;
+    FLineWidth: Single;
+    FLineType: TLineType;
 
     { This calls glPushMatrix, assuming that current matrix mode is GL_TEXTURE
       and current tex unit is TexUnit (always make sure this is true when
@@ -1003,6 +1013,8 @@ type
     procedure SetCullFace(const Value: TCullFace);
     procedure SetSmoothShading(const Value: boolean);
     procedure SetFixedFunctionLighting(const Value: boolean);
+    procedure SetLineWidth(const Value: Single);
+    procedure SetLineType(const Value: TLineType);
 
     { Change glCullFace and GL_CULL_FACE enabled by this property.
       This way we avoid redundant state changes. }
@@ -1011,6 +1023,8 @@ type
     property SmoothShading: boolean read FSmoothShading write SetSmoothShading;
     { Change GL_LIGHTING enabled by this property. }
     property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
+    property LineWidth: Single read FLineWidth write SetLineWidth;
+    property LineType: TLineType read FLineType write SetLineType;
   private
     { ----------------------------------------------------------------- }
 
@@ -1061,6 +1075,8 @@ type
     procedure DisableTexture(const TextureUnit: Cardinal);
     procedure DisableCurrentTexture;
 
+    procedure RenderShapeLineProperties(Shape: TVRMLRendererShape;
+      Fog: INodeX3DFogObject; Shader: TVRMLShader);
     procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       Shader: TVRMLShader);
     procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
@@ -2678,7 +2694,20 @@ begin
   glMatrixMode(GL_MODELVIEW);
 
   glPointSize(Attributes.PointSize);
-  glLineWidth(Attributes.LineWidth); { saved by GL_LINE_BIT }
+
+  if Beginning then
+  begin
+    FLineWidth := Attributes.LineWidth;
+    glLineWidth(FLineWidth);
+  end else
+    LineWidth := Attributes.LineWidth;
+
+  if Beginning then
+  begin
+    FLineType := ltSolid;
+    glDisable(GL_LINE_STIPPLE);
+  end else
+    LineType := ltSolid;
 
   if not Attributes.PureGeometry then
   begin
@@ -2841,8 +2870,28 @@ begin
   Shader := TVRMLShader.Create;
   try
     Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
-    RenderShapeMaterials(Shape, Fog, Shader);
+    RenderShapeLineProperties(Shape, Fog, Shader);
   finally FreeAndNil(Shader) end;
+end;
+
+procedure TVRMLGLRenderer.RenderShapeLineProperties(Shape: TVRMLRendererShape;
+  Fog: INodeX3DFogObject; Shader: TVRMLShader);
+var
+  LP: TNodeLineProperties;
+begin
+  LP := Shape.Node.LineProperties;
+  if (LP <> nil) and LP.FdApplied.Value then
+  begin
+    LineWidth := Max(1.0, Attributes.LineWidth * LP.FdLineWidthScaleFactor.Value);
+    LineType := TLineType(
+      Clamped(LP.FdLineType.Value - 1, 0, Integer(High(TLineType))));
+  end else
+  begin
+    LineWidth := Attributes.LineWidth;
+    LineType := ltSolid;
+  end;
+
+  RenderShapeMaterials(Shape, Fog, Shader);
 end;
 
 procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
@@ -3766,6 +3815,31 @@ begin
   begin
     FFixedFunctionLighting := Value;
     SetGLEnabled(GL_LIGHTING, FixedFunctionLighting);
+  end;
+end;
+
+procedure TVRMLGLRenderer.SetLineWidth(const Value: Single);
+begin
+  if FLineWidth <> Value then
+  begin
+    FLineWidth := Value;
+    glLineWidth(LineWidth);
+  end;
+end;
+
+procedure TVRMLGLRenderer.SetLineType(const Value: TLineType);
+begin
+  if FLineType <> Value then
+  begin
+    FLineType := Value;
+    case LineType of
+      ltSolid: glDisable(GL_LINE_STIPPLE);
+      ltDashed      : begin glLineStipple(1, $00FF); glEnable(GL_LINE_STIPPLE); end;
+      ltDotted      : begin glLineStipple(1, $CCCC); glEnable(GL_LINE_STIPPLE); end;
+      ltDashedDotted: begin glLineStipple(1, $FFCC); glEnable(GL_LINE_STIPPLE); end;
+      ltDashDotDot  : begin glLineStipple(1, $FCCC); glEnable(GL_LINE_STIPPLE); end;
+      else raise EInternalError.Create('LineType?');
+    end;
   end;
 end;
 

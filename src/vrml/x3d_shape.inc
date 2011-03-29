@@ -30,6 +30,7 @@
   TNodeX3DTextureTransformNode = class;
   TNodeMaterial_2 = class;
   TNodeComposedShader = class;
+  TNodeLineProperties = class;
 
   TNodeX3DShapeNode = class(TNodeX3DChildNode, INodeX3DBoundedObject)
   private
@@ -41,6 +42,8 @@
     procedure SetTexture(const Value: TNodeX3DTextureNode);
     function GetTextureTransform: TNodeX3DTextureTransformNode;
     procedure SetTextureTransform(const Value: TNodeX3DTextureTransformNode);
+    function GetLineProperties: TNodeLineProperties;
+    procedure SetLineProperties(const Value: TNodeLineProperties);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -92,6 +95,11 @@
       When setting this material to something non-nil, we make sure
       to also set Appearance to something non-nil. }
     property Material: TNodeMaterial_2 read GetMaterial write SetMaterial;
+
+    { Line properties of this shape. This is a clean, type-safe way
+      for accessing Appearance.lineProperties field of this shape. }
+    property LineProperties: TNodeLineProperties
+      read GetLineProperties write SetLineProperties;
 
     private FFdoctreeTriangles: TSFNode;
     public property FdoctreeTriangles: TSFNode read FFdoctreeTriangles;
@@ -560,6 +568,33 @@ begin
     App := TNodeAppearance.Create('', WWWBasePath);
     Appearance := App;
     App.FdTextureTransform.Value := Value;
+  end;
+end;
+
+function TNodeX3DShapeNode.GetLineProperties: TNodeLineProperties;
+var
+  App: TNodeAppearance;
+begin
+  App := Appearance;
+  if (App <> nil) and
+     (App.FdLineProperties.Value <> nil) and
+     (App.FdLineProperties.Value is TNodeLineProperties) then
+    Result := TNodeLineProperties(App.FdLineProperties.Value) else
+    Result := nil;
+end;
+
+procedure TNodeX3DShapeNode.SetLineProperties(const Value: TNodeLineProperties);
+var
+  App: TNodeAppearance;
+begin
+  App := Appearance;
+  if App <> nil then
+    App.FdLineProperties.Value := Value else
+  if Value <> nil then
+  begin
+    App := TNodeAppearance.Create('', WWWBasePath);
+    Appearance := App;
+    App.FdLineProperties.Value := Value;
   end;
 end;
 
