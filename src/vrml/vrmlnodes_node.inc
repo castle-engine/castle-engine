@@ -42,13 +42,7 @@
   ['{5BD33327-430F-47EC-9241-AD899F072BF8}']
   end;
 
-  { VRML node. Every VRML node class descends from this.
-
-    @italic(Descendant implementors notes): Each descendant should
-    override constructor to create and add his fields and events.
-    Like @code(Fields.Add(TSFFloat.Create('width', 2, true))).
-    Also, you should define FdXxx properties that allow fast,
-    comfortable and type-secure way to retrieve and set these fields. }
+  { VRML node. Every VRML node class descends from this. }
   TVRMLNode = class(TVRMLFileItem, IVRMLNode)
   private
     fNodeName: string;
