@@ -635,22 +635,17 @@ type
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
   private
-    { This is collected by CollectNodesForEvents. @nil if not ProcessEvents. }
     KeyDeviceSensorNodes: TVRMLNodesList;
     TimeDependentHandlers: TTimeDependentHandlersList;
     ProximitySensors: TProximitySensorInstancesList;
 
-    procedure ClearCollectedNodesForEvents;
-    { CollectNodesForEvents also calls ClearCollectedNodesForEvents
-      at the beginning. But for safety (e.g. if some nodes may no longer
-      be valid) you may want to call ClearCollectedNodesForEvents explicitly
-      earlier. }
-    procedure CollectNodesForEvents;
-    procedure CollectNodeForEvents(Node: TVRMLNode);
-    procedure UnCollectForEvents(Node: TVRMLNode);
+    procedure ChangedAllEnumerateCallback(Node: TVRMLNode);
+    procedure ScriptsInitializeCallback(Node: TVRMLNode);
+    procedure ScriptsFinalizeCallback(Node: TVRMLNode);
+    procedure UnregisterSceneCallback(Node: TVRMLNode);
 
-    procedure ScriptsInitialize(Node: TVRMLNode);
-    procedure ScriptsDeInitialize(Node: TVRMLNode);
+    procedure ScriptsInitialize;
+    procedure ScriptsFinalize;
   private
     FTime: TVRMLTime;
 
@@ -1414,35 +1409,17 @@ type
       See TVRMLSceneFreeResources documentation. }
     procedure FreeResources(Resources: TVRMLSceneFreeResources);
 
-    { Internally unregister a node from our events processing.
+    { Recursively unset node's TVRMLNode.Scene. Useful if you want to remove
+      part of a node graph and put it in some other scene.
 
       @italic(You almost never need to call this method) --- this
-      is done automatically for you when ProcessEvents is changed
-      between @true and @false, including when TVRMLScene is destroyed.
+      is done automatically for you when TVRMLScene is destroyed.
       However, if you process RootNode graph
       and extract some node from it (that is, delete node from our
       RootNode graph, but instead of freeing it you insert it
       into some other VRML graph) you must call it to manually
-      "untie" this node (and all it's children) from this TVRMLScene instance.
-
-      Reason: when ProcessEvents is activated,
-      we set Self as node's TVRMLNode.Scene to get event
-      changes notifications to ChangedXxx methods.
-      When ProcessEvents is deactivated (including when this TVRMLScene
-      instance is released) we revert this. If you add new node
-      to VRML graph, we make sure (in ChangedAll) that TVRMLNode.Scene
-      is set correctly for all new nodes. Buf if you deleted a node
-      from our graph, we have no chance to remove this...
-      You have to call UnregisterProcessEvents then manually,
-      if you don't want the Node to be "tied" to our TVRMLScene.
-
-      In really really corner cases, when you're not sure whether you
-      this Node with all it's children, you should make sure to call
-      this before calling ChangedAll. This way, this will unregister
-      this Node and all it's children from our event processing,
-      and ChangedAll will re-register again these children which are
-      detected to still be part of our graph. }
-    procedure UnregisterProcessEvents(Node: TVRMLNode);
+      "untie" this node (and all it's children) from this TVRMLScene instance. }
+    procedure UnregisterScene(Node: TVRMLNode);
 
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
@@ -2374,6 +2351,8 @@ begin
   ProximitySensors := TProximitySensorInstancesList.Create;
   ScreenEffectNodes := TVRMLNodesList.Create;
   ScheduledHumanoidAnimateSkin := TVRMLNodesList.Create;
+  KeyDeviceSensorNodes := TVRMLNodesList.Create;
+  TimeDependentHandlers := TTimeDependentHandlersList.Create;
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -2394,8 +2373,7 @@ end;
 
 destructor TVRMLScene.Destroy;
 begin
-  { This also frees related lists, like KeyDeviceSensorNodes,
-    and does UnregisterProcessEvents(RootNode). }
+  { This also deinitializes script nodes. }
   ProcessEvents := false;
 
   HeadlightInitialized := false;
@@ -2417,6 +2395,8 @@ begin
   FreeWithContentsAndNil(TransformInstancesList);
   FreeWithContentsAndNil(BillboardInstancesList);
   FreeAndNil(FCompiledScriptHandlers);
+  FreeAndNil(KeyDeviceSensorNodes);
+  FreeAndNil(TimeDependentHandlers);
 
   FreeAndNil(FBackgroundStack);
   FreeAndNil(FFogStack);
@@ -2433,7 +2413,13 @@ begin
   FreeAndNil(FOctreeVisibleTriangles);
   FreeAndNil(FOctreeCollidableTriangles);
 
-  if OwnsRootNode then FreeAndNil(FRootNode);
+  if OwnsRootNode then
+    FreeAndNil(FRootNode) else
+  if RootNode <> nil then
+  begin
+    UnregisterScene(RootNode);
+    FRootNode := nil;
+  end;
 
   inherited;
 end;
@@ -2882,11 +2868,8 @@ begin
   ProximitySensors.Count := 0;
   ScreenEffectNodes.Count := 0;
   ScheduledHumanoidAnimateSkin.Count := 0;
-
-  { clear nodes before doing CheckForDeletedNodes below, as CheckForDeletedNodes
-    may send some events so no invalid pointers must exist. }
-  if ProcessEvents then
-    ClearCollectedNodesForEvents;
+  KeyDeviceSensorNodes.Clear;
+  TimeDependentHandlers.Clear;
 
   if not InternalChangedAll then
   begin
@@ -2915,6 +2898,26 @@ begin
     would not only not free what you think, it would also cause segfault. }
 
   NodeFreeRemovingFromAllParents(Shape.OriginalGeometry);
+end;
+
+procedure TVRMLScene.ChangedAllEnumerateCallback(Node: TVRMLNode);
+begin
+  Node.Scene := Self;
+
+  { We're using AddIfNotExists, not simple Add, below:
+
+    - for time-dependent nodes (TimeSensor, MovieTexture etc.),
+      duplicates would cause time to be then incremented many times
+      during single SetTime, so their local time would grow too fast.
+
+    - for other sensors, events would be passed twice.
+  }
+
+  if Node is TNodeX3DKeyDeviceSensorNode then
+    KeyDeviceSensorNodes.AddIfNotExists(Node) else
+  if Supports(Node, INodeX3DTimeDependentNode) then
+    TimeDependentHandlers.AddIfNotExists(
+      (Node as INodeX3DTimeDependentNode).TimeDependentNodeHandler);
 end;
 
 procedure TVRMLScene.ChangedAll;
@@ -2972,6 +2975,14 @@ procedure TVRMLScene.ChangedAll;
       { Other light types (directional) should be handled by
         TVRMLGroupingNode.BeforeTraverse }
     end;
+  end;
+
+  { Assigns nodes TVRMLNode.Scene, and adds nodes to KeyDeviceSensorNodes
+    and TimeDependentHandlers lists. }
+  procedure ChangedAllEnumerate;
+  begin
+    if RootNode <> nil then
+      RootNode.EnumerateNodes(TVRMLNode, @ChangedAllEnumerateCallback, false);
   end;
 
 var
@@ -3050,8 +3061,7 @@ begin
 
         UpdateVRML2ActiveLights;
 
-        if ProcessEvents then
-          CollectNodesForEvents;
+        ChangedAllEnumerate;
       end;
     finally FreeAndNil(ChangedAll_TraversedLights) end;
 
@@ -5035,80 +5045,43 @@ end;
 
 { events --------------------------------------------------------------------- }
 
-{ We're using AddIfNotExists, not simple Add, in Collect_ routines
-  below:
-
-  - for time-dependent nodes (TimeSensor, MovieTexture etc.),
-    duplicates would cause time to be then incremented many times
-    during single SetTime, so their local time would grow too fast.
-
-  - for other sensors, events would be passed twice.
-}
-
-procedure TVRMLScene.CollectNodeForEvents(Node: TVRMLNode);
-begin
-  Node.Scene := Self;
-
-  if Node is TNodeX3DKeyDeviceSensorNode then
-    KeyDeviceSensorNodes.AddIfNotExists(Node) else
-  if Supports(Node, INodeX3DTimeDependentNode) then
-    TimeDependentHandlers.AddIfNotExists(
-      (Node as INodeX3DTimeDependentNode).TimeDependentNodeHandler);
-end;
-
-procedure TVRMLScene.ScriptsInitialize(Node: TVRMLNode);
+procedure TVRMLScene.ScriptsInitializeCallback(Node: TVRMLNode);
 begin
   TNodeScript(Node).Initialized := true;
 end;
 
-procedure TVRMLScene.ClearCollectedNodesForEvents;
+procedure TVRMLScene.ScriptsInitialize;
 begin
-  KeyDeviceSensorNodes.Clear;
-  TimeDependentHandlers.Clear;
-end;
-
-procedure TVRMLScene.CollectNodesForEvents;
-begin
-  ClearCollectedNodesForEvents;
-
   if RootNode <> nil then
   begin
-    RootNode.EnumerateNodes(TVRMLNode, @CollectNodeForEvents, false);
-
     BeginChangesSchedule;
     try
       { We have to initialize scripts only after all other initialization
-        is done, in particular after CollectNodeForEvents was called
-        for all and set their Scene. Reason: scripts
-        initialize() methods may already cause some events, that should
-        notify us appropriately.
-
+        is done, in particular after Node.Scene was set by ChangedAll.
+        Reason: scripts initialize() methods may already cause some events,
+        that should notify us appropriately.
         This is also why Begin/EndChangesSchedule around is useful. }
-      RootNode.EnumerateNodes(TNodeScript, @ScriptsInitialize, false);
+      RootNode.EnumerateNodes(TNodeScript, @ScriptsInitializeCallback, false);
     finally EndChangesSchedule end;
   end;
 end;
 
-procedure TVRMLScene.UnCollectForEvents(Node: TVRMLNode);
-begin
-  Node.Scene := nil;
-end;
-
-procedure TVRMLScene.ScriptsDeInitialize(Node: TVRMLNode);
+procedure TVRMLScene.ScriptsFinalizeCallback(Node: TVRMLNode);
 begin
   TNodeScript(Node).Initialized := false;
 end;
 
-procedure TVRMLScene.UnregisterProcessEvents(Node: TVRMLNode);
+procedure TVRMLScene.ScriptsFinalize;
 begin
-  BeginChangesSchedule;
-  try
-    { We have to deinitialize scripts before any other deinitialization
-      is done. Just like for ScriptsInitialize. }
-    Node.EnumerateNodes(TNodeScript, @ScriptsDeInitialize, false);
-  finally EndChangesSchedule end;
-
-  Node.EnumerateNodes(TVRMLNode, @UnCollectForEvents, false);
+  if RootNode <> nil then
+  begin
+    BeginChangesSchedule;
+    try
+      { We have to deinitialize scripts before any other deinitialization
+        is done. Just like for ScriptsInitialize. }
+      RootNode.EnumerateNodes(TNodeScript, @ScriptsFinalizeCallback, false);
+    finally EndChangesSchedule end;
+  end;
 end;
 
 procedure TVRMLScene.SetProcessEvents(const Value: boolean);
@@ -5138,20 +5111,15 @@ begin
   begin
     if Value then
     begin
-      KeyDeviceSensorNodes := TVRMLNodesList.Create;
-      TimeDependentHandlers := TTimeDependentHandlersList.Create;
-
       FProcessEvents := Value;
 
-      CollectNodesForEvents;
+      ScriptsInitialize;
       InitialProximitySensorsEvents;
 
       RenderState.OnCameraChanged.Add(@CameraChanged);
     end else
     begin
-      if RootNode <> nil then UnregisterProcessEvents(RootNode);
-      FreeAndNil(KeyDeviceSensorNodes);
-      FreeAndNil(TimeDependentHandlers);
+      ScriptsFinalize;
       PointingDeviceClear;
 
       FProcessEvents := Value;
@@ -5793,7 +5761,7 @@ begin
   begin
     ChangedAllScheduled := false;
 
-    { ChangedAll calls CollectNodesForEvents, which in turn calls
+    { ChangedAll calls ChangedAllEnumerate, which in turn calls
       Begin/EndChangesSchedule. Which means that
       ChangedAllSchedule/ChangedAllScheduled must be Ok for this.
       That's why ChangedAllScheduled := false must be done previously. }
@@ -6619,6 +6587,16 @@ end;
 
 procedure TVRMLScene.InvalidateBackground;
 begin
+end;
+
+procedure TVRMLScene.UnregisterSceneCallback(Node: TVRMLNode);
+begin
+  Node.Scene := nil;
+end;
+
+procedure TVRMLScene.UnregisterScene(Node: TVRMLNode);
+begin
+  Node.EnumerateNodes(TVRMLNode, @UnregisterSceneCallback, false);
 end;
 
 end.
