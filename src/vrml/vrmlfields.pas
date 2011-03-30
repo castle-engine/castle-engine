@@ -858,9 +858,7 @@ type
     procedure AddAlternativeName(const AlternativeName: string;
       VrmlMajorVersion: Integer); override;
 
-    { Notify ChangeListeners that the value of this field changed.
-      Also notify ParentNode.EventsEngine, regardless if it's included
-      in the ChangeListeners list. }
+    { Notify ParentNode.Scene that the value of this field changed. }
     procedure Changed;
 
     { What always happens when the value of this field changes.
@@ -895,7 +893,7 @@ type
 
           We will send this value through
           it's input event. In this case, this is equivalent to doing
-          @code(EventIn.Send(Value, EventsEngine.Time)).
+          @code(EventIn.Send(Value, Scene.Time)).
           The scenes (including events engine) will be notified correctly
           by exposed events handler already.)
 
@@ -2870,10 +2868,8 @@ begin
   if ParentNode <> nil then
   begin
     Parent := ParentNode as TVRMLNode;
-    ChangeListeners.ChangedField(Self);
-    if (Parent.EventsEngine <> nil) and
-       (ChangeListeners.IndexOf(Parent.EventsEngine) < 0) then
-      Parent.EventsEngine.ChangedField(Self);
+    if Parent.Scene <> nil then
+      Parent.Scene.ChangedField(Self);
   end;
 end;
 
@@ -2887,9 +2883,9 @@ var
   ValuePossiblyChanged: boolean;
 begin
   if Exposed and (ParentNode <> nil) and
-    ( (ParentNode as TVRMLNode).EventsEngine <> nil ) then
+    ( (ParentNode as TVRMLNode).Scene <> nil ) then
   begin
-    EventIn.Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+    EventIn.Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
   end else
   begin
     ValuePossiblyChanged := not FastEqualsValue(Value);

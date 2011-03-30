@@ -308,10 +308,10 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
       (just to set initializeOnly). Useless, but possible. }
 
     Result := (FieldOrEvent.ParentNode <> nil) and
-      (TVRMLNode(FieldOrEvent.ParentNode).EventsEngine <> nil);
+      (TVRMLNode(FieldOrEvent.ParentNode).Scene <> nil);
     if Result then
     begin
-      Time := TVRMLNode(FieldOrEvent.ParentNode).EventsEngine.GetTime;
+      Time := TVRMLNode(FieldOrEvent.ParentNode).Scene.GetTime;
     end;
   end;
 

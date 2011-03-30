@@ -85,9 +85,9 @@
       at any comfortable time, possibly right after calling Send.
 
       Overloaded versions without explicit Time parameter just take time
-      from ParentNode.EventsEngine.GetTime. If ParentNode is @nil
+      from ParentNode.Scene.GetTime. If ParentNode is @nil
       (which should not happen with normal fields within nodes)
-      or if ParentNode.EventsEngine is @nil (which may happen only if events
+      or if ParentNode.Scene is @nil (which may happen only if events
       processing is not turned on, that is TVRMLScene.ProcessEvents is @false)
       then event is not send. }
     procedure Send(Field: TVRMLField; const Time: TVRMLTime);
@@ -456,120 +456,120 @@ end;
 procedure TVRMLEvent.Send(Field: TVRMLField);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Field, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Field, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: LongInt);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: boolean);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: string);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TVector2Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TVector3Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TVector4Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: Double);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix3Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix4Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix3Double);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix4Double);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    Send(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of string);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    SendArray(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    SendArray(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of TVector2Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    SendArray(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    SendArray(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of TVector3Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    SendArray(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    SendArray(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of TVector4Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).EventsEngine <> nil) then
-    SendArray(Value, TVRMLNode(ParentNode).EventsEngine.GetTime);
+     (TVRMLNode(ParentNode).Scene <> nil) then
+    SendArray(Value, TVRMLNode(ParentNode).Scene.GetTime);
 end;
 
 function TVRMLEvent.SendNeeded: boolean;

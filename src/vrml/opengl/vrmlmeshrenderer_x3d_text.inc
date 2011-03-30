@@ -92,7 +92,7 @@ var
     I: Integer;
   begin
     if (EventOrigin <> nil) and
-       (Geometry.EventsEngine <> nil) then
+       (Geometry.Scene <> nil) then
     begin
       { This is all simple, since we ignore topToBottom, leftToRight.
         Also, we don't honour the rule that the upper line of the text
@@ -104,7 +104,7 @@ var
         So the lacks of current Text rendering implementation
         make this somewhat simple :) }
 
-      Time := Geometry.EventsEngine.GetTime;
+      Time := Geometry.Scene.GetTime;
 
       FinalRowHeight := CurrentFont.RowHeight * Spacing * YScale;
 

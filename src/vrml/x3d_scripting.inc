@@ -134,7 +134,7 @@ var
   ParameterValue, ParameterTime: TKamScriptValue;
 begin
   if Initialized and
-     (EventsEngine <> nil) then
+     (Scene <> nil) then
   begin
     { Disable this by default, as it really trashes the log with a lot
       of messages in case script is used continously (with TimeSensor or such).
@@ -147,11 +147,11 @@ begin
         begin
           I := CompiledScriptContents.IndexOfName(FunctionName);
           if I <> -1 then
-            EventsEngine.ExecuteCompiledScript(CompiledScriptContents.ValueFromIndex[I], ReceivedValue) else
+            Scene.ExecuteCompiledScript(CompiledScriptContents.ValueFromIndex[I], ReceivedValue) else
           if CompiledScriptContents.IndexOf(FunctionName) <> -1 then
             { If FunctionName exists, without any value, then just execute
               the handler of the same name. }
-            EventsEngine.ExecuteCompiledScript(FunctionName, ReceivedValue);
+            Scene.ExecuteCompiledScript(FunctionName, ReceivedValue);
         end;
       stKambiScript:
         begin
@@ -162,8 +162,7 @@ begin
             VRMLKamScriptBeforeExecute(ParameterValue, ReceivedValue);
           end else
             ParameterValue := nil;
-          ParameterTime := TKamScriptFloat.Create(true,
-            EventsEngine.GetTime.Seconds);
+          ParameterTime := TKamScriptFloat.Create(true, Scene.GetTime.Seconds);
           try
             KambiScriptVariables.BeforeExecute;
             try

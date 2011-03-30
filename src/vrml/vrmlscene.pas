@@ -1426,11 +1426,11 @@ type
       "untie" this node (and all it's children) from this TVRMLScene instance.
 
       Reason: when ProcessEvents is activated,
-      we set Self as node's EventsEngine to get event
+      we set Self as node's TVRMLNode.Scene to get event
       changes notifications to ChangedXxx methods.
       When ProcessEvents is deactivated (including when this TVRMLScene
       instance is released) we revert this. If you add new node
-      to VRML graph, we make sure (in ChangedAll) that EventsEngine
+      to VRML graph, we make sure (in ChangedAll) that TVRMLNode.Scene
       is set correctly for all new nodes. Buf if you deleted a node
       from our graph, we have no chance to remove this...
       You have to call UnregisterProcessEvents then manually,
@@ -2390,15 +2390,10 @@ begin
     would set. This is (potentially) a small time saving,
     as ScheduleChangedAll does a lot of calls (although probably is fast
     anyway when RootNode = nil). }
-
-  ChangeListeners.Add(Self); { by default FStatic is false }
 end;
 
 destructor TVRMLScene.Destroy;
 begin
-  if ChangeListeners <> nil then
-    ChangeListeners.Remove(Self);
-
   { This also frees related lists, like KeyDeviceSensorNodes,
     and does UnregisterProcessEvents(RootNode). }
   ProcessEvents := false;
@@ -5052,7 +5047,7 @@ end;
 
 procedure TVRMLScene.CollectNodeForEvents(Node: TVRMLNode);
 begin
-  Node.EventsEngine := Self;
+  Node.Scene := Self;
 
   if Node is TNodeX3DKeyDeviceSensorNode then
     KeyDeviceSensorNodes.AddIfNotExists(Node) else
@@ -5084,7 +5079,7 @@ begin
     try
       { We have to initialize scripts only after all other initialization
         is done, in particular after CollectNodeForEvents was called
-        for all and set their EventsEngine. Reason: scripts
+        for all and set their Scene. Reason: scripts
         initialize() methods may already cause some events, that should
         notify us appropriately.
 
@@ -5096,7 +5091,7 @@ end;
 
 procedure TVRMLScene.UnCollectForEvents(Node: TVRMLNode);
 begin
-  Node.EventsEngine := nil;
+  Node.Scene := nil;
 end;
 
 procedure TVRMLScene.ScriptsDeInitialize(Node: TVRMLNode);
@@ -5171,13 +5166,7 @@ end;
 
 procedure TVRMLScene.SetStatic(const Value: boolean);
 begin
-  if FStatic <> Value then
-  begin
-    FStatic := Value;
-    if Value then
-      ChangeListeners.Remove(Self) else
-      ChangeListeners.Add(Self);
-  end;
+  FStatic := Value;
 end;
 
 { key sensors handling ------------------------------------------------------- }

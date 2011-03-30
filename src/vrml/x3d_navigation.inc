@@ -491,9 +491,8 @@ end;
 procedure TVRMLViewpointNode.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
-  if EventsEngine <> nil then
-    EventsEngine.
-      GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
+  if Scene <> nil then
+    Scene.GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
 function TVRMLViewpointNode.TransformationChange: TNodeTransformationChange;
@@ -919,9 +918,8 @@ end;
 procedure TNodeNavigationInfo.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
-  if EventsEngine <> nil then
-    EventsEngine.
-      GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);
+  if Scene <> nil then
+    Scene.GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
 procedure TNodeOrthoViewpoint.CreateNode;

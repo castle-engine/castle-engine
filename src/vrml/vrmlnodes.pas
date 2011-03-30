@@ -2207,17 +2207,6 @@ var
 function KeyRange(Key: TDynSingleArray;
   const Fraction: Single; out T: Single): Integer;
 
-var
-  { Global list of all TVRMLChangesEngine instances.
-
-    This makes it easy in TVRMLChangesEngine implementation to add/remove
-    itself from this list. Alternative would be to make ChangeListeners
-    in each TVRMLNode, which would be more efficient (only scenes that
-    really contain given node would be notified), but also difficult
-    (we would need to be much more careful when adding / removing nodes
-    from the TVRMLScene.RootNode graph). }
-  ChangeListeners: TVRMLChangesEnginesList;
-
 {$undef read_interface}
 
 implementation
@@ -5847,11 +5836,7 @@ initialization
   VRMLCache := TVRMLNodesCache.Create;
   TraverseState_CreateNodes(StateDefaultNodes);
   TraverseSingleStack := TVRMLGraphTraverseStateStack.Create;
-
-  ChangeListeners := TVRMLChangesEnginesList.Create;
 finalization
-  FreeAndNil(ChangeListeners);
-
   TraverseState_FreeAndNilNodes(StateDefaultNodes);
   FreeAndNil(TraverseSingleStack);
   FreeAndNil(VRMLCache);
@@ -5859,3 +5844,4 @@ finalization
   FreeAndNil(NodesManager);
   FreeAndNil(AnyNodeDestructionNotifications);
 end.
+

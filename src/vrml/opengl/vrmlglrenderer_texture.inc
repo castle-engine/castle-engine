@@ -1804,7 +1804,7 @@ var
 var
   CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
-  EventsEngine: TVRMLEventsEngine;
+  Scene: TVRMLEventsEngine;
 begin
   if GLName = 0 then Exit;
 
@@ -1854,9 +1854,9 @@ begin
     traveled through through the same route at the same time,
     so new event would be rejected as it can be a signal that we have
     a cycle in routes.) }
-  EventsEngine := TextureNode.EventsEngine;
-  if EventsEngine <> nil then
-    EventsEngine.IncreaseTimeTick;
+  Scene := TextureNode.Scene;
+  if Scene <> nil then
+    Scene.IncreaseTimeTick;
 
   TextureNode.EventRendering.Send(false);
 

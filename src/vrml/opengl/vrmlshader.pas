@@ -602,7 +602,7 @@ procedure TVRMLShaderProgram.EventReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   UniformName: string;
-  EventsEngine: TVRMLEventsEngine;
+  Scene: TVRMLEventsEngine;
 begin
   if Event.ParentExposedField = nil then
     UniformName := Event.Name else
@@ -611,16 +611,16 @@ begin
   SetUniformFromField(UniformName, Value, true);
 
   { Although ExposedEvents implementation already sends notification
-    about changes to EventsEngine, we can also get here
+    about changes to Scene, we can also get here
     by eventIn invocation (which doesn't trigger
-    EventsEngine.ChangedField, since it doesn't change a field...).
+    Scene.ChangedField, since it doesn't change a field...).
     So we should explicitly do VisibleChangeHere here, to make sure
     it gets called when uniform changed. }
   if Event.ParentNode <> nil then
   begin
-    EventsEngine := (Event.ParentNode as TVRMLNode).EventsEngine;
-    if EventsEngine <> nil then
-      EventsEngine.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    Scene := (Event.ParentNode as TVRMLNode).Scene;
+    if Scene <> nil then
+      Scene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 end;
 

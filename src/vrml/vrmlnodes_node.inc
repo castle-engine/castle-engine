@@ -72,7 +72,7 @@
     FCDataExists: boolean;
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
-    FEventsEngine: TVRMLEventsEngine;
+    FScene: TVRMLEventsEngine;
 
     { Internally used by PROTO instantiating mechanism,
       in TVRMLPrototypeNode.InstantiateIsClauses
@@ -901,7 +901,7 @@
 
       Doesn't copy things which are dependent on container hierarchy.
       (So copying them would be more dangerous than useful.)
-      This means: DestructionNotifications, EventsEngine, VRML1Parents,
+      This means: DestructionNotifications, Scene, VRML1Parents,
       ParentFields. VRML1Parents and ParentFields will be set for children
       anyway (to appropriate copies).
 
@@ -1036,24 +1036,34 @@
     property DestructionNotifications: TDynNodeDestructionNotificationArray
       read FDestructionNotifications;
 
-    { Events processing object for this node, or @nil if none.
+    { Scene that will be notified about changes to this node.
+      This is necessary to allow the scene to properly process VRML/X3D
+      events, and also to react properly to any other changes to the nodes
+      (like when you change some field directly by ObjectPascal code,
+      e.g. by TVRMLField.Send).
 
-      Currently this can be only an instance of TVRMLScene class.
-      TVRMLScene.ProcessEvents is always @true while it's set
-      as EventsEngine.
+      May be @nil if none.
 
-      Note: While it is possble and perfectly fine to have
-      the same VRML node included in more than one TVRMLScene instance,
-      only one of such scenes may have ProcessEvents = @true. Otherwise,
-      some things could get unsynchronized, like TVRMLScene.Time that is
-      also recorded in TVRMLRoute to avoid loops.
-      So a node may inside at most one TVRMLScene with events processing
-      at the same time. So this simple property is enough (no need to
-      change it to something like TVRMLScenesList). This is also the reason
-      why this shouldn't be treated as a "parent TVRMLScene" for arbritrary
-      purposes, it's only for events processing things! }
-    property EventsEngine: TVRMLEventsEngine
-      read FEventsEngine write FEventsEngine;
+      A given TVRMLNode may be renderable only by a single renderer.
+      This means it can be placed only within one TVRMLGLScene
+      or one TVRMLGLAnimation (nothing else gives you a renderer).
+
+      A given TVRMLNode may be placed inside many TVRMLScene instances
+      (including TVRMLGLScene). But if more than one scene is used,
+      then all the scenes must be static (TVRMLScene.ProcessEvents = false
+      and TVRMLScene.Static = true). Static scenes are ones
+      that never change, that is never have any TVRMLScene.ChangedField called.
+      This means that events processing is disabled, and also
+      other dynamic scene changes from code are disallowed.
+
+      These two rules are both at action when you think about
+      a node inside many TVRMLGLScene instances. In this case,
+      all such scene instances must be created with the same
+      renderer (hence the need for TVRMLGLScene.CreateCustomRenderer)
+      and all must be static. This is actually exactly how
+      TVRMLGLAnimation works: it internally creates a single renderer
+      and a series of TVRMLGLScene instances. }
+    property Scene: TVRMLEventsEngine read FScene write FScene;
 
     { This will be always called by VRML parsers after adding new item
       to our InterfaceDeclarations.

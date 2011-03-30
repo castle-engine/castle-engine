@@ -978,8 +978,8 @@ begin
       WasCacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
-      if EventsEngine <> nil then
-        EventDuration_Changed.Send(FDuration, EventsEngine.GetTime);
+      if Scene <> nil then
+        EventDuration_Changed.Send(FDuration, Scene.GetTime);
       Break;
     except
       on E: Exception do

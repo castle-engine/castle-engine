@@ -165,7 +165,7 @@
       It simply doesn't do any loading when "load" = @false.
 
       Note that this doesn't perform setting the "load" field,
-      or sending any notifications to EventsEngine
+      or sending any notifications to Scene
       about "load" field. It's the caller's job to keep loaded state
       synchronized with "load" field value.
 
@@ -394,10 +394,10 @@ begin
     whether exposed event handler was already done or not (depends
     on the order of calbacks on OnReceive list).
 
-    Even better, I know that notification to EventsEngine
+    Even better, I know that notification to Scene
     (from exposed eventIn handler)
     is done *after* running our eventOut handler.
-    This means that EventsEngine will be notified about
+    This means that Scene will be notified about
     changes *after* EventLoadReceive or EventUrlReceive changed the nodes
     to load/unload, so TVRMLScene.ChangedAll will be called with
     the *new* graph state, so it will properly update everything to
@@ -615,7 +615,7 @@ begin
     so the VRML graph changes, so they deserve ChangedAll.
 
     Note that, in theory, actually LoadInlined and UnLoadInlined
-    should already call EventsEngine.ChangedAll already.
+    should already call Scene.ChangedAll already.
     But this opens a can of worms, because our BeforeTraverse also
     calls LoadInlined. And you can't really reliably call ChangedAll
     in the middle of traversing (since this means you may call ChangedAll
@@ -628,13 +628,13 @@ begin
     press ctrl then shift, without BeforeNodesFree will fail ->
     because OriginalGeometry.ClassName is no longer available. }
 
-  if EventsEngine <> nil then EventsEngine.BeforeNodesFree;
+  if Scene <> nil then Scene.BeforeNodesFree;
 
   if FdLoad.Value then
     LoadInlined(false) else
     UnLoadInlined;
 
-  if EventsEngine <> nil then EventsEngine.ChangedAll;
+  if Scene <> nil then Scene.ChangedAll;
 end;
 
 procedure TNodeInline.EventUrlReceive(
@@ -642,10 +642,10 @@ procedure TNodeInline.EventUrlReceive(
 begin
   if FdLoad.Value then
   begin
-    if EventsEngine <> nil then EventsEngine.BeforeNodesFree;
+    if Scene <> nil then Scene.BeforeNodesFree;
     UnLoadInlined;
     LoadInlined(false);
-    if EventsEngine <> nil then EventsEngine.ChangedAll;
+    if Scene <> nil then Scene.ChangedAll;
   end;
 end;
 
@@ -684,12 +684,12 @@ begin
     For now it's not really important (user doesn't see
     where it's loaded), but it will be later for scripts. }
 
-  if EventChildren.SendNeeded and (EventsEngine <> nil) then
+  if EventChildren.SendNeeded and (Scene <> nil) then
   begin
     ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.Name);
     try
       ChildrenToSend.Add(FInlined);
-      EventChildren.Send(ChildrenToSend, EventsEngine.GetTime);
+      EventChildren.Send(ChildrenToSend, Scene.GetTime);
     finally FreeAndNil(ChildrenToSend) end;
   end;
 end;

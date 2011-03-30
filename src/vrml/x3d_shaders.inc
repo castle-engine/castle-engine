@@ -237,7 +237,7 @@ begin
     because you want to redisplay when they change.
 
     But TVRMLGLRenderer takes care of it already. When shaders'
-    uniform variables change, we call EventsEngine.VisibleChangeHere.
+    uniform variables change, we call Scene.VisibleChangeHere.
     Implemented inside TVRMLShaderProgram.EventReceive.
 
     TODO: but when you don't use events, but directly change them

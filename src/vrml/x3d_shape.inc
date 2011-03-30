@@ -512,6 +512,7 @@ begin
   if Value <> nil then
   begin
     App := TNodeAppearance.Create('', WWWBasePath);
+    App.Scene := Scene;
     Appearance := App;
     App.FdMaterial.Value := Value;
   end;
@@ -539,6 +540,7 @@ begin
   if Value <> nil then
   begin
     App := TNodeAppearance.Create('', WWWBasePath);
+    App.Scene := Scene;
     Appearance := App;
     App.FdTexture.Value := Value;
   end;
@@ -566,6 +568,7 @@ begin
   if Value <> nil then
   begin
     App := TNodeAppearance.Create('', WWWBasePath);
+    App.Scene := Scene;
     Appearance := App;
     App.FdTextureTransform.Value := Value;
   end;
@@ -593,6 +596,7 @@ begin
   if Value <> nil then
   begin
     App := TNodeAppearance.Create('', WWWBasePath);
+    App.Scene := Scene;
     Appearance := App;
     App.FdLineProperties.Value := Value;
   end;
