@@ -360,25 +360,16 @@ type
     procedure UpdateShadowMaps(LightNode: TNodeX3DLightNode);
   end;
 
-  { For each transform node (INodeTransform),
-    list all TVRMLShapeTreeTransform instances where it's used.
-    @exclude }
-  TTransformInstances = class(TVRMLShapeTreesList)
-    Node: TVRMLNode;
-  end;
-
-  { @exclude }
-  TObjectsListItem_1 = TTransformInstances;
-  { @exclude }
-  {$I objectslist_1.inc}
-  { @exclude }
-  TTransformInstancesList = class(TObjectsList_1)
+  { List of transform nodes (INodeTransform),
+    used to extract TVRMLShapeTreesList for this node. }
+  TTransformInstancesList = class(TVRMLNodesList)
   public
-    { Returns existing item corresponding to given Node.
-      If not found, and AutoCreate, then adds new item to the list.
+    { Returns existing TVRMLShapeTreesList corresponding to given Node.
+      If not found, and AutoCreate, then creates new.
       If not found, and not AutoCreate, then return @nil. }
     function Instances(Node: TVRMLNode;
-      const AutoCreate: boolean): TTransformInstances;
+      const AutoCreate: boolean): TVRMLShapeTreesList;
+    procedure FreeShapeTrees;
   end;
 
   { @exclude }
@@ -2008,7 +1999,6 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
 {$I dynarray_3.inc}
 {$I dynarray_5.inc}
 {$I dynarray_7.inc}
-{$I objectslist_1.inc}
 {$I objectslist_2.inc}
 {$I objectslist_3.inc}
 
@@ -2302,24 +2292,27 @@ end;
 { TTransformInstancesList ------------------------------------------------- }
 
 function TTransformInstancesList.Instances(Node: TVRMLNode;
-  const AutoCreate: boolean): TTransformInstances;
+  const AutoCreate: boolean): TVRMLShapeTreesList;
+begin
+  Result := Node.ShapeTrees as TVRMLShapeTreesList;
+
+  if (Result = nil) and AutoCreate then
+  begin
+    Node.ShapeTrees := TVRMLShapeTreesList.Create;
+    Result := TVRMLShapeTreesList(Node.ShapeTrees);
+    Add(Node);
+  end;
+end;
+
+procedure TTransformInstancesList.FreeShapeTrees;
 var
   I: Integer;
 begin
-  for I := 0 to High do
-    if Node = Items[I].Node then
-    begin
-      Result := Items[I];
-      Exit;
-    end;
-
-  if AutoCreate then
+  for I := 0 to Count - 1 do
   begin
-    Result := TTransformInstances.Create;
-    Result.Node := Node;
-    Add(Result);
-  end else
-    Result := nil;
+    Items[I].ShapeTrees.Free;
+    Items[I].ShapeTrees := nil;
+  end;
 end;
 
 { TVRMLScene ----------------------------------------------------------- }
@@ -2392,8 +2385,16 @@ begin
   FreeAndNil(ScreenEffectNodes);
   FreeAndNil(ProximitySensors);
   FreeAndNil(GeneratedTextures);
-  FreeWithContentsAndNil(TransformInstancesList);
-  FreeWithContentsAndNil(BillboardInstancesList);
+  if TransformInstancesList <> nil then
+  begin
+    TransformInstancesList.FreeShapeTrees;
+    FreeAndNil(TransformInstancesList);
+  end;
+  if BillboardInstancesList <> nil then
+  begin
+    BillboardInstancesList.FreeShapeTrees;
+    FreeAndNil(BillboardInstancesList);
+  end;
   FreeAndNil(FCompiledScriptHandlers);
   FreeAndNil(KeyDeviceSensorNodes);
   FreeAndNil(TimeDependentHandlers);
@@ -2862,8 +2863,8 @@ end;
 procedure TVRMLScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Stuff that will be recalculated by ChangedAll }
-  TransformInstancesList.FreeContents;
-  BillboardInstancesList.FreeContents;
+  TransformInstancesList.FreeShapeTrees;
+  BillboardInstancesList.FreeShapeTrees;
   GeneratedTextures.Count := 0;
   ProximitySensors.Count := 0;
   ScreenEffectNodes.Count := 0;
@@ -3560,7 +3561,7 @@ var
   { Handle VRML >= 2.0 transformation changes. }
   procedure HandleChangeTransform;
   var
-    Instances: TTransformInstances;
+    Instances: TVRMLShapeTreesList;
   begin
     Check(Supports(Node, INodeTransform),
       'chTransform flag may be set only for INodeTransform');
@@ -5884,10 +5885,11 @@ begin
         any parent Billboard nodes. }
       for I := 0 to BillboardInstancesList.Count - 1 do
       begin
-        (BillboardInstancesList[I].Node as TNodeBillboard).CameraChanged(
+        (BillboardInstancesList[I] as TNodeBillboard).CameraChanged(
           FCameraPosition, FCameraDirection, FCameraUp);
-        TransformationChanged(BillboardInstancesList[I].Node,
-          BillboardInstancesList[I], [chTransform]);
+        TransformationChanged(BillboardInstancesList[I],
+          BillboardInstancesList[I].ShapeTrees as TVRMLShapeTreesList,
+          [chTransform]);
       end;
     end;
   finally EndChangesSchedule end;

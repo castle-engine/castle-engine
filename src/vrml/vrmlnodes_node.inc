@@ -67,6 +67,7 @@
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
     FScene: TVRMLEventsEngine;
+    FShapeTrees: TObject;
 
     { Internally used by PROTO instantiating mechanism,
       in TVRMLPrototypeNode.InstantiateIsClauses
@@ -1058,6 +1059,10 @@
       TVRMLGLAnimation works: it internally creates a single renderer
       and a series of TVRMLGLScene instances. }
     property Scene: TVRMLEventsEngine read FScene write FScene;
+
+    { Managed and used by TVRMLScene to keep TVRMLShapeTreesList
+      for every INodeTransform. }
+    property ShapeTrees: TObject read FShapeTrees write FShapeTrees;
 
     { This will be always called by VRML parsers after adding new item
       to our InterfaceDeclarations.
