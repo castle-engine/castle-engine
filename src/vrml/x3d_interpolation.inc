@@ -370,7 +370,7 @@ var
     FrameValues: Integer;
   begin
     FrameValues := FdKeyValue.Items.Count div KeyCount;
-    Result := MultipleInterpolatorFieldType.CreateUndefined(Self, '');
+    Result := MultipleInterpolatorFieldType.CreateUndefined(Self, '', false);
 
     if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
     begin
@@ -388,7 +388,7 @@ var
     FrameValues: Integer;
   begin
     FrameValues := FdKeyValue.Items.Count div KeyCount;
-    Result := MultipleInterpolatorFieldType.CreateUndefined(Self, '');
+    Result := MultipleInterpolatorFieldType.CreateUndefined(Self, '', false);
 
     if (Index2 + 1) * FrameValues <= FdKeyValue.Items.Count then
     begin

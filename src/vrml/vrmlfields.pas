@@ -611,7 +611,7 @@ type
       before they can be parsed. I guess that's one of the reasons why these
       field types were entirely removed from VRML 2.0. }
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); virtual;
+      const AName: string; const AExposed: boolean); virtual;
 
     destructor Destroy; override;
 
@@ -1312,7 +1312,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TImage);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     destructor Destroy; override;
 
@@ -1844,7 +1844,7 @@ type
       const AName: string;
       const InitialContent: array of boolean);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1891,7 +1891,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of Longint);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1956,7 +1956,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix3Single);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1995,7 +1995,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix3Double);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2034,7 +2034,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix4Single);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2073,7 +2073,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix4Double);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2112,7 +2112,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector2Single);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2151,7 +2151,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector3Single);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2196,7 +2196,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector4Single);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2240,7 +2240,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector2Double);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2279,7 +2279,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector3Double);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2318,7 +2318,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector4Double);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2358,7 +2358,7 @@ type
       const AName: string;
       const InitialContent: array of TVector4Single);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2399,7 +2399,7 @@ type
       const AName: string;
       const InitialContent: array of Single);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2440,7 +2440,7 @@ type
       const AName: string;
       const InitialContent: array of Double);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2484,7 +2484,7 @@ type
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of string);
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -2793,19 +2793,20 @@ end;
 constructor TVRMLField.Create(AParentNode: TVRMLFileItem;
   const AName: string);
 begin
-  CreateUndefined(AParentNode, AName);
+  CreateUndefined(AParentNode, AName,
+    true { default Exposed = true for normal constructor });
 end;
 
 constructor TVRMLField.CreateUndefined(AParentNode: TVRMLFileItem;
-  const AName: string);
+  const AName: string; const AExposed: boolean);
 begin
   inherited Create(AParentNode, AName);
 
   FExposedEventsLinked := true;
 
-  { Set Exposed to true by the property, to force FExposedEvents initialization }
+  { Set Exposed by the property, to force FExposedEvents initialization }
   FExposed := false;
-  Exposed := true;
+  Exposed := AExposed;
 end;
 
 destructor TVRMLField.Destroy;
@@ -3248,7 +3249,7 @@ end;
 
 function TVRMLSimpleMultField.CreateItemBeforeParse: TVRMLSingleField;
 begin
- result := ItemClass.CreateUndefined(ParentNode, '');
+ result := ItemClass.CreateUndefined(ParentNode, '', false);
 end;
 
 procedure TVRMLSimpleMultField.ParseValue(Lexer: TVRMLLexer; Names: TObject);
@@ -3777,7 +3778,7 @@ begin
 end;
 
 constructor TSFImage.CreateUndefined(AParentNode: TVRMLFileItem;
-  const AName: string);
+  const AName: string; const AExposed: boolean);
 begin
   inherited;
 
@@ -5075,7 +5076,7 @@ begin
 end;
 
 constructor TMF_CLASS.CreateUndefined(AParentNode: TVRMLFileItem;
-  const AName: string);
+  const AName: string; const AExposed: boolean);
 begin
   inherited;
 

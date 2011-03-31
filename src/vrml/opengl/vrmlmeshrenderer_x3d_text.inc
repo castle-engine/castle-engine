@@ -117,7 +117,7 @@ var
 
       if EventLineBounds.SendNeeded then
       begin
-        LineBounds := TMFVec2f.CreateUndefined(Geometry, EventLineBounds.Name);
+        LineBounds := TMFVec2f.CreateUndefined(Geometry, EventLineBounds.Name, false);
         try
           LineBounds.Items.Count := TextWidths.Count;
 

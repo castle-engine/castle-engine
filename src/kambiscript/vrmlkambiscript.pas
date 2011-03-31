@@ -325,7 +325,7 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
       for the same reasons TVRMLEvent.Send shortcuts do this:
       to get nice information in Logger node reports. }
 
-    Result := Event.FieldClass.CreateUndefined(Event.ParentNode, Event.Name);
+    Result := Event.FieldClass.CreateUndefined(Event.ParentNode, Event.Name, false);
   end;
 
 var

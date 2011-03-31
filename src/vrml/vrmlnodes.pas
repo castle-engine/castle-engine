@@ -828,7 +828,7 @@ type
       we must initially just allow all children, otherwise valid prototypes
       with SFNode/MFNode would cause warnings when parsing. }
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       const AAllowedChildrenClasses: array of TVRMLNodeClass;
       AValue: TVRMLNode = nil); overload;
@@ -964,7 +964,7 @@ type
       we must initially just allow all children, otherwise valid prototypes
       with SFNode/MFNode would cause warnings when parsing. }
     constructor CreateUndefined(AParentNode: TVRMLFileItem;
-      const AName: string); override;
+      const AName: string; const AExposed: boolean); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       const AAllowedChildrenClasses: array of TVRMLNodeClass); overload;
     { Constructor that takes a list of allowed children classes.
@@ -2883,7 +2883,7 @@ end;
 { TSFNode --------------------------------------------------------------------- }
 
 constructor TSFNode.CreateUndefined(AParentNode: TVRMLFileItem;
-  const AName: string);
+  const AName: string; const AExposed: boolean);
 begin
   inherited;
   Value := nil;
@@ -3161,7 +3161,7 @@ end;
 { TMFNode -------------------------------------------------------------------- }
 
 constructor TMFNode.CreateUndefined(AParentNode: TVRMLFileItem;
-  const AName: string);
+  const AName: string; const AExposed: boolean);
 begin
   inherited;
   FItems := TVRMLNodesList.Create;
@@ -3679,8 +3679,8 @@ begin
       FieldOrEvent := TVRMLEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
       begin
-        FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name);
-        Field.Exposed := Access = atInputOutput;
+        FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name,
+          { exposed } Access = atInputOutput);
       end;
     else raise EInternalError.Create('Access ? in TVRMLInterfaceDeclaration.Parse');
   end;
@@ -3745,8 +3745,8 @@ begin
       FieldOrEvent := TVRMLEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
       begin
-        FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name);
-        Field.Exposed := Access = atInputOutput;
+        FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name,
+          { exposed } Access = atInputOutput);
       end;
     else raise EInternalError.Create('AccessType ?');
   end;
@@ -3782,7 +3782,8 @@ begin
   if Field <> nil then
   begin
     { F := copy of Field }
-    F := TVRMLFieldClass(Field.ClassType).CreateUndefined(NewParentNode, Field.Name);
+    F := TVRMLFieldClass(Field.ClassType).CreateUndefined(NewParentNode, 
+      Field.Name, Field.Exposed);
     F.Assign(Field);
 
     { CreateUndefined creates field without any default value,
