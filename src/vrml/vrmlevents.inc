@@ -219,7 +219,6 @@ begin
   FFieldClass := AFieldClass;
   FInEvent := AInEvent;
   FOnReceive := TDynVRMLEventReceiveArray.Create;
-  Temp := FieldClass.CreateUndefined(ParentNode, Name, false);
 end;
 
 destructor TVRMLEvent.Destroy;
@@ -597,6 +596,8 @@ function TVRMLEvent.CreateTemp: TVRMLField;
 begin
   if not TempUsed then
   begin
+    if Temp = nil then
+      Temp := FieldClass.CreateUndefined(ParentNode, Name, false);
     Result := Temp;
     TempUsed := true;
   end else
