@@ -287,42 +287,44 @@ procedure TVRMLEvent.Send(const Value: LongInt; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  if FieldClass = TSFInt32 then
-    Field := TSFInt32.Create(ParentNode, Name, Value) else
-    Field := TSFLong.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TSFLong).Value := Value; // handles also SFInt32
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.Send(const Value: boolean; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  Field := TSFBool.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TSFBool).Value := Value;
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.Send(const Value: string; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  Field := TSFString.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TSFString).Value := Value;
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.Send(const Value: TVector2Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  Field := TSFVec2f.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TSFVec2f).Value := Value;
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.Send(const Value: TVector3Single; const Time: TVRMLTime);
@@ -375,86 +377,90 @@ procedure TVRMLEvent.Send(const Value: TMatrix3Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  Field := TSFMatrix3f.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TSFMatrix3f).Value := Value;
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix4Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  Field := TSFMatrix4f.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TSFMatrix4f).Value := Value;
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix3Double; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  Field := TSFMatrix3d.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TSFMatrix3d).Value := Value;
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix4Double; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  Field := TSFMatrix4d.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TSFMatrix4d).Value := Value;
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of string; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  Field := TMFString.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TMFString).Items.AssignArray(Value);
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of TVector2Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  Field := TMFVec2f.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TMFVec2f).Items.AssignArray(Value);
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of TVector3Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  if FieldClass = TMFColor then
-    Field := TMFColor.Create(ParentNode, Name, Value) else
-    Field := TMFVec3f.Create(ParentNode, Name, Value);
+  Field := CreateTemp;
+  (Field as TMFVec3f).Items.AssignArray(Value); // handles also MFColor
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of TVector4Single; const Time: TVRMLTime);
 var
   Field: TVRMLField;
 begin
-  if FieldClass = TMFColorRGBA then
-    Field := TMFColorRGBA.Create(ParentNode, Name, Value) else
+  Field := CreateTemp;
   if FieldClass = TMFRotation then
-    Field := TMFRotation.Create(ParentNode, Name, Value) else
-    Field := TMFVec4f.Create(ParentNode, Name, Value);
+    (Field as TMFRotation).Items.AssignArray(Value) else
+    (Field as TMFVec4f).Items.AssignArray(Value); // handles also MFColorRGBA
   try
     Send(Field, Time);
-  finally FreeAndNil(Field) end;
+  finally FreeTemp(Field) end;
 end;
 
 procedure TVRMLEvent.Send(Field: TVRMLField);
