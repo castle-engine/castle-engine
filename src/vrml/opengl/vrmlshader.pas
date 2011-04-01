@@ -83,6 +83,16 @@ type
 
   TVRMLShader = class;
 
+  TShaderSource = class
+  private
+    FSource: array [TShaderType] of TDynStringArray;
+    function GetSource(const AType: TShaderType): TDynStringArray;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property Source [AType: TShaderType]: TDynStringArray read GetSource; default;
+  end;
+
   TLightShader = class
   private
     Number: Cardinal;
@@ -135,7 +145,7 @@ type
     UniformsNodes: TVRMLNodesList;
     TextureCoordGen, ClipPlane, FragmentEnd: string;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
-    Source: array [TShaderType] of TDynStringArray;
+    Source: TShaderSource;
     PlugIdentifiers: Cardinal;
     LightShaders: TLightShaders;
     TextureShaders: TTextureShaders;
@@ -324,6 +334,31 @@ begin
     if S[P] = ')' then
       Dec(ParenLevel);
   until ParenLevel = 0;
+end;
+
+{ TShaderSource -------------------------------------------------------------- }
+
+constructor TShaderSource.Create;
+var
+  SourceType: TShaderType;
+begin
+  inherited;
+  for SourceType := Low(SourceType) to High(SourceType) do
+    FSource[SourceType] := TDynStringArray.Create;
+end;
+
+destructor TShaderSource.Destroy;
+var
+  SourceType: TShaderType;
+begin
+  for SourceType := Low(SourceType) to High(SourceType) do
+    FreeAndNil(FSource[SourceType]);
+  inherited;
+end;
+
+function TShaderSource.GetSource(const AType: TShaderType): TDynStringArray;
+begin
+  Result := FSource[AType];
 end;
 
 { TLightShader --------------------------------------------------------------- }
@@ -766,13 +801,10 @@ begin
 end;
 
 constructor TVRMLShader.Create;
-var
-  SourceType: TShaderType;
 begin
   inherited;
 
-  for SourceType := Low(SourceType) to High(SourceType) do
-    Source[SourceType] := TDynStringArray.Create;
+  Source := TShaderSource.Create;
   Source[stVertex].Add({$I template.vs.inc});
   Source[stFragment].Add({$I template.fs.inc});
 
@@ -782,14 +814,11 @@ begin
 end;
 
 destructor TVRMLShader.Destroy;
-var
-  SourceType: TShaderType;
 begin
   FreeAndNil(UniformsNodes);
   FreeAndNil(LightShaders);
   FreeAndNil(TextureShaders);
-  for SourceType := Low(SourceType) to High(SourceType) do
-    FreeAndNil(Source[SourceType]);
+  FreeAndNil(Source);
   inherited;
 end;
 
