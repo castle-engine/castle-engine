@@ -93,12 +93,9 @@ procedure TNodeX3DScriptNode.CreateNode;
 begin
   inherited;
 
-  { We register to Fdurl.EventOut, for the reasons see x3d_networking.inc
-    in TNodeInline.Create. }
-
   FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
-  Fdurl.EventOut.OnReceive.Add(@EventUrlReceive);
+  Fdurl.OnReceive.Add(@EventUrlReceive);
   { X3D specification comment: [URI] }
 
   DefaultContainerField := 'children';
@@ -405,9 +402,7 @@ begin
   if (IDecl.Event <> nil) and IDecl.Event.InEvent then
     IDecl.Event.OnReceive.Add(@IDeclEventReceive) else
   if (IDecl.Field <> nil) and IDecl.Field.Exposed then
-    { We register for EventOut, to get IDeclEventReceive with new
-      value of the event. }
-    IDecl.Field.EventOut.OnReceive.Add(@IDeclEventReceive);
+    IDecl.Field.OnReceive.Add(@IDeclEventReceive);
 end;
 
 procedure TNodeScript.IDeclEventReceive(

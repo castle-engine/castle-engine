@@ -868,17 +868,12 @@ procedure TNodeToggler.CreateNode;
 begin
   inherited;
 
-  { It's safer to register on EventOuts below, because then I already
-    know that exposed eventIn handler set appropriate field value
-    before calling our eventOut handler.
-    That's why we listen on EventOuts of status, notStatus, enabled. }
-
   FFdstatus := TSFBoolIgnorable.Create(Self, 'status', false);
-   Fdstatus.EventOut.OnReceive.Add(@EventStatusReceive);
+   Fdstatus.OnReceive.Add(@EventStatusReceive);
   Fields.Add(FFdstatus);
 
   FFdnotStatus := TSFBoolIgnorable.Create(Self, 'notStatus', true);
-   Fdnotstatus.EventOut.OnReceive.Add(@EventNotStatusReceive);
+   Fdnotstatus.OnReceive.Add(@EventNotStatusReceive);
   Fields.Add(FFdnotStatus);
 
   FEventtoggle := TVRMLEvent.Create(Self, 'toggle', TVRMLField, true);

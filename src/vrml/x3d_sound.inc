@@ -368,7 +368,7 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdlocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
-   Fdlocation.EventOut.OnReceive.Add(@EventLocationReceive);
+   Fdlocation.OnReceive.Add(@EventLocationReceive);
   Fields.Add(FFdlocation);
   { X3D specification comment: (-Inf,Inf) }
 

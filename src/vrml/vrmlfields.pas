@@ -489,6 +489,8 @@ type
 
   TVRMLFieldClass = class of TVRMLField;
 
+  TDynVRMLEventReceiveArray = class;
+
   { Base class for all VRML fields.
 
     Common notes for all descendants: most of them expose field or property
@@ -901,6 +903,25 @@ type
           And then notify the scenes (including events engine).)
       ) }
     procedure Send(Value: TVRMLField);
+
+    { Notifications when exposed field received new value through VRML/X3D event.
+      Only for exposed fields (@nil for not exposed fields).
+      This is simply a shortcut for @code(EventOut.OnReceive),
+      see TVRMLEvent.OnReceive for details how does this work.
+
+      Note that this observes the "out" event (not the "in" event).
+      This way you know inside the handler that the field value is already
+      changed as appropriate. Inside "in" event handlers, you would not
+      know this (it would depend on the order in which handlers are run,
+      one "in" handler sets the field value).
+
+      Note that "out" event handlers are executed before Scene is notified
+      about the field value change (before TVRMLScene.ChangedField is called).
+      This is also usually exactly what you want --- you can change the scene
+      graph inside the event handler (for example, load something on
+      Inline.load or Inline.url changes), and let the TVRMLField.ChangesAlways
+      cause appropriate action on this change. }
+    function OnReceive: TDynVRMLEventReceiveArray;
   end;
 
   TObjectsListItem_2 = TVRMLField;
@@ -3159,6 +3180,13 @@ end;
 class function TVRMLField.VRMLTypeName: string;
 begin
   Result := 'XFAny';
+end;
+
+function TVRMLField.OnReceive: TDynVRMLEventReceiveArray;
+begin
+  if FExposedEvents[false] <> nil then
+    Result := FExposedEvents[false].OnReceive else
+    Result := nil;
 end;
 
 { TVRMLFieldsList ------------------------------------------------------------- }

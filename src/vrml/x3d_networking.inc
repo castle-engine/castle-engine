@@ -387,28 +387,12 @@ procedure TNodeInline.CreateNode;
 begin
   inherited;
 
-  { It's safer to register on EventOuts below, because then I already
-    know that exposed eventIn handler set appropriate field value
-    before calling our eventOut handler.
-    In EventIn, you would not really know
-    whether exposed event handler was already done or not (depends
-    on the order of calbacks on OnReceive list).
-
-    Even better, I know that notification to Scene
-    (from exposed eventIn handler)
-    is done *after* running our eventOut handler.
-    This means that Scene will be notified about
-    changes *after* EventLoadReceive or EventUrlReceive changed the nodes
-    to load/unload, so TVRMLScene.ChangedAll will be called with
-    the *new* graph state, so it will properly update everything to
-    new state. }
-
   FFdload := TSFBool.Create(Self, 'load', true);
-   Fdload.EventOut.OnReceive.Add(@EventLoadReceive);
+   Fdload.OnReceive.Add(@EventLoadReceive);
   Fields.Add(FFdload);
 
   FFdurl := TMFString.Create(Self, 'url', []);
-   Fdurl.EventOut.OnReceive.Add(@EventUrlReceive);
+   Fdurl.OnReceive.Add(@EventUrlReceive);
   Fields.Add(FFdurl);
   { X3D specification comment: [url or urn] }
 
