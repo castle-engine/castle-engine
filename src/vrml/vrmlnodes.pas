@@ -3782,7 +3782,7 @@ begin
   if Field <> nil then
   begin
     { F := copy of Field }
-    F := TVRMLFieldClass(Field.ClassType).CreateUndefined(NewParentNode, 
+    F := TVRMLFieldClass(Field.ClassType).CreateUndefined(NewParentNode,
       Field.Name, Field.Exposed);
     F.Assign(Field);
 
@@ -3811,6 +3811,11 @@ begin
     { E := copy of Event }
     E := TVRMLEvent.Create(NewParentNode,
       Event.Name, Event.FieldClass, Event.InEvent);
+    { Although above constructor already copied most event properties,
+      some were omitted (like IsClauseNames --- important for Script with
+      eventIn/out events with IS clauses inside prototypes).
+      Assign call below takes care of them. }
+    E.Assign(Event);
   end else
     raise EInternalError.Create('interface declaration but no Field or Event');
 
