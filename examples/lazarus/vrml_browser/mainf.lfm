@@ -4,7 +4,6 @@ object Main: TMain
   Top = 202
   Width = 744
   ActiveControl = Browser
-  AutoSize = True
   Caption = 'Main'
   ClientHeight = 476
   ClientWidth = 744
@@ -12,8 +11,8 @@ object Main: TMain
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnDestroy = FormDestroy
-  Position = poDefault
-  LCLVersion = '0.9.28.2'
+  Position = poDefaultPosOnly
+  LCLVersion = '0.9.30'
   object PanelBottom: TPanel
     Left = 0
     Height = 141
@@ -38,7 +37,7 @@ object Main: TMain
       object LabelPosition: TLabel
         Left = 0
         Height = 25
-        Top = 5
+        Top = 0
         Width = 86
         Caption = 'Position:'
         ParentColor = False
@@ -46,7 +45,7 @@ object Main: TMain
       object LabelDirection: TLabel
         Left = 0
         Height = 25
-        Top = 38
+        Top = 33
         Width = 99
         Caption = 'Direction:'
         ParentColor = False
@@ -54,7 +53,7 @@ object Main: TMain
       object LabelUp: TLabel
         Left = 0
         Height = 25
-        Top = 70
+        Top = 65
         Width = 36
         Caption = 'Up:'
         ParentColor = False
@@ -64,7 +63,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 109
         Height = 34
-        Top = 0
+        Top = -5
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 0
@@ -75,7 +74,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 199
         Height = 34
-        Top = 0
+        Top = -5
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 1
@@ -86,7 +85,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 289
         Height = 34
-        Top = 0
+        Top = -5
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 2
@@ -96,7 +95,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 109
         Height = 34
-        Top = 32
+        Top = 27
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 3
@@ -107,7 +106,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 199
         Height = 34
-        Top = 32
+        Top = 27
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 4
@@ -118,7 +117,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 289
         Height = 34
-        Top = 32
+        Top = 27
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 5
@@ -128,7 +127,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 109
         Height = 34
-        Top = 64
+        Top = 59
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 6
@@ -139,7 +138,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 199
         Height = 34
-        Top = 64
+        Top = 59
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 7
@@ -150,7 +149,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 289
         Height = 34
-        Top = 62
+        Top = 57
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 8
@@ -160,7 +159,7 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         Left = 379
         Height = 44
-        Top = 49
+        Top = 44
         Width = 97
         AutoSize = True
         BorderSpacing.Left = 10
