@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="158">
+    <Files Count="159">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -692,7 +692,11 @@
         <Filename Value="../src/vrml/vrmltriangleoctree.pas"/>
         <UnitName Value="VRMLTriangleOctree"/>
       </Item158>
-    </Files>
+       <Item159>
+        <Filename Value="../src/3d/noise.pas"/>
+        <UnitName Value="Noise"/>
+      </Item159>
+   </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
       <Item1>
