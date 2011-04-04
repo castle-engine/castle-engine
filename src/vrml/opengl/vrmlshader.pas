@@ -91,6 +91,19 @@ type
     constructor Create;
     destructor Destroy; override;
     property Source [AType: TShaderType]: TDynStringArray read GetSource; default;
+
+    { Append AppendCode to our code.
+      Has some special features:
+
+      - Doesn't use AppendCode[stFragment][0]
+        (we use this for now only with texture and light shaders,
+        which treat AppendCode[stFragment][0] specially).
+
+      - Doesn't add anything to given type, if it's already empty.
+        For our internal base shaders, vertex and fragment are never empty.
+        When they are empty, this means that user assigned ComposedShader,
+        but depends on fixed-function pipeline to do part of the job. }
+    procedure Append(AppendCode: TShaderSource);
   end;
 
   TLightShader = class
@@ -100,10 +113,10 @@ type
     MaterialSpecularColor: TVector3Single;
     Shader: TVRMLShader;
     { Code calculated (on demand, when method called) using above vars. }
-    FCode: TDynStringArray;
+    FCode: TShaderSource;
   public
     destructor Destroy; override;
-    function Code: TDynStringArray;
+    function Code: TShaderSource;
   end;
 
   TLightShaders = class(specialize TFPGObjectList<TLightShader>)
@@ -175,10 +188,10 @@ type
     Lighting, MaterialFromColor: boolean;
 
     procedure EnableEffects(Effects: TMFNode;
-      const Code: TDynStringArray = nil;
+      const Code: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
     procedure EnableEffects(Effects: TVRMLNodesList;
-      const Code: TDynStringArray = nil;
+      const Code: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
 
     { Special form of Plug. It inserts the PlugValue source code directly
@@ -219,7 +232,7 @@ type
       this way many Plug calls that defined the same PLUG_xxx function
       will be called in the same order. }
     procedure Plug(const EffectPartType: TShaderType; PlugValue: string;
-      Code: TDynStringArray = nil;
+      CompleteCode: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
 
     { Add fragment and vertex shader code, link.
@@ -361,6 +374,17 @@ begin
   Result := FSource[AType];
 end;
 
+procedure TShaderSource.Append(AppendCode: TShaderSource);
+var
+  T: TShaderType;
+  I: Integer;
+begin
+  for T := Low(T) to High(T) do
+    if Source[T].Count <> 0 then
+      for I := Iff(T = stFragment, 1, 0) to AppendCode[T].Count - 1 do
+        Source[T].Add(AppendCode[T][I]);
+end;
+
 { TLightShader --------------------------------------------------------------- }
 
 destructor TLightShader.Destroy;
@@ -369,13 +393,13 @@ begin
   inherited;
 end;
 
-function TLightShader.Code: TDynStringArray;
+function TLightShader.Code: TShaderSource;
 var
   Defines: string;
 begin
   if FCode = nil then
   begin
-    FCode := TDynStringArray.Create;
+    FCode := TShaderSource.Create;
 
     Defines := '';
     if Node <> nil then
@@ -398,7 +422,8 @@ begin
       Defines += '#define LIGHT_HAS_SPECULAR' + NL;
     end;
 
-    FCode.Add(Defines + StringReplace({$I template_add_light.glsl.inc},
+    FCode[stFragment].Add(
+      Defines + StringReplace({$I template_add_light.glsl.inc},
       'light_number', IntToStr(Number), [rfReplaceAll]));
 
     if Node <> nil then
@@ -690,8 +715,7 @@ const
 var
   TextureSampleCall, TexCoordName: string;
   ShadowLightShader: TLightShader;
-  Code: TDynStringArray;
-  I: Integer;
+  Code: TShaderSource;
 begin
   if TextureType <> ttShader then
   begin
@@ -760,27 +784,25 @@ begin
         else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
       end;
 
-      Code := TDynStringArray.Create;
+      Code := TShaderSource.Create;
       try
         if TextureType <> ttShader then
-          Code.Add(Format('texture_color = ' + TextureSampleCall + ';' +NL+
+          Code[stFragment].Add(Format(
+            'texture_color = ' + TextureSampleCall + ';' +NL+
             '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
             [UniformName, TexCoordName])) else
-          Code.Add(Format('texture_color = ' + TextureSampleCall + ';' +NL+
+          Code[stFragment].Add(Format(
+            'texture_color = ' + TextureSampleCall + ';' +NL+
             '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
             [TexCoordName]));
 
         Shader.EnableEffects(Node.FdEffects, Code, true);
 
-        { Use generated Code. Code[0] for texture is a little special,
-          we add it to TextureApply that will be directly placed within
-          the source. }
-        TextureApply += Code[0];
-        { Don't add to empty Source[stFragment], in case ComposedShader
-          doesn't want any fragment shader }
-        if Shader.Source[stFragment].Count <> 0 then
-          for I := 1 to Code.Count - 1 do
-            Shader.Source[stFragment].Add(Code[I]);
+        { Add generated Code to Shader.Source. Code[stFragment][0] for texture
+          is a little special, we add it to TextureApply that
+          will be directly placed within the source. }
+        TextureApply += Code[stFragment][0];
+        Shader.Source.Append(Code);
       finally FreeAndNil(Code) end;
 
       { TODO: always modulate mode for now }
@@ -823,7 +845,7 @@ begin
 end;
 
 procedure TVRMLShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
-  Code: TDynStringArray; const ForwardDeclareInFinalShader: boolean);
+  CompleteCode: TShaderSource; const ForwardDeclareInFinalShader: boolean);
 const
   PlugPrefix = 'PLUG_';
 
@@ -866,6 +888,9 @@ const
     end;
   end;
 
+var
+  Code: TDynStringArray;
+
   procedure InsertIntoCode(const CodeIndex, P: Integer; const S: string);
   begin
     Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, S);
@@ -890,13 +915,17 @@ var
   PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
   Parameter, PlugName, ProcedureName, CommentBegin, PlugDeclaredParameters,
     PlugForwardDeclaration: string;
+  CompleteCodeForPlugValue: TShaderSource;
   CodeForPlugValue: TDynStringArray;
   AnyOccurences, AnyOccurencesInThisCodeIndex: boolean;
 begin
-  CodeForPlugValue := Source[EffectPartType];
+  CompleteCodeForPlugValue := Source;
 
-  if Code = nil then
-    Code := CodeForPlugValue;
+  if CompleteCode = nil then
+    CompleteCode := CompleteCodeForPlugValue;
+
+  Code := CompleteCode[EffectPartType];
+  CodeForPlugValue := CompleteCodeForPlugValue[EffectPartType];
 
   repeat
     PlugName := FindPlugName(PlugValue, PlugDeclaredParameters);
@@ -1043,7 +1072,7 @@ var
 
   procedure EnableLights;
   var
-    I, J: Integer;
+    I: Integer;
     LightShaderBack, LightShaderFront: string;
   begin
     { If we have no fragment/vertex shader (means that we used ComposedShader
@@ -1060,7 +1089,7 @@ var
 
       for I := 0 to LightShaders.Count - 1 do
       begin
-        LightShaderBack  := LightShaders[I].Code[0];
+        LightShaderBack  := LightShaders[I].Code[stFragment][0];
         LightShaderFront := LightShaderBack;
 
         LightShaderBack := StringReplace(LightShaderBack,
@@ -1076,8 +1105,7 @@ var
         Plug(stFragment, LightShaderBack);
         Plug(stFragment, LightShaderFront);
 
-        for J := 1 to LightShaders[I].Code.Count - 1 do
-          Source[stFragment].Add(LightShaders[I].Code[J]);
+        Source.Append(LightShaders[I].Code);
       end;
     end;
   end;
@@ -1530,14 +1558,14 @@ begin
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TMFNode;
-  const Code: TDynStringArray;
+  const Code: TShaderSource;
   const ForwardDeclareInFinalShader: boolean);
 begin
   EnableEffects(Effects.Items, Code, ForwardDeclareInFinalShader);
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
-  const Code: TDynStringArray;
+  const Code: TShaderSource;
   const ForwardDeclareInFinalShader: boolean);
 
   procedure EnableEffect(Effect: TNodeEffect);
