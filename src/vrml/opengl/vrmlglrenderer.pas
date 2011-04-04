@@ -2879,7 +2879,9 @@ procedure TVRMLGLRenderer.RenderShapeLineProperties(Shape: TVRMLRendererShape;
 var
   LP: TNodeLineProperties;
 begin
-  LP := Shape.Node.LineProperties;
+  if Shape.Node <> nil then { Shape.Node is nil for VRML <= 1.0 }
+    LP := Shape.Node.LineProperties else
+    LP := nil;
   if (LP <> nil) and LP.FdApplied.Value then
   begin
     LineWidth := Max(1.0, Attributes.LineWidth * LP.FdLineWidthScaleFactor.Value);
