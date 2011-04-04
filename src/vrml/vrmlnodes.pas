@@ -758,6 +758,8 @@ type
       Node may be @nil (then it's ignored), or something loaded by
       Load3D (then it's released and changed to @nil). }
     procedure Free3D(var Node: TVRMLRootNode);
+
+    function Empty: boolean; override;
   end;
 
 {$I vrmlnodes_node.inc}
@@ -2812,6 +2814,7 @@ begin
       begin
         FreeAndNil(C.Node);
         CachedNodes.Delete(I);
+        CheckEmpty;
       end else
         Dec(C.References);
 
@@ -2821,6 +2824,11 @@ begin
 
   raise EInternalError.CreateFmt('Free3D: no reference found for 3D model %s',
     [PointerToStr(Node)]);
+end;
+
+function TVRMLNodesCache.Empty: boolean;
+begin
+  Result := (inherited Empty) and (CachedNodes.Count = 0);
 end;
 
 { TVRMLNodeClassesList ------------------------------------------------------- }
@@ -5787,6 +5795,16 @@ end;
 
 { unit init/fini ------------------------------------------------------------ }
 
+procedure VRMLNodesFinalization;
+begin
+  TraverseState_FreeAndNilNodes(StateDefaultNodes);
+  FreeAndNil(TraverseSingleStack);
+  FreeAndNil(VRMLCache);
+
+  FreeAndNil(NodesManager);
+  FreeAndNil(AnyNodeDestructionNotifications);
+end;
+
 initialization
   AnyNodeDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
 
@@ -5843,11 +5861,12 @@ initialization
   TraverseState_CreateNodes(StateDefaultNodes);
   TraverseSingleStack := TVRMLGraphTraverseStateStack.Create;
 finalization
-  TraverseState_FreeAndNilNodes(StateDefaultNodes);
-  FreeAndNil(TraverseSingleStack);
-  FreeAndNil(VRMLCache);
-
-  FreeAndNil(NodesManager);
-  FreeAndNil(AnyNodeDestructionNotifications);
+  { Because of various finalization order (some stuff may be owned
+    e.g. by GLWindow.Application, and freed at GLWindow finalization,
+    which may be done after VRMLNodes finalization) we may defer
+    finalization for later. }
+  if (VRMLCache = nil) or VRMLCache.Empty then
+    VRMLNodesFinalization else
+    VRMLCache.OnEmpty := @VRMLNodesFinalization;
 end.
 

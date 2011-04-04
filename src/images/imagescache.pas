@@ -83,12 +83,24 @@ type
   TImagesCache = class
   private
     CachedImages: TDynCachedImageArray;
+    FOnEmpty: TProcedure;
+  protected
+    { If cache is empty, calls OnEmpty. Note that OnEmpty may destroy current
+      instance, so call CheckEmpty only when you finished processing
+      --- Self may be invalid afterwards. }
+    procedure CheckEmpty;
   public
     constructor Create;
     destructor Destroy; override;
 
     function LoadImage_IncReference(const FileName: string): TImage;
     procedure LoadImage_DecReference(var Image: TImage);
+
+    function Empty: boolean; virtual;
+
+    { Called when cache becomes empty. This is only for internal usage
+      by VRMLNodes unit for now. }
+    property OnEmpty: TProcedure read FOnEmpty write FOnEmpty;
   end;
 
 {$undef read_interface}
@@ -178,6 +190,7 @@ begin
       begin
         FreeAndNil(C^.Image);
         CachedImages.Delete(I, 1);
+        CheckEmpty;
       end else
         Dec(C^.References);
 
@@ -189,6 +202,18 @@ begin
   raise EInternalError.CreateFmt(
     'TImagesCache.LoadImage_DecReference: no reference found for image %s',
     [PointerToStr(Image)]);
+end;
+
+procedure TImagesCache.CheckEmpty;
+begin
+  { Check Assigned(OnEmpty) first, as it's usually not assigned. }
+  if Assigned(OnEmpty) and Empty then
+    OnEmpty();
+end;
+
+function TImagesCache.Empty: boolean;
+begin
+  Result := CachedImages.Count = 0;
 end;
 
 end.

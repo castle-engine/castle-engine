@@ -150,6 +150,8 @@ type
 
     procedure TextureImage_DecReference(var Image: TEncodedImage; var DDS: TDDSImage); overload;
     procedure TextureImage_DecReference(var Image: TEncodedImage); overload;
+    
+    function Empty: boolean; override;
   end;
 
 {$undef read_interface}
@@ -295,6 +297,7 @@ begin
         FreeAndNil(C^.Image);
         FreeAndNil(C^.DDS);
         CachedTextures.Delete(I, 1);
+        CheckEmpty;
       end else
         Dec(C^.References);
 
@@ -323,6 +326,11 @@ var
 begin
   Dummy := nil;
   TextureImage_DecReference(Image, Dummy);
+end;
+
+function TTexturesImagesVideosCache.Empty: boolean;
+begin
+  Result := (inherited Empty) and (CachedTextures.Count = 0);
 end;
 
 end.

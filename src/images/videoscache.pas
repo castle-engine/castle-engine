@@ -95,6 +95,8 @@ type
 
     function Video_IncReference(const FileName: string): TVideo;
     procedure Video_DecReference(var Video: TVideo);
+
+    function Empty: boolean; override;
   end;
 
 {$undef read_interface}
@@ -190,6 +192,7 @@ begin
       begin
         FreeAndNil(C^.Video);
         CachedVideos.Delete(I, 1);
+        CheckEmpty;
       end else
         Dec(C^.References);
 
@@ -201,6 +204,11 @@ begin
   raise EInternalError.CreateFmt(
     'TImagesVideosCache.Video_DecReference: no reference found for video %s',
     [PointerToStr(Video)]);
+end;
+
+function TImagesVideosCache.Empty: boolean;
+begin
+  Result := (inherited Empty) and (CachedVideos.Count = 0);
 end;
 
 end.
