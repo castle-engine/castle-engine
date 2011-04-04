@@ -1077,7 +1077,12 @@ var
   begin
     { If we have no fragment/vertex shader (means that we used ComposedShader
       node without one shader) then don't add any code.
-      Otherwise we would create a shader without any main() inside. }
+      Otherwise we would create a shader without any main() inside.
+
+      Source.Append later also has some safeguard against this,
+      but we need to check it earlier (to avoid plugging LightShaderBack),
+      and check them both (as vertex and fragment code cooperates,
+      so we need both or none). }
     if (Source[stFragment].Count = 0) or
        (Source[stVertex].Count = 0) then
       Exit;
