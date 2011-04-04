@@ -418,7 +418,7 @@ end;
 Reasoning: looking at implementation of OpenGLContext,
 actual creating and destroying of OpenGL contexts
 (i.e. calls to LOpenGLCreateContext and LOpenGLDestroyContextInfo)
-is done within Create/DesrtoyHandle.
+is done within Create/DestroyHandle.
 
 Why this was wrong ? Because under GTK LOpenGLCreateContext
 only creates gtk_gl_area --- it doesn't *realize* it yet !
@@ -659,13 +659,17 @@ end;
 
 procedure TKamOpenGLControlCore.Paint;
 begin
-  DoBeforeDraw;
-  Fps._RenderBegin;
-  try
-    DoDraw;
-    SwapBuffers;
-  finally Fps._RenderEnd end;
-  Invalidated := false; { used only when AggressiveUpdate }
+  { Note that we don't call here inherited, instead doing everything ourselves. }
+  if MakeCurrent then
+  begin
+    DoBeforeDraw;
+    Fps._RenderBegin;
+    try
+      DoDraw;
+      SwapBuffers;
+    finally Fps._RenderEnd end;
+    Invalidated := false; { used only when AggressiveUpdate }
+  end;
 end;
 
 procedure TKamOpenGLControlCore.SetMousePosition(const NewMouseX, NewMouseY: Integer);
