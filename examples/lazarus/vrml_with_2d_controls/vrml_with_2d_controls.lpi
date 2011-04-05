@@ -1,21 +1,23 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
+    <Version Value="9"/>
     <PathDelim Value="\"/>
-    <Version Value="7"/>
     <General>
       <Flags>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
-      <ProjectVersion Value=""/>
       <Language Value=""/>
       <CharSet Value=""/>
+      <StringTable ProductVersion=""/>
     </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
       <IgnoreBinaries Value="False"/>
@@ -46,8 +48,8 @@
         <Filename Value="vrml_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vrml_with_2d_controls"/>
-        <CursorPos X="39" Y="10"/>
         <TopLine Value="1"/>
+        <CursorPos X="39" Y="10"/>
         <UsageCount Value="35"/>
       </Unit0>
       <Unit1>
@@ -56,87 +58,90 @@
         <ComponentName Value="Form1"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
-        <CursorPos X="29" Y="78"/>
-        <TopLine Value="75"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="72"/>
+        <CursorPos X="29" Y="78"/>
         <UsageCount Value="35"/>
         <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="..\..\..\src\components\kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="21" Y="21"/>
         <TopLine Value="1"/>
+        <CursorPos X="21" Y="21"/>
         <UsageCount Value="10"/>
       </Unit2>
       <Unit3>
         <Filename Value="..\..\..\src\base\areas.pas"/>
         <UnitName Value="Areas"/>
-        <CursorPos X="22" Y="123"/>
         <TopLine Value="103"/>
+        <CursorPos X="22" Y="123"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
         <Filename Value="..\..\..\src\opengl\kambiglutils.pas"/>
         <UnitName Value="KambiGLUtils"/>
-        <CursorPos X="1" Y="2095"/>
         <TopLine Value="2075"/>
+        <CursorPos X="1" Y="2095"/>
         <UsageCount Value="10"/>
       </Unit4>
       <Unit5>
         <Filename Value="..\..\..\src\components\kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="28" Y="1253"/>
         <TopLine Value="1237"/>
+        <CursorPos X="28" Y="1253"/>
         <UsageCount Value="10"/>
       </Unit5>
       <Unit6>
         <Filename Value="..\..\..\src\ui\uicontrols.pas"/>
         <UnitName Value="UIControls"/>
-        <CursorPos X="59" Y="147"/>
         <TopLine Value="119"/>
+        <CursorPos X="59" Y="147"/>
         <UsageCount Value="10"/>
       </Unit6>
       <Unit7>
         <Filename Value="..\..\..\src\opengl\openglfonts.pas"/>
         <UnitName Value="OpenGLFonts"/>
-        <CursorPos X="1" Y="230"/>
         <TopLine Value="213"/>
+        <CursorPos X="1" Y="230"/>
         <UsageCount Value="10"/>
       </Unit7>
       <Unit8>
         <Filename Value="..\..\..\..\..\..\..\installed\lazarus\current\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
-        <CursorPos X="14" Y="1932"/>
         <TopLine Value="1915"/>
+        <CursorPos X="14" Y="1932"/>
         <UsageCount Value="10"/>
       </Unit8>
       <Unit9>
         <Filename Value="..\..\..\src\ui\opengl\glbuttons.pas"/>
         <UnitName Value="GLButtons"/>
-        <CursorPos X="1" Y="1"/>
         <TopLine Value="12"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="10"/>
       </Unit9>
       <Unit10>
         <Filename Value="..\..\..\src\ui\opengl\glcontrols.pas"/>
         <UnitName Value="GLControls"/>
-        <CursorPos X="9" Y="71"/>
         <TopLine Value="55"/>
+        <CursorPos X="9" Y="71"/>
         <UsageCount Value="10"/>
       </Unit10>
       <Unit11>
         <Filename Value="..\..\..\src\opengl\glimages.pas"/>
         <UnitName Value="GLImages"/>
-        <CursorPos X="34" Y="190"/>
         <TopLine Value="168"/>
+        <CursorPos X="34" Y="190"/>
         <UsageCount Value="10"/>
       </Unit11>
       <Unit12>
         <Filename Value="..\..\..\src\images\images.pas"/>
         <UnitName Value="Images"/>
-        <CursorPos X="20" Y="1537"/>
         <TopLine Value="1515"/>
+        <CursorPos X="20" Y="1537"/>
         <UsageCount Value="10"/>
       </Unit12>
     </Units>
@@ -180,19 +185,15 @@
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="9"/>
     <PathDelim Value="\"/>
     <Parsing>
       <SyntaxOptions>
         <IncludeAssertionCode Value="True"/>
         <CStyleMacros Value="True"/>
-        <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
     <Linking>
-      <Debugging>
-        <UseHeaptrc Value="True"/>
-      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
@@ -200,6 +201,9 @@
       </Options>
     </Linking>
     <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
