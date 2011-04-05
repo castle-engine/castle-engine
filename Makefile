@@ -310,13 +310,15 @@ EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   examples/audio/test_al_source_allocator \
   examples/lazarus/vrml_browser/vrml_browser \
   examples/lazarus/vrml_with_2d_controls/vrml_with_2d_controls \
-  examples/lazarus/camera/camera
+  examples/lazarus/camera/camera \
+  examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
   examples/audio/test_al_source_allocator.exe \
   examples/lazarus/vrml_browser/vrml_browser.exe \
   examples/lazarus/vrml_with_2d_controls/vrml_with_2d_controls.exe  \
-  examples/lazarus/camera/camera.exe
+  examples/lazarus/camera/camera.exe \
+  examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually.exe
 
 .PHONY: examples
 examples:

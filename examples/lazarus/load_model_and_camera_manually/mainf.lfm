@@ -1,0 +1,27 @@
+object Form1: TForm1
+  Left = 507
+  Height = 428
+  Top = 225
+  Width = 505
+  Caption = 'Form1'
+  ClientHeight = 428
+  ClientWidth = 505
+  OnCreate = FormCreate
+  LCLVersion = '0.9.30'
+  object KamVRMLBrowser1: TKamVRMLBrowser
+    Left = 0
+    Height = 428
+    Top = 0
+    Width = 505
+    Align = alClient
+  end
+  object WalkCamera1: TWalkCamera
+    left = 235
+    top = 143
+  end
+  object VRMLGLScene1: TVRMLGLScene
+    Spatial = []
+    left = 235
+    top = 72
+  end
+end
