@@ -106,7 +106,11 @@ VSM:
 ------------------------------------------------------------------------------
 Scene manager / controls / better Lazarus integration:
 
-(not blockers before 2.0 release) --------------------------------------------
+- Lazarus vrml_browser: at the beginning, control doesn't receive key down/up?
+  At least arrows don't seem to work, when you open a model without
+  any NavigationInfo, like
+  demo_models/compositing_shaders/composed_shader_using_plugs.x3dv
+  After some escape + down + up tweaks, sometimes it catches focus...
 
 * TODO at TKamAbstractViewport.Camera: allow one camera instance be shared
   by a couple of viewports/scene manager. Also fix multiple_viewports then.
