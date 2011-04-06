@@ -26,7 +26,7 @@ Make sure you have installed the necessary libraries first, or some of the demos
 
 Now we'll start creating our own game from scratch.
 
-2. Creating OpenGL context --- a window (TGLUIWindow) or a Lazarus component (TKamOpenGLComponent)
+2. Creating OpenGL context --- a window (TGLUIWindow) or a Lazarus component (TKamOpenGLControl)
 
 First of all, you need to initialize a rectangular area on the screen that will be able to display 3D content. This is called OpenGL context. There are two ways of doing this:
 
@@ -45,19 +45,19 @@ var
   Window: TGLUIWindow;
 begin
   Window := TGLUIWindow.Create(Application);
-  Window.InitAndRun;
+  Window.OpenAndRun;
 end.
 ]]
 
 Press "Run" and behold, a window! (without any contents drawn, so you will probably see the underlying screen contents underneath).
 
-- An alternative is to use our TKamOpenGLComponent inside normal Lazarus form. Just pick TKamOpenGLComponent from the component palette (tab "Kambi") and drop it on a regular Lazarus form. This allows for seamless integration with the normal application design using Lazarus, as you have a normal Lazarus form where you can place normal buttons and such. The downside is that our TKamOpenGLComponent inherits from Lazarus TOpenGLComponent, and it has some limitations (not all OpenGL features can be requested, sometimes mouse look may stutter a little because of Lazarus event loop processing).
+- An alternative is to use our TKamOpenGLControl inside normal Lazarus form. Just pick TKamOpenGLControl from the component palette (tab "Kambi") and drop it on a regular Lazarus form. This allows for seamless integration with the normal application design using Lazarus, as you have a normal Lazarus form where you can place normal buttons and such. The downside is that our TKamOpenGLControl inherits from Lazarus TOpenGLComponent, and it has some limitations (not all OpenGL features can be requested, sometimes mouse look may stutter a little because of Lazarus event loop processing).
 
 To develop such programs you use Lazarus, period.
 
-This tutorial suggests using the 1st method, GLWindow, not TKamOpenGLComponent. But it's really your choice, for TKamOpenGLComponent you only start differently: instead of creating a TGLUIWindow instance, you add TKamOpenGLComponent to a form. Everything else goes *almost* the same, as TKamOpenGLComponent is designed specifically to resemble TGLUIWindow, so they both share similar methods and properties (like "Controls", where we add our engine 2D and 3D stuff).
+This tutorial suggests using the 1st method, GLWindow, not TKamOpenGLControl. But it's really your choice, for TKamOpenGLControl you only start differently: instead of creating a TGLUIWindow instance, you add TKamOpenGLControl to a form. Everything else goes *almost* the same, as TKamOpenGLControl is designed specifically to resemble TGLUIWindow, so they both share similar methods and properties (like "Controls", where we add our engine 2D and 3D stuff).
 
--> Create new project using Lazarus "New Project" menu item. Choose "Application". Drop TKamOpenGLComponent on your form and resize it to fit the window. Press "Run" and behold :) Then follow the rest of the tutorial, with minimal adjustments.
+-> Create new project using Lazarus "New Project" menu item. Choose "Application". Drop TKamOpenGLControl on your form and resize it to fit the window. Press "Run" and behold :) Then follow the rest of the tutorial, with minimal adjustments.
 
 3. Creating 3D world --- scene manager
 
