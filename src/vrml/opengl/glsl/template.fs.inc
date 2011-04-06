@@ -54,6 +54,12 @@
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: lighting_apply (fragment_color, vertex_eye, normal_eye_fragment) */' + LineEnding + 
+'' + LineEnding + 
+'#ifdef HAS_TEXTURE_COORD_SHIFT' + LineEnding + 
+'  vec2 texture_coord_shift = vec2(0.0);' + LineEnding + 
+'  /* PLUG: texture_coord_shift (texture_coord_shift) */' + LineEnding + 
+'#endif' + LineEnding + 
+'' + LineEnding + 
 '  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 

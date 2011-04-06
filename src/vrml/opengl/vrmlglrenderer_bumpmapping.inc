@@ -99,8 +99,9 @@ begin
   if IsImageTexture(Node.FdNormalMap.Value) then
     Renderer.GLTextureNodes.Prepare(State, TVRML2DTextureNode(Node.FdNormalMap.Value), Renderer);
 
-  if IsImageTexture(Node.FdHeightMap.Value) then
-    Renderer.GLTextureNodes.Prepare(State, TVRML2DTextureNode(Node.FdHeightMap.Value), Renderer);
+{ FdHeightMap not used now }
+{ if IsImageTexture(Node.FdHeightMap.Value) then
+    Renderer.GLTextureNodes.Prepare(State, TVRML2DTextureNode(Node.FdHeightMap.Value), Renderer); }
 end;
 
 procedure TBumpMappingRenderer.Unprepare;
@@ -108,8 +109,9 @@ begin
   if IsImageTexture(Node.FdNormalMap.Value) then
     Renderer.GLTextureNodes.Unprepare(TVRML2DTextureNode(Node.FdNormalMap.Value));
 
-  if IsImageTexture(Node.FdHeightMap.Value) then
-    Renderer.GLTextureNodes.Unprepare(TVRML2DTextureNode(Node.FdHeightMap.Value));
+{ FdHeightMap not used now }
+{ if IsImageTexture(Node.FdHeightMap.Value) then
+    Renderer.GLTextureNodes.Unprepare(TVRML2DTextureNode(Node.FdHeightMap.Value)); }
 end;
 
 function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
@@ -120,36 +122,44 @@ function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
     or it's corresponding GLNode (TGLTextureNode) is not initialized or
     invalid type, or OpenGL texture was not prepared for whatever reason
     --- returns 0. }
-  function GLTexture(Node: TVRMLNode): TGLuint;
+  function GLTexture(Node: TVRMLNode; out HeightMapInAlpha: boolean): TGLuint;
   var
     GLNode: TGLTextureNode;
+    ImageGLNode: TGLImageTextureNode absolute GLNode;
   begin
     Result := 0;
     if IsImageTexture(Node) then
     begin
       GLNode := Renderer.GLTextureNodes.TextureNode(TVRML2DTextureNode(Node));
       if IsGLImageTexture(GLNode) then
-        Result := TGLImageTextureNode(GLNode).GLName;
+      begin
+        Result := ImageGLNode.GLName;
+        HeightMapInAlpha := ImageGLNode.AlphaChannelType <> atNone;
+      end;
     end;
   end;
 
 var
   TexNormalMap: TGLuint;
+  { Has NormalMap alpha channel. }
+  HeightMapInAlpha: boolean;
 begin
   Result := false;
 
   if Renderer.ShapeBumpMappingAllowed and
      Renderer.BumpMapping then
   begin
-    TexNormalMap := GLTexture(Node.FdNormalMap.Value);
+    TexNormalMap := GLTexture(Node.FdNormalMap.Value, HeightMapInAlpha);
     if TexNormalMap <> 0 then
     begin
       Result := true;
-      Renderer.ShapeBumpMappingUsed := true;
+      if HeightMapInAlpha then
+        Renderer.ShapeBumpMappingUsed := bmuParallax else
+        Renderer.ShapeBumpMappingUsed := bmuNormal;
 
       Renderer.ActiveTexture(BoundTextureUnits);
       glBindTexture(GL_TEXTURE_2D, TexNormalMap);
-      Shader.EnableBumpMapping(BoundTextureUnits);
+      Shader.EnableBumpMapping(BoundTextureUnits, HeightMapInAlpha);
       Inc(BoundTextureUnits);
     end;
   end;

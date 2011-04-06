@@ -261,7 +261,8 @@ type
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
-    procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
+    procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal;
+      const HeightMapInAlpha: boolean);
     procedure EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
       const MaterialSpecularColor: TVector3Single);
     procedure EnableFog(const FogType: TFogType);
@@ -774,7 +775,11 @@ begin
           - through TextureCoordinate4D
           - through projected texture mapping, when using perspective light
             (spot light) or perspective viewpoint. }
-        tt2D      : TextureSampleCall := 'texture2DProj(%s, %s)';
+        tt2D      : TextureSampleCall := NL + '#ifdef HAS_TEXTURE_COORD_SHIFT' +NL+
+          '  texture2DProj(%0:s, vec4(%1:s.st + texture_coord_shift, %1:s.pq))' +NL+
+          '#else' +NL+
+          '  texture2DProj(%0:s, %1:s)' +NL+
+          '#endif' + NL;
         tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), fragment_color.a)';
         ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
         { For 3D textures, remember we may get 4D tex coords
@@ -931,13 +936,15 @@ begin
     PlugName := FindPlugName(PlugValue, PlugDeclaredParameters);
     if PlugName = '' then Break;
 
-    { When using vertex_object_space_change plug, we need to do something
-      special: use VERTEX_OBJECT_SPACE_CHANGED, otherwise standard
-      ftransform() will ignore vertex object space change. }
+    { When using some special plugs, we need to do define some symbols. }
     if (PlugName = 'vertex_object_space_change') and
        (Code = Source[stVertex]) then
       PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
-        '#define VERTEX_OBJECT_SPACE_CHANGED', false);
+        '#define VERTEX_OBJECT_SPACE_CHANGED', false) else
+    if (PlugName = 'texture_coord_shift') and
+       (Code = Source[stFragment]) then
+      PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
+        '#define HAS_TEXTURE_COORD_SHIFT', false);
 
     CommentBegin := '/* PLUG: ' + PlugName + ' ';
 
@@ -1509,15 +1516,47 @@ begin
     '  discard;' + NL;
 end;
 
-procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal);
+procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal;
+  const HeightMapInAlpha: boolean);
+var
+  VertexEyeBonusDeclarations, VertexEyeBonusCode: string;
 begin
+  VertexEyeBonusDeclarations := '';
+  VertexEyeBonusCode := '';
+
+  if HeightMapInAlpha then
+  begin
+    { parallax bump mapping }
+    Plug(stFragment,
+      'uniform float kambi_parallax_bm_scale;' +NL+
+      'uniform float kambi_parallax_bm_bias;' +NL+
+      'uniform sampler2D kambi_normal_map;' +NL+
+      'varying mat3 kambi_eye_to_tangent_space;' +NL+
+      'varying vec4 vertex_eye;' +NL+
+      NL+
+      'void PLUG_texture_coord_shift(inout vec2 shift)' +NL+
+      '{' +NL+
+      '  /* kambi_normal_map is always sampled with normal gl_TexCoord[0] for now */' +NL+
+      '  float height = texture2D(kambi_normal_map, gl_TexCoord[0].st).r * kambi_parallax_bm_scale - kambi_parallax_bm_bias;' +NL+
+      '  vertex_to_eye_in_tangent_space = normalize(kambi_eye_to_tangent_space * (-vertex_eye));' +NL+
+      '  shift += height * vertex_to_eye_in_tangent_space.xy /* / vertex_to_eye_in_tangent_space.z*/;' +NL+
+      '}');
+    VertexEyeBonusDeclarations :=
+      'attribute mat3 kambi_object_to_tangent_space;' +NL+
+      'varying mat3 kambi_eye_to_tangent_space;' +NL;
+    VertexEyeBonusCode :=
+      'kambi_eye_to_tangent_space = kambi_object_to_tangent_space * gl_NormalMatrixInverse;' +NL;
+  end;
+
   Plug(stVertex,
     'attribute mat3 tangent_to_object_space;' +NL+
     'varying mat3 tangent_to_eye_space;' +NL+
+    VertexEyeBonusDeclarations +
     NL+
     'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
     '{' +NL+
     '  tangent_to_eye_space = gl_NormalMatrix * tangent_to_object_space;' +NL+
+    VertexEyeBonusCode +
     '}');
 
   Plug(stFragment,

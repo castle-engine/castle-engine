@@ -960,7 +960,7 @@ type
       This is determined by ShapeBumpMappingAllowed,
       global BumpMapping, and by the texture information for current
       shape (whether user provided normal map, height map etc.) }
-    ShapeBumpMappingUsed: boolean;
+    ShapeBumpMappingUsed: TShapeBumpMappingUsed;
 
     { How many texture units are used.
 
@@ -3305,7 +3305,7 @@ var
 begin
   { default ShapeBumpMapping* state }
   ShapeBumpMappingAllowed := false;
-  ShapeBumpMappingUsed := false;
+  ShapeBumpMappingUsed := bmuNone;
 
   {$ifndef USE_VRML_TRIANGULATION}
   { Initalize MeshRenderer to something non-nil. }

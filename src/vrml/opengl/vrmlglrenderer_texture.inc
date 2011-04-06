@@ -62,7 +62,7 @@
     procedure Prepare(State: TVRMLGraphTraverseState);
   public
     { This is the alpha channel of this texture.
-      Used by TVRMLGLRenderer.PreparedTextureAlphaChannelType.
+      Used by TVRMLGLRenderer.PreparedTextureAlphaChannelType and bump mapping.
       Should be calculated and set in Prepare.
 
       For textures with normal images, this is the saved result of

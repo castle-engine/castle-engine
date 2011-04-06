@@ -52,6 +52,12 @@ void main(void)
 #endif
 
   /* PLUG: lighting_apply (fragment_color, vertex_eye, normal_eye_fragment) */
+
+#ifdef HAS_TEXTURE_COORD_SHIFT
+  vec2 texture_coord_shift = vec2(0.0);
+  /* PLUG: texture_coord_shift (texture_coord_shift) */
+#endif
+
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
 
