@@ -1420,9 +1420,9 @@ begin
             http://www.ozone3d.net/tutorials/glsl_texturing_p04.php#part_41
             by Jerome Guinot aka 'JeGX', many thanks! }
           'vec3 r = reflect( normalize(vec3(kambi_vertex_eye)), kambi_normal_eye );' + NL +
-	  'float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );' + NL +
+          'float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );' + NL +
           '/* Using 1.0 / 2.0 instead of 0.5 to workaround fglrx bugs */' + NL +
-	  'gl_TexCoord[%d].st = r.xy / m + vec2(1.0, 1.0) / 2.0;',
+          'gl_TexCoord[%d].st = r.xy / m + vec2(1.0, 1.0) / 2.0;',
           [TextureUnit]);
       end;
     tgNormal:
@@ -1538,14 +1538,17 @@ begin
       '{' +NL+
       '  /* kambi_normal_map is always sampled with normal gl_TexCoord[0] for now */' +NL+
       '  float height = texture2D(kambi_normal_map, gl_TexCoord[0].st).r * kambi_parallax_bm_scale - kambi_parallax_bm_bias;' +NL+
-      '  vertex_to_eye_in_tangent_space = normalize(kambi_eye_to_tangent_space * (-vertex_eye));' +NL+
+      '  vec3 vertex_to_eye_in_tangent_space = normalize(kambi_eye_to_tangent_space * (-vec3(vertex_eye)));' +NL+
       '  shift += height * vertex_to_eye_in_tangent_space.xy /* / vertex_to_eye_in_tangent_space.z*/;' +NL+
       '}');
     VertexEyeBonusDeclarations :=
       'attribute mat3 kambi_object_to_tangent_space;' +NL+
       'varying mat3 kambi_eye_to_tangent_space;' +NL;
     VertexEyeBonusCode :=
-      'kambi_eye_to_tangent_space = kambi_object_to_tangent_space * gl_NormalMatrixInverse;' +NL;
+      'mat3 eye_to_object_space = mat3(gl_ModelViewMatrix[0][0], gl_ModelViewMatrix[1][0], gl_ModelViewMatrix[2][0],' +NL+
+      '                                gl_ModelViewMatrix[0][1], gl_ModelViewMatrix[1][1], gl_ModelViewMatrix[2][1],' +NL+
+      '                                gl_ModelViewMatrix[0][2], gl_ModelViewMatrix[1][2], gl_ModelViewMatrix[2][2]);' +NL+
+      'kambi_eye_to_tangent_space = kambi_object_to_tangent_space * eye_to_object_space;' +NL;
   end;
 
   Plug(stVertex,
