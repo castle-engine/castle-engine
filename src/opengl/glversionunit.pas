@@ -70,6 +70,7 @@ type
     FBuggyGenerateMipmap: boolean;
     FBuggyLightModelTwoSide: boolean;
     FBuggyLightModelTwoSideMessage: string;
+    FBuggyVBO: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
   public
@@ -156,6 +157,8 @@ type
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
     property BuggyLightModelTwoSide: boolean read FBuggyLightModelTwoSide;
     property BuggyLightModelTwoSideMessage: string read FBuggyLightModelTwoSideMessage;
+
+    property BuggyVBO: boolean read FBuggyVBO;
   end;
 
 var
@@ -448,6 +451,15 @@ begin
   if BuggyLightModelTwoSide then
     FBuggyLightModelTwoSideMessage := 'Detected fglrx (ATI proprietary Linux drivers) version >= 9.x. ' + 'Setting GL_LIGHT_MODEL_TWO_SIDE to GL_TRUE may cause nasty bugs on some shaders (see http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14), so disabling two-sided lighting.' else
     FBuggyLightModelTwoSideMessage := '';
+
+  FBuggyVBO := {$ifdef WINDOWS}
+    { See demo_models/x3d/background_test_mobile_intel_gpu_bugs.x3d }
+    (Vendor = 'Intel') and
+    (Renderer = 'Intel Cantiga') and
+    (not AtLeast(1, 6))
+    {$else}
+    false
+    {$endif};
 end;
 
 finalization

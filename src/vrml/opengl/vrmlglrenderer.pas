@@ -914,7 +914,7 @@ type
     ShaderProgram: TVRMLGLSLProgram;
 
     { Generate VBO if needed, and reload VBO contents.
-      Assumes GL_ARB_vertex_buffer_object is true.
+      Assumes (GL_ARB_vertex_buffer_object and not BuggyVBO) is true.
 
       Arrays data @italic(must not) be freed (by TGeometryArrays.FreeData)
       before calling this method. Also, this method will always call
@@ -2333,7 +2333,7 @@ var
   end;
 
 begin
-  Assert(GL_ARB_vertex_buffer_object);
+  Assert(GL_ARB_vertex_buffer_object and not GLVersion.BuggyVBO);
   Assert(not Arrays.DataFreed);
 
   NewVbos := Vbo[vtCoordinate] = 0;
@@ -3560,7 +3560,8 @@ begin
     if Shape.Cache = nil then
       Shape.Cache := Cache.Shape_IncReference(Shape, Fog, Self);
 
-    VBO := Attributes.VertexBufferObject and GL_ARB_vertex_buffer_object;
+    VBO := Attributes.VertexBufferObject and GL_ARB_vertex_buffer_object
+      and not GLVersion.BuggyVBO;
 
     { calculate Shape.Cache.Arrays }
     if Shape.Cache.Arrays = nil then
@@ -3606,7 +3607,7 @@ begin
   MeshRenderer.PrepareRenderShape := PrepareRenderShape;
   MeshRenderer.Render;
 
-  if (GeneratorClass <> nil) and VBO and GL_ARB_vertex_buffer_object then
+  if (GeneratorClass <> nil) and VBO then
   begin
     { unbind arrays, to have a clean state on exit.
       TODO: this should not be needed, instead move to RenderEnd.

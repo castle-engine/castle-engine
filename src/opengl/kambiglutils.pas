@@ -2221,7 +2221,8 @@ function GLInformationString: string;
         '  Buggy glPushAttrib(GL_POINT_SET): %s' +nl+
         '  Buggy glDrawPixels for odd widths: %s' +nl+
         '  Buggy glGenerateMipmapEXT: %s' +nl+
-        '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s',
+        '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
+        '  Buggy VBO: %s',
         [ BoolToStr[Version.VendorNVidia],
 
           BoolToStr[Version.IsMesa],
@@ -2232,7 +2233,8 @@ function GLInformationString: string;
           BoolToStr[Version.BuggyPointSetAttrib],
           BoolToStr[Version.BuggyDrawOddWidth],
           BoolToStr[Version.BuggyGenerateMipmap],
-          BoolToStr[Version.BuggyLightModelTwoSide]
+          BoolToStr[Version.BuggyLightModelTwoSide],
+          BoolToStr[Version.BuggyVBO]
         ]);
   end;
 
