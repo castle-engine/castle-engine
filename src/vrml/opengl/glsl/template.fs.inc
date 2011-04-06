@@ -8,8 +8,8 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 
-'varying vec4 vertex_eye;' + LineEnding + 
-'varying vec3 normal_eye;' + LineEnding + 
+'varying vec4 kambi_vertex_eye;' + LineEnding + 
+'varying vec3 kambi_normal_eye;' + LineEnding + 
 '' + LineEnding + 
 '/* Forward declare shadow maps utilities. */' + LineEnding + 
 'float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord,' + LineEnding + 
@@ -20,8 +20,8 @@
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'  vec3 normal_eye_fragment = normalize(normal_eye);' + LineEnding + 
-'  /* PLUG: fragment_eye_space (vertex_eye, normal_eye_fragment) */' + LineEnding + 
+'  vec3 normal_eye_fragment = normalize(kambi_normal_eye);' + LineEnding + 
+'  /* PLUG: fragment_eye_space (kambi_vertex_eye, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIT' + LineEnding + 
 '  vec4 fragment_color;' + LineEnding + 
@@ -29,7 +29,7 @@
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
 '    fragment_color = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
-'    /* PLUG: add_light_contribution_front (fragment_color, vertex_eye, normal_eye_fragment, gl_FrontMaterial) */' + LineEnding + 
+'    /* PLUG: add_light_contribution_front (fragment_color, kambi_vertex_eye, normal_eye_fragment, gl_FrontMaterial) */' + LineEnding + 
 '' + LineEnding + 
 '    /* Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding + 
 '       and it''s always opaque.' + LineEnding + 
@@ -40,7 +40,7 @@
 '  {' + LineEnding + 
 '    fragment_color = gl_BackLightModelProduct.sceneColor;' + LineEnding + 
 '    normal_eye_fragment = -normal_eye_fragment;' + LineEnding + 
-'    /* PLUG: add_light_contribution_back (fragment_color, vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding + 
+'    /* PLUG: add_light_contribution_back (fragment_color, kambi_vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding + 
 '    fragment_color.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 
 '' + LineEnding + 
@@ -53,11 +53,11 @@
 '  vec4 fragment_color = gl_Color;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
-'  /* PLUG: lighting_apply (fragment_color, vertex_eye, normal_eye_fragment) */' + LineEnding + 
+'  /* PLUG: lighting_apply (fragment_color, kambi_vertex_eye, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
 '#ifdef HAS_TEXTURE_COORD_SHIFT' + LineEnding + 
 '  vec2 texture_coord_shift = vec2(0.0);' + LineEnding + 
-'  /* PLUG: texture_coord_shift (texture_coord_shift) */' + LineEnding + 
+'  /* PLUG: texture_coord_shift (texture_coord_shift, kambi_vertex_eye) */' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 

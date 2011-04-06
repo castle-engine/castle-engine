@@ -8,8 +8,8 @@
 
 /* PLUG-DECLARATIONS */
 
-varying vec4 vertex_eye;
-varying vec3 normal_eye;
+varying vec4 kambi_vertex_eye;
+varying vec3 kambi_normal_eye;
 
 void main(void)
 {
@@ -18,16 +18,16 @@ void main(void)
   /* PLUG: vertex_object_space_change (vertex_object, normal_object) */
   /* PLUG: vertex_object_space (vertex_object, normal_object) */
 
-  vertex_eye = gl_ModelViewMatrix * vertex_object;
+  kambi_vertex_eye = gl_ModelViewMatrix * vertex_object;
   /* Although we will normalize it again in the fragment shader
      (otherwise interpolated result could be shorter < 1, imagine a case
      when normals point the almost opposite directions on the opposite
      vertexes), we also have to normalize it in vertex shader (otherwise
      a much longer normal on one vertex would pull all the interpolated
      normals, thus making their direction invalid in fragment shaders). */
-  normal_eye = normalize(gl_NormalMatrix * normal_object);
+  kambi_normal_eye = normalize(gl_NormalMatrix * normal_object);
 
-  /* PLUG: vertex_eye_space (vertex_eye, normal_eye) */
+  /* PLUG: vertex_eye_space (kambi_vertex_eye, kambi_normal_eye) */
 
 #ifndef LIT
   gl_FrontColor = gl_Color;

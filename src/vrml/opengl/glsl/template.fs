@@ -6,8 +6,8 @@
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
-varying vec4 vertex_eye;
-varying vec3 normal_eye;
+varying vec4 kambi_vertex_eye;
+varying vec3 kambi_normal_eye;
 
 /* Forward declare shadow maps utilities. */
 float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord,
@@ -18,8 +18,8 @@ float shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord);
 
 void main(void)
 {
-  vec3 normal_eye_fragment = normalize(normal_eye);
-  /* PLUG: fragment_eye_space (vertex_eye, normal_eye_fragment) */
+  vec3 normal_eye_fragment = normalize(kambi_normal_eye);
+  /* PLUG: fragment_eye_space (kambi_vertex_eye, normal_eye_fragment) */
 
 #ifdef LIT
   vec4 fragment_color;
@@ -27,7 +27,7 @@ void main(void)
   if (gl_FrontFacing)
   {
     fragment_color = gl_FrontLightModelProduct.sceneColor;
-    /* PLUG: add_light_contribution_front (fragment_color, vertex_eye, normal_eye_fragment, gl_FrontMaterial) */
+    /* PLUG: add_light_contribution_front (fragment_color, kambi_vertex_eye, normal_eye_fragment, gl_FrontMaterial) */
 
     /* Otherwise, alpha is usually large after previous add_light_contribution,
        and it's always opaque.
@@ -38,7 +38,7 @@ void main(void)
   {
     fragment_color = gl_BackLightModelProduct.sceneColor;
     normal_eye_fragment = -normal_eye_fragment;
-    /* PLUG: add_light_contribution_back (fragment_color, vertex_eye, normal_eye_fragment, gl_BackMaterial) */
+    /* PLUG: add_light_contribution_back (fragment_color, kambi_vertex_eye, normal_eye_fragment, gl_BackMaterial) */
     fragment_color.a = gl_BackMaterial.diffuse.a;
   }
 
@@ -51,11 +51,11 @@ void main(void)
   vec4 fragment_color = gl_Color;
 #endif
 
-  /* PLUG: lighting_apply (fragment_color, vertex_eye, normal_eye_fragment) */
+  /* PLUG: lighting_apply (fragment_color, kambi_vertex_eye, normal_eye_fragment) */
 
 #ifdef HAS_TEXTURE_COORD_SHIFT
   vec2 texture_coord_shift = vec2(0.0);
-  /* PLUG: texture_coord_shift (texture_coord_shift) */
+  /* PLUG: texture_coord_shift (texture_coord_shift, kambi_vertex_eye) */
 #endif
 
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */

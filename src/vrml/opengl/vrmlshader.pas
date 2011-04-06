@@ -1419,7 +1419,7 @@ begin
           { Sphere mapping in GLSL adapted from
             http://www.ozone3d.net/tutorials/glsl_texturing_p04.php#part_41
             by Jerome Guinot aka 'JeGX', many thanks! }
-          'vec3 r = reflect( normalize(vec3(vertex_eye)), normal_eye );' + NL +
+          'vec3 r = reflect( normalize(vec3(kambi_vertex_eye)), kambi_normal_eye );' + NL +
 	  'float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );' + NL +
           '/* Using 1.0 / 2.0 instead of 0.5 to workaround fglrx bugs */' + NL +
 	  'gl_TexCoord[%d].st = r.xy / m + vec2(1.0, 1.0) / 2.0;',
@@ -1439,7 +1439,7 @@ begin
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
         { Negate reflect result --- just like for demo_models/water/water_reflections_normalmap.fs }
-        TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(vertex_eye), normal_eye);' + NL,
+        TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(kambi_vertex_eye), normal_eye);' + NL,
           [TextureUnit]);
       end;
     else raise EInternalError.Create('TVRMLShader.EnableTexGen:Generation?');
@@ -1471,7 +1471,7 @@ begin
     http://www.mail-archive.com/osg-users@lists.openscenegraph.org/msg14238.html }
 
   case Generation of
-    tgEye   : begin PlaneName := 'gl_EyePlane'   ; CoordSource := 'vertex_eye'; end;
+    tgEye   : begin PlaneName := 'gl_EyePlane'   ; CoordSource := 'kambi_vertex_eye'; end;
     tgObject: begin PlaneName := 'gl_ObjectPlane'; CoordSource := 'gl_Vertex' ; end;
     else raise EInternalError.Create('TVRMLShader.EnableTexGen:Generation?');
   end;
@@ -1496,7 +1496,7 @@ procedure TVRMLShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
 begin
   glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
   if ClipPlane = '' then
-    ClipPlane := 'gl_ClipVertex = vertex_eye;';
+    ClipPlane := 'gl_ClipVertex = kambi_vertex_eye;';
 end;
 
 procedure TVRMLShader.DisableClipPlane(const ClipPlaneIndex: Cardinal);
@@ -1532,9 +1532,9 @@ begin
       'uniform float kambi_parallax_bm_bias;' +NL+
       'uniform sampler2D kambi_normal_map;' +NL+
       'varying mat3 kambi_eye_to_tangent_space;' +NL+
-      'varying vec4 vertex_eye;' +NL+
+      'varying vec4 kambi_vertex_eye;' +NL+
       NL+
-      'void PLUG_texture_coord_shift(inout vec2 shift)' +NL+
+      'void PLUG_texture_coord_shift(inout vec2 shift, const in vec4 vertex_eye)' +NL+
       '{' +NL+
       '  /* kambi_normal_map is always sampled with normal gl_TexCoord[0] for now */' +NL+
       '  float height = texture2D(kambi_normal_map, gl_TexCoord[0].st).r * kambi_parallax_bm_scale - kambi_parallax_bm_bias;' +NL+
