@@ -2313,6 +2313,7 @@ begin
     Items[I].ShapeTrees.Free;
     Items[I].ShapeTrees := nil;
   end;
+  Count := 0;
 end;
 
 { TVRMLScene ----------------------------------------------------------- }
