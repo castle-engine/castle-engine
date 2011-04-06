@@ -1532,7 +1532,6 @@ begin
       'uniform float kambi_parallax_bm_bias;' +NL+
       'uniform sampler2D kambi_normal_map;' +NL+
       'varying mat3 kambi_eye_to_tangent_space;' +NL+
-      'varying vec4 kambi_vertex_eye;' +NL+
       NL+
       'void PLUG_texture_coord_shift(inout vec2 shift, const in vec4 vertex_eye)' +NL+
       '{' +NL+
