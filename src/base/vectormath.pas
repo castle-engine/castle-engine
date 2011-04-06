@@ -2034,6 +2034,12 @@ function MatrixInverse(const M: TMatrix4Single; const Determinant: Single): TMat
 function MatrixInverse(const M: TMatrix4Double; const Determinant: Double): TMatrix4Double; overload;
 { @groupEnd }
 
+{ Transpose the matrix.
+  @groupBegin }
+procedure MatrixTransposeTo1st(var M: TMatrix3Single); overload;
+procedure MatrixTransposeTo1st(var M: TMatrix3Double); overload;
+{ @groupEnd }
+
 { Inverse the matrix, trying harder (but possibly slower).
 
   Basically, they internally calculate determinant and then calculate

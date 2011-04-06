@@ -2423,3 +2423,12 @@ begin
   Result[2] := M[2][Row];
   Result[3] := M[3][Row];
 end;
+
+procedure MatrixTransposeTo1st(var M: TMatrix3);
+var
+  Tmp: TScalar;
+begin
+  Tmp := M[0, 1]; M[0, 1] := M[1, 0]; M[1, 0] := Tmp;
+  Tmp := M[0, 2]; M[0, 2] := M[2, 0]; M[2, 0] := Tmp;
+  Tmp := M[1, 2]; M[1, 2] := M[2, 1]; M[2, 1] := Tmp;
+end;

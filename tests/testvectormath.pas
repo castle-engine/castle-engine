@@ -38,6 +38,7 @@ type
     procedure TestIndexedPolygonNormalArea;
     procedure TestSphereRayIntersection;
     procedure TestMatrixMultiplication;
+    procedure TestMatrixTranspose;
   end;
 
 function RandomVector: TVector3Single;
@@ -527,6 +528,22 @@ begin
 
   Result1 := M1 * M2 * M3;
   Assert(MatricesEqual(Result1, Result2, 0.1));
+end;
+
+procedure TTestVectorMath.TestMatrixTranspose;
+var
+  M1, M2: TMatrix3Single;
+begin
+  M1[0] := Vector3Single(1, 2, 3);
+  M1[1] := Vector3Single(4, 5, 6);
+  M1[2] := Vector3Single(7, 8, 9);
+
+  M2[0] := Vector3Single(1, 4, 7);
+  M2[1] := Vector3Single(2, 5, 8);
+  M2[2] := Vector3Single(3, 6, 9);
+
+  MatrixTransposeTo1st(M1);
+  Assert(MatricesPerfectlyEqual(M1, M2));
 end;
 
 initialization
