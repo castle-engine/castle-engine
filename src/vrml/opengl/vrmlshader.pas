@@ -1546,19 +1546,20 @@ begin
       '  shift += height * vertex_to_eye_in_tangent_space.xy /* / vertex_to_eye_in_tangent_space.z*/;' +NL+
       '}');
     VertexEyeBonusDeclarations :=
-      'attribute mat3 kambi_object_to_tangent_space;' +NL+
       'varying mat3 kambi_eye_to_tangent_space;' +NL;
     VertexEyeBonusCode :=
+      'mat3 object_to_tangent_space = transpose(kambi_tangent_to_object_space);' +NL+
       'mat3 eye_to_object_space = mat3(gl_ModelViewMatrix[0][0], gl_ModelViewMatrix[1][0], gl_ModelViewMatrix[2][0],' +NL+
       '                                gl_ModelViewMatrix[0][1], gl_ModelViewMatrix[1][1], gl_ModelViewMatrix[2][1],' +NL+
       '                                gl_ModelViewMatrix[0][2], gl_ModelViewMatrix[1][2], gl_ModelViewMatrix[2][2]);' +NL+
-      'kambi_eye_to_tangent_space = kambi_object_to_tangent_space * eye_to_object_space;' +NL;
+      'kambi_eye_to_tangent_space = object_to_tangent_space * eye_to_object_space;' +NL;
 
     BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
     BumpMappingUniformValue2 := HeightMapScale;
   end;
 
   Plug(stVertex,
+    '#version 120' +NL+ { version 120 needed for transpose() }
     'attribute mat3 kambi_tangent_to_object_space;' +NL+
     'varying mat3 kambi_tangent_to_eye_space;' +NL+
     VertexEyeBonusDeclarations +

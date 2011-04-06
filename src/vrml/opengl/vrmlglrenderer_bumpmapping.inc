@@ -153,9 +153,7 @@ begin
     if TexNormalMap <> 0 then
     begin
       Result := true;
-      if HeightMapInAlpha then
-        Renderer.ShapeBumpMappingUsed := bmuParallax else
-        Renderer.ShapeBumpMappingUsed := bmuNormal;
+      Renderer.ShapeBumpMappingUsed := true;
 
       Renderer.ActiveTexture(BoundTextureUnits);
       glBindTexture(GL_TEXTURE_2D, TexNormalMap);

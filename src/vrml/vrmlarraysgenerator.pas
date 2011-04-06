@@ -33,8 +33,6 @@ type
     Shape: TVRMLShape; const VertexPosition: TVector3Single;
     VertexIndex: Integer) of object;
 
-  TShapeBumpMappingUsed = (bmuNone, bmuNormal, bmuParallax);
-
   { Generate TGeometryArrays for a VRML/X3D shape. This is the basis
     of our renderer: generate a TGeometryArrays for a shape,
     then TVRMLGLRenderer will pass TGeometryArrays to OpenGL.
@@ -201,7 +199,7 @@ type
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
-    ShapeBumpMappingUsed: TShapeBumpMappingUsed;
+    ShapeBumpMappingUsed: boolean;
     OnRadianceTransfer: TRadianceTransferFunction;
     OnVertexColor: TVertexColorFunction;
     { Do we need TGeometryArrays.Faces }
@@ -2055,12 +2053,8 @@ end;
 procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
-  if ShapeBumpMappingUsed <> bmuNone then
-  begin
+  if ShapeBumpMappingUsed then
     Arrays.AddGLSLAttributeMatrix3('kambi_tangent_to_object_space');
-    if ShapeBumpMappingUsed = bmuParallax then
-      Arrays.AddGLSLAttributeMatrix3('kambi_object_to_tangent_space');
-  end;
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
@@ -2117,21 +2111,14 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
       end;
     end;
 
-  var
-    M: TMatrix3Single;
   begin
-    M := TangentToObjectSpace;
-    Arrays.GLSLAttributeMatrix3('kambi_tangent_to_object_space', ArrayIndexNum)^ := M;
-    if ShapeBumpMappingUsed = bmuParallax then
-    begin
-      MatrixTransposeTo1st(M); { orthonormal matrix, so to invert it we can transpose }
-      Arrays.GLSLAttributeMatrix3('kambi_object_to_tangent_space', ArrayIndexNum)^ := M;
-    end;
+    Arrays.GLSLAttributeMatrix3('kambi_tangent_to_object_space', 
+      ArrayIndexNum)^ := TangentToObjectSpace;
   end;
 
 begin
   inherited;
-  if ShapeBumpMappingUsed <> bmuNone then
+  if ShapeBumpMappingUsed then
     DoBumpMapping;
 end;
 
@@ -2239,7 +2226,7 @@ var
   TriangleTexCoord: TTriangle2Single;
 begin
   HasTangentVectors := false;
-  if ShapeBumpMappingUsed <> bmuNone then
+  if ShapeBumpMappingUsed then
   begin
     { calculate Triangle3D }
     Triangle3D[0] := GetVertex(TriangleIndex1);
