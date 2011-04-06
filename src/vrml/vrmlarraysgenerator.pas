@@ -2057,7 +2057,7 @@ begin
   inherited;
   if ShapeBumpMappingUsed <> bmuNone then
   begin
-    Arrays.AddGLSLAttributeMatrix3('tangent_to_object_space');
+    Arrays.AddGLSLAttributeMatrix3('kambi_tangent_to_object_space');
     if ShapeBumpMappingUsed = bmuParallax then
       Arrays.AddGLSLAttributeMatrix3('kambi_object_to_tangent_space');
   end;
@@ -2121,7 +2121,7 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
     M: TMatrix3Single;
   begin
     M := TangentToObjectSpace;
-    Arrays.GLSLAttributeMatrix3('tangent_to_object_space', ArrayIndexNum)^ := M;
+    Arrays.GLSLAttributeMatrix3('kambi_tangent_to_object_space', ArrayIndexNum)^ := M;
     if ShapeBumpMappingUsed = bmuParallax then
     begin
       MatrixTransposeTo1st(M); { orthonormal matrix, so to invert it we can transpose }

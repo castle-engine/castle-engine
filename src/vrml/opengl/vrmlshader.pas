@@ -1549,18 +1549,18 @@ begin
   end;
 
   Plug(stVertex,
-    'attribute mat3 tangent_to_object_space;' +NL+
-    'varying mat3 tangent_to_eye_space;' +NL+
+    'attribute mat3 kambi_tangent_to_object_space;' +NL+
+    'varying mat3 kambi_tangent_to_eye_space;' +NL+
     VertexEyeBonusDeclarations +
     NL+
     'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
     '{' +NL+
-    '  tangent_to_eye_space = gl_NormalMatrix * tangent_to_object_space;' +NL+
+    '  kambi_tangent_to_eye_space = gl_NormalMatrix * kambi_tangent_to_object_space;' +NL+
     VertexEyeBonusCode +
     '}');
 
   Plug(stFragment,
-    'varying mat3 tangent_to_eye_space;' +NL+
+    'varying mat3 kambi_tangent_to_eye_space;' +NL+
     'uniform sampler2D kambi_normal_map;' +NL+
     NL+
     'void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)' +NL+
@@ -1570,7 +1570,7 @@ begin
     '     Our normal map is always indexed using gl_TexCoord[0] (this way' +NL+
     '     we depend on already correct gl_TexCoord[0], multiplied by TextureTransform' +NL+
     '     and such). */' +NL+
-    '  normal_eye_fragment = normalize(tangent_to_eye_space * (' +NL+
+    '  normal_eye_fragment = normalize(kambi_tangent_to_eye_space * (' +NL+
     '    texture2D(kambi_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0)));' +NL+
     '}');
 
