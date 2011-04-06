@@ -361,6 +361,8 @@ clean: cleanexamples
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake units/
 	$(MAKE) -C doc/pasdoc/ clean
+# lazarus produces lib/ subdirectories during compilation
+	find examples/ -type d -name lib -prune -exec xargs rm -Rf '{}' ';'
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
