@@ -159,7 +159,8 @@ begin
 
       Renderer.ActiveTexture(BoundTextureUnits);
       glBindTexture(GL_TEXTURE_2D, TexNormalMap);
-      Shader.EnableBumpMapping(BoundTextureUnits, HeightMapInAlpha);
+      Shader.EnableBumpMapping(BoundTextureUnits, HeightMapInAlpha,
+        Node.FdHeightMapScale.Value);
       Inc(BoundTextureUnits);
     end;
   end;

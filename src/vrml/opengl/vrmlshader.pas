@@ -167,8 +167,10 @@ type
     SelectedNode: TNodeComposedShader;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
-    BumpMappingUniformName: string;
-    BumpMappingUniformValue: LongInt;
+    BumpMappingUniformName1: string;
+    BumpMappingUniformValue1: LongInt;
+    BumpMappingUniformName2: string;
+    BumpMappingUniformValue2: Single;
 
     { We have to optimize the most often case of TVRMLShader usage,
       when the shader is not needed or is already prepared.
@@ -262,7 +264,7 @@ type
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
     procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal;
-      const HeightMapInAlpha: boolean);
+      const HeightMapInAlpha: boolean; const HeightMapScale: Single);
     procedure EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
       const MaterialSpecularColor: TVector3Single);
     procedure EnableFog(const FogType: TFogType);
@@ -1136,9 +1138,13 @@ var
                               TextureShaders[I].UniformValue);
     end;
 
-    if BumpMappingUniformName <> '' then
-      AProgram.SetUniform(BumpMappingUniformName,
-                          BumpMappingUniformValue);
+    if BumpMappingUniformName1 <> '' then
+      AProgram.SetUniform(BumpMappingUniformName1,
+                          BumpMappingUniformValue1);
+
+    if BumpMappingUniformName2 <> '' then
+      AProgram.SetUniform(BumpMappingUniformName2,
+                          BumpMappingUniformValue2);
 
     if UniformsNodes <> nil then
       AProgram.BindUniforms(UniformsNodes, false);
@@ -1517,7 +1523,7 @@ begin
 end;
 
 procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal;
-  const HeightMapInAlpha: boolean);
+  const HeightMapInAlpha: boolean; const HeightMapScale: Single);
 var
   VertexEyeBonusDeclarations, VertexEyeBonusCode: string;
 begin
@@ -1529,14 +1535,13 @@ begin
     { parallax bump mapping }
     Plug(stFragment,
       'uniform float kambi_parallax_bm_scale;' +NL+
-      'uniform float kambi_parallax_bm_bias;' +NL+
       'uniform sampler2D kambi_normal_map;' +NL+
       'varying mat3 kambi_eye_to_tangent_space;' +NL+
       NL+
       'void PLUG_texture_coord_shift(inout vec2 shift, const in vec4 vertex_eye)' +NL+
       '{' +NL+
       '  /* kambi_normal_map is always sampled with normal gl_TexCoord[0] for now */' +NL+
-      '  float height = texture2D(kambi_normal_map, gl_TexCoord[0].st).r * kambi_parallax_bm_scale - kambi_parallax_bm_bias;' +NL+
+      '  float height = (texture2D(kambi_normal_map, gl_TexCoord[0].st).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
       '  vec3 vertex_to_eye_in_tangent_space = normalize(kambi_eye_to_tangent_space * (-vec3(vertex_eye)));' +NL+
       '  shift += height * vertex_to_eye_in_tangent_space.xy /* / vertex_to_eye_in_tangent_space.z*/;' +NL+
       '}');
@@ -1548,6 +1553,9 @@ begin
       '                                gl_ModelViewMatrix[0][1], gl_ModelViewMatrix[1][1], gl_ModelViewMatrix[2][1],' +NL+
       '                                gl_ModelViewMatrix[0][2], gl_ModelViewMatrix[1][2], gl_ModelViewMatrix[2][2]);' +NL+
       'kambi_eye_to_tangent_space = kambi_object_to_tangent_space * eye_to_object_space;' +NL;
+
+    BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
+    BumpMappingUniformValue2 := HeightMapScale;
   end;
 
   Plug(stVertex,
@@ -1576,8 +1584,8 @@ begin
     '    texture2D(kambi_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0)));' +NL+
     '}');
 
-  BumpMappingUniformName := 'kambi_normal_map';
-  BumpMappingUniformValue := NormalMapTextureUnit;
+  BumpMappingUniformName1 := 'kambi_normal_map';
+  BumpMappingUniformValue1 := NormalMapTextureUnit;
 
   ShapeRequiresShaders := true;
 end;
