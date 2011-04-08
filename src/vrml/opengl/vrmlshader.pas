@@ -772,19 +772,24 @@ begin
       if TextureColorDeclare = '' then
         TextureColorDeclare := 'vec4 texture_color;' + NL;
       case TextureType of
-        { Most of the time, 'texture2D(%s, %s.st)' would be enough.
-          But we may get 4D tex coords (that is, with last component <> 1)
-          - through TextureCoordinate4D
-          - through projected texture mapping, when using perspective light
-            (spot light) or perspective viewpoint. }
-        tt2D      :
-          { Even when HAS_TEXTURE_COORD_SHIFT is defined (PLUG_texture_coord_shift was used),
-            use it only for 0th texture unit. Parallax bump mapping calculates the shift,
-            assuming that transformations to tangent space follow 0th texture coordinates. }
+        tt2D:
+          { texture2DProj reasoning:
+            Most of the time, 'texture2D(%s, %s.st)' would be enough.
+            But we may get 4D tex coords (that is, with last component <> 1)
+            - through TextureCoordinate4D
+            - through projected texture mapping, when using perspective light
+              (spot light) or perspective viewpoint.
+
+            TextureUnit = 0 check reasoning:
+            Even when HAS_TEXTURE_COORD_SHIFT is defined (PLUG_texture_coord_shift
+            was used), use it only for 0th texture unit. Parallax bump mapping
+            calculates the shift, assuming that transformations to tangent space
+            follow 0th texture coordinates. Also, for parallax bump mapping,
+            we have to assume the 0th texture has simple 2D coords (not 4D). }
           if TextureUnit = 0 then
-            TextureSampleCall := NL +
+            TextureSampleCall := NL+
               '#ifdef HAS_TEXTURE_COORD_SHIFT' +NL+
-              '  texture2DProj(%0:s, vec4(texture_coord_shifted(%1:s.st), %1:s.pq))' +NL+
+              '  texture2D(%0:s, texture_coord_shifted(%1:s.st))' +NL+
               '#else' +NL+
               '  texture2DProj(%0:s, %1:s)' +NL+
               '#endif' + NL else
