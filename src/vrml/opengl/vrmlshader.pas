@@ -1531,6 +1531,50 @@ end;
 
 procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal;
   const HeightMapInAlpha: boolean; const HeightMapScale: Single);
+const
+  Steep = true;
+  SteepParallax: array [boolean] of string = (
+    { Classic parallax bump mapping }
+    'float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
+    'tex_coord += height * vertex_to_eye_in_tangent_space.xy /* / vertex_to_eye_in_tangent_space.z*/;' +NL,
+
+    { Steep parallax bump mapping }
+    '/* At smaller view angles, much more iterations needed, otherwise ugly' +NL+
+    '   aliasing arifacts quickly appear. */' +NL+
+    'float num_steps = mix(30.0, 10.0, vertex_to_eye_in_tangent_space.z);' +NL+
+    'float step = 1.0 / num_steps;' +NL+
+
+    { Should we remove "vertex_to_eye_in_tangent_space.z" below, i.e. should we apply
+      "offset limiting" ? In works about steep parallax mapping,
+      vertex_to_eye_in_tangent_space.z is present, and in sample steep parallax mapping
+      shader they suggest that it doesn't really matter.
+      My tests confirm this, so I leave vertex_to_eye_in_tangent_space.z component. }
+
+    'vec2 delta = -vertex_to_eye_in_tangent_space.xy * kambi_parallax_bm_scale / (vertex_to_eye_in_tangent_space.z * num_steps);' +NL+
+    'float height = 1.0;' +NL+
+    'float map_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
+
+    { It's known problem that NVidia GeForce FX 5200 fails here with
+
+         error C5011: profile does not support "while" statements
+         and "while" could not be unrolled.
+
+      I could workaround this problem (by using
+        for (int i = 0; i < steep_steps_max; i++)
+      loop and
+        if (! (map_height < height)) break;
+      , this is possible to unroll). But it turns out that this still
+      (even with steep_steps_max = 1) works much too slow on this hardware...
+      so I simply fallback to non-steep version of parallax mapping
+      if this doesn't compile. TODO: we no longer retry with steep? }
+
+    'while (map_height < height)' +NL+
+    '{' +NL+
+    '  height -= step;' +NL+
+    '  tex_coord += delta;' +NL+
+    '  map_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
+    '}' +NL
+  );
 var
   VertexEyeBonusDeclarations, VertexEyeBonusCode: string;
 begin
@@ -1548,8 +1592,7 @@ begin
       'void PLUG_texture_coord_shift(inout vec2 tex_coord, const in vec4 vertex_eye)' +NL+
       '{' +NL+
       '  vec3 vertex_to_eye_in_tangent_space = normalize(kambi_eye_to_tangent_space * (-vec3(vertex_eye)));' +NL+
-      '  float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
-      '  tex_coord += height * vertex_to_eye_in_tangent_space.xy /* / vertex_to_eye_in_tangent_space.z*/;' +NL+
+      SteepParallax[Steep] +
       '}');
     VertexEyeBonusDeclarations :=
       'varying mat3 kambi_eye_to_tangent_space;' +NL;
