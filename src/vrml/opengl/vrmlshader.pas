@@ -777,11 +777,18 @@ begin
           - through TextureCoordinate4D
           - through projected texture mapping, when using perspective light
             (spot light) or perspective viewpoint. }
-        tt2D      : TextureSampleCall := NL + '#ifdef HAS_TEXTURE_COORD_SHIFT' +NL+
-          '  texture2DProj(%0:s, vec4(%1:s.st + texture_coord_shift, %1:s.pq))' +NL+
-          '#else' +NL+
-          '  texture2DProj(%0:s, %1:s)' +NL+
-          '#endif' + NL;
+        tt2D      :
+          { Even when HAS_TEXTURE_COORD_SHIFT is defined (PLUG_texture_coord_shift was used),
+            use it only for 0th texture unit. Parallax bump mapping calculates the shift,
+            assuming that transformations to tangent space follow 0th texture coordinates. }
+          if TextureUnit = 0 then
+            TextureSampleCall := NL +
+              '#ifdef HAS_TEXTURE_COORD_SHIFT' +NL+
+              '  texture2DProj(%0:s, vec4(texture_coord_shifted(%1:s.st), %1:s.pq))' +NL+
+              '#else' +NL+
+              '  texture2DProj(%0:s, %1:s)' +NL+
+              '#endif' + NL else
+            TextureSampleCall := 'texture2DProj(%0:s, %1:s)';
         tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), fragment_color.a)';
         ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
         { For 3D textures, remember we may get 4D tex coords
@@ -1538,12 +1545,11 @@ begin
       'uniform sampler2D kambi_normal_map;' +NL+
       'varying mat3 kambi_eye_to_tangent_space;' +NL+
       NL+
-      'void PLUG_texture_coord_shift(inout vec2 shift, const in vec4 vertex_eye)' +NL+
+      'void PLUG_texture_coord_shift(inout vec2 tex_coord, const in vec4 vertex_eye)' +NL+
       '{' +NL+
-      '  /* kambi_normal_map is always sampled with normal gl_TexCoord[0] for now */' +NL+
-      '  float height = (texture2D(kambi_normal_map, gl_TexCoord[0].st).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
       '  vec3 vertex_to_eye_in_tangent_space = normalize(kambi_eye_to_tangent_space * (-vec3(vertex_eye)));' +NL+
-      '  shift += height * vertex_to_eye_in_tangent_space.xy /* / vertex_to_eye_in_tangent_space.z*/;' +NL+
+      '  float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
+      '  tex_coord += height * vertex_to_eye_in_tangent_space.xy /* / vertex_to_eye_in_tangent_space.z*/;' +NL+
       '}');
     VertexEyeBonusDeclarations :=
       'varying mat3 kambi_eye_to_tangent_space;' +NL;

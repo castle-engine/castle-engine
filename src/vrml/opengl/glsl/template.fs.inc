@@ -18,6 +18,13 @@
 '' + LineEnding + 
 '/* PLUG-DECLARATIONS */' + LineEnding + 
 '' + LineEnding + 
+'/* Wrapper for calling PLUG texture_coord_shift */' + LineEnding + 
+'vec2 texture_coord_shifted(in vec2 tex_coord)' + LineEnding + 
+'{' + LineEnding + 
+'  /* PLUG: texture_coord_shift (tex_coord, kambi_vertex_eye) */' + LineEnding + 
+'  return tex_coord;' + LineEnding + 
+'}' + LineEnding + 
+'' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  vec3 normal_eye_fragment = normalize(kambi_normal_eye);' + LineEnding + 
@@ -54,11 +61,6 @@
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: lighting_apply (fragment_color, kambi_vertex_eye, normal_eye_fragment) */' + LineEnding + 
-'' + LineEnding + 
-'#ifdef HAS_TEXTURE_COORD_SHIFT' + LineEnding + 
-'  vec2 texture_coord_shift = vec2(0.0);' + LineEnding + 
-'  /* PLUG: texture_coord_shift (texture_coord_shift, kambi_vertex_eye) */' + LineEnding + 
-'#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 

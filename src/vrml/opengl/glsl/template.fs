@@ -16,6 +16,13 @@ float shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord);
 
 /* PLUG-DECLARATIONS */
 
+/* Wrapper for calling PLUG texture_coord_shift */
+vec2 texture_coord_shifted(in vec2 tex_coord)
+{
+  /* PLUG: texture_coord_shift (tex_coord, kambi_vertex_eye) */
+  return tex_coord;
+}
+
 void main(void)
 {
   vec3 normal_eye_fragment = normalize(kambi_normal_eye);
@@ -52,11 +59,6 @@ void main(void)
 #endif
 
   /* PLUG: lighting_apply (fragment_color, kambi_vertex_eye, normal_eye_fragment) */
-
-#ifdef HAS_TEXTURE_COORD_SHIFT
-  vec2 texture_coord_shift = vec2(0.0);
-  /* PLUG: texture_coord_shift (texture_coord_shift, kambi_vertex_eye) */
-#endif
 
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
