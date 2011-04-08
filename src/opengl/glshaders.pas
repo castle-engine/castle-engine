@@ -715,6 +715,21 @@ end;
 function TGLSLProgram.DebugInfo: string;
 
   function GLShaderVariableTypeName(AType: TGLenum): string;
+  const
+    { Present in glext since GL_VERSION_2_1, define here to support
+      older FPC versions. }
+    GL_FLOAT_MAT2x3 = $8B65;
+    GL_FLOAT_MAT2x4 = $8B66;
+    GL_FLOAT_MAT3x2 = $8B67;
+    GL_FLOAT_MAT3x4 = $8B68;
+    GL_FLOAT_MAT4x2 = $8B69;
+    GL_FLOAT_MAT4x3 = $8B6A;
+    { Present in glext since GL_VERSION_3_1, define here to support
+      older FPC versions. }
+    GL_SAMPLER_2D_RECT = $8B63;
+    GL_SAMPLER_2D_RECT_SHADOW = $8B64;
+    GL_INT_SAMPLER_2D_RECT = $8DCD;
+    GL_UNSIGNED_INT_SAMPLER_2D_RECT = $8DD5;
   begin
     case AType of
       GL_FLOAT: Result := 'FLOAT';
@@ -732,20 +747,22 @@ function TGLSLProgram.DebugInfo: string;
       GL_FLOAT_MAT2: Result := 'FLOAT_MAT2';
       GL_FLOAT_MAT3: Result := 'FLOAT_MAT3';
       GL_FLOAT_MAT4: Result := 'FLOAT_MAT4';
-      { These are only for GL >= 2.1, will be uncommented when GLExt
-        binding will be updated to GL 2.1. }
-      //GL_FLOAT_MAT2x3: Result := 'FLOAT_MAT2x3';
-      //GL_FLOAT_MAT2x4: Result := 'FLOAT_MAT2x4';
-      //GL_FLOAT_MAT3x2: Result := 'FLOAT_MAT3x2';
-      //GL_FLOAT_MAT3x4: Result := 'FLOAT_MAT3x4';
-      //GL_FLOAT_MAT4x2: Result := 'FLOAT_MAT4x2';
-      //GL_FLOAT_MAT4x3: Result := 'FLOAT_MAT4x3';
+      GL_FLOAT_MAT2x3: Result := 'FLOAT_MAT2x3';
+      GL_FLOAT_MAT2x4: Result := 'FLOAT_MAT2x4';
+      GL_FLOAT_MAT3x2: Result := 'FLOAT_MAT3x2';
+      GL_FLOAT_MAT3x4: Result := 'FLOAT_MAT3x4';
+      GL_FLOAT_MAT4x2: Result := 'FLOAT_MAT4x2';
+      GL_FLOAT_MAT4x3: Result := 'FLOAT_MAT4x3';
       GL_SAMPLER_1D: Result := 'SAMPLER_1D';
       GL_SAMPLER_2D: Result := 'SAMPLER_2D';
       GL_SAMPLER_3D: Result := 'SAMPLER_3D';
       GL_SAMPLER_CUBE: Result := 'SAMPLER_CUBE';
       GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW';
       GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW';
+      GL_SAMPLER_2D_RECT: Result := 'SAMPLER_2D_RECT';
+      GL_SAMPLER_2D_RECT_SHADOW: Result := 'SAMPLER_2D_RECT_SHADOW';
+      GL_INT_SAMPLER_2D_RECT: Result := 'INT_SAMPLER_2D_RECT';
+      GL_UNSIGNED_INT_SAMPLER_2D_RECT: Result := 'UNSIGNED_INT_SAMPLER_2D_RECT';
       else Result := Format('Unrecognized uniform type "%d"', [AType]);
     end;
   end;
