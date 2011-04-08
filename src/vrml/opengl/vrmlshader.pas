@@ -1607,7 +1607,13 @@ begin
       'mat3 eye_to_object_space = mat3(gl_ModelViewMatrix[0][0], gl_ModelViewMatrix[1][0], gl_ModelViewMatrix[2][0],' +NL+
       '                                gl_ModelViewMatrix[0][1], gl_ModelViewMatrix[1][1], gl_ModelViewMatrix[2][1],' +NL+
       '                                gl_ModelViewMatrix[0][2], gl_ModelViewMatrix[1][2], gl_ModelViewMatrix[2][2]);' +NL+
-      'kambi_vertex_to_eye_in_tangent_space = normalize( (object_to_tangent_space * eye_to_object_space) * (-vec3(vertex_eye)) );' +NL;
+      'mat3 eye_to_tangent_space = object_to_tangent_space * eye_to_object_space;' +NL+
+      { Theoretically faster implementation below, not fully correct ---
+        assume that transpose is enough to invert this matrix. Tests proved:
+        - results seem the same
+        - but it's not really faster. }
+      { 'mat3 eye_to_tangent_space = transpose(kambi_tangent_to_eye_space);' +NL+ }
+      'kambi_vertex_to_eye_in_tangent_space = normalize(eye_to_tangent_space * (-vec3(vertex_eye)) );' +NL;
 
     BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
     BumpMappingUniformValue2 := HeightMapScale;
