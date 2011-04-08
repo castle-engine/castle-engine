@@ -1534,11 +1534,20 @@ begin
     '  discard;' + NL;
 end;
 
+type
+  TBumpMapping = (bmClassic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
+
 procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal;
   const HeightMapInAlpha: boolean; const HeightMapScale: Single);
 const
-  Steep = true;
-  SteepParallax: array [boolean] of string = (
+  BumpMapping = bmSteepParallaxShadowing;
+
+  SteepParallaxDeclarations: array [boolean] of string = ('',
+    'float kambi_bm_height;' +NL+
+    'vec2 kambi_parallax_tex_coord;' +NL
+  );
+
+  SteepParallaxShift: array [boolean] of string = (
     { Classic parallax bump mapping }
     'float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
     'tex_coord += height * v_to_eye.xy /* / v_to_eye.z*/;' +NL,
@@ -1557,7 +1566,7 @@ const
 
     'vec2 delta = -v_to_eye.xy * kambi_parallax_bm_scale / (v_to_eye.z * num_steps);' +NL+
     'float height = 1.0;' +NL+
-    'float map_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
+    'kambi_bm_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
 
     { It's known problem that NVidia GeForce FX 5200 fails here with
 
@@ -1567,38 +1576,84 @@ const
       I could workaround this problem (by using
         for (int i = 0; i < steep_steps_max; i++)
       loop and
-        if (! (map_height < height)) break;
+        if (! (kambi_bm_height < height)) break;
       , this is possible to unroll). But it turns out that this still
       (even with steep_steps_max = 1) works much too slow on this hardware...
       so I simply fallback to non-steep version of parallax mapping
       if this doesn't compile. TODO: we no longer retry with steep? }
 
-    'while (map_height < height)' +NL+
+    'while (kambi_bm_height < height)' +NL+
     '{' +NL+
     '  height -= step;' +NL+
     '  tex_coord += delta;' +NL+
-    '  map_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
-    '}' +NL
+    '  kambi_bm_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
+    '}' +NL+
+
+    { Save for SteepParallaxShadowing }
+    'kambi_parallax_tex_coord = tex_coord;'
   );
+
+  SteepParallaxShadowing =
+    'uniform float kambi_parallax_bm_scale;' +NL+
+    'uniform sampler2D kambi_normal_map;' +NL+
+    'varying vec3 kambi_light_direction_tangent_space;' +NL+
+
+    'float kambi_bm_height;' +NL+
+    'vec2 kambi_parallax_tex_coord;' +NL+
+
+    'void PLUG_lighting_apply(inout vec4 fragment_color, const vec4 vertex_eye, const vec3 normal_eye_fragment)' +NL+
+    '{' +NL+
+    '  vec3 light_dir = normalize(kambi_light_direction_tangent_space);' +NL+
+
+    '  /* We basically do the same thing as when we calculate tex_coord' +NL+
+    '     with steep parallax mapping.' +NL+
+    '     Only now we increment height, and we use light_dir instead of' +NL+
+    '     v_to_eye. */' +NL+
+    '  float num_steps = mix(30.0, 10.0, light_dir.z);' +NL+
+
+    '  float step = 1.0 / num_steps;' +NL+
+
+    '  vec2 delta = light_dir.xy * kambi_parallax_bm_scale / (light_dir.z * num_steps);' +NL+
+
+    '  /* Do the 1st step always, otherwise initial height = shadow_map_height' +NL+
+    '     and we would be considered in our own shadow. */' +NL+
+    '  float height = kambi_bm_height + step;' +NL+
+    '  vec2 shadow_texture_coord = kambi_parallax_tex_coord + delta;' +NL+
+    '  float shadow_map_height = texture2D(kambi_normal_map, shadow_texture_coord).a;' +NL+
+
+    '  while (shadow_map_height < height && height < 1.0)' +NL+
+    '  {' +NL+
+    '    height += step;' +NL+
+    '    shadow_texture_coord += delta;' +NL+
+    '    shadow_map_height = texture2D(kambi_normal_map, shadow_texture_coord).a;' +NL+
+    '  }' +NL+
+
+    '  if (shadow_map_height >= height)' +NL+
+    '  {' +NL+
+    '    fragment_color.rgb = vec3(0.0);' +NL+
+    '  }' +NL+
+    '}';
+
 var
   VertexEyeBonusDeclarations, VertexEyeBonusCode: string;
 begin
   VertexEyeBonusDeclarations := '';
   VertexEyeBonusCode := '';
 
-  if HeightMapInAlpha then
+  if HeightMapInAlpha and (BumpMapping >= bmParallax) then
   begin
     { parallax bump mapping }
     Plug(stFragment,
       'uniform float kambi_parallax_bm_scale;' +NL+
       'uniform sampler2D kambi_normal_map;' +NL+
       'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL+
+      SteepParallaxDeclarations[BumpMapping >= bmSteepParallax] +
       NL+
-      'void PLUG_texture_coord_shift(inout vec2 tex_coord, const in vec4 vertex_eye)' +NL+
+      'void PLUG_texture_coord_shift(inout vec2 tex_coord)' +NL+
       '{' +NL+
       { We have to normalize kambi_vertex_to_eye_in_tangent_space again, just like normal vectors. }
       '  vec3 v_to_eye = normalize(kambi_vertex_to_eye_in_tangent_space);' +NL+
-      SteepParallax[Steep] +
+      SteepParallaxShift[BumpMapping >= bmSteepParallax] +
       '}');
     VertexEyeBonusDeclarations :=
       'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL;
@@ -1614,6 +1669,17 @@ begin
         - but it's not really faster. }
       { 'mat3 eye_to_tangent_space = transpose(kambi_tangent_to_eye_space);' +NL+ }
       'kambi_vertex_to_eye_in_tangent_space = normalize(eye_to_tangent_space * (-vec3(vertex_eye)) );' +NL;
+
+    if BumpMapping >= bmSteepParallaxShadowing then
+    begin
+      Plug(stFragment, SteepParallaxShadowing);
+      VertexEyeBonusDeclarations +=
+        'varying vec3 kambi_light_direction_tangent_space;' +NL;
+      VertexEyeBonusCode +=
+        { We only cast shadow from gl_LightSource[0], and assume below
+          that it's a directional light source. }
+        'kambi_light_direction_tangent_space = normalize(eye_to_tangent_space * gl_LightSource[0].position.xyz);' +NL;
+    end;
 
     BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
     BumpMappingUniformValue2 := HeightMapScale;

@@ -21,7 +21,7 @@
 '/* Wrapper for calling PLUG texture_coord_shift */' + LineEnding + 
 'vec2 texture_coord_shifted(in vec2 tex_coord)' + LineEnding + 
 '{' + LineEnding + 
-'  /* PLUG: texture_coord_shift (tex_coord, kambi_vertex_eye) */' + LineEnding + 
+'  /* PLUG: texture_coord_shift (tex_coord) */' + LineEnding + 
 '  return tex_coord;' + LineEnding + 
 '}' + LineEnding + 
 '' + LineEnding + 

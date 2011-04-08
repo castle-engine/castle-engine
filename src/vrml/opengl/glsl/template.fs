@@ -19,7 +19,7 @@ float shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord);
 /* Wrapper for calling PLUG texture_coord_shift */
 vec2 texture_coord_shifted(in vec2 tex_coord)
 {
-  /* PLUG: texture_coord_shift (tex_coord, kambi_vertex_eye) */
+  /* PLUG: texture_coord_shift (tex_coord) */
   return tex_coord;
 }
 
