@@ -1536,21 +1536,21 @@ const
   SteepParallax: array [boolean] of string = (
     { Classic parallax bump mapping }
     'float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
-    'tex_coord += height * vertex_to_eye_in_tangent_space.xy /* / vertex_to_eye_in_tangent_space.z*/;' +NL,
+    'tex_coord += height * v_to_eye.xy /* / v_to_eye.z*/;' +NL,
 
     { Steep parallax bump mapping }
     '/* At smaller view angles, much more iterations needed, otherwise ugly' +NL+
     '   aliasing arifacts quickly appear. */' +NL+
-    'float num_steps = mix(30.0, 10.0, vertex_to_eye_in_tangent_space.z);' +NL+
+    'float num_steps = mix(30.0, 10.0, v_to_eye.z);' +NL+
     'float step = 1.0 / num_steps;' +NL+
 
-    { Should we remove "vertex_to_eye_in_tangent_space.z" below, i.e. should we apply
+    { Should we remove "v_to_eye.z" below, i.e. should we apply
       "offset limiting" ? In works about steep parallax mapping,
-      vertex_to_eye_in_tangent_space.z is present, and in sample steep parallax mapping
+      v_to_eye.z is present, and in sample steep parallax mapping
       shader they suggest that it doesn't really matter.
-      My tests confirm this, so I leave vertex_to_eye_in_tangent_space.z component. }
+      My tests confirm this, so I leave v_to_eye.z component. }
 
-    'vec2 delta = -vertex_to_eye_in_tangent_space.xy * kambi_parallax_bm_scale / (vertex_to_eye_in_tangent_space.z * num_steps);' +NL+
+    'vec2 delta = -v_to_eye.xy * kambi_parallax_bm_scale / (v_to_eye.z * num_steps);' +NL+
     'float height = 1.0;' +NL+
     'float map_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
 
@@ -1587,21 +1587,22 @@ begin
     Plug(stFragment,
       'uniform float kambi_parallax_bm_scale;' +NL+
       'uniform sampler2D kambi_normal_map;' +NL+
-      'varying mat3 kambi_eye_to_tangent_space;' +NL+
+      'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL+
       NL+
       'void PLUG_texture_coord_shift(inout vec2 tex_coord, const in vec4 vertex_eye)' +NL+
       '{' +NL+
-      '  vec3 vertex_to_eye_in_tangent_space = normalize(kambi_eye_to_tangent_space * (-vec3(vertex_eye)));' +NL+
+      { We have to normalize kambi_vertex_to_eye_in_tangent_space again, just like normal vectors. }
+      '  vec3 v_to_eye = normalize(kambi_vertex_to_eye_in_tangent_space);' +NL+
       SteepParallax[Steep] +
       '}');
     VertexEyeBonusDeclarations :=
-      'varying mat3 kambi_eye_to_tangent_space;' +NL;
+      'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL;
     VertexEyeBonusCode :=
       'mat3 object_to_tangent_space = transpose(kambi_tangent_to_object_space);' +NL+
       'mat3 eye_to_object_space = mat3(gl_ModelViewMatrix[0][0], gl_ModelViewMatrix[1][0], gl_ModelViewMatrix[2][0],' +NL+
       '                                gl_ModelViewMatrix[0][1], gl_ModelViewMatrix[1][1], gl_ModelViewMatrix[2][1],' +NL+
       '                                gl_ModelViewMatrix[0][2], gl_ModelViewMatrix[1][2], gl_ModelViewMatrix[2][2]);' +NL+
-      'kambi_eye_to_tangent_space = object_to_tangent_space * eye_to_object_space;' +NL;
+      'kambi_vertex_to_eye_in_tangent_space = normalize( (object_to_tangent_space * eye_to_object_space) * (-vec3(vertex_eye)) );' +NL;
 
     BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
     BumpMappingUniformValue2 := HeightMapScale;
