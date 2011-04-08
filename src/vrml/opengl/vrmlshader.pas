@@ -760,7 +760,7 @@ begin
       Shader.Plug(stFragment,
         Format('uniform %s %s;',
         [OpenGLTextureType[TextureType], UniformName]) +NL+
-        'float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord, const in float size);' +NL+
+        'float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord, const in float size);' +NL+
         'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
         '{' +NL+
         Format('  scale *= shadow(%s, gl_TexCoord[%d], %d.0);',

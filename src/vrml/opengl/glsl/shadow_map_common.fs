@@ -5,7 +5,7 @@
 //#define PCF4_BILINEAR
 //#define PCF16
 
-float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord,
+float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
   const in float size)
 {
   /* Avoid back-projecting shadows. */
@@ -88,7 +88,7 @@ float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord,
    (otherwise getting it as sampler2D may not be sensible, depends on GPU;
    Looks like Radeon tolerated any compareMode, but NVidia requires "NONE".).
 */
-float shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord)
+float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord)
 {
   /* Avoid back-projecting shadows. */
   if (shadowMapCoord.z < 0.0) return 0.0;

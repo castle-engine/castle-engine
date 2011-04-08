@@ -10,9 +10,9 @@ varying vec4 kambi_vertex_eye;
 varying vec3 kambi_normal_eye;
 
 /* Forward declare shadow maps utilities. */
-float shadow(sampler2DShadow shadowMap, vec4 shadowMapCoord,
+float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
   const in float size);
-float shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord);
+float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord);
 
 /* PLUG-DECLARATIONS */
 
