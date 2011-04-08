@@ -1288,7 +1288,6 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
     begin
       PS := PLongWord(S);
 
-
       for I := 1 to Length(S) div 4 do
       begin
         Res.Sum := Res.Sum + PS^;
