@@ -1600,7 +1600,10 @@ const
     'float kambi_bm_height;' +NL+
     'vec2 kambi_parallax_tex_coord;' +NL+
 
-    'void PLUG_lighting_apply(inout vec4 fragment_color, const vec4 vertex_eye, const vec3 normal_eye_fragment)' +NL+
+    { This has to be done after PLUG_texture_coord_shift (done from PLUG_texture_apply),
+      as we depend that global kambi_bm_height/kambi_parallax_tex_coord
+      are already set correctly. }
+    'void PLUG_steep_parallax_shadow_apply(inout vec4 fragment_color)' +NL+
     '{' +NL+
     '  vec3 light_dir = normalize(kambi_light_direction_tangent_space);' +NL+
 
@@ -1629,7 +1632,8 @@ const
 
     '  if (shadow_map_height >= height)' +NL+
     '  {' +NL+
-    '    fragment_color.rgb = vec3(0.0);' +NL+
+    '    /* TODO: setting appropriate light contribution to 0 would be more correct. But for now, this self-shadowing is hacky, always from light source 0, and after the light calculation is actually done. */' +NL+
+    '    fragment_color.rgb /= 2.0;' +NL+
     '  }' +NL+
     '}';
 

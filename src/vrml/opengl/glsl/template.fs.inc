@@ -63,6 +63,7 @@
 '  /* PLUG: lighting_apply (fragment_color, kambi_vertex_eye, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
+'  /* PLUG: steep_parallax_shadow_apply (fragment_color) */' + LineEnding + 
 '  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
 '  /* NVidia GeForce 450 GTS (kocury) fails to compile a shader when' + LineEnding + 
