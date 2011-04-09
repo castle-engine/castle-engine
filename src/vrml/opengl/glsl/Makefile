@@ -1,8 +1,7 @@
 # Note about file_to_pascal_string: it's another program of mine,
 # you can get it from pasdoc [http://pasdoc.sourceforge.net/] sources.
 
-ALL_OUTPUT := parallax_bump_mapping.vs.inc parallax_bump_mapping.fs.inc \
-  shadow_map_common.fs.inc \
+ALL_OUTPUT := shadow_map_common.fs.inc \
   variance_shadow_map_common.fs.inc \
   variance_shadow_map_generate.fs.inc \
   template.vs.inc template.fs.inc \
