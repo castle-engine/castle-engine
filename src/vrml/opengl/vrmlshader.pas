@@ -1682,9 +1682,14 @@ begin
       VertexEyeBonusDeclarations +=
         'varying vec3 kambi_light_direction_tangent_space;' +NL;
       VertexEyeBonusCode +=
-        { We only cast shadow from gl_LightSource[0], and assume below
-          that it's a directional light source. }
-        'kambi_light_direction_tangent_space = normalize(eye_to_tangent_space * gl_LightSource[0].position.xyz);' +NL;
+        { We only cast shadow from gl_LightSource[0]. }
+        'vec3 light_dir = gl_LightSource[0].position.xyz;' +NL+
+        '/* We assume gl_LightSource[0].position.w = 1 (if not 0). */' +NL+
+        'if (gl_LightSource[0].position.w != 0.0)' +NL+
+        '  light_dir -= vec3(vertex_eye);' +NL+
+        'light_dir = normalize(light_dir);' +NL+
+
+        'kambi_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
     end;
   end;
 
