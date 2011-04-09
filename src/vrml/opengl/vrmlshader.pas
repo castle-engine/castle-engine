@@ -1716,8 +1716,15 @@ begin
     '     Our normal map is always indexed using gl_TexCoord[0] (this way' +NL+
     '     we depend on already correct gl_TexCoord[0], multiplied by TextureTransform' +NL+
     '     and such). */' +NL+
-    '  normal_eye_fragment = normalize(kambi_tangent_to_eye_space * (' +NL+
-    '    texture2D(kambi_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0)));' +NL+
+    '  vec3 normal_tangent = texture2D(kambi_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0);' +NL+
+
+    '  /* We have to take two-sided lighting into account here, in tangent space.' +NL+
+    '     Simply negating whole normal in eye space (like we do without bump mapping)' +NL+
+    '     would not work good, check e.g. insides of demo_models/bump_mapping/room_for_parallax_final.wrl. */' +NL+
+    '  if (!gl_FrontFacing)' +NL+
+    '    normal_tangent.z = -normal_tangent.z;' +NL+
+
+    '  normal_eye_fragment = normalize(kambi_tangent_to_eye_space * normal_tangent);' +NL+
     '}');
 
   BumpMappingUniformName1 := 'kambi_normal_map';

@@ -26,6 +26,9 @@ vec2 texture_coord_shifted(in vec2 tex_coord)
 void main(void)
 {
   vec3 normal_eye_fragment = normalize(kambi_normal_eye);
+  if (!gl_FrontFacing)
+    normal_eye_fragment = -normal_eye_fragment;
+
   /* PLUG: fragment_eye_space (kambi_vertex_eye, normal_eye_fragment) */
 
 #ifdef LIT
@@ -44,7 +47,6 @@ void main(void)
   } else
   {
     fragment_color = gl_BackLightModelProduct.sceneColor;
-    normal_eye_fragment = -normal_eye_fragment;
     /* PLUG: add_light_contribution_back (fragment_color, kambi_vertex_eye, normal_eye_fragment, gl_BackMaterial) */
     fragment_color.a = gl_BackMaterial.diffuse.a;
   }

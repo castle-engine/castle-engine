@@ -28,6 +28,9 @@
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  vec3 normal_eye_fragment = normalize(kambi_normal_eye);' + LineEnding + 
+'  if (!gl_FrontFacing)' + LineEnding + 
+'    normal_eye_fragment = -normal_eye_fragment;' + LineEnding + 
+'' + LineEnding + 
 '  /* PLUG: fragment_eye_space (kambi_vertex_eye, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIT' + LineEnding + 
@@ -46,7 +49,6 @@
 '  } else' + LineEnding + 
 '  {' + LineEnding + 
 '    fragment_color = gl_BackLightModelProduct.sceneColor;' + LineEnding + 
-'    normal_eye_fragment = -normal_eye_fragment;' + LineEnding + 
 '    /* PLUG: add_light_contribution_back (fragment_color, kambi_vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding + 
 '    fragment_color.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 
