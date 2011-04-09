@@ -144,6 +144,8 @@ type
 
   TTextureShaders = specialize TFPGObjectList<TTextureShader>;
 
+  TBumpMapping = (bmNone, bmClassic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
+
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
     you can create TVRMLShaderProgram instance
@@ -263,7 +265,9 @@ type
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
-    procedure EnableBumpMapping(const NormalMapTextureUnit: Cardinal;
+    { Call only with BumpMapping > bmNone. }
+    procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
+      const NormalMapTextureUnit: Cardinal;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
     procedure EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
       const MaterialSpecularColor: TVector3Single);
@@ -1533,21 +1537,17 @@ begin
     '  discard;' + NL;
 end;
 
-type
-  TBumpMapping = (bmClassic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
-
-procedure TVRMLShader.EnableBumpMapping(const NormalMapTextureUnit: Cardinal;
+procedure TVRMLShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
+  const NormalMapTextureUnit: Cardinal;
   const HeightMapInAlpha: boolean; const HeightMapScale: Single);
 const
-  BumpMapping = bmSteepParallaxShadowing;
-
   SteepParallaxDeclarations: array [boolean] of string = ('',
     'float kambi_bm_height;' +NL+
     'vec2 kambi_parallax_tex_coord;' +NL
   );
 
   SteepParallaxShift: array [boolean] of string = (
-    { Classic parallax bump mapping }
+    { Basic parallax bump mapping }
     'float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
     'tex_coord += height * v_to_eye.xy /* / v_to_eye.z*/;' +NL,
 
@@ -1669,6 +1669,9 @@ begin
       { 'mat3 eye_to_tangent_space = transpose(kambi_tangent_to_eye_space);' +NL+ }
       'kambi_vertex_to_eye_in_tangent_space = normalize(eye_to_tangent_space * (-vec3(vertex_eye)) );' +NL;
 
+    BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
+    BumpMappingUniformValue2 := HeightMapScale;
+
     if BumpMapping >= bmSteepParallaxShadowing then
     begin
       Plug(stFragment, SteepParallaxShadowing);
@@ -1679,9 +1682,6 @@ begin
           that it's a directional light source. }
         'kambi_light_direction_tangent_space = normalize(eye_to_tangent_space * gl_LightSource[0].position.xyz);' +NL;
     end;
-
-    BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
-    BumpMappingUniformValue2 := HeightMapScale;
   end;
 
   Plug(stVertex,

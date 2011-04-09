@@ -240,6 +240,7 @@ const
   DefaultLineWidth = 2.0;
   DefaultVarianceShadowMaps = false;
   DefaultShaders = srWhenRequired;
+  DefaultBumpMapping = bmClassic;
 
 type
   { Various properties that control rendering done
