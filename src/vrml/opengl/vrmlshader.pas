@@ -144,7 +144,7 @@ type
 
   TTextureShaders = specialize TFPGObjectList<TTextureShader>;
 
-  TBumpMapping = (bmNone, bmClassic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
+  TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
 
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
@@ -1547,7 +1547,7 @@ const
   );
 
   SteepParallaxShift: array [boolean] of string = (
-    { Basic parallax bump mapping }
+    { Classic parallax bump mapping }
     'float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
     'tex_coord += height * v_to_eye.xy /* / v_to_eye.z*/;' +NL,
 

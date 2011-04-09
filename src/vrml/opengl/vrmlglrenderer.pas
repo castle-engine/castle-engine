@@ -234,13 +234,14 @@ type
   TShadersRendering = (srDisable, srWhenRequired, srAlways);
   { Faces to cull (make invisible) during VRML/X3D rendering. }
   TCullFace = (cfNone, cfCW, cfCCW);
+  TBumpMapping = VRMLShader.TBumpMapping;
 
 const
   DefaultPointSize = 3.0;
   DefaultLineWidth = 2.0;
   DefaultVarianceShadowMaps = false;
   DefaultShaders = srWhenRequired;
-  DefaultBumpMapping = bmClassic;
+  DefaultBumpMapping = bmBasic;
 
 type
   { Various properties that control rendering done
@@ -263,7 +264,7 @@ type
     FTextureMagFilter: TGLint;
     FPointSize: TGLFloat;
     FLineWidth: TGLFloat;
-    FBumpMapping: boolean;
+    FBumpMapping: TBumpMapping;
     FShaders: TShadersRendering;
     FPureGeometry: boolean;
     FTextureModeGrayscale: TGLenum;
@@ -282,7 +283,7 @@ type
     procedure SetEnableTextures(const Value: boolean); virtual;
     procedure SetTextureMinFilter(const Value: TGLint); virtual;
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
-    procedure SetBumpMapping(const Value: boolean); virtual;
+    procedure SetBumpMapping(const Value: TBumpMapping); virtual;
     procedure SetPureGeometry(const Value: boolean); virtual;
     procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
     procedure SetTextureModeRGB(const Value: TGLenum); virtual;
@@ -419,16 +420,10 @@ type
       visible as "standing out", in 3D, from the wall. And self-shadowing
       means that these bricks even cast appropriate shadows on each other.
 
-      We try to do the steep parallax mapping with self-shadowing (if GPU allows),
-      which makes nice effects and allows self-shadowing.
-      On worse GPUs, we at least use height map to do classic parallax mapping
-      (with offset limiting, i.e. with E.z component removed).
-
-      TODO: For each texture, there must always be the same
-      normalMap and heightMap
-      (since we store it in the same TTextureImageReference). }
-    property BumpMapping: boolean
-      read FBumpMapping write SetBumpMapping default true;
+      Steep parallax mapping requires good GPU to work correctly and fast
+      enough. }
+    property BumpMapping: TBumpMapping
+      read FBumpMapping write SetBumpMapping default DefaultBumpMapping;
 
     { When GLSL shaders are used.
 
@@ -1009,7 +1004,7 @@ type
 
     { Check Attributes (like Attributes.BumpMapping) and OpenGL
       context capabilities to see if bump mapping can be used. }
-    function BumpMapping: boolean;
+    function BumpMapping: TBumpMapping;
 
     procedure SetCullFace(const Value: TCullFace);
     procedure SetSmoothShading(const Value: boolean);
@@ -1219,6 +1214,13 @@ type
 
 const
   AllVboTypes = [Low(TVboType) .. High(TVboType)];
+
+  BumpMappingNames: array [TBumpMapping] of string =
+  ( 'None',
+    'Basic',
+    'Parallax',
+    'Steep Parallax',
+    'Steep Parallax With Self-Shadowing' );
 
 var
   { Should we log every event of a cache TVRMLGLRendererContextCache.
@@ -2087,7 +2089,7 @@ begin
   FTextureMagFilter := GL_LINEAR;
   FPointSize := DefaultPointSize;
   FLineWidth := DefaultLineWidth;
-  FBumpMapping := true;
+  FBumpMapping := DefaultBumpMapping;
   FShaders := DefaultShaders;
   FTextureModeGrayscale := GL_MODULATE;
   FTextureModeRGB := GL_MODULATE;
@@ -2149,7 +2151,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetBumpMapping(const Value: boolean);
+procedure TVRMLRenderingAttributes.SetBumpMapping(const Value: TBumpMapping);
 begin
   if BumpMapping <> Value then
   begin
@@ -2577,10 +2579,9 @@ begin
   ScreenEffectPrograms.Count := 0; { this will free programs inside }
 end;
 
-function TVRMLGLRenderer.BumpMapping: boolean;
+function TVRMLGLRenderer.BumpMapping: TBumpMapping;
 begin
-  Result :=
-    Attributes.BumpMapping and
+  if (Attributes.BumpMapping <> bmNone) and
     Attributes.EnableTextures and
     (not Attributes.PureGeometry) and
 
@@ -2605,7 +2606,9 @@ begin
     { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
     GL_ARB_texture_env_dot3 and
 
-    (TGLSLProgram.ClassSupport <> gsNone);
+    (TGLSLProgram.ClassSupport <> gsNone) then
+    Result := Attributes.BumpMapping else
+    Result := bmNone;
 end;
 
 function TVRMLGLRenderer.PreparedTextureAlphaChannelType(
