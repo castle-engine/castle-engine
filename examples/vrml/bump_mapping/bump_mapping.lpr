@@ -872,7 +872,7 @@ end;
 procedure LoadSceneCore(const FileName: string);
 begin
   FreeAndNil(Scene);
-  
+
   // TODO: recreating Scene breaks synchronization between this
   // Attributes.BumpMapping and menu item checked.
 
@@ -1213,13 +1213,14 @@ begin
         LightPosition[2] := Scene.BoundingBox[1][2];
 //TODO:        Scene.BumpMappingLightPosition := LightPosition;
       end;
-    1100: Scene.Attributes.BumpMapping := not Scene.Attributes.BumpMapping;
+    1100..1199: Scene.Attributes.BumpMapping :=
+      TBumpMapping(MenuItem.IntData - 1100);
   end;
 end;
 
 function CreateMainMenu: TMenu;
 var
-  M: TMenu;
+  M, M2: TMenu;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
@@ -1246,8 +1247,9 @@ begin
   M := TMenu.Create('_VRML');
     M.Append(TMenuItem.Create('_Open VRML Model ...', 600, CtrlO));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Bump Mapping Enabled', 1100,
-      true { default Scene.Attributes.BumpMapping }, true));
+    M2 := TMenu.Create('Bump mapping');
+      M2.AppendRadioGroup(BumpMappingNames, 1100, Ord(DefaultBumpMapping), true);
+      M.Append(M2);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Change _Ambient Light Color (Only When GLSL Is Used) ...', 601));
     M.Append(TMenuItem.Create('Change _Diffuse Light Color (Only When GLSL Is Used) ...', 602));
