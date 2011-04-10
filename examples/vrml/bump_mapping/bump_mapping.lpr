@@ -78,7 +78,7 @@ var
 
   LightPosition: TVector3Single = (0, 0, 2);
 
-  Method: TBumpMethod = bmEmboss;
+  Method: TBumpMethod = bmVRML;
 
   MaxTextureUnits: Cardinal;
 
@@ -1282,9 +1282,15 @@ begin
   Scene.Spatial := [ssRendering { add here ssDynamicCollisions
     if you want more features, like mouse picking of objects }];
   Scene.ProcessEvents := true;
-  { Scene is part of SceneManager only when Method = bmVRML }
+
+  { Initialize default Method.
+    Scene is part of SceneManager only when Method = bmVRML }
   if Method = bmVRML then
+  begin
+    PrepareForVRMLScene;
     SceneManager.Items.Add(Scene);
+    SceneManager.MainScene := Scene;
+  end;
 
   Glw.MainMenu := CreateMainMenu;
   Glw.OnMenuCommand := @MenuCommand;
