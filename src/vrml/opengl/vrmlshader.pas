@@ -169,10 +169,10 @@ type
     SelectedNode: TNodeComposedShader;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
-    BumpMappingUniformName1: string;
-    BumpMappingUniformValue1: LongInt;
-    BumpMappingUniformName2: string;
-    BumpMappingUniformValue2: Single;
+    FBumpMapping: TBumpMapping;
+    FNormalMapTextureUnit: Cardinal;
+    FHeightMapInAlpha: boolean;
+    FHeightMapScale: Single;
 
     { We have to optimize the most often case of TVRMLShader usage,
       when the shader is not needed or is already prepared.
@@ -265,7 +265,6 @@ type
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
-    { Call only with BumpMapping > bmNone. }
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
       const NormalMapTextureUnit: Cardinal;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
@@ -1140,32 +1139,204 @@ var
     end;
   end;
 
-  procedure SetupUniformsOnce;
-  var
-    I: Integer;
-  begin
-    AProgram.Enable;
+var
+  BumpMappingUniformName1: string;
+  BumpMappingUniformValue1: LongInt;
+  BumpMappingUniformName2: string;
+  BumpMappingUniformValue2: Single;
 
-    if TextureUniformsSet then
+  procedure EnableShaderBumpMapping;
+  const
+    SteepParallaxDeclarations: array [boolean] of string = ('',
+      'float kambi_bm_height;' +NL+
+      'vec2 kambi_parallax_tex_coord;' +NL
+    );
+
+    SteepParallaxShift: array [boolean] of string = (
+      { Classic parallax bump mapping }
+      'float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
+      'tex_coord += height * v_to_eye.xy /* / v_to_eye.z*/;' +NL,
+
+      { Steep parallax bump mapping }
+      '/* At smaller view angles, much more iterations needed, otherwise ugly' +NL+
+      '   aliasing arifacts quickly appear. */' +NL+
+      'float num_steps = mix(30.0, 10.0, v_to_eye.z);' +NL+
+      'float step = 1.0 / num_steps;' +NL+
+
+      { Should we remove "v_to_eye.z" below, i.e. should we apply
+        "offset limiting" ? In works about steep parallax mapping,
+        v_to_eye.z is present, and in sample steep parallax mapping
+        shader they suggest that it doesn't really matter.
+        My tests confirm this, so I leave v_to_eye.z component. }
+
+      'vec2 delta = -v_to_eye.xy * kambi_parallax_bm_scale / (v_to_eye.z * num_steps);' +NL+
+      'float height = 1.0;' +NL+
+      'kambi_bm_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
+
+      { It's known problem that NVidia GeForce FX 5200 fails here with
+
+           error C5011: profile does not support "while" statements
+           and "while" could not be unrolled.
+
+        I could workaround this problem (by using
+          for (int i = 0; i < steep_steps_max; i++)
+        loop and
+          if (! (kambi_bm_height < height)) break;
+        , this is possible to unroll). But it turns out that this still
+        (even with steep_steps_max = 1) works much too slow on this hardware...
+        so I simply fallback to non-steep version of parallax mapping
+        if this doesn't compile. TODO: we no longer retry with steep? }
+
+      'while (kambi_bm_height < height)' +NL+
+      '{' +NL+
+      '  height -= step;' +NL+
+      '  tex_coord += delta;' +NL+
+      '  kambi_bm_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
+      '}' +NL+
+
+      { Save for SteepParallaxShadowing }
+      'kambi_parallax_tex_coord = tex_coord;'
+    );
+
+    SteepParallaxShadowing =
+      'uniform float kambi_parallax_bm_scale;' +NL+
+      'uniform sampler2D kambi_normal_map;' +NL+
+      'varying vec3 kambi_light_direction_tangent_space;' +NL+
+
+      'float kambi_bm_height;' +NL+
+      'vec2 kambi_parallax_tex_coord;' +NL+
+
+      { This has to be done after PLUG_texture_coord_shift (done from PLUG_texture_apply),
+        as we depend that global kambi_bm_height/kambi_parallax_tex_coord
+        are already set correctly. }
+      'void PLUG_steep_parallax_shadow_apply(inout vec4 fragment_color)' +NL+
+      '{' +NL+
+      '  vec3 light_dir = normalize(kambi_light_direction_tangent_space);' +NL+
+
+      '  /* We basically do the same thing as when we calculate tex_coord' +NL+
+      '     with steep parallax mapping.' +NL+
+      '     Only now we increment height, and we use light_dir instead of' +NL+
+      '     v_to_eye. */' +NL+
+      '  float num_steps = mix(30.0, 10.0, light_dir.z);' +NL+
+
+      '  float step = 1.0 / num_steps;' +NL+
+
+      '  vec2 delta = light_dir.xy * kambi_parallax_bm_scale / (light_dir.z * num_steps);' +NL+
+
+      '  /* Do the 1st step always, otherwise initial height = shadow_map_height' +NL+
+      '     and we would be considered in our own shadow. */' +NL+
+      '  float height = kambi_bm_height + step;' +NL+
+      '  vec2 shadow_texture_coord = kambi_parallax_tex_coord + delta;' +NL+
+      '  float shadow_map_height = texture2D(kambi_normal_map, shadow_texture_coord).a;' +NL+
+
+      '  while (shadow_map_height < height && height < 1.0)' +NL+
+      '  {' +NL+
+      '    height += step;' +NL+
+      '    shadow_texture_coord += delta;' +NL+
+      '    shadow_map_height = texture2D(kambi_normal_map, shadow_texture_coord).a;' +NL+
+      '  }' +NL+
+
+      '  if (shadow_map_height >= height)' +NL+
+      '  {' +NL+
+      '    /* TODO: setting appropriate light contribution to 0 would be more correct. But for now, this self-shadowing is hacky, always from light source 0, and after the light calculation is actually done. */' +NL+
+      '    fragment_color.rgb /= 2.0;' +NL+
+      '  }' +NL+
+      '}';
+
+  var
+    VertexEyeBonusDeclarations, VertexEyeBonusCode: string;
+  begin
+    if FBumpMapping = bmNone then Exit;
+
+    VertexEyeBonusDeclarations := '';
+    VertexEyeBonusCode := '';
+
+    if FHeightMapInAlpha and (FBumpMapping >= bmParallax) then
     begin
-      for I := 0 to TextureShaders.Count - 1 do
-        if TextureShaders[I].UniformName <> '' then
-          AProgram.SetUniform(TextureShaders[I].UniformName,
-                              TextureShaders[I].UniformValue);
+      { parallax bump mapping }
+      Plug(stFragment,
+        'uniform float kambi_parallax_bm_scale;' +NL+
+        'uniform sampler2D kambi_normal_map;' +NL+
+        'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL+
+        SteepParallaxDeclarations[FBumpMapping >= bmSteepParallax] +
+        NL+
+        'void PLUG_texture_coord_shift(inout vec2 tex_coord)' +NL+
+        '{' +NL+
+        { We have to normalize kambi_vertex_to_eye_in_tangent_space again, just like normal vectors. }
+        '  vec3 v_to_eye = normalize(kambi_vertex_to_eye_in_tangent_space);' +NL+
+        SteepParallaxShift[FBumpMapping >= bmSteepParallax] +
+        '}');
+      VertexEyeBonusDeclarations :=
+        'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL;
+      VertexEyeBonusCode :=
+        'mat3 object_to_tangent_space = transpose(kambi_tangent_to_object_space);' +NL+
+        'mat3 eye_to_object_space = mat3(gl_ModelViewMatrix[0][0], gl_ModelViewMatrix[1][0], gl_ModelViewMatrix[2][0],' +NL+
+        '                                gl_ModelViewMatrix[0][1], gl_ModelViewMatrix[1][1], gl_ModelViewMatrix[2][1],' +NL+
+        '                                gl_ModelViewMatrix[0][2], gl_ModelViewMatrix[1][2], gl_ModelViewMatrix[2][2]);' +NL+
+        'mat3 eye_to_tangent_space = object_to_tangent_space * eye_to_object_space;' +NL+
+        { Theoretically faster implementation below, not fully correct ---
+          assume that transpose is enough to invert this matrix. Tests proved:
+          - results seem the same
+          - but it's not really faster. }
+        { 'mat3 eye_to_tangent_space = transpose(kambi_tangent_to_eye_space);' +NL+ }
+        'kambi_vertex_to_eye_in_tangent_space = normalize(eye_to_tangent_space * (-vec3(vertex_eye)) );' +NL;
+
+      BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
+      BumpMappingUniformValue2 := FHeightMapScale;
+
+      if FBumpMapping >= bmSteepParallaxShadowing then
+      begin
+        Plug(stFragment, SteepParallaxShadowing);
+        VertexEyeBonusDeclarations +=
+          'varying vec3 kambi_light_direction_tangent_space;' +NL;
+        VertexEyeBonusCode +=
+          { We only cast shadow from gl_LightSource[0]. }
+          'vec3 light_dir = gl_LightSource[0].position.xyz;' +NL+
+          '/* We assume gl_LightSource[0].position.w = 1 (if not 0). */' +NL+
+          'if (gl_LightSource[0].position.w != 0.0)' +NL+
+          '  light_dir -= vec3(vertex_eye);' +NL+
+          'light_dir = normalize(light_dir);' +NL+
+
+          'kambi_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
+      end;
     end;
 
-    if BumpMappingUniformName1 <> '' then
-      AProgram.SetUniform(BumpMappingUniformName1,
-                          BumpMappingUniformValue1);
+    Plug(stVertex,
+      '#version 120' +NL+ { version 120 needed for transpose() }
+      'attribute mat3 kambi_tangent_to_object_space;' +NL+
+      'varying mat3 kambi_tangent_to_eye_space;' +NL+
+      VertexEyeBonusDeclarations +
+      NL+
+      'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+      '{' +NL+
+      '  kambi_tangent_to_eye_space = gl_NormalMatrix * kambi_tangent_to_object_space;' +NL+
+      VertexEyeBonusCode +
+      '}');
 
-    if BumpMappingUniformName2 <> '' then
-      AProgram.SetUniform(BumpMappingUniformName2,
-                          BumpMappingUniformValue2);
+    Plug(stFragment,
+      'varying mat3 kambi_tangent_to_eye_space;' +NL+
+      'uniform sampler2D kambi_normal_map;' +NL+
+      NL+
+      'void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)' +NL+
+      '{' +NL+
+      '  /* Read normal from the texture, this is the very idea of bump mapping.' +NL+
+      '     Unpack normals, they are in texture in [0..1] range and I want in [-1..1].' +NL+
+      '     Our normal map is always indexed using gl_TexCoord[0] (this way' +NL+
+      '     we depend on already correct gl_TexCoord[0], multiplied by TextureTransform' +NL+
+      '     and such). */' +NL+
+      '  vec3 normal_tangent = texture2D(kambi_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0);' +NL+
 
-    if UniformsNodes <> nil then
-      AProgram.BindUniforms(UniformsNodes, false);
+      '  /* We have to take two-sided lighting into account here, in tangent space.' +NL+
+      '     Simply negating whole normal in eye space (like we do without bump mapping)' +NL+
+      '     would not work good, check e.g. insides of demo_models/bump_mapping/room_for_parallax_final.wrl. */' +NL+
+      '  if (!gl_FrontFacing)' +NL+
+      '    normal_tangent.z = -normal_tangent.z;' +NL+
 
-    AProgram.Disable;
+      '  normal_eye_fragment = normalize(kambi_tangent_to_eye_space * normal_tangent);' +NL+
+      '}');
+
+    BumpMappingUniformName1 := 'kambi_normal_map';
+    BumpMappingUniformValue1 := FNormalMapTextureUnit;
   end;
 
   procedure EnableShaderMaterialFromColor;
@@ -1219,6 +1390,34 @@ var
     end;
   end;
 
+  procedure SetupUniformsOnce;
+  var
+    I: Integer;
+  begin
+    AProgram.Enable;
+
+    if TextureUniformsSet then
+    begin
+      for I := 0 to TextureShaders.Count - 1 do
+        if TextureShaders[I].UniformName <> '' then
+          AProgram.SetUniform(TextureShaders[I].UniformName,
+                              TextureShaders[I].UniformValue);
+    end;
+
+    if BumpMappingUniformName1 <> '' then
+      AProgram.SetUniform(BumpMappingUniformName1,
+                          BumpMappingUniformValue1);
+
+    if BumpMappingUniformName2 <> '' then
+      AProgram.SetUniform(BumpMappingUniformName2,
+                          BumpMappingUniformValue2);
+
+    if UniformsNodes <> nil then
+      AProgram.BindUniforms(UniformsNodes, false);
+
+    AProgram.Disable;
+  end;
+
 var
   I: Integer;
 begin
@@ -1226,6 +1425,7 @@ begin
   EnableInternalEffects;
   EnableLights;
   EnableShaderMaterialFromColor;
+  EnableShaderBumpMapping;
   if AppearanceEffects <> nil then
     EnableEffects(AppearanceEffects);
   if GroupEffects <> nil then
@@ -1351,6 +1551,14 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
       Res.Sum += 123;
     if MaterialFromColor then
       Res.Sum += 456;
+    if FBumpMapping <> bmNone then
+    begin
+      Res.Sum += 789 * (
+        Ord(FBumpMapping) +
+        FNormalMapTextureUnit +
+        Ord(FHeightMapInAlpha) +
+        Round(FHeightMapScale * 100000));
+    end;
   end;
 
   {$include norqcheckend.inc}
@@ -1540,197 +1748,14 @@ end;
 procedure TVRMLShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
   const NormalMapTextureUnit: Cardinal;
   const HeightMapInAlpha: boolean; const HeightMapScale: Single);
-const
-  SteepParallaxDeclarations: array [boolean] of string = ('',
-    'float kambi_bm_height;' +NL+
-    'vec2 kambi_parallax_tex_coord;' +NL
-  );
-
-  SteepParallaxShift: array [boolean] of string = (
-    { Classic parallax bump mapping }
-    'float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
-    'tex_coord += height * v_to_eye.xy /* / v_to_eye.z*/;' +NL,
-
-    { Steep parallax bump mapping }
-    '/* At smaller view angles, much more iterations needed, otherwise ugly' +NL+
-    '   aliasing arifacts quickly appear. */' +NL+
-    'float num_steps = mix(30.0, 10.0, v_to_eye.z);' +NL+
-    'float step = 1.0 / num_steps;' +NL+
-
-    { Should we remove "v_to_eye.z" below, i.e. should we apply
-      "offset limiting" ? In works about steep parallax mapping,
-      v_to_eye.z is present, and in sample steep parallax mapping
-      shader they suggest that it doesn't really matter.
-      My tests confirm this, so I leave v_to_eye.z component. }
-
-    'vec2 delta = -v_to_eye.xy * kambi_parallax_bm_scale / (v_to_eye.z * num_steps);' +NL+
-    'float height = 1.0;' +NL+
-    'kambi_bm_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
-
-    { It's known problem that NVidia GeForce FX 5200 fails here with
-
-         error C5011: profile does not support "while" statements
-         and "while" could not be unrolled.
-
-      I could workaround this problem (by using
-        for (int i = 0; i < steep_steps_max; i++)
-      loop and
-        if (! (kambi_bm_height < height)) break;
-      , this is possible to unroll). But it turns out that this still
-      (even with steep_steps_max = 1) works much too slow on this hardware...
-      so I simply fallback to non-steep version of parallax mapping
-      if this doesn't compile. TODO: we no longer retry with steep? }
-
-    'while (kambi_bm_height < height)' +NL+
-    '{' +NL+
-    '  height -= step;' +NL+
-    '  tex_coord += delta;' +NL+
-    '  kambi_bm_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
-    '}' +NL+
-
-    { Save for SteepParallaxShadowing }
-    'kambi_parallax_tex_coord = tex_coord;'
-  );
-
-  SteepParallaxShadowing =
-    'uniform float kambi_parallax_bm_scale;' +NL+
-    'uniform sampler2D kambi_normal_map;' +NL+
-    'varying vec3 kambi_light_direction_tangent_space;' +NL+
-
-    'float kambi_bm_height;' +NL+
-    'vec2 kambi_parallax_tex_coord;' +NL+
-
-    { This has to be done after PLUG_texture_coord_shift (done from PLUG_texture_apply),
-      as we depend that global kambi_bm_height/kambi_parallax_tex_coord
-      are already set correctly. }
-    'void PLUG_steep_parallax_shadow_apply(inout vec4 fragment_color)' +NL+
-    '{' +NL+
-    '  vec3 light_dir = normalize(kambi_light_direction_tangent_space);' +NL+
-
-    '  /* We basically do the same thing as when we calculate tex_coord' +NL+
-    '     with steep parallax mapping.' +NL+
-    '     Only now we increment height, and we use light_dir instead of' +NL+
-    '     v_to_eye. */' +NL+
-    '  float num_steps = mix(30.0, 10.0, light_dir.z);' +NL+
-
-    '  float step = 1.0 / num_steps;' +NL+
-
-    '  vec2 delta = light_dir.xy * kambi_parallax_bm_scale / (light_dir.z * num_steps);' +NL+
-
-    '  /* Do the 1st step always, otherwise initial height = shadow_map_height' +NL+
-    '     and we would be considered in our own shadow. */' +NL+
-    '  float height = kambi_bm_height + step;' +NL+
-    '  vec2 shadow_texture_coord = kambi_parallax_tex_coord + delta;' +NL+
-    '  float shadow_map_height = texture2D(kambi_normal_map, shadow_texture_coord).a;' +NL+
-
-    '  while (shadow_map_height < height && height < 1.0)' +NL+
-    '  {' +NL+
-    '    height += step;' +NL+
-    '    shadow_texture_coord += delta;' +NL+
-    '    shadow_map_height = texture2D(kambi_normal_map, shadow_texture_coord).a;' +NL+
-    '  }' +NL+
-
-    '  if (shadow_map_height >= height)' +NL+
-    '  {' +NL+
-    '    /* TODO: setting appropriate light contribution to 0 would be more correct. But for now, this self-shadowing is hacky, always from light source 0, and after the light calculation is actually done. */' +NL+
-    '    fragment_color.rgb /= 2.0;' +NL+
-    '  }' +NL+
-    '}';
-
-var
-  VertexEyeBonusDeclarations, VertexEyeBonusCode: string;
 begin
-  VertexEyeBonusDeclarations := '';
-  VertexEyeBonusCode := '';
+  FBumpMapping := BumpMapping;
+  FNormalMapTextureUnit := NormalMapTextureUnit;
+  FHeightMapInAlpha := HeightMapInAlpha;
+  FHeightMapScale := HeightMapScale;
 
-  if HeightMapInAlpha and (BumpMapping >= bmParallax) then
-  begin
-    { parallax bump mapping }
-    Plug(stFragment,
-      'uniform float kambi_parallax_bm_scale;' +NL+
-      'uniform sampler2D kambi_normal_map;' +NL+
-      'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL+
-      SteepParallaxDeclarations[BumpMapping >= bmSteepParallax] +
-      NL+
-      'void PLUG_texture_coord_shift(inout vec2 tex_coord)' +NL+
-      '{' +NL+
-      { We have to normalize kambi_vertex_to_eye_in_tangent_space again, just like normal vectors. }
-      '  vec3 v_to_eye = normalize(kambi_vertex_to_eye_in_tangent_space);' +NL+
-      SteepParallaxShift[BumpMapping >= bmSteepParallax] +
-      '}');
-    VertexEyeBonusDeclarations :=
-      'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL;
-    VertexEyeBonusCode :=
-      'mat3 object_to_tangent_space = transpose(kambi_tangent_to_object_space);' +NL+
-      'mat3 eye_to_object_space = mat3(gl_ModelViewMatrix[0][0], gl_ModelViewMatrix[1][0], gl_ModelViewMatrix[2][0],' +NL+
-      '                                gl_ModelViewMatrix[0][1], gl_ModelViewMatrix[1][1], gl_ModelViewMatrix[2][1],' +NL+
-      '                                gl_ModelViewMatrix[0][2], gl_ModelViewMatrix[1][2], gl_ModelViewMatrix[2][2]);' +NL+
-      'mat3 eye_to_tangent_space = object_to_tangent_space * eye_to_object_space;' +NL+
-      { Theoretically faster implementation below, not fully correct ---
-        assume that transpose is enough to invert this matrix. Tests proved:
-        - results seem the same
-        - but it's not really faster. }
-      { 'mat3 eye_to_tangent_space = transpose(kambi_tangent_to_eye_space);' +NL+ }
-      'kambi_vertex_to_eye_in_tangent_space = normalize(eye_to_tangent_space * (-vec3(vertex_eye)) );' +NL;
-
-    BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
-    BumpMappingUniformValue2 := HeightMapScale;
-
-    if BumpMapping >= bmSteepParallaxShadowing then
-    begin
-      Plug(stFragment, SteepParallaxShadowing);
-      VertexEyeBonusDeclarations +=
-        'varying vec3 kambi_light_direction_tangent_space;' +NL;
-      VertexEyeBonusCode +=
-        { We only cast shadow from gl_LightSource[0]. }
-        'vec3 light_dir = gl_LightSource[0].position.xyz;' +NL+
-        '/* We assume gl_LightSource[0].position.w = 1 (if not 0). */' +NL+
-        'if (gl_LightSource[0].position.w != 0.0)' +NL+
-        '  light_dir -= vec3(vertex_eye);' +NL+
-        'light_dir = normalize(light_dir);' +NL+
-
-        'kambi_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
-    end;
-  end;
-
-  Plug(stVertex,
-    '#version 120' +NL+ { version 120 needed for transpose() }
-    'attribute mat3 kambi_tangent_to_object_space;' +NL+
-    'varying mat3 kambi_tangent_to_eye_space;' +NL+
-    VertexEyeBonusDeclarations +
-    NL+
-    'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
-    '{' +NL+
-    '  kambi_tangent_to_eye_space = gl_NormalMatrix * kambi_tangent_to_object_space;' +NL+
-    VertexEyeBonusCode +
-    '}');
-
-  Plug(stFragment,
-    'varying mat3 kambi_tangent_to_eye_space;' +NL+
-    'uniform sampler2D kambi_normal_map;' +NL+
-    NL+
-    'void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)' +NL+
-    '{' +NL+
-    '  /* Read normal from the texture, this is the very idea of bump mapping.' +NL+
-    '     Unpack normals, they are in texture in [0..1] range and I want in [-1..1].' +NL+
-    '     Our normal map is always indexed using gl_TexCoord[0] (this way' +NL+
-    '     we depend on already correct gl_TexCoord[0], multiplied by TextureTransform' +NL+
-    '     and such). */' +NL+
-    '  vec3 normal_tangent = texture2D(kambi_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0);' +NL+
-
-    '  /* We have to take two-sided lighting into account here, in tangent space.' +NL+
-    '     Simply negating whole normal in eye space (like we do without bump mapping)' +NL+
-    '     would not work good, check e.g. insides of demo_models/bump_mapping/room_for_parallax_final.wrl. */' +NL+
-    '  if (!gl_FrontFacing)' +NL+
-    '    normal_tangent.z = -normal_tangent.z;' +NL+
-
-    '  normal_eye_fragment = normalize(kambi_tangent_to_eye_space * normal_tangent);' +NL+
-    '}');
-
-  BumpMappingUniformName1 := 'kambi_normal_map';
-  BumpMappingUniformValue1 := NormalMapTextureUnit;
-
-  ShapeRequiresShaders := true;
+  if FBumpMapping <> bmNone then
+    ShapeRequiresShaders := true;
 end;
 
 procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
