@@ -1192,34 +1192,33 @@ var
   S: string;
 begin
   case MenuItem.IntData of
-    50: NextButton.DoClick;
-    60: NextCamera;
+    50 : NextButton.DoClick;
+    60 : NextCamera;
     100: Glwin.SaveScreenDialog(FileNameAutoInc(SUnformattable(Parameters[0]) + '_screen_%d.png'));
     200: Glwin.Close;
     300: ShiftByHand := not ShiftByHand;
     400: EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;
     500: NormalizedDot3First := not NormalizedDot3First;
-    600:
-      begin
-        S := ExtractFilePath(VrmlFileName);
-        if Glwin.FileDialog('Open VRML model', S, true,
-          LoadVRML_FileFilters) then
-        begin
-          LoadScene(S);
-          VrmlFileName := S;
-        end;
-      end;
-    601:
-      C := SceneBrightestLight.FdColor.Value;
-      if Glwin.ColorDialog(C) then
-        SceneBrightestLight.FdColor.Send(C);
-    610:
-      if (Method = bmVRML) and not IsEmptyBox3D(Scene.BoundingBox) then
-      begin
-        LightPosition := Box3DMiddle(Scene.BoundingBox);
-        LightPosition[2] := Scene.BoundingBox[1][2];
-        SceneBrightestLight.FdLocation.Send(LightPosition);
-      end;
+    600: begin
+           S := ExtractFilePath(VrmlFileName);
+           if Glwin.FileDialog('Open VRML model', S, true,
+             LoadVRML_FileFilters) then
+           begin
+             LoadScene(S);
+             VrmlFileName := S;
+           end;
+         end;
+    601: begin
+           C := SceneBrightestLight.FdColor.Value;
+           if Glwin.ColorDialog(C) then
+             SceneBrightestLight.FdColor.Send(C);
+         end;
+    610: if (Method = bmVRML) and not IsEmptyBox3D(Scene.BoundingBox) then
+         begin
+           LightPosition := Box3DMiddle(Scene.BoundingBox);
+           LightPosition[2] := Scene.BoundingBox[1][2];
+           SceneBrightestLight.FdLocation.Send(LightPosition);
+         end;
     1100..1199: Scene.Attributes.BumpMapping :=
       TBumpMapping(MenuItem.IntData - 1100);
   end;
