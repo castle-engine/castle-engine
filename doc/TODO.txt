@@ -896,3 +896,48 @@ Renderer:
 
   Reason: both proxies (over-triangulate and not) are used,
   and invalid texcoord is copied, see TODO in vrmlshadowmaps.pas.
+
+------------------------------------------------------------------------------
+Shaders:
+
+More shaders demos, for some day:
+- fog volumetric extend: light shafts through fog.
+  How to make automatically light map in 3d?
+  Add rects, and bake them --- maybe make a Python script in Blender for this?
+
+- rain drops making waves on water - like humus demos,
+  also http://www.youtube.com/watch?v=-yxnETZ6RZk&NR=1 for inspiration
+
+- light source: some different light equation model
+  (look e.g. at blender light model names, something sensible?)
+  plug that modifies (replaces?) light contribution
+
+- Refraction - voronoi glass
+
+- particle engine fun. Maybe particle engine on gpu using plugs?
+  Or just implement particle engine, and allow shading it using plugs?
+
+- Extend water demos: use noise for heights of vertexes too.
+  For now not critical: we have shown that it can work (combination
+  of texture_animate_noise and water effect). We also have shown that
+  it will be slow (water effect by noise is already slow,
+  and texture_animate_noise only runs on NVidia).
+  No point in doing this, as it will not be practical, and we have already
+  prooved that it can work.
+
+- Generate bump mapping (normals) by ShaderTexture.
+  Resign? You can just make an effect overriding fragment_eye.
+
+  Is there a reason to allow this functionality with direct ShaderTexture
+  placed in normalMap, by plug like PLUG_texture_normal?
+  Probably not so much, esp since our normalMap is only our extension.
+  Resign.
+
+- water_no_shader improve: place normals MovieTexture as bump map.
+  Allow using MovieTexture for normalMap.
+  I could improve bump mapping to use MovieTexture as normalMap,
+  but it will not help immediately for water_no_shaders,
+  as my bump mapping depends on 0th texture to set to normal
+  texture that has 2D coords.
+  This depends on bump mapping normalMap improvements:
+  define special tex coords for bump mapping, don't reuse 0th texture unit.
