@@ -6,6 +6,13 @@ NavigationInfo {
   headlight FALSE
 }
 
+PointLight {
+	intensity 1
+	color 1 1 0.7
+	ambientIntensity 0.2
+	location 0 0 10
+}
+
 # Camera settings "encoded" in the VRML declaration below :
 # direction 0.1520898938179016 -0.1298794895410537 -8.7422780126189537E-009
 # up 0 0 1

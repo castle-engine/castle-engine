@@ -55,7 +55,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   Cameras, Boxes3D, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
-  NormalizationCubeMap, GLImages, GLVersionUnit,
+  NormalizationCubeMap, GLImages, GLVersionUnit, VRMLNodes,
   ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, DataErrors,
   VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, VRMLGLBackground,
   VRMLGLRenderer, KambiSceneManager, RenderStateUnit, VRMLErrors, GLControls;
@@ -88,6 +88,7 @@ var
   Walker: TWalkCamera;
 
   Scene: TVRMLGLScene;
+  SceneBrightestLight: TVRMLPositionalLightNode;
 
   { Vars below for bmEmboss only }
 
@@ -705,7 +706,8 @@ var
         { clean after ourselves, otherwise we'd have to call
           glDisable(GL_TEXTURE_CUBE_MAP_ARB) everywhere where we
           enable GLTEXTURE_2D.
-          TODO: push/pop tex environments to make this cleaner. }
+          Doing this by push/pop tex environments could be cleaner,
+          but not needed now. }
         glActiveTextureARB(GL_TEXTURE0_ARB);
         glDisable(GL_TEXTURE_CUBE_MAP_ARB);
       end;
@@ -766,8 +768,6 @@ begin
     EmbossAlphaMultiplyByBlending := true;
   end;
 
-  glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
-
   glPushAttrib(GL_ENABLE_BIT);
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
@@ -786,12 +786,14 @@ begin
       so I change it back to default GL value. }
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
-    Scene.RenderFrustum(RenderState.CameraFrustum, 1, tgAll);
+    Scene.RenderFrustum(RenderState.CameraFrustum, 0, tgAll);
   end else
   begin
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
+
+    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
 
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
 
@@ -877,7 +879,7 @@ begin
   LightPosition := Vector3Single(3, 3, 5);
 
   { When bmVRML, these two should always be equal }
-  //TODO:Scene.BumpMappingLightPosition := LightPosition;
+  SceneBrightestLight.FdLocation.Send(LightPosition);
 
   { reinit both cameras }
 
@@ -889,9 +891,48 @@ begin
   Examiner.Init(Scene.BoundingBox, 0.1);
 end;
 
-procedure LoadScene(const FileName: string);
+type
+  TSeekBrightestLight = class
+    BrightestLight: TVRMLPositionalLightNode;
+    procedure Enum(Node: TVRMLNode);
+  end;
+
+procedure TSeekBrightestLight.Enum(Node: TVRMLNode);
+begin
+  if (BrightestLight = nil) or
+     (BrightestLight.FdIntensity.Value <
+      TVRMLPositionalLightNode(Node).FdIntensity.Value) then
+    BrightestLight := TVRMLPositionalLightNode(Node);
+end;
+
+procedure LoadSceneCore(const FileName: string);
+var
+  SeekBrightestLight: TSeekBrightestLight;
 begin
   Scene.Load(FileName);
+
+  { find SceneBrightestLight }
+  SeekBrightestLight := TSeekBrightestLight.Create;
+  try
+    Scene.RootNode.EnumerateNodes(TVRMLPositionalLightNode,
+      @SeekBrightestLight.Enum, true);
+    SceneBrightestLight := SeekBrightestLight.BrightestLight;
+  finally
+    FreeAndNil(SeekBrightestLight);
+  end;
+
+  { create SceneBrightestLight, if none }
+  if SceneBrightestLight = nil then
+  begin
+    SceneBrightestLight := TNodePointLight_2.Create('', '');
+    Scene.RootNode.SmartAddChild(SceneBrightestLight);
+    Scene.ChangedAll;
+  end;
+end;
+
+procedure LoadScene(const FileName: string);
+begin
+  LoadSceneCore(FileName);
 
   { if Method not bmVRML, then this will be done anyway when user will switch
     to bmVRML method. }
@@ -1117,8 +1158,8 @@ begin
       ChangeLightPosition(2, -1);
   end;
 
-//TODO:  if LightPositionChanged and (Method = bmVRML) then
-//TODO:    Scene.BumpMappingLightPosition := LightPosition;
+  if LightPositionChanged and (Method = bmVRML) then
+    SceneBrightestLight.FdLocation.Send(LightPosition);
 
   if Glwin.Pressed[K_J] then XShift -= Glwin.Fps.IdleSpeed * 50 / 1000;
   if Glwin.Pressed[K_L] then XShift += Glwin.Fps.IdleSpeed * 50 / 1000;
@@ -1169,23 +1210,15 @@ begin
         end;
       end;
     601:
-      begin
-//TODO:        C := Vector3SingleCut(Scene.BumpMappingLightAmbientColor);
-//TODO:        if Glwin.ColorDialog(C) then
-//TODO:          Scene.BumpMappingLightAmbientColor := Vector4Single(C, 1);
-      end;
-    602:
-      begin
-//TODO:        C := Vector3SingleCut(Scene.BumpMappingLightDiffuseColor);
-//TODO:        if Glwin.ColorDialog(C) then
-//TODO:          Scene.BumpMappingLightDiffuseColor := Vector4Single(C, 1);
-      end;
+      C := SceneBrightestLight.FdColor.Value;
+      if Glwin.ColorDialog(C) then
+        SceneBrightestLight.FdColor.Send(C);
     610:
       if (Method = bmVRML) and not IsEmptyBox3D(Scene.BoundingBox) then
       begin
         LightPosition := Box3DMiddle(Scene.BoundingBox);
         LightPosition[2] := Scene.BoundingBox[1][2];
-//TODO:        Scene.BumpMappingLightPosition := LightPosition;
+        SceneBrightestLight.FdLocation.Send(LightPosition);
       end;
     1100..1199: Scene.Attributes.BumpMapping :=
       TBumpMapping(MenuItem.IntData - 1100);
@@ -1225,8 +1258,7 @@ begin
       M2.AppendRadioGroup(BumpMappingNames, 1100, Ord(Scene.Attributes.BumpMapping), true);
       M.Append(M2);
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Change _Ambient Light Color (Only When GLSL Is Used) ...', 601));
-    M.Append(TMenuItem.Create('Change _Diffuse Light Color (Only When GLSL Is Used) ...', 602));
+    M.Append(TMenuItem.Create('Change Light Color ...', 601));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Position _Light at nice position above VRML model', 610));
     Result.Append(M);
@@ -1276,7 +1308,7 @@ begin
   Glw.Controls.Insert(0, NextButton);
 
   Scene := TVRMLGLScene.Create(nil);
-  Scene.Load(VrmlFileName);
+  LoadSceneCore(VrmlFileName);
   { make octree for fast RenderFrustum }
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
   Scene.Spatial := [ssRendering { add here ssDynamicCollisions
