@@ -467,11 +467,9 @@ var
 
            - On kocury (newer NVidia: GeForce FX 5200): 4
            - On ii.107 (poor Radeon (GL_VERSION : 1.4.5469 WinXP Release so really old drivers)): 8
-           - On chantal (Radeon don't remeber, MacBookPro): 8
-           - On ii.137: TODO
+           - On chantal (Radeon X1600, MacBookPro): 8
            - On kocur.ii (older NVidia: GeForce4 MX 440): 2, indeed
            - On crypto.ii (Radeon X300): 8
-           - Mesa on kocury: TODO
 
            Then you can use blending to multiply incoming color by it's own
            incoming alpha with glBlendFunc(GL_SRC_ALPHA, GL_ZERO).
@@ -869,28 +867,6 @@ end;
 
 { vrml scene loading --------------------------------------------------------- }
 
-procedure LoadSceneCore(const FileName: string);
-begin
-  FreeAndNil(Scene);
-
-  // TODO: recreating Scene breaks synchronization between this
-  // Attributes.BumpMapping and menu item checked.
-
-  Scene := TVRMLGLScene.Create(nil);
-  if Method = bmVRML then
-    SceneManager.Items.Add(Scene); { readd Scene to SceneManager }
-
-  Scene.Load(FileName);
-
-  { make octree for fast RenderFrustum }
-  Progress.UserInterface := ProgressNullInterface;
-  Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
-  Scene.Spatial := [ssRendering { add here ssDynamicCollisions
-    if you want more features, like mouse picking of objects }];
-
-  Scene.ProcessEvents := true;
-end;
-
 { Some preparations for bmVRML, to make it look better.
   LightPosition more suitable.
   Walker position initialized from Scene viewport. }
@@ -915,7 +891,7 @@ end;
 
 procedure LoadScene(const FileName: string);
 begin
-  LoadSceneCore(FileName);
+  Scene.Load(FileName);
 
   { if Method not bmVRML, then this will be done anyway when user will switch
     to bmVRML method. }
@@ -1102,14 +1078,12 @@ begin
   NormalizationCubeTex := MakeNormalizationCubeMap;
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
-
-  LoadSceneCore(VrmlFileName);
 end;
 
 procedure Close(glwin: TGLWindow);
 begin
   FreeAndNil(Font);
-  FreeAndNil(Scene);
+  Scene.GLContextClose;
 end;
 
 procedure Resize(Window: TGLWindow);
@@ -1248,7 +1222,7 @@ begin
     M.Append(TMenuItem.Create('_Open VRML Model ...', 600, CtrlO));
     M.Append(TMenuSeparator.Create);
     M2 := TMenu.Create('Bump mapping');
-      M2.AppendRadioGroup(BumpMappingNames, 1100, Ord(DefaultBumpMapping), true);
+      M2.AppendRadioGroup(BumpMappingNames, 1100, Ord(Scene.Attributes.BumpMapping), true);
       M.Append(M2);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Change _Ambient Light Color (Only When GLSL Is Used) ...', 601));
@@ -1301,6 +1275,17 @@ begin
   NextButton := TNextButton.Create(Glw);
   Glw.Controls.Insert(0, NextButton);
 
+  Scene := TVRMLGLScene.Create(nil);
+  Scene.Load(VrmlFileName);
+  { make octree for fast RenderFrustum }
+  Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
+  Scene.Spatial := [ssRendering { add here ssDynamicCollisions
+    if you want more features, like mouse picking of objects }];
+  Scene.ProcessEvents := true;
+  { Scene is part of SceneManager only when Method = bmVRML }
+  if Method = bmVRML then
+    SceneManager.Items.Add(Scene);
+
   Glw.MainMenu := CreateMainMenu;
   Glw.OnMenuCommand := @MenuCommand;
 
@@ -1311,4 +1296,6 @@ begin
   Glw.OnIdle := @Idle;
 
   Glw.OpenAndRun;
+
+  FreeAndNil(Scene);
 end.
