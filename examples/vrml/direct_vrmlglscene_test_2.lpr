@@ -49,7 +49,7 @@
 
        Camera := TWalkCamera.Create(Window);
        Camera.Gravity := true;
-       Camera.CameraRadius := 0.1; // something appropriate
+       Camera.CameraRadius := 0.1;
        // and possibly some more Camera initialization
 
   4. Makes FPS timings right after starting the program correct:

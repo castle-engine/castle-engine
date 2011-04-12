@@ -37,6 +37,9 @@ const
   DefaultHeadBobbingTime = 0.4;
   DefaultJumpSpeedMultiply = 2.0;
   DefaultJumpPower = 9.0;
+  { Default value for TCamera.CameraRadius.
+    Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
+  DefaultCameraRadius = 0.25;
 
 type
   { }
@@ -360,7 +363,7 @@ type
           information.)
       ) }
     property CameraRadius: Single
-      read FCameraRadius write SetCameraRadius default 0.0;
+      read FCameraRadius write SetCameraRadius default DefaultCameraRadius;
 
     { Express current view as camera vectors: position, direction, up.
 
@@ -1897,12 +1900,6 @@ end;
 
 { TCamera ------------------------------------------------------------ }
 
-procedure TCamera.VisibleChange;
-begin
-  RecalculateFrustum;
-  inherited;
-end;
-
 constructor TCamera.Create(AOwner: TComponent);
 begin
   inherited;
@@ -1910,6 +1907,13 @@ begin
   FInitialPosition  := Vector3Single(0, 0, 0);
   FInitialDirection := DefaultDirection;
   FInitialUp        := DefaultUp;
+  FCameraRadius := DefaultCameraRadius;
+end;
+
+procedure TCamera.VisibleChange;
+begin
+  RecalculateFrustum;
+  inherited;
 end;
 
 procedure TCamera.BeginVisibleChangeSchedule;
