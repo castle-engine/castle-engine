@@ -1008,7 +1008,10 @@ type
       This is also the "normal" value for both @link(Up) and
       InitialUp --- one that means that player is looking straight
       foward. This is used for features like PreferGravityUpForRotations
-      and/or PreferGravityUpForMoving. }
+      and/or PreferGravityUpForMoving.
+
+      The default value of this vector is (0, 1, 0) (same as the default
+      InitialUp and Up vectors). }
     property GravityUp: TVector3Single read FGravityUp write SetGravityUp;
 
     { If PreferGravityUpForRotations or PreferGravityUpForMoving
@@ -2646,6 +2649,7 @@ begin
   FPosition  := InitialPosition;
   FDirection := InitialDirection;
   FUp        := InitialUp;
+  FGravityUp := DefaultUp;
 
   FMoveHorizontalSpeed := 1;
   FMoveVerticalSpeed := 1;
