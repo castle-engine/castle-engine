@@ -377,6 +377,11 @@ clean: cleanexamples
 	$(MAKE) -C doc/pasdoc/ clean
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
+# some .res files that are known to be useless
+	rm -f examples/base/dircleaner.res \
+	      examples/lazarus/camera/camera.res \
+	      examples/vrml/triangulate_demo.res \
+	      examples/vrml/simplest_vrml_browser_with_shadows.res
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
