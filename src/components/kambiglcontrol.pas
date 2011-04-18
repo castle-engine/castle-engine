@@ -79,6 +79,16 @@ type
 
     procedure AggressiveUpdateTick;
 
+    { Sometimes, releasing shift / alt / ctrl keys will not be reported
+      properly to KeyDown / KeyUp. Example: opening a menu
+      through Alt+F for "_File" will make keydown for Alt,
+      but not keyup for it, and DoExit will not be called,
+      so ReleaseAllKeysAndMouse will not be called.
+
+      To counteract this, call this method when Shift state is known,
+      to update Pressed when needed. }
+    procedure UpdateShiftState(const Shift: TShiftState);
+
     { For IUIContainer interface. Private, since when you have a class
       instance, you just use class properties (that read directly from a field,
       without the overhead of a function call). }
@@ -501,6 +511,13 @@ begin
   end;
 end;
 
+procedure TKamOpenGLControlCore.UpdateShiftState(const Shift: TShiftState);
+begin
+  Pressed.Keys[K_Shift] := ssShift in Shift;
+  Pressed.Keys[K_Alt  ] := ssAlt   in Shift;
+  Pressed.Keys[K_Ctrl ] := ssCtrl  in Shift;
+end;
+
 procedure TKamOpenGLControlCore.KeyDownEvent(var Key: Word; Shift: TShiftState);
 begin
 end;
@@ -532,6 +549,8 @@ begin
   if (MyKey <> K_None) or (Ch <> #0) then
     Pressed.KeyDown(MyKey, Ch);
 
+  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+
   AggressiveUpdateTick;
 
   inherited KeyDown(Key, Shift);  { OnKeyDown before KeyDownEvent }
@@ -547,6 +566,8 @@ begin
   LKeyToMyKey(Key, Shift, MyKey, Ch);
   if MyKey <> K_None then
     Pressed.KeyUp(MyKey, Ch);
+
+  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
   AggressiveUpdateTick;
 
@@ -566,6 +587,8 @@ begin
   if LMouseButtonToMyMouseButton(Button, MyButton) then
     Include(FMousePressed, MyButton);
 
+  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+
   AggressiveUpdateTick;
 
   inherited MouseDown(Button, Shift, X, Y); { OnMouseDown before MouseDownEvent }
@@ -584,6 +607,8 @@ begin
   if LMouseButtonToMyMouseButton(Button, MyButton) then
     Exclude(FMousePressed, MyButton);
 
+  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+
   AggressiveUpdateTick;
 
   inherited MouseUp(Button, Shift, X, Y); { OnMouseUp before MouseUpEvent }
@@ -599,6 +624,8 @@ begin
     inside MouseMoveEvent) }
   FMouseX := NewX;
   FMouseY := NewY;
+
+  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
   AggressiveUpdateTick;
 
