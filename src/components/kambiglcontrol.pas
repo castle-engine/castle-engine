@@ -100,30 +100,20 @@ type
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
 
-    { When overriding respective events (KeyDown, KeyUp etc.): you can omit
-      calling inherited (when you're sure you do want to call OnXxx event),
-      but you always must call at least this XxxRequired methods.
+    { Overriden KeyDown, KeyUp methods call some necessary stuff (like inherited,
+      and updating the Pressed, MousePressed values) and call respective
+      *Event method.
 
-      Alternatively, instead of calling inherited, you can call XxxEvent and XxxRequired.
-      In case of all events except MouseMove, XxxRequired should be called
-      before XxxEvent, and in case of MouseMove: MouseMoveEvent should
-      be called before MouseMoveRequired.
+      Note that this means that OnKeyDown / OnKeyUp are always fired
+      (this is contrary to the TGLUIWindow OnKeyDown / OnKeyUp behaviour,
+      that is called only if no TKamOpenGLControl.Controls processed
+      this key).
 
-      It is guaranteed that calling such XxxEvent and XxxRequired pair
-      is equivalent to calling inherited Xxx.
-
-      Alternatively, you can override just XxxEvent, without having
-      to call inherited there. This is the simplest approach.
+      The cleanest way to react to key / mouse events is to handle it in
+      a specific TUIControl descendant. Overriding methods like KeyDown,
+      KeyDownEvent, or using OnKeyDown event should be a last resort.
 
       @groupBegin }
-    procedure KeyDownRequired(var Key: Word; Shift: TShiftState);
-    procedure KeyUpRequired(var Key: Word; Shift: TShiftState);
-    procedure MouseDownRequired(Button: Controls.TMouseButton;
-      Shift:TShiftState; X,Y:Integer);
-    procedure MouseUpRequired(Button: Controls.TMouseButton;
-      Shift:TShiftState; X,Y:Integer);
-    procedure MouseMoveRequired(Shift: TShiftState; NewX, NewY: Integer);
-
     procedure KeyDownEvent(var Key: Word; Shift: TShiftState); virtual;
     procedure KeyUpEvent(var Key: Word; Shift: TShiftState); virtual;
     procedure MouseDownEvent(Button: Controls.TMouseButton;
@@ -513,92 +503,60 @@ end;
 
 procedure TKamOpenGLControlCore.KeyDownEvent(var Key: Word; Shift: TShiftState);
 begin
-  inherited KeyDown(Key, Shift);
 end;
 
 procedure TKamOpenGLControlCore.KeyUpEvent(var Key: Word; Shift: TShiftState);
 begin
-  inherited KeyUp(Key, Shift);
 end;
 
 procedure TKamOpenGLControlCore.MouseDownEvent(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  inherited MouseDown(Button, Shift, X, Y);
 end;
 
 procedure TKamOpenGLControlCore.MouseUpEvent(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  inherited MouseUp(Button, Shift, X, Y);
 end;
 
 procedure TKamOpenGLControlCore.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
 begin
-  inherited MouseMove(Shift, NewX, NewY);
 end;
 
 procedure TKamOpenGLControlCore.KeyDown(var Key: Word; Shift: TShiftState);
+var
+  MyKey: TKey;
+  Ch: char;
 begin
-  KeyDownRequired(Key, Shift); { XxxRequired before XxxEvent }
+  LKeyToMyKey(Key, Shift, MyKey, Ch);
+  if (MyKey <> K_None) or (Ch <> #0) then
+    Pressed.KeyDown(MyKey, Ch);
+
+  AggressiveUpdateTick;
+
+  inherited KeyDown(Key, Shift);  { OnKeyDown before KeyDownEvent }
+
   KeyDownEvent(Key, Shift);
 end;
 
 procedure TKamOpenGLControlCore.KeyUp(var Key: Word; Shift: TShiftState);
+var
+  MyKey: TKey;
+  Ch: char;
 begin
-  KeyUpRequired(Key, Shift); { XxxRequired before XxxEvent }
+  LKeyToMyKey(Key, Shift, MyKey, Ch);
+  if MyKey <> K_None then
+    Pressed.KeyUp(MyKey, Ch);
+
+  AggressiveUpdateTick;
+
+  inherited KeyUp(Key, Shift); { OnKeyUp before KeyUpEvent }
+
   KeyUpEvent(Key, Shift);
 end;
 
 procedure TKamOpenGLControlCore.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
-begin
-  MouseDownRequired(Button, Shift, X, Y); { XxxRequired before XxxEvent }
-  MouseDownEvent(Button, Shift, X, Y);
-end;
-
-procedure TKamOpenGLControlCore.MouseUp(Button: Controls.TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  MouseUpRequired(Button, Shift, X, Y); { XxxRequired before XxxEvent }
-  MouseUpEvent(Button, Shift, X, Y);
-end;
-
-procedure TKamOpenGLControlCore.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
-begin
-  MouseMoveEvent(Shift, NewX, NewY);
-  MouseMoveRequired(Shift, NewX, NewY); { XxxRequired after XxxEvent (MouseX, MouseY must be old values in OnMouseMove) }
-end;
-
-procedure TKamOpenGLControlCore.KeyDownRequired(var Key: Word;
-  Shift: TShiftState);
-var
-  MyKey: TKey;
-  Ch: char;
-begin
-  LKeyToMyKey(Key, Shift, MyKey, Ch);
-
-  if (MyKey <> K_None) or (Ch <> #0) then
-    Pressed.KeyDown(MyKey, Ch);
-
-  AggressiveUpdateTick;
-end;
-
-procedure TKamOpenGLControlCore.KeyUpRequired(var Key: Word; Shift: TShiftState);
-var
-  MyKey: TKey;
-  Ch: char;
-begin
-  LKeyToMyKey(Key, Shift, MyKey, Ch);
-
-  if MyKey <> K_None then
-    Pressed.KeyUp(MyKey, Ch);
-
-  AggressiveUpdateTick;
-end;
-
-procedure TKamOpenGLControlCore.MouseDownRequired(
-  Button: Controls.TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   MyButton: KeysMouse.TMouseButton;
 begin
@@ -609,9 +567,13 @@ begin
     Include(FMousePressed, MyButton);
 
   AggressiveUpdateTick;
+
+  inherited MouseDown(Button, Shift, X, Y); { OnMouseDown before MouseDownEvent }
+
+  MouseDownEvent(Button, Shift, X, Y);
 end;
 
-procedure TKamOpenGLControlCore.MouseUpRequired(Button: Controls.TMouseButton;
+procedure TKamOpenGLControlCore.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: KeysMouse.TMouseButton;
@@ -623,15 +585,24 @@ begin
     Exclude(FMousePressed, MyButton);
 
   AggressiveUpdateTick;
+
+  inherited MouseUp(Button, Shift, X, Y); { OnMouseUp before MouseUpEvent }
+
+  MouseUpEvent(Button, Shift, X, Y);
 end;
 
-procedure TKamOpenGLControlCore.MouseMoveRequired(Shift: TShiftState; NewX,
-  NewY: Integer);
+procedure TKamOpenGLControlCore.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
 begin
+  MouseMoveEvent(Shift, NewX, NewY);
+
+  { OnMouseMove after MouseMoveEvent (MouseX, MouseY must be old values
+    inside MouseMoveEvent) }
   FMouseX := NewX;
   FMouseY := NewY;
 
   AggressiveUpdateTick;
+
+  inherited MouseMove(Shift, NewX, NewY);
 end;
 
 procedure TKamOpenGLControlCore.Idle;
