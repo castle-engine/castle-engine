@@ -10,11 +10,16 @@ http://vrmlengine.sourceforge.net/reference.php,
 it is also available offline in doc/pasdoc/html/ subdirectory of this archive
 (just open doc/pasdoc/html/index.html in your WWW browser).
 
-You can compile examples by simple "make examples" executed in this directory.
+You can compile the engine and examples by various methods.
+For example, you can compile all examples by simple "make examples"
+executed in this directory.
 
-If you want to use this from Lazarus (http://www.lazarus.freepascal.org/),
+If you want to use Lazarus (http://www.lazarus.freepascal.org/),
 you'll be interested in installing in Lazarus
-packages/kambi_base.lpk and packages/kambi_components.lpk.
+packages/kambi_base.lpk and packages/kambi_components.lpk
+(see packages/README for more info).
+Then you can compile all the examples by opening their .lpi files
+and running them as usual from Lazarus.
 
 In case of any questions, ask on our
 - mailing list: https://lists.sourceforge.net/lists/listinfo/vrmlengine-main
