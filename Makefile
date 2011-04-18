@@ -10,9 +10,19 @@
 #     Some information about what this Makefile sees, how will it work etc.
 #
 #   examples --
-#     Compile all examples and tools (things inside examples/ and tools/
-#     subdirectories). Note that you can also compile each example separately,
-#     just run appropriate xxx_compile.sh scripts.
+#     Compile examples and tools (inside examples/ subdirectory).
+#     This compilation method uses our xxx_compile.sh Unix scripts,
+#     and requires only pure FPC installation.
+#     Lazarus is not required (LCL dependent examples are not compiled).
+#     Note that you can also compile each example separately,
+#     just execute directly appropriate xxx_compile.sh scripts.
+#
+#   examples-laz --
+#     Compile examples and tools (inside examples/ subdirectory).
+#     This compilation method uses our .lpi project files,
+#     and compiles every program by the lazbuild utility.
+#     Lazarus and FPC installation is required, and Lazarus must know
+#     about the kambi_* packages (compile them from Lazarus first).
 #
 #   clean --
 #     Delete FPC 1.0.x Windows trash (*.ppw, *.ow), FPC trash, Delphi trash,
@@ -306,19 +316,18 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/scene_manager_basic \
   examples/vrml/build_3d_object_by_code
 
-EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
+EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
   examples/lazarus/vrml_browser/vrml_browser \
   examples/lazarus/vrml_with_2d_controls/vrml_with_2d_controls \
   examples/lazarus/camera/camera \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
 
+EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
+  $(EXAMPLES_LAZARUS_BASE_NAMES)
+
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
-  examples/audio/test_al_source_allocator.exe \
-  examples/lazarus/vrml_browser/vrml_browser.exe \
-  examples/lazarus/vrml_with_2d_controls/vrml_with_2d_controls.exe  \
-  examples/lazarus/camera/camera.exe \
-  examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually.exe
+  $(addsuffix .exe,$(EXAMPLES_LAZARUS_BASE_NAMES))
 
 .PHONY: examples
 examples:
@@ -331,6 +340,10 @@ examples-ignore-errors:
 .PHONY: cleanexamples
 cleanexamples:
 	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
+
+.PHONY: examples-laz
+examples-laz:
+	$(foreach NAME,$(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
 
 # information ------------------------------------------------------------
 
