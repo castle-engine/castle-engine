@@ -54,6 +54,9 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
+    <SearchPaths>
+      <IncludeFiles Value="../../../src/base;../../../src/base/templates"/>
+    </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <UseAnsiStrings Value="True"/>
