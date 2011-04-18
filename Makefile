@@ -361,6 +361,7 @@ info:
 clean: cleanexamples
 	find . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
 	                   -iname '*.o'   -or -iname '*.ppu' -or -iname '*.a' -or \
+			   -iname '*.or'  -or \
 			   -iname '*.compiled' -or \
 			   -iname '*.libimp*.a' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' ')' \
