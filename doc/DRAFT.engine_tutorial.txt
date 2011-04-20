@@ -168,3 +168,22 @@ SoundEngine.PlaySound(Buffer, ...); // see PlaySound reference for parameters
 You can free the buffer once the sound has stopped. It's not important for simple programs, as we will take care to always free it before closing OpenAL context.
 
 For more advanced uses, you can use the return value of PlaySound: it's either nil (if no OpenAL resources available to play this sound, and it's priority doesn't allow overriding other sounds) or it's a TALSound instance. If you have TALSound instance, you can use it's TALSound.OnUsingEnd event to be notified when source stops playing. You can also use other TALSound methods, e.g. update TALSound.Position, TALSound.Gain and such. You can stop playing the sound by TALSound.DoUsingEnd.
+
+10. Adding an on-screen menu
+
+For a simple on-screen menu, where all the menu items are displayed vertically on the screen, use the TGLMenu class. For Lazarus: drop TGLMenu on the form. For TGLUIWindow: just create TGLMenu instance. Fill it's Items property (each line is a menu entry), and assign a handler for the OnClick event (to react when user chose menu item, by clicking or pressing enter key). Inside OnClick event, the CurrentItem property of your TGLMenu instance tells you which item was clicked. You still have to add a code to TForm.OnCreate to add this to controls list, like
+
+  Browser.Controls.Insert(0, GLMenu1);
+
+You may also want to change the position, like
+
+  GLMenu1.Position := Vector2Integer(100, 100);
+  { you may also want to set PositionRelativeMenu* (through object inspector or code) }
+
+There is an example of this in vrml_with_2d_controls example in engine sources, look for GLMenu1 references in code.
+
+You may also want to change the menu FullSize to true. Otherwise, menu receives input only when mouse hovers over it. When FullSize, the menu obscures completely controls under it for key processing (although they are still visible as a background).
+- So if you want your menu to be displayed and used orthogonally to the "live" 3D world underneath, leave FullSize = false.
+- For initial game menu with items like "New Game", you probably want to disable the camera input for this scene. This allows you to display interactive 3D scene in the background, but block user from interacting with it (after all, the user should only interact with your menu on the initial screen). To do this simply set FullSize = true.
+
+An alternative method to achieve (part) of 2nd choice is to set background level camera's IgnoreAllInputs to true. This also blocks user from moving in the scene (although it doesn't make input passed to menu regardless of mouse position).
