@@ -101,7 +101,7 @@ type
     SeedSlider: TGLMenuIntegerSlider;
 
     constructor Create(AOwner: TComponent); override;
-    procedure CurrentItemAccessoryValueChanged; override;
+    procedure AccessoryValueChanged; override;
   end;
 
   { For any TElevationImage except
@@ -109,14 +109,14 @@ type
   TControlsImage = class(TGLMenu)
   public
     constructor Create(AOwner: TComponent); override;
-    procedure CurrentItemAccessoryValueChanged; override;
+    procedure AccessoryValueChanged; override;
   end;
 
   { For any TElevation. }
   TControlsGeneral = class(TGLMenu)
   public
     constructor Create(AOwner: TComponent); override;
-    procedure CurrentItemAccessoryValueChanged; override;
+    procedure AccessoryValueChanged; override;
   end;
 
 var
@@ -325,7 +325,7 @@ begin
   Position := Vector2Integer(10, 10);
 end;
 
-procedure TControlsNoise.CurrentItemAccessoryValueChanged;
+procedure TControlsNoise.AccessoryValueChanged;
 begin
   if not (Elevation is TElevationNoise) then Exit;
   case CurrentItem of
@@ -355,7 +355,7 @@ begin
   Position := Vector2Integer(10, 10);
 end;
 
-procedure TControlsImage.CurrentItemAccessoryValueChanged;
+procedure TControlsImage.AccessoryValueChanged;
 begin
   case CurrentItem of
     0: Subdivision := SubdivisionSlider.Value;
@@ -377,7 +377,7 @@ begin
   Position := Vector2Integer(10, 10);
 end;
 
-procedure TControlsGeneral.CurrentItemAccessoryValueChanged;
+procedure TControlsGeneral.AccessoryValueChanged;
 begin
   case CurrentItem of
     0: Subdivision := SubdivisionSlider.Value;
