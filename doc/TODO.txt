@@ -4,13 +4,22 @@ In paricular, ../../www/TODO contains "next-release" stuff,
 usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
-3.10.0: Finish shader pipeline. Finish compositing shaders paper and work.
+3.10.0 (engine 2.5.0): Finish shader pipeline. Finish compositing shaders paper and work.
 
 3.11.0:
 - Most of the work during this time will go to Blender exporter fixes.
 - Collada improvements.
 - Support for Ogre data files, notify on forum?
 Make GLWinMessages buttons clickable, reported for castle many times.
+
+engine 2.6.0:
+- Move as much as possible castle code to engine. Prepare for new game.
+  In particular: adding creatures / items to game (like in castle)
+  must be much easier using only the engine units.
+  Also, creature AI must be added there.
+  Also, move castle lights editor to view3dscene.
+  Also, remove castle xxx-lights files, just allow editing VRML.
+
 ------------------------------------------------------------------------------
 WWW:
 - "How you can help" page, move donation links there,
