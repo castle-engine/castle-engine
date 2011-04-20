@@ -322,6 +322,7 @@ type
     @code(ProjectionGLOrtho(0, Glwin.Width, 0, Glwin.Height);) }
   TGLMenu = class(TUIControl)
   private
+    FFullSize: boolean;
     FOnClick: TNotifyEvent;
     FOnAccessoryValueChanged: TNotifyEvent;
     FItems: TStringList;
@@ -641,6 +642,13 @@ type
     property OnAccessoryValueChanged: TNotifyEvent
       read FOnAccessoryValueChanged
       write FOnAccessoryValueChanged;
+
+    { Should menu intercept all key/mouse input, that is behave like
+      it was filling full container (window or lazarus component).
+      This affects key/mouse processing (menu processes input
+      before all controls underneath), but not drawing (controls underneath
+      are still visible as usual). }
+    property FullSize: boolean read FFullSize write FFullSize default false;
   end;
 
 var
@@ -1699,7 +1707,8 @@ end;
 
 function TGLMenu.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := PointInRectangle(X, ContainerHeight - Y, FAllItemsRectangle);
+  Result := FullSize or
+    PointInRectangle(X, ContainerHeight - Y, FAllItemsRectangle);
 end;
 
 procedure TGLMenu.SetItems(const Value: TStringList);
