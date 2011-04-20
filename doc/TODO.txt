@@ -18,7 +18,8 @@ engine 2.6.0:
   must be much easier using only the engine units.
   Also, creature AI must be added there.
   Also, move castle lights editor to view3dscene.
-  Also, remove castle xxx-lights files, just allow editing VRML.
+  Also, remove castle xxx_lights files --- you can just edit xxx_final.wrl files in view3dscene
+  (and apply only appropriate diff). This will also allow removing our TVRMLGLLightSet?
 
 ------------------------------------------------------------------------------
 WWW:
