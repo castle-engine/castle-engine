@@ -236,6 +236,9 @@ type
     property AggressiveUpdateGap: TMilisecTime
       read FAggressiveUpdateGap write FAggressiveUpdateGap default DefaultAggressiveUpdateGap;
     { @groupEnd }
+    
+    property TabOrder;
+    property TabStop default true;
   end;
 
   { OpenGL control, with extensions for "Kambi VRML game engine", including
@@ -777,6 +780,7 @@ end;
 constructor TKamOpenGLControl.Create(AOwner: TComponent);
 begin
   inherited;
+  TabStop := true;
   FControls := TControlledUIControlList.Create(false, Self);
   FUseControls := true;
   FOnDrawStyle := dsNone;
