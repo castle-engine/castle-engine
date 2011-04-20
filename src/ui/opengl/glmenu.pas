@@ -322,6 +322,8 @@ type
     @code(ProjectionGLOrtho(0, Glwin.Width, 0, Glwin.Height);) }
   TGLMenu = class(TUIControl)
   private
+    FOnClick: TNotifyEvent;
+    FOnAccessoryValueChanged: TNotifyEvent;
     FItems: TStringList;
     FCurrentItem: Integer;
     FPositionRelativeMenuX: TPositionRelative;
@@ -410,15 +412,6 @@ type
       You may find it useful if you want to draw something relative to menu
       position. }
     property PositionAbsolute: TVector2Integer read FPositionAbsolute;
-
-    { Items of this menu.
-
-      Note that Objects of this class have special meaning: they must
-      be either nil or some TGLMenuItemAccessory instance
-      (different TGLMenuItemAccessory instance for each item).
-      When freeing this TGLMenu instance, note that we will also
-      free all Items.Objects. }
-    property Items: TStringList read FItems;
 
     { When Items.Count <> 0, this is always some number
       between 0 and Items.Count - 1.
@@ -513,16 +506,23 @@ type
 
     { Called when user will select CurrentItem, either with mouse
       or with keyboard. }
+    procedure Click; virtual;
+
+    { @deprecated Deprecated name for Click. }
     procedure CurrentItemSelected; virtual;
 
-    { This will be called when the TGLMenuItemAccessory assigned
-      to CurrentItem will signal that it's value changed
-      because of user interface actions (KeyDown, MouseDown etc.).
+    { Called when the value of current accessory (TGLMenuItemAccessory assigned
+      to CurrentItem) will change value.
+      (Which may happen due to user clicking, or pressing some keys etc.)
 
       Note that this will not be called when you just set
       Value of some property.
 
-      In this class this just calls VisibleChange. }
+      In the TGLMenu class this just calls VisibleChange,
+      and OnAccessoryValueChanged. }
+    procedure AccessoryValueChanged; virtual;
+
+    { @deprecated Deprecated name for AccessoryValueChanged. }
     procedure CurrentItemAccessoryValueChanged; virtual;
 
     { Called when CurrentItem changed.
@@ -613,11 +613,31 @@ type
       ) }
     property DesignerMode: boolean
       read FDesignerMode write SetDesignerMode default false;
-
+  published
     { Draw an indicator of being focused. Currently, this is a flashing
       border around the menu rectangle. Otherwise @link(Draw) ignores Focused parameter. }
     property DrawFocused: boolean read FDrawFocused write FDrawFocused
       default true;
+
+    { Items of this menu.
+
+      Note that Objects of this class have special meaning: they must
+      be either nil or some TGLMenuItemAccessory instance
+      (different TGLMenuItemAccessory instance for each item).
+      When freeing this TGLMenu instance, note that we will also
+      free all Items.Objects. }
+    property Items: TStringList read FItems;
+
+    { Called when user will select CurrentItem.
+      @seealso Click }
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
+
+    { Called when the value of current accessory (TGLMenuItemAccessory assigned
+      to CurrentItem) will change value.
+      @seealso AccessoryValueChanged }
+    property OnAccessoryValueChanged: TNotifyEvent
+      read FOnAccessoryValueChanged
+      write FOnAccessoryValueChanged;
   end;
 
 var
@@ -1636,9 +1656,9 @@ begin
   Result := false;
 end;
 
-procedure TGLMenu.CurrentItemSelected;
+procedure TGLMenu.Click;
 begin
-  { Nothing to do in this class. }
+  if Assigned(OnClick) then OnClick(Self);
 end;
 
 procedure TGLMenu.CurrentItemChanged;
@@ -1646,9 +1666,20 @@ begin
   VisibleChange;
 end;
 
-procedure TGLMenu.CurrentItemAccessoryValueChanged;
+procedure TGLMenu.AccessoryValueChanged;
 begin
   VisibleChange;
+  if Assigned(OnAccessoryValueChanged) then OnAccessoryValueChanged(Self);
+end;
+
+procedure TGLMenu.CurrentItemSelected;
+begin
+  Click; { call non-deprecated equivalent }
+end;
+
+procedure TGLMenu.CurrentItemAccessoryValueChanged;
+begin
+  AccessoryValueChanged; { call non-deprecated equivalent }
 end;
 
 procedure TGLMenu.SetDesignerMode(const Value: boolean);
