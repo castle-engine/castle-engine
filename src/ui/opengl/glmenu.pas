@@ -352,6 +352,7 @@ type
     FDrawFocused: boolean;
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
+    procedure SetItems(const Value: TStringList);
   private
     FDesignerMode: boolean;
     procedure SetDesignerMode(const Value: boolean);
@@ -377,26 +378,6 @@ type
       (you may be modifying only a temporary copy of the record returned
       by property getter). }
     Position: TVector2Integer;
-
-    { See TPositionRelative documentation for meaning of these four
-      PositionRelativeXxx properties.
-      @groupBegin }
-    property PositionRelativeMenuX: TPositionRelative
-      read FPositionRelativeMenuX write FPositionRelativeMenuX
-      default prMiddle;
-
-    property PositionRelativeMenuY: TPositionRelative
-      read FPositionRelativeMenuY write FPositionRelativeMenuY
-      default prMiddle;
-
-    property PositionRelativeScreenX: TPositionRelative
-      read FPositionRelativeScreenX write FPositionRelativeScreenX
-      default prMiddle;
-
-    property PositionRelativeScreenY: TPositionRelative
-      read FPositionRelativeScreenY write FPositionRelativeScreenY
-      default prMiddle;
-    { @groupEnd }
 
     { PositionAbsolute expresses the position of the menu rectangle
       independently from all PositionRelative* properties.
@@ -545,18 +526,6 @@ type
     property NonCurrentItemColor    : TVector3Single
       read FNonCurrentItemColor write FNonCurrentItemColor;
 
-    property DrawBackgroundRectangle: boolean
-      read FDrawBackgroundRectangle write FDrawBackgroundRectangle
-      default true;
-
-    { Additional vertical space, in pixels, between menu items.
-
-      If you want more control over it (if you want to add more/less
-      space between some menu items), override SpaceBetweenItems method. }
-    property RegularSpaceBetweenItems: Cardinal
-      read FRegularSpaceBetweenItems write FRegularSpaceBetweenItems
-      default DefaultRegularSpaceBetweenItems;
-
     { Return the space needed before NextItemIndex.
       This will be a space between NextItemIndex - 1 and NextItemIndex
       (this method will not be called for NextItemIndex = 0).
@@ -613,7 +582,41 @@ type
       ) }
     property DesignerMode: boolean
       read FDesignerMode write SetDesignerMode default false;
+
   published
+
+    { See TPositionRelative documentation for meaning of these four
+      PositionRelativeXxx properties.
+      @groupBegin }
+    property PositionRelativeMenuX: TPositionRelative
+      read FPositionRelativeMenuX write FPositionRelativeMenuX
+      default prMiddle;
+
+    property PositionRelativeMenuY: TPositionRelative
+      read FPositionRelativeMenuY write FPositionRelativeMenuY
+      default prMiddle;
+
+    property PositionRelativeScreenX: TPositionRelative
+      read FPositionRelativeScreenX write FPositionRelativeScreenX
+      default prMiddle;
+
+    property PositionRelativeScreenY: TPositionRelative
+      read FPositionRelativeScreenY write FPositionRelativeScreenY
+      default prMiddle;
+    { @groupEnd }
+
+    property DrawBackgroundRectangle: boolean
+      read FDrawBackgroundRectangle write FDrawBackgroundRectangle
+      default true;
+
+    { Additional vertical space, in pixels, between menu items.
+
+      If you want more control over it (if you want to add more/less
+      space between some menu items), override SpaceBetweenItems method. }
+    property RegularSpaceBetweenItems: Cardinal
+      read FRegularSpaceBetweenItems write FRegularSpaceBetweenItems
+      default DefaultRegularSpaceBetweenItems;
+
     { Draw an indicator of being focused. Currently, this is a flashing
       border around the menu rectangle. Otherwise @link(Draw) ignores Focused parameter. }
     property DrawFocused: boolean read FDrawFocused write FDrawFocused
@@ -626,7 +629,7 @@ type
       (different TGLMenuItemAccessory instance for each item).
       When freeing this TGLMenu instance, note that we will also
       free all Items.Objects. }
-    property Items: TStringList read FItems;
+    property Items: TStringList read FItems write SetItems;
 
     { Called when user will select CurrentItem.
       @seealso Click }
@@ -1697,6 +1700,11 @@ end;
 function TGLMenu.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := PointInRectangle(X, ContainerHeight - Y, FAllItemsRectangle);
+end;
+
+procedure TGLMenu.SetItems(const Value: TStringList);
+begin
+  FItems.Assign(Value);
 end;
 
 end.
