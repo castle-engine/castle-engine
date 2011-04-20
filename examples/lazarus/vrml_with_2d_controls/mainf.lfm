@@ -9,7 +9,7 @@ object Form1: TForm1
   ClientWidth = 1043
   OnCreate = FormCreate
   Position = poDesktopCenter
-  LCLVersion = '0.9.28.2'
+  LCLVersion = '0.9.30'
   object Browser: TKamVRMLBrowser
     Left = 0
     Height = 624
@@ -17,6 +17,7 @@ object Form1: TForm1
     Width = 1043
     Align = alClient
     OnResize = BrowserResize
+    TabOrder = 0
   end
   object SampleButton: TKamGLButton
     Bottom = 10
@@ -148,5 +149,19 @@ object Form1: TForm1
     TUIControlPos_RealLeft = 750
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 272
+  end
+  object GLMenu1: TGLMenu
+    PositionRelativeMenuX = prLowerBorder
+    PositionRelativeMenuY = prLowerBorder
+    PositionRelativeScreenX = prLowerBorder
+    PositionRelativeScreenY = prLowerBorder
+    Items.Strings = (
+      'one'
+      'two'
+      'three'
+    )
+    OnClick = GLMenu1Click
+    left = 392
+    top = 404
   end
 end

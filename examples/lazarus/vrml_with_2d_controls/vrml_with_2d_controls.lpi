@@ -61,8 +61,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="72"/>
-        <CursorPos X="29" Y="78"/>
+        <TopLine Value="87"/>
+        <CursorPos X="88" Y="94"/>
         <UsageCount Value="35"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -145,7 +145,7 @@
         <UsageCount Value="10"/>
       </Unit12>
     </Units>
-    <JumpHistory Count="9" HistoryIndex="8">
+    <JumpHistory Count="12" HistoryIndex="11">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="36" Column="18" TopLine="16"/>
@@ -182,6 +182,18 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="66" Column="74" TopLine="51"/>
       </Position9>
+      <Position10>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="78" Column="29" TopLine="72"/>
+      </Position10>
+      <Position11>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="94" Column="47" TopLine="74"/>
+      </Position11>
+      <Position12>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="95" Column="1" TopLine="80"/>
+      </Position12>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -6,11 +6,15 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  KambiVRMLBrowser, GL, GLControls;
+  KambiVRMLBrowser, GL, GLControls, GLMenu;
 
 type
+
+  { TForm1 }
+
   TForm1 = class(TForm)
     Browser: TKamVRMLBrowser;
+    GLMenu1: TGLMenu;
     SampleButton: TKamGLButton;
     SampleImage: TKamGLImage;
     SampleImageAlpha: TKamGLImage;
@@ -24,6 +28,7 @@ type
     ButtonImage4: TKamGLButton;
     procedure FormCreate(Sender: TObject);
     procedure BrowserResize(Sender: TObject);
+    procedure GLMenu1Click(Sender: TObject);
     procedure SampleButtonClick(Sender: TObject);
   end;
 
@@ -32,7 +37,7 @@ var
 
 implementation
 
-uses VRMLErrors, VRMLScene, KambiUtils, Images;
+uses VRMLErrors, VRMLScene, KambiUtils, Images, VectorMath;
 
 { TForm1 --------------------------------------------------------------------- }
 
@@ -67,6 +72,7 @@ begin
   Browser.Controls.Insert(0, ButtonImage2);
   Browser.Controls.Insert(0, ButtonImage3);
   Browser.Controls.Insert(0, ButtonImage4);
+  Browser.Controls.Insert(0, GLMenu1);
 
   { load button's images. Actually, load it only once, and use the same
     reference (leaving OwnsImage = false) on other buttons. }
@@ -85,11 +91,18 @@ begin
     may be not right then) }
   SampleImage.FileName := 'sample_image.png';
   SampleImageAlpha.FileName := 'sample_image_with_alpha.png';
+
+  GLMenu1.Position := Vector2Integer(400, 150);
 end;
 
 procedure TForm1.BrowserResize(Sender: TObject);
 begin
   SampleButton.Width := Browser.Width - 20;
+end;
+
+procedure TForm1.GLMenu1Click(Sender: TObject);
+begin
+  ShowMessage(Format('Clicked menu item %d.', [GLMenu1.CurrentItem]));
 end;
 
 procedure TForm1.SampleButtonClick(Sender: TObject);
