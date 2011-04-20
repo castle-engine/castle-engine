@@ -56,7 +56,7 @@ begin
     P.HomepageURL
     {$endif} := 'http://vrmlengine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
-    P.Version := '2.4.2';
+    P.Version := '2.4.3';
 
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('base3d.pas');
