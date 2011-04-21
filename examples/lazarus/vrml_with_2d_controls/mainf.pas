@@ -87,8 +87,9 @@ begin
   ButtonImage3.Image := ButtonImageFixSize1.Image;
   ButtonImage4.Image := ButtonImageFixSize1.Image;
 
-  { Load images (do not do this at design-time, as relative path to the images
-    may be not right then) }
+  { Load images. We do not set FileName at design-time,
+    as we want to use relative paths, which may be invalid at design-time
+    (depends on Lazarus current dir). }
   SampleImage.FileName := 'sample_image.png';
   SampleImageAlpha.FileName := 'sample_image_with_alpha.png';
 

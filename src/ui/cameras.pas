@@ -990,7 +990,8 @@ type
 
       Note that since engine >= 2.2.0 the @link(Direction) vector
       should always be normalized (length 1), and so you cannot change
-      speed by changing it. See MoveSpeed, MoveHorizontalSpeed, MoveVerticalSpeed instead.
+      move speed by scaling this vector.
+      Use MoveSpeed, MoveHorizontalSpeed, MoveVerticalSpeed instead.
 
       When setting @link(Direction), @link(Up) will always be automatically
       adjusted to be orthogonal to @link(Direction). And vice versa ---

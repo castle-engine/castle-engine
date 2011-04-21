@@ -271,16 +271,11 @@ var
   Pos, Dir, Up: TVector3Single;
 begin
   Camera.GetView(Pos, Dir, Up);
+  { Note that Dir, Up returned here are always normalized }
 
   EditPositionX.Text := FloatToNiceStr(Pos[0]);
   EditPositionY.Text := FloatToNiceStr(Pos[1]);
   EditPositionZ.Text := FloatToNiceStr(Pos[2]);
-
-  { Length of direction vector affects speed.
-    For simplicity, we don't show it to user here (it could have small
-    values, and would look like all "0.00" while in fact being non-zero).
-    Instead. we show the normalized dir. }
-  Dir := Normalized(Dir);
 
   EditDirectionX.Text := FloatToNiceStr(Dir[0]);
   EditDirectionY.Text := FloatToNiceStr(Dir[1]);
