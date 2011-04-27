@@ -13,17 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Menu displayed in OpenGL.
-
-  This unit draws a menu in OpenGL,
-  which should be suitable for games etc. "Normal" user programs
-  may prefer to use the native menu bar (for example TGLWindow.Menu,
-  or normal Lazarus form menu).
-  Although this still may be usable for displaying things like sliders.
-
-  One important "quirk" that you should be aware of:
-  Make sure you call GLMenuCloseGL when you ended using any menus
-  (otherwise you'll get memory leak). }
+{ On-screen menu displayed in OpenGL (TGLMenu). }
 unit GLMenu;
 
 interface
@@ -311,15 +301,15 @@ type
     prMiddle,
     prHigherBorder);
 
-  { A menu displayed in OpenGL.
+  { On-screen menu displayed in OpenGL. All the menu items are simply
+    displayed on the screen, one after the other. Typical for game menus.
+    Normal user programs may prefer to use the menu bar instead of this
+    (for example TGLWindow.Menu, or normal Lazarus menu).
+    Although this still may be useful for displaying things like sliders.
 
-    Note that all 2d positions and sizes for this class are interpreted
-    as pixel positions on your 2d screen (for glRaster, glBitmap etc.)
-    and also as normal positions (for glTranslatef etc.) on your 2d screen.
-    Smaller x positions are considered more to the left,
-    smaller y positions are considered lower.
-    Stating it simpler: just make sure that your OpenGL projection is
-    @code(ProjectionGLOrtho(0, Glwin.Width, 0, Glwin.Height);) }
+    One important "quirk" that you should be aware of:
+    Make sure you call GLMenuCloseGL when you ended using any menus
+    (otherwise you'll get memory leak). }
   TGLMenu = class(TUIControl)
   private
     FFullSize: boolean;
@@ -618,8 +608,7 @@ type
       read FRegularSpaceBetweenItems write FRegularSpaceBetweenItems
       default DefaultRegularSpaceBetweenItems;
 
-    { Draw an indicator of being focused. Currently, this is a flashing
-      border around the menu rectangle. Otherwise @link(Draw) ignores Focused parameter. }
+    { Draw a flashing border around the menu when we are focused. }
     property DrawFocused: boolean read FDrawFocused write FDrawFocused
       default true;
 
