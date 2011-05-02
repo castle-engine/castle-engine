@@ -450,7 +450,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
     SearchError: Integer;
     Executable: string;
   begin
-    Executable := FileSearch(
+    Executable := KamFileSearch(
       {$ifdef MSWINDOWS} 'ffmpeg.exe' {$endif}
       {$ifdef UNIX} 'ffmpeg' {$endif}
       , GetEnvironmentVariable('PATH'));
@@ -565,7 +565,7 @@ procedure TVideo.SaveToFile(const FileName: string);
     SearchError: Integer;
     Executable: string;
   begin
-    Executable := FileSearch(
+    Executable := KamFileSearch(
       {$ifdef MSWINDOWS} 'ffmpeg.exe' {$endif}
       {$ifdef UNIX} 'ffmpeg' {$endif}
       , GetEnvironmentVariable('PATH'));

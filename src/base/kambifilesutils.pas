@@ -465,6 +465,12 @@ procedure SafeRewrite(var f: text; const filename: string); overload;
   with BasePath. }
 function CombinePaths(BasePath, RelPath: string): string;
 
+{ Fixed version of FPC FileSearch. Works with double quotes around components
+  of path list. See
+  http://www.freepascal.org/docs-html/rtl/sysutils/filesearch.html
+  for original docs. }
+Function KamFileSearch(Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
+
 const
   { }
   RegularFileAttr = faReadOnly or faHidden or faArchive;
@@ -1059,6 +1065,43 @@ begin
 
     result := InclPathDelim(BasePath) + RelPath;
   end;
+end;
+
+Function KamFileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
+Var
+  I : longint;
+  Temp : String;
+
+begin
+  Result:=Name;
+  temp:=SetDirSeparators(DirList);
+  // Start with checking the file in the current directory
+  If ImplicitCurrentDir and (Result <> '') and FileExists(Result) Then
+    exit;
+  while True do begin
+    If Temp = '' then
+      Break; // No more directories to search - fail
+    I:=pos(PathSeparator,Temp);
+    If I<>0 then
+      begin
+        Result:=Copy (Temp,1,i-1);
+        system.Delete(Temp,1,I);
+      end
+    else
+      begin
+        Result:=Temp;
+        Temp:='';
+      end;
+    If Result<>'' then
+    begin
+      { On Windows, each path on the list may be surrounded by quotes. }
+      {$ifdef MSWINDOWS} Result:=AnsiDequotedStr(Result, '"'); {$endif}
+      Result:=IncludeTrailingPathDelimiter(Result)+name;
+    end;
+    If (Result <> '') and FileExists(Result) Then
+      exit;
+  end;
+  result:='';
 end;
 
 procedure DoInitialization;
