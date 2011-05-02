@@ -526,7 +526,7 @@ type
   private
     FMoveAmount, FCenterOfRotation: TVector3Single;
     FRotations: TQuaternion;
-    { Speed of rotations.
+    { Speed of rotations. Always zero when RotateOnPress = true.
 
       This could be implemented as a quaternion,
       it even was implemented like this (and working!) for a couple
@@ -540,7 +540,7 @@ type
     FRotationsAnim: TVector3Single;
     FScaleFactor: Single;
     FModelBox: TBox3D;
-
+    FRotateOnPress: boolean;
     procedure SetRotationsAnim(const Value: TVector3Single);
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
@@ -548,6 +548,7 @@ type
     procedure SetModelBox(const Value: TBox3D);
     procedure SetCenterOfRotation(const Value: TVector3Single);
     function Zoom(const Factor: Single): boolean;
+    procedure SetRotateOnPress(const Value: boolean);
   private
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -643,7 +644,7 @@ type
     procedure StopRotating;
 
     { Adds small rotation around base axis Coord to the RotationsAnim,
-      thus making rotation faster. }
+      thus making rotation faster. @deprecated - bad name. }
     procedure Rotate(coord: integer; const SpeedChange: Single);
 
     procedure Scale(const ScaleBy: Single);
@@ -679,6 +680,11 @@ type
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
     function PreventsComfortableDragging: boolean; override;
+  published
+    { Rotate only when the key is pressed. Otherwise, pressing the key only
+      changes the rotation speed, and rotation is happening always. }
+    property RotateOnPress: boolean read FRotateOnPress write SetRotateOnPress
+      default false;
   end;
 
   TWalkCamera = class;
@@ -2211,10 +2217,25 @@ end;
 procedure TExamineCamera.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
-var i: integer;
-    move_change, rot_speed_change, scale_change: Single;
-    ModsDown: TModifierKeys;
-    RotChange: Single;
+
+  { Increase speed of rotating, or just rotation angle
+    (depending on RotateOnPress). Direction must be -1 or +1. }
+  procedure RotateSpeedOrAngle(const Coord: Integer; const Direction: Integer);
+  begin
+    if RotateOnPress then
+    begin
+      FRotations := QuatMultiply(QuatFromAxisAngle(UnitVector3Single[Coord],
+        CompSpeed * Direction), FRotations);
+      VisibleChange;
+    end else
+      Rotate(Coord, 5 * CompSpeed * Direction);
+  end;
+
+var
+  i: integer;
+  MoveChange, ScaleChange: Single;
+  ModsDown: TModifierKeys;
+  RotChange: Single;
 begin
   inherited;
 
@@ -2255,12 +2276,11 @@ begin
   if HandleMouseAndKeys and (not IgnoreAllInputs) then
   begin
     if IsEmptyOrZeroBox3D(ModelBox) then
-      move_change := CompSpeed else
-      move_change := Box3DAvgSize(ModelBox) * CompSpeed;
-    rot_speed_change := 5 * CompSpeed;
+      MoveChange := CompSpeed else
+      MoveChange := Box3DAvgSize(ModelBox) * CompSpeed;
 
-    { we will apply CompSpeed to scale_change later }
-    scale_change := 1.5;
+    { we will apply CompSpeed to ScaleChange later }
+    ScaleChange := 1.5;
 
     ModsDown := ModifiersDown(Container.Pressed);
 
@@ -2269,9 +2289,9 @@ begin
       for i := 0 to 2 do
       begin
         if Inputs_Move[i, true ].IsPressed(Container) then
-          Move(i, +move_change);
+          Move(i, +MoveChange);
         if Inputs_Move[i, false].IsPressed(Container) then
-          Move(i, -move_change);
+          Move(i, -MoveChange);
       end;
     end else
     if ModsDown = [] then
@@ -2279,22 +2299,31 @@ begin
       for i := 0 to 2 do
       begin
         if Inputs_Rotate[i, true ].IsPressed(Container) then
-          Rotate(i, +rot_speed_change);
+          RotateSpeedOrAngle(i, +1);
         if Inputs_Rotate[i, false].IsPressed(Container) then
-          Rotate(i, -rot_speed_change);
+          RotateSpeedOrAngle(i, -1);
       end;
     end;
 
     if Input_ScaleLarger.IsPressed(Container) then
-      Scale(Power(scale_change, CompSpeed));
+      Scale(Power(ScaleChange, CompSpeed));
     if Input_ScaleSmaller.IsPressed(Container) then
-      Scale(Power(1 / scale_change, CompSpeed));
+      Scale(Power(1 / ScaleChange, CompSpeed));
   end;
 end;
 
 function TExamineCamera.AllowSuspendForInput: boolean;
 begin
   Result := false;
+end;
+
+procedure TExamineCamera.SetRotateOnPress(const Value: boolean);
+begin
+  if FRotateOnPress <> Value then
+  begin
+    FRotateOnPress := Value;
+    FRotationsAnim := ZeroVector3Single;
+  end;
 end;
 
 procedure TExamineCamera.StopRotating;
