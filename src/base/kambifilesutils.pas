@@ -466,9 +466,9 @@ procedure SafeRewrite(var f: text; const filename: string); overload;
 function CombinePaths(BasePath, RelPath: string): string;
 
 { Fixed version of FPC FileSearch. Works with double quotes around components
-  of path list. See
-  http://www.freepascal.org/docs-html/rtl/sysutils/filesearch.html
-  for original docs. }
+  of path list, avoiding this bug: http://bugs.freepascal.org/view.php?id=19279.
+  See http://www.freepascal.org/docs-html/rtl/sysutils/filesearch.html
+  for original FileSearch docs. }
 Function KamFileSearch(Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
 
 const
