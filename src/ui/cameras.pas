@@ -40,6 +40,8 @@ const
   { Default value for TCamera.CameraRadius.
     Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
   DefaultCameraRadius = 0.25;
+  DefaultExamineRotationAccelerationSpeed = 5.0;
+  DefaultExamineRotationSpeed = 2.0;
 
 type
   { }
@@ -526,7 +528,7 @@ type
   private
     FMoveAmount, FCenterOfRotation: TVector3Single;
     FRotations: TQuaternion;
-    { Speed of rotations. Always zero when RotateOnPress = true.
+    { Speed of rotations. Always zero when RotationAccelerate = false.
 
       This could be implemented as a quaternion,
       it even was implemented like this (and working!) for a couple
@@ -540,7 +542,9 @@ type
     FRotationsAnim: TVector3Single;
     FScaleFactor: Single;
     FModelBox: TBox3D;
-    FRotateOnPress: boolean;
+    FRotationAccelerate: boolean;
+    FRotationAccelerationSpeed: Single;
+    FRotationSpeed: Single;
     procedure SetRotationsAnim(const Value: TVector3Single);
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
@@ -548,7 +552,7 @@ type
     procedure SetModelBox(const Value: TBox3D);
     procedure SetCenterOfRotation(const Value: TVector3Single);
     function Zoom(const Factor: Single): boolean;
-    procedure SetRotateOnPress(const Value: boolean);
+    procedure SetRotationAccelerate(const Value: boolean);
   private
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -643,10 +647,6 @@ type
     { Sets RotationsAnim to zero, stopping the rotation of the model. }
     procedure StopRotating;
 
-    { Adds small rotation around base axis Coord to the RotationsAnim,
-      thus making rotation faster. @deprecated - bad name. }
-    procedure Rotate(coord: integer; const SpeedChange: Single);
-
     procedure Scale(const ScaleBy: Single);
     procedure Move(coord: integer; const MoveDistance: Single);
 
@@ -681,10 +681,24 @@ type
 
     function PreventsComfortableDragging: boolean; override;
   published
-    { Rotate only when the key is pressed. Otherwise, pressing the key only
-      changes the rotation speed, and rotation is happening always. }
-    property RotateOnPress: boolean read FRotateOnPress write SetRotateOnPress
-      default false;
+    { When @true, rotation keys make the rotation faster, and the model keeps
+      rotating even when you don't hold any keys. When @false, you have to
+      hold rotation keys to rotate. }
+    property RotationAccelerate: boolean
+      read FRotationAccelerate write SetRotationAccelerate default true;
+
+    { Speed to change the rotation acceleration,
+      used when RotationAccelerate = @true. }
+    property RotationAccelerationSpeed: Single
+      read FRotationAccelerationSpeed
+      write FRotationAccelerationSpeed
+      default DefaultExamineRotationAccelerationSpeed;
+
+    { Speed to change the rotation, used when RotationAccelerate = @false. }
+    property RotationSpeed: Single
+      read FRotationSpeed
+      write FRotationSpeed
+      default DefaultExamineRotationSpeed;
   end;
 
   TWalkCamera = class;
@@ -2154,6 +2168,9 @@ begin
   FRotations := QuatIdentityRot;
   FRotationsAnim := ZeroVector3Single;
   FScaleFactor := 1;
+  FRotationAccelerate := true;
+  FRotationAccelerationSpeed := DefaultExamineRotationAccelerationSpeed;
+  FRotationSpeed := DefaultExamineRotationSpeed;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2219,16 +2236,15 @@ procedure TExamineCamera.Idle(const CompSpeed: Single;
   var LetOthersHandleMouseAndKeys: boolean);
 
   { Increase speed of rotating, or just rotation angle
-    (depending on RotateOnPress). Direction must be -1 or +1. }
+    (depending on RotationAccelerate). Direction must be -1 or +1. }
   procedure RotateSpeedOrAngle(const Coord: Integer; const Direction: Integer);
   begin
-    if RotateOnPress then
-    begin
+    if RotationAccelerate then
+      FRotationsAnim[coord] +=
+        RotationAccelerationSpeed * CompSpeed * Direction else
       FRotations := QuatMultiply(QuatFromAxisAngle(UnitVector3Single[Coord],
-        CompSpeed * Direction), FRotations);
-      VisibleChange;
-    end else
-      Rotate(Coord, 5 * CompSpeed * Direction);
+        RotationSpeed * CompSpeed * Direction), FRotations);
+    VisibleChange;
   end;
 
 var
@@ -2317,11 +2333,11 @@ begin
   Result := false;
 end;
 
-procedure TExamineCamera.SetRotateOnPress(const Value: boolean);
+procedure TExamineCamera.SetRotationAccelerate(const Value: boolean);
 begin
-  if FRotateOnPress <> Value then
+  if FRotationAccelerate <> Value then
   begin
-    FRotateOnPress := Value;
+    FRotationAccelerate := Value;
     FRotationsAnim := ZeroVector3Single;
   end;
 end;
@@ -2329,12 +2345,6 @@ end;
 procedure TExamineCamera.StopRotating;
 begin
   FRotationsAnim := ZeroVector3Single;
-  VisibleChange;
-end;
-
-procedure TExamineCamera.Rotate(coord: integer; const SpeedChange: Single);
-begin
-  FRotationsAnim[coord] += SpeedChange;
   VisibleChange;
 end;
 
