@@ -47,7 +47,7 @@ begin
          Linux installation on kangury.
          It happened when we used TProcess, and we let it search for
          `convert' utility on it's own (instead of searching
-         $PATH by FileSearch on our own). When no convert was
+         $PATH by PathFileSearch on our own). When no convert was
          available then
 
          - It seems that TProcess.Execute wasn't exiting with
@@ -69,7 +69,7 @@ begin
 
            Looking at TProcess for Unix implementation,
            it's clear that there are some problems...
-           TProcess does FileSearch('convert') on it's own,
+           TProcess does PathFileSearch('convert') on it's own,
            and instead of failing when result is '', it forks
            and then calls fpexecv with first argument = ''.
            What happens then ? Remains to be tested.
@@ -92,7 +92,7 @@ begin
           Process.Execute;
         finally FreeAndNil(Process) end;
 
-      We use FileSearch because:
+      We use PathFileSearch because:
       Under Windows it seems that we *have* to manually search $PATH
       variable for convert.exe executable. Otherwise when trying to run
       just 'convert' (either by TProcess or ExecuteProcess) we always
@@ -101,10 +101,9 @@ begin
       even when the path to ImageMagick is first on $PATH (before
       the path to windows/system32/). }
 
-    ConvertExecutable := KamFileSearch(
+    ConvertExecutable := PathFileSearch(
       {$ifdef MSWINDOWS} 'convert.exe' {$endif}
-      {$ifdef UNIX} 'convert' {$endif}
-      , GetEnvironmentVariable('PATH'));
+      {$ifdef UNIX} 'convert' {$endif});
 
     if ConvertExecutable = '' then
       raise EImageLoadError.CreateFmt('You must have "convert" program from ' +

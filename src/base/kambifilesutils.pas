@@ -465,11 +465,11 @@ procedure SafeRewrite(var f: text; const filename: string); overload;
   with BasePath. }
 function CombinePaths(BasePath, RelPath: string): string;
 
-{ Fixed version of FPC FileSearch. Works with double quotes around components
+{ Search a file on $PATH. Works with double quotes around components
   of path list, avoiding this bug: http://bugs.freepascal.org/view.php?id=19279.
   See http://www.freepascal.org/docs-html/rtl/sysutils/filesearch.html
   for original FileSearch docs. }
-Function KamFileSearch(Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
+Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True) : String;
 
 const
   { }
@@ -1067,14 +1067,18 @@ begin
   end;
 end;
 
-Function KamFileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
+Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True) : String;
+
+{ This is identical to FileSearch, except on Windows each $PATH component
+  is stripped from surrounding double quotes. }
+
 Var
   I : longint;
   Temp : String;
 
 begin
   Result:=Name;
-  temp:=SetDirSeparators(DirList);
+  temp:=SetDirSeparators(GetEnvironmentVariable('PATH'));
   // Start with checking the file in the current directory
   If ImplicitCurrentDir and (Result <> '') and FileExists(Result) Then
     exit;
@@ -1095,7 +1099,12 @@ begin
     If Result<>'' then
     begin
       { On Windows, each path on the list may be surrounded by quotes. }
-      {$ifdef MSWINDOWS} Result:=AnsiDequotedStr(Result, '"'); {$endif}
+      {$ifdef MSWINDOWS}
+      if (Length(Result) >= 2) and
+         (Result[1] = '"') and
+         (Result[Length(Result)] = '"') then
+        Result := Copy(Result, 2, Length(Result) - 2);
+      {$endif}
       Result:=IncludeTrailingPathDelimiter(Result)+name;
     end;
     If (Result <> '') and FileExists(Result) Then
