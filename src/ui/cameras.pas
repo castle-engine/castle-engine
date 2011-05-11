@@ -2634,17 +2634,18 @@ begin
 
   FRotations := QuatConjugate(CamDirUp2OrientQuat(ADir, Up));
 
-{ TODO: remove this testing, once "hard case" in CamDirUp2OrientQuat
-  will be handled Ok:
+{ Testing of "hard case" in CamDirUp2OrientQuat.
+  This should always succeed now, many cases tested automatically
+  by TTestCameras.TestOrientationFromBasicAxes.
 
-  if not VectorsEqual(QuatRotate(FRotations, ADir), DefaultDirection, 0.01) then
+  if not VectorsEqual(QuatRotate(FRotations, Normalized(ADir)), DefaultDirection, 0.01) then
   begin
-    Writeln('oh yes, dir wrong: ', VectorToNiceStr(QuatRotate(FRotations, ADir)));
+    Writeln('oh yes, dir wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(ADir))));
     Writeln('  q: ', VectorToNiceStr(FRotations.Vector4));
   end;
 
-  if not VectorsEqual(QuatRotate(FRotations, Up), DefaultUp, 0.01) then
-    Writeln('oh yes, up wrong: ', VectorToNiceStr(QuatRotate(FRotations, Up)));
+  if not VectorsEqual(QuatRotate(FRotations, Normalized(Up)), DefaultUp, 0.01) then
+    Writeln('oh yes, up wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(Up))));
 }
 
   { We have to fix our FMoveAmount, since our TExamineCamera.Matrix
@@ -4550,13 +4551,13 @@ begin
 
  { calculate Rot2Quat }
  StdCamUpAfterRot1 := QuatRotate(Rot1Quat, DefaultCameraUp);
- { wiemy ze Rot2Axis to CamDir lub -CamDir. Wyznaczamy je jednak w tak
-   prosty sposob bo nie przychodzi mi teraz do glowy inny sposob jak rozpoznac
-   czy powinnismy tu wziac CamDir czy -CamDir (chodzi o to zeby pozniej obrot
-   o Rot2CosAngle byl w dobra strone) }
- Rot2Axis := Normalized( VectorProduct(StdCamUpAfterRot1, CamUp) );
+ { We know Rot2Axis should be either CamDir or -CamDir. But how do we know
+   which one? (To make the rotation around it in correct direction.)
+   Calculating Rot2Axis below is a solution. }
+ Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
  if ZeroVector(Rot2Axis) then
-   Rot2Axis := CamDir;
+   Rot2Axis := CamDir else
+   NormalizeTo1st(Rot2Axis);
  Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
  Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
 
