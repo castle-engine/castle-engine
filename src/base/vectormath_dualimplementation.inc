@@ -306,6 +306,21 @@ begin
             (Abs(V[3]) < ScalarEqualityEpsilon);
 end;
 
+function ZeroVector(const V: TVector3; const EqualityEpsilon: TScalar): boolean;
+begin
+  result := (Abs(V[0]) < EqualityEpsilon) and
+            (Abs(V[1]) < EqualityEpsilon) and
+            (Abs(V[2]) < EqualityEpsilon);
+end;
+
+function ZeroVector(const V: TVector4; const EqualityEpsilon: TScalar): boolean;
+begin
+  result := (Abs(V[0]) < EqualityEpsilon) and
+            (Abs(V[1]) < EqualityEpsilon) and
+            (Abs(V[2]) < EqualityEpsilon) and
+            (Abs(V[3]) < EqualityEpsilon);
+end;
+
 function PerfectlyZeroVector(const V: TVector3): boolean;
 begin
   Result := IsMemCharFilled(v, SizeOf(v), #0);

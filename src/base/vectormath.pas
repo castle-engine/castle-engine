@@ -886,6 +886,11 @@ function ZeroVector(const v: TVector3Double): boolean; overload;
 function ZeroVector(const v: TVector4Single): boolean; overload;
 function ZeroVector(const v: TVector4Double): boolean; overload;
 
+function ZeroVector(const v: TVector3Single; const EqualityEpsilon: Single): boolean; overload;
+function ZeroVector(const v: TVector3Double; const EqualityEpsilon: Double): boolean; overload;
+function ZeroVector(const v: TVector4Single; const EqualityEpsilon: Single): boolean; overload;
+function ZeroVector(const v: TVector4Double; const EqualityEpsilon: Double): boolean; overload;
+
 function ZeroVector(const v: TVector4Cardinal): boolean; overload;
 
 function PerfectlyZeroVector(const v: TVector3Single): boolean; overload;
