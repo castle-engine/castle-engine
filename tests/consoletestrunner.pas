@@ -66,6 +66,7 @@ procedure TTestRunner.DoRun;
 var
   I : Integer;
   S : String;
+  SuiteFound: boolean;
 begin
   S:=CheckOptions(ShortOpts,LongOpts);
   If (S<>'') then
@@ -107,11 +108,17 @@ begin
         for I := 0 to GetTestRegistry.Tests.count - 1 do
           writeln(GetTestRegistry[i].TestName)
       else
+      begin
+        SuiteFound := false;
         for I := 0 to GetTestRegistry.Tests.count - 1 do
           if GetTestRegistry[i].TestName = S then
           begin
+            SuiteFound := true;
             doTestRun(GetTestRegistry[i]);
           end;
+        if not SuiteFound then
+          Writeln('Suite name "', S, '" not found');
+      end;
     end;
   Terminate;
 end;
