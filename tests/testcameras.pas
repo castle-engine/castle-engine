@@ -93,7 +93,7 @@ end;
 
 procedure TTestCameras.TestOrientationFromBasicAxes;
 const
-  Tests: array [1..12] of record Dir, Up: TVector3Single; end =
+  Tests: array [1..15] of record Dir, Up: TVector3Single; end =
   (
     { +X up }
     (Dir: (0, -1, 0); Up: (1, 0, 0)),
@@ -111,27 +111,41 @@ const
     (Dir: (-1, 0, 0); Up: (0, 0, 1)),
     (Dir: (+1, 0, 0); Up: (0, 0, 1)),
     (Dir: (0, -1, 0); Up: (0, 0, 1)),
-    (Dir: (0, +1, 0); Up: (0, 0, 1))
+    (Dir: (0, +1, 0); Up: (0, 0, 1)),
+
+    { From https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=35
+      The 3rd one fails. }
+    (Dir: (0, -1, 1); Up: (0, 1, 1)),
+    (Dir: (0, -0.71, 0.71); Up: (0, 0.71, 0.71)),
+    (Dir: (0, -0.7099999785423278, 0.7099999785423278); Up: (0, 0.7100000381469726, 0.7099999189376831))
   );
+
+  procedure DoTest(const Dir, Up: TVector3Single; const TestName: string);
+  var
+    Orientation: TQuaternion;
+  begin
+    Orientation := QuatConjugate(CamDirUp2OrientQuat(Dir, Up));
+    try
+      Assert(VectorsEqual(QuatRotate(Orientation, Normalized(Dir)), DefaultVRMLCameraDirection, 0.01));
+      Assert(VectorsEqual(QuatRotate(Orientation, Normalized(Up )), DefaultVRMLCameraUp       , 0.01));
+    except
+      Writeln('Failed on ', TestName, '. Resulting dir is ',
+        VectorToNiceStr(QuatRotate(Orientation, Normalized(Dir))),
+        ', resulting up is ',
+        VectorToNiceStr(QuatRotate(Orientation, Normalized(Up))));
+      raise;
+    end;
+  end;
 
 var
   I: Integer;
-  Orientation: TQuaternion;
 begin
   for I := Low(Tests) to High(Tests) do
-  begin
-    Orientation := QuatConjugate(CamDirUp2OrientQuat(Tests[I].Dir, Tests[I].Up));
-    Assert(VectorsEqual(QuatRotate(Orientation, Tests[I].Dir), DefaultVRMLCameraDirection, 0.01));
-    Assert(VectorsEqual(QuatRotate(Orientation, Tests[I].Up ), DefaultVRMLCameraUp       , 0.01));
-  end;
+    DoTest(Tests[I].Dir, Tests[I].Up, Format('%d', [I]));
 
-  { Now negate the Up vectors, for additional 12 tests }
+  { Now negate the Up vectors, for additional tests }
   for I := Low(Tests) to High(Tests) do
-  begin
-    Orientation := QuatConjugate(CamDirUp2OrientQuat(Tests[I].Dir, -Tests[I].Up));
-    Assert(VectorsEqual(QuatRotate(Orientation,  Tests[I].Dir), DefaultVRMLCameraDirection, 0.01));
-    Assert(VectorsEqual(QuatRotate(Orientation, -Tests[I].Up ), DefaultVRMLCameraUp       , 0.01));
-  end;
+    DoTest(Tests[I].Dir, -Tests[I].Up, Format('%d (negated up)', [I]));
 end;
 
 initialization
