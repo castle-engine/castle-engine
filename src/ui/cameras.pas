@@ -4538,14 +4538,18 @@ begin
  NormalizeTo1st(CamUp);
 
  { calculate Rot1Quat }
- Rot1Axis := Normalized( VectorProduct(DefaultCameraDirection, CamDir) );
+ Rot1Axis := VectorProduct(DefaultCameraDirection, CamDir);
  { Rot1Axis may be zero if DefaultCameraDirection and CamDir are parallel.
    When they point in the same direction, then it doesn't matter
    (rotation will be by 0 angle anyway), but when they are in opposite
    direction we want to do some rotation, so we need some non-zero
    sensible Rot1Axis. }
  if ZeroVector(Rot1Axis) then
-   Rot1Axis := DefaultCameraUp;
+   Rot1Axis := DefaultCameraUp else
+   { Normalize *after* checking ZeroVector, otherwise normalization
+     could change some almost-zero vector into a (practically random)
+     vector of length 1. }
+   NormalizeTo1st(Rot1Axis);
  Rot1CosAngle := VectorDotProduct(DefaultCameraDirection, CamDir);
  Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
@@ -4557,6 +4561,9 @@ begin
  Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
  if ZeroVector(Rot2Axis) then
    Rot2Axis := CamDir else
+   { Normalize *after* checking ZeroVector, otherwise normalization
+     could change some almost-zero vector into a (practically random)
+     vector of length 1. }
    NormalizeTo1st(Rot2Axis);
  Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
  Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
