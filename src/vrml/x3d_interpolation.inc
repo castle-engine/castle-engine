@@ -317,6 +317,25 @@
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
   end;
 
+  TNodeVectorInterpolator = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TVRMLTime);
+  public
+    procedure CreateNode; override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdkeyValue: TMFFloat;
+    public property FdkeyValue: TMFFloat read FFdkeyValue;
+
+    { Event: MFFloat, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -531,7 +550,8 @@ class function TNodeColorSetInterpolator.URNMatching(const URN: string): boolean
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
 procedure TNodeColorSetInterpolator.EventSet_FractionReceive(
@@ -1052,6 +1072,50 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeVectorInterpolator.CreateNode;
+begin
+  inherited;
+
+  FFdkeyValue := TMFFloat.Create(Self, 'keyValue', []);
+  Fields.Add(FFdkeyValue);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFFloat, false);
+  Events.Add(FEventvalue_changed);
+
+  DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
+end;
+
+class function TNodeVectorInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'VectorInterpolator';
+end;
+
+function TNodeVectorInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
+class function TNodeVectorInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
+    (URN = URNX3DNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeVectorInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+{$define MultipleInterpolatorFieldType := TMFFloat}
+{$define MultipleInterpolatorFieldTypePostprocess := }
+MultipleInterpolator
+
 procedure RegisterInterpolationNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -1068,7 +1132,8 @@ begin
     TNodeSplinePositionInterpolator,
     TNodeSplinePositionInterpolator2D,
     TNodeSplineScalarInterpolator,
-    TNodeSquadOrientationInterpolator
+    TNodeSquadOrientationInterpolator,
+    TNodeVectorInterpolator
   ]);
 end;
 

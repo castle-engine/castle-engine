@@ -241,6 +241,17 @@ type
     function ToDouble: TDynDoubleArray;
     { Assign value from TDynDoubleArray, converting to double-precision. }
     procedure Assign(Source: TDynDoubleArray); overload;
+
+    { Assign linear interpolation between two other float arrays.
+      We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
+      V2[Index2 ... Index2 + ACount - 1], and interpolate between them
+      like normal Lerp functions.
+
+      It's Ok for both V1 and V2 to be the same objects.
+      But their ranges should not overlap, for future optimizations
+      (although it's Ok for current implementation). }
+    procedure AssignLerp(const Fraction: Single;
+      V1, V2: TDynSingleArray; Index1, Index2, ACount: Integer);
   end;
 
   TDynDoubleArray = class(TDynArray_11)
@@ -508,6 +519,16 @@ begin
     Inc(Src);
     Inc(Dest);
   end;
+end;
+
+procedure TDynSingleArray.AssignLerp(const Fraction: Single;
+  V1, V2: TDynSingleArray; Index1, Index2, ACount: Integer);
+var
+  I: Integer;
+begin
+  Count := ACount;
+  for I := 0 to Count - 1 do
+    Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
 end;
 
 { TDynDoubleArray ------------------------------------------------------------ }
