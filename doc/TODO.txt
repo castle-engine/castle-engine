@@ -119,6 +119,11 @@ VSM:
 ------------------------------------------------------------------------------
 Scene manager / controls / better Lazarus integration:
 
+- right after running vrml_with_2d_controls, it seems TGLMenu is focused,
+  but should not. Hm, what should be focus by default?
+  calculated based on initial mouse pos? But switching FullSize
+  and such must also change it?
+
 - Lazarus vrml_browser: at the beginning, control doesn't receive key down/up?
   At least arrows don't seem to work, when you open a model without
   any NavigationInfo, like
@@ -954,3 +959,10 @@ More shaders demos, for some day:
   texture that has 2D coords.
   This depends on bump mapping normalMap improvements:
   define special tex coords for bump mapping, don't reuse 0th texture unit.
+
+------------------------------------------------------------------------------
+Various:
+- install lazbuild on michalis.ii, uncomment,
+  add
+    make examples-laz      >> "$OUTPUT_LOG" 2>&1
+  to ~/sources/vrmlengine/trunk/www/snapshots-scripts/vrmlengine_snapshot
