@@ -966,3 +966,32 @@ Various:
   add
     make examples-laz      >> "$OUTPUT_LOG" 2>&1
   to ~/sources/vrmlengine/trunk/www/snapshots-scripts/vrmlengine_snapshot
+
+- Make cameraXxx output events available from something like CameraSensor?
+  Current extensions, Viewpoint,
+  http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_viewpoint_camera_matrix
+  are not always comfortable...
+
+  Q: Maybe ProximitySensor is actually better?
+  A: No, ProximitySensor suggests it's
+  used only when camera is close to something. CameraSensor doesn't need
+  such checks, it just always works.
+
+  Suggested docs:
+    The CameraSensor node returns information about the current camera.
+
+    Design notes: This node is deliberately separate from a Viewpoint node. In VRML/X3D, there is always a single (or none) current ("bound") Viewpoint node. During the lifetime of VRML/X3D world, you can change the current Viewpoint node from one to another. This is uncomfortable if you want to *always* capture a matrix from a camera used for rendering (for example, if you want to route cameraMatrix to a uniform shader value):
+
+    1. You would have to create ROUTEs from *all* Viewpoint nodes. This is very uncomfortable, especially if your shader is in a completely unrelated file (like a library of prototypes for appearance) than your viewpoint node (which is usually in model-specific VRML/X3D file).
+
+    2. Also, sometimes we don't render from any viewpoint: when making off-screen rendering (used when generating textures for GeneratedCubeMapTexture, GeneratedShadowMap, RenderedTexture), we may use a camera that doesn't directly correspond to any viewpoint node. (See the description of "cameraMatrixSendAlsoOnOffscreenRendering" at Viewpoint.)
+
+    Using a separate node for this, CameraSensor, that *always* receives camera matrix events (regardless of which, and if any, Viewpoint node is bound, and regardless if we make off-screen rendering or not) is more comfortable and natural. CameraSensor is similar in this sense to ProximitySensor, that also observes the camera inpependently of a Viewpoint node.
+
+  Q: Actually HLSL / Cg For Direct 3D already specifies a couple
+  of "magic" uniforms names. We could use them too?
+  A: No --- there are some things (like "model") that I don't want to put now.
+
+  Q: Maybe also add "position", in global coordinates, regardless of Viewpoint
+  position.
+  A: Yes, this could be useful.
