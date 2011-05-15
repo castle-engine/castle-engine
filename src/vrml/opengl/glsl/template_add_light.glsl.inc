@@ -59,6 +59,24 @@
 '  scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
+'#ifdef LIGHT_HAS_ATTENUATION_ONLY_CONSTANT' + LineEnding + 
+'  scale /= gl_LightSource[light_number].constantAttenuation;' + LineEnding + 
+'#endif' + LineEnding + 
+'' + LineEnding + 
+'#ifdef LIGHT_HAS_ATTENUATION_FULL' + LineEnding + 
+'  /* We could calculate distance_to_light during calculation of light_dir.' + LineEnding + 
+'     This would allow us to work faster (no need for calculating sqrt two' + LineEnding + 
+'     times). However, I fear that calculating l = length() and then doing' + LineEnding + 
+'     /= l would be in practice slower than calling built-in normalize().' + LineEnding + 
+'     It would be best to calculate distance_to_light this way only when' + LineEnding + 
+'     LIGHT_HAS_ATTENUATION_FULL is defined. */' + LineEnding + 
+'  float distance_to_light = distance(gl_LightSource[light_number].position.xyz,' + LineEnding + 
+'    vec3(vertex_eye));' + LineEnding + 
+'  scale /= gl_LightSource[light_number].constantAttenuation +' + LineEnding + 
+'           gl_LightSource[light_number].linearAttenuation * distance_to_light +' + LineEnding + 
+'           gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light;' + LineEnding + 
+'#endif' + LineEnding + 
+'' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 
 '  vec4 light_color =' + LineEnding + 
 '#ifdef LIGHT_HAS_AMBIENT' + LineEnding + 
