@@ -124,10 +124,98 @@ At the beginning we create a new instance of TVRMLGLScene, and load it's content
 The level is added to the scene manager. The level is also set as the "MainScene" of scene manager, this means that some central settings (like initial camera position, initial headlight status and such) can be obtained from this scene.
 
 5. Adding some items
-XXX
+
+For the sake of our engine, an item is just a 3D object. So basically, you can just add any T3D descendant (like TVRMLGLScene or TVRMLGLAnimation) to a scene manager, exactly like we added a level scene in previous section.
+
+However, you usually have a lot of item instances showing the same item. For example, you may place hundreds of potions on a level, and you probably want to add/delete potions on your level quickly. At the same time, you want to load (read from disk, and optimize for OpenGL rendering) only a single potion item. Each potion visible on the level just renders the same 3D model, possibly moved/rotated in a different way.
+
+This means that want to think about two concepts separately: a <b>type</b> of item (like potion, sword, etc.) and an <b>instance</b> of this item in visible 3D world (like "potion lying beside the front door", "other potion hidden behind a secret corridor", "yet another potion not visible yet but in player's backpack", "a sword lying somewhere" and such). Don't confuse the terms <b>type</b> and <b>instance</b> here with ObjectPascal concepts. In our program, we will want to have a class (and it's instance) representing a potion, and a class (and many instances) representing each place where potion exists.
+
+Our engine allows you to do this in a flexible way. We have many 3D objects that keep only references to other 3D objects. In particular, T3DTranslated keeps a reference to other 3D object(s), and translates (moves) it.
+
+So you can create an instance of TVRMLGLScene where you load an item, like potion. Then you create as many as you like instances of T3DTranslated, where you add your potion as a children. Additionally, at T3DTranslated, you can setup the translation of your item.
+
+[[
+var
+  PotionType: TVRMLGLScene;
+  PotionInstance1, PotionInstance2: T3DTranslated;
+
+{ ... somewhere in begin...end block ... }
+  PotionType := TVRMLGLScene.Create(Application);
+  PotionType.Load('my_scene.x3d');
+  PotionType.ProcessEvents := true; // if the item model has interactive/animated parts by VRML/X3D events
+
+  PotionInstance1 := T3DTranslated.Create(Application);
+  PotionInstance1.Translation := Vector3Single(1, 2, 3);
+  PotionInstance1.Add(PotionType);
+  SceneManager.Items.Add(PotionInstance1);
+
+  PotionInstance2 := T3DTranslated.Create(Application);
+  PotionInstance2.Translation := Vector3Single(4, 5, 6);
+  PotionInstance2.Add(PotionType);
+  SceneManager.Items.Add(PotionInstance2);
+]]
+
+For more advanced uses, you may want to create your own class for TPotionType (descending from TVRMLGLScene, and adding additional information, for example is this a "life potion", "mana potion", "cure potion" etc. --- we assume these potions have different 3D models, but also share some common parameters and so they want to be treated under a common class TPotionType). Also, you may want to create your own class for TPotionInstance (descending from T3DTranslated, and adding additional information like "how much percent of this potion is used up (drink)"). No surprises here, you can do all this by following standard ObjectPascal syntax and conventions, example:
+
+[[
+type
+  TPotionEffect = (peLife, peMana, peCurePoison);
+
+  { A potion properties and 3D model. }
+  TPotionType = class(TVRMLGLScene)
+    Effect: TPotionEffect;
+    CreaturesMayPickItUp: boolean;
+    FlameResistant: boolean;
+  end;
+
+  { A potion instance. This always refers to exactly one item inside
+    of class TPotionType (you can use "(Items[0] as TPotionType)" to get it,
+    you can introduce a method here to get it comfortably).
+    When it is visible on a level (that is, added to SceneManager items
+    graph), the Translation determines it's position on a level. }
+  TPotionInstance = class(T3DTranslated)
+    PercentUsed: Integer;
+  end;
+
+var
+  LifePotionType,
+  ManaPotionType: TPotionType;
+  LifePotionInstance1,
+  LifePotionInstance2,
+  ManaPotionInstance1: TPotionInstance;
+
+{ ... somewhere in begin...end block ... }
+  LifePotionType := TPotionType.Create(Application);
+  LifePotionType.Load('life_potion.x3d');
+  LifePotionType.Effect := peLife;
+
+  ManaPotionType := TPotionType.Create(Application);
+  ManaPotionType.Load('mana_potion.x3d');
+  LifePotionType.Effect := peMana;
+
+  LifePotionInstance1 := TPotionInstance.Create(Application);
+  LifePotionInstance1.Translation := Vector3Single(1, 2, 3);
+  LifePotionInstance1.Add(LifePotionType);
+  LifePotionInstance1.PercentUsed := 50;
+  SceneManager.Items.Add(LifePotionInstance1);
+
+  LifePotionInstance2 := TPotionInstance.Create(Application);
+  LifePotionInstance2.Translation := Vector3Single(4, 5, 6);
+  LifePotionInstance2.Add(LifePotionType);
+  LifePotionInstance1.PercentUsed := 12;
+  SceneManager.Items.Add(LifePotionInstance2);
+
+  ManaPotionInstance1 := TPotionInstance.Create(Application);
+  ManaPotionInstance1.Translation := Vector3Single(4, 5, 6);
+  ManaPotionInstance1.Add(ManaPotionType);
+  SceneManager.Items.Add(ManaPotionInstance1);
+]]
+
+TODO: engine 2.6.0 will contain a comfortable T3DTransformed, which also allows to rotate, scale etc.. For now refer to castle code how to make it.
 
 6. Letting player pick up items
-XXX
+XXX (follow the castle code, where we just check player's bounding box with items bounding box. make special utilities for this.)
 
 7. Display player life and weapon
 
@@ -140,11 +228,11 @@ Showing a weapon is a little more tricky, as it's a 3D thing, but it doesn't act
 XXX
 
 8. Adding some creatures
-XXX
+XXX (this is just like items, except creature kinds need AI to move; engine 2.6 will include ready classes with such AI, for now refer to castle code.)
 
 9. Adding some sounds
 
-As with many other operations, you can add and control sounds to you game either by Pascal code, or by editing your data files. This gives flexibility both to a programmer and the content designer. It's your choice which approach you use &mdash; usually it's better to keep as much as possible in data files, and use code only when necessary for non-trivial situations.
+As with many other operations, you can add and control sounds to your game either by Pascal code, or by editing your data files. This gives flexibility both to a programmer and the content designer. It's your choice which approach you use &mdash; usually it's better to keep as much as possible in data files, and use code only when necessary for non-trivial situations.
 
 First, get a sample sound file and place it within your game data. You can use this sample.wav file.
 
