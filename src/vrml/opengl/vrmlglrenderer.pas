@@ -2933,9 +2933,9 @@ begin
       { Done before loading State.Transform, as the lights
         positions/directions are in world coordinates. }
       Lights := Shape.State.CurrentActiveLights;
+      LightsRenderer.Render(Lights, LightsEnabled);
       if Lights <> nil then
       begin
-        LightsRenderer.Render(Lights, LightsEnabled);
         for I := FirstLight to Integer(LightsEnabled) - 1 do
           Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight]^.LightNode,
             MaterialSpecularColor);

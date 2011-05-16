@@ -32,19 +32,12 @@ type
   { Render many light sets (TDynActiveLightArray) and avoid
     to configure the same light many times.
 
-    The idea is that calling @link(Render) is just like doing glLightsFromVRML,
-    that is it sets up given OpenGL lights. But this class remembers what
-    VRML light was set on what OpenGL light, and assumes that VRML lights
-    don't change during TVRMLGLLightsCachingRenderer execution. So OpenGL
-    light will not be configured again, if it's already configured
-    correctly.
-
-    Note that LightRenderEvent event for this must be deterministic,
-    based purely on light properties. For example, it's Ok to
-    make LightRenderEvent that turns off lights that have kambiShadows = TRUE.
-    It is @italic(not Ok) to make LightRenderEvent that sets LightOn to
-    random boolean value. IOW, caching here assumes that for the same Light
-    values, LightRenderEvent will set LightOn the same. }
+    Sets OpenGL lights properties, enabling and disabling them as needed.
+    Remembers what VRML/X3D light is set on which OpenGL light,
+    and this way avoids needless reconfiguring of OpenGL lights.
+    This may speed up rendering, avoiding changing OpenGL state when not
+    necessary. We assume that OpenGL lights are not changed by any code outside
+    of this class. }
   TVRMLGLLightsCachingRenderer = class
   private
     FGLLightNum1, FGLLightNum2: Integer;
@@ -64,7 +57,8 @@ type
     constructor Create(const AGLLightNum1, AGLLightNum2: Integer;
       const ALightRenderEvent: TVRMLLightRenderEvent);
 
-    { Render lights. Lights (TDynActiveLightArray) may be @nil,
+    { Sets OpenGL lights properties, enabling and disabling them as needed.
+      Lights (TDynActiveLightArray) may be @nil,
       it's equal to passing an empty array of lights.
 
       Returns LightsEnabled, a number of enabled lights, including GLLightNum1
@@ -74,6 +68,15 @@ type
 
     property GLLightNum1: Integer read FGLLightNum1;
     property GLLightNum2: Integer read FGLLightNum2;
+
+    { Process light source properties right before rendering the light.
+
+      This event, if assigned, must be deterministic,
+      based purely on light properties. For example, it's Ok to
+      make LightRenderEvent that turns off lights that have kambiShadows = TRUE.
+      It is @italic(not Ok) to make LightRenderEvent that sets LightOn to
+      a random boolean value. That because caching here assumes that
+      for the same Light values, LightRenderEvent will set LightOn the same. }
     property LightRenderEvent: TVRMLLightRenderEvent read FLightRenderEvent;
   end;
 
@@ -278,23 +281,24 @@ begin
   LightsEnabled := GLLightNum1;
   if LightsEnabled > GLLightNum2 then Exit;
 
-  for I := 0 to Lights.Count - 1 do
-  begin
-    Light := Lights.Pointers[I];
-
-    LightOn := Light^.LightNode.FdOn.Value;
-    if Assigned(LightRenderEvent) then
-      LightRenderEvent(Light^, LightOn);
-
-    if LightOn then
+  if Lights <> nil then
+    for I := 0 to Lights.Count - 1 do
     begin
-      if (Cache = nil) or
-          Cache.NeedRenderLight(LightsEnabled - GLLightNum1, Light) then
-        glLightFromVRMLLight(LightsEnabled, Light^);
-      Inc(LightsEnabled);
-      if LightsEnabled > GLLightNum2 then Exit;
+      Light := Lights.Pointers[I];
+
+      LightOn := Light^.LightNode.FdOn.Value;
+      if Assigned(LightRenderEvent) then
+        LightRenderEvent(Light^, LightOn);
+
+      if LightOn then
+      begin
+        if (Cache = nil) or
+            Cache.NeedRenderLight(LightsEnabled - GLLightNum1, Light) then
+          glLightFromVRMLLight(LightsEnabled, Light^);
+        Inc(LightsEnabled);
+        if LightsEnabled > GLLightNum2 then Exit;
+      end;
     end;
-  end;
 
   if LightsEnabled <= GLLightNum2 then
     for I := LightsEnabled to GLLightNum2 do
