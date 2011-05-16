@@ -12,15 +12,16 @@
 '/* Calculate light_dir */' + LineEnding + 
 '#ifdef LIGHT_TYPE_KNOWN' + LineEnding + 
 '' + LineEnding + 
-'  light_dir = normalize(gl_LightSource[light_number].position.xyz' + LineEnding + 
 '#ifdef LIGHT_TYPE_POSITIONAL' + LineEnding + 
-'    /* positional light */' + LineEnding + 
-'    /* we assume in this case gl_LightSource[light_number].position.w == 1,' + LineEnding + 
-'       so there''s no need to divide by it. This is true for our VRML/X3D' + LineEnding + 
-'       lights. */' + LineEnding + 
-'    - vec3(vertex_eye)' + LineEnding + 
+'  /* positional light. We assume in this case' + LineEnding + 
+'     gl_LightSource[light_number].position.w == 1, so there''s no need' + LineEnding + 
+'     to divide by it. This is true for our VRML/X3D lights. */' + LineEnding + 
+'  light_dir = gl_LightSource[light_number].position.xyz - vec3(vertex_eye);' + LineEnding + 
+'  float distance_to_light = length(light_dir);' + LineEnding + 
+'  light_dir /= distance_to_light;' + LineEnding + 
+'#else' + LineEnding + 
+'  light_dir = normalize(gl_LightSource[light_number].position.xyz);' + LineEnding + 
 '#endif' + LineEnding + 
-'  );' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIGHT_TYPE_SPOT' + LineEnding + 
 '  /* Check gl_LightSource[light_number].position first, as we want to add nothing' + LineEnding + 
@@ -59,19 +60,7 @@
 '  scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
-'#ifdef LIGHT_HAS_ATTENUATION_ONLY_CONSTANT' + LineEnding + 
-'  scale /= gl_LightSource[light_number].constantAttenuation;' + LineEnding + 
-'#endif' + LineEnding + 
-'' + LineEnding + 
-'#ifdef LIGHT_HAS_ATTENUATION_FULL' + LineEnding + 
-'  /* We could calculate distance_to_light during calculation of light_dir.' + LineEnding + 
-'     This would allow us to work faster (no need for calculating sqrt two' + LineEnding + 
-'     times). However, I fear that calculating l = length() and then doing' + LineEnding + 
-'     /= l would be in practice slower than calling built-in normalize().' + LineEnding + 
-'     It would be best to calculate distance_to_light this way only when' + LineEnding + 
-'     LIGHT_HAS_ATTENUATION_FULL is defined. */' + LineEnding + 
-'  float distance_to_light = distance(gl_LightSource[light_number].position.xyz,' + LineEnding + 
-'    vec3(vertex_eye));' + LineEnding + 
+'#ifdef LIGHT_HAS_ATTENUATION' + LineEnding + 
 '  scale /= gl_LightSource[light_number].constantAttenuation +' + LineEnding + 
 '           gl_LightSource[light_number].linearAttenuation * distance_to_light +' + LineEnding + 
 '           gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light;' + LineEnding + 

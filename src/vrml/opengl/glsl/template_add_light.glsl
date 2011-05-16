@@ -10,15 +10,16 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 /* Calculate light_dir */
 #ifdef LIGHT_TYPE_KNOWN
 
-  light_dir = normalize(gl_LightSource[light_number].position.xyz
 #ifdef LIGHT_TYPE_POSITIONAL
-    /* positional light */
-    /* we assume in this case gl_LightSource[light_number].position.w == 1,
-       so there's no need to divide by it. This is true for our VRML/X3D
-       lights. */
-    - vec3(vertex_eye)
+  /* positional light. We assume in this case
+     gl_LightSource[light_number].position.w == 1, so there's no need
+     to divide by it. This is true for our VRML/X3D lights. */
+  light_dir = gl_LightSource[light_number].position.xyz - vec3(vertex_eye);
+  float distance_to_light = length(light_dir);
+  light_dir /= distance_to_light;
+#else
+  light_dir = normalize(gl_LightSource[light_number].position.xyz);
 #endif
-  );
 
 #ifdef LIGHT_TYPE_SPOT
   /* Check gl_LightSource[light_number].position first, as we want to add nothing
@@ -57,19 +58,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);
 #endif
 
-#ifdef LIGHT_HAS_ATTENUATION_ONLY_CONSTANT
-  scale /= gl_LightSource[light_number].constantAttenuation;
-#endif
-
-#ifdef LIGHT_HAS_ATTENUATION_FULL
-  /* We could calculate distance_to_light during calculation of light_dir.
-     This would allow us to work faster (no need for calculating sqrt two
-     times). However, I fear that calculating l = length() and then doing
-     /= l would be in practice slower than calling built-in normalize().
-     It would be best to calculate distance_to_light this way only when
-     LIGHT_HAS_ATTENUATION_FULL is defined. */
-  float distance_to_light = distance(gl_LightSource[light_number].position.xyz,
-    vec3(vertex_eye));
+#ifdef LIGHT_HAS_ATTENUATION
   scale /= gl_LightSource[light_number].constantAttenuation +
            gl_LightSource[light_number].linearAttenuation * distance_to_light +
            gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light;

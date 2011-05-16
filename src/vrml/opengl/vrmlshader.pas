@@ -420,11 +420,10 @@ begin
           Defines += '#define LIGHT_TYPE_SPOT' + NL;
 
         Positional := TVRMLPositionalLightNode(Node);
-        if (Positional.FdAttenuation.Value[1] <> 1) or
-           (Positional.FdAttenuation.Value[2] <> 1) then
-          Defines += '#define LIGHT_HAS_ATTENUATION_FULL' + NL else
-        if Positional.FdAttenuation.Value[0] <> 1 then
-          Defines += '#define LIGHT_HAS_ATTENUATION_ONLY_CONSTANT' + NL;
+        if (Positional.FdAttenuation.Value[0] <> 1) or
+           (Positional.FdAttenuation.Value[1] <> 0) or
+           (Positional.FdAttenuation.Value[2] <> 0) then
+          Defines += '#define LIGHT_HAS_ATTENUATION' + NL;
       end;
       if Node.FdAmbientIntensity.Value <> 0 then
         Defines += '#define LIGHT_HAS_AMBIENT' + NL;
