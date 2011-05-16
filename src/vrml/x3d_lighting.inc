@@ -593,7 +593,7 @@ end;
 function TVRMLPositionalLightNode.HasAttenuation: boolean;
 begin
   Result := ((FdAttenuation.Value[0] <> 1) and
-             (FdAttenuation.Value[0] <> 0) ) or
+             (FdAttenuation.Value[0] <> 0)) or
             (FdAttenuation.Value[1] <> 0) or
             (FdAttenuation.Value[2] <> 0);
 end;
