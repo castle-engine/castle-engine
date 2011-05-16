@@ -193,7 +193,7 @@
 
     { Calculate light intensity drop because of the distance to the light.
       This follows the equation @code(1/max( attenuation[0] + ... ))
-      from the VRML/X3D specification.
+      from the VRML/X3D specification, it is the same as OpenGL attenuation.
 
       Since calculating the DistanceToLight for the @link(Attenuation)
       method may be time-consuming in some situations,
@@ -202,19 +202,27 @@
       then the value of DistanceToLight parameter is ignored (you can
       pass anything).
 
-      Remember that the DistanceToLight should be a distance in the light source
-      local coordinate system.
-      TODO: our ray-tracer currently uses global coord system.
-      TODO: OpenGL renderer also uses global coord system, since OpenGL
-      attenuation is calculated after modelview transformation
-      (right? check).
+      The DistanceToLight should be a distance in the light source
+      local coordinate system. TODO: although our renderers currently
+      ignore this: ray-tracer uses global coord system,
+      OpenGL (fixed-function and shader) renderer uses eye coord system
+      (should be equal to global coord system for normal cameras).
 
       @groupBegin }
     function DistanceNeededForAttenuation: boolean;
     function Attenuation(const DistanceToLight: Single): Single; overload;
     function Attenuation(const DistanceToLight: Double): Double; overload;
-    function HasAttenuation: boolean;
     { @groupEnd }
+
+    { Is attenuation relevant. When @false, you know that @link(Attenuation)
+      function always returns 1, so there's no point in using it at all. }
+    function HasAttenuation: boolean;
+
+    private FFdradius: TSFFloat;
+    public property Fdradius: TSFFloat read FFdradius;
+
+    { Should the "radius" field be taken into account. }
+    function HasRadius: boolean; virtual;
 
     procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
   end;
@@ -247,13 +255,8 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
-
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
-
-    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
   end;
 
   TNodeSpotLight_2 = class(TVRMLPositionalLightNode)
@@ -272,9 +275,6 @@
 
     private FFddirection: TSFVec3f;
     public property Fddirection: TSFVec3f read FFddirection;
-
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
 
     private FFdProjectionAngle: TSFFloat;
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
@@ -582,6 +582,11 @@ begin
    Fdattenuation.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdattenuation);
   { X3D specification comment: [0,Inf) }
+
+  FFdradius := TSFFloat.Create(Self, 'radius', 100);
+   Fdradius.ChangesAlways := [chLightActiveProperty];
+  Fields.Add(FFdradius);
+  { X3D specification comment: [0,Inf) }
 end;
 
 function TVRMLPositionalLightNode.DistanceNeededForAttenuation: boolean;
@@ -598,6 +603,11 @@ begin
             (FdAttenuation.Value[2] <> 0);
 end;
 
+function TVRMLPositionalLightNode.HasRadius: boolean;
+begin
+  Result := true;
+end;
+
 procedure TVRMLPositionalLightNode.UpdateActiveLight(
   var ActiveLight: TActiveLight);
 begin
@@ -605,6 +615,19 @@ begin
 
   ActiveLight.TransfLocation := MatrixMultPoint(ActiveLight.Transform,
     FdLocation.Value);
+
+  { TODO: For non-uniform scale, this will simply use average scale.
+    This is not fully correct, VRML spec doesn't clarify this
+    but I guess that the intention was that the non-uniform scale will
+    make radius non-uniform, i.e. light volume will not be a regular sphere
+    but some 3d ellipsoid. Unfortunately this would require quite more
+    work, UpdateVRML2ActiveLights would then have to check for collision
+    between
+      sphere transformed by matrix Transform
+    and
+      bounding box
+    which I don't know how to do *easily*... }
+  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.TransformScale;
 end;
 
 {$define ATTENUATION_IMPLEMENTATION:=
@@ -694,11 +717,6 @@ procedure TNodePointLight_2.CreateNode;
 begin
   inherited;
 
-  FFdradius := TSFFloat.Create(Self, 'radius', 100);
-   Fdradius.ChangesAlways := [chLightActiveProperty];
-  Fields.Add(FFdradius);
-  { X3D specification comment: [0,Inf) }
-
   FdGlobal.Value := true;
 
   DefaultContainerField := 'children';
@@ -725,25 +743,6 @@ begin
   Result := VerMajor >= 2;
 end;
 
-procedure TNodePointLight_2.UpdateActiveLight(
-  var ActiveLight: TActiveLight);
-begin
-  inherited;
-
-  { TODO: For non-uniform scale, this will simply use average scale.
-    This is not fully correct, VRML spec doesn't clarify this
-    but I guess that the intention was that the non-uniform scale will
-    make radius non-uniform, i.e. light volume will not be a regular sphere
-    but some 3d ellipsoid. Unfortunately this would require quite more
-    work, UpdateVRML2ActiveLights would then have to check for collision
-    between
-      sphere transformed by matrix Transform
-    and
-      bounding box
-    which I don't know how to do *easily*... }
-  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.TransformScale;
-end;
-
 procedure TNodeSpotLight_2.CreateNode;
 begin
   inherited;
@@ -762,11 +761,6 @@ begin
    Fddirection.ChangesAlways := [chLightActiveProperty, chLightLocationDirection];
   Fields.Add(FFddirection);
   { X3D specification comment: (-Inf,Inf) }
-
-  FFdradius := TSFFloat.Create(Self, 'radius', 100);
-   Fdradius.ChangesAlways := [chEverything];
-  Fields.Add(FFdradius);
-  { X3D specification comment: [0,Inf) }
 
   FdGlobal.Value := true;
 
@@ -813,10 +807,6 @@ begin
 
   ActiveLight.TransfNormDirection :=
     Normalized( MatrixMultDirection(ActiveLight.Transform, FdDirection.Value) );
-
-  { TODO: For non-uniform scale, this is too easy,
-    see TNodePointLight_2.CreateActiveLight for more comments. }
-  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.TransformScale;
 end;
 
 function TNodeSpotLight_2.ProjectionMatrix: TMatrix4Single;

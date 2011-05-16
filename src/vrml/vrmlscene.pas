@@ -2967,15 +2967,18 @@ procedure TVRMLScene.ChangedAll;
         ActiveLights by spot cone size. }
       L := ChangedAll_TraversedLights.Pointers[I];
       LNode := L^.LightNode;
-      if (LNode is TNodePointLight_1) or
-         (LNode is TNodeSpotLight_1) then
-        AddLightEverywhere(L^) else
-      if LNode is TNodePointLight_2 then
-        AddLightRadius(L^, L^.TransfLocation, L^.TransfRadius) else
-      if LNode is TNodeSpotLight_2 then
-        AddLightRadius(L^, L^.TransfLocation, L^.TransfRadius);
-      { Other light types (directional) should be handled by
-        TVRMLGroupingNode.BeforeTraverse }
+
+      { Lights with global = false should be handled by
+        TVRMLGroupingNode.BeforeTraverse. Here we only deal with
+        global = true case. }
+
+      if LNode.FdGlobal.Value then
+      begin
+        if (LNode is TVRMLPositionalLightNode) and
+           TVRMLPositionalLightNode(LNode).HasRadius then
+          AddLightRadius(L^, L^.TransfLocation, L^.TransfRadius) else
+          AddLightEverywhere(L^);
+      end;
     end;
   end;
 

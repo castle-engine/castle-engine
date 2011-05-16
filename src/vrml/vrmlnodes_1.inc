@@ -743,12 +743,11 @@
   TNodePointLight_1 = class(TVRMLPointLightNode)
   public
     procedure CreateNode; override;
-
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
-
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    function HasRadius: boolean; override;
   end;
 
   TNodeSpotLight_1 = class(TVRMLPositionalLightNode)
@@ -783,6 +782,7 @@
     function DirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
+    function HasRadius: boolean; override;
   end;
 
   TNodeGroup_1 = class(TNodeX3DChildNode)
@@ -2280,6 +2280,11 @@ begin
     true, 1, 0, 1000);
 end;
 
+function TNodePointLight_1.HasRadius: boolean;
+begin
+  Result := false;
+end;
+
 procedure TNodeSpotLight_1.CreateNode;
 begin
   inherited;
@@ -2381,6 +2386,11 @@ end;
 function TNodeSpotLight_1.DirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
+end;
+
+function TNodeSpotLight_1.HasRadius: boolean;
+begin
+  Result := false;
 end;
 
 procedure TNodeSpotLight_1.Box3DDistances(const Box: TBox3D;

@@ -317,14 +317,19 @@ type
   var
     CP: PClipPlane;
   begin
-    if Child is TVRMLDirectionalLightNode then
+    if (Child is TVRMLLightNode) and
+       (not TVRMLLightNode(Child).FdGlobal.Value) then
       { We do CreateActiveLight with State from TVRMLGroupingNode node,
-        while precisely we should rather use State from TNodeDirectionalLight
-        traverse. But, fortunately, State of TNodeDirectionalLight doesn't
-        change inside (TNodeDirectionalLight doesn't do anything inside
+        while precisely we should rather use State from TVRMLLightNode
+        traverse. But, fortunately, State of TVRMLLightNode doesn't
+        change inside (TVRMLLightNode doesn't do anything inside
         BeforeTraverse), so this is the same thing. }
+      { TODO: we ignore here light radius, which may be relevant
+        for TVRMLPositionalLightNode with HasRadius = true.
+        E.g. PointLight with global = false should be limited by *both*
+        scope (in graph hierarchy) and radius, as far as I understand. }
       State.AddVRML2ActiveLight(
-        TVRMLDirectionalLightNode(Child).CreateActiveLight(State)) else
+        TVRMLLightNode(Child).CreateActiveLight(State)) else
     if Child is TNodeX3DPointingDeviceSensorNode then
     begin
       { Testing for WasPointingDeviceSensor guarantees that multiple
@@ -373,14 +378,17 @@ begin
 
   ApplyTransform(StateStack.Top);
 
-  (*We append all directional lights to the current State.
-    This is how we implement DirectionalLight scope according to VRML 2.0
-    specification.
+  (*We append all non-global to the current State.
+    This is how we implement non-global light scope according to X3D
+    specification. It also satisfies the VRML 2.0 specification,
+    that has the same rules, but assumes DirectionalLight.global = always false,
+    and other lights' global = always true (this matches the X3D default
+    "global" values).
 
-    This may seem wasteful to enumerate children twice
+    It may seem wasteful to enumerate children twice
     (first we enumerate here, then actual Traverse enumerates,
     this time recursively, for the second time). But it turned out to
-    be the fastest and simplest method of propagating DirectionalLight
+    be the fastest and simplest method of propagating non-global
     correctly...
 
     First approach was to add ParentGroup to TActiveLight
