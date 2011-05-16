@@ -402,7 +402,6 @@ end;
 function TLightShader.Code: TShaderSource;
 var
   Defines: string;
-  Positional: TVRMLPositionalLightNode;
 begin
   if FCode = nil then
   begin
@@ -418,12 +417,7 @@ begin
         if (Node is TNodeSpotLight_1) or
            (Node is TNodeSpotLight_2) then
           Defines += '#define LIGHT_TYPE_SPOT' + NL;
-
-        Positional := TVRMLPositionalLightNode(Node);
-        if ( (Positional.FdAttenuation.Value[0] <> 1) and
-             (Positional.FdAttenuation.Value[0] <> 0) ) or
-           (Positional.FdAttenuation.Value[1] <> 0) or
-           (Positional.FdAttenuation.Value[2] <> 0) then
+        if TVRMLPositionalLightNode(Node).HasAttenuation then
           Defines += '#define LIGHT_HAS_ATTENUATION' + NL;
       end;
       if Node.FdAmbientIntensity.Value <> 0 then
