@@ -2,6 +2,10 @@
 { DON'T EDIT -- this file was automatically generated from "template_add_light.glsl" }
 '/* Shader code used for adding light source contribution. */' + LineEnding + 
 '' + LineEnding + 
+'#ifdef LIGHT_TYPE_POSITIONAL' + LineEnding + 
+'float kambi_light_light_number_radius;' + LineEnding + 
+'#endif' + LineEnding + 
+'' + LineEnding + 
 'void PLUG_add_light_contribution_side(inout vec4 color,' + LineEnding + 
 '  const in vec4 vertex_eye,' + LineEnding + 
 '  const in vec3 normal_eye,' + LineEnding + 
@@ -64,6 +68,11 @@
 '  scale /= gl_LightSource[light_number].constantAttenuation +' + LineEnding + 
 '           gl_LightSource[light_number].linearAttenuation * distance_to_light +' + LineEnding + 
 '           gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light;' + LineEnding + 
+'#endif' + LineEnding + 
+'' + LineEnding + 
+'#ifdef LIGHT_TYPE_POSITIONAL' + LineEnding + 
+'  if (distance_to_light >= kambi_light_light_number_radius)' + LineEnding + 
+'    scale = 0.0;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* add ambient term */' + LineEnding + 

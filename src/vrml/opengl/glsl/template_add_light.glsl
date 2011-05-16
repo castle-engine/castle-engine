@@ -1,5 +1,9 @@
 /* Shader code used for adding light source contribution. */
 
+#ifdef LIGHT_TYPE_POSITIONAL
+float kambi_light_light_number_radius;
+#endif
+
 void PLUG_add_light_contribution_side(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
@@ -62,6 +66,11 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   scale /= gl_LightSource[light_number].constantAttenuation +
            gl_LightSource[light_number].linearAttenuation * distance_to_light +
            gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light;
+#endif
+
+#ifdef LIGHT_TYPE_POSITIONAL
+  if (distance_to_light >= kambi_light_light_number_radius)
+    scale = 0.0;
 #endif
 
   /* add ambient term */

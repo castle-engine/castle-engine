@@ -114,6 +114,8 @@ type
     Shader: TVRMLShader;
     { Code calculated (on demand, when method called) using above vars. }
     FCode: TShaderSource;
+    LightRadiusUniformName: string;
+    LightRadiusUniformValue: Single;
   public
     destructor Destroy; override;
     function Code: TShaderSource;
@@ -419,6 +421,8 @@ begin
           Defines += '#define LIGHT_TYPE_SPOT' + NL;
         if TVRMLPositionalLightNode(Node).HasAttenuation then
           Defines += '#define LIGHT_HAS_ATTENUATION' + NL;
+        LightRadiusUniformName := 'kambi_light_%d_radius';
+        LightRadiusUniformValue := TVRMLPositionalLightNode(Node).FdRadius.Value;
       end;
       if Node.FdAmbientIntensity.Value <> 0 then
         Defines += '#define LIGHT_HAS_AMBIENT' + NL;
@@ -1096,11 +1100,16 @@ var
         {$I shadow_map_common.fs.inc});
   end;
 
+var
+  PassLightsUniforms: boolean;
+
   procedure EnableLights;
   var
     I: Integer;
     LightShaderBack, LightShaderFront: string;
   begin
+    PassLightsUniforms := false;
+
     { If we have no fragment/vertex shader (means that we used ComposedShader
       node without one shader) then don't add any code.
       Otherwise we would create a shader without any main() inside.
@@ -1117,6 +1126,8 @@ var
     begin
       Source[stFragment][0] := '#define LIT' + NL + Source[stFragment][0];
       Source[stVertex  ][0] := '#define LIT' + NL + Source[stVertex  ][0];
+
+      PassLightsUniforms := true;
 
       for I := 0 to LightShaders.Count - 1 do
       begin
@@ -1416,6 +1427,13 @@ var
 
     if UniformsNodes <> nil then
       AProgram.BindUniforms(UniformsNodes, false);
+
+    if PassLightsUniforms then
+      for I := 0 to LightShaders.Count - 1 do
+        if LightShaders[I].LightRadiusUniformName <> '' then
+          AProgram.SetUniform(Format(
+            LightShaders[I].LightRadiusUniformName, [I]),
+            LightShaders[I].LightRadiusUniformValue);
 
     AProgram.Disable;
   end;
