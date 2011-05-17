@@ -35,7 +35,6 @@ type
   TShaderCodeHash = object
   private
     Sum, XorValue: LongWord;
-    procedure AddString(const S: string);
     procedure AddInteger(const I: Integer);
     procedure AddFloat(const F: Single);
     procedure AddPointer(Ptr: Pointer);
@@ -381,6 +380,7 @@ end;
 
 {$include norqcheckbegin.inc}
 
+(* Smart, but not used:
 procedure TShaderCodeHash.AddString(const S: string);
 var
   PS: PLongWord;
@@ -404,6 +404,7 @@ begin
     XorValue := XorValue xor Last;
   end;
 end;
+*)
 
 procedure TShaderCodeHash.AddPointer(Ptr: Pointer);
 begin
@@ -430,6 +431,12 @@ procedure TShaderCodeHash.AddEffects(Nodes: TVRMLNodesList);
 var
   I: Integer;
 begin
+  { We add to hash actual Effect node references (pointers), this way ensuring
+    that to share the same shader, effect nodes must be the same.
+    Merely equal GLSL source code is not enough (because effects with equal
+    source code may still have different uniform values, and sharing them
+    would not be handled correctly here --- we set uniform values on change,
+    not every time before rendering shape). }
   for I := 0 to Nodes.Count - 1 do
     if (Nodes[I] is TNodeEffect) and
        TNodeEffect(Nodes[I]).FdEnabled.Value then
@@ -1955,15 +1962,7 @@ begin
           Part := TNodeShaderPart(Node.FdParts[J]);
           PartSource := Part.LoadContents;
           if (PartSource <> '') and Part.FdType.GetValue(PartType) then
-          begin
             Source[PartType].Add(PartSource);
-            { We add to FCodeHash custom shader code.
-              Note that our original shader code (from glsl/template*)
-              is never added to hash --- there's no need, after all it's
-              always constant. Also this way we're fast in the usual case
-              (no ComposedShader). }
-            FCodeHash.AddString(PartSource);
-          end;
         end;
 
       Node.EventIsSelected.Send(true);
@@ -1975,10 +1974,22 @@ begin
       { For sending isValid to this node later }
       SelectedNode := Node;
 
-      { Ignore missing plugs, as iur plugs are (probably) not found there }
+      { Ignore missing plugs, as our plugs are (probably) not found there }
       WarnMissingPlugs := false;
 
       ShapeRequiresShaders := true;
+
+      { We add to FCodeHash custom shader node.
+
+        We don't add the source code (all PartSource), we just add node
+        reference, for reasoning see TShaderCodeHash.AddEffects (equal
+        source code may still mean different uniforms).
+        Also, adding a node reference is faster that calculating string hash.
+
+        Note that our original shader code (from glsl/template*)
+        is never added to hash --- there's no need, after all it's
+        always constant. }
+      FCodeHash.AddPointer(Node);
 
       Break;
     end else
