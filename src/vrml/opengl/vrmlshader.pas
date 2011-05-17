@@ -1134,6 +1134,61 @@ begin
     VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
 end;
 
+procedure TVRMLShader.EnableEffects(Effects: TMFNode;
+  const Code: TShaderSource;
+  const ForwardDeclareInFinalShader: boolean);
+begin
+  EnableEffects(Effects.Items, Code, ForwardDeclareInFinalShader);
+end;
+
+procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
+  const Code: TShaderSource;
+  const ForwardDeclareInFinalShader: boolean);
+
+  procedure EnableEffect(Effect: TNodeEffect);
+
+    procedure EnableEffectPart(Part: TNodeEffectPart);
+    var
+      Contents: string;
+      PartType: TShaderType;
+    begin
+      Contents := Part.LoadContents;
+      if (Contents <> '') and Part.FdType.GetValue(PartType) then
+      begin
+        Plug(PartType, Contents, Code, ForwardDeclareInFinalShader);
+        ShapeRequiresShaders := true;
+      end;
+    end;
+
+  var
+    I: Integer;
+  begin
+    if not Effect.FdEnabled.Value then Exit;
+
+    if Effect.FdLanguage.Value <> 'GLSL' then
+    begin
+      VRMLWarning(vwIgnorable, Format('Unknown shading language "%s" for Effect node',
+        [Effect.FdLanguage.Value]));
+      Exit;
+    end;
+
+    for I := 0 to Effect.FdParts.Count - 1 do
+      if Effect.FdParts[I] is TNodeEffectPart then
+        EnableEffectPart(TNodeEffectPart(Effect.FdParts[I]));
+
+    if UniformsNodes = nil then
+      UniformsNodes := TVRMLNodesList.Create;
+    UniformsNodes.Add(Effect);
+  end;
+
+var
+  I: Integer;
+begin
+  for I := 0 to Effects.Count - 1 do
+    if Effects[I] is TNodeEffect then
+      EnableEffect(TNodeEffect(Effects[I]));
+end;
+
 procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
 var
   TextureApply, TextureColorDeclare, TextureCoordInitialize,
@@ -1843,9 +1898,6 @@ begin
 
   LightShaders.Add(LightShader);
 
-  { Mark ShapeRequiresShaders now, don't depend on EnableEffects call doing it,
-    as EnableEffects will be done from LinkProgram when it's too late
-    to set ShapeRequiresShaders. }
   if (Light <> nil) and
      (Light^.Node.FdEffects.Count <> 0) then
     ShapeRequiresShaders := true;
@@ -1853,61 +1905,6 @@ begin
   FCodeHash.AddInteger(13);
   { TODO: also the light type, and does the light HAS_RADIUS must be added here,
     check on light_attenuation demo. }
-end;
-
-procedure TVRMLShader.EnableEffects(Effects: TMFNode;
-  const Code: TShaderSource;
-  const ForwardDeclareInFinalShader: boolean);
-begin
-  EnableEffects(Effects.Items, Code, ForwardDeclareInFinalShader);
-end;
-
-procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
-  const Code: TShaderSource;
-  const ForwardDeclareInFinalShader: boolean);
-
-  procedure EnableEffect(Effect: TNodeEffect);
-
-    procedure EnableEffectPart(Part: TNodeEffectPart);
-    var
-      Contents: string;
-      PartType: TShaderType;
-    begin
-      Contents := Part.LoadContents;
-      if (Contents <> '') and Part.FdType.GetValue(PartType) then
-      begin
-        Plug(PartType, Contents, Code, ForwardDeclareInFinalShader);
-        ShapeRequiresShaders := true;
-      end;
-    end;
-
-  var
-    I: Integer;
-  begin
-    if not Effect.FdEnabled.Value then Exit;
-
-    if Effect.FdLanguage.Value <> 'GLSL' then
-    begin
-      VRMLWarning(vwIgnorable, Format('Unknown shading language "%s" for Effect node',
-        [Effect.FdLanguage.Value]));
-      Exit;
-    end;
-
-    for I := 0 to Effect.FdParts.Count - 1 do
-      if Effect.FdParts[I] is TNodeEffectPart then
-        EnableEffectPart(TNodeEffectPart(Effect.FdParts[I]));
-
-    if UniformsNodes = nil then
-      UniformsNodes := TVRMLNodesList.Create;
-    UniformsNodes.Add(Effect);
-  end;
-
-var
-  I: Integer;
-begin
-  for I := 0 to Effects.Count - 1 do
-    if Effects[I] is TNodeEffect then
-      EnableEffect(TNodeEffect(Effects[I]));
 end;
 
 procedure TVRMLShader.EnableFog(const FogType: TFogType);
@@ -1980,9 +1977,6 @@ end;
 procedure TVRMLShader.EnableAppearanceEffects(Effects: TMFNode);
 begin
   AppearanceEffects := Effects;
-  { Mark ShapeRequiresShaders now, don't depend on EnableEffects call doing it,
-    as EnableEffects will be done from LinkProgram when it's too late
-    to set ShapeRequiresShaders. }
   if AppearanceEffects.Count <> 0 then
   begin
     ShapeRequiresShaders := true;
