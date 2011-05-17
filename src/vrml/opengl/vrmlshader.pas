@@ -1592,13 +1592,7 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
     since it can be changed back (replacing previous values) during TVRMLShader
     lifetime. }
   procedure CodeHashFinalize;
-  var
-    I: Integer;
-    ShaderType: TShaderType;
   begin
-    for ShaderType := Low(ShaderType) to High(ShaderType) do
-      for I := 0 to Source[ShaderType].Count - 1 do
-        FCodeHash.AddString(Source[ShaderType][I]);
     FCodeHash.AddInteger(Ord(PercentageCloserFiltering));
   end;
 
@@ -1941,7 +1935,15 @@ begin
           Part := TNodeShaderPart(Node.FdParts[J]);
           PartSource := Part.LoadContents;
           if (PartSource <> '') and Part.FdType.GetValue(PartType) then
+          begin
             Source[PartType].Add(PartSource);
+            { We add to FCodeHash custom shader code.
+              Note that our original shader code (from glsl/template*)
+              is never added to hash --- there's no need, after all it's
+              always constant. Also this way we're fast in the usual case
+              (no ComposedShader). }
+            FCodeHash.AddString(PartSource);
+          end;
         end;
 
       Node.EventIsSelected.Send(true);
