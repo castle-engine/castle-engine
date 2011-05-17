@@ -692,7 +692,8 @@ begin
       if Shape.ProgramCache <> nil then
         Renderer.Cache.Program_DecReference(Shape.ProgramCache);
 
-      Shape.ProgramCache := Renderer.Cache.Program_IncReference(Renderer, Shader);
+      Shape.ProgramCache := Renderer.Cache.Program_IncReference(
+        Renderer, Shader, Shape.DebugName);
     end;
 
     Assert(Shape.ProgramCache <> nil);
