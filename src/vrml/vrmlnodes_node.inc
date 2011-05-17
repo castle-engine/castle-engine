@@ -1087,6 +1087,10 @@
       that would be quite slow.
       @exclude }
     function TransformationChange: TNodeTransformationChange; virtual;
+
+    { Nice node description, for warnings and such.
+      Shows node type and name. }
+    function FullName: string;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -3007,6 +3011,13 @@ end;
 function TVRMLNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcNone;
+end;
+
+function TVRMLNode.FullName: string;
+begin
+  Result := NodeTypeName;
+  if NodeName <> '' then
+    Result += '(' + NodeName + ')';
 end;
 
 { TVRMLNodesList ------------------------------------------------------------- }

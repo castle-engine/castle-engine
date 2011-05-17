@@ -2797,12 +2797,7 @@ begin
   Result := '';
 
   if ParentNode <> nil then
-  begin
-    Result := TVRMLNode(ParentNode).NodeTypeName;
-    if TVRMLNode(ParentNode).NodeName <> '' then
-      Result += '(' + TVRMLNode(ParentNode).NodeName + ')';
-    Result += '.';
-  end;
+    Result += TVRMLNode(ParentNode).FullName + '.';
 
   if Name <> '' then
     Result += Name else

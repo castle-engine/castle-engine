@@ -2046,7 +2046,7 @@ end;
 
 function TVRMLShape.DebugName: string;
 begin
-  Result := OriginalGeometry.NodeTypeName;
+  Result := OriginalGeometry.FullName;
 end;
 
 function TVRMLShape.Node: TNodeX3DShapeNode;
