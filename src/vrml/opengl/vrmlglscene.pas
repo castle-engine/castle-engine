@@ -715,7 +715,7 @@ type
       It's useful to pass this as LightRenderEvent to @link(Render)
       or @link(RenderFrustum) when you use shadow algorithm that requires
       you to make a first pass rendering the scene all shadowed. }
-    class procedure LightRenderInShadow(const Light: TActiveLight;
+    class procedure LightRenderInShadow(const Light: TLightInstance;
       var LightOn: boolean);
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
@@ -2398,10 +2398,10 @@ begin
   end;
 end;
 
-class procedure TVRMLGLScene.LightRenderInShadow(const Light: TActiveLight;
+class procedure TVRMLGLScene.LightRenderInShadow(const Light: TLightInstance;
   var LightOn: boolean);
 begin
-  if Light.LightNode.FdKambiShadows.Value then
+  if Light.Node.FdKambiShadows.Value then
     LightOn := false;
 end;
 

@@ -672,7 +672,7 @@ var
   LightSetVrmlName: string;
   SceneVrmlName: string;
   ShadowCasterVrmlName: string;
-  L: PActiveLight;
+  L: PLightInstance;
 begin
   Glw := TGLUIWindow.Create(Application);
 
@@ -698,9 +698,9 @@ begin
     { calculate MainLightPosition }
     L := LightSet.Lights.Pointers[0];
     if L^.LightNode is TVRMLPositionalLightNode then
-      MainLightPosition := Vector4Single(L^.TransfLocation, 1) else
+      MainLightPosition := Vector4Single(L^.Location, 1) else
     if L^.LightNode is TVRMLDirectionalLightNode then
-      MainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
+      MainLightPosition := Vector4Single(L^.Direction, 0) else
       raise Exception.CreateFmt('Light node "%s" cannot be used to cast shadows, it has no position and no direction',
         [L^.LightNode.NodeTypeName]);
 

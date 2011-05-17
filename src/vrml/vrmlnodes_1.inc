@@ -773,7 +773,7 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
 
-    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
+    procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
 
     function ProjectionMatrix: TMatrix4Single; override;
     function ModelviewMatrix: TMatrix4Single; override;
@@ -2299,7 +2299,7 @@ begin
   FdLocation.DefaultValue := Vector3Single(0, 0, 1);
 
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
-   Fddirection.ChangesAlways := [chLightActiveProperty, chLightLocationDirection];
+   Fddirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
   Fields.Add(FFddirection);
 
   FFddropOffRate := TSFFloat.Create(Self, 'dropOffRate', 0);
@@ -2326,12 +2326,11 @@ begin
   Result := VerMajor <= 1;
 end;
 
-procedure TNodeSpotLight_1.UpdateActiveLight(
-  var ActiveLight: TActiveLight);
+procedure TNodeSpotLight_1.UpdateLightInstance(var LightInstance: TLightInstance);
 begin
   inherited;
-  ActiveLight.TransfNormDirection :=
-    Normalized( MatrixMultDirection(ActiveLight.Transform, FdDirection.Value) );
+  LightInstance.Direction := Normalized(MatrixMultDirection(
+    LightInstance.Transform, FdDirection.Value));
 end;
 
 function TNodeSpotLight_1.SuggestedVRMLVersion(

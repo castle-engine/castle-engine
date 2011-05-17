@@ -72,7 +72,7 @@ function VRML97Emission(const IntersectNode: TVRMLTriangle;
   you should clamp only at the end (or never). This also allows
   to multiply / accumulate values outside of the (0, 1) range
   during calculations. OpenGL also clamps only at the end. }
-function VRML97LightContribution(const Light: TActiveLight;
+function VRML97LightContribution(const Light: TLightInstance;
   const Intersection: TVector3Single; const IntersectNode: TVRMLTriangle;
   const CamPosition: TVector3Single): TVector3Single;
 
@@ -86,7 +86,7 @@ function VRML97LightContribution(const Light: TActiveLight;
   The specular lighting part must be simply ignored in this case.
 
   This is used by VRMLLightMap. }
-function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
+function VRML97LightContribution_CameraIndependent(const Light: TLightInstance;
   const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single): TVector3Single;
 
 type
@@ -157,12 +157,12 @@ begin
   end;
 end;
 
-function VRML97LightContribution(const Light: TActiveLight;
+function VRML97LightContribution(const Light: TLightInstance;
   const Intersection: TVector3Single; const IntersectNode: TVRMLTriangle;
   const CamPosition: TVector3Single): TVector3Single;
 {$I vrmllighting_97_lightcontribution.inc}
 
-function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
+function VRML97LightContribution_CameraIndependent(const Light: TLightInstance;
   const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single)
   :TVector3Single;
 {$define CAMERA_INDEP}

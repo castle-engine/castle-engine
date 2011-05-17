@@ -131,24 +131,24 @@
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); virtual; abstract;
 
-    { Create TActiveLight record describing this light node under given
+    { Create TLightInstance record describing this light node under given
       State. }
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight;
+    function CreateLightInstance(State: TVRMLGraphTraverseState): TLightInstance;
 
-    { Update TActiveLight record when lighting State changes.
-      Assumes that ActiveLight.LightNode = Self.
+    { Update TLightInstance record when lighting State changes.
+      Assumes that LightInstance.Node = Self.
 
-      This will set ActiveLight.Transform properties, and recalculate
-      all ActiveLight.TransfXxx properties. }
-    procedure UpdateActiveLightState(
-      var ActiveLight: TActiveLight;
+      This will set LightInstance.Transform properties, and recalculate
+      all LightInstance properties based on Transform. }
+    procedure UpdateLightInstanceState(
+      var LightInstance: TLightInstance;
       State: TVRMLGraphTraverseState);
 
-    { Update TActiveLight record when lighting location/direction (and other
-      properties precalculated on TActiveLight) change.
-      Assumes that ActiveLight.LightNode = Self. }
-    procedure UpdateActiveLight(
-      var ActiveLight: TActiveLight); virtual;
+    { Update TLightInstance record when lighting location/direction (and other
+      properties precalculated on TLightInstance) change.
+      Assumes that LightInstance.Node = Self. }
+    procedure UpdateLightInstance(
+      var LightInstance: TLightInstance); virtual;
 
     function TransformationChange: TNodeTransformationChange; override;
   end;
@@ -170,7 +170,7 @@
     private FFdProjectionLocation: TSFVec3f;
     public property FdProjectionLocation: TSFVec3f read FFdProjectionLocation;
 
-    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
+    procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
 
     function ProjectionMatrix: TMatrix4Single; override;
     function ModelviewMatrix: TMatrix4Single; override;
@@ -224,7 +224,7 @@
     { Should the "radius" field be taken into account. }
     function HasRadius: boolean; virtual;
 
-    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
+    procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
   end;
 
   TVRMLPointLightNode = class(TVRMLPositionalLightNode)
@@ -282,7 +282,7 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    procedure UpdateActiveLight(var ActiveLight: TActiveLight); override;
+    procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
 
     function ProjectionMatrix: TMatrix4Single; override;
     function ModelviewMatrix: TMatrix4Single; override;
@@ -445,33 +445,33 @@ begin
     Up := AnyOrthogonalVector(Dir);
 end;
 
-function TNodeX3DLightNode.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
+function TNodeX3DLightNode.CreateLightInstance(
+  State: TVRMLGraphTraverseState): TLightInstance;
 begin
-  Result.LightNode := Self;
-  UpdateActiveLightState(Result, State);
+  Result.Node := Self;
+  UpdateLightInstanceState(Result, State);
 end;
 
-procedure TNodeX3DLightNode.UpdateActiveLightState(
-  var ActiveLight: TActiveLight;
+procedure TNodeX3DLightNode.UpdateLightInstanceState(
+  var LightInstance: TLightInstance;
   State: TVRMLGraphTraverseState);
 begin
-  ActiveLight.Transform := State.Transform;
-  ActiveLight.TransformScale := State.TransformScale;
-  UpdateActiveLight(ActiveLight);
+  LightInstance.Transform := State.Transform;
+  LightInstance.TransformScale := State.TransformScale;
+  UpdateLightInstance(LightInstance);
 end;
 
-procedure TNodeX3DLightNode.UpdateActiveLight(
-  var ActiveLight: TActiveLight);
+procedure TNodeX3DLightNode.UpdateLightInstance(
+  var LightInstance: TLightInstance);
 begin
   { Nothing to do in this class. }
-  Assert(ActiveLight.LightNode = Self);
+  Assert(LightInstance.Node = Self);
 end;
 
 procedure TNodeX3DLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  StateStack.Top.AddVRML1ActiveLight(CreateActiveLight(StateStack.Top));
+  StateStack.Top.AddVRML1Light(CreateLightInstance(StateStack.Top));
 end;
 
 function TNodeX3DLightNode.TransformationChange: TNodeTransformationChange;
@@ -484,7 +484,7 @@ begin
   inherited;
 
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
-   Fddirection.ChangesAlways := [chLightActiveProperty, chLightLocationDirection];
+   Fddirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
   Fields.Add(FFddirection);
 
   FFdProjectionRectangle := TSFVec4f.Create(Self, 'projectionRectangle', ZeroVector4Single);
@@ -507,12 +507,12 @@ begin
   Result := 'DirectionalLight';
 end;
 
-procedure TVRMLDirectionalLightNode.UpdateActiveLight(
-  var ActiveLight: TActiveLight);
+procedure TVRMLDirectionalLightNode.UpdateLightInstance(
+  var LightInstance: TLightInstance);
 begin
   inherited;
-  ActiveLight.TransfNormDirection :=
-    Normalized( MatrixMultDirection(ActiveLight.Transform, FdDirection.Value) );
+  LightInstance.Direction := Normalized(MatrixMultDirection(
+    LightInstance.Transform, FdDirection.Value));
 end;
 
 function TVRMLDirectionalLightNode.ProjectionMatrix: TMatrix4Single;
@@ -574,7 +574,7 @@ begin
   inherited;
 
   FFdlocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
-   Fdlocation.ChangesAlways := [chLightActiveProperty, chLightLocationDirection];
+   Fdlocation.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
   Fields.Add(FFdlocation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -584,7 +584,7 @@ begin
   { X3D specification comment: [0,Inf) }
 
   FFdradius := TSFFloat.Create(Self, 'radius', 100);
-   Fdradius.ChangesAlways := [chLightActiveProperty];
+   Fdradius.ChangesAlways := [chLightInstanceProperty];
   Fields.Add(FFdradius);
   { X3D specification comment: [0,Inf) }
 end;
@@ -608,12 +608,12 @@ begin
   Result := true;
 end;
 
-procedure TVRMLPositionalLightNode.UpdateActiveLight(
-  var ActiveLight: TActiveLight);
+procedure TVRMLPositionalLightNode.UpdateLightInstance(
+  var LightInstance: TLightInstance);
 begin
   inherited;
 
-  ActiveLight.TransfLocation := MatrixMultPoint(ActiveLight.Transform,
+  LightInstance.Location := MatrixMultPoint(LightInstance.Transform,
     FdLocation.Value);
 
   { TODO: For non-uniform scale, this will simply use average scale.
@@ -621,13 +621,13 @@ begin
     but I guess that the intention was that the non-uniform scale will
     make radius non-uniform, i.e. light volume will not be a regular sphere
     but some 3d ellipsoid. Unfortunately this would require quite more
-    work, UpdateVRML2ActiveLights would then have to check for collision
+    work, UpdateVRML2Lights would then have to check for collision
     between
       sphere transformed by matrix Transform
     and
       bounding box
     which I don't know how to do *easily*... }
-  ActiveLight.TransfRadius := FdRadius.Value * ActiveLight.TransformScale;
+  LightInstance.Radius := FdRadius.Value * LightInstance.TransformScale;
 end;
 
 {$define ATTENUATION_IMPLEMENTATION:=
@@ -758,7 +758,7 @@ begin
   { X3D specification comment: (0,Pi/2] }
 
   FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
-   Fddirection.ChangesAlways := [chLightActiveProperty, chLightLocationDirection];
+   Fddirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
   Fields.Add(FFddirection);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -800,13 +800,12 @@ begin
   Result := VerMajor >= 2;
 end;
 
-procedure TNodeSpotLight_2.UpdateActiveLight(
-  var ActiveLight: TActiveLight);
+procedure TNodeSpotLight_2.UpdateLightInstance(
+  var LightInstance: TLightInstance);
 begin
   inherited;
-
-  ActiveLight.TransfNormDirection :=
-    Normalized( MatrixMultDirection(ActiveLight.Transform, FdDirection.Value) );
+  LightInstance.Direction := Normalized(MatrixMultDirection(
+    LightInstance.Transform, FdDirection.Value));
 end;
 
 function TNodeSpotLight_2.ProjectionMatrix: TMatrix4Single;

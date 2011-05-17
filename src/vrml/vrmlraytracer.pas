@@ -118,7 +118,7 @@ type
     See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.classic_ray_tracer.html]
     for documentation.
 
-    Make sure that VRML2ActiveLights in states are properly initialized if you
+    Make sure that VRML2Lights in states are properly initialized if you
     plan to render VRML 2.0 nodes. TVRMLScene and descendants do
     this for you automatically. }
   TClassicRayTracer = class(TRayTracer)
@@ -135,7 +135,7 @@ type
 
     { If there's a headlight on the scene, set HeadLightExists and initialize
       HeadLight. }
-    HeadLight: TActiveLight;
+    HeadLight: TLightInstance;
     HeadLightExists: boolean;
 
     procedure Execute; override;
@@ -345,7 +345,7 @@ var
       end;
     end;
 
-    function LightNotBlocked(const Light: TActiveLight): boolean;
+    function LightNotBlocked(const Light: TLightInstance): boolean;
     begin
       { Does the light get to the current surface ?
 
@@ -365,7 +365,7 @@ var
         side of the plane than from where RayVector came.
         In such case the light shines on IntersectNode, but from the opposite
         side, so we will not add it here. }
-      Result := Octree.ActiveLightNotBlocked(Light,
+      Result := Octree.LightNotBlocked(Light,
         Intersection, IntersectNode^.World.Normal,
         -RayVector, IntersectNode, true);
     end;
@@ -374,7 +374,7 @@ var
     i: integer;
     M1: TNodeMaterial_1;
     M2: TNodeMaterial_2;
-    ActiveLights: TDynActiveLightArray;
+    Lights: TDynLightInstanceArray;
   begin
     IntersectNode := Octree.RayCollision(Intersection,
       Ray0, RayVector, true,
@@ -409,12 +409,12 @@ var
     begin
       if Depth > 0 then
       begin
-        ActiveLights := State.CurrentActiveLights;
-        if ActiveLights <> nil then
-          for i := 0 to ActiveLights.Count - 1 do
-            if LightNotBlocked(ActiveLights.Items[i]) then
+        Lights := State.Lights;
+        if Lights <> nil then
+          for i := 0 to Lights.Count - 1 do
+            if LightNotBlocked(Lights.Items[i]) then
               Result += VRML97LightContribution(
-                ActiveLights.Items[i], Intersection, IntersectNode^, CamPosition);
+                Lights.Items[i], Intersection, IntersectNode^, CamPosition);
 
         { Add headlight light contribution, just like normal light.
 

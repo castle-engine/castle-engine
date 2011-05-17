@@ -50,7 +50,7 @@ type
     FSpot: boolean;
     FSpotCutOffAngle: Single;
     FSpotDropOffRate: Single;
-    ActiveLightNode: TNodeX3DLightNode;
+    LightNode: TNodeX3DLightNode;
   public
     constructor Create(HeadLightNode: TNodeKambiHeadLight);
     destructor Destroy; override;
@@ -63,19 +63,19 @@ type
     property SpotCutOffAngle: Single read FSpotCutOffAngle write FSpotCutOffAngle;
     property SpotDropOffRate: Single read FSpotDropOffRate write FSpotDropOffRate;
 
-    { TActiveLight record describing this headlight assuming
+    { TLightInstance record describing this headlight assuming
       given camera Position, Direction.
 
       Note: for now, it contains a link to temporary light node
-      inside TActiveLight.LightNode. This is owned by this class,
-      so if you call TActiveLight more than once for the same TVRMLHeadLight,
+      inside TLightInstance.Node. This is owned by this class,
+      so if you call TLightInstance more than once for the same TVRMLHeadLight,
       and TVRMLHeadLight properties will change in between, than the older
-      TActiveLight record may become invalid.
+      TLightInstance record may become invalid.
 
-      This is not a problem for now (we need headlight as TActiveLight
-      for ray-tracer only). When needed, maybe TActiveLight will be able
-      to own LightNode. }
-    function ActiveLight(const Position, Direction: TVector3Single): TActiveLight;
+      This is not a problem for now (we need headlight as TLightInstance
+      for ray-tracer only). When needed, maybe TLightInstance will be able
+      to own Node. }
+    function LightInstance(const Position, Direction: TVector3Single): TLightInstance;
   end;
 
 implementation
@@ -111,51 +111,51 @@ end;
 
 destructor TVRMLHeadLight.Destroy;
 begin
-  FreeAndNil(ActiveLightNode);
+  FreeAndNil(LightNode);
   inherited;
 end;
 
-function TVRMLHeadLight.ActiveLight(
-  const Position, Direction: TVector3Single): TActiveLight;
+function TVRMLHeadLight.LightInstance(
+  const Position, Direction: TVector3Single): TLightInstance;
 begin
-  FreeAndNil(ActiveLightNode);
+  FreeAndNil(LightNode);
 
   if Spot then
   begin
-    ActiveLightNode := TNodeSpotLight_2.Create('', '');
-    TNodeSpotLight_2(ActiveLightNode).FdLocation.Value := Position;
-    TNodeSpotLight_2(ActiveLightNode).FdDirection.Value := Direction;
+    LightNode := TNodeSpotLight_2.Create('', '');
+    TNodeSpotLight_2(LightNode).FdLocation.Value := Position;
+    TNodeSpotLight_2(LightNode).FdDirection.Value := Direction;
 
     { For SpotDropOffRate = 0, spot is sharp, no drop-off.
       This can be expressed precisely by BeamWidth = SpotCutOffAngle.
       For other SpotDropOffRate, there's no way to properly translate
       to beamWidth. }
     if SpotDropOffRate = 0 then
-      TNodeSpotLight_2(ActiveLightNode).FdBeamWidth.Value := SpotCutOffAngle else
-      TNodeSpotLight_2(ActiveLightNode).FdBeamWidth.Value := SpotCutOffAngle / 2;
-    TNodeSpotLight_2(ActiveLightNode).FdCutOffAngle.Value := SpotCutOffAngle;
+      TNodeSpotLight_2(LightNode).FdBeamWidth.Value := SpotCutOffAngle else
+      TNodeSpotLight_2(LightNode).FdBeamWidth.Value := SpotCutOffAngle / 2;
+    TNodeSpotLight_2(LightNode).FdCutOffAngle.Value := SpotCutOffAngle;
 
     { infinite radius }
-    TNodeSpotLight_2(ActiveLightNode).FdRadius.Value := MaxSingle;
-    TNodeSpotLight_2(ActiveLightNode).FdAttenuation.Value := Attenuation;
+    TNodeSpotLight_2(LightNode).FdRadius.Value := MaxSingle;
+    TNodeSpotLight_2(LightNode).FdAttenuation.Value := Attenuation;
   end else
   begin
-    ActiveLightNode := TNodeDirectionalLight_2.Create('', '');
-    TNodeDirectionalLight_2(ActiveLightNode).FdDirection.Value := Direction;
+    LightNode := TNodeDirectionalLight_2.Create('', '');
+    TNodeDirectionalLight_2(LightNode).FdDirection.Value := Direction;
   end;
 
-  ActiveLightNode.FdAmbientIntensity.Value := AmbientIntensity;
-  ActiveLightNode.FdColor.Value := Color;
-  ActiveLightNode.FdIntensity.Value := Intensity;
+  LightNode.FdAmbientIntensity.Value := AmbientIntensity;
+  LightNode.FdColor.Value := Color;
+  LightNode.FdIntensity.Value := Intensity;
 
-  Result.LightNode := ActiveLightNode;
+  Result.Node := LightNode;
 
   Result.Transform := IdentityMatrix4Single;
   Result.TransformScale := 1;
 
-  Result.TransfLocation := Position;
-  Result.TransfNormDirection := Normalized(Direction);
-  Result.TransfRadius := MaxSingle;
+  Result.Location := Position;
+  Result.Direction := Normalized(Direction);
+  Result.Radius := MaxSingle;
 end;
 
 end.

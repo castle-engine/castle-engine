@@ -268,47 +268,48 @@ type
          );
   end;
 
-  { Light source that is used in the scene. References VRML/X3D
-    light source node in LightNode, and keeps track of light source
-    transformation in the 3D world. Also, for the sake of speed,
-    we keep here a couple of light's properties already multiplied
+  { Light source instance in the scene. References VRML/X3D
+    light source node (see @link(Node)), and keeps track of light source
+    transformation in the 3D world. For the sake of speed
+    also stores a couple of light's properties already multiplied
     by the transformation.
 
-    This record may be initialized only by TNodeX3DLightNode.CreateActiveLight.
-    Update it (when transform changes) by TNodeX3DLightNode.UpdateActiveLight. }
-  TActiveLight = record
-    LightNode: TNodeX3DLightNode;
+    This record may be initialized only by TNodeX3DLightNode.CreateLightInstance.
+    Update it (when transform changes) by TNodeX3DLightNode.UpdateLightInstance. }
+  TLightInstance = record
+    Node: TNodeX3DLightNode;
 
     Transform: TMatrix4Single;
     TransformScale: Single;
 
-    { Light's location already multiplied by the @link(Transform) matrix.
+    { Light location, already transformed by the @link(Transform) matrix.
       For TVRMLPositionalLightNode lights. }
-    TransfLocation: TVector3Single;
+    Location: TVector3Single;
 
-    { Light's direction, already normalized and multiplied by
-      the @link(Transform) matrix.
+    { Light direction, already normalized and
+      transformed by the @link(Transform) matrix.
       For spot and directional lights. }
-    TransfNormDirection: TVector3Single;
+    Direction: TVector3Single;
 
-    { Light's radius, already transfomed (scaled) by the
-      the light's transformation. For VRML 2.0 positional lights with radius. }
-    TransfRadius: Single;
+    { Light radius, already transformed by the @link(Transform) matrix.
+      For lights with radius (positional lights in VRML >= 2.0,
+      that is TVRMLPositionalLightNode with HasRadius = true). }
+    Radius: Single;
   end;
-  PActiveLight = ^TActiveLight;
+  PLightInstance = ^TLightInstance;
 
-  TDynArrayItem_1 = TActiveLight;
-  PDynArrayItem_1 = PActiveLight;
+  TDynArrayItem_1 = TLightInstance;
+  PDynArrayItem_1 = PLightInstance;
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
-  TDynActiveLightArray = class(TDynArray_1)
+  TDynLightInstanceArray = class(TDynArray_1)
   public
     { Find given light node on the list. Return -1 if not found. }
-    function IndexOfLightNode(LightNode: TNodeX3DLightNode): integer;
+    function IndexOfNode(Node: TNodeX3DLightNode): integer;
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
   end;
-  TArray_ActiveLight = TInfiniteArray_1;
-  PArray_ActiveLight = PInfiniteArray_1;
+  TArray_LightInstance = TInfiniteArray_1;
+  PArray_LightInstance = PInfiniteArray_1;
 
   { Clipping plane, along with a tranformation. }
   TClipPlane = record
@@ -387,8 +388,8 @@ type
     { Lights active in this state, two separate versions for each VRML flavor
       needed here.
 
-      VRML2ActiveLights should be for any VRML >= 2 (including X3D),
-      VRML1ActiveLights should be for any VRML <= 1 (including Inventor).
+      VRML2Lights should be for any VRML >= 2 (including X3D),
+      VRML1Lights should be for any VRML <= 1 (including Inventor).
 
       Always @nil if empty. This way we optimize creation / assignment time,
       which happen very often with TVRMLGraphTraverseState during VRML
@@ -400,30 +401,30 @@ type
       since some lights are limited by radius and may be determined to
       not light here.
 
-      Also, note that VRML2ActiveLights cannot be fully calculated in Traverse
+      Also, note that VRML2Lights cannot be fully calculated in Traverse
       pass (contrary to everything else in TVRMLGraphTraverseState).
       DirectionalLights are calculated here, but positional lights have
       to be calculated later (VRML 2 spec says that they affect whole scene,
       based on their radius, and regardless of their position in VRML graph;
       so this is not possible to fill during Traverse call).
-      See how UpdateVRML2ActiveLights in TVRMLScene does this.
+      See how UpdateVRML2Lights in TVRMLScene does this.
 
       It's guaranteed that VRML/X3D lights change only these
-      *ActiveLights properties during traversing, not anything else.
+      *Lights properties during traversing, not anything else.
       TVRMLScene.ChangedField (may) depend on that. }
-    VRML1ActiveLights, VRML2ActiveLights: TDynActiveLightArray;
+    VRML1Lights, VRML2Lights: TDynLightInstanceArray;
 
-    procedure AddVRML1ActiveLight(const Light: TActiveLight);
-    procedure AddVRML2ActiveLight(const Light: TActiveLight);
+    procedure AddVRML1Light(const Light: TLightInstance);
+    procedure AddVRML2Light(const Light: TLightInstance);
 
-    { Returns VRML1ActiveLights or VRML2ActiveLights, based on VRML
+    { Returns VRML1Lights or VRML2Lights, based on VRML
       flavor used to render with this state.
 
       More precisely, it checks "VRML flavor" by looking at ShapeNode:
       when ShapeNode is @nil, we're in VRML 1 mode, otherwise in VRML 2 mode.
 
       Remember that result may be @nil if there are no light sources. }
-    function CurrentActiveLights: TDynActiveLightArray;
+    function Lights: TDynLightInstanceArray;
 
   public
     { Current transformation. }
@@ -2346,25 +2347,25 @@ begin
     Result += [vkExposedField, vkInputOutput];
 end;
 
-{ TDynActiveLightArray --------------------------------------------------------- }
+{ TDynLightInstanceArray --------------------------------------------------------- }
 
-function TDynActiveLightArray.IndexOfLightNode(LightNode: TNodeX3DLightNode): integer;
+function TDynLightInstanceArray.IndexOfNode(Node: TNodeX3DLightNode): integer;
 begin
   for Result := 0 to High do
-    if Items[Result].LightNode = LightNode then
+    if Items[Result].Node = Node then
       Exit;
   Result := -1;
 end;
 
-function TDynActiveLightArray.Equals(SecondValue: TObject): boolean;
+function TDynLightInstanceArray.Equals(SecondValue: TObject): boolean;
 
-  function ActiveLightEquals(const L1, L2: TActiveLight): boolean;
+  function LightInstanceEquals(const L1, L2: TLightInstance): boolean;
   begin
-    Result := (L1.LightNode = L2.LightNode) and
+    Result := (L1.Node = L2.Node) and
       MatricesPerfectlyEqual(L1.Transform, L2.Transform);
 
-    { No need to compare TransfLocation or TransfNormDirection,
-      as they are just precalculated based on LightNode and Transform. }
+    { No need to compare things like Location or Direction,
+      as they are just precalculated based on Node and Transform. }
   end;
 
 var
@@ -2372,11 +2373,11 @@ var
 begin
   Result :=
     (SecondValue <> nil) and
-    (SecondValue is TDynActiveLightArray) and
-    (TDynActiveLightArray(SecondValue).Count = Count);
+    (SecondValue is TDynLightInstanceArray) and
+    (TDynLightInstanceArray(SecondValue).Count = Count);
   if Result then
     for I := 0 to High do
-      if not ActiveLightEquals(Items[I], TDynActiveLightArray(SecondValue).Items[I]) then
+      if not LightInstanceEquals(Items[I], TDynLightInstanceArray(SecondValue).Items[I]) then
         Exit(false);
 end;
 
@@ -2446,8 +2447,8 @@ begin
     FLastNodes.Nodes[SN] := nil;
   end;
 
-  FreeAndNil(VRML1ActiveLights);
-  FreeAndNil(VRML2ActiveLights);
+  FreeAndNil(VRML1Lights);
+  FreeAndNil(VRML2Lights);
   FreeAndNil(PointingDeviceSensors);
   FreeAndNil(ClipPlanes);
   FreeAndNil(Effects);
@@ -2471,24 +2472,24 @@ begin
   LocalFog := nil;
 
   PointingDeviceSensors.Count := 0;
-  FreeAndNil(VRML1ActiveLights);
-  FreeAndNil(VRML2ActiveLights);
+  FreeAndNil(VRML1Lights);
+  FreeAndNil(VRML2Lights);
   FreeAndNil(ClipPlanes);
   FreeAndNil(Effects);
 end;
 
-procedure TVRMLGraphTraverseState.AddVRML1ActiveLight(const Light: TActiveLight);
+procedure TVRMLGraphTraverseState.AddVRML1Light(const Light: TLightInstance);
 begin
-  if VRML1ActiveLights = nil then
-    VRML1ActiveLights := TDynActiveLightArray.Create;
-  VRML1ActiveLights.Add(Light);
+  if VRML1Lights = nil then
+    VRML1Lights := TDynLightInstanceArray.Create;
+  VRML1Lights.Add(Light);
 end;
 
-procedure TVRMLGraphTraverseState.AddVRML2ActiveLight(const Light: TActiveLight);
+procedure TVRMLGraphTraverseState.AddVRML2Light(const Light: TLightInstance);
 begin
-  if VRML2ActiveLights = nil then
-    VRML2ActiveLights := TDynActiveLightArray.Create;
-  VRML2ActiveLights.Add(Light);
+  if VRML2Lights = nil then
+    VRML2Lights := TDynLightInstanceArray.Create;
+  VRML2Lights.Add(Light);
 end;
 
 function TVRMLGraphTraverseState.AddClipPlane: PClipPlane;
@@ -2514,21 +2515,21 @@ begin
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
 
-  if Source.VRML1ActiveLights <> nil then
+  if Source.VRML1Lights <> nil then
   begin
-    if VRML1ActiveLights = nil then
-      VRML1ActiveLights := TDynActiveLightArray.Create;
-    VRML1ActiveLights.Assign(Source.VRML1ActiveLights);
+    if VRML1Lights = nil then
+      VRML1Lights := TDynLightInstanceArray.Create;
+    VRML1Lights.Assign(Source.VRML1Lights);
   end else
-    FreeAndNil(VRML1ActiveLights);
+    FreeAndNil(VRML1Lights);
 
-  if Source.VRML2ActiveLights <> nil then
+  if Source.VRML2Lights <> nil then
   begin
-    if VRML2ActiveLights = nil then
-      VRML2ActiveLights := TDynActiveLightArray.Create;
-    VRML2ActiveLights.Assign(Source.VRML2ActiveLights);
+    if VRML2Lights = nil then
+      VRML2Lights := TDynLightInstanceArray.Create;
+    VRML2Lights.Assign(Source.VRML2Lights);
   end else
-    FreeAndNil(VRML2ActiveLights);
+    FreeAndNil(VRML2Lights);
 end;
 
 procedure TVRMLGraphTraverseState.AssignTransform(
@@ -2610,11 +2611,11 @@ begin
   end;
 end;
 
-function TVRMLGraphTraverseState.CurrentActiveLights: TDynActiveLightArray;
+function TVRMLGraphTraverseState.Lights: TDynLightInstanceArray;
 begin
   if ShapeNode = nil then
-    Result := VRML1ActiveLights else
-    Result := VRML2ActiveLights;
+    Result := VRML1Lights else
+    Result := VRML2Lights;
 end;
 
 procedure TVRMLGraphTraverseState.SetLastNodes(const StateNode: TVRML1StateNode;

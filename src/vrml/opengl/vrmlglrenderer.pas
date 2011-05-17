@@ -2427,7 +2427,7 @@ procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 var
   FontStyle: TNodeFontStyle_2;
   I: Integer;
-  Lights: TDynActiveLightArray;
+  Lights: TDynLightInstanceArray;
   Texture: TNodeX3DTextureNode;
 begin
   { przygotuj font }
@@ -2494,10 +2494,10 @@ begin
   if State.Effects <> nil then
     PrepareIDecls(State.Effects, State);
 
-  Lights := State.CurrentActiveLights;
+  Lights := State.Lights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
-      PrepareIDecls(Lights.Items[I].LightNode.FdEffects, State);
+      PrepareIDecls(Lights.Items[I].Node.FdEffects, State);
 
   Texture := State.Texture;
   if Texture <> nil then
@@ -2920,7 +2920,7 @@ procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
 var
   LightsEnabled: Cardinal;
   I: Integer;
-  Lights: TDynActiveLightArray;
+  Lights: TDynLightInstanceArray;
 begin
   { When lighting is off (for either shaders or fixed-function),
     there is no point in setting up lights. }
@@ -2933,7 +2933,7 @@ begin
     begin
       { Done before loading State.Transform, as the lights
         positions/directions are in world coordinates. }
-      Lights := Shape.State.CurrentActiveLights;
+      Lights := Shape.State.Lights;
       LightsRenderer.Render(Lights, LightsEnabled);
       if Lights <> nil then
       begin

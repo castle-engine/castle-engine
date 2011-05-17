@@ -319,7 +319,7 @@ type
   begin
     if (Child is TNodeX3DLightNode) and
        (not TNodeX3DLightNode(Child).FdGlobal.Value) then
-      { We do CreateActiveLight with State from TVRMLGroupingNode node,
+      { We do CreateLightInstance with State from TVRMLGroupingNode node,
         while precisely we should rather use State from TNodeX3DLightNode
         traverse. But, fortunately, State of TNodeX3DLightNode doesn't
         change inside (TNodeX3DLightNode doesn't do anything inside
@@ -328,8 +328,8 @@ type
         for TVRMLPositionalLightNode with HasRadius = true.
         E.g. PointLight with global = false should be limited by *both*
         scope (in graph hierarchy) and radius, as far as I understand. }
-      State.AddVRML2ActiveLight(
-        TNodeX3DLightNode(Child).CreateActiveLight(State)) else
+      State.AddVRML2Light(
+        TNodeX3DLightNode(Child).CreateLightInstance(State)) else
     if Child is TNodeX3DPointingDeviceSensorNode then
     begin
       { Testing for WasPointingDeviceSensor guarantees that multiple
@@ -391,9 +391,9 @@ begin
     be the fastest and simplest method of propagating non-global
     correctly...
 
-    First approach was to add ParentGroup to TActiveLight
+    First approach was to add ParentGroup to TLightInstance
     and do it as post-processing step, i.e. in TVRMLScene in
-    UpdateVRML2ActiveLights take this ParentGroup and add light everywhere.
+    UpdateVRML2Lights take this ParentGroup and add light everywhere.
     But that was 1. even slower, since it must traverse ParentGroup once again
     for each directional light, and for each shape within this ParentGroup,
     it must find all it's occurrences inside Shapes, and add light there

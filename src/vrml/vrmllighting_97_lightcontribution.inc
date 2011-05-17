@@ -40,7 +40,7 @@ var Spot: Single;
     { Uzywamy dropOffRate VRMLa 1.0 zeby sprawic by spot byl
       bardziej "skupiony" zgodnie z rownaniami swiatla OpenGLa.
       W VRMLu 97 skupienie spota jest okreslane inaczej, przez beamWidth. }
-    CosSpotAngle := (-LightDirNorm) ** Light.TransfNormDirection;
+    CosSpotAngle := (-LightDirNorm) ** Light.Direction;
     { TODO: optimize: no need to calc ArcCos here if we would precalc
       CosCutOffAngle for every light. }
     SpotAngle := ArcCos(CosSpotAngle);
@@ -53,7 +53,7 @@ var Spot: Single;
   var
     CosSpotAngle, SpotAngle, SpotCO, SpotBW: Single;
   begin
-    CosSpotAngle := (-LightDirNorm) ** Light.TransfNormDirection;
+    CosSpotAngle := (-LightDirNorm) ** Light.Direction;
     SpotAngle := ArcCos(CosSpotAngle);
     SpotCO := SpotLight.FdCutOffAngle.Value;
     SpotBW := SpotLight.FdBeamWidth.Value;
@@ -98,7 +98,7 @@ begin
    MaterialShininessExp := M1.ShininessExp(0);
  end;
  {$endif}
- LightNode := TNodeX3DLightNode(Light.LightNode);
+ LightNode := TNodeX3DLightNode(Light.Node);
 
  if (not LightNode.FdOn.Value) then
  begin
@@ -113,15 +113,15 @@ begin
  if LightNode is TVRMLPositionalLightNode then
  begin
   if PosLightNode.DistanceNeededForAttenuation then
-   Attenuat := PosLightNode.Attenuation( PointsDistance(Point, Light.TransfLocation) ) else
+   Attenuat := PosLightNode.Attenuation( PointsDistance(Point, Light.Location) ) else
    Attenuat := PosLightNode.Attenuation( Single(0.0) );
  end else
   Attenuat := 1;
 
  { LightDirNorm is called "L" in the equation in VRML spec }
  if LightNode is TVRMLPositionalLightNode then
-  LightDirNorm := Normalized(Light.TransfLocation - Point) else
-  LightDirNorm := -Light.TransfNormDirection;
+  LightDirNorm := Normalized(Light.Location - Point) else
+  LightDirNorm := -Light.Direction;
  { wektory Normal i LightDirNorm musza wychodzic z tej samej strony
    powierzchni TriNormPlaneSingle (musimy przeciez zrobic cos co w OpenGLu
    jest okreslane jako two-sided lighting, czyli wziac albo Normal albo

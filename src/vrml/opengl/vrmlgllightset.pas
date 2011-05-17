@@ -26,10 +26,10 @@ type
 
     By default, LightOn is the value of Light.LightNode.FdOn field.
     You can change it if you want. }
-  TVRMLLightRenderEvent = procedure (const Light: TActiveLight;
+  TVRMLLightRenderEvent = procedure (const Light: TLightInstance;
     var LightOn: boolean) of object;
 
-  { Render many light sets (TDynActiveLightArray) and avoid
+  { Render many light sets (TDynLightInstanceArray) and avoid
     to configure the same light many times.
 
     Sets OpenGL lights properties, enabling and disabling them as needed.
@@ -43,7 +43,7 @@ type
     FGLLightNum1, FGLLightNum2: Integer;
     FLightRenderEvent: TVRMLLightRenderEvent;
     LightsKnown: boolean;
-    function NeedRenderLight(Index: Integer; Light: PActiveLight): boolean;
+    function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
   public
     { Statistics of how many OpenGL light setups were done
       (Statistics[true]) vs how many were avoided (Statistics[false]).
@@ -52,19 +52,19 @@ type
       calls). }
     Statistics: array [boolean] of Cardinal;
 
-    LightsDone: array of PActiveLight;
+    LightsDone: array of PLightInstance;
 
     constructor Create(const AGLLightNum1, AGLLightNum2: Integer;
       const ALightRenderEvent: TVRMLLightRenderEvent);
 
     { Sets OpenGL lights properties, enabling and disabling them as needed.
-      Lights (TDynActiveLightArray) may be @nil,
+      Lights (TDynLightInstanceArray) may be @nil,
       it's equal to passing an empty array of lights.
 
       Returns LightsEnabled, a number of enabled lights, including GLLightNum1
       (in other words, it assumes that first GLLightNum1 lights are already
       reserved and enabled by caller). }
-    procedure Render(Lights: TDynActiveLightArray; out LightsEnabled: Cardinal);
+    procedure Render(Lights: TDynLightInstanceArray; out LightsEnabled: Cardinal);
 
     property GLLightNum1: Integer read FGLLightNum1;
     property GLLightNum2: Integer read FGLLightNum2;
@@ -112,7 +112,7 @@ uses SysUtils, KambiUtils, Math;
   then we set GL_SPOT_CUTOFF to 180 (indicates that light has no spot),
   but don't necessarily set GL_SPOT_DIRECTION or GL_SPOT_EXPONENT
   (as OpenGL will not use them anyway). }
-procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight);
+procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance);
 
   { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
   procedure SetupDirectionalLight(LightNode: TVRMLDirectionalLightNode);
@@ -211,22 +211,22 @@ begin
   try
     glMultMatrix(Light.Transform);
 
-    if Light.LightNode is TVRMLDirectionalLightNode then
-      SetupDirectionalLight(TVRMLDirectionalLightNode(Light.LightNode)) else
-    if Light.LightNode is TVRMLPointLightNode then
-      SetupPointLight(TVRMLPointLightNode(Light.LightNode)) else
-    if Light.LightNode is TNodeSpotLight_1 then
-      SetupSpotLight_1(TNodeSpotLight_1(Light.LightNode)) else
-    if Light.LightNode is TNodeSpotLight_2 then
-      SetupSpotLight_2(TNodeSpotLight_2(Light.LightNode)) else
+    if Light.Node is TVRMLDirectionalLightNode then
+      SetupDirectionalLight(TVRMLDirectionalLightNode(Light.Node)) else
+    if Light.Node is TVRMLPointLightNode then
+      SetupPointLight(TVRMLPointLightNode(Light.Node)) else
+    if Light.Node is TNodeSpotLight_1 then
+      SetupSpotLight_1(TNodeSpotLight_1(Light.Node)) else
+    if Light.Node is TNodeSpotLight_2 then
+      SetupSpotLight_2(TNodeSpotLight_2(Light.Node)) else
       raise EInternalError.Create('Unknown light node class');
 
     { setup attenuation for OpenGL light }
     SetNoAttenuation := true;
 
-    if (Light.LightNode is TVRMLPositionalLightNode) then
+    if (Light.Node is TVRMLPositionalLightNode) then
     begin
-      Attenuat := TVRMLPositionalLightNode(Light.LightNode).FdAttenuation.Value;
+      Attenuat := TVRMLPositionalLightNode(Light.Node).FdAttenuation.Value;
       if not ZeroVector(Attenuat) then
       begin
         SetNoAttenuation := false;
@@ -247,16 +247,16 @@ begin
   finally glPopMatrix end;
 
   { calculate Color4 = light color * light intensity }
-  Color3 := VectorScale(Light.LightNode.FdColor.Value,
-    Light.LightNode.FdIntensity.Value);
+  Color3 := VectorScale(Light.Node.FdColor.Value,
+    Light.Node.FdIntensity.Value);
   Color4 := Vector4Single(Color3, 1);
 
   { calculate AmbientColor4 = light color * light ambient intensity }
-  if Light.LightNode.FdAmbientIntensity.Value < 0 then
+  if Light.Node.FdAmbientIntensity.Value < 0 then
     AmbientColor4 := Color4 else
   begin
-    AmbientColor3 := VectorScale(Light.LightNode.FdColor.Value,
-      Light.LightNode.FdAmbientIntensity.Value);
+    AmbientColor3 := VectorScale(Light.Node.FdColor.Value,
+      Light.Node.FdAmbientIntensity.Value);
     AmbientColor4 := Vector4Single(AmbientColor3, 1);
   end;
 
@@ -269,13 +269,13 @@ end;
 
 procedure RenderLights(
   const Cache: TVRMLGLLightsCachingRenderer;
-  const Lights: TDynActiveLightArray;
+  const Lights: TDynLightInstanceArray;
   const GLLightNum1, GLLightNum2: Integer;
   const LightRenderEvent: TVRMLLightRenderEvent;
   out LightsEnabled: Cardinal);
 var
   I: Integer;
-  Light: PActiveLight;
+  Light: PLightInstance;
   LightOn: boolean;
 begin
   LightsEnabled := GLLightNum1;
@@ -286,7 +286,7 @@ begin
     begin
       Light := Lights.Pointers[I];
 
-      LightOn := Light^.LightNode.FdOn.Value;
+      LightOn := Light^.Node.FdOn.Value;
       if Assigned(LightRenderEvent) then
         LightRenderEvent(Light^, LightOn);
 
@@ -324,7 +324,7 @@ begin
     SetLength(LightsDone, GLLightNum2 - GLLightNum1 + 1);
 end;
 
-function TVRMLGLLightsCachingRenderer.NeedRenderLight(Index: Integer; Light: PActiveLight): boolean;
+function TVRMLGLLightsCachingRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
 begin
   Result := not (
     LightsKnown and
@@ -334,11 +334,11 @@ begin
       or
       { Light Index is currently enabled, and we want it enabled,
         with the same LightNode and Transform: Ok.
-        (Other TActiveLight record properties are calculated from
+        (Other TLightInstance record properties are calculated from
         LightNode and Transform, so no need to compare them). }
       ( (LightsDone[Index] <> nil) and
         (Light <> nil) and
-        (LightsDone[Index]^.LightNode = Light^.LightNode) and
+        (LightsDone[Index]^.Node = Light^.Node) and
         (MatricesPerfectlyEqual(
           LightsDone[Index]^.Transform, Light^.Transform)) )
     ));
@@ -348,7 +348,7 @@ begin
   Inc(Statistics[Result]);
 end;
 
-procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynActiveLightArray;
+procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynLightInstanceArray;
   out LightsEnabled: Cardinal);
 begin
   RenderLights(Self, Lights, GLLightNum1, GLLightNum2,

@@ -580,7 +580,7 @@ type
     { For all Billboard nodes }
     BillboardInstancesList: TTransformInstancesList;
 
-    ChangedAll_TraversedLights: TDynActiveLightArray;
+    ChangedAll_TraversedLights: TDynLightInstanceArray;
 
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
@@ -2777,7 +2777,7 @@ begin
 
     { Add lights to ChangedAll_TraversedLights }
     ParentScene.ChangedAll_TraversedLights.Add(
-      (Node as TNodeX3DLightNode).CreateActiveLight(StateStack.Top));
+      (Node as TNodeX3DLightNode).CreateLightInstance(StateStack.Top));
   end else
 
   if Node is TNodeSwitch_2 then
@@ -2924,18 +2924,18 @@ end;
 
 procedure TVRMLScene.ChangedAll;
 
-  { VRML2ActiveLights are magically updated for all states in
+  { VRML2Lights are magically updated for all states in
     @link(Shapes) tree. This is crucial for lights rendering in VRML >= 2.0. }
-  procedure UpdateVRML2ActiveLights;
+  procedure UpdateVRML2Lights;
 
-    procedure AddLightEverywhere(const L: TActiveLight);
+    procedure AddLightEverywhere(const L: TLightInstance);
     var
       SI: TVRMLShapeTreeIterator;
     begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          SI.Current.State.AddVRML2ActiveLight(L);
+          SI.Current.State.AddVRML2Light(L);
       finally FreeAndNil(SI) end;
     end;
 
@@ -2943,7 +2943,7 @@ procedure TVRMLScene.ChangedAll;
       Note that this will calculate BoundingBox of every Shape
       (but that's simply unavoidable if you have scene with VRML 2.0
       positional lights). }
-    procedure AddLightRadius(const L: TActiveLight;
+    procedure AddLightRadius(const L: TLightInstance;
       const Location: TVector3Single; const Radius: Single);
     var
       SI: TVRMLShapeTreeIterator;
@@ -2952,21 +2952,21 @@ procedure TVRMLScene.ChangedAll;
       try
         while SI.GetNext do
           if Box3DSphereCollision(SI.Current.BoundingBox, Location, Radius) then
-            SI.Current.State.AddVRML2ActiveLight(L);
+            SI.Current.State.AddVRML2Light(L);
       finally FreeAndNil(SI) end;
     end;
 
   var
     I: Integer;
-    L: PActiveLight;
+    L: PLightInstance;
     LNode: TNodeX3DLightNode;
   begin
     for I := 0 to ChangedAll_TraversedLights.High do
     begin
       { TODO: for spot lights, it would be an optimization to also limit
-        ActiveLights by spot cone size. }
+        LightInstances by spot cone size. }
       L := ChangedAll_TraversedLights.Pointers[I];
-      LNode := L^.LightNode;
+      LNode := L^.Node;
 
       { Lights with global = false should be handled by
         TVRMLGroupingNode.BeforeTraverse. Here we only deal with
@@ -2976,7 +2976,7 @@ procedure TVRMLScene.ChangedAll;
       begin
         if (LNode is TVRMLPositionalLightNode) and
            TVRMLPositionalLightNode(LNode).HasRadius then
-          AddLightRadius(L^, L^.TransfLocation, L^.TransfRadius) else
+          AddLightRadius(L^, L^.Location, L^.Radius) else
           AddLightEverywhere(L^);
       end;
     end;
@@ -3045,7 +3045,7 @@ begin
     { Clear variables after removing fvManifoldAndBorderEdges from Validities }
     InvalidateManifoldAndBorderEdges;
 
-    ChangedAll_TraversedLights := TDynActiveLightArray.Create;
+    ChangedAll_TraversedLights := TDynLightInstanceArray.Create;
     try
       { Clean Shapes, ShapeLODs }
       FreeAndNil(FShapes);
@@ -3064,7 +3064,7 @@ begin
           RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
         finally FreeAndNil(Traverser) end;
 
-        UpdateVRML2ActiveLights;
+        UpdateVRML2Lights;
 
         ChangedAllEnumerate;
       end;
@@ -3303,22 +3303,22 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
 
   procedure HandleLight(LightNode: TNodeX3DLightNode);
   { When the transformation of light node changes, we should update every
-    TActiveLight record of this light in every shape.
+    TLightInstance record of this light in every shape.
 
     TODO: code below updates too much, if the light was instantiated
     many times then only some occurrences should be updated, not all.
 
     TODO: for global lights, limited by radius field,
-    we should also add / remove this light from some CurrentActiveLights. }
+    we should also add / remove this light from some TVRMLGraphTraverseState.Lights. }
 
-    procedure HandleLightsList(List: TDynActiveLightArray);
+    procedure HandleLightsList(List: TDynLightInstanceArray);
     var
       I: Integer;
     begin
       if List <> nil then
         for I := 0 to List.Count - 1 do
-          if List.Items[I].LightNode = LightNode then
-            LightNode.UpdateActiveLightState(List.Items[I], StateStack.Top);
+          if List.Items[I].Node = LightNode then
+            LightNode.UpdateLightInstanceState(List.Items[I], StateStack.Top);
     end;
 
   var
@@ -3330,11 +3330,11 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
       while SI.GetNext do
       begin
         Current := SI.Current;
-        HandleLightsList(Current.OriginalState.CurrentActiveLights);
+        HandleLightsList(Current.OriginalState.Lights);
         if Current.State(true) <> Current.OriginalState then
-          HandleLightsList(Current.State(true).CurrentActiveLights);
+          HandleLightsList(Current.State(true).Lights);
         if Current.State(false) <> Current.OriginalState then
-          HandleLightsList(Current.State(false).CurrentActiveLights);
+          HandleLightsList(Current.State(false).Lights);
         ParentScene.VisibleChangeHere([vcVisibleNonGeometry]);
       end;
     finally FreeAndNil(SI) end;
@@ -3642,36 +3642,37 @@ var
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
-  procedure HandleChangeLightActiveProperty;
+  procedure HandleChangeLightInstanceProperty;
   var
     J: integer;
     SI: TVRMLShapeTreeIterator;
-    ActiveLight: PActiveLight;
+    LightInstance: PLightInstance;
     LightNode: TNodeX3DLightNode;
   begin
     LightNode := Node as TNodeX3DLightNode;
 
-    { Update all TActiveLight records with LightNode = this Node.
+    { Update all TLightInstance records with LightNode = this Node.
 
-      TODO: what if some CurrentActiveLights need to be updated?
+      TODO: what if some TVRMLGraphTraverseState.Lights need to be updated?
       Code below fails for this.
 
       To be fixed (at the same time taking into account that in X3D
       "global" is exposed field and so may change during execution) by
-      constructing CurrentActiveLights always with global = TRUE assumption.
+      constructing TVRMLGraphTraverseState.Lights always with global = TRUE assumption.
       RenderShapeLights will have to take care of eventual "radius"
-      constraints. }
+      constraints. Or not --- this will hurt performance, global = FALSE
+      is a good optimization for local lights, we don't want long lights list. }
 
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        if SI.Current.State.CurrentActiveLights <> nil then
-          for J := 0 to SI.Current.State.CurrentActiveLights.Count - 1 do
+        if SI.Current.State.Lights <> nil then
+          for J := 0 to SI.Current.State.Lights.Count - 1 do
           begin
-            ActiveLight := @(SI.Current.State.CurrentActiveLights.Items[J]);
-            if ActiveLight^.LightNode = LightNode then
+            LightInstance := @(SI.Current.State.Lights.Items[J]);
+            if LightInstance^.Node = LightNode then
             begin
-              LightNode.UpdateActiveLight(ActiveLight^);
+              LightNode.UpdateLightInstance(LightInstance^);
               VisibleChangeHere([vcVisibleNonGeometry]);
             end;
           end;
@@ -4089,7 +4090,7 @@ begin
     if Changes * [chVisibleVRML1State, chGeometryVRML1State] <> [] then
       HandleVRML1State;
     if chMaterial2 in Changes then HandleChangeMaterial;
-    if chLightActiveProperty    in Changes then HandleChangeLightActiveProperty;
+    if chLightInstanceProperty  in Changes then HandleChangeLightInstanceProperty;
     if chLightForShadowVolumes  in Changes then HandleChangeLightForShadowVolumes;
     if chLightLocationDirection in Changes then HandleChangeLightLocationDirection;
     if chSwitch2 in Changes then HandleChangeSwitch2;

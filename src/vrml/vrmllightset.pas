@@ -27,7 +27,7 @@ type
     If you change anything inside the
     RootNode you should recalculate Lights by calling CalculateLights.
 
-    Remember that on TDynActiveLightArray light nodes are only referenced,
+    Remember that on TDynLightInstanceArray light nodes are only referenced,
     so you can't free RootNode after creating this object if you plan
     to use generated Lights somewhere. So RootNode must be valid for the lifetime
     of this object. So the easiest situation is if you can let OwnsRootNode to be
@@ -36,7 +36,7 @@ type
   private
     FOwnsRootNode: boolean;
     FRootNode: TVRMLNode;
-    FLights: TDynActiveLightArray;
+    FLights: TDynLightInstanceArray;
     procedure AddToLights(
       Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
@@ -52,7 +52,7 @@ type
       Contents of this object are readonly from outside.
       Regenerate them manually (when you change anything in RootNode)
       by calling CalculateLights. }
-    property Lights: TDynActiveLightArray read FLights;
+    property Lights: TDynLightInstanceArray read FLights;
 
     { Recalculate Lights property (based on RootNode). }
     procedure CalculateLights; virtual;
@@ -90,7 +90,7 @@ begin
   FRootNode := ARootNode;
   FOwnsRootNode := AOwnsRootNode;
 
-  FLights := TDynActiveLightArray.Create;
+  FLights := TDynLightInstanceArray.Create;
 
   CalculateLights;
 end;
@@ -106,7 +106,7 @@ procedure TVRMLLightSet.AddToLights(
   Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 begin
-  Lights.Add((Node as TNodeX3DLightNode).CreateActiveLight(StateStack.Top));
+  Lights.Add((Node as TNodeX3DLightNode).CreateLightInstance(StateStack.Top));
 end;
 
 procedure TVRMLLightSet.CalculateLights;
@@ -119,24 +119,24 @@ function TVRMLLightSet.MainLightForShadows(
   out AMainLightPosition: TVector4Single): boolean;
 var
   MyLightNum: Integer;
-  L: PActiveLight;
+  L: PLightInstance;
 begin
   { Find main light, set Result and AMainLightPosition. }
   Result := false;
   L := Lights.Pointers[0];
   for MyLightNum := 0 to Lights.Count - 1 do
   begin
-    if L^.LightNode.FdKambiShadows.Value and
-       L^.LightNode.FdKambiShadowsMain.Value then
+    if L^.Node.FdKambiShadows.Value and
+       L^.Node.FdKambiShadowsMain.Value then
     begin
       Result := true;
-      if L^.LightNode is TVRMLPositionalLightNode then
-        AMainLightPosition := Vector4Single(L^.TransfLocation, 1) else
-      if L^.LightNode is TVRMLDirectionalLightNode then
-        AMainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
+      if L^.Node is TVRMLPositionalLightNode then
+        AMainLightPosition := Vector4Single(L^.Location, 1) else
+      if L^.Node is TVRMLDirectionalLightNode then
+        AMainLightPosition := Vector4Single(L^.Direction, 0) else
         raise Exception.CreateFmt('TVRMLGLLightSet.MainLightForShadows: ' +
           'light node "%s" cannot be used to cast shadows, it has no position ' +
-          'and no direction', [L^.LightNode.NodeTypeName]);
+          'and no direction', [L^.Node.NodeTypeName]);
       Break;
     end;
     Inc(L);

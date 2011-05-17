@@ -63,7 +63,7 @@ type
 }
 procedure TriangleLightMapTo1st(const Image: TImage;
   LeftDownImagePart: boolean;
-  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TDynLightInstanceArray; Octree: TVRMLBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
@@ -78,7 +78,7 @@ procedure TriangleLightMapTo1st(const Image: TImage;
 
   @seealso TriangleLightMapTo1st }
 procedure QuadLightMapTo1st(const Image: TImage;
-  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TDynLightInstanceArray; Octree: TVRMLBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
   const ProgresTitle: string);
@@ -88,13 +88,13 @@ implementation
 uses KambiUtils, VRMLLighting, ProgressUnit;
 
 function PointLightMap(const Point, PointPlaneNormal: TVector3Single;
-  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TDynLightInstanceArray; Octree: TVRMLBaseTrianglesOctree;
   const RenderDir: TVector3Single): TVector3Single;
 var i: Integer;
 begin
  result := ZeroVector3Single;
  for i := 0 to Lights.Count-1 do
-  if Octree.ActiveLightNotBlocked(Lights.Items[i], Point, PointPlaneNormal,
+  if Octree.LightNotBlocked(Lights.Items[i], Point, PointPlaneNormal,
     RenderDir, nil, true) then
    VectorAddTo1st(result, VRML97LightContribution_CameraIndependent(
      Lights.Items[i], Point, PointPlaneNormal, White3Single));
@@ -102,7 +102,7 @@ end;
 
 procedure TriangleLightMapTo1st(const Image: TImage;
   LeftDownImagePart: boolean;
-  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TDynLightInstanceArray; Octree: TVRMLBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
@@ -167,7 +167,7 @@ begin
 end;
 
 procedure QuadLightMapTo1st(const Image: TImage;
-  Lights: TDynActiveLightArray; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TDynLightInstanceArray; Octree: TVRMLBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
   const ProgresTitle: string);

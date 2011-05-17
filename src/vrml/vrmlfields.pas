@@ -144,19 +144,19 @@ type
       shapes that use given material need UseBlending recalculated. }
     chUseBlending,
 
-    { Light property that is taken into account in TActiveLight record changed.
+    { Light property that is also reflected in TLightInstance structure.
       Only allowed on node's descending from TNodeX3DLightNode.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
       Exception: include also chLightLocationDirection when appropriate. }
-    chLightActiveProperty,
+    chLightInstanceProperty,
 
     { Light's location and/or direction changed.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
-      Exception: include also chLightActiveProperty when appropriate. }
+      Exception: include also chLightInstanceProperty when appropriate. }
     chLightLocationDirection,
 
     { TVRMLScene.MainLightForShadows possibly changed because of this change.

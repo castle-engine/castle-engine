@@ -634,7 +634,7 @@ type
       SegmentCollision. You should usually set TriangleToIgnore to the
       triangle containing your LightedPoint and IgnoreMarginAtStart to @true,
       to avoid detecting point as shadowing itself. }
-    function ActiveLightNotBlocked(const Light: TActiveLight;
+    function LightNotBlocked(const Light: TLightInstance;
       const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
       const TriangleToIgnore: PVRMLTriangle;
       const IgnoreMarginAtStart: boolean): boolean;
@@ -1481,15 +1481,15 @@ begin
   Result := PVRMLTriangle(Triangle)^.IgnoreForShadowRays;
 end;
 
-function TVRMLBaseTrianglesOctree.ActiveLightNotBlocked(const Light: TActiveLight;
+function TVRMLBaseTrianglesOctree.LightNotBlocked(const Light: TLightInstance;
   const LightedPoint, LightedPointPlane, RenderDir: TVector3Single;
   const TriangleToIgnore: PVRMLTriangle;
   const IgnoreMarginAtStart: boolean): boolean;
 var LightPos: TVector3Single;
 begin
- if not Light.LightNode.FdOn.Value then result := false;
+ if not Light.Node.FdOn.Value then result := false;
 
- if Light.LightNode is TVRMLDirectionalLightNode then
+ if Light.Node is TVRMLDirectionalLightNode then
   { Swiatlo directional oznacza ze swiatlo polozone jest tak bardzo
     daleko ze wszystkie promienie od swiatla sa rownolegle.
 
@@ -1504,9 +1504,9 @@ begin
     i jezeli nic nie zaslania drogi od Point do tego punktu to
     znaczy ze swiatlo oswietla Intersection. }
   LightPos := VectorSubtract(LightedPoint,
-    VectorAdjustToLength(Light.TransfNormDirection,
+    VectorAdjustToLength(Light.Direction,
       3 * Box3DMaxSize(InternalTreeRoot.Box) ) ) else
-  LightPos := Light.TransfLocation;
+  LightPos := Light.Location;
 
  Result := (VectorsSamePlaneDirections(
        VectorSubtract(LightPos, LightedPoint),
