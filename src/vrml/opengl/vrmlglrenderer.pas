@@ -767,8 +767,12 @@ type
     { Actual GLSL program. May be @nil (if it failed to link). }
     ShaderProgram: TVRMLGLSLProgram;
 
+    References: Cardinal;
+
     destructor Destroy; override;
   end;
+
+  TShaderProgramCacheList = specialize TFPGObjectList<TShaderProgramCache>;
 
   TVRMLGLRenderer = class;
 
@@ -792,6 +796,7 @@ type
     Texture3DCaches: TDynTexture3DCacheArray;
     TextureDepthOrFloatCaches: TDynTextureDepthOrFloatCacheArray;
     ShapeCaches: TShapeCacheList;
+    ProgramCaches: TShaderProgramCacheList;
 
     { Load given texture to OpenGL, using our cache.
 
@@ -1275,6 +1280,7 @@ begin
   Texture3DCaches := TDynTexture3DCacheArray.Create;
   TextureDepthOrFloatCaches := TDynTextureDepthOrFloatCacheArray.Create;
   ShapeCaches := TShapeCacheList.Create;
+  ProgramCaches := TShaderProgramCacheList.Create;
 end;
 
 destructor TVRMLGLRendererContextCache.Destroy;
@@ -1343,6 +1349,13 @@ begin
     Assert(ShapeCaches.Count = 0, 'Some references to Shapes still exist' +
       ' when freeing TVRMLGLRendererContextCache');
     FreeAndNil(ShapeCaches);
+  end;
+
+  if ProgramCaches <> nil then
+  begin
+    Assert(ProgramCaches.Count = 0, 'Some references to GLSL programs still exist' +
+      ' when freeing TVRMLGLRendererContextCache');
+    FreeAndNil(ProgramCaches);
   end;
 
   inherited;
@@ -2063,8 +2076,24 @@ end;
 
 function TVRMLGLRendererContextCache.Program_IncReference(ARenderer: TVRMLGLRenderer;
   Shader: TVRMLShader; const ShapeNiceName: string): TShaderProgramCache;
+var
+  I: Integer;
 begin
+  for I := 0 to ProgramCaches.Count - 1 do
+  begin
+    Result := ProgramCaches[I];
+    if Result.Hash = Shader.CodeHash then
+    begin
+      Inc(Result.References);
+      if LogRendererCache and Log then
+        WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
+      Exit(Result);
+    end;
+  end;
+
   Result := TShaderProgramCache.Create;
+  ProgramCaches.Add(Result);
+  Result.References := 1;
   Result.Hash := Shader.CodeHash;
 
   try
@@ -2079,11 +2108,31 @@ begin
         [ShapeNiceName, E.Message]));
     end;
   end;
+
+  if LogRendererCache and Log then
+    WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
 end;
 
 procedure TVRMLGLRendererContextCache.Program_DecReference(var ProgramCache: TShaderProgramCache);
+var
+  I: Integer;
 begin
-  FreeAndNil(ProgramCache);
+  for I := 0 to ProgramCaches.Count - 1 do
+  begin
+    if ProgramCaches[I] = ProgramCache then
+    begin
+      Dec(ProgramCache.References);
+      if LogRendererCache and Log then
+        WritelnLog('--', 'Shader program (hash %s): %d', [ProgramCache.Hash.ToString, ProgramCache.References]);
+      if ProgramCache.References = 0 then
+        ProgramCaches.Delete(I);
+      ProgramCache := nil;
+      Exit;
+    end;
+  end;
+
+  raise EInternalError.Create(
+    'TVRMLGLRendererContextCache.Program_DecReference: no reference found');
 end;
 
 { TVRMLRenderingAttributes --------------------------------------------------- }

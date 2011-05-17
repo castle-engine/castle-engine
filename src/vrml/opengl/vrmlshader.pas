@@ -40,6 +40,8 @@ type
     procedure AddFloat(const F: Single);
     procedure AddPointer(Ptr: Pointer);
     procedure AddEffects(Nodes: TVRMLNodesList);
+  public
+    function ToString: string;
   end;
 
   { GLSL program integrated with VRML/X3D and TVRMLShader.
@@ -432,6 +434,11 @@ begin
     if (Nodes[I] is TNodeEffect) and
        TNodeEffect(Nodes[I]).FdEnabled.Value then
       AddPointer(Nodes[I]);
+end;
+
+function TShaderCodeHash.ToString: string;
+begin
+  Result := IntToStr(Sum) + '/' + IntToStr(XorValue);
 end;
 
 operator = (const A, B: TShaderCodeHash): boolean;
