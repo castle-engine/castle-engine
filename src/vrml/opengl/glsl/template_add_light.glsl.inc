@@ -2,7 +2,7 @@
 { DON'T EDIT -- this file was automatically generated from "template_add_light.glsl" }
 '/* Shader code used for adding light source contribution. */' + LineEnding + 
 '' + LineEnding + 
-'#ifdef LIGHT_TYPE_POSITIONAL' + LineEnding + 
+'#ifdef LIGHT_HAS_RADIUS' + LineEnding + 
 'uniform float kambi_light_light_number_radius;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
@@ -70,7 +70,7 @@
 '           gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
-'#ifdef LIGHT_TYPE_POSITIONAL' + LineEnding + 
+'#ifdef LIGHT_HAS_RADIUS' + LineEnding + 
 '  if (distance_to_light >= kambi_light_light_number_radius)' + LineEnding + 
 '    scale = 0.0;' + LineEnding + 
 '#endif' + LineEnding + 

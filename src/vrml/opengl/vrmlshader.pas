@@ -21,7 +21,7 @@ unit VRMLShader;
 interface
 
 uses VectorMath, GLShaders, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, KambiUtils;
+  VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, KambiUtils, Boxes3D;
 
 type
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
@@ -110,6 +110,7 @@ type
   private
     Number: Cardinal;
     Node: TNodeX3DLightNode;
+    Light: PActiveLight;
     MaterialSpecularColor: TVector3Single;
     Shader: TVRMLShader;
     { Code calculated (on demand, when method called) using above vars. }
@@ -212,6 +213,8 @@ type
       const PlugName, PlugValue: string;
       const InsertAtBeginIfNotFound: boolean): boolean;
   public
+    ShapeBoundingBox: TBox3D;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -270,7 +273,7 @@ type
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
       const NormalMapTextureUnit: Cardinal;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
-    procedure EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
+    procedure EnableLight(const Number: Cardinal; Light: PActiveLight;
       const MaterialSpecularColor: TVector3Single);
     procedure EnableFog(const FogType: TFogType);
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
@@ -421,8 +424,18 @@ begin
           Defines += '#define LIGHT_TYPE_SPOT' + NL;
         if TVRMLPositionalLightNode(Node).HasAttenuation then
           Defines += '#define LIGHT_HAS_ATTENUATION' + NL;
-        LightRadiusUniformName := 'kambi_light_%d_radius';
-        LightRadiusUniformValue := TVRMLPositionalLightNode(Node).FdRadius.Value;
+
+        if TVRMLPositionalLightNode(Node).HasRadius and
+          { Do not activate per-pixel checking of light radius,
+            if we know (by bounding box test below)
+            that the whole shape is completely within radius. }
+          (Box3DPointMaxDistance(Shader.ShapeBoundingBox,
+            Light^.TransfLocation) > Light^.TransfRadius) then
+        begin
+          Defines += '#define LIGHT_HAS_RADIUS' + NL;
+          LightRadiusUniformName := 'kambi_light_%d_radius';
+          LightRadiusUniformValue := Light^.TransfRadius;
+        end;
       end;
       if Node.FdAmbientIntensity.Value <> 0 then
         Defines += '#define LIGHT_HAS_AMBIENT' + NL;
@@ -1778,14 +1791,15 @@ begin
     ShapeRequiresShaders := true;
 end;
 
-procedure TVRMLShader.EnableLight(const Number: Cardinal; Node: TNodeX3DLightNode;
+procedure TVRMLShader.EnableLight(const Number: Cardinal; Light: PActiveLight;
   const MaterialSpecularColor: TVector3Single);
 var
   LightShader: TLightShader;
 begin
   LightShader := TLightShader.Create;
   LightShader.Number := Number;
-  LightShader.Node := Node;
+  LightShader.Light := Light;
+  LightShader.Node := Light^.LightNode;
   LightShader.MaterialSpecularColor := MaterialSpecularColor;
   LightShader.Shader := Self;
 
@@ -1794,8 +1808,8 @@ begin
   { Mark ShapeRequiresShaders now, don't depend on EnableEffects call doing it,
     as EnableEffects will be done from LinkProgram when it's too late
     to set ShapeRequiresShaders. }
-  if (Node <> nil) and
-     (Node.FdEffects.Count <> 0) then
+  if (Light^.LightNode <> nil) and
+     (Light^.LightNode.FdEffects.Count <> 0) then
     ShapeRequiresShaders := true;
 end;
 

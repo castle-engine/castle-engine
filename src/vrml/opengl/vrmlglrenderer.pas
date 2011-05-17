@@ -2873,6 +2873,7 @@ var
 begin
   Shader := TVRMLShader.Create;
   try
+    Shader.ShapeBoundingBox := Shape.BoundingBox;
     Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
     RenderShapeLineProperties(Shape, Fog, Shader);
   finally FreeAndNil(Shader) end;
@@ -2937,7 +2938,7 @@ begin
       if Lights <> nil then
       begin
         for I := FirstLight to Integer(LightsEnabled) - 1 do
-          Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight]^.LightNode,
+          Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight],
             MaterialSpecularColor);
       end;
     end;

@@ -1,6 +1,6 @@
 /* Shader code used for adding light source contribution. */
 
-#ifdef LIGHT_TYPE_POSITIONAL
+#ifdef LIGHT_HAS_RADIUS
 uniform float kambi_light_light_number_radius;
 #endif
 
@@ -68,7 +68,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
            gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light;
 #endif
 
-#ifdef LIGHT_TYPE_POSITIONAL
+#ifdef LIGHT_HAS_RADIUS
   if (distance_to_light >= kambi_light_light_number_radius)
     scale = 0.0;
 #endif
