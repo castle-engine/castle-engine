@@ -588,6 +588,8 @@ type
 
     function DebugInfo(const Indent: string = ''): string; override;
     function NiceName: string;
+    { @deprecated Deprecated name for NiceName. }
+    function DebugName: string;
 
     { Local geometry is treated as dynamic (changes very often, like every frame).
       This is automatically detected and set to @true, although you can also
@@ -2047,6 +2049,11 @@ end;
 function TVRMLShape.NiceName: string;
 begin
   Result := OriginalGeometry.NiceName;
+end;
+
+function TVRMLShape.DebugName: string;
+begin
+  Result := NiceName;
 end;
 
 function TVRMLShape.Node: TNodeX3DShapeNode;

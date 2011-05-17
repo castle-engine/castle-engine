@@ -481,6 +481,8 @@ type
     { Nice and concise field description for user.
       Describes parent node type, name and field/event's name. }
     function NiceName: string;
+    { @deprecated Deprecated name for NiceName. }
+    function FullName: string;
   end;
 
   TObjectsListItem_5 = TVRMLFieldOrEvent;
@@ -2802,6 +2804,11 @@ begin
   if Name <> '' then
     Result += Name else
     Result += '<not named field>';
+end;
+
+function TVRMLFieldOrEvent.FullName: string;
+begin
+  Result := NiceName;
 end;
 
 { TVRMLField ------------------------------------------------------------- }
