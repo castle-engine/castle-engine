@@ -1460,7 +1460,8 @@ begin
         S := TVRMLGLShape(SI.Current);
         if S.Cache <> nil then
           Renderer.Cache.Shape_DecReference(S.Cache);
-        S.FreeShaderProgram;
+        if S.ProgramCache <> nil then
+          Renderer.Cache.Program_DecReference(S.ProgramCache);
       end;
     finally FreeAndNil(SI) end;
   end;

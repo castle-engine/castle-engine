@@ -755,6 +755,21 @@ type
 
   TShapeCacheList = specialize TFPGObjectList<TShapeCache>;
 
+  TVRMLGLSLProgram = class;
+
+  TShaderProgramCache = class
+  public
+    { Hash of TVRMLShader code when initializing this shader
+      by LinkProgram. Used to decide when shader needs to be regenerated,
+      and when it can be shared. }
+    Hash: TShaderCodeHash;
+
+    { Actual GLSL program. May be @nil (if it failed to link). }
+    ShaderProgram: TVRMLGLSLProgram;
+
+    destructor Destroy; override;
+  end;
+
   TVRMLGLRenderer = class;
 
   { A cache that may be used by many TVRMLGLRenderer
@@ -884,6 +899,15 @@ type
       Fog: INodeX3DFogObject; ARenderer: TVRMLGLRenderer): TShapeCache;
 
     procedure Shape_DecReference(var ShapeCache: TShapeCache);
+
+    { Shader program cache. We return TShaderProgramCache,
+      either taking an existing instance from cache or creating and adding
+      a new one. If we create a new one, we will use Shader to initialize
+      program hash and to create and link actual TVRMLGLSLProgram instance. }
+    function Program_IncReference(ARenderer: TVRMLGLRenderer;
+      Shader: TVRMLShader): TShaderProgramCache;
+
+    procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
   end;
 
   {$I vrmlglrenderer_resource.inc}
@@ -894,21 +918,6 @@ type
   { VRML shape that can be rendered. }
   TVRMLRendererShape = class(TVRMLShape)
   private
-    { When ShaderProgramLoaded, then ShaderProgramHash is set
-      and ShaderProgram is initialized. }
-    ShaderProgramLoaded: boolean;
-
-    { Hash of TVRMLShader code used when initializing this shader
-      by LinkProgram. Used to decide when shader needs to be regenerated,
-      and when it can be shared.
-      Available if any only if ShaderProgramLoaded, otherwise undefined. }
-    ShaderProgramHash: TShaderCodeHash;
-
-    { Actual GLSL program.
-      When not ShaderProgramLoaded, it's always @nil.
-      When ShaderProgramLoaded, it may be @nil (if it failed to link). }
-    ShaderProgram: TVRMLGLSLProgram;
-
     { Generate VBO if needed, and reload VBO contents.
       Assumes (GL_ARB_vertex_buffer_object and not BuggyVBO) is true.
 
@@ -920,8 +929,12 @@ type
       We always keep assertion that Vbo is loaded <=> Arrays data is freed. }
     procedure LoadArraysToVbo;
   public
+    { Non-nil means that we have obtained TShaderProgramCache instance,
+      with valid Hash and ShaderProgram. Note that ShaderProgram may still
+      be @nil, if it failed to link. }
+    ProgramCache: TShaderProgramCache;
+
     Cache: TShapeCache;
-    procedure FreeShaderProgram;
   end;
 
   { Line types (patterns). For ease of implementation, ordered exactly like
@@ -2048,6 +2061,31 @@ begin
     'TVRMLGLRendererContextCache.Shape_DecReference: no reference found');
 end;
 
+function TVRMLGLRendererContextCache.Program_IncReference(ARenderer: TVRMLGLRenderer;
+  Shader: TVRMLShader): TShaderProgramCache;
+begin
+  Result := TShaderProgramCache.Create;
+  Result.Hash := Shader.CodeHash;
+
+  try
+    Result.ShaderProgram := TVRMLGLSLProgram.Create(ARenderer);
+    Shader.LinkProgram(Result.ShaderProgram);
+  except on E: EGLSLError do
+    begin
+      FreeAndNil(Result.ShaderProgram);
+      { Note: leave Result assigned and Result.Hash set,
+        to avoid reinitializing this shader next time. }
+      VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
+        [{Shape.DebugName}'TODO', E.Message]));
+    end;
+  end;
+end;
+
+procedure TVRMLGLRendererContextCache.Program_DecReference(var ProgramCache: TShaderProgramCache);
+begin
+  FreeAndNil(ProgramCache);
+end;
+
 { TVRMLRenderingAttributes --------------------------------------------------- }
 
 procedure TVRMLRenderingAttributes.Assign(Source: TPersistent);
@@ -2379,18 +2417,20 @@ begin
   VboToReload := [];
 end;
 
+{ TShaderProgramCache -------------------------------------------------------- }
+
+destructor TShaderProgramCache.Destroy;
+begin
+  FreeAndNil(ShaderProgram);
+  inherited;
+end;
+
 { TVRMLRendererShape --------------------------------------------------------- }
 
 procedure TVRMLRendererShape.LoadArraysToVbo;
 begin
   Assert(Cache <> nil);
   Cache.LoadArraysToVbo(DynamicGeometry);
-end;
-
-procedure TVRMLRendererShape.FreeShaderProgram;
-begin
-  FreeAndNil(ShaderProgram);
-  ShaderProgramLoaded := false;
 end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
