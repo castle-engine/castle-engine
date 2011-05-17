@@ -176,7 +176,7 @@ type
     LightShaders: TLightShaders;
     TextureShaders: TTextureShaders;
     FCodeHash: TShaderCodeHash;
-    CodeHashSourceAdded: boolean;
+    CodeHashFinalized: boolean;
     SelectedNode: TNodeComposedShader;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
@@ -196,7 +196,9 @@ type
 
       - It must also set ShapeRequiresShaders := true, if needed.
       - It must also update FCodeHash, if needed (if final shader code or
-        uniform value changes).
+        uniform value changes). Can be done immediately, or inside
+        CodeHashFinalize (the latter is more comfortable if it may change
+        repeatedly and you don't want temporary values to be added to hash).
       - Actually adding this feature to shader source may be done at LinkProgram.
     }
     AppearanceEffects: TMFNode;
@@ -1586,7 +1588,10 @@ end;
 
 function TVRMLShader.CodeHash: TShaderCodeHash;
 
-  procedure CodeHashSourceAdd;
+  { Add to FCodeHash some stuff that must be added at the end,
+    since it can be changed back (replacing previous values) during TVRMLShader
+    lifetime. }
+  procedure CodeHashFinalize;
   var
     I: Integer;
   begin
@@ -1594,37 +1599,14 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
       FCodeHash.AddString(Source[stVertex][I]);
     for I := 0 to Source[stFragment].Count - 1 do
       FCodeHash.AddString(Source[stFragment][I]);
-
-    { Add to hash things that affect generated shader code,
-      but are applied after CodeHash is calculated (like in LinkProgram). }
-    FCodeHash.AddInteger(LightShaders.Count);
-    { TODO: also does the light HAS_RADIUS must be added here,
-      check on light_attenuation demo. }
-    FCodeHash.AddInteger(TextureShaders.Count);
     FCodeHash.AddInteger(Ord(PercentageCloserFiltering));
-    if AppearanceEffects <> nil then
-      FCodeHash.AddEffects(AppearanceEffects.Items);
-    if GroupEffects <> nil then
-      FCodeHash.AddEffects(GroupEffects);
-    if Lighting then
-      FCodeHash.AddInteger(123);
-    if MaterialFromColor then
-      FCodeHash.AddInteger(456);
-    if FBumpMapping <> bmNone then
-    begin
-      FCodeHash.AddInteger(789 * (
-        Ord(FBumpMapping) +
-        FNormalMapTextureUnit +
-        Ord(FHeightMapInAlpha)));
-      FCodeHash.AddFloat(FHeightMapScale);
-    end;
   end;
 
 begin
-  if not CodeHashSourceAdded then
+  if not CodeHashFinalized then
   begin
-    CodeHashSourceAdd;
-    CodeHashSourceAdded := true;
+    CodeHashFinalize;
+    CodeHashFinalized := true;
   end;
   Result := FCodeHash;
 end;
@@ -1685,6 +1667,8 @@ begin
   if (TextureType in [ttShader, tt2DShadow]) or
      (Node.FdEffects.Count <> 0) then
     ShapeRequiresShaders := true;
+
+  FCodeHash.AddInteger(19);
 end;
 
 procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
@@ -1812,7 +1796,14 @@ begin
   FHeightMapScale := HeightMapScale;
 
   if FBumpMapping <> bmNone then
+  begin
     ShapeRequiresShaders := true;
+    FCodeHash.AddInteger(47 * (
+      Ord(FBumpMapping) +
+      FNormalMapTextureUnit +
+      Ord(FHeightMapInAlpha)));
+    FCodeHash.AddFloat(FHeightMapScale);
+  end;
 end;
 
 procedure TVRMLShader.EnableLight(const Number: Cardinal; Light: PLightInstance;
@@ -1837,6 +1828,10 @@ begin
   if (Light <> nil) and
      (Light^.Node.FdEffects.Count <> 0) then
     ShapeRequiresShaders := true;
+
+  FCodeHash.AddInteger(13);
+  { TODO: also the light type, and does the light HAS_RADIUS must be added here,
+    check on light_attenuation demo. }
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TMFNode;
@@ -1977,19 +1972,26 @@ begin
     as EnableEffects will be done from LinkProgram when it's too late
     to set ShapeRequiresShaders. }
   if AppearanceEffects.Count <> 0 then
+  begin
     ShapeRequiresShaders := true;
+    FCodeHash.AddEffects(AppearanceEffects.Items);
+  end;
 end;
 
 procedure TVRMLShader.EnableGroupEffects(Effects: TVRMLNodesList);
 begin
   GroupEffects := Effects;
   if GroupEffects.Count <> 0 then
+  begin
     ShapeRequiresShaders := true;
+    FCodeHash.AddEffects(GroupEffects);
+  end;
 end;
 
 procedure TVRMLShader.EnableLighting;
 begin
   Lighting := true;
+  FCodeHash.AddInteger(7);
 end;
 
 procedure TVRMLShader.EnableMaterialFromColor;
@@ -1999,6 +2001,7 @@ begin
 
   { This will cause appropriate shader later }
   MaterialFromColor := true;
+  FCodeHash.AddInteger(29);
 end;
 
 end.
