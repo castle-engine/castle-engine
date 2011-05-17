@@ -995,3 +995,9 @@ Various:
   Q: Maybe also add "position", in global coordinates, regardless of Viewpoint
   position.
   A: Yes, this could be useful.
+
+- Add TRenderState to passed to T3D.Render methods. Maybe even move
+  some T3D.Render params to TRenderState too.
+  This avoids having global render state, which is unclean.
+  - This will make TVRMLScene.CameraChanged(RenderState: TRenderState),
+    using OnCameraChanged, harder. Resign for now?
