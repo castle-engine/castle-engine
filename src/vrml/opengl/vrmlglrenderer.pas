@@ -878,7 +878,7 @@ type
 
     { Shape cache. We return TShapeCache, either taking an existing
       instance from cache or creating and adding a new one.
-      Called is responsible for checking are Arrays / Vbo zero and
+      Caller is responsible for checking are Arrays / Vbo zero and
       eventually initializing and setting. }
     function Shape_IncReference(Shape: TVRMLRendererShape;
       Fog: INodeX3DFogObject; ARenderer: TVRMLGLRenderer): TShapeCache;
