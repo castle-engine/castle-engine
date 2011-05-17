@@ -1156,7 +1156,10 @@ procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
       if (Contents <> '') and Part.FdType.GetValue(PartType) then
       begin
         Plug(PartType, Contents, Code, ForwardDeclareInFinalShader);
-        ShapeRequiresShaders := true;
+        { Right now, for speed, we do not call EnableEffects, or even Plug,
+          before LinkProgram. At which point ShapeRequiresShaders
+          is already known true. }
+        Assert(ShapeRequiresShaders);
       end;
     end;
 
