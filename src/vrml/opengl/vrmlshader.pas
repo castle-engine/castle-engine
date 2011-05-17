@@ -1557,24 +1557,27 @@ var
   var
     FogFactor: string;
   begin
-    Plug(stVertex,
-      'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
-      '{' +NL+
-      '  gl_FogFragCoord = vertex_eye.z;' +NL+
-      '}');
+    if FFogEnabled then
+    begin
+      Plug(stVertex,
+        'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
+        '{' +NL+
+        '  gl_FogFragCoord = vertex_eye.z;' +NL+
+        '}');
 
-    case FFogType of
-      ftLinear: FogFactor := '(gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale';
-      ftExp   : FogFactor := 'exp(-gl_Fog.density * gl_FogFragCoord)';
-      else raise EInternalError.Create('TVRMLShader.EnableFog:FogType?');
+      case FFogType of
+        ftLinear: FogFactor := '(gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale';
+        ftExp   : FogFactor := 'exp(-gl_Fog.density * gl_FogFragCoord)';
+        else raise EInternalError.Create('TVRMLShader.EnableFog:FogType?');
+      end;
+
+      Plug(stFragment,
+        'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
+        '{' +NL+
+        '  fragment_color.rgb = mix(fragment_color.rgb, gl_Fog.color.rgb,' +NL+
+        '    clamp(1.0 - ' + FogFactor + ', 0.0, 1.0));' +NL+
+        '}');
     end;
-
-    Plug(stFragment,
-      'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
-      '{' +NL+
-      '  fragment_color.rgb = mix(fragment_color.rgb, gl_Fog.color.rgb,' +NL+
-      '    clamp(1.0 - ' + FogFactor + ', 0.0, 1.0));' +NL+
-      '}');
   end;
 
   procedure SetupUniformsOnce;
