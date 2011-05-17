@@ -1,7 +1,7 @@
 /* Shader code used for adding light source contribution. */
 
 #ifdef LIGHT_TYPE_POSITIONAL
-float kambi_light_light_number_radius;
+uniform float kambi_light_light_number_radius;
 #endif
 
 void PLUG_add_light_contribution_side(inout vec4 color,

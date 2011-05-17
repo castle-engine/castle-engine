@@ -3,7 +3,7 @@
 '/* Shader code used for adding light source contribution. */' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIGHT_TYPE_POSITIONAL' + LineEnding + 
-'float kambi_light_light_number_radius;' + LineEnding + 
+'uniform float kambi_light_light_number_radius;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 'void PLUG_add_light_contribution_side(inout vec4 color,' + LineEnding + 
