@@ -1088,9 +1088,9 @@
       @exclude }
     function TransformationChange: TNodeTransformationChange; virtual;
 
-    { Nice node description, for warnings and such.
+    { Nice and concise node description for user.
       Shows node type and name. }
-    function FullName: string;
+    function NiceName: string;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -1977,7 +1977,7 @@ var
                 SF := Fields[FieldIndex] as TSFNode;
 
                 if SF.Value <> nil then
-                  VRMLWarning(vwSerious, 'X3D XML: More than one value specified for SFNode field ' + SF.FullName);
+                  VRMLWarning(vwSerious, 'X3D XML: More than one value specified for SFNode field ' + SF.NiceName);
 
                 { Although field doesn't have a set position in XML X3D
                   encoding, when saving later in classic encoding we
@@ -3013,7 +3013,7 @@ begin
   Result := ntcNone;
 end;
 
-function TVRMLNode.FullName: string;
+function TVRMLNode.NiceName: string;
 begin
   Result := NodeTypeName;
   if NodeName <> '' then

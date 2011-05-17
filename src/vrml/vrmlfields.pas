@@ -478,9 +478,9 @@ type
     property ParentInterfaceDeclaration: TVRMLFileItem
       read FParentInterfaceDeclaration write FParentInterfaceDeclaration;
 
-    { Nice field description for warnings and such.
-      Shows parent node type, name and field/event's name. }
-    function FullName: string;
+    { Nice and concise field description for user.
+      Describes parent node type, name and field/event's name. }
+    function NiceName: string;
   end;
 
   TObjectsListItem_5 = TVRMLFieldOrEvent;
@@ -2792,12 +2792,12 @@ begin
   FAlternativeNames := Source.FAlternativeNames;
 end;
 
-function TVRMLFieldOrEvent.FullName: string;
+function TVRMLFieldOrEvent.NiceName: string;
 begin
   Result := '';
 
   if ParentNode <> nil then
-    Result += TVRMLNode(ParentNode).FullName + '.';
+    Result += TVRMLNode(ParentNode).NiceName + '.';
 
   if Name <> '' then
     Result += Name else
@@ -3413,10 +3413,10 @@ const
 begin
   Inc(InvalidIndexWarnings);
   if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [FullName, VRMLTypeName, Index, ACount])) else
+    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [NiceName, VRMLTypeName, Index, ACount])) else
   if InvalidIndexWarnings = MaxInvalidIndexWarnings then
     VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
-      [FullName, VRMLTypeName, InvalidIndexWarnings]));
+      [NiceName, VRMLTypeName, InvalidIndexWarnings]));
 end;
 
 { simple helpful parsing functions ---------------------------------------- }
@@ -4443,7 +4443,7 @@ begin
       results (actually, Result would be filled with Nan values).
       VRML spec says that SFRotation should always specify a normalized vector. }
     Result := Pt;
-    VRMLWarning(vwSerious, Format('SFRotation field (%s) specifies rotation around zero vector', [FullName]));
+    VRMLWarning(vwSerious, Format('SFRotation field (%s) specifies rotation around zero vector', [NiceName]));
   end;
 end;
 

@@ -694,7 +694,7 @@ begin
     try
       if Log then
         WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
-          [Shape.DebugName, BoolToStr[AllowIndexed]]));
+          [Shape.NiceName, BoolToStr[AllowIndexed]]));
 
       if AllowIndexed or (IndexesFromCoordIndex = nil) then
       begin
@@ -720,7 +720,7 @@ begin
     except
       on E: EAssignInterleavedRangeError do
         VRMLWarning(vwSerious, Format('Invalid number of items in a normal or texture coordinate array for shape "%s": %s',
-          [Shape.DebugName, E.Message]));
+          [Shape.NiceName, E.Message]));
     end;
   finally FreeAndNil(IndexesFromCoordIndex); end;
 end;

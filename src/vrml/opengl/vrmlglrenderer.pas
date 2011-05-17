@@ -905,7 +905,7 @@ type
       a new one. If we create a new one, we will use Shader to initialize
       program hash and to create and link actual TVRMLGLSLProgram instance. }
     function Program_IncReference(ARenderer: TVRMLGLRenderer;
-      Shader: TVRMLShader; const ShapeDebugName: string): TShaderProgramCache;
+      Shader: TVRMLShader; const ShapeNiceName: string): TShaderProgramCache;
 
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
   end;
@@ -2062,7 +2062,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.Program_IncReference(ARenderer: TVRMLGLRenderer;
-  Shader: TVRMLShader; const ShapeDebugName: string): TShaderProgramCache;
+  Shader: TVRMLShader; const ShapeNiceName: string): TShaderProgramCache;
 begin
   Result := TShaderProgramCache.Create;
   Result.Hash := Shader.CodeHash;
@@ -2076,7 +2076,7 @@ begin
       { Note: leave Result assigned and Result.Hash set,
         to avoid reinitializing this shader next time. }
       VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
-        [ShapeDebugName, E.Message]));
+        [ShapeNiceName, E.Message]));
     end;
   end;
 end;
@@ -3357,7 +3357,7 @@ begin
   if not InitMeshRenderer then
   begin
     VRMLWarning(vwSerious, Format('Rendering of node kind "%s" not implemented',
-      [Shape.DebugName]));
+      [Shape.NiceName]));
     Exit;
   end;
 

@@ -684,7 +684,7 @@ begin
     begin
       if Log then
         WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d)',
-          [Shape.DebugName,
+          [Shape.NiceName,
            BoolToStr[(Shape.ProgramCache = nil) or
                      (Shape.ProgramCache.ShaderProgram = nil)],
            Renderer.FirstLight]);
@@ -693,7 +693,7 @@ begin
         Renderer.Cache.Program_DecReference(Shape.ProgramCache);
 
       Shape.ProgramCache := Renderer.Cache.Program_IncReference(
-        Renderer, Shader, Shape.DebugName);
+        Renderer, Shader, Shape.NiceName);
     end;
 
     Assert(Shape.ProgramCache <> nil);
