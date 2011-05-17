@@ -35,7 +35,7 @@ void main(void)
 #endif
 
 #ifdef VERTEX_OBJECT_SPACE_CHANGED
-  gl_Position = gl_ProjectionMatrix * vertex_eye;
+  gl_Position = gl_ProjectionMatrix * kambi_vertex_eye;
 #else
   gl_Position = ftransform();
 #endif

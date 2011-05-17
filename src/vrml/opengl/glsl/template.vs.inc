@@ -37,7 +37,7 @@
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '#ifdef VERTEX_OBJECT_SPACE_CHANGED' + LineEnding + 
-'  gl_Position = gl_ProjectionMatrix * vertex_eye;' + LineEnding + 
+'  gl_Position = gl_ProjectionMatrix * kambi_vertex_eye;' + LineEnding + 
 '#else' + LineEnding + 
 '  gl_Position = ftransform();' + LineEnding + 
 '#endif' + LineEnding + 
