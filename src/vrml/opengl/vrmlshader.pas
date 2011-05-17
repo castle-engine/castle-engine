@@ -1594,11 +1594,11 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
   procedure CodeHashFinalize;
   var
     I: Integer;
+    ShaderType: TShaderType;
   begin
-    for I := 0 to Source[stVertex].Count - 1 do
-      FCodeHash.AddString(Source[stVertex][I]);
-    for I := 0 to Source[stFragment].Count - 1 do
-      FCodeHash.AddString(Source[stFragment][I]);
+    for ShaderType := Low(ShaderType) to High(ShaderType) do
+      for I := 0 to Source[ShaderType].Count - 1 do
+        FCodeHash.AddString(Source[ShaderType][I]);
     FCodeHash.AddInteger(Ord(PercentageCloserFiltering));
   end;
 
