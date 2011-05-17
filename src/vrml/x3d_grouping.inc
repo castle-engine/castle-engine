@@ -317,19 +317,19 @@ type
   var
     CP: PClipPlane;
   begin
-    if (Child is TVRMLLightNode) and
-       (not TVRMLLightNode(Child).FdGlobal.Value) then
+    if (Child is TNodeX3DLightNode) and
+       (not TNodeX3DLightNode(Child).FdGlobal.Value) then
       { We do CreateActiveLight with State from TVRMLGroupingNode node,
-        while precisely we should rather use State from TVRMLLightNode
-        traverse. But, fortunately, State of TVRMLLightNode doesn't
-        change inside (TVRMLLightNode doesn't do anything inside
+        while precisely we should rather use State from TNodeX3DLightNode
+        traverse. But, fortunately, State of TNodeX3DLightNode doesn't
+        change inside (TNodeX3DLightNode doesn't do anything inside
         BeforeTraverse), so this is the same thing. }
       { TODO: we ignore here light radius, which may be relevant
         for TVRMLPositionalLightNode with HasRadius = true.
         E.g. PointLight with global = false should be limited by *both*
         scope (in graph hierarchy) and radius, as far as I understand. }
       State.AddVRML2ActiveLight(
-        TVRMLLightNode(Child).CreateActiveLight(State)) else
+        TNodeX3DLightNode(Child).CreateActiveLight(State)) else
     if Child is TNodeX3DPointingDeviceSensorNode then
     begin
       { Testing for WasPointingDeviceSensor guarantees that multiple
