@@ -1574,6 +1574,8 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
     { Add to hash things that affect generated shader code,
       but are applied after CodeHash is calculated (like in LinkProgram). }
     Res.Sum += LightShaders.Count;
+    { TODO: also does the light HAS_RADIUS must be added here,
+      check on light_attenuation demo. }
     Res.Sum += TextureShaders.Count;
     Res.Sum += Ord(PercentageCloserFiltering);
     if AppearanceEffects <> nil then
