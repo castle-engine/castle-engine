@@ -32,7 +32,15 @@ type
 
   TFogType = (ftLinear, ftExp);
 
-  TShaderCodeHash = QWord;
+  TShaderCodeHash = object
+  private
+    Sum, XorValue: LongWord;
+    procedure AddString(const S: string);
+    procedure AddInteger(const I: Integer);
+    procedure AddFloat(const F: Single);
+    procedure AddPointer(Ptr: Pointer);
+    procedure AddEffects(Nodes: TVRMLNodesList);
+  end;
 
   { GLSL program integrated with VRML/X3D and TVRMLShader.
     Allows to bind uniform values from VRML/X3D fields,
@@ -168,7 +176,7 @@ type
     LightShaders: TLightShaders;
     TextureShaders: TTextureShaders;
     FCodeHash: TShaderCodeHash;
-    CodeHashCalculated: boolean;
+    CodeHashSourceAdded: boolean;
     SelectedNode: TNodeComposedShader;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
@@ -187,7 +195,8 @@ type
         So enabling a feature merely records the demand for this feature.
 
       - It must also set ShapeRequiresShaders := true, if needed.
-      - It must change the result of CodeHash.
+      - It must also update FCodeHash, if needed (if final shader code or
+        uniform value changes).
       - Actually adding this feature to shader source may be done at LinkProgram.
     }
     AppearanceEffects: TMFNode;
@@ -290,6 +299,8 @@ type
       write FShapeRequiresShaders;
   end;
 
+operator = (const A, B: TShaderCodeHash): boolean;
+
 implementation
 
 uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
@@ -358,6 +369,70 @@ begin
     if S[P] = ')' then
       Dec(ParenLevel);
   until ParenLevel = 0;
+end;
+
+{ TShaderCodeHash ------------------------------------------------------------ }
+
+{$include norqcheckbegin.inc}
+
+procedure TShaderCodeHash.AddString(const S: string);
+var
+  PS: PLongWord;
+  Last: LongWord;
+  I: Integer;
+begin
+  PS := PLongWord(S);
+
+  for I := 1 to Length(S) div 4 do
+  begin
+    Sum += PS^;
+    XorValue := XorValue xor PS^;
+    Inc(PS);
+  end;
+
+  if Length(S) mod 4 = 0 then
+  begin
+    Last := 0;
+    Move(S[(Length(S) div 4) * 4 + 1], Last, Length(S) mod 4);
+    Sum += Last;
+    XorValue := XorValue xor Last;
+  end;
+end;
+
+procedure TShaderCodeHash.AddPointer(Ptr: Pointer);
+begin
+  { This will cut the pointer on non-32bit processors.
+    But that's not a problem --- we just want it for hash,
+    taking the least significant 32 bits from pointer is OK for this. }
+  Sum += LongWord(PtrUInt(Ptr));
+  XorValue := XorValue xor LongWord(PtrUInt(Ptr));
+end;
+
+procedure TShaderCodeHash.AddInteger(const I: Integer);
+begin
+  Sum += I;
+end;
+
+procedure TShaderCodeHash.AddFloat(const F: Single);
+begin
+  Sum += Round(F * 100000);
+end;
+
+{$include norqcheckend.inc}
+
+procedure TShaderCodeHash.AddEffects(Nodes: TVRMLNodesList);
+var
+  I: Integer;
+begin
+  for I := 0 to Nodes.Count - 1 do
+    if (Nodes[I] is TNodeEffect) and
+       TNodeEffect(Nodes[I]).FdEnabled.Value then
+      AddPointer(Nodes[I]);
+end;
+
+operator = (const A, B: TShaderCodeHash): boolean;
+begin
+  Result := (A.Sum = B.Sum) and (A.XorValue = B.XorValue);
 end;
 
 { TShaderSource -------------------------------------------------------------- }
@@ -1511,98 +1586,45 @@ end;
 
 function TVRMLShader.CodeHash: TShaderCodeHash;
 
-  {$include norqcheckbegin.inc}
-
-  function CodeHashCalculate: TShaderCodeHash;
-  type
-    TShaderCodeHashRec = packed record Sum, XorValue: LongWord; end;
-
-    procedure AddString(const S: AnsiString; var Res: TShaderCodeHashRec);
-    var
-      PS: PLongWord;
-      Last: LongWord;
-      I: Integer;
-    begin
-      PS := PLongWord(S);
-
-      for I := 1 to Length(S) div 4 do
-      begin
-        Res.Sum := Res.Sum + PS^;
-        Res.XorValue := Res.XorValue xor PS^;
-        Inc(PS);
-      end;
-
-      if Length(S) mod 4 = 0 then
-      begin
-        Last := 0;
-        Move(S[(Length(S) div 4) * 4 + 1], Last, Length(S) mod 4);
-        Res.Sum := Res.Sum + Last;
-        Res.XorValue := Res.XorValue xor Last;
-      end;
-    end;
-
-    procedure AddPointerHash(Ptr: Pointer; var Res: TShaderCodeHashRec);
-    begin
-      { This will cut the pointer on non-32bit processors.
-        But that's not a problem --- we just want it for hash,
-        taking the least significant 32 bits from pointer is OK for this. }
-      Res.Sum += LongWord(PtrUInt(Ptr));
-      Res.XorValue := Res.XorValue xor LongWord(PtrUInt(Ptr));
-    end;
-
-    procedure AddEffectsHash(Nodes: TVRMLNodesList; var Res: TShaderCodeHashRec);
-    var
-      I: Integer;
-    begin
-      for I := 0 to Nodes.Count - 1 do
-        if (Nodes[I] is TNodeEffect) and
-           TNodeEffect(Nodes[I]).FdEnabled.Value then
-          AddPointerHash(Nodes[I], Res);
-    end;
-
+  procedure CodeHashSourceAdd;
   var
-    Res: TShaderCodeHashRec absolute Result;
     I: Integer;
   begin
-    Res.Sum := 0;
-    Res.XorValue := 0;
     for I := 0 to Source[stVertex].Count - 1 do
-      AddString(Source[stVertex][I], Res);
+      FCodeHash.AddString(Source[stVertex][I]);
     for I := 0 to Source[stFragment].Count - 1 do
-      AddString(Source[stFragment][I], Res);
+      FCodeHash.AddString(Source[stFragment][I]);
 
     { Add to hash things that affect generated shader code,
       but are applied after CodeHash is calculated (like in LinkProgram). }
-    Res.Sum += LightShaders.Count;
+    FCodeHash.AddInteger(LightShaders.Count);
     { TODO: also does the light HAS_RADIUS must be added here,
       check on light_attenuation demo. }
-    Res.Sum += TextureShaders.Count;
-    Res.Sum += Ord(PercentageCloserFiltering);
+    FCodeHash.AddInteger(TextureShaders.Count);
+    FCodeHash.AddInteger(Ord(PercentageCloserFiltering));
     if AppearanceEffects <> nil then
-      AddEffectsHash(AppearanceEffects.Items, Res);
+      FCodeHash.AddEffects(AppearanceEffects.Items);
     if GroupEffects <> nil then
-      AddEffectsHash(GroupEffects, Res);
+      FCodeHash.AddEffects(GroupEffects);
     if Lighting then
-      Res.Sum += 123;
+      FCodeHash.AddInteger(123);
     if MaterialFromColor then
-      Res.Sum += 456;
+      FCodeHash.AddInteger(456);
     if FBumpMapping <> bmNone then
     begin
-      Res.Sum += 789 * (
+      FCodeHash.AddInteger(789 * (
         Ord(FBumpMapping) +
         FNormalMapTextureUnit +
-        Ord(FHeightMapInAlpha) +
-        Round(FHeightMapScale * 100000));
+        Ord(FHeightMapInAlpha)));
+      FCodeHash.AddFloat(FHeightMapScale);
     end;
   end;
 
-  {$include norqcheckend.inc}
-
 begin
-  if not CodeHashCalculated then
+  if not CodeHashSourceAdded then
   begin
-    FCodeHash := CodeHashCalculate;
-    CodeHashCalculated := true;
+    CodeHashSourceAdd;
+    CodeHashSourceAdded := true;
   end;
   Result := FCodeHash;
 end;
@@ -1801,7 +1823,9 @@ begin
   LightShader := TLightShader.Create;
   LightShader.Number := Number;
   LightShader.Light := Light;
-  LightShader.Node := Light^.Node;
+  if Light <> nil then
+    LightShader.Node := Light^.Node else
+    LightShader.Node := nil;
   LightShader.MaterialSpecularColor := MaterialSpecularColor;
   LightShader.Shader := Self;
 
@@ -1810,7 +1834,7 @@ begin
   { Mark ShapeRequiresShaders now, don't depend on EnableEffects call doing it,
     as EnableEffects will be done from LinkProgram when it's too late
     to set ShapeRequiresShaders. }
-  if (Light^.Node <> nil) and
+  if (Light <> nil) and
      (Light^.Node.FdEffects.Count <> 0) then
     ShapeRequiresShaders := true;
 end;
