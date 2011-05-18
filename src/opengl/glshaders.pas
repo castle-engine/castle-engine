@@ -101,8 +101,11 @@ type
   EGLSLShaderCompileError = class(EGLSLError);
   EGLSLProgramLinkError = class(EGLSLError);
   EGLSLRunningInSoftware = class(EGLSLError);
-  EGLSLUniformNotFound = class(EGLSLError);
   EGLSLAttributeNotFound = class(EGLSLError);
+
+  EGLSLUniformInvalid = class(EGLSLError);
+  EGLSLUniformNotFound = class(EGLSLUniformInvalid);
+  EGLSLUniformTypeMismatch = class(EGLSLUniformInvalid);
 
   TDynGLuintArray = TDynCardinalArray;
 
@@ -122,13 +125,16 @@ type
   TUniformTypeMismatchAction = (
     { Do not catch uniform type mismatch, leaving it to OpenGL.
       This will cause OpenGL error "invalid operation" (possibly resulting
-      in an exception in some later code that checks OpenGL errors). }
+      in an exception in some later code that checks OpenGL errors).
+
+      This is unsafe (you may get OpenGL errors later), but is also fastest.
+      Other options have to detect invalid types, which means
+      checking the OpenGL error state each time you set uniform value. }
     utGLError,
-    { Report type mismatch to DataWarning, and allow shader to execute as usual.
-      This causes a little slowdown when setting uniform value
-      (we have to actually check OpenGL error state to detect it
-      and remove the error), but it's the safest. }
-    utWarning);
+    { Report type mismatch to DataWarning. }
+    utWarning,
+    { Report type mismatch by raising EGLSLUniformTypeMismatch. }
+    utException);
 
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
@@ -142,8 +148,8 @@ type
 
     FUniformNotFoundAction: TUniformNotFoundAction;
     FUniformTypeMismatchAction: TUniformTypeMismatchAction;
-    procedure UniformNotFound(const Name: string);
-    procedure SetUniformEnd(const UniformName: string);
+    procedure UniformNotFound(const Name: string; const ForceException: boolean);
+    procedure SetUniformEnd(const UniformName: string; const ForceException: boolean);
 
     procedure AttachShader(AType: TGLenum; const S: string);
 
@@ -294,35 +300,38 @@ type
       )
 
       @raises(EGLSLUniformNotFound If the variable is not found within
-        the program and UniformNotFoundAction = uaException (default).
+        the program and UniformNotFoundAction = uaException (default)
+        or ForceException.)
 
-        Note that this is only one of the many things that can
-        go wrong. And on most cases we don't raise any error,
-        instead OpenGL sets it's error state and you probably want to
-        call CheckGLErrors from time to time to catch them.)
+      @raises(EGLSLUniformTypeMismatch If the variable type doesn't
+        match the type declared in shader code. Raised only if
+        UniformTypeMismatchAction = utException or ForceException.
+
+        Note that both EGLSLUniformNotFound and EGLSLUniformTypeMismatch
+        may be comfortably catched by an umbrella class EGLSLUniformInvalid.)
 
       @groupBegin }
-    procedure SetUniform(const Name: string; const Value: boolean);
-    procedure SetUniform(const Name: string; const Value: TGLint);
-    procedure SetUniform(const Name: string; const Value: TVector2Integer);
-    procedure SetUniform(const Name: string; const Value: TVector3Integer);
-    procedure SetUniform(const Name: string; const Value: TVector4Integer);
-    procedure SetUniform(const Name: string; const Value: TGLfloat);
-    procedure SetUniform(const Name: string; const Value: TVector2Single);
-    procedure SetUniform(const Name: string; const Value: TVector3Single);
-    procedure SetUniform(const Name: string; const Value: TVector4Single);
-    procedure SetUniform(const Name: string; const Value: TMatrix2Single);
-    procedure SetUniform(const Name: string; const Value: TMatrix3Single);
-    procedure SetUniform(const Name: string; const Value: TMatrix4Single);
+    procedure SetUniform(const Name: string; const Value: boolean        ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TGLint         ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector2Integer; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TGLfloat       ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector2Single ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector3Single ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector4Single ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix2Single ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix3Single ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix4Single ; const ForceException: boolean = false);
 
-    procedure SetUniform(const Name: string; const Value: TDynBooleanArray);
-    procedure SetUniform(const Name: string; const Value: TDynLongIntArray);
-    procedure SetUniform(const Name: string; const Value: TDynSingleArray);
-    procedure SetUniform(const Name: string; const Value: TDynVector2SingleArray);
-    procedure SetUniform(const Name: string; const Value: TDynVector3SingleArray);
-    procedure SetUniform(const Name: string; const Value: TDynVector4SingleArray);
-    procedure SetUniform(const Name: string; const Value: TDynMatrix3SingleArray);
-    procedure SetUniform(const Name: string; const Value: TDynMatrix4SingleArray);
+    procedure SetUniform(const Name: string; const Value: TDynBooleanArray      ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TDynLongIntArray      ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TDynSingleArray       ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TDynVector2SingleArray; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TDynVector3SingleArray; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TDynVector4SingleArray; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TDynMatrix3SingleArray; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TDynMatrix4SingleArray; const ForceException: boolean = false);
     { @groupEnd }
 
     { Load and enable vertex attribute data.
@@ -1107,14 +1116,18 @@ begin
   Result := true;
 end;
 
-procedure TGLSLProgram.UniformNotFound(const Name: string);
-var
-  S: string;
+procedure TGLSLProgram.UniformNotFound(const Name: string; const ForceException: boolean);
+
+  function ErrMessage: string;
+  begin
+    Result := Format('Uniform variable "%s" not found (or not used) in the shader source code', [Name]);
+  end;
+
 begin
-  S := Format('Uniform variable "%s" not found (or not used) in the shader source code', [Name]);
+  if (UniformNotFoundAction = uaException) or ForceException then
+    raise EGLSLUniformNotFound.Create(ErrMessage) else
   case UniformNotFoundAction of
-    uaWarning: DataWarning(S);
-    uaException: raise EGLSLUniformNotFound.Create(S);
+    uaWarning: DataWarning(ErrMessage);
     uaIgnore: ;
     else raise EInternalError.Create('UniformNotFoundAction? in TGLSLProgram.UniformNotFound');
   end;
@@ -1126,11 +1139,12 @@ end;
   Location := glGetUniformLocationARB(ProgramId, PCharOrNil(Name));
   if Location = -1 then
   begin
-    UniformNotFound(Name);
+    UniformNotFound(Name, ForceException);
     Exit;
   end;
 
-  if UniformTypeMismatchAction = utWarning then
+  if (UniformTypeMismatchAction in [utWarning, utException]) or
+     ForceException then
     CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
 }
 
@@ -1139,34 +1153,45 @@ end;
   Location := glGetUniformLocation   (ProgramId, PCharOrNil(Name));
   if Location = -1 then
   begin
-    UniformNotFound(Name);
+    UniformNotFound(Name, ForceException);
     Exit;
   end;
 
-  if UniformTypeMismatchAction = utWarning then
+  if (UniformTypeMismatchAction in [utWarning, utException]) or
+     ForceException then
     CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
 }
 
-procedure TGLSLProgram.SetUniformEnd(const UniformName: string);
+procedure TGLSLProgram.SetUniformEnd(const UniformName: string; const ForceException: boolean);
 var
   ErrorCode: TGLenum;
+
+  function ErrMessage: string;
+  begin
+    Result := Format('Error when setting GLSL uniform variable "%s". Probably the type in the shader source code does not match with the type declared in VRML/X3D. OpenGL error (%d): %s',
+      [UniformName, ErrorCode,  gluErrorString(ErrorCode)]);
+  end;
+
 begin
-  if UniformTypeMismatchAction = utWarning then
+  if (UniformTypeMismatchAction in [utWarning, utException]) or
+     ForceException then
   begin
     { Invalid glUniform call, that specifies wrong uniform variable type,
-      may cause OpenGL error "invalid operation". We want to catch it,
-      and convert into appropriate nice warning.
+      may cause OpenGL error "invalid operation". We want to catch it.
       We cleaned GL error at the beginning of SetUniform
       (at the end of macro glGetUniformLocation*), so if there's an error
       now --- we know it's because of glUniform. }
     ErrorCode := glGetError();
     if ErrorCode <> GL_NO_ERROR then
-      DataWarning(Format('Error when setting GLSL uniform variable "%s". Probably the type in the shader source code does not match with the type declared in VRML/X3D. OpenGL error (%d): %s',
-        [UniformName, ErrorCode,  gluErrorString(ErrorCode)]));
+    begin
+      if ForceException or (UniformTypeMismatchAction = utException) then
+        raise EGLSLUniformNotFound.Create(ErrMessage) else
+        DataWarning(ErrMessage);
+    end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean; const ForceException: boolean);
 var
   Location: TGLint;
 begin
@@ -1182,122 +1207,122 @@ begin
     Which means that I can simply call glUniform1i, with Ord(Value). }
 
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Ord(Value)); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Ord(Value)); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2ivARB(Location, 1, @Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform2iv   (Location, 1, @Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform2ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform2iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3ivARB(Location, 1, @Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform3iv   (Location, 1, @Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform3ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform3iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4ivARB(Location, 1, @Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform4iv   (Location, 1, @Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform4ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform4iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1fARB(Location, Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform1f   (Location, Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1fARB(Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform1f   (Location, Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Single);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Single; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, 1, @Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, 1, @Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Single);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Single; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, 1, @Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, 1, @Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Single);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Single; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, 1, @Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, 1, @Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2Single);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2Single; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3Single);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3Single; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4Single);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4Single; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynBooleanArray);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynBooleanArray; const ForceException: boolean);
 var
   Location: TGLint;
   Ints: TDynLongIntArray;
@@ -1313,80 +1338,80 @@ begin
   Ints := Value.ToLongInt;
   try
     case Support of
-      gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.ItemsArray)); SetUniformEnd(Name); end;
-      gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.ItemsArray)); SetUniformEnd(Name); end;
+      gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+      gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.ItemsArray)); SetUniformEnd(Name, ForceException); end;
     end;
   finally FreeAndNil(Ints) end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynLongIntArray);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynLongIntArray; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   Assert(SizeOf(LongInt) = SizeOf(TGLint));
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.ItemsArray)); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynSingleArray);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynSingleArray; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector2SingleArray);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector2SingleArray; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector3SingleArray);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector3SingleArray; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector4SingleArray);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector4SingleArray; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynMatrix3SingleArray);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynMatrix3SingleArray; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynMatrix4SingleArray);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynMatrix4SingleArray; const ForceException: boolean);
 var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
