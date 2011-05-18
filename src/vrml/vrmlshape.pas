@@ -936,12 +936,17 @@ constructor TVRMLShape.Create(AParentScene: TObject;
     end else
     if (OriginalState.ShapeNode <> nil) and (ParentInfo <> nil) then
     begin
-      { For VRML 2.0 exporter, the situation is actually quite similar, but
-        we have to remove ME_ and OB_ prefixes from node names.
-        Oh, and VRML 2.0 exporter actually does write object names.
+      { For VRML 2.0 and X3D exporter, the situation is quite similar.
+        We look at parent of the Shape node (mesh Group)
+        and parent of it (object Transform).
+        The object names are available.
 
-        We look at parent Shape node.
-        That's how VRML 2.0 Blender exporter writes. }
+        For VRML 2.0 we have to remove ME_ and OB_ prefixes from node names.
+
+        Note that we assume X3D exporter from Blender >= 2.57.
+        Earlier Blender X3D exporters were a little different (it seems,
+        probably because of mesh splitting added in 2.57),
+        we don't handle them. }
 
       ParentInfo := ParentInfo^.ParentInfo;
 
