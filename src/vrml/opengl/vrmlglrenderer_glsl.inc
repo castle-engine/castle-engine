@@ -102,7 +102,7 @@ var
 begin
   Result := inherited SetupUniforms(BoundTextureUnits);
   I := 0;
-  while I < UniformsTextures.Count - 1 do
+  while I < UniformsTextures.Count do
   begin
     if BindTextureUniform(UniformsTextures[I]) then
       Inc(I) else
