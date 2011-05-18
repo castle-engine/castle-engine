@@ -324,15 +324,6 @@ uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
   will be needed some day. Currently, some functions here call
   fixed-function glEnable... stuff.
 
-  TODO: caching shader programs, using the same program if all settings
-  are the same, will be needed some day. TShapeCache is not a good place
-  for this, as the conditions for two shapes to share arrays/vbos
-  are smaller/different (for example, two different geometry nodes
-  can definitely share the same shader).
-
-  Maybe caching should be done in this unit, or maybe in TVRMLGLRenderer
-  in some TShapeShaderCache or such.
-
   TODO: some day, avoid using predefined OpenGL state variables.
   Use only shader uniforms. Right now, we allow some state to be assigned
   using direct normal OpenGL fixed-function functions in VRMLGLRenderer,
@@ -633,7 +624,7 @@ begin
   if EventsObserved <> nil then
   begin
     for I := 0 to EventsObserved.Count - 1 do
-      EventsObserved[I].OnReceive.Remove(@EventReceive);
+      EventsObserved[I].RemoveHandler(@EventReceive);
     FreeAndNil(EventsObserved);
   end;
   FreeAndNil(UniformsNodes);
@@ -848,10 +839,12 @@ begin
     SetUniformFromField(UniformName, Value, true);
   except
     { We capture EGLSLUniformInvalid, converting it to VRMLWarning.
-      TODO: we should remove us from OnReceive here. }
+      This way we remove this event from OnReceive list. }
     on E: EGLSLUniformInvalid do
     begin
       VRMLWarning(vwIgnorable, E.Message);
+      Event.RemoveHandler(@EventReceive);
+      EventsObserved.Remove(Event);
       Exit;
     end;
   end;

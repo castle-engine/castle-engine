@@ -44,6 +44,9 @@
     Temp: TVRMLField;
     TempUsed: boolean;
 
+    SendLevel: Cardinal;
+    HandlersToRemove: TDynVRMLEventReceiveArray;
+
     function CreateTemp: TVRMLField;
     procedure FreeTemp(const Field: TVRMLField);
   public
@@ -159,6 +162,14 @@
       All callbacks here are simply called by @link(Send) method. }
     property OnReceive: TDynVRMLEventReceiveArray read FOnReceive;
 
+    { Safely remove a callback from OnReceive list.
+
+      Contrary to direct @code(OnReceive.Remove) call, this works correctly
+      even if we're right now in the middle of this event's processing.
+      In the latter case, the handler will be actually removed with some delay
+      (when it's safe). }
+    procedure RemoveHandler(Handler: TVRMLEventReceive);
+
     { @abstract(Is anything actually listening on this events @link(Send)?)
 
       Sometimes, even preparing a value to Send is quite time-consuming
@@ -224,6 +235,7 @@ end;
 destructor TVRMLEvent.Destroy;
 begin
   FreeAndNil(Temp);
+  FreeAndNil(HandlersToRemove);
   FreeAndNil(FOnReceive);
   inherited;
 end;
@@ -277,10 +289,30 @@ begin
 end;
 
 procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TVRMLTime);
+
+  procedure RemoveHandlers;
+  var
+    I: Integer;
+  begin
+    for I := 0 to HandlersToRemove.Count - 1 do
+      OnReceive.Remove(HandlersToRemove.Items[I]);
+    HandlersToRemove.Count := 0;
+  end;
+
 begin
   Assert(Field <> nil);
   Assert(Field is FieldClass);
-  FOnReceive.ExecuteAll(Self, Field, Time);
+
+  Inc(SendLevel);
+  try
+    FOnReceive.ExecuteAll(Self, Field, Time);
+  finally
+    Dec(SendLevel);
+    if (HandlersToRemove <> nil) and
+       (HandlersToRemove.Count <> 0) and
+       (SendLevel = 0) then
+      RemoveHandlers;
+  end;
 end;
 
 procedure TVRMLEvent.Send(const Value: LongInt; const Time: TVRMLTime);
@@ -615,6 +647,17 @@ begin
   if Field = Temp then
     TempUsed := false else
     Field.Free;
+end;
+
+procedure TVRMLEvent.RemoveHandler(Handler: TVRMLEventReceive);
+begin
+  if SendLevel = 0 then
+    OnReceive.Remove(Handler) else
+  begin
+    if HandlersToRemove = nil then
+      HandlersToRemove := TDynVRMLEventReceiveArray.Create;
+    HandlersToRemove.Add(Handler);
+  end;
 end;
 
 { TVRMLEventsList ------------------------------------------------------------ }
