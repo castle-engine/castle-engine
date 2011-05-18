@@ -1001,3 +1001,18 @@ Various:
   This avoids having global render state, which is unclean.
   - This will make TVRMLScene.CameraChanged(RenderState: TRenderState),
     using OnCameraChanged, harder. Resign for now?
+
+- Display warnings about unused attribute only *once*, not every frame
+  (e.g. replace attr name to invalid inside demo_models/shaders/attributes.x3dv).
+
+  For now, we do this successfully for uniforms, see demo_models/shaders/warnings/shader_invalid_uniforms.x3dv.
+  For this, we just remove the invalid uniform (not adding it to
+  EventsObserved, removing from UniformsTextures or OnReceive,
+  as appropriate for the moment when we detect it's invalid).
+
+  But for attribs, it's not that simple, as TGeometryArrays gathers attributes,
+  and we have no nice place to mark the attribute as invalid.
+  Marking appropriate VRML node as UniformInvalid would already require
+  some code, and be unclean anyway (because validity needs to be reconsidered
+  when shader url changes).
+  For now, postpone.
