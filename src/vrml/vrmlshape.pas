@@ -553,31 +553,32 @@ type
 
     { For scenes exported from Blender, get Blender object/mesh names
       and nodes. Works assuming that this VRML scene was created by
-      Blender VRML 1.0 or 2.0 exporter.
+      standard Blender VRML 1.0, 2.0 or X3D exporter.
 
-      This is useful if you e.g. know that your game data is exported
+      This is useful if you know that your game data may be exported
       from Blender, and you want to do some VRML/X3D processing tricks in your
       game (for example, treat some Blender objects specially).
       Of course, this is completely optional, our engine is completely
       independent from Blender and no engine feature depends on it.
 
       Note that a single BlenderObjectNode and BlenderObjectName may correspond
-      to many VRML shapes (for example, VRML 2.0 exporter may split
-      one Blender object with many materials into multiple VRML shapes).
-      Also mesh may occur many times in the file, as both Blender exporters
-      correctly use VRML DEF/USE mechanism to reuse mesh data (just like
+      to many VRML/X3D shapes (for example, VRML 2.0 and X3D exporters may split
+      one Blender object with many materials into multiple VRML/X3D shapes).
+      Also mesh may occur many times in the file, as all Blender exporters
+      correctly use DEF/USE mechanism to reuse mesh data (just like
       Blender itself does), so the same BlenderMeshNode
       and BlenderMeshName may be found in many shapes.
 
       Note that Blender VRML 1.0
       exporter doesn't record anywhere object names (only mesh names),
       so BlenderObjectName is always '' for VRML 1.0.
-      For VRML 2.0 exporter it's Ok.
+      For VRML 2.0 and X3D exporters it's Ok.
 
-      Implementation of this follows the logic of Blender VRML 1.0 and 2.0
-      standard exporters, there's no other way to implement this.
-      E.g. if you wrote in Python your own Blender exporter for VRML,
-      it cannot magically work with the properties below.
+      Implementation of this follows the logic of standard Blender VRML 1.0, 2.0
+      and X3D exporters, there's no other way to implement this.
+      So if you write in Python your own Blender exporter for VRML/X3D,
+      it will not magically work with the properties below (unless you will
+      follow the same convention of naming).
 
       @groupBegin }
     property BlenderObjectNode: TVRMLNode read FBlenderObjectNode;
