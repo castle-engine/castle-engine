@@ -1167,7 +1167,6 @@ type
   TVRMLInterfaceDeclaration = class(TVRMLFileItem)
   private
     FFieldOrEvent: TVRMLFieldOrEvent;
-    FUniformInvalid: boolean;
 
     { kept in synch with FFieldOrEvent by SetFieldOrEvent }
     FField: TVRMLField;
@@ -1268,10 +1267,6 @@ type
 
     function DeepCopy(NewParentNode: TVRMLNode;
       CopyState: TVRMLNodeDeepCopyState): TVRMLInterfaceDeclaration;
-
-    { Used by renderer to mark invalid uniform variables for shaders. }
-    property UniformInvalid: boolean
-      read FUniformInvalid write FUniformInvalid;
   end;
 
   TObjectsListItem_2 = TVRMLInterfaceDeclaration;

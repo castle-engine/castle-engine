@@ -57,7 +57,8 @@ type
       Uniform name is contained in UniformName. UniformValue indicates
       uniform type and new value (UniformValue.Name is not used).
 
-      This ignores SFNode / MFNode fields (these will be set elsewhere).
+      Do not pass here SFNode / MFNode fields (these should be added to
+      UniformsTextures).
 
       @raises EGLSLUniformInvalid(When uniform variable name
         or type are invalid.) }
@@ -70,11 +71,12 @@ type
     { Set uniform shader variable from VRML/X3D field (exposed or not).
       We also start observing an exposed field or eventIn,
       and will automatically update uniform value when we receive an event. }
-    procedure BindUniform(const FieldOrEvent: TVRMLInterfaceDeclaration;
+    procedure BindNonTextureUniform(
+      const FieldOrEvent: TVRMLInterfaceDeclaration;
       const EnableDisable: boolean);
   protected
     { Nodes that have interface declarations with textures for this shader. }
-    UniformsNodes: TVRMLNodesList;
+    UniformsTextures: TVRMLFieldsList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -82,11 +84,11 @@ type
     { Set and observe uniform variables from given Node.InterfaceDeclarations.
 
       Non-texture fields are set immediately.
-      Non-texture fields are events are then observed by this shader,
+      Non-texture fields and events are then observed by this shader,
       and automatically updated when changed.
 
       Texture fields have to be updated by descendant (like TVRMLGLSLProgram),
-      using the UniformsNodes list. These methods add nodes to this list.
+      using the UniformsTextures list. These methods add fields to this list.
       @groupBegin }
     procedure BindUniforms(const Node: TVRMLNode; const EnableDisable: boolean);
     procedure BindUniforms(const Nodes: TVRMLNodesList; const EnableDisable: boolean);
@@ -614,7 +616,7 @@ constructor TVRMLShaderProgram.Create;
 begin
   inherited;
   EventsObserved := TVRMLEventsList.Create;
-  UniformsNodes := TVRMLNodesList.Create;
+  UniformsTextures := TVRMLFieldsList.Create;
 end;
 
 destructor TVRMLShaderProgram.Destroy;
@@ -627,11 +629,12 @@ begin
       EventsObserved[I].RemoveHandler(@EventReceive);
     FreeAndNil(EventsObserved);
   end;
-  FreeAndNil(UniformsNodes);
+  FreeAndNil(UniformsTextures);
   inherited;
 end;
 
-procedure TVRMLShaderProgram.BindUniform(const FieldOrEvent: TVRMLInterfaceDeclaration;
+procedure TVRMLShaderProgram.BindNonTextureUniform(
+  const FieldOrEvent: TVRMLInterfaceDeclaration;
   const EnableDisable: boolean);
 var
   UniformField: TVRMLField;
@@ -809,11 +812,16 @@ begin
       SetUniform(UniformName, TempMat4f, true);
     finally FreeAndNil(TempMat4f) end;
   end else
+
+  (*
   if (UniformValue is TSFNode) or
      (UniformValue is TMFNode) then
   begin
-    { Nothing to do, these will be set by TGLSLRenderer.Enable }
+    { Nothing to do, these will be set by TGLSLRenderer.Enable.
+      Right now, these are never passed here. }
   end else
+ *)
+
     { TODO: other field types, full list is in X3D spec in
       "OpenGL shading language (GLSL) binding".
       Remaining:
@@ -867,12 +875,19 @@ procedure TVRMLShaderProgram.BindUniforms(const Node: TVRMLNode;
   const EnableDisable: boolean);
 var
   I: Integer;
+  IDecl: TVRMLInterfaceDeclaration;
 begin
   Assert(Node.HasInterfaceDeclarations <> []);
   Assert(Node.InterfaceDeclarations <> nil);
   for I := 0 to Node.InterfaceDeclarations.Count - 1 do
-    BindUniform(Node.InterfaceDeclarations[I], EnableDisable);
-  UniformsNodes.Add(Node);
+  begin
+    IDecl := Node.InterfaceDeclarations[I];
+    if (IDecl.Field <> nil) and
+       ((IDecl.Field is TSFNode) or
+        (IDecl.Field is TMFNode)) then
+      UniformsTextures.Add(IDecl.Field) else
+      BindNonTextureUniform(IDecl, EnableDisable);
+  end;
 end;
 
 procedure TVRMLShaderProgram.BindUniforms(const Nodes: TVRMLNodesList;
