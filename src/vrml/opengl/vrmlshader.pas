@@ -126,8 +126,12 @@ type
     FCode: TShaderSource;
     LightRadiusUniformName: string;
     LightRadiusUniformValue: Single;
+    { Calculated by Prepare. }
+    Defines: string;
   public
     destructor Destroy; override;
+    { Prepare some stuff for Code generation, update Hash for this light shader. }
+    procedure Prepare(var Hash: TShaderCodeHash);
     function Code: TShaderSource;
   end;
 
@@ -150,6 +154,8 @@ type
     UniformName: string;
     UniformValue: LongInt;
   public
+    { Update Hash for this light shader. }
+    procedure Prepare(var Hash: TShaderCodeHash);
     procedure Enable(var TextureApply, TextureColorDeclare,
       TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare: string);
   end;
@@ -497,48 +503,89 @@ begin
   inherited;
 end;
 
+procedure TLightShader.Prepare(var Hash: TShaderCodeHash);
+type
+  TLightDefine = (
+    ldTypeKnown,
+    ldTypePosiional,
+    ldTypeSpot,
+    ldHasAttenuation,
+    ldHasRadius,
+    ldHasAmbient,
+    ldHasSpecular);
+
+  procedure Define(const D: TLightDefine);
+  const
+    DefinesList: array [TLightDefine] of record
+      Name: string;
+      Hash: LongWord;
+    end =
+    ( (Name: 'LIGHT_TYPE_KNOWN'     ; Hash: 103; ),
+      (Name: 'LIGHT_TYPE_POSITIONAL'; Hash: 107; ),
+      (Name: 'LIGHT_TYPE_SPOT'      ; Hash: 109; ),
+      (Name: 'LIGHT_HAS_ATTENUATION'; Hash: 113; ),
+      (Name: 'LIGHT_HAS_RADIUS'     ; Hash: 127; ),
+      (Name: 'LIGHT_HAS_AMBIENT'    ; Hash: 131; ),
+      (Name: 'LIGHT_HAS_SPECULAR'   ; Hash: 137; )
+    );
+  begin
+    Defines += '#define ' + DefinesList[D].Name + NL;
+    Hash.AddInteger(DefinesList[D].Hash);
+  end;
+
+begin
+  Defines := '';
+  Hash.AddInteger(101);
+  if Node <> nil then
+  begin
+    Define(ldTypeKnown);
+    if Node is TVRMLPositionalLightNode then
+    begin
+      Define(ldTypePosiional);
+      if (Node is TNodeSpotLight_1) or
+         (Node is TNodeSpotLight_2) then
+        Define(ldTypeSpot);
+      if TVRMLPositionalLightNode(Node).HasAttenuation then
+        Define(ldHasAttenuation);
+
+      if TVRMLPositionalLightNode(Node).HasRadius and
+        { Do not activate per-pixel checking of light radius,
+          if we know (by bounding box test below)
+          that the whole shape is completely within radius. }
+        (Box3DPointMaxDistance(Shader.ShapeBoundingBox,
+          Light^.Location) > Light^.Radius) then
+      begin
+        Define(ldHasRadius);
+        LightRadiusUniformName := 'kambi_light_%d_radius';
+        LightRadiusUniformValue := Light^.Radius;
+        { Uniform value comes from this Node's property,
+          so this cannot be shared with other light nodes,
+          that may have not synchronized radius value.
+
+          (Note: We could instead add radius value to the hash.
+          Then this shader could be shared between all light nodes with
+          the same radius value --- however, if radius changed,
+          then the shader would have to be recreated, even if the same
+          light node was used.) }
+        Hash.AddPointer(Node);
+      end;
+    end;
+    if Node.FdAmbientIntensity.Value <> 0 then
+      Define(ldHasAmbient);
+    if not PerfectlyZeroVector(MaterialSpecularColor) then
+      Define(ldHasSpecular);
+  end else
+  begin
+    Define(ldHasAmbient);
+    Define(ldHasSpecular);
+  end;
+end;
+
 function TLightShader.Code: TShaderSource;
-var
-  Defines: string;
 begin
   if FCode = nil then
   begin
     FCode := TShaderSource.Create;
-
-    Defines := '';
-    if Node <> nil then
-    begin
-      Defines += '#define LIGHT_TYPE_KNOWN' + NL;
-      if Node is TVRMLPositionalLightNode then
-      begin
-        Defines += '#define LIGHT_TYPE_POSITIONAL' + NL;
-        if (Node is TNodeSpotLight_1) or
-           (Node is TNodeSpotLight_2) then
-          Defines += '#define LIGHT_TYPE_SPOT' + NL;
-        if TVRMLPositionalLightNode(Node).HasAttenuation then
-          Defines += '#define LIGHT_HAS_ATTENUATION' + NL;
-
-        if TVRMLPositionalLightNode(Node).HasRadius and
-          { Do not activate per-pixel checking of light radius,
-            if we know (by bounding box test below)
-            that the whole shape is completely within radius. }
-          (Box3DPointMaxDistance(Shader.ShapeBoundingBox,
-            Light^.Location) > Light^.Radius) then
-        begin
-          Defines += '#define LIGHT_HAS_RADIUS' + NL;
-          LightRadiusUniformName := 'kambi_light_%d_radius';
-          LightRadiusUniformValue := Light^.Radius;
-        end;
-      end;
-      if Node.FdAmbientIntensity.Value <> 0 then
-        Defines += '#define LIGHT_HAS_AMBIENT' + NL;
-      if not PerfectlyZeroVector(MaterialSpecularColor) then
-        Defines += '#define LIGHT_HAS_SPECULAR' + NL;
-    end else
-    begin
-      Defines += '#define LIGHT_HAS_AMBIENT' + NL;
-      Defines += '#define LIGHT_HAS_SPECULAR' + NL;
-    end;
 
     FCode[stFragment].Add(
       Defines + StringReplace({$I template_add_light.glsl.inc},
@@ -824,6 +871,19 @@ begin
 end;
 
 { TTextureShader ------------------------------------------------------------- }
+
+procedure TTextureShader.Prepare(var Hash: TShaderCodeHash);
+begin
+  Hash.AddInteger(179 * (TextureUnit + 1));
+  Hash.AddInteger(181 * Ord(TextureType));
+  { Don't directly add Node to the Hash, it would prevent a lot of sharing.
+    Node is only used to get effects. }
+  Hash.AddEffects(Node.FdEffects.Items);
+  Hash.AddInteger(191 * ShadowMapSize);
+  if ShadowLight <> nil then
+    Hash.AddPointer(ShadowLight);
+  Hash.AddInteger(193 * Ord(ShadowVisualizeDepth));
+end;
 
 procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
   TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare: string);
@@ -1764,7 +1824,7 @@ begin
      (Node.FdEffects.Count <> 0) then
     ShapeRequiresShaders := true;
 
-  FCodeHash.AddInteger(19);
+  TextureShader.Prepare(FCodeHash);
 end;
 
 procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
@@ -1922,9 +1982,7 @@ begin
      (Light^.Node.FdEffects.Count <> 0) then
     ShapeRequiresShaders := true;
 
-  FCodeHash.AddInteger(13);
-  { TODO: also the light type, and does the light HAS_RADIUS must be added here,
-    check on light_attenuation demo. }
+  LightShader.Prepare(FCodeHash);
 end;
 
 procedure TVRMLShader.EnableFog(const FogType: TFogType);
