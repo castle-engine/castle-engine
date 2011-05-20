@@ -14,6 +14,8 @@
 }
 
 {$ifdef read_interface}
+  TNodeGeneratedShadowMap = class;
+
   { Base class for all VRML / X3D light nodes.
 
     Note that even the old VRML 1.0 light nodes inherit from this.
@@ -24,6 +26,12 @@
   TNodeX3DLightNode = class(TNodeX3DChildNode)
   private
     FTransform: TMatrix4Single;
+    SavedDefaultShadowMap: boolean;
+    SavedDefaultShadowMapUpdate: string;
+    SavedDefaultShadowMapSize: Integer;
+    SavedDefaultShadowMapScale: Single;
+    SavedDefaultShadowMapBias: Single;
+    SavedDefaultShadowMapCompareMode: string;
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -151,6 +159,11 @@
       var LightInstance: TLightInstance); virtual;
 
     function TransformationChange: TNodeTransformationChange; override;
+
+    { Internal, to workaround small VRMLShadowMaps problem. @exclude }
+    procedure DefaultShadowMapSave(Node: TNodeGeneratedShadowMap);
+    { Internal, to workaround small VRMLShadowMaps problem. @exclude }
+    function DefaultShadowMapLoad(Node: TNodeGeneratedShadowMap): boolean;
   end;
 
   { Deprecated name for TNodeX3DLightNode. @deprecated }
@@ -477,6 +490,29 @@ end;
 function TNodeX3DLightNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcLight;
+end;
+
+procedure TNodeX3DLightNode.DefaultShadowMapSave(Node: TNodeGeneratedShadowMap);
+begin
+  SavedDefaultShadowMap := true;
+  SavedDefaultShadowMapUpdate      := Node.FdUpdate      .Value;
+  SavedDefaultShadowMapSize        := Node.FdSize        .Value;
+  SavedDefaultShadowMapScale       := Node.FdScale       .Value;
+  SavedDefaultShadowMapBias        := Node.FdBias        .Value;
+  SavedDefaultShadowMapCompareMode := Node.FdCompareMode .Value;
+end;
+
+function TNodeX3DLightNode.DefaultShadowMapLoad(Node: TNodeGeneratedShadowMap): boolean;
+begin
+  Result := SavedDefaultShadowMap;
+  if Result then
+  begin
+    Node.FdUpdate      .Value := SavedDefaultShadowMapUpdate     ;
+    Node.FdSize        .Value := SavedDefaultShadowMapSize       ;
+    Node.FdScale       .Value := SavedDefaultShadowMapScale      ;
+    Node.FdBias        .Value := SavedDefaultShadowMapBias       ;
+    Node.FdCompareMode .Value := SavedDefaultShadowMapCompareMode;
+  end;
 end;
 
 procedure TVRMLDirectionalLightNode.CreateNode;

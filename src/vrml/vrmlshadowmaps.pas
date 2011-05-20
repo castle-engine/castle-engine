@@ -135,15 +135,23 @@ begin
       will be used all around TVRMLNode.DirectEnumerate*, and checked to avoid
       visiting nodes we're already inside), VRML/X3D actually require
       us to handle it in some Script cases anyway. }
-
     Result^.ShadowMap.KeepExistingBegin;
     Light.FdDefaultShadowMap.Value := nil;
     Result^.ShadowMap.KeepExistingEnd;
+
+    { To avoid losing the information about default shadow map size etc.
+      (which may be useful later, if we call ProcessShadowMapsReceivers again on the same model,
+      for example if user turns off/on shadow maps), we save important fields
+      inside Light properties. }
+    Light.DefaultShadowMapSave(Result^.ShadowMap);
   end else
   begin
     Result^.ShadowMap := TNodeGeneratedShadowMap.Create('', '');
-    Result^.ShadowMap.FdUpdate.Value := 'ALWAYS';
-    Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
+    if not Light.DefaultShadowMapLoad(Result^.ShadowMap) then
+    begin
+      Result^.ShadowMap.FdUpdate.Value := 'ALWAYS';
+      Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
+    end;
   end;
 
   { Regardless if this is taken from defaultShadowMap or created,
