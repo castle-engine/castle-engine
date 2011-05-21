@@ -581,6 +581,7 @@ procedure TNodeGroup_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
+  inherited;
   for I := 0 to FdChildren.Count - 1 do
     Func(Self, FdChildren.Items[I]);
 end;
