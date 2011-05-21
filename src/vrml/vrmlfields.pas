@@ -344,7 +344,7 @@ type
       parent. When saving, we will sort everything according to
       PositionInParent.
 
-      See e.g. ../../demo_models/x3d/tricky_def_use.x3dv
+      See e.g. ../../../demo_models/x3d/tricky_def_use.x3dv
       for tests of some tricky layout. When reading such file we have
       to record PositionInParent to be able to save such file correctly. }
     property PositionInParent: Integer
