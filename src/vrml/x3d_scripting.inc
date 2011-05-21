@@ -224,7 +224,7 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
     KambiScriptProgram.Environment.WWWBasePath := WWWBasePath;
   end;
 
-  function LoadUrl(Url: string): boolean;
+  function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
   var
     Protocol, PotentialFullUrl, ScriptContents: string;
   begin
@@ -283,9 +283,11 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
     end else
 
     begin
+      if FailedUrlsLog <> '' then
+        FailedUrlsLog += ', ';
       if Protocol <> '' then
-        VRMLWarning(vwIgnorable, Format('Script protocol "%s" not handled', [Protocol])) else
-        VRMLWarning(vwIgnorable, Format('Script from URL "%s" not handled', [Url]));
+        FailedUrlsLog += Format('protocol "%s" not handled', [Protocol]) else
+        FailedUrlsLog += Format('URL "%s" not handled', [Url]);
     end;
 
     { TODO: checks for Protocol <> '', above and below, are done
@@ -306,16 +308,18 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
 var
   ValidUrlFound: boolean;
   I: Integer;
+  FailedUrlsLog: string;
 begin
   if FInitialized <> Value then
   begin
     if Value then
     begin
       ValidUrlFound := false;
+      FailedUrlsLog := '';
 
       for I := 0 to FdUrl.Items.Count - 1 do
       begin
-        if LoadUrl(FdUrl.Items[I]) then
+        if LoadUrl(FdUrl.Items[I], FailedUrlsLog) then
         begin
           ValidUrlFound := true;
           Break;
@@ -324,7 +328,7 @@ begin
 
       if (not ValidUrlFound) and CDataExists then
       begin
-        if LoadUrl(CData) then
+        if LoadUrl(CData, FailedUrlsLog) then
           ValidUrlFound := true;
       end;
 
@@ -334,7 +338,9 @@ begin
         ExecuteScript('initialize', nil);
       end else
       begin
-        VRMLWarning(vwIgnorable, 'Script node ignored: no supported protocol found');
+        if FailedUrlsLog <> '' then
+          FailedUrlsLog := ' (' + FailedUrlsLog + ')';
+        VRMLWarning(vwIgnorable, 'Script node ignored: no supported protocol found' + FailedUrlsLog);
       end;
     end else
     begin
