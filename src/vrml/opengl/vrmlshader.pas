@@ -198,6 +198,7 @@ type
     FHeightMapScale: Single;
     FFogEnabled: boolean;
     FFogType: TFogType;
+    FIgnoreMissingShaderVariables: boolean;
 
     { We have to optimize the most often case of TVRMLShader usage,
       when the shader is not needed or is already prepared.
@@ -313,6 +314,8 @@ type
 
     property ShapeRequiresShaders: boolean read FShapeRequiresShaders
       write FShapeRequiresShaders;
+
+    property IgnoreMissingShaderVariables: boolean read FIgnoreMissingShaderVariables;
   end;
 
 operator = (const A, B: TShaderCodeHash): boolean;
@@ -1769,8 +1772,13 @@ begin
 
     So we do not allow EGLSLUniformNotFound to be raised.
     Also type errors, when variable exists in shader but has different type,
-    will be send to DataWarning. }
-  AProgram.UniformNotFoundAction := uaWarning;
+    will be send to DataWarning.
+
+    In case of IgnoreMissingShaderVariables, we do not want the internal
+    uniforms (from SetupUniformsOnce) to cause warnings, so disable them here. }
+  if IgnoreMissingShaderVariables then
+    AProgram.UniformNotFoundAction := uaIgnore else
+    AProgram.UniformNotFoundAction := uaWarning;
   AProgram.UniformTypeMismatchAction := utWarning;
 
   { set uniforms that will not need to be updated at each SetupUniforms call }
@@ -1854,6 +1862,16 @@ begin
     ShapeRequiresShaders := true;
 
   TextureShader.Prepare(FCodeHash);
+
+  { ShadowVisualizeDepth means that most other uniform variables of our shader
+    (like other textures, bump maps), and attributes (tangent vectors) may
+    be detected as unused, and so will not exist in the shader.
+    Avoid producing any warnings in this case, as this is normal situation.
+    Actually needed at least on NVidia GeForce 450 GTS (proprietary OpenGL
+    under Linux), on ATI (tested proprietary OpenGL drivers under Linux and Windows)
+    this doesn't seem needed (less aggressive removal of unused vars). }
+  if ShadowVisualizeDepth then
+    FIgnoreMissingShaderVariables := true;
 end;
 
 procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;

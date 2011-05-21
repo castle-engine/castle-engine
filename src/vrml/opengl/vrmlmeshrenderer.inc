@@ -191,7 +191,9 @@ var
         else raise EInternalError.Create('Arrays.Attribs[I].AType?');
       end;
     except
-      on E: EGLSLAttributeNotFound do VRMLWarning(vwSerious, E.Message);
+      on E: EGLSLAttributeNotFound do
+        if not Shader.IgnoreMissingShaderVariables then
+          VRMLWarning(vwSerious, E.Message);
     end;
   end;
 
