@@ -276,7 +276,7 @@ type
 
     This record may be initialized only by TNodeX3DLightNode.CreateLightInstance.
     Update it (when transform changes) by TNodeX3DLightNode.UpdateLightInstance. }
-  TLightInstance = record
+  TLightInstance = object
     Node: TNodeX3DLightNode;
 
     Transform: TMatrix4Single;
@@ -295,6 +295,9 @@ type
       For lights with radius (positional lights in VRML >= 2.0,
       that is TVRMLPositionalLightNode with HasRadius = true). }
     Radius: Single;
+   
+    { Deprecated name for Node. @exclude @deprecated }
+    function LightNode: TNodeX3DLightNode;
   end;
   PLightInstance = ^TLightInstance;
 
@@ -2347,7 +2350,14 @@ begin
     Result += [vkExposedField, vkInputOutput];
 end;
 
-{ TDynLightInstanceArray --------------------------------------------------------- }
+{ TLightInstance ------------------------------------------------------------- }
+
+function TLightInstance.LightNode: TNodeX3DLightNode;
+begin
+  Result := Node;
+end;
+
+{ TDynLightInstanceArray ----------------------------------------------------- }
 
 function TDynLightInstanceArray.IndexOfNode(Node: TNodeX3DLightNode): integer;
 begin
