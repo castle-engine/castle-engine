@@ -317,11 +317,22 @@ type
   TVRMLFileItem = class(TNonRefCountedInterfacedPersistent)
   private
     FPositionInParent: Integer;
+
+    { Secondary order for saving items to VRML/X3D file.
+      When PositionInParent are equal, this decides which item is first.
+      It may be useful, since SortPositionInParent is not a stable sort
+      (because QuickSort is not stable), so using this to preserve order
+      may be helpful.
+
+      TVRMLFileItemsList.Add sets this, which allows to preserve
+      order in TVRMLRootNode.SaveToStream and
+      TVRMLNode.SaveContentsToStream. }
+    PositionOnList: Integer;
   public
     constructor Create;
 
-    { Position of this VRML item within parent VRML node, for saving
-      the VRML graph to file. Default value -1 means "undefined".
+    { Position of this item within parent VRML/X3D node, used for saving
+      the VRML/X3D graph to file. Default value -1 means "undefined".
 
       For normal usage and processing of VRML graph, this is totally not needed.
       This position doesn't dictate actual meaning of VRML graph.
@@ -365,6 +376,7 @@ type
     { Sort all items by PositionInParent and then save them all to stream. }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject);
+    procedure Add(Item: TVRMLFileItem);
   end;
 
   { Common class for VRML field or event. }
@@ -2698,7 +2710,10 @@ end;
 function TVRMLFileItemsList.IsSmallerPositionInParent(
   const A, B: TVRMLFileItem): boolean;
 begin
-  Result := A.PositionInParent < B.PositionInParent;
+  Result :=
+     (A.PositionInParent < B.PositionInParent) or
+    ((A.PositionInParent = B.PositionInParent) and
+     (A.PositionOnList < B.PositionOnList));
 end;
 
 procedure TVRMLFileItemsList.SortPositionInParent;
@@ -2714,6 +2729,12 @@ begin
   SortPositionInParent;
   for I := 0 to Count - 1 do
     Items[I].SaveToStream(SaveProperties, NodeNames);
+end;
+
+procedure TVRMLFileItemsList.Add(Item: TVRMLFileItem);
+begin
+  Item.PositionOnList := Count;
+  inherited Add(Item);
 end;
 
 { TVRMLFieldOrEvent ---------------------------------------------------------- }
