@@ -265,7 +265,7 @@ implementation
   that is the MAIN chunk, and also (since we don't handle keyframes from 3DS)
   the OBJMESH chunk.
 
-  It contains a lists trimeshes, cameras and lights. They are all TObject3Ds,
+  It contains lists of triangle meshes, cameras and lights. They are all TObject3Ds,
   and correspond to OBJBLOCK chunk, with inside TRIMESH, CAMERA or LIGHT chunk.
   As far as I understand, OBJBLOCK in 3DS may contain only *one* of
   trimesh, light or camera. We assume this.
