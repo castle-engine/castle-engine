@@ -40,6 +40,7 @@ type
     procedure TestClamp;
     procedure TestSimpleMath;
     procedure TestMinMax;
+    procedure TestSortStable;
   end;
 
 implementation
@@ -361,6 +362,49 @@ begin
   Assert(Max(345, 789) = 789);
   Assert(Min(345, 123, 789) = 123);
   Assert(Max(345, 123, 789) = 789);
+end;
+
+type
+  TRec = record Id: Integer; SortKey: Integer; end;
+  PRec = ^TRec;
+
+function IsSmallerRec(const A, B, Data: Pointer): boolean;
+begin
+  Result := PRec(A)^.SortKey < PRec(B)^.SortKey;
+end;
+
+procedure TTestKambiUtils.TestSortStable;
+var
+  Recs: array of TRec;
+begin
+  SetLength(Recs, 6);
+  Recs[0].Id := 0;
+  Recs[0].SortKey := -1;
+  Recs[1].Id := 1;
+  Recs[1].SortKey := -1;
+  Recs[2].Id := 2;
+  Recs[2].SortKey := -1;
+  Recs[3].Id := 3;
+  Recs[3].SortKey := -1;
+  Recs[4].Id := 4;
+  Recs[4].SortKey := -10;
+  Recs[5].Id := 5;
+  Recs[5].SortKey := 10;
+
+  Sort(Pointer(Recs), SizeOf(TRec), @IsSmallerRec, nil, 0, Length(Recs) - 1);
+
+  Assert(Recs[0].Id = 4);
+  Assert(Recs[0].SortKey = -10);
+  Assert(Recs[1].Id = 0);
+  Assert(Recs[1].SortKey = -1);
+  Assert(Recs[2].Id = 1);
+  Assert(Recs[2].SortKey = -1);
+  Assert(Recs[3].Id = 2);
+  Assert(Recs[3].SortKey = -1);
+  Assert(Recs[4].Id = 3);
+  Assert(Recs[4].SortKey = -1);
+  Assert(Recs[5].Id = 5);
+  Assert(Recs[5].SortKey = 10);
 end;
 
 initialization
