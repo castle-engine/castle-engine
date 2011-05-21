@@ -3765,7 +3765,7 @@ end;
 
 function TVRMLGLScene.Headlight: TVRMLGLHeadlight;
 begin
-  { Our CreateHeadLightInstance makes sure that this is castable to
+  { Our CreateHeadLightInstance makes sure that this can be cast to
     TVRMLGLHeadlight. }
   Result := TVRMLGLHeadlight(inherited Headlight);
 end;
