@@ -104,6 +104,8 @@
 '#undef LIGHT_TYPE_KNOWN' + LineEnding + 
 '#undef LIGHT_HAS_AMBIENT' + LineEnding + 
 '#undef LIGHT_HAS_SPECULAR' + LineEnding + 
+'#undef LIGHT_HAS_ATTENUATION' + LineEnding + 
+'#undef LIGHT_HAS_RADIUS' + LineEnding + 
 '' + LineEnding + 
 '}' + LineEnding + 
 ''

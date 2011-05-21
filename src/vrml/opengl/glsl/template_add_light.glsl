@@ -102,5 +102,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 #undef LIGHT_TYPE_KNOWN
 #undef LIGHT_HAS_AMBIENT
 #undef LIGHT_HAS_SPECULAR
+#undef LIGHT_HAS_ATTENUATION
+#undef LIGHT_HAS_RADIUS
 
 }
