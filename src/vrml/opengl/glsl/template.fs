@@ -26,7 +26,16 @@ vec2 texture_coord_shifted(in vec2 tex_coord)
 void main(void)
 {
   vec3 normal_eye_fragment = normalize(kambi_normal_eye);
-  if (!gl_FrontFacing)
+  if (gl_FrontFacing)
+    /* Avoid AMD bug http://forums.amd.com/devforum/messageview.cfm?catid=392&threadid=148827&enterthread=y
+       Observed on fglrx (proprietary ATI Linux driver),
+       with ATI Mobility Radeon HD 4300 (kambi computer "czarny"),
+       since Ubuntu 11.4 (fglrx OpenGL version 3.3.10665).
+
+       It causes both (gl_FrontFacing) and (!gl_FrontFacing) to be true...
+       To minimize the number of problems, never use "if (!gl_FrontFacing)",
+       only "if (gl_FrontFacing)".
+    */ ; else
     normal_eye_fragment = -normal_eye_fragment;
 
   /* PLUG: fragment_eye_space (kambi_vertex_eye, normal_eye_fragment) */

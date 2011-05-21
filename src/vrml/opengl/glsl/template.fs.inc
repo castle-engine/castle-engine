@@ -28,7 +28,16 @@
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  vec3 normal_eye_fragment = normalize(kambi_normal_eye);' + LineEnding + 
-'  if (!gl_FrontFacing)' + LineEnding + 
+'  if (gl_FrontFacing)' + LineEnding + 
+'    /* Avoid AMD bug http://forums.amd.com/devforum/messageview.cfm?catid=392&threadid=148827&enterthread=y' + LineEnding + 
+'       Observed on fglrx (proprietary ATI Linux driver),' + LineEnding + 
+'       with ATI Mobility Radeon HD 4300 (kambi computer "czarny"),' + LineEnding + 
+'       since Ubuntu 11.4 (fglrx OpenGL version 3.3.10665).' + LineEnding + 
+'' + LineEnding + 
+'       It causes both (gl_FrontFacing) and (!gl_FrontFacing) to be true...' + LineEnding + 
+'       To minimize the number of problems, never use "if (!gl_FrontFacing)",' + LineEnding + 
+'       only "if (gl_FrontFacing)".' + LineEnding + 
+'    */ ; else' + LineEnding + 
 '    normal_eye_fragment = -normal_eye_fragment;' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: fragment_eye_space (kambi_vertex_eye, normal_eye_fragment) */' + LineEnding + 

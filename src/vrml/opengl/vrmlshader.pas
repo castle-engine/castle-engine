@@ -1598,7 +1598,13 @@ var
       '  /* We have to take two-sided lighting into account here, in tangent space.' +NL+
       '     Simply negating whole normal in eye space (like we do without bump mapping)' +NL+
       '     would not work good, check e.g. insides of demo_models/bump_mapping/room_for_parallax_final.wrl. */' +NL+
-      '  if (!gl_FrontFacing)' +NL+
+      '  if (gl_FrontFacing)' +NL+
+      '    /* Avoid AMD bug http://forums.amd.com/devforum/messageview.cfm?catid=392&threadid=148827&enterthread=y' +NL+
+      '       It causes both (gl_FrontFacing) and (!gl_FrontFacing) to be true...' +NL+
+      '       To minimize the number of problems, never use "if (!gl_FrontFacing)",' +NL+
+      '       only "if (gl_FrontFacing)".' +NL+
+      '       See template.fs for more comments.' +NL+
+      '    */ ; else' +NL+
       '    normal_tangent.z = -normal_tangent.z;' +NL+
 
       '  normal_eye_fragment = normalize(kambi_tangent_to_eye_space * normal_tangent);' +NL+
