@@ -191,7 +191,6 @@ type
     property Lens: Single read FLens;
     constructor Create(const AName: string; AScene: TScene3ds;
       Stream: TStream; ObjectEndPos: Int64); override;
-    destructor Destroy; override;
 
     { Camera direction. Calculated from Position and Target. }
     function Direction: TVector3Single;
@@ -206,7 +205,6 @@ type
     Enabled: boolean;
     constructor Create(const AName: string; AScene: TScene3ds;
       Stream: TStream; ObjectEndPos: Int64); override;
-    destructor Destroy; override;
   end;
 
   TObjectsListItem_1 = TTrimesh3ds;
@@ -633,40 +631,41 @@ constructor TObject3Ds.Create(const AName: string; AScene: TScene3ds;
 { don't ever call directly this constructor - we can get here
   only by  "inherited" call from Descendant's constructor }
 begin
- inherited Create;
- FName := AName;
- FScene := AScene;
+  inherited Create;
+  FName := AName;
+  FScene := AScene;
 end;
 
 function CreateObject3Ds(AScene: TScene3ds; Stream: TStream; ObjectEndPos: Int64): TObject3Ds;
-var ObjClass: TObject3DsClass;
-    ObjName: string;
-    ObjBeginPos: Int64;
-    h: TChunkHeader;
+var
+  ObjClass: TObject3DsClass;
+  ObjName: string;
+  ObjBeginPos: Int64;
+  h: TChunkHeader;
 begin
- ObjClass := nil;
- ObjName := StreamReadZeroEndString(Stream);
- ObjBeginPos := Stream.Position;
+  ObjClass := nil;
+  ObjName := StreamReadZeroEndString(Stream);
+  ObjBeginPos := Stream.Position;
 
- {seek all chunks searching for chunk TRIMESH / CAMERA / LIGHT}
- while Stream.Position < ObjectEndPos do
- begin
-  Stream.ReadBuffer(h, SizeOf(h));
-  case h.id of
-   CHUNK_TRIMESH: ObjClass := TTrimesh3ds;
-   CHUNK_CAMERA: ObjClass := TCamera3ds;
-   CHUNK_LIGHT: ObjClass := TLight3ds;
+  {seek all chunks searching for chunk TRIMESH / CAMERA / LIGHT}
+  while Stream.Position < ObjectEndPos do
+  begin
+    Stream.ReadBuffer(h, SizeOf(h));
+    case h.id of
+      CHUNK_TRIMESH: ObjClass := TTrimesh3ds;
+      CHUNK_CAMERA: ObjClass := TCamera3ds;
+      CHUNK_LIGHT: ObjClass := TLight3ds;
+    end;
+    if ObjClass <> nil then break;
+    Stream.Position := Stream.Position + h.len - SizeOf(TChunkHeader);
   end;
-  if ObjClass <> nil then break;
-  Stream.Position := Stream.Position + h.len - SizeOf(TChunkHeader);
- end;
 
- {if none of the TRIMESH / CAMERA / LIGHT chunks found raise error}
- Check3dsFile( ObjClass <> nil, 'No object recorded under the name '+ObjName);
+  {if none of the TRIMESH / CAMERA / LIGHT chunks found raise error}
+  Check3dsFile( ObjClass <> nil, 'No object recorded under the name '+ObjName);
 
- {restore stream pos, create object using appropriate class}
- Stream.Position := ObjBeginPos;
- result := ObjClass.Create(ObjName, AScene, Stream, ObjectEndPos);
+  {restore stream pos, create object using appropriate class}
+  Stream.Position := ObjBeginPos;
+  result := ObjClass.Create(ObjName, AScene, Stream, ObjectEndPos);
 end;
 
 { TTrimesh3ds --------------------------------------------------------------- }
@@ -674,186 +673,186 @@ end;
 constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3ds;
   Stream: TStream; ObjectEndPos: Int64);
 
+  { Read FVertsCount, initialize Verts.
+    Unless Verts is already non-zero, then only check it's correct
+    (as FVertsCount of trimesh may be specified in a couple places,
+    like VERTLIST and MAPLIST chunk). }
   procedure ReadVertsCount;
-  {odczytaj ze strumienia dwubajtowo zapisane FVertsCount i zainicjuj
-   FVertsCount i Verts obiektu, ew. tylko sprawdz czy nowa informacja
-   zgadza sie z tym co juz mamy (bo FVertsCount trimesha moze byc podane
-   w paru miejscach, m.in. w chunku VERTLIST i MAPLIST) }
-  var VertsCountCheck: Word;
+  var
+    VertsCountCheck: Word;
   begin
-   if VertsCount = 0 then
-   begin
-    Stream.ReadBuffer(FVertsCount, SizeOf(FVertsCount));
-    { ladujemy przez GetClearMem zeby ustawic wszystko czego tu nie
-      zainicjujemy na 0 }
-    Verts := GetClearMem(SizeOf(TVertex3ds)*VertsCount);
-   end else
-   begin
-    Stream.ReadBuffer(VertsCountCheck, SizeOf(VertsCountCheck));
-    Check3dsFile( VertsCountCheck = VertsCount,
-      'Different VertexCount info for 3ds object '+Name);
-   end;
+    if VertsCount = 0 then
+    begin
+      Stream.ReadBuffer(FVertsCount, SizeOf(FVertsCount));
+      { Use GetClearMem to have Verts memory safely initialized to 0 }
+      Verts := GetClearMem(SizeOf(TVertex3ds)*VertsCount);
+    end else
+    begin
+      Stream.ReadBuffer(VertsCountCheck, SizeOf(VertsCountCheck));
+      Check3dsFile( VertsCountCheck = VertsCount,
+        'Different VertexCount info for 3ds object '+Name);
+    end;
   end;
 
   procedure ReadVertlist;
-  var i: integer;
+  var
+    i: integer;
   begin
-   ReadVertsCount;
-   for i := 0 to VertsCount-1 do
-    Stream.ReadBuffer(Verts^[i].Pos, SizeOf(Verts^[i].Pos));
+    ReadVertsCount;
+    for i := 0 to VertsCount-1 do
+      Stream.ReadBuffer(Verts^[i].Pos, SizeOf(Verts^[i].Pos));
   end;
 
   procedure ReadMaplist(chunkEnd: Int64);
-  var i: integer;
+  var
+    i: integer;
   begin
-   FHasTexCoords := true;
-   ReadVertsCount;
-   for i := 0 to VertsCount-1 do
-    Stream.ReadBuffer(Verts^[i].TexCoord, SizeOf(Verts^[i].TexCoord));
-   Stream.Position := chunkEnd; { skip subchunks }
+    FHasTexCoords := true;
+    ReadVertsCount;
+    for i := 0 to VertsCount-1 do
+      Stream.ReadBuffer(Verts^[i].TexCoord, SizeOf(Verts^[i].TexCoord));
+    Stream.Position := chunkEnd; { skip subchunks }
   end;
 
   procedure ReadFacelist(chunkEnd: Int64);
 
     procedure ReadFacemat;
-    var MatName: string;
-        MatFaceCount: Word;
-        FaceNum: Word;
-        i, MatIndex: Integer;
+    var
+      MatName: string;
+      MatFaceCount: Word;
+      FaceNum: Word;
+      i, MatIndex: Integer;
     begin
-     MatName := StreamReadZeroEndString(Stream);
-     MatIndex := Scene.Materials.MaterialIndex(MatName);
-     Stream.ReadBuffer(MatFaceCount, SizeOf(MatFaceCount));
-     for i := 1 to MatFaceCount do
-     begin
-      Stream.ReadBuffer(FaceNum, SizeOf(FaceNum));
-      Check3dsFile(FaceNum < FacesCount,
-        'Invalid face number for material '+MatName);
-      Check3dsFile(Faces^[FaceNum].FaceMaterialIndex = -1,
-        'Duplicate material specification for face');
-      Faces^[FaceNum].FaceMaterialIndex := MatIndex;
-     end;
+      MatName := StreamReadZeroEndString(Stream);
+      MatIndex := Scene.Materials.MaterialIndex(MatName);
+      Stream.ReadBuffer(MatFaceCount, SizeOf(MatFaceCount));
+      for i := 1 to MatFaceCount do
+      begin
+        Stream.ReadBuffer(FaceNum, SizeOf(FaceNum));
+        Check3dsFile(FaceNum < FacesCount,
+          'Invalid face number for material '+MatName);
+        Check3dsFile(Faces^[FaceNum].FaceMaterialIndex = -1,
+          'Duplicate material specification for face');
+        Faces^[FaceNum].FaceMaterialIndex := MatIndex;
+      end;
     end;
 
-  var i, j: integer;
-      Flags: Word;
-      Word3: packed array[0..2]of Word;
-      h: TChunkHeader;
-      hEnd: Int64;
+  var
+    i, j: integer;
+    Flags: Word;
+    Word3: packed array[0..2]of Word;
+    h: TChunkHeader;
+    hEnd: Int64;
   begin
-   Check3dsFile(FacesCount = 0, 'Duplicate faces specification for 3ds object '+Name);
-   Stream.ReadBuffer(FFacesCount, SizeOf(FFacesCount));
-   Faces := GetMem(SizeOf(TFace3ds)*FacesCount);
-   for i := 0 to FacesCount-1 do
-   with Faces^[i] do
-   begin
-    {init face}
-    Stream.ReadBuffer(Word3, SizeOf(Word3));
-    for j := 0 to 2 do
-     VertsIndices[j] := Word3[j];
-    Stream.ReadBuffer(Flags, SizeOf(Flags));
-    {rozkoduj pole Flags}
-    for j := 0 to 2 do
-     EdgeFlags[j]:=(FACEFLAG_EDGES[j] and Flags) <> 0;
-    for j := 0 to 1 do
-     Wrap[j]:=(FACEFLAG_WRAP[j] and Flags) <> 0;
-    FaceMaterialIndex := -1;
-   end;
+    Check3dsFile(FacesCount = 0, 'Duplicate faces specification for 3ds object '+Name);
+    Stream.ReadBuffer(FFacesCount, SizeOf(FFacesCount));
+    Faces := GetMem(SizeOf(TFace3ds)*FacesCount);
+    for i := 0 to FacesCount-1 do
+    with Faces^[i] do
+    begin
+      { init face }
+      Stream.ReadBuffer(Word3, SizeOf(Word3));
+      for j := 0 to 2 do
+        VertsIndices[j] := Word3[j];
+      Stream.ReadBuffer(Flags, SizeOf(Flags));
+      { decode Flags }
+      for j := 0 to 2 do
+        EdgeFlags[j]:=(FACEFLAG_EDGES[j] and Flags) <> 0;
+      for j := 0 to 1 do
+        Wrap[j]:=(FACEFLAG_WRAP[j] and Flags) <> 0;
+      FaceMaterialIndex := -1;
+    end;
 
-   {read subchunks - look for FACEMAT chunk}
-   while Stream.Position < chunkEnd do
-   begin
-    Stream.ReadBuffer(h, SizeOf(h));
-    hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
-    if h.id = CHUNK_FACEMAT then
-     ReadFacemat else
-     Stream.Position := hEnd;
-   end;
+    { read subchunks - look for FACEMAT chunk }
+    while Stream.Position < chunkEnd do
+    begin
+      Stream.ReadBuffer(h, SizeOf(h));
+      hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
+      if h.id = CHUNK_FACEMAT then
+        ReadFacemat else
+        Stream.Position := hEnd;
+    end;
   end;
 
-var h, htrimesh: TChunkHeader;
-    trimeshEnd, hEnd: Int64;
+var
+  h, htrimesh: TChunkHeader;
+  trimeshEnd, hEnd: Int64;
 begin
- inherited;
+  inherited;
 
- {init properties}
- FHasTexCoords := false;
+  { init properties }
+  FHasTexCoords := false;
 
- {szukamy chunka TRIMESH}
- while Stream.Position < ObjectEndPos do
- begin
-  Stream.ReadBuffer(htrimesh, SizeOf(htrimesh));
-  trimeshEnd := Stream.Position + htrimesh.len - SizeOf(TChunkHeader);
-  if htrimesh.id = CHUNK_TRIMESH then
+  { look for chunk TRIMESH }
+  while Stream.Position < ObjectEndPos do
   begin
+    Stream.ReadBuffer(htrimesh, SizeOf(htrimesh));
+    trimeshEnd := Stream.Position + htrimesh.len - SizeOf(TChunkHeader);
+    if htrimesh.id = CHUNK_TRIMESH then
+    begin
+      { look for chunks VERTLIST, FACELIST, TRMATRIX, MAPLIST }
+      while Stream.Position < trimeshEnd do
+      begin
+        Stream.ReadBuffer(h, SizeOf(h));
+        hend := Stream.Position + h.len - SizeOf(TChunkHeader);
+        case h.id of
+          CHUNK_VERTLIST: ReadVertlist;
+          CHUNK_FACELIST: ReadFacelist(hEnd);
+          CHUNK_MAPLIST: ReadMaplist(hEnd);
+          else Stream.Position := hEnd;
+        end;
+      end;
 
-   {szukaj chunkow VERTLIST, FACELIST, TRMATRIX, MAPLIST}
-   while Stream.Position < trimeshEnd do
-   begin
-    Stream.ReadBuffer(h, SizeOf(h));
-    hend := Stream.Position + h.len - SizeOf(TChunkHeader);
-    case h.id of
-     CHUNK_VERTLIST: ReadVertlist;
-     CHUNK_FACELIST: ReadFacelist(hEnd);
-     CHUNK_MAPLIST: ReadMaplist(hEnd);
-     else Stream.Position := hEnd;
-    end;
-   end;
+      break; { tylko jeden TRIMESH moze byc w jednym OBJBLOCK }
+    end else
+      Stream.Position := trimeshEnd;
+  end;
 
-   break; { tylko jeden TRIMESH moze byc w jednym OBJBLOCK }
-  end else
-   Stream.Position := trimeshEnd;
- end;
-
- Stream.Position := ObjectEndPos;
+  Stream.Position := ObjectEndPos;
 end;
 
 destructor TTrimesh3ds.Destroy;
 begin
- FreeMemNiling(Verts);
- FreeMemNiling(Faces);
- inherited;
+  FreeMemNiling(Verts);
+  FreeMemNiling(Faces);
+  inherited;
 end;
 
 { TCamera3ds --------------------------------------------------------------- }
 
 constructor TCamera3ds.Create(const AName: string; AScene: TScene3ds;
   Stream: TStream; ObjectEndPos: Int64);
-var h: TChunkHeader;
-    hEnd: Int64;
+var
+  h: TChunkHeader;
+  hEnd: Int64;
 begin
- inherited;
+  inherited;
 
- {szukamy chunka CAMERA}
- while Stream.Position < ObjectEndPos do
- begin
-  Stream.ReadBuffer(h, SizeOf(h));
-  hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
-  if h.id = CHUNK_CAMERA then
+  { look for chunk CAMERA }
+  while Stream.Position < ObjectEndPos do
   begin
-   {read camera chunk}
-   Stream.ReadBuffer(FPosition, SizeOf(FPosition));
-   Stream.ReadBuffer(FTarget, SizeOf(FTarget));
-   Stream.ReadBuffer(FBank, SizeOf(FBank));
-   Stream.ReadBuffer(FLens, SizeOf(FLens));
+    Stream.ReadBuffer(h, SizeOf(h));
+    hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
+    if h.id = CHUNK_CAMERA then
+    begin
+      { read camera chunk }
+      Stream.ReadBuffer(FPosition, SizeOf(FPosition));
+      Stream.ReadBuffer(FTarget, SizeOf(FTarget));
+      Stream.ReadBuffer(FBank, SizeOf(FBank));
+      Stream.ReadBuffer(FLens, SizeOf(FLens));
 
-   Stream.Position := hEnd; { skip CHUNK_CAMERA subchunks }
-   break; { tylko jeden chunk CAMERA moze byc w jednym OBJBLOCK }
-  end else
-   Stream.Position := hEnd;
- end;
+      Stream.Position := hEnd; { skip CHUNK_CAMERA subchunks }
+      break; { only one chunk CAMERA allowed in one OBJBLOCK }
+    end else
+      Stream.Position := hEnd;
+  end;
 
- Stream.Position := ObjectEndPos;
-end;
-
-destructor TCamera3ds.Destroy;
-begin
- inherited;
+  Stream.Position := ObjectEndPos;
 end;
 
 function TCamera3ds.Direction: TVector3Single;
 begin
- result := VectorSubtract(Target, Position);
+  result := VectorSubtract(Target, Position);
 end;
 
 function TCamera3ds.Up: TVector3Single;
@@ -880,120 +879,119 @@ end;
 
 constructor TLight3ds.Create(const AName: string; AScene: TScene3ds;
   Stream: TStream; ObjectEndPos: Int64);
-var h: TChunkHeader;
-    hEnd: Int64;
+var
+  h: TChunkHeader;
+  hEnd: Int64;
 begin
- inherited;
+  inherited;
 
- {init defaults}
- Enabled := true; { TODO: we could read this from 3ds file }
+  { init defaults }
+  Enabled := true; { TODO: we could read this from 3ds file }
 
- {szukamy chunka LIGHT}
- while Stream.Position < ObjectEndPos do
- begin
-  Stream.ReadBuffer(h, SizeOf(h));
-  hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
-  if h.id = CHUNK_LIGHT then
+  { look for chunk LIGHT }
+  while Stream.Position < ObjectEndPos do
   begin
+    Stream.ReadBuffer(h, SizeOf(h));
+    hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
+    if h.id = CHUNK_LIGHT then
+    begin
+      { read LIGHT chunk }
+      Stream.ReadBuffer(Pos, SizeOf(Pos));
+      TryReadColorInSubchunks(Col, Stream, ObjectEndPos);
 
-   {read LIGHT chunk}
-   Stream.ReadBuffer(Pos, SizeOf(Pos));
-   TryReadColorInSubchunks(Col, Stream, ObjectEndPos);
+      break; { only one LIGHT allowed in one OBJBLOCK }
+    end else
+      Stream.Position := hEnd;
+  end;
 
-   break; { tylko jeden LIGHT moze byc w jednym OBJBLOCK }
-  end else
-   Stream.Position := hEnd;
- end;
-
- Stream.Position := ObjectEndPos;
-end;
-
-destructor TLight3ds.Destroy;
-begin
- inherited;
+  Stream.Position := ObjectEndPos;
 end;
 
 { TScene3ds ----------------------------------------------------------------- }
 
 constructor TScene3ds.Create(Stream: TStream);
-var hmain, hsubmain, hsubObjMesh: TChunkHeader;
-    hsubmainEnd, hsubObjMeshEnd: Int64;
-    Object3Ds: TObject3Ds;
+var
+  hmain, hsubmain, hsubObjMesh: TChunkHeader;
+  hsubmainEnd, hsubObjMeshEnd: Int64;
+  Object3Ds: TObject3Ds;
 begin
- inherited Create;
+  inherited Create;
 
- Trimeshes := TTrimesh3dsList.Create;
- Cameras := TCamera3dsList.Create;
- Lights := TLight3dsList.Create;
- Materials := TMaterial3dsList.Create;
+  Trimeshes := TTrimesh3dsList.Create;
+  Cameras := TCamera3dsList.Create;
+  Lights := TLight3dsList.Create;
+  Materials := TMaterial3dsList.Create;
 
- Stream.ReadBuffer(hmain, SizeOf(hmain));
- Check3dsFile(hmain.id = CHUNK_MAIN, 'First chunk id <> CHUNK_MAIN');
+  Stream.ReadBuffer(hmain, SizeOf(hmain));
+  Check3dsFile(hmain.id = CHUNK_MAIN, 'First chunk id <> CHUNK_MAIN');
 
- while Stream.Position < hmain.len do
- begin
-  Stream.ReadBuffer(hsubmain, SizeOf(hsubmain));
-  hsubmainEnd := Stream.Position+hsubmain.len-SizeOf(TChunkHeader);
-  case hsubmain.id of
-   CHUNK_OBJMESH:
-     begin
-      {szukamy chunkow OBJBLOCK i MATERIAL}
-      while Stream.Position < hsubmainEnd do
-      begin
-       Stream.ReadBuffer(hsubObjMesh, SizeOf(hsubObjMesh));
-       hsubObjMeshEnd := Stream.Position + hsubObjMesh.len - SizeOf(TChunkHeader);
-       case hsubObjMesh.id of
-        CHUNK_OBJBLOCK:
+  while Stream.Position < hmain.len do
+  begin
+    Stream.ReadBuffer(hsubmain, SizeOf(hsubmain));
+    hsubmainEnd := Stream.Position+hsubmain.len-SizeOf(TChunkHeader);
+    case hsubmain.id of
+      CHUNK_OBJMESH:
+        begin
+          { look for chunks OBJBLOCK and MATERIAL }
+          while Stream.Position < hsubmainEnd do
           begin
-           Object3Ds := CreateObject3Ds(Self, Stream, hsubObjMeshEnd);
-           if Object3Ds is TTrimesh3ds then
-            Trimeshes.Add(TTrimesh3ds(Object3Ds)) else
-           if Object3Ds is TCamera3ds then
-            Cameras.Add(TCamera3ds(Object3Ds)) else
-            Lights.Add(Object3Ds as TLight3ds);
+            Stream.ReadBuffer(hsubObjMesh, SizeOf(hsubObjMesh));
+            hsubObjMeshEnd := Stream.Position + hsubObjMesh.len - SizeOf(TChunkHeader);
+            case hsubObjMesh.id of
+              CHUNK_OBJBLOCK:
+                begin
+                  Object3Ds := CreateObject3Ds(Self, Stream, hsubObjMeshEnd);
+                  if Object3Ds is TTrimesh3ds then
+                    Trimeshes.Add(TTrimesh3ds(Object3Ds)) else
+                  if Object3Ds is TCamera3ds then
+                    Cameras.Add(TCamera3ds(Object3Ds)) else
+                    Lights.Add(Object3Ds as TLight3ds);
+                end;
+              CHUNK_MATERIAL: Materials.ReadMaterial(Stream, hsubObjMeshEnd);
+              else Stream.Position := hsubObjMeshEnd;
+            end;
           end;
-        CHUNK_MATERIAL: Materials.ReadMaterial(Stream, hsubObjMeshEnd);
-        else Stream.Position := hsubObjMeshEnd;
-       end;
-      end;
-     end;
-   CHUNK_VERSION: Stream.ReadBuffer(Version, SizeOf(Version));
-   else Stream.Position := hsubmainEnd;
+        end;
+      CHUNK_VERSION: Stream.ReadBuffer(Version, SizeOf(Version));
+      else Stream.Position := hsubmainEnd;
+    end;
   end;
- end;
 
- Materials.CheckAllInitialized;
+  Materials.CheckAllInitialized;
 end;
 
 constructor TScene3ds.Create(const filename: string);
-var S: TStream;
+var
+  S: TStream;
 begin
- S := CreateReadFileStream(filename);
- try Create(S);
- finally S.Free end;
+  S := CreateReadFileStream(filename);
+  try Create(S);
+  finally S.Free end;
 end;
 
 destructor TScene3ds.Destroy;
 begin
- FreeWithContentsAndNil(Trimeshes);
- FreeWithContentsAndNil(Cameras);
- FreeWithContentsAndNil(Lights);
- FreeWithContentsAndNil(Materials);
- inherited;
+  FreeWithContentsAndNil(Trimeshes);
+  FreeWithContentsAndNil(Cameras);
+  FreeWithContentsAndNil(Lights);
+  FreeWithContentsAndNil(Materials);
+  inherited;
 end;
 
 function TScene3ds.SumTrimeshesVertsCount: Cardinal;
-var i: integer;
+var
+  i: integer;
 begin
- result := 0;
- for i := 0 to Trimeshes.Count-1 do result += Trimeshes[i].VertsCount;
+  result := 0;
+  for i := 0 to Trimeshes.Count-1 do result += Trimeshes[i].VertsCount;
 end;
 
 function TScene3ds.SumTrimeshesFacesCount: Cardinal;
-var i: integer;
+var
+  i: integer;
 begin
- result := 0;
- for i := 0 to Trimeshes.Count-1 do result += Trimeshes[i].FacesCount;
+  result := 0;
+  for i := 0 to Trimeshes.Count-1 do result += Trimeshes[i].FacesCount;
 end;
 
 end.
