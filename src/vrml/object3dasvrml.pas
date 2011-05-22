@@ -437,18 +437,18 @@ var
 
   procedure AddViewpoints;
   var
-    camera: TVRMLNode;
-    i: Integer;
+    Viewpoint: TVRMLNode;
+    I: Integer;
   begin
-    for i := 0 to O3ds.Cameras.Count - 1 do
+    for I := 0 to O3ds.Cameras.Count - 1 do
     begin
-      camera := MakeVRMLCameraNode(2, WWWBasePath,
-        O3ds.Cameras[i].Position,
-        O3ds.Cameras[i].Direction,
-        O3ds.Cameras[i].Up,
-        O3ds.Cameras[i].Up { GravityUp equals Up });
-      camera.NodeName := ViewpointVRMLName(O3ds.Cameras[i].Name);
-      Result.FdChildren.Add(camera);
+      Viewpoint := MakeVRMLCameraNode(2, WWWBasePath,
+        O3ds.Cameras[I].Position,
+        O3ds.Cameras[I].Direction,
+        O3ds.Cameras[I].Up,
+        O3ds.Cameras[I].Up { GravityUp equals Up });
+      Viewpoint.NodeName := ViewpointVRMLName(O3ds.Cameras[I].Name);
+      Result.FdChildren.Add(Viewpoint);
 
       { TODO: use other 3ds camera fields }
     end;
@@ -456,18 +456,18 @@ var
 
   procedure AddLights;
   var
-    i: Integer;
-    light: TNodePointLight_2;
+    I: Integer;
+    Light: TNodePointLight_2;
   begin
-    for i := 0 to O3ds.Lights.Count - 1 do
+    for I := 0 to O3ds.Lights.Count - 1 do
     begin
-      light := TNodePointLight_2.Create(LightVRMLName(
-        O3ds.Lights[i].Name), WWWBasePath);
-      Result.FdChildren.Add(light);
+      Light := TNodePointLight_2.Create(LightVRMLName(
+        O3ds.Lights[I].Name), WWWBasePath);
+      Result.FdChildren.Add(Light);
 
-      light.FdOn.Value := O3ds.Lights[i].Enabled;
-      light.FdLocation.Value := O3ds.Lights[i].Pos;
-      light.FdColor.Value := O3ds.Lights[i].Col;
+      Light.FdOn.Value := O3ds.Lights[I].Enabled;
+      Light.FdLocation.Value := O3ds.Lights[I].Pos;
+      Light.FdColor.Value := O3ds.Lights[I].Col;
     end;
   end;
 
@@ -551,7 +551,7 @@ begin
         but having different materials. }
       for i := 0 to O3ds.Trimeshes.Count-1 do
       begin
-        Trimesh3ds := O3ds.Trimeshes[i];
+        Trimesh3ds := O3ds.Trimeshes[I];
 
         { Create Coordinate node }
         Coord := TNodeCoordinate.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), WWWBasePath);
