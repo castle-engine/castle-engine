@@ -578,11 +578,10 @@ var
   StreamStartPos: Int64;
   h: TChunkHeader;
 begin
-  {kazdy material musi miec chunk MATNAME inaczej material jest calkowicie
-   bezuzyteczny (odwolywac sie do materiala mozna tylko poprzez nazwe).
-   Ponadto o ile wiem moze byc tylko jeden chunk MATNAME (material moze miec
-   tylko jedna nazwe).
-   Ponizej szukamy chunka MATNAME aby zidentyfikowac material. }
+  { every material must have chunk MATNAME, otherwise it's useless
+    (visible objects may use the material only by name).
+    As far as I know, only one MATNAME is allowed (only one name for one material).
+    Look for MATNAME chunk now. }
   StreamStartPos := Stream.Position;
   MatName := '';
 
@@ -600,17 +599,16 @@ begin
   Stream.Position := StreamStartPos; { restore original position in Stream }
   if MatName = '' then raise EInvalid3dsFile.Create('Unnamed material');
 
-  { znalezlismy MatName; teraz mozemy dodac go do Items, chyba ze juz tam
-    jest not Initialized (wtedy wystarczy go zainicjowac) lub Initialized
-    (wtedy blad - exception) }
+  { found MatName. Add it to Items, unless it's already there.
+    In the latter case, mark it initialized (if not already), or raise exception
+    (because it means material properties were specified two times). }
   ind := MaterialIndex(MatName);
   with Items[ind] do
   begin
     Check3dsFile( not Initialized, 'Duplicate material '+MatName+' specification');
-    {jesli not Initialized to znaczy ze material albo zostal dodany do listy
-     przez MaterialIndex albo zostal juz gdzies uzyty w trimeshu -
-     tak czy siak nie zostal jeszcze zdefiniowany w pliku 3ds.
-     Wiec mozemy go teraz spokojnie zainicjowac.}
+    { if not Initialized then material was added to the list by MaterialIndex
+      or was used in a trimesh already --- but was not yet defined in 3DS.
+      So initialize it now. }
     ReadFromStream(Stream, EndPos);
   end;
 end;
@@ -618,11 +616,9 @@ end;
 { Useful consts -------------------------------------------------------------- }
 
 const
-  { czy jest edge flag pomiedzy i a (i+1) mod 3 vertexem ?
-    Odpowiedz := (FACEFLAG_EDGES[i] and Face.flags) <> 0 }
+  { Bit flags for checking is there an edge flag between I and ((I+1) mod 3) vertex. }
   FACEFLAG_EDGES: array[0..2]of Word = ($4, $2, $1);
-  { WrapU i WrapV - ta sa (chyba) wskazowki czy tekstura na scianie
-    ma byc clamped czy repeated. Chwilowo unused. }
+  { Bit flags for checking texture wrap u,v. }
   FACEFLAG_WRAP: array[0..1]of Word = ($8, $10);
 
 { TObject3DS ----------------------------------------------------------------- }
