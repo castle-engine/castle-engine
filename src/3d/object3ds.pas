@@ -157,7 +157,6 @@ type
   private
     FVertsCount, FFacesCount: Word;
     FHasTexCoords: boolean;
-    FBoundingBox: TBox3D;
   public
     { Vertexes and faces. Read-only from outside of this class.
       @groupBegin }
@@ -180,8 +179,6 @@ type
     constructor Create(const AName: string; AScene: TScene3ds;
       Stream: TStream; ObjectEndPos: Int64); override;
     destructor Destroy; override;
-
-    property BoundingBox: TBox3D read FBoundingBox;
   end;
 
   TCamera3ds = class(TObject3Ds)
@@ -196,9 +193,6 @@ type
     constructor Create(const AName: string; AScene: TScene3ds;
       Stream: TStream; ObjectEndPos: Int64); override;
     destructor Destroy; override;
-
-    { Transformation of this camera. }
-    function Matrix: TMatrix4Single;
 
     { Camera direction. Calculated from CamPos and CamTarget. }
     function CamDir: TVector3Single;
@@ -227,8 +221,6 @@ type
   TLight3dsList = TObjectsList_3;
 
   TScene3ds = class(T3D)
-  private
-    FBoundingBox: TBox3D;
   public
     { Triangle meshes, cameras and other properties of the scene.
       They are created and destroyed by TScene3ds
@@ -247,14 +239,6 @@ type
 
     function SumTrimeshesVertsCount: Cardinal;
     function SumTrimeshesFacesCount: Cardinal;
-
-    procedure WritelnSceneInfo; {< Output some info about this 3DS file. }
-
-    { Return transformation of Cameras[CamNumber], unless it doesn't exist
-      --- then return identity matrix. }
-    function TryCameraMatrix(CamNumber: integer): TMatrix4Single;
-
-    function BoundingBox: TBox3D; override;
   end;
 
 function CreateObject3Ds(AScene: Tscene3ds; Stream: TStream;
@@ -823,9 +807,6 @@ begin
  end;
 
  Stream.Position := ObjectEndPos;
-
- fBoundingBox := CalculateBoundingBox(
-   @Verts^[0].Pos, VertsCount, SizeOf(TVertex3ds));
 end;
 
 destructor TTrimesh3ds.Destroy;
@@ -869,11 +850,6 @@ end;
 destructor TCamera3ds.Destroy;
 begin
  inherited;
-end;
-
-function TCamera3ds.Matrix: TMatrix4Single;
-begin
- result := LookAtMatrix(CamPos, CamTarget, CamUp);
 end;
 
 function TCamera3ds.CamDir: TVector3Single;
@@ -942,16 +918,6 @@ end;
 { TScene3ds ----------------------------------------------------------------- }
 
 constructor TScene3ds.Create(Stream: TStream);
-
-  procedure CalcBBox;
-  var i: integer;
-  begin
-   {calculate bounding box as a sum of BoundingBoxes of all trimeshes}
-   fBoundingBox := EmptyBox3D;
-   for i := 0 to Trimeshes.Count-1 do
-    Box3DSumTo1st(fBoundingBox, Trimeshes[i].BoundingBox);
-  end;
-
 var hmain, hsubmain, hsubObjMesh: TChunkHeader;
     hsubmainEnd, hsubObjMeshEnd: Int64;
     Object3Ds: TObject3Ds;
@@ -999,8 +965,6 @@ begin
  end;
 
  Materials.CheckAllInitialized;
-
- CalcBBox;
 end;
 
 constructor TScene3ds.Create(const filename: string);
@@ -1033,51 +997,5 @@ begin
  result := 0;
  for i := 0 to Trimeshes.Count-1 do result += Trimeshes[i].FacesCount;
 end;
-
-procedure TScene3ds.WritelnSceneInfo;
-
-  function ColToStr(const v: TVector4Single): string;
-  begin result := Format('%f,%f,%f', [v[0], v[1], v[2]]) end;
-
-var i: integer;
-begin
- Writeln('3ds version : ',Version);
- for i := 0 to Cameras.Count-1 do
-  Writeln('  Camera ',i, ': "',Cameras[i].Name, '"');
- for i := 0 to Lights.Count-1 do
-  Writeln('  Light ',i, ': "',Lights[i].Name, '"',
-          Format(' Pos(%f,%f,%f)',
-          [Lights[i].Pos[0], Lights[i].Pos[1], Lights[i].Pos[2]]),
-          ' Col',VectorToNiceStr(Lights[i].Col));
- for i := 0 to Materials.Count-1 do
- begin
-  Write('  Material ',i, ': "',Materials[i].Name, '"'
-         ,' Amb(',ColToStr(Materials[i].AmbientColor), ')'
-         ,' Diff(',ColToStr(Materials[i].DiffuseColor), ')'
-         ,' Spec(',ColToStr(Materials[i].SpecularColor), ')');
-  if Materials[i].TextureMap1.Exists then
-   Write(' Texture1('+Materials[i].TextureMap1.MapFilename+')');
-  if Materials[i].TextureMap2.Exists then
-   Write(' Texture2('+Materials[i].TextureMap2.MapFilename+')');
-  Writeln;
- end;
- for i := 0 to Trimeshes.Count-1 do
-  Writeln('  Trimesh ',i, ': "',Trimeshes[i].Name, '" - ',
-    Trimeshes[i].VertsCount, ' vertices, ',Trimeshes[i].FacesCount, ' triangles');
- Writeln('All trimeshes sum : ',SumTrimeshesVertsCount, ' vertices, ',
-   SumTrimeshesFacesCount, ' triangles');
- Writeln('Bounding box : ',Box3DToNiceStr(BoundingBox),
-   ', average size : ',Format('%f', [Box3DAvgSize(BoundingBox, true, 0)]) );
-end;
-
-function TScene3ds.TryCameraMatrix(CamNumber: integer): TMatrix4Single;
-begin
- if CamNumber < Cameras.Count then
-  result := Cameras[CamNumber].Matrix else
-  result := IdentityMatrix4Single;
-end;
-
-function TScene3ds.BoundingBox: TBox3D;
-begin result := FBoundingBox end;
 
 end.
