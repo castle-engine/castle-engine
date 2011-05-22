@@ -177,7 +177,7 @@ const
 
 implementation
 
-uses Object3DGEO, Object3Ds, Object3DOBJ, VRMLCameraUtils,
+uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils,
   KambiStringUtils, VRMLAnimation, ColladaToVRML;
 
 {
@@ -412,7 +412,7 @@ end;
 function Load3DS(const filename: string): TVRMLRootNode;
 var
   WWWBasePath: string;
-  O3ds: TScene3ds;
+  O3ds: TScene3DS;
 
   { Prefix names with things like "Material_", to make sure these
     names not collide with each other. (I don't know if they are in
@@ -524,7 +524,7 @@ var
 begin
   WWWBasePath := ExtractFilePath(ExpandFilename(filename));
   Appearances := nil;
-  O3ds := TScene3ds.Create(filename);
+  O3ds := TScene3DS.Create(filename);
   try
     Result := TVRMLRootNode.Create('', WWWBasePath);
     try

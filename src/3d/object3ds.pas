@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ 3DS format handling (TScene3ds and helpers). }
+{ 3DS loader (TScene3DS). }
 
-unit Object3Ds;
+unit Object3DS;
 
 { TODO
   - properties that are read from 3ds but not used anywhere (not in
@@ -108,25 +108,25 @@ type
   end;
 
   { }
-  TScene3ds = class;
+  TScene3DS = class;
 
   { @abstract(Abstract class for 3DS triangle mesh, camera or light source.)
 
-    Use CreateObject3Ds method to read contents from stream,
-    creating appropriate non-abstract TObject3Ds descendant. }
-  TObject3Ds = class
+    Use CreateObject3DS method to read contents from stream,
+    creating appropriate non-abstract TObject3DS descendant. }
+  TObject3DS = class
   private
     FName: string;
-    FScene: TScene3ds;
+    FScene: TScene3DS;
   public
     property Name: string read FName;
     { Scene containing this object. }
-    property Scene: Tscene3ds read FScene;
-    constructor Create(const AName: string; AScene: TScene3ds;
+    property Scene: Tscene3DS read FScene;
+    constructor Create(const AName: string; AScene: TScene3DS;
       Stream: TStream; ObjectEndPos: Int64); virtual;
   end;
 
-  TObject3DsClass = class of TObject3Ds;
+  TObject3DSClass = class of TObject3DS;
 
   TFace3ds = record
     VertsIndices: TVector3Cardinal;
@@ -152,7 +152,7 @@ type
   PArray_Vertex3ds = ^TArray_Vertex3ds;
 
   { Triangle mesh. }
-  TTrimesh3ds = class(TObject3Ds)
+  TTrimesh3ds = class(TObject3DS)
   private
     FVertsCount, FFacesCount: Word;
     FHasTexCoords: boolean;
@@ -175,12 +175,12 @@ type
       Assumes that we just read from stream chunk header (with id =
       CHUNK_OBJBLOCK and length indicating thatStream.Position >= ObjectEndPos
       is after the object), then we read AName (so now we can read subchunks). }
-    constructor Create(const AName: string; AScene: TScene3ds;
+    constructor Create(const AName: string; AScene: TScene3DS;
       Stream: TStream; ObjectEndPos: Int64); override;
     destructor Destroy; override;
   end;
 
-  TCamera3ds = class(TObject3Ds)
+  TCamera3ds = class(TObject3DS)
   private
     FPosition, FTarget: TVector3Single;
     FBank, FLens: Single;
@@ -189,7 +189,7 @@ type
     property Target: TVector3Single read FTarget;
     property Bank: Single read FBank;
     property Lens: Single read FLens;
-    constructor Create(const AName: string; AScene: TScene3ds;
+    constructor Create(const AName: string; AScene: TScene3DS;
       Stream: TStream; ObjectEndPos: Int64); override;
 
     { Camera direction. Calculated from Position and Target. }
@@ -198,12 +198,12 @@ type
     function Up: TVector3Single;
   end;
 
-  TLight3ds = class(TObject3Ds)
+  TLight3ds = class(TObject3DS)
   public
     Pos: TVector3Single;
     Col: TVector3Single;
     Enabled: boolean;
-    constructor Create(const AName: string; AScene: TScene3ds;
+    constructor Create(const AName: string; AScene: TScene3DS;
       Stream: TStream; ObjectEndPos: Int64); override;
   end;
 
@@ -217,10 +217,11 @@ type
   {$I objectslist_3.inc}
   TLight3dsList = TObjectsList_3;
 
-  TScene3ds = class
+  { 3DS loader. }
+  TScene3DS = class
   public
     { Triangle meshes, cameras and other properties of the scene.
-      They are created and destroyed by TScene3ds
+      They are created and destroyed by TScene3DS
       object --- so these fields are read-only from outside of this class.
       @groupBegin }
     Trimeshes: TTrimesh3dsList;
@@ -238,9 +239,6 @@ type
     function SumTrimeshesFacesCount: Cardinal;
   end;
 
-function CreateObject3Ds(AScene: Tscene3ds; Stream: TStream;
-  ObjectEndPos: Int64): TObject3Ds;
-
 {$undef read_interface}
 
 implementation
@@ -248,17 +246,17 @@ implementation
 { 3DS reading mostly based on spec from
   [http://www.martinreddy.net/gfx/3d/3DS.spec].
 
-  TScene3ds corresponds to the whole 3DS file,
+  TScene3DS corresponds to the whole 3DS file,
   that is the MAIN chunk, and also (since we don't handle keyframes from 3DS)
   the OBJMESH chunk.
 
-  It contains lists of triangle meshes, cameras and lights. They are all TObject3Ds,
+  It contains lists of triangle meshes, cameras and lights. They are all TObject3DS,
   and correspond to OBJBLOCK chunk, with inside TRIMESH, CAMERA or LIGHT chunk.
   As far as I understand, OBJBLOCK in 3DS may contain only *one* of
   trimesh, light or camera. We assume this.
   - Trimesh wraps OBJBLOCK chunk with VERTLIST subchunk.
 
-  Moreover TScene3ds has a list of TMaterial3ds, that correspond
+  Moreover TScene3DS has a list of TMaterial3ds, that correspond
   to the MATERIAL chunk. }
 
 {$define read_implementation}
@@ -266,6 +264,9 @@ implementation
 {$I objectslist_2.inc}
 {$I objectslist_3.inc}
 {$I objectslist_4.inc}
+
+function CreateObject3DS(AScene: Tscene3DS; Stream: TStream;
+  ObjectEndPos: Int64): TObject3DS;
 
 { Chunks utilities ----------------------------------------------------------- }
 
@@ -624,9 +625,9 @@ const
     ma byc clamped czy repeated. Chwilowo unused. }
   FACEFLAG_WRAP: array[0..1]of Word = ($8, $10);
 
-{ TObject3Ds ----------------------------------------------------------------- }
+{ TObject3DS ----------------------------------------------------------------- }
 
-constructor TObject3Ds.Create(const AName: string; AScene: TScene3ds;
+constructor TObject3DS.Create(const AName: string; AScene: TScene3DS;
   Stream: TStream; ObjectEndPos: Int64);
 { don't ever call directly this constructor - we can get here
   only by  "inherited" call from Descendant's constructor }
@@ -636,9 +637,9 @@ begin
   FScene := AScene;
 end;
 
-function CreateObject3Ds(AScene: TScene3ds; Stream: TStream; ObjectEndPos: Int64): TObject3Ds;
+function CreateObject3DS(AScene: TScene3DS; Stream: TStream; ObjectEndPos: Int64): TObject3DS;
 var
-  ObjClass: TObject3DsClass;
+  ObjClass: TObject3DSClass;
   ObjName: string;
   ObjBeginPos: Int64;
   h: TChunkHeader;
@@ -670,7 +671,7 @@ end;
 
 { TTrimesh3ds --------------------------------------------------------------- }
 
-constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3ds;
+constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
   Stream: TStream; ObjectEndPos: Int64);
 
   { Read FVertsCount, initialize Verts.
@@ -820,7 +821,7 @@ end;
 
 { TCamera3ds --------------------------------------------------------------- }
 
-constructor TCamera3ds.Create(const AName: string; AScene: TScene3ds;
+constructor TCamera3ds.Create(const AName: string; AScene: TScene3DS;
   Stream: TStream; ObjectEndPos: Int64);
 var
   h: TChunkHeader;
@@ -877,7 +878,7 @@ end;
 
 { TLights3ds --------------------------------------------------------------- }
 
-constructor TLight3ds.Create(const AName: string; AScene: TScene3ds;
+constructor TLight3ds.Create(const AName: string; AScene: TScene3DS;
   Stream: TStream; ObjectEndPos: Int64);
 var
   h: TChunkHeader;
@@ -907,13 +908,13 @@ begin
   Stream.Position := ObjectEndPos;
 end;
 
-{ TScene3ds ----------------------------------------------------------------- }
+{ TScene3DS ----------------------------------------------------------------- }
 
-constructor TScene3ds.Create(Stream: TStream);
+constructor TScene3DS.Create(Stream: TStream);
 var
   hmain, hsubmain, hsubObjMesh: TChunkHeader;
   hsubmainEnd, hsubObjMeshEnd: Int64;
-  Object3Ds: TObject3Ds;
+  Object3DS: TObject3DS;
 begin
   inherited Create;
 
@@ -940,12 +941,12 @@ begin
             case hsubObjMesh.id of
               CHUNK_OBJBLOCK:
                 begin
-                  Object3Ds := CreateObject3Ds(Self, Stream, hsubObjMeshEnd);
-                  if Object3Ds is TTrimesh3ds then
-                    Trimeshes.Add(TTrimesh3ds(Object3Ds)) else
-                  if Object3Ds is TCamera3ds then
-                    Cameras.Add(TCamera3ds(Object3Ds)) else
-                    Lights.Add(Object3Ds as TLight3ds);
+                  Object3DS := CreateObject3DS(Self, Stream, hsubObjMeshEnd);
+                  if Object3DS is TTrimesh3ds then
+                    Trimeshes.Add(TTrimesh3ds(Object3DS)) else
+                  if Object3DS is TCamera3ds then
+                    Cameras.Add(TCamera3ds(Object3DS)) else
+                    Lights.Add(Object3DS as TLight3ds);
                 end;
               CHUNK_MATERIAL: Materials.ReadMaterial(Stream, hsubObjMeshEnd);
               else Stream.Position := hsubObjMeshEnd;
@@ -960,7 +961,7 @@ begin
   Materials.CheckAllInitialized;
 end;
 
-constructor TScene3ds.Create(const filename: string);
+constructor TScene3DS.Create(const filename: string);
 var
   S: TStream;
 begin
@@ -969,7 +970,7 @@ begin
   finally S.Free end;
 end;
 
-destructor TScene3ds.Destroy;
+destructor TScene3DS.Destroy;
 begin
   FreeWithContentsAndNil(Trimeshes);
   FreeWithContentsAndNil(Cameras);
@@ -978,7 +979,7 @@ begin
   inherited;
 end;
 
-function TScene3ds.SumTrimeshesVertsCount: Cardinal;
+function TScene3DS.SumTrimeshesVertsCount: Cardinal;
 var
   i: integer;
 begin
@@ -986,7 +987,7 @@ begin
   for i := 0 to Trimeshes.Count-1 do result += Trimeshes[i].VertsCount;
 end;
 
-function TScene3ds.SumTrimeshesFacesCount: Cardinal;
+function TScene3DS.SumTrimeshesFacesCount: Cardinal;
 var
   i: integer;
 begin
