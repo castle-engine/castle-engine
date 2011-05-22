@@ -412,6 +412,7 @@ end;
 function Load3DS(const filename: string): TVRMLRootNode;
 var
   WWWBasePath: string;
+  O3ds: TScene3ds;
 
   { Prefix names with things like "Material_", to make sure these
     names not collide with each other. (I don't know if they are in
@@ -434,6 +435,70 @@ var
   function LightVRMLName(const Light3dsName: string): string;
   begin Result := 'Light_' + ToVRMLName(Light3dsName) end;
 
+  procedure AddViewpoints;
+  var
+    camera: TVRMLNode;
+    i: Integer;
+  begin
+    for i := 0 to O3ds.Cameras.Count - 1 do
+    begin
+      camera := MakeVRMLCameraNode(2, WWWBasePath,
+        O3ds.Cameras[i].CamPos,
+        O3ds.Cameras[i].CamDir,
+        O3ds.Cameras[i].CamUp,
+        O3ds.Cameras[i].CamUp { GravityUp equals CamUp });
+      camera.NodeName := ViewpointVRMLName(O3ds.Cameras[i].Name);
+      Result.FdChildren.Add(camera);
+
+      { TODO: use other 3ds camera fields }
+    end;
+  end;
+
+  procedure AddLights;
+  var
+    i: Integer;
+    light: TNodePointLight_2;
+  begin
+    for i := 0 to O3ds.Lights.Count - 1 do
+    begin
+      light := TNodePointLight_2.Create(LightVRMLName(
+        O3ds.Lights[i].Name), WWWBasePath);
+      Result.FdChildren.Add(light);
+
+      light.FdOn.Value := O3ds.Lights[i].Enabled;
+      light.FdLocation.Value := O3ds.Lights[i].Pos;
+      light.FdColor.Value := O3ds.Lights[i].Col;
+    end;
+  end;
+
+  function MaterialToVRML(Material: TMaterial3ds): TNodeAppearance;
+  var
+    Mat: TNodeMaterial_2;
+    Tex: TNodeImageTexture;
+    TexTransform: TNodeTextureTransform;
+  begin
+    Result := TNodeAppearance.Create(MaterialVRMLName(Material.Name), WWWBasePath);
+
+    Mat := TNodeMaterial_2.Create('', WWWBasePath);
+    Mat.FdDiffuseColor.Value := Vector3SingleCut(Material.DiffuseColor);
+    Mat.FdAmbientIntensity.Value := Material.AmbientIntensity;
+    Mat.FdSpecularColor.Value := Vector3SingleCut(Material.SpecularColor);
+    Mat.FdShininess.Value := Material.Shininess;
+    Mat.FdTransparency.Value := Material.Transparency;
+    Result.FdMaterial.Value := Mat;
+
+    if Material.TextureMap1.Exists then
+    begin
+      Tex := TNodeImageTexture.Create('', WWWBasePath);
+      Tex.FdUrl.Items.Add(Material.TextureMap1.MapFilename);
+      Result.FdTexture.Value := Tex;
+
+      TexTransform := TNodeTextureTransform.Create('', WWWBasePath);
+      TexTransform.FdScale.Value := Material.TextureMap1.Scale;
+      Result.FdTextureTransform.Value := TexTransform;
+    end;
+  end;
+
   { How many faces have the same material index.
     Starts, and compares, with the face numnbered StartFace (must be < FacesCount). }
   function SameMaterialFacesCount(Faces: PArray_Face3ds; FacesCount: integer;
@@ -448,61 +513,9 @@ var
     Result := I - StartFace;
   end;
 
-  procedure AddViewpoints(scene: TScene3ds; node: TNodeGroup_2);
-  var
-    camGroup: TNodeGroup_2;
-    camera: TVRMLNode;
-    i: Integer;
-  begin
-    if scene.Cameras.Count = 0 then Exit;
-
-    camGroup := TNodeGroup_2.Create('Viewpoints', WWWBasePath);
-    node.FdChildren.Add(camGroup);
-
-    for i := 0 to scene.Cameras.Count-1 do
-    begin
-      camera := MakeVRMLCameraNode(1, WWWBasePath,
-        scene.Cameras[i].CamPos,
-        scene.Cameras[i].CamDir,
-        scene.Cameras[i].CamUp,
-        scene.Cameras[i].CamUp { GravityUp equals CamUp });
-      camera.NodeName := ViewpointVRMLName(scene.Cameras[i].Name);
-      camGroup.FdChildren.Add(camera);
-
-      { TODO: use other 3ds camera fields }
-    end;
-  end;
-
-  procedure AddLights(scene: TScene3ds; node: TNodeGroup_2);
-  var
-    i: Integer;
-    light: TNodePointLight_2;
-    lightGroup: TNodeGroup_2;
-  begin
-    if Scene.Lights.Count = 0 then Exit;
-
-    lightGroup := TNodeGroup_2.Create('Lights', WWWBasePath);
-    node.FdChildren.Add(lightGroup);
-
-    for i := 0 to Scene.Lights.Count-1 do
-    begin
-      light := TNodePointLight_2.Create(LightVRMLName(
-        Scene.Lights[i].Name), WWWBasePath);
-      lightGroup.FdChildren.Add(light);
-
-      light.FdOn.Value := Scene.Lights[i].Enabled;
-      light.FdLocation.Value := Scene.Lights[i].Pos;
-      light.FdColor.Value := Scene.Lights[i].Col;
-    end;
-  end;
-
 var
-  O3ds: TScene3ds;
   Trimesh3ds: TTrimesh3ds;
   Appearances: TVRMLNodesList;
-  Mat: TNodeMaterial_2;
-  Tex: TNodeImageTexture;
-  TexTransform: TNodeTextureTransform;
   Coord: TNodeCoordinate;
   IFS: TNodeIndexedFaceSet_2;
   TexCoord: TNodeTextureCoordinate;
@@ -519,35 +532,14 @@ begin
       Result.ForceVersionMajor := 2;
       Result.ForceVersionMinor := 0;
 
-      AddViewpoints(O3ds, Result);
-      AddLights(O3ds, Result);
+      AddViewpoints;
+      AddLights;
 
       { Convert every 3DS material into VRML/X3D Appearance node }
       Appearances := TVRMLNodesList.Create;
       Appearances.Count := O3ds.Materials.Count;
       for i := 0 to O3ds.Materials.Count - 1 do
-      begin
-        Appearances[I] := TNodeAppearance.Create(MaterialVRMLName(O3ds.Materials[i].Name), WWWBasePath);
-
-        Mat := TNodeMaterial_2.Create('', WWWBasePath);
-        Mat.FdDiffuseColor.Value := Vector3SingleCut(O3ds.Materials[i].DiffuseColor);
-        Mat.FdAmbientIntensity.Value := O3ds.Materials[i].AmbientIntensity;
-        Mat.FdSpecularColor.Value := Vector3SingleCut(O3ds.Materials[i].SpecularColor);
-        Mat.FdShininess.Value := O3ds.Materials[i].Shininess;
-        Mat.FdTransparency.Value := O3ds.Materials[i].Transparency;
-        TNodeAppearance(Appearances[I]).FdMaterial.Value := Mat;
-
-        if O3ds.Materials[i].TextureMap1.Exists then
-        begin
-          Tex := TNodeImageTexture.Create('', WWWBasePath);
-          Tex.FdUrl.Items.Add(O3ds.Materials[i].TextureMap1.MapFilename);
-          TNodeAppearance(Appearances[I]).FdTexture.Value := Tex;
-
-          TexTransform := TNodeTextureTransform.Create('', WWWBasePath);
-          TexTransform.FdScale.Value := O3ds.Materials[i].TextureMap1.Scale;
-          TNodeAppearance(Appearances[I]).FdTextureTransform.Value := TexTransform;
-        end;
-      end;
+        Appearances[I] := MaterialToVRML(O3ds.Materials[i]);
 
       { Add 3DS triangle meshes. Each trimesh is split into a number of
         VRML/X3D IndexedFaceSet nodes, sharing common Coordinate node,
