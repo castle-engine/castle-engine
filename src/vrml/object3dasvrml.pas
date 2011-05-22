@@ -491,6 +491,11 @@ var
     begin
       Tex := TNodeImageTexture.Create('', WWWBasePath);
       Tex.FdUrl.Items.Add(Material.TextureMap1.MapFilename);
+      Tex.FdUrl.Items.Add(LowerCase(Material.TextureMap1.MapFilename));
+      { According to https://sourceforge.net/tracker/index.php?func=detail&aid=3305661&group_id=200653&atid=974391
+        some archives except search within textures/ subdirectory. }
+      Tex.FdUrl.Items.Add('textures/' + Material.TextureMap1.MapFilename);
+      Tex.FdUrl.Items.Add('textures/' + LowerCase(Material.TextureMap1.MapFilename));
       Result.FdTexture.Value := Tex;
 
       TexTransform := TNodeTextureTransform.Create('', WWWBasePath);
