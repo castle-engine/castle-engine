@@ -85,12 +85,6 @@ type
     { Read CHUNK_MATERIAL, initializing our fields and changing
       @link(Initialized) to @true. }
     procedure ReadFromStream(Stream: TStream; EndPos: Int64);
-
-    { Calculate best possible ambientIntensity. This is a float that tries to
-      satisfy the equation AmbientColor = AmbientIntensity * DiffuseColor.
-      Suitable for VRML 2.0/X3D Material.ambientIntensity (as there's no
-      Material.ambientColor in VRML 2.0/X3D). }
-    function AmbientIntensity: Single;
   end;
 
   TObjectsListItem_4 = TMaterial3ds;
@@ -231,8 +225,8 @@ type
     { @groupEnd }
     { Autodesk version used to create this 3DS. }
     Version: LongWord;
-    constructor Create(Stream: TStream); reintroduce; overload;
-    constructor Create(const filename: string); reintroduce; overload;
+    constructor Create(Stream: TStream); overload;
+    constructor Create(const filename: string); overload;
     destructor Destroy; override;
 
     function SumTrimeshesVertsCount: Cardinal;
@@ -539,15 +533,6 @@ begin
   end;
 
   FInitialized := true;
-end;
-
-function TMaterial3ds.AmbientIntensity: Single;
-begin
-  Result := 0;
-  if not Zero(DiffuseColor[0]) then Result += AmbientColor[0] / DiffuseColor[0];
-  if not Zero(DiffuseColor[1]) then Result += AmbientColor[1] / DiffuseColor[1];
-  if not Zero(DiffuseColor[2]) then Result += AmbientColor[2] / DiffuseColor[2];
-  Result /= 3;
 end;
 
 { TMaterial3dsList ----------------------------------------------------- }

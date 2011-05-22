@@ -180,6 +180,9 @@ implementation
 uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils,
   KambiStringUtils, VRMLAnimation, ColladaToVRML, EnumerateFiles;
 
+const
+  NiceCreaseAngle = DefaultVRML1CreaseAngle;
+
 function ToVRMLName(const s: string): string;
 const
   { moglibysmy tu uzyc VRMLLexer.VRMLNameChars ktore podaje naprawde
@@ -189,7 +192,27 @@ const
   VRMLNameChars = ['a'..'z','A'..'Z','0'..'9'];
   NonVRMLNameChars = AllChars - VRMLNameChars;
 begin
- result := SReplaceChars(s, NonVRMLNameChars, '_')
+  result := SReplaceChars(s, NonVRMLNameChars, '_')
+end;
+
+{ Calculate best possible ambientIntensity. This is a float that tries to
+  satisfy the equation AmbientColor = AmbientIntensity * DiffuseColor.
+  Suitable for VRML 2.0/X3D Material.ambientIntensity (as there's no
+  Material.ambientColor in VRML 2.0/X3D). }
+function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3Single): Single;
+begin
+  Result := 0;
+  if not Zero(DiffuseColor[0]) then Result += AmbientColor[0] / DiffuseColor[0];
+  if not Zero(DiffuseColor[1]) then Result += AmbientColor[1] / DiffuseColor[1];
+  if not Zero(DiffuseColor[2]) then Result += AmbientColor[2] / DiffuseColor[2];
+  Result /= 3;
+end;
+
+function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4Single): Single;
+begin
+  Result := AmbientIntensity(
+    Vector3SingleCut(AmbientColor),
+    Vector3SingleCut(DiffuseColor));
 end;
 
 { Load* ---------------------------------------------------------------------- }
@@ -218,7 +241,7 @@ begin
 
       faces := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
       Shape.FdGeometry.Value := faces;
-      faces.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
+      faces.FdCreaseAngle.Value := NiceCreaseAngle;
       faces.FdSolid.Value := false;
       faces.FdCoordIndex.Count := geo.Faces.Count * 4;
       for i := 0 to geo.Faces.Count-1 do
@@ -238,175 +261,182 @@ end;
 
 function LoadWavefrontOBJ(const filename: string): TVRMLRootNode;
 const
-  { na czas konstruowania duzych tablic indeksow pozwalamy sobie ustawiac
-    bardzo duze dopuszczalne AllowedCapacityOverflow zeby wszystko bylo szybko.
-
-    TODO: powinienes unikac uzywania tego, zrob tu tak jak w Load3DS.}
-  ALLOWED_INDICES_ARRAYS_OVERFLOWS = 100;
+  { When constructing large index arrays, we use larger AllowedCapacityOverflow
+    to make them faster.
+    TODO: would be better to allocate necessary space once, by assigning Count. }
+  AllowedIndicesArraysOverflows = 100;
+var
+  WWWBasePath: string;
 
   function MatOBJNameToVRMLName(const MatOBJName: string): string;
   begin
     Result := 'Material_' + ToVRMLName(MatOBJName);
   end;
 
+  function MaterialToVRML(const Material: TWavefrontMaterial): TNodeAppearance;
+  var
+    Mat: TNodeMaterial_2;
+    Texture: TNodeImageTexture;
+  begin
+    Result := TNodeAppearance.Create(
+      MatOBJNameToVRMLName(Material.Name), WWWBasePath);
+
+    Mat := TNodeMaterial_2.Create('', WWWBasePath);
+    Result.FdMaterial.Value := Mat;
+    Mat.FdAmbientIntensity.Value := AmbientIntensity(
+      Material.AmbientColor, Material.DiffuseColor);
+    Mat.FdDiffuseColor.Value := Material.DiffuseColor;
+    Mat.FdSpecularColor.Value := Material.SpecularColor;
+    Mat.FdTransparency.Value := 1 - Material.Opacity;
+    Mat.FdShininess.Value := Material.SpecularExponent / 128.0;
+
+    if Material.DiffuseTextureFileName <> '' then
+    begin
+      Texture := TNodeImageTexture.Create('', WWWBasePath);
+      Result.FdTexture.Value := Texture;
+      Texture.FdUrl.Items.Add(Material.DiffuseTextureFileName);
+    end;
+  end;
+
 var
-  obj: TObject3DOBJ;
-  verts: TNodeCoordinate3;
-  faces: TNodeIndexedFaceSet_1;
-  texcoords: TNodeTextureCoordinate2;
-  texture: TNodeTexture2;
+  Obj: TObject3DOBJ;
+  Coord: TNodeCoordinate;
+  Faces: TNodeIndexedFaceSet_2;
+  TexCoord: TNodeTextureCoordinate;
   i: integer;
-  fourIndices: array[0..3]of Longint;
-  FacesWithTexCoords, FacesWithNormals: boolean;
-  WWWBasePath: string;
-  Normals: TNodeNormal;
+  FacesWithTexCoord, FacesWithNormal: boolean;
+  Normal: TNodeNormal;
   FacesWithMaterial: TWavefrontMaterial;
-  MaterialsSwitch: TNodeSwitch_1;
-  MaterialGroup: TNodeGroup_1;
-  Material: TNodeMaterial_1;
-  FacesSeparator: TNodeSeparator;
+  Appearances: TVRMLNodesList;
+  Shape: TNodeShape;
 begin
- WWWBasePath := ExtractFilePath(ExpandFilename(filename));
- obj := TObject3DOBJ.Create(filename);
- try
-  result := TVRMLRootNode.Create('', WWWBasePath);
+  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
+  Appearances := nil;
+  Obj := TObject3DOBJ.Create(filename);
   try
-   Result.ForceVersion := true;
-   Result.ForceVersionMajor := 1;
-   Result.ForceVersionMinor := 0;
+    result := TVRMLRootNode.Create('', WWWBasePath);
+    try
+      Result.ForceVersion := true;
+      Result.ForceVersionMajor := 2;
+      Result.ForceVersionMinor := 0;
 
-   MaterialsSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath);
-   Result.VRML1ChildAdd(MaterialsSwitch);
+      Appearances := TVRMLNodesList.Create;
+      Appearances.Count := Obj.Materials.Count;
+      for I := 0 to Obj.Materials.Count - 1 do
+        Appearances[I] := MaterialToVRML(Obj.Materials[I]);
 
-   for I := 0 to Obj.Materials.Count - 1 do
-   begin
-     MaterialGroup := TNodeGroup_1.Create(
-       MatOBJNameToVRMLName(Obj.Materials.Items[I].Name), WWWBasePath);
-     MaterialsSwitch.VRML1ChildAdd(MaterialGroup);
+      Coord := TNodeCoordinate.Create('',WWWBasePath);
+      Coord.FdPoint.Items.Assign(obj.Verts);
 
-     Material := TNodeMaterial_1.Create('', WWWBasePath);
-     MaterialGroup.VRML1ChildAdd(Material);
-     Material.FdAmbientColor.Items.SetLength(1);
-     Material.FdAmbientColor.Items.Items[0] := Obj.Materials.Items[I].AmbientColor;
-     Material.FdDiffuseColor.Items.SetLength(1);
-     Material.FdDiffuseColor.Items.Items[0] := Obj.Materials.Items[I].DiffuseColor;
-     Material.FdSpecularColor.Items.SetLength(1);
-     Material.FdSpecularColor.Items.Items[0] := Obj.Materials.Items[I].SpecularColor;
-     Material.FdTransparency.Items.SetLength(1);
-     Material.FdTransparency.Items.Items[0] := 1 - Obj.Materials.Items[I].Opacity;
-     Material.FdShininess.Items.SetLength(1);
-     Material.FdShininess.Items.Items[0] :=
-       Obj.Materials.Items[I].SpecularExponent / 128.0;
+      TexCoord := TNodeTextureCoordinate.Create('', WWWBasePath);
+      TexCoord.FdPoint.Items.Assign(obj.TexCoords);
 
-     Texture := TNodeTexture2.Create('', WWWBasePath);
-     MaterialGroup.VRML1ChildAdd(Texture);
-     Texture.FdFilename.Value := Obj.Materials.Items[I].DiffuseTextureFileName;
-   end;
+      Normal := TNodeNormal.Create('', WWWBasePath);
+      Normal.FdVector.Items.Assign(Obj.Normals);
 
-   verts := TNodeCoordinate3.Create('',WWWBasePath);
-   result.VRML1ChildAdd(verts);
-   verts.FdPoint.Items.SetLength(0);
-   verts.FdPoint.Items.AppendDynArray(obj.Verts);
+      i := 0;
+      while i < obj.Faces.Count do
+      begin
+        FacesWithTexCoord := Obj.Faces.Items[i].HasTexCoords;
+        FacesWithNormal := Obj.Faces.Items[i].HasNormals;
+        FacesWithMaterial := Obj.Faces.Items[i].Material;
 
-   texcoords := TNodeTextureCoordinate2.Create('', WWWBasePath);
-   result.VRML1ChildAdd(texcoords);
-   texcoords.FdPoint.Items.SetLength(0);
-   texcoords.FdPoint.Items.AppendDynArray(obj.TexCoords);
+        Shape := TNodeShape.Create('', WWWBasePath);
+        Result.FdChildren.Add(Shape);
 
-   Normals := TNodeNormal.Create('', WWWBasePath);
-   Result.VRML1ChildAdd(Normals);
-   Normals.FdVector.Items.SetLength(0);
-   Normals.FdVector.Items.AppendDynArray(Obj.Normals);
+        if FacesWithMaterial <> nil then
+        begin
+          { We find appearance by name, using FindNodeByName. We're sure
+            that we will find it --- because we added them all to Appearances. }
+          Shape.Appearance := Appearances[Appearances.FindNodeName(
+            MatOBJNameToVRMLName(FacesWithMaterial.Name))] as TNodeAppearance;
+        end else
+          Shape.Material := TNodeMaterial_2.Create('', WWWBasePath);
 
-   i := 0;
-   while i < obj.Faces.Count do
-   begin
-    FacesWithTexCoords := Obj.Faces.Items[i].HasTexCoords;
-    FacesWithNormals := Obj.Faces.Items[i].HasNormals;
-    FacesWithMaterial := Obj.Faces.Items[i].Material;
+        { We don't do anything special for the case when FacesWithMaterial = nil
+          and FacesWithTexCoord = true. This may be generated e.g. by Blender
+          exporter, if Blender object has UV texture coords but no material.
 
-    FacesSeparator := TNodeSeparator.Create('', WWWBasePath);
-    Result.VRML1ChildAdd(FacesSeparator);
+          We will then just output VRML/X3D texCoord
+          field, but without texture it will not have any effect.
+          This is natural, and there's no reason for now to do anything else. }
 
-    if FacesWithMaterial <> nil then
-    begin
-      { We use material from the MaterialsSwitch.
-        We find it by name, using FindNodeByName, we're sure that we will
-        find this material --- since we added all materials to
-        MaterialsSwitch. }
-      FacesSeparator.VRML1ChildAdd(MaterialsSwitch.FindNodeByName(TVRMLNode,
-        MatOBJNameToVRMLName(FacesWithMaterial.Name),
-        false));
-    end;
+        Faces := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
+        Shape.FdGeometry.Value := Faces;
+        Faces.FdCreaseAngle.Value := NiceCreaseAngle;
+        Faces.FdSolid.Value := false;
+        Faces.FdCoord.Value := Coord;
+        Faces.FdCoordIndex.Items.SetLength(0);
+        Faces.FdCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
+        if FacesWithTexCoord then
+        begin
+          Faces.FdTexCoord.Value := TexCoord;
+          Faces.FdTexCoordIndex.Items.SetLength(0);
+          Faces.FdTexCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
+        end;
+        if FacesWithNormal then
+        begin
+          Faces.FdNormal.Value := Normal;
+          Faces.FdNormalIndex.Items.SetLength(0);
+          Faces.FdNormalIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
+        end;
 
-    (* else
-    if FacesWithTexCoords then
-    begin
-      { if no material specified, but FacesWithTexCoords, we used to insert
-        simple Texture2 node that uses
-        OBJModelTextureFilename = 'default_obj_texture.png'.
+        { We add Faces as long as FacesWithXxx parameters stay the same.
+          We know that at least the next face is Ok. }
+        repeat
+          Faces.FdCoordIndex.Items.AppendArray(
+            [obj.Faces.Items[i].VertIndices[0],
+             obj.Faces.Items[i].VertIndices[1],
+             obj.Faces.Items[i].VertIndices[2], -1]);
 
-        I removed this later, as texture filename may be specified (we read
-        material file for OBJ), and blender exporter can even write faces
-        with texture coordinates for objects without materials, so no texture
-        also. IOW, it seems more sensible to not output Texture node if no
-        material is present. (still, we output textureCoordIndex to VRML in
-        this case, it will not be used, but user has the possibility to add
-        Texture2 node by hand then, and he will have ready texture coords). }
+          if FacesWithTexCoord then
+            Faces.FdTexCoordIndex.Items.AppendArray(
+              [obj.Faces.Items[i].TexCoordIndices[0],
+               obj.Faces.Items[i].TexCoordIndices[1],
+               obj.Faces.Items[i].TexCoordIndices[2], -1]);
 
-      Texture := TNodeTexture2.Create('',WWWBasePath);
-      FacesSeparator.VRML1ChildAdd(texture);
-      Texture.FdFilename.Value := OBJModelTextureFilename;
-    end;
-    *)
+          if FacesWithNormal then
+            Faces.FdNormalIndex.Items.AppendArray(
+              [obj.Faces.Items[i].NormalIndices[0],
+               obj.Faces.Items[i].NormalIndices[1],
+               obj.Faces.Items[i].NormalIndices[2], -1]);
 
-    faces := TNodeIndexedFaceSet_1.Create('',WWWBasePath);
-    FacesSeparator.VRML1ChildAdd(faces);
-    faces.FdCoordIndex.Items.SetLength(0);
-    faces.FdCoordIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
-    faces.FdTextureCoordIndex.Items.SetLength(0);
-    faces.FdTextureCoordIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
-    faces.FdNormalIndex.Items.SetLength(0);
-    faces.FdNormalIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
+          Inc(i);
+        until (i >= obj.Faces.Count) or
+          (FacesWithTexCoord <> obj.Faces.Items[i].HasTexCoords) or
+          (FacesWithNormal   <> obj.Faces.Items[i].HasNormals) or
+          (FacesWithMaterial <> obj.Faces.Items[i].Material);
 
-    { We add Faces as long as FacesWithXxx parameters stay the same.
-      We know that at least the next face is Ok. }
-    repeat
-     fourIndices[0] := obj.Faces.Items[i].VertIndices[0];
-     fourIndices[1] := obj.Faces.Items[i].VertIndices[1];
-     fourIndices[2] := obj.Faces.Items[i].VertIndices[2];
-     fourIndices[3] := -1;
-     faces.FdCoordIndex.Items.AppendArray(fourIndices);
+        Faces.FdCoordIndex.Items.AllowedCapacityOverflow := 4;
+        Faces.FdTexCoordIndex.Items.AllowedCapacityOverflow := 4;
+        Faces.FdNormalIndex.Items.AllowedCapacityOverflow := 4;
+      end;
 
-     if FacesWithTexCoords then
-     begin
-      fourIndices[0] := obj.Faces.Items[i].TexCoordIndices[0];
-      fourIndices[1] := obj.Faces.Items[i].TexCoordIndices[1];
-      fourIndices[2] := obj.Faces.Items[i].TexCoordIndices[2];
-      fourIndices[3] := -1;
-      faces.FdTextureCoordIndex.Items.AppendArray(fourIndices);
-     end;
+      if Coord <> nil then
+      begin
+        Coord.FreeIfUnused;
+        Coord := nil;
+      end;
 
-     if FacesWithNormals then
-     begin
-      fourIndices[0] := obj.Faces.Items[i].NormalIndices[0];
-      fourIndices[1] := obj.Faces.Items[i].NormalIndices[1];
-      fourIndices[2] := obj.Faces.Items[i].NormalIndices[2];
-      fourIndices[3] := -1;
-      faces.FdNormalIndex.Items.AppendArray(fourIndices);
-     end;
+      if TexCoord <> nil then
+      begin
+        TexCoord.FreeIfUnused;
+        TexCoord := nil;
+      end;
 
-     Inc(i);
-    until (i >= obj.Faces.Count) or
-      (FacesWithTexCoords <> obj.Faces.Items[i].HasTexCoords) or
-      (FacesWithNormals <> obj.Faces.Items[i].HasNormals) or
-      (FacesWithMaterial <> obj.Faces.Items[i].Material);
+      if Normal <> nil then
+      begin
+        Normal.FreeIfUnused;
+        Normal := nil;
+      end;
 
-    faces.FdCoordIndex.Items.AllowedCapacityOverflow := 4;
-    faces.FdTextureCoordIndex.Items.AllowedCapacityOverflow := 4;
-   end;
-  except result.Free; raise end;
- finally obj.Free end;
+      for I := 0 to Appearances.Count - 1 do
+        Appearances[I].FreeIfUnused;
+    except FreeAndNil(result); raise end;
+  finally
+    FreeAndNil(obj);
+    FreeAndNil(Appearances);
+  end;
 end;
 
 function Load3DS(const filename: string): TVRMLRootNode;
@@ -505,7 +535,7 @@ var
 
     Mat := TNodeMaterial_2.Create('', WWWBasePath);
     Mat.FdDiffuseColor.Value := Vector3SingleCut(Material.DiffuseColor);
-    Mat.FdAmbientIntensity.Value := Material.AmbientIntensity;
+    Mat.FdAmbientIntensity.Value := AmbientIntensity(Material.AmbientColor, Material.DiffuseColor);
     Mat.FdSpecularColor.Value := Vector3SingleCut(Material.SpecularColor);
     Mat.FdShininess.Value := Material.Shininess;
     Mat.FdTransparency.Value := Material.Transparency;
@@ -600,7 +630,8 @@ begin
           IFS.FdCoord.Value := Coord;
           { We don't support 3DS smoothing groups.
             So instead assign some sensible non-zero crease angle. }
-          IFS.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
+          IFS.FdCreaseAngle.Value := NiceCreaseAngle;
+          IFS.FdSolid.Value := false;
 
           Shape := TNodeShape.Create('', WWWBasePath);
           Shape.FdGeometry.Value := IFS;
@@ -649,14 +680,16 @@ end;
 
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
   const WWWBasePath: string): TVRMLRootNode;
+var
+  Texture: TNodeImageTexture;
 
   function MakeCoordinates(Vertexes: TDynMd3VertexArray;
-    VertexesInFrameCount: Cardinal): TNodeCoordinate3;
+    VertexesInFrameCount: Cardinal): TNodeCoordinate;
   var
     I: Integer;
     V: PMd3Vertex;
   begin
-    Result := TNodeCoordinate3.Create('', WWWBasePath);
+    Result := TNodeCoordinate.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := VertexesInFrameCount;
     V := Vertexes.Pointers[VertexesInFrameCount * FrameNumber];
     for I := 0 to VertexesInFrameCount - 1 do
@@ -670,12 +703,12 @@ function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
   end;
 
   function MakeTextureCoordinates(
-    TextureCoords: TDynMd3TexCoordArray): TNodeTextureCoordinate2;
+    TextureCoords: TDynMd3TexCoordArray): TNodeTextureCoordinate;
   var
     I: Integer;
     V: PMd3TexCoord;
   begin
-    Result := TNodeTextureCoordinate2.Create('', WWWBasePath);
+    Result := TNodeTextureCoordinate.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := TextureCoords.Count;
     V := TextureCoords.Pointers[0];
     for I := 0 to TextureCoords.Count - 1 do
@@ -685,13 +718,15 @@ function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
     end;
   end;
 
-  function MakeIndexes(Triangles: TDynMd3TriangleArray): TNodeIndexedFaceSet_1;
+  function MakeIndexes(Triangles: TDynMd3TriangleArray): TNodeIndexedFaceSet_2;
   var
     I: Integer;
   begin
-    Result := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
+    Result := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
+    Result.FdCreaseAngle.Value := NiceCreaseAngle;
+    Result.FdSolid.Value := false;
     Result.FdCoordIndex.Items.Count := Triangles.Count * 4;
-    Result.FdTextureCoordIndex.Items.Count := Triangles.Count * 4;
+    Result.FdTexCoordIndex.Items.Count := Triangles.Count * 4;
     for I := 0 to Triangles.Count - 1 do
     begin
       Result.FdCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
@@ -699,24 +734,29 @@ function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
       Result.FdCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
       Result.FdCoordIndex.Items.Items[I*4 + 3] := -1;
 
-      Result.FdTextureCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
-      Result.FdTextureCoordIndex.Items.Items[I*4 + 1] := Triangles.Items[I].Indexes[1];
-      Result.FdTextureCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
-      Result.FdTextureCoordIndex.Items.Items[I*4 + 3] := -1;
+      Result.FdTexCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
+      Result.FdTexCoordIndex.Items.Items[I*4 + 1] := Triangles.Items[I].Indexes[1];
+      Result.FdTexCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
+      Result.FdTexCoordIndex.Items.Items[I*4 + 3] := -1;
     end;
   end;
 
-  function MakeSeparator(Surface: TMd3Surface): TNodeSeparator;
+  function MakeShape(Surface: TMd3Surface): TNodeShape;
+  var
+    IFS: TNodeIndexedFaceSet_2;
   begin
-    Result := TNodeSeparator.Create(ToVRMLName(Surface.Name), WWWBasePath);
-    Result.VRML1ChildAdd(MakeTextureCoordinates(Surface.TextureCoords));
-    Result.VRML1ChildAdd(MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount));
-    Result.VRML1ChildAdd(MakeIndexes(Surface.Triangles));
+    IFS := MakeIndexes(Surface.Triangles);
+    IFS.FdCoord.Value := MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount);
+    IFS.FdTexCoord.Value := MakeTextureCoordinates(Surface.TextureCoords);
+
+    Result := TNodeShape.Create(ToVRMLName(Surface.Name), WWWBasePath);
+    Result.FdGeometry.Value := IFS;
+    Result.Material := TNodeMaterial_2.Create('', WWWBasePath);
+    Result.Texture := Texture;
   end;
 
 var
   I: Integer;
-  Texture: TNodeTexture2;
 begin
   Result := TVRMLRootNode.Create(
     ToVRMLName(Md3.Name
@@ -725,13 +765,13 @@ begin
       { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath);
 
   Result.ForceVersion := true;
-  Result.ForceVersionMajor := 1;
+  Result.ForceVersionMajor := 2;
   Result.ForceVersionMinor := 0;
 
   { MD3 files have no camera. I add camera here, just to force GravityUp
-    to be in +Z, since this is the convention used in all MD3 file that
+    to be in +Z, since this is the convention used in all MD3 files that
     I saw (so I guess that Quake3 engine generally uses this convention). }
-  Result.VRML1ChildAdd(MakeVRMLCameraNode(1, WWWBasePath,
+  Result.FdChildren.Add(MakeVRMLCameraNode(2, WWWBasePath,
     Vector3Single(0, 0, 0),
     Vector3Single(1, 0, 0),
     Vector3Single(0, 0, 1),
@@ -739,13 +779,14 @@ begin
 
   if Md3.TextureFileName <> '' then
   begin
-    Texture := TNodeTexture2.Create('', WWWBasePath);
-    Result.VRML1ChildAdd(Texture);
-    Texture.FdFilename.Value := Md3.TextureFileName;
+    Texture := TNodeImageTexture.Create('', WWWBasePath);
+    Texture.FdUrl.Items.Add(Md3.TextureFileName);
   end;
 
   for I := 0 to Md3.Surfaces.Count - 1 do
-    Result.VRML1ChildAdd(MakeSeparator(Md3.Surfaces[I]));
+    Result.FdChildren.Add(MakeShape(Md3.Surfaces[I]));
+
+  Texture.FreeIfUnused;
 end;
 
 function LoadMD3(const FileName: string): TVRMLRootNode;
