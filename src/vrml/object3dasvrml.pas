@@ -178,7 +178,7 @@ const
 implementation
 
 uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils,
-  KambiStringUtils, VRMLAnimation, ColladaToVRML;
+  KambiStringUtils, VRMLAnimation, ColladaToVRML, EnumerateFiles;
 
 {
   Note: for VRML 1.0, remember that you may want to embed returned
@@ -471,6 +471,30 @@ var
     end;
   end;
 
+  { Search harder for filename Base inside directory Path.
+    Path must be absolute and contain the final PathDelim.
+    Returns filename relative to Path.
+
+    We prefer to return just Base, if it exists, or when no alternative exists.
+    When Base doesn't exist but some likely alternative exists (e.g. with
+    different case), we return it. }
+  function SearchTextureFileName(const Path, Base: string): string;
+  begin
+    if SearchFileHard(Path, Base, Result) then
+      Exit;
+
+    { According to https://sourceforge.net/tracker/index.php?func=detail&aid=3305661&group_id=200653&atid=974391
+      some archives expect search within textures/ subdirectory. }
+    if SearchFileHard(Path + 'textures' + PathDelim, Base, Result) then
+    begin
+      Result := 'textures/' + Result;
+      Exit;
+    end;
+
+    { default result if nowhere found }
+    Result := Base;
+  end;
+
   function MaterialToVRML(Material: TMaterial3ds): TNodeAppearance;
   var
     Mat: TNodeMaterial_2;
@@ -490,12 +514,8 @@ var
     if Material.TextureMap1.Exists then
     begin
       Tex := TNodeImageTexture.Create('', WWWBasePath);
-      Tex.FdUrl.Items.Add(Material.TextureMap1.MapFilename);
-      Tex.FdUrl.Items.Add(LowerCase(Material.TextureMap1.MapFilename));
-      { According to https://sourceforge.net/tracker/index.php?func=detail&aid=3305661&group_id=200653&atid=974391
-        some archives except search within textures/ subdirectory. }
-      Tex.FdUrl.Items.Add('textures/' + Material.TextureMap1.MapFilename);
-      Tex.FdUrl.Items.Add('textures/' + LowerCase(Material.TextureMap1.MapFilename));
+      Tex.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath,
+        Material.TextureMap1.MapFilename));
       Result.FdTexture.Value := Tex;
 
       TexTransform := TNodeTextureTransform.Create('', WWWBasePath);

@@ -159,6 +159,21 @@ function EnumFilesObj(const Mask: string; Attr: integer;
   Options: TEnumFilesOptions): Cardinal; overload;
 { @groupEnd }
 
+{ Search for a file, ignoring the case.
+  Path must be absolute and contain the final PathDelim.
+  Returns filename relative to Path.
+
+  We prefer to return just Base, if it exists, or when no alternative exists.
+  When Base doesn't exist but some likely alternative exists (e.g. with
+  different case), we return it.
+
+  Looks for normal files/symlinks, that can be opened as usual files.
+  Not directories.
+
+  Returns if some file was found. Note that even when we return @false,
+  we still set NewBase (to original Base). }
+function SearchFileHard(const Path, Base: string; out NewBase: string): boolean;
+
 {$undef read_interface}
 
 implementation
@@ -414,6 +429,49 @@ begin
  Result := EnumFiles(Mask, Attr,
    {$ifdef FPC_OBJFPC} @ {$endif} EnumFileProcToMethod,
    @FileMethodWrapper, Options);
+end;
+
+type
+  TSearchFileHard = class
+    Base: string;
+    Found: string;
+    procedure Callback(const FileInfo: TEnumeratedFileInfo);
+  end;
+  BreakSearchFileHard = class(TCodeBreaker);
+
+procedure TSearchFileHard.Callback(const FileInfo: TEnumeratedFileInfo);
+begin
+  if AnsiSameText(FileInfo.SearchRec.Name, Base) then
+  begin
+    Found := FileInfo.SearchRec.Name;
+    raise BreakSearchFileHard.Create;
+  end;
+end;
+
+function SearchFileHard(const Path, Base: string; out NewBase: string): boolean;
+var
+  S: TSearchFileHard;
+begin
+  NewBase := Base;
+  Result := false;
+
+  if FileExists(Path + Base) then Exit(true);
+
+  S := TSearchFileHard.Create;
+  try
+    try
+      S.Base := Base;
+      EnumFilesObj(Path + '*', faReadOnly or faHidden or faArchive or faSymLink,
+        @S.Callback, [eoSymlinks]);
+    except
+      on BreakSearchFileHard do
+      begin
+        NewBase := S.Found;
+        Result := true;
+        Exit;
+      end;
+    end;
+  finally FreeAndNil(S) end;
 end;
 
 end.
