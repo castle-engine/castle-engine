@@ -22,8 +22,8 @@ unit Object3Ds;
     Object3DOpenGL nor in Object3DAsVRML) because their exact
     interpretation is not known for me:
       TCamera3ds.CamLens
-      TMaterialMap3ds.U/VOffset (I don't know wheteher use it before of after
-        U/VScale, again I need some test 3ds scenes to check that)
+      TMaterialMap3ds.Offset (I don't know wheteher use it before of after
+        Scale, again I need some test 3ds scenes to check that)
       TMaterial3ds.TextureMap2
       TMaterial3ds.ShininessStrenth, TransparencyFalloff, ReflectBlur
 
@@ -52,7 +52,7 @@ type
   TMaterialMap3ds = record
     Exists: boolean;
     MapFilename: string;
-    UScale, VScale, UOffset, VOffset: Single;
+    Scale, Offset: TVector2Single;
   end;
 
   TMaterial3ds = class
@@ -68,9 +68,9 @@ type
     { Material properties. Have default values (following VRML and OpenGL
       defaults, as I don't know 3DS defaults) in case they would be
       undefined in 3DS file. }
-    AmbientCol: TVector4Single;
-    DiffuseCol: TVector4Single;
-    SpecularCol: TVector4Single;
+    AmbientColor: TVector4Single;
+    DiffuseColor: TVector4Single;
+    SpecularColor: TVector4Single;
 
     { Texture maps, initialized with Exists = false }
     TextureMap1, TextureMap2: TMaterialMap3ds;
@@ -86,6 +86,12 @@ type
     { Read CHUNK_MATERIAL, initializing our fields and changing
       @link(Initialized) to @true. }
     procedure ReadFromStream(Stream: TStream; EndPos: Int64);
+
+    { Calculate best possible ambientIntensity. This is a float that tries to
+      satisfy the equation AmbientColor = AmbientIntensity * DiffuseColor.
+      Suitable for VRML 2.0/X3D Material.ambientIntensity (as there's no
+      Material.ambientColor in VRML 2.0/X3D). }
+    function AmbientIntensity: Single;
   end;
 
   TObjectsListItem_4 = TMaterial3ds;
@@ -481,9 +487,9 @@ begin
   inherited Create;
   FName := AName;
   FInitialized := false;
-  AmbientCol := Default3dsMatAmbient;
-  DiffuseCol := Default3dsMatDiffuse;
-  SpecularCol := Default3dsMatSpecular;
+  AmbientColor := Default3dsMatAmbient;
+  DiffuseColor := Default3dsMatDiffuse;
+  SpecularColor := Default3dsMatSpecular;
   Shininess := Default3dsMatShininess;
   TextureMap1.Exists := false;
   TextureMap2.Exists := false;
@@ -494,7 +500,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
   function ReadMaterialMap(EndPos: Int64): TMaterialMap3ds;
   const
     InitialExistingMatMap: TMaterialMap3ds =
-    (Exists: true; MapFileName:''; UScale:1; VScale:1; UOffset:0; VOffset:0);
+    (Exists: true; MapFileName: ''; Scale: (1, 1); Offset: (0, 0));
   var
     h: TChunkHeader;
     hEnd: Int64;
@@ -507,11 +513,11 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
       Stream.ReadBuffer(h, SizeOf(h));
       hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
       case h.id of
-        CHUNK_MAP_FILE: result.MapFilename := StreamReadZeroEndString(Stream);
-        CHUNK_MAP_USCALE: Stream.ReadBuffer(result.UScale, SizeOf(Single));
-        CHUNK_MAP_VSCALE: Stream.ReadBuffer(result.VScale, SizeOf(Single));
-        CHUNK_MAP_UOFFSET: Stream.ReadBuffer(result.UOffset, SizeOf(Single));
-        CHUNK_MAP_VOFFSET: Stream.ReadBuffer(result.VOffset, SizeOf(Single));
+        CHUNK_MAP_FILE: Result.MapFilename := StreamReadZeroEndString(Stream);
+        CHUNK_MAP_USCALE: Stream.ReadBuffer(Result.Scale[0], SizeOf(Single));
+        CHUNK_MAP_VSCALE: Stream.ReadBuffer(Result.Scale[1], SizeOf(Single));
+        CHUNK_MAP_UOFFSET: Stream.ReadBuffer(Result.Offset[0], SizeOf(Single));
+        CHUNK_MAP_VOFFSET: Stream.ReadBuffer(Result.Offset[1], SizeOf(Single));
         else Stream.Position := hEnd;
       end;
     end;
@@ -528,9 +534,9 @@ begin
     hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
     case h.id of
       { Colors }
-      CHUNK_AMBIENT: TryReadColorInSubchunks(AmbientCol, Stream, hEnd);
-      CHUNK_DIFFUSE: TryReadColorInSubchunks(DiffuseCol, Stream, hEnd);
-      CHUNK_SPECULAR: TryReadColorInSubchunks(SpecularCol, Stream, hEnd);
+      CHUNK_AMBIENT: TryReadColorInSubchunks(AmbientColor, Stream, hEnd);
+      CHUNK_DIFFUSE: TryReadColorInSubchunks(DiffuseColor, Stream, hEnd);
+      CHUNK_SPECULAR: TryReadColorInSubchunks(SpecularColor, Stream, hEnd);
 
       { Percentage values }
       CHUNK_SHININESS:
@@ -551,6 +557,15 @@ begin
   end;
 
   FInitialized := true;
+end;
+
+function TMaterial3ds.AmbientIntensity: Single;
+begin
+  Result := 0;
+  if not Zero(DiffuseColor[0]) then Result += AmbientColor[0] / DiffuseColor[0];
+  if not Zero(DiffuseColor[1]) then Result += AmbientColor[1] / DiffuseColor[1];
+  if not Zero(DiffuseColor[2]) then Result += AmbientColor[2] / DiffuseColor[2];
+  Result /= 3;
 end;
 
 { TMaterial3dsList ----------------------------------------------------- }
@@ -1037,9 +1052,9 @@ begin
  for i := 0 to Materials.Count-1 do
  begin
   Write('  Material ',i, ': "',Materials[i].Name, '"'
-         ,' Amb(',ColToStr(Materials[i].AmbientCol), ')'
-         ,' Diff(',ColToStr(Materials[i].DiffuseCol), ')'
-         ,' Spec(',ColToStr(Materials[i].SpecularCol), ')');
+         ,' Amb(',ColToStr(Materials[i].AmbientColor), ')'
+         ,' Diff(',ColToStr(Materials[i].DiffuseColor), ')'
+         ,' Spec(',ColToStr(Materials[i].SpecularColor), ')');
   if Materials[i].TextureMap1.Exists then
    Write(' Texture1('+Materials[i].TextureMap1.MapFilename+')');
   if Materials[i].TextureMap2.Exists then

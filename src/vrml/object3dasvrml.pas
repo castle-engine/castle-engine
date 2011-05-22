@@ -198,9 +198,6 @@ begin
  result := SReplaceChars(s, NonVRMLNameChars, '_')
 end;
 
-function FileNameToVRMLName(const filename: string): string;
-begin  result := 'File_' + ToVRMLName(filename)  end;
-
 { Load* ---------------------------------------------------------------------- }
 
 function LoadGEO(const filename: string): TVRMLRootNode;
@@ -213,7 +210,7 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  geo := TObject3DGEO.Create(filename);
  try
-  result := TVRMLRootNode.Create(FileNameToVRMLName(filename), WWWBasePath);
+  result := TVRMLRootNode.Create('', WWWBasePath);
   try
    Result.ForceVersion := true;
    Result.ForceVersionMajor := 1;
@@ -272,13 +269,7 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  obj := TObject3DOBJ.Create(filename);
  try
-  result := TVRMLRootNode.Create(''
-    { I used to put here FileNameToVRMLName(filename), but
-      it made two OBJ models structurally not equal, so demo_animation
-      couldn't animate them. Conceptually, you can say that OBJ filename
-      shouldn't be recorded as VRML field name, since filename is something
-      not related to actual *content* of the model. },
-    WWWBasePath);
+  result := TVRMLRootNode.Create('', WWWBasePath);
   try
    Result.ForceVersion := true;
    Result.ForceVersionMajor := 1;
@@ -419,250 +410,221 @@ begin
 end;
 
 function Load3DS(const filename: string): TVRMLRootNode;
-var WWWBasePath: string;
+var
+  WWWBasePath: string;
 
-  const
-    { ta stala byc moze zostanie kiedys przeniesiona na interfejsu jakiegos
-      ogolnego modulu VRMLa zeby view3dscene mogl oblugiwac wiele
-      kamer zdefiniowanych w plik VRMLa. Nazwa 'Viewports' jest tutaj
-      pewnym de facto standardem uzywanym przez wiele narzedzi generujacych
-      VRMLe. }
-    CamerasSwitchName = 'Viewpoints';
+  { Prefix names with things like "Material_", to make sure these
+    names not collide with each other. (I don't know if they are in
+    separate namespace in 3DS, but better be safe.)
 
-  { poprzedzamy nazwy materialow, trimeshy i camer prefixami rodzajowymi
-    (np. 'Material_' dla materialow) zeby zapewnic ze te nazwy
-    beda jakby w osobnych namespace i nie beda ze soba kolidowac.
+    Note that we don't check here whether all names are really unique,
+    as they don't have to be unique for VRML/X3D. We just make reasonable
+    effort to keep them unique (to help storing them with DEF/USE),
+    if they were unique in 3DS. }
 
-    Zwracam tu uwage ze nie musimy sie tu martwic o to zeby wszystkie
-    nazwy byly na pewno unikalne - przeciez w VRMLu nazwy nie musza byc
-    unikalne. Tym niemniej uzywajac mozliwie unikalnych nazw pozwolimy
-    sobie uzywac mozliwie czesto konstrukcji DEF/USE VRMLa przy zapisie
-    modeli do pliku, a to jest zdecydowanie pozadane. }
-  function Mat3dsNameToVRMLName(const Mat3dsName: string): string;
-  begin  result := 'Material_' + ToVRMLName(Mat3dsName)  end;
+  function MaterialVRMLName(const Mat3dsName: string): string;
+  begin Result := 'Material_' + ToVRMLName(Mat3dsName) end;
 
-  function Trimesh3dsNameToVRMLName(const Tri3dsName: string): string;
-  begin  result := 'Trimesh_' + ToVRMLName(Tri3dsName)  end;
+  function TrimeshVRMLName(const Tri3dsName: string): string;
+  begin Result := 'Trimesh_' + ToVRMLName(Tri3dsName) end;
 
-  function Camera3dsNameToVRMLName(const Camera3dsName: string): string;
-  begin  result := 'Camera_' + ToVRMLName(Camera3dsName)  end;
+  function ViewpointVRMLName(const Camera3dsName: string): string;
+  begin Result := 'Camera_' + ToVRMLName(Camera3dsName) end;
 
-  function Light3dsNameToVRMLName(const Light3dsName: string): string;
-  begin  result := 'Light_' + ToVRMLName(Light3dsName)  end;
+  function LightVRMLName(const Light3dsName: string): string;
+  begin Result := 'Light_' + ToVRMLName(Light3dsName) end;
 
-
+  { How many faces have the same material index.
+    Starts, and compares, with the face numnbered StartFace (must be < FacesCount). }
   function SameMaterialFacesCount(Faces: PArray_Face3ds; FacesCount: integer;
     StartFace: integer): integer;
-  { zwraca ile jest w tablicy Faces elementow o FaceMaterialIndex =
-    Faces[StartFace].FaceMaterialIndex zaczynajac liczyc od StartFace
-    do pierwszego face ktory ma inny FaceMaterialIndex.
-    Jezeli zwroci np. 3 to znaczy ze
-      Faces[StartFace].FaceMaterialIndex =
-      Faces[StartFace+1].FaceMaterialIndex =
-      Faces[StartFace+2].FaceMaterialIndex <>
-      Faces[StartFace+3].FaceMaterialIndex
-    Pilnuje sie zeby nie wyjsc za zakres FacesCount, to znaczy jest tak jakby
-    na koncu tablicy Faces element o indeksie FacesCount mial FaceMaterialIndex
-    ktory na pewno jest rozny od kazdego FaceMaterialIndex.
-    Podane StartFace musi byc < od FacesCount. }
-  var i: integer;
+  var
+    I: Integer;
   begin
-   i := StartFace+1;
-   while (i < FacesCount) and (Faces^[i].FaceMaterialIndex =
-     Faces^[StartFace].FaceMaterialIndex) do
-    Inc(i);
-   result := i-StartFace;
+    I := StartFace + 1;
+    while (I < FacesCount) and
+          (Faces^[I].FaceMaterialIndex = Faces^[StartFace].FaceMaterialIndex) do
+      Inc(i);
+    Result := I - StartFace;
   end;
 
-  procedure Add3dsCameras(scene: TScene3ds; node: TVRMLNode);
-  var camSwitch: TNodeSwitch_1;
-      camera: TVRMLNode;
-      i: Integer;
+  procedure AddViewpoints(scene: TScene3ds; node: TNodeGroup_2);
+  var
+    camGroup: TNodeGroup_2;
+    camera: TVRMLNode;
+    i: Integer;
   begin
-   if scene.Cameras.Count = 0 then Exit;
+    if scene.Cameras.Count = 0 then Exit;
 
-   camSwitch := TNodeSwitch_1.Create(CamerasSwitchName, WWWBasePath);
-   node.VRML1ChildAdd(camSwitch);
-   camSwitch.FdWhichChild.Value := 0;
+    camGroup := TNodeGroup_2.Create('Viewpoints', WWWBasePath);
+    node.FdChildren.Add(camGroup);
 
-   for i := 0 to scene.Cameras.Count-1 do
-   begin
-    camera := MakeVRMLCameraNode(1, WWWBasePath,
-      scene.Cameras[i].CamPos,
-      scene.Cameras[i].CamDir,
-      scene.Cameras[i].CamUp,
-      scene.Cameras[i].CamUp { GravityUp equals CamUp });
-    camera.NodeName := Camera3dsNameToVRMLName(scene.Cameras[i].Name);
-    camSwitch.VRML1ChildAdd(camera);
+    for i := 0 to scene.Cameras.Count-1 do
+    begin
+      camera := MakeVRMLCameraNode(1, WWWBasePath,
+        scene.Cameras[i].CamPos,
+        scene.Cameras[i].CamDir,
+        scene.Cameras[i].CamUp,
+        scene.Cameras[i].CamUp { GravityUp equals CamUp });
+      camera.NodeName := ViewpointVRMLName(scene.Cameras[i].Name);
+      camGroup.FdChildren.Add(camera);
 
-    { TODO: wykorzystac pozostale pola kamery 3ds }
-   end;
+      { TODO: use other 3ds camera fields }
+    end;
   end;
 
-  procedure Add3dsLights(scene: TScene3ds; node: TVRMLNode);
-  var i: Integer;
-      light: TNodePointLight_1;
-      lightGroup: TNodeGroup_1;
+  procedure AddLights(scene: TScene3ds; node: TNodeGroup_2);
+  var
+    i: Integer;
+    light: TNodePointLight_2;
+    lightGroup: TNodeGroup_2;
   begin
-   if Scene.Lights.Count = 0 then Exit;
+    if Scene.Lights.Count = 0 then Exit;
 
-   lightGroup := TNodeGroup_1.Create('Lights', WWWBasePath);
-   node.VRML1ChildAdd(lightGroup);
+    lightGroup := TNodeGroup_2.Create('Lights', WWWBasePath);
+    node.FdChildren.Add(lightGroup);
 
-   for i := 0 to Scene.Lights.Count-1 do
-   begin
-    light := TNodePointLight_1.Create(Light3dsNameToVRMLName(
-      Scene.Lights[i].Name), WWWBasePath);
-    lightGroup.VRML1ChildAdd(light);
+    for i := 0 to Scene.Lights.Count-1 do
+    begin
+      light := TNodePointLight_2.Create(LightVRMLName(
+        Scene.Lights[i].Name), WWWBasePath);
+      lightGroup.FdChildren.Add(light);
 
-    light.FdOn.Value := Scene.Lights[i].Enabled;
-    light.FdLocation.Value := Scene.Lights[i].Pos;
-    light.FdColor.Value := Scene.Lights[i].Col;
-   end;
+      light.FdOn.Value := Scene.Lights[i].Enabled;
+      light.FdLocation.Value := Scene.Lights[i].Pos;
+      light.FdColor.Value := Scene.Lights[i].Col;
+    end;
   end;
 
-var obj3ds: TScene3ds;
-    trimesh3ds: TTrimesh3ds;
-
-    materialSwitch: TNodeSwitch_1;
-    materialGroup, trimeshGroup: TNodeGroup_1;
-    indexedFacesNode: TNodeIndexedFaceSet_1;
-    trimeshCoords: TNodeCoordinate3;
-    trimeshTexCoords: TNodeTextureCoordinate2;
-    facesSep: TNodeSeparator;
-
-    tmp: TVRMLNode;
-    i, j, FaceMaterialNum, ThisMaterialFacesCount, FaceNum: integer;
+var
+  O3ds: TScene3ds;
+  Trimesh3ds: TTrimesh3ds;
+  Appearances: TVRMLNodesList;
+  Mat: TNodeMaterial_2;
+  Tex: TNodeImageTexture;
+  TexTransform: TNodeTextureTransform;
+  Coord: TNodeCoordinate;
+  IFS: TNodeIndexedFaceSet_2;
+  TexCoord: TNodeTextureCoordinate;
+  Shape: TNodeShape;
+  I, J, FaceMaterialNum, ThisMaterialFacesCount, FaceNum: Integer;
 begin
- WWWBasePath := ExtractFilePath(ExpandFilename(filename));
- obj3ds := TScene3ds.Create(filename);
- try
-  result := TVRMLRootNode.Create(FileNameToVRMLName(filename), WWWBasePath);
+  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
+  Appearances := nil;
+  O3ds := TScene3ds.Create(filename);
   try
-   Result.ForceVersion := true;
-   Result.ForceVersionMajor := 1;
-   Result.ForceVersionMinor := 0;
+    Result := TVRMLRootNode.Create('', WWWBasePath);
+    try
+      Result.ForceVersion := true;
+      Result.ForceVersionMajor := 2;
+      Result.ForceVersionMinor := 0;
 
-   Add3dsCameras(obj3ds, result);
-   Add3dsLights(obj3ds, result);
+      AddViewpoints(O3ds, Result);
+      AddLights(O3ds, Result);
 
-   { konstruuj liste materiali jako dzieci materialSwitch }
-   materialSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath);
-   result.VRML1ChildAdd(materialSwitch);
-
-   for i := 0 to obj3ds.Materials.Count-1 do
-   begin
-    materialGroup := TNodeGroup_1.Create(Mat3dsNameToVRMLName(obj3ds.Materials[i].Name), WWWBasePath);
-    materialSwitch.VRML1ChildAdd(materialGroup);
-
-    { dodaj Material node }
-    tmp := TNodeMaterial_1.Create('', WWWBasePath);
-    materialGroup.VRML1ChildAdd(tmp);
-    TNodeMaterial_1(tmp).FdAmbientColor.Items.SetLength(1);
-    TNodeMaterial_1(tmp).FdAmbientColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].AmbientCol);
-    TNodeMaterial_1(tmp).FdDiffuseColor.Items.SetLength(1);
-    TNodeMaterial_1(tmp).FdDiffuseColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].DiffuseCol);
-    TNodeMaterial_1(tmp).FdSpecularColor.Items.SetLength(1);
-    TNodeMaterial_1(tmp).FdSpecularColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].SpecularCol);
-    TNodeMaterial_1(tmp).FdShininess.Items.SetLength(1);
-    TNodeMaterial_1(tmp).FdShininess.Items.Items[0] := obj3ds.Materials[i].Shininess;
-    TNodeMaterial_1(tmp).FdTransparency.Items.SetLength(1);
-    TNodeMaterial_1(tmp).FdTransparency.Items.Items[0] := obj3ds.Materials[i].Transparency;
-
-    if obj3ds.Materials[i].TextureMap1.Exists then
-    begin
-     { dodaj Texture2 i Texture2Transform nodes }
-     tmp := TNodeTexture2.Create('', WWWBasePath);
-     materialGroup.VRML1ChildAdd(tmp);
-     TNodeTexture2(tmp).FdFilename.Value := obj3ds.Materials[i].TextureMap1.MapFilename;
-
-     tmp := TNodeTexture2Transform.Create('', WWWBasePath);
-     materialGroup.VRML1ChildAdd(tmp);
-     TNodeTexture2Transform(tmp).FdScaleFactor.Value :=
-       Vector2Single(obj3ds.Materials[i].TextureMap1.UScale,
-                     obj3ds.Materials[i].TextureMap1.VScale);
-    end;
-   end;
-
-   { teraz dodawaj trimeshes. Kazde trimesh to jeden node Group w srodku
-     ktorego sa Coordinate3, potem ciagi Faces - kazdy ciag w Separatorze,
-     kazdy taki Separator to najpierw jakis material, potem IndexedFaceSet. }
-   for i := 0 to obj3ds.Trimeshes.Count-1 do
-   begin
-    trimesh3ds := obj3ds.Trimeshes[i];
-
-    trimeshGroup := TNodeGroup_1.Create(Trimesh3dsNameToVRMLName(trimesh3ds.Name), WWWBasePath);
-    result.VRML1ChildAdd(trimeshGroup);
-
-    { zapisz Coordinate3 }
-    trimeshCoords := TNodeCoordinate3.Create('', WWWBasePath);
-    trimeshGroup.VRML1ChildAdd(trimeshCoords);
-    trimeshCoords.FdPoint.Items.SetLength(trimesh3ds.VertsCount);
-    for j := 0 to trimesh3ds.VertsCount-1 do
-     trimeshCoords.FdPoint.Items.Items[j] := trimesh3ds.Verts^[j].Pos;
-
-    { zapisz TextureCoordinate2 jesli je mamy }
-    if trimesh3ds.HasTexCoords then
-    begin
-     trimeshTexCoords := TNodeTextureCoordinate2.Create('', WWWBasePath);
-     trimeshGroup.VRML1ChildAdd(trimeshTexCoords);
-     trimeshTexCoords.FdPoint.Items.SetLength(trimesh3ds.VertsCount);
-     for j := 0 to trimesh3ds.VertsCount-1 do
-      trimeshTexCoords.FdPoint.Items.Items[j] := trimesh3ds.Verts^[j].TexCoord;
-    end;
-
-    { zapisz faces }
-    j := 0;
-    while j < trimesh3ds.FacesCount do
-    begin
-     FaceMaterialNum := trimesh3ds.Faces^[j].FaceMaterialIndex;
-     facesSep := TNodeSeparator.Create('', WWWBasePath);
-     trimeshGroup.VRML1ChildAdd(facesSep);
-
-     { uzyj materialu }
-     if FaceMaterialNum >= 0 then
-      facesSep.VRML1ChildAdd(materialSwitch.VRML1Children[FaceMaterialNum]);
-      {else uzyje defaultowego materiala. I o to chodzi.}
-
-     { wylacz teksture jesli material ma teksture ale my nie mamy texCoords }
-     if (FaceMaterialNum >= 0) and
-        (obj3ds.Materials[FaceMaterialNum].TextureMap1.Exists) and
-        (not trimesh3ds.HasTexCoords) then
-      facesSep.VRML1ChildAdd(TNodeTexture2.Create('Turn_Texture_Off', WWWBasePath));
-
-     { zapisz faces o tym samym FaceMaterialNum.
-       Mamy przynajmniej jedno takie face. }
-
-     ThisMaterialFacesCount := SameMaterialFacesCount(trimesh3ds.Faces,
-       trimesh3ds.FacesCount, j);
-
-     indexedFacesNode := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
-     facesSep.VRML1ChildAdd(indexedFacesNode);
-     indexedFacesNode.FdCoordIndex.Items.SetLength(ThisMaterialFacesCount*4);
-
-     for FaceNum := 0 to ThisMaterialFacesCount-1 do
-     begin
-      with indexedFacesNode.FdCoordIndex.Items do
+      { Convert every 3DS material into VRML/X3D Appearance node }
+      Appearances := TVRMLNodesList.Create;
+      Appearances.Count := O3ds.Materials.Count;
+      for i := 0 to O3ds.Materials.Count - 1 do
       begin
-       Items[FaceNum*4  ] := trimesh3ds.Faces^[j].VertsIndices[0];
-       Items[FaceNum*4+1] := trimesh3ds.Faces^[j].VertsIndices[1];
-       Items[FaceNum*4+2] := trimesh3ds.Faces^[j].VertsIndices[2];
-       Items[FaceNum*4+3] := -1;
+        Appearances[I] := TNodeAppearance.Create(MaterialVRMLName(O3ds.Materials[i].Name), WWWBasePath);
+
+        Mat := TNodeMaterial_2.Create('', WWWBasePath);
+        Mat.FdDiffuseColor.Value := Vector3SingleCut(O3ds.Materials[i].DiffuseColor);
+        Mat.FdAmbientIntensity.Value := O3ds.Materials[i].AmbientIntensity;
+        Mat.FdSpecularColor.Value := Vector3SingleCut(O3ds.Materials[i].SpecularColor);
+        Mat.FdShininess.Value := O3ds.Materials[i].Shininess;
+        Mat.FdTransparency.Value := O3ds.Materials[i].Transparency;
+        TNodeAppearance(Appearances[I]).FdMaterial.Value := Mat;
+
+        if O3ds.Materials[i].TextureMap1.Exists then
+        begin
+          Tex := TNodeImageTexture.Create('', WWWBasePath);
+          Tex.FdUrl.Items.Add(O3ds.Materials[i].TextureMap1.MapFilename);
+          TNodeAppearance(Appearances[I]).FdTexture.Value := Tex;
+
+          TexTransform := TNodeTextureTransform.Create('', WWWBasePath);
+          TexTransform.FdScale.Value := O3ds.Materials[i].TextureMap1.Scale;
+          TNodeAppearance(Appearances[I]).FdTextureTransform.Value := TexTransform;
+        end;
       end;
-      Inc(j);
-     end;
 
-     { jezeli trimesh3ds.HasTexCoords to textureCoordIndex sa takie same jako
-       coordIndex }
-     indexedFacesNode.FdTextureCoordIndex.Items.SetLength(0);
-     if trimesh3ds.HasTexCoords then
-      indexedFacesNode.FdTextureCoordIndex.Items.AppendDynArray(
-        indexedFacesNode.FdCoordIndex.Items);
-    end;
+      { Add 3DS triangle meshes. Each trimesh is split into a number of
+        VRML/X3D IndexedFaceSet nodes, sharing common Coordinate node,
+        but having different materials. }
+      for i := 0 to O3ds.Trimeshes.Count-1 do
+      begin
+        Trimesh3ds := O3ds.Trimeshes[i];
 
-   end;
-  except result.Free; raise end;
- finally obj3ds.Free end;
+        { Create Coordinate node }
+        Coord := TNodeCoordinate.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), WWWBasePath);
+        Coord.FdPoint.Count := Trimesh3ds.VertsCount;
+        for J := 0 to Trimesh3ds.VertsCount-1 do
+          Coord.FdPoint.Items.Items[J] := Trimesh3ds.Verts^[J].Pos;
+
+        { Create TextureCoordinate node, or nil if not available }
+        if Trimesh3ds.HasTexCoords then
+        begin
+          TexCoord := TNodeTextureCoordinate.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), WWWBasePath);
+          TexCoord.FdPoint.Count := Trimesh3ds.VertsCount;
+          for j := 0 to Trimesh3ds.VertsCount - 1 do
+            TexCoord.FdPoint.Items.Items[J] := Trimesh3ds.Verts^[J].TexCoord;
+        end else
+          TexCoord := nil;
+
+        { Convert faces with equal material to IndexedFaceSet }
+        J := 0;
+        while J < Trimesh3ds.FacesCount do
+        begin
+          FaceMaterialNum := Trimesh3ds.Faces^[j].FaceMaterialIndex;
+
+          IFS := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
+          IFS.FdTexCoord.Value := TexCoord;
+          IFS.FdCoord.Value := Coord;
+
+          Shape := TNodeShape.Create('', WWWBasePath);
+          Shape.FdGeometry.Value := IFS;
+          Shape.Appearance := TNodeAppearance(Appearances[FaceMaterialNum]);
+
+          Result.FdChildren.Add(Shape);
+
+          ThisMaterialFacesCount := SameMaterialFacesCount(Trimesh3ds.Faces,
+            Trimesh3ds.FacesCount, J);
+
+          IFS.FdCoordIndex.Count := ThisMaterialFacesCount * 4;
+          for FaceNum := 0 to ThisMaterialFacesCount - 1 do
+          begin
+            with IFS.FdCoordIndex.Items do
+            begin
+              Items[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
+              Items[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
+              Items[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
+              Items[FaceNum * 4 + 3] := -1;
+            end;
+            Inc(J);
+          end;
+
+          { If Trimesh3ds.HasTexCoords then IFS.texCoordIndex should be taken
+            from IFS.coordIndex. And VRML 2.0/X3D do this by default, so no need
+            to do anything. }
+        end;
+
+        Coord.FreeIfUnused;
+        Coord := nil;
+        if TexCoord <> nil then
+        begin
+          TexCoord.FreeIfUnused;
+          TexCoord := nil;
+        end;
+      end;
+
+      for I := 0 to Appearances.Count - 1 do
+        Appearances[I].FreeIfUnused;
+    except FreeAndNil(result); raise end;
+  finally
+    FreeAndNil(O3ds);
+    FreeAndNil(Appearances)
+  end;
 end;
 
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
