@@ -443,10 +443,10 @@ var
     for i := 0 to O3ds.Cameras.Count - 1 do
     begin
       camera := MakeVRMLCameraNode(2, WWWBasePath,
-        O3ds.Cameras[i].CamPos,
-        O3ds.Cameras[i].CamDir,
-        O3ds.Cameras[i].CamUp,
-        O3ds.Cameras[i].CamUp { GravityUp equals CamUp });
+        O3ds.Cameras[i].Position,
+        O3ds.Cameras[i].Direction,
+        O3ds.Cameras[i].Up,
+        O3ds.Cameras[i].Up { GravityUp equals Up });
       camera.NodeName := ViewpointVRMLName(O3ds.Cameras[i].Name);
       Result.FdChildren.Add(camera);
 

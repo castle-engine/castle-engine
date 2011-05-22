@@ -21,7 +21,7 @@ unit Object3Ds;
   - properties that are read from 3ds but not used anywhere (not in
     Object3DOpenGL nor in Object3DAsVRML) because their exact
     interpretation is not known for me:
-      TCamera3ds.CamLens
+      TCamera3ds.Lens
       TMaterialMap3ds.Offset (I don't know wheteher use it before of after
         Scale, again I need some test 3ds scenes to check that)
       TMaterial3ds.TextureMap2
@@ -40,8 +40,7 @@ unit Object3Ds;
 
 interface
 
-uses KambiUtils, Classes, KambiClassUtils, SysUtils,
-  Boxes3D, VectorMath, Base3D;
+uses KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3D, VectorMath;
 
 {$define read_interface}
 
@@ -183,21 +182,21 @@ type
 
   TCamera3ds = class(TObject3Ds)
   private
-    FCamPos, FCamTarget: TVector3Single;
-    FCamBank, FCamLens: Single;
+    FPosition, FTarget: TVector3Single;
+    FBank, FLens: Single;
   public
-    property CamPos: TVector3Single read FCamPos;
-    property CamTarget: TVector3Single read FCamTarget;
-    property CamBank: Single read FCamBank;
-    property CamLens: Single read FCamLens;
+    property Position: TVector3Single read FPosition;
+    property Target: TVector3Single read FTarget;
+    property Bank: Single read FBank;
+    property Lens: Single read FLens;
     constructor Create(const AName: string; AScene: TScene3ds;
       Stream: TStream; ObjectEndPos: Int64); override;
     destructor Destroy; override;
 
-    { Camera direction. Calculated from CamPos and CamTarget. }
-    function CamDir: TVector3Single;
-    { Camera up. Calculated from CamDir and CamBank. }
-    function CamUp: TVector3Single;
+    { Camera direction. Calculated from Position and Target. }
+    function Direction: TVector3Single;
+    { Camera up. Calculated from Direction and Bank. }
+    function Up: TVector3Single;
   end;
 
   TLight3ds = class(TObject3Ds)
@@ -220,7 +219,7 @@ type
   {$I objectslist_3.inc}
   TLight3dsList = TObjectsList_3;
 
-  TScene3ds = class(T3D)
+  TScene3ds = class
   public
     { Triangle meshes, cameras and other properties of the scene.
       They are created and destroyed by TScene3ds
@@ -833,10 +832,10 @@ begin
   if h.id = CHUNK_CAMERA then
   begin
    {read camera chunk}
-   Stream.ReadBuffer(FCamPos, SizeOf(FCamPos));
-   Stream.ReadBuffer(FCamTarget, SizeOf(FCamTarget));
-   Stream.ReadBuffer(FCamBank, SizeOf(FCamBank));
-   Stream.ReadBuffer(FCamLens, SizeOf(FCamLens));
+   Stream.ReadBuffer(FPosition, SizeOf(FPosition));
+   Stream.ReadBuffer(FTarget, SizeOf(FTarget));
+   Stream.ReadBuffer(FBank, SizeOf(FBank));
+   Stream.ReadBuffer(FLens, SizeOf(FLens));
 
    Stream.Position := hEnd; { skip CHUNK_CAMERA subchunks }
    break; { tylko jeden chunk CAMERA moze byc w jednym OBJBLOCK }
@@ -852,30 +851,29 @@ begin
  inherited;
 end;
 
-function TCamera3ds.CamDir: TVector3Single;
+function TCamera3ds.Direction: TVector3Single;
 begin
- result := VectorSubtract(CamTarget, CamPos);
+ result := VectorSubtract(Target, Position);
 end;
 
-function TCamera3ds.CamUp: TVector3Single;
-var dir: TVector3Single;
+function TCamera3ds.Up: TVector3Single;
+var
+  D: TVector3Single;
 const
-  Std3dsCamUp: TVector3Single = (0, 0, 1);
-  Std3dsCamUp_Second: TVector3Single = (0, 1, 0);
+  StandardUp: TVector3Single = (0, 0, 1);
+  StandardUpAlt: TVector3Single = (0, 1, 0);
 begin
- dir := CamDir;
+  D := Direction;
 
- { TODO: poniewaz nie mam prawdziwej specyfikacji 3dsa cala ta funkcja
-   to czyste zgadywanie. Zgadywaniem jest Std3dsCamUp, zgadywaniem jest
-   ze CamBank dziala tak a nie inaczej. Ale generowane kamery wygladaja
-   sensownie i tak samo jak dla view3ds.
-   Wartosc Std3dsCamUp_Second to juz zupelnie czysta nieprzetestowana
-   fantazja. }
+  { TODO: this is just a guesswork. We're just guessing that standard
+    up is StandardUp or StandardUpAlt,
+    we're just guessing that Bank works this way.
+    Results on test models seem sensible, consistent with view3ds. }
 
- if VectorsParallel(dir, Std3dsCamUp) then
-  result := Std3dsCamUp_Second else
-  result := Std3dsCamUp;
- result := RotatePointAroundAxisDeg(CamBank, result, dir);
+  if VectorsParallel(D, StandardUp) then
+    result := StandardUpAlt else
+    result := StandardUp;
+  result := RotatePointAroundAxisDeg(Bank, result, D);
 end;
 
 { TLights3ds --------------------------------------------------------------- }
@@ -922,7 +920,7 @@ var hmain, hsubmain, hsubObjMesh: TChunkHeader;
     hsubmainEnd, hsubObjMeshEnd: Int64;
     Object3Ds: TObject3Ds;
 begin
- inherited Create(nil);
+ inherited Create;
 
  Trimeshes := TTrimesh3dsList.Create;
  Cameras := TCamera3dsList.Create;
