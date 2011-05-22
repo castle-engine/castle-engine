@@ -180,12 +180,6 @@ implementation
 uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils,
   KambiStringUtils, VRMLAnimation, ColladaToVRML, EnumerateFiles;
 
-{
-  Note: for VRML 1.0, remember that you may want to embed returned
-  @link(TVRMLNode) objects inside VRML Separator node before
-  inserting it into some existing VRML scene.
-}
-
 function ToVRMLName(const s: string): string;
 const
   { moglibysmy tu uzyc VRMLLexer.VRMLNameChars ktore podaje naprawde
@@ -201,39 +195,45 @@ end;
 { Load* ---------------------------------------------------------------------- }
 
 function LoadGEO(const filename: string): TVRMLRootNode;
-var geo: TObject3DGEO;
-    verts: TNodeCoordinate3;
-    faces: TNodeIndexedFaceSet_1;
-    i: integer;
-    WWWBasePath: string;
+var
+  geo: TObject3DGEO;
+  verts: TNodeCoordinate;
+  faces: TNodeIndexedFaceSet_2;
+  Shape: TNodeShape;
+  i: integer;
+  WWWBasePath: string;
 begin
- WWWBasePath := ExtractFilePath(ExpandFilename(filename));
- geo := TObject3DGEO.Create(filename);
- try
-  result := TVRMLRootNode.Create('', WWWBasePath);
+  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
+  geo := TObject3DGEO.Create(filename);
   try
-   Result.ForceVersion := true;
-   Result.ForceVersionMajor := 1;
-   Result.ForceVersionMinor := 0;
+    result := TVRMLRootNode.Create('', WWWBasePath);
+    try
+      Result.ForceVersion := true;
+      Result.ForceVersionMajor := 2;
+      Result.ForceVersionMinor := 0;
 
-   verts := TNodeCoordinate3.Create('', WWWBasePath);
-   result.VRML1ChildAdd(verts);
-   faces := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
-   result.VRML1ChildAdd(faces);
+      Shape := TNodeShape.Create('', WWWBasePath);
+      result.FdChildren.Add(Shape);
+      Shape.Material := TNodeMaterial_2.Create('', WWWBasePath);
 
-   verts.FdPoint.Items.SetLength(0);
-   verts.FdPoint.Items.AppendDynArray(geo.Verts);
+      faces := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
+      Shape.FdGeometry.Value := faces;
+      faces.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
+      faces.FdSolid.Value := false;
+      faces.FdCoordIndex.Count := geo.Faces.Count * 4;
+      for i := 0 to geo.Faces.Count-1 do
+      begin
+        faces.FdCoordIndex.Items[i * 4    ] := geo.Faces.Items[i][0];
+        faces.FdCoordIndex.Items[i * 4 + 1] := geo.Faces.Items[i][1];
+        faces.FdCoordIndex.Items[i * 4 + 2] := geo.Faces.Items[i][2];
+        faces.FdCoordIndex.Items[i * 4 + 3] := -1;
+      end;
 
-   faces.FdCoordIndex.Items.SetLength(geo.Faces.Count*4);
-   for i := 0 to geo.Faces.Count-1 do
-   begin
-    faces.FdCoordIndex.Items[i*4] := geo.Faces.Items[i][0];
-    faces.FdCoordIndex.Items[i*4+1] := geo.Faces.Items[i][1];
-    faces.FdCoordIndex.Items[i*4+2] := geo.Faces.Items[i][2];
-    faces.FdCoordIndex.Items[i*4+3] := -1;
-   end;
-  except result.Free; raise end;
- finally geo.Free end;
+      verts := TNodeCoordinate.Create('', WWWBasePath);
+      faces.FdCoord.Value := verts;
+      verts.FdPoint.Items.Assign(geo.Verts);
+    except result.Free; raise end;
+  finally geo.Free end;
 end;
 
 function LoadWavefrontOBJ(const filename: string): TVRMLRootNode;
