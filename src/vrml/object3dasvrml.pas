@@ -781,12 +781,17 @@ begin
   begin
     Texture := TNodeImageTexture.Create('', WWWBasePath);
     Texture.FdUrl.Items.Add(Md3.TextureFileName);
-  end;
+  end else
+    Texture := nil;
 
   for I := 0 to Md3.Surfaces.Count - 1 do
     Result.FdChildren.Add(MakeShape(Md3.Surfaces[I]));
 
-  Texture.FreeIfUnused;
+  if Texture <> nil then
+  begin
+    Texture.FreeIfUnused;
+    Texture := nil;
+  end;
 end;
 
 function LoadMD3(const FileName: string): TVRMLRootNode;
