@@ -266,7 +266,7 @@ implementation
 {$I objectslist_4.inc}
 
 function CreateObject3DS(AScene: Tscene3DS; Stream: TStream;
-  ObjectEndPos: Int64): TObject3DS;
+  ObjectEndPos: Int64): TObject3DS; forward;
 
 { Chunks utilities ----------------------------------------------------------- }
 
