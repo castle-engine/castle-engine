@@ -573,6 +573,9 @@ begin
           IFS := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
           IFS.FdTexCoord.Value := TexCoord;
           IFS.FdCoord.Value := Coord;
+          { We don't support 3DS smoothing groups.
+            So instead assign some sensible non-zero crease angle. }
+          IFS.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
 
           Shape := TNodeShape.Create('', WWWBasePath);
           Shape.FdGeometry.Value := IFS;
