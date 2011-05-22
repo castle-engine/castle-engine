@@ -1132,7 +1132,8 @@ var
         Result := 1 else
         Result := 0;
     end else
-    if S.ShapeNode.Texture <> nil then
+    if (S.ShapeNode <> nil) and { for correct VRML >= 2, Shape should be assigned, but secure from buggy models }
+       (S.ShapeNode.Texture <> nil) then
     begin
       if S.ShapeNode.Texture is TNodeMultiTexture then
         Result := TNodeMultiTexture(S.ShapeNode.Texture).FdTexture.Count else
