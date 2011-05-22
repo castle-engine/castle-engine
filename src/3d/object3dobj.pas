@@ -66,16 +66,15 @@ type
   TDynWavefrontFaceArray = TDynArray_1;
 
   { 3D model in OBJ file format. }
-  TObject3DOBJ = class(T3D)
+  TObject3DOBJ = class
   private
     FVerts: TDynVector3SingleArray;
     FTexCoords: TDynVector2SingleArray;
     FNormals: TDynVector3SingleArray;
     FFaces: TDynWavefrontFaceArray;
-    FBoundingBox: TBox3D;
     FMaterials: TWavefrontMaterialsList;
   public
-    constructor Create(const fname: string); reintroduce;
+    constructor Create(const fname: string);
     destructor Destroy; override;
 
     { @groupBegin
@@ -91,8 +90,6 @@ type
     { @groupEnd }
 
     property Materials: TWavefrontMaterialsList read FMaterials;
-
-    function BoundingBox: TBox3D; override;
   end;
 
   EInvalidOBJFile = class(Exception);
@@ -405,7 +402,7 @@ var
   //GroupName: string;
   UsedMaterial: TWavefrontMaterial;
 begin
-  inherited Create(nil);
+  inherited Create;
 
   BasePath := ExtractFilePath(ExpandFileName(FName));
 
@@ -448,9 +445,6 @@ begin
       end;
     end;
   finally CloseFile(f) end;
-
-  FBoundingBox := CalculateBoundingBox(
-    PVector3Single(Verts.Items), Verts.Count, SizeOf(TVector3Single));
 end;
 
 destructor TObject3DOBJ.Destroy;
@@ -461,11 +455,6 @@ begin
   FreeAndNil(FFaces);
   FreeWithContentsAndNil(FMaterials);
   inherited;
-end;
-
-function TObject3DOBJ.BoundingBox: TBox3D;
-begin
-  Result := FBoundingBox;
 end;
 
 end.
