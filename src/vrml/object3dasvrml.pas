@@ -177,7 +177,7 @@ const
 
 implementation
 
-uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils,
+uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils, DataErrors,
   KambiStringUtils, VRMLAnimation, ColladaToVRML, EnumerateFiles, Boxes3D;
 
 const
@@ -213,6 +213,60 @@ begin
   Result := AmbientIntensity(
     Vector3SingleCut(AmbientColor),
     Vector3SingleCut(DiffuseColor));
+end;
+
+{ Search harder for filename Base inside directory Path.
+  Path must be absolute and contain the final PathDelim.
+  Returns filename relative to Path.
+
+  We prefer to return just Base, if it exists, or when no alternative exists.
+  When Base doesn't exist but some likely alternative exists (e.g. with
+  different case), we return it. }
+function SearchTextureFileName(const Path, Base: string): string;
+var
+  SomePathDelim: Integer;
+  BaseShort: string;
+begin
+  try
+    if SearchFileHard(Path, Base, Result) then
+      Exit;
+
+    { According to https://sourceforge.net/tracker/index.php?func=detail&aid=3305661&group_id=200653&atid=974391
+      some archives expect search within textures/ subdirectory.
+      Example on http://www.gfx-3d-model.com/2008/06/house-07/#more-445
+      for Wavefront OBJ. }
+    if SearchFileHard(Path + 'textures' + PathDelim, Base, Result) then
+    begin
+      Result := 'textures/' + Result;
+      Exit;
+    end;
+
+    { Some invalid models place full (absolute) path inside texture filename.
+      Try to handle it, by stripping path part (from any OS), and trying
+      to match new name. }
+    SomePathDelim := BackCharsPos(['/', '\'], Base);
+    if SomePathDelim <> 0  then
+    begin
+      BaseShort := SEnding(Base, SomePathDelim + 1);
+
+      if SearchFileHard(Path, BaseShort, Result) then
+        Exit;
+      if SearchFileHard(Path + 'textures' + PathDelim, BaseShort, Result) then
+      begin
+        Result := 'textures/' + Result;
+        Exit;
+      end;
+    end;
+
+  finally
+    if Result <> Base then
+      { Texture file found, but not under original name }
+      DataWarning(Format('Exact texture filename "%s" not found, using instead "%s"',
+        [Base, Result]));
+  end;
+
+  { default result if nowhere found }
+  Result := Base;
 end;
 
 { Load* ---------------------------------------------------------------------- }
@@ -294,7 +348,7 @@ var
     begin
       Texture := TNodeImageTexture.Create('', WWWBasePath);
       Result.FdTexture.Value := Texture;
-      Texture.FdUrl.Items.Add(Material.DiffuseTextureFileName);
+      Texture.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath, Material.DiffuseTextureFileName));
     end;
   end;
 
@@ -499,30 +553,6 @@ var
       Light.FdLocation.Value := O3ds.Lights[I].Pos;
       Light.FdColor.Value := O3ds.Lights[I].Col;
     end;
-  end;
-
-  { Search harder for filename Base inside directory Path.
-    Path must be absolute and contain the final PathDelim.
-    Returns filename relative to Path.
-
-    We prefer to return just Base, if it exists, or when no alternative exists.
-    When Base doesn't exist but some likely alternative exists (e.g. with
-    different case), we return it. }
-  function SearchTextureFileName(const Path, Base: string): string;
-  begin
-    if SearchFileHard(Path, Base, Result) then
-      Exit;
-
-    { According to https://sourceforge.net/tracker/index.php?func=detail&aid=3305661&group_id=200653&atid=974391
-      some archives expect search within textures/ subdirectory. }
-    if SearchFileHard(Path + 'textures' + PathDelim, Base, Result) then
-    begin
-      Result := 'textures/' + Result;
-      Exit;
-    end;
-
-    { default result if nowhere found }
-    Result := Base;
   end;
 
   function MaterialToVRML(Material: TMaterial3ds): TNodeAppearance;
