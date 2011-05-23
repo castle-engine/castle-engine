@@ -349,6 +349,13 @@ var
       Texture := TNodeImageTexture.Create('', WWWBasePath);
       Result.FdTexture.Value := Texture;
       Texture.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath, Material.DiffuseTextureFileName));
+
+      if Material.BumpTextureFileName <> '' then
+      begin
+        Texture := TNodeImageTexture.Create('', WWWBasePath);
+        Result.FdNormalMap.Value := Texture;
+        Texture.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath, Material.BumpTextureFileName));
+      end;
     end;
   end;
 

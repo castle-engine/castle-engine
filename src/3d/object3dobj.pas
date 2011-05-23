@@ -35,6 +35,7 @@ type
     SpecularExponent: Single;
     Sharpness, IndexOfRefraction: Single;
     DiffuseTextureFileName: string;
+    BumpTextureFileName: string;
 
     { Initializes material with default values.
       Since Wavefront specification doesn't say what the default values are,
@@ -129,6 +130,7 @@ begin
   IndexOfRefraction := 1;
 
   DiffuseTextureFileName := '';
+  BumpTextureFileName := '';
 end;
 
 { TWavefrontMaterialsList ---------------------------------------------------- }
@@ -345,7 +347,7 @@ var
         if LineTok = '' then Continue;
 
         case ArrayPosText(LineTok, ['newmtl', 'Ka', 'Kd', 'Ks', 'Tf', 'illum',
-          'd', 'Ns', 'sharpness', 'Ni', 'map_Kd']) of
+          'd', 'Ns', 'sharpness', 'Ni', 'map_Kd', 'map_bump', 'bump']) of
           0: begin
                Materials.Add(TWavefrontMaterial.Create(LineAfterMarker));
                IsMaterial := true;
@@ -389,6 +391,11 @@ var
           10:begin
                CheckIsMaterial('diffuse map (map_Kd)');
                Materials.Last.DiffuseTextureFileName := LineAfterMarker;
+             end;
+          11, 12:
+             begin
+               CheckIsMaterial('bump map (map_bump,bump)');
+               Materials.Last.BumpTextureFileName := LineAfterMarker;
              end;
           else { we ignore other linetoks };
         end;
