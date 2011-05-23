@@ -151,6 +151,7 @@ function CalculateBoundingBox(
 function CalculateBoundingBox(
   Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal;
   const Transform: TMatrix4Single): TBox3D; overload;
+function CalculateBoundingBox(Verts: TDynVector3SingleArray): TBox3D; overload;
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
   VertsCount: integer): TBox3D; overload;
@@ -800,6 +801,11 @@ begin
   result := CalculateBoundingBox(
     {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
  finally Calculator.Free end;
+end;
+
+function CalculateBoundingBox(Verts: TDynVector3SingleArray): TBox3D;
+begin
+  Result := CalculateBoundingBox(PVector3Single(Verts.ItemsArray), Verts.Count, 0);
 end;
 
 function CalculateBoundingBoxFromIndices(

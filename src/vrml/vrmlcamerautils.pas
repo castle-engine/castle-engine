@@ -57,6 +57,14 @@ function MakeVRMLCameraNode(const Version: TVRMLCameraVersion;
   const WWWBasePath: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TVRMLNode;
 
+{ Make camera node (like MakeVRMLCameraNode) that makes the whole box
+  nicely visible (like CameraViewpointForWholeScene). }
+function CameraNodeForWholeScene(const Version: TVRMLCameraVersion;
+  const WWWBasePath: string;
+  const Box: TBox3D;
+  const WantedDirection, WantedUp: Integer;
+  const WantedDirectionPositive, WantedUpPositive: boolean): TVRMLNode;
+
 implementation
 
 uses SysUtils, Cameras;
@@ -265,6 +273,20 @@ begin
       else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
     end;
   end;
+end;
+
+function CameraNodeForWholeScene(const Version: TVRMLCameraVersion;
+  const WWWBasePath: string;
+  const Box: TBox3D;
+  const WantedDirection, WantedUp: Integer;
+  const WantedDirectionPositive, WantedUpPositive: boolean): TVRMLNode;
+var
+  Position, Direction, Up, GravityUp: TVector3Single;
+begin
+  CameraViewpointForWholeScene(Box, WantedDirection, WantedUp,
+    WantedDirectionPositive, WantedUpPositive, Position, Direction, Up, GravityUp);
+  Result := MakeVRMLCameraNode(Version, WWWBasePath,
+    Position, Direction, Up, GravityUp);
 end;
 
 end.
