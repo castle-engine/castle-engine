@@ -72,7 +72,7 @@ type
     SpecularColor: TVector4Single;
 
     { Texture maps, initialized with Exists = false }
-    TextureMap1, TextureMap2: TMaterialMap3ds;
+    TextureMap1, TextureMap2, TextureMapBump: TMaterialMap3ds;
 
     { All Singles below are always read from 3ds file (they are required
       subchunks of material chunk). They are in range 0..1. } { }
@@ -469,6 +469,7 @@ begin
   Shininess := Default3dsMatShininess;
   TextureMap1.Exists := false;
   TextureMap2.Exists := false;
+  TextureMapBump.Exists := false;
 end;
 
 procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
@@ -528,6 +529,7 @@ begin
 
       CHUNK_TEXMAP_1: TextureMap1 := ReadMaterialMap(hEnd);
       CHUNK_TEXMAP_2: TextureMap2 := ReadMaterialMap(hEnd);
+      CHUNK_BUMPMAP : TextureMapBump := ReadMaterialMap(hEnd);
       else Stream.Position := hEnd;
     end;
   end;

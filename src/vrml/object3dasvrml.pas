@@ -177,7 +177,7 @@ const
 
 implementation
 
-uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils, DataErrors,
+uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils, DataErrors, VRMLErrors,
   KambiStringUtils, VRMLAnimation, ColladaToVRML, EnumerateFiles, Boxes3D;
 
 const
@@ -581,6 +581,21 @@ var
       TexTransform := TNodeTextureTransform.Create('', WWWBasePath);
       TexTransform.FdScale.Value := Material.TextureMap1.Scale;
       Result.FdTextureTransform.Value := TexTransform;
+
+      if Material.TextureMapBump.Exists then
+      begin
+        Tex := TNodeImageTexture.Create('', WWWBasePath);
+        Tex.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath,
+          Material.TextureMapBump.MapFilename));
+        Result.FdNormalMap.Value := Tex;
+
+        { We don't have separate TextureTransform for bump map.
+          Just check that in 3DS bump map and diffuse textures have equal transform. }
+        if not VectorsEqual(
+            Material.TextureMap1.Scale,
+            Material.TextureMapBump.Scale) then
+          VRMLWarning(vwIgnorable, 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to VRML/X3D');
+      end;
     end;
   end;
 
