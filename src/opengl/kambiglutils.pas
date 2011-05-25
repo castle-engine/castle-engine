@@ -2222,7 +2222,8 @@ function GLInformationString: string;
         '  Buggy glDrawPixels for odd widths: %s' +nl+
         '  Buggy glGenerateMipmapEXT: %s' +nl+
         '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
-        '  Buggy VBO: %s',
+        '  Buggy VBO: %s' +nl+
+        '  Buggy shader shadow map: %s',
         [ BoolToStr[Version.VendorNVidia],
 
           BoolToStr[Version.IsMesa],
@@ -2234,7 +2235,8 @@ function GLInformationString: string;
           BoolToStr[Version.BuggyDrawOddWidth],
           BoolToStr[Version.BuggyGenerateMipmap],
           BoolToStr[Version.BuggyLightModelTwoSide],
-          BoolToStr[Version.BuggyVBO]
+          BoolToStr[Version.BuggyVBO],
+          BoolToStr[Version.BuggyShaderShadowMap]
         ]);
   end;
 
