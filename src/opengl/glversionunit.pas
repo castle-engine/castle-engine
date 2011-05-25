@@ -71,6 +71,7 @@ type
     FBuggyLightModelTwoSide: boolean;
     FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
+    FBuggyShaderShadowMap: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
   public
@@ -159,6 +160,9 @@ type
     property BuggyLightModelTwoSideMessage: string read FBuggyLightModelTwoSideMessage;
 
     property BuggyVBO: boolean read FBuggyVBO;
+
+    { Detect buggy shadow2DProj (fglrx bug) in some situations. }
+    property BuggyShaderShadowMap: boolean read FBuggyShaderShadowMap;
   end;
 
 var
@@ -460,6 +464,20 @@ begin
     {$else}
     false
     {$endif};
+
+  FBuggyShaderShadowMap :=
+    { This happens on fglrx, the worst OpenGL driver in the world.
+      card: ATI Mobility Radeon HD 4300,
+      confirmed on
+        Ubuntu 10.10/x86_64 (czarny)
+        Ubuntu 10.10/i386   (czarny)
+        Ubuntu 11.4/x86_64  (czarny)
+        Ubuntu 11.4/i386    (czarny) (fglrx OpenGL version 3.3.10665)
+      not occurs on
+        Ubuntu 9.10/i386    (czarny)
+      Looks like fglrx bug since at least Ubuntu 10.10 (assuming always
+      since Ubuntu 10.04, which is fglrx >= 8.723). }
+    IsFglrx and ReleaseExists and (Release >= 8723);
 end;
 
 finalization

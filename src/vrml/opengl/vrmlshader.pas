@@ -323,7 +323,7 @@ operator = (const A, B: TShaderCodeHash): boolean;
 implementation
 
 uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
-  VRMLErrors, KambiLog, StrUtils, Base3D;
+  VRMLErrors, KambiLog, StrUtils, Base3D, GLVersionUnit;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day. Currently, some functions here call
@@ -575,6 +575,8 @@ begin
       Define(ldHasSpecular);
   end else
   begin
+    if GLVersion.BuggyShaderShadowMap then
+      Define(ldTypeKnown);
     Define(ldHasAmbient);
     Define(ldHasSpecular);
   end;
@@ -938,8 +940,9 @@ begin
 
   TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
     [TexCoordName, TextureUnit]);
-  TextureCoordMatrix += Format('%s = gl_TextureMatrix[%d] * %0:s;' + NL,
-    [TexCoordName, TextureUnit]);
+  if not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow)) then
+    TextureCoordMatrix += Format('%s = gl_TextureMatrix[%d] * %0:s;' + NL,
+      [TexCoordName, TextureUnit]);
 
   if (TextureType = tt2DShadow) and
       ShadowVisualizeDepth then
