@@ -657,41 +657,38 @@ procedure SaveVRMLClassic(Node: TVRMLNode; Stream: TStream;
 var
   SaveProperties: TVRMLSaveToStreamProperties;
 
-  procedure SaveProfile;
+  procedure SaveProfile(Root: TVRMLRootNode);
   begin
-    if (Node is TVRMLRootNode) and
-       (TVRMLRootNode(Node).X3DProfile <> '') then
-      SaveProperties.Writeln('PROFILE ' + TVRMLRootNode(Node).X3DProfile + NL) else
+    if Root.X3DProfile <> '' then
+      SaveProperties.Writeln('PROFILE ' + Root.X3DProfile + NL) else
       { Just output some profile, as every X3D file should have this.
         We actually don't detect for now in any way which profile
         would be best. }
       SaveProperties.Writeln('PROFILE Interchange' + NL);
   end;
 
-  procedure SaveComponents;
+  procedure SaveComponents(Root: TVRMLRootNode);
   var
     I: Integer;
   begin
-    if Node is TVRMLRootNode then
-      for I := 0 to TVRMLRootNode(Node).X3DComponentNames.Count - 1 do
-      begin
-        SaveProperties.Writeln(Format('COMPONENT %s:%d' + NL,
-          [ TVRMLRootNode(Node).X3DComponentNames[I],
-            TVRMLRootNode(Node).X3DComponentLevels[I] ]));
-      end;
+    for I := 0 to Root.X3DComponentNames.Count - 1 do
+      SaveProperties.Writeln(Format('COMPONENT %s:%d',
+        [ Root.X3DComponentNames[I],
+          Root.X3DComponentLevels[I] ]));
+    if Root.X3DComponentNames.Count <> 0 then
+      SaveProperties.Write(NL);
   end;
 
-  procedure SaveMetas;
+  procedure SaveMetas(Root: TVRMLRootNode);
   var
     I: Integer;
   begin
-    if Node is TVRMLRootNode then
-      for I := 0 to TVRMLRootNode(Node).X3DMetaKeys.Count - 1 do
-      begin
-        SaveProperties.Writeln(Format('META %s %s' + NL,
-          [ StringToVRMLStringToken(TVRMLRootNode(Node).X3DMetaKeys[I]),
-            StringToVRMLStringToken(TVRMLRootNode(Node).X3DMetaValues[I])]));
-      end;
+    for I := 0 to Root.X3DMetaKeys.Count - 1 do
+      SaveProperties.Writeln(Format('META %s %s',
+        [ StringToVRMLStringToken(Root.X3DMetaKeys[I]),
+          StringToVRMLStringToken(Root.X3DMetaValues[I])]));
+    if Root.X3DMetaKeys.Count <> 0 then
+      SaveProperties.Write(NL);
   end;
 
 const
@@ -733,11 +730,11 @@ begin
     if PrecedingComment <> '' then
       SaveProperties.Writeln('# '+PrecedingComment + NL);
 
-    if VerMajor >= 3 then
+    if (VerMajor >= 3) and (Node is TVRMLRootNode) then
     begin
-      SaveProfile;
-      SaveComponents;
-      SaveMetas;
+      SaveProfile(TVRMLRootNode(Node));
+      SaveComponents(TVRMLRootNode(Node));
+      SaveMetas(TVRMLRootNode(Node));
     end;
 
     { Node may be TVRMLRootNode here, that's OK,
