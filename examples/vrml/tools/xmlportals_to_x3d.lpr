@@ -383,12 +383,11 @@ begin
       ReadPortals(OutputSwitch);
       ReadPortalsInSuperSectors(OutputSwitch);
 
-      { Content xmlportals_to_x3d_suffix.wrl uses X3D features
+      { Content xmlportals_to_x3d_suffix.x3dv uses X3D features
         (KeySensor), to I have to force this to be X3D (not just VRML 2.0)
         to get correct file. }
-      OutputRoot.ForceVersion := true;
-      OutputRoot.ForceVersionMajor := 3;
-      OutputRoot.ForceVersionMinor := 2;
+      OutputRoot.HasForceVersion := true;
+      OutputRoot.ForceVersion := X3DVersion;
 
       SaveVRMLPortalsFile(OutputRoot, Parameters[2],
         'By xmlportals_to_x3d, from ' + ExtractFileName(Parameters[1]));

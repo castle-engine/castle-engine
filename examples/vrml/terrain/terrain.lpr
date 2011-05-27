@@ -687,7 +687,7 @@ begin
       begin
         FileName := '';
         if Glwin.FileDialog('Save terrain to X3D', FileName, false,
-          SaveX3DClassic_FileFilters) then
+          X3DVersion.FileFiltersClassic) then
           ExportToX3D(FileName, Item.IntData = 1001);
       end;
   end;

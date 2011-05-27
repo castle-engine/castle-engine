@@ -103,7 +103,7 @@ type
     function FileExtension: string;
     { File filters for TGLWindow.FileDialog if you want to save a file using
       SaveVRMLClassic. }
-    function FileClassicFilters: string;
+    function FileFiltersClassic: string;
   end;
 
   { VRML unified lexer.
@@ -403,7 +403,7 @@ begin
     Result := '.wrl';
 end;
 
-function TVRMLVersion.FileClassicFilters: string;
+function TVRMLVersion.FileFiltersClassic: string;
 begin
   if Major >= 3 then
     Result := SaveX3DClassic_FileFilters else
