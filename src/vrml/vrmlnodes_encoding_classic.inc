@@ -70,18 +70,44 @@ function LoadVRMLClassic(const FileName: string;
 function ParseVRMLFile(const FileName: string;
   AllowStdIn: boolean): TVRMLRootNode;
 
-{ Write VRML file with given root Node.
-  This includes writing VRML header '#VRML ...'.
+{ Which VRML/X3D version should be used to save this 3D model. }
+procedure SaveVRMLVersion(Node: TVRMLNode; out VerMajor, VerMinor: Integer);
+
+{ Write VRML/X3D model to file.
+  This generates a complete file, with header #VRML / #X3D lines and everything.
+
+  VerMajor, VerMinor specify which VRML/X3D specification should be used
+  to encode everything. They should be calculated by SaveVRMLVersion, or just
+  left at default (zero) values (then we will internally call SaveVRMLVersion).
+  They are mainly useful if you want to call SaveVRMLVersion explicitly,
+  e.g. to propose a sensible saved model extension (.wrl for VRML <= 2.0,
+  .x3dv for X3D).
+
+  Note that @italic(these parameters are @bold(not) a mechanism to convert
+  between various VRML/X3D versions). This procedure does not convert VRML/X3D
+  nodes/fields inside. For example, you can't just change VerMajor value
+  from 1 to 3 to convert VRML 1.0 to X3D.
+  It would cause some information to be encoded in X3D style
+  (e.g. generated file will have X3D header and PROFILE information),
+  but the nodes would stil have VRML 1.0 names and fields.
+  Which means that you would not generate correct X3D file.
+
+  So VerMajor, VerMinor should really be calculated based on model contents,
+  usually by SaveVRMLVersion.
 
   @param(PrecedingComment
-    If PrecedingComment <> '' then we will write a comment
-    '# '+ PrecedingComment at the beginning. This is for you
-    to optionally put name of the generator program or source filename
-    or time/date of generation etc.) }
+    If PrecedingComment <> '' then we will add a given comment at the beginning
+    of the generated file. We will add a hash automatically at the beginning.
+    For now you cannot use PrecedingComment with newlines inside, they will
+    not work correctly. This is usable to e.g. put name of the generator program.) }
 procedure SaveVRMLClassic(Node: TVRMLNode;
-  Stream: TStream; const PrecedingComment: string); overload;
+  Stream: TStream; const PrecedingComment: string;
+  VerMajor: Integer = 0;
+  VerMinor: Integer = 0); overload;
 procedure SaveVRMLClassic(Node: TVRMLNode;
-  const Filename, PrecedingComment: string); overload;
+  const Filename, PrecedingComment: string;
+  const VerMajor: Integer = 0;
+  const VerMinor: Integer = 0); overload;
 
 { Deprecated name for SaveVRMLClassic. @deprecated }
 procedure SaveToVRMLFile(Node: TVRMLNode;
@@ -652,8 +678,27 @@ end;
 
 { saving --------------------------------------------------------------------- }
 
+procedure SaveVRMLVersion(Node: TVRMLNode; out VerMajor, VerMinor: Integer);
+var
+  SuggestionPriority: Integer;
+begin
+  if not Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
+  begin
+    { If nothing is suggested, we use X3D 3.2. Reason:
+      - For now, SuggestedVRMLVersion doesn't check IsClauseNames.
+        But if IsClauseNames is present anywhere, then this must use VRML >= 2.0
+        features ("IS" is keyword only in VRML >= 2.0,
+        it will not be understood in VRML 1.0).
+      - Besides, we should promote newer VRML standard. }
+
+    VerMajor := 3;
+    VerMinor := 2;
+  end;
+end;
+
 procedure SaveVRMLClassic(Node: TVRMLNode; Stream: TStream;
-  const PrecedingComment: string);
+  const PrecedingComment: string;
+  VerMajor, VerMinor: Integer);
 var
   SaveProperties: TVRMLSaveToStreamProperties;
 
@@ -696,25 +741,14 @@ const
   VRML20Header = '#VRML V2.0 utf8';
   X3DHeader = '#X3D V%d.%d utf8';
 var
-  VerMajor, VerMinor, SuggestionPriority: Integer;
   VRMLHeader: string;
   NodeNames: TVRMLNodeNames;
 begin
   NodeNames := TVRMLNodeNames.Create(false);
   SaveProperties := TVRMLSaveToStreamProperties.Create(Stream);
   try
-    if not Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
-    begin
-      { If nothing is suggested, we use X3D 3.2. Reason:
-        - For now, SuggestedVRMLVersion doesn't check IsClauseNames.
-          But if IsClauseNames is present anywhere, then this must use VRML >= 2.0
-          features ("IS" is keyword only in VRML >= 2.0,
-          it will not be understood in VRML 1.0).
-        - Besides, we should promote newer VRML standard. }
-
-      VerMajor := 3;
-      VerMinor := 2;
-    end;
+    if VerMajor <= 0 then
+      SaveVRMLVersion(Node, VerMajor, VerMinor);
 
     if VerMajor <= 1 then
       VRMLHeader := VRML10Header else
@@ -747,13 +781,15 @@ begin
 end;
 
 procedure SaveVRMLClassic(Node: TVRMLNode;
-  const Filename, PrecedingComment: string);
+  const Filename, PrecedingComment: string;
+  const VerMajor: Integer = 0;
+  const VerMinor: Integer = 0);
 var
   Stream: TFileStream;
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveVRMLClassic(Node, Stream, PrecedingComment);
+    SaveVRMLClassic(Node, Stream, PrecedingComment, VerMajor, VerMinor);
   finally Stream.Free end;
 end;
 
