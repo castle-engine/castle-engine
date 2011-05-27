@@ -1614,9 +1614,8 @@ begin
 
     Result := TVRMLRootNode.Create('', WWWBasePath);
     try
-      Result.ForceVersion := true;
-      Result.ForceVersionMajor := 2;
-      Result.ForceVersionMinor := 0;
+      Result.HasForceVersion := true;
+      Result.ForceVersion := VRML2Version;
 
       { First read library_effects.
 

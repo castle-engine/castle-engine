@@ -95,7 +95,7 @@
 
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdbackUrl: TMFString;
@@ -162,7 +162,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -198,7 +198,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFddepth: TMFFloat;
@@ -221,7 +221,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdcolor: TSFColor;
@@ -256,7 +256,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdbackTexture: TSFNode;
@@ -425,12 +425,12 @@ begin
 end;
 
 function TNodeBackground.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 100);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 100);
 end;
 
 class function TNodeBackground.URNMatching(const URN: string): boolean;
@@ -553,12 +553,12 @@ begin
 end;
 
 function TNodeFog.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 100);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 100);
 end;
 
 class function TNodeFog.URNMatching(const URN: string): boolean;
@@ -638,11 +638,11 @@ begin
 end;
 
 function TNodeFogCoordinate.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, X3DVersion, 2000);
 end;
 
 class function TNodeFogCoordinate.URNMatching(const URN: string): boolean;
@@ -699,11 +699,11 @@ begin
 end;
 
 function TNodeLocalFog.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, X3DVersion, 2000);
 end;
 
 class function TNodeLocalFog.URNMatching(const URN: string): boolean;
@@ -782,11 +782,11 @@ begin
 end;
 
 function TNodeTextureBackground.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, X3DVersion, 2000);
 end;
 
 class function TNodeTextureBackground.URNMatching(const URN: string): boolean;

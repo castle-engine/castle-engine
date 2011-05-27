@@ -35,7 +35,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdfamily: TMFString;
@@ -65,7 +65,7 @@
     private FFdtopToBottom: TSFBool;
     public property FdtopToBottom: TSFBool read FFdtopToBottom;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     function Family: TVRMLFontFamily;
@@ -91,7 +91,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdfontStyle: TSFNode;
@@ -211,12 +211,12 @@ begin
 end;
 
 function TNodeFontStyle_2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 1000);
 end;
 
 class function TNodeFontStyle_2.URNMatching(const URN: string): boolean;
@@ -226,9 +226,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeFontStyle_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeFontStyle_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor >= 2;
+  Result := Version.Major >= 2;
 end;
 
 function TNodeFontStyle_2.TTF_Font: PTrueTypeFont;
@@ -433,12 +433,12 @@ begin
 end;
 
 function TNodeText.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 1000);
 end;
 
 class function TNodeText.URNMatching(const URN: string): boolean;

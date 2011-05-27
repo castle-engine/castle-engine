@@ -20,7 +20,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdaddress: TSFString;
@@ -52,7 +52,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdurl: TMFString;
@@ -85,7 +85,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
@@ -370,7 +370,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdaddress: TSFString;
@@ -462,7 +462,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdaddress: TSFString;
@@ -554,7 +554,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdaddress: TSFString;
@@ -729,11 +729,11 @@ begin
 end;
 
 function TNodeDISEntityManager.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, X3DVersion, 2000);
 end;
 
 class function TNodeDISEntityManager.URNMatching(const URN: string): boolean;
@@ -794,11 +794,11 @@ begin
 end;
 
 function TNodeDISEntityTypeMapping.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, X3DVersion, 2000);
 end;
 
 class function TNodeDISEntityTypeMapping.URNMatching(const URN: string): boolean;
@@ -1117,11 +1117,11 @@ begin
 end;
 
 function TNodeEspduTransform.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, X3DVersion, 2000);
 end;
 
 class function TNodeEspduTransform.URNMatching(const URN: string): boolean;
@@ -1240,11 +1240,11 @@ begin
 end;
 
 function TNodeReceiverPdu.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, X3DVersion, 2000);
 end;
 
 class function TNodeReceiverPdu.URNMatching(const URN: string): boolean;
@@ -1363,11 +1363,11 @@ begin
 end;
 
 function TNodeSignalPdu.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, X3DVersion, 2000);
 end;
 
 class function TNodeSignalPdu.URNMatching(const URN: string): boolean;
@@ -1549,11 +1549,11 @@ begin
 end;
 
 function TNodeTransmitterPdu.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, X3DVersion, 2000);
 end;
 
 class function TNodeTransmitterPdu.URNMatching(const URN: string): boolean;

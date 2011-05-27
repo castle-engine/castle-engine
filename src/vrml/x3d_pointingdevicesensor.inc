@@ -114,7 +114,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdaxisRotation: TSFRotation;
@@ -166,7 +166,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdaxisRotation: TSFRotation;
@@ -211,7 +211,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdoffset: TSFRotation;
@@ -233,7 +233,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec3f, out } { }
@@ -367,12 +367,12 @@ begin
 end;
 
 function TNodeCylinderSensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 1000);
 end;
 
 class function TNodeCylinderSensor.URNMatching(const URN: string): boolean;
@@ -511,12 +511,12 @@ begin
 end;
 
 function TNodePlaneSensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 1000);
 end;
 
 class function TNodePlaneSensor.URNMatching(const URN: string): boolean;
@@ -673,12 +673,12 @@ begin
 end;
 
 function TNodeSphereSensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 1000);
 end;
 
 class function TNodeSphereSensor.URNMatching(const URN: string): boolean;
@@ -779,12 +779,12 @@ begin
 end;
 
 function TNodeTouchSensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 1000);
 end;
 
 class function TNodeTouchSensor.URNMatching(const URN: string): boolean;

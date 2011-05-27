@@ -43,8 +43,8 @@ type
   public
     Stream: TStream;
 
-    { Which VRML version are we writing. }
-    VerMajor, VerMinor: Integer;
+    { Which VRML/X3D version are we writing. }
+    Version: TVRMLVersion;
 
     procedure IncIndent;
     procedure DecIndent;
@@ -476,10 +476,8 @@ type
     { Return how this field should be named for given VRML version.
       In almost all cases, this simply returns current Name.
       But it can also return a name added by AddAlternativeName method. }
-    function NameForVersion(
-      const VrmlMajorVersion, VrmlMinorVersion: Integer): string; overload;
-    function NameForVersion(
-      SaveProperties: TVRMLSaveToStreamProperties): string; overload;
+    function NameForVersion(Version: TVRMLVersion): string; overload;
+    function NameForVersion(SaveProperties: TVRMLSaveToStreamProperties): string; overload;
 
     { For fields contained in TVRMLInterfaceDeclaration.
 
@@ -2791,9 +2789,9 @@ begin
 end;
 
 function TVRMLFieldOrEvent.NameForVersion(
-  const VrmlMajorVersion, VrmlMinorVersion: Integer): string;
+  Version: TVRMLVersion): string;
 begin
-  Result := FAlternativeNames[VrmlMajorVersion];
+  Result := FAlternativeNames[Version.Major];
   if Result = '' then
     Result := Name;
 end;
@@ -2801,7 +2799,7 @@ end;
 function TVRMLFieldOrEvent.NameForVersion(
   SaveProperties: TVRMLSaveToStreamProperties): string;
 begin
-  Result := NameForVersion(SaveProperties.VerMajor, SaveProperties.VerMinor);
+  Result := NameForVersion(SaveProperties.Version);
 end;
 
 procedure TVRMLFieldOrEvent.FieldOrEventAssignCommon(Source: TVRMLFieldOrEvent);
@@ -3072,8 +3070,7 @@ var
   Lexer: TVRMLLexer;
 begin
   Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue,
-    (Names as TVRMLNames).VRMLVerMajor,
-    (Names as TVRMLNames).VRMLVerMinor);
+    (Names as TVRMLNames).Version);
   try
     try
       ParseXMLAttributeLexer(Lexer);
@@ -3325,7 +3322,7 @@ begin
 
      if Lexer.Token = vtCloseSqBracket then break;
 
-     if Lexer.VRMLVerMajor < 2 then
+     if Lexer.Version.Major < 2 then
      begin
        Lexer.CheckTokenIs(vtComma);
        Lexer.NextToken;
@@ -3493,7 +3490,7 @@ procedure TSFBool.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 
   procedure VRML2BooleanIntegerWarning;
   begin
-    if Lexer.VRMLVerMajor >= 2 then
+    if Lexer.Version.Major >= 2 then
       VRMLWarning(vwSerious, 'In VRML >= 2.0 you cannot express boolean values ' +
         'as 0 (instead of FALSE) or 1 (instead of TRUE)');
   end;
@@ -5844,8 +5841,7 @@ begin
     we handle this as a single string (producing a warning). }
 
   Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue,
-    (Names as TVRMLNames).VRMLVerMajor,
-    (Names as TVRMLNames).VRMLVerMinor);
+    (Names as TVRMLNames).Version);
   try
     try
       ParseXMLAttributeLexer(Lexer);

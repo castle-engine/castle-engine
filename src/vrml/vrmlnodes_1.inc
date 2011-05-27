@@ -39,11 +39,11 @@
     is suitable at the same time for VRML 1.0 and VRML 2.0. }
   TVRMLGeometryNode_1 = class(TVRMLGeometryNode, INodeX3DChildNode)
   public
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeAsciiText_1 = class(TVRMLGeometryNode_1)
@@ -262,7 +262,7 @@
     public property FdPoint: TMFVec3f read FFdPoint;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeFontStyle_1 = class(TNodeX3DChildNode)
@@ -279,11 +279,11 @@
     private FFdStyle: TSFBitMask;
     public property FdStyle: TSFBitMask read FFdStyle;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
 
     function Family: TVRMLFontFamily;
     function Bold: boolean;
@@ -299,7 +299,7 @@
     public property FdString: TSFString read FFdString;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeLOD_1 = class(TNodeX3DChildNode)
@@ -316,11 +316,11 @@
     private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TVRMLMaterialInfo_1 = class;
@@ -422,11 +422,11 @@
       which should be true for empty sets). }
     function AllMaterialsTransparent: boolean;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
 
     function MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
   end;
@@ -459,7 +459,7 @@
     public property FdValue: TSFEnum read FFdValue;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNormalBinding = class(TNodeX3DChildNode)
@@ -470,7 +470,7 @@
     public property FdValue: TSFEnum read FFdValue;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTexture2 = class(TVRML2DTextureNode)
@@ -511,7 +511,7 @@
     { @groupEnd }
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
 
     function TextureDescription: string; override;
     function RepeatS: boolean; override;
@@ -540,7 +540,7 @@
     function TextureMatrixTransformation: TMatrix4Single;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTextureCoordinate2 = class(TNodeX3DChildNode)
@@ -551,7 +551,7 @@
     public property FdPoint: TMFVec2f read FFdPoint;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeShapeHints = class(TNodeX3DChildNode)
@@ -575,7 +575,7 @@
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   { Common base class for all nodes that modify the modelview matrix.
@@ -588,7 +588,7 @@
     function TransformScale: Single; virtual; abstract;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   { VRML 1.0 MatrixTransform node. }
@@ -616,7 +616,7 @@
       4x4 matrix is very difficult. }
     function TransformScale: Single; override;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
   end;
 
@@ -665,7 +665,7 @@
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
     function TransformScale: Single; override;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
   end;
 
@@ -704,7 +704,7 @@
     function Position: TSFVec3f; override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeOrthographicCamera = class(TVRMLCameraNode_1)
@@ -733,20 +733,20 @@
   public
     procedure CreateNode; override;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodePointLight_1 = class(TVRMLPointLightNode)
   public
     procedure CreateNode; override;
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     function HasRadius: boolean; override;
   end;
 
@@ -767,11 +767,11 @@
     { Not normalized spot exponent (based on dropOffRate). }
     function SpotExp: Single;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
 
@@ -790,11 +790,11 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   { Base class for VRML 1.0 nodes that push / pop all attributes and matrices.
@@ -808,7 +808,7 @@
     procedure CreateNode; override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeSeparator = class(TVRMLSeparatorNode)
@@ -831,11 +831,11 @@
     private FFdWhichChild: TSFLong;
     public property FdWhichChild: TSFLong read FFdWhichChild;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTransformSeparator = class(TNodeX3DChildNode)
@@ -850,7 +850,7 @@
     class function ClassNodeTypeName: string; override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeWWWAnchor = class(TVRMLSeparatorNode)
@@ -882,7 +882,7 @@
     class function ClassNodeTypeName: string; override;
 
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
 
     private FFdSeparate: TSFBool;
     public property FdSeparate: TSFBool read FFdSeparate;
@@ -890,18 +890,17 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TVRMLGeometryNode_1.ForVRMLVersion(
-  const VerMajor, VerMinor: Integer): boolean;
+class function TVRMLGeometryNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 function TVRMLGeometryNode_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeAsciiText_1.CreateNode;
@@ -1222,11 +1221,11 @@ begin
 end;
 
 function TNodeCoordinate3.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeFontStyle_1.CreateNode;
@@ -1271,17 +1270,17 @@ begin
   Result := FdStyle.Flags[FSSTYLE_ITALIC];
 end;
 
-class function TNodeFontStyle_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeFontStyle_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 function TNodeFontStyle_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeInfo.CreateNode;
@@ -1298,11 +1297,11 @@ begin
 end;
 
 function TNodeInfo.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeLOD_1.CreateNode;
@@ -1340,17 +1339,17 @@ begin
   Func(Self, VRML1Children[0]);
 end;
 
-class function TNodeLOD_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeLOD_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 function TNodeLOD_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeMaterial_1.CreateNode;
@@ -1562,17 +1561,17 @@ begin
   end;
 end;
 
-class function TNodeMaterial_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeMaterial_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 function TNodeMaterial_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 function TNodeMaterial_1.MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
@@ -1667,11 +1666,11 @@ begin
 end;
 
 function TNodeMaterialBinding.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeNormalBinding.CreateNode;
@@ -1689,11 +1688,11 @@ begin
 end;
 
 function TNodeNormalBinding.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeTexture2.CreateNode;
@@ -1789,11 +1788,11 @@ begin
 end;
 
 function TNodeTexture2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeTexture2Transform.CreateNode;
@@ -1841,11 +1840,11 @@ begin
 end;
 
 function TNodeTexture2Transform.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeTextureCoordinate2.CreateNode;
@@ -1863,11 +1862,11 @@ begin
 end;
 
 function TNodeTextureCoordinate2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeShapeHints.CreateNode;
@@ -1905,7 +1904,7 @@ begin
 
   if not Result then
   begin
-    Result := (Lexer.VRMLVerMajor = 0) and
+    Result := (Lexer.Version.Major = 0) and
       (Lexer.Token = vtName) and
       (Lexer.TokenName = 'hints');
     if Result then
@@ -1931,11 +1930,11 @@ begin
 end;
 
 function TNodeShapeHints.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TVRMLTransformationNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
@@ -1952,11 +1951,11 @@ begin
 end;
 
 function TVRMLTransformationNode.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeMatrixTransform_1.CreateNode;
@@ -1992,9 +1991,9 @@ begin
   Result := FdMatrix.TransformScale;
 end;
 
-class function TNodeMatrixTransform_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeMatrixTransform_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 procedure TNodeRotation.CreateNode;
@@ -2129,9 +2128,9 @@ begin
               FdScaleFactor.Value[2] ) / 3;
 end;
 
-class function TNodeTransform_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeTransform_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 procedure TNodeTranslation.CreateNode;
@@ -2187,11 +2186,11 @@ begin
 end;
 
 function TVRMLCameraNode_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeOrthographicCamera.CreateNode;
@@ -2240,17 +2239,17 @@ begin
   FdAmbientIntensity.DefaultValue := -1;
 end;
 
-class function TNodeDirectionalLight_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeDirectionalLight_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 function TNodeDirectionalLight_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodePointLight_1.CreateNode;
@@ -2267,17 +2266,17 @@ begin
   FdLocation.DefaultValue := Vector3Single(0, 0, 1);
 end;
 
-class function TNodePointLight_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodePointLight_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 function TNodePointLight_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 function TNodePointLight_1.HasRadius: boolean;
@@ -2321,9 +2320,9 @@ begin
   result := FdDropOffRate.Value * 128.0;
 end;
 
-class function TNodeSpotLight_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeSpotLight_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 procedure TNodeSpotLight_1.UpdateLightInstance(var LightInstance: TLightInstance);
@@ -2334,11 +2333,11 @@ begin
 end;
 
 function TNodeSpotLight_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 function TNodeSpotLight_1.ProjectionMatrix: TMatrix4Single;
@@ -2412,17 +2411,17 @@ begin
   result := 'Group';
 end;
 
-class function TNodeGroup_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeGroup_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 function TNodeGroup_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TVRMLSeparatorNode.CreateNode;
@@ -2468,11 +2467,11 @@ begin
 end;
 
 function TVRMLSeparatorNode.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeSeparator.CreateNode;
@@ -2525,17 +2524,17 @@ begin
   end;
 end;
 
-class function TNodeSwitch_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeSwitch_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor <= 1;
+  Result := Version.Major <= 1;
 end;
 
 function TNodeSwitch_1.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeTransformSeparator.CreateNode;
@@ -2570,11 +2569,11 @@ begin
 end;
 
 function TNodeTransformSeparator.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure TNodeWWWAnchor.CreateNode;
@@ -2626,11 +2625,11 @@ begin
 end;
 
 function TNodeWWWInline.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 1, 0, 1000);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML1Version, 1000);
 end;
 
 procedure RegisterVRML1Nodes;

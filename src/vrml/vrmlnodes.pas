@@ -295,7 +295,7 @@ type
       For lights with radius (positional lights in VRML >= 2.0,
       that is TVRMLPositionalLightNode with HasRadius = true). }
     Radius: Single;
-   
+
     { Deprecated name for Node. @exclude @deprecated }
     function LightNode: TNodeX3DLightNode;
   end;
@@ -1833,11 +1833,13 @@ type
     procedure Bind(const InlineName: string; Exported: TVRMLNodeNames);
   end;
 
+  TVRMLVersion = VRMLLexer.TVRMLVersion;
+
   { Container tracking VRML/X3D node and prototype names during parsing.
     Used by both classic and XML VRML/X3D readers. }
   TVRMLNames = class
   private
-    FVRMLVerMajor, FVRMLVerMinor: integer;
+    FVersion: TVRMLVersion;
     FWWWBasePath: string;
     FNodes: TVRMLNodeNames;
     FPrototypes: TVRMLPrototypeNames;
@@ -1847,7 +1849,7 @@ type
   public
     constructor Create(const AAutoRemoveNodes: boolean;
       const AWWWBasePath: string;
-      const AVRMLVerMajor, AVRMLVerMinor: Integer);
+      const AVersion: TVRMLVersion);
     destructor Destroy; override;
 
     { Extract names, before destructing this object.
@@ -1862,11 +1864,8 @@ type
       See TVRMLNode.WWWBasePath. }
     property WWWBasePath: string read FWWWBasePath;
 
-    { VRML version numbers, for resolving node class names.
-      Conventions the same as for TVRMLLexer.VRMLVerMajor,
-      TVRMLLexer.VRMLVerMinor. }
-    property VRMLVerMajor: Integer read FVRMLVerMajor;
-    property VRMLVerMinor: Integer read FVRMLVerMinor;
+    { VRML/X3D version number, for resolving node class names. }
+    property Version: TVRMLVersion read FVersion;
 
     { Current namespace for DEF/USE.
 
@@ -1976,11 +1975,11 @@ type
       Searches in nodes registered by RegisterNodeClass and such.
       During searching, looks not only for matching node name,
       but also at matching VRML/X3D version, checking
-      @code(ForVRMLVersion(VerMajor, VerMinor)).
+      @code(ForVRMLVersion(Version)).
 
       Returns @nil when not found. }
     function NodeTypeNameToClass(const ANodeTypeName: string;
-      const VerMajor, VerMinor: Integer): TVRMLNodeClass;
+      const Version: TVRMLVersion): TVRMLNodeClass;
 
     { Return class that matches given URL. This is useful for EXTERNROTOs.
       Returns @nil if not found. }
@@ -2103,6 +2102,11 @@ const
 
   DefaultShadowMapScale = 1.1;
   DefaultShadowMapBias = 4.0;
+
+  VRML1Version: TVRMLVersion = (Major: 1; Minor: 0);
+  VRML2Version: TVRMLVersion = (Major: 2; Minor: 0);
+  { Latest X3D version supported. }
+  X3DVersion: TVRMLVersion = (Major: 3; Minor: 2);
 
 var
   { Quadric triangulation settings.
@@ -3870,7 +3874,7 @@ procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
   SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
   FieldValue: boolean);
 
-  function ATName(const AcessType: TVRMLAccessType): string;
+  function ATName(const AccessType: TVRMLAccessType): string;
   const
     Names: array
       [ boolean { is it X3D ? },
@@ -3878,7 +3882,7 @@ procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
       ( ('eventIn', 'eventOut', 'field', 'exposedField'),
         ('inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput') );
   begin
-    Result := Names[SaveProperties.VerMajor >= 3, AcessType];
+    Result := Names[SaveProperties.Version.Major >= 3, AccessType];
   end;
 
 begin
@@ -4615,8 +4619,7 @@ begin
     are available inside, but nested prototypes inside are not
     available outside. }
   OldNames := Names;
-  Names := TVRMLNames.Create(true,
-    OldNames.WWWBasePath, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
+  Names := TVRMLNames.Create(true, OldNames.WWWBasePath, OldNames.Version);
   try
     Names.Prototypes.Assign(OldNames.Prototypes);
     FNode := ParseVRMLStatements(Lexer, Names, vtCloseCurlyBracket, false);
@@ -4662,8 +4665,7 @@ begin
     are available inside, but nested prototypes inside are not
     available outside. }
   OldNames := Names;
-  Names := TVRMLNames.Create(true,
-    OldNames.WWWBasePath, OldNames.VRMLVerMajor, OldNames.VRMLVerMinor);
+  Names := TVRMLNames.Create(true, OldNames.WWWBasePath, OldNames.Version);
   try
     Names.Prototypes.Assign(OldNames.Prototypes);
     Node := ParseVRMLStatements(E, false, nil, Names);
@@ -4958,7 +4960,7 @@ begin
 end;
 
 function TNodesManager.NodeTypeNameToClass(const ANodeTypeName: string;
-  const VerMajor, VerMinor: Integer): TVRMLNodeClass;
+  const Version: TVRMLVersion): TVRMLNodeClass;
 var
   I: Integer;
 begin
@@ -4966,7 +4968,7 @@ begin
   begin
     Result := TVRMLNodeClass(FRegistered.Objects[I]);
     if (FRegistered[I] = ANodeTypeName) and
-       Result.ForVRMLVersion(VerMajor, VerMinor) then
+       Result.ForVRMLVersion(Version) then
       Exit;
   end;
   Result := nil;
@@ -5647,13 +5649,11 @@ end;
 { TVRMLNames ----------------------------------------------------------------- }
 
 constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean;
-  const AWWWBasePath: string;
-  const AVRMLVerMajor, AVRMLVerMinor: Integer);
+  const AWWWBasePath: string; const AVersion: TVRMLVersion);
 begin
   inherited Create;
   FWWWBasePath := AWWWBasePath;
-  FVRMLVerMajor := AVRMLVerMajor;
-  FVRMLVerMinor := AVRMLVerMinor;
+  FVersion := AVersion;
   FNodes := TVRMLNodeNames.Create(AAutoRemoveNodes);
   FPrototypes := TVRMLPrototypeNames.Create;
   FImported := TVRMLNodeNames.Create(AAutoRemoveNodes);

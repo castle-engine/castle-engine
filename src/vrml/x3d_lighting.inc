@@ -254,10 +254,10 @@
   public
     procedure CreateNode; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
   end;
 
@@ -265,10 +265,10 @@
   public
     procedure CreateNode; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
   end;
 
@@ -277,7 +277,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdbeamWidth: TSFFloat;
@@ -292,7 +292,7 @@
     private FFdProjectionAngle: TSFFloat;
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
 
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
@@ -729,12 +729,12 @@ begin
 end;
 
 function TNodeDirectionalLight_2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 1000);
 end;
 
 class function TNodeDirectionalLight_2.URNMatching(const URN: string): boolean;
@@ -744,9 +744,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeDirectionalLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeDirectionalLight_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor >= 2;
+  Result := Version.Major >= 2;
 end;
 
 procedure TNodePointLight_2.CreateNode;
@@ -759,12 +759,12 @@ begin
 end;
 
 function TNodePointLight_2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 1000);
 end;
 
 class function TNodePointLight_2.URNMatching(const URN: string): boolean;
@@ -774,9 +774,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodePointLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodePointLight_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor >= 2;
+  Result := Version.Major >= 2;
 end;
 
 procedure TNodeSpotLight_2.CreateNode;
@@ -816,12 +816,12 @@ begin
 end;
 
 function TNodeSpotLight_2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
   { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
+    true, VRML2Version, 1000);
 end;
 
 class function TNodeSpotLight_2.URNMatching(const URN: string): boolean;
@@ -831,9 +831,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeSpotLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeSpotLight_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
-  Result := VerMajor >= 2;
+  Result := Version.Major >= 2;
 end;
 
 procedure TNodeSpotLight_2.UpdateLightInstance(

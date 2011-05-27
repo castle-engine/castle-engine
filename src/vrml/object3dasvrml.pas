@@ -285,9 +285,8 @@ begin
   try
     result := TVRMLRootNode.Create('', WWWBasePath);
     try
-      Result.ForceVersion := true;
-      Result.ForceVersionMajor := 2;
-      Result.ForceVersionMinor := 0;
+      Result.HasForceVersion := true;
+      Result.ForceVersion := VRML2Version;
 
       Shape := TNodeShape.Create('', WWWBasePath);
       result.FdChildren.Add(Shape);
@@ -377,9 +376,8 @@ begin
   try
     result := TVRMLRootNode.Create('', WWWBasePath);
     try
-      Result.ForceVersion := true;
-      Result.ForceVersionMajor := 2;
-      Result.ForceVersionMinor := 0;
+      Result.HasForceVersion := true;
+      Result.ForceVersion := VRML2Version;
 
       Appearances := TVRMLNodesList.Create;
       Appearances.Count := Obj.Materials.Count;
@@ -635,9 +633,8 @@ begin
   try
     Result := TVRMLRootNode.Create('', WWWBasePath);
     try
-      Result.ForceVersion := true;
-      Result.ForceVersionMajor := 2;
-      Result.ForceVersionMinor := 0;
+      Result.HasForceVersion := true;
+      Result.ForceVersion := VRML2Version;
 
       AddViewpoints;
       AddLights;
@@ -819,9 +816,8 @@ begin
         requires for now that sequence of VRML models have the same node names }
       { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath);
 
-  Result.ForceVersion := true;
-  Result.ForceVersionMajor := 2;
-  Result.ForceVersionMinor := 0;
+  Result.HasForceVersion := true;
+  Result.ForceVersion := VRML2Version;
 
   SceneBox := EmptyBox3D;
 

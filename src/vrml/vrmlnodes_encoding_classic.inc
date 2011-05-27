@@ -25,16 +25,6 @@ const
   'All files|*|' +
   '*VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz';
 
-  { File filters for TGLWindow.FileDialog if you want to save a file using
-    SaveVRMLClassic. }
-  SaveVRMLClassic_FileFilters =
-  'All files|*|' +
-  '*VRML (not compressed) (*.wrl)|*.wrl';
-
-  SaveX3DClassic_FileFilters =
-  'All files|*|' +
-  '*X3D classic (*.x3dv)|*.x3dv';
-
 { Load VRML/X3D file in classic encoding from stream. Return it's root node.
 
   Note that you must pass here TPeekCharStream class, not just any
@@ -71,43 +61,45 @@ function ParseVRMLFile(const FileName: string;
   AllowStdIn: boolean): TVRMLRootNode;
 
 { Which VRML/X3D version should be used to save this 3D model. }
-procedure SaveVRMLVersion(Node: TVRMLNode; out VerMajor, VerMinor: Integer);
+function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
 
 { Write VRML/X3D model to file.
   This generates a complete file, with header #VRML / #X3D lines and everything.
-
-  VerMajor, VerMinor specify which VRML/X3D specification should be used
-  to encode everything. They should be calculated by SaveVRMLVersion, or just
-  left at default (zero) values (then we will internally call SaveVRMLVersion).
-  They are mainly useful if you want to call SaveVRMLVersion explicitly,
-  e.g. to propose a sensible saved model extension (.wrl for VRML <= 2.0,
-  .x3dv for X3D).
-
-  Note that @italic(these parameters are @bold(not) a mechanism to convert
-  between various VRML/X3D versions). This procedure does not convert VRML/X3D
-  nodes/fields inside. For example, you can't just change VerMajor value
-  from 1 to 3 to convert VRML 1.0 to X3D.
-  It would cause some information to be encoded in X3D style
-  (e.g. generated file will have X3D header and PROFILE information),
-  but the nodes would stil have VRML 1.0 names and fields.
-  Which means that you would not generate correct X3D file.
-
-  So VerMajor, VerMinor should really be calculated based on model contents,
-  usually by SaveVRMLVersion.
 
   @param(PrecedingComment
     If PrecedingComment <> '' then we will add a given comment at the beginning
     of the generated file. We will add a hash automatically at the beginning.
     For now you cannot use PrecedingComment with newlines inside, they will
-    not work correctly. This is usable to e.g. put name of the generator program.) }
+    not work correctly. This is usable to e.g. put name of the generator program.)
+
+  @param(Version Which VRML/X3D specification version should be used
+    to encode. It should be calculated by SaveVRMLVersion(Node).
+    You often want to calculate it yourself, before calling SaveVRMLClassic,
+    this way you can propose a sensible saved model extension for user
+    (.wrl for VRML <= 2.0, .x3dv for X3D).
+
+    Note that @italic(this parameter is @bold(not) a mechanism to convert
+    between various VRML/X3D versions). This procedure does not convert VRML/X3D
+    nodes/fields inside. For example, you can't just change Version.Major value
+    from 1 to 3 to convert VRML 1.0 to X3D.
+    It would cause some information to be encoded in X3D style
+    (e.g. generated file will have X3D header and PROFILE information),
+    but the nodes would stil have VRML 1.0 names and fields.
+    Which means that you would not generate correct X3D file.
+
+    So this should really be calculated based on model contents,
+    usually by SaveVRMLVersion(Node).) }
 procedure SaveVRMLClassic(Node: TVRMLNode;
   Stream: TStream; const PrecedingComment: string;
-  VerMajor: Integer = 0;
-  VerMinor: Integer = 0); overload;
+  const Version: TVRMLVersion); overload;
 procedure SaveVRMLClassic(Node: TVRMLNode;
   const Filename, PrecedingComment: string;
-  const VerMajor: Integer = 0;
-  const VerMinor: Integer = 0); overload;
+  const Version: TVRMLVersion); overload;
+
+procedure SaveVRMLClassic(Node: TVRMLNode;
+  Stream: TStream; const PrecedingComment: string); overload;
+procedure SaveVRMLClassic(Node: TVRMLNode;
+  const Filename, PrecedingComment: string); overload;
 
 { Deprecated name for SaveVRMLClassic. @deprecated }
 procedure SaveToVRMLFile(Node: TVRMLNode;
@@ -207,8 +199,7 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
         Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
     end else
     begin
-      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName,
-        Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
+      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Lexer.Version);
       if NodeClass <> nil then
       begin
         Result := NodeClass.Create(nodename, Names.WWWBasePath);
@@ -351,9 +342,8 @@ var
   function CreateRootNode: TVRMLRootNode;
   begin
     Result := TVRMLRootNode.Create('', Names.WWWBasePath);
-    Result.ForceVersion := true;
-    Result.ForceVersionMajor := Lexer.VRMLVerMajor;
-    Result.ForceVersionMinor := Lexer.VRMLVerMinor;
+    Result.HasForceVersion := true;
+    Result.ForceVersion := Lexer.Version;
   end;
 
   procedure ParseProfile;
@@ -529,7 +519,7 @@ begin
   try
     { Parse X3D "configuration information": profile, component and meta
       statements here. }
-    if ParseX3DHeader and (Lexer.VRMLVerMajor >= 3) then
+    if ParseX3DHeader and (Lexer.Version.Major >= 3) then
     begin
       ParseProfile;
       ParseComponents;
@@ -580,7 +570,7 @@ var
 begin
   Lexer := TVRMLLexer.Create(Stream, false);
   try
-    Names := TVRMLNames.Create(false, WWWBasePath, Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
+    Names := TVRMLNames.Create(false, WWWBasePath, Lexer.Version);
     try
       Result := ParseVRMLStatements(Lexer, Names, vtEnd, true);
       Names.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
@@ -678,27 +668,26 @@ end;
 
 { saving --------------------------------------------------------------------- }
 
-procedure SaveVRMLVersion(Node: TVRMLNode; out VerMajor, VerMinor: Integer);
+function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
 var
   SuggestionPriority: Integer;
 begin
-  if not Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
+  if not Node.SuggestedVRMLVersion(Result, SuggestionPriority) then
   begin
-    { If nothing is suggested, we use X3D 3.2. Reason:
+    { If nothing is suggested, we use latest X3D. Reason:
       - For now, SuggestedVRMLVersion doesn't check IsClauseNames.
         But if IsClauseNames is present anywhere, then this must use VRML >= 2.0
         features ("IS" is keyword only in VRML >= 2.0,
         it will not be understood in VRML 1.0).
       - Besides, we should promote newer VRML standard. }
 
-    VerMajor := 3;
-    VerMinor := 2;
+    Result := X3DVersion;
   end;
 end;
 
 procedure SaveVRMLClassic(Node: TVRMLNode; Stream: TStream;
   const PrecedingComment: string;
-  VerMajor, VerMinor: Integer);
+  const Version: TVRMLVersion);
 var
   SaveProperties: TVRMLSaveToStreamProperties;
 
@@ -747,24 +736,20 @@ begin
   NodeNames := TVRMLNodeNames.Create(false);
   SaveProperties := TVRMLSaveToStreamProperties.Create(Stream);
   try
-    if VerMajor <= 0 then
-      SaveVRMLVersion(Node, VerMajor, VerMinor);
-
-    if VerMajor <= 1 then
+    if Version.Major <= 1 then
       VRMLHeader := VRML10Header else
-    if VerMajor = 2 then
+    if Version.Major = 2 then
       VRMLHeader := VRML20Header else
-    if VerMajor >= 3 then
-      VRMLHeader := Format(X3DHeader, [VerMajor, VerMinor]);
+    if Version.Major >= 3 then
+      VRMLHeader := Format(X3DHeader, [Version.Major, Version.Minor]);
 
-    SaveProperties.VerMajor := VerMajor;
-    SaveProperties.VerMinor := VerMinor;
+    SaveProperties.Version := Version;
 
     SaveProperties.Writeln(VRMLHeader + NL { yes, one more NL, to look good });
     if PrecedingComment <> '' then
       SaveProperties.Writeln('# '+PrecedingComment + NL);
 
-    if (VerMajor >= 3) and (Node is TVRMLRootNode) then
+    if (Version.Major >= 3) and (Node is TVRMLRootNode) then
     begin
       SaveProfile(TVRMLRootNode(Node));
       SaveComponents(TVRMLRootNode(Node));
@@ -781,22 +766,32 @@ begin
 end;
 
 procedure SaveVRMLClassic(Node: TVRMLNode;
-  const Filename, PrecedingComment: string;
-  const VerMajor: Integer = 0;
-  const VerMinor: Integer = 0);
+  const Filename, PrecedingComment: string; const Version: TVRMLVersion);
 var
   Stream: TFileStream;
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveVRMLClassic(Node, Stream, PrecedingComment, VerMajor, VerMinor);
+    SaveVRMLClassic(Node, Stream, PrecedingComment, Version);
   finally Stream.Free end;
+end;
+
+procedure SaveVRMLClassic(Node: TVRMLNode;
+  Stream: TStream; const PrecedingComment: string);
+begin
+  SaveVRMLClassic(Node, Stream, PrecedingComment, SaveVRMLVersion(Node));
+end;
+
+procedure SaveVRMLClassic(Node: TVRMLNode;
+  const FileName, PrecedingComment: string);
+begin
+  SaveVRMLClassic(Node, FileName, PrecedingComment, SaveVRMLVersion(Node));
 end;
 
 procedure SaveToVRMLFile(Node: TVRMLNode;
   const Filename, PrecedingComment: string);
 begin
-  SaveVRMLClassic(Node, FileName, PrecedingComment);
+  SaveVRMLClassic(Node, FileName, PrecedingComment, SaveVRMLVersion(Node));
 end;
 
 {$endif read_implementation}

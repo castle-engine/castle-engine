@@ -207,8 +207,7 @@ function ParseXMLNode(Element: TDOMElement;
       end;
     end else
     begin
-      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName,
-        Names.VRMLVerMajor, Names.VRMLVerMinor);
+      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Names.Version);
       if NodeClass <> nil then
       begin
         Result := NodeClass.Create(NodeName, Names.WWWBasePath);
@@ -307,9 +306,8 @@ var
   function CreateRootNode: TVRMLRootNode;
   begin
     Result := TVRMLRootNode.Create('', Names.WWWBasePath);
-    Result.ForceVersion := true;
-    Result.ForceVersionMajor := Names.VRMLVerMajor;
-    Result.ForceVersionMinor := Names.VRMLVerMinor;
+    Result.HasForceVersion := true;
+    Result.ForceVersion := Names.Version;
   end;
 
   procedure ParseProfile;
@@ -469,10 +467,9 @@ function LoadX3DXml(const FileName: string;
 var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
-  Version: string;
+  VersionStr: string;
   WWWBasePath: string;
-  VRMLVerMajor: Integer;
-  VRMLVerMinor: Integer;
+  Version: TVRMLVersion;
   { Eventually used to decompress gzip file. }
   Stream: TStream;
   { TODO: each USE must occur after it's DEF,
@@ -498,27 +495,24 @@ begin
       'Root element of X3D file must be <X3D>');
 
     { parse "version" attribute }
-    if DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
+    if DOMGetAttribute(Doc.DocumentElement, 'version', VersionStr) then
     begin
-      DeFormat(Version, '%d.%d', [@VRMLVerMajor, @VRMLVerMinor]);
-      if VRMLVerMajor < 3 then
+      DeFormat(VersionStr, '%d.%d', [@Version.Major, @Version.Minor]);
+      if Version.Major < 3 then
       begin
-        VRMLWarning(vwSerious, Format('X3D version number too low (%d.%d)', [VRMLVerMajor, VRMLVerMinor]));
-        VRMLVerMajor := 3;
-        VRMLVerMinor := 2;
+        VRMLWarning(vwSerious, Format('X3D version number too low (%d.%d)', [Version.Major, Version.Minor]));
+        Version := X3DVersion; { some sensible version number }
       end;
     end else
     begin
-      { Max X3D version number supported }
-      VRMLVerMajor := 3;
-      VRMLVerMinor := 2;
-      VRMLWarning(vwSerious, Format('Missing X3D version number, assuming %d.%d', [VRMLVerMajor, VRMLVerMinor]));
+      Version := X3DVersion; { some sensible version number }
+      VRMLWarning(vwSerious, Format('Missing X3D version number, assuming %d.%d', [Version.Major, Version.Minor]));
     end;
 
     SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
 
     { X3D XML requires AutoRemove = true below }
-    Names := TVRMLNames.Create(true, WWWBasePath, VRMLVerMajor, VRMLVerMinor);
+    Names := TVRMLNames.Create(true, WWWBasePath, Version);
     try
       Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement, Names);
       Names.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);

@@ -87,9 +87,9 @@
     procedure AddParentField(Field: TVRMLField);
     procedure AndSuggestedVRMLVersion(
       var Result: boolean;
-      var VerMajor, VerMinor, SuggestionPriority: Integer;
+      var Version: TVRMLVersion; var SuggestionPriority: Integer;
       const NewResult: boolean;
-      const NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer);
+      const NewVersion: TVRMLVersion; const NewSuggestionPriority: Integer);
     procedure TryFindNode_Found(Node: TVRMLNode);
     function GetSmartChildren(Index: Integer): TVRMLNode; virtual;
     procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
@@ -763,7 +763,7 @@
           we look in parent Shape's "appearance" field. So once again
           two different Sphere classes are needed.)
       ) }
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       virtual;
 
     { MFNode field of this node that should be treated as general
@@ -839,7 +839,7 @@
       SFNode and MFNoden fields and Children nodes
       and determines their suggested VRML version. }
     function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; virtual;
+      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; virtual;
 
     { Should SaveToStream save our VRML1Children.
       In this class default implementation returns @true,
@@ -1691,7 +1691,7 @@ function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
 
         { In VRML >= 2.0 the comma is simply a whitespace and will be ignored
           by the lexer. }
-        if Lexer.VRMLVerMajor < 2 then
+        if Lexer.Version.Major < 2 then
         begin
           Lexer.CheckTokenIs(vtComma);
           Lexer.NextToken;
@@ -1750,7 +1750,7 @@ begin
         For VRML >= 2.0, this nonsense feature was fortunately removed,
         and that's good because in VRML >= 2.0 you must be able to use
         keyword "IS" here, so calling NextTokenForceVTString would be bad. }
-      if (Fields[I] is TSFString) and (Lexer.VRMLVerMajor <= 1) then
+      if (Fields[I] is TSFString) and (Lexer.Version.Major <= 1) then
         Lexer.NextTokenForceVTString else
         Lexer.NextToken;
 
@@ -2543,7 +2543,7 @@ begin
   Result := false;
 end;
 
-class function TVRMLNode.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TVRMLNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := true;
 end;
@@ -2593,13 +2593,14 @@ begin
 end;
 
 function TVRMLNode.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 var
   I, J: Integer;
   SF: TSFNode;
   MF: TMFNode;
   NewResult: boolean;
-  NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer;
+  NewVersion: TVRMLVersion;
+  NewSuggestionPriority: Integer;
   ChildIndex: Integer;
 begin
   Result := false;
@@ -2612,10 +2613,10 @@ begin
       if SF.Value <> nil then
       begin
         NewResult := SF.Value.SuggestedVRMLVersion(
-          NewVerMajor, NewVerMinor, NewSuggestionPriority);
+          NewVersion, NewSuggestionPriority);
         AndSuggestedVRMLVersion(
-          Result, VerMajor, VerMinor, SuggestionPriority,
-          NewResult, NewVerMajor, NewVerMinor, NewSuggestionPriority);
+          Result, Version, SuggestionPriority,
+          NewResult, NewVersion, NewSuggestionPriority);
       end;
     end else
     if Fields[I] is TMFNode then
@@ -2624,10 +2625,10 @@ begin
       for J := 0 to MF.Items.Count - 1 do
       begin
         NewResult := MF.Items[J].SuggestedVRMLVersion(
-          NewVerMajor, NewVerMinor, NewSuggestionPriority);
+          NewVersion, NewSuggestionPriority);
         AndSuggestedVRMLVersion(
-          Result, VerMajor, VerMinor, SuggestionPriority,
-          NewResult, NewVerMajor, NewVerMinor, NewSuggestionPriority);
+          Result, Version, SuggestionPriority,
+          NewResult, NewVersion, NewSuggestionPriority);
       end;
     end;
   end;
@@ -2635,25 +2636,24 @@ begin
   for ChildIndex := 0 to VRML1ChildrenCount - 1 do
   begin
     NewResult :=  VRML1Children[ChildIndex].SuggestedVRMLVersion(
-      NewVerMajor, NewVerMinor, NewSuggestionPriority);
+      NewVersion, NewSuggestionPriority);
     AndSuggestedVRMLVersion(
-      Result, VerMajor, VerMinor, SuggestionPriority,
-      NewResult, NewVerMajor, NewVerMinor, NewSuggestionPriority);
+      Result, Version, SuggestionPriority,
+      NewResult, NewVersion, NewSuggestionPriority);
   end;
 end;
 
 procedure TVRMLNode.AndSuggestedVRMLVersion(
   var Result: boolean;
-  var VerMajor, VerMinor, SuggestionPriority: Integer;
+  var Version: TVRMLVersion; var SuggestionPriority: Integer;
   const NewResult: boolean;
-  const NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer);
+  const NewVersion: TVRMLVersion; const NewSuggestionPriority: Integer);
 begin
   if NewResult then
   begin
     if (not Result) or (NewSuggestionPriority >= SuggestionPriority) then
     begin
-      VerMajor := NewVerMajor;
-      VerMinor := NewVerMinor;
+      Version := NewVersion;
       SuggestionPriority := NewSuggestionPriority;
       Result := true;
     end;

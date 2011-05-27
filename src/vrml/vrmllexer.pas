@@ -98,6 +98,14 @@ const
   TokenNumbers : TVRMLTokens = [vtFloat, vtInteger];
 
 type
+  TVRMLVersion = object
+    Major, Minor: Integer;
+    function FileExtension: string;
+    { File filters for TGLWindow.FileDialog if you want to save a file using
+      SaveVRMLClassic. }
+    function FileClassicFilters: string;
+  end;
+
   { VRML unified lexer.
 
     The lexer always "looks" (i.e. contains in Token and TokenXxx fields)
@@ -115,7 +123,7 @@ type
     @link(TBufferedReadStream)). }
   TVRMLLexer = class
   private
-    fVRMLVerMajor, fVRMLVerMinor: integer;
+    fVersion: TVRMLVersion;
     fToken: TVRMLToken;
     fTokenKeyword: TVRMLKeyword;
     fTokenName: string;
@@ -154,7 +162,7 @@ type
     { @groupEnd }
   public
     { Standard constructor.
-      After constructor call, VRMLVerMajor and VRMLVerMinor are already set,
+      After constructor call, @link(Version) is already set,
       it's checked that file is not compressed by gzip, and the first
       Token is already read.
       @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
@@ -181,9 +189,9 @@ type
       @groupBegin }
     constructor CreateForPartialStream(
       AStream: TPeekCharStream; AOwnsStream: boolean;
-      const AVRMLVerMajor, AVRMLVerMinor: Integer); overload;
+      const AVersion: TVRMLVersion); overload;
     constructor CreateForPartialStream(const S: string;
-      const AVRMLVerMajor, AVRMLVerMinor: Integer); overload;
+      const AVersion: TVRMLVersion); overload;
     { @groupEnd }
 
     destructor Destroy; override;
@@ -197,17 +205,12 @@ type
       some stream properties, e.g. check Stream.Position. }
     property Stream: TPeekCharStream read FStream;
 
-    { These indicate VRML version, as recorded in VRML file header.
+    { VRML/X3D version, as recorded in the file header.
 
-      VRML 1.0, 2.0, X3D (various 3.x) and so on --- there are various
-      possible values for this. For Inventor 1.0 ascii,
-      we set VRMLVerMajor and VRMLVerMinor both to 0
-      (as historically Inventor is a predecessor to VRML 1.0).
-
-      @groupBegin }
-    property VRMLVerMajor: integer read fVRMLVerMajor;
-    property VRMLVerMinor: integer read fVRMLVerMinor;
-    { @groupEnd }
+      All VRML 1.0, 2.0, X3D (various 3.x) are recognized correctly.
+      For Inventor 1.0 ascii, we set Version.Major to 0
+      (as historically Inventor is a predecessor to VRML 1.0). }
+    property Version: TVRMLVersion read fVersion;
 
     { Token we're currently standing on.
       TokenKeyword, TokenName, TokenFloat and TokenInteger have defined
@@ -216,7 +219,7 @@ type
 
     { When Token = vtKeyword, TokenKeyword points to appropriate keyword.
 
-      When VRMLVerMajor = 1, then you can be sure that TokenKeyword is
+      When Version.Major = 1, then you can be sure that TokenKeyword is
       in VRML10Keywords. Analogous for VRML20Keywords and X3DKeywords.
       So e.g. in VRML 1.0 "PROTO" will be treated like a normal name,
       not a start of prototype. }
@@ -382,6 +385,31 @@ begin
   Result := false;
 end;
 
+{ TVRMLVersion --------------------------------------------------------------- }
+
+const
+  SaveVRMLClassic_FileFilters =
+  'All files|*|' +
+  '*VRML (not compressed) (*.wrl)|*.wrl';
+
+  SaveX3DClassic_FileFilters =
+  'All files|*|' +
+  '*X3D classic (*.x3dv)|*.x3dv';
+
+function TVRMLVersion.FileExtension: string;
+begin
+  if Major >= 3 then
+    Result := '.x3dv' else
+    Result := '.wrl';
+end;
+
+function TVRMLVersion.FileClassicFilters: string;
+begin
+  if Major >= 3 then
+    Result := SaveX3DClassic_FileFilters else
+    Result := SaveVRMLClassic_FileFilters;
+end;
+
 { TVRMLLexer ------------------------------------------------------------- }
 
 procedure TVRMLLexer.CreateCommonBegin(AStream: TPeekCharStream;
@@ -398,7 +426,7 @@ begin
   { calculate VRMLWhitespaces, VRMLNoWhitespaces
     (based on VRMLVerXxx) }
   VRMLWhitespaces := [' ',#9, #10, #13];
-  if VRMLVerMajor >= 2 then
+  if FVersion.Major >= 2 then
     Include(VRMLWhitespaces, ',');
   VRMLNoWhitespaces := AllChars - VRMLWhitespaces;
 
@@ -406,9 +434,9 @@ begin
   { These are defined according to vrml97specification on page 24. }
   VRMLNameChars := AllChars -
     [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}'];
-  if VRMLVerMajor <= 1 then
+  if FVersion.Major <= 1 then
     VRMLNameChars := VRMLNameChars - ['(', ')', '|'];
-  if VRMLVerMajor >= 3 then
+  if FVersion.Major >= 3 then
     { X3D standard has a little less characters allowed.
       In particular, ':' (unicode 0x3a) is not allowed and should not be,
       because component statements are separated by vtColon.
@@ -544,8 +572,8 @@ begin
 
   if IsPrefixRemove(InventorHeaderStart, Line) then
   begin
-    FVRMLVerMajor := 0;
-    FVRMLVerMinor := 0;
+    FVersion.Major := 0;
+    FVersion.Minor := 0;
 
     if not IsPrefix('V1.0 ascii', Line) then
       raise EVRMLLexerError.Create(Self,
@@ -554,8 +582,8 @@ begin
   end else
   if IsPrefixRemove(VRML1HeaderStart, Line) then
   begin
-    FVRMLVerMajor := 1;
-    FVRMLVerMinor := 0;
+    FVersion.Major := 1;
+    FVersion.Minor := 0;
 
     { then must be 'ascii';
       VRML 1.0 'ascii' may be followed immediately by some black char. }
@@ -566,14 +594,14 @@ begin
   if IsPrefixRemove(VRML2DraftHeaderStart, Line) or
      IsPrefixRemove(VRML2HeaderStart, Line) then
   begin
-    FVRMLVerMajor := 2;
-    FVRMLVerMinor := 0;
+    FVersion.Major := 2;
+    FVersion.Minor := 0;
     Utf8HeaderReadRest(Line);
   end else
   if IsPrefixRemove(X3DHeaderStart, Line) then
   begin
-    ParseVersion(Line, FVRMLVerMajor, FVRMLVerMinor);
-    if FVRMLVerMajor < 3 then
+    ParseVersion(Line, FVersion.Major, FVersion.Minor);
+    if FVersion.Major < 3 then
       raise EVRMLLexerError.Create(Self,
         'Wrong X3D major version number, should be >= 3');
     Utf8HeaderReadRest(Line);
@@ -589,29 +617,26 @@ var
   FileStream: TFileStream;
 begin
   FileStream := TFileStream.Create(FileName, fmOpenRead);
-  Create(
-    TBufferedReadStream.Create(FileStream, true), true);
+  Create(TBufferedReadStream.Create(FileStream, true), true);
 end;
 
 constructor TVRMLLexer.CreateForPartialStream(
   AStream: TPeekCharStream; AOwnsStream: boolean;
-  const AVRMLVerMajor, AVRMLVerMinor: Integer);
+  const AVersion: TVRMLVersion);
 begin
   CreateCommonBegin(AStream, AOwnsStream);
-  FVRMLVerMajor := AVRMLVerMajor;
-  FVRMLVerMinor := AVRMLVerMinor;
+  FVersion := AVersion;
   CreateCommonEnd;
 end;
 
 constructor TVRMLLexer.CreateForPartialStream(const S: string;
-  const AVRMLVerMajor, AVRMLVerMinor: Integer);
+  const AVersion: TVRMLVersion);
 var
   StringStream: TStringStream;
 begin
   StringStream := TStringStream.Create(S);
   CreateForPartialStream(
-    TBufferedReadStream.Create(StringStream, true), true,
-    AVRMLVerMajor, AVRMLVerMinor);
+    TBufferedReadStream.Create(StringStream, true), true, AVersion);
 end;
 
 destructor TVRMLLexer.Destroy;
@@ -683,15 +708,15 @@ function TVRMLLexer.NextToken: TVRMLToken;
 
    { teraz zobacz czy fTokenName nie jest przypadkiem keywordem. }
    if ArrayPosVRMLKeywords(fTokenName, foundKeyword) and
-      ( ( (VRMLVerMajor <= 1) and (foundKeyword in VRML10Keywords) ) or
-        ( (VRMLVerMajor  = 2) and (foundKeyword in VRML20Keywords) )  or
-        ( (VRMLVerMajor >= 3) and (foundKeyword in X3DKeywords) )
+      ( ( (FVersion.Major <= 1) and (foundKeyword in VRML10Keywords) ) or
+        ( (FVersion.Major  = 2) and (foundKeyword in VRML20Keywords) )  or
+        ( (FVersion.Major >= 3) and (foundKeyword in X3DKeywords) )
       ) then
    begin
      FToken := vtKeyword;
      FTokenKeyword := foundKeyword;
    end else
-   if VRMLVerMajor >= 3 then
+   if FVersion.Major >= 3 then
    begin
      { In X3D XML encoding you should specify SFBool / MFBool values
        as lower-case. From spec:
@@ -888,7 +913,7 @@ begin
   begin
     FirstBlackChr := Chr(FirstBlack);
 
-    if VRMLVerMajor <= 1 then
+    if FVersion.Major <= 1 then
     begin
       case FirstBlackChr of
         { VRML <= 1.0 symbols }
@@ -920,7 +945,7 @@ begin
          (not Between(Stream.PeekChar, Ord('0'), Ord('9'))) then
         FToken := vtPeriod else
       { X3D only token }
-      if ( (FirstBlackChr = ':') and (VRMLVerMajor >= 3) ) then
+      if ( (FirstBlackChr = ':') and (FVersion.Major >= 3) ) then
         FToken := vtColon else
         RecognizeCommonTokens(FirstBlackChr);
     end;
