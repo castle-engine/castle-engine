@@ -240,6 +240,11 @@ begin
       Result := 'textures/' + Result;
       Exit;
     end;
+    if SearchFileHard(Path + 'Textures' + PathDelim, Base, Result) then
+    begin
+      Result := 'Textures/' + Result;
+      Exit;
+    end;
 
     { Some invalid models place full (absolute) path inside texture filename.
       Try to handle it, by stripping path part (from any OS), and trying
@@ -254,6 +259,11 @@ begin
       if SearchFileHard(Path + 'textures' + PathDelim, BaseShort, Result) then
       begin
         Result := 'textures/' + Result;
+        Exit;
+      end;
+      if SearchFileHard(Path + 'Textures' + PathDelim, BaseShort, Result) then
+      begin
+        Result := 'Textures/' + Result;
         Exit;
       end;
     end;
