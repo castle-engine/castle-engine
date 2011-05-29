@@ -192,7 +192,7 @@ var
       end;
     except
       on E: EGLSLAttributeNotFound do
-        if not Shader.IgnoreMissingShaderVariables then
+{ TODO:        if not Arrays.Attribs[I].Internal then }
           VRMLWarning(vwSerious, E.Message);
     end;
   end;

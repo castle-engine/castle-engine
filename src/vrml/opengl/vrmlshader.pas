@@ -60,8 +60,19 @@ type
       Do not pass here SFNode / MFNode fields (these should be added to
       UniformsTextures).
 
-      @raises EGLSLUniformInvalid(When uniform variable name
-        or type are invalid.) }
+      @raises(EGLSLUniformInvalid When uniform variable name
+        or type are invalid.
+
+        Caller should always catch this and change into VRMLWarning.
+
+        X3D spec "OpenGL shading language (GLSL) binding" says
+        "If the name is not available as a uniform variable in the
+        provided shader source, the values of the node shall be ignored"
+        (although it says when talking about "Vertex attributes",
+        seems they mixed attributes and uniforms meaning in spec?).
+
+        So invalid uniform names should be always catched.
+        We also catch type mismatches.) }
     procedure SetUniformFromField(const UniformName: string;
       const UniformValue: TVRMLField; const EnableDisable: boolean);
 
@@ -198,7 +209,6 @@ type
     FHeightMapScale: Single;
     FFogEnabled: boolean;
     FFogType: TFogType;
-    FIgnoreMissingShaderVariables: boolean;
 
     { We have to optimize the most often case of TVRMLShader usage,
       when the shader is not needed or is already prepared.
@@ -314,8 +324,6 @@ type
 
     property ShapeRequiresShaders: boolean read FShapeRequiresShaders
       write FShapeRequiresShaders;
-
-    property IgnoreMissingShaderVariables: boolean read FIgnoreMissingShaderVariables;
   end;
 
 operator = (const A, B: TShaderCodeHash): boolean;
@@ -1773,22 +1781,27 @@ begin
     raise;
   end;
 
-  { X3D spec "OpenGL shading language (GLSL) binding" says
-    "If the name is not available as a uniform variable in the
-    provided shader source, the values of the node shall be ignored"
-    (although it says when talking about "Vertex attributes",
-    seems they mixed attributes and uniforms meaning in spec?).
+  { All user VRML/X3D uniform values go through SetUniformFromField,
+    that always raises exception on invalid names/types, regardless
+    of UniformNotFoundAction / UniformTypeMismatchAction values.
 
-    So we do not allow EGLSLUniformNotFound to be raised.
-    Also type errors, when variable exists in shader but has different type,
-    will be send to DataWarning.
+    So settings below only control what happens on our uniform values.
+    - Missing uniform name should be ignored, as it's normal in some cases:
+      - When ShadowVisualizeDepth is used, almost everything (besides
+        the single visualized shadow map) is unused.
+      - When all the lights are off (including headlight) then normal vectors
+        are unused, and so the normalmap texture is unused.
 
-    In case of IgnoreMissingShaderVariables, we do not want the internal
-    uniforms (from SetupUniformsOnce) to cause warnings, so disable them here. }
-  if IgnoreMissingShaderVariables then
-    AProgram.UniformNotFoundAction := uaIgnore else
-    AProgram.UniformNotFoundAction := uaWarning;
-  AProgram.UniformTypeMismatchAction := utWarning;
+      Avoid producing any warnings in this case, as this is normal situation.
+      Actually needed at least on NVidia GeForce 450 GTS (proprietary OpenGL
+      under Linux), on ATI (tested proprietary OpenGL drivers under Linux and Windows)
+      this doesn't seem needed (less aggressive removal of unused vars).
+
+    - Invalid types should always be reported (in debug mode, as OpenGL errors,
+      this is fastest). We carefully code to always specify correct types
+      for our uniform variables. }
+  AProgram.UniformNotFoundAction := uaIgnore;
+  AProgram.UniformTypeMismatchAction := utGLError;
 
   { set uniforms that will not need to be updated at each SetupUniforms call }
   SetupUniformsOnce;
@@ -1871,16 +1884,6 @@ begin
     ShapeRequiresShaders := true;
 
   TextureShader.Prepare(FCodeHash);
-
-  { ShadowVisualizeDepth means that most other uniform variables of our shader
-    (like other textures, bump maps), and attributes (tangent vectors) may
-    be detected as unused, and so will not exist in the shader.
-    Avoid producing any warnings in this case, as this is normal situation.
-    Actually needed at least on NVidia GeForce 450 GTS (proprietary OpenGL
-    under Linux), on ATI (tested proprietary OpenGL drivers under Linux and Windows)
-    this doesn't seem needed (less aggressive removal of unused vars). }
-  if ShadowVisualizeDepth then
-    FIgnoreMissingShaderVariables := true;
 end;
 
 procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
