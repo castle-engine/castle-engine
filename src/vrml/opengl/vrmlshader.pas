@@ -194,6 +194,7 @@ type
     UniformsNodes: TVRMLNodesList;
     TextureCoordGen, ClipPlane, FragmentEnd: string;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
+    FVarianceShadowMaps: boolean;
     Source: TShaderSource;
     PlugIdentifiers: Cardinal;
     LightShaders: TLightShaders;
@@ -248,6 +249,8 @@ type
       const CodeIndex: Cardinal;
       const PlugName, PlugValue: string;
       const InsertAtBeginIfNotFound: boolean): boolean;
+
+    function DeclareShadowFunctions: string;
   public
     ShapeBoundingBox: TBox3D;
 
@@ -321,6 +324,9 @@ type
 
     property PercentageCloserFiltering: TPercentageCloserFiltering
       read FPercentageCloserFiltering write FPercentageCloserFiltering;
+
+    property VarianceShadowMaps: boolean read FVarianceShadowMaps
+      write FVarianceShadowMaps;
 
     property ShapeRequiresShaders: boolean read FShapeRequiresShaders
       write FShapeRequiresShaders;
@@ -930,12 +936,13 @@ end;
 procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
   TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare: string);
 const
-  OpenGLTextureType: array [TTextureType] of string =
+  SamplerFromTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
 var
   TextureSampleCall, TexCoordName: string;
   ShadowLightShader: TLightShader;
   Code: TShaderSource;
+  SamplerType: string;
 begin
   if TextureType <> ttShader then
   begin
@@ -971,19 +978,25 @@ begin
       [UniformName]);
   end else
   begin
+    SamplerType := SamplerFromTextureType[TextureType];
+    { For variance shadow maps, use normal sampler2D, not sampler2DShadow }
+    if Shader.VarianceShadowMaps and (TextureType = tt2DShadow) then
+      SamplerType := 'sampler2D';
+
     if (TextureType = tt2DShadow) and
        (ShadowLight <> nil) and
        Shader.LightShaders.Find(ShadowLight, ShadowLightShader) then
     begin
-      Shader.Plug(stFragment,
-        Format('uniform %s %s;',
-        [OpenGLTextureType[TextureType], UniformName]) +NL+
-        'float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord, const in float size);' +NL+
+      Shader.Plug(stFragment, Format(
+        'uniform %s %s;' +NL+
+        '%s' +NL+
         'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
         '{' +NL+
-        Format('  scale *= shadow(%s, gl_TexCoord[%d], %d.0);',
-        [UniformName, TextureUnit, ShadowMapSize]) +NL+
+        '  scale *= shadow(%s, gl_TexCoord[%d], %d.0);' +NL+
         '}',
+        [SamplerType, UniformName,
+         Shader.DeclareShadowFunctions,
+         UniformName, TextureUnit, ShadowMapSize]),
         ShadowLightShader.Code);
     end else
     begin
@@ -1047,7 +1060,7 @@ begin
 
       if TextureType <> ttShader then
         TextureUniformsDeclare += Format('uniform %s %s;' + NL,
-          [OpenGLTextureType[TextureType], UniformName]);
+          [SamplerType, UniformName]);
     end;
   end;
 end;
@@ -1337,6 +1350,8 @@ var
   const
     PCFDefine: array [TPercentageCloserFiltering] of string =
     ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
+    ShadowMapsFunctions: array [boolean { vsm? }] of string =
+    ({$I shadow_map_common.fs.inc}, {$I variance_shadow_map_common.fs.inc});
   begin
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
@@ -1345,7 +1360,8 @@ var
     PlugDirectly(Source[stFragment], 0, '/* PLUG: fragment_end', FragmentEnd, false);
 
     if not PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
-      TextureUniformsDeclare, false) then
+      TextureUniformsDeclare + NL +
+      DeclareShadowFunctions, false) then
     begin
       { When we cannot find /* PLUG-DECLARATIONS */, it also means we have
         base shader from ComposedShader. In this case, forcing
@@ -1364,7 +1380,7 @@ var
       doesn't want any fragment shader }
     if Source[stFragment].Count <> 0 then
       Source[stFragment].Add(PCFDefine[PercentageCloserFiltering] + NL +
-        {$I shadow_map_common.fs.inc});
+        ShadowMapsFunctions[VarianceShadowMaps]);
   end;
 
 var
@@ -1814,7 +1830,8 @@ function TVRMLShader.CodeHash: TShaderCodeHash;
     lifetime. }
   procedure CodeHashFinalize;
   begin
-    FCodeHash.AddInteger(Ord(PercentageCloserFiltering));
+    FCodeHash.AddInteger(Ord(PercentageCloserFiltering) * 1009);
+    FCodeHash.AddInteger(Ord(VarianceShadowMaps) * 1823);
   end;
 
 begin
@@ -2149,6 +2166,17 @@ begin
   { This will cause appropriate shader later }
   MaterialFromColor := true;
   FCodeHash.AddInteger(29);
+end;
+
+function TVRMLShader.DeclareShadowFunctions: string;
+const
+  ShadowDeclare: array [boolean { vsm? }] of string =
+  ('float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord, const in float size);',
+   'float shadow(sampler2D       shadowMap, const vec4 shadowMapCoord, const in float size);');
+  ShadowDepthDeclare =
+   'float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord);';
+begin
+  Result := ShadowDeclare[VarianceShadowMaps] + NL + ShadowDepthDeclare;
 end;
 
 end.

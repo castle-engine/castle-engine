@@ -11,11 +11,6 @@
 'varying vec4 kambi_vertex_eye;' + LineEnding + 
 'varying vec3 kambi_normal_eye;' + LineEnding + 
 '' + LineEnding + 
-'/* Forward declare shadow maps utilities. */' + LineEnding + 
-'float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,' + LineEnding + 
-'  const in float size);' + LineEnding + 
-'float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord);' + LineEnding + 
-'' + LineEnding + 
 '/* PLUG-DECLARATIONS */' + LineEnding + 
 '' + LineEnding + 
 '/* Wrapper for calling PLUG texture_coord_shift */' + LineEnding + 

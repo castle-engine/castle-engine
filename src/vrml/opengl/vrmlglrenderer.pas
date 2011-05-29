@@ -1290,13 +1290,15 @@ end;
 
 destructor TVRMLGLRendererContextCache.Destroy;
 
-{ Tests:
+{ $define ONLY_WARN_ON_CACHE_LEAK}
+
+{$ifdef ONLY_WARN_ON_CACHE_LEAK}
   procedure Assert(const B: boolean; const S: string = '');
   begin
     if not B then
-      Writeln(ErrOutput, 'GLRendererContextCache warning: ' + S);
+      VRMLWarning(vwIgnorable, 'GLRendererContextCache warning: ' + S);
   end;
-}
+{$endif}
 
 var
   fsfam: TVRMLFontFamily;
@@ -2969,6 +2971,7 @@ begin
   try
     Shader.ShapeBoundingBox := Shape.BoundingBox;
     Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
+    Shader.VarianceShadowMaps := Attributes.VarianceShadowMaps;
     RenderShapeLineProperties(Shape, Fog, Shader);
   finally FreeAndNil(Shader) end;
 end;

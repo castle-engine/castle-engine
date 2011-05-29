@@ -1,7 +1,7 @@
 /* Extract shadow (how light is the point) from variance shadow map.
    This closely follows VSM presentation, slide 16. */
 
-float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord)
+float shadow(sampler2D shadowMap, const vec4 shadowMapCoord, const in float size)
 {
   /* Avoid back-projecting shadows. */
   if (shadowMapCoord.z < 0.0) return 0.0;
@@ -28,7 +28,7 @@ float variance_shadow(sampler2D shadowMap, vec4 shadowMapCoord)
   }
 }
 
-float variance_shadow_depth(sampler2D shadowMap, vec4 shadowMapCoord)
+float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord)
 {
   /* Avoid back-projecting shadows. */
   if (shadowMapCoord.z < 0.0) return 0.0;
