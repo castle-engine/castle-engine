@@ -1985,18 +1985,18 @@ begin
       if Attrib[I] is TNodeFloatVertexAttribute then
       begin
         case TNodeFloatVertexAttribute(Attrib[I]).FdNumComponents.Value of
-          1: Arrays.AddGLSLAttributeFloat(Attrib[I].FdName.Value);
-          2: Arrays.AddGLSLAttributeVector2(Attrib[I].FdName.Value);
-          3: Arrays.AddGLSLAttributeVector3(Attrib[I].FdName.Value);
-          4: Arrays.AddGLSLAttributeVector4(Attrib[I].FdName.Value);
+          1: Arrays.AddGLSLAttributeFloat(Attrib[I].FdName.Value, false);
+          2: Arrays.AddGLSLAttributeVector2(Attrib[I].FdName.Value, false);
+          3: Arrays.AddGLSLAttributeVector3(Attrib[I].FdName.Value, false);
+          4: Arrays.AddGLSLAttributeVector4(Attrib[I].FdName.Value, false);
           else VRMLWarning(vwSerious, Format('Invalid FloatVertexAttribute.numComponents: %d (should be between 1..4)',
             [TNodeFloatVertexAttribute(Attrib[I]).FdNumComponents.Value]));
         end;
       end else
       if Attrib[I] is TNodeMatrix3VertexAttribute then
-        Arrays.AddGLSLAttributeMatrix3(Attrib[I].FdName.Value) else
+        Arrays.AddGLSLAttributeMatrix3(Attrib[I].FdName.Value, false) else
       if Attrib[I] is TNodeMatrix4VertexAttribute then
-        Arrays.AddGLSLAttributeMatrix4(Attrib[I].FdName.Value) else
+        Arrays.AddGLSLAttributeMatrix4(Attrib[I].FdName.Value, false) else
         VRMLWarning(vwSerious, Format('Not handled vertex attribute class %s',
           [Attrib[I].NodeTypeName]));
     end;
@@ -2054,7 +2054,7 @@ procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: bool
 begin
   inherited;
   if ShapeBumpMappingUsed then
-    Arrays.AddGLSLAttributeMatrix3('kambi_tangent_to_object_space');
+    Arrays.AddGLSLAttributeMatrix3('kambi_tangent_to_object_space', true);
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);

@@ -87,6 +87,9 @@ type
   { GLSL attributes array information, for TGeometryArrays. }
   TGeometryAttrib = class
     Name: string;
+    { Internal for our engine (as opposed to specified in 3D model file).
+      This is only used to change warnings related to this attribute. }
+    Internal: boolean;
     AType: TGeometryAttribType;
     Offset: Integer;
   end;
@@ -146,7 +149,7 @@ type
       const Dimensions: TTexCoordDimensions;
       const TextureUnit: Cardinal);
     procedure AddGLSLAttribute(const AType: TGeometryAttribType;
-      const Name: string);
+      const Name: string; const Internal: boolean);
     function GLSLAttribute(const AType: TGeometryAttribType;
       const Name: string; const Index: Cardinal): Pointer;
   public
@@ -290,12 +293,12 @@ type
 
     property Attribs: TGeometryAttribsList read FAttribs;
 
-    procedure AddGLSLAttributeFloat(const Name: string);
-    procedure AddGLSLAttributeVector2(const Name: string);
-    procedure AddGLSLAttributeVector3(const Name: string);
-    procedure AddGLSLAttributeVector4(const Name: string);
-    procedure AddGLSLAttributeMatrix3(const Name: string);
-    procedure AddGLSLAttributeMatrix4(const Name: string);
+    procedure AddGLSLAttributeFloat(const Name: string; const Internal: boolean);
+    procedure AddGLSLAttributeVector2(const Name: string; const Internal: boolean);
+    procedure AddGLSLAttributeVector3(const Name: string; const Internal: boolean);
+    procedure AddGLSLAttributeVector4(const Name: string; const Internal: boolean);
+    procedure AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean);
+    procedure AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean);
 
     function GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt = 0): Pointer;
 
@@ -350,7 +353,7 @@ type
 
 implementation
 
-uses SysUtils;
+uses SysUtils, KambiStringUtils;
 
 { TGeometryAttribsList ------------------------------------------------------- }
 
@@ -604,7 +607,7 @@ const
   ( 'float', 'vec2', 'vec3', 'vec4', 'mat3', 'mat4' );
 
 procedure TGeometryArrays.AddGLSLAttribute(const AType: TGeometryAttribType;
-  const Name: string);
+  const Name: string; const Internal: boolean);
 const
   AttribSizes: array[TGeometryAttribType] of Cardinal =
   ( SizeOf(Single),
@@ -623,46 +626,50 @@ begin
     if A.AType <> AType then
       raise Exception.CreateFmt('GLSL attribute "%s" is already allocated but for different type (%s) than currently requested (%s)',
         [Name, AttribTypeName[A.AType], AttribTypeName[AType]]);
+    if A.Internal <> Internal then
+      raise Exception.CreateFmt('GLSL attribute "%s" is already allocated but for different internal (%s) than currently requested (%s)',
+        [Name, BoolToStr[A.Internal], BoolToStr[Internal]]);
   end else
   begin
     A := TGeometryAttrib.Create;
     A.Name := Name;
     A.AType := AType;
     A.Offset := AttributeSize;
+    A.Internal := Internal;
     FAttributeSize += AttribSizes[AType];
 
     Attribs.Add(A);
   end;
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeFloat(const Name: string);
+procedure TGeometryArrays.AddGLSLAttributeFloat(const Name: string; const Internal: boolean);
 begin
-  AddGLSLAttribute(atFloat, Name);
+  AddGLSLAttribute(atFloat, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector2(const Name: string);
+procedure TGeometryArrays.AddGLSLAttributeVector2(const Name: string; const Internal: boolean);
 begin
-  AddGLSLAttribute(atVector2, Name);
+  AddGLSLAttribute(atVector2, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector3(const Name: string);
+procedure TGeometryArrays.AddGLSLAttributeVector3(const Name: string; const Internal: boolean);
 begin
-  AddGLSLAttribute(atVector3, Name);
+  AddGLSLAttribute(atVector3, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeVector4(const Name: string);
+procedure TGeometryArrays.AddGLSLAttributeVector4(const Name: string; const Internal: boolean);
 begin
-  AddGLSLAttribute(atVector4, Name);
+  AddGLSLAttribute(atVector4, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeMatrix3(const Name: string);
+procedure TGeometryArrays.AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean);
 begin
-  AddGLSLAttribute(atMatrix3, Name);
+  AddGLSLAttribute(atMatrix3, Name, Internal);
 end;
 
-procedure TGeometryArrays.AddGLSLAttributeMatrix4(const Name: string);
+procedure TGeometryArrays.AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean);
 begin
-  AddGLSLAttribute(atMatrix4, Name);
+  AddGLSLAttribute(atMatrix4, Name, Internal);
 end;
 
 function TGeometryArrays.GLSLAttribute(const AType: TGeometryAttribType;

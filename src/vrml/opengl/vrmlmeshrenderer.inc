@@ -192,7 +192,9 @@ var
       end;
     except
       on E: EGLSLAttributeNotFound do
-{ TODO:        if not Arrays.Attribs[I].Internal then }
+        { Do not make warnings about missing internal attributes
+          (for the same reason as uniform values, see VRMLShader). }
+        if not Arrays.Attribs[I].Internal then
           VRMLWarning(vwSerious, E.Message);
     end;
   end;
