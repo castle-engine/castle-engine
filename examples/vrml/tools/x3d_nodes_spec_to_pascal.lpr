@@ -101,7 +101,7 @@ begin
       WritelnStr(InterfaceLines,
         '    class function ClassNodeTypeName: string; override;' + NL +
         '    function SuggestedVRMLVersion(' + NL +
-        '      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;' + NL +
+        '      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;' + NL +
         '    class function URNMatching(const URN: string): boolean; override;');
 
     WritelnStr(ImplementationLines,
@@ -342,11 +342,11 @@ begin
         'end;' + NL +
         NL +
         'function TNode' + NodeType + '.SuggestedVRMLVersion(' + NL +
-        '  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;' + NL +
+        '  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;' + NL +
         'begin' + NL +
-        '  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);' + NL +
-        '  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,' + NL +
-        '    true, 3, 2, 2000);' + NL +
+        '  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);' + NL +
+        '  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,' + NL +
+        '    true, X3DVersion, 2000);' + NL +
         'end;' + NL +
         NL +
         'class function TNode' + NodeType + '.URNMatching(const URN: string): boolean;' + NL +

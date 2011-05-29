@@ -722,11 +722,8 @@
       in VRML 1.0 state (see TVRMLGraphTraverseState.LastNodes). }
     class function VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
 
-    { Some of the nodes are meant to be handled only for specific
-      VRML versions. This functions says whether this node is supposed
-      to be present in given VRML version. VerMajor and VerMinor
-      arguments are expected in the same form as TVRMLLexer.VRMLVerMajor,
-      TVRMLLexer.VRMLVerMinor.
+    { Some nodes are present only in specific VRML/X3D version.
+      This functions decides it.
 
       For example some nodes can only work in VRML < 2.0,
       some others only in VRML >= 2.0. There are even some pairs
@@ -738,14 +735,14 @@
       Default implementation of this function returns always @true.
       Generally, I don't try to set this too aggresively ---
       in other words, for all cases when it's sensible, I allow
-      nodes to be used in every VRML version, even when official
+      nodes to be used in every VRML/X3D version, even when official
       specification doesn't. This means that when reading VRML 1.0
       files actually a large part of VRML 2.0 is allowed too,
       and also while reading VRML 2.0 many constructs from VRML 1.0
       (officially no longer present in VRML 2.0) are allowed too.
       I'm trying to support what I call a "sum of VRML 1.0 and 2.0".
 
-      In practice I only use this function when both VRML 1.0 and 2.0
+      In practice I only use this function when various VRML/X3D versions
       specify the same node name but
 
       @unorderedList(
@@ -766,9 +763,8 @@
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       virtual;
 
-    { MFNode field of this node that should be treated as general
-      "children" field of this node. This is used in some places,
-      like SmartAddChild.
+    { Field that should be treated as general "children" field of this node.
+      This is used in some places, like SmartAddChild.
 
       Should return nil if this node doesn't have such
       field (that's the default implementation in this class).
