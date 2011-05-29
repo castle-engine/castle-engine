@@ -986,7 +986,12 @@ type
     BoundTextureUnits: Cardinal;
 
     { For how many texture units do we have to generate tex coords.
-      Always <= BoundTextureUnits. }
+
+      At the end, the idea is that this is <= BoundTextureUnits
+      (no point in generating tex coords for not existing textures).
+      However during render it may be temporarily > BoundTextureUnits
+      (in case we calculate it before actually binding the textures,
+      this may happen for textures in ComposedShader custom fields). }
     TexCoordsNeeded: Cardinal;
 
     { For which texture units we pushed and modified the texture matrix.
@@ -3552,11 +3557,11 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
 
     if UsedGLSLTexCoordsNeeded > 0 then
     begin
-      { Do not bind/enable normal textures. Just set
-        BoundTextureUnits and TexCoordsNeeded (equal),
-        to generate tex coords for textures used in the shader. }
+      { Do not bind/enable normal textures. Just set TexCoordsNeeded
+        to generate tex coords for textures used in the shader.
+        Leave BoundTextureUnits at 0 (BoundTextureUnits will be increased
+        later when shader actually binds texture uniform values). }
       TexCoordsNeeded := UsedGLSLTexCoordsNeeded;
-      BoundTextureUnits := UsedGLSLTexCoordsNeeded;
     end else
     if (TextureNode <> nil) and
        Attributes.EnableTextures and
