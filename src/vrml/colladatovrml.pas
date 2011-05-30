@@ -22,7 +22,7 @@ interface
 
 uses VRMLNodes;
 
-{ Load Collada file as VRML.
+{ Load Collada file as X3D.
 
   Written based on Collada 1.3.1 and 1.4.1 specifications.
   Should handle any Collada 1.3.x or 1.4.x version.
@@ -37,8 +37,6 @@ uses VRMLNodes;
   Although don't expect to handle all Collada features --- many things
   are missing currently, what should work currently is geometry and
   standard (without shaders) materials.
-
-  Resulting VRML is VRML 2.0.
 
   Only if AllowKambiExtensions, it may use some of our engine specific
   extensions (for example, Material.mirror may be <> 0,
@@ -185,7 +183,7 @@ var
 
          { We actually treat <phong> and <blinn> elements the same.
 
-           VRML 2.0 lighting equations specify that always Blinn
+           X3D lighting equations specify that always Blinn
            (half-vector) technique is used. What's much more practically
            important, OpenGL uses Blinn method. So actually I always do
            blinn method (at least for real-time rendering). }
@@ -1615,7 +1613,7 @@ begin
     Result := TVRMLRootNode.Create('', WWWBasePath);
     try
       Result.HasForceVersion := true;
-      Result.ForceVersion := VRML2Version;
+      Result.ForceVersion := X3DVersion;
 
       { First read library_effects.
 
