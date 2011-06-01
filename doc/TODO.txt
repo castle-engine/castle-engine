@@ -29,7 +29,8 @@ engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
 - Use generics more intensively.
   At least all TObjectsList templates can be changed to generics?
   These seem to work perfectly for existing cases?
-
+- Use fpimage to read some image formats:
+  http://wiki.freepascal.org/fcl-image
 ------------------------------------------------------------------------------
 WWW:
 - "How you can help" page, move donation links there,
