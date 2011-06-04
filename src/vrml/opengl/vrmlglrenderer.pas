@@ -2915,8 +2915,7 @@ begin
   Assert(FogNode = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
-    0, GLMaxLights - 1, LightRenderEvent);
+  LightsRenderer := TVRMLGLLightsCachingRenderer.Create(LightRenderEvent);
 end;
 
 procedure TVRMLGLRenderer.RenderEnd;

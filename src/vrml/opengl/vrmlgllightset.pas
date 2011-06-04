@@ -40,7 +40,6 @@ type
     of this class. }
   TVRMLGLLightsCachingRenderer = class
   private
-    FGLLightNum1, FGLLightNum2: Integer;
     FLightRenderEvent: TVRMLLightRenderEvent;
     LightsKnown: boolean;
     function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
@@ -54,20 +53,14 @@ type
 
     LightsDone: array of PLightInstance;
 
-    constructor Create(const AGLLightNum1, AGLLightNum2: Integer;
-      const ALightRenderEvent: TVRMLLightRenderEvent);
+    constructor Create(const ALightRenderEvent: TVRMLLightRenderEvent);
 
     { Sets OpenGL lights properties, enabling and disabling them as needed.
       Lights (TDynLightInstanceArray) may be @nil,
       it's equal to passing an empty array of lights.
 
-      Returns LightsEnabled, a number of enabled lights, including GLLightNum1
-      (in other words, it assumes that first GLLightNum1 lights are already
-      reserved and enabled by caller). }
+      Returns LightsEnabled, a number of enabled lights. }
     procedure Render(Lights: TDynLightInstanceArray; out LightsEnabled: Cardinal);
-
-    property GLLightNum1: Integer read FGLLightNum1;
-    property GLLightNum2: Integer read FGLLightNum2;
 
     { Process light source properties right before rendering the light.
 
@@ -270,7 +263,6 @@ end;
 procedure RenderLights(
   const Cache: TVRMLGLLightsCachingRenderer;
   const Lights: TDynLightInstanceArray;
-  const GLLightNum1, GLLightNum2: Integer;
   const LightRenderEvent: TVRMLLightRenderEvent;
   out LightsEnabled: Cardinal);
 var
@@ -278,8 +270,8 @@ var
   Light: PLightInstance;
   LightOn: boolean;
 begin
-  LightsEnabled := GLLightNum1;
-  if LightsEnabled > GLLightNum2 then Exit;
+  LightsEnabled := 0;
+  if LightsEnabled > GLMaxLights - 1 then Exit;
 
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
@@ -293,35 +285,30 @@ begin
       if LightOn then
       begin
         if (Cache = nil) or
-            Cache.NeedRenderLight(LightsEnabled - GLLightNum1, Light) then
+            Cache.NeedRenderLight(LightsEnabled, Light) then
           glLightFromVRMLLight(LightsEnabled, Light^);
         Inc(LightsEnabled);
-        if LightsEnabled > GLLightNum2 then Exit;
+        if LightsEnabled >= GLMaxLights then Exit;
       end;
     end;
 
-  if LightsEnabled <= GLLightNum2 then
-    for I := LightsEnabled to GLLightNum2 do
+  if LightsEnabled <= GLMaxLights - 1 then
+    for I := LightsEnabled to GLMaxLights - 1 do
       if (Cache = nil) or
-          Cache.NeedRenderLight(I - GLLightNum1, nil) then
+          Cache.NeedRenderLight(I, nil) then
         glDisable(GL_LIGHT0 + I);
 end;
 
 { TVRMLGLLightsCachingRenderer ----------------------------------------------- }
 
 constructor TVRMLGLLightsCachingRenderer.Create(
-  const AGLLightNum1, AGLLightNum2: Integer;
   const ALightRenderEvent: TVRMLLightRenderEvent);
 begin
   inherited Create;
-  FGLLightNum1 := AGLLightNum1;
-  FGLLightNum2 := AGLLightNum2;
   FLightRenderEvent := ALightRenderEvent;
 
   LightsKnown := false;
-  { avoid range error when GLLightNum2 < GLLightNum1 }
-  if GLLightNum2 >= GLLightNum1 then
-    SetLength(LightsDone, GLLightNum2 - GLLightNum1 + 1);
+  SetLength(LightsDone, GLMaxLights);
 end;
 
 function TVRMLGLLightsCachingRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
@@ -351,20 +338,15 @@ end;
 procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynLightInstanceArray;
   out LightsEnabled: Cardinal);
 begin
-  RenderLights(Self, Lights, GLLightNum1, GLLightNum2,
-    LightRenderEvent, LightsEnabled);
+  RenderLights(Self, Lights, LightRenderEvent, LightsEnabled);
   LightsKnown := true;
 end;
 
 { TVRMLGLLightSet ------------------------------------------------------------ }
 
 procedure TVRMLGLLightSet.Render(var LightsEnabled: Cardinal);
-var
-  LightsEnabledBefore: Cardinal;
 begin
-  LightsEnabledBefore := LightsEnabled;
-  RenderLights(nil, Lights, LightsEnabledBefore, GLMaxLights - 1,
-    nil, LightsEnabled);
+  RenderLights(nil, Lights, nil, LightsEnabled);
 end;
 
 end.
