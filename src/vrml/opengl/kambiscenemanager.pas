@@ -123,12 +123,12 @@ type
     { Render the headlight. Called by RenderFromViewEverything,
       when camera matrix is set.
       If headlight is on, this will enable and set appropriate OpenGL
-      light properties, and add it to Params.BaseLights.
+      light properties, and add it to BaseLights.
 
       Implementation in this class uses headlight defined
       in the MainScene, following NavigationInfo.headlight and KambiHeadlight
       nodes. If MainScene is not assigned, this does nothing. }
-    procedure RenderHeadLight(const Params: TVRMLRenderParams); virtual;
+    procedure RenderHeadLight(const BaseLights: TDynLightInstanceArray); virtual;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
       when everything (clearing, background, headlight, loading camera
@@ -1249,7 +1249,7 @@ begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
-procedure TKamAbstractViewport.RenderHeadLight(const Params: TVRMLRenderParams);
+procedure TKamAbstractViewport.RenderHeadLight(const BaseLights: TDynLightInstanceArray);
 var
   HC: TCamera;
 begin
@@ -1278,9 +1278,9 @@ begin
 
     if (HC <> nil) and (GetMainScene.Headlight <> nil) then
     begin
-      GetMainScene.Headlight.Render(Params.BaseLights.Count, true,
+      GetMainScene.Headlight.Render(BaseLights.Count, true,
         (RenderState.Target = rtScreen) and (HC = Camera), HC);
-      Params.BaseLights.Add(GetMainScene.Headlight.LightInstance(HC));
+      BaseLights.Add(GetMainScene.Headlight.LightInstance(HC));
     end;
   end;
 
@@ -1410,7 +1410,7 @@ begin
   glLoadMatrix(RenderState.CameraMatrix);
 
   FRenderParams.BaseLights.Clear;
-  RenderHeadLight(FRenderParams);
+  RenderHeadLight(FRenderParams.BaseLights);
   LightsEnabledByHeadlight := FRenderParams.BaseLights.Count;
 
   RenderFromView3D(FRenderParams);
