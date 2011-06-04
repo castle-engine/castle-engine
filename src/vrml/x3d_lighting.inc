@@ -177,8 +177,7 @@
     function DefaultShadowMapLoad(Node: TNodeGeneratedShadowMap): boolean;
 
     { Light scope. Default implementation returns lsGlobal or lsLocal,
-      depending on "global" field value. As such, this is suitable
-      for all VRML/X3D >= 2.0 lights. }
+      depending on "global" field value (this follows VRML/X3D >= 2.0 rules). }
     function Scope: TLightScope; virtual;
   end;
 

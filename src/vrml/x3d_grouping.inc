@@ -373,20 +373,16 @@ begin
 
   ApplyTransform(StateStack.Top);
 
-  (*We append all non-global to the current State.
-    This is how we implement non-global light scope according to X3D
-    specification. It also satisfies the VRML 2.0 specification,
-    that has the same rules, but assumes DirectionalLight.global = always false,
-    and other lights' global = always true (this matches the X3D default
-    "global" values).
+  (*We append lights with lsLocal scope (global=FALSE and VRML/X3D >= 2.0)
+    to the current State.
 
     It may seem wasteful to enumerate children twice
     (first we enumerate here, then actual Traverse enumerates,
     this time recursively, for the second time). But it turned out to
-    be the fastest and simplest method of propagating non-global
+    be the fastest and simplest method of propagating lsLocal lights
     correctly...
 
-    First approach was to add ParentGroup to TLightInstance
+    Other (rejected) approach was to add ParentGroup to TLightInstance
     and do it as post-processing step, i.e. in TVRMLScene in
     AddGlobalLights take this ParentGroup and add light everywhere.
     But that was 1. even slower, since it must traverse ParentGroup once again
@@ -407,7 +403,7 @@ begin
         USE S
       }
 
-    What would happen here ? ParentGroup.Enumerate would find S *two* times.
+    What would happen here? ParentGroup.Enumerate would find S *two* times.
     For each of these occurrences, it would find *four* shapes with
     matching node value. So 1. all four spheres would be lighted (incorrect,
     only two spheres in the middle should be lighted) 2. all of them would
@@ -418,8 +414,8 @@ begin
     (set light only for first node, that is both matching and has the light
     not set yet).
 
-    It would be quite more convoluted and much slower than
-    simple, correct solution below. *)
+    So fixing the above solution would be quite more convoluted and slower
+    than simple, correct solution below. *)
 
   { We also use it to collect State.PointingDeviceSensors,
     as it turns our that the same approach is possible, for the same reasons.
