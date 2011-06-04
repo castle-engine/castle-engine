@@ -580,6 +580,7 @@ type
     { For all Billboard nodes }
     BillboardInstancesList: TTransformInstancesList;
 
+    { Global lights of this scene. }
     GlobalLights: TDynLightInstanceArray;
 
     FBoundingBox: TBox3D;
@@ -2330,6 +2331,7 @@ begin
 
   FShapes := TVRMLShapeTreeGroup.Create(Self);
   ShapeLODs := TObjectList.Create(false);
+  GlobalLights := TDynLightInstanceArray.Create;
 
   FBackgroundStack := TVRMLBindableStack.Create(Self);
   FFogStack := TVRMLBindableStack.Create(Self);
@@ -3042,30 +3044,28 @@ begin
     { Clear variables after removing fvManifoldAndBorderEdges from Validities }
     InvalidateManifoldAndBorderEdges;
 
-    GlobalLights := TDynLightInstanceArray.Create;
-    try
-      { Clean Shapes, ShapeLODs }
-      FreeAndNil(FShapes);
-      FShapes := TVRMLShapeTreeGroup.Create(Self);
-      ShapeLODs.Clear;
+    { Clean Shapes and other stuff initialized by traversing }
+    FreeAndNil(FShapes);
+    FShapes := TVRMLShapeTreeGroup.Create(Self);
+    ShapeLODs.Clear;
+    GlobalLights.Clear;
 
-      if RootNode <> nil then
-      begin
-        Traverser := TChangedAllTraverser.Create;
-        try
-          Traverser.ParentScene := Self;
-          { We just created FShapes as TVRMLShapeTreeGroup, so this cast
-            is safe }
-          Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
-          Traverser.Active := true;
-          RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
-        finally FreeAndNil(Traverser) end;
+    if RootNode <> nil then
+    begin
+      Traverser := TChangedAllTraverser.Create;
+      try
+        Traverser.ParentScene := Self;
+        { We just created FShapes as TVRMLShapeTreeGroup, so this cast
+          is safe }
+        Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
+        Traverser.Active := true;
+        RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
+      finally FreeAndNil(Traverser) end;
 
-        AddGlobalLights;
+      AddGlobalLights;
 
-        ChangedAllEnumerate;
-      end;
-    finally FreeAndNil(GlobalLights) end;
+      ChangedAllEnumerate;
+    end;
 
     { Call DoGeometryChanged here, as our new shapes are added.
       Probably, only one DoGeometryChanged(gcAll) is needed, but for safety
