@@ -487,8 +487,9 @@ procedure Box3DDirectionDistances(const Box: TBox3D;
 function Box3DPointDistance(const Box: TBox3D; const Point: TVector3Single): Single;
 
 { Maximum distance between the box and a point.
-  @raises EBox3DEmpty When used with an empty box. }
-function Box3DPointMaxDistance(const Box: TBox3D; const Point: TVector3Single): Single;
+  Returns EmptyBoxDistance when box is empty. }
+function Box3DPointMaxDistance(const Box: TBox3D; const Point: TVector3Single;
+  const EmptyBoxDistance: Single): Single;
 
 type
   TDynArrayItem_1 = TBox3D;
@@ -1857,17 +1858,18 @@ begin
   Result := Sqrt(Result);
 end;
 
-function Box3DPointMaxDistance(const Box: TBox3D; const Point: TVector3Single): Single;
+function Box3DPointMaxDistance(const Box: TBox3D; const Point: TVector3Single;
+  const EmptyBoxDistance: Single): Single;
 var
   B: TBox3DBool absolute Box;
 begin
-  CheckNonEmpty(Box);
-
-  Result := Sqrt(
-    Sqr(Point[0] - B[Point[0] < (Box[0][0] + Box[1][0]) / 2][0]) +
-    Sqr(Point[1] - B[Point[1] < (Box[0][1] + Box[1][1]) / 2][1]) +
-    Sqr(Point[2] - B[Point[2] < (Box[0][2] + Box[1][2]) / 2][2])
-  );
+  if IsEmptyBox3D(Box) then
+    Result := EmptyBoxDistance else
+    Result := Sqrt(
+      Sqr(Point[0] - B[Point[0] < (Box[0][0] + Box[1][0]) / 2][0]) +
+      Sqr(Point[1] - B[Point[1] < (Box[0][1] + Box[1][1]) / 2][1]) +
+      Sqr(Point[2] - B[Point[2] < (Box[0][2] + Box[1][2]) / 2][2])
+    );
 end;
 
 end.

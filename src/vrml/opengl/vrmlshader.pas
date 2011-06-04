@@ -566,7 +566,7 @@ begin
           if we know (by bounding box test below)
           that the whole shape is completely within radius. }
         (Box3DPointMaxDistance(Shader.ShapeBoundingBox,
-          Light^.Location) > Light^.Radius) then
+          Light^.Location, -1) > Light^.Radius) then
       begin
         Define(ldHasRadius);
         LightRadiusUniformName := 'kambi_light_%d_radius';
