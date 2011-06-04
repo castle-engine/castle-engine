@@ -80,7 +80,7 @@ type
     procedure SetDeleteValue(const APath: string;
       const AValue, ADefaultValue: TVector4Single); overload;
 
-    { For a given path, return correspond DOM element of XML tree.
+    { For a given path, return corresponding DOM element of XML tree.
       This is useful if you want to mix XMLConfig style operations
       on the file and then use some real DOM functions to more directly
       operate/read on XML document.
