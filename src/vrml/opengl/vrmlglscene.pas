@@ -401,6 +401,16 @@ type
     fcBoth
   );
 
+  { Information that 3D objects need to render, with some VRML/X3D data. }
+  TVRMLRenderParams = class(TRenderParams)
+  private
+    FBaseLights: TDynLightInstanceArray;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property BaseLights: TDynLightInstanceArray read FBaseLights;
+  end;
+
   { Complete handling and rendering of a 3D VRML/X3D scene.
     This is a descendant of TVRMLScene that adds efficient rendering
     using OpenGL.
@@ -653,10 +663,7 @@ type
       const TransparentGroup: TTransparentGroup;
       LightRenderEvent: TVRMLLightRenderEvent = nil);
 
-    procedure Render(const Frustum: TFrustum;
-      BaseLights: TObject;
-      const TransparentGroup: TTransparentGroup;
-      InShadow: boolean); override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
@@ -1300,6 +1307,20 @@ begin
     end;
 
   finally FreeAndNil(Helper) end;
+end;
+
+{ TVRMLRenderParams ---------------------------------------------------------- }
+
+constructor TVRMLRenderParams.Create;
+begin
+  inherited;
+  FBaseLights := TDynLightInstanceArray.Create;
+end;
+
+destructor TVRMLRenderParams.Destroy;
+begin
+  FreeAndNil(FBaseLights);
+  inherited;
 end;
 
 { TVRMLGLScene ------------------------------------------------------------ }
@@ -3441,9 +3462,7 @@ begin
     Shape.RenderFrustumOctree_Visible := true;
 end;
 
-procedure TVRMLGLScene.Render(const Frustum: TFrustum;
-  BaseLights: TObject;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TVRMLGLScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
   RestoreShaders: boolean;
   RestoreShadersValue: TShadersRendering;
@@ -3459,16 +3478,16 @@ begin
       Attributes.Shaders := srDisable;
     end;
 
-    if InShadow then
-      RenderFrustum(Frustum, BaseLights as TDynLightInstanceArray, TransparentGroup, @LightRenderInShadow) else
-      RenderFrustum(Frustum, BaseLights as TDynLightInstanceArray, TransparentGroup, nil);
+    if Params.InShadow then
+      RenderFrustum(Frustum, (Params as TVRMLRenderParams).BaseLights, Params.TransparentGroup, @LightRenderInShadow) else
+      RenderFrustum(Frustum, (Params as TVRMLRenderParams).BaseLights, Params.TransparentGroup, nil);
 
     if RestoreShaders then
       Attributes.Shaders := RestoreShadersValue;
   end;
 end;
 
-{ Background-related things ---------------------------------------- }
+{ Background-related things -------------------------------------------------- }
 
 procedure TVRMLGLScene.InvalidateBackground;
 begin

@@ -523,10 +523,7 @@ type
     { Set @link(Time) to arbitrary value. }
     procedure ResetTime(const NewValue: TKamTime);
 
-    procedure Render(const Frustum: TFrustum;
-      BaseLights: TObject;
-      const TransparentGroup: TTransparentGroup;
-      InShadow: boolean); override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
@@ -1791,12 +1788,10 @@ begin
   Result := SceneFromTime(Time);
 end;
 
-procedure TVRMLGLAnimation.Render(const Frustum: TFrustum;
-  BaseLights: TObject;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TVRMLGLAnimation.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
   if Loaded and Exists then
-    CurrentScene.Render(Frustum, BaseLights, TransparentGroup, InShadow);
+    CurrentScene.Render(Frustum, Params);
 end;
 
 procedure TVRMLGLAnimation.RenderShadowVolume(

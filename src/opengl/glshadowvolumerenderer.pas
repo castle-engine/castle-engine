@@ -25,12 +25,7 @@ type
 
   TGLShadowVolumeRenderer = class;
 
-  TSVRenderTransparentGroupProc =
-    procedure (BaseLights: TObject;
-      const TransparentGroup: TTransparentGroup) of object;
-  TSVRenderShadowReceiversProc =
-    procedure (BaseLights: TObject;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean) of object;
+  TSVRenderParamsProc = procedure (const Params: TRenderParams) of object;
   TSVRenderProc = procedure of object;
 
   { Shadow volume rendering in OpenGL.
@@ -210,12 +205,17 @@ type
       You have to provide the appropriate callbacks that render given
       scene parts.
 
+      Params.TransparentGroup and Params.InShadow are changed here
+      (their previous values are ignored). They cannot be modified
+      by our callbacks.
+
       RenderNeverShadowed should render scene parts
       that are never in the shadow (in other words, are not shadow receivers).
       You probably want to turn all normal scene
-      lights for them. This will be called with TransparentGroup = tgOpaque
+      lights for them. This will be called with Params.TransparentGroup = tgOpaque
       or tgTransparent (for correct implementation, partially transparent
       and opaque parts must be rendered separately).
+      Params.InShadow will always be false.
 
       RenderShadowReceivers renders the parts
       of the scene that may be in the shadow. It will be called with
@@ -225,8 +225,8 @@ type
       (so probably is ligher, with normal scene lights on).
 
       RenderShadowReceivers will also be called with
-      TransparentGroup = tgOpaque or tgTransparent.
-      For tgTransparent, always InShadow = @false. In fact, transparent
+      Params.TransparentGroup = tgOpaque or tgTransparent.
+      For tgTransparent, always Params.InShadow = @false. In fact, transparent
       parts are always rendered at the end such that they aren't really shadow
       receivers. Shadow volumes simply don't allow transparent object
       to function properly as shadow receivers.
@@ -241,9 +241,9 @@ type
       to color buffer (as yellow blended polygons), this is useful for debugging
       shadow volumes. }
     procedure Render(
-      BaseLights: TObject;
-      const RenderNeverShadowed: TSVRenderTransparentGroupProc;
-      const RenderShadowReceivers: TSVRenderShadowReceiversProc;
+      const Params: TRenderParams;
+      const RenderNeverShadowed: TSVRenderParamsProc;
+      const RenderShadowReceivers: TSVRenderParamsProc;
       const RenderShadowVolumes: TSVRenderProc;
       const DrawShadowVolumes: boolean);
   end;
@@ -646,9 +646,9 @@ begin
 end;
 
 procedure TGLShadowVolumeRenderer.Render(
-  BaseLights: TObject;
-  const RenderNeverShadowed: TSVRenderTransparentGroupProc;
-  const RenderShadowReceivers: TSVRenderShadowReceiversProc;
+  const Params: TRenderParams;
+  const RenderNeverShadowed: TSVRenderParamsProc;
+  const RenderShadowReceivers: TSVRenderParamsProc;
   const RenderShadowVolumes: TSVRenderProc;
   const DrawShadowVolumes: boolean);
 const
@@ -675,9 +675,15 @@ var
   OldCount: boolean;
 begin
   if Assigned(RenderNeverShadowed) then
-    RenderNeverShadowed(BaseLights, tgOpaque);
+  begin
+    Params.InShadow := false;
+    Params.TransparentGroup := tgOpaque;
+    RenderNeverShadowed(Params);
+  end;
 
-  RenderShadowReceivers(BaseLights, tgOpaque, true);
+  Params.InShadow := true;
+  Params.TransparentGroup := tgOpaque;
+  RenderShadowReceivers(Params);
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
@@ -742,7 +748,7 @@ begin
     This is easy doable for opaque parts. But what about transparent
     things? In other words, where should the
     calls RenderNeverShadowed(tgTransparent)
-    and RenderShadowReceivers(false, tgTransparent) be done?
+    and RenderShadowReceivers(InShadow=false, tgTransparent) be done?
     They should be rendered but they don't affect depth buffer.
     Well, clearly, they have to be rendered
     before glClear(GL_DEPTH_BUFFER_BIT) (for the same reason that
@@ -784,7 +790,9 @@ begin
     glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
     glEnable(GL_STENCIL_TEST);
       Inc(RenderState.StencilTest);
-      RenderShadowReceivers(BaseLights, tgOpaque, false);
+      Params.InShadow := false;
+      Params.TransparentGroup := tgOpaque;
+      RenderShadowReceivers(Params);
       Dec(RenderState.StencilTest);
     glDisable(GL_STENCIL_TEST);
   glPopAttrib();
@@ -805,10 +813,16 @@ begin
     Count := OldCount;
   end;
 
-  RenderShadowReceivers(BaseLights, tgTransparent, false);
+  Params.InShadow := false;
+  Params.TransparentGroup := tgTransparent;
+  RenderShadowReceivers(Params);
 
   if Assigned(RenderNeverShadowed) then
-    RenderNeverShadowed(BaseLights, tgTransparent);
+  begin
+    Params.InShadow := false;
+    Params.TransparentGroup := tgTransparent;
+    RenderNeverShadowed(Params);
+  end;
 end;
 
 end.

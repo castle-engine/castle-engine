@@ -162,6 +162,21 @@ type
     Triangle: P3DTriangle;
   end;
 
+  { Information that 3D objects need to render, read-only for T3D.Render. }
+  TRenderParams = class
+    { Indicate that only opaque or only transparent
+      parts should be rendered. }
+    TransparentGroup: TTransparentGroup;
+
+    { If @true, means that we're using multi-pass
+      shadowing technique (like shadow volumes),
+      and currently doing the "shadowed" pass.
+
+      Which means that most lights (ones with kambiShadows = TRUE)
+      should be turned off, see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows].) }
+    InShadow: boolean;
+  end;
+
   { Base 3D object, that can be managed by TKamSceneManager.
     All 3D objects should descend from this, this way we can easily
     insert them into the TKamSceneManager. }
@@ -216,25 +231,14 @@ type
       more) guarantee it's never too small. }
     function BoundingBox: TBox3D; virtual; abstract;
 
-    { Render given object. This is done only if @link(Exists).
+    { Render given object. Done only if @link(Exists).
 
       @param(Frustum May be used to optimize rendering, to not
         render the parts outside the Frustum.)
 
-      @param(TransparentGroup
-        Used to indicate that only opaque or only transparent
-        parts should be rendered, just like for TVRMLGLScene.Render.)
-
-      @param(InShadow If @true, means that we're using multi-pass
-        shadowing technique (like shadow volumes),
-        and currently doing the "shadowed" pass.
-
-        Which means that most lights (ones with kambiShadows = TRUE)
-        should be turned off, see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows].)
+      @param(Params Other parameters helpful for rendering.)
     }
-    procedure Render(const Frustum: TFrustum;
-      BaseLights: TObject;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); virtual;
 
     property CastsShadow: boolean read FCastsShadow write FCastsShadow
       default true;
@@ -516,9 +520,7 @@ type
     { @groupEnd }
 
     function BoundingBox: TBox3D; override;
-    procedure Render(const Frustum: TFrustum;
-      BaseLights: TObject;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
@@ -622,10 +624,7 @@ begin
   inherited;
 end;
 
-procedure T3D.Render(const Frustum: TFrustum;
-  BaseLights: TObject;
-  const TransparentGroup: TTransparentGroup;
-  InShadow: boolean);
+procedure T3D.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
 end;
 
@@ -894,16 +893,14 @@ begin
       Box3DSumTo1st(Result, List[I].BoundingBox);
 end;
 
-procedure T3DList.Render(const Frustum: TFrustum;
-  BaseLights: TObject;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure T3DList.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
   I: Integer;
 begin
   inherited;
   if Exists then
     for I := 0 to List.Count - 1 do
-      List[I].Render(Frustum, BaseLights, TransparentGroup, InShadow);
+      List[I].Render(Frustum, Params);
 end;
 
 procedure T3DList.RenderShadowVolume(

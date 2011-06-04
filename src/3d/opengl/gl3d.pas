@@ -39,9 +39,7 @@ type
     function GetTranslation: TVector3Single; virtual; abstract;
 
     function BoundingBox: TBox3D; override;
-    procedure Render(const Frustum: TFrustum;
-      BaseLights: TObject;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
@@ -98,9 +96,7 @@ begin
   Result := Box3DTranslate(inherited BoundingBox, GetTranslation);
 end;
 
-procedure T3DCustomTranslated.Render(const Frustum: TFrustum;
-  BaseLights: TObject;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure T3DCustomTranslated.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
   T: TVector3Single;
 begin
@@ -115,13 +111,13 @@ begin
     about Frustum.Move time so much ?). }
 
   if ZeroVector(T) then
-    inherited Render(Frustum, BaseLights, TransparentGroup, InShadow) else
+    inherited Render(Frustum, Params) else
     begin
       glPushMatrix;
         glTranslatev(T);
         { Child.Render expects Frustum in it's local coordinates,
           that's why we subtract Translation here. }
-        inherited Render(Frustum.Move(-T), BaseLights, TransparentGroup, InShadow);
+        inherited Render(Frustum.Move(-T), Params);
       glPopMatrix;
     end;
 end;
