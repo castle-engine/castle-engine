@@ -882,19 +882,25 @@ end;
 function VectorsPerfectlyEqual(const V1, V2: TVector2): boolean;
 {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
-  Result := CompareMem(@V1, @V2, SizeOf(V1));
+  Result := (V1[0] = V2[0]) and
+            (V1[1] = V2[1]);
 end;
 
 function VectorsPerfectlyEqual(const V1, V2: TVector3): boolean;
 {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
-  Result := CompareMem(@V1, @V2, SizeOf(V1));
+  Result := (V1[0] = V2[0]) and
+            (V1[1] = V2[1]) and
+            (V1[2] = V2[2]);
 end;
 
 function VectorsPerfectlyEqual(const V1, V2: TVector4): boolean;
 {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
-  Result := CompareMem(@V1, @V2, SizeOf(V1));
+  Result := (V1[0] = V2[0]) and
+            (V1[1] = V2[1]) and
+            (V1[2] = V2[2]) and
+            (V1[3] = V2[3]);
 end;
 
 function MatricesEqual(const M1, M2: TMatrix3;
