@@ -580,7 +580,7 @@ type
     { For all Billboard nodes }
     BillboardInstancesList: TTransformInstancesList;
 
-    ChangedAll_TraversedLights: TDynLightInstanceArray;
+    GlobalLights: TDynLightInstanceArray;
 
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
@@ -2775,9 +2775,10 @@ begin
       of lights should not be done by Traverse at all (but by some
       EnumarateNodes call). }
 
-    { Add lights to ChangedAll_TraversedLights }
-    ParentScene.ChangedAll_TraversedLights.Add(
-      (Node as TNodeX3DLightNode).CreateLightInstance(StateStack.Top));
+    { Add lights to GlobalLights }
+    if TNodeX3DLightNode(Node).Scope = lsGlobal then
+      ParentScene.GlobalLights.Add(
+        (Node as TNodeX3DLightNode).CreateLightInstance(StateStack.Top));
   end else
 
   if Node is TNodeSwitch_2 then
@@ -2935,7 +2936,7 @@ procedure TVRMLScene.ChangedAll;
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          SI.Current.State.AddVRML2Light(L);
+          SI.Current.State.AddLight(L);
       finally FreeAndNil(SI) end;
     end;
 
@@ -2952,7 +2953,7 @@ procedure TVRMLScene.ChangedAll;
       try
         while SI.GetNext do
           if Box3DSphereCollision(SI.Current.BoundingBox, Location, Radius) then
-            SI.Current.State.AddVRML2Light(L);
+            SI.Current.State.AddLight(L);
       finally FreeAndNil(SI) end;
     end;
 
@@ -2961,24 +2962,21 @@ procedure TVRMLScene.ChangedAll;
     L: PLightInstance;
     LNode: TNodeX3DLightNode;
   begin
-    for I := 0 to ChangedAll_TraversedLights.High do
+    { Here we only deal with light scope = lsGlobal case.
+      Other scopes are handled during traversing. }
+
+    for I := 0 to GlobalLights.High do
     begin
-      { TODO: for spot lights, it would be an optimization to also limit
-        LightInstances by spot cone size. }
-      L := ChangedAll_TraversedLights.Pointers[I];
+      L := GlobalLights.Pointers[I];
       LNode := L^.Node;
 
-      { Lights with global = false should be handled by
-        TVRMLGroupingNode.BeforeTraverse. Here we only deal with
-        global = true case. }
+      { TODO: for spot lights, it would be an optimization to also limit
+        LightInstances by spot cone size. }
 
-      if LNode.FdGlobal.Value then
-      begin
-        if (LNode is TVRMLPositionalLightNode) and
-           TVRMLPositionalLightNode(LNode).HasRadius then
-          AddLightRadius(L^, L^.Location, L^.Radius) else
-          AddLightEverywhere(L^);
-      end;
+      if (LNode is TVRMLPositionalLightNode) and
+         TVRMLPositionalLightNode(LNode).HasRadius then
+        AddLightRadius(L^, L^.Location, L^.Radius) else
+        AddLightEverywhere(L^);
     end;
   end;
 
@@ -3045,7 +3043,7 @@ begin
     { Clear variables after removing fvManifoldAndBorderEdges from Validities }
     InvalidateManifoldAndBorderEdges;
 
-    ChangedAll_TraversedLights := TDynLightInstanceArray.Create;
+    GlobalLights := TDynLightInstanceArray.Create;
     try
       { Clean Shapes, ShapeLODs }
       FreeAndNil(FShapes);
@@ -3068,7 +3066,7 @@ begin
 
         ChangedAllEnumerate;
       end;
-    finally FreeAndNil(ChangedAll_TraversedLights) end;
+    finally FreeAndNil(GlobalLights) end;
 
     { Call DoGeometryChanged here, as our new shapes are added.
       Probably, only one DoGeometryChanged(gcAll) is needed, but for safety

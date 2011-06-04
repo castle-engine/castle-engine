@@ -16,13 +16,24 @@
 {$ifdef read_interface}
   TNodeGeneratedShadowMap = class;
 
+  TLightScope = (
+    { Light shines everywhere. VRML/X3D >= 2 calls these lights global. }
+    lsGlobal,
+    { Light shines only within it's VRML/X3D grouping node.
+      VRML/X3D >= 2 calls these lights not global. }
+    lsLocal,
+    { Light shines only on the following shapes within
+      it's VRML/X3D grouping node.
+      This is used by VRML 1.0 (and Inventor) light sources. }
+    lsLocalVRML1);
+
   { Base class for all VRML / X3D light nodes.
 
     Note that even the old VRML 1.0 light nodes inherit from this.
     Although they interpret some bits differently
-    ("ambientIntensity" < 0 has special meaning,
-    and "global" is ignored --- VRML 1.0 has own light scoping rules),
-    most of the fields behave identically. }
+    ("ambientIntensity" < 0 has special meaning).
+    But most of the fields behave identically, they only have different
+    default values. }
   TNodeX3DLightNode = class(TNodeX3DChildNode)
   private
     FTransform: TMatrix4Single;
@@ -164,6 +175,11 @@
     procedure DefaultShadowMapSave(Node: TNodeGeneratedShadowMap);
     { Internal, to workaround small VRMLShadowMaps problem. @exclude }
     function DefaultShadowMapLoad(Node: TNodeGeneratedShadowMap): boolean;
+
+    { Light scope. Default implementation returns lsGlobal or lsLocal,
+      depending on "global" field value. As such, this is suitable
+      for all VRML/X3D >= 2.0 lights. }
+    function Scope: TLightScope; virtual;
   end;
 
   { Deprecated name for TNodeX3DLightNode. @deprecated }
@@ -484,7 +500,8 @@ end;
 procedure TNodeX3DLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
-  StateStack.Top.AddVRML1Light(CreateLightInstance(StateStack.Top));
+  if Scope = lsLocalVRML1 then
+    StateStack.Top.AddLight(CreateLightInstance(StateStack.Top));
 end;
 
 function TNodeX3DLightNode.TransformationChange: TNodeTransformationChange;
@@ -513,6 +530,13 @@ begin
     Node.FdBias        .Value := SavedDefaultShadowMapBias       ;
     Node.FdCompareMode .Value := SavedDefaultShadowMapCompareMode;
   end;
+end;
+
+function TNodeX3DLightNode.Scope: TLightScope;
+begin
+  if FdGlobal.Value then
+    Result := lsGlobal else
+    Result := lsLocal;
 end;
 
 procedure TVRMLDirectionalLightNode.CreateNode;

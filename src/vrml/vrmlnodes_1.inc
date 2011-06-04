@@ -738,6 +738,8 @@
 
     function SuggestedVRMLVersion(
       out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
+
+    function Scope: TLightScope; override;
   end;
 
   TNodePointLight_1 = class(TVRMLPointLightNode)
@@ -748,6 +750,7 @@
     function SuggestedVRMLVersion(
       out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     function HasRadius: boolean; override;
+    function Scope: TLightScope; override;
   end;
 
   TNodeSpotLight_1 = class(TVRMLPositionalLightNode)
@@ -783,6 +786,7 @@
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
     function HasRadius: boolean; override;
+    function Scope: TLightScope; override;
   end;
 
   TNodeGroup_1 = class(TNodeX3DChildNode)
@@ -2252,6 +2256,11 @@ begin
     true, VRML1Version, 1000);
 end;
 
+function TNodeDirectionalLight_1.Scope: TLightScope;
+begin
+  Result := lsLocalVRML1;
+end;
+
 procedure TNodePointLight_1.CreateNode;
 begin
   inherited;
@@ -2282,6 +2291,11 @@ end;
 function TNodePointLight_1.HasRadius: boolean;
 begin
   Result := false;
+end;
+
+function TNodePointLight_1.Scope: TLightScope;
+begin
+  Result := lsLocalVRML1;
 end;
 
 procedure TNodeSpotLight_1.CreateNode;
@@ -2397,6 +2411,11 @@ begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
   Box3DDirectionDistances(Box, Location, Direction, MinDistance, MaxDistance);
+end;
+
+function TNodeSpotLight_1.Scope: TLightScope;
+begin
+  Result := lsLocalVRML1;
 end;
 
 procedure TNodeGroup_1.CreateNode;

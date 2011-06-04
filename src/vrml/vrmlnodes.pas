@@ -388,47 +388,17 @@ type
     procedure SetLastNodes(const StateNode: TVRML1StateNode;
       const Node: TVRMLNode; const OwnNode: boolean);
   public
-    { Lights active in this state, two separate versions for each VRML flavor
-      needed here.
+    { Lights active in this state.
 
-      VRML2Lights should be for any VRML >= 2 (including X3D),
-      VRML1Lights should be for any VRML <= 1 (including Inventor).
-
-      Always @nil if empty. This way we optimize creation / assignment time,
-      which happen very often with TVRMLGraphTraverseState during VRML
+      May be @nil if empty. This way we optimize creation / assignment time,
+      which happen very often with TVRMLGraphTraverseState during VRML/X3D
       traversing.
 
-      VRML 2.0 may have more lights active
-      (since DirectionalLight affects all siblings, and other lights affect
-      potentially all). But VRML 2.0 may also have some lights less,
-      since some lights are limited by radius and may be determined to
-      not light here.
+      Note that VRML >= 2.0 "global" lights are added from TVRMLScene,
+      not during the traverse pass. }
+    Lights: TDynLightInstanceArray;
 
-      Also, note that VRML2Lights cannot be fully calculated in Traverse
-      pass (contrary to everything else in TVRMLGraphTraverseState).
-      DirectionalLights are calculated here, but positional lights have
-      to be calculated later (VRML 2 spec says that they affect whole scene,
-      based on their radius, and regardless of their position in VRML graph;
-      so this is not possible to fill during Traverse call).
-      See how UpdateVRML2Lights in TVRMLScene does this.
-
-      It's guaranteed that VRML/X3D lights change only these
-      *Lights properties during traversing, not anything else.
-      TVRMLScene.ChangedField (may) depend on that. }
-    VRML1Lights, VRML2Lights: TDynLightInstanceArray;
-
-    procedure AddVRML1Light(const Light: TLightInstance);
-    procedure AddVRML2Light(const Light: TLightInstance);
-
-    { Returns VRML1Lights or VRML2Lights, based on VRML
-      flavor used to render with this state.
-
-      More precisely, it checks "VRML flavor" by looking at ShapeNode:
-      when ShapeNode is @nil, we're in VRML 1 mode, otherwise in VRML 2 mode.
-
-      Remember that result may be @nil if there are no light sources. }
-    function Lights: TDynLightInstanceArray;
-
+    procedure AddLight(const Light: TLightInstance);
   public
     { Current transformation. }
     Transform: TMatrix4Single;
@@ -2461,8 +2431,7 @@ begin
     FLastNodes.Nodes[SN] := nil;
   end;
 
-  FreeAndNil(VRML1Lights);
-  FreeAndNil(VRML2Lights);
+  FreeAndNil(Lights);
   FreeAndNil(PointingDeviceSensors);
   FreeAndNil(ClipPlanes);
   FreeAndNil(Effects);
@@ -2486,24 +2455,16 @@ begin
   LocalFog := nil;
 
   PointingDeviceSensors.Count := 0;
-  FreeAndNil(VRML1Lights);
-  FreeAndNil(VRML2Lights);
+  FreeAndNil(Lights);
   FreeAndNil(ClipPlanes);
   FreeAndNil(Effects);
 end;
 
-procedure TVRMLGraphTraverseState.AddVRML1Light(const Light: TLightInstance);
+procedure TVRMLGraphTraverseState.AddLight(const Light: TLightInstance);
 begin
-  if VRML1Lights = nil then
-    VRML1Lights := TDynLightInstanceArray.Create;
-  VRML1Lights.Add(Light);
-end;
-
-procedure TVRMLGraphTraverseState.AddVRML2Light(const Light: TLightInstance);
-begin
-  if VRML2Lights = nil then
-    VRML2Lights := TDynLightInstanceArray.Create;
-  VRML2Lights.Add(Light);
+  if Lights = nil then
+    Lights := TDynLightInstanceArray.Create;
+  Lights.Add(Light);
 end;
 
 function TVRMLGraphTraverseState.AddClipPlane: PClipPlane;
@@ -2529,21 +2490,13 @@ begin
 
   PointingDeviceSensors.Assign(Source.PointingDeviceSensors);
 
-  if Source.VRML1Lights <> nil then
+  if Source.Lights <> nil then
   begin
-    if VRML1Lights = nil then
-      VRML1Lights := TDynLightInstanceArray.Create;
-    VRML1Lights.Assign(Source.VRML1Lights);
+    if Lights = nil then
+      Lights := TDynLightInstanceArray.Create;
+    Lights.Assign(Source.Lights);
   end else
-    FreeAndNil(VRML1Lights);
-
-  if Source.VRML2Lights <> nil then
-  begin
-    if VRML2Lights = nil then
-      VRML2Lights := TDynLightInstanceArray.Create;
-    VRML2Lights.Assign(Source.VRML2Lights);
-  end else
-    FreeAndNil(VRML2Lights);
+    FreeAndNil(Lights);
 end;
 
 procedure TVRMLGraphTraverseState.AssignTransform(
@@ -2623,13 +2576,6 @@ begin
         Result := TNodeBlendMode(Node);
     end;
   end;
-end;
-
-function TVRMLGraphTraverseState.Lights: TDynLightInstanceArray;
-begin
-  if ShapeNode = nil then
-    Result := VRML1Lights else
-    Result := VRML2Lights;
 end;
 
 procedure TVRMLGraphTraverseState.SetLastNodes(const StateNode: TVRML1StateNode;

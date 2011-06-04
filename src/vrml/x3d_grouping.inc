@@ -313,7 +313,7 @@ type
     CP: PClipPlane;
   begin
     if (Child is TNodeX3DLightNode) and
-       (not TNodeX3DLightNode(Child).FdGlobal.Value) then
+       (TNodeX3DLightNode(Child).Scope = lsLocal) then
       { We do CreateLightInstance with State from TVRMLGroupingNode node,
         while precisely we should rather use State from TNodeX3DLightNode
         traverse. But, fortunately, State of TNodeX3DLightNode doesn't
@@ -323,7 +323,7 @@ type
         for TVRMLPositionalLightNode with HasRadius = true.
         E.g. PointLight with global = false should be limited by *both*
         scope (in graph hierarchy) and radius, as far as I understand. }
-      State.AddVRML2Light(
+      State.AddLight(
         TNodeX3DLightNode(Child).CreateLightInstance(State)) else
     if Child is TNodeX3DPointingDeviceSensorNode then
     begin
