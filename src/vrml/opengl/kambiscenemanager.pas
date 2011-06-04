@@ -19,7 +19,7 @@ unit KambiSceneManager;
 interface
 
 uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
-  VRMLGLHeadLight, GLShadowVolumeRenderer, GL, UIControls, Base3D,
+  GLShadowVolumeRenderer, GL, UIControls, Base3D, VRMLHeadlight,
   KeysMouse, VRMLTriangle, Boxes3D, VRMLGLBackground, KambiUtils, KambiClassUtils,
   GLShaders, GLImages, KambiTimeUtils;
 
@@ -1277,11 +1277,7 @@ begin
       Or use a hacky HeadlightFromViewport. }
 
     if (HC <> nil) and (GetMainScene.Headlight <> nil) then
-    begin
-      GetMainScene.Headlight.Render(BaseLights.Count, true,
-        (RenderingCamera.Target = rtScreen) and (HC = Camera), HC);
       BaseLights.Add(GetMainScene.Headlight.LightInstance(HC));
-    end;
   end;
 
   { if MainScene = nil, do not enable any light. }
@@ -1998,7 +1994,7 @@ end;
 
 function TKamSceneManager.CameraToChanges: TVisibleChanges;
 var
-  H: TVRMLGLHeadlight;
+  H: TVRMLHeadlight;
 begin
   if MainScene <> nil then
     H := MainScene.Headlight { this may still return @nil if no headlight } else

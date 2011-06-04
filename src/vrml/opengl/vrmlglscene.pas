@@ -21,7 +21,7 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
-  VRMLShapeOctree, VRMLHeadLight, VRMLGLHeadLight,
+  VRMLShapeOctree, VRMLHeadLight,
   GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLGLLightSet, VRMLShape, Frustum,
   GLCubeMap, Base3D, GLShaders;
 
@@ -542,8 +542,6 @@ type
   protected
     function CreateShape(AGeometry: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; override;
-    function CreateHeadLightInstance
-      (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; override;
     procedure InvalidateBackground; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -909,12 +907,6 @@ type
       (next PrepareResources with prRender, or Render call, may need
       to recalculate some things). }
     function Attributes: TVRMLSceneRenderingAttributes;
-
-    { Headlight that should be used for this scene (if HeadlightOn), or @nil.
-      See @link(TVRMLScene.HeadLight) documentation,
-      this just returns headlight already casted to TVRMLGLHeadLight for OpenGL
-      rendering. }
-    function Headlight: TVRMLGLHeadlight;
 
     { Set OpenGL projection, based on currently
       bound Viewpoint, NavigationInfo and used camera.
@@ -3758,19 +3750,6 @@ begin
   end;
 
   UpdateCameraProjectionMatrix;
-end;
-
-function TVRMLGLScene.CreateHeadLightInstance
-  (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight;
-begin
-  Result := TVRMLGLHeadLight.Create(HeadLightNode);
-end;
-
-function TVRMLGLScene.Headlight: TVRMLGLHeadlight;
-begin
-  { Our CreateHeadLightInstance makes sure that this can be cast to
-    TVRMLGLHeadlight. }
-  Result := TVRMLGLHeadlight(inherited Headlight);
 end;
 
 procedure TVRMLGLScene.LastRender_SumNext;

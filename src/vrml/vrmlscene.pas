@@ -818,12 +818,6 @@ type
     function CreateShape(AGeometry: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; virtual;
 
-    { Create TVRMLHeadLight instance suitable for this TVRMLScene descendant.
-      In this class, this simply creates new TVRMLHeadLight instance.
-      You can override it in descendants to create something more specialized. }
-    function CreateHeadLightInstance
-      (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight; virtual;
-
     procedure UpdateHeadlightOnFromNavigationInfo;
 
     procedure InvalidateBackground; virtual;
@@ -6298,12 +6292,6 @@ begin
     AMainLightPosition := FMainLightForShadows;
 end;
 
-function TVRMLScene.CreateHeadLightInstance
-  (HeadLightNode: TNodeKambiHeadLight): TVRMLHeadLight;
-begin
-  Result := TVRMLHeadLight.Create(HeadLightNode);
-end;
-
 procedure TVRMLScene.SetHeadlightOn(const Value: boolean);
 begin
   if FHeadlightOn <> Value then
@@ -6334,7 +6322,7 @@ procedure TVRMLScene.SetHeadlightInitialized(const Value: boolean);
     if RootNode <> nil then
       HeadLightNode := RootNode.TryFindNode(TNodeKambiHeadLight, true) as
         TNodeKambiHeadLight;
-    Result := CreateHeadLightInstance(HeadLightNode);
+    Result := TVRMLHeadLight.Create(HeadLightNode);
   end;
 
 begin

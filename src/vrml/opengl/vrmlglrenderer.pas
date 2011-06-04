@@ -353,22 +353,20 @@ type
 
     { Should we setup VRML/X3D lights as OpenGL lights during rendering.
 
-      VRML/X3D lights are loaded into OpenGL light numbers between
-      given (to RenderBegin) BaseLights.Count, and the last available OpenGL light.
-      Lights before and up to the BaseLights.Count - 1 must be always enabled,
-      by your own code.
-      This is necessary, as our shader pipeline must know about all enabled
-      lights, from VRML/X3D or not.
+      VRML/X3D lights are loaded into OpenGL lights. All OpenGL lights
+      are always used (we always start from the first OpenGL light 0,
+      up to the last available OpenGL light --- this is necessary,
+      as shader pipeline must know all the lights anyway).
+
+      Initial OpenGL lights are reserved for BaseLights
+      (useful for you to define any lights from outside of the scene).
+      Then following OpenGL lights are reserved the lights defined
+      in your scene (if this property is @true).
+      The remaining OpenGL lights, if any, are not used (we make sure they
+      are disabled for fixed-function pipeline).
 
       This is independent from the @link(Lighting) property (which merely
-      says whether we will turn OpenGL lighting on at all).
-
-      You can always use your own OpenGL lights to light our 3D model
-      (we always render 3D geometry normals and materials, regardless
-      of @link(Lighting) and @link(UseSceneLights) values.)
-      You can use your own lights instead of scene lights (set UseSceneLights
-      to @false), or in addition to scene lights (leave UseSceneLights
-      as @true and increase BaseLights as necessary). }
+      says whether we will turn OpenGL lighting on at all). }
     property UseSceneLights: boolean
       read FUseSceneLights write FUseSceneLights default true;
 
@@ -1062,9 +1060,7 @@ type
 
     FCache: TVRMLGLRendererContextCache;
 
-    { OpenGL shining on all shapes. For fixed-function pipeline,
-      for now we assume these were set outside of this renderer.
-      Set in each RenderBegin. }
+    { Lights shining on all shapes. Set in each RenderBegin. }
     BaseLights: TDynLightInstanceArray;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
@@ -2860,9 +2856,8 @@ begin
     end else
       glDisable(GL_LIGHTING);
 
-    if Attributes.UseSceneLights then
-      for I := BaseLights.Count to GLMaxLights - 1 do
-        glDisable(GL_LIGHT0 + I);
+    for I := 0 to GLMaxLights - 1 do
+      glDisable(GL_LIGHT0 + I);
 
     glDisable(GL_FOG);
 
@@ -2921,7 +2916,7 @@ begin
   Assert(not FogEnabled);
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
-    BaseLights.Count, GLMaxLights - 1, LightRenderEvent);
+    0, GLMaxLights - 1, LightRenderEvent);
 end;
 
 procedure TVRMLGLRenderer.RenderEnd;
@@ -3016,29 +3011,34 @@ procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
   const MaterialSpecularColor: TVector3Single);
 var
   LightsEnabled: Cardinal;
-  I: Integer;
+  I, OldBaseLightsCount: Integer;
   Lights: TDynLightInstanceArray;
 begin
+  { All this is done before loading State.Transform, as the lights
+    positions/directions are in world coordinates. }
+
   { When lighting is off (for either shaders or fixed-function),
     there is no point in setting up lights. }
   if Lighting then
   begin
-    for I := 0 to BaseLights.Count - 1 do
-      Shader.EnableLight(I, BaseLights.Pointers[I], MaterialSpecularColor);
+    OldBaseLightsCount := BaseLights.Count;
 
     if Attributes.UseSceneLights then
     begin
-      { Done before loading State.Transform, as the lights
-        positions/directions are in world coordinates. }
       Lights := Shape.State.Lights;
-      LightsRenderer.Render(Lights, LightsEnabled);
       if Lights <> nil then
-      begin
-        for I := BaseLights.Count to Integer(LightsEnabled) - 1 do
-          Shader.EnableLight(I, LightsRenderer.LightsDone[I - BaseLights.Count],
-            MaterialSpecularColor);
-      end;
+        { TODO: unoptimal to do this every frame, for every shape.
+          Optimize, integrate with lights setting, once vrmllightset
+          can be simplified. }
+        BaseLights.AppendDynArray(Lights);
     end;
+
+    LightsRenderer.Render(BaseLights, LightsEnabled);
+    for I := 0 to Integer(LightsEnabled) - 1 do
+      Shader.EnableLight(I, LightsRenderer.LightsDone[I], MaterialSpecularColor);
+
+    { restore BaseLights }
+    BaseLights.Count := OldBaseLightsCount;
   end;
 
   RenderShapeFog(Shape, Fog, Shader, MaterialOpacity, Lighting);
