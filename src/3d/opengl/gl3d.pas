@@ -40,7 +40,7 @@ type
 
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum;
-      const LightsEnabled: Cardinal;
+      BaseLights: TObject;
       const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
@@ -99,7 +99,7 @@ begin
 end;
 
 procedure T3DCustomTranslated.Render(const Frustum: TFrustum;
-  const LightsEnabled: Cardinal;
+  BaseLights: TObject;
   const TransparentGroup: TTransparentGroup; InShadow: boolean);
 var
   T: TVector3Single;
@@ -115,13 +115,13 @@ begin
     about Frustum.Move time so much ?). }
 
   if ZeroVector(T) then
-    inherited Render(Frustum, LightsEnabled, TransparentGroup, InShadow) else
+    inherited Render(Frustum, BaseLights, TransparentGroup, InShadow) else
     begin
       glPushMatrix;
         glTranslatev(T);
         { Child.Render expects Frustum in it's local coordinates,
           that's why we subtract Translation here. }
-        inherited Render(Frustum.Move(-T), LightsEnabled, TransparentGroup, InShadow);
+        inherited Render(Frustum.Move(-T), BaseLights, TransparentGroup, InShadow);
       glPopMatrix;
     end;
 end;

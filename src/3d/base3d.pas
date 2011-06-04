@@ -233,7 +233,7 @@ type
         should be turned off, see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows].)
     }
     procedure Render(const Frustum: TFrustum;
-      const LightsEnabled: Cardinal;
+      BaseLights: TObject;
       const TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
 
     property CastsShadow: boolean read FCastsShadow write FCastsShadow
@@ -517,7 +517,7 @@ type
 
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum;
-      const LightsEnabled: Cardinal;
+      BaseLights: TObject;
       const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
@@ -623,7 +623,7 @@ begin
 end;
 
 procedure T3D.Render(const Frustum: TFrustum;
-  const LightsEnabled: Cardinal;
+  BaseLights: TObject;
   const TransparentGroup: TTransparentGroup;
   InShadow: boolean);
 begin
@@ -895,7 +895,7 @@ begin
 end;
 
 procedure T3DList.Render(const Frustum: TFrustum;
-  const LightsEnabled: Cardinal;
+  BaseLights: TObject;
   const TransparentGroup: TTransparentGroup; InShadow: boolean);
 var
   I: Integer;
@@ -903,7 +903,7 @@ begin
   inherited;
   if Exists then
     for I := 0 to List.Count - 1 do
-      List[I].Render(Frustum, LightsEnabled, TransparentGroup, InShadow);
+      List[I].Render(Frustum, BaseLights, TransparentGroup, InShadow);
 end;
 
 procedure T3DList.RenderShadowVolume(

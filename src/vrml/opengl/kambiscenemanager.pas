@@ -39,6 +39,7 @@ type
     FFullSize: boolean;
     FCamera: TCamera;
     FPaused: boolean;
+    FBaseLights: TDynLightInstanceArray;
 
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
@@ -97,13 +98,13 @@ type
       this is the simplest method to override. (Or you can use OnRender3D
       event, which is called at the end of this method.)
       Just pass to OpenGL your 3D geometry here. }
-    procedure Render3D(const LightsEnabled: Cardinal;
+    procedure Render3D(BaseLights: TObject;
       const TransparentGroup: TTransparentGroup; InShadow: boolean); virtual;
 
     { Render 3D items that are never in shadows (are not shadow receivers).
       This will always be called once with tgOpaque, and once with tgTransparent
       argument, from RenderFromView. }
-    procedure RenderNeverShadowed(const LightsEnabled: Cardinal;
+    procedure RenderNeverShadowed(BaseLights: TObject;
       const TransparentGroup: TTransparentGroup); virtual;
 
     { Render shadow quads for all the things rendered by @link(Render3D).
@@ -121,17 +122,17 @@ type
     { Render the headlight. Called by RenderFromViewEverything,
       when camera matrix is set.
       If headlight is on, this will enable and set appropriate OpenGL
-      light properties, and increment LightsEnabled.
+      light properties, and add it to BaseLights.
 
       Implementation in this class uses headlight defined
       in the MainScene, following NavigationInfo.headlight and KambiHeadlight
       nodes. If MainScene is not assigned, this does nothing. }
-    procedure RenderHeadLight(var LightsEnabled: Cardinal); virtual;
+    procedure RenderHeadLight(BaseLights: TObject); virtual;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
       when everything (clearing, background, headlight, loading camera
       matrix) is done and all that remains is to pass to OpenGL actual 3D world. }
-    procedure RenderFromView3D(const LightsEnabled: Cardinal); virtual;
+    procedure RenderFromView3D(BaseLights: TObject); virtual;
 
     { Render everything (by RenderFromViewEverything) on the screen.
       Takes care to set RenderState (Target = rtScreen and camera as given),
@@ -846,6 +847,7 @@ begin
   inherited;
   FFullSize := true;
   FAlwaysApplyProjection := true;
+  FBaseLights := TDynLightInstanceArray.Create;
 end;
 
 destructor TKamAbstractViewport.Destroy;
@@ -870,6 +872,8 @@ begin
     This scenario would cause segfault, as FCamera pointer is invalid
     at this time. }
   Camera := nil;
+
+  FreeAndNil(FBaseLights);
 
   inherited;
 end;
@@ -1229,10 +1233,10 @@ begin
     Result := false;
 end;
 
-procedure TKamAbstractViewport.Render3D(const LightsEnabled: Cardinal;
+procedure TKamAbstractViewport.Render3D(BaseLights: TObject;
   const TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
-  GetItems.Render(RenderState.CameraFrustum, LightsEnabled, TransparentGroup, InShadow);
+  GetItems.Render(RenderState.CameraFrustum, BaseLights, TransparentGroup, InShadow);
   if Assigned(OnRender3D) then
     OnRender3D(Self, TransparentGroup, InShadow);
 end;
@@ -1242,7 +1246,7 @@ begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
-procedure TKamAbstractViewport.RenderHeadLight(var LightsEnabled: Cardinal);
+procedure TKamAbstractViewport.RenderHeadLight(BaseLights: TObject);
 var
   HC: TCamera;
 begin
@@ -1271,22 +1275,22 @@ begin
 
     if (HC <> nil) and (GetMainScene.Headlight <> nil) then
     begin
-      GetMainScene.Headlight.Render(LightsEnabled, true,
+      GetMainScene.Headlight.Render((BaseLights as TDynLightInstanceArray).Count, true,
         (RenderState.Target = rtScreen) and (HC = Camera), HC);
-      Inc(LightsEnabled);
+      (BaseLights as TDynLightInstanceArray).Add(GetMainScene.Headlight.LightInstance(HC));
     end;
   end;
 
   { if MainScene = nil, do not enable any light. }
 end;
 
-procedure TKamAbstractViewport.RenderNeverShadowed(const LightsEnabled: Cardinal;
+procedure TKamAbstractViewport.RenderNeverShadowed(BaseLights: TObject;
   const TransparentGroup: TTransparentGroup);
 begin
   { Nothing to do in this class }
 end;
 
-procedure TKamAbstractViewport.RenderFromView3D(const LightsEnabled: Cardinal);
+procedure TKamAbstractViewport.RenderFromView3D(BaseLights: TObject);
 
   procedure RenderNoShadows;
   begin
@@ -1296,16 +1300,16 @@ procedure TKamAbstractViewport.RenderFromView3D(const LightsEnabled: Cardinal);
       covered by non-transparent objects (that are in fact further away from
       the camera). }
 
-    RenderNeverShadowed(LightsEnabled, tgOpaque);
-    Render3D(LightsEnabled, tgOpaque, false);
-    Render3D(LightsEnabled, tgTransparent, false);
-    RenderNeverShadowed(LightsEnabled, tgTransparent);
+    RenderNeverShadowed(BaseLights, tgOpaque);
+    Render3D(BaseLights, tgOpaque, false);
+    Render3D(BaseLights, tgTransparent, false);
+    RenderNeverShadowed(BaseLights, tgTransparent);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
     GetShadowVolumeRenderer.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
-    GetShadowVolumeRenderer.Render(LightsEnabled, @RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
+    GetShadowVolumeRenderer.Render(BaseLights, @RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
   end;
 
 var
@@ -1332,7 +1336,7 @@ var
   ClearBuffers: TGLbitfield;
   UsedBackground: TVRMLGLBackground;
   MainLightPosition: TVector4Single; { ignored }
-  LightsEnabled, LightsEnabledByHeadlight: Cardinal;
+  LightsEnabledByHeadlight: Cardinal;
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
@@ -1395,11 +1399,13 @@ begin
 
   glLoadMatrix(RenderState.CameraMatrix);
 
-  LightsEnabled := 0;
-  RenderHeadLight(LightsEnabled);
-  LightsEnabledByHeadlight := LightsEnabled;
+  { Each time, we clear FBaseLights and pass it to other render routines.
+    We don't let them access FBaseLights directly (this it a little cleaner). }
+  FBaseLights.Clear;
+  RenderHeadLight(FBaseLights);
+  LightsEnabledByHeadlight := FBaseLights.Count;
 
-  RenderFromView3D(LightsEnabled);
+  RenderFromView3D(FBaseLights);
 
   { cleanup after RenderHeadLight: disable (for fixed-function pipeline) lights
     enabled inside RenderHeadLight. }

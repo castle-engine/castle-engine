@@ -524,7 +524,7 @@ type
     procedure ResetTime(const NewValue: TKamTime);
 
     procedure Render(const Frustum: TFrustum;
-      const LightsEnabled: Cardinal;
+      BaseLights: TObject;
       const TransparentGroup: TTransparentGroup;
       InShadow: boolean); override;
     procedure RenderShadowVolume(
@@ -1792,11 +1792,11 @@ begin
 end;
 
 procedure TVRMLGLAnimation.Render(const Frustum: TFrustum;
-  const LightsEnabled: Cardinal;
+  BaseLights: TObject;
   const TransparentGroup: TTransparentGroup; InShadow: boolean);
 begin
   if Loaded and Exists then
-    CurrentScene.Render(Frustum, LightsEnabled, TransparentGroup, InShadow);
+    CurrentScene.Render(Frustum, BaseLights, TransparentGroup, InShadow);
 end;
 
 procedure TVRMLGLAnimation.RenderShadowVolume(

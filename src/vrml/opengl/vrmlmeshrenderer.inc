@@ -691,7 +691,7 @@ begin
           [Shape.NiceName,
            BoolToStr[(Shape.ProgramCache = nil) or
                      (Shape.ProgramCache.ShaderProgram = nil)],
-           Renderer.FirstLight]);
+           Renderer.BaseLights.Count]);
 
       if Shape.ProgramCache <> nil then
         Renderer.Cache.Program_DecReference(Shape.ProgramCache);

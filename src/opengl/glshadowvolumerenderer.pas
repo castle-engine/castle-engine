@@ -26,10 +26,10 @@ type
   TGLShadowVolumeRenderer = class;
 
   TSVRenderTransparentGroupProc =
-    procedure (const LightsEnabled: Cardinal;
+    procedure (BaseLights: TObject;
       const TransparentGroup: TTransparentGroup) of object;
   TSVRenderShadowReceiversProc =
-    procedure (const LightsEnabled: Cardinal;
+    procedure (BaseLights: TObject;
       const TransparentGroup: TTransparentGroup; InShadow: boolean) of object;
   TSVRenderProc = procedure of object;
 
@@ -241,7 +241,7 @@ type
       to color buffer (as yellow blended polygons), this is useful for debugging
       shadow volumes. }
     procedure Render(
-      const LightsEnabled: Cardinal;
+      BaseLights: TObject;
       const RenderNeverShadowed: TSVRenderTransparentGroupProc;
       const RenderShadowReceivers: TSVRenderShadowReceiversProc;
       const RenderShadowVolumes: TSVRenderProc;
@@ -646,7 +646,7 @@ begin
 end;
 
 procedure TGLShadowVolumeRenderer.Render(
-  const LightsEnabled: Cardinal;
+  BaseLights: TObject;
   const RenderNeverShadowed: TSVRenderTransparentGroupProc;
   const RenderShadowReceivers: TSVRenderShadowReceiversProc;
   const RenderShadowVolumes: TSVRenderProc;
@@ -675,9 +675,9 @@ var
   OldCount: boolean;
 begin
   if Assigned(RenderNeverShadowed) then
-    RenderNeverShadowed(LightsEnabled, tgOpaque);
+    RenderNeverShadowed(BaseLights, tgOpaque);
 
-  RenderShadowReceivers(LightsEnabled, tgOpaque, true);
+  RenderShadowReceivers(BaseLights, tgOpaque, true);
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
@@ -784,7 +784,7 @@ begin
     glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
     glEnable(GL_STENCIL_TEST);
       Inc(RenderState.StencilTest);
-      RenderShadowReceivers(LightsEnabled, tgOpaque, false);
+      RenderShadowReceivers(BaseLights, tgOpaque, false);
       Dec(RenderState.StencilTest);
     glDisable(GL_STENCIL_TEST);
   glPopAttrib();
@@ -805,10 +805,10 @@ begin
     Count := OldCount;
   end;
 
-  RenderShadowReceivers(LightsEnabled, tgTransparent, false);
+  RenderShadowReceivers(BaseLights, tgTransparent, false);
 
   if Assigned(RenderNeverShadowed) then
-    RenderNeverShadowed(LightsEnabled, tgTransparent);
+    RenderNeverShadowed(BaseLights, tgTransparent);
 end;
 
 end.

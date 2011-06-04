@@ -354,8 +354,8 @@ type
     { Should we setup VRML/X3D lights as OpenGL lights during rendering.
 
       VRML/X3D lights are loaded into OpenGL light numbers between
-      given (to RenderBegin) LightsEnabled, and the last available OpenGL light.
-      Lights before and up to the LightsEnabled must be always enabled,
+      given (to RenderBegin) BaseLights.Count, and the last available OpenGL light.
+      Lights before and up to the BaseLights.Count - 1 must be always enabled,
       by your own code.
       This is necessary, as our shader pipeline must know about all enabled
       lights, from VRML/X3D or not.
@@ -368,7 +368,7 @@ type
       of @link(Lighting) and @link(UseSceneLights) values.)
       You can use your own lights instead of scene lights (set UseSceneLights
       to @false), or in addition to scene lights (leave UseSceneLights
-      as @true and increase LightsEnabled as necessary). }
+      as @true and increase BaseLights as necessary). }
     property UseSceneLights: boolean
       read FUseSceneLights write FUseSceneLights default true;
 
@@ -1062,10 +1062,10 @@ type
 
     FCache: TVRMLGLRendererContextCache;
 
-    { First OpenGL light available for VRML/X3D rendering.
-      In other words, the number of lights enabled outside of this renderer.
+    { OpenGL shining on all shapes. For fixed-function pipeline,
+      for now we assume these were set outside of this renderer.
       Set in each RenderBegin. }
-    FirstLight: Cardinal;
+    BaseLights: TDynLightInstanceArray;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
     procedure GetFog(Node: INodeX3DFogObject;
@@ -1177,7 +1177,7 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin(const LightsEnabled: Cardinal;
+    procedure RenderBegin(ABaseLights: TDynLightInstanceArray;
       LightRenderEvent: TVRMLLightRenderEvent);
     procedure RenderEnd;
 
@@ -2861,7 +2861,7 @@ begin
       glDisable(GL_LIGHTING);
 
     if Attributes.UseSceneLights then
-      for I := FirstLight to GLMaxLights - 1 do
+      for I := BaseLights.Count to GLMaxLights - 1 do
         glDisable(GL_LIGHT0 + I);
 
     glDisable(GL_FOG);
@@ -2878,7 +2878,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderBegin(const LightsEnabled: Cardinal;
+procedure TVRMLGLRenderer.RenderBegin(ABaseLights: TDynLightInstanceArray;
   LightRenderEvent: TVRMLLightRenderEvent);
 var
   Attribs: TGLbitfield;
@@ -2910,7 +2910,7 @@ begin
     }
   end;
 
-  FirstLight := LightsEnabled;
+  BaseLights := ABaseLights;
 
   RenderCleanState(true);
 
@@ -2921,7 +2921,7 @@ begin
   Assert(not FogEnabled);
 
   LightsRenderer := TVRMLGLLightsCachingRenderer.Create(
-    FirstLight, GLMaxLights - 1, LightRenderEvent);
+    BaseLights.Count, GLMaxLights - 1, LightRenderEvent);
 end;
 
 procedure TVRMLGLRenderer.RenderEnd;
@@ -3023,8 +3023,8 @@ begin
     there is no point in setting up lights. }
   if Lighting then
   begin
-    for I := 0 to Integer(FirstLight) - 1 do
-      Shader.EnableLight(I, nil, MaterialSpecularColor);
+    for I := 0 to BaseLights.Count - 1 do
+      Shader.EnableLight(I, BaseLights.Pointers[I], MaterialSpecularColor);
 
     if Attributes.UseSceneLights then
     begin
@@ -3034,8 +3034,8 @@ begin
       LightsRenderer.Render(Lights, LightsEnabled);
       if Lights <> nil then
       begin
-        for I := FirstLight to Integer(LightsEnabled) - 1 do
-          Shader.EnableLight(I, LightsRenderer.LightsDone[I - FirstLight],
+        for I := BaseLights.Count to Integer(LightsEnabled) - 1 do
+          Shader.EnableLight(I, LightsRenderer.LightsDone[I - BaseLights.Count],
             MaterialSpecularColor);
       end;
     end;
