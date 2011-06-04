@@ -453,11 +453,8 @@ type
       FLastRender_BoxesOcclusionQueriedCount,
       FLastRender_VisibleShapesCount,
       handling also LastRender_SumNext. }
-    procedure RenderScene(
-      TestShapeVisibility: TTestShapeVisibility;
-      BaseLights: TDynLightInstanceArray;
-      const TransparentGroup: TTransparentGroup;
-      LightRenderEvent: TVRMLLightRenderEvent);
+    procedure RenderScene(TestShapeVisibility: TTestShapeVisibility;
+      const Params: TVRMLRenderParams);
 
     { Destroy any associations of Renderer with OpenGL context.
 
@@ -513,6 +510,17 @@ type
     function RenderFrustumOctree_TestShape(Shape: TVRMLGLShape): boolean;
     procedure RenderFrustumOctree_EnumerateShapes(
       ShapeIndex: Integer; CollidesForSure: boolean);
+
+    { Turn off lights that are not supposed to light in the shadow.
+      This simply turns LightOn to @false if the light has
+      kambiShadows = TRUE (see
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]).
+
+      It's useful to pass this as LightRenderEvent to @link(Render)
+      when you use shadow algorithm that requires
+      you to make a first pass rendering the scene all shadowed. }
+    class procedure LightRenderInShadow(const Light: TLightInstance;
+      var LightOn: boolean);
 
     { shadow things ---------------------------------------------------------- }
 
@@ -592,9 +600,6 @@ type
       that you know are not visible (e.g. you know that their BoundingBox
       is outside current camera frustum).
 
-      LightRenderEvent, if assigned, may be used to modify light's properties
-      just for this render.
-
       Some additional notes (specific to TVRMLGLScene.Render,
       not to the VRMLGLRenderer):
       @unorderedList(
@@ -644,24 +649,7 @@ type
         ))
     }
     procedure Render(TestShapeVisibility: TTestShapeVisibility;
-      BaseLights: TDynLightInstanceArray;
-      const TransparentGroup: TTransparentGroup;
-      LightRenderEvent: TVRMLLightRenderEvent = nil);
-
-    { This renders the scene eliminating Shapes that are entirely
-      not within Frustum. It calls @link(Render), passing appropriate
-      TestShapeVisibility.
-
-      In other words, this does so-called "frustum culling".
-
-      If OctreeRendering is initialized (so be sure to include
-      ssRendering in @link(Spatial)), this octree will be used to quickly
-      find visible Shape. Otherwise, we will just enumerate all
-      Shapes (which may be slower if you really have a lot of Shapes). }
-    procedure RenderFrustum(const Frustum: TFrustum;
-      BaseLights: TDynLightInstanceArray;
-      const TransparentGroup: TTransparentGroup;
-      LightRenderEvent: TVRMLLightRenderEvent = nil);
+      const Params: TVRMLRenderParams);
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
@@ -673,15 +661,13 @@ type
       @link(TVRMLShape.Visible Visible)).
 
       This way you can see how effective was frustum culling
-      in @link(RenderFrustum)
-      or how effective was your function TestShapeVisibility
-      (if you used directly @link(Render)). "Effective" in the meaning
-      "effective at eliminating invisible Shapes from rendering
-      pipeline".
+      in @link(Render)or how effective was your function TestShapeVisibility
+      (if you used directly @link(Render) with TTestShapeVisibility).
+      "Effective" in the meaning
+      "effective at eliminating invisible Shapes from rendering pipeline".
 
       These are initially equal to zeros.
-      Then they are updated each time you called
-      @link(RenderFrustum) or @link(Render).
+      Then they are updated each time you called @link(Render).
 
       Also, LastRender_BoxesOcclusionQueriedCount is useful to test
       if you use Attributes.UseOcclusionQuery (it's always zero when
@@ -708,22 +694,11 @@ type
       and you want LastRender_ statistics to represent the total
       work e.g. done for this frame.
 
-      Note that this is automatically done at the beginning of @link(Render),
-      RenderFrustum with TransparentGroup = tgTransparent.
+      Note that this is automatically done at the beginning of @link(Render)
+      with TransparentGroup = tgTransparent.
       So rendering with tgTransparent always sums to the rendered shapes.
       This reflects typical usage. }
     procedure LastRender_SumNext;
-
-    { Turn off lights that are not supposed to light in the shadow.
-      This simply turns LightOn to @false if the light has
-      kambiShadows = TRUE (see
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]).
-
-      It's useful to pass this as LightRenderEvent to @link(Render)
-      or @link(RenderFrustum) when you use shadow algorithm that requires
-      you to make a first pass rendering the scene all shadowed. }
-    class procedure LightRenderInShadow(const Light: TLightInstance;
-      var LightOn: boolean);
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
@@ -989,10 +964,10 @@ type
     function ScreenEffectsNeedDepth: boolean;
     { @groupEnd }
   published
-    { Fine-tune performance of RenderFrustum when
+    { Fine-tune performance of @link(Render) when
       OctreeRendering is @italic(not) available.
 
-      RenderFrustum tests each Shape for collision with given Frustum
+      @link(Render) tests each Shape for collision with given Frustum
       before rendering this Shape. It can use Shape.BoundingBox
       or Shape.BoundingSphere or both.
       See TFrustumCulling.
@@ -1007,7 +982,7 @@ type
     property FrustumCulling: TFrustumCulling
       read FFrustumCulling write SetFrustumCulling default fcBox;
 
-    { Fine-tune performance of RenderFrustum when
+    { Fine-tune performance of @link(Render) when
       OctreeRendering @italic(is available).
 
       See TFrustumCulling. }
@@ -1686,10 +1661,7 @@ begin
 end;
 
 procedure TVRMLGLScene.RenderScene(
-  TestShapeVisibility: TTestShapeVisibility;
-  BaseLights: TDynLightInstanceArray;
-  const TransparentGroup: TTransparentGroup;
-  LightRenderEvent: TVRMLLightRenderEvent);
+  TestShapeVisibility: TTestShapeVisibility; const Params: TVRMLRenderParams);
 const
   AllOrOpaque = [tgAll, tgOpaque];
   AllOrTransparent = [tgAll, tgTransparent];
@@ -1851,7 +1823,7 @@ var
   var
     SI: TVRMLShapeTreeIterator;
   begin
-    if TransparentGroup in AllOrOpaque then
+    if Params.TransparentGroup in AllOrOpaque then
     begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
       try
@@ -2155,8 +2127,9 @@ var
   OpaqueShapes, TransparentShapes: TVRMLShapesList;
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
   I: Integer;
+  LightRenderEvent: TVRMLLightRenderEvent;
 begin
-  if TransparentGroup = tgTransparent then
+  if Params.TransparentGroup = tgTransparent then
     LastRender_SumNext;
 
   if FLastRender_SumNext then
@@ -2169,7 +2142,11 @@ begin
 
   OcclusionBoxState := false;
 
-  Renderer.RenderBegin(BaseLights, LightRenderEvent);
+  if Params.InShadow then
+    LightRenderEvent := @LightRenderInShadow else
+    LightRenderEvent := nil;
+
+  Renderer.RenderBegin(Params.BaseLights, LightRenderEvent);
   try
     if Attributes.PureGeometry then
     begin
@@ -2212,7 +2189,7 @@ begin
               much less shapes to consider. }
 
             { draw fully opaque objects }
-            if TransparentGroup in AllOrOpaque then
+            if Params.TransparentGroup in AllOrOpaque then
             begin
               if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
                 OpaqueShapes.SortFrontToBack(CameraPosition);
@@ -2223,7 +2200,7 @@ begin
 
             { draw partially transparent objects }
             if (TransparentShapes.Count <> 0) and
-               (TransparentGroup in AllOrTransparent) then
+               (Params.TransparentGroup in AllOrTransparent) then
             begin
               glDepthMask(GL_FALSE);
               glEnable(GL_BLEND);
@@ -2343,13 +2320,11 @@ end;
 
 procedure TVRMLGLScene.Render(
   TestShapeVisibility: TTestShapeVisibility;
-  BaseLights: TDynLightInstanceArray;
-  const TransparentGroup: TTransparentGroup;
-  LightRenderEvent: TVRMLLightRenderEvent);
+  const Params: TVRMLRenderParams);
 
   procedure RenderNormal;
   begin
-    RenderScene(TestShapeVisibility, BaseLights, TransparentGroup, LightRenderEvent);
+    RenderScene(TestShapeVisibility, Params);
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);
@@ -3413,35 +3388,7 @@ begin
   end;
 end;
 
-{ RenderFrustum and helpers -------------------------------------------------- }
-
-procedure TVRMLGLScene.RenderFrustum(const Frustum: TFrustum;
-  BaseLights: TDynLightInstanceArray;
-  const TransparentGroup: TTransparentGroup;
-  LightRenderEvent: TVRMLLightRenderEvent);
-
-  procedure RenderFrustumOctree(Octree: TVRMLShapeOctree);
-  var
-    SI: TVRMLShapeTreeIterator;
-  begin
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
-    try
-      while SI.GetNext do
-        TVRMLGLShape(SI.Current).RenderFrustumOctree_Visible := false;
-    finally FreeAndNil(SI) end;
-
-    Octree.EnumerateCollidingOctreeItems(Frustum,
-      @RenderFrustumOctree_EnumerateShapes);
-    Render(@RenderFrustumOctree_TestShape, BaseLights, TransparentGroup, LightRenderEvent);
-  end;
-
-begin
-  RenderFrustum_Frustum := @Frustum;
-
-  if OctreeRendering <> nil then
-    RenderFrustumOctree(OctreeRendering) else
-    Render(FrustumCullingFunc, BaseLights, TransparentGroup, LightRenderEvent);
-end;
+{ Render --------------------------------------------------------------------- }
 
 function TVRMLGLScene.RenderFrustumOctree_TestShape(
   Shape: TVRMLGLShape): boolean;
@@ -3463,6 +3410,40 @@ begin
 end;
 
 procedure TVRMLGLScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
+
+  { Call Render with explicit TTestShapeVisibility function
+    instead of Frustum parameter. That is, choose test function
+    suitable for our Frustum, octrees and some settings.
+
+    If OctreeRendering is initialized (so be sure to include
+    ssRendering in @link(Spatial)), this octree will be used to quickly
+    find visible Shape. Otherwise, we will just enumerate all
+    Shapes (which may be slower if you really have a lot of Shapes). }
+  procedure RenderFrustum;
+
+    procedure RenderFrustumOctree(Octree: TVRMLShapeOctree);
+    var
+      SI: TVRMLShapeTreeIterator;
+    begin
+      SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
+      try
+        while SI.GetNext do
+          TVRMLGLShape(SI.Current).RenderFrustumOctree_Visible := false;
+      finally FreeAndNil(SI) end;
+
+      Octree.EnumerateCollidingOctreeItems(Frustum,
+        @RenderFrustumOctree_EnumerateShapes);
+      Render(@RenderFrustumOctree_TestShape, Params as TVRMLRenderParams);
+    end;
+
+  begin
+    RenderFrustum_Frustum := @Frustum;
+
+    if OctreeRendering <> nil then
+      RenderFrustumOctree(OctreeRendering) else
+      Render(FrustumCullingFunc, Params as TVRMLRenderParams);
+  end;
+
 var
   RestoreShaders: boolean;
   RestoreShadersValue: TShadersRendering;
@@ -3478,9 +3459,7 @@ begin
       Attributes.Shaders := srDisable;
     end;
 
-    if Params.InShadow then
-      RenderFrustum(Frustum, (Params as TVRMLRenderParams).BaseLights, Params.TransparentGroup, @LightRenderInShadow) else
-      RenderFrustum(Frustum, (Params as TVRMLRenderParams).BaseLights, Params.TransparentGroup, nil);
+    RenderFrustum;
 
     if RestoreShaders then
       Attributes.Shaders := RestoreShadersValue;
