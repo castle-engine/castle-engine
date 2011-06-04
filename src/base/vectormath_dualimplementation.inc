@@ -825,7 +825,8 @@ end;
 function VectorsEqual(const V1, V2: TVector2): boolean;
 begin
   if ScalarEqualityEpsilon = 0 then
-    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (V1[0] = V2[0]) and
+              (V1[1] = V2[1]) else
     Result := (Abs(V1[0]-V2[0]) < ScalarEqualityEpsilon) and
               (Abs(V1[1]-V2[1]) < ScalarEqualityEpsilon);
 end;
@@ -834,7 +835,8 @@ function VectorsEqual(const V1, V2: TVector2;
   const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
-    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (V1[0] = V2[0]) and
+              (V1[1] = V2[1]) else
     Result := (Abs(V1[0]-V2[0]) < EqualityEpsilon) and
               (Abs(V1[1]-V2[1]) < EqualityEpsilon);
 end;
@@ -842,7 +844,9 @@ end;
 function VectorsEqual(const V1, V2: TVector3): boolean;
 begin
   if ScalarEqualityEpsilon = 0 then
-    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (V1[0] = V2[0]) and
+              (V1[1] = V2[1]) and
+              (V1[2] = V2[2]) else
     Result := FloatsEqual(V1[0], V2[0]) and
               FloatsEqual(V1[1], V2[1]) and
               FloatsEqual(V1[2], V2[2]);
@@ -852,7 +856,9 @@ function VectorsEqual(const V1, V2: TVector3;
   const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
-    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (V1[0] = V2[0]) and
+              (V1[1] = V2[1]) and
+              (V1[2] = V2[2]) else
     Result := (Abs(V1[0]-V2[0]) < EqualityEpsilon) and
               (Abs(V1[1]-V2[1]) < EqualityEpsilon) and
               (Abs(V1[2]-V2[2]) < EqualityEpsilon);
@@ -861,7 +867,10 @@ end;
 function VectorsEqual(const V1, V2: TVector4): boolean;
 begin
   if ScalarEqualityEpsilon = 0 then
-    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (V1[0] = V2[0]) and
+              (V1[1] = V2[1]) and
+              (V1[2] = V2[2]) and
+              (V1[3] = V2[3]) else
     Result := FloatsEqual(V1[0], V2[0]) and
               FloatsEqual(V1[1], V2[1]) and
               FloatsEqual(V1[2], V2[2]) and
@@ -872,7 +881,10 @@ function VectorsEqual(const V1, V2: TVector4;
   const EqualityEpsilon: TScalar): boolean;
 begin
   if EqualityEpsilon = 0 then
-    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (V1[0] = V2[0]) and
+              (V1[1] = V2[1]) and
+              (V1[2] = V2[2]) and
+              (V1[3] = V2[3]) else
     Result := (Abs(V1[0]-V2[0]) < EqualityEpsilon) and
               (Abs(V1[1]-V2[1]) < EqualityEpsilon) and
               (Abs(V1[2]-V2[2]) < EqualityEpsilon) and

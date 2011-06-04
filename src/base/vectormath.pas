@@ -1290,8 +1290,8 @@ function PointsDistanceXYSqr(const V1, V2: TVector3Double): Double; overload;
   Uses singleEqualityEpsilon, DoubleEqualityEpsilon just like FloatsEqual.
 
   Note that the case when EqualityEpsilon (or SingleEqualityEpsilon
-  or DoubleEqualityEpsilon) is exactly 0 is optimized here
-  (i.e. we compare using direct CompareMem routines).
+  or DoubleEqualityEpsilon) is exactly 0 is optimized here,
+  just like VectorsPerfectlyEqual.
 
   @seealso VectorsPerfectlyEqual
 
