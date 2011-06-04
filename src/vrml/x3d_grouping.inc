@@ -388,7 +388,7 @@ begin
 
     First approach was to add ParentGroup to TLightInstance
     and do it as post-processing step, i.e. in TVRMLScene in
-    UpdateVRML2Lights take this ParentGroup and add light everywhere.
+    AddGlobalLights take this ParentGroup and add light everywhere.
     But that was 1. even slower, since it must traverse ParentGroup once again
     for each directional light, and for each shape within this ParentGroup,
     it must find all it's occurrences inside Shapes, and add light there

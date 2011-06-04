@@ -681,7 +681,7 @@ begin
     but I guess that the intention was that the non-uniform scale will
     make radius non-uniform, i.e. light volume will not be a regular sphere
     but some 3d ellipsoid. Unfortunately this would require quite more
-    work, UpdateVRML2Lights would then have to check for collision
+    work, AddGlobalLights (in TVRMLScene) would then have to check for collision
     between
       sphere transformed by matrix Transform
     and

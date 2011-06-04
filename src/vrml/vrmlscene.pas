@@ -2925,9 +2925,8 @@ end;
 
 procedure TVRMLScene.ChangedAll;
 
-  { VRML2Lights are magically updated for all states in
-    @link(Shapes) tree. This is crucial for lights rendering in VRML >= 2.0. }
-  procedure UpdateVRML2Lights;
+  { Add where necessary lights with scope = global. }
+  procedure AddGlobalLights;
 
     procedure AddLightEverywhere(const L: TLightInstance);
     var
@@ -3062,7 +3061,7 @@ begin
           RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
         finally FreeAndNil(Traverser) end;
 
-        UpdateVRML2Lights;
+        AddGlobalLights;
 
         ChangedAllEnumerate;
       end;
