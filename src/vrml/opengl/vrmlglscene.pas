@@ -649,7 +649,7 @@ type
         ))
     }
     procedure Render(TestShapeVisibility: TTestShapeVisibility;
-      const Params: TVRMLRenderParams);
+      const Params: TRenderParams);
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
@@ -2320,11 +2320,11 @@ end;
 
 procedure TVRMLGLScene.Render(
   TestShapeVisibility: TTestShapeVisibility;
-  const Params: TVRMLRenderParams);
+  const Params: TRenderParams);
 
   procedure RenderNormal;
   begin
-    RenderScene(TestShapeVisibility, Params);
+    RenderScene(TestShapeVisibility, Params as TVRMLRenderParams);
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);
@@ -3433,7 +3433,7 @@ procedure TVRMLGLScene.Render(const Frustum: TFrustum; const Params: TRenderPara
 
       Octree.EnumerateCollidingOctreeItems(Frustum,
         @RenderFrustumOctree_EnumerateShapes);
-      Render(@RenderFrustumOctree_TestShape, Params as TVRMLRenderParams);
+      Render(@RenderFrustumOctree_TestShape, Params);
     end;
 
   begin
@@ -3441,7 +3441,7 @@ procedure TVRMLGLScene.Render(const Frustum: TFrustum; const Params: TRenderPara
 
     if OctreeRendering <> nil then
       RenderFrustumOctree(OctreeRendering) else
-      Render(FrustumCullingFunc, Params as TVRMLRenderParams);
+      Render(FrustumCullingFunc, Params);
   end;
 
 var
