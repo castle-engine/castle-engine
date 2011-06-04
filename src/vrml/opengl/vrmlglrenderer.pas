@@ -2856,8 +2856,12 @@ begin
     end else
       glDisable(GL_LIGHTING);
 
-    for I := 0 to GLMaxLights - 1 do
-      glDisable(GL_LIGHT0 + I);
+    { No need to disable lights at the beginning.
+      LightsRenderer already assumes that state of lights is initially unknown,
+      and handles it. }
+    if not Beginning then
+      for I := 0 to GLMaxLights - 1 do
+        glDisable(GL_LIGHT0 + I);
 
     glDisable(GL_FOG);
 
