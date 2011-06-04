@@ -2046,16 +2046,13 @@ begin
   LightShader := TLightShader.Create;
   LightShader.Number := Number;
   LightShader.Light := Light;
-  if Light <> nil then
-    LightShader.Node := Light^.Node else
-    LightShader.Node := nil;
+  LightShader.Node := Light^.Node;
   LightShader.MaterialSpecularColor := MaterialSpecularColor;
   LightShader.Shader := Self;
 
   LightShaders.Add(LightShader);
 
-  if (Light <> nil) and
-     (Light^.Node.FdEffects.Count <> 0) then
+  if Light^.Node.FdEffects.Count <> 0 then
     ShapeRequiresShaders := true;
 
   LightShader.Prepare(FCodeHash);
