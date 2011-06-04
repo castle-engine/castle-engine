@@ -221,7 +221,7 @@ procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
 
     Returns the count of textures in TexturesCount, not counting the last
     ShadowMap texture. }
-  procedure HandleShadowMap(var Texture: TVRMLNode;
+  procedure HandleShadowMap(var Texture: TNodeX3DTextureNode;
     const ShadowMap: TNodeGeneratedShadowMap; out TexturesCount: Cardinal);
   var
     MTexture: TNodeMultiTexture;
