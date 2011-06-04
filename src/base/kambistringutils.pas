@@ -2025,7 +2025,7 @@ function IntToStrThousandSep(const Value: Int64): string;
   var i, SeparatorsCount, ResultPos, SeparatorPos: Integer;
       NewResult: string;
   begin
-   if ThousandSeparator <> #0 then
+   if DefaultFormatSettings.ThousandSeparator <> #0 then
    begin
     SeparatorsCount := (Length(Result)-1) div 3;
 
@@ -2046,7 +2046,7 @@ function IntToStrThousandSep(const Value: Int64): string;
 
     for i := 1 to SeparatorsCount do
     begin
-     NewResult[SeparatorPos] := ThousandSeparator;
+     NewResult[SeparatorPos] := DefaultFormatSettings.ThousandSeparator;
      Move(Result[ResultPos], NewResult[SeparatorPos+1], 3);
      SeparatorPos := SeparatorPos + 4;
      ResultPos := ResultPos + 3;

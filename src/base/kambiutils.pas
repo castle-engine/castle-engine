@@ -190,8 +190,8 @@ initialization
 
  Randomize; { required by e.g. GetTempFname }
 
- LocaleDecimalSeparator := DecimalSeparator;
- DecimalSeparator := '.';
+ LocaleDecimalSeparator := DefaultFormatSettings.DecimalSeparator;
+ DefaultFormatSettings.DecimalSeparator := '.';
 finalization
  FinalizationOSSpecific;
  FinalizationParams;
