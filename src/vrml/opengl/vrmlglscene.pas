@@ -1034,7 +1034,7 @@ procedure Register;
 implementation
 
 uses VRMLErrors, GLVersionUnit, Images, KambiLog,
-  Math, RaysWindow, KambiStringUtils, RenderStateUnit;
+  Math, RaysWindow, KambiStringUtils, RenderingCameraUnit;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1760,7 +1760,7 @@ var
         should have a map "target->oq state" for various rendering targets. }
 
       if Attributes.ReallyUseOcclusionQuery and
-         (RenderState.Target = rtScreen) then
+         (RenderingCamera.Target = rtScreen) then
       begin
         Assert(Shape.OcclusionQueryId <> 0);
         if Shape.OcclusionQueryAsked then
@@ -2159,7 +2159,7 @@ begin
     end else
     if Attributes.ReallyUseHierarchicalOcclusionQuery and
        (not Attributes.DebugHierOcclusionQueryResults) and
-       (RenderState.Target = rtScreen) and
+       (RenderingCamera.Target = rtScreen) and
        (OctreeRendering <> nil) then
     begin
       DoHierarchicalOcclusionQuery;
@@ -3452,7 +3452,7 @@ begin
   begin
     { When rendering to Variance Shadow Map, caller uses it's own shader.
       Our own shaders must be turned off. }
-    RestoreShaders := RenderState.Target = rtVarianceShadowMap;
+    RestoreShaders := RenderingCamera.Target = rtVarianceShadowMap;
     if RestoreShaders then
     begin
       RestoreShadersValue := Attributes.Shaders;

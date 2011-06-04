@@ -1824,8 +1824,8 @@ begin
 
   TextureNode.EventRendering.Send(true);
 
-  RenderState.Target := rfOffScreen;
-  RenderState.CameraFromMatrix(CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+  RenderingCamera.Target := rfOffScreen;
+  RenderingCamera.FromMatrix(CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
 
   RenderToTexture.RenderBegin;
 
@@ -2397,10 +2397,10 @@ begin
   ProjectionMatrix := Light.ProjectionMatrix;
 
   if VarianceShadowMaps then
-    RenderState.Target := rtVarianceShadowMap else
-    RenderState.Target := rtShadowMap;
+    RenderingCamera.Target := rtVarianceShadowMap else
+    RenderingCamera.Target := rtShadowMap;
 
-  RenderState.CameraFromMatrix(
+  RenderingCamera.FromMatrix(
     Light.ModelviewMatrix,
     Light.ModelviewRotationMatrix,
     ProjectionMatrix);

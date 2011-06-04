@@ -115,8 +115,8 @@
         <UnitName Value="RaysWindow"/>
       </Item16>
       <Item17>
-        <Filename Value="../src/3d/renderstateunit.pas"/>
-        <UnitName Value="RenderStateUnit"/>
+        <Filename Value="../src/3d/renderingcameraunit.pas"/>
+        <UnitName Value="RenderingCameraUnit"/>
       </Item17>
       <Item18>
         <Filename Value="../src/3d/spacefillingcurves.pas"/>

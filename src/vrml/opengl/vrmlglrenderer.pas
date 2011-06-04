@@ -1257,7 +1257,7 @@ var
 implementation
 
 uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
-  RenderStateUnit, VRMLCameraUtils, RaysWindow;
+  RenderingCameraUnit, VRMLCameraUtils, RaysWindow;
 
 {$define read_implementation}
 {$I dynarray_2.inc}

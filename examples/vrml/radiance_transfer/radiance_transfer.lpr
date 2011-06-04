@@ -26,7 +26,7 @@
 program radiance_transfer;
 
 uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, RenderStateUnit,
+  KambiClassUtils, KambiUtils, SysUtils, Classes, RenderingCameraUnit,
   KambiGLUtils, VRMLGLScene, Cameras, KeysMouse, KambiSceneManager,
   KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLCubeMap,
   KambiStringUtils;
@@ -97,7 +97,7 @@ procedure TMySceneManager.RenderFromViewEverything;
   of SHVectorGLCapture (under 3d model) would not be visible. }
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(RenderState.CameraMatrix);
+  glLoadMatrix(RenderingCamera.Matrix);
 
   if not IsEmptyBox3D(Scene.BoundingBox) then
   begin

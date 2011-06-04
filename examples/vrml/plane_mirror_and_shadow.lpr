@@ -52,7 +52,7 @@ program plane_mirror_and_shadow;
 
 uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3DAsVRML,
-  KambiGLUtils, VRMLGLScene, Cameras, RenderStateUnit,
+  KambiGLUtils, VRMLGLScene, Cameras, RenderingCameraUnit,
   KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse, KambiSceneManager;
 
 var
@@ -316,7 +316,7 @@ var
 
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
-  glLoadMatrix(RenderState.CameraMatrix);
+  glLoadMatrix(RenderingCamera.Matrix);
 
   glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
 

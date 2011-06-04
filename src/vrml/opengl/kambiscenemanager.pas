@@ -91,7 +91,7 @@ type
       @seealso TVRMLGLScene.GLProjection }
     procedure ApplyProjection; virtual;
 
-    { Render one pass, from current (saved in RenderState) camera view,
+    { Render one pass, from current (saved in RenderingCamera) camera view,
       for specific lights setup, for given TransparentGroup.
 
       If you want to add something 3D to your scene during rendering,
@@ -114,8 +114,8 @@ type
       so you can do shadow volumes culling. }
     procedure RenderShadowVolume; virtual;
 
-    { Render everything from current (in RenderState) camera view.
-      Current RenderState.Target says to where we generate the image.
+    { Render everything from current (in RenderingCamera) camera view.
+      Current RenderingCamera.Target says to where we generate the image.
       Takes method must take care of making many rendering passes
       for shadow volumes, but doesn't take care of updating generated textures. }
     procedure RenderFromViewEverything; virtual;
@@ -139,7 +139,7 @@ type
     procedure RenderFromView3D(const Params: TVRMLRenderParams); virtual;
 
     { Render everything (by RenderFromViewEverything) on the screen.
-      Takes care to set RenderState (Target = rtScreen and camera as given),
+      Takes care to set RenderingCamera (Target = rtScreen and camera as given),
       and takes care to apply glScissor if not FullSize,
       and calls RenderFromViewEverything.
 
@@ -833,7 +833,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, RenderStateUnit, KambiGLUtils, ProgressUnit, RaysWindow, GLExt,
+uses SysUtils, RenderingCameraUnit, KambiGLUtils, ProgressUnit, RaysWindow, GLExt,
   KambiLog, KambiStringUtils, VRMLGLRenderer, ALSoundEngine;
 
 {$define read_implementation}
@@ -1239,7 +1239,7 @@ end;
 
 procedure TKamAbstractViewport.Render3D(const Params: TRenderParams);
 begin
-  GetItems.Render(RenderState.CameraFrustum, Params);
+  GetItems.Render(RenderingCamera.Frustum, Params);
   if Assigned(OnRender3D) then
     OnRender3D(Self, Params as TVRMLRenderParams);
 end;
@@ -1279,7 +1279,7 @@ begin
     if (HC <> nil) and (GetMainScene.Headlight <> nil) then
     begin
       GetMainScene.Headlight.Render(BaseLights.Count, true,
-        (RenderState.Target = rtScreen) and (HC = Camera), HC);
+        (RenderingCamera.Target = rtScreen) and (HC = Camera), HC);
       BaseLights.Add(GetMainScene.Headlight.LightInstance(HC));
     end;
   end;
@@ -1318,7 +1318,7 @@ procedure TKamAbstractViewport.RenderFromView3D(const Params: TVRMLRenderParams)
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
-    GetShadowVolumeRenderer.InitFrustumAndLight(RenderState.CameraFrustum, MainLightPosition);
+    GetShadowVolumeRenderer.InitFrustumAndLight(RenderingCamera.Frustum, MainLightPosition);
     GetShadowVolumeRenderer.Render(Params, @RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
   end;
 
@@ -1350,7 +1350,7 @@ var
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
-  if RenderState.Target = rtVarianceShadowMap then
+  if RenderingCamera.Target = rtVarianceShadowMap then
   begin
     { When rendering to VSM, we want to clear the screen to max depths (1, 1^2). }
     ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
@@ -1361,7 +1361,7 @@ begin
     UsedBackground := Background;
     if UsedBackground <> nil then
     begin
-      glLoadMatrix(RenderState.CameraRotationMatrix);
+      glLoadMatrix(RenderingCamera.RotationMatrix);
 
       { The background rendering doesn't like custom OrthoViewDimensions.
         They could make the background sky box very small, such that it
@@ -1404,10 +1404,10 @@ begin
 
   glClear(ClearBuffers);
 
-  if RenderState.Target = rtVarianceShadowMap then
+  if RenderingCamera.Target = rtVarianceShadowMap then
     glPopAttrib;
 
-  glLoadMatrix(RenderState.CameraMatrix);
+  glLoadMatrix(RenderingCamera.Matrix);
 
   FRenderParams.BaseLights.Clear;
   RenderHeadLight(FRenderParams.BaseLights);
@@ -1534,8 +1534,8 @@ procedure TKamAbstractViewport.RenderOnScreen(ACamera: TCamera);
   end;
 
 begin
-  RenderState.Target := rtScreen;
-  RenderState.CameraFromCameraObject(ACamera);
+  RenderingCamera.Target := rtScreen;
+  RenderingCamera.FromCameraObject(ACamera);
 
   { save ScreenEffectsCount/NeedDepth result, to not recalculate it,
     and also to make the following code stable --- this way we know
@@ -1971,10 +1971,10 @@ begin
       will have to be recreated. }
     ChosenViewport.ApplyProjection;
 
-    { RenderState.Camera* must be already set,
+    { RenderingCamera properties must be already set,
       since PrepareResources may do some operations on texture gen modes
       in WORLDSPACE*. }
-    RenderState.CameraFromCameraObject(ChosenViewport.Camera);
+    RenderingCamera.FromCameraObject(ChosenViewport.Camera);
 
     if DisplayProgressTitle <> '' then
     begin

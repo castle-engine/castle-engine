@@ -412,8 +412,8 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       { CameraMatrix transforms from world space to camera space,
         we want to transform directions from camera space to world
         space below. So inverted CameraMatrix is exactly what we need. }
-      RenderState.CameraInverseMatrixNeeded;
-      glMultMatrix(RenderState.CameraInverseMatrix);
+      RenderingCamera.InverseMatrixNeeded;
+      glMultMatrix(RenderingCamera.InverseMatrix);
       glMatrixMode(GL_MODELVIEW);
 
       if GLVersion.IsMesa and Log then
@@ -536,7 +536,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           begin
             ProjectorMatrix := ProjectorScalingMatrix * TexCoord.GenerationProjectorMatrix();
             glPushMatrix;
-              glLoadMatrix(RenderState.CameraMatrix);
+              glLoadMatrix(RenderingCamera.Matrix);
 
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
               glTexGenv(GL_S, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 0));

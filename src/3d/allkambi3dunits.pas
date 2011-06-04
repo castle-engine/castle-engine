@@ -25,7 +25,7 @@ uses
   object3ds,
   quaternions,
   rayswindow,
-  renderstateunit,
+  renderingcameraunit,
   spacefillingcurves,
   spheresampling,
   sphericalharmonics,

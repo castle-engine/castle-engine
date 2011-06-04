@@ -74,7 +74,7 @@ begin
     P.Targets.AddUnit('object3ds.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
-    P.Targets.AddUnit('renderstateunit.pas');
+    P.Targets.AddUnit('renderingcameraunit.pas');
     P.Targets.AddUnit('spacefillingcurves.pas');
     P.Targets.AddUnit('spheresampling.pas');
     P.Targets.AddUnit('sphericalharmonics.pas');

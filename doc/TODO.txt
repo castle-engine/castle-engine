@@ -113,7 +113,7 @@ VSM:
 
     TODO: Check on nvidia on hal.
 
-- Using special RenderState.Target = rtVarianceShadowMap feels unclean.
+- Using special RenderingCamera.Target = rtVarianceShadowMap feels unclean.
   It would be better to pass to Render() something like [dsDoNotControlShaders]?
 
 - Eventually, in the future, make DefaultVarianceShadowMaps as true.
@@ -201,7 +201,7 @@ Scene manager / controls / better Lazarus integration:
   Yes: because in 99% you want to use TKamSceneManager.Camera.
   - The scene manager offers instant integration of view with camera
     (with viewpoints, proximity sensors, glLoadMatrix(Camera.Matrix)
-    is automatically done for you, and RenderState.Camera* are updated correctly).
+    is automatically done for you, and RenderingCamera is updated correctly).
   - You should not place camera on both TKamSceneManager.Camera and
     some Glw.Controls (Idle and some other events would get twice, making
     weird things --- at least 2x faster rotations for Examine).
@@ -301,7 +301,7 @@ Scene manager / controls / better Lazarus integration:
   out items for collision detection etc.). This would have to be resolved
   first.
 
-* Let RenderState use some Camera reference, maybe make TSimpleCamera to avoid
+* Let RenderingCamera use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?
 
 * Lazarus: make the control painted at design-time?
@@ -488,7 +488,7 @@ Effects, techniques, passes:
 ------------------------------------------------------------------------------
 Occlusion culling:
 
-- make RenderState.StencilTest be used also to pause (not update visibility) in hierarch oq, it would be a waste of temporal conh to not pause there.
+- make TRenderParams.StencilTest be used also to pause (not update visibility) in hierarch oq, it would be a waste of temporal conh to not pause there.
 
 - if tests show hierarchical is much better than UseOcclusionQuery,
   old UseOcclusionQuery may be removed (and this may be renamed
@@ -1002,12 +1002,6 @@ Various:
   Q: Maybe also add "position", in global coordinates, regardless of Viewpoint
   position.
   A: Yes, this could be useful.
-
-- Add TRenderState to passed to T3D.Render methods. Maybe even move
-  some T3D.Render params to TRenderState too.
-  This avoids having global render state, which is unclean.
-  - This will make TVRMLScene.CameraChanged(RenderState: TRenderState),
-    using OnCameraChanged, harder. Resign for now?
 
 - Display warnings about unused attribute only *once*, not every frame
   (e.g. replace attr name to invalid inside demo_models/shaders/attributes.x3dv).

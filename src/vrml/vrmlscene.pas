@@ -24,7 +24,7 @@ uses
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs, VRMLHeadLight,
-  RenderStateUnit, Base3D, VRMLShadowMaps;
+  RenderingCameraUnit, Base3D, VRMLShadowMaps;
 
 {$define read_interface}
 
@@ -788,7 +788,7 @@ type
       read FHeadlightInitialized
       write SetHeadlightInitialized default false;
 
-    procedure CameraChanged(RenderState: TRenderState);
+    procedure CameraChanged(RenderingCamera: TRenderingCamera);
     procedure SetHeadlightOn(const Value: boolean);
   protected
     { Value <> 0 means that our state isn't complete (for example,
@@ -5123,7 +5123,7 @@ begin
       ScriptsInitialize;
       InitialProximitySensorsEvents;
 
-      RenderState.OnCameraChanged.Add(@CameraChanged);
+      RenderingCamera.OnChanged.Add(@CameraChanged);
     end else
     begin
       ScriptsFinalize;
@@ -5132,9 +5132,9 @@ begin
       FProcessEvents := Value;
 
       { ProcessEvents := false may get called from destructor,
-        after RenderStateUnit finalization }
-      if RenderState <> nil then
-        RenderState.OnCameraChanged.Remove(@CameraChanged);
+        after RenderingCameraUnit finalization }
+      if RenderingCamera <> nil then
+        RenderingCamera.OnChanged.Remove(@CameraChanged);
     end;
   end;
 end;
@@ -6374,7 +6374,7 @@ begin
   { Nothing meaningful to do in this class }
 end;
 
-procedure TVRMLScene.CameraChanged(RenderState: TRenderState);
+procedure TVRMLScene.CameraChanged(RenderingCamera: TRenderingCamera);
 var
   V: TVRMLViewpointNode;
 begin
@@ -6386,7 +6386,7 @@ begin
   if ProcessEvents and
      (ViewpointStack.Top <> nil) and
      (ViewpointStack.Top is TVRMLViewpointNode) and
-     ( (RenderState.Target = rtScreen) or
+     ( (RenderingCamera.Target = rtScreen) or
        TVRMLViewpointNode(ViewpointStack.Top).FdcameraMatrixSendAlsoOnOffscreenRendering.Value ) then
   begin
     V := TVRMLViewpointNode(ViewpointStack.Top);
@@ -6396,21 +6396,21 @@ begin
       Inc(FTime.PlusTicks);
 
       if V.EventCameraMatrix.SendNeeded then
-        V.EventCameraMatrix.Send(RenderState.CameraMatrix, Time);
+        V.EventCameraMatrix.Send(RenderingCamera.Matrix, Time);
 
       if V.EventCameraInverseMatrix.SendNeeded then
       begin
-        RenderState.CameraInverseMatrixNeeded;
-        V.EventCameraInverseMatrix.Send(RenderState.CameraInverseMatrix, Time);
+        RenderingCamera.InverseMatrixNeeded;
+        V.EventCameraInverseMatrix.Send(RenderingCamera.InverseMatrix, Time);
       end;
 
       if V.EventCameraRotationMatrix.SendNeeded then
-        V.EventCameraRotationMatrix.Send(RenderState.CameraRotationMatrix3, Time);
+        V.EventCameraRotationMatrix.Send(RenderingCamera.RotationMatrix3, Time);
 
       if V.EventCameraRotationInverseMatrix.SendNeeded then
       begin
-        RenderState.CameraRotationInverseMatrixNeeded;
-        V.EventCameraRotationInverseMatrix.Send(RenderState.CameraRotationInverseMatrix3, Time);
+        RenderingCamera.RotationInverseMatrixNeeded;
+        V.EventCameraRotationInverseMatrix.Send(RenderingCamera.RotationInverseMatrix3, Time);
       end;
     finally EndChangesSchedule end;
   end;

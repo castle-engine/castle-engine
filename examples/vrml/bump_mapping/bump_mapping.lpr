@@ -58,7 +58,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   NormalizationCubeMap, GLImages, GLVersionUnit, VRMLNodes,
   ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, DataErrors,
   VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, VRMLGLBackground,
-  VRMLGLRenderer, KambiSceneManager, RenderStateUnit, VRMLErrors, GLControls;
+  VRMLGLRenderer, KambiSceneManager, RenderingCameraUnit, VRMLErrors, GLControls;
 
 const
   SceneBoundingBox: TBox3D =
@@ -754,11 +754,11 @@ begin
 
   if (Method = bmVRML) and (Scene.Background <> nil) then
   begin
-    glLoadMatrix(RenderState.CameraRotationMatrix);
+    glLoadMatrix(RenderingCamera.RotationMatrix);
     Scene.Background.Render;
   end;
 
-  glLoadMatrix(RenderState.CameraMatrix);
+  glLoadMatrix(RenderingCamera.Matrix);
 
   if (Method = bmEmboss) and
     (glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) < 3) then
@@ -786,7 +786,7 @@ begin
       so I change it back to default GL value. }
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
-    Scene.RenderFrustum(RenderState.CameraFrustum, 0, tgAll);
+    Scene.RenderFrustum(RenderingCamera.Frustum, 0, tgAll);
   end else
   begin
     glEnable(GL_LIGHTING);

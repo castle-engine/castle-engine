@@ -2573,7 +2573,7 @@ begin
   inherited;
 
   { We don't copy whole State here, as changes to other properties of
-    TVRMLRenderState should "leak out" from TransformSeparator node. }
+    state should "leak out" from TransformSeparator node. }
   OriginalTransform := StateStack.Top.Transform;
   OriginalInvertedTransform := StateStack.Top.InvertedTransform;
   OriginalTransformScale := StateStack.Top.TransformScale;

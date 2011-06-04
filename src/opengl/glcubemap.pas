@@ -19,7 +19,7 @@ unit GLCubeMap;
 interface
 
 uses VectorMath, CubeMap, Images, DDS, GL, GLU, KambiGLUtils,
-  RenderStateUnit, GLImages, Base3D;
+  RenderingCameraUnit, GLImages, Base3D;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
@@ -52,10 +52,10 @@ type
 { Capture cube map by rendering environment from CapturePoint.
 
   Environment is rendered by Render callback
-  that must honour camera described in RenderState object.
-  RenderState.Target will be set to rtCubeMapEnvironment.
-  RenderState camera will be set to appropriate views
-  from the CapturePoint. You should at least load RenderState.CameraMatrix
+  that must honour camera described in RenderingCamera object.
+  RenderingCamera.Target will be set to rtCubeMapEnvironment.
+  RenderingCamera camera will be set to appropriate views
+  from the CapturePoint. You should at least load RenderingCamera.Matrix
   to OpenGL modelview matrix before rendering your 3D scene.
 
   Scene is rendered to color buffer, captured as appropriate
@@ -229,12 +229,12 @@ begin
   end;
 end;
 
-procedure SetRenderStateCamera(
+procedure SetRenderingCamera(
   const CapturePoint: TVector3Single;
   const Side: TCubeMapSide;
   const ProjectionMatrix: TMatrix4Single);
 begin
-  RenderState.CameraFromMatrix(
+  RenderingCamera.FromMatrix(
     LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
     FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
     ProjectionMatrix);
@@ -273,8 +273,8 @@ var
       glLoadMatrix(ProjectionMatrix);
       glMatrixMode(GL_MODELVIEW);
 
-        RenderState.Target := rtCubeMapEnvironment;
-        SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
+        RenderingCamera.Target := rtCubeMapEnvironment;
+        SetRenderingCamera(CapturePoint, Side, ProjectionMatrix);
         Render;
 
       glMatrixMode(GL_PROJECTION);
@@ -368,8 +368,8 @@ procedure GLCaptureCubeMapTexture(
         glLoadMatrix(ProjectionMatrix);
         glMatrixMode(GL_MODELVIEW);
 
-          RenderState.Target := rtCubeMapEnvironment;
-          SetRenderStateCamera(CapturePoint, Side, ProjectionMatrix);
+          RenderingCamera.Target := rtCubeMapEnvironment;
+          SetRenderingCamera(CapturePoint, Side, ProjectionMatrix);
           Render;
 
         glMatrixMode(GL_PROJECTION);
