@@ -2411,6 +2411,7 @@ begin
 
   FreeAndNil(FShapes);
   FreeAndNil(ShapeLODs);
+  FreeAndNil(GlobalLights);
 
   FreeAndNil(FOctreeRendering);
   FreeAndNil(FOctreeDynamicCollisions);
