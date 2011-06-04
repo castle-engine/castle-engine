@@ -580,8 +580,7 @@ type
     { For all Billboard nodes }
     BillboardInstancesList: TTransformInstancesList;
 
-    { Global lights of this scene. }
-    GlobalLights: TDynLightInstanceArray;
+    FGlobalLights: TDynLightInstanceArray;
 
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
@@ -1894,6 +1893,10 @@ type
       (or it has empty title) then returns last loaded FileName
       (without directory). }
     function Caption: string;
+
+    { Global lights of this scene. Read-only. May be useful to render
+      other 3D objects with lights defined inside this scene. }
+    property GlobalLights: TDynLightInstanceArray read FGlobalLights;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing @link(Time).
@@ -2331,7 +2334,7 @@ begin
 
   FShapes := TVRMLShapeTreeGroup.Create(Self);
   ShapeLODs := TObjectList.Create(false);
-  GlobalLights := TDynLightInstanceArray.Create;
+  FGlobalLights := TDynLightInstanceArray.Create;
 
   FBackgroundStack := TVRMLBindableStack.Create(Self);
   FFogStack := TVRMLBindableStack.Create(Self);
@@ -2411,7 +2414,7 @@ begin
 
   FreeAndNil(FShapes);
   FreeAndNil(ShapeLODs);
-  FreeAndNil(GlobalLights);
+  FreeAndNil(FGlobalLights);
 
   FreeAndNil(FOctreeRendering);
   FreeAndNil(FOctreeDynamicCollisions);
