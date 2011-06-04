@@ -175,6 +175,10 @@ type
       Which means that most lights (ones with kambiShadows = TRUE)
       should be turned off, see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows].) }
     InShadow: boolean;
+
+    { Value > 0 means we're inside some stencil test (like for
+      InShadow = @false pass of shadow volumes). }
+    StencilTest: Cardinal;
   end;
 
   { Base 3D object, that can be managed by TKamSceneManager.

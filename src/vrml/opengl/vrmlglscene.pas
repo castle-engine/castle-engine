@@ -1775,7 +1775,7 @@ var
           while in fact they should be visible in the very next
           (with InShadow = true) render pass. }
 
-        if RenderState.StencilTest = 0 then
+        if Params.StencilTest = 0 then
           glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Shape.OcclusionQueryId);
 
           if SampleCount > 0 then
@@ -1793,7 +1793,7 @@ var
             Inc(FLastRender_BoxesOcclusionQueriedCount);
           end;
 
-        if RenderState.StencilTest = 0 then
+        if Params.StencilTest = 0 then
         begin
           glEndQueryARB(GL_SAMPLES_PASSED_ARB);
           Shape.OcclusionQueryAsked := true;

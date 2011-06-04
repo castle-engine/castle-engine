@@ -103,10 +103,6 @@ type
 
     CameraFrustum: TFrustum;
 
-    { Value > 0 means we're inside some stencil test (like for
-      InShadow = @false pass of shadow volumes). }
-    StencilTest: Cardinal;
-
     procedure CameraInverseMatrixNeeded;
     procedure CameraRotationInverseMatrixNeeded;
 
