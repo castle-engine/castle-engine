@@ -748,7 +748,7 @@ type
     procedure AssignArray(
       const AItemsArray: array of TVRMLNodeClass);
     function IndexOf(NodeClass: TVRMLNodeClass): Integer; overload;
-    { This is equivalent to IndexOf(NodeClass.ClassType),
+    { Equivalent to IndexOf(NodeClass.ClassType),
       taking care of necessary typecasts. }
     function IndexOf(Node: TVRMLNode): Integer; overload;
 
@@ -820,7 +820,7 @@ type
       AValue: TVRMLNode = nil); overload;
     destructor Destroy; override;
 
-    { DefaultValue of SFNode field.
+    { Default value of SFNode field.
 
       While X3D specification says for all SFNode fields that their
       default value is NULL, this is not necessarily true for PROTO
@@ -867,7 +867,7 @@ type
 
     class function VRMLTypeName: string; override;
 
-    { Checks is Child allowed as a value of thia SFNode,
+    { Checks is the Child allowed as a value of this SFNode,
       and makes VRMLWarning if not.
 
       Check is allowed is done looking at AllowedChildrenAll
