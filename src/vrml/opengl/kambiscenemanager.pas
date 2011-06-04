@@ -1329,20 +1329,10 @@ begin
 end;
 
 procedure TKamAbstractViewport.RenderFromViewEverything;
-
-  procedure DisableLights(const Count: Cardinal);
-  var
-    I: Integer;
-  begin
-    for I := 0 to Integer(Count) - 1 do
-      glDisable(GL_LIGHT0 + I);
-  end;
-
 var
   ClearBuffers: TGLbitfield;
   UsedBackground: TVRMLGLBackground;
   MainLightPosition: TVector4Single; { ignored }
-  LightsEnabledByHeadlight: Cardinal;
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;
 
@@ -1406,14 +1396,10 @@ begin
   glLoadMatrix(RenderingCamera.Matrix);
 
   FRenderParams.BaseLights.Clear;
+
   RenderHeadLight(FRenderParams.BaseLights);
-  LightsEnabledByHeadlight := FRenderParams.BaseLights.Count;
 
   RenderFromView3D(FRenderParams);
-
-  { cleanup after RenderHeadLight: disable (for fixed-function pipeline) lights
-    enabled inside RenderHeadLight. }
-  DisableLights(LightsEnabledByHeadlight);
 end;
 
 procedure RenderScreenEffect(ViewportPtr: Pointer);
