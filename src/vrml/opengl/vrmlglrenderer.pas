@@ -360,7 +360,7 @@ type
 
       Initial OpenGL lights are reserved for BaseLights
       (useful for you to define any lights from outside of the scene).
-      Then following OpenGL lights are reserved the lights defined
+      Then following OpenGL lights are reserved for the lights defined
       in your scene (if this property is @true).
       The remaining OpenGL lights, if any, are not used (we make sure they
       are disabled for fixed-function pipeline).
