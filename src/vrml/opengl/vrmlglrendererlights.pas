@@ -43,17 +43,15 @@ type
   private
     FLightRenderEvent: TVRMLLightRenderEvent;
     LightsKnown: boolean;
-    function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
-  public
+    LightsDone: array of PLightInstance;
     { Statistics of how many OpenGL light setups were done
       (Statistics[true]) vs how many were avoided (Statistics[false]).
       This allows you to decide is using TVRMLGLLightsRenderer
       class sensible (as opposed to directly rendering with glLightsFromVRML
       calls). }
     Statistics: array [boolean] of Cardinal;
-
-    LightsDone: array of PLightInstance;
-
+    function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
+  public
     constructor Create(const ALightRenderEvent: TVRMLLightRenderEvent);
 
     { Set OpenGL lights properties.
@@ -260,7 +258,6 @@ constructor TVRMLGLLightsRenderer.Create(
 begin
   inherited Create;
   FLightRenderEvent := ALightRenderEvent;
-
   LightsKnown := false;
   SetLength(LightsDone, GLMaxLights);
 end;
@@ -336,12 +333,17 @@ begin
     if LightsEnabled >= GLMaxLights then Exit;
   end;
 
-  if LightsEnabled <= GLMaxLights - 1 then
-    for I := LightsEnabled to GLMaxLights - 1 do
-      if NeedRenderLight(I, nil) then
-        glDisable(GL_LIGHT0 + I);
+  { Disable remaining light for fixed-function pipeline }
+  for I := LightsEnabled to GLMaxLights - 1 do
+    if NeedRenderLight(I, nil) then
+      glDisable(GL_LIGHT0 + I);
 
   LightsKnown := true;
 end;
+
+  { Tests:
+  Writeln('LightsRenderer stats: light setups done ',
+    LightsRenderer.Statistics[true], ' vs avoided ',
+    LightsRenderer.Statistics[false]); }
 
 end.
