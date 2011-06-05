@@ -94,7 +94,7 @@ We will load a game level from a 3D file. If you use a VRML/X3D file, this game 
 
 Or copy more interesting level model from kambi_vrml_game_engine/examples/vrml/models/: copy bridge_final.x3dv, bridge.wrl, and textures/ subdirectory to your project.
 
-- If you want, you can of course make your own new level. You can generally use any 3D modeler and export to any 3D format we can handle. Our other tutorial "how to make new level for CASTLE-2-NAME-HERE" describes from the basics how to use open-source Blender to create a level and export it to VRML/X3D. Highly advised reading! :)
+- If you want, you can of course make your own new level. You can generally use any 3D modeler and export to any 3D format we can handle. Our other tutorial "how to make new level for CASTLE-2-NAME-HERE" (right now: DRAFT.modeling_tutorial.txt) describes from the basics how to use open-source Blender to create a level and export it to VRML/X3D. Highly advised reading! :)
 
 To load a level, change your code to this:
 

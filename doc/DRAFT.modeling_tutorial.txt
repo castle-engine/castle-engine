@@ -1,0 +1,14 @@
+This tutorial teaches you basic ideas of modeling 3D stuff (levels, creatures, items, --- everything) to use with our engine.
+
+First of all, our engine was designed from the start to use <a>standard VRML/X3D model format</a>. This means that in principle you can use <b>any 3D modeler</a> to make models for our games, as almost everything can export to VRML/X3D (and when that's not enough, we also support many Collada, 3DS, Wavefront OBJ and other 3D formats). We consciously do not try to implement any 3D editor for our engine --- it's a wasted effort, just look how magnificent e.g. Blender is, and how it's constantly improving. So we want to use these tools, not reinvent them.
+
+In this tutorial, we show how to use Blender to model 3D stuff. If you're a fan of other 3D modeler, you're most welcome to write alternative instructions / hints for using it (you can post them on our wiki, or forum, and --- depending on the size of your instructions --- we'll see how to show them nicely on our webpages).
+
+TODO. Shortcut for now:
+
+1. Get Blender.
+2. Get our Blender X3D exporter from http://vrmlengine.sourceforge.net/blender_stuff.php
+3. Model as usual. Be aware of what is / is not currently exported (see "exporter notes" on http://vrmlengine.sourceforge.net/blender_stuff.php).
+4. Export to X3D, and you're done.
+
+It's usually comfortable to open the exported file first with view3dscene. Once this looks nicely, use this within your game.
