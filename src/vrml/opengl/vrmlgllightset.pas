@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML lights OpenGL rendering. }
+{ VRML/X3D lights OpenGL rendering. }
 unit VRMLGLLightSet;
 
 interface
@@ -71,19 +71,6 @@ type
       a random boolean value. That because caching here assumes that
       for the same Light values, LightRenderEvent will set LightOn the same. }
     property LightRenderEvent: TVRMLLightRenderEvent read FLightRenderEvent;
-  end;
-
-  { Load VRML/X3D lights from a file, and render them to OpenGL.
-    This allows you to load lights from a VRML/X3D file,
-    and use these lights with any 3D objects (for example,
-    maybe you want to share the same lights across many TVRMLGLScene
-    or other 3D objects you render with OpenGL). }
-  TVRMLGLLightSet = class(TVRMLLightSet)
-  public
-    { Set up OpenGL lights properties to correspond to given VRML/X3D lights.
-      Reads LightsEnabled, to know how many lights are already allocated.
-      Increases LightsEnabled for our lights. }
-    procedure Render(var LightsEnabled: Cardinal);
   end;
 
 implementation
@@ -260,45 +247,6 @@ begin
   glEnable(glLightNum);
 end;
 
-procedure RenderLights(
-  const Cache: TVRMLGLLightsCachingRenderer;
-  const Lights: TDynLightInstanceArray;
-  const LightRenderEvent: TVRMLLightRenderEvent;
-  out LightsEnabled: Cardinal);
-var
-  I: Integer;
-  Light: PLightInstance;
-  LightOn: boolean;
-begin
-  LightsEnabled := 0;
-  if LightsEnabled > GLMaxLights - 1 then Exit;
-
-  if Lights <> nil then
-    for I := 0 to Lights.Count - 1 do
-    begin
-      Light := Lights.Pointers[I];
-
-      LightOn := Light^.Node.FdOn.Value;
-      if Assigned(LightRenderEvent) then
-        LightRenderEvent(Light^, LightOn);
-
-      if LightOn then
-      begin
-        if (Cache = nil) or
-            Cache.NeedRenderLight(LightsEnabled, Light) then
-          glLightFromVRMLLight(LightsEnabled, Light^);
-        Inc(LightsEnabled);
-        if LightsEnabled >= GLMaxLights then Exit;
-      end;
-    end;
-
-  if LightsEnabled <= GLMaxLights - 1 then
-    for I := LightsEnabled to GLMaxLights - 1 do
-      if (Cache = nil) or
-          Cache.NeedRenderLight(I, nil) then
-        glDisable(GL_LIGHT0 + I);
-end;
-
 { TVRMLGLLightsCachingRenderer ----------------------------------------------- }
 
 constructor TVRMLGLLightsCachingRenderer.Create(
@@ -337,16 +285,38 @@ end;
 
 procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynLightInstanceArray;
   out LightsEnabled: Cardinal);
+var
+  I: Integer;
+  Light: PLightInstance;
+  LightOn: boolean;
 begin
-  RenderLights(Self, Lights, LightRenderEvent, LightsEnabled);
+  LightsEnabled := 0;
+  if LightsEnabled > GLMaxLights - 1 then Exit;
+
+  if Lights <> nil then
+    for I := 0 to Lights.Count - 1 do
+    begin
+      Light := Lights.Pointers[I];
+
+      LightOn := Light^.Node.FdOn.Value;
+      if Assigned(LightRenderEvent) then
+        LightRenderEvent(Light^, LightOn);
+
+      if LightOn then
+      begin
+        if NeedRenderLight(LightsEnabled, Light) then
+          glLightFromVRMLLight(LightsEnabled, Light^);
+        Inc(LightsEnabled);
+        if LightsEnabled >= GLMaxLights then Exit;
+      end;
+    end;
+
+  if LightsEnabled <= GLMaxLights - 1 then
+    for I := LightsEnabled to GLMaxLights - 1 do
+      if NeedRenderLight(I, nil) then
+        glDisable(GL_LIGHT0 + I);
+
   LightsKnown := true;
-end;
-
-{ TVRMLGLLightSet ------------------------------------------------------------ }
-
-procedure TVRMLGLLightSet.Render(var LightsEnabled: Cardinal);
-begin
-  RenderLights(nil, Lights, nil, LightsEnabled);
 end;
 
 end.
