@@ -71,6 +71,9 @@
     private FFdSpotDropOffRate: TSFFloat;
     public property FdSpotDropOffRate: TSFFloat read FFdSpotDropOffRate;
 
+    private FFdSpotBeamWidth: TSFFloat;
+    public property FdSpotBeamWidth: TSFFloat read FFdSpotBeamWidth;
+
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -474,7 +477,8 @@ const
   HeadLightDefaultColor: TVector3Single = (1, 1, 1);
   HeadLightDefaultIntensity = 1.0;
   HeadLightDefaultSpot = false;
-  HeadLightDefaultSpotCutOffAngle = 0.785398;
+  HeadLightDefaultSpotCutOffAngle = Pi / 4;
+  HeadLightDefaultSpotBeamWidth = Pi / 2;
   HeadLightDefaultSpotDropOffRate = 0.0;
 begin
   inherited;
@@ -506,6 +510,10 @@ begin
   FFdspotDropOffRate := TSFFloat.Create(Self, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
    FdspotDropOffRate.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdspotDropOffRate);
+
+  FFdspotBeamWidth := TSFFloat.Create(Self, 'spotBeamWidth', HeadLightDefaultSpotBeamWidth);
+   FdspotBeamWidth.ChangesAlways := [chHeadLightProps];
+  Fields.Add(FFdspotBeamWidth);
 end;
 
 function TNodeKambiTriangulation.SuggestedVRMLVersion(

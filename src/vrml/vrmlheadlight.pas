@@ -49,7 +49,7 @@ type
     FIntensity: Single;
     FSpot: boolean;
     FSpotCutOffAngle: Single;
-    FSpotDropOffRate: Single;
+    FSpotBeamWidth: Single;
     LightNode: TNodeX3DLightNode;
   public
     constructor Create(HeadLightNode: TNodeKambiHeadLight);
@@ -61,7 +61,7 @@ type
     property Intensity: Single read FIntensity write FIntensity;
     property Spot: boolean read FSpot write FSpot;
     property SpotCutOffAngle: Single read FSpotCutOffAngle write FSpotCutOffAngle;
-    property SpotDropOffRate: Single read FSpotDropOffRate write FSpotDropOffRate;
+    property SpotBeamWidth: Single read FSpotBeamWidth write FSpotBeamWidth;
 
     { TLightInstance record describing this headlight assuming
       given camera Position, Direction.
@@ -93,7 +93,7 @@ constructor TVRMLHeadLight.Create(HeadLightNode: TNodeKambiHeadLight);
     FIntensity := Node.FdIntensity.Value;
     FSpot := Node.FdSpot.Value;
     FSpotCutOffAngle := Node.FdSpotCutOffAngle.Value;
-    FSpotDropOffRate := Node.FdSpotDropOffRate.Value;
+    FSpotBeamWidth := Node.FdSpotBeamWidth.Value;
   end;
 
 begin
@@ -126,16 +126,8 @@ begin
     LightNode := TNodeSpotLight_2.Create('', '');
     TNodeSpotLight_2(LightNode).FdLocation.Value := Position;
     TNodeSpotLight_2(LightNode).FdDirection.Value := Direction;
-
-    { For SpotDropOffRate = 0, spot is sharp, no drop-off.
-      This can be expressed precisely by BeamWidth = SpotCutOffAngle.
-      For other SpotDropOffRate, there's no way to properly translate
-      to beamWidth. }
-    if SpotDropOffRate = 0 then
-      TNodeSpotLight_2(LightNode).FdBeamWidth.Value := SpotCutOffAngle else
-      TNodeSpotLight_2(LightNode).FdBeamWidth.Value := SpotCutOffAngle / 2;
+    TNodeSpotLight_2(LightNode).FdBeamWidth.Value := SpotBeamWidth;
     TNodeSpotLight_2(LightNode).FdCutOffAngle.Value := SpotCutOffAngle;
-
     { infinite radius }
     TNodeSpotLight_2(LightNode).FdRadius.Value := MaxSingle;
     TNodeSpotLight_2(LightNode).FdAttenuation.Value := Attenuation;
