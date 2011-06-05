@@ -21,7 +21,6 @@ uses
   vrmlheadlight,
   vrmllexer,
   vrmllighting,
-  vrmllightset,
   vrmlnodes,
   vrmlnodesdetailoptions,
   vrmlraytracer,

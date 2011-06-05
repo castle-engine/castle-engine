@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="158">
+    <Files Count="157">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -584,8 +584,8 @@
         <UnitName Value="VRMLGLBackground"/>
       </Item131>
       <Item133>
-        <Filename Value="../src/vrml/opengl/vrmlgllightset.pas"/>
-        <UnitName Value="VRMLGLLightSet"/>
+        <Filename Value="../src/vrml/opengl/vrmlglrendererlights.pas"/>
+        <UnitName Value="VRMLGLRendererLights"/>
       </Item133>
       <Item134>
         <Filename Value="../src/vrml/opengl/vrmlglrenderer.pas"/>
@@ -640,10 +640,6 @@
         <Filename Value="../src/vrml/vrmllighting.pas"/>
         <UnitName Value="VRMLLighting"/>
       </Item146>
-      <Item147>
-        <Filename Value="../src/vrml/vrmllightset.pas"/>
-        <UnitName Value="VRMLLightSet"/>
-      </Item147>
       <Item148>
         <Filename Value="../src/vrml/vrmlnodes.pas"/>
         <UnitName Value="VRMLNodes"/>
@@ -684,10 +680,10 @@
         <Filename Value="../src/vrml/vrmltriangle.pas"/>
         <UnitName Value="VRMLTriangle"/>
       </Item157>
-      <Item158>
+      <Item147>
         <Filename Value="../src/vrml/vrmltriangleoctree.pas"/>
         <UnitName Value="VRMLTriangleOctree"/>
-      </Item158>
+      </Item147>
        <Item132>
         <Filename Value="../src/3d/noise.pas"/>
         <UnitName Value="Noise"/>

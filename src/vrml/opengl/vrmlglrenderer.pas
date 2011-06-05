@@ -220,7 +220,7 @@ interface
 uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
-  KambiGLUtils, VRMLGLLightSet, TTFontsTypes,
+  KambiGLUtils, VRMLGLRendererLights, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
   GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL
   {$ifdef VER2_2}, FGLObjectList22 {$endif},
@@ -1046,7 +1046,7 @@ type
     { ----------------------------------------------------------------- }
 
     { Available between RenderBegin / RenderEnd. }
-    LightsRenderer: TVRMLGLLightsCachingRenderer;
+    LightsRenderer: TVRMLGLLightsRenderer;
 
     { Currently set fog parameters, during render. }
     FogNode: INodeX3DFogObject;
@@ -2919,7 +2919,7 @@ begin
   Assert(FogNode = nil);
   Assert(not FogEnabled);
 
-  LightsRenderer := TVRMLGLLightsCachingRenderer.Create(LightRenderEvent);
+  LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent);
 end;
 
 procedure TVRMLGLRenderer.RenderEnd;

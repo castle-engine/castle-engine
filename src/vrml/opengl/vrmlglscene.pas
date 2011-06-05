@@ -22,7 +22,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
   VRMLShapeOctree, VRMLHeadLight,
-  GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLGLLightSet, VRMLShape, Frustum,
+  GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLGLRendererLights, VRMLShape, Frustum,
   GLCubeMap, Base3D, GLShaders;
 
 {$define read_interface}

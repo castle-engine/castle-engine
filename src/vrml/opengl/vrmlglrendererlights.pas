@@ -13,12 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML/X3D lights OpenGL rendering. }
-unit VRMLGLLightSet;
+{ VRML/X3D lights OpenGL rendering. Internal for VRMLGLRenderer. @exclude }
+unit VRMLGLRendererLights;
 
 interface
 
-uses VectorMath, GL, GLU, KambiGLUtils, VRMLNodes, VRMLLightSet;
+uses VectorMath, GL, GLU, KambiGLUtils, VRMLNodes;
 
 type
   { Modify light's properties of the light right before it's rendered.
@@ -38,7 +38,7 @@ type
     This may speed up rendering, avoiding changing OpenGL state when not
     necessary. We assume that OpenGL lights are not changed by any code outside
     of this class. }
-  TVRMLGLLightsCachingRenderer = class
+  TVRMLGLLightsRenderer = class
   private
     FLightRenderEvent: TVRMLLightRenderEvent;
     LightsKnown: boolean;
@@ -46,7 +46,7 @@ type
   public
     { Statistics of how many OpenGL light setups were done
       (Statistics[true]) vs how many were avoided (Statistics[false]).
-      This allows you to decide is using TVRMLGLLightsCachingRenderer
+      This allows you to decide is using TVRMLGLLightsRenderer
       class sensible (as opposed to directly rendering with glLightsFromVRML
       calls). }
     Statistics: array [boolean] of Cardinal;
@@ -247,9 +247,9 @@ begin
   glEnable(glLightNum);
 end;
 
-{ TVRMLGLLightsCachingRenderer ----------------------------------------------- }
+{ TVRMLGLLightsRenderer ----------------------------------------------- }
 
-constructor TVRMLGLLightsCachingRenderer.Create(
+constructor TVRMLGLLightsRenderer.Create(
   const ALightRenderEvent: TVRMLLightRenderEvent);
 begin
   inherited Create;
@@ -259,7 +259,7 @@ begin
   SetLength(LightsDone, GLMaxLights);
 end;
 
-function TVRMLGLLightsCachingRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
+function TVRMLGLLightsRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
 begin
   Result := not (
     LightsKnown and
@@ -283,7 +283,7 @@ begin
   Inc(Statistics[Result]);
 end;
 
-procedure TVRMLGLLightsCachingRenderer.Render(Lights: TDynLightInstanceArray;
+procedure TVRMLGLLightsRenderer.Render(Lights: TDynLightInstanceArray;
   out LightsEnabled: Cardinal);
 var
   I: Integer;

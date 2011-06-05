@@ -159,7 +159,6 @@ type
       The default implementation in this class looks at
       MainScene.MainLightForShadows.
 
-      @seealso TVRMLLightSet.MainLightForShadows
       @seealso TVRMLScene.MainLightForShadows }
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean; virtual;

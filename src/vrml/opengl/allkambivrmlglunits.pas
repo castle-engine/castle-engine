@@ -13,7 +13,7 @@ uses
   kambiscenemanager,
   vrmlglanimation,
   vrmlglbackground,
-  vrmlgllightset,
+  vrmlglrendererlights,
   vrmlglrenderer,
   vrmlglscene
   ;

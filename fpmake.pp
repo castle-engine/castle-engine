@@ -94,7 +94,6 @@ begin
     P.Targets.AddUnit('vrmlfields.pas');
     P.Targets.AddUnit('vrmlarraysgenerator.pas');
     P.Targets.AddUnit('vrmllexer.pas');
-    P.Targets.AddUnit('vrmllightset.pas');
     P.Targets.AddUnit('vrmlnodes.pas');
     P.Targets.AddUnit('vrmlnodesdetailoptions.pas');
     P.Targets.AddUnit('vrmlraytracer.pas');
@@ -111,7 +110,7 @@ begin
     P.Targets.AddUnit('vrmlglanimation.pas');
     P.Targets.AddUnit('vrmlglbackground.pas');
     P.Targets.AddUnit('vrmlglscene.pas');
-    P.Targets.AddUnit('vrmlgllightset.pas');
+    P.Targets.AddUnit('vrmlglrendererlights.pas');
     P.Targets.AddUnit('vrmlglrenderer.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
