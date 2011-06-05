@@ -147,7 +147,7 @@ type
   public
     destructor Destroy; override;
     { Prepare some stuff for Code generation, update Hash for this light shader. }
-    procedure Prepare(var Hash: TShaderCodeHash);
+    procedure Prepare(var Hash: TShaderCodeHash; const LightNumber: Cardinal);
     function Code: TShaderSource;
   end;
 
@@ -516,7 +516,7 @@ begin
   inherited;
 end;
 
-procedure TLightShader.Prepare(var Hash: TShaderCodeHash);
+procedure TLightShader.Prepare(var Hash: TShaderCodeHash; const LightNumber: Cardinal);
 type
   TLightDefine = (
     ldTypeKnown,
@@ -543,7 +543,7 @@ type
     );
   begin
     Defines += '#define ' + DefinesList[D].Name + NL;
-    Hash.AddInteger(DefinesList[D].Hash);
+    Hash.AddInteger(DefinesList[D].Hash * (LightNumber + 1));
   end;
 
 begin
@@ -921,16 +921,22 @@ end;
 { TTextureShader ------------------------------------------------------------- }
 
 procedure TTextureShader.Prepare(var Hash: TShaderCodeHash);
+var
+  IntHash: LongWord;
 begin
-  Hash.AddInteger(179 * (TextureUnit + 1));
-  Hash.AddInteger(181 * Ord(TextureType));
+{$include norqcheckbegin.inc}
+  IntHash :=
+    1 +
+    181 * Ord(TextureType) +
+    191 * ShadowMapSize +
+    193 * Ord(ShadowVisualizeDepth);
+  if ShadowLight <> nil then
+    IntHash += PtrUInt(ShadowLight);
+  Hash.AddInteger(179 * (TextureUnit + 1) * IntHash);
   { Don't directly add Node to the Hash, it would prevent a lot of sharing.
     Node is only used to get effects. }
   Hash.AddEffects(Node.FdEffects.Items);
-  Hash.AddInteger(191 * ShadowMapSize);
-  if ShadowLight <> nil then
-    Hash.AddPointer(ShadowLight);
-  Hash.AddInteger(193 * Ord(ShadowVisualizeDepth));
+{$include norqcheckend.inc}
 end;
 
 procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
@@ -2055,7 +2061,7 @@ begin
   if Light^.Node.FdEffects.Count <> 0 then
     ShapeRequiresShaders := true;
 
-  LightShader.Prepare(FCodeHash);
+  LightShader.Prepare(FCodeHash, LightShaders.Count - 1);
 end;
 
 procedure TVRMLShader.EnableFog(const FogType: TFogType);
