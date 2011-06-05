@@ -140,8 +140,10 @@ type
     Shader: TVRMLShader;
     { Code calculated (on demand, when method called) using above vars. }
     FCode: TShaderSource;
-    LightRadiusUniformName: string;
-    LightRadiusUniformValue: Single;
+    LightUniformName1: string;
+    LightUniformValue1: Single;
+    LightUniformName2: string;
+    LightUniformValue2: Single;
     { Calculated by Prepare. }
     Defines: string;
   public
@@ -525,7 +527,8 @@ type
     ldHasAttenuation,
     ldHasRadius,
     ldHasAmbient,
-    ldHasSpecular);
+    ldHasSpecular,
+    ldHasBeamWidth);
 
   procedure Define(const D: TLightDefine);
   const
@@ -539,7 +542,8 @@ type
       (Name: 'LIGHT_HAS_ATTENUATION'; Hash: 113; ),
       (Name: 'LIGHT_HAS_RADIUS'     ; Hash: 127; ),
       (Name: 'LIGHT_HAS_AMBIENT'    ; Hash: 131; ),
-      (Name: 'LIGHT_HAS_SPECULAR'   ; Hash: 137; )
+      (Name: 'LIGHT_HAS_SPECULAR'   ; Hash: 137; ),
+      (Name: 'LIGHT_HAS_BEAM_WIDTH' ; Hash: 139; )
     );
   begin
     Defines += '#define ' + DefinesList[D].Name + NL;
@@ -555,9 +559,21 @@ begin
     if Node is TVRMLPositionalLightNode then
     begin
       Define(ldTypePosiional);
-      if (Node is TNodeSpotLight_1) or
-         (Node is TNodeSpotLight_2) then
+      if Node is TNodeSpotLight_1 then
+        Define(ldTypeSpot) else
+      if Node is TNodeSpotLight_2 then
+      begin
         Define(ldTypeSpot);
+        if TNodeSpotLight_2(Node).FdBeamWidth.Value <
+           TNodeSpotLight_2(Node).FdCutOffAngle.Value then
+        begin
+          Define(ldHasBeamWidth);
+          LightUniformName1 := 'kambi_light_%d_beam_width';
+          LightUniformValue1 := TNodeSpotLight_2(Node).FdBeamWidth.Value;
+          Hash.AddFloat(LightUniformValue1);
+        end;
+      end;
+
       if TVRMLPositionalLightNode(Node).HasAttenuation then
         Define(ldHasAttenuation);
 
@@ -569,8 +585,8 @@ begin
           Light^.Location, -1) > Light^.Radius) then
       begin
         Define(ldHasRadius);
-        LightRadiusUniformName := 'kambi_light_%d_radius';
-        LightRadiusUniformValue := Light^.Radius;
+        LightUniformName2 := 'kambi_light_%d_radius';
+        LightUniformValue2 := Light^.Radius;
         { Uniform value comes from this Node's property,
           so this cannot be shared with other light nodes,
           that may have not synchronized radius value.
@@ -1752,10 +1768,16 @@ var
 
     if PassLightsUniforms then
       for I := 0 to LightShaders.Count - 1 do
-        if LightShaders[I].LightRadiusUniformName <> '' then
+      begin
+        if LightShaders[I].LightUniformName1 <> '' then
           AProgram.SetUniform(Format(
-            LightShaders[I].LightRadiusUniformName, [I]),
-            LightShaders[I].LightRadiusUniformValue);
+            LightShaders[I].LightUniformName1, [I]),
+            LightShaders[I].LightUniformValue1);
+        if LightShaders[I].LightUniformName2 <> '' then
+          AProgram.SetUniform(Format(
+            LightShaders[I].LightUniformName2, [I]),
+            LightShaders[I].LightUniformValue2);
+      end;
 
     AProgram.Disable;
   end;

@@ -4,6 +4,10 @@
 uniform float kambi_light_light_number_radius;
 #endif
 
+#ifdef LIGHT_HAS_BEAM_WIDTH
+uniform float kambi_light_light_number_beam_width;
+#endif
+
 void PLUG_add_light_contribution_side(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
@@ -59,7 +63,17 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   /* PLUG: light_scale (scale, normal_eye, light_dir, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */
 
 #ifdef LIGHT_TYPE_SPOT
+#ifdef LIGHT_HAS_BEAM_WIDTH
+  /* calculate spot following VRML 2.0/X3D idea of beamWidth */
+  float cutOffAngle = radians(gl_LightSource[light_number].spotCutoff);
+  scale *= clamp(
+    (                     acos(spot_cos) - cutOffAngle) /
+    (kambi_light_light_number_beam_width - cutOffAngle),
+    0.0, 1.0);
+#else
+  /* calculate spot like fixed-function pipeline, using exponent */
   scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);
+#endif
 #endif
 
 #ifdef LIGHT_HAS_ATTENUATION
