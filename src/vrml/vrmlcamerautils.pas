@@ -74,12 +74,12 @@ function MakeVRMLCameraStr(const Version: TVRMLCameraVersion;
   const Position, Direction, Up, GravityUp: TVector3Single): string;
 const
   Comment: array [boolean] of string = (
-    '# Camera settings "encoded" in the VRML declaration below :' +nl+
+    '# Camera settings "encoded" in the VRML/X3D declaration below :' +nl+
     '# direction %s' +nl+
     '# up %s' +nl+
     '# gravityUp %s' + nl,
 
-    '<!-- Camera settings "encoded" in the VRML declaration below :' +nl+
+    '<!-- Camera settings "encoded" in the X3D declaration below :' +nl+
     '  direction %s' +nl+
     '  up %s' +nl+
     '  gravityUp %s -->' + nl);
