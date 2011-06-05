@@ -18,7 +18,7 @@ unit VRMLGLRendererLights;
 
 interface
 
-uses VectorMath, GL, GLU, KambiGLUtils, VRMLNodes;
+uses VectorMath, GL, GLU, KambiGLUtils, VRMLNodes, VRMLShader;
 
 type
   { Modify light's properties of the light right before it's rendered.
@@ -29,15 +29,16 @@ type
   TVRMLLightRenderEvent = procedure (const Light: TLightInstance;
     var LightOn: boolean) of object;
 
-  { Render many light sets (TDynLightInstanceArray) and avoid
-    to configure the same light many times.
-
+  { Render lights to OpenGL.
     Sets OpenGL lights properties, enabling and disabling them as needed.
+
+    This is smart, avoiding to configure the same light many times.
     Remembers what VRML/X3D light is set on which OpenGL light,
     and this way avoids needless reconfiguring of OpenGL lights.
     This may speed up rendering, avoiding changing OpenGL state when not
-    necessary. We assume that OpenGL lights are not changed by any code outside
-    of this class. }
+    necessary.
+    Assumes that nothing changes OpenGL light properties during our
+    lifetime. }
   TVRMLGLLightsRenderer = class
   private
     FLightRenderEvent: TVRMLLightRenderEvent;
@@ -55,12 +56,17 @@ type
 
     constructor Create(const ALightRenderEvent: TVRMLLightRenderEvent);
 
-    { Sets OpenGL lights properties, enabling and disabling them as needed.
-      Lights (TDynLightInstanceArray) may be @nil,
-      it's equal to passing an empty array of lights.
+    { Set OpenGL lights properties.
+      Sets OpenGL fixed-function pipeline lights,
+      enabling and disabling them as needed.
+      Lights are also passed to TVRMLShader, calling appropriate
+      TVRMLShader.EnableLight methods. So shader pipeline is also dealt with.
 
-      Returns LightsEnabled, a number of enabled lights. }
-    procedure Render(Lights: TDynLightInstanceArray; out LightsEnabled: Cardinal);
+      Lights1 and Lights2 lists are simply glued inside.
+      Lights2 may be @nil (equal to being empty). }
+    procedure Render(const Lights1, Lights2: TDynLightInstanceArray;
+      const Shader: TVRMLShader;
+      const MaterialSpecularColor: TVector3Single);
 
     { Process light source properties right before rendering the light.
 
@@ -283,17 +289,19 @@ begin
   Inc(Statistics[Result]);
 end;
 
-procedure TVRMLGLLightsRenderer.Render(Lights: TDynLightInstanceArray;
-  out LightsEnabled: Cardinal);
+procedure TVRMLGLLightsRenderer.Render(
+  const Lights1, Lights2: TDynLightInstanceArray;
+  const Shader: TVRMLShader;
+  const MaterialSpecularColor: TVector3Single);
 var
-  I: Integer;
-  Light: PLightInstance;
-  LightOn: boolean;
-begin
-  LightsEnabled := 0;
-  if LightsEnabled > GLMaxLights - 1 then Exit;
+  LightsEnabled: Cardinal;
 
-  if Lights <> nil then
+  procedure AddList(Lights: TDynLightInstanceArray);
+  var
+    I: Integer;
+    LightOn: boolean;
+    Light: PLightInstance;
+  begin
     for I := 0 to Lights.Count - 1 do
     begin
       Light := Lights.Pointers[I];
@@ -306,10 +314,27 @@ begin
       begin
         if NeedRenderLight(LightsEnabled, Light) then
           glLightFromVRMLLight(LightsEnabled, Light^);
+        Shader.EnableLight(LightsEnabled, Light, MaterialSpecularColor);
         Inc(LightsEnabled);
         if LightsEnabled >= GLMaxLights then Exit;
       end;
     end;
+  end;
+
+var
+  I: Integer;
+begin
+  LightsEnabled := 0;
+  if LightsEnabled >= GLMaxLights then Exit;
+
+  AddList(Lights1);
+  if LightsEnabled >= GLMaxLights then Exit;
+
+  if Lights2 <> nil then
+  begin
+    AddList(Lights2);
+    if LightsEnabled >= GLMaxLights then Exit;
+  end;
 
   if LightsEnabled <= GLMaxLights - 1 then
     for I := LightsEnabled to GLMaxLights - 1 do

@@ -3013,9 +3013,7 @@ procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
   const MaterialOpacity: Single; const Lighting: boolean;
   const MaterialSpecularColor: TVector3Single);
 var
-  LightsEnabled: Cardinal;
-  I, OldBaseLightsCount: Integer;
-  Lights: TDynLightInstanceArray;
+  SceneLights: TDynLightInstanceArray;
 begin
   { All this is done before loading State.Transform, as the lights
     positions/directions are in world coordinates. }
@@ -3024,24 +3022,11 @@ begin
     there is no point in setting up lights. }
   if Lighting then
   begin
-    OldBaseLightsCount := BaseLights.Count;
-
     if Attributes.UseSceneLights then
-    begin
-      Lights := Shape.State.Lights;
-      if Lights <> nil then
-        { TODO: unoptimal to do this every frame, for every shape.
-          Optimize, integrate with lights setting, once vrmllightset
-          can be simplified. }
-        BaseLights.AppendDynArray(Lights);
-    end;
+      SceneLights := Shape.State.Lights else
+      SceneLights := nil;
 
-    LightsRenderer.Render(BaseLights, LightsEnabled);
-    for I := 0 to Integer(LightsEnabled) - 1 do
-      Shader.EnableLight(I, LightsRenderer.LightsDone[I], MaterialSpecularColor);
-
-    { restore BaseLights }
-    BaseLights.Count := OldBaseLightsCount;
+    LightsRenderer.Render(BaseLights, SceneLights, Shader, MaterialSpecularColor);
   end;
 
   RenderShapeFog(Shape, Fog, Shader, MaterialOpacity, Lighting);
