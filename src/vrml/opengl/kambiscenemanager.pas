@@ -31,6 +31,20 @@ type
   TRender3DEvent = procedure (Viewport: TKamAbstractViewport;
     const Params: TVRMLRenderParams) of object;
 
+  { Internal, special TVRMLRenderParams descendant that can return different
+    set of base lights for some scenes. Used to implement GlobalLights,
+    where MainScene and other objects need different lights.
+    @exclude. }
+  TManagerRenderParams = class(TVRMLRenderParams)
+  private
+    MainScene: T3D;
+    FBaseLights: array [boolean { is main scene }] of TDynLightInstanceArray;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function BaseLights(Scene: T3D): TDynLightInstanceArray; override;
+  end;
+
   { Common abstract class for things that may act as a viewport:
     TKamSceneManager and TKamViewport. }
   TKamAbstractViewport = class(TUIControlPos)
@@ -39,7 +53,7 @@ type
     FFullSize: boolean;
     FCamera: TCamera;
     FPaused: boolean;
-    FRenderParams: TVRMLRenderParams;
+    FRenderParams: TManagerRenderParams;
 
     FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
@@ -49,6 +63,7 @@ type
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
     FAlwaysApplyProjection: boolean;
+    FUseGlobalLights: boolean;
 
     { If a texture rectangle for screen effects is ready, then
       ScreenEffectTextureDest/Src/Depth are non-zero and ScreenEffectRTT is non-nil.
@@ -495,6 +510,12 @@ type
       both custom viewports and DefaultViewport = @true }
     property AlwaysApplyProjection: boolean
       read FAlwaysApplyProjection write FAlwaysApplyProjection default true;
+
+    { Let MainScene.GlobalLights shine on every 3D object, not only
+      MainScene. This is an easy way to lit your whole world with lights
+      defined inside MainScene file. Be sure to set lights global=TRUE. }
+    property UseGlobalLights: boolean
+      read FUseGlobalLights write FUseGlobalLights default false;
   end;
 
   TObjectsListItem_1 = TKamAbstractViewport;
@@ -844,6 +865,27 @@ begin
   RegisterComponents('Kambi', [TKamSceneManager]);
 end;
 
+{ TManagerRenderParams ------------------------------------------------------- }
+
+constructor TManagerRenderParams.Create;
+begin
+  inherited;
+  FBaseLights[false] := TDynLightInstanceArray.Create;
+  FBaseLights[true ] := TDynLightInstanceArray.Create;
+end;
+
+destructor TManagerRenderParams.Destroy;
+begin
+  FreeAndNil(FBaseLights[false]);
+  FreeAndNil(FBaseLights[true ]);
+  inherited;
+end;
+
+function TManagerRenderParams.BaseLights(Scene: T3D): TDynLightInstanceArray;
+begin
+  Result := FBaseLights[Scene = MainScene];
+end;
+
 { TKamAbstractViewport ------------------------------------------------------- }
 
 constructor TKamAbstractViewport.Create(AOwner: TComponent);
@@ -851,7 +893,7 @@ begin
   inherited;
   FFullSize := true;
   FAlwaysApplyProjection := true;
-  FRenderParams := TVRMLRenderParams.Create;
+  FRenderParams := TManagerRenderParams.Create;
 end;
 
 destructor TKamAbstractViewport.Destroy;
@@ -1400,8 +1442,18 @@ begin
 
   glLoadMatrix(RenderingCamera.Matrix);
 
-  FRenderParams.BaseLights.Clear;
-  InitializeLights(FRenderParams.BaseLights);
+  FRenderParams.FBaseLights[false].Clear;
+  InitializeLights(FRenderParams.FBaseLights[false]);
+  if UseGlobalLights and
+     (GetMainScene <> nil) and
+     (GetMainScene.GlobalLights.Count <> 0) then
+  begin
+    FRenderParams.MainScene := GetMainScene;
+    FRenderParams.FBaseLights[true].Assign(FRenderParams.FBaseLights[false]);
+    FRenderParams.FBaseLights[false].AppendDynArray(GetMainScene.GlobalLights);
+  end else
+    { Do not use Params.FBaseLights[true] }
+    FRenderParams.MainScene := nil;
 
   RenderFromView3D(FRenderParams);
 end;

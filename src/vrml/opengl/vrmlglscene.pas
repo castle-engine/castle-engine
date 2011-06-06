@@ -403,12 +403,9 @@ type
 
   { Information that 3D objects need to render, with some VRML/X3D data. }
   TVRMLRenderParams = class(TRenderParams)
-  private
-    FBaseLights: TDynLightInstanceArray;
   public
-    constructor Create;
-    destructor Destroy; override;
-    property BaseLights: TDynLightInstanceArray read FBaseLights;
+    { Lights that shine on given 3D object. }
+    function BaseLights(Scene: T3D): TDynLightInstanceArray; virtual; abstract;
   end;
 
   { Complete handling and rendering of a 3D VRML/X3D scene.
@@ -1276,20 +1273,6 @@ begin
   finally FreeAndNil(Helper) end;
 end;
 
-{ TVRMLRenderParams ---------------------------------------------------------- }
-
-constructor TVRMLRenderParams.Create;
-begin
-  inherited;
-  FBaseLights := TDynLightInstanceArray.Create;
-end;
-
-destructor TVRMLRenderParams.Destroy;
-begin
-  FreeAndNil(FBaseLights);
-  inherited;
-end;
-
 { TVRMLGLScene ------------------------------------------------------------ }
 
 constructor TVRMLGLScene.Create(AOwner: TComponent);
@@ -2138,7 +2121,7 @@ begin
     LightRenderEvent := @LightRenderInShadow else
     LightRenderEvent := nil;
 
-  Renderer.RenderBegin(Params.BaseLights, LightRenderEvent);
+  Renderer.RenderBegin(Params.BaseLights(Self), LightRenderEvent);
   try
     if Attributes.PureGeometry then
     begin
