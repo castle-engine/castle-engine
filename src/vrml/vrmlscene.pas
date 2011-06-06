@@ -6319,14 +6319,14 @@ begin
     { set location/direction of Node }
     if Node is TVRMLPositionalLightNode then
     begin
-      TVRMLPositionalLightNode(Node).FdLocation.Value := Position;
+      TVRMLPositionalLightNode(Node).FdLocation.Send(Position);
       if Node is TNodeSpotLight_2 then
-        TNodeSpotLight_2(Node).FdDirection.Value := Direction else
+        TNodeSpotLight_2(Node).FdDirection.Send(Direction) else
       if Node is TNodeSpotLight_1 then
-        TNodeSpotLight_1(Node).FdDirection.Value := Direction;
+        TNodeSpotLight_1(Node).FdDirection.Send(Direction);
     end else
     if Node is TVRMLDirectionalLightNode then
-      TVRMLDirectionalLightNode(Node).FdDirection.Value := Direction;
+      TVRMLDirectionalLightNode(Node).FdDirection.Send(Direction);
 
     FHeadlightInstance.Node := Node;
     FHeadlightInstance.Transform := IdentityMatrix4Single;
