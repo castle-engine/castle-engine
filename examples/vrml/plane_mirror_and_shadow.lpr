@@ -113,8 +113,8 @@ type
       - we'll clear gl buffers ourselves,
       - load camera matrix ourselves,
       - and we do not need scene manager's automatic headlight handling
-        (in RenderHeadLight, normally called by RenderFromViewEverything)
-        at all (in fact, we don't want it, we use GL_LIGHT0 for own purposes.
+        (in InitializeLights, normally called by RenderFromViewEverything)
+        at all (in fact, we don't want it, we use GL_LIGHT0 for own purposes).
 
     - We also override ApplyProjection to do our own work.
 

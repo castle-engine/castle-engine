@@ -120,16 +120,16 @@ type
       for shadow volumes, but doesn't take care of updating generated textures. }
     procedure RenderFromViewEverything; virtual;
 
-    { Render the headlight. Called by RenderFromViewEverything,
-      when camera matrix is set.
-      If headlight is on, this will enable and set appropriate OpenGL
-      light properties, and add it to BaseLights.
+    { Prepare lights shining on everything, like headlight.
+      BaseLights contents should be initialized here.
 
-      Implementation in this class uses headlight defined
+      The implementation in this class adds headlight defined
       in the MainScene, following NavigationInfo.headlight and
       KambiNavigationInfo.headlightNode properties.
-      If MainScene is not assigned, this does nothing. }
-    procedure RenderHeadLight(const BaseLights: TDynLightInstanceArray); virtual;
+      If MainScene is not assigned, this does nothing.
+
+      Called by RenderFromViewEverything. }
+    procedure InitializeLights(const BaseLights: TDynLightInstanceArray); virtual;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
       when everything (clearing, background, headlight, loading camera
@@ -1249,7 +1249,7 @@ begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
-procedure TKamAbstractViewport.RenderHeadLight(const BaseLights: TDynLightInstanceArray);
+procedure TKamAbstractViewport.InitializeLights(const BaseLights: TDynLightInstanceArray);
 var
   HC: TCamera;
   HeadlightInstance: PLightInstance;
@@ -1401,8 +1401,7 @@ begin
   glLoadMatrix(RenderingCamera.Matrix);
 
   FRenderParams.BaseLights.Clear;
-
-  RenderHeadLight(FRenderParams.BaseLights);
+  InitializeLights(FRenderParams.BaseLights);
 
   RenderFromView3D(FRenderParams);
 end;
