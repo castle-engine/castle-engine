@@ -72,7 +72,9 @@
 '    (                     acos(spot_cos) - cutOffAngle) /' + LineEnding + 
 '    (kambi_light_light_number_beam_width - cutOffAngle),' + LineEnding + 
 '    0.0, 1.0);' + LineEnding + 
-'#else' + LineEnding + 
+'#endif' + LineEnding + 
+'' + LineEnding + 
+'#ifdef LIGHT_HAS_SPOT_EXPONENT' + LineEnding + 
 '  /* calculate spot like fixed-function pipeline, using exponent */' + LineEnding + 
 '  scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);' + LineEnding + 
 '#endif' + LineEnding + 
