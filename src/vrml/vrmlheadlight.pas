@@ -108,6 +108,10 @@ begin
       CreateFromNode(HeadLightNode);
     finally FreeAndNil(HeadLightNode) end;
   end;
+
+  if Spot then
+    LightNode := TNodeSpotLight_2.Create('', '') else
+    LightNode := TNodeDirectionalLight_2.Create('', '');
 end;
 
 destructor TVRMLHeadLight.Destroy;
@@ -119,11 +123,8 @@ end;
 function TVRMLHeadLight.LightInstance(
   const Position, Direction: TVector3Single): TLightInstance;
 begin
-  FreeAndNil(LightNode);
-
   if Spot then
   begin
-    LightNode := TNodeSpotLight_2.Create('', '');
     TNodeSpotLight_2(LightNode).FdLocation.Value := Position;
     TNodeSpotLight_2(LightNode).FdDirection.Value := Direction;
     TNodeSpotLight_2(LightNode).FdBeamWidth.Value := SpotBeamWidth;
@@ -133,7 +134,6 @@ begin
     TNodeSpotLight_2(LightNode).FdAttenuation.Value := Attenuation;
   end else
   begin
-    LightNode := TNodeDirectionalLight_2.Create('', '');
     TNodeDirectionalLight_2(LightNode).FdDirection.Value := Direction;
   end;
 
