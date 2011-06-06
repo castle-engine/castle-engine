@@ -18,8 +18,6 @@ engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
   must be much easier using only the engine units.
   Also, creature AI must be added there.
   Also, move castle lights editor to view3dscene.
-  Also, remove castle xxx_lights files --- you can just edit xxx_final.wrl files in view3dscene
-  (and apply only appropriate diff). This will also allow removing our TVRMLGLLightSet?
 - DRAFT.engine_tutorial.txt finish, make prominent links from
   http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php (on sidebar,
   near download links, mention in news etc.)
@@ -239,21 +237,6 @@ Scene manager / controls / better Lazarus integration:
   like TInputListener, for TUIControl, TCamera, TBase3D.
   Or at least for TUIControl, TCamera.
   Maybe TInvisibleUIControl, or TCustomUIControl?
-
-- TVRMLGLLightSet - hm, it would be useful to eliminate need to use this
-  e.g. in castle. Can SceneManager help us here? Ideally, a way to allow
-  all the vrml scenes to mix their OpenGL lights could be great?
-
-  We would like to easily allow VRML lights (with global=TRUE,
-  this will be following VRML idea) to be shared.
-  This requires dynamic OpenGL light allocation (not governed by Scene.Attributes.First/Last).
-  Lights are already set fully dynamically (outside of disp list,
-  even before vbo transition) so this should be doable.
-
-  We could also have just allow MainScene to take all the lights and leave
-  them set for other scenes. Hm, actually sensible...
-
-  Also, an idea: move castle lights editor straight to view3dscene!
 
 - castle: besides level (MainScene, and level objects as additional stuff),
   it would be most perfect if castle creatures / items would be part of
