@@ -528,7 +528,8 @@ type
     ldHasRadius,
     ldHasAmbient,
     ldHasSpecular,
-    ldHasBeamWidth);
+    ldHasBeamWidth,
+    ldHasSpotExponent);
 
   procedure Define(const D: TLightDefine);
   const
@@ -536,14 +537,15 @@ type
       Name: string;
       Hash: LongWord;
     end =
-    ( (Name: 'LIGHT_TYPE_KNOWN'     ; Hash: 103; ),
-      (Name: 'LIGHT_TYPE_POSITIONAL'; Hash: 107; ),
-      (Name: 'LIGHT_TYPE_SPOT'      ; Hash: 109; ),
-      (Name: 'LIGHT_HAS_ATTENUATION'; Hash: 113; ),
-      (Name: 'LIGHT_HAS_RADIUS'     ; Hash: 127; ),
-      (Name: 'LIGHT_HAS_AMBIENT'    ; Hash: 131; ),
-      (Name: 'LIGHT_HAS_SPECULAR'   ; Hash: 137; ),
-      (Name: 'LIGHT_HAS_BEAM_WIDTH' ; Hash: 139; )
+    ( (Name: 'LIGHT_TYPE_KNOWN'       ; Hash: 103; ),
+      (Name: 'LIGHT_TYPE_POSITIONAL'  ; Hash: 107; ),
+      (Name: 'LIGHT_TYPE_SPOT'        ; Hash: 109; ),
+      (Name: 'LIGHT_HAS_ATTENUATION'  ; Hash: 113; ),
+      (Name: 'LIGHT_HAS_RADIUS'       ; Hash: 127; ),
+      (Name: 'LIGHT_HAS_AMBIENT'      ; Hash: 131; ),
+      (Name: 'LIGHT_HAS_SPECULAR'     ; Hash: 137; ),
+      (Name: 'LIGHT_HAS_BEAM_WIDTH'   ; Hash: 139; ),
+      (Name: 'LIGHT_HAS_SPOT_EXPONENT'; Hash: 149; )
     );
   begin
     Defines += '#define ' + DefinesList[D].Name + NL;
@@ -560,7 +562,11 @@ begin
     begin
       Define(ldTypePosiional);
       if Node is TNodeSpotLight_1 then
-        Define(ldTypeSpot) else
+      begin
+        Define(ldTypeSpot);
+        if TNodeSpotLight_1(Node).SpotExp <> 0 then
+          Define(ldHasSpotExponent);
+      end else
       if Node is TNodeSpotLight_2 then
       begin
         Define(ldTypeSpot);
