@@ -307,8 +307,10 @@ type
   {$I dynarray_1.inc}
   TDynLightInstanceArray = class(TDynArray_1)
   public
-    { Find given light node on the list. Return -1 if not found. }
+    { Find given light node. Return -1 if not found. }
     function IndexOfNode(Node: TNodeX3DLightNode): integer;
+    { Find light with given node name. Return @nil if not found. }
+    function FindName(NodeName: string): PLightInstance;
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
   end;
   TArray_LightInstance = TInfiniteArray_1;
@@ -2339,6 +2341,19 @@ begin
     if Items[Result].Node = Node then
       Exit;
   Result := -1;
+end;
+
+function TDynLightInstanceArray.FindName(NodeName: string): PLightInstance;
+var
+  I: Integer;
+begin
+  for I := 0 to High do
+  begin
+    Result := Pointers[I];
+    if Result^.Node.NodeName = NodeName then
+      Exit;
+  end;
+  Result := nil;
 end;
 
 function TDynLightInstanceArray.Equals(SecondValue: TObject): boolean;
