@@ -1007,3 +1007,10 @@ Various:
   Add headlightOrientation.
   Test interesting headlights.
 
+- UseGlobalLights: rendered lights may come now from different scene
+  with different translation (through T3DTranslated). This means
+  that comparing light location vs radius may be wrong, since we fail
+  to apply translation of T3DTranslated. TLightInstance should contain
+  things transformed by scene translation??? But we don't want to keep
+  this translation, the idea of T3DTranslated is that it can change translation
+  without the need to recalc anything?
