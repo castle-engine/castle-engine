@@ -19,7 +19,7 @@ unit KambiSceneManager;
 interface
 
 uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
-  GLShadowVolumeRenderer, GL, UIControls, Base3D, VRMLHeadlight,
+  GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, VRMLTriangle, Boxes3D, VRMLGLBackground, KambiUtils, KambiClassUtils,
   GLShaders, GLImages, KambiTimeUtils;
 
@@ -126,8 +126,9 @@ type
       light properties, and add it to BaseLights.
 
       Implementation in this class uses headlight defined
-      in the MainScene, following NavigationInfo.headlight and KambiHeadlight
-      nodes. If MainScene is not assigned, this does nothing. }
+      in the MainScene, following NavigationInfo.headlight and
+      KambiNavigationInfo.headlightNode properties.
+      If MainScene is not assigned, this does nothing. }
     procedure RenderHeadLight(const BaseLights: TDynLightInstanceArray); virtual;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,

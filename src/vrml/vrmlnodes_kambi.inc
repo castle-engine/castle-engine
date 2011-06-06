@@ -71,9 +71,6 @@
     private FFdSpotDropOffRate: TSFFloat;
     public property FdSpotDropOffRate: TSFFloat read FFdSpotDropOffRate;
 
-    private FFdSpotBeamWidth: TSFFloat;
-    public property FdSpotBeamWidth: TSFFloat read FFdSpotBeamWidth;
-
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -207,6 +204,9 @@
 
     private FFdHeadBobbingTime: TSFFloat;
     public property FdHeadBobbingTime: TSFFloat read FFdHeadBobbingTime;
+
+    private FFdheadlightNode: TSFNode;
+    public property FdheadlightNode: TSFNode read FFdheadlightNode;
 
     { Return value of appropriate FdOctreeXxx field.
       Returns @nil if the field doesn't have allowed (TNodeKambiOctreeProperties)
@@ -478,42 +478,30 @@ const
   HeadLightDefaultIntensity = 1.0;
   HeadLightDefaultSpot = false;
   HeadLightDefaultSpotCutOffAngle = Pi / 4;
-  HeadLightDefaultSpotBeamWidth = Pi / 2;
   HeadLightDefaultSpotDropOffRate = 0.0;
 begin
   inherited;
 
   FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', HeadLightDefaultAmbientIntensity);
-   FdambientIntensity.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdambientIntensity);
 
   FFdattenuation := TSFVec3f.Create(Self, 'attenuation', HeadLightDefaultAttenuation);
-   Fdattenuation.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdattenuation);
 
   FFdcolor := TSFColor.Create(Self, 'color', HeadLightDefaultColor);
-   Fdcolor.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdcolor);
 
   FFdintensity := TSFFloat.Create(Self, 'intensity', HeadLightDefaultIntensity);
-   Fdintensity.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdintensity);
 
   FFdspot := TSFBool.Create(Self, 'spot', HeadLightDefaultSpot);
-   Fdspot.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdspot);
 
   FFdspotCutOffAngle := TSFFloat.Create(Self, 'spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
-   FdspotCutOffAngle.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdspotCutOffAngle);
 
   FFdspotDropOffRate := TSFFloat.Create(Self, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
-   FdspotDropOffRate.ChangesAlways := [chHeadLightProps];
   Fields.Add(FFdspotDropOffRate);
-
-  FFdspotBeamWidth := TSFFloat.Create(Self, 'spotBeamWidth', HeadLightDefaultSpotBeamWidth);
-   FdspotBeamWidth.ChangesAlways := [chHeadLightProps];
-  Fields.Add(FFdspotBeamWidth);
 end;
 
 function TNodeKambiTriangulation.SuggestedVRMLVersion(
@@ -733,6 +721,9 @@ begin
   FFdHeadBobbingTime := TSFFloat.Create(Self, 'headBobbingTime', DefaultHeadBobbingTime, true);
    FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
   Fields.Add(FdHeadBobbingTime);
+
+  FFdheadlightNode := TSFNode.Create(Self, 'headlightNode', [TNodeX3DLightNode]);
+  Fields.Add(FFdheadlightNode);
 end;
 
 class function TNodeKambiNavigationInfo.ClassNodeTypeName: string;

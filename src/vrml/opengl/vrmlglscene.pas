@@ -21,7 +21,7 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
-  VRMLShapeOctree, VRMLHeadLight,
+  VRMLShapeOctree,
   GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLGLRendererLights, VRMLShape, Frustum,
   GLCubeMap, Base3D, GLShaders;
 

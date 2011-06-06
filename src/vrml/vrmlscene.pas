@@ -23,7 +23,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3D,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
-  KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs, VRMLHeadLight,
+  KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs,
   RenderingCameraUnit, Base3D, VRMLShadowMaps;
 
 {$define read_interface}
@@ -776,18 +776,10 @@ type
     procedure CalculateMainLightForShadowsPosition;
     procedure ValidateMainLightForShadows;
   private
-    FHeadlight: TVRMLHeadlight;
+    DefaultHeadlightNode: TNodeDirectionalLight_2;
     FHeadlightInstance: TLightInstance;
     FHeadlightOn: boolean;
     FOnHeadlightOnChanged: TNotifyEvent;
-    FHeadlightInitialized: boolean;
-    procedure SetHeadlightInitialized(const Value: boolean);
-
-    { If FHeadlight is initialized to correspond to current VRML/X3D state
-      and FHeadlightOn. }
-    property HeadlightInitialized: boolean
-      read FHeadlightInitialized
-      write SetHeadlightInitialized default false;
 
     procedure CameraChanged(RenderingCamera: TRenderingCamera);
     procedure SetHeadlightOn(const Value: boolean);
@@ -1785,16 +1777,21 @@ type
 
     { Headlight that should be used for this scene (if HeadlightOn), or @nil.
       This looks at HeadlightOn property to know if the headlight should
-      be used (should be <> @nil), and HeadlightOn in turn looks
-      at information in VRML/X3D file (NavigationInfo.headlight
-      and KambiHeadLight), and you can always set HeadlightOn explicitly
-      by code.
+      be used (should be <> @nil). HeadlightOn in turn looks
+      at information in VRML/X3D file (NavigationInfo.headlight),
+      you can also always set HeadlightOn explicitly by code.
 
-      If you want, it's a little dirty but allowed to directly change
-      this light's properties after it's initialized. (It's a little
-      dirty because some updates may reset your changes.)  }
+      Direction vector given here must be already normalized.
+
+      You can change the headlight's color and such properties by editing
+      resulting Node.FdColor and other fields.
+      But don't bother changing position/direction, these are reset at every
+      Headlight call.
+
+      @groupBegin }
     function Headlight(const Position, Direction: TVector3Single): PLightInstance;
     function Headlight(Camera: TCamera): PLightInstance;
+    { @groupEnd }
 
     { Should we use headlight for this scene. Controls if @link(Headlight)
       property returns something <> @nil.
@@ -2367,7 +2364,7 @@ begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
 
-  HeadlightInitialized := false;
+  FreeAndNil(DefaultHeadlightNode);
 
   { free FTrianglesList* variables }
   InvalidateTrianglesListShadowCasters;
@@ -3940,22 +3937,6 @@ var
     VisibleChangeHere([]);
   end;
 
-  procedure HandleChangeHeadLightProps;
-  begin
-    { Separate from HandleChangeHeadLightOn, this way merely changing
-      headlight color/spot size and such doesn't recalculate headlight
-      on based on NavigationInfo.headlight. This is desired when
-      NavigationInfo node doesn't exist and user explicitly controls
-      Scene.HeadlightOn --- each UpdateHeadlightOnFromNavigationInfo
-      then overrides what user did, so don't call it when not needed.
-
-      Testcase: demo_models/x3d/headlight_anim.x3dv when
-      NavigationInfo node is removed, try pressing Ctrl+H in view3dscene. }
-
-    HeadlightInitialized := false;
-    VisibleChangeHere([]);
-  end;
-
   procedure HandleChangeHeadLightOn;
   begin
     { Recalculate HeadlightOn based on NavigationInfo.headlight. }
@@ -4102,7 +4083,6 @@ begin
     if chGeneratedTextureUpdateNeeded in Changes then HandleChangeGeneratedTextureUpdateNeeded;
     { TODO: chFontStyle. Fortunately, FontStyle fields are not exposed,
       so this isn't a bug in vrml/x3d browser. }
-    if chHeadLightProps in Changes then HandleChangeHeadLightProps;
     if chHeadLightOn in Changes then HandleChangeHeadLightOn;
     if chClipPlane in Changes then HandleChangeClipPlane;
     if chDragSensorEnabled in Changes then HandleChangeDragSensorEnabled;
@@ -6295,57 +6275,61 @@ begin
   if FHeadlightOn <> Value then
   begin
     FHeadlightOn := Value;
-    HeadlightInitialized := false;
-
     if Assigned(OnHeadlightOnChanged) then OnHeadlightOnChanged(Self);
-
     if NavigationInfoStack.Top <> nil then
       NavigationInfoStack.Top.FdHeadlight.Send(HeadlightOn);
   end;
 end;
 
-procedure TVRMLScene.SetHeadlightInitialized(const Value: boolean);
-
-  { Creates a headlight, using (if present) KambiHeadLight node defined
-    in this VRML/X3D file. You're responsible for freeing this node.
-
-    Note that this is @italic(not) concerned whether you
-    actually should use this headlight (this information usually comes from
-    NavigationInfo.headlight value). }
-  function CreateHeadLight: TVRMLHeadLight;
-  var
-    HeadLightNode: TNodeKambiHeadLight;
-  begin
-    HeadLightNode := nil;
-    if RootNode <> nil then
-      HeadLightNode := RootNode.TryFindNode(TNodeKambiHeadLight, true) as
-        TNodeKambiHeadLight;
-    Result := TVRMLHeadLight.Create(HeadLightNode);
-  end;
-
-begin
-  if FHeadlightInitialized <> Value then
-  begin
-    FHeadlightInitialized := Value;
-    if Value then
-    begin
-      if HeadlightOn then
-        FHeadlight := CreateHeadlight else
-        FHeadlight := nil;
-    end else
-    begin
-      FreeAndNil(FHeadlight);
-    end;
-  end;
-end;
-
 function TVRMLScene.Headlight(const Position, Direction: TVector3Single): PLightInstance;
+var
+  MaybeNode: TVRMLNode;
+  Node: TNodeX3DLightNode;
 begin
-  HeadlightInitialized := true;
-
-  if FHeadlight <> nil then
+  if HeadlightOn then
   begin
-    FHeadlightInstance := FHeadlight.LightInstance(Position, Direction);
+    { calculate Node, for FHeadlightInstance.Node }
+    Node := nil;
+
+    if (NavigationInfoStack.Top <> nil) and
+       (NavigationInfoStack.Top is TNodeKambiNavigationInfo) then
+    begin
+      MaybeNode := TNodeKambiNavigationInfo(NavigationInfoStack.Top).FdheadlightNode.Value;
+      if MaybeNode is TNodeX3DLightNode then
+        Node := TNodeX3DLightNode(MaybeNode) else
+        Node := nil;
+    end;
+
+    if Node = nil then
+    begin
+      if DefaultHeadlightNode = nil then
+        { Nothing more needed, all DirectionalLight default properties
+          are suitable for default headlight. }
+        DefaultHeadlightNode := TNodeDirectionalLight_2.Create('', '');;
+      Node := DefaultHeadlightNode;
+    end;
+
+    Assert(Node <> nil);
+
+    { set location/direction of Node }
+    if Node is TVRMLPositionalLightNode then
+    begin
+      TVRMLPositionalLightNode(Node).FdLocation.Value := Position;
+      if Node is TNodeSpotLight_2 then
+        TNodeSpotLight_2(Node).FdDirection.Value := Direction else
+      if Node is TNodeSpotLight_1 then
+        TNodeSpotLight_1(Node).FdDirection.Value := Direction;
+    end else
+    if Node is TVRMLDirectionalLightNode then
+      TVRMLDirectionalLightNode(Node).FdDirection.Value := Direction;
+
+    FHeadlightInstance.Node := Node;
+    FHeadlightInstance.Transform := IdentityMatrix4Single;
+    FHeadlightInstance.TransformScale := 1;
+    FHeadlightInstance.Location := Position;
+    FHeadlightInstance.Direction := Direction;
+    FHeadlightInstance.Radius := MaxSingle;
+
     Result := @FHeadlightInstance;
   end else
     Result := nil;
