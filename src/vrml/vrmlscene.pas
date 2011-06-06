@@ -1788,9 +1788,14 @@ type
       But don't bother changing position/direction, these are reset at every
       Headlight call.
 
+      HeadlightDefault passes default camera vectors (position at zero,
+      direction in -Z). Useful if you want to get headlight not for rendering,
+      but to change some of it's properties (like color).
+
       @groupBegin }
     function Headlight(const Position, Direction: TVector3Single): PLightInstance;
     function Headlight(Camera: TCamera): PLightInstance;
+    function HeadlightDefault: PLightInstance;
     { @groupEnd }
 
     { Should we use headlight for this scene. Controls if @link(Headlight)
@@ -6341,6 +6346,11 @@ var
 begin
   Camera.GetView(Pos, Dir, Up);
   Result := Headlight(Pos, Dir);
+end;
+
+function TVRMLScene.HeadlightDefault: PLightInstance;
+begin
+  Result := Headlight(ZeroVector3Single, Vector3Single(0, 0, -1));
 end;
 
 procedure TVRMLScene.UpdateHeadlightOnFromNavigationInfo;

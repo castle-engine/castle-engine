@@ -2261,8 +2261,9 @@ procedure TVRMLGLScene.PrepareResources(
         try
           { Camera vectors for headlight don't matter here,
             they will not be used anyway to prepare shader code,
-            and later render calls will receive actual headlight vectors. }
-          H := Headlight(ZeroVector3Single, UnitVector3Single[1]);
+            and later render calls will receive actual headlight vectors.
+            So we can use HeadlightDefault. }
+          H := HeadlightDefault;
           if H <> nil then
             BaseLights.Add(H^);
 
