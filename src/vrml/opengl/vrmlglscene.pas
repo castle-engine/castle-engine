@@ -2246,6 +2246,7 @@ procedure TVRMLGLScene.PrepareResources(
     SI: TVRMLShapeTreeIterator;
     Shape: TVRMLGLShape;
     BaseLights: TDynLightInstanceArray;
+    H: PLightInstance;
   begin
     if Log then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
@@ -2258,11 +2259,12 @@ procedure TVRMLGLScene.PrepareResources(
         { With what BaseLights will most probably this scene be rendered }
         BaseLights := TDynLightInstanceArray.Create;
         try
-          if Headlight <> nil then
-            { Camera vectors for LightInstance don't matter here,
-              they will not be used anyway to prepare shader code,
-              and later render calls will receive actual headlight vectors. }
-            BaseLights.Add(Headlight.LightInstance(ZeroVector3Single, UnitVector3Single[1]));
+          { Camera vectors for headlight don't matter here,
+            they will not be used anyway to prepare shader code,
+            and later render calls will receive actual headlight vectors. }
+          H := Headlight(ZeroVector3Single, UnitVector3Single[1]);
+          if H <> nil then
+            BaseLights.Add(H^);
 
           Renderer.RenderBegin(BaseLights, nil);
           while SI.GetNext do

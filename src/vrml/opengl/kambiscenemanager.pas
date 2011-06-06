@@ -1251,6 +1251,7 @@ end;
 procedure TKamAbstractViewport.RenderHeadLight(const BaseLights: TDynLightInstanceArray);
 var
   HC: TCamera;
+  HeadlightInstance: PLightInstance;
 begin
   if GetMainScene <> nil then
   begin
@@ -1275,8 +1276,12 @@ begin
       (probably, to one of your viewpoints' cameras).
       Or use a hacky HeadlightFromViewport. }
 
-    if (HC <> nil) and (GetMainScene.Headlight <> nil) then
-      BaseLights.Add(GetMainScene.Headlight.LightInstance(HC));
+    if HC <> nil then
+    begin
+      HeadlightInstance := GetMainScene.Headlight(HC);
+      if HeadlightInstance <> nil then
+        BaseLights.Add(HeadlightInstance^);
+    end;
   end;
 
   { if MainScene = nil, do not enable any light. }
@@ -1978,14 +1983,8 @@ begin
 end;
 
 function TKamSceneManager.CameraToChanges: TVisibleChanges;
-var
-  H: TVRMLHeadlight;
 begin
-  if MainScene <> nil then
-    H := MainScene.Headlight { this may still return @nil if no headlight } else
-    H := nil;
-
-  if H <> nil then
+  if (MainScene <> nil) and MainScene.HeadlightOn then
     Result := [vcVisibleNonGeometry] else
     Result := [];
 end;

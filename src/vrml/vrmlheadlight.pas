@@ -76,7 +76,6 @@ type
       for ray-tracer only). When needed, maybe TLightInstance will be able
       to own Node. }
     function LightInstance(const Position, Direction: TVector3Single): TLightInstance;
-    function LightInstance(Camera: TCamera): TLightInstance;
   end;
 
 implementation
@@ -149,14 +148,6 @@ begin
   Result.Location := Position;
   Result.Direction := Normalized(Direction);
   Result.Radius := MaxSingle;
-end;
-
-function TVRMLHeadLight.LightInstance(Camera: TCamera): TLightInstance;
-var
-  Pos, Dir, Up: TVector3Single;
-begin
-  Camera.GetView(Pos, Dir, Up);
-  Result := LightInstance(Pos, Dir);
 end;
 
 end.

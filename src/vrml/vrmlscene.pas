@@ -777,6 +777,7 @@ type
     procedure ValidateMainLightForShadows;
   private
     FHeadlight: TVRMLHeadlight;
+    FHeadlightInstance: TLightInstance;
     FHeadlightOn: boolean;
     FOnHeadlightOnChanged: TNotifyEvent;
     FHeadlightInitialized: boolean;
@@ -1789,13 +1790,11 @@ type
       and KambiHeadLight), and you can always set HeadlightOn explicitly
       by code.
 
-      This TVRMLHeadlight instance is automatically managed (owned, freed)
-      by this scene. Calling this method automatically initializes it.
-
       If you want, it's a little dirty but allowed to directly change
       this light's properties after it's initialized. (It's a little
       dirty because some updates may reset your changes.)  }
-    function Headlight: TVRMLHeadlight;
+    function Headlight(const Position, Direction: TVector3Single): PLightInstance;
+    function Headlight(Camera: TCamera): PLightInstance;
 
     { Should we use headlight for this scene. Controls if @link(Headlight)
       property returns something <> @nil.
@@ -6340,10 +6339,24 @@ begin
   end;
 end;
 
-function TVRMLScene.Headlight: TVRMLHeadlight;
+function TVRMLScene.Headlight(const Position, Direction: TVector3Single): PLightInstance;
 begin
   HeadlightInitialized := true;
-  Result := FHeadlight;
+
+  if FHeadlight <> nil then
+  begin
+    FHeadlightInstance := FHeadlight.LightInstance(Position, Direction);
+    Result := @FHeadlightInstance;
+  end else
+    Result := nil;
+end;
+
+function TVRMLScene.Headlight(Camera: TCamera): PLightInstance;
+var
+  Pos, Dir, Up: TVector3Single;
+begin
+  Camera.GetView(Pos, Dir, Up);
+  Result := Headlight(Pos, Dir);
 end;
 
 procedure TVRMLScene.UpdateHeadlightOnFromNavigationInfo;
