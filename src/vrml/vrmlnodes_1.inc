@@ -2258,7 +2258,9 @@ end;
 
 function TNodeDirectionalLight_1.Scope: TLightScope;
 begin
-  Result := lsLocalVRML1;
+  if FdGlobal.Value then
+    Result := lsGlobal else
+    Result := lsLocalVRML1;
 end;
 
 procedure TNodePointLight_1.CreateNode;
@@ -2295,7 +2297,9 @@ end;
 
 function TNodePointLight_1.Scope: TLightScope;
 begin
-  Result := lsLocalVRML1;
+  if FdGlobal.Value then
+    Result := lsGlobal else
+    Result := lsLocalVRML1;
 end;
 
 procedure TNodeSpotLight_1.CreateNode;
@@ -2415,7 +2419,9 @@ end;
 
 function TNodeSpotLight_1.Scope: TLightScope;
 begin
-  Result := lsLocalVRML1;
+  if FdGlobal.Value then
+    Result := lsGlobal else
+    Result := lsLocalVRML1;
 end;
 
 procedure TNodeGroup_1.CreateNode;
