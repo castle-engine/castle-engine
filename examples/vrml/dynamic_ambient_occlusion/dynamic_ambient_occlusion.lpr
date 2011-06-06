@@ -31,7 +31,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiGLUtils, VRMLScene, VRMLGLScene,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, DataErrors,
-  GLVersionUnit, Math, VRMLTriangle, KambiSceneManager;
+  GLVersionUnit, Math, VRMLTriangle, KambiSceneManager, RenderingCameraUnit;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -457,13 +457,13 @@ var
 
 type
   TMySceneManager = class(TKamSceneManager)
-    procedure RenderFromView3D(const LightsEnabled: Cardinal); override;
+    procedure RenderFromView3D(const Params: TVRMLRenderParams); override;
   end;
 
 var
   SceneManager: TMySceneManager;
 
-procedure TMySceneManager.RenderFromView3D(const LightsEnabled: Cardinal);
+procedure TMySceneManager.RenderFromView3D(const Params: TVRMLRenderParams);
 
   { If ElementsIntensityTex = nil,
     then all element discs will have the same glMaterial.
@@ -619,18 +619,22 @@ procedure TMySceneManager.RenderFromView3D(const LightsEnabled: Cardinal);
 var
   ElementsIntensityTex: TGrayscaleImage;
 begin
+  { RenderFromView3D must initialize some Params fields itself }
+  Params.InShadow := false;
+
   case DrawType of
     dtNormalGL:
       begin
-        glPushAttrib(GL_ENABLE_BIT);
-          glEnable(GL_LIGHTING);
-          Scene.Render(nil, LightsEnabled, tgAll);
-        glPopAttrib;
+        Params.TransparentGroup := tgOpaque;
+        Scene.Render(RenderingCamera.Frustum, Params);
+        Params.TransparentGroup := tgTransparent;
+        Scene.Render(RenderingCamera.Frustum, Params);
       end;
     dtElements:
       begin
-        glPushAttrib(GL_ENABLE_BIT);
+        glPushAttrib(GL_ENABLE_BIT or GL_LIGHTING_BIT);
           glEnable(GL_LIGHTING);
+          glEnable(GL_LIGHT0);
           DoShowElements(nil);
         glPopAttrib;
       end;
@@ -648,7 +652,10 @@ begin
         FullRenderIntensityTex := CaptureAORect(false);
         try
           FullRenderShape := nil;
-          Scene.Render(nil, LightsEnabled, tgAll);
+          Params.TransparentGroup := tgOpaque;
+          Scene.Render(RenderingCamera.Frustum, Params);
+          Params.TransparentGroup := tgTransparent;
+          Scene.Render(RenderingCamera.Frustum, Params);
         finally FreeAndNil(FullRenderIntensityTex) end;
       end;
   end;
@@ -846,8 +853,16 @@ end;
 procedure UpdateSceneAttribs;
 begin
   case DrawType of
-    dtNormalGL:       Scene.Attributes.OnVertexColor := nil;
-    dtPass1, dtPass2: Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
+    dtNormalGL:
+      begin
+        Scene.Attributes.OnVertexColor := nil;
+        Scene.Attributes.Lighting := true;
+      end;
+    dtPass1, dtPass2:
+      begin
+        Scene.Attributes.OnVertexColor := @THelper(nil).VertexColor;
+        Scene.Attributes.Lighting := false;
+      end;
     { else they don't matter }
   end;
 end;
@@ -882,7 +897,6 @@ begin
 
     Scene := TVRMLGLScene.Create(Glw);
     Scene.Load(Parameters[1]);
-    Scene.Attributes.Lighting := false;
     UpdateSceneAttribs;
 
     CalculateElements;
