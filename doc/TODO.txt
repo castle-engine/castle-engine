@@ -1017,3 +1017,10 @@ Various:
   some code, and be unclean anyway (because validity needs to be reconsidered
   when shader url changes).
   For now, postpone.
+
+- headlightNode has more promises:
+  Allow to make headlight shadows by just shadows=TRUE.
+  Add headlightMove (or headlightTranslation).
+  Add headlightOrientation.
+  Test interesting headlights.
+
