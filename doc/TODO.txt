@@ -1007,6 +1007,10 @@ Various:
   Add headlightOrientation.
   Test interesting headlights.
 
+  Also, to make headlight cast shadows by shadow volumes,
+  MainLightForShadows should choose from BaseLights (after they are initialized)
+  + MainScene lights.
+
 - UseGlobalLights: rendered lights may come now from different scene
   with different translation (through T3DTranslated). This means
   that comparing light location vs radius may be wrong, since we fail
