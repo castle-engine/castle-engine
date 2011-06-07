@@ -132,6 +132,13 @@
     FExportedNames: TVRMLNodeNames;
   protected
     function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
+
+    { Root node never saves/restores the traversing state.
+      This means that all state changes "leak out" from a root node.
+      This is a good thing: if root node isn't used as a final TVRMLScene.RootNode,
+      then it is placed inside Inline node, which will do save/restore anyway.
+      And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
+    function SeparateGroup: boolean; override;
   public
     ForceVersion: TVRMLVersion;
 
@@ -595,8 +602,8 @@ begin
   FX3DMetaValues := TDynStringArray.Create;
   FSaveAsRootNode := true;
 
-  { this used to be needed to work correctly as VRML 1.0 root node.
-    Not sure is it needed still... }
+  { This must be usable as VRML 1.0 root node, so VRML 1.0 children
+    inside must be allowed. }
   FParsingAllowedChildren := true;
   FAllowedChildren := true;
 end;
@@ -696,6 +703,11 @@ begin
     ForceVersion.Minor := AMinor;
     X3DProfile := AProfile;
   end;
+end;
+
+function TVRMLRootNode.SeparateGroup: boolean;
+begin
+  Result := false;
 end;
 
 procedure TNodeStaticGroup.CreateNode;
