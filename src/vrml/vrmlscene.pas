@@ -4542,15 +4542,17 @@ begin
       Progress.Init(Result.ShapesList.Count, ProgressTitle, true);
       try
         for I := 0 to Result.ShapesList.Count - 1 do
-        begin
-          Result.TreeRoot.AddItem(I);
-          Progress.Step;
-        end;
+          if not IsEmptyBox3D(Result.ShapesList[I].BoundingBox) then
+          begin
+            Result.TreeRoot.AddItem(I);
+            Progress.Step;
+          end;
       finally Progress.Fini end;
     end else
     begin
       for I := 0 to Result.ShapesList.Count - 1 do
-        Result.TreeRoot.AddItem(I);
+        if not IsEmptyBox3D(Result.ShapesList[I].BoundingBox) then
+          Result.TreeRoot.AddItem(I);
     end;
   except Result.Free; raise end;
 

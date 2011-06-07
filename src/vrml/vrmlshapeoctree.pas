@@ -220,6 +220,9 @@ var
 begin
   SubnodesBox := ParentTree.ShapesList[ItemIndex].BoundingBox;
 
+  { We assume below that SubnodesBox is not empty.
+    Only such shapes can be added to TVRMLShapeOctree. }
+
   { For safety, I'm enlarging box a little, to be sure.
     This way if BoundingBox will lie exactly on one of
     3 orthogonal planes determined by MiddlePoint then
