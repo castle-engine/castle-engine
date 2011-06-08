@@ -296,7 +296,6 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/multiple_viewports \
   examples/vrml/demo_animation \
   examples/vrml/fog_culling \
-  examples/vrml/shadow_volume_test/shadow_volume_test \
   examples/vrml/bump_mapping/bump_mapping \
   examples/vrml/radiance_transfer/radiance_transfer \
   examples/vrml/radiance_transfer/precompute_radiance_transfer \

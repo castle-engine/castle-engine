@@ -296,7 +296,7 @@ Scene manager / controls / better Lazarus integration:
 
   At designtime, warn on error: do not put > 1 camera in Controls list,
   while it works it's usually nonsense.
-  Or not: shadow_volume_test shows that it's possible to have two cameras,
+  Or not: old shadow_volume_test showed that it's possible to have two cameras,
   and things work smoothly. You just have to assign non-conflicting keys.
 
   Started in kambipropsedit. Need to figure out and debug how to
@@ -411,9 +411,6 @@ Various ideas:
 * Remove ScheduleChangesAll.
   Just like DoGeometryChanged: everything should be automatically generated,
   and ChangesAll only invalidates stuff, making it inexpensive.
-
-* something animated for shadow_volume_test caster, receiver.
-  Should be easy now with scene manager, that allows models to be animated.
 
 - view3dscene: edit->add viewport here command (asks for viewport name to put in description),
   adds viewport to menu,
