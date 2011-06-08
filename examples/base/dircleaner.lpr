@@ -181,6 +181,7 @@ begin
   DefaultFilesToClean.Add('fpc-res.res'); { fpc on windows }
   DefaultFilesToClean.Add('.Bpib');    { blender }
   DefaultFilesToClean.Add('*.blend1');  { -'- }
+  DefaultFilesToClean.Add('*.blend2');  { -'- }
   DefaultFilesToClean.Add('*.bphys');  { -'- }
   DefaultFilesToClean.Add('*.cmi');  { ocamlc }
   DefaultFilesToClean.Add('*.cmo');  { -'- }
