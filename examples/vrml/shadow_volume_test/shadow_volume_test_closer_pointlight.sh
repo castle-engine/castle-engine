@@ -1,1 +1,0 @@
-./shadow_volume_test models/lightset_closer_pointlight.wrl models/scene.wrl models/shadow_caster.wrl

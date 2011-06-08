@@ -1,1 +1,0 @@
-./shadow_volume_test models/fountain_lightset.wrl models/fountain_camera.wrl models/fountain_geometry.wrl "$@"

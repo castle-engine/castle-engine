@@ -1,1 +1,0 @@
-./shadow_volume_test models/lightset.wrl models/scene.wrl models/shadow_caster_alien.wrl
