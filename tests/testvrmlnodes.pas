@@ -1283,6 +1283,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       FieldIs(Field, TNodeScreenEffect, 'needsDepth') or
       (Field.ParentNode is TNodeLayer2D) or
       (Field.ParentNode is TNodeLayer3D) or
+      (Field.ParentNode is TNodeKambiHeadLight) or
       false { just to have nice newlines };
   end;
 
