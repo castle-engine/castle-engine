@@ -52,17 +52,13 @@ var
   Window: TGLUIWindow;
   Scene: TVRMLGLScene;
   Camera: TCamera;
+  RenderParams: TBasicRenderParams;
 
 procedure Draw(Window: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Camera.Matrix);
-  Scene.Render(nil, 1, tgAll);
-end;
-
-procedure Open(Window: TGLWindow);
-begin
-  glEnable(GL_LIGHT0); { headlight }
+  Scene.Render(nil, RenderParams);
 end;
 
 procedure Close(Window: TGLWindow);
@@ -86,6 +82,8 @@ begin
   try
     Scene.Load(Parameters[1]);
 
+    RenderParams := TBasicRenderParams.Create;
+
     Writeln(Scene.Info(true, true, false));
 
     { init camera }
@@ -94,9 +92,11 @@ begin
       (Camera as TWalkCamera).Gravity := false;
     Window.Controls.Add(Camera);
 
-    Window.OnOpen := @Open;
     Window.OnClose := @Close;
     Window.OnResize := @Resize;
     Window.OpenAndRun(ProgramName, @Draw);
-  finally Scene.Free end;
+  finally
+    Scene.Free;
+    RenderParams.Free;
+  end;
 end.

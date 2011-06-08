@@ -67,6 +67,7 @@ var
   Window: TGLUIWindow;
   Scene: TVRMLGLScene;
   Camera: TUniversalCamera;
+  RenderParams: TBasicRenderParams;
 
 procedure BeforeDraw(Window: TGLWindow);
 begin
@@ -77,12 +78,7 @@ procedure Draw(Window: TGLWindow);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Camera.Matrix);
-  Scene.RenderFrustum(Camera.Frustum, 1, tgAll);
-end;
-
-procedure Open(Window: TGLWindow);
-begin
-  glEnable(GL_LIGHT0); { headlight }
+  Scene.Render(Camera.Frustum, RenderParams);
 end;
 
 procedure Close(Window: TGLWindow);
@@ -138,6 +134,8 @@ begin
   try
     Scene.Load(Parameters[1]);
 
+    RenderParams := TBasicRenderParams.Create;
+
     Writeln(Scene.Info(true, true, false));
 
     { build octrees }
@@ -157,10 +155,12 @@ begin
     Camera.Walk.OnGetHeightAbove := @THelperObj(nil).GetHeightAbove;
     Window.Controls.Add(Camera);
 
-    Window.OnOpen := @Open;
     Window.OnClose := @Close;
     Window.OnResize := @Resize;
     Window.OnBeforeDraw := @BeforeDraw;
     Window.OpenAndRun(ProgramName, @Draw);
-  finally Scene.Free end;
+  finally
+    Scene.Free;
+    RenderParams.Free;
+  end;
 end.
