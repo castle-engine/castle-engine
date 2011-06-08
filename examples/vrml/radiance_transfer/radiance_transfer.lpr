@@ -40,6 +40,7 @@ var
   ViewMode: TViewMode = vmFull;
   LightRadius: Single;
   LightPos: TVector3Single;
+  RenderParams: TBasicRenderParams;
 
 const
   { This is currently not synched with actual SHBasisCount used to generate
@@ -110,7 +111,7 @@ begin
     glViewport(0, 0, ContainerWidth, ContainerHeight);
   end;
 
-  Scene.Render(nil, 1, tgAll);
+  Scene.Render(nil, RenderParams);
 
   DrawLight(false);
 end;
@@ -263,6 +264,8 @@ begin
 
   Parameters.CheckHigh(1);
 
+  RenderParams := TBasicRenderParams.Create;
+
   Scene := TVRMLGLScene.Create(Application);
   VRMLWarning := @VRMLWarning_Write;
   Scene.Load(Parameters[1]);
@@ -293,4 +296,6 @@ begin
   InitializeSHBasisMap;
 
   Glw.OpenAndRun;
+
+  FreeAndNil(RenderParams);
 end.

@@ -51,16 +51,14 @@ end;
 type
   TMySceneManager = class(TKamSceneManager)
   protected
-    procedure Render3D(const LightsEnabled: Cardinal;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    procedure Render3D(const Params: TRenderParams); override;
     procedure ApplyProjection; override;
   end;
 
 var
   SceneManager: TMySceneManager;
 
-procedure TMySceneManager.Render3D(const LightsEnabled: Cardinal;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TMySceneManager.Render3D(const Params: TRenderParams);
 
   { This was brutally copied from vrmlnodes_triangulating.inc
     (Sphere_LocalTriangulate), then adjusted. See there for comments. }
@@ -188,7 +186,7 @@ end;}
 
 begin
   inherited;
-  if TransparentGroup in [tgAll, tgOpaque] then
+  if Params.TransparentGroup in [tgAll, tgOpaque] then
   begin
     MinSHValue :=  MaxFloat;
     MaxSHValue := -MaxFloat;

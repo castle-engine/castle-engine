@@ -60,12 +60,17 @@ var
 
   Scene: TVRMLGLScene;
   SceneForShadow: TVRMLGLScene;
+  RenderParams: TBasicRenderParams;
+  LightNode: TNodePointLight_2;
+  LightInstance: TLightInstance;
 
   { FileName of currently loaded Scene.
     '' means to load internal cube model. }
   SceneFileName: string;
 
-  LightPosition: TVector4Single = (0, 0, 10, 1);
+  { 4th component must be always 1, because LightNode
+    is always created as positional }
+  LightPosition: TVector4Single = (0, 0, 3, 1);
 
   RotationAngle: Single;
 
@@ -113,8 +118,7 @@ type
       - we'll clear gl buffers ourselves,
       - load camera matrix ourselves,
       - and we do not need scene manager's automatic headlight handling
-        (in InitializeLights, normally called by RenderFromViewEverything)
-        at all (in fact, we don't want it, we use GL_LIGHT0 for own purposes).
+        (in InitializeLights, normally called by RenderFromViewEverything).
 
     - We also override ApplyProjection to do our own work.
 
@@ -199,7 +203,7 @@ var
             almost exactly like Scene (the same set of glVertex etc.),
             but it's rendered with Attributes.PureGeometry = @true
             (we want it's color to be consistently black). }
-          SceneForShadow.Render(nil, 1, tgAll);
+          SceneForShadow.Render(nil, RenderParams);
         glPopMatrix();
       glPopAttrib();
     glPopMatrix();
@@ -269,8 +273,10 @@ var
           glClipPlane(GL_CLIP_PLANE0, Vector4Double(Vector4Split(1, 0, 0)));
           glTranslatev(Vector3Split( Plane[3], 0));
 
-          { reposition light in new space, so it's also mirrored as it should be }
-          glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
+          { note that the LightPosition should also be mirrored.
+            No need to do it explicitly --- Scene renderer will automatically
+            use light, transforming it by current modelview matrix,
+            so it will get properly mirrored. }
 
           glRotatef(RotationAngle, 1, 1, 1);
           { Render scene for mirror. This is rendered just as usual,
@@ -280,12 +286,9 @@ var
             We swap CCW to CW --- sides that were CCW previously (and had to
             be culled, or have normal vectors pointing from them) are now CW. }
           glFrontFace(GL_CW);
-          Scene.Render(nil, 1, tgAll);
+          Scene.Render(nil, RenderParams);
           glFrontFace(GL_CCW);
         glPopMatrix();
-
-        { back light to normal (non-mirrored) position }
-        glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
 
       glDisable(GL_CLIP_PLANE0);
 
@@ -318,6 +321,11 @@ begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
   glLoadMatrix(RenderingCamera.Matrix);
 
+  { set light position (for Scene (by LightInstance and LightNode) and for direct
+    fixed-function pipeline rendering (by glLight, used by DrawFloor). }
+  LightInstance.Location := Vector3SingleCut(LightPosition);
+  LightNode.FdLocation.Value := Vector3SingleCut(LightPosition);
+  glEnable(GL_LIGHT0);
   glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
 
   { draw point indicating LightPosition }
@@ -337,7 +345,7 @@ begin
     { Render normal Scene }
     glPushMatrix();
       glRotatef(RotationAngle, 1, 1, 1);
-      Scene.Render(nil, 1, tgAll);
+      Scene.Render(nil, RenderParams);
     glPopMatrix();
 
     BoxMaxSize := Box3DMaxSize(Box);
@@ -442,7 +450,7 @@ begin
   BoxMaxSize := Box3DMaxSize(Box, false, { whatever, arbitrary number } 2);
 
   ProjectionGLPerspective(45.0, ContainerWidth / ContainerHeight,
-    BoxMaxSize * 0.01, BoxMaxSize * 10.0);
+    BoxMaxSize * 0.01, BoxMaxSize * 100.0);
 end;
 
 var
@@ -610,6 +618,20 @@ begin
     SceneForShadow.Attributes.PureGeometry := true;
     SceneForShadow.Attributes.PreserveOpenGLState := true;
 
+    { init light that we'll control }
+    LightNode := TNodePointLight_2.Create('', '');
+    LightNode.FdLocation.Value := Vector3SingleCut(LightPosition);
+
+    LightInstance.Node := LightNode;
+    LightInstance.Transform := IdentityMatrix4Single;
+    LightInstance.TransformScale := 1;
+    LightInstance.Location := Vector3SingleCut(LightPosition);
+    LightInstance.Radius := 1000;
+
+    { parameters for render calls must contain our custom light }
+    RenderParams := TBasicRenderParams.Create;
+    RenderParams.FBaseLights.Add(LightInstance);
+
     { init SceneManager.Camera }
     SceneManager.Camera := TExamineCamera.Create(Window);
     (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
@@ -628,5 +650,7 @@ begin
   finally
     FreeAndNil(SceneForShadow);
     FreeAndNil(Scene);
+    FreeAndNil(RenderParams);
+    FreeAndNil(LightNode);
   end;
 end.

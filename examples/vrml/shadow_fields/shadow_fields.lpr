@@ -55,6 +55,7 @@ var
   GLList_EnvLight: TGLuint;
   { Recalculated at the beginning of each Draw. }
   EnvLightSHVector: TSHVectorSingle;
+  RenderParams: TBasicRenderParams;
 
   { Shadow fields always have MaxSHBasis recorded.
     But you can use less here, to speed up. }
@@ -179,26 +180,29 @@ begin
     glViewport(0, 0, Glwin.Width, Glwin.Height);
   end;
 
-  SceneReceiver.Render(nil, 0, tgAll);
+  RenderParams.FBaseLights.Clear;
+  SceneReceiver.Render(nil, RenderParams);
 
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
+  { add headlight for both SceneCaster and SceneLocalLight rendering
+    (we can actually use any VRML/X3D scene to initialize it) }
+  RenderParams.FBaseLights.Clear;
+  SceneCaster.HeadlightOn := true;
+  RenderParams.FBaseLights.Add(SceneCaster.Headlight(NavigatorAll)^);
+
   glPushMatrix;
     glTranslatev(NavigatorCaster.MoveAmount);
     glScalef(NavigatorCaster.ScaleFactor,
              NavigatorCaster.ScaleFactor,
              NavigatorCaster.ScaleFactor);
-    SceneCaster.Render(nil, 1, tgAll);
+    SceneCaster.Render(nil, RenderParams);
   glPopMatrix;
 
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
   glPushMatrix;
     glTranslatev(NavigatorLocalLight.MoveAmount);
     glScalef(NavigatorLocalLight.ScaleFactor,
              NavigatorLocalLight.ScaleFactor,
              NavigatorLocalLight.ScaleFactor);
-    SceneLocalLight.Render(nil, 1, tgAll);
+    SceneLocalLight.Render(nil, RenderParams);
   glPopMatrix;
 
   { GL_LIGHTING is disabled by VRML renderer now }
@@ -540,6 +544,8 @@ begin
   try
     VRMLWarning := @VRMLWarning_Write;
 
+    RenderParams := TBasicRenderParams.Create;
+
     SceneCaster := TVRMLGLScene.Create(nil);
     SceneCaster.Load(ShadowCasterFileName);
 
@@ -634,5 +640,6 @@ begin
     FreeAndNil(SceneLocalLight);
     FreeAndNil(CasterOOF);
     FreeAndNil(LocalLightSRF);
+    FreeAndNil(RenderParams);
   end;
 end.

@@ -89,6 +89,7 @@ var
 
   Scene: TVRMLGLScene;
   SceneBrightestLight: TVRMLPositionalLightNode;
+  RenderParams: TBasicRenderParams;
 
   { Vars below for bmEmboss only }
 
@@ -786,7 +787,7 @@ begin
       so I change it back to default GL value. }
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
-    Scene.RenderFrustum(RenderingCamera.Frustum, 0, tgAll);
+    Scene.Render(RenderingCamera.Frustum, RenderParams);
   end else
   begin
     glEnable(GL_LIGHTING);
@@ -1314,6 +1315,8 @@ begin
     if you want more features, like mouse picking of objects }];
   Scene.ProcessEvents := true;
 
+  RenderParams := TBasicRenderParams.Create;
+
   { Initialize default Method.
     Scene is part of SceneManager only when Method = bmVRML }
   if Method = bmVRML then
@@ -1335,4 +1338,5 @@ begin
   Glw.OpenAndRun;
 
   FreeAndNil(Scene);
+  FreeAndNil(RenderParams);
 end.

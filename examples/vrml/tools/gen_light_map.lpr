@@ -24,7 +24,7 @@
 
 program gen_light_map;
 
-uses SysUtils, KambiUtils, VectorMath, VRMLNodes, VRMLLightSet, VRMLScene,
+uses SysUtils, KambiUtils, VectorMath, VRMLNodes, VRMLScene,
   VRMLLightMap, Images, ProgressUnit, ProgressConsole, KambiTimeUtils;
 
 function ReadParametersVectorTo1st(i: Integer): TVector3Single;
@@ -35,7 +35,6 @@ begin
 end;
 
 var
-  LightSet: TVRMLLightSet;
   Scene: TVRMLScene;
   Image: TImage;
 
@@ -67,14 +66,13 @@ begin
   Image := ImageClassBestForSavingToFormat(OutImageFilename).
     Create(ImageSizeX, ImageSizeY);
 
-  { calculate Scene and LightSet (from the same RootNode) }
+  { calculate Scene (from the same RootNode) }
   Write('Loading scene... ');
   Scene := TVRMLScene.Create(nil);
   Scene.Load(SceneFileName, true);
-  LightSet := TVRMLLightSet.Create(Scene.RootNode, false);
   Writeln('done.');
-  if LightSet.Lights.Count = 0 then
-   Writeln('WARNING: scene has no lights defined (everything will be black)');
+  if Scene.GlobalLights.Count = 0 then
+   Writeln('WARNING: scene has no global lights defined (everything will be black)');
 
   { calculate SceneOctree }
   Progress.UserInterface := ProgressConsoleInterface;
@@ -83,13 +81,12 @@ begin
 
   { render to Image }
   ProcessTimerBegin;
-  QuadLightMapTo1st(Image, LightSet.Lights, Scene.OctreeVisibleTriangles, Quad,
+  QuadLightMapTo1st(Image, Scene.GlobalLights, Scene.OctreeVisibleTriangles, Quad,
     RenderDir, 'Rendering');
   Writeln(Format('Rendering done in %f seconds.', [ProcessTimerEnd]));
 
   SaveImage(Image, OutImageFilename);
  finally
-  LightSet.Free;
   Scene.Free;
   Image.Free;
  end;

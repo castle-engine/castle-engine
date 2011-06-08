@@ -86,18 +86,15 @@ var
 type
   TMySceneManager = class(TKamSceneManager)
   protected
-    procedure Render3D(const LightsEnabled: Cardinal;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    procedure Render3D(const Params: TRenderParams); override;
   end;
 
 var
   SceneManager: TMySceneManager;
 
-procedure TMySceneManager.Render3D(
-  const LightsEnabled: Cardinal;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TMySceneManager.Render3D(const Params: TRenderParams);
 begin
-  if not (TransparentGroup in [tgAll, tgOpaque]) then Exit;
+  if not (Params.TransparentGroup in [tgAll, tgOpaque]) then Exit;
 
   { Do not call "inherited", i.e. do not let default PreciseCurve, ApproxCurve
     rendering, because we want to take into account our variables

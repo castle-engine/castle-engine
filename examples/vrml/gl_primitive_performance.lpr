@@ -55,17 +55,15 @@ var
   VBOVertex: TGLuint;
 
 type
- TMySceneManager = class(TKamSceneManager)
-   procedure Render3D(const LightsEnabled: Cardinal;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
- end;
+  TMySceneManager = class(TKamSceneManager)
+    procedure Render3D(const Params: TRenderParams); override;
+  end;
 
-procedure TMySceneManager.Render3D(const LightsEnabled: Cardinal;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TMySceneManager.Render3D(const Params: TRenderParams);
 var
   I: Integer;
 begin
-  if not (TransparentGroup in [tgAll, tgOpaque]) then Exit;
+  if not (Params.TransparentGroup in [tgAll, tgOpaque]) then Exit;
 
   glMultMatrix(Shape.State.Transform);
 

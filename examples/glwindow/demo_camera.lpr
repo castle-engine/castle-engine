@@ -41,17 +41,13 @@ uses VectorMath, Boxes3D, GL, GLU, GLWindow, Frustum,
 type
   TCube = class(T3D)
   public
-    procedure Render(const Frustum: TFrustum;
-      const LightsEnabled: Cardinal;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     function BoundingBox: TBox3D; override;
   end;
 
-procedure TCube.Render(const Frustum: TFrustum;
-  const LightsEnabled: Cardinal;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TCube.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
-  if TransparentGroup in [tgAll, tgOpaque] then
+  if Params.TransparentGroup in [tgAll, tgOpaque] then
   begin
     glPushAttrib(GL_ENABLE_BIT);
       glEnable(GL_LIGHTING);

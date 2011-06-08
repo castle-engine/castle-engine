@@ -33,7 +33,7 @@ program fog_culling;
 uses SysUtils, VectorMath, GL, GLU, GLWindow, KambiStringUtils,
   KambiClassUtils, KambiUtils, Classes, Cameras,
   KambiGLUtils, VRMLNodes, VRMLScene, VRMLGLScene,
-  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors,
+  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors, Base3D,
   KambiSceneManager;
 
 var
@@ -45,8 +45,7 @@ type
   private
     function TestFogVisibility(Shape: TVRMLGLShape): boolean;
   protected
-    procedure Render3D(const LightsEnabled: Cardinal;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    procedure Render3D(const Params: TRenderParams); override;
   end;
 
 var
@@ -67,11 +66,10 @@ end;
 var
   FogCulling: boolean = true;
 
-procedure TMySceneManager.Render3D(const LightsEnabled: Cardinal;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TMySceneManager.Render3D(const Params: TRenderParams);
 begin
   if FogCulling then
-    Scene.Render(@TestFogVisibility, LightsEnabled, TransparentGroup) else
+    Scene.Render(@TestFogVisibility, Params) else
     inherited;
 
   Writeln(Format('Rendered Shapes: %d / %d (fog culling: %s)',
