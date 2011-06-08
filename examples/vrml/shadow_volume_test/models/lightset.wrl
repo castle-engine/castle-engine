@@ -1,9 +1,0 @@
-#VRML V1.0 ascii
-
-# may have only one light !
-
-PointLight {
-  intensity 0.5
-  location 21793.482421875 9821.85546875 8022.0078125
-#  direction -0.33718955516815186 0.85983055830001831 -0.38340350985527039
-} 

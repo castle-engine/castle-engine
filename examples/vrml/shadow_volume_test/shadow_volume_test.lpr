@@ -68,7 +68,7 @@ program shadow_volume_test;
 
 uses GLWindow, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
   VRMLNodes, Cameras, Boxes3D, SysUtils,
-  KambiUtils, VectorMath, VRMLGLLightSet, VRMLFields,
+  KambiUtils, VectorMath, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, GLShadowVolumeRenderer,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, KambiSceneManager,
@@ -127,7 +127,6 @@ var
   Scene, ShadowCaster: TVRMLGLScene;
   ShadowCasterNav: TExamineCamera;
   SceneNav: TWalkCamera;
-  LightSet: TVRMLGLLightSet;
 
   { MainLightPosition[3] = 0 means it's directional. }
   MainLightPosition: TVector4Single;
@@ -243,10 +242,9 @@ procedure TMySceneManager.RenderFromViewEverything;
   end;
 
   { Rendering with hard shadows by SV algorithm. }
-  procedure RenderWithShadows(const LightsEnabled: Cardinal);
+  procedure RenderWithShadows;
   var
     StencilShadowBits: TGLuint;
-    NewLightsEnabled: Cardinal;
   begin
     if (ShadowsImplementation = siStencilTwoSided) and
        (not SV.StencilTwoSided) then
@@ -350,17 +348,13 @@ procedure TMySceneManager.RenderFromViewEverything;
         rendering, depth buffer values will be filled only on the non-shadowed
         parts, which will hurt us if we will try to render something else
         on top of the scene --- like silhouette edges. }
-      glPushAttrib(
-          GL_DEPTH_BUFFER_BIT { for glDepthFunc } or
-          GL_LIGHTING_BIT { for LightSet.RenderLights });
+      glPushAttrib(GL_DEPTH_BUFFER_BIT { for glDepthFunc });
         glDepthFunc(GL_LEQUAL);
-        NewLightsEnabled := LightsEnabled;
-        LightSet.Render(NewLightsEnabled);
         { setup stencil : don't modify stencil, stencil test passes only for =0 }
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
         glStencilFunc(GL_EQUAL, 0, StencilShadowBits);
 
-        RenderEverything(NewLightsEnabled);
+        RenderEverything;
       glPopAttrib;
     glDisable(GL_STENCIL_TEST);
   end;

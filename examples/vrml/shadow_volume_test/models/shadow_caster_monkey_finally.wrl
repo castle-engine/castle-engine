@@ -1,7 +1,0 @@
-#VRML V1.0 ascii
-
-Group {
-  Translation { translation 11025.0751953125 9071.5078125 3306.531494140625 }
-  Scale { scaleFactor 500 500 500 }
-  WWWInline { name "shadow_caster_monkey.wrl" }
-}

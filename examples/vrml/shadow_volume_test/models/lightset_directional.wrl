@@ -1,8 +1,0 @@
-#VRML V1.0 ascii
-
-# may have only one light !
-
-DirectionalLight {
-  intensity 0.5
-  direction -162.489013671875 -11.933350563049316 -145.55645751953125
-}
