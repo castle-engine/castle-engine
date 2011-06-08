@@ -408,6 +408,20 @@ type
     function BaseLights(Scene: T3D): TDynLightInstanceArray; virtual; abstract;
   end;
 
+  { Basic non-abstact implementation of render params for calling T3D.Render.
+    To be used when you have to call T3D.Render, but you don't use scene manager.
+    Usually this should not be needed, and this class may be removed at some
+    point! You should always try to use TKamSceneManager to manage and render
+    3D stuff in new programs, and then TKamSceneManager will take care of creating
+    proper render params instance for you. }
+  TBasicRenderParams = class(TVRMLRenderParams)
+  public
+    FBaseLights: TDynLightInstanceArray;
+    constructor Create;
+    destructor Destroy; override;
+    function BaseLights(Scene: T3D): TDynLightInstanceArray; override;
+  end;
+
   { Complete handling and rendering of a 3D VRML/X3D scene.
     This is a descendant of TVRMLScene that adds efficient rendering
     using OpenGL.
@@ -1271,6 +1285,27 @@ begin
     end;
 
   finally FreeAndNil(Helper) end;
+end;
+
+{ TBasicRenderParams --------------------------------------------------------- }
+
+constructor TBasicRenderParams.Create;
+begin
+  inherited;
+  FBaseLights := TDynLightInstanceArray.Create;
+  InShadow := false;
+  TransparentGroup := tgAll;
+end;
+
+destructor TBasicRenderParams.Destroy;
+begin
+  FreeAndNil(FBaseLights);
+  inherited;
+end;
+
+function TBasicRenderParams.BaseLights(Scene: T3D): TDynLightInstanceArray;
+begin
+  Result := FBaseLights;
 end;
 
 { TVRMLGLScene ------------------------------------------------------------ }
