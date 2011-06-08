@@ -36,15 +36,11 @@ var
 type
   TMyGeometry = class(T3D)
   public
-    procedure Render(const Frustum: TFrustum;
-      const LightsEnabled: Cardinal;
-      const TransparentGroup: TTransparentGroup; InShadow: boolean); override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     function BoundingBox: TBox3D; override;
   end;
 
-procedure TMyGeometry.Render(const Frustum: TFrustum;
-  const LightsEnabled: Cardinal;
-  const TransparentGroup: TTransparentGroup; InShadow: boolean);
+procedure TMyGeometry.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
   { Draw cube using really old-fashioned approach (no vertex arrays,
     just specify by hand 6 quads, 4 vertexes and tex coords each). }
@@ -132,7 +128,7 @@ procedure TMyGeometry.Render(const Frustum: TFrustum;
   end;
 
 begin
-  if not (TransparentGroup in [tgAll, tgOpaque]) then Exit;
+  if not (Params.TransparentGroup in [tgAll, tgOpaque]) then Exit;
 
   { headlight }
   glPushMatrix;
