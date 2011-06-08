@@ -244,7 +244,7 @@ type
       On some OpenAL implementations, some other @link(Device) values may
       be possible, e.g. old Loki implementation allowed some hints
       to be encoded in Lisp-like language inside the @link(Device) string. }
-    property Devices: TALDeviceDescriptionList read FDevices;
+    function Devices: TALDeviceDescriptionList;
 
     function DeviceNiceName: string;
 
@@ -397,6 +397,35 @@ end;
 { TALSoundEngine ------------------------------------------------------------- }
 
 constructor TALSoundEngine.Create;
+begin
+  inherited;
+  FVolume := DefaultVolume;
+  FDefaultRolloffFactor := DefaultDefaultRolloffFactor;
+  FDefaultReferenceDistance := DefaultDefaultReferenceDistance;
+  FDefaultMaxDistance := DefaultDefaultMaxDistance;
+  FDistanceModel := DefaultDistanceModel;
+  FEnable := true;
+  FEnableSaveToConfig := true;
+  DeviceSaveToConfig := true;
+  BuffersCache := TALBuffersCacheList.Create;
+  FOnOpenClose := TDynNotifyEventArray.Create;
+
+  { Default OpenAL listener attributes }
+  ListenerPosition := ZeroVector3Single;
+  ListenerOrientation[0] := Vector3Single(0, 0, -1);
+  ListenerOrientation[1] := Vector3Single(0, 1, 0);
+end;
+
+destructor TALSoundEngine.Destroy;
+begin
+  ALContextClose;
+  FreeAndNil(BuffersCache);
+  FreeAndNil(FDevices);
+  FreeAndNil(FOnOpenClose);
+  inherited;
+end;
+
+function TALSoundEngine.Devices: TALDeviceDescriptionList;
 
   { Find available OpenAL devices, add them to FDevices.
 
@@ -475,34 +504,27 @@ constructor TALSoundEngine.Create;
   end;
 
 begin
-  inherited;
-  FVolume := DefaultVolume;
-  FDefaultRolloffFactor := DefaultDefaultRolloffFactor;
-  FDefaultReferenceDistance := DefaultDefaultReferenceDistance;
-  FDefaultMaxDistance := DefaultDefaultMaxDistance;
-  FDistanceModel := DefaultDistanceModel;
-  FEnable := true;
-  FEnableSaveToConfig := true;
-  DeviceSaveToConfig := true;
-  BuffersCache := TALBuffersCacheList.Create;
-  FOnOpenClose := TDynNotifyEventArray.Create;
+  { Create devices on demand (not immediately in TALSoundEngine.Create),
+    because merely using alcGetString(nil, ALC_DEVICE_SPECIFIER)
+    may perform some OpenAL initialization (discovery of available devices).
+    E.g. with OpenAL Soft 1.13 in Debian. This is not very harmful,
+    but it causes like output (on stdout or stderr) like
 
-  FDevices := TALDeviceDescriptionList.Create;
-  UpdateDevices;
+      AL lib: pulseaudio.c:612: Context did not connect: Connection refused
+      ALSA lib pcm.c:2190:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.rear
+      ALSA lib pcm.c:2190:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.center_lfe
+      ALSA lib pcm.c:2190:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.side
+      ALSA lib pcm_dmix.c:957:(snd_pcm_dmix_open) The dmix plugin supports only playback stream
 
-  { Default OpenAL listener attributes }
-  ListenerPosition := ZeroVector3Single;
-  ListenerOrientation[0] := Vector3Single(0, 0, -1);
-  ListenerOrientation[1] := Vector3Single(0, 1, 0);
-end;
+    and it causes a temporary slowdown. So we want to defer this (until really
+    needed, or until explicit ALContextOpen call). }
 
-destructor TALSoundEngine.Destroy;
-begin
-  ALContextClose;
-  FreeAndNil(BuffersCache);
-  FreeAndNil(FDevices);
-  FreeAndNil(FOnOpenClose);
-  inherited;
+  if FDevices = nil then
+  begin
+    FDevices := TALDeviceDescriptionList.Create;
+    UpdateDevices;
+  end;
+  Result := FDevices;
 end;
 
 procedure TALSoundEngine.CheckALC(const situation: string);
