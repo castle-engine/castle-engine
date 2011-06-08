@@ -1127,9 +1127,9 @@ function TALSoundEngine.DeviceNiceName: string;
 var
   I: Integer;
 begin
-  for I := 0 to FDevices.Count - 1 do
-    if FDevices[I].Name = Device then
-      Exit(FDevices[I].NiceName);
+  for I := 0 to Devices.Count - 1 do
+    if Devices[I].Name = Device then
+      Exit(Devices[I].NiceName);
 
   Result := 'Some OpenAL device'; // some default
 end;
