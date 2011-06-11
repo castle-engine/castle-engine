@@ -1788,8 +1788,9 @@ type
       But don't bother changing position/direction, these are reset at every
       Headlight call.
 
-      HeadlightDefault passes default camera vectors (position at zero,
-      direction in -Z). Useful if you want to get headlight not for rendering,
+      HeadlightDefault preserves position/direction vectors from last @link(Headlight)
+      call (eventually, uses default position at zero, direction in -Z).
+      Useful if you want to get headlight not for rendering,
       but to change some of it's properties (like color).
 
       @groupBegin }
@@ -2355,6 +2356,15 @@ begin
 
   FShadowMaps := true;
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
+
+  { initialize constant fields of FHeadlightInstance.
+    Also, initialize Location and Direction to default values (will be useful
+    if 1st HeadlightDefault call will happen before 1st Headlight). }
+  FHeadlightInstance.Transform := IdentityMatrix4Single;
+  FHeadlightInstance.TransformScale := 1;
+  FHeadlightInstance.Radius := MaxSingle;
+  FHeadlightInstance.Location := ZeroVector3Single;
+  FHeadlightInstance.Direction := Vector3Single(0, 0, -1);
 
   { We could call here ScheduleChangedAll (or directly ChangedAll),
     but there should be no need. FRootNode remains nil,
@@ -6331,11 +6341,8 @@ begin
       TVRMLDirectionalLightNode(Node).FdDirection.Send(Direction);
 
     FHeadlightInstance.Node := Node;
-    FHeadlightInstance.Transform := IdentityMatrix4Single;
-    FHeadlightInstance.TransformScale := 1;
     FHeadlightInstance.Location := Position;
     FHeadlightInstance.Direction := Direction;
-    FHeadlightInstance.Radius := MaxSingle;
 
     Result := @FHeadlightInstance;
   end else
@@ -6352,7 +6359,8 @@ end;
 
 function TVRMLScene.HeadlightDefault: PLightInstance;
 begin
-  Result := Headlight(ZeroVector3Single, Vector3Single(0, 0, -1));
+  Result := Headlight(FHeadlightInstance.Location,
+                      FHeadlightInstance.Direction);
 end;
 
 procedure TVRMLScene.UpdateHeadlightOnFromNavigationInfo;
