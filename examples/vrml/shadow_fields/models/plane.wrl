@@ -5,6 +5,23 @@
 # Blender file plane.blend
 # Exported using VRML97 exporter v1.55-kambi4
 
+# Camera settings "encoded" in the VRML/X3D declaration below :
+# direction -0.1588673740625381 0 -0.9872999787330627
+# up 0 1 0
+# gravityUp 0 1 0
+Viewpoint {
+  position 1.948772668838501 2.384185791015625E-007 13.610880851745605
+  orientation 0 0.9999960660934448 0 0.1595436930656433
+}
+
+# Camera settings "encoded" in the VRML/X3D declaration below :
+# direction 0 0 -1
+# up 0 1 0
+# gravityUp 0 1 0
+Viewpoint {
+  position -5.9604644775390625E-007 2.384185791015625E-007 13.766667366027832
+  orientation 0 0 1 0
+}
 
 NavigationInfo {
 	headlight FALSE
