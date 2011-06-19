@@ -468,7 +468,12 @@ function CombinePaths(BasePath, RelPath: string): string;
 { Search a file on $PATH. Works with double quotes around components
   of path list, avoiding this bug: http://bugs.freepascal.org/view.php?id=19279.
   See http://www.freepascal.org/docs-html/rtl/sysutils/filesearch.html
-  for original FileSearch docs. }
+  for original FileSearch docs.
+
+  In FPC >= 2.5.1, you should instead use just ExeSearch(Name).
+  It also will use $PATH and avoid double quotes problems on Windows.
+  See http://bugs.freepascal.org/view.php?id=19282 and
+  fix on http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=rev&revision=17717 . }
 Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True) : String;
 
 const
