@@ -50,6 +50,10 @@ Details during 2.6.0 release:
   and make copying it simpler.
   But it would also create a need to store and free references
   --- at TNodeX3DLightNode?
+
+- use Notifications.DrawNeeded to avoid changing projection to 2D
+  when no 2D controls with DrawNeeded = true?
+  Or ignore this --- this optimization is really irrelevant?
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
