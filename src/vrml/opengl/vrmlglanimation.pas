@@ -331,7 +331,7 @@ type
       For portability, always check PrepareResourcesSteps, but for now this
       is just always equal ScenesCount. }
     procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TObject); override;
+      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
     function PrepareResourcesSteps: Cardinal; override;
 
     { This calls FreeResources for all scenes, it's useful if you know
@@ -1433,7 +1433,7 @@ begin
 end;
 
 procedure TVRMLGLAnimation.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TObject);
+  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 var
   I: Integer;
   SceneOptions: TPrepareResourcesOptions;

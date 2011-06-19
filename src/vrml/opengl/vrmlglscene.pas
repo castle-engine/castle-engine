@@ -593,87 +593,70 @@ type
     procedure GLContextClose; override;
 
     procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TObject); override;
+      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
 
-    { Renders this VRML scene for OpenGL.
-      This is probably the most important function in this class,
-      usually it is the very reason why this class is used.
+    { Render for OpenGL. The rendering parameters are configurable
+      by @link(Attributes), see TVRMLSceneRenderingAttributes and
+      TVRMLRenderingAttributes.
 
-      It uses internal @link(TVRMLGLRenderer) instance.
-      Although this internal object is not accessible to your code,
-      you can get some detailed info about how rendering into OpenGL
-      works by looking at comments in @link(VRMLGLRenderer) unit.
+      For more details about rendering, see @link(VRMLGLRenderer) unit comments.
+      This method internally uses TVRMLGLRenderer instance, additionally
+      handling the blending:
 
-      You should think of TestShapeVisibility
-      as a way to optimize rendering, by quickly eliminating whole shapes
-      that you know are not visible (e.g. you know that their BoundingBox
-      is outside current camera frustum).
-
-      Some additional notes (specific to TVRMLGLScene.Render,
-      not to the VRMLGLRenderer):
       @unorderedList(
         @item(
-          glDepthMask, glEnable/Disable(GL_BLEND), glBlendFunc states are
-          controlled in this function. This means that the state of this variables
-          before calling this function does not have any influence on the effect
-          produced by this function - and this means that this function
-          does something like glPushAttrib + initialize those variables to some
-          predetermined values + render everything + glPopAttrib.
+          OpenGL state of glDepthMask, glEnable/Disable(GL_BLEND), glBlendFunc
+          is controlled by this function. This function will unconditionally
+          change (and restore later to original value) this state,
+          to perform correct blending (transparency rendering).
 
-          We use these OpenGL variables to implement transparency using OpenGL's
-          blending. Some more notes about blending: what we do here is a standard
-          OpenGL technique : first we render all opaque objects
-          (if TransparentGroup is tgAll or tgOpaque) and then
-          we make depth-buffer read-only and then we render all partially
-          trasparent objects (if TransparentGroup is tgAll or tgTransparent).
+          To make a correct rendering, we always
+          render transparent shapes at the end (after all opaque),
+          and with depth-buffer in read-only mode.)
 
-          Note that while rendering just everything with tgAll is simple,
-          but it has some important disadvantages if your OnDraw does
-          not consist of only one call to Render. E.g. instead of simple
-@longCode(#
-  Scene.Render(nil, BaseLights, tgAll);
-#)
-          you have
-@longCode(#
-  Scene1.Render(nil, BaseLights, tgAll);
-  Scene2.Render(nil, BaseLights, tgAll);
-#)
-          The code above it not good if both scenes contain some
-          opaque and some transparent objects.
-          You should always render all opaque objects before
-          all transparent objects. E.g. Scene2 can't have any opaque objects
-          if Scene1 has some of them.
+        @item(If Params.TransparentGroup is tgOpaque or tgTransparent,
+          then only a given subset of shapes is rendered. This is handy
+          if you want to mix in one 3D world many scenes (like TVRMLGLScene
+          instances), and each of them may have some opaque and some transparent
+          parts. In such case, you want to render everything opaque
+          (from every scene) first, and only then render everything transparent.
 
-          So that's when TransparentGroups come to use: you can write
-@longCode(#
-  Scene1.Render(nil, BaseLights, tgOpaque);
-  Scene2.Render(nil, BaseLights, tgOpaque);
+          Using Params.TransparentGroup = tgAll is like a shortcut
+          for using tgOpaque first, and then tgTransparent on this scene.
+          Practically useful only if this is the only 3D scene.)
 
-  Scene1.Render(nil, BaseLights, tgTransparent);
-  Scene2.Render(nil, BaseLights, tgTransparent);
-#)
-          Note that when Attributes.Blending is @false then everything
+        @item(Note that when Attributes.Blending is @false then everything
           is always opaque, so tgOpaque renders everything and tgTransparent
-          renders nothing.
-        ))
-    }
+          renders nothing.)
+      )
+
+      @param(TestShapeVisibility Filters which shapes are visible.
+
+        You can use this to optimize rendering. For example
+        you can reject shapes because their bounding volume
+        (bounding boxes or bounding spheres) doesn't intersect with frustum
+        or such. This is called frustum culling, and in fact is done
+        automatically by other overloaded Render methods in this class,
+        see FrustumCulling and OctreeFrustumCulling.
+
+        TestShapeVisibility callback may be used to implement frustum
+        culling, or some other visibility algorithm.) }
     procedure Render(TestShapeVisibility: TTestShapeVisibility;
       const Params: TRenderParams);
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
-    { LastRender_ properties provide you read-only statistics
-      about what happened during last render. For now you
-      can see how many Shapes were rendered (i.e. send to OpenGL
-      pipeline) versus all Shapes that were available
+    { Statistics about what was rendered during last @link(Render) call.
+      How many shapes were rendered (send to OpenGL
+      pipeline) versus all shapes that were available
       (this is the number of shapes in @link(Shapes) tree that are
       @link(TVRMLShape.Visible Visible)).
 
       This way you can see how effective was frustum culling
-      in @link(Render)or how effective was your function TestShapeVisibility
+      in @link(Render) or how effective was your function TestShapeVisibility
       (if you used directly @link(Render) with TTestShapeVisibility).
-      "Effective" in the meaning
-      "effective at eliminating invisible Shapes from rendering pipeline".
+      "Effective" as in
+      "eliminating many invisible shapes from rendering pipeline".
 
       These are initially equal to zeros.
       Then they are updated each time you called @link(Render).
@@ -2246,7 +2229,7 @@ begin
 end;
 
 procedure TVRMLGLScene.PrepareResources(
-  Options: TPrepareResourcesOptions; ProgressStep: boolean; BaseLights: TObject);
+  Options: TPrepareResourcesOptions; ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 
   procedure PrepareAllShapes;
   var

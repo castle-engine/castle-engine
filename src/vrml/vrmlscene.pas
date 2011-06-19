@@ -1822,7 +1822,7 @@ type
     procedure ViewChangedSuddenly; virtual;
 
     procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TObject); override;
+      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
 
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -6357,7 +6357,7 @@ begin
 end;
 
 procedure TVRMLScene.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TObject);
+  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 
   procedure PrepareShapesOctrees;
   var

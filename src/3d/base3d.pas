@@ -18,7 +18,8 @@ unit Base3D;
 
 interface
 
-uses Classes, Math, VectorMath, Frustum, Boxes3D, KambiClassUtils, KeysMouse;
+uses Classes, Math, VectorMath, Frustum, Boxes3D, KambiClassUtils, KeysMouse,
+  KambiUtils;
 
 type
   TRenderFromViewFunction = procedure of object;
@@ -180,6 +181,8 @@ type
       InShadow = @false pass of shadow volumes). }
     StencilTest: Cardinal;
   end;
+  
+  TAbstractLightInstancesList = TDynArrayBase;
 
   { Base 3D object, that can be managed by TKamSceneManager.
     All 3D objects should descend from this, this way we can easily
@@ -315,7 +318,7 @@ type
     procedure PrepareResources(
       Options: TPrepareResourcesOptions;
       ProgressStep: boolean;
-      BaseLights: TObject); virtual;
+      BaseLights: TAbstractLightInstancesList); virtual;
 
     { How many times PrepareResources will call Progress.Step.
       Useful only if you want to pass ProgressStep = @true to PrepareResources.
@@ -538,7 +541,7 @@ type
     procedure PrepareResources(
       Options: TPrepareResourcesOptions;
       ProgressStep: boolean;
-      BaseLights: TObject); override;
+      BaseLights: TAbstractLightInstancesList); override;
     function PrepareResourcesSteps: Cardinal; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
@@ -592,7 +595,7 @@ const
 
 implementation
 
-uses SysUtils, KambiUtils;
+uses SysUtils;
 
 { T3DTriangle  --------------------------------------------------------------- }
 
@@ -647,7 +650,7 @@ begin
 end;
 
 procedure T3D.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TObject);
+  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 begin
 end;
 
@@ -929,7 +932,7 @@ begin
 end;
 
 procedure T3DList.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TObject);
+  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 var
   I: Integer;
 begin
