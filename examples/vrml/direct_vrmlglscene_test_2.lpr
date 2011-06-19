@@ -51,9 +51,6 @@
        Camera.Gravity := true;
        Camera.CameraRadius := 0.1;
        // and possibly some more Camera initialization
-
-  4. Makes FPS timings right after starting the program correct:
-  - uses Window.OnBeforeDraw and Scene.PrepareResources
 }
 
 program direct_vrmlglscene_test_2;
@@ -68,11 +65,6 @@ var
   Scene: TVRMLGLScene;
   Camera: TUniversalCamera;
   RenderParams: TBasicRenderParams;
-
-procedure BeforeDraw(Window: TGLWindow);
-begin
-  Scene.PrepareResources([prRender, prBoundingBox], false);
-end;
 
 procedure Draw(Window: TGLWindow);
 begin
@@ -157,7 +149,6 @@ begin
 
     Window.OnClose := @Close;
     Window.OnResize := @Resize;
-    Window.OnBeforeDraw := @BeforeDraw;
     Window.OpenAndRun(ProgramName, @Draw);
   finally
     Scene.Free;
