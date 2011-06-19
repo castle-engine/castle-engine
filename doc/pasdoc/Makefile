@@ -65,7 +65,7 @@ clean: clean-cache
 
 SF_USERNAME=kambi
 SF_HOST=web.sourceforge.net
-SF_PATH=/home/groups/v/vr/vrmlengine/htdocs/apidoc/
+SF_PATH=/home/project-web/vrmlengine/htdocs/apidoc/
 
 SF_CONNECT=$(SF_USERNAME),vrmlengine@$(SF_HOST):$(SF_PATH)
 SCP_OPTIONS=
