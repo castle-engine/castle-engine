@@ -31,6 +31,13 @@ engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
   http://wiki.freepascal.org/fcl-image
 ------------------------------------------------------------------------------
 WWW:
+- Maybe change demo_models webpage to show screenshots and links to everything,
+  like a gallery?
+  But then, not everything is self contained?
+
+  Maybe also rework demo_models layout to be more feature-oriented even more:
+  possible subdirs are lights_materials_colors, shapes.
+
 - "How you can help" page, move donation links there,
   also mention "Add wikipedia article about our engine" (preferably redirecting view3dscene -> there)
 
