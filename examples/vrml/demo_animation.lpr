@@ -197,7 +197,7 @@ begin
 
     Progress.Init(Animation.ScenesCount, 'Preparing animation');
     try
-      Animation.PrepareResources([prRender, prBoundingBox], true);
+      Animation.PrepareResources([prRender, prBoundingBox], true, SceneManager.BaseLights);
     finally Progress.Fini end;
 
     Application.Run;
