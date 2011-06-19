@@ -47,7 +47,7 @@ uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3D,
   SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
 
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
   SceneManager: TKamSceneManager;
@@ -97,11 +97,11 @@ begin
   { NavigatorCurrent may be any of NavigatorXxx.
     However, NavigatorAll must be treated specially, as it's already present
     inside SceneManager.Camera (we don't want to make it also referenced
-    from Glw.Controls). }
+    from Window.Controls). }
   NavigatorAll.IgnoreAllInputs := NavigatorAll <> NavigatorCurrent;
   if NavigatorAll <> NavigatorCurrent then
-    Glw.Controls.MakeSingle(TCamera, NavigatorCurrent) else
-    Glw.Controls.MakeSingle(TCamera, nil);
+    Window.Controls.MakeSingle(TCamera, NavigatorCurrent) else
+    Window.Controls.MakeSingle(TCamera, nil);
 
   if NavigatorRadio[Navigator] <> nil then
     NavigatorRadio[Navigator].Checked := true;
@@ -196,7 +196,7 @@ begin
     SHVectorGLCapture(EnvLightSHVector, Box3DMiddle(SceneReceiver.BoundingBox),
       @DrawEnvLight, 50, 50, 1 { no ScaleColor ---
         we will apply light intensity at VertexColor });
-    glViewport(0, 0, Glw.Width, Glw.Height);
+    glViewport(0, 0, Window.Width, Window.Height);
   end;
 
   Check(HeadlightInstance(H), 'Headlight must be true, we defined it such');
@@ -247,7 +247,7 @@ end;
 procedure TMySceneManager.ApplyProjection;
 begin
   SceneReceiver.GLProjection(NavigatorCurrent, SceneReceiver.BoundingBox,
-    0, 0, Glw.Width, Glw.Height);
+    0, 0, Window.Width, Window.Height);
 end;
 
 function TMySceneManager.Headlight(out CustomHeadlight: TNodeX3DLightNode): boolean;
@@ -256,7 +256,7 @@ begin
   CustomHeadlight := nil;
 end;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Window: TGLWindow);
 begin
   GLList_EnvLight := glGenListsCheck(1, 'GLList_EnvLight');
   glNewList(GLList_EnvLight, GL_COMPILE);
@@ -264,7 +264,7 @@ begin
   glEndList;
 end;
 
-procedure Close(Glwin: TGLWindow);
+procedure Close(Window: TGLWindow);
 begin
   SceneCaster.GLContextClose;
   SceneReceiver.GLContextClose;
@@ -498,7 +498,7 @@ begin
     Result.Append(M);
 end;
 
-procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Window: TGLWindow; Item: TMenuItem);
 var
   NewSHCount: Cardinal;
 begin
@@ -532,22 +532,22 @@ begin
     140:
       begin
         NewSHCount := SHCount;
-        if MessageInputQueryCardinal(Glwin,
+        if MessageInputQueryCardinal(Window,
           Format('Number of spherical harmonic factors to use: (must be between 1 and %d)',
             [MaxSHBasis]), NewSHCount, taLeft) then
         begin
           if not Between(NewSHCount, 1, MaxSHBasis) then
-            MessageOk(Glwin, Format('Must be between 1 and %d.', [MaxSHBasis]), taLeft) else
+            MessageOk(Window, Format('Must be between 1 and %d.', [MaxSHBasis]), taLeft) else
             SHCount := NewSHCount;
         end;
       end;
 
-    150: MessageInputQuery(Glwin, 'Light intensity:', LightIntensity, taLeft);
+    150: MessageInputQuery(Window, 'Light intensity:', LightIntensity, taLeft);
 
-    200: Glwin.Close;
+    200: Window.Close;
     else Exit;
   end;
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 var
@@ -558,7 +558,7 @@ var
   BoxSum: TBox3D;
   V: TVector3Single;
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   Parameters.CheckHighAtMost(3);
 
@@ -590,17 +590,17 @@ begin
     LocalLightSRF.LoadFromFile(ChangeFileExt(LocalLightFileName, ShadowFieldExt));
 
     SceneManager := TMySceneManager.Create(nil);
-    Glw.Controls.Add(SceneManager);
+    Window.Controls.Add(SceneManager);
 
     { initialize navigators }
 
-    NavigatorAll := SceneReceiver.CreateCamera(Glw);
+    NavigatorAll := SceneReceiver.CreateCamera(Window);
     SceneManager.Camera := NavigatorAll;
 
-    NavigatorCaster := TExamineCamera.Create(Glw);
+    NavigatorCaster := TExamineCamera.Create(Window);
     NavigatorCaster.ModelBox := SceneCaster.BoundingBox;
 
-    NavigatorLocalLight := TExamineCamera.Create(Glw);
+    NavigatorLocalLight := TExamineCamera.Create(Window);
     NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
     BoxSum := Box3DSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
@@ -617,7 +617,7 @@ begin
     end;
     NavigatorLocalLight.MoveAmount := V;
 
-    NavigatorSFExplorer := TExamineCamera.Create(Glw);
+    NavigatorSFExplorer := TExamineCamera.Create(Window);
     { use SceneCaster.BoundingBox for light's box, this determines the speed
       of moving light source with mouse. }
     NavigatorSFExplorer.ModelBox := SceneCaster.BoundingBox;
@@ -634,7 +634,7 @@ begin
     end;
     NavigatorSFExplorer.MoveAmount := V;
 
-    NavigatorEnvLight := TExamineCamera.Create(Glw);
+    NavigatorEnvLight := TExamineCamera.Create(Window);
     { use SceneCaster.BoundingBox for light's box, this determines the speed
       of moving light source with mouse. }
     NavigatorEnvLight.ModelBox := SceneCaster.BoundingBox;
@@ -653,18 +653,18 @@ begin
 
     NavigatorChanged;
 
-    Glw.Caption := 'shadow_fields';
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
-    Glw.OnOpen := @Open;
-    Glw.OnClose := @Close;
+    Window.Caption := 'shadow_fields';
+    Window.MainMenu := CreateMainMenu;
+    Window.OnMenuCommand := @MenuCommand;
+    Window.OnOpen := @Open;
+    Window.OnClose := @Close;
 
     { initialize UseShadowFieldsChanged }
     UseShadowFieldsChanged;
 
     InitializeSHBasisMap;
 
-    Glw.OpenAndRun;
+    Window.OpenAndRun;
   finally
     FreeAndNil(SceneCaster);
     FreeAndNil(SceneReceiver);
