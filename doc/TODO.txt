@@ -1015,3 +1015,7 @@ Various:
   things transformed by scene translation??? But we don't want to keep
   this translation, the idea of T3DTranslated is that it can change translation
   without the need to recalc anything?
+
+  For now, one possible easy workaround: if your MainScene is not translated,
+  then we could add an option to mark MainScene lights as WorldCoordinates,
+  and solve it just like headlight?

@@ -296,6 +296,19 @@ type
       that is TVRMLPositionalLightNode with HasRadius = true). }
     Radius: Single;
 
+    { Are light location, direction (in this class and inside Node fields)
+      expressed in world coordinates. If not, they are expressed in scene
+      coordinates.
+
+      This matters if you render the scene using TVRMLGLScene,
+      and transform it by T3DTranslated or direct OpenGL modelview changes.
+      By default (WorldCoordinates = false) we assume that light is defined
+      in scene space, so it will be transformed by the whole modelview matrix
+      (camera matrix with scene transformations).
+      When this is false, during rendering we take care to transform this light
+      only by camera matrix. Useful for example for headlight. }
+    WorldCoordinates: boolean;
+
     { Deprecated name for Node. @exclude @deprecated }
     function LightNode: TNodeX3DLightNode;
   end;

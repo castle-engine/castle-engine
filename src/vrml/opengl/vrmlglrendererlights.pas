@@ -79,7 +79,7 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, Math;
+uses SysUtils, KambiUtils, Math, RenderingCameraUnit;
 
 { Set and enable OpenGL light properties based on VRML/X3D light.
 
@@ -159,6 +159,9 @@ begin
 
   glPushMatrix;
   try
+    if Light.WorldCoordinates then
+      glLoadMatrix(RenderingCamera.Matrix);
+
     glMultMatrix(Light.Transform);
 
     if Light.Node is TVRMLDirectionalLightNode then

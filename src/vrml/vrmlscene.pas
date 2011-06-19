@@ -1781,6 +1781,12 @@ type
       at information in VRML/X3D file (NavigationInfo.headlight),
       you can also always set HeadlightOn explicitly by code.
 
+      Position and Direction are current camera vectors,
+      in world coordinates. (So you don't need to do anything special
+      if scene is transformed by something like T3DTranslated or direct
+      OpenGL modelview modifications. Headlight will be marked as defined
+      in world coordinates, and renderer will handle it Ok.)
+
       Direction vector given here must be already normalized.
 
       You can change the headlight's color and such properties by editing
@@ -2365,6 +2371,7 @@ begin
   FHeadlightInstance.Radius := MaxSingle;
   FHeadlightInstance.Location := ZeroVector3Single;
   FHeadlightInstance.Direction := Vector3Single(0, 0, -1);
+  FHeadlightInstance.WorldCoordinates := true;
 
   { We could call here ScheduleChangedAll (or directly ChangedAll),
     but there should be no need. FRootNode remains nil,
