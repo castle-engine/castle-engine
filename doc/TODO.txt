@@ -54,6 +54,21 @@ Details during 2.6.0 release:
 - use Notifications.DrawNeeded to avoid changing projection to 2D
   when no 2D controls with DrawNeeded = true?
   Or ignore this --- this optimization is really irrelevant?
+
+- Eliminate remaining glLight usage. Allow using TVRMLGLLightsRenderer
+  for all objects, following vrml_engine_doc promises.
+  Remaining only three cases:
+
+  ./kambi_vrml_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:325:    fixed-function pipeline rendering (by glLight, used by DrawFloor). }
+  ./kambi_vrml_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:329:  glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
+
+  ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:148:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1))
+  ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:788:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
+  ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:797:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
+  ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:799:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
+
+  ./kambi_vrml_game_engine/examples/glwindow/shading_langs/shading_langs_demo.lpr:136:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(0, 0, 1));
+
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
