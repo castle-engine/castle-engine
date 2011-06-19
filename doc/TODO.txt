@@ -43,6 +43,13 @@ Details during 2.6.0 release:
   do not call special TVRMLGLScene.Render methods.
 - Test on castle using OcclusionQuery.
 - optimize fields send() with direct value, no need for temp field usually?
+
+- make TLightInstance a normal class, and TLightInstancesList only keeps
+  references to instances.
+  This would simplify some code (like light renderer comparisons),
+  and make copying it simpler.
+  But it would also create a need to store and free references
+  --- at TNodeX3DLightNode?
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
