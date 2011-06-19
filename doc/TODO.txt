@@ -35,8 +35,8 @@ WWW:
   like a gallery?
   But then, not everything is self contained?
 
-  Maybe also rework demo_models layout to be more feature-oriented even more:
-  possible subdirs are lights_materials_colors, shapes.
+  Maybe also rework demo_models layout to be more feature-oriented even more?
+  Ideally, no vrml_1/2/x3d subdirs at top-level.
 
 - "How you can help" page, move donation links there,
   also mention "Add wikipedia article about our engine" (preferably redirecting view3dscene -> there)
