@@ -580,7 +580,7 @@ type
     { For all Billboard nodes }
     BillboardInstancesList: TTransformInstancesList;
 
-    FGlobalLights: TDynLightInstanceArray;
+    FGlobalLights: TLightInstancesList;
 
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
@@ -1876,7 +1876,7 @@ type
 
     { Global lights of this scene. Read-only. May be useful to render
       other 3D objects with lights defined inside this scene. }
-    property GlobalLights: TDynLightInstanceArray read FGlobalLights;
+    property GlobalLights: TLightInstancesList read FGlobalLights;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing @link(Time).
@@ -2314,7 +2314,7 @@ begin
 
   FShapes := TVRMLShapeTreeGroup.Create(Self);
   ShapeLODs := TObjectList.Create(false);
-  FGlobalLights := TDynLightInstanceArray.Create;
+  FGlobalLights := TLightInstancesList.Create;
 
   FBackgroundStack := TVRMLBindableStack.Create(Self);
   FFogStack := TVRMLBindableStack.Create(Self);
@@ -3291,7 +3291,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     TODO: for global lights, limited by radius field,
     we should also add / remove this light from some TVRMLGraphTraverseState.Lights. }
 
-    procedure HandleLightsList(List: TDynLightInstanceArray);
+    procedure HandleLightsList(List: TLightInstancesList);
     var
       I: Integer;
     begin

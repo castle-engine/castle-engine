@@ -405,7 +405,7 @@ type
   TVRMLRenderParams = class(TRenderParams)
   public
     { Lights that shine on given 3D object. }
-    function BaseLights(Scene: T3D): TDynLightInstanceArray; virtual; abstract;
+    function BaseLights(Scene: T3D): TLightInstancesList; virtual; abstract;
   end;
 
   { Basic non-abstact implementation of render params for calling T3D.Render.
@@ -416,10 +416,10 @@ type
     proper render params instance for you. }
   TBasicRenderParams = class(TVRMLRenderParams)
   public
-    FBaseLights: TDynLightInstanceArray;
+    FBaseLights: TLightInstancesList;
     constructor Create;
     destructor Destroy; override;
-    function BaseLights(Scene: T3D): TDynLightInstanceArray; override;
+    function BaseLights(Scene: T3D): TLightInstancesList; override;
   end;
 
   { Complete handling and rendering of a 3D VRML/X3D scene.
@@ -1292,7 +1292,7 @@ end;
 constructor TBasicRenderParams.Create;
 begin
   inherited;
-  FBaseLights := TDynLightInstanceArray.Create;
+  FBaseLights := TLightInstancesList.Create;
   InShadow := false;
   TransparentGroup := tgAll;
 end;
@@ -1303,7 +1303,7 @@ begin
   inherited;
 end;
 
-function TBasicRenderParams.BaseLights(Scene: T3D): TDynLightInstanceArray;
+function TBasicRenderParams.BaseLights(Scene: T3D): TLightInstancesList;
 begin
   Result := FBaseLights;
 end;
@@ -2272,7 +2272,7 @@ procedure TVRMLGLScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        Renderer.RenderBegin(BaseLights as TDynLightInstanceArray, nil);
+        Renderer.RenderBegin(BaseLights as TLightInstancesList, nil);
         while SI.GetNext do
         begin
           Shape := TVRMLGLShape(SI.Current);

@@ -309,7 +309,7 @@ type
         that may want to show progress.)
 
       @param(BaseLights Used if Options contains prRender.
-        A list of base lights (always TDynLightInstanceArray, although
+        A list of base lights (always TLightInstancesList, although
         cannot be declated as such) used for rendering.
         May be @nil (equivalent to empty).) }
     procedure PrepareResources(

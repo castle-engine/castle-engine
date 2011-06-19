@@ -1061,7 +1061,7 @@ type
     FCache: TVRMLGLRendererContextCache;
 
     { Lights shining on all shapes. Set in each RenderBegin. }
-    BaseLights: TDynLightInstanceArray;
+    BaseLights: TLightInstancesList;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
     procedure GetFog(Node: INodeX3DFogObject;
@@ -1173,7 +1173,7 @@ type
       when your OpenGL context is still active. }
     procedure UnprepareAll;
 
-    procedure RenderBegin(ABaseLights: TDynLightInstanceArray;
+    procedure RenderBegin(ABaseLights: TLightInstancesList;
       LightRenderEvent: TVRMLLightRenderEvent);
     procedure RenderEnd;
 
@@ -2519,7 +2519,7 @@ procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 var
   FontStyle: TNodeFontStyle_2;
   I: Integer;
-  Lights: TDynLightInstanceArray;
+  Lights: TLightInstancesList;
   Texture: TNodeX3DTextureNode;
 begin
   { przygotuj font }
@@ -2877,7 +2877,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderBegin(ABaseLights: TDynLightInstanceArray;
+procedure TVRMLGLRenderer.RenderBegin(ABaseLights: TLightInstancesList;
   LightRenderEvent: TVRMLLightRenderEvent);
 var
   Attribs: TGLbitfield;
@@ -3009,7 +3009,7 @@ procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
   const MaterialOpacity: Single; const Lighting: boolean;
   const MaterialSpecularColor: TVector3Single);
 var
-  SceneLights: TDynLightInstanceArray;
+  SceneLights: TLightInstancesList;
 begin
   { All this is done before loading State.Transform, as the lights
     positions/directions are in world coordinates. }

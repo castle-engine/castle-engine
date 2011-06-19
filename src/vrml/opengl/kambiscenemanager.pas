@@ -38,11 +38,11 @@ type
   TManagerRenderParams = class(TVRMLRenderParams)
   private
     MainScene: T3D;
-    FBaseLights: array [boolean { is main scene }] of TDynLightInstanceArray;
+    FBaseLights: array [boolean { is main scene }] of TLightInstancesList;
   public
     constructor Create;
     destructor Destroy; override;
-    function BaseLights(Scene: T3D): TDynLightInstanceArray; override;
+    function BaseLights(Scene: T3D): TLightInstancesList; override;
   end;
 
   { Common abstract class for things that may act as a viewport:
@@ -143,7 +143,7 @@ type
       by the @link(Headlight) method. By default, this looks at the MainScene,
       and follows NavigationInfo.headlight and
       KambiNavigationInfo.headlightNode properties. }
-    procedure InitializeLights(const Lights: TDynLightInstanceArray); virtual;
+    procedure InitializeLights(const Lights: TLightInstancesList); virtual;
 
     { Headlight used to light the scene. Returns if headlight is present,
       and if it has some custom light node. When it returns @true,
@@ -347,7 +347,7 @@ type
       and returns instance owned and managed by this scene manager.
       You can only use this outside PrepareResources or Render,
       as they may change this instance. }
-    function BaseLights: TDynLightInstanceArray;
+    function BaseLights: TLightInstancesList;
   published
     { Viewport dimensions where the 3D world will be drawn.
       When FullSize is @true (the default), the viewport always fills
@@ -900,8 +900,8 @@ end;
 constructor TManagerRenderParams.Create;
 begin
   inherited;
-  FBaseLights[false] := TDynLightInstanceArray.Create;
-  FBaseLights[true ] := TDynLightInstanceArray.Create;
+  FBaseLights[false] := TLightInstancesList.Create;
+  FBaseLights[true ] := TLightInstancesList.Create;
 end;
 
 destructor TManagerRenderParams.Destroy;
@@ -911,7 +911,7 @@ begin
   inherited;
 end;
 
-function TManagerRenderParams.BaseLights(Scene: T3D): TDynLightInstanceArray;
+function TManagerRenderParams.BaseLights(Scene: T3D): TLightInstancesList;
 begin
   Result := FBaseLights[Scene = MainScene];
 end;
@@ -1410,7 +1410,7 @@ begin
   end;
 end;
 
-procedure TKamAbstractViewport.InitializeLights(const Lights: TDynLightInstanceArray);
+procedure TKamAbstractViewport.InitializeLights(const Lights: TLightInstancesList);
 var
   HI: TLightInstance;
 begin
@@ -1418,10 +1418,10 @@ begin
     Lights.Add(HI);
 end;
 
-function TKamAbstractViewport.BaseLights: TDynLightInstanceArray;
+function TKamAbstractViewport.BaseLights: TLightInstancesList;
 begin
   { We just reuse FRenderParams.FBaseLights[false] below as a temporary
-    TDynLightInstanceArray that we already have created. }
+    TLightInstancesList that we already have created. }
   Result := FRenderParams.FBaseLights[false];
   Result.Clear;
   InitializeLights(Result);

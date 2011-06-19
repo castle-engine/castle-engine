@@ -62,7 +62,7 @@ type
 
       Lights1 and Lights2 lists are simply glued inside.
       Lights2 may be @nil (equal to being empty). }
-    procedure Render(const Lights1, Lights2: TDynLightInstanceArray;
+    procedure Render(const Lights1, Lights2: TLightInstancesList;
       const Shader: TVRMLShader;
       const MaterialSpecularColor: TVector3Single);
 
@@ -256,13 +256,13 @@ begin
 end;
 
 procedure TVRMLGLLightsRenderer.Render(
-  const Lights1, Lights2: TDynLightInstanceArray;
+  const Lights1, Lights2: TLightInstancesList;
   const Shader: TVRMLShader;
   const MaterialSpecularColor: TVector3Single);
 var
   LightsEnabled: Cardinal;
 
-  procedure AddList(Lights: TDynLightInstanceArray);
+  procedure AddList(Lights: TLightInstancesList);
   var
     I: Integer;
     LightOn: boolean;

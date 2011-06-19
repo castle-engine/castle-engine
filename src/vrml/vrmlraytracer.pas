@@ -374,7 +374,7 @@ var
     i: integer;
     M1: TNodeMaterial_1;
     M2: TNodeMaterial_2;
-    Lights: TDynLightInstanceArray;
+    Lights: TLightInstancesList;
   begin
     IntersectNode := Octree.RayCollision(Intersection,
       Ray0, RayVector, true,

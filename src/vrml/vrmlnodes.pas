@@ -318,7 +318,7 @@ type
   PDynArrayItem_1 = PLightInstance;
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
-  TDynLightInstanceArray = class(TDynArray_1)
+  TLightInstancesList = class(TDynArray_1)
   public
     { Find given light node. Return -1 if not found. }
     function IndexOfNode(Node: TNodeX3DLightNode): integer;
@@ -411,7 +411,7 @@ type
 
       Note that VRML >= 2.0 "global" lights are added from TVRMLScene,
       not during the traverse pass. }
-    Lights: TDynLightInstanceArray;
+    Lights: TLightInstancesList;
 
     procedure AddLight(const Light: TLightInstance);
   public
@@ -2346,9 +2346,9 @@ begin
   Result := Node;
 end;
 
-{ TDynLightInstanceArray ----------------------------------------------------- }
+{ TLightInstancesList ----------------------------------------------------- }
 
-function TDynLightInstanceArray.IndexOfNode(Node: TNodeX3DLightNode): integer;
+function TLightInstancesList.IndexOfNode(Node: TNodeX3DLightNode): integer;
 begin
   for Result := 0 to High do
     if Items[Result].Node = Node then
@@ -2356,7 +2356,7 @@ begin
   Result := -1;
 end;
 
-function TDynLightInstanceArray.FindName(NodeName: string): PLightInstance;
+function TLightInstancesList.FindName(NodeName: string): PLightInstance;
 var
   I: Integer;
 begin
@@ -2369,7 +2369,7 @@ begin
   Result := nil;
 end;
 
-function TDynLightInstanceArray.Equals(SecondValue: TObject): boolean;
+function TLightInstancesList.Equals(SecondValue: TObject): boolean;
 
   function LightInstanceEquals(const L1, L2: TLightInstance): boolean;
   begin
@@ -2385,11 +2385,11 @@ var
 begin
   Result :=
     (SecondValue <> nil) and
-    (SecondValue is TDynLightInstanceArray) and
-    (TDynLightInstanceArray(SecondValue).Count = Count);
+    (SecondValue is TLightInstancesList) and
+    (TLightInstancesList(SecondValue).Count = Count);
   if Result then
     for I := 0 to High do
-      if not LightInstanceEquals(Items[I], TDynLightInstanceArray(SecondValue).Items[I]) then
+      if not LightInstanceEquals(Items[I], TLightInstancesList(SecondValue).Items[I]) then
         Exit(false);
 end;
 
@@ -2491,7 +2491,7 @@ end;
 procedure TVRMLGraphTraverseState.AddLight(const Light: TLightInstance);
 begin
   if Lights = nil then
-    Lights := TDynLightInstanceArray.Create;
+    Lights := TLightInstancesList.Create;
   Lights.Add(Light);
 end;
 
@@ -2521,7 +2521,7 @@ begin
   if Source.Lights <> nil then
   begin
     if Lights = nil then
-      Lights := TDynLightInstanceArray.Create;
+      Lights := TLightInstancesList.Create;
     Lights.Assign(Source.Lights);
   end else
     FreeAndNil(Lights);
