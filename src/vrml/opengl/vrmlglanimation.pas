@@ -687,9 +687,9 @@ begin
   ShadowMaps := FParentAnimation.ShadowMaps;
   ShadowMapsDefaultSize := FParentAnimation.ShadowMapsDefaultSize;
 
-  Load(ARootNode, AOwnsRootNode);
-
   Static := true;
+
+  Load(ARootNode, AOwnsRootNode);
 end;
 
 procedure TVRMLGLAnimationScene.DoGeometryChanged(const Change: TGeometryChange;

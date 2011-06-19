@@ -1884,9 +1884,13 @@ type
       besides loading (or you're prepared to do it by manually calling
       Scene.ChangedField etc.).
 
-      Note that when the ProcessEvents is @true, the scene will be
-      notified about changes to it's nodes anyway, regardless of
-      @name value. }
+      The behavior of events is undefined when scene is static.
+      This means that you should always have ProcessEvents = @false
+      when Static = @true. Only when Static = false you're allowed
+      to freely change ProcessEvents to @true.
+
+      Changing this is expensive when the scene content is already loaded,
+      so it's best to adjust this before @link(Load). }
     property Static: boolean read FStatic write SetStatic default false;
 
     { Nice scene caption. Uses the "title" of WorldInfo
@@ -2434,9 +2438,9 @@ begin
 
   if OwnsRootNode then
     FreeAndNil(FRootNode) else
-  if RootNode <> nil then
   begin
-    UnregisterScene(RootNode);
+    { This will call UnregisterScene(RootNode). }
+    Static := true;
     FRootNode := nil;
   end;
 
@@ -2922,7 +2926,8 @@ end;
 
 procedure TVRMLScene.ChangedAllEnumerateCallback(Node: TVRMLNode);
 begin
-  Node.Scene := Self;
+  if not Static then
+    Node.Scene := Self;
 
   { We're using AddIfNotExists, not simple Add, below:
 
@@ -5137,7 +5142,19 @@ end;
 
 procedure TVRMLScene.SetStatic(const Value: boolean);
 begin
-  FStatic := Value;
+  if FStatic <> Value then
+  begin
+    FStatic := Value;
+    if Static then
+    begin
+      { Clear TVRMLNode.Scene for all nodes }
+      if RootNode <> nil then
+        UnregisterScene(RootNode);
+    end else
+      { Set TVRMLNode.Scene for all nodes.
+        This is done as part of ChangedAll when Static = true. }
+      ScheduleChangedAll;
+  end;
 end;
 
 { key sensors handling ------------------------------------------------------- }
