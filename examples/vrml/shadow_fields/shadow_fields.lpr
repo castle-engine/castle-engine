@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2010 Michalis Kamburelis.
+  Copyright 2008-2011 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -43,13 +43,14 @@ program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3D,
   GLWindow, VRMLGLScene, VRMLErrors, Cameras,
-  ShadowFields, KambiUtils, CubeMap, VRMLNodes,
+  ShadowFields, KambiUtils, CubeMap, VRMLNodes, KambiSceneManager,
   SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
 
 var
   Glw: TGLUIWindow;
 
   SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
+  SceneManager: TKamSceneManager;
   CasterOOF: TShadowField;
   LocalLightSRF: TShadowField;
   GLList_EnvLight: TGLuint;
@@ -92,7 +93,16 @@ begin
     ntEnvLight  : NavigatorCurrent := NavigatorEnvLight;
     else raise EInternalError.Create('Navigator?');
   end;
-  Glw.Controls.MakeSingle(TCamera, NavigatorCurrent);
+
+  { NavigatorCurrent may be any of NavigatorXxx.
+    However, NavigatorAll must be treated specially, as it's already present
+    inside SceneManager.Camera (we don't want to make it also referenced
+    from Glw.Controls). }
+  NavigatorAll.IgnoreAllInputs := NavigatorAll <> NavigatorCurrent;
+  if NavigatorAll <> NavigatorCurrent then
+    Glw.Controls.MakeSingle(TCamera, NavigatorCurrent) else
+    Glw.Controls.MakeSingle(TCamera, nil);
+
   if NavigatorRadio[Navigator] <> nil then
     NavigatorRadio[Navigator].Checked := true;
 end;
@@ -120,7 +130,14 @@ begin
   glPopMatrix;
 end;
 
-procedure Draw(Glwin: TGLWindow);
+type
+  TMySceneManager = class(TKamSceneManager)
+    procedure RenderFromViewEverything; override;
+    procedure ApplyProjection; override;
+    function Headlight(out CustomHeadlight: TNodeX3DLightNode): boolean; override;
+  end;
+
+procedure TMySceneManager.RenderFromViewEverything;
 
   procedure DrawSFExplorerMaps;
   const
@@ -164,6 +181,8 @@ procedure Draw(Glwin: TGLWindow);
     glPixelZoom(1, 1);
   end;
 
+var
+  H: TLightInstance;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(NavigatorAll.Matrix);
@@ -177,17 +196,20 @@ begin
     SHVectorGLCapture(EnvLightSHVector, Box3DMiddle(SceneReceiver.BoundingBox),
       @DrawEnvLight, 50, 50, 1 { no ScaleColor ---
         we will apply light intensity at VertexColor });
-    glViewport(0, 0, Glwin.Width, Glwin.Height);
+    glViewport(0, 0, Glw.Width, Glw.Height);
   end;
 
-  RenderParams.FBaseLights.Clear;
+  Check(HeadlightInstance(H), 'Headlight must be true, we defined it such');
+
+  { BaseLights will contain our headlight, based on camera (NavigatorAll)
+    properties }
+  RenderParams.FBaseLights.Assign(BaseLights);
+
+  H.Node.FdOn.Send(false);
   SceneReceiver.Render(nil, RenderParams);
 
-  { add headlight for both SceneCaster and SceneLocalLight rendering
-    (we can actually use any VRML/X3D scene to initialize it) }
-  RenderParams.FBaseLights.Clear;
-  SceneCaster.HeadlightOn := true;
-  RenderParams.FBaseLights.Add(SceneCaster.Headlight(NavigatorAll)^);
+  { turn on headlight for following rendering }
+  H.Node.FdOn.Send(true);
 
   glPushMatrix;
     glTranslatev(NavigatorCaster.MoveAmount);
@@ -222,6 +244,18 @@ begin
   DrawSFExplorerMaps;
 end;
 
+procedure TMySceneManager.ApplyProjection;
+begin
+  SceneReceiver.GLProjection(NavigatorCurrent, SceneReceiver.BoundingBox,
+    0, 0, Glw.Width, Glw.Height);
+end;
+
+function TMySceneManager.Headlight(out CustomHeadlight: TNodeX3DLightNode): boolean;
+begin
+  Result := true;
+  CustomHeadlight := nil;
+end;
+
 procedure Open(Glwin: TGLWindow);
 begin
   GLList_EnvLight := glGenListsCheck(1, 'GLList_EnvLight');
@@ -235,12 +269,6 @@ begin
   SceneCaster.GLContextClose;
   SceneReceiver.GLContextClose;
   SceneLocalLight.GLContextClose;
-end;
-
-procedure Resize(Glwin: TGLWindow);
-begin
-  SceneReceiver.GLProjection(NavigatorCurrent, SceneReceiver.BoundingBox,
-    0, 0, Glwin.Width, Glwin.Height);
 end;
 
 type
@@ -561,9 +589,13 @@ begin
     LocalLightSRF := TShadowField.Create;
     LocalLightSRF.LoadFromFile(ChangeFileExt(LocalLightFileName, ShadowFieldExt));
 
+    SceneManager := TMySceneManager.Create(nil);
+    Glw.Controls.Add(SceneManager);
+
     { initialize navigators }
 
     NavigatorAll := SceneReceiver.CreateCamera(Glw);
+    SceneManager.Camera := NavigatorAll;
 
     NavigatorCaster := TExamineCamera.Create(Glw);
     NavigatorCaster.ModelBox := SceneCaster.BoundingBox;
@@ -621,19 +653,18 @@ begin
 
     NavigatorChanged;
 
+    Glw.Caption := 'shadow_fields';
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
-
     Glw.OnOpen := @Open;
     Glw.OnClose := @Close;
-    Glw.OnResize := @Resize;
 
     { initialize UseShadowFieldsChanged }
     UseShadowFieldsChanged;
 
     InitializeSHBasisMap;
 
-    Glw.OpenAndRun('shadow_fields', @Draw);
+    Glw.OpenAndRun;
   finally
     FreeAndNil(SceneCaster);
     FreeAndNil(SceneReceiver);
@@ -641,5 +672,6 @@ begin
     FreeAndNil(CasterOOF);
     FreeAndNil(LocalLightSRF);
     FreeAndNil(RenderParams);
+    FreeAndNil(SceneManager);
   end;
 end.
