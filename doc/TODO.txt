@@ -29,6 +29,20 @@ engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
   These seem to work perfectly for existing cases?
 - Use fpimage to read some image formats:
   http://wiki.freepascal.org/fcl-image
+
+------------------------------------------------------------------------------
+Details during 2.6.0 release:
+- 100% test castle, lets_take_a_walk work with and without shader pipeline forced.
+  make sure castle results are all Ok now, like with last released version
+  --- nothing broken, all lights look the same?
+
+- Maybe remove tgAll possibility? Not useful?
+  Just make Transparent: boolean; ?
+
+- castle: use everything as T3D inside scene manager,
+  do not call special TVRMLGLScene.Render methods.
+- Test on castle using OcclusionQuery.
+- optimize fields send() with direct value, no need for temp field usually?
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
