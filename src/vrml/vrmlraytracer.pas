@@ -133,10 +133,8 @@ type
       FogNode.TransformScale is used. }
     FogNode: TNodeFog;
 
-    { If there's a headlight on the scene, set HeadLightExists and initialize
-      HeadLight. }
-    HeadLight: TLightInstance;
-    HeadLightExists: boolean;
+    { Lights shining on everything, like a headlight. }
+    BaseLights: TLightInstancesList;
 
     procedure Execute; override;
   end;
@@ -416,7 +414,7 @@ var
               Result += VRML97LightContribution(
                 Lights.Items[i], Intersection, IntersectNode^, CamPosition);
 
-        { Add headlight light contribution, just like normal light.
+        { Add BaseLights contribution, just like other lights.
 
           Note for LightNotBlocked testing: theoretically, just using
           LightNotBlocked always (no matter Depth/InitialDepth) should
@@ -424,7 +422,7 @@ var
 
           1. For Depth = InitialDepth, we know that headlight is not blocked
              (since a camera sees a point, so headlight on camera also sees it).
-             So shadow ray test then is an optimization.
+             Avoiding shadow ray test in this case is an optimization.
 
           2. For directional headlights, this somewhat workarounds a problem
              with our shadow rays. LightNotBlocked treats directional
@@ -442,11 +440,15 @@ var
 
              For now, treating Depth = InitialDepth as special case, fixes
              the problem at least for primary rays: directional light always
-             reaches them. }
+             reaches them.
 
-        if HeadLightExists and
-           ( (Depth = InitialDepth) or LightNotBlocked(HeadLight) ) then
-          Result += VRML97LightContribution(HeadLight, Intersection, IntersectNode^, CamPosition);
+          The above reasoning is nice as long as BaseLights only contain
+          the headlight. Which is true in the current uses. }
+        for I := 0 to BaseLights.Count - 1 do
+          if (Depth = InitialDepth) or
+             LightNotBlocked(BaseLights.Items[I]) then
+            Result += VRML97LightContribution(
+              BaseLights.Items[I], Intersection, IntersectNode^, CamPosition);
 
         { Calculate recursively reflected and transmitted rays.
           Note that the order of calls (first reflected or first transmitted ?)
