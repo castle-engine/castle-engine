@@ -776,8 +776,6 @@ type
     procedure CalculateMainLightForShadowsPosition;
     procedure ValidateMainLightForShadows;
   private
-    DefaultHeadlightNode: TNodeDirectionalLight_2;
-    FHeadlightInstance: TLightInstance;
     FHeadlightOn: boolean;
     FOnHeadlightOnChanged: TNotifyEvent;
 
@@ -1775,35 +1773,12 @@ type
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean;
 
-    { Headlight that should be used for this scene (if HeadlightOn), or @nil.
-      This looks at HeadlightOn property to know if the headlight should
-      be used (should be <> @nil). HeadlightOn in turn looks
-      at information in VRML/X3D file (NavigationInfo.headlight),
-      you can also always set HeadlightOn explicitly by code.
+    { Light node that should be used for headlight, or @nil if default
+      directional headlight is suitable.
 
-      Position and Direction are current camera vectors,
-      in world coordinates. (So you don't need to do anything special
-      if scene is transformed by something like T3DTranslated or direct
-      OpenGL modelview modifications. Headlight will be marked as defined
-      in world coordinates, and renderer will handle it Ok.)
-
-      Direction vector given here must be already normalized.
-
-      You can change the headlight's color and such properties by editing
-      resulting Node.FdColor and other fields.
-      But don't bother changing position/direction, these are reset at every
-      Headlight call.
-
-      HeadlightDefault preserves position/direction vectors from last @link(Headlight)
-      call (eventually, uses default position at zero, direction in -Z).
-      Useful if you want to get headlight not for rendering,
-      but to change some of it's properties (like color).
-
-      @groupBegin }
-    function Headlight(const Position, Direction: TVector3Single): PLightInstance;
-    function Headlight(Camera: TCamera): PLightInstance;
-    function HeadlightDefault: PLightInstance;
-    { @groupEnd }
+      This never returns @nil. It's not concerned whether the headlight
+      should actually be used --- for this, see HeadlightOn. }
+    function CustomHeadlight: TNodeX3DLightNode;
 
     { Should we use headlight for this scene. Controls if @link(Headlight)
       property returns something <> @nil.
@@ -1847,7 +1822,7 @@ type
     procedure ViewChangedSuddenly; virtual;
 
     procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean); override;
+      ProgressStep: boolean; BaseLights: TObject); override;
 
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -2367,16 +2342,6 @@ begin
   FShadowMaps := true;
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 
-  { initialize constant fields of FHeadlightInstance.
-    Also, initialize Location and Direction to default values (will be useful
-    if 1st HeadlightDefault call will happen before 1st Headlight). }
-  FHeadlightInstance.Transform := IdentityMatrix4Single;
-  FHeadlightInstance.TransformScale := 1;
-  FHeadlightInstance.Radius := MaxSingle;
-  FHeadlightInstance.Location := ZeroVector3Single;
-  FHeadlightInstance.Direction := Vector3Single(0, 0, -1);
-  FHeadlightInstance.WorldCoordinates := true;
-
   { We could call here ScheduleChangedAll (or directly ChangedAll),
     but there should be no need. FRootNode remains nil,
     and our current state should be equal to what ScheduleChangedAll
@@ -2389,8 +2354,6 @@ destructor TVRMLScene.Destroy;
 begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
-
-  FreeAndNil(DefaultHeadlightNode);
 
   { free FTrianglesList* variables }
   InvalidateTrianglesListShadowCasters;
@@ -6322,69 +6285,18 @@ begin
   end;
 end;
 
-function TVRMLScene.Headlight(const Position, Direction: TVector3Single): PLightInstance;
+function TVRMLScene.CustomHeadlight: TNodeX3DLightNode;
 var
-  MaybeNode: TVRMLNode;
-  Node: TNodeX3DLightNode;
+  MaybeResult: TVRMLNode;
 begin
-  if HeadlightOn then
+  Result := nil;
+  if (NavigationInfoStack.Top <> nil) and
+     (NavigationInfoStack.Top is TNodeKambiNavigationInfo) then
   begin
-    { calculate Node, for FHeadlightInstance.Node }
-    Node := nil;
-
-    if (NavigationInfoStack.Top <> nil) and
-       (NavigationInfoStack.Top is TNodeKambiNavigationInfo) then
-    begin
-      MaybeNode := TNodeKambiNavigationInfo(NavigationInfoStack.Top).FdheadlightNode.Value;
-      if MaybeNode is TNodeX3DLightNode then
-        Node := TNodeX3DLightNode(MaybeNode) else
-        Node := nil;
-    end;
-
-    if Node = nil then
-    begin
-      if DefaultHeadlightNode = nil then
-        { Nothing more needed, all DirectionalLight default properties
-          are suitable for default headlight. }
-        DefaultHeadlightNode := TNodeDirectionalLight_2.Create('', '');;
-      Node := DefaultHeadlightNode;
-    end;
-
-    Assert(Node <> nil);
-
-    { set location/direction of Node }
-    if Node is TVRMLPositionalLightNode then
-    begin
-      TVRMLPositionalLightNode(Node).FdLocation.Send(Position);
-      if Node is TNodeSpotLight_2 then
-        TNodeSpotLight_2(Node).FdDirection.Send(Direction) else
-      if Node is TNodeSpotLight_1 then
-        TNodeSpotLight_1(Node).FdDirection.Send(Direction);
-    end else
-    if Node is TVRMLDirectionalLightNode then
-      TVRMLDirectionalLightNode(Node).FdDirection.Send(Direction);
-
-    FHeadlightInstance.Node := Node;
-    FHeadlightInstance.Location := Position;
-    FHeadlightInstance.Direction := Direction;
-
-    Result := @FHeadlightInstance;
-  end else
-    Result := nil;
-end;
-
-function TVRMLScene.Headlight(Camera: TCamera): PLightInstance;
-var
-  Pos, Dir, Up: TVector3Single;
-begin
-  Camera.GetView(Pos, Dir, Up);
-  Result := Headlight(Pos, Dir);
-end;
-
-function TVRMLScene.HeadlightDefault: PLightInstance;
-begin
-  Result := Headlight(FHeadlightInstance.Location,
-                      FHeadlightInstance.Direction);
+    MaybeResult := TNodeKambiNavigationInfo(NavigationInfoStack.Top).FdheadlightNode.Value;
+    if MaybeResult is TNodeX3DLightNode then
+      Result := TNodeX3DLightNode(MaybeResult);
+  end;
 end;
 
 procedure TVRMLScene.UpdateHeadlightOnFromNavigationInfo;
@@ -6445,7 +6357,7 @@ begin
 end;
 
 procedure TVRMLScene.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean);
+  ProgressStep: boolean; BaseLights: TObject);
 
   procedure PrepareShapesOctrees;
   var

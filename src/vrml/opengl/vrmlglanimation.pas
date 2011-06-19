@@ -331,7 +331,7 @@ type
       For portability, always check PrepareResourcesSteps, but for now this
       is just always equal ScenesCount. }
     procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean); override;
+      ProgressStep: boolean; BaseLights: TObject); override;
     function PrepareResourcesSteps: Cardinal; override;
 
     { This calls FreeResources for all scenes, it's useful if you know
@@ -1433,7 +1433,7 @@ begin
 end;
 
 procedure TVRMLGLAnimation.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean);
+  ProgressStep: boolean; BaseLights: TObject);
 var
   I: Integer;
   SceneOptions: TPrepareResourcesOptions;
@@ -1447,7 +1447,7 @@ begin
     if I <> 0 then
       Exclude(SceneOptions, prManifoldAndBorderEdges);
 
-    FScenes[I].PrepareResources(SceneOptions, false);
+    FScenes[I].PrepareResources(SceneOptions, false, BaseLights);
 
     { TODO: this isn't so simple, since not all scenes have to structurally
       equal anymore. }

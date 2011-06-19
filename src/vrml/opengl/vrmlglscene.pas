@@ -593,7 +593,7 @@ type
     procedure GLContextClose; override;
 
     procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean); override;
+      ProgressStep: boolean; BaseLights: TObject); override;
 
     { Renders this VRML scene for OpenGL.
       This is probably the most important function in this class,
@@ -2246,7 +2246,7 @@ begin
 end;
 
 procedure TVRMLGLScene.PrepareResources(
-  Options: TPrepareResourcesOptions; ProgressStep: boolean);
+  Options: TPrepareResourcesOptions; ProgressStep: boolean; BaseLights: TObject);
 
   procedure PrepareAllShapes;
   var
@@ -2263,8 +2263,6 @@ procedure TVRMLGLScene.PrepareResources(
   var
     SI: TVRMLShapeTreeIterator;
     Shape: TVRMLGLShape;
-    BaseLights: TDynLightInstanceArray;
-    H: PLightInstance;
   begin
     if Log then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
@@ -2274,25 +2272,13 @@ procedure TVRMLGLScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        { With what BaseLights will most probably this scene be rendered }
-        BaseLights := TDynLightInstanceArray.Create;
-        try
-          { Camera vectors for headlight don't matter here,
-            they will not be used anyway to prepare shader code,
-            and later render calls will receive actual headlight vectors.
-            So we can use HeadlightDefault. }
-          H := HeadlightDefault;
-          if H <> nil then
-            BaseLights.Add(H^);
-
-          Renderer.RenderBegin(BaseLights, nil);
-          while SI.GetNext do
-          begin
-            Shape := TVRMLGLShape(SI.Current);
-            Renderer.RenderShape(Shape, ShapeFog(Shape));
-          end;
-          Renderer.RenderEnd;
-        finally FreeAndNil(BaseLights) end;
+        Renderer.RenderBegin(BaseLights as TDynLightInstanceArray, nil);
+        while SI.GetNext do
+        begin
+          Shape := TVRMLGLShape(SI.Current);
+          Renderer.RenderShape(Shape, ShapeFog(Shape));
+        end;
+        Renderer.RenderEnd;
       finally Dec(Renderer.PrepareRenderShape) end;
     finally FreeAndNil(SI) end;
   end;
@@ -2372,7 +2358,8 @@ begin
       before actually rendering the shape).
 
     It's much simpler to just call PrepareResources at the beginning. }
-  PrepareResources([prRender], false);
+  PrepareResources([prRender], false,
+    (Params as TVRMLRenderParams).BaseLights(Self));
 
   case Attributes.WireframeEffect of
     weNormal: RenderNormal;

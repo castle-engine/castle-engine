@@ -306,10 +306,16 @@ type
 
         TODO: for now, do not include prSpatial if you use ProgressStep.
         Reason: octree preparations have a separate mechanism
-        that may want to show progress.) }
+        that may want to show progress.)
+
+      @param(BaseLights Used if Options contains prRender.
+        A list of base lights (always TDynLightInstanceArray, although
+        cannot be declated as such) used for rendering.
+        May be @nil (equivalent to empty).) }
     procedure PrepareResources(
       Options: TPrepareResourcesOptions;
-      ProgressStep: boolean); virtual;
+      ProgressStep: boolean;
+      BaseLights: TObject); virtual;
 
     { How many times PrepareResources will call Progress.Step.
       Useful only if you want to pass ProgressStep = @true to PrepareResources.
@@ -531,7 +537,8 @@ type
       const ParentTransform: TMatrix4Single); override;
     procedure PrepareResources(
       Options: TPrepareResourcesOptions;
-      ProgressStep: boolean); override;
+      ProgressStep: boolean;
+      BaseLights: TObject); override;
     function PrepareResourcesSteps: Cardinal; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
@@ -640,7 +647,7 @@ begin
 end;
 
 procedure T3D.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean);
+  ProgressStep: boolean; BaseLights: TObject);
 begin
 end;
 
@@ -922,13 +929,13 @@ begin
 end;
 
 procedure T3DList.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean);
+  ProgressStep: boolean; BaseLights: TObject);
 var
   I: Integer;
 begin
   inherited;
   for I := 0 to List.Count - 1 do
-    List[I].PrepareResources(Options, ProgressStep);
+    List[I].PrepareResources(Options, ProgressStep, BaseLights);
 end;
 
 function T3DList.PrepareResourcesSteps: Cardinal;

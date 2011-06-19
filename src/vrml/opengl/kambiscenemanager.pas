@@ -64,6 +64,7 @@ type
     FHeadlightFromViewport: boolean;
     FAlwaysApplyProjection: boolean;
     FUseGlobalLights: boolean;
+    DefaultHeadlightNode: TNodeDirectionalLight_2;
 
     { If a texture rectangle for screen effects is ready, then
       ScreenEffectTextureDest/Src/Depth are non-zero and ScreenEffectRTT is non-nil.
@@ -135,16 +136,31 @@ type
       for shadow volumes, but doesn't take care of updating generated textures. }
     procedure RenderFromViewEverything; virtual;
 
-    { Prepare lights shining on everything, like headlight.
+    { Prepare lights shining on everything.
       BaseLights contents should be initialized here.
 
-      The implementation in this class adds headlight defined
-      in the MainScene, following NavigationInfo.headlight and
-      KambiNavigationInfo.headlightNode properties.
-      If MainScene is not assigned, this does nothing.
+      The implementation in this class adds headlight determined
+      by the @link(Headlight) method. By default, this looks at the MainScene,
+      and follows NavigationInfo.headlight and
+      KambiNavigationInfo.headlightNode properties. }
+    procedure InitializeLights(const Lights: TDynLightInstanceArray); virtual;
 
-      Called by RenderFromViewEverything. }
-    procedure InitializeLights(const BaseLights: TDynLightInstanceArray); virtual;
+    { Headlight used to light the scene. Returns if headlight is present,
+      and if it has some custom light node. When it returns @true,
+      and CustomHeadlight is set to @nil,
+      we simply use default directional light for a headlight.
+
+      Default implementation of this method in TKamAbstractViewport
+      looks at the MainScene headlight. We return if MainScene is assigned
+      and TVRMLScene.HeadlightOn is @true.
+      (HeadlightOn in turn looks
+      at information in VRML/X3D file (NavigationInfo.headlight)
+      and you can also always set HeadlightOn explicitly by code.)
+      The custom light node
+      is obtained from TVRMLScene.CustomHeadlight.
+
+      You can override this method to determine the headlight in any other way. }
+    function Headlight(out CustomHeadlight: TNodeX3DLightNode): boolean; virtual;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
       when everything (clearing, background, headlight, loading camera
@@ -318,6 +334,20 @@ type
     { @groupEnd }
 
     procedure GLContextClose; override;
+
+    { Instance for headlight that should be used for this scene.
+      Uses @link(Headlight) method, applies appropriate camera position/direction.
+      Returns @true only if @link(Headlight) method returned @true
+      and a suitable camera was present.
+
+      HeadlightInstance remains unchanged when we return @false. }
+    function HeadlightInstance(var Instance: TLightInstance): boolean;
+
+    { Base lights used for rendering. Uses InitializeLights,
+      and returns instance owned and managed by this scene manager.
+      You can only use this outside PrepareResources or Render,
+      as they may change this instance. }
+    function BaseLights: TDynLightInstanceArray;
   published
     { Viewport dimensions where the 3D world will be drawn.
       When FullSize is @true (the default), the viewport always fills
@@ -920,6 +950,7 @@ begin
   Camera := nil;
 
   FreeAndNil(FRenderParams);
+  FreeAndNil(DefaultHeadlightNode);
 
   inherited;
 end;
@@ -1291,12 +1322,64 @@ begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
-procedure TKamAbstractViewport.InitializeLights(const BaseLights: TDynLightInstanceArray);
-var
-  HC: TCamera;
-  HeadlightInstance: PLightInstance;
+function TKamAbstractViewport.Headlight(out CustomHeadlight: TNodeX3DLightNode): boolean;
 begin
-  if GetMainScene <> nil then
+  Result := (GetMainScene <> nil) and GetMainScene.HeadlightOn;
+  if Result then
+    CustomHeadlight := GetMainScene.CustomHeadlight else
+    CustomHeadlight := nil;
+end;
+
+function TKamAbstractViewport.HeadlightInstance(var Instance: TLightInstance): boolean;
+var
+  CustomHeadlight: TNodeX3DLightNode;
+  HC: TCamera;
+
+  procedure PrepareInstance;
+  var
+    Node: TNodeX3DLightNode;
+    Position, Direction, Up: TVector3Single;
+  begin
+    { calculate Node, for Instance.Node }
+    Node := CustomHeadlight;
+
+    if Node = nil then
+    begin
+      if DefaultHeadlightNode = nil then
+        { Nothing more needed, all DirectionalLight default properties
+          are suitable for default headlight. }
+        DefaultHeadlightNode := TNodeDirectionalLight_2.Create('', '');;
+      Node := DefaultHeadlightNode;
+    end;
+
+    Assert(Node <> nil);
+
+    HC.GetView(Position, Direction, Up);
+
+    { set location/direction of Node }
+    if Node is TVRMLPositionalLightNode then
+    begin
+      TVRMLPositionalLightNode(Node).FdLocation.Send(Position);
+      if Node is TNodeSpotLight_2 then
+        TNodeSpotLight_2(Node).FdDirection.Send(Direction) else
+      if Node is TNodeSpotLight_1 then
+        TNodeSpotLight_1(Node).FdDirection.Send(Direction);
+    end else
+    if Node is TVRMLDirectionalLightNode then
+      TVRMLDirectionalLightNode(Node).FdDirection.Send(Direction);
+
+    Instance.Node := Node;
+    Instance.Location := Position;
+    Instance.Direction := Direction;
+    Instance.Transform := IdentityMatrix4Single;
+    Instance.TransformScale := 1;
+    Instance.Radius := MaxSingle;
+    Instance.WorldCoordinates := true;
+  end;
+
+begin
+  Result := false;
+  if Headlight(CustomHeadlight) then
   begin
     if HeadlightFromViewport then
       HC := Camera else
@@ -1321,13 +1404,27 @@ begin
 
     if HC <> nil then
     begin
-      HeadlightInstance := GetMainScene.Headlight(HC);
-      if HeadlightInstance <> nil then
-        BaseLights.Add(HeadlightInstance^);
+      PrepareInstance;
+      Result := true;
     end;
   end;
+end;
 
-  { if MainScene = nil, do not enable any light. }
+procedure TKamAbstractViewport.InitializeLights(const Lights: TDynLightInstanceArray);
+var
+  HI: TLightInstance;
+begin
+  if HeadlightInstance(HI) then
+    Lights.Add(HI);
+end;
+
+function TKamAbstractViewport.BaseLights: TDynLightInstanceArray;
+begin
+  { We just reuse FRenderParams.FBaseLights[false] below as a temporary
+    TDynLightInstanceArray that we already have created. }
+  Result := FRenderParams.FBaseLights[false];
+  Result.Clear;
+  InitializeLights(Result);
 end;
 
 procedure TKamAbstractViewport.RenderNeverShadowed(const Params: TRenderParams);
@@ -2018,10 +2115,10 @@ begin
     begin
       Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
       try
-        Items.PrepareResources(Options, true);
+        Items.PrepareResources(Options, true, BaseLights);
       finally Progress.Fini end;
     end else
-      Items.PrepareResources(Options, false);
+      Items.PrepareResources(Options, false, BaseLights);
 
     NeedsUpdateGeneratedTextures := true;
   end;
