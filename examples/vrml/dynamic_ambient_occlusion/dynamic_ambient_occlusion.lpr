@@ -28,7 +28,7 @@ program dynamic_ambient_occlusion;
 
 uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, VRMLScene, VRMLGLScene,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Base3D,
   KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, DataErrors,
   GLVersionUnit, Math, VRMLTriangle, KambiSceneManager, RenderingCameraUnit;
@@ -457,13 +457,13 @@ var
 
 type
   TMySceneManager = class(TKamSceneManager)
-    procedure RenderFromView3D(const Params: TVRMLRenderParams); override;
+    procedure RenderFromView3D(const Params: TRenderParams); override;
   end;
 
 var
   SceneManager: TMySceneManager;
 
-procedure TMySceneManager.RenderFromView3D(const Params: TVRMLRenderParams);
+procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
 
   { If ElementsIntensityTex = nil,
     then all element discs will have the same glMaterial.

@@ -71,10 +71,6 @@ Details during 2.6.0 release:
 
 - Add a way to limit FPS, to not burn CPU without need.
 
-- The fact that BaseLights cannot be declared in Base3D is unfortunate.
-  This causes TRenderParams vs TVRMLRenderParams separation,
-  and now the ugly TAbstractLightInstancesList
-  (instead of just TLightInstancesList) for PrepareResources.
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,

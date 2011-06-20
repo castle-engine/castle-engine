@@ -163,7 +163,11 @@ type
     Triangle: P3DTriangle;
   end;
 
-  { Information that 3D objects need to render, read-only for T3D.Render. }
+  { List of lights. Always TLightInstancesList, but we cannot declare it here
+    as such. }
+  TAbstractLightInstancesList = TDynArrayBase;
+
+  { Information that 3D object needs to render, read-only for T3D.Render. }
   TRenderParams = class
     { Indicate that only opaque or only transparent
       parts should be rendered. }
@@ -180,9 +184,10 @@ type
     { Value > 0 means we're inside some stencil test (like for
       InShadow = @false pass of shadow volumes). }
     StencilTest: Cardinal;
+
+    { Lights that shine on given 3D object. }
+    function BaseLights(Scene: T3D): TAbstractLightInstancesList; virtual; abstract;
   end;
-  
-  TAbstractLightInstancesList = TDynArrayBase;
 
   { Base 3D object, that can be managed by TKamSceneManager.
     All 3D objects should descend from this, this way we can easily

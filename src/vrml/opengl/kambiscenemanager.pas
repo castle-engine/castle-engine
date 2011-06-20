@@ -29,20 +29,20 @@ type
   TKamAbstractViewport = class;
 
   TRender3DEvent = procedure (Viewport: TKamAbstractViewport;
-    const Params: TVRMLRenderParams) of object;
+    const Params: TRenderParams) of object;
 
-  { Internal, special TVRMLRenderParams descendant that can return different
+  { Internal, special TRenderParams descendant that can return different
     set of base lights for some scenes. Used to implement GlobalLights,
     where MainScene and other objects need different lights.
     @exclude. }
-  TManagerRenderParams = class(TVRMLRenderParams)
+  TManagerRenderParams = class(TRenderParams)
   private
     MainScene: T3D;
     FBaseLights: array [boolean { is main scene }] of TLightInstancesList;
   public
     constructor Create;
     destructor Destroy; override;
-    function BaseLights(Scene: T3D): TLightInstancesList; override;
+    function BaseLights(Scene: T3D): TAbstractLightInstancesList; override;
   end;
 
   { Common abstract class for things that may act as a viewport:
@@ -168,7 +168,7 @@ type
 
       This will change Params.TransparentGroup and Params.InShadow,
       as needed. Their previous values do not matter. }
-    procedure RenderFromView3D(const Params: TVRMLRenderParams); virtual;
+    procedure RenderFromView3D(const Params: TRenderParams); virtual;
 
     { Render everything (by RenderFromViewEverything) on the screen.
       Takes care to set RenderingCamera (Target = rtScreen and camera as given),
@@ -911,7 +911,7 @@ begin
   inherited;
 end;
 
-function TManagerRenderParams.BaseLights(Scene: T3D): TLightInstancesList;
+function TManagerRenderParams.BaseLights(Scene: T3D): TAbstractLightInstancesList;
 begin
   Result := FBaseLights[Scene = MainScene];
 end;
@@ -1314,7 +1314,7 @@ procedure TKamAbstractViewport.Render3D(const Params: TRenderParams);
 begin
   GetItems.Render(RenderingCamera.Frustum, Params);
   if Assigned(OnRender3D) then
-    OnRender3D(Self, Params as TVRMLRenderParams);
+    OnRender3D(Self, Params);
 end;
 
 procedure TKamAbstractViewport.RenderShadowVolume;
@@ -1432,7 +1432,7 @@ begin
   { Nothing to do in this class }
 end;
 
-procedure TKamAbstractViewport.RenderFromView3D(const Params: TVRMLRenderParams);
+procedure TKamAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
 { Inside this method we control (always set correctly) Params.InShadow
   and Params.TransparentGroup. }
