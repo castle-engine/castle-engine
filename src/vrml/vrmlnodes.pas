@@ -305,8 +305,9 @@ type
       By default (WorldCoordinates = false) we assume that light is defined
       in scene space, so it will be transformed by the whole modelview matrix
       (camera matrix with scene transformations).
-      When this is false, during rendering we take care to transform this light
-      only by camera matrix. Useful for example for headlight. }
+      When this is true, during rendering we take care to transform this light
+      only by camera matrix (not additional scene transformation).
+      Useful for example for headlight. }
     WorldCoordinates: boolean;
 
     { Deprecated name for Node. @exclude @deprecated }
