@@ -15,7 +15,6 @@
 
 var
   Lighting, MaterialLit: boolean;
-  MaterialSpecularColor: TVector3Single;
   MaterialOpacity: Single;
 
 procedure RenderMaterialsBegin;
@@ -30,7 +29,7 @@ procedure RenderMaterialsBegin;
   begin
     if Attributes.PureGeometry then Exit;
 
-    MaterialSpecularColor := SpecularColor;
+    Shader.MaterialSpecularColor := SpecularColor;
     MaterialOpacity := ShapeOpacity * Attributes.Opacity;
 
     if Lighting then

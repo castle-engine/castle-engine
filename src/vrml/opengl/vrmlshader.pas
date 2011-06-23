@@ -136,7 +136,6 @@ type
     Number: Cardinal;
     Node: TNodeX3DLightNode;
     Light: PLightInstance;
-    MaterialSpecularColor: TVector3Single;
     Shader: TVRMLShader;
     { Code calculated (on demand, when method called) using above vars. }
     FCode: TShaderSource;
@@ -255,6 +254,9 @@ type
     function DeclareShadowFunctions: string;
   public
     ShapeBoundingBox: TBox3D;
+    { Specular material color. Must be set before EnableLight, and be constant
+      later. }
+    MaterialSpecularColor: TVector3Single;
 
     constructor Create;
     destructor Destroy; override;
@@ -314,8 +316,9 @@ type
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
       const NormalMapTextureUnit: Cardinal;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
-    procedure EnableLight(const Number: Cardinal; Light: PLightInstance;
-      const MaterialSpecularColor: TVector3Single);
+    { Enable light source.
+      Remember to set MaterialSpecularColor before calling this. }
+    procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType);
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
       out Node: TNodeComposedShader): boolean;
@@ -607,7 +610,7 @@ begin
     end;
     if Node.FdAmbientIntensity.Value <> 0 then
       Define(ldHasAmbient);
-    if not PerfectlyZeroVector(MaterialSpecularColor) then
+    if not PerfectlyZeroVector(Shader.MaterialSpecularColor) then
       Define(ldHasSpecular);
   end else
   begin
@@ -2072,8 +2075,7 @@ begin
   end;
 end;
 
-procedure TVRMLShader.EnableLight(const Number: Cardinal; Light: PLightInstance;
-  const MaterialSpecularColor: TVector3Single);
+procedure TVRMLShader.EnableLight(const Number: Cardinal; Light: PLightInstance);
 var
   LightShader: TLightShader;
 begin
@@ -2081,7 +2083,6 @@ begin
   LightShader.Number := Number;
   LightShader.Light := Light;
   LightShader.Node := Light^.Node;
-  LightShader.MaterialSpecularColor := MaterialSpecularColor;
   LightShader.Shader := Self;
 
   LightShaders.Add(LightShader);

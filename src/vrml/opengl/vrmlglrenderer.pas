@@ -1096,8 +1096,7 @@ type
       Shader: TVRMLShader);
     procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       Shader: TVRMLShader;
-      const MaterialOpacity: Single; const Lighting: boolean;
-      const MaterialSpecularColor: TVector3Single);
+      const MaterialOpacity: Single; const Lighting: boolean);
     procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
@@ -2999,20 +2998,22 @@ procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
 
 begin
   RenderMaterialsBegin;
-
-  RenderShapeLights(Shape, Fog, Shader, MaterialOpacity, Lighting,
-    MaterialSpecularColor);
+  RenderShapeLights(Shape, Fog, Shader, MaterialOpacity, Lighting);
 end;
 
 procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; Shader: TVRMLShader;
-  const MaterialOpacity: Single; const Lighting: boolean;
-  const MaterialSpecularColor: TVector3Single);
+  const MaterialOpacity: Single; const Lighting: boolean);
 var
   SceneLights: TLightInstancesList;
 begin
-  { All this is done before loading State.Transform, as the lights
-    positions/directions are in world coordinates. }
+  { All this is done before loading State.Transform.
+    The light renderer assumes current matrix contains only camera +
+    scene transform.
+
+    All this is done after setting Shader.MaterialSpecularColor
+    by RenderMaterialsBegin,
+    as MaterialSpecularColor must be already set during Shader.EnableLight. }
 
   { When lighting is off (for either shaders or fixed-function),
     there is no point in setting up lights. }
@@ -3022,7 +3023,7 @@ begin
       SceneLights := Shape.State.Lights else
       SceneLights := nil;
 
-    LightsRenderer.Render(BaseLights, SceneLights, Shader, MaterialSpecularColor);
+    LightsRenderer.Render(BaseLights, SceneLights, Shader);
   end;
 
   RenderShapeFog(Shape, Fog, Shader, MaterialOpacity, Lighting);

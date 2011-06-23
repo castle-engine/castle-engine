@@ -63,8 +63,7 @@ type
       Lights1 and Lights2 lists are simply glued inside.
       Lights2 may be @nil (equal to being empty). }
     procedure Render(const Lights1, Lights2: TLightInstancesList;
-      const Shader: TVRMLShader;
-      const MaterialSpecularColor: TVector3Single);
+      const Shader: TVRMLShader);
 
     { Process light source properties right before rendering the light.
 
@@ -257,8 +256,7 @@ end;
 
 procedure TVRMLGLLightsRenderer.Render(
   const Lights1, Lights2: TLightInstancesList;
-  const Shader: TVRMLShader;
-  const MaterialSpecularColor: TVector3Single);
+  const Shader: TVRMLShader);
 var
   LightsEnabled: Cardinal;
 
@@ -280,7 +278,7 @@ var
       begin
         if NeedRenderLight(LightsEnabled, Light) then
           glLightFromVRMLLight(LightsEnabled, Light^);
-        Shader.EnableLight(LightsEnabled, Light, MaterialSpecularColor);
+        Shader.EnableLight(LightsEnabled, Light);
         Inc(LightsEnabled);
         if LightsEnabled >= GLMaxLights then Exit;
       end;
