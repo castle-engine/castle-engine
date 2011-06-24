@@ -543,7 +543,12 @@ type
 
     { Let MainScene.GlobalLights shine on every 3D object, not only
       MainScene. This is an easy way to lit your whole world with lights
-      defined inside MainScene file. Be sure to set lights global=TRUE. }
+      defined inside MainScene file. Be sure to set lights global=TRUE.
+
+      Note that for now this assumes that MainScene coordinates equal
+      world coordinates. This means that you should not transform
+      the MainScene, it should be placed inside @link(Items) without any
+      T3DTranslated on the way. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default false;
   end;
@@ -1547,7 +1552,7 @@ begin
   begin
     FRenderParams.MainScene := GetMainScene;
     FRenderParams.FBaseLights[true].Assign(FRenderParams.FBaseLights[false]);
-    FRenderParams.FBaseLights[false].AppendDynArray(GetMainScene.GlobalLights);
+    FRenderParams.FBaseLights[false].AppendInWorldCoordinates(GetMainScene.GlobalLights);
   end else
     { Do not use Params.FBaseLights[true] }
     FRenderParams.MainScene := nil;

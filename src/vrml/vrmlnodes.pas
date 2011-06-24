@@ -326,6 +326,9 @@ type
     { Find light with given node name. Return @nil if not found. }
     function FindName(NodeName: string): PLightInstance;
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+
+    { Append List to our contents, setting every light's WorldCoordinates = @true. }
+    procedure AppendInWorldCoordinates(const List: TLightInstancesList);
   end;
   TArray_LightInstance = TInfiniteArray_1;
   PArray_LightInstance = PInfiniteArray_1;
@@ -2392,6 +2395,20 @@ begin
     for I := 0 to High do
       if not LightInstanceEquals(Items[I], TLightInstancesList(SecondValue).Items[I]) then
         Exit(false);
+end;
+
+procedure TLightInstancesList.AppendInWorldCoordinates(const List: TLightInstancesList);
+var
+  OldLength: Integer;
+  I: Integer;
+begin
+  OldLength := Length;
+  SetLength(Length + List.Count);
+  for I := 0 to List.Count - 1 do
+  begin
+    Items[OldLength + I] := List.Items[I];
+    Items[OldLength + I].WorldCoordinates := true;
+  end;
 end;
 
 { TDynClipPlaneArray --------------------------------------------------------- }
