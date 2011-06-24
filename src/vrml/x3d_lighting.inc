@@ -477,6 +477,7 @@ function TNodeX3DLightNode.CreateLightInstance(
   State: TVRMLGraphTraverseState): TLightInstance;
 begin
   Result.Node := Self;
+  Result.WorldCoordinates := false;
   UpdateLightInstanceState(Result, State);
 end;
 
