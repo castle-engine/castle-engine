@@ -3330,11 +3330,9 @@ begin
       VectorAddTo1st(result, TriangleNormal(Tri) );
   until false;
 
-  { result to teraz suma ilus wektorow. Kazdy skladowy wektor
-      ma w niej rowny udzial bo je normalizowalem.
-    Jezeli Normal = (0, 0, 0) to znaczy ze wszystkie trojkaty polygonu byly
-      zdegenerowane, wiec nie jestesmy w stanie wyliczyc zadnego sensownego
-      wektora normalnego. }
+  { All triangle normals are summed up now. (Each triangle normal was also
+    normalized, to have equal contribution to the result.)
+    Normalize Result now, if we had any valid triangle. }
   if ZeroVector(Result) then
     Result := ResultForIncorrectPoly else
     NormalizeTo1st(Result);
