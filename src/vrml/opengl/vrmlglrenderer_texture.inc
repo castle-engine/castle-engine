@@ -909,26 +909,10 @@ type
     Result := CombinePerChannel(Value, Value);
   end;
 
-  function ArgPerChannel(const RGB, Alpha: Integer): TArgPerChannel;
-  begin
-    Result[cRGB] := RGB;
-    Result[cAlpha] := Alpha;
-  end;
-
   function ArgPerChannel(const Value: Integer): TArgPerChannel;
   begin
-    Result := ArgPerChannel(Value, Value);
-  end;
-
-  function ScalePerChannel(const RGB, Alpha: TGLfloat): TScalePerChannel;
-  begin
-    Result[cRGB] := RGB;
-    Result[cAlpha] := Alpha;
-  end;
-
-  function ScalePerChannel(const Value: TGLfloat): TScalePerChannel;
-  begin
-    Result := ScalePerChannel(Value, Value);
+    Result[cRGB] := Value;
+    Result[cAlpha] := Value;
   end;
 
   { If S contains two separate modes (one for RGB, one for Alpha)
