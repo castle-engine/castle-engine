@@ -1129,3 +1129,13 @@ Various:
   Defer for later, we'll see on other systems does it occur.
   Looks like some Debian problem, quite specific to kocury libs versions?
   Doesn't occur with view3dscene, so not a blocker for 2.5.0.
+
+- normal fog doesn't work on kocury nvidia (volumetric and explicit fog is Ok)
+  with shader pipeline.
+  Replacing gl_FogFragCoord with custom kambi_fog_frag_coord doesn't help.
+
+  Weird, as explicit fog shows that fog type linear is Ok...
+  I can also assign kambi_fog_frag_coord to const, like 50.0, and then it works.
+
+  So something must be bad when setting kambi_fog_frag_coord from vertex_eye.z.
+  Defer for later, some driver bug.
