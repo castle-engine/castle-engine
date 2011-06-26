@@ -31,6 +31,11 @@ type
   TTexComponent = 0..3;
 
   TFogType = (ftLinear, ftExp);
+  TFogCoordinateSource = (
+    { Fog is determined by depth (distance to camera). }
+    fcDepth,
+    { Fog is determined by explicit coordinate (per-vertex glFogCoord*). }
+    fcPassedCoordinate);
 
   TShaderCodeHash = object
   private
@@ -211,6 +216,7 @@ type
     FHeightMapScale: Single;
     FFogEnabled: boolean;
     FFogType: TFogType;
+    FFogCoordinateSource: TFogCoordinateSource;
 
     { We have to optimize the most often case of TVRMLShader usage,
       when the shader is not needed or is already prepared.
@@ -319,7 +325,8 @@ type
     { Enable light source.
       Remember to set MaterialSpecularColor before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
-    procedure EnableFog(const FogType: TFogType);
+    procedure EnableFog(const FogType: TFogType;
+      const FogCoordinateSource: TFogCoordinateSource);
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
       out Node: TNodeComposedShader): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
@@ -1725,20 +1732,26 @@ var
 
   procedure EnableShaderFog;
   var
-    FogFactor: string;
+    FogFactor, CoordinateSource: string;
   begin
     if FFogEnabled then
     begin
+      case FFogCoordinateSource of
+        fcDepth           : CoordinateSource := 'vertex_eye.z';
+        fcPassedCoordinate: CoordinateSource := 'gl_FogCoord';
+        else raise EInternalError.Create('TVRMLShader.EnableShaderFog:FogCoordinateSource?');
+      end;
+
       Plug(stVertex,
         'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
         '{' +NL+
-        '  gl_FogFragCoord = vertex_eye.z;' +NL+
+        '  gl_FogFragCoord = ' + CoordinateSource + ';' +NL+
         '}');
 
       case FFogType of
         ftLinear: FogFactor := '(gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale';
         ftExp   : FogFactor := 'exp(-gl_Fog.density * gl_FogFragCoord)';
-        else raise EInternalError.Create('TVRMLShader.EnableFog:FogType?');
+        else raise EInternalError.Create('TVRMLShader.EnableShaderFog:FogType?');
       end;
 
       Plug(stFragment,
@@ -2093,11 +2106,15 @@ begin
   LightShader.Prepare(FCodeHash, LightShaders.Count - 1);
 end;
 
-procedure TVRMLShader.EnableFog(const FogType: TFogType);
+procedure TVRMLShader.EnableFog(const FogType: TFogType;
+  const FogCoordinateSource: TFogCoordinateSource);
 begin
   FFogEnabled := true;
   FFogType := FogType;
-  FCodeHash.AddInteger(67 * (Ord(FFogType) + 1));
+  FFogCoordinateSource := FogCoordinateSource;
+  FCodeHash.AddInteger(
+    67 * (Ord(FFogType) + 1) +
+    709 * (Ord(FFogCoordinateSource) + 1));
 end;
 
 function TVRMLShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;

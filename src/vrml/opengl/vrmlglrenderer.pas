@@ -3033,6 +3033,10 @@ procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
   Fog: INodeX3DFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
+const
+  FogCoordinateSource: array [boolean { volumetric }] of TFogCoordinateSource =
+  ( fcDepth, fcPassedCoordinate );
+
   { Set OpenGL fog based on given fog node. Returns also fog parameters,
     like GetFog. }
   procedure RenderFog(Node: INodeX3DFogObject;
@@ -3113,7 +3117,7 @@ begin
   end;
 
   if FogEnabled then
-    Shader.EnableFog(FogType);
+    Shader.EnableFog(FogType, FogCoordinateSource[FogVolumetric]);
 
   RenderShapeTextureTransform(Shape, Fog, Shader, MaterialOpacity, Lighting);
 end;
