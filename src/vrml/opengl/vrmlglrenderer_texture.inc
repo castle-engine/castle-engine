@@ -953,7 +953,7 @@ type
     out Arg1: TArgPerChannel;
     out Arg2: TArgPerChannel;
     var Scale: TScalePerChannel;
-    var AlreadyHandled: boolean;
+    var Disabled: boolean;
     var NeedsConstantColor: boolean);
 
     { Interpret simple mode name (this is for sure only one mode,
@@ -1094,10 +1094,7 @@ type
       end else
       if LS = 'off' then
       begin
-        { For OFF, turn off the texture unit? This is the correct
-          interpretation, right? }
-        Renderer.DisableCurrentTexture;
-        AlreadyHandled := true;
+        Disabled := true;
       end else
       if LS = 'dotproduct3' then
       begin
@@ -1179,6 +1176,7 @@ type
     LS: string;
     StringPerChannel: TStringPerChannel;
   begin
+    Disabled := false;
     LS := LowerCase(S);
     if SplitStringPerChannel(LS, StringPerChannel) then
     begin
@@ -1234,7 +1232,7 @@ var
   Arg1, Arg2: TArgPerChannel;
   Scale: TScalePerChannel;
   S: string;
-  AlreadyHandled: boolean;
+  Disabled: boolean;
   NeedsConstantColor: boolean;
   Source: TGLIntPerChannel;
 begin
@@ -1262,7 +1260,6 @@ begin
           Below we handle TextureNode.mode, source, color, alpha,
           function fields. }
 
-        AlreadyHandled := false;
         Scale[cRGB] := 1;
         Scale[cAlpha] := 1;
         NeedsConstantColor := false;
@@ -1271,10 +1268,13 @@ begin
           S := TextureNode.FdMode.Items[I] else
           S := '';
 
-        ModeFromString(S, Combine, Arg1, Arg2,
-          Scale, AlreadyHandled, NeedsConstantColor);
+        ModeFromString(S, Combine, Arg1, Arg2, Scale, Disabled, NeedsConstantColor);
 
-        if not AlreadyHandled then
+        if Disabled then
+        begin
+          { When mode=OFF, turn off the texture unit. }
+          Renderer.DisableCurrentTexture;
+        end else
         begin
           glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
 
