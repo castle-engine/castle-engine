@@ -889,12 +889,31 @@ end;
 procedure TGLMultiTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
   out TexCoordsNeeded: Cardinal; Shader: TVRMLShader);
 type
+  { Source of color for texture mixing.
+    Used to represent MultiTexture.source X3D field.
+    And used to represent the source of alpha value,
+    for MultiTexture.mode = BLEND* case. }
+  TColorSource = (
+    { Material (OpenGL calls this "primary color"). }
+    csMaterial,
+    { Current texture unit color. }
+    csCurrentTexture,
+    { Constant color. (MultiTexture.color/alpha fields;
+      for TInterpolateAlphaSource, actually this indicates only MultiTexture.alpha.) }
+    csConstant,
+    { Previous texture unit color, or material (in case this is the first texture unit). }
+    csPreviousTexture);
+
   TChannel = (cRGB, cAlpha);
-  TGLIntPerChannel = array [TChannel] of TGLint;
-  TCombinePerChannel = TGLIntPerChannel;
+  TCombinePerChannel = array [TChannel] of TGLint;
   TArgPerChannel = array [TChannel] of Integer;
   TScalePerChannel = array [TChannel] of TGLfloat;
   TStringPerChannel = array [TChannel] of string;
+  TSourcePerChannel = array [TChannel] of TColorSource;
+
+const
+  ColorSourceGL: array [TColorSource] of TGLint =
+  ( GL_PRIMARY_COLOR_EXT, GL_TEXTURE, GL_CONSTANT_EXT, GL_PREVIOUS_EXT );
 
   { Simple type constructors, for ease of coding.
     Versions with only 1 argument set both channel (rgb and alpha) to the same. }
@@ -933,8 +952,13 @@ type
     end;
   end;
 
-  { Return OpenGL values for
-    GL_COMBINE_RGB_EXT, GL_COMBINE_ALPHA_EXT.
+  { How to mix the current texture color into the fragment color.
+
+    For some details about particular values,
+    see OpenGL EXT_texture_env_combine extension
+    (http://www.opengl.org/registry/specs/EXT/texture_env_combine.txt).
+
+    Return OpenGL values for GL_COMBINE_RGB_EXT, GL_COMBINE_ALPHA_EXT.
 
     Also, specify which argument (0, 1, 2 for
     GL_SOURCE0, GL_SOURCE1, GL_SOURCE2, or -1 if none) should represent
@@ -942,19 +966,20 @@ type
     and which is the source (default is previous texture unit,
     although may change by "source" field; this is "Arg2" in X3D spec).
 
-    You can assign here explicitly sources/operands for other
-    arguments, if needed (e.g. "BLEND*" modes fill here 3rd source/operand
-    directly).
+    If, and only if, one of Combine is GL_INTERPOLATE_EXT,
+    then the InterpolateAlphaSource specifies what is the OpenGL GL_SOURCE2.
+    It should be filled (both RGB and alpha) with alpha from this source.
 
-    Also, specify Scale (remember OpenGL allows
+    Also, specify Scale (remember fixed-function pipeline OpenGL allows
     only 1.0, 2.0 and 4.0 scales). By default are 1. }
   procedure ModeFromString(const S: string;
     out Combine: TCombinePerChannel;
     out Arg1: TArgPerChannel;
     out Arg2: TArgPerChannel;
-    var Scale: TScalePerChannel;
-    var Disabled: boolean;
-    var NeedsConstantColor: boolean);
+    out Scale: TScalePerChannel;
+    out Disabled: boolean;
+    out NeedsConstantColor: boolean;
+    out InterpolateAlphaSource: TColorSource);
 
     { Interpret simple mode name (this is for sure only one mode,
       without any "/" and whitespaces). This handles only the simplest
@@ -1116,51 +1141,29 @@ type
         Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
         Arg1 := ArgPerChannel(0);
         Arg2 := ArgPerChannel(1);
-
-        { Whole source2 (both RGB and alpha) is filled by alpha of material
-          (primary color). }
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
+        InterpolateAlphaSource := csMaterial;
       end else
       if LS = 'blendtexturealpha' then
       begin
         Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
         Arg1 := ArgPerChannel(0);
         Arg2 := ArgPerChannel(1);
-
-        { Whole source2 (both RGB and alpha) is filled by alpha of current
-          tex unit. }
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_TEXTURE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_TEXTURE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
+        InterpolateAlphaSource := csCurrentTexture;
       end else
       if LS = 'blendfactoralpha' then
       begin
         Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
         Arg1 := ArgPerChannel(0);
         Arg2 := ArgPerChannel(1);
-
-        { Whole source2 (both RGB and alpha) is filled by const alpha. }
+        InterpolateAlphaSource := csConstant;
         NeedsConstantColor := true;
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_CONSTANT_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_CONSTANT_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
       end else
       if LS = 'blendcurrentalpha' then
       begin
         Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
         Arg1 := ArgPerChannel(0);
         Arg2 := ArgPerChannel(1);
-
-        { Whole source2 (both RGB and alpha) is filled by alpha from prev tex. }
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, GL_PREVIOUS_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, GL_PREVIOUS_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
+        InterpolateAlphaSource := csPreviousTexture;
       end else
       begin
         SimpleModeFromString(LS,
@@ -1176,7 +1179,13 @@ type
     LS: string;
     StringPerChannel: TStringPerChannel;
   begin
+    { initialize some out parameters to default values }
     Disabled := false;
+    Scale[cRGB] := 1;
+    Scale[cAlpha] := 1;
+    NeedsConstantColor := false;
+    InterpolateAlphaSource := csMaterial; { unused, will define to be safe }
+
     LS := LowerCase(S);
     if SplitStringPerChannel(LS, StringPerChannel) then
     begin
@@ -1186,24 +1195,24 @@ type
       BothModesFromString(LS, Combine, Arg1, Arg2, Scale);
   end;
 
-  procedure SourceFromString(const S: string; out Source: TGLIntPerChannel;
+  procedure SourceFromString(const S: string; out Source: TSourcePerChannel;
     var NeedsConstantColor: boolean);
 
     procedure SimpleSourceFromString(const LS: string;
-      out Source: TGLint;
+      out Source: TColorSource;
       var NeedsConstantColor: boolean);
     begin
       if LS = '' then
-        Source := GL_PREVIOUS_EXT else
+        Source := csPreviousTexture else
       if (LS = 'diffuse') or (LS = 'specular') then
-        Source := GL_PRIMARY_COLOR_EXT else
+        Source := csMaterial else
       if LS = 'factor' then
       begin
         NeedsConstantColor := true;
-        Source := GL_CONSTANT_EXT;
+        Source := csConstant;
       end else
       begin
-        Source := GL_PREVIOUS_EXT;
+        Source := csPreviousTexture;
         VRMLWarning(vwSerious, Format('Not supported multi-texturing source "%s"', [LS]))
       end;
     end;
@@ -1234,7 +1243,8 @@ var
   S: string;
   Disabled: boolean;
   NeedsConstantColor: boolean;
-  Source: TGLIntPerChannel;
+  Source: TSourcePerChannel;
+  InterpolateAlphaSource: TColorSource;
 begin
   { calculate TexCoordsNeeded }
   TexCoordsNeeded := Min(TextureUnitsCount, TextureNode.FdTexture.Count);
@@ -1260,15 +1270,12 @@ begin
           Below we handle TextureNode.mode, source, color, alpha,
           function fields. }
 
-        Scale[cRGB] := 1;
-        Scale[cAlpha] := 1;
-        NeedsConstantColor := false;
-
         if I < TextureNode.FdMode.Count then
           S := TextureNode.FdMode.Items[I] else
           S := '';
 
-        ModeFromString(S, Combine, Arg1, Arg2, Scale, Disabled, NeedsConstantColor);
+        ModeFromString(S, Combine, Arg1, Arg2, Scale, Disabled,
+          NeedsConstantColor, InterpolateAlphaSource);
 
         if Disabled then
         begin
@@ -1311,15 +1318,26 @@ begin
 
             if Arg2[cRGB] <> -1 then
             begin
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg2[cRGB], Source[cRGB]);
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Arg2[cRGB], ColorSourceGL[Source[cRGB]]);
               glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Arg2[cRGB], GL_SRC_COLOR);
             end;
 
             if Arg2[cAlpha] <> -1 then
             begin
-              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg2[cAlpha], Source[cAlpha]);
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Arg2[cAlpha], ColorSourceGL[Source[cAlpha]]);
               glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Arg2[cAlpha], GL_SRC_ALPHA);
             end;
+          end;
+
+          if (Combine[cRGB] = GL_INTERPOLATE_EXT) or
+             (Combine[cAlpha] = GL_INTERPOLATE_EXT) then
+          begin
+            { Whole source2 (both RGB and alpha) is filled by alpha from color
+              specified by InterpolateAlphaSource. }
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT, ColorSourceGL[InterpolateAlphaSource]);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA_EXT, ColorSourceGL[InterpolateAlphaSource]);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA_EXT, GL_SRC_ALPHA);
           end;
 
           if NeedsConstantColor then
