@@ -21,7 +21,8 @@ unit VRMLShader;
 interface
 
 uses VectorMath, GLShaders, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, KambiUtils, Boxes3D;
+  VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, KambiUtils, Boxes3D,
+  VRMLGLRendererTextureEnv;
 
 type
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
@@ -167,6 +168,7 @@ type
     TextureUnit: Cardinal;
     TextureType: TTextureType;
     Node: TNodeX3DTextureNode;
+    Env: TTextureEnv;
     ShadowMapSize: Cardinal;
     ShadowLight: TNodeX3DLightNode;
     ShadowVisualizeDepth: boolean;
@@ -308,6 +310,7 @@ type
 
     procedure EnableTexture(const TextureUnit: Cardinal;
       const TextureType: TTextureType; const Node: TNodeX3DTextureNode;
+      const Env: TTextureEnv;
       const ShadowMapSize: Cardinal = 0;
       const ShadowLight: TNodeX3DLightNode = nil;
       const ShadowVisualizeDepth: boolean = false);
@@ -964,7 +967,8 @@ begin
     1 +
     181 * Ord(TextureType) +
     191 * ShadowMapSize +
-    193 * Ord(ShadowVisualizeDepth);
+    193 * Ord(ShadowVisualizeDepth) +
+    Env.Hash;
   if ShadowLight <> nil then
     IntHash += PtrUInt(ShadowLight);
   Hash.AddInteger(179 * (TextureUnit + 1) * IntHash);
@@ -1899,6 +1903,7 @@ end;
 procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
   const TextureType: TTextureType;
   const Node: TNodeX3DTextureNode;
+  const Env: TTextureEnv;
   const ShadowMapSize: Cardinal;
   const ShadowLight: TNodeX3DLightNode;
   const ShadowVisualizeDepth: boolean);
@@ -1942,6 +1947,7 @@ begin
   TextureShader.TextureUnit := TextureUnit;
   TextureShader.TextureType := TextureType;
   TextureShader.Node := Node;
+  TextureShader.Env := Env;
   TextureShader.ShadowMapSize := ShadowMapSize;
   TextureShader.ShadowLight := ShadowLight;
   TextureShader.ShadowVisualizeDepth := ShadowVisualizeDepth;

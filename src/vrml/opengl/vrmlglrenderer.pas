@@ -224,7 +224,8 @@ uses
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
   GLCubeMap, TextureImages, KambiClassUtils, DDS, Base3D, FGL
   {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  GeometryArrays, VRMLArraysGenerator, VRMLShader, VRMLShadowMaps;
+  GeometryArrays, VRMLArraysGenerator, VRMLShader, VRMLShadowMaps,
+  VRMLGLRendererTextureEnv;
 
 {$define read_interface}
 
@@ -1252,7 +1253,7 @@ var
 implementation
 
 uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
-  RenderingCameraUnit, VRMLCameraUtils, RaysWindow, VRMLGLRendererTextureEnv;
+  RenderingCameraUnit, VRMLCameraUtils, RaysWindow;
 
 {$define read_implementation}
 {$I dynarray_2.inc}

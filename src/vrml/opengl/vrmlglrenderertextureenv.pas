@@ -86,6 +86,11 @@ type
       This does not setup any OpenGL state, it only calculates fields
       of this object. }
     constructor Init(const Mode, SourceStr: string);
+
+    { Calculate values based on simple OpenGL mode value. }
+    constructor Init(const Mode: TGLint);
+
+    function Hash: LongWord;
   end;
 
 implementation
@@ -403,5 +408,41 @@ begin
      (SourceArgument[cAlpha] <> taNone) then
     SourceFromString(SourceStr, Source, NeedsConstantColor);
 end;
+
+constructor TTextureEnv.Init(const Mode: TGLint);
+begin
+  Combine := CombinePerChannel(Mode);
+
+  { constant default values for other fields }
+  CurrentTextureArgument := ArgPerChannel(ta0);
+  SourceArgument := ArgPerChannel(ta1);
+  Scale[cRGB  ] := 1.0;
+  Scale[cAlpha] := 1.0;
+  Disabled := false;
+  NeedsConstantColor := false;
+  InterpolateAlphaSource := csMaterial;
+  Source[cRGB  ] := csMaterial;
+  Source[cAlpha] := csMaterial;
+end;
+
+function TTextureEnv.Hash: LongWord;
+{$include norqcheckbegin.inc}
+begin
+  Result :=
+    1693 * (1 + Ord(Combine[cRGB]                 )) +
+    1697 * (1 + Ord(Combine[cAlpha]               )) +
+    1699 * (1 + Ord(CurrentTextureArgument[cRGB]  )) +
+    1709 * (1 + Ord(CurrentTextureArgument[cAlpha])) +
+    1721 * (1 + Ord(SourceArgument[cRGB]          )) +
+    1723 * (1 + Ord(SourceArgument[cAlpha]        )) +
+    1733 * (1 + Round(Scale[cRGB] * 100           )) +
+    1741 * (1 + Round(Scale[cAlpha] * 100         )) +
+    1747 * (1 + Ord(Disabled                      )) +
+    1753 * (1 + Ord(NeedsConstantColor            )) +
+    1759 * (1 + Ord(Source[cRGB]                  )) +
+    1777 * (1 + Ord(Source[cAlpha]                )) +
+    1783 * (1 + Ord(InterpolateAlphaSource        ));
+end;
+{$include norqcheckend.inc}
 
 end.
