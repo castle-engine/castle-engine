@@ -14,6 +14,7 @@ uses
   vrmlglanimation,
   vrmlglbackground,
   vrmlglrendererlights,
+  vrmlglrenderertextureenv,
   vrmlglrenderer,
   vrmlglscene
   ;

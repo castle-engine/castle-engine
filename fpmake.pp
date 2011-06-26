@@ -3,7 +3,7 @@
   This is an alternative (to Makefile) way to compile (and install if you want)
   all engine units. Simple instructions:
 
-  export FPCDIR=..../lib/fpc/2.4.0/ # not needed if FPC installed in std location on Unix
+  export FPCDIR=..../lib/fpc/2.4.4/ # not needed if FPC installed in std location on Unix
   fpc fpmake.pp
   ./fpmake compile # with -v to get more info
   ./fpmake install # with -v to get more info
@@ -111,6 +111,7 @@ begin
     P.Targets.AddUnit('vrmlglbackground.pas');
     P.Targets.AddUnit('vrmlglscene.pas');
     P.Targets.AddUnit('vrmlglrendererlights.pas');
+    P.Targets.AddUnit('vrmlglrenderertextureenv.pas');
     P.Targets.AddUnit('vrmlglrenderer.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
