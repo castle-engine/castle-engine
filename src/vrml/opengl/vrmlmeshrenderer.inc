@@ -623,6 +623,12 @@ begin
     glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
     glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
     glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
+
+    { We potentially override the fog already set
+      by TVRMLGLRenderer.RenderShapeFog here. Not a problem
+      (TODO: although previous EnableFog added to hash, which may make
+      shader programs cache less shared.) }
+    Shader.EnableFog(ftLinear, fcPassedCoordinate);
   end;
 end;
 

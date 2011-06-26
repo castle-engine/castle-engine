@@ -325,6 +325,9 @@ type
     { Enable light source.
       Remember to set MaterialSpecularColor before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
+    { It is Ok to enable this more than once, last EnableFog determines
+      the fog settings. TFogCoordinateRenderer.RenderCoordinateBegin for
+      direct fog coordinate relies on this. }
     procedure EnableFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource);
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
