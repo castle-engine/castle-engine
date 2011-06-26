@@ -177,6 +177,10 @@ type
     { Uniform to set for this texture. May be empty. }
     UniformName: string;
     UniformValue: LongInt;
+
+    { Mix texture colors into fragment color, based on TTextureEnv specification. }
+    class function TextureEnvMix(const AEnv: TTextureEnv;
+      const FragmentColor, CurrentTexture: string): string;
   public
     { Update Hash for this light shader. }
     procedure Prepare(var Hash: TShaderCodeHash);
@@ -978,6 +982,34 @@ begin
 {$include norqcheckend.inc}
 end;
 
+class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv;
+  const FragmentColor, CurrentTexture: string): string;
+begin
+  if AEnv.Disabled then Exit('');
+
+  case AEnv.Combine[cRGB] of
+    GL_REPLACE : Result := FragmentColor + ' = '  + CurrentTexture + ';';
+    GL_ADD     : Result := FragmentColor + ' += ' + CurrentTexture + ';';
+    GL_SUBTRACT: Result := FragmentColor + ' = '  + CurrentTexture + ' - ' + FragmentColor + ';';
+    else { assume GL_MODULATE }
+                 Result := FragmentColor + ' *= ' + CurrentTexture + ';';
+  end;
+
+  { TODO: this handles only a subset of possible values:
+    - different combine values on RGB/alpha not handled yet.
+      We just check Env.Combine[cRGB], and assume it's equal Env.Combine[cAlpha].
+    - Scale is ignored (assumed 1)
+    - CurrentTextureArgument, SourceArgument ignored (assumed ta0, ta1)
+    - Source ignored (assumed csPreviousTexture, which is in FragmentColor)
+    - many Combine values ignored (treated like modulate),
+      and so also NeedsConstantColor and InterpolateAlphaSource are ignored.
+    - moreover, shader pipeline has a chance to implement more parameters
+      of multi-texturing. In fact, complete support for X3D MultiTexture
+      should be doable, including stuff too difficult / not possible
+      in fixed-function, like MultiTexture.function.
+  }
+end;
+
 procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
   TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare: string);
 const
@@ -1100,8 +1132,7 @@ begin
         Shader.Source.Append(Code);
       finally FreeAndNil(Code) end;
 
-      { TODO: always modulate mode for now }
-      TextureApply += 'fragment_color *= texture_color;' + NL;
+      TextureApply += TextureEnvMix(Env, 'fragment_color', 'texture_color') + NL;
 
       if TextureType <> ttShader then
         TextureUniformsDeclare += Format('uniform %s %s;' + NL,
