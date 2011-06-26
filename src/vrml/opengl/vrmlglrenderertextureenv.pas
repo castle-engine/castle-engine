@@ -37,9 +37,12 @@ type
     { Previous texture unit color, or material (in case this is the first texture unit). }
     csPreviousTexture);
 
+  { OpenGL texture environment argument: none, GL_SOURCE0 or GL_SOURCE1. }
+  TTextureEnvArgument = (taNone, ta0, ta1);
+
   TChannel = (cRGB, cAlpha);
   TCombinePerChannel = array [TChannel] of TGLint;
-  TArgPerChannel = array [TChannel] of Integer;
+  TArgPerChannel = array [TChannel] of TTextureEnvArgument;
   TScalePerChannel = array [TChannel] of TGLfloat;
   TSourcePerChannel = array [TChannel] of TColorSource;
 
@@ -53,16 +56,14 @@ type
       (http://www.opengl.org/registry/specs/EXT/texture_env_combine.txt). }
     Combine: TCombinePerChannel;
 
-    { Which OpenGL argument (0, 1, 2 for
-      GL_SOURCE0, GL_SOURCE1, GL_SOURCE2, or -1 if none) should be loaded
-      with current texture unit (this is "Arg1" in X3D spec wording). }
-    Arg1: TArgPerChannel;
+    { Where should we load the current texture unit
+      (this is "Arg1" in X3D spec wording; Arg1 is always current texture,
+      indicated by X3D spec wording "The source field determines
+      the colour source for the second argument.") }
+    CurrentTextureArgument: TArgPerChannel;
 
-    { Which OpenGL argument (0, 1, 2 for
-      GL_SOURCE0, GL_SOURCE1, GL_SOURCE2, or -1 if none) should be loaded
-      with the source (default is previous texture unit,
-      although may change by "source" field; this is "Arg2" in X3D spec). }
-    Arg2: TArgPerChannel;
+    { Where should we load the @link(Source) color. This is "Arg2" in X3D spec. }
+    SourceArgument: TArgPerChannel;
 
     { Scaling of given channel value.
       Fixed-function pipeline OpenGL allows only 1.0, 2.0 and 4.0 scales,
@@ -72,8 +73,8 @@ type
     Disabled: boolean;
     NeedsConstantColor: boolean;
 
-    { If, and only if, one of Arg2 is not -1, then Arg2 should be loaded
-      with this color. }
+    { If, and only if, one of SourceArgument is not taNone,
+      then SourceArgument should be loaded with this color. }
     Source: TSourcePerChannel;
 
     { If, and only if, one of Combine is GL_INTERPOLATE_EXT,
@@ -104,7 +105,7 @@ begin
   Result := CombinePerChannel(Value, Value);
 end;
 
-function ArgPerChannel(const Value: Integer): TArgPerChannel;
+function ArgPerChannel(const Value: TTextureEnvArgument): TArgPerChannel;
 begin
   Result[cRGB] := Value;
   Result[cAlpha] := Value;
@@ -134,8 +135,8 @@ end;
 { Calculate values knowing MultiTexture.mode value. }
 procedure ModeFromString(const S: string;
   out Combine: TCombinePerChannel;
-  out Arg1: TArgPerChannel;
-  out Arg2: TArgPerChannel;
+  out CurrentTextureArgument: TArgPerChannel;
+  out SourceArgument: TArgPerChannel;
   out Scale: TScalePerChannel;
   out Disabled: boolean;
   out NeedsConstantColor: boolean;
@@ -152,28 +153,28 @@ procedure ModeFromString(const S: string;
   procedure SimpleModeFromString(
     const LS: string;
     out Combine: TGLint;
-    out Arg1, Arg2: Integer;
+    out CurrentTextureArgument, SourceArgument: TTextureEnvArgument;
     var Scale: TGLfloat;
     const Channels: string);
   begin
     if LS = 'modulate' then
     begin
       Combine := GL_MODULATE;
-      Arg1 := 0;
-      Arg2 := 1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
     end else
     if LS = 'modulate2x' then
     begin
       Combine := GL_MODULATE;
-      Arg1 := 0;
-      Arg2 := 1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
       Scale := 2;
     end else
     if LS = 'modulate4x' then
     begin
       Combine := GL_MODULATE;
-      Arg1 := 0;
-      Arg2 := 1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
       Scale := 4;
     end else
     if (LS = 'replace') or (LS = 'selectarg1') then
@@ -187,44 +188,44 @@ procedure ModeFromString(const S: string;
         http://vrmlengine.sourceforge.net/vrml_implementation_status.php }
 
       Combine := GL_REPLACE;
-      Arg1 := 0;
-      Arg2 := -1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := taNone;
     end else
     if LS = 'selectarg2' then
     begin
       Combine := GL_REPLACE;
-      Arg1 := -1;
-      Arg2 := 0;
+      CurrentTextureArgument := taNone;
+      SourceArgument := ta0;
     end else
     if LS = 'add' then
     begin
       Combine := GL_ADD;
-      Arg1 := 0;
-      Arg2 := 1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
     end else
     if LS = 'addsigned' then
     begin
       Combine := GL_ADD_SIGNED_EXT;
-      Arg1 := 0;
-      Arg2 := 1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
     end else
     if LS = 'addsigned2x' then
     begin
       Combine := GL_ADD_SIGNED_EXT;
-      Arg1 := 0;
-      Arg2 := 1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
       Scale := 2;
     end else
     if LS = 'subtract' then
     begin
       Combine := GL_SUBTRACT;
-      Arg1 := 0;
-      Arg2 := 1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
     end else
     begin
       Combine := GL_MODULATE;
-      Arg1 := 0;
-      Arg2 := 1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
       VRMLWarning(vwSerious, Format('Not supported multi-texturing mode "%s" for channels "%s"', [LS, Channels]));
     end;
   end;
@@ -232,7 +233,7 @@ procedure ModeFromString(const S: string;
   procedure RGBModeFromString(
     const LS: string;
     out Combine: TGLint;
-    out Arg1, Arg2: Integer;
+    out CurrentTextureArgument, SourceArgument: TTextureEnvArgument;
     var Scale: TGLfloat);
   begin
     if LS = 'dotproduct3' then
@@ -244,25 +245,25 @@ procedure ModeFromString(const S: string;
         for both channels, and to fill them both, this case is handled
         in BothModesFromString). }
       Combine := GL_DOT3_RGB_ARB;
-      Arg1 := 0;
-      Arg2 := 1;
+      CurrentTextureArgument := ta0;
+      SourceArgument := ta1;
     end else
-      SimpleModeFromString(LS, Combine, Arg1, Arg2, Scale, 'RGB');
+      SimpleModeFromString(LS, Combine, CurrentTextureArgument, SourceArgument, Scale, 'RGB');
   end;
 
   procedure AlphaModeFromString(
     const LS: string;
     out Combine: TGLint;
-    out Arg1, Arg2: Integer;
+    out CurrentTextureArgument, SourceArgument: TTextureEnvArgument;
     var Scale: TGLfloat);
   begin
-    SimpleModeFromString(LS, Combine, Arg1, Arg2, Scale, 'Alpha');
+    SimpleModeFromString(LS, Combine, CurrentTextureArgument, SourceArgument, Scale, 'Alpha');
   end;
 
   procedure BothModesFromString(
     const LS: string;
     out Combine: TCombinePerChannel;
-    out Arg1, Arg2: TArgPerChannel;
+    out CurrentTextureArgument, SourceArgument: TArgPerChannel;
     var Scale: TScalePerChannel);
   begin
     if LS = '' then
@@ -274,8 +275,8 @@ procedure ModeFromString(const S: string;
         have to produce error messages for all possible invalid VRMLs...). }
 
       Combine := CombinePerChannel(GL_MODULATE);
-      Arg1 := ArgPerChannel(0);
-      Arg2 := ArgPerChannel(1);
+      CurrentTextureArgument := ArgPerChannel(ta0);
+      SourceArgument := ArgPerChannel(ta1);
     end else
     if LS = 'off' then
     begin
@@ -293,45 +294,45 @@ procedure ModeFromString(const S: string;
 
       Combine := CombinePerChannel(GL_DOT3_RGBA_ARB,
         GL_REPLACE { <- whatever, alpha combine will be ignored });
-      Arg1 := ArgPerChannel(0);
-      Arg2 := ArgPerChannel(1);
+      CurrentTextureArgument := ArgPerChannel(ta0);
+      SourceArgument := ArgPerChannel(ta1);
     end else
     if LS = 'blenddiffusealpha' then
     begin
       Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
-      Arg1 := ArgPerChannel(0);
-      Arg2 := ArgPerChannel(1);
+      CurrentTextureArgument := ArgPerChannel(ta0);
+      SourceArgument := ArgPerChannel(ta1);
       InterpolateAlphaSource := csMaterial;
     end else
     if LS = 'blendtexturealpha' then
     begin
       Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
-      Arg1 := ArgPerChannel(0);
-      Arg2 := ArgPerChannel(1);
+      CurrentTextureArgument := ArgPerChannel(ta0);
+      SourceArgument := ArgPerChannel(ta1);
       InterpolateAlphaSource := csCurrentTexture;
     end else
     if LS = 'blendfactoralpha' then
     begin
       Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
-      Arg1 := ArgPerChannel(0);
-      Arg2 := ArgPerChannel(1);
+      CurrentTextureArgument := ArgPerChannel(ta0);
+      SourceArgument := ArgPerChannel(ta1);
       InterpolateAlphaSource := csConstant;
       NeedsConstantColor := true;
     end else
     if LS = 'blendcurrentalpha' then
     begin
       Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
-      Arg1 := ArgPerChannel(0);
-      Arg2 := ArgPerChannel(1);
+      CurrentTextureArgument := ArgPerChannel(ta0);
+      SourceArgument := ArgPerChannel(ta1);
       InterpolateAlphaSource := csPreviousTexture;
     end else
     begin
       SimpleModeFromString(LS,
-        Combine[cRGB], Arg1[cRGB], Arg2[cRGB], Scale[cRGB], 'both RGB and Alpha');
-      Combine[cAlpha] := Combine[cRGB];
-      Arg1   [cAlpha] := Arg1   [cRGB];
-      Arg2   [cAlpha] := Arg2   [cRGB];
-      Scale  [cAlpha] := Scale  [cRGB];
+        Combine[cRGB], CurrentTextureArgument[cRGB], SourceArgument[cRGB], Scale[cRGB], 'both RGB and Alpha');
+      Combine               [cAlpha] := Combine               [cRGB];
+      CurrentTextureArgument[cAlpha] := CurrentTextureArgument[cRGB];
+      SourceArgument        [cAlpha] := SourceArgument        [cRGB];
+      Scale                 [cAlpha] := Scale                 [cRGB];
     end;
   end;
 
@@ -349,10 +350,10 @@ begin
   LS := LowerCase(S);
   if SplitStringPerChannel(LS, StringPerChannel) then
   begin
-    RGBModeFromString(StringPerChannel[cRGB], Combine[cRGB], Arg1[cRGB], Arg2[cRGB], Scale[cRGB]);
-    AlphaModeFromString(StringPerChannel[cAlpha], Combine[cAlpha], Arg1[cAlpha], Arg2[cAlpha], Scale[cAlpha]);
+    RGBModeFromString  (StringPerChannel[cRGB  ], Combine[cRGB  ], CurrentTextureArgument[cRGB  ], SourceArgument[cRGB  ], Scale[cRGB  ]);
+    AlphaModeFromString(StringPerChannel[cAlpha], Combine[cAlpha], CurrentTextureArgument[cAlpha], SourceArgument[cAlpha], Scale[cAlpha]);
   end else
-    BothModesFromString(LS, Combine, Arg1, Arg2, Scale);
+    BothModesFromString(LS, Combine, CurrentTextureArgument, SourceArgument, Scale);
 end;
 
 { Calculate values knowing MultiTexture.source value. }
@@ -396,9 +397,10 @@ end;
 
 constructor TTextureEnv.Init(const Mode, SourceStr: string);
 begin
-  ModeFromString(Mode, Combine, Arg1, Arg2, Scale, Disabled,
+  ModeFromString(Mode, Combine, CurrentTextureArgument, SourceArgument, Scale, Disabled,
     NeedsConstantColor, InterpolateAlphaSource);
-  if (Arg2[cRGB] <> -1) or (Arg2[cAlpha] <> -1) then
+  if (SourceArgument[cRGB] <> taNone) or
+     (SourceArgument[cAlpha] <> taNone) then
     SourceFromString(SourceStr, Source, NeedsConstantColor);
 end;
 

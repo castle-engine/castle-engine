@@ -891,6 +891,7 @@ procedure TGLMultiTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
 const
   ColorSourceGL: array [TColorSource] of TGLint =
   ( GL_PRIMARY_COLOR_EXT, GL_TEXTURE, GL_CONSTANT_EXT, GL_PREVIOUS_EXT );
+  Argument: array [ta0..ta1] of Integer = ( 0, 1 );
 var
   ChildTex: TVRMLNode;
   I: Integer;
@@ -945,33 +946,28 @@ begin
           glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, TextureEnv.Scale[cRGB]);
           glTexEnvf(GL_TEXTURE_ENV, GL_ALPHA_SCALE, TextureEnv.Scale[cAlpha]);
 
-          { Set Arg1 as source.
-            First argument is always current texture unit.
-            (This is indicated by X3D spec wording
-            "The source field determines the colour source for the second argument.") }
-
-          if TextureEnv.Arg1[cRGB] <> -1 then
+          if TextureEnv.CurrentTextureArgument[cRGB] <> taNone then
           begin
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + TextureEnv.Arg1[cRGB], GL_TEXTURE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + TextureEnv.Arg1[cRGB], GL_SRC_COLOR);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Argument[TextureEnv.CurrentTextureArgument[cRGB]], GL_TEXTURE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Argument[TextureEnv.CurrentTextureArgument[cRGB]], GL_SRC_COLOR);
           end;
 
-          if TextureEnv.Arg1[cAlpha] <> -1 then
+          if TextureEnv.CurrentTextureArgument[cAlpha] <> taNone then
           begin
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + TextureEnv.Arg1[cAlpha], GL_TEXTURE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + TextureEnv.Arg1[cAlpha], GL_SRC_ALPHA);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Argument[TextureEnv.CurrentTextureArgument[cAlpha]], GL_TEXTURE);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Argument[TextureEnv.CurrentTextureArgument[cAlpha]], GL_SRC_ALPHA);
           end;
 
-          if TextureEnv.Arg2[cRGB] <> -1 then
+          if TextureEnv.SourceArgument[cRGB] <> taNone then
           begin
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + TextureEnv.Arg2[cRGB], ColorSourceGL[TextureEnv.Source[cRGB]]);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + TextureEnv.Arg2[cRGB], GL_SRC_COLOR);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT + Argument[TextureEnv.SourceArgument[cRGB]], ColorSourceGL[TextureEnv.Source[cRGB]]);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT + Argument[TextureEnv.SourceArgument[cRGB]], GL_SRC_COLOR);
           end;
 
-          if TextureEnv.Arg2[cAlpha] <> -1 then
+          if TextureEnv.SourceArgument[cAlpha] <> taNone then
           begin
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + TextureEnv.Arg2[cAlpha], ColorSourceGL[TextureEnv.Source[cAlpha]]);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + TextureEnv.Arg2[cAlpha], GL_SRC_ALPHA);
+            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT + Argument[TextureEnv.SourceArgument[cAlpha]], ColorSourceGL[TextureEnv.Source[cAlpha]]);
+            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT + Argument[TextureEnv.SourceArgument[cAlpha]], GL_SRC_ALPHA);
           end;
 
           if (TextureEnv.Combine[cRGB] = GL_INTERPOLATE_EXT) or
