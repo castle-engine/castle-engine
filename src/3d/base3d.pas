@@ -167,6 +167,8 @@ type
     as such. }
   TAbstractLightInstancesList = TDynArrayBase;
 
+  TRenderingPass = 0..1;
+
   { Information that 3D object needs to render, read-only for T3D.Render. }
   TRenderParams = class
     { Indicate that only opaque or only transparent
@@ -184,6 +186,9 @@ type
     { Value > 0 means we're inside some stencil test (like for
       InShadow = @false pass of shadow volumes). }
     StencilTest: Cardinal;
+
+    { Rendering pass number, for multi-pass rendering, like for shadow volumes. }
+    Pass: TRenderingPass;
 
     { Lights that shine on given 3D object. }
     function BaseLights(Scene: T3D): TAbstractLightInstancesList; virtual; abstract;

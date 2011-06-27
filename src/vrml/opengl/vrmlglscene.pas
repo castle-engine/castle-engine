@@ -1425,6 +1425,7 @@ var
   SI: TVRMLShapeTreeIterator;
   S: TVRMLGLShape;
   I: Integer;
+  Pass: TRenderingPass;
 begin
   RenderPrepared := false;
 
@@ -1442,8 +1443,9 @@ begin
         S := TVRMLGLShape(SI.Current);
         if S.Cache <> nil then
           Renderer.Cache.Shape_DecReference(S.Cache);
-        if S.ProgramCache <> nil then
-          Renderer.Cache.Program_DecReference(S.ProgramCache);
+        for Pass := Low(Pass) to High(Pass) do
+          if S.ProgramCache[Pass] <> nil then
+            Renderer.Cache.Program_DecReference(S.ProgramCache[Pass]);
       end;
     finally FreeAndNil(SI) end;
   end;
@@ -2132,7 +2134,8 @@ begin
     LightRenderEvent := @LightRenderInShadow else
     LightRenderEvent := nil;
 
-  Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList, LightRenderEvent);
+  Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
+    LightRenderEvent, Params.Pass);
   try
     if Attributes.PureGeometry then
     begin
@@ -2248,7 +2251,7 @@ procedure TVRMLGLScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        Renderer.RenderBegin(BaseLights as TLightInstancesList, nil);
+        Renderer.RenderBegin(BaseLights as TLightInstancesList, nil, 0);
         while SI.GetNext do
         begin
           Shape := TVRMLGLShape(SI.Current);

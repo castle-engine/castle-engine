@@ -1544,6 +1544,8 @@ begin
 
   glLoadMatrix(RenderingCamera.Matrix);
 
+  FRenderParams.Pass := 0;
+
   FRenderParams.FBaseLights[false].Clear;
   InitializeLights(FRenderParams.FBaseLights[false]);
   if UseGlobalLights and

@@ -931,8 +931,14 @@ type
   public
     { Non-nil means that we have obtained TShaderProgramCache instance,
       with valid Hash and ShaderProgram. Note that ShaderProgram may still
-      be @nil, if it failed to link. }
-    ProgramCache: TShaderProgramCache;
+      be @nil, if it failed to link.
+
+      Separate values for each rendering pass, since different rendering
+      passes probably have different BaseLights and so will require different
+      shaders. This makes multi-pass rendering, like for shadow volumes,
+      play nicely with shaders. Otherwise we could recreate shaders at each
+      rendering pass. }
+    ProgramCache: array [TRenderingPass] of TShaderProgramCache;
 
     Cache: TShapeCache;
   end;
@@ -1060,6 +1066,9 @@ type
     { Lights shining on all shapes. Set in each RenderBegin. }
     BaseLights: TLightInstancesList;
 
+    { Rendering pass. Set in each RenderBegin. }
+    Pass: TRenderingPass;
+
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
     procedure GetFog(Node: INodeX3DFogObject;
       out Enabled, Volumetric: boolean;
@@ -1170,7 +1179,7 @@ type
     procedure UnprepareAll;
 
     procedure RenderBegin(ABaseLights: TLightInstancesList;
-      LightRenderEvent: TVRMLLightRenderEvent);
+      LightRenderEvent: TVRMLLightRenderEvent; const APass: TRenderingPass);
     procedure RenderEnd;
 
     procedure RenderShape(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
@@ -2874,7 +2883,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderBegin(ABaseLights: TLightInstancesList;
-  LightRenderEvent: TVRMLLightRenderEvent);
+  LightRenderEvent: TVRMLLightRenderEvent; const APass: TRenderingPass);
 var
   Attribs: TGLbitfield;
 begin
@@ -2906,6 +2915,7 @@ begin
   end;
 
   BaseLights := ABaseLights;
+  Pass := APass;
 
   RenderCleanState(true);
 

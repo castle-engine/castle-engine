@@ -689,26 +689,27 @@ begin
 
   if UseShaderRendering then
   begin
-    { calculate and use Shape.ProgramCache.ShaderProgram }
-    if (Shape.ProgramCache = nil) or
-       (Shape.ProgramCache.Hash <> Shader.CodeHash) then
+    { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
+    if (Shape.ProgramCache[Renderer.Pass] = nil) or
+       (Shape.ProgramCache[Renderer.Pass].Hash <> Shader.CodeHash) then
     begin
       if Log then
-        WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d)',
+        WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d, pass: %d)',
           [Shape.NiceName,
-           BoolToStr[(Shape.ProgramCache = nil) or
-                     (Shape.ProgramCache.ShaderProgram = nil)],
-           Renderer.BaseLights.Count]);
+           BoolToStr[(Shape.ProgramCache[Renderer.Pass] = nil) or
+                     (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil)],
+           Renderer.BaseLights.Count,
+           Renderer.Pass]);
 
-      if Shape.ProgramCache <> nil then
-        Renderer.Cache.Program_DecReference(Shape.ProgramCache);
+      if Shape.ProgramCache[Renderer.Pass] <> nil then
+        Renderer.Cache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);
 
-      Shape.ProgramCache := Renderer.Cache.Program_IncReference(
+      Shape.ProgramCache[Renderer.Pass] := Renderer.Cache.Program_IncReference(
         Renderer, Shader, Shape.NiceName);
     end;
 
-    Assert(Shape.ProgramCache <> nil);
-    CurrentProgram := Shape.ProgramCache.ShaderProgram;
+    Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
+    CurrentProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
   end else
     CurrentProgram := nil;
 
