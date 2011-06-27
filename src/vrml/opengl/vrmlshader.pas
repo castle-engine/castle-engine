@@ -137,6 +137,18 @@ type
     procedure Append(AppendCode: TShaderSource);
   end;
 
+  { Internal for TLightShader. @exclude }
+  TLightDefine = (
+    ldTypeKnown,
+    ldTypePosiional,
+    ldTypeSpot,
+    ldHasAttenuation,
+    ldHasRadius,
+    ldHasAmbient,
+    ldHasSpecular,
+    ldHasBeamWidth,
+    ldHasSpotExponent);
+
   TLightShader = class
   private
     Number: Cardinal;
@@ -149,8 +161,11 @@ type
     LightUniformValue1: Single;
     LightUniformName2: string;
     LightUniformValue2: Single;
-    { Calculated by Prepare. }
-    Defines: string;
+    { Calculated by Prepare. Stored as TLightDefine array,
+      since TLightShader.Prepare is executed very often and must be fast.
+      Only TLightShader.Code actually changes it to a string. }
+    Defines: array [0..9] of TLightDefine;
+    DefinesCount: Cardinal;
   public
     destructor Destroy; override;
     { Prepare some stuff for Code generation, update Hash for this light shader. }
@@ -538,42 +553,34 @@ begin
   inherited;
 end;
 
+const
+  LightDefines: array [TLightDefine] of record
+    Name: string;
+    Hash: LongWord;
+  end =
+  ( (Name: 'LIGHT_TYPE_KNOWN'       ; Hash: 103; ),
+    (Name: 'LIGHT_TYPE_POSITIONAL'  ; Hash: 107; ),
+    (Name: 'LIGHT_TYPE_SPOT'        ; Hash: 109; ),
+    (Name: 'LIGHT_HAS_ATTENUATION'  ; Hash: 113; ),
+    (Name: 'LIGHT_HAS_RADIUS'       ; Hash: 127; ),
+    (Name: 'LIGHT_HAS_AMBIENT'      ; Hash: 131; ),
+    (Name: 'LIGHT_HAS_SPECULAR'     ; Hash: 137; ),
+    (Name: 'LIGHT_HAS_BEAM_WIDTH'   ; Hash: 139; ),
+    (Name: 'LIGHT_HAS_SPOT_EXPONENT'; Hash: 149; )
+  );
+
 procedure TLightShader.Prepare(var Hash: TShaderCodeHash; const LightNumber: Cardinal);
-type
-  TLightDefine = (
-    ldTypeKnown,
-    ldTypePosiional,
-    ldTypeSpot,
-    ldHasAttenuation,
-    ldHasRadius,
-    ldHasAmbient,
-    ldHasSpecular,
-    ldHasBeamWidth,
-    ldHasSpotExponent);
 
   procedure Define(const D: TLightDefine);
-  const
-    DefinesList: array [TLightDefine] of record
-      Name: string;
-      Hash: LongWord;
-    end =
-    ( (Name: 'LIGHT_TYPE_KNOWN'       ; Hash: 103; ),
-      (Name: 'LIGHT_TYPE_POSITIONAL'  ; Hash: 107; ),
-      (Name: 'LIGHT_TYPE_SPOT'        ; Hash: 109; ),
-      (Name: 'LIGHT_HAS_ATTENUATION'  ; Hash: 113; ),
-      (Name: 'LIGHT_HAS_RADIUS'       ; Hash: 127; ),
-      (Name: 'LIGHT_HAS_AMBIENT'      ; Hash: 131; ),
-      (Name: 'LIGHT_HAS_SPECULAR'     ; Hash: 137; ),
-      (Name: 'LIGHT_HAS_BEAM_WIDTH'   ; Hash: 139; ),
-      (Name: 'LIGHT_HAS_SPOT_EXPONENT'; Hash: 149; )
-    );
   begin
-    Defines += '#define ' + DefinesList[D].Name + NL;
-    Hash.AddInteger(DefinesList[D].Hash * (LightNumber + 1));
+    Assert(DefinesCount <= High(Defines), 'Too many light #defines, increase High(TLightShader.Defines)');
+    Defines[DefinesCount] := D;
+    Inc(DefinesCount);
+    Hash.AddInteger(LightDefines[D].Hash * (LightNumber + 1));
   end;
 
 begin
-  Defines := '';
+  DefinesCount := 0;
   Hash.AddInteger(101);
   if Node <> nil then
   begin
@@ -639,13 +646,24 @@ begin
 end;
 
 function TLightShader.Code: TShaderSource;
+
+  { Convert Defines list into a string of GLSL code. }
+  function DefinesStr: string;
+  var
+    I: Integer;
+  begin
+    Result := '';
+    for I := 0 to DefinesCount - 1 do
+      Result += '#define ' + LightDefines[Defines[I]].Name + NL;
+  end;
+
 begin
   if FCode = nil then
   begin
     FCode := TShaderSource.Create;
 
     FCode[stFragment].Add(
-      Defines + StringReplace({$I template_add_light.glsl.inc},
+      DefinesStr + StringReplace({$I template_add_light.glsl.inc},
       'light_number', IntToStr(Number), [rfReplaceAll]));
 
     if Node <> nil then
