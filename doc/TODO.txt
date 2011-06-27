@@ -1139,3 +1139,20 @@ Various:
 
   So something must be bad when setting kambi_fog_frag_coord from vertex_eye.z.
   Defer for later, some driver bug.
+
+- Dynamically changing BaseLights will cause a slowdown, as the new shaders need
+  to be prepared. This shouldn't happen in the middle of the game.
+  Concerns: lets_take_a_walk and castle thunder effect.
+  Concerns: turning on/off headlight.
+  Maybe also solution could include solution to shadow volumes, that for now use PassIndex.
+  Full solution idea:
+  - Allow calling PrepareResources([prRender]) repeatedly meaningfull
+    (currently, RenderDone makes the 2nd call NOOP, otherwise it takes too long).
+    Call it with various possible BaseLights, like thunder, no thunder etc.
+  - Allow keeping prepared shaders for longer, not only when they are needed.
+    Will need some UnloadShaders command or such.
+  Defer for later (not 2.5.0), this is only a problem for shader pipeline with
+  dynamic lights (like thunder or headlight). Not a problem for view3dscene,
+  unless you design VRML/X3D lights that blink (and then, our above solution
+  will have 1-time slowdown anyway; we cannot prepare for every possible
+  VRML/X3D lighting configuration, just in case).
