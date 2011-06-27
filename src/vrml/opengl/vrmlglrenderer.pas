@@ -453,26 +453,25 @@ type
       default DefaultShaders;
 
     { Use this to render pure geometry, without any colors, materials,
-      lights, etc. If this is @true, only pure geometry will be rendered.
-      This means that the rendering of the model will be equivalent to
-      calling only @code(glBegin(...)), then @code(glVertex(...)),
-      then @code(glEnd). Actually, some additional calls may be done
-      (to push/pop/multiply current modelview matrix, and to realize
-      drawing of vertexes by vertex arrays).
-      But the point is that no OpenGL state, besides the absolute minimum to render
-      polygons at their correct places, will be touched.
-      Oh, and backface culling will be correctly enabled (glCullFace mode,
-      GL_CULL_FACE flag) as appropriate.
+      lights, textures. If this is @true, only the geometry primitives
+      are rendered. We still set correct modelview matrix transformations,
+      control face culling
+      and such. (However, we do not control the depth test state --- you have
+      to activate it yourself if wanted).
+      The idea is that we "hit" the same pixels as
+      normal rendering, but we do absolutely nothing to set a particular
+      pixel color.
+      Which means that the caller controls the color (by default,
+      if lighting and everything else is disabled, you just get solid look
+      with color from last glColor).
 
       For example, Renderer will not set any color (no glColor calls),
       will not set any material
       (no glMaterial calls), will not set any texture coordinates and
-      will not bind any texture, will not enable any depth testing, fog and
-      everything else.
+      will not bind any texture, will not enable any depth testing, fog and such.
 
-      This is only useful for some special OpenGL tricks. For example if you
-      want, for whatever reason, to set glColor and/or glMaterial
-      and/or texturing by yourself, for the whole model.
+      This is useful for special tricks, in particular to draw the geometry
+      into stencil buffer.
       A practical example of use is to render plane-projected shadows,
       see kambi_vrml_game_engine/examples/vrml/plane_projected_shadow_demo.lpr.
       In this program, we must be able to render any VRML model with pure
