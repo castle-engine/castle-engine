@@ -186,7 +186,8 @@ begin
 
   { calculate and apply Lighting }
   Lighting := Attributes.Lighting and MaterialLit;
-  FixedFunctionLighting := Lighting;
+  if not Attributes.PureGeometry then
+    FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;
 

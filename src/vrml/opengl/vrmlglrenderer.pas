@@ -2805,6 +2805,10 @@ begin
   end else
     LineType := ltSolid;
 
+  { Initialize FCullFace, make sure OpenGL state is set as appropriate }
+  FCullFace := cfNone;
+  glDisable(GL_CULL_FACE);
+
   if not Attributes.PureGeometry then
   begin
     glDisable(GL_COLOR_MATERIAL);
@@ -2833,10 +2837,6 @@ begin
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
     if Log then
       WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
-
-    { Initialize FCullFace, make sure OpenGL state is set as appropriate }
-    FCullFace := cfNone;
-    glDisable(GL_CULL_FACE);
 
     glDisable(GL_ALPHA_TEST);
     { We only use glAlphaFunc for textures, and there this value is suitable.

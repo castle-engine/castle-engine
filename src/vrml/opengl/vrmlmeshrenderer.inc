@@ -357,7 +357,8 @@ begin
   end else
     Renderer.CullFace := cfNone;
 
-  Renderer.SmoothShading := not Arrays.ForceFlatShading;
+  if not Renderer.Attributes.PureGeometry then
+    Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateEnd;
