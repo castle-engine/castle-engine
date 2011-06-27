@@ -47,6 +47,7 @@ type
     procedure AddEffects(Nodes: TVRMLNodesList);
   public
     function ToString: string;
+    procedure Clear;
   end;
 
   { GLSL program integrated with VRML/X3D and TVRMLShader.
@@ -121,6 +122,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    { Clear everything, reverting to the state right after creation. }
+    procedure Clear;
     property Source [AType: TShaderType]: TDynStringArray read GetSource; default;
 
     { Append AppendCode to our code.
@@ -217,7 +220,7 @@ type
     directly by other code. }
   TVRMLShader = class
   private
-    { If non-nil, the list of effect nodes that determine uniforms of our program. }
+    { List of effect nodes that determine uniforms of our program. }
     UniformsNodes: TVRMLNodesList;
     TextureCoordGen, ClipPlane, FragmentEnd: string;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
@@ -367,6 +370,9 @@ type
 
     property ShapeRequiresShaders: boolean read FShapeRequiresShaders
       write FShapeRequiresShaders;
+
+    { Clear instance, bringing it to the state after creation. }
+    procedure Clear;
   end;
 
 operator = (const A, B: TShaderCodeHash): boolean;
@@ -504,6 +510,12 @@ begin
   Result := IntToStr(Sum) + '/' + IntToStr(XorValue);
 end;
 
+procedure TShaderCodeHash.Clear;
+begin
+  Sum := 0;
+  XorValue := 0;
+end;
+
 operator = (const A, B: TShaderCodeHash): boolean;
 begin
   Result := (A.Sum = B.Sum) and (A.XorValue = B.XorValue);
@@ -527,6 +539,14 @@ begin
   for SourceType := Low(SourceType) to High(SourceType) do
     FreeAndNil(FSource[SourceType]);
   inherited;
+end;
+
+procedure TShaderSource.Clear;
+var
+  SourceType: TShaderType;
+begin
+  for SourceType := Low(SourceType) to High(SourceType) do
+    FSource[SourceType].Clear;
 end;
 
 function TShaderSource.GetSource(const AType: TShaderType): TDynStringArray;
@@ -1176,6 +1196,8 @@ begin
 
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureShaders.Create;
+  UniformsNodes := TVRMLNodesList.Create;
+
   WarnMissingPlugs := true;
 end;
 
@@ -1186,6 +1208,43 @@ begin
   FreeAndNil(TextureShaders);
   FreeAndNil(Source);
   inherited;
+end;
+
+procedure TVRMLShader.Clear;
+begin
+  Source.Clear;
+  Source[stVertex].Add({$I template.vs.inc});
+  Source[stFragment].Add({$I template.fs.inc});
+  WarnMissingPlugs := true;
+
+  { the rest of fields just restored to default clear state }
+  UniformsNodes.Clear;
+  TextureCoordGen := '';
+  ClipPlane := '';
+  FragmentEnd := '';
+  FPercentageCloserFiltering := Low(TPercentageCloserFiltering);
+  FVarianceShadowMaps := false;
+  PlugIdentifiers := 0;
+  LightShaders.Count := 0;
+  TextureShaders.Count := 0;
+  FCodeHash.Clear;
+  CodeHashFinalized := false;
+  SelectedNode := nil;
+  FShapeRequiresShaders := false;
+  FBumpMapping := Low(TBumpMapping);
+  FNormalMapTextureUnit := 0;
+  FHeightMapInAlpha := false;
+  FHeightMapScale := 0;
+  FFogEnabled := false;
+  { No need to reset, will be set when FFogEnabled := true
+  FFogType := Low(TFogType);
+  FFogCoordinateSource := Low(TFogCoordinateSource); }
+  AppearanceEffects := nil;
+  GroupEffects := nil;
+  Lighting := false;
+  MaterialFromColor := false;
+  ShapeBoundingBox := EmptyBox3D;
+  MaterialSpecularColor := ZeroVector3Single;
 end;
 
 procedure TVRMLShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
@@ -1403,8 +1462,6 @@ procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
       if Effect.FdParts[I] is TNodeEffectPart then
         EnableEffectPart(TNodeEffectPart(Effect.FdParts[I]));
 
-    if UniformsNodes = nil then
-      UniformsNodes := TVRMLNodesList.Create;
     UniformsNodes.Add(Effect);
   end;
 
@@ -1841,8 +1898,7 @@ var
       AProgram.SetUniform(BumpMappingUniformName2,
                           BumpMappingUniformValue2);
 
-    if UniformsNodes <> nil then
-      AProgram.BindUniforms(UniformsNodes, false);
+    AProgram.BindUniforms(UniformsNodes, false);
 
     if PassLightsUniforms then
       for I := 0 to LightShaders.Count - 1 do
@@ -2208,8 +2264,6 @@ begin
 
       Node.EventIsSelected.Send(true);
 
-      if UniformsNodes = nil then
-        UniformsNodes := TVRMLNodesList.Create;
       UniformsNodes.Add(Node);
 
       { For sending isValid to this node later }

@@ -962,7 +962,15 @@ type
     ScreenEffectPrograms: TGLSLProgramsList;
 
     { To which fonts we made a reference in the cache ? }
-    FontsReferences: array[TVRMLFontFamily, boolean, boolean] of boolean;
+    FontsReferences: array [TVRMLFontFamily, boolean, boolean] of boolean;
+
+    { ------------------------------------------------------------------------ }
+
+    { For speed, we keep a single instance of TVRMLShader,
+      instead of creating / destroying an instance at each RenderShape.
+      This is necessary, otherwise the constructor / destructor of TVRMLShader
+      would be bottle-necks. }
+    PreparedShader: TVRMLShader;
 
     { ------------------------------------------------------------
       Things usable only during Render. }
@@ -2322,6 +2330,8 @@ begin
 
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
+  PreparedShader := TVRMLShader.Create;
+
   FCache := ACache;
   Assert(FCache <> nil);
 end;
@@ -2335,6 +2345,7 @@ begin
   FreeAndNil(BumpMappingRenderers);
   FreeAndNil(ScreenEffectPrograms);
   FreeAndNil(FAttributes);
+  FreeAndNil(PreparedShader);
 
   FCache := nil; // we don't own cache
 
@@ -2967,13 +2978,14 @@ procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
 var
   Shader: TVRMLShader;
 begin
-  Shader := TVRMLShader.Create;
-  try
-    Shader.ShapeBoundingBox := Shape.BoundingBox;
-    Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
-    Shader.VarianceShadowMaps := Attributes.VarianceShadowMaps;
-    RenderShapeLineProperties(Shape, Fog, Shader);
-  finally FreeAndNil(Shader) end;
+  { instead of TVRMLShader.Create, reuse existing PreparedShader for speed }
+  Shader := PreparedShader;
+  Shader.Clear;
+
+  Shader.ShapeBoundingBox := Shape.BoundingBox;
+  Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
+  Shader.VarianceShadowMaps := Attributes.VarianceShadowMaps;
+  RenderShapeLineProperties(Shape, Fog, Shader);
 end;
 
 procedure TVRMLGLRenderer.RenderShapeLineProperties(Shape: TVRMLRendererShape;
