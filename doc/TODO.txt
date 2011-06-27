@@ -1156,3 +1156,27 @@ Various:
   unless you design VRML/X3D lights that blink (and then, our above solution
   will have 1-time slowdown anyway; we cannot prepare for every possible
   VRML/X3D lighting configuration, just in case).
+
+- Prepare shaders (and everything else) in PrepareRender by *actually*
+  rendering a dummy triangle. Otherwise, merely linking the shader doesn't
+  seem to always initialize it. That is, currently "if PrepareRenderShape = 0 then"
+  then we stop before actually binding VBOs and rendering --- well, maybe
+  we should not?
+
+  Example (not reproducible anymore) was on room_parallax_final demo,
+  or really any 3D model with complicated shaders on shapes not immediately
+  visible. Only when you turn the camera to look at them, you get slowdown
+  and you feel that shaders are actually prepared. (Although our PrepareResources
+  took care to link *all* shaders at first call, but it's just not enough
+  to initialize shader.)
+
+  This is somewhat mitigated in practice now, through sharing shaders,
+  so there's a smaller chance that you don't see some shader and it has to be
+  prepared later. But this is just a coincidence, works for simple scenes.
+
+  Rendering the shape into a hidden buffer (or just directly, as BeforeDraw
+  will be overridden anyway) may be a good solution.
+  Others use / suggest it too to bring the stuff actually loaded to GPU:
+  http://developer.amd.com/media/gpu_assets/ATI_OpenGL_Programming_and_Optimization_Guide.pdf
+  http://www.gpgpu.org/phpBB2/viewtopic.php?p=6100&sid=8da4dfe88523858a837e5f57a936b0b1 (about textures, but still)
+  Defer for later.
