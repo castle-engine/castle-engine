@@ -203,7 +203,12 @@ var
             almost exactly like Scene (the same set of glVertex etc.),
             but it's rendered with Attributes.PureGeometry = @true
             (we want it's color to be consistently black). }
-          SceneForShadow.Render(nil, RenderParams);
+          glPushAttrib(GL_DEPTH_BUFFER_BIT);
+            { we want it to always pass depth test, stencil protects us from drawing
+              in bad places }
+            glDepthFunc(GL_ALWAYS);
+            SceneForShadow.Render(nil, RenderParams);
+          glPopAttrib();
         glPopMatrix();
       glPopAttrib();
     glPopMatrix();

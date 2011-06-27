@@ -455,12 +455,11 @@ type
     { Use this to render pure geometry, without any colors, materials,
       lights, textures. If this is @true, only the geometry primitives
       are rendered. We still set correct modelview matrix transformations,
-      control face culling
-      and such. (However, we do not control the depth test state --- you have
-      to activate it yourself if wanted).
-      The idea is that we "hit" the same pixels as
-      normal rendering, but we do absolutely nothing to set a particular
-      pixel color.
+      control face culling and depth test and such.
+      The idea is that we "hit" the same pixels as normal rendering
+      (with the exception of alpha test textures, that are not used for
+      pure geometry rendering --- for now).
+      But we do absolutely nothing to set a particular pixel color.
       Which means that the caller controls the color (by default,
       if lighting and everything else is disabled, you just get solid look
       with color from last glColor).
@@ -468,15 +467,13 @@ type
       For example, Renderer will not set any color (no glColor calls),
       will not set any material
       (no glMaterial calls), will not set any texture coordinates and
-      will not bind any texture, will not enable any depth testing, fog and such.
+      will not bind any texture, fog and such.
 
       This is useful for special tricks, in particular to draw the geometry
       into stencil buffer.
-      A practical example of use is to render plane-projected shadows,
-      see kambi_vrml_game_engine/examples/vrml/plane_projected_shadow_demo.lpr.
-      In this program, we must be able to render any VRML model with pure
-      black color, possibly (when using stenciling) withuout even depth
-      testing. }
+      Another example of use is to render plane-projected shadows,
+      see kambi_vrml_game_engine/examples/vrml/plane_projected_shadow_demo.lpr,
+      where you have to draw the model with pure black color. }
     property PureGeometry: boolean
       read FPureGeometry write SetPureGeometry default false;
 
@@ -2808,6 +2805,8 @@ begin
   FCullFace := cfNone;
   glDisable(GL_CULL_FACE);
 
+  SetGLEnabled(GL_DEPTH_TEST, Beginning);
+
   if not Attributes.PureGeometry then
   begin
     glDisable(GL_COLOR_MATERIAL);
@@ -2829,8 +2828,6 @@ begin
       - in case caller loaded a scaling matrix
         (for example, Examine camera may allow user to scale the object). }
     SetGLEnabled(GL_NORMALIZE, Beginning);
-
-    SetGLEnabled(GL_DEPTH_TEST, Beginning);
 
     if not GLVersion.BuggyLightModelTwoSide then
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
