@@ -151,18 +151,7 @@ begin
   end;
 
   { calculate MaterialAndShapeLit (like Lighting, but ignores Attributes.Lighting) }
-  MaterialAndShapeLit :=
-    MaterialLit and
-    not (
-      (Shape.Geometry is TNodePointSet_1) or
-      (Shape.Geometry is TNodePointSet_2) or
-      ( (Shape.Geometry is TNodeIndexedLineSet_1) and
-        (not TNodeIndexedLineSet_1(Shape.Geometry).Lit(Shape.State)) ) or
-      { VRML 2.0 specification says that IndexedLineSet should always be unlit,
-        X3D spec adds that LineSet is also always unlit. }
-      (Shape.Geometry is TNodeIndexedLineSet_2) or
-      (Shape.Geometry is TNodeLineSet)
-    );
+  MaterialAndShapeLit := MaterialLit and Shape.Geometry.Lit(Shape.State);
 
   { calculate and apply Lighting }
   Lighting := Attributes.Lighting and MaterialAndShapeLit;
@@ -172,7 +161,7 @@ begin
     Shader.EnableLighting;
 
   { set material. At the end, since this uses MaterialAndShapeLit, M1, M2. }
-  if Shape.Geometry is TVRMLGeometryNode_1 then
+  if M1 <> nil then
     Material_1(M1) else
     Material_2(M2);
 end;

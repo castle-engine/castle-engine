@@ -210,7 +210,7 @@
     { Do we have enough normals information to render this node lit.
       VRML 1.0 specification explicitly mentions that IndexedLineSet is treated
       specially: it's unlit if there are not enough normals specified. }
-    function Lit(State: TVRMLGraphTraverseState): boolean;
+    function Lit(State: TVRMLGraphTraverseState): boolean; override;
   end;
 
   TNodePointSet_1 = class(TVRMLGeometryNode_1)
@@ -232,6 +232,7 @@
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function Lit(State: TVRMLGraphTraverseState): boolean; override;
   end;
 
   TNodeSphere_1 = class(TVRMLGeometryNode_1)
@@ -1189,6 +1190,11 @@ begin
     CoordSubrange.Items.AppendDynArray(FullCoord.Items, StartIndex, NumPoints);
     ACoord := CoordSubrange;
   end;
+end;
+
+function TNodePointSet_1.Lit(State: TVRMLGraphTraverseState): boolean;
+begin
+  Result := false;
 end;
 
 procedure TNodeSphere_1.CreateNode;

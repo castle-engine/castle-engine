@@ -380,6 +380,10 @@
       and even allow explicitly requesting it by TextureCoordinateGenerator.mode = "BOUNDS2D". }
     procedure GetTextureBounds2DST(const LocalBoxSizes: TVector3Single;
       out S, T: Integer);
+
+    { Is this object lit, disregarding the material.
+      Default implementation in TVRMLGeometryNode says @true. }
+    function Lit(State: TVRMLGraphTraverseState): boolean; virtual;
   end;
 
   { }
@@ -563,6 +567,7 @@
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function Lit(State: TVRMLGraphTraverseState): boolean; override;
 
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -698,6 +703,7 @@
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function Lit(State: TVRMLGraphTraverseState): boolean; override;
   end;
 
   TNodeNormal = class(TNodeX3DNormalNode)
@@ -746,6 +752,7 @@
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function Lit(State: TVRMLGraphTraverseState): boolean; override;
 
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -1002,6 +1009,11 @@ begin
 
   S := Bounds2DS;
   T := Bounds2DT;
+end;
+
+function TVRMLGeometryNode.Lit(State: TVRMLGraphTraverseState): boolean;
+begin
+  Result := true;
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }
@@ -1410,6 +1422,12 @@ begin
   FdCoordIndex.Changed;
 end;
 
+function TNodeIndexedLineSet_2.Lit(State: TVRMLGraphTraverseState): boolean;
+begin
+  { VRML 2.0 specification says that IndexedLineSet should always be unlit }
+  Result := false;
+end;
+
 procedure TNodeIndexedTriangleFanSet.CreateNode;
 begin
   inherited;
@@ -1653,6 +1671,12 @@ begin
   FdfogCoord.EnumerateValid(Func);
 end;
 
+function TNodeLineSet.Lit(State: TVRMLGraphTraverseState): boolean;
+begin
+  { X3D specification says that LineSet should always be unlit }
+  Result := false;
+end;
+
 procedure TNodeNormal.CreateNode;
 begin
   inherited;
@@ -1770,6 +1794,11 @@ begin
   Fdcolor.EnumerateValid(Func);
   Fdcoord.EnumerateValid(Func);
   FdfogCoord.EnumerateValid(Func);
+end;
+
+function TNodePointSet_2.Lit(State: TVRMLGraphTraverseState): boolean;
+begin
+  Result := false;
 end;
 
 procedure TNodeTriangleFanSet.CreateNode;
