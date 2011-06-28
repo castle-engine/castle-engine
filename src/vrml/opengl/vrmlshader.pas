@@ -219,6 +219,7 @@ type
     directly by other code. }
   TVRMLShader = class
   private
+    { When adding new field, remember to clear it in Clear method. }
     { List of effect nodes that determine uniforms of our program. }
     UniformsNodes: TVRMLNodesList;
     TextureCoordGen, ClipPlane, FragmentEnd: string;
