@@ -99,25 +99,16 @@ procedure RenderMaterialsBegin;
   { Sets current OpenGL material and color properties for VRML >= 2.0 material.
     Material may be nil. }
   procedure Material_2(Material: TNodeMaterial_2);
-  var
-    UnLitColor: TVector3Single;
   begin
     if Material <> nil then
     begin
-      UnLitColor := White3Single;
-
-      { Otherwise Circle2D would be always white.
-        X3D spec doesn't say anything about this, so I use diffuse color. }
-      if Shape.Geometry is TNodeCircle2D then
-        UnLitColor := Material.FdDiffuseColor.Value;
-
       RenderMaterial(
         VectorScale(Material.FdDiffuseColor.Value,
           Material.FdAmbientIntensity.Value),
         Material.FdDiffuseColor.Value,
         Material.FdSpecularColor.Value,
         Material.FdEmissiveColor.Value,
-        UnLitColor,
+        White3Single,
         Material.ShininessExp,
         Material.Opacity);
     end else
@@ -180,8 +171,7 @@ begin
       { VRML 2.0 specification says that IndexedLineSet should always be unlit,
         X3D spec adds that LineSet is also always unlit. }
       (Shape.Geometry is TNodeIndexedLineSet_2) or
-      (Shape.Geometry is TNodeLineSet) or
-      (Shape.Geometry is TNodeCircle2D)
+      (Shape.Geometry is TNodeLineSet)
     );
 
   { calculate and apply Lighting }
