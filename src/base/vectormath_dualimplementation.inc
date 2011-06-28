@@ -1636,53 +1636,55 @@ end;
 
 function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
   const Tri: TTriangle3; const TriDir: TVector3): boolean;
-(*kiedys uzywalem tu prostego testu ktory sprawdzal czy trzy katy :
-  pomiedzy wektorami (t[0]-p) a (t[1]-p), (t[1]-p) a (t[2]-p) i
-  (t[2]-p) a (t[0]-p) sumuja sie do 360 stopni. Tamten algorytm
-  jest obecnie w VectorMath_old_algorithms.pas. Podobnie jak jeszcze
-  inna wersja : testowanie poprzez rzutowanie trojkata na 2D.
-  To jest wiec wersja trzecia.
 
-  Probowalem roznych wersji algorytmu bo myslalem ze na skutek bledow obliczen
-  czasami ta procedura odpowiada zle. Po jakims czasie okazalo sie jednak
-  ze byl to wynik zupelnie zwyczajnego bledu w TVRMLNodes.Triangulate
-  ktory na skutek rozrzutnego zapisywania VRML'i w Blenderze ujawnial sie
-  dosc rzadko. Znalazlem blad i wszystko dziala pieknie i zostalem szczesliwym
-  czlowiekiem z trzema implementacjami tej samej procedury. Dlaczego
-  wybralem akurat ponizsza ? Bo okazala sie najszybsza (chociaz dosc nieznacznie),
-  ma tez elegancki zapis.
+{ We tried many approaches for this:
+  - Check do three angles:
+    between vectors (t[0]-p) and (t[1]-p),
+    between vectors (t[1]-p) and (t[2]-p),
+    between vectors (t[2]-p) and (t[0]-p)
+    sum to full 360 stopni.
+  - Cast triangle on the most suitable 2D plane, and check there.
 
-  Niniejszym zaimplementowalem ta procedure wedlug prostego algorytmu z
-  http://geometryalgorithms.com/Archive/algorithm_0105/algorithm_0105.htm .
-  Jest tak prosty ze powtorze go tutaj :
-  o. kazdy punkt na plaszczyznie Plane trojkata T mozna wyrazic 1-znacznie
-     jako P = T[0] + s*u + t*v gdzie s i t to dowolne skalary a u = (T[1]-T[0]),
-     v = (T[2]-T[0]). W ten sposob czynimy z ramion trojkata jakby osie
-     wspolrzednych i s, t okreslaja nam punkt P w tym ukladzie wspolrzednych
-     (osie nie sa prostopadle -> geometria afiniczna sie klania)
-  o. jezeli P jest w srodku trojkata to s >= 0 i t >= 0 i s+t <= 1
-     (bo rozwinmy inaczej P = T[0]*(1-s-t) + T[1]*s + T[2]*t i widac
-     ze s i t to zwyczajne zmienne postaci barycentrycznej punktu w trojkacie)
-  o. pozostaje znalezc s i t.
-     niech w = P - T[0]. Wiemy wiec ze w = s*u + t*v. Niech x^ oznacza
-     VectorProduct(x, PlaneDir), tj. wektor prostopadly do x i lezacy
-     ciagle na plaszczynie Plane. Wezmy DotProduct obu stron rownania
-     z v^, skorzystajmy z milych wlasnosci iloczynu skalarnego
-       ((a+b).v = a.v + b.v  i (s*a).v = s * (a.v) gdzie a, b,v to wektory,
-        s to skalar, * jest na skalarach a + raz na wektorach a raz na skalarach)
-     i mamy
-     w.v^ = s*u.v^ + t*v.v^
-     Wektory v i v^ sa prostopadle wiec ich dotProcuct = 0.
-     Mamy w ten sposob s : s = w.v^ / (u.v^)
-     Analogicznie liczmy v.
-  o. Na stronie proponuja dalsze optymalizacje ktore jednak nie wydaja
-     mi sie rzeczywiscie zmniejszac ilosci wykonywanych operacji,
-     wiec ich tu nie implementowalem.
-  Niniejszy algorytm obejmuje juz przypadek gdyby P = T[0] lub T[1] lub T[2].
-  (chociaz ten algorytm nie dziala dla zdegenerowanych trojkatow, gdy u lub v = 0
-  to wystapi dzielenia przez zero; ale to nic, bo my w tym module w ogole
-  nie dopuszczamy zdegenerowanych trojkatow).
-*)
+  The current algorithm is very slightly faster than the above. It's based on
+  http://geometryalgorithms.com/Archive/algorithm_0105/algorithm_0105.htm
+  (still accessible through
+  http://web.archive.org/web/20081018162011/http://www.geometryalgorithms.com/Archive/algorithm_0105/algorithm_0105.htm
+  ).
+
+  Idea:
+  - Every point on the plane of our triangle may be expressed as s,t, such that
+    point = tri[0] + s*u + t*v, where u = tri[1]-tri[0], v = tri[2]-tri[0].
+    This way 2 triangle edges determine the 2D coordinates axes,
+    analogous to normal OX and OY axes on a 2D plane.
+    (We only handle non-degenerate triangles is, so we can assume that
+    all triangle points are different and u is not parallel to v.)
+
+  - Point is within the triangle iff s >= 0 and t >= 0 and s+t <= 1.
+    (Some reason: note that point = tri[0]*(1-s-t) + tri[1]*s + tri[2]*t,
+    so s,t are just 2 barycentric coordinates of our point.)
+
+  - It remains to find s,t.
+    Let w = point - tri[0], so w = s*u + t*v.
+    Let x^ (for x = direction on a plane) mean VectorProduct(x, PlaneDir),
+    so a direction orthogonal to x and still on the plane.
+    Note some dot product properties:
+
+      (a + b).c = a.c + b.c
+      (x * a).c = x * (a.c)
+      where a, b, c are some vectors, x is scalar, * is scalar multiplication.
+
+    Now make a dot product of both sides of "w = ..." equation with v^,
+    and use the dot product properties mentioned above:
+
+      w.v^ = s*u.v^ + t*v.v^
+
+    v.v^ = 0, because v and v^ are orthogonal.
+    So we can calculate s as
+
+      s := w.v^ / (u.v^)
+
+    Analogously, we can calculate v.
+}
 var
   S, T: TScalar;
   W, U, V, Ortho: TVector3;
