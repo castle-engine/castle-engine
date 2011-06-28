@@ -1685,8 +1685,13 @@ function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
 
     Analogously, we can calculate v.
 
-  - With some transformations, this can be further simplified.
+  - With some optimizations, this can be further simplified,
+    but we found out that the simplified version is actually slightly slower.
 }
+
+{ $define IsPointOnTrianglePlaneWithinTriangle_Simplified}
+{$ifdef IsPointOnTrianglePlaneWithinTriangle_Simplified}
+
 var
   S, T, One, UU, UV, VV, WV, WU, Denominator: TScalar;
   W, U, V: TVector3;
@@ -1722,6 +1727,42 @@ begin
 
   result := S + T <= One;
 end;
+
+{$else}
+
+var
+  S, T: TScalar;
+  W, U, V, Ortho: TVector3;
+  One: TScalar;
+begin
+  U := VectorSubtract(Tri[1], Tri[0]);
+  V := VectorSubtract(Tri[2], Tri[0]);
+  W := VectorSubtract(P, Tri[0]);
+
+  One := 1 + ScalarEqualityEpsilon;
+
+  Ortho := VectorProduct(V, TriDir);
+  S := VectorDotProduct(W, Ortho) / VectorDotProduct(U, Ortho);
+  if (S < -ScalarEqualityEpsilon) or
+    { As far as only correctness is concerned, check for S > One isn't needed
+      here since we will check S+T <= One later anyway.
+      But for the speed, it's better to make here a quick check
+      "S > One" and in many cases avoid the long calculation of T.
+      See ~/3dmodels/rayhunter-demos/raporty/2006-11-12/README:
+      speed of this procedure has a significant impact
+      on the ray-tracer speed, so it's really a justified optimization. }
+     (S > One) then
+    Exit(false);
+
+  Ortho := VectorProduct(U, TriDir);
+  T := VectorDotProduct(W, Ortho) / VectorDotProduct(V, Ortho);
+  if T < -ScalarEqualityEpsilon then
+    Exit(false);
+
+  result := S + T <= One;
+end;
+
+{$endif IsPointOnTrianglePlaneWithinTriangle_Simplified}
 
 //function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
 //  const Tri: TTriangle3): boolean;
