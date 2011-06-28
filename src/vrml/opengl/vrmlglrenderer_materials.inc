@@ -14,13 +14,13 @@
 }
 
 var
-  Lighting, MaterialLit: boolean;
+  Lighting, MaterialAndShapeLit: boolean;
   MaterialOpacity: Single;
 
 procedure RenderMaterialsBegin;
 
   { Apply material (both VRML 1.0 and 2.0).
-    Assumes MaterialLit is already calculated.
+    Assumes MaterialAndShapeLit is already calculated.
     This sets full glMaterial and glColor. }
   procedure RenderMaterial(
     const AmbientColor, DiffuseColor, SpecularColor, EmissiveColor: TVector3Single;
@@ -43,7 +43,7 @@ procedure RenderMaterialsBegin;
       { If Lighting, we know that GL_LIGHTING is enabled
         (for fixed-function, or shader). So no point in setting glColor. }
     end else
-    if MaterialLit then
+    if MaterialAndShapeLit then
       { When the lighting is disabled because of Attributes.Lighting
         (not because of this shape's material), it's best to use diffuse color.
         Otherwise most of normal VRML 1.0 scenes would have black shapes
@@ -68,7 +68,7 @@ procedure RenderMaterialsBegin;
     { Usually, UnlitColor should be from EmissiveColor3Single.
 
       However, IndexedLineSet in VRML 1.0 is an exception.
-      MaterialLit result for it is determined by whether it has normals
+      MaterialAndShapeLit result for it is determined by whether it has normals
       (this is contrary to other nodes, that are always lit or unlit;
       well, forgetting about the "OnlyEmissiveMaterial" exceptional situation
       for the moment).
@@ -126,10 +126,9 @@ procedure RenderMaterialsBegin;
 var
   M1: TNodeMaterial_1;
   M2: TNodeMaterial_2;
-  VRML1OnlyEmissive, VRML2Unlit: boolean;
+  MaterialLit: boolean;
 begin
-  { calculate material parameters:
-    M1, M2, VRML1OnlyEmissive, VRML2Unlit }
+  { calculate material parameters: M1, M2, MaterialLit }
   M1 := nil;
   M2 := nil;
   if Shape.Geometry is TVRMLGeometryNode_1 then
@@ -137,11 +136,9 @@ begin
     { VRML 1.0 }
     M1 := Shape.State.LastNodes.Material;
     { VRML 1.0 specification states that this is a special case
-      and we should treat EmissiveColor as precalculated color.
-      So we can turn lighting off to improve speed (in fact, we are supposed
-      to do that). }
-    VRML1OnlyEmissive := M1.OnlyEmissiveMaterial;
-    VRML2Unlit := false;
+      and we should treat EmissiveColor as precalculated color,
+      and turn lighting off to improve speed. }
+    MaterialLit := not M1.OnlyEmissiveMaterial;
   end else
   begin
     { VRML >= 2.0 }
@@ -149,15 +146,13 @@ begin
       M2 := Shape.Node.Material else
       VRMLWarning(vwSerious, 'VRML node "' + Shape.Geometry.NodeTypeName +
         '" can be specified only in a "geometry" field of "Shape" node');
-    VRML1OnlyEmissive := false;
     { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
-    VRML2Unlit := M2 = nil;
+    MaterialLit := M2 <> nil;
   end;
 
-  { calculate MaterialLit (like Lighting, but ignores Attributes.Lighting) }
-  MaterialLit :=
-    (not VRML1OnlyEmissive) and
-    (not VRML2Unlit) and
+  { calculate MaterialAndShapeLit (like Lighting, but ignores Attributes.Lighting) }
+  MaterialAndShapeLit :=
+    MaterialLit and
     not (
       (Shape.Geometry is TNodePointSet_1) or
       (Shape.Geometry is TNodePointSet_2) or
@@ -170,13 +165,13 @@ begin
     );
 
   { calculate and apply Lighting }
-  Lighting := Attributes.Lighting and MaterialLit;
+  Lighting := Attributes.Lighting and MaterialAndShapeLit;
   if not Attributes.PureGeometry then
     FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;
 
-  { set material. At the end, since this uses MaterialLit, M1, M2. }
+  { set material. At the end, since this uses MaterialAndShapeLit, M1, M2. }
   if Shape.Geometry is TVRMLGeometryNode_1 then
     Material_1(M1) else
     Material_2(M2);
