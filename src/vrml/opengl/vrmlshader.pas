@@ -142,7 +142,6 @@ type
 
   { Internal for TLightShader. @exclude }
   TLightDefine = (
-    ldTypeKnown,
     ldTypePosiional,
     ldTypeSpot,
     ldHasAttenuation,
@@ -578,8 +577,7 @@ const
     Name: string;
     Hash: LongWord;
   end =
-  ( (Name: 'LIGHT_TYPE_KNOWN'       ; Hash: 103; ),
-    (Name: 'LIGHT_TYPE_POSITIONAL'  ; Hash: 107; ),
+  ( (Name: 'LIGHT_TYPE_POSITIONAL'  ; Hash: 107; ),
     (Name: 'LIGHT_TYPE_SPOT'        ; Hash: 109; ),
     (Name: 'LIGHT_HAS_ATTENUATION'  ; Hash: 113; ),
     (Name: 'LIGHT_HAS_RADIUS'       ; Hash: 127; ),
@@ -602,67 +600,58 @@ procedure TLightShader.Prepare(var Hash: TShaderCodeHash; const LightNumber: Car
 begin
   DefinesCount := 0;
   Hash.AddInteger(101);
-  if Node <> nil then
+
+  if Node is TVRMLPositionalLightNode then
   begin
-    Define(ldTypeKnown);
-    if Node is TVRMLPositionalLightNode then
+    Define(ldTypePosiional);
+    if Node is TNodeSpotLight_1 then
     begin
-      Define(ldTypePosiional);
-      if Node is TNodeSpotLight_1 then
+      Define(ldTypeSpot);
+      if TNodeSpotLight_1(Node).SpotExp <> 0 then
+        Define(ldHasSpotExponent);
+    end else
+    if Node is TNodeSpotLight_2 then
+    begin
+      Define(ldTypeSpot);
+      if TNodeSpotLight_2(Node).FdBeamWidth.Value <
+         TNodeSpotLight_2(Node).FdCutOffAngle.Value then
       begin
-        Define(ldTypeSpot);
-        if TNodeSpotLight_1(Node).SpotExp <> 0 then
-          Define(ldHasSpotExponent);
-      end else
-      if Node is TNodeSpotLight_2 then
-      begin
-        Define(ldTypeSpot);
-        if TNodeSpotLight_2(Node).FdBeamWidth.Value <
-           TNodeSpotLight_2(Node).FdCutOffAngle.Value then
-        begin
-          Define(ldHasBeamWidth);
-          LightUniformName1 := 'kambi_light_%d_beam_width';
-          LightUniformValue1 := TNodeSpotLight_2(Node).FdBeamWidth.Value;
-          Hash.AddFloat(LightUniformValue1);
-        end;
-      end;
-
-      if TVRMLPositionalLightNode(Node).HasAttenuation then
-        Define(ldHasAttenuation);
-
-      if TVRMLPositionalLightNode(Node).HasRadius and
-        { Do not activate per-pixel checking of light radius,
-          if we know (by bounding box test below)
-          that the whole shape is completely within radius. }
-        (Box3DPointMaxDistance(Shader.ShapeBoundingBox,
-          Light^.Location, -1) > Light^.Radius) then
-      begin
-        Define(ldHasRadius);
-        LightUniformName2 := 'kambi_light_%d_radius';
-        LightUniformValue2 := Light^.Radius;
-        { Uniform value comes from this Node's property,
-          so this cannot be shared with other light nodes,
-          that may have not synchronized radius value.
-
-          (Note: We could instead add radius value to the hash.
-          Then this shader could be shared between all light nodes with
-          the same radius value --- however, if radius changed,
-          then the shader would have to be recreated, even if the same
-          light node was used.) }
-        Hash.AddPointer(Node);
+        Define(ldHasBeamWidth);
+        LightUniformName1 := 'kambi_light_%d_beam_width';
+        LightUniformValue1 := TNodeSpotLight_2(Node).FdBeamWidth.Value;
+        Hash.AddFloat(LightUniformValue1);
       end;
     end;
-    if Node.FdAmbientIntensity.Value <> 0 then
-      Define(ldHasAmbient);
-    if not PerfectlyZeroVector(Shader.MaterialSpecularColor) then
-      Define(ldHasSpecular);
-  end else
-  begin
-    if GLVersion.BuggyShaderShadowMap then
-      Define(ldTypeKnown);
-    Define(ldHasAmbient);
-    Define(ldHasSpecular);
+
+    if TVRMLPositionalLightNode(Node).HasAttenuation then
+      Define(ldHasAttenuation);
+
+    if TVRMLPositionalLightNode(Node).HasRadius and
+      { Do not activate per-pixel checking of light radius,
+        if we know (by bounding box test below)
+        that the whole shape is completely within radius. }
+      (Box3DPointMaxDistance(Shader.ShapeBoundingBox,
+        Light^.Location, -1) > Light^.Radius) then
+    begin
+      Define(ldHasRadius);
+      LightUniformName2 := 'kambi_light_%d_radius';
+      LightUniformValue2 := Light^.Radius;
+      { Uniform value comes from this Node's property,
+        so this cannot be shared with other light nodes,
+        that may have not synchronized radius value.
+
+        (Note: We could instead add radius value to the hash.
+        Then this shader could be shared between all light nodes with
+        the same radius value --- however, if radius changed,
+        then the shader would have to be recreated, even if the same
+        light node was used.) }
+      Hash.AddPointer(Node);
+    end;
   end;
+  if Node.FdAmbientIntensity.Value <> 0 then
+    Define(ldHasAmbient);
+  if not PerfectlyZeroVector(Shader.MaterialSpecularColor) then
+    Define(ldHasSpecular);
 end;
 
 function TLightShader.Code: TShaderSource;

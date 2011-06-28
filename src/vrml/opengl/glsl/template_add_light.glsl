@@ -16,8 +16,6 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   vec3 light_dir;
 
 /* Calculate light_dir */
-#ifdef LIGHT_TYPE_KNOWN
-
 #ifdef LIGHT_TYPE_POSITIONAL
   /* positional light. We assume in this case
      gl_LightSource[light_number].position.w == 1, so there's no need
@@ -39,24 +37,6 @@ void PLUG_add_light_contribution_side(inout vec4 color,
      compare with -1, nice. */
   if (spot_cos < gl_LightSource[light_number].spotCosCutoff)
     return;
-#endif
-
-#else
-
-  /* When light type is not known (this happens for lights set outside
-     of TVRMLGLRenderer), we use less efficient code, that actually detects
-     light type. */
-  if (gl_LightSource[light_number].position.w != 0.0)
-  {
-    light_dir = normalize(gl_LightSource[light_number].position.xyz - vec3(vertex_eye));
-    if (dot(normalize(gl_LightSource[light_number].spotDirection), -light_dir) <
-        gl_LightSource[light_number].spotCosCutoff)
-      return;
-  } else
-  {
-    light_dir = normalize(gl_LightSource[light_number].position.xyz);
-  }
-
 #endif
 
   float scale = 1.0;
@@ -115,7 +95,6 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 
 #undef LIGHT_TYPE_POSITIONAL
 #undef LIGHT_TYPE_SPOT
-#undef LIGHT_TYPE_KNOWN
 #undef LIGHT_HAS_AMBIENT
 #undef LIGHT_HAS_SPECULAR
 #undef LIGHT_HAS_ATTENUATION

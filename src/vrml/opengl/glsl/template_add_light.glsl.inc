@@ -18,8 +18,6 @@
 '  vec3 light_dir;' + LineEnding + 
 '' + LineEnding + 
 '/* Calculate light_dir */' + LineEnding + 
-'#ifdef LIGHT_TYPE_KNOWN' + LineEnding + 
-'' + LineEnding + 
 '#ifdef LIGHT_TYPE_POSITIONAL' + LineEnding + 
 '  /* positional light. We assume in this case' + LineEnding + 
 '     gl_LightSource[light_number].position.w == 1, so there''s no need' + LineEnding + 
@@ -41,24 +39,6 @@
 '     compare with -1, nice. */' + LineEnding + 
 '  if (spot_cos < gl_LightSource[light_number].spotCosCutoff)' + LineEnding + 
 '    return;' + LineEnding + 
-'#endif' + LineEnding + 
-'' + LineEnding + 
-'#else' + LineEnding + 
-'' + LineEnding + 
-'  /* When light type is not known (this happens for lights set outside' + LineEnding + 
-'     of TVRMLGLRenderer), we use less efficient code, that actually detects' + LineEnding + 
-'     light type. */' + LineEnding + 
-'  if (gl_LightSource[light_number].position.w != 0.0)' + LineEnding + 
-'  {' + LineEnding + 
-'    light_dir = normalize(gl_LightSource[light_number].position.xyz - vec3(vertex_eye));' + LineEnding + 
-'    if (dot(normalize(gl_LightSource[light_number].spotDirection), -light_dir) <' + LineEnding + 
-'        gl_LightSource[light_number].spotCosCutoff)' + LineEnding + 
-'      return;' + LineEnding + 
-'  } else' + LineEnding + 
-'  {' + LineEnding + 
-'    light_dir = normalize(gl_LightSource[light_number].position.xyz);' + LineEnding + 
-'  }' + LineEnding + 
-'' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  float scale = 1.0;' + LineEnding + 
@@ -117,7 +97,6 @@
 '' + LineEnding + 
 '#undef LIGHT_TYPE_POSITIONAL' + LineEnding + 
 '#undef LIGHT_TYPE_SPOT' + LineEnding + 
-'#undef LIGHT_TYPE_KNOWN' + LineEnding + 
 '#undef LIGHT_HAS_AMBIENT' + LineEnding + 
 '#undef LIGHT_HAS_SPECULAR' + LineEnding + 
 '#undef LIGHT_HAS_ATTENUATION' + LineEnding + 
