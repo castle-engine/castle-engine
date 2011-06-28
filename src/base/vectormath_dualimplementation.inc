@@ -1013,7 +1013,7 @@ function VectorsPerp(const V1, V2: TVector3): boolean;
 begin
   (* prosto : result := CosAngleBetweenVectors(V1, V2) = 0.
      Ale mozna zobaczyc jak liczymy CosAngleBetweenVectors - to jest
-     VectorDorProduct / cos-tam. Wynik jest = 0 <=> VectorDotProduct = 0. *)
+     VectorDotProduct / cos-tam. Wynik jest = 0 <=> VectorDotProduct = 0. *)
   result := Zero(VectorDotProduct(V1, V2), ScalarEqualityEpsilon*2);
 end;
 
@@ -1684,34 +1684,39 @@ function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
       s := w.v^ / (u.v^)
 
     Analogously, we can calculate v.
+
+  - With some transformations, this can be further simplified.
 }
 var
-  S, T: TScalar;
-  W, U, V, Ortho: TVector3;
-  One: TScalar;
+  S, T, One, UU, UV, VV, WV, WU, Denominator: TScalar;
+  W, U, V: TVector3;
 begin
   U := VectorSubtract(Tri[1], Tri[0]);
   V := VectorSubtract(Tri[2], Tri[0]);
+  UV := VectorDotProduct(U, V);
+  UU := VectorLenSqr(U); { = VectorDotProduct(U, U) }
+  VV := VectorLenSqr(V); { = VectorDotProduct(V, V) }
+  Denominator := Sqr(UV) - UU * VV;
+
   W := VectorSubtract(P, Tri[0]);
+  WV := VectorDotProduct(W, V);
+  WU := VectorDotProduct(W, U);
 
   One := 1 + ScalarEqualityEpsilon;
 
-  Ortho := VectorProduct(V, TriDir);
-  S := VectorDotProduct(W, Ortho) / VectorDotProduct(U, Ortho);
+  S := (UV * WV - VV * WU) / Denominator;
   if (S < -ScalarEqualityEpsilon) or
     { As far as only correctness is concerned, check for S > One isn't needed
-      here since we will check s+t <= One later anyway.
+      here since we will check S+T <= One later anyway.
       But for the speed, it's better to make here a quick check
       "S > One" and in many cases avoid the long calculation of T.
-
-      See /mnt/fat/3dmodels/rayhunter-demos/raporty/2006-11-12/README:
+      See ~/3dmodels/rayhunter-demos/raporty/2006-11-12/README:
       speed of this procedure has a significant impact
       on the ray-tracer speed, so it's really a justified optimization. }
      (S > One) then
     Exit(false);
 
-  Ortho := VectorProduct(U, TriDir);
-  T := VectorDotProduct(W, Ortho) / VectorDotProduct(V, Ortho);
+  T := (UV * WU - UU * WV) / Denominator;
   if T < -ScalarEqualityEpsilon then
     Exit(false);
 
