@@ -1176,13 +1176,17 @@ begin
   Result := Copy(Base, 1, P - 1) + S + SEnding(Base, P);
 end;
 
+const
+  DefaultVertexShader = {$I template.vs.inc};
+  DefaultFragmentShader = {$I template.fs.inc};
+
 constructor TVRMLShader.Create;
 begin
   inherited;
 
   Source := TShaderSource.Create;
-  Source[stVertex].Add({$I template.vs.inc});
-  Source[stFragment].Add({$I template.fs.inc});
+  Source[stVertex].Add(DefaultVertexShader);
+  Source[stFragment].Add(DefaultFragmentShader);
 
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureShaders.Create;
@@ -1203,8 +1207,8 @@ end;
 procedure TVRMLShader.Clear;
 begin
   Source.Clear;
-  Source[stVertex].Add({$I template.vs.inc});
-  Source[stFragment].Add({$I template.fs.inc});
+  Source[stVertex].Add(DefaultVertexShader);
+  Source[stFragment].Add(DefaultFragmentShader);
   WarnMissingPlugs := true;
 
   { the rest of fields just restored to default clear state }
