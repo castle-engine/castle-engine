@@ -40,7 +40,7 @@ procedure RenderMaterialsBegin;
       glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4Single(EmissiveColor, MaterialOpacity));
       glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, ShininessExp);
 
-      { If MaterialLit, we know that GL_LIGHTING is enabled
+      { If Lighting, we know that GL_LIGHTING is enabled
         (for fixed-function, or shader). So no point in setting glColor. }
     end else
     if MaterialLit then
@@ -144,18 +144,13 @@ begin
     VRML2Unlit := false;
   end else
   begin
-    { VRML 2.0 }
+    { VRML >= 2.0 }
     if Shape.Node <> nil then
-    begin
-      M2 := Shape.Node.Material;
-      VRML1OnlyEmissive := false;
-      { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
-    end else
-    begin
+      M2 := Shape.Node.Material else
       VRMLWarning(vwSerious, 'VRML node "' + Shape.Geometry.NodeTypeName +
         '" can be specified only in a "geometry" field of "Shape" node');
-      VRML1OnlyEmissive := false;
-    end;
+    VRML1OnlyEmissive := false;
+    { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
     VRML2Unlit := M2 = nil;
   end;
 
