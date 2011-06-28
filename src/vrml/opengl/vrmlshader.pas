@@ -122,8 +122,6 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    { Clear everything, reverting to the state right after creation. }
-    procedure Clear;
     property Source [AType: TShaderType]: TDynStringArray read GetSource; default;
 
     { Append AppendCode to our code.
@@ -539,14 +537,6 @@ begin
   for SourceType := Low(SourceType) to High(SourceType) do
     FreeAndNil(FSource[SourceType]);
   inherited;
-end;
-
-procedure TShaderSource.Clear;
-var
-  SourceType: TShaderType;
-begin
-  for SourceType := Low(SourceType) to High(SourceType) do
-    FSource[SourceType].Clear;
 end;
 
 function TShaderSource.GetSource(const AType: TShaderType): TDynStringArray;
@@ -1206,9 +1196,11 @@ end;
 
 procedure TVRMLShader.Clear;
 begin
-  Source.Clear;
-  Source[stVertex].Add(DefaultVertexShader);
-  Source[stFragment].Add(DefaultFragmentShader);
+  Source[stVertex].Count := 1;
+  Source[stVertex][0] := DefaultVertexShader;
+  Source[stFragment].Count := 1;
+  Source[stFragment][0] := DefaultFragmentShader;
+  { TODO: Source[stGeometry].Count := 0; }
   WarnMissingPlugs := true;
 
   { the rest of fields just restored to default clear state }
