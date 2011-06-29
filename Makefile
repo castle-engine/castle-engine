@@ -158,6 +158,9 @@ cleanexamples:
 
 .PHONY: examples-laz
 examples-laz:
+	lazbuild packages/kambi_base.lpk
+	lazbuild packages/kambi_glwindow.lpk
+	lazbuild packages/kambi_components.lpk
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
 
 # cleaning ------------------------------------------------------------
