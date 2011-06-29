@@ -190,7 +190,7 @@ clean: cleanexamples
 	rm -f examples/base/dircleaner.res \
 	      examples/lazarus/camera/camera.res \
 	      examples/vrml/triangulate_demo.res \
-	      examples/vrml/simplest_vrml_browser_with_shadows.res
+	      examples/vrml/simplest_vrml_browser_with_shadow_volumes.res
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
