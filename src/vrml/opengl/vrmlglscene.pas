@@ -21,9 +21,8 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
-  VRMLShapeOctree,
-  GLShadowVolumeRenderer, Cameras, VRMLFields, VRMLGLRendererLights, VRMLShape, Frustum,
-  GLCubeMap, Base3D, GLShaders;
+  VRMLShapeOctree, GLShadowVolumeRenderer, Cameras, VRMLFields,
+  VRMLGLRendererLights, VRMLShape, Frustum, Base3D, GLShaders;
 
 {$define read_interface}
 

@@ -45,7 +45,7 @@ unit KambiClassUtils;
 
 interface
 
-uses Classes, SysUtils, KambiUtils, IniFiles, KambiStringUtils, Contnrs;
+uses Classes, SysUtils, KambiUtils, KambiStringUtils, Contnrs;
 
 {$define read_interface}
 

@@ -22,7 +22,7 @@ unit Object3DOBJ;
 
 interface
 
-uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3D, Base3D;
+uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils;
 
 {$define read_interface}
 

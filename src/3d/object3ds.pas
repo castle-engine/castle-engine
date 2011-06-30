@@ -40,7 +40,7 @@ unit Object3DS;
 
 interface
 
-uses KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3D, VectorMath;
+uses KambiUtils, Classes, KambiClassUtils, SysUtils, VectorMath;
 
 {$define read_interface}
 

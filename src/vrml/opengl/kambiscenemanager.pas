@@ -20,7 +20,7 @@ interface
 
 uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D,
-  KeysMouse, VRMLTriangle, Boxes3D, VRMLGLBackground, KambiUtils, KambiClassUtils,
+  KeysMouse, Boxes3D, VRMLGLBackground, KambiUtils, KambiClassUtils,
   GLShaders, GLImages, KambiTimeUtils;
 
 {$define read_interface}

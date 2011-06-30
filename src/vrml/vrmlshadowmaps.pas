@@ -50,7 +50,7 @@ procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
 
 implementation
 
-uses SysUtils, KambiUtils, VRMLFields, VRMLErrors, KambiStringUtils, Math,
+uses SysUtils, KambiUtils, VRMLFields, VRMLErrors, KambiStringUtils,
   Boxes3D, KambiLog, VectorMath;
 
 {$define read_interface}

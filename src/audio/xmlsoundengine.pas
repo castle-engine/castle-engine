@@ -262,9 +262,8 @@ type
 
 implementation
 
-uses ProgressUnit,
-  KambiFilesUtils, DOM, KambiXMLRead, KambiXMLUtils,
-  SoundFile, VorbisFile, KambiStringUtils, KambiTimeUtils, KambiLog;
+uses ProgressUnit, KambiFilesUtils, DOM, KambiXMLRead, KambiXMLUtils,
+  VorbisFile, KambiStringUtils;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
