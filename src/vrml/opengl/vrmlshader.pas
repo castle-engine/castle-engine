@@ -2127,7 +2127,7 @@ begin
 
   case Generation of
     tgEye   : begin PlaneName := 'gl_EyePlane'   ; CoordSource := 'kambi_vertex_eye'; end;
-    tgObject: begin PlaneName := 'gl_ObjectPlane'; CoordSource := 'gl_Vertex' ; end;
+    tgObject: begin PlaneName := 'gl_ObjectPlane'; CoordSource := 'vertex_object' ; end;
     else raise EInternalError.Create('TVRMLShader.EnableTexGen:Generation?');
   end;
 
