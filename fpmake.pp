@@ -110,6 +110,7 @@ begin
     P.Targets.AddUnit('vrmlglanimation.pas');
     P.Targets.AddUnit('vrmlglbackground.pas');
     P.Targets.AddUnit('vrmlglscene.pas');
+    P.Targets.AddUnit('vrmlshader.pas');
     P.Targets.AddUnit('vrmlglrendererlights.pas');
     P.Targets.AddUnit('vrmlglrenderertextureenv.pas');
     P.Targets.AddUnit('vrmlglrenderer.pas');
