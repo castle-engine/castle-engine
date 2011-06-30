@@ -51,7 +51,7 @@
 .PHONY: all
 all:
 	fpc fpmake.pp
-	@echo 'Running fpmake. Remember: If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
+	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
 	./fpmake
 
 # examples and tools -----------------------------------------------------------
