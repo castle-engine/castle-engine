@@ -2076,6 +2076,7 @@ begin
           '/* Using 1.0 / 2.0 instead of 0.5 to workaround fglrx bugs */' + NL +
           'gl_TexCoord[%d].st = r.xy / m + vec2(1.0, 1.0) / 2.0;',
           [TextureUnit]);
+        CodeHash.AddInteger(1301 * (TextureUnit + 1));
       end;
     tgNormal:
       begin
@@ -2084,6 +2085,7 @@ begin
         glEnable(GL_TEXTURE_GEN_R);
         TextureCoordGen += Format('gl_TexCoord[%d].xyz = normal_eye;' + NL,
           [TextureUnit]);
+        CodeHash.AddInteger(1303 * (TextureUnit + 1));
       end;
     tgReflection:
       begin
@@ -2093,6 +2095,7 @@ begin
         { Negate reflect result --- just like for demo_models/water/water_reflections_normalmap.fs }
         TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(kambi_vertex_eye), normal_eye);' + NL,
           [TextureUnit]);
+        CodeHash.AddInteger(1307 * (TextureUnit + 1));
       end;
     else raise EInternalError.Create('TVRMLShader.EnableTexGen:Generation?');
   end;
@@ -2131,6 +2134,7 @@ begin
   TextureCoordGen += Format('gl_TexCoord[%d].%s = dot(%s, %s%s[%0:d]);' + NL,
     [TextureUnit, VectorComponentNames[Component],
      CoordSource, PlaneName, PlaneComponentNames[Component]]);
+  CodeHash.AddInteger(1319 * (TextureUnit + 1) * (Ord(Generation) + 1) * (Component + 1));
 end;
 
 procedure TVRMLShader.DisableTexGen(const TextureUnit: Cardinal);
