@@ -169,6 +169,7 @@
   <CompilerOptions>
     <Version Value="8"/>
     <SearchPaths>
+      <IncludeFiles Value="../../kambi_vrml_game_engine/src/base;../../kambi_vrml_game_engine/src/base/templates"/>
       <OtherUnitFiles Value="../examples/vrml/shadow_fields/"/>
     </SearchPaths>
     <Parsing>
