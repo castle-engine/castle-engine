@@ -15,8 +15,6 @@
 
 unit TestKambiUtils;
 
-{$I kambiconf.inc}
-
 { $define KAMBIUTILS_SPEED_TESTS}
 
 interface
@@ -48,7 +46,7 @@ implementation
 
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX} {$ifdef USE_LIBC} Libc, {$else} Unix, BaseUnix, {$endif} {$endif}
+  {$ifdef UNIX} Unix, BaseUnix, {$endif}
   KambiUtils, Math, KambiTimeUtils, VectorMath;
 
 {$I macspeedtest.inc}
