@@ -2112,7 +2112,7 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
     end;
 
   begin
-    Arrays.GLSLAttributeMatrix3('kambi_tangent_to_object_space', 
+    Arrays.GLSLAttributeMatrix3('kambi_tangent_to_object_space',
       ArrayIndexNum)^ := TangentToObjectSpace;
   end;
 
