@@ -2083,7 +2083,7 @@ begin
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
-        TextureCoordGen += Format('gl_TexCoord[%d].xyz = normal_eye;' + NL,
+        TextureCoordGen += Format('gl_TexCoord[%d].xyz = kambi_normal_eye;' + NL,
           [TextureUnit]);
         CodeHash.AddInteger(1303 * (TextureUnit + 1));
       end;
@@ -2093,7 +2093,7 @@ begin
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
         { Negate reflect result --- just like for demo_models/water/water_reflections_normalmap.fs }
-        TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(kambi_vertex_eye), normal_eye);' + NL,
+        TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(kambi_vertex_eye), kambi_normal_eye);' + NL,
           [TextureUnit]);
         CodeHash.AddInteger(1307 * (TextureUnit + 1));
       end;
