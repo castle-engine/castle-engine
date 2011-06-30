@@ -13,9 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Triangulating (decomposing possibly non-convex
-  polygons into triangles).) }
-
+{ @abstract(Triangulating a polygon.) }
 unit Triangulator;
 
 interface
