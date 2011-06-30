@@ -194,19 +194,75 @@
         <ShowGenInfo Value="False"/>
       </Verbosity>
       <WriteFPCLogo Value="False"/>
-      <CustomOptions Value="-Sh
-"/>
+      <CustomOptions Value="-Sh"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="2">
+    <Exceptions Count="21">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
       <Item2>
         <Name Value="EFOpenError"/>
       </Item2>
+      <Item3>
+        <Name Value="EUnableToLoadImage"/>
+      </Item3>
+      <Item4>
+        <Name Value="EBox3DEmpty"/>
+      </Item4>
+      <Item5>
+        <Name Value="EInvalidLongOption"/>
+      </Item5>
+      <Item6>
+        <Name Value="EInvalidShortOption"/>
+      </Item6>
+      <Item7>
+        <Name Value="EInvalidParams"/>
+      </Item7>
+      <Item8>
+        <Name Value="EMissingOptionArgument"/>
+      </Item8>
+      <Item9>
+        <Name Value="EExcessiveOptionArgument"/>
+      </Item9>
+      <Item10>
+        <Name Value="ENodesManagerError"/>
+      </Item10>
+      <Item11>
+        <Name Value="EDeformatError"/>
+      </Item11>
+      <Item12>
+        <Name Value="EUnknownPercentFormat"/>
+      </Item12>
+      <Item13>
+        <Name Value="EKamAssignValueError"/>
+      </Item13>
+      <Item14>
+        <Name Value="EConvertError"/>
+      </Item14>
+      <Item15>
+        <Name Value="EKamScriptError"/>
+      </Item15>
+      <Item16>
+        <Name Value="EKamScriptFunctionArgumentsError"/>
+      </Item16>
+      <Item17>
+        <Name Value="EKamScriptParserError"/>
+      </Item17>
+      <Item18>
+        <Name Value="EKamScriptFunctionNoHandler"/>
+      </Item18>
+      <Item19>
+        <Name Value="EKamScriptAnyMathError"/>
+      </Item19>
+      <Item20>
+        <Name Value="EKambiOSError"/>
+      </Item20>
+      <Item21>
+        <Name Value="EDivByZero"/>
+      </Item21>
     </Exceptions>
   </Debugging>
 </CONFIG>
