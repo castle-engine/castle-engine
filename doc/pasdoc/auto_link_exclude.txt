@@ -8,6 +8,7 @@ args
 assign
 attributes
 background
+barycentric
 between
 bind
 blending
@@ -134,6 +135,7 @@ name
 negate
 node
 nodes
+noise
 normal
 normalized
 normals

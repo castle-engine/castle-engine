@@ -43,7 +43,7 @@ procedure CheckALInited;
 { @section(Error checking) }
 
 type
-  { This is for errors reported by alGetError (using constants AL_xxx) }
+  { Exception for errors reported by alGetError (using constants AL_xxx). }
   EALError = class(EOpenALError)
   private
     FALErrorNum: TALenum;
