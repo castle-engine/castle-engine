@@ -310,7 +310,13 @@ type
 
       Inserts calls right before the magic @code(/* PLUG ...*/) comments,
       this way many Plug calls that defined the same PLUG_xxx function
-      will be called in the same order. }
+      will be called in the same order.
+
+      Doesn't do anything if in the final shader given type (EffectPartType)
+      has empty code. This indicates that we used ComposedShader, and this type
+      has no source code (so it should be done by fixed-function pipeline).
+      Adding our own plug would be bad in this case, as we would create shader
+      without main(). }
     procedure Plug(const EffectPartType: TShaderType; PlugValue: string;
       CompleteCode: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
@@ -1315,6 +1321,11 @@ begin
 
   Code := CompleteCode[EffectPartType];
   CodeForPlugValue := CompleteCodeForPlugValue[EffectPartType];
+
+  { if the final shader code is empty (on this type) then don't insert anything
+    (avoid creating shader without main()). }
+  if CodeForPlugValue.Count = 0 then
+    Exit;
 
   repeat
     PlugName := FindPlugName(PlugValue, PlugDeclaredParameters);
