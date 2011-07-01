@@ -1780,8 +1780,8 @@ type
       should actually be used --- for this, see HeadlightOn. }
     function CustomHeadlight: TNodeX3DLightNode;
 
-    { Should we use headlight for this scene. Controls if @link(Headlight)
-      property returns something <> @nil.
+    { Should we use headlight for this scene. Controls if containing TKamSceneManager
+      will use a headlight, if this is the main scene.
 
       When you load a new model, this is always updated based on this model's
       NavigationInfo.headlight. (If no NavigationInfo node, then default

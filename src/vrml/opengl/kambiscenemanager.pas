@@ -547,7 +547,7 @@ type
 
       Note that for now this assumes that MainScene coordinates equal
       world coordinates. This means that you should not transform
-      the MainScene, it should be placed inside @link(Items) without any
+      the MainScene, it should be placed inside @link(TKamSceneManager.Items) without any
       T3DTranslated on the way. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default false;
