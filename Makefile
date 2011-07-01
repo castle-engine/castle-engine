@@ -182,7 +182,7 @@ clean: cleanexamples
 	  packages/kambi_components.pas \
 	  tests/test_kambi_units tests/test_kambi_units.exe
 # fpmake binary, and units/ produced by fpmake compilation
-	rm -Rf fpmake units/
+	rm -Rf fpmake fpmake.exe units/
 	$(MAKE) -C doc/pasdoc/ clean
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
