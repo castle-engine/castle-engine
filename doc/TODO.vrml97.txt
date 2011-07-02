@@ -10,17 +10,6 @@ VRML TODO items:
 
 - finish checking NIST tests
 
-- Conversion from 3DS, Wavefront, MD3 (some others) still goes through
-  VRML 1.0. Make a proper 3DS/others -> VRML 2.0 converter in object3dasvrml.pas
-  (grep for _1 where I used only VRML 1.0 nodes versions)
-
-  Fix WWW pages on http://vrmlengine.sourceforge.net/ then
-  (grep for VRML 1.0...),
-  they say that convertion only to VRML 1.0 is available.
-  And on freshmeat.
-
-  Also fix appropriate section in vrml_engine_doc.
-
 - KambiTriangulation should be fixed, to go to Appearance.triangulation?
 
 ----------------------------------------
@@ -82,7 +71,6 @@ TNodeX3DGroupingNode.EventAddChildrenReceive implementation.
 test implemented events:
 - IndexedLineSet:set_colorIndex, set_coordIndex
 - IndexedTriangleFanSet,  IndexedTriangleSet, IndexedTriangleStripSet: set_index
-- ElevationGrid: set_height
 - Extrusion:  set_crossSection, set_orientation, set_scale, set_spine
 - IndexedFaceSet: set_colorIndex, set_coordIndex, set_normalIndex, set_texCoordIndex
 ------------------------------------------------------------------------------
