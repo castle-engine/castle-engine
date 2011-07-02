@@ -4,13 +4,14 @@ In paricular, ../../www/TODO contains "next-release" stuff,
 usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
-3.10.0 (engine 2.5.0): Finish shader pipeline. Finish compositing shaders paper and work.
+Make news item around ~end of July about next engine progress and plans.
 
 3.11.0:
-- Most of the work during this time will go to Blender exporter fixes.
+- Blender exporter fixes.
 - Collada improvements.
 - Support for Ogre data files, notify on forum?
-Make GLWinMessages buttons clickable, reported for castle many times.
+- Make GLWinMessages buttons clickable, reported for castle many times.
+  In fact, use there our buttons in GLControls, this would be best.
 
 engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
 - Move as much as possible castle code to engine. Prepare for new game.
@@ -80,6 +81,8 @@ Details during 2.6.0 release:
 
 - Add a way to limit FPS, to not burn CPU without need.
 
+- Maybe rename various units and classes to X3D, not VRML.
+  Generally, focus docs on VRML/X3D or X3D, never just VRML.
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
@@ -192,6 +195,7 @@ Scene manager / controls / better Lazarus integration:
   any NavigationInfo, like
   demo_models/compositing_shaders/composed_shader_using_plugs.x3dv
   After some escape + down + up tweaks, sometimes it catches focus...
+  Possibly fixed by engine-2.4.fixes improvements to focus, check.
 
 * TODO at TKamAbstractViewport.Camera: allow one camera instance be shared
   by a couple of viewports/scene manager. Also fix multiple_viewports then.
