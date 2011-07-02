@@ -83,6 +83,8 @@ Details during 2.6.0 release:
 
 - Maybe rename various units and classes to X3D, not VRML.
   Generally, focus docs on VRML/X3D or X3D, never just VRML.
+  Maybe also T3DGLScene instead of TVRMLGLScene?
+  Maybe also TX3DSceneManager instead of TKamSceneManager --- I don't use prefix Kam consistently.
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
