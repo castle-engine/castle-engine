@@ -118,6 +118,12 @@ WWW:
   Configure gadget from:
   http://www.gmodules.com/ig/creator?url=http://hosting.gmodules.com/ig/gadgets/file/101638777846294812126/2.xml&up_url=http%3A%2F%2Fcia.vc%2Fstats%2Fproject%2Fvrmlengine%2F.rss&up_style=1&up_articles=10&up_date=1&up_size=50&up_sort=1&up_acolor=%2300c&up_color=%23333333&up_ads=1&up_title=&synd=open&w=400&h=200&title=GSites+RSS&border=%23ffffff%7C3px%2C1px+solid+%23999999
   -->
+
+vrml_engine_doc:
+- move "vrml overview" to the end (maybe an annex or such).
+- The tutorial may be pasted as the 1st chapter of vrml_engine_doc, and partially will replace the current
+  http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_manager.html#section.scene_manager_basic
+  ? Or not, just make tutorial as HTML?
 ------------------------------------------------------------------------------
 Mirrors:
 - RenderedTexture.scene (let VA know).
@@ -1186,3 +1192,4 @@ Various:
   http://developer.amd.com/media/gpu_assets/ATI_OpenGL_Programming_and_Optimization_Guide.pdf
   http://www.gpgpu.org/phpBB2/viewtopic.php?p=6100&sid=8da4dfe88523858a837e5f57a936b0b1 (about textures, but still)
   Defer for later.
+

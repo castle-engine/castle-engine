@@ -1,9 +1,6 @@
-TODO:
-- split vrml_engine_doc into more pieces,
-- move "vrml overview" to the end (maybe an annex or such).
-- The tutorial below will probably be pasted as the 1st chapter of
-  vrml_engine_doc, and partially will replace the current
-  http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_manager.html#section.scene_manager_basic
+TODO: This is a work in progress. I want to finish this for engine 2.6.0 release. This is supposed to be a full tutorial how to make an FPS game, from the basics.
+
+The tutorial handles both alternatives for creating OpenGL context: as Lazarus component (on Lazarus form), or as our TGLWindow instance. Appropriate parts of the tutorial will be in 2-column view to visualize this.
 
 ------------------------------------------------------------------------------
 0. Introduction
