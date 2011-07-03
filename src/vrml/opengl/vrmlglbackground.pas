@@ -20,7 +20,7 @@ unit VRMLGLBackground;
 
 interface
 
-uses VectorMath, SysUtils, GL, GLU, GLExt, KambiGLUtils, KambiUtils, Images,
+uses VectorMath, SysUtils, GL, GLExt, KambiGLUtils, KambiUtils, Images,
   VRMLNodes;
 
 type

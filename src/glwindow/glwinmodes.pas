@@ -32,7 +32,7 @@ unit GLWinModes;
 
 interface
 
-uses SysUtils, GL, GLU, GLExt, GLWindow, KambiGLUtils, Images, GLWinMessages,
+uses SysUtils, GL, GLWindow, KambiGLUtils, Images, GLWinMessages,
   UIControls, KeysMouse;
 
 type

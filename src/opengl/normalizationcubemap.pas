@@ -18,7 +18,7 @@ unit NormalizationCubeMap;
 
 interface
 
-uses GL, GLU, GLExt, KambiGLUtils;
+uses GL, GLExt, KambiGLUtils;
 
 { Generate new OpenGL texture number and set it's 6
   GL_TEXTURE_CUBE_MAP_*_ARB targets to cube map used to normalize vectors.

@@ -218,7 +218,7 @@ unit VRMLGLRenderer;
 interface
 
 uses
-  Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
+  Classes, SysUtils, KambiUtils, VectorMath, GL, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
   KambiGLUtils, VRMLGLRendererLights, TTFontsTypes,
   VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,

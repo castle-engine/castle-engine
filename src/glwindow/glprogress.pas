@@ -39,7 +39,7 @@ unit GLProgress;
 
 interface
 
-uses GL, GLU, GLExt, OpenGLFonts, OpenGLBmpFonts, GLWindow, ProgressUnit,
+uses GL, OpenGLFonts, OpenGLBmpFonts, GLWindow, ProgressUnit,
   GLWinModes, KambiGLUtils;
 
 const
