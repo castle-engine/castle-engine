@@ -20,7 +20,7 @@
   on load under the hood). }
 program gl_primitive_performance;
 
-uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLExt, GLWindow,
+uses VectorMath, VRMLNodes, GL, GLExt, GLWindow,
   KambiUtils, SysUtils, Classes,
   KambiGLUtils, KambiFilesUtils, VRMLScene,
   ProgressUnit, VRMLErrors, VRMLShape, KambiSceneManager, Base3D;

@@ -28,11 +28,11 @@
 
 program interpolated_curves;
 
-uses GL, GLU, GLWindow, KambiGLUtils, SysUtils, VectorMath,
-  Curve, Cameras, Boxes3D, KambiScript, GLWinMessages, UIControls,
+uses GL, GLWindow, KambiGLUtils, SysUtils, VectorMath,
+  Curve, KambiScript, GLWinMessages, UIControls,
   KambiUtils, KambiScriptParser, KambiScriptCoreFunctions,
   BFNT_BitstreamVeraSansMono_m14_Unit, KambiSceneManager,
-  OpenGLBmpFonts, Classes, KambiStringUtils, Frustum, Base3D;
+  OpenGLBmpFonts, Classes, KambiStringUtils, Base3D;
 
 { global vars ------------------------------------------------------------ }
 

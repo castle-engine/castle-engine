@@ -26,7 +26,7 @@ program scene_manager_demos;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindow, VectorMath, Base3D,
+uses KambiUtils, GLWindow, VectorMath,
   VRMLScene, VRMLGLScene, VRMLErrors, KambiSceneManager, VRMLGLAnimation,
   VRMLNodes, GL3D;
 

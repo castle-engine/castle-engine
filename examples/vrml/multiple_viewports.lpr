@@ -24,8 +24,8 @@
 { $define ADD_GL_ANIMATION}
 
 uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
-  UIControls, Cameras, Quaternions, VectorMath, Math, GLControls,
-  KambiUtils, KambiGLUtils, OpenGLFonts, VRMLGLAnimation, GL3D,
+  UIControls, Cameras, Quaternions, VectorMath, GLControls,
+  KambiUtils, KambiGLUtils, OpenGLFonts,
   Object3DAsVRML, VRMLErrors, GLShaders;
 
 { TBackground ---------------------------------------------------------------- }
