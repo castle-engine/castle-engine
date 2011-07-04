@@ -37,7 +37,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="many2vrml.lpr"/>
+        <Filename Value="tovrmlx3d.lpr"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>

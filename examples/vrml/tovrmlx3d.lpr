@@ -28,7 +28,7 @@
   For example, add or remove some nodes. See TVRMLNode methods.
 }
 
-program many2vrml;
+program tovrmlx3d;
 
 uses SysUtils, KambiUtils, KambiClassUtils, VRMLNodes, Object3DAsVRML;
 
