@@ -18,7 +18,9 @@ engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
   In particular: adding creatures / items to game (like in castle)
   must be much easier using only the engine units.
   Also, creature AI must be added there.
-  Also, move castle lights editor to view3dscene.
+- Move castle lights editor to view3dscene.
+  BTW: maybe allow configuring shadow maps params,
+  checkbox to switch "Shadows" and to change shadow map size would be very cool!
 - DRAFT.engine_tutorial.txt finish, make prominent links from
   http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php (on sidebar,
   near download links, mention in news etc.)
