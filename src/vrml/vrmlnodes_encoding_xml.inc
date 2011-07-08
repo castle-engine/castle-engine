@@ -328,7 +328,7 @@ var
     { parse "profile" attribute }
     if DOMGetAttribute(X3DHeaderElement, 'profile', Profile) then
     begin
-      Result.X3DProfile := Profile;
+      Result.Profile := Profile;
     end else
       { We allow PROFILE to be omitted.
         Actually, we do not use profile for anything right now. }
@@ -356,7 +356,7 @@ var
           MetaContent := '';
           DOMGetAttribute(I.Current, 'name', MetaName);
           DOMGetAttribute(I.Current, 'content', MetaContent);
-          Result.X3DMeta[MetaName] := MetaContent;
+          Result.Meta[MetaName] := MetaContent;
         end else
         if I.Current.TagName = 'component' then
         begin
@@ -364,7 +364,7 @@ var
           begin
             if not DOMGetIntegerAttribute(I.Current, 'level', ComponentLevel) then
               ComponentLevel := 1;
-            Result.X3DComponents[ComponentName] := ComponentLevel;
+            Result.Components[ComponentName] := ComponentLevel;
           end else
             VRMLWarning(vwSerious, Format('X3D XML: <component> element without required "name" attribute',
               [I.Current.TagName]));
@@ -555,8 +555,8 @@ begin
     SaveProperties.Version := Version;
 
     if (Node is TVRMLRootNode) and
-       (TVRMLRootNode(Node).X3DProfile <> '') then
-      Profile := TVRMLRootNode(Node).X3DProfile else
+       (TVRMLRootNode(Node).Profile <> '') then
+      Profile := TVRMLRootNode(Node).Profile else
       Profile := DefaultX3DSaveProfile;
 
     SaveProperties.Writeln(Format(

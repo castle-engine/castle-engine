@@ -314,7 +314,7 @@ var
     begin
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtName, 'X3D profile name');
-      Result.X3DProfile := Lexer.TokenName;
+      Result.Profile := Lexer.TokenName;
 
       Lexer.NextToken;
     end else
@@ -340,7 +340,7 @@ var
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtInteger, 'X3D component level');
       Level := Lexer.TokenInteger;
-      Result.X3DComponents[Name] := Level;
+      Result.Components[Name] := Level;
 
       Lexer.NextToken;
     end;
@@ -359,7 +359,7 @@ var
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtString, 'X3D meta value');
       Value := Lexer.TokenString;
-      Result.X3DMeta[Key] := Value;
+      Result.Meta[Key] := Value;
 
       Lexer.NextToken;
     end;
@@ -636,8 +636,8 @@ var
 
   procedure SaveProfile(Root: TVRMLRootNode);
   begin
-    if Root.X3DProfile <> '' then
-      SaveProperties.Writeln('PROFILE ' + Root.X3DProfile + NL) else
+    if Root.Profile <> '' then
+      SaveProperties.Writeln('PROFILE ' + Root.Profile + NL) else
       SaveProperties.Writeln('PROFILE ' + DefaultX3DSaveProfile + NL);
   end;
 
@@ -645,11 +645,11 @@ var
   var
     I: Integer;
   begin
-    for I := 0 to Root.X3DComponents.Count - 1 do
+    for I := 0 to Root.Components.Count - 1 do
       SaveProperties.Writeln(Format('COMPONENT %s:%d',
-        [ Root.X3DComponents.Keys[I],
-          Root.X3DComponents.Data[I] ]));
-    if Root.X3DComponents.Count <> 0 then
+        [ Root.Components.Keys[I],
+          Root.Components.Data[I] ]));
+    if Root.Components.Count <> 0 then
       SaveProperties.Write(NL);
   end;
 
@@ -657,11 +657,11 @@ var
   var
     I: Integer;
   begin
-    for I := 0 to Root.X3DMeta.Count - 1 do
+    for I := 0 to Root.Meta.Count - 1 do
       SaveProperties.Writeln(Format('META %s %s',
-        [ StringToVRMLStringToken(Root.X3DMeta.Keys[I]),
-          StringToVRMLStringToken(Root.X3DMeta.Data[I])]));
-    if Root.X3DMeta.Count <> 0 then
+        [ StringToVRMLStringToken(Root.Meta.Keys[I]),
+          StringToVRMLStringToken(Root.Meta.Data[I])]));
+    if Root.Meta.Count <> 0 then
       SaveProperties.Write(NL);
   end;
 
@@ -690,9 +690,9 @@ begin
     if (Version.Major >= 3) and (Node is TVRMLRootNode) then
     begin
       if Generator <> '' then
-        TVRMLRootNode(Node).Meta('generator', Generator);
+        TVRMLRootNode(Node).Meta.PutPreserve('generator', Generator);
       if Source <> '' then
-        TVRMLRootNode(Node).Meta('source', Source);
+        TVRMLRootNode(Node).Meta.PutPreserve('source', Source);
       SaveProfile(TVRMLRootNode(Node));
       SaveComponents(TVRMLRootNode(Node));
       SaveMetas(TVRMLRootNode(Node));

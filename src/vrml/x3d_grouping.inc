@@ -105,7 +105,19 @@
   end;
 
   TStringLongIntMap = specialize TFPGMap<string, LongInt>;
-  TStringStringMap = specialize TFPGMap<string, string>;
+  TStringStringMap = class(specialize TFPGMap<string, string>)
+  public
+    { Set given key value, trying to preserve previous key value too.
+      This is useful for safely setting X3D META values.
+
+      Compared to normal PutKeyData, this behaves smarter if given Name
+      is already set. If it's set with the same Content, we do nothing.
+      If the Content is different, we move previous content to a
+      @code(Name + '-previous') key.
+      This way previous content value is preserved once (but not more,
+      to not grow the X3D file indefinitely). }
+    procedure PutPreserve(const Name, Content: string);
+  end;
 
   { A top-level VRML node. This is what you get by parsing 3D model from file.
 
@@ -126,9 +138,9 @@
   private
     FHasForceVersion: boolean;
     FSaveAsRootNode: boolean;
-    FX3DProfile: string;
-    FX3DComponents: TStringLongIntMap;
-    FX3DMeta: TStringStringMap;
+    FProfile: string;
+    FComponents: TStringLongIntMap;
+    FMeta: TStringStringMap;
     FPrototypeNames: TVRMLPrototypeNames;
     FExportedNames: TVRMLNodeNames;
   protected
@@ -169,17 +181,20 @@
     property HasForceVersion: boolean
       read FHasForceVersion write FHasForceVersion default false;
 
-    { If this is the root of X3D file, and profile was specified
-      (it always should), this is it. }
-    property X3DProfile: string read FX3DProfile write FX3DProfile;
+    { Profile required for this X3D file. See X3D spec about profiles.
+      Every X3D file must always define a profile.
+      (However, we use this class also for VRML 1.0 and 2.0 root nodes,
+      where profile is empty.)
+      Relevant only if this node is the root of X3D file. }
+    property Profile: string read FProfile write FProfile;
 
     { Components and levels required for this X3D file.
       Relevant if this node is the root of X3D file. }
-    property X3DComponents: TStringLongIntMap read FX3DComponents;
+    property Components: TStringLongIntMap read FComponents;
 
     { Meta keys and values of this X3D file.
       Relevant if this node is the root of X3D file. }
-    property X3DMeta: TStringStringMap read FX3DMeta;
+    property Meta: TStringStringMap read FMeta;
 
     function SuggestedVRMLVersion(
       out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
@@ -200,15 +215,6 @@
     { Node names exported from the file by EXPORT keyword.
       Useful for importing them later, to handle IMPORT/EXPORT X3D mechanism. }
     property ExportedNames: TVRMLNodeNames read FExportedNames;
-
-    { Set given meta value.
-
-      Behaves smart if given meta Name is already set.
-      If it's set with the same Content, we do nothing.
-      If the Content is different, we move previous content to a
-      @code(Name + '-previous') key. This way previous content
-      value is preserved once (but not more, to not grow the file indefinitely). }
-    procedure Meta(const Name, Content: string);
   end;
 
   TNodeStaticGroup = class(TVRMLGroupingNode, INodeX3DBoundedObject)
@@ -597,11 +603,31 @@ begin
     true, VRML2Version, 1000);
 end;
 
+procedure TStringStringMap.PutPreserve(const Name, Content: string);
+var
+  PreviousContent: string;
+  I: Integer;
+begin
+  I := IndexOf(Name);
+  if I <> -1 then
+  begin
+    PreviousContent := Data[I];
+    if PreviousContent <> Content then
+    begin
+      { move current content to -previous name }
+      KeyData[Name + '-previous'] := PreviousContent;
+      { set new content }
+      Data[I] := Content;
+    end;
+  end else
+    KeyData[Name] := Content;
+end;
+
 procedure TVRMLRootNode.CreateNode;
 begin
   inherited;
-  FX3DComponents := TStringLongIntMap.Create;
-  FX3DMeta := TStringStringMap.Create;
+  FComponents := TStringLongIntMap.Create;
+  FMeta := TStringStringMap.Create;
   FSaveAsRootNode := true;
 
   { This must be usable as VRML 1.0 root node, so VRML 1.0 children
@@ -612,8 +638,8 @@ end;
 
 destructor TVRMLRootNode.Destroy;
 begin
-  FreeAndNil(FX3DComponents);
-  FreeAndNil(FX3DMeta);
+  FreeAndNil(FComponents);
+  FreeAndNil(FMeta);
   FreeAndNil(FPrototypeNames);
   FreeAndNil(FExportedNames);
   inherited;
@@ -683,10 +709,9 @@ begin
   Res.HasForceVersion := HasForceVersion;
   Res.ForceVersion := ForceVersion;
 
-  Res.X3DProfile := X3DProfile;
-
-  Res.X3DComponents.Assign(X3DComponents);
-  Res.X3DMeta.Assign(X3DMeta);
+  Res.Profile := Profile;
+  Res.Components.Assign(Components);
+  Res.Meta.Assign(Meta);
 end;
 
 procedure TVRMLRootNode.ForceSaveAsX3D(const AMajor: Integer = 3;
@@ -699,33 +724,13 @@ begin
     HasForceVersion := true;
     ForceVersion.Major := AMajor;
     ForceVersion.Minor := AMinor;
-    X3DProfile := AProfile;
+    Profile := AProfile;
   end;
 end;
 
 function TVRMLRootNode.SeparateGroup: boolean;
 begin
   Result := false;
-end;
-
-procedure TVRMLRootNode.Meta(const Name, Content: string);
-var
-  PreviousContent: string;
-  I: Integer;
-begin
-  I := X3DMeta.IndexOf(Name);
-  if I <> -1 then
-  begin
-    PreviousContent := X3DMeta.Data[I];
-    if PreviousContent <> Content then
-    begin
-      { move current content to -previous name }
-      X3DMeta[Name + '-previous'] := PreviousContent;
-      { set new content }
-      X3DMeta.Data[I] := Content;
-    end;
-  end else
-    X3DMeta[Name] := Content;
 end;
 
 procedure TNodeStaticGroup.CreateNode;
