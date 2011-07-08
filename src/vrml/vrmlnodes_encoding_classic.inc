@@ -60,45 +60,12 @@ function LoadVRMLClassic(const FileName: string;
 function ParseVRMLFile(const FileName: string;
   AllowStdIn: boolean): TVRMLRootNode;
 
-{ Which VRML/X3D version should be used to save this 3D model. }
-function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
-
-{ Write VRML/X3D model to file.
-  This generates a complete file, with header #VRML / #X3D lines and everything.
-
-  Generator and Source, if not empty, will be used to set appropriate
-  META values of X3D root file node. This way you can indicate inside X3D file
-  the generator (your program) name and source (original 3D model file name).
-  If this is not an X3D root file node, we will record it inside a comment.
-
-  @param(Version Which VRML/X3D specification version should be used
-    to encode. It should be calculated by SaveVRMLVersion(Node).
-    You often want to calculate it yourself, before calling SaveVRMLClassic,
-    this way you can propose a sensible saved model extension for user
-    (.wrl for VRML <= 2.0, .x3dv for X3D).
-
-    Note that @italic(this parameter is @bold(not) a mechanism to convert
-    between various VRML/X3D versions). This procedure does not convert VRML/X3D
-    nodes/fields inside. For example, you can't just change Version.Major value
-    from 1 to 3 to convert VRML 1.0 to X3D.
-    It would cause some information to be encoded in X3D style
-    (e.g. generated file will have X3D header and PROFILE information),
-    but the nodes would stil have VRML 1.0 names and fields.
-    Which means that you would not generate correct X3D file.
-
-    So this should really be calculated based on model contents,
-    usually by SaveVRMLVersion(Node).) }
+{ Write VRML/X3D model to a file in classic encoding.
+  Generates a complete file, with header #VRML / #X3D lines and everything.
+  See SaveVRML for parameters description. }
 procedure SaveVRMLClassic(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
   const Version: TVRMLVersion); overload;
-procedure SaveVRMLClassic(Node: TVRMLNode;
-  const Filename, Generator, Source: string;
-  const Version: TVRMLVersion); overload;
-
-procedure SaveVRMLClassic(Node: TVRMLNode;
-  Stream: TStream; const Generator, Source: string); overload;
-procedure SaveVRMLClassic(Node: TVRMLNode;
-  const Filename, Generator, Source: string); overload;
 
 {$endif read_interface}
 
@@ -663,23 +630,6 @@ end;
 
 { saving --------------------------------------------------------------------- }
 
-function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
-var
-  SuggestionPriority: Integer;
-begin
-  if not Node.SuggestedVRMLVersion(Result, SuggestionPriority) then
-  begin
-    { If nothing is suggested, we use latest X3D. Reason:
-      - For now, SuggestedVRMLVersion doesn't check IsClauseNames.
-        But if IsClauseNames is present anywhere, then this must use VRML >= 2.0
-        features ("IS" is keyword only in VRML >= 2.0,
-        it will not be understood in VRML 1.0).
-      - Besides, we should promote newer X3D standard. }
-
-    Result := X3DVersion;
-  end;
-end;
-
 procedure SaveVRMLClassic(Node: TVRMLNode; Stream: TStream;
   const Generator, Source: string;
   const Version: TVRMLVersion);
@@ -690,10 +640,7 @@ var
   begin
     if Root.X3DProfile <> '' then
       SaveProperties.Writeln('PROFILE ' + Root.X3DProfile + NL) else
-      { Just output some profile, as every X3D file should have this.
-        We actually don't detect for now in any way which profile
-        would be best. }
-      SaveProperties.Writeln('PROFILE Interchange' + NL);
+      SaveProperties.Writeln('PROFILE ' + DefaultX3DSaveProfile + NL);
   end;
 
   procedure SaveComponents(Root: TVRMLRootNode);
@@ -770,29 +717,6 @@ begin
     FreeAndNil(SaveProperties);
     FreeAndNil(NodeNames);
   end;
-end;
-
-procedure SaveVRMLClassic(Node: TVRMLNode;
-  const Filename, Generator, Source: string; const Version: TVRMLVersion);
-var
-  Stream: TFileStream;
-begin
-  Stream := TFileStream.Create(Filename, fmCreate);
-  try
-    SaveVRMLClassic(Node, Stream, Generator, Source, Version);
-  finally Stream.Free end;
-end;
-
-procedure SaveVRMLClassic(Node: TVRMLNode;
-  Stream: TStream; const Generator, Source: string);
-begin
-  SaveVRMLClassic(Node, Stream, Generator, Source, SaveVRMLVersion(Node));
-end;
-
-procedure SaveVRMLClassic(Node: TVRMLNode;
-  const FileName, Generator, Source: string);
-begin
-  SaveVRMLClassic(Node, FileName, Generator, Source, SaveVRMLVersion(Node));
 end;
 
 {$endif read_implementation}

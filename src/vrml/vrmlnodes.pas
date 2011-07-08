@@ -1823,6 +1823,7 @@ type
   end;
 
   TVRMLVersion = VRMLLexer.TVRMLVersion;
+  TX3DEncoding = VRMLLexer.TX3DEncoding;
 
   { Container tracking VRML/X3D node and prototype names during parsing.
     Used by both classic and XML VRML/X3D readers. }
@@ -1993,6 +1994,7 @@ var
 
 {$I vrmlnodes_encoding_classic.inc}
 {$I vrmlnodes_encoding_xml.inc}
+{$I vrmlnodes_save.inc}
 
 { Create and assign all State.Nodes. }
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
@@ -2096,6 +2098,9 @@ const
   VRML2Version: TVRMLVersion = (Major: 2; Minor: 0);
   { Latest X3D version supported. }
   X3DVersion: TVRMLVersion = (Major: 3; Minor: 2);
+
+  xeClassic = VRMLLexer.xeClassic;
+  xeXML = VRMLLexer.xeXML;
 
 var
   { Quadric triangulation settings.
@@ -2326,6 +2331,7 @@ resourcestring
 {$I vrmlnodes_kambi.inc}
 {$I vrmlnodes_avalon.inc}
 {$I vrmlnodes_bitmanagement.inc}
+{$I vrmlnodes_save.inc}
 {$I vrmlnodes_encoding_classic.inc}
 {$I vrmlnodes_encoding_xml.inc}
 
