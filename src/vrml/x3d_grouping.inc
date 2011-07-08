@@ -205,6 +205,15 @@
     { Node names exported from the file by EXPORT keyword.
       Useful for importing them later, to handle IMPORT/EXPORT X3D mechanism. }
     property ExportedNames: TVRMLNodeNames read FExportedNames;
+
+    { Set given meta value.
+
+      Behaves smart if given meta Name is already set.
+      If it's set with the same Content, we do nothing.
+      If the Content is different, we move previous content to a
+      @code(Name + '-previous') key. This way previous content
+      value is preserved once (but not more, to not grow the file indefinitely). }
+    procedure Meta(const Name, Content: string);
   end;
 
   TNodeStaticGroup = class(TVRMLGroupingNode, INodeX3DBoundedObject)
@@ -708,6 +717,36 @@ end;
 function TVRMLRootNode.SeparateGroup: boolean;
 begin
   Result := false;
+end;
+
+procedure TVRMLRootNode.Meta(const Name, Content: string);
+var
+  PreviousName, PreviousContent: string;
+  I, J: Integer;
+begin
+  I := X3DMetaKeys.IndexOf(Name);
+  if I <> -1 then
+  begin
+    PreviousContent := X3DMetaValues[I];
+    if PreviousContent <> Content then
+    begin
+      { move current content to -previous name }
+      PreviousName := Name + '-previous';
+      J := X3DMetaKeys.IndexOf(PreviousName);
+      if J <> -1 then
+        X3DMetaValues[J] := PreviousContent else
+      begin
+        X3DMetaKeys.Add(PreviousName);
+        X3DMetaValues.Add(PreviousContent);
+      end;
+      { set new content }
+      X3DMetaValues[I] := Content;
+    end;
+  end else
+  begin
+    X3DMetaKeys.Add(Name);
+    X3DMetaValues.Add(Content);
+  end;
 end;
 
 procedure TNodeStaticGroup.CreateNode;
