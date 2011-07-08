@@ -340,8 +340,7 @@ var
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtInteger, 'X3D component level');
       Level := Lexer.TokenInteger;
-      Result.X3DComponentNames.Add(Name);
-      Result.X3DComponentLevels.Add(Level);
+      Result.X3DComponents[Name] := Level;
 
       Lexer.NextToken;
     end;
@@ -360,8 +359,7 @@ var
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtString, 'X3D meta value');
       Value := Lexer.TokenString;
-      Result.X3DMetaKeys.Add(Key);
-      Result.X3DMetaValues.Add(Value);
+      Result.X3DMeta[Key] := Value;
 
       Lexer.NextToken;
     end;
@@ -647,11 +645,11 @@ var
   var
     I: Integer;
   begin
-    for I := 0 to Root.X3DComponentNames.Count - 1 do
+    for I := 0 to Root.X3DComponents.Count - 1 do
       SaveProperties.Writeln(Format('COMPONENT %s:%d',
-        [ Root.X3DComponentNames[I],
-          Root.X3DComponentLevels[I] ]));
-    if Root.X3DComponentNames.Count <> 0 then
+        [ Root.X3DComponents.Keys[I],
+          Root.X3DComponents.Data[I] ]));
+    if Root.X3DComponents.Count <> 0 then
       SaveProperties.Write(NL);
   end;
 
@@ -659,11 +657,11 @@ var
   var
     I: Integer;
   begin
-    for I := 0 to Root.X3DMetaKeys.Count - 1 do
+    for I := 0 to Root.X3DMeta.Count - 1 do
       SaveProperties.Writeln(Format('META %s %s',
-        [ StringToVRMLStringToken(Root.X3DMetaKeys[I]),
-          StringToVRMLStringToken(Root.X3DMetaValues[I])]));
-    if Root.X3DMetaKeys.Count <> 0 then
+        [ StringToVRMLStringToken(Root.X3DMeta.Keys[I]),
+          StringToVRMLStringToken(Root.X3DMeta.Data[I])]));
+    if Root.X3DMeta.Count <> 0 then
       SaveProperties.Write(NL);
   end;
 

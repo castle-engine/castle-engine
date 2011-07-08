@@ -104,6 +104,9 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  TStringLongIntMap = specialize TFPGMap<string, LongInt>;
+  TStringStringMap = specialize TFPGMap<string, string>;
+
   { A top-level VRML node. This is what you get by parsing 3D model from file.
 
     It is declared as a descendant of VRML >= 2.0 Group node,
@@ -124,10 +127,8 @@
     FHasForceVersion: boolean;
     FSaveAsRootNode: boolean;
     FX3DProfile: string;
-    FX3DComponentNames: TDynStringArray;
-    FX3DComponentLevels: TDynLongIntArray;
-    FX3DMetaKeys: TDynStringArray;
-    FX3DMetaValues: TDynStringArray;
+    FX3DComponents: TStringLongIntMap;
+    FX3DMeta: TStringStringMap;
     FPrototypeNames: TVRMLPrototypeNames;
     FExportedNames: TVRMLNodeNames;
   protected
@@ -172,19 +173,13 @@
       (it always should), this is it. }
     property X3DProfile: string read FX3DProfile write FX3DProfile;
 
-    { If this is the root of X3D file, these are specified components
-      and their levels. Lengths of these arrays must always be equal.
-      @groupBegin }
-    property X3DComponentNames: TDynStringArray read FX3DComponentNames;
-    property X3DComponentLevels: TDynLongIntArray read FX3DComponentLevels;
-    { @groupEnd }
+    { Components and levels required for this X3D file.
+      Relevant if this node is the root of X3D file. }
+    property X3DComponents: TStringLongIntMap read FX3DComponents;
 
-    { If this is the root of X3D file, these are specified meta keys
-      and their values. Lengths of these arrays must always be equal.
-      @groupBegin }
-    property X3DMetaKeys: TDynStringArray read FX3DMetaKeys;
-    property X3DMetaValues: TDynStringArray read FX3DMetaValues;
-    { @groupEnd }
+    { Meta keys and values of this X3D file.
+      Relevant if this node is the root of X3D file. }
+    property X3DMeta: TStringStringMap read FX3DMeta;
 
     function SuggestedVRMLVersion(
       out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
@@ -605,10 +600,8 @@ end;
 procedure TVRMLRootNode.CreateNode;
 begin
   inherited;
-  FX3DComponentNames := TDynStringArray.Create;
-  FX3DComponentLevels := TDynLongIntArray.Create;
-  FX3DMetaKeys := TDynStringArray.Create;
-  FX3DMetaValues := TDynStringArray.Create;
+  FX3DComponents := TStringLongIntMap.Create;
+  FX3DMeta := TStringStringMap.Create;
   FSaveAsRootNode := true;
 
   { This must be usable as VRML 1.0 root node, so VRML 1.0 children
@@ -619,10 +612,8 @@ end;
 
 destructor TVRMLRootNode.Destroy;
 begin
-  FreeAndNil(FX3DComponentNames);
-  FreeAndNil(FX3DComponentLevels);
-  FreeAndNil(FX3DMetaKeys);
-  FreeAndNil(FX3DMetaValues);
+  FreeAndNil(FX3DComponents);
+  FreeAndNil(FX3DMeta);
   FreeAndNil(FPrototypeNames);
   FreeAndNil(FExportedNames);
   inherited;
@@ -694,10 +685,8 @@ begin
 
   Res.X3DProfile := X3DProfile;
 
-  Res.X3DComponentNames.Assign(X3DComponentNames);
-  Res.X3DComponentLevels.Assign(X3DComponentLevels);
-  Res.X3DMetaKeys.Assign(X3DMetaKeys);
-  Res.X3DMetaValues.Assign(X3DMetaValues);
+  Res.X3DComponents.Assign(X3DComponents);
+  Res.X3DMeta.Assign(X3DMeta);
 end;
 
 procedure TVRMLRootNode.ForceSaveAsX3D(const AMajor: Integer = 3;
@@ -721,32 +710,22 @@ end;
 
 procedure TVRMLRootNode.Meta(const Name, Content: string);
 var
-  PreviousName, PreviousContent: string;
-  I, J: Integer;
+  PreviousContent: string;
+  I: Integer;
 begin
-  I := X3DMetaKeys.IndexOf(Name);
+  I := X3DMeta.IndexOf(Name);
   if I <> -1 then
   begin
-    PreviousContent := X3DMetaValues[I];
+    PreviousContent := X3DMeta.Data[I];
     if PreviousContent <> Content then
     begin
       { move current content to -previous name }
-      PreviousName := Name + '-previous';
-      J := X3DMetaKeys.IndexOf(PreviousName);
-      if J <> -1 then
-        X3DMetaValues[J] := PreviousContent else
-      begin
-        X3DMetaKeys.Add(PreviousName);
-        X3DMetaValues.Add(PreviousContent);
-      end;
+      X3DMeta[Name + '-previous'] := PreviousContent;
       { set new content }
-      X3DMetaValues[I] := Content;
+      X3DMeta.Data[I] := Content;
     end;
   end else
-  begin
-    X3DMetaKeys.Add(Name);
-    X3DMetaValues.Add(Content);
-  end;
+    X3DMeta[Name] := Content;
 end;
 
 procedure TNodeStaticGroup.CreateNode;

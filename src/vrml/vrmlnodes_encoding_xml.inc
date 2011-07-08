@@ -356,8 +356,7 @@ var
           MetaContent := '';
           DOMGetAttribute(I.Current, 'name', MetaName);
           DOMGetAttribute(I.Current, 'content', MetaContent);
-          Result.X3DMetaKeys.Add(MetaName);
-          Result.X3DMetaValues.Add(MetaContent);
+          Result.X3DMeta[MetaName] := MetaContent;
         end else
         if I.Current.TagName = 'component' then
         begin
@@ -365,8 +364,7 @@ var
           begin
             if not DOMGetIntegerAttribute(I.Current, 'level', ComponentLevel) then
               ComponentLevel := 1;
-            Result.X3DComponentNames.Add(ComponentName);
-            Result.X3DComponentLevels.Add(ComponentLevel);
+            Result.X3DComponents[ComponentName] := ComponentLevel;
           end else
             VRMLWarning(vwSerious, Format('X3D XML: <component> element without required "name" attribute',
               [I.Current.TagName]));
@@ -544,28 +542,7 @@ var
 
 {
   procedure SaveComponents(Root: TVRMLRootNode);
-  var
-    I: Integer;
-  begin
-    for I := 0 to Root.X3DComponentNames.Count - 1 do
-      SaveProperties.Writeln(Format('COMPONENT %s:%d',
-        [ Root.X3DComponentNames[I],
-          Root.X3DComponentLevels[I] ]));
-    if Root.X3DComponentNames.Count <> 0 then
-      SaveProperties.Write(NL);
-  end;
-
   procedure SaveMetas(Root: TVRMLRootNode);
-  var
-    I: Integer;
-  begin
-    for I := 0 to Root.X3DMetaKeys.Count - 1 do
-      SaveProperties.Writeln(Format('META %s %s',
-        [ StringToVRMLStringToken(Root.X3DMetaKeys[I]),
-          StringToVRMLStringToken(Root.X3DMetaValues[I])]));
-    if Root.X3DMetaKeys.Count <> 0 then
-      SaveProperties.Write(NL);
-  end;
 }
 
 var
