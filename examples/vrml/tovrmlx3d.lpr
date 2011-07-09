@@ -47,18 +47,21 @@ procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of
-    0: InfoWrite(
-        'tovrmlx3d: converter from various 3D model formats into VRML/X3D.' +NL+
-        'Give input 3D model filename on the command-line, and output model' +NL+
-        'will be written to the standard output.' +NL+
-        NL+
-        'Available options are:' +NL+
-        HelpOptionHelp +NL+
-        '  --encoding classic|xml' +NL+
-        '                        Choose X3D encoding to use.' +NL+
-        '                        Default is "classic". Choosing XML encoding' +NL+
-        '                        will convert VRML to X3D if needed, but it works' +NL+
-        '                        sensibly only for VRML 2.0 now (not for VRML 1.0).');
+    0: begin
+         InfoWrite(
+           'tovrmlx3d: converter from various 3D model formats into VRML/X3D.' +NL+
+           'Give input 3D model filename on the command-line, and output model' +NL+
+           'will be written to the standard output.' +NL+
+           NL+
+           'Available options are:' +NL+
+           HelpOptionHelp +NL+
+           '  --encoding classic|xml' +NL+
+           '                        Choose X3D encoding to use.' +NL+
+           '                        Default is "classic". Choosing XML encoding' +NL+
+           '                        will convert VRML to X3D if needed, but it works' +NL+
+           '                        sensibly only for VRML 2.0 now (not for VRML 1.0).');
+         ProgramBreak;
+       end;
     1: if SameText(Argument, 'classic') then
          Encoding := xeClassic else
        if SameText(Argument, 'xml') then
