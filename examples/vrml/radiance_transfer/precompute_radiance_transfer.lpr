@@ -254,7 +254,7 @@ begin
 
     Writeln('Precomputing finished: ', S);
 
-    SaveVRMLClassic(Scene.RootNode, Parameters[2],
-      'radianceTransfer computed by precompute_radiance_transfer: ' + S);
+    SaveVRML(Scene.RootNode, Parameters[2],
+      'radianceTransfer computed by precompute_radiance_transfer: ' + S, '', xeClassic);
   finally FreeAndNil(Scene) end;
 end.
