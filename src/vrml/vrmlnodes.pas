@@ -5302,12 +5302,9 @@ type
 
 procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding);
-{ TODO: savexml }
-var
-  Output: string;
 
-  procedure WriteEnding(Node: TVRMLNode;
-    Event: TVRMLEvent; const S: string);
+  procedure Ending(Node: TVRMLNode; Event: TVRMLEvent; const S: string;
+    out NodeName, EventName: string);
   var
     BoundNode: TVRMLNode;
     IgnoreNodeFinished: boolean;
@@ -5332,7 +5329,7 @@ var
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
         [S, Node.NodeName]);
 
-    Output += Node.NodeName + '.';
+    NodeName := Node.NodeName;
 
     { Check Event }
     if Event = nil then
@@ -5341,23 +5338,27 @@ var
     { Check we have a name. }
     if Event.Name = '' then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s event not named', [S]);
-    Output += Event.Name;
+    EventName := Event.Name;
   end;
 
+var
+  SourceNodeName, SourceEventName, DestinationNodeName, DestinationEventName: string;
 begin
   if Internal then Exit;
 
   try
-    Output := 'ROUTE ';
-    WriteEnding(SourceNode     , SourceEvent     , 'source'     );
-    Output += ' TO ';
-    WriteEnding(DestinationNode, DestinationEvent, 'destination');
-    SaveProperties.WritelnIndent(Output);
+    Ending(SourceNode     , SourceEvent     , 'source'     , SourceNodeName     , SourceEventName     );
+    Ending(DestinationNode, DestinationEvent, 'destination', DestinationNodeName, DestinationEventName);
+    if Encoding = xeClassic then
+      SaveProperties.WritelnIndent(Format('ROUTE %s.%s TO %s.%s',
+        [SourceNodeName     , SourceEventName,
+         DestinationNodeName, DestinationEventName])) else
+      SaveProperties.WritelnIndent(Format('<ROUTE fromNode=%s fromField=%s toNode=%s toField=%s />',
+        [StringToX3DXml(SourceNodeName)     , StringToX3DXml(SourceEventName),
+         StringToX3DXml(DestinationNodeName), StringToX3DXml(DestinationEventName)]));
   except
     on E: EVRMLRouteSaveError do
-    begin
       VRMLWarning(vwSerious, E.Message);
-    end;
   end;
 end;
 
