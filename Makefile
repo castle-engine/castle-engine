@@ -105,7 +105,6 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/test_blender_exported_hierarchy \
   examples/vrml/tools/gen_light_map \
   examples/vrml/tools/md3tovrmlsequence \
-  examples/vrml/tools/xmlportals_to_x3d \
   examples/vrml/tools/kanim_to_interpolators \
   examples/vrml/direct_vrmlglscene_test_1 \
   examples/vrml/direct_vrmlglscene_test_2 \
