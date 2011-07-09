@@ -1486,7 +1486,7 @@ begin
       'COMPONENT NURBS:2' +NL+
       'COMPONENT Shaders:1' +NL+
       'META "test''''key" "test\"value"' +NL+
-      'META "generator" "testgenerator"', '');
+      'META "generator" "testgenerator and & weird '' chars \" test"', '');
 
     { make sure loaded from string Ok }
     Assert(Node.HasForceVersion);
@@ -1498,7 +1498,7 @@ begin
     Assert(Node.Components['Shaders'] = 1);
     Assert(Node.Meta.Count = 2);
     Assert(Node.Meta['test''''key'] = 'test"value');
-    Assert(Node.Meta['generator'] = 'testgenerator');
+    Assert(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { save and load again }
     SaveVRML(Node, TempStream, '', '', xeClassic);
@@ -1516,7 +1516,7 @@ begin
     Assert(Node.Components['Shaders'] = 1);
     Assert(Node.Meta.Count = 2);
     Assert(Node.Meta['test''''key'] = 'test"value');
-    Assert(Node.Meta['generator'] = 'testgenerator');
+    Assert(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { tweak some Meta }
     Node.Meta['test''''key'] := 'newvalue';
@@ -1552,8 +1552,32 @@ begin
     Assert(Node.Meta['testkey2'] = 'evennewervalue2');
     Assert(Node.Meta['testkey3'] = 'newvalue3');
     Assert(Node.Meta['generator'] = 'newgenerator');
-    Assert(Node.Meta['generator-previous'] = 'testgenerator');
+    Assert(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
     Assert(Node.Meta['source'] = 'newsource');
+
+    { save and load again, this time going though XML }
+    TempStream.Position := 0;
+    SaveVRML(Node, TempStream, '', '', xeXML);
+    FreeAndNil(Node);
+    TempStream.Position := 0;
+    Node := LoadX3DXml(TempStream, '');
+
+    { make sure saved and loaded back Ok }
+    Assert(Node.HasForceVersion);
+    Assert(Node.ForceVersion.Major = 3);
+    Assert(Node.ForceVersion.Minor = 1);
+    Assert(Node.Profile = 'Immersive');
+    Assert(Node.Components.Count = 2);
+    Assert(Node.Components['NURBS'] = 2);
+    Assert(Node.Components['Shaders'] = 1);
+    Assert(Node.Meta.Count = 6);
+    Assert(Node.Meta['test''''key'] = 'newvalue');
+    Assert(Node.Meta['testkey2'] = 'evennewervalue2');
+    Assert(Node.Meta['testkey3'] = 'newvalue3');
+    Assert(Node.Meta['generator'] = 'newgenerator');
+    Assert(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
+    Assert(Node.Meta['source'] = 'newsource');
+
   finally
     FreeAndNil(Node);
     FreeAndNil(TempStream);
