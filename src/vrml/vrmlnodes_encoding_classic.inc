@@ -67,6 +67,10 @@ procedure SaveVRMLClassic(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
   const Version: TVRMLVersion); overload;
 
+{ @deprecated Deprecated save routine, use SaveVRML instead. }
+procedure SaveVRMLClassic(Node: TVRMLNode;
+  const FileName, PrecedingComment: string); overload;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -715,6 +719,12 @@ begin
     FreeAndNil(SaveProperties);
     FreeAndNil(NodeNames);
   end;
+end;
+
+procedure SaveVRMLClassic(Node: TVRMLNode;
+  const FileName, PrecedingComment: string);
+begin
+  SaveVRML(Node, FileName, PrecedingComment, '', xeClassic);
 end;
 
 {$endif read_implementation}
