@@ -174,7 +174,7 @@
       surrounding { } braces.
       This way, when saving, we avoid the artificial wrapping in
       TVRMLRootNode that was done by ParseVRMLStatements and LoadVRMLClassic. *)
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);  override;
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);  override;
 
     { Set HasForceVersion to @true to force saving this model with
       given ForceVersion. }
@@ -645,7 +645,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLRootNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLRootNode.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
   I: integer;
   FileItems: TVRMLFileItemsList;
@@ -683,7 +683,7 @@ begin
       for I := 0 to ExportsList.Count - 1 do
         FileItems.Add(ExportsList[I]);
 
-      FileItems.SaveToStream(SaveProperties, NodeNames);
+      FileItems.SaveToStreamClassic(SaveProperties, NodeNames);
     finally FreeAndNil(FileItems) end;
   end else
     inherited;

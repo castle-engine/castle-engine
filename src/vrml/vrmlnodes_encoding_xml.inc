@@ -617,7 +617,7 @@ begin
 
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
-//    Node.SaveToStream(SaveProperties, NodeNames);
+    Node.SaveToStreamXML(SaveProperties, NodeNames);
 
     SaveProperties.Writeln('</Scene>' +NL + '</X3D>');
   finally

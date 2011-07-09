@@ -1246,7 +1246,7 @@ type
       IDeclSaveToStream(SaveProperties, NodeNames, true).
 
       @seealso IDeclSaveToStream }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     { Returns access type, corresponding to current @link(Event)
       and @link(Field) values.
@@ -1492,7 +1492,7 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     { These are actual prototype contents: all nodes, prototypes, routes
       defined within this prototype.
@@ -1531,7 +1531,7 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     property ReferencedPrototype: TVRMLPrototype read FReferencedPrototype;
     property ReferencedClass: TVRMLNodeClass read FReferencedClass;
@@ -1680,7 +1680,7 @@ type
       Also, if SourceNode and DestinationNode are without a name,
       or the name is not currently bound in SaveProperties.NodeNames.
     }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
 
     { Clear the memory when the last event passed through this route.
       Route must remember such thing, to avoid loops in routes.
@@ -1722,7 +1722,7 @@ type
       Given Element here must have TagName = 'IMPORT'. }
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
 
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLImport;
   end;
 
@@ -1736,7 +1736,7 @@ type
       Given Element here must have TagName = 'EXPORT'. }
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
 
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLExport;
   end;
 
@@ -3087,7 +3087,7 @@ begin
       In this case, we want it to start on the same line, so indent must
       be discarded. }
     SaveProperties.DiscardNextIndent;
-    Value.SaveToStream(SaveProperties, NodeNames);
+    Value.SaveToStreamClassic(SaveProperties, NodeNames);
   end;
 end;
 
@@ -3261,13 +3261,13 @@ begin
       In this case, we want it to start on the same line, so indent must
       be discarded. }
     SaveProperties.DiscardNextIndent;
-    Items[0].SaveToStream(SaveProperties, NodeNames);
+    Items[0].SaveToStreamClassic(SaveProperties, NodeNames);
   end else
   begin
     SaveProperties.Writeln('[');
     SaveProperties.IncIndent;
     for I := 0 to Count - 1 do
-      Items[I].SaveToStream(SaveProperties, NodeNames);
+      Items[I].SaveToStreamClassic(SaveProperties, NodeNames);
     SaveProperties.DecIndent;
     SaveProperties.WriteIndent(']');
   end;
@@ -3930,7 +3930,7 @@ begin
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.SaveToStream(
+procedure TVRMLInterfaceDeclaration.SaveToStreamClassic(
   SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
   IDeclSaveToStream(SaveProperties, NodeNames as TVRMLNodeNames, true);
@@ -4675,7 +4675,7 @@ begin
   Names.Prototypes.Bind(Self);
 end;
 
-procedure TVRMLPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLPrototype.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
   OldNodeNames: TVRMLNodeNames;
 begin
@@ -4691,7 +4691,7 @@ begin
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
     SaveProperties.IncIndent;
-    Node.SaveToStream(SaveProperties, NodeNames);
+    Node.SaveToStreamClassic(SaveProperties, NodeNames);
     SaveProperties.DecIndent;
     SaveProperties.WritelnIndent('}');
   finally
@@ -4755,7 +4755,7 @@ begin
   LoadReferenced;
 end;
 
-procedure TVRMLExternalPrototype.SaveToStream(
+procedure TVRMLExternalPrototype.SaveToStreamClassic(
   SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
   SaveProperties.WriteIndent('EXTERNPROTO ');
@@ -4766,7 +4766,7 @@ begin
   { SaveProperties.NodeNames will be ignored by URLList
     (TMFString.SaveToStream), don't worry about it. }
 
-  URLList.SaveToStream(SaveProperties, NodeNames);
+  URLList.SaveToStreamClassic(SaveProperties, NodeNames);
 end;
 
 procedure TVRMLExternalPrototype.LoadReferenced;
@@ -5286,7 +5286,7 @@ end;
 type
   EVRMLRouteSaveError = class(EVRMLError);
 
-procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLRoute.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
   Output: string;
 
@@ -5449,7 +5449,7 @@ begin
   Names.DoImport(Self);
 end;
 
-procedure TVRMLImport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLImport.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
   SaveProperties.WriteIndent('IMPORT ' + InlineNodeName + '.' + ImportedNodeName);
   if ImportedNodeName <> ImportedNodeAlias then
@@ -5501,7 +5501,7 @@ begin
   Names.DoExport(Self);
 end;
 
-procedure TVRMLExport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLExport.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
   SaveProperties.WriteIndent('EXPORT ' + ExportedNodeName);
   if ExportedNodeName <> ExportedNodeAlias then

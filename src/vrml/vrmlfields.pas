@@ -355,8 +355,8 @@ type
     property PositionInParent: Integer
       read FPositionInParent write FPositionInParent default -1;
 
-    { Save to stream in VRML classic encoding. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    { Save to stream in classic encoding. }
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject); virtual; abstract;
   end;
 
@@ -368,7 +368,7 @@ type
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject);
     procedure Add(Item: TVRMLFileItem);
   end;
@@ -677,7 +677,7 @@ type
       FieldSaveWhenDefault: boolean = false;
       AllowSavingFieldValue: boolean = true);
 
-    { Save the field to the stream.
+    { Save the field to the stream, in classic encoding.
 
       This simply calls FieldSaveToStream(SaveProperties),
       so it doesn't actually save anything if field value is defined
@@ -685,7 +685,7 @@ type
 
       See FieldSaveToStream for more comments and when you need control over
       FieldSaveWhenDefault behavior. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject); override;
 
     { Does current field value came from expanding "IS" clause.
@@ -2712,14 +2712,14 @@ begin
   Sort(@IsSmallerPositionInParent);
 end;
 
-procedure TVRMLFileItemsList.SaveToStream(
+procedure TVRMLFileItemsList.SaveToStreamClassic(
   SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 var
   I: Integer;
 begin
   SortPositionInParent;
   for I := 0 to Count - 1 do
-    Items[I].SaveToStream(SaveProperties, NodeNames);
+    Items[I].SaveToStreamClassic(SaveProperties, NodeNames);
 end;
 
 procedure TVRMLFileItemsList.Add(Item: TVRMLFileItem);
@@ -3024,7 +3024,7 @@ begin
   end;
 end;
 
-procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLField.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject);
 begin
   FieldSaveToStream(SaveProperties, NodeNames);

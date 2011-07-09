@@ -709,14 +709,16 @@
     function NodesCount(NodeClass: TVRMLNodeClass;
       CountOnlyActiveNodes: boolean): integer;
 
-    (*Save node to stream. This saves everything, including node name,
-      node type, then node contents within { }.
+    { Save node to a stream. Saves everything, including node name,
+      node type, and node contents.
 
-      We use SaveProperties.NodeNames, pretty much like when parsing.
-      If a node name is already bound with this node, then we know
-      we have to write only USE ... statement. Otherwise we write
-      full node contents, with eventual DEF ... statement. *)
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+      We use SaveProperties.NodeNames to record known node names.
+      This allows to write correct DEF / USE when saving.
+
+      @groupBegin }
+    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStreamXML(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+    { @groupEnd }
 
     { Do the nodes of (exactly) this class should be included
       in VRML 1.0 state (see TVRMLGraphTraverseState.LastNodes). }
@@ -2469,11 +2471,11 @@ begin
     for I := 0 to ExportsList.Count - 1 do
       FileItems.Add(ExportsList[I]);
 
-    FileItems.SaveToStream(SaveProperties, NodeNames);
+    FileItems.SaveToStreamClassic(SaveProperties, NodeNames);
   finally FreeAndNil(FileItems) end;
 end;
 
-procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLNode.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
 begin
   if PrototypeInstance and
      { TVRMLPrototypeNode has somewhat different meaning of PrototypeInstance,
@@ -2486,7 +2488,7 @@ begin
   begin
     { If this is an expanded prototype, than delegate writing to the
       PrototypeInstanceSourceNode. }
-    PrototypeInstanceSourceNode.SaveToStream(SaveProperties, NodeNames);
+    PrototypeInstanceSourceNode.SaveToStreamClassic(SaveProperties, NodeNames);
 
     { What to do about
         NodeNames.Bind(Self)
@@ -2518,6 +2520,50 @@ begin
     SaveProperties.DecIndent;
 
     SaveProperties.WritelnIndent('}');
+
+    (NodeNames as TVRMLNodeNames).Bind(Self, true);
+  end;
+end;
+
+procedure TVRMLNode.SaveToStreamXML(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+var
+  HasContent: boolean;
+begin
+  if PrototypeInstance and not (Self is TVRMLPrototypeNode) then
+  begin
+    { If this is an expanded prototype, than delegate writing to the
+      PrototypeInstanceSourceNode. }
+    PrototypeInstanceSourceNode.SaveToStreamXML(SaveProperties, NodeNames);
+    (NodeNames as TVRMLNodeNames).Bind(Self, true);
+  end else
+  if (NodeNames as TVRMLNodeNames).Bound(Self) then
+  begin
+    SaveProperties.WritelnIndent(Format('<%s USE=%s />',
+      [NodeTypeName, StringToX3DXml(NodeName)]));
+  end else
+  begin
+    (NodeNames as TVRMLNodeNames).Bind(Self, false);
+
+    { write us to stream }
+    SaveProperties.Write('<' + NodeTypeName);
+    if NodeName <> '' then SaveProperties.Write(' DEF=' +StringToX3DXml(NodeName));
+
+    HasContent := false;
+    { TODO
+    for I := 0 to Fields ...
+      if SFNode or MFNode, defer, and set HasContent := true.
+         otherwise, write now, starting with SaveProperties.Writeln.
+    }
+
+    if HasContent then
+    begin
+      SaveProperties.Writeln('>');
+      SaveProperties.IncIndent;
+  // TODO:    SaveContentsToStreamXML(SaveProperties, NodeNames as TVRMLNodeNames);
+      SaveProperties.DecIndent;
+      SaveProperties.Writeln('</' + NodeTypeName + '>');
+    end else
+      SaveProperties.Writeln(' />');
 
     (NodeNames as TVRMLNodeNames).Bind(Self, true);
   end;
