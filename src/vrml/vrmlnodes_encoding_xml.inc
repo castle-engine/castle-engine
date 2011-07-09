@@ -17,9 +17,14 @@
 
 {$ifdef read_interface}
 
-{ Read X3D encoded in XML, and convert it to VRML/X3D nodes graph. }
-function LoadX3DXml(const FileName: string;
-  Gzipped: boolean): TVRMLRootNode;
+{ Read X3D encoded in XML, and convert it to VRML/X3D nodes graph.
+
+  Overloaded version that takes Stream as a parameter expects that
+  stream (as read) is no longer compressed.
+  @groupBegin }
+function LoadX3DXml(const FileName: string; Gzipped: boolean): TVRMLRootNode;
+function LoadX3DXml(Stream: TStream; const WWWBasePath: string): TVRMLRootNode;
+{ @groupEnd }
 
 { Save X3D to file in XML encoding.
 
@@ -471,34 +476,37 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DXml(const FileName: string;
-  Gzipped: boolean): TVRMLRootNode;
+function LoadX3DXml(const FileName: string; Gzipped: boolean): TVRMLRootNode;
+var
+  Stream: TStream;
+begin
+  if Gzipped then
+    Stream := TGZFileStream.Create(FileName, gzOpenRead) else
+    { Create the same stream class as ReadXMLFile does
+      when called with FileName:string }
+    Stream := TFileStream.Create(FileName, fmOpenRead + fmShareDenyWrite);
+  try
+    Result := LoadX3DXml(Stream, ExtractFilePath(ExpandFileName(FileName)));
+  finally
+    FreeAndNil(Stream);
+  end;
+end;
+
+function LoadX3DXml(Stream: TStream; const WWWBasePath: string): TVRMLRootNode;
 var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
   VersionStr: string;
-  WWWBasePath: string;
   Version: TVRMLVersion;
-  { Eventually used to decompress gzip file. }
-  Stream: TStream;
   { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
   Names: TVRMLNames;
 begin
-  WWWBasePath := ExtractFilePath(ExpandFileName(FileName));
-
-  Stream := nil;
   Doc := nil;
   try
-
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
-    if Gzipped then
-    begin
-      Stream := TGZFileStream.Create(FileName, gzOpenRead);
-      ReadXMLFile(Doc, Stream, 'file:/' + WWWBasePath);
-    end else
-      ReadXMLFile(Doc, FileName);
+    ReadXMLFile(Doc, Stream, FilenameToURI(WWWBasePath));
 
     Check(Doc.DocumentElement.TagName = 'X3D',
       'Root element of X3D file must be <X3D>');
@@ -528,7 +536,6 @@ begin
     finally FreeAndNil(Names) end;
   finally
     FreeAndNil(Doc);
-    FreeAndNil(Stream);
   end;
 end;
 
