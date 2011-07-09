@@ -83,6 +83,8 @@ type
     procedure TestINodeTransform;
 
     procedure TestSortPositionInParent;
+
+    procedure TestRootNodeMeta;
   end;
 
 implementation
@@ -1452,6 +1454,109 @@ begin
     FreeAndNil(I4);
     FreeAndNil(I5);
     FreeAndNil(List);
+  end;
+end;
+
+procedure TTestVRMLNodes.TestRootNodeMeta;
+{ Test reading, writing, copying of TVRMLRootNode profile, component, metas.
+  Also, test updating metas when saving, with generator and source. }
+
+  function LoadVRMLClassicStream(Stream: TStream): TVRMLRootNode;
+  var
+    BS: TBufferedReadStream;
+  begin
+    BS := TBufferedReadStream.Create(Stream, false);
+    try
+      Result := LoadVRMLClassic(BS , '');
+    finally FreeAndNil(BS) end;
+  end;
+
+var
+  Node, NewNode: TVRMLRootNode;
+  TempStream: TMemoryStream;
+begin
+  TempStream := nil;
+  Node := nil;
+
+  try
+    TempStream := TMemoryStream.Create;
+
+    Node := LoadVRMLClassicFromString('#X3D V3.1 utf8' +NL+
+      'PROFILE Immersive' +NL+
+      'COMPONENT NURBS:2' +NL+
+      'COMPONENT Shaders:1' +NL+
+      'META "testkey" "testvalue"' +NL+
+      'META "generator" "testgenerator"', '');
+
+    { make sure loaded from string Ok }
+    Assert(Node.HasForceVersion);
+    Assert(Node.ForceVersion.Major = 3);
+    Assert(Node.ForceVersion.Minor = 1);
+    Assert(Node.Profile = 'Immersive');
+    Assert(Node.Components.Count = 2);
+    Assert(Node.Components['NURBS'] = 2);
+    Assert(Node.Components['Shaders'] = 1);
+    Assert(Node.Meta.Count = 2);
+    Assert(Node.Meta['testkey'] = 'testvalue');
+    Assert(Node.Meta['generator'] = 'testgenerator');
+
+    { save and load again }
+    SaveVRML(Node, TempStream, '', '', xeClassic);
+    FreeAndNil(Node);
+    TempStream.Position := 0;
+    Node := LoadVRMLClassicStream(TempStream);
+
+    { make sure saved and loaded back Ok }
+    Assert(Node.HasForceVersion);
+    Assert(Node.ForceVersion.Major = 3);
+    Assert(Node.ForceVersion.Minor = 1);
+    Assert(Node.Profile = 'Immersive');
+    Assert(Node.Components.Count = 2);
+    Assert(Node.Components['NURBS'] = 2);
+    Assert(Node.Components['Shaders'] = 1);
+    Assert(Node.Meta.Count = 2);
+    Assert(Node.Meta['testkey'] = 'testvalue');
+    Assert(Node.Meta['generator'] = 'testgenerator');
+
+    { tweak some Meta }
+    Node.Meta['testkey'] := 'newvalue';
+    Node.Meta['testkey2'] := 'newvalue2';
+
+    { replace Node with DeepCopy of itself (should preserve everything) }
+    NewNode := Node.DeepCopy as TVRMLRootNode;
+    FreeAndNil(Node);
+    Node := NewNode;
+    NewNode := nil;
+
+    { tweak some Meta more }
+    Node.Meta['testkey2'] := 'evennewervalue2';
+    Node.Meta['testkey3'] := 'newvalue3';
+
+    { save and load again. During SaveVRML tweak meta generator and source }
+    TempStream.Position := 0;
+    SaveVRML(Node, TempStream, 'newgenerator', 'newsource', xeClassic);
+    FreeAndNil(Node);
+    TempStream.Position := 0;
+    Node := LoadVRMLClassicStream(TempStream);
+
+    { make sure saved and loaded back Ok }
+    Assert(Node.HasForceVersion);
+    Assert(Node.ForceVersion.Major = 3);
+    Assert(Node.ForceVersion.Minor = 1);
+    Assert(Node.Profile = 'Immersive');
+    Assert(Node.Components.Count = 2);
+    Assert(Node.Components['NURBS'] = 2);
+    Assert(Node.Components['Shaders'] = 1);
+    Assert(Node.Meta.Count = 6);
+    Assert(Node.Meta['testkey'] = 'newvalue');
+    Assert(Node.Meta['testkey2'] = 'evennewervalue2');
+    Assert(Node.Meta['testkey3'] = 'newvalue3');
+    Assert(Node.Meta['generator'] = 'newgenerator');
+    Assert(Node.Meta['generator-previous'] = 'testgenerator');
+    Assert(Node.Meta['source'] = 'newsource');
+  finally
+    FreeAndNil(Node);
+    FreeAndNil(TempStream);
   end;
 end;
 
