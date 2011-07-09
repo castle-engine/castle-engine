@@ -2512,7 +2512,7 @@ procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       (NodeNames as TVRMLNodeNames).Bind(Self, false);
 
       { write us to stream }
-      SaveProperties.Write('<' + NodeTypeName);
+      SaveProperties.WriteIndent('<' + NodeTypeName);
       if NodeName <> '' then SaveProperties.Write(' DEF=' +StringToX3DXml(NodeName));
 
       HasContent := false;
@@ -2528,7 +2528,7 @@ procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
         SaveProperties.IncIndent;
     // TODO: savexml:    SaveContentsToStreamXML(SaveProperties, NodeNames as TVRMLNodeNames);
         SaveProperties.DecIndent;
-        SaveProperties.Writeln('</' + NodeTypeName + '>');
+        SaveProperties.WritelnIndent('</' + NodeTypeName + '>');
       end else
         SaveProperties.Writeln(' />');
 
