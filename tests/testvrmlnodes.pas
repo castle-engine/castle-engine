@@ -1485,7 +1485,7 @@ begin
       'PROFILE Immersive' +NL+
       'COMPONENT NURBS:2' +NL+
       'COMPONENT Shaders:1' +NL+
-      'META "testkey" "testvalue"' +NL+
+      'META "test''''key" "test\"value"' +NL+
       'META "generator" "testgenerator"', '');
 
     { make sure loaded from string Ok }
@@ -1497,7 +1497,7 @@ begin
     Assert(Node.Components['NURBS'] = 2);
     Assert(Node.Components['Shaders'] = 1);
     Assert(Node.Meta.Count = 2);
-    Assert(Node.Meta['testkey'] = 'testvalue');
+    Assert(Node.Meta['test''''key'] = 'test"value');
     Assert(Node.Meta['generator'] = 'testgenerator');
 
     { save and load again }
@@ -1515,11 +1515,11 @@ begin
     Assert(Node.Components['NURBS'] = 2);
     Assert(Node.Components['Shaders'] = 1);
     Assert(Node.Meta.Count = 2);
-    Assert(Node.Meta['testkey'] = 'testvalue');
+    Assert(Node.Meta['test''''key'] = 'test"value');
     Assert(Node.Meta['generator'] = 'testgenerator');
 
     { tweak some Meta }
-    Node.Meta['testkey'] := 'newvalue';
+    Node.Meta['test''''key'] := 'newvalue';
     Node.Meta['testkey2'] := 'newvalue2';
 
     { replace Node with DeepCopy of itself (should preserve everything) }
@@ -1548,7 +1548,7 @@ begin
     Assert(Node.Components['NURBS'] = 2);
     Assert(Node.Components['Shaders'] = 1);
     Assert(Node.Meta.Count = 6);
-    Assert(Node.Meta['testkey'] = 'newvalue');
+    Assert(Node.Meta['test''''key'] = 'newvalue');
     Assert(Node.Meta['testkey2'] = 'evennewervalue2');
     Assert(Node.Meta['testkey3'] = 'newvalue3');
     Assert(Node.Meta['generator'] = 'newgenerator');
