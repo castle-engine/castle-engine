@@ -210,12 +210,12 @@
     function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; virtual;
 
-    (* Called by SaveToStream to output node contents
-       (stuff inside "{ }" for classic encoding).
-       Usually you want to save here what you read in your overridden
-       ParseNodeBodyElement. *)
+    { Called by SaveToStream to output node contents.
+      (stuff inside braces for classic encoding).
+      Usually you want to save here what you read in your overridden
+      ParseNodeBodyElement. }
     procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TVRMLNodeNames); virtual;
+      NodeNames: TVRMLNodeNames; const Encoding: TX3DEncoding); virtual;
 
     { Called at the end of parsing (in both classic and XML encoding). }
     procedure ParseAfter(Names: TVRMLNames); virtual;
@@ -713,12 +713,9 @@
       node type, and node contents.
 
       We use SaveProperties.NodeNames to record known node names.
-      This allows to write correct DEF / USE when saving.
-
-      @groupBegin }
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
-    procedure SaveToStreamXML(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
-    { @groupEnd }
+      This allows to write correct DEF / USE when saving. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { Do the nodes of (exactly) this class should be included
       in VRML 1.0 state (see TVRMLGraphTraverseState.LastNodes). }
@@ -2421,7 +2418,7 @@ begin
 end;
 
 procedure TVRMLNode.SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TVRMLNodeNames);
+  NodeNames: TVRMLNodeNames; const Encoding: TX3DEncoding);
 var
   I: integer;
   FileItems: TVRMLFileItemsList;
@@ -2471,11 +2468,74 @@ begin
     for I := 0 to ExportsList.Count - 1 do
       FileItems.Add(ExportsList[I]);
 
-    FileItems.SaveToStreamClassic(SaveProperties, NodeNames);
+    FileItems.SaveToStream(SaveProperties, NodeNames, Encoding);
   finally FreeAndNil(FileItems) end;
 end;
 
-procedure TVRMLNode.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
+
+  procedure Classic;
+  begin
+    if (NodeNames as TVRMLNodeNames).Bound(Self) then
+    begin
+      SaveProperties.WritelnIndent('USE ' + NodeName);
+    end else
+    begin
+      (NodeNames as TVRMLNodeNames).Bind(Self, false);
+
+      { write us to stream }
+      SaveProperties.WriteIndent('');
+      if NodeName <> '' then SaveProperties.Write('DEF ' +NodeName +' ');
+      SaveProperties.Writeln(NodeTypeName +' {');
+
+      SaveProperties.IncIndent;
+      SaveContentsToStream(SaveProperties, NodeNames as TVRMLNodeNames, Encoding);
+      SaveProperties.DecIndent;
+
+      SaveProperties.WritelnIndent('}');
+
+      (NodeNames as TVRMLNodeNames).Bind(Self, true);
+    end;
+  end;
+
+  procedure Xml;
+  var
+    HasContent: boolean;
+  begin
+    if (NodeNames as TVRMLNodeNames).Bound(Self) then
+    begin
+      SaveProperties.WritelnIndent(Format('<%s USE=%s />',
+        [NodeTypeName, StringToX3DXml(NodeName)]));
+    end else
+    begin
+      (NodeNames as TVRMLNodeNames).Bind(Self, false);
+
+      { write us to stream }
+      SaveProperties.Write('<' + NodeTypeName);
+      if NodeName <> '' then SaveProperties.Write(' DEF=' +StringToX3DXml(NodeName));
+
+      HasContent := false;
+      { TODO: savexml
+      for I := 0 to Fields ...
+        if SFNode or MFNode, defer, and set HasContent := true.
+           otherwise, write now, starting with SaveProperties.Writeln.
+      }
+
+      if HasContent then
+      begin
+        SaveProperties.Writeln('>');
+        SaveProperties.IncIndent;
+    // TODO: savexml:    SaveContentsToStreamXML(SaveProperties, NodeNames as TVRMLNodeNames);
+        SaveProperties.DecIndent;
+        SaveProperties.Writeln('</' + NodeTypeName + '>');
+      end else
+        SaveProperties.Writeln(' />');
+
+      (NodeNames as TVRMLNodeNames).Bind(Self, true);
+    end;
+  end;
+
 begin
   if PrototypeInstance and
      { TVRMLPrototypeNode has somewhat different meaning of PrototypeInstance,
@@ -2488,7 +2548,7 @@ begin
   begin
     { If this is an expanded prototype, than delegate writing to the
       PrototypeInstanceSourceNode. }
-    PrototypeInstanceSourceNode.SaveToStreamClassic(SaveProperties, NodeNames);
+    PrototypeInstanceSourceNode.SaveToStream(SaveProperties, NodeNames, Encoding);
 
     { What to do about
         NodeNames.Bind(Self)
@@ -2503,69 +2563,10 @@ begin
 
     (NodeNames as TVRMLNodeNames).Bind(Self, true);
   end else
-  if (NodeNames as TVRMLNodeNames).Bound(Self) then
   begin
-    SaveProperties.WritelnIndent('USE ' + NodeName);
-  end else
-  begin
-    (NodeNames as TVRMLNodeNames).Bind(Self, false);
-
-    { write us to stream }
-    SaveProperties.WriteIndent('');
-    if NodeName <> '' then SaveProperties.Write('DEF ' +NodeName +' ');
-    SaveProperties.Writeln(NodeTypeName +' {');
-
-    SaveProperties.IncIndent;
-    SaveContentsToStream(SaveProperties, NodeNames as TVRMLNodeNames);
-    SaveProperties.DecIndent;
-
-    SaveProperties.WritelnIndent('}');
-
-    (NodeNames as TVRMLNodeNames).Bind(Self, true);
-  end;
-end;
-
-procedure TVRMLNode.SaveToStreamXML(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
-var
-  HasContent: boolean;
-begin
-  if PrototypeInstance and not (Self is TVRMLPrototypeNode) then
-  begin
-    { If this is an expanded prototype, than delegate writing to the
-      PrototypeInstanceSourceNode. }
-    PrototypeInstanceSourceNode.SaveToStreamXML(SaveProperties, NodeNames);
-    (NodeNames as TVRMLNodeNames).Bind(Self, true);
-  end else
-  if (NodeNames as TVRMLNodeNames).Bound(Self) then
-  begin
-    SaveProperties.WritelnIndent(Format('<%s USE=%s />',
-      [NodeTypeName, StringToX3DXml(NodeName)]));
-  end else
-  begin
-    (NodeNames as TVRMLNodeNames).Bind(Self, false);
-
-    { write us to stream }
-    SaveProperties.Write('<' + NodeTypeName);
-    if NodeName <> '' then SaveProperties.Write(' DEF=' +StringToX3DXml(NodeName));
-
-    HasContent := false;
-    { TODO
-    for I := 0 to Fields ...
-      if SFNode or MFNode, defer, and set HasContent := true.
-         otherwise, write now, starting with SaveProperties.Writeln.
-    }
-
-    if HasContent then
-    begin
-      SaveProperties.Writeln('>');
-      SaveProperties.IncIndent;
-  // TODO:    SaveContentsToStreamXML(SaveProperties, NodeNames as TVRMLNodeNames);
-      SaveProperties.DecIndent;
-      SaveProperties.Writeln('</' + NodeTypeName + '>');
-    end else
-      SaveProperties.Writeln(' />');
-
-    (NodeNames as TVRMLNodeNames).Bind(Self, true);
+    if Encoding = xeClassic then
+      Classic else
+      Xml;
   end;
 end;
 

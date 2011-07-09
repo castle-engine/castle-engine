@@ -355,9 +355,9 @@ type
     property PositionInParent: Integer
       read FPositionInParent write FPositionInParent default -1;
 
-    { Save to stream in classic encoding. }
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); virtual; abstract;
+    { Save to stream. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); virtual; abstract;
   end;
 
   TObjectsListItem_4 = TVRMLFileItem;
@@ -368,8 +368,8 @@ type
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject);
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding);
     procedure Add(Item: TVRMLFileItem);
   end;
 
@@ -542,8 +542,10 @@ type
     procedure SetExposedEventsLinked(const Value: boolean);
   protected
     { Save field value to a stream. Must be overriden for each specific
-      field. FieldSaveToStream and SaveToStream write Indent, Name, ' ',
-      then call SaveToStreamValue, then write @link(NL).
+      field.
+
+      For classic encoding, FieldSaveToStream and SaveToStream write
+      Indent, Name, ' ', then call SaveToStreamValue, then write @link(NL).
 
       FieldSaveToStream and SaveToStream in this class
       already take care of saving IsClauseNames.
@@ -552,7 +554,7 @@ type
       SaveToStreamValue, you can safely assume that ValueFromIsClause
       is @false. }
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); virtual; abstract;
+      NodeNames: TObject; const Encoding: TX3DEncoding); virtual; abstract;
 
     { Call this inside overriden Assign methods.
       I don't want to place this inside TVRMLField.Assign, since I want
@@ -663,7 +665,8 @@ type
       FieldSaveWhenDefault is @false (default) then the field will not be saved.
       Otherwise field name, current value / "IS" clause will be saved.
 
-      This writes multiple lines, first line will start with Indent,
+      For classic encoding this writes multiple lines,
+      first line will start with Indent,
       last line will be terminated by newline.
 
       Note that when Name is '', this also works (writes only field value
@@ -673,11 +676,11 @@ type
       TVRMLNode.SaveToStream, see there. It is ignored, and may be @nil,
       for all TVRMLField descendants except TSFNode and TMFNode. }
     procedure FieldSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject;
+      NodeNames: TObject; const Encoding: TX3DEncoding;
       FieldSaveWhenDefault: boolean = false;
       AllowSavingFieldValue: boolean = true);
 
-    { Save the field to the stream, in classic encoding.
+    { Save the field to the stream.
 
       This simply calls FieldSaveToStream(SaveProperties),
       so it doesn't actually save anything if field value is defined
@@ -685,8 +688,8 @@ type
 
       See FieldSaveToStream for more comments and when you need control over
       FieldSaveWhenDefault behavior. }
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { Does current field value came from expanding "IS" clause.
       If yes, then saving this field to stream will only save it's "IS" clauses,
@@ -1042,11 +1045,11 @@ type
       SaveToStreamValue fully, no need to override it again in
       descendants. }
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { RawItemToString(i) must change RawItems[i] into a string that can be used to
       store this is text stream. In descendants, you have to override this. }
-    function RawItemToString(ItemNum: integer): string; virtual; abstract;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; virtual; abstract;
 
     { This says when we should do newline when writing this field into a stream.
       It's has purely aesthetical meaning, nothing more.
@@ -1113,7 +1116,7 @@ type
     function GetFlagNames(i: integer): string;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     { Value of this field. You can use Index from the range 0 .. FlagsCount - 1. }
     property Flags[i: integer]:boolean read GetFlags write SetFlags;
@@ -1163,7 +1166,7 @@ type
   TSFBool = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: boolean);
@@ -1200,7 +1203,7 @@ type
     function GetEnumNames(i: integer): string;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -1236,7 +1239,7 @@ type
     procedure SetValue(const AValue: Single);
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: Single); overload;
@@ -1281,7 +1284,7 @@ type
     procedure SetValue(const AValue: Double);
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: Double);
@@ -1317,7 +1320,7 @@ type
   TSFImage = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
 
     { Value is owned by this object - i.e. in destructor we do Value.Free.
@@ -1361,7 +1364,7 @@ type
     procedure SetValue(const AValue: Longint);
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: Longint); overload;
@@ -1406,7 +1409,7 @@ type
     DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TMatrix3Single);
@@ -1438,7 +1441,7 @@ type
     DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TMatrix3Double);
@@ -1470,7 +1473,7 @@ type
     DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TMatrix4Single);
@@ -1517,7 +1520,7 @@ type
     DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TMatrix4Double);
@@ -1549,7 +1552,7 @@ type
     DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
     function GetValue: TVector4Single;
     procedure SetValue(const AValue: TVector4Single);
     function GetValueDeg: TVector4Single;
@@ -1602,7 +1605,7 @@ type
   TSFString = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: string);
@@ -1634,7 +1637,7 @@ type
   TSFVec2f = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector2Single);
@@ -1666,7 +1669,7 @@ type
   TSFVec3f = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector3Single);
@@ -1704,7 +1707,7 @@ type
   TSFVec4f = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector4Single);
@@ -1742,7 +1745,7 @@ type
   TSFVec2d = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector2Double);
@@ -1774,7 +1777,7 @@ type
   TSFVec3d = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector3Double);
@@ -1806,7 +1809,7 @@ type
   TSFVec4d = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const AValue: TVector4Double);
@@ -1863,7 +1866,7 @@ type
     function GetItemsSafe(Index: Integer): boolean;
     procedure SetItemsSafe(Index: Integer; const Value: boolean);
   protected
-    function RawItemToString(ItemNum: Integer): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynBooleanArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -1903,7 +1906,7 @@ type
     function GetItems: TDynLongIntArray;
     procedure SetItems(const Value: TDynLongIntArray);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
     { When saving to VRML/X3D classic encoding,
@@ -1976,7 +1979,7 @@ type
     function GetItemsSafe(Index: Integer): TMatrix3Single;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix3Single);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynMatrix3SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2015,7 +2018,7 @@ type
     function GetItemsSafe(Index: Integer): TMatrix3Double;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix3Double);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynMatrix3DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2054,7 +2057,7 @@ type
     function GetItemsSafe(Index: Integer): TMatrix4Single;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix4Single);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynMatrix4SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2093,7 +2096,7 @@ type
     function GetItemsSafe(Index: Integer): TMatrix4Double;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix4Double);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynMatrix4DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2132,7 +2135,7 @@ type
     function GetItems: TDynVector2SingleArray;
     procedure SetItems(const Value: TDynVector2SingleArray);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynVector2SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2171,7 +2174,7 @@ type
     function GetItems: TDynVector3SingleArray;
     procedure SetItems(const Value: TDynVector3SingleArray);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynVector3SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2216,7 +2219,7 @@ type
     function GetItems: TDynVector4SingleArray;
     procedure SetItems(const Value: TDynVector4SingleArray);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynVector4SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2260,7 +2263,7 @@ type
     function GetItemsSafe(Index: Integer): TVector2Double;
     procedure SetItemsSafe(Index: Integer; const Value: TVector2Double);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynVector2DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2299,7 +2302,7 @@ type
     function GetItemsSafe(Index: Integer): TVector3Double;
     procedure SetItemsSafe(Index: Integer; const Value: TVector3Double);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynVector3DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2338,7 +2341,7 @@ type
     function GetItemsSafe(Index: Integer): TVector4Double;
     procedure SetItemsSafe(Index: Integer; const Value: TVector4Double);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynVector4DoubleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2377,7 +2380,7 @@ type
     function GetItemsSafe(Index: Integer): TVector4Single;
     procedure SetItemsSafe(Index: Integer; const Value: TVector4Single);
   protected
-    function RawItemToString(ItemNum: Integer): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynVector4SingleArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2417,7 +2420,7 @@ type
     function GetItemsSafe(Index: Integer): Single;
     procedure SetItemsSafe(Index: Integer; const Value: Single);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
     property Items: TDynSingleArray read GetItems write SetItems;
@@ -2458,7 +2461,7 @@ type
     function GetItemsSafe(Index: Integer): Double;
     procedure SetItemsSafe(Index: Integer; const Value: Double);
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
     property Items: TDynDoubleArray read GetItems write SetItems;
@@ -2504,7 +2507,7 @@ type
     function GetItemsSafe(Index: Integer): string;
     procedure SetItemsSafe(Index: Integer; const Value: string);
   protected
-    function RawItemToString(ItemNum: Integer): string; override;
+    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TDynStringArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2712,14 +2715,14 @@ begin
   Sort(@IsSmallerPositionInParent);
 end;
 
-procedure TVRMLFileItemsList.SaveToStreamClassic(
-  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLFileItemsList.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   I: Integer;
 begin
   SortPositionInParent;
   for I := 0 to Count - 1 do
-    Items[I].SaveToStreamClassic(SaveProperties, NodeNames);
+    Items[I].SaveToStream(SaveProperties, NodeNames, Encoding);
 end;
 
 procedure TVRMLFileItemsList.Add(Item: TVRMLFileItem);
@@ -2994,14 +2997,16 @@ begin
   end;
 end;
 
-procedure TVRMLField.FieldSaveToStream(
-  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject;
+procedure TVRMLField.FieldSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding;
   FieldSaveWhenDefault, AllowSavingFieldValue: boolean);
 var
   N: string;
   I: Integer;
 begin
   N := NameForVersion(SaveProperties);
+
+  { TODO: savexml }
 
   { Actually, when N = '', we assume that field has only one "IS" clause
     or simple value. }
@@ -3019,15 +3024,15 @@ begin
   begin
     if N <> '' then
       SaveProperties.WriteIndent(N + ' ');
-    SaveToStreamValue(SaveProperties, NodeNames);
+    SaveToStreamValue(SaveProperties, NodeNames, Encoding);
     SaveProperties.Writeln;
   end;
 end;
 
-procedure TVRMLField.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  FieldSaveToStream(SaveProperties, NodeNames);
+  FieldSaveToStream(SaveProperties, NodeNames, Encoding);
 end;
 
 function TVRMLField.EqualsDefaultValue: boolean;
@@ -3369,18 +3374,20 @@ begin
 end;
 
 procedure TVRMLSimpleMultField.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   i: integer;
   WriteIndentNextTime: boolean;
   IndentMultiValueFields: boolean;
 begin
+  { TODO: savexml }
+
   { The general "for I := ..." code below can handle correctly any RawItems.Count
     value. But for aesthetics, i.e. more clear output for humans,
     I handle the RawItems.Count = 0 and 1 cases separately. }
   case RawItems.Count of
     0: SaveProperties.Write('[]');
-    1: SaveProperties.Write(RawItemToString(0));
+    1: SaveProperties.Write(RawItemToString(0, Encoding));
     else
       begin
         SaveProperties.Writeln('[');
@@ -3395,7 +3402,7 @@ begin
         for i := 0 to RawItems.Count-1 do
         begin
           if WriteIndentNextTime then SaveProperties.WriteIndent('');
-          SaveProperties.Write(RawItemToString(i) +',');
+          SaveProperties.Write(RawItemToString(i, Encoding) +',');
           { After the last item we always write newline,
             no matter what's SaveToStreamDoNewLineAfterRawItem }
           if (i = RawItems.Count - 1) or
@@ -3516,11 +3523,14 @@ begin
   Lexer.NextToken;
 end;
 
+const
+  BoolKeywords: array [TX3DEncoding, boolean] of string =
+  ( ('FALSE', 'TRUE'), ('false', 'true') );
+
 procedure TSFBool.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
- if Value then SaveProperties.Write(VRMLKeywords[vkTrue]) else
-               SaveProperties.Write(VRMLKeywords[vkFalse])
+  SaveProperties.Write(BoolKeywords[Encoding, Value]);
 end;
 
 function TSFBool.EqualsDefaultValue: boolean;
@@ -3617,7 +3627,7 @@ begin
 end;
 
 procedure TSFFloat.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   SaveProperties.Write(FloatToRawStr(Value));
 end;
@@ -3719,7 +3729,7 @@ begin
 end;
 
 procedure TSFDouble.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   SaveProperties.Write(FloatToRawStr(Value));
 end;
@@ -3966,7 +3976,7 @@ begin
 end;
 
 procedure TSFImage.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   ga: TVector2Byte;
   rgb: TVector3Byte;
@@ -4104,7 +4114,7 @@ begin
 end;
 
 procedure TSFLong.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   SaveProperties.Write(IntToStr(Value));
 end;
@@ -4214,7 +4224,7 @@ begin
 end;
 
 procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   Column: integer;
 begin
@@ -4447,7 +4457,7 @@ begin
 end;
 
 procedure TSFRotation.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   SaveProperties.Write(VectorToRawStr(Axis) +' ' +FloatToRawStr(RotationRad));
 end;
@@ -4563,9 +4573,11 @@ begin
 end;
 
 procedure TSFString.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  SaveProperties.Write(StringToX3DClassic(Value));
+  if Encoding = xeClassic then
+    SaveProperties.Write(StringToX3DClassic(Value)) else
+    SaveProperties.Write(StringToX3DXml(Value));
 end;
 
 function TSFString.EqualsDefaultValue: boolean;
@@ -4672,7 +4684,7 @@ begin
 end;
 
 procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   SaveProperties.Write(VectorToRawStr(Value));
 end;
@@ -4932,10 +4944,11 @@ begin
 end;
 
 procedure TSFBitMask.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 var i: integer;
     PrecedeWithBar: boolean;
 begin
+  { TODO: savexml }
  if AreAllFlags(false) then
   SaveProperties.Write(NoneString) else
  begin
@@ -5034,7 +5047,7 @@ begin
 end;
 
 procedure TSFEnum.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   SaveProperties.Write(EnumNames[Value]);
 end;
@@ -5302,7 +5315,7 @@ begin
     Exit(false);
 end;
 
-function TMF_CLASS.RawItemToString(ItemNum: Integer): string;
+function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
   Result := VectorToRawStr(Items.Items[ItemNum])
 end;
@@ -5356,7 +5369,7 @@ begin
     Exit(false);
 end;
 
-function TMF_CLASS.RawItemToString(ItemNum: Integer): string;
+function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 var
   Column: Integer;
 begin
@@ -5560,11 +5573,9 @@ IMPLEMENT_MF_CLASS_USING_MATRICES
 
 { TMFBool ------------------------------------------------------------------ }
 
-function TMFBool.RawItemToString(ItemNum: integer): string;
+function TMFBool.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  if Items.Items[ItemNum] then
-    Result := VRMLKeywords[vkTrue] else
-    Result := VRMLKeywords[vkFalse];
+  Result := BoolKeywords[Encoding][Items.Items[ItemNum]];
 end;
 
 class function TMFBool.VRMLTypeName: string;
@@ -5579,8 +5590,10 @@ begin
   Result := SaveToStreamLineUptoNegative and (Items.Items[ItemNum] < 0);
 end;
 
-function TMFLong.RawItemToString(ItemNum: integer): string;
-begin result := IntToStr(Items.Items[ItemNum]) end;
+function TMFLong.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := IntToStr(Items.Items[ItemNum])
+end;
 
 class function TMFLong.VRMLTypeName: string;
 begin
@@ -5737,7 +5750,7 @@ begin
   Result := false;
 end;
 
-function TMFFloat.RawItemToString(ItemNum: integer): string;
+function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
   Result := FloatToRawStr(Items.Items[ItemNum]);
 end;
@@ -5774,7 +5787,7 @@ begin
   Result := false;
 end;
 
-function TMFDouble.RawItemToString(ItemNum: integer): string;
+function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
   Result := FloatToRawStr(Items.Items[ItemNum]);
 end;
@@ -5813,9 +5826,11 @@ end;
 
 { TMFString ------------------------------------------------------------------ }
 
-function TMFString.RawItemToString(ItemNum: integer): string;
+function TMFString.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := StringToX3DClassic(Items.Items[ItemNum]);
+  if Encoding = xeClassic then
+    Result := StringToX3DClassic(Items.Items[ItemNum]) else
+    Result := StringToX3DXml(Items.Items[ItemNum])
 end;
 
 class function TMFString.VRMLTypeName: string;

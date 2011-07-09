@@ -168,13 +168,15 @@
     property SaveAsRootNode: boolean read FSaveAsRootNode write FSaveAsRootNode
       default true;
 
-    (*Save contents to the stream.
-      If SaveAsRootNode then this is saved to stream in a special way,
-      so that actually only it's contents are written, without
-      surrounding { } braces.
-      This way, when saving, we avoid the artificial wrapping in
-      TVRMLRootNode that was done by ParseVRMLStatements and LoadVRMLClassic. *)
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);  override;
+    { Save contents to the stream.
+
+      If SaveAsRootNode then this is saved in a special way,
+      such that only the contents are written, without surrounding
+      braces (for classic encoding) or XML element (for xml encoding).
+      This way, when saving, we hide the fact that everything was wrapped
+      in an artificial TVRMLRootNode. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { Set HasForceVersion to @true to force saving this model with
       given ForceVersion. }
@@ -645,7 +647,8 @@ begin
   inherited;
 end;
 
-procedure TVRMLRootNode.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLRootNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   I: integer;
   FileItems: TVRMLFileItemsList;
@@ -683,7 +686,7 @@ begin
       for I := 0 to ExportsList.Count - 1 do
         FileItems.Add(ExportsList[I]);
 
-      FileItems.SaveToStreamClassic(SaveProperties, NodeNames);
+      FileItems.SaveToStream(SaveProperties, NodeNames, Encoding);
     finally FreeAndNil(FileItems) end;
   end else
     inherited;

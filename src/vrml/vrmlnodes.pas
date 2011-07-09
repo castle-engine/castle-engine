@@ -816,7 +816,7 @@ type
     procedure SetDefaultValueExists(AValue: boolean);
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     { Construct a field allowing any children class.
       Suitable only for special cases. For example, in instantiated prototypes,
@@ -940,7 +940,7 @@ type
     function GetItems(const Index: Integer): TVRMLNode;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
     { Get or set the number of items.
 
       When increasing this, remember that new items of TMFNode
@@ -1238,7 +1238,7 @@ type
         if present.)
     }
     procedure IDeclSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TVRMLNodeNames; FieldValue: boolean);
+      NodeNames: TVRMLNodeNames; const Encoding: TX3DEncoding; FieldValue: boolean);
 
     { Save this interface declaration to stream.
 
@@ -1246,7 +1246,8 @@ type
       IDeclSaveToStream(SaveProperties, NodeNames, true).
 
       @seealso IDeclSaveToStream }
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { Returns access type, corresponding to current @link(Event)
       and @link(Field) values.
@@ -1459,7 +1460,7 @@ type
       or EXTERNPROTO, then call this, then write the rest of your prototype. }
     procedure SaveInterfaceDeclarationsToStream(
       SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
-      ExternalProto: boolean);
+      const Encoding: TX3DEncoding; ExternalProto: boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -1492,7 +1493,8 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { These are actual prototype contents: all nodes, prototypes, routes
       defined within this prototype.
@@ -1531,7 +1533,8 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     property ReferencedPrototype: TVRMLPrototype read FReferencedPrototype;
     property ReferencedClass: TVRMLNodeClass read FReferencedClass;
@@ -1680,7 +1683,8 @@ type
       Also, if SourceNode and DestinationNode are without a name,
       or the name is not currently bound in SaveProperties.NodeNames.
     }
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { Clear the memory when the last event passed through this route.
       Route must remember such thing, to avoid loops in routes.
@@ -1722,7 +1726,8 @@ type
       Given Element here must have TagName = 'IMPORT'. }
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
 
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLImport;
   end;
 
@@ -1736,7 +1741,8 @@ type
       Given Element here must have TagName = 'EXPORT'. }
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
 
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLExport;
   end;
 
@@ -3078,8 +3084,9 @@ begin
 end;
 
 procedure TSFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
+  { TODO: savexml }
   if Value = nil then
     SaveProperties.Write('NULL') else
   begin
@@ -3087,7 +3094,7 @@ begin
       In this case, we want it to start on the same line, so indent must
       be discarded. }
     SaveProperties.DiscardNextIndent;
-    Value.SaveToStreamClassic(SaveProperties, NodeNames);
+    Value.SaveToStream(SaveProperties, NodeNames, Encoding);
   end;
 end;
 
@@ -3247,10 +3254,12 @@ begin
 end;
 
 procedure TMFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   I: Integer;
 begin
+  { TODO: savexml }
+
   { We code Count = 0 and Count = 1 cases separately just to get a more
     compact look in these common situations. }
   if Count = 0 then
@@ -3261,13 +3270,13 @@ begin
       In this case, we want it to start on the same line, so indent must
       be discarded. }
     SaveProperties.DiscardNextIndent;
-    Items[0].SaveToStreamClassic(SaveProperties, NodeNames);
+    Items[0].SaveToStream(SaveProperties, NodeNames, Encoding);
   end else
   begin
     SaveProperties.Writeln('[');
     SaveProperties.IncIndent;
     for I := 0 to Count - 1 do
-      Items[I].SaveToStreamClassic(SaveProperties, NodeNames);
+      Items[I].SaveToStream(SaveProperties, NodeNames, Encoding);
     SaveProperties.DecIndent;
     SaveProperties.WriteIndent(']');
   end;
@@ -3870,7 +3879,7 @@ end;
 
 procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
   SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
-  FieldValue: boolean);
+  const Encoding: TX3DEncoding; FieldValue: boolean);
 
   function ATName(const AccessType: TVRMLAccessType): string;
   const
@@ -3891,7 +3900,7 @@ begin
       SaveProperties.WriteIndent(ATName(atOutputOnly) + ' ');
     SaveProperties.Write(Event.FieldClass.VRMLTypeName + ' ');
     SaveProperties.DiscardNextIndent;
-    Event.EventSaveToStream(SaveProperties, true);
+    Event.EventSaveToStream(SaveProperties, Encoding, true);
   end else
   begin
     if Field.Exposed then
@@ -3912,7 +3921,7 @@ begin
         In this case, we want it to start on the same line, so indent must
         be discarded. }
       SaveProperties.DiscardNextIndent;
-      Field.FieldSaveToStream(SaveProperties, NodeNames, true, true);
+      Field.FieldSaveToStream(SaveProperties, NodeNames, Encoding, true, true);
       { In this case, SaveProperties.Writeln will be done by Field.SaveToStream.
         (we pass SaveWhenDefault anyway, so we can be sure that
         this newline will be done). }
@@ -3921,7 +3930,7 @@ begin
     if Field.IsClauseNames.Count = 1 then
     begin
       SaveProperties.DiscardNextIndent;
-      Field.FieldSaveToStream(SaveProperties, NodeNames, true, false);
+      Field.FieldSaveToStream(SaveProperties, NodeNames, Encoding, true, false);
     end else
 
     begin
@@ -3930,10 +3939,10 @@ begin
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.SaveToStreamClassic(
-  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLInterfaceDeclaration.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  IDeclSaveToStream(SaveProperties, NodeNames as TVRMLNodeNames, true);
+  IDeclSaveToStream(SaveProperties, NodeNames as TVRMLNodeNames, Encoding, true);
 end;
 
 function TVRMLInterfaceDeclaration.AccessType: TVRMLAccessType;
@@ -4566,16 +4575,17 @@ end;
 
 procedure TVRMLPrototypeBase.SaveInterfaceDeclarationsToStream(
   SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
-  ExternalProto: boolean);
+  const Encoding: TX3DEncoding; ExternalProto: boolean);
 var
   I: Integer;
 begin
+  { TODO: savexml }
   SaveProperties.Writeln(Name + ' [');
   SaveProperties.IncIndent;
   for I := 0 to InterfaceDeclarations.Count - 1 do
   begin
     InterfaceDeclarations.Items[I].IDeclSaveToStream(
-      SaveProperties, NodeNames, not ExternalProto);
+      SaveProperties, NodeNames, Encoding, not ExternalProto);
   end;
   SaveProperties.DecIndent;
   SaveProperties.WritelnIndent(']');
@@ -4675,13 +4685,16 @@ begin
   Names.Prototypes.Bind(Self);
 end;
 
-procedure TVRMLPrototype.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   OldNodeNames: TVRMLNodeNames;
 begin
+  { TODO: savexml }
   SaveProperties.WriteIndent('PROTO ');
 
-  SaveInterfaceDeclarationsToStream(SaveProperties, NodeNames as TVRMLNodeNames, false);
+  SaveInterfaceDeclarationsToStream(SaveProperties, NodeNames as TVRMLNodeNames,
+    Encoding, false);
 
   { Inside prototype has it's own DEF/USE scope. }
   OldNodeNames := NodeNames as TVRMLNodeNames;
@@ -4691,7 +4704,7 @@ begin
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
     SaveProperties.IncIndent;
-    Node.SaveToStreamClassic(SaveProperties, NodeNames);
+    Node.SaveToStream(SaveProperties, NodeNames, Encoding);
     SaveProperties.DecIndent;
     SaveProperties.WritelnIndent('}');
   finally
@@ -4755,18 +4768,19 @@ begin
   LoadReferenced;
 end;
 
-procedure TVRMLExternalPrototype.SaveToStreamClassic(
-  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLExternalPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
+  { TODO: savexml }
   SaveProperties.WriteIndent('EXTERNPROTO ');
 
   SaveInterfaceDeclarationsToStream(SaveProperties,
-    NodeNames as TVRMLNodeNames, true);
+    NodeNames as TVRMLNodeNames, Encoding, true);
 
   { SaveProperties.NodeNames will be ignored by URLList
     (TMFString.SaveToStream), don't worry about it. }
 
-  URLList.SaveToStreamClassic(SaveProperties, NodeNames);
+  URLList.SaveToStream(SaveProperties, NodeNames, Encoding);
 end;
 
 procedure TVRMLExternalPrototype.LoadReferenced;
@@ -5286,7 +5300,9 @@ end;
 type
   EVRMLRouteSaveError = class(EVRMLError);
 
-procedure TVRMLRoute.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
+{ TODO: savexml }
 var
   Output: string;
 
@@ -5449,8 +5465,11 @@ begin
   Names.DoImport(Self);
 end;
 
-procedure TVRMLImport.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLImport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
+  { TODO: savexml }
+
   SaveProperties.WriteIndent('IMPORT ' + InlineNodeName + '.' + ImportedNodeName);
   if ImportedNodeName <> ImportedNodeAlias then
     SaveProperties.Write(' AS ' + ImportedNodeAlias);
@@ -5501,8 +5520,11 @@ begin
   Names.DoExport(Self);
 end;
 
-procedure TVRMLExport.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject);
+procedure TVRMLExport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
+  { TODO: savexml }
+
   SaveProperties.WriteIndent('EXPORT ' + ExportedNodeName);
   if ExportedNodeName <> ExportedNodeAlias then
     SaveProperties.Write(' AS ' + ExportedNodeAlias);

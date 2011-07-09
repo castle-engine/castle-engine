@@ -72,10 +72,10 @@
       This is suitable for saving VRML interface declaration
       containing an event. }
     procedure EventSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
-      WriteExactlyOnce: boolean);
+      const Encoding: TX3DEncoding; WriteExactlyOnce: boolean);
 
-    procedure SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TObject); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { If this event is an exposed event belonging to some field,
       this references parent field. Otherwise it's @nil. }
@@ -246,12 +246,13 @@ begin
 end;
 
 procedure TVRMLEvent.EventSaveToStream(
-  SaveProperties: TVRMLSaveToStreamProperties;
+  SaveProperties: TVRMLSaveToStreamProperties; const Encoding: TX3DEncoding;
   WriteExactlyOnce: boolean);
 var
   N: string;
   I: Integer;
 begin
+  { TODO: savexml }
   N := NameForVersion(SaveProperties);
 
   if WriteExactlyOnce then
@@ -282,10 +283,10 @@ begin
   end;
 end;
 
-procedure TVRMLEvent.SaveToStreamClassic(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TObject);
+procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  EventSaveToStream(SaveProperties, false);
+  EventSaveToStream(SaveProperties, Encoding, false);
 end;
 
 procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TVRMLTime);

@@ -538,7 +538,7 @@ procedure TNodeLogger.EventWriteReceive(
       try
         { Just use latest format. }
         SaveProperties.Version := X3DVersion;
-        Value.FieldSaveToStream(SaveProperties, NodeNames, true);
+        Value.FieldSaveToStream(SaveProperties, NodeNames, xeClassic, true);
       finally
         FreeAndNil(SaveProperties);
         FreeAndNil(NodeNames);

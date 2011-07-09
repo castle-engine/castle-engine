@@ -714,7 +714,7 @@ begin
 
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
-    Node.SaveToStreamClassic(SaveProperties, NodeNames);
+    Node.SaveToStream(SaveProperties, NodeNames, xeClassic);
   finally
     FreeAndNil(SaveProperties);
     FreeAndNil(NodeNames);
