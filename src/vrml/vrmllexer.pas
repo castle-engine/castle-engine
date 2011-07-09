@@ -348,17 +348,27 @@ const
     'inputOnly', 'outputOnly', 'inputOutput', 'initializeOnly'
     );
 
-{ Returns characters that you can put in VRML stream, to be understood
-  as VRML string with contents S. In other words, this just adds
-  double quotes around S and prepends backslash to all " and \ inside S.
+{ String encoded for VRML/X3D classic, surrounded by double quotes.
+  You can use this when generating VRML/X3D content by hand.
 
+  Simply put, this just adds
+  double quotes around and prepends backslash to all " and \ inside.
+  Fortunately, no other characters (including newlines) need to be quoted
+  in any special way for VRML/X3D.
   For example:
 
 @longCode(#
   StringToVRMLStringToken('foo') = '"foo"'
   StringToVRMLStringToken('say "yes"') = '"say \"yes\""'
 #) }
-function StringToVRMLStringToken(const s: string): string;
+function StringToX3DClassic(const s: string): string;
+
+{ String encoded for X3D XML, surrounded by double quotes.
+  You can use this when generating VRML/X3D content by hand.
+
+  Simply put, this just adds double quotes around and replaces
+  &, apostrophe and double quotes with XML entities &amp;, &apos;, &quot;. }
+function StringToX3DXml(const s: string): string;
 
 implementation
 
@@ -1077,13 +1087,22 @@ end;
 
 { global funcs  ------------------------------------------------------------------ }
 
-function StringToVRMLStringToken(const s: string): string;
+function StringToX3DClassic(const s: string): string;
 const
-  Patterns: array[0..1]of string = ('\', '"');
-  PatValues: array[0..1]of string = ('\\', '\"');
+  Patterns: array [0..1] of string = ('\', '"');
+  PatValues: array [0..1] of string = ('\\', '\"');
 begin
- {uzyj soMatchCase tylko po to zeby bylo szybciej}
- result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
+  { use soMatchCase for speed }
+  Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
+end;
+
+function StringToX3DXml(const s: string): string;
+const
+  Patterns: array [0..2] of string = ('&', '"', '''');
+  PatValues: array [0..2] of string = ('&amp;', '&quot;', '&apos;');
+begin
+  { use soMatchCase for speed }
+  Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
 end;
 
 end.

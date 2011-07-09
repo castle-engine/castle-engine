@@ -659,8 +659,8 @@ var
   begin
     for I := 0 to Root.Meta.Count - 1 do
       SaveProperties.Writeln(Format('META %s %s',
-        [ StringToVRMLStringToken(Root.Meta.Keys[I]),
-          StringToVRMLStringToken(Root.Meta.Data[I])]));
+        [ StringToX3DClassic(Root.Meta.Keys[I]),
+          StringToX3DClassic(Root.Meta.Data[I])]));
     if Root.Meta.Count <> 0 then
       SaveProperties.Write(NL);
   end;

@@ -4565,7 +4565,7 @@ end;
 procedure TSFString.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject);
 begin
- SaveProperties.Write(StringToVRMLStringToken(Value));
+  SaveProperties.Write(StringToX3DClassic(Value));
 end;
 
 function TSFString.EqualsDefaultValue: boolean;
@@ -5814,7 +5814,9 @@ end;
 { TMFString ------------------------------------------------------------------ }
 
 function TMFString.RawItemToString(ItemNum: integer): string;
-begin result := StringToVRMLStringToken(Items.Items[ItemNum]) end;
+begin
+  Result := StringToX3DClassic(Items.Items[ItemNum]);
+end;
 
 class function TMFString.VRMLTypeName: string;
 begin
