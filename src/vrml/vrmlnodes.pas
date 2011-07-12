@@ -866,6 +866,7 @@ type
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
     procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
+    function SaveToXml: TSaveToXmlMethod; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1007,6 +1008,7 @@ type
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
     procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
+    function SaveToXml: TSaveToXmlMethod; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -3086,16 +3088,26 @@ end;
 procedure TSFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  { TODO: savexml }
+  { TODO: savexml: containerField save? }
   if Value = nil then
     SaveProperties.Write('NULL') else
   begin
-    { TVRMLNode.SaveToStream normally starts from new line with an indent...
+    { TVRMLNode.SaveToStream normally starts from new line with an indent.
       In this case, we want it to start on the same line, so indent must
       be discarded. }
-    SaveProperties.DiscardNextIndent;
+    if Encoding = xeClassic then
+      SaveProperties.DiscardNextIndent;
+
     Value.SaveToStream(SaveProperties, NodeNames, Encoding);
   end;
+end;
+
+function TSFNode.SaveToXml: TSaveToXmlMethod;
+begin
+  { NULL can only be encoded as an attribute in XML encoding }
+  if Value = nil then
+    Result := sxAttribute else
+    Result := sxChildElement;
 end;
 
 function TSFNode.EqualsDefaultValue: boolean;
@@ -3258,28 +3270,39 @@ procedure TMFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
 var
   I: Integer;
 begin
-  { TODO: savexml }
-
-  { We code Count = 0 and Count = 1 cases separately just to get a more
-    compact look in these common situations. }
-  if Count = 0 then
-    SaveProperties.Write('[]') else
-  if Count = 1 then
-  begin
-    { TVRMLNode.SaveToStream normally starts from new line with an indent...
-      In this case, we want it to start on the same line, so indent must
-      be discarded. }
-    SaveProperties.DiscardNextIndent;
-    Items[0].SaveToStream(SaveProperties, NodeNames, Encoding);
-  end else
-  begin
-    SaveProperties.Writeln('[');
-    SaveProperties.IncIndent;
-    for I := 0 to Count - 1 do
-      Items[I].SaveToStream(SaveProperties, NodeNames, Encoding);
-    SaveProperties.DecIndent;
-    SaveProperties.WriteIndent(']');
+  case Encoding of
+    xeClassic:
+      { We code Count = 0 and Count = 1 cases separately just to get a more
+        compact look in these common situations. }
+      if Count = 0 then
+        SaveProperties.Write('[]') else
+      if Count = 1 then
+      begin
+        { TVRMLNode.SaveToStream normally starts from new line with an indent...
+          In this case, we want it to start on the same line, so indent must
+          be discarded. }
+        SaveProperties.DiscardNextIndent;
+        Items[0].SaveToStream(SaveProperties, NodeNames, Encoding);
+      end else
+      begin
+        SaveProperties.Writeln('[');
+        SaveProperties.IncIndent;
+        for I := 0 to Count - 1 do
+          Items[I].SaveToStream(SaveProperties, NodeNames, Encoding);
+        SaveProperties.DecIndent;
+        SaveProperties.WriteIndent(']');
+      end;
+    xeXML:
+      { TODO: savexml: containerField save? }
+      for I := 0 to Count - 1 do
+        Items[I].SaveToStream(SaveProperties, NodeNames, Encoding);
+    else raise EInternalError.Create('TMFNode.SaveToStreamValue Encoding?');
   end;
+end;
+
+function TMFNode.SaveToXml: TSaveToXmlMethod;
+begin
+  Result := sxChildElement;
 end;
 
 function TMFNode.GetCount: integer;
@@ -5349,13 +5372,18 @@ begin
   try
     Ending(SourceNode     , SourceEvent     , 'source'     , SourceNodeName     , SourceEventName     );
     Ending(DestinationNode, DestinationEvent, 'destination', DestinationNodeName, DestinationEventName);
-    if Encoding = xeClassic then
-      SaveProperties.WritelnIndent(Format('ROUTE %s.%s TO %s.%s',
-        [SourceNodeName     , SourceEventName,
-         DestinationNodeName, DestinationEventName])) else
-      SaveProperties.WritelnIndent(Format('<ROUTE fromNode=%s fromField=%s toNode=%s toField=%s />',
-        [StringToX3DXml(SourceNodeName)     , StringToX3DXml(SourceEventName),
-         StringToX3DXml(DestinationNodeName), StringToX3DXml(DestinationEventName)]));
+
+    case Encoding of
+      xeClassic:
+        SaveProperties.WritelnIndent(Format('ROUTE %s.%s TO %s.%s',
+          [SourceNodeName     , SourceEventName,
+           DestinationNodeName, DestinationEventName]));
+      xeXML:
+        SaveProperties.WritelnIndent(Format('<ROUTE fromNode=%s fromField=%s toNode=%s toField=%s />',
+          [StringToX3DXml(SourceNodeName)     , StringToX3DXml(SourceEventName),
+           StringToX3DXml(DestinationNodeName), StringToX3DXml(DestinationEventName)]));
+      else raise EInternalError.Create('TVRMLRoute.SaveToStream Encoding?');
+    end;
   except
     on E: EVRMLRouteSaveError do
       VRMLWarning(vwSerious, E.Message);

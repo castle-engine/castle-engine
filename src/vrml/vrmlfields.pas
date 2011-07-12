@@ -64,6 +64,8 @@ type
     procedure DiscardNextIndent;
   end;
 
+  TSaveToXmlMethod = (sxNone, sxAttribute, sxAttributeCustomQuotes, sxChildElement);
+
   { Possible things that happen when given field is changed.
     Used by TVRMLField.Changes. }
   TVRMLChange = (
@@ -319,8 +321,7 @@ type
       may be helpful.
 
       TVRMLFileItemsList.Add sets this, which allows to preserve
-      order in TVRMLRootNode.SaveToStream and
-      TVRMLNode.SaveContentsToStream. }
+      order when saving. }
     PositionOnList: Integer;
   public
     constructor Create;
@@ -358,6 +359,12 @@ type
     { Save to stream. }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject; const Encoding: TX3DEncoding); virtual; abstract;
+
+    { How is this saved to X3D XML encoding. This determines when
+      SaveToStream is called. It also cooperates with some SaveToStream
+      implementations, guiding how the item is actually saved.
+      By default it is sxChildElement. }
+    function SaveToXml: TSaveToXmlMethod; virtual;
   end;
 
   TObjectsListItem_4 = TVRMLFileItem;
@@ -690,6 +697,7 @@ type
       FieldSaveWhenDefault behavior. }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
+    function SaveToXml: TSaveToXmlMethod; override;
 
     { Does current field value came from expanding "IS" clause.
       If yes, then saving this field to stream will only save it's "IS" clauses,
@@ -1630,6 +1638,7 @@ type
     class function VRMLTypeName: string; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
+    function SaveToXml: TSaveToXmlMethod; override;
 
     procedure Send(const AValue: string); overload;
   end;
@@ -2508,6 +2517,7 @@ type
     procedure SetItemsSafe(Index: Integer; const Value: string);
   protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     property Items: TDynStringArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2527,6 +2537,7 @@ type
     class function VRMLTypeName: string; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
+    function SaveToXml: TSaveToXmlMethod; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return '', Set will do nothing,
@@ -2697,6 +2708,11 @@ constructor TVRMLFileItem.Create;
 begin
   inherited;
   FPositionInParent := -1;
+end;
+
+function TVRMLFileItem.SaveToXml: TSaveToXmlMethod;
+begin
+  Result := sxChildElement;
 end;
 
 { TVRMLFileItemsList --------------------------------------------------------- }
@@ -3006,13 +3022,12 @@ var
 begin
   N := NameForVersion(SaveProperties);
 
-  { TODO: savexml }
-
   { Actually, when N = '', we assume that field has only one "IS" clause
     or simple value. }
 
   for I := 0 to IsClauseNames.Count - 1 do
   begin
+    { TODO: savexml }
     if N <> '' then
       SaveProperties.WriteIndent(N + ' ');
     SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
@@ -3021,11 +3036,29 @@ begin
   if AllowSavingFieldValue and
      (not ValueFromIsClause) and
      (FieldSaveWhenDefault or (not EqualsDefaultValue)) then
-  begin
-    if N <> '' then
-      SaveProperties.WriteIndent(N + ' ');
-    SaveToStreamValue(SaveProperties, NodeNames, Encoding);
-    SaveProperties.Writeln;
+  case Encoding of
+    xeClassic:
+      begin
+        if N <> '' then
+          SaveProperties.WriteIndent(N + ' ');
+        SaveToStreamValue(SaveProperties, NodeNames, Encoding);
+        SaveProperties.Writeln;
+      end;
+    xeXML:
+      if N <> '' then { for xml encoding, field must be named }
+      begin
+        if SaveToXml in [sxAttribute, sxAttributeCustomQuotes] then
+        begin
+          SaveProperties.Writeln;
+          SaveProperties.WriteIndent(N + '=');
+        end;
+        if SaveToXml = sxAttribute then
+          SaveProperties.Write('"');
+        SaveToStreamValue(SaveProperties, NodeNames, Encoding);
+        if SaveToXml = sxAttribute then
+          SaveProperties.Write('"');
+      end;
+    else raise EInternalError.Create('TVRMLField.FieldSaveToStream Encoding?');
   end;
 end;
 
@@ -3033,6 +3066,11 @@ procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   FieldSaveToStream(SaveProperties, NodeNames, Encoding);
+end;
+
+function TVRMLField.SaveToXml: TSaveToXmlMethod;
+begin
+  Result := sxAttribute;
 end;
 
 function TVRMLField.EqualsDefaultValue: boolean;
@@ -3380,40 +3418,49 @@ var
   WriteIndentNextTime: boolean;
   IndentMultiValueFields: boolean;
 begin
-  { TODO: savexml }
+  case Encoding of
+    xeClassic:
+      { The general "for I := ..." code below can handle correctly any RawItems.Count
+        value. But for aesthetics, i.e. more clear output for humans,
+        I handle the RawItems.Count = 0 and 1 cases separately. }
+      case RawItems.Count of
+        0: SaveProperties.Write('[]');
+        1: SaveProperties.Write(RawItemToString(0, Encoding));
+        else
+          begin
+            SaveProperties.Writeln('[');
+            SaveProperties.IncIndent;
 
-  { The general "for I := ..." code below can handle correctly any RawItems.Count
-    value. But for aesthetics, i.e. more clear output for humans,
-    I handle the RawItems.Count = 0 and 1 cases separately. }
-  case RawItems.Count of
-    0: SaveProperties.Write('[]');
-    1: SaveProperties.Write(RawItemToString(0, Encoding));
-    else
-      begin
-        SaveProperties.Writeln('[');
-        SaveProperties.IncIndent;
+            { For really long fields, writing indentation before each item
+              can cost a significant disk space. So do not indent when
+              there are many items. }
+            IndentMultiValueFields := RawItems.Count <= 10;
 
-        { For really long fields, writing indentation before each item
-          can cost a significant disk space. So do not indent when
-          there are many items. }
-        IndentMultiValueFields := RawItems.Count <= 10;
+            WriteIndentNextTime := IndentMultiValueFields;
+            for i := 0 to RawItems.Count-1 do
+            begin
+              if WriteIndentNextTime then SaveProperties.WriteIndent('');
+              SaveProperties.Write(RawItemToString(i, Encoding) +',');
+              { After the last item we always write newline,
+                no matter what's SaveToStreamDoNewLineAfterRawItem }
+              if (i = RawItems.Count - 1) or
+                 SaveToStreamDoNewLineAfterRawItem(i) then
+                begin SaveProperties.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
+                begin SaveProperties.Write(' '); WriteIndentNextTime := false; end;
+            end;
 
-        WriteIndentNextTime := IndentMultiValueFields;
-        for i := 0 to RawItems.Count-1 do
-        begin
-          if WriteIndentNextTime then SaveProperties.WriteIndent('');
-          SaveProperties.Write(RawItemToString(i, Encoding) +',');
-          { After the last item we always write newline,
-            no matter what's SaveToStreamDoNewLineAfterRawItem }
-          if (i = RawItems.Count - 1) or
-             SaveToStreamDoNewLineAfterRawItem(i) then
-            begin SaveProperties.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
-            begin SaveProperties.Write(' '); WriteIndentNextTime := false; end;
-        end;
-
-        SaveProperties.DecIndent;
-        SaveProperties.WritelnIndent(']');
+            SaveProperties.DecIndent;
+            SaveProperties.WritelnIndent(']');
+          end;
       end;
+    xeXML:
+      for I := 0 to RawItems.Count - 1 do
+      begin
+        SaveProperties.Write(RawItemToString(I, Encoding));
+        if I <> RawItems.Count - 1 then
+          SaveProperties.Write(' ');
+      end;
+    else raise EInternalError.Create('TVRMLSimpleMultField.SaveToStreamValue Encoding?');
   end;
 end;
 
@@ -4575,9 +4622,11 @@ end;
 procedure TSFString.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  if Encoding = xeClassic then
-    SaveProperties.Write(StringToX3DClassic(Value)) else
-    SaveProperties.Write(StringToX3DXml(Value));
+  case Encoding of
+    xeClassic: SaveProperties.Write(StringToX3DClassic(Value));
+    xeXML    : SaveProperties.Write(StringToX3DXml(Value));
+    else raise EInternalError.Create('TSFString.SaveToStreamValue Encoding?');
+  end;
 end;
 
 function TSFString.EqualsDefaultValue: boolean;
@@ -4663,6 +4712,11 @@ begin
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
+end;
+
+function TSFString.SaveToXml: TSaveToXmlMethod;
+begin
+  Result := sxAttributeCustomQuotes;
 end;
 
 { ----------------------------------------------------------------------------
@@ -5828,9 +5882,11 @@ end;
 
 function TMFString.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  if Encoding = xeClassic then
-    Result := StringToX3DClassic(Items.Items[ItemNum]) else
-    Result := StringToX3DXml(Items.Items[ItemNum])
+  case Encoding of
+    xeClassic: Result := StringToX3DClassic(Items.Items[ItemNum]);
+    xeXML    : Result := StringToX3DXml(Items.Items[ItemNum]);
+    else raise EInternalError.Create('TMFString.RawItemToString Encoding?');
+  end;
 end;
 
 class function TMFString.VRMLTypeName: string;
@@ -5864,6 +5920,20 @@ begin
       end;
     end;
   finally FreeAndNil(Lexer) end;
+end;
+
+function TMFString.SaveToXml: TSaveToXmlMethod;
+begin
+  Result := sxAttributeCustomQuotes;
+end;
+
+procedure TMFString.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+  NodeNames: TObject; const Encoding: TX3DEncoding);
+begin
+  { MFString in XML encoding is surrounded by single quotes }
+  if Encoding = xeXML then SaveProperties.Write('''');
+  inherited;
+  if Encoding = xeXML then SaveProperties.Write('''');
 end;
 
 { TVRMLFieldsManager --------------------------------------------------------- }

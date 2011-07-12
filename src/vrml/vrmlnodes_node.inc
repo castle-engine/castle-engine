@@ -210,13 +210,6 @@
     function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; virtual;
 
-    { Called by SaveToStream to output node contents.
-      (stuff inside braces for classic encoding).
-      Usually you want to save here what you read in your overridden
-      ParseNodeBodyElement. }
-    procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties;
-      NodeNames: TVRMLNodeNames; const Encoding: TX3DEncoding); virtual;
-
     { Called at the end of parsing (in both classic and XML encoding). }
     procedure ParseAfter(Names: TVRMLNames); virtual;
 
@@ -2417,65 +2410,65 @@ begin
   finally C.Free end;
 end;
 
-procedure TVRMLNode.SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties;
-  NodeNames: TVRMLNodeNames; const Encoding: TX3DEncoding);
-var
-  I: integer;
-  FileItems: TVRMLFileItemsList;
-begin
-  FileItems := TVRMLFileItemsList.Create;
-  try
-    if HasInterfaceDeclarations <> [] then
-    begin
-      for I := 0 to InterfaceDeclarations.Count - 1 do
-        FileItems.Add(InterfaceDeclarations[I]);
-    end;
-
-    for I := 0 to Prototypes.Count - 1 do
-      FileItems.Add(Prototypes[I]);
-
-    for I := 0 to Fields.Count - 1 do
-    begin
-      { Saving InterfaceDeclarations already handled saving fields
-        with ParentInterfaceDeclaration <> nil, so no need to save them again. }
-      if Fields[I].ParentInterfaceDeclaration = nil then
-        FileItems.Add(Fields[I]);
-
-      if Fields[I].Exposed then
-      begin
-        { exposed events may have their own IS clauses, save them }
-        FileItems.Add(Fields[I].EventIn);
-        FileItems.Add(Fields[I].EventOut);
-      end;
-    end;
-
-    if VRML1ChildrenSaveToStream then
-      for I := 0 to VRML1ChildrenCount - 1 do
-        FileItems.Add(VRML1Children[I]);
-
-    for I := 0 to Events.Count - 1 do
-      if { Saving InterfaceDeclarations already handled saving events
-           with ParentInterfaceDeclaration <> nil, so no need to save them again. }
-         (Events[I].ParentInterfaceDeclaration = nil) then
-        FileItems.Add(Events[I]);
-
-    for I := 0 to Routes.Count - 1 do
-      FileItems.Add(Routes[I]);
-
-    for I := 0 to ImportsList.Count - 1 do
-      FileItems.Add(ImportsList[I]);
-
-    for I := 0 to ExportsList.Count - 1 do
-      FileItems.Add(ExportsList[I]);
-
-    FileItems.SaveToStream(SaveProperties, NodeNames, Encoding);
-  finally FreeAndNil(FileItems) end;
-end;
-
 procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 
+  { Collect node contents to save.
+    You want to save here exactly what you read in ParseNodeBodyElement. }
+  function ContentsToSave: TVRMLFileItemsList;
+  var
+    I: integer;
+  begin
+    Result := TVRMLFileItemsList.Create;
+    try
+      if HasInterfaceDeclarations <> [] then
+      begin
+        for I := 0 to InterfaceDeclarations.Count - 1 do
+          Result.Add(InterfaceDeclarations[I]);
+      end;
+
+      for I := 0 to Prototypes.Count - 1 do
+        Result.Add(Prototypes[I]);
+
+      for I := 0 to Fields.Count - 1 do
+      begin
+        { Saving InterfaceDeclarations already handled saving fields
+          with ParentInterfaceDeclaration <> nil, so no need to save them again. }
+        if Fields[I].ParentInterfaceDeclaration = nil then
+          Result.Add(Fields[I]);
+
+        if Fields[I].Exposed then
+        begin
+          { exposed events may have their own IS clauses, save them }
+          Result.Add(Fields[I].EventIn);
+          Result.Add(Fields[I].EventOut);
+        end;
+      end;
+
+      if VRML1ChildrenSaveToStream then
+        for I := 0 to VRML1ChildrenCount - 1 do
+          Result.Add(VRML1Children[I]);
+
+      for I := 0 to Events.Count - 1 do
+        if { Saving InterfaceDeclarations already handled saving events
+             with ParentInterfaceDeclaration <> nil, so no need to save them again. }
+           (Events[I].ParentInterfaceDeclaration = nil) then
+          Result.Add(Events[I]);
+
+      for I := 0 to Routes.Count - 1 do
+        Result.Add(Routes[I]);
+
+      for I := 0 to ImportsList.Count - 1 do
+        Result.Add(ImportsList[I]);
+
+      for I := 0 to ExportsList.Count - 1 do
+        Result.Add(ExportsList[I]);
+    except FreeAndNil(Result) end;
+  end;
+
   procedure Classic;
+  var
+    FileItems: TVRMLFileItemsList;
   begin
     if (NodeNames as TVRMLNodeNames).Bound(Self) then
     begin
@@ -2490,7 +2483,10 @@ procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       SaveProperties.Writeln(NodeTypeName +' {');
 
       SaveProperties.IncIndent;
-      SaveContentsToStream(SaveProperties, NodeNames as TVRMLNodeNames, Encoding);
+      FileItems := ContentsToSave;
+      try
+        FileItems.SaveToStream(SaveProperties, NodeNames, Encoding);
+      finally FreeAndNil(FileItems) end;
       SaveProperties.DecIndent;
 
       SaveProperties.WritelnIndent('}');
@@ -2501,7 +2497,9 @@ procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
 
   procedure Xml;
   var
+    FileItems: TVRMLFileItemsList;
     HasContent: boolean;
+    I: Integer;
   begin
     if (NodeNames as TVRMLNodeNames).Bound(Self) then
     begin
@@ -2516,21 +2514,31 @@ procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       if NodeName <> '' then SaveProperties.Write(' DEF=' +StringToX3DXml(NodeName));
 
       HasContent := false;
-      { TODO: savexml
-      for I := 0 to Fields ...
-        if SFNode or MFNode, defer, and set HasContent := true.
-           otherwise, write now, starting with SaveProperties.Writeln.
-      }
-
-      if HasContent then
-      begin
-        SaveProperties.Writeln('>');
+      FileItems := ContentsToSave;
+      try
         SaveProperties.IncIndent;
-    // TODO: savexml:    SaveContentsToStreamXML(SaveProperties, NodeNames as TVRMLNodeNames);
+        for I := 0 to FileItems.Count - 1 do
+          case FileItems[I].SaveToXml of
+            sxAttribute, sxAttributeCustomQuotes:
+              FileItems[I].SaveToStream(SaveProperties, NodeNames, Encoding);
+            sxChildElement: HasContent := true;
+          end;
         SaveProperties.DecIndent;
-        SaveProperties.WritelnIndent('</' + NodeTypeName + '>');
-      end else
-        SaveProperties.Writeln(' />');
+
+        if HasContent then
+        begin
+          SaveProperties.Writeln('>');
+          SaveProperties.IncIndent;
+
+          for I := 0 to FileItems.Count - 1 do
+            if FileItems[I].SaveToXml = sxChildElement then
+              FileItems[I].SaveToStream(SaveProperties, NodeNames, Encoding);
+
+          SaveProperties.DecIndent;
+          SaveProperties.WritelnIndent('</' + NodeTypeName + '>');
+        end else
+          SaveProperties.Writeln(' />');
+      finally FreeAndNil(FileItems) end;
 
       (NodeNames as TVRMLNodeNames).Bind(Self, true);
     end;
@@ -2563,10 +2571,10 @@ begin
 
     (NodeNames as TVRMLNodeNames).Bind(Self, true);
   end else
-  begin
-    if Encoding = xeClassic then
-      Classic else
-      Xml;
+  case Encoding of
+    xeClassic: Classic;
+    xeXML    : Xml;
+    else raise EInternalError.Create('TVRMLNode.SaveToStream Encoding?');
   end;
 end;
 
