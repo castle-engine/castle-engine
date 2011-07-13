@@ -511,7 +511,7 @@ procedure TNodeLogger.EventWriteReceive(
   procedure WritelnLogMessage;
   var
     S: string;
-    SaveProperties: TVRMLSaveToStreamProperties;
+    Writer: TX3DWriter;
     NodeNames: TVRMLNodeNames;
   begin
     S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
@@ -534,13 +534,13 @@ procedure TNodeLogger.EventWriteReceive(
       WriteStr(WriteStream, S + ' Value: ');
 
       NodeNames := TVRMLNodeNames.Create(false);
-      SaveProperties := TVRMLSaveToStreamProperties.Create(WriteStream);
+      Writer := TX3DWriter.Create(WriteStream);
       try
         { Just use latest format. }
-        SaveProperties.Version := X3DVersion;
-        Value.FieldSaveToStream(SaveProperties, NodeNames, xeClassic, true);
+        Writer.Version := X3DVersion;
+        Value.FieldSaveToStream(Writer, NodeNames, xeClassic, true);
       finally
-        FreeAndNil(SaveProperties);
+        FreeAndNil(Writer);
         FreeAndNil(NodeNames);
       end;
     end;

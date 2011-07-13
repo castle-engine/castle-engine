@@ -545,7 +545,7 @@ procedure SaveX3DXml(Node: TVRMLNode; Stream: TStream;
   const Generator, Source: string;
   const Version: TVRMLVersion);
 var
-  SaveProperties: TVRMLSaveToStreamProperties;
+  Writer: TX3DWriter;
 
   function Profile: string;
   begin
@@ -560,7 +560,7 @@ var
     I: Integer;
   begin
     for I := 0 to Root.Components.Count - 1 do
-      SaveProperties.WritelnIndent(Format('<component name=%s level="%d" />',
+      Writer.WritelnIndent(Format('<component name=%s level="%d" />',
         [ StringToX3DXml(Root.Components.Keys[I]),
           Root.Components.Data[I] ]));
   end;
@@ -570,7 +570,7 @@ var
     I: Integer;
   begin
     for I := 0 to Root.Meta.Count - 1 do
-      SaveProperties.WritelnIndent(Format('<meta name=%s content=%s />',
+      Writer.WritelnIndent(Format('<meta name=%s content=%s />',
         [ StringToX3DXml(Root.Meta.Keys[I]),
           StringToX3DXml(Root.Meta.Data[I])]));
   end;
@@ -579,11 +579,11 @@ var
   NodeNames: TVRMLNodeNames;
 begin
   NodeNames := TVRMLNodeNames.Create(false);
-  SaveProperties := TVRMLSaveToStreamProperties.Create(Stream);
+  Writer := TX3DWriter.Create(Stream);
   try
-    SaveProperties.Version := Version;
+    Writer.Version := Version;
 
-    SaveProperties.Writeln(Format(
+    Writer.Writeln(Format(
       '<?xml version="1.0" encoding="UTF-8"?>' + NL +
       '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D %d.%d//EN" "http://www.web3d.org/specifications/x3d-%0:d.%1:d.dtd">' + NL+
       '<X3D profile=%2:s version="%0:d.%1:d"' + NL+
@@ -591,7 +591,7 @@ begin
       '     xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-%0:d.%1:d.xsd">' + NL+
       '<head>',
       [Version.Major, Version.Minor, StringToX3DXml(Profile)]));
-    SaveProperties.IncIndent;
+    Writer.IncIndent;
 
     if Node is TVRMLRootNode then
     begin
@@ -605,25 +605,25 @@ begin
     begin
       { write Generator etc. directly, as we don't have TVRMLRootNode.Meta available }
       if Generator <> '' then
-        SaveProperties.WritelnIndent(Format('<meta name="generator" content=%s />',
+        Writer.WritelnIndent(Format('<meta name="generator" content=%s />',
           [StringToX3DXml(Generator)]));
       if Source <> '' then
-        SaveProperties.WritelnIndent(Format('<meta name="source" content=%s />',
+        Writer.WritelnIndent(Format('<meta name="source" content=%s />',
           [StringToX3DXml(Source)]));
     end;
 
-    SaveProperties.DecIndent;
-    SaveProperties.Writeln('</head>' + NL + '<Scene>');
+    Writer.DecIndent;
+    Writer.Writeln('</head>' + NL + '<Scene>');
 
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
-    SaveProperties.IncIndent;
-    Node.SaveToStream(SaveProperties, NodeNames, xeXML);
-    SaveProperties.DecIndent;
+    Writer.IncIndent;
+    Node.SaveToStream(Writer, NodeNames, xeXML);
+    Writer.DecIndent;
 
-    SaveProperties.Writeln('</Scene>' +NL + '</X3D>');
+    Writer.Writeln('</Scene>' +NL + '</X3D>');
   finally
-    FreeAndNil(SaveProperties);
+    FreeAndNil(Writer);
     FreeAndNil(NodeNames);
   end;
 end;

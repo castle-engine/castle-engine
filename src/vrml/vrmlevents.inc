@@ -71,10 +71,10 @@
       Assertion checks that we cannot have more than 1 IS clause in this case.
       This is suitable for saving VRML interface declaration
       containing an event. }
-    procedure EventSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure EventSaveToStream(Writer: TX3DWriter;
       const Encoding: TX3DEncoding; WriteExactlyOnce: boolean);
 
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { If this event is an exposed event belonging to some field,
@@ -246,14 +246,14 @@ begin
 end;
 
 procedure TVRMLEvent.EventSaveToStream(
-  SaveProperties: TVRMLSaveToStreamProperties; const Encoding: TX3DEncoding;
+  Writer: TX3DWriter; const Encoding: TX3DEncoding;
   WriteExactlyOnce: boolean);
 var
   N: string;
   I: Integer;
 begin
   { TODO: savexml }
-  N := NameForVersion(SaveProperties);
+  N := NameForVersion(Writer);
 
   if WriteExactlyOnce then
   begin
@@ -263,12 +263,12 @@ begin
     Assert(IsClauseNames.Count <= 1, 'saving event with many IS clauses from single interface decl not possible');
 
     if N <> '' then
-      SaveProperties.WriteIndent(N + ' ');
+      Writer.WriteIndent(N + ' ');
 
     if IsClauseNames.Count = 1 then
-      SaveProperties.Write('IS ' + IsClauseNames.Items[0]);
+      Writer.Write('IS ' + IsClauseNames.Items[0]);
 
-    SaveProperties.Writeln;
+    Writer.Writeln;
   end else
   begin
     { Actually, when N = '', we assume that event has only one "IS" clause.
@@ -277,16 +277,16 @@ begin
     for I := 0 to IsClauseNames.Count - 1 do
     begin
       if N <> '' then
-        SaveProperties.WriteIndent(N + ' ');
-      SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+        Writer.WriteIndent(N + ' ');
+      Writer.Writeln('IS ' + IsClauseNames.Items[I]);
     end;
   end;
 end;
 
-procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLEvent.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  EventSaveToStream(SaveProperties, Encoding, false);
+  EventSaveToStream(Writer, Encoding, false);
 end;
 
 procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TVRMLTime);

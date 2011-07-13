@@ -705,9 +705,9 @@
     { Save node to a stream. Saves everything, including node name,
       node type, and node contents.
 
-      We use SaveProperties.NodeNames to record known node names.
+      We use Writer.NodeNames to record known node names.
       This allows to write correct DEF / USE when saving. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { Do the nodes of (exactly) this class should be included
@@ -2410,7 +2410,7 @@ begin
   finally C.Free end;
 end;
 
-procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLNode.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 
   { Collect node contents to save.
@@ -2472,24 +2472,24 @@ procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
   begin
     if (NodeNames as TVRMLNodeNames).Bound(Self) then
     begin
-      SaveProperties.WritelnIndent('USE ' + NodeName);
+      Writer.WritelnIndent('USE ' + NodeName);
     end else
     begin
       (NodeNames as TVRMLNodeNames).Bind(Self, false);
 
       { write us to stream }
-      SaveProperties.WriteIndent('');
-      if NodeName <> '' then SaveProperties.Write('DEF ' +NodeName +' ');
-      SaveProperties.Writeln(NodeTypeName +' {');
+      Writer.WriteIndent('');
+      if NodeName <> '' then Writer.Write('DEF ' +NodeName +' ');
+      Writer.Writeln(NodeTypeName +' {');
 
-      SaveProperties.IncIndent;
+      Writer.IncIndent;
       FileItems := ContentsToSave;
       try
-        FileItems.SaveToStream(SaveProperties, NodeNames, Encoding);
+        FileItems.SaveToStream(Writer, NodeNames, Encoding);
       finally FreeAndNil(FileItems) end;
-      SaveProperties.DecIndent;
+      Writer.DecIndent;
 
-      SaveProperties.WritelnIndent('}');
+      Writer.WritelnIndent('}');
 
       (NodeNames as TVRMLNodeNames).Bind(Self, true);
     end;
@@ -2509,42 +2509,42 @@ procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
 
     if (NodeNames as TVRMLNodeNames).Bound(Self) then
     begin
-      SaveProperties.WritelnIndent(Format('<%s USE=%s%s />',
+      Writer.WritelnIndent(Format('<%s USE=%s%s />',
         [NodeTypeName, StringToX3DXml(NodeName), WriteContainerField]));
     end else
     begin
       (NodeNames as TVRMLNodeNames).Bind(Self, false);
 
       { write us to stream }
-      SaveProperties.WriteIndent('<' + NodeTypeName);
-      if NodeName <> '' then SaveProperties.Write(' DEF=' +StringToX3DXml(NodeName));
-      SaveProperties.Write(WriteContainerField);
+      Writer.WriteIndent('<' + NodeTypeName);
+      if NodeName <> '' then Writer.Write(' DEF=' +StringToX3DXml(NodeName));
+      Writer.Write(WriteContainerField);
 
       HasContent := false;
       FileItems := ContentsToSave;
       try
-        SaveProperties.IncIndent;
+        Writer.IncIndent;
         for I := 0 to FileItems.Count - 1 do
           case FileItems[I].SaveToXml of
             sxAttribute, sxAttributeCustomQuotes:
-              FileItems[I].SaveToStream(SaveProperties, NodeNames, Encoding);
+              FileItems[I].SaveToStream(Writer, NodeNames, Encoding);
             sxChildElement: HasContent := true;
           end;
-        SaveProperties.DecIndent;
+        Writer.DecIndent;
 
         if HasContent then
         begin
-          SaveProperties.Writeln('>');
-          SaveProperties.IncIndent;
+          Writer.Writeln('>');
+          Writer.IncIndent;
 
           for I := 0 to FileItems.Count - 1 do
             if FileItems[I].SaveToXml = sxChildElement then
-              FileItems[I].SaveToStream(SaveProperties, NodeNames, Encoding);
+              FileItems[I].SaveToStream(Writer, NodeNames, Encoding);
 
-          SaveProperties.DecIndent;
-          SaveProperties.WritelnIndent('</' + NodeTypeName + '>');
+          Writer.DecIndent;
+          Writer.WritelnIndent('</' + NodeTypeName + '>');
         end else
-          SaveProperties.Writeln(' />');
+          Writer.Writeln(' />');
       finally FreeAndNil(FileItems) end;
 
       (NodeNames as TVRMLNodeNames).Bind(Self, true);
@@ -2562,9 +2562,9 @@ begin
      not (Self is TVRMLPrototypeNode) then
   begin
     { TODO: savexml use <ProtoInstance> }
-    { If this is an expanded prototype, than delegate writing to the
+    { If this is an expanded prototype, then delegate writing to the
       PrototypeInstanceSourceNode. }
-    PrototypeInstanceSourceNode.SaveToStream(SaveProperties, NodeNames, Encoding);
+    PrototypeInstanceSourceNode.SaveToStream(Writer, NodeNames, Encoding);
 
     { What to do about
         NodeNames.Bind(Self)

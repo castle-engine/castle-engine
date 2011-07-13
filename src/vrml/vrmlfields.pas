@@ -32,7 +32,7 @@ type
 
   TVRMLEvent = class;
 
-  TVRMLSaveToStreamProperties = class
+  TX3DWriter = class
   private
     Indent: string;
     DoDiscardNextIndent: boolean;
@@ -49,8 +49,7 @@ type
     procedure IncIndent;
     procedure DecIndent;
 
-    { Just a comfortable routines that simply write given string to a stream,
-      using WriteStr(Stream, ...).
+    { Comfortable routines that simply write given string to a stream.
       @groupBegin }
     procedure Write(const S: string);
     procedure Writeln(const S: string); overload;
@@ -59,7 +58,7 @@ type
     procedure WritelnIndent(const S: string);
     { @groupEnd }
 
-    { Causes next WriteIndent or WritelnIndent will not write the Indent.
+    { Causes next WriteIndent or WritelnIndent too not write the Indent.
       Useful in some cases to improve readability of generated VRML file. }
     procedure DiscardNextIndent;
   end;
@@ -357,7 +356,7 @@ type
       read FPositionInParent write FPositionInParent default -1;
 
     { Save to stream. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); virtual; abstract;
 
     { How is this saved to X3D XML encoding. This determines when
@@ -375,7 +374,7 @@ type
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding);
     procedure Add(Item: TVRMLFileItem);
   end;
@@ -478,7 +477,7 @@ type
       In almost all cases, this simply returns current Name.
       But it can also return a name added by AddAlternativeName method. }
     function NameForVersion(Version: TVRMLVersion): string; overload;
-    function NameForVersion(SaveProperties: TVRMLSaveToStreamProperties): string; overload;
+    function NameForVersion(Writer: TX3DWriter): string; overload;
 
     { For fields contained in TVRMLInterfaceDeclaration.
 
@@ -560,7 +559,7 @@ type
       we will not call SaveToStreamValue. So when overriding
       SaveToStreamValue, you can safely assume that ValueFromIsClause
       is @false. }
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); virtual; abstract;
 
     { Call this inside overriden Assign methods.
@@ -682,7 +681,7 @@ type
       NodeNames has the same meaning as for
       TVRMLNode.SaveToStream, see there. It is ignored, and may be @nil,
       for all TVRMLField descendants except TSFNode and TMFNode. }
-    procedure FieldSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure FieldSaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding;
       FieldSaveWhenDefault: boolean = false;
       AllowSavingFieldValue: boolean = true;
@@ -690,13 +689,13 @@ type
 
     { Save the field to the stream.
 
-      This simply calls FieldSaveToStream(SaveProperties),
+      This simply calls FieldSaveToStream(Writer),
       so it doesn't actually save anything if field value is defined
       and equals default value.
 
       See FieldSaveToStream for more comments and when you need control over
       FieldSaveWhenDefault behavior. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
     function SaveToXml: TSaveToXmlMethod; override;
 
@@ -1053,7 +1052,7 @@ type
     { SaveToStreamValue overriden for MF fields. This class handles
       SaveToStreamValue fully, no need to override it again in
       descendants. }
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { RawItemToString(i) must change RawItems[i] into a string that can be used to
@@ -1124,7 +1123,7 @@ type
     procedure SetFlags(i: integer; value: boolean);
     function GetFlagNames(i: integer): string;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     { Value of this field. You can use Index from the range 0 .. FlagsCount - 1. }
@@ -1174,7 +1173,7 @@ type
 
   TSFBool = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1211,7 +1210,7 @@ type
     fEnumNames: TStringList;
     function GetEnumNames(i: integer): string;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1247,7 +1246,7 @@ type
     FValue: Single;
     procedure SetValue(const AValue: Single);
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1292,7 +1291,7 @@ type
     FValue: Double;
     procedure SetValue(const AValue: Double);
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1328,7 +1327,7 @@ type
 
   TSFImage = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
 
@@ -1372,7 +1371,7 @@ type
     FValue: Longint;
     procedure SetValue(const AValue: Longint);
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1417,7 +1416,7 @@ type
     DefaultValue: TMatrix3Single;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1449,7 +1448,7 @@ type
     DefaultValue: TMatrix3Double;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1481,7 +1480,7 @@ type
     DefaultValue: TMatrix4Single;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1528,7 +1527,7 @@ type
     DefaultValue: TMatrix4Double;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1560,7 +1559,7 @@ type
     DefaultRotationRad: Single;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
     function GetValue: TVector4Single;
     procedure SetValue(const AValue: TVector4Single);
@@ -1613,7 +1612,7 @@ type
 
   TSFString = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1646,7 +1645,7 @@ type
 
   TSFVec2f = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1678,7 +1677,7 @@ type
 
   TSFVec3f = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1716,7 +1715,7 @@ type
 
   TSFVec4f = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1754,7 +1753,7 @@ type
 
   TSFVec2d = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1786,7 +1785,7 @@ type
 
   TSFVec3d = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -1818,7 +1817,7 @@ type
 
   TSFVec4d = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     constructor Create(AParentNode: TVRMLFileItem;
@@ -2518,7 +2517,7 @@ type
     procedure SetItemsSafe(Index: Integer; const Value: string);
   protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TObject; const Encoding: TX3DEncoding); override;
+    procedure SaveToStreamValue(Writer: TX3DWriter; NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     property Items: TDynStringArray read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2637,24 +2636,24 @@ uses Math, VRMLErrors, VRMLNodes, KambiXMLUtils;
 
 {$I vrmlevents.inc}
 
-{ TVRMLSaveToStreamProperties ------------------------------------------------ }
+{ TX3DWriter ------------------------------------------------ }
 
 const
   { IndentIncrement is string or char. It's used by SaveToStream }
   IndentIncrement = CharTab;
 
-constructor TVRMLSaveToStreamProperties.Create(AStream: TStream);
+constructor TX3DWriter.Create(AStream: TStream);
 begin
   inherited Create;
   Stream := AStream;
 end;
 
-destructor TVRMLSaveToStreamProperties.Destroy;
+destructor TX3DWriter.Destroy;
 begin
   inherited;
 end;
 
-procedure TVRMLSaveToStreamProperties.IncIndent;
+procedure TX3DWriter.IncIndent;
 var
   L: Integer;
 begin
@@ -2663,28 +2662,28 @@ begin
   Indent[L] := IndentIncrement;
 end;
 
-procedure TVRMLSaveToStreamProperties.DecIndent;
+procedure TX3DWriter.DecIndent;
 begin
   SetLength(Indent, Length(Indent) - 1);
 end;
 
-procedure TVRMLSaveToStreamProperties.Write(const S: string);
+procedure TX3DWriter.Write(const S: string);
 begin
   WriteStr(Stream, S);
 end;
 
-procedure TVRMLSaveToStreamProperties.Writeln(const S: string);
+procedure TX3DWriter.Writeln(const S: string);
 begin
   WriteStr(Stream, S);
   WriteStr(Stream, NL);
 end;
 
-procedure TVRMLSaveToStreamProperties.Writeln;
+procedure TX3DWriter.Writeln;
 begin
   WriteStr(Stream, NL);
 end;
 
-procedure TVRMLSaveToStreamProperties.WriteIndent(const S: string);
+procedure TX3DWriter.WriteIndent(const S: string);
 begin
   if DoDiscardNextIndent then
     DoDiscardNextIndent := false else
@@ -2692,13 +2691,13 @@ begin
   WriteStr(Stream, S);
 end;
 
-procedure TVRMLSaveToStreamProperties.WritelnIndent(const S: string);
+procedure TX3DWriter.WritelnIndent(const S: string);
 begin
   WriteIndent(S);
   WriteStr(Stream, NL);
 end;
 
-procedure TVRMLSaveToStreamProperties.DiscardNextIndent;
+procedure TX3DWriter.DiscardNextIndent;
 begin
   DoDiscardNextIndent := true;
 end;
@@ -2732,14 +2731,14 @@ begin
   Sort(@IsSmallerPositionInParent);
 end;
 
-procedure TVRMLFileItemsList.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLFileItemsList.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   I: Integer;
 begin
   SortPositionInParent;
   for I := 0 to Count - 1 do
-    Items[I].SaveToStream(SaveProperties, NodeNames, Encoding);
+    Items[I].SaveToStream(Writer, NodeNames, Encoding);
 end;
 
 procedure TVRMLFileItemsList.Add(Item: TVRMLFileItem);
@@ -2810,9 +2809,9 @@ begin
 end;
 
 function TVRMLFieldOrEvent.NameForVersion(
-  SaveProperties: TVRMLSaveToStreamProperties): string;
+  Writer: TX3DWriter): string;
 begin
-  Result := NameForVersion(SaveProperties.Version);
+  Result := NameForVersion(Writer.Version);
 end;
 
 procedure TVRMLFieldOrEvent.FieldOrEventAssignCommon(Source: TVRMLFieldOrEvent);
@@ -3014,14 +3013,14 @@ begin
   end;
 end;
 
-procedure TVRMLField.FieldSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLField.FieldSaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding;
   FieldSaveWhenDefault, AllowSavingFieldValue, XmlAvoidSavingNameBeforeValue: boolean);
 var
   N: string;
   I: Integer;
 begin
-  N := NameForVersion(SaveProperties);
+  N := NameForVersion(Writer);
 
   { Actually, when N = '', we assume that field has only one "IS" clause
     or simple value. }
@@ -3030,8 +3029,8 @@ begin
   begin
     { TODO: savexml }
     if N <> '' then
-      SaveProperties.WriteIndent(N + ' ');
-    SaveProperties.Writeln('IS ' + IsClauseNames.Items[I]);
+      Writer.WriteIndent(N + ' ');
+    Writer.Writeln('IS ' + IsClauseNames.Items[I]);
   end;
 
   if AllowSavingFieldValue and
@@ -3041,9 +3040,9 @@ begin
     xeClassic:
       begin
         if N <> '' then
-          SaveProperties.WriteIndent(N + ' ');
-        SaveToStreamValue(SaveProperties, NodeNames, Encoding);
-        SaveProperties.Writeln;
+          Writer.WriteIndent(N + ' ');
+        SaveToStreamValue(Writer, NodeNames, Encoding);
+        Writer.Writeln;
       end;
     xeXML:
       { for xml encoding, field must be named, unless explicitly not wanted by XmlAvoidSavingNameBeforeValue }
@@ -3052,23 +3051,23 @@ begin
         if (SaveToXml in [sxAttribute, sxAttributeCustomQuotes]) and
            (not XmlAvoidSavingNameBeforeValue) then
         begin
-          SaveProperties.Writeln;
-          SaveProperties.WriteIndent(N + '=');
+          Writer.Writeln;
+          Writer.WriteIndent(N + '=');
         end;
         if SaveToXml = sxAttribute then
-          SaveProperties.Write('"');
-        SaveToStreamValue(SaveProperties, NodeNames, Encoding);
+          Writer.Write('"');
+        SaveToStreamValue(Writer, NodeNames, Encoding);
         if SaveToXml = sxAttribute then
-          SaveProperties.Write('"');
+          Writer.Write('"');
       end;
     else raise EInternalError.Create('TVRMLField.FieldSaveToStream Encoding?');
   end;
 end;
 
-procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLField.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  FieldSaveToStream(SaveProperties, NodeNames, Encoding);
+  FieldSaveToStream(Writer, NodeNames, Encoding);
 end;
 
 function TVRMLField.SaveToXml: TSaveToXmlMethod;
@@ -3415,7 +3414,7 @@ begin
   end;
 end;
 
-procedure TVRMLSimpleMultField.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLSimpleMultField.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   i: integer;
@@ -3428,12 +3427,12 @@ begin
         value. But for aesthetics, i.e. more clear output for humans,
         I handle the RawItems.Count = 0 and 1 cases separately. }
       case RawItems.Count of
-        0: SaveProperties.Write('[]');
-        1: SaveProperties.Write(RawItemToString(0, Encoding));
+        0: Writer.Write('[]');
+        1: Writer.Write(RawItemToString(0, Encoding));
         else
           begin
-            SaveProperties.Writeln('[');
-            SaveProperties.IncIndent;
+            Writer.Writeln('[');
+            Writer.IncIndent;
 
             { For really long fields, writing indentation before each item
               can cost a significant disk space. So do not indent when
@@ -3443,26 +3442,26 @@ begin
             WriteIndentNextTime := IndentMultiValueFields;
             for i := 0 to RawItems.Count-1 do
             begin
-              if WriteIndentNextTime then SaveProperties.WriteIndent('');
-              SaveProperties.Write(RawItemToString(i, Encoding) +',');
+              if WriteIndentNextTime then Writer.WriteIndent('');
+              Writer.Write(RawItemToString(i, Encoding) +',');
               { After the last item we always write newline,
                 no matter what's SaveToStreamDoNewLineAfterRawItem }
               if (i = RawItems.Count - 1) or
                  SaveToStreamDoNewLineAfterRawItem(i) then
-                begin SaveProperties.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
-                begin SaveProperties.Write(' '); WriteIndentNextTime := false; end;
+                begin Writer.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
+                begin Writer.Write(' '); WriteIndentNextTime := false; end;
             end;
 
-            SaveProperties.DecIndent;
-            SaveProperties.WritelnIndent(']');
+            Writer.DecIndent;
+            Writer.WritelnIndent(']');
           end;
       end;
     xeXML:
       for I := 0 to RawItems.Count - 1 do
       begin
-        SaveProperties.Write(RawItemToString(I, Encoding));
+        Writer.Write(RawItemToString(I, Encoding));
         if I <> RawItems.Count - 1 then
-          SaveProperties.Write(' ');
+          Writer.Write(' ');
       end;
     else raise EInternalError.Create('TVRMLSimpleMultField.SaveToStreamValue Encoding?');
   end;
@@ -3580,10 +3579,10 @@ const
   BoolKeywords: array [TX3DEncoding, boolean] of string =
   ( ('FALSE', 'TRUE'), ('false', 'true') );
 
-procedure TSFBool.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFBool.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  SaveProperties.Write(BoolKeywords[Encoding, Value]);
+  Writer.Write(BoolKeywords[Encoding, Value]);
 end;
 
 function TSFBool.EqualsDefaultValue: boolean;
@@ -3679,10 +3678,10 @@ begin
   Value := ParseFloat(Lexer);
 end;
 
-procedure TSFFloat.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFFloat.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  SaveProperties.Write(FloatToRawStr(Value));
+  Writer.Write(FloatToRawStr(Value));
 end;
 
 function TSFFloat.EqualsDefaultValue: boolean;
@@ -3781,10 +3780,10 @@ begin
   Value := ParseFloat(Lexer);
 end;
 
-procedure TSFDouble.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFDouble.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  SaveProperties.Write(FloatToRawStr(Value));
+  Writer.Write(FloatToRawStr(Value));
 end;
 
 function TSFDouble.EqualsDefaultValue: boolean;
@@ -4027,7 +4026,7 @@ begin
   end;
 end;
 
-procedure TSFImage.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFImage.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   ga: TVector2Byte;
@@ -4037,19 +4036,19 @@ var
   pixel: LongWord;
 begin
   if Value.IsNull then
-    SaveProperties.Write('0 0 1') else
+    Writer.Write('0 0 1') else
   begin
-    SaveProperties.Writeln(Format('%d %d %d', [Value.Width, Value.Height,
+    Writer.Writeln(Format('%d %d %d', [Value.Width, Value.Height,
       Value.ColorComponentsCount]));
-    SaveProperties.IncIndent;
-    SaveProperties.WriteIndent('');
+    Writer.IncIndent;
+    Writer.WriteIndent('');
     {$I NoRQCheckBegin.inc}
     if Value is TGrayscaleImage then
     begin
       for i := 0 to Value.Width*Value.Height-1 do
       begin
         pixel := TGrayscaleImage(Value).GrayscalePixels[i];
-        SaveProperties.Write(Format('0x%.2x ', [pixel]));
+        Writer.Write(Format('0x%.2x ', [pixel]));
       end;
     end else
     if Value is TGrayscaleAlphaImage then
@@ -4058,7 +4057,7 @@ begin
       begin
         ga := TGrayscaleAlphaImage(Value).GrayscaleAlphaPixels[i];
         pixel := (ga[0] shl 8) or ga[1];
-        SaveProperties.Write(Format('0x%.4x ', [pixel]));
+        Writer.Write(Format('0x%.4x ', [pixel]));
       end;
     end else
     if Value is TRGBImage then
@@ -4067,7 +4066,7 @@ begin
       begin
         rgb := TRGBImage(Value).RGBPixels[i];
         pixel := (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2];
-        SaveProperties.Write(Format('0x%.6x ', [pixel]));
+        Writer.Write(Format('0x%.6x ', [pixel]));
       end;
     end else
     if Value is TRGBAlphaImage then
@@ -4076,12 +4075,12 @@ begin
       begin
         rgba := TRGBAlphaImage(Value).AlphaPixels[i];
         pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
-        SaveProperties.Write(Format('0x%.8x ', [pixel]));
+        Writer.Write(Format('0x%.8x ', [pixel]));
       end;
     end else
       raise Exception.Create('TSFImage.SaveToStreamValue - not implemented TImage descendant');
     {$I NoRQCheckEnd.inc}
-    SaveProperties.DecIndent;
+    Writer.DecIndent;
   end;
 end;
 
@@ -4165,10 +4164,10 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFLong.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFLong.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  SaveProperties.Write(IntToStr(Value));
+  Writer.Write(IntToStr(Value));
 end;
 
 function TSFLong.EqualsDefaultValue: boolean;
@@ -4275,17 +4274,17 @@ begin
     ParseVector(FValue[Column], Lexer);
 end;
 
-procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSF_CLASS.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   Column: integer;
 begin
-  SaveProperties.Writeln(VectorToRawStr(FValue[0]));
+  Writer.Writeln(VectorToRawStr(FValue[0]));
 
-  SaveProperties.IncIndent;
+  Writer.IncIndent;
   for Column := 1 to TSF_MATRIX_COLS - 1 do
-    SaveProperties.WritelnIndent(VectorToRawStr(FValue[Column]));
-  SaveProperties.DecIndent;
+    Writer.WritelnIndent(VectorToRawStr(FValue[Column]));
+  Writer.DecIndent;
 end;
 
 function TSF_CLASS.Equals(SecondValue: TVRMLField;
@@ -4508,10 +4507,10 @@ begin
  RotationRad := DegToRad(AValue[3]);
 end;
 
-procedure TSFRotation.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFRotation.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  SaveProperties.Write(VectorToRawStr(Axis) +' ' +FloatToRawStr(RotationRad));
+  Writer.Write(VectorToRawStr(Axis) +' ' +FloatToRawStr(RotationRad));
 end;
 
 function TSFRotation.RotatedPoint(const pt: TVector3Single): TVector3Single;
@@ -4624,12 +4623,12 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFString.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFString.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   case Encoding of
-    xeClassic: SaveProperties.Write(StringToX3DClassic(Value));
-    xeXML    : SaveProperties.Write(StringToX3DXml(Value));
+    xeClassic: Writer.Write(StringToX3DClassic(Value));
+    xeXML    : Writer.Write(StringToX3DXml(Value));
     else raise EInternalError.Create('TSFString.SaveToStreamValue Encoding?');
   end;
 end;
@@ -4742,10 +4741,10 @@ begin
   ParseVector(Value, Lexer);
 end;
 
-procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSF_CLASS.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  SaveProperties.Write(VectorToRawStr(Value));
+  Writer.Write(VectorToRawStr(Value));
 end;
 
 function TSF_CLASS.EqualsDefaultValue: boolean;
@@ -5015,7 +5014,7 @@ begin
   exit(true);
 end;
 
-procedure TSFBitMask.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFBitMask.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   i: integer;
@@ -5024,22 +5023,22 @@ begin
   { This is an VRML 1.0 (and Inventor) type. The existing specs only say
     how to encode it for classic encoding. For XML, we just use the same format. }
   if AreAllFlags(false) then
-    SaveProperties.Write(NoneString) else
+    Writer.Write(NoneString) else
   begin
     { We don't really need AllString to express that all bit are set
       (we could as well just name them all), but it looks nicer. }
     if (AllString <> '') and AreAllFlags(true) then
-      SaveProperties.Write(AllString) else
+      Writer.Write(AllString) else
     begin
       PrecedeWithBar := false;
-      SaveProperties.Write('(');
+      Writer.Write('(');
       for i := 0 to FlagsCount-1 do
         if Flags[i] then
         begin
-          if PrecedeWithBar then SaveProperties.Write('|') else PrecedeWithBar := true;
-          SaveProperties.Write(FlagNames[i]);
+          if PrecedeWithBar then Writer.Write('|') else PrecedeWithBar := true;
+          Writer.Write(FlagNames[i]);
         end;
-      SaveProperties.Write(')');
+      Writer.Write(')');
     end;
   end;
 end;
@@ -5125,10 +5124,10 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFEnum.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFEnum.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  SaveProperties.Write(EnumNames[Value]);
+  Writer.Write(EnumNames[Value]);
 end;
 
 function TSFEnum.EqualsDefaultValue: boolean;
@@ -5952,13 +5951,13 @@ begin
   Result := sxAttributeCustomQuotes;
 end;
 
-procedure TMFString.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TMFString.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   { MFString in XML encoding is surrounded by single quotes }
-  if Encoding = xeXML then SaveProperties.Write('''');
+  if Encoding = xeXML then Writer.Write('''');
   inherited;
-  if Encoding = xeXML then SaveProperties.Write('''');
+  if Encoding = xeXML then Writer.Write('''');
 end;
 
 { TVRMLFieldsManager --------------------------------------------------------- }

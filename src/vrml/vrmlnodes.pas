@@ -815,7 +815,7 @@ type
     procedure SetDefaultValue(ADefaultValue: TVRMLNode);
     procedure SetDefaultValueExists(AValue: boolean);
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
   public
     { Construct a field allowing any children class.
@@ -940,7 +940,7 @@ type
     AllowedChildrenInterface: TGUID;
     function GetItems(const Index: Integer): TVRMLNode;
   protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStreamValue(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
     { Get or set the number of items.
 
@@ -1239,16 +1239,16 @@ type
         Otherwise, field's value will not be saved, only IS clause
         if present.)
     }
-    procedure IDeclSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure IDeclSaveToStream(Writer: TX3DWriter;
       NodeNames: TVRMLNodeNames; const Encoding: TX3DEncoding; FieldValue: boolean);
 
     { Save this interface declaration to stream.
 
       Saves with field value, just by calling
-      IDeclSaveToStream(SaveProperties, NodeNames, true).
+      IDeclSaveToStream(Writer, NodeNames, true).
 
       @seealso IDeclSaveToStream }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { Returns access type, corresponding to current @link(Event)
@@ -1460,7 +1460,7 @@ type
     { Saves interface declarations of the prototype.
       For classic encoding, they are already enclosed in [ ]. }
     procedure SaveInterfaceDeclarationsToStream(
-      SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
+      Writer: TX3DWriter; NodeNames: TVRMLNodeNames;
       const Encoding: TX3DEncoding; ExternalProto: boolean);
   public
     constructor Create;
@@ -1494,7 +1494,7 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { These are actual prototype contents: all nodes, prototypes, routes
@@ -1534,7 +1534,7 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     property ReferencedPrototype: TVRMLPrototype read FReferencedPrototype;
@@ -1682,9 +1682,9 @@ type
       This can happen when SourceNode or SourceEvent
       or DestinationNode or DestinationEvent are @nil.
       Also, if SourceNode and DestinationNode are without a name,
-      or the name is not currently bound in SaveProperties.NodeNames.
+      or the name is not currently bound in Writer.NodeNames.
     }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { Clear the memory when the last event passed through this route.
@@ -1727,7 +1727,7 @@ type
       Given Element here must have TagName = 'IMPORT'. }
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
 
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLImport;
   end;
@@ -1742,7 +1742,7 @@ type
       Given Element here must have TagName = 'EXPORT'. }
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
 
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLExport;
   end;
@@ -3084,7 +3084,7 @@ begin
   finally FreeAndNil(I) end;
 end;
 
-procedure TSFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TSFNode.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   if Value = nil then
@@ -3093,15 +3093,15 @@ begin
       Also, there's no way to specify containerField for NULL value
       --- and that's Ok, since NULL is the default value of all SFNode fields,
       so it's never actually written in normal cases. }
-    SaveProperties.Write('NULL') else
+    Writer.Write('NULL') else
   begin
     { TVRMLNode.SaveToStream normally starts from new line with an indent.
       In this case, we want it to start on the same line, so indent must
       be discarded. }
     if Encoding = xeClassic then
-      SaveProperties.DiscardNextIndent;
+      Writer.DiscardNextIndent;
 
-    Value.SaveToStream(SaveProperties, NodeNames, Encoding);
+    Value.SaveToStream(Writer, NodeNames, Encoding);
   end;
 end;
 
@@ -3268,7 +3268,7 @@ begin
   inherited;
 end;
 
-procedure TMFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TMFNode.SaveToStreamValue(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   I: Integer;
@@ -3278,26 +3278,26 @@ begin
       { We code Count = 0 and Count = 1 cases separately just to get a more
         compact look in these common situations. }
       if Count = 0 then
-        SaveProperties.Write('[]') else
+        Writer.Write('[]') else
       if Count = 1 then
       begin
         { TVRMLNode.SaveToStream normally starts from new line with an indent...
           In this case, we want it to start on the same line, so indent must
           be discarded. }
-        SaveProperties.DiscardNextIndent;
-        Items[0].SaveToStream(SaveProperties, NodeNames, Encoding);
+        Writer.DiscardNextIndent;
+        Items[0].SaveToStream(Writer, NodeNames, Encoding);
       end else
       begin
-        SaveProperties.Writeln('[');
-        SaveProperties.IncIndent;
+        Writer.Writeln('[');
+        Writer.IncIndent;
         for I := 0 to Count - 1 do
-          Items[I].SaveToStream(SaveProperties, NodeNames, Encoding);
-        SaveProperties.DecIndent;
-        SaveProperties.WriteIndent(']');
+          Items[I].SaveToStream(Writer, NodeNames, Encoding);
+        Writer.DecIndent;
+        Writer.WriteIndent(']');
       end;
     xeXML:
       for I := 0 to Count - 1 do
-        Items[I].SaveToStream(SaveProperties, NodeNames, Encoding);
+        Items[I].SaveToStream(Writer, NodeNames, Encoding);
     else raise EInternalError.Create('TMFNode.SaveToStreamValue Encoding?');
   end;
 end;
@@ -3903,7 +3903,7 @@ begin
 end;
 
 procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
-  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
+  Writer: TX3DWriter; NodeNames: TVRMLNodeNames;
   const Encoding: TX3DEncoding; FieldValue: boolean);
 
   function ATName(const AccessType: TVRMLAccessType): string;
@@ -3914,7 +3914,7 @@ procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
       ( ('eventIn', 'eventOut', 'field', 'exposedField'),
         ('inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput') );
   begin
-    Result := Names[(Encoding = xeXML) or (SaveProperties.Version.Major >= 3),
+    Result := Names[(Encoding = xeXML) or (Writer.Version.Major >= 3),
       AccessType];
   end;
 
@@ -3923,20 +3923,20 @@ begin
   begin
     { TODO: savexml }
     if Event.InEvent then
-      SaveProperties.WriteIndent(ATName(atInputOnly) + ' ') else
-      SaveProperties.WriteIndent(ATName(atOutputOnly) + ' ');
-    SaveProperties.Write(Event.FieldClass.VRMLTypeName + ' ');
-    SaveProperties.DiscardNextIndent;
-    Event.EventSaveToStream(SaveProperties, Encoding, true);
+      Writer.WriteIndent(ATName(atInputOnly) + ' ') else
+      Writer.WriteIndent(ATName(atOutputOnly) + ' ');
+    Writer.Write(Event.FieldClass.VRMLTypeName + ' ');
+    Writer.DiscardNextIndent;
+    Event.EventSaveToStream(Writer, Encoding, true);
   end else
   begin
     case Encoding of
       xeClassic:
         begin
           if Field.Exposed then
-            SaveProperties.WriteIndent(ATName(atInputOutput) + ' ') else
-            SaveProperties.WriteIndent(ATName(atInitializeOnly) + ' ');
-          SaveProperties.Write(Field.VRMLTypeName + ' ');
+            Writer.WriteIndent(ATName(atInputOutput) + ' ') else
+            Writer.WriteIndent(ATName(atInitializeOnly) + ' ');
+          Writer.Write(Field.VRMLTypeName + ' ');
 
           { When saving from interface declaration, you can only
             1. write sole field name
@@ -3950,26 +3950,26 @@ begin
             { Field.SaveToStream normally starts from new line with an indent...
               In this case, we want it to start on the same line, so indent must
               be discarded. }
-            SaveProperties.DiscardNextIndent;
-            Field.FieldSaveToStream(SaveProperties, NodeNames, Encoding, true, true);
-            { In this case, SaveProperties.Writeln will be done by Field.SaveToStream.
+            Writer.DiscardNextIndent;
+            Field.FieldSaveToStream(Writer, NodeNames, Encoding, true, true);
+            { In this case, Writer.Writeln will be done by Field.SaveToStream.
               (we pass SaveWhenDefault anyway, so we can be sure that
               this newline will be done). }
           end else
 
           if Field.IsClauseNames.Count = 1 then
           begin
-            SaveProperties.DiscardNextIndent;
-            Field.FieldSaveToStream(SaveProperties, NodeNames, Encoding, true, false);
+            Writer.DiscardNextIndent;
+            Field.FieldSaveToStream(Writer, NodeNames, Encoding, true, false);
           end else
 
           begin
-            SaveProperties.Writeln(Field.Name);
+            Writer.Writeln(Field.Name);
           end;
         end;
       xeXML:
         begin
-          SaveProperties.WriteIndent(Format('<field accessType=%s type=%s name=%s',
+          Writer.WriteIndent(Format('<field accessType=%s type=%s name=%s',
             [ Iff(Field.Exposed,
                 StringToX3DXml(ATName(atInputOutput)),
                 StringToX3DXml(ATName(atInitializeOnly))),
@@ -3985,24 +3985,24 @@ begin
           begin
             if Field.SaveToXml in [sxAttribute, sxAttributeCustomQuotes] then
             begin
-              SaveProperties.Write(' value=');
-              Field.FieldSaveToStream(SaveProperties, NodeNames, Encoding, true, true, true);
-              SaveProperties.Writeln(' />');
+              Writer.Write(' value=');
+              Field.FieldSaveToStream(Writer, NodeNames, Encoding, true, true, true);
+              Writer.Writeln(' />');
             end else
             begin
-              SaveProperties.Writeln('>');
+              Writer.Writeln('>');
               { Parameter XmlAvoidSavingNameBeforeValue doesn't matter here }
-              Field.FieldSaveToStream(SaveProperties, NodeNames, Encoding, true, true);
-              SaveProperties.WritelnIndent('</field>');
+              Field.FieldSaveToStream(Writer, NodeNames, Encoding, true, true);
+              Writer.WritelnIndent('</field>');
             end;
           end else
           if Field.IsClauseNames.Count = 1 then
           begin
-            SaveProperties.Writeln('>');
+            Writer.Writeln('>');
             { Parameter XmlAvoidSavingNameBeforeValue doesn't matter here }
             { TODO: savexml }
-            Field.FieldSaveToStream(SaveProperties, NodeNames, Encoding, true, false);
-            SaveProperties.WritelnIndent('</field>');
+            Field.FieldSaveToStream(Writer, NodeNames, Encoding, true, false);
+            Writer.WritelnIndent('</field>');
           end;
         end;
 
@@ -4011,10 +4011,10 @@ begin
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLInterfaceDeclaration.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  IDeclSaveToStream(SaveProperties, NodeNames as TVRMLNodeNames, Encoding, true);
+  IDeclSaveToStream(Writer, NodeNames as TVRMLNodeNames, Encoding, true);
 end;
 
 function TVRMLInterfaceDeclaration.AccessType: TVRMLAccessType;
@@ -4646,20 +4646,20 @@ begin
 end;
 
 procedure TVRMLPrototypeBase.SaveInterfaceDeclarationsToStream(
-  SaveProperties: TVRMLSaveToStreamProperties; NodeNames: TVRMLNodeNames;
+  Writer: TX3DWriter; NodeNames: TVRMLNodeNames;
   const Encoding: TX3DEncoding; ExternalProto: boolean);
 var
   I: Integer;
 begin
-  if Encoding = xeClassic then SaveProperties.Writeln('[');
-  SaveProperties.IncIndent;
+  if Encoding = xeClassic then Writer.Writeln('[');
+  Writer.IncIndent;
   for I := 0 to InterfaceDeclarations.Count - 1 do
   begin
     InterfaceDeclarations.Items[I].IDeclSaveToStream(
-      SaveProperties, NodeNames, Encoding, not ExternalProto);
+      Writer, NodeNames, Encoding, not ExternalProto);
   end;
-  SaveProperties.DecIndent;
-  if Encoding = xeClassic then SaveProperties.WritelnIndent(']');
+  Writer.DecIndent;
+  if Encoding = xeClassic then Writer.WritelnIndent(']');
 end;
 
 { TVRMLPrototype ------------------------------------------------------------- }
@@ -4756,31 +4756,31 @@ begin
   Names.Prototypes.Bind(Self);
 end;
 
-procedure TVRMLPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLPrototype.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   OldNodeNames: TVRMLNodeNames;
 begin
   case Encoding of
-    xeClassic: SaveProperties.WriteIndent('PROTO ' + Name + ' ');
-    xeXML    : SaveProperties.WritelnIndent('<ProtoDeclare name=' + StringToX3DXml(Name) + '>');
+    xeClassic: Writer.WriteIndent('PROTO ' + Name + ' ');
+    xeXML    : Writer.WritelnIndent('<ProtoDeclare name=' + StringToX3DXml(Name) + '>');
     else raise EInternalError.Create('TVRMLPrototype.SaveToStream Encoding?');
   end;
 
   if Encoding = xeXML then
   begin
-    SaveProperties.IncIndent;
-    SaveProperties.WritelnIndent('<ProtoInterface>');
-    SaveProperties.IncIndent;
+    Writer.IncIndent;
+    Writer.WritelnIndent('<ProtoInterface>');
+    Writer.IncIndent;
   end;
 
-  SaveInterfaceDeclarationsToStream(SaveProperties, NodeNames as TVRMLNodeNames,
+  SaveInterfaceDeclarationsToStream(Writer, NodeNames as TVRMLNodeNames,
     Encoding, false);
 
   if Encoding = xeXML then
   begin
-    SaveProperties.DecIndent;
-    SaveProperties.WritelnIndent('</ProtoInterface>');
+    Writer.DecIndent;
+    Writer.WritelnIndent('</ProtoInterface>');
   end;
 
   { Inside prototype has it's own DEF/USE scope. }
@@ -4788,18 +4788,18 @@ begin
   NodeNames := TVRMLNodeNames.Create(false);
   try
     case Encoding of
-      xeClassic: SaveProperties.WritelnIndent('{');
-      xeXML    : SaveProperties.WritelnIndent('<ProtoBody>');
+      xeClassic: Writer.WritelnIndent('{');
+      xeXML    : Writer.WritelnIndent('<ProtoBody>');
       else raise EInternalError.Create('TVRMLPrototype.SaveToStream 2 Encoding?');
     end;
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
-    SaveProperties.IncIndent;
-    Node.SaveToStream(SaveProperties, NodeNames, Encoding);
-    SaveProperties.DecIndent;
+    Writer.IncIndent;
+    Node.SaveToStream(Writer, NodeNames, Encoding);
+    Writer.DecIndent;
     case Encoding of
-      xeClassic: SaveProperties.WritelnIndent('}');
-      xeXML    : SaveProperties.WritelnIndent('</ProtoBody>');
+      xeClassic: Writer.WritelnIndent('}');
+      xeXML    : Writer.WritelnIndent('</ProtoBody>');
       else raise EInternalError.Create('TVRMLPrototype.SaveToStream 3 Encoding?');
     end;
   finally
@@ -4809,8 +4809,8 @@ begin
 
   if Encoding = xeXML then
   begin
-    SaveProperties.DecIndent;
-    SaveProperties.WritelnIndent('</ProtoDeclare>');
+    Writer.DecIndent;
+    Writer.WritelnIndent('</ProtoDeclare>');
   end;
 end;
 
@@ -4869,33 +4869,33 @@ begin
   LoadReferenced;
 end;
 
-procedure TVRMLExternalPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLExternalPrototype.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   case Encoding of
     xeClassic:
       begin
-        SaveProperties.WriteIndent('EXTERNPROTO ' + Name + ' ');
+        Writer.WriteIndent('EXTERNPROTO ' + Name + ' ');
 
-        SaveInterfaceDeclarationsToStream(SaveProperties,
+        SaveInterfaceDeclarationsToStream(Writer,
           NodeNames as TVRMLNodeNames, Encoding, true);
 
-        { SaveProperties.NodeNames will be ignored by URLList
+        { Writer.NodeNames will be ignored by URLList
           (TMFString.SaveToStream), don't worry about it. }
-        URLList.SaveToStream(SaveProperties, NodeNames, Encoding);
+        URLList.SaveToStream(Writer, NodeNames, Encoding);
       end;
     xeXML:
       begin
-        SaveProperties.WriteIndent('<ExternProto name=' + StringToX3DXml(Name) + ' url=');
-        URLList.FieldSaveToStream(SaveProperties, NodeNames, Encoding, true, true, true);
-        SaveProperties.Writeln('>');
+        Writer.WriteIndent('<ExternProto name=' + StringToX3DXml(Name) + ' url=');
+        URLList.FieldSaveToStream(Writer, NodeNames, Encoding, true, true, true);
+        Writer.Writeln('>');
 
-        SaveProperties.IncIndent;
-        SaveInterfaceDeclarationsToStream(SaveProperties,
+        Writer.IncIndent;
+        SaveInterfaceDeclarationsToStream(Writer,
           NodeNames as TVRMLNodeNames, Encoding, true);
-        SaveProperties.DecIndent;
+        Writer.DecIndent;
 
-        SaveProperties.WritelnIndent('</ExternProtoDeclare>');
+        Writer.WritelnIndent('</ExternProtoDeclare>');
       end;
     else raise EInternalError.Create('TVRMLExternalPrototype.SaveToStream Encoding?');
   end;
@@ -5418,7 +5418,7 @@ end;
 type
   EVRMLRouteSaveError = class(EVRMLError);
 
-procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLRoute.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 
   procedure Ending(Node: TVRMLNode; Event: TVRMLEvent; const S: string;
@@ -5470,11 +5470,11 @@ begin
 
     case Encoding of
       xeClassic:
-        SaveProperties.WritelnIndent(Format('ROUTE %s.%s TO %s.%s',
+        Writer.WritelnIndent(Format('ROUTE %s.%s TO %s.%s',
           [SourceNodeName     , SourceEventName,
            DestinationNodeName, DestinationEventName]));
       xeXML:
-        SaveProperties.WritelnIndent(Format('<ROUTE fromNode=%s fromField=%s toNode=%s toField=%s />',
+        Writer.WritelnIndent(Format('<ROUTE fromNode=%s fromField=%s toNode=%s toField=%s />',
           [StringToX3DXml(SourceNodeName)     , StringToX3DXml(SourceEventName),
            StringToX3DXml(DestinationNodeName), StringToX3DXml(DestinationEventName)]));
       else raise EInternalError.Create('TVRMLRoute.SaveToStream Encoding?');
@@ -5589,25 +5589,25 @@ begin
   Names.DoImport(Self);
 end;
 
-procedure TVRMLImport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLImport.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   case Encoding of
     xeClassic:
       begin
-        SaveProperties.WriteIndent('IMPORT ' + InlineNodeName + '.' + ImportedNodeName);
+        Writer.WriteIndent('IMPORT ' + InlineNodeName + '.' + ImportedNodeName);
         if ImportedNodeName <> ImportedNodeAlias then
-          SaveProperties.Write(' AS ' + ImportedNodeAlias);
-        SaveProperties.Writeln('');
+          Writer.Write(' AS ' + ImportedNodeAlias);
+        Writer.Writeln('');
       end;
     xeXML:
       begin
-        SaveProperties.WriteIndent(Format('<IMPORT inlineDEF=%s importedDEF=%s',
+        Writer.WriteIndent(Format('<IMPORT inlineDEF=%s importedDEF=%s',
           [ StringToX3DXml(InlineNodeName),
             StringToX3DXml(ImportedNodeName) ]));
         if ImportedNodeName <> ImportedNodeAlias then
-          SaveProperties.Write(' AS=' + StringToX3DXml(ImportedNodeAlias));
-        SaveProperties.Writeln(' />');
+          Writer.Write(' AS=' + StringToX3DXml(ImportedNodeAlias));
+        Writer.Writeln(' />');
       end;
     else raise EInternalError.Create('TVRMLImport.SaveToStream Encoding?');
   end;
@@ -5657,23 +5657,23 @@ begin
   Names.DoExport(Self);
 end;
 
-procedure TVRMLExport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLExport.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
   case Encoding of
     xeClassic:
       begin
-        SaveProperties.WriteIndent('EXPORT ' + ExportedNodeName);
+        Writer.WriteIndent('EXPORT ' + ExportedNodeName);
         if ExportedNodeName <> ExportedNodeAlias then
-          SaveProperties.Write(' AS ' + ExportedNodeAlias);
-        SaveProperties.Writeln('');
+          Writer.Write(' AS ' + ExportedNodeAlias);
+        Writer.Writeln('');
       end;
     xeXML:
       begin
-        SaveProperties.WriteIndent('<EXPORT localDEF=' + StringToX3DXml(ExportedNodeName));
+        Writer.WriteIndent('<EXPORT localDEF=' + StringToX3DXml(ExportedNodeName));
         if ExportedNodeName <> ExportedNodeAlias then
-          SaveProperties.Write(' AS=' + StringToX3DXml(ExportedNodeAlias));
-        SaveProperties.Writeln(' />');
+          Writer.Write(' AS=' + StringToX3DXml(ExportedNodeAlias));
+        Writer.Writeln(' />');
       end;
     else raise EInternalError.Create('TVRMLExport.SaveToStream Encoding?');
   end;

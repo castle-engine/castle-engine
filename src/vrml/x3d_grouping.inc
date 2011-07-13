@@ -175,7 +175,7 @@
       braces (for classic encoding) or XML element (for xml encoding).
       This way, when saving, we hide the fact that everything was wrapped
       in an artificial TVRMLRootNode. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+    procedure SaveToStream(Writer: TX3DWriter;
       NodeNames: TObject; const Encoding: TX3DEncoding); override;
 
     { Set HasForceVersion to @true to force saving this model with
@@ -647,7 +647,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLRootNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+procedure TVRMLRootNode.SaveToStream(Writer: TX3DWriter;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 var
   I: integer;
@@ -686,7 +686,7 @@ begin
       for I := 0 to ExportsList.Count - 1 do
         FileItems.Add(ExportsList[I]);
 
-      FileItems.SaveToStream(SaveProperties, NodeNames, Encoding);
+      FileItems.SaveToStream(Writer, NodeNames, Encoding);
     finally FreeAndNil(FileItems) end;
   end else
     inherited;
