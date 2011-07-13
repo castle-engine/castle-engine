@@ -5018,7 +5018,8 @@ var
   i: integer;
   PrecedeWithBar: boolean;
 begin
-  { TODO: savexml }
+  { This is an VRML 1.0 (and Inventor) type. The existing specs only say
+    how to encode it for classic encoding. For XML, we just use the same format. }
   if AreAllFlags(false) then
     SaveProperties.Write(NoneString) else
   begin
