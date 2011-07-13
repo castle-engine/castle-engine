@@ -2500,11 +2500,17 @@ procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
     FileItems: TVRMLFileItemsList;
     HasContent: boolean;
     I: Integer;
+    WriteContainerField: string;
   begin
+    if (ExplicitContainerField <> '') and
+       (ExplicitContainerField <> DefaultContainerField) then
+      WriteContainerField := ' containerField=' + StringToX3DXml(ExplicitContainerField) else
+      WriteContainerField := '';
+
     if (NodeNames as TVRMLNodeNames).Bound(Self) then
     begin
-      SaveProperties.WritelnIndent(Format('<%s USE=%s />',
-        [NodeTypeName, StringToX3DXml(NodeName)]));
+      SaveProperties.WritelnIndent(Format('<%s USE=%s%s />',
+        [NodeTypeName, StringToX3DXml(NodeName), WriteContainerField]));
     end else
     begin
       (NodeNames as TVRMLNodeNames).Bind(Self, false);
@@ -2512,6 +2518,7 @@ procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       { write us to stream }
       SaveProperties.WriteIndent('<' + NodeTypeName);
       if NodeName <> '' then SaveProperties.Write(' DEF=' +StringToX3DXml(NodeName));
+      SaveProperties.Write(WriteContainerField);
 
       HasContent := false;
       FileItems := ContentsToSave;

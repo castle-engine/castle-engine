@@ -3088,8 +3088,12 @@ end;
 procedure TSFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  { TODO: savexml: containerField save? }
   if Value = nil then
+    { For XML encoding, note that the NULL value can only be saved
+      as an XML attribute (not child element).
+      Also, there's no way to specify containerField for NULL value
+      --- and that's Ok, since NULL is the default value of all SFNode fields,
+      so it's never actually written in normal cases. }
     SaveProperties.Write('NULL') else
   begin
     { TVRMLNode.SaveToStream normally starts from new line with an indent.
@@ -3293,7 +3297,6 @@ begin
         SaveProperties.WriteIndent(']');
       end;
     xeXML:
-      { TODO: savexml: containerField save? }
       for I := 0 to Count - 1 do
         Items[I].SaveToStream(SaveProperties, NodeNames, Encoding);
     else raise EInternalError.Create('TMFNode.SaveToStreamValue Encoding?');
