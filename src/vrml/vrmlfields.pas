@@ -685,7 +685,8 @@ type
     procedure FieldSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       NodeNames: TObject; const Encoding: TX3DEncoding;
       FieldSaveWhenDefault: boolean = false;
-      AllowSavingFieldValue: boolean = true);
+      AllowSavingFieldValue: boolean = true;
+      XmlAvoidSavingNameBeforeValue: boolean = false);
 
     { Save the field to the stream.
 
@@ -3015,7 +3016,7 @@ end;
 
 procedure TVRMLField.FieldSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding;
-  FieldSaveWhenDefault, AllowSavingFieldValue: boolean);
+  FieldSaveWhenDefault, AllowSavingFieldValue, XmlAvoidSavingNameBeforeValue: boolean);
 var
   N: string;
   I: Integer;
@@ -3045,9 +3046,11 @@ begin
         SaveProperties.Writeln;
       end;
     xeXML:
-      if N <> '' then { for xml encoding, field must be named }
+      { for xml encoding, field must be named, unless explicitly not wanted by XmlAvoidSavingNameBeforeValue }
+      if (N <> '') or XmlAvoidSavingNameBeforeValue then
       begin
-        if SaveToXml in [sxAttribute, sxAttributeCustomQuotes] then
+        if (SaveToXml in [sxAttribute, sxAttributeCustomQuotes]) and
+           (not XmlAvoidSavingNameBeforeValue) then
         begin
           SaveProperties.Writeln;
           SaveProperties.WriteIndent(N + '=');
