@@ -5592,12 +5592,25 @@ end;
 procedure TVRMLImport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  { TODO: savexml }
-
-  SaveProperties.WriteIndent('IMPORT ' + InlineNodeName + '.' + ImportedNodeName);
-  if ImportedNodeName <> ImportedNodeAlias then
-    SaveProperties.Write(' AS ' + ImportedNodeAlias);
-  SaveProperties.Writeln('');
+  case Encoding of
+    xeClassic:
+      begin
+        SaveProperties.WriteIndent('IMPORT ' + InlineNodeName + '.' + ImportedNodeName);
+        if ImportedNodeName <> ImportedNodeAlias then
+          SaveProperties.Write(' AS ' + ImportedNodeAlias);
+        SaveProperties.Writeln('');
+      end;
+    xeXML:
+      begin
+        SaveProperties.WriteIndent(Format('<IMPORT inlineDEF=%s importedDEF=%s',
+          [ StringToX3DXml(InlineNodeName),
+            StringToX3DXml(ImportedNodeName) ]));
+        if ImportedNodeName <> ImportedNodeAlias then
+          SaveProperties.Write(' AS=' + StringToX3DXml(ImportedNodeAlias));
+        SaveProperties.Writeln(' />');
+      end;
+    else raise EInternalError.Create('TVRMLImport.SaveToStream Encoding?');
+  end;
 end;
 
 function TVRMLImport.DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLImport;
@@ -5647,12 +5660,23 @@ end;
 procedure TVRMLExport.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding);
 begin
-  { TODO: savexml }
-
-  SaveProperties.WriteIndent('EXPORT ' + ExportedNodeName);
-  if ExportedNodeName <> ExportedNodeAlias then
-    SaveProperties.Write(' AS ' + ExportedNodeAlias);
-  SaveProperties.Writeln('');
+  case Encoding of
+    xeClassic:
+      begin
+        SaveProperties.WriteIndent('EXPORT ' + ExportedNodeName);
+        if ExportedNodeName <> ExportedNodeAlias then
+          SaveProperties.Write(' AS ' + ExportedNodeAlias);
+        SaveProperties.Writeln('');
+      end;
+    xeXML:
+      begin
+        SaveProperties.WriteIndent('<EXPORT localDEF=' + StringToX3DXml(ExportedNodeName));
+        if ExportedNodeName <> ExportedNodeAlias then
+          SaveProperties.Write(' AS=' + StringToX3DXml(ExportedNodeAlias));
+        SaveProperties.Writeln(' />');
+      end;
+    else raise EInternalError.Create('TVRMLExport.SaveToStream Encoding?');
+  end;
 end;
 
 function TVRMLExport.DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLExport;
