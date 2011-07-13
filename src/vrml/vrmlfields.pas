@@ -3304,21 +3304,21 @@ end;
 
 procedure TVRMLMultField.CheckCountEqual(SecondValue: TVRMLMultField);
 begin
- if SecondValue.Count <> Count then
-  raise EVRMLMultFieldDifferentCount.CreateFmt(
-    'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
-    [ Name,
-      SecondValue.Name,
-      Count,
-      SecondValue.Count ]);
+  if SecondValue.Count <> Count then
+    raise EVRMLMultFieldDifferentCount.CreateFmt(
+      'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
+      [ Name,
+        SecondValue.Name,
+        Count,
+        SecondValue.Count ]);
 end;
 
 { TVRMLSimpleMultField ------------------------------------------------------- }
 
 destructor TVRMLSimpleMultField.Destroy;
 begin
- RawItems.Free;
- inherited;
+  RawItems.Free;
+  inherited;
 end;
 
 function TVRMLSimpleMultField.GetCount: Integer;
@@ -3333,52 +3333,53 @@ end;
 
 function TVRMLSimpleMultField.CreateItemBeforeParse: TVRMLSingleField;
 begin
- result := ItemClass.CreateUndefined(ParentNode, '', false);
+  result := ItemClass.CreateUndefined(ParentNode, '', false);
 end;
 
 procedure TVRMLSimpleMultField.ParseValue(Lexer: TVRMLLexer; Names: TObject);
-var SingleItem: TVRMLSingleField;
+var
+  SingleItem: TVRMLSingleField;
 begin
   RawItems.SetLength(0);
 
   RawItems.AllowedCapacityOverflow := 100;
   SingleItem := nil;
   try
-   SingleItem := CreateItemBeforeParse;
+    SingleItem := CreateItemBeforeParse;
 
-   if Lexer.Token = vtOpenSqBracket then
-   begin
-    Lexer.NextToken;
-
-    while Lexer.Token <> vtCloseSqBracket do
-    {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
+    if Lexer.Token = vtOpenSqBracket then
     begin
-     SingleItem.ParseValue(Lexer, Names);
-     RawItemsAdd(SingleItem);
+      Lexer.NextToken;
 
-     if Lexer.Token = vtCloseSqBracket then break;
+      while Lexer.Token <> vtCloseSqBracket do
+      {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
+      begin
+        SingleItem.ParseValue(Lexer, Names);
+        RawItemsAdd(SingleItem);
 
-     if Lexer.Version.Major < 2 then
-     begin
-       Lexer.CheckTokenIs(vtComma);
-       Lexer.NextToken;
-     end;
+        if Lexer.Token = vtCloseSqBracket then break;
+
+        if Lexer.Version.Major < 2 then
+        begin
+          Lexer.CheckTokenIs(vtComma);
+          Lexer.NextToken;
+        end;
+      end;
+
+      { Our handling of commas is specified by VRML 1.0 spec:
+        - When the list has no items, "[]" is allowed but "[,]" is not.
+        - When there are some items on the list, the last item *may*
+          be followed by a comma.
+        For VRML 2.0 this all doesn't matter, comma is just a whitespace
+        and Lexer will never return such token. }
+
+      Lexer.NextToken;
+    end else
+    begin
+      {one single field - not enclosed in [] brackets}
+      SingleItem.ParseValue(Lexer, Names);
+      RawItemsAdd(SingleItem);
     end;
-
-    { Our handling of commas is specified by VRML 1.0 spec:
-      - When the list has no items, "[]" is allowed but "[,]" is not.
-      - When there are some items on the list, the last item *may*
-        be followed by a comma.
-      For VRML 2.0 this all doesn't matter, comma is just a whitespace
-      and Lexer will never return such token. }
-
-    Lexer.NextToken;
-   end else
-   begin
-    {one single field - not enclosed in [] brackets}
-    SingleItem.ParseValue(Lexer, Names);
-    RawItemsAdd(SingleItem);
-   end;
 
   finally
     FreeAndNil(SingleItem);
@@ -3466,16 +3467,16 @@ end;
 
 function TVRMLSimpleMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
 begin
- result := true;
+  result := true;
 end;
 
 function TVRMLSimpleMultField.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TVRMLSimpleMultField) and
-   (TVRMLSimpleMultField(SecondValue).Count = Count) and
-   (TVRMLSimpleMultField(SecondValue).ItemClass = ItemClass);
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TVRMLSimpleMultField) and
+    (TVRMLSimpleMultField(SecondValue).Count = Count) and
+    (TVRMLSimpleMultField(SecondValue).ItemClass = ItemClass);
 end;
 
 procedure TVRMLSimpleMultField.VRMLWarning_InvalidIndex(
@@ -3504,22 +3505,24 @@ begin
 end;
 
 procedure ParseVector(var Vector: array of Single; Lexer: TVRMLLexer); overload;
-var i: integer;
+var
+  i: integer;
 begin
   for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
 end;
 
 procedure ParseVector(var Vector: array of Double; Lexer: TVRMLLexer); overload;
-var i: integer;
+var
+  i: integer;
 begin
   for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
 end;
 
 function ParseLongWord(Lexer: TVRMLLexer): LongWord;
 begin
- Lexer.CheckTokenIs(vtInteger);
- result := Lexer.TokenInteger;
- Lexer.NextToken;
+  Lexer.CheckTokenIs(vtInteger);
+  result := Lexer.TokenInteger;
+  Lexer.NextToken;
 end;
 
 { TSFBool -------------------------------------------------------------------- }
@@ -3548,24 +3551,24 @@ begin
   Lexer.CheckTokenIs([vtKeyword, vtInteger], SBoolExpected);
   if Lexer.Token = vtKeyword then
   begin
-   if Lexer.TokenKeyword = vkTrue then Value := true else
-    if Lexer.TokenKeyword = vkFalse then Value := false else
-     raise EVRMLParserError.Create(Lexer,
-       'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
+    if Lexer.TokenKeyword = vkTrue then Value := true else
+      if Lexer.TokenKeyword = vkFalse then Value := false else
+        raise EVRMLParserError.Create(Lexer,
+          'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
   end else
   begin
-   if Lexer.TokenInteger = 1 then
-   begin
-     Value := true;
-     VRML2BooleanIntegerWarning;
-   end else
-   if Lexer.TokenInteger = 0 then
-   begin
-     Value := false;
-     VRML2BooleanIntegerWarning;
-   end else
-     raise EVRMLParserError.Create(Lexer,
-       'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
+    if Lexer.TokenInteger = 1 then
+    begin
+      Value := true;
+      VRML2BooleanIntegerWarning;
+    end else
+    if Lexer.TokenInteger = 0 then
+    begin
+      Value := false;
+      VRML2BooleanIntegerWarning;
+    end else
+      raise EVRMLParserError.Create(Lexer,
+        'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
   end;
   Lexer.NextToken;
 end;
@@ -3582,15 +3585,15 @@ end;
 
 function TSFBool.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value);
+  result := DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFBool.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFBool) and
-   (TSFBool(SecondValue).Value = Value);
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSFBool) and
+    (TSFBool(SecondValue).Value = Value);
 end;
 
 function TSFBool.FastEqualsValue(SecondValue: TVRMLField): boolean;
@@ -3601,14 +3604,14 @@ end;
 
 procedure TSFBool.Assign(Source: TPersistent);
 begin
- if Source is TSFBool then
- begin
-  DefaultValue       := TSFBool(Source).DefaultValue;
-  DefaultValueExists := TSFBool(Source).DefaultValueExists;
-  Value              := TSFBool(Source).Value;
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
+  if Source is TSFBool then
+  begin
+    DefaultValue       := TSFBool(Source).DefaultValue;
+    DefaultValueExists := TSFBool(Source).DefaultValueExists;
+    Value              := TSFBool(Source).Value;
+    VRMLFieldAssignCommon(TVRMLField(Source));
+  end else
+    inherited;
 end;
 
 procedure TSFBool.AssignValue(Source: TVRMLField);
@@ -3647,9 +3650,9 @@ end;
 
 procedure TSFFloat.SetValue(const AValue: Single);
 begin
- if MustBeNonnegative then
-  FValue := Abs(AValue) else
-  FValue := AValue;
+  if MustBeNonnegative then
+    FValue := Abs(AValue) else
+    FValue := AValue;
 end;
 
 constructor TSFFloat.Create(AParentNode: TVRMLFileItem;
@@ -3681,16 +3684,16 @@ end;
 
 function TSFFloat.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value)
+  result := DefaultValueExists and (DefaultValue = Value)
 end;
 
 function TSFFloat.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFFloat) and
-   (TSFFloat(SecondValue).MustBeNonnegative = MustBeNonnegative) and
-   FloatsEqual(TSFFloat(SecondValue).Value, Value, EqualityEpsilon);
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSFFloat) and
+    (TSFFloat(SecondValue).MustBeNonnegative = MustBeNonnegative) and
+    FloatsEqual(TSFFloat(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
 function TSFFloat.FastEqualsValue(SecondValue: TVRMLField): boolean;
@@ -3701,7 +3704,7 @@ end;
 
 procedure TSFFloat.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 begin
- Value := Lerp(A, (Value1 as TSFFloat).Value, (Value2 as TSFFloat).Value);
+  Value := Lerp(A, (Value1 as TSFFloat).Value, (Value2 as TSFFloat).Value);
 end;
 
 function TSFFloat.CanAssignLerp: boolean;
@@ -3711,15 +3714,15 @@ end;
 
 procedure TSFFloat.Assign(Source: TPersistent);
 begin
- if Source is TSFFloat then
- begin
-  DefaultValue       := TSFFloat(Source).DefaultValue;
-  DefaultValueExists := TSFFloat(Source).DefaultValueExists;
-  FValue             := TSFFloat(Source).Value;
-  FMustBeNonnegative := TSFFloat(Source).MustBeNonnegative;
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
+  if Source is TSFFloat then
+  begin
+    DefaultValue       := TSFFloat(Source).DefaultValue;
+    DefaultValueExists := TSFFloat(Source).DefaultValueExists;
+    FValue             := TSFFloat(Source).Value;
+    FMustBeNonnegative := TSFFloat(Source).MustBeNonnegative;
+    VRMLFieldAssignCommon(TVRMLField(Source));
+  end else
+    inherited;
 end;
 
 procedure TSFFloat.AssignValue(Source: TVRMLField);
@@ -3789,9 +3792,9 @@ end;
 function TSFDouble.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFDouble) and
-   FloatsEqual(TSFDouble(SecondValue).Value, Value, EqualityEpsilon);
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSFDouble) and
+    FloatsEqual(TSFDouble(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
 function TSFDouble.FastEqualsValue(SecondValue: TVRMLField): boolean;
@@ -3947,13 +3950,12 @@ end;
 
 {$include norqcheckend.inc}
 
-
 procedure TSFImage.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 
   procedure ReplaceValue(NewValue: TImage);
   begin
-   FreeAndNil(Value);
-   Value := NewValue;
+    FreeAndNil(Value);
+    Value := NewValue;
   end;
 
 var
@@ -3991,34 +3993,34 @@ begin
     We leave Value.IsNull in this case. }
   if (w <> 0) and (h <> 0) then
   begin
-   case comp of
-    1: begin
-        ReplaceValue(TGrayscaleImage.Create(w, h));
-        GrayscalePixels := PByteArray(Value.RawPixels);
-        for i := 0 to w*h-1 do
-          DecodeImageColor(ParseLongWord(Lexer), GrayscalePixels^[I]);
-       end;
-    2: begin
-        ReplaceValue(TGrayscaleAlphaImage.Create(w, h));
-        GrayscaleAlphaPixels := PArray_Vector2Byte(Value.RawPixels);
-        for i := 0 to w*h-1 do
-          DecodeImageColor(ParseLongWord(Lexer), GrayscaleAlphaPixels^[i]);
-       end;
-    3: begin
-        ReplaceValue(TRGBImage.Create(w, h));
-        RGBPixels := PArray_Vector3Byte(Value.RawPixels);
-        for i := 0 to w*h-1 do
-          DecodeImageColor(ParseLongWord(Lexer), RGBPixels^[i]);
-       end;
-    4: begin
-        ReplaceValue(TRGBAlphaImage.Create(w, h));
-        RGBAlphaPixels := PArray_Vector4Byte(Value.RawPixels);
-        for i := 0 to w*h-1 do
-          DecodeImageColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
-       end;
-    else raise EVRMLParserError.Create(Lexer, Format('Invalid components count'+
-           ' for SFImage : is %d, should be 1, 2, 3 or 4.',[comp]));
-   end;
+    case comp of
+      1:begin
+          ReplaceValue(TGrayscaleImage.Create(w, h));
+          GrayscalePixels := PByteArray(Value.RawPixels);
+          for i := 0 to w*h-1 do
+            DecodeImageColor(ParseLongWord(Lexer), GrayscalePixels^[I]);
+        end;
+      2:begin
+          ReplaceValue(TGrayscaleAlphaImage.Create(w, h));
+          GrayscaleAlphaPixels := PArray_Vector2Byte(Value.RawPixels);
+          for i := 0 to w*h-1 do
+            DecodeImageColor(ParseLongWord(Lexer), GrayscaleAlphaPixels^[i]);
+        end;
+      3:begin
+          ReplaceValue(TRGBImage.Create(w, h));
+          RGBPixels := PArray_Vector3Byte(Value.RawPixels);
+          for i := 0 to w*h-1 do
+            DecodeImageColor(ParseLongWord(Lexer), RGBPixels^[i]);
+        end;
+      4:begin
+          ReplaceValue(TRGBAlphaImage.Create(w, h));
+          RGBAlphaPixels := PArray_Vector4Byte(Value.RawPixels);
+          for i := 0 to w*h-1 do
+            DecodeImageColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
+        end;
+      else raise EVRMLParserError.Create(Lexer, Format('Invalid components count'+
+             ' for SFImage : is %d, should be 1, 2, 3 or 4.',[comp]));
+    end;
   end;
 end;
 
@@ -4031,73 +4033,73 @@ var
   i: Cardinal;
   pixel: LongWord;
 begin
- if Value.IsNull then
-  SaveProperties.Write('0 0 1') else
- begin
-  SaveProperties.Writeln(Format('%d %d %d', [Value.Width, Value.Height,
-    Value.ColorComponentsCount]));
-  SaveProperties.IncIndent;
-  SaveProperties.WriteIndent('');
-  {$I NoRQCheckBegin.inc}
-  if Value is TGrayscaleImage then
+  if Value.IsNull then
+    SaveProperties.Write('0 0 1') else
   begin
-   for i := 0 to Value.Width*Value.Height-1 do
-   begin
-    pixel := TGrayscaleImage(Value).GrayscalePixels[i];
-    SaveProperties.Write(Format('0x%.2x ', [pixel]));
-   end;
-  end else
-  if Value is TGrayscaleAlphaImage then
-  begin
-   for i := 0 to Value.Width*Value.Height-1 do
-   begin
-    ga := TGrayscaleAlphaImage(Value).GrayscaleAlphaPixels[i];
-    pixel := (ga[0] shl 8) or ga[1];
-    SaveProperties.Write(Format('0x%.4x ', [pixel]));
-   end;
-  end else
-  if Value is TRGBImage then
-  begin
-   for i := 0 to Value.Width*Value.Height-1 do
-   begin
-    rgb := TRGBImage(Value).RGBPixels[i];
-    pixel := (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2];
-    SaveProperties.Write(Format('0x%.6x ', [pixel]));
-   end;
-  end else
-  if Value is TRGBAlphaImage then
-  begin
-   for i := 0 to Value.Width*Value.Height-1 do
-   begin
-    rgba := TRGBAlphaImage(Value).AlphaPixels[i];
-    pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
-    SaveProperties.Write(Format('0x%.8x ', [pixel]));
-   end;
-  end else
-   raise Exception.Create('TSFImage.SaveToStreamValue - not implemented TImage descendant');
-  {$I NoRQCheckEnd.inc}
-  SaveProperties.DecIndent;
- end;
+    SaveProperties.Writeln(Format('%d %d %d', [Value.Width, Value.Height,
+      Value.ColorComponentsCount]));
+    SaveProperties.IncIndent;
+    SaveProperties.WriteIndent('');
+    {$I NoRQCheckBegin.inc}
+    if Value is TGrayscaleImage then
+    begin
+      for i := 0 to Value.Width*Value.Height-1 do
+      begin
+        pixel := TGrayscaleImage(Value).GrayscalePixels[i];
+        SaveProperties.Write(Format('0x%.2x ', [pixel]));
+      end;
+    end else
+    if Value is TGrayscaleAlphaImage then
+    begin
+      for i := 0 to Value.Width*Value.Height-1 do
+      begin
+        ga := TGrayscaleAlphaImage(Value).GrayscaleAlphaPixels[i];
+        pixel := (ga[0] shl 8) or ga[1];
+        SaveProperties.Write(Format('0x%.4x ', [pixel]));
+      end;
+    end else
+    if Value is TRGBImage then
+    begin
+      for i := 0 to Value.Width*Value.Height-1 do
+      begin
+        rgb := TRGBImage(Value).RGBPixels[i];
+        pixel := (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2];
+        SaveProperties.Write(Format('0x%.6x ', [pixel]));
+      end;
+    end else
+    if Value is TRGBAlphaImage then
+    begin
+      for i := 0 to Value.Width*Value.Height-1 do
+      begin
+        rgba := TRGBAlphaImage(Value).AlphaPixels[i];
+        pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
+        SaveProperties.Write(Format('0x%.8x ', [pixel]));
+      end;
+    end else
+      raise Exception.Create('TSFImage.SaveToStreamValue - not implemented TImage descendant');
+    {$I NoRQCheckEnd.inc}
+    SaveProperties.DecIndent;
+  end;
 end;
 
 function TSFImage.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFImage) and
-   { TODO: compare values
-   (TSFImage(SecondValue).Value = Value) }true;
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSFImage) and
+    { TODO: compare values
+    (TSFImage(SecondValue).Value = Value) }true;
 end;
 
 procedure TSFImage.Assign(Source: TPersistent);
 begin
- if Source is TSFImage then
- begin
-  FreeAndNil(Value);
-  Value := TSFImage(Source).Value.MakeCopy;
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
+  if Source is TSFImage then
+  begin
+    FreeAndNil(Value);
+    Value := TSFImage(Source).Value.MakeCopy;
+    VRMLFieldAssignCommon(TVRMLField(Source));
+  end else
+    inherited;
 end;
 
 procedure TSFImage.AssignValue(Source: TVRMLField);
@@ -4120,9 +4122,9 @@ end;
 
 procedure TSFLong.SetValue(const AValue: Longint);
 begin
- if MustBeNonnegative then
-  FValue := Abs(AValue) else
-  FValue := AValue;
+  if MustBeNonnegative then
+    FValue := Abs(AValue) else
+    FValue := AValue;
 end;
 
 constructor TSFLong.Create(AParentNode: TVRMLFileItem;
@@ -4168,18 +4170,18 @@ end;
 
 function TSFLong.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value)
+  result := DefaultValueExists and (DefaultValue = Value)
 end;
 
 function TSFLong.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
- { Note that this means that SFInt32 and SFLong will actually be considered
-   equal. That's Ok, we want this. }
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFLong) and
-   (TSFLong(SecondValue).MustBeNonnegative = MustBeNonnegative) and
-   (TSFLong(SecondValue).Value = Value);
+  { Note that this means that SFInt32 and SFLong will actually be considered
+    equal. That's Ok, we want this. }
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSFLong) and
+    (TSFLong(SecondValue).MustBeNonnegative = MustBeNonnegative) and
+    (TSFLong(SecondValue).Value = Value);
 end;
 
 function TSFLong.FastEqualsValue(SecondValue: TVRMLField): boolean;
@@ -4190,15 +4192,15 @@ end;
 
 procedure TSFLong.Assign(Source: TPersistent);
 begin
- if Source is TSFLong then
- begin
-  DefaultValue       := TSFLong(Source).DefaultValue;
-  DefaultValueExists := TSFLong(Source).DefaultValueExists;
-  FValue             := TSFLong(Source).Value;
-  FMustBeNonnegative := TSFLong(Source).MustBeNonnegative;
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
+  if Source is TSFLong then
+  begin
+    DefaultValue       := TSFLong(Source).DefaultValue;
+    DefaultValueExists := TSFLong(Source).DefaultValueExists;
+    FValue             := TSFLong(Source).Value;
+    FMustBeNonnegative := TSFLong(Source).MustBeNonnegative;
+    VRMLFieldAssignCommon(TVRMLField(Source));
+  end else
+    inherited;
 end;
 
 procedure TSFLong.AssignValue(Source: TVRMLField);
@@ -4923,7 +4925,8 @@ end;
 constructor TSFBitMask.Create(AParentNode: TVRMLFileItem;
   const AName: string; const AFlagNames: array of string;
   const ANoneString, AAllString: string; const AFlags: array of boolean);
-var i: integer;
+var
+  i: integer;
 begin
   inherited Create(AParentNode, AName);
 
@@ -4938,36 +4941,47 @@ end;
 
 destructor TSFBitMask.Destroy;
 begin
- fFlagNames.Free;
- inherited;
+  fFlagNames.Free;
+  inherited;
 end;
 
 function TSFBitMask.GetFlags(i: integer): boolean;
-begin result := i in fFlags end;
+begin
+  result := i in fFlags
+end;
+
 procedure TSFBitMask.SetFlags(i: integer; value: boolean);
-begin if value then Include(fFlags, i) else Exclude(fFlags, i) end;
+begin
+  if value then Include(fFlags, i) else Exclude(fFlags, i)
+end;
 
 function TSFBitMask.FlagsCount: integer;
-begin result := fFlagNames.Count end;
+begin
+  result := fFlagNames.Count
+end;
+
 function TSFBitMask.GetFlagNames(i: integer): string;
-begin result := fFlagNames[i] end;
+begin
+  result := fFlagNames[i]
+end;
 
 procedure TSFBitMask.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 
   procedure InterpretTokenAsFlagName;
-  var i: integer;
+  var
+    i: integer;
   begin
-   Lexer.CheckTokenIs(vtName, 'bit mask constant');
-   i := fFlagNames.IndexOf(Lexer.TokenName);
-   if i >= 0 then
-    Flags[i] := true else
-   if Lexer.TokenName = fAllString then
-    fFlags:=[0..FlagsCount-1] else
-   if Lexer.TokenName = fNoneString then
-    {don't set anything; uwaga: flaga NONE nie powoduje wyczyszczenia innych flag,
-    czyli np. ( FLAG_1 | NONE ) znaczy tyle samo co FLAG_1 } else
-    raise EVRMLParserError.Create(Lexer,
-      'Expected bit mask constant, got '+Lexer.DescribeToken);
+    Lexer.CheckTokenIs(vtName, 'bit mask constant');
+    i := fFlagNames.IndexOf(Lexer.TokenName);
+    if i >= 0 then
+      Flags[i] := true else
+    if Lexer.TokenName = fAllString then
+      fFlags := [0..FlagsCount-1] else
+    if Lexer.TokenName = fNoneString then
+      { Don't set anything. Note that this doesn't clear other flags,
+        so e.g. "( FLAG_1 | NONE )" equals just "FLAG_1". } else
+      raise EVRMLParserError.Create(Lexer,
+        'Expected bit mask constant, got '+Lexer.DescribeToken);
   end;
 
 begin
@@ -4975,77 +4989,79 @@ begin
 
   if Lexer.Token = vtOpenBracket then
   begin
-   repeat
+    repeat
+      Lexer.NextToken;
+      InterpretTokenAsFlagName;
+      Lexer.NextToken;
+    until Lexer.Token <> vtBar;
+    Lexer.CheckTokenIs(vtCloseBracket);
     Lexer.NextToken;
-    InterpretTokenAsFlagName;
-    Lexer.NextToken;
-   until Lexer.Token <> vtBar;
-   Lexer.CheckTokenIs(vtCloseBracket);
-   Lexer.NextToken;
   end else
   begin
-   InterpretTokenAsFlagName;
-   Lexer.NextToken;
+    InterpretTokenAsFlagName;
+    Lexer.NextToken;
   end;
 end;
 
 function TSFBitMask.AreAllFlags(value: boolean): boolean;
-var i: integer;
+var
+  i: integer;
 begin
- for i := 0 to FlagsCount-1 do
-  if Flags[i] <> value then exit(false);
- exit(true);
+  for i := 0 to FlagsCount-1 do
+    if Flags[i] <> value then exit(false);
+  exit(true);
 end;
 
 procedure TSFBitMask.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties;
   NodeNames: TObject; const Encoding: TX3DEncoding);
-var i: integer;
-    PrecedeWithBar: boolean;
+var
+  i: integer;
+  PrecedeWithBar: boolean;
 begin
   { TODO: savexml }
- if AreAllFlags(false) then
-  SaveProperties.Write(NoneString) else
- begin
-  {zapisywanie do strumienia AllString to taka estetyka - zawsze przeciez
-   mozemy wyrazic All flags po prostu zapisujac je wszystkie. }
-  if (AllString <> '') and AreAllFlags(true) then
-   SaveProperties.Write(AllString) else
+  if AreAllFlags(false) then
+    SaveProperties.Write(NoneString) else
   begin
-   PrecedeWithBar := false; { pierwszy element nie bedzie poprzedzony '|' }
-   SaveProperties.Write('(');
-   for i := 0 to FlagsCount-1 do
-    if Flags[i] then
+    { We don't really need AllString to express that all bit are set
+      (we could as well just name them all), but it looks nicer. }
+    if (AllString <> '') and AreAllFlags(true) then
+      SaveProperties.Write(AllString) else
     begin
-     if PrecedeWithBar then SaveProperties.Write('|') else PrecedeWithBar := true;
-     SaveProperties.Write(FlagNames[i]);
+      PrecedeWithBar := false;
+      SaveProperties.Write('(');
+      for i := 0 to FlagsCount-1 do
+        if Flags[i] then
+        begin
+          if PrecedeWithBar then SaveProperties.Write('|') else PrecedeWithBar := true;
+          SaveProperties.Write(FlagNames[i]);
+        end;
+      SaveProperties.Write(')');
     end;
-   SaveProperties.Write(')');
   end;
- end;
 end;
 
 function TSFBitMask.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFBitMask) and
-   (TSFBitMask(SecondValue).FFlagNames.Equals(FFlagNames)) and
-   (TSFBitMask(SecondValue).FFlags = FFlags) and
-   (TSFBitMask(SecondValue).AllString = AllString) and
-   (TSFBitMask(SecondValue).NoneString = NoneString);
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSFBitMask) and
+    (TSFBitMask(SecondValue).FFlagNames.Equals(FFlagNames)) and
+    (TSFBitMask(SecondValue).FFlags = FFlags) and
+    (TSFBitMask(SecondValue).AllString = AllString) and
+    (TSFBitMask(SecondValue).NoneString = NoneString);
 end;
 
 procedure TSFBitMask.Assign(Source: TPersistent);
 begin
- if Source is TSFBitMask then
- begin
-  FAllString  := TSFBitMask(Source).AllString;
-  FNoneString := TSFBitMask(Source).NoneString;
-  FFlags      := TSFBitMask(Source).FFlags;
-  FFlagNames.Assign(TSFBitMask(Source).FFlagNames);
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
+  if Source is TSFBitMask then
+  begin
+    FAllString  := TSFBitMask(Source).AllString;
+    FNoneString := TSFBitMask(Source).NoneString;
+    FFlags      := TSFBitMask(Source).FFlags;
+    FFlagNames.Assign(TSFBitMask(Source).FFlagNames);
+    VRMLFieldAssignCommon(TVRMLField(Source));
+  end else
+    inherited;
 end;
 
 procedure TSFBitMask.AssignValue(Source: TVRMLField);
@@ -5083,9 +5099,14 @@ begin
 end;
 
 function TSFEnum.GetEnumNames(i: integer): string;
-begin result := fEnumNames[i] end;
+begin
+  result := fEnumNames[i]
+end;
+
 function TSFEnum.EnumNamesCount: integer;
-begin result := fEnumNames.Count end;
+begin
+  result := fEnumNames.Count
+end;
 
 procedure TSFEnum.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 var
@@ -5108,29 +5129,29 @@ end;
 
 function TSFEnum.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value);
+  result := DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFEnum.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFEnum) and
-   (TSFEnum(SecondValue).FEnumNames.Equals(FEnumNames)) and
-   (TSFEnum(SecondValue).Value = Value);
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSFEnum) and
+    (TSFEnum(SecondValue).FEnumNames.Equals(FEnumNames)) and
+    (TSFEnum(SecondValue).Value = Value);
 end;
 
 procedure TSFEnum.Assign(Source: TPersistent);
 begin
- if Source is TSFEnum then
- begin
-  DefaultValue       := TSFEnum(Source).DefaultValue;
-  DefaultValueExists := TSFEnum(Source).DefaultValueExists;
-  Value              := TSFEnum(Source).Value;
-  FEnumNames.Assign(TSFEnum(Source).FEnumNames);
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
+  if Source is TSFEnum then
+  begin
+    DefaultValue       := TSFEnum(Source).DefaultValue;
+    DefaultValueExists := TSFEnum(Source).DefaultValueExists;
+    Value              := TSFEnum(Source).Value;
+    FEnumNames.Assign(TSFEnum(Source).FEnumNames);
+    VRMLFieldAssignCommon(TVRMLField(Source));
+  end else
+    inherited;
 end;
 
 procedure TSFEnum.AssignValue(Source: TVRMLField);
