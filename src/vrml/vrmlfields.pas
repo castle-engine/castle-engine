@@ -33,7 +33,7 @@ type
   TVRMLEvent = class;
 
   { Writer of VRML/X3D to stream. }
-  TX3DWriter = class abstract
+  TX3DWriter = {abstact} class
   private
     Indent: string;
     DoDiscardNextIndent: boolean;
