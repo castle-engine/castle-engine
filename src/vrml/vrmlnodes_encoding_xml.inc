@@ -26,17 +26,6 @@ function LoadX3DXml(const FileName: string; Gzipped: boolean): TVRMLRootNode;
 function LoadX3DXml(Stream: TStream; const WWWBasePath: string): TVRMLRootNode;
 { @groupEnd }
 
-{ Save X3D to file in XML encoding.
-
-  This should be used only with X3D, that is when Version.Major >= 3.
-  Previous standard versions (VRML 1.0, VRML 2.0) cannot be saved to XML.
-  This procedure will actually generate something ~sensible (you can imagine
-  how VRML 1.0 / VRML 2.0 can be encoded in XML, by analogy with X3D),
-  but it will only be readable by our engine. }
-procedure SaveX3DXml(Node: TVRMLNode; Stream: TStream;
-  const Generator, Source: string;
-  const Version: TVRMLVersion);
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -536,89 +525,6 @@ begin
     finally FreeAndNil(Names) end;
   finally
     FreeAndNil(Doc);
-  end;
-end;
-
-{ saving --------------------------------------------------------------------- }
-
-procedure SaveX3DXml(Node: TVRMLNode; Stream: TStream;
-  const Generator, Source: string;
-  const Version: TVRMLVersion);
-var
-  Writer: TX3DWriterNames;
-
-  function Profile: string;
-  begin
-    if (Node is TVRMLRootNode) and
-       (TVRMLRootNode(Node).Profile <> '') then
-      Result := TVRMLRootNode(Node).Profile else
-      Result := DefaultX3DSaveProfile;
-  end;
-
-  procedure SaveComponents(Root: TVRMLRootNode);
-  var
-    I: Integer;
-  begin
-    for I := 0 to Root.Components.Count - 1 do
-      Writer.WritelnIndent(Format('<component name=%s level="%d" />',
-        [ StringToX3DXml(Root.Components.Keys[I]),
-          Root.Components.Data[I] ]));
-  end;
-
-  procedure SaveMetas(Root: TVRMLRootNode);
-  var
-    I: Integer;
-  begin
-    for I := 0 to Root.Meta.Count - 1 do
-      Writer.WritelnIndent(Format('<meta name=%s content=%s />',
-        [ StringToX3DXml(Root.Meta.Keys[I]),
-          StringToX3DXml(Root.Meta.Data[I])]));
-  end;
-
-begin
-  Writer := TX3DWriterNames.Create(Stream, Version, xeXML);
-  try
-    Writer.Writeln(Format(
-      '<?xml version="1.0" encoding="UTF-8"?>' + NL +
-      '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D %d.%d//EN" "http://www.web3d.org/specifications/x3d-%0:d.%1:d.dtd">' + NL+
-      '<X3D profile=%2:s version="%0:d.%1:d"' + NL+
-      '     xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"' + NL+
-      '     xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-%0:d.%1:d.xsd">' + NL+
-      '<head>',
-      [Version.Major, Version.Minor, StringToX3DXml(Profile)]));
-    Writer.IncIndent;
-
-    if Node is TVRMLRootNode then
-    begin
-      if Generator <> '' then
-        TVRMLRootNode(Node).Meta.PutPreserve('generator', Generator);
-      if Source <> '' then
-        TVRMLRootNode(Node).Meta.PutPreserve('source', Source);
-      SaveComponents(TVRMLRootNode(Node));
-      SaveMetas(TVRMLRootNode(Node));
-    end else
-    begin
-      { write Generator etc. directly, as we don't have TVRMLRootNode.Meta available }
-      if Generator <> '' then
-        Writer.WritelnIndent(Format('<meta name="generator" content=%s />',
-          [StringToX3DXml(Generator)]));
-      if Source <> '' then
-        Writer.WritelnIndent(Format('<meta name="source" content=%s />',
-          [StringToX3DXml(Source)]));
-    end;
-
-    Writer.DecIndent;
-    Writer.Writeln('</head>' + NL + '<Scene>');
-
-    { Node may be TVRMLRootNode here, that's OK,
-      TVRMLRootNode.SaveToStream will magically handle this right. }
-    Writer.IncIndent;
-    Node.SaveToStream(Writer);
-    Writer.DecIndent;
-
-    Writer.Writeln('</Scene>' +NL + '</X3D>');
-  finally
-    FreeAndNil(Writer);
   end;
 end;
 
