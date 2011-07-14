@@ -73,7 +73,7 @@
       containing an event. }
     procedure EventSaveToStream(Writer: TX3DWriter; WriteExactlyOnce: boolean);
 
-    procedure SaveToStream(Writer: TX3DWriter; NodeNames: TObject); override;
+    procedure SaveToStream(Writer: TX3DWriter); override;
 
     { If this event is an exposed event belonging to some field,
       this references parent field. Otherwise it's @nil. }
@@ -280,7 +280,7 @@ begin
   end;
 end;
 
-procedure TVRMLEvent.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
+procedure TVRMLEvent.SaveToStream(Writer: TX3DWriter);
 begin
   EventSaveToStream(Writer, false);
 end;

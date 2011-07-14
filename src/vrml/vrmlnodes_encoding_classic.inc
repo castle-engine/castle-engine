@@ -636,7 +636,7 @@ procedure SaveVRMLClassic(Node: TVRMLNode; Stream: TStream;
   const Generator, Source: string;
   const Version: TVRMLVersion);
 var
-  Writer: TX3DWriter;
+  Writer: TX3DWriterNames;
 
   procedure SaveProfile(Root: TVRMLRootNode);
   begin
@@ -675,10 +675,8 @@ const
   X3DHeader = '#X3D V%d.%d utf8';
 var
   VRMLHeader, PrecedingComment: string;
-  NodeNames: TVRMLNodeNames;
 begin
-  NodeNames := TVRMLNodeNames.Create(false);
-  Writer := TX3DWriter.Create(Stream, xeClassic);
+  Writer := TX3DWriterNames.Create(Stream, xeClassic);
   try
     if Version.Major <= 1 then
       VRMLHeader := VRML10Header else
@@ -714,10 +712,9 @@ begin
 
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
-    Node.SaveToStream(Writer, NodeNames);
+    Node.SaveToStream(Writer);
   finally
     FreeAndNil(Writer);
-    FreeAndNil(NodeNames);
   end;
 end;
 

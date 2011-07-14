@@ -64,6 +64,29 @@ procedure SaveVRML(Node: TVRMLNode;
 
 {$ifdef read_implementation}
 
+type
+  { TX3DWriter extended with NodeNames. }
+  TX3DWriterNames = class(TX3DWriter)
+    { Record known node names.
+      This allows to write correct DEF / USE when saving. }
+    NodeNames: TVRMLNodeNames;
+
+    constructor Create(AStream: TStream; const AEncoding: TX3DEncoding);
+    destructor Destroy; override;
+  end;
+
+constructor TX3DWriterNames.Create(AStream: TStream; const AEncoding: TX3DEncoding);
+begin
+  inherited;
+  NodeNames := TVRMLNodeNames.Create(false);
+end;
+
+destructor TX3DWriterNames.Destroy;
+begin
+  FreeAndNil(NodeNames);
+  inherited;
+end;
+
 const
   { Used when we have to save as X3D, but profile information is missing. }
   DefaultX3DSaveProfile = 'Interchange';

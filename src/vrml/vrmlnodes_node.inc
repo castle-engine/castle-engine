@@ -703,11 +703,8 @@
       CountOnlyActiveNodes: boolean): integer;
 
     { Save node to a stream. Saves everything, including node name,
-      node type, and node contents.
-
-      We use Writer.NodeNames to record known node names.
-      This allows to write correct DEF / USE when saving. }
-    procedure SaveToStream(Writer: TX3DWriter; NodeNames: TObject); override;
+      node type, and node contents. }
+    procedure SaveToStream(Writer: TX3DWriter); override;
 
     { Do the nodes of (exactly) this class should be included
       in VRML 1.0 state (see TVRMLGraphTraverseState.LastNodes). }
@@ -2409,7 +2406,7 @@ begin
   finally C.Free end;
 end;
 
-procedure TVRMLNode.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
+procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
 
   { Collect node contents to save.
     You want to save here exactly what you read in ParseNodeBodyElement. }
@@ -2468,12 +2465,12 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
   var
     FileItems: TVRMLFileItemsList;
   begin
-    if (NodeNames as TVRMLNodeNames).Bound(Self) then
+    if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
       Writer.WritelnIndent('USE ' + NodeName);
     end else
     begin
-      (NodeNames as TVRMLNodeNames).Bind(Self, false);
+      (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
 
       { write us to stream }
       Writer.WriteIndent('');
@@ -2483,13 +2480,13 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
       Writer.IncIndent;
       FileItems := ContentsToSave;
       try
-        FileItems.SaveToStream(Writer, NodeNames);
+        FileItems.SaveToStream(Writer);
       finally FreeAndNil(FileItems) end;
       Writer.DecIndent;
 
       Writer.WritelnIndent('}');
 
-      (NodeNames as TVRMLNodeNames).Bind(Self, true);
+      (Writer as TX3DWriterNames).NodeNames.Bind(Self, true);
     end;
   end;
 
@@ -2505,13 +2502,13 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
       WriteContainerField := ' containerField=' + StringToX3DXml(ExplicitContainerField) else
       WriteContainerField := '';
 
-    if (NodeNames as TVRMLNodeNames).Bound(Self) then
+    if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
       Writer.WritelnIndent(Format('<%s USE=%s%s />',
         [NodeTypeName, StringToX3DXml(NodeName), WriteContainerField]));
     end else
     begin
-      (NodeNames as TVRMLNodeNames).Bind(Self, false);
+      (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
 
       { write us to stream }
       Writer.WriteIndent('<' + NodeTypeName);
@@ -2524,8 +2521,7 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
         Writer.IncIndent;
         for I := 0 to FileItems.Count - 1 do
           case FileItems[I].SaveToXml of
-            sxAttribute, sxAttributeCustomQuotes:
-              FileItems[I].SaveToStream(Writer, NodeNames);
+            sxAttribute, sxAttributeCustomQuotes: FileItems[I].SaveToStream(Writer);
             sxChildElement: HasContent := true;
           end;
         Writer.DecIndent;
@@ -2537,7 +2533,7 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
 
           for I := 0 to FileItems.Count - 1 do
             if FileItems[I].SaveToXml = sxChildElement then
-              FileItems[I].SaveToStream(Writer, NodeNames);
+              FileItems[I].SaveToStream(Writer);
 
           Writer.DecIndent;
           Writer.WritelnIndent('</' + NodeTypeName + '>');
@@ -2545,7 +2541,7 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
           Writer.Writeln(' />');
       finally FreeAndNil(FileItems) end;
 
-      (NodeNames as TVRMLNodeNames).Bind(Self, true);
+      (Writer as TX3DWriterNames).NodeNames.Bind(Self, true);
     end;
   end;
 
@@ -2562,7 +2558,7 @@ begin
     { TODO: savexml use <ProtoInstance> }
     { If this is an expanded prototype, then delegate writing to the
       PrototypeInstanceSourceNode. }
-    PrototypeInstanceSourceNode.SaveToStream(Writer, NodeNames);
+    PrototypeInstanceSourceNode.SaveToStream(Writer);
 
     { What to do about
         NodeNames.Bind(Self)
@@ -2575,7 +2571,7 @@ begin
       So we bind again Self, instead of PrototypeInstanceSourceNode,
       to this name. }
 
-    (NodeNames as TVRMLNodeNames).Bind(Self, true);
+    (Writer as TX3DWriterNames).NodeNames.Bind(Self, true);
   end else
   case Writer.Encoding of
     xeClassic: Classic;

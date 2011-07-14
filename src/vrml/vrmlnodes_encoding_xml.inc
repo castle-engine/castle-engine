@@ -545,7 +545,7 @@ procedure SaveX3DXml(Node: TVRMLNode; Stream: TStream;
   const Generator, Source: string;
   const Version: TVRMLVersion);
 var
-  Writer: TX3DWriter;
+  Writer: TX3DWriterNames;
 
   function Profile: string;
   begin
@@ -575,11 +575,8 @@ var
           StringToX3DXml(Root.Meta.Data[I])]));
   end;
 
-var
-  NodeNames: TVRMLNodeNames;
 begin
-  NodeNames := TVRMLNodeNames.Create(false);
-  Writer := TX3DWriter.Create(Stream, xeXML);
+  Writer := TX3DWriterNames.Create(Stream, xeXML);
   try
     Writer.Version := Version;
 
@@ -618,13 +615,12 @@ begin
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
     Writer.IncIndent;
-    Node.SaveToStream(Writer, NodeNames);
+    Node.SaveToStream(Writer);
     Writer.DecIndent;
 
     Writer.Writeln('</Scene>' +NL + '</X3D>');
   finally
     FreeAndNil(Writer);
-    FreeAndNil(NodeNames);
   end;
 end;
 
