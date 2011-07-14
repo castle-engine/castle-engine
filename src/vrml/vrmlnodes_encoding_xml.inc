@@ -576,10 +576,8 @@ var
   end;
 
 begin
-  Writer := TX3DWriterNames.Create(Stream, xeXML);
+  Writer := TX3DWriterNames.Create(Stream, Version, xeXML);
   try
-    Writer.Version := Version;
-
     Writer.Writeln(Format(
       '<?xml version="1.0" encoding="UTF-8"?>' + NL +
       '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D %d.%d//EN" "http://www.web3d.org/specifications/x3d-%0:d.%1:d.dtd">' + NL+

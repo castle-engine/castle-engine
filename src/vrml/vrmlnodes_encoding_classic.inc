@@ -676,7 +676,7 @@ const
 var
   VRMLHeader, PrecedingComment: string;
 begin
-  Writer := TX3DWriterNames.Create(Stream, xeClassic);
+  Writer := TX3DWriterNames.Create(Stream, Version, xeClassic);
   try
     if Version.Major <= 1 then
       VRMLHeader := VRML10Header else
@@ -684,8 +684,6 @@ begin
       VRMLHeader := VRML20Header else
     if Version.Major >= 3 then
       VRMLHeader := Format(X3DHeader, [Version.Major, Version.Minor]);
-
-    Writer.Version := Version;
 
     Writer.Writeln(VRMLHeader + NL { yes, one more NL, to look good });
 

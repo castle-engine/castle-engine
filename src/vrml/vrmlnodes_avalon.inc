@@ -532,10 +532,8 @@ procedure TNodeLogger.EventWriteReceive(
 
       WriteStr(WriteStream, S + ' Value: ');
 
-      Writer := TX3DWriterNames.Create(WriteStream, xeClassic);
+      Writer := TX3DWriterNames.Create(WriteStream, X3DVersion, xeClassic);
       try
-        { Just use latest format. }
-        Writer.Version := X3DVersion;
         Value.FieldSaveToStream(Writer, true);
       finally
         FreeAndNil(Writer);

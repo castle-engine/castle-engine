@@ -71,11 +71,13 @@ type
       This allows to write correct DEF / USE when saving. }
     NodeNames: TVRMLNodeNames;
 
-    constructor Create(AStream: TStream; const AEncoding: TX3DEncoding);
+    constructor Create(AStream: TStream;
+      const AVersion: TVRMLVersion; const AEncoding: TX3DEncoding);
     destructor Destroy; override;
   end;
 
-constructor TX3DWriterNames.Create(AStream: TStream; const AEncoding: TX3DEncoding);
+constructor TX3DWriterNames.Create(AStream: TStream;
+  const AVersion: TVRMLVersion; const AEncoding: TX3DEncoding);
 begin
   inherited;
   NodeNames := TVRMLNodeNames.Create(false);

@@ -38,13 +38,13 @@ type
     Indent: string;
     DoDiscardNextIndent: boolean;
     FEncoding: TX3DEncoding;
+    FStream: TStream;
   public
-    Stream: TStream;
-
-    { Which VRML/X3D version are we writing. }
+    { Which VRML/X3D version are we writing. Read-only after creation. }
     Version: TVRMLVersion;
 
-    constructor Create(AStream: TStream; const AEncoding: TX3DEncoding);
+    constructor Create(AStream: TStream;
+      const AVersion: TVRMLVersion; const AEncoding: TX3DEncoding);
     destructor Destroy; override;
 
     property Encoding: TX3DEncoding read FEncoding;
@@ -2620,10 +2620,12 @@ const
   { IndentIncrement is string or char. It's used by SaveToStream }
   IndentIncrement = CharTab;
 
-constructor TX3DWriter.Create(AStream: TStream; const AEncoding: TX3DEncoding);
+constructor TX3DWriter.Create(AStream: TStream; const AVersion: TVRMLVersion;
+  const AEncoding: TX3DEncoding);
 begin
   inherited Create;
-  Stream := AStream;
+  Version := AVersion;
+  FStream := AStream;
   FEncoding := AEncoding;
 end;
 
@@ -2648,32 +2650,32 @@ end;
 
 procedure TX3DWriter.Write(const S: string);
 begin
-  WriteStr(Stream, S);
+  WriteStr(FStream, S);
 end;
 
 procedure TX3DWriter.Writeln(const S: string);
 begin
-  WriteStr(Stream, S);
-  WriteStr(Stream, NL);
+  WriteStr(FStream, S);
+  WriteStr(FStream, NL);
 end;
 
 procedure TX3DWriter.Writeln;
 begin
-  WriteStr(Stream, NL);
+  WriteStr(FStream, NL);
 end;
 
 procedure TX3DWriter.WriteIndent(const S: string);
 begin
   if DoDiscardNextIndent then
     DoDiscardNextIndent := false else
-    WriteStr(Stream, Indent);
-  WriteStr(Stream, S);
+    WriteStr(FStream, Indent);
+  WriteStr(FStream, S);
 end;
 
 procedure TX3DWriter.WritelnIndent(const S: string);
 begin
   WriteIndent(S);
-  WriteStr(Stream, NL);
+  WriteStr(FStream, NL);
 end;
 
 procedure TX3DWriter.DiscardNextIndent;
