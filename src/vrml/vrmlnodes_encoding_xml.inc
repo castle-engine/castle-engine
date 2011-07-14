@@ -579,7 +579,7 @@ var
   NodeNames: TVRMLNodeNames;
 begin
   NodeNames := TVRMLNodeNames.Create(false);
-  Writer := TX3DWriter.Create(Stream);
+  Writer := TX3DWriter.Create(Stream, xeXML);
   try
     Writer.Version := Version;
 
@@ -618,7 +618,7 @@ begin
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
     Writer.IncIndent;
-    Node.SaveToStream(Writer, NodeNames, xeXML);
+    Node.SaveToStream(Writer, NodeNames);
     Writer.DecIndent;
 
     Writer.Writeln('</Scene>' +NL + '</X3D>');

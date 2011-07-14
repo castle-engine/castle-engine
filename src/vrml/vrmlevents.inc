@@ -71,11 +71,9 @@
       Assertion checks that we cannot have more than 1 IS clause in this case.
       This is suitable for saving VRML interface declaration
       containing an event. }
-    procedure EventSaveToStream(Writer: TX3DWriter;
-      const Encoding: TX3DEncoding; WriteExactlyOnce: boolean);
+    procedure EventSaveToStream(Writer: TX3DWriter; WriteExactlyOnce: boolean);
 
-    procedure SaveToStream(Writer: TX3DWriter;
-      NodeNames: TObject; const Encoding: TX3DEncoding); override;
+    procedure SaveToStream(Writer: TX3DWriter; NodeNames: TObject); override;
 
     { If this event is an exposed event belonging to some field,
       this references parent field. Otherwise it's @nil. }
@@ -245,8 +243,7 @@ begin
   ParseIsClause(Lexer);
 end;
 
-procedure TVRMLEvent.EventSaveToStream(
-  Writer: TX3DWriter; const Encoding: TX3DEncoding;
+procedure TVRMLEvent.EventSaveToStream(Writer: TX3DWriter;
   WriteExactlyOnce: boolean);
 var
   N: string;
@@ -283,10 +280,9 @@ begin
   end;
 end;
 
-procedure TVRMLEvent.SaveToStream(Writer: TX3DWriter;
-  NodeNames: TObject; const Encoding: TX3DEncoding);
+procedure TVRMLEvent.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
 begin
-  EventSaveToStream(Writer, Encoding, false);
+  EventSaveToStream(Writer, false);
 end;
 
 procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TVRMLTime);

@@ -707,8 +707,7 @@
 
       We use Writer.NodeNames to record known node names.
       This allows to write correct DEF / USE when saving. }
-    procedure SaveToStream(Writer: TX3DWriter;
-      NodeNames: TObject; const Encoding: TX3DEncoding); override;
+    procedure SaveToStream(Writer: TX3DWriter; NodeNames: TObject); override;
 
     { Do the nodes of (exactly) this class should be included
       in VRML 1.0 state (see TVRMLGraphTraverseState.LastNodes). }
@@ -2410,8 +2409,7 @@ begin
   finally C.Free end;
 end;
 
-procedure TVRMLNode.SaveToStream(Writer: TX3DWriter;
-  NodeNames: TObject; const Encoding: TX3DEncoding);
+procedure TVRMLNode.SaveToStream(Writer: TX3DWriter; NodeNames: TObject);
 
   { Collect node contents to save.
     You want to save here exactly what you read in ParseNodeBodyElement. }
@@ -2485,7 +2483,7 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter;
       Writer.IncIndent;
       FileItems := ContentsToSave;
       try
-        FileItems.SaveToStream(Writer, NodeNames, Encoding);
+        FileItems.SaveToStream(Writer, NodeNames);
       finally FreeAndNil(FileItems) end;
       Writer.DecIndent;
 
@@ -2527,7 +2525,7 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter;
         for I := 0 to FileItems.Count - 1 do
           case FileItems[I].SaveToXml of
             sxAttribute, sxAttributeCustomQuotes:
-              FileItems[I].SaveToStream(Writer, NodeNames, Encoding);
+              FileItems[I].SaveToStream(Writer, NodeNames);
             sxChildElement: HasContent := true;
           end;
         Writer.DecIndent;
@@ -2539,7 +2537,7 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter;
 
           for I := 0 to FileItems.Count - 1 do
             if FileItems[I].SaveToXml = sxChildElement then
-              FileItems[I].SaveToStream(Writer, NodeNames, Encoding);
+              FileItems[I].SaveToStream(Writer, NodeNames);
 
           Writer.DecIndent;
           Writer.WritelnIndent('</' + NodeTypeName + '>');
@@ -2564,7 +2562,7 @@ begin
     { TODO: savexml use <ProtoInstance> }
     { If this is an expanded prototype, then delegate writing to the
       PrototypeInstanceSourceNode. }
-    PrototypeInstanceSourceNode.SaveToStream(Writer, NodeNames, Encoding);
+    PrototypeInstanceSourceNode.SaveToStream(Writer, NodeNames);
 
     { What to do about
         NodeNames.Bind(Self)
@@ -2579,7 +2577,7 @@ begin
 
     (NodeNames as TVRMLNodeNames).Bind(Self, true);
   end else
-  case Encoding of
+  case Writer.Encoding of
     xeClassic: Classic;
     xeXML    : Xml;
     else raise EInternalError.Create('TVRMLNode.SaveToStream Encoding?');

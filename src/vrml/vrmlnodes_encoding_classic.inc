@@ -678,7 +678,7 @@ var
   NodeNames: TVRMLNodeNames;
 begin
   NodeNames := TVRMLNodeNames.Create(false);
-  Writer := TX3DWriter.Create(Stream);
+  Writer := TX3DWriter.Create(Stream, xeClassic);
   try
     if Version.Major <= 1 then
       VRMLHeader := VRML10Header else
@@ -714,7 +714,7 @@ begin
 
     { Node may be TVRMLRootNode here, that's OK,
       TVRMLRootNode.SaveToStream will magically handle this right. }
-    Node.SaveToStream(Writer, NodeNames, xeClassic);
+    Node.SaveToStream(Writer, NodeNames);
   finally
     FreeAndNil(Writer);
     FreeAndNil(NodeNames);

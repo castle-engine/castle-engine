@@ -534,11 +534,11 @@ procedure TNodeLogger.EventWriteReceive(
       WriteStr(WriteStream, S + ' Value: ');
 
       NodeNames := TVRMLNodeNames.Create(false);
-      Writer := TX3DWriter.Create(WriteStream);
+      Writer := TX3DWriter.Create(WriteStream, xeClassic);
       try
         { Just use latest format. }
         Writer.Version := X3DVersion;
-        Value.FieldSaveToStream(Writer, NodeNames, xeClassic, true);
+        Value.FieldSaveToStream(Writer, NodeNames, true);
       finally
         FreeAndNil(Writer);
         FreeAndNil(NodeNames);
