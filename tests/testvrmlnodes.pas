@@ -272,7 +272,7 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
 
       Node := LoadVRMLClassic(FileName, false);
       NewFile := GetTempPath + 'test_kambi_vrml_game_engine.wrl';
-      SaveVRML(Node, NewFile, ProgramName, '', xeClassic);
+      SaveVRML(Node, NewFile, ProgramName, '', xeClassic, false);
 
       Second := TDynVRMLTokenInfoArray.Create;
       Second.ReadFromFile(NewFile);
@@ -1501,7 +1501,7 @@ begin
     Assert(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { save and load again }
-    SaveVRML(Node, TempStream, '', '', xeClassic);
+    SaveVRML(Node, TempStream, '', '', xeClassic, false);
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadVRMLClassicStream(TempStream);
@@ -1534,7 +1534,7 @@ begin
 
     { save and load again. During SaveVRML tweak meta generator and source }
     TempStream.Position := 0;
-    SaveVRML(Node, TempStream, 'newgenerator', 'newsource', xeClassic);
+    SaveVRML(Node, TempStream, 'newgenerator', 'newsource', xeClassic, false);
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadVRMLClassicStream(TempStream);
@@ -1557,7 +1557,7 @@ begin
 
     { save and load again, this time going though XML }
     TempStream.Position := 0;
-    SaveVRML(Node, TempStream, '', '', xeXML);
+    SaveVRML(Node, TempStream, '', '', xeXML, false);
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DXml(TempStream, '');
