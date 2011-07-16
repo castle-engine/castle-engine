@@ -628,7 +628,7 @@ end;
 procedure SaveVRMLClassic(Node: TVRMLNode;
   const FileName, PrecedingComment: string);
 begin
-  SaveVRML(Node, FileName, PrecedingComment, '', xeClassic);
+  SaveVRML(Node, FileName, PrecedingComment, '', xeClassic, false);
 end;
 
 {$endif read_implementation}

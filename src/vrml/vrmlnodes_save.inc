@@ -29,13 +29,13 @@ function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
   the generator (your program) name and source (original 3D model file name).
   If this is not an X3D root file node, we will record it inside a comment.
 
-  Encoding = xeXML should be used only with X3D or VRML 2.0,
-  that is when Version.Major >= 2.
-  In case of VRML 2.0, this will cause conversion VRML 2.0 -> X3D.
-  Previous standard versions (VRML 1.0, Inventor) cannot be saved to XML.
-  This procedure will actually generate something sensible (you can imagine
-  how VRML 1.0 can be encoded in XML, by analogy with X3D),
-  but it will only be readable by our engine.
+  When ForceConvertingToX3D or when Encoding <> xeClassic,
+  the node graph will be converted to X3D (if it isn't X3D already).
+  This can be used to convert VRML 2.0 to X3D.
+  For VRML 1.0 or Inventor, this will just save them in X3D (XML or classic)
+  encoding, which is not really usable. We simply don't implement
+  VRML 1.0/Inventor convertion (it's difficult, and not worth the trouble,
+  VRML 1.0/Inventor are really old).
 
   @param(Version Which VRML/X3D specification version should be used
     to encode. It should be calculated by SaveVRMLVersion(Node).
@@ -58,16 +58,20 @@ function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
   @groupBegin }
 procedure SaveVRML(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
-  const Version: TVRMLVersion; const Encoding: TX3DEncoding); overload;
+  Version: TVRMLVersion; const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean); overload;
 procedure SaveVRML(Node: TVRMLNode;
   const Filename, Generator, Source: string;
-  const Version: TVRMLVersion; const Encoding: TX3DEncoding); overload;
+  const Version: TVRMLVersion; const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean); overload;
 procedure SaveVRML(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
-  const Encoding: TX3DEncoding); overload;
+  const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean); overload;
 procedure SaveVRML(Node: TVRMLNode;
   const Filename, Generator, Source: string;
-  const Encoding: TX3DEncoding); overload;
+  const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean); overload;
 { @groupEnd }
 
 {$endif read_interface}
@@ -122,10 +126,24 @@ end;
 
 procedure SaveVRML(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
-  const Version: TVRMLVersion;
-  const Encoding: TX3DEncoding);
+  Version: TVRMLVersion;
+  const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean);
 var
   Writer: TX3DWriterNames;
+
+  procedure ConvertToX3D;
+  begin
+    { Converts VRML (1, 2) to X3D simply by changing Version used to save.
+      This will work fine for VRML 2 -> X3D (except for rare nodes
+      different between VRML 2 and X3D, where TNodeXxx_2 and TNodeXxx_3
+      exist --- like NurbsCurve).
+      This will not really work for VRML 1. }
+    if Version.Major <= 1 then
+      VRMLWarning(vwSerious, 'Converting VRML 1.0 or Inventor to X3D is not implemented. You will get VRML 1.0/Inventor nodes encoded like for X3D, which probably is not much useful.');
+    Version.Major := 3;
+    Version.Minor := 0;
+  end;
 
   procedure Classic;
 
@@ -275,6 +293,10 @@ var
   end;
 
 begin
+  if (Version.Major < 3) and
+     (ForceConvertingToX3D or (Encoding <> xeClassic)) then
+    ConvertToX3D;
+
   Writer := TX3DWriterNames.Create(Stream, Version, Encoding);
   try
     case Encoding of
@@ -287,28 +309,34 @@ end;
 
 procedure SaveVRML(Node: TVRMLNode;
   const Filename, Generator, Source: string; const Version: TVRMLVersion;
-  const Encoding: TX3DEncoding);
+  const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean);
 var
   Stream: TFileStream;
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveVRML(Node, Stream, Generator, Source, Version, Encoding);
+    SaveVRML(Node, Stream, Generator, Source, Version,
+      Encoding, ForceConvertingToX3D);
   finally Stream.Free end;
 end;
 
 procedure SaveVRML(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
-  const Encoding: TX3DEncoding);
+  const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean);
 begin
-  SaveVRML(Node, Stream, Generator, Source, SaveVRMLVersion(Node), Encoding);
+  SaveVRML(Node, Stream, Generator, Source, SaveVRMLVersion(Node),
+    Encoding, ForceConvertingToX3D);
 end;
 
 procedure SaveVRML(Node: TVRMLNode;
   const FileName, Generator, Source: string;
-  const Encoding: TX3DEncoding);
+  const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean);
 begin
-  SaveVRML(Node, FileName, Generator, Source, SaveVRMLVersion(Node), Encoding);
+  SaveVRML(Node, FileName, Generator, Source, SaveVRMLVersion(Node),
+    Encoding, ForceConvertingToX3D);
 end;
 
 {$endif read_implementation}

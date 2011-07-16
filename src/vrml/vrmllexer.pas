@@ -102,10 +102,12 @@ type
 
   TVRMLVersion = object
     Major, Minor: Integer;
-    function FileExtension(const Encoding: TX3DEncoding): string;
+    function FileExtension(const Encoding: TX3DEncoding;
+      const ForceConvertingToX3D: boolean): string;
     { File filters for TGLWindow.FileDialog if you want to save a file using
       SaveVRML. }
-    function FileFilters(const Encoding: TX3DEncoding): string;
+    function FileFilters(const Encoding: TX3DEncoding;
+      const ForceConvertingToX3D: boolean): string;
   end;
 
   { VRML unified lexer.
@@ -399,16 +401,18 @@ end;
 
 { TVRMLVersion --------------------------------------------------------------- }
 
-function TVRMLVersion.FileExtension(const Encoding: TX3DEncoding): string;
+function TVRMLVersion.FileExtension(const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean): string;
 begin
   if Encoding = xeXML then
     Result := '.x3d' else
-  if Major >= 3 then
+  if (Major >= 3) or ForceConvertingToX3D then
     Result := '.x3dv' else
     Result := '.wrl';
 end;
 
-function TVRMLVersion.FileFilters(const Encoding: TX3DEncoding): string;
+function TVRMLVersion.FileFilters(const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean): string;
 const
   SaveVRMLClassic_FileFilters =
   'All files|*|' +
@@ -422,7 +426,7 @@ const
 begin
   if Encoding = xeXML then
     Result := SaveX3DXml_FileFilters else
-  if Major >= 3 then
+  if (Major >= 3) or ForceConvertingToX3D then
     Result := SaveX3DClassic_FileFilters else
     Result := SaveVRMLClassic_FileFilters;
 end;
