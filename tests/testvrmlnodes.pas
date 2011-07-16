@@ -85,6 +85,8 @@ type
     procedure TestSortPositionInParent;
 
     procedure TestRootNodeMeta;
+
+    procedure TestConvertToX3D;
   end;
 
 implementation
@@ -1457,20 +1459,19 @@ begin
   end;
 end;
 
+function LoadVRMLClassicStream(Stream: TStream): TVRMLRootNode;
+var
+  BS: TBufferedReadStream;
+begin
+  BS := TBufferedReadStream.Create(Stream, false);
+  try
+    Result := LoadVRMLClassic(BS , '');
+  finally FreeAndNil(BS) end;
+end;
+
 procedure TTestVRMLNodes.TestRootNodeMeta;
 { Test reading, writing, copying of TVRMLRootNode profile, component, metas.
   Also, test updating metas when saving, with generator and source. }
-
-  function LoadVRMLClassicStream(Stream: TStream): TVRMLRootNode;
-  var
-    BS: TBufferedReadStream;
-  begin
-    BS := TBufferedReadStream.Create(Stream, false);
-    try
-      Result := LoadVRMLClassic(BS , '');
-    finally FreeAndNil(BS) end;
-  end;
-
 var
   Node, NewNode: TVRMLRootNode;
   TempStream: TMemoryStream;
@@ -1578,6 +1579,119 @@ begin
     Assert(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
     Assert(Node.Meta['source'] = 'newsource');
 
+  finally
+    FreeAndNil(Node);
+    FreeAndNil(TempStream);
+  end;
+end;
+
+procedure TTestVRMLNodes.TestConvertToX3D;
+var
+  Node: TVRMLRootNode;
+  TempStream: TMemoryStream;
+begin
+  TempStream := nil;
+  Node := nil;
+
+  try
+    TempStream := TMemoryStream.Create;
+
+    { load X3D 3.1 }
+    Node := LoadVRMLClassicFromString('#X3D V3.1 utf8' +NL+
+      'PROFILE Immersive', '');
+    Assert(Node.HasForceVersion = true);
+    Assert(Node.ForceVersion.Major = 3);
+    Assert(Node.ForceVersion.Minor = 1);
+
+    { save to XML }
+    TempStream.Position := 0;
+    TempStream.Size := 0;
+    SaveVRML(Node, TempStream, '', '', xeXML, true);
+    FreeAndNil(Node);
+
+    { check that loading it back results in 3.1 }
+    TempStream.Position := 0;
+    Node := LoadX3DXml(TempStream, '');
+    Assert(Node.HasForceVersion = true);
+    Assert(Node.ForceVersion.Major = 3);
+    Assert(Node.ForceVersion.Minor = 1);
+
+    { save to clasic }
+    TempStream.Position := 0;
+    TempStream.Size := 0;
+    SaveVRML(Node, TempStream, '', '', xeClassic, true);
+    FreeAndNil(Node);
+
+    { check that loading it back results in 3.1 }
+    TempStream.Position := 0;
+    Node := LoadVRMLClassicStream(TempStream);
+    Assert(Node.HasForceVersion = true);
+    Assert(Node.ForceVersion.Major = 3);
+    Assert(Node.ForceVersion.Minor = 1);
+    FreeAndNil(Node);
+
+    { load VRML 2.0 }
+    Node := LoadVRMLClassicFromString('#VRML V2.0 utf8' + NL, '');
+    Assert(Node.HasForceVersion = true);
+    Assert(Node.ForceVersion.Major = 2);
+    Assert(Node.ForceVersion.Minor = 0);
+
+    { save to XML }
+    TempStream.Position := 0;
+    TempStream.Size := 0;
+    SaveVRML(Node, TempStream, '', '', xeXML, false);
+    FreeAndNil(Node);
+
+    { check that loading it back results in 3.0
+      (convertion was done, since this is XML) }
+    TempStream.Position := 0;
+    Node := LoadX3DXml(TempStream, '');
+    Assert(Node.HasForceVersion = true);
+    Assert(Node.ForceVersion.Major = 3);
+    Assert(Node.ForceVersion.Minor = 0);
+    FreeAndNil(Node);
+
+    { load VRML 2.0 }
+    Node := LoadVRMLClassicFromString('#VRML V2.0 utf8' + NL, '');
+    Assert(Node.HasForceVersion = true);
+    Assert(Node.ForceVersion.Major = 2);
+    Assert(Node.ForceVersion.Minor = 0);
+
+    { save to classic }
+    TempStream.Position := 0;
+    TempStream.Size := 0;
+    SaveVRML(Node, TempStream, '', '', xeClassic, false);
+    FreeAndNil(Node);
+
+    { check that loading it back results in 2.0
+      (convertion not done, since this is classic and convertion not forced) }
+    TempStream.Position := 0;
+    Node := LoadVRMLClassicStream(TempStream);
+    Assert(Node.HasForceVersion = true);
+    Assert(Node.ForceVersion.Major = 2);
+    Assert(Node.ForceVersion.Minor = 0);
+    FreeAndNil(Node);
+
+    { load VRML 2.0 }
+    Node := LoadVRMLClassicFromString('#VRML V2.0 utf8' + NL, '');
+    Assert(Node.HasForceVersion = true);
+    Assert(Node.ForceVersion.Major = 2);
+    Assert(Node.ForceVersion.Minor = 0);
+
+    { save to classic }
+    TempStream.Position := 0;
+    TempStream.Size := 0;
+    SaveVRML(Node, TempStream, '', '', xeClassic, true);
+    FreeAndNil(Node);
+
+    { check that loading it back results in 3.0
+      (convertion done, since forced = true) }
+    TempStream.Position := 0;
+    Node := LoadVRMLClassicStream(TempStream);
+    Assert(Node.HasForceVersion = true);
+    Assert(Node.ForceVersion.Major = 3);
+    Assert(Node.ForceVersion.Minor = 0);
+    FreeAndNil(Node);
   finally
     FreeAndNil(Node);
     FreeAndNil(TempStream);

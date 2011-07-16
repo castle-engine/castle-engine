@@ -55,15 +55,15 @@ uses
   {$endif} {$endif};
 
 {var
-  T: TTestVRMLNodesOptimizedProxy;}
+  T: TTestVRMLNodes;}
 begin
   DataWarning := @DataWarning_Write;
 
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.
 
-  T := TTestVRMLNodesOptimizedProxy.Create;
-  T.TestGeometryUsesOptimizedMethods;
+  T := TTestVRMLNodes.Create;
+  T.TestConvertToX3D;
   T.Free;
   Exit; }
 
