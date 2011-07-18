@@ -2497,30 +2497,32 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
     I: Integer;
     WriteContainerField: string;
     ElementName: string;
+    ProtoInstance: boolean;
   begin
     if (ExplicitContainerField <> '') and
        (ExplicitContainerField <> DefaultContainerField) then
       WriteContainerField := ' containerField=' + StringToX3DXml(ExplicitContainerField) else
       WriteContainerField := '';
 
+    { For XML encoding, TVRMLPrototypeNode is saved a little specially. }
+    ProtoInstance := Self is TVRMLPrototypeNode;
+
+    if ProtoInstance then
+      ElementName := 'ProtoInstance' else
+      ElementName := NodeTypeName;
+
     if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
       Writer.WritelnIndent(Format('<%s USE=%s%s />',
-        [NodeTypeName, StringToX3DXml(NodeName), WriteContainerField]));
+        [ElementName, StringToX3DXml(NodeName), WriteContainerField]));
     end else
     begin
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
 
       { write us to stream }
-      if Self is TVRMLPrototypeNode then
-      begin
-        ElementName := 'ProtoInstance';
-        Writer.WriteIndent('<' + ElementName + ' name=' + StringToX3DXml(NodeTypeName));
-      end else
-      begin
-        ElementName := NodeTypeName;
-        Writer.WriteIndent('<' + NodeTypeName);
-      end;
+      Writer.WriteIndent('<' + ElementName);
+      if ProtoInstance then
+        Writer.Write(' name=' + StringToX3DXml(NodeTypeName));
       if NodeName <> '' then Writer.Write(' DEF=' +StringToX3DXml(NodeName));
       Writer.Write(WriteContainerField);
 
@@ -2530,7 +2532,11 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
         Writer.IncIndent;
         for I := 0 to FileItems.Count - 1 do
           case FileItems[I].SaveToXml of
-            sxAttribute, sxAttributeCustomQuotes: FileItems[I].SaveToStream(Writer);
+            sxAttribute, sxAttributeCustomQuotes:
+              if ProtoInstance then
+                { for a prototype, every field must be wrapped in <fieldValue> }
+                HasContent := true else
+                FileItems[I].SaveToStream(Writer);
             sxChildElement: HasContent := true;
           end;
         Writer.DecIndent;
@@ -2541,6 +2547,29 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
           Writer.IncIndent;
 
           for I := 0 to FileItems.Count - 1 do
+            if ProtoInstance and
+               (FileItems[I] is TVRMLField) and
+               (FileItems[I].SaveToXml <> sxNone) then
+            begin
+              { prototype instance fields must be wrapped in <fieldValue> }
+              Writer.WriteIndent('<fieldValue name=' +
+                StringToX3DXml((FileItems[I] as TVRMLField).Name));
+              if FileItems[I].SaveToXml = sxChildElement then
+              begin
+                Writer.Writeln('>');
+                Writer.IncIndent;
+                FileItems[I].SaveToStream(Writer);
+                Writer.DecIndent;
+                Writer.WritelnIndent('</fieldValue>');
+              end else
+              begin
+                Assert(FileItems[I].SaveToXml in [sxAttribute, sxAttributeCustomQuotes]);
+                Writer.IncIndent;
+                FileItems[I].SaveToStream(Writer);
+                Writer.DecIndent;
+                Writer.Writeln(' />');
+              end;
+            end else
             if FileItems[I].SaveToXml = sxChildElement then
               FileItems[I].SaveToStream(Writer);
 
