@@ -3,6 +3,7 @@ to easily use Kambi VRML game engine in Lazarus programs.
 
 Short instructions: just compile and install kambi_base and kambi_components.
 *Do not* install kambi_glwindow in Lazarus (only compile it).
+kambi_components depends on standard Lazarus package LazOpenGLContext.
 
 ----------------------------------------
 Usage:
@@ -30,6 +31,13 @@ Usage:
      of your project) but usually it's much more comfortable to have them
      installed.
 
+     Note that "kambi_components" package depends on standard Lazarus
+     package "LazOpenGLContext". So compile LazOpenGLContext first.
+     Just open components/opengl/lazopenglcontext.lpk from Lazarus sources,
+     and compile + install it under Lazarus.
+     You can then try examples/openglcontrol/openglcontrol_demo.lpk,
+     also in Lazarus sources, to check that "LazOpenGLContext" works Ok.
+
      For kambi_glwindow: *do not* install this in Lazarus.
      This package uses GLWindow unit, and merely using this unit
      will cause the program to initialize TGLApplication instance,
@@ -37,8 +45,9 @@ Usage:
      This would conflict with what Lazarus IDE (and LCL) does,
      causing unpredictable results.
 
-     So kambi_glwindow package is supposed only to be "used" (that is, required
-     by other projects), never installed in Lazarus IDE.
+     So kambi_glwindow package is supposed only to be "used" (by adding
+     it to "Required Packages" in project inspector),
+     never installed in Lazarus IDE.
 
 Mini-FAQ about these packages:
 
