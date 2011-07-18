@@ -4871,7 +4871,7 @@ begin
       end;
     xeXML:
       begin
-        Writer.WriteIndent('<ExternProto name=' + StringToX3DXml(Name) + ' url=');
+        Writer.WriteIndent('<ExternProtoDeclare name=' + StringToX3DXml(Name) + ' url=');
         URLList.FieldSaveToStream(Writer, true, true, true);
         Writer.Writeln('>');
 
