@@ -2496,6 +2496,7 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
     HasContent: boolean;
     I: Integer;
     WriteContainerField: string;
+    ElementName: string;
   begin
     if (ExplicitContainerField <> '') and
        (ExplicitContainerField <> DefaultContainerField) then
@@ -2511,7 +2512,15 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
 
       { write us to stream }
-      Writer.WriteIndent('<' + NodeTypeName);
+      if Self is TVRMLPrototypeNode then
+      begin
+        ElementName := 'ProtoInstance';
+        Writer.WriteIndent('<' + ElementName + ' name=' + StringToX3DXml(NodeTypeName));
+      end else
+      begin
+        ElementName := NodeTypeName;
+        Writer.WriteIndent('<' + NodeTypeName);
+      end;
       if NodeName <> '' then Writer.Write(' DEF=' +StringToX3DXml(NodeName));
       Writer.Write(WriteContainerField);
 
@@ -2536,7 +2545,7 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
               FileItems[I].SaveToStream(Writer);
 
           Writer.DecIndent;
-          Writer.WritelnIndent('</' + NodeTypeName + '>');
+          Writer.WritelnIndent('</' + ElementName + '>');
         end else
           Writer.Writeln(' />');
       finally FreeAndNil(FileItems) end;
