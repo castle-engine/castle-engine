@@ -3050,7 +3050,24 @@ end;
 
 function TVRMLField.SaveToXml: TSaveToXmlMethod;
 begin
-  Result := sxAttribute;
+  { Detect sxNone for XML encoding, this allows better output in many cases,
+    also avoids <fieldValue> inside <ProtoInstance> when the field value actually
+    doesn't have to be specified.
+
+    For XML encoding, FieldSaveToStream doesn't save IS clauses.
+    It only saves a value, if it's not default. Exactly when?
+    FieldSaveToStream checks
+
+     AllowSavingFieldValue and
+     (not ValueFromIsClause) and
+     (FieldSaveWhenDefault or (not EqualsDefaultValue))
+
+    SaveToStream calls FieldSaveToStream with default
+    FieldSaveWhenDefault = false, AllowSavingFieldValue = true. }
+
+  if (not ValueFromIsClause) and (not EqualsDefaultValue) then
+    Result := sxAttribute else
+    Result := sxNone;
 end;
 
 function TVRMLField.EqualsDefaultValue: boolean;
@@ -4689,7 +4706,10 @@ end;
 
 function TSFString.SaveToXml: TSaveToXmlMethod;
 begin
-  Result := sxAttributeCustomQuotes;
+  { Change inherited result, but only if not sxNone (field has default value etc.) }
+  Result := inherited;
+  if Result <> sxNone then
+    Result := sxAttributeCustomQuotes;
 end;
 
 { ----------------------------------------------------------------------------
@@ -5914,7 +5934,10 @@ end;
 
 function TMFString.SaveToXml: TSaveToXmlMethod;
 begin
-  Result := sxAttributeCustomQuotes;
+  { Change inherited result, but only if not sxNone (field has default value etc.) }
+  Result := inherited;
+  if Result <> sxNone then
+    Result := sxAttributeCustomQuotes;
 end;
 
 procedure TMFString.SaveToStreamValue(Writer: TX3DWriter);

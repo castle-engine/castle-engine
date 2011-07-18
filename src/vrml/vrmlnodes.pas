@@ -3096,10 +3096,15 @@ end;
 
 function TSFNode.SaveToXml: TSaveToXmlMethod;
 begin
-  { NULL can only be encoded as an attribute in XML encoding }
-  if Value = nil then
-    Result := sxAttribute else
-    Result := sxChildElement;
+  { Change inherited result, but only if not sxNone (field has default value etc.) }
+  Result := inherited;
+  if Result <> sxNone then
+  begin
+    { NULL can only be encoded as an attribute in XML encoding }
+    if Value = nil then
+      Result := sxAttribute else
+      Result := sxChildElement;
+  end;
 end;
 
 function TSFNode.EqualsDefaultValue: boolean;
@@ -3292,7 +3297,10 @@ end;
 
 function TMFNode.SaveToXml: TSaveToXmlMethod;
 begin
-  Result := sxChildElement;
+  { Change inherited result, but only if not sxNone (field has default value etc.) }
+  Result := inherited;
+  if Result <> sxNone then
+    Result := sxChildElement;
 end;
 
 function TMFNode.GetCount: integer;
