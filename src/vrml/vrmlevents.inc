@@ -74,6 +74,7 @@
     procedure EventSaveToStream(Writer: TX3DWriter; WriteExactlyOnce: boolean);
 
     procedure SaveToStream(Writer: TX3DWriter); override;
+    function SaveToXml: TSaveToXmlMethod; override;
 
     { If this event is an exposed event belonging to some field,
       this references parent field. Otherwise it's @nil. }
@@ -283,6 +284,12 @@ end;
 procedure TVRMLEvent.SaveToStream(Writer: TX3DWriter);
 begin
   EventSaveToStream(Writer, false);
+end;
+
+function TVRMLEvent.SaveToXml: TSaveToXmlMethod;
+begin
+  { event has only IS clauses in SaveToStream for classic encoding }
+  Result := sxNone;
 end;
 
 procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TVRMLTime);
