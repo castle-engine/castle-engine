@@ -562,6 +562,12 @@ type
       is @false. }
     procedure SaveToStreamValue(Writer: TX3DWriter); virtual; abstract;
 
+    { Save method of SaveToStreamValue. May assume things that
+      SaveToStreamValue may issume, for example: if this is used at all,
+      then at least field value is not default (so there is a need to write
+      this field) and such. }
+    function SaveToXmlValue: TSaveToXmlMethod; virtual;
+
     { Call this inside overriden Assign methods.
       I don't want to place this inside TVRMLField.Assign, since I want
       "inherited" in Assign methods to cause exception. }
@@ -688,12 +694,12 @@ type
 
     { Save the field to the stream.
 
-      This simply calls FieldSaveToStream(Writer),
-      so it doesn't actually save anything if field value is defined
-      and equals default value.
-
+      This simply calls FieldSaveToStream(Writer).
       See FieldSaveToStream for more comments and when you need control over
-      FieldSaveWhenDefault behavior. }
+      FieldSaveWhenDefault behavior.
+
+      It doesn't actually save anything if field value is defined
+      and equals default value. }
     procedure SaveToStream(Writer: TX3DWriter); override;
     function SaveToXml: TSaveToXmlMethod; override;
 
@@ -1622,7 +1628,7 @@ type
     class function VRMLTypeName: string; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
-    function SaveToXml: TSaveToXmlMethod; override;
+    function SaveToXmlValue: TSaveToXmlMethod; override;
 
     procedure Send(const AValue: string); overload;
   end;
@@ -2515,7 +2521,7 @@ type
     class function VRMLTypeName: string; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
-    function SaveToXml: TSaveToXmlMethod; override;
+    function SaveToXmlValue: TSaveToXmlMethod; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return '', Set will do nothing,
@@ -3048,6 +3054,11 @@ begin
   FieldSaveToStream(Writer);
 end;
 
+function TVRMLField.SaveToXmlValue: TSaveToXmlMethod;
+begin
+  Result := sxAttribute;
+end;
+
 function TVRMLField.SaveToXml: TSaveToXmlMethod;
 begin
   { Detect sxNone for XML encoding, this allows better output in many cases,
@@ -3066,7 +3077,7 @@ begin
     FieldSaveWhenDefault = false, AllowSavingFieldValue = true. }
 
   if (not ValueFromIsClause) and (not EqualsDefaultValue) then
-    Result := sxAttribute else
+    Result := SaveToXmlValue else
     Result := sxNone;
 end;
 
@@ -4704,12 +4715,9 @@ begin
   finally FreeAndNil(FieldValue) end;
 end;
 
-function TSFString.SaveToXml: TSaveToXmlMethod;
+function TSFString.SaveToXmlValue: TSaveToXmlMethod;
 begin
-  { Change inherited result, but only if not sxNone (field has default value etc.) }
-  Result := inherited;
-  if Result <> sxNone then
-    Result := sxAttributeCustomQuotes;
+  Result := sxAttributeCustomQuotes;
 end;
 
 { ----------------------------------------------------------------------------
@@ -5932,12 +5940,9 @@ begin
   finally FreeAndNil(Lexer) end;
 end;
 
-function TMFString.SaveToXml: TSaveToXmlMethod;
+function TMFString.SaveToXmlValue: TSaveToXmlMethod;
 begin
-  { Change inherited result, but only if not sxNone (field has default value etc.) }
-  Result := inherited;
-  if Result <> sxNone then
-    Result := sxAttributeCustomQuotes;
+  Result := sxAttributeCustomQuotes;
 end;
 
 procedure TMFString.SaveToStreamValue(Writer: TX3DWriter);

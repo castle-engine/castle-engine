@@ -816,6 +816,7 @@ type
     procedure SetDefaultValueExists(AValue: boolean);
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
+    function SaveToXmlValue: TSaveToXmlMethod; override;
   public
     { Construct a field allowing any children class.
       Suitable only for special cases. For example, in instantiated prototypes,
@@ -865,7 +866,6 @@ type
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
     procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
-    function SaveToXml: TSaveToXmlMethod; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -940,6 +940,7 @@ type
     function GetItems(const Index: Integer): TVRMLNode;
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
+    function SaveToXmlValue: TSaveToXmlMethod; override;
     { Get or set the number of items.
 
       When increasing this, remember that new items of TMFNode
@@ -1006,7 +1007,6 @@ type
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
     procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
-    function SaveToXml: TSaveToXmlMethod; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -3094,17 +3094,12 @@ begin
   end;
 end;
 
-function TSFNode.SaveToXml: TSaveToXmlMethod;
+function TSFNode.SaveToXmlValue: TSaveToXmlMethod;
 begin
-  { Change inherited result, but only if not sxNone (field has default value etc.) }
-  Result := inherited;
-  if Result <> sxNone then
-  begin
-    { NULL can only be encoded as an attribute in XML encoding }
-    if Value = nil then
-      Result := sxAttribute else
-      Result := sxChildElement;
-  end;
+  { NULL can only be encoded as an attribute in XML encoding }
+  if Value = nil then
+    Result := sxAttribute else
+    Result := sxChildElement;
 end;
 
 function TSFNode.EqualsDefaultValue: boolean;
@@ -3295,12 +3290,9 @@ begin
   end;
 end;
 
-function TMFNode.SaveToXml: TSaveToXmlMethod;
+function TMFNode.SaveToXmlValue: TSaveToXmlMethod;
 begin
-  { Change inherited result, but only if not sxNone (field has default value etc.) }
-  Result := inherited;
-  if Result <> sxNone then
-    Result := sxChildElement;
+  Result := sxChildElement;
 end;
 
 function TMFNode.GetCount: integer;
