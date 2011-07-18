@@ -3990,7 +3990,11 @@ begin
             { TODO: savexml }
             Field.FieldSaveToStream(Writer, true, false);
             Writer.WritelnIndent('</field>');
-          end;
+          end else
+            { no field value, no IS clauses.
+              This can happen for field/event declaration inside <ExternProto>.
+              Just close <field> element. }
+            Writer.Writeln(' />');
         end;
 
       else raise EInternalError.Create('TVRMLInterfaceDeclaration.IDeclSaveToStream Encoding?');
