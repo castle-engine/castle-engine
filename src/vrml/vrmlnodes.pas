@@ -3920,11 +3920,10 @@ begin
         Writer.Write(Event.FieldClass.VRMLTypeName + ' ');
         if Event.IsClauseNames.Count <> 0 then
         begin
-          if Event.IsClauseNames.Count > 1 then
-            VRMLWarning(vwSerious, Format('Only a single IS clause may be saved to classic encoding for interface declaration of event "%s"',
-              [Event.NameForVersion(Writer.Version)]));
-          Event.IsClauseNames.Count := 1;
           Writer.DiscardNextIndent;
+          { Note that there may be many IS clauses. This will still work Ok:
+            first IS clause will "belong" to this interface declaration,
+            the rest will look like normal IS clauses. }
           Event.SaveToStreamIsClauses(Writer);
         end else
           Writer.Writeln(N);
@@ -3956,11 +3955,10 @@ begin
 
         if Field.IsClauseNames.Count <> 0 then
         begin
-          if Field.IsClauseNames.Count > 1 then
-            VRMLWarning(vwSerious, Format('Only a single IS clause may be saved to classic encoding for interface declaration of field "%s"',
-              [Field.NameForVersion(Writer.Version)]));
-          Field.IsClauseNames.Count := 1;
           Writer.DiscardNextIndent;
+          { Note that there may be many IS clauses. This will still work Ok:
+            first IS clause will "belong" to this interface declaration,
+            the rest will look like normal IS clauses. }
           Field.SaveToStreamIsClauses(Writer);
         end else
 
