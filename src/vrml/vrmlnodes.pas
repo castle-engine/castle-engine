@@ -3906,99 +3906,125 @@ procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
   end;
 
 begin
-  if Event <> nil then
-  begin
-    { TODO: savexml }
-    if Event.InEvent then
-      Writer.WriteIndent(ATName(atInputOnly) + ' ') else
-      Writer.WriteIndent(ATName(atOutputOnly) + ' ');
-    Writer.Write(Event.FieldClass.VRMLTypeName + ' ');
-    Writer.DiscardNextIndent;
-    Event.EventSaveToStream(Writer, true);
-  end else
-  begin
-    case Writer.Encoding of
-      xeClassic:
+  case Writer.Encoding of
+    xeClassic:
+      if Event <> nil then
+      begin
+        if Event.InEvent then
+          Writer.WriteIndent(ATName(atInputOnly) + ' ') else
+          Writer.WriteIndent(ATName(atOutputOnly) + ' ');
+        Writer.Write(Event.FieldClass.VRMLTypeName + ' ');
+        Writer.Write(Event.NameForVersion(Writer.Version) + ' ');
+        if Event.IsClauseNames.Count <> 0 then
         begin
-          if Field.Exposed then
-            Writer.WriteIndent(ATName(atInputOutput) + ' ') else
-            Writer.WriteIndent(ATName(atInitializeOnly) + ' ');
-          Writer.Write(Field.VRMLTypeName + ' ');
-
-          { When saving from interface declaration, you can only
-            1. write sole field name
-            2. write field name + value (if FieldValue = @true)
-            3. write field name + exactly one IS clause }
-
-          if ( FieldValue and
-               (not Field.ValueFromIsClause) and
-               (Field.IsClauseNames.Count = 0) ) then
-          begin
-            { Field.SaveToStream normally starts from new line with an indent...
-              In this case, we want it to start on the same line, so indent must
-              be discarded. }
-            Writer.DiscardNextIndent;
-            Field.FieldSaveToStream(Writer, true, true);
-            { In this case, Writer.Writeln will be done by Field.SaveToStream.
-              (we pass SaveWhenDefault anyway, so we can be sure that
-              this newline will be done). }
-          end else
-
-          if Field.IsClauseNames.Count = 1 then
-          begin
-            Writer.DiscardNextIndent;
-            Field.FieldSaveToStream(Writer, true, false);
-          end else
-
-          begin
-            Writer.Writeln(Field.Name);
-          end;
+          Writer.Write('IS ' + Event.IsClauseNames.Items[0]);
+          if Event.IsClauseNames.Count > 1 then
+            VRMLWarning(vwSerious, Format('Only a single IS clause may be saved to classic encoding for interface declaration of event "%s"',
+              [Event.NameForVersion(Writer.Version)]));
         end;
-      xeXML:
+        Writer.Writeln;
+      end else
+      begin
+        if Field.Exposed then
+          Writer.WriteIndent(ATName(atInputOutput) + ' ') else
+          Writer.WriteIndent(ATName(atInitializeOnly) + ' ');
+        Writer.Write(Field.VRMLTypeName + ' ');
+
+        { When saving from interface declaration, you can only
+          1. write sole field name
+          2. write field name + value (if FieldValue = @true)
+          3. write field name + IS clause (only one allowed) }
+
+        if ( FieldValue and
+             (not Field.ValueFromIsClause) and
+             (Field.IsClauseNames.Count = 0) ) then
         begin
-          Writer.WriteIndent(Format('<field accessType=%s type=%s name=%s',
-            [ Iff(Field.Exposed,
-                StringToX3DXml(ATName(atInputOutput)),
-                StringToX3DXml(ATName(atInitializeOnly))),
-              StringToX3DXml(Field.VRMLTypeName),
-              StringToX3DXml(Field.Name) ]));
+          { Field.SaveToStream normally starts from new line with an indent...
+            In this case, we want it to start on the same line, so indent must
+            be discarded. }
+          Writer.DiscardNextIndent;
+          Field.FieldSaveToStream(Writer, true, true);
+          { In this case, Writer.Writeln will be done by Field.SaveToStream.
+            (we pass SaveWhenDefault anyway, so we can be sure that
+            this newline will be done). }
+        end else
 
-          { We follow the same logic as above code for classic encoding.
-            Note that field name is already written, for all cases, above. }
+        if Field.IsClauseNames.Count <> 0 then
+        begin
+          Writer.DiscardNextIndent;
+          Field.SaveToStreamIsClauses(Writer);
+          if Field.IsClauseNames.Count > 1 then
+            VRMLWarning(vwSerious, Format('Only a single IS clause may be saved to classic encoding for interface declaration of field "%s"',
+              [Field.NameForVersion(Writer.Version)]));
+        end else
 
-          if ( FieldValue and
-               (not Field.ValueFromIsClause) and
-               (Field.IsClauseNames.Count = 0) ) then
+        begin
+          Writer.Writeln(Field.Name);
+        end;
+      end;
+    xeXML:
+      if Event <> nil then
+      begin
+        Writer.WriteIndent(Format('<field accessType=%s type=%s name=%s',
+          [ Iff(Event.InEvent,
+              StringToX3DXml(ATName(atInputOnly)),
+              StringToX3DXml(ATName(atOutputOnly))),
+            StringToX3DXml(Event.FieldClass.VRMLTypeName),
+            StringToX3DXml(Event.NameForVersion(Writer.Version)) ]));
+        if Event.IsClauseNames.Count <> 0 then
+        begin
+          Writer.Writeln('>');
+          Writer.IncIndent;
+          Event.SaveToStreamIsClauses(Writer);
+          Writer.DecIndent;
+          Writer.WritelnIndent('</field>');
+        end else
+          Writer.Writeln(' />');
+      end else
+      begin
+        Writer.WriteIndent(Format('<field accessType=%s type=%s name=%s',
+          [ Iff(Field.Exposed,
+              StringToX3DXml(ATName(atInputOutput)),
+              StringToX3DXml(ATName(atInitializeOnly))),
+            StringToX3DXml(Field.VRMLTypeName),
+            StringToX3DXml(Field.NameForVersion(Writer.Version)) ]));
+
+        { We follow the same logic as above code for classic encoding.
+          Note that field name is already written, for all cases, above. }
+
+        if ( FieldValue and
+             (not Field.ValueFromIsClause) and
+             (Field.IsClauseNames.Count = 0) ) then
+        begin
+          if Field.SaveToXml in [sxAttribute, sxAttributeCustomQuotes] then
           begin
-            if Field.SaveToXml in [sxAttribute, sxAttributeCustomQuotes] then
-            begin
-              Writer.Write(' value=');
-              Field.FieldSaveToStream(Writer, true, true, true);
-              Writer.Writeln(' />');
-            end else
-            begin
-              Writer.Writeln('>');
-              { Parameter XmlAvoidSavingNameBeforeValue doesn't matter here }
-              Field.FieldSaveToStream(Writer, true, true);
-              Writer.WritelnIndent('</field>');
-            end;
+            Writer.Write(' value=');
+            Field.FieldSaveToStream(Writer, true, true, true);
+            Writer.Writeln(' />');
           end else
-          if Field.IsClauseNames.Count = 1 then
           begin
             Writer.Writeln('>');
             { Parameter XmlAvoidSavingNameBeforeValue doesn't matter here }
-            { TODO: savexml }
-            Field.FieldSaveToStream(Writer, true, false);
+            Field.FieldSaveToStream(Writer, true, true);
             Writer.WritelnIndent('</field>');
-          end else
-            { no field value, no IS clauses.
-              This can happen for field/event declaration inside <ExternProto>.
-              Just close <field> element. }
-            Writer.Writeln(' />');
-        end;
+          end;
+        end else
+        if Field.IsClauseNames.Count <> 0 then
+        begin
+          Writer.Writeln('>');
+          { Parameter XmlAvoidSavingNameBeforeValue doesn't matter here }
+          Writer.IncIndent;
+          Field.SaveToStreamIsClauses(Writer);
+          Writer.DecIndent;
+          Writer.WritelnIndent('</field>');
+        end else
+          { no field value, no IS clauses.
+            This can happen for field/event declaration inside <ExternProto>.
+            Just close <field> element. }
+          Writer.Writeln(' />');
+      end;
 
-      else raise EInternalError.Create('TVRMLInterfaceDeclaration.IDeclSaveToStream Encoding?');
-    end;
+    else raise EInternalError.Create('TVRMLInterfaceDeclaration.IDeclSaveToStream Encoding?');
   end;
 end;
 

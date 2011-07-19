@@ -494,6 +494,16 @@ type
     function NiceName: string;
     { @deprecated Deprecated name for NiceName. }
     function FullName: string;
+
+    { Save IS clauses to stream.
+      For each IS clause, writeln field/event name followed by "IS" clause.
+
+      If WriteExactlyOnce then we will write exactly one line:
+      only name (if no IS clauses), or just name + first IS clause.
+      Assertion checks that we cannot have more than 1 IS clause in this case.
+      This is suitable for saving VRML interface declaration
+      containing an event. }
+    procedure SaveToStreamIsClauses(Writer: TX3DWriter; WriteExactlyOnce: boolean = false);
   end;
 
   TObjectsListItem_5 = TVRMLFieldOrEvent;
@@ -673,20 +683,13 @@ type
     procedure ParseXMLElement(Element: TDOMElement; Names: TObject); virtual;
 
     { Save the field to the stream.
-      If the current field value equals default value and
-      FieldSaveWhenDefault is @false (default) then the field will not be saved.
-      Otherwise field name, current value / "IS" clause will be saved.
+      Field name (if set, omitted if empty) and value are saved.
+      Unless the current field value equals default value and
+      FieldSaveWhenDefault is @false (default), then nothing is saved.
 
-      For classic encoding this writes multiple lines,
-      first line will start with Indent,
-      last line will be terminated by newline.
-
-      Note that when Name is '', this also works (writes only field value
-      / "IS" clause then).
-
-      NodeNames has the same meaning as for
-      TVRMLNode.SaveToStream, see there. It is ignored, and may be @nil,
-      for all TVRMLField descendants except TSFNode and TMFNode. }
+      IS clauses are not saved here (because they often have to be treated
+      specially anyway, for XML encoding, for prototype declarations etc.).
+      See SaveToStreamIsClauses. }
     procedure FieldSaveToStream(Writer: TX3DWriter;
       FieldSaveWhenDefault: boolean = false;
       AllowSavingFieldValue: boolean = true;
@@ -2828,6 +2831,39 @@ begin
   Result := NiceName;
 end;
 
+procedure TVRMLFieldOrEvent.SaveToStreamIsClauses(Writer: TX3DWriter;
+  WriteExactlyOnce: boolean);
+var
+  N: string;
+  I: Integer;
+begin
+  N := NameForVersion(Writer);
+
+  case Writer.Encoding of
+    xeClassic:
+      { Actually, when N = '', we assume that event has only one "IS" clause.
+        Otherwise results don't make any sense. }
+      for I := 0 to IsClauseNames.Count - 1 do
+      begin
+        if N <> '' then
+          Writer.WriteIndent(N + ' ');
+        Writer.Writeln('IS ' + IsClauseNames.Items[I]);
+      end;
+    xeXML:
+      if IsClauseNames.Count <> 0 then
+      begin
+        Writer.WritelnIndent('<connect>');
+        Writer.IncIndent;
+        for I := 0 to IsClauseNames.Count - 1 do
+          Writer.WritelnIndent(Format('<IS nodeField=%s protoField=%s />',
+            [ StringToX3DXml(N),
+              StringToX3DXml(IsClauseNames.Items[I])]));
+        Writer.DecIndent;
+        Writer.WritelnIndent('</connect>');
+      end;
+  end;
+end;
+
 { TVRMLField ------------------------------------------------------------- }
 
 constructor TVRMLField.Create(AParentNode: TVRMLFileItem;
@@ -3003,20 +3039,8 @@ procedure TVRMLField.FieldSaveToStream(Writer: TX3DWriter;
   FieldSaveWhenDefault, AllowSavingFieldValue, XmlAvoidSavingNameBeforeValue: boolean);
 var
   N: string;
-  I: Integer;
 begin
   N := NameForVersion(Writer);
-
-  { Actually, when N = '', we assume that field has only one "IS" clause
-    or simple value. }
-
-  for I := 0 to IsClauseNames.Count - 1 do
-  begin
-    { TODO: savexml }
-    if N <> '' then
-      Writer.WriteIndent(N + ' ');
-    Writer.Writeln('IS ' + IsClauseNames.Items[I]);
-  end;
 
   if AllowSavingFieldValue and
      (not ValueFromIsClause) and

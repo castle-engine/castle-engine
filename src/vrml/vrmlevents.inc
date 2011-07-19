@@ -64,15 +64,6 @@
       in VRML nodeBodyStatement. }
     procedure Parse(Lexer: TVRMLLexer);
 
-    { For each IS clause, writeln event name followed by "IS" clause.
-
-      If WriteExactlyOnce then we will write exactly one line:
-      only name (if no IS clauses), or just name + first IS clause.
-      Assertion checks that we cannot have more than 1 IS clause in this case.
-      This is suitable for saving VRML interface declaration
-      containing an event. }
-    procedure EventSaveToStream(Writer: TX3DWriter; WriteExactlyOnce: boolean);
-
     procedure SaveToStream(Writer: TX3DWriter); override;
     function SaveToXml: TSaveToXmlMethod; override;
 
@@ -244,51 +235,13 @@ begin
   ParseIsClause(Lexer);
 end;
 
-procedure TVRMLEvent.EventSaveToStream(Writer: TX3DWriter;
-  WriteExactlyOnce: boolean);
-var
-  N: string;
-  I: Integer;
-begin
-  { TODO: savexml }
-  N := NameForVersion(Writer);
-
-  if WriteExactlyOnce then
-  begin
-    { Saving interface declaration doesn't produce sensible results for
-      Event.IsClauseNames.Count > 1, there's no way to save it
-      from single interface decl. }
-    Assert(IsClauseNames.Count <= 1, 'saving event with many IS clauses from single interface decl not possible');
-
-    if N <> '' then
-      Writer.WriteIndent(N + ' ');
-
-    if IsClauseNames.Count = 1 then
-      Writer.Write('IS ' + IsClauseNames.Items[0]);
-
-    Writer.Writeln;
-  end else
-  begin
-    { Actually, when N = '', we assume that event has only one "IS" clause.
-      Otherwise results don't make any sense. }
-
-    for I := 0 to IsClauseNames.Count - 1 do
-    begin
-      if N <> '' then
-        Writer.WriteIndent(N + ' ');
-      Writer.Writeln('IS ' + IsClauseNames.Items[I]);
-    end;
-  end;
-end;
-
 procedure TVRMLEvent.SaveToStream(Writer: TX3DWriter);
 begin
-  EventSaveToStream(Writer, false);
+  { saves nothing. IS clauses are saved separately by SaveToStreamIsClauses }
 end;
 
 function TVRMLEvent.SaveToXml: TSaveToXmlMethod;
 begin
-  { event has only IS clauses in SaveToStream for classic encoding }
   Result := sxNone;
 end;
 
