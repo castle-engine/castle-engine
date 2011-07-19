@@ -2632,7 +2632,9 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
                 begin
                   Assert(FileItems[I].SaveToXml in [sxAttribute, sxAttributeCustomQuotes]);
                   Writer.IncIndent;
-                  FileItems[I].SaveToStream(Writer);
+                  Writer.Writeln;
+                  Writer.WriteIndent('value=');
+                  (FileItems[I]  as TVRMLField).FieldSaveToStream(Writer, true, true);
                   Writer.DecIndent;
                   Writer.Writeln(' />');
                 end;
