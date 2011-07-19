@@ -3905,7 +3905,11 @@ procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
       AccessType];
   end;
 
+var
+  N: string;
 begin
+  N := FieldOrEvent.NameForVersion(Writer.Version);
+
   case Writer.Encoding of
     xeClassic:
       if Event <> nil then
@@ -3914,15 +3918,16 @@ begin
           Writer.WriteIndent(ATName(atInputOnly) + ' ') else
           Writer.WriteIndent(ATName(atOutputOnly) + ' ');
         Writer.Write(Event.FieldClass.VRMLTypeName + ' ');
-        Writer.Write(Event.NameForVersion(Writer.Version) + ' ');
         if Event.IsClauseNames.Count <> 0 then
         begin
-          Writer.Write('IS ' + Event.IsClauseNames.Items[0]);
           if Event.IsClauseNames.Count > 1 then
             VRMLWarning(vwSerious, Format('Only a single IS clause may be saved to classic encoding for interface declaration of event "%s"',
               [Event.NameForVersion(Writer.Version)]));
-        end;
-        Writer.Writeln;
+          Event.IsClauseNames.Count := 1;
+          Writer.DiscardNextIndent;
+          Event.SaveToStreamIsClauses(Writer);
+        end else
+          Writer.Writeln(N);
       end else
       begin
         if Field.Exposed then
@@ -3951,15 +3956,16 @@ begin
 
         if Field.IsClauseNames.Count <> 0 then
         begin
-          Writer.DiscardNextIndent;
-          Field.SaveToStreamIsClauses(Writer);
           if Field.IsClauseNames.Count > 1 then
             VRMLWarning(vwSerious, Format('Only a single IS clause may be saved to classic encoding for interface declaration of field "%s"',
               [Field.NameForVersion(Writer.Version)]));
+          Field.IsClauseNames.Count := 1;
+          Writer.DiscardNextIndent;
+          Field.SaveToStreamIsClauses(Writer);
         end else
 
         begin
-          Writer.Writeln(Field.Name);
+          Writer.Writeln(N);
         end;
       end;
     xeXML:
@@ -3970,7 +3976,7 @@ begin
               StringToX3DXml(ATName(atInputOnly)),
               StringToX3DXml(ATName(atOutputOnly))),
             StringToX3DXml(Event.FieldClass.VRMLTypeName),
-            StringToX3DXml(Event.NameForVersion(Writer.Version)) ]));
+            StringToX3DXml(N) ]));
         if Event.IsClauseNames.Count <> 0 then
         begin
           Writer.Writeln('>');
@@ -3987,7 +3993,7 @@ begin
               StringToX3DXml(ATName(atInputOutput)),
               StringToX3DXml(ATName(atInitializeOnly))),
             StringToX3DXml(Field.VRMLTypeName),
-            StringToX3DXml(Field.NameForVersion(Writer.Version)) ]));
+            StringToX3DXml(N) ]));
 
         { We follow the same logic as above code for classic encoding.
           Note that field name is already written, for all cases, above. }
