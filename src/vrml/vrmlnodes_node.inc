@@ -2692,7 +2692,7 @@ begin
   begin
     { If this is an expanded prototype, then delegate writing to the
       PrototypeInstanceSourceNode. }
-    PrototypeInstanceSourceNode.SaveToStream(Writer);
+    PrototypeInstanceSourceNode.NodeSaveToStream(Writer, CurrentContainerField);
 
     { What to do about
         NodeNames.Bind(Self)
