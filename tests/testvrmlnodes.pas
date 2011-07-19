@@ -81,12 +81,10 @@ type
     procedure TestTimeDependentNodeHandlerAvailable;
 
     procedure TestINodeTransform;
-
     procedure TestSortPositionInParent;
-
     procedure TestRootNodeMeta;
-
     procedure TestConvertToX3D;
+    procedure TestReadingWritingQuotes;
   end;
 
 implementation
@@ -1696,6 +1694,51 @@ begin
     FreeAndNil(Node);
     FreeAndNil(TempStream);
   end;
+end;
+
+procedure TTestVRMLNodes.TestReadingWritingQuotes;
+const
+  ValidString = 'test string with " and '' and \ and / inside';
+  ValidString2 = '" another '''' test string  with some weirdness \\ inside';
+
+  function CreateTestScene: TVRMLRootNode;
+  var
+    Text: TNodeText;
+    Shape: TNodeShape;
+    Touch: TNodeTouchSensor;
+  begin
+    Text := TNodeText.Create('', '');
+    Text.FdString.Items.Add(ValidString);
+    Text.FdString.Items.Add(ValidString2);
+
+    Shape := TNodeShape.Create('', '');
+    Shape.FdGeometry.Value := Text;
+
+    Touch := TNodeTouchSensor.Create('', '');
+    Touch.FdDescription.Value := ValidString;
+
+    Result := TVRMLRootNode.Create('', '');
+    Result.FdChildren.Add(Shape);
+    Result.FdChildren.Add(Touch);
+  end;
+
+  procedure Assertions(Node: TVRMLRootNode);
+  var
+    StringField: TMFString;
+  begin
+    StringField := ((Node.FdChildren[0] as TNodeShape).FdGeometry.Value as TNodeText).FdString;
+    Assert(StringField.Count = 2);
+    Assert(StringField.Items[0] = ValidString);
+    Assert(StringField.Items[1] = ValidString2);
+    Assert((Node.FdChildren[1] as TNodeTouchSensor).FdDescription.Value = ValidString);
+  end;
+
+var
+  Node: TVRMLRootNode;
+begin
+  Node := CreateTestScene;
+  Assertions(Node);
+  FreeAndNil(Node);
 end;
 
 initialization
