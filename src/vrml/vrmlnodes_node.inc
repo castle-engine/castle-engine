@@ -1851,6 +1851,9 @@ var
       if Index >= 0 then
       begin
         Fields[Index].ParseXMLAttribute(Attr.Value, Names);
+        { Note that saving PositionInParent from XML attributes order
+          isn't really useful, as FPC DOM unit already sorted
+          Element.Attributes (TDOMNamedNodeMap) by name. }
         Fields[Index].PositionInParent := Position;
         Inc(Position);
       end else
