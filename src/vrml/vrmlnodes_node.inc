@@ -2636,16 +2636,17 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
                 FileItems[I].SaveToStream(Writer);
 
             { save IS clauses }
+            { TODO: should be before all, but *after* interface declarations and fieldValue }
             if NodeFields.Count <> 0 then
             begin
-              Writer.WritelnIndent('<connect>');
+              Writer.WritelnIndent('<IS>');
               Writer.IncIndent;
               for I := 0 to NodeFields.Count - 1 do
-                Writer.WritelnIndent(Format('<IS nodeField=%s protoField=%s />',
+                Writer.WritelnIndent(Format('<connect nodeField=%s protoField=%s />',
                   [ StringToX3DXml(NodeFields[I]),
                     StringToX3DXml(ProtoFields[I])]));
               Writer.DecIndent;
-              Writer.WritelnIndent('</connect>');
+              Writer.WritelnIndent('</IS>');
             end;
 
             Writer.DecIndent;
