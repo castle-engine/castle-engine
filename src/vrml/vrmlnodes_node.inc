@@ -2672,7 +2672,6 @@ begin
        demo_models/x3d/key_sensor.x3dv, to see that check below is needed. }
      not (Self is TVRMLPrototypeNode) then
   begin
-    { TODO: savexml use <ProtoInstance> }
     { If this is an expanded prototype, then delegate writing to the
       PrototypeInstanceSourceNode. }
     PrototypeInstanceSourceNode.SaveToStream(Writer);
