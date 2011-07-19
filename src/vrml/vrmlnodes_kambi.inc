@@ -976,6 +976,8 @@ begin
    Fdurl.Exposed := false;
    Fdurl.ChangesAlways := [chEverything];
   Fields.Add(FFdurl);
+
+  DefaultContainerField := 'parts';
 end;
 
 class function TNodeEffectPart.ClassNodeTypeName: string;
