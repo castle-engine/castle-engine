@@ -2569,13 +2569,12 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
     ProtoInstance: boolean;
     NodeFields, ProtoFields: TDynStringArray;
   begin
-    if (ExplicitContainerField = '') and
-       (CurrentContainerField <> '') and
+    { No need to use here ExplicitContainerField.
+      Knowing CurrentContainerField and DefaultContainerField,
+      we can always correctly set containerField= ourselves. }
+    if (CurrentContainerField <> '') and
        (CurrentContainerField <> DefaultContainerField) then
-      ExplicitContainerField := CurrentContainerField;
-    if (ExplicitContainerField <> '') and
-       (ExplicitContainerField <> DefaultContainerField) then
-      WriteContainerField := ' containerField=' + StringToX3DXml(ExplicitContainerField) else
+      WriteContainerField := ' containerField=' + StringToX3DXml(CurrentContainerField) else
       WriteContainerField := '';
 
     { For XML encoding, TVRMLPrototypeNode is saved a little specially. }
