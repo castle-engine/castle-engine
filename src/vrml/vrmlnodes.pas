@@ -1231,19 +1231,19 @@ type
       and at the end always writes NL, so at the end it's also
       at the beginning of some line.
 
+      For XML encoding, IS clauses are not saved here.
+      They must be saved by containing node.
+
       @param(FieldValue If @true then we will always save
-        Field value or IS clause to stream, along with this interface
-        decl (if this interface declaration has the Field set).
-        Otherwise, field's value will not be saved, only IS clause
+        Field value or (if classic encoding) IS clauses to stream,
+        along with this interface
+        declaration (if this interface declaration has the Field set).
+        Otherwise, field's value will not be saved, only IS clauses
         if present.)
     }
     procedure IDeclSaveToStream(Writer: TX3DWriter; FieldValue: boolean);
 
     { Save this interface declaration to stream.
-
-      Saves with field value, just by calling
-      IDeclSaveToStream(Writer, NodeNames, true).
-
       @seealso IDeclSaveToStream }
     procedure SaveToStream(Writer: TX3DWriter); override;
 
@@ -3924,7 +3924,7 @@ begin
           { Note that there may be many IS clauses. This will still work Ok:
             first IS clause will "belong" to this interface declaration,
             the rest will look like normal IS clauses. }
-          Event.SaveToStreamIsClauses(Writer);
+          Event.SaveToStreamClassicIsClauses(Writer);
         end else
           Writer.Writeln(N);
       end else
@@ -3959,7 +3959,7 @@ begin
           { Note that there may be many IS clauses. This will still work Ok:
             first IS clause will "belong" to this interface declaration,
             the rest will look like normal IS clauses. }
-          Field.SaveToStreamIsClauses(Writer);
+          Field.SaveToStreamClassicIsClauses(Writer);
         end else
 
         begin
@@ -3967,23 +3967,16 @@ begin
         end;
       end;
     xeXML:
+      { We don't save IS clauses here for XML encoding. They must be saved
+        inside containing TVRMLNode. }
       if Event <> nil then
       begin
-        Writer.WriteIndent(Format('<field accessType=%s type=%s name=%s',
+        Writer.WritelnIndent(Format('<field accessType=%s type=%s name=%s />',
           [ Iff(Event.InEvent,
               StringToX3DXml(ATName(atInputOnly)),
               StringToX3DXml(ATName(atOutputOnly))),
             StringToX3DXml(Event.FieldClass.VRMLTypeName),
             StringToX3DXml(N) ]));
-        if Event.IsClauseNames.Count <> 0 then
-        begin
-          Writer.Writeln('>');
-          Writer.IncIndent;
-          Event.SaveToStreamIsClauses(Writer);
-          Writer.DecIndent;
-          Writer.WritelnIndent('</field>');
-        end else
-          Writer.Writeln(' />');
       end else
       begin
         Writer.WriteIndent(Format('<field accessType=%s type=%s name=%s',
@@ -3992,9 +3985,6 @@ begin
               StringToX3DXml(ATName(atInitializeOnly))),
             StringToX3DXml(Field.VRMLTypeName),
             StringToX3DXml(N) ]));
-
-        { We follow the same logic as above code for classic encoding.
-          Note that field name is already written, for all cases, above. }
 
         if ( FieldValue and
              (not Field.ValueFromIsClause) and
@@ -4012,15 +4002,6 @@ begin
             Field.FieldSaveToStream(Writer, true);
             Writer.WritelnIndent('</field>');
           end;
-        end else
-        if Field.IsClauseNames.Count <> 0 then
-        begin
-          Writer.Writeln('>');
-          { Parameter XmlAvoidSavingNameBeforeValue doesn't matter here }
-          Writer.IncIndent;
-          Field.SaveToStreamIsClauses(Writer);
-          Writer.DecIndent;
-          Writer.WritelnIndent('</field>');
         end else
           { no field value, no IS clauses.
             This can happen for field/event declaration inside <ExternProto>.
