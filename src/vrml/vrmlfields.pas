@@ -564,9 +564,9 @@ type
       For classic encoding, FieldSaveToStream and SaveToStream write
       Indent, Name, ' ', then call SaveToStreamValue, then write @link(NL).
 
-      FieldSaveToStream and SaveToStream in this class
-      already take care of saving IsClauseNames.
-      They also check ValueFromIsClause, if ValueFromIsClause
+      IS clauses are not saved by FieldSaveToStream or SaveToStream.
+      You must specifically use SaveToStreamIsClauses to output IS clauses.
+      SaveToStream still checks ValueFromIsClause, if ValueFromIsClause
       we will not call SaveToStreamValue. So when overriding
       SaveToStreamValue, you can safely assume that ValueFromIsClause
       is @false. }
@@ -692,7 +692,6 @@ type
       See SaveToStreamIsClauses. }
     procedure FieldSaveToStream(Writer: TX3DWriter;
       FieldSaveWhenDefault: boolean = false;
-      AllowSavingFieldValue: boolean = true;
       XmlAvoidSavingNameBeforeValue: boolean = false);
 
     { Save the field to the stream.
@@ -3036,14 +3035,13 @@ begin
 end;
 
 procedure TVRMLField.FieldSaveToStream(Writer: TX3DWriter;
-  FieldSaveWhenDefault, AllowSavingFieldValue, XmlAvoidSavingNameBeforeValue: boolean);
+  FieldSaveWhenDefault, XmlAvoidSavingNameBeforeValue: boolean);
 var
   N: string;
 begin
   N := NameForVersion(Writer);
 
-  if AllowSavingFieldValue and
-     (not ValueFromIsClause) and
+  if (not ValueFromIsClause) and
      (FieldSaveWhenDefault or (not EqualsDefaultValue)) then
   case Writer.Encoding of
     xeClassic:
@@ -3088,17 +3086,12 @@ begin
   { Detect sxNone for XML encoding, this allows better output in many cases,
     also avoids <fieldValue> inside <ProtoInstance> when the field value actually
     doesn't have to be specified.
+    When FieldSaveToStream saves field value? FieldSaveToStream checks
 
-    For XML encoding, FieldSaveToStream doesn't save IS clauses.
-    It only saves a value, if it's not default. Exactly when?
-    FieldSaveToStream checks
-
-     AllowSavingFieldValue and
      (not ValueFromIsClause) and
      (FieldSaveWhenDefault or (not EqualsDefaultValue))
 
-    SaveToStream calls FieldSaveToStream with default
-    FieldSaveWhenDefault = false, AllowSavingFieldValue = true. }
+    SaveToStream calls FieldSaveToStream with default FieldSaveWhenDefault = false. }
 
   if (not ValueFromIsClause) and (not EqualsDefaultValue) then
     Result := SaveToXmlValue else

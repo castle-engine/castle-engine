@@ -3943,7 +3943,7 @@ begin
             In this case, we want it to start on the same line, so indent must
             be discarded. }
           Writer.DiscardNextIndent;
-          Field.FieldSaveToStream(Writer, true, true);
+          Field.FieldSaveToStream(Writer, true);
           { In this case, Writer.Writeln will be done by Field.SaveToStream.
             (we pass SaveWhenDefault anyway, so we can be sure that
             this newline will be done). }
@@ -3999,13 +3999,13 @@ begin
           if Field.SaveToXml in [sxAttribute, sxAttributeCustomQuotes] then
           begin
             Writer.Write(' value=');
-            Field.FieldSaveToStream(Writer, true, true, true);
+            Field.FieldSaveToStream(Writer, true, true);
             Writer.Writeln(' />');
           end else
           begin
             Writer.Writeln('>');
             { Parameter XmlAvoidSavingNameBeforeValue doesn't matter here }
-            Field.FieldSaveToStream(Writer, true, true);
+            Field.FieldSaveToStream(Writer, true);
             Writer.WritelnIndent('</field>');
           end;
         end else
@@ -4898,7 +4898,7 @@ begin
     xeXML:
       begin
         Writer.WriteIndent('<ExternProtoDeclare name=' + StringToX3DXml(Name) + ' url=');
-        URLList.FieldSaveToStream(Writer, true, true, true);
+        URLList.FieldSaveToStream(Writer, true, true);
         Writer.Writeln('>');
 
         Writer.IncIndent;
