@@ -2588,6 +2588,8 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
         HasContent := false;
         FileItems := ContentsToSave;
         try
+          FileItems.SortPositionInParent;
+
           Writer.IncIndent;
           for I := 0 to FileItems.Count - 1 do
             case FileItems[I].SaveToXml of
