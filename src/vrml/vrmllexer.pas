@@ -319,26 +319,32 @@ type
     procedure CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
   end;
 
-  EVRMLLexerError = class(EVRMLError)
+  { Error when reading VRML/X3D classic encoding. }
+  EVRMLClassicReadError = class(EVRMLError)
+  protected
+    function MessagePositionPrefix(Lexer: TVRMLLexer): string; virtual; abstract;
   public
     { Standard constructor.
-      Lexer object must be valid for this call, it is not needed when
-      constructor call finished (i.e. Lexer reference don't need to be
-      valid for the lifetime of the exception; it must be valid only for
-      constructing the exception, later it can be Freed etc.) }
-    constructor Create(Lexer: TVRMLLexer; const s: string);
 
-    function MessagePositionPrefix(Lexer: TVRMLLexer): string;
+      Lexer instance must be valid for this call, but not longer.
+      That is, you can free the lexer after this constructor finished,
+      it doesn't need to be valid for the whole lifetime of this object. }
+    constructor Create(Lexer: TVRMLLexer; const s: string);
   end;
 
-  EVRMLParserError = class(EVRMLError)
-  public
-    { Standard constructor.
-      Lexer object must be valid only for this call; look at
-      EVRMLLexerError.Create for more detailed comment. }
-    constructor Create(Lexer: TVRMLLexer; const s: string);
+  { Error when reading VRML/X3D. For now, just equal to EVRMLClassicReadError,
+    later may be an ancestor to EVRMLClassicReadError.
+    Problems in other encodings (XML) are for now always turned into warnings. }
+  EVRMLReadError = EVRMLClassicReadError;
 
-    function MessagePositionPrefix(Lexer: TVRMLLexer): string;
+  EVRMLLexerError = class(EVRMLClassicReadError)
+  protected
+    function MessagePositionPrefix(Lexer: TVRMLLexer): string; override;
+  end;
+
+  EVRMLParserError = class(EVRMLClassicReadError)
+  protected
+    function MessagePositionPrefix(Lexer: TVRMLLexer): string; override;
   end;
 
 const
@@ -1067,26 +1073,21 @@ begin
         DescribeToken]));
 end;
 
-{ EVRMLLexer/ParserError ------------------------------------------------------------ }
+{ Exceptions ----------------------------------------------------------------- }
 
-constructor EVRMLLexerError.Create(Lexer: TVRMLLexer; const s: string);
-begin
- inherited Create(MessagePositionPrefix(Lexer) + S);
-end;
-
-function EVRMLLexerError.MessagePositionPrefix(Lexer: TVRMLLexer): string;
-begin
-  Result := Format('VRML lexical error at position %d: ', [Lexer.Stream.Position]);
-end;
-
-constructor EVRMLParserError.Create(Lexer: TVRMLLexer; const s: string);
+constructor EVRMLClassicReadError.Create(Lexer: TVRMLLexer; const s: string);
 begin
   inherited Create(MessagePositionPrefix(Lexer) + S);
 end;
 
+function EVRMLLexerError.MessagePositionPrefix(Lexer: TVRMLLexer): string;
+begin
+  Result := Format('VRML/X3D lexical error at position %d: ', [Lexer.Stream.Position]);
+end;
+
 function EVRMLParserError.MessagePositionPrefix(Lexer: TVRMLLexer): string;
 begin
-  Result := Format('VRML parse error at position %d: ', [Lexer.Stream.Position]);
+  Result := Format('VRML/X3D parse error at position %d: ', [Lexer.Stream.Position]);
 end;
 
 { global funcs  ------------------------------------------------------------------ }

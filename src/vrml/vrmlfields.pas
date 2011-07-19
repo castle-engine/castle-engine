@@ -558,7 +558,7 @@ type
       For classic encoding, FieldSaveToStream and SaveToStream write
       Indent, Name, ' ', then call SaveToStreamValue, then write @link(NL).
 
-      IS clauses are not saved by FieldSaveToStream or SaveToStream. 
+      IS clauses are not saved by FieldSaveToStream or SaveToStream.
       (They must be saved specially, by SaveToStreamClassicIsClauses
       or special XML output.)
       SaveToStream still checks ValueFromIsClause, if ValueFromIsClause
@@ -3114,8 +3114,8 @@ begin
     try
       ParseXMLAttributeLexer(Lexer);
     except
-      on E: EVRMLParserError do
-        VRMLWarning(vwSerious, 'Error when parsing field "' + Name + '" value: ' + E.Message);
+      on E: EVRMLClassicReadError do
+        VRMLWarning(vwSerious, 'Error when reading field "' + Name + '" value: ' + E.Message);
     end;
   finally FreeAndNil(Lexer) end;
 end;
@@ -5925,9 +5925,9 @@ begin
     try
       ParseXMLAttributeLexer(Lexer);
     except
-      on E: EVRMLParserError do
+      on E: EVRMLClassicReadError do
       begin
-        VRMLWarning(vwSerious, 'Error when parsing MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
+        VRMLWarning(vwSerious, 'Error when reading MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
         Items.Count := 0;
         Items.Add(AttributeValue);
       end;

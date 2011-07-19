@@ -495,23 +495,17 @@ begin
     end else
     begin
       { Somewhat more involved version of the loop, the idea is to catch
-        EVRMLParserError, EVRMLLexerError happening in the ParseVRMLStatement
-        and convert them to VRMLWarning (that merely stop reading VRML file,
+        EVRMLClassicReadError happening in the ParseVRMLStatement
+        and convert it to VRMLWarning (then merely stop reading VRML file,
         but the file contents read so far are Ok). }
       while Lexer.Token <> EndToken do
       try
         ParseVRMLStatement;
         Inc(PositionInParent);
       except
-        on E: EVRMLParserError do
+        on E: EVRMLClassicReadError do
         begin
-          VRMLWarning(vwSerious, Format('Error when parsing, will skip the rest of VRML file: %s', [E.Message]));
-          Break;
-        end;
-
-        on E: EVRMLLexerError do
-        begin
-          VRMLWarning(vwSerious, Format('Lexical error, will skip the rest of VRML file: %s', [E.Message]));
+          VRMLWarning(vwSerious, Format('Error when reading, will skip the rest of VRML/X3D file: %s', [E.Message]));
           Break;
         end;
       end;
