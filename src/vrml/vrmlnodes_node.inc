@@ -93,6 +93,10 @@
     procedure TryFindNode_Found(Node: TVRMLNode);
     function GetSmartChildren(Index: Integer): TVRMLNode; virtual;
     procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
+    { Internal save to stream utility.
+      When CurrentContainerField is not empty, it means we know our containing field
+      (and should adjust containerField= for XML encoding output). }
+    procedure NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerField: string = '');
   protected
 
     { Does actual DeepCopy work. You can override this to copy some
@@ -2410,6 +2414,11 @@ begin
 end;
 
 procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
+begin
+  NodeSaveToStream(Writer);
+end;
+
+procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerField: string);
 
   { Collect node contents to save.
     You want to save here exactly what you read in ParseNodeBodyElement. }
@@ -2560,6 +2569,10 @@ procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
     ProtoInstance: boolean;
     NodeFields, ProtoFields: TDynStringArray;
   begin
+    if (ExplicitContainerField = '') and
+       (CurrentContainerField <> '') and
+       (CurrentContainerField <> DefaultContainerField) then
+      ExplicitContainerField := CurrentContainerField;
     if (ExplicitContainerField <> '') and
        (ExplicitContainerField <> DefaultContainerField) then
       WriteContainerField := ' containerField=' + StringToX3DXml(ExplicitContainerField) else

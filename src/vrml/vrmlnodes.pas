@@ -3090,7 +3090,7 @@ begin
     if Writer.Encoding = xeClassic then
       Writer.DiscardNextIndent;
 
-    Value.SaveToStream(Writer);
+    Value.NodeSaveToStream(Writer, NameForVersion(Writer.Version));
   end;
 end;
 
@@ -3285,7 +3285,7 @@ begin
       end;
     xeXML:
       for I := 0 to Count - 1 do
-        Items[I].SaveToStream(Writer);
+        Items[I].NodeSaveToStream(Writer, NameForVersion(Writer.Version));
     else raise EInternalError.Create('TMFNode.SaveToStreamValue Encoding?');
   end;
 end;
