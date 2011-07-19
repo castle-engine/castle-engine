@@ -5897,7 +5897,7 @@ function TMFString.RawItemToString(ItemNum: integer; const Encoding: TX3DEncodin
 begin
   case Encoding of
     xeClassic: Result := StringToX3DClassic(Items.Items[ItemNum]);
-    xeXML    : Result := StringToX3DXml(Items.Items[ItemNum]);
+    xeXML    : Result := StringToX3DXmlMulti(Items.Items[ItemNum]);
     else raise EInternalError.Create('TMFString.RawItemToString Encoding?');
   end;
 end;
