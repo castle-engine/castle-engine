@@ -23,7 +23,8 @@
   stream (as read) is no longer compressed.
   @groupBegin }
 function LoadX3DXml(const FileName: string; Gzipped: boolean): TVRMLRootNode;
-function LoadX3DXml(Stream: TStream; const WWWBasePath: string): TVRMLRootNode;
+function LoadX3DXml(Stream: TStream; const WWWBasePath: string;
+  const BaseName: string = ''): TVRMLRootNode;
 { @groupEnd }
 
 {$endif read_interface}
@@ -475,13 +476,15 @@ begin
       when called with FileName:string }
     Stream := TFileStream.Create(FileName, fmOpenRead + fmShareDenyWrite);
   try
-    Result := LoadX3DXml(Stream, ExtractFilePath(ExpandFileName(FileName)));
+    Result := LoadX3DXml(Stream, ExtractFilePath(ExpandFileName(FileName)),
+      ExtractFileName(FileName));
   finally
     FreeAndNil(Stream);
   end;
 end;
 
-function LoadX3DXml(Stream: TStream; const WWWBasePath: string): TVRMLRootNode;
+function LoadX3DXml(Stream: TStream; const WWWBasePath: string;
+  const BaseName: string): TVRMLRootNode;
 var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
@@ -490,12 +493,19 @@ var
   { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
   Names: TVRMLNames;
+  FileName: string;
 begin
   Doc := nil;
   try
+    { calculate FileName. Used for ReadXMLFile, used there e.g. for error messages }
+    if BaseName <> '' then
+      FileName := CombinePaths(WWWBasePath, BaseName) else
+      FileName := WWWBasePath;
+
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
-    ReadXMLFile(Doc, Stream, FilenameToURI(WWWBasePath));
+
+    ReadXMLFile(Doc, Stream, FilenameToURI(FileName));
 
     Check(Doc.DocumentElement.TagName = 'X3D',
       'Root element of X3D file must be <X3D>');
