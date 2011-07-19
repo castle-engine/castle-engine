@@ -376,14 +376,14 @@ function StringToX3DClassic(const s: string): string;
 
   Simply put, this just adds double quotes around and replaces
   &, apostrophe, double quotes, <, > with appropriate XML entities &xxx;. }
-
 function StringToX3DXml(const s: string): string;
 
 { String encoded for X3D XML, surrounded by double quotes, to be used
   as part of MFString.
 
   In addition to what StringToX3DXml does, this additionally
-  adds backslash before &quot; (double quotes). Otherwise XML reader
+  adds backslash before &quot; (double quotes), and doubles existing backslashes.
+  Otherwise XML reader
   may not tell the difference between double quotes delimiting single string
   item and double quotes inside, as it has to (and DOM units do) treat
   " and &quot; exactly the same. X3D XML encoding spec shows example
@@ -1125,8 +1125,8 @@ end;
 
 function StringToX3DXmlMulti(const s: string): string;
 const
-  Patterns: array [0..4] of string = ('&', '"', '''', '<', '>');
-  PatValues: array [0..4] of string = ('&amp;', '\&quot;', '&apos;', '&lt;', '&gt;');
+  Patterns: array [0..5] of string = ('&', '"', '''', '<', '>', '\');
+  PatValues: array [0..5] of string = ('&amp;', '\&quot;', '&apos;', '&lt;', '&gt;', '\\');
 begin
   { use soMatchCase for speed }
   Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';

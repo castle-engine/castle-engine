@@ -1735,10 +1735,38 @@ const
 
 var
   Node: TVRMLRootNode;
+  TempStream: TMemoryStream;
 begin
-  Node := CreateTestScene;
-  Assertions(Node);
-  FreeAndNil(Node);
+  TempStream := nil;
+  Node := nil;
+
+  try
+    Node := CreateTestScene;
+    Assertions(Node);
+
+    TempStream := TMemoryStream.Create;
+
+    TempStream.Position := 0;
+    TempStream.Size := 0;
+    SaveVRML(Node, TempStream, '', '', xeClassic, true);
+    FreeAndNil(Node);
+
+    TempStream.Position := 0;
+    Node := LoadVRMLClassicStream(TempStream);
+    Assertions(Node);
+
+    TempStream.Position := 0;
+    TempStream.Size := 0;
+    SaveVRML(Node, TempStream, '', '', xeXML, true);
+    FreeAndNil(Node);
+
+    TempStream.Position := 0;
+    Node := LoadX3DXml(TempStream, '');
+    Assertions(Node);
+  finally
+    FreeAndNil(Node);
+    FreeAndNil(TempStream);
+  end;
 end;
 
 initialization
