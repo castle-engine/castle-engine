@@ -198,6 +198,20 @@ var
       SaveComponents(TVRMLRootNode(Node));
       SaveMetas(TVRMLRootNode(Node));
     end else
+    if Version.Major >= 3 then
+    begin
+      { X3D, but no TVRMLRootNode. Use default X3D profile. }
+      Writer.Writeln('PROFILE ' + DefaultX3DSaveProfile);
+      if Generator <> '' then
+        Writer.Writeln(Format('META %s %s',
+          [ StringToX3DClassic('generator'),
+            StringToX3DClassic(Generator)]));
+      if Source <> '' then
+        Writer.Writeln(Format('META %s %s',
+          [ StringToX3DClassic('source'),
+            StringToX3DClassic(Source)]));
+      Writer.Writeln;
+    end else
     if (Generator <> '') or (Source <> '') then
     begin
       { write Generator and Source as comment }
