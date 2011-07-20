@@ -73,8 +73,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFddirectOutput: TSFBool;
@@ -382,15 +380,6 @@ end;
 class function TNodeScript.ClassNodeTypeName: string;
 begin
   Result := 'Script';
-end;
-
-function TNodeScript.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeScript.URNMatching(const URN: string): boolean;

@@ -67,8 +67,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdanchorPoint: TSFVec3f;
@@ -87,8 +85,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdcollidable: TSFNode;
@@ -99,8 +95,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdshape: TSFNode;
@@ -111,8 +105,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdappliedParameters: TMFString;
@@ -150,8 +142,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdcollider: TSFNode;
@@ -170,8 +160,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdcollidables: TMFNode;
@@ -185,8 +173,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdappliedParameters: TMFString;
@@ -242,8 +228,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdanchorPoint: TSFVec3f;
@@ -325,8 +309,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdaxis1Angle: TSFFloat;
@@ -409,8 +391,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdangularDampingFactor: TSFFloat;
@@ -487,8 +467,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
@@ -545,8 +523,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdanchorPoint: TSFVec3f;
@@ -588,8 +564,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdaxis: TSFVec3f;
@@ -620,8 +594,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdanchorPoint: TSFVec3f;
@@ -745,14 +717,6 @@ begin
   Result := 'BallJoint';
 end;
 
-function TNodeBallJoint.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeBallJoint.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -773,14 +737,6 @@ begin
   Result := 'CollidableOffset';
 end;
 
-function TNodeCollidableOffset.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeCollidableOffset.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -799,14 +755,6 @@ end;
 class function TNodeCollidableShape.ClassNodeTypeName: string;
 begin
   Result := 'CollidableShape';
-end;
-
-function TNodeCollidableShape.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeCollidableShape.URNMatching(const URN: string): boolean;
@@ -863,14 +811,6 @@ begin
   Result := 'CollisionCollection';
 end;
 
-function TNodeCollisionCollection.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeCollisionCollection.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -896,14 +836,6 @@ begin
   Result := 'CollisionSensor';
 end;
 
-function TNodeCollisionSensor.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeCollisionSensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -926,14 +858,6 @@ end;
 class function TNodeCollisionSpace.ClassNodeTypeName: string;
 begin
   Result := 'CollisionSpace';
-end;
-
-function TNodeCollisionSpace.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeCollisionSpace.URNMatching(const URN: string): boolean;
@@ -1012,14 +936,6 @@ end;
 class function TNodeContact.ClassNodeTypeName: string;
 begin
   Result := 'Contact';
-end;
-
-function TNodeContact.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeContact.URNMatching(const URN: string): boolean;
@@ -1113,14 +1029,6 @@ end;
 class function TNodeDoubleAxisHingeJoint.ClassNodeTypeName: string;
 begin
   Result := 'DoubleAxisHingeJoint';
-end;
-
-function TNodeDoubleAxisHingeJoint.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeDoubleAxisHingeJoint.URNMatching(const URN: string): boolean;
@@ -1222,14 +1130,6 @@ begin
   Result := 'MotorJoint';
 end;
 
-function TNodeMotorJoint.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeMotorJoint.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -1329,14 +1229,6 @@ begin
   Result := 'RigidBody';
 end;
 
-function TNodeRigidBody.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeRigidBody.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -1410,14 +1302,6 @@ begin
   Result := 'RigidBodyCollection';
 end;
 
-function TNodeRigidBodyCollection.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeRigidBodyCollection.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -1466,14 +1350,6 @@ begin
   Result := 'SingleAxisHingeJoint';
 end;
 
-function TNodeSingleAxisHingeJoint.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeSingleAxisHingeJoint.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -1513,14 +1389,6 @@ end;
 class function TNodeSliderJoint.ClassNodeTypeName: string;
 begin
   Result := 'SliderJoint';
-end;
-
-function TNodeSliderJoint.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeSliderJoint.URNMatching(const URN: string): boolean;
@@ -1574,14 +1442,6 @@ end;
 class function TNodeUniversalJoint.ClassNodeTypeName: string;
 begin
   Result := 'UniversalJoint';
-end;
-
-function TNodeUniversalJoint.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeUniversalJoint.URNMatching(const URN: string): boolean;

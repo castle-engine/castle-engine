@@ -35,8 +35,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
@@ -55,8 +53,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdactiveLayer: TSFInt32;
@@ -73,8 +69,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdclipBoundary: TMFFloat;
@@ -121,14 +115,6 @@ begin
   Result := 'Layer';
 end;
 
-function TNodeLayer.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeLayer.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -158,14 +144,6 @@ begin
   Result := 'LayerSet';
 end;
 
-function TNodeLayerSet.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeLayerSet.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -184,14 +162,6 @@ end;
 class function TNodeViewport.ClassNodeTypeName: string;
 begin
   Result := 'Viewport';
-end;
-
-function TNodeViewport.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeViewport.URNMatching(const URN: string): boolean;

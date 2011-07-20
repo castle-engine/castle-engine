@@ -87,8 +87,6 @@
 
     function ChildrenField: TMFNode; override;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -112,8 +110,6 @@
     private FFdorder: TSFInt32;
     public property Fdorder: TSFInt32 read FFdorder;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
@@ -137,8 +133,6 @@
     private FFdtessellationScale: TSFFloat;
     public property FdtessellationScale: TSFFloat read FFdtessellationScale;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -173,8 +167,6 @@
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
@@ -224,8 +216,6 @@
     private FFdvOrder: TSFInt32;
     public property FdvOrder: TSFInt32 read FFdvOrder;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
@@ -268,8 +258,6 @@
     private FFdvOrder: TSFInt32;
     public property FdvOrder: TSFInt32 read FFdvOrder;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -292,8 +280,6 @@
     private FFdsurface: TSFNode;
     public property Fdsurface: TSFNode read FFdsurface;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Geometry node not implemented } { }
@@ -398,14 +384,6 @@ begin
   Result := FdChildren;
 end;
 
-function TNodeCoordinateDeformer.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
-end;
-
 procedure TNodeNurbsCurve_2.CreateNode;
 begin
   inherited;
@@ -442,14 +420,6 @@ class function TNodeNurbsCurve_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeNurbsCurve_2.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeNurbsCurve_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
@@ -522,14 +492,6 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-function TNodeNurbsGroup.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
-end;
-
 procedure TNodeNurbsPositionInterpolator_2.CreateNode;
 begin
   inherited;
@@ -569,14 +531,6 @@ class function TNodeNurbsPositionInterpolator_2.URNMatching(const URN: string): 
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeNurbsPositionInterpolator_2.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeNurbsPositionInterpolator_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
@@ -694,14 +648,6 @@ class function TNodeNurbsSurface.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeNurbsSurface.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 function TNodeNurbsSurface.Proxy(var State: TVRMLGraphTraverseState;
@@ -830,14 +776,6 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-function TNodeNurbsTextureSurface.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
-end;
-
 procedure TNodeTrimmedSurface.CreateNode;
 begin
   inherited;
@@ -866,14 +804,6 @@ class function TNodeTrimmedSurface.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeTrimmedSurface.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 {$define TGeometryNotImplemented := TNodeTrimmedSurface}

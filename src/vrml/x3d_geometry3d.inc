@@ -19,8 +19,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdsize: TSFVec3f;
@@ -51,8 +49,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdbottom: TSFBool;
@@ -96,8 +92,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdbottom: TSFBool;
@@ -145,8 +139,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFFloat, in } { }
@@ -235,8 +227,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFVec2f, in } { }
@@ -323,8 +313,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFInt32, in } { }
@@ -379,8 +367,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdradius: TSFFloat;
@@ -435,15 +421,6 @@ end;
 class function TNodeBox.ClassNodeTypeName: string;
 begin
   Result := 'Box';
-end;
-
-function TNodeBox.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeBox.URNMatching(const URN: string): boolean;
@@ -502,15 +479,6 @@ end;
 class function TNodeCone.ClassNodeTypeName: string;
 begin
   Result := 'Cone';
-end;
-
-function TNodeCone.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeCone.URNMatching(const URN: string): boolean;
@@ -585,15 +553,6 @@ end;
 class function TNodeCylinder.ClassNodeTypeName: string;
 begin
   Result := 'Cylinder';
-end;
-
-function TNodeCylinder.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeCylinder.URNMatching(const URN: string): boolean;
@@ -712,15 +671,6 @@ end;
 class function TNodeElevationGrid.ClassNodeTypeName: string;
 begin
   Result := 'ElevationGrid';
-end;
-
-function TNodeElevationGrid.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeElevationGrid.URNMatching(const URN: string): boolean;
@@ -858,15 +808,6 @@ end;
 class function TNodeExtrusion.ClassNodeTypeName: string;
 begin
   Result := 'Extrusion';
-end;
-
-function TNodeExtrusion.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeExtrusion.URNMatching(const URN: string): boolean;
@@ -1247,15 +1188,6 @@ begin
   Result := 'IndexedFaceSet';
 end;
 
-function TNodeIndexedFaceSet.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
-end;
-
 class function TNodeIndexedFaceSet.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -1324,15 +1256,6 @@ end;
 class function TNodeSphere.ClassNodeTypeName: string;
 begin
   Result := 'Sphere';
-end;
-
-function TNodeSphere.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeSphere.URNMatching(const URN: string): boolean;

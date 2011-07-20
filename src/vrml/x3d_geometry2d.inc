@@ -19,8 +19,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdendAngle: TSFFloat;
@@ -45,8 +43,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdclosureType: TSFString;
@@ -77,8 +73,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdradius: TSFFloat;
@@ -93,8 +87,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdinnerRadius: TSFFloat;
@@ -125,8 +117,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdlineSegments: TMFVec2f;
@@ -145,8 +135,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdpoint: TMFVec2f;
@@ -165,8 +153,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdsize: TSFVec2f;
@@ -184,8 +170,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdvertices: TMFVec2f;
@@ -232,14 +216,6 @@ end;
 class function TNodeArc2D.ClassNodeTypeName: string;
 begin
   Result := 'Arc2D';
-end;
-
-function TNodeArc2D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeArc2D.URNMatching(const URN: string): boolean;
@@ -290,14 +266,6 @@ begin
   Result := 'ArcClose2D';
 end;
 
-function TNodeArcClose2D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeArcClose2D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -321,14 +289,6 @@ end;
 class function TNodeCircle2D.ClassNodeTypeName: string;
 begin
   Result := 'Circle2D';
-end;
-
-function TNodeCircle2D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeCircle2D.URNMatching(const URN: string): boolean;
@@ -402,14 +362,6 @@ begin
   Result := 'Disk2D';
 end;
 
-function TNodeDisk2D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeDisk2D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -437,15 +389,6 @@ begin
   Result := 'Polyline2D';
 end;
 
-function TNodePolyline2D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
-end;
-
 class function TNodePolyline2D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -469,14 +412,6 @@ end;
 class function TNodePolypoint2D.ClassNodeTypeName: string;
 begin
   Result := 'Polypoint2D';
-end;
-
-function TNodePolypoint2D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodePolypoint2D.URNMatching(const URN: string): boolean;
@@ -507,14 +442,6 @@ end;
 class function TNodeRectangle2D.ClassNodeTypeName: string;
 begin
   Result := 'Rectangle2D';
-end;
-
-function TNodeRectangle2D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeRectangle2D.URNMatching(const URN: string): boolean;
@@ -587,14 +514,6 @@ end;
 class function TNodeTriangleSet2D.ClassNodeTypeName: string;
 begin
   Result := 'TriangleSet2D';
-end;
-
-function TNodeTriangleSet2D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeTriangleSet2D.URNMatching(const URN: string): boolean;

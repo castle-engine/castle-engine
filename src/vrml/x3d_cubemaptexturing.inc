@@ -24,8 +24,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdback: TSFNode;
@@ -80,8 +78,6 @@
     destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdupdate: TSFString;
@@ -101,8 +97,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdurl: TMFString;
@@ -172,14 +166,6 @@ end;
 class function TNodeComposedCubeMapTexture.ClassNodeTypeName: string;
 begin
   Result := 'ComposedCubeMapTexture';
-end;
-
-function TNodeComposedCubeMapTexture.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeComposedCubeMapTexture.URNMatching(const URN: string): boolean;
@@ -265,14 +251,6 @@ begin
   Result := 'GeneratedCubeMapTexture';
 end;
 
-function TNodeGeneratedCubeMapTexture.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeGeneratedCubeMapTexture.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -300,14 +278,6 @@ end;
 class function TNodeImageCubeMapTexture.ClassNodeTypeName: string;
 begin
   Result := 'ImageCubeMapTexture';
-end;
-
-function TNodeImageCubeMapTexture.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeImageCubeMapTexture.URNMatching(const URN: string): boolean;

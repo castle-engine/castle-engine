@@ -27,40 +27,30 @@
   TNodeDisplacer = class(TNodeHAnimDisplacer)
   public
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TNodeHumanoid = class(TNodeHAnimHumanoid)
   public
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TNodeJoint = class(TNodeHAnimJoint)
   public
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TNodeSegment = class(TNodeHAnimSegment)
   public
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TNodeSite = class(TNodeHAnimSite)
   public
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 {$endif read_interface}
@@ -69,14 +59,6 @@
 class function TNodeDisplacer.ClassNodeTypeName: string;
 begin
   Result := 'Displacer';
-end;
-
-function TNodeDisplacer.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 3000);
 end;
 
 class function TNodeDisplacer.URNMatching(const URN: string): boolean;
@@ -90,14 +72,6 @@ begin
   Result := 'Humanoid';
 end;
 
-function TNodeHumanoid.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 3000);
-end;
-
 class function TNodeHumanoid.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -107,14 +81,6 @@ end;
 class function TNodeJoint.ClassNodeTypeName: string;
 begin
   Result := 'Joint';
-end;
-
-function TNodeJoint.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 3000);
 end;
 
 class function TNodeJoint.URNMatching(const URN: string): boolean;
@@ -128,14 +94,6 @@ begin
   Result := 'Segment';
 end;
 
-function TNodeSegment.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 3000);
-end;
-
 class function TNodeSegment.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -145,14 +103,6 @@ end;
 class function TNodeSite.ClassNodeTypeName: string;
 begin
   Result := 'Site';
-end;
-
-function TNodeSite.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 3000);
 end;
 
 class function TNodeSite.URNMatching(const URN: string): boolean;

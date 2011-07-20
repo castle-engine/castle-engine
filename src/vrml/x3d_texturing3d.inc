@@ -74,8 +74,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdtexture: TMFNode;
@@ -88,8 +86,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdurl: TMFString;
@@ -102,8 +98,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdimage: TMFInt32;
@@ -116,8 +110,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdpoint: TMFVec3f;
@@ -128,8 +120,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdpoint: TMFVec4f;
@@ -140,8 +130,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdmatrix: TSFMatrix4f;
@@ -154,8 +142,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdcenter: TSFVec3f;
@@ -242,14 +228,6 @@ end;
 class function TNodeComposedTexture3D.ClassNodeTypeName: string;
 begin
   Result := 'ComposedTexture3D';
-end;
-
-function TNodeComposedTexture3D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeComposedTexture3D.URNMatching(const URN: string): boolean;
@@ -356,14 +334,6 @@ begin
   Result := 'ImageTexture3D';
 end;
 
-function TNodeImageTexture3D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeImageTexture3D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -422,14 +392,6 @@ end;
 class function TNodePixelTexture3D.ClassNodeTypeName: string;
 begin
   Result := 'PixelTexture3D';
-end;
-
-function TNodePixelTexture3D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodePixelTexture3D.URNMatching(const URN: string): boolean;
@@ -526,14 +488,6 @@ begin
   Result := 'TextureCoordinate3D';
 end;
 
-function TNodeTextureCoordinate3D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeTextureCoordinate3D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -555,14 +509,6 @@ begin
   Result := 'TextureCoordinate4D';
 end;
 
-function TNodeTextureCoordinate4D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeTextureCoordinate4D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -582,14 +528,6 @@ end;
 class function TNodeTextureTransformMatrix3D.ClassNodeTypeName: string;
 begin
   Result := 'TextureTransformMatrix3D';
-end;
-
-function TNodeTextureTransformMatrix3D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeTextureTransformMatrix3D.URNMatching(const URN: string): boolean;
@@ -631,14 +569,6 @@ end;
 class function TNodeTextureTransform3D.ClassNodeTypeName: string;
 begin
   Result := 'TextureTransform3D';
-end;
-
-function TNodeTextureTransform3D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeTextureTransform3D.URNMatching(const URN: string): boolean;

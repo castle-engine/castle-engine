@@ -38,8 +38,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdpoint: TMFVec3d;
@@ -58,8 +56,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFDouble, in } { }
@@ -130,8 +126,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdgeoCoords: TSFVec3d;
@@ -148,8 +142,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, out } { }
@@ -201,8 +193,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFddata: TMFNode;
@@ -219,8 +209,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdgeoCoords: TSFVec3d;
@@ -237,8 +225,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdkeyValue: TMFVec3d;
@@ -263,8 +249,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdgeoCenter: TSFVec3d;
@@ -297,8 +281,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec3f, out } { }
@@ -328,8 +310,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdgeoCenter: TSFVec3d;
@@ -358,8 +338,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFRotation, in } { }
@@ -416,15 +394,6 @@ end;
 class function TNodeGeoCoordinate.ClassNodeTypeName: string;
 begin
   Result := 'GeoCoordinate';
-end;
-
-function TNodeGeoCoordinate.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeGeoCoordinate.URNMatching(const URN: string): boolean;
@@ -542,15 +511,6 @@ begin
   Result := 'GeoElevationGrid';
 end;
 
-function TNodeGeoElevationGrid.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { There is very similar, but not 100% compatible node in VRML 97 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeGeoElevationGrid.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -583,14 +543,6 @@ end;
 class function TNodeGeoLocation.ClassNodeTypeName: string;
 begin
   Result := 'GeoLocation';
-end;
-
-function TNodeGeoLocation.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeGeoLocation.URNMatching(const URN: string): boolean;
@@ -673,14 +625,6 @@ begin
   Result := 'GeoLOD';
 end;
 
-function TNodeGeoLOD.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeGeoLOD.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -705,14 +649,6 @@ end;
 class function TNodeGeoMetadata.ClassNodeTypeName: string;
 begin
   Result := 'GeoMetadata';
-end;
-
-function TNodeGeoMetadata.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeGeoMetadata.URNMatching(const URN: string): boolean;
@@ -744,14 +680,6 @@ end;
 class function TNodeGeoOrigin.ClassNodeTypeName: string;
 begin
   Result := 'GeoOrigin';
-end;
-
-function TNodeGeoOrigin.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeGeoOrigin.URNMatching(const URN: string): boolean;
@@ -786,14 +714,6 @@ end;
 class function TNodeGeoPositionInterpolator.ClassNodeTypeName: string;
 begin
   Result := 'GeoPositionInterpolator';
-end;
-
-function TNodeGeoPositionInterpolator.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeGeoPositionInterpolator.URNMatching(const URN: string): boolean;
@@ -837,14 +757,6 @@ begin
   Result := 'GeoProximitySensor';
 end;
 
-function TNodeGeoProximitySensor.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeGeoProximitySensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -880,14 +792,6 @@ end;
 class function TNodeGeoTouchSensor.ClassNodeTypeName: string;
 begin
   Result := 'GeoTouchSensor';
-end;
-
-function TNodeGeoTouchSensor.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeGeoTouchSensor.URNMatching(const URN: string): boolean;
@@ -933,14 +837,6 @@ end;
 class function TNodeGeoTransform.ClassNodeTypeName: string;
 begin
   Result := 'GeoTransform';
-end;
-
-function TNodeGeoTransform.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeGeoTransform.URNMatching(const URN: string): boolean;
@@ -992,14 +888,6 @@ end;
 class function TNodeGeoViewpoint.ClassNodeTypeName: string;
 begin
   Result := 'GeoViewpoint';
-end;
-
-function TNodeGeoViewpoint.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeGeoViewpoint.URNMatching(const URN: string): boolean;

@@ -84,11 +84,6 @@
     function GetParentFieldsNodeItem(Index: Integer): TVRMLNode;
     procedure RemoveParentField(Field: TVRMLField);
     procedure AddParentField(Field: TVRMLField);
-    procedure AndSuggestedVRMLVersion(
-      var Result: boolean;
-      var Version: TVRMLVersion; var SuggestionPriority: Integer;
-      const NewResult: boolean;
-      const NewVersion: TVRMLVersion; const NewSuggestionPriority: Integer);
     procedure TryFindNode_Found(Node: TVRMLNode);
     function GetSmartChildren(Index: Integer): TVRMLNode; virtual;
     procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
@@ -777,56 +772,6 @@
     function SmartChildrenCount: integer;
     function SmartExtractChild(Index: Integer): TVRMLNode;
     { @groupEnd }
-
-    { SuggestedVRMLVersion determines what VRML header to use
-      when saving the node to file. Returns @true and sets out arguments
-      if some version is preferred, otherwise returns @false.
-
-      SuggestionPriority should be used to indicate the "strongness"
-      of this suggestion. The idea is that if there are two nodes
-      that have different VRML version suggestions, then the one
-      with greater SuggestionPriority "wins".
-
-      Currently used priorities:
-
-      @unorderedList(
-        @item(1000 for nodes that are only in VRML <= 1.0,
-          or only in VRML >= 2.0. This applies to majority of nodes.)
-
-        @item(100 for nodes that are only for VRML >= 2.0 according to specifications,
-          but in our engine they were often used also in VRML 1.0 files.
-          That is possible thanks to our implementation, see
-          [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_mix_vrml_1_2].
-          This concerns Fog, Background and a few other nodes.
-
-          By using weaker priority for such nodes, VRML 1.0 files with
-          "bits" of VRML 2.0 will be retained as VRML 1.0. (They are readable
-          only by our engine anyway.) On the other hand, only Background
-          node will be correctly saved as VRML 2.0 file.)
-
-        @item(2000 for nodes that are only in X3D, that is VRML >= 3.0.
-
-          X3D nodes suggest version 3.2 (not 3.0, because some features (shaders)
-          are only in ammendment 1 I think, so 3.1 is safer and for simplicity
-          (since I looked mostly at 3.2) 3.2 is even better).
-
-          They use priority 2000, so they are slightly stronger than
-          VRML 97 nodes. This way a model with mixed VRML 97 and X3D nodes
-          will be judged as X3D. And that's Ok, because almost everything
-          (incompatible exceptions are some NURBS and geo changes)
-          valid in VRML 97 is also valid in X3D.)
-
-        @item(10 * 1000 is used by TVRMLRootNode
-          ForceVersion mechanism. This way we can always force VRML version
-          using this node, which is useful to write files with the same
-          VRML version as was read from disk.)
-      )
-
-      Default implementation in this class enumerates all
-      SFNode and MFNoden fields and Children nodes
-      and determines their suggested VRML version. }
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; virtual;
 
     { Should SaveToStream save our VRML1Children.
       In this class default implementation returns @true,
@@ -2771,74 +2716,6 @@ begin
   if ChildrenField = nil then
     Result := VRML1ChildExtract(Index) else
     Result := ChildrenField.Extract(Index);
-end;
-
-function TVRMLNode.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-var
-  I, J: Integer;
-  SF: TSFNode;
-  MF: TMFNode;
-  NewResult: boolean;
-  NewVersion: TVRMLVersion;
-  NewSuggestionPriority: Integer;
-  ChildIndex: Integer;
-begin
-  Result := false;
-
-  for I := 0 to Fields.Count - 1 do
-  begin
-    if Fields[I] is TSFNode then
-    begin
-      SF := TSFNode(Fields[I]);
-      if SF.Value <> nil then
-      begin
-        NewResult := SF.Value.SuggestedVRMLVersion(
-          NewVersion, NewSuggestionPriority);
-        AndSuggestedVRMLVersion(
-          Result, Version, SuggestionPriority,
-          NewResult, NewVersion, NewSuggestionPriority);
-      end;
-    end else
-    if Fields[I] is TMFNode then
-    begin
-      MF := TMFNode(Fields[I]);
-      for J := 0 to MF.Items.Count - 1 do
-      begin
-        NewResult := MF.Items[J].SuggestedVRMLVersion(
-          NewVersion, NewSuggestionPriority);
-        AndSuggestedVRMLVersion(
-          Result, Version, SuggestionPriority,
-          NewResult, NewVersion, NewSuggestionPriority);
-      end;
-    end;
-  end;
-
-  for ChildIndex := 0 to VRML1ChildrenCount - 1 do
-  begin
-    NewResult :=  VRML1Children[ChildIndex].SuggestedVRMLVersion(
-      NewVersion, NewSuggestionPriority);
-    AndSuggestedVRMLVersion(
-      Result, Version, SuggestionPriority,
-      NewResult, NewVersion, NewSuggestionPriority);
-  end;
-end;
-
-procedure TVRMLNode.AndSuggestedVRMLVersion(
-  var Result: boolean;
-  var Version: TVRMLVersion; var SuggestionPriority: Integer;
-  const NewResult: boolean;
-  const NewVersion: TVRMLVersion; const NewSuggestionPriority: Integer);
-begin
-  if NewResult then
-  begin
-    if (not Result) or (NewSuggestionPriority >= SuggestionPriority) then
-    begin
-      Version := NewVersion;
-      SuggestionPriority := NewSuggestionPriority;
-      Result := true;
-    end;
-  end;
 end;
 
 class function TVRMLNode.VRML1ChildrenSaveToStream: boolean;

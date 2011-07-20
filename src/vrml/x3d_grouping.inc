@@ -99,8 +99,6 @@
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
   TNodeGroup_2 = TNodeGroup;
@@ -198,9 +196,6 @@
       Relevant if this node is the root of X3D file. }
     property Meta: TStringStringMap read FMeta;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
-
     { Set properties to force saving this node graph as X3D.
       If we're already configured to save as X3D (major version >= 3)
       then do nothing. Otherwise, sets major/minor versions
@@ -226,8 +221,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdchildren: TMFNode;
@@ -267,8 +260,6 @@
 
     function ChildrenField: TMFNode; override;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     function TransformationChange: TNodeTransformationChange; override;
@@ -294,8 +285,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
@@ -598,15 +587,6 @@ begin
     Func(Self, FdChildren.Items[I]);
 end;
 
-function TNodeGroup.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
-end;
-
 procedure TStringStringMap.PutPreserve(const Name, Content: string);
 var
   PreviousContent: string;
@@ -693,15 +673,6 @@ begin
     inherited;
 end;
 
-function TVRMLRootNode.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  if HasForceVersion then
-    AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-      true, ForceVersion, 10 * 1000);
-end;
-
 function TVRMLRootNode.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
 var
   Res: TVRMLRootNode;
@@ -764,14 +735,6 @@ begin
   Result := 'StaticGroup';
 end;
 
-function TNodeStaticGroup.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
-end;
-
 class function TNodeStaticGroup.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -831,15 +794,6 @@ procedure TNodeSwitch.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   if Between(FdWhichChoice.Value, 0, FdChildren.Count - 1) then
     Func(Self, FdChildren.Items[FdWhichChoice.Value]);
-end;
-
-function TNodeSwitch.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 function TNodeSwitch.TransformationChange: TNodeTransformationChange;
@@ -995,15 +949,6 @@ begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
-end;
-
-function TNodeTransform.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 procedure RegisterGroupingNodes;

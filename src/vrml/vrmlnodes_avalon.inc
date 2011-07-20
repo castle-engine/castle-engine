@@ -28,8 +28,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
@@ -47,8 +45,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdsize: TSFVec3f;
@@ -81,8 +77,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdlevel: TSFInt32;
@@ -106,8 +100,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdenabled: TSFBool;
@@ -130,8 +122,6 @@
     destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     property GeneratedTextureHandler: TGeneratedTextureHandler
@@ -348,15 +338,6 @@ begin
   State.TransformScale *= FdMatrix.TransformScale;
 end;
 
-function TNodeMatrixTransform.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
-end;
-
 function TNodeMatrixTransform.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
@@ -389,15 +370,6 @@ end;
 class function TNodeTeapot.ClassNodeTypeName: string;
 begin
   Result := 'Teapot';
-end;
-
-function TNodeTeapot.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeTeapot.URNMatching(const URN: string): boolean;
@@ -606,15 +578,6 @@ begin
   Result := 'Logger';
 end;
 
-function TNodeLogger.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
-end;
-
 class function TNodeLogger.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -649,15 +612,6 @@ end;
 class function TNodeConverter.ClassNodeTypeName: string;
 begin
   Result := 'Converter';
-end;
-
-function TNodeConverter.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeConverter.URNMatching(const URN: string): boolean;
@@ -779,15 +733,6 @@ end;
 class function TNodeRenderedTexture.ClassNodeTypeName: string;
 begin
   Result := 'RenderedTexture';
-end;
-
-function TNodeRenderedTexture.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeRenderedTexture.URNMatching(const URN: string): boolean;

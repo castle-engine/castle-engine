@@ -53,7 +53,10 @@ function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
     Which means that you would not generate correct X3D file.
 
     So this should really be calculated based on model contents,
-    usually by SaveVRMLVersion(Node).)
+    usually by SaveVRMLVersion(Node).
+
+    A limited VRML 2.0 convertion is possible by ForceConvertingToX3D = true.
+    In this case, Version will be automatically changed to X3D anyway.)
 
   @groupBegin }
 procedure SaveVRML(Node: TVRMLNode;
@@ -108,20 +111,12 @@ const
   DefaultX3DSaveProfile = 'Interchange';
 
 function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
-var
-  SuggestionPriority: Integer;
 begin
-  if not Node.SuggestedVRMLVersion(Result, SuggestionPriority) then
-  begin
-    { If nothing is suggested, we use latest X3D. Reason:
-      - For now, SuggestedVRMLVersion doesn't check IsClauseNames.
-        But if IsClauseNames is present anywhere, then this must use VRML >= 2.0
-        features ("IS" is keyword only in VRML >= 2.0,
-        it will not be understood in VRML 1.0).
-      - Besides, we should promote newer X3D standard. }
-
+  if (Node is TVRMLRootNode) and
+     TVRMLRootNode(Node).HasForceVersion then
+    Result := TVRMLRootNode(Node).ForceVersion else
+    { Use latest X3D. We should promote latest, best version of VRML/X3D. }
     Result := X3DVersion;
-  end;
 end;
 
 procedure SaveVRML(Node: TVRMLNode;

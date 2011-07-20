@@ -68,8 +68,6 @@
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdurl: TMFString;
@@ -88,8 +86,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFddirection: TSFVec3f;
@@ -194,15 +190,6 @@ end;
 class function TNodeAudioClip.ClassNodeTypeName: string;
 begin
   Result := 'AudioClip';
-end;
-
-function TNodeAudioClip.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeAudioClip.URNMatching(const URN: string): boolean;
@@ -435,15 +422,6 @@ end;
 class function TNodeSound.ClassNodeTypeName: string;
 begin
   Result := 'Sound';
-end;
-
-function TNodeSound.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeSound.URNMatching(const URN: string): boolean;

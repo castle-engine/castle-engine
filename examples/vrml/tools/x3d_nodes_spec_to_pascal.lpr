@@ -100,8 +100,6 @@ begin
     if not IsAbstract then
       WritelnStr(InterfaceLines,
         '    class function ClassNodeTypeName: string; override;' + NL +
-        '    function SuggestedVRMLVersion(' + NL +
-        '      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;' + NL +
         '    class function URNMatching(const URN: string): boolean; override;');
 
     WritelnStr(ImplementationLines,
@@ -339,14 +337,6 @@ begin
         'class function TNode' + NodeType + '.ClassNodeTypeName: string;' + NL +
         'begin' + NL +
         '  Result := ''' + NodeType + ''';' + NL +
-        'end;' + NL +
-        NL +
-        'function TNode' + NodeType + '.SuggestedVRMLVersion(' + NL +
-        '  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;' + NL +
-        'begin' + NL +
-        '  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);' + NL +
-        '  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,' + NL +
-        '    true, X3DVersion, 2000);' + NL +
         'end;' + NL +
         NL +
         'class function TNode' + NodeType + '.URNMatching(const URN: string): boolean;' + NL +

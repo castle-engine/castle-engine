@@ -40,8 +40,6 @@
     function QuadricSlices: Cardinal;
     function RectDivisions: Cardinal;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -100,8 +98,6 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -504,14 +500,6 @@ begin
   Fields.Add(FFdspotDropOffRate);
 end;
 
-function TNodeKambiTriangulation.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML1Version, 1000);
-end;
-
 class function TNodeKambiHeadLight.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -564,14 +552,6 @@ begin
      (FdFontStyle.Value is TNodeFontStyle) then
     Result := TNodeFontStyle(FdFontStyle.Value) else
     Result := nil;
-end;
-
-function TNodeText3D.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeBlendMode.ClassNodeTypeName: string;

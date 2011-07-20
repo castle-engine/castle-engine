@@ -44,8 +44,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFInt32, out } { }
@@ -87,8 +85,6 @@
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFddeletionAllowed: TSFBool;
@@ -175,14 +171,6 @@ end;
 class function TNodeKeySensor.ClassNodeTypeName: string;
 begin
   Result := 'KeySensor';
-end;
-
-function TNodeKeySensor.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeKeySensor.URNMatching(const URN: string): boolean;
@@ -291,14 +279,6 @@ end;
 class function TNodeStringSensor.ClassNodeTypeName: string;
 begin
   Result := 'StringSensor';
-end;
-
-function TNodeStringSensor.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, X3DVersion, 2000);
 end;
 
 class function TNodeStringSensor.URNMatching(const URN: string): boolean;

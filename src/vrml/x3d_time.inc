@@ -175,8 +175,6 @@
     procedure CreateNode; override;
 
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdcycleInterval: TSFTime;
@@ -672,15 +670,6 @@ end;
 class function TNodeTimeSensor.ClassNodeTypeName: string;
 begin
   Result := 'TimeSensor';
-end;
-
-function TNodeTimeSensor.SuggestedVRMLVersion(
-  out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
-  { Node is since VRML 2.0 }
-  AndSuggestedVRMLVersion(Result, Version, SuggestionPriority,
-    true, VRML2Version, 1000);
 end;
 
 class function TNodeTimeSensor.URNMatching(const URN: string): boolean;
