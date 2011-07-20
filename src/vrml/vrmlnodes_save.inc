@@ -119,6 +119,98 @@ begin
     Result := X3DVersion;
 end;
 
+type
+  TVRMLToX3DConverter = class
+    procedure Convert(ParentNode: TVRMLNode; var Node: TVRMLNode);
+  end;
+
+procedure TVRMLToX3DConverter.Convert(ParentNode: TVRMLNode; var Node: TVRMLNode);
+
+  function CoordinateNode(Coords: TMFVec3f): TNodeCoordinate;
+  begin
+    Result := TNodeCoordinate.Create('', Node.WWWBasePath);
+    Result.FdPoint.AssignValue(Coords);
+  end;
+
+  function ConvertNurbsCurve(Node: TNodeNurbsCurve_2): TNodeNurbsCurve;
+  begin
+    Result := TNodeNurbsCurve.Create(Node.NodeName, Node.WWWBasePath);
+    Result.PositionInParent := Node.PositionInParent;
+
+    Result.FdcontrolPoint.Value := CoordinateNode(Node.FdcontrolPoint);
+    Result.Fdweight.Items.Assign(Node.FdWeight.Items); { converts float to double }
+    Result.Fdtessellation.AssignValue(Node.Fdtessellation);
+    Result.Fdknot.Items.Assign(Node.Fdknot.Items); { converts float to double }
+    Result.Fdorder.AssignValue(Node.Fdorder);
+    Result.FdClosed.Value := true; { true means "possibly closed" }
+  end;
+
+  function ConvertNurbsSurface(Node: TNodeNurbsSurface): TNodeNurbsPatchSurface;
+  begin
+    Result := TNodeNurbsPatchSurface.Create(Node.NodeName, Node.WWWBasePath);
+    Result.PositionInParent := Node.PositionInParent;
+
+    Result.FdcontrolPoint.Value := CoordinateNode(Node.FdcontrolPoint);
+    Result.FdtexCoord.AssignValue(Node.FdtexCoord);
+    Result.FduTessellation.AssignValue(Node.FduTessellation);
+    Result.FdvTessellation.AssignValue(Node.FdvTessellation);
+    Result.Fdweight.Items.Assign(Node.FdWeight.Items); { converts float to double }
+    Result.FdSolid.AssignValue(Node.FdSolid);
+
+    Result.FdUClosed.Value := true; { true means "possibly closed" }
+    Result.FdUDimension.AssignValue(Node.FdUDimension);
+    Result.FdUKnot.Items.Assign(Node.FdUknot.Items); { converts float to double }
+    Result.FdUOrder.AssignValue(Node.FdUorder);
+
+    Result.FdVClosed.Value := true; { true means "possibly closed" }
+    Result.FdVDimension.AssignValue(Node.FdVDimension);
+    Result.FdVKnot.Items.Assign(Node.FdVKnot.Items); { converts float to double }
+    Result.FdVOrder.AssignValue(Node.FdVOrder);
+  end;
+
+  function ConvertNurbsPositionInterpolator(Node: TNodeNurbsPositionInterpolator_2): TNodeNurbsPositionInterpolator;
+  begin
+    Result := TNodeNurbsPositionInterpolator.Create(Node.NodeName, Node.WWWBasePath);
+    Result.PositionInParent := Node.PositionInParent;
+
+    Result.FdcontrolPoint.Value := CoordinateNode(Node.FdKeyValue);
+    Result.Fdknot.Items.Assign(Node.Fdknot.Items); { converts float to double }
+    Result.Fdorder.AssignValue(Node.Fdorder);
+    Result.Fdweight.Items.Assign(Node.FdKeyWeight.Items); { converts float to double }
+  end;
+
+begin
+  { The nodes needing to be converted from VRML 2.0 to X3D:
+    - Some can be found by grepping for "Version.Major = 2".
+      This will find which nodes have ForVRMLVersion method requiring
+      only VRML 2.0. These are only:
+      TNodeLOD_2, TNodeNurbsCurve_2, TNodeNurbsPositionInterpolator_2.
+    - TNodeLOD_2 doesn't actually need convertion. Only a field name
+      changes, which should be taken care of NameForVersion mechanism.
+    - TNodeNurbsSurface needs additionally to be changed in
+      TNodeNurbsPatchSurface.
+
+    NURBS differences are summarized in
+    http://vrmlengine.sourceforge.net/vrml_implementation_nurbs.php#section_vrml2_support
+
+    TODO: this simple replacement will not work for cases when:
+    - you have ROUTEs leading to old nodes (ROUTEs will become disconnected
+      when destroying old nodes)
+    - you rely of reUSEing old nodes (in new version, we will have new node
+      for each previous reference).
+    - also, if you declare your VRML 2 nodes by EXTERNPROTO,
+      like "urn:web3d:vrml97:node:NurbsCurve", we *will* convert your
+      NurbsCurve, but we will not remove (or modify) the EXTERNPROTO,
+      which will still force using VRML 2 version on read.
+  }
+  if Node is TNodeNurbsCurve_2 then
+    Node := ConvertNurbsCurve(TNodeNurbsCurve_2(Node)) else
+  if Node is TNodeNurbsSurface then
+    Node := ConvertNurbsSurface(TNodeNurbsSurface(Node)) else
+  if Node is TNodeNurbsPositionInterpolator_2 then
+    Node := ConvertNurbsPositionInterpolator(TNodeNurbsPositionInterpolator_2(Node));
+end;
+
 procedure SaveVRML(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
   Version: TVRMLVersion;
@@ -128,15 +220,18 @@ var
   Writer: TX3DWriterNames;
 
   procedure ConvertToX3D;
+
   begin
     { Converts VRML (1, 2) to X3D simply by changing Version used to save.
       This will work fine for VRML 2 -> X3D (except for some NURBS nodes
-      different between VRML 2 and X3D).
+      different between VRML 2 and X3D, these will be dealt with TVRMLToX3DConverter).
       This will not really work for VRML 1. }
     if Version.Major <= 1 then
       VRMLWarning(vwSerious, 'Converting VRML 1.0 or Inventor to X3D is not implemented. You will get VRML 1.0/Inventor nodes encoded like for X3D, which probably is not much useful.');
     Version.Major := 3;
     Version.Minor := 0;
+
+    Node.EnumerateReplaceChildren(@TVRMLToX3DConverter(nil).Convert);
   end;
 
   procedure Classic;
