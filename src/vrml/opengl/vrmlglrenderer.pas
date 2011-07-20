@@ -2533,7 +2533,7 @@ procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
   end;
 
 var
-  FontStyle: TNodeFontStyle_2;
+  FontStyle: TNodeFontStyle;
   I: Integer;
   Lights: TLightInstancesList;
   Texture: TNodeX3DTextureNode;
@@ -2556,10 +2556,10 @@ begin
     FontStyle := TNodeText(State.ShapeNode.FdGeometry.Value).FontStyle;
     if FontStyle = nil then
       PrepareFont(
-        TNodeFontStyle_2.DefaultFamily,
-        TNodeFontStyle_2.DefaultBold,
-        TNodeFontStyle_2.DefaultItalic,
-        TNodeFontStyle_2.DefaultTTF_Font) else
+        TNodeFontStyle.DefaultFamily,
+        TNodeFontStyle.DefaultBold,
+        TNodeFontStyle.DefaultItalic,
+        TNodeFontStyle.DefaultTTF_Font) else
       PrepareFont(
         FontStyle.Family,
         FontStyle.Bold,
@@ -2577,10 +2577,10 @@ begin
     FontStyle := TNodeText3D(State.ShapeNode.FdGeometry.Value).FontStyle;
     if FontStyle = nil then
       PrepareFont(
-        TNodeFontStyle_2.DefaultFamily,
-        TNodeFontStyle_2.DefaultBold,
-        TNodeFontStyle_2.DefaultItalic,
-        TNodeFontStyle_2.DefaultTTF_Font) else
+        TNodeFontStyle.DefaultFamily,
+        TNodeFontStyle.DefaultBold,
+        TNodeFontStyle.DefaultItalic,
+        TNodeFontStyle.DefaultTTF_Font) else
       PrepareFont(
         FontStyle.Family,
         FontStyle.Bold,
@@ -3546,8 +3546,8 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
   begin
     Result := not (
-      (Node is TNodePointSet_2) or
-      (Node is TNodeIndexedLineSet_2));
+      (Node is TNodePointSet) or
+      (Node is TNodeIndexedLineSet));
   end;
 
   procedure RenderTexturesBegin;

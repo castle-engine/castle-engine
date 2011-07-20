@@ -59,19 +59,19 @@ function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
 procedure SaveVRML(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
   Version: TVRMLVersion; const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean); overload;
+  const ForceConvertingToX3D: boolean = false); overload;
 procedure SaveVRML(Node: TVRMLNode;
   const Filename, Generator, Source: string;
   const Version: TVRMLVersion; const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean); overload;
+  const ForceConvertingToX3D: boolean = false); overload;
 procedure SaveVRML(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean); overload;
+  const ForceConvertingToX3D: boolean = false); overload;
 procedure SaveVRML(Node: TVRMLNode;
   const Filename, Generator, Source: string;
   const Encoding: TX3DEncoding;
-  const ForceConvertingToX3D: boolean); overload;
+  const ForceConvertingToX3D: boolean = false); overload;
 { @groupEnd }
 
 {$endif read_interface}
@@ -135,9 +135,8 @@ var
   procedure ConvertToX3D;
   begin
     { Converts VRML (1, 2) to X3D simply by changing Version used to save.
-      This will work fine for VRML 2 -> X3D (except for rare nodes
-      different between VRML 2 and X3D, where TNodeXxx_2 and TNodeXxx_3
-      exist --- like NurbsCurve).
+      This will work fine for VRML 2 -> X3D (except for some NURBS nodes
+      different between VRML 2 and X3D).
       This will not really work for VRML 1. }
     if Version.Major <= 1 then
       VRMLWarning(vwSerious, 'Converting VRML 1.0 or Inventor to X3D is not implemented. You will get VRML 1.0/Inventor nodes encoded like for X3D, which probably is not much useful.');

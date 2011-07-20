@@ -108,7 +108,7 @@ begin
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM]);
 end;
 
-function TNodeCone_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+function TNodeCone.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   Result := Cone_TrianglesCount(State, OverTriangulate,
@@ -159,7 +159,7 @@ begin
     FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
 
-function TNodeCylinder_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+function TNodeCylinder.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   Result := Cylinder_TrianglesCount(State, OverTriangulate,
@@ -196,7 +196,7 @@ begin
     FdCoordIndex, Coordinates(State));
 end;
 
-function TNodeIndexedFaceSet_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+function TNodeIndexedFaceSet.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
@@ -209,7 +209,7 @@ begin
   result := 0;
 end;
 
-function TNodeIndexedLineSet_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+function TNodeIndexedLineSet.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   result := 0;
@@ -227,7 +227,7 @@ begin
   result := 0;
 end;
 
-function TNodePointSet_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+function TNodePointSet.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   result := 0;
@@ -244,7 +244,7 @@ begin
   Result := Sphere_TrianglesCount(State, OverTriangulate);
 end;
 
-function TNodeSphere_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+function TNodeSphere.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   Result := Sphere_TrianglesCount(State, OverTriangulate);

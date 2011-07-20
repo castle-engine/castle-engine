@@ -121,7 +121,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
       Min(90, RadToDeg(LightNode.FdCutOffAngle.Value)));
   end;
 
-  procedure SetupSpotLight_2(LightNode: TNodeSpotLight_2);
+  procedure SetupSpotLight(LightNode: TNodeSpotLight);
   begin
     glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
 
@@ -169,8 +169,8 @@ begin
       SetupPointLight(TVRMLPointLightNode(Light.Node)) else
     if Light.Node is TNodeSpotLight_1 then
       SetupSpotLight_1(TNodeSpotLight_1(Light.Node)) else
-    if Light.Node is TNodeSpotLight_2 then
-      SetupSpotLight_2(TNodeSpotLight_2(Light.Node)) else
+    if Light.Node is TNodeSpotLight then
+      SetupSpotLight(TNodeSpotLight(Light.Node)) else
       raise EInternalError.Create('Unknown light node class');
 
     { setup attenuation for OpenGL light }

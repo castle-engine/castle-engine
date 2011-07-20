@@ -70,14 +70,14 @@ var
   end;
 
 var
-  IFS: TNodeIndexedFaceSet_2 absolute Result;
+  IFS: TNodeIndexedFaceSet absolute Result;
   XDimension, ZDimension: Integer; {< shortcuts for appropriate fields values }
   TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
   CoordNode: TNodeCoordinate;
   TexCoords: TDynVector2SingleArray;
 begin
-  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
   try
     XDimension := FdXDimension.Value;
     ZDimension := FdZDimension.Value;

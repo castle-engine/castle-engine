@@ -17,7 +17,7 @@ var Spot: Single;
 
     {$ifndef CAMERA_INDEP}
     M1: TNodeMaterial_1;
-    M2: TNodeMaterial_2;
+    M2: TNodeMaterial;
 
     { srednia z wektora do cameraa i LightDirNorm, potrzebna do liczenia
       odbicia Specular }
@@ -49,7 +49,7 @@ var Spot: Single;
       Result := 0;
   end;
 
-  function CalculateSpot_2(SpotLight: TNodeSpotLight_2): Single;
+  function CalculateSpot(SpotLight: TNodeSpotLight): Single;
   var
     CosSpotAngle, SpotAngle, SpotCO, SpotBW: Single;
   begin
@@ -84,7 +84,7 @@ begin
    end else
    begin
      { Default VRML 2.0 lighting properties. }
-     MaterialAmbientIntensity := DefaultMaterial_2AmbientIntensity;
+     MaterialAmbientIntensity := DefaultMaterialAmbientIntensity;
      MaterialDiffuseColor := DefaultMaterialDiffuseColor;
      MaterialSpecularColor := DefaultMaterialSpecularColor;
      MaterialShininessExp := DefaultMaterialShininess * 128.0;
@@ -145,8 +145,8 @@ begin
    dla innych swiatel jest zawsze = 1. }
  if LightNode is TNodeSpotLight_1 then
    Spot := CalculateSpot_1(TNodeSpotLight_1(LightNode)) else
- if LightNode is TNodeSpotLight_2 then
-   Spot := CalculateSpot_2(TNodeSpotLight_2(LightNode)) else
+ if LightNode is TNodeSpotLight then
+   Spot := CalculateSpot(TNodeSpotLight(LightNode)) else
    Spot := 1;
 
  Result := LightNode.FdColor.Value * (Attenuat * Spot);

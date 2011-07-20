@@ -607,15 +607,15 @@ begin
       if TNodeSpotLight_1(Node).SpotExp <> 0 then
         Define(ldHasSpotExponent);
     end else
-    if Node is TNodeSpotLight_2 then
+    if Node is TNodeSpotLight then
     begin
       Define(ldTypeSpot);
-      if TNodeSpotLight_2(Node).FdBeamWidth.Value <
-         TNodeSpotLight_2(Node).FdCutOffAngle.Value then
+      if TNodeSpotLight(Node).FdBeamWidth.Value <
+         TNodeSpotLight(Node).FdCutOffAngle.Value then
       begin
         Define(ldHasBeamWidth);
         LightUniformName1 := 'kambi_light_%d_beam_width';
-        LightUniformValue1 := TNodeSpotLight_2(Node).FdBeamWidth.Value;
+        LightUniformValue1 := TNodeSpotLight(Node).FdBeamWidth.Value;
         Hash.AddFloat(LightUniformValue1);
       end;
     end;

@@ -1301,7 +1301,7 @@ begin
   Fields.Add(FFdmass);
   { X3D specification comment: (0,Inf) }
 
-  FFdmassDensityModel := TSFNode.Create(Self, 'massDensityModel', [TNodeSphere_2, TNodeBox, TNodeCone_2]);
+  FFdmassDensityModel := TSFNode.Create(Self, 'massDensityModel', [TNodeSphere, TNodeBox, TNodeCone]);
   Fields.Add(FFdmassDensityModel);
 
   FFdorientation := TSFRotation.Create(Self, 'orientation', Vector3Single(0, 0, 1), 0);

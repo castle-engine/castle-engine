@@ -61,7 +61,7 @@ var
   Scene: TVRMLGLScene;
   SceneForShadow: TVRMLGLScene;
   RenderParams: TBasicRenderParams;
-  LightNode: TNodePointLight_2;
+  LightNode: TNodePointLight;
   LightInstance: TLightInstance;
 
   { FileName of currently loaded Scene.
@@ -624,7 +624,7 @@ begin
     SceneForShadow.Attributes.PreserveOpenGLState := true;
 
     { init light that we'll control }
-    LightNode := TNodePointLight_2.Create('', '');
+    LightNode := TNodePointLight.Create('', '');
     LightNode.FdLocation.Value := Vector3SingleCut(LightPosition);
 
     LightInstance.Node := LightNode;

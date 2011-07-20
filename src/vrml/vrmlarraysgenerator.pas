@@ -2262,17 +2262,17 @@ begin
     Result := TTriangleStripSetGenerator else
   if AGeometry is TNodeIndexedFaceSet_1 then
     Result := TIndexedFaceSet_1Generator else
-  if AGeometry is TNodeIndexedFaceSet_2 then
-    Result := TIndexedFaceSet_2Generator else
+  if AGeometry is TNodeIndexedFaceSet then
+    Result := TIndexedFaceSetGenerator_2 else
   if AGeometry is TNodeIndexedLineSet_1 then
     Result := TIndexedLineSet_1Generator else
-  if (AGeometry is TNodeIndexedLineSet_2) or
+  if (AGeometry is TNodeIndexedLineSet) or
      (AGeometry is TNodeLineSet) then
     Result := TLineSet_2Generator else
   if AGeometry is TNodePointSet_1 then
     Result := TPointSet_1Generator else
-  if AGeometry is TNodePointSet_2 then
-    Result := TPointSet_2Generator else
+  if AGeometry is TNodePointSet then
+    Result := TPointSetGenerator else
   if (AGeometry is TNodeTriangleSet) or
      (AGeometry is TNodeIndexedTriangleSet) then
     Result := TTriangleSetGenerator else

@@ -45,7 +45,7 @@
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
-  TNodeCone_2 = class(TNodeX3DGeometryNode)
+  TNodeCone = class(TNodeX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
@@ -88,8 +88,9 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
+  TNodeCone_2 = TNodeCone;
 
-  TNodeCylinder_2 = class(TNodeX3DGeometryNode)
+  TNodeCylinder = class(TNodeX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
@@ -135,6 +136,7 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
+  TNodeCylinder_2 = TNodeCylinder;
 
   TNodeElevationGrid = class(TNodeX3DGeometryNode)
   private
@@ -308,7 +310,7 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeIndexedFaceSet_2 = class(TNodeX3DComposedGeometryNode)
+  TNodeIndexedFaceSet = class(TNodeX3DComposedGeometryNode)
   private
     procedure Eventset_colorIndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -371,8 +373,9 @@
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
+  TNodeIndexedFaceSet_2 = TNodeIndexedFaceSet;
 
-  TNodeSphere_2 = class(TNodeX3DGeometryNode)
+  TNodeSphere = class(TNodeX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -404,6 +407,7 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
+  TNodeSphere_2 = TNodeSphere;
 
 {$endif read_interface}
 
@@ -459,7 +463,7 @@ begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-procedure TNodeCone_2.CreateNode;
+procedure TNodeCone.CreateNode;
 begin
   inherited;
 
@@ -495,12 +499,12 @@ begin
   Fields.Add(FFdtexCoord);
 end;
 
-class function TNodeCone_2.ClassNodeTypeName: string;
+class function TNodeCone.ClassNodeTypeName: string;
 begin
   Result := 'Cone';
 end;
 
-function TNodeCone_2.SuggestedVRMLVersion(
+function TNodeCone.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -509,35 +513,35 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeCone_2.URNMatching(const URN: string): boolean;
+class function TNodeCone.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeCone_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeCone.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeCone_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TNodeCone.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   inherited;
   FdtexCoord.EnumerateValid(Func);
 end;
 
-function TNodeCone_2.TexCoordField: TSFNode;
+function TNodeCone.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-function TNodeCone_2.AutoGenerate3DTexCoords: boolean;
+function TNodeCone.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-procedure TNodeCylinder_2.CreateNode;
+procedure TNodeCylinder.CreateNode;
 begin
   inherited;
 
@@ -578,12 +582,12 @@ begin
   Fields.Add(FFdtexCoord);
 end;
 
-class function TNodeCylinder_2.ClassNodeTypeName: string;
+class function TNodeCylinder.ClassNodeTypeName: string;
 begin
   Result := 'Cylinder';
 end;
 
-function TNodeCylinder_2.SuggestedVRMLVersion(
+function TNodeCylinder.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -592,30 +596,30 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeCylinder_2.URNMatching(const URN: string): boolean;
+class function TNodeCylinder.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeCylinder_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeCylinder.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeCylinder_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TNodeCylinder.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   inherited;
   FdtexCoord.EnumerateValid(Func);
 end;
 
-function TNodeCylinder_2.TexCoordField: TSFNode;
+function TNodeCylinder.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-function TNodeCylinder_2.AutoGenerate3DTexCoords: boolean;
+function TNodeCylinder.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
@@ -942,7 +946,7 @@ function TNodeExtrusion.Proxy(var State: TVRMLGraphTraverseState;
 }
 
 var
-  IFS: TNodeIndexedFaceSet_2 absolute Result;
+  IFS: TNodeIndexedFaceSet absolute Result;
   Index: Integer;
   E: TVRMLExtrusion;
 
@@ -1002,7 +1006,7 @@ var
   TexCapsMin, TexCapsMax: TVector2Single;
   TexCapsTranslation, TexCapsScale: Single;
 begin
-  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
   try
     E := TVRMLExtrusion.Create;
     try
@@ -1178,7 +1182,7 @@ begin
   Fdspine.Changed;
 end;
 
-procedure TNodeIndexedFaceSet_2.CreateNode;
+procedure TNodeIndexedFaceSet.CreateNode;
 begin
   inherited;
 
@@ -1238,12 +1242,12 @@ begin
   { X3D specification comment: [-1,Inf) }
 end;
 
-class function TNodeIndexedFaceSet_2.ClassNodeTypeName: string;
+class function TNodeIndexedFaceSet.ClassNodeTypeName: string;
 begin
   Result := 'IndexedFaceSet';
 end;
 
-function TNodeIndexedFaceSet_2.SuggestedVRMLVersion(
+function TNodeIndexedFaceSet.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -1252,52 +1256,52 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeIndexedFaceSet_2.URNMatching(const URN: string): boolean;
+class function TNodeIndexedFaceSet.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeIndexedFaceSet_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeIndexedFaceSet.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodeIndexedFaceSet_2.CoordIndex: TMFLong;
+function TNodeIndexedFaceSet.CoordIndex: TMFLong;
 begin
   Result := FdCoordIndex;
 end;
 
-procedure TNodeIndexedFaceSet_2.EventSet_colorIndexReceive(
+procedure TNodeIndexedFaceSet.EventSet_colorIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcolorIndex.Assign(Value);
   FdcolorIndex.Changed;
 end;
 
-procedure TNodeIndexedFaceSet_2.EventSet_coordIndexReceive(
+procedure TNodeIndexedFaceSet.EventSet_coordIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcoordIndex.Assign(Value);
   FdcoordIndex.Changed;
 end;
 
-procedure TNodeIndexedFaceSet_2.EventSet_normalIndexReceive(
+procedure TNodeIndexedFaceSet.EventSet_normalIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdnormalIndex.Assign(Value);
   FdnormalIndex.Changed;
 end;
 
-procedure TNodeIndexedFaceSet_2.EventSet_texCoordIndexReceive(
+procedure TNodeIndexedFaceSet.EventSet_texCoordIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdtexCoordIndex.Assign(Value);
   FdtexCoordIndex.Changed;
 end;
 
-procedure TNodeSphere_2.CreateNode;
+procedure TNodeSphere.CreateNode;
 begin
   inherited;
 
@@ -1317,12 +1321,12 @@ begin
   Fields.Add(FFdtexCoord);
 end;
 
-class function TNodeSphere_2.ClassNodeTypeName: string;
+class function TNodeSphere.ClassNodeTypeName: string;
 begin
   Result := 'Sphere';
 end;
 
-function TNodeSphere_2.SuggestedVRMLVersion(
+function TNodeSphere.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -1331,24 +1335,24 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeSphere_2.URNMatching(const URN: string): boolean;
+class function TNodeSphere.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeSphere_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeSphere.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodeSphere_2.TexCoordField: TSFNode;
+function TNodeSphere.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-function TNodeSphere_2.AutoGenerate3DTexCoords: boolean;
+function TNodeSphere.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
@@ -1357,12 +1361,12 @@ procedure RegisterGeometry3DNodes;
 begin
   NodesManager.RegisterNodeClasses([
     TNodeBox,
-    TNodeCone_2,
-    TNodeCylinder_2,
+    TNodeCone,
+    TNodeCylinder,
     TNodeElevationGrid,
     TNodeExtrusion,
-    TNodeIndexedFaceSet_2,
-    TNodeSphere_2
+    TNodeIndexedFaceSet,
+    TNodeSphere
   ]);
 end;
 

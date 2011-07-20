@@ -164,7 +164,7 @@ end;
 function DiffuseColor(State: TVRMLGraphTraverseState): TVector3Single;
 var
   M1: TNodeMaterial_1;
-  M2: TNodeMaterial_2;
+  M2: TNodeMaterial;
 begin
   if State.ShapeNode <> nil then
   begin

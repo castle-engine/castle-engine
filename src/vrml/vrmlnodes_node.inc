@@ -719,7 +719,7 @@
       For example some nodes can only work in VRML < 2.0,
       some others only in VRML >= 2.0. There are even some pairs
       of nodes: for example TNodeCone_1 works with VRML < 2.0,
-      TNodeCone_2 works with VRML >= 2.0.
+      TNodeCone works with VRML >= 2.0.
 
       NodesManager will use this.
 

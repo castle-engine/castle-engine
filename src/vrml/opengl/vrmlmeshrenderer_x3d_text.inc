@@ -296,13 +296,13 @@ begin
 
   if Node.FontStyle = nil then
   begin
-    Size := TNodeFontStyle_2.DefaultSize;
-    Spacing := TNodeFontStyle_2.DefaultSpacing;
-    Justify := TNodeFontStyle_2.DefaultJustify;
+    Size := TNodeFontStyle.DefaultSize;
+    Spacing := TNodeFontStyle.DefaultSpacing;
+    Justify := TNodeFontStyle.DefaultJustify;
     CurrentFont := Renderer.Cache.Fonts[
-      TNodeFontStyle_2.DefaultFamily,
-      TNodeFontStyle_2.DefaultBold,
-      TNodeFontStyle_2.DefaultItalic].Instance;
+      TNodeFontStyle.DefaultFamily,
+      TNodeFontStyle.DefaultBold,
+      TNodeFontStyle.DefaultItalic].Instance;
   end else
   begin
     Size := Node.FontStyle.FdSize.Value;
@@ -332,13 +332,13 @@ begin
 
   if Node.FontStyle = nil then
   begin
-    Size := TNodeFontStyle_2.DefaultSize;
-    Spacing := TNodeFontStyle_2.DefaultSpacing;
-    Justify := TNodeFontStyle_2.DefaultJustify;
+    Size := TNodeFontStyle.DefaultSize;
+    Spacing := TNodeFontStyle.DefaultSpacing;
+    Justify := TNodeFontStyle.DefaultJustify;
     CurrentFont := Renderer.Cache.Fonts[
-      TNodeFontStyle_2.DefaultFamily,
-      TNodeFontStyle_2.DefaultBold,
-      TNodeFontStyle_2.DefaultItalic].Instance;
+      TNodeFontStyle.DefaultFamily,
+      TNodeFontStyle.DefaultBold,
+      TNodeFontStyle.DefaultItalic].Instance;
   end else
   begin
     Size := Node.FontStyle.FdSize.Value;

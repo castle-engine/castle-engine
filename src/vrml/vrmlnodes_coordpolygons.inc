@@ -228,7 +228,7 @@ begin
   finally FreeAndNil(Polygonizer) end;
 end;
 
-procedure TNodeIndexedFaceSet_2.CoordPolygons(
+procedure TNodeIndexedFaceSet.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var

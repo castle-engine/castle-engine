@@ -265,7 +265,7 @@
       out MinDistance, MaxDistance: Single); override;
   end;
 
-  TNodeDirectionalLight_2 = class(TVRMLDirectionalLightNode)
+  TNodeDirectionalLight = class(TVRMLDirectionalLightNode)
   public
     procedure CreateNode; override;
     function SuggestedVRMLVersion(
@@ -275,8 +275,9 @@
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
   end;
+  TNodeDirectionalLight_2 = TNodeDirectionalLight;
 
-  TNodePointLight_2 = class(TVRMLPointLightNode)
+  TNodePointLight = class(TVRMLPointLightNode)
   public
     procedure CreateNode; override;
     function SuggestedVRMLVersion(
@@ -286,8 +287,9 @@
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
   end;
+  TNodePointLight_2 = TNodePointLight;
 
-  TNodeSpotLight_2 = class(TVRMLPositionalLightNode)
+  TNodeSpotLight = class(TVRMLPositionalLightNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -320,6 +322,7 @@
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
   end;
+  TNodeSpotLight_2 = TNodeSpotLight;
 
 {$endif read_interface}
 
@@ -743,7 +746,7 @@ begin
   Box3DPointDistances(Box, Location, MinDistance, MaxDistance);
 end;
 
-procedure TNodeDirectionalLight_2.CreateNode;
+procedure TNodeDirectionalLight.CreateNode;
 begin
   inherited;
 
@@ -752,7 +755,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TNodeDirectionalLight_2.SuggestedVRMLVersion(
+function TNodeDirectionalLight.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -761,19 +764,19 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeDirectionalLight_2.URNMatching(const URN: string): boolean;
+class function TNodeDirectionalLight.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeDirectionalLight_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeDirectionalLight.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodePointLight_2.CreateNode;
+procedure TNodePointLight.CreateNode;
 begin
   inherited;
 
@@ -782,7 +785,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TNodePointLight_2.SuggestedVRMLVersion(
+function TNodePointLight.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -791,19 +794,19 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodePointLight_2.URNMatching(const URN: string): boolean;
+class function TNodePointLight.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodePointLight_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodePointLight.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeSpotLight_2.CreateNode;
+procedure TNodeSpotLight.CreateNode;
 begin
   inherited;
 
@@ -834,12 +837,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSpotLight_2.ClassNodeTypeName: string;
+class function TNodeSpotLight.ClassNodeTypeName: string;
 begin
   Result := 'SpotLight';
 end;
 
-function TNodeSpotLight_2.SuggestedVRMLVersion(
+function TNodeSpotLight.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -848,19 +851,19 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeSpotLight_2.URNMatching(const URN: string): boolean;
+class function TNodeSpotLight.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeSpotLight_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeSpotLight.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeSpotLight_2.UpdateLightInstance(
+procedure TNodeSpotLight.UpdateLightInstance(
   var LightInstance: TLightInstance);
 begin
   inherited;
@@ -868,7 +871,7 @@ begin
     LightInstance.Transform, FdDirection.Value));
 end;
 
-function TNodeSpotLight_2.ProjectionMatrix: TMatrix4Single;
+function TNodeSpotLight.ProjectionMatrix: TMatrix4Single;
 var
   Angle, N, F: Single;
 begin
@@ -888,7 +891,7 @@ begin
   Result := PerspectiveProjMatrixRad(Angle, 1, N, F);
 end;
 
-function TNodeSpotLight_2.ModelviewMatrix: TMatrix4Single;
+function TNodeSpotLight.ModelviewMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -896,7 +899,7 @@ begin
   Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
-function TNodeSpotLight_2.ModelviewRotationMatrix: TMatrix4Single;
+function TNodeSpotLight.ModelviewRotationMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -904,17 +907,17 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TNodeSpotLight_2.LocationLocal: TVector3Single;
+function TNodeSpotLight.LocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
 
-function TNodeSpotLight_2.DirectionLocal: TVector3Single;
+function TNodeSpotLight.DirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TNodeSpotLight_2.Box3DDistances(const Box: TBox3D;
+procedure TNodeSpotLight.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
@@ -925,9 +928,9 @@ end;
 procedure RegisterLightingNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeDirectionalLight_2,
-    TNodePointLight_2,
-    TNodeSpotLight_2
+    TNodeDirectionalLight,
+    TNodePointLight,
+    TNodeSpotLight
   ]);
 end;
 

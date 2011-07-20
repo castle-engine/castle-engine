@@ -20,7 +20,7 @@
 {$ifdef read_interface}
   { MatrixTransform node for VRML >= 2.0. From Avalon extension,
     see [http://instant-reality.com/documentation/nodetype/MatrixTransform/]. }
-  TNodeMatrixTransform_2 = class(TNodeX3DGroupingNode, INodeTransform)
+  TNodeMatrixTransform = class(TNodeX3DGroupingNode, INodeTransform)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -38,6 +38,7 @@
     private FFdmatrix: TSFMatrix4f;
     public property Fdmatrix: TSFMatrix4f read FFdmatrix;
   end;
+  TNodeMatrixTransform_2 = TNodeMatrixTransform;
 
   TNodeTeapot = class(TNodeX3DGeometryNode)
   protected
@@ -284,7 +285,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeMatrixTransform_2.CreateNode;
+procedure TNodeMatrixTransform.CreateNode;
 begin
   inherited;
 
@@ -295,23 +296,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeMatrixTransform_2.ClassNodeTypeName: string;
+class function TNodeMatrixTransform.ClassNodeTypeName: string;
 begin
   Result := 'MatrixTransform';
 end;
 
-class function TNodeMatrixTransform_2.URNMatching(const URN: string): boolean;
+class function TNodeMatrixTransform.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-class function TNodeMatrixTransform_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeMatrixTransform.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeMatrixTransform_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TNodeMatrixTransform.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -319,7 +320,7 @@ begin
     Func(Self, FdChildren.Items[I]);
 end;
 
-procedure TNodeMatrixTransform_2.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TNodeMatrixTransform.ApplyTransform(State: TVRMLGraphTraverseState);
 var
   InvertedMatrix: TMatrix4Single;
 begin
@@ -347,7 +348,7 @@ begin
   State.TransformScale *= FdMatrix.TransformScale;
 end;
 
-function TNodeMatrixTransform_2.SuggestedVRMLVersion(
+function TNodeMatrixTransform.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -356,7 +357,7 @@ begin
     true, VRML2Version, 1000);
 end;
 
-function TNodeMatrixTransform_2.TransformationChange: TNodeTransformationChange;
+function TNodeMatrixTransform.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
@@ -416,9 +417,9 @@ const
   {$I teapot/teapot.inc}
 var
   CoordNode: TNodeCoordinate;
-  IFS: TNodeIndexedFaceSet_2 absolute Result;
+  IFS: TNodeIndexedFaceSet absolute Result;
 begin
-  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
   try
     CoordNode := TNodeCoordinate.Create('', WWWBasePath);
     IFS.FdCoord.Value := CoordNode;
@@ -963,7 +964,7 @@ end;
 procedure RegisterAvalonNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeMatrixTransform_2,
+    TNodeMatrixTransform,
     TNodeTeapot,
     TNodeLogger,
     TNodeConverter,

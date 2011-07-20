@@ -23,7 +23,7 @@
   (The above doesn't concern much nodes. Most nodes in VRML 1.0 and 97
   specifications are different enough that even when they have the same
   name (like Group) we implement them using different classes (like
-  TNodeGroup_1 and TNodeGroup_2).)
+  TNodeGroup_1 and TNodeGroup).)
 
   Note that most VRML 1 nodes descend from TNodeX3DChildNode,
   this way we can use them inside VRML >= 2.0 group nodes and
@@ -432,7 +432,7 @@
     function MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
   end;
 
-  TVRMLMaterialInfo_1 = class(TVRMLMaterialInfo)
+  TVRMLMaterialInfo_1 = class(TVRMLMaterialInfoAbstract)
   private
     FNode: TNodeMaterial_1;
     FIndex: Integer;
@@ -2371,7 +2371,7 @@ begin
   { If author didn't provide and VRMLShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
 
-  { Implementation just like for TNodeSpotLight_2,
+  { Implementation just like for TNodeSpotLight,
     except I was too lazy to add here projectionAngle. }
   Angle := 2 * FdCutOffAngle.Value;
 

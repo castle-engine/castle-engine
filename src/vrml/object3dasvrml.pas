@@ -285,7 +285,7 @@ function LoadGEO(const filename: string): TVRMLRootNode;
 var
   geo: TObject3DGEO;
   verts: TNodeCoordinate;
-  faces: TNodeIndexedFaceSet_2;
+  faces: TNodeIndexedFaceSet;
   Shape: TNodeShape;
   i: integer;
   WWWBasePath: string;
@@ -300,9 +300,9 @@ begin
 
       Shape := TNodeShape.Create('', WWWBasePath);
       result.FdChildren.Add(Shape);
-      Shape.Material := TNodeMaterial_2.Create('', WWWBasePath);
+      Shape.Material := TNodeMaterial.Create('', WWWBasePath);
 
-      faces := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
+      faces := TNodeIndexedFaceSet.Create('', WWWBasePath);
       Shape.FdGeometry.Value := faces;
       faces.FdCreaseAngle.Value := NiceCreaseAngle;
       faces.FdSolid.Value := false;
@@ -338,13 +338,13 @@ var
 
   function MaterialToVRML(const Material: TWavefrontMaterial): TNodeAppearance;
   var
-    Mat: TNodeMaterial_2;
+    Mat: TNodeMaterial;
     Texture: TNodeImageTexture;
   begin
     Result := TNodeAppearance.Create(
       MatOBJNameToVRMLName(Material.Name), WWWBasePath);
 
-    Mat := TNodeMaterial_2.Create('', WWWBasePath);
+    Mat := TNodeMaterial.Create('', WWWBasePath);
     Result.FdMaterial.Value := Mat;
     Mat.FdAmbientIntensity.Value := AmbientIntensity(
       Material.AmbientColor, Material.DiffuseColor);
@@ -371,7 +371,7 @@ var
 var
   Obj: TObject3DOBJ;
   Coord: TNodeCoordinate;
-  Faces: TNodeIndexedFaceSet_2;
+  Faces: TNodeIndexedFaceSet;
   TexCoord: TNodeTextureCoordinate;
   i: integer;
   FacesWithTexCoord, FacesWithNormal: boolean;
@@ -420,7 +420,7 @@ begin
           Shape.Appearance := Appearances[Appearances.FindNodeName(
             MatOBJNameToVRMLName(FacesWithMaterial.Name))] as TNodeAppearance;
         end else
-          Shape.Material := TNodeMaterial_2.Create('', WWWBasePath);
+          Shape.Material := TNodeMaterial.Create('', WWWBasePath);
 
         { We don't do anything special for the case when FacesWithMaterial = nil
           and FacesWithTexCoord = true. This may be generated e.g. by Blender
@@ -430,7 +430,7 @@ begin
           field, but without texture it will not have any effect.
           This is natural, and there's no reason for now to do anything else. }
 
-        Faces := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
+        Faces := TNodeIndexedFaceSet.Create('', WWWBasePath);
         Shape.FdGeometry.Value := Faces;
         Faces.FdCreaseAngle.Value := NiceCreaseAngle;
         Faces.FdSolid.Value := false;
@@ -556,11 +556,11 @@ var
   procedure AddLights;
   var
     I: Integer;
-    Light: TNodePointLight_2;
+    Light: TNodePointLight;
   begin
     for I := 0 to O3ds.Lights.Count - 1 do
     begin
-      Light := TNodePointLight_2.Create(LightVRMLName(
+      Light := TNodePointLight.Create(LightVRMLName(
         O3ds.Lights[I].Name), WWWBasePath);
       Result.FdChildren.Add(Light);
 
@@ -572,13 +572,13 @@ var
 
   function MaterialToVRML(Material: TMaterial3ds): TNodeAppearance;
   var
-    Mat: TNodeMaterial_2;
+    Mat: TNodeMaterial;
     Tex: TNodeImageTexture;
     TexTransform: TNodeTextureTransform;
   begin
     Result := TNodeAppearance.Create(MaterialVRMLName(Material.Name), WWWBasePath);
 
-    Mat := TNodeMaterial_2.Create('', WWWBasePath);
+    Mat := TNodeMaterial.Create('', WWWBasePath);
     Mat.FdDiffuseColor.Value := Vector3SingleCut(Material.DiffuseColor);
     Mat.FdAmbientIntensity.Value := AmbientIntensity(Material.AmbientColor, Material.DiffuseColor);
     Mat.FdSpecularColor.Value := Vector3SingleCut(Material.SpecularColor);
@@ -632,7 +632,7 @@ var
   Trimesh3ds: TTrimesh3ds;
   Appearances: TVRMLNodesList;
   Coord: TNodeCoordinate;
-  IFS: TNodeIndexedFaceSet_2;
+  IFS: TNodeIndexedFaceSet;
   TexCoord: TNodeTextureCoordinate;
   Shape: TNodeShape;
   I, J, FaceMaterialNum, ThisMaterialFacesCount, FaceNum: Integer;
@@ -684,7 +684,7 @@ begin
         begin
           FaceMaterialNum := Trimesh3ds.Faces^[j].FaceMaterialIndex;
 
-          IFS := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
+          IFS := TNodeIndexedFaceSet.Create('', WWWBasePath);
           IFS.FdTexCoord.Value := TexCoord;
           IFS.FdCoord.Value := Coord;
           { We don't support 3DS smoothing groups.
@@ -780,11 +780,11 @@ var
     end;
   end;
 
-  function MakeIndexes(Triangles: TDynMd3TriangleArray): TNodeIndexedFaceSet_2;
+  function MakeIndexes(Triangles: TDynMd3TriangleArray): TNodeIndexedFaceSet;
   var
     I: Integer;
   begin
-    Result := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
+    Result := TNodeIndexedFaceSet.Create('', WWWBasePath);
     Result.FdCreaseAngle.Value := NiceCreaseAngle;
     Result.FdSolid.Value := false;
     Result.FdCoordIndex.Items.Count := Triangles.Count * 4;
@@ -805,7 +805,7 @@ var
 
   function MakeShape(Surface: TMd3Surface): TNodeShape;
   var
-    IFS: TNodeIndexedFaceSet_2;
+    IFS: TNodeIndexedFaceSet;
   begin
     IFS := MakeIndexes(Surface.Triangles);
     IFS.FdCoord.Value := MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount);
@@ -813,7 +813,7 @@ var
 
     Result := TNodeShape.Create(ToVRMLName(Surface.Name), WWWBasePath);
     Result.FdGeometry.Value := IFS;
-    Result.Material := TNodeMaterial_2.Create('', WWWBasePath);
+    Result.Material := TNodeMaterial.Create('', WWWBasePath);
     Result.Texture := Texture;
   end;
 

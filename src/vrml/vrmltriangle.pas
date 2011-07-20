@@ -110,14 +110,14 @@ type
     { @groupEnd }
 
     { Create material information instance for material of this triangle.
-      See TVRMLMaterialInfo for usage description.
+      See TVRMLMaterialInfoAbstract for usage description.
 
       Returns @nil when no Material node is defined, this can happen
       only for VRML >= 2.0.
 
-      Returned TVRMLMaterialInfo is valid only as long as the Material
+      Returned TVRMLMaterialInfoAbstract is valid only as long as the Material
       node (for VRML 1.0 or 2.0) on which it was based. }
-    function MaterialInfo: TVRMLMaterialInfo;
+    function MaterialInfo: TVRMLMaterialInfoAbstract;
 
     { Return transparency of this triangle's material.
       Equivalent to MaterialInfo.Transparency, although a little faster. }
@@ -792,9 +792,9 @@ begin
   {$endif}
 end;
 
-function TVRMLTriangle.MaterialInfo: TVRMLMaterialInfo;
+function TVRMLTriangle.MaterialInfo: TVRMLMaterialInfoAbstract;
 var
-  M2: TNodeMaterial_2;
+  M2: TNodeMaterial;
 begin
   if State.ShapeNode <> nil then
   begin
@@ -808,7 +808,7 @@ end;
 
 function TVRMLTriangle.Transparency: Single;
 var
-  M2: TNodeMaterial_2;
+  M2: TNodeMaterial;
 begin
   if State.ShapeNode <> nil then
   begin

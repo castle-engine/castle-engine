@@ -205,7 +205,7 @@ var
   ViewpointNode: TVRMLViewpointNode;
   Separator: TNodeSeparator;
   Transform_1: TNodeTransform_1;
-  Transform_2: TNodeTransform_2;
+  Transform_2: TNodeTransform;
   Rotation, Orientation: TVector4Single;
 begin
   RotationVectorForGravity := VectorProduct(DefaultVRMLGravityUp, GravityUp);
@@ -258,7 +258,7 @@ begin
          end;
 
       2: begin
-           Transform_2 := TNodeTransform_2.Create('', WWWBasePath);
+           Transform_2 := TNodeTransform.Create('', WWWBasePath);
            Transform_2.FdTranslation.Value := Position;
            Transform_2.FdRotation.Value := Rotation;
 

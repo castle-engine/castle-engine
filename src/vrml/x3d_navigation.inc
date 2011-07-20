@@ -196,7 +196,7 @@
 
   { LOD node for VRML >= 2.0. This is not for VRML <= 1.0 LOD node.
 
-    It's a common ancestor for VRML 2.0 LOD (TNodeLOD_2) and X3D LOD (TNodeLOD_3).
+    It's a common ancestor for VRML 2.0 LOD (TNodeLOD_2) and X3D LOD (TNodeLOD).
     Unfortunately, we cannot have a simple common class for both VRML 97
     and X3D because there would be a name clash for "level_changed" event:
 
@@ -253,7 +253,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeLOD_3 = class(TVRMLLODNode)
+  TNodeLOD = class(TVRMLLODNode)
   public
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
@@ -261,6 +261,7 @@
       out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
+  TNodeLOD_3 = TNodeLOD;
 
   TNodeNavigationInfo = class(TNodeX3DBindableNode)
   private
@@ -830,18 +831,18 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeLOD_3.URNMatching(const URN: string): boolean;
+class function TNodeLOD.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeLOD_3.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeLOD.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;
 
-function TNodeLOD_3.SuggestedVRMLVersion(
+function TNodeLOD.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -1201,7 +1202,7 @@ begin
     TNodeBillboard,
     TNodeCollision,
     TNodeLOD_2,
-    TNodeLOD_3,
+    TNodeLOD,
     TNodeNavigationInfo,
     TNodeOrthoViewpoint,
     TNodeViewpoint,

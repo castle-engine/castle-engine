@@ -112,7 +112,7 @@ var
     placed as a rendered scene). }
   VisualScenes: TVRMLNodesList;
 
-  ResultModel: TNodeGroup_2 absolute Result;
+  ResultModel: TNodeGroup absolute Result;
 
   Version14: boolean; //< Collada version >= 1.4.x
 
@@ -158,7 +158,7 @@ var
   { Read <effect>. Only for Collada >= 1.4.x. }
   procedure ReadEffect(EffectElement: TDOMElement);
   var
-    Effect: TNodeMaterial_2;
+    Effect: TNodeMaterial;
     Id: string;
     ProfileElement, TechniqueElement, PhongElement: TDOMElement;
     Children: TDOMNodeList;
@@ -170,7 +170,7 @@ var
     if not DOMGetAttribute(EffectElement, 'id', Id) then
       Id := '';
 
-    Effect := TNodeMaterial_2.Create(Id, WWWBasePath);
+    Effect := TNodeMaterial.Create(Id, WWWBasePath);
     Effects.Add(Effect);
 
     ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
@@ -346,9 +346,9 @@ var
       ChildElement: TDOMElement;
       ParamName: string;
       I: Integer;
-      Mat: TNodeMaterial_2;
+      Mat: TNodeMaterial;
     begin
-      Mat := TNodeMaterial_2.Create(MatId, WWWBasePath);
+      Mat := TNodeMaterial.Create(MatId, WWWBasePath);
       Materials.Add(Mat);
 
       ShaderElement := DOMGetChildElement(MatElement, 'shader', false);
@@ -442,7 +442,7 @@ var
     var
       InstanceEffect: TDOMElement;
       EffectId: string;
-      Mat: TNodeMaterial_2;
+      Mat: TNodeMaterial;
       EffectIndex: Integer;
     begin
       if MatId = '' then Exit;
@@ -459,7 +459,7 @@ var
           EffectIndex := Effects.FindNodeName(EffectId);
           if EffectIndex <> -1 then
           begin
-            Mat := Effects[EffectIndex].DeepCopy as TNodeMaterial_2;
+            Mat := Effects[EffectIndex].DeepCopy as TNodeMaterial;
             Mat.NodeName := MatId;
             Materials.Add(Mat);
           end else
@@ -691,7 +691,7 @@ var
       - Adds appropriate things to Geometries and GeometriesMaterialNames
       - Reads <input> children, to calculate InputsCount and VerticesOffset. }
     procedure ReadPolyCommon(PolygonsElement: TDOMElement;
-      out IndexedFaceSet: TNodeIndexedFaceSet_2;
+      out IndexedFaceSet: TNodeIndexedFaceSet;
       out InputsCount, VerticesOffset: Integer);
     var
       Children: TDOMNodeList;
@@ -708,7 +708,7 @@ var
 
       VerticesOffset := 0;
 
-      IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath);
+      IndexedFaceSet := TNodeIndexedFaceSet.Create(GeometryId, WWWBasePath);
       Geometries.Add(IndexedFaceSet);
       IndexedFaceSet.FdCoordIndex.Items.Count := 0;
       IndexedFaceSet.FdSolid.Value := false;
@@ -769,7 +769,7 @@ var
     { Read <polygons> within <mesh> }
     procedure ReadPolygons(PolygonsElement: TDOMElement);
     var
-      IndexedFaceSet: TNodeIndexedFaceSet_2;
+      IndexedFaceSet: TNodeIndexedFaceSet;
       InputsCount: Integer;
       VerticesOffset: Integer;
 
@@ -823,7 +823,7 @@ var
     { Read <polylist> within <mesh> }
     procedure ReadPolylist(PolygonsElement: TDOMElement);
     var
-      IndexedFaceSet: TNodeIndexedFaceSet_2;
+      IndexedFaceSet: TNodeIndexedFaceSet;
       InputsCount: Integer;
       VerticesOffset: Integer;
       VCount, P: TDOMElement;
@@ -879,7 +879,7 @@ var
     { Read <triangles> within <mesh> }
     procedure ReadTriangles(PolygonsElement: TDOMElement);
     var
-      IndexedFaceSet: TNodeIndexedFaceSet_2;
+      IndexedFaceSet: TNodeIndexedFaceSet;
       InputsCount: Integer;
       VerticesOffset: Integer;
       P: TDOMElement;
@@ -1205,11 +1205,11 @@ var
           begin
             if Controller.BoundShapeMatrixIdentity then
             begin
-              Group := TNodeGroup_2.Create('', WWWBasePath);
+              Group := TNodeGroup.Create('', WWWBasePath);
             end else
             begin
-              Group := TNodeMatrixTransform_2.Create('', WWWBasePath);
-              TNodeMatrixTransform_2(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
+              Group := TNodeMatrixTransform.Create('', WWWBasePath);
+              TNodeMatrixTransform(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
             end;
             ParentGroup.FdChildren.Add(Group);
 
@@ -1225,7 +1225,7 @@ var
     end;
 
   var
-    { This is either TNodeTransform_2 or TNodeMatrixTransform_2. }
+    { This is either TNodeTransform or TNodeMatrixTransform. }
     NodeTransform: TNodeX3DGroupingNode;
 
     { Create new Transform node, place it as a child of current Transform node
@@ -1236,23 +1236,23 @@ var
       (since Collada transformations may represent any transformation,
       not necessarily representable by a single VRML Transform node).
 
-      Returns NodeTransform, typecasted to TNodeTransform_2, for your comfort. }
-    function NestedTransform: TNodeTransform_2;
+      Returns NodeTransform, typecasted to TNodeTransform, for your comfort. }
+    function NestedTransform: TNodeTransform;
     var
-      NewNodeTransform: TNodeTransform_2;
+      NewNodeTransform: TNodeTransform;
     begin
-      NewNodeTransform := TNodeTransform_2.Create('', WWWBasePath);
+      NewNodeTransform := TNodeTransform.Create('', WWWBasePath);
       NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
       Result := NewNodeTransform;
     end;
 
-    function NestedMatrixTransform: TNodeMatrixTransform_2;
+    function NestedMatrixTransform: TNodeMatrixTransform;
     var
-      NewNodeTransform: TNodeMatrixTransform_2;
+      NewNodeTransform: TNodeMatrixTransform;
     begin
-      NewNodeTransform := TNodeMatrixTransform_2.Create('', WWWBasePath);
+      NewNodeTransform := TNodeMatrixTransform.Create('', WWWBasePath);
       NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
@@ -1271,7 +1271,7 @@ var
     if not DOMGetAttribute(NodeElement, 'id', NodeId) then
       NodeId := '';
 
-    NodeTransform := TNodeTransform_2.Create(NodeId, WWWBasePath);
+    NodeTransform := TNodeTransform.Create(NodeId, WWWBasePath);
     ParentGroup.FdChildren.Add(NodeTransform);
 
     { First iterate to gather all transformations.
@@ -1415,9 +1415,9 @@ var
 
     procedure Collada13;
     var
-      Group: TNodeGroup_2;
+      Group: TNodeGroup;
     begin
-      Group := TNodeGroup_2.Create(SceneId, WWWBasePath);
+      Group := TNodeGroup.Create(SceneId, WWWBasePath);
       ResultModel.FdChildren.Add(Group);
 
       ReadNodesSequence(Group, SceneElement);
@@ -1437,16 +1437,16 @@ var
 
   { Read <visual_scene>. Obtained scene VRML node is added both
     to VisualScenes list and VisualScenesSwitch.choice. }
-  procedure ReadVisualScene(VisualScenesSwitch: TNodeSwitch_2;
+  procedure ReadVisualScene(VisualScenesSwitch: TNodeSwitch;
     VisualSceneElement: TDOMElement);
   var
     VisualSceneId: string;
-    Group: TNodeGroup_2;
+    Group: TNodeGroup;
   begin
     if not DOMGetAttribute(VisualSceneElement, 'id', VisualSceneId) then
       VisualSceneId := '';
 
-    Group := TNodeGroup_2.Create(VisualSceneId, WWWBasePath);
+    Group := TNodeGroup.Create(VisualSceneId, WWWBasePath);
     VisualScenes.Add(Group);
     VisualScenesSwitch.FdChildren.Add(Group);
 
@@ -1461,7 +1461,7 @@ var
     ChildElement: TDOMElement;
     I: Integer;
     LibraryId: string;
-    VisualScenesSwitch: TNodeSwitch_2;
+    VisualScenesSwitch: TNodeSwitch;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
@@ -1472,7 +1472,7 @@ var
       That's good --- it's always nice to keep some data when
       converting. }
 
-    VisualScenesSwitch := TNodeSwitch_2.Create(LibraryId, WWWBasePath);
+    VisualScenesSwitch := TNodeSwitch.Create(LibraryId, WWWBasePath);
     ResultModel.FdChildren.Add(VisualScenesSwitch);
 
     Children := LibraryElement.ChildNodes;
@@ -1551,7 +1551,7 @@ var
     finally FreeChildNodes(Children); end
   end;
 
-  procedure AddInfo(Element: TNodeGroup_2; const S: string);
+  procedure AddInfo(Element: TNodeGroup; const S: string);
   var
     Info: TNodeWorldInfo;
   begin
@@ -1651,7 +1651,7 @@ begin
         end;
       finally FreeChildNodes(DocChildren); end;
 
-      AddInfo(Result as TNodeGroup_2,
+      AddInfo(Result as TNodeGroup,
         'Converted from Collada version "' + Version + '" by ' +
         'Kambi VRML game engine [http://vrmlengine.sourceforge.net/]');
     except FreeAndNil(Result); raise; end;

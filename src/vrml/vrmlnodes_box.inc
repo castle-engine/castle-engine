@@ -150,9 +150,9 @@ var
   NormalNode: TNodeNormal;
   TexCoordNode: TNodeTextureCoordinate;
   TexCoords: TDynVector2SingleArray;
-  IFS: TNodeIndexedFaceSet_2 absolute Result;
+  IFS: TNodeIndexedFaceSet absolute Result;
 begin
-  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
   try
     CoordNode := TNodeCoordinate.Create('', WWWBasePath);
     IFS.FdCoord.Value := CoordNode;

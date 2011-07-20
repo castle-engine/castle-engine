@@ -520,7 +520,7 @@
     function CoordCount: Cardinal; override;
   end;
 
-  TNodeIndexedLineSet_2 = class(TNodeX3DGeometryNode)
+  TNodeIndexedLineSet = class(TNodeX3DGeometryNode)
   private
     procedure EventSet_ColorIndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -578,6 +578,7 @@
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
   end;
+  TNodeIndexedLineSet_2 = TNodeIndexedLineSet;
 
   TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
   private
@@ -724,7 +725,7 @@
     public property Fdvector: TMFVec3f read FFdvector;
   end;
 
-  TNodePointSet_2 = class(TNodeX3DGeometryNode)
+  TNodePointSet = class(TNodeX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -762,6 +763,7 @@
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
   end;
+  TNodePointSet_2 = TNodePointSet;
 
   TNodeTriangleFanSet = class(TNodeX3DComposedGeometryNode)
   public
@@ -1290,7 +1292,7 @@ begin
   Result := FdPoint.Items.Count;
 end;
 
-procedure TNodeIndexedLineSet_2.CreateNode;
+procedure TNodeIndexedLineSet.CreateNode;
 begin
   inherited;
 
@@ -1338,12 +1340,12 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TNodeIndexedLineSet_2.ClassNodeTypeName: string;
+class function TNodeIndexedLineSet.ClassNodeTypeName: string;
 begin
   Result := 'IndexedLineSet';
 end;
 
-function TNodeIndexedLineSet_2.SuggestedVRMLVersion(
+function TNodeIndexedLineSet.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -1352,19 +1354,19 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeIndexedLineSet_2.URNMatching(const URN: string): boolean;
+class function TNodeIndexedLineSet.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeIndexedLineSet_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeIndexedLineSet.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodeIndexedLineSet_2.Coord(State: TVRMLGraphTraverseState;
+function TNodeIndexedLineSet.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -1374,7 +1376,7 @@ begin
     ACoord := nil;
 end;
 
-function TNodeIndexedLineSet_2.Color: TMFVec3f;
+function TNodeIndexedLineSet.Color: TMFVec3f;
 begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColor) then
@@ -1382,7 +1384,7 @@ begin
     Result := nil;
 end;
 
-function TNodeIndexedLineSet_2.ColorRGBA: TMFColorRGBA;
+function TNodeIndexedLineSet.ColorRGBA: TMFColorRGBA;
 begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColorRGBA) then
@@ -1390,7 +1392,7 @@ begin
     Result := nil;
 end;
 
-function TNodeIndexedLineSet_2.FogCoord: TMFFloat;
+function TNodeIndexedLineSet.FogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TNodeFogCoordinate) then
@@ -1398,31 +1400,31 @@ begin
     Result := nil;
 end;
 
-function TNodeIndexedLineSet_2.Attrib: TMFNode;
+function TNodeIndexedLineSet.Attrib: TMFNode;
 begin
   Result := FdAttrib;
 end;
 
-function TNodeIndexedLineSet_2.CoordIndex: TMFLong;
+function TNodeIndexedLineSet.CoordIndex: TMFLong;
 begin
   Result := FdCoordIndex;
 end;
 
-procedure TNodeIndexedLineSet_2.EventSet_ColorIndexReceive(
+procedure TNodeIndexedLineSet.EventSet_ColorIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdColorIndex.Assign(Value);
   FdColorIndex.Changed;
 end;
 
-procedure TNodeIndexedLineSet_2.EventSet_CoordIndexReceive(
+procedure TNodeIndexedLineSet.EventSet_CoordIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdCoordIndex.Assign(Value);
   FdCoordIndex.Changed;
 end;
 
-function TNodeIndexedLineSet_2.Lit(State: TVRMLGraphTraverseState): boolean;
+function TNodeIndexedLineSet.Lit(State: TVRMLGraphTraverseState): boolean;
 begin
   { VRML 2.0 specification says that IndexedLineSet should always be unlit }
   Result := false;
@@ -1701,7 +1703,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePointSet_2.CreateNode;
+procedure TNodePointSet.CreateNode;
 begin
   inherited;
 
@@ -1722,12 +1724,12 @@ begin
   Fields.Add(FFdfogCoord);
 end;
 
-class function TNodePointSet_2.ClassNodeTypeName: string;
+class function TNodePointSet.ClassNodeTypeName: string;
 begin
   Result := 'PointSet';
 end;
 
-function TNodePointSet_2.SuggestedVRMLVersion(
+function TNodePointSet.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -1736,19 +1738,19 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodePointSet_2.URNMatching(const URN: string): boolean;
+class function TNodePointSet.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodePointSet_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodePointSet.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodePointSet_2.Coord(State: TVRMLGraphTraverseState;
+function TNodePointSet.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -1758,7 +1760,7 @@ begin
     ACoord := nil;
 end;
 
-function TNodePointSet_2.Color: TMFVec3f;
+function TNodePointSet.Color: TMFVec3f;
 begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColor) then
@@ -1766,7 +1768,7 @@ begin
     Result := nil;
 end;
 
-function TNodePointSet_2.ColorRGBA: TMFColorRGBA;
+function TNodePointSet.ColorRGBA: TMFColorRGBA;
 begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColorRGBA) then
@@ -1774,7 +1776,7 @@ begin
     Result := nil;
 end;
 
-function TNodePointSet_2.FogCoord: TMFFloat;
+function TNodePointSet.FogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TNodeFogCoordinate) then
@@ -1782,12 +1784,12 @@ begin
     Result := nil;
 end;
 
-function TNodePointSet_2.Attrib: TMFNode;
+function TNodePointSet.Attrib: TMFNode;
 begin
   Result := FdAttrib;
 end;
 
-procedure TNodePointSet_2.DirectEnumerateActive(
+procedure TNodePointSet.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   Fdattrib.EnumerateValid(Func);
@@ -1796,7 +1798,7 @@ begin
   FdfogCoord.EnumerateValid(Func);
 end;
 
-function TNodePointSet_2.Lit(State: TVRMLGraphTraverseState): boolean;
+function TNodePointSet.Lit(State: TVRMLGraphTraverseState): boolean;
 begin
   Result := false;
 end;
@@ -1914,13 +1916,13 @@ begin
     TNodeColor,
     TNodeColorRGBA,
     TNodeCoordinate,
-    TNodeIndexedLineSet_2,
+    TNodeIndexedLineSet,
     TNodeIndexedTriangleFanSet,
     TNodeIndexedTriangleSet,
     TNodeIndexedTriangleStripSet,
     TNodeLineSet,
     TNodeNormal,
-    TNodePointSet_2,
+    TNodePointSet,
     TNodeTriangleFanSet,
     TNodeTriangleSet,
     TNodeTriangleStripSet

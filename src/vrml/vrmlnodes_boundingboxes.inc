@@ -249,10 +249,10 @@ var
 begin
   if FontStyle = nil then
   begin
-    Size := TNodeFontStyle_2.DefaultSize;
-    Spacing := TNodeFontStyle_2.DefaultSpacing;
-    Justify := TNodeFontStyle_2.DefaultJustify;
-    TTFont := TNodeFontStyle_2.DefaultTTF_Font;
+    Size := TNodeFontStyle.DefaultSize;
+    Spacing := TNodeFontStyle.DefaultSpacing;
+    Justify := TNodeFontStyle.DefaultJustify;
+    TTFont := TNodeFontStyle.DefaultTTF_Font;
   end else
   begin
     Size := FontStyle.FdSize.Value;
@@ -274,10 +274,10 @@ var
 begin
   if FontStyle = nil then
   begin
-    Size := TNodeFontStyle_2.DefaultSize;
-    Spacing := TNodeFontStyle_2.DefaultSpacing;
-    Justify := TNodeFontStyle_2.DefaultJustify;
-    TTFont := TNodeFontStyle_2.DefaultTTF_Font;
+    Size := TNodeFontStyle.DefaultSize;
+    Spacing := TNodeFontStyle.DefaultSpacing;
+    Justify := TNodeFontStyle.DefaultJustify;
+    TTFont := TNodeFontStyle.DefaultTTF_Font;
   end else
   begin
     Size := FontStyle.FdSize.Value;
@@ -324,7 +324,7 @@ begin
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], false);
 end;
 
-function TNodeCone_2.BoundingBox(State: TVRMLGraphTraverseState;
+function TNodeCone.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
@@ -340,7 +340,7 @@ begin
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], true);
 end;
 
-function TNodeCone_2.LocalBoundingBox(State: TVRMLGraphTraverseState;
+function TNodeCone.LocalBoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
@@ -415,7 +415,7 @@ begin
     FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
 
-function TNodeCylinder_2.LocalBoundingBox(State: TVRMLGraphTraverseState;
+function TNodeCylinder.LocalBoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cylinder_LocalBoundingBox(State,
@@ -430,7 +430,7 @@ begin
   Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
 end;
 
-function TNodeCylinder_2.BoundingBox(State: TVRMLGraphTraverseState;
+function TNodeCylinder.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
@@ -450,7 +450,7 @@ begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
 end;
 
-function TNodeSphere_2.LocalBoundingBox(State: TVRMLGraphTraverseState;
+function TNodeSphere.LocalBoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
@@ -463,7 +463,7 @@ begin
   Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
 end;
 
-function TNodeSphere_2.BoundingBox(State: TVRMLGraphTraverseState;
+function TNodeSphere.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }

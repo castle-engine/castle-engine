@@ -35,7 +35,7 @@ const
   YCount = 15;
 
 var
-  Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TNodeTransform_2;
+  Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TNodeTransform;
 
 procedure Idle(Window: TGLWindow);
 var
@@ -65,15 +65,15 @@ begin
   { Scene.ChangedAll; }
 end;
 
-function CreateVrmlGraph: TNodeGroup_2;
+function CreateVrmlGraph: TNodeGroup;
 var
   Shape: TNodeShape;
-  Mat: TNodeMaterial_2;
+  Mat: TNodeMaterial;
   I, J: Integer;
 begin
-  Result := TNodeGroup_2.Create('', '');
+  Result := TNodeGroup.Create('', '');
 
-  Mat := TNodeMaterial_2.Create('', '');
+  Mat := TNodeMaterial.Create('', '');
   Mat.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
 
   Shape := TNodeShape.Create('', '');
@@ -84,7 +84,7 @@ begin
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do
     begin
-      Transform[I, J] := TNodeTransform_2.Create('', '');
+      Transform[I, J] := TNodeTransform.Create('', '');
       Transform[I, J].FdTranslation.Value := Vector3Single(I * 2, J * 2, 0);
       Transform[I, J].FdChildren.Add(Shape);
 

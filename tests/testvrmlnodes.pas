@@ -452,7 +452,7 @@ begin
     TNodeCollision,
     //TNodeColor,
     TNodeColorInterpolator,
-    //TNodeCone_2,
+    //TNodeCone,
     //TNodeContour2D,
     //TNodeCoordinate,
     { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
@@ -460,16 +460,16 @@ begin
       To be fixed when I'll implement CoordinateDeformer handling. }
     TNodeCoordinateDeformer,
     TNodeCoordinateInterpolator,
-    //TNodeCylinder_2,
+    //TNodeCylinder,
     TNodeCylinderSensor,
-    TNodeDirectionalLight_2,
+    TNodeDirectionalLight,
     //TNodeElevationGrid,
     //TNodeExtrusion,
     TNodeFog,
     { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
       doesn't say is TNodeFontStyle allowed as children node,
       but FontStyle docs say that it's only for Text.fontStyle. }
-    //TNodeFontStyle_2,
+    //TNodeFontStyle,
     //TNodeGeoCoordinate,
     //TNodeGeoElevationGrid,
     TNodeGeoLocation,
@@ -479,21 +479,21 @@ begin
     TNodeGeoPositionInterpolator,
     TNodeGeoTouchSensor,
     TNodeGeoViewpoint,
-    TNodeGroup_2,
+    TNodeGroup,
     //TNodeImageTexture,
-    //TNodeIndexedFaceSet_2,
-    //TNodeIndexedLineSet_2,
+    //TNodeIndexedFaceSet,
+    //TNodeIndexedLineSet,
     TNodeInline,
     { VRML 2.0 spec doesn't say InlineLoadControl is valid children
       node, it also doesn't say it's not valid. Common sense says
       it's valid. }
     TNodeInlineLoadControl,
     TNodeLOD_2,
-    //TNodeMaterial_2,
+    //TNodeMaterial,
     //TNodeMovieTexture,
     TNodeNavigationInfo,
     { Normal node is not a valid children node for VRML 2.0.
-      But we don't have separate TNodeNormal_1 and TNodeNormal_2 classes,
+      But we don't have separate TNodeNormal_1 and TNodeNormal classes,
       so node normal was already added here as all other VRML 1.0 nodes.
       So it's allowed children node for us --- in the spirit thst
       we allow to mix VRML 1.0 and 2.0. }
@@ -514,8 +514,8 @@ begin
       But common sense says it's only for Appearance.texture field. }
     //TNodePixelTexture,
     TNodePlaneSensor,
-    TNodePointLight_2,
-    //TNodePointSet_2,
+    TNodePointLight,
+    //TNodePointSet,
     //TNodePolyline2D,
     TNodePositionInterpolator,
     TNodeProximitySensor,
@@ -523,16 +523,16 @@ begin
     TNodeScript,
     TNodeShape,
     TNodeSound,
-    //TNodeSphere_2,
+    //TNodeSphere,
     TNodeSphereSensor,
-    TNodeSpotLight_2,
-    TNodeSwitch_2,
+    TNodeSpotLight,
+    TNodeSwitch,
     //TNodeText,
     //TNodeTextureCoordinate,
     //TNodeTextureTransform,
     TNodeTimeSensor,
     TNodeTouchSensor,
-    TNodeTransform_2,
+    TNodeTransform,
     //TNodeTrimmedSurface,
     TNodeViewpoint,
     TNodeVisibilitySensor,
@@ -544,25 +544,25 @@ begin
     //TNodeProgramShader,
     //TNodeShaderPart,
     //TNodeShaderProgram
-    TNodeSwitch_2,
-    TNodeLOD_2
+    TNodeSwitch,
+    TNodeLOD
   ]);
 
   AllowedGeometryNodes := TVRMLNodeClassesList.Create;
   AllowedGeometryNodes.AssignArray([
     TNodeBox,
-    TNodeCone_2,
+    TNodeCone,
     TNodeContour2D,
-    TNodeCylinder_2,
+    TNodeCylinder,
     TNodeElevationGrid,
     TNodeExtrusion,
     TNodeGeoElevationGrid,
-    TNodeIndexedFaceSet_2,
-    TNodeIndexedLineSet_2,
-    TNodeNurbsCurve_2,
+    TNodeIndexedFaceSet,
+    TNodeIndexedLineSet,
+    TNodeNurbsCurve,
     TNodeNurbsSurface,
-    TNodePointSet_2,
-    TNodeSphere_2,
+    TNodePointSet,
+    TNodeSphere,
     TNodeText,
     TNodeText3D,
     TNodeTrimmedSurface

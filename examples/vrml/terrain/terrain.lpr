@@ -531,7 +531,7 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
       Shape.FdAppearance.Value := Appearance;
 
       { add any material, to be lit (even without shaders) }
-      Appearance.FdMaterial.Value := TNodeMaterial_2.Create('', '');
+      Appearance.FdMaterial.Value := TNodeMaterial.Create('', '');
 
       if AddShadersTextures then
       begin

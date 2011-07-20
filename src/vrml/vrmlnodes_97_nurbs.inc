@@ -326,7 +326,7 @@ begin
   FFdinputCoord := TMFNode.Create(Self, 'inputCoord', [TNodeCoordinate]);
   Fields.Add(FFdinputCoord);
 
-  FFdinputTransform := TMFNode.Create(Self, 'inputTransform', [TNodeTransform_2]);
+  FFdinputTransform := TMFNode.Create(Self, 'inputTransform', [TNodeTransform]);
   Fields.Add(FFdinputTransform);
 
   FFdoutputCoord := TMFNode.Create(Self, 'outputCoord', [TNodeCoordinate]);

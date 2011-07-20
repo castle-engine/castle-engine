@@ -30,7 +30,7 @@
     (after casting by Ord) to JUSTIFICATION_* constants. }
   TVRMLFontJustify = (fjBegin, fjMiddle, fjEnd);
 
-  TNodeFontStyle_2 = class(TNodeX3DFontStyleNode)
+  TNodeFontStyle = class(TNodeX3DFontStyleNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -85,6 +85,7 @@
     class function ClassTTF_Font(AFamily: TVRMLFontFamily;
       const ABold, AItalic: boolean): PTrueTypeFont;
   end;
+  TNodeFontStyle_2 = TNodeFontStyle;
 
   TNodeText = class(TNodeX3DGeometryNode)
   public
@@ -129,8 +130,8 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
 
     { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
-      is nil or if it's not TNodeFontStyle_2. }
-    function FontStyle: TNodeFontStyle_2;
+      is nil or if it's not TNodeFontStyle. }
+    function FontStyle: TNodeFontStyle;
   end;
 
 {$endif read_interface}
@@ -151,7 +152,7 @@ const
     {typewriter} ( ((@TTF_BitstreamVeraSansMono),(@TTF_BitstreamVeraSansMono_Italic)), ((@TTF_BitstreamVeraSansMono_Bold), (@TTF_BitstreamVeraSansMono_Bold_Italic)) )
   );
 
-procedure TNodeFontStyle_2.CreateNode;
+procedure TNodeFontStyle.CreateNode;
 begin
   inherited;
 
@@ -205,12 +206,12 @@ begin
   Fields.Add(FFdtopToBottom);
 end;
 
-class function TNodeFontStyle_2.ClassNodeTypeName: string;
+class function TNodeFontStyle.ClassNodeTypeName: string;
 begin
   Result := 'FontStyle';
 end;
 
-function TNodeFontStyle_2.SuggestedVRMLVersion(
+function TNodeFontStyle.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -219,30 +220,30 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeFontStyle_2.URNMatching(const URN: string): boolean;
+class function TNodeFontStyle.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeFontStyle_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeFontStyle.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodeFontStyle_2.TTF_Font: PTrueTypeFont;
+function TNodeFontStyle.TTF_Font: PTrueTypeFont;
 begin
   Result := TTF_Font_Results[Family, Bold, Italic];
 end;
 
-class function TNodeFontStyle_2.ClassTTF_Font(
+class function TNodeFontStyle.ClassTTF_Font(
   AFamily: TVRMLFontFamily; const ABold, AItalic: boolean): PTrueTypeFont;
 begin
   Result := TTF_Font_Results[AFamily, ABold, AItalic];
 end;
 
-function TNodeFontStyle_2.Family: TVRMLFontFamily;
+function TNodeFontStyle.Family: TVRMLFontFamily;
 var
   I: Integer;
 begin
@@ -265,7 +266,7 @@ const
   StyleItalic = 'ITALIC';
   StylePlain = 'PLAIN';
 
-function TNodeFontStyle_2.Bold: boolean;
+function TNodeFontStyle.Bold: boolean;
 begin
   Result :=
     (FdStyle.Value = StyleBold) or
@@ -285,7 +286,7 @@ begin
   end;
 end;
 
-function TNodeFontStyle_2.Italic: boolean;
+function TNodeFontStyle.Italic: boolean;
 begin
   Result :=
     (FdStyle.Value = StyleItalic) or
@@ -305,7 +306,7 @@ begin
   end;
 end;
 
-function TNodeFontStyle_2.Justify: TVRMLFontJustify;
+function TNodeFontStyle.Justify: TVRMLFontJustify;
 const
   SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
 var
@@ -355,37 +356,37 @@ begin
   end;
 end;
 
-class function TNodeFontStyle_2.DefaultSize: Single;
+class function TNodeFontStyle.DefaultSize: Single;
 begin
   Result := 1;
 end;
 
-class function TNodeFontStyle_2.DefaultSpacing: Single;
+class function TNodeFontStyle.DefaultSpacing: Single;
 begin
   Result := 1;
 end;
 
-class function TNodeFontStyle_2.DefaultFamily: TVRMLFontFamily;
+class function TNodeFontStyle.DefaultFamily: TVRMLFontFamily;
 begin
   Result := ffSerif;
 end;
 
-class function TNodeFontStyle_2.DefaultBold: boolean;
+class function TNodeFontStyle.DefaultBold: boolean;
 begin
   Result := false;
 end;
 
-class function TNodeFontStyle_2.DefaultItalic: boolean;
+class function TNodeFontStyle.DefaultItalic: boolean;
 begin
   Result := false;
 end;
 
-class function TNodeFontStyle_2.DefaultJustify: TVRMLFontJustify;
+class function TNodeFontStyle.DefaultJustify: TVRMLFontJustify;
 begin
   Result := fjBegin;
 end;
 
-class function TNodeFontStyle_2.DefaultTTF_Font: PTrueTypeFont;
+class function TNodeFontStyle.DefaultTTF_Font: PTrueTypeFont;
 begin
   Result := TTF_Font_Results[DefaultFamily, DefaultBold, DefaultItalic];
 end;
@@ -448,18 +449,18 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeText.FontStyle: TNodeFontStyle_2;
+function TNodeText.FontStyle: TNodeFontStyle;
 begin
   if (FdFontStyle.Value <> nil) and
-     (FdFontStyle.Value is TNodeFontStyle_2) then
-    Result := TNodeFontStyle_2(FdFontStyle.Value) else
+     (FdFontStyle.Value is TNodeFontStyle) then
+    Result := TNodeFontStyle(FdFontStyle.Value) else
     Result := nil;
 end;
 
 procedure RegisterTextNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeFontStyle_2,
+    TNodeFontStyle,
     TNodeText
   ]);
 end;

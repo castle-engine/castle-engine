@@ -666,9 +666,9 @@ type
     used to decide which child to choose (using SwitchNode.FdWhichChoice).  }
   TVRMLShapeTreeSwitch = class(TVRMLShapeTreeGroup)
   private
-    FSwitchNode: TNodeSwitch_2;
+    FSwitchNode: TNodeSwitch;
   public
-    property SwitchNode: TNodeSwitch_2 read FSwitchNode write FSwitchNode;
+    property SwitchNode: TNodeSwitch read FSwitchNode write FSwitchNode;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
     function ShapesCount(const OnlyActive: boolean;
@@ -1479,7 +1479,7 @@ end;
 
 function TVRMLShape.Transparent: boolean;
 var
-  M: TNodeMaterial_2;
+  M: TNodeMaterial;
 begin
   if State.ShapeNode <> nil then
   begin

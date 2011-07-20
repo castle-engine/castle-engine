@@ -88,7 +88,7 @@
     function ChildrenField: TMFNode; override;
   end;
 
-  TNodeGroup_2 = class(TNodeX3DGroupingNode)
+  TNodeGroup = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -103,6 +103,7 @@
       out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
+  TNodeGroup_2 = TNodeGroup;
 
   TStringLongIntMap = specialize TFPGMap<string, LongInt>;
   TStringStringMap = class(specialize TFPGMap<string, string>)
@@ -124,7 +125,7 @@
     It is declared as a descendant of VRML >= 2.0 Group node,
     but it's used with all VRML versions (including VRML 1.0 and Inventor).
     This makes things simple (previously we had two separate TVRMLRootNode_1
-    and TVRMLRootNode_2, which was complicating stuff).
+    and TVRMLRootNode, which was complicating stuff).
 
     This way VRML/X3D files may have many nodes at the top level
     (which is a standard feature of VRML >= 2.0, but we also allow it for
@@ -134,7 +135,7 @@
     This also allows us to record in one place some information that
     is returned by the parser. Like parsed VRML/X3D version, X3D profile,
     some namespace information (exported names and such). }
-  TVRMLRootNode = class(TNodeGroup_2)
+  TVRMLRootNode = class(TNodeGroup)
   private
     FHasForceVersion: boolean;
     FSaveAsRootNode: boolean;
@@ -250,7 +251,7 @@
     programmer simply works with FdChildren field, and when reading/writing
     VRML file we take care to actually use either "children" or "choice" name,
     depending on used VRML version. }
-  TNodeSwitch_2 = class(TNodeX3DGroupingNode)
+  TNodeSwitch = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -272,6 +273,7 @@
 
     function TransformationChange: TNodeTransformationChange; override;
   end;
+  TNodeSwitch_2 = TNodeSwitch;
 
   { Interface for all VRML 2.0 / X3D transformation nodes.
     These nodes transform all their children (the ones enumerated
@@ -284,7 +286,7 @@
   ['{6991EC7D-0821-4393-B5B3-08DD967CFE05}']
   end;
 
-  TNodeTransform_2 = class(TNodeX3DGroupingNode, INodeTransform)
+  TNodeTransform = class(TNodeX3DGroupingNode, INodeTransform)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -314,6 +316,7 @@
     private FFdtranslation: TSFVec3f;
     public property Fdtranslation: TSFVec3f read FFdtranslation;
   end;
+  TNodeTransform_2 = TNodeTransform;
 
 {$endif read_interface}
 
@@ -408,7 +411,7 @@ begin
     it must find all it's occurrences inside Shapes, and add light there
     2. it fails ugly in case of DEF / USE of shapes.
 
-    See demo_models/vrml_2/directional_light_scope.wrl test. Imagine
+    See demo_models/lights_materials/directional_light_scope.wrl test. Imagine
     (simplified VRML below) :
 
       Group {
@@ -562,31 +565,31 @@ begin
     FdChildren.Items.Remove(MF.Items[I]);
 end;
 
-procedure TNodeGroup_2.CreateNode;
+procedure TNodeGroup.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-class function TNodeGroup_2.ClassNodeTypeName: string;
+class function TNodeGroup.ClassNodeTypeName: string;
 begin
   Result := 'Group';
 end;
 
-class function TNodeGroup_2.URNMatching(const URN: string): boolean;
+class function TNodeGroup.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeGroup_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeGroup.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeGroup_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TNodeGroup.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -595,7 +598,7 @@ begin
     Func(Self, FdChildren.Items[I]);
 end;
 
-function TNodeGroup_2.SuggestedVRMLVersion(
+function TNodeGroup.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -788,7 +791,7 @@ begin
     Func(Self, FdChildren.Items[I]);
 end;
 
-procedure TNodeSwitch_2.CreateNode;
+procedure TNodeSwitch.CreateNode;
 begin
   inherited;
 
@@ -802,35 +805,35 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSwitch_2.ClassNodeTypeName: string;
+class function TNodeSwitch.ClassNodeTypeName: string;
 begin
   Result := 'Switch';
 end;
 
-class function TNodeSwitch_2.URNMatching(const URN: string): boolean;
+class function TNodeSwitch.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeSwitch_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeSwitch.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodeSwitch_2.ChildrenField: TMFNode;
+function TNodeSwitch.ChildrenField: TMFNode;
 begin
   Result := FdChildren;
 end;
 
-procedure TNodeSwitch_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TNodeSwitch.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   if Between(FdWhichChoice.Value, 0, FdChildren.Count - 1) then
     Func(Self, FdChildren.Items[FdWhichChoice.Value]);
 end;
 
-function TNodeSwitch_2.SuggestedVRMLVersion(
+function TNodeSwitch.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -839,12 +842,12 @@ begin
     true, VRML2Version, 1000);
 end;
 
-function TNodeSwitch_2.TransformationChange: TNodeTransformationChange;
+function TNodeSwitch.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcSwitch;
 end;
 
-procedure TNodeTransform_2.CreateNode;
+procedure TNodeTransform.CreateNode;
 begin
   inherited;
 
@@ -876,24 +879,24 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeTransform_2.ClassNodeTypeName: string;
+class function TNodeTransform.ClassNodeTypeName: string;
 begin
   Result := 'Transform';
 end;
 
-class function TNodeTransform_2.URNMatching(const URN: string): boolean;
+class function TNodeTransform.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeTransform_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeTransform.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeTransform_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TNodeTransform.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -901,7 +904,7 @@ begin
     Func(Self, FdChildren.Items[I]);
 end;
 
-function TNodeTransform_2.TransformationChange: TNodeTransformationChange;
+function TNodeTransform.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
@@ -987,14 +990,14 @@ begin
     center, rotation, scale, scaleOrientation, translation);
 end;
 
-procedure TNodeTransform_2.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TNodeTransform.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 end;
 
-function TNodeTransform_2.SuggestedVRMLVersion(
+function TNodeTransform.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -1006,10 +1009,10 @@ end;
 procedure RegisterGroupingNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeGroup_2,
+    TNodeGroup,
     TNodeStaticGroup,
-    TNodeSwitch_2,
-    TNodeTransform_2
+    TNodeSwitch,
+    TNodeTransform
   ]);
 end;
 {$endif read_implementation}

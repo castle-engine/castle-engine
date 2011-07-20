@@ -27,7 +27,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeLayer2D = class(TNodeGroup_2)
+  TNodeLayer2D = class(TNodeGroup)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -46,7 +46,7 @@
     public property Fdviewport: TSFNode read FFdviewport;
   end;
 
-  TNodeLayer3D = class(TNodeGroup_2)
+  TNodeLayer3D = class(TNodeGroup)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -119,7 +119,7 @@
     public property EventmouseWheel: TVRMLEvent read FEventmouseWheel;
   end;
 
-  TNodeOrderedGroup = class(TNodeGroup_2)
+  TNodeOrderedGroup = class(TNodeGroup)
   public
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;

@@ -98,7 +98,7 @@ procedure RenderMaterialsBegin;
 
   { Sets current OpenGL material and color properties for VRML >= 2.0 material.
     Material may be nil. }
-  procedure Material_2(Material: TNodeMaterial_2);
+  procedure Material_2(Material: TNodeMaterial);
   begin
     if Material <> nil then
     begin
@@ -125,7 +125,7 @@ procedure RenderMaterialsBegin;
 
 var
   M1: TNodeMaterial_1;
-  M2: TNodeMaterial_2;
+  M2: TNodeMaterial;
   MaterialLit: boolean;
 begin
   { calculate material parameters: M1, M2, MaterialLit }

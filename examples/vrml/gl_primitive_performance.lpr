@@ -313,10 +313,10 @@ procedure DumpShapeTree(Shape: TVRMLShapeTree; const Indent: string = '');
       Vertexes := TNodeIndexedFaceSet_1(Shape.Geometry).Coordinates(Shape.State).Items;
       CoordIndex := TNodeIndexedFaceSet_1(Shape.Geometry).CoordIndex.Items;
     end else
-    if Shape.Geometry is TNodeIndexedFaceSet_2 then
+    if Shape.Geometry is TNodeIndexedFaceSet then
     begin
-      Vertexes := TNodeIndexedFaceSet_2(Shape.Geometry).Coordinates(Shape.State).Items;
-      CoordIndex := TNodeIndexedFaceSet_2(Shape.Geometry).CoordIndex.Items;
+      Vertexes := TNodeIndexedFaceSet(Shape.Geometry).Coordinates(Shape.State).Items;
+      CoordIndex := TNodeIndexedFaceSet(Shape.Geometry).CoordIndex.Items;
     end else
     begin
       Writeln('Geometry: ', Shape.Geometry.NodeTypeName);
@@ -389,10 +389,10 @@ begin
       Vertexes := TNodeIndexedFaceSet_1(Shape.Geometry).Coordinates(Shape.State).Items;
       CoordIndex := TNodeIndexedFaceSet_1(Shape.Geometry).CoordIndex.Items;
     end else
-    if Shape.Geometry is TNodeIndexedFaceSet_2 then
+    if Shape.Geometry is TNodeIndexedFaceSet then
     begin
-      Vertexes := TNodeIndexedFaceSet_2(Shape.Geometry).Coordinates(Shape.State).Items;
-      CoordIndex := TNodeIndexedFaceSet_2(Shape.Geometry).CoordIndex.Items;
+      Vertexes := TNodeIndexedFaceSet(Shape.Geometry).Coordinates(Shape.State).Items;
+      CoordIndex := TNodeIndexedFaceSet(Shape.Geometry).CoordIndex.Items;
     end else
       raise Exception.Create('Specified shape is not IndexedFaceSet');
 

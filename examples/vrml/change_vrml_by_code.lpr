@@ -50,9 +50,9 @@ var
   Scene: TVRMLGLScene;
 
 var
-  TransformBox2: TNodeTransform_2;
-  TransformBox3: TNodeTransform_2;
-  TransformBox4: TNodeTransform_2;
+  TransformBox2: TNodeTransform;
+  TransformBox3: TNodeTransform;
+  TransformBox4: TNodeTransform;
 
 procedure Idle(Window: TGLWindow);
 begin
@@ -89,12 +89,12 @@ begin
   Scene := TVRMLGLScene.Create(nil);
   try
     Scene.Load('models' + PathDelim + 'boxes.x3dv');
-    TransformBox2 := Scene.RootNode.FindNodeByName(TNodeTransform_2,
-      'Box2Transform', true) as TNodeTransform_2;
-    TransformBox3 := Scene.RootNode.FindNodeByName(TNodeTransform_2,
-      'Box3Transform', true) as TNodeTransform_2;
-    TransformBox4 := Scene.RootNode.FindNodeByName(TNodeTransform_2,
-      'Box4Transform', true) as TNodeTransform_2;
+    TransformBox2 := Scene.RootNode.FindNodeByName(TNodeTransform,
+      'Box2Transform', true) as TNodeTransform;
+    TransformBox3 := Scene.RootNode.FindNodeByName(TNodeTransform,
+      'Box3Transform', true) as TNodeTransform;
+    TransformBox4 := Scene.RootNode.FindNodeByName(TNodeTransform,
+      'Box4Transform', true) as TNodeTransform;
 
     { init SceneManager with our Scene }
     SceneManager := TKamSceneManager.Create(Window);

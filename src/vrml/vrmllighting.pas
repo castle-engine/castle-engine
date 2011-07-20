@@ -130,7 +130,7 @@ function VRML97Emission(const IntersectNode: TVRMLTriangle;
   LightingCalculationOn: boolean): TVector3Single;
 var
   M1: TNodeMaterial_1;
-  M2: TNodeMaterial_2;
+  M2: TNodeMaterial;
 begin
   if IntersectNode.State.ShapeNode <> nil then
   begin

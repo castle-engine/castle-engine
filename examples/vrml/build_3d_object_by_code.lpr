@@ -18,31 +18,27 @@
 
   Check out latest X3D specification,
   http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html,
-  as our
+  and our
   http://vrmlengine.sourceforge.net/vrml_implementation_status.php
-  for a complete list of supported VRML/X3D nodes.
-
-  Note: suffix "_2" at the end of some class names is used to indicate
-  that we want VRML 2.0/X3D versions of the nodes (as opposed to older,
-  not compatible, VRML 1.0 versions). }
+  for a complete list of supported VRML/X3D nodes. }
 
 uses SysUtils, VectorMath, VRMLNodes;
 
 var
-  Root: TNodeGroup_2;
-  Sphere: TNodeSphere_2;
+  Root: TNodeGroup;
+  Sphere: TNodeSphere;
   SphereShape: TNodeShape;
   IndexedFaceSetCoordinate: TNodeCoordinate;
-  IndexedFaceSet: TNodeIndexedFaceSet_2;
+  IndexedFaceSet: TNodeIndexedFaceSet;
   IndexedFaceSetShape: TNodeShape;
-  IndexedFaceSetShapeTranslated: TNodeTransform_2;
+  IndexedFaceSetShapeTranslated: TNodeTransform;
   Appearance: TNodeAppearance;
 begin
   { This will be used as appearance for both sphere and IndexedFaceSet }
   Appearance := TNodeAppearance.Create('', '');
-  Appearance.FdMaterial.Value := TNodeMaterial_2.Create('', '');
+  Appearance.FdMaterial.Value := TNodeMaterial.Create('', '');
 
-  Sphere := TNodeSphere_2.Create('', '');
+  Sphere := TNodeSphere.Create('', '');
   Sphere.FdRadius.Value := 2;
 
   SphereShape := TNodeShape.Create('', '');
@@ -62,7 +58,7 @@ begin
      Vector3Single(0, 1, 0.5)
     ]);
 
-  IndexedFaceSet := TNodeIndexedFaceSet_2.Create('', '');
+  IndexedFaceSet := TNodeIndexedFaceSet.Create('', '');
   IndexedFaceSet.FdCoordIndex.Items.AppendArray(
     { Two quad faces. These are just indexes for
       the array placed in IndexedFaceSet.FdCoordinate array. }
@@ -73,11 +69,11 @@ begin
   IndexedFaceSetShape.FdAppearance.Value := Appearance;
   IndexedFaceSetShape.FdGeometry.Value := IndexedFaceSet;
 
-  IndexedFaceSetShapeTranslated := TNodeTransform_2.Create('', '');
+  IndexedFaceSetShapeTranslated := TNodeTransform.Create('', '');
   IndexedFaceSetShapeTranslated.FdTranslation.Value := Vector3Single(2, 0, 0);
   IndexedFaceSetShapeTranslated.FdChildren.Add(IndexedFaceSetShape);
 
-  Root := TNodeGroup_2.Create('', '');
+  Root := TNodeGroup.Create('', '');
   try
     Root.FdChildren.Add(SphereShape);
     Root.FdChildren.Add(IndexedFaceSetShapeTranslated);

@@ -86,9 +86,9 @@
 
     For VRML 2.0, this is TNodeX3DGeometryNode, since VRML 2.0 specification
     explicitly says it's valid geometry node. For X3D specification, this was only
-    TNodeX3DNode. When implementing NURBS, I will have to either handle
+    TNodeX3DNode. When actually implementing this, I will have to either handle
     both VRML 2.0 and X3D cases at once, or just split this class into
-    two separate TNodeContour2D_2 and TNodeContour2D_3. }
+    two separate TNodeContour2D_2 and TNodeContour2D. }
   TNodeContour2D = class(TNodeX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(
@@ -143,7 +143,7 @@
     function CoordCount: Cardinal; override;
   end;
 
-  TNodeNurbsCurve_3 = class(TNodeX3DParametricGeometryNode)
+  TNodeNurbsCurve = class(TNodeX3DParametricGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -184,6 +184,7 @@
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
+  TNodeNurbsCurve_3 = TNodeNurbsCurve;
 
   TNodeNurbsCurve2D = class(TNodeX3DNurbsControlCurveNode)
   public
@@ -263,7 +264,7 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeNurbsPositionInterpolator_3 = class(TNodeX3DChildNode)
+  TNodeNurbsPositionInterpolator = class(TNodeX3DChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -299,6 +300,7 @@
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
   end;
+  TNodeNurbsPositionInterpolator_3 = TNodeNurbsPositionInterpolator;
 
   TNodeNurbsSet = class(TNodeX3DChildNode, INodeX3DBoundedObject)
   public
@@ -723,7 +725,7 @@ begin
   Result := FdPoint.Items.Count;
 end;
 
-procedure TNodeNurbsCurve_3.CreateNode;
+procedure TNodeNurbsCurve.CreateNode;
 begin
   inherited;
 
@@ -759,12 +761,12 @@ begin
   { X3D specification comment: [2,Inf) }
 end;
 
-class function TNodeNurbsCurve_3.ClassNodeTypeName: string;
+class function TNodeNurbsCurve.ClassNodeTypeName: string;
 begin
   Result := 'NurbsCurve';
 end;
 
-function TNodeNurbsCurve_3.SuggestedVRMLVersion(
+function TNodeNurbsCurve.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -772,18 +774,18 @@ begin
     true, X3DVersion, 2000);
 end;
 
-class function TNodeNurbsCurve_3.URNMatching(const URN: string): boolean;
+class function TNodeNurbsCurve.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeNurbsCurve_3.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeNurbsCurve.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;
 
-procedure TNodeNurbsCurve_3.DirectEnumerateActive(
+procedure TNodeNurbsCurve.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
@@ -841,7 +843,7 @@ begin
   FreeAndNil(Knot);
 end;
 
-function TNodeNurbsCurve_3.Proxy(var State: TVRMLGraphTraverseState;
+function TNodeNurbsCurve.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
   ControlPoint: TDynVector3SingleArray;
@@ -859,14 +861,14 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeNurbsCurve_3.ProxyUsesOverTriangulate: boolean;
+function TNodeNurbsCurve.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsCurve_3.LocalBoundingBox(State: TVRMLGraphTraverseState;
+function TNodeNurbsCurve.LocalBoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
@@ -877,7 +879,7 @@ end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsCurve_3.BoundingBox(State: TVRMLGraphTraverseState;
+function TNodeNurbsCurve.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
@@ -886,7 +888,7 @@ begin
     Result := EmptyBox3D;
 end;
 
-function TNodeNurbsCurve_3.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+function TNodeNurbsCurve.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   Result := 0;
@@ -1378,7 +1380,7 @@ begin
     Result := 0;
 end;
 
-procedure TNodeNurbsPositionInterpolator_3.CreateNode;
+procedure TNodeNurbsPositionInterpolator.CreateNode;
 begin
   inherited;
 
@@ -1408,12 +1410,12 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeNurbsPositionInterpolator_3.ClassNodeTypeName: string;
+class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
 begin
   Result := 'NurbsPositionInterpolator';
 end;
 
-function TNodeNurbsPositionInterpolator_3.SuggestedVRMLVersion(
+function TNodeNurbsPositionInterpolator.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -1421,24 +1423,24 @@ begin
     true, X3DVersion, 2000);
 end;
 
-class function TNodeNurbsPositionInterpolator_3.URNMatching(const URN: string): boolean;
+class function TNodeNurbsPositionInterpolator.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeNurbsPositionInterpolator_3.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeNurbsPositionInterpolator.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;
 
-procedure TNodeNurbsPositionInterpolator_3.DirectEnumerateActive(
+procedure TNodeNurbsPositionInterpolator.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
 end;
 
-procedure TNodeNurbsPositionInterpolator_3.EventSet_FractionReceive(
+procedure TNodeNurbsPositionInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   ControlPoint: TDynVector3SingleArray;
@@ -1691,7 +1693,7 @@ begin
    FdcrossSectionCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdcrossSectionCurve);
 
-  FFdtrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TNodeNurbsCurve_3]);
+  FFdtrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TNodeNurbsCurve]);
    FdtrajectoryCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdtrajectoryCurve);
 
@@ -1900,11 +1902,11 @@ begin
     TNodeContour2D,
     TNodeContourPolyline2D,
     TNodeCoordinateDouble,
-    TNodeNurbsCurve_3,
+    TNodeNurbsCurve,
     TNodeNurbsCurve2D,
     TNodeNurbsOrientationInterpolator,
     TNodeNurbsPatchSurface,
-    TNodeNurbsPositionInterpolator_3,
+    TNodeNurbsPositionInterpolator,
     TNodeNurbsSet,
     TNodeNurbsSurfaceInterpolator,
     TNodeNurbsSweptSurface,

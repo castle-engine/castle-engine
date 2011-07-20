@@ -28,7 +28,7 @@
 
   TNodeAppearance = class;
   TNodeX3DTextureTransformNode = class;
-  TNodeMaterial_2 = class;
+  TNodeMaterial = class;
   TNodeComposedShader = class;
   TNodeLineProperties = class;
 
@@ -36,8 +36,8 @@
   private
     function GetAppearance: TNodeAppearance;
     procedure SetAppearance(const Value: TNodeAppearance);
-    function GetMaterial: TNodeMaterial_2;
-    procedure SetMaterial(const Value: TNodeMaterial_2);
+    function GetMaterial: TNodeMaterial;
+    procedure SetMaterial(const Value: TNodeMaterial);
     function GetTexture: TNodeX3DTextureNode;
     procedure SetTexture(const Value: TNodeX3DTextureNode);
     function GetTextureTransform: TNodeX3DTextureTransformNode;
@@ -94,7 +94,7 @@
 
       When setting this material to something non-nil, we make sure
       to also set Appearance to something non-nil. }
-    property Material: TNodeMaterial_2 read GetMaterial write SetMaterial;
+    property Material: TNodeMaterial read GetMaterial write SetMaterial;
 
     { Line properties of this shape. This is a clean, type-safe way
       for accessing Appearance.lineProperties field of this shape. }
@@ -213,7 +213,7 @@
 
   TVRMLMaterialInfo_2 = class;
 
-  TNodeMaterial_2 = class(TNodeX3DMaterialNode)
+  TNodeMaterial = class(TNodeX3DMaterialNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -264,7 +264,7 @@
     function ShininessExp: Single;
 
     { Create material information based on this node.
-      Returned TVRMLMaterialInfo is valid only as long as this node instance. }
+      Returned TVRMLMaterialInfo_2 is valid only as long as this node instance. }
     function MaterialInfo: TVRMLMaterialInfo_2;
 
     private FFdReflSpecular: TMFColor;
@@ -285,6 +285,7 @@
     private FFdTransSpecularExp: TSFFloat;
     public property FdTransSpecularExp: TSFFloat read FFdTransSpecularExp;
   end;
+  TNodeMaterial_2 = TNodeMaterial;
 
   { VRML material information, usable for all VRML versions.
 
@@ -298,7 +299,7 @@
     there are some features that are simply fundamentally different
     in how VRML 1.0 and >= 2.0 materials should be treated, and they
     cannot be abstracted under a common interface here. }
-  TVRMLMaterialInfo = class
+  TVRMLMaterialInfoAbstract = class
   protected
     { Calculate physical material properties using standard VRML material
       fields. See [http://127.0.0.1/~michalis/vrmlengine/kambi_vrml_extensions.php#section_ext_material_phong_brdf_fields].
@@ -328,11 +329,11 @@
     function TransSpecularExp: Single; virtual; abstract;
   end;
 
-  TVRMLMaterialInfo_2 = class(TVRMLMaterialInfo)
+  TVRMLMaterialInfo_2 = class(TVRMLMaterialInfoAbstract)
   private
-    FNode: TNodeMaterial_2;
+    FNode: TNodeMaterial;
   public
-    constructor Create(Node: TNodeMaterial_2);
+    constructor Create(Node: TNodeMaterial);
 
     function DiffuseColor: TVector3Single; override;
     function Mirror: Single; override;
@@ -490,19 +491,19 @@ begin
   FdAppearance.Value := Value;
 end;
 
-function TNodeX3DShapeNode.GetMaterial: TNodeMaterial_2;
+function TNodeX3DShapeNode.GetMaterial: TNodeMaterial;
 var
   App: TNodeAppearance;
 begin
   App := Appearance;
   if (App <> nil) and
      (App.FdMaterial.Value <> nil) and
-     (App.FdMaterial.Value is TNodeMaterial_2) then
-    Result := TNodeMaterial_2(App.FdMaterial.Value) else
+     (App.FdMaterial.Value is TNodeMaterial) then
+    Result := TNodeMaterial(App.FdMaterial.Value) else
     Result := nil;
 end;
 
-procedure TNodeX3DShapeNode.SetMaterial(const Value: TNodeMaterial_2);
+procedure TNodeX3DShapeNode.SetMaterial(const Value: TNodeMaterial);
 var
   App: TNodeAppearance;
 begin
@@ -793,11 +794,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeMaterial_2.CreateNode;
+procedure TNodeMaterial.CreateNode;
 begin
   inherited;
 
-  FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', DefaultMaterial_2AmbientIntensity);
+  FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', DefaultMaterialAmbientIntensity);
    FdambientIntensity.ChangesAlways := [chMaterial2];
   Fields.Add(FFdambientIntensity);
   { X3D specification comment: [0,1] }
@@ -860,12 +861,12 @@ begin
   Fields.Add(FFdtransSpecularExp);
 end;
 
-class function TNodeMaterial_2.ClassNodeTypeName: string;
+class function TNodeMaterial.ClassNodeTypeName: string;
 begin
   Result := 'Material';
 end;
 
-function TNodeMaterial_2.SuggestedVRMLVersion(
+function TNodeMaterial.SuggestedVRMLVersion(
   out Version: TVRMLVersion; out SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(Version, SuggestionPriority);
@@ -874,62 +875,62 @@ begin
     true, VRML2Version, 1000);
 end;
 
-class function TNodeMaterial_2.URNMatching(const URN: string): boolean;
+class function TNodeMaterial.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeMaterial_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNodeMaterial.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodeMaterial_2.Opacity: Single;
+function TNodeMaterial.Opacity: Single;
 begin
   Result := 1- FdTransparency.Value;
 end;
 
-function TNodeMaterial_2.ShininessExp: Single;
+function TNodeMaterial.ShininessExp: Single;
 begin
   Result := Clamped(FdShininess.Value * 128.0, 0.0, 128.0);
 end;
 
-function TNodeMaterial_2.MaterialInfo: TVRMLMaterialInfo_2;
+function TNodeMaterial.MaterialInfo: TVRMLMaterialInfo_2;
 begin
   Result := TVRMLMaterialInfo_2.Create(Self);
 end;
 
-{ TVRMLMaterialInfo ---------------------------------------------------------- }
+{ TVRMLMaterialInfoAbstract ---------------------------------------------------------- }
 
-procedure TVRMLMaterialInfo.CalculateReflSpecular(var V: TVector3Single);
+procedure TVRMLMaterialInfoAbstract.CalculateReflSpecular(var V: TVector3Single);
 begin
   V[0] := Mirror;
   V[1] := V[0];
   V[2] := V[0];
 end;
 
-procedure TVRMLMaterialInfo.CalculateReflDiffuse(var V: TVector3Single);
+procedure TVRMLMaterialInfoAbstract.CalculateReflDiffuse(var V: TVector3Single);
 begin
   V := DiffuseColor;
 end;
 
-procedure TVRMLMaterialInfo.CalculateTransSpecular(var V: TVector3Single);
+procedure TVRMLMaterialInfoAbstract.CalculateTransSpecular(var V: TVector3Single);
 begin
   V[0] := Transparency;
   V[1] := V[0];
   V[2] := V[0];
 end;
 
-procedure TVRMLMaterialInfo.CalculateTransDiffuse(var V: TVector3Single);
+procedure TVRMLMaterialInfoAbstract.CalculateTransDiffuse(var V: TVector3Single);
 begin
   V := VectorScale(DiffuseColor, Transparency);
 end;
 
 { TVRMLMaterialInfo_2 -------------------------------------------------------- }
 
-constructor TVRMLMaterialInfo_2.Create(Node: TNodeMaterial_2);
+constructor TVRMLMaterialInfo_2.Create(Node: TNodeMaterial);
 begin
   inherited Create;
   FNode := Node;
@@ -1122,7 +1123,7 @@ begin
     TNodeAppearance,
     TNodeFillProperties,
     TNodeLineProperties,
-    TNodeMaterial_2,
+    TNodeMaterial,
     TNodeShape,
     TNodeTwoSidedMaterial
   ]);

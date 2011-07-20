@@ -112,8 +112,8 @@
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
 
     { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
-      is nil or if it's not TNodeFontStyle_2. }
-    function FontStyle: TNodeFontStyle_2;
+      is nil or if it's not TNodeFontStyle. }
+    function FontStyle: TNodeFontStyle;
   end;
 
   { BlendMode node.
@@ -537,7 +537,7 @@ begin
    Fdstring.ChangesAlways := [chGeometry];
   Fields.Add(FFdstring);
 
-  FFdfontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2]);
+  FFdfontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle]);
    FdfontStyle.ChangesAlways := [chGeometry];
   Fields.Add(FFdfontStyle);
 
@@ -558,11 +558,11 @@ begin
   Fields.Add(FFdsolid);
 end;
 
-function TNodeText3D.FontStyle: TNodeFontStyle_2;
+function TNodeText3D.FontStyle: TNodeFontStyle;
 begin
   if (FdFontStyle.Value <> nil) and
-     (FdFontStyle.Value is TNodeFontStyle_2) then
-    Result := TNodeFontStyle_2(FdFontStyle.Value) else
+     (FdFontStyle.Value is TNodeFontStyle) then
+    Result := TNodeFontStyle(FdFontStyle.Value) else
     Result := nil;
 end;
 
@@ -862,7 +862,7 @@ begin
     ProjectedTextureCoordinate. }
   FFdprojector := TSFNode.Create(Self, 'projector',
     [TNodeSpotLight_1, TNodeDirectionalLight_1,
-     TNodeSpotLight_2, TNodeDirectionalLight_2,
+     TNodeSpotLight  , TNodeDirectionalLight  ,
      TNodeX3DViewpointNode]);
    FFdprojector.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdprojector);

@@ -1216,7 +1216,7 @@ begin
     TextureCoordinateGenerator. }
   FFdprojectedLight := TSFNode.Create(Self, 'projectedLight',
     [TNodeSpotLight_1, TNodeDirectionalLight_1,
-     TNodeSpotLight_2, TNodeDirectionalLight_2]);
+     TNodeSpotLight  , TNodeDirectionalLight  ]);
    FdprojectedLight.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdprojectedLight);
 end;

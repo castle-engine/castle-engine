@@ -24,7 +24,7 @@ type
     procedure GenerateCoordinate; override;
   end;
 
-  TPointSet_2Generator = class(TAbstractColorGenerator)
+  TPointSetGenerator = class(TAbstractColorGenerator)
   protected
     procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinateBegin; override;
@@ -114,7 +114,7 @@ type
 
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
     LineSet (VRML >= 2.0, although specification only since X3D). }
-  TLineSetGenerator = class(TAbstractCompleteGenerator)
+  TAbstractLineSetGenerator = class(TAbstractCompleteGenerator)
   private
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
@@ -127,13 +127,13 @@ type
   end;
 
   { Generator for VRML <= 1.0 TNodeIndexedLineSet_1 }
-  TIndexedLineSet_1Generator = class(TLineSetGenerator)
+  TIndexedLineSet_1Generator = class(TAbstractLineSetGenerator)
   public
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
-  { Generator for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
-  TLineSet_2Generator = class(TLineSetGenerator)
+  { Generator for VRML >= 2.0 TNodeIndexedLineSet and X3D TNodeLineSet. }
+  TLineSet_2Generator = class(TAbstractLineSetGenerator)
   public
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   protected
@@ -172,15 +172,15 @@ begin
     GenerateVertex(I);
 end;
 
-{ TPointSet_2Generator -------------------------------------------------------- }
+{ TPointSetGenerator -------------------------------------------------------- }
 
-constructor TPointSet_2Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
+constructor TPointSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
-  Node: TNodePointSet_2;
+  Node: TNodePointSet;
 begin
   inherited;
 
-  Node := Geometry as TNodePointSet_2;
+  Node := Geometry as TNodePointSet;
 
   { In VRML 2.0 PointSet is always unlit and not textured.
     Light is already disabled by Render_Material. }
@@ -220,9 +220,9 @@ begin
   end;
 end;
 
-procedure TPointSet_2Generator.GenerateCoordinateBegin;
+procedure TPointSetGenerator.GenerateCoordinateBegin;
 var
-  Material: TNodeMaterial_2;
+  Material: TNodeMaterial;
 begin
   inherited;
 
@@ -246,12 +246,12 @@ begin
   end;
 end;
 
-procedure TPointSet_2Generator.PrepareIndexesPrimitives;
+procedure TPointSetGenerator.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpPoints;
 end;
 
-procedure TPointSet_2Generator.GenerateCoordinate;
+procedure TPointSetGenerator.GenerateCoordinate;
 var
   I: Integer;
 begin
@@ -919,9 +919,9 @@ begin
   end;
 end;
 
-{ TLineSetGenerator ----------------------------------------------------------- }
+{ TAbstractLineSetGenerator -------------------------------------------------- }
 
-procedure TLineSetGenerator.PrepareIndexesCoordsRange(
+procedure TAbstractLineSetGenerator.PrepareIndexesCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var
   I: Integer;
@@ -932,7 +932,7 @@ begin
       IndexesFromCoordIndex.Add(CoordIndex.Items[I]);
 end;
 
-procedure TLineSetGenerator.PrepareIndexesPrimitives;
+procedure TAbstractLineSetGenerator.PrepareIndexesPrimitives;
 begin
   Arrays.Primitive := gpLineStrip;
   Arrays.Counts := TDynCardinalArray.Create;
@@ -941,7 +941,7 @@ begin
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
-procedure TLineSetGenerator.GenerateCoordsRange(
+procedure TAbstractLineSetGenerator.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var
   I: Integer;
@@ -951,7 +951,7 @@ begin
     GenerateVertex(I);
 end;
 
-procedure TLineSetGenerator.GenerateCoordinate;
+procedure TAbstractLineSetGenerator.GenerateCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
@@ -980,18 +980,18 @@ begin
     State.LastNodes.NormalBinding.FdValue.Value);
 end;
 
-{ TLineSet_2Generator --------------------------------------------------------- }
+{ TLineSetGenerator --------------------------------------------------------- }
 
 constructor TLineSet_2Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
   NodeLS: TNodeLineSet;
-  NodeILS: TNodeIndexedLineSet_2;
+  NodeILS: TNodeIndexedLineSet;
 begin
   inherited;
 
-  if Geometry is TNodeIndexedLineSet_2 then
+  if Geometry is TNodeIndexedLineSet then
   begin
-    NodeILS := Geometry as TNodeIndexedLineSet_2;
+    NodeILS := Geometry as TNodeIndexedLineSet;
 
     Color := NodeILS.Color;
     ColorRGBA := NodeILS.ColorRGBA;
@@ -1010,7 +1010,7 @@ end;
 
 procedure TLineSet_2Generator.GenerateCoordinateBegin;
 var
-  Material: TNodeMaterial_2;
+  Material: TNodeMaterial;
 begin
   inherited;
 

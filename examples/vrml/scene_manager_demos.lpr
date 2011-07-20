@@ -36,7 +36,7 @@ var
   Scene, Scene2: TVRMLGLScene;
   Animation: TVRMLGLAnimation;
   Translation: T3DTranslated;
-  Scene2Transform: TNodeTransform_2;
+  Scene2Transform: TNodeTransform;
 begin
   Window := TGLUIWindow.Create(Application);
 
@@ -93,7 +93,7 @@ begin
 
   { let's now show that you can process 3D model graph after loading:
     let's add a rotation inside VRML model in Scene2 }
-  Scene2Transform := TNodeTransform_2.Create('', '');
+  Scene2Transform := TNodeTransform.Create('', '');
   Scene2Transform.FdRotation.Axis := Vector3Single(1, 0, 0);
   Scene2Transform.FdRotation.RotationRad := -Pi/2;
   Scene2Transform.FdChildren.Add(Scene2.RootNode);

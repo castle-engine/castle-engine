@@ -22,7 +22,7 @@ type
     Note that this cannot deal with NorImplementation = niNone,
     you're expected to set NorImplementation to non-none in constructor.
     A simplest way to do this is to use AutoGenerateNormals. }
-  TIndexedFaceSetGenerator = class(TAbstractCompleteGenerator)
+  TAbstractIndexedFaceSetGenerator = class(TAbstractCompleteGenerator)
   private
     IFSIndexesCount: Cardinal;
     IFSNextIndex: Cardinal;
@@ -53,7 +53,7 @@ type
     class function BumpMappingAllowed: boolean; override;
   end;
 
-  TIndexedFaceSet_1Generator = class(TIndexedFaceSetGenerator)
+  TIndexedFaceSet_1Generator = class(TAbstractIndexedFaceSetGenerator)
   private
     VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
   protected
@@ -62,14 +62,14 @@ type
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
-  TIndexedFaceSet_2Generator = class(TIndexedFaceSetGenerator)
+  TIndexedFaceSetGenerator_2 = class(TAbstractIndexedFaceSetGenerator)
   public
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
-{ TIndexedFaceSetGenerator -------------------------------------------------- }
+{ TAbstractIndexedFaceSetGenerator ------------------------------------------- }
 
-class function TIndexedFaceSetGenerator.BumpMappingAllowed: boolean;
+class function TAbstractIndexedFaceSetGenerator.BumpMappingAllowed: boolean;
 begin
   Result := true;
 end;
@@ -123,12 +123,12 @@ end;
   and search for TryRenderingFaceAsFan comments.
 }
 
-procedure TIndexedFaceSetGenerator.GenerateCoordinate;
+procedure TAbstractIndexedFaceSetGenerator.GenerateCoordinate;
 begin
   Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
-procedure TIndexedFaceSetGenerator.AutoGenerateNormals(const CreaseAngle: Single);
+procedure TAbstractIndexedFaceSetGenerator.AutoGenerateNormals(const CreaseAngle: Single);
 begin
   { We could use the same NormalsCreaseAngle for all CreaseAngle values,
     so the tests for CreaseAngle are not really required below.
@@ -155,12 +155,12 @@ begin
   NormalsCcw := true; { always generated from CCW }
 end;
 
-procedure TIndexedFaceSetGenerator.GenerateCoordinateEnd;
+procedure TAbstractIndexedFaceSetGenerator.GenerateCoordinateEnd;
 begin
   inherited;
 end;
 
-procedure TIndexedFaceSetGenerator.GenerateTriangle(
+procedure TAbstractIndexedFaceSetGenerator.GenerateTriangle(
   const TriIndices: TVector3Longint);
 begin
   GenerateVertex(TriIndices[0]);
@@ -168,7 +168,7 @@ begin
   GenerateVertex(TriIndices[2]);
 end;
 
-procedure TIndexedFaceSetGenerator.GenerateCoordsRange(
+procedure TAbstractIndexedFaceSetGenerator.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var
   I: Integer;
@@ -197,13 +197,13 @@ begin
   end;
 end;
 
-procedure TIndexedFaceSetGenerator.PrepareIndexesTriangle1(
+procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle1(
   const TriIndices: TVector3Longint);
 begin
   IFSIndexesCount += 3;
 end;
 
-procedure TIndexedFaceSetGenerator.PrepareIndexesCoordsRange1(
+procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesCoordsRange1(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   if not FaceConvex then
@@ -217,7 +217,7 @@ begin
   end;
 end;
 
-procedure TIndexedFaceSetGenerator.PrepareIndexesTriangle2(
+procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle2(
   const TriIndices: TVector3Longint);
 begin
   IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[TriIndices[0]]; Inc(IFSNextIndex);
@@ -225,7 +225,7 @@ begin
   IndexesFromCoordIndex.Items[IFSNextIndex] := CoordIndex.Items.Items[TriIndices[2]]; Inc(IFSNextIndex);
 end;
 
-procedure TIndexedFaceSetGenerator.PrepareIndexesCoordsRange2(
+procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesCoordsRange2(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 var
   I, IFSNextIndexBegin: Integer;
@@ -255,7 +255,7 @@ begin
     end;
 end;
 
-procedure TIndexedFaceSetGenerator.PrepareIndexesPrimitives;
+procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesPrimitives;
 begin
   { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
@@ -320,15 +320,15 @@ begin
   Arrays.CullBackFaces := VRML1CullBackFaces;
 end;
 
-{ TIndexedFaceSet_2Generator -------------------------------------------------- }
+{ TIndexedFaceSetGenerator_2 -------------------------------------------------- }
 
-constructor TIndexedFaceSet_2Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
+constructor TIndexedFaceSetGenerator_2.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
-  ANode: TNodeIndexedFaceSet_2;
+  ANode: TNodeIndexedFaceSet;
 begin
   inherited;
 
-  ANode := Geometry as TNodeIndexedFaceSet_2;
+  ANode := Geometry as TNodeIndexedFaceSet;
 
   TexCoordIndex := ANode.FdTexCoordIndex;
 

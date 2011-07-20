@@ -2639,7 +2639,7 @@ procedure TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleSwitch(SwitchNode: TNodeSwitch_2);
+  procedure HandleSwitch(SwitchNode: TNodeSwitch);
   var
     SwitchTree: TVRMLShapeTreeSwitch;
     Traverser: TChangedAllTraverser;
@@ -2765,9 +2765,9 @@ begin
         (Node as TNodeX3DLightNode).CreateLightInstance(StateStack.Top));
   end else
 
-  if Node is TNodeSwitch_2 then
+  if Node is TNodeSwitch then
   begin
-    HandleSwitch(TNodeSwitch_2(Node));
+    HandleSwitch(TNodeSwitch(Node));
   end else
   if Node is TVRMLLODNode then
   begin
@@ -3200,7 +3200,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleSwitch(SwitchNode: TNodeSwitch_2);
+  procedure HandleSwitch(SwitchNode: TNodeSwitch);
   var
     I: Integer;
     ChildInactive: boolean;
@@ -3329,7 +3329,7 @@ var
 begin
   case Node.TransformationChange of
     ntcNone: ;
-    ntcSwitch: HandleSwitch(TNodeSwitch_2(Node));
+    ntcSwitch: HandleSwitch(TNodeSwitch(Node));
     ntcLOD: HandleLOD(TVRMLLODNode(Node));
     ntcTransform: HandleTransform(Node);
     ntcGeometry:
@@ -3731,9 +3731,9 @@ var
     try
       while SI.GetNext do
         if ((SI.Current.Geometry is TNodeX3DComposedGeometryNode) and (TNodeX3DComposedGeometryNode(SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TNodeIndexedLineSet_2       ) and (TNodeIndexedLineSet_2       (SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TNodeIndexedLineSet         ) and (TNodeIndexedLineSet         (SI.Current.Geometry).FdColor.Value = Node)) or
            ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TNodePointSet_2             ) and (TNodePointSet_2             (SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TNodePointSet               ) and (TNodePointSet               (SI.Current.Geometry).FdColor.Value = Node)) or
            ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;

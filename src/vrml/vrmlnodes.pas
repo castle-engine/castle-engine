@@ -17,7 +17,7 @@
   @abstract(All VRML/X3D nodes and other bulding blocks
   of VRML/X3D (prototypes, routes and such).)
 
-  This is the centrail unit for VRML/X3D processing, as VRML/X3D file
+  This is the central unit for VRML/X3D processing, as VRML/X3D file
   is basically just a graph of nodes. We can represent VRML/X3D file
   by it's root node. This is what we load, save and process in this unit.
 
@@ -106,17 +106,17 @@
       like TVRMLGeometryNode, TVRML2DTextureNode, TVRMLUnknownNode.)
 
     @item(
-      Optional suffix _1 or _2 or _3 after the node class name indicates that
+      Optional suffix _1 or _2 after the node class name indicates that
       this node class is used only for given major VRML version.
-      _1 means VRML 1.0, _2 means VRML 2.0 (aka 97), _3 means VRML 3.0 (aka X3D).
-      Also _2 sometimes mean both VRML 2.0 and 3.0.
-
-      This suffix is used when there are nodes with the same name in VRML/X3D
-      specifications, but they have to be handled by different Pascal classes
-      since they are incompatible.
+      Suffix _1 indicates nodes specific to VRML 1.0.
+      Suffix _2 indicates nodes specific to VRML 2.0 (aka 97),
+      that are not available in X3D.
+      Latest X3D nodes are simply indicated without any suffix
+      (to not clutter the source code that simply wants to use the latest
+      and best version of the standard).
 
       For example, we have TNodeIndexedFaceSet_1 for VRML 1.0 and
-      TNodeIndexedFaceSet_2 for VRML >= 2.0 (97, X3D).)
+      TNodeIndexedFaceSet for VRML >= 2.0 (97, X3D).)
 
     @item(
       Since X3D introduced abstract node classes, and defines node
@@ -188,7 +188,7 @@ uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
 
 const
   DefaultMaterial_1AmbientColor: TVector3Single = (0.2, 0.2, 0.2);
-  DefaultMaterial_2AmbientIntensity = 0.2;
+  DefaultMaterialAmbientIntensity = 0.2;
   DefaultMaterialDiffuseColor: TVector3Single = (0.8, 0.8, 0.8);
   DefaultMaterialSpecularColor: TVector3Single = (0, 0, 0);
   DefaultMaterialEmissiveColor: TVector3Single = (0, 0, 0);
@@ -707,7 +707,7 @@ type
 
   TNodeTransformationChange = (
     ntcNone,
-    ntcSwitch, //< TNodeSwitch_2
+    ntcSwitch, //< TNodeSwitch
     ntcLOD, //< TVRMLLODNode
     ntcTransform, //< INodeTransform
     ntcGeometry, //< TVRMLGeometryNode

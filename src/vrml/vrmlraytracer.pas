@@ -371,7 +371,7 @@ var
   var
     i: integer;
     M1: TNodeMaterial_1;
-    M2: TNodeMaterial_2;
+    M2: TNodeMaterial;
     Lights: TLightInstancesList;
   begin
     IntersectNode := Octree.RayCollision(Intersection,
@@ -540,7 +540,7 @@ end;
 
   function EmissiveColor(const Item: TVRMLTriangle): TVector3Single;
   var
-    M: TNodeMaterial_2;
+    M: TNodeMaterial;
   begin
     if Item.State.ShapeNode <> nil then
     begin
@@ -715,7 +715,7 @@ const
   var
     Intersection: TVector3Single;
     IntersectNode: PVRMLTriangle;
-    MaterialInfo: TVRMLMaterialInfo; { = IntersectNode.MaterialInfo }
+    MaterialInfo: TVRMLMaterialInfoAbstract; { = IntersectNode.MaterialInfo }
     IntersectNormalInRay0Dir: TVector3Single;
 
     function TraceNonEmissivePart: TVector3Single;

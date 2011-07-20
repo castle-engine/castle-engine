@@ -64,7 +64,7 @@ type
     FHeadlightFromViewport: boolean;
     FAlwaysApplyProjection: boolean;
     FUseGlobalLights: boolean;
-    DefaultHeadlightNode: TNodeDirectionalLight_2;
+    DefaultHeadlightNode: TNodeDirectionalLight;
 
     { If a texture rectangle for screen effects is ready, then
       ScreenEffectTextureDest/Src/Depth are non-zero and ScreenEffectRTT is non-nil.
@@ -1353,7 +1353,7 @@ var
       if DefaultHeadlightNode = nil then
         { Nothing more needed, all DirectionalLight default properties
           are suitable for default headlight. }
-        DefaultHeadlightNode := TNodeDirectionalLight_2.Create('', '');;
+        DefaultHeadlightNode := TNodeDirectionalLight.Create('', '');;
       Node := DefaultHeadlightNode;
     end;
 
@@ -1365,8 +1365,8 @@ var
     if Node is TVRMLPositionalLightNode then
     begin
       TVRMLPositionalLightNode(Node).FdLocation.Send(Position);
-      if Node is TNodeSpotLight_2 then
-        TNodeSpotLight_2(Node).FdDirection.Send(Direction) else
+      if Node is TNodeSpotLight then
+        TNodeSpotLight(Node).FdDirection.Send(Direction) else
       if Node is TNodeSpotLight_1 then
         TNodeSpotLight_1(Node).FdDirection.Send(Direction);
     end else
