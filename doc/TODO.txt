@@ -82,6 +82,7 @@ Details during 2.6.0 release:
   to invalidate it from VRMLScene changes.
 
 - Add a way to limit FPS, to not burn CPU without need.
+  There's a bugreport about this in tracker too.
 
 - Maybe rename various units and classes to X3D, not VRML.
   Generally, focus docs on VRML/X3D or X3D, never just VRML.
