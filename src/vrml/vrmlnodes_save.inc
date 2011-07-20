@@ -198,10 +198,16 @@ begin
       when destroying old nodes)
     - you rely of reUSEing old nodes (in new version, we will have new node
       for each previous reference).
-    - also, if you declare your VRML 2 nodes by EXTERNPROTO,
-      like "urn:web3d:vrml97:node:NurbsCurve", we *will* convert your
-      NurbsCurve, but we will not remove (or modify) the EXTERNPROTO,
-      which will still force using VRML 2 version on read.
+    - If you declare your VRML 2 nurbs nodes by EXTERNPROTO
+      (like White Dune does) e.g. by "urn:web3d:vrml97:node:NurbsCurve"
+      we *will* convert your NurbsCurve,
+      but we will not remove (or modify) the EXTERNPROTO.
+      If you save to classic encoding, this will cause problems,
+      as when reading we will see EXTERNPROTO and try to read VRML 2 version
+      of the node.
+      If you save to XML encoding, this is avoided, as then we have
+      <NurbsCurve> instead of <ProtoInstance name="NurbsCurve">,
+      and the invalid externproto is not relevant.
   }
   if Node is TNodeNurbsCurve_2 then
     Node := ConvertNurbsCurve(TNodeNurbsCurve_2(Node)) else
