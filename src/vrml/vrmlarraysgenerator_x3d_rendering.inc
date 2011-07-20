@@ -133,7 +133,7 @@ type
   end;
 
   { Generator for VRML >= 2.0 TNodeIndexedLineSet and X3D TNodeLineSet. }
-  TLineSet_2Generator = class(TAbstractLineSetGenerator)
+  TLineSetGenerator = class(TAbstractLineSetGenerator)
   public
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   protected
@@ -982,7 +982,7 @@ end;
 
 { TLineSetGenerator --------------------------------------------------------- }
 
-constructor TLineSet_2Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
+constructor TLineSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
   NodeLS: TNodeLineSet;
   NodeILS: TNodeIndexedLineSet;
@@ -1008,7 +1008,7 @@ begin
   end;
 end;
 
-procedure TLineSet_2Generator.GenerateCoordinateBegin;
+procedure TLineSetGenerator.GenerateCoordinateBegin;
 var
   Material: TNodeMaterial;
 begin

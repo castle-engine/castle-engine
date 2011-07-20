@@ -211,7 +211,7 @@
     public property FdlinewidthScaleFactor: TSFFloat read FFdlinewidthScaleFactor;
   end;
 
-  TVRMLMaterialInfo_2 = class;
+  TVRMLMaterialInfo = class;
 
   TNodeMaterial = class(TNodeX3DMaterialNode)
   public
@@ -264,8 +264,8 @@
     function ShininessExp: Single;
 
     { Create material information based on this node.
-      Returned TVRMLMaterialInfo_2 is valid only as long as this node instance. }
-    function MaterialInfo: TVRMLMaterialInfo_2;
+      Returned TVRMLMaterialInfo is valid only as long as this node instance. }
+    function MaterialInfo: TVRMLMaterialInfo;
 
     private FFdReflSpecular: TMFColor;
     public property FdReflSpecular: TMFColor read FFdReflSpecular;
@@ -329,7 +329,7 @@
     function TransSpecularExp: Single; virtual; abstract;
   end;
 
-  TVRMLMaterialInfo_2 = class(TVRMLMaterialInfoAbstract)
+  TVRMLMaterialInfo = class(TVRMLMaterialInfoAbstract)
   private
     FNode: TNodeMaterial;
   public
@@ -897,9 +897,9 @@ begin
   Result := Clamped(FdShininess.Value * 128.0, 0.0, 128.0);
 end;
 
-function TNodeMaterial.MaterialInfo: TVRMLMaterialInfo_2;
+function TNodeMaterial.MaterialInfo: TVRMLMaterialInfo;
 begin
-  Result := TVRMLMaterialInfo_2.Create(Self);
+  Result := TVRMLMaterialInfo.Create(Self);
 end;
 
 { TVRMLMaterialInfoAbstract ---------------------------------------------------------- }
@@ -928,30 +928,30 @@ begin
   V := VectorScale(DiffuseColor, Transparency);
 end;
 
-{ TVRMLMaterialInfo_2 -------------------------------------------------------- }
+{ TVRMLMaterialInfo -------------------------------------------------------- }
 
-constructor TVRMLMaterialInfo_2.Create(Node: TNodeMaterial);
+constructor TVRMLMaterialInfo.Create(Node: TNodeMaterial);
 begin
   inherited Create;
   FNode := Node;
 end;
 
-function TVRMLMaterialInfo_2.DiffuseColor: TVector3Single;
+function TVRMLMaterialInfo.DiffuseColor: TVector3Single;
 begin
   Result := FNode.FdDiffuseColor.Value;
 end;
 
-function TVRMLMaterialInfo_2.Mirror: Single;
+function TVRMLMaterialInfo.Mirror: Single;
 begin
   Result := FNode.FdMirror.Value;
 end;
 
-function TVRMLMaterialInfo_2.Transparency: Single;
+function TVRMLMaterialInfo.Transparency: Single;
 begin
   Result := FNode.FdTransparency.Value;
 end;
 
-function TVRMLMaterialInfo_2.ReflSpecular: TVector3Single;
+function TVRMLMaterialInfo.ReflSpecular: TVector3Single;
 var
   A: TDynVector3SingleArray;
 begin
@@ -961,7 +961,7 @@ begin
     Result := A.Items[0];
 end;
 
-function TVRMLMaterialInfo_2.ReflDiffuse: TVector3Single;
+function TVRMLMaterialInfo.ReflDiffuse: TVector3Single;
 var
   A: TDynVector3SingleArray;
 begin
@@ -971,7 +971,7 @@ begin
     Result := A.Items[0];
 end;
 
-function TVRMLMaterialInfo_2.TransSpecular: TVector3Single;
+function TVRMLMaterialInfo.TransSpecular: TVector3Single;
 var
   A: TDynVector3SingleArray;
 begin
@@ -981,7 +981,7 @@ begin
     Result := A.Items[0];
 end;
 
-function TVRMLMaterialInfo_2.TransDiffuse: TVector3Single;
+function TVRMLMaterialInfo.TransDiffuse: TVector3Single;
 var
   A: TDynVector3SingleArray;
 begin
@@ -991,12 +991,12 @@ begin
     Result := A.Items[0];
 end;
 
-function TVRMLMaterialInfo_2.ReflSpecularExp: Single;
+function TVRMLMaterialInfo.ReflSpecularExp: Single;
 begin
   Result := FNode.FdReflSpecularExp.Value;
 end;
 
-function TVRMLMaterialInfo_2.TransSpecularExp: Single;
+function TVRMLMaterialInfo.TransSpecularExp: Single;
 begin
   Result := FNode.FdTransSpecularExp.Value;
 end;

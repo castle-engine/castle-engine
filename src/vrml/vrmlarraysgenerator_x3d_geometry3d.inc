@@ -62,7 +62,7 @@ type
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
-  TIndexedFaceSetGenerator_2 = class(TAbstractIndexedFaceSetGenerator)
+  TIndexedFaceSetGenerator = class(TAbstractIndexedFaceSetGenerator)
   public
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
@@ -320,9 +320,9 @@ begin
   Arrays.CullBackFaces := VRML1CullBackFaces;
 end;
 
-{ TIndexedFaceSetGenerator_2 -------------------------------------------------- }
+{ TIndexedFaceSetGenerator -------------------------------------------------- }
 
-constructor TIndexedFaceSetGenerator_2.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
+constructor TIndexedFaceSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
   ANode: TNodeIndexedFaceSet;
 begin

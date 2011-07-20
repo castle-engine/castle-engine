@@ -2263,12 +2263,12 @@ begin
   if AGeometry is TNodeIndexedFaceSet_1 then
     Result := TIndexedFaceSet_1Generator else
   if AGeometry is TNodeIndexedFaceSet then
-    Result := TIndexedFaceSetGenerator_2 else
+    Result := TIndexedFaceSetGenerator else
   if AGeometry is TNodeIndexedLineSet_1 then
     Result := TIndexedLineSet_1Generator else
   if (AGeometry is TNodeIndexedLineSet) or
      (AGeometry is TNodeLineSet) then
-    Result := TLineSet_2Generator else
+    Result := TLineSetGenerator else
   if AGeometry is TNodePointSet_1 then
     Result := TPointSet_1Generator else
   if AGeometry is TNodePointSet then
