@@ -59,11 +59,6 @@
     FPrototypeInstanceSourceNode: TVRMLPrototypeNode;
     FPrototypeInstanceHelpers: TVRMLNode;
     FDefaultContainerField: string;
-    { Value of "containerField" attribute specified explicitly
-      for this node in X3D XML encoding.
-      Used by X3D XML reader. *Not* used by XML writer (when writing,
-      we can calculate correct containerField= ourselves, always). }
-    ExplicitContainerField: string;
     FHasInterfaceDeclarations: TVRMLAccessTypes;
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
     FCDataAllowed: boolean;
@@ -2567,8 +2562,7 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
     ProtoInstance: boolean;
     NodeFields, ProtoFields: TDynStringArray;
   begin
-    { No need to use here ExplicitContainerField.
-      Knowing CurrentContainerField and DefaultContainerField,
+    { Knowing CurrentContainerField and DefaultContainerField,
       we can always correctly set containerField= ourselves. }
     if (CurrentContainerField <> '') and
        (CurrentContainerField <> DefaultContainerField) then
@@ -3160,7 +3154,6 @@ begin
     Result.CData := CData;
 
     Result.DefaultContainerField := DefaultContainerField;
-    Result.ExplicitContainerField := ExplicitContainerField;
   except
     FreeAndNil(Result);
     raise;

@@ -139,7 +139,6 @@ function ParseXMLNode(Element: TDOMElement;
     ProtoIter: TXMLElementIterator;
     FieldActualValue, FieldName: string;
     FieldIndex: Integer;
-    ExplicitContainerField: string;
     PositionInParent: Integer;
   begin
     NodeTypeName := Element.TagName;
@@ -235,9 +234,6 @@ function ParseXMLNode(Element: TDOMElement;
     end;
 
     Names.Nodes.Bind(Result, true);
-
-    if DOMGetAttribute(Element, SAttrContainerField, ExplicitContainerField) then
-      Result.ExplicitContainerField := ExplicitContainerField;
   end;
 
 var
@@ -276,20 +272,13 @@ begin
       of X3D specification, in both situations element may have
       containerField attribute.
 
-      Also note that we take into account both
-      DefaultContainerField and ExplicitContainerField.
-      ExplicitContainerField is needed --- imagine a node with DEF
-      has explicit "containerField" attribute, then this takes precedence
-      over implicit DefaultContainerField, and has to be stored
-      in Result instance.
-
-      It can be overriden at each USE of this node. }
+      We either use DefaultContainerField, or explicit containerField value.
+      Note that containerField doesn't have to be preserved
+      (see demo_models/x3d/container_field_def_use.x3d).
+      Each USE occurence must specify suitable containerField or use class default. }
     if Result <> nil then
-    begin
-      if Result.ExplicitContainerField <> '' then
-        ContainerField := Result.ExplicitContainerField else
-        ContainerField := Result.DefaultContainerField;
-    end;
+      ContainerField := Result.DefaultContainerField else
+      ContainerField := ''; { will not be used anyway }
     DOMGetAttribute(Element, SAttrContainerField, ContainerField);
 
   except FreeAndNil(Result); raise end;
