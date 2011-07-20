@@ -375,7 +375,8 @@ function StringToX3DClassic(const s: string): string;
   You can use this when generating VRML/X3D content by hand.
 
   Simply put, this just adds double quotes around and replaces
-  &, apostrophe, double quotes, <, > with appropriate XML entities &xxx;. }
+  all special characters (quotes, double quotes and more)
+  with appropriate XML entities &xxx;. }
 function StringToX3DXml(const s: string): string;
 
 { String encoded for X3D XML, surrounded by double quotes, to be used
@@ -1116,8 +1117,8 @@ end;
 
 function StringToX3DXml(const s: string): string;
 const
-  Patterns: array [0..4] of string = ('&', '"', '''', '<', '>');
-  PatValues: array [0..4] of string = ('&amp;', '&quot;', '&apos;', '&lt;', '&gt;');
+  Patterns: array [0..6] of string = ('&', '"', '''', '<', '>', #10, #13);
+  PatValues: array [0..6] of string = ('&amp;', '&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;');
 begin
   { use soMatchCase for speed }
   Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
@@ -1125,8 +1126,8 @@ end;
 
 function StringToX3DXmlMulti(const s: string): string;
 const
-  Patterns: array [0..5] of string = ('&', '"', '''', '<', '>', '\');
-  PatValues: array [0..5] of string = ('&amp;', '\&quot;', '&apos;', '&lt;', '&gt;', '\\');
+  Patterns: array [0..7] of string = ('&', '"', '''', '<', '>', #10, #13, '\');
+  PatValues: array [0..7] of string = ('&amp;', '\&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;', '\\');
 begin
   { use soMatchCase for speed }
   Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
