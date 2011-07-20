@@ -1622,12 +1622,21 @@ begin
       begin
         if HasDefaultFilter then
         begin
-          { Unfortunately, the default filter will be ignored after set_filename,
+          { Unfortunately, the default filter will be ignored after
+            gtk_file_chooser_set_filename
             (even if your FileName matches with the default filter).
-            See e.g. [http://www.mail-archive.com/gtk-list@gnome.org/msg29044.html]
+            See [http://www.mail-archive.com/gtk-list@gnome.org/msg29044.html].
             This makes ugly dialog (with by default all files shown, and no
             filter selected in combo box), so avoid it:
-            workaround: set only directory. }
+            workaround is to set only directory.
+
+            Note that adding gtk_file_chooser_set_current_name
+            with ExtractFileName(ExpandedFileName)
+            (this would be a little nicer workaround)
+            after setting dir has no effect, no idea why.
+
+            This problem is present in GTK 2.18 (Debian lenny),
+            not present in GTK 2.24 (Debian wheezy on 2011-07). }
           ExpandedFileName := ExtractFilePath(ExpandedFileName);
           gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName));
         end else
