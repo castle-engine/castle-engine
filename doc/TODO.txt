@@ -88,6 +88,11 @@ Details during 2.6.0 release:
   Generally, focus docs on VRML/X3D or X3D, never just VRML.
   Maybe also T3DGLScene instead of TVRMLGLScene?
   Maybe also TX3DSceneManager instead of TKamSceneManager --- I don't use prefix Kam consistently.
+
+- Move castle creature animations outside of XML, to separate kanim files.
+- Merge VRMLGLAnimationInfo functionality into VRMLGLAnimation class?
+- T3DTransformed, with fields like VRML/X3D Transform.
+  Transform frustum (with far plane possibly in infinity) by arbitrary matrix?
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
